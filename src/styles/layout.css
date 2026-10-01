@@ -28,11 +28,9 @@
 .ui-app-page .topbar { position: sticky; top: 0; z-index: var(--z-sticky); }
 
 /* The rail uses the card surface so its labels stay on a reading ground.
-   What separates navigation from the page depends on the theme: dark keeps the edge
-   (--rail-edge), light casts --elev-rail instead — sideways, because the rail is flush
-   to the screen edge and full height, the same reason the drawer draws its line in one
-   direction. This reopens #454's "no visual change to the light rail": the rail's edge
-   is one of the hairlines #490 round t3 decided against.
+   Dark keeps its edge (--rail-edge); light casts --elev-rail, sideways, because the rail
+   is flush to a screen edge. Reopens the light half of #454.
+   why: docs/specification.md#elevation
    overflow-y, because the box is pinned at the viewport's height for the whole
    scroll of .ui-app — without it a row past that height paints below the fold
    and no amount of document scrolling brings it back. The rail's own padding is
@@ -534,10 +532,12 @@
   z-index: 1;
   width: 100%;
   max-width: var(--panel-md);
-  /* Floats over a spotlit page, so it takes the floating step and the hairline.
+  /* Floats over a spotlit page, so it takes the floating step and the floating
+     treatment: the two-step edge in dark, the drop alone in light.
      why: docs/specification.md#elevation */
   background: var(--bg-elevated); --ring-gap: var(--bg-elevated);
-  border: 1px solid var(--border);
+  border: 1px solid var(--float-edge);
+  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: 22px;
   padding: 38px 36px 32px;
 }

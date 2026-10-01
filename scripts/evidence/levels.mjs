@@ -39,6 +39,8 @@ const WIDTHS = { 1280: 1280, 390: 390 };
 const CROPS = {
   // the top-left corner of the second card, on the page
   'card-edge': { x: 735, y: 230, width: 240, height: 120 },
+  // the card's TOP edge alone, the one #490's review found bare at the first pass
+  'card-top': { x: 820, y: 237, width: 260, height: 40 },
   // the rail's right edge, against the page, clear of every row
   'rail-edge': { x: 180, y: 560, width: 180, height: 120 },
   // the menu's bottom edge, where it crosses the card it covers
@@ -71,6 +73,22 @@ try {
       }
       await ctx.close();
     }
+  }
+
+  /* The three surfaces that were on the floating step with no rung under them until
+   * #490's review found them. Light only for the pair that matters, dark to show it is
+   * the hairline there as everywhere else. */
+  for (const theme of ['light', 'dark']) {
+    const name = `${prefix}-elevated-${theme}`;
+    if (only && !name.includes(only)) continue;
+    const ctx = await browser.newContext({ viewport: { width: 1100, height: 560 }, deviceScaleFactor: 1 });
+    const page = await ctx.newPage();
+    await page.goto(`http://127.0.0.1:${srv.port}/__shot?subject=elevated&theme=${theme}`, { waitUntil: 'load' });
+    await page.waitForFunction(() => window.__ready === true);
+    await settle(page);
+    await page.screenshot({ path: path.join(outDir, `${name}.png`) });
+    console.log(`  ${name}.png`);
+    await ctx.close();
   }
 
   /* The fields card sits below a 900px fold, and it carries the subject this

@@ -416,27 +416,14 @@
   --shadow-ink: #1e1e32;
   --sheen: #ffffff;
 
-  /* THE LIGHT LADDER. Three rungs, each two layers: a wide faint one that separates
-     by AREA, and a short one that keeps the surface from floating free of its own
-     footprint. Every value has a negative spread, so none of them reaches past the
-     surface on every side as a halo, and none is a glow: a glow is a zero-offset
-     layer of the signal's own colour and says "this is lit", not "this is high".
-
-     The widths come from Artur's reference, measured in
-     evidence 490c/reference.md: a card's penumbra runs 12–13 CSS px there, a
-     floating control's 25, and a popover's 35–40. The second pass on this issue
-     concluded a drop could not carry a floating panel in light, because
-     --surface and --bg-elevated are both #ffffff and the step between them is
-     1.000. The reference answers that: its popover sits at a 1.002 step with no
-     border at all and reads as floating, because its drop is three times wider
-     than the kit's was. Width was the variable that pass held fixed.
-
-     --elev-drop keeps its ink ABOVE what #309's review page measured — 22% against
-     the old 18%, core #ceced2 / 1.57 on a white card — because the two lines it
-     used to sit behind are gone in light and the drop now carries all of the
-     separation. why: docs/specification.md#elevation */
+  /* THE LIGHT LADDER. Three rungs, each two layers: a wide faint one and a short one.
+     Each layer is offset on one axis, blurred at least twice as wide as it is offset,
+     and held in by a negative spread. None is a glow — a glow is a zero-offset layer of
+     the signal's own colour. A level with no line casts a rung that reaches on every
+     side it exposes, which is why the wide layer's offset stays under half its blur.
+     why: docs/specification.md#elevation */
   --elev-rest:
-    0 10px 22px -14px color-mix(in srgb, var(--shadow-ink) 16%, transparent),
+    0 2px 26px -3px color-mix(in srgb, var(--shadow-ink) 9%, transparent),
     0 1px 3px -1px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
   --elev-rail:
     10px 0 24px -14px color-mix(in srgb, var(--shadow-ink) 16%, transparent),

@@ -23,7 +23,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, winnersOf, substitute, parseColour, composite, ratio } from './lib/contrast.js';
-import { boxShadowsIn, customPropertiesIn, layersOf, isCast, isFocusRing, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, TREATMENT_DROP, LADDER, LADDER_LAYERS, FLAT } from '../scripts/lib/box-shadow.js';
+import { boxShadowsIn, customPropertiesIn, layersOf, isCast, isFocusRing, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, reachesTrailingSide, TREATMENT_DROP, LADDER, LADDER_LAYERS, FLAT } from '../scripts/lib/box-shadow.js';
 
 const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const read = (p) => readFileSync(root(p), 'utf8');
@@ -84,12 +84,14 @@ test('the sweep sees every box-shadow the kit ships', () => {
   // rows, which #487's re-review found still taking the browser's outline; the
   // dropdown panel composes the ring with the floating treatment it already
   // carries, so taking focus does not drop its edge and its drop. All eighteen
-  // are the composed indicator, not a cast shadow. 68 -> 70: the two rungs #490
+  // are the composed indicator, not a cast shadow. 68 -> 73: the two rungs #490
   // adds, under a card and sideways off the rail, where both drew a hairline and
-  // cast nothing before. The eleven floating declarations it rewrites to read
-  // --float-edge-inner instead of --border are rewritten in place and move no count.
-  assert.equal(sweep.length, 70,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 70. `
+  // cast nothing before, plus the three surfaces it puts on the floating step —
+  // the auth card, the success panel and the feedback composer. The eleven
+  // floating declarations it rewrites to read --float-edge-inner instead of
+  // --border are rewritten in place and move no count.
+  assert.equal(sweep.length, 73,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 73. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -142,7 +144,7 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
   assert.deepStrictEqual(got, {
     'var(--elev-rest)': 1,   // .ui-card
     'var(--elev-rail)': 1,   // .ui-app__rail
-    'var(--elev-drop)': 14,  // the floating surfaces, and the panel's focus rule
+    'var(--elev-drop)': 17,  // the floating surfaces, and the panel's focus rule
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '
     + 'was added, move the number and check it against docs/specification.md#elevation.');
 });
@@ -208,9 +210,13 @@ test('every rung of the ladder is broad faint drops and nothing else', () => {
  * token the sheets actually paint, so a theme is judged on what it draws rather
  * than on a neutral it no longer uses. */
 const LEVELS = [
-  { level: 'a card', edges: ['--card-edge'], rung: '--elev-rest' },
-  { level: 'the rail', edges: ['--rail-edge'], rung: '--elev-rail' },
-  { level: 'a floating surface', edges: ['--float-edge', '--float-edge-inner'], rung: '--elev-drop' },
+  /* `trailing` — does this level EXPOSE the side its rung falls away from? A card and a
+   * floating surface stand free and show all four; the rail is flush to the screen edge
+   * and full height, so its left, top and bottom are off the screen and its right edge is
+   * the only one a reader can see. That is why it casts on one axis. */
+  { level: 'a card', edges: ['--card-edge'], rung: '--elev-rest', axis: 'y', trailing: true },
+  { level: 'the rail', edges: ['--rail-edge'], rung: '--elev-rail', axis: 'x', trailing: false },
+  { level: 'a floating surface', edges: ['--float-edge', '--float-edge-inner'], rung: '--elev-drop', axis: 'y', trailing: true },
 ];
 const INVISIBLE = new Set(['transparent', 'rgba(0, 0, 0, 0)', 'rgba(0,0,0,0)', '#0000']);
 
@@ -230,6 +236,41 @@ test('every level draws a line or casts a drop, in both themes', () => {
     }
   }
   assert.equal(measured, THEMES.length * LEVELS.length, 'a level went unmeasured');
+});
+
+/* #490 review, finding 1. A drop falls one way, so the side it falls AWAY from is the
+ * one it can miss — and the first pass of this issue missed it: --elev-rest was
+ * `0 10px 22px -14px`, whose trailing reach is 11 - 24 = -13, clipped thirteen pixels
+ * inside the card. The top edge had nothing at all, while Artur's reference marks its
+ * card on all four sides. A level that still draws a line can afford a directional rung,
+ * because the line marks every side; a level carried by the rung alone cannot. */
+test('a level carried by its rung alone marks every side it exposes', () => {
+  let measured = 0;
+  for (const theme of THEMES) {
+    const vars = tokensFor(theme);
+    for (const { level, edges, rung, axis, trailing } of LEVELS) {
+      const lines = edges.map((name) => substitute(`var(${name})`, vars).trim());
+      if (lines.some((value) => !INVISIBLE.has(value))) continue; // a line marks every side
+      if (!trailing) continue;                                    // no such side to mark
+      measured += 1;
+      assert.ok(reachesTrailingSide(vars.get(rung) ?? '', axis),
+        `${theme}: ${level} draws no line, and ${rung} never clears its own footprint on the `
+        + `side it falls away from — blur/2 - (|spread| + offset) is negative in every layer. `
+        + 'That edge gets nothing. Widen the blur, or bring the offset and the spread down.');
+    }
+  }
+  assert.equal(measured, 2,
+    `${measured} levels are carried by a rung alone, not the 2 light has (a card and a `
+    + 'floating surface). If a theme moved between the two, this case has to be re-read.');
+});
+
+test('a rung clipped inside its own surface is refused', () => {
+  // The value this issue's first pass shipped, and the value it ships now.
+  assert.equal(reachesTrailingSide('0 10px 22px -14px color-mix(in srgb, #1e1e32 16%, transparent), '
+    + '0 1px 3px -1px color-mix(in srgb, #1e1e32 7%, transparent)', 'y'), false,
+    'the mutation does not reproduce the bare top edge the case above is against');
+  assert.equal(reachesTrailingSide(tokensFor('light').get('--elev-rest'), 'y'), true,
+    'light\'s card rung does not reach its top edge — the pair above has no positive half');
 });
 
 test('a level that loses both its line and its drop is refused', () => {
@@ -412,6 +453,57 @@ test('a neutral floating surface writes the same inner line as the rest', () => 
   assert.deepStrictEqual(odd.map((d) => `${d.file}:${d.line}  ${d.selector}`), [],
     `every floating surface but the drawer writes \`${TREATMENT_LINE}\`. The drawer is the one `
     + 'flush to a screen edge, so it draws its line in one direction instead of four.');
+});
+
+/* #490 review, finding 2. Three surfaces painted `background: var(--bg-elevated)` and
+ * took the plain hairline instead of the floating treatment — .ui-auth__card, .ui-sx and
+ * .ui-fbcomposer. While every light level was a weak hairline that was merely
+ * inconsistent; once the rest of the ladder started casting, those three were the only
+ * flat white rectangles left, and in light their `--border` on `--bg-elevated` measures
+ * 1.047 — a line nobody can see.
+ *
+ * Nothing caught them: the cast walk counts declarations that DO read a rung, and the
+ * LEVELS table reads tokens rather than components. So the subject is discovered from the
+ * other end — the surface a sheet paints — and every rule that puts something on the
+ * floating step has to carry the treatment that goes with it.
+ *
+ * WHAT THIS DOES NOT REACH: a rule that paints the step and a SEPARATE rule that casts
+ * the rung onto the same element. Every one of the six writes both together, and this
+ * reads the rule rather than the cascade. */
+const bodyShadow = (body) => ((/(^|;)\s*box-shadow\s*:([^;]*)/.exec(body) ?? [])[2] ?? '');
+const ELEVATED = STYLE_FILES.flatMap((file) =>
+  [...read(file).matchAll(/([^{}]+)\{([^{}]*)\}/g)].flatMap((m) => {
+    const body = m[2].replace(/\/\*[\s\S]*?\*\//g, '');
+    if (!/(^|;)\s*background\s*:[^;]*var\(\s*--bg-elevated\s*\)/.test(body)) return [];
+    return [{ file, selector: m[1].trim().replace(/\s+/g, ' '), body }];
+  }));
+
+test('every surface painted on the floating step carries the floating treatment', () => {
+  assert.equal(ELEVATED.length, 6,
+    `${ELEVATED.length} rules paint background: var(--bg-elevated), not the pinned 6. `
+    + 'A surface added to or removed from the floating step is fine — move the number, and '
+    + 'check the new rule against docs/specification.md#elevation.');
+  const offences = ELEVATED
+    .filter(({ body }) => !layersOf(bodyShadow(body)).includes(TREATMENT_DROP))
+    .map((d) => `${d.file}  ${d.selector}`);
+  assert.deepStrictEqual(offences, [],
+    'a surface on the floating step that does not cast the floating rung. --bg-elevated is '
+    + 'the step a surface takes BECAUSE it floats, and in light the drop is the only thing '
+    + 'that says so — the hairline beside it resolves to transparent:\n  '
+    + offences.join('\n  '));
+});
+
+test('a surface put on the floating step without the rung is refused', () => {
+  const planted = '.ui-planted { background: var(--bg-elevated); border: 1px solid var(--border); }';
+  const found = [...planted.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter((m) => /(^|;)\s*background\s*:[^;]*var\(\s*--bg-elevated\s*\)/.test(m[2]));
+  assert.equal(found.length, 1, 'the mutation is not seen by the sweep above');
+  assert.ok(!layersOf(bodyShadow(found[0][2])).includes(TREATMENT_DROP),
+    'the mutation carries the rung, so it proves nothing');
+  // The positive half: the kit's own six are all clean.
+  assert.deepStrictEqual(
+    ELEVATED.filter(({ body }) => !layersOf(bodyShadow(body)).includes(TREATMENT_DROP)), [],
+    'the kit\'s own elevated surfaces do not all carry the rung');
 });
 
 /* dark's two numbers are the "a + b" row of docs/reviews/295-popover-variants.html,

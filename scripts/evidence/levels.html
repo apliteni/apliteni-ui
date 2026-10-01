@@ -19,6 +19,8 @@
 import * as shell from '/src/components/shell.js';
 import * as kit from '/src/components/index.js';
 import * as dd from '/src/components/dropdown.js';
+import * as sx from '/src/components/success.js';
+import * as fb from '/src/components/feedback.js';
 
 const { appShell, wireShell, ACCOUNT_NAV } = shell;
 const { card, badge, button, field, input, select, checkbox } = kit;
@@ -78,6 +80,36 @@ const MENU = dd.dropdown({
 const params = new URLSearchParams(location.search);
 document.documentElement.dataset.theme = params.get('theme') || 'light';
 
+/* The three surfaces #490's review found on the floating step with no rung under them:
+ * the auth card, the success panel and the feedback composer. They are not reachable from
+ * the shell screen — one is a signed-out page, one a confirmation, one a fixed overlay —
+ * so they get a strip of their own. The composer is rendered already open, which is the
+ * only state in which it is a surface at all. */
+if (params.get('subject') === 'elevated') {
+  document.body.innerHTML = '<div class="lv-strip">'
+    + '<div class="ui-auth"><div class="ui-auth__card">'
+      + '<h1 class="ui-auth__title">Sign in</h1>'
+      + '<p class="ui-auth__sub">Access the Apliteni design system.</p>'
+      + button({ label: 'Continue', variant: 'primary' })
+      + '<div class="ui-auth__foot">Only work accounts can sign in.</div>'
+    + '</div></div>'
+    + sx.success({ layout: 'compact', backdrop: 'flat', title: 'Payout approved',
+        body: 'Northwind Traders will be paid on the next run.' })
+    + '</div>'
+    + fb.feedbackWidget({ label: 'Give feedback' });
+  document.querySelector('.ui-fbcomposer').classList.add('show');
+  document.querySelector('.ui-fbscrim')?.remove();
+  const st = document.createElement('style');
+  st.textContent = 'html,body{margin:0;background:var(--bg);color:var(--text);'
+    + 'font-family:var(--font-sans)}'
+    + '.lv-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));'
+    + 'gap:var(--space-6);padding:var(--space-6);align-items:start}'
+    + '.ui-auth{display:block}.ui-fbpill{display:none}';
+  document.head.append(st);
+  await document.fonts.ready;
+  window.__ready = true;
+} else {
+
 document.body.innerHTML = appShell({
   word: 'Finance',
   nav: NAV,
@@ -106,6 +138,7 @@ document.head.append(st);
  * that would otherwise leave a hover state in the shot. */
 await document.fonts.ready;
 window.__ready = true;
+}
 </script>
 </body>
 </html>

@@ -226,6 +226,25 @@ export const LADDER_LAYERS = LADDER.map((rung) => rung.layer);
  *  declaration and silently takes the focus ring with it. */
 export const FLAT = '0 0 #0000';
 
+/** How far one layer's penumbra clears the surface on the side the shadow is offset
+ *  AWAY from — the top, for a drop that falls downward. A blur of `b` carries its
+ *  transition about `b/2` past the edge of the shadow's own box, and a negative spread
+ *  pulls that box in by `|spread|`, so the trailing reach is `b/2 - (|spread| + offset)`.
+ *  Negative means the layer is still inside the surface there and that side gets nothing,
+ *  which is what left a card's top edge bare at the first pass of #490.
+ *  why: docs/specification.md#elevation */
+export function trailingReach(layer, axis = 'y') {
+  const g = geometryOf(layer);
+  return g.blur / 2 - (Math.abs(g.spread) + g[axis]);
+}
+
+/** Does any layer of this rung mark the side it falls away from? A rung a theme does not
+ *  climb marks nothing and is not asked to. */
+export function reachesTrailingSide(value, axis = 'y') {
+  if (value.trim() === FLAT) return false;
+  return layersOf(value).some((layer) => trailingReach(layer, axis) > 0);
+}
+
 /** Why `value` is not a shape a ladder rung may take, or '' if it is: two broad
  *  faint drops, each offset along ONE axis, blurred wider than it is offset, held
  *  inside the surface's footprint by a negative spread, and inked at an alpha

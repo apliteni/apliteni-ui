@@ -53,13 +53,14 @@
   cursor: pointer;
   /* Written as a <button>, the card would take the browser's frame, centred text and
      `font: 400 13.3333px Arial` — a shorthand, so `font: inherit` and not the family
-     longhand. .ui-card states the background and, since #295, the border, so a
-     `border: 0` here would only delete the hairline. #251 */
+     longhand. .ui-card states the background, the border and its rung, so a
+     `border: 0` here would only delete the edge dark draws. #251 */
   text-align: left;
   font: inherit;
   transition: transform var(--dur-fast) var(--ease);
 }
-/* The lift alone: the kit casts no shadow anywhere (#295), and cards are flat (#284). */
+/* The lift alone: the card's own rung is what says it is raised, and hover is not a
+   change of level. why: docs/specification.md#elevation */
 .ui-card--interactive:hover { transform: translateY(-2px); }
 .ui-card--interactive:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 

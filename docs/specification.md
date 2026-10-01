@@ -556,8 +556,11 @@ The drop is broad and faint, never tight and dark: it separates a surface from w
 **What floats is decided by the surface's job, not by its rung on the ladder.** A floating
 surface is one whose whole purpose is to be temporarily above something else: a dropdown menu,
 the account and workspace menus, the small-form popover, `confirm()`, the drawer, the React
-modal, the three toast styles, the command palette, the hover readout, and the collapsed rail's
-flyout label. They paint a reading surface and float because of their role. Hover readouts
+modal, the three toast styles, the command palette, the hover readout, the collapsed rail's
+flyout label, the signed-out auth card, the success panel and the feedback composer. The last
+three painted `--bg-elevated` and took the plain hairline instead of the treatment until #490's
+review found them; `stories/elevation.test.js` now discovers every rule that paints that step and
+requires the rung with it, so the step and the treatment cannot come apart again. They paint a reading surface and float because of their role. Hover readouts
 use `--bg-elevated`; collapsed rail labels use the card surface with the same
 floating edge and shadow treatment.
 
@@ -638,8 +641,24 @@ full height — the same reason the drawer draws its line in one direction.
 
 The widths come from the reference. Measured off it, a card's penumbra runs 12–13 CSS px, a
 floating control's 25, and a popover's 35–40, at cores of 1.03–1.12 against the ground. The kit's
-rungs are built to those widths: 22 px off a 10 px offset under a card, 24 px off 10 px beside the
+rungs are built to those widths: 26 px off a 2 px offset under a card, 24 px off 10 px beside the
 rail, 46 px off 20 px under a floating surface.
+
+**A level carried by its rung alone marks every side it exposes.** A shadow falls one way, so
+the side it falls *away* from is the one it can miss, and a layer only clears the surface there
+when `blur ÷ 2` beats `|spread| + offset`. The first pass of #490 shipped `0 10px 22px -14px`
+under a card: that arithmetic is `11 − 24`, thirteen pixels **inside** the card, so its top edge
+had nothing at all while the reference marks its own card on all four sides. A level that still
+draws a line can afford a directional rung, because the line marks every side; a level carried by
+the rung alone cannot. `--elev-rest` is near-ambient for that reason — a small offset under a
+wide blur — and the rail is exempt by geometry rather than by taste: it is flush to a screen edge
+and full height, so its left, top and bottom are off the screen and its right edge is the only one
+a reader can see.
+
+**A rung's peak stays at or under the step it sits on.** A card is 1.110 above the page, and its
+rung measures 1.064 at the top, 1.074 at the sides and 1.134 under the bottom — the lit-from-above
+side, and the only one over the step. A shadow that outpeaks the surface change beneath it stops
+reading as a lift and starts reading as a drawn edge, which is the thing this section replaced.
 
 **In dark, a floating surface draws its line twice, and the second one is a pixel inside the
 first.** `--border-strong` on the border, `--border` as an inset one-pixel line within it: an outer
@@ -702,8 +721,9 @@ cascade resolver in `scripts/lib/box-shadow.js`, with their own tests in
 `scripts/lib/box-shadow.test.js`. Both discover every `box-shadow` the kit declares rather than
 naming a component, read each layer's geometry per theme, and refuse a cast layer that is not one
 of the three rungs. The count of declarations reading each rung is pinned, a planted cast on a card
-proves the walk rejects one, and a second case holds the line-or-drop rule for every level in every
-theme with its own mutation beside it. A layer is judged against every value the kit gives the properties it reads —
+proves the walk rejects one, and three more cases carry their own mutations: the line-or-drop rule
+for every level in every theme, the reach rule above, and a sweep of every rule that paints
+`--bg-elevated` against the rung that has to come with it. A layer is judged against every value the kit gives the properties it reads —
 each gate resolving against its own workspace's declarations as well as the token files — not
 against one guess at the cascade, because a reader that keeps one declaration per name can be
 walked past by writing a second one. The drops are read there too, at the shape above rather than

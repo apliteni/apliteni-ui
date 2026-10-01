@@ -11,6 +11,7 @@ export const RELEASES = [
       ['breaking', 'In the light theme a card, the shell\'s rail and every floating surface no longer draw the neutral hairline. Each casts a soft, diffuse drop instead — `--elev-rest`, `--elev-rail` and a widened `--elev-drop`. Dark is unchanged. A consumer whose light-theme screens relied on the card or rail edge sees a different kit. Closes #490.', ['Card', 'Shell', 'Dropdown', 'Drawer', 'Modal', 'Toast']],
       ['added', 'Four level tokens name which edge each level draws — `--card-edge`, `--rail-edge`, `--float-edge`, `--float-edge-inner` — so a sheet never has to ask which theme it is in. Light resolves all four to `transparent`.'],
       ['changed', 'A line that divides two regions of one surface stays a line in both themes: a card\'s rows, a table\'s rules, the rail\'s head band, the topbar. Fields keep their edge, and a tinted card keeps its own coloured one.'],
+      ['fixed', 'The signed-out auth card, the success panel and the feedback composer paint the floating step but never took the floating treatment, so they were the only flat surfaces left on it. All three now carry the two-step edge in dark and the drop in light, like every other floating surface.', ['Shell', 'Success', 'Feedback']],
     ],
   },
   {

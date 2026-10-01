@@ -466,11 +466,11 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:422",
+        "ref": "src/styles/layout.css:420",
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:71",
+        "ref": "src/styles/card.css:72",
         "pattern": "rank: card-title"
       }
     ],
@@ -508,7 +508,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:330",
+        "ref": "src/styles/layout.css:328",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -542,7 +542,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:464",
+        "ref": "src/styles/layout.css:462",
         "pattern": "@media (max-width: 720px)"
       },
       {
