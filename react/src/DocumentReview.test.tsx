@@ -140,6 +140,26 @@ describe('document review flow', () => {
     expect(extracted.textContent).not.toContain('€');
   });
 
+  // The kit's weight tokens, in rank order. The showcase declares a weight on every
+  // label and every value in the leading pane rather than inheriting one, because the
+  // kit stylesheet is not loaded here: an inherited weight reads as '' and a gate that
+  // scores '' as "body" cannot tell a body label from the medium one `.ui-table th`
+  // actually paints — which is how the inverted amounts table passed the first version
+  // of this gate.
+  const RANK: Record<string, number> = {
+    'var(--weight-normal)': 400,
+    'var(--weight-medium)': 500,
+    'var(--weight-semibold)': 600,
+  };
+  const rank = (el: Element | null, what: string) => {
+    const declared = getComputedStyle(el as HTMLElement).fontWeight;
+    if (!(declared in RANK)) {
+      throw new Error(`${what} carries no weight this showcase declares (${declared || 'nothing'}); `
+        + 'the leading pane must state its own ranking, not inherit one.');
+    }
+    return RANK[declared];
+  };
+
   it('gives the values that get saved more emphasis than the document they came from', () => {
     const { container } = render(<Default />);
     const panes = [...container.querySelectorAll('.doc-flow__panes > .ui-card')];
@@ -148,28 +168,68 @@ describe('document review flow', () => {
     expect(panes).toHaveLength(2);
     const titles = panes.map((pane) => pane.querySelector('.ui-card__title')?.textContent);
     expect(titles).toEqual(['Extracted fields', 'Source document']);
+    const [saved, source] = panes;
+
+    // Position, width, weight and accent are the rule's four levers, and the preview
+    // holds none of them. why: guidelines/density-and-accents.md#follow-the-consequence
+    //
+    // Accent. The leading pane carries it on its edge — not its ground, because the pane
+    // holds a table and a table stays on the reading surface.
+    // why: guidelines/dense-tables.md#use-the-right-surface
+    expect(saved).toHaveClass('doc-flow__saved-pane');
+    // The edge is accent-derived, read from the property the rule points at: jsdom's
+    // cssstyle drops any border-color it cannot parse to a literal, so `border-color`
+    // itself measures nothing here. The painted hairline is in the #385 captures, where
+    // the walk also checks that no element in either pane carries the raw accent.
+    expect(getComputedStyle(saved as HTMLElement).getPropertyValue('--saved-edge'))
+      .toMatch(/color-mix\(in srgb,\s*var\(--accent\) \d+%/);
+    // The preview carries none of it, and the one control inside it marks its selection
+    // with the strong edge instead of the accent outline `.ui-seg` paints by default.
+    expect(source).not.toHaveClass('doc-flow__saved-pane');
+    expect(source.querySelectorAll('.ui-card--accent, .ui-card--live, .doc-flow__saved-pane'))
+      .toHaveLength(0);
+    const pressed = [...source.querySelectorAll('.ui-seg button[aria-pressed="true"]')];
+    expect(pressed).toHaveLength(1);
+    expect(getComputedStyle(pressed[0] as HTMLElement).outlineColor).toBe('var(--border-strong)');
 
     // The leading pane is the one that says what approval writes, and it is the only
     // one carrying that sentence — the preview stays a preview.
-    const [saved, source] = panes;
     expect(saved.querySelector('.ui-card__sub')).toHaveTextContent('Saved to the record when you approve.');
     expect(source.querySelector('.ui-card__sub')).toBeNull();
 
-    // Each saved value outweighs its own label, and nothing is faded to get there:
-    // rank is weight, and the showcase writes no colour of its own.
-    // why: guidelines/density-and-accents.md#follow-the-consequence,
-    // guidelines/labels-and-titles.md#limit-muted-ink
+    // Weight, on every label/value pair the leading pane holds — the drawer rows and
+    // the amounts table alike, discovered rather than listed, with the count checked so
+    // a pair the gate does not reach fails it.
     // Limit: jsdom applies the story's own <style> and not the kit stylesheet, so this
     // measures the showcase's declarations; the rendered weight, the column widths and
     // the preview's scale are in the #385 browser captures.
-    const rows = [...saved.querySelectorAll('.doc-flow__saved .ui-drawer__row')];
-    expect(rows.length).toBeGreaterThan(0);
-    for (const row of rows) {
-      const value = getComputedStyle(row.querySelector('dd') as HTMLElement);
-      const label = getComputedStyle(row.querySelector('dt') as HTMLElement);
-      expect(value.fontWeight).toBe('var(--weight-medium)');
-      expect(label.fontWeight).not.toBe('var(--weight-medium)');
-      expect(value.color).toBe(label.color);
+    const pairs: { what: string; label: Element | null; value: Element | null }[] = [
+      ...[...saved.querySelectorAll('.doc-flow__saved .ui-drawer__row')].map((row) => ({
+        what: row.querySelector('dt')?.textContent ?? 'drawer row',
+        label: row.querySelector('dt'),
+        value: row.querySelector('dd'),
+      })),
+      ...[...saved.querySelectorAll('.doc-flow__amounts :is(tbody, tfoot) tr')].map((row) => ({
+        what: row.querySelector('th')?.textContent ?? 'amounts row',
+        label: row.querySelector('th'),
+        value: row.querySelector('td'),
+      })),
+    ];
+    const rowsInPane = saved.querySelectorAll('.ui-drawer__row, .doc-flow__amounts :is(tbody, tfoot) tr');
+    expect(pairs, 'every label/value row in the leading pane is measured')
+      .toHaveLength(rowsInPane.length);
+    expect(pairs.length).toBeGreaterThan(5);
+
+    for (const { what, label, value } of pairs) {
+      expect(label).not.toBeNull();
+      expect(value).not.toBeNull();
+      // The value outranks its label, and nothing is faded to get there: the rank is
+      // weight, and the showcase writes no colour of its own.
+      // why: guidelines/labels-and-titles.md#limit-muted-ink
+      expect(rank(value, `${what}: the value`),
+        `${what}: the value must outrank its label`).toBeGreaterThan(rank(label, `${what}: the label`));
+      expect(getComputedStyle(value as HTMLElement).color)
+        .toBe(getComputedStyle(label as HTMLElement).color);
     }
 
     // The preview is quieter by being narrower, not by being scaled down: the sheet's

@@ -504,7 +504,7 @@
         "pattern": "const h = [2, 3, 4, 5, 6]"
       },
       {
-        "ref": "react/src/primitives/Card.tsx:9",
+        "ref": "react/src/primitives/Card.tsx:11",
         "pattern": "const Heading"
       }
     ],

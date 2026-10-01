@@ -42,12 +42,12 @@
 
 <!-- rule: follow-the-consequence -->
 
-**Rule:** Where a screen shows a source beside the values that will be saved, give the saved values the leading position, the wider column and the heavier weight.
+**Rule:** Where a screen shows a source beside the values that will be saved, give the saved values the leading position, the wider column, the heavier weight and whatever accent the pair carries; leave the source with none of the four.
 
-**Why:** Emphasis tells the reader what the screen is for. A preview that outweighs the data being committed makes a commitment look like a reading task.
+**Why:** Emphasis tells the reader what the screen is for. A preview that outweighs the data being committed makes a commitment look like a reading task, and an accent on the reference says the reference is the point.
 
-**Do:** Lead with the extracted fields, in the wider column, with each value heavier than its label.
+**Do:** Lead with the extracted fields, in the wider column, on the accent ground, with each value heavier than its label.
 
-**Don't:** Give the source document the leading, wider pane and leave the saved values in a narrow panel beside it.
+**Don't:** Give the source document the leading, wider pane, or let a control inside it hold the only accent on the screen while the saved values hold none.
 
-**Except:** Fade nothing to make a block quieter; a quieter block is smaller or later, never muted. See [Limit muted ink](https://ui.apli.tech/storybook/?path=/story/guidelines-labels-and-titles--page).
+**Except:** Fade nothing to make a block quieter; a quieter block is smaller, later or uncoloured, never muted. See [Limit muted ink](https://ui.apli.tech/storybook/?path=/story/guidelines-labels-and-titles--page).
