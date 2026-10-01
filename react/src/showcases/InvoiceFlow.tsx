@@ -162,7 +162,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
       back={invoice ? { href: '#invoices', label: 'Invoices' } : undefined}
       account={{ name: 'Demo reviewer', email: 'demo@example.com' }} onSignOut={() => setMessage('This prototype has no account to sign out of.')}
       palette={{ groups: [{ label: 'Invoices', items: invoices.filter(row => row.name !== selected).map(row => ({ id: row.name, label: row.filename })) }], onSelect: item => open(item.id) }}>
-      <p className="invoice-flow__note">Prototype · Parsing uses sample data. Files and edits stay in this tab until reload.</p>
+      <p className="invoice-flow__note">Parsing uses sample data. Files and edits stay in this tab until reload.</p>
       <p className="invoice-flow__announcement" role="status">{message}</p>
       {invoice ? <>
         <div className="invoice-flow__summary" role="status">{dirty || invalid ? chip('circleAlert', 'Unsaved changes') : chip(statusIcon(invoice.status), invoice.status)}</div>
@@ -222,7 +222,6 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
           {!invoices.length ? <EmptyState icon="upload" title="Add your first invoices" sub="Drop PDF, PNG or JPEG files anywhere in this box, or click it to select several at once." />
             : <p>Drop more invoices here, or click this box to select them.</p>}
         </div>
-        {!invoices.length && <div className="invoice-flow__actions"><Button variant="primary" onClick={pick}>Select invoices</Button><Button variant="ghost" onClick={() => { setNavigated(true); setInvoices(samples()); setError(''); }}>Try sample invoices</Button></div>}
         {error && <p role="alert" className="invoice-flow__error"><Icon name="circleAlert" />{error}</p>}
         {!!invoices.length && <DataTable selectable={false} pager={false} stickyHeader pinnedIdentity scrollLabel="Invoices" rows={invoices} columns={[
           { key: 'filename', label: 'Invoice', render: row => <Button variant="ghost" onClick={() => open(row.name)}>{row.filename}</Button> },
