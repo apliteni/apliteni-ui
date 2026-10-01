@@ -2635,3 +2635,35 @@ semantics, events, the class split and the label fallback in JSDOM, not browser
 paint or screen-reader speech. `src/styles/check-disabled.test.js` reads the two
 things the story walk cannot: the hover qualification and the pseudo-element mark.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
+## React search field
+
+A toolbar above a list opens with a search box, then its filters, then its view
+switch. `SearchField` is that box: the kit's `input({ type: 'search', icon:
+'search', ariaLabel })` with a React signature, which the React package had no
+way to render — every other field in it draws a visible `<label>`, and a screen
+that wanted the unlabelled one had to hand-write `<input className="ui-input">`.
+
+It renders one `.ui-input-group`: the leading `search` glyph, decorative and
+hidden from assistive technology, and a native `type="search"` input on the
+shared `.ui-input` class. `ariaLabel` is required and is the control's only
+name, because nothing in the row shows one. The component declares no CSS of its
+own, so inside `.ui-toolbar` it takes the row's existing growth rule, grows into
+the slack the other controls leave, and keeps the height of the unlabelled
+controls beside it. A `TextField` in that slot adds its label's height to the
+whole row, and because the row stretches its children, every filter and button
+in it grows with the field.
+
+There is no clear button. The kit suppresses the browser's own on a search
+field, for the reason recorded beside that rule, and a field without one is what
+the vanilla search specimen already draws; #517 kept it that way.
+
+`SearchField` forwards its ref to the native input and accepts the native input
+attributes, including controlled `value` with `onChange`, `placeholder`, `name`,
+`disabled` and `required`. `className` joins `.ui-input`. It fixes `type` and the
+glyph, so a caller cannot turn it into a different field.
+
+Held by `react/src/SearchField.test.tsx`, which compares its markup with the
+vanilla factory's attribute for attribute. JSDOM reads structure and names, not
+paint or screen-reader speech; the focus ring and the row's measured height are
+browser captures on [#517](https://github.com/apliteni/apliteni-ui/issues/517).

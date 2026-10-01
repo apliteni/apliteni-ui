@@ -29,7 +29,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
@@ -476,6 +476,26 @@ class and invalid styling as appropriate:
 
 The frame supplies a stable ID, required state, and linked hint/error messages.
 An optional `id` lets the caller choose the control ID; it must be unique.
+
+### Search
+
+`SearchField` is the toolbar's search box: a search glyph, a native
+`type="search"` input, and no visible label, so the row keeps the height of the
+unlabelled controls beside it. `ariaLabel` is required and is the control's only
+name. It forwards its ref and the native input props, and `className` joins
+`.ui-input`. There is no clear button — see the specification for why.
+
+```tsx
+<div className="ui-toolbar">
+  <SearchField ariaLabel="Search invoices" placeholder="Vendor or number"
+    value={query} onChange={e => setQuery(e.currentTarget.value)} />
+  {/* then the filters, then the view switch */}
+</div>
+```
+
+Put it first in a `.ui-toolbar`: it is the one control there that grows into the
+slack the others leave. Use `TextField` instead wherever the field stands in a
+form and a visible label belongs over it.
 
 ## Toast
 

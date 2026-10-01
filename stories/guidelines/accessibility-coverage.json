@@ -73,6 +73,14 @@
       ]
     },
     {
+      "file": "react/src/SearchField.test.tsx",
+      "name": "React: SearchField",
+      "does": "Checks that the toolbar search field renders the vanilla search input group attribute for attribute, is a searchbox named by ariaLabel with no visible label and no clear button, keeps the kit ring on its one focusable part, forwards its ref, className and native input props, and passes axe.",
+      "blind": [
+        "JSDOM reads structure and names only. It does not paint the focus ring, measure the row's height beside the controls the field joins, or verify screen-reader speech; browser captures on #517 cover those."
+      ]
+    },
+    {
       "file": "react/src/Timeline.test.tsx",
       "name": "React: Timeline",
       "does": "Checks ordered-list semantics, timestamps, event order, keyboard undo and axe violations.",

@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.69.0', date: '2026-10-02',
+    changes: [
+      ['added', 'React SearchField renders the kit\u2019s search input group for a toolbar: a search glyph, a native search input and an accessible name instead of a visible label, so the row keeps the height of the unlabelled controls beside it. It forwards its ref and the native input props and adds no CSS of its own. There is no clear button, the field the kit already draws. See #517.'],
+      ['changed', 'The Empty states showcase draws its filtered list\u2019s search box with the kit\u2019s standalone search field, the part React\u2019s SearchField renders, so the box has a name and the search glyph. A new showcase toolbar puts search, then filters, then the view switch in one row. See #517.'],
+    ],
+  },
+  {
     v: '0.68.0', date: '2026-10-02',
     changes: [
       ['changed', 'A FilterBar chip shows the chosen value by itself instead of printing the field\u2019s name beside it, so a bar of chips reads as the values in force. A chip with nothing chosen shows the field it filters, in placeholder ink, and is named \u201cSector: any\u201d; a chip with a value is named \u201cSector: Technology\u201d. Beside a value the field is no longer drawn: it reaches a reader through that name and the chip\u2019s legend. Keep a filter\u2019s value display text \u2014 it is now the whole visible chip. Vanilla and React. Resolves #535.', ['FilterBar']],
