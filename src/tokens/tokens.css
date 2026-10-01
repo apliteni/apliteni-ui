@@ -142,6 +142,13 @@
   /* A dark table is flush with the page, so the reading surface an inline code chip has
      left inside one is the card. Light's table is white, so there it is the page. */
   --table-code-bg: var(--surface);
+  /* A translucent wash paints BEHIND a chip, so it moves the ground and not the chip: the
+     pair has to be read against the wash composited over whatever opaque surface is under
+     it. Dark's washes lift a near-black ground away from the page, so the page is what the
+     chip has left; light's darken white toward the page, so the card is. Both directions
+     hold over EVERY opaque ground, which is why this is a token and not a context rule.
+     Measured in stories/code-chip.test.js. */
+  --wash-code-bg: var(--bg);
   --surface-2: #161520;     /* non-text sunken marks and tracks */
   --surface: #211e2d;       /* the card */
   --bg-elevated: #2a2639;   /* FLOATING — menus, panels, drawer, modal, toasts */
@@ -323,6 +330,7 @@
   --bg: #f2f3f6;
   --table-bg: #ffffff;
   --table-code-bg: var(--bg);
+  --wash-code-bg: var(--surface);
   --surface-2: #e9ecf3;     /* non-text sunken marks and tracks */
   --surface: #ffffff;       /* the card */
   --bg-elevated: #ffffff;   /* FLOATING — menus, panels, drawer, modal, toasts */
@@ -486,8 +494,9 @@
 
 /* Recompose only at painted containers; controls inherit the outside gap, and each hands an
  * inline code chip the page. One recipe keeps surface propagation cheap and consistent.
- * .ui-code is not in the list: a chip cannot both paint --code-bg and re-point it.
- * why: docs/specification.md#the-focus-ring */
+ * .ui-code composes its own ring in src/styles/code.css instead of joining this list: a
+ * chip cannot both paint --code-bg and re-point it, and its gap has to be the surface it
+ * actually paints. why: docs/specification.md#the-focus-ring */
 .amenu,
 .dtsw,
 .rx-modal,
@@ -542,6 +551,16 @@
 .ui-card--accent,
 .ui-card--live,
 .ui-snippet--reveal { --code-bg: var(--surface); }
+
+/* A wash is not a rung: it is a layer the kit paints OVER one, and it paints behind a chip
+ * rather than under it, so the chip's ground moves and the chip does not. These five take
+ * caller markup — callout() and the success panel hand their body straight through — so a
+ * chip inside one is ordinary product markup rather than a shape anybody hand-places. */
+.ui-callout--info,
+.ui-callout--success,
+.ui-callout--warn,
+.ui-callout--danger,
+.ui-success { --code-bg: var(--wash-code-bg); }
 
 /* A container focused itself paints outside its own surface; descendants only
  * inherit its inside gap again after focus moves to them. */

@@ -10,8 +10,8 @@ export default {
 // why: docs/specification.md#elevation
 const SURFACES = [
   ['--bg', 'Page', 'The base canvas behind everything.'],
-  ['--surface-2', 'Sunken', 'Inputs, code, tracks, disabled boxes.'],
-  ['--surface', 'Card', 'Cards, and panels that do not float.'],
+  ['--surface-2', 'Sunken', 'Sunken table rows, tracks, disabled boxes.'],
+  ['--surface', 'Card', 'Cards, panels that do not float, and an inline code chip written on the page.'],
   ['--bg-elevated', 'Floating', 'Menus, dropdown panels, the drawer, modals, toasts.'],
   ['--surface-3', 'Top', 'The hover readout, chips, the rail’s hover row.'],
 ];

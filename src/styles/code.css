@@ -93,12 +93,19 @@
 
 /* Inline code. The chip paints whichever reading surface its container is not on, so an
    identifier keeps its chip on the page and inside a card, with no edge of its own. The
-   container hands the surface over in --code-bg; see src/tokens/tokens.css. #537 */
+   container hands the surface over in --code-bg; see src/tokens/tokens.css. #537
+
+   The chip READS --code-bg and never declares it, which is why its gap can match its paint
+   and its ring is composed here instead of in the shared recipe: a chip that re-pointed the
+   hand-off would hand the page to itself and paint the page everywhere. Backticks become a
+   chip wherever the kit renders prose (fmt() in site/changelog.mjs), so a link inside one is
+   ordinary markup and gets the gap of the surface it is actually on. */
 .ui-code {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  background: var(--code-bg); /* ring-gap: inherit — an inline chip holds no focus target, and its own paint is one step from the gap beside it. */
+  background: var(--code-bg); --ring-gap: var(--code-bg);
   padding: 2px 6px;
   border-radius: var(--radius-xs);
   color: var(--text);
+  --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
 }

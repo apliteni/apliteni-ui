@@ -4,26 +4,44 @@
  * `.ui-code` is text on a chip, so #455 leaves it two grounds and no grey — the page and
  * the card — and it cannot read the one it is standing on. Each painted container hands it
  * the surface it is not using, through `--code-bg`. This gate walks the hand-off the other
- * way: it discovers every painted ground from the sheets, resolves the chip's surface for
- * that ground in both themes and in every context a ground token is re-pointed in, and
- * measures the step between the two.
+ * way: it discovers every ground from the sheets, resolves the chip's surface for that
+ * ground in both themes and in every context a ground token is re-pointed in, and measures
+ * the step between the two.
+ *
+ * TWO KINDS OF GROUND, because the second one was got wrong once (#540 review, finding 1).
+ * An OPAQUE ground is a rung: a rule that paints and says so with its own `--ring-gap`. A
+ * WASH is a layer the kit paints OVER a rung, and it paints BEHIND the chip — so it moves
+ * the ground and leaves the chip where it was. The first version of this gate excluded
+ * washes on the argument that one "shifts both the chip and the ground together", which is
+ * false, and five light contexts shipped at 1.016-1.056 behind it. A wash is now measured
+ * as itself composited over every opaque ground the kit draws.
  *
  * LIMITS, so this is not read as more than it is:
- *  - It reads the SHEETS, not a render: it proves which surface a container hands over and
- *    what the two values measure, not that a browser composited them. The rendered pairs
- *    are stories/contrast.test.js's subject, and the look is the issue's captures.
- *  - A subject is a selector that declares its own opaque `--ring-gap` — the kit's
- *    definition of a painted container, held by stories/ring-surfaces.test.js. A ground
- *    painted without one (a translucent wash, a decorative fill) is not a ground a chip is
- *    handed: the chip keeps whatever its opaque ancestor gave it, and the wash shifts both
- *    the chip and the ground together.
+ *  - It reads the SHEETS and composites them, rather than driving a browser: `npm test`
+ *    ships no browser. Source-over in sRGB is what Chrome does, and it is checked against
+ *    rendered pixels rather than asserted — the producer is scripts/evidence/code-chip.mjs,
+ *    which samples the real chip and its real ground and whose numbers are quoted beside
+ *    the ladder in docs/specification.md. Every computed pair here lands within 0.01 of
+ *    the rendered one. The INK on the chip is stories/contrast.test.js's subject, not this.
+ *  - The wash subjects are the washes that take CALLER markup: `callout()` and the success
+ *    panel hand their body straight through, so a chip inside one is ordinary product
+ *    markup. The composer's own `__done` and `__err` panels are washes too and are not
+ *    measured, because their copy is the component's, not a caller's.
+ *  - A wash is measured over every opaque ground, which over-approximates: the kit does not
+ *    draw a callout inside a zebra row. It cannot under-approximate, which is the direction
+ *    that matters.
  *  - One selector, one ground: where the sheets paint the same selector twice the last
  *    declaration is measured, because that is the paint a reader sees. A ground that wins
  *    only under a selector the sheets never write is not measured at all.
+ *  - One accent. `data-accent` is stamped on `:root`, and the tokens resolver here reads
+ *    the default. The #540 review rendered the other three: the tinted accent card measures
+ *    1.079 / 1.078 / 1.073 in light and 1.130-1.155 in dark, and no accent takes any chip
+ *    below the ledger's floor — a gap in coverage rather than a known failure.
  *  - The step is a WCAG ratio between two flat colours. It says the chip is not the paint
  *    of its ground; it does not say a reader finds the result beautiful.
- *  - color-mix() is evaluated for the one shape the kit writes, `in srgb, A p%, B`;
- *    an unevaluable ground fails this gate rather than being skipped.
+ *  - color-mix() is evaluated for the two shapes the kit writes, `in srgb, A p%, B` with B
+ *    opaque or `transparent`; an unevaluable ground fails this gate rather than being
+ *    skipped.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -31,7 +49,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { customPropertiesIn, namesRead } from '../scripts/lib/box-shadow.js';
-import { parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
+import { composite, parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (file) => readFileSync(path.join(root, file), 'utf8');
@@ -75,6 +93,9 @@ const own = (rule) => new Map(customPropertiesIn(`${rule.selector}{${rule.body}}
 const painted = sheets.flatMap((rule) => {
   const gap = own(rule).get('--ring-gap');
   if (!gap || gap === 'inherit') return [];
+  // The chip is not a ground a chip stands on. It declares a gap so that a focusable inside
+  // it takes the surface the chip actually paints — reading the hand-off, never setting it.
+  if (rule.selector === '.ui-code') return [];
   return selectorsOf(rule.selector)
     .map((selector) => (selector.startsWith(':root') ? ':root' : selector))
     .map((selector) => ({ file: rule.file, selector, gap }));
@@ -112,7 +133,13 @@ const contexts = [{ where: 'the page', overrides: new Map() },
 
 const varsFor = (theme, overrides) => new Map([...tokensFor(theme), ...overrides]);
 
-/* The one shape of color-mix the kit writes, plus the hex and rgb() parseColour reads. */
+/* The shapes of color-mix the kit writes, plus the hex and rgb() parseColour reads.
+ *
+ * The mix is PREMULTIPLIED, which is what CSS does and is not a detail here: the kit writes
+ * `color-mix(in srgb, var(--amber) 13%, transparent)` for the warn wash, and interpolating
+ * its channels straight would drag the amber toward black and report a dark-theme wash that
+ * the browser never paints. Premultiplied, that mix is the amber at alpha 0.13, which is
+ * what Chrome renders and what the rendered-pixel producer measures. */
 const colourOf = (value, vars) => {
   const resolved = substitute(String(value).trim(), vars).trim();
   const mix = /^color-mix\(\s*in srgb\s*,\s*(.+?)\s+([\d.]+)%\s*,\s*(.+?)\s*\)$/.exec(resolved);
@@ -120,19 +147,45 @@ const colourOf = (value, vars) => {
     const [a, b] = [colourOf(mix[1], vars), colourOf(mix[3], vars)];
     if (!a || !b) return null;
     const share = Number.parseFloat(mix[2]) / 100;
-    return [0, 1, 2].map((i) => a[i] * share + b[i] * (1 - share)).concat(1);
+    const alpha = a[3] * share + b[3] * (1 - share);
+    if (alpha === 0) return [0, 0, 0, 0];
+    return [0, 1, 2].map((i) => (a[i] * a[3] * share + b[i] * b[3] * (1 - share)) / alpha).concat(alpha);
   }
   return parseColour(resolved);
 };
 
+/* The washes a chip can be written inside, discovered from the sheet that draws them: a rule
+ * in callout.css whose paint is translucent and whose selector is a block, not an element of
+ * one and not a state. That is callout()'s four tones and the success panel — the two the kit
+ * hands a caller's own markup. A sixth tone joins this list by being written, and then has to
+ * say which surface it hands a chip or fail below. */
+const washes = rulesIn('src/styles/callout.css')
+  .filter((rule) => !/__|:/.test(rule.selector))
+  .map((rule) => ({ selector: rule.selector, paint: /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(rule.body)?.[1].trim() }))
+  .filter(({ paint }) => paint && (colourOf(paint, tokensFor('light'))?.[3] ?? 1) < 1);
+
+/* Every pair the kit can draw: the chip on each opaque rung, and the chip under each wash
+ * composited over each rung. A wash paints behind the chip, so its row reads the WASH's
+ * hand-off against the wash over that rung — the chip itself never moves. */
 const steps = () => THEMES.flatMap((theme) => contexts.flatMap(({ where, overrides }) => {
   const vars = varsFor(theme, overrides);
-  return grounds.map(({ selector, gap }) => ({
+  const rung = ({ selector, gap }) => ({
     theme,
     where,
     selector,
     step: ratio(colourOf(gap, vars), colourOf(pickFor(selector), vars)),
-  }));
+  });
+  const under = (wash, ground) => ({
+    theme,
+    where,
+    selector: `${wash.selector} over ${ground.selector}`,
+    step: ratio(composite(colourOf(wash.paint, vars), colourOf(ground.gap, vars)),
+      colourOf(pickFor(wash.selector), vars)),
+  });
+  return [
+    ...grounds.map(rung),
+    ...washes.flatMap((wash) => grounds.map((ground) => under(wash, ground))),
+  ];
 }));
 
 /* One entry per CAUSE, written by hand. The mandatory `why` is the point of the ledger: an
@@ -157,8 +210,13 @@ const LEDGER = [{
 const accepts = (finding) => LEDGER.some((entry) => entry.themes.includes(finding.theme)
   && entry.selectors.includes(finding.selector));
 
-test('the chip gate discovers every painted ground, context and theme', () => {
+test('the chip gate discovers every ground, wash, context and theme', () => {
   assert.equal(grounds.length, 33, 'painted-ground discovery changed; a new painted container must say which surface it hands an inline code chip');
+  assert.equal(washes.length, 5, 'wash discovery changed; a wash that takes caller markup must say which surface it hands an inline code chip');
+  for (const { selector, paint } of washes) {
+    assert.ok(pickFor(selector), `${selector} is a wash a caller can write a chip inside and never hands it a surface`);
+    assert.ok(colourOf(paint, tokensFor('light'))[3] < 1, `${selector} is measured as a wash but paints opaquely`);
+  }
   assert.equal(contexts.length, 2, 'a container re-points a ground token; say what a chip inside it takes');
   assert.ok(grounds.some(({ selector }) => selector === ':root'), 'the page is a painted ground and is measured with the rest');
   for (const { file, selector } of grounds) {
@@ -173,10 +231,11 @@ test('the chip gate discovers every painted ground, context and theme', () => {
       }
     }
   }
-  assert.equal(steps().length, grounds.length * contexts.length * THEMES.length, 'every ground is measured in every context and theme');
+  assert.equal(steps().length, grounds.length * (1 + washes.length) * contexts.length * THEMES.length,
+    'every ground, and every wash over every ground, is measured in every context and theme');
 });
 
-test('an inline code chip keeps a step on every painted ground, in both themes', () => {
+test('an inline code chip keeps a step on every ground the kit draws, in both themes', () => {
   const findings = steps().filter(({ step }) => step < STEP);
   const unexplained = findings.filter((finding) => !accepts(finding));
   assert.deepEqual(unexplained, [], `a chip disappears on a ground nobody accepted: ${JSON.stringify(unexplained)}`);
@@ -197,7 +256,13 @@ test('the chip paints the surface it is handed, and claims no edge of its own', 
   const rule = rulesIn('src/styles/code.css').find((r) => r.selector === '.ui-code');
   assert.match(rule.body, /background:\s*var\(--code-bg\)\s*;/, 'the chip must paint the surface its container hands over');
   assert.doesNotMatch(rule.body, /(?:^|;)\s*(?:border|box-shadow|outline)\s*:/, 'the chip reads by its surface and its typeface, never by an edge. #490');
-  assert.doesNotMatch(rule.body, /--ring-gap/, 'a chip that re-points the gap re-points its own surface with it');
+  // What must not happen is the chip DECLARING the hand-off — that would hand the page to
+  // itself and paint the page everywhere. Reading it is the opposite, and is what lets the
+  // gap match the paint: a focusable inside a chip is ordinary markup wherever the kit turns
+  // backticks into chips, and before #540's review it drew a band of the other surface.
+  assert.doesNotMatch(rule.body, /--code-bg\s*:/, 'the chip must read the hand-off, never declare it');
+  assert.match(rule.body, /--ring-gap:\s*var\(--code-bg\)\s*;/, 'a focusable inside a chip needs the gap of the surface the chip paints');
+  assert.match(rule.body, /--ring:\s*0 0 0 var\(--ring-gap-width\) var\(--ring-gap\)/, 'the chip composes the kit ring with its own gap');
   const recipe = rulesIn('src/tokens/tokens.css').find((r) => own(r).get('--code-bg') === 'var(--bg)');
   assert.ok(!selectorsOf(recipe.selector).includes('.ui-code'),
     'the chip cannot be in the hand-off list: it would hand the page to itself and paint the page everywhere');

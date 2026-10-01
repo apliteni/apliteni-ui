@@ -32,8 +32,13 @@ const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
   assert.equal(surfaces.length, 138, 'surface discovery changed; the folded rail\'s current-row plate adds three and the disabled checkbox box and its radio mark add two');
-  const shared = compositions.find((r) => !r.selector.includes(':root'));
-  const covered = (rule) => rule.selector.split(',').every((selector) => shared.selector.split(',').map((s) => s.trim()).includes(selector.trim()));
+  // Any composition rule, not only the shared recipe: #537 gives .ui-code its own, because a
+  // chip's gap has to be the surface it paints and the shared recipe is also what hands a
+  // chip the OTHER surface. The guarantee is unchanged — the rule recomposes --ring — and a
+  // painted surface that composes nothing still fails below.
+  const composed = new Set(compositions.filter((r) => !r.selector.includes(':root'))
+    .flatMap((r) => r.selector.split(',').map((s) => s.trim())));
+  const covered = (rule) => rule.selector.split(',').every((selector) => composed.has(selector.trim()));
   for (const rule of surfaces) {
     const gap = own(rule).get('--ring-gap');
     const background = /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(rule.body)[1].trim();
@@ -42,7 +47,7 @@ test('every painted surface sets a matching gap or explains why the containing g
       continue;
     }
     assert.equal(gap, background, `${rule.file}: ${rule.selector} gap differs from its background`);
-    assert.ok(covered(rule), `${rule.selector} does not compose the shared ring`);
+    assert.ok(covered(rule), `${rule.selector} does not compose the ring`);
   }
   // Alias-setting variants can paint through a background declared on their base.
   // They still need their own composition (for example an opaque footer variant).
