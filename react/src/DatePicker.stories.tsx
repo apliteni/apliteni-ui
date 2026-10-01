@@ -10,6 +10,9 @@ const meta: Meta<typeof DatePicker> = {
   title: 'React/Date picker', component: DatePicker, id: 'react-date-picker',
   // An open panel is absolutely positioned, so the canvas has to leave it room.
   decorators: [Story => <div style={{ minHeight: 360 }}><Story /></div>],
+  parameters: { viewport: { options: {
+    phone: { name: 'Phone', styles: { width: '390px', height: '844px' }, type: 'mobile' },
+  } } },
   args: { today: TODAY },
 };
 export default meta;
@@ -130,7 +133,7 @@ export const Keyboard: StoryObj<typeof DatePicker> = {
 // The phone layout, in a 390px column: the panel is a sheet on the bottom edge
 // and the shortcuts sit above the grid.
 export const Phone: StoryObj<typeof DatePicker> = {
-  parameters: { viewport: { defaultViewport: 'mobile1' } },
+  globals: { viewport: { value: 'phone', isRotated: false } },
   render: function PhoneStory(args) {
     const [span, setSpan] = useState<DatePickerRange>({ start: '2026-04', end: '2026-08' });
     return (
