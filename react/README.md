@@ -29,7 +29,17 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `Checkbox`, `Switch`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Checkbox`, `Switch`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Segmented`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+
+`Segmented` is a controlled choice toolbar: pass `options`, `value`, `onChange`,
+and a `label` for its accessible name. Use `size="sm"` for compact choices and
+`block` to fill the available width. `block` also works with
+`appearance="underline"`, but `size="sm"` does not: under underline it changes the
+type size and leaves the control at its full height. Omitting both preserves the
+standard pill presentation. Options support `ariaLabel` and `disabled`;
+`disabled` on the toolbar disables all choices.
+Reach for it when a choice filters or switches a view in place; use `Tabs` when the
+choice owns a panel, and links when it changes the page.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.

@@ -1,6 +1,7 @@
 /* ============================================================================
  * Segmented control — .ui-seg  (the deck's pill switch: theme, Deck/Text, plan)
- * The selected button keeps the reading surface and gains an accent edge.
+ * The track sinks and the selected button rides above it in body ink, so the
+ * selection survives without colour and spends no accent. #475
  * ========================================================================== */
 
 /* The strip wraps rather than overflows: a track wider than its column used to
@@ -14,7 +15,7 @@
      states its own alignment; --block and --underline ask for the width back. */
   align-self: start;
   justify-self: start;
-  background: var(--surface); --ring-gap: var(--surface);
+  background: var(--surface-2); --ring-gap: var(--surface-2);
   flex-wrap: wrap;
   max-width: 100%;
   border-radius: var(--radius-2xl);
@@ -41,8 +42,9 @@
 .ui-seg button[aria-pressed="true"],
 .ui-seg button[aria-selected="true"] {
   color: var(--strong);
-  background: var(--surface); /* ring-gap: inherit — the button ring meets its containing track. */
-  outline: 1px solid var(--accent);
+  /* The pill paints its own step, so it carries its own gap rather than the
+     track's — and re-composes --ring, which substitutes the gap where it is set. */
+  background: var(--seg-active-bg); --ring-gap: var(--seg-active-bg);
 }
 
 /* Standard pills tighten on phones so six short month names fit one row. */
@@ -76,6 +78,40 @@
 .ui-seg--underline { flex-wrap: nowrap; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
 .ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
 .ui-seg--underline button.is-active,
-.ui-seg--underline button[aria-pressed="true"] { background: transparent; border-bottom-color: var(--accent); }
+.ui-seg--underline button[aria-pressed="true"] { background: transparent; --ring-gap: inherit; border-bottom-color: var(--accent); }
 .ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }
+
+/* Forced colours drop `background-color`, and since #475 the raised step is the
+   only thing carrying selection — so without this block every pill reads
+   unselected. The underline appearance has the opposite fault: it reserves a
+   transparent bottom border on every tab and the mode makes all of them visible,
+   so every tab reads selected. Both states are restated with properties the mode
+   keeps. The block is inert in normal rendering, so Artur's r23 look is untouched.
+   Opting the chosen pill out is what lets it keep a fill at all; that also stops
+   the mode recolouring its focus outline and its disabled pair, so both are
+   restated here rather than left to the rules above. #475 */
+@media (forced-colors: active) {
+  .ui-seg:not(.ui-seg--underline) button.is-active,
+  .ui-seg:not(.ui-seg--underline) button[aria-pressed="true"],
+  .ui-seg:not(.ui-seg--underline) button[aria-selected="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .ui-seg:not(.ui-seg--underline) button.is-active:focus-visible,
+  .ui-seg:not(.ui-seg--underline) button[aria-pressed="true"]:focus-visible,
+  .ui-seg:not(.ui-seg--underline) button[aria-selected="true"]:focus-visible {
+    outline: 2px solid HighlightText;
+    outline-offset: -4px;
+  }
+  .ui-seg:not(.ui-seg--underline) button:disabled {
+    forced-color-adjust: none;
+    background: Canvas;
+    color: GrayText;
+  }
+  .ui-seg--underline button { border-bottom-color: Canvas; }
+  .ui-seg--underline button.is-active,
+  .ui-seg--underline button[aria-pressed="true"] { border-bottom-color: Highlight; }
+  .ui-seg--underline button:disabled { color: GrayText; }
+}

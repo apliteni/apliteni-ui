@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['changed', 'A segmented control now shows the chosen option as a raised pill on a sunken track, in body ink, instead of outlining it in the accent colour. The underline appearance keeps its accent rule and drops the outline that sat on top of it. The step is a small one — 1.51:1 in dark and 1.18:1 in light, under the 3:1 asked of a state indicator — so selection no longer depends on telling the accent from the ink, but it does depend on telling two near greys apart; `aria-pressed` carries the state for assistive technology, and under forced colours the control marks the chosen option in system colours instead. Unselected labels now read on a grey track, and a disabled option sits on that track rather than on the card. Vanilla and React share the change through the same stylesheet. Resolves #475.', ['Segmented']],
+      ['added', 'React Segmented accepts size="sm" and block for compact and full-width choices, using the existing kit styles. block also composes with the underline appearance; under underline, size="sm" changes only the type size. Part of #429.', ['Segmented']],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],

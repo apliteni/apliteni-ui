@@ -2387,10 +2387,22 @@ source test does not render layout. Existing Modal tests cover focus, dismissal 
 ## React tooltip
 
 React Tooltip renders `ui-tip-host`, `ui-tip`, and `ui-tip__label`. The focusable trigger refers to the tooltip through its ID. Pressing Escape keeps focus on the trigger. The panel does not change the layout or intercept pointer events. Shared reduced-motion styles remove the fade.
-## React segmented labels
+## React segmented control
 
 Segmented options may supply `ariaLabel` to give a short visible label a fuller
 accessible name. Without it, the visible label names the button.
+
+`size="sm"` adds `ui-seg--sm`; `block` adds `ui-seg--block` so the strip fills
+its container and its buttons share the width. `block` composes with the pill and
+underline appearances. `size="sm"` compacts the pill appearance only: under
+underline it changes the type size and nothing else, because
+`.ui-seg--underline button` restates padding at the same specificity further down
+`src/styles/segmented.css`. Omitting them keeps the existing size and width.
+Selection remains controlled through `value` and `onChange`, with a named toolbar,
+pressed buttons, and one enabled tab stop. Arrow keys wrap past disabled options;
+Home and End select the first and last enabled choice. These contracts are covered
+by `react/src/Segmented.test.tsx`; browser evidence checks the shared CSS sizing.
+Decided in [#429](https://github.com/apliteni/apliteni-ui/issues/429).
 
 ## Segmented strips that outgrow their column
 
@@ -2403,6 +2415,45 @@ their side padding, which is what keeps six three-letter months on one row in a
 
 The underline appearance scrolls instead of wrapping, which is the right answer for
 column switches over one dataset, where the order is the reader's map.
+
+## How a segmented control shows the chosen option
+
+The pill track sits on the sunken step (`--surface-2`) and the chosen option rides
+above it on `--seg-active-bg`, in body ink. Selection is carried by that step alone:
+the control spends no accent on it, and the 1px accent outline that used to hold the
+selection is gone.
+
+Know how weak that cue is before you reach for this control. The step measures
+**1.51:1 in dark and 1.18:1 in light**, against the 3:1 WCAG 1.4.11 asks of a visual
+state indicator, and nothing else carries the state — the ink changes by 1.22:1 and
+1.16:1, the weight does not change, and there is no border, shadow or offset. So the
+step survives a loss of *hue*: a reader who cannot tell the accent from the ink still
+sees it, which the outline it replaced could not promise. It does not survive a loss
+of *contrast sensitivity*, and a reader who needs more separation than this will not
+get it from colour. `aria-pressed` carries the state for assistive technology
+throughout, and `stories/segmented-state-step.test.js` pins both numbers so an edit to
+either token is measured rather than noticed.
+
+The underline appearance keeps its accent rule as its one signal, and no longer
+stacks an outline on top of it.
+
+Under `forced-colors: active` the step is gone entirely, because the mode replaces
+every background. The control answers in system colours instead: the chosen pill takes
+`Highlight` with `HighlightText`, the chosen tab takes a `Highlight` rule, and the
+transparent edge the underline appearance reserves on every tab is painted `Canvas` so
+only the chosen one shows. This changes nothing in normal rendering, and
+`src/styles/segmented.test.js` holds the contract.
+
+Two consequences a consumer should expect. Unselected labels now read on a grey
+track, which `guidelines/colour-and-theming.md` otherwise reserves for non-text —
+accepted as the cost of the step above, with those labels measuring 14.76:1 in dark
+and 14.10:1 in light. And a disabled option sits on that track rather than on the
+card, so its muted ink reads against a nearer ground: 5.17:1 in light, down from
+6.11:1, still above the 3:1 the floor asks of a disabled label.
+
+Chosen by Artur over an outlined, a tinted and an accent-ink alternative, each
+prototyped and measured on [#473](https://github.com/apliteni/apliteni-ui/pull/473).
+Decided in [#475](https://github.com/apliteni/apliteni-ui/issues/475).
 ## Shared React logic and declarations
 
 The main entry exports `dropdownMatch`, `dropdownFiltering`, `rankGroups`,
