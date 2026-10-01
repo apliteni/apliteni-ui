@@ -3100,7 +3100,7 @@ Chromium because JSDOM cannot prove any of them.
 sits beside a figure. Every product drew its own before [#491](https://github.com/apliteni/apliteni-ui/issues/491),
 and the look, the readout and the keyboard behaviour drifted between them.
 
-- `variant: 'months'` — up to twelve periods, one bar series standing on the zero line, one
+- `variant: 'months'` — a column per period, one bar series standing on the zero line, one
   mirrored under it, and a line series crossing both. A `bars-below` series is given positive
   magnitudes and drawn downwards, so spend is `31870` and reads as €31,870 wherever it is
   printed. A bar series names a tone and may fade towards the zero line; a line is neutral and

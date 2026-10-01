@@ -672,7 +672,7 @@ the accent from a checked box.
 
 ## Chart
 
-`Chart` draws three shapes from the kit's tokens: `months`, up to twelve periods of bars with
+`Chart` draws three shapes from the kit's tokens: `months`, a column per period with bars and
 a line across them; `bridge`, one period walked from a starting total to a result; and `spark`,
 one series at text size with no axis, for a stat band's `trend` slot.
 
