@@ -236,7 +236,9 @@ test('every ring consumer keeps a real outline for forced colors', () => {
   // with the six scroll regions beside it. A --ring-scroll consumer is not counted here
   // and owes no transparent outline: its band IS an outline, which is the one forced
   // colors repaints. The gate above holds those seven.
-  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  // 47 -> 48: a selected accent swatch, which composes the ring with its own selection
+  // band so focus does not erase the only mark showing which accent is on.
+  assert.equal(consumers.length, 48, 'ring consumer discovery changed; the accent picker composes selection with focus');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }

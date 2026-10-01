@@ -3715,3 +3715,30 @@ measure the target's cover or the focus ring, or check screen-reader speech, and
 by `stories/row-height.test.js`, which reads the sheet in CI and measures the
 tiers, the heights and the truncation in a browser under `ROW_HEIGHTS=1`.
 Closes [#507](https://github.com/apliteni/apliteni-ui/issues/507).
+
+## React accent picker
+
+`AccentPicker` exposes the four shipped accents as a controlled group of named
+buttons using the existing `.ui-accent-picker` styles. `value` determines the
+pressed state; `onChange` reports a click, Enter, or Space without applying a page
+accent or accessing storage. Tab visits each button. The host owns application and
+persistence. Optional `options` selects and orders the unique accent values; an
+absent value leaves all buttons unpressed. The group forwards its ref and native
+attributes. It emits no `data-accent-pick`, so `wireTopbar(document)` on a
+half-migrated page cannot adopt it, apply the accent and persist it behind the
+host's `onChange` — the decision `Dropdown`, `Drawer` and `ThemeToggle` make for
+their own hooks.
+
+Both pickers read one accent list and one set of swatch paints from the kit, so
+neither can drift from the other or from the accent tokens. The selected swatch's
+ring is that accent's own `--accent`, resolved for the current theme, not the
+accent the page is on: the picker is documented to run before the host has applied
+anything, and a ring in `var(--accent)` would paint every selection in whichever
+accent the page happens to be wearing and in the same hue as the focus ring. The
+dark ramp the swatch circle itself wears does not clear 3:1 on the light card,
+which is why the ring has a value per theme. Focus stays the kit ring; on the
+selected swatch the selection ring sits just outside it instead of being replaced.
+Held by `react/src/AccentPicker.test.tsx`,
+`react/src/AccentPicker.ring.test.tsx`, `stories/accent-ring.test.js` and
+`stories/accent-swatch.test.js`. Part of
+[#429](https://github.com/apliteni/apliteni-ui/issues/429).

@@ -786,3 +786,36 @@ use it to stay the same whenever they run. `locale` names the months and weekday
 the trigger's trailing edge. Without `ariaLabel` the trigger's own text is its accessible
 name, so a control reading "17 September 2026" is heard as that rather than as its
 placeholder. The popover stays mounted while closed, and is `inert` while it is.
+
+## AccentPicker
+
+`AccentPicker` is a controlled group of the kit’s four accent swatches. Pass `value`
+and `onChange`; optionally pass `options` to choose a subset or its order. Values are
+`default`, `phoenix`, `ocean`, and `emerald` (`Accent`). Import the kit CSS.
+
+```tsx
+<AccentPicker value={accent} onChange={setAccent} />
+```
+
+Each button has an accessible name and a pressed state. Tab visits each choice;
+Enter and Space request a change without submitting a surrounding form. The host
+owns setting `data-accent` on the page and persisting the choice. The component does
+neither. A value outside `options` leaves every button unpressed; an empty list
+renders an empty group. Supply unique options.
+
+The group accepts native div attributes, an additional `className`, and a forwarded
+ref. Its default accessible name is “Accent”; override it with `aria-label` or
+`aria-labelledby` when multiple pickers need distinct names.
+
+It emits no `data-accent-pick` on its buttons, so a page that calls
+`wireTopbar(document)` — which a half-migrated page must, to wire its vanilla
+`footer({ switcher: accentPicker() })` — cannot adopt a picker React owns, apply the
+accent and persist it behind your `onChange`. This is the same decision `Dropdown`,
+`Drawer` and `ThemeToggle` make with their own wiring hooks.
+
+The selected swatch's ring is painted in that accent's own colour, not in the accent
+the page is currently on, so the ring names the swatch while `data-accent` is still
+unset. Focus is the kit ring (`--ring`); on the selected swatch the selection ring
+moves just outside it rather than disappearing. Accent names and swatch paints come
+from the kit's `ACCENTS` and `accentSwatchStyle`, which the vanilla factory also
+reads, so the two pickers cannot drift.

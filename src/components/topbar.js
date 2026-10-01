@@ -119,7 +119,8 @@ export function applyTheme(t, root = document.documentElement) {
 }
 
 const ACCENT_KEY = 'apliteni-strategy-accent';
-export const ACCENTS = ['default', 'phoenix', 'ocean', 'emerald'];
+// One list for the pickers, this wiring and the React component.
+export { ACCENTS } from '../logic/accents.js';
 
 export function applyAccent(name, root = document.documentElement) {
   if (!name || name === 'default') root.removeAttribute('data-accent');

@@ -53,6 +53,10 @@ export declare function illo(name: string): string;
 export * from './motion.js';
 export declare const illoNames: string[];
 
+// The custom properties one accent swatch button carries. ACCENTS is declared
+// with the topbar wiring that re-exports it.
+export declare function accentSwatchStyle(accent: string): Record<string, string>;
+
 // Vanilla factories accept their existing option bags and return HTML.
 export declare function accentPicker(opts?: Record<string, unknown>): string;
 export declare function accountMenu(opts?: Record<string, unknown>): string;
@@ -96,7 +100,8 @@ export declare function themeName(theme: string): string;
 export declare function themeToggle(theme?: string): string;
 export declare function versionSwitcher(versions?: { label: string; meta?: string; badge?: string }[], activeIdx?: number): string;
 
-export declare const ACCENTS: string[];
+// A tuple, so React can derive its Accent union from it.
+export declare const ACCENTS: readonly ['default', 'phoenix', 'ocean', 'emerald'];
 export declare const ACCOUNT_NAV: { id: string; icon: string; label: string }[];
 export declare const RAIL_COOKIE: 'apliteni-ui-rail';
 export declare const STAT_TONES: string[];

@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.86.0', date: '2026-10-05',
+    changes: [
+      ['added', 'React AccentPicker provides the four existing accent swatches as a controlled group. The host applies and saves the selected accent. Part of #429.'],
+      ['fixed', 'The selected accent swatch shows its ring again, painted in the swatch’s own colour rather than the page accent. Vanilla and React share the fix.', ['AccentPicker']],
+      ['added', '`accentSwatchStyle(accent)` returns the custom properties one swatch button carries — its gradient and the solid colour its selection ring takes in each theme. Both pickers read it, so a page building its own swatch strip paints the same thing.'],
+      ['changed', 'The published type of `ACCENTS` narrows from `string[]` to a readonly tuple, so React can derive its `Accent` union from it. TypeScript consumers assigning it to a mutable `string[]` need a copy.'],
+    ],
+  },
+  {
     v: '0.85.1', date: '2026-10-04',
     changes: [
       ['changed', 'The packaged manifest\u2019s `test` script now ends a run with its ten slowest tests and files, and says which of them are over the stated budget. That report never fails a run. It is for whoever contributes to the kit; nothing the kit ships behaves differently. See #560.'],

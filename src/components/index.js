@@ -1,4 +1,5 @@
 import { calloutIcons } from '../logic/callout.js';
+import { ACCENTS, accentSwatchStyle } from '../logic/accents.js';
 export { calloutIcons } from '../logic/callout.js';
 // apliteni-ui component factories — each returns an HTML string, matching the
 // viz/ server-render idiom so the portal can adopt them with no framework.
@@ -99,25 +100,16 @@ export function segmented({ options = [], active = 0, size, block, name = 'seg',
 }
 
 // ---- Accent picker -------------------------------------------------------
-// Each swatch is made of the tokens its accent selects: it fades from the next
-// distinct step up that accent's dark ramp down to dark --accent. Most accents
-// land on --purple-light; Nebula's is its own --accent since #157, so it walks
-// on to --purple-mid. site/chrome.mjs and site/index.html hand-keep the same
-// four strings and must change with these. Held by stories/accent-swatch.test.js,
-// which derives both sides rather than restating them. See issue #190.
-const ACCENT_SWATCH = {
-  default: 'linear-gradient(135deg,#bd8cff,#b479ff)',
-  phoenix: 'linear-gradient(135deg,#ff8a5c,#ff6a3d)',
-  ocean: 'linear-gradient(135deg,#5ab0ff,#3b9dff)',
-  emerald: 'linear-gradient(135deg,#3ad9a0,#16c98a)',
-};
+// The accent list and every swatch's paints live in ../logic/accents.js, which
+// the React picker reads too, so neither copy can drift from the other.
 // Swatches have no text and no glyph at all — the aria-label is the whole
 // accessible name, and aria-pressed carries which one is on.
-export function accentPicker({ active = 'default', options = ['default', 'phoenix', 'ocean', 'emerald'] } = {}) {
+export function accentPicker({ active = 'default', options = ACCENTS } = {}) {
   const title = (o) => o.charAt(0).toUpperCase() + o.slice(1);
+  const style = (o) => Object.entries(accentSwatchStyle(o)).map(([k, v]) => `${k}:${v}`).join(';');
   return `<div class="ui-accent-picker" data-accent-group role="group" aria-label="Accent">${options.map((o) =>
     `<button type="button" data-accent-pick="${esc(o)}"${o === active ? ' class="is-active"' : ''}`
-    + ` style="--swatch:${ACCENT_SWATCH[o] || 'transparent'}" aria-pressed="${o === active ? 'true' : 'false'}"`
+    + ` style="${style(o)}" aria-pressed="${o === active ? 'true' : 'false'}"`
     + ` aria-label="${esc(title(o))} accent" title="${esc(title(o))}"></button>`).join('')}</div>`;
 }
 

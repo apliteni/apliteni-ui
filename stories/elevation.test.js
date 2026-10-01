@@ -96,8 +96,10 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // than a shadow — an inset shadow is painted under a box's own children, so a table
 // scrolled sideways under one erases the band. Six of the seven never had a shadow
 // rule; the scrolling table wrapper did, and that is the one this number lost.
-  assert.equal(sweep.length, 74,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 74. `
+// 74 -> 75: the selected accent swatch keeps its selection band under focus, which
+// needs a rule of its own because a box-shadow list replaces the whole list.
+  assert.equal(sweep.length, 75,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 75. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
