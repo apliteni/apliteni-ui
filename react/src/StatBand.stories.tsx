@@ -18,15 +18,17 @@ export const Tiles: StoryObj = { render: () => <StatBand stats={STATS} basis={BA
 export const Band: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="band" /> };
 export const Open: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="open" /> };
 
-// A share of a larger figure: neither a change nor a trend, so it takes neither
-// slot. The third figure carries both a caption and a change.
+// A share of a larger figure takes the row a change would have taken, so a band
+// where only some figures carry one still keeps its changes on one line.
 export const Caption: StoryObj = {
   render: () => (
     <StatBand
+      basis={BASIS}
       stats={[
         { label: 'Gross margin', value: '36.1%', caption: 'of income' },
-        { label: 'Cost of sales', value: '€ 4,127,880', caption: '63.9% of income' },
-        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against last year' } },
+        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
+        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
       ]}
     />
   ),

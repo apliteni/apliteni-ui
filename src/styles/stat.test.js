@@ -16,6 +16,7 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^
 const RAW = readFileSync(path.join(here, 'stat.css'), 'utf8');
 const CSS = decomment(RAW);
 const SPEC = readFileSync(path.join(here, '../../docs/specification.md'), 'utf8');
+const TOKENS = readFileSync(path.join(here, '../tokens/tokens.css'), 'utf8');
 
 const rules = [...CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
   .filter((m) => !m[1].trim().startsWith('@'))
@@ -39,10 +40,13 @@ test('a figure never breaks across lines, and its digits sit on one grid', () =>
 // margins once, and every screenshot showed a value flush under its label.
 test('each part of a figure keeps the spacing its own rule gives it', () => {
   const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
-    stats: [{ label: 'Income', value: '€ 1', caption: 'of revenue', delta: { value: '+1%' }, trend: '<svg width="1" height="1"></svg>' }],
+    stats: [
+      { label: 'Income', value: '€ 1', delta: { value: '+1%' }, trend: '<svg width="1" height="1"></svg>' },
+      { label: 'Gross margin', value: '36.1%', caption: 'of income' },
+    ],
   })}</body></html>`).window;
   const margin = (sel) => doc.getComputedStyle(doc.document.querySelector(sel)).marginTop;
-  for (const [sel, prop] of [['.ui-stat__value', 'margin-top'], ['.ui-stat__caption', 'margin-top'], ['.ui-stat__delta', 'margin-top'], ['.ui-stat__trend', 'margin-top']]) {
+  for (const [sel, prop] of [['.ui-stat__value', 'margin-top'], ['dd.ui-stat__caption', 'margin-top'], ['.ui-stat__delta', 'margin-top'], ['.ui-stat__trend', 'margin-top']]) {
     assert.equal(margin(sel), valueOf(ruleFor(sel).body, prop), `${sel} lost its ${prop} to another rule in the sheet`);
   }
 });
@@ -83,12 +87,62 @@ test("a figure's caption is body ink at the caption rank, on no fill", () => {
   }
 });
 
+/* A caption alone and a change are the one row a figure draws under its value,
+ * so the two have to be the same box or a band whose figures differ drops half
+ * its changes a line lower — measured at 26.2px before this rule, in #512's
+ * review. jsdom lays nothing out, so what is held here is the cascade behind
+ * that box: the step down to the row and the two things that set its line box.
+ * It does not measure the rendered tops, which is why the band is also drawn
+ * mixed in the showcase. */
+test('a caption alone and a change take the same row box, so a mixed band keeps one line', () => {
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+    basis: 'Against last year',
+    id: 'mixed',
+    stats: [
+      { label: 'Gross margin', value: '36.1%', caption: 'of income' },
+      { label: 'Income', value: '€ 1', delta: { value: '+47.1%' } },
+    ],
+  })}</body></html>`).window;
+  const [cap, delta] = ['.ui-stat__caption', '.ui-stat__delta'].map((sel) => doc.getComputedStyle(doc.document.querySelector(sel)));
+  for (const prop of ['marginTop', 'fontSize', 'lineHeight']) {
+    assert.equal(cap[prop], delta[prop],
+      `the caption's ${prop} is ${cap[prop]} and the change's is ${delta[prop]}, so one sits lower than the other`);
+  }
+  assert.ok(cap.marginTop && cap.fontSize && cap.lineHeight, 'the cascade resolved nothing, so this compared two blanks');
+});
+
+/* The band's caption governs every figure and a figure's caption governs one,
+ * so the wider statement is never set smaller. Both sit on the caption rank;
+ * this reads the px behind the tokens so a later edit to either one fails. */
+test("the band's caption is never set under a caption inside one figure", () => {
+  const size = (rule) => {
+    const token = /var\((--[\w-]+)\)/.exec(valueOf(rule.body, 'font-size') ?? '');
+    assert.ok(token, `${rule.selector} does not set its font-size from a token`);
+    const px = new RegExp(`${token[1]}\\s*:\\s*([\\d.]+)px`).exec(TOKENS);
+    assert.ok(px, `${token[1]} is not a px value in src/tokens/tokens.css`);
+    return Number(px[1]);
+  };
+  const band = size(ruleFor('.ui-stats__basis'));
+  const figure = size(ruleFor('.ui-stat__caption'));
+  assert.ok(band >= figure,
+    `the band's caption is ${band}px and a figure's is ${figure}px, so the eye lands on one figure's words first`);
+});
+
 // The two tests above hold which parts a tone paints. This holds that the
 // caption is not one of them: it reports no change, so there is no news to colour.
 test('no tone reaches a figure\'s caption', () => {
   const painted = rules.filter((r) => r.selector.includes('.ui-stat__caption') && /color/.test(r.body));
   assert.deepEqual(painted.map((r) => r.selector), ['.ui-stat__caption'],
     'a second rule colours the caption, and the only colour it takes is body ink');
+  // Leading a change, the caption sits inside the element a tone paints, so the
+  // rule above is not enough on its own: this is the cascade resolved.
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+    variant: 'band',
+    stats: [{ label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } }],
+  })}</body></html>`).window;
+  const colour = (sel) => doc.getComputedStyle(doc.document.querySelector(sel)).color;
+  assert.equal(colour('.ui-stat__caption'), 'var(--text)', 'the figure\'s tone painted the caption beside the change');
+  assert.equal(colour('.ui-stat__delta'), 'var(--chip-success-ink)', 'the tone stopped reaching the change, so this compared nothing');
 });
 
 test('a figure is never narrower than its value, so a band wraps rather than overlaps', () => {
