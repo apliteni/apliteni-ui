@@ -479,6 +479,15 @@
       ]
     },
     {
+      "file": "react/src/showcases/InvoiceFlow.test.tsx",
+      "name": "React: Invoice flow prototype",
+      "does": "Checks that the drop box opens the file picker by pointer, Enter and Space and takes several files, and that the busy region, the field errors and the saved/unsaved status line stay truthful after a rejected save.",
+      "blind": [
+        "JSDOM does not measure the focus ring, layout or contrast, and no real file picker opens — only that the hidden input's click is reached.",
+        "Drag and drop is driven by synthetic events, so pointer-device and operating-system drag behaviour are unmeasured."
+      ]
+    },
+    {
       "file": "react/src/CommandPalette.test.tsx",
       "name": "React: CommandPalette",
       "does": "Compares the React palette with the vanilla factory shape by shape: panel, roles, groups and every row. It then presses keys on the mounted version, checking opening focus, return focus, arrows, Enter and refusal to run the destructive row.",

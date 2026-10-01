@@ -1,0 +1,78 @@
+.invoice-flow {
+  color: var(--text);
+  background: var(--table-bg); /* ring-gap: inherit — prototype paint retains the kit focus indicator and its opaque gap. */
+}
+.invoice-flow .ui-app, .invoice-flow .ui-app__rail, .invoice-flow .ui-app__bar,
+.invoice-flow .ui-react-app__bottom, .invoice-flow .ui-input:not(:disabled),
+.invoice-flow .ui-table th, .invoice-flow .ui-table td { background: var(--table-bg); /* ring-gap: inherit — prototype paint retains the kit focus indicator and its opaque gap. */ }
+.invoice-flow .ui-app__main { max-width: var(--container); }
+.invoice-flow .ui-app__rail { border-right: 1px solid var(--border); }
+.invoice-flow h1 { overflow-wrap: anywhere; }
+.invoice-flow h2 { font-size: var(--text-lg); margin: 0 0 var(--space-4); }
+.invoice-flow h3 { font-size: var(--text-md); margin: 0; }
+.invoice-flow p { max-width: var(--prose-body); }
+.invoice-flow__note { font-size: var(--text-sm); margin: 0 0 var(--space-4); }
+.invoice-flow__announcement { font-size: var(--text-sm); margin: 0; }
+.invoice-flow__announcement:empty { display: none; }
+.invoice-flow__summary, .invoice-flow__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin: var(--space-4) 0; }
+.invoice-flow__status, .invoice-flow__error { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
+/* icon() emits a bare <svg>; `.ui-icon` is only on the shell's hand-drawn fold glyph, so
+   this has to name the element to reach these. At 16px, 2.4 paints 1.6 CSS px. */
+.invoice-flow__status svg, .invoice-flow__error svg { width: var(--space-4); height: var(--space-4); stroke-width: 2.4; }
+.invoice-flow__error { white-space: normal; color: var(--pink); }
+.invoice-flow__columns { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--space-10); align-items: start; }
+.invoice-flow__data { grid-column: 1; grid-row: 1; }
+.invoice-flow__preview { grid-column: 2; grid-row: 1; min-width: 0; }
+.invoice-flow__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); margin: var(--space-6) 0; }
+.invoice-flow__paper { border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-6); font-size: var(--text-sm); }
+.invoice-flow__paper p { margin: var(--space-5) 0; }
+.invoice-flow__paper dl { margin: var(--space-8) 0; }
+.invoice-flow__paper dl div { display: flex; justify-content: space-between; gap: var(--space-4); margin: var(--space-3) 0; }
+.invoice-flow__paper dd { margin: 0; font-variant-numeric: tabular-nums; }
+.invoice-flow__preview img, .invoice-flow__preview iframe { width: 100%; border: 1px solid var(--border); }
+.invoice-flow__preview iframe { height: var(--panel-lg); }
+/* The accent marks provenance, not rank: a rule above a field means the value is still
+   exactly what the parser extracted, so it is one the reader has yet to check. */
+.invoice-flow__field { border-block-start: 2px solid transparent; padding-block-start: var(--space-3); }
+.invoice-flow__field[data-parsed] { border-block-start-color: var(--accent); }
+.invoice-flow__paper-line { margin: var(--space-3) 0; }
+.invoice-flow__paper table { width: 100%; border-collapse: collapse; margin: var(--space-6) 0; }
+.invoice-flow__paper th, .invoice-flow__paper td { text-align: start; font-weight: var(--weight-normal); padding: var(--space-2) 0; border-block-end: 1px solid var(--border); }
+.invoice-flow__paper th:not(:first-child), .invoice-flow__paper td:not(:first-child) { text-align: end; font-variant-numeric: tabular-nums; }
+.invoice-flow__paper-sums div:last-child { border-block-start: 1px solid var(--border-strong); padding-block-start: var(--space-3); font-weight: var(--weight-medium); }
+/* The identity cell's ghost button carries the control's own inset, which put its text
+   18px right of the column header. Pull the box back so the two share an edge. */
+.invoice-flow .ui-table td:first-child .ui-btn { margin-inline-start: calc(-1px - var(--btn-pad-x)); }
+.invoice-flow__drop { border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); margin: var(--space-6) 0; padding: var(--space-4); }
+.invoice-flow__drop > p { margin: 0; font-size: var(--text-sm); }
+.invoice-flow__drop.is-dragging { border-color: var(--accent); }
+.invoice-flow .ui-table { white-space: nowrap; min-width: var(--panel-lg); }
+.invoice-flow .ui-table td:last-child { padding-right: 0; }
+.invoice-flow .ui-table .ui-btn { white-space: nowrap; text-align: left; }
+@media (max-width: 860px) {
+  .invoice-flow__columns { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
+  .invoice-flow__data, .invoice-flow__preview { grid-column: auto; grid-row: auto; }
+}
+@media (max-width: 560px) {
+  .invoice-flow__fields { grid-template-columns: minmax(0, 1fr); }
+  .invoice-flow__drop { padding: var(--space-3); }
+  .invoice-flow .ui-empty__actions { flex-wrap: wrap; justify-content: center; }
+}
+.invoice-flow h1:focus { outline: none; }
+.invoice-flow .ui-app__search, .invoice-flow .ui-cmdk__key,
+.invoice-flow .ui-app__av, .invoice-flow .toggle,
+.invoice-flow .ui-nav__item, .invoice-flow .ui-nav__item:hover,
+.invoice-flow .ui-dropdown__panel, .invoice-flow .ui-dropdown__item,
+.invoice-flow .ui-btn--secondary, .invoice-flow .ui-btn--ghost:not(:disabled):hover {
+  background: var(--table-bg); /* ring-gap: inherit — prototype paint retains the kit focus indicator and its opaque gap. */
+}
+.invoice-flow--navigated .invoice-flow__columns { animation: invoice-arrive var(--dur-slow) var(--ease-out); }
+@keyframes invoice-arrive { from { opacity: 0; transform: translateY(var(--space-2)); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .invoice-flow--navigated .invoice-flow__columns { animation: none; } }
+.invoice-flow--navigated .ui-table-scroll { animation: invoice-arrive var(--dur-slow) var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { .invoice-flow--navigated .ui-table-scroll { animation: none; } }
+
+.invoice-flow__data[data-live] form { animation: invoice-arrive var(--dur-slow) var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { .invoice-flow__data[data-live] form { animation: none; } }
+/* Keep focused controls clear of the shell's fixed mobile navigation. */
+.invoice-flow :is(button, input, a) { scroll-margin-block: calc(var(--space-16) + var(--space-16)); }

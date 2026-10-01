@@ -1,0 +1,14 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { InvoiceFlow } from './InvoiceFlow';
+const meta = { title: 'Apps/Invoice flow prototype', id: 'apps-invoice-flow-prototype', component: InvoiceFlow, parameters: { layout: 'fullscreen' } } satisfies Meta<typeof InvoiceFlow>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export const Flow: Story = { args: { simulate: true } };
+export const AwaitingInvoices: Story = { args: { initialState: 'empty' } };
+export const InvoiceTable: Story = { args: { initialState: 'table' } };
+export const Uploading: Story = { args: { initialState: 'uploading' } };
+export const Parsing: Story = { args: { initialState: 'parsing' } };
+export const NeedsReview: Story = { args: { initialState: 'review' } };
+export const Editing: Story = { args: { initialState: 'editing' } };
+export const Ready: Story = { args: { initialState: 'ready' } };
+export const UploadError: Story = { args: { initialState: 'error' } };
