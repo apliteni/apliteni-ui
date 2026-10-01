@@ -94,5 +94,10 @@ export type { TooltipProps } from './Tooltip';
 export { Success, SuccessPanel, SuccessCheck } from './Success';
 export type { SuccessProps, SuccessPanelProps, SuccessCheckProps, SuccessCountdown } from './Success';
 
+export { Chart } from './Chart';
+export type {
+  ChartProps, ChartTone, ChartPeriod, ChartSeries, ChartBridgeStep, ChartBridgeTones,
+} from './Chart';
+
 export { SidebarNav } from './SidebarNav';
 export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';

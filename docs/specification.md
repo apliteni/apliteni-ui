@@ -2183,7 +2183,9 @@ moving a readout never changes the size or the place of anything else on the pag
 
 **Not decided yet.** The wiring adds no tab stop to a mark, so whether a chart's marks should take
 focus at all is open on [#282][i282] and waits on the owner. Until it is settled, the rule for
-pages is that no value is reachable only by hovering.
+pages is that no value is reachable only by hovering. React `Chart` answers it for itself without
+closing the question: the chart is one tab stop and no mark is, so the keyboard reaches every
+value through the chart. See [React charts](#react-charts).
 
 The kit had no readout until [#282][i282]. The finance portal's overview drew two, on one screen:
 its bar chart overlaid its readout and nothing moved, while each KPI sparkline inserted its
@@ -2792,7 +2794,11 @@ column switches over one dataset, where the order is the reader's map.
 
 The main entry exports `dropdownMatch`, `dropdownFiltering`, `rankGroups`,
 `rankCommands`, `scoreCommand`, `paletteHotkey`, `segmentedNextIndex`, `PAGE_SIZES`,
-`DEFAULT_PAGE_SIZE`, and `calloutIcons` from shared logic modules. Vanilla factories
+`DEFAULT_PAGE_SIZE`, `calloutIcons`, `chartScale`, `bridgeWalk`, and `CHART_FLOOR` from
+shared logic modules. `chartScale(values, options)` returns the band a series is drawn in
+and the whole-unit ticks beside it; `bridgeWalk(steps)` returns each column's own amount
+and the two ends of the bar that draws it. Both are pure — no DOM, no pixels — so a surface
+that draws these shapes without React asks the kit rather than writing the arithmetic again. Vanilla factories
 use the same logic and retain their exports during the removal migration.
 `formatNumericValue` returns plain text, a unit, and an optional missing-value label;
 `formatDeltaValue` returns plain text, the delta classes, and the comparison basis ID.
@@ -2937,6 +2943,7 @@ paint or screen-reader speech. `src/styles/check-disabled.test.js` reads the two
 things the story walk cannot: the hover qualification and the pseudo-element mark.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
 
+<<<<<<< HEAD
 ## React search field
 
 A toolbar above a list opens with a search box, then its filters, then its view
@@ -3086,3 +3093,66 @@ Held by `stories/snippet-focus.test.js`, which emulates forced colors by flatten
 the media block and dropping every box-shadow; keyboard reachability, the gap
 colour, the colour the system repaints an outline as, and pixels are checked in
 Chromium because JSDOM cannot prove any of them.
+=======
+## React charts
+
+`Chart` draws the two shapes a money dashboard keeps redrawing, and the sparkline that
+sits beside a figure. Every product drew its own before [#491](https://github.com/apliteni/apliteni-ui/issues/491),
+and the look, the readout and the keyboard behaviour drifted between them.
+
+- `variant: 'months'` — up to twelve periods, one bar series standing on the zero line, one
+  mirrored under it, and a line series crossing both. A `bars-below` series is given positive
+  magnitudes and drawn downwards, so spend is `31870` and reads as €31,870 wherever it is
+  printed. A bar series names a tone and may fade towards the zero line; a line is neutral and
+  carries a dot per point, so colour is never the only cue.
+- `variant: 'bridge'` — one period walked from a starting total through each component to a
+  result. The first step is a total, every later one a change, and a `total` step with no
+  amount of its own takes the running total rather than repeating a sum the caller already
+  gave piece by piece. A rise, a fall and a total take three tones, and the caller names them:
+  a rise in cost is not good news.
+- `variant: 'spark'` — one series at text size with no axis, no legend and no table, for the
+  stat band's `trend` slot. It is read against itself rather than against zero, and its band is
+  never narrower than `CHART_FLOOR` of the series' own reach, so a series that moves 0.2% is
+  drawn as a flat line and not as a cliff.
+
+**The numbers are the caller's and the arithmetic is the kit's.** `chartScale()` and
+`bridgeWalk()` are exported from the main entry (see [Shared React logic](#shared-react-logic-and-declarations)):
+the band holds every value, the axis steps are whole units, and a flat or empty series is still
+drawable. `format` prints exact values in the readout, the live region and the table;
+`formatAxis` prints the ticks and defaults to `format`.
+
+- **A period that is not final** is drawn with a hatch in its own tone and a dashed outline, the
+  line segment reaching it is dashed, and the state is printed twice in words — in the readout,
+  where it replaces the comparison, and in the legend beside a hatched key. `note` says why.
+- **The readout is the kit's**, `.ui-tip` with its three parts: the series and the period, the
+  value, and one comparison — the change on the previous period, or a bridge step's running
+  total. It opens above the mark and flips below by the kit's own test, because both components
+  place it through one module. It is rendered in the frame rather than in the scroller: a
+  readout inside a horizontal scroller is clipped above the bar it describes. A tap opens it, a
+  tap on the same mark closes it, and Escape dismisses the mark it was pressed on — the readout
+  returns on the next mark, not on that one.
+- **A mark is a series' own band in its column**, full height, so a pointer that falls between
+  two bars still has one to answer with; a line's mark is a 24px target on its dot, over the
+  band. Every mark is at least 24px in both directions.
+- **One tab stop, and it is the chart.** The frame takes focus and the kit's `--ring`; Left,
+  Right, Home and End step columns, Enter picks one when `selectable` is set, and each step is
+  announced through a polite `role="status"` region that names the period, every series' value
+  and the unfinished state. A column stepped into is scrolled into view. No mark is a tab stop,
+  which is the answer [#282](https://github.com/apliteni/apliteni-ui/issues/282) left open for
+  the vanilla wiring; `role="slider"` with `aria-valuetext` was rejected because the issue asked
+  for the live region, and a slider carrying both would say everything twice.
+- **The plot scrolls, the value axis does not.** The axis sits outside the scroller; the plot
+  keeps a floor of `--ui-chart-col` per column, so twelve months fit a desktop card and scroll
+  on a phone. Whichever side still hides columns is faded, with a mask rather than a painted
+  gradient, so a chart on a card and a chart on the page both fade correctly.
+- **Nothing animates.** The chart's only transition is the readout's own, which the kit's
+  reduced-motion net already shortens; stepping and selecting change paint and nothing else.
+- `title` names the `role="img"` plot and the table under it, and is never drawn — the card
+  around a chart already carries its title. The table is a `<details>` the reader opens, on for
+  every variant but the sparkline, whose own name carries its first and last value.
+
+Held by `src/logic/chart.test.js` for the arithmetic and `react/src/Chart.test.tsx` for the
+markup, the keyboard, the readout and axe; neither measures paint, so the hatch, the fade and
+the focus ring are checked in browser captures. Part of
+[#429](https://github.com/apliteni/apliteni-ui/issues/429).
+>>>>>>> 6e07427 (React: Chart, monthly bars with a line, and a bridge (#491))

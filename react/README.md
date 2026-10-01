@@ -29,7 +29,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Chart`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
@@ -668,4 +668,41 @@ the accent from a checked box.
 <Checkbox label="Read only" type="radio" name="scope" value="read" defaultChecked />
 <Checkbox label="Full access" type="radio" name="scope" value="full" />
 <Switch label="Email notifications" checked={email} onChange={event => setEmail(event.currentTarget.checked)} />
+```
+
+## Chart
+
+`Chart` draws three shapes from the kit's tokens: `months`, up to twelve periods of bars with
+a line across them; `bridge`, one period walked from a starting total to a result; and `spark`,
+one series at text size with no axis, for a stat band's `trend` slot.
+
+The numbers are yours and so is the wording. `format` prints exact values in the readout, the
+live region and the table; `formatAxis` prints the ticks, which are whole units, and defaults
+to `format`. A `bars-below` series takes positive magnitudes and is drawn under the zero line.
+A period marked `estimated` is hatched, dashed, and named in words in both the readout and the
+legend; `note` says why.
+
+The chart is one tab stop. Left, Right, Home and End step columns and announce each one
+politely, Enter picks one when `selectable` is set, and `title` names the `role="img"` plot and
+the table under it without being drawn — the card around the chart already carries its title.
+At phone widths the plot scrolls with the value axis held in place, and the side that still
+hides columns is faded. Nothing animates.
+
+```tsx
+<Chart title="Income and spend by month, last 12 months, with net"
+  periods={months.map(label => ({ label }))}
+  series={[
+    { id: 'income', name: 'Income', values: income, tone: 'good', fade: true },
+    { id: 'spend', name: 'Spend', values: spend, shape: 'bars-below', tone: 'bad', fade: true },
+    { id: 'net', name: 'Net', values: net, shape: 'line' },
+  ]}
+  format={eur} formatAxis={eurShort} />
+
+<Chart variant="bridge" title="Cash from opening to closing" format={eur}
+  steps={[
+    { label: 'Opening', value: 120000 },
+    { label: 'Subscriptions', value: 42600 },
+    { label: 'Payroll', value: -58200 },
+    { label: 'Closing', kind: 'total' },
+  ]} />
 ```

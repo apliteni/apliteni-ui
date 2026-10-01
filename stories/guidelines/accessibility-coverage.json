@@ -28,6 +28,14 @@
       ]
     },
     {
+      "file": "react/src/Chart.test.tsx",
+      "name": "React: Chart",
+      "does": "Checks the chart's accessible names, its single tab stop and the kit ring on every focusable part, arrow/Home/End stepping with its polite announcements, Enter selection, the readout's contents and its Escape and tap behaviour, the hatch and dash on an unfinished period, the table fallback, and axe results in both themes.",
+      "blind": [
+        "JSDOM has no layout, so the readout's placement, the hatch, the fade gradient, the scroll fade and the focus ring are not measured as painted; browser captures cover those. Screen-reader speech is not run."
+      ]
+    },
+    {
       "file": "react/src/Checkbox.test.tsx",
       "name": "React: Checkbox and radio",
       "does": "Checks accessible labels, pointer and Space activation, controlled radio selection and arrow navigation, disabled inputs, refs, form values, reset and axe results.",

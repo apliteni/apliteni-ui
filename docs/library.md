@@ -301,3 +301,11 @@ accessible label. `formatDeltaValue({ value, tone, basisId, missing })` returns
 `{ text, className, basisId }`, retaining signed text and neutral zero/missing values.
 Both return plain text, not HTML. React and the vanilla value factories share them.
 The main entry ships TypeScript declarations through its `types` export condition.
+
+`chartScale(values, { ticks, zero, floor, nice })` returns `{ min, max, step, ticks }` — the
+band a series is drawn in and the whole-unit ticks beside it. `bridgeWalk(steps)` returns each
+column's own amount and the two ends of the bar that draws it, walking a starting total through
+its components to a result. `CHART_FLOOR` is the smallest band a series is drawn in, as a share
+of its own reach, which is what keeps a flat sparkline flat. All three are pure, and React
+`Chart` is their one consumer in this repository; the kit draws no vanilla chart.
+See [React charts](specification.md#react-charts) and [react/README.md](../react/README.md#chart).
