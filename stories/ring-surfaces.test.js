@@ -119,7 +119,14 @@ test('a surface a story paints sets a matching gap, so a ring drawn inside it is
   // minimums page, which paint the surface and now declare its gap. 34 -> 38:
   // #507's File drop stages — the window, the panel, the progress card a Don't
   // draws, and the tall box's glyph tile, which inherits.
-  assert.equal(storySurfaces.length, 38,
+  // 38 -> 45: #509's account page. Six of the seven are blocks in a drawn-to-scale
+  // picture — a rail, a bar, a column, a nav row, a line of text and the overlay
+  // over them — which hold no control and inherit the containing gap. The seventh
+  // is the account modal's own panel, which holds real ones and declares the gap
+  // it paints.
+  // 45 -> 46: the same account page again, muting the drawn rail's current row
+  // where it sits under a scrim rather than being the subject. Also no control.
+  assert.equal(storySurfaces.length, 46,
     'story surface discovery changed; update the count with the stages that moved');
   assert.deepEqual(gapProblems(storySurfaces), [],
     'a story paints a surface whose focus ring would draw its gap in the page colour');

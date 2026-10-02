@@ -63,6 +63,12 @@ export const SPEC_CSS = `
       border-radius: var(--radius-md); overflow: hidden; }
     .gas-modal__bg { position: absolute; inset: 0; }
     .gas-modal__bg .gas-shell { height: 100%; border-radius: 0; }
+    /* The drawn rail marks its current row in the accent, which is right in rule 1
+       where that rail is the subject. Under a scrim it is a clipped purple dash
+       beside the panel, marking nothing these four rules name, so it goes neutral. */
+    .gas-modal__bg .gas-row--cur {
+      /* ring-gap: inherit — a drawn nav row is a mark, not a control. */
+      background: color-mix(in srgb, var(--muted) 45%, transparent); }
     .gas-modal__panel { position: relative; border-radius: var(--radius-md); overflow: hidden;
       background: var(--bg-elevated); --ring-gap: var(--bg-elevated);
       border: 1px solid var(--border-strong);
@@ -162,10 +168,10 @@ const closeBtn = () => button({ label: 'Close', icon: 'x', iconOnly: true, varia
 const modal = (body, mod = '') => `<div class="gas-modal${mod ? ` ${mod}` : ''}">
   <div class="gas-modal__bg">${shell()}<div class="gas-scrim"></div></div>
   <div class="gas-modal__panel">
-  <div class="gas-modal__head">
-    <h3 class="gas-modal__title">Account</h3>${closeBtn()}
-  </div>
-  <div class="gas-modal__body">${body}</div>
+    <div class="gas-modal__head">
+      <h3 class="gas-modal__title">Account</h3>${closeBtn()}
+    </div>
+    <div class="gas-modal__body">${body}</div>
   </div>
 </div>`;
 
@@ -242,9 +248,11 @@ export const inRowDont = () => stage(modal(withNav('notifications')
 
 // ---- the action a pane carries -------------------------------------------
 
+// Each agent beside the token it holds, masked the way a kit page shows one: the
+// caption, the action and the rule's reason all say tokens, so the pane draws them.
 const TOKENS = [
-  ['Deploy bot', 'Used today'],
-  ['Reporting agent', 'Used 2 days ago'],
+  ['Deploy bot', 'apl_••••7Q2 · used today'],
+  ['Reporting agent', 'apl_••••K4D · used 2 days ago'],
 ];
 
 // In the modal, like the four rules above it: this pair was the only one that left
