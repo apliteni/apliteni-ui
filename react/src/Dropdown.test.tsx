@@ -12,6 +12,14 @@ import { afterEach } from 'vitest';
 import { dropdown, wireDropdown, dropdownMatch } from '@apliteni/apliteni-ui';
 import { Dropdown, type DropdownProps, type DropdownEntry } from './Dropdown';
 import { classesOf, classesOfEl } from './test/classlist';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import {
+  leafRules, inNet,
+  // stories/lib/motion-css.js is plain JS outside this workspace's tsconfig, and is
+  // shared for its CSS reading exactly as stories/lib/contrast.js is.
+  // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
+} from '../../stories/lib/motion-css.js';
 
 afterEach(cleanup);
 
@@ -780,4 +788,50 @@ test('state badge ink and generic metadata match the factory classification', ()
   const { container } = render(<Dropdown items={cases.map(([badge], i) => ({ label: `Option ${i}`, badge }))} />);
   expect([...container.querySelectorAll('.ui-dropdown__badge')].map(el => el.className))
     .toEqual(cases.map(([, tone]) => `ui-dropdown__badge is-${tone}`));
+});
+
+// #519: under reduced motion the net gives every element a 0.01ms transition, and an
+// element that names no property of its own transitions `all` — including the inherited,
+// discrete `visibility`. So `.ui-dropdown__search` held the field hidden for the frame the
+// panel opened in, and the focus call below landed nowhere. The cure is one rule in
+// src/styles/dropdown.css, which both faces load, and it is keyed on the panel's open
+// markup: `.open > [data-dropdown-panel] *`. So what this side has to answer for is that
+// React's panel IS that markup — a panel carrying the data hook, a direct child of a
+// container carrying `open`.
+//
+// Limits: jsdom evaluates no media query and runs no transition, so the rule is read out
+// of the sheet and matched against the rendered tree. That Chrome then obeys it was
+// measured by hand with reduced motion forced; #519 carries the before and after. The
+// vanilla side asks the same question of every curtain in the kit, in
+// stories/reveal-focus.test.js.
+describe('reduced motion: the panel the keyboard opens', () => {
+  /** The sheet both faces load. Located from the test's own path, as Timeline's does. */
+  const readKitSheet = (name: string) => readFileSync(
+    join(dirname(expect.getState().testPath!), '../../src/styles', name), 'utf8');
+
+  it('is reached by the sheet\'s reduced-motion rule, every element inside it', async () => {
+    const rules = leafRules(readKitSheet('dropdown.css')) as Array<
+      { selector: string; decls: Array<{ prop: string; value: string; important: boolean }> }>;
+    const off = rules
+      .filter((r) => inNet(r) && r.decls.some((d) => d.prop === 'transition' && d.important && d.value === 'none'))
+      .map((r) => r.selector);
+    expect(off).not.toEqual([]);
+    const user = userEvent.setup();
+    const { container } = render(
+      <Dropdown label="country:" variant="select" search
+        items={[{ label: 'Germany', value: 'de', selected: true }, { label: 'France', value: 'fr' }]} />);
+    const trigger = container.querySelector('.ui-dropdown__trigger') as HTMLElement;
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    // The field has the focus the bug took away. Asserted here and not only in the
+    // keyboard block, because a panel that never opened would pass the cover check below
+    // without measuring anything.
+    expect(document.activeElement).toBe(container.querySelector('.ui-dropdown__search-input'));
+
+    const panel = container.querySelector('[data-dropdown-panel]')!;
+    expect(panel.parentElement!.classList.contains('open')).toBe(true);
+    const inside = [...panel.querySelectorAll('*')];
+    expect(inside.length).toBeGreaterThan(3);
+    expect(inside.filter((el) => !off.some((s) => el.matches(s)))).toEqual([]);
+  });
 });

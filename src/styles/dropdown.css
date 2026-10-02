@@ -115,6 +115,16 @@
 .ui-dropdown.open .ui-dropdown__panel,
 .ui-dropdown__panel--portal.is-open { transition-property: opacity, transform; }
 
+/* And nothing inside it is held either. Under reduced motion an element that names no
+   property of its own still transitions the inherited `visibility`, so it is hidden in
+   the frame openDropdown() focuses into it — #519. Keyed on the data hook, because the
+   topbar's two menus open on the same wiring and keep their own CSS.
+   why: docs/specification.md#the-dropdown-panel */
+@media (prefers-reduced-motion: reduce) {
+  .open > [data-dropdown-panel] *,
+  [data-dropdown-panel].is-open * { transition: none !important; }
+}
+
 /* Portalled panel — wireDropdown() moves it onto <body>, clear of every
    ancestor's overflow and every ancestor's stacking context. The descendant
    selector above stops matching the moment it leaves the trigger's subtree, so
