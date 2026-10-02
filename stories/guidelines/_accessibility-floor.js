@@ -13,7 +13,7 @@ export const BLURB = content.blurb;
 // pinned next door in stories/field-zoom.test.js, where the fields are.
 //
 // Measure behavior instead of matching the source text.
-import { button, checkbox } from '../../src/components/index.js';
+import { badge, button, checkbox } from '../../src/components/index.js';
 
 // ---- the three numbers -----------------------------------------------------
 
@@ -187,7 +187,7 @@ export const SPEC_CSS = `
        dashed line on the same square as the solid one, which IS the mistake. */
     .gl-target__ink { width: 19px; height: 19px;
       border: 1.5px solid var(--border-strong); border-radius: var(--radius-xs);
-      background: var(--surface-2); outline: 1.5px dashed var(--pink); }
+      background: var(--surface-2); --ring-gap: var(--surface-2); outline: 1.5px dashed var(--pink); }
 
     /* The phone floor's two pairs. The layer src/styles/tap-zone.css declares is
        live only below the phone step and only to a coarse pointer, so on this
@@ -222,7 +222,7 @@ export const SPEC_CSS = `
        is the box, not the press. The pink edge is where the row grows to. */
     .gl-tap__fat { display: inline-flex; align-items: center; justify-content: center;
       height: 44px; padding: 0 17px; border-radius: var(--radius-sm);
-      border: 1px solid var(--control-edge); background: var(--surface);
+      border: 1px solid var(--control-edge); background: var(--surface); --ring-gap: var(--surface);
       color: var(--text); font-family: var(--font-sans); font-size: var(--text-sm);
       font-weight: var(--weight-medium); outline: 1.5px dashed var(--pink); }
 
@@ -232,21 +232,48 @@ export const SPEC_CSS = `
     .gl-tap--tight { gap: var(--space-2); --tap-clear-x: 44px; --tap-clear-y: 44px; }
     .gl-tap--tight .gl-tap__ink { position: relative; width: 24px; height: 24px;
       border: 1px solid var(--control-edge); border-radius: var(--radius-sm);
-      background: var(--surface); }
+      background: var(--surface); --ring-gap: var(--surface); }
     .gl-tap--tight .gl-tap__ink::after {
       content: ""; position: absolute; left: 50%; top: 50%;
       width: 44px; height: 44px; transform: translate(-50%, -50%);
       outline: 1.5px dashed var(--pink); pointer-events: none;
     }
+
+    /* A focus ring exists only under a live keyboard, so the Do cell pins what
+       :focus-visible paints — var(--ring), the composition src/styles/base.css
+       applies. Same device as stories/guidelines/_state-set.js. */
+    .gl-ring .ui-btn { box-shadow: var(--ring); }
+
+    /* The Don't is that composition with the solid band taken out, so the pair
+       differs by the band and nothing else. Glow alone is the treatment the ring
+       evidence measured under the bar, which is why the kit ships no selector
+       for it and why this half has to be drawn rather than borrowed. */
+    .gl-ring--halo .ui-btn { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 34%, transparent); }
+
+    /* A word is what this chip is missing, so the Don't cannot carry one. The
+       fill, radius and padding are the badge's own; only the box a word would
+       have filled is drawn, because an empty inline-flex works out no size. */
+    .gl-status__gap { display: inline-block; width: 3.25rem; height: 1.45em; height: 1lh; }
+
+    /* The one don't on this page that CAN be drawn: the same sentence, legible in
+       both halves, with the ground changing under it. The gradient runs from the
+       stage's own surface to an accent tint, so the ink crosses two pairs and
+       neither is the one a measurement would report. The contrast walk records
+       this cell as unjudgeable rather than failing it, which is the rule stated
+       as a measurement. */
+    .gl-measure { display: block; margin: 0; max-width: none;
+      padding: var(--space-3); border-radius: var(--radius-md); color: var(--text); }
+    .gl-measure--gradient { background: linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--accent) 30%, var(--surface))); /* ring-gap: inherit — a gradient has no single colour to hand a ring, which is the rule this cell is drawing. */ }
   </style>`;
 
-const row = (...html) => `<div class="gl-stage gl-stage--row gl-target">${html.join('')}</div>`;
+const row = (...html) => `<div class="gl-stage gl-stage--row">${html.join('')}</div>`;
+const targetRow = (...html) => `<div class="gl-stage gl-stage--row gl-target">${html.join('')}</div>`;
 
-export const targetDo = () => row(
+export const targetDo = () => targetRow(
   checkbox({ label: 'Revoke on expiry', checked: true }),
   button({ label: 'Revoke', variant: 'secondary', size: 'sm' }),
 );
-export const targetDont = () => row(
+export const targetDont = () => targetRow(
   `<span class="gl-target__ink" aria-hidden="true"></span>`,
 );
 
@@ -275,15 +302,67 @@ export const tapSpacingDont = () => tapRow(
   '<span class="gl-tap__ink" aria-hidden="true"></span>',
 );
 
+// Two controls wear the indicator at once, which a keyboard never does: the pair
+// is the accent-filled control and the plain one, and the gap colour is the thing
+// being compared between them. The note says so rather than the picture implying
+// two focused controls.
+const ringed = (mod) => `
+  <div class="gl-stage gl-ring ${mod}">
+    <div class="gl-stage--row">
+      ${button({ label: 'Publish', variant: 'primary' })}
+      ${button({ label: 'Discard' })}
+    </div>
+    <div class="gl-cursor">Both drawn focused</div>
+  </div>`;
+
+export const ringDo = () => ringed('');
+export const ringDont = () => ringed('gl-ring--halo');
+
+// The Do cell's unavailable button is the real state: the disabled gate next door
+// reads the kit's own disabled rules off the sheet, so a copy would be measured
+// as nothing. The Don't cell cannot be real — a second disabled control would
+// pass that same gate and prove nothing — so it keeps the live paint and leaves
+// the state to a pointer readout, which IS the mistake. Only the Don't carries
+// that readout: a note in both halves would be the one thing the pair must not
+// share, and the Do's whole claim is that it needs no pointer to say so.
+const revoking = (disabled) => `
+  <div class="gl-stage">
+    <div class="gl-stage--row">
+      ${button({ label: 'Save changes', variant: 'primary' })}
+      ${button({ label: 'Revoke key', disabled })}
+    </div>
+    ${disabled ? '' : '<div class="gl-cursor">Revoke key is unavailable</div>'}
+  </div>`;
+
+export const disabledDo = () => revoking(true);
+export const disabledDont = () => revoking(false);
+
+const MEASURED = 'A refund is deducted from the month it was issued in.';
+
+export const measureDo = () => row(
+  `<p class="gl-measure">${MEASURED}</p>`,
+);
+export const measureDont = () => row(
+  `<p class="gl-measure gl-measure--gradient">${MEASURED}</p>`,
+);
+
+export const statusDo = () => row(
+  badge('Paused', 'warn'),
+  badge('Live', 'live'),
+);
+export const statusDont = () => row(
+  `<span class="ui-badge ui-badge--live" aria-hidden="true"><span class="gl-status__gap"></span></span>`,
+);
+
 export const RULES = withSpecimens(content.rules, [
 { id: 'target-size', doHtml: targetDo, dontHtml: targetDont },
 { id: 'tap-zone', doHtml: tapZoneDo, dontHtml: tapZoneDont },
 { id: 'tap-spacing', doHtml: tapSpacingDo, dontHtml: tapSpacingDont },
-{ id: 'ring-contrast' },
-{ id: 'disabled-legibility' },
+{ id: 'ring-contrast', doHtml: ringDo, dontHtml: ringDont },
+{ id: 'disabled-legibility', doHtml: disabledDo, dontHtml: disabledDont },
 { id: 'touch-field-size' },
 { id: 'body-contrast' },
-{ id: 'status-label' },
-{ id: 'measurable-pair' },
+{ id: 'status-label', doHtml: statusDo, dontHtml: statusDont },
+{ id: 'measurable-pair', doHtml: measureDo, dontHtml: measureDont },
 { id: 'keyboard-first' },
 ]);

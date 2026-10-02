@@ -15,7 +15,7 @@ import { pagination, PAGE_SIZES, DEFAULT_PAGE_SIZE } from '../../src/components/
 // at it, which is the width a pager meets inside a card on a laptop.
 export const SPEC_CSS = `
   <style>
-    .gp-stage { background: var(--surface); border-radius: var(--radius-lg);
+    .gp-stage { background: var(--surface); --ring-gap: var(--surface); border-radius: var(--radius-lg);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4) var(--space-5); }
     /* The hand-built don'ts below are rows of kit buttons, so they need the one
        thing .ui-pager would have given them: a row. Nothing else is styled — what
