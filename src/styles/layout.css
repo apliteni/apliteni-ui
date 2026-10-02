@@ -441,6 +441,13 @@
 .ui-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
 .ui-toolbar > .ui-input,
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
+/* At one column the 6rem basis stops being a floor and becomes the field's size:
+   a row with two narrow chips beside it keeps all three on the line and cuts the
+   field's own placeholder off. why: docs/specification.md#a-toolbar-at-one-column */
+@media (max-width: 560px) {
+  .ui-toolbar > .ui-input,
+  .ui-toolbar > .ui-input-group { flex-basis: 100%; }
+}
 
 /* -- The narrow rail ------------------------------------------------------ */
 /* Below this width the rail folds to the icon strip instead of disappearing, and

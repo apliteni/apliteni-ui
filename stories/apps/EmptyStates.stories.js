@@ -12,7 +12,9 @@ export default {
 // screens and the finance report cannot end up on different columns or with
 // different trails.
 
-// A filtered list with an action to clear the filters.
+// A filtered list with an action to clear the filters. The search box is the
+// kit's standalone search field — the same part React's SearchField renders,
+// so the two sides of the kit cannot drift apart. #517
 export const FilteredList = {
   render: () => financeShell({
     active: 'invoices',
@@ -21,7 +23,7 @@ export const FilteredList = {
     sub: 'Everything you have uploaded or received by email.',
     body: `
       <div class="ui-toolbar" style="margin-bottom:16px">
-        ${input({ placeholder: 'Vendor' })}
+        ${input({ type: 'search', icon: 'search', ariaLabel: 'Search invoices by vendor', placeholder: 'Vendor' })}
         ${segmented({ ariaLabel: 'Status filter', options: ['Any', 'Verified', 'Pending'], active: 2 })}
         ${button({ label: 'Filter', variant: 'secondary' })}
       </div>
