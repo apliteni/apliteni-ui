@@ -3,20 +3,17 @@ const content = await loadGuideline('account-and-settings.md', new URL('../../gu
 export const TITLE = content.title;
 export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
-import { button, card } from '../../src/components/index.js';
-import { confirm } from '../../src/components/confirm.js';
+import { button, card, switchToggle } from '../../src/components/index.js';
 import { sidebarNav } from '../../src/components/nav.js';
 import { accountMenu } from '../../src/components/topbar.js';
 
-// Two rules are about where a whole screen is drawn, and a screen does not fit a
-// 420px cell at life size. They are drawn to scale instead, out of the block
-// vocabulary stories/guidelines/_the-page.js established for the same reason: the
-// rail, the bar and the content column as blocks, the page's content as the bars a
-// reader skims. The ratio is true and the pixels are not, and the captions say so.
-//
-// The account menu is a dropdown panel, hidden at rest. It joins the flow in a
-// specimen the way a confirm does on the shared sheet, so the stage sizes to it
-// and nothing is measured through a fade.
+// The account modal is a shape the kit does not ship: its modal is one pane with
+// no navigation slot, which the first rule's boundary says out loud. So the panel
+// here is composed rather than rendered — the two-step edge and the raised ground
+// every kit overlay wears, around a real nav and a real card. What is drawn to
+// scale is only what cannot fit a specimen cell at life size: the product behind
+// the overlay, and the sheet the don't is about. That block vocabulary is
+// stories/guidelines/_the-page.js's, borrowed rather than invented twice.
 export const SPEC_CSS = `
   <style>
     .gas-shell { position: relative; height: 180px; display: flex; gap: 5px;
@@ -46,30 +43,76 @@ export const SPEC_CSS = `
       display: flex; gap: 6px; padding: 8px; }
     .gas-over--sheet { left: 0; right: 0; bottom: 0; height: 64%;
       border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: 0; }
-    .gas-over--dialog { inset: 14% 7%; border-radius: var(--radius-lg); }
     .gas-over__pane { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-    .gas-over__nav { width: 34px; flex: none; display: flex; flex-direction: column; gap: 6px; }
+
+    /* Where the overlay opens is a question about a whole screen, and a screen does
+       not fit a 420px cell at life size. Both halves of that pair are drawn to
+       scale in one frame: the product behind, the scrim over it, and the overlay's
+       own shape — a centred panel with a nav column, or a sheet across the foot. */
+    .gas-frame { position: relative; height: 300px; display: flex; gap: 5px;
+      border-radius: var(--radius-sm); overflow: hidden; }
+    .gas-frame .gas-shell { height: 100%; flex: 1; }
+    .gas-over--modal { inset: 14% 10%; border-radius: var(--radius-sm); }
+    .gas-over__nav { width: 30%; flex: none; display: flex; flex-direction: column; gap: 6px;
+      padding-right: 6px; border-right: 1px solid var(--border); }
+
+    /* The account modal at life size, where the navigation itself is the subject:
+       the panel's own ground and edge, a head over it, the nav beside the pane. A
+       scrim behind it, because a modal with nothing under it reads as a card. */
+    .gas-modal { position: relative; padding: var(--space-5) var(--space-4);
+      border-radius: var(--radius-md); background: var(--scrim); }
+    .gas-modal__panel { position: relative; border-radius: var(--radius-md); overflow: hidden;
+      background: var(--bg-elevated); --ring-gap: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop); }
+    .gas-modal__head { display: flex; align-items: center; justify-content: space-between;
+      gap: var(--space-3); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+      border-bottom: 1px solid var(--border); }
+    .gas-modal__title { margin: 0; font-family: var(--font-sans);
+      font-weight: var(--weight-normal); font-size: var(--text-base); color: var(--text); }
+    .gas-modal__body { display: flex; min-height: var(--gas-body, 300px); }
+    /* A pane carries no card: the panel is already the raised surface and the edge,
+       which is the box the drawer page refuses one rule over. The caption takes the
+       card title's rank without being a heading — a specimen is a picture, and the
+       document's outline is the rule headings. */
+    /* The one-field don't shows a pane with a single row in it, so its body needs
+       no room for five. The floor is the variable, not a second panel. */
+    .gas-modal--short { --gas-body: 100px; }
+    /* The navigation pair stands both panels on one body height rather than a
+       floor, so the half with no navigation is cut where its scroll begins —
+       which is the fault that rule is about, drawn rather than described. */
+    .gas-modal--nav .gas-modal__body { height: 330px; min-height: 0; }
+    .gas-modal__cap { font-family: var(--font-sans); font-size: var(--text-lg);
+      font-weight: var(--weight-semibold); line-height: var(--leading-snug);
+      color: var(--strong); margin-bottom: var(--space-1); }
+    .gas-modal__nav { flex: 0 1 auto; min-width: 0; padding: var(--space-3) var(--space-2);
+      border-right: 1px solid var(--border); }
+    .gas-modal__pane { flex: 1 1 0; min-width: 0; padding: var(--space-4);
+      display: flex; flex-direction: column; gap: var(--space-3); overflow: hidden; }
+
+    /* Below the kit's fold the pane has no room beside a column of names, and a
+       pane cut off at its own edge is not what this page is recommending. The
+       navigation goes above the pane there, which is what the shape has to do on a
+       phone, and the paired body heights come off with it. */
+    @media (max-width: 720px) {
+      .gas-modal__body, .gas-modal--nav .gas-modal__body { display: block; height: auto; }
+      .gas-modal__nav { width: auto; padding: var(--space-2);
+        border-right: 0; border-bottom: 1px solid var(--border); }
+    }
+
+    .gas-acts { display: flex; justify-content: flex-end; gap: var(--space-3);
+      margin-top: var(--space-4); }
 
     /* The account menu, in the flow and at its shipped width. */
-    .gas-menu { display: flex; justify-content: center; }
+    /* Both menus stand on the taller one's own height. One row against five is the
+       whole of this rule, and a pair drawn at two heights stops being a comparison. */
+    .gas-menu { display: flex; justify-content: center; min-height: 392px; }
     .gas-menu .acct { display: block; }
     .gas-menu .amenu { position: static; opacity: 1; visibility: visible;
       pointer-events: auto; transform: none; transition: none; }
-
-    /* The split pair: a rail beside its page on one side, the same groups down one
-       column on the other. One floor under both, so the two halves answer at the
-       same scale — the column fills it and the rail's page is held to it. */
-    .gas-split { min-height: 500px; display: flex; gap: var(--space-4); }
-    .gas-split__rail { flex: 0 1 auto; min-width: 0; }
-    .gas-split__page { flex: 1 1 0; min-width: 0;
-      display: flex; flex-direction: column; gap: var(--space-3); }
-    .gas-acts { display: flex; justify-content: flex-end; gap: var(--space-3);
-      margin-top: var(--space-4); }
   </style>`;
 
 const stage = (html, mod = '') => `<div class="gl-stage${mod ? ` ${mod}` : ''}">${html}</div>`;
-
-// ---- where the account area is drawn ------------------------------------
 
 const rows = (n, cur) => Array.from({ length: n }, (_, i) =>
   `<div class="gas-row${i === cur ? ' gas-row--cur' : ''}"></div>`).join('');
@@ -84,41 +127,81 @@ const shell = (over = '') => `<div class="gas-shell">
   ${over}
 </div>`;
 
+// The product, the scrim and one overlay shape over both, at one scale.
+const over = (shape) => `<div class="gas-frame">${shell(
+  `<div class="gas-scrim"></div>${shape}`)}</div>`;
+
 const panes = (count) => Array.from({ length: count }, () =>
   `<div class="gas-over__pane">${lines(['short', 'half', 'half'])}</div>`).join('');
 
-export const pagesDo = () => stage(shell());
-export const pagesDont = () => stage(shell(
-  `<div class="gas-scrim"></div><div class="gas-over gas-over--sheet">${panes(3)}</div>`));
+// ---- the account modal, and the sheet it is not -------------------------
 
-// ---- when a dialog is the right shape -----------------------------------
-
-export const oneSettingDo = () => stage(confirm({
-  title: 'Require a code at sign-in?',
-  body: 'You will enter a code from your authenticator app each time.',
-  cancelLabel: 'Not now',
-  confirmLabel: 'Require a code',
-  variant: 'primary',
-  specimen: true,
-}), 'gl-stage--confirm');
-
-export const oneSettingDont = () => stage(shell(`<div class="gas-scrim"></div>
-  <div class="gas-over gas-over--dialog">
-    <div class="gas-over__nav">${rows(4, 0)}</div>${panes(2)}
-  </div>`));
-
-// ---- what the account menu holds ----------------------------------------
-
-const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com', active: 'security' };
-
-// The pages the split rule names, so one vocabulary runs down the page.
-const PAGES = [
+// The pages the navigation rule names, so one vocabulary runs down the page.
+const PANES = [
   { id: 'profile', icon: 'user', label: 'Profile' },
   { id: 'security', icon: 'shield', label: 'Security & sessions' },
   { id: 'agents', icon: 'key', label: 'Agents & API tokens' },
   { id: 'appearance', icon: 'sun', label: 'Appearance' },
   { id: 'notifications', icon: 'bell', label: 'Notifications' },
 ];
+
+const DEVICES = [
+  ['This browser', 'Lisbon · active now'],
+  ['Studio laptop', 'Lisbon · 2 days ago'],
+  ['Phone', 'Lisbon · yesterday'],
+];
+
+const settingRow = (lab, hint, control = '') =>
+  `<div class="ui-card__row"><div><div class="lab">${lab}</div>${
+    hint ? `<div class="hint">${hint}</div>` : ''}</div>${control}</div>`;
+
+const closeBtn = () => button({ label: 'Close', icon: 'x', iconOnly: true, variant: 'ghost', size: 'sm' });
+
+// `body` is already the panel's own ground, so the pane holds no second card:
+// a card inside the panel is the box the drawer guideline refuses next door.
+const modal = (body, mod = '') => `<div class="gas-modal${mod ? ` ${mod}` : ''}"><div class="gas-modal__panel">
+  <div class="gas-modal__head">
+    <h3 class="gas-modal__title">Account</h3>${closeBtn()}
+  </div>
+  <div class="gas-modal__body">${body}</div>
+</div></div>`;
+
+const pane = (cap, body) => `<div class="gas-modal__pane">
+  ${cap ? `<div class="gas-modal__cap">${cap}</div>` : ''}${body}
+</div>`;
+const sessionsPane = (cap) => pane(cap, DEVICES.map(([l, h]) => settingRow(l, h)).join(''));
+
+const withNav = (active) => `<div class="gas-modal__nav">${sidebarNav({
+  items: PANES, active, ariaLabel: 'Account',
+})}</div>`;
+
+export const modalDo = () => stage(over(`<div class="gas-over gas-over--modal">
+  <div class="gas-over__nav">${rows(5, 1)}</div>${panes(1)}
+</div>`));
+export const modalDont = () => stage(over(
+  `<div class="gas-over gas-over--sheet">${panes(3)}</div>`));
+
+// ---- the modal's own navigation -----------------------------------------
+
+const GROUPS = [
+  ['Profile', 'Name, address and the photograph beside them.'],
+  ['Security & sessions', 'The sign-in code, and every device signed in now.'],
+  ['Agents & API tokens', 'The agents connected, and the tokens they hold.'],
+  ['Appearance', 'Theme, accent and row density.'],
+  ['Notifications', 'What the product emails, and how often.'],
+];
+
+export const navDo = () => stage(modal(
+  withNav('security') + sessionsPane('Signed in now'), 'gas-modal--nav'));
+export const navDont = () => stage(modal(pane('',
+  GROUPS.map(([title, sub]) => settingRow(title, sub)).join('')), 'gas-modal--nav'));
+
+// ---- what the account menu holds ----------------------------------------
+
+const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com', active: 'settings' };
+
+// One row, because the menu's job under this rule is the way in and nothing else.
+const WAY_IN = [{ id: 'settings', icon: 'gear', label: 'Account settings' }];
 
 // A setting answered in the menu, drawn the only way the menu can draw one: the
 // row states its current value. The menu holds no control, which is the point.
@@ -131,44 +214,28 @@ const ANSWERED = [
 ];
 
 const menu = (nav) => stage(`<div class="gas-menu">${accountMenu({ ...READER, nav })}</div>`);
-export const menuDo = () => menu(PAGES);
+export const menuDo = () => menu(WAY_IN);
 export const menuDont = () => menu(ANSWERED);
 
-// ---- how the pages split -------------------------------------------------
+// ---- one field, changed where it sits ------------------------------------
 
-// The rail beside the page it is showing, which is the arrangement the `pages`
-// rule above draws: a nav list standing on its own answers at a different scale
-// from a column of groups, and a pair at two scales stops being a comparison.
-const DEVICES = [
-  ['This browser', 'Lisbon \u00b7 active now'],
-  ['Studio laptop', 'Lisbon \u00b7 2 days ago'],
-  ['Phone', 'Lisbon \u00b7 yesterday'],
-  ['Old desktop', 'Berlin \u00b7 12 Sept'],
-];
+const DIGEST = ['Weekly digest', 'A summary when things change.'];
 
-// The card carries the page's name: a title over it would be a fourth heading
-// level on a page whose own rule set stops at three, and the kit's card title is
-// already the larger of the two ranks.
-export const splitDo = () => stage(`<div class="gas-split">
-  <div class="gas-split__rail">${sidebarNav({ items: PAGES, active: 'security', ariaLabel: 'Account' })}</div>
-  <div class="gas-split__page">${card({
-    title: 'Security &amp; sessions', level: 3,
-    body: DEVICES.map(([lab, hint]) =>
-      `<div class="ui-card__row"><div><div class="lab">${lab}</div><div class="hint">${hint}</div></div></div>`).join(''),
-  })}</div>
-</div>`);
+export const inRowDo = () => stage(card({
+  title: 'Notifications', level: 3,
+  body: settingRow(...DIGEST, switchToggle({ checked: true, label: 'Weekly digest' }))
+    + settingRow('Agent activity', 'Email me when an agent first connects.',
+      switchToggle({ checked: false, label: 'Agent activity' }))
+    + settingRow('Product news', 'Occasional updates about new components.',
+      switchToggle({ checked: false, label: 'Product news' })),
+}));
 
-const GROUPS = [
-  ['Profile', 'Name, address and the photograph beside them.'],
-  ['Security & sessions', 'The sign-in code, and every device signed in now.'],
-  ['Agents & API tokens', 'The agents connected, and the tokens they hold.'],
-  ['Appearance', 'Theme, accent and row density.'],
-];
+export const inRowDont = () => stage(modal(withNav('notifications')
+  + pane('Notifications',
+    settingRow(DIGEST[0], '', switchToggle({ checked: true, label: 'Weekly digest, in the modal' }))),
+  'gas-modal--short'));
 
-export const splitDont = () => stage(`<div class="gas-split"><div class="gas-split__page">${GROUPS
-  .map(([title, sub]) => card({ title, sub, level: 3 })).join('')}</div></div>`);
-
-// ---- the one action a page carries --------------------------------------
+// ---- the action a pane carries -------------------------------------------
 
 const TOKENS = [
   ['Deploy bot', 'Created 14 Aug · used today'],
@@ -178,8 +245,7 @@ const TOKENS = [
 // level 3, because a specimen card's title sits under the rule's own heading.
 const tokens = (label) => stage(card({
   title: 'API tokens', level: 3,
-  body: TOKENS.map(([lab, hint]) =>
-    `<div class="ui-card__row"><div><div class="lab">${lab}</div><div class="hint">${hint}</div></div></div>`).join('')
+  body: TOKENS.map(([lab, hint]) => settingRow(lab, hint)).join('')
     + `<div class="gas-acts">${button({ label, variant: 'primary' })}</div>`,
 }));
 
@@ -187,9 +253,9 @@ export const oneActionDo = () => tokens('Create token');
 export const oneActionDont = () => tokens('Save');
 
 export const RULES = withSpecimens(content.rules, [
-{ id: 'pages', doHtml: pagesDo, dontHtml: pagesDont },
-{ id: 'one-setting', doHtml: oneSettingDo, dontHtml: oneSettingDont },
+{ id: 'modal', doHtml: modalDo, dontHtml: modalDont },
+{ id: 'nav', doHtml: navDo, dontHtml: navDont },
 { id: 'menu', doHtml: menuDo, dontHtml: menuDont },
-{ id: 'split', doHtml: splitDo, dontHtml: splitDont },
+{ id: 'in-row', doHtml: inRowDo, dontHtml: inRowDont },
 { id: 'one-action', doHtml: oneActionDo, dontHtml: oneActionDont }
 ]);
