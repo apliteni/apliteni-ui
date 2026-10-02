@@ -2682,3 +2682,44 @@ up the narrowest thing on it, with its own placeholder cut off. At that step the
 field takes `flex-basis: 100%`, so it has the line and the rest of the row wraps
 under it — the shape a row with one wider control already fell into at this
 width. Decided in [#517](https://github.com/apliteni/apliteni-ui/issues/517).
+
+## React route navigation
+
+Under [#429](https://github.com/apliteni/apliteni-ui/issues/429), `NavTabs` and
+`Breadcrumbs` render the existing `nav.css` classes.
+`NavTabs` accepts unique item IDs, a controlled active ID, underline or pill
+presentation, and optional badges. It uses native links and `aria-current="page"`,
+with no tablist or panel roles. Disabled items are non-focusable text marked
+`aria-disabled`; they cannot be current links. Missing destinations use the item
+ID as a fragment. A badge with zero remains visible; a null or empty badge is
+dropped, the way the vanilla factory drops it.
+
+`Breadcrumbs` renders a named navigation landmark and ordered list. The final
+item is current-page text even when it has a destination. Earlier items without
+a destination remain text. Icons are decorative. Both components forward root
+attributes and refs, preserve native link keyboard behavior, and use the shared
+URL boundary to replace executable destinations with `#`. Both take `renderLink`
+with the signature `AppShell` uses, so a router renders each link from the kit's
+class, destination, current state, and children, and a route change need not
+reload the document.
+
+That URL boundary and the row-reveal helper ship from the main entry as `safeUrl`
+and `revealCurrentNav`. React imports the kit's own functions rather than a copy
+bundled into `react/dist`; `scripts/packaging.test.js` holds both halves.
+
+Held by `react/src/NavTabs.test.tsx` and `react/src/Breadcrumbs.test.tsx` for DOM
+semantics, updates, keyboard order, text escaping, and URL handling. These tests
+do not measure browser layout; the story contrast walk covers colour pairs.
+
+Tab rows scroll horizontally within their available width without wrapping or
+widening the page; breadcrumb trails wrap instead of scrolling. A tab row holds
+4px of room inside its scroll box so the focus ring stays whole, and takes the
+same 4px back in negative margins, so the row still starts on the page gutter and
+the active underline still sits on the row's rule. Those margins bleed the row 4px
+into its container's padding on each side, as the breadcrumb trail already does;
+the rule below the tabs stays on the column's edges. React reveals the current
+route on mount, route updates, and window resize without moving focus or
+scrolling the page. Vanilla callers run `wireNav()` after rendering or updating
+navigation; it also reveals the current route on window resize. `src/logic/nav.test.js` checks the shared
+scroll arithmetic; `scripts/evidence/navigation-scroll.mjs` checks both Storybooks
+at 390px in a browser and proves rejection by removing overflow containment.

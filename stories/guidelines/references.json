@@ -336,7 +336,7 @@
     ],
     "section-lit": [
       {
-        "ref": "src/components/nav.js:109",
+        "ref": "src/components/nav.js:110",
         "pattern": "const current = activeIs === 'section'"
       }
     ],

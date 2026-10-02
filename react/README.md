@@ -643,3 +643,53 @@ the accent from a checked box.
 <Checkbox label="Full access" type="radio" name="scope" value="full" />
 <Switch label="Email notifications" checked={email} onChange={event => setEmail(event.currentTarget.checked)} />
 ```
+
+## NavTabs and Breadcrumbs
+
+`NavTabs` renders route links with the kit’s underline or pill presentation. Pass
+unique item IDs and set `active` to the current route’s ID. The current link has
+`aria-current="page"`; disabled items are text outside the Tab order. Optional
+badges accept text, numbers (including zero), or `{ text, tone }`.
+
+```tsx
+<NavTabs aria-label="Finance views" active="payouts" items={[
+  { id: 'summary', label: 'Summary', href: '/finance' },
+  { id: 'payouts', label: 'Payouts', href: '/payouts', badge: 3 },
+  { id: 'exports', label: 'Exports', disabled: true },
+]} />
+<Breadcrumbs items={[
+  { label: 'Finance', href: '/finance' },
+  { label: 'Payouts', href: '/payouts' },
+  { label: 'PY-4821' },
+]} />
+```
+
+Use `Tabs` for panels within a page. `NavTabs` keeps normal link keyboard behavior.
+An omitted `href` falls back to `#` plus the item ID. `variant="pill"` selects the
+existing pill styles. A badge of `null` renders no badge, so a count that is not in
+yet costs nothing to pass.
+
+Both components take `renderLink`, the prop `AppShell` already uses, so a router
+handles the navigation instead of the browser reloading the document:
+
+```tsx
+<NavTabs active="payouts" items={items}
+  renderLink={(item, { href, children, ...props }) => (
+    <Link {...props} to={href!}>{children}</Link>
+  )} />
+```
+
+Without it both render a plain `<a>`. The kit's class, destination, current state
+and children all arrive in `linkProps`, so pass them through rather than rebuilding
+them.
+
+`Breadcrumbs` renders an ordered trail. Earlier items link only when they have an
+`href`; the final item is always current-page text. Items accept a decorative kit
+`icon` name. Both components accept native navigation attributes and a forwarded
+root ref. Use `aria-label` to distinguish navigation landmarks. Link items accept
+`target`. Script, data, and VBScript destinations fall back to `#`.
+
+Tab rows scroll within their container when the links do not fit; a breadcrumb
+trail wraps instead. The current route is revealed after mounting and on route
+changes and window resize, and a re-render that does not change the links leaves
+the row where the reader scrolled it. Keyboard focus stays put throughout.

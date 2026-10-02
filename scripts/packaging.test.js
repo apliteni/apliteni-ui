@@ -441,6 +441,49 @@ test('installing the kit never pulls React into a consumer tree', () => {
   }
 });
 
+/**
+ * Shared kit code the React bundle uses has to arrive by import, not by copy.
+ * tsup inlines a module from outside its root under a `// ../src/…` banner, and
+ * leaves the function it exported defined in the bundle — so a copy shows up as
+ * both. React is external for the same reason (see the test above): a copy is
+ * unauditable and duplicated in the consumer's tree, and here it would also
+ * fork the URL boundary, which has to be the one the vanilla kit ships.
+ */
+function copiesKitSource(bundle, names) {
+  if (/^\s*\/\/\s*\.\.\/src\/\S+\.[cm]?js\s*$/m.test(bundle)) return true;
+  return names.some((name) => new RegExp(`(?:function|const|let|var|class)\\s+${name}\\b`).test(bundle));
+}
+
+// Kit names distinctive enough that a definition in the bundle can only be a copy.
+// The banner check above covers every other module, `icon` included.
+const SHARED_KIT_NAMES = ['safeUrl', 'revealCurrentNav'];
+
+test('the React bundle imports shared kit code rather than copying it', () => {
+  const bundle = readFileSync(path.join(installed, 'react', 'dist', 'index.js'), 'utf8');
+  assert.match(
+    bundle,
+    /from\s*["']@apliteni\/apliteni-ui["']/,
+    'the installed react/dist/index.js does not import "@apliteni/apliteni-ui" as a bare ' +
+      'specifier — shared kit code looks bundled rather than external. Check `external` in ' +
+      'react/tsup.config.ts, and import from the package entry rather than by relative path.',
+  );
+  assert.equal(
+    copiesKitSource(bundle, SHARED_KIT_NAMES),
+    false,
+    'react/dist/index.js carries a copy of src/ — a relative `../../src/…` import pulls the ' +
+      `module in and duplicates it beside the kit's own. Export the name from src/index.js and ` +
+      'import it from "@apliteni/apliteni-ui".',
+  );
+});
+
+test('the copy check refuses a bundle with kit source inlined into it', () => {
+  // The mutation that kills its case: a banner tsup stopped emitting, or a name
+  // it renamed, would otherwise report every bundle as clean.
+  assert.equal(copiesKitSource('// ../src/html.js\nvar x = 1;\n', SHARED_KIT_NAMES), true);
+  assert.equal(copiesKitSource('function safeUrl(value) { return value; }\n', SHARED_KIT_NAMES), true);
+  assert.equal(copiesKitSource('import { safeUrl } from "@apliteni/apliteni-ui";\n', SHARED_KIT_NAMES), false);
+});
+
 test('the README tells consumers of ./react to install React themselves', () => {
   // With the peers gone, nothing machine-readable tells a consumer that
   // @apliteni/apliteni-ui/react needs React — react/package.json is not published,

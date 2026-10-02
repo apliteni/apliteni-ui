@@ -6,7 +6,7 @@ import { icon } from '../assets/icons.js';
 import { illo } from '../assets/illustrations.js';
 import { successCheck } from './success.js';
 import { esc, safeUrl } from '../html.js';
-export { esc } from '../html.js';
+export { esc, safeUrl } from '../html.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 // ---- Button --------------------------------------------------------------
 // `iconSvg` is a raw leading-icon SVG string (trusted markup, not escaped) for
