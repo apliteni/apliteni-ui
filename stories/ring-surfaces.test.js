@@ -110,7 +110,9 @@ const gapProblems = (subjects) => subjects.flatMap((rule) => {
 test('a surface a story paints sets a matching gap, so a ring drawn inside it is measurable', () => {
   assert.ok(storySheets.length >= 50,
     `only ${storySheets.length} story style blocks found — the walk stopped reading <style> blocks`);
-  assert.equal(storySurfaces.length, 32,
+  // 32 -> 34: #488's two inert tap-zone Don't cells on the Accessibility
+  // minimums page, which paint the surface and now declare its gap.
+  assert.equal(storySurfaces.length, 34,
     'story surface discovery changed; update the count with the stages that moved');
   assert.deepEqual(gapProblems(storySurfaces), [],
     'a story paints a surface whose focus ring would draw its gap in the page colour');

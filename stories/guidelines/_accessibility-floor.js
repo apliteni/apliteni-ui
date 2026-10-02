@@ -222,7 +222,7 @@ export const SPEC_CSS = `
        is the box, not the press. The pink edge is where the row grows to. */
     .gl-tap__fat { display: inline-flex; align-items: center; justify-content: center;
       height: 44px; padding: 0 17px; border-radius: var(--radius-sm);
-      border: 1px solid var(--control-edge); background: var(--surface);
+      border: 1px solid var(--control-edge); background: var(--surface); --ring-gap: var(--surface);
       color: var(--text); font-family: var(--font-sans); font-size: var(--text-sm);
       font-weight: var(--weight-medium); outline: 1.5px dashed var(--pink); }
 
@@ -232,7 +232,7 @@ export const SPEC_CSS = `
     .gl-tap--tight { gap: var(--space-2); --tap-clear-x: 44px; --tap-clear-y: 44px; }
     .gl-tap--tight .gl-tap__ink { position: relative; width: 24px; height: 24px;
       border: 1px solid var(--control-edge); border-radius: var(--radius-sm);
-      background: var(--surface); }
+      background: var(--surface); --ring-gap: var(--surface); }
     .gl-tap--tight .gl-tap__ink::after {
       content: ""; position: absolute; left: 50%; top: 50%;
       width: 44px; height: 44px; transform: translate(-50%, -50%);
