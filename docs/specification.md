@@ -2681,3 +2681,50 @@ semantics, events, the class split and the label fallback in JSDOM, not browser
 paint or screen-reader speech. `src/styles/check-disabled.test.js` reads the two
 things the story walk cannot: the hover qualification and the pseudo-element mark.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
+## React search field
+
+A toolbar above a list opens with a search box, then its filters, then its view
+switch. `SearchField` is that box. Every other field in the React package draws
+a visible `<label>`, so a screen that wanted the unlabelled one had to
+hand-write `<input className="ui-input">`.
+
+It renders one `.ui-input-group`: the leading `search` glyph, decorative and
+hidden from assistive technology, and a native `type="search"` control on the
+shared `.ui-input` class. `ariaLabel` is required and is the control's only
+name, because nothing in the row shows one. The component declares no CSS of
+its own, so the toolbar's row rule and the field's focus ring reach it from the
+kit's stylesheet: above one column it grows into the slack the other controls
+leave and keeps their height, and at one column it takes a line of its own. A
+labelled field in that slot adds its label's height to the whole row, and
+because the row stretches its children, every filter and button in it grows
+with the field.
+
+There is no clear button. The browser paints its own near-black on the light
+field and white on the dark one, beside the kit's `--muted` magnifier, so
+`input.css` suppresses it the way the kit already refuses the native select
+chrome; #517 kept the field at one glyph.
+
+`SearchField` forwards its ref to the native input and accepts the native input
+attributes, including controlled `value` with `onChange`, `placeholder`, `name`,
+`disabled` and `required`. `className` joins `.ui-input` rather than replacing
+it. `type` and the glyph are fixed, so a caller cannot turn it into a different
+field.
+
+Held by `react/src/SearchField.test.tsx`: the group, glyph slot and control it
+renders, the searchbox role and name with no visible label, the absent clear
+button, the forwarded ref and props, and axe. JSDOM reads structure and names,
+not paint or screen-reader speech; the focus ring and the row's measured height
+are browser captures on
+[#517](https://github.com/apliteni/apliteni-ui/issues/517).
+
+## A toolbar at one column
+
+`.ui-toolbar` gives its text field a `6rem` flex basis so the row breaks only
+once the field would be squeezed under it. At `560px` that basis becomes the
+field's size rather than its floor: a row holding two narrow chips beside it has
+room to keep all three on one line, and the control the row is built around ends
+up the narrowest thing on it, with its own placeholder cut off. At that step the
+field takes `flex-basis: 100%`, so it has the line and the rest of the row wraps
+under it — the shape a row with one wider control already fell into at this
+width. Decided in [#517](https://github.com/apliteni/apliteni-ui/issues/517).

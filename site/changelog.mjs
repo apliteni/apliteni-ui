@@ -6,10 +6,18 @@
 
 export const RELEASES = [
   {
-    v: '0.69.0', date: '2026-10-02',
+    v: '0.70.0', date: '2026-10-02',
     changes: [
       ['changed', 'Every card with a description now has 8px between its title and that line, not 5px. The old value was off the kit\u2019s spacing scale and tight enough that the description read as part of the heading; 8px is the step the page header already uses for the same pair. This moves one line in every card that has a description. Part of #499.', ['Card']],
       ['added', 'A table marked `ui-table--stack` lays each row out as a block below the one-column step: the identity and the short cells on the first line, the cell marked `ui-table__long` on a line under them, and the header row clipped rather than removed, so a cell still reads with its column name. A log or a queue whose last column is a paragraph now fits a phone without scrolling sideways. A stacked table has to name the table, row group, row, column header and cell roles in its own markup, because a stylesheet cannot write a role; in Chromium only the body\u2019s row group is actually lost, and the other four are asked for because WebKit and Gecko were not measured. React is not served yet: `DataTable` builds its own class list, takes no `className` and puts its sort control in the header cell, so reaching the modifier from React means hand-writing the table. Resolves #499.', ['Table']],
+    ],
+  },
+  {
+    v: '0.69.0', date: '2026-10-02',
+    changes: [
+      ['added', 'React SearchField renders the kit\u2019s search input group for a toolbar: a search glyph, a native search input and an accessible name instead of a visible label, so the row keeps the height of the unlabelled controls beside it. It forwards its ref and the native input props and adds no CSS of its own. There is no clear button, the field the kit already draws. See #517.'],
+      ['changed', 'The Empty states showcase draws its filtered list\u2019s search box with the kit\u2019s standalone search field, the part React\u2019s SearchField renders, so the box has a name and the search glyph. A new showcase toolbar puts search, then filters, then the view switch in one row. See #517.'],
+      ['changed', 'A toolbar\u2019s text field takes the whole line at 560px and below, instead of holding its 6rem basis while narrow controls share the line and cut its placeholder off. Wider rows are unchanged. See #517.'],
     ],
   },
   {

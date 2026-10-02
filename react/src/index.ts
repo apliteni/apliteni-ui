@@ -75,6 +75,8 @@ export { Timeline } from './Timeline';
 export type { TimelineProps, TimelineEvent, TimelineEventKind } from './Timeline';
 export { Field, TextField, TextArea, SelectField, FileField } from './Field';
 export type { FieldProps, FieldControlProps, TextFieldProps, TextAreaProps, SelectFieldProps, FileFieldProps } from './Field';
+export { SearchField } from './SearchField';
+export type { SearchFieldProps } from './SearchField';
 export { Toast, useToast } from './Toast';
 export type { ToastNotice, ToastProps } from './Toast';
 
