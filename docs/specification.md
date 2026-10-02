@@ -2787,11 +2787,13 @@ their side padding, which is what keeps six three-letter months on one row in a
 390px column; the type rank is unchanged at every width.
 
 The underline appearance wraps the same way. It used to keep one row and scroll,
-on the reading that the order is the reader's map; a strip that scrolls hides the
-tabs past the fold at rest, with no affordance saying they are there, so the map
-is the thing it loses first. Wrapping keeps every tab on the page in its own
-order, and keeps the focus ring's glow, which the scroll box cut against the
-strip's own padding. Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
+on the reading that the order is the reader's map. A strip that scrolls hides the
+tabs past the fold at rest and shows nothing that says they are there, which loses
+the order it was there to protect: at 390px the stock screener's three views need
+295px of a 284px column, and `Valuation` was cut at the right edge. Wrapping keeps
+every tab on the page in its reading order, and keeps the focus ring's glow, which
+the scroll box clipped against the strip's own 4px padding.
+Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
 
 ## Shared React logic and declarations
 
