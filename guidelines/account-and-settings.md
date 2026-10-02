@@ -12,7 +12,7 @@
 
 **Don't:** Slide the account area in over the product as a full-width sheet with columns inside it.
 
-**Gap #553:** The vanilla kit ships no modal at all, and React’s `Modal` is one pane with no navigation slot and no size option, so this shape has to be built by hand today.
+**Gap #553:** The vanilla kit’s only modal is `confirm()`, a fixed question with two answers, and React’s `Modal` is one pane; neither takes a navigation pane or a width, so this shape has to be built by hand today.
 
 **Except:** A product already on the published account preset keeps its pages in the shell until the kit can carry them in the modal.
 

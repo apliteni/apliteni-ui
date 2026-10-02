@@ -160,7 +160,7 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   assert.equal(INTRO, '');
   // One, and it is named: Account and settings prescribes a modal carrying its own
   // navigation, which the vanilla kit cannot draw at all and React's Modal cannot
-  // carry. #553 is the work; this number goes back to zero when it lands.
+  // carry. #553 is the work; this list empties when it lands.
   const gaps = PAGES.flatMap(page => page.gaps);
   assert.deepEqual(gaps.map(rule => `${rule.id} #${rule.unmet.issue}`), ['modal #553'],
     'update the Overview when a rule becomes unmet or its gap closes');

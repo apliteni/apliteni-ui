@@ -122,7 +122,9 @@ test('a surface a story paints sets a matching gap, so a ring drawn inside it is
   // over them — which hold no control and inherit the containing gap. The seventh
   // is the account modal's own panel, which holds real ones and declares the gap
   // it paints.
-  assert.equal(storySurfaces.length, 41,
+  // 41 -> 42: the same account page again, muting the drawn rail's current row
+  // where it sits under a scrim rather than being the subject. Also no control.
+  assert.equal(storySurfaces.length, 42,
     'story surface discovery changed; update the count with the stages that moved');
   assert.deepEqual(gapProblems(storySurfaces), [],
     'a story paints a surface whose focus ring would draw its gap in the page colour');

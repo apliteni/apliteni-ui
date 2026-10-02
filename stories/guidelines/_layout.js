@@ -104,8 +104,11 @@ const figure = (rule) => (rule.doCaption ? `
 const exceptLine = (rule) => (rule.except ? `
   <p class="gc-except"><span class="gc-except__label">Except</span>${mono(rule.except)}</p>` : '');
 
+// Labelled like the boundary beside it: the two paragraphs are the same type at the
+// same size, so an unlabelled one reads as a trailing sentence of the rule with a
+// stray number on the end. The issue goes in the label, where the field is named.
 const unmetLine = (rule) => (rule.unmet ? `
-  <p class="gc-unmet">${mono(rule.unmet.note)} #${rule.unmet.issue}</p>` : '');
+  <p class="gc-unmet"><span class="gc-except__label">Gap #${rule.unmet.issue}</span>${mono(rule.unmet.note)}</p>` : '');
 
 const ruleBlock = (rule) => `
   <section class="gc-rule">
