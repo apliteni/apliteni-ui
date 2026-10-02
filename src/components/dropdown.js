@@ -347,7 +347,11 @@ export const DD_MENU_FLOOR = 240;
  * @returns {{room: number, shift: number, floor: number, end: boolean}|null}
  */
 export function filterPanelFit(dd, floor = DD_MENU_FLOOR) {
-  const bar = typeof dd?.closest === 'function' ? dd.closest('.ui-filter-bar') : null;
+  /* A chip's menu, not any menu in a filter row: the slide below is measured from
+   * the trigger's offset along the row, so a panel anchored to the row itself is
+   * not this function's subject and must size itself. why: src/styles/filter-bar.css */
+  const chip = typeof dd?.closest === 'function' ? dd.closest('.ui-filter-bar__chip') : null;
+  const bar = chip ? chip.closest('.ui-filter-bar') : null;
   if (!bar || typeof bar.getBoundingClientRect !== 'function') return null;
   const row = bar.getBoundingClientRect();
   const box = dd.getBoundingClientRect();
@@ -424,7 +428,14 @@ function sweepOrphanPanels(host) {
 function closeDropdown(dd) {
   if (!dd.classList.contains('open')) return;
   dd.classList.remove('open');
-  ddPanelOf(dd)?.classList.remove('is-open');
+  const panel = ddPanelOf(dd);
+  panel?.classList.remove('is-open');
+  /* A search panel carries the width it was opened at as an inline `min-width`,
+   * and inline beats any sheet. Inside a filter row that outlives the open state
+   * and leaves a SHUT panel wider than its trigger, which is #467 — the menu
+   * floor made the residue 240px instead of a trigger's 50px. Cleared here, and
+   * ddResetSearch() writes it again on the next open. */
+  if (panel?.style && dd.closest?.('.ui-filter-bar')) panel.style.minWidth = '';
   dd.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'false');
 }
 

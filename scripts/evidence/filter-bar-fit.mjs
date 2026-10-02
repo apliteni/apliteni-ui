@@ -123,6 +123,12 @@ const probe = () => {
         left: +p.left.toFixed(1), right: +p.right.toFixed(1), width: +p.width.toFixed(1),
         dropdown: dd ? +dd.width.toFixed(1) : null,
         open: !!panel.closest('.ui-dropdown')?.classList.contains('open'),
+        // A chip's panel is anchored at its trigger; one anchored to the row is
+        // bounded by the row instead and sizes itself. why: src/styles/filter-bar.css
+        chip: !!panel.closest('.ui-filter-bar__chip'),
+        // What a row-anchored panel's own rule asks for, so the gate can see the
+        // chip rule taking it away.
+        wants: Number(panel.closest('[data-row-anchored]')?.dataset.rowAnchored) || null,
         rows: panel.querySelectorAll('.ui-dropdown__item').length,
         spills,
       };
@@ -208,7 +214,10 @@ async function measure({ url, ready, width, theme, mutate, attrTheme }) {
    * shut fits nothing, and the chip that overflows is not always the second one
    * — the widest option list in the kit sits on the screener's `Sector`. */
   const opens = [];
-  const triggers = await page.$$('.ui-filter-bar__chip [data-dropdown-trigger]');
+  /* Every trigger in the row, not only a chip's: a menu anchored to the row
+   * rather than to a chip is still a menu this gate is about, and measuring it
+   * only while shut is what let a chip rule reach it unseen. */
+  const triggers = await page.$$('.ui-filter-bar [data-dropdown-trigger]');
   for (const [at, trigger] of triggers.entries()) {
     if (!await trigger.isEnabled()) continue;
     await trigger.click();
@@ -257,19 +266,31 @@ const allPanels = (held) => [held, ...held.opens]
  * menu may never leave its row. why: src/components/dropdown.js */
 const MENU_FLOOR = 240;
 
-/** A shut panel's width is its containing block's: that is what keeps a hidden
- *  but laid-out box off the page's scrollable width, which is #467. An open one
- *  is floored instead, so it is measured by `tooNarrow` rather than here. */
+/** A shut chip panel's width is its containing block's: that is what keeps a
+ *  hidden but laid-out box off the page's scrollable width, which is #467. An
+ *  open one is floored instead, so it is measured by `tooNarrow` rather than
+ *  here, and a row-anchored panel is bounded by its row rather than by a
+ *  trigger — the row check below is what holds that one. */
 const unbound = (held) => allPanels(held)
-  .filter((p) => !p.open)
+  .filter((p) => p.chip && !p.open)
   .filter((p) => p.dropdown === null || Math.abs(p.width - p.dropdown) > 0.5);
+
+/** A panel that is not a chip's, rendered narrower than its own rule asks for:
+ *  the chip rule reaching a row-anchored panel and overriding its width. #518's
+ *  add menu is this shape — `position: static` on the dropdown hands the panel
+ *  to the row — and the chip floor would cut it from 320px to 240px. */
+const overridden = (held) => [held, ...held.opens]
+  .flatMap((state) => state.bars.flatMap((bar) => bar.panels
+    .filter((p) => !p.chip && p.wants)
+    .map((p) => ({ ...p, want: Math.min(p.wants, bar.width) }))))
+  .filter((p) => p.width < p.want - 0.5);
 
 /** Open menus narrower than the floor their row allows. #536 made a chip print
  *  its value alone, and bounding the menu to that trigger left 48px of menu
  *  breaking words mid-letter — #549. */
 const tooNarrow = (held) => [held, ...held.opens]
   .flatMap((state) => state.bars.flatMap((bar) => bar.panels
-    .filter((p) => p.open)
+    .filter((p) => p.open && p.chip)
     .map((p) => ({ ...p, floor: Math.min(MENU_FLOOR, bar.width) }))))
   .filter((p) => p.width < p.floor - 0.5);
 
@@ -297,6 +318,11 @@ for (const one of cases) {
   if (worst > 0) {
     fails.push(`${one.name} at ${one.width}px ${one.theme}: the page is ${held.page}px wide on a `
       + `${held.view}px view, ${worst}px over`);
+  }
+  // A row-anchored panel sizes itself; the chip rule must not reach it.
+  for (const panel of overridden(held)) {
+    fails.push(`${one.name} at ${one.width}px ${one.theme}: a panel anchored to the row is `
+      + `${panel.width}px where its own rule asks for ${panel.want}px, so the chip rule took it`);
   }
   // A menu too narrow to read is the defect #549 reported, and the row it sits
   // in is what decides how wide it is allowed to get.

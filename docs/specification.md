@@ -1946,6 +1946,15 @@ before `ddResetSearch()` pins the width it reads, so the floor is in before the 
 than after it. Both compositions sit in `scripts/evidence/filter-bar-fit.html`, so the browser gate
 measures them.
 
+**A panel anchored to the row, not to a chip.** The floor and the slide are a chip's arithmetic:
+the slide is measured from the trigger's offset along the row. A control that takes its dropdown out
+of the positioning chain — `position: static` on `.ui-dropdown`, so the panel resolves against a
+`position: relative` row — is already bounded by that row, and sliding it by a chip's offset takes it
+outside. Both halves are therefore scoped to `.ui-filter-bar__chip`: the rule does not match such a
+panel and `filterPanelFit()` returns `null` for it. A row-anchored panel owns its width, sets its own
+`min-width` and `max-width`, and must not read `--ui-filter-panel-room`, `--ui-filter-panel-shift` or
+`--ui-filter-panel-floor`.
+
 The chip's own width is a separate question this rule does not reach. `.ui-dropdown__trigger` is an
 `inline-flex` without `min-width: 0`, and `.ui-dropdown__value` carries no wrap hint, so a chip
 cannot shrink below its selected value's min-content width: a filter showing

@@ -16,12 +16,22 @@ import assert from 'node:assert/strict';
 import { filterPanelFit, DD_MENU_FLOOR } from './dropdown.js';
 
 /** A dropdown at `left` inside a row of `width`, both as the browser reports. */
+const row = (rowWidth, rowLeft) => ({
+  getBoundingClientRect: () => ({ left: rowLeft, right: rowLeft + rowWidth, width: rowWidth }),
+  closest: (sel) => (sel === '.ui-filter-bar' ? row(rowWidth, rowLeft) : null),
+});
 const at = (left, rowWidth, rowLeft = 0, end = false) => ({
   getBoundingClientRect: () => ({ left: rowLeft + left, right: rowLeft + left + 60, width: 60 }),
   querySelector: () => ({ classList: { contains: (c) => end && c === 'is-end' } }),
-  closest: (sel) => (sel === '.ui-filter-bar' ? {
-    getBoundingClientRect: () => ({ left: rowLeft, right: rowLeft + rowWidth, width: rowWidth }),
-  } : null),
+  closest: (sel) => (sel === '.ui-filter-bar__chip' ? row(rowWidth, rowLeft) : null),
+});
+
+/** A dropdown in the row but not in a chip — #518's add control, whose panel is
+ *  anchored to the row rather than to its trigger. */
+const rowAnchored = (left, rowWidth, rowLeft = 0) => ({
+  getBoundingClientRect: () => ({ left: rowLeft + left, right: rowLeft + left + 60, width: 60 }),
+  querySelector: () => null,
+  closest: (sel) => (sel === '.ui-filter-bar' ? row(rowWidth, rowLeft) : null),
 });
 
 /** The same chip with its menu pinned to the dropdown's inline end. */
@@ -69,6 +79,18 @@ test('the room reported is measured from where the menu ends up', () => {
 
 test('the row offset is honoured, not assumed to start at zero', () => {
   assert.deepEqual(filterPanelFit(at(146, 240, 500)), filterPanelFit(at(146, 240, 0)));
+});
+
+test('a panel anchored to the row, not a chip, is not a subject', () => {
+  /* #518's add control takes `position: static` on its dropdown, so its panel
+   * resolves against the row and is already bounded by it. The slide here is
+   * measured from a trigger's offset along the row, so applying it would push
+   * that panel outside — and the width is the add control's own to set. */
+  assert.equal(filterPanelFit(rowAnchored(220, 288)), null);
+  assert.equal(filterPanelFit(rowAnchored(220, 1248)), null);
+  // The same position inside a chip is a subject, so it is the anchor that
+  // decides and not the geometry.
+  assert.notEqual(filterPanelFit(at(220, 288)), null);
 });
 
 test('a dropdown outside a filter row is not a subject', () => {

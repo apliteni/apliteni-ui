@@ -65,6 +65,18 @@ const chip = (id, label, opts) =>
   + `<button type="button" class="ui-filter-bar__remove" data-filter-remove`
   + ` aria-label="Remove ${label} filter">\u00d7</button></fieldset>`;
 
+/* A panel anchored to the row rather than to its trigger, the shape #518's
+   add-filter control takes: `position: static` on the dropdown hands the panel
+   to the row, which then bounds it. The chip rule must not reach it — sliding it
+   by a chip's offset would push it out of the row — so the gate measures that it
+   keeps its own width and stays inside. */
+const rowAnchored = document.createElement('style');
+rowAnchored.textContent = `
+  [data-case="composed"] .ui-filter-bar { position: relative; }
+  [data-row-anchored] .ui-dropdown { position: static; }
+  [data-row-anchored] .ui-dropdown__panel { min-width: min(320px, 100%); max-width: 100%; }`;
+document.head.append(rowAnchored);
+
 const composed = document.createElement('div');
 composed.dataset.case = 'composed';
 composed.innerHTML = '<fieldset class="ui-filter-bar" data-filter-bar>'
@@ -76,6 +88,7 @@ composed.innerHTML = '<fieldset class="ui-filter-bar" data-filter-bar>'
   + chip('ending', 'Aligned', { align: 'end' })
   + chip('plain', 'Sector', {})
   + chip('searchable', 'Lookup', { search: true })
+  + `<span data-row-anchored="320">${dropdown({ label: 'Add', value: 'Add filter', variant: 'select', items: SECTORS })}</span>`
   + '</fieldset>';
 document.getElementById('bars').append(composed);
 wireDropdown(composed);
