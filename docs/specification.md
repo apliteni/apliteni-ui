@@ -2943,7 +2943,6 @@ paint or screen-reader speech. `src/styles/check-disabled.test.js` reads the two
 things the story walk cannot: the hover qualification and the pseudo-element mark.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
 
-<<<<<<< HEAD
 ## React search field
 
 A toolbar above a list opens with a search box, then its filters, then its view
@@ -3093,7 +3092,7 @@ Held by `stories/snippet-focus.test.js`, which emulates forced colors by flatten
 the media block and dropping every box-shadow; keyboard reachability, the gap
 colour, the colour the system repaints an outline as, and pixels are checked in
 Chromium because JSDOM cannot prove any of them.
-=======
+
 ## React charts
 
 `Chart` draws the two shapes a money dashboard keeps redrawing, and the sparkline that
@@ -3171,4 +3170,3 @@ Held by `src/logic/chart.test.js` for the arithmetic and `react/src/Chart.test.t
 markup, the keyboard, the readout and axe; neither measures paint, so the hatch, the fade and
 the focus ring are checked in browser captures. Part of
 [#429](https://github.com/apliteni/apliteni-ui/issues/429).
->>>>>>> 6e07427 (React: Chart, monthly bars with a line, and a bridge (#491))
