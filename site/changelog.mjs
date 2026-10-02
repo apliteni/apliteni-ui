@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.64.1', date: '2026-10-01',
     changes: [
-      ['fixed', 'With reduced motion on, opening a dropdown from the keyboard now puts focus where it does with motion on: in the search field of a search dropdown, and on the first row of the topbar account menu. Both left focus on the trigger, so the panel stood open and every key the reader pressed went to the trigger instead. Vanilla and React share the fix. Resolves #519.', ['Topbar']],
+      ['fixed', 'With reduced motion on, opening a dropdown from the keyboard now puts focus where it does with motion on: in the search field of a search dropdown, and on the first row of the topbar account menu. Both left focus on the trigger, so the panel stood open and every key the reader pressed went to the trigger instead. Vanilla and React share the fix. Resolves #519.', ['Dropdown', 'Topbar']],
     ],
   },
   {

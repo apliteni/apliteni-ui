@@ -115,24 +115,11 @@
 .ui-dropdown.open .ui-dropdown__panel,
 .ui-dropdown__panel--portal.is-open { transition-property: opacity, transform; }
 
-/* The rule above answers for the panel. It does not answer for what is inside it:
-   under reduced motion the net gives every element a 0.01ms transition, and an
-   element that declares none of its own transitions `all` — which includes the
-   inherited `visibility`. So an element in here that names no property holds `hidden`
-   for one tick after the panel turns visible, for itself and for everything under it.
-   The search field names `border-color` and `box-shadow`; `.ui-dropdown__search`
-   around it names nothing, so the field was still hidden in the frame openDropdown()
-   focuses it in, and focus stayed on the trigger with the panel open. So an
-   open panel carries no transition inside it at all — for as long as it is open, not
-   only in the frame it opens — which is what reduced motion asked for anyway: under
-   the net nothing inside had longer than 0.01ms to run.
-
-   Keyed on the panel's own data hook rather than on `.ui-dropdown__panel`, because
-   the topbar's version switcher and account menu open on the same wiring and keep
-   their own visual CSS — `[data-dropdown] > [data-dropdown-trigger] +
-   [data-dropdown-panel]`, `.open` on the container. `.amenu a` names no property at
-   all, so the account menu's first row held itself rather than being held.
-   why: docs/specification.md#reduced-motion-travels-with-the-stylesheet */
+/* And nothing inside it is held either. Under reduced motion an element that names no
+   property of its own still transitions the inherited `visibility`, so it is hidden in
+   the frame openDropdown() focuses into it — #519. Keyed on the data hook, because the
+   topbar's two menus open on the same wiring and keep their own CSS.
+   why: docs/specification.md#the-dropdown-panel */
 @media (prefers-reduced-motion: reduce) {
   .open > [data-dropdown-panel] *,
   [data-dropdown-panel].is-open * { transition: none !important; }

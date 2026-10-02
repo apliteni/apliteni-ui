@@ -11,11 +11,12 @@
 //
 // #519 was that, in the dropdown: the search field sits inside `.ui-dropdown__search`,
 // which names no property, so the field was still hidden in the frame openDropdown()
-// focused it. The account menu reached its first row through a wrapper the same way.
-// The drawer, the confirm and the palette had each been fixed one at a time (#?, see
-// their sheets) — so the rule was known and the dropdown was simply not asked the
-// question. This gate asks every curtain in the kit, discovered rather than listed, so
-// the next one cannot be forgotten either.
+// focused it. The topbar's account menu lost its first row to the same tick from the
+// other shape — `.amenu a` names no property, so the row held itself. The drawer and
+// the confirm were given this rule in #271 and the palette in #274, one at a time, so
+// it was known and the dropdown was simply not asked the question. This gate asks every
+// curtain in the kit, discovered rather than listed, so the next one cannot be
+// forgotten either.
 //
 // Coverage limits:
 // - jsdom evaluates no media query and runs no transition, so what is measured here is
