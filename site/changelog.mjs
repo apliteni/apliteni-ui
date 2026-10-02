@@ -8,7 +8,10 @@ export const RELEASES = [
   {
     v: '0.76.0', date: '2026-10-02',
     changes: [
-      ['added', 'PLACEHOLDER_GUIDELINE', ['Shell']],
+      ['breaking', '`accountShell()` is removed, with the Showcases/Account preset screen that drew it. It laid account settings out as a full-width page in the shell, which is the shape the new guideline rejects. Call `appShell()` instead: pass your own `nav` and `crumbs` \u2014 `[{ label: cap }, { label: crumb }]` is the trail the preset built \u2014 and a `topbar` bag if you want the band, with `versions`, `showSwitch` and `wireTopbar()` as before. `ACCOUNT_NAV` is still exported and is still the account menu\u2019s fallback nav, and the menu still reads the old `[id, icon, label, href?, target?]` tuples. Components/Topbar draws the band over a shell. Part of #509.', ['Shell']],
+      ['fixed', 'Below 720px the topbar\u2019s version menu opens leftwards from its switcher, as the account menu beside it always has. It was anchored by its left edge, and a closed menu is still laid out \u2014 so on a phone it reached well past the right of the page and scrolled it sideways with nothing on screen to explain it. Measured on a 320px page: 527px wide before, 397 after. The band\u2019s own controls still need more room than a 320px page gives; that is #558. See #509.', ['Topbar']],
+      ['fixed', 'A bare link in a table cell now gives a pointer the 24px target floor, through a layer that changes no layout. It was as tall as its line box \u2014 21px in a dense table \u2014 and growing the link\u2019s own box would have grown every dense row holding one. See #509.', ['Table']],
+      ['added', 'Guidelines / Account and settings says where account and personal settings belong: in one modal over the product, carrying its own navigation beside the pane it shows, not in a full-width sheet with columns. Five rules cover the modal, the navigation inside it \u2014 profile, security and sessions, agents and API tokens, appearance, notifications \u2014 what the account menu holds, changing a single field in the row that names it, and naming a pane\u2019s action after the change it makes. The rules say plainly what the kit cannot draw yet: its modal is a single pane with no navigation slot and no way to widen it. Resolves #509.', ['Shell']],
     ],
   },
   {

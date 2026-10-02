@@ -2,8 +2,8 @@
  *
  * The gates here are about composition, not looks: a rail item stays named at
  * every width, the shell emits exactly one <main>, the caller owns the crumb
- * trail, the navigation landmark has a name, and accountShell() — a published
- * export — still accepts everything it accepted before.
+ * trail, the navigation landmark has a name, and the topbar the shell draws when
+ * it is handed one says the same things about the reader as the rail does.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -315,7 +315,7 @@ test('an icon-less row on the icon-only rail is given a mark of its own', () => 
 
 // ---- 3. appShell() — the kit's one page shell ----------------------------
 
-const { appShell, accountShell, ACCOUNT_NAV, RAIL_COOKIE } = await import('../../src/components/shell.js');
+const { appShell, ACCOUNT_NAV, RAIL_COOKIE } = await import('../../src/components/shell.js');
 const { icon } = await import('../../src/components/index.js');
 const { dropdown } = await import('../../src/components/dropdown.js');
 const { accountMenu } = await import('../../src/components/topbar.js');
@@ -325,12 +325,33 @@ const { paletteHotkey } = await import('../../src/components/command-palette.js'
 // about sign out has to pass one: with nobody signed in there is nobody to sign out.
 const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 
+// A shell with its topbar on, which is what the retired /account preset used to
+// be the short way to ask for (#509). One reader goes to the rail and to the
+// topbar's menu, and one nav to the rail and to the menu's rows — so the gates
+// below still ask whether appShell()'s two normalisers agree about one caller's
+// strings, which is the drift they were written for. Not a published factory:
+// a consumer writes this bag itself, as docs/library.md's appShell row says.
+const topShell = ({ word = 'Account', account, nav = ACCOUNT_NAV, active = 'prefs', ...rest } = {}) => appShell({
+  word, account, nav, active,
+  topbar: {
+    word,
+    view: 'text',
+    account: { ...(account && typeof account === 'object' ? account : {}), active, nav },
+    ...(rest.showSwitch === undefined ? {} : { showSwitch: rest.showSwitch }),
+    ...(rest.versions === undefined ? {} : { versions: rest.versions }),
+  },
+  ...rest,
+});
+
 test('the shell emits exactly one main landmark', () => {
-  const html = appShell({ title: 'T', body: '<p>x</p>' });
-  assert.equal(
-    (html.match(/<main\b/g) || []).length, 1,
-    'the shell must have exactly one answer to "where does the page content start"',
-  );
+  // Both ways round: the topbar wraps the grid in .ui-app-page, which is the one
+  // branch that could put a second <main> on the page or lose the first.
+  for (const html of [appShell({ title: 'T', body: '<p>x</p>' }), topShell({ title: 'T', body: '<p>x</p>' })]) {
+    assert.equal(
+      (html.match(/<main\b/g) || []).length, 1,
+      'the shell must have exactly one answer to "where does the page content start"',
+    );
+  }
 });
 
 // ---- 3b. the control that folds the rail (#277) ---------------------------
@@ -340,13 +361,11 @@ test('the rail carries the fold toggle by default, and drops it only when told t
     appShell({ title: 'T' }), /data-rail-toggle/,
     'a rail nobody can fold is the thing this issue is about — the control is the default, as it is in the reference',
   );
-  assert.match(accountShell({}), /data-rail-toggle/, 'the /account preset drew no toggle');
   assert.doesNotMatch(
     appShell({ collapsible: false }), /data-rail-toggle/,
     'collapsible: false is the way out for a page that will never call wireShell(); it drew the control anyway',
   );
   assert.doesNotMatch(appShell({ collapsible: false, collapsed: true }), /is-collapsed/, 'the rail folded with no toggle to open it again');
-  assert.doesNotMatch(accountShell({ collapsible: false }), /data-rail-toggle/, 'the preset ignored its own opt-out');
   // Only `false` opts out. Anything else is not an answer, so the default stands.
   for (const v of ['no', 0, 'false', null]) {
     assert.match(appShell({ collapsible: v }), /data-rail-toggle/, `collapsible: ${JSON.stringify(v)} was read as opting out`);
@@ -421,12 +440,6 @@ test('appShell() reads no stored state, so one call draws the same markup everyw
     if (had) Object.defineProperty(globalThis, 'document', had); else delete globalThis.document;
   }
 });
-
-test('accountShell() passes the fold through to the shell it draws', () => {
-  assert.match(accountShell({ collapsible: true, collapsed: true }), /class="ui-app is-collapsed"/);
-  assert.match(accountShell({ collapsible: true }), /data-rail="auto"/);
-});
-
 
 test('the shell renders the trail the caller passed, and adds no product word of its own', () => {
   const html = appShell({
@@ -647,7 +660,7 @@ test('the rail head is named independently of the word the narrow rail folds awa
 });
 
 test('a nav item reaches the topbar menu with its href and target escaped too', () => {
-  const html = accountShell({
+  const html = topShell({
     nav: [{ id: 'x', icon: 'gear', label: 'X', href: '" onmouseover="alert(1)' }], active: 'x',
   });
   assert.doesNotMatch(
@@ -661,7 +674,7 @@ test('a nav item reaches the topbar menu with its href and target escaped too', 
 // trusted-HTML slot anywhere else in the shell, so the topbar path escapes what
 // it hands the menu — the way it already does for a nav tuple's fields.
 test('a reader\'s name and address reach the topbar menu escaped, as they reach the rail', () => {
-  const html = accountShell({ account: { name: '<img src=x onerror=alert(1)>', email: '<svg onload=alert(2)>' } });
+  const html = topShell({ account: { name: '<img src=x onerror=alert(1)>', email: '<svg onload=alert(2)>' } });
   assert.doesNotMatch(
     html, /<img src=x onerror=alert\(1\)>/,
     'the display name is live markup inside the account menu while the same string is escaped '
@@ -670,13 +683,13 @@ test('a reader\'s name and address reach the topbar menu escaped, as they reach 
   assert.doesNotMatch(html, /<svg onload=alert\(2\)>/, 'the address is live markup inside the account menu');
 });
 
-// The preset is the one screen that draws both avatars at once, and they were
-// computed by two functions: initials() in shell.js prefers the display name,
+// A shell with its topbar on draws both avatars at once, and they were computed
+// by two functions: initials() in shell.js prefers the display name,
 // accountMenu()'s own `ini` only ever read the email's local part. One reader,
 // two answers, on the screen this branch created to show both surfaces together
 // — the same drift class #127 was filed about.
 test('the rail and the topbar say the same initials about the same reader', () => {
-  const doc = dom(accountShell({ account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' } }));
+  const doc = dom(topShell({ account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' } }));
   const rail = doc.querySelector('.ui-app__av').textContent.trim();
   const top = doc.querySelector('.acct .avatar').textContent.trim();
   assert.equal(
@@ -693,7 +706,7 @@ test('the rail and the topbar say the same initials about the same reader', () =
 // demo default, and "AL" came out of "Ada Lovelace" rather than out of the
 // address the caller passed.
 test('with no display name both surfaces fall back to the address, together', () => {
-  const doc = dom(accountShell({ account: { email: 'ada.lovelace@apliteni.com' } }));
+  const doc = dom(topShell({ account: { email: 'ada.lovelace@apliteni.com' } }));
   assert.equal(doc.querySelector('.acct .avatar').textContent.trim(), 'AL');
   assert.equal(doc.querySelector('.ui-app__av').textContent.trim(), 'AL');
 });
@@ -703,8 +716,8 @@ test('with no display name both surfaces fall back to the address, together', ()
 // accountMenu() carries a demo identity as its default — "Ada Lovelace" at an
 // apliteni.com address — and the shell used to drop a `name` or `email` key it
 // had not been given, which is exactly what lets that default through. So a
-// consumer's /account page named its own reader in the rail and the kit's demo
-// fixture in the topbar, on the same screen. railUser() states the rule the
+// consumer's page named its own reader in the rail and the kit's demo fixture
+// in the topbar, on the same screen. railUser() states the rule the
 // whole file is meant to keep: a shell must not invent an identity for a reader
 // it does not know.
 const DEMO_NAME = /Ada Lovelace/;
@@ -723,7 +736,7 @@ const reader = (html) => {
 };
 
 test('an account with only an address is that address on both surfaces, and nobody else', () => {
-  const html = accountShell({ account: { email: 'bob@example.com' } });
+  const html = topShell({ account: { email: 'bob@example.com' } });
   const r = reader(html);
   assert.equal(r.menuAddress, 'bob@example.com');
   assert.equal(r.railAddress, 'bob@example.com');
@@ -734,7 +747,7 @@ test('an account with only an address is that address on both surfaces, and nobo
 });
 
 test('an account with only a name is that name on both surfaces, and no address at all', () => {
-  const html = accountShell({ account: { name: 'Bob Smith' } });
+  const html = topShell({ account: { name: 'Bob Smith' } });
   const r = reader(html);
   assert.equal(r.menuName, 'Bob Smith');
   assert.equal(r.railName, 'Bob Smith');
@@ -745,7 +758,7 @@ test('an account with only a name is that name on both surfaces, and no address 
 });
 
 test('a shell handed no reader at all names nobody on either surface', () => {
-  for (const html of [accountShell({ account: null }), accountShell({})]) {
+  for (const html of [topShell({ account: null }), topShell({})]) {
     assert.doesNotMatch(html, DEMO_NAME, 'an unknown reader was given the kit\'s demo name');
     assert.doesNotMatch(html, DEMO_ADDRESS, 'an unknown reader was given the kit\'s demo address');
     assert.doesNotMatch(html, /@/, 'an unknown reader was given an address of some other kind');
@@ -760,7 +773,7 @@ test('a shell handed no reader at all names nobody on either surface', () => {
 // `&lt;Ada&gt;` do not begin with the same character, so "one reader, one pair
 // of initials" held only for names spelled with none of < > & ".
 test('both avatars carry the same initials for a name that has to be escaped', () => {
-  const html = accountShell({ account: { name: '<Ada> Lovelace' } });
+  const html = topShell({ account: { name: '<Ada> Lovelace' } });
   const r = reader(html);
   assert.equal(
     r.menuAvatar, r.railAvatar,
@@ -771,7 +784,7 @@ test('both avatars carry the same initials for a name that has to be escaped', (
 });
 
 test('nothing a reader\'s name carries reaches the menu markup unescaped', () => {
-  const html = accountShell({ account: { name: '<Ada> & "Lovelace"', email: '<a href="#">&</a>' } });
+  const html = topShell({ account: { name: '<Ada> & "Lovelace"', email: '<a href="#">&</a>' } });
   assert.doesNotMatch(html, /<Ada>/, 'the display name reaches the account menu as live markup');
   assert.doesNotMatch(html, /<a href="#">/, 'the address reaches the account menu as live markup');
   const r = reader(html);
@@ -789,17 +802,17 @@ test('nothing a reader\'s name carries reaches the menu markup unescaped', () =>
 
 // ---- appShell({ topbar }) is a path into the same raw sinks ---------------
 //
-// accountShell() escaped for the menu itself, so the preset was safe and the
-// public option underneath it was not: `topbar` went to productTopbar() exactly
-// as the caller wrote it. The escaping belongs on the one path into the topbar,
-// which is appShell()'s normaliser — the preset then passes text like anyone else.
-test('a reader handed to appShell\'s own topbar is escaped like the preset\'s', () => {
+// The retired /account preset escaped for the menu itself, so the preset was safe
+// and the public option underneath it was not: `topbar` went to productTopbar()
+// exactly as the caller wrote it. The escaping belongs on the one path into the
+// topbar, which is appShell()'s normaliser, and is now the only path there is.
+test('a reader handed to appShell\'s own topbar is escaped', () => {
   const html = appShell({ topbar: { account: { name: '<img src=x onerror=alert(1)>', email: '<svg onload=alert(2)>' } } });
   assert.doesNotMatch(html, /<img src=x onerror=alert\(1\)>/, 'appShell({ topbar }) draws the caller\'s display name as markup');
   assert.doesNotMatch(html, /<svg onload=alert\(2\)>/, 'appShell({ topbar }) draws the caller\'s address as markup');
 });
 
-test('the product word handed to appShell\'s own topbar is escaped like the preset\'s', () => {
+test('the product word handed to appShell\'s own topbar is escaped', () => {
   assert.doesNotMatch(
     appShell({ topbar: { word: '<img src=x onerror=alert(4)>' } }), /<img src=x onerror=alert\(4\)>/,
     'brand() interpolates `word` raw, and appShell forwards the topbar options verbatim',
@@ -807,9 +820,9 @@ test('the product word handed to appShell\'s own topbar is escaped like the pres
 });
 
 // Both nav shapes, because the topbar's normaliser is the same shape-either-way
-// pass the rail runs: accountShell() has always taken tuples and appShell()'s
-// own nav takes item objects, and accountMenu() reads neither of them safely.
-test('a menu entry handed to appShell\'s own topbar is escaped like the preset\'s', () => {
+// pass the rail runs: the account menu's nav has always taken tuples and
+// appShell()'s own nav takes item objects, and accountMenu() reads neither safely.
+test('a menu entry handed to appShell\'s own topbar is escaped', () => {
   const shapes = {
     tuple: [['x', 'gear', 'X', '" onmouseover="alert(5)']],
     object: [{ id: 'x', icon: 'gear', label: 'X', href: '" onmouseover="alert(5)' }],
@@ -827,17 +840,10 @@ test('a menu entry handed to appShell\'s own topbar is escaped like the preset\'
   }
 });
 
-test('the product word reaches the topbar lockup escaped too', () => {
-  assert.doesNotMatch(
-    accountShell({ word: '<img src=x onerror=alert(3)>' }), /<img src=x onerror=alert\(3\)>/,
-    'brand() interpolates `word` raw, so the topbar draws whatever the caller\'s word says',
-  );
-});
-
 // Escaping on the way to a raw sink is one step, not two: the rail escapes for
 // itself, so a string escaped before appShell() sees it comes out as entities.
 test('escaping for the menu does not double-escape the rail', () => {
-  const doc = dom(accountShell({ account: { name: 'A & B', email: 'a&b@apliteni.test' } }));
+  const doc = dom(topShell({ account: { name: 'A & B', email: 'a&b@apliteni.test' } }));
   assert.equal(doc.querySelector('.ui-app__who b').textContent, 'A & B');
   assert.equal(doc.querySelector('.ui-app__who span').textContent, 'a&b@apliteni.test');
   assert.equal(doc.querySelector('.amenu .anm').textContent, 'A & B');
@@ -948,13 +954,13 @@ test('the reading column has one source, and it is a token', () => {
 
 test('an absent or oddly-typed reader degrades instead of throwing', () => {
   assert.doesNotThrow(() => appShell({ account: null }));
-  assert.doesNotThrow(() => accountShell({ account: null }));
+  assert.doesNotThrow(() => topShell({ account: null }));
   assert.match(appShell({ account: { name: 42 } }), /<b>42<\/b>/);
   // A default parameter covers `undefined`; an /auth/me that answers `email:
   // null` reaches accountMenu()'s `email.split('@')` and takes the page down.
   for (const account of [{ email: null }, { name: null }, { email: 42, name: 42 }]) {
     assert.doesNotThrow(
-      () => accountShell({ account }), `accountShell threw on account: ${JSON.stringify(account)}`,
+      () => topShell({ account }), `a shell with its topbar on threw on account: ${JSON.stringify(account)}`,
     );
   }
 });
@@ -971,7 +977,7 @@ test('a missing or mistyped nav falls back to the default rather than throwing',
       html, /href="#prefs"/,
       `appShell({ nav: ${JSON.stringify(bad)} }) drew a rail with no entries in it`,
     );
-    assert.doesNotThrow(() => accountShell({ nav: bad }), `accountShell threw on nav: ${JSON.stringify(bad)}`);
+    assert.doesNotThrow(() => topShell({ nav: bad }), `a shell with its topbar on threw on nav: ${JSON.stringify(bad)}`);
   }
 });
 
@@ -1047,56 +1053,27 @@ test('a trail with nothing drawable in it is no trail at all', () => {
   }
 });
 
-test('accountShell hardens the crumb trail the same way', () => {
-  assert.doesNotThrow(() => accountShell({ cap: null, crumb: null, title: null }));
-  assert.doesNotThrow(() => accountShell({ nav: [null], cap: 'Account', crumb: 'Payouts' }));
-});
-
 test('the shell escapes the caller\'s brand word', () => {
   assert.match(appShell({ word: 'A & B' }), /A &amp; B/);
 });
 
-test('accountShell still accepts what it accepted before', () => {
-  const html = accountShell({
-    word: 'Finance', cap: 'Finance', crumb: 'Payouts', title: 'Payouts',
-    nav: [['payouts', 'card', 'Payouts', '#', '_top']], active: 'payouts',
-  });
-  assert.match(html, /<main\b/);
-  assert.match(html, /Payouts/);
-});
-
-test('accountShell keeps the topbar, so wireTopbar() still has something to wire', () => {
-  const html = accountShell({ word: 'Strategy', showSwitch: true, versions: [{ label: 'v2', badge: 'live' }] });
-  assert.match(html, /data-theme-toggle/, 'the theme toggle went missing from every consuming /account page');
+// wireTopbar() wires three controls, and a shell that draws the band without
+// them leaves it nothing to bind. The /account preset used to be what asked for
+// all three at once (#509); appShell()'s own bag asks for them now.
+test('a shell handed a topbar draws the three controls wireTopbar() binds', () => {
+  const html = topShell({ word: 'Strategy', showSwitch: true, versions: [{ label: 'v2', badge: 'live' }] });
+  assert.match(html, /data-theme-toggle/, 'the theme toggle went missing from the band');
   assert.match(html, /data-dropdown-trigger/, 'the account menu went missing');
   assert.match(html, /class="vsw"/, 'the version switcher went missing');
 });
 
-test('accountShell renders the old tuple nav as real rail entries', () => {
-  const html = accountShell({
-    nav: [['payouts', 'card', 'Payouts', 'https://example.test/payouts', '_top']], active: 'payouts',
-  });
-  assert.match(html, /href="https:\/\/example\.test\/payouts"/);
-  assert.match(html, /target="_top"/);
-  assert.match(html, /aria-current="page"/);
-});
-
-test('accountShell also accepts the new object nav — ACCOUNT_NAV is its own default', () => {
-  const html = accountShell({ nav: ACCOUNT_NAV, active: 'access' });
+// ACCOUNT_NAV is still the fallback the account menu's nav falls back to, and
+// it is the one shipped list with an `&` in a label — so it is where a label
+// escaped on both paths into the menu would read as "Access &amp;amp; agents".
+test('the shipped account nav is escaped once on its way to the menu', () => {
+  const html = topShell({ nav: ACCOUNT_NAV, active: 'access' });
   assert.match(html, /Access &amp; agents/);
   assert.doesNotMatch(html, /&amp;amp;/, 'a label escaped twice reads as "Access &amp; agents" on screen');
-});
-
-test('accountShell turns cap + crumb into the trail the caller used to get for free', () => {
-  const html = accountShell({ cap: 'Finance', crumb: 'Payouts', title: 'Payouts' });
-  assert.match(html, /aria-label="Breadcrumb"/);
-  assert.match(html, /Finance/);
-  assert.match(html, /aria-current="page"[^>]*>(?:(?!<\/nav>).)*Payouts/s);
-});
-
-test('accountShell emits one main landmark, not zero and not two', () => {
-  const html = accountShell({ title: 'Preferences', body: '<p>x</p>' });
-  assert.equal((html.match(/<main\b/g) || []).length, 1);
 });
 
 // The shell's rail head is a link too, so it meets a host's `a:link` the same
@@ -1160,7 +1137,6 @@ test('the topbar layout draws a band, and the layout the kit has always drawn dr
     band.closest('nav'), null,
     'the band sits inside the navigation landmark — a search field and a session menu are not places to go',
   );
-  assert.match(accountShell({ layout: 'topbar' }), /ui-app__bar/, 'the /account preset swallowed the layout it was handed');
 });
 
 test('the band stands beside the rail, in the shell\'s own second column', () => {

@@ -116,7 +116,7 @@ test('the pointers into the collection name a story that exists', () => {
   let found = 0;
 
   for (const file of ['README.md', 'docs/README.md', 'site/index.html',
-    'stories/apps/AccountPreset.stories.js']) {
+    'stories/components/Topbar.stories.js']) {
     const text = readFileSync(path.join(root, file), 'utf8');
     for (const m of text.matchAll(/(?:\/storybook|\.)\/\?path=\/story\/(guidelines-[a-z0-9-]+)/g)) {
       found += 1;

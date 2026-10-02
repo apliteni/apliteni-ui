@@ -97,10 +97,14 @@ export const DISABLED_FLOOR = 4.89;
 export const TARGET_EXEMPT = [
   {
     control: 'a.brand',
-    why: 'Not a kit control. It is the demo topbar a story builds for itself in '
-      + 'stories/apps/AccountPreset.stories.js, styled by that story’s own <style> block. '
-      + 'Measured at 21.06px and reported rather than hidden, because a walk that skipped '
-      + 'story chrome would also skip a component that had not been moved into src yet.',
+    why: 'The kit’s own wordmark lockup — brand() in src/assets/brand.js, styled by '
+      + 'src/styles/topbar.css. Measured at 23.49px in stories/apps/Consent.stories.js:Grant, '
+      + 'half a pixel short: an inline-flex lockup is as tall as the display face it sets the '
+      + 'word in and carries no padding of its own. Reported rather than hidden. Reaching the '
+      + 'floor means changing the lockup’s box in the topbar, the footer and the auth card at '
+      + 'once, which is its own decision rather than this page’s. Until #509 this entry read '
+      + '"not a kit control", naming a story that built its own topbar; the walk measures the '
+      + 'kit’s lockup and always did.',
   },
 ];
 
