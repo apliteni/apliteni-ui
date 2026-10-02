@@ -96,9 +96,10 @@ export const Range: StoryObj<typeof DatePicker> = {
   },
 };
 
-// A period the host blocks inside a chosen range. It keeps neither the tint nor
-// the words "in range": it cannot be picked, so it is not included. The story is
-// here so the contrast gate measures the pair rather than inferring it.
+// A period the host blocks inside a chosen range. The range still spans it, so
+// its name still says "in range"; what it loses is the tint, because the
+// disabled ink over that ground cannot be read. The story is here so the
+// contrast gate measures the pair rather than inferring it.
 export const RangeWithBlocked: StoryObj<typeof DatePicker> = {
   render: function RangeWithBlockedStory(args) {
     const [span, setSpan] = useState<DatePickerRange>({ start: '2026-04', end: '2026-08' });
@@ -197,7 +198,8 @@ export const DayRange: StoryObj<typeof DatePicker> = {
 };
 
 // A day range against bounds and blocked days: the span runs over a blocked day
-// without taking it in, and a shortcut the bounds leave nothing of is off.
+// — which stays in the range and says so, and only goes bare — and a shortcut
+// the bounds leave nothing of is off.
 export const DayRangeBounded: StoryObj<typeof DatePicker> = {
   render: function DayRangeBoundedStory(args) {
     const [span, setSpan] = useState<DatePickerRange>({ start: '2026-09-07', end: '2026-09-18' });

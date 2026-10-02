@@ -524,7 +524,7 @@ describe('day-range mode', () => {
     expect(trigger()).toHaveTextContent('From 21 Aug 2026');
   });
 
-  it('refuses a blocked day at either end and leaves it out of the span', async () => {
+  it('refuses a blocked day as an end, and spans it bare in between', async () => {
     const user = userEvent.setup();
     const onRangeChange = vi.fn();
     render(
@@ -948,5 +948,142 @@ describe('every cell state is readable', () => {
       expect(fg && Array.isArray(bg), 'the mutation resolved').toBe(true);
       expect(ratio(composite(fg, bg), bg)).toBeLessThan(AA_TEXT);
     } finally { done(); }
+  });
+});
+
+/* The two rules the hover change broke, held as text because JSDOM resolves no
+ * outline and the cell-state gate above measures ink against ground. The paint
+ * itself is measured in a browser and reported on the pull request. */
+describe('the hover edge', () => {
+  // Comments out: an inline `ring-gap:` annotation inside a rule body would
+  // otherwise read as a declaration and hide the one after it.
+  const css = read('./DatePicker.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  const ruleFor = (selector: string) =>
+    new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? null;
+
+  it('never transitions the outline, so focus is the ring at once', () => {
+    const rest = ruleFor('.ui-datepicker__opt');
+    expect(rest, 'the cell rule').not.toBeNull();
+    const transition = /transition:([^;]*);/.exec(rest!)?.[1] ?? '';
+    expect(transition, 'the cell transitions something').not.toBe('');
+    // The focus rule resets the outline to transparent; animating its colour
+    // starts that reset from the resting currentColor and paints a band.
+    expect(transition).not.toMatch(/outline/);
+  });
+
+  it('is undone in full on a cell that cannot be pressed', () => {
+    const hover = ruleFor('.ui-datepicker__opt:hover');
+    const off = ruleFor('.ui-datepicker__opt.is-disabled:hover');
+    expect(hover, 'the hover rule').not.toBeNull();
+    expect(off, 'the disabled hover reset').not.toBeNull();
+    // Every property hover paints has to be answered, or the blocked cell keeps it.
+    const propsOf = (body: string) => body.split(';')
+      .map(d => d.split(':')[0].trim()).filter(d => /^[a-z-]+$/.test(d));
+    const painted = propsOf(hover!).filter(prop => prop !== 'outline-offset');
+    expect(painted.length, 'properties the hover rule sets').toBeGreaterThan(2);
+    for (const prop of painted) {
+      const family = prop === 'outline' ? /outline(-color)?\s*:/ : new RegExp(`${prop}\\s*:`);
+      expect(off, `hover sets ${prop} and the disabled reset does not answer it`).toMatch(family);
+    }
+  });
+
+  it('spends no second edge on the pick, which is already a filled chip', () => {
+    expect(ruleFor('.ui-datepicker__opt.is-selected:hover')).toMatch(/outline-color:\s*transparent/);
+  });
+});
+
+/* The tap zone, from this side.
+ *
+ * `src/styles/tap-zone.css` carries the kit's 44px floor below the phone step,
+ * and its browser half sweeps `stories/*.stories.js` through a vanilla page —
+ * it reports `.ui-datepicker__opt: 0 seen`, because this component is React
+ * only and has no vanilla story to render. So the declarations are held here
+ * instead, read out of that sheet rather than repeated.
+ *
+ * What it does not reach: the pixels. JSDOM lays nothing out, so the measured
+ * zone is reported by hand in the pull request, as that gate's own comment
+ * asks.
+ * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step */
+describe('the tap zone below the phone step', () => {
+  const sheet = read('../../src/styles/tap-zone.css').replace(/\/\*[\s\S]*?\*\//g, '');
+
+  /** The coarse-pointer block of a sheet, or null. Takes the sheet, so the
+   *  mutation case below can run this same reading over its mutant. */
+  const coarseOf = (css: string) =>
+    /@media \(max-width: 560px\) and \(pointer: coarse\) \{([\s\S]*)\n\}/.exec(css);
+  /** The selectors of one `:where(…)` list in that block, by what follows it. */
+  const listIn = (css: string, after: string) => {
+    const block = coarseOf(css);
+    if (!block) return [];
+    const m = new RegExp(`:where\\(([^)]+)\\)\\s*${after}`).exec(block[1]);
+    return (m?.[1] ?? '').split(',').map(x => x.trim()).filter(Boolean);
+  };
+  const listBefore = (after: string) => listIn(sheet, after);
+  /** The two containment checks, as a list of what failed. */
+  const offences = (css: string) => [
+    listIn(css, '::after').includes('.ui-datepicker__opt') ? null : 'no layer on the cell',
+    listIn(css, '\\{ position: relative').includes('.ui-datepicker__opt') ? null : 'no containing block',
+  ].filter(Boolean);
+
+  it('reads the sheet it is holding', () => {
+    expect(coarseOf(sheet), 'the coarse-pointer block').not.toBeNull();
+    expect(listBefore('\\{ position: relative').length).toBeGreaterThan(5);
+    expect(listBefore('::after').length).toBeGreaterThan(5);
+  });
+
+  it('hangs a layer on the cell, and gives it something to hang it on', () => {
+    expect(offences(sheet)).toEqual([]);
+  });
+
+  it('opens the week gap and declares the clearance the cells inherit', () => {
+    const rule = /\.ui-datepicker__grid \{([^}]*)\}/.exec(coarseOf(sheet)![1]);
+    expect(rule, 'the grid opens no gap').not.toBeNull();
+    expect(rule![1]).toMatch(/row-gap:\s*var\(--tap-gap\)\s*!important/);
+    expect(rule![1]).toMatch(/--tap-clear-y:\s*var\(--tap-gap\)/);
+    expect(rule![1]).toMatch(/--tap-clear-x:/);
+  });
+
+  /* Every control the sheet renders, not only the grid: the two page steps are
+   * the only way to change month on a phone, and the shortcuts set a whole
+   * range in one press. A container that declares nothing leaves its layer at
+   * the control's own size. */
+  it.each(['.ui-datepicker__head', '.ui-datepicker__presets'])(
+    '%s declares the clearance its controls grow into', selector => {
+      const rule = new RegExp(`\\${selector} \\{([^}]*)\\}`).exec(coarseOf(sheet)![1]);
+      expect(rule, `${selector} declares no clearance`).not.toBeNull();
+      // One of the sheet's own named clearances, not a literal of its own:
+      // these two are bordered at the smallest mark, so they take the wider one.
+      expect(rule![1]).toMatch(/--tap-clear-y:\s*var\(--tap-gap(-bordered)?\)/);
+      expect(rule![1]).toMatch(/--tap-clear-x:/);
+    });
+
+  /* The shortcut row scrolls, so a layer reaching past the chip is clipped
+   * rather than hit: its block padding has to cover half the clearance. */
+  it('pads the scrolling shortcut row by at least half that clearance', () => {
+    const own = read('./DatePicker.css');
+    const rule = /\.ui-datepicker__body\.is-sheet \.ui-datepicker__presets \{([^}]*)\}/.exec(own);
+    expect(rule, 'the sheet rule for the shortcut row').not.toBeNull();
+    expect(rule![1]).toMatch(/overflow-x:\s*auto/);
+    expect(rule![1]).toMatch(/padding:\s*var\(--space-3\)/);
+  });
+
+  /* Prove rejection by running the gate over the mutant, not by proving that
+   * String.replace works: the same reading that passes above must come back
+   * with both offences once the cell is off the two lists. */
+  it('refuses the sheet with the cell taken back off it', () => {
+    const without = sheet.replace(/\n\s*\.ui-datepicker__opt\n/g, '\n');
+    expect(without, 'the carrier lines this gate mutates were renamed').not.toBe(sheet);
+    expect(coarseOf(without), 'the mutant still parses').not.toBeNull();
+    expect(listIn(without, '::after').length, 'the other carriers survive the mutation')
+      .toBeGreaterThan(5);
+    expect(offences(without)).toEqual(['no layer on the cell', 'no containing block']);
+  });
+
+  /** The cell's own sheet must not fight the layer. */
+  it('leaves the cell a containing block and its drawn size alone', () => {
+    const own = read('./DatePicker.css');
+    expect(own).toMatch(/\.ui-datepicker__opt \{[^}]*position: relative/);
+    expect(own, 'the cell must not size itself inside the coarse query')
+      .not.toMatch(/@media[^{]*pointer: coarse/);
   });
 });
