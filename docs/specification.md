@@ -817,6 +817,9 @@ comparing the three glow treatments. Glow alone did not reach 3:1 in that eviden
 --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),
         0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color),
         0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+--ring-inset: inset 0 0 0 var(--ring-gap-width) var(--ring-gap),
+              inset 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color),
+              inset 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
 ```
 
 `--ring` remains a composed shadow for `box-shadow: var(--ring)` consumers.
@@ -824,9 +827,17 @@ Tune the width, colour and gap at `:root`, or at a surface that composes the rin
 A descendant-only change to one of those inputs cannot alter an already inherited
 shadow: CSS resolves custom-property references where the composition is declared.
 
+`--ring-inset` is the same indicator drawn inward, for a box that cannot paint outside
+itself; the paragraphs below say which box that is and why. **The two are composed as a
+pair.** Each resolves `--ring-gap` where it is declared, so a rule that composes one and
+not the other leaves that one reading the gap of the surface above it. Every rule that
+recomposes the ring — `:root`, the grouped painted-container rule and the inline code
+chip — writes both, with the same width, colour and gap tokens, so tuning one tunes both.
+A gate holds the pairing and fails a rule that recomposes one half alone.
+
 Every kit surface that paints `--bg-elevated`, including surfaces using a local
 alias and the React modal, sets `--ring-gap` to its background and recomposes
-`--ring`. Cards and the application rail do the same for their own surface colours.
+the pair. Cards and the application rail do the same for their own surface colours.
 Custom surfaces must do both too; changing only the gap leaves the inherited shadow
 unchanged. One grouped rule composes the ring on painted containers. The app shell keeps
 the root composition because it uses the page background. A discovery gate follows
@@ -893,10 +904,10 @@ shape and is painted on the modal, which is centred and never reaches the viewpo
 **`--ring-inset`** is the same three layers drawn inward, for a box that can delegate to
 nobody. The drawer's body is the one: it is flush with the panel, and the panel is flush
 with a screen edge — the one surface in the kit that is — so an outset ring on either box
-is painted outside the viewport, which at 390 leaves no indicator at all. It is composed
-from the same `--ring-width`, `--ring-color`, `--ring-gap-width` and `--ring-gap`, and
-recomposed at the same painted containers, so tuning one tunes both. A box that takes it
-needs room of its own to draw in; the drawer's body has its 20px padding.
+is painted outside the viewport, which at 390 leaves no indicator at all. It is published
+in the token block above, composed from the same `--ring-width`, `--ring-color`,
+`--ring-gap-width` and `--ring-gap`, and recomposed wherever `--ring` is. A box that takes
+it needs room of its own to draw in; the drawer's body has its 20px padding.
 
 Two boxes are not a keyboard stop at all and carry no ring: the underline tab strip and
 the application rail, each of which holds its own tabbable rows and overflows only once it

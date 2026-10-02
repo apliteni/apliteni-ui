@@ -99,12 +99,13 @@
   color: var(--strong);
 }
 .ui-confirm__body {
-  margin: 0;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  /* The focus ring's clearance from the glyphs, which .ui-table-scroll carries for
-     the same reason. #531 */
+  /* The padding is the ring's clearance from the glyphs, as on .ui-table-scroll; the
+     negative margin spends it out of the panel's --space-5, not out of the text
+     column the three slots share. #531 */
+  margin: 0 calc(-1 * var(--space-1));
   padding: var(--space-1);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
@@ -116,9 +117,8 @@
    native outline. The wired dialog's trap wraps between the two answers, which both
    follow it; the markup the kit publishes as a string, rendered open without the
    wiring, has no trap and makes it the first stop. The panel insets the paragraph by
-   --space-5, so it carries its own ring — a square ring on a square scroller, as
-   .ui-table-scroll draws. The --space-1 padding is that ring's clearance from the
-   glyphs, the inset .ui-table-scroll carries for the same reason.
+   --space-5, so it carries its own ring — a square ring on a square scroller, clear
+   of the glyphs by the padding above and 13px inside the panel.
    why: docs/specification.md#the-focus-ring */
 .ui-confirm__body:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-confirm__acts {
