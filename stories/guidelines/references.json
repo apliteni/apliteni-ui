@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:105",
+        "ref": "src/styles/table.css:130",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ]
@@ -522,7 +522,7 @@
         "pattern": "--space-3: 12px"
       },
       {
-        "ref": "src/styles/table.css:58",
+        "ref": "src/styles/table.css:65",
         "pattern": "padding: var(--space-2) var(--space-3)"
       },
       {
@@ -542,7 +542,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:451",
+        "ref": "src/styles/layout.css:458",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -736,7 +736,7 @@
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
-        "ref": "stories/contrast.test.js:212",
+        "ref": "stories/contrast.test.js:218",
         "pattern": "inactive components and their whole subtree"
       }
     ],
@@ -805,7 +805,7 @@
   "_empty-states.js": {
     "next-action": [
       {
-        "ref": "src/components/index.js:278",
+        "ref": "src/components/index.js:280",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
       }
     ]

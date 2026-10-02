@@ -931,7 +931,10 @@ describe('every cell state is readable', () => {
     }
     expect(judged, 'pairs judged').toBe(combinations.length * 2 * ACCENTS.length);
     expect(failures, `cell states below ${AA_TEXT}:1`).toEqual([]);
-  });
+  // Four sheet builds and 256 resolved pairs per theme: seconds of real work,
+  // and more of it each time the kit's stylesheet grows. The budget is the
+  // host's, not the gate's — a slow machine must not turn this red.
+  }, 60_000);
 
   /* Prove rejection by taking the fix out: without the rule that sends a
    * blocked cell bare, the two collisions this gate was written for come back —

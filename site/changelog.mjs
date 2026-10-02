@@ -6,9 +6,45 @@
 
 export const RELEASES = [
   {
-    v: '0.65.0', date: '2026-10-01',
+    v: '0.70.0', date: '2026-10-02',
     changes: [
       ['added', 'React DatePicker picks one month, a range of months, one date, or a range of dates, from the dropdown\u2019s own trigger and panel. The grain and the span are separate questions, so a day range takes the same two presses the month range does and carries the same bounds, blocked periods and shortcuts. It takes min and max bounds, blocked periods, consumer marks shown as a dot, a word in the legend and part of the cell\u2019s name, and consumer presets in range mode. Bounds and blocked periods written in the other grain are converted rather than dropped, and a preset is clamped to the bounds or switched off. The grid has one tab stop: arrows and the Page keys move it and turn the page, and Home and End go to the ends of the row without leaving the month. Every cell says whether it is the pick. A blocked cell goes bare whatever else it is, so a period the host blocks never wears the accent fill or the range tint under disabled ink. Below 560px the panel is a bottom drawer, with the kit\u2019s scrim, close control and focus trap; pass sheet to force it. Part of #429; resolves #506.', ['DatePicker']],
+    ],
+  },
+  {
+    v: '0.69.0', date: '2026-10-02',
+    changes: [
+      ['added', 'React SearchField renders the kit\u2019s search input group for a toolbar: a search glyph, a native search input and an accessible name instead of a visible label, so the row keeps the height of the unlabelled controls beside it. It forwards its ref and the native input props and adds no CSS of its own. There is no clear button, the field the kit already draws. See #517.'],
+      ['changed', 'The Empty states showcase draws its filtered list\u2019s search box with the kit\u2019s standalone search field, the part React\u2019s SearchField renders, so the box has a name and the search glyph. A new showcase toolbar puts search, then filters, then the view switch in one row. See #517.'],
+      ['changed', 'A toolbar\u2019s text field takes the whole line at 560px and below, instead of holding its 6rem basis while narrow controls share the line and cut its placeholder off. Wider rows are unchanged. See #517.'],
+    ],
+  },
+  {
+    v: '0.68.0', date: '2026-10-02',
+    changes: [
+      ['changed', 'A FilterBar chip shows the chosen value by itself instead of printing the field\u2019s name beside it, so a bar of chips reads as the values in force. A chip with nothing chosen shows the field it filters, in placeholder ink, and is named \u201cSector: any\u201d; a chip with a value is named \u201cSector: Technology\u201d. Beside a value the field is no longer drawn: it reaches a reader through that name and the chip\u2019s legend. Keep a filter\u2019s value display text \u2014 it is now the whole visible chip. Vanilla and React. Resolves #535.', ['FilterBar']],
+      ['added', 'filterChipText, filterChipName and filterChipUnset are exported from the entry: the one place that decides what a chip prints, what it is called and whether it counts as unset. Pass a filter; take the line, the name or the state. Part of #535.', ['FilterBar']],
+    ],
+  },
+  {
+    v: '0.67.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A filter bar no longer widens the page on a phone. Each chip’s dropdown panel now takes the width of the chip it drops from instead of a 240px minimum, so it stays inside the row at any viewport; a filter whose options are longer than its chip wraps them over more rows, breaking mid-token when a value has no break opportunity in it, such as a campaign key or a URL. Vanilla and React share the rule. Resolves #467.', ['FilterBar']],
+    ],
+  },
+  {
+    v: '0.66.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A link inside a table cell shows the kit focus ring on keyboard focus instead of the browser’s own outline. A plain cell link is an inline-block box at the kit corner, so a title-cell link that wraps paints one ring rather than one per line, and the struck name of a revoked row still reaches a link inside it, hovered or not. An anchor the kit already styles — a button, an identity, a dropdown row, a nav item or a crumb composed into a cell — keeps its own box and corner. The rules are in the shared stylesheet, so the React `DataTable` takes them with the vanilla table; the React DataTable and Loading stories now carry a cell link that shows it. Resolves #510.', ['Table']],
+    ],
+  },
+  {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React Success, SuccessPanel and SuccessCheck provide the confirmation layouts and the check mark. Page confirmations accept React actions and a cancelable countdown callback; the caller owns navigation. Part of #429.'],
+      ['changed', 'Success confirmations now sit on a plain elevated card. The blurred aurora blobs and the ambient green glow behind them are gone, and with them the `backdrop` option — vanilla callers passing it are unaffected, since the value is now ignored. This is in the shared stylesheet, so it reaches vanilla and React alike.', ['Success']],
+      ['changed', 'Success confirmations carry one title and at most one short line. The `eyebrow` option is gone from `success()` and the `eyebrow` prop from React `Success`; vanilla callers passing it are unaffected, since the key is now ignored, and React `Success` is unreleased. Put the outcome in the title rather than in a label above it. Part of #429.', ['Success']],
+      ['changed', 'The check mark is now an unmodified Lucide path in the success colour, with no filled disc or burst ring behind it. `check: \'line\'` (the default) is the bare check; `check: \'circled\'` is the smaller circled mark, at 20px, which is what Guidelines / Iconography asks a reported state to use. `success()`, `successPanel()` and both React components take `check`; `successCheck()` takes the same choice as its first argument. The circled mark is 20px wherever it is drawn, the inline panel included, while the line mark keeps the size of the layout it lands in.', ['Success']],
     ],
   },
   {

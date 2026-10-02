@@ -8,15 +8,15 @@ export default {
 
 const wrap = (html, w = 620) => `<div style="max-width:${w}px;margin:0 auto">${html}</div>`;
 
-// 1 — Hero (upgraded default): self-drawing check on an aurora backdrop with
-// follow-up actions. It shares its glowing check with the block-sized successPanel().
+// 1 — Hero (upgraded default): the check draws itself on a plain elevated card,
+// with follow-up actions. It shares its check with the block-sized successPanel().
+// The outcome is the title and the detail is one short line — the block carries
+// no third text tier. why: docs/specification.md#success-confirmations
 export const Hero = {
   render: () => pad(wrap(success({
     layout: 'hero',
-    backdrop: 'aurora',
-    eyebrow: 'Feedback sent',
-    title: 'Thanks — it goes straight to the strategy owner',
-    body: 'We read every note against the current cycle. You can keep browsing or send another passage.',
+    title: 'Feedback sent',
+    body: 'It goes straight to the strategy owner.',
     actions: [
       { label: 'Back to strategy', variant: 'primary', icon: 'compass' },
       { label: 'Send another', variant: 'ghost', icon: 'chat' },
@@ -24,15 +24,13 @@ export const Hero = {
   }))),
 };
 
-// 2 — Split: a big check on a tinted panel beside the copy + actions. Reads
+// 2 — Split: the check on a tinted panel beside the copy + actions. Reads
 // well in a wider card or a two-pane confirmation screen.
 export const Split = {
   render: () => pad(wrap(success({
     layout: 'split',
-    backdrop: 'glow',
-    eyebrow: 'Payment received',
     title: 'Your plan is active',
-    body: 'The Team plan is live for everyone in your workspace. A receipt is on its way to your inbox.',
+    body: 'A receipt is on its way to your inbox.',
     actions: [
       { label: 'Go to dashboard', variant: 'primary', iconRight: 'arrowRight' },
       { label: 'View receipt', variant: 'ghost' },
@@ -46,30 +44,26 @@ export const Compact = {
   render: () => pad(stack(
     specimen('Single action', wrap(success({
       layout: 'compact',
-      backdrop: 'flat',
       title: 'Note saved',
       body: 'Autosaved just now.',
       actions: [{ label: 'Undo', variant: 'ghost', size: 'sm' }],
     }), 520)),
     specimen('No action', wrap(success({
       layout: 'compact',
-      backdrop: 'flat',
       title: 'Copied to clipboard',
     }), 520)),
   )),
 };
 
 // 4 — Celebrate: opt-in confetti + an auto-redirect countdown, for the big
-// moments. Confetti, the burst and the sweep all fall back to nothing under
+// moments. Confetti and the sweep both fall back to nothing under
 // prefers-reduced-motion; the check shows static.
 export const Celebrate = {
   render: () => pad(wrap(success({
     layout: 'hero',
-    backdrop: 'aurora',
     confetti: true,
-    eyebrow: 'Welcome aboard',
     title: 'Your workspace is ready',
-    body: "You're all set. We'll take you to your new dashboard in a moment.",
+    body: 'Taking you to your new dashboard.',
     actions: [
       { label: 'Enter workspace', variant: 'primary', icon: 'sparkle' },
     ],
@@ -77,12 +71,23 @@ export const Celebrate = {
   }))),
 };
 
-// The three backdrops side by side, so the aurora / glow / flat choice is easy
-// to compare and each re-themes with the accent.
-export const Backdrops = {
+// The two check marks side by side. `line` is the default; `circled` is the
+// smaller status mark Guidelines / Iconography asks a reported state to use.
+export const CheckMark = {
   render: () => pad(stack(
-    specimen('Aurora', wrap(success({ backdrop: 'aurora', title: 'Aurora backdrop', body: 'Two soft blobs — a green wash plus an accent glow.' }))),
-    specimen('Glow', wrap(success({ backdrop: 'glow', title: 'Glow backdrop', body: 'A single green ambient glow behind the check.' }))),
-    specimen('Flat', wrap(success({ backdrop: 'flat', title: 'Flat backdrop', body: 'No backdrop — just the elevated surface.' }))),
+    specimen('Line — the default', wrap(success({
+      title: 'Your plan is active',
+      body: 'A receipt is on its way to your inbox.',
+    }))),
+    specimen('Circled', wrap(success({
+      check: 'circled',
+      title: 'Your plan is active',
+      body: 'A receipt is on its way to your inbox.',
+    }))),
+    specimen('Circled, beside the copy', wrap(success({
+      check: 'circled', layout: 'split',
+      title: 'Your plan is active',
+      body: 'A receipt is on its way to your inbox.',
+    }), 720)),
   )),
 };

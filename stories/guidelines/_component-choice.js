@@ -61,7 +61,7 @@ export const scaleDo = () => stage(card({
   body: successPanel({ title: 'Feedback sent', sub: 'It goes straight to the strategy owner.' }),
 }));
 export const scaleDont = () => stage(card({
-  body: success({ layout: 'hero', backdrop: 'aurora', title: 'Feedback sent' }),
+  body: success({ layout: 'hero', title: 'Feedback sent' }),
 }));
 
 // Both halves render open, so the stage keeps room below the trigger for the

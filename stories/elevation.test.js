@@ -60,10 +60,11 @@ const sweep = STYLE_FILES.flatMap((file) =>
   boxShadowsIn(read(file)).map((d) => ({ ...d, file })));
 
 // Asserted so coverage cannot shrink to zero and stay green. Moving it means
-// reviewing each added or removed declaration.
+// reviewing each added or removed declaration. 49 -> 50: the focus ring a link
+// inside a table now takes, which was the browser's own outline before #510.
 test('the sweep sees every box-shadow the kit ships', () => {
-  assert.equal(sweep.length, 49,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 49. `
+  assert.equal(sweep.length, 50,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 50. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

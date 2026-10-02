@@ -9,6 +9,14 @@
       ]
     },
     {
+      "file": "react/src/Success.test.tsx",
+      "name": "React: Success",
+      "does": "Checks heading ranks including the clamp on out-of-range levels, polite status markup, hidden artwork with no backdrop layer, the omitted empty actions row, both check marks and the fallback for an unknown one, the bare shared mark and its wrappers, keyboard action access, refs, axe results and cancelable countdown ownership, including StrictMode.",
+      "blind": [
+        "JSDOM cannot measure paint, colour contrast, real layout or actual screen-reader announcements; matching browser captures cover the shared CSS."
+      ]
+    },
+    {
       "file": "react/src/Checkbox.test.tsx",
       "name": "React: Checkbox and radio",
       "does": "Checks accessible labels, pointer and Space activation, controlled radio selection and arrow navigation, disabled inputs, refs, form values, reset and axe results.",
@@ -70,6 +78,14 @@
       "does": "Checks generated label and message links, required and invalid controls, file selection and replacement, drop handling, disabled fields, form reset and axe violations.",
       "blind": [
         "JSDOM does not open the system picker or supply a native DataTransfer. Browser captures cover appearance; the React contrast gate measures text colours."
+      ]
+    },
+    {
+      "file": "react/src/SearchField.test.tsx",
+      "name": "React: SearchField",
+      "does": "Checks that the toolbar search field renders the vanilla search input group attribute for attribute, is a searchbox named by ariaLabel with no visible label and no clear button, keeps the kit ring on its one focusable part, forwards its ref, className and native input props, and passes axe.",
+      "blind": [
+        "JSDOM reads structure and names only. It does not paint the focus ring, measure the row's height beside the controls the field joins, or verify screen-reader speech; browser captures on #517 cover those."
       ]
     },
     {
@@ -570,7 +586,7 @@
     {
       "file": "react/src/FilterBar.test.tsx",
       "name": "React: FilterBar",
-      "does": "Checks controlled filter changes, disabled controls, keyboard selection, and focus after removal.",
+      "does": "Checks controlled filter changes, disabled controls, keyboard selection, focus after removal, that a chip prints its value alone while its name carries the field and its empty state, and that a valueless chip is marked for the placeholder ink.",
       "blind": [
         "JSDOM does not measure browser focus styling, layout, or contrast."
       ]

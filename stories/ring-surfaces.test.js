@@ -53,7 +53,10 @@ test('every painted surface sets a matching gap or explains why the containing g
 });
 
 test('every ring consumer keeps a real outline for forced colors', () => {
-  assert.equal(consumers.length, 27, 'ring consumer discovery changed');
+  // 27 -> 28: a link inside a table takes the ring on focus instead of the browser's
+  // own outline (#510), and like every other consumer keeps a transparent outline
+  // under forced colors.
+  assert.equal(consumers.length, 28, 'ring consumer discovery changed');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }

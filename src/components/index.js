@@ -264,11 +264,13 @@ export function toast({
 // a card. Two strings, no options; styles are .ui-success in styles/callout.css.
 //
 // The kit also publishes success() from components/success.js, which is the same
-// idea at page size: layouts, a backdrop, follow-up buttons and an auto-redirect
-// countdown. Pick by how much of the screen the confirmation owns. The two share
-// the glowing check; their layout and content remain independent.
-export function successPanel({ title = 'Done', sub = '' } = {}) {
-  return `<div class="ui-success"><div class="ui-success__check">${successCheck()}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
+// idea at page size: layouts, follow-up buttons and an auto-redirect countdown.
+// Pick by how much of the screen the confirmation owns. The two share the check;
+// their layout and content remain independent.
+export function successPanel({ title = 'Done', sub = '', check = 'line' } = {}) {
+  // The circled mark is one status size everywhere, so the box narrows for it.
+  const box = check === 'circled' ? 'ui-success__check ui-success__check--circled' : 'ui-success__check';
+  return `<div class="ui-success"><div class="${box}">${successCheck(check)}</div><div class="ui-success__title">${esc(title)}</div>${sub ? `<div class="ui-success__sub">${esc(sub)}</div>` : ''}</div>`;
 }
 
 // ---- Empty state ---------------------------------------------------------

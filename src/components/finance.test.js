@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { filterBar, initFilterBar } from './filter-bar.js';
+import { filterChipText, filterChipName, filterChipUnset } from '../logic/filter-bar.js';
 import { segmented } from './index.js';
 import { initSegmented } from './segmented.js';
 import { numericValue, deltaValue, rowIdentity, initRowIdentity } from './table-values.js';
@@ -34,6 +35,52 @@ test('non-zero deltas keep their caller-supplied judgement with unit suffixes', 
     }
   }
 });
+// Markup only: these read the strings the factory writes, not how a chip looks.
+test('a chip prints its value alone and keeps its field in its accessible name', () => {
+  const { dom, host } = setup(filterBar({ filters }));
+  const [trigger] = host.querySelectorAll('[data-dropdown-trigger]');
+  assert.equal(trigger.textContent.trim(), 'Technology');
+  assert.equal(trigger.getAttribute('aria-label'), 'Sector: Technology');
+  assert.equal(host.querySelector('.ui-dropdown__pre'), null, 'no field name beside the value');
+  assert.equal(host.querySelector('[data-filter-id="sector"] legend').textContent, 'Sector');
+  dom.window.close();
+});
+test('a chip with nothing chosen shows the field, says so, and takes the placeholder ink', () => {
+  const { dom, host } = setup(filterBar({ filters: [{ id: 'sector', label: 'Sector', value: '', items: [] }] }));
+  const trigger = host.querySelector('[data-dropdown-trigger]');
+  assert.equal(trigger.textContent.trim(), 'Sector');
+  assert.equal(trigger.getAttribute('aria-label'), 'Sector: any');
+  // The hook the sheet paints with --muted; this asserts the class, not the colour.
+  assert.ok(host.querySelector('.ui-dropdown__value.is-placeholder'), 'the valueless slot is marked');
+  assert.equal(host.querySelectorAll('.ui-dropdown__value.is-placeholder').length, 1);
+  dom.window.close();
+});
+test('a chip reads what the consumer answered with — value is display text', async () => {
+  const { dom, host } = setup(filterBar({ filters })); const bar = initFilterBar(host, { filters });
+  // The documented consumer: take the change, set it as the filter's value, update.
+  host.addEventListener('ui-filter-change', e => bar.update({
+    filters: filters.map(f => f.id === e.detail.id ? { ...f, value: e.detail.value } : f) }));
+  host.querySelector('[data-dropdown-trigger]').click(); host.querySelector('[data-dd-item]').click();
+  await Promise.resolve(); // the change is emitted in a microtask
+  const settled = host.querySelector('[data-dropdown-trigger]');
+  assert.equal(settled.textContent.trim(), 'energy', 'the chip settles on exactly what was answered');
+  assert.equal(settled.getAttribute('aria-label'), 'Sector: energy');
+  // So a consumer whose rows carry codes answers with the row's label instead.
+  bar.update({ filters: [{ ...filters[0], value: 'Energy' }, filters[1]] });
+  assert.equal(host.querySelector('[data-dropdown-trigger]').textContent.trim(), 'Energy');
+  assert.equal(host.querySelector('.ui-dropdown__value.is-placeholder'), null);
+  bar.destroy(); dom.window.close();
+});
+test('the shared pair never writes an absent field into a chip or its name', () => {
+  assert.equal(filterChipText({}), '');
+  assert.equal(filterChipName({ value: 'Tech' }), 'Tech');
+  assert.equal(filterChipName({}), '');
+  assert.equal(filterChipName({ label: 'Listing' }), 'Listing: any');
+  assert.equal(filterChipText({ label: 'Listing' }), 'Listing');
+  assert.equal(filterChipText({ label: 'Listing', value: 0 }), '0', 'zero is a value');
+  assert.equal(filterChipUnset({ value: '' }), true);
+  assert.equal(filterChipUnset({ value: 0 }), false);
+});
 test('filter removal is controlled and update recovers focus through the last chip', () => {
   const { dom, host } = setup(filterBar({ filters })); const bar = initFilterBar(host, { filters });
   let requested; host.addEventListener('ui-filter-remove', e => { requested = e.detail.id; });
@@ -48,6 +95,10 @@ test('Dropdown selection reports the filter id and value after its own close', a
   let result; host.addEventListener('ui-filter-change', e => { result = e.detail; });
   host.querySelector('[data-dropdown-trigger]').click(); host.querySelector('[data-dd-item]').click();
   await Promise.resolve(); assert.deepEqual(result, { id: 'sector', value: 'energy' });
+  // The trigger's own optimistic text and the name it is read by stay together.
+  assert.equal(host.querySelector('[data-dropdown-trigger]').textContent.trim(), 'Energy');
+  assert.equal(host.querySelector('[data-dropdown-trigger]').getAttribute('aria-label'), 'Sector: Energy');
+  assert.equal(host.querySelector('.ui-dropdown__value.is-placeholder'), null, 'a pick is not a placeholder');
   assert.equal(host.querySelector('[data-dropdown-trigger]').getAttribute('aria-expanded'), 'false');
   bar.update({ filters, busy: true }); result = undefined;
   host.querySelector('[data-filter-remove]').click(); assert.equal(result, undefined);
