@@ -1586,6 +1586,71 @@ Held by `src/components/dropdown.test.js`, which reads the offsets out of the st
 panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom
 property — and feeds the wiring measured rects, JSDOM having no layout of its own.
 
+## A filter row holds its panels
+
+A filter chip's dropdown panel is as wide as the chip's trigger. It is the one place in the kit
+where `min-width: 240px` on `.ui-dropdown__panel` does not apply, and the reason is arithmetic
+rather than taste: a panel is absolutely positioned at its trigger's inline start, so its right
+edge is wherever the chip happens to sit plus 240px, and on a phone the second chip already sits
+far enough along the row for that sum to pass the screen.
+
+It passes the screen whether the panel is open or shut. A shut panel is `visibility: hidden`, which
+hides it and still lays it out, and a laid-out box counts towards the page's scrollable width. So a
+filter bar nobody had touched scrolled the page sideways. Measured on the React `FilterBar` story:
+a page 398px wide on a 390px view — the 8px of
+[#467](https://github.com/apliteni/apliteni-ui/issues/467) — and 23px over at 375px. The chips
+themselves were never the problem; `.ui-filter-bar` wraps, and at both widths they fitted.
+
+**What a consumer can rely on.** At any viewport, a filter bar's *panels* add nothing to the page's
+scrollable width, and each panel opens inside the row that holds it. The bound is `min-width: 100%;
+max-width: 100%` against the panel's own containing block, so it needs no measuring, no resize
+listener and no JavaScript, and vanilla and React get it from the same rule. What a consumer gives
+up is panel width: a filter whose options are longer than its chip wraps them over more rows
+instead of widening. That suits the values a filter shows — a filter's options are the short words
+its chip already carries — and a list that needs more room than that is a dropdown rather than a
+filter.
+
+A bounded box is not the whole guarantee, because a panel is `overflow: visible`. A value with no
+break opportunity in it — `utm_campaign_blackfriday_2026_eu_retargeting`, a URL, an API key — would
+run out of a narrow panel and off the page while the box itself stayed put, shut as well as open,
+which is #467's mechanism arriving by another route. The same rule therefore carries
+`overflow-wrap: anywhere`, which inherits to an option's label and its description alike. Such a
+value breaks mid-token rather than overflowing, which costs row height instead of page width: the
+gate's 44-character campaign key takes five line boxes and a 119.3px row, and 180.6px where its
+description is as unbreakable. Every other option row stays 38.3px, and the panel stays the chip's
+width — 113.3px — at every viewport. Without the hint the same page is 473px wide on a 390px view
+and on a 375px one, 83px and 98px over.
+
+On a phone that is the right trade: nothing is hidden and nothing is clipped. On a wide screen the
+same column fragments with the screen empty beside it, because the rule binds the panel to the
+chip's width and not to the room the viewport left. Reading the available room is the measurement
+[#502](https://github.com/apliteni/apliteni-ui/pull/502) introduces on the height axis, and this
+bound is one declaration that it can later replace. Recorded here as a known limit rather than
+widened here.
+
+The guarantee holds against stylesheets, the kit's own and a consumer's: the bound carries more
+classes than any floor that could outrank it. It does not survive an inline `min-width` on the
+panel, which beats a stylesheet `max-width` whatever its specificity, so a consumer style or script
+that writes one re-opens [#467](https://github.com/apliteni/apliteni-ui/issues/467). The one writer
+inside the kit, `ddResetSearch()`, sets it to the panel's already-bounded `offsetWidth`, so a search
+dropdown composed inside a filter bar stays inside the row.
+
+The chip's own width is a separate question this rule does not reach. `.ui-dropdown__trigger` is an
+`inline-flex` without `min-width: 0`, and `.ui-dropdown__value` carries no wrap hint, so a chip
+cannot shrink below its selected value's min-content width: a filter showing
+`utm_campaign_blackfriday_2026_eu_retargeting` makes a 437px page with nothing open at all — 47px
+over at 390, 62px at 375, 117px at 320. That is true with this rule, without it, and on `main`;
+the bound is on the panel. A filter whose applied value can be that long wants a shorter display
+value, or a change to the trigger, which is a change to every chip in the kit.
+
+Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
+— resolving one spelled as a token — and requires each to be answered inside the bar, and measured
+in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in both themes.
+That gate sweeps both Storybook indexes for every story rendering a filter bar, measures each panel
+against the `.ui-dropdown` that contains it, asks every option row whether its own text fits it,
+and puts the floor back to require a panel in every case that carries one to widen. Its fixture
+page carries an unbreakable value so the wrap hint is measured rather than assumed.
+
 ## A dropdown row is a div, a link or a button
 
 `.ui-dropdown__item` renders identically under all three tags, and which one a row is written as
@@ -2121,8 +2186,10 @@ consumer supplies a real destination for that link. Columns scroll rather than d
 and never mutate the supplied filters. Updating the mounted host preserves the focused chip
 control; after removal focus moves to the next chip, then the previous, then the bar when no
 filter remains. Busy and disabled bars stop their native controls. Dropdown owns opening,
-keyboard selection, Escape and focus return. Segmented controls support an underline appearance
-for switching columns over one dataset; arrow keys, Home and End skip disabled choices.
+keyboard selection, Escape and focus return. A chip's panel stays inside the row that holds it at
+every viewport, which is what bounds its width — see A filter row holds its panels. Segmented
+controls support an underline appearance for switching columns over one dataset; arrow keys, Home
+and End skip disabled choices.
 
 ## Vanilla HTML boundaries
 
