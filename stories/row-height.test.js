@@ -9,8 +9,8 @@
  *
  *   ROW_HEIGHTS=1 node --test stories/row-height.test.js
  *
- * Limits: react/dist, not the source; heights and line counts, not colour, the
- * ring or whether a truncated word reads; and nothing at all when unset.
+ * Limits: react/dist, not the source; heights and line counts, not colour, not
+ * the focus ring, not whether a truncated word reads; nothing at all when unset.
  * why: docs/specification.md#react-file-drop
  */
 import test from 'node:test';
