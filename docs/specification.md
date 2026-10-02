@@ -734,6 +734,37 @@ keep their error colour while focus uses the shared band. No JavaScript modality
 tracker is required. Every shared-ring consumer retains a transparent 2px outline,
 which becomes a visible system outline when forced colours remove box shadows.
 
+**Every focusable control the kit ships draws it.** The ring is not opt-in: a control
+this kit styles is a control it gives a focus rule, so none falls back to the browser's
+own outline, which ignores the accent, differs between browsers and is black in both
+themes. This covers a control the keyboard reaches with an arrow key rather than Tab: a
+roving row inside a menu or listbox takes the ring like any other stop. Eighteen of them
+shipped without one until [#482](https://github.com/apliteni/apliteni-ui/issues/482),
+so every page that used those components inherited the gap. One control is exempt and states it on its
+own declaration: the command palette's input holds focus for as long as the dialog is up,
+so a ring there would be painted the whole time and mark nothing. A bare `a` in host copy
+is the host's; the kit's own `a` rule sets its colour and nothing else. A gate walks the
+keyboard stops of the marketing landing page and of the shell and footer stories, and
+fails a stop with no ring, or with an outline of its own instead of or beside it.
+
+**Writing the ring is not enough; it has to win.** A focus rule paints only if it
+outranks every always-on rule that writes `box-shadow` on the same element, so a
+component that re-states the property at equal specificity further down its sheet
+silences the ring without removing it. Where the ring is composed with a surface's own
+elevation — the dropdown, drawer and command-palette panels — the focus declaration
+repeats that treatment beside `var(--ring)`, because a `box-shadow` list replaces the
+whole list. The gate resolves the cascade for each keyboard stop, by specificity and
+then document order over the sheets as a page loads them, and fails a stop whose ring
+loses.
+
+**A box that scrolls is a control.** A browser gives a scroll container a keyboard stop
+of its own, with no `tabindex` and no author rule, so an overflowing box needs the ring
+as much as a button does. The kit's scrolling table wrapper and dropdown panel carry it.
+The gate discovers every box the kit makes scrollable and holds the list, so a new one is
+triaged rather than shipping with the browser's outline; the boxes still without a ring
+are named in that list and tracked on
+[#531](https://github.com/apliteni/apliteni-ui/issues/531).
+
 The solid band's unchanged colour is still held at 4.22:1 against the story-derived
 flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel
 measurements must additionally check both actual band neighbours across every shipped
@@ -1448,7 +1479,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:219 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:228 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the

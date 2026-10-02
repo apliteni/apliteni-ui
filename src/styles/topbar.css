@@ -41,6 +41,9 @@
 .brand svg { display: block; flex: none; }
 /* Topbar wordmark runs a touch smaller than the auth-card lockup. */
 .topbar .brand { font-size: var(--text-sm); }
+/* The lockup is a link, so it takes focus: the shared ring, with a radius of its
+   own because the mark and the word have no box to borrow one from. #482 */
+.brand:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
 .topbar .spacer { flex: 1; }
 
 /* Deck / Text (segmented, pill) */
@@ -67,6 +70,7 @@
 }
 .dtsw a:hover { color: var(--strong); }
 .dtsw a.cur { color: var(--strong); background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.dtsw a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
 /* Theme toggle — a single icon-only switch (no label). */
 .toggle {
@@ -86,6 +90,7 @@
     border-color var(--dur-fast) var(--ease);
 }
 .toggle:hover { transform: translateY(-1px); border-color: var(--border-strong); }
+.toggle:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .toggle .ic { width: 17px; height: 17px; display: inline-block; color: var(--text); }
 .toggle .ic svg { display: block; width: 100%; height: 100%; stroke-width: 2.2; }
 
@@ -107,6 +112,7 @@
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .vsw__btn:hover { border-color: var(--accent); }
+.vsw__btn:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .vsw__btn .lbl { color: var(--text); }
 .vsw__btn .cur { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vsw__btn .car {
@@ -180,9 +186,14 @@
   transition: background var(--dur-fast) var(--ease);
 }
 /* Menu rows use the reading surface and an edge on hover — see
-   src/styles/dropdown.css:155 `.ui-dropdown__item:hover`.
+   src/styles/dropdown.css:164 `.ui-dropdown__item:hover`.
    why: docs/specification.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+/* The row is a keyboard stop: src/components/dropdown.js:554
+   `items[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
+   the arrow keys, and this is one. It takes the ring on its own 10px radius, the
+   same way `.amenu a` above does. #482 */
+.vopt:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .vopt .vname { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vopt .vmeta { font-size: var(--text-xs); color: var(--text); margin-top: 2px; }
 .vopt .vbadge {
@@ -221,6 +232,7 @@
   transition: border-color var(--dur-fast) var(--ease);
 }
 .acct .avatar:hover { border-color: var(--accent); }
+.avatar:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .amenu {
   position: absolute;
   right: 0; top: 44px;
@@ -259,6 +271,7 @@
 .amenu .ahead .aem { color: var(--text); font-size: calc(var(--text-xs) + 0.5px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: var(--text-sm); cursor: pointer; }
 .amenu a:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.amenu a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
 .amenu a.cur { color: var(--accent); }
 .amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.85; }
 .amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }

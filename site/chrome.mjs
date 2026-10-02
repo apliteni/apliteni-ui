@@ -32,11 +32,15 @@ export function topbar(active = '') {
 </header>`;
 }
 
+// Each dot carries its name and its state, the way the kit's own accentPicker()
+// does (src/components/index.js): `aria-label` is the whole accessible name,
+// because the control is a colour and nothing else, and `aria-pressed` says which
+// one is on — the `.on` class said that to sighted readers only. #482
 const ACCENTS = `<div class="accents" role="group" aria-label="Accent">
-        <button data-acc="default" class="on" style="background:linear-gradient(135deg,#bd8cff,#b479ff)" title="Nebula" aria-label="Nebula accent"></button>
-        <button data-acc="phoenix" style="background:linear-gradient(135deg,#ff8a5c,#ff6a3d)" title="Phoenix" aria-label="Phoenix accent"></button>
-        <button data-acc="ocean" style="background:linear-gradient(135deg,#5ab0ff,#3b9dff)" title="Ocean" aria-label="Ocean accent"></button>
-        <button data-acc="emerald" style="background:linear-gradient(135deg,#3ad9a0,#16c98a)" title="Emerald" aria-label="Emerald accent"></button>
+        <button data-acc="default" class="on" style="background:linear-gradient(135deg,#bd8cff,#b479ff)" title="Nebula" aria-label="Nebula accent" aria-pressed="true"></button>
+        <button data-acc="phoenix" style="background:linear-gradient(135deg,#ff8a5c,#ff6a3d)" title="Phoenix" aria-label="Phoenix accent" aria-pressed="false"></button>
+        <button data-acc="ocean" style="background:linear-gradient(135deg,#5ab0ff,#3b9dff)" title="Ocean" aria-label="Ocean accent" aria-pressed="false"></button>
+        <button data-acc="emerald" style="background:linear-gradient(135deg,#3ad9a0,#16c98a)" title="Emerald" aria-label="Emerald accent" aria-pressed="false"></button>
       </div>`;
 
 export function footer() {
@@ -81,12 +85,17 @@ export const CHROME_CSS = `
   .site-topbar .lk { color: var(--dim); font-size: 14px; text-decoration: none; transition: color .15s ease; }
   .site-topbar .lk:hover { color: var(--strong); }
   .site-topbar .lk.on { color: var(--strong); }
+  /* The kit's ring on the chrome's own controls. Without these three rules the
+     nav links, the accent dots and the footer links fall back to the browser's
+     outline, which ignores the accent and is black in both themes. #482 */
+  .site-topbar .lk:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
   .ver { font-size: 11px; font-weight: 600; letter-spacing: .03em; color: var(--muted); background: var(--surface-2); border-radius: 999px; padding: 3px 9px; }
 
   .accents { display: inline-flex; gap: 9px; }
   .accents button { width: 22px; height: 22px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: 0 0 0 2px var(--bg); transition: transform .15s; }
   .accents button:hover { transform: scale(1.12); }
   .accents button.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+  .accents button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
   .site-footer { border-top: 1px solid var(--border); padding: 34px 0; margin-top: 20px; }
   .site-footer__in { max-width: var(--container); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px);
@@ -94,6 +103,7 @@ export const CHROME_CSS = `
     color: var(--muted); font-size: 13px; }
   .site-footer a { color: var(--muted); text-decoration: none; transition: color .15s ease; }
   .site-footer a:hover { color: var(--strong); text-decoration: underline; text-underline-offset: 3px; }
+  .site-footer a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
   @media (max-width: 560px) {
     .site-topbar .hide-sm { display: none; }
     /* The bar keeps four items on a phone — brand, two nav links, theme — and
@@ -123,7 +133,7 @@ export const CHROME_JS = `
   applyTheme(savedT || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
   document.getElementById('tgl').addEventListener('click', function(){ changeColors(function(){ applyTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'); }); });
 
-  function applyAccent(a){ if(a==='default') root.removeAttribute('data-accent'); else root.setAttribute('data-accent', a); document.querySelectorAll('.accents button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-acc')===a); }); try{localStorage.setItem('apliteni-ui-accent',a);}catch(e){} }
+  function applyAccent(a){ if(a==='default') root.removeAttribute('data-accent'); else root.setAttribute('data-accent', a); document.querySelectorAll('.accents button').forEach(function(b){ var on = b.getAttribute('data-acc')===a; b.classList.toggle('on', on); if (b.hasAttribute('aria-pressed')) b.setAttribute('aria-pressed', on ? 'true' : 'false'); }); try{localStorage.setItem('apliteni-ui-accent',a);}catch(e){} }
   var savedA = null; try{ savedA = localStorage.getItem('apliteni-ui-accent'); }catch(e){}
   if (savedA) applyAccent(savedA);
   document.querySelectorAll('.accents button').forEach(function(b){ b.addEventListener('click', function(){

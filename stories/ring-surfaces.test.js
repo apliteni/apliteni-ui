@@ -55,8 +55,15 @@ test('every painted surface sets a matching gap or explains why the containing g
 test('every ring consumer keeps a real outline for forced colors', () => {
   // 27 -> 28: a link inside a table takes the ring on focus instead of the browser's
   // own outline (#510), and like every other consumer keeps a transparent outline
-  // under forced colors.
-  assert.equal(consumers.length, 28, 'ring consumer discovery changed');
+  // under forced colors. 28 -> 47 is #482, which gave the ring to the nineteen
+  // controls that had no focus rule at all: the two brand lockups, the deck/text
+  // and version switchers, the theme toggle, the account avatar and its menu rows,
+  // snippet copy, three footer link kinds, the interactive card, both toast
+  // controls, the feedback composer's two, React's row-selection checkbox, the
+  // dropdown panel — a scroll container Chrome makes a keyboard stop, found by
+  // #487's review — and `.vopt`, the version switcher's rows, which the arrow keys
+  // focus and #487's re-review found still taking the browser's outline.
+  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }

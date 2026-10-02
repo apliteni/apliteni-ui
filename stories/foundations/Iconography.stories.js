@@ -14,7 +14,7 @@ const STYLE = `
   .ic-controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
   .ic-search { flex: 1; min-width: 220px; height: 40px; padding: 0 15px; border-radius: 12px;
     border: 1px solid var(--surface-2); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; }
-  .ic-search:focus { outline: none; border-color: var(--accent); }
+  .ic-search:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-color: var(--accent); }
   .ic-cat { margin-top: 34px; }
   .ic-cat__h { font: 600 12px/1 var(--font-display); color: var(--muted);
     margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
@@ -25,7 +25,7 @@ const STYLE = `
     position: relative; transition: border-color .15s, background .15s, transform .1s; }
   .ic-tile:hover { border-color: var(--accent); background: var(--surface-2); }
   .ic-tile:active { transform: translateY(1px); }
-  .ic-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ic-tile:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
   .ic-glyph { color: var(--accent); display: grid; place-items: center; height: 28px; }
   .ic-glyph svg { width: var(--ic-size); height: var(--ic-size); }
   .ic-name { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); text-align: center; word-break: break-word; }
