@@ -2,13 +2,25 @@
 // speaks the progress bar or the alert, and the paint — the drop target's cover
 // and the row's one accent are measured by the contrast and ring gates.
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, createEvent } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { FileDrop } from './FileDrop';
+
+const readRepo = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 
 const file = (name = 'statement-2026-08.pdf') => new File(['demo'], name, { type: 'application/pdf' });
 
 /** A drag that carries files, as the browser reports one. */
 const withFiles = (files: File[] = []) => ({ dataTransfer: { types: ['Files'], files } });
+
+/** A real dragover event, dispatched so its own defaultPrevented can be read. */
+const dragOver = (on: HTMLElement, files: File[] = []) => {
+  const event = createEvent.dragOver(on);
+  Object.defineProperty(event, 'dataTransfer', { value: { types: ['Files'], files } });
+  fireEvent(on, event);
+  return event;
+};
 
 const row = () => document.querySelector('.ui-drop') as HTMLElement;
 const target = () => document.querySelector('.ui-drop__target');
@@ -97,6 +109,37 @@ describe('FileDrop once a file is in hand', () => {
     expect(bar.firstElementChild).toHaveStyle({ width: '40%' });
   });
 
+  it('treats a file given with no status as uploading, never as uploaded', () => {
+    render(<FileDrop file={{ name: 'statement-2026-08.pdf' }} />);
+    expect(screen.getByText('Uploading')).toBeInTheDocument();
+    expect(screen.queryByText('Uploaded')).toBeNull();
+  });
+
+  it('gives an upload with no progress value a word and a mark, and no bar', () => {
+    render(<FileDrop file={{ name: 'statement-2026-08.pdf', status: 'uploading' }} />);
+    expect(screen.getByText('Uploading')).toBeInTheDocument();
+    expect(document.querySelector('.ui-drop__state svg')).toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).toBeNull();
+  });
+
+  // JSDOM applies no stylesheet, so the half it can check is the markup: both
+  // truncatable words carry their full text in a title. The rule that makes the
+  // line refuse to wrap is read from the sheet, and the result is measured in a
+  // browser capture rather than here.
+  it('keeps the name and the status word on one line, with the full text in a title', () => {
+    render(<FileDrop file={{ name: 'a-very-long-statement-name-2026-08.pdf', status: 'error', error: 'Larger than 10 MB' }} />);
+    expect(screen.getByText('a-very-long-statement-name-2026-08.pdf'))
+      .toHaveAttribute('title', 'a-very-long-statement-name-2026-08.pdf');
+    expect(screen.getByText('Larger than 10 MB')).toHaveAttribute('title', 'Larger than 10 MB');
+
+    const css = readRepo('../../src/styles/file-drop.css');
+    const line = /\.ui-drop__file\s*\{([^}]*)\}/.exec(css)?.[1];
+    expect(line).toMatch(/flex-wrap:\s*nowrap/);
+    const words = /\.ui-drop__name,\s*\.ui-drop__word\s*\{([^}]*)\}/.exec(css)?.[1];
+    expect(words).toMatch(/text-overflow:\s*ellipsis/);
+    expect(words).toMatch(/white-space:\s*nowrap/);
+  });
+
   it('says it is uploaded when it is, and removes it on request', () => {
     const onRemove = vi.fn();
     render(<FileDrop file={{ name: 'statement-2026-08.pdf', status: 'done' }} onRemove={onRemove} />);
@@ -133,12 +176,19 @@ describe('a disabled FileDrop', () => {
   it('accepts nothing by drag or by picker and paints no target', () => {
     const onFile = vi.fn();
     render(<FileDrop disabled onFile={onFile} />);
-    fireEvent.dragOver(row(), withFiles([file()]));
+    dragOver(row(), [file()]);
     expect(target()).toBeNull();
     fireEvent.drop(row(), withFiles([file()]));
     expect(onFile).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Upload' })).toBeDisabled();
     expect(row()).toHaveClass('is-disabled');
+  });
+
+  it('never tells the browser it is a drop target, so the cursor promises nothing', () => {
+    const { rerender } = render(<FileDrop disabled />);
+    expect(dragOver(row(), [file()]).defaultPrevented).toBe(false);
+    rerender(<FileDrop />);
+    expect(dragOver(row(), [file()]).defaultPrevented).toBe(true);
   });
 
   it('refuses the target even when a parent asks for it', () => {

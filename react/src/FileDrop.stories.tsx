@@ -34,6 +34,11 @@ export const Uploading: StoryObj = {
   render: () => <FileDrop file={{ ...STATEMENT, status: 'uploading', progress: 40 }} onRemove={() => {}} />,
 };
 
+/** A file just handed over, before the consumer has said anything about it. */
+export const Starting: StoryObj = {
+  render: () => <FileDrop file={STATEMENT} onRemove={() => {}} />,
+};
+
 export const Done: StoryObj = {
   render: () => <FileDrop file={{ ...STATEMENT, status: 'done' }} onRemove={() => {}} />,
 };

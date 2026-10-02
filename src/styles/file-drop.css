@@ -3,11 +3,10 @@
  *
  * At rest this is one row: the button that opens the picker and the accepted
  * types beside it. The field-sized dashed box stays with .ui-file, which is a
- * form control with a label above it; a drop that rides beside a list cannot
- * hold that much of the page open for a file that arrives once a month.
+ * form control with a label above it.
  *
  * The drop target is painted only while a file is over the region that accepts
- * it, so nothing is spent on it until there is something to catch.
+ * it.
  * why: docs/specification.md#react-file-drop
  * ========================================================================== */
 .ui-drop { position: relative; }
@@ -28,21 +27,35 @@
 /* The accepted types and the size limit, in the consumer's words, stated once. */
 .ui-drop__note { margin: 0; }
 
-/* The file once it is in hand: name, size and the state's own words on one
-   line, so the row changes in place instead of growing a second tier. */
-.ui-drop__file { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); min-width: 0; }
-.ui-drop__name { color: var(--strong); font-weight: var(--weight-medium); }
+/* Name, size, status and actions on one line. The line never wraps: a second
+   tier would stack text in one block, so the words truncate instead and keep
+   their full text in a title. Four items share the tighter gap. */
+.ui-drop__file { display: flex; flex: 1 1 auto; flex-wrap: nowrap; align-items: center; gap: var(--space-2); min-width: 0; }
+.ui-drop__file > .ui-btn { flex: none; }
+.ui-drop__size { flex: none; white-space: nowrap; }
+.ui-drop__name, .ui-drop__word { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* A status is a circled mark and a word, because colour alone is not a status. */
-.ui-drop__state { display: inline-flex; align-items: center; gap: var(--space-1); }
+/* The name yields its width first and the status last: the file's name is also
+   in a title, and what went wrong is only here. */
+.ui-drop__name { flex: 0 1 auto; min-width: var(--space-10); color: var(--strong); font-weight: var(--weight-medium); }
+.ui-drop__word { flex: 0 1 auto; min-width: 0; }
+
+/* A status is a circled mark and a word, because colour alone is not a status.
+   Its shrink is a fraction of the name's, so it gives up nothing until the name
+   has reached its floor, and its word then truncates with it. */
+.ui-drop__state { display: inline-flex; flex: 0 0.001 auto; align-items: center; gap: var(--space-1); min-width: 0; }
 .ui-drop__state svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 .ui-drop__error { color: var(--pink); }
 
 /* The progress track carries no text, and its fill is the row's one accent. */
 .ui-drop__bar {
   display: block; /* so a track outside a flex row still takes its size */
-  flex: none;
-  width: 120px;
+  /* The track fills what the words leave, up to its full length, so it never
+     reserves width the file name needs: the progress is in the word beside it,
+     and the name is the only place the file is named. */
+  flex: 1 1 0;
+  min-width: var(--space-8);
+  max-width: 120px;
   height: 4px;
   border-radius: var(--radius-pill);
   background: var(--surface-3); /* ring-gap: inherit — a progress track holds no focus target. */
@@ -50,9 +63,8 @@
 }
 .ui-drop__bar span { display: block; height: 100%; background: var(--accent); }
 
-/* The target, while a file is over the region. It covers the region rather than
-   joining it, so the row keeps its place and the page does not move under the
-   reader at the moment they are aiming. */
+/* The target covers the region rather than joining it, so the row keeps its
+   place while the reader aims. */
 .ui-drop__target {
   position: absolute;
   inset: 0;

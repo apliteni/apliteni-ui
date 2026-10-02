@@ -33,7 +33,7 @@ export const SPEC_CSS = `
     .gf-card { margin-top: var(--space-3); background: var(--surface); border-radius: var(--radius-md);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4);
       font: 400 13px/1.6 var(--font-sans); color: var(--text); }
-    .gf-card .ui-drop__bar { width: 100%; margin-top: var(--space-2); }
+    .gf-card .ui-drop__bar { flex: none; max-width: none; width: 100%; margin-top: var(--space-2); }
     .gf-repeat { margin: var(--space-2) 0 0; font: 400 13px/1.6 var(--font-sans); color: var(--text); }
   </style>`;
 
@@ -45,19 +45,22 @@ const btn = (label, { size = 'sm', variant = 'secondary', glyph, ring } = {}) =>
 const NOTE = 'PDF or CSV, up to 10 MB';
 const note = () => `<p class="ui-drop__note">${NOTE}</p>`;
 const bar = (percent) => `<span class="ui-drop__bar"><span style="width:${percent}%"></span></span>`;
-const state = (words, cls = '') => `<span class="ui-drop__state${cls}">${icon(cls ? 'circleAlert' : 'circleCheck')}${words}</span>`;
+const MARKS = { uploading: 'clock', done: 'circleCheck', error: 'circleAlert' };
+const state = (words, kind = 'done') =>
+  `<span class="ui-drop__state${kind === 'error' ? ' ui-drop__error' : ''}">${icon(MARKS[kind])}`
+  + `<span class="ui-drop__word">${words}</span></span>`;
 const target = () => '<div class="ui-drop__target">Drop to upload</div>';
 
 /** The row at rest: the picker and the accepted types, and nothing else. */
 const restRow = (extra = '') =>
   `<div class="ui-drop__row">${btn('Upload', { glyph: 'upload' })}${note()}${extra}</div>`;
 
-/** The row once a file is in hand. */
-const fileRow = (parts) => `<div class="ui-drop__row"><div class="ui-drop__file">
-  <span class="ui-drop__name">statement-2026-08.pdf</span><span>248 KB</span>${parts}</div></div>`;
+/** The row once a file is in hand. A refused file drops its size, as the component does. */
+const fileRow = (parts, { size = true } = {}) => `<div class="ui-drop__row"><div class="ui-drop__file">
+  <span class="ui-drop__name">statement-08.pdf</span>${size ? '<span class="ui-drop__size">248 KB</span>' : ''}${parts}</div></div>`;
 
 /** Three statements already received, so a row has the list it feeds above it. */
-const RECEIVED = [['statement-2026-07.pdf', '241 KB'], ['statement-2026-06.pdf', '236 KB']];
+const RECEIVED = [['statement-07.pdf', '241 KB'], ['statement-06.pdf', '236 KB']];
 const rows = () => `<div class="gf-rows">${RECEIVED
   .map(([name, size]) => `<div class="gf-rows__row"><span>${name}</span><span>${size}</span></div>`)
   .join('')}</div>`;
@@ -90,19 +93,19 @@ export const RULES = withSpecimens(content.rules, [
   {
     id: 'in-the-row',
     doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow(
-      `${bar(40)}${btn('Remove', { size: 'xs', variant: 'ghost' })}`,
+      `${state('Uploading', 'uploading')}${bar(40)}${btn('Remove', { size: 'xs', variant: 'ghost' })}`,
     )}</div>`),
     dontHtml: () => panel(`<div class="ui-drop">${restRow()}</div>
-      <div class="gf-card">statement-2026-08.pdf<br>248 KB — 40%${bar(40)}</div>${rows()}`),
+      <div class="gf-card">statement-08.pdf<br>248 KB — 40%${bar(40)}</div>${rows()}`),
   },
   {
     id: 'failure',
     doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow(
-      `${state('Larger than 10 MB', ' ui-drop__error')}${btn('Retry', { size: 'xs' })}`
-      + btn('Remove', { size: 'xs', variant: 'ghost' }),
+      `${state('Larger than 10 MB', 'error')}${btn('Retry', { size: 'xs' })}`
+      + btn('Remove', { size: 'xs', variant: 'ghost' }), { size: false },
     )}</div>`),
     dontHtml: () => panel(`${rows()}<div class="ui-drop"><div class="ui-drop__row">
-      ${state('Upload failed', ' ui-drop__error')}${btn('Upload', { glyph: 'upload' })}</div></div>`),
+      ${state('Upload failed', 'error')}${btn('Upload', { glyph: 'upload' })}</div></div>`),
   },
   {
     id: 'button-path',
@@ -115,7 +118,7 @@ export const RULES = withSpecimens(content.rules, [
     doHtml: () => panel(`${rows()}<div class="ui-drop">${restRow()}</div>`),
     dontHtml: () => panel(`${rows()}<div class="ui-drop">${restRow()}</div>
       <p class="gf-repeat">${NOTE}</p>
-      <p class="gf-repeat">${state(NOTE, ' ui-drop__error')}</p>`),
+      <p class="gf-repeat">${state(NOTE, 'error')}</p>`),
   },
   { id: 'which-shape' },
 ]);

@@ -6,7 +6,7 @@
 
 **Rule:** At rest, a file drop is one row: the button that opens the picker and the accepted types beside it.
 
-**Why:** A statement arrives once a month, and a tall empty box holds the page's best space open for it on every other day.
+**Why:** A tall box holds the page's best space open for a file that arrives once a month.
 
 **Do:** Put an Upload button and “PDF or CSV, up to 10 MB” on one line above the list they feed.
 
@@ -20,7 +20,7 @@
 
 **Rule:** Show the drop target while a file is over the region that accepts it, and nowhere else.
 
-**Why:** Drawn before there is anything to catch, a target is an instruction; drawn under the file, it is an answer.
+**Why:** A target drawn before there is a file to catch covers content the reader still needs.
 
 **Do:** Cover the panel that accepts the file the moment the file crosses it.
 
@@ -32,7 +32,7 @@
 
 **Rule:** After the drop, put the file's name, size and progress in the row the button was in, with remove beside them.
 
-**Why:** The reader is waiting on one file, and a row that changes in place keeps the page still while they wait.
+**Why:** A row that changes in place keeps the page still while the file uploads.
 
 **Do:** Show the name, the size and a progress bar on the line, and let Remove end it.
 
@@ -44,7 +44,7 @@
 
 **Rule:** A refused file stays in the row, says what it did wrong, and offers Retry beside Remove.
 
-**Why:** A file that disappears with its message takes the reader back to choosing one, with nothing learned.
+**Why:** A row that drops the file sends the reader back to choosing one.
 
 **Do:** Keep the name on the line and say “Larger than 10 MB” beside it, with Retry.
 
@@ -56,7 +56,7 @@
 
 **Rule:** Give the reader a button that opens the picker, and let dragging be the shortcut.
 
-**Why:** Dragging needs a pointer, a second window and a steady hand; a keyboard has none of the three.
+**Why:** A keyboard cannot drag a file.
 
 **Do:** Make the Upload button the control, reachable by keyboard and showing the focus ring.
 
@@ -68,7 +68,7 @@
 
 **Rule:** Name the accepted types and the size limit once, beside the button, in the product's own words.
 
-**Why:** The same sentence in a hint, a tooltip and an error teaches the reader to skip all three.
+**Why:** Repeated limits teach the reader to skip them.
 
 **Do:** Write “PDF or CSV, up to 10 MB” beside the button, and let a failure say what this file did wrong.
 
@@ -80,7 +80,7 @@
 
 **Rule:** Use a row where the file joins a list on the page, a region when one panel owns the file, and a dialog only when the upload needs answers of its own.
 
-**Why:** The shape says where the file is going, and a dialog that asks nothing is one more thing to dismiss.
+**Why:** A dialog that asks nothing is one more thing to dismiss.
 
 **Do:** Take a statement into the row under the statements it joins, and a replacement logo into the panel that shows it.
 

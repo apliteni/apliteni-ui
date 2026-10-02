@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.65.0', date: '2026-10-01',
     changes: [
-      ['added', 'React FileDrop is the compact drop: at rest one row with the Upload button and the accepted types beside it, a drop target painted only while a file is over the region it covers, and the file\u2019s name, size and progress in that same row with remove and retry. Your application owns the upload and supplies the file it is holding. Closes #507.'],
+      ['added', 'React FileDrop is the compact drop: at rest one row with the Upload button and the accepted types beside it, a drop target painted only while a file is over the region it covers, and the file\u2019s name, size and status on that same line with remove and retry. Your application owns the upload and supplies the file it is holding; a file given with no status is uploading, so the kit never reports a success you have not claimed. The line never wraps \u2014 the name and the status word truncate and keep their full text in a title. Closes #507.'],
       ['added', 'Guidelines / File drop sets seven rules for receiving a file: spend one row at rest, paint the target only while a file is over it, keep the file in the row it arrived in, fail in place, offer a button rather than only a drag, state the limits once, and choose between a row, a region and a dialog. Closes #507.'],
     ],
   },
