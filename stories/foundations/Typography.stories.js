@@ -1,4 +1,5 @@
 import { pad } from '../_gallery.js';
+import { card } from '../../src/components/index.js';
 
 export default {
   title: 'Foundations/Typography',
@@ -21,6 +22,11 @@ const h3 = (t, note) => `
 const SAMPLE = 'Отчёт за неделю: расход вырос на 12%, конверсия держится. '
   + 'The row you are reading is set at 13px, which is what a table cell, a form '
   + 'field and a chat bubble are set at — <b>and this is bold</b>.';
+
+/* One sentence, rendered twice: on the page and inside a card. The chip is the subject, so
+   nothing else about the two specimens differs. */
+const needLine = '<p style="font:400 13.5px/1.6 var(--font-sans);color:var(--text);margin:0">'
+  + 'Grant the agent <code class="ui-code">reports.read</code> before it runs.</p>';
 
 const compareCell = (role, name, verdict) => `
   <div style="flex:1 1 0;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">
@@ -63,6 +69,18 @@ export const Scale = {
     <div style="margin-top:36px;max-width:820px">
       <h3 style="font:600 13px/1 var(--font-display);color:var(--muted);margin-bottom:16px">Monospace — <code style="font-family:var(--font-mono)">--font-mono</code></h3>
       <pre class="ui-code" style="font-family:var(--font-mono);font-size:14px;color:var(--text);padding:16px;border-radius:12px;margin:0">claude mcp add strategy --url https://strategy.apli.tech/mcp</pre>
+
+      ${h3('An identifier in prose', 'The chip takes whichever reading surface its container is not on, so the same sentence keeps it on the page and inside a card. #537')}
+      <div style="display:flex;gap:16px;flex-wrap:wrap" id="code-chip-specimen">
+        <div style="flex:1 1 300px;min-width:0">
+          <div style="font:600 11px/1 var(--font-sans);color:var(--muted);margin-bottom:10px">On the page</div>
+          ${needLine}
+        </div>
+        <div style="flex:1 1 300px;min-width:0">
+          <div style="font:600 11px/1 var(--font-sans);color:var(--muted);margin-bottom:10px">Inside a card</div>
+          ${card({ body: needLine })}
+        </div>
+      </div>
     </div>
   `),
 };

@@ -242,11 +242,26 @@ export function wireTopbar(root = document) {
       });
     });
   });
-  // Copy buttons
+  // Copy buttons. The confirmation is a glyph swap plus a word in the live region
+  // beside the button, so the control holds its 24px box and a reader who cannot
+  // see the check still hears it. Writing the word into the button would do
+  // neither: the box jumps, and the permanent aria-label outranks the contents, so
+  // the announced name would never move. The restore reads the markup the button
+  // started with — putting `data-orig` back wrote the label as words and dropped
+  // the glyph, which only looked harmless while a word sat beside it. #474
   root.querySelectorAll('.ui-snippet__copy').forEach((btn) => {
+    const resting = btn.innerHTML;
+    const status = btn.parentElement?.querySelector('.ui-snippet__status');
     btn.addEventListener('click', () => {
       const pre = btn.closest('.ui-snippet')?.querySelector('pre');
-      if (pre) { navigator.clipboard?.writeText(pre.innerText); btn.innerHTML = '✓ Copied'; setTimeout(() => { btn.innerHTML = btn.dataset.orig || 'Copy'; }, 1400); }
+      if (!pre) return;
+      navigator.clipboard?.writeText(pre.innerText);
+      btn.innerHTML = icon('check');
+      if (status) status.textContent = 'Copied';
+      setTimeout(() => {
+        btn.innerHTML = resting;
+        if (status) status.textContent = '';
+      }, 1400);
     });
   });
 }

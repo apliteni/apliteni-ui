@@ -96,11 +96,18 @@ paints.
 own `guidelinePage()` call under Storybook's theme decorator. Its third argument
 is the side of the pair and its fourth is the page, defaulting to `the-page`; it
 writes the full page and a life-size crop of the first rule that draws a specimen
-pair. #310's caption evidence is these two calls, eight images:
+pair. A fifth argument names one rule's heading instead, for a page whose changed
+rule is not the first that draws a pair, and a sixth is a comma-separated list of
+viewport widths, 1200 by default. A width other than the default is in the file
+name, because a specimen pair that drops single-file on a phone is two pictures;
+the default keeps its bare name, so the commands below still shoot the images
+committed under it. #310's caption
+evidence is these two calls, eight images:
 
 ```sh
 node scripts/evidence/guideline.mjs .           docs/evidence/caption-rank after
 node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank before
+node scripts/evidence/guideline.mjs . out/ after accessibility-floor "Status labels" 1280,390
 ```
 
 `react.mjs` is the same rig pointed at the React workspace's own Storybook build,
@@ -145,6 +152,56 @@ against what is committed under `docs/evidence/react-*.png`. A subject that has 
 open itself is opened by the rig with a real click once the page has settled: the
 dropdown panel freezes the width the whole list needs as it opens, so a panel open
 before the webfaces land freezes a width measured in the fallback.
+
+`filter-bar-fit.mjs` is a gate rather than a shoot, and the only producer here
+that fails. It is #467's measurement: a filter row adds nothing to the page's
+scrollable width on a phone, and its panels open inside the row.
+
+It sweeps for its subjects rather than naming them. Both Storybook indexes are
+rendered — the root's and the React workspace's — and every story that puts a
+`.ui-filter-bar` on a settled page joins the set, so a new filter-bar surface is
+measured by existing and neither half of the kit can go unmeasured: the run fails
+if either index yields none. The membership question is the bar itself rather than
+a box under `#storybook-root`, because a palette renders a modal of no size and a
+toast renders through a portal. The one named subject is `filter-bar-fit.html`,
+the issue's own reproduction through `filterBar()`.
+
+Each subject is measured at 320, 375 and 390 in both themes, shut and with each
+chip opened in turn — the widest option list in the kit is not on the second chip.
+A case waits for a `.ui-filter-bar` to exist before it is probed: `load` fires
+before React mounts, and settling waits on fonts and transitions rather than on a
+render, so without it a loaded host reports a case as carrying no panel.
+
+Three things are checked. That a panel is exactly as wide as the `.ui-dropdown`
+that contains it, which is what the rule does. That the page gains no scrollable
+width, with every panel inside its row, which is what #467 reported. And that each
+option row's own text fits the row, because a panel is `overflow: visible`: at
+1280 an unbreakable label left its panel by 200.9px with the page never
+overflowing, so the page-edge check alone would have passed it. The fixture page
+carries such a value, on its second chip, so the wrap hint is measured rather than
+assumed.
+
+Two mutations have to be rejected. Putting the 240px floor back has to widen a
+panel in every case that carries one — judged on width rather than on overflow,
+because a 240px panel does not push every layout past the screen: a bar sitting
+early in a wide one absorbs it, and three of the swept subjects do, so overflow
+alone would let those cases pass having measured nothing. Taking the wrap hint
+away has to make at least one row spill, which the floor mutation cannot do
+because it only ever widens panels.
+
+Coverage is held by two recorded constants, `FLOOR_SUBJECTS` and
+`FLOOR_PANELLED`, rather than by a count the sweep re-derives: a sweep that lost
+half its surfaces would otherwise report its own smaller number back and pass.
+Raising them is the deliberate act of someone who has seen the new surfaces:
+
+```sh
+npm run build-storybook && npm run build-storybook -w react
+node scripts/evidence/filter-bar-fit.mjs . out/     # out/ takes a JSON ledger; it is optional
+```
+
+It needs both Storybook builds and the checkout for the vanilla half, and it exits
+non-zero on a finding. `npm test` does not run it — nothing in `npm test` drives a
+browser — so its counts belong in the pull request.
 
 ## What is deterministic and what is not
 
@@ -210,3 +267,31 @@ The output includes a JSON measurement ledger and 1x before/default/larger
 screenshots of the first matching story in each component file. The run uses
 light theme and available system fonts; it does not certify other host CSS or
 font metrics. The deliberate flat 16px touch-field protection is excluded.
+
+`focus.mjs` is the keyboard-focus rig, added for #482. Its subject is one control
+at a time rather than a screen: it presses a key so the browser is in keyboard
+modality, moves focus to the control, and **asserts the control matches
+`:focus-visible` before it shoots** — a capture of a control that was only
+clicked would show whatever the mouse state draws and would prove nothing about
+the ring. The key it presses is a bare modifier, because Tab is a key the kit's
+own dropdown handles: it closes an open panel, which would take a subject like an
+account-menu row out of the frame.
+
+Two surfaces, one run: the landing page as `site/build.mjs` writes it, and any
+vanilla story, rendered by `focus.html` from the checkout being served. Each shot
+is the control's box with 16px of room around it, at device scale 2, in both
+themes.
+
+```sh
+git worktree add --detach /tmp/before origin/main
+node scripts/evidence/focus.mjs .           out/ after
+node scripts/evidence/focus.mjs /tmp/before out/ before
+node scripts/evidence/focus.mjs --sheet     out/     # the pairs, laid side by side
+```
+
+Its third argument is the side of the pair and its fourth a name filter over the
+subjects. The `--sheet` pass needs the captures and nothing else: it lays the two
+sides of every pair it finds into one image per surface and theme, so a reader
+compares pictures instead of filenames. React is not a subject here, for
+`react.mjs`'s reason — a React component needs a bundler, and `focus.html`
+imports modules over HTTP.

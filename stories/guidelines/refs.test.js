@@ -322,7 +322,42 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  assert.equal(count, 109, 'update the rule count when adding or removing a rule');
+  assert.equal(count, 111, 'update the rule count when adding or removing a rule');
+});
+
+// The checkable half of "Show, less tell" (docs/guidelines.md). A rule the page
+// does not draw has only its words, so it must at least say why the rule exists;
+// the clause about a `Why` earning its place is a reviewer's call and is not here.
+//
+// The count is asserted so a page cannot leave the walk unnoticed — the gate that
+// found nothing is the gate that passes everything.
+test('a rule with no specimen pair carries a Why, and every page is in the count', async () => {
+  const content = pages.filter(file => file.startsWith('_') && !['_layout.js', '_markdown.js', '_overview.js'].includes(file));
+  const pairless = [];
+  const silent = [];
+  for (const file of content) {
+    const mod = await import(path.join(here, file));
+    for (const rule of mod.RULES) {
+      if (rule.doHtml || rule.dontHtml) continue;
+      pairless.push(`${file}:${rule.id}`);
+      if (typeof rule.why !== 'string' || rule.why.trim() === '') {
+        silent.push(`${file} → ${rule.id} draws nothing and says no why — give the reader the reason`);
+      }
+    }
+  }
+  assert.equal(pairless.length, 44, 'update the pairless-rule count when a rule gains or loses a specimen pair');
+  assert.deepStrictEqual(silent, []);
+});
+
+test('the pairless-Why check rejects a rule that draws nothing and explains nothing', () => {
+  const judge = (rules) => rules
+    .filter((rule) => !(rule.doHtml || rule.dontHtml))
+    .filter((rule) => typeof rule.why !== 'string' || rule.why.trim() === '')
+    .map((rule) => rule.id);
+  assert.deepStrictEqual(judge([{ id: 'bare' }]), ['bare']);
+  assert.deepStrictEqual(judge([{ id: 'blank', why: '   ' }]), ['blank']);
+  assert.deepStrictEqual(judge([{ id: 'said', why: 'because' }]), []);
+  assert.deepStrictEqual(judge([{ id: 'drawn', doHtml: () => '', dontHtml: () => '' }]), []);
 });
 
 test('all Storybook guideline prose is free of source references, including appendices', async () => {

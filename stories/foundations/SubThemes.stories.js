@@ -48,6 +48,16 @@ export const accentVars = (ac) =>
 // versionSwitcher() makes for `live`. why: docs/specification.md#labels-and-titles
 const THEME_WORD = { dark: 'Dark', light: 'Light' };
 
+// This wall's button row is the shape the Accessibility minimums page warns
+// about: small controls packed closer than their tap zones need. It follows
+// that page's own rule rather than demonstrating the mistake — at the phone
+// step, to a finger, the row opens to --tap-gap so both zones fit.
+// why: guidelines/accessibility-floor.md, "Space between small targets"
+const ROW_CSS = `<style>
+  .sub__row { display: flex; gap: 8px; flex-wrap: wrap; }
+  @media (max-width: 560px) and (pointer: coarse) { .sub__row { gap: var(--tap-gap); } }
+</style>`;
+
 const panel = (name, theme) => {
   const ac = ACCENT[name][theme];
   return `<div style="${accentVars(ac)};background:var(--bg);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:inset 0 0 0 1px var(--border)">
@@ -56,7 +66,7 @@ const panel = (name, theme) => {
       <span style="display:flex;gap:6px">${badge(THEME_WORD[theme], 'archive')}${badge('Live', 'live')}</span>
     </div>
     <div class="ui-card" style="padding:16px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:13px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap">${button({ label: 'Primary', variant: 'primary', size: 'sm' })}${button({ label: 'Secondary', variant: 'secondary', size: 'sm' })}${button({ label: 'Ghost', variant: 'ghost', size: 'sm' })}</div>
+      <div class="sub__row">${button({ label: 'Primary', variant: 'primary', size: 'sm' })}${button({ label: 'Secondary', variant: 'secondary', size: 'sm' })}${button({ label: 'Ghost', variant: 'ghost', size: 'sm' })}</div>
       ${segmented({ options: ['Deck', 'Text'], active: 0, size: 'sm', ariaLabel: 'View' })}
       <div style="display:flex;align-items:center;gap:10px">
         <label class="ui-switch"><input type="checkbox" checked aria-label="Accent drives every control"><span class="ui-switch__track"></span></label>
@@ -66,7 +76,7 @@ const panel = (name, theme) => {
   </div>`;
 };
 
-const wall = (theme) => `
+const wall = (theme) => `${ROW_CSS}
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px">
     ${Object.keys(ACCENT).map((n) => panel(n, theme)).join('')}
   </div>`;

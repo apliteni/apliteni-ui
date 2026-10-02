@@ -1,9 +1,11 @@
 /* Rule: a control goes wordless only for an action on the closed list.
  *
  * `iconOnlyAllowed` in src/assets/icons.js names the actions that may drop their visible
- * text. This walks every call site that asks for one and checks the glyph it hands over
- * against that list. The shell controls allowed by #460 do not call `iconOnly`, so this
- * walk never sees them.
+ * text. This walks every control that goes wordless and checks the glyph it hands over
+ * against that list. Two spellings are read, because the kit writes both: a call to
+ * button({ iconOnly }) and a hand-written <button> that carries an aria-label and nothing
+ * but a glyph. The shell controls allowed by #460 use neither — they compute their glyph
+ * rather than naming one — so this walk still never sees them.
  *
  * The accessibility gate next door proves an icon-only button always has a NAME. It
  * cannot prove the button should have been wordless — a `gear` with a perfect aria-label
@@ -18,7 +20,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-import { iconOnlyAllowed } from '../../src/assets/icons.js';
+import { iconOnlyAllowed, iconNames } from '../../src/assets/icons.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -82,7 +84,59 @@ for (const file of sources) {
     if (!named.length) continue;
     if (isTest(file) || insideDont(dontSpans(text), hit.index)) { excluded += 1; continue; }
     const line = text.slice(0, hit.index).split('\n').length;
-    callSites.push({ file: path.relative(root, file), line, glyph: named[0].glyph });
+    callSites.push({ file: path.relative(root, file), line, glyph: named[0].glyph, how: 'iconOnly' });
+  }
+}
+
+/* -- the second spelling ---------------------------------------------------
+ * A hand-written control: a <button> whose attributes carry an aria-label and
+ * whose contents are a glyph and no words. snippet() and React Snippet are
+ * written this way — neither says `iconOnly`, so the walk above cannot see
+ * either, and #474 added two wordless controls the gate was not reviewing.
+ *
+ * A literal counts as a glyph only if `iconNames` actually has it. Without that
+ * check the walk reads `status === 'idle' ? 'copy' : 'check'` and reports the
+ * glyph as `idle`.
+ *
+ * The RESTING glyph is the first one named: a control that swaps its glyph to
+ * confirm is still the action it rests as, and `check` on a copy button is
+ * feedback rather than a second action to put on the list. A control that named
+ * its states in the other order would be reported by its confirmation and fail
+ * here — loudly, which is the safe direction for a gate to be wrong in.
+ */
+const CONTROL = /<button\b([^>]*)>([\s\S]*?)<\/button>/g;
+const GLYPH_LITERAL = /['"]([A-Za-z][A-Za-z0-9]*)['"]/g;
+const ICON_CALL = /\bicon\s*\(\s*['"][A-Za-z][A-Za-z0-9]*['"]|<Icon\b[^>]*?\bname\s*=\s*(?:\{[^}]*\}|['"][^'"]*['"])/g;
+const WORD = /[A-Za-z]{2,}/;
+const GLYPHS = new Set(iconNames);
+
+/** Glyph names, in source order, from the places a control names one. */
+const glyphsIn = (inner) => [...inner.matchAll(ICON_CALL)]
+  .flatMap((m) => [...m[0].matchAll(GLYPH_LITERAL)].map((g) => g[1]))
+  .filter((name) => GLYPHS.has(name));
+
+/** Whatever a reader would see as words once interpolations and tags are gone. */
+const visibleWords = (inner) => inner
+  .replace(/\$\{[\s\S]*?\}/g, '')
+  .replace(/<[^>]*>/g, '')
+  .replace(/\{[\s\S]*?\}/g, '')
+  .trim();
+
+let wordless = 0;
+for (const file of sources) {
+  const text = readFileSync(file, 'utf8');
+  if (file.endsWith(path.join('src', 'assets', 'icons.js'))) continue;
+  for (const control of text.matchAll(CONTROL)) {
+    const [, attrs, inner] = control;
+    if (!/aria-label/.test(attrs)) continue;
+    if (WORD.test(visibleWords(inner))) continue;
+    const glyphs = glyphsIn(inner);
+    if (!glyphs.length) continue;
+    const line = text.slice(0, control.index).split('\n').length;
+    if (isTest(file) || insideDont(dontSpans(text), control.index)) { excluded += 1; continue; }
+    if (callSites.some((c) => c.file === path.relative(root, file) && Math.abs(c.line - line) < 3)) continue;
+    wordless += 1;
+    callSites.push({ file: path.relative(root, file), line, glyph: glyphs[0], how: 'wordless' });
   }
 }
 
@@ -91,13 +145,28 @@ test('the walk reaches the call sites it is meant to review', () => {
   assert.ok(callSites.length > 0, 'no icon-only call site found at all — the walk reads nothing');
   assert.ok(excluded > 0,
     'no test fixture was excluded, so the exclusion is either dead or the walk is missing the tests');
+  assert.ok(wordless > 0,
+    'no hand-written wordless control found, so the second spelling is dead and a control '
+    + 'written the way snippet() writes one would go unreviewed');
+});
+
+// #474 gave the kit two wordless controls written the second way. Naming them is
+// what makes either dropping out of the walk visible: a regex that stops matching
+// the kit's spelling otherwise just shrinks the set in silence, and the counts
+// above would still pass on the controls that remain.
+test('the second spelling reaches both Snippet copy buttons', () => {
+  const found = callSites.filter((c) => c.how === 'wordless').map((c) => `${c.file} ${c.glyph}`);
+  for (const control of ['src/components/index.js copy', 'react/src/Snippet.tsx copy']) {
+    assert.ok(found.includes(control),
+      `${control} is wordless and is not in the walk — found: ${found.join(', ') || 'nothing'}`);
+  }
 });
 
 test('every icon-only control is one the closed list allows', () => {
   const allowed = Object.keys(iconOnlyAllowed);
   const offenders = callSites
     .filter((c) => !allowed.includes(c.glyph))
-    .map((c) => `${c.file}:${c.line} — iconOnly with “${c.glyph}”, which is not on the list`);
+    .map((c) => `${c.file}:${c.line} — ${c.how} with “${c.glyph}”, which is not on the list`);
   assert.deepEqual(offenders, [],
     `icon-only is allowed for: ${allowed.map((g) => `${g} (${iconOnlyAllowed[g]})`).join(', ')}`);
 });

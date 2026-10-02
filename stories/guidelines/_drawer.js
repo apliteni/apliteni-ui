@@ -12,7 +12,7 @@ import { drawer, drawerSection } from '../../src/components/drawer.js';
 export const SPEC_CSS = `
   <style>
     .gd-frame { position: relative; height: 460px; overflow: hidden; border-radius: var(--radius-md);
-      background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
+      background: var(--bg); --ring-gap: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
     .gd-frame .ui-drawer { position: absolute; }
     .gd-frame .ui-drawer__panel { width: calc(100% - var(--space-12)); }
     .gd-frame .ui-card { padding: var(--space-4); }

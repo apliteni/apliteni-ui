@@ -860,7 +860,11 @@ test('ring: surface compositions retain the same tunable G2 recipe', () => {
     .flatMap((f) => [...decomment(readFileSync(path.join(root, 'src', f), 'utf8'))
       .matchAll(/(?:^|[;{])\s*--ring\s*:([^;}]*)/g)].map((m) => `src/${f}: ${m[1].trim()}`));
   const canonical = tokensFor('dark').get('--ring');
-  assert.equal(declared.length, 2, 'root and one shared container composition, including React surfaces');
+  // 3 since #537: root, the shared container composition, and .ui-code. The chip composes
+  // its own because its gap has to be the surface it paints and the shared rule is also what
+  // hands a chip the OTHER surface — a chip in that list would hand the page to itself. The
+  // recipe is still one recipe: the equality below is what holds that, not the count.
+  assert.equal(declared.length, 3, 'root, the shared container composition and the code chip, including React surfaces');
   for (const entry of declared) assert.equal(entry.slice(entry.indexOf(': ') + 2), canonical, entry);
   for (const token of ['--ring-width', '--ring-color', '--ring-gap-width', '--ring-gap']) {
     assert.ok(canonical.includes(`var(${token})`), `${token} no longer tunes the composition`);

@@ -20,17 +20,22 @@ export const SPEC_CSS = `
       border-radius: var(--radius-sm); overflow: hidden; }
     .gas-shell__rail { width: 40px; flex: none; border-radius: 3px; padding: 6px 5px;
       display: flex; flex-direction: column; gap: 6px;
-      background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
+      background: var(--surface); /* ring-gap: inherit — a drawn rail holds no control. */
+      box-shadow: inset 0 0 0 1px var(--border); }
     .gas-shell__well { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
     .gas-shell__bar { height: 18px; flex: none; border-radius: 3px;
-      background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
+      background: var(--surface); /* ring-gap: inherit — a drawn bar holds no control. */
+      box-shadow: inset 0 0 0 1px var(--border); }
     .gas-shell__col { flex: 1; min-width: 0; border-radius: 3px; padding: 8px;
       display: flex; flex-direction: column; gap: 6px;
-      background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
+      background: var(--surface); /* ring-gap: inherit — a drawn page column holds no control. */
+      box-shadow: inset 0 0 0 1px var(--border); }
     .gas-row { height: 6px; border-radius: 2px; flex: none;
+      /* ring-gap: inherit — a drawn nav row is a mark, not a control. */
       background: color-mix(in srgb, var(--muted) 45%, transparent); }
     .gas-row--cur { background: var(--accent); }
     .gas-ln { height: 5px; border-radius: 2px; flex: none;
+      /* ring-gap: inherit — a drawn line of text is a mark, not a control. */
       background: color-mix(in srgb, var(--muted) 45%, transparent); }
     .gas-ln--short { width: 44%; }
     .gas-ln--half { width: 62%; }
@@ -38,6 +43,7 @@ export const SPEC_CSS = `
     /* What an overlay does to the page under it, at the same scale. */
     .gas-scrim { position: absolute; inset: 0; background: var(--scrim); }
     .gas-over { position: absolute; background: var(--bg-elevated);
+      /* ring-gap: inherit — the drawn overlay holds drawn blocks, not controls. */
       border: 1px solid var(--border-strong);
       box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
       display: flex; gap: 6px; padding: 8px; }

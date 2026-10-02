@@ -133,12 +133,22 @@
   --pink: #e97ca5;
   --amber: #ffcf6a;
 
-  /* The elevation ladder, bottom to top. A surface says how high it is with its step and
-     with the hairline around it, and --muted caps how far the ladder can go. Nothing casts
-     below the floating step; the floating step itself adds --elev-drop under its inner
-     line and nothing else in the kit does. why: docs/specification.md#elevation */
+  /* The elevation ladder, bottom to top. A surface says how high it is with its step
+     and, IN DARK, with the hairline around it; --muted caps how far the ladder can go.
+     Nothing casts in dark below the floating step, and the floating step adds
+     --elev-drop under its inner line. why: docs/specification.md#elevation */
   --bg: #0e0d14;
   --table-bg: var(--bg);
+  /* A dark table is flush with the page, so the reading surface an inline code chip has
+     left inside one is the card. Light's table is white, so there it is the page. */
+  --table-code-bg: var(--surface);
+  /* A translucent wash paints BEHIND a chip, so it moves the ground and not the chip: the
+     pair has to be read against the wash composited over whatever opaque surface is under
+     it. Dark's washes lift a near-black ground away from the page, so the page is what the
+     chip has left; light's darken white toward the page, so the card is. Both directions
+     hold over EVERY opaque ground, which is why this is a token and not a context rule.
+     Measured in stories/code-chip.test.js. */
+  --wash-code-bg: var(--bg);
   --surface-2: #161520;     /* non-text sunken marks and tracks */
   --surface: #211e2d;       /* the card */
   --bg-elevated: #2a2639;   /* FLOATING — menus, panels, drawer, modal, toasts */
@@ -149,6 +159,15 @@
   --control-knob: #ffffff;
   --border: #332f45;
   --border-strong: #453f5c;
+
+  /* WHICH EDGE EACH LEVEL DRAWS. One name per level, so a sheet never has to ask
+     which theme it is in. Dark answers all four with the hairline, because a drop
+     on a near-black page reaches 1.20 at its core and has nowhere else to go —
+     light answers them with the drop instead. why: docs/specification.md#elevation */
+  --card-edge: var(--border);          /* a card */
+  --rail-edge: var(--border);          /* the shell's rail */
+  --float-edge: var(--border-strong);  /* a floating surface, outer line */
+  --float-edge-inner: var(--border);   /* a floating surface, inner line */
 
   /* Fields use the card surface and an edge in both themes. why: docs/specification.md#elevation */
   --field-bg: var(--surface);
@@ -257,12 +276,19 @@
      token and cannot be — a var() inside a custom property is substituted on the
      element that DECLARES it, so an --elev-edge read here resolves at :root and
      nothing below could re-point it. A floating surface writes the pair itself:
-       box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
+       box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
      Dark spends 62% / 50% of the ink and reaches 1.20 at the drop's core, having
      nowhere to go on a near-black page. why: docs/specification.md#elevation */
   --elev-drop:
     0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 62%, transparent),
     0 3px 9px -4px color-mix(in srgb, var(--shadow-ink) 50%, transparent);
+
+  /* The ladder's two resting rungs, which only light climbs. Transparent here and
+     not `none`, for the reason the deprecated --shadow-* tokens are: these are read
+     in a layer list, and `none` is valid only alone — it would invalidate the whole
+     declaration and take the focus ring with it. why: docs/specification.md#elevation */
+  --elev-rest: 0 0 #0000;   /* a card */
+  --elev-rail: 0 0 #0000;   /* the shell's rail, cast sideways */
 
   /* Backdrop that dims the page behind an overlay (drawer, modal, composer). */
   --scrim: rgba(0, 0, 0, 0.58);
@@ -303,6 +329,8 @@
      why: docs/specification.md#elevation */
   --bg: #f2f3f6;
   --table-bg: #ffffff;
+  --table-code-bg: var(--bg);
+  --wash-code-bg: var(--surface);
   --surface-2: #e9ecf3;     /* non-text sunken marks and tracks */
   --surface: #ffffff;       /* the card */
   --bg-elevated: #ffffff;   /* FLOATING — menus, panels, drawer, modal, toasts */
@@ -311,6 +339,17 @@
   --control-knob: #ffffff;
   --border: #e4e7ee;
   --border-strong: #cdd2dc;
+
+  /* Light draws a LEVEL with a drop and no line at all. Decided by Artur on the
+     #490 triage round t3: "It's better" — the soft shadow over the hairline, against
+     the reference he supplied. A line divides two regions of ONE surface (a card's
+     rows, a table's rules, the rail's head band, the topbar); a drop says a surface
+     is HIGHER, and only a higher surface may cast one.
+     why: docs/specification.md#elevation */
+  --card-edge: transparent;
+  --rail-edge: transparent;
+  --float-edge: transparent;
+  --float-edge-inner: transparent;
 
   /* Light draws a field with its EDGE, because since #448 it has no well left to draw it
      with: a card and a panel are both white, the sunken step falls two rungs under either,
@@ -389,12 +428,21 @@
   --shadow-ink: #1e1e32;
   --sheen: #ffffff;
 
-  /* 18% / 10% against dark's 62% / 50%. Light's ink is #1e1e32 on a card that is
-     now #ffffff, and 18% is what puts the drop core at #d7d7da — 1.44, the strongest
-     separation either theme gets. why: docs/specification.md#elevation */
+  /* THE LIGHT LADDER. Three rungs, each two layers: a wide faint one and a short one.
+     Each layer is offset on one axis, blurred at least twice as wide as it is offset,
+     and held in by a negative spread. None is a glow — a glow is a zero-offset layer of
+     the signal's own colour. A level with no line casts a rung that reaches on every
+     side it exposes, which is why the wide layer's offset stays under half its blur.
+     why: docs/specification.md#elevation */
+  --elev-rest:
+    0 2px 26px -3px color-mix(in srgb, var(--shadow-ink) 9%, transparent),
+    0 1px 3px -1px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
+  --elev-rail:
+    10px 0 24px -14px color-mix(in srgb, var(--shadow-ink) 16%, transparent),
+    1px 0 3px -1px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
   --elev-drop:
-    0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 18%, transparent),
-    0 3px 9px -4px color-mix(in srgb, var(--shadow-ink) 10%, transparent);
+    0 20px 46px -16px color-mix(in srgb, var(--shadow-ink) 22%, transparent),
+    0 1px 14px -4px color-mix(in srgb, var(--shadow-ink) 12%, transparent);
 
   --scrim: rgba(20, 22, 40, 0.38);
 
@@ -436,9 +484,19 @@
   --prose-dense: 72ch;
 }
 
-/* Recompose only at painted containers; controls inherit the outside gap.
- * One recipe keeps surface propagation cheap and consistent.
- * why: docs/specification.md#the-focus-ring */
+/* An inline code chip is text on a chip, so #455 leaves it two grounds and no grey: the
+ * page and the card. It cannot read the one it is on — a var() inside a custom property is
+ * substituted on the element that DECLARES it — so the painted container hands it the one
+ * it is not using itself, and the chip keeps a step wherever it is written. The page hands
+ * over the card below; every painted container hands over the page, in the recipe under it.
+ * Held by stories/code-chip.test.js. why: docs/specification.md#elevation */
+:root { --code-bg: var(--surface); }
+
+/* Recompose only at painted containers; controls inherit the outside gap, and each hands an
+ * inline code chip the page. One recipe keeps surface propagation cheap and consistent.
+ * .ui-code composes its own ring in src/styles/code.css instead of joining this list: a
+ * chip cannot both paint --code-bg and re-point it, and its gap has to be the surface it
+ * actually paints. why: docs/specification.md#the-focus-ring */
 .amenu,
 .dtsw,
 .rx-modal,
@@ -449,7 +507,6 @@
 .ui-card--accent,
 .ui-card--live,
 .ui-cmdk__panel,
-.ui-code,
 .ui-confirm__panel,
 .ui-drawer__footer,
 .ui-drawer__panel,
@@ -473,7 +530,37 @@
 .ui-toast--solid,
 .vsw__menu {
   --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  --code-bg: var(--bg);
 }
+
+/* The two painted grounds that are not a plain card, and what each has left to hand over.
+ *
+ * A table paints the page in dark and white in light and follows its card when it is in
+ * one, so its hand-off travels with --table-bg as a token pair (src/styles/table.css
+ * re-points both). A TINTED surface mixes its colour INTO the card, so the card is the
+ * surface it still has: light mixes the tint down from white, which moves a tinted card
+ * toward the page and leaves the page 1.02 away, while the card it is a variant of stays
+ * 1.07-1.14 off in both themes. Measured in stories/code-chip.test.js. */
+.ui-table,
+.ui-table--sticky thead th,
+.ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection,
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,
+.ui-table--zebra tbody tr:nth-child(even) td,
+.ui-table--zebra tbody tr:hover td,
+.ui-table--zebra.ui-table--hover tbody tr:hover td { --code-bg: var(--table-code-bg); }
+.ui-card--accent,
+.ui-card--live,
+.ui-snippet--reveal { --code-bg: var(--surface); }
+
+/* A wash is not a rung: it is a layer the kit paints OVER one, and it paints behind a chip
+ * rather than under it, so the chip's ground moves and the chip does not. These five take
+ * caller markup — callout() and the success panel hand their body straight through — so a
+ * chip inside one is ordinary product markup rather than a shape anybody hand-places. */
+.ui-callout--info,
+.ui-callout--success,
+.ui-callout--warn,
+.ui-callout--danger,
+.ui-success { --code-bg: var(--wash-code-bg); }
 
 /* A container focused itself paints outside its own surface; descendants only
  * inherit its inside gap again after focus moves to them. */

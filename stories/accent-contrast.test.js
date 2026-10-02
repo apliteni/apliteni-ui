@@ -248,10 +248,17 @@ test('the accent gate actually measures something', () => {
   // than excused because the accent IS read on a field: the focus border and the caret
   // take --accent on exactly this ground, and an alias that is re-pointed one theme at a
   // time is the kind that should be measured rather than trusted to its target.
+  // 11 since #537 added --code-bg, the surface an inline code chip paints, and the two
+  // pairs that re-point it: --table-code-bg for a table and --wash-code-bg for a
+  // translucent wash. All three are aliases of grounds already on this list, and all three
+  // are re-pointed per container and per theme — the --field-bg case exactly — so they are
+  // measured for the same reason rather than excused. The accent is read on a chip: a
+  // `code` run inside a link takes --accent, and the focus ring's gap is the chip's own
+  // paint.
   assert.equal(
-    CANDIDATE_GROUNDS.length, 8,
+    CANDIDATE_GROUNDS.length, 11,
     `the token-file sweep found ${CANDIDATE_GROUNDS.length} candidate ground(s) `
-    + `(${CANDIDATE_GROUNDS.join(', ')}), not 8. If a surface was added, decide whether the accent `
+    + `(${CANDIDATE_GROUNDS.join(', ')}), not 11. If a surface was added, decide whether the accent `
     + 'is ever read on it: leave it measured, or write it into EXEMPT_GROUNDS with a reason. Then '
     + 'move this number. If a surface left, move it too. If it went to zero, SURFACE_NAME or the '
     + ':root sweep is broken and this gate was about to measure nothing.',

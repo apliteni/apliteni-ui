@@ -132,14 +132,14 @@ complete text, URL, enum and trusted-HTML slot inventory and the rejected URL sc
 | `callout`, `toast`, `successPanel` | Inline feedback, inside the page the user is already on. |
 | `calloutIcons` | Default glyph names by tone, shared by vanilla and React callouts. |
 | `pushToast(container, opts)` and `dismissToast(el)`, + `wireToastStack(container)` | The runtime toast stack: push one onto a container, dismiss it, or let the stack expire its own. |
-| `success({ layout, backdrop, level, eyebrow, title, body, actions, confetti, countdown })` + `wireSuccess(root)` | Page-sized confirmation; `successCheck()` is its self-drawing check on its own. The title's heading rank follows the layout — `h1` for `hero` and `split`, which are the page, `h2` for `compact`, which sits beside other content — and `level` overrides it. See [successPanel or success?](#successpanel-or-success) below. |
+| `success({ layout, check, level, title, body, actions, confetti, countdown })` + `wireSuccess(root)` | Page-sized confirmation; one title and at most one short line, no eyebrow tier; `successCheck()` is its self-drawing check on its own. The title's heading rank follows the layout — `h1` for `hero` and `split`, which are the page, `h2` for `compact`, which sits beside other content — and `level` overrides it. See [successPanel or success?](#successpanel-or-success) below. |
 | `emptyState({ art, icon, title, sub, actions })` | Placeholder for an empty list, table or page. `art` is an `illo()` name or raw `<svg>`. |
 | `pagination({ page, pageSize, total, hasMore, pageSizes, variant, label, loading, href, id })` + `wirePagination(root, { onPage, onPageSize })`, with `setPagerStatus(root, text)`, `PAGE_SIZES` and `DEFAULT_PAGE_SIZE` | The strip under a table or a list. No rows go in — it renders a page the caller has already computed. `variant` is `steps`, `numbered` or `jump`; `total: null` draws Prev and Next alone and takes its end from `hasMore`. `wirePagination` makes the steps, the size control and the jump box report back; `setPagerStatus` rewrites the range in place, which is what announces it. Read the two constants rather than writing a page size at a call site. See [Pagination](specification.md#pagination). |
 | `statBand({ stats, variant, basis, label, id })`, with `STAT_VARIANTS` and `STAT_TONES` | A row of key figures, as a `<dl>`. Each figure is `{ label, value, delta, trend }`; `delta` is `{ value, tone, basis, direction, none }`, where `tone` (`good`, `bad`, `neutral`) says whether the change is good news and is never read off its sign. `basis` is the caption above the band: what every change is measured against, and every change points at it; on a band with no changes, what the figures cover. `variant` is `tiles` (a card per figure, the default), `band` (one card) or `open` (no surface). `trend` is trusted markup, your `<svg>`, and is not escaped; the kit draws no chart. See [Stat bands](specification.md#stat-bands). |
 | `busyRegion({ label, readyLabel, busy, body, lines })` + `setBusy(root, { busy, message, body })` | The screen's pending state, and the only thing in the kit that announces one. Render the region once with a skeleton inside; `setBusy()` swaps its body and rewrites the sr-only line it already holds — that is the announcement, because a `role="status"` inserted together with its text is silent on several screen readers. It is the same polite region `toast()` and `success()` carry, not a second mechanism. |
 | `skeleton({ lines, width, height, radius })`, and `skeletonTable({ rows, cols, head })` for a grid of them | Placeholder shapes, `aria-hidden` throughout — a shimmer is a picture of content, not content. `lines` takes a count or an array of widths. The shimmer is `.m-skeleton` from the motion library, so reduced motion is already handled. |
 | `deniedState({ title, sub, need, actions, icon })` | The 403. Same layout language as `emptyState()`, because to a reader they are the same event; the lock says which one. `need` names the missing scope verbatim — a reader who can name what they lack can ask for it. It carries no live region of its own: put it inside a `busyRegion()` and the region announces it. |
-| `snippet({ label, code, reveal, copy })` | Code block + copy button; `hlShell(raw)` highlights shell. |
+| `snippet({ label, code, reveal, copy, copyLabel })` | Code block + icon-only copy button; `copyLabel` is that button's accessible name and tooltip, so name what it copies. `hlCode(raw, lang)` highlights `shell` (the default), `json` or `ts` — `codeLanguages` lists them and an unknown name reads as shell; `hlShell(raw)` is the shell one under its old name. `codeTokens(raw, lang)` returns the same tokens as `[{ cls, text }]` — `cls` is one of `k`, `f`, `s`, `u`, `c` or `null` between tokens, and the `text` values join back to `raw`. React Snippet renders them as spans, so the displayed tokens and the copied string come from one source. |
 | `topbar(...)` + `wireTopbar(root)` | Product topbar; `wireTopbar` binds theme toggle, menus, segmented, copy. |
 | `themeToggle(theme)`, `accountMenu({ name, email, active, nav, initials })`, `versionSwitcher(versions, activeIdx)`, `deckTextSwitch(active)` | The topbar's parts, usable outside it. `themeIcon(t)` / `themeName(t)` label a toggle you build yourself. `accountMenu` retains trusted HTML body slots and already encoded tuple attributes, so escape on the way in — and if you do, pass `initials` as well, because a mark derived from an escaped name is not the reader's. |
 | `footer({ variant, brand, tagline, columns, social, legal, legalLinks, switcher })` | Site/app footer. `full` is the multi-column marketing one, `slim` a single legal row, `app` the compact in-product one. |
@@ -211,12 +211,14 @@ Ask how much of the screen the confirmation owns. If it sits under a form that j
 submitted, or inside a card on a page the user is staying on, you want
 `successPanel({ title, sub })` — a check, a title and one line of sub, with nothing to
 configure. If the confirmation *is* the screen, and the user needs somewhere to go next,
-you want `success({ layout, backdrop, actions, … })`, which picks a layout and a backdrop,
+you want `success({ layout, check, actions, … })`, which picks a layout and a check mark,
 carries follow-up buttons, and can run an auto-redirect countdown once you call
 `wireSuccess()` on the mounted element.
 
-Restyling one never moves the other, because they share no CSS: `successPanel` is
-`.ui-success` in `styles/callout.css`, `success` is `.ui-sx` in `styles/success.css`.
+Restyling one never moves the other's block, because they own separate rules:
+`successPanel` is `.ui-success` in `styles/callout.css`, `success` is `.ui-sx` in
+`styles/success.css`. The check mark is the exception — both draw `successCheck()`, so
+`styles/success.css` paints it for each.
 
 ### Forms
 
@@ -270,6 +272,14 @@ const bar = initFilterBar(host, options);
 // The consumer changes its own filters, then calls bar.update(nextOptions).
 // Keep host mounted for focus recovery; call bar.destroy() when unmounting.
 ```
+
+A chip prints its chosen `value` by itself, never the field's name beside it. Beside a chosen
+value the field is not drawn at all; it reaches a reader through the trigger's accessible name
+(`Sector: Technology`) and the chip's visually hidden legend. Leave `value` empty and the chip
+prints `label` in placeholder ink and is named `Sector: any`. Keep `value` display text: it is
+the whole visible chip, so answer a change with the row's label rather than its code when the
+two differ. `filterChipText(filter)`, `filterChipName(filter)` and `filterChipUnset(filter)`
+are that shared set, exported from the entry and asked by both faces.
 
 Each filter also accepts `disabled` and `open` (initial/snapshot state); `items` follow
 Dropdown's entries. React `<FilterBar {...options} onChange={(id,value)=>…}

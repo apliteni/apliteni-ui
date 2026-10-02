@@ -34,19 +34,19 @@ export const Default = {
     .lx-grid .lx-cell:nth-child(1){grid-area:clear} .lx-grid .lx-cell:nth-child(2){grid-area:agent}
     .lx-grid .lx-cell:nth-child(3){grid-area:access} .lx-grid .lx-cell:nth-child(4){grid-area:deck}
     .lx-grid .lx-cell:nth-child(5){grid-area:lang} .lx-grid .lx-cell:nth-child(6){grid-area:cur}
-    .lx-cell { position:relative; background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    .lx-cell { position:relative; background:var(--surface); --ring-gap: var(--surface); border:1px solid var(--border); border-radius:18px;
       padding:22px; display:flex; flex-direction:column; gap:12px; overflow:hidden; }
     .lx-cell::before { content:""; position:absolute; inset:0 0 auto 0; height:3px;
       background:linear-gradient(90deg, var(--lx-hue), transparent 70%); }
     .lx-cell h3 { font:600 17px/1.2 var(--font-display); color:var(--strong); }
     .lx-cell p { font:400 14px/1.55 var(--font-sans); color:var(--dim); }
     .lx-ico { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; flex:none;
-      background:color-mix(in srgb, var(--lx-hue) 20%, var(--surface-3));
+      background:color-mix(in srgb, var(--lx-hue) 20%, var(--surface-3)); --ring-gap: color-mix(in srgb, var(--lx-hue) 20%, var(--surface-3));
       box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--lx-hue) 40%, transparent); }
     .lx-ico svg { width:21px; height:21px; stroke-width:1.8; color:var(--lx-hue); }
     .lx-demo { margin-top:auto; padding-top:6px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .lx-mono { font:500 12px/1 var(--font-mono); color:var(--accent);
-      background:color-mix(in srgb, var(--accent) 12%, transparent); border-radius:7px; padding:6px 10px; }
+      background:color-mix(in srgb, var(--accent) 12%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ border-radius:7px; padding:6px 10px; }
     @media (max-width:820px){ .lx-grid{grid-template-columns:1fr;grid-template-areas:none} .lx-grid .lx-cell{grid-area:auto} }
   </style>
   <div style="position:relative;overflow:hidden;min-height:100vh">

@@ -32,18 +32,18 @@ export const SPEC_CSS = `
     .tp-out__row--3 { padding-left: var(--space-8); }
     .tp-out__row--4 { padding-left: var(--space-10); }
     .tp-out__row--bad .tp-out__rank { color: var(--pink);
-      background: color-mix(in srgb, var(--pink) 16%, transparent); }
+      background: color-mix(in srgb, var(--pink) 16%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 
     /* The stack specimens. Twelve cards do not fit a 420px cell at life size and
        a clipped column cannot be counted, so the count is what is drawn: one
        block per card, both columns at one scale. The caption says so. */
     .tp-stack { height: 224px; display: flex; flex-direction: column; gap: 6px; }
     .tp-card { height: 12px; border-radius: 4px; flex: none;
-      background: var(--surface); box-shadow: inset 0 0 0 1px var(--border);
+      background: var(--surface); --ring-gap: var(--surface); box-shadow: inset 0 0 0 1px var(--border);
       display: flex; align-items: center; padding: 0 5px; }
     .tp-card::before { content: ""; height: 3px; width: 34%; border-radius: 2px;
-      background: color-mix(in srgb, var(--muted) 55%, transparent); }
-    .tp-stack--over .tp-card { background: var(--surface-2); }
+      background: color-mix(in srgb, var(--muted) 55%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+    .tp-stack--over .tp-card { background: var(--surface-2); --ring-gap: var(--surface-2); }
 
     /* The layout and width specimens. A shell cannot be photographed at life size in
        a 420px cell either, so these are drawn to scale: the rail, the band and the
@@ -51,16 +51,16 @@ export const SPEC_CSS = `
        The ratio is true and the pixels are not, which the captions say. */
     .tp-lay { display: flex; gap: 5px; height: 150px; }
     .tp-lay__rail { width: 20px; flex: none; border-radius: 3px;
-      background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
+      background: var(--surface-2); --ring-gap: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
     .tp-lay__well { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
     .tp-lay__bar { height: 13px; flex: none; border-radius: 3px;
-      background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
+      background: var(--surface-2); --ring-gap: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
     .tp-lay__col { flex: 1; min-width: 0; border-radius: 3px; padding: 7px;
       display: flex; flex-direction: column; gap: 5px;
-      background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
+      background: var(--surface); --ring-gap: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
     .tp-lay__col--centered { width: 58%; margin-inline: auto; }
     .tp-lay__ln { height: 4px; border-radius: 2px; flex: none;
-      background: color-mix(in srgb, var(--muted) 55%, transparent); }
+      background: color-mix(in srgb, var(--muted) 55%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
     /* The one thing a too-narrow column does to a table: the last column leaves. */
     .tp-lay__col--clip { overflow: hidden; }
     .tp-lay__ln--over { width: 150%; flex: none; }

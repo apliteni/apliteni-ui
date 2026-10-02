@@ -10,14 +10,30 @@ const callbacks = () => ({ onRemove: vi.fn(), onClear: vi.fn(), onChange: vi.fn(
 it('requests changes and preserves controlled filters', async () => {
   const props = callbacks();
   render(<FilterBar filters={filters} {...props} />);
-  await userEvent.click(screen.getByRole('button', { name: 'RegionAll' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Region: All' }));
   await userEvent.keyboard('{End}{Enter}');
   expect(props.onChange).toHaveBeenCalledWith('Region', 'active');
   await userEvent.click(screen.getByRole('button', { name: 'Remove Region filter' }));
   expect(props.onRemove).toHaveBeenCalledWith('Region');
-  expect(screen.getByRole('button', { name: 'RegionAll' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Region: All' })).toBeInTheDocument();
   await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
   expect(props.onClear).toHaveBeenCalledTimes(1);
+});
+// DOM text and names only; these do not measure appearance.
+it('prints the chosen value alone and names the field it filters', () => {
+  const props = callbacks();
+  render(<FilterBar filters={[{ id: 'status', label: 'Status', value: 'Active', items: [] }, { id: 'region', label: 'Region', items: [] }]} {...props} />);
+  expect(screen.getByRole('button', { name: 'Status: Active' })).toHaveTextContent(/^Active$/);
+  expect(screen.getByRole('button', { name: 'Region: any' })).toHaveTextContent(/^Region$/);
+  expect(document.querySelector('.ui-dropdown__pre')).toBeNull();
+});
+// The class the sheet paints with --muted; appearance itself is not measured here.
+it('marks the valueless chip so the sheet can give it the placeholder ink', () => {
+  const props = callbacks();
+  render(<FilterBar filters={[{ id: 'status', label: 'Status', value: 'Active', items: [] }, { id: 'region', label: 'Region', items: [] }]} {...props} />);
+  const marked = document.querySelectorAll('.ui-dropdown__value.is-placeholder');
+  expect(marked).toHaveLength(1);
+  expect(marked[0]).toHaveTextContent('Region');
 });
 it('preserves focused controls across updates and moves focus after removal', async () => {
   function Example() {
@@ -26,14 +42,14 @@ it('preserves focused controls across updates and moves focus after removal', as
   }
   render(<Example />);
   await userEvent.click(screen.getByRole('button', { name: 'Remove Region filter' }));
-  expect(screen.getByRole('button', { name: 'StatusAll' })).toHaveFocus();
+  expect(screen.getByRole('button', { name: 'Status: All' })).toHaveFocus();
   await userEvent.click(screen.getByRole('button', { name: 'Remove Status filter' }));
   expect(screen.getByRole('group', { name: 'Filters' })).toHaveFocus();
 });
 it.each(['busy', 'disabled'] as const)('blocks controls and open panels when %s', async flag => {
   const props = callbacks();
   render(<FilterBar filters={filters.map(f => ({ ...f, open: true }))} {...props} {...{ [flag]: true }} />);
-  expect(screen.getByRole('button', { name: 'RegionAll' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Region: All' })).toBeDisabled();
   await userEvent.click(screen.getByRole('button', { name: 'Remove Region filter' }));
   expect(props.onRemove).not.toHaveBeenCalled();
   expect(document.querySelector('.ui-dropdown.open')).toBeNull();
@@ -51,7 +67,7 @@ it('responds to open prop changes after interaction', async () => {
   const props = callbacks();
   const one = [{ ...filters[0], open: false }];
   const { rerender } = render(<FilterBar filters={one} {...props} />);
-  const trigger = screen.getByRole('button', { name: 'RegionAll' });
+  const trigger = screen.getByRole('button', { name: 'Region: All' });
   await userEvent.click(trigger);
   await userEvent.keyboard('{Escape}');
   expect(trigger).toHaveAttribute('aria-expanded', 'false');
@@ -63,9 +79,9 @@ it('responds to open prop changes after interaction', async () => {
 it('restores focus after consecutive externally controlled removals', () => {
   const props = callbacks();
   const { rerender } = render(<FilterBar filters={filters} {...props} />);
-  screen.getByRole('button', { name: 'RegionAll' }).focus();
+  screen.getByRole('button', { name: 'Region: All' }).focus();
   rerender(<FilterBar filters={[filters[1]]} {...props} />);
-  expect(screen.getByRole('button', { name: 'StatusAll' })).toHaveFocus();
+  expect(screen.getByRole('button', { name: 'Status: All' })).toHaveFocus();
   rerender(<FilterBar filters={[]} {...props} />);
   expect(screen.getByRole('group', { name: 'Filters' })).toHaveFocus();
 });
@@ -79,7 +95,7 @@ it('chooses the next enabled chip even when an earlier chip is disabled', () => 
     { ...filters[1], id: 'last', label: 'Last' },
   ];
   const { rerender } = render(<FilterBar filters={items} {...props} />);
-  screen.getAllByRole('button', { name: 'RegionAll' })[1].focus();
+  screen.getAllByRole('button', { name: 'Region: All' })[1].focus();
   rerender(<FilterBar filters={items.filter(f => f.id !== 'remove')} {...props} />);
-  expect(screen.getByRole('button', { name: 'StatusAll' })).toHaveFocus();
+  expect(screen.getByRole('button', { name: 'Status: All' })).toHaveFocus();
 });
