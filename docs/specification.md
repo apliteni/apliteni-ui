@@ -3175,8 +3175,13 @@ sideways and drags every other block with it. Below 560px the standard-size pill
 their side padding, which is what keeps six three-letter months on one row in a
 390px column; the type rank is unchanged at every width.
 
-The underline appearance scrolls instead of wrapping, which is the right answer for
-column switches over one dataset, where the order is the reader's map.
+The underline appearance wraps the same way. It used to keep one row and scroll,
+on the reading that the order is the reader's map; a strip that scrolls hides the
+tabs past the fold at rest, with no affordance saying they are there, so the map
+is the thing it loses first. Wrapping keeps every tab on the page in its own
+order, and keeps the focus ring's glow, which the scroll box cut against the
+strip's own padding. Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
+
 ## Shared React logic and declarations
 
 The main entry exports `dropdownMatch`, `dropdownFiltering`, `rankGroups`,
