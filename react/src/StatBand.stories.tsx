@@ -58,9 +58,10 @@ export const CaptionLength: StoryObj = {
   ),
 };
 
-// The third figure is a caption in a row with no arrow and no number between the
-// two statements, which is why that row spaces them further apart than a change.
-export const NoEarlierFigure: StoryObj = {
+// A figure with nothing to compare shows its value and stops, keeping only the
+// caption the caller gave it. Saying "no earlier figure" in words beside figures
+// that do carry a change is noise — Artur, 2026-10-02.
+export const NothingToCompare: StoryObj = {
   render: () => (
     <StatBand
       basis={BASIS}

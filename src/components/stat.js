@@ -24,18 +24,14 @@ const GLYPH = { up: 'arrowUp', down: 'arrowDown', flat: 'minus' };
 const hasChange = (delta) => delta && delta.value != null && delta.value !== '';
 
 // One row and one line: the caption, the change, then what it is measured
-// against. A second row drops the changes beside it. why: docs/specification.md#stat-bands
+// against. Nothing to compare draws no row. why: docs/specification.md#stat-bands
 const contextRow = (caption, delta, basisId) => {
-  if (!delta) return caption ? `<dd class="ui-stat__caption">${esc(caption)}</dd>` : '';
+  if (!hasChange(delta)) return caption ? `<dd class="ui-stat__caption">${esc(caption)}</dd>` : '';
   // The space is read where the CSS gap is only drawn: "of income+1.2 pts" else.
   const lead = caption ? `<span class="ui-stat__caption">${esc(caption)}</span> ` : '';
-  if (!hasChange(delta)) {
-    return `<dd class="ui-stat__delta ui-stat__delta--none">${lead}${esc(delta.none || 'No earlier figure')}</dd>`;
-  }
   const text = String(delta.value);
   const dir = GLYPH[delta.direction] ? delta.direction : directionOf(text);
-  // Never dropped: a basis is passed when the band's caption does not cover this
-  // figure, so the band's caption cannot stand in for it.
+  // Never dropped: a basis is passed when the band's caption does not cover this figure.
   const own = delta.basis ? ` <span class="ui-stat__basis">${esc(delta.basis)}</span>` : '';
   const describedby = !own && basisId ? ` aria-describedby="${basisId}"` : '';
   return `<dd class="ui-stat__delta"${describedby}>${lead}${icon(GLYPH[dir])}`

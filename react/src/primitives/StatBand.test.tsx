@@ -82,7 +82,9 @@ const CASES: [string, StatBandProps][] = [
       { label: 'Operating margin', value: '12.4%', caption: 'of revenue', delta: { value: '+1.2 pts', tone: 'good' } },
       // The caption takes the basis's place, and the change points at the band.
       { label: 'Net margin', value: '8.0%', caption: 'of revenue', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
+      // Nothing to compare: the caption stays, and nothing is added after it.
       { label: 'Refunds', value: '€ 0', caption: 'of revenue', delta: { value: null } },
+      { label: 'Fees', value: '€ 0', delta: { value: null } },
     ],
   }],
   // A band with no caption of its own: the branch where the kit has nothing to
@@ -102,7 +104,7 @@ const CASES: [string, StatBandProps][] = [
       { label: 'Margin', value: '36%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
       { label: 'New', value: '€ 1', delta: { value: null } },
       { label: 'Toned, but nothing to compare', value: '€ 1', delta: { value: null, tone: 'bad' } },
-      { label: 'Worded', value: '€ 1', delta: { value: '', none: 'New this year' } },
+      { label: 'Empty', value: '€ 1', delta: { value: '' } },
       { label: 'Flat', value: '€ 1', delta: { value: '0.0%' } },
       { label: 'Forced', value: '€ 1', delta: { value: '4%', direction: 'down' } },
       { label: 'Hyphen', value: '€ 1', delta: { value: '-4%', tone: 'neutral' } },

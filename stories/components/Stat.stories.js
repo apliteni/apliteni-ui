@@ -66,14 +66,16 @@ export const Gallery = {
 // measured against something the others are not, and when it carries no trend.
 export const States = {
   render: () => pad(
-    heading('No earlier figure', 'A change against nothing is not +0% — the band says there is nothing to compare.')
+    heading('Nothing to compare',
+      'A figure with no earlier value shows the value and stops. It is never shown as +0%, and the band does '
+      + 'not say in words that it has nothing to say &mdash; beside figures that do carry a change, that is noise.')
     + statBand({
       id: 'states-none',
       basis: BASIS,
       stats: [
         { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
-        { label: 'New entity', value: '€ 12,040', delta: { value: null, none: 'No earlier figure' } },
-        { label: 'Refunds', value: '€ 0', delta: { value: '0.0%' } },
+        { label: 'New entity', value: '€ 12,040', delta: { value: null } },
+        { label: 'Refunds', value: '€ 0', caption: 'of income', delta: { value: null } },
       ],
     })
     + heading('Its own comparison', 'One figure measured against a target rather than the previous period says so beside the change.')
@@ -114,10 +116,10 @@ export const States = {
         { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
       ],
     })
-    + heading('A row of words alone keeps every word',
-      'A caption with no change beside it, and the row that says there is no earlier figure, have no arrow and no '
-      + 'number to keep together. They take a second line rather than lose words, and the same caption that is '
-      + 'clipped above reads in full here.')
+    + heading('A caption standing alone keeps every word',
+      'A caption with no change beside it has no arrow and no number to keep together, so it is never clipped: '
+      + 'it wraps to a second line when the figure is too narrow for it. The caption cut short above reads in '
+      + 'full here.')
     + statBand({
       id: 'states-caption-wraps',
       basis: BASIS,

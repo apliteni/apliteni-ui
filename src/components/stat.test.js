@@ -110,13 +110,24 @@ test('two bands on one page never share a caption id', () => {
   assert.notEqual(ids[0], ids[1]);
 });
 
-test('a change against nothing says so, with no arrow and no percentage', () => {
-  const none = one({ label: 'New', value: '€ 1', delta: { value: null } }).querySelector('.ui-stat__delta');
-  assert.ok(none.classList.contains('ui-stat__delta--none'));
-  assert.equal(none.textContent, 'No earlier figure');
-  assert.equal(none.querySelector('svg'), null);
-  const worded = one({ label: 'New', value: '€ 1', delta: { value: '', none: 'New this year' } });
-  assert.equal(worded.querySelector('.ui-stat__delta').textContent, 'New this year');
+// A figure with nothing to compare shows its value and stops. The band used to
+// say "No earlier figure" under it; beside the figures that do carry a change,
+// that sentence is noise, and Artur struck it on 2026-10-02.
+// why: docs/specification.md#stat-bands
+test('a figure with nothing to compare shows its value, and says nothing about it', () => {
+  for (const [name, delta] of [['null', { value: null }], ['empty', { value: '' }], ['worded', { value: null, none: 'New this year' }]]) {
+    const fig = one({ label: 'New entity', value: '€ 12,040', delta });
+    assert.equal(fig.querySelector('.ui-stat__delta'), null, `${name}: a change with nothing in it drew a row`);
+    assert.deepEqual([...fig.querySelectorAll('.ui-stat > dd')].map((d) => d.className), ['ui-stat__value'],
+      `${name}: the figure is not its value alone`);
+    assert.doesNotMatch(fig.querySelector('.ui-stat').textContent, /earlier|New this year/,
+      `${name}: words about the missing comparison reached the page`);
+  }
+  // A caption is the caller's words, so it stays — and nothing is added after it.
+  const captioned = one({ label: 'Refunds', value: '€ 0', caption: 'of income', delta: { value: null } });
+  assert.deepEqual([...captioned.querySelectorAll('.ui-stat > dd')].map((d) => d.className),
+    ['ui-stat__value', 'ui-stat__caption']);
+  assert.equal(captioned.querySelector('.ui-stat__caption').textContent, 'of income');
 });
 
 // A ratio that is not a change fits neither slot the band had: as a change it
@@ -149,7 +160,7 @@ test('a figure draws exactly one row between its value and its trend, whatever i
     ['a change with its own basis', { delta: { value: '+1%', basis: 'against plan' } }],
     ['a caption and a change', { caption: 'of income', delta: { value: '+1%' } }],
     ['a caption and a change with a basis', { caption: 'of income', delta: { value: '+1%', basis: 'against plan' } }],
-    ['a caption and no earlier figure', { caption: 'of income', delta: { value: null } }],
+    ['a caption and nothing to compare', { caption: 'of income', delta: { value: null } }],
     ['a caption, a change and a trend', { caption: 'of income', delta: { value: '+1%' }, trend: '<svg></svg>' }],
   ];
   for (const [name, extra] of cases) {

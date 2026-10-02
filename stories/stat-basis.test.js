@@ -29,7 +29,7 @@ installDomGlobals(dom.window);
 const doc = dom.window.document;
 
 /** The changes under `root` whose comparison a reader cannot reach. */
-export const unexplained = (root) => [...root.querySelectorAll('.ui-stat__delta:not(.ui-stat__delta--none)')]
+export const unexplained = (root) => [...root.querySelectorAll('.ui-stat__delta')]
   .filter((d) => {
     if (d.querySelector('.ui-stat__basis')?.textContent.trim()) return false;
     const ids = (d.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
@@ -112,7 +112,7 @@ test('every change in every story says what it is measured against, and no figur
         failures.push(`${rel}:${name} did not render — ${err.message}`);
         continue;
       }
-      subjects += box.querySelectorAll('.ui-stat__delta:not(.ui-stat__delta--none)').length;
+      subjects += box.querySelectorAll('.ui-stat__delta').length;
       captions += box.querySelectorAll('.ui-stats__basis').length;
       figures += box.querySelectorAll('.ui-stat').length;
       for (const d of unexplained(box)) {
