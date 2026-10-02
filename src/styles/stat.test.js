@@ -132,7 +132,7 @@ test('a change is one line: the arrow keeps its number, and the words clip inste
     // `flex: none` resolves to its longhands; the middle one is what matters.
     assert.equal(style(sel).flexShrink, '0', `${sel} can give way, and then the number it belongs to moves`);
   }
-  for (const sel of ['.ui-stat__caption', '.ui-stat__basis']) {
+  for (const sel of ['.ui-stat__delta .ui-stat__caption', '.ui-stat__basis']) {
     const got = style(sel);
     assert.equal(got.minWidth, '0px', `${sel} cannot shrink, so a long one widens the row instead of clipping`);
     assert.equal(got.overflow, 'hidden', `${sel} spills out of the figure`);
@@ -161,16 +161,42 @@ test('a change is one line: the arrow keeps its number, and the words clip inste
     'a caption alone sizes its figure by its text instead of being sized by it');
 });
 
-// The row with no change holds words only: nothing in it to orphan or to drop,
-// so it keeps the wrap — and two statements of only words need more than a
-// word-space between them.
-test('the row with no change keeps its wrap, and separates two statements', () => {
-  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
-    stats: [{ label: 'Refunds', value: '€ 0', caption: 'of income', delta: { value: null } }],
-  })}</body></html>`).window;
-  const row = doc.document.querySelector('.ui-stat__delta--none');
-  assert.equal(doc.getComputedStyle(row).flexWrap, 'wrap');
-  const gap = doc.getComputedStyle(doc.document.querySelector('.ui-stat__delta--none .ui-stat__caption')).marginInlineEnd;
+/* Two of the three rows hold words and nothing else — a caption alone, and the
+ * row that says there is no earlier figure. Neither has an arrow or a number to
+ * orphan, which is the only reason the clip exists, so neither may be clipped:
+ * a second line costs nobody anything and losing words costs the reader the
+ * whole point of them. The clip reached them once, and 43% of a caption went.
+ *
+ * Measured on the elements themselves rather than on the row around them: the
+ * row kept `flex-wrap: wrap` all along, and the caption inside it could not
+ * break, so a test that read the row passed on a row that could not wrap.
+ * jsdom lays nothing out, so what this holds is which rules reach which element;
+ * the showcase draws a caption past the width in all three rows for the rest. */
+test('the rows that hold only words keep every word, and the change row clips', () => {
+  const win = (stats) => new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({ stats })}</body></html>`).window;
+  const LONG = 'March revenue in EUR, excluding refunds';
+  const wordsOnly = win([
+    { label: 'Gross margin', value: '36.1%', caption: LONG },
+    { label: 'Refunds', value: '€ 0', caption: LONG, delta: { value: null } },
+  ]);
+  const clipped = win([{ label: 'Net margin', value: '8.0%', caption: LONG, delta: { value: '+0.4 pts' } }]);
+  const styleOf = (w, sel) => w.getComputedStyle(w.document.querySelector(sel));
+
+  for (const [where, sel] of [['a caption alone', 'dd.ui-stat__caption'], ['the row with no change', '.ui-stat__delta--none .ui-stat__caption']]) {
+    const got = styleOf(wordsOnly, sel);
+    assert.notEqual(got.whiteSpace, 'nowrap', `${where}: the caption cannot break, so a long one is cut rather than wrapped`);
+    assert.notEqual(got.overflow, 'hidden', `${where}: the caption is clipped, and it has no arrow to keep beside a number`);
+  }
+  assert.equal(styleOf(wordsOnly, '.ui-stat__delta--none').flexWrap, 'wrap', 'the row with no change cannot take a second line');
+
+  // The control: the same string in the row that does hold a change still clips,
+  // so the scoping above did not simply switch the clip off.
+  const inRow = styleOf(clipped, '.ui-stat__delta .ui-stat__caption');
+  assert.equal(inRow.whiteSpace, 'nowrap', 'the caption beside a change may break, and then the change drops below its neighbours');
+  assert.equal(inRow.overflow, 'hidden', 'the caption beside a change is not clipped');
+
+  // No arrow stands between two statements of only words, so they need more space.
+  const gap = styleOf(wordsOnly, '.ui-stat__delta--none .ui-stat__caption').marginInlineEnd;
   const beside = valueOf(ruleFor('.ui-stat__delta .ui-stat__caption').body, 'margin-inline-end');
   assert.notEqual(gap, beside, 'the caption is spaced off the words beside it as if an arrow stood between them');
   assert.match(gap, /^var\(--space-\d+\)$/, `the separation is ${gap}, not a spacing step`);

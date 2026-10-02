@@ -51,7 +51,7 @@
 
 /* A figure's own words about its value, in the caption rank's size and weight
    with the band's tighter leading, as the label takes, so it claims no rank.
-   Body ink on no fill, and no tone rule reaches it: no change to colour. */
+   Body ink on no fill; no tone reaches it, having no change to colour. */
 .ui-stat__caption {
   color: var(--text);
   font-size: var(--text-sm);
@@ -86,13 +86,13 @@ dd.ui-stat__caption { margin-top: var(--space-2); }
 /* A change is one line: wrapped, its arrow ends one line and its number starts
    the next, and a long caption drops its own change below the ones beside it.
    The arrow and the number cannot give way, so the words clip — the whole string
-   stays in the markup. The row with no change keeps its wrap: nothing to orphan. */
+   stays in the markup. Only that row: a row of words alone has nothing to orphan,
+   so it takes a second line rather than lose words. */
 .ui-stat__delta:not(.ui-stat__delta--none) { flex-wrap: nowrap; }
-.ui-stat__caption,
+.ui-stat__delta:not(.ui-stat__delta--none) .ui-stat__caption,
 .ui-stat__basis { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* A figure is never narrower than its own content, so without these a long line
-   widens the figure instead of clipping: a line's width is what it is given. */
+/* A figure is never narrower than its content: without these a long line widens it. */
 dd.ui-stat__caption { contain: inline-size; }
 .ui-stat__delta .ui-stat__caption,
 .ui-stat__basis { width: 0; flex-grow: 1; max-width: max-content; }

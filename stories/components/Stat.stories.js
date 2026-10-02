@@ -101,9 +101,9 @@ export const States = {
       ],
     })
     + heading('How long a caption can be',
-      'The row is one line. A caption longer than the figure is wide is clipped rather than wrapped, because a '
-      + 'wrapped row would put the arrow on one line and its number on the next and drop this change below the '
-      + 'ones beside it &mdash; the whole caption stays in the markup, and the third figure is past the width here.')
+      'A row holding a change is one line, so a caption past the figure\u2019s width is clipped there rather than '
+      + 'wrapped: a wrapped row would put the arrow on one line and its number on the next and drop this change '
+      + 'below the ones beside it. The third figure is past the width, and the whole caption stays in the markup.')
     + statBand({
       id: 'states-caption-length',
       basis: BASIS,
@@ -114,13 +114,26 @@ export const States = {
         { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
       ],
     })
+    + heading('A row of words alone keeps every word',
+      'A caption with no change beside it, and the row that says there is no earlier figure, have no arrow and no '
+      + 'number to keep together. They take a second line rather than lose words, and the same caption that is '
+      + 'clipped above reads in full here.')
+    + statBand({
+      id: 'states-caption-wraps',
+      basis: BASIS,
+      stats: [
+        { label: 'Gross margin', value: '36.1%', caption: 'March revenue in EUR, excluding refunds' },
+        { label: 'Refunds', value: '€ 0', caption: 'March revenue in EUR, excluding refunds', delta: { value: null } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+      ],
+    })
     + heading('Measured against something else',
       'A figure compared with its own target says so after the change, where it always has. A caption never costs '
       + 'a reader that comparison: the row reads what the value is, how it moved, and what it moved against.')
     + statBand({
       id: 'states-caption-basis',
       stats: [
-        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against the 40% target' } },
+        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against plan' } },
         { label: 'Net margin', value: '8.0%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
       ],
     })

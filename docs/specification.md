@@ -2068,7 +2068,8 @@ trend. A figure is only ever rendered inside its band, because its label and val
 are only valid inside the band's list. The band is a description list: a figure's label is the term and everything
 after it is a value of that term, so a screen reader reads each figure as one statement.
 
-A figure is never broken across lines and never truncated. A band too narrow for its figures moves
+A figure's value is never broken across lines and never truncated — the words under it give way
+instead, as the row below records. A band too narrow for its figures moves
 a figure onto the next row rather than let it overlap the one beside it. It also folds before
 plain wrapping would leave one figure alone on a row: four figures become two rows of two, and an
 odd count becomes one column. The band decides this from its own width and not the window's, because a band beside a rail and a band
@@ -2121,14 +2122,24 @@ against something the band's caption does not cover — so the band's caption ca
 it, and the kit never drops it. A change with no `basis` of its own still points at the band's
 caption, with or without a caption beside it.
 
-**The row is one line.** A caption is a short phrase and not a sentence: it shares that line with
-the change. A caption or a basis too long for the figure's width is clipped with an ellipsis
-rather than wrapped, and the whole string stays in the markup, where a screen reader and a copy
-still reach it. Wrapping is what the line may not do: it would put a change's arrow at the end of
-one line and its number at the start of the next, and it would drop that change below the changes
-beside it — the defect a second row caused, reached by length instead of by presence. The one row
-that may still wrap is the one with no change in it, which holds words only and has nothing to
-orphan.
+**A row holding a change is one line.** A caption is a short phrase and not a sentence, because it
+shares that line with the change. Wrapping is what such a row may not do: it would put the
+change's arrow at the end of one line and its number at the start of the next, and it would drop
+that change below the changes beside it — the defect a second row caused, reached by length
+instead of by presence. The arrow and the number cannot give way, so a caption or a basis too long
+for the figure's width is clipped with an ellipsis there, and the whole string stays in the
+markup, where a screen reader and a copy still reach it.
+
+**A row that holds only words keeps every word.** A caption with no change beside it, and the row
+that reports no earlier figure, have no arrow and no number to keep together, so they take a
+second line rather than lose words. Clipping them would buy no alignment — their figures still
+start their rows at the same height as the rest of the band — and cost a reader the words. The
+clip belongs to the row that cannot afford a second line, and to no other.
+
+Where a tile is too narrow to show a comparison whole, React's `delta.tooltip` carries it: the
+kit Tooltip opens on hover, on keyboard focus and on touch, which is what the Hover readouts
+guideline (`guidelines/hover-readouts.md`) asks for beside a truncated cell. A `title` attribute
+is not that, and is never the answer here.
 
 A caption is not a change, so it draws no arrow and takes no tone — nothing went up or down, so
 there is no news to colour — and it is not a trend, so it stays out of the slot a sparkline
