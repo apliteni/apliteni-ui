@@ -273,6 +273,14 @@ const bar = initFilterBar(host, options);
 // Keep host mounted for focus recovery; call bar.destroy() when unmounting.
 ```
 
+A chip prints its chosen `value` by itself, never the field's name beside it. Beside a chosen
+value the field is not drawn at all; it reaches a reader through the trigger's accessible name
+(`Sector: Technology`) and the chip's visually hidden legend. Leave `value` empty and the chip
+prints `label` in placeholder ink and is named `Sector: any`. Keep `value` display text: it is
+the whole visible chip, so answer a change with the row's label rather than its code when the
+two differ. `filterChipText(filter)`, `filterChipName(filter)` and `filterChipUnset(filter)`
+are that shared set, exported from the entry and asked by both faces.
+
 Each filter also accepts `disabled` and `open` (initial/snapshot state); `items` follow
 Dropdown's entries. React `<FilterBar {...options} onChange={(id,value)=>…}
 onRemove={id=>…} onClear={()=>…} />` uses the same controller. IDs must be unique within

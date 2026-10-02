@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.68.0', date: '2026-10-02',
+    changes: [
+      ['changed', 'A FilterBar chip shows the chosen value by itself instead of printing the field\u2019s name beside it, so a bar of chips reads as the values in force. A chip with nothing chosen shows the field it filters, in placeholder ink, and is named \u201cSector: any\u201d; a chip with a value is named \u201cSector: Technology\u201d. Beside a value the field is no longer drawn: it reaches a reader through that name and the chip\u2019s legend. Keep a filter\u2019s value display text \u2014 it is now the whole visible chip. Vanilla and React. Resolves #535.', ['FilterBar']],
+      ['added', 'filterChipText, filterChipName and filterChipUnset are exported from the entry: the one place that decides what a chip prints, what it is called and whether it counts as unset. Pass a filter; take the line, the name or the state. Part of #535.', ['FilterBar']],
+    ],
+  },
+  {
     v: '0.67.0', date: '2026-10-02',
     changes: [
       ['fixed', 'A filter bar no longer widens the page on a phone. Each chip’s dropdown panel now takes the width of the chip it drops from instead of a 240px minimum, so it stays inside the row at any viewport; a filter whose options are longer than its chip wraps them over more rows, breaking mid-token when a value has no break opportunity in it, such as a campaign key or a URL. Vanilla and React share the rule. Resolves #467.', ['FilterBar']],
