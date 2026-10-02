@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.64.1', date: '2026-10-01',
     changes: [
-      ['changed', 'Nothing the kit renders changes. The kit\u2019s own gates now split a selector list at its top-level commas only, so a rule written with `:where(td, th)` or `:is(:hover, :focus-visible)` reaches them whole instead of in fragments that match nothing. The only published byte is a comment in `layout.css` citing a line that moved. Resolves #521.'],
+      ['changed', 'Nothing the kit renders changes. The kit\u2019s own gates now split a selector list at its top-level commas only, so a rule written with `:where(td, th)` or `:is(:hover, :focus-visible)` reaches them whole instead of in fragments that match nothing. One consequence worth naming: the collapsed rail\u2019s hover and focus-visible labels were being measured for contrast in no state at all, and now are. The only published byte is a comment in `layout.css` citing a line that moved. Resolves #521.'],
     ],
   },
   {

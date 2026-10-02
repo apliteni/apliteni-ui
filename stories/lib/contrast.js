@@ -426,6 +426,31 @@ export function kitCssFor(theme, accent = 'default') {
   return { vars, css: expandAnchors(desugar(substitute(specialiseContextual(raw), vars))) };
 }
 
+/** The element a state tag sits on, given the text in front of the tag.
+ *
+ *  `:is()` and `:where()` match any argument, so a tag inside one belongs to the
+ *  compound before it. Cutting at the tag instead left `.ui-nav__item:is(`, which
+ *  querySelectorAll throws on and stateTargets swallows, so the collapsed rail was
+ *  measured in no state at all (#521). `:not()` and `:has()` have no host to name
+ *  here and come back empty; contrast.test.js sweeps for those.
+ *
+ *  @param {string} prefix everything before the state tag
+ *  @returns {string} the host selector, or '' when there is none */
+export function stateHost(prefix) {
+  const open = [];
+  for (let i = 0; i < prefix.length; i += 1) {
+    const char = prefix[i];
+    if (char === '\\') { i += 1; continue; }
+    if (char === '(') {
+      const name = /(:{1,2}[\w-]+)$/.exec(prefix.slice(0, i));
+      open.push({ at: name ? i - name[1].length : i, name: name ? name[1].toLowerCase() : '' });
+    } else if (char === ')') open.pop();
+  }
+  if (open.length === 0) return prefix.trim();
+  if (!open.every(({ name }) => name === ':is' || name === ':where')) return '';
+  return prefix.slice(0, open[0].at).trim();
+}
+
 /**
  * Base selectors of state rules that can change a contrast input, so the walk
  * exercises the elements those rules can reach instead of every element × every
@@ -434,7 +459,11 @@ export function kitCssFor(theme, accent = 'default') {
  */
 export function stateBases(css) {
   const out = Object.fromEntries(STATES.map((s) => [s, new Set()]));
-  for (const [, selector, body] of css.matchAll(RULE)) {
+  // Decommented here, not only in the body: a story's own <style> block reaches
+  // this raw, and a comment left in a prelude travels into the base and out to
+  // querySelectorAll, which throws on it. The kit sheet arrives decommented
+  // already, and blanking is idempotent.
+  for (const [, selector, body] of decomment(css).matchAll(RULE)) {
     // These declarations cannot change a captured colour, background, visibility or AA threshold.
     // Custom properties and every property outside this list keep the state.
     const decoration = /^(box-shadow|outline(?:-color|-offset|-style|-width)?|border-radius|text-decoration(?:-color|-line|-style|-thickness)?|text-underline-offset|cursor|transition(?:-delay|-duration|-property|-timing-function)?)$/;
@@ -446,7 +475,7 @@ export function stateBases(css) {
         const tag = `[data-ui-state~="${s}"]`;
         const i = sel.indexOf(tag);
         if (i < 0) continue;
-        const base = sel.slice(0, i).trim();
+        const base = stateHost(sel.slice(0, i));
         if (base) out[s].add(base);
       }
     }

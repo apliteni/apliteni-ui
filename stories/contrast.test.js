@@ -356,6 +356,19 @@ test('every ledger entry still names something the kit renders', () => {
 
 test('the walk actually walked — a scan that finds nothing must not pass', () => {
   assert.ok(walk.stats.judged > 5000, `only ${walk.stats.judged} pairs were judged; the walk is not reaching the kit`);
+  // A tighter floor than the one above, because a gate that quietly stops
+  // exercising a state does not trip a 5000 floor. #521 moved this figure:
+  // 22514 before, when a mis-split selector handed stateBases two bogus
+  // focus-visible bases on `.ui-app`, and 19630 now that it harvests the real
+  // hosts. The primary guard against another silent loss is in
+  // stories/lib/contrast.test.js — every state base has to parse — and this is
+  // the backstop that notices if the count falls anyway.
+  assert.ok(
+    walk.stats.judged > 18500,
+    `${walk.stats.judged} pairs judged, below the 19630 this kit measures. A drop means the walk `
+    + 'stopped exercising element-states it used to reach; find which state bases disappeared '
+    + 'before moving this number',
+  );
   assert.ok(walk.stats.stories > 150, `only ${walk.stats.stories} story renders across both themes`);
   assert.ok(walk.findings.length > 0, 'the walk found nothing at all, which means it is measuring nothing');
   assert.ok(

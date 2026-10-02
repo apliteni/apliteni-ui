@@ -6,7 +6,7 @@
  * prelude carries a comma inside parentheses and requires the shared splitter
  * to hand each one back whole; a naive split has to fail the same sweep, so the
  * subjects are known to exercise the bug. The second takes every comma split in
- * the four trees `npm test` walks and requires each one to be either the shared
+ * the five swept paths below and requires each one to be either the shared
  * splitter or a listed value split — a selector split written by hand is the
  * defect of #521 arriving again, and no gate reads it.
  */
@@ -19,8 +19,15 @@
  *     invisible to both sweeps.
  *   - Whether the split parts are then USED correctly. A gate that takes the
  *     right selector and compares it against the wrong list reads as green.
- *   - A comma split written through a variable (`const c = ','`) or built at
- *     run time. The source sweep matches the literal spelling only.
+ *   - A comma split spelled any other way: through a variable (`const c = ','`),
+ *     built at run time, written as a regex (`.split(/,/)`, `.split(/[\s,]+/)`)
+ *     or with the space inside the string (`.split(', ')`). The sweep matches the
+ *     one literal spelling `.split(',')`. One regex split exists today —
+ *     stories/glyph-stroke.test.js splitting an SVG `viewBox` — and it reads a
+ *     value, not a selector list. No selector list is split any of these ways.
+ *   - A file outside the five swept paths — `react/test/`, `.storybook/`,
+ *     `react/.storybook/`. None of them holds a comma split of any spelling
+ *     today, so nothing is hiding there; they are simply not swept.
  *   - The CSS subjects come from the stylesheets this repository tracks, so a
  *     parenthesised comma a consumer writes in its own sheet is covered by the
  *     splitter but is not in the subject list.
@@ -70,7 +77,8 @@ test('a selector list with no parentheses splits exactly as a plain comma split 
 
 /* ---- sweep one: the kit's own parenthesised selectors -------------------- */
 
-/** Every file git tracks in the four trees `npm test` walks. */
+/** Every file git tracks in the five swept paths: the four trees `npm test`
+ *  walks, plus react/src, whose gates run under vitest. */
 const tracked = execFileSync('git', ['ls-files', '-z', 'src', 'stories', 'site', 'scripts', 'react/src'], { cwd: root, encoding: 'utf8' })
   .split('\0').filter(Boolean);
 
@@ -194,8 +202,9 @@ test('the shared splitter is read by every gate that was reading a selector list
   const callers = tracked.filter((file) => SOURCE.test(file) && !self.includes(file)
     && /splitSelectorList\s*\(/.test(readFileSync(path.join(root, file), 'utf8')));
   assert.equal(
-    callers.length, 24,
+    callers.length, 25,
     'the set of gates reading a selector list changed; #521 moved twenty-four of them onto the '
-    + 'shared splitter, four of which are the focus-ring gates the issue named',
+    + "shared splitter, four of which are the focus-ring gates the issue named, and the contrast "
+    + "lib's own gate reads it to sweep state bases",
   );
 });

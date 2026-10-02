@@ -14,7 +14,14 @@
  * inside `[]`, and inside a quoted string stay with their selector. Parts come
  * back trimmed, and an empty part is dropped.
  *
- * @param {string} selector one rule's prelude
+ * The prelude must already be free of comments. A comma inside `/* … *\/` is
+ * treated as a separator, and a comment left in a part would travel on into
+ * whatever the caller does with it — `querySelectorAll` throws on one. Every
+ * caller blanks comments before reading rules out of a sheet; `stateBases` in
+ * stories/lib/contrast.js is the one that reads a story's raw <style> text and
+ * so blanks them itself.
+ *
+ * @param {string} selector one rule's prelude, comments already blanked
  * @returns {string[]} the selectors it lists
  */
 export function splitSelectorList(selector) {
