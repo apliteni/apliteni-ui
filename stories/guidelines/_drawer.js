@@ -17,7 +17,7 @@ export const SPEC_CSS = `
     .gd-frame .ui-drawer__panel { width: calc(100% - var(--space-12)); }
     .gd-frame .ui-card { padding: var(--space-4); }
     .gd-frame .ui-card + .ui-card { margin-top: var(--space-4); }
-    /* The page half of the comfort pair: no panel, no scrim and no card — the work
+    /* The page half of the drawer-or-page pair: no panel, no scrim and no card — the work
        sits on the page itself, grouped by heading the way the drawer groups it, so
        the halves differ by where the work is and not by what it is drawn with. The
        frame is a floor rather than a height: both halves start at one screen, and
@@ -61,7 +61,7 @@ const GROUPS = [
 const frame = (body, title = 'Northwind Payments', footer = '') => `<div class="gd-frame">${drawer({ title, specimen: true, body, footer })}</div>`;
 const ruled = (rows) => rows.map(([k, v]) => `<div class="gd-ruled__row"><span>${k}</span><span>${v}</span></div>`).join('');
 
-// One member's access, the work the comfort rule is about: the same roles and the
+// One member's access, the work the drawer-or-page rule is about: the same roles and the
 // same switch per unit, once on a page and once in a drawer.
 const ROLES = [['Viewer', true], ['Operator', true], ['Billing admin', false]];
 const UNITS = [['Ledger', true], ['Payouts', true], ['Agents', false], ['Keys', false], ['Reports', false]];
@@ -73,7 +73,7 @@ const unitRows = () => UNITS.map(([label, on]) => [label, { html: switchToggle({
 
 const group = (title, body) => `<section><h3 class="gd-group__title">${title}</h3>${body}</section>`;
 
-const comfortDo = () => `<div class="gd-frame gd-page">
+const pageDo = () => `<div class="gd-frame gd-page">
   <h2 class="gd-page__title">Member access</h2>
   <div class="gd-page__cols">
     ${group('Roles', roles())}
@@ -82,7 +82,7 @@ const comfortDo = () => `<div class="gd-frame gd-page">
   <div>${button({ label: 'Save access', variant: 'primary' })}</div>
 </div>`;
 
-const comfortDont = () => frame(
+const pageDont = () => frame(
   drawerSection({ title: 'Roles', body: roles() }) + drawerSection({ title: 'Access per unit', rows: unitRows() }),
   'Member access',
   button({ label: 'Save access', variant: 'primary' }),
@@ -90,7 +90,7 @@ const comfortDont = () => frame(
 
 export const RULES = withSpecimens(content.rules, [
 { id: 'one-record' },
-{ id: 'comfort', doHtml: comfortDo, dontHtml: comfortDont },
+{ id: 'drawer-or-page', doHtml: pageDo, dontHtml: pageDont },
 { id: 'no-cards', doHtml: () => frame(GROUPS.map((g) => drawerSection(g)).join('')), dontHtml: () => frame(GROUPS.map((g) => card({ body: drawerSection(g) })).join('')) },
 { id: 'three-lines' },
 { id: 'rows', doHtml: () => frame(drawerSection({ rows: DETAIL })), dontHtml: () => frame(ruled(DETAIL)) }
