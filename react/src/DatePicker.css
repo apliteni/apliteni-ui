@@ -74,10 +74,8 @@
   border: 1px solid transparent;
   border-radius: var(--radius-xs);
   cursor: pointer;
-  /* `outline-color` is deliberately NOT here. The focus rule resets the outline
-     to transparent, so transitioning its colour animated from the resting
-     `currentColor` and painted an opaque 2px band in the body ink over the
-     ring's gap on every keyboard focus. No other kit sheet transitions it.
+  /* Not `outline-color`: the focus rule resets the outline to transparent, and
+     a transition would animate that from the resting ink.
      why: docs/specification.md#the-focus-ring */
   transition:
     background var(--dur-fast) var(--ease),
@@ -114,21 +112,16 @@
   color: var(--accent-contrast);
 }
 
-/* Today carries weight and nothing else: a second colour here would compete
-   with the pick, which is the consequential state. */
+/* Weight and no colour: a second one would compete with the pick. */
 .ui-datepicker__opt.is-today { font-weight: var(--weight-bold); }
 
-/* A boxless ghost, so the bare disabled ink rather than the surface pair, and
-   no light-up under a pointer that cannot press it. */
+/* A boxless ghost: the bare disabled ink, and no light-up under the pointer. */
 .ui-datepicker__opt.is-disabled {
   /* muted-ink: state — a period outside the bounds or blocked by the host */
   color: var(--disabled-ink-bare);
   cursor: not-allowed;
 }
-/* Every property the hover rule sets, undone — the edge included. A cell that
-   refuses the press must not draw the kit's pressable row edge; the kit's own
-   answer for a dead row is `pointer-events: none`, which this one cannot take
-   because it stays focusable. */
+/* Every property the hover rule sets, undone — the edge included. */
 .ui-datepicker__opt.is-disabled:hover {
   outline-color: transparent;
   background: transparent;
