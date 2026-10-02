@@ -369,15 +369,30 @@ export function filterPanelFit(dd, floor = DD_MENU_FLOOR) {
   return { room: ahead + shift, shift, floor: want, end };
 }
 
-/** Write the fit onto the panel, or leave it alone outside a filter row. The
- *  stylesheet falls back to the trigger's width when these are unset, so a
- *  panel opened before this runs is bounded rather than unbounded. */
+/** Write the fit onto the panel, or leave it alone outside a filter row. All
+ *  three numbers, because the stylesheet reads all three; it falls back to the
+ *  trigger's width when they are unset, so a panel opened before this runs is
+ *  bounded rather than unbounded. */
 function ddFitFilterPanel(dd, panel) {
   const fit = filterPanelFit(dd);
   if (!fit || !panel?.style) return;
   panel.style.setProperty('--ui-filter-panel-room', `${fit.room}px`);
   panel.style.setProperty('--ui-filter-panel-shift', `${fit.shift}px`);
   panel.style.setProperty('--ui-filter-panel-floor', `${fit.floor}px`);
+}
+
+/** Measure an open menu again after the viewport changed. The fit it was opened
+ *  with describes a row that no longer exists — a menu opened at 1280 and left
+ *  open at 390 kept a 1102px room and stood 11px off the page. A search panel's
+ *  inline `min-width` was read at the old width too, and inline beats the sheet,
+ *  so it is read again off the newly bounded box.
+ *  why: docs/specification.md#a-filter-row-holds-its-panels */
+function ddRefitFilterPanel(dd, panel) {
+  if (!panel?.style || !filterPanelFit(dd)) return;
+  ddFitFilterPanel(dd, panel);
+  if (!panel.style.minWidth) return;
+  panel.style.minWidth = '';
+  if (panel.offsetWidth) panel.style.minWidth = `${panel.offsetWidth}px`;
 }
 
 // `auto` is the only direction the wiring decides; `up` and the default are the
@@ -520,10 +535,20 @@ function ddListen(doc) {
       if (dd.classList.contains('open') && dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
     }
   };
+  /* A filter menu's fit is widths within its row, which a scroll moves together
+   * and a resize does not: only the width needs re-measuring. Portalled panels
+   * are placed in viewport coordinates, so those stay on the scroll above.
+   * why: docs/specification.md#a-filter-row-holds-its-panels */
+  const refit = () => {
+    for (const dd of ddLive()) {
+      if (dd.classList.contains('open') && !dd.__ddPanel) ddRefitFilterPanel(dd, ddPanelOf(dd));
+    }
+  };
   const view = doc.defaultView;
   if (!view) return;
   view.addEventListener('scroll', reposition, true);
   view.addEventListener('resize', reposition);
+  view.addEventListener('resize', refit);
 }
 
 export function wireDropdown(root = document) {

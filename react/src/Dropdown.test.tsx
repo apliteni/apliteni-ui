@@ -8,8 +8,8 @@
 import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { afterEach } from 'vitest';
-import { dropdown, wireDropdown, dropdownMatch } from '@apliteni/apliteni-ui';
+import { afterEach, vi } from 'vitest';
+import { dropdown, wireDropdown, dropdownMatch, filterPanelFit } from '@apliteni/apliteni-ui';
 import { Dropdown, type DropdownProps, type DropdownEntry } from './Dropdown';
 import { classesOf, classesOfEl } from './test/classlist';
 
@@ -780,4 +780,123 @@ test('state badge ink and generic metadata match the factory classification', ()
   const { container } = render(<Dropdown items={cases.map(([badge], i) => ({ label: `Option ${i}`, badge }))} />);
   expect([...container.querySelectorAll('.ui-dropdown__badge')].map(el => el.className))
     .toEqual(cases.map(([, tone]) => `ui-dropdown__badge is-${tone}`));
+});
+
+// ---- A filter chip's menu -----------------------------------------------------
+// Inside `.ui-filter-bar__chip` an open menu takes the kit's menu floor and slides
+// back along the row. The arithmetic is the kit's, held by
+// src/components/filter-panel-fit.test.js; what this half owns is writing the
+// numbers the stylesheet reads, writing them again when the viewport moves, and
+// giving a search panel's inline pin back on close. Each of the three was a defect
+// this component shipped while the vanilla wiring did not.
+// why: docs/specification.md#a-filter-row-holds-its-panels
+//
+// LIMITS: JSDOM lays nothing out, so the row and the dropdown are given rects and
+// the panel the width a browser would have bounded it to. That a rendered menu
+// obeys the properties is scripts/evidence/filter-bar-fit.mjs's measurement.
+// Left-to-right rows only.
+
+const PANEL_PROPS = ['room', 'shift', 'floor'];
+const SECTORS: DropdownEntry[] = [
+  { label: 'All', value: 'All', selected: true },
+  { label: 'Consumer Discretionary', value: 'cons' },
+];
+
+/** One <Dropdown> in a filter row, with the two rects filterPanelFit() reads and
+ *  the width the stylesheet would have left the panel at. `resize()` moves the row
+ *  the way a rotation does: new numbers, then the event. */
+function chipRow({ rowWidth = 1200, left = 146, search = false, panelWidth = 240 } = {}) {
+  const { container } = render(
+    <fieldset className="ui-filter-bar" data-filter-bar="">
+      <legend className="ui-filter-bar__legend">Filters</legend>
+      <fieldset className="ui-filter-bar__chip" data-filter-id="sector">
+        <legend className="ui-filter-bar__legend">Sector</legend>
+        <Dropdown variant="select" ariaLabel="Sector" items={SECTORS} search={search || undefined} />
+      </fieldset>
+    </fieldset>);
+  const bar = container.querySelector('.ui-filter-bar')!;
+  const dd = container.querySelector('.ui-dropdown')!;
+  const panel = dd.querySelector('.ui-dropdown__panel') as HTMLElement;
+  const at = { rowWidth, left, panelWidth };
+  vi.spyOn(bar, 'getBoundingClientRect').mockImplementation(
+    () => ({ left: 0, right: at.rowWidth, width: at.rowWidth }) as DOMRect);
+  vi.spyOn(dd, 'getBoundingClientRect').mockImplementation(
+    () => ({ left: at.left, right: at.left + 60, width: 60 }) as DOMRect);
+  vi.spyOn(panel, 'offsetWidth', 'get').mockImplementation(() => at.panelWidth);
+  return {
+    user: userEvent.setup(), dd, panel,
+    trigger: dd.querySelector('.ui-dropdown__trigger') as HTMLElement,
+    fit: () => PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`)),
+    resize: (next: Partial<typeof at>) => {
+      Object.assign(at, next);
+      window.dispatchEvent(new Event('resize'));
+    },
+  };
+}
+
+it('an open chip menu carries every number the kit measured', async () => {
+  // Derived from the fit rather than listed, so a number the kit starts returning
+  // and this component does not write fails here. React wrote two of the three,
+  // which left the published `floor` argument unable to change a rendered width.
+  const row = chipRow();
+  await row.user.click(row.trigger);
+  const fit = filterPanelFit(row.dd)!;
+  const numbers = Object.entries(fit).filter(([, value]) => typeof value === 'number');
+  expect(numbers).toHaveLength(3);
+  for (const [key, value] of numbers) {
+    expect(row.panel.style.getPropertyValue(`--ui-filter-panel-${key}`), key).toBe(`${value}px`);
+  }
+  expect(row.fit()).toEqual(['1054px', '0px', '240px']);
+});
+
+it('a viewport change re-measures a menu that is still open', async () => {
+  // Opened in a 1200px row and left open in a 358px one — a rotation. Holding the
+  // room it was fitted to put the menu 14px off the page.
+  const row = chipRow();
+  await row.user.click(row.trigger);
+  expect(row.fit()).toEqual(['1054px', '0px', '240px']);
+  row.resize({ rowWidth: 358 });
+  expect(row.fit()).toEqual(['240px', '28px', '240px']);
+});
+
+it('a shut menu is given no numbers, and a resize does not start measuring', () => {
+  // Shut, the panel keeps the trigger's width from the stylesheet alone, which is
+  // what holds #467 on a page where nothing ran.
+  const row = chipRow();
+  expect(row.fit()).toEqual(['', '', '']);
+  row.resize({ rowWidth: 358 });
+  expect(row.fit()).toEqual(['', '', '']);
+});
+
+it('a searchable chip gives its pinned width back when it closes', async () => {
+  /* The panel holds the width the whole list needed as an inline `min-width`, and
+   * inline beats the sheet that holds a shut panel to its trigger. Left behind,
+   * that is #467 at the menu floor's width: a shut 240px panel made a 476px page
+   * on a 390px view. closeDropdown() clears it in the vanilla half. */
+  const row = chipRow({ search: true });
+  await row.user.click(row.trigger);
+  expect(row.panel.style.minWidth).toBe('240px');
+  await row.user.keyboard('{Escape}');
+  expect(row.dd.classList.contains('open')).toBe(false);
+  expect(row.panel.style.minWidth).toBe('');
+});
+
+it('a searchable chip reads its pin again at the new width', async () => {
+  // Re-fitting the properties alone leaves the pin from the old row, and a pin
+  // wider than the row outranks every bound in the sheet.
+  const row = chipRow({ search: true });
+  await row.user.click(row.trigger);
+  expect(row.panel.style.minWidth).toBe('240px');
+  row.resize({ rowWidth: 200, panelWidth: 200 });
+  expect(row.fit()).toEqual(['200px', '146px', '200px']);
+  expect(row.panel.style.minWidth).toBe('200px');
+});
+
+it('a dropdown outside a filter row is given no numbers at all', async () => {
+  const user = userEvent.setup();
+  const { container } = render(<Dropdown ariaLabel="Actions" items={SECTORS} />);
+  const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
+  await user.click(container.querySelector('.ui-dropdown__trigger')!);
+  window.dispatchEvent(new Event('resize'));
+  expect(PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`))).toEqual(['', '', '']);
 });

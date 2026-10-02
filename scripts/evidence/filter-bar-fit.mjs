@@ -7,8 +7,8 @@
  * Subjects are swept, not named: both Storybook indexes are rendered and every
  * story putting a `.ui-filter-bar` on the page joins the set, alongside
  * filter-bar-fit.html, the issue's own reproduction. Each panel is measured
- * against the `.ui-dropdown` that contains it, and the mutation puts the 240px
- * floor back and has to widen one in every case carrying a panel.
+ * against the `.ui-dropdown` that contains it, and each open menu again with the
+ * viewport narrowed under it; four mutations below have to be refused.
  *
  * why: scripts/evidence/README.md
  *
@@ -45,18 +45,32 @@ for (const build of BUILDS) {
 // not only on a phone: a defect that needs no narrow viewport was invisible to a
 // sweep that only measured phones.
 const WIDTHS = [320, 375, 390, 1280];
+// The width every open menu is also measured at, whatever width it opened at.
+const NARROW = WIDTHS[0];
 const THEMES = ['dark', 'light'];
 /* Floors, recorded from what this kit reaches rather than re-derived from the
  * sweep. A count computed from the same loop that filled it can only restate
  * itself: a sweep that silently stopped reaching half the surfaces would report
  * "36 of 36 expected" and pass. These fail instead, and raising them is the
  * deliberate act of someone who has seen the new surfaces. */
-const FLOOR_SUBJECTS = 14;   // 8 root + 6 react stories rendering a filter bar
-const FLOOR_PANELLED = 64;   // cases that put a panel on the page, of 120
+const FLOOR_SUBJECTS = 15;   // 8 root + 7 react stories rendering a filter bar
+const FLOOR_PANELLED = 72;   // cases that put a panel on the page, of 128
 // Putting the floor back is one mutation. It is the rule as it stood before the
 // fix, written at a specificity that beats the bound so it cannot be a no-op.
 const FLOOR_BACK = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel'
   + ' { min-width: 240px !important; max-width: none !important; }';
+/* And the resize check's own mutation, which is a listener rather than a rule:
+ * with every `resize` handler dropped, both halves keep the fit they opened with,
+ * and a menu opened wide and measured narrow has to leave its row or widen the
+ * page. Injected before the page loads, so the kit's own registration is the one
+ * that never happens. */
+const RESIZE_DEAF = `(() => {
+  const add = EventTarget.prototype.addEventListener;
+  EventTarget.prototype.addEventListener = function (type, ...rest) {
+    if (type === 'resize') return;
+    return add.call(this, type, ...rest);
+  };
+})()`;
 /* Taking the wrap hint away is the other. The floor mutation only ever widens a
  * panel, so it can never exercise the row-fit check; without this one that check
  * would have nothing proving it still measures anything. */
@@ -192,10 +206,11 @@ async function sweep() {
 const { found: subjects, unrendered } = await sweep();
 
 /** One case: a rendered subject at a width in a theme, optionally mutated. */
-async function measure({ url, ready, width, theme, mutate, attrTheme }) {
+async function measure({ url, ready, width, theme, mutate, attrTheme, deaf }) {
   const ctx = await browser.newContext({
     viewport: { width, height: 640 }, deviceScaleFactor: 1, reducedMotion: 'reduce',
   });
+  if (deaf) await ctx.addInitScript({ content: RESIZE_DEAF });
   const page = await ctx.newPage();
   await page.goto(url, { waitUntil: 'load' });
   /* Every subject was chosen because it renders a filter bar, so measuring
@@ -223,6 +238,19 @@ async function measure({ url, ready, width, theme, mutate, attrTheme }) {
     await trigger.click();
     await settle(page);
     opens.push({ chip: at + 1, ...await page.evaluate(probe) });
+    /* And again with the viewport moved under the open menu, which is how a
+     * phone being rotated reaches it. The fit is written at open, so a menu
+     * holding those numbers stands outside a row that has since narrowed —
+     * 11px off the page in vanilla, 14px in React, and no single-viewport
+     * measurement can see it. Put back afterwards, so the next chip opens at
+     * the case's own width. */
+    if (width !== NARROW) {
+      await page.setViewportSize({ width: NARROW, height: 640 });
+      await settle(page);
+      opens.push({ chip: at + 1, resizedTo: NARROW, ...await page.evaluate(probe) });
+      await page.setViewportSize({ width, height: 640 });
+      await settle(page);
+    }
     await page.keyboard.press('Escape');
     await settle(page);
   }
@@ -294,6 +322,13 @@ const tooNarrow = (held) => [held, ...held.opens]
     .map((p) => ({ ...p, floor: Math.min(MENU_FLOOR, bar.width) }))))
   .filter((p) => p.width < p.floor - 0.5);
 
+/** Panels outside the row that holds them, in one measured state. A menu may
+ *  never leave its row: that is the half of the promise a width alone cannot
+ *  show, and it is what a stale fit breaks after a resize. */
+const escapedIn = (state) => state.bars.flatMap((bar) => bar.panels
+  .filter((p) => p.right > bar.right + 0.5 || p.left < bar.left - 0.5)
+  .map((p) => ({ panel: p, bar })));
+
 /** The distinct rows whose text left them, one entry per row however many times
  *  the walk measured it. */
 const spilled = (held) => {
@@ -310,6 +345,7 @@ const carriesPanel = (held) => Math.max(panelCount(held), ...held.opens.map(pane
 const ledger = [];
 const fails = [];
 const panelled = new Set();
+let resizedStates = 0;
 for (const one of cases) {
   const held = await measure(one);
   ledger.push({ ...one, mutated: false, ...held });
@@ -344,16 +380,21 @@ for (const one of cases) {
       + `${spill.content}px in a ${spill.box}px row, so it leaves the panel that bounds it`);
   }
   for (const state of [held, ...held.opens]) {
-    for (const bar of state.bars) {
-      for (const panel of bar.panels) {
-        if (panel.right > bar.right + 0.5 || panel.left < bar.left - 0.5) {
-          fails.push(`${one.name} at ${one.width}px ${one.theme}`
-            + `${state.chip ? ` chip ${state.chip} open` : ''}: a panel spans `
-            + `${panel.left}..${panel.right} outside its row's ${bar.left}..${bar.right}`);
-        }
-      }
+    for (const { panel, bar } of escapedIn(state)) {
+      fails.push(`${one.name} at ${one.width}px ${one.theme}`
+        + `${state.chip ? ` chip ${state.chip} open` : ''}`
+        + `${state.resizedTo ? ` resized to ${state.resizedTo}px` : ''}: a panel spans `
+        + `${panel.left}..${panel.right} outside its row's ${bar.left}..${bar.right}`);
     }
   }
+  /* A case wide enough to be narrowed has to have been narrowed. A walk that
+   * opened a chip and never moved the viewport is the single-viewport sweep this
+   * check exists to replace, and it would pass in silence. */
+  if (one.width !== NARROW && held.opens.length && !held.opens.some((o) => o.resizedTo)) {
+    fails.push(`${one.name} at ${one.width}px ${one.theme}: ${held.opens.length} menus were opened `
+      + 'and none was measured again at a narrower viewport');
+  }
+  resizedStates += held.opens.filter((o) => o.resizedTo).length;
 }
 
 /* The mutation. Every case carrying a panel has to come back with at least one
@@ -398,6 +439,21 @@ for (const one of wrapArm) {
   squeezed.push(...tooNarrow(narrow).map((p) => `${one.name}: ${p.width}px under ${p.floor}px`));
 }
 
+/* The fourth mutation, and the only one that is not a stylesheet: with every
+ * `resize` listener dropped, neither half re-measures, so a menu opened at the
+ * widest width and narrowed has to be caught leaving its row or widening the
+ * page. Run on the widest arm in one theme, where the gap between the two
+ * viewports is largest. */
+const deafArm = cases.filter((one) => one.width === WIDTHS[WIDTHS.length - 1] && one.theme === THEMES[0]);
+const stale = [];
+for (const one of deafArm) {
+  const kept = await measure({ ...one, deaf: true });
+  ledger.push({ ...one, mutated: 'resize-deaf', ...kept });
+  const loose = kept.opens.filter((o) => o.resizedTo)
+    .filter((o) => o.over > 0 || escapedIn(o).length);
+  if (loose.length) stale.push(`${one.name}: ${loose.length} menus kept the fit they opened with`);
+}
+
 await browser.close();
 for (const half of Object.values(servers)) half.proc.kill();
 vanilla.proc.kill();
@@ -423,6 +479,9 @@ console.log(`rows that spill with the wrap hint off: ${unwrapped.length}, over `
   + `${wrapArm.length} cases at ${WIDTHS[0]}px ${THEMES[0]}`);
 console.log(`menus under their row floor with the menu floor off: ${squeezed.length}, over `
   + `${wrapArm.length} cases`);
+console.log(`open menus measured again at ${NARROW}px: ${resizedStates}`);
+console.log(`cases whose menus went stale with every resize listener dropped: ${stale.length}, `
+  + `over ${deafArm.length} cases at ${WIDTHS[WIDTHS.length - 1]}px ${THEMES[0]}`);
 
 const problems = [];
 if (cases.length !== expected) problems.push(`measured ${cases.length} cases, expected ${expected}`);
@@ -460,12 +519,23 @@ if (!squeezed.length) {
   problems.push('no open menu fell under its row floor with the menu floor taken away, so the '
     + 'floor check is not measuring anything');
 }
+// And one where no menu goes stale without a resize listener has a resize check
+// that would pass on the single-viewport fit this gate used to measure.
+if (!resizedStates) {
+  problems.push(`no open menu was measured again at ${NARROW}px, so nothing here says what a `
+    + 'menu does when the viewport moves under it');
+}
+if (!stale.length) {
+  problems.push('no menu left its row or widened the page with every resize listener dropped, so '
+    + 'the resize check is not measuring anything');
+}
 problems.push(...unrendered, ...fails, ...survived);
 if (problems.length) {
   for (const line of problems) console.error(`  ✗ ${line}`);
   process.exitCode = 1;
 } else {
   console.log(`✓ ${cases.length} cases: every shut panel as wide as its .ui-dropdown, every open `
-    + `menu at the floor its row allows, all inside their row and adding nothing to the page; `
+    + `menu at the floor its row allows, all inside their row and adding nothing to the page, `
+    + `at the width they opened at and again at ${NARROW}px; `
     + `${panelled.size} panel-bearing mutations rejected`);
 }

@@ -206,16 +206,34 @@ export function Dropdown({
 
   /* #549: inside a filter row an open panel takes the kit's menu floor rather
    * than the trigger's width, shifted back along the row when the room ahead
-   * cannot hold it. The calculation is the kit's own, so this and wireDropdown()
-   * cannot drift. Outside a filter row it does nothing.
+   * cannot hold it. The calculation is the kit's own, asked rather than
+   * re-implemented; what this half owns is writing all three numbers the
+   * stylesheet reads and measuring again when the viewport moves, both held by
+   * Dropdown.test.tsx. Outside a filter row it does nothing.
    * why: src/styles/filter-bar.css */
   useIsoLayoutEffect(() => {
     const el = panel.current;
     if (!el || !open) return;
-    const fit = filterPanelFit(root.current);
-    if (!fit) return;
-    el.style.setProperty('--ui-filter-panel-room', `${fit.room}px`);
-    el.style.setProperty('--ui-filter-panel-shift', `${fit.shift}px`);
+    const fit = () => {
+      const got = filterPanelFit(root.current);
+      if (!got) return;
+      el.style.setProperty('--ui-filter-panel-room', `${got.room}px`);
+      el.style.setProperty('--ui-filter-panel-shift', `${got.shift}px`);
+      el.style.setProperty('--ui-filter-panel-floor', `${got.floor}px`);
+      /* The width a search panel is holding was read at the old viewport, and
+       * inline beats the sheet, so it is read again off the newly bounded box.
+       * The effect below is what writes it in the first place. */
+      if (!el.style.minWidth) return;
+      el.style.minWidth = '';
+      if (el.offsetWidth) el.style.minWidth = `${el.offsetWidth}px`;
+    };
+    fit();
+    /* A menu left open across a viewport change is fitted to a row that no
+     * longer exists: opened at 1280 and kept open at 390 it stood 14px off the
+     * page. wireDropdown() re-measures on the same event. */
+    const view = root.current?.ownerDocument?.defaultView;
+    view?.addEventListener('resize', fit);
+    return () => view?.removeEventListener('resize', fit);
   }, [open]);
 
   const sx = search ? { ...SEARCH_DEFAULTS, ...strip(search === true ? {} : search) } : null;
@@ -297,7 +315,18 @@ export function Dropdown({
   useIsoLayoutEffect(() => {
     const want = landOn.current;
     landOn.current = null;
-    if (!open) return;
+    if (!open) {
+      /* A search panel carries the width it was opened at as an inline `min-width`,
+       * and inline beats any sheet — including the rule that holds a shut panel to
+       * its trigger. Inside a filter row that residue is #467: with the menu floor
+       * the panel opens at 240px or more, and a shut one stayed that wide. Cleared
+       * here and written again on the next open, as closeDropdown() does for the
+       * vanilla wiring. why: src/components/dropdown.js */
+      if (panel.current?.style && root.current?.closest('.ui-filter-bar')) {
+        panel.current.style.minWidth = '';
+      }
+      return;
+    }
     // With a field, focus goes to it however the panel was opened, and the row Enter
     // would pick is the selected one or the first. Every open starts from the whole
     // list, so the query is cleared here and not on the way out — a panel fading out

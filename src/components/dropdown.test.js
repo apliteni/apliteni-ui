@@ -520,3 +520,108 @@ test('neutral badges distinguish named states from metadata without changing sup
   assert.deepEqual([...doc.querySelectorAll('.ui-dropdown__badge')].map(el => el.className),
     cases.map(([, tone]) => `ui-dropdown__badge is-${tone}`));
 });
+
+// ---- A filter chip's menu ------------------------------------------------
+// The arithmetic is filter-panel-fit.test.js's subject; these cover the wiring
+// around it — which numbers reach the panel, when they are written again, and
+// what is cleared on the way out.
+//
+// LIMITS: JSDOM lays nothing out, so the row and the dropdown are given rects
+// and the panel is given the width a browser would have bounded it to. That a
+// rendered menu obeys the properties is measured by
+// scripts/evidence/filter-bar-fit.mjs, not here. Left-to-right rows only.
+
+const SECTORS = [{ label: 'All', value: 'All' }, { label: 'Consumer Discretionary', value: 'cons' }];
+const PANEL_PROPS = ['room', 'shift', 'floor'];
+
+/** One chip in a filter row, wired, with the two rects filterPanelFit() reads
+ *  and the width the stylesheet would have left the panel at. `resize()` moves
+ *  the row the way a rotation does: new numbers, then the event. */
+function chipRow({ rowWidth = 1200, left = 146, search = false, panelWidth = 240 } = {}) {
+  const window = mount(
+    '<fieldset class="ui-filter-bar" data-filter-bar>'
+    + '<legend class="ui-filter-bar__legend">Filters</legend>'
+    + '<fieldset class="ui-filter-bar__chip" data-filter-id="sector">'
+    + dropdown({ label: 'Sector', value: 'All', variant: 'select', search, items: SECTORS })
+    + '</fieldset></fieldset>',
+  );
+  const doc = window.document;
+  const bar = doc.querySelector('.ui-filter-bar');
+  const dd = doc.querySelector('.ui-dropdown');
+  const panel = doc.querySelector('[data-dropdown-panel]');
+  const at = { rowWidth, left, panelWidth };
+  bar.getBoundingClientRect = () => ({ left: 0, right: at.rowWidth, width: at.rowWidth });
+  dd.getBoundingClientRect = () => ({ left: at.left, right: at.left + 60, width: 60 });
+  Object.defineProperty(panel, 'offsetWidth', { get: () => at.panelWidth, configurable: true });
+  wireDropdown(doc);
+  return {
+    window, dd, panel,
+    trigger: doc.querySelector('[data-dropdown-trigger]'),
+    fit: () => PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`)),
+    resize: (next) => {
+      Object.assign(at, next);
+      window.dispatchEvent(new window.Event('resize'));
+    },
+  };
+}
+
+test('an open chip menu carries every number the stylesheet reads', () => {
+  // All three, not two: min-width reads the floor and max-width the room, so a
+  // half-written fit leaves the published `floor` argument unable to change a
+  // rendered width. why: src/styles/filter-bar.css
+  const row = chipRow();
+  click(row.window, row.trigger);
+  assert.deepEqual(row.fit(), ['1054px', '0px', '240px']);
+});
+
+test('a viewport change re-measures a menu that is still open', () => {
+  // Opened in a 1200px row and left open in a 358px one: the room it was fitted
+  // to is gone, and a menu holding that number stands off the page.
+  const row = chipRow();
+  click(row.window, row.trigger);
+  assert.deepEqual(row.fit(), ['1054px', '0px', '240px']);
+  row.resize({ rowWidth: 358 });
+  assert.deepEqual(row.fit(), ['240px', '28px', '240px']);
+});
+
+test('a shut menu is left alone when the viewport changes', () => {
+  // Shut, the panel keeps the trigger's width from the stylesheet alone — #467
+  // holds with no measuring at all, and a resize must not start measuring.
+  const row = chipRow();
+  row.resize({ rowWidth: 358 });
+  assert.deepEqual(row.fit(), ['', '', '']);
+});
+
+test('a searchable chip gives its pinned width back when it closes', () => {
+  /* ddResetSearch() pins the open width inline so the list does not narrow as a
+   * query hides rows, and inline beats the sheet that holds a shut panel to its
+   * trigger. Left behind, that is #467 at the menu floor's width. */
+  const row = chipRow({ search: true });
+  click(row.window, row.trigger);
+  assert.equal(row.panel.style.minWidth, '240px');
+  click(row.window, row.trigger);
+  assert.equal(row.dd.classList.contains('open'), false);
+  assert.equal(row.panel.style.minWidth, '', 'the pin goes with the open state');
+});
+
+test('a searchable chip reads its pin again at the new width', () => {
+  // The pin was read in the old row, so re-fitting the properties alone leaves a
+  // menu inline-pinned wider than the row it is now in.
+  const row = chipRow({ search: true });
+  click(row.window, row.trigger);
+  assert.equal(row.panel.style.minWidth, '240px');
+  row.resize({ rowWidth: 200, panelWidth: 200 });
+  assert.deepEqual(row.fit(), ['200px', '146px', '200px']);
+  assert.equal(row.panel.style.minWidth, '200px');
+});
+
+test('a dropdown outside a filter row is given no numbers at all', () => {
+  const window = mount(dropdown({ value: 'Workspace', variant: 'menu', items: MENU }));
+  const doc = window.document;
+  wireDropdown(doc);
+  const panel = doc.querySelector('[data-dropdown-panel]');
+  click(window, doc.querySelector('[data-dropdown-trigger]'));
+  assert.deepEqual(PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`)), ['', '', '']);
+  window.dispatchEvent(new window.Event('resize'));
+  assert.deepEqual(PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`)), ['', '', '']);
+});

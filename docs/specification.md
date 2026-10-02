@@ -1891,9 +1891,13 @@ themselves were never the problem; `.ui-filter-bar` wraps, and at both widths th
 
 **What a consumer can rely on.** At any viewport, a filter bar's *panels* add nothing to the page's
 scrollable width, and each panel opens inside the row that holds it. An open menu is also at least
-as wide as the kit's 240px menu floor, or as wide as its row where the row is narrower. The bound is `min-width: 100%;
-max-width: 100%` against the panel's own containing block, so it needs no measuring, no resize
-listener and no JavaScript, and vanilla and React get it from the same rule. What a consumer gives
+as wide as the kit's 240px menu floor, or as wide as its row where the row is narrower. The two
+promises are kept by different means, and the difference is the part a consumer has to know. A shut
+panel is bounded by `min-width: 100%; max-width: 100%` against its own containing block, so it needs
+no measuring, no resize listener and no JavaScript, and vanilla and React get it from the same rule.
+An open menu's floor is *measured*: it holds once the kit's JavaScript has run, and a viewport that
+moves under an open menu is measured again — both halves listen for `resize`, because a menu that
+kept the fit it opened with stood 11px off a rotated phone. What a consumer gives
 up is panel width: a filter whose options are longer than its chip wraps them over more rows
 instead of widening. That suits the values a filter shows — a filter's options are the short words
 its chip already carries — and a list that needs more room than that is a dropdown rather than a
@@ -1934,17 +1938,31 @@ value alone, so a trigger is now as narrow as `US`, and bounding the open menu t
 `filterPanelFit()` is the arithmetic, exported from the kit so `wireDropdown()` and React's
 `<Dropdown>` cannot drift: from the dropdown's inline start it measures the room to the row's end,
 shifts the menu back along the row by what the floor still needs, and never shifts past the row's
-own start. The stylesheet reads the two numbers as `--ui-filter-panel-room` and
-`--ui-filter-panel-shift`; unset, both fall back to the trigger's width, so a menu opened before
-the measurement runs is bounded rather than unbounded. A panel rendered already-open is fitted when
-it is wired, since it never passes through the open path.
+own start. The stylesheet reads three numbers — `--ui-filter-panel-room` caps the width,
+`--ui-filter-panel-floor` is the width reached for, and `--ui-filter-panel-shift` is the slide — and
+both halves write all three, so the `floor` argument reaches a rendered menu wherever the menu is
+rendered. Unset, each falls back to the trigger's width, so a menu opened before the measurement
+runs is bounded rather than unbounded. A panel rendered already-open is fitted when it is wired,
+since it never passes through the open path.
+
+The numbers describe the row as it was when the menu opened, so a viewport change invalidates them:
+a menu opened at 1280px and left open at 390px kept a room of 1102px and stood outside a row that
+had since narrowed to 358px — 11px off the page in the wiring and 14px in React. Both halves
+therefore re-measure on `resize`, which is a rotation's own event, and the menu stays open rather
+than closing under the reader. A scroll needs no re-measurement: the fit is widths within one row,
+and a scroll moves the row and the panel together. A portalled panel is the other way round — it is
+placed in viewport coordinates — so that one is re-placed on scroll and not re-fitted here.
 
 A menu pinned at its inline end — `dropdown({ align: 'end' })` composed inside a filter row — is
 measured from that edge and slid the other way, because an end-anchored panel grows backwards: the
 room it has is what lies between its own right edge and the row's start. A searchable chip is fitted
-before `ddResetSearch()` pins the width it reads, so the floor is in before the measurement rather
-than after it. Both compositions sit in `scripts/evidence/filter-bar-fit.html`, so the browser gate
-measures them.
+before the width it holds is pinned, so the floor is in before the measurement rather than after it.
+That pin is inline and outranks the shut bound, so it is cleared when the menu closes and read again
+at the new width when the viewport moves — in both halves, by `closeDropdown()` and by `<Dropdown>`'s
+own effect. Left behind once, it was #467 at the floor's width: a shut 240px panel on a 390px view.
+Both compositions sit in `scripts/evidence/filter-bar-fit.html` and in the React
+`FilterBar / Composed` story, because `filterBar()` and `<FilterBar>` pass neither option through
+and a gate that sweeps stories can only measure what one of them renders.
 
 **A panel anchored to the row, not to a chip.** The floor and the slide are a chip's arithmetic:
 the slide is measured from the trigger's offset along the row. A control that takes its dropdown out
@@ -1964,14 +1982,22 @@ the bound is on the panel. A filter whose applied value can be that long wants a
 value, or a change to the trigger, which is a change to every chip in the kit.
 
 Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
-— resolving one spelled as a token — and requires each to be answered inside the bar, and measured
-in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in both themes.
+— resolving one spelled as a token — and requires each to be answered inside the bar; by
+`src/components/filter-panel-fit.test.js` for the arithmetic; and by the wiring's own cases in
+`src/components/dropdown.test.js` and `react/src/Dropdown.test.tsx`, which are the same six
+questions asked of each half — which numbers reach an open panel, that a shut one gets none, that a
+dropdown outside a filter row gets none either, that a resize writes them again, and that a search
+panel's pin is released on close and read again at the new width.
+It is measured in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in
+both themes.
 That gate sweeps both Storybook indexes for every story rendering a filter bar, measures each panel
 against the `.ui-dropdown` that contains it, asks every option row whether its own text fits it,
-requires every open menu to reach the floor its row allows, and runs three mutations: putting the
-240px floor back has to widen a panel, taking the wrap hint away has to make a row spill, and
-taking the menu floor away has to leave a menu under its row's floor. Its fixture
-page carries an unbreakable value so the wrap hint is measured rather than assumed.
+requires every open menu to reach the floor its row allows, narrows the viewport under each open
+menu and asks all of it again, and runs four mutations: putting the 240px floor back has to widen a
+panel, taking the wrap hint away has to make a row spill, taking the menu floor away has to leave a
+menu under its row's floor, and dropping every `resize` listener has to leave a narrowed menu
+outside its row. Its fixture page carries an unbreakable value so the wrap hint is measured rather
+than assumed.
 
 ## A dropdown row is a div, a link or a button
 
