@@ -123,6 +123,28 @@
   color: var(--disabled-ink-bare);
 }
 
+/* Blocked beats picked and beats inside, in the paint as in the behaviour. A
+   host can block the period its own value names, or one between the two ends of
+   a range: the bounds move, or the month the reader chose closes. Left to the
+   cascade such a cell kept its fill and took the disabled ink over it — 1.13:1
+   on the accent fill in light, 4.43:1 on the range tint under the green accent.
+   So a blocked cell goes bare whatever else it is, and a blocked pick keeps its
+   place as weight, the device `is-today` uses, which spends no second colour.
+   Both combinations are written here rather than left to the component, so the
+   sheet is right on its own; `isInside()` withholds the second one as well.
+   why: guidelines/accessibility-floor.md */
+.ui-datepicker__opt.is-disabled.is-selected,
+.ui-datepicker__opt.is-disabled.is-selected:hover,
+.ui-datepicker__opt.is-disabled.is-inside,
+.ui-datepicker__opt.is-disabled.is-inside:hover {
+  background: transparent;
+  border-color: transparent;
+  /* muted-ink: state — a blocked period a range or a value still names */
+  color: var(--disabled-ink-bare);
+}
+.ui-datepicker__opt.is-disabled.is-selected { font-weight: var(--weight-bold); }
+.ui-datepicker__opt.is-disabled .ui-datepicker__mark { background: var(--muted); }
+
 /* -- Marks ----------------------------------------------------------------- */
 /* A dot under the numeral, out of the text flow so a marked cell is the same
    height as an unmarked one. The word is in the legend and in the cell's

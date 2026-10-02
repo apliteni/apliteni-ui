@@ -424,6 +424,11 @@ export function DatePicker({
    * A shortcut's range as the bounds allow it: clamped where the two overlap,
    * and null where they do not — a shortcut the grid would refuse cell by cell
    * must not be applied whole from beside it.
+   *
+   * An end that lands on a blocked period is a refusal and not a clamp. Walking
+   * inwards to the nearest free period would hand back a range nobody asked
+   * for, and the cell itself cannot be pressed, so the shortcut is off for the
+   * same reason the cell is.
    */
   function allowed(preset: DatePickerPreset): DatePickerRange | null {
     const a = toIndex(preset.range.start, grain, 'start');
@@ -431,10 +436,9 @@ export function DatePicker({
     if (a == null || b == null) return null;
     const [from, to] = a <= b ? [a, b] : [b, a];
     if ((hi != null && from > hi) || (lo != null && to < lo)) return null;
-    return {
-      start: fromIndex(clamp(from, lo, hi), grain),
-      end: fromIndex(clamp(to, lo, hi), grain),
-    };
+    const ends = [clamp(from, lo, hi), clamp(to, lo, hi)];
+    if (ends.some(isBlocked)) return null;
+    return { start: fromIndex(ends[0], grain), end: fromIndex(ends[1], grain) };
   }
 
   function applyPreset(next: DatePickerRange) {
