@@ -8,7 +8,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
-  AA_TEXT, composite, desugar, effectiveBackground, kitCssFor, parseColour, ratio, substitute, tokensFor,
+  AA_LARGE, AA_TEXT, composite, desugar, effectiveBackground, kitCssFor, parseColour, ratio, substitute, tokensFor,
   // stories/lib/contrast.js is plain JS outside this workspace's tsconfig, and is
   // imported here for the same arithmetic react/src/contrast.test.tsx uses.
   // @ts-expect-error -- untyped JS module, deliberately shared across the gates.
@@ -328,8 +328,64 @@ describe('marks', () => {
         marks={{ '2026-06': { label: 'Restated' }, '2026-07': { label: 'Restated' } }}
       />,
     );
-    expect(panel().querySelectorAll('.ui-datepicker__legend-item')).toHaveLength(1);
+    // Two entries: the one mark, listed once for the two months that carry it,
+    // and the current period, which 2026 is the year of.
+    const words = () => [...panel().querySelectorAll('.ui-datepicker__legend-item')]
+      .map(li => li.textContent);
+    expect(words()).toEqual(['This month', 'Restated']);
     await user.click(screen.getByRole('button', { name: /^Next year/ }));
+    expect(panel().querySelector('.ui-datepicker__legend')).toBeNull();
+  });
+});
+
+/* The three things a reader had to be told before: which month is this one,
+ * which months they cannot have, and which dot belongs to which word. Each is
+ * held here as the DOM says it; the paint behind them is the cell-state gate
+ * at the end of this file and the browser captures on the pull request. */
+describe('every mark reads without a key beside it', () => {
+  /** The twelve labels the month grid draws, in grid order. */
+  const monthLabels = () => [...panel().querySelectorAll('.ui-datepicker__opt .ui-datepicker__num')]
+    .map(el => el.textContent ?? '');
+
+  it('draws the twelve months at one length', () => {
+    render(<DatePicker today={TODAY} defaultValue="2026-08" defaultOpen />);
+    const labels = monthLabels();
+    expect(labels).toHaveLength(12);
+    // en-GB is the component's own default and the locale that breaks: ICU
+    // abbreviates September to four letters and the other eleven to three.
+    expect(new Set(labels.map(l => [...l].length)), labels.join(' ')).toEqual(new Set([3]));
+    expect(labels[8]).toBe('Sep');
+    expect(new Set(labels).size, 'two months share a label').toBe(12);
+  });
+
+  /* The cut is not a blanket one: a locale that counts its months writes a
+   * numeral and a counter, and taking the counter off would say something
+   * else. Without that guard this case comes back as 1, 2, ... 12. */
+  it('leaves a locale that numbers its months as it writes them', () => {
+    render(<DatePicker today={TODAY} locale="ja-JP" defaultValue="2026-08" defaultOpen />);
+    expect(monthLabels()).toEqual(
+      Array.from({ length: 12 }, (_, m) => new Intl.DateTimeFormat('ja-JP', { month: 'short', timeZone: 'UTC' })
+        .format(new Date(Date.UTC(2026, m, 1)))),
+    );
+    expect(monthLabels()[9]).toMatch(/10/);
+  });
+
+  it('names the current period in the legend and rings only that cell', () => {
+    render(<DatePicker today={TODAY} defaultValue="2026-08" defaultOpen />);
+    expect(panel().querySelector('.ui-datepicker__legend')).toHaveTextContent('This month');
+    expect(panel().querySelectorAll('.ui-datepicker__now-key')).toHaveLength(1);
+    const ringed = [...panel().querySelectorAll('.ui-datepicker__opt.is-today')];
+    expect(ringed.map(el => el.getAttribute('aria-label'))).toEqual(['September 2026, this month']);
+    // Weight was the old device and is now the blocked pick's alone, so no
+    // cell may wear both meanings at once.
+    expect(ringed[0]).not.toHaveClass('is-selected');
+  });
+
+  it('calls it Today in day grain, and drops the entry off a page without it', async () => {
+    const user = userEvent.setup();
+    render(<DatePicker today={TODAY} mode="day" defaultValue="2026-09-17" defaultOpen />);
+    expect(panel().querySelector('.ui-datepicker__legend')).toHaveTextContent('Today');
+    await user.click(screen.getByRole('button', { name: /^Next month/ }));
     expect(panel().querySelector('.ui-datepicker__legend')).toBeNull();
   });
 });
@@ -948,6 +1004,159 @@ describe('every cell state is readable', () => {
       expect(fg && Array.isArray(bg), 'the mutation resolved').toBe(true);
       expect(ratio(composite(fg, bg), bg)).toBeLessThan(AA_TEXT);
     } finally { done(); }
+  });
+});
+
+/* The signals that are not ink: the ring that says which period the reader is
+ * in, and the dots that say which word in the legend a cell carries. Both are
+ * paint the cell-state gate above cannot see, because it measures `color`
+ * against ground and these are a border and a background on a 5px box.
+ *
+ * Every theme and every shipped accent, as above, and the grounds a cell
+ * really sits on. What it does not reach: the browser's own rendering, which
+ * the captures on the pull request own.
+ * why: guidelines/accessibility-floor.md */
+describe('the ring and the dots are readable, and the dots pair with the legend', () => {
+  const THEMES = ['dark', 'light'] as const;
+  const ACCENTS = ['default', 'phoenix', 'ocean', 'emerald'] as const;
+  const css = read('./DatePicker.css');
+
+  /** Every tone the sheet paints a mark in, discovered rather than listed. */
+  const TONES = [...new Set(
+    [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.ui-datepicker__mark\.(is-[\w-]+)/g)].map(m => m[1]),
+  )];
+
+  /** The cell states a mark or a ring has to survive. */
+  const STATES = ['', 'is-today', 'is-selected', 'is-selected is-today',
+    'is-inside', 'is-inside is-today', 'is-disabled', 'is-disabled is-today'] as const;
+  const at = (state: string, tone = '') => `[data-at="${state}|${tone}"]`;
+
+  /** A panel holding one grid cell per state and tone, and the legend beside it. */
+  function harness(theme: string, accent: string, sheet = css) {
+    const style = document.createElement('style');
+    style.textContent = `${kitCssFor(theme, accent).css}\n${desugar(substitute(sheet, tokensFor(theme, accent)))}`;
+    document.head.appendChild(style);
+    document.documentElement.setAttribute('data-theme', theme);
+    if (accent !== 'default') document.documentElement.setAttribute('data-accent', accent);
+
+    const host = document.createElement('div');
+    const opt = (state: string, tone: string) =>
+      `<span class="ui-datepicker__cell"><button class="ui-datepicker__opt ui-focusable ${state}" type="button"`
+      + ` data-at="${state}|${tone}"><span class="ui-datepicker__num">17</span>`
+      + `<span class="ui-datepicker__mark ${tone}" data-at="${state}|${tone}"></span></button></span>`;
+    host.innerHTML = '<div class="ui-dropdown__panel ui-datepicker__panel"><div class="ui-datepicker__grid">'
+      + STATES.flatMap(state => TONES.map(tone => opt(state, tone))).join('')
+      + '</div><ul class="ui-datepicker__legend">'
+      + '<li class="ui-datepicker__legend-item"><span class="ui-datepicker__now-key"></span>This month</li>'
+      + TONES.map(t => `<li class="ui-datepicker__legend-item"><span class="ui-datepicker__mark ${t}"`
+        + ` data-at="legend|${t}"></span>word</li>`).join('')
+      + '</ul></div>';
+    document.body.appendChild(host);
+
+    const pick = (sel: string) => host.querySelector<HTMLElement>(sel)!;
+    const done = () => {
+      host.remove();
+      style.remove();
+      document.documentElement.removeAttribute('data-accent');
+    };
+    return { pick, done };
+  }
+
+  const inkOf = (el: HTMLElement, prop: 'backgroundColor' | 'borderTopColor') =>
+    parseColour(getComputedStyle(el)[prop]);
+
+  it('discovers the tones the sheet paints', () => {
+    expect(TONES.length, 'mark tones found in the sheet').toBeGreaterThan(3);
+  });
+
+  it.each(THEMES)('%s: a dot is the one colour in the cell and in the legend', theme => {
+    const mismatches: string[] = [];
+    let judged = 0;
+    for (const accent of ACCENTS) {
+      const { pick, done } = harness(theme, accent);
+      try {
+        for (const tone of TONES) {
+          const key = inkOf(pick(`.ui-datepicker__mark${at('legend', tone)}`), 'backgroundColor');
+          for (const state of STATES) {
+            const got = inkOf(pick(`.ui-datepicker__mark${at(state, tone)}`), 'backgroundColor');
+            judged += 1;
+            const where = `${theme}/${accent} ${tone} ${state || '(rest)'}`;
+            if (!key || !got) { mismatches.push(`${where}: unresolved`); continue; }
+            if (String(got) !== String(key)) mismatches.push(`${where}: ${got} not ${key}`);
+          }
+        }
+      } finally { done(); }
+    }
+    expect(judged, 'dots judged').toBe(TONES.length * STATES.length * ACCENTS.length);
+    expect(mismatches, 'dots that do not pair with their legend entry').toEqual([]);
+  });
+
+  /* Prove rejection by putting back the repaint this change took out: the dot
+   * on the pick used to be redrawn in the fill's contrast ink, which is the
+   * pairing failure Artur read off the June cell. */
+  it('catches a dot repainted away from its legend entry', () => {
+    const repainted = `${css}\n.ui-datepicker__opt.is-selected .ui-datepicker__mark { background: var(--accent-contrast); }`;
+    const { pick, done } = harness('light', 'default', repainted);
+    try {
+      const key = inkOf(pick(`.ui-datepicker__mark${at('legend', TONES[0])}`), 'backgroundColor');
+      const got = inkOf(pick(`.ui-datepicker__mark${at('is-selected', TONES[0])}`), 'backgroundColor');
+      expect(key, 'the legend dot resolved').not.toBeNull();
+      expect(String(got)).not.toBe(String(key));
+    } finally { done(); }
+  });
+
+  it.each(THEMES)('%s: the current-period ring clears 3:1 on every ground it lands on', theme => {
+    const failures: string[] = [];
+    let judged = 0;
+    for (const accent of ACCENTS) {
+      const { pick, done } = harness(theme, accent);
+      try {
+        for (const state of STATES.filter(x => x.includes('is-today'))) {
+          const el = pick(`.ui-datepicker__opt${at(state, TONES[0])}`);
+          const ring = inkOf(el, 'borderTopColor');
+          const ground = effectiveBackground(el, window);
+          judged += 1;
+          if (!ring || !Array.isArray(ground)) { failures.push(`${theme}/${accent} ${state}: unresolved`); continue; }
+          const got = ratio(composite(ring, ground), ground);
+          if (got < AA_LARGE) failures.push(`${theme}/${accent} ${state}: ${got.toFixed(2)}:1`);
+        }
+        // And the legend's key, which is the same ring at reading size.
+        const key = inkOf(pick('.ui-datepicker__now-key'), 'borderTopColor');
+        const ground = effectiveBackground(pick('.ui-datepicker__now-key'), window);
+        judged += 1;
+        if (!key || !Array.isArray(ground)) failures.push(`${theme}/${accent} legend key: unresolved`);
+        else {
+          const got = ratio(composite(key, ground), ground);
+          if (got < AA_LARGE) failures.push(`${theme}/${accent} legend key: ${got.toFixed(2)}:1`);
+        }
+      } finally { done(); }
+    }
+    expect(judged, 'rings judged').toBe((STATES.filter(x => x.includes('is-today')).length + 1) * ACCENTS.length);
+    expect(failures, `rings below ${AA_LARGE}:1`).toEqual([]);
+  });
+
+  /* Prove rejection by taking the ring off the pick's fill: the accent on
+   * accent-strong is the pair this rule exists for. */
+  it('catches the ring left in the accent on the pick\'s own fill', () => {
+    const without = css.replace(/\.ui-datepicker__opt\.is-selected\.is-today \{[^}]*\}/, '');
+    expect(without, 'the rule this gate mutates was renamed or moved').not.toBe(css);
+    const { pick, done } = harness('light', 'default', without);
+    try {
+      const el = pick(`.ui-datepicker__opt${at('is-selected is-today', TONES[0])}`);
+      const ring = inkOf(el, 'borderTopColor');
+      const ground = effectiveBackground(el, window);
+      expect(ratio(composite(ring, ground), ground)).toBeLessThan(AA_LARGE);
+    } finally { done(); }
+  });
+
+  /* The struck label, held as text: JSDOM resolves `text-decoration` but the
+   * point of the rule is which element carries it — the label, so the dot
+   * beside it is not struck with it. */
+  it('strikes the label of a blocked cell, and only the label', () => {
+    const bare = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(bare).toMatch(/\.ui-datepicker__opt\.is-disabled \.ui-datepicker__num \{[^}]*line-through/);
+    expect(bare, 'the strike is on the button, so the dot is struck with it')
+      .not.toMatch(/\.ui-datepicker__opt\.is-disabled \{[^}]*text-decoration/);
   });
 });
 

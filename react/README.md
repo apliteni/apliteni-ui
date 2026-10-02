@@ -749,15 +749,24 @@ them is clamped, one with no overlap at all is disabled, and one whose end lands
 blocked period is disabled too rather than quietly moved inwards. A blocked period between
 the two ends is not part of the range — it keeps neither the tint nor the words "in range".
 
-**Blocked beats every other state in the paint.** Block the period your own `value` names
-and the cell goes bare like any other blocked cell, keeping its place by weight rather
-than wearing the accent fill under disabled ink. Its name still says `selected` and the
-gridcell still carries `aria-selected`: it is still your value, it just cannot be
-pressed.
+**Blocked beats every other state in the paint, and the label is struck through.** Block
+the period your own `value` names and the cell goes bare, keeping its place by weight
+rather than wearing the accent fill under disabled ink; the strike is what says
+unavailable before the pointer is anywhere near it. A cell under the pointer takes the
+kit's neutral row hover, so the accent stays on the pick and the span. Its name still
+says `selected` and the gridcell still carries `aria-selected`: it is still your value,
+it just cannot be pressed.
 
 **`marks` are the consumer's own notes**, keyed by period. Each shows as a dot in the
 cell, as a word in the legend under the grid, and in the cell's accessible name. Give
-`tone` one of `neutral`, `info`, `success`, `warn` or `danger`.
+`tone` one of `neutral`, `info`, `success`, `warn` or `danger`. A dot keeps its tone
+wherever it is drawn, so the one in the cell and the one beside its word in the legend
+are the same colour to pair.
+
+**The period you are in now wears a ring**, and the legend opens with that ring and the
+words "This month" or "Today" while the page in view holds it. The month grid draws its
+twelve names at one length — "Sep", not en-GB's "Sept" — so no cell reads as emphasised;
+a locale that numbers its months keeps its own names.
 
 **Below 560px the panel is a bottom `Drawer`**, so the sheet has the kit's scrim, close
 control and focus trap and the page behind it is inert. Pass `sheet` to force that at any

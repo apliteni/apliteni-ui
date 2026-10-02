@@ -172,6 +172,26 @@ export const DayBounded: StoryObj<typeof DatePicker> = {
   ),
 };
 
+// The day grid carrying everything the month grid carries: a dot in its own
+// tone, a blocked pair struck through, and the ring on today — which is marked
+// as well, so the ring and the dot are read on one cell.
+export const DayWithMarks: StoryObj<typeof DatePicker> = {
+  render: args => (
+    <DatePicker
+      {...args}
+      mode="day"
+      label="Date:"
+      defaultValue="2026-09-17"
+      marks={{
+        '2026-09-11': { label: 'Restated', tone: 'warn' },
+        '2026-09-15': { label: 'Estimate', tone: 'info' },
+      }}
+      disabledPeriods={['2026-09-19', '2026-09-20']}
+      defaultOpen
+    />
+  ),
+};
+
 const dayPresets = [
   { label: 'This week', range: { start: '2026-09-14', end: '2026-09-20' } },
   { label: 'Last week', range: { start: '2026-09-07', end: '2026-09-13' } },

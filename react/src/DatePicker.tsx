@@ -198,6 +198,24 @@ function stepMonths(dayIndex: number, by: number) {
   return firstDayOf(target) + day - 1;
 }
 
+/**
+ * The twelve short month names at one length. ICU gives en-GB "Sept" among
+ * eleven three-letter names, and in a three-column grid the long one reads as
+ * emphasis. Every name is cut to the shortest when they are letters alone and
+ * the cut keeps them apart; a locale that numbers its months — ja "10月" —
+ * is left as it writes them, because cutting the counter off a numeral leaves
+ * a different word.
+ */
+function evenMonthLabels(format: Intl.DateTimeFormat): string[] {
+  const raw = Array.from({ length: 12 }, (_, m) => format.format(new Date(Date.UTC(2000, m, 1))));
+  const bare = raw.map((n) => n.replace(/\.$/, ''));
+  // Code points rather than UTF-16 units, so a cut never lands inside a letter.
+  const chars = bare.map((n) => Array.from(n));
+  const cut = chars.map((c) => c.slice(0, Math.min(...chars.map((o) => o.length))).join(''));
+  const even = bare.every((n) => /^\p{L}+$/u.test(n)) && new Set(cut).size === 12;
+  return even ? cut : raw;
+}
+
 const clamp = (index: number, lo: number | null, hi: number | null) =>
   Math.min(hi ?? index, Math.max(lo ?? index, index));
 
@@ -251,6 +269,8 @@ export function DatePicker({
     weekday: new Intl.DateTimeFormat(locale, { weekday: 'long', timeZone: 'UTC' }),
     weekdayShort: new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' }),
   }), [locale]);
+
+  const monthLabels = useMemo(() => evenMonthLabels(names.monthShort), [names]);
 
   const at = useCallback((index: number) => new Date(
     grain === 'month'
@@ -354,7 +374,7 @@ export function DatePicker({
       period,
       index,
       label: grain === 'month'
-        ? names.monthShort.format(at(index))
+        ? monthLabels[index % 12]
         : String(new Date(index * DAY_MS).getUTCDate()),
       name: periodName(index),
       disabled: isBlocked(index),
@@ -362,7 +382,7 @@ export function DatePicker({
     };
   // `isBlocked` is read here and closes over lo, hi and blocked; all three are
   // in the list below.
-  }), [grain, first, count, names, at, periodName, marks, lo, hi, blocked]);
+  }), [grain, first, count, monthLabels, at, periodName, marks, lo, hi, blocked]);
 
   // Day grids start the first of the month under its own weekday, so the blanks
   // before it are cells with nothing in them rather than a neighbouring month's
@@ -525,13 +545,16 @@ export function DatePicker({
     : (grain === 'month' ? 'Select a month' : 'Select a date'));
   const name = ariaLabel || (label ? String(label).replace(/:\s*$/, '') : '') || empty;
 
-  // The marks on this page, once each, in the order the grid meets them. The
-  // legend is what keeps a mark from being colour alone.
+  // What the grid's paint means, written under it: the period the reader is in,
+  // then each mark on the page in view, once, in the order the grid meets them.
+  // The legend is what keeps a ring or a dot from standing on its own.
   // why: guidelines/accessibility-floor.md
-  const legend: DatePickerMark[] = [];
+  const marksHere: DatePickerMark[] = [];
   for (const cell of cells) {
-    if (cell.mark && !legend.some((m) => m.label === cell.mark!.label)) legend.push(cell.mark);
+    if (cell.mark && !marksHere.some((m) => m.label === cell.mark!.label)) marksHere.push(cell.mark);
   }
+  const nowHere = todayIndex >= first && todayIndex <= last;
+  const nowLabel = grain === 'month' ? 'This month' : 'Today';
 
   const captionId = `${uid}-caption`;
   /** What a page is called: the year, or the month and year. */
@@ -675,9 +698,15 @@ export function DatePicker({
           ))}
         </div>
 
-        {legend.length > 0 && (
+        {(nowHere || marksHere.length > 0) && (
           <ul className="ui-datepicker__legend">
-            {legend.map((mark) => (
+            {nowHere && (
+              <li className="ui-datepicker__legend-item">
+                <span className="ui-datepicker__now-key" aria-hidden="true" />
+                {nowLabel}
+              </li>
+            )}
+            {marksHere.map((mark) => (
               <li key={mark.label} className="ui-datepicker__legend-item">
                 <span className={`ui-datepicker__mark is-${mark.tone ?? 'neutral'}`} aria-hidden="true" />
                 {mark.label}
