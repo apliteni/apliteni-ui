@@ -44,7 +44,7 @@ export const Default = {
     active: 'prefs',
     crumb: 'Preferences',
     title: 'Preferences',
-    sub: `The kit's /account preset: appShell() with the topbar switched on. What these pages hold, and what they must not become, is settled on ${cite}.`,
+    sub: `The kit's /account preset: appShell() with the topbar switched on. Where account settings belong, and the modal the kit cannot draw yet, is settled on ${cite}.`,
     body,
   }),
 };

@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.65.0', date: '2026-10-01',
     changes: [
-      ['added', 'Guidelines / Account and settings says where account and personal settings live: on pages in the product shell, not in a sheet or an overlay split into panes. Five rules cover the shape, the one short setting an overlay may carry, what the account menu holds, how the pages split \u2014 profile, security and sessions, agents and API tokens, appearance, notifications \u2014 and naming a page\u2019s action after the change it makes. The split rule says plainly where the kit falls short of it: Preferences merges appearance and notifications, and no profile or security page ships. Resolves #509.', ['Shell']],
+      ['added', 'Guidelines / Account and settings says where account and personal settings belong: in one modal over the product, carrying its own navigation beside the pane it shows, not in a full-width sheet with columns. Five rules cover the modal, the navigation inside it \u2014 profile, security and sessions, agents and API tokens, appearance, notifications \u2014 what the account menu holds, changing a single field in the row that names it, and naming a pane\u2019s action after the change it makes. The rules say plainly what the kit cannot draw yet: its modal is a single pane with no navigation slot and no way to widen it, and the account preset it publishes still draws pages in the shell. Resolves #509.', ['Shell']],
     ],
   },
   {
