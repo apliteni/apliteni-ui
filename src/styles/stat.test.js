@@ -161,45 +161,32 @@ test('a change is one line: the arrow keeps its number, and the words clip inste
     'a caption alone sizes its figure by its text instead of being sized by it');
 });
 
-/* Two of the three rows hold words and nothing else — a caption alone, and the
- * row that says there is no earlier figure. Neither has an arrow or a number to
- * orphan, which is the only reason the clip exists, so neither may be clipped:
- * a second line costs nobody anything and losing words costs the reader the
- * whole point of them. The clip reached them once, and 43% of a caption went.
+/* One row holds words and nothing else: a caption with no change beside it. It
+ * has no arrow and no number to keep together, which is the only reason the clip
+ * exists, so it is not clipped — a second line costs nobody anything and losing
+ * words costs the reader the whole point of them. The clip reached it once, and
+ * 43% of a caption went.
  *
- * Measured on the elements themselves rather than on the row around them: the
- * row kept `flex-wrap: wrap` all along, and the caption inside it could not
- * break, so a test that read the row passed on a row that could not wrap.
- * jsdom lays nothing out, so what this holds is which rules reach which element;
- * the showcase draws a caption past the width in all three rows for the rest. */
-test('the rows that hold only words keep every word, and the change row clips', () => {
+ * Measured on the elements themselves rather than on the row around them: a test
+ * that read the row's `flex-wrap` passed while the caption inside it could not
+ * break. jsdom lays nothing out, so what this holds is which rules reach which
+ * element; the showcase draws a caption past the width in both rows for the rest. */
+test('a caption standing alone keeps every word, and the change row clips', () => {
   const win = (stats) => new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({ stats })}</body></html>`).window;
   const LONG = 'March revenue in EUR, excluding refunds';
-  const wordsOnly = win([
-    { label: 'Gross margin', value: '36.1%', caption: LONG },
-    { label: 'Refunds', value: '€ 0', caption: LONG, delta: { value: null } },
-  ]);
+  const alone = win([{ label: 'Gross margin', value: '36.1%', caption: LONG }]);
   const clipped = win([{ label: 'Net margin', value: '8.0%', caption: LONG, delta: { value: '+0.4 pts' } }]);
   const styleOf = (w, sel) => w.getComputedStyle(w.document.querySelector(sel));
 
-  for (const [where, sel] of [['a caption alone', 'dd.ui-stat__caption'], ['the row with no change', '.ui-stat__delta--none .ui-stat__caption']]) {
-    const got = styleOf(wordsOnly, sel);
-    assert.notEqual(got.whiteSpace, 'nowrap', `${where}: the caption cannot break, so a long one is cut rather than wrapped`);
-    assert.notEqual(got.overflow, 'hidden', `${where}: the caption is clipped, and it has no arrow to keep beside a number`);
-  }
-  assert.equal(styleOf(wordsOnly, '.ui-stat__delta--none').flexWrap, 'wrap', 'the row with no change cannot take a second line');
+  const standing = styleOf(alone, 'dd.ui-stat__caption');
+  assert.notEqual(standing.whiteSpace, 'nowrap', 'a caption alone cannot break, so a long one is cut rather than wrapped');
+  assert.notEqual(standing.overflow, 'hidden', 'a caption alone is clipped, and it has no arrow to keep beside a number');
 
   // The control: the same string in the row that does hold a change still clips,
   // so the scoping above did not simply switch the clip off.
   const inRow = styleOf(clipped, '.ui-stat__delta .ui-stat__caption');
   assert.equal(inRow.whiteSpace, 'nowrap', 'the caption beside a change may break, and then the change drops below its neighbours');
   assert.equal(inRow.overflow, 'hidden', 'the caption beside a change is not clipped');
-
-  // No arrow stands between two statements of only words, so they need more space.
-  const gap = styleOf(wordsOnly, '.ui-stat__delta--none .ui-stat__caption').marginInlineEnd;
-  const beside = valueOf(ruleFor('.ui-stat__delta .ui-stat__caption').body, 'margin-inline-end');
-  assert.notEqual(gap, beside, 'the caption is spaced off the words beside it as if an arrow stood between them');
-  assert.match(gap, /^var\(--space-\d+\)$/, `the separation is ${gap}, not a spacing step`);
 });
 
 /* The band's caption governs every figure and a figure's caption governs one,

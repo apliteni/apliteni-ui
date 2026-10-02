@@ -2481,8 +2481,11 @@ A change shows which way it went with an arrow read off the sign the caller prin
 good news is the caller's to say, and colour follows that alone: a cost that rose is not painted as
 a success because it went up. Colour is a verdict, and not every figure is judged: a change nobody
 gives a tone, and one given the tone `neutral`, are the same neutral change — the arrow is drawn and
-the colour withheld. A change with no earlier figure says so in words and is never shown
-as `+0%`, and takes no tone, because there is no news to colour.
+the colour withheld. A figure with nothing to compare draws no row at all: it shows its value,
+and the caption the caller gave it if there is one, and stops. It is never shown as `+0%`, it
+takes no tone, and the band does not say in words that it has nothing to say — beside figures that
+do carry a change, that sentence is noise. The band said `No earlier figure` there until Artur
+struck it on 2026-10-02; `delta.none`, which worded it, went with it.
 
 A change says what it is measured against, in text a reader can reach: once for the whole band, in
 the band's caption, which every change points at, or beside the change when one figure is measured against
@@ -2497,9 +2500,9 @@ uses this to share one comparison with its ledger; React tests check the referen
 The caption comes **before** the figures, in every layout, the way a table's `<caption>` does. It is
 one statement about all of them, so it is read before the numbers it explains, it sits outside
 every figure, and it takes the `caption` rank — it governs the whole row, so it is never set
-smaller than a caption inside one figure. Under a row of tiles it would read as a note on the last card, and inside the first
-tile it would read as that figure's own comparison — which is a different thing the band already
-says beside the change.
+smaller than a caption inside one figure. Under a row of tiles it would read as a note on the last
+card, and inside the first tile it would read as that figure's own comparison — which is a
+different thing the band already says beside the change.
 
 **A figure says at most one thing under its value, and it says it in one row.** A change is that
 row. **A figure's own caption** — words about one value, such as what it is a share of — is that
@@ -2523,11 +2526,11 @@ instead of by presence. The arrow and the number cannot give way, so a caption o
 for the figure's width is clipped with an ellipsis there, and the whole string stays in the
 markup, where a screen reader and a copy still reach it.
 
-**A row that holds only words keeps every word.** A caption with no change beside it, and the row
-that reports no earlier figure, have no arrow and no number to keep together, so they take a
-second line rather than lose words. Clipping them would buy no alignment — their figures still
-start their rows at the same height as the rest of the band — and cost a reader the words. The
-clip belongs to the row that cannot afford a second line, and to no other.
+**A caption standing alone keeps every word.** With no change beside it, it has no arrow and no
+number to keep together, so it takes a second line rather than lose words. Clipping it would buy
+no alignment — its figure still starts its row at the same height as the rest of the band — and
+cost a reader the words. The clip belongs to the row that cannot afford a second line, and to no
+other.
 
 Where a tile is too narrow to show a comparison whole, React's `delta.tooltip` carries it: the
 kit Tooltip opens on hover, on keyboard focus and on touch, which is what the Hover readouts

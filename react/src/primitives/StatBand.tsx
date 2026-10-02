@@ -16,7 +16,6 @@ export interface StatDelta {
   basis?: string;
   tooltip?: string;
   direction?: 'up' | 'down' | 'flat';
-  none?: string;
 }
 
 export interface StatFigure {
@@ -52,12 +51,9 @@ const hasChange = (d?: StatDelta): d is StatDelta & { value: string } => !!d && 
 // the change, then what the change is measured against.
 // why: docs/specification.md#stat-bands
 function ContextRow({ caption, delta, basisId }: { caption?: string; delta?: StatDelta; basisId?: string }) {
+  if (!hasChange(delta)) return caption ? <dd className="ui-stat__caption">{caption}</dd> : null;
   // The trailing space is read, where the gap beside it is only drawn.
   const lead = caption ? <><span className="ui-stat__caption">{caption}</span>{' '}</> : null;
-  if (!delta) return caption ? <dd className="ui-stat__caption">{caption}</dd> : null;
-  if (!hasChange(delta)) {
-    return <dd className="ui-stat__delta ui-stat__delta--none">{lead}{delta.none || 'No earlier figure'}</dd>;
-  }
   const dir = delta.direction && GLYPH[delta.direction] ? delta.direction : directionOf(delta.value);
   const own = delta.basis || '';
   return (

@@ -64,12 +64,10 @@
    a span in that row, spaced off what follows. */
 dd.ui-stat__caption { margin-top: var(--space-2); }
 .ui-stat__delta .ui-stat__caption { margin-inline-end: var(--space-1); }
-/* With no arrow and no number between them, a word-space is not enough. */
-.ui-stat__delta--none .ui-stat__caption { margin-inline-end: var(--space-3); }
 
 .ui-stat__delta {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 2px var(--space-1);
   margin-top: var(--space-2);
@@ -81,15 +79,13 @@ dd.ui-stat__caption { margin-top: var(--space-2); }
 .ui-stat__delta svg { width: 14px; height: 14px; flex: none; stroke-width: 2.7; } /* 2.7 of a 24 box drawn at 14px = 1.58 CSS px. docs/specification.md#icons-and-glyphs */
 .ui-stat__change { font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
 .ui-stat__basis { color: var(--text); font-weight: var(--weight-normal); }
-.ui-stat__delta--none { color: var(--text); font-weight: var(--weight-normal); }
 
-/* A change is one line: wrapped, its arrow ends one line and its number starts
-   the next, and a long caption drops its own change below the ones beside it.
-   The arrow and the number cannot give way, so the words clip — the whole string
-   stays in the markup. Only that row: a row of words alone has nothing to orphan,
-   so it takes a second line rather than lose words. */
-.ui-stat__delta:not(.ui-stat__delta--none) { flex-wrap: nowrap; }
-.ui-stat__delta:not(.ui-stat__delta--none) .ui-stat__caption,
+/* The change above does not wrap: wrapped, its arrow ends one line and its number
+   starts the next, and a long caption drops its own change below the ones beside
+   it. The arrow and the number cannot give way, so the words clip — the whole
+   string stays in the markup. Only in that row: a caption standing alone has
+   nothing to orphan, so it takes a second line rather than lose words. */
+.ui-stat__delta .ui-stat__caption,
 .ui-stat__basis { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* A figure is never narrower than its content: without these a long line widens it. */
