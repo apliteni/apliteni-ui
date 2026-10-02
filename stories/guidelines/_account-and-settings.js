@@ -56,9 +56,13 @@ export const SPEC_CSS = `
     .gas-menu .amenu { position: static; opacity: 1; visibility: visible;
       pointer-events: auto; transform: none; transition: none; }
 
-    /* One page's worth of groups, all four of them — the height beside a rail of
-       four names is the comparison the rule is making, so nothing is cut. */
-    .gas-stack { display: flex; flex-direction: column; gap: var(--space-3); }
+    /* The split pair: a rail beside its page on one side, the same groups down one
+       column on the other. One floor under both, so the two halves answer at the
+       same scale — the column fills it and the rail's page is held to it. */
+    .gas-split { min-height: 500px; display: flex; gap: var(--space-4); }
+    .gas-split__rail { flex: 0 1 auto; min-width: 0; }
+    .gas-split__page { flex: 1 1 0; min-width: 0;
+      display: flex; flex-direction: column; gap: var(--space-3); }
     .gas-acts { display: flex; justify-content: flex-end; gap: var(--space-3);
       margin-top: var(--space-4); }
   </style>`;
@@ -107,12 +111,13 @@ export const oneSettingDont = () => stage(shell(`<div class="gas-scrim"></div>
 
 const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com', active: 'security' };
 
-// The four pages the split rule names, so one vocabulary runs down the page.
+// The pages the split rule names, so one vocabulary runs down the page.
 const PAGES = [
   { id: 'profile', icon: 'user', label: 'Profile' },
   { id: 'security', icon: 'shield', label: 'Security & sessions' },
   { id: 'agents', icon: 'key', label: 'Agents & API tokens' },
   { id: 'appearance', icon: 'sun', label: 'Appearance' },
+  { id: 'notifications', icon: 'bell', label: 'Notifications' },
 ];
 
 // A setting answered in the menu, drawn the only way the menu can draw one: the
@@ -120,6 +125,7 @@ const PAGES = [
 const ANSWERED = [
   { id: 'theme', icon: 'sun', label: 'Theme — Dark' },
   { id: 'digest', icon: 'bell', label: 'Weekly digest — On' },
+  { id: 'news', icon: 'mail', label: 'Product news — Off' },
   { id: 'density', icon: 'layout', label: 'Rows — Compact' },
   { id: 'locale', icon: 'globe', label: 'Language — English' },
 ];
@@ -130,9 +136,27 @@ export const menuDont = () => menu(ANSWERED);
 
 // ---- how the pages split -------------------------------------------------
 
-export const splitDo = () => stage(sidebarNav({
-  items: PAGES, active: 'security', ariaLabel: 'Account',
-}));
+// The rail beside the page it is showing, which is the arrangement the `pages`
+// rule above draws: a nav list standing on its own answers at a different scale
+// from a column of groups, and a pair at two scales stops being a comparison.
+const DEVICES = [
+  ['This browser', 'Lisbon \u00b7 active now'],
+  ['Studio laptop', 'Lisbon \u00b7 2 days ago'],
+  ['Phone', 'Lisbon \u00b7 yesterday'],
+  ['Old desktop', 'Berlin \u00b7 12 Sept'],
+];
+
+// The card carries the page's name: a title over it would be a fourth heading
+// level on a page whose own rule set stops at three, and the kit's card title is
+// already the larger of the two ranks.
+export const splitDo = () => stage(`<div class="gas-split">
+  <div class="gas-split__rail">${sidebarNav({ items: PAGES, active: 'security', ariaLabel: 'Account' })}</div>
+  <div class="gas-split__page">${card({
+    title: 'Security &amp; sessions', level: 3,
+    body: DEVICES.map(([lab, hint]) =>
+      `<div class="ui-card__row"><div><div class="lab">${lab}</div><div class="hint">${hint}</div></div></div>`).join(''),
+  })}</div>
+</div>`);
 
 const GROUPS = [
   ['Profile', 'Name, address and the photograph beside them.'],
@@ -141,8 +165,8 @@ const GROUPS = [
   ['Appearance', 'Theme, accent and row density.'],
 ];
 
-export const splitDont = () => stage(`<div class="gas-stack">${GROUPS
-  .map(([title, sub]) => card({ title, sub, level: 3 })).join('')}</div>`);
+export const splitDont = () => stage(`<div class="gas-split"><div class="gas-split__page">${GROUPS
+  .map(([title, sub]) => card({ title, sub, level: 3 })).join('')}</div></div>`);
 
 // ---- the one action a page carries --------------------------------------
 

@@ -12,17 +12,19 @@
 
 **Don't:** Slide the account area in over the product as a full-width sheet with columns inside it.
 
-## Keep a dialog to one short setting
+## Keep an overlay to one short setting
 
 <!-- rule: one-setting -->
 
-**Rule:** Use a dialog for a single short setting, opened from the page that setting belongs to, and for nothing larger.
+**Rule:** Let an overlay carry one short setting, opened from the account page that setting belongs to, and send anything larger to a page of its own.
 
-**Why:** A dialog holds keyboard focus until it is answered, which one question earns and a screen of settings does not.
+**Why:** An overlay holds keyboard focus until it is answered, which one setting earns and a screen of settings does not.
 
-**Do:** Ask for a sign-in code in a dialog, with “Not now” beside “Require a code”.
+**Do:** Ask for a sign-in code in a `confirm()`, with “Not now” beside “Require a code”.
 
-**Don't:** Put the account area in a dialog divided into panes.
+**Don't:** Put the account area in an overlay divided into panes.
+
+**Except:** Component choice settles which overlay — a `confirm()` for a question, a content-sized modal for a short form, a drawer for a long one. A field that sits in a list row is changed in that row, with no overlay at all.
 
 ## Limit the account menu to identity and links
 
@@ -40,26 +42,26 @@
 
 <!-- rule: split -->
 
-**Rule:** Give the account area one page for each thing a reader arrives to change: profile, security and sessions, agents and API tokens, and appearance.
+**Rule:** Give the account area one page for each thing a reader arrives to change: profile, security and sessions, agents and API tokens, appearance, and notifications.
 
-**Why:** A reader already knows which of the four they came for, and four names in the rail are quicker to read than four groups stacked on one page.
+**Why:** A reader already knows which of them they came for, and a list of names in the rail is quicker to read than the same groups stacked down one page.
 
-**Do:** List the four pages in the rail and show the one the reader asked for.
+**Do:** List the pages in the rail and show the one the reader asked for.
 
-**Don't:** Stack profile, sessions, tokens and appearance on a single account page.
+**Don't:** Stack profile, sessions, tokens and appearance on one account page.
 
-**Except:** Merge two of the four, or leave one out, when a product has too little to fill its own page; the kit’s own account preset ships two pages for that reason.
+**Except:** Merge two when neither fills a page alone, as the kit merges appearance and notifications into its Preferences page. The kit falls short of the rest: it ships no profile page and no security page, so a product that needs those writes them itself.
 
-## Name each page’s one action
+## Name the action after its change
 
 <!-- rule: one-action -->
 
-**Rule:** Give each account page one primary action and name it after the change it makes, such as Save profile, Sign out other sessions or Create token.
+**Rule:** Name an account page’s action after the change it makes, such as Save profile, Sign out other sessions or Create token.
 
-**Why:** On a page of tokens and the agents holding them, Save does not say which of them the press is about to change.
+**Why:** On a page of tokens and the agents holding them, Save does not say which of them the press is about to change; the kit’s own agents page says Create token.
 
 **Do:** End the tokens page with “Create token”.
 
-**Don't:** End the same page with a primary “Save”, which names no change.
+**Don't:** End the same page with “Save”, which names no change.
 
-**Except:** Appearance applies each choice as it is made, so it carries no action of its own.
+**Except:** A page whose choices apply as they are made carries no action at all, which is what the kit’s Preferences page does.

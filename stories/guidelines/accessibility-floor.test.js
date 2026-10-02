@@ -800,12 +800,15 @@ test('ring: every selector the sheet paints a ring on is landed somewhere by a s
     assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
     const landed = new Set(run.landings.map((l) => l.selector));
     // `.ui-focusable` is the kit's opt-in focus class
-    // (src/styles/base.css:140 `.ui-focusable:focus-visible,`). It stood here as
-    // the one named exemption while nothing wore it; #509's citation link on the
-    // Account preset is the first element that does, so the class has a ground
-    // and the exemption is gone. Every ring selector in the sheet is now landed
-    // and measured, and the list is empty rather than named: a selector nobody
-    // renders is a ring nobody measured, whichever one it turns out to be.
+    // (src/styles/base.css:140 `.ui-focusable:focus-visible,`). It stood here as a
+    // named exemption until #509's citation link, the first element the VANILLA
+    // stories put in front of this walk wearing it; React's Tooltip trigger has worn
+    // it longer and is swept elsewhere.
+    //
+    // An empty list is narrower than ring coverage: the subjects are the selectors
+    // the sheet ALREADY rings, so a control with no focus rule is invisible here
+    // however many stories draw it. `.acct .avatar` and `.amenu a` are that; #482
+    // closes them, not this gate.
     const orphans = run.selectors.filter((s) => !landed.has(s));
     assert.deepEqual(orphans, [], `${key}: a ring selector no story renders is a ring nobody measured`);
   }
