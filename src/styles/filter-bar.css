@@ -8,3 +8,15 @@
 .ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
 
 .ui-filter-bar .ui-dropdown__pre, .ui-filter-bar .ui-dropdown__value { color: inherit; }
+
+/* A chip's panel is as wide as the chip's trigger, never the 240px floor
+   .ui-dropdown__panel gives a standalone dropdown. A panel is positioned at its
+   trigger's inline start, so on a narrow row a later chip put its panel past the
+   screen — shut as well as open, a `visibility: hidden` box still being laid out.
+   The percentage resolves against .ui-dropdown, the panel's containing block,
+   which is the trigger's width because the trigger is its one in-flow child.
+   `overflow-wrap` keeps that a bound rather than a clip: a panel is
+   `overflow: visible`, so a value with no break opportunity would run out of it
+   and off the page. It inherits, reaching an option's label and description.
+   why: docs/specification.md#a-filter-row-holds-its-panels */
+.ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; overflow-wrap: anywhere; }

@@ -146,6 +146,56 @@ open itself is opened by the rig with a real click once the page has settled: th
 dropdown panel freezes the width the whole list needs as it opens, so a panel open
 before the webfaces land freezes a width measured in the fallback.
 
+`filter-bar-fit.mjs` is a gate rather than a shoot, and the only producer here
+that fails. It is #467's measurement: a filter row adds nothing to the page's
+scrollable width on a phone, and its panels open inside the row.
+
+It sweeps for its subjects rather than naming them. Both Storybook indexes are
+rendered — the root's and the React workspace's — and every story that puts a
+`.ui-filter-bar` on a settled page joins the set, so a new filter-bar surface is
+measured by existing and neither half of the kit can go unmeasured: the run fails
+if either index yields none. The membership question is the bar itself rather than
+a box under `#storybook-root`, because a palette renders a modal of no size and a
+toast renders through a portal. The one named subject is `filter-bar-fit.html`,
+the issue's own reproduction through `filterBar()`.
+
+Each subject is measured at 320, 375 and 390 in both themes, shut and with each
+chip opened in turn — the widest option list in the kit is not on the second chip.
+A case waits for a `.ui-filter-bar` to exist before it is probed: `load` fires
+before React mounts, and settling waits on fonts and transitions rather than on a
+render, so without it a loaded host reports a case as carrying no panel.
+
+Three things are checked. That a panel is exactly as wide as the `.ui-dropdown`
+that contains it, which is what the rule does. That the page gains no scrollable
+width, with every panel inside its row, which is what #467 reported. And that each
+option row's own text fits the row, because a panel is `overflow: visible`: at
+1280 an unbreakable label left its panel by 200.9px with the page never
+overflowing, so the page-edge check alone would have passed it. The fixture page
+carries such a value, on its second chip, so the wrap hint is measured rather than
+assumed.
+
+Two mutations have to be rejected. Putting the 240px floor back has to widen a
+panel in every case that carries one — judged on width rather than on overflow,
+because a 240px panel does not push every layout past the screen: a bar sitting
+early in a wide one absorbs it, and three of the swept subjects do, so overflow
+alone would let those cases pass having measured nothing. Taking the wrap hint
+away has to make at least one row spill, which the floor mutation cannot do
+because it only ever widens panels.
+
+Coverage is held by two recorded constants, `FLOOR_SUBJECTS` and
+`FLOOR_PANELLED`, rather than by a count the sweep re-derives: a sweep that lost
+half its surfaces would otherwise report its own smaller number back and pass.
+Raising them is the deliberate act of someone who has seen the new surfaces:
+
+```sh
+npm run build-storybook && npm run build-storybook -w react
+node scripts/evidence/filter-bar-fit.mjs . out/     # out/ takes a JSON ledger; it is optional
+```
+
+It needs both Storybook builds and the checkout for the vanilla half, and it exits
+non-zero on a finding. `npm test` does not run it — nothing in `npm test` drives a
+browser — so its counts belong in the pull request.
+
 ## What is deterministic and what is not
 
 `shoot.mjs`, `nav.mjs`, `float.mjs`, `guideline.mjs`, `back.mjs` and `dropdown.mjs`

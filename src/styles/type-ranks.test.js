@@ -156,9 +156,12 @@ const RULES = notedRules(SHEETS);
  * seven labels (eyebrow, table head, nav caption, menu group, footer column
  * title, code sample label, confirmation eyebrow) and four chips (badge, pill,
  * menu row badge, version badge). 15 at #310, which added the caption on
- * Guidelines / The page — the first note outside the kit's own sheets. Move it
- * in the commit that adds or drops a note, and say which. */
-const EXPECTED_NOTES = 15;
+ * Guidelines / The page — the first note outside the kit's own sheets. 14 again
+ * under #429, which dropped the confirmation's eyebrow: a confirmation carries
+ * one title and at most one line, so .ui-sx__eyebrow and its note are gone and
+ * six labels are left. Move it in the commit that adds or drops a note, and say
+ * which. */
+const EXPECTED_NOTES = 14;
 
 test('the table has its six ranks and every one is taken', () => {
   assert.deepEqual(RANKS.map((r) => r.name),

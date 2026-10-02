@@ -6,10 +6,31 @@
 
 export const RELEASES = [
   {
-    v: '0.65.0', date: '2026-10-01',
+    v: '0.68.0', date: '2026-10-02',
     changes: [
       ['changed', 'Every card with a description now has 8px between its title and that line, not 5px. The old value was off the kit\u2019s spacing scale and tight enough that the description read as part of the heading; 8px is the step the page header already uses for the same pair. This moves one line in every card that has a description. Part of #499.', ['Card']],
       ['added', 'A table marked `ui-table--stack` lays each row out as a block below the one-column step: the identity and the short cells on the first line, the cell marked `ui-table__long` on a line under them, and the header row clipped rather than removed, so a cell still reads with its column name. A log or a queue whose last column is a paragraph now fits a phone without scrolling sideways. A stacked table has to name the table, row group, row, column header and cell roles in its own markup, because a stylesheet cannot write a role; in Chromium only the body\u2019s row group is actually lost, and the other four are asked for because WebKit and Gecko were not measured. React is not served yet: `DataTable` builds its own class list, takes no `className` and puts its sort control in the header cell, so reaching the modifier from React means hand-writing the table. Resolves #499.', ['Table']],
+    ],
+  },
+  {
+    v: '0.67.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A filter bar no longer widens the page on a phone. Each chip’s dropdown panel now takes the width of the chip it drops from instead of a 240px minimum, so it stays inside the row at any viewport; a filter whose options are longer than its chip wraps them over more rows, breaking mid-token when a value has no break opportunity in it, such as a campaign key or a URL. Vanilla and React share the rule. Resolves #467.', ['FilterBar']],
+    ],
+  },
+  {
+    v: '0.66.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A link inside a table cell shows the kit focus ring on keyboard focus instead of the browser’s own outline. A plain cell link is an inline-block box at the kit corner, so a title-cell link that wraps paints one ring rather than one per line, and the struck name of a revoked row still reaches a link inside it, hovered or not. An anchor the kit already styles — a button, an identity, a dropdown row, a nav item or a crumb composed into a cell — keeps its own box and corner. The rules are in the shared stylesheet, so the React `DataTable` takes them with the vanilla table; the React DataTable and Loading stories now carry a cell link that shows it. Resolves #510.', ['Table']],
+    ],
+  },
+  {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React Success, SuccessPanel and SuccessCheck provide the confirmation layouts and the check mark. Page confirmations accept React actions and a cancelable countdown callback; the caller owns navigation. Part of #429.'],
+      ['changed', 'Success confirmations now sit on a plain elevated card. The blurred aurora blobs and the ambient green glow behind them are gone, and with them the `backdrop` option — vanilla callers passing it are unaffected, since the value is now ignored. This is in the shared stylesheet, so it reaches vanilla and React alike.', ['Success']],
+      ['changed', 'Success confirmations carry one title and at most one short line. The `eyebrow` option is gone from `success()` and the `eyebrow` prop from React `Success`; vanilla callers passing it are unaffected, since the key is now ignored, and React `Success` is unreleased. Put the outcome in the title rather than in a label above it. Part of #429.', ['Success']],
+      ['changed', 'The check mark is now an unmodified Lucide path in the success colour, with no filled disc or burst ring behind it. `check: \'line\'` (the default) is the bare check; `check: \'circled\'` is the smaller circled mark, at 20px, which is what Guidelines / Iconography asks a reported state to use. `success()`, `successPanel()` and both React components take `check`; `successCheck()` takes the same choice as its first argument. The circled mark is 20px wherever it is drawn, the inline panel included, while the line mark keeps the size of the layout it lands in.', ['Success']],
     ],
   },
   {

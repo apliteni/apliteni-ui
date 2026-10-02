@@ -29,7 +29,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `Checkbox`, `Switch`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
@@ -552,6 +552,52 @@ Tooltip accepts text and inline children, without nested controls. Hovering or f
 ```tsx
 <Tooltip text="Updated daily">Balance</Tooltip>
 ```
+
+## Success
+
+`SuccessPanel` confirms an outcome inside the current page with `title` and optional
+`sub`, takes the same `check` as `Success`, and forwards a ref to its root div. `SuccessCheck` is the bare mark both
+confirmations draw, matching the kit's `successCheck()`, and forwards a ref to its
+`svg`. It carries no size or box of its own: to compose it alone, put it in a wrapper
+that sets both, such as the kit's `ui-success__check`, and name the outcome in text
+next to it.
+
+```tsx
+<div className="ui-success__check"><SuccessCheck /></div>
+```
+
+The mark comes in two: `line` (the default) is the bare Lucide check in the success
+colour, which strokes itself on and takes its size from the layout it lands in;
+`circled` is Lucide `circle-check-big` at 20px, the kit's label size, drawn at rest and
+the same size everywhere — in every `Success` layout and in `SuccessPanel`. Pick it with `check` on `Success` or `variant` on
+`SuccessCheck`. Guidelines / Iconography reserves a circled glyph for a state and a
+bare one for an action, and a confirmation reports a state — so `circled` is the mark
+that rule asks for, and `line` is the default because it carries the moment at page
+size. Neither has a filled disc behind it.
+
+`Success` provides `hero`, `split`, and `compact` layouts on a plain elevated card;
+there is no backdrop layer and no `backdrop` prop. Pass `title`, one short `body`
+line, and React `actions`. There is no `eyebrow` prop: a confirmation carries one
+title and at most one line under it, so put the outcome in the title rather than in a
+label above it. A kit `Button` carries the focus ring already; a router link or
+a plain `<a>` must also take `className="ui-focusable"`, or it falls back to the
+browser's own focus outline. An omitted or empty `actions`
+leaves out the actions row. Hero and split default to h1; compact defaults to h2.
+`level` overrides the heading rank, and a value outside 1–6 falls back to that layout
+default. `confetti` enables the existing decorative animation. All three components
+use the kit CSS and its reduced-motion rules.
+
+```tsx
+<Success title="Changes saved" check="circled"
+  countdown={waiting ? { seconds: 5, label: 'Continuing' } : null}
+  onCountdownEnd={continueToNextPage}
+  actions={<Button onClick={() => setWaiting(false)}>Stay here</Button>} />
+```
+
+Removing `countdown` or unmounting cancels the timer. Changing its duration restarts
+it; changing its label or callback does not. Durations are whole seconds rounded
+down, with five seconds used for omitted, non-finite, or sub-one values. Completion
+fires once per countdown, including in StrictMode. Navigation belongs to the caller.
 
 ## Checkbox and Switch
 

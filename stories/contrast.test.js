@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import { card, successPanel } from '../src/components/index.js';
+import { success } from '../src/components/success.js';
 import {
   AA_TEXT,
   composite,
@@ -106,16 +107,21 @@ const LEDGER = [
     id: 'C',
     fg: '--green',
     themes: ['light'],
-    bg: 'the success wash and plain white in the light theme',
-    example: 'div.ui-sx__eyebrow',
-    count: 2,
-    worst: 3.56,
+    bg: 'plain white in the light theme',
+    example: 'span.s',
+    count: 1,
+    worst: 4.45,
     why: 'Light --green has to stay recognisably green while carrying text, and green is the '
       + 'hue that darkens worst without turning into a colour nobody reads as success. #155 '
-      + 'took the live pill and the badge over the line; what is left is the eyebrow on the '
-      + 'success screen and shell syntax highlighting. #393 removed the reveal label and value '
-      + 'from this bucket by using text-grade success ink. Each remaining row repeats a '
-      + 'meaning already carried by an icon or nearby wording, so they were allowed to lag components that carry '
+      + 'took the live pill and the badge over the line; what is left is shell syntax '
+      + 'highlighting — the string token in a snippet. #393 removed the reveal label and value '
+      + 'from this bucket by using text-grade success ink. #429 removed the other row this '
+      + 'bucket still carried, and it was the deeper of the two: the confirmation eyebrow is '
+      + 'gone from the markup and the stylesheet, because a confirmation now carries one title '
+      + 'and at most one line and has no label tier to paint. Deleting the element rather than '
+      + 'recolouring it is why the count drops and the floor rises in the same change. The one '
+      + 'remaining row repeats a '
+      + 'meaning already carried by an icon or nearby wording, so it was allowed to lag components that carry '
       + 'meaning alone. The toast action used to be here too, on its own soft wash and again on '
       + 'the outline card, and #131 closed those rows: the action is the one part of a toast '
       + 'that is both the status colour and a piece of text, so it stopped taking the accent and '
@@ -471,9 +477,10 @@ test('the five toast statuses resolve to five different accents and five differe
   }
 });
 
-// The disc is a sibling of the tick, so composite its fill explicitly over the panel wash.
-// This measures solid paint; browser pixel evidence covers the decorative blur and animation.
-test('the success-panel tick clears 3:1 against its disc and panel wash in both themes', () => {
+// #429 took the tinted disc out from behind the tick, so the mark now paints straight
+// onto the panel wash and there is one ground to measure rather than two.
+// This measures solid paint; browser pixel evidence covers the mark's size and animation.
+test('the success-panel tick clears 3:1 against the panel wash in both themes', () => {
   for (const theme of THEMES) {
     const { css } = kitCssFor(theme, ACCENT);
     const win = new JSDOM(
@@ -483,21 +490,82 @@ test('the success-panel tick clears 3:1 against its disc and panel wash in both 
     ).window;
     try {
       const tick = win.document.querySelector('.ui-success__check .ui-sx__tick');
-      const disc = win.document.querySelector('.ui-success__check .ui-sx__disc');
-      assert.ok(tick && disc, `${theme}: the panel must render its tick and disc`);
+      assert.ok(tick, `${theme}: the panel must render its tick`);
+      assert.equal(
+        win.document.querySelector('.ui-success__check .ui-sx__disc'), null,
+        `${theme}: a tinted disc is back behind the tick — the ground this measures is the wash alone`,
+      );
       const ink = parseColour(win.getComputedStyle(tick).stroke);
-      const fill = parseColour(win.getComputedStyle(disc).fill);
       const wash = effectiveBackground(tick, win);
-      assert.ok(ink && fill && Array.isArray(wash), `${theme}: check paint must resolve`);
-      assert.ok(ink[3] === 1 && fill[3] > 0, `${theme}: tick is opaque and disc is tinted`);
-      for (const [surface, ground] of [['panel wash', wash], ['disc', composite(fill, wash)]]) {
-        const measured = ratio(ink, ground);
-        assert.ok(measured >= 3, `${theme}: success-panel tick on ${surface} is ${measured.toFixed(2)}:1`);
+      assert.ok(ink && Array.isArray(wash), `${theme}: check paint must resolve`);
+      assert.ok(ink[3] === 1, `${theme}: tick is opaque`);
+      const measured = ratio(ink, wash);
+      assert.ok(measured >= 3, `${theme}: success-panel tick on the panel wash is ${measured.toFixed(2)}:1`);
+    } finally {
+      win.close();
+    }
+  }
+});
+
+/* The page-sized mark, on every ground it actually reaches.
+ *
+ * The panel test above covers successPanel() only. #429 took the tinted disc away, so
+ * the mark on a success() card is now a stroke straight onto the surface behind it, and
+ * nothing measured that: signal-contrast.test.js scans callout.css for status glyph
+ * families, and .ui-sx__tick is neither in that sheet nor a status family.
+ *
+ * 3:1 is the graphic bar: the mark is a non-text object and every one of these strokes
+ * clears 1.5 CSS px, so it is the object floor that applies and not the 4.5 text floor.
+ *
+ * Limits: JSDOM resolves the cascade but paints nothing, so this reads declared colour
+ * over a composited ground. It does not prove the drawn mark's coverage, which the
+ * browser captures in the PR cover.
+ *
+ * why: docs/specification.md#success-confirmations
+ */
+test('the page confirmation\'s mark clears 3:1 on every ground and mark it has', () => {
+  // [layout, which stroke sits on which ground] — the split mark is the only one on the
+  // tinted visual panel; hero and compact sit on the card itself.
+  const LAYOUTS = ['hero', 'split', 'compact'];
+  const MARKS = ['line', 'circled'];
+  let measured = 0;
+  for (const theme of THEMES) {
+    const { css } = kitCssFor(theme, ACCENT);
+    const bodies = LAYOUTS.flatMap((layout) => MARKS.map((check) =>
+      success({ layout, check, title: 'Saved', body: 'A receipt is on its way.' })));
+    const win = new JSDOM(
+      `<!doctype html><html data-theme="${theme}"><head><style>${css}</style></head>`
+      + `<body>${bodies.join('')}</body></html>`,
+      { pretendToBeVisual: true },
+    ).window;
+    try {
+      const roots = [...win.document.querySelectorAll('.ui-sx')];
+      assert.equal(roots.length, LAYOUTS.length * MARKS.length,
+        `${theme}: expected one card per layout and mark, found ${roots.length}`);
+      for (const root of roots) {
+        const where = [...root.classList].filter((c) => c.startsWith('ui-sx--')).join(' ');
+        // Both paths of the circled mark, the single path of the line mark.
+        const strokes = [...root.querySelectorAll('.ui-sx__tick, .ui-sx__circle')];
+        assert.ok(strokes.length >= 1, `${theme} ${where}: the card drew no mark to measure`);
+        assert.equal(root.querySelector('.ui-sx__disc'), null,
+          `${theme} ${where}: a tinted disc is back — the ground measured here is the surface alone`);
+        for (const stroke of strokes) {
+          const ink = parseColour(win.getComputedStyle(stroke).stroke);
+          const ground = effectiveBackground(stroke, win);
+          assert.ok(ink && Array.isArray(ground), `${theme} ${where}: mark paint must resolve`);
+          assert.equal(ink[3], 1, `${theme} ${where}: the mark is opaque`);
+          const r = ratio(ink, ground);
+          assert.ok(r >= 3, `${theme} ${where}: the mark is ${r.toFixed(2)}:1 against its ground`);
+          measured += 1;
+        }
       }
     } finally {
       win.close();
     }
   }
+  // 2 themes x 3 layouts x (1 line stroke + 2 circled strokes).
+  assert.equal(measured, 2 * 3 * 3,
+    `${measured} strokes measured, expected 18 — a layout or a mark stopped being covered`);
 });
 
 test('the style cache is still serving four reads in five from memory', () => {
@@ -654,15 +722,18 @@ test('every chip ink/fill token pair clears AA, whether or not a story renders i
 // No count moved, so nothing in phoenix or emerald crossed the floor; the depth did. Both
 // dark cells and C, E, L, P and S are unchanged in every cell, which is the control for a
 // change that only touched a light tint. `unassigned` stayed empty for all six.
+// Measured with CONTRAST_ACCENTS=1, reviewed by hand. #429 took bucket C in every
+// light cell from two rows to one: the confirmation eyebrow is gone from the markup,
+// leaving the shell snippet token as the bucket's only row.
 const ACCENT_LEDGER = {
   'dark/phoenix': { B: [1, 4.24], P: [65, 1.06], S: [21, 2.66] },
   'dark/ocean': { B: [1, 4.20], P: [65, 1.06], S: [21, 2.66] },
   'dark/emerald': { P: [65, 1.06], S: [21, 2.66] },
-  'light/phoenix': { C: [2, 4.45], E: [2, 3.81], F: [1, 4.35], L: [1, 4.31], P: [65, 1.06], S: [21, 2.66] },
+  'light/phoenix': { C: [1, 4.45], E: [2, 3.81], F: [1, 4.35], L: [1, 4.31], P: [65, 1.06], S: [21, 2.66] },
   // No F: #448 lifted this cell's one "soon" row (4.32) over AA. The bucket keeps its entry
   // because phoenix and emerald still owe rows against it.
-  'light/ocean': { C: [2, 4.45], E: [2, 3.81], L: [1, 4.46], P: [65, 1.06], S: [21, 2.66] },
-  'light/emerald': { C: [2, 4.45], E: [2, 3.81], F: [2, 3.36], L: [1, 4.34], P: [65, 1.06], S: [21, 2.66] },
+  'light/ocean': { C: [1, 4.45], E: [2, 3.81], L: [1, 4.46], P: [65, 1.06], S: [21, 2.66] },
+  'light/emerald': { C: [1, 4.45], E: [2, 3.81], F: [2, 3.36], L: [1, 4.34], P: [65, 1.06], S: [21, 2.66] },
 };
 
 // #455, reviewed by hand: card-ground snippets raise C/E to 4.45/3.81.

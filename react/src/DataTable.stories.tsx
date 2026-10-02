@@ -21,11 +21,18 @@ const columns: Column<Row>[] = [
 const meta: Meta<typeof DataTable> = { title: 'React/DataTable', component: DataTable as never };
 export default meta;
 
+// The campaign name opens the campaign. One linked cell, so a DataTable surface shows the
+// kit's focus ring on a cell link (#510); the rest of the stories keep plain names.
+const linkedColumns: Column<Row>[] = [
+  { ...columns[0], render: (r) => <a href={`#${encodeURIComponent(r.name)}`}>{r.name}</a> },
+  ...columns.slice(1),
+];
+
 export const Playground: StoryObj = {
   render: () => {
     const [sel, setSel] = useState<Set<string>>(new Set());
     return (
-      <DataTable columns={columns} rows={rows} pageSize={3} selected={sel}
+      <DataTable columns={linkedColumns} rows={rows} pageSize={3} selected={sel}
         onToggle={(n) => setSel((s) => { const x = new Set(s); x.has(n) ? x.delete(n) : x.add(n); return x; })}
         onTogglePage={(ns) => setSel((s) => {
           const x = new Set(s); const all = ns.every((n) => x.has(n));
