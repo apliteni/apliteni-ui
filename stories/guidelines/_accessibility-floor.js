@@ -187,7 +187,7 @@ export const SPEC_CSS = `
        dashed line on the same square as the solid one, which IS the mistake. */
     .gl-target__ink { width: 19px; height: 19px;
       border: 1.5px solid var(--border-strong); border-radius: var(--radius-xs);
-      background: var(--surface-2); outline: 1.5px dashed var(--pink); }
+      background: var(--surface-2); --ring-gap: var(--surface-2); outline: 1.5px dashed var(--pink); }
 
     /* The phone floor's two pairs. The layer src/styles/tap-zone.css declares is
        live only below the phone step and only to a coarse pointer, so on this
@@ -254,6 +254,16 @@ export const SPEC_CSS = `
        fill, radius and padding are the badge's own; only the box a word would
        have filled is drawn, because an empty inline-flex works out no size. */
     .gl-status__gap { display: inline-block; width: 3.25rem; height: 1.45em; height: 1lh; }
+
+    /* The one don't on this page that CAN be drawn: the same sentence, legible in
+       both halves, with the ground changing under it. The gradient runs from the
+       stage's own surface to an accent tint, so the ink crosses two pairs and
+       neither is the one a measurement would report. The contrast walk records
+       this cell as unjudgeable rather than failing it, which is the rule stated
+       as a measurement. */
+    .gl-measure { display: block; margin: 0; max-width: none;
+      padding: var(--space-3); border-radius: var(--radius-md); color: var(--text); }
+    .gl-measure--gradient { background: linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--accent) 30%, var(--surface))); /* ring-gap: inherit — a gradient has no single colour to hand a ring, which is the rule this cell is drawing. */ }
   </style>`;
 
 const row = (...html) => `<div class="gl-stage gl-stage--row">${html.join('')}</div>`;
@@ -312,18 +322,29 @@ export const ringDont = () => ringed('gl-ring--halo');
 // reads the kit's own disabled rules off the sheet, so a copy would be measured
 // as nothing. The Don't cell cannot be real — a second disabled control would
 // pass that same gate and prove nothing — so it keeps the live paint and leaves
-// the state to the note underneath, which IS the mistake.
+// the state to a pointer readout, which IS the mistake. Only the Don't carries
+// that readout: a note in both halves would be the one thing the pair must not
+// share, and the Do's whole claim is that it needs no pointer to say so.
 const revoking = (disabled) => `
   <div class="gl-stage">
     <div class="gl-stage--row">
       ${button({ label: 'Save changes', variant: 'primary' })}
       ${button({ label: 'Revoke key', disabled })}
     </div>
-    <div class="gl-cursor">Revoke key is unavailable</div>
+    ${disabled ? '' : '<div class="gl-cursor">Revoke key is unavailable</div>'}
   </div>`;
 
 export const disabledDo = () => revoking(true);
 export const disabledDont = () => revoking(false);
+
+const MEASURED = 'A refund is deducted from the month it was issued in.';
+
+export const measureDo = () => row(
+  `<p class="gl-measure">${MEASURED}</p>`,
+);
+export const measureDont = () => row(
+  `<p class="gl-measure gl-measure--gradient">${MEASURED}</p>`,
+);
 
 export const statusDo = () => row(
   badge('Paused', 'warn'),
@@ -342,6 +363,6 @@ export const RULES = withSpecimens(content.rules, [
 { id: 'touch-field-size' },
 { id: 'body-contrast' },
 { id: 'status-label', doHtml: statusDo, dontHtml: statusDont },
-{ id: 'measurable-pair' },
+{ id: 'measurable-pair', doHtml: measureDo, dontHtml: measureDont },
 { id: 'keyboard-first' },
 ]);

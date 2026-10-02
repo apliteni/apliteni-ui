@@ -195,7 +195,7 @@ const CSS = `
        cells held to 4.5 get a bar; the glyph cells in section 4 are held to 3
        and state their number without one, so one line never means two bars. */
     .sc-bar { position: relative; height: 6px; border-radius: 3px;
-      background: var(--surface-3); overflow: hidden; }
+      background: var(--surface-3); --ring-gap: var(--surface-3); overflow: hidden; }
     .sc-bar::after { content: ''; position: absolute; top: -1px; bottom: -1px;
       left: ${AA_PCT}%; width: 2px; background: var(--strong); }
     /* A failing fill is --muted and a passing one is --strong, so the bar reads
@@ -244,7 +244,7 @@ const CSS = `
        (src/styles/nav.css:115 \`.ui-nav__item.is-danger:hover\`).
        A specimen cannot be hovered, so the same two declarations are restated
        here — tokens, identical values — to hold the row in its hover state. */
-    .sc-hover .ui-nav__item.is-danger { background: var(--glow-pink); color: var(--pink); }
+    .sc-hover .ui-nav__item.is-danger { background: var(--glow-pink); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--pink); }
 
     /* The chip specimens are real .ui-badge elements — shape, size and tracking
        come from src/styles/badge.css, and only the two colours under test are

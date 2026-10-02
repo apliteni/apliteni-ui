@@ -48,7 +48,7 @@
 
 **Do:** The solid band, with a surface-coloured gap around an accent-filled control.
 
-**Don't:** The halo on its own, which fades into the ground it sits on.
+**Don't:** The halo on its own, with no solid band inside it to measure.
 
 **Except:** The band must clear the bar against the gap and halo pixels too, not only against flat ground.
 
@@ -70,7 +70,7 @@
 
 **Rule:** Set coarse-pointer field text to 16px without scaling it down.
 
-**Why:** iOS Safari zooms into a field under 16px and does not zoom out. The size answers to the pointer rather than the width, so a specimen on this page would draw the desktop size in both halves.
+**Why:** iOS Safari zooms into a field under 16px and does not zoom out. There is no specimen pair because the size answers to the pointer rather than the width, so both halves would draw the desktop size.
 
 **Do:** Real 16px text in the field itself.
 
@@ -84,7 +84,7 @@
 
 **Rule:** Keep body text close to 7:1 at every size, not merely at 4.5:1.
 
-**Why:** A pale specimen cannot be drawn here without breaking this rule in front of the reader, so it is described instead.
+**Why:** Stronger contrast supports comfortable reading at every size. There is no specimen pair because a pale example would break this rule in front of the reader.
 
 **Do:** Body ink at every size, with size, weight and spacing carrying the hierarchy.
 
@@ -102,7 +102,7 @@
 
 **Don't:** A tone fill with the word taken out of it.
 
-**Except:** A status badge needs no glyph or dot. A callout or toast keeps its circled glyph, because its words sit in a sentence rather than in a fill.
+**Except:** A status badge needs no glyph or dot. A callout or toast keeps its glyph, because its words sit in a sentence rather than in a fill.
 
 ## Measurable pairs
 
@@ -110,11 +110,11 @@
 
 **Rule:** Keep text on opaque grounds so its contrast can be measured.
 
-**Why:** A gradient, filter or translucent layer leaves the ratio uncertain, so the failure cannot be measured either and is described below rather than drawn.
+**Why:** A gradient, filter or translucent layer puts the ink on more than one ground, so no single pair can be read off it.
 
-**Do:** An opaque surface under the text, and an ink pair that can be read off it.
+**Do:** One opaque ground under the whole sentence.
 
-**Don't:** Text over a gradient, a filter or a translucent layer.
+**Don't:** The same sentence crossing a gradient, where each word sits on a different pair.
 
 ## Keyboard first
 
@@ -122,7 +122,7 @@
 
 **Rule:** Build keyboard behaviour before pointer behaviour and styling.
 
-**Why:** This is an order of work, which a specimen cannot show: both halves would look the same once they were finished.
+**Why:** Keyboard access defines the interaction before visual polish. There is no specimen pair because this is an order of work: both halves look the same once they are finished.
 
 **Do:** Focus, order and keyboard actions working before anything is styled.
 

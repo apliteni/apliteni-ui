@@ -8,8 +8,9 @@ export const RELEASES = [
   {
     v: '0.64.1', date: '2026-10-01',
     changes: [
-      ['changed', 'The status-label guideline no longer asks a status badge for a glyph or a dot: its word and its tone fill are enough. Callouts and toasts keep their circled glyph. Part of #453.'],
-      ['changed', 'The Accessibility minimums page now draws the focus ring, the disabled pair and the status badge as do/don\u2019t specimens instead of describing them, and its prose is a line or two per point. Guideline pages are written that way from now on: show the rule, say the least you can, and keep measurements in the specification. Part of #453.'],
+      ['changed', 'The status-label guideline no longer asks a status badge for a glyph or a dot: its word and its tone fill are enough. Callouts and toasts keep their glyph. Part of #453.'],
+      ['changed', 'The Accessibility minimums page now draws the focus ring, the disabled pair, the status badge and the measurable ground as do/don\u2019t specimens instead of describing them, and its prose is a line or two per point. Guideline pages are written that way from now on: show the rule, say the least you can, and keep measurements in the specification. Every rule the Text length page states now gives its reason too. Part of #453.'],
+      ['fixed', 'A focus ring drawn inside a Storybook specimen stage reads its gap from that stage instead of the page behind it, so the documented ring is the one the kit paints. Specimen stages are documentation, not shipped CSS; nothing a consumer renders changes. Part of #453.'],
     ],
   },
   {

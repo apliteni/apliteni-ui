@@ -54,7 +54,11 @@ try {
       const rule = heading
         ? tab.locator('.gc-rule').filter({ has: tab.locator('.gc-imperative', { hasText: heading }) }).first()
         : tab.locator('.gc-rule').filter({ has: tab.locator('.gc-cell__cap') }).first();
-      if (await rule.count() === 0) throw new Error(`no rule on ${page} headed "${heading}"`);
+      if (await rule.count() === 0) {
+        throw new Error(heading
+          ? `no rule on ${page} headed "${heading}"`
+          : `no rule on ${page} draws a specimen pair — name a heading to crop a text-only rule`);
+      }
       await rule.screenshot({ path: path.join(outDir, name('rule')) });
       console.log(`  ${name('rule')}`);
       await ctx.close();

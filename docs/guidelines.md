@@ -19,11 +19,16 @@ test names and links to implementation files do not belong in guidelines.
 
 ## Show, less tell
 
-A guideline page shows its rule and says the least it can. Give every rule a picture can
-carry a rendered do and don't pair, built from kit parts, and keep each field to a line or
-two: the rule states what to do, each caption says what its picture cannot, and `Why`
-appears only where the reason is invisible. Measurements, token names and boundaries
-belong in the specification; a page that explains a rule it could have drawn is not done.
+A guideline page shows its rule and says the least it can.
+
+Give every rule a picture can carry a rendered do and don't pair, built from kit parts.
+Keep each field to a line or two. The rule states what to do, and each caption says what
+its picture cannot. Measurements and token names belong in the specification; `Except`
+keeps the boundaries.
+
+`Why` gives the reason the rule exists, which a picture rarely carries, so a rule may
+keep its `Why` beside a specimen pair and most do. What a `Why` may not do is say the
+rule again in other words.
 
 The matching story module attaches live specimens by rule id. Rules without a visual
 pair render their text examples. Both halves use readable text; explain inaccessible
@@ -31,8 +36,14 @@ behaviour in words instead of drawing illegible specimens.
 
 Leave a rule text-only when drawing the failure would break the rule in front of the
 reader, when the state depends on a pointer, a keyboard or a viewport a static specimen
-cannot set, or when the rule governs an order of work rather than a result. Say which of
-those it is in `Why`, so a missing pair reads as a decision rather than an omission.
+cannot set, or when the rule governs an order of work rather than a result. Give the
+reason the rule exists first, then name which of those three applies in the same `Why`,
+so a missing pair reads as a decision rather than an omission.
+
+`refs.test.js` checks the half of this a test can read: a rule with no specimen pair
+carries a `Why`, and the number of pairless rules is asserted, so a page cannot drop out
+of the check unnoticed. Whether a `Why` earns its place, and whether a field is a line or
+two, is read by a reviewer.
 
 ## Tests and references
 
