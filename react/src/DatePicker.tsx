@@ -3,6 +3,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { Icon } from './primitives/Icon';
+import { Drawer } from './Drawer';
 import { useIsoLayoutEffect } from './dialog';
 import './DatePicker.css';
 
@@ -69,6 +70,13 @@ export type DatePickerProps = {
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   /** `'YYYY-MM-DD'`. Given one, the grid marks it; stories and tests pass it to stay fixed. */
   today?: string;
+  /**
+   * Render the sheet rather than the popover whatever the viewport is. Left
+   * out, the picker follows the kit's narrowest step. A host that already knows
+   * it is on a phone — or renders on a server, where no viewport is readable —
+   * says so here.
+   */
+  sheet?: boolean;
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -85,18 +93,45 @@ const MONTH_RE = /^(\d{4})-(\d{2})$/;
 const DAY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /**
- * A period as one integer: months since year 0, or days since the epoch. Every
- * step, bound and comparison below is arithmetic on that integer, so no part of
- * this component walks a Date across a daylight-saving boundary.
+ * The kit's narrowest step, where a floating panel goes edge to edge. A literal
+ * for the reason every breakpoint in the kit is one — a media query cannot read
+ * a custom property — and DatePicker.test.tsx holds it against the table in the
+ * specification so this copy cannot drift from the other three.
+ * why: docs/specification.md#breakpoints
  */
-function toIndex(period: string | null | undefined, grain: Grain): number | null {
-  if (!period) return null;
-  if (grain === 'month') {
-    const m = MONTH_RE.exec(period);
-    if (!m) return null;
-    const month = +m[2];
-    return month >= 1 && month <= 12 ? +m[1] * 12 + month - 1 : null;
-  }
+const PHONE_MAX = 560;
+
+/**
+ * True while the viewport is at that step. False until the component has
+ * mounted, so a server render and the first client render agree on the popover
+ * and the sheet arrives on the pass after.
+ */
+function usePhone() {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const query = typeof window === 'undefined' ? null : window.matchMedia?.(`(max-width: ${PHONE_MAX}px)`);
+    if (!query) return;
+    const read = () => setPhone(query.matches);
+    read();
+    query.addEventListener('change', read);
+    return () => query.removeEventListener('change', read);
+  }, []);
+  return phone;
+}
+
+/** Which end of a period's span a single index should take. */
+type Edge = 'start' | 'end';
+
+/** A month period as a month index, or null when it is not one. */
+function monthIndexOf(period: string): number | null {
+  const m = MONTH_RE.exec(period);
+  if (!m) return null;
+  const month = +m[2];
+  return month >= 1 && month <= 12 ? +m[1] * 12 + month - 1 : null;
+}
+
+/** A date period as a day index, or null when it is not one. */
+function dayIndexOf(period: string): number | null {
   const m = DAY_RE.exec(period);
   if (!m) return null;
   const [y, mo, d] = [+m[1], +m[2], +m[3]];
@@ -106,6 +141,32 @@ function toIndex(period: string | null | undefined, grain: Grain): number | null
   const back = new Date(at);
   if (back.getUTCFullYear() !== y || back.getUTCMonth() !== mo - 1 || back.getUTCDate() !== d) return null;
   return Math.round(at / DAY_MS);
+}
+
+/**
+ * A period as one integer: months since year 0, or days since the epoch. Every
+ * step, bound and comparison below is arithmetic on that integer, so no part of
+ * this component walks a Date across a daylight-saving boundary.
+ *
+ * A period written in the other grain still counts, because `min?: string` is
+ * all the type can say and a bound that silently means "no bound" is the worst
+ * of the three answers. A month read in day grain is its whole span — `edge`
+ * picks the first or the last day of it — and a date read in month grain is the
+ * month it falls in.
+ */
+function toIndex(period: string | null | undefined, grain: Grain, edge: Edge = 'start'): number | null {
+  if (!period) return null;
+  if (grain === 'month') {
+    const month = monthIndexOf(period);
+    if (month != null) return month;
+    const day = dayIndexOf(period);
+    return day == null ? null : monthOf(day);
+  }
+  const day = dayIndexOf(period);
+  if (day != null) return day;
+  const month = monthIndexOf(period);
+  if (month == null) return null;
+  return edge === 'start' ? firstDayOf(month) : firstDayOf(month + 1) - 1;
 }
 
 function fromIndex(index: number, grain: Grain): string {
@@ -151,10 +212,14 @@ export function DatePicker({
   range, defaultRange, onRangeChange,
   min, max, disabledPeriods, marks, presets,
   label, placeholder, ariaLabel, id, disabled = false,
-  align = 'start', locale = 'en-GB', weekStartsOn = 1, today,
+  align = 'start', locale = 'en-GB', weekStartsOn = 1, today, sheet,
   open: openProp, defaultOpen = false, onOpenChange,
 }: DatePickerProps) {
   const grain: Grain = mode === 'day' ? 'day' : 'month';
+  // Below the kit's narrowest step the panel is a sheet, and a sheet is the
+  // kit's drawer rather than a wide popover.
+  const phone = usePhone();
+  const asSheet = sheet ?? phone;
   const auto = useId().replace(/:/g, '');
   const uid = id ?? auto;
   const root = useRef<HTMLDivElement>(null);
@@ -184,11 +249,20 @@ export function DatePicker({
       : index * DAY_MS,
   ), [grain]);
 
-  const lo = toIndex(min, grain);
-  const hi = toIndex(max, grain);
-  const blocked = useMemo(() => new Set(disabledPeriods ?? []), [disabledPeriods]);
+  // A bound takes the far end of its own span, so `max="2026-09"` in day grain
+  // means the 30th rather than the 1st and the month it names is included whole.
+  const lo = toIndex(min, grain, 'start');
+  const hi = toIndex(max, grain, 'end');
+  // Each blocked period as the span it covers, for the same reason: a month
+  // listed in day grain blocks all of its days, not none of them.
+  const blocked = useMemo(() => (disabledPeriods ?? []).flatMap((period) => {
+    const from = toIndex(period, grain, 'start');
+    const to = toIndex(period, grain, 'end');
+    return from == null || to == null ? [] : [[from, to] as const];
+  }), [disabledPeriods, grain]);
   const outOfBounds = (index: number) => (lo != null && index < lo) || (hi != null && index > hi);
-  const isBlocked = (index: number) => outOfBounds(index) || blocked.has(fromIndex(index, grain));
+  const isBlocked = (index: number) =>
+    outOfBounds(index) || blocked.some(([from, to]) => index >= from && index <= to);
 
   const todayIndex = useMemo(() => {
     const given = toIndex(today, 'day');
@@ -222,9 +296,10 @@ export function DatePicker({
     if (open) setCursor(clamp(anchor, lo, hi));
   }, [open]);
 
-  // Click-outside and Escape, while it is open.
+  // Click-outside and Escape, while it is open as a popover. A sheet gets both
+  // from <Drawer>, along with the scrim that makes the outside click visible.
   useEffect(() => {
-    if (!open) return;
+    if (!open || asSheet) return;
     const doc = root.current?.ownerDocument ?? document;
     const onClick = (e: MouseEvent) => {
       if (!root.current?.contains(e.target as Node)) close.current(false);
@@ -257,26 +332,28 @@ export function DatePicker({
     ? names.monthYear.format(at(index))
     : `${names.weekday.format(at(index))} ${names.day.format(at(index))}`), [grain, names, at]);
 
-  const cells: Cell[] = useMemo(() => {
-    const first = grain === 'month' ? page * 12 : firstDayOf(page);
-    const count = grain === 'month' ? 12 : daysInMonth(page);
-    return Array.from({ length: count }, (_, i) => {
-      const index = first + i;
-      const period = fromIndex(index, grain);
-      return {
-        period,
-        index,
-        label: grain === 'month'
-          ? names.monthShort.format(at(index))
-          : String(new Date(index * DAY_MS).getUTCDate()),
-        name: periodName(index),
-        disabled: isBlocked(index),
-        mark: marks?.[period],
-      };
-    });
-    // `isBlocked` is read here and closes over lo, hi and blocked; all three are
-    // in the list below.
-  }, [grain, page, names, at, periodName, marks, lo, hi, blocked]);
+  // The first and last period the page actually shows. Every move that must not
+  // leave the page is held to these two numbers.
+  const count = grain === 'month' ? 12 : daysInMonth(page);
+  const first = grain === 'month' ? page * 12 : firstDayOf(page);
+  const last = first + count - 1;
+
+  const cells: Cell[] = useMemo(() => Array.from({ length: count }, (_, i) => {
+    const index = first + i;
+    const period = fromIndex(index, grain);
+    return {
+      period,
+      index,
+      label: grain === 'month'
+        ? names.monthShort.format(at(index))
+        : String(new Date(index * DAY_MS).getUTCDate()),
+      name: periodName(index),
+      disabled: isBlocked(index),
+      mark: marks?.[period],
+    };
+  // `isBlocked` is read here and closes over lo, hi and blocked; all three are
+  // in the list below.
+  }), [grain, first, count, names, at, periodName, marks, lo, hi, blocked]);
 
   // Day grids start the first of the month under its own weekday, so the blanks
   // before it are cells with nothing in them rather than a neighbouring month's
@@ -304,8 +381,11 @@ export function DatePicker({
     : [startIndex ?? endIndex, startIndex ?? endIndex];
 
   const isEdge = (index: number) => index === edges[0] || index === edges[1];
-  const isInside = (index: number) =>
-    edges[0] != null && edges[1] != null && index > edges[0] && index < edges[1];
+  // A blocked period is not inside the range, however the two ends sit around
+  // it: it cannot be picked, so it is not included, and both the tint and the
+  // word come off it. One source, so the paint and the name cannot disagree.
+  const isInside = (cell: Cell) => !cell.disabled
+    && edges[0] != null && edges[1] != null && cell.index > edges[0] && cell.index < edges[1];
   const isPicked = (index: number) => (mode === 'range'
     ? isEdge(index)
     : index === toIndex(picked, grain));
@@ -330,17 +410,39 @@ export function DatePicker({
       if (value === undefined) setSelfValue(cell.period);
       onChange?.(cell.period);
     }
-    setOpen(false);
-    trigger.current?.focus();
+    dismiss();
   }
 
-  function usePreset(preset: DatePickerPreset) {
-    if (range === undefined) setSelfRange(preset.range);
-    onRangeChange?.(preset.range);
-    const start = toIndex(preset.range.start, grain);
-    if (start != null) setCursor(start);
+  // The sheet returns focus to whatever opened it, so only the popover moves it
+  // back by hand; doing both would have two owners of the same answer.
+  function dismiss() {
     setOpen(false);
-    trigger.current?.focus();
+    if (!asSheet) trigger.current?.focus();
+  }
+
+  /**
+   * A shortcut's range as the bounds allow it: clamped where the two overlap,
+   * and null where they do not — a shortcut the grid would refuse cell by cell
+   * must not be applied whole from beside it.
+   */
+  function allowed(preset: DatePickerPreset): DatePickerRange | null {
+    const a = toIndex(preset.range.start, grain, 'start');
+    const b = toIndex(preset.range.end, grain, 'end');
+    if (a == null || b == null) return null;
+    const [from, to] = a <= b ? [a, b] : [b, a];
+    if ((hi != null && from > hi) || (lo != null && to < lo)) return null;
+    return {
+      start: fromIndex(clamp(from, lo, hi), grain),
+      end: fromIndex(clamp(to, lo, hi), grain),
+    };
+  }
+
+  function applyPreset(next: DatePickerRange) {
+    if (range === undefined) setSelfRange(next);
+    onRangeChange?.(next);
+    const start = toIndex(next.start, grain, 'start');
+    if (start != null) setCursor(start);
+    dismiss();
   }
 
   function step(by: number) {
@@ -353,14 +455,18 @@ export function DatePicker({
   }
 
   function onGridKeyDown(e: ReactKeyboardEvent) {
-    const rowStart = cursor - ((cursor - (grain === 'month' ? page * 12 : firstDayOf(page) - lead)) % columns);
+    // The row's own ends, not the lattice's. A day grid pads its first row with
+    // blanks, so the slot at column 0 of week one belongs to the month before —
+    // and Home, which was asked for the end of THIS row, would have repaginated
+    // the grid under the reader. Both ends are held to the cells on the page.
+    const rowStart = cursor - ((cursor - (first - lead)) % columns);
     const moves: Record<string, () => void> = {
       ArrowLeft: () => step(-1),
       ArrowRight: () => step(1),
       ArrowUp: () => step(-columns),
       ArrowDown: () => step(columns),
-      Home: () => setCursor(clamp(rowStart, lo, hi)),
-      End: () => setCursor(clamp(rowStart + columns - 1, lo, hi)),
+      Home: () => setCursor(clamp(Math.max(rowStart, first), lo, hi)),
+      End: () => setCursor(clamp(Math.min(rowStart + columns - 1, last), lo, hi)),
       PageUp: () => stepPage(-1),
       PageDown: () => stepPage(1),
     };
@@ -371,11 +477,12 @@ export function DatePicker({
       move();
       return;
     }
-    if (e.key === 'Escape') {
+    // A sheet's Escape belongs to the dialog stack, which is a document
+    // listener; stopping the event here would take it from the drawer.
+    if (e.key === 'Escape' && !asSheet) {
       e.preventDefault();
       e.stopPropagation();
-      setOpen(false);
-      trigger.current?.focus();
+      dismiss();
     }
   }
 
@@ -410,8 +517,15 @@ export function DatePicker({
   }
 
   const captionId = `${uid}-caption`;
-  const stepBack = grain === 'month' ? 'Previous year' : 'Previous month';
-  const stepOn = grain === 'month' ? 'Next year' : 'Next month';
+  /** What a page is called: the year, or the month and year. */
+  const pageName = (which: number) => (grain === 'month'
+    ? String(which) : names.monthYear.format(at(firstDayOf(which))));
+  // Each step names where it goes, not only which way: the shortcuts a host
+  // supplies are "This year" and "Previous year", and two buttons reading
+  // "Previous year" in one dialog is one name for two different moves.
+  // why: guidelines/going-back.md
+  const stepBack = `${grain === 'month' ? 'Previous year' : 'Previous month'}, ${pageName(page - 1)}`;
+  const stepOn = `${grain === 'month' ? 'Next year' : 'Next month'}, ${pageName(page + 1)}`;
 
   function state(cell: Cell) {
     const parts = [cell.name];
@@ -421,19 +535,154 @@ export function DatePicker({
       if (cell.index === edges[0] && cell.index === edges[1]) parts.push('selected');
       else if (cell.index === edges[0]) parts.push('range start');
       else if (cell.index === edges[1]) parts.push('range end');
-      else if (isInside(cell.index)) parts.push('in range');
+      else if (isInside(cell)) parts.push('in range');
+    } else if (isPicked(cell.index)) {
+      // The pick lives on the gridcell's aria-selected, which is the wrapper and
+      // not the element focus lands on, so without this the reader arrowing onto
+      // the month they chose hears exactly what they hear on every other month.
+      parts.push('selected');
     }
     return parts.join(', ');
   }
 
+
+  // A step that cannot move the page is off rather than silent: the page the
+  // press would turn to lies entirely outside the bounds.
+  const noneBefore = lo != null && first <= lo;
+  const noneAfter = hi != null && last >= hi;
+
+  const calendar = (
+    <div className={cx('ui-datepicker__body', asSheet && 'is-sheet')}>
+      {mode === 'range' && presets?.length ? (
+        <div className="ui-datepicker__presets" role="group" aria-label="Period shortcuts">
+          {presets.map((preset) => {
+            // A shortcut the bounds leave nothing of is off rather than absent:
+            // the reader sees which periods the host offers either way.
+            const within = allowed(preset);
+            return (
+              <button
+                key={preset.label}
+                type="button"
+                className="ui-btn ui-btn--ghost ui-btn--xs ui-datepicker__preset"
+                disabled={within == null}
+                onClick={() => within && applyPreset(within)}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <div className="ui-datepicker__calendar">
+        <div className="ui-datepicker__head">
+          <button
+            type="button"
+            className="ui-btn ui-btn--ghost ui-btn--xs ui-btn--icon ui-datepicker__step"
+            aria-label={stepBack}
+            disabled={noneBefore}
+            onClick={() => stepPage(-1)}
+          >
+            <Icon name="chevronLeft" />
+          </button>
+          <span className="ui-datepicker__caption" id={captionId} aria-live="polite">{caption}</span>
+          <button
+            type="button"
+            className="ui-btn ui-btn--ghost ui-btn--xs ui-btn--icon ui-datepicker__step"
+            aria-label={stepOn}
+            disabled={noneAfter}
+            onClick={() => stepPage(1)}
+          >
+            <Icon name="chevronRight" />
+          </button>
+        </div>
+
+        <div
+          className={cx('ui-datepicker__grid', grain === 'day' && 'is-days')}
+          role="grid"
+          aria-labelledby={captionId}
+          ref={grid}
+          onKeyDown={onGridKeyDown}
+        >
+          {weekdays.length > 0 && (
+            <div className="ui-datepicker__row" role="row">
+              {weekdays.map((weekday) => (
+                <span
+                  key={weekday.long}
+                  className="ui-datepicker__weekday"
+                  role="columnheader"
+                  aria-label={weekday.long}
+                >
+                  {weekday.short}
+                </span>
+              ))}
+            </div>
+          )}
+          {rows.map((cellsInRow, r) => (
+            <div className="ui-datepicker__row" role="row" key={`r${r}`}>
+              {cellsInRow.map((cell, c) => (cell ? (
+                <span
+                  key={cell.period}
+                  className="ui-datepicker__cell"
+                  role="gridcell"
+                  aria-selected={isPicked(cell.index)}
+                >
+                  <button
+                    type="button"
+                    data-dp-cell=""
+                    data-value={cell.period}
+                    className={cx('ui-datepicker__opt', 'ui-focusable',
+                      isPicked(cell.index) && 'is-selected',
+                      isInside(cell) && 'is-inside',
+                      cell.index === todayIndex && 'is-today',
+                      cell.disabled && 'is-disabled')}
+                    tabIndex={cell.index === cursor ? 0 : -1}
+                    aria-disabled={cell.disabled || undefined}
+                    aria-label={state(cell)}
+                    onClick={() => pick(cell)}
+                    onFocus={() => setCursor(cell.index)}
+                  >
+                    <span className="ui-datepicker__num">{cell.label}</span>
+                    {cell.mark && (
+                      <span
+                        className={`ui-datepicker__mark is-${cell.mark.tone ?? 'neutral'}`}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </button>
+                </span>
+              ) : (
+                <span className="ui-datepicker__cell is-empty" role="gridcell" key={`e${r}-${c}`} />
+              )))}
+            </div>
+          ))}
+        </div>
+
+        {legend.length > 0 && (
+          <ul className="ui-datepicker__legend">
+            {legend.map((mark) => (
+              <li key={mark.label} className="ui-datepicker__legend-item">
+                <span className={`ui-datepicker__mark is-${mark.tone ?? 'neutral'}`} aria-hidden="true" />
+                {mark.label}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+
   return (
+    // `open` on the root whichever form the panel takes, so the trigger's
+    // chevron flips for the sheet as it does for the popover. The panel rules
+    // it also switches on have no panel to find while the sheet is up.
     <div className={cx('ui-dropdown', 'ui-datepicker', open && 'open')} id={id} ref={root}>
       <button
         type="button"
         className="ui-dropdown__trigger ui-datepicker__trigger"
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={label ? undefined : name}
+        aria-label={ariaLabel || (label ? undefined : name)}
         disabled={disabled}
         ref={trigger}
         onClick={(e: ReactMouseEvent) => { e.stopPropagation(); setOpen(!open); }}
@@ -443,128 +692,31 @@ export function DatePicker({
         <span className="ui-dropdown__chevron" aria-hidden="true" />
       </button>
 
-      <div
-        className={cx('ui-dropdown__panel', 'ui-datepicker__panel', align === 'end' && 'is-end')}
-        role="dialog"
-        aria-label={name}
-        // Mounted while closed so the panel can fade out the way every other
-        // dropdown in the kit does, and inert while it is, so a grid nobody
-        // opened is out of the tab order, out of the pointer's way and out of
-        // the accessibility tree. why: docs/specification.md#the-dropdown-panel
-        inert={!open}
-        onClick={(e: ReactMouseEvent) => e.stopPropagation()}
-      >
-        <div className="ui-datepicker__body">
-          {mode === 'range' && presets?.length ? (
-            <div className="ui-datepicker__presets" role="group" aria-label="Period shortcuts">
-              {presets.map((preset) => (
-                <button
-                  key={preset.label}
-                  type="button"
-                  className="ui-btn ui-btn--ghost ui-btn--xs ui-datepicker__preset"
-                  onClick={() => usePreset(preset)}
-                >
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="ui-datepicker__calendar">
-            <div className="ui-datepicker__head">
-              <button
-                type="button"
-                className="ui-btn ui-btn--ghost ui-btn--xs ui-btn--icon ui-datepicker__step"
-                aria-label={stepBack}
-                onClick={() => stepPage(-1)}
-              >
-                <Icon name="chevronLeft" />
-              </button>
-              <span className="ui-datepicker__caption" id={captionId} aria-live="polite">{caption}</span>
-              <button
-                type="button"
-                className="ui-btn ui-btn--ghost ui-btn--xs ui-btn--icon ui-datepicker__step"
-                aria-label={stepOn}
-                onClick={() => stepPage(1)}
-              >
-                <Icon name="chevronRight" />
-              </button>
-            </div>
-
-            <div
-              className={cx('ui-datepicker__grid', grain === 'day' && 'is-days')}
-              role="grid"
-              aria-labelledby={captionId}
-              ref={grid}
-              onKeyDown={onGridKeyDown}
-            >
-              {weekdays.length > 0 && (
-                <div className="ui-datepicker__row" role="row">
-                  {weekdays.map((weekday) => (
-                    <span
-                      key={weekday.long}
-                      className="ui-datepicker__weekday"
-                      role="columnheader"
-                      aria-label={weekday.long}
-                    >
-                      {weekday.short}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {rows.map((cellsInRow, r) => (
-                <div className="ui-datepicker__row" role="row" key={`r${r}`}>
-                  {cellsInRow.map((cell, c) => (cell ? (
-                    <span
-                      key={cell.period}
-                      className="ui-datepicker__cell"
-                      role="gridcell"
-                      aria-selected={isPicked(cell.index)}
-                    >
-                      <button
-                        type="button"
-                        data-dp-cell=""
-                        data-value={cell.period}
-                        className={cx('ui-datepicker__opt', 'ui-focusable',
-                          isPicked(cell.index) && 'is-selected',
-                          isInside(cell.index) && 'is-inside',
-                          cell.index === todayIndex && 'is-today',
-                          cell.disabled && 'is-disabled')}
-                        tabIndex={cell.index === cursor ? 0 : -1}
-                        aria-disabled={cell.disabled || undefined}
-                        aria-label={state(cell)}
-                        onClick={() => pick(cell)}
-                        onFocus={() => setCursor(cell.index)}
-                      >
-                        <span className="ui-datepicker__num">{cell.label}</span>
-                        {cell.mark && (
-                          <span
-                            className={`ui-datepicker__mark is-${cell.mark.tone ?? 'neutral'}`}
-                            aria-hidden="true"
-                          />
-                        )}
-                      </button>
-                    </span>
-                  ) : (
-                    <span className="ui-datepicker__cell is-empty" role="gridcell" key={`e${r}-${c}`} />
-                  )))}
-                </div>
-              ))}
-            </div>
-
-            {legend.length > 0 && (
-              <ul className="ui-datepicker__legend">
-                {legend.map((mark) => (
-                  <li key={mark.label} className="ui-datepicker__legend-item">
-                    <span className={`ui-datepicker__mark is-${mark.tone ?? 'neutral'}`} aria-hidden="true" />
-                    {mark.label}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+      {asSheet ? (
+        // A sheet is the kit's drawer, not a wide popover: the scrim, the close
+        // control, the focus trap, the inert page behind it and the restored
+        // focus all come from <Drawer>, because changing the FORM of the panel
+        // without taking the sheet's affordances left a phone reader with no
+        // visible way out and a Tab that walked into the live page behind it.
+        // why: guidelines/drawer.md
+        <Drawer open={open} side="bottom" size="md" title={name} onClose={() => setOpen(false)}>
+          {calendar}
+        </Drawer>
+      ) : (
+        <div
+          className={cx('ui-dropdown__panel', 'ui-datepicker__panel', align === 'end' && 'is-end')}
+          role="dialog"
+          aria-label={name}
+          // Mounted while closed so the panel can fade out the way every other
+          // dropdown in the kit does, and inert while it is, so a grid nobody
+          // opened is out of the tab order, out of the pointer's way and out of
+          // the accessibility tree. why: docs/specification.md#the-dropdown-panel
+          inert={!open}
+          onClick={(e: ReactMouseEvent) => e.stopPropagation()}
+        >
+          {calendar}
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.65.0', date: '2026-10-01',
     changes: [
-      ['added', 'React DatePicker picks one month, a range of months, or one date, from the dropdown\u2019s own trigger and panel. It takes min and max bounds, blocked periods, consumer marks shown as a dot, a word in the legend and part of the cell\u2019s name, and consumer presets in range mode. The grid has one tab stop: arrows, Home, End and the Page keys move it and turn the page. Below 560px the panel is a sheet on the bottom edge. Part of #429; resolves #506.', ['DatePicker']],
+      ['added', 'React DatePicker picks one month, a range of months, or one date, from the dropdown\u2019s own trigger and panel. It takes min and max bounds, blocked periods, consumer marks shown as a dot, a word in the legend and part of the cell\u2019s name, and consumer presets in range mode. Bounds and blocked periods written in the other grain are converted rather than dropped, and a preset is clamped to the bounds or switched off. The grid has one tab stop: arrows and the Page keys move it and turn the page, and Home and End go to the ends of the row without leaving the month. Every cell says whether it is the pick. Below 560px the panel is a bottom drawer, with the kit\u2019s scrim, close control and focus trap; pass sheet to force it. Part of #429; resolves #506.', ['DatePicker']],
     ],
   },
   {

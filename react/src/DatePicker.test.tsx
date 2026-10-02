@@ -74,11 +74,11 @@ describe('the month grid', () => {
   it('steps the year from the head without moving the reader', async () => {
     const user = userEvent.setup();
     render(<DatePicker today={TODAY} defaultValue="2026-08" defaultOpen />);
-    const next = screen.getByRole('button', { name: 'Next year' });
+    const next = screen.getByRole('button', { name: /^Next year/ });
     await user.click(next);
     expect(within(panel()).getByRole('grid')).toHaveAccessibleName('2027');
     expect(next).toHaveFocus();
-    await user.click(screen.getByRole('button', { name: 'Previous year' }));
+    await user.click(screen.getByRole('button', { name: /^Previous year/ }));
     expect(within(panel()).getByRole('grid')).toHaveAccessibleName('2026');
   });
 
@@ -153,6 +153,46 @@ describe('the keyboard', () => {
   });
 });
 
+describe('what a cell says it is', () => {
+  it('names the pick in month mode, where focus lands on the button', () => {
+    render(<DatePicker today={TODAY} defaultValue="2026-08" defaultOpen />);
+    expect(cell(/^August 2026/)).toHaveAccessibleName('August 2026, selected');
+    expect(cell(/^September 2026/)).toHaveAccessibleName('September 2026, this month');
+    expect(cell(/^March 2026/)).toHaveAccessibleName('March 2026');
+  });
+
+  it('names each step by where it goes, so a shortcut cannot share its name', () => {
+    render(<DatePicker today={TODAY} defaultValue="2026-08" defaultOpen
+      mode="range" presets={[{ label: 'Previous year', range: { start: '2025-01', end: '2025-12' } }]} />);
+    const names = within(panel()).getAllByRole('button').map(b => b.getAttribute('aria-label') ?? b.textContent);
+    expect(names).toContain('Previous year, 2025');
+    expect(names).toContain('Previous year');
+    expect(new Set(names).size, `two controls share a name: ${names.join(' | ')}`).toBe(names.length);
+  });
+
+  it('names the pick in day mode too', () => {
+    render(<DatePicker today={TODAY} mode="day" defaultValue="2026-09-17" defaultOpen />);
+    expect(cell(/\b17 September 2026/)).toHaveAccessibleName(expect.stringContaining('selected'));
+    expect(cell(/\b18 September 2026/)).not.toHaveAccessibleName(expect.stringContaining('selected'));
+  });
+
+  it('keeps range mode\'s three words, which already worked', async () => {
+    const user = userEvent.setup();
+    function Example() {
+      const [span, setSpan] = useState<DatePickerRange>({ start: null, end: null });
+      return <DatePicker today={TODAY} mode="range" label="Period:" range={span}
+        onRangeChange={setSpan} defaultOpen />;
+    }
+    render(<Example />);
+    await user.click(cell(/^April 2026/));
+    await user.click(cell(/^July 2026/));
+    await user.click(trigger());
+    expect(cell(/^April 2026/)).toHaveAccessibleName(expect.stringContaining('range start'));
+    expect(cell(/^July 2026/)).toHaveAccessibleName(expect.stringContaining('range end'));
+    expect(cell(/^May 2026/)).toHaveAccessibleName(expect.stringContaining('in range'));
+  });
+});
+
 describe('bounds and blocked periods', () => {
   it('marks what cannot be picked and refuses the press', async () => {
     const user = userEvent.setup();
@@ -182,6 +222,86 @@ describe('bounds and blocked periods', () => {
   });
 });
 
+/* `min?: string` is all the type can say, so a bound written in the other grain
+ * used to parse as null and mean "no bound" — a quiet wrong answer in a
+ * published component. A month read in day grain is now its whole span. */
+describe('bounds written in the other grain', () => {
+  it('reads a month bound in day mode as the whole month, both ends', () => {
+    render(
+      <DatePicker today={TODAY} mode="day" defaultValue="2026-09-17" min="2026-09" max="2026-10" defaultOpen />,
+    );
+    expect(cell(/\b1 September 2026/)).not.toHaveAttribute('aria-disabled');
+    expect(cell(/\b30 September 2026/)).not.toHaveAttribute('aria-disabled');
+  });
+
+  it('ends the grid where that span ends', async () => {
+    const user = userEvent.setup();
+    render(
+      <DatePicker today={TODAY} mode="day" defaultValue="2026-09-17" min="2026-09" max="2026-10" defaultOpen />,
+    );
+    // September is the first allowed page and October the last, so one step
+    // button is off at each end — which is how the bound is now visible.
+    expect(screen.getByRole('button', { name: /^Previous month/ })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: /^Next month/ }));
+    expect(within(panel()).getByRole('grid')).toHaveAccessibleName('October 2026');
+    expect(cell(/\b31 October 2026/)).not.toHaveAttribute('aria-disabled');
+    expect(screen.getByRole('button', { name: /^Next month/ })).toBeDisabled();
+  });
+
+  it('holds the keyboard inside a bound written as a month', async () => {
+    const user = userEvent.setup();
+    render(
+      <DatePicker today={TODAY} mode="day" defaultValue="2026-09-01" min="2026-09" max="2026-10" defaultOpen />,
+    );
+    cell(/\b1 September 2026/).focus();
+    await user.keyboard('{ArrowLeft}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('1 September 2026'));
+    await user.keyboard('{PageDown}{PageDown}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('1 October 2026'));
+  });
+
+  it('blocks every day of a month listed in day grain', () => {
+    render(
+      <DatePicker today={TODAY} mode="day" defaultValue="2026-09-17"
+        disabledPeriods={['2026-09']} defaultOpen />,
+    );
+    const days = Array.from(panel().querySelectorAll('[data-dp-cell]'));
+    expect(days).toHaveLength(30);
+    expect(days.filter(d => d.getAttribute('aria-disabled') === 'true')).toHaveLength(30);
+  });
+
+  it('reads a date bound in month mode as the month it falls in', () => {
+    render(<DatePicker today={TODAY} defaultValue="2026-08" min="2026-03-15" max="2026-09-02" defaultOpen />);
+    expect(cell(/^March 2026/)).not.toHaveAttribute('aria-disabled');
+    expect(cell(/^February 2026/)).toHaveAttribute('aria-disabled', 'true');
+    expect(cell(/^September 2026/)).not.toHaveAttribute('aria-disabled');
+    expect(cell(/^October 2026/)).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('still refuses a period that is no date in either grain', () => {
+    render(<DatePicker today={TODAY} defaultValue="2026-08" min="last March" defaultOpen />);
+    expect(cell(/^January 2026/)).not.toHaveAttribute('aria-disabled');
+  });
+});
+
+describe('the page steps', () => {
+  it('go off at the bounds rather than doing nothing', async () => {
+    const user = userEvent.setup();
+    render(<DatePicker today={TODAY} defaultValue="2026-08" min="2026-03" max="2026-09" defaultOpen />);
+    expect(screen.getByRole('button', { name: /^Previous year/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Next year/ })).toBeDisabled();
+    await user.click(trigger());
+    await user.click(trigger());
+    expect(within(panel()).getByRole('grid')).toHaveAccessibleName('2026');
+  });
+
+  it('stay on when there is a page to reach', () => {
+    render(<DatePicker today={TODAY} defaultValue="2026-08" min="2025-03" max="2027-09" defaultOpen />);
+    expect(screen.getByRole('button', { name: /^Previous year/ })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /^Next year/ })).toBeEnabled();
+  });
+});
+
 describe('marks', () => {
   const marks = { '2026-06': { label: 'Restated', tone: 'warn' as const } };
 
@@ -203,7 +323,7 @@ describe('marks', () => {
       />,
     );
     expect(panel().querySelectorAll('.ui-datepicker__legend-item')).toHaveLength(1);
-    await user.click(screen.getByRole('button', { name: 'Next year' }));
+    await user.click(screen.getByRole('button', { name: /^Next year/ }));
     expect(panel().querySelector('.ui-datepicker__legend')).toBeNull();
   });
 });
@@ -257,6 +377,44 @@ describe('range mode', () => {
     await user.click(within(panel()).getByRole('button', { name: 'This year' }));
     expect(trigger()).toHaveTextContent('Jan 2026 – Dec 2026');
   });
+
+  /* A shortcut sets both ends at once, from beside the grid that would refuse
+   * them one by one. It is held to the same bounds the cells are. */
+  it('clamps a shortcut that runs past the bounds', async () => {
+    const user = userEvent.setup();
+    function Bounded() {
+      const [span, setSpan] = useState<DatePickerRange>({ start: null, end: null });
+      return (
+        <DatePicker today={TODAY} mode="range" label="Period:" range={span} onRangeChange={setSpan}
+          min="2026-04" max="2026-09" defaultOpen
+          presets={[{ label: 'This year', range: { start: '2026-01', end: '2026-12' } }]} />
+      );
+    }
+    render(<Bounded />);
+    await user.click(within(panel()).getByRole('button', { name: 'This year' }));
+    expect(trigger()).toHaveTextContent('Apr 2026 – Sept 2026');
+  });
+
+  it('switches off a shortcut the bounds leave nothing of', async () => {
+    const user = userEvent.setup();
+    const onRangeChange = vi.fn();
+    render(
+      <DatePicker today={TODAY} mode="range" label="Period:" min="2026-04" max="2026-09" defaultOpen
+        onRangeChange={onRangeChange}
+        presets={[{ label: 'Last season', range: { start: '2025-01', end: '2025-12' } }]} />,
+    );
+    const shortcut = within(panel()).getByRole('button', { name: 'Last season' });
+    expect(shortcut).toBeDisabled();
+    await user.click(shortcut);
+    expect(onRangeChange).not.toHaveBeenCalled();
+  });
+
+  it('reads a shortcut written in the other grain', async () => {
+    const user = userEvent.setup();
+    render(<RangeExample presets={[{ label: 'This year', range: { start: '2026-01-05', end: '2026-12-20' } }]} />);
+    await user.click(within(panel()).getByRole('button', { name: 'This year' }));
+    expect(trigger()).toHaveTextContent('Jan 2026 – Dec 2026');
+  });
 });
 
 describe('day mode', () => {
@@ -291,6 +449,42 @@ describe('day mode', () => {
     render(<DatePicker today={TODAY} mode="day" defaultValue="2026-09-17" defaultOpen onChange={onChange} />);
     await user.click(cell(/\b3 September 2026/));
     expect(onChange).toHaveBeenCalledWith('2026-09-03');
+  });
+
+  /* September 2026 starts on a Tuesday, so a Monday-first grid opens with one
+   * blank and its last row holds 28, 29 and 30. Both ends of both rows are
+   * cells that exist: the row's ends are not the padded lattice's, and neither
+   * key may repaginate the grid under a reader who asked to stay in it. */
+  it('Home and End stay in the row and in the month', async () => {
+    const user = userEvent.setup();
+    render(<DatePicker today={TODAY} mode="day" defaultValue="2026-09-17" defaultOpen />);
+    const caption = () => within(panel()).getByRole('grid');
+
+    cell(/\b3 September 2026/).focus();
+    await user.keyboard('{Home}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('1 September 2026'));
+    expect(caption()).toHaveAccessibleName('September 2026');
+    await user.keyboard('{End}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('6 September 2026'));
+    expect(caption()).toHaveAccessibleName('September 2026');
+
+    cell(/\b29 September 2026/).focus();
+    await user.keyboard('{End}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('30 September 2026'));
+    expect(caption()).toHaveAccessibleName('September 2026');
+    await user.keyboard('{Home}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('28 September 2026'));
+    expect(caption()).toHaveAccessibleName('September 2026');
+  });
+
+  it('still walks a full week from a row that needs no clamping', async () => {
+    const user = userEvent.setup();
+    render(<DatePicker today={TODAY} mode="day" defaultValue="2026-09-17" defaultOpen />);
+    cell(/\b17 September 2026/).focus();
+    await user.keyboard('{Home}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('14 September 2026'));
+    await user.keyboard('{End}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('20 September 2026'));
   });
 
   it('keeps a page step inside the shorter month', async () => {
@@ -357,19 +551,110 @@ describe('the focus ring', () => {
   });
 });
 
-describe('the phone sheet', () => {
-  const css = read('./DatePicker.css');
+describe('the sheet', () => {
+  const sheet = () => document.querySelector<HTMLElement>('.ui-drawer');
 
-  it('turns the panel into a bottom sheet at the kit\'s narrowest step', () => {
-    const phone = /@media \(max-width: 560px\) \{([\s\S]*)\}/.exec(css);
-    expect(phone, 'the phone block').not.toBeNull();
-    expect(phone![1]).toMatch(/position:\s*fixed/);
-    expect(phone![1]).toMatch(/inset-inline:\s*0/);
+  it('is the kit\'s drawer, with its scrim, its close control and its trap', () => {
+    render(<DatePicker today={TODAY} sheet label="Month:" defaultValue="2026-08" defaultOpen />);
+    expect(sheet()).toHaveClass('ui-drawer--bottom');
+    expect(sheet()!.querySelector('.ui-drawer__scrim')).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveClass('ui-drawer__panel');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(within(dialog).getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    // The popover is not rendered beside it, so there is one grid and one way out.
+    expect(document.querySelector('.ui-datepicker__panel')).toBeNull();
+    expect(dialog.querySelector('.ui-datepicker__body')).toHaveClass('is-sheet');
   });
 
-  it('writes no breakpoint the kit does not have', () => {
-    const steps = [...css.matchAll(/@media[^{]*?(\d+)px/g)].map(m => m[1]);
-    expect(steps.length).toBeGreaterThan(0);
-    expect([...new Set(steps)]).toEqual(['560']);
+  it('makes the page behind it inert, which the popover never did', () => {
+    const { container } = render(
+      <div><button type="button">Behind</button>
+        <DatePicker today={TODAY} sheet label="Month:" defaultValue="2026-08" defaultOpen />
+      </div>,
+    );
+    // dialog.ts marks every sibling of the dialog's root, up to <body>.
+    expect(container.querySelector('button')!.closest('[inert]')).not.toBeNull();
+  });
+
+  it('closes on its close control and on Escape', async () => {
+    const user = userEvent.setup();
+    function Example() {
+      const [open, setOpen] = useState(true);
+      return <DatePicker today={TODAY} sheet label="Month:" open={open} onOpenChange={setOpen} />;
+    }
+    render(<Example />);
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('closes on Escape and hands focus back to the trigger', async () => {
+    const user = userEvent.setup();
+    function Example() {
+      const [open, setOpen] = useState(false);
+      return <DatePicker today={TODAY} sheet label="Month:" open={open} onOpenChange={setOpen} />;
+    }
+    render(<Example />);
+    await user.click(trigger());
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(trigger()).toHaveFocus();
+  });
+
+  it('picks from the sheet and closes it', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    function Example() {
+      const [open, setOpen] = useState(true);
+      return (
+        <DatePicker today={TODAY} sheet label="Month:" defaultValue="2026-08"
+          open={open} onOpenChange={setOpen} onChange={onChange} />
+      );
+    }
+    render(<Example />);
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^March 2026/ }));
+    expect(onChange).toHaveBeenCalledWith('2026-03');
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  /* The viewport, not only the prop. JSDOM ships no matchMedia, which is why
+   * `usePhone` reaches for it optionally — without the guard every test here
+   * would throw rather than fall back to the popover. */
+  it('follows the kit\'s narrowest step when no prop says otherwise', () => {
+    const had = Object.getOwnPropertyDescriptor(window, 'matchMedia');
+    const narrow = (query: string) => ({
+      matches: /max-width:\s*560px/.test(query), media: query, onchange: null,
+      addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false,
+      addListener() {}, removeListener() {},
+    }) as unknown as MediaQueryList;
+    Object.defineProperty(window, 'matchMedia', { value: narrow, configurable: true, writable: true });
+    try {
+      render(<DatePicker today={TODAY} label="Month:" defaultValue="2026-08" defaultOpen />);
+      expect(document.querySelector('.ui-drawer')).toBeInTheDocument();
+    } finally {
+      if (had) Object.defineProperty(window, 'matchMedia', had);
+      else delete (window as { matchMedia?: unknown }).matchMedia;
+    }
+  });
+
+  it('is the popover when nothing says the viewport is narrow', () => {
+    render(<DatePicker today={TODAY} label="Month:" defaultValue="2026-08" defaultOpen />);
+    expect(document.querySelector('.ui-drawer')).toBeNull();
+    expect(document.querySelector('.ui-datepicker__panel')).toBeInTheDocument();
+  });
+
+  /* The step the component holds in TypeScript is one of the three the kit
+   * documents, read from the table the CSS gate reads rather than repeated. */
+  it('breaks at a step the specification lists', () => {
+    const spec = read('../../docs/specification.md');
+    const section = spec.slice(spec.indexOf('\n## Breakpoints\n'));
+    const steps = [...section.slice(0, section.indexOf('\n## ', 1)).matchAll(/^\|\s*`?(\d+)px`?\s*\|/gm)]
+      .map(m => Number(m[1]));
+    expect(steps.length, 'steps read out of the specification').toBeGreaterThan(1);
+    const written = /const PHONE_MAX = (\d+);/.exec(read('./DatePicker.tsx'));
+    expect(written, 'the component names its step as a literal this gate can read').not.toBeNull();
+    expect(steps).toContain(Number(written![1]));
+    expect(Number(written![1])).toBe(Math.min(...steps));
   });
 });
