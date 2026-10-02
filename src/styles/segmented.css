@@ -93,11 +93,11 @@
 /* Underline tabs wrap for the reason the pills above do — #435, and #527, which
    stopped them scrolling and sets the row gap. why: docs/specification.md */
 .ui-seg--underline { flex-wrap: wrap; overflow: visible; row-gap: var(--space-5); align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); max-width: 100%; }
-/* A label wraps inside its own tab, as it already does inside a pill. `nowrap`
-   was safe only while the scroll box above contained it; without one, a tab
-   wider than the column drew past the viewport and took the page's scrollWidth
-   with it. `anywhere` is the half `break-word` cannot do: it lowers the tab's
-   min-content width, so a single unbreakable word narrows too. #527 */
+/* A label wraps inside its own tab. `nowrap` was safe only while the scroll box
+   above contained it; without one, a tab wider than the column drew past the
+   viewport and took the page's scrollWidth with it. `anywhere` is the half
+   `break-word` cannot do: it lowers the tab's min-content width, so a single
+   unbreakable word narrows too — which a pill's label still does not. #527 */
 .ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: normal; overflow-wrap: anywhere; }
 .ui-seg--underline button.is-active,
 .ui-seg--underline button[aria-pressed="true"] { background: transparent; border-bottom-color: var(--accent); }

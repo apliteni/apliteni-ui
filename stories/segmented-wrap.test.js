@@ -3,8 +3,9 @@
  * box. src/styles/segmented.test.js reads the declarations; this is what they
  * draw. #527
  *
- * Subjects come from the story sweep, with two fixtures for the long labels no
- * story carries. Limits: the sweep reads stories/ only, so no React strip is
+ * The shipped sheet is read at 320, 390 and 1280; the mutations at 320, where a
+ * label that cannot fit shows soonest. Subjects come from the story sweep, with
+ * two fixtures for the long labels no story carries. Limits: the sweep reads stories/ only, so no React strip is
  * measured, and every discovered subject's labels are short — the fixtures are
  * what answer that. Opt-in on a browser as stories/tap-zone.test.js is, for the
  * same reason: CI runs nothing here. why: scripts/evidence/README.md
@@ -136,6 +137,10 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
   const css = kitStylesheet();
   const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
   try {
+    // 320 is the width the spill was measured at, and the narrowest the kit
+    // draws for; 390 is the issue's own; 1280 is where the strip must stay on
+    // one row. The shipped sheet goes through the assertion loop at all three.
+    const tight320 = await strips(browser, { subjects, css, width: 320 });
     const narrow = await strips(browser, { subjects, css, width: 390 });
     const wide = await strips(browser, { subjects, css, width: 1280 });
 
@@ -145,7 +150,7 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
       + 'fewer strips than there are stories carrying one, so some went unread.',
     );
 
-    for (const width of [narrow, wide]) {
+    for (const width of [tight320, narrow, wide]) {
       for (const s of width) {
         assert.deepEqual(
           s.outside, [],
@@ -199,7 +204,7 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
     for (const s of wide.filter((x) => x.story.includes('StockScreener'))) {
       assert.equal(s.rows, 1, `${s.story}: expected one row at 1280, got ${s.rows}`);
     }
-    t.diagnostic(`${subjects.length} stories, ${narrow.length} strips at 390, ${wide.length} at 1280`);
+    t.diagnostic(`${subjects.length} subjects, ${tight320.length} strips at 320, ${narrow.length} at 390, ${wide.length} at 1280`);
 
     // --- the mutation. The sheet put back the way `main` shipped it: one row and
     // a scroll box. If the checks above still pass against that, they measure
@@ -230,19 +235,19 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
     );
     t.diagnostic(`mutation to a 4px row gap fails ${ambiguous.length} of ${tight.filter((s) => s.rows > 1 && s.rail).length} wrapped strips`);
 
-    // --- the third mutation. `white-space: nowrap` on the tab, which is what the
-    // sheet carried while the scroll box contained it. Without the box it draws a
-    // long tab past the viewport, and only the fixtures have a label long enough
-    // to show it — which is why they are here.
+    // --- the tab's own two. `nowrap` is what the sheet carried while the scroll
+    // box contained it; `break-word` is the weaker half of what replaced it, which
+    // wraps prose but cannot narrow one unbreakable word. Only the fixtures have a
+    // label long enough to show either — which is why they are here.
     for (const [name, extra] of [
       ['nowrap', '.ui-seg--underline button{white-space:nowrap!important}'],
-      ['nowrap, narrow', '.ui-seg--underline button{white-space:normal!important;overflow-wrap:break-word!important}'],
+      ['break-word', '.ui-seg--underline button{white-space:normal!important;overflow-wrap:break-word!important}'],
     ]) {
       const spilt = await strips(browser, { subjects, css, width: 320, extra });
       const over = spilt.filter((s) => s.widest > s.inner + 0.5 || s.pageScrollWidth > s.viewport);
       assert.ok(
         over.length,
-        `putting ${name} back left every tab inside its column at 320. The containment checks `
+        `${name} on the tab left every tab inside its column at 320. The containment checks `
         + 'above measure nothing, or no subject has a label long enough to show it.',
       );
       t.diagnostic(`mutation to ${name} fails ${over.length} of ${spilt.length} strips at 320`);
