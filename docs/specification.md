@@ -2480,17 +2480,22 @@ Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
 
 ## React date and month picker
 
-`DatePicker` picks one month, a range of months, or one date. At its ordinary width it
-wears the dropdown's shell — the same `.ui-dropdown` trigger, chevron and
+`DatePicker` picks one month, a range of months, one date, or a range of dates. At its
+ordinary width it wears the dropdown's shell — the same `.ui-dropdown` trigger, chevron and
 `.ui-dropdown__panel` surface — and adds only the grid inside it, so a picker and a
 select standing beside it are the same control at rest. The panel is a `dialog`, because
 a calendar is a grid and a listbox may own only options. It is mounted while closed, the
 way every dropdown panel is, and `inert` while it is: a grid nobody opened is out of the
 tab order, out of the pointer's way and out of the accessibility tree.
 
+**The grain and the span are two questions, not one.** `month` and `day` pick a single
+period; `range` and `day-range` pick a start and an end in the same two presses. Every
+rule below reads which of the two is being asked rather than naming a mode, so the two
+range modes behave alike and a day range is the month range one grain down.
+
 Periods are ISO strings in the mode's own grain — `YYYY-MM` for `month` and `range`,
-`YYYY-MM-DD` for `day` — and every step, bound and comparison is arithmetic on one
-integer per period, so no part of the component walks a `Date` across a daylight-saving
+`YYYY-MM-DD` for `day` and `day-range` — and every step, bound and comparison is
+arithmetic on one integer per period, so no part of the component walks a `Date` across a daylight-saving
 boundary.
 
 **A period written in the other grain still counts.** `min`, `max` and `disabledPeriods`
@@ -2520,8 +2525,9 @@ gridcell's `aria-selected`, which is the wrapper rather than the element focus l
 so the name on the button carries it too: `selected` in every mode, and `range start`,
 `range end` and `in range` besides, in range mode.
 
-**Range mode takes a start, then an end, and stays open in between.** A second press
-below the first is the same range read backwards, so the ends swap. `onRangeChange` fires
+**A range mode takes a start, then an end, and stays open in between.** A second press
+below the first is the same range read backwards, so the ends swap. A range may run past
+the page it started on: the grid turns under it and the span is painted on both pages. `onRangeChange` fires
 on each end, so a half-picked range is visible to the host. Consumer presets set both ends
 at once and carry no selected state of their own, because the grid already says what is
 chosen; a preset is held to the same bounds the cells are, clamped where the two overlap

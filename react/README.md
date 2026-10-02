@@ -580,11 +580,12 @@ the accent from a checked box.
 ## DatePicker
 
 `DatePicker` picks one month (`mode="month"`, the default), a range of months
-(`mode="range"`) or one date (`mode="day"`). It uses the dropdown's own trigger and
-panel, so it sits beside a `Dropdown` as the same control. Periods are ISO strings in the
-mode's grain: `'2026-08'` for months, `'2026-08-14'` for dates. Pass `value`/`onChange`
-(or `range`/`onRangeChange`) to control it, or `defaultValue`/`defaultRange` to leave it
-to the component. Import both the kit CSS and the React CSS.
+(`mode="range"`), one date (`mode="day"`) or a range of dates (`mode="day-range"`). It
+uses the dropdown's own trigger and panel, so it sits beside a `Dropdown` as the same
+control. Periods are ISO strings in the mode's grain: `'2026-08'` for months,
+`'2026-08-14'` for dates. Pass `value`/`onChange` for the single-period modes and
+`range`/`onRangeChange` for the two range modes, or `defaultValue`/`defaultRange` to
+leave the state to the component. Import both the kit CSS and the React CSS.
 
 ```tsx
 <DatePicker label="Month:" value={month} onChange={setMonth}
@@ -593,6 +594,9 @@ to the component. Import both the kit CSS and the React CSS.
 
 <DatePicker mode="range" label="Period:" range={span} onRangeChange={setSpan}
   presets={[{ label: 'This year', range: { start: '2026-01', end: '2026-12' } }]} />
+
+<DatePicker mode="day-range" label="Dates:" range={span} onRangeChange={setSpan}
+  presets={[{ label: 'This week', range: { start: '2026-09-14', end: '2026-09-20' } }]} />
 ```
 
 **The grid has one tab stop.** The arrows move one period and one row, Home and End go to
@@ -611,8 +615,10 @@ dropped: in day mode `min="2026-09"` is 1 September and `max="2026-09"` is the 3
 month it falls in. Blocked cells get `aria-disabled` and refuse the press while staying
 focusable. A page step with nowhere to go is disabled.
 
-**Range mode takes a start, then an end**, staying open in between; a second pick above or
-below the first always reads as the same range, so the ends swap rather than restarting.
+**A range mode takes a start, then an end**, staying open in between; a second pick above
+or below the first always reads as the same range, so the ends swap rather than
+restarting. `range` and `day-range` differ only in grain — a range may run past the page
+it started on, and the span is painted on both pages.
 `onRangeChange` fires on each end, so `{ start, end: null }` reaches you too. `presets`
 set both ends at once and are held to the same bounds the grid is: a preset that overruns
 them is clamped, one with no overlap at all is disabled, and one whose end lands on a

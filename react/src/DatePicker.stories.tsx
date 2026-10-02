@@ -171,6 +171,53 @@ export const DayBounded: StoryObj<typeof DatePicker> = {
   ),
 };
 
+const dayPresets = [
+  { label: 'This week', range: { start: '2026-09-14', end: '2026-09-20' } },
+  { label: 'Last week', range: { start: '2026-09-07', end: '2026-09-13' } },
+  { label: 'This month', range: { start: '2026-09-01', end: '2026-09-30' } },
+];
+
+// A range of days, the same two presses the month range takes: a start, then an
+// end, with the days between them shown as the span.
+export const DayRange: StoryObj<typeof DatePicker> = {
+  render: function DayRangeStory(args) {
+    const [span, setSpan] = useState<DatePickerRange>({ start: '2026-09-07', end: '2026-09-18' });
+    return (
+      <DatePicker
+        {...args}
+        mode="day-range"
+        label="Dates:"
+        range={span}
+        onRangeChange={setSpan}
+        presets={dayPresets}
+        defaultOpen
+      />
+    );
+  },
+};
+
+// A day range against bounds and blocked days: the span runs over a blocked day
+// without taking it in, and a shortcut the bounds leave nothing of is off.
+export const DayRangeBounded: StoryObj<typeof DatePicker> = {
+  render: function DayRangeBoundedStory(args) {
+    const [span, setSpan] = useState<DatePickerRange>({ start: '2026-09-07', end: '2026-09-18' });
+    return (
+      <DatePicker
+        {...args}
+        mode="day-range"
+        label="Dates:"
+        range={span}
+        onRangeChange={setSpan}
+        presets={dayPresets}
+        min="2026-09-03"
+        max="2026-09-25"
+        disabledPeriods={['2026-09-12', '2026-09-13']}
+        defaultOpen
+      />
+    );
+  },
+};
+
 export const Empty: StoryObj<typeof DatePicker> = {
   render: args => <DatePicker {...args} ariaLabel="Reporting month" />,
 };
@@ -235,4 +282,16 @@ export const Phone: StoryObj<typeof DatePicker> = {
 export const PhoneDay: StoryObj<typeof DatePicker> = {
   globals: { viewport: { value: 'phone', isRotated: false } },
   render: args => <DatePicker {...args} sheet mode="day" label="Date:" defaultValue="2026-09-17" defaultOpen />,
+};
+
+// A day range in the sheet, with its shortcuts above the grid.
+export const PhoneDayRange: StoryObj<typeof DatePicker> = {
+  globals: { viewport: { value: 'phone', isRotated: false } },
+  render: function PhoneDayRangeStory(args) {
+    const [span, setSpan] = useState<DatePickerRange>({ start: '2026-09-07', end: '2026-09-18' });
+    return (
+      <DatePicker {...args} sheet mode="day-range" label="Dates:" range={span}
+        onRangeChange={setSpan} presets={dayPresets} defaultOpen />
+    );
+  },
 };
