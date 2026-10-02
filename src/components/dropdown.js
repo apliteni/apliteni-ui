@@ -325,35 +325,44 @@ function ddResetSearch(dd, panel, search) {
   if (panel.offsetWidth) panel.style.minWidth = `${panel.offsetWidth}px`;
 }
 
-/* The kit's menu floor, the one `.ui-dropdown__panel` writes. Named here so the
- * fit below and the stylesheet cannot drift apart. why: src/styles/dropdown.css */
+/* The kit's menu floor, the one `.ui-dropdown__panel` writes. The stylesheets
+ * carry the same number; stories/filter-bar-fit.test.js reads all of them and
+ * fails when one drifts. why: src/styles/dropdown.css */
 export const DD_MENU_FLOOR = 240;
 
 /**
- * Where a filter chip's menu can sit. #484 bounds the panel to its trigger so a
- * shut panel adds nothing to the page's width; once chips print their value
- * alone (#536) that leaves a 48px menu breaking words mid-letter, which is #549.
+ * Where a filter chip's menu may sit. #484 bounds the panel to its trigger, so a
+ * chip printing its value alone (#536) left a 48px menu breaking words
+ * mid-letter — #549. An OPEN panel takes the floor instead and slides along the
+ * row when the room on the side it opens from is short; shut, it keeps the
+ * trigger's width, which is why #467 needs no measuring at all.
  *
- * So an OPEN panel takes the kit's menu floor instead, and shifts back along the
- * row when the room to its right cannot hold it. Shut, the panel keeps the
- * trigger's width and needs none of this — which is why #467 stays fixed with no
- * measuring at all, and why a page that never runs this still cannot overflow.
+ * A panel is anchored at one edge of its dropdown — its inline end when it
+ * carries `is-end` — so room is measured from that edge and the slide goes the
+ * other way. Measuring an end-anchored panel forwards put one off the page.
+ * why: docs/specification.md#a-filter-row-holds-its-panels
  *
  * @param {Element} dd a `.ui-dropdown` that may be inside a filter row
  * @param {number} [floor] the width to reach for
- * @returns {{room: number, shift: number}|null} null when it is not in a row
+ * @returns {{room: number, shift: number, floor: number, end: boolean}|null}
  */
 export function filterPanelFit(dd, floor = DD_MENU_FLOOR) {
   const bar = typeof dd?.closest === 'function' ? dd.closest('.ui-filter-bar') : null;
   if (!bar || typeof bar.getBoundingClientRect !== 'function') return null;
   const row = bar.getBoundingClientRect();
   const box = dd.getBoundingClientRect();
+  const panel = typeof dd.querySelector === 'function' ? dd.querySelector('.ui-dropdown__panel') : null;
+  const end = !!panel?.classList?.contains('is-end');
   // A row narrower than the floor decides the width; nothing may leave the row.
   const want = Math.min(floor, row.width);
-  const ahead = Math.max(0, row.right - box.left);
-  const behind = Math.max(0, box.left - row.left);
-  const shift = Math.min(behind, Math.max(0, want - ahead));
-  return { room: ahead + shift, shift };
+  const ahead = end
+    ? Math.max(0, box.right - row.left)    // an end-anchored panel grows backwards
+    : Math.max(0, row.right - box.left);
+  const slack = end
+    ? Math.max(0, row.right - box.right)   // …and slides towards the row's end
+    : Math.max(0, box.left - row.left);
+  const shift = Math.min(slack, Math.max(0, want - ahead));
+  return { room: ahead + shift, shift, floor: want, end };
 }
 
 /** Write the fit onto the panel, or leave it alone outside a filter row. The
@@ -364,6 +373,7 @@ function ddFitFilterPanel(dd, panel) {
   if (!fit || !panel?.style) return;
   panel.style.setProperty('--ui-filter-panel-room', `${fit.room}px`);
   panel.style.setProperty('--ui-filter-panel-shift', `${fit.shift}px`);
+  panel.style.setProperty('--ui-filter-panel-floor', `${fit.floor}px`);
 }
 
 // `auto` is the only direction the wiring decides; `up` and the default are the
@@ -437,13 +447,19 @@ function openDropdown(dd, focusIdx) {
   closeAllDropdowns(dd);
   const panel = ddPanelOf(dd);
   const search = ddSearchOf(dd);
-  if (panel && search) ddResetSearch(dd, panel, search);
   if (panel) {
     ddResolveDirection(dd, panel);
     if (dd.__ddPanel) { positionPortalPanel(dd, panel); panel.classList.add('is-open'); }
     else ddFitFilterPanel(dd, panel);
   }
   dd.classList.add('open');
+  /* After `open`, and after the fit: ddResetSearch() pins the width it reads off
+   * the panel, and the rule that widens a filter menu only applies once the
+   * panel is open. Reading first pinned 50px inline, which beats any stylesheet
+   * — a searchable chip in a filter row kept the 74px menu #549 reported, while
+   * React, whose effects already ran in this order, gave 240px for the same
+   * markup. why: src/styles/filter-bar.css */
+  if (panel && search) ddResetSearch(dd, panel, search);
   dd.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'true');
   // With search, focus goes to the field however the panel was opened, and
   // the selected row (or the first) is the one Enter would pick.

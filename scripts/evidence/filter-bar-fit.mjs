@@ -41,7 +41,10 @@ for (const build of BUILDS) {
 // The widths #467 names. 320 rides along as the narrowest phone still sold: the
 // bound holds at any width, so the pair the issue asked about is not the only
 // place it is allowed to hold.
-const WIDTHS = [320, 375, 390];
+// 1280 rides along because an end-anchored menu leaves its row at every width,
+// not only on a phone: a defect that needs no narrow viewport was invisible to a
+// sweep that only measured phones.
+const WIDTHS = [320, 375, 390, 1280];
 const THEMES = ['dark', 'light'];
 /* Floors, recorded from what this kit reaches rather than re-derived from the
  * sweep. A count computed from the same loop that filled it can only restate
@@ -49,7 +52,7 @@ const THEMES = ['dark', 'light'];
  * "36 of 36 expected" and pass. These fail instead, and raising them is the
  * deliberate act of someone who has seen the new surfaces. */
 const FLOOR_SUBJECTS = 14;   // 8 root + 6 react stories rendering a filter bar
-const FLOOR_PANELLED = 48;   // cases that put a panel on the page, of 90
+const FLOOR_PANELLED = 64;   // cases that put a panel on the page, of 120
 // Putting the floor back is one mutation. It is the rule as it stood before the
 // fix, written at a specificity that beats the bound so it cannot be a no-op.
 const FLOOR_BACK = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel'

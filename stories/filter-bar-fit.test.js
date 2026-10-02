@@ -29,6 +29,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
+import { DD_MENU_FLOOR } from '../src/components/dropdown.js';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -135,12 +136,21 @@ function resolveVars(value, vars, depth = 0) {
  *  case, and it is what lets a filter row floor an open menu — the floor is
  *  capped by the room the row leaves, so it can never hold the box wider than
  *  the row. A `max()` is the opposite and stays a floor. */
-function canExceed(resolved) {
+function canExceed(resolved, selector = '') {
   if (resolved === null) return true;
   const value = resolved.trim();
   if (value.endsWith('%') || value === '0') return false;
   const min = /^min\(([\s\S]*)\)$/.exec(value);
-  if (min) return !splitArgs(min[1]).some((arg) => !canExceed(arg.trim()));
+  /* A `min()` holding a percentage is at most that percentage — but only if the
+   * percentage is what the browser uses. The kit writes these through a custom
+   * property that JavaScript sets to an absolute length, so the fallback
+   * resolved here is what renders only until the fit runs. A rule that applies
+   * after it has (`.open`) may be read this way; the shut rule, which is the one
+   * #467 is about, may not — a shut-scope floor spelled through a token would
+   * otherwise walk past this guard at any width. */
+  if (min && /\.open\b/.test(selector)) {
+    return !splitArgs(min[1]).some((arg) => !canExceed(arg.trim(), selector));
+  }
   return true;
 }
 
@@ -178,7 +188,7 @@ function floors(sheets) {
           const value = declared(rule.body, prop);
           if (!value) continue;
           const resolved = resolveVars(value, vars);
-          if (!canExceed(resolved)) continue;
+          if (!canExceed(resolved, one)) continue;
           found.push({ file, selector: one, prop, value, resolved, rank: classes(one) });
         }
       }
@@ -226,6 +236,34 @@ function unbounded(sheets) {
   }
   return null;
 }
+
+/** Every place the kit writes its menu floor, read rather than repeated. The
+ *  number lives in two stylesheets, in the module both implementations call and
+ *  in the browser gate; a copy that drifts is a menu that disagrees with itself,
+ *  and nothing else would notice. */
+function menuFloors(sheets, jsFloor, gateSource) {
+  const found = [];
+  for (const [file, css] of sheets) {
+    for (const rule of rules(css)) {
+      for (const one of selectors(rule.selector)) {
+        const value = declared(rule.body, 'min-width');
+        if (!value) continue;
+        // The standalone panel's own floor, not a variant's.
+        const bare = /^(\d+(?:\.\d+)?)px$/.exec(value.trim());
+        if (bare && one.trim() === PANEL) found.push({ where: file, px: Number(bare[1]) });
+        // The fallback a filter row's menu reads when the fit has not run.
+        const token = /min\(\s*var\(\s*--ui-filter-panel-floor\s*,\s*(\d+(?:\.\d+)?)px\s*\)/.exec(value);
+        if (token) found.push({ where: `${file} (fallback)`, px: Number(token[1]) });
+      }
+    }
+  }
+  found.push({ where: 'DD_MENU_FLOOR', px: jsFloor });
+  const gate = /const MENU_FLOOR = (\d+(?:\.\d+)?)/.exec(gateSource);
+  if (gate) found.push({ where: 'filter-bar-fit.mjs', px: Number(gate[1]) });
+  return found;
+}
+
+const gateSource = readFileSync(path.join(root, 'scripts/evidence/filter-bar-fit.mjs'), 'utf8');
 
 const sheets = readdirSync(STYLES)
   .filter((name) => name.endsWith('.css'))
@@ -293,6 +331,48 @@ test('a floor spelled as a token is read, not skipped', () => {
   assert.match(unbounded(token), /outranks every bound/);
   assert.match(unbounded(literal), /outranks every bound/);
   assert.equal(unbounded(token) === null, unbounded(literal) === null);
+});
+
+test('every copy of the menu floor agrees', () => {
+  const found = menuFloors(sheets, DD_MENU_FLOOR, gateSource);
+  // Four places write it: the standalone panel's rule, the filter row's
+  // fallback, the module both implementations call, and the browser gate.
+  assert.equal(found.length, 4, `floors found: ${found.map((f) => `${f.where}=${f.px}`).join(', ')}`);
+  const distinct = [...new Set(found.map((f) => f.px))];
+  assert.deepEqual(distinct, [240], found.map((f) => `${f.where}=${f.px}`).join(', '));
+});
+
+test('the sweep refuses a floor that drifted in one place', () => {
+  // The mutation the old assertion could not fail: change the stylesheet alone
+  // and the constant no longer describes what ships.
+  const drifted = sheets.map(([file, css]) => [
+    file,
+    file.endsWith('dropdown.css') ? css.replace('min-width: 240px', 'min-width: 260px') : css,
+  ]);
+  const found = menuFloors(drifted, DD_MENU_FLOOR, gateSource);
+  assert.notDeepEqual([...new Set(found.map((f) => f.px))], [240]);
+});
+
+test('the sweep refuses a floor that drifted in the module', () => {
+  const found = menuFloors(sheets, 260, gateSource);
+  assert.notDeepEqual([...new Set(found.map((f) => f.px))], [240]);
+});
+
+test('the sweep refuses a floor that drifted in the browser gate', () => {
+  const found = menuFloors(sheets, DD_MENU_FLOOR, 'const MENU_FLOOR = 260;');
+  assert.notDeepEqual([...new Set(found.map((f) => f.px))], [240]);
+});
+
+test('a shut-scope floor spelled through a token is still a floor', () => {
+  // #467's guard. A custom property a browser resolves from JavaScript never
+  // reads the fallback this parser does, so outside `.open` the exemption would
+  // admit a floor of any width.
+  const shut = [
+    ['fixture.css', `${BAR} ${PANEL} { min-width: min(400px, var(--x, 100%)); }`],
+    ['fixture-bar.css', `${BAR} ${PANEL} { max-width: 100%; }`],
+  ];
+  assert.equal(floors(shut).length, 1);
+  assert.match(unbounded(shut), /outranks every bound|max-width/);
 });
 
 test('a floor capped by a percentage is not a floor, however it is spelled', () => {

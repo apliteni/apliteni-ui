@@ -28,13 +28,14 @@ export declare function dropdownMatch(label: unknown, query: unknown): boolean;
 export declare function dropdownFiltering(query: unknown): boolean;
 /** The kit's menu floor, the width `.ui-dropdown__panel` writes. */
 export declare const DD_MENU_FLOOR: number;
-/** Where a filter chip's open menu can sit: the room from its inline start to
- *  the row's end once shifted back, and how far back it had to shift. `null`
- *  when the dropdown is not inside a `.ui-filter-bar`. */
+/** Where a filter chip's open menu can sit: the room from the edge it is
+ *  anchored at to the far side of its row once slid, how far it had to slide,
+ *  the width it reached for, and whether it is anchored at its inline end.
+ *  `null` when the dropdown is not inside a `.ui-filter-bar`. */
 export declare function filterPanelFit(
   dd: Element | null | undefined,
   floor?: number,
-): { room: number; shift: number } | null;
+): { room: number; shift: number; floor: number; end: boolean } | null;
 export declare function backLink(opts?: Record<string, unknown>): string;
 export declare function statBand(opts?: Record<string, unknown>): string;
 export declare function commandPalette(opts?: Record<string, unknown>): string;

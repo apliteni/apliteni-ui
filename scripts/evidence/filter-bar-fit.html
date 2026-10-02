@@ -13,6 +13,7 @@
 <div class="pad" id="bars"></div>
 <script type="module">
 import { filterBar, initFilterBar } from '/src/components/filter-bar.js';
+import { dropdown, wireDropdown } from '/src/components/dropdown.js';
 
 const filters = [
   { id: 'region', label: 'Region', value: 'All', items: [{ label: 'All', value: 'All' }, { label: 'Europe', value: 'Europe' }] },
@@ -46,6 +47,39 @@ for (const [name, options] of [
   document.getElementById('bars').append(host);
   initFilterBar(host, options);
 }
+/* Two compositions filterBar() cannot express and the specification supports: a
+   chip whose menu is end-aligned, and a searchable one. Both still showed #549
+   after the floor landed — the end-aligned menu grew leftwards 49px off the page
+   because the fit measured room forwards, and the searchable one stayed 74px
+   because ddResetSearch() pinned a width read before the floor applied. Written
+   as markup because filterBar() passes neither option through. */
+const SECTORS = [
+  { label: 'All', value: 'All' },
+  { label: 'Technology', value: 'tech' },
+  { label: 'Consumer Discretionary', value: 'cons' },
+];
+const chip = (id, label, opts) =>
+  `<fieldset class="ui-filter-bar__chip" data-filter-id="${id}">`
+  + `<legend class="ui-filter-bar__legend">${label}</legend>`
+  + dropdown({ label, value: 'All', variant: 'select', items: SECTORS, ...opts })
+  + `<button type="button" class="ui-filter-bar__remove" data-filter-remove`
+  + ` aria-label="Remove ${label} filter">\u00d7</button></fieldset>`;
+
+const composed = document.createElement('div');
+composed.dataset.case = 'composed';
+composed.innerHTML = '<fieldset class="ui-filter-bar" data-filter-bar>'
+  + '<legend class="ui-filter-bar__legend">Composed filters</legend>'
+  // The end-aligned chip goes first on purpose: an end-anchored panel grows
+  // backwards, so the room it has is what lies behind it, and a chip at the
+  // row's start has least. Measured here, the unfixed rule put it 176px past the
+  // row's start and off the page.
+  + chip('ending', 'Aligned', { align: 'end' })
+  + chip('plain', 'Sector', {})
+  + chip('searchable', 'Lookup', { search: true })
+  + '</fieldset>';
+document.getElementById('bars').append(composed);
+wireDropdown(composed);
+
 document.documentElement.dataset.ready = 'yes';
 </script>
 </body>

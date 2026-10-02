@@ -1939,6 +1939,13 @@ own start. The stylesheet reads the two numbers as `--ui-filter-panel-room` and
 the measurement runs is bounded rather than unbounded. A panel rendered already-open is fitted when
 it is wired, since it never passes through the open path.
 
+A menu pinned at its inline end — `dropdown({ align: 'end' })` composed inside a filter row — is
+measured from that edge and slid the other way, because an end-anchored panel grows backwards: the
+room it has is what lies between its own right edge and the row's start. A searchable chip is fitted
+before `ddResetSearch()` pins the width it reads, so the floor is in before the measurement rather
+than after it. Both compositions sit in `scripts/evidence/filter-bar-fit.html`, so the browser gate
+measures them.
+
 The chip's own width is a separate question this rule does not reach. `.ui-dropdown__trigger` is an
 `inline-flex` without `min-width: 0`, and `.ui-dropdown__value` carries no wrap hint, so a chip
 cannot shrink below its selected value's min-content width: a filter showing

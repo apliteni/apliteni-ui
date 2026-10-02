@@ -16,25 +16,34 @@ import assert from 'node:assert/strict';
 import { filterPanelFit, DD_MENU_FLOOR } from './dropdown.js';
 
 /** A dropdown at `left` inside a row of `width`, both as the browser reports. */
-const at = (left, rowWidth, rowLeft = 0) => ({
+const at = (left, rowWidth, rowLeft = 0, end = false) => ({
   getBoundingClientRect: () => ({ left: rowLeft + left, right: rowLeft + left + 60, width: 60 }),
+  querySelector: () => ({ classList: { contains: (c) => end && c === 'is-end' } }),
   closest: (sel) => (sel === '.ui-filter-bar' ? {
     getBoundingClientRect: () => ({ left: rowLeft, right: rowLeft + rowWidth, width: rowWidth }),
   } : null),
 });
 
-test('the floor is the width `.ui-dropdown__panel` writes, so the two cannot drift', () => {
-  assert.equal(DD_MENU_FLOOR, 240);
+/** The same chip with its menu pinned to the dropdown's inline end. */
+const endAt = (left, rowWidth, rowLeft = 0) => at(left, rowWidth, rowLeft, true);
+
+test('the fit reports the floor it reached for', () => {
+  // The published parameter has to reach the rendered width, not only the room:
+  // the stylesheet reads this number back as --ui-filter-panel-floor.
+  assert.equal(filterPanelFit(at(0, 1000)).floor, DD_MENU_FLOOR);
+  assert.equal(filterPanelFit(at(0, 1000), 320).floor, 320);
+  // A row narrower than the ask still decides.
+  assert.equal(filterPanelFit(at(0, 180), 320).floor, 180);
 });
 
 test('a chip with room ahead takes the floor and does not move', () => {
-  assert.deepEqual(filterPanelFit(at(146, 1200)), { room: 1054, shift: 0 });
+  assert.deepEqual(filterPanelFit(at(146, 1200)), { room: 1054, shift: 0, floor: 240, end: false });
 });
 
 test('a chip short of room shifts back until the floor fits', () => {
   // finance-cells at 320: a 240px row, the chip 146 along, 94px of room ahead.
   // Shifting the missing 146px puts the menu at the row's start, not past it.
-  assert.deepEqual(filterPanelFit(at(146, 240)), { room: 240, shift: 146 });
+  assert.deepEqual(filterPanelFit(at(146, 240)), { room: 240, shift: 146, floor: 240, end: false });
 });
 
 test('a shift never passes the row’s own start', () => {
@@ -71,6 +80,43 @@ test('a dropdown outside a filter row is not a subject', () => {
 test('a caller may ask for a different floor', () => {
   assert.equal(filterPanelFit(at(0, 1000), 320).room, 1000);
   assert.equal(filterPanelFit(at(900, 1000), 320).shift, 220);
+  // And the width it asked for comes back, which is what the stylesheet reads.
+  assert.equal(filterPanelFit(at(900, 1000), 320).floor, 320);
+});
+
+test('an end-anchored menu measures the room behind it', () => {
+  // `is-end` pins the panel's right edge to the dropdown's, so it grows
+  // backwards: the room is what lies between that edge and the row's start.
+  // Measured forwards, a chip at the row's start looked roomy and the menu went
+  // off the page.
+  const first = endAt(0, 1000);        // box.right = 60, so 60px behind it
+  assert.equal(filterPanelFit(first).room, 240);
+  assert.equal(filterPanelFit(first).shift, 180);
+  assert.equal(filterPanelFit(first).end, true);
+});
+
+test('an end-anchored menu with room behind it does not move', () => {
+  const late = endAt(600, 1000);       // box.right = 660, far more than the floor
+  assert.deepEqual(
+    { room: filterPanelFit(late).room, shift: filterPanelFit(late).shift },
+    { room: 660, shift: 0 },
+  );
+});
+
+test('an end-anchored shift never passes the row’s own end', () => {
+  // 1000-wide row, chip at 940: only 0px of slack towards the end.
+  const tight = endAt(940, 1000);
+  assert.equal(filterPanelFit(tight).shift, 0);
+  assert.equal(filterPanelFit(tight).room, 1000);
+});
+
+test('the two anchors are the same calculation read in opposite directions', () => {
+  // A chip at the row's start, start-anchored, has all the room; end-anchored it
+  // has least. Mirroring the position mirrors the answer.
+  const startAnchored = filterPanelFit(at(0, 1000));
+  const endAnchored = filterPanelFit(endAt(940, 1000));
+  assert.equal(startAnchored.shift, endAnchored.shift);
+  assert.equal(startAnchored.room, endAnchored.room);
 });
 
 /* The mutations. Each is a way the arithmetic could be wrong and still look
