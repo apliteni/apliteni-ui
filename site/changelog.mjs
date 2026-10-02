@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.76.0', date: '2026-10-02',
     changes: [
-      ['fixed', 'An underline segmented strip wraps onto a further row when its tabs do not fit, instead of keeping one row and scrolling. In a phone-width column the tabs past the fold were cut off with nothing saying they were there: the stock screener showcase lost `Valuation` at 390px. A label too long for the column now wraps inside its own tab, as it already does inside a pill, so no tab label can widen the strip or the page. Wrapped rows stand 20px apart, the gap a coarse pointer already had below the phone step. Tabs keep their size, order and type rank, and a tab\u2019s focus ring is no longer clipped. Pill strips are unchanged. Resolves #527.', ['Segmented']],
+      ['fixed', 'An underline segmented strip wraps onto a further row when its tabs do not fit, instead of keeping one row and scrolling. In a phone-width column the tabs past the fold were cut off with nothing saying they were there: the stock screener showcase lost `Valuation` at 390px. A label too long for the column now wraps inside its own tab, and a single unbreakable word narrows with it, so no tab label can widen the strip or the page. Wrapped rows stand 20px apart, the gap a coarse pointer already had below the phone step. Tabs keep their size, order and type rank, and a tab\u2019s focus ring is no longer clipped. Pill strips are unchanged. Resolves #527.', ['Segmented']],
     ],
   },
   {

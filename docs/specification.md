@@ -2793,16 +2793,18 @@ says they are there. With no scroll box the focus ring's glow is no longer
 clipped against the strip's own 4px padding.
 
 A label too long for the column wraps inside its own tab, as it already does
-inside a pill, including a single unbreakable word. Nothing a caller can put in
-a tab widens the strip past its column or the page past the viewport.
+inside a pill, and a single unbreakable word narrows with it, which a pill's
+does not. Nothing a caller can put in a tab widens the strip past its column or
+the page past the viewport.
 
 Its rows stand `--space-5` apart while its track stays packed across, which is
 also the gap `--tap-gap` opens below the phone step on a coarse pointer, so the
 strip draws the same under both pointers. The measurements behind that number
 are in [#527](https://github.com/apliteni/apliteni-ui/issues/527).
 
-Held by `stories/segmented-wrap.test.js`, measured in a browser at 320, 390 and
-1280. Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
+Held by `stories/segmented-wrap.test.js`, which renders the shipped sheet in a
+browser at 320, 390 and 1280 and its mutations at 320.
+Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
 
 ## Shared React logic and declarations
 
