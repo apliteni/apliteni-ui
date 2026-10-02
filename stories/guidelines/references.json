@@ -851,7 +851,7 @@
         "pattern": ".ui-drop__target {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:129",
+        "ref": "react/src/FileDrop.tsx:130",
         "pattern": "className=\"ui-drop__target\""
       }
     ],
