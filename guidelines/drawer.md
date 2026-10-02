@@ -18,15 +18,15 @@
 
 <!-- rule: drawer-or-page -->
 
-**Rule:** Put the work on a page when the reader edits more than one group, or sets a value for each row of a list; keep the drawer for one short change.
+**Rule:** Use a page when someone edits more than one group or sets a value for each list row; use a drawer for one short change.
 
-**Why:** Returning to the opened row is what a drawer buys; a page buys the room to show every group at once.
+**Why:** A drawer lets people return to the opened row. A page gives enough room to show every group.
 
-**Do:** Give a member’s roles and per-unit access a page, where every group is in view at once.
+**Do:** Put a member’s roles and per-unit access on a page so every group is visible.
 
-**Don't:** Put the same groups in a drawer, where the last unit sits below the fold.
+**Don't:** Put these groups in a drawer, where the last unit is below the fold.
 
-**Except:** Change a single field in its own row, with no panel at all.
+**Except:** Change one field in its own row without opening a panel.
 
 ## Grouped content
 
