@@ -6,7 +6,7 @@
  * prelude carries a comma inside parentheses and requires the shared splitter
  * to hand each one back whole; a naive split has to fail the same sweep, so the
  * subjects are known to exercise the bug. The second takes every comma split in
- * the four trees `npm test` walks and requires each one to be either the shared
+ * the five swept paths below and requires each one to be either the shared
  * splitter or a listed value split — a selector split written by hand is the
  * defect of #521 arriving again, and no gate reads it.
  */
@@ -19,8 +19,15 @@
  *     invisible to both sweeps.
  *   - Whether the split parts are then USED correctly. A gate that takes the
  *     right selector and compares it against the wrong list reads as green.
- *   - A comma split written through a variable (`const c = ','`) or built at
- *     run time. The source sweep matches the literal spelling only.
+ *   - A comma split spelled any other way: through a variable (`const c = ','`),
+ *     built at run time, written as a regex (`.split(/,/)`, `.split(/[\s,]+/)`)
+ *     or with the space inside the string (`.split(', ')`). The sweep matches the
+ *     one literal spelling `.split(',')`. One regex split exists today —
+ *     stories/glyph-stroke.test.js splitting an SVG `viewBox` — and it reads a
+ *     value, not a selector list. No selector list is split any of these ways.
+ *   - A file outside the five swept paths — `react/test/`, `.storybook/`,
+ *     `react/.storybook/`. None of them holds a comma split of any spelling
+ *     today, so nothing is hiding there; they are simply not swept.
  *   - The CSS subjects come from the stylesheets this repository tracks, so a
  *     parenthesised comma a consumer writes in its own sheet is covered by the
  *     splitter but is not in the subject list.
@@ -70,7 +77,8 @@ test('a selector list with no parentheses splits exactly as a plain comma split 
 
 /* ---- sweep one: the kit's own parenthesised selectors -------------------- */
 
-/** Every file git tracks in the four trees `npm test` walks. */
+/** Every file git tracks in the five swept paths: the four trees `npm test`
+ *  walks, plus react/src, whose gates run under vitest. */
 const tracked = execFileSync('git', ['ls-files', '-z', 'src', 'stories', 'site', 'scripts', 'react/src'], { cwd: root, encoding: 'utf8' })
   .split('\0').filter(Boolean);
 
@@ -109,9 +117,9 @@ test('every parenthesised selector the kit writes survives the shared splitter',
   // move an exact one, and the subject set this gate measures is the next line.
   assert.ok(PRELUDES.length > 500, `only ${PRELUDES.length} rules discovered — the sweep lost its sheets`);
   assert.equal(
-    PARENTHESISED.length, 9,
-    'the kit\'s parenthesised selector lists changed; field-zoom\'s :not(:where(…)) is one, '
-    + 'layout.css\'s collapsed rail rows are four, and nav.css and table.css carry the rest',
+    PARENTHESISED.length, 28,
+    'the kit\'s parenthesised selector lists changed; the current set is one field-zoom rule, '
+    + 'four layout rail rules, one nav rule, twenty table rules and two tap-zone rules',
   );
   const bad = PARENTHESISED.flatMap(({ file, selector }) => offences(selector, splitSelectorList).map((o) => `${file}  ${o}`));
   assert.deepEqual(bad, [], `the shared splitter tore a selector apart:\n  ${bad.join('\n  ')}`);
@@ -137,14 +145,20 @@ const SOURCE = /\.(js|mjs|cjs|ts|tsx)$/;
  * stale entry fails rather than widening the allowance silently.
  */
 const VALUE_SPLITS = [
-  ['react/src/dialog.ts', 'list', 'a duration list read off a transition'],
+  ['scripts/evidence/guideline.mjs', 'widths', 'a command-line width list'],
   ['scripts/font-loading.test.js', 'stack', 'a font-family stack'],
   ['scripts/tag-on-bump.test.js', ')', "the --json flag's field names"],
   ['src/components/toasts.js', 'transform', 'a computed transform matrix'],
+  ['src/motion.js', ')', 'a transition duration list'],
   ['src/styles/typeface-roles.test.js', ']', 'a font-family stack'],
   ['stories/apps/shell-states.test.js', 'travel.value', 'a transition value, twice'],
   ['stories/apps/shell-states.test.js', 'decl.value', 'a transition value'],
+  ['stories/lib/accent-mark.js', ']', 'a gradient stop list'],
+  ['stories/lib/accent-paint.js', ']', 'a gradient stop list'],
+  ['stories/lib/css-at-width.js', ')', 'a media-query condition list'],
+  ['stories/motion-missing-element.test.js', 'params', 'an animation timing parameter list'],
   ['stories/motion-tokens.test.js', 'd.value', 'a transition value'],
+  ['stories/table-edge-shade.test.js', ']', 'a background-size layer list'],
 ];
 
 /** Every literal comma split in the trees `npm test` walks, as file + receiver. */
@@ -194,8 +208,8 @@ test('the shared splitter is read by every gate that was reading a selector list
   const callers = tracked.filter((file) => SOURCE.test(file) && !self.includes(file)
     && /splitSelectorList\s*\(/.test(readFileSync(path.join(root, file), 'utf8')));
   assert.equal(
-    callers.length, 24,
-    'the set of gates reading a selector list changed; #521 moved twenty-four of them onto the '
-    + 'shared splitter, four of which are the focus-ring gates the issue named',
+    callers.length, 33,
+    'the set of gates reading a selector list changed; current main adds selector-list readers '
+    + 'in React date-picker, tap-zone, table-edge and several style gates',
   );
 });

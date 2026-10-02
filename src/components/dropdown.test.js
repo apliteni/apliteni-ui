@@ -388,7 +388,7 @@ const enter = (window, el) => { if (press(window, el, 'Enter')) click(window, el
 function offSpellings() {
   const states = [...new Set(RULES
     .filter((r) => decl(r, 'cursor') === 'not-allowed')
-    .flatMap((r) => r.selector.split(','))
+    .flatMap((r) => splitSelectorList(r.selector))
     .map((s) => s.trim())
     .filter((s) => s.startsWith('.ui-dropdown__trigger') && s !== '.ui-dropdown__trigger')
     .map((s) => s.slice('.ui-dropdown__trigger'.length)))];

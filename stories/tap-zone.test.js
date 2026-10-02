@@ -19,6 +19,7 @@ import path from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { TAP_MIN, TARGET_MIN, TAP_EXEMPT } from './guidelines/_accessibility-floor.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
@@ -181,7 +182,7 @@ test('the query asks about the pointer as well as the width', () => {
 const listOf = (re) => {
   const m = css.match(re);
   if (!m) return [];
-  return m[1].split(',').map((x) => x.trim()).filter(Boolean);
+  return splitSelectorList(m[1]);
 };
 const carriers = listOf(/:where\(([^)]+)\)::after\s*\{/);
 const positioned = listOf(/:where\(([^)]+)\)\s*\{\s*position:\s*relative;\s*\}/);
@@ -224,7 +225,7 @@ test('every family that carries a layer has something to hang it on', () => {
  */
 const containers = [...css.matchAll(/(?:^|\n)\s*((?:\.[\w-]+(?:\s+\.?[\w-]+)*)(?:\s*,\s*(?:\.[\w-]+(?:\s+\.?[\w-]+)*))*)\s*\{([^{}]*)\}/g)]
   .filter((m) => /--tap-clear|(?:^|[;\s])(?:(?:row-|column-)?gap|margin(?:-[\w-]+)?)\s*:/.test(m[2]))
-  .flatMap((m) => m[1].split(',').map((sel) => ({ selector: sel.trim(), body: m[2] })));
+  .flatMap((m) => splitSelectorList(m[1]).map((sel) => ({ selector: sel, body: m[2] })));
 
 assert.ok(
   containers.length >= 14,
@@ -333,8 +334,8 @@ const storyContainers = storyJs.flatMap((rel) => {
     const body = blockAt(text, at + PHONE_STEP.length);
     for (const m of body.matchAll(/(?:^|[;{}\n])\s*([^{}@;]+?)\s*\{([^{}]*)\}/g)) {
       if (!/--tap-clear-[xy]\s*:/.test(m[2])) continue;
-      for (const sel of m[1].split(',')) {
-        out.push({ selector: sel.trim(), body: m[2], where: `stories/${rel}` });
+      for (const sel of splitSelectorList(m[1])) {
+        out.push({ selector: sel, body: m[2], where: `stories/${rel}` });
       }
     }
   }
@@ -362,7 +363,7 @@ test('a specimen that declares the phone clearance is found and names a token', 
 /** The containers this sheet opens a gap on, as selectors. */
 const opened = containers
   .filter((r) => /(?:^|[;\s])(?:row-|column-)?gap\s*:\s*var\(--tap-gap\)/.test(r.body))
-  .flatMap((r) => r.selector.split(',').map((x) => x.trim()));
+  .flatMap((r) => splitSelectorList(r.selector));
 
 test('a container that opens an axis declares the clearance for THAT axis', () => {
   // Per axis, because `gap` is a shorthand and opens both. `.ui-toast` opened

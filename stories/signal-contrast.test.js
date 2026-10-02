@@ -440,7 +440,6 @@ test('the --glow-purple gate actually measures something', () => {
 
 const CALLOUT = cssOf('../src/styles/callout.css');
 
-
 /** The statuses the toast matrix declares, discovered rather than typed out: a
  *  `.ui-toast--<name>` rule that sets --toast-accent is a status. The style
  *  modifiers — soft, solid, outline — set no accent, so they are not. */
