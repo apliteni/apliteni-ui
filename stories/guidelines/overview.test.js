@@ -158,5 +158,10 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
   assert.equal(rules, 111);
   assert.equal(INTRO, '');
-  assert.equal(PAGES.flatMap(page => page.gaps).length, 0, 'update the Overview when a rule is unmet');
+  // One, and it is named: Account and settings prescribes a modal carrying its own
+  // navigation, which the vanilla kit cannot draw at all and React's Modal cannot
+  // carry. #553 is the work; this number goes back to zero when it lands.
+  const gaps = PAGES.flatMap(page => page.gaps);
+  assert.deepEqual(gaps.map(rule => `${rule.id} #${rule.unmet.issue}`), ['modal #553'],
+    'update the Overview when a rule becomes unmet or its gap closes');
 });

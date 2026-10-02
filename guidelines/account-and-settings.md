@@ -12,7 +12,9 @@
 
 **Don't:** Slide the account area in over the product as a full-width sheet with columns inside it.
 
-**Except:** The kit cannot draw this yet. Its modal is a single pane with no navigation slot and no way to widen it, and the account preset it publishes still draws pages in the shell, so a product on that preset keeps those pages until the modal grows.
+**Gap #553:** The vanilla kit ships no modal at all, and React’s `Modal` is one pane with no navigation slot and no size option, so this shape has to be built by hand today.
+
+**Except:** A product already on the published account preset keeps its pages in the shell until the kit can carry them in the modal.
 
 ## Give the modal its own navigation
 

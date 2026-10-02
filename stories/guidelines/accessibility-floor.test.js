@@ -806,9 +806,9 @@ test('ring: every selector the sheet paints a ring on is landed somewhere by a s
     // it longer and is swept elsewhere.
     //
     // An empty list is narrower than ring coverage: the subjects are the selectors
-    // the sheet ALREADY rings, so a control with no focus rule is invisible here
-    // however many stories draw it. `.acct .avatar` and `.amenu a` are that; #482
-    // closes them, not this gate.
+    // the sheet ALREADY rings, so a control given no focus rule at all is invisible
+    // here however many stories draw it. Walking the controls instead is
+    // stories/focus-ring.test.js's job, and that is where such a hole is caught.
     const orphans = run.selectors.filter((s) => !landed.has(s));
     assert.deepEqual(orphans, [], `${key}: a ring selector no story renders is a ring nobody measured`);
   }
