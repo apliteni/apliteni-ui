@@ -93,7 +93,7 @@ export function FileDrop({
     {children}
     <div className="ui-drop__row">
       {file
-        ? <div className="ui-drop__file">
+        ? <div className={cx('ui-drop__file', status === 'error' && 'ui-drop__file--failed')}>
           <span className="ui-drop__name" id={nameId} title={file.name}>{file.name}</span>
           {/* A refused file drops its size: the line has room for the message or
               the size, and only one of them says what to do next. */}

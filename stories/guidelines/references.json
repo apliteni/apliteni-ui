@@ -38,7 +38,7 @@
         "pattern": "--tap-gap: var(--space-5, 20px);"
       },
       {
-        "ref": "src/styles/tap-zone.css:146",
+        "ref": "src/styles/tap-zone.css:155",
         "pattern": ".ui-confirm__acts,"
       }
     ],
@@ -847,7 +847,7 @@
     ],
     "on-drag": [
       {
-        "ref": "src/styles/file-drop.css:53",
+        "ref": "src/styles/file-drop.css:56",
         "pattern": ".ui-drop__target {"
       },
       {
@@ -857,7 +857,7 @@
     ],
     "in-the-row": [
       {
-        "ref": "src/styles/file-drop.css:22",
+        "ref": "src/styles/file-drop.css:25",
         "pattern": ".ui-drop__file {"
       },
       {
@@ -867,7 +867,7 @@
     ],
     "failure": [
       {
-        "ref": "src/styles/file-drop.css:37",
+        "ref": "src/styles/file-drop.css:40",
         "pattern": ".ui-drop__error"
       },
       {

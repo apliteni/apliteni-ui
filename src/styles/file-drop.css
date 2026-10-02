@@ -9,6 +9,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  /* One height in every state: the resting button carries a glyph and the file
+     line's do not, so without a floor the row steps when a file arrives. */
+  min-height: var(--space-8);
   gap: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
   color: var(--text);
@@ -68,8 +71,12 @@
 .ui-drop.is-disabled .ui-drop__row { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
 .ui-drop.is-disabled .ui-drop__name { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
 
-/* Too narrow for five readable things. The size steps aside: it alone says
-   nothing about what is happening or what to do next. The stat band's step. */
-@container (width <= 28rem) {
+/* Narrower than the panel the kit draws these in, so the line cannot hold five
+   readable things. The size steps aside: it alone says nothing about what is
+   happening or what to do next. A refused file gives up its name as well — the
+   message is the only part of that row the reader cannot do without, and the
+   name is still in its title. */
+@container (width < 26rem) {
   .ui-drop__size { display: none; }
+  .ui-drop__file--failed .ui-drop__name { display: none; }
 }

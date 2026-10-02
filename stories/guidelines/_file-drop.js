@@ -57,7 +57,7 @@ const restRow = (extra = '') =>
   `<div class="ui-drop__row">${btn('Upload', { glyph: 'upload' })}${note()}${extra}</div>`;
 
 /** The row once a file is in hand. A refused file drops its size, as the component does. */
-const fileRow = (parts, { size = true } = {}) => `<div class="ui-drop__row"><div class="ui-drop__file">
+const fileRow = (parts, { size = true, failed = false } = {}) => `<div class="ui-drop__row"><div class="ui-drop__file${failed ? ' ui-drop__file--failed' : ''}">
   <span class="ui-drop__name">statement-08.pdf</span>${size ? '<span class="ui-drop__size">248 KB</span>' : ''}${parts}</div></div>`;
 
 /** Three statements already received, so a row has the list it feeds above it. */
@@ -104,7 +104,7 @@ export const RULES = withSpecimens(content.rules, [
     id: 'failure',
     doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow(
       state('Larger than 10 MB', 'error')
-      + actions(btn('Retry') + btn('Remove', { variant: 'ghost' })), { size: false },
+      + actions(btn('Retry') + btn('Remove', { variant: 'ghost' })), { size: false, failed: true },
     )}</div>`),
     dontHtml: () => panel(`${rows()}<div class="ui-drop"><div class="ui-drop__row">
       ${state('Upload failed', 'error')}${btn('Upload', { glyph: 'upload' })}</div></div>`),

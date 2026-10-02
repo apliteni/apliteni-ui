@@ -3103,10 +3103,24 @@ each keeping its full text in a `title`, rather than stacking a second tier of
 text in the same block. The line reads in three groups — identity, status, then
 actions — one spacing step apart, with the step below it inside a group. The
 actions close the line on the edge the content above it ends on, in every state,
-and they are the kit's small buttons, the size the resting row already uses, so
-the row keeps its height and its type size when a file arrives. The progress
-track is one spacing step long and never stretches; where a line runs out of
-room the track gives way first, then the file name, then the status.
+and they are the kit's small buttons, the size the resting row already uses. The
+row declares one height for every state, because the resting button carries a
+glyph and the file line's buttons do not, and a line box alone would step when a
+file arrived. The progress track is one spacing step long and never stretches;
+where a line runs out of room the track gives way first, then the file name,
+then the status.
+
+In a block narrower than a panel the line sheds what it can rather than
+shortening everything on it. The size goes first: it is the only part that says
+nothing about what is happening or what to do next. A refused file also gives up
+its name, so its message stays whole — the message is the part of that row a
+reader cannot act without, and the name is still in its `title`. Narrower than
+about 15rem even that is not enough room, and the message truncates.
+
+Below the phone step a coarse pointer gets the kit's 44px target on `Retry` and
+`Remove`: the pair opens to the tap gap and each button's transparent layer
+grows into the clearance the row's floor leaves around it. The buttons are not
+drawn any larger.
 
 The drop target is painted only while a file is over the region, and it covers
 that region rather than joining it, so the row keeps its place while the reader

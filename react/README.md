@@ -509,7 +509,8 @@ the `size` already written for a reader, `progress` while it uploads, and the
 over before the request starts never reads as uploaded. Each status shows a mark
 and a word, and the word stands with or without a `progress` value. The line
 never wraps: the name and the status word truncate and keep their full text in a
-`title`. `Remove` and `Retry` appear only when you handle them. Children render
+`title`. In a block narrower than a panel the size drops out, and a failed row
+drops its name too so the message stays whole. `Remove` and `Retry` appear only when you handle them. Children render
 above the row, inside the region the target covers; pass `dragging` to drive that
 target from a parent. `accept` filters the system picker only — validate type and
 size yourself.
