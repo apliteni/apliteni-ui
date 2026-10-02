@@ -2049,9 +2049,15 @@ panel can hang from. A menu anchored at its own trigger — the add control's, w
 positioning chain alone — takes the same arithmetic by asking for a width, as the paragraph above
 describes: `filterPanelFit()` is a subject question, not a class one, and a panel that declares
 `--ui-filter-panel-ask` answers it. Such a menu writes its own copy of the open rule, because the
-chip's does not match it, and React clears the search panel's held width on close the way
-`closeDropdown()` does for the vanilla wiring — the same inline `min-width` residue, on the face
-that renders the menu this paragraph is about.
+chip's does not match it, and it is re-measured on `resize` with the chips: the ask is the widest in
+the row, so it is the first menu whose stale fit shows on a phone — a 320px panel 32px outside a
+304px row where a chip's 240px still fits.
+
+The kit's own asking menu is keyed on one attribute: `[data-filter-add]` inside `.ui-filter-bar`.
+That attribute is the whole contract — it is what declares the ask, what carries the open rule's
+room and slide, and what gives the trigger a chip's corner and the row's height. A control drawn
+without it is a kit dropdown in a filter row and nothing more: its menu is bounded to its trigger
+at 91.3px, and the trigger is a 30px pill on a 999px corner beside 39.2px chips on a 9px one.
 
 The chip's own width is a separate question this rule does not reach. `.ui-dropdown__trigger` is an
 `inline-flex` without `min-width: 0`, and `.ui-dropdown__value` carries no wrap hint, so a chip
@@ -2071,8 +2077,11 @@ outside a filter row gets none either, that the box observed is the row and not 
 row settling after the event is measured again, that `resize` is not taken as well where the row is
 watched, that the geometry and the search pin are held through the fade and given back at its end,
 that only the panel's own fade ends the hold, that a timer ends it where the event never comes, and
-that re-opening mid-fade keeps the new fit. `transitionMs()`, which sizes that timer, is held by
-`src/motion.test.js`.
+that re-opening mid-fade keeps the new fit. Four of them are asked a second time of the add
+control's catalogue, which is the row's other anchored menu: that an asking panel is given the width
+it asks for rather than a chip's floor, that a narrower row re-measures it, that its own row is the
+box watched, and that its geometry is held through its fade. `transitionMs()`, which sizes that
+timer, is held by `src/motion.test.js`.
 
 It is measured in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px, 390px and
 1280px in both themes — 1280px because an end-anchored menu leaves its row at every width, and
@@ -2080,14 +2089,15 @@ because that is where a shell with a collapsing rail reaches the stale-fit state
 That gate sweeps both Storybook indexes for every story rendering a filter bar, measures each panel
 against the `.ui-dropdown` that contains it, asks every option row whether its own text fits it,
 requires every open menu to reach the floor its row allows, narrows the viewport under each open
-menu that did not open at the narrowest width and asks all of it again, and walks every chip menu's
-close with motion on, sampling every 16ms through the fade and requiring no menu still being painted to be under its
-row's floor. It runs five mutations: putting the 240px floor back has to widen a panel, taking the
-wrap hint away has to make a row spill, taking the menu floor away has to leave a menu under its
-row's floor, leaving the row unobserved and dropping every `resize` listener has to leave a narrowed
-menu outside its row, and dropping the closing hold has to catch a painted menu at its trigger's
-width. Its fixture page carries an unbreakable value so the wrap hint is measured rather than
-assumed.
+menu to every narrower width it names and asks all of it again, and walks every anchored menu's
+close with motion on, sampling every 16ms through the fade and requiring no menu still being painted
+to be under its row's floor. It runs six mutations: putting the 240px floor back has to widen a
+panel, taking the wrap hint away has to make a row spill, taking the menu floor away has to leave a
+menu under its row's floor, leaving the row unobserved and dropping every `resize` listener has to
+leave a narrowed menu outside its row and the add menu among them by name, dropping the closing hold
+has to catch a painted menu at its trigger's width, and taking the add menu's ask away has to draw
+the catalogue at a chip's width. Its fixture page carries an unbreakable value so the wrap hint is
+measured rather than assumed.
 
 Three limits of that gate are worth naming. A case already at the narrowest width is measured once —
 there is no narrower viewport to move to — so about a quarter of the cases contribute one
@@ -2658,7 +2668,15 @@ where focus goes. Escape closes the menu and adds nothing, and the control is dr
 something is left to add. The control stands at a chip's height and takes a chip's corner, on the
 line and on a line of its own. The vanilla `filterBar()` factory has no `add` — it takes no new
 options under [#429](https://github.com/apliteni/apliteni-ui/issues/429) — so a vanilla page draws
-its own control. Decided in [#496](https://github.com/apliteni/apliteni-ui/issues/496).
+its own control, and the kit answers it through markup rather than through an option: a page puts
+its own `dropdown()` inside the bar wrapped in an element carrying `data-filter-add`, and the
+stylesheet does the rest. That attribute is the contract, in both halves. It declares
+`--ui-filter-panel-ask: var(--panel-sm)` on the panel, which is what makes the menu a subject of
+`filterPanelFit()` and so gives it the room, the slide and the re-measurement a chip's menu gets;
+and it gives the trigger `--ui-filter-row-h` and the chip's corner. Left off, the control is a kit
+dropdown in a row and nothing more — a 91.3px menu bounded to its trigger, which is
+[#549](https://github.com/apliteni/apliteni-ui/issues/549) again, on a 30px pill beside 39.2px
+chips. Decided in [#496](https://github.com/apliteni/apliteni-ui/issues/496).
 
 Segmented controls support an underline appearance for switching columns over one dataset; arrow
 keys, Home and End skip disabled choices.

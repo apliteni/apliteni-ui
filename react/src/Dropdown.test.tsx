@@ -1042,6 +1042,60 @@ it('a searchable chip reads its pin again at the new width', async () => {
   expect(row.panel.style.minWidth).toBe('200px');
 });
 
+/** The add control's menu in the same row (#496). Not a chip's, so what makes it a
+ *  subject is the width it asks for; JSDOM loads no stylesheet, so the ask is set on
+ *  the panel the way src/styles/filter-bar.css sets it. */
+function addRow({ rowWidth = 1200, left = 146, panelWidth = 320 } = {}) {
+  const { container } = render(
+    <fieldset className="ui-filter-bar" data-filter-bar="">
+      <legend className="ui-filter-bar__legend">Filters</legend>
+      <div data-filter-add="">
+        <Dropdown variant="menu" label="Add filter" ariaLabel="Add filter" items={SECTORS} />
+      </div>
+    </fieldset>);
+  const bar = container.querySelector('.ui-filter-bar')!;
+  const dd = container.querySelector('.ui-dropdown')!;
+  const panel = dd.querySelector('.ui-dropdown__panel') as HTMLElement;
+  panel.style.setProperty('--ui-filter-panel-ask', '320px');
+  const at = { rowWidth, left, panelWidth };
+  vi.spyOn(bar, 'getBoundingClientRect').mockImplementation(
+    () => ({ left: 0, right: at.rowWidth, width: at.rowWidth }) as DOMRect);
+  vi.spyOn(dd, 'getBoundingClientRect').mockImplementation(
+    () => ({ left: at.left, right: at.left + 99, width: 99 }) as DOMRect);
+  vi.spyOn(panel, 'offsetWidth', 'get').mockImplementation(() => at.panelWidth);
+  return {
+    user: userEvent.setup(), dd, panel,
+    trigger: dd.querySelector('.ui-dropdown__trigger') as HTMLElement,
+    fit: () => PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`)),
+    resize: (next: Partial<typeof at>) => {
+      Object.assign(at, next);
+      window.dispatchEvent(new Event('resize'));
+    },
+  };
+}
+
+it("an open add menu carries the width it asks for, not a chip's floor", async () => {
+  // 320, not 240: a catalogue with a field over it reads "Searc" at a chip's floor.
+  const row = addRow();
+  await row.user.click(row.trigger);
+  expect(row.fit()).toEqual(['1054px', '0px', '320px']);
+});
+
+it('a viewport change re-measures an add menu that is still open', async () => {
+  /* The add menu asks for 320px where a chip asks for 240px, so it is the first menu
+   * in the row whose stale fit shows on a phone: 240 fits a 288px row and 320 does
+   * not. Opened in a 1200px row, then the row a 390px view gives it, then a 320px
+   * one — the panel slides back where there is room behind it and takes the row's
+   * own width where there is not. */
+  const row = addRow();
+  await row.user.click(row.trigger);
+  expect(row.fit()).toEqual(['1054px', '0px', '320px']);
+  row.resize({ rowWidth: 358, left: 250 });
+  expect(row.fit(), 'a 358px row still holds the 320px ask').toEqual(['320px', '212px', '320px']);
+  row.resize({ rowWidth: 288, left: 16, panelWidth: 288 });
+  expect(row.fit(), 'a 288px row decides instead').toEqual(['288px', '16px', '288px']);
+});
+
 it('a dropdown outside a filter row is given no numbers at all', async () => {
   const user = userEvent.setup();
   const { container } = render(<Dropdown ariaLabel="Actions" items={SECTORS} />);
