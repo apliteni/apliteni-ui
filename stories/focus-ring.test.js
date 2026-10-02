@@ -418,17 +418,23 @@ test('focus walk: a later outline taking a scroll region\'s band turns the casca
 //
 // #531 closed the gap #487 recorded. Chrome's rule has a second half: a scroller
 // whose own children are keyboard-focusable gets NO stop of its own, because the
-// keyboard already reaches into it. That splits the ten in two, and each half is
-// held exactly below — a box moving between them, or an eleventh box appearing,
-// fails here.
+// keyboard already reaches into it. That splits the discovered boxes in two, and
+// each half is held exactly below — a box moving between them, or a new box
+// appearing, fails here.
 //
 // WHAT THIS TRIAGE DOES NOT READ. Which half a box belongs in was decided in a
 // browser, not here: this file reads the sheets, and a sheet does not say whether
-// the markup a factory emits holds a focusable child. The two in SCROLL_NO_STOP
-// are therefore checked against the markup as well, below. Nor does it read WHAT
+// the markup a factory emits holds a focusable child. Each entry in SCROLL_NO_STOP
+// is therefore checked against the markup as well, below. Nor does it read WHAT
 // each ringed box draws — `ringRulesFor` finds the rule, the reason beside each
 // entry names the picture, stories/scroll-ring.test.js resolves it, and the
 // captures on #531 show it.
+//
+// `.ui-seg--underline` left this triage on #527. It was discovered at all only
+// because the strip kept one row and scrolled; it wraps now, so no sheet makes it
+// an overflowing box and Chrome gives it no stop to excuse. A gap closed by
+// removal rather than by a ring — and the tab inside it painted the kit's ring
+// throughout.
 
 /**
  * The scrolling boxes that carry the ring, each with the reason and what it draws.
@@ -482,23 +488,15 @@ const SCROLL_RINGED = {
  * The scrolling boxes that are NOT a keyboard stop, each with the reason and the
  * markup that proves it. Chrome gives a scroller no stop of its own while its own
  * children are keyboard-focusable, so there is no outline here to replace and
- * nothing to remove: these two hold their rows by construction, and each overflows
- * only once it holds more of them than fit.
+ * nothing to remove: the rail holds its rows by construction and overflows only once
+ * it holds more of them than fit. The underline strip was the second entry until
+ * #527 stopped it scrolling at all.
  *
  * Measured in Chrome 153 at 1280 and 390, both themes: each had content wider than
  * its box and neither entered the tab order. Artur's call on #531 was to say why
  * rather than ring a box the keyboard never lands on.
  */
 const SCROLL_NO_STOP = {
-  '.ui-seg--underline': {
-    why: 'a tab strip holds its tabs, which are <button>s. It scrolls only when it holds '
-      + 'more tabs than fit across, so a strip that overflows is a strip full of them.',
-    markup: () => segmented({
-      options: [{ label: 'Overview' }, { label: 'Performance' }, { label: 'Costs' }],
-      appearance: 'underline',
-      ariaLabel: 'Dataset view',
-    }),
-  },
   '.ui-app__rail': {
     why: 'the rail holds the brand link, its nav rows and the reader\'s menu trigger. It '
       + 'scrolls down only when it holds more rows than the viewport\'s height, so a rail '
@@ -519,7 +517,8 @@ const SCROLL_NO_STOP = {
 
 test('focus walk: every box the kit makes scrollable is triaged', () => {
   const scrolling = scrollingSelectors(KIT);
-  assert.ok(scrolling.length >= 10,
+  // Nine since #527 took the underline strip's scroll box away; ten before it.
+  assert.ok(scrolling.length >= 9,
     `only ${scrolling.length} scrolling boxes discovered — the reader is not finding overflow`);
   const ringed = [];
   const bare = [];
