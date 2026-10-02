@@ -4,7 +4,7 @@
 // declaration is behind a media query and wins by `!important` or at no specificity at all.
 // They serve the consumer who takes only this stylesheet, as Tooltip's tooltip.css does.
 // From the entry rather than motion.css because both icon gates read each sheet under
-// src/styles/ alone and refuse an @import inside one. Adding a fourth means measuring it:
+// src/styles/ alone and refuse an @import inside one. Adding another means measuring it:
 // stories/react-bundle-cascade.test.js allows a re-emitted sheet only while it moves nothing.
 // why: docs/specification.md#motion
 // why: docs/specification.md#a-field-is-16px-on-a-touch-screen
