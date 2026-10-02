@@ -118,7 +118,8 @@ export const RangeWithBlocked: StoryObj<typeof DatePicker> = {
 };
 
 // Bounds written in the other grain. A day picker given whole months still
-// honours them: September opens on the 1st and October closes on the 31st.
+// honours them: September opens on the 1st, October closes on the 31st, and a
+// month in `disabledPeriods` shuts every day in it.
 export const DayBoundedByMonths: StoryObj<typeof DatePicker> = {
   render: args => (
     <DatePicker
@@ -128,7 +129,24 @@ export const DayBoundedByMonths: StoryObj<typeof DatePicker> = {
       defaultValue="2026-09-17"
       min="2026-09"
       max="2026-10"
-      disabledPeriods={['2026-09']}
+      disabledPeriods={['2026-10']}
+      defaultOpen
+    />
+  ),
+};
+
+// The host blocks the period its own value names — the bounds moved, or the
+// month the reader chose has closed. Blocked wins the paint: the cell goes bare
+// like any other blocked cell and keeps the pick as weight, rather than wearing
+// the accent fill under disabled ink.
+export const SelectedThenBlocked: StoryObj<typeof DatePicker> = {
+  render: args => (
+    <DatePicker
+      {...args}
+      mode="day"
+      label="Date:"
+      defaultValue="2026-09-17"
+      disabledPeriods={['2026-09-17', '2026-09-18']}
       defaultOpen
     />
   ),

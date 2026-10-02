@@ -3404,9 +3404,15 @@ and switched off where they do not.
 
 **A blocked period inside a range is not in the range.** It cannot be picked, so it is
 not included: it keeps neither the range tint nor the words "in range", however the two
-ends sit around it. One source decides both, so the paint and the name cannot disagree —
-and the pair that combination used to make, `--disabled-ink-bare` over the accent tint,
-measured 4.43:1 under the green accent on dark.
+ends sit around it. One source decides both, so the paint and the name cannot disagree.
+
+**Blocked beats every other state in the paint.** A host may block the period its own
+value names, or one between the two ends of a range. Such a cell goes bare, like any
+other blocked cell, rather than keeping the fill or the tint under disabled ink; a
+blocked pick keeps its place by weight instead, spending no second colour. It still says
+`selected` in its name and still carries `aria-selected`, because it is still the value —
+it simply cannot be pressed. A shortcut whose end lands on a blocked period is refused
+rather than walked inwards to a range nobody asked for.
 
 **A mark is a dot, a word and a name.** `marks` keyed by period draws a dot in the cell,
 lists the word once under the grid for the page in view, and appends it to the cell's
@@ -3418,9 +3424,7 @@ tint rather than a grey fill, and a blocked cell is a boxless ghost in
 **Below 560px the panel is a sheet, and a sheet is the kit's drawer.** It renders
 `Drawer` anchored to the bottom edge, so it arrives with the scrim, the close control, the
 focus trap, the inert page behind it and the restored focus that every other sheet in the
-kit has; changing the form of a panel without taking those is what leaves a phone reader
-with no visible way out and a `Tab` that walks into the live page. The shortcuts sit above
-the grid instead of beside it. `sheet` forces that layout at any width, for a host that
+kit has. The shortcuts sit above the grid instead of beside it. `sheet` forces that layout at any width, for a host that
 already knows it is on a phone or renders where no viewport can be read.
 
 Day grids show only the month in view. The slots before the first and after the last are
@@ -3430,6 +3434,9 @@ read as pickable; the arrows cross the boundary instead.
 Held by `react/src/DatePicker.test.tsx`, which also discovers every focusable part the
 picker renders and holds it against the kit's own ring selectors, read out of the
 stylesheets, and holds the component's one breakpoint literal against the table in
-Breakpoints above. Browser captures verify presentation separately.
+Breakpoints above. A gate of its own measures every combination of cell states in both
+themes and under every shipped accent, because the workspace's contrast walk exempts a
+disabled control and a blocked cell can also be the value. Browser captures verify
+presentation separately.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429); asked for on
 [#506](https://github.com/apliteni/apliteni-ui/issues/506).

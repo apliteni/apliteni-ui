@@ -739,8 +739,15 @@ focusable. A page step with nowhere to go is disabled.
 below the first always reads as the same range, so the ends swap rather than restarting.
 `onRangeChange` fires on each end, so `{ start, end: null }` reaches you too. `presets`
 set both ends at once and are held to the same bounds the grid is: a preset that overruns
-them is clamped, and one with no overlap at all is disabled. A blocked period between the
-two ends is not part of the range — it keeps neither the tint nor the words "in range".
+them is clamped, one with no overlap at all is disabled, and one whose end lands on a
+blocked period is disabled too rather than quietly moved inwards. A blocked period between
+the two ends is not part of the range — it keeps neither the tint nor the words "in range".
+
+**Blocked beats every other state in the paint.** Block the period your own `value` names
+and the cell goes bare like any other blocked cell, keeping its place by weight rather
+than wearing the accent fill under disabled ink. Its name still says `selected` and the
+gridcell still carries `aria-selected`: it is still your value, it just cannot be
+pressed.
 
 **`marks` are the consumer's own notes**, keyed by period. Each shows as a dot in the
 cell, as a word in the legend under the grid, and in the cell's accessible name. Give

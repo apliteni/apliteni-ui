@@ -1,12 +1,18 @@
-// DOM behavior, the period arithmetic and the ring coverage. What it does not
-// reach: browser paint, the phone sheet's layout (the media query is read as
-// text, not rendered), screen-reader speech, and pointer hover.
+// DOM behavior, the period arithmetic, the ring coverage and the ink of every
+// cell state. What it does not reach: real browser paint and layout, the phone
+// sheet's geometry, and screen-reader speech.
 import { useState } from 'react';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {
+  AA_TEXT, composite, desugar, effectiveBackground, kitCssFor, parseColour, ratio, substitute, tokensFor,
+  // stories/lib/contrast.js is plain JS outside this workspace's tsconfig, and is
+  // imported here for the same arithmetic react/src/contrast.test.tsx uses.
+  // @ts-expect-error -- untyped JS module, deliberately shared across the gates.
+} from '../../stories/lib/contrast.js';
 import { DatePicker, type DatePickerRange } from './DatePicker';
 
 const TODAY = '2026-09-15';
@@ -409,11 +415,65 @@ describe('range mode', () => {
     expect(onRangeChange).not.toHaveBeenCalled();
   });
 
+  it('switches off a shortcut whose end lands on a blocked period', async () => {
+    const user = userEvent.setup();
+    const onRangeChange = vi.fn();
+    render(
+      <DatePicker today={TODAY} mode="range" label="Period:" defaultOpen
+        onRangeChange={onRangeChange} disabledPeriods={['2026-12']}
+        presets={[
+          { label: 'This year', range: { start: '2026-01', end: '2026-12' } },
+          { label: 'First half', range: { start: '2026-01', end: '2026-06' } },
+        ]} />,
+    );
+    // The end is a cell the grid refuses, so the shortcut is refused with it
+    // rather than walked inwards to a range nobody asked for.
+    expect(within(panel()).getByRole('button', { name: 'This year' })).toBeDisabled();
+    expect(within(panel()).getByRole('button', { name: 'First half' })).toBeEnabled();
+    await user.click(within(panel()).getByRole('button', { name: 'This year' }));
+    expect(onRangeChange).not.toHaveBeenCalled();
+  });
+
   it('reads a shortcut written in the other grain', async () => {
     const user = userEvent.setup();
     render(<RangeExample presets={[{ label: 'This year', range: { start: '2026-01-05', end: '2026-12-20' } }]} />);
     await user.click(within(panel()).getByRole('button', { name: 'This year' }));
     expect(trigger()).toHaveTextContent('Jan 2026 – Dec 2026');
+  });
+});
+
+/* A host can block the period its own value names. The cell stays the value —
+ * it says so — and stops being pickable, and the paint follows the behaviour
+ * rather than the value. The ink of that pair is held by the state gate below. */
+describe('a pick the host then blocks', () => {
+  it('keeps saying it is the pick and refuses the press', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <DatePicker today={TODAY} mode="day" defaultValue="2026-09-17" onChange={onChange}
+        disabledPeriods={['2026-09-17']} defaultOpen />,
+    );
+    const picked = cell(/\b17 September 2026/);
+    expect(picked).toHaveClass('is-selected');
+    expect(picked).toHaveClass('is-disabled');
+    expect(picked).toHaveAttribute('aria-disabled', 'true');
+    expect(picked).toHaveAccessibleName(expect.stringContaining('selected'));
+    expect(picked.closest('[role="gridcell"]')).toHaveAttribute('aria-selected', 'true');
+    await user.click(picked);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('never carries the range tint and the block at once', async () => {
+    const user = userEvent.setup();
+    render(
+      <DatePicker today={TODAY} mode="range" label="Period:" defaultOpen
+        disabledPeriods={['2026-06']} defaultRange={{ start: null, end: null }} />,
+    );
+    await user.click(cell(/^April 2026/));
+    await user.click(cell(/^August 2026/));
+    await user.click(trigger());
+    const blocked = panel().querySelectorAll('.ui-datepicker__opt.is-disabled.is-inside');
+    expect(blocked, 'cells wearing both the tint and the block').toHaveLength(0);
   });
 });
 
@@ -656,5 +716,115 @@ describe('the sheet', () => {
     expect(written, 'the component names its step as a literal this gate can read').not.toBeNull();
     expect(steps).toContain(Number(written![1]));
     expect(Number(written![1])).toBe(Math.min(...steps));
+  });
+});
+
+/* A contrast gate for the cells the workspace walk cannot see: it drops
+ * anything inside `[disabled],[aria-disabled="true"],.is-disabled`, and a
+ * blocked cell here can also be the host's own value. States are enumerated
+ * rather than rendered — every combination of the modifiers the sheet paints,
+ * at rest and hovered, in both themes under every accent — and the list is
+ * held against the sheet, so an unmeasured modifier fails.
+ *
+ * What it does not reach: real browser paint, the focus ring (the ring gate
+ * above owns it) and any state a consumer's own stylesheet adds.
+ * why: docs/specification.md#react-date-and-month-picker */
+describe('every cell state is readable', () => {
+  const THEMES = ['dark', 'light'] as const;
+  const ACCENTS = ['default', 'phoenix', 'ocean', 'emerald'] as const;
+  /** The modifiers this gate enumerates. Held against the sheet below. */
+  const MODIFIERS = ['is-selected', 'is-inside', 'is-today', 'is-disabled'] as const;
+
+  const css = read('./DatePicker.css');
+
+  /** Every `.is-*` the sheet paints onto a cell, discovered rather than listed. */
+  const painted = new Set(
+    [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.ui-datepicker__opt((?:[.:][\w-]+)*)/g)]
+      .flatMap(m => [...m[1].matchAll(/\.(is-[\w-]+)/g)].map(c => c[1])),
+  );
+
+  /** Every subset of MODIFIERS, so a pair the component cannot reach today is still held. */
+  const combinations = Array.from({ length: 1 << MODIFIERS.length }, (_, mask) =>
+    MODIFIERS.filter((_m, i) => mask & (1 << i)));
+
+  it('enumerates every modifier the sheet paints', () => {
+    expect(painted.size, 'modifiers discovered in the sheet').toBeGreaterThan(0);
+    expect([...painted].sort()).toEqual([...MODIFIERS].sort());
+  });
+
+  /** Mount a sheet for one theme + accent and return a measuring function. */
+  function measurer(theme: string, accent: string, sheet = css) {
+    const vars = tokensFor(theme, accent);
+    const style = document.createElement('style');
+    style.textContent = `${kitCssFor(theme, accent).css}\n${desugar(substitute(sheet, vars))}`;
+    document.head.appendChild(style);
+    document.documentElement.setAttribute('data-theme', theme);
+    if (accent !== 'default') document.documentElement.setAttribute('data-accent', accent);
+
+    const host = document.createElement('div');
+    // The ground chain a cell really sits on: the dropdown panel's own surface.
+    host.innerHTML = '<div class="ui-dropdown__panel ui-datepicker__panel">'
+      + '<div class="ui-datepicker__grid"><span class="ui-datepicker__cell">'
+      + '<button class="ui-datepicker__opt ui-focusable" type="button">17</button>'
+      + '</span></div></div>';
+    document.body.appendChild(host);
+    const cell = host.querySelector<HTMLElement>('.ui-datepicker__opt')!;
+
+    const measure = (classes: readonly string[], hovered: boolean) => {
+      cell.className = ['ui-datepicker__opt', 'ui-focusable', ...classes].join(' ');
+      if (hovered) cell.setAttribute('data-ui-state', 'hover');
+      else cell.removeAttribute('data-ui-state');
+      const fg = parseColour(getComputedStyle(cell).color);
+      const bg = effectiveBackground(cell, window);
+      return { fg, bg };
+    };
+    const done = () => {
+      host.remove();
+      style.remove();
+      document.documentElement.removeAttribute('data-accent');
+    };
+    return { measure, done };
+  }
+
+  it.each(THEMES)('%s: every combination of states clears AA, under every accent', theme => {
+    const failures: string[] = [];
+    let judged = 0;
+    for (const accent of ACCENTS) {
+      const { measure, done } = measurer(theme, accent);
+      try {
+        for (const classes of combinations) {
+          for (const hovered of [false, true]) {
+            const { fg, bg } = measure(classes, hovered);
+            const where = `${theme}/${accent} ${classes.join('.') || '(rest)'}${hovered ? ':hover' : ''}`;
+            // A pair that will not resolve is a failure, never a skip: a gate
+            // that shrugs at an unreadable colour reports the same green as one
+            // that measured it.
+            if (!fg || !Array.isArray(bg)) { failures.push(`${where}: unresolved ${String(fg)} on ${String(bg)}`); continue; }
+            judged += 1;
+            const got = ratio(composite(fg, bg), bg);
+            if (got < AA_TEXT) failures.push(`${where}: ${got.toFixed(2)}:1`);
+          }
+        }
+      } finally { done(); }
+    }
+    expect(judged, 'pairs judged').toBe(combinations.length * 2 * ACCENTS.length);
+    expect(failures, `cell states below ${AA_TEXT}:1`).toEqual([]);
+  });
+
+  /* Prove rejection by taking the fix out: without the rule that sends a
+   * blocked cell bare, the two collisions this gate was written for come back —
+   * the pick's accent fill in light and the range tint under green on dark. */
+  it.each([
+    ['light', 'default', ['is-selected', 'is-disabled']],
+    ['dark', 'emerald', ['is-inside', 'is-disabled']],
+  ] as const)('%s/%s: catches %s with the fix removed', (theme, accent, classes) => {
+    const without = css.replace(/\.ui-datepicker__opt\.is-disabled\.is-selected,[\s\S]*?\n\}\n/, '');
+    expect(without, 'the rule this gate mutates was renamed or moved').not.toBe(css);
+    const { measure, done } = measurer(theme, accent, without);
+    try {
+      const { fg, bg } = measure(classes, false);
+      expect(fg && Array.isArray(bg), 'the mutation resolved').toBe(true);
+      expect(ratio(composite(fg, bg), bg)).toBeLessThan(AA_TEXT);
+    } finally { done(); }
   });
 });
