@@ -2,17 +2,21 @@
  *
  * A consumer loads `apliteni-ui/css` then `apliteni-ui/react/css`, so a sheet a React module
  * imports out of src/styles/ is re-emitted after the kit's own copy and wins at equal
- * specificity — which cost `.ui-pager__size-select` its compact geometry. Two claims over
- * the re-emitted sheets, walked out of the entry rather than enumerated: none may decide an
- * ordinary property, and the document a consumer gets must read the same as that document
- * with the re-emitted copies removed. Each test states its own limits.
+ * specificity — which cost `.ui-pager__size-select` its compact geometry. A sheet earns its
+ * place in the bundle by being measured, not by being on a list: the walk out of the entry
+ * finds them, every one whose rules a cascade ranks must reach the story catalogue, and the
+ * document a consumer gets must read the same as that document with the re-emitted copies
+ * removed. Each test states its own limits.
  *
  * Resolve the winning declarations before measuring the result.
  * why: #551, docs/specification.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import {
+  existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM, VirtualConsole } from 'jsdom';
@@ -43,7 +47,8 @@ const REACT_ENTRY = 'react/src/index.ts';
  * `export … from` are followed: the entry is almost entirely re-exports, and a walk
  * that reads only `import` sees the three nets and stops.
  */
-function bundleSheets(entry = REACT_ENTRY) {
+function bundleSheets(entry = REACT_ENTRY, from = root) {
+  const atFrom = (rel) => path.join(from, rel);
   const sheets = [];
   const seen = new Set();
   const visit = (rel) => {
@@ -51,15 +56,20 @@ function bundleSheets(entry = REACT_ENTRY) {
     seen.add(rel);
     if (rel.endsWith('.css')) { sheets.push(rel); return; }
     const dir = path.posix.dirname(rel);
-    const text = decomment(read(rel));
+    const text = decomment(readFileSync(atFrom(rel), 'utf8'));
+    // The specifier list may cross lines — react/src writes `import {\n … \n} from './x'`
+    // — but never a statement, so the gap is anything but a quote or a semicolon. With
+    // `\n` excluded here instead, a module behind a multi-line import left the walk, and
+    // with it every sheet that module reaches: tsup re-emitted input.css for real while
+    // all three claims below reported green over a bundle they had not read.
     const refs = [...text.matchAll(
-      /(?:^|\n)\s*(?:import|export)\s+(?:[^'"\n]*?from\s*)?["']([^'"]+)["']/g,
+      /(?:^|\n)\s*(?:import|export)\s+(?:[^'";]*?from\s*)?["']([^'"]+)["']/g,
     )].map((m) => m[1]);
     for (const ref of refs) {
       if (!ref.startsWith('.')) continue;
       const target = path.posix.normalize(path.posix.join(dir, ref));
       for (const c of [target, `${target}.ts`, `${target}.tsx`, `${target}/index.ts`]) {
-        if (existsSync(at(c)) && statSync(at(c)).isFile()) { visit(c); break; }
+        if (existsSync(atFrom(c)) && statSync(atFrom(c)).isFile()) { visit(c); break; }
       }
     }
   };
@@ -139,11 +149,13 @@ function watchedProperties(rules) {
   return out;
 }
 
-/** The selectors those rules reach with, in a form querySelectorAll accepts. */
-const reachOf = (rules) => [...new Set(rules.flatMap(({ selector }) => selectorParts(selector)
+/** The selectors those rules reach with, each kept with the sheet that wrote it. */
+const reachOf = (rules) => rules.flatMap(({ sheet, selector }) => selectorParts(selector)
   // A pseudo-element draws no box of its own in JSDOM; its rule's subject is the
   // element it hangs off, which is what the comparison can read.
-  .map((p) => p.replace(/::[\w-]+(\([^)]*\))?/g, '').trim()).filter(Boolean)))];
+  .map((p) => p.replace(/::[\w-]+(\([^)]*\))?/g, '').trim())
+  .filter(Boolean)
+  .map((sel) => ({ sheet, sel })));
 
 // ---- the two documents ---------------------------------------------------
 
@@ -211,6 +223,10 @@ async function sweep(bundle) {
   const stories = new Set();
   const stats = {
     reemitted: [...reemitted], rankable: rules.length, watched, reach, compared: 0,
+    // Which re-emitted sheets this walk actually exercised. A sheet whose selectors
+    // match nothing in the catalogue was accepted without being measured, and the
+    // coverage claim refuses that rather than counting it as a clean reading.
+    reached: new Map(rules.map(({ sheet }) => [sheet, 0])),
   };
   // Nothing a cascade ranks, so nothing to mount: every element would come back
   // identical because the two documents differ only in rules JSDOM never applies.
@@ -261,7 +277,11 @@ async function sweep(bundle) {
         for (let i = 0; i < shipped.length; i++) {
           const el = shipped[i];
           if (el.tagName === 'STYLE' || el.tagName === 'SCRIPT') continue;
-          if (!reach.some((sel) => { try { return el.matches(sel); } catch { return false; } })) continue;
+          const hits = reach.filter(({ sel }) => {
+            try { return el.matches(sel); } catch { return false; }
+          });
+          if (!hits.length) continue;
+          for (const { sheet } of hits) stats.reached.set(sheet, stats.reached.get(sheet) + 1);
           stats.compared += 1;
           const a = asShipped.getComputedStyle(el);
           const b = withoutCopies.getComputedStyle(clean[i]);
@@ -304,21 +324,24 @@ test('the gate found the React bundle and the kit it is layered over', () => {
 
 // ---- the claim, over every re-emitted sheet -----------------------------
 
-test('no kit sheet the React bundle re-emits decides an ordinary property', () => {
-  // Limits: a rule inside an at-block is outside this, and outside the walk below —
-  // JSDOM evaluates no media query. Refusing the declaration outside one is what makes
-  // the pair sound: the three nets put every declaration they make behind a query.
-  const offences = rankableRules(REEMITTED).map(({ sheet, selector, props }) =>
-    `${sheet}  ${selector} { ${props.join('; ')} }`);
+test('every re-emitted kit sheet a cascade can rank is exercised by the walk', () => {
+  // A sheet is allowed into the bundle by being measured and found to move nothing, not
+  // by being on a list here. So the sheets whose rules a cascade ranks have to reach the
+  // catalogue: one that matches no element in any story was accepted without a reading.
+  //
+  // Limits: a rule inside an at-block is outside this and outside the walk — JSDOM
+  // evaluates no media query in getComputedStyle. The three nets are entirely at-block
+  // rules apart from one `:root` block of custom properties, so they contribute nothing
+  // here; what holds them is that each wins by `!important` or at no specificity, so
+  // their position cannot change an outcome either way.
+  const unreached = [...SWEEP.stats.reached].filter(([, n]) => n === 0).map(([sheet]) => sheet);
   assert.deepEqual(
-    offences, [],
-    'a kit stylesheet the React bundle re-emits declares an ordinary property in a rule a browser '
-    + 'ranks on specificity and source order alone. A consumer loads `apliteni-ui/css` first, so '
-    + 'that copy lands after the kit\'s own and wins — which is how `.ui-pager__size-select` lost '
-    + 'its compact geometry to a re-emitted input.css (#551). Stop importing the sheet from '
-    + 'react/src: the kit CSS is a peer the consumer already loads, not a dependency of a React '
-    + 'component. A counter-rule in react/src would only move the contest.\n  '
-    + offences.join('\n  '),
+    unreached, [],
+    'a kit stylesheet the React bundle re-emits writes rules a browser ranks on specificity and '
+    + 'source order, and not one of them matched an element in any story. Its copy lands after '
+    + "the kit's own in the consumer's document and could outrank it there with nothing to say "
+    + 'so. Give the sheet a story that renders what it styles, or stop importing it from '
+    + `react/src.\n  ${unreached.join('\n  ')}`,
   );
 });
 
@@ -353,10 +376,35 @@ test('no re-emitted kit rule moves a property in the document a consumer gets', 
   assert.deepEqual(
     SWEEP.findings, [],
     'a kit stylesheet re-emitted into react/dist/index.css lands after the kit\'s own copy and '
-    + 'wins, changing a property the kit had already settled.\n  '
+    + 'wins, changing a property the kit had already settled. Stop importing that sheet from '
+    + 'react/src — a consumer loads `apliteni-ui/css` already, so the kit CSS is a peer, not a '
+    + 'dependency of a React component, and a counter-rule would only move the contest.\n  '
     + `re-emitted: ${SWEEP.stats.reemitted.join(', ') || '(none)'}\n  `
     + SWEEP.findings.join('\n  '),
   );
+});
+
+test('tooltip.css is in the bundle because it contests nothing, and that is measured', () => {
+  // #408 put the tooltip panel in both stylesheets so that a consumer loading only
+  // `react/css` does not get every Tooltip's text inline and permanently visible. That
+  // consumer is the same one the three nets are kept for, so the sheet stays — and what
+  // makes it safe is not an exemption but the reading above: it is re-emitted, the walk
+  // reaches it, and it moves nothing. Named here so a reader does not have to infer it
+  // from a sheet list, and so the day it does contest something, this says which sheet.
+  const SHEET = 'src/styles/tooltip.css';
+  assert.ok(BUNDLE.includes(SHEET), `${SHEET} has left the React bundle. #408 put it there for a `
+    + 'consumer who loads only `react/css`; if that consumer is no longer supported, say so where '
+    + 'the nets are justified in the specification, because it is the only reason given for them.');
+  assert.ok(rankableRules([SHEET]).length > 0,
+    `${SHEET} no longer writes a rule a cascade ranks, so its presence is no longer the thing `
+    + 'this file is measuring and this test has stopped meaning anything');
+  assert.ok(SWEEP.stats.reached.get(SHEET) > 0,
+    `the walk matched no element against ${SHEET}, so "it moves nothing" is a claim about a `
+    + 'reading nobody took');
+  assert.deepEqual(SWEEP.findings.filter((f) => f.includes('ui-tip')), [],
+    `${SHEET} now decides a property a kit rule after it decides. It can no longer travel with `
+    + 'the bundle on these terms: either move the hiding into react/src/Tooltip.css under a '
+    + 'selector that cannot contest a kit rule, or drop the React-only consumer.');
 });
 
 test("the pager's size control keeps the compact geometry pagination.css gives it", () => {
@@ -403,12 +451,11 @@ test('putting input.css back where tsup emitted it brings #551 back', async () =
   const mutated = [...BUNDLE];
   mutated.splice(lastKit + 1, 0, SHEET);
 
-  // 1. The total claim rejects it.
   assert.ok(rankableRules([SHEET]).length > 0,
-    `${SHEET} declares no ordinary property outside an at-block, so the first claim would accept `
-    + 'it and the sheet that caused #551 would pass');
+    `${SHEET} declares no ordinary property outside an at-block, so a cascade cannot rank it and `
+    + 'the walk below is no longer what stands between the kit and #551');
 
-  // 2. The measured claim finds it on the control #551 measured.
+  // The measured claim finds it on the control #551 measured.
   const { findings, problems, stats } = await sweep(mutated);
   assert.deepEqual(problems, [],
     `the mutated walk could not mount every story: ${problems.join('; ')}`);
@@ -423,7 +470,7 @@ test('putting input.css back where tsup emitted it brings #551 back', async () =
       + pager.join(' | '));
   }
 
-  // 3. And the pager's own reading moves, exactly as the issue recorded.
+  // And the pager's own reading moves, exactly as the issue recorded.
   const vars = tokensFor('dark');
   const before = pagerReading(window_(document_(STYLE_FILES, vars), 'dark'));
   const after = pagerReading(window_(document_([...STYLE_FILES, ...mutated], vars), 'dark'));
@@ -434,18 +481,45 @@ test('putting input.css back where tsup emitted it brings #551 back', async () =
 
 // ---- the reconstruction is the real thing -------------------------------
 
-test('the reconstruction matches the built bundle', (t) => {
-  const built = 'react/dist/index.css';
-  if (!existsSync(at(built))) {
-    // Not a silent skip. react/dist is gitignored build output and `npm test` runs
-    // before `npm run build -w react`, so this check belongs to a run where a build
-    // has happened. No claim above needs it.
-    assert.ok(read('.gitignore').split('\n').some((l) => l.trim() === 'react/dist/'),
-      `${built} is absent and react/dist is not in .gitignore either, so the absence is `
-      + 'unexplained — the build may simply be broken');
-    t.skip(`${built} is not built in this run; \`npm run build -w react\` checks the reconstruction`);
-    return;
+test('a sheet behind a multi-line import is still in the walk', () => {
+  // The walk is what every claim above reads, so a module it cannot see takes its
+  // stylesheets out of the gate while tsup still emits them. A planted multi-line
+  // `import { … } from './x'` did exactly that: input.css went back into the published
+  // bundle for real and all three claims stayed green over a bundle they had not read.
+  // react/src already writes imports across lines (Dropdown.tsx, dialog.ts), so this is
+  // the shape of the next one, not a hypothetical.
+  const dir = mkdtempSync(path.join(tmpdir(), 'ui-bundle-walk-'));
+  try {
+    mkdirSync(path.join(dir, 'react/src'), { recursive: true });
+    mkdirSync(path.join(dir, 'src/styles'), { recursive: true });
+    writeFileSync(path.join(dir, 'src/styles/planted.css'), '.planted { color: red; }\n');
+    writeFileSync(path.join(dir, 'react/src/probe.ts'),
+      "import '../../src/styles/planted.css';\nexport const probe = 1;\n");
+    writeFileSync(path.join(dir, 'react/src/index.ts'),
+      'import {\n  probe,\n  type Thing,\n} from \'./probe\';\nexport { probe };\nexport type { Thing };\n');
+
+    assert.deepEqual(
+      bundleSheets('react/src/index.ts', dir), ['src/styles/planted.css'],
+      'the import walk did not follow a relative import whose specifier list crosses lines. '
+      + 'Everything that module reaches is then invisible to this file, and a kit sheet can go '
+      + 'back into react/dist/index.css with every claim above green.',
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('the reconstruction matches the built bundle', () => {
+  // Live on every CI run, not an optional local extra: package.json's `prepare` script
+  // builds the React workspace, so `npm ci` leaves react/dist in place before `npm test`
+  // reads it. It is the backstop that holds the walk to the real build — the test above
+  // is the shape of the hole it caught — so an absent build is a failure, not a skip.
+  const built = 'react/dist/index.css';
+  assert.ok(existsSync(at(built)),
+    `${built} is missing. \`npm ci\` runs package.json's \`prepare\`, which builds it, so this `
+    + 'is a broken or skipped build rather than a file that was never expected. Run `npm run '
+    + 'build -w react`. Do not weaken this to a skip: it is the only check that holds the import '
+    + 'walk above to what tsup actually emits.');
   assert.deepEqual(selectorsOf(BUNDLE.map(read).join('\n')), selectorsOf(read(built)),
     `the sheets walked out of ${REACT_ENTRY} do not reproduce ${built}, selector for selector and `
     + 'in order. The walk models how esbuild emits CSS, and the document this gate builds is only '

@@ -9,7 +9,7 @@ export const RELEASES = [
     v: '0.75.2', date: '2026-10-02',
     changes: [
       ['fixed', 'A pager’s page-size control keeps its compact width, padding, type size, radius and chevron offset in a React app. `apliteni-ui/react/css` carried a copy of the kit’s form-control CSS, and in a document that loads `apliteni-ui/css` first that copy landed later and won, leaving the control a full-size form field in a row of small buttons. Fixes #551.', ['Pagination']],
-      ['changed', '`apliteni-ui/react/css` no longer repeats any of the kit’s component CSS. Import both stylesheets, kit first, as the README has always shown: the React one adds what React’s own components need and cannot stand in for the kit’s. The reduced-motion and tap-target nets still travel with it, so a consumer who takes only that stylesheet is not left without them.'],
+      ['changed', '`apliteni-ui/react/css` no longer repeats the kit’s form-control CSS. Import both stylesheets, kit first, as the README has always shown: the React one adds what React’s own components need and cannot stand in for the kit’s. The tooltip panel and the reduced-motion and tap-target nets still travel with it, because a second copy of those decides nothing the kit had already decided.'],
     ],
   },
   {

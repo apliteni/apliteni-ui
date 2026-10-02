@@ -46,28 +46,39 @@ are the same file the HTML entry point serves.
 A React consumer imports `apliteni-ui/css` and then `apliteni-ui/react/css`. Both, and in that
 order: the React stylesheet carries what React's own components add, not a second copy of the kit.
 
-**The kit CSS is a peer, not a dependency of a React component.** A React component imports its own
-`react/src/*.css` and nothing out of `src/styles/`, because a sheet it imports from there is
-re-emitted into `react/dist/index.css` — and in the consumer's document that copy lands *after* the
-kit's own, where at equal specificity it wins. The kit then overrules itself from a second position.
-That is what took `.ui-pager__size-select` back to a full-size form field in a row of `sm` buttons:
-`pagination.css` had given it its compact width, padding, type size, radius and chevron offset, and
-the re-emitted `input.css` took all five back. Nothing in `react/dist` restored them, and no
-counter-rule is wanted here — one would only move the contest.
+**The kit CSS is a peer, not a dependency of a React component.** A sheet a React module imports
+out of `src/styles/` is re-emitted into `react/dist/index.css`, and in the consumer's document
+that copy lands *after* the kit's own, where at equal specificity it wins. The kit then overrules
+itself from a second position. That is what took `.ui-pager__size-select` back to a full-size form
+field in a row of `sm` buttons: `pagination.css` had given it its compact width, padding, type
+size, radius and chevron offset, and the re-emitted `input.css` took all five back. Nothing in
+`react/dist` restored them, and no counter-rule is wanted — one would only move the contest.
 Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551).
 
-The three nets are the exception, and the reason is that order cannot change what they decide:
+**A kit sheet travels with the React bundle only where its second copy can decide nothing.** That
+is a measurement, not a list. Three nets qualify because order cannot change what they decide:
 `src/index.css` reads `reduced-motion.css` and `field-zoom.css` before any component sheet and
 `tap-zone.css` after every one of them, every declaration they make is behind a media query, and
 the ones that have to win are written `!important` or inside `:where()` at no specificity at all.
-They travel with the React bundle so that a consumer who takes only that stylesheet is not left
-with motion and no net; see
+`tooltip.css` qualifies because nothing the kit reads after it styles `.ui-tip`, so its copy
+contests no kit rule — measured over the whole story catalogue in both themes, not asserted.
+`input.css` does not qualify, and is imported nowhere under `react/src`.
+
+**The React-only consumer is why those four are there.** A consumer who takes
+`apliteni-ui/react/css` and not `apliteni-ui/css` is not the documented install — they get no
+tokens, no reset and none of the kit's controls — but what the React stylesheet can carry for
+them without cost, it carries. Without `tooltip.css` every `Tooltip`'s text renders inline and
+permanently visible, which is the defect
+[#408](https://github.com/apliteni/apliteni-ui/issues/408) fixed; without the nets they get
+motion with no reduced-motion net and fields that zoom an iPhone. The same reasoning covers all
+four, and it is the only reason any of them is there; see
 [Reduced motion travels with the stylesheet](#reduced-motion-travels-with-the-stylesheet).
 
 Held by `stories/react-bundle-cascade.test.js`, which walks the React entry's imports to
-reconstruct the sheets `react/dist/index.css` concatenates, refuses any re-emitted kit sheet that
-decides an ordinary property, and then measures the document a consumer actually gets — kit CSS,
-then that bundle — against the same document with the re-emitted copies removed.
+reconstruct the sheets `react/dist/index.css` concatenates, requires every re-emitted sheet whose
+rules a cascade ranks to reach the story catalogue, and measures the document a consumer actually
+gets — kit CSS, then that bundle — against the same document with the re-emitted copies removed.
+`scripts/packaging.test.js` holds the tooltip panel in the packed React stylesheet.
 
 `docs/library.md` is the catalogue: the `src/` layout, the theming model, and every component the
 kit exports. This page states what those components guarantee; that one states what they are.
