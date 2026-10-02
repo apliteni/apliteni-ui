@@ -1924,9 +1924,9 @@ test('the two finance screens draw one nav definition, not two copies of it', as
 // two column widths and each rebuilt the Finance crumb by hand. Same shape as
 // the nav, one layer out. A width is the measurable half: it is written into
 // the <main> style attribute, so the two screens either agree or they do not.
-test('the two finance screens are one composition — one column, one trail root', async () => {
+test('the finance screens are one composition — one column, one trail root', async () => {
   const screens = [];
-  for (const file of ['EmptyStates', 'FinanceReport']) {
+  for (const file of ['EmptyStates', 'FinanceReport', 'FinanceDashboard']) {
     const mod = await import(`./${file}.stories.js`);
     for (const [name, story] of Object.entries(mod)) {
       if (name === 'default' || typeof story?.render !== 'function') continue;

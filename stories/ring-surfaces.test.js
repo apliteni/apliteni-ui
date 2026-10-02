@@ -117,7 +117,8 @@ test('a surface a story paints sets a matching gap, so a ring drawn inside it is
     `only ${storySheets.length} story style blocks found — the walk stopped reading <style> blocks`);
   // 32 -> 34: #488's two inert tap-zone Don't cells on the Accessibility
   // minimums page, which paint the surface and now declare its gap.
-  assert.equal(storySurfaces.length, 34,
+  // 34 -> 35: #505's Dashboards and reports stage.
+  assert.equal(storySurfaces.length, 35,
     'story surface discovery changed; update the count with the stages that moved');
   assert.deepEqual(gapProblems(storySurfaces), [],
     'a story paints a surface whose focus ring would draw its gap in the page colour');

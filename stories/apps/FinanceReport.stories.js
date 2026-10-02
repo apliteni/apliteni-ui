@@ -1,4 +1,5 @@
-import { badge, card, segmented, icon } from '../../src/components/index.js';
+import { badge, button, card, segmented, icon } from '../../src/components/index.js';
+import { filterBar } from '../../src/components/filter-bar.js';
 import { busyRegion, skeleton, skeletonTable } from '../../src/components/loading.js';
 import { statBand } from '../../src/components/stat.js';
 import { financeShell } from './_finance-nav.js';
@@ -8,6 +9,24 @@ export default {
   id: 'apps-finance-report',
   parameters: { layout: 'fullscreen' },
 };
+
+// A report, not a dashboard: it answers why and exactly how much, so it carries
+// the ledger in full, a filter row and one export. The glance screen beside it
+// is the Finance dashboard.
+// why: guidelines/dashboards-and-reports.md
+
+// What a reader narrows the ledger by. The period stays a segmented control
+// rather than a third chip, so no filter is offered twice.
+const FILTERS = [
+  { id: 'status', label: 'Status', value: 'Failed', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'In transit', value: 'In transit' }, { label: 'Failed', value: 'Failed', selected: true }] },
+  { id: 'currency', label: 'Currency', items: [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
+];
+
+const controls = () => `<div class="ui-toolbar">
+      ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+      ${filterBar({ filters: FILTERS, label: 'Payout filters' })}
+      ${button({ label: 'Export rows', size: 'sm' })}
+    </div>`;
 
 // The cashflow figures are the kit's stat band. It folds from its own width, so
 // the rail beside the column needs no rule of this screen's.
@@ -63,9 +82,9 @@ export const Default = {
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
-    sub: 'Company cashflow at a glance, then the reconciled payout ledger.',
+    sub: 'The reconciled payout ledger in full, with the cashflow it rolls up to.',
     body: `
-      ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+      ${controls()}
       ${kpiStrip()}
       ${payoutsCard()}
     `,
@@ -91,9 +110,9 @@ export const Loading = {
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
-    sub: 'Company cashflow at a glance, then the reconciled payout ledger.',
+    sub: 'The reconciled payout ledger in full, with the cashflow it rolls up to.',
     body: `
-      ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+      ${controls()}
       <div class="ui-stats ui-stats--tiles">${busyRegion({
         label: 'Loading cashflow for the last year…',
         body: `${skeleton({ lines: ['18%'], className: 'ui-stats__basis' })}<div class="ui-stats__list">${['', '', ''].map(() => `<div class="ui-stat ui-card ui-card--pad-sm">

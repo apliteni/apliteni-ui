@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-02',
+    changes: [
+      ['added', 'A Dashboards and reports guideline settles which kind of page a screen is. A dashboard answers \u201Cis anything wrong, and what changed\u201D in one screen and carries figures, trends and the rows that need attention, each linking to the report behind it. A report answers \u201Cwhy, and exactly how much\u201D, so it carries the full table, its filters, one export and the table under every chart. Six rules, five of them drawn as do and don\u2019t specimens. Closes #505.'],
+      ['changed', 'The Finance report showcase now reads as a report: its summary says it carries the ledger in full, and the screen offers the filter row and the export the new guideline asks of a report. A Finance dashboard showcase sits beside it as the glance screen that links to it.', ['Table']],
+    ],
+  },
+  {
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],
