@@ -308,7 +308,7 @@
         "pattern": "content over a scrim, focus-trapped, Esc-dismissable"
       }
     ],
-    "comfort": [
+    "drawer-or-page": [
       {
         "ref": "src/styles/drawer.css:18",
         "pattern": "--drawer-w: var(--panel-md)"

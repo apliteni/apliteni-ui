@@ -14,13 +14,13 @@
 
 **Except:** Two-answer questions use confirm. Short forms fit; forms needing steps or more than one screen use a page.
 
-## When a drawer is uncomfortable
+## Drawer or page
 
-<!-- rule: comfort -->
+<!-- rule: drawer-or-page -->
 
-**Rule:** Open a page instead of a drawer when the reader edits more than one group, or sets a value for each row of a list.
+**Rule:** Put the work on a page when the reader edits more than one group, or sets a value for each row of a list; keep the drawer for one short change.
 
-**Why:** Returning to the opened row is all a drawer buys, and a reader editing several groups pays for it by scrolling a narrow column.
+**Why:** Returning to the opened row is what a drawer buys; a page buys the room to show every group at once.
 
 **Do:** Give a member’s roles and per-unit access a page, where every group is in view at once.
 
