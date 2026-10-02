@@ -110,15 +110,12 @@
     --tap-clear-y: var(--tap-gap);
   }
 
-  /* An underline tab is already at the floor: --space-3 block padding draws it
-     44px tall, so its layer never grows past its own box and has nothing to
-     grow into. Spending --tap-gap between its rows would part the strip's rule
-     from the row above by 20px to reach a target that was already reached, so
-     this variant keeps the strip's own 4px. The clearance it declares is that
-     same 4px rather than zero: a tab drawn a little shorter still reaches 44
-     while two rows' layers stay clear of one another, and one drawn shorter
-     than 40 fails the measured gate instead of passing with a layer under the
-     floor. Measured at 390 in both themes. #527 */
+  /* An underline tab already draws 44px tall, so its layer never leaves its own
+     box: --tap-gap between its rows spent 20px reaching a target already
+     reached, and took the strip from 101px to 117px. It keeps its own 4px, and
+     declares that 4px rather than zero as the clearance — a tab drawn a little
+     shorter still reaches the floor, and one drawn far shorter fails the
+     measured gate instead of passing under it. #527 */
   .ui-seg--underline {
     row-gap: var(--space-1, 4px) !important;
     --tap-clear-y: var(--space-1, 4px);
