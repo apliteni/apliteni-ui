@@ -50,16 +50,16 @@
 .ui-textarea::placeholder { /* muted-ink: placeholder — empty form field */ color: var(--muted); opacity: 0.9; }
 
 /* The value a reader typed is still the value; it goes quiet, it does not fade
-   into the field under it the way an opacity would take both down together. #220 */
-/* `.ui-select` joins these two in #273. It had no disabled rule at all, and it
-   sets `background: var(--surface-2)` as an author declaration — which outranks
-   the UA's own grey-out — so a disabled select rendered pixel-identical to a live
-   one. A pager marked busy showed every button and the jump input visibly off
-   beside a size control that still looked available. */
+   into the field under it the way an opacity would take both down together. #220
+   `.ui-select` joined the pair in #273: it paints its own field, which outranks the
+   UA's grey-out, so a disabled one had looked exactly like a live one.
+   `background-color`, not `background` — the shorthand also resets the three
+   longhands the chevron is drawn with (#511). Held by stories/select-chevron.test.js.
+   why: docs/specification.md#icons-and-glyphs */
 .ui-input:disabled,
 .ui-select:disabled,
 .ui-textarea:disabled {
-  background: var(--disabled-surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background-color: var(--disabled-surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border-color: var(--disabled-border);
   /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
   cursor: not-allowed;
