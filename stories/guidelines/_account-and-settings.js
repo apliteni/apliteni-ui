@@ -7,13 +7,10 @@ import { button, card, switchToggle } from '../../src/components/index.js';
 import { sidebarNav } from '../../src/components/nav.js';
 import { accountMenu } from '../../src/components/topbar.js';
 
-// The account modal is a shape the kit does not ship: its modal is one pane with
-// no navigation slot, which the first rule's boundary says out loud. So the panel
-// here is composed rather than rendered — the two-step edge and the raised ground
-// every kit overlay wears, around a real nav and a real card. What is drawn to
-// scale is only what cannot fit a specimen cell at life size: the product behind
-// the overlay, and the sheet the don't is about. That block vocabulary is
-// stories/guidelines/_the-page.js's, borrowed rather than invented twice.
+// The account modal is a shape the kit cannot draw, which rule 1 records as #553, so
+// the panel here is composed: the two-step edge and raised ground every kit overlay
+// wears, around a real nav and real rows. The product behind it is drawn to scale in
+// the block vocabulary stories/guidelines/_the-page.js established.
 export const SPEC_CSS = `
   <style>
     .gas-shell { position: relative; height: 180px; display: flex; gap: 5px;
@@ -57,10 +54,15 @@ export const SPEC_CSS = `
       padding-right: 6px; border-right: 1px solid var(--border); }
 
     /* The account modal at life size, where the navigation itself is the subject:
-       the panel's own ground and edge, a head over it, the nav beside the pane. A
-       scrim behind it, because a modal with nothing under it reads as a card. */
+       the panel's own ground and edge, a head over it, the nav beside the pane.
+       Under it is the drawn product rule 1 uses, and the scrim over that. The scrim
+       alone was a dark translucent with nothing behind it, which in light theme
+       composites into an opaque grey mat around the panel — a different wrong
+       reading from the card it was there to prevent. */
     .gas-modal { position: relative; padding: var(--space-5) var(--space-4);
-      border-radius: var(--radius-md); background: var(--scrim); }
+      border-radius: var(--radius-md); overflow: hidden; }
+    .gas-modal__bg { position: absolute; inset: 0; }
+    .gas-modal__bg .gas-shell { height: 100%; border-radius: 0; }
     .gas-modal__panel { position: relative; border-radius: var(--radius-md); overflow: hidden;
       background: var(--bg-elevated); --ring-gap: var(--bg-elevated);
       border: 1px solid var(--border-strong);
@@ -71,10 +73,6 @@ export const SPEC_CSS = `
     .gas-modal__title { margin: 0; font-family: var(--font-sans);
       font-weight: var(--weight-normal); font-size: var(--text-base); color: var(--text); }
     .gas-modal__body { display: flex; min-height: var(--gas-body, 300px); }
-    /* A pane carries no card: the panel is already the raised surface and the edge,
-       which is the box the drawer page refuses one rule over. The caption takes the
-       card title's rank without being a heading — a specimen is a picture, and the
-       document's outline is the rule headings. */
     /* The one-field don't shows a pane with a single row in it, so its body needs
        no room for five. The floor is the variable, not a second panel. */
     .gas-modal--short { --gas-body: 100px; }
@@ -82,6 +80,8 @@ export const SPEC_CSS = `
        floor, so the half with no navigation is cut where its scroll begins —
        which is the fault that rule is about, drawn rather than described. */
     .gas-modal--nav .gas-modal__body { height: 330px; min-height: 0; }
+    /* The caption takes the card title's rank without being a heading: a specimen is
+       a picture, and the document's outline is the rule headings. */
     .gas-modal__cap { font-family: var(--font-sans); font-size: var(--text-lg);
       font-weight: var(--weight-semibold); line-height: var(--leading-snug);
       color: var(--strong); margin-bottom: var(--space-1); }
@@ -157,14 +157,17 @@ const settingRow = (lab, hint, control = '') =>
 
 const closeBtn = () => button({ label: 'Close', icon: 'x', iconOnly: true, variant: 'ghost', size: 'sm' });
 
-// `body` is already the panel's own ground, so the pane holds no second card:
-// a card inside the panel is the box the drawer guideline refuses next door.
-const modal = (body, mod = '') => `<div class="gas-modal${mod ? ` ${mod}` : ''}"><div class="gas-modal__panel">
+// The pane holds no card: a card inside the panel is the box the drawer guideline
+// refuses next door, and the panel is already the raised surface and the edge.
+const modal = (body, mod = '') => `<div class="gas-modal${mod ? ` ${mod}` : ''}">
+  <div class="gas-modal__bg">${shell()}<div class="gas-scrim"></div></div>
+  <div class="gas-modal__panel">
   <div class="gas-modal__head">
     <h3 class="gas-modal__title">Account</h3>${closeBtn()}
   </div>
   <div class="gas-modal__body">${body}</div>
-</div></div>`;
+  </div>
+</div>`;
 
 const pane = (cap, body) => `<div class="gas-modal__pane">
   ${cap ? `<div class="gas-modal__cap">${cap}</div>` : ''}${body}
@@ -198,7 +201,9 @@ export const navDont = () => stage(modal(pane('',
 
 // ---- what the account menu holds ----------------------------------------
 
-const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com', active: 'settings' };
+// No `active`: the row that opens the modal is the way in, not the page the reader
+// is already on, and marking it would also put the pair's only accent on the Do.
+const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 
 // One row, because the menu's job under this rule is the way in and nothing else.
 const WAY_IN = [{ id: 'settings', icon: 'gear', label: 'Account settings' }];
@@ -238,16 +243,16 @@ export const inRowDont = () => stage(modal(withNav('notifications')
 // ---- the action a pane carries -------------------------------------------
 
 const TOKENS = [
-  ['Deploy bot', 'Created 14 Aug · used today'],
-  ['Reporting agent', 'Created 2 Sept · used 2 days ago'],
+  ['Deploy bot', 'Used today'],
+  ['Reporting agent', 'Used 2 days ago'],
 ];
 
-// level 3, because a specimen card's title sits under the rule's own heading.
-const tokens = (label) => stage(card({
-  title: 'API tokens', level: 3,
-  body: TOKENS.map(([lab, hint]) => settingRow(lab, hint)).join('')
-    + `<div class="gas-acts">${button({ label, variant: 'primary' })}</div>`,
-}));
+// In the modal, like the four rules above it: this pair was the only one that left
+// the shape the page spends its first four rules establishing. The rows are the
+// agents the rule's reason names, each holding the token beside it.
+const tokens = (label) => stage(modal(withNav('agents') + pane('Agents & API tokens',
+  TOKENS.map(([lab, hint]) => settingRow(lab, hint)).join('')
+  + `<div class="gas-acts">${button({ label, variant: 'primary' })}</div>`)));
 
 export const oneActionDo = () => tokens('Create token');
 export const oneActionDont = () => tokens('Save');
