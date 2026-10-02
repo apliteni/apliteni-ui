@@ -187,6 +187,15 @@ not by rounding half up, and not by whichever step is closer to the number that 
 
 Each value's job is stated where the value is written, and the job decides the direction.
 
+A card header is two gaps: `var(--space-2)` under the title and `var(--space-5)` under the
+description. The first was `5px` until [#499](https://github.com/apliteni/apliteni-ui/issues/499)
+— off this scale, and tight enough that the description read as part of the heading rather than
+as a line under it. `--space-2` is the step the page header already uses between its own title
+and sub, and a gap whose job is to separate two text ranks rounds away from collision. Held by
+`src/styles/card-header.test.js`, which checks those two declarations and not the sheet: the
+icon gap and a setting row's hint offset are a component's interior, and the argument about
+which of `src/styles` is rhythm is the one `stories/table-rhythm.test.js` declines to have.
+
 **A padding modifier moves the vertical rhythm and keeps the horizontal inset**, so cards of
 different padding stacked in one column line their text up. `.ui-card` pads `var(--space-6)` and
 `.ui-card--pad-sm` pads `var(--space-5) var(--space-6)`. `.ui-card` used to pad
