@@ -60,13 +60,13 @@
 
 **Rule:** Put a control in a group only with others of its own category: views, filters, sorting and actions each get their own group and style.
 
-**Why:** Identical controls in one bar hide that one of them switches the whole view while its neighbour only narrows it.
+**Why:** Identical controls in one bar hide that one of them re-draws every row while its neighbour only narrows them.
 
-**Do:** Give the views a strip above the table, the filters a bar of chips under it, and the action the right-hand end.
+**Do:** Keep the filter chips in one bar, the views in a strip of their own, and the action at the right-hand end.
 
 **Don't:** Put three saved views and a filter control in one bar as four buttons of the same size and style.
 
-**Except:** Two filters, or two actions, belong together: the categories are what may not mix.
+**Except:** Two filters, or two actions, belong together: the categories are what may not mix. Saved views that re-draw one table take a segmented strip; views that swap panels take tabs.
 
 ## Match confirmation scale
 

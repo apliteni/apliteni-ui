@@ -6,9 +6,9 @@
 
 export const RELEASES = [
   {
-    v: '0.65.0', date: '2026-10-01',
+    v: '0.65.0', date: '2026-10-02',
     changes: [
-      ['added', 'A component-choice guideline: group a control only with others of its own category. Views, filters, sorting and actions each take their own group and style; a bar that mixes them hides which control replaces the whole view and which only narrows it. See #508.'],
+      ['added', 'A component-choice guideline: group a control only with others of its own category. Views, filters, sorting and actions each take their own group and style; a bar that mixes them hides which control re-draws every row and which only narrows them. See #508.'],
     ],
   },
   {

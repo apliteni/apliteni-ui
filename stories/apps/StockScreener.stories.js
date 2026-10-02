@@ -21,7 +21,6 @@ const css = `<style>
 .screener { min-width:0; }
 .screener h1 { font-size:var(--text-xl); margin-bottom:var(--space-2); }
 .screener__context { font-size:var(--text-sm); margin-bottom:var(--space-4); }
-.screener__views { margin-bottom:var(--space-4); }
 .screener__filters { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); }
 .screener .ui-table-scroll { --ui-table-height:75vh; margin-top:var(--space-3); }
 .screener .ui-table { min-width:110rem; }
@@ -38,11 +37,12 @@ const table = (data, density, view = 'Overview', sort = 'desc', emptyMessage = '
     return `<tr>${order.map(j => `<td class="${j === 0 ? 'ui-table__identity' : j < 13 ? 'ui-table__num' : ''}">${cells[j]}</td>`).join('')}</tr>`;
   }).join('') || `<tr><td colspan="15">${emptyMessage}</td></tr>`}</tbody></table>`;
 };
-// One category per group: the views switch the table, the filter bar narrows it.
-// why: guidelines/component-choice.md
+// Checked against the rule and left as it is: the views are their own strip in
+// their own style, and the filter bar and the control that adds a condition are
+// both filters. why: guidelines/component-choice.md
 function render({ density = 'compact', applied = false, state = 'ready', limit = 30 } = {}) {
   const data = applied ? rows.filter(r => r.sector === 'Technology').slice(0, limit) : state === 'ready' ? rows.slice(0, limit) : rows.slice(0, 1);
-  const body = `${css}<section class="screener"><div class="screener__views">${segmented({ options: views, appearance: 'underline', ariaLabel: 'Dataset view', name: 'screener' })}</div><div class="screener__filters"><div data-screener-filters>${filterBar({ filters: applied ? filters : [], busy: state === 'refreshing' })}</div>${button({ label: 'Filter by technology', size: 'sm', variant: 'ghost' })}</div><div class="ui-table-scroll" role="region" aria-label="Stock screener, scroll for more columns and rows" tabindex="0"${state === 'refreshing' || state === 'loading' ? ' aria-busy="true"' : ''}>${table(state === 'empty' || state === 'loading' ? [] : data, density, 'Overview', 'desc', state === 'loading' ? 'Loading companies…' : 'No companies available.')}</div>${state === 'error' ? `<p role="alert">Could not refresh prices. Existing rows are still shown. ${button({ label: 'Retry refresh', size: 'sm' })}</p>` : state === 'loading' ? '<p role="status">Loading companies…</p>' : state === 'refreshing' ? '<p role="status">Refreshing prices…</p>' : ''}<p class="screener__foot">${state === 'empty' || state === 'loading' ? 0 : data.length} fictional companies. USD = US dollars; M = million; B = billion.</p><p class="screener__foot" id="company-detail" tabindex="-1" aria-live="polite">Company links are demonstration links; no live prices or company detail service is connected.</p></section>`;
+  const body = `${css}<section class="screener"><div class="screener__filters"><div data-screener-filters>${filterBar({ filters: applied ? filters : [], busy: state === 'refreshing' })}</div>${button({ label: 'Filter by technology', size: 'sm' })}</div>${segmented({ options: views, appearance: 'underline', ariaLabel: 'Dataset view', name: 'screener' })}<div class="ui-table-scroll" role="region" aria-label="Stock screener, scroll for more columns and rows" tabindex="0"${state === 'refreshing' || state === 'loading' ? ' aria-busy="true"' : ''}>${table(state === 'empty' || state === 'loading' ? [] : data, density, 'Overview', 'desc', state === 'loading' ? 'Loading companies…' : 'No companies available.')}</div>${state === 'error' ? `<p role="alert">Could not refresh prices. Existing rows are still shown. ${button({ label: 'Retry refresh', size: 'sm' })}</p>` : state === 'loading' ? '<p role="status">Loading companies…</p>' : state === 'refreshing' ? '<p role="status">Refreshing prices…</p>' : ''}<p class="screener__foot">${state === 'empty' || state === 'loading' ? 0 : data.length} fictional companies. USD = US dollars; M = million; B = billion.</p><p class="screener__foot" id="company-detail" tabindex="-1" aria-live="polite">Company links are demonstration links; no live prices or company detail service is connected.</p></section>`;
   return appShell({ word: 'Finance', title: 'Stock screener', sub: '<span id="screener-basis">Fictional demonstration data. Changes versus previous close.</span>', nav: [{ id: 'screener', icon: 'chart', label: 'Stock screener', href: '#screener' }], active: 'screener', width: 'wide', collapsible: true, collapsed: true, body });
 }
 export const Screener = { render, play: ({ canvasElement }) => {
