@@ -8,10 +8,13 @@
  * Place `tip` against `mark` inside `host`, above it and centred, flipping below
  * only when the room above is short and the room below is larger. Room is
  * measured inside the viewport and inside every ancestor whose overflow clips.
+ * It then slides along the mark's edge to stay inside that box, no further than
+ * it has to.
  *
- * `host` is the box the readout is positioned in; `bound` narrows that
- * measurement to one element, for a part that has to keep its readout inside
- * itself. why: docs/specification.md#the-hover-readout
+ * `host` must be the box the readout is positioned in: the three custom
+ * properties below are written in its coordinates. `bound` narrows the
+ * measurement to one element, for a part that keeps its readout inside itself.
+ * why: docs/specification.md#the-hover-readout
  */
 export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bound?: Element): void {
   const mrect = mark.getBoundingClientRect();

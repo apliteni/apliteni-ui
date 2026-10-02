@@ -122,8 +122,6 @@
 
 .ui-chart__grid { stroke: var(--border); stroke-width: 1; }
 .ui-chart__zero { stroke: var(--border-strong); stroke-width: 1; }
-/* The gap the zero line is read in, cut through whatever a column painted. */
-.ui-chart__zero-gap { stroke: var(--ui-chart-ground); stroke-width: 3; }
 
 .ui-chart__bar {
   /* The pattern or gradient the component names, falling back to the flat tone.
@@ -170,8 +168,12 @@
 .ui-chart__fade-near { stop-color: var(--ui-chart-tone); stop-opacity: 0.5; }
 .ui-chart__fade-far { stop-color: var(--ui-chart-tone); stop-opacity: 1; }
 
-/* Where the readout opens: the mark's top edge, so it clears what it describes
-   rather than covering it. Geometry only — it paints nothing. */
+/* The edge the readout is placed against: the mark's top. Geometry only — it
+   paints nothing. The readout opens above that edge where the frame has the
+   room and flips below it where it has not, which near the top of the plot
+   means covering the mark and the first axis labels. The guideline asks for
+   that flip rather than for a readout outside the part.
+   why: guidelines/hover-readouts.md#prefer-above-the-mark */
 .ui-chart__anchor { fill: none; pointer-events: none; }
 
 /* The hit area a pointer lands on. It is the series' own band in the column, so

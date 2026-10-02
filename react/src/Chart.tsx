@@ -122,6 +122,13 @@ type Frame = {
 const HEIGHT = { months: 216, bridge: 216, spark: 32 };
 /** Room for a stroke at the band's edges, so a full-height bar is not shaved. */
 const PAD = 2;
+/**
+ * How far a bar stops short of the zero line, each side. The channel this
+ * leaves is real empty ground: a stroke of the chart's own colour laid over the
+ * marks instead would erase a line series sitting on zero, slice a dot near it,
+ * and break the picked column's accent frame where the two bars meet.
+ */
+const ZERO_INSET = 1.5;
 /** A pointer target is at least this wide — guidelines/accessibility-floor.md. */
 const TARGET = 24;
 /**
@@ -282,6 +289,9 @@ export function Chart(props: ChartProps) {
   const ignoreMouseUntil = useRef(0);
   const touchMoved = useRef(false);
   const dismissed = useRef<string | null>(null);
+  /** Focus a pointer moved onto the frame. The frame's own handler then leaves
+   *  the readout and the announcement to the gesture that asked for them. */
+  const pointerFocus = useRef(false);
 
   const [width, setWidth] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -319,8 +329,18 @@ export function Chart(props: ChartProps) {
 
   const marks = useMemo<Mark[]>(() => {
     const out: Mark[] = frame.bars.map((bar) => {
-      const top = Math.min(y(bar.from), y(bar.to));
-      const bottom = Math.max(y(bar.from), y(bar.to));
+      let top = Math.min(y(bar.from), y(bar.to));
+      let bottom = Math.max(y(bar.from), y(bar.to));
+      // Whichever edge stands on the zero line gives up the inset, and only
+      // that edge: the two series lose the same height, so what the reader
+      // compares is unchanged, and each bar's own stroke follows the new edge
+      // rather than being cut by something painted after it.
+      // A bar with no room to give one up keeps its edge; it is a hairline and
+      // cannot hide the line underneath it anyway.
+      if (bottom - top > ZERO_INSET + 1) {
+        if (Math.abs(bottom - zero) < 0.5) bottom -= ZERO_INSET;
+        if (Math.abs(top - zero) < 0.5) top += ZERO_INSET;
+      }
       return {
         id: bar.id, column: bar.column, name: bar.name, tone: bar.tone,
         value: bar.band === 'down' ? bar.from - bar.to : bar.to - bar.from,
@@ -523,6 +543,7 @@ export function Chart(props: ChartProps) {
         onKeyDown={onKeyDown}
         onFocus={(event) => {
           if (event.target !== event.currentTarget) return;
+          if (pointerFocus.current) { pointerFocus.current = false; return; }
           show(lead(cursor)?.id);
           announce(cursor);
         }}
@@ -576,9 +597,19 @@ export function Chart(props: ChartProps) {
                 if (id && id === openId) setOpenId(null);
                 else show(id);
               }}
+              onPointerDown={() => { pointerFocus.current = true; }}
               onClick={(event) => {
+                // The nearest focusable ancestor of a mark is the scroller, which
+                // has no role and no name, so a click parked focus on it and a
+                // pointer reader never heard that the arrows do anything. The
+                // named group takes focus however the chart is entered.
+                frameEl.current?.focus();
+                pointerFocus.current = false;
                 const mark = byId.get(markAt(event.target) ?? '');
-                if (mark) choose(mark.column);
+                if (!mark) return;
+                setCursor(mark.column);
+                choose(mark.column);
+                announce(mark.column, selectable ? mark.column : pick);
               }}
             >
               <defs>
@@ -602,9 +633,14 @@ export function Chart(props: ChartProps) {
                 )))}
               </defs>
 
-              {!spark && scale.ticks.filter((tick) => tick !== 0).map((tick) => (
+              {/* The zero line is drawn with the gridlines, under every mark. The
+                  bars stop ZERO_INSET short of it, so no bar can cover it; a line
+                  or a dot crossing zero paints over it, which is a mark over a
+                  gridline and is the right way round.
+                  why: docs/specification.md#react-charts */}
+              {!spark && scale.ticks.map((tick) => (
                 <line
-                  key={tick} className="ui-chart__grid"
+                  key={tick} className={tick === 0 ? 'ui-chart__zero' : 'ui-chart__grid'}
                   x1="0" x2={px(plotWidth)} y1={px(y(tick))} y2={px(y(tick))}
                 />
               ))}
@@ -639,26 +675,6 @@ export function Chart(props: ChartProps) {
                   cx={px(mark.x + mark.w / 2)} cy={px(mark.y + mark.h / 2)} r={spark ? 2.5 : 3.5}
                 />
               ))}
-
-              {/* The zero line, after every mark. Two series meet exactly on it, so
-                  one painted first is covered in every column that has a bar; and a
-                  hairline laid straight over a saturated fill cannot be read either.
-                  It is drawn twice: a wider stroke in the chart's ground, which cuts
-                  a gap through whatever the column painted, and the line itself in
-                  that gap. Over the card the gap is invisible and only the line
-                  shows. why: docs/specification.md#react-charts */}
-              {!spark && scale.ticks.includes(0) && (
-                <g>
-                  <line
-                    className="ui-chart__zero-gap" x1="0" x2={px(plotWidth)}
-                    y1={px(y(0))} y2={px(y(0))}
-                  />
-                  <line
-                    className="ui-chart__zero" x1="0" x2={px(plotWidth)}
-                    y1={px(y(0))} y2={px(y(0))}
-                  />
-                </g>
-              )}
 
               {/* The hit areas last, so a dot's circle wins over the band under it.
                   A bar's is its own band in the column, full height, so a pointer

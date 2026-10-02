@@ -3135,11 +3135,14 @@ drawable. `format` prints exact values in the readout, the live region and the t
 - **A mark is a series' own band in its column**, full height, so a pointer that falls between
   two bars still has one to answer with; a line's mark is a 24px target on its dot, over the
   band. Every mark is at least 24px in both directions.
-- **The zero line is drawn last**, over every mark, with a wider stroke in the chart's ground
-  under it. In a bars-above / bars-below chart the two series meet exactly on zero, so a line
-  painted first is covered in every column that has a bar, and a hairline laid straight over a
-  saturated fill cannot be read either: the ground stroke cuts a gap through the column and the
-  line is read in it. The other gridlines stay under the marks.
+- **A bar stops short of the zero line** by a pixel and a half at whichever edge stands on it.
+  In a bars-above / bars-below chart the two series meet exactly on zero, so a bar that ran to
+  the line would cover it in every column. The channel this leaves is empty ground rather than
+  a stroke painted over the marks: both bars lose the same height, so what the reader compares
+  is unchanged; each bar's own stroke — an estimated column's dash, a picked column's accent —
+  follows the inset edge and closes on it; and a line series, its dots and the zero line itself
+  all stay whole. The zero line is a gridline, drawn under every mark, in `--border-strong`
+  where the others take `--border`; a line or a dot crossing zero paints over it.
 - **A faded bar keeps its own tone at the zero line.** The ramp travels towards zero and stops
   short of it, so a faded column still shows where one series ends and the next begins; a ramp
   that reached zero washed out at the one edge the reader measures from.
@@ -3151,7 +3154,9 @@ drawable. `format` prints exact values in the readout, the live region and the t
   the vanilla wiring; `role="slider"` with `aria-valuetext` was rejected because the issue asked
   for the live region, and a slider carrying both would say everything twice. The scroller takes
   `tabindex="-1"`: a browser makes an overflowing box keyboard-focusable on its own, and the ring
-  it draws there is its own rather than the kit's.
+  it draws there is its own rather than the kit's. A click in the plot moves focus to the group
+  as well, because the scroller is still the nearest focusable ancestor of a mark and it has
+  neither a role nor a name; the column the pointer landed on is the one announced.
 - **The plot scrolls, the value axis does not.** The axis sits outside the scroller; the plot
   keeps a floor of `--ui-chart-col` per column, so twelve months fit a desktop card and scroll
   on a phone. Whichever side still hides columns is faded, with a mask rather than a painted

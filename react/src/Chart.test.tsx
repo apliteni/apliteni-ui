@@ -371,28 +371,79 @@ it('draws no bar and tables an em dash where the caller gave no value', () => {
 
 /* -- what the review of 0ff4c5d found ------------------------------------- */
 
-it('paints the zero line after every bar, so two series meeting on it cannot cover it', () => {
+it('leaves a real channel at zero instead of painting one over the marks', () => {
   const { container } = months();
   const svg = container.querySelector('.ui-chart__svg')!;
-  const order = [...svg.querySelectorAll('.ui-chart__grid, .ui-chart__zero, .ui-chart__zero-gap, .ui-chart__bar')]
-    .map((el) => (el.classList.contains('ui-chart__zero') ? 'zero'
-      : el.classList.contains('ui-chart__zero-gap') ? 'gap'
-        : el.classList.contains('ui-chart__bar') ? 'bar' : 'grid'));
-  expect(order.filter((k) => k === 'zero'), 'one zero line').toHaveLength(1);
-  expect(order.indexOf('gap') + 1, 'the gap is cut immediately under the line it holds')
-    .toBe(order.indexOf('zero'));
-  expect(order.indexOf('gap'), 'the gap comes after the last bar too')
-    .toBeGreaterThan(order.lastIndexOf('bar'));
-  expect(order.indexOf('zero'), 'the zero line comes after the last bar')
-    .toBeGreaterThan(order.lastIndexOf('bar'));
-  expect(order.lastIndexOf('grid'), 'the other gridlines stay under the bars')
-    .toBeLessThan(order.indexOf('bar'));
-  // The two series do meet exactly on it, which is why the order matters.
-  const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
+  const zero = svg.querySelector('.ui-chart__zero')!;
+  const zeroY = Number(zero.getAttribute('y1'));
+
+  // Nothing paints the chart's own ground across the plot any more. A stroke
+  // laid over the marks erased a line series sitting on zero, sliced a dot near
+  // it, and broke the picked column's accent frame where the two bars meet.
+  expect(container.querySelector('.ui-chart__zero-gap'),
+    'the ground stroke is gone, not moved').toBeNull();
+
+  // The channel is the two bars stopping short, each by the same amount.
   const up = svg.querySelector('rect.ui-chart__bar.ui-chart__tone--good')!;
   const down = svg.querySelector('rect.ui-chart__bar.ui-chart__tone--bad')!;
-  expect(Number(up.getAttribute('y')) + Number(up.getAttribute('height'))).toBeCloseTo(zeroY, 1);
-  expect(Number(down.getAttribute('y'))).toBeCloseTo(zeroY, 1);
+  const upBottom = Number(up.getAttribute('y')) + Number(up.getAttribute('height'));
+  const downTop = Number(down.getAttribute('y'));
+  expect(zeroY - upBottom, 'the bar above gives up its inset').toBeCloseTo(1.5, 1);
+  expect(downTop - zeroY, 'the bar below gives up the same').toBeCloseTo(1.5, 1);
+  for (const bar of svg.querySelectorAll('rect.ui-chart__bar')) {
+    const top = Number(bar.getAttribute('y'));
+    const bottom = top + Number(bar.getAttribute('height'));
+    expect(Math.min(Math.abs(top - zeroY), Math.abs(bottom - zeroY)),
+      `${bar.getAttribute('class')} reaches the zero line`).toBeGreaterThanOrEqual(1.4);
+  }
+
+  // So the line, its dots and every bar's own stroke are painted after it and
+  // nothing of the chart's crosses them back.
+  const kinds = [...svg.querySelectorAll('.ui-chart__zero, .ui-chart__bar, .ui-chart__line, .ui-chart__dot')]
+    .map((el) => (el.classList.contains('ui-chart__zero') ? 'zero'
+      : el.classList.contains('ui-chart__bar') ? 'bar'
+        : el.classList.contains('ui-chart__line') ? 'line' : 'dot'));
+  expect(kinds.indexOf('zero'), 'the zero line is a gridline again, under the marks').toBe(0);
+  expect(kinds.lastIndexOf('zero')).toBe(0);
+});
+
+it('keeps a line series and its dot whole where they sit on zero', () => {
+  // The case the review measured: a net series at break-even. Its segments and
+  // its dot are the last things painted across that row.
+  const flat = [0, 0, 0, 0];
+  const { container } = render(
+    <Chart title="Net" periods={periods}
+      series={[{ id: 'income', name: 'Income', values: INCOME, tone: 'good' },
+        { id: 'net', name: 'Net', values: flat, shape: 'line' }]} format={eur} />,
+  );
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
+  const dots = [...svg.querySelectorAll('circle.ui-chart__dot')];
+  expect(dots).toHaveLength(4);
+  for (const dot of dots) expect(Number(dot.getAttribute('cy'))).toBeCloseTo(zeroY, 1);
+  const painted = [...svg.querySelectorAll('.ui-chart__zero, .ui-chart__line, .ui-chart__dot')]
+    .map((el) => (el.classList.contains('ui-chart__zero') ? 'zero' : 'mark'));
+  expect(painted[0], 'the zero line first').toBe('zero');
+  expect(painted.slice(1).every((k) => k === 'mark'),
+    'every segment and dot on the line is painted after it').toBe(true);
+});
+
+it('keeps the picked column one accent frame rather than two brackets', () => {
+  const { container } = months({ selectable: true, selected: 3 });
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
+  const picked = [...svg.querySelectorAll('rect.ui-chart__bar.is-selected')];
+  expect(picked, 'both of the column\'s bars carry the frame').toHaveLength(2);
+  // Each frame closes on its own inset edge, clear of the zero line, so nothing
+  // is drawn across it afterwards.
+  for (const bar of picked) {
+    const top = Number(bar.getAttribute('y'));
+    const bottom = top + Number(bar.getAttribute('height'));
+    expect(Math.min(Math.abs(top - zeroY), Math.abs(bottom - zeroY))).toBeGreaterThanOrEqual(1.4);
+  }
+  const kinds = [...svg.querySelectorAll('.ui-chart__zero, rect.ui-chart__bar.is-selected')]
+    .map((el) => (el.classList.contains('ui-chart__zero') ? 'zero' : 'picked'));
+  expect(kinds[0]).toBe('zero');
 });
 
 it('a faded bar keeps its own tone at the zero line', () => {
@@ -514,4 +565,28 @@ it('says under the pointer that a selectable column can be picked', () => {
   const rule = /\.ui-chart--pick \[data-mark\]\s*\{([^}]*)\}/
     .exec(readRepo('../../src/styles/chart.css'))![1];
   expect(rule).toContain('cursor: pointer');
+});
+
+it('gives the named group focus when a column is clicked, and says which one', async () => {
+  const user = userEvent.setup();
+  const { container } = months();
+  await user.click(markEl('spend-2'));
+  // The nearest focusable ancestor of a mark is the scroller, which has no role
+  // and no name; a pointer reader parked there never hears what the arrows do.
+  expect(container.querySelector('.ui-chart__scroll')).not.toHaveFocus();
+  expect(frame()).toHaveFocus();
+  expect(frame()).toHaveAccessibleName(/Arrow keys step through/);
+  expect(screen.getByRole('status'), 'the column the tap landed on, not the one the cursor was on')
+    .toHaveTextContent('Mar 2026. Income €1,400. Spend €850. Net €550.');
+  await user.keyboard('{ArrowRight}');
+  expect(screen.getByRole('status'), 'the arrows carry on from there').toHaveTextContent('Apr 2026.');
+});
+
+it('a click on a selectable column picks it and announces that it is picked', async () => {
+  const user = userEvent.setup();
+  const onSelect = vi.fn();
+  months({ selectable: true, onSelect });
+  await user.click(markEl('income-1'));
+  expect(onSelect).toHaveBeenCalledWith(1);
+  expect(screen.getByRole('status')).toHaveTextContent('Feb 2026. Income €1,500. Spend €900. Net €600. Selected.');
 });
