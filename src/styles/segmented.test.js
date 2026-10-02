@@ -1,4 +1,6 @@
-// Source CSS contracts; browser evidence covers actual wrapping and scrolling.
+// Source CSS contracts. Nothing here lays anything out: the rendered outcome —
+// two rows at a phone width, one at 1280, no tab past the strip's edge — is
+// measured in a browser by stories/segmented-wrap.test.js.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -16,9 +18,10 @@ test('pill strips wrap within their container', () => {
 });
 
 test('underline strips wrap and clip nothing', () => {
-  // Scrolling on one row left `Valuation` cut at 390px with nothing saying it
-  // was there, and the scroll box cut the focus ring's glow. Both declarations
-  // are read, so dropping either one fails here rather than in a screenshot. #527
+  // Both declarations are read, so dropping either one fails here rather than in
+  // a screenshot. `overflow: visible` is the initial value, so this catches the
+  // declaration going missing and NOT clipping reintroduced by a parent or a
+  // later rule; stories/segmented-wrap.test.js measures the rendered outcome.
   assert.equal(valueOf('.ui-seg--underline', 'flex-wrap'), 'wrap', 'underline tabs must wrap rather than hide the ones past the fold');
   assert.equal(valueOf('.ui-seg--underline', 'overflow'), 'visible', 'a scroll box would clip the focus ring against the strip padding');
 });
