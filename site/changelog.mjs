@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-02',
+    changes: [
+      ['added', 'filterPanelFit() and DD_MENU_FLOOR are published, so a second implementation of the dropdown asks the kit where a filter chip’s menu may sit instead of measuring its own. The floor argument sets the width the menu reaches.', ['Dropdown', 'FilterBar']],
+      ['fixed', 'An open filter menu is readable again. Since a chip began showing its value alone, bounding the menu to that trigger left it about 48px wide, breaking option words mid-letter; an open menu now takes the kit’s 240px menu floor, shifting along the row when the room on the side it opens from is short, and never leaves the row or widens the page. This reaches an end-aligned chip and a searchable one, which were the two compositions still squeezed. A shut menu is unchanged, which is what keeps #467 fixed. Vanilla and React measure it with the same calculation. Resolves #549.', ['FilterBar', 'Dropdown']],
+    ],
+  },
+  {
     v: '0.75.0', date: '2026-10-02',
     changes: [
       ['fixed', 'An inline `.ui-code` chip now paints whichever reading surface its container is not on, so an identifier keeps its chip inside a card, a panel, a drawer, a toast, a table cell and a callout. It painted `--surface`, which is the card, so in all of those it had no chip at all in either theme. Nothing about it changes on the page, and it takes no border and no hairline. Fixes #537.', ['Typography']],

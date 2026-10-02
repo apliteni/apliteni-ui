@@ -48,8 +48,8 @@ const THEMES = ['dark', 'light'];
  * itself: a sweep that silently stopped reaching half the surfaces would report
  * "36 of 36 expected" and pass. These fail instead, and raising them is the
  * deliberate act of someone who has seen the new surfaces. */
-const FLOOR_SUBJECTS = 13;   // 8 root + 5 react stories rendering a filter bar
-const FLOOR_PANELLED = 42;   // cases that put a panel on the page, of 84
+const FLOOR_SUBJECTS = 14;   // 8 root + 6 react stories rendering a filter bar
+const FLOOR_PANELLED = 48;   // cases that put a panel on the page, of 90
 // Putting the floor back is one mutation. It is the rule as it stood before the
 // fix, written at a specificity that beats the bound so it cannot be a no-op.
 const FLOOR_BACK = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel'
@@ -58,6 +58,11 @@ const FLOOR_BACK = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel'
  * panel, so it can never exercise the row-fit check; without this one that check
  * would have nothing proving it still measures anything. */
 const WRAP_OFF = '.ui-filter-bar .ui-dropdown__panel { overflow-wrap: normal !important; }';
+/* And taking the menu floor away is the third: it is the state #549 reported,
+ * an open menu bounded to a trigger that now prints a value alone. It has to
+ * leave at least one menu under the width its row allows. */
+const FLOOR_OFF = '.ui-filter-bar .ui-dropdown.open .ui-dropdown__panel'
+  + ' { min-width: 100% !important; max-width: 100% !important; margin-inline-start: 0 !important; }';
 
 /** A static server over one root, with one page of our own at /__shot. */
 const serve = (root, page) => new Promise((resolve, reject) => {
@@ -114,11 +119,15 @@ const probe = () => {
       return {
         left: +p.left.toFixed(1), right: +p.right.toFixed(1), width: +p.width.toFixed(1),
         dropdown: dd ? +dd.width.toFixed(1) : null,
+        open: !!panel.closest('.ui-dropdown')?.classList.contains('open'),
         rows: panel.querySelectorAll('.ui-dropdown__item').length,
         spills,
       };
     });
-    return { left: +box.left.toFixed(1), right: +box.right.toFixed(1), panels };
+    return {
+      left: +box.left.toFixed(1), right: +box.right.toFixed(1),
+      width: +box.width.toFixed(1), panels,
+    };
   });
   return {
     page: doc.scrollWidth,
@@ -240,10 +249,26 @@ const worstOver = (held) => Math.max(held.over, ...held.opens.map((o) => o.over)
 const allPanels = (held) => [held, ...held.opens]
   .flatMap((state) => state.bars.flatMap((bar) => bar.panels));
 
-/** Panels whose width left their own containing block's, which is the one thing
- *  the rule does and the one signal every subject shares. */
+/* The kit's menu floor, the width `.ui-dropdown__panel` writes and the width an
+ * open filter menu reaches. A row narrower than the floor decides instead — a
+ * menu may never leave its row. why: src/components/dropdown.js */
+const MENU_FLOOR = 240;
+
+/** A shut panel's width is its containing block's: that is what keeps a hidden
+ *  but laid-out box off the page's scrollable width, which is #467. An open one
+ *  is floored instead, so it is measured by `tooNarrow` rather than here. */
 const unbound = (held) => allPanels(held)
+  .filter((p) => !p.open)
   .filter((p) => p.dropdown === null || Math.abs(p.width - p.dropdown) > 0.5);
+
+/** Open menus narrower than the floor their row allows. #536 made a chip print
+ *  its value alone, and bounding the menu to that trigger left 48px of menu
+ *  breaking words mid-letter — #549. */
+const tooNarrow = (held) => [held, ...held.opens]
+  .flatMap((state) => state.bars.flatMap((bar) => bar.panels
+    .filter((p) => p.open)
+    .map((p) => ({ ...p, floor: Math.min(MENU_FLOOR, bar.width) }))))
+  .filter((p) => p.width < p.floor - 0.5);
 
 /** The distinct rows whose text left them, one entry per row however many times
  *  the walk measured it. */
@@ -269,6 +294,12 @@ for (const one of cases) {
   if (worst > 0) {
     fails.push(`${one.name} at ${one.width}px ${one.theme}: the page is ${held.page}px wide on a `
       + `${held.view}px view, ${worst}px over`);
+  }
+  // A menu too narrow to read is the defect #549 reported, and the row it sits
+  // in is what decides how wide it is allowed to get.
+  for (const panel of tooNarrow(held)) {
+    fails.push(`${one.name} at ${one.width}px ${one.theme}: an open menu is ${panel.width}px where `
+      + `its row allows ${panel.floor}px, so its options break mid-word`);
   }
   // The rule's own effect, measured directly rather than through its symptom.
   for (const panel of unbound(held)) {
@@ -328,6 +359,16 @@ for (const one of wrapArm) {
   unwrapped.push(...spilled(loose).map((s) => `${one.name}: ${s.text}`));
 }
 
+/* The third mutation. Bounding an open menu back to its trigger has to leave a
+ * menu under its row's floor, or the floor check is reading nothing. Run on the
+ * same narrow arm, for the same reason. */
+const squeezed = [];
+for (const one of wrapArm) {
+  const narrow = await measure({ ...one, mutate: FLOOR_OFF });
+  ledger.push({ ...one, mutated: 'floor-off', ...narrow });
+  squeezed.push(...tooNarrow(narrow).map((p) => `${one.name}: ${p.width}px under ${p.floor}px`));
+}
+
 await browser.close();
 for (const half of Object.values(servers)) half.proc.kill();
 vanilla.proc.kill();
@@ -351,6 +392,8 @@ console.log(`panels measured against their .ui-dropdown: ${measuredPanels}`);
 console.log(`mutations rejected: ${panelled.size - survived.length} of ${panelled.size}`);
 console.log(`rows that spill with the wrap hint off: ${unwrapped.length}, over `
   + `${wrapArm.length} cases at ${WIDTHS[0]}px ${THEMES[0]}`);
+console.log(`menus under their row floor with the menu floor off: ${squeezed.length}, over `
+  + `${wrapArm.length} cases`);
 
 const problems = [];
 if (cases.length !== expected) problems.push(`measured ${cases.length} cases, expected ${expected}`);
@@ -382,11 +425,18 @@ if (!unwrapped.length) {
   problems.push('no row spilled with overflow-wrap taken away, so the row-fit check is not '
     + "measuring anything — the subjects may have lost the fixture's unbreakable value");
 }
+// And one where no menu falls under its floor with the floor rule removed has a
+// floor check that would not have caught #549.
+if (!squeezed.length) {
+  problems.push('no open menu fell under its row floor with the menu floor taken away, so the '
+    + 'floor check is not measuring anything');
+}
 problems.push(...unrendered, ...fails, ...survived);
 if (problems.length) {
   for (const line of problems) console.error(`  ✗ ${line}`);
   process.exitCode = 1;
 } else {
-  console.log(`✓ ${cases.length} cases: every panel as wide as its .ui-dropdown, inside its row `
-    + `and adding nothing to the page; all ${panelled.size} panel-bearing mutations were rejected`);
+  console.log(`✓ ${cases.length} cases: every shut panel as wide as its .ui-dropdown, every open `
+    + `menu at the floor its row allows, all inside their row and adding nothing to the page; `
+    + `${panelled.size} panel-bearing mutations rejected`);
 }

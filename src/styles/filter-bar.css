@@ -23,3 +23,17 @@
    and off the page. It inherits, reaching an option's label and description.
    why: docs/specification.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; overflow-wrap: anywhere; }
+
+/* Open, the panel takes the kit's menu floor instead of the trigger's width.
+   #536 made a chip print its value alone, so a trigger is now as narrow as `US`
+   and the bound above left a 48px menu breaking words mid-letter — #549. Only
+   the open panel needs the room: a shut one keeps the rule above, which is what
+   holds #467 and why no page can overflow because this never ran. The room and
+   the shift are measured on open by filterPanelFit(), vanilla and React from the
+   same calculation; unset, both fall back to the trigger's width.
+   why: docs/specification.md#a-filter-row-holds-its-panels */
+.ui-filter-bar .ui-dropdown.open .ui-dropdown__panel {
+  min-width: min(240px, var(--ui-filter-panel-room, 100%));
+  max-width: var(--ui-filter-panel-room, 100%);
+  margin-inline-start: calc(-1 * var(--ui-filter-panel-shift, 0px));
+}

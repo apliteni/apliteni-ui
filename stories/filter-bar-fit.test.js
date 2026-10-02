@@ -129,8 +129,37 @@ function resolveVars(value, vars, depth = 0) {
   return out.trim();
 }
 
-/** A width floor: a rule giving a panel a `min-width` or `width` that is not a
- *  percentage, so it can hold the box wider than whatever contains it.
+/** Whether a resolved length can exceed its containing block. A percentage
+ *  cannot, and neither can a `min()` holding one: `min(240px, 100%)` is at most
+ *  `100%` whatever the first term says. That is arithmetic rather than a special
+ *  case, and it is what lets a filter row floor an open menu — the floor is
+ *  capped by the room the row leaves, so it can never hold the box wider than
+ *  the row. A `max()` is the opposite and stays a floor. */
+function canExceed(resolved) {
+  if (resolved === null) return true;
+  const value = resolved.trim();
+  if (value.endsWith('%') || value === '0') return false;
+  const min = /^min\(([\s\S]*)\)$/.exec(value);
+  if (min) return !splitArgs(min[1]).some((arg) => !canExceed(arg.trim()));
+  return true;
+}
+
+/** A function's arguments, split on its own top-level commas. */
+function splitArgs(inside) {
+  const out = [];
+  let depth = 0;
+  let at = 0;
+  for (let i = 0; i < inside.length; i += 1) {
+    if (inside[i] === '(') depth += 1;
+    else if (inside[i] === ')') depth -= 1;
+    else if (inside[i] === ',' && !depth) { out.push(inside.slice(at, i)); at = i + 1; }
+  }
+  out.push(inside.slice(at));
+  return out;
+}
+
+/** A width floor: a rule giving a panel a `min-width` or `width` that can hold
+ *  the box wider than whatever contains it.
  *
  *  A token is resolved rather than skipped. In a kit whose lengths are tokens,
  *  `var(--panel-floor, 320px)` is the likely shape of the next floor, and one
@@ -149,7 +178,7 @@ function floors(sheets) {
           const value = declared(rule.body, prop);
           if (!value) continue;
           const resolved = resolveVars(value, vars);
-          if (resolved !== null && (resolved.endsWith('%') || resolved === '0')) continue;
+          if (!canExceed(resolved)) continue;
           found.push({ file, selector: one, prop, value, resolved, rank: classes(one) });
         }
       }
@@ -264,6 +293,32 @@ test('a floor spelled as a token is read, not skipped', () => {
   assert.match(unbounded(token), /outranks every bound/);
   assert.match(unbounded(literal), /outranks every bound/);
   assert.equal(unbounded(token) === null, unbounded(literal) === null);
+});
+
+test('a floor capped by a percentage is not a floor, however it is spelled', () => {
+  // `min(240px, 100%)` is at most `100%`, so it cannot hold the box wider than
+  // what contains it. That is what lets a filter row floor an OPEN menu without
+  // re-opening #467: the floor is capped by the room the row leaves.
+  const capped = [
+    ['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: min(240px, 100%); }`],
+    ['fixture-bar.css', `${BAR} ${PANEL} { min-width: 100%; max-width: 100%; }`],
+  ];
+  assert.equal(floors(capped).length, 0);
+  // Through a token, the way the kit actually writes it.
+  const viaVar = [
+    ['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: min(240px, var(--room, 100%)); }`],
+    ['fixture-bar.css', `${BAR} ${PANEL} { min-width: 100%; max-width: 100%; }`],
+  ];
+  assert.equal(floors(viaVar).length, 0);
+});
+
+test('an uncapped length inside a min() is still a floor', () => {
+  // The mutation: drop the percentage and the cap goes with it.
+  const bare = [['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: min(240px, 320px); }`]];
+  assert.equal(floors(bare).length, 1);
+  // And a max() is the opposite of a min(): it can only grow the box.
+  const grows = [['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: max(240px, 100%); }`]];
+  assert.equal(floors(grows).length, 1);
 });
 
 test('a floor written inside the bar\'s own scope is seen, not skipped', () => {

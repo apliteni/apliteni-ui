@@ -1890,7 +1890,8 @@ a page 398px wide on a 390px view — the 8px of
 themselves were never the problem; `.ui-filter-bar` wraps, and at both widths they fitted.
 
 **What a consumer can rely on.** At any viewport, a filter bar's *panels* add nothing to the page's
-scrollable width, and each panel opens inside the row that holds it. The bound is `min-width: 100%;
+scrollable width, and each panel opens inside the row that holds it. An open menu is also at least
+as wide as the kit's 240px menu floor, or as wide as its row where the row is narrower. The bound is `min-width: 100%;
 max-width: 100%` against the panel's own containing block, so it needs no measuring, no resize
 listener and no JavaScript, and vanilla and React get it from the same rule. What a consumer gives
 up is panel width: a filter whose options are longer than its chip wraps them over more rows
@@ -1923,6 +1924,21 @@ that writes one re-opens [#467](https://github.com/apliteni/apliteni-ui/issues/4
 inside the kit, `ddResetSearch()`, sets it to the panel's already-bounded `offsetWidth`, so a search
 dropdown composed inside a filter bar stays inside the row.
 
+**Shut and open are bounded differently, and that is the point.** A shut panel keeps the trigger's
+width: a `visibility: hidden` box is still laid out, so that is what holds #467, and it needs no
+measuring — a page where no JavaScript ran still cannot overflow. An open panel takes the menu
+floor instead. [#536](https://github.com/apliteni/apliteni-ui/issues/536) made a chip print its
+value alone, so a trigger is now as narrow as `US`, and bounding the open menu to it left about
+48px of menu breaking option words mid-letter — [#549](https://github.com/apliteni/apliteni-ui/issues/549).
+
+`filterPanelFit()` is the arithmetic, exported from the kit so `wireDropdown()` and React's
+`<Dropdown>` cannot drift: from the dropdown's inline start it measures the room to the row's end,
+shifts the menu back along the row by what the floor still needs, and never shifts past the row's
+own start. The stylesheet reads the two numbers as `--ui-filter-panel-room` and
+`--ui-filter-panel-shift`; unset, both fall back to the trigger's width, so a menu opened before
+the measurement runs is bounded rather than unbounded. A panel rendered already-open is fitted when
+it is wired, since it never passes through the open path.
+
 The chip's own width is a separate question this rule does not reach. `.ui-dropdown__trigger` is an
 `inline-flex` without `min-width: 0`, and `.ui-dropdown__value` carries no wrap hint, so a chip
 cannot shrink below its selected value's min-content width: a filter showing
@@ -1936,7 +1952,9 @@ Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit 
 in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in both themes.
 That gate sweeps both Storybook indexes for every story rendering a filter bar, measures each panel
 against the `.ui-dropdown` that contains it, asks every option row whether its own text fits it,
-and puts the floor back to require a panel in every case that carries one to widen. Its fixture
+requires every open menu to reach the floor its row allows, and runs three mutations: putting the
+240px floor back has to widen a panel, taking the wrap hint away has to make a row spill, and
+taking the menu floor away has to leave a menu under its row's floor. Its fixture
 page carries an unbreakable value so the wrap hint is measured rather than assumed.
 
 ## A dropdown row is a div, a link or a button

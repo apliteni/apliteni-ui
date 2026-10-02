@@ -2,7 +2,7 @@ import {
   Fragment, useCallback, useEffect, useId, useRef, useState,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode,
 } from 'react';
-import { icon, dropdownMatch, dropdownFiltering } from '@apliteni/apliteni-ui';
+import { icon, dropdownMatch, dropdownFiltering, filterPanelFit } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 
 // The React face of the kit's dropdown() factory and of wireDropdown()'s keyboard.
@@ -203,6 +203,20 @@ export function Dropdown({
   }, [openProp, onOpenChange]);
   const close = useRef(setOpen);
   useIsoLayoutEffect(() => { close.current = setOpen; });
+
+  /* #549: inside a filter row an open panel takes the kit's menu floor rather
+   * than the trigger's width, shifted back along the row when the room ahead
+   * cannot hold it. The calculation is the kit's own, so this and wireDropdown()
+   * cannot drift. Outside a filter row it does nothing.
+   * why: src/styles/filter-bar.css */
+  useIsoLayoutEffect(() => {
+    const el = panel.current;
+    if (!el || !open) return;
+    const fit = filterPanelFit(root.current);
+    if (!fit) return;
+    el.style.setProperty('--ui-filter-panel-room', `${fit.room}px`);
+    el.style.setProperty('--ui-filter-panel-shift', `${fit.shift}px`);
+  }, [open]);
 
   const sx = search ? { ...SEARCH_DEFAULTS, ...strip(search === true ? {} : search) } : null;
   const entries: DropdownEntry[] = sections?.length

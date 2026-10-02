@@ -325,6 +325,47 @@ function ddResetSearch(dd, panel, search) {
   if (panel.offsetWidth) panel.style.minWidth = `${panel.offsetWidth}px`;
 }
 
+/* The kit's menu floor, the one `.ui-dropdown__panel` writes. Named here so the
+ * fit below and the stylesheet cannot drift apart. why: src/styles/dropdown.css */
+export const DD_MENU_FLOOR = 240;
+
+/**
+ * Where a filter chip's menu can sit. #484 bounds the panel to its trigger so a
+ * shut panel adds nothing to the page's width; once chips print their value
+ * alone (#536) that leaves a 48px menu breaking words mid-letter, which is #549.
+ *
+ * So an OPEN panel takes the kit's menu floor instead, and shifts back along the
+ * row when the room to its right cannot hold it. Shut, the panel keeps the
+ * trigger's width and needs none of this — which is why #467 stays fixed with no
+ * measuring at all, and why a page that never runs this still cannot overflow.
+ *
+ * @param {Element} dd a `.ui-dropdown` that may be inside a filter row
+ * @param {number} [floor] the width to reach for
+ * @returns {{room: number, shift: number}|null} null when it is not in a row
+ */
+export function filterPanelFit(dd, floor = DD_MENU_FLOOR) {
+  const bar = typeof dd?.closest === 'function' ? dd.closest('.ui-filter-bar') : null;
+  if (!bar || typeof bar.getBoundingClientRect !== 'function') return null;
+  const row = bar.getBoundingClientRect();
+  const box = dd.getBoundingClientRect();
+  // A row narrower than the floor decides the width; nothing may leave the row.
+  const want = Math.min(floor, row.width);
+  const ahead = Math.max(0, row.right - box.left);
+  const behind = Math.max(0, box.left - row.left);
+  const shift = Math.min(behind, Math.max(0, want - ahead));
+  return { room: ahead + shift, shift };
+}
+
+/** Write the fit onto the panel, or leave it alone outside a filter row. The
+ *  stylesheet falls back to the trigger's width when these are unset, so a
+ *  panel opened before this runs is bounded rather than unbounded. */
+function ddFitFilterPanel(dd, panel) {
+  const fit = filterPanelFit(dd);
+  if (!fit || !panel?.style) return;
+  panel.style.setProperty('--ui-filter-panel-room', `${fit.room}px`);
+  panel.style.setProperty('--ui-filter-panel-shift', `${fit.shift}px`);
+}
+
 // `auto` is the only direction the wiring decides; `up` and the default are the
 // panel's own class, set once at render. Flip only when below is too tight AND
 // above is roomier, so a panel that fits nowhere still opens the way it says.
@@ -400,6 +441,7 @@ function openDropdown(dd, focusIdx) {
   if (panel) {
     ddResolveDirection(dd, panel);
     if (dd.__ddPanel) { positionPortalPanel(dd, panel); panel.classList.add('is-open'); }
+    else ddFitFilterPanel(dd, panel);
   }
   dd.classList.add('open');
   dd.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'true');
@@ -488,6 +530,12 @@ export function wireDropdown(root = document) {
         panel.classList.add('is-open');
       }
     }
+
+    // A panel rendered already-open never passes through openDropdown(), so its
+    // fit has to be taken here too — otherwise a story or a server-rendered bar
+    // keeps the fallback width and #549 survives in exactly the place a
+    // default-open menu makes most visible.
+    if (panel && !dd.__ddPanel && dd.classList.contains('open')) ddFitFilterPanel(dd, panel);
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();

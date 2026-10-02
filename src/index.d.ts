@@ -26,6 +26,15 @@ export declare function wireDropdown(root?: Document | Element): void;
 /** The kit's own match, asked rather than re-implemented by <Dropdown>. */
 export declare function dropdownMatch(label: unknown, query: unknown): boolean;
 export declare function dropdownFiltering(query: unknown): boolean;
+/** The kit's menu floor, the width `.ui-dropdown__panel` writes. */
+export declare const DD_MENU_FLOOR: number;
+/** Where a filter chip's open menu can sit: the room from its inline start to
+ *  the row's end once shifted back, and how far back it had to shift. `null`
+ *  when the dropdown is not inside a `.ui-filter-bar`. */
+export declare function filterPanelFit(
+  dd: Element | null | undefined,
+  floor?: number,
+): { room: number; shift: number } | null;
 export declare function backLink(opts?: Record<string, unknown>): string;
 export declare function statBand(opts?: Record<string, unknown>): string;
 export declare function commandPalette(opts?: Record<string, unknown>): string;
