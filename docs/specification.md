@@ -1125,6 +1125,19 @@ Decided in [#148](https://github.com/apliteni/apliteni-ui/issues/148),
 [#206](https://github.com/apliteni/apliteni-ui/issues/206) and
 [#217](https://github.com/apliteni/apliteni-ui/issues/217).
 
+**A select draws one chevron, on its right edge, in every theme and every state.** The glyph is a
+background image, so it is three longhands — `background-image`, `-repeat` and `-position` — and
+any `background` shorthand reaching the same element silently resets all three. Whether that reads
+as a lost chevron or a tiled one depends on which rule outranks which, so a disabled select showed
+both at once: no chevron in dark, and a chevron repeating across the whole field in light. So a
+rule that repaints an element whose look depends on the other `background-*` longhands sets
+`background-color`. Controls that paint nothing but a colour — the checkbox, the radio, the switch
+track — keep the shorthand, and the resting field rule keeps it because source order already puts
+it under the chevron. Held by `stories/select-chevron.test.js`, which resolves the real cascade
+rather than reading declarations; what it sweeps, and what it does not, is stated there.
+
+Decided in [#511](https://github.com/apliteni/apliteni-ui/issues/511).
+
 ### Busy button labels
 
 Busy buttons replace the visible action label with three centered pulsing dots in the

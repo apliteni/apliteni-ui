@@ -12,6 +12,12 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.75.1', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],
+    ],
+  },
+  {
     v: '0.75.0', date: '2026-10-02',
     changes: [
       ['fixed', 'An inline `.ui-code` chip now paints whichever reading surface its container is not on, so an identifier keeps its chip inside a card, a panel, a drawer, a toast, a table cell and a callout. It painted `--surface`, which is the card, so in all of those it had no chip at all in either theme. Nothing about it changes on the page, and it takes no border and no hairline. Fixes #537.', ['Typography']],
