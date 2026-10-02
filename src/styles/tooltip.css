@@ -26,10 +26,12 @@
   max-width: var(--prose-caption);
   padding: var(--space-2) var(--space-3);
   background: var(--ui-tip-bg); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
-  /* The two-step edge and the drop: --border-strong outside, --border one pixel
-     inside it, then the broad faint drop. why: docs/specification.md#elevation */
-  border: 1px solid var(--border-strong);
-  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
+  /* The two-step edge and the drop, through the level's own names: in DARK that is
+     --border-strong outside and --border one pixel inside it, then the drop; in LIGHT
+     both lines are transparent and the drop carries the whole separation.
+     why: docs/specification.md#elevation */
+  border: 1px solid var(--float-edge);
+  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-size: var(--text-xs);

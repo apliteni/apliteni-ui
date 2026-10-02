@@ -536,18 +536,31 @@ Decided in [#220](https://github.com/apliteni/apliteni-ui/issues/220), measured 
 
 ## Elevation
 
-**Nothing in the kit casts a shadow except a surface that floats.** A card, a field, a chip and a
-row say how high they are with two things: their step on a ladder of lightness, and the kit's
-hairline around them. A floating surface keeps the step, draws the hairline **twice**, and adds
-one soft drop. The drop is broad and faint, never tight and dark: it separates the panel from
-what it covers, it does not draw its edge. All five deprecated `--shadow-*` tokens stay
-transparent and unread; `--elev-drop`, under that second line, is the one shadow the kit paints.
+**A surface casts a shadow only to say it is higher, and each theme says it its own way.**
+A level — a card, the shell's rail, a floating surface — keeps its step on a ladder of lightness
+in both themes. What marks its edge is the theme's: **dark draws the kit's hairline, light casts
+a soft drop and draws no neutral line at all.** Chosen by Artur on round t3 of
+[#490](https://github.com/apliteni/apliteni-ui/issues/490) — *"It's better"* — against a reference
+app he supplied, after rejecting a stronger hairline on round t2: *"Fuck how I hate hairlines."*
+
+**A line that divides two regions of one surface is not a level, and stays a line in both
+themes.** A card's `__row` dividers, a table's row rules, the rail's head band and the topbar's
+bottom rule all separate parts of the same sheet. Only a surface that is *higher* may cast, so a
+drop keeps exactly one meaning. A field is not a level either: its edge is what says "type here",
+`guidelines/colour-and-theming.md#keep-text-off-grey-fills` asks for it, and a drop under a control inside a
+card would read as a raised button — the opposite of a well.
+
+The drop is broad and faint, never tight and dark: it separates a surface from what it covers by
+**area**, not by a pixel. All five deprecated `--shadow-*` tokens stay transparent and unread.
 
 **What floats is decided by the surface's job, not by its rung on the ladder.** A floating
 surface is one whose whole purpose is to be temporarily above something else: a dropdown menu,
 the account and workspace menus, the small-form popover, `confirm()`, the drawer, the React
-modal, the three toast styles, the command palette, the hover readout, and the collapsed rail's
-flyout label. They paint a reading surface and float because of their role. Hover readouts
+modal, the three toast styles, the command palette, the hover readout, the collapsed rail's
+flyout label, the signed-out auth card, the success panel and the feedback composer. The last
+three painted `--bg-elevated` and took the plain hairline instead of the treatment until #490's
+review found them; `stories/elevation.test.js` now discovers every rule that paints that step and
+requires the rung with it, so the step and the treatment cannot come apart again. They paint a reading surface and float because of their role. Hover readouts
 use `--bg-elevated`; collapsed rail labels use the card surface with the same
 floating edge and shadow treatment.
 
@@ -605,37 +618,92 @@ accent, 1.041:1 for live), and each variant edges itself in its own colour rathe
 two keeping the neutral line. The rule this states is the section's own: **a card is a step above
 the page, whatever it is tinted with.**
 
-**Every floating surface keeps the hairline as well, and the card takes one in both themes.**
-A step of lightness on its own is a contrast of about 1.1 — enough to read as a change of surface,
-not enough to draw an edge. The line draws the edge; the step says which way is up. Dropping
-either one leaves a theme carrying the whole separation on the half that is weak for it.
+### The three rungs, and which device each theme spends on them
 
-**A floating surface draws that line twice, and the second one is a pixel inside the first.**
-`--border-strong` on the border, `--border` as an inset one-pixel line within it: an outer line
-against what is behind, an inner one against the panel. One line measured 1.27 / 1.18 against the
-card in dark / light; two measure **1.64 / 1.44**, and the two lines read 1.30 / 1.23 against each
-other, which is what makes them two rather than one drawn thick.
+A step of lightness on its own is a contrast of about 1.1 — enough to read as a change of surface,
+not enough to draw an edge. Something has to draw it. **A level draws a line or casts a drop, and
+never neither**; losing both at once is the flat card #284 and #295 were opened about, and the gate
+refuses it.
+
+| Level | The token sheets paint | Dark | Light |
+| --- | --- | --- | --- |
+| a card | `--card-edge` + `--elev-rest` | `--border`, no cast | transparent, `--elev-rest` |
+| the shell's rail | `--rail-edge` + `--elev-rail` | `--border`, no cast | transparent, `--elev-rail` |
+| a floating surface | `--float-edge`, `--float-edge-inner` + `--elev-drop` | `--border-strong` outside, `--border` a pixel inside, then the drop | both transparent, the drop alone |
+
+Every rung is two layers: a wide faint one that separates by area, and a short one that keeps the
+surface from floating free of its own footprint. Each layer is offset along **one** axis, blurred
+at least twice as wide as it is offset, and held inside the surface's footprint by a negative
+spread, so none of them reaches out on every side as a halo. **None of them is a glow**: a glow is
+a zero-offset layer of the signal's own colour and says *this is lit*, not *this is high*.
+`--elev-rail` is the one rung that falls sideways, because the rail is flush to a screen edge and
+full height — the same reason the drawer draws its line in one direction.
+
+The widths come from the reference. Measured off it, a card's penumbra runs 12–13 CSS px, a
+floating control's 25, and a popover's 35–40, at cores of 1.03–1.12 against the ground. The kit's
+rungs are built to those widths: 26 px off a 2 px offset under a card, 24 px off 10 px beside the
+rail, 46 px off 20 px under a floating surface.
+
+**A level carried by its rung alone marks every side it exposes.** A shadow falls one way, so
+the side it falls *away* from is the one it can miss, and a layer only clears the surface there
+when `blur ÷ 2` beats `|spread| + offset`. The first pass of #490 shipped `0 10px 22px -14px`
+under a card: that arithmetic is `11 − 24`, thirteen pixels **inside** the card, so its top edge
+had nothing at all while the reference marks its own card on all four sides. A level that still
+draws a line can afford a directional rung, because the line marks every side; a level carried by
+the rung alone cannot. `--elev-rest` is near-ambient for that reason — a small offset under a
+wide blur — and the rail is exempt by geometry rather than by taste: it is flush to a screen edge
+and full height, so its left, top and bottom are off the screen and its right edge is the only one
+a reader can see.
+
+**What keeps a rung from reading as a line is its width, not its peak.** Measured at 1x on a
+card in light, against a page the card sits **1.110** above: the rung peaks at **1.064** at the
+top, **1.084** at the sides and **1.134** under the bottom, which is the lit-from-above side.
+Each of those is the strongest sample of a gradient that runs **16 to 20 px**, where the hairline
+it replaced was 1.116 over exactly one pixel. So the bottom peak is above the card's own step and
+is meant to be: a drop that separates by area can be stronger at its core than the step and still
+read as a lift, because a reader sees the gradient rather than the sample. Peak alone was the
+wrong measure of an edge, and it is why the line went.
+
+These are measurements, not guarantees. What the kit guarantees about a rung is the shape the
+gate holds: two layers, offset on one axis, `blur ≥ 2 × offset`, a negative spread, ink written as
+an alpha, and — for a level with no line — a trailing reach above zero.
+
+**In dark, a floating surface draws its line twice, and the second one is a pixel inside the
+first.** `--border-strong` on the border, `--border` as an inset one-pixel line within it: an outer
+line against what is behind, an inner one against the panel. One line measured 1.27 against the
+card; two measure **1.64**, and the two lines read 1.30 against each other, which is what makes
+them two rather than one drawn thick. Light writes the same two layers and resolves both to
+`transparent`, so the composition is one shape in both themes and only the palette differs.
+
+**In light a floating panel has no step to stand on, and the drop carries all of it.** `--surface`
+and `--bg-elevated` are both `#ffffff`, so a panel over a card differs by 1.000. The second pass on
+#490 concluded from that a drop could not replace the line there. The reference answers it: its
+popover sits at a **1.002** surface step with no border at all and still reads as floating, because
+its drop is three times wider than the kit's was. Width was the variable that pass held fixed. The
+one honest cost is the **top** edge, which a downward drop reaches least; the evidence in the PR
+measures it rather than claiming otherwise.
 
 **Then the drop, and it is the half that carries light.** A floating surface writes both devices
 as one `box-shadow` list, in the order Primer's `--shadow-floating-*` uses — the inset line first,
 then the two broad faint drops:
 
 ```css
-box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
+box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
 ```
 
-`--elev-drop` is one token per theme, so there is one place to change the drop. The line is
-**not** in it, and cannot be: a `var()` written inside a custom property is substituted at
-computed-value time on the element that *declares* it, so an `--elev-edge` read inside a `:root`
-token resolves once, at `:root`, always to the fallback — and every component below that
-re-points it writes a declaration the browser ignores. The alphas are per theme because the
-device is not worth the same in each. Dark spends 62% / 50% of `--shadow-ink` and still only reaches **1.20** at the
-drop's core, because near-black ink on a near-black page has nowhere to go — dark is carried by
-the edge. Light spends 18% / 10%, lands the core at `#d7d7da`, and reads **1.44** on the card,
-which is the strongest separation either theme gets from any device measured for #295. The page
-measured 1.43 for the same drop, because its prototype wrote the ink as a literal `#101626` at 17%
-rather than reading `--shadow-ink`, which is `#1e1e32` here; the kit's own token is what ships, and
-1.43 is what the gate floors.
+Each rung is one token per theme, so there is one place to change each. The line is **not** in
+them, and cannot be: a `var()` written inside a custom property is substituted at computed-value
+time on the element that *declares* it, so an `--elev-edge` read inside a `:root` token resolves
+once, at `:root`, always to the fallback — and every component below that re-points it writes a
+declaration the browser ignores. The alphas are per theme because the device is not worth the same
+in each. Dark spends 62% / 50% of `--shadow-ink` on `--elev-drop` and still only reaches **1.20**
+at the drop's core, because near-black ink on a near-black page has nowhere to go — dark is carried
+by the edge, and its other two rungs are the transparent shadow. Light spends **22% / 12%**, lands
+the core at `#ceced2` and reads **1.57** on the card. That is up from the 18% / 10% #295 shipped,
+and deliberately: there the drop sat behind two lines, and here it carries the separation alone, so
+the gate's floor rises with it from 1.43 to **1.50**. `--elev-rest` and `--elev-rail` spend 16% /
+7%, which puts a card's core at 1.38 before the blur spreads it — the reference's card measures
+1.05 rendered, and these rungs land in the same band.
 
 The treatment has these composition rules.
 
@@ -644,8 +712,11 @@ The treatment has these composition rules.
   as it holds focus. Every floating panel writes the ring in front of the treatment rather than
   over it.
 - **A tinted surface re-points the inner line.** `--elev-edge` is the hook, and because the layer
-  reading it is written on the surface's own rule, the surface can set it: unset it is `--border`,
-  which is what a neutral panel wants. Toasts use the neutral border and drop across all styles.
+  reading it is written on the surface's own rule, the surface can set it: unset it is
+  `--float-edge-inner`, which is what a neutral panel wants. Toasts use the neutral border and drop
+  across all styles. A re-pointed tint is a *signal* colour, not a neutral hairline, so it survives
+  in light — a tinted card (`.ui-card--accent`, `.ui-card--live`) keeps its own coloured edge in
+  both themes for the same reason, and takes `--elev-rest` beneath it.
 - **A flush panel draws the line in one direction.** The drawer sits against a screen edge, so it
   has one edge rather than four; a full inset ring would draw lines across the top and bottom of a
   full-height panel, where there is no edge. It composes `var(--drawer-line), var(--elev-drop)`,
@@ -656,8 +727,11 @@ The treatment has these composition rules.
 Held by `stories/elevation.test.js` and `react/src/elevation.test.ts`, over one reader and one
 cascade resolver in `scripts/lib/box-shadow.js`, with their own tests in
 `scripts/lib/box-shadow.test.js`. Both discover every `box-shadow` the kit declares rather than
-naming a component, read each layer's geometry per theme, and refuse a cast layer that is not
-`--elev-drop`. A layer is judged against every value the kit gives the properties it reads —
+naming a component, read each layer's geometry per theme, and refuse a cast layer that is not one
+of the three rungs. The count of declarations reading each rung is pinned, a planted cast on a card
+proves the walk rejects one, and three more cases carry their own mutations: the line-or-drop rule
+for every level in every theme, the reach rule above, and a sweep of every rule that paints
+`--bg-elevated` against the rung that has to come with it. A layer is judged against every value the kit gives the properties it reads —
 each gate resolving against its own workspace's declarations as well as the token files — not
 against one guess at the cascade, because a reader that keeps one declaration per name can be
 walked past by writing a second one. The drops are read there too, at the shape above rather than
@@ -685,7 +759,13 @@ Held by `stories/contrast.test.js` and `stories/accent-contrast.test.js`, which 
 ground the two token files declare rather than a list typed into a gate.
 
 Decided in [#295](https://github.com/apliteni/apliteni-ui/issues/295), after
-[#284](https://github.com/apliteni/apliteni-ui/issues/284) made the card flat.
+[#284](https://github.com/apliteni/apliteni-ui/issues/284) made the card flat. Reopened and split
+by theme on [#490](https://github.com/apliteni/apliteni-ui/issues/490): Artur chose the soft drop
+over the hairline on triage round **t3** (`rev_fc04893b8bfc`), having rejected a stronger hairline
+on round t2 and a surface step with it. The reference analysis the light rungs are measured
+against is recorded on that issue. This also reopens
+[#454](https://github.com/apliteni/apliteni-ui/issues/454), whose round r22 answer was "no visual
+change to the light rail" — the rail's edge is one of the hairlines round t3 decided against.
 
 ## The focus ring
 
@@ -1471,7 +1551,7 @@ inside it, at the same 9px from the trigger.
 
 **One padding, and two blocks that bleed back through it.** `--ui-dropdown-pad` is declared on
 `.ui-dropdown__panel` beside the offset, and the panel's own `padding` reads it —
-src/styles/dropdown.css:79 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
+src/styles/dropdown.css:81 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
 panel has to come back out through that padding to reach the edge, and before
 [#306](https://github.com/apliteni/apliteni-ui/issues/306) the only way to write that was to copy
 the number: the head's bleed was `margin: -6px -6px 5px` and a page building its own footer wrote
@@ -1479,7 +1559,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:228 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:230 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the

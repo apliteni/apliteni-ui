@@ -82,14 +82,14 @@
 }
 .ui-drawer--right .ui-drawer__panel {
   right: 0;
-  border-left: 1px solid var(--border-strong);
-  --drawer-line: inset 1px 0 0 var(--border);
+  border-left: 1px solid var(--float-edge);
+  --drawer-line: inset 1px 0 0 var(--float-edge-inner);
   transform: translateX(100%);
 }
 .ui-drawer--left .ui-drawer__panel {
   left: 0;
-  border-right: 1px solid var(--border-strong);
-  --drawer-line: inset -1px 0 0 var(--border);
+  border-right: 1px solid var(--float-edge);
+  --drawer-line: inset -1px 0 0 var(--float-edge-inner);
   transform: translateX(-100%);
 }
 .ui-drawer--top .ui-drawer__panel,
@@ -100,14 +100,14 @@
 }
 .ui-drawer--top .ui-drawer__panel {
   top: 0;
-  border-bottom: 1px solid var(--border-strong);
-  --drawer-line: inset 0 -1px 0 var(--border);
+  border-bottom: 1px solid var(--float-edge);
+  --drawer-line: inset 0 -1px 0 var(--float-edge-inner);
   transform: translateY(-100%);
 }
 .ui-drawer--bottom .ui-drawer__panel {
   bottom: 0;
-  border-top: 1px solid var(--border-strong);
-  --drawer-line: inset 0 1px 0 var(--border);
+  border-top: 1px solid var(--float-edge);
+  --drawer-line: inset 0 1px 0 var(--float-edge-inner);
   transform: translateY(100%);
 }
 

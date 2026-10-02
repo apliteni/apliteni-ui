@@ -30,7 +30,7 @@
         "pattern": ".ui-btn[aria-disabled=\"true\"]"
       },
       {
-        "ref": "src/tokens/tokens.css:176",
+        "ref": "src/tokens/tokens.css:185",
         "pattern": "--disabled-ink: var(--muted);"
       }
     ],
@@ -76,7 +76,7 @@
     ],
     "accent-strong": [
       {
-        "ref": "src/tokens/tokens.css:190",
+        "ref": "src/tokens/tokens.css:199",
         "pattern": "--accent-strong: #7c3aed;"
       },
       {
@@ -116,7 +116,7 @@
         "pattern": "export function commandPaletteList"
       },
       {
-        "ref": "src/styles/command-palette.css:148",
+        "ref": "src/styles/command-palette.css:150",
         "pattern": ".ui-cmdk__group-head"
       }
     ],
@@ -160,7 +160,7 @@
         "pattern": "const isRefused = (it) =>"
       },
       {
-        "ref": "src/styles/command-palette.css:236",
+        "ref": "src/styles/command-palette.css:238",
         "pattern": ".ui-cmdk__item.is-danger"
       }
     ]
@@ -228,11 +228,11 @@
         "pattern": "export const dropdownMatch"
       },
       {
-        "ref": "src/styles/dropdown.css:246",
+        "ref": "src/styles/dropdown.css:248",
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:295",
+        "ref": "src/styles/dropdown.css:297",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -244,7 +244,7 @@
         "pattern": ".ui-btn--danger:hover"
       },
       {
-        "ref": "src/styles/dropdown.css:206",
+        "ref": "src/styles/dropdown.css:208",
         "pattern": ".ui-dropdown__item.is-danger:hover"
       },
       {
@@ -354,7 +354,7 @@
         "pattern": "position: absolute;"
       },
       {
-        "ref": "src/styles/tooltip.css:58",
+        "ref": "src/styles/tooltip.css:60",
         "pattern": ".ui-tip.is-open { opacity: 1; visibility: visible; }"
       }
     ],
@@ -466,11 +466,11 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:417",
+        "ref": "src/styles/layout.css:420",
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:68",
+        "ref": "src/styles/card.css:72",
         "pattern": "rank: card-title"
       }
     ],
@@ -508,7 +508,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:325",
+        "ref": "src/styles/layout.css:328",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -542,7 +542,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:459",
+        "ref": "src/styles/layout.css:462",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -722,7 +722,7 @@
         "pattern": "box-shadow: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:248",
+        "ref": "src/tokens/tokens.css:257",
         "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
       }
     ],
