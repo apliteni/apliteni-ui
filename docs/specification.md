@@ -2062,12 +2062,14 @@ Held by `src/components/pagination.test.js` and `src/styles/pagination.test.js`.
 
 React StatBand deltas accept `tooltip` text, rendered by the kit Tooltip on the change value.
 
-`statBand()` renders a row of key figures. Each figure is a label and a value, and may carry a
-change and a trend. A figure is only ever rendered inside its band, because its label and values
+`statBand()` renders a row of key figures. Each figure is a label and a value, and may carry one
+row of words under that value — a change, a caption, or a caption leading a change — and a
+trend. A figure is only ever rendered inside its band, because its label and values
 are only valid inside the band's list. The band is a description list: a figure's label is the term and everything
 after it is a value of that term, so a screen reader reads each figure as one statement.
 
-A figure is never broken across lines and never truncated. A band too narrow for its figures moves
+A figure's value is never broken across lines and never truncated — the words under it give way
+instead, as the row below records. A band too narrow for its figures moves
 a figure onto the next row rather than let it overlap the one beside it. It also folds before
 plain wrapping would leave one figure alone on a row: four figures become two rows of two, and an
 odd count becomes one column. The band decides this from its own width and not the window's, because a band beside a rail and a band
@@ -2086,8 +2088,11 @@ A change shows which way it went with an arrow read off the sign the caller prin
 good news is the caller's to say, and colour follows that alone: a cost that rose is not painted as
 a success because it went up. Colour is a verdict, and not every figure is judged: a change nobody
 gives a tone, and one given the tone `neutral`, are the same neutral change — the arrow is drawn and
-the colour withheld. A change with no earlier figure says so in words and is never shown
-as `+0%`, and takes no tone, because there is no news to colour.
+the colour withheld. A figure with nothing to compare draws no row at all: it shows its value,
+and the caption the caller gave it if there is one, and stops. It is never shown as `+0%`, it
+takes no tone, and the band does not say in words that it has nothing to say — beside figures that
+do carry a change, that sentence is noise. The band said `No earlier figure` there until Artur
+struck it on 2026-10-02; `delta.none`, which worded it, went with it.
 
 A change says what it is measured against, in text a reader can reach: once for the whole band, in
 the band's caption, which every change points at, or beside the change when one figure is measured against
@@ -2100,10 +2105,51 @@ the band's own caption and takes precedence over `basisId`. The period showcase
 uses this to share one comparison with its ledger; React tests check the references.
 
 The caption comes **before** the figures, in every layout, the way a table's `<caption>` does. It is
-one statement about all of them, so it is read before the numbers it explains and it sits outside
-every figure. Under a row of tiles it would read as a note on the last card, and inside the first
-tile it would read as that figure's own comparison — which is a different thing the band already
-says beside the change.
+one statement about all of them, so it is read before the numbers it explains, it sits outside
+every figure, and it takes the `caption` rank — it governs the whole row, so it is never set
+smaller than a caption inside one figure. Under a row of tiles it would read as a note on the last
+card, and inside the first tile it would read as that figure's own comparison — which is a
+different thing the band already says beside the change.
+
+**A figure says at most one thing under its value, and it says it in one row.** A change is that
+row. **A figure's own caption** — words about one value, such as what it is a share of — is that
+row when there is no change, and leads it when there is. The row then reads in that order: what
+the value is, how it moved, and what it moved against. A second row would drop every change that
+sat under a caption a line below the rest of the band, which is the layout the band exists to
+keep, and four lines of text around one number read as a paragraph with a figure in it rather
+than a figure.
+
+**A caption never costs a reader the comparison.** A change's own `basis` is printed whether or
+not the figure has a caption, because a `basis` is passed exactly when a figure is measured
+against something the band's caption does not cover — so the band's caption cannot stand in for
+it, and the kit never drops it. A change with no `basis` of its own still points at the band's
+caption, with or without a caption beside it.
+
+**A row holding a change is one line.** A caption is a short phrase and not a sentence, because it
+shares that line with the change. Wrapping is what such a row may not do: it would put the
+change's arrow at the end of one line and its number at the start of the next, and it would drop
+that change below the changes beside it — the defect a second row caused, reached by length
+instead of by presence. The arrow and the number cannot give way, so a caption or a basis too long
+for the figure's width is clipped with an ellipsis there, and the whole string stays in the
+markup, where a screen reader and a copy still reach it.
+
+**A caption standing alone keeps every word.** With no change beside it, it has no arrow and no
+number to keep together, so it takes a second line rather than lose words. Clipping it would buy
+no alignment — its figure still starts its row at the same height as the rest of the band — and
+cost a reader the words. The clip belongs to the row that cannot afford a second line, and to no
+other.
+
+Where a tile is too narrow to show a comparison whole, React's `delta.tooltip` carries it: the
+kit Tooltip opens on hover, on keyboard focus and on touch, which is what the Hover readouts
+guideline (`guidelines/hover-readouts.md`) asks for beside a truncated cell. A `title` attribute
+is not that, and is never the answer here.
+
+A caption is not a change, so it draws no arrow and takes no tone — nothing went up or down, so
+there is no news to colour — and it is not a trend, so it stays out of the slot a sparkline
+takes. It takes the `caption` rank's size and weight ([Labels and titles](#labels-and-titles)) in
+body ink on no fill, and keeps the figure's tighter leading the way the label does. Alone it is
+the row, so it takes the step down a change takes and renders in the same line box: that is what
+holds a band of unlike figures on one line.
 
 The trend is a slot. The kit sizes and colours the caller's `<svg>` and draws no chart.
 

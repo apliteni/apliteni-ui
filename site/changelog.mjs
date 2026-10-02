@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.72.0', date: '2026-10-02',
+    changes: [
+      ['added', 'Stat band figures take a `caption` for context that is not a change, such as a share of a larger figure. It takes the one row under the value, with no arrow and no colour, and leads that row when the figure also has a change, so the row reads what the value is, how it moved and what it moved against. Keep a caption to a short phrase. Vanilla and React. Resolves #497.', ['StatBand']],
+      ['breaking', 'A stat figure with nothing to compare now shows its value alone, and keeps only the caption you gave it. The row that read `No earlier figure` is gone, and with it `delta.none`, which worded it: beside figures that do carry a change, that sentence is noise. Pass a `caption` if a figure needs words under its value. Table deltas are unaffected \\u2014 `deltaValue()` still writes its `missing` text.', ['StatBand']],
+      ['changed', 'A change now keeps its arrow and its number on one line. A caption or a `delta.basis` wider than the figure is clipped with an ellipsis there instead of wrapping, and the whole string stays in the markup for a screen reader and for a copy; a caption standing alone keeps wrapping and loses nothing. Before this a long basis could wrap, leaving an arrow at the end of one line and its number at the start of the next. Where a tile cannot show a comparison whole, React `delta.tooltip` carries it to hover, keyboard focus and touch.', ['StatBand']],
+      ['changed', 'A band\\u2019s own caption is set at 13px rather than 11px, on the kit\\u2019s caption rank. The statement that governs the whole row is no longer smaller than one inside a single figure. Existing bands with a `basis` will show a slightly larger caption.', ['StatBand']],
+    ],
+  },
+  {
     v: '0.71.0', date: '2026-10-02',
     changes: [
       ['breaking', 'In the light theme a card, the shell\'s rail and every floating surface no longer draw the neutral hairline. Each casts a soft, diffuse drop instead — `--elev-rest`, `--elev-rail` and a widened `--elev-drop`. Dark is unchanged. A consumer whose light-theme screens relied on the card or rail edge sees a different kit. Closes #490.', ['Card', 'Shell', 'Dropdown', 'Drawer', 'Modal', 'Toast']],
@@ -950,6 +959,7 @@ const COMPONENTS = {
   Inputs:    'components-inputs--text-fields',
   Segmented: 'components-segmented-control--playground',
   Snippet:   'components-code-snippet--shell',
+  StatBand:  'components-stat-band--playground',
   Switch:    'components-switch-checkbox--switches',
   Tooltip:   'components-tooltip--playground',
   Topbar:    'components-topbar--full',

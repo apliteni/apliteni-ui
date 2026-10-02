@@ -700,13 +700,13 @@
     ],
     "tone-not-direction": [
       {
-        "ref": "src/components/stat.js:43",
+        "ref": "src/components/stat.js:46",
         "pattern": "delta.tone !== 'neutral'"
       }
     ],
     "say-the-basis": [
       {
-        "ref": "src/components/stat.js:34",
+        "ref": "src/components/stat.js:36",
         "pattern": "aria-describedby"
       }
     ]
@@ -793,11 +793,11 @@
     ],
     "check-density": [
       {
-        "ref": "src/styles/stat.css:110",
+        "ref": "src/styles/stat.css:139",
         "pattern": "@container (width <= 28rem)"
       },
       {
-        "ref": "src/styles/stat.css:111",
+        "ref": "src/styles/stat.css:140",
         "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
       }
     ]

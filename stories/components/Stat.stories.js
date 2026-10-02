@@ -66,14 +66,16 @@ export const Gallery = {
 // measured against something the others are not, and when it carries no trend.
 export const States = {
   render: () => pad(
-    heading('No earlier figure', 'A change against nothing is not +0% — the band says there is nothing to compare.')
+    heading('Nothing to compare',
+      'A figure with no earlier value shows the value and stops. It is never shown as +0%, and the band does '
+      + 'not say in words that it has nothing to say &mdash; beside figures that do carry a change, that is noise.')
     + statBand({
       id: 'states-none',
       basis: BASIS,
       stats: [
         { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
-        { label: 'New entity', value: '€ 12,040', delta: { value: null, none: 'No earlier figure' } },
-        { label: 'Refunds', value: '€ 0', delta: { value: '0.0%' } },
+        { label: 'New entity', value: '€ 12,040', delta: { value: null } },
+        { label: 'Refunds', value: '€ 0', caption: 'of income', delta: { value: null } },
       ],
     })
     + heading('Its own comparison', 'One figure measured against a target rather than the previous period says so beside the change.')
@@ -84,6 +86,57 @@ export const States = {
         { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
         { label: 'Margin', value: '36.1%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
         { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+      ],
+    })
+    + heading('Context that is not a change',
+      'A share of a larger figure is neither a change nor a trend, so it takes the row a change would have taken. '
+      + 'A figure says one thing in that row &mdash; a caption, a change, or a caption leading one &mdash; so the '
+      + 'changes stay on one line across a band whose figures differ.')
+    + statBand({
+      id: 'states-caption',
+      basis: BASIS,
+      stats: [
+        { label: 'Gross margin', value: '36.1%', caption: 'of income' },
+        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
+        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+      ],
+    })
+    + heading('How long a caption can be',
+      'A row holding a change is one line, so a caption past the figure\u2019s width is clipped there rather than '
+      + 'wrapped: a wrapped row would put the arrow on one line and its number on the next and drop this change '
+      + 'below the ones beside it. The third figure is past the width, and the whole caption stays in the markup.')
+    + statBand({
+      id: 'states-caption-length',
+      basis: BASIS,
+      stats: [
+        { label: 'Gross margin', value: '36.1%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Operating margin', value: '12.4%', caption: 'of total income', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Net margin', value: '8.0%', caption: 'March revenue in EUR, excluding refunds', delta: { value: '+0.4 pts', tone: 'good' } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+      ],
+    })
+    + heading('A caption standing alone keeps every word',
+      'A caption with no change beside it has no arrow and no number to keep together, so it is never clipped: '
+      + 'it wraps to a second line when the figure is too narrow for it. The caption cut short above reads in '
+      + 'full here.')
+    + statBand({
+      id: 'states-caption-wraps',
+      basis: BASIS,
+      stats: [
+        { label: 'Gross margin', value: '36.1%', caption: 'March revenue in EUR, excluding refunds' },
+        { label: 'Refunds', value: '€ 0', caption: 'March revenue in EUR, excluding refunds', delta: { value: null } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+      ],
+    })
+    + heading('Measured against something else',
+      'A figure compared with its own target says so after the change, where it always has. A caption never costs '
+      + 'a reader that comparison: the row reads what the value is, how it moved, and what it moved against.')
+    + statBand({
+      id: 'states-caption-basis',
+      stats: [
+        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against plan' } },
+        { label: 'Net margin', value: '8.0%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
       ],
     })
     + heading('Figures only', 'No change and no trend: a label and a value is a complete band.')

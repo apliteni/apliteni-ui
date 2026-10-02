@@ -36,7 +36,7 @@ test('label, value, change and caption are text, never markup', () => {
     basis: '<s>c</s>',
     label: '"><em>g</em>',
     id: '"><q>i</q>',
-    stats: [{ label: '<b>x</b>', value: '<img src=x>', delta: { value: '+<i>1</i>%', basis: '<u>y</u>' } }],
+    stats: [{ label: '<b>x</b>', value: '<img src=x>', caption: '<s>of <em>r</em></s>', delta: { value: '+<i>1</i>%', basis: '<u>y</u>' } }],
   }));
   assert.equal(doc.querySelectorAll('b, img, i, u, s, em, q').length, 0);
   assert.equal(doc.querySelector('.ui-stat__value').textContent, '<img src=x>');
@@ -110,13 +110,102 @@ test('two bands on one page never share a caption id', () => {
   assert.notEqual(ids[0], ids[1]);
 });
 
-test('a change against nothing says so, with no arrow and no percentage', () => {
-  const none = one({ label: 'New', value: '€ 1', delta: { value: null } }).querySelector('.ui-stat__delta');
-  assert.ok(none.classList.contains('ui-stat__delta--none'));
-  assert.equal(none.textContent, 'No earlier figure');
-  assert.equal(none.querySelector('svg'), null);
-  const worded = one({ label: 'New', value: '€ 1', delta: { value: '', none: 'New this year' } });
-  assert.equal(worded.querySelector('.ui-stat__delta').textContent, 'New this year');
+// A figure with nothing to compare shows its value and stops. The band used to
+// say "No earlier figure" under it; beside the figures that do carry a change,
+// that sentence is noise, and Artur struck it on 2026-10-02.
+// why: docs/specification.md#stat-bands
+test('a figure with nothing to compare shows its value, and says nothing about it', () => {
+  for (const [name, delta] of [['null', { value: null }], ['empty', { value: '' }], ['worded', { value: null, none: 'New this year' }]]) {
+    const fig = one({ label: 'New entity', value: '€ 12,040', delta });
+    assert.equal(fig.querySelector('.ui-stat__delta'), null, `${name}: a change with nothing in it drew a row`);
+    assert.deepEqual([...fig.querySelectorAll('.ui-stat > dd')].map((d) => d.className), ['ui-stat__value'],
+      `${name}: the figure is not its value alone`);
+    assert.doesNotMatch(fig.querySelector('.ui-stat').textContent, /earlier|New this year/,
+      `${name}: words about the missing comparison reached the page`);
+  }
+  // A caption is the caller's words, so it stays — and nothing is added after it.
+  const captioned = one({ label: 'Refunds', value: '€ 0', caption: 'of income', delta: { value: null } });
+  assert.deepEqual([...captioned.querySelectorAll('.ui-stat > dd')].map((d) => d.className),
+    ['ui-stat__value', 'ui-stat__caption']);
+  assert.equal(captioned.querySelector('.ui-stat__caption').textContent, 'of income');
+});
+
+// A ratio that is not a change fits neither slot the band had: as a change it
+// gets an arrow it has no direction for, as a trend it lands where a sparkline
+// goes. It is the row a change would have taken — a figure says at most one
+// thing there — so no figure stacks four text lines around its number, and a
+// band whose figures differ does not drop half its changes a line lower.
+// why: docs/specification.md#stat-bands
+test("a figure's caption is the row a change would take, with no arrow and no tone", () => {
+  const rows = (fig) => [...one(fig).querySelectorAll('.ui-stat > dd')].map((d) => d.className.split(' ')[0]);
+  const own = one({ label: 'Margin', value: '36.1%', caption: 'of income' });
+  assert.deepEqual(rows({ label: 'Margin', value: '36.1%', caption: 'of income' }),
+    ['ui-stat__value', 'ui-stat__caption'], 'a caption alone is not the one row under the value');
+  const cap = own.querySelector('.ui-stat__caption');
+  assert.equal(cap.tagName, 'DD', 'a caption alone is not a value of the figure');
+  assert.equal(cap.textContent, 'of income');
+  assert.equal(cap.querySelector('svg'), null, 'the caption drew an arrow, and it is not a change');
+  assert.equal(own.querySelector('.ui-stat').className, 'ui-stat', 'the caption painted the figure');
+  assert.equal(one({ label: 'a', value: '1' }).querySelector('.ui-stat__caption'), null, 'a caption nobody gave was drawn');
+  assert.equal(one({ label: 'a', value: '1', caption: '' }).querySelector('.ui-stat__caption'), null, 'an empty caption drew an empty line');
+});
+
+// The rule the band rests on: whatever a figure has to say under its value, it
+// says in one row. Every combination, because the defect this replaces was a
+// second row that only appeared when a caption met a change.
+test('a figure draws exactly one row between its value and its trend, whatever it carries', () => {
+  const cases = [
+    ['a caption', { caption: 'of income' }],
+    ['a change', { delta: { value: '+1%' } }],
+    ['a change with its own basis', { delta: { value: '+1%', basis: 'against plan' } }],
+    ['a caption and a change', { caption: 'of income', delta: { value: '+1%' } }],
+    ['a caption and a change with a basis', { caption: 'of income', delta: { value: '+1%', basis: 'against plan' } }],
+    ['a caption and nothing to compare', { caption: 'of income', delta: { value: null } }],
+    ['a caption, a change and a trend', { caption: 'of income', delta: { value: '+1%' }, trend: '<svg></svg>' }],
+  ];
+  for (const [name, extra] of cases) {
+    const fig = one({ label: 'Margin', value: '36.1%', ...extra });
+    const between = [...fig.querySelectorAll('.ui-stat > dd')]
+      .filter((d) => !d.classList.contains('ui-stat__value') && !d.classList.contains('ui-stat__trend'));
+    assert.equal(between.length, 1, `${name}: ${between.length} rows under the value, and a figure says one thing there`);
+  }
+  assert.equal(one({ label: 'a', value: '1' }).querySelectorAll('.ui-stat > dd').length, 1,
+    'a figure with nothing to add drew a row anyway');
+});
+
+// Beside a change the caption leads the row, because it belongs to the value
+// above it: "of income, up 1.2 points", never "up 1.2 points of income". What
+// the change is measured against follows it, so the row reads in that order.
+test('a caption leads the row and what the change is measured against follows it', () => {
+  const row = (opts) => dom(statBand({ variant: 'band', ...opts })).querySelector('.ui-stat__delta');
+  const figure = { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good', basis: 'against the 40% target' } };
+  const own = row({ stats: [figure], basis: 'Change against the previous 12 months', id: 'kpi' });
+  assert.deepEqual([...own.querySelectorAll('[class^="ui-stat__"]')].map((e) => e.className),
+    ['ui-stat__caption', 'ui-stat__change', 'ui-stat__basis'], 'the row does not read caption, change, basis');
+  assert.equal(own.textContent.replace(/\s+/g, ' ').trim(), 'of income +1.2 pts against the 40% target');
+  assert.ok(own.querySelector('svg'), 'the change lost its arrow');
+  assert.equal(own.getAttribute('aria-describedby'), null,
+    'a figure measured against its own thing was pointed at the band\'s as well');
+});
+
+// The defect this replaces: a caption used to take the basis's place, so a band
+// with no caption of its own printed neither and the change compared against
+// nothing. A basis is passed precisely when a figure is measured against
+// something the band's caption does not cover, so it is never the kit's to drop.
+test('a caption never costs the caller the basis they passed', () => {
+  const figure = { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', basis: 'against the 40% target' } };
+  for (const [name, opts] of [
+    ['with a band caption', { stats: [figure], basis: 'Change against the previous 12 months', id: 'kpi' }],
+    ['with no band caption', { stats: [figure] }],
+  ]) {
+    const doc = dom(statBand({ variant: 'band', ...opts }));
+    assert.equal(doc.querySelector('.ui-stat__basis')?.textContent, 'against the 40% target',
+      `${name}: the basis the caller passed is not on the page`);
+  }
+  // With no caption and no basis of its own, the band's caption is still what a
+  // change points at — the rule a caption no longer changes.
+  const shared = dom(statBand({ variant: 'band', basis: 'Against last year', id: 'b', stats: [{ label: 'Income', value: '€ 1', caption: 'of the group', delta: { value: '+4%' } }] }));
+  assert.equal(shared.querySelector('.ui-stat__delta').getAttribute('aria-describedby'), 'b-basis');
 });
 
 test('a figure with no change and no trend is a label and a value', () => {
