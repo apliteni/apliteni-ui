@@ -2786,13 +2786,18 @@ sideways and drags every other block with it. Below 560px the standard-size pill
 their side padding, which is what keeps six three-letter months on one row in a
 390px column; the type rank is unchanged at every width.
 
-The underline appearance wraps the same way. It used to keep one row and scroll,
-on the reading that the order is the reader's map. A strip that scrolls hides the
-tabs past the fold at rest and shows nothing that says they are there, which loses
-the order it was there to protect: at 390px the stock screener's three views need
-295px of a 284px column, and `Valuation` was cut at the right edge. Wrapping keeps
-every tab on the page in its reading order, and keeps the focus ring's glow, which
-the scroll box clipped against the strip's own 4px padding.
+The underline appearance wraps the same way, and is not a scroll box. It used to
+keep one row and scroll, on the reading that the order is the reader's map; a
+strip that scrolls hides the tabs past the fold at rest and shows nothing that
+says they are there. At 390px the stock screener's three views need 295px of a
+284px column, and `Valuation` was cut at the right edge. Two things come with
+not scrolling: the focus ring's glow is no longer clipped against the strip's own
+4px padding, and the strip is no longer a keyboard stop answering with the
+browser's own outline. Below the phone step a coarse pointer leaves this
+appearance's row gap at that same 4px rather than opening it to `--tap-gap`: an
+underline tab already draws at the 44px floor, so its tap layer never leaves its
+own box and has nothing to grow into. Held by `stories/segmented-wrap.test.js`,
+measured in a browser at 390 and 1280.
 Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
 
 ## Shared React logic and declarations

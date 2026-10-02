@@ -73,12 +73,8 @@
 }
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
-/* The underline strip wraps for the same reason the pill strip does. It used to
-   keep one row and scroll, which hid every tab past the fold at rest — at 390px
-   the stock screener's three views need 295px of a 284px column, so `Valuation`
-   was cut with no affordance saying it was there. `overflow: auto` also clipped
-   the focus ring's glow against the strip's 4px padding. Wrapping keeps the
-   reading order and the ring. #527 */
+/* Underline tabs wrap for the reason the pills above do — #435, and #527, which
+   stopped them scrolling. why: docs/specification.md */
 .ui-seg--underline { flex-wrap: wrap; overflow: visible; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); max-width: 100%; }
 .ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
 .ui-seg--underline button.is-active,
