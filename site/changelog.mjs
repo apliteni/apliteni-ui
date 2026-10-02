@@ -8,7 +8,13 @@ export const RELEASES = [
   {
     v: '0.76.0', date: '2026-10-02',
     changes: [
-      ['added', 'Guidelines / Account and settings says where account and personal settings belong: in one modal over the product, carrying its own navigation beside the pane it shows, not in a full-width sheet with columns. Five rules cover the modal, the navigation inside it \u2014 profile, security and sessions, agents and API tokens, appearance, notifications \u2014 what the account menu holds, changing a single field in the row that names it, and naming a pane\u2019s action after the change it makes. The rules say plainly what the kit cannot draw yet: its modal is a single pane with no navigation slot and no way to widen it, and the account preset it publishes still draws pages in the shell. Resolves #509.', ['Shell']],
+      ['added', 'PLACEHOLDER_GUIDELINE', ['Shell']],
+    ],
+  },
+  {
+    v: '0.75.1', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],
     ],
   },
   {
