@@ -91,9 +91,13 @@ test('the sweep sees every box-shadow the kit ships', () => {
   // floating declarations it rewrites to read --float-edge-inner instead of
   // --border are rewritten in place and move no count. 73 -> 75: the ring a
 // Snippet's card now draws for its focused code region, and the `box-shadow:
-// none` that takes it off the `<pre>` it used to paint square.
-  assert.equal(sweep.length, 75,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 75. `
+// none` that takes it off the `<pre>` it used to paint square. 75 -> 76: the
+// `box-shadow: none` on the chosen pill tab in forced colours. That rule opts out
+// of the mode with `forced-color-adjust: none`, which exempts it from the mode's
+// own `box-shadow: none` as well, so without this it kept --ring and drew an
+// accent glow beside the system outline. Suppression, not a cast. #523
+  assert.equal(sweep.length, 76,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 76. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

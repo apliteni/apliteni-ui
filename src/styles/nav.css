@@ -371,58 +371,24 @@ a.ui-nav__crumb:focus-visible { outline: 2px solid transparent; box-shadow: var(
 .ui-nav__crumb .ui-nav__ic svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
 
 /* -- Forced colours ------------------------------------------------------- */
-/* The mode replaces every background that is not a system colour and drops
-   box-shadow. Between them those two cover every way this file marks a current
-   item — the open row's plate, hairline and accent marker, the folded row's
-   plate, the underline tab's rule, the pill tab's wash — so without this block a
-   current row reads like every other row.
-
-   Four states answer, each in a system colour the mode keeps as written. Three
-   go without `forced-color-adjust` on purpose: that is what lets the mode keep
-   repainting the ring's transparent outline into the focus indicator, and lets a
-   row's glyph and badge take its ink. The fourth, the chosen pill tab, is the one
-   that fills under words, which is where this mode's text backplate hides them,
-   so it opts out and pays for the opt-out on the spot.
-
-   Two signals are deliberately NOT restored: the open row's plate and its
-   hairline. Either would be a fill under system-painted ink, which is the pair
-   the forced palette does not promise — Highlight under CanvasText is white on
-   cyan. The open rail is carried by its marker and its weight step instead, and
-   neither is paint. Inert in normal rendering. Emulated in
-   stories/forced-colors-states.test.js and captured in Chromium. #523 */
+/* The mode replaces every non-system background and drops box-shadow — between
+   them, every way this file marks a current item. Each is restated in a system
+   colour. why: docs/specification.md#the-page-shell */
 @media (forced-colors: active) {
-  /* The open rail: the marker is the signal this file already calls "the only
-     thing on a rail that means here", so it is the one that is restated. */
+  /* The marker alone carries the open rail: a fill under system-painted ink is
+     not a pair the palette promises, so the plate and hairline stay gone. */
   .ui-nav--side .ui-nav__item.is-active::before { background: Highlight; }
 
-  /* The folded rail: this plate stands behind the glyph, so it becomes an edge
-     and leaves the ground alone, for the pair named above. `background: Canvas`
-     is written out rather than left to the cascade, so the glyph's legibility
-     does not rest on which of two equally specific rules happens to land here.
-     The strip keeps its width: everything here is border-box. */
+  /* An edge, not a fill — this plate stands behind its glyph. */
   .ui-nav--side.is-collapsed .ui-nav__item.is-active::before { background: Canvas; border: 1px solid Highlight; }
 
-  /* Underline tabs: the rule is painted on every tab and revealed by opacity,
-     which the mode does not touch, so restating the paint shows the chosen one
-     alone. The transparent border this ::after replaced would have needed
-     naming away; an invisible pseudo-element does not. */
+  /* Painted on every tab, revealed by opacity, which the mode leaves alone. */
   .ui-nav--tabs.is-underline .ui-nav__tab::after { background: Highlight; }
 
-  /* Pill tabs: a wash and accent ink are both replaced, so the chosen pill takes
-     the mode's own selection pair — the same answer Segmented's chosen pill
-     gives, because a pill strip and a segmented control are one gesture and
-     should not say two things here.
-
-     This is the only rule in the file that opts out, and it has to. Chromium
-     paints a Canvas backplate behind text in this mode, so HighlightText over a
-     Highlight fill came out ink on ink and the chosen tab lost its word. That
-     came from a capture, not from reading the spec: #523 has the frame.
-
-     Opting out is not free — it also stops the mode repainting the ring's
-     transparent outline and inking the badge — so the two rules under it buy
-     both back. Nothing else in this file fills under words, which is why nothing
-     else in it opts out. */
-  .ui-nav--tabs.is-pill .ui-nav__tab.is-active { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  /* Opts out, because the mode's text backplate hides a word laid on a fill. The
+     opt-out exempts this element from the whole mode, so these three rules owe
+     back what it would have done: drop the ring, repaint the outline, ink the badge. */
+  .ui-nav--tabs.is-pill .ui-nav__tab.is-active { forced-color-adjust: none; background: Highlight; color: HighlightText; box-shadow: none; }
   .ui-nav--tabs.is-pill .ui-nav__tab.is-active:focus-visible { outline: 2px solid HighlightText; outline-offset: -4px; }
   .ui-nav--tabs.is-pill .ui-nav__tab.is-active .ui-nav__badge { background: Canvas; color: CanvasText; }
 }

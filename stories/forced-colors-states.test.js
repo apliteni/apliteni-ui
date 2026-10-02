@@ -1,44 +1,25 @@
 /* Rule: in forced-colors mode every current or selected state in the rail, the
  * page shell and the command palette stays distinguishable from the rows beside
- * it — in both themes — and normal rendering is untouched.
+ * it, in both themes, and normal rendering is untouched.
  *
- * Forced-colors mode replaces `background-color` with its own palette and drops
- * `box-shadow` outright, so a state drawn in paint alone disappears while the
- * markup still says it is current. Ten rules across these three sheets draw a
- * current state that way. The ten are discovered from the sheets rather than
- * listed, so an eleventh fails here until someone decides what it does in the
- * mode; then the real factories are rendered under an emulation of the mode and
- * the result is read back.
- *
- * ---- what this emulates, and what it cannot --------------------------------
- *
- * The mode is reproduced by substituting the tokens, forcing every non-system
- * colour to the palette, dropping every box-shadow, and flattening the
- * `(forced-colors: active)` rules in by hand — JSDOM evaluates no media query,
- * so the flattening is also the proof the blocks are reachable. Every rule of
- * the forcing below was measured in Chromium under Playwright's
- * `forcedColors: 'active'` before it was written, including the palette itself.
- *
- * Four limits, each of which Chromium captures cover instead:
- *
- *  - JSDOM implements no `getComputedStyle` for pseudo-elements, so a `::before`
- *    is rewritten to a stand-in child the way stories/nav-cascade.test.js does
- *    it. That resolves the marker's and the plate's declarations; it does not
- *    resolve their geometry, and the attribute selector weighs one class more
- *    than the pseudo-element it replaces.
- *  - JSDOM models no layout, so a signal's size, position and stacking are not
- *    checked here. The folded rail's plate sitting BEHIND its glyph is the
- *    reason that plate is an edge and not a fill, and only a capture shows it.
- *  - JSDOM does not expand the `outline` shorthand into longhands, so an
- *    outline is read as the shorthand string.
- *  - The real mode keeps a translucent background's alpha and swaps only its
- *    hue, so the kit's washes become Canvas at 0.09–0.15 alpha over Canvas.
- *    They are collapsed to Canvas here. Both say the same thing — a wash cannot
- *    carry a state — and no assertion below turns on the difference.
- *
- * What the system repaints a declared outline AS is the browser's business, so
- * the palette's row is asserted to leave its outline for the mode to recolour,
- * never to come out a particular colour of its own choosing. #523
+ * Subjects are discovered from the three sheets, not listed, so a new
+ * current-state paint rule fails here until it is answered or settled. The mode
+ * is then emulated — tokens substituted, non-system colours forced to Chromium's
+ * palette, box-shadow dropped, the mode's own rules flattened in — and the real
+ * factories rendered under it.
+ * why: docs/specification.md#the-page-shell  #523
+ */
+
+/* Six limits, each covered by a Chromium capture instead. Stated in full in
+ * stories/guidelines/accessibility-coverage.json.
+ *  1. Pseudo-element styles are read through a stand-in child (nav-cascade.test.js).
+ *  2. No layout: size, position and stacking are unchecked.
+ *  3. The `outline` shorthand is not expanded, so outlines are read whole.
+ *  4. The forced palette is Chromium's, pinned below.
+ *  5. A translucent background is collapsed to Canvas rather than kept at alpha.
+ *  6. EVERY box-shadow is dropped, so the emulation is blind to whatever
+ *     `forced-color-adjust: none` exempts — which is how a focused chosen pill
+ *     kept the kit's ring on a pushed head. Those debts are asserted on source.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -315,23 +296,17 @@ test('forced colours: a plate that becomes an edge states its ground as well', (
   }
 });
 
-/* The backplate, and the one rule that has to answer it.
- *
- * Chromium paints a Canvas backplate behind text in this mode. A Highlight fill
- * under words therefore reads as the backplate's Canvas, not as the fill, and
- * HighlightText on it comes out ink-on-ink — the chosen pill lost its word that
- * way before this was measured. `forced-color-adjust: none` drops the backplate
- * and is the only way to keep a fill under text, which is why Segmented's chosen
- * pill carries it too.
- *
- * It costs two things, and a rule that opts out has to buy both back: the mode
- * stops repainting that element's transparent outline, so its focus indicator
- * goes, and it stops inking the element's children, so a kit colour inside it
- * stays a kit colour. Read from the source, because a backplate is a paint
- * behaviour and JSDOM paints nothing — the rendered proof is the Chromium frame.
+/* The backplate, and the rule that answers it. Chromium paints a Canvas
+ * backplate behind text, so HighlightText on a Highlight fill comes out ink on
+ * ink and the chosen pill loses its word; `forced-color-adjust: none` is the
+ * only way to keep a fill under text. (PR #473 proposes the same for Segmented;
+ * it is unmerged, so nothing here is precedent for it.) The opt-out exempts the
+ * element from the WHOLE mode, so it owes three things back — the mode's
+ * `box-shadow: none`, the repaint of its transparent outline, and its children's
+ * ink. Asserted on source: limit 6 above means the render cannot see the first.
  */
-test('forced colours: the one fill under words opts out, and pays what that costs', () => {
-  const forced = SHEETS.flatMap((file) => forcedRulesOf(source[file]).map((r) => ({ file, ...r })));
+function debtsOf(sheets = {}) {
+  const forced = SHEETS.flatMap((file) => forcedRulesOf(sheets[file] ?? source[file]).map((r) => ({ file, ...r })));
   const optedOut = forced.filter((r) => r.decls.some((d) => d.prop === 'forced-color-adjust' && d.value.trim() === 'none'));
   assert.deepEqual(
     optedOut.map((r) => r.selector), ['.ui-nav--tabs.is-pill .ui-nav__tab.is-active'],
@@ -341,19 +316,29 @@ test('forced colours: the one fill under words opts out, and pays what that cost
   assert.ok(pill.decls.some((d) => /^background/.test(d.prop) && d.value.trim() === 'Highlight'),
     'the rule opts out but paints no fill, so it is paying the cost for nothing');
 
+  // Debt 1. The mode drops box-shadow; this element is exempt, so it keeps the
+  // kit's --ring and draws a second, author-coloured focus indicator.
+  assert.ok(pill.decls.some((d) => d.prop === 'box-shadow' && d.value.trim() === 'none'),
+    'an opted-out element is exempt from the mode dropping box-shadow, so it keeps --ring and draws '
+    + 'a purple glow beside the system outline — it must drop the shadow itself');
+
   const under = (suffix) => forced.find((r) => r.selector === `${pill.selector}${suffix}`);
+  // Debt 2.
   const focus = under(':focus-visible');
   assert.ok(focus, 'opting out stops the mode repainting the transparent outline, so the chosen pill has no focus indicator left');
   assert.ok(focus.decls.some((d) => d.prop === 'outline' && /\b(?:HighlightText|CanvasText|ButtonText)\b/.test(d.value)),
     'the focus indicator it buys back must be a real outline in a system colour');
 
+  // Debt 3.
   const badge = under(' .ui-nav__badge');
   assert.ok(badge, 'opting out is inherited, so the badge inside the chosen pill keeps kit colours unless it is restated');
   for (const prop of ['background', 'color']) {
     assert.ok(badge.decls.some((d) => d.prop === prop && SYSTEM.test(d.value.trim())),
       `the badge inside the chosen pill needs a system ${prop}, or it paints a kit colour on Highlight`);
   }
-});
+}
+
+test('forced colours: the one fill under words opts out, and pays all three debts', () => debtsOf());
 
 test('forced colours: the sheets that need the mode declare it', () => {
   for (const file of ['src/styles/nav.css', 'src/styles/layout.css']) {
@@ -394,10 +379,10 @@ for (const [name, check, file, from, to, expected] of [
     '.ui-nav--tabs.is-underline .ui-nav__tab::after { background: Highlight; }', '',
     /the chosen tab's rule must be painted/],
   ['the chosen pill\'s fill', 'the chosen pill tab', 'src/styles/nav.css',
-    '.ui-nav--tabs.is-pill .ui-nav__tab.is-active { forced-color-adjust: none; background: Highlight; color: HighlightText; }', '',
+    '.ui-nav--tabs.is-pill .ui-nav__tab.is-active { forced-color-adjust: none; background: Highlight; color: HighlightText; box-shadow: none; }', '',
     /the chosen pill takes the mode's selection fill/],
   ['the chosen pill\'s ink', 'the chosen pill tab', 'src/styles/nav.css',
-    'forced-color-adjust: none; background: Highlight; color: HighlightText; }', 'forced-color-adjust: none; background: Highlight; }',
+    'background: Highlight; color: HighlightText; box-shadow', 'background: Highlight; box-shadow',
     /and the ink that pairs with it/],
   ['the shell\'s pressed fold', 'the shell\'s pressed fold', 'src/styles/layout.css',
     '  :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { background: Canvas; border: 1px solid Highlight; }', '',
@@ -429,24 +414,24 @@ test('rejects dropping the ground a folded plate\'s edge is drawn over', () => {
     'the ground is gone, which is what the test above refuses');
 });
 
-/* The opt-out's two debts are source contracts, so their mutations are too. */
-for (const [name, from, expected] of [
-  ['the focus indicator the chosen pill opts out of',
-    '  .ui-nav--tabs.is-pill .ui-nav__tab.is-active:focus-visible { outline: 2px solid HighlightText; outline-offset: -4px; }\n',
+/* The opt-out's three debts are source contracts, so their mutations are too.
+ * Each removes one debt and re-runs the check above. Debt 1 is a declaration
+ * rather than a rule, and it is the one that reached a pushed head: the
+ * emulation drops every box-shadow and discovery skips :focus-visible, so only
+ * a source assertion and a Chromium frame can see it. */
+for (const [name, from, to, expected] of [
+  ['the ring suppression', ' color: HighlightText; box-shadow: none; }', ' color: HighlightText; }',
+    /it keeps --ring and draws/],
+  ['the focus indicator',
+    '  .ui-nav--tabs.is-pill .ui-nav__tab.is-active:focus-visible { outline: 2px solid HighlightText; outline-offset: -4px; }\n', '',
     /has no focus indicator left/],
-  ['the badge ink the chosen pill opts out of',
-    '  .ui-nav--tabs.is-pill .ui-nav__tab.is-active .ui-nav__badge { background: Canvas; color: CanvasText; }\n',
+  ['the badge ink',
+    '  .ui-nav--tabs.is-pill .ui-nav__tab.is-active .ui-nav__badge { background: Canvas; color: CanvasText; }\n', '',
     /keeps kit colours unless it is restated/],
 ]) {
-  test(`rejects removing ${name}`, () => {
-    const mutated = source['src/styles/nav.css'].replace(from, '');
-    assert.notEqual(mutated, source['src/styles/nav.css'], 'the mutation found the rule');
-    const forced = forcedRulesOf(mutated);
-    const pill = '.ui-nav--tabs.is-pill .ui-nav__tab.is-active';
-    const under = (suffix) => forced.find((r) => r.selector === `${pill}${suffix}`);
-    assert.ok(forced.some((r) => r.selector === pill && r.decls.some((d) => d.prop === 'forced-color-adjust')),
-      'the mutation left the opt-out in place, which is what makes the missing rule a debt');
-    assert.equal(under(expected.source.includes('focus') ? ':focus-visible' : ' .ui-nav__badge'), undefined,
-      'the rule the test above requires is gone, which is what that test refuses');
+  test(`rejects removing ${name} the chosen pill opts out of`, () => {
+    const mutated = source['src/styles/nav.css'].replace(from, to);
+    assert.notEqual(mutated, source['src/styles/nav.css'], `the mutation found ${name} in nav.css`);
+    assert.throws(() => debtsOf({ 'src/styles/nav.css': mutated }), expected, name);
   });
 }

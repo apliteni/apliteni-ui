@@ -1451,10 +1451,14 @@ What the shell guarantees:
   `HighlightText`. Three of those four go without `forced-color-adjust` deliberately, because that
   is what leaves the mode free to repaint the ring's transparent outline into the focus indicator
   and to ink a row's glyph and badge. The chosen pill is the exception and must be: Chromium paints
-  a Canvas backplate behind text, so a fill under words hides them unless the element opts out —
-  which is also why Segmented's chosen pill opts out. An opting-out rule then owes two things back,
-  its focus outline and its badge's ink, and the gate holds that debt. Normal rendering is
-  byte-identical. Held by `stories/forced-colors-states.test.js`, which
+  a Canvas backplate behind text, so a fill under words hides them unless the element opts out.
+  ([#473](https://github.com/apliteni/apliteni-ui/pull/473) proposes the same answer for Segmented's
+  chosen pill; until it lands, this is the kit's only opted-out rule.) The opt-out exempts an element
+  from the whole mode rather than from the background substitution alone, so it owes three things
+  back: the mode's `box-shadow: none`, without which the element keeps `--ring` and draws an accent
+  glow beside the system outline; the repaint that turns its transparent outline into the focus
+  indicator; and the ink the mode would have given the children that inherit the opt-out. The gate
+  holds all three. Normal rendering is byte-identical. Held by `stories/forced-colors-states.test.js`, which
   discovers every current-state paint rule in the three sheets and fails on an eleventh, and
   measured in Chromium at 390px and 1280px in both themes. Found while fixing the same fault in
   Segmented on [#473](https://github.com/apliteni/apliteni-ui/pull/473); decided in
