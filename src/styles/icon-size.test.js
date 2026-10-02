@@ -51,7 +51,7 @@ const src = path.resolve(here, '..');
 // and the thing it opens are not two search marks); 72 (#339: the xs Button
 // glyph adds a width and a height); 74 (#507: `.ui-drop__state svg` sizes the
 // circled mark beside an upload's word, a width and a height in one rule).
-const EXPECTED_SUBJECTS = 74;
+const EXPECTED_SUBJECTS = 76;
 
 const SHEETS = kitSheetNames(src);
 

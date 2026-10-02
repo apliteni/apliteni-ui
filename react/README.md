@@ -29,7 +29,7 @@ import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (mo
 import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 ```
 
-Components: `Checkbox`, `Switch`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
@@ -43,7 +43,7 @@ Both forward a span ref and native span attributes, including `className`.
 <span><StatusDot live /> API online</span>
 ```
 
-`Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
+`Snippet` accepts `label`, `code`, `reveal`, `copy`, `copyLabel`, and `children` props. It treats `code`
 as plain text and copies it exactly as provided. After a successful clipboard write,
 it shows “Copied” for 1.4 seconds. If copying fails, it shows “Copy failed” so readers
 can try again or select the text manually.
@@ -51,6 +51,32 @@ can try again or select the text manually.
 ```tsx
 <Snippet label="Terminal" code="npm install @apliteni/apliteni-ui" />
 ```
+
+Set `copy={false}` to omit the copy button. Supply React children for highlighted
+text using the existing `.k` (command), `.f` (flag), `.s` (string), `.u` (URL), and
+`.c` (comment) classes. Keep `code` as the original source: copying always uses it,
+regardless of the displayed children. Neither strings nor children are parsed as HTML.
+
+Build the children from `code` with `codeTokens`, the same tokenizer the vanilla
+`hlShell` and `hlCode` use, so the text on screen cannot drift from the text the
+button copies. Writing the spans out by hand means keeping two copies of the string
+in step. The second argument is the language — `shell` (the default), `json` or
+`ts`; `codeLanguages` lists them.
+
+```tsx
+import { codeTokens } from '@apliteni/apliteni-ui';
+
+const code = '{ "url": "https://example.com/mcp" }';
+
+<Snippet label="mcp.json" code={code} copyLabel="Copy configuration">
+  {codeTokens(code, 'json').map(({ cls, text }, at) =>
+    cls ? <span key={at} className={cls}>{text}</span> : text)}
+</Snippet>
+```
+
+The copy button is icon-only: `copyLabel` is its accessible name and its tooltip
+rather than visible text, so name what is being copied — “Copy command”, “Copy
+configuration”. It still shows words while it confirms.
 
 Before a reveal snippet, explain that the secret is stored hashed and will not be
 shown again, and ask the reader to copy it now. The page decides when to remove it.
@@ -501,6 +527,27 @@ class and invalid styling as appropriate:
 The frame supplies a stable ID, required state, and linked hint/error messages.
 An optional `id` lets the caller choose the control ID; it must be unique.
 
+### Search
+
+`SearchField` is the toolbar's search box: a search glyph, a native
+`type="search"` input, and no visible label, so the row keeps the height of the
+unlabelled controls beside it. `ariaLabel` is required and is the control's only
+name. It forwards its ref and the native input props, and `className` joins
+`.ui-input`. There is no clear button — see the specification for why.
+
+```tsx
+<div className="ui-toolbar">
+  <SearchField ariaLabel="Search invoices" placeholder="Vendor or number"
+    value={query} onChange={e => setQuery(e.currentTarget.value)} />
+  {/* then the filters, then the view switch */}
+</div>
+```
+
+Put it first in a `.ui-toolbar`. Above 560px it is the control there that grows
+into the slack the others leave; at 560px and below it takes a line of its own
+and the rest of the row wraps under it. Use `TextField` instead wherever the
+field stands in a form and a visible label belongs over it.
+
 ## Toast
 
 Wrap your app in `Toast`, then call `useToast()` inside it to add a notice.
@@ -576,6 +623,52 @@ Tooltip accepts text and inline children, without nested controls. Hovering or f
 ```tsx
 <Tooltip text="Updated daily">Balance</Tooltip>
 ```
+
+## Success
+
+`SuccessPanel` confirms an outcome inside the current page with `title` and optional
+`sub`, takes the same `check` as `Success`, and forwards a ref to its root div. `SuccessCheck` is the bare mark both
+confirmations draw, matching the kit's `successCheck()`, and forwards a ref to its
+`svg`. It carries no size or box of its own: to compose it alone, put it in a wrapper
+that sets both, such as the kit's `ui-success__check`, and name the outcome in text
+next to it.
+
+```tsx
+<div className="ui-success__check"><SuccessCheck /></div>
+```
+
+The mark comes in two: `line` (the default) is the bare Lucide check in the success
+colour, which strokes itself on and takes its size from the layout it lands in;
+`circled` is Lucide `circle-check-big` at 20px, the kit's label size, drawn at rest and
+the same size everywhere — in every `Success` layout and in `SuccessPanel`. Pick it with `check` on `Success` or `variant` on
+`SuccessCheck`. Guidelines / Iconography reserves a circled glyph for a state and a
+bare one for an action, and a confirmation reports a state — so `circled` is the mark
+that rule asks for, and `line` is the default because it carries the moment at page
+size. Neither has a filled disc behind it.
+
+`Success` provides `hero`, `split`, and `compact` layouts on a plain elevated card;
+there is no backdrop layer and no `backdrop` prop. Pass `title`, one short `body`
+line, and React `actions`. There is no `eyebrow` prop: a confirmation carries one
+title and at most one line under it, so put the outcome in the title rather than in a
+label above it. A kit `Button` carries the focus ring already; a router link or
+a plain `<a>` must also take `className="ui-focusable"`, or it falls back to the
+browser's own focus outline. An omitted or empty `actions`
+leaves out the actions row. Hero and split default to h1; compact defaults to h2.
+`level` overrides the heading rank, and a value outside 1–6 falls back to that layout
+default. `confetti` enables the existing decorative animation. All three components
+use the kit CSS and its reduced-motion rules.
+
+```tsx
+<Success title="Changes saved" check="circled"
+  countdown={waiting ? { seconds: 5, label: 'Continuing' } : null}
+  onCountdownEnd={continueToNextPage}
+  actions={<Button onClick={() => setWaiting(false)}>Stay here</Button>} />
+```
+
+Removing `countdown` or unmounting cancels the timer. Changing its duration restarts
+it; changing its label or callback does not. Durations are whole seconds rounded
+down, with five seconds used for omitted, non-finite, or sub-one values. Completion
+fires once per countdown, including in StrictMode. Navigation belongs to the caller.
 
 ## Checkbox and Switch
 

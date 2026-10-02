@@ -32,8 +32,13 @@ const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
   assert.equal(surfaces.length, 140, 'surface discovery changed; the folded rail\'s current-row plate adds three, the disabled checkbox box and its radio mark add two, and the file drop\'s progress track and drop target add two');
-  const shared = compositions.find((r) => !r.selector.includes(':root'));
-  const covered = (rule) => rule.selector.split(',').every((selector) => shared.selector.split(',').map((s) => s.trim()).includes(selector.trim()));
+  // Any composition rule, not only the shared recipe: #537 gives .ui-code its own, because a
+  // chip's gap has to be the surface it paints and the shared recipe is also what hands a
+  // chip the OTHER surface. The guarantee is unchanged — the rule recomposes --ring — and a
+  // painted surface that composes nothing still fails below.
+  const composed = new Set(compositions.filter((r) => !r.selector.includes(':root'))
+    .flatMap((r) => r.selector.split(',').map((s) => s.trim())));
+  const covered = (rule) => rule.selector.split(',').every((selector) => composed.has(selector.trim()));
   for (const rule of surfaces) {
     const gap = own(rule).get('--ring-gap');
     const background = /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(rule.body)[1].trim();
@@ -42,7 +47,7 @@ test('every painted surface sets a matching gap or explains why the containing g
       continue;
     }
     assert.equal(gap, background, `${rule.file}: ${rule.selector} gap differs from its background`);
-    assert.ok(covered(rule), `${rule.selector} does not compose the shared ring`);
+    assert.ok(covered(rule), `${rule.selector} does not compose the ring`);
   }
   // Alias-setting variants can paint through a background declared on their base.
   // They still need their own composition (for example an opaque footer variant).
@@ -52,8 +57,98 @@ test('every painted surface sets a matching gap or explains why the containing g
   assert.doesNotMatch(rules.find((r) => r.selector === '.ui-app').body, /--ring(?:-gap)?\s*:/, 'the page shell must preserve root overrides');
 });
 
+// ---- the same contract, for surfaces declared in a story ---------------------
+//
+// Discovery above reads src/**.css and react/src/**.css. A story paints its own
+// stages in a <style> block inside a JS module, which that walk cannot see — and
+// #453 found the hole the hard way: the Accessibility minimums page drew a focus
+// ring inside a stage painted --surface while the gap fell back to the :root --bg,
+// landing at 1.20:1 in dark and 1.11:1 in light under a caption that said the gap
+// was surface-coloured. Every gate on the page was green, because none of them
+// looked here.
+//
+// The contract is the src one minus `covered()`: a story surface does not compose
+// the shared ring (that list is the kit's), but a ring drawn inside one still reads
+// its gap from it, so the gap must follow the background.
+const storyFiles = readdirSync('stories', { recursive: true })
+  .map(String)
+  .filter((file) => file.endsWith('.js') || file.endsWith('.css'))
+  .map((file) => `stories/${file}`)
+  .sort();
+
+const storySheets = storyFiles.flatMap((file) => {
+  const raw = readFileSync(file, 'utf8');
+  const blocks = file.endsWith('.css')
+    ? [raw]
+    : [...raw.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
+  return blocks.map((block) => ({
+    file,
+    raw: block,
+    css: block.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' ')),
+  }));
+});
+
+const storyRules = storySheets.flatMap(({ file, css, raw }) => [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .filter(([, selector]) => !selector.trim().startsWith('@'))
+  .map((m) => ({ file, selector: m[1].trim(), body: m[2], raw: raw.slice(m.index, m.index + m[0].length) })));
+
+const backgroundOf = (body) => /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(body)?.[1].trim();
+const paints = (rule) => {
+  const background = backgroundOf(rule.body);
+  return Boolean(background) && (surface(background) || background.startsWith('color-mix('));
+};
+const storySurfaces = storyRules.filter(paints);
+
+/** The problem lines a set of story surfaces produces. Exported shape so the
+ *  mutation below runs the gate itself rather than a paraphrase of it. */
+const gapProblems = (subjects) => subjects.flatMap((rule) => {
+  const background = backgroundOf(rule.body);
+  const gap = own(rule).get('--ring-gap');
+  if (/\/\* ring-gap: inherit — .+\. \*\//.test(rule.raw)) {
+    return gap === undefined || gap === 'inherit'
+      ? [] : [`${rule.file}: ${rule.selector} claims to inherit but sets a gap`];
+  }
+  return gap === background
+    ? [] : [`${rule.file}: ${rule.selector} paints ${background} and its gap is ${gap}`];
+});
+
+test('a surface a story paints sets a matching gap, so a ring drawn inside it is measurable', () => {
+  assert.ok(storySheets.length >= 50,
+    `only ${storySheets.length} story style blocks found — the walk stopped reading <style> blocks`);
+  // 32 -> 34: #488's two inert tap-zone Don't cells on the Accessibility
+  // minimums page, which paint the surface and now declare its gap. 34 -> 38:
+  // #507's File drop stages — the window, the panel, the progress card a Don't
+  // draws, and the tall box's glyph tile, which inherits.
+  assert.equal(storySurfaces.length, 38,
+    'story surface discovery changed; update the count with the stages that moved');
+  assert.deepEqual(gapProblems(storySurfaces), [],
+    'a story paints a surface whose focus ring would draw its gap in the page colour');
+});
+
+test('the story-surface gate rejects a stage that paints without a gap', () => {
+  const missing = { file: 'fixture', selector: '.fx-stage', body: 'background: var(--surface);', raw: '' };
+  assert.deepEqual(gapProblems([missing]),
+    ['fixture: .fx-stage paints var(--surface) and its gap is undefined']);
+  const wrong = { file: 'fixture', selector: '.fx-stage', body: 'background: var(--surface); --ring-gap: var(--bg);', raw: '' };
+  assert.equal(gapProblems([wrong]).length, 1, 'a gap that disagrees with the background must fail');
+  const right = { file: 'fixture', selector: '.fx-stage', body: 'background: var(--surface); --ring-gap: var(--surface);', raw: '' };
+  assert.deepEqual(gapProblems([right]), []);
+});
+
 test('every ring consumer keeps a real outline for forced colors', () => {
-  assert.equal(consumers.length, 27, 'ring consumer discovery changed');
+  // 27 -> 28: a link inside a table takes the ring on focus instead of the browser's
+  // own outline (#510), and like every other consumer keeps a transparent outline
+  // under forced colors. 28 -> 47 is #482, which gave the ring to the nineteen
+  // controls that had no focus rule at all: the two brand lockups, the deck/text
+  // and version switchers, the theme toggle, the account avatar and its menu rows,
+  // snippet copy, three footer link kinds, the interactive card, both toast
+  // controls, the feedback composer's two, React's row-selection checkbox, the
+  // dropdown panel — a scroll container Chrome makes a keyboard stop, found by
+  // #487's review — and `.vopt`, the version switcher's rows, which the arrow keys
+  // focus and #487's re-review found still taking the browser's outline. 47 -> 48:
+  // a Snippet's card, which now draws the ring for its focused code region because
+  // the `<pre>` has no radius of its own.
+  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }

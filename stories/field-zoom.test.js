@@ -236,13 +236,21 @@ test('the net is written over elements, and names no component', () => {
 });
 
 // One question, one answer. #291 sized the dropdown's search field on that
-// component's own sheet and #294 replaced it with the net; a second coarse block
-// anywhere in the kit is that split coming back.
-test('no other kit stylesheet answers (pointer: coarse)', () => {
+// component's own sheet and #294 replaced it with the net; a second place that
+// SIZES A FIELD for a coarse pointer is that split coming back.
+//
+// The question is field sizing, not the coarse pointer: #488 added
+// src/styles/tap-zone.css, which asks about the same pointer and answers about
+// hit targets instead. So the sweep looks for a `font-size` inside a coarse
+// block rather than for the block, which is the rule this test always meant and
+// is why the other sheet does not trip it.
+test('no other kit stylesheet sizes a field for a coarse pointer', () => {
+  const COARSE = /@media[^{]*pointer\s*:\s*coarse[^{]*\{([\s\S]*?)\n\}/g;
   const elsewhere = STYLE_FILES
     .filter((f) => f !== NET)
-    .filter((f) => /pointer\s*:\s*coarse/.test(decomment(read(f))));
-  assert.deepEqual(elsewhere, [], 'a second touch rule outside the net');
+    .filter((f) => [...decomment(read(f)).matchAll(COARSE)]
+      .some((m) => /font-size\s*:/.test(m[1])));
+  assert.deepEqual(elsewhere, [], 'a second field size outside the net');
 });
 
 // Both published stylesheets carry the net, the way both carry the

@@ -94,8 +94,14 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
  * that installed the package, and it was the one nothing watched. The count is
  * asserted because a loader that stops being found stops being checked, and an
  * empty sweep passes as loudly as a full one. */
-// The React preview now loads the same faces as the vanilla preview.
-const EXPECTED_LOADERS = 13;
+// The React preview now loads the same faces as the vanilla preview. The
+// fourteenth is scripts/evidence/focus.html (#482, the keyboard focus rig): a ring
+// is shot around real type, and in the fallback faces it would be a ring around a
+// different control. It returns to 13 if that rig is ever deleted.
+// The fifteenth is scripts/evidence/levels.html, the #490 producer's shot page.
+// The sixteenth is scripts/evidence/code-chip.html, the #537 shot page for the
+// inline code chip — a rig page, loading the same two families as the others.
+const EXPECTED_LOADERS = 16;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

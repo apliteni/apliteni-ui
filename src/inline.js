@@ -30,6 +30,7 @@ export const styles = {
   base: baseCss,
   reducedMotion: read('styles/reduced-motion.css'),
   fieldZoom: read('styles/field-zoom.css'),
+  tapZone: read('styles/tap-zone.css'),
   motion: read('styles/motion.css'),
   button: read('styles/button.css'),
   card: read('styles/card.css'),
@@ -94,4 +95,7 @@ export const cssText = [
   styles.feedback,
   styles.success,
   styles.loading,
+  // Last in the list for the reason src/index.css imports it last: it opens a
+  // gap a component sheet set, so it is read after every one of them.
+  styles.tapZone,
 ].join('\n');

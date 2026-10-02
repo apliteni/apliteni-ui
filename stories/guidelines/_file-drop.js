@@ -10,10 +10,10 @@ import { icon } from '../../src/assets/icons.js';
 // absolute, so every specimen that shows one holds it inside a frame.
 export const SPEC_CSS = `
   <style>
-    .gf-frame { background: var(--bg); border-radius: var(--radius-md); box-shadow: inset 0 0 0 1px var(--border);
-      padding: var(--space-4); }
-    .gf-panel { background: var(--surface); border-radius: var(--radius-md); box-shadow: inset 0 0 0 1px var(--border);
-      padding: var(--space-4); }
+    .gf-frame { background: var(--bg); --ring-gap: var(--bg); border-radius: var(--radius-md);
+      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4); }
+    .gf-panel { background: var(--surface); --ring-gap: var(--surface); border-radius: var(--radius-md);
+      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4); }
     .gf-panel + .gf-rows, .gf-rows + .gf-panel { margin-top: var(--space-3); }
     .gf-head { font: 600 13px/1.5 var(--font-sans); color: var(--strong); margin-bottom: var(--space-3); }
     .gf-rows__row { display: flex; justify-content: space-between; gap: var(--space-4);
@@ -27,11 +27,11 @@ export const SPEC_CSS = `
     .gf-box { display: flex; flex-direction: column; align-items: center; gap: var(--space-2);
       padding: var(--space-6); border: 1px dashed var(--field-edge); border-radius: var(--radius-md);
       font: 400 13px/1.6 var(--font-sans); color: var(--text); text-align: center; }
-    .gf-box__glyph { display: flex; padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-3); }
+    .gf-box__glyph { display: flex; padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-3); /* ring-gap: inherit — a decorative tile holds no focus target. */ }
     .gf-box__glyph svg { width: 24px; height: 24px; }
     .gf-box .ui-btn { margin-top: var(--space-2); }
-    .gf-card { margin-top: var(--space-3); background: var(--surface); border-radius: var(--radius-md);
-      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4);
+    .gf-card { margin-top: var(--space-3); background: var(--surface); --ring-gap: var(--surface);
+      border-radius: var(--radius-md); box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4);
       font: 400 13px/1.6 var(--font-sans); color: var(--text); }
     .gf-card .ui-drop__bar { flex: none; max-width: none; width: 100%; margin-top: var(--space-2); }
     .gf-repeat { margin: var(--space-2) 0 0; font: 400 13px/1.6 var(--font-sans); color: var(--text); }

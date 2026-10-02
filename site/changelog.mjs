@@ -6,10 +6,96 @@
 
 export const RELEASES = [
   {
-    v: '0.65.0', date: '2026-10-01',
+    v: '0.76.0', date: '2026-10-02',
     changes: [
       ['added', 'React FileDrop is the compact drop: at rest one row with the Upload button and the accepted types beside it, a drop target painted only while a file is over the region it covers, and the file\u2019s name, size and status on that same line with remove and retry. Your application owns the upload and supplies the file it is holding; a file given with no status is uploading, so the kit never reports a success you have not claimed. The line never wraps \u2014 the name and the status word truncate and keep their full text in a title. Closes #507.'],
       ['added', 'Guidelines / File drop sets seven rules for receiving a file: spend one row at rest, paint the target only while a file is over it, keep the file in the row it arrived in, fail in place, offer a button rather than only a drag, state the limits once, and choose between a row, a region and a dialog. Closes #507.'],
+    ],
+  },
+  {
+    v: '0.75.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'An inline `.ui-code` chip now paints whichever reading surface its container is not on, so an identifier keeps its chip inside a card, a panel, a drawer, a toast, a table cell and a callout. It painted `--surface`, which is the card, so in all of those it had no chip at all in either theme. Nothing about it changes on the page, and it takes no border and no hairline. Fixes #537.', ['Typography']],
+      ['added', '`--code-bg` names the reading surface an inline code chip paints. A consumer painting a reading surface of its own hands it the other one; `--table-code-bg` and `--wash-code-bg` are the pairs for a table and for a translucent wash, which need one because they swap sides between the themes. See #537.'],
+    ],
+  },
+  {
+    v: '0.74.0', date: '2026-10-02',
+    changes: [
+      ['changed', 'The status-label guideline no longer asks a status badge for a glyph or a dot: its word and its tone fill are enough. Callouts and toasts keep their glyph. Part of #453.'],
+      ['changed', 'The Accessibility minimums page now draws the focus ring, the disabled pair, the status badge and the measurable ground as do/don\u2019t specimens instead of describing them, and its prose is a line or two per point. Guideline pages are written that way from now on: show the rule, say the least you can, and keep measurements in the specification. Every rule the Text length page states now gives its reason too. Part of #453.'],
+      ['fixed', 'A focus ring drawn inside a Storybook specimen stage reads its gap from that stage instead of the page behind it, so the documented ring is the one the kit paints. Specimen stages are documentation, not shipped CSS; nothing a consumer renders changes. Part of #453.'],
+    ],
+  },
+  {
+    v: '0.73.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'Snippet copy controls and keyboard-focused code use the shared focus ring in vanilla and React, including the reveal variant.'],
+      ['added', 'React Snippet accepts highlighted token children and can omit its copy button with copy={false}. Copying still uses the original code string. The new codeTokens(raw, lang) helper returns the same tokens the vanilla highlighters use, so displayed tokens and copied text come from one source. Part of #429.'],
+      ['added', 'Syntax highlighting covers JSON and TypeScript as well as shell. hlCode(raw, lang) returns the HTML and codeLanguages lists what lang accepts; hlShell is unchanged. Keys, strings and scalars take different token colours, and the snippet stories show one specimen per language.', ['Snippet']],
+      ['changed', 'The Snippet copy button is icon-only. copyLabel is now its accessible name and its tooltip rather than visible text, so pass something that names what is copied — it defaults to \u201cCopy code\u201d. Confirming a copy swaps the glyph inside the same 24px box and announces the word through a live region beside the button, so the bar no longer jumps and the confirmation reaches a screen reader. A vanilla button restored after copying keeps its glyph, which the old restore dropped.', ['Snippet']],
+    ],
+  },
+  {
+    v: '0.72.0', date: '2026-10-02',
+    changes: [
+      ['added', 'Below the phone step a coarse pointer gets a transparent 44px tap zone outside each small control, so a finger reaches the floor and no control is drawn any bigger. `--tap-min` names the floor. Closes #488.', ['Button', 'Segmented', 'Tabs', 'Dropdown', 'Pagination']],
+      ['changed', 'Below the phone step, to a coarse pointer, the kit\u2019s rows of small controls open to `--tap-gap` (20px) so two zones fit between their drawn edges \u2014 the filter row, a table\u2019s row actions, the confirm, drawer, toolbar, empty-state and success action rows, a segmented strip, a pager, a tabs strip and the footer\u2019s social marks. A row that is already full opens downward only, because widening it across would make the controls narrower. The controls keep their drawn size; the space between them grows a few pixels on a phone.', ['Segmented', 'Tabs', 'Pagination', 'Table', 'Toast', 'Confirm', 'Drawer']],
+      ['added', 'A zone grows only where a container has opened the room for it: `--tap-clear-x` and `--tap-clear-y` default to zero, and a container that opens declares what it gives. A row that cannot open \u2014 a chip whose value and remove mark share an edge, a dense table\u2019s rows \u2014 declares its real clearance instead.'],
+      ['added', '`--tap-min` (44px) is the target the zone reaches for and `--tap-aa` (24px) the WCAG 2.5.8 target the kit holds at every width. The two layers the kit already drew are floored at the second, so a clamp can only ever grow them.'],
+      ['added', 'Two Accessibility minimums rules: the tap zone, and the space two neighbouring small controls need before either can reach the floor.'],
+    ],
+  },
+  {
+    v: '0.71.0', date: '2026-10-02',
+    changes: [
+      ['breaking', 'In the light theme a card, the shell\'s rail and every floating surface no longer draw the neutral hairline. Each casts a soft, diffuse drop instead — `--elev-rest`, `--elev-rail` and a widened `--elev-drop`. Dark is unchanged. A consumer whose light-theme screens relied on the card or rail edge sees a different kit. Closes #490.', ['Card', 'Shell', 'Dropdown', 'Drawer', 'Modal', 'Toast']],
+      ['added', 'Four level tokens name which edge each level draws — `--card-edge`, `--rail-edge`, `--float-edge`, `--float-edge-inner` — so a sheet never has to ask which theme it is in. Light resolves all four to `transparent`.'],
+      ['changed', 'A line that divides two regions of one surface stays a line in both themes: a card\'s rows, a table\'s rules, the rail\'s head band, the topbar. Fields keep their edge, and a tinted card keeps its own coloured one.'],
+      ['fixed', 'The signed-out auth card, the success panel and the feedback composer paint the floating step but never took the floating treatment, so they were the only flat surfaces left on it. All three now carry the two-step edge in dark and the drop in light, like every other floating surface.', ['Shell', 'Success', 'Feedback']],
+    ],
+  },
+  {
+    v: '0.70.0', date: '2026-10-02',
+    changes: [
+      ['fixed', "Keyboard focus draws the kit's ring on the controls that showed the browser's own outline instead: both brand lockups, the theme toggle, the deck and version switchers and the version menu's rows, the account avatar and its menu rows, snippet copy, footer links and social marks, the interactive card, a toast's action and close, the feedback composer's buttons, and the React table's row-selection checkbox. The version menu's rows are reached with the arrow keys rather than Tab, which is why they were missed until last. Each one keeps a transparent outline, so forced-colours mode still shows a system ring. If your own CSS sets focus on any of these, check that it still outranks the kit's rule. Resolves #482.", ['Topbar', 'Footer', 'Snippet', 'Callout', 'Card', 'Table', 'Feedback']],
+      ['fixed', 'A dropdown panel that scrolls now draws the ring when it takes keyboard focus. A browser makes a scroll container a focus stop of its own, so the panel showed the browser\u2019s outline \u2014 black in light mode. The focus rule repeats the panel\u2019s edge and drop beside the ring, because a box-shadow list replaces the whole list; a consumer who overrode the panel\u2019s box-shadow should do the same. Other scrolling boxes in the kit still have no ring and are listed on #531.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.69.0', date: '2026-10-02',
+    changes: [
+      ['added', 'React SearchField renders the kit\u2019s search input group for a toolbar: a search glyph, a native search input and an accessible name instead of a visible label, so the row keeps the height of the unlabelled controls beside it. It forwards its ref and the native input props and adds no CSS of its own. There is no clear button, the field the kit already draws. See #517.'],
+      ['changed', 'The Empty states showcase draws its filtered list\u2019s search box with the kit\u2019s standalone search field, the part React\u2019s SearchField renders, so the box has a name and the search glyph. A new showcase toolbar puts search, then filters, then the view switch in one row. See #517.'],
+      ['changed', 'A toolbar\u2019s text field takes the whole line at 560px and below, instead of holding its 6rem basis while narrow controls share the line and cut its placeholder off. Wider rows are unchanged. See #517.'],
+    ],
+  },
+  {
+    v: '0.68.0', date: '2026-10-02',
+    changes: [
+      ['changed', 'A FilterBar chip shows the chosen value by itself instead of printing the field\u2019s name beside it, so a bar of chips reads as the values in force. A chip with nothing chosen shows the field it filters, in placeholder ink, and is named \u201cSector: any\u201d; a chip with a value is named \u201cSector: Technology\u201d. Beside a value the field is no longer drawn: it reaches a reader through that name and the chip\u2019s legend. Keep a filter\u2019s value display text \u2014 it is now the whole visible chip. Vanilla and React. Resolves #535.', ['FilterBar']],
+      ['added', 'filterChipText, filterChipName and filterChipUnset are exported from the entry: the one place that decides what a chip prints, what it is called and whether it counts as unset. Pass a filter; take the line, the name or the state. Part of #535.', ['FilterBar']],
+    ],
+  },
+  {
+    v: '0.67.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A filter bar no longer widens the page on a phone. Each chip’s dropdown panel now takes the width of the chip it drops from instead of a 240px minimum, so it stays inside the row at any viewport; a filter whose options are longer than its chip wraps them over more rows, breaking mid-token when a value has no break opportunity in it, such as a campaign key or a URL. Vanilla and React share the rule. Resolves #467.', ['FilterBar']],
+    ],
+  },
+  {
+    v: '0.66.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A link inside a table cell shows the kit focus ring on keyboard focus instead of the browser’s own outline. A plain cell link is an inline-block box at the kit corner, so a title-cell link that wraps paints one ring rather than one per line, and the struck name of a revoked row still reaches a link inside it, hovered or not. An anchor the kit already styles — a button, an identity, a dropdown row, a nav item or a crumb composed into a cell — keeps its own box and corner. The rules are in the shared stylesheet, so the React `DataTable` takes them with the vanilla table; the React DataTable and Loading stories now carry a cell link that shows it. Resolves #510.', ['Table']],
+    ],
+  },
+  {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React Success, SuccessPanel and SuccessCheck provide the confirmation layouts and the check mark. Page confirmations accept React actions and a cancelable countdown callback; the caller owns navigation. Part of #429.'],
+      ['changed', 'Success confirmations now sit on a plain elevated card. The blurred aurora blobs and the ambient green glow behind them are gone, and with them the `backdrop` option — vanilla callers passing it are unaffected, since the value is now ignored. This is in the shared stylesheet, so it reaches vanilla and React alike.', ['Success']],
+      ['changed', 'Success confirmations carry one title and at most one short line. The `eyebrow` option is gone from `success()` and the `eyebrow` prop from React `Success`; vanilla callers passing it are unaffected, since the key is now ignored, and React `Success` is unreleased. Put the outcome in the title rather than in a label above it. Part of #429.', ['Success']],
+      ['changed', 'The check mark is now an unmodified Lucide path in the success colour, with no filled disc or burst ring behind it. `check: \'line\'` (the default) is the bare check; `check: \'circled\'` is the smaller circled mark, at 20px, which is what Guidelines / Iconography asks a reported state to use. `success()`, `successPanel()` and both React components take `check`; `successCheck()` takes the same choice as its first argument. The circled mark is 20px wherever it is drawn, the inline panel included, while the line mark keeps the size of the layout it lands in.', ['Success']],
     ],
   },
   {

@@ -62,6 +62,7 @@
     transform var(--dur-fast) var(--ease);
 }
 .ui-footer__social:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
+.ui-footer__social:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-footer__social svg { width: 17px; height: 17px; display: block; }
 
 /* Link columns */
@@ -85,6 +86,7 @@
   transition: color var(--dur-fast) var(--ease);
 }
 .ui-footer__links a:hover { color: var(--footer-link-hover); }
+.ui-footer__links a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
 
 /* Legal bar — shared by every variant */
 .ui-footer__bar {
@@ -102,6 +104,7 @@
 .ui-footer__legal-links { display: flex; gap: 22px; flex-wrap: wrap; }
 .ui-footer__legal-links a { color: var(--footer-link); text-decoration: none; transition: color var(--dur-fast) var(--ease); }
 .ui-footer__legal-links a:hover { color: var(--footer-link-hover); }
+.ui-footer__legal-links a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
 .ui-footer__switcher { display: inline-flex; align-items: center; gap: 12px; margin-left: auto; }
 
 /* slim — a single legal row, no divider above it. */

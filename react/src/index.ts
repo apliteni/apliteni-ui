@@ -7,6 +7,7 @@
 // why: docs/specification.md#a-field-is-16px-on-a-touch-screen
 import '../../src/styles/reduced-motion.css';
 import '../../src/styles/field-zoom.css';
+import '../../src/styles/tap-zone.css';
 
 export { Icon } from './primitives/Icon';
 export { Checkbox } from './Checkbox';
@@ -77,6 +78,8 @@ export { Field, TextField, TextArea, SelectField, FileField } from './Field';
 export { FileDrop } from './FileDrop';
 export type { FileDropProps, FileDropFile, FileDropStatus } from './FileDrop';
 export type { FieldProps, FieldControlProps, TextFieldProps, TextAreaProps, SelectFieldProps, FileFieldProps } from './Field';
+export { SearchField } from './SearchField';
+export type { SearchFieldProps } from './SearchField';
 export { Toast, useToast } from './Toast';
 export type { ToastNotice, ToastProps } from './Toast';
 
@@ -90,6 +93,8 @@ export { ThemeToggle, THEME_INIT_SCRIPT } from './ThemeToggle';
 export type { ThemeToggleProps } from './ThemeToggle';
 export { Tooltip } from './Tooltip';
 export type { TooltipProps } from './Tooltip';
+export { Success, SuccessPanel, SuccessCheck } from './Success';
+export type { SuccessProps, SuccessPanelProps, SuccessCheckProps, SuccessCountdown } from './Success';
 
 export { SidebarNav } from './SidebarNav';
 export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';

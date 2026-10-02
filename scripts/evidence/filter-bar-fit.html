@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="/src/index.css">
+<style>html,body{margin:0;padding:0}.pad{padding:16px}</style>
+</head>
+<body>
+<!-- The vanilla side of the #467 measurement: the same three bars the React
+     stories render, through filterBar() and wireDropdown(), so the pair differs
+     in the implementation and in nothing else.
+     why: docs/specification.md#a-filter-row-holds-its-panels -->
+<div class="pad" id="bars"></div>
+<script type="module">
+import { filterBar, initFilterBar } from '/src/components/filter-bar.js';
+
+const filters = [
+  { id: 'region', label: 'Region', value: 'All', items: [{ label: 'All', value: 'All' }, { label: 'Europe', value: 'Europe' }] },
+  // A value with no break opportunity. This is what a filter in an ad-tech kit
+  // actually holds, and a panel is overflow: visible, so without a wrap hint the
+  // label leaves the panel and the page — shut as well as open. The description
+  // carries one too: it inherits the hint from the same rule the label does.
+  //
+  // Second rather than last on purpose: a chip that wraps to the start of its own
+  // row keeps even a 307px label inside a 390px view, which measures the escape
+  // but not the page overflow #467 is about. Starting partway along a row is the
+  // case that reaches both.
+  { id: 'campaign', label: 'Campaign', value: 'All', items: [
+    { label: 'All', value: 'All' },
+    { label: 'utm_campaign_blackfriday_2026_eu_retargeting', value: 'bf26',
+      description: 'utm_source_partner_network_emea_q4_rotation' },
+  ] },
+  { id: 'status', label: 'Status', value: 'Active', items: [{ label: 'All', value: 'All' }, { label: 'Active', value: 'Active' }] },
+];
+
+// One host per case, named the way the React stories are, so the measurement
+// script can report a vanilla case and a React case under the same name.
+for (const [name, options] of [
+  ['controlled', { filters }],
+  ['busy', { filters, busy: true }],
+  ['disabled', { filters, disabled: true }],
+]) {
+  const host = document.createElement('div');
+  host.dataset.case = name;
+  host.innerHTML = filterBar(options);
+  document.getElementById('bars').append(host);
+  initFilterBar(host, options);
+}
+document.documentElement.dataset.ready = 'yes';
+</script>
+</body>
+</html>

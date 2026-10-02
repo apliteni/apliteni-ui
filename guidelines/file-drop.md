@@ -80,7 +80,7 @@
 
 **Rule:** Use a row where the file joins a list on the page, a region when one panel owns the file, and a dialog only when the upload needs answers of its own.
 
-**Why:** A dialog that asks nothing is one more thing to dismiss.
+**Why:** A dialog that asks nothing is one more thing to dismiss. The rule picks between three containers, so a drawing would show one of them and not the choice.
 
 **Do:** Take a statement into the row under the statements it joins, and a replacement logo into the panel that shows it.
 

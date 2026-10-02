@@ -35,8 +35,8 @@ export const SPEC_CSS = `
     .gl-scale { display: flex; flex-direction: column; gap: var(--space-3); }
     .gl-bar { display: flex; align-items: center; gap: var(--space-3); }
     .gl-bar__fill { height: 22px; border-radius: var(--radius-xs); flex: none;
-      background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--border); }
-    .gl-bar__fill--tok { background: var(--glow-purple); box-shadow: inset 0 0 0 1px var(--accent); }
+      background: var(--surface-3); --ring-gap: var(--surface-3); box-shadow: inset 0 0 0 1px var(--border); }
+    .gl-bar__fill--tok { background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ box-shadow: inset 0 0 0 1px var(--accent); }
     .gl-bar__t { font: 500 11px/1 var(--font-mono); color: var(--text); white-space: nowrap; }
   </style>`;
 

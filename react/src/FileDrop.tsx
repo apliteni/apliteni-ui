@@ -122,8 +122,9 @@ export function FileDrop({
         </>}
       {/* Hidden rather than laid over the button: a one-row control has no field
           label to name an overlaid input, and the button keeps the kit's own
-          ring. Cleared after each choice so re-picking the same file reports. */}
-      <input ref={input} type="file" accept={accept} disabled={disabled} hidden
+          ring. Never a keyboard stop, so it takes no focus rule. Cleared after
+          each choice so re-picking the same file reports. */}
+      <input ref={input} type="file" accept={accept} disabled={disabled} hidden tabIndex={-1}
         onChange={event => { take(event.currentTarget.files?.[0]); event.currentTarget.value = ''; }} />
     </div>
     {showTarget && <div className="ui-drop__target" aria-hidden="true">{dropLabel}</div>}

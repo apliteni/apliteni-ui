@@ -1,26 +1,26 @@
-// Success / confirmation surface. One factory, three layouts and three
-// backdrops, an SVG check that draws itself in, optional confetti and an
-// optional auto-redirect countdown. Every motion path is reduced-motion safe.
-// Accent-aware, but the success mark stays on the --green family.
+// Success / confirmation surface. One factory, three layouts, two check marks,
+// optional confetti and an optional auto-redirect countdown, every motion path
+// reduced-motion safe. Accent-aware, but the mark stays on the --green family.
 //
 //   container.innerHTML = success({ title, body, actions: [{ label, variant }] });
 //
-// The check animation is pure CSS, so string-rendered markup animates on its own
-// once mounted. A live countdown is opt-in via wireSuccess(); the markup alone
-// shows the ring sweep and a static number.
+// The check animation is pure CSS, so string-rendered markup animates once
+// mounted. A live countdown is opt-in via wireSuccess().
 import { esc, button } from './index.js';
 
-// Self-drawing check: a faint track disc, a filled accent disc that springs in,
-// the tick that strokes on via dash-offset, and a burst ring that expands and
-// fades. viewBox 0 0 52 52; the tick path length is ~34 (dasharray tuned to it).
-export function successCheck() {
-  // width/height attributes keep the base svg:where(:not([width]):not([height]))
-  // fallback from sizing us; the real size is set per-layout in success.css.
-  return `<svg class="ui-sx__check" width="52" height="52" viewBox="0 0 52 52" aria-hidden="true" focusable="false">
-  <circle class="ui-sx__ring" cx="26" cy="26" r="24"/>
-  <circle class="ui-sx__disc" cx="26" cy="26" r="24"/>
-  <path class="ui-sx__tick" d="M15 27l7.5 7.5L37 18"/>
-</svg>`;
+// 'line' is the bare Lucide `check`, 'circled' is Lucide circle-check-big. Which
+// is the default, and why that departs from Guidelines / Iconography:
+// why: docs/specification.md#success-confirmations
+// Each is written whole because the icon-sizing and glyph-stroke gates find their
+// subjects by scanning source for a class on an `<svg …>`: a tag split across
+// string pieces leaves both silent rather than failing.
+const MARKS = {
+  line: '<svg class="ui-sx__check ui-sx__check--line" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="ui-sx__tick" d="M20 6L9 17l-5-5"/></svg>',
+  circled: '<svg class="ui-sx__check ui-sx__check--circled" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="ui-sx__circle" d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path class="ui-sx__tick" d="M22 4L12 14.01l-3-3"/></svg>',
+};
+
+export function successCheck(variant = 'line') {
+  return Object.hasOwn(MARKS, variant) ? MARKS[variant] : MARKS.line;
 }
 
 // A deterministic confetti field (opt-in). Decorative + aria-hidden; each piece
@@ -60,21 +60,26 @@ function countdownEl({ seconds = 5, label = 'Redirecting' } = {}) {
 // For a confirmation that stays inside the page the user is already on, the kit
 // publishes successPanel() from components/index.js — a check, a title and one
 // line of sub, and nothing to configure. Pick by how much of the screen the
-// confirmation owns. The two share the glowing check, while their layout
-// and content remain independent.
+// confirmation owns. The two share the check, while their layout and content
+// remain independent.
+//
+// Both carry one title and at most one short line under it. There is no eyebrow
+// tier: a confirmation stacking a label, a headline and a paragraph reads as
+// three competing voices for one outcome.
+// why: docs/specification.md#success-confirmations
 export function success({
   layout = 'hero',          // 'hero' | 'split' | 'compact'
   level,                    // heading level of the title; see the note below
-  backdrop = 'aurora',      // 'aurora' | 'glow' | 'flat'
-  eyebrow = '',
+  check = 'line',           // 'line' | 'circled' — see successCheck() above
   title = 'All done',
-  body = '',
+  body = '',                // one short line, or nothing; see the note below
   actions = [],             // [{ label, variant, href, icon, iconRight, size }]
   confetti = false,         // opt-in particle burst (reduced-motion safe)
   countdown = null,         // { seconds, label } | null
   className = '',
 } = {}) {
-  const cls = ['ui-sx', `ui-sx--${layout}`, `ui-sx--bd-${backdrop}`, confetti && 'ui-sx--confetti', className]
+  const mark = check === 'circled' ? 'circled' : 'line';
+  const cls = ['ui-sx', `ui-sx--${layout}`, `ui-sx--check-${mark}`, confetti && 'ui-sx--confetti', className]
     .filter(Boolean).join(' ');
 
   // The title's rank follows the layout, because the layout is the question
@@ -87,16 +92,6 @@ export function success({
   const rank = [1, 2, 3, 4, 5, 6].includes(Number(level)) ? Number(level) : (layout === 'compact' ? 2 : 1);
   const h = `h${rank}`;
 
-  const bd = backdrop === 'aurora'
-    ? `<div class="ui-sx__aurora" aria-hidden="true">
-        <span class="ui-sx__glow ui-sx__glow--a"></span>
-        <span class="ui-sx__glow ui-sx__glow--b"></span>
-      </div>`
-    : backdrop === 'glow'
-      ? `<span class="ui-glow ui-glow--green ui-sx__bg-glow" aria-hidden="true"></span>`
-      : '';
-
-  const eyebrowEl = eyebrow ? `<div class="ui-sx__eyebrow">${esc(eyebrow)}</div>` : '';
   const bodyEl = body ? `<p class="ui-sx__body">${esc(body)}</p>` : '';
   const actionsEl = actions.length
     ? `<div class="ui-sx__actions">${actions.map((a) => button({ size: 'md', ...a })).join('')}</div>`
@@ -104,12 +99,10 @@ export function success({
   const countEl = countdown ? countdownEl(countdown) : '';
 
   return `<div class="${esc(cls)}" role="status" aria-live="polite">
-  ${bd}
   ${confetti ? confettiField() : ''}
   <div class="ui-sx__inner">
-    <div class="ui-sx__visual">${successCheck()}</div>
+    <div class="ui-sx__visual">${successCheck(mark)}</div>
     <div class="ui-sx__content">
-      ${eyebrowEl}
       <${h} class="ui-sx__title">${esc(title)}</${h}>
       ${bodyEl}
       ${actionsEl}
