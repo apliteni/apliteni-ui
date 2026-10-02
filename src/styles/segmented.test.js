@@ -15,7 +15,10 @@ test('pill strips wrap within their container', () => {
   assert.equal(valueOf('.ui-seg', 'flex-wrap'), 'wrap', 'long pill strips must wrap rather than widen the page');
 });
 
-test('underline strips scroll on one row', () => {
-  assert.equal(valueOf('.ui-seg--underline', 'flex-wrap'), 'nowrap', 'underline tabs must override the pill wrap');
-  assert.equal(valueOf('.ui-seg--underline', 'overflow'), 'auto', 'tabs that exceed the row must remain reachable');
+test('underline strips wrap and clip nothing', () => {
+  // Scrolling on one row left `Valuation` cut at 390px with nothing saying it
+  // was there, and the scroll box cut the focus ring's glow. Both declarations
+  // are read, so dropping either one fails here rather than in a screenshot. #527
+  assert.equal(valueOf('.ui-seg--underline', 'flex-wrap'), 'wrap', 'underline tabs must wrap rather than hide the ones past the fold');
+  assert.equal(valueOf('.ui-seg--underline', 'overflow'), 'visible', 'a scroll box would clip the focus ring against the strip padding');
 });
