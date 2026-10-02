@@ -104,6 +104,52 @@ test('Dropdown selection reports the filter id and value after its own close', a
   host.querySelector('[data-filter-remove]').click(); assert.equal(result, undefined);
   bar.destroy(); dom.window.close();
 });
+// Markup only: the wash is drawn by CSS on .is-selected, which jsdom does not paint. What
+// is held here is that the state is in the markup rather than only in the paint —
+// aria-selected names the chosen row, and the check stays in the DOM as the mark a forced
+// palette falls back to. src/styles/filter-bar-mark.test.js holds the CSS side.
+test('the chip menu marks the current value and nothing else', () => {
+  const chips = [
+    { id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology', value: 'technology' }, { label: 'Energy', value: 'energy', selected: true }, { label: 'Technology', value: 'legacy' }] },
+    { id: 'market', label: 'Market', value: 'us', items: [{ label: 'US', value: 'us' }, { label: 'EU', value: 'eu' }] },
+    { id: 'plan', label: 'Plan', value: 'Gone', items: [{ label: 'Free', value: 'free' }] },
+  ];
+  const { dom, host } = setup(filterBar({ filters: chips }));
+  const state = id => [...host.querySelectorAll(`[data-filter-id="${id}"] [data-dd-item]`)]
+    .map(row => `${row.getAttribute('aria-selected')}${row.classList.contains('is-selected') ? '+' : ''}`);
+  assert.deepEqual(state('sector'), ['true+', 'false', 'false'], 'the label match wins, once, over a stale selected');
+  assert.deepEqual(state('market'), ['true+', 'false'], 'a value the consumer echoes back marks its row');
+  assert.deepEqual(state('plan'), ['false'], 'a value no row carries marks nothing');
+  assert.ok(host.querySelector('[data-filter-id="sector"] .is-selected .ui-dropdown__tick'),
+    'the check is gone from the DOM, so a forced palette has nothing to fall back to');
+  dom.window.close();
+});
+// Markup only, as above. These guard the pass-through in filterBarItems(): without it a
+// '---' string spreads character by character into a blank selectable row. A null entry is
+// not covered because dropdown.js reads `it.separator` before testing the entry, so the
+// vanilla menu throws on one whatever filterBarItems does.
+test('the chip menu leaves separators alone while it marks', () => {
+  const chips = [
+    { id: 'sector', label: 'Sector', value: 'Energy',
+      items: [{ label: 'Technology', value: 'technology' }, '---', { label: 'Energy', value: 'energy' }, { separator: true }] },
+  ];
+  const { dom, host } = setup(filterBar({ filters: chips }));
+  const chip = id => host.querySelector(`[data-filter-id="${id}"]`);
+  assert.equal(chip('sector').querySelectorAll('[data-dd-item]').length, 2, 'two rows, and no row made out of a separator');
+  assert.equal(chip('sector').querySelectorAll('.ui-dropdown__sep').length, 2, 'both separator spellings still draw a rule');
+  assert.deepEqual([...chip('sector').querySelectorAll('[data-dd-item]')].map(row => row.getAttribute('aria-selected')),
+    ['false', 'true'], 'the mark still lands on the row past the separator');
+  dom.window.close();
+});
+// The labels differ from the numbers' string form on purpose: with label '2024' the label
+// branch matches first and the value branch decides nothing, so the test proves nothing.
+test('a numeric chip value marks the row carrying that number', () => {
+  const chips = [{ id: 'year', label: 'Year', value: 2024, items: [{ label: 'FY 2023', value: 2023 }, { label: 'FY 2024', value: 2024 }] }];
+  const { dom, host } = setup(filterBar({ filters: chips }));
+  assert.deepEqual([...host.querySelectorAll('[data-filter-id="year"] [data-dd-item]')].map(row => row.getAttribute('aria-selected')),
+    ['false', 'true'], 'the row value is compared as text, so the number 2024 finds its row');
+  dom.window.close();
+});
 test('segmented arrows wrap, skip disabled options and emit once after repeated initialization', () => {
   const { dom, host } = setup(segmented({ options: [{ label: 'A', value: 'a' }, { label: 'B', value: 'b', disabled: true }, { label: 'C', value: 'c' }], appearance: 'underline' }));
   const dispose = initSegmented(host); initSegmented(host); let calls = 0;

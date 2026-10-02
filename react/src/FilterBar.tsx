@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Dropdown, type DropdownEntry } from './Dropdown';
 import { Button } from './primitives/Button';
 import { useIsoLayoutEffect } from './dialog';
-import { filterChipText, filterChipName, filterChipUnset } from '@apliteni/apliteni-ui';
+import { filterBarItems, filterChipText, filterChipName, filterChipUnset } from '@apliteni/apliteni-ui';
 export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean };
 export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; disabled?: boolean; busy?: boolean;
   onRemove: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void };
@@ -34,7 +34,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all 
       <legend className="ui-filter-bar__legend">{filter.label}</legend>
       {/* The chip prints one line; the field's name reaches a reader through the
           trigger's name and the chip's own legend. why: docs/specification.md#dense-financial-tables */}
-      <Dropdown items={filter.items} variant="select" ariaLabel={filterChipName(filter)}
+      <Dropdown items={filterBarItems(filter.items, filter.value)} variant="select" ariaLabel={filterChipName(filter)}
         triggerContent={<span className={filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}>{filterChipText(filter)}</span>}
         open={!blocked && !filter.disabled && (opened[filter.id] && opened[filter.id].against === filter.open ? opened[filter.id].open : !!filter.open)}
         onOpenChange={open => setOpened(previous => ({ ...previous, [filter.id]: { open, against: filter.open } }))}
