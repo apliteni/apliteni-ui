@@ -16,6 +16,11 @@ import axe from 'axe-core';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Chart, type ChartPeriod, type ChartSeries } from './Chart';
+import { placeTip } from './tip';
+// Plain JS outside this workspace's tsconfig, imported for its arithmetic the
+// way react/src/contrast.test.tsx imports it.
+// @ts-expect-error -- untyped JS module, deliberately shared across the gates.
+import { substitute, tokensFor } from '../../stories/lib/contrast.js';
 
 const readRepo = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 
@@ -92,16 +97,51 @@ it('a sparkline drops the axis, the legend and the table, and still names its ra
 
 /* -- the one tab stop ------------------------------------------------------- */
 
-it('is one tab stop, and every focusable part takes the kit ring', () => {
+it('puts one element in the tab order, and it is the frame', async () => {
+  const user = userEvent.setup();
   const { container } = months();
-  const stops = [...container.querySelectorAll('[tabindex], summary, a, button, input')];
-  expect(stops.map(classOf)).toEqual(['ui-chart__frame ui-tip-host ui-focusable', 'ui-focusable']);
-  const base = readRepo('../../src/styles/base.css');
-  const ring = /\.ui-focusable:focus-visible[^{]*\{([^}]*)\}/.exec(base)![1];
-  expect(ring, 'the kit ring, not the browser outline').toMatch(/box-shadow:\s*var\(--ring\)/);
-  expect(ring, 'a real outline survives forced colours').toMatch(/outline:\s*2px solid transparent/);
-  expect(readRepo('../../src/styles/chart.css'), 'the chart declares no outline of its own, so nothing reverts to the browser\'s')
-    .not.toMatch(/outline\s*:/);
+  // Read from the rendered DOM rather than from the stylesheet. A browser makes
+  // an overflowing box keyboard-focusable on its own, and the ring it draws
+  // there is its own, not the kit's — which is what #543's review found on
+  // `.ui-chart__scroll`. Anything the chart leaves in the tab order has to
+  // carry `.ui-focusable`.
+  const tabbable = [...container.querySelectorAll<HTMLElement>('*')]
+    .filter((el) => el.tabIndex >= 0 || el.tagName === 'SUMMARY');
+  expect(tabbable.map(classOf))
+    .toEqual(['ui-chart__frame ui-tip-host ui-focusable', 'ui-focusable']);
+
+  // The scroller says `-1` out loud rather than relying on not being reached:
+  // that attribute is the opt-out a browser's focusable-scroller rule reads.
+  expect(container.querySelector('.ui-chart__scroll')).toHaveAttribute('tabindex', '-1');
+
+  await user.tab();
+  expect(frame()).toHaveFocus();
+  await user.tab();
+  expect(frame(), 'a second Tab leaves the plot instead of landing inside it').not.toHaveFocus();
+  expect(container.querySelector('.ui-chart__scroll')).not.toHaveFocus();
+});
+
+// The paint behind that tab stop, with every token resolved — the raw rule says
+// `var(--ring)`, which proves nothing about what a reader sees. JSDOM matches no
+// `:focus-visible` and substitutes no `var()`, so the values are resolved here
+// the way the contrast gate resolves them, per theme. Whether the browser then
+// paints it is a browser question, answered by the captures on the PR.
+describe.each(['dark', 'light'])('the kit ring resolves [%s]', (theme) => {
+  it('is a real ring over a transparent outline, and the chart adds none of its own', () => {
+    const base = readRepo('../../src/styles/base.css');
+    const tokens = readRepo('../../src/tokens/tokens.css') + readRepo('../../src/tokens/brand.generated.css');
+    const vars = tokensFor(theme);
+    const rule = /\.ui-focusable:focus-visible[^{]*\{([^}]*)\}/.exec(base)![1];
+    const resolved = substitute(rule, vars);
+    expect(tokens, 'the ramp the resolver reads').toContain('--ring:');
+    expect(resolved, 'every token resolved').not.toContain('var(');
+    expect(resolved, 'a real outline survives forced colours').toMatch(/outline:\s*2px solid transparent/);
+    const shadow = /box-shadow:\s*([^;]+)/.exec(resolved)![1];
+    expect(shadow, 'the ring carries real colours, not the browser\'s default').toMatch(/#[0-9a-f]{3,8}|rgba?\(/i);
+    expect(readRepo('../../src/styles/chart.css'),
+      'the chart declares no outline of its own, so nothing reverts to the browser\'s')
+      .not.toMatch(/outline\s*:/);
+  });
 });
 
 it('steps columns with the arrows, Home and End, and announces each one politely', async () => {
@@ -327,4 +367,151 @@ it('draws no bar and tables an em dash where the caller gave no value', () => {
   expect(container.querySelectorAll('rect.ui-chart__bar'), 'two values, two bars').toHaveLength(2);
   const rows = screen.getAllByRole('row').slice(1);
   expect(rows.map((r) => within(r).getAllByRole('cell')[0].textContent)).toEqual(['€10', '€20', '—', '—']);
+});
+
+/* -- what the review of 0ff4c5d found ------------------------------------- */
+
+it('paints the zero line after every bar, so two series meeting on it cannot cover it', () => {
+  const { container } = months();
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const order = [...svg.querySelectorAll('.ui-chart__grid, .ui-chart__zero, .ui-chart__zero-gap, .ui-chart__bar')]
+    .map((el) => (el.classList.contains('ui-chart__zero') ? 'zero'
+      : el.classList.contains('ui-chart__zero-gap') ? 'gap'
+        : el.classList.contains('ui-chart__bar') ? 'bar' : 'grid'));
+  expect(order.filter((k) => k === 'zero'), 'one zero line').toHaveLength(1);
+  expect(order.indexOf('gap') + 1, 'the gap is cut immediately under the line it holds')
+    .toBe(order.indexOf('zero'));
+  expect(order.indexOf('gap'), 'the gap comes after the last bar too')
+    .toBeGreaterThan(order.lastIndexOf('bar'));
+  expect(order.indexOf('zero'), 'the zero line comes after the last bar')
+    .toBeGreaterThan(order.lastIndexOf('bar'));
+  expect(order.lastIndexOf('grid'), 'the other gridlines stay under the bars')
+    .toBeLessThan(order.indexOf('bar'));
+  // The two series do meet exactly on it, which is why the order matters.
+  const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
+  const up = svg.querySelector('rect.ui-chart__bar.ui-chart__tone--good')!;
+  const down = svg.querySelector('rect.ui-chart__bar.ui-chart__tone--bad')!;
+  expect(Number(up.getAttribute('y')) + Number(up.getAttribute('height'))).toBeCloseTo(zeroY, 1);
+  expect(Number(down.getAttribute('y'))).toBeCloseTo(zeroY, 1);
+});
+
+it('a faded bar keeps its own tone at the zero line', () => {
+  const { container } = months();
+  const stops = [...container.querySelectorAll('linearGradient[id$="-up"] stop')];
+  expect(stops.map((s) => s.getAttribute('offset'))).toEqual(['0', '0.8', '1']);
+  expect(stops.map((s) => classOf(s)), 'solid at both ends, palest short of zero')
+    .toEqual(['ui-chart__fade-far', 'ui-chart__fade-near', 'ui-chart__fade-far']);
+  const css = readRepo('../../src/styles/chart.css');
+  const near = /\.ui-chart__fade-near\s*\{([^}]*)\}/.exec(css)![1];
+  expect(Number(/stop-opacity:\s*([\d.]+)/.exec(near)![1]),
+    'the palest point still reads as the series, not as the card').toBeGreaterThanOrEqual(0.5);
+});
+
+it('draws the Estimated key in the tone of the series it describes, not in body ink', () => {
+  const { container } = months();
+  const key = [...container.querySelectorAll('.ui-chart__key')]
+    .find((k) => k.textContent?.startsWith('Estimated'))!;
+  expect(classOf(key), 'the key takes the tone of the unfinished bar it stands for')
+    .toContain('ui-chart__tone--good');
+  const css = readRepo('../../src/styles/chart.css');
+  for (const name of ['key-estimated', 'key-hatch']) {
+    const rule = new RegExp(`\\.ui-chart__${name}\\s*\\{([^}]*)\\}`).exec(css)![1];
+    expect(rule, `${name} strokes the tone`).toContain('stroke: var(--ui-chart-tone)');
+    expect(rule, `${name} draws no maximum-contrast outline`).not.toMatch(/var\(--(text|strong)\)/);
+  }
+});
+
+it('a bridge draws its Estimated key in the tone of the step that is not final', () => {
+  const { container } = render(
+    <Chart variant="bridge" title="Cash" format={eur}
+      steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 },
+        { label: 'Fees', value: -150, estimated: true }, { label: 'Closing', kind: 'total' }]} />,
+  );
+  const key = [...container.querySelectorAll('.ui-chart__key')]
+    .find((k) => k.textContent?.startsWith('Estimated'))!;
+  expect(classOf(key), 'a falling step is the bad tone, not the first key in the legend')
+    .toContain('ui-chart__tone--bad');
+});
+
+it('a cursor left past the end of a shortened series still announces', async () => {
+  const user = userEvent.setup();
+  const { rerender } = render(
+    <Chart title="Fees" periods={periods} series={[{ id: 'f', name: 'Fees', values: INCOME }]} format={eur} />,
+  );
+  await user.tab();
+  await user.keyboard('{End}');
+  expect(screen.getByRole('status')).toHaveTextContent('Apr 2026.');
+  rerender(
+    <Chart title="Fees" periods={periods.slice(0, 2)}
+      series={[{ id: 'f', name: 'Fees', values: INCOME.slice(0, 2) }]} format={eur} />,
+  );
+  await user.keyboard('{ArrowLeft}');
+  expect(screen.getByRole('status'), 'the cursor is clamped rather than left off the end')
+    .toHaveTextContent('Jan 2026.');
+});
+
+it('keeps the readout inside the part it belongs to', () => {
+  // JSDOM has no layout, so the viewport and the three boxes are all given: a
+  // frame whose top edge is the legend's bottom, and a mark just under it.
+  // Nothing between the frame and the body clips, so without the bound the clip
+  // box is the viewport and the readout is free to open over the chart's own
+  // legend and top tick.
+  for (const [prop, value] of [['clientWidth', 1280], ['clientHeight', 800]] as const) {
+    Object.defineProperty(document.documentElement, prop, { value, configurable: true });
+  }
+  const host = document.createElement('div');
+  const mark = document.createElement('div');
+  const tip = document.createElement('span');
+  host.append(mark, tip);
+  document.body.append(host);
+  const box = (top: number, bottom: number) =>
+    ({ top, bottom, left: 100, right: 200, width: 100, height: bottom - top }) as DOMRect;
+  vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(box(120, 400));
+  vi.spyOn(mark, 'getBoundingClientRect').mockReturnValue(box(130, 130));
+  vi.spyOn(tip, 'offsetHeight', 'get').mockReturnValue(60);
+  vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(120);
+
+  placeTip(host, mark, tip);
+  expect(tip.classList.contains('is-below'),
+    'unbounded, the viewport is the only ceiling and the readout opens upward over the legend')
+    .toBe(false);
+
+  placeTip(host, mark, tip, host);
+  expect(tip.classList.contains('is-below'),
+    'bounded by the frame, a mark with no room above flips below instead of leaving it')
+    .toBe(true);
+});
+
+it('hands its own frame to the readout as that bound', () => {
+  // The same case, through the component rather than through placeTip: a mark
+  // with the legend just above it. JSDOM reports every box as zero, so the
+  // frame, the anchor and the readout are given the geometry a browser would.
+  for (const [prop, value] of [['clientWidth', 1280], ['clientHeight', 800]] as const) {
+    Object.defineProperty(document.documentElement, prop, { value, configurable: true });
+  }
+  const { container } = months();
+  const frameEl = container.querySelector<HTMLElement>('.ui-chart__frame')!;
+  const tip = container.querySelector<HTMLElement>('.ui-tip')!;
+  const anchor = container.querySelector('[data-anchor="income-0"]')!;
+  const box = (top: number, bottom: number, left: number, right: number) =>
+    ({ top, bottom, left, right, width: right - left, height: bottom - top }) as DOMRect;
+  vi.spyOn(frameEl, 'getBoundingClientRect').mockReturnValue(box(120, 400, 100, 1200));
+  vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(box(130, 130, 110, 170));
+  vi.spyOn(tip, 'offsetHeight', 'get').mockReturnValue(60);
+  vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(120);
+
+  hover('income-0');
+  expect(tip.classList.contains('is-below'),
+    'the readout flips below rather than opening over the legend above the frame').toBe(true);
+});
+
+it('says under the pointer that a selectable column can be picked', () => {
+  const plain = months().container.querySelector('.ui-chart')!;
+  expect(classOf(plain), 'a chart that picks nothing claims nothing').not.toContain('ui-chart--pick');
+  cleanup();
+  const pick = months({ selectable: true }).container.querySelector('.ui-chart')!;
+  expect(classOf(pick)).toContain('ui-chart--pick');
+  const rule = /\.ui-chart--pick \[data-mark\]\s*\{([^}]*)\}/
+    .exec(readRepo('../../src/styles/chart.css'))![1];
+  expect(rule).toContain('cursor: pointer');
 });

@@ -3128,19 +3128,30 @@ drawable. `format` prints exact values in the readout, the live region and the t
   value, and one comparison — the change on the previous period, or a bridge step's running
   total. It opens above the mark and flips below by the kit's own test, because both components
   place it through one module. It is rendered in the frame rather than in the scroller: a
-  readout inside a horizontal scroller is clipped above the bar it describes. A tap opens it, a
-  tap on the same mark closes it, and Escape dismisses the mark it was pressed on — the readout
-  returns on the next mark, not on that one.
+  readout inside a horizontal scroller is clipped above the bar it describes. The frame is also
+  the bound that test measures against, so a readout never leaves the chart to open over its own
+  legend and top tick. A tap opens it, a tap on the same mark closes it, and Escape dismisses the
+  mark it was pressed on — the readout returns on the next mark, not on that one.
 - **A mark is a series' own band in its column**, full height, so a pointer that falls between
   two bars still has one to answer with; a line's mark is a 24px target on its dot, over the
   band. Every mark is at least 24px in both directions.
+- **The zero line is drawn last**, over every mark, with a wider stroke in the chart's ground
+  under it. In a bars-above / bars-below chart the two series meet exactly on zero, so a line
+  painted first is covered in every column that has a bar, and a hairline laid straight over a
+  saturated fill cannot be read either: the ground stroke cuts a gap through the column and the
+  line is read in it. The other gridlines stay under the marks.
+- **A faded bar keeps its own tone at the zero line.** The ramp travels towards zero and stops
+  short of it, so a faded column still shows where one series ends and the next begins; a ramp
+  that reached zero washed out at the one edge the reader measures from.
 - **One tab stop, and it is the chart.** The frame takes focus and the kit's `--ring`; Left,
   Right, Home and End step columns, Enter picks one when `selectable` is set, and each step is
   announced through a polite `role="status"` region that names the period, every series' value
   and the unfinished state. A column stepped into is scrolled into view. No mark is a tab stop,
   which is the answer [#282](https://github.com/apliteni/apliteni-ui/issues/282) left open for
   the vanilla wiring; `role="slider"` with `aria-valuetext` was rejected because the issue asked
-  for the live region, and a slider carrying both would say everything twice.
+  for the live region, and a slider carrying both would say everything twice. The scroller takes
+  `tabindex="-1"`: a browser makes an overflowing box keyboard-focusable on its own, and the ring
+  it draws there is its own rather than the kit's.
 - **The plot scrolls, the value axis does not.** The axis sits outside the scroller; the plot
   keeps a floor of `--ui-chart-col` per column, so twelve months fit a desktop card and scroll
   on a phone. Whichever side still hides columns is faded, with a mask rather than a painted

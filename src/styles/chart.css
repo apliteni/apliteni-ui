@@ -58,8 +58,8 @@
 .ui-chart__key-swatch { fill: var(--ui-chart-tone); }
 .ui-chart__key-line { fill: none; stroke: var(--ui-chart-tone); stroke-width: 2; stroke-linecap: round; }
 .ui-chart__key-dot { fill: var(--ui-chart-tone); }
-.ui-chart__key-estimated { fill: none; stroke: var(--text); stroke-width: 1; stroke-dasharray: 2 2; }
-.ui-chart__key-hatch { fill: none; stroke: var(--text); stroke-width: 1; }
+.ui-chart__key-estimated { fill: none; stroke: var(--ui-chart-tone); stroke-width: 1; stroke-dasharray: 2 2; }
+.ui-chart__key-hatch { fill: none; stroke: var(--ui-chart-tone); stroke-width: 1; }
 
 /* -- the frame ------------------------------------------------------------- */
 
@@ -122,6 +122,8 @@
 
 .ui-chart__grid { stroke: var(--border); stroke-width: 1; }
 .ui-chart__zero { stroke: var(--border-strong); stroke-width: 1; }
+/* The gap the zero line is read in, cut through whatever a column painted. */
+.ui-chart__zero-gap { stroke: var(--ui-chart-ground); stroke-width: 3; }
 
 .ui-chart__bar {
   /* The pattern or gradient the component names, falling back to the flat tone.
@@ -161,7 +163,11 @@
 .ui-chart--spark .ui-chart__line { stroke-width: 1.6; }
 
 .ui-chart__hatch-line { stroke: var(--ui-chart-tone); stroke-width: 1.5; fill: none; }
-.ui-chart__fade-near { stop-color: var(--ui-chart-tone); stop-opacity: 0.35; }
+/* The fade travels towards the zero line and stops short of it: the bar holds
+   its own tone at the edge the reader measures from, so a faded column still
+   shows where one series ends and the next begins. A ramp that ran all the way
+   to zero washed out exactly there. */
+.ui-chart__fade-near { stop-color: var(--ui-chart-tone); stop-opacity: 0.5; }
 .ui-chart__fade-far { stop-color: var(--ui-chart-tone); stop-opacity: 1; }
 
 /* Where the readout opens: the mark's top edge, so it clears what it describes
@@ -171,6 +177,13 @@
 /* The hit area a pointer lands on. It is the series' own band in the column, so
    a pointer between two bars still has a bar to answer with. */
 .ui-chart__hit { fill: transparent; }
+
+/* A chart whose columns can be picked says so under the pointer. The key
+   compound names the element rather than a class, which is how the kit's
+   clickable-chrome gate reads `.ui-seg button` and `.ui-check input`: the mark
+   is this <g> and cannot be moved onto a <button>, so there is no button
+   chrome to measure. */
+.ui-chart--pick [data-mark] { cursor: pointer; }
 
 /* The tones. A series names one; the token behind it is the kit's, and the same
    in both themes' terms. The neutral one is --muted, which is what

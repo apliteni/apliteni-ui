@@ -5,19 +5,15 @@
 // why: docs/specification.md#the-hover-readout
 
 /**
- * Place `tip` against `mark` inside `host`.
+ * Place `tip` against `mark` inside `host`, above it and centred, flipping below
+ * only when the room above is short and the room below is larger. Room is
+ * measured inside the viewport and inside every ancestor whose overflow clips.
  *
- * Above the mark and centred on it, `--ui-tip-gap` away. It flips below only
- * when the room above is too small and the room below is larger, measured
- * inside the viewport and inside every ancestor whose overflow clips — the host
- * included. It then slides along the mark's edge to stay inside that box, no
- * further than it has to.
- *
- * `host` must be the box the readout is positioned in: the readout is
- * absolutely placed, so the three custom properties below are read in the
- * host's own coordinates and nothing outside it moves.
+ * `host` is the box the readout is positioned in; `bound` narrows that
+ * measurement to one element, for a part that has to keep its readout inside
+ * itself. why: docs/specification.md#the-hover-readout
  */
-export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement): void {
+export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bound?: Element): void {
   const mrect = mark.getBoundingClientRect();
   const rect = host.getBoundingClientRect();
   const view = host.ownerDocument.documentElement;
@@ -30,6 +26,13 @@ export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement): vo
     clip.left = Math.max(clip.left, bounds.left);
     clip.right = Math.min(clip.right, bounds.right);
     clip.bottom = Math.min(clip.bottom, bounds.bottom);
+  }
+  if (bound) {
+    const edge = bound.getBoundingClientRect();
+    clip.top = Math.max(clip.top, edge.top);
+    clip.left = Math.max(clip.left, edge.left);
+    clip.right = Math.min(clip.right, edge.right);
+    clip.bottom = Math.min(clip.bottom, edge.bottom);
   }
   const gap = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap')) || 8;
   const above = mrect.top - clip.top;

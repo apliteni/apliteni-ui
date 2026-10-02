@@ -125,6 +125,17 @@ const PAD = 2;
 /** A pointer target is at least this wide — guidelines/accessibility-floor.md. */
 const TARGET = 24;
 /**
+ * A faded bar's ramp, as offsets down its own box. It travels towards the zero
+ * line and stops short of it, so the bar still holds its tone at the edge the
+ * reader measures from: a ramp that reached zero washed out exactly there, and
+ * two series meeting on the line read as one block.
+ * `up` stands on zero (its box ends there); `down` hangs from it.
+ */
+const FADE_STOPS = {
+  up: [['far', 0], ['near', 0.8], ['far', 1]],
+  down: [['far', 0], ['near', 0.2], ['far', 1]],
+} as const;
+/**
  * The column width used before the plot has been measured: server-rendered, or
  * in a test environment with no layout. `src/styles/chart.css` carries the real
  * floor as `--ui-chart-col`; this only has to be wide enough that geometry
@@ -274,7 +285,7 @@ export function Chart(props: ChartProps) {
 
   const [width, setWidth] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [cursor, setCursor] = useState(0);
+  const [rawCursor, setCursor] = useState(0);
   const [said, setSaid] = useState('');
   const [ownPick, setOwnPick] = useState<number | null>(null);
   const pick = selected === undefined ? ownPick : selected;
@@ -292,6 +303,9 @@ export function Chart(props: ChartProps) {
   /* -- the pixels ---------------------------------------------------------- */
 
   const count = columns.length || 1;
+  // Clamped on read: a caller that shortens the data leaves the cursor past the
+  // end, and `lead()` would then find no mark and announce nothing.
+  const cursor = Math.min(rawCursor, Math.max(columns.length - 1, 0));
   const plotWidth = width || count * FALLBACK_COL;
   const colWidth = plotWidth / count;
   const span = scale.max - scale.min || 1;
@@ -366,7 +380,9 @@ export function Chart(props: ChartProps) {
     // is the caller's string and may carry a quote.
     const anchor = [...svgEl.current.querySelectorAll('[data-anchor]')]
       .find((el) => el.getAttribute('data-anchor') === openId);
-    if (anchor) placeTip(frameEl.current, anchor, tipEl.current);
+    // The frame is both the host and the bound: a readout that left it would
+    // open over the legend and the top tick, which belong to the same part.
+    if (anchor) placeTip(frameEl.current, anchor, tipEl.current, frameEl.current);
   }, [openId, plotWidth, plotHeight]);
 
   useEffect(() => {
@@ -449,6 +465,11 @@ export function Chart(props: ChartProps) {
   const fades = [...new Set(marks.filter((m) => m.faded).map((m) => m.tone))];
   const estimated = columns.filter((c) => c.estimated);
   const firstNote = estimated.find((c) => c.note)?.note;
+  // The key is drawn in the tone of the unfinished mark it stands for, so it
+  // looks like that bar rather than like an outline of its own: the income bar
+  // in a months chart, the step that is not invoiced yet in a bridge.
+  const estimatedTone = marks.find((m) => m.estimated && m.kind === 'bar')?.tone
+    ?? keys[0]?.tone ?? 'neutral';
   const hitBand = (band: Band) => (band === 'up'
     ? { y: PAD, h: Math.max(zero - PAD, TARGET) }
     : band === 'down'
@@ -457,7 +478,7 @@ export function Chart(props: ChartProps) {
 
   return (
     <div
-      className={cx('ui-chart', `ui-chart--${variant}`, className)}
+      className={cx('ui-chart', `ui-chart--${variant}`, selectable && 'ui-chart--pick', className)}
       style={{ '--ui-chart-h': `${plotHeight}px`, '--ui-chart-pad': `${PAD}px` } as CSSProperties}
     >
       {!spark && keys.length > 0 && (
@@ -481,7 +502,7 @@ export function Chart(props: ChartProps) {
             </li>
           ))}
           {estimated.length > 0 && (
-            <li className="ui-chart__key">
+            <li className={cx('ui-chart__key', `ui-chart__tone--${estimatedTone}`)}>
               <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
                 <rect className="ui-chart__key-estimated" x="1" y="1" width="10" height="10" rx="1" />
                 <path className="ui-chart__key-hatch" d="M1 7 L7 1 M5 11 L11 5" />
@@ -500,8 +521,16 @@ export function Chart(props: ChartProps) {
         role="group"
         aria-label={`${title}. Arrow keys step through the ${columns.length} columns.`}
         onKeyDown={onKeyDown}
-        onFocus={() => { show(lead(cursor)?.id); announce(cursor); }}
-        onBlur={() => { setOpenId(null); setSaid(''); }}
+        onFocus={(event) => {
+          if (event.target !== event.currentTarget) return;
+          show(lead(cursor)?.id);
+          announce(cursor);
+        }}
+        onBlur={(event) => {
+          if (event.target !== event.currentTarget) return;
+          setOpenId(null);
+          setSaid('');
+        }}
       >
         {!spark && scale.ticks.length > 0 && (
           <div className="ui-chart__axis" aria-hidden="true">
@@ -511,7 +540,12 @@ export function Chart(props: ChartProps) {
           </div>
         )}
 
-        <div ref={scroller} className="ui-chart__scroll" onScroll={syncEdges}>
+        {/* Chrome makes an overflowing box keyboard-focusable on its own, and the
+            ring it draws there is the browser's, not the kit's. The frame is the
+            chart's one tab stop and its arrows scroll this box, so the box is
+            taken out of the tab order rather than given a second name.
+            why: docs/specification.md#react-charts */}
+        <div ref={scroller} className="ui-chart__scroll" tabIndex={-1} onScroll={syncEdges}>
           <div ref={plot} className="ui-chart__plot" style={{ '--ui-chart-cols': count } as CSSProperties}>
             <svg
               ref={svgEl}
@@ -561,15 +595,16 @@ export function Chart(props: ChartProps) {
                     key={`${tone}-${way}`} id={`${uid}-fade-${tone}-${way}`}
                     className={`ui-chart__tone--${tone}`} x1="0" y1="0" x2="0" y2="1"
                   >
-                    <stop className={way === 'up' ? 'ui-chart__fade-far' : 'ui-chart__fade-near'} offset="0" />
-                    <stop className={way === 'up' ? 'ui-chart__fade-near' : 'ui-chart__fade-far'} offset="1" />
+                    {FADE_STOPS[way].map(([part, offset]) => (
+                      <stop key={offset} className={`ui-chart__fade-${part}`} offset={offset} />
+                    ))}
                   </linearGradient>
                 )))}
               </defs>
 
-              {!spark && scale.ticks.map((tick) => (
+              {!spark && scale.ticks.filter((tick) => tick !== 0).map((tick) => (
                 <line
-                  key={tick} className={tick === 0 ? 'ui-chart__zero' : 'ui-chart__grid'}
+                  key={tick} className="ui-chart__grid"
                   x1="0" x2={px(plotWidth)} y1={px(y(tick))} y2={px(y(tick))}
                 />
               ))}
@@ -604,6 +639,26 @@ export function Chart(props: ChartProps) {
                   cx={px(mark.x + mark.w / 2)} cy={px(mark.y + mark.h / 2)} r={spark ? 2.5 : 3.5}
                 />
               ))}
+
+              {/* The zero line, after every mark. Two series meet exactly on it, so
+                  one painted first is covered in every column that has a bar; and a
+                  hairline laid straight over a saturated fill cannot be read either.
+                  It is drawn twice: a wider stroke in the chart's ground, which cuts
+                  a gap through whatever the column painted, and the line itself in
+                  that gap. Over the card the gap is invisible and only the line
+                  shows. why: docs/specification.md#react-charts */}
+              {!spark && scale.ticks.includes(0) && (
+                <g>
+                  <line
+                    className="ui-chart__zero-gap" x1="0" x2={px(plotWidth)}
+                    y1={px(y(0))} y2={px(y(0))}
+                  />
+                  <line
+                    className="ui-chart__zero" x1="0" x2={px(plotWidth)}
+                    y1={px(y(0))} y2={px(y(0))}
+                  />
+                </g>
+              )}
 
               {/* The hit areas last, so a dot's circle wins over the band under it.
                   A bar's is its own band in the column, full height, so a pointer
