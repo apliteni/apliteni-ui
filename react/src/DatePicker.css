@@ -74,10 +74,14 @@
   border: 1px solid transparent;
   border-radius: var(--radius-xs);
   cursor: pointer;
+  /* `outline-color` is deliberately NOT here. The focus rule resets the outline
+     to transparent, so transitioning its colour animated from the resting
+     `currentColor` and painted an opaque 2px band in the body ink over the
+     ring's gap on every keyboard focus. No other kit sheet transitions it.
+     why: docs/specification.md#the-focus-ring */
   transition:
     background var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease),
-    outline-color var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease);
 }
 .ui-datepicker__grid.is-days .ui-datepicker__opt { min-width: 30px; }
@@ -114,7 +118,11 @@
   border-color: var(--accent-strong);
   color: var(--accent-contrast);
 }
+/* No edge over the fill: a dropdown row's selection is a tick and needs the
+   hover edge, while the pick here is already a filled chip and a hairline on
+   top of it is a second signal. why: guidelines/density-and-accents.md */
 .ui-datepicker__opt.is-selected:hover {
+  outline-color: transparent;
   background: var(--accent-strong);
   color: var(--accent-contrast);
 }
@@ -130,7 +138,12 @@
   color: var(--disabled-ink-bare);
   cursor: not-allowed;
 }
+/* Every property the hover rule sets, undone — the edge included. A cell that
+   refuses the press must not draw the kit's pressable row edge; the kit's own
+   answer for a dead row is `pointer-events: none`, which this one cannot take
+   because it stays focusable. */
 .ui-datepicker__opt.is-disabled:hover {
+  outline-color: transparent;
   background: transparent;
   border-color: transparent;
   /* muted-ink: state — the same blocked period, holding its ink under the pointer */
@@ -145,7 +158,7 @@
    So a blocked cell goes bare whatever else it is, and a blocked pick keeps its
    place as weight, the device `is-today` uses, which spends no second colour.
    Both combinations are written here rather than left to the component, so the
-   sheet is right on its own; `isInside()` withholds the second one as well.
+   sheet is right on its own; `showsSpan()` withholds the second one as well.
    why: guidelines/accessibility-floor.md */
 .ui-datepicker__opt.is-disabled.is-selected,
 .ui-datepicker__opt.is-disabled.is-selected:hover,
@@ -227,7 +240,10 @@
   grid-auto-columns: max-content;
   overflow-x: auto;
   scroll-padding-inline: var(--space-1);
-  padding: var(--space-1) var(--space-1) var(--space-3);
+  /* Block padding is the tap layer's room as well as the ring's: the row
+     scrolls, so anything reaching past the chip is clipped rather than hit.
+     why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step */
+  padding: var(--space-3) var(--space-1);
   border-inline-end: 0;
   border-block-end: 1px solid var(--border);
 }
