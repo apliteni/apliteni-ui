@@ -84,7 +84,7 @@ ask for one) ships as one factory, so every product renders the same shell
 instead of re-building it:
 
 ```js
-import { appShell, card, switchToggle, wireTopbar, wireShell } from '@apliteni/apliteni-ui';
+import { appShell, card, switchToggle, wireShell } from '@apliteni/apliteni-ui';
 
 el.innerHTML = appShell({
   word: 'Strategy',                              // the product word in the rail's head
@@ -100,7 +100,7 @@ el.innerHTML = appShell({
 wireShell(el);                                   // the toggle that folds the rail, the reader's menu, the nav's groups
 
 // Want the product topbar above it? pass a `topbar` bag — its own word, the
-// version switcher and the Deck/Text pair — and call wireTopbar(el) as well.
+// version switcher and the Deck/Text pair — then import wireTopbar and call it on el too.
 // A page that will never call wireShell()? pass `collapsible: false` and no toggle is drawn
 ```
 

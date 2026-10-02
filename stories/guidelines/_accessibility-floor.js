@@ -102,9 +102,8 @@ export const TARGET_EXEMPT = [
       + 'half a pixel short: an inline-flex lockup is as tall as the display face it sets the '
       + 'word in and carries no padding of its own. Reported rather than hidden. Reaching the '
       + 'floor means changing the lockup’s box in the topbar, the footer and the auth card at '
-      + 'once, which is its own decision rather than this page’s. Until #509 this entry read '
-      + '"not a kit control", naming a story that built its own topbar; the walk measures the '
-      + 'kit’s lockup and always did.',
+      + 'once, which is its own decision rather than this page’s. It is not story chrome: the '
+      + 'walk reads the kit’s own lockup wherever a story renders one.',
   },
 ];
 

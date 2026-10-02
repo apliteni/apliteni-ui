@@ -40,33 +40,32 @@ export const Pieces = {
   </div>`,
 };
 
-// The topbar over a shell, which is the only place its composition is visible:
-// a sticky .topbar, the rail offset beneath it by --ui-app-top, and the account
-// menu agreeing with the rail about one nav. The pieces above are drawn on their
-// own; what this adds is how they stack. appShell() draws no topbar unless it is
-// handed one, so this is the story that draws it.
-//
-// A plain product page on purpose — the account area itself belongs in a modal
-// now (Guidelines / Account and settings), so this draws an ordinary screen. The
-// rule the account menu in this band follows is cited on it, so a reader of the
-// band finds it; stories/guidelines/overview.test.js holds the id in step. `./`
-// resolves against /iframe.html, so this is the manager URL in a static build
-// too. `ui-focusable` is the kit's ring opt-in: the base sheet paints it on
-// control classes, and a bare anchor is not one, so without it this link answers
-// Tab in browser black.
-// The band's own versions, short where the specimens above carry the long
-// release names: a product word, a Deck/Text pair, a switcher, a toggle and an
-// avatar have to share one row down to 320px, and the switcher is the piece that
-// gives. The retired /account preset's screen carried `v3` / `v2` for the same
-// reason.
+// Short where the specimens above carry the long release names: a product word,
+// a Deck/Text pair, a switcher, a toggle and an avatar share one row down to
+// 320px, and the switcher is the piece that gives. The retired /account preset's
+// screen carried `v3` / `v2` for the same reason. The band still wants more width
+// than a 320px page has — that is #558, not the label's doing.
 const SHELL_VERSIONS = [
   { label: 'v3', meta: 'August 2026', badge: 'live' },
   { label: 'v2', meta: 'March 2026', badge: 'archive' },
 ];
 
+// The rule the account menu in this band follows, cited on the screen so a reader
+// of the band finds it; stories/guidelines/overview.test.js holds the id in step.
+// `./` resolves against /iframe.html, so this is the manager URL in a static build
+// too. `ui-focusable` is the kit's ring opt-in: the base sheet paints it on control
+// classes, and a bare anchor is not one, so without it this link answers Tab in
+// browser black.
 const GUIDELINE = './?path=/story/guidelines-account-and-settings--account-and-settings';
 const cite = `<a class="ui-focusable" href="${GUIDELINE}" target="_top">Guidelines / Account and settings</a>`;
 
+// The topbar over a shell, which is the only place its composition is visible: a
+// sticky .topbar, the rail offset beneath it by --ui-app-top, and the account menu
+// agreeing with the rail about one nav. The pieces above are drawn on their own;
+// what this adds is how they stack.
+//
+// A plain product page on purpose — the account area itself belongs in a modal now
+// (Guidelines / Account and settings), so this draws an ordinary screen.
 export const InShell = {
   name: 'In the shell',
   render: () => appShell({
