@@ -37,6 +37,8 @@ const EXCEPTIONS = [
 // Three rows, not a ledger. Each reference opens its own row in the report, and
 // the block ends in the one link that opens the whole of it. The figures above
 // summarise the same report, so a second link there would be a duplicate.
+// Every reference here is a row of the Finance report; the agreement is held by
+// stories/dashboard-report-refs.test.js, not by this comment.
 // why: guidelines/dashboards-and-reports.md
 const attention = () => card({
   title: 'Needs a decision',

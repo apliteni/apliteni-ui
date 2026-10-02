@@ -10,8 +10,9 @@ import { sparkline } from '../lib/sparkline.js';
 import { CHART_CSS, bars } from '../_chart.js';
 
 // One made-up portal supplies every specimen, and the Finance report showcase
-// prints the same payouts with the same fees and nets. The halves of a pair
-// differ in one decision.
+// prints the same payouts with the same fees and nets —
+// stories/dashboard-report-refs.test.js holds the two in step. The halves of a
+// pair differ in one decision.
 export const SPEC_CSS = `${CHART_CSS}
   <style>
     .gd-stage { background: var(--bg); --ring-gap: var(--bg); border-radius: var(--radius-lg);
@@ -20,7 +21,11 @@ export const SPEC_CSS = `${CHART_CSS}
       color: var(--text); max-width: var(--prose-dense); }
     /* The chart is a picture above a table, not the table's own head band: the
        scale's gap is what keeps the bar baselines off the header's cap height. */
+    /* The dense table under it hangs out of the card by --space-3 so its columns
+       start on the card's text edge; the chart takes the same bleed, so chart and
+       table are one box rather than two of different widths. */
     .gd-chart { display: flex; flex-direction: column; gap: var(--space-2);
+      width: calc(100% + 2 * var(--space-3)); margin-inline: calc(-1 * var(--space-3));
       margin-bottom: var(--space-4); }
     .gd-chart__months { display: flex; font: var(--weight-normal) var(--text-xs)/1 var(--font-sans);
       color: var(--text); }
@@ -132,11 +137,11 @@ export const RULES = withSpecimens(content.rules, [
   { id: 'fast-glance' },
   {
     id: 'figures-and-exceptions',
-    doHtml: () => stage(`${cashflow('gd-glance-do')}${attention({ onward: false })}`),
+    doHtml: () => stage(`${cashflow('gd-glance-do')}${attention()}`),
     dontHtml: () => stage(card({
       title: 'Payouts',
-      body: `${ledgerTable()}<p class="gd-note">Fees rose with volume this quarter, and the two
-        unmatched transfers from May are still with the bank.</p>`,
+      body: `${ledgerTable()}<p class="gd-note">Fees rose with volume this quarter, and the one
+        unmatched transfer from June is still with the bank.</p>`,
     })),
   },
   {
@@ -146,14 +151,14 @@ export const RULES = withSpecimens(content.rules, [
   },
   {
     id: 'report-depth',
-    doHtml: () => stage(card({ title: 'Payouts', sub: 'Every payout settled this year.', body: ledgerTable() })),
+    doHtml: () => stage(card({ title: 'Payouts', sub: 'Every payout this year.', body: ledgerTable() })),
     dontHtml: () => stage(statBand({
       id: 'gd-depth-dont',
       basis: 'The year so far',
       stats: [
-        { label: 'Payouts paid', value: '214' },
+        { label: 'Payouts', value: '214' },
         { label: 'Fees', value: '68,412 €' },
-        { label: 'Net settled', value: '3,118,904 €' },
+        { label: 'Net', value: '3,118,904 €' },
       ],
     })),
   },
