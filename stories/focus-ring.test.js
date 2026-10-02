@@ -56,6 +56,7 @@ import {
 } from './lib/focus-walk.js';
 import { topbar, footer, CHROME_CSS } from '../site/chrome.mjs';
 import { catalogueCopy } from '../site/catalogue.mjs';
+import { sloganCopy } from '../site/slogans.mjs';
 import { iconNames } from '../src/assets/icons.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -99,10 +100,13 @@ assert.ok(kitRules.length >= 30, `only ${kitRules.length} focus rules found in t
  *  injected into site/index.html, then the catalogue counts resolved. A renamed
  *  placeholder fails here rather than walking a page with no topbar in it. */
 function landingHtml() {
-  let html = catalogueCopy(read('site/index.html'), {
+  // sloganCopy as well as catalogueCopy: site/build.mjs fills both, and the
+  // hero's {{SLOGAN_CSS}} would otherwise sit raw inside the page's <style>,
+  // where it takes the rules around it out of this walk.
+  let html = sloganCopy(catalogueCopy(read('site/index.html'), {
     icons: iconNames,
     buttonSource: read('react/src/primitives/Button.tsx'),
-  });
+  }));
   for (const [marker, value] of [
     ['{{TOPBAR}}', topbar('')],
     ['{{FOOTER}}', footer()],
@@ -316,12 +320,17 @@ test('focus walk: the cascade resolver accounts for every stop it walks', () => 
       buckets.exempt += 1;
     }
   }
-  assert.equal(buckets.self, 157, 'the number of stops whose own cascade was resolved moved');
+  // 157 until #463 rebuilt the landing page: its bento took seven stops away
+  // (the Deck strip, Revoke, Skip, Primary action, Cancel, the hover specimen
+  // and the Role select) and the settings card brought eight, so the page went
+  // 35 to 36 and nothing else moved. Every one of those 36 resolves the kit
+  // ring on its own cascade.
+  assert.equal(buckets.self, 158, 'the number of stops whose own cascade was resolved moved');
   assert.deepEqual([...new Set(buckets.delegated)], [
     '.ui-switch input:focus-visible + .ui-switch__track',
   ], 'a ring painted on another box is not cascade-resolved — add it here with its reason');
-  assert.equal(buckets.delegated.length, 6, 'two switch inputs on the landing page, and two '
-    + 'more on each of the account presets');
+  assert.equal(buckets.delegated.length, 5, 'one switch input on the landing page since #463 '
+    + 'replaced its bento with a settings card, and two more on each of the account presets');
   assert.equal(buckets.exempt, 8, 'the two topbar-layout shell screens hold one palette input '
     + 'and three palette rows each');
 });
