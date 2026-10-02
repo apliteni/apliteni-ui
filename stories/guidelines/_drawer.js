@@ -5,6 +5,7 @@ export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { button, card, checkbox, switchToggle } from '../../src/components/index.js';
 import { drawer, drawerSection } from '../../src/components/drawer.js';
+import { backLink } from '../../src/components/back.js';
 
 // A drawer is position: fixed, so each specimen is held inside a frame of its
 // own. The panel is narrowed so a strip of scrim shows beside it: a drawer with
@@ -22,10 +23,14 @@ export const SPEC_CSS = `
        both halves start at one screen and the page half grows past it at 390. */
     .gd-page { height: auto; min-height: 460px; overflow: visible;
       padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
-    /* A page title scaled to the specimen. The kit's own is a rank louder and would
-       read as this document's heading. */
-    .gd-page__title { margin: 0; color: var(--strong);
-      font-size: var(--text-xl); font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight); }
+    /* The order the page guideline asks a page to open in: the way back, the title,
+       then a short introduction. */
+    .gd-page__head { display: flex; flex-direction: column; gap: var(--space-2); }
+    /* The drawer title's own rank and face, so the pair differs by container alone and
+       no specimen outranks the rule headings on this page. */
+    .gd-page__title { margin: 0; color: var(--strong); font-family: var(--font-sans);
+      font-size: calc(var(--text-base) + 0.5px); font-weight: 600; letter-spacing: 0.01em; }
+    .gd-page__intro { margin: 0; color: var(--text); font-size: var(--text-sm); max-width: var(--prose-dense); }
     .gd-page__cols { display: grid; gap: var(--space-6); align-items: start;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
     /* The group heading the drawer draws, in the same ink and rank. */
@@ -70,7 +75,11 @@ const unitRows = () => UNITS.map(([label, on]) => [label, { html: switchToggle({
 const group = (title, body) => `<section><h3 class="gd-group__title">${title}</h3>${body}</section>`;
 
 const pageDo = () => `<div class="gd-frame gd-page">
-  <h2 class="gd-page__title">Member access</h2>
+  <div class="gd-page__head">
+    ${backLink({ href: '#', label: 'Members' })}
+    <h2 class="gd-page__title">Member access</h2>
+    <p class="gd-page__intro">Roles apply to every unit, and per-unit access narrows them.</p>
+  </div>
   <div class="gd-page__cols">
     ${group('Roles', roles())}
     ${group('Access per unit', unitBoard())}
