@@ -100,25 +100,35 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
       return renderLink ? renderLink(section, linkProps) : <a {...linkProps} />;
     }} />;
   const foldLabel = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  // One destination is not a choice, at any width. A list of it can only point at
+  // the page already on screen, and it marks that row current on every page it
+  // reaches — the shell's one accent signal spent on a control that goes nowhere.
+  // So the shell draws no section navigation at all, and no fold: the fold exists
+  // to close the list, and there is none to close.
+  const navigable = sections.length > 1;
   const visible = sections.length > 4 ? sections.slice(0, 3) : sections;
   const remaining = sections.slice(visible.length);
   const initials = account.name.trim().split(/\s+/).map((part) => part[0]).slice(0, 2).join('');
+  // Written once and placed twice: with no list to head, the rail is a column of
+  // brand, so the lockup moves to the band the page already has.
+  const lockup = <a className="ui-app__brand" href={brandHref} aria-label={word}>
+    {brand ?? <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(uid, 24) }} />}
+    <span>{word}</span>
+  </a>;
 
   return <div className={`ui-app ui-app--topbar ui-react-app${collapsed ? ' is-collapsed' : ''}`}>
-    <div className="ui-app__rail">
-      <div className="ui-app__head"><a className="ui-app__brand" href={brandHref} aria-label={word}>
-        {brand ?? <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(uid, 24) }} />}
-        <span>{word}</span>
-      </a></div>
+    {navigable && <div className="ui-app__rail">
+      <div className="ui-app__head">{lockup}</div>
       {sidebar(sections, 'Sections')}
       <div className="ui-app__foot"><div className="ui-app__fold-row">
         <button type="button" className="ui-nav__item ui-app__fold" aria-expanded={!collapsed} aria-label={foldLabel} onClick={fold}>
           <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /><path className="ui-app__fold-arrow" d="m16 15-3-3 3-3" /></svg></span><span className="ui-nav__label">{foldLabel}</span>
         </button>
       </div></div>
-    </div>
+    </div>}
     <div className="ui-app__well">
       <header className="ui-app__bar">
+        {!navigable && lockup}
         <button type="button" className="ui-app__search" aria-haspopup="dialog" onClick={() => setSearch(true)}>
           <span className="ui-app__search-ic"><Icon name="search" /></span>
           <span className="ui-app__search-txt">Search or run a command…</span><kbd className="ui-cmdk__key">{paletteHotkey()}</kbd>
@@ -141,10 +151,11 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
         <div className="ui-app__body">{children}</div>
       </main>
     </div>
-    <nav className="ui-nav ui-react-app__bottom" aria-label="Sections on mobile"><ul className="ui-nav__list">
+    {/* The same rule on the phone, where the bar would also keep 96px for that row. */}
+    {navigable && <nav className="ui-nav ui-react-app__bottom" aria-label="Sections on mobile"><ul className="ui-nav__list">
       {links(visible)}{remaining.length > 0 && <li><button type="button" className={`ui-nav__item${active && remaining.includes(active) ? ' is-active' : ''}`}
         aria-haspopup="dialog" aria-expanded={more} onClick={() => setMore(true)}><span className="ui-nav__ic"><Icon name="moreHorizontal" /></span><span className="ui-nav__label">More</span></button></li>}
-    </ul></nav>
+    </ul></nav>}
     <Drawer open={more} onClose={() => setMore(false)} title="More sections" side="bottom">
       {sidebar(remaining, 'More sections')}
     </Drawer>

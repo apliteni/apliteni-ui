@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { readFileSync } from 'node:fs';
@@ -523,41 +523,34 @@ it('disables the chevron transition under reduced motion', () => {
 });
 
 // JSDOM supplies no layout; browser captures check real widths and pinned cells.
-it('offers column navigation only for overflow and disables each reached edge', async () => {
-  const user = userEvent.setup();
-  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
-    pinnedIdentity scrollLabel="Ledger" />);
-  const region = screen.getByRole('region', { name: 'Ledger' });
-  expect(screen.queryByRole('button', { name: 'More columns' })).toBeNull();
-  Object.defineProperties(region, {
-    clientWidth: { configurable: true, value: 300 },
-    scrollWidth: { configurable: true, value: 450 },
-    scrollBy: { value: ({ left }: { left: number }) => {
-      region.scrollLeft += left;
-      fireEvent.scroll(region);
-    } },
-  });
-  fireEvent.scroll(region);
-  const previous = screen.getByRole('button', { name: 'Previous columns' });
-  const more = screen.getByRole('button', { name: 'More columns' });
-  expect(previous).toBeDisabled();
-  expect(more).toBeEnabled();
-  expect(more).toHaveAttribute('aria-controls', region.id);
-  // Glyphs must be flex siblings of the label slot, never inline in its text.
-  for (const button of [previous, more]) {
-    expect(button.querySelector('.ui-btn__label svg')).toBeNull();
-    expect(button.querySelector(':scope > span[aria-hidden="true"] > svg')).not.toBeNull();
+// Columns past the region's edge are carried by the region's own name. The kit
+// offers no second control that scrolls it: the region is named, focusable and
+// takes arrow keys, and a button pair beside it was that same scroll, twice.
+it('names hidden columns on the scroll region and renders no column pager', () => {
+  const resized: (() => void)[] = [];
+  class Observer {
+    constructor(private readonly ran: () => void) { resized.push(() => this.ran()); }
+    observe() {}
+    disconnect() {}
   }
-  expect(previous.firstElementChild).toHaveAttribute('aria-hidden', 'true');
-  expect(more.lastElementChild).toHaveAttribute('aria-hidden', 'true');
-  await user.click(more);
-  expect(region.scrollLeft).toBe(150);
-  expect(more).toBeDisabled();
-  expect(previous).toBeEnabled();
-  await user.click(previous);
-  expect(region.scrollLeft).toBe(0);
-  expect(previous).toBeDisabled();
-  Object.defineProperty(region, 'clientWidth', { value: 450 });
-  fireEvent.scroll(region);
-  expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
+  vi.stubGlobal('ResizeObserver', Observer);
+  try {
+    render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+      pinnedIdentity scrollLabel="Ledger" />);
+    const region = screen.getByRole('region', { name: 'Ledger' });
+    Object.defineProperties(region, {
+      clientWidth: { configurable: true, value: 300 },
+      scrollWidth: { configurable: true, value: 450 },
+    });
+    act(() => { for (const fire of resized) fire(); });
+    expect(screen.getByRole('region', { name: 'Ledger, scroll for more columns' })).toBe(region);
+    for (const name of ['Previous columns', 'More columns']) {
+      expect(screen.queryByRole('button', { name })).toBeNull();
+    }
+    expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
+    // A table that fits claims no scroll.
+    Object.defineProperty(region, 'clientWidth', { configurable: true, value: 450 });
+    act(() => { for (const fire of resized) fire(); });
+    expect(screen.getByRole('region', { name: 'Ledger' })).toBe(region);
+  } finally { vi.unstubAllGlobals(); }
 });

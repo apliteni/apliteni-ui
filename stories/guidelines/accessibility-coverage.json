@@ -439,6 +439,14 @@
       ]
     },
     {
+      "file": "react/src/DiffPreview.test.tsx",
+      "name": "React: batch changes",
+      "does": "Checks the focused Apply-to-Undo transition, the column header and shared basis behind each signed amount, the booked-month figures and their untoned changes, the block title outside its card, and that the columns scroll in the kit region with no pager beside it and no bottom bar for one section.",
+      "blind": [
+        "Actual table overflow and animation timing require browser measurements; these tests use JSDOM."
+      ]
+    },
+    {
       "file": "react/src/Finance.test.tsx",
       "name": "React: Finance",
       "does": "Checks the mounted finance stories and their table states.",

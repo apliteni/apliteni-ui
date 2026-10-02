@@ -2,13 +2,26 @@
 .ui-react-app__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-5); }
 .ui-react-app .ui-app__brand .ui-react-app__mark { display: inline-flex; opacity: 1; }
 .ui-react-app__bottom .ui-nav__item { min-height: 48px; }
+/* No rail to sit beside: the well takes the whole grid, and the lockup the rail
+   was holding stands first on the band instead, on the band's own line. */
+.ui-react-app:not(:has(> .ui-app__rail)) { grid-template-columns: minmax(0, 1fr); }
+.ui-react-app .ui-app__bar > .ui-app__brand { flex: none; margin-inline-end: var(--space-2); }
 @media (max-width: 560px) {
+  /* Keyed on the bar, not the shell: a one-section shell renders no bar, and the
+     0px fallback below then leaves that page nothing to pad for. */
+  :root:has(.ui-react-app__bottom) {
+    --ui-app-bottom-clearance: calc(96px + env(safe-area-inset-bottom));
+    scroll-padding-bottom: var(--ui-app-bottom-clearance, 0px);
+  }
   .ui-react-app { display: block; }
   .ui-react-app > .ui-app__rail { display: none; }
-  .ui-react-app .ui-app__main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .ui-react-app .ui-app__main { padding-bottom: var(--ui-app-bottom-clearance, 0px); }
   .ui-react-app .ui-app__bar { padding-inline: var(--space-4); }
   .ui-react-app .ui-app__search { min-width: 0; }
   .ui-react-app .ui-app__search kbd { display: none; }
+  /* Below this width every shell hides its rail, so none shows the lockup; a
+     one-section shell is not the exception, and the band keeps its room for search. */
+  .ui-react-app .ui-app__bar > .ui-app__brand { display: none; }
   .ui-react-app__bottom {
     display: block;
     position: fixed;

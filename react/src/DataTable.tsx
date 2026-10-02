@@ -1,8 +1,7 @@
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { Pagination, sizeOf } from './Pagination';
 import './DataTable.css';
-import { Button } from './primitives/Button';
 
 export type Column<T> = {
   key: keyof T & string; label: ReactNode; num?: boolean; sortable?: boolean; render?: (row: T) => ReactNode;
@@ -63,16 +62,11 @@ export function DataTable<T extends { name: string }>({
   page: controlledPage, onPageChange, total, hasMore = false,
 }: DataTableProps<T>) {
   const scrollable = stickyHeader || pinnedIdentity;
-  const scrollId = useId();
   const scrollRegion = useRef<HTMLDivElement>(null);
-  const [columnScroll, setColumnScroll] = useState({ overflow: false, start: true, end: false });
+  const [hiddenColumns, setHiddenColumns] = useState(false);
   const measureColumns = () => {
     const region = scrollRegion.current;
-    if (region) setColumnScroll({
-      overflow: region.scrollWidth > region.clientWidth + 1,
-      start: region.scrollLeft <= 1,
-      end: region.scrollLeft + region.clientWidth >= region.scrollWidth - 1,
-    });
+    if (region) setHiddenColumns(region.scrollWidth > region.clientWidth + 1);
   };
   useEffect(() => {
     if (!scrollable) return;
@@ -84,10 +78,6 @@ export function DataTable<T extends { name: string }>({
     measureColumns();
     return () => observer?.disconnect();
   }, [scrollable, columns, rows]);
-  const scrollColumns = (direction: number) => {
-    const region = scrollRegion.current;
-    if (region) region.scrollBy({ left: direction * region.clientWidth / 2, behavior: 'instant' });
-  };
   const [localSort, setLocalSort] = useState<TableSort<T>>(
     { key: columns.find((c) => c.sortable)?.key, dir: -1 });
   const owned = controlledPage === undefined;
@@ -145,18 +135,18 @@ export function DataTable<T extends { name: string }>({
     </svg>
   );
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
+  // The region scrolls itself — it is named, focusable and takes arrow keys — so
+  // the overflow is named rather than operated, the way the vanilla kit's table
+  // region names it. Only while it overflows: a table that fits claims no scroll.
+  const regionLabel = hiddenColumns ? `${scrollLabel}, scroll for more columns` : scrollLabel;
 
   return (
     <>
-      {scrollable && columnScroll.overflow && <div className="ui-card__row" role="group" aria-label={`${scrollLabel} columns`}>
-        <Button size="sm" icon="arrowLeft" aria-controls={scrollId} disabled={columnScroll.start} onClick={() => scrollColumns(-1)}>Previous columns</Button>
-        <Button size="sm" iconRight="arrowRight" aria-controls={scrollId} disabled={columnScroll.end} onClick={() => scrollColumns(1)}>More columns</Button>
-      </div>}
       {/* The rows stay on screen while the next page is fetched, and the table
           says so. A reader who cannot see it otherwise meets a table that is
           silently either current or stale, with no way to tell which. */}
-      <div id={scrollId} ref={scrollRegion} onScroll={measureColumns} className={stickyHeader || pinnedIdentity ? 'ui-table-scroll' : undefined} role={stickyHeader || pinnedIdentity ? 'region' : undefined}
-        aria-label={stickyHeader || pinnedIdentity ? scrollLabel : undefined} tabIndex={stickyHeader || pinnedIdentity ? 0 : undefined}>
+      <div ref={scrollRegion} className={stickyHeader || pinnedIdentity ? 'ui-table-scroll' : undefined} role={stickyHeader || pinnedIdentity ? 'region' : undefined}
+        aria-label={stickyHeader || pinnedIdentity ? regionLabel : undefined} tabIndex={stickyHeader || pinnedIdentity ? 0 : undefined}>
       <table className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
         <thead>
