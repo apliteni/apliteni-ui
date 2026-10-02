@@ -56,7 +56,7 @@ const CSS = `
     .mz .lead { color: var(--dim); max-width: 62ch; }
     .mz h3 { font: 600 13px/1 var(--font-display); color: var(--muted); margin: 52px 0 20px; }
     .mz code { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 6px; padding: 3px 7px; }
+      background: color-mix(in srgb, var(--accent) 12%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ border-radius: 6px; padding: 3px 7px; }
 
     /* Token rows */
     .mz-tok { display: grid; grid-template-columns: 190px 1fr 120px; align-items: center;
@@ -65,7 +65,7 @@ const CSS = `
     .mz-tok__name { display: flex; flex-direction: column; gap: 5px; }
     .mz-tok__use { font: 400 12px/1.4 var(--font-sans); color: var(--muted); }
     .mz-track { position: relative; height: 30px; border-radius: 8px;
-      background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); overflow: hidden; }
+      background: var(--surface-2); --ring-gap: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); overflow: hidden; }
     .mz-dot { position: absolute; top: 50%; margin-top: -7px; width: 14px; height: 14px; border-radius: 50%;
       background: linear-gradient(145deg, var(--accent), var(--accent-strong));
       animation-name: mz-run; animation-iteration-count: infinite; animation-direction: alternate; }
@@ -75,13 +75,13 @@ const CSS = `
     /* Delay ramp */
     .mz-ramp { display: flex; align-items: flex-end; gap: 10px; }
     .mz-ramp i { display: block; width: 46px; border-radius: 8px 8px 3px 3px;
-      background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+      background: color-mix(in srgb, var(--accent) 22%, var(--surface)); --ring-gap: color-mix(in srgb, var(--accent) 22%, var(--surface));
       box-shadow: inset 0 0 0 1px var(--border); }
     .mz-ramp span { display: block; text-align: center; font: 500 10.5px/1.6 var(--font-mono); color: var(--muted); }
 
     /* Effect specimens */
     .mz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; }
-    .mz-cell { position: relative; background: var(--surface); border-radius: 16px; padding: 18px;
+    .mz-cell { position: relative; background: var(--surface); --ring-gap: var(--surface); border-radius: 16px; padding: 18px;
       box-shadow: inset 0 0 0 1px var(--border); display: flex; flex-direction: column; gap: 14px; min-height: 168px; }
     .mz-stage { flex: 1; display: grid; place-items: center; }
     .mz-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px;
@@ -91,20 +91,20 @@ const CSS = `
     .mz-skel { width: 100%; height: 54px; }
     .mz-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .mz-hint { font: 500 11px/1 var(--font-sans); color: var(--muted); }
-    .mz-replay { font: 600 12px/1 var(--font-sans); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
+    .mz-replay { font: 600 12px/1 var(--font-sans); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
       border: 0; border-radius: 8px; padding: 7px 12px; cursor: pointer;
       transition: background var(--dur-fast) var(--ease); }
-    .mz-replay:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+    .mz-replay:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
     .mz-replay:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
     /* Reveal demo */
     .mz-reveal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
-    .mz-reveal-card { background: var(--surface); border-radius: 14px; padding: 18px;
+    .mz-reveal-card { background: var(--surface); --ring-gap: var(--surface); border-radius: 14px; padding: 18px;
       box-shadow: inset 0 0 0 1px var(--border); font: 600 14px/1.2 var(--font-sans); color: var(--strong); }
     .mz-reveal-card small { display: block; font: 400 12px/1.4 var(--font-sans); color: var(--muted); margin-top: 5px; }
 
     .mz-note { margin-top: 46px; padding: 16px 18px; border-radius: 12px;
-      background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+      background: color-mix(in srgb, var(--accent) 8%, var(--surface)); --ring-gap: color-mix(in srgb, var(--accent) 8%, var(--surface));
       box-shadow: inset 0 0 0 1px var(--border); color: var(--dim); font: 400 13px/1.6 var(--font-sans); max-width: 72ch; }
   </style>`;
 

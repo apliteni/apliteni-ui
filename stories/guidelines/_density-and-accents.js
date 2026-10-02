@@ -8,7 +8,7 @@ export const TITLE = content.title;
 export const BLURB = content.blurb;
 
 export const SPEC_CSS = `<style>
-  .gda-stage { min-width: 0; padding: var(--space-4); background: var(--bg); border-radius: var(--radius-lg); }
+  .gda-stage { min-width: 0; padding: var(--space-4); background: var(--bg); --ring-gap: var(--bg); border-radius: var(--radius-lg); }
   .gda-stage > * + * { margin-top: var(--space-4); }
   .gda-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
   .gda-table { overflow-x: auto; }

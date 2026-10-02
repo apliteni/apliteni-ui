@@ -6,9 +6,17 @@
 
 export const RELEASES = [
   {
-    v: '0.74.0', date: '2026-10-02',
+    v: '0.75.0', date: '2026-10-02',
     changes: [
       ['added', 'React DatePicker picks one month, a range of months, one date, or a range of dates, from the dropdown\u2019s own trigger and panel. The grain and the span are separate questions, so a day range takes the same two presses the month range does and carries the same bounds, blocked periods and shortcuts. It takes min and max bounds, blocked periods, consumer marks shown as a dot, a word in the legend and part of the cell\u2019s name, and consumer presets in range mode. Bounds and blocked periods written in the other grain are converted rather than dropped, and a preset is clamped to the bounds or switched off. The grid has one tab stop: arrows and the Page keys move it and turn the page, and Home and End go to the ends of the row without leaving the month. Every cell says whether it is the pick. A blocked cell goes bare whatever else it is, so a period the host blocks never wears the accent fill or the range tint under disabled ink. A cell under the pointer takes the kit\u2019s neutral row hover, so the accent stays on the pick and the span. A blocked period between the two ends of a range stays in the value the host is handed and says so in its name; only its tint is withheld. Below 560px the panel is a bottom drawer, with the kit\u2019s scrim, close control and focus trap, and the grid reaches the 44px tap floor; pass sheet to force the drawer at any width. Part of #429; resolves #506.', ['DatePicker']],
+    ],
+  },
+  {
+    v: '0.74.0', date: '2026-10-02',
+    changes: [
+      ['changed', 'The status-label guideline no longer asks a status badge for a glyph or a dot: its word and its tone fill are enough. Callouts and toasts keep their glyph. Part of #453.'],
+      ['changed', 'The Accessibility minimums page now draws the focus ring, the disabled pair, the status badge and the measurable ground as do/don\u2019t specimens instead of describing them, and its prose is a line or two per point. Guideline pages are written that way from now on: show the rule, say the least you can, and keep measurements in the specification. Every rule the Text length page states now gives its reason too. Part of #453.'],
+      ['fixed', 'A focus ring drawn inside a Storybook specimen stage reads its gap from that stage instead of the page behind it, so the documented ring is the one the kit paints. Specimen stages are documentation, not shipped CSS; nothing a consumer renders changes. Part of #453.'],
     ],
   },
   {

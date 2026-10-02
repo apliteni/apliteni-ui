@@ -96,11 +96,18 @@ paints.
 own `guidelinePage()` call under Storybook's theme decorator. Its third argument
 is the side of the pair and its fourth is the page, defaulting to `the-page`; it
 writes the full page and a life-size crop of the first rule that draws a specimen
-pair. #310's caption evidence is these two calls, eight images:
+pair. A fifth argument names one rule's heading instead, for a page whose changed
+rule is not the first that draws a pair, and a sixth is a comma-separated list of
+viewport widths, 1200 by default. A width other than the default is in the file
+name, because a specimen pair that drops single-file on a phone is two pictures;
+the default keeps its bare name, so the commands below still shoot the images
+committed under it. #310's caption
+evidence is these two calls, eight images:
 
 ```sh
 node scripts/evidence/guideline.mjs .           docs/evidence/caption-rank after
 node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank before
+node scripts/evidence/guideline.mjs . out/ after accessibility-floor "Status labels" 1280,390
 ```
 
 `react.mjs` is the same rig pointed at the React workspace's own Storybook build,

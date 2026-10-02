@@ -28,8 +28,8 @@ const SPEC_CSS = `
           --gl-cell: calc(var(--gl-specimen) + var(--space-5) * 2);
           --gl-page: calc(var(--gl-cell) * 2 + var(--space-4)); }
     .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--text);
-      background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 6px; padding: 2px 6px; }
-    .gl-stage { background: var(--surface); border-radius: var(--radius-lg);
+      background: color-mix(in srgb, var(--accent) 12%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ border-radius: 6px; padding: 2px 6px; }
+    .gl-stage { background: var(--surface); --ring-gap: var(--surface); border-radius: var(--radius-lg);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
     .gl-cursor { display: inline-flex; align-items: center; gap: 7px; margin-top: var(--space-3);
       font: 500 11px/1 var(--font-sans); color:var(--text); }
