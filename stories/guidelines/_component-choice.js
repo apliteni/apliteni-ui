@@ -61,17 +61,20 @@ export const panelsDont = () => stage(tabs({
 const SECTORS = ['Technology', 'Energy', 'Health care'].map((label) => ({ label, value: label }));
 const SAVED_VIEWS = ['All rows', 'Unclassified', 'This month'];
 
-// Three categories, three groups: the strip switches the table, the chip narrows
-// it, and the action sits at the far end.
-export const categoryDo = () => stage(`<div style="display:grid;gap:var(--space-4)">
-  ${segmented({ options: ['Overview', 'Performance'], appearance: 'underline', ariaLabel: 'Dataset view', name: 'gl-view' })}
-  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-3)">
-    ${filterBar({ filters: [{ id: 'sector', label: 'Sector', value: 'Technology', items: SECTORS }], clearLabel: 'Clear filters' })}
+// Three categories, three groups. --space-6 between them against the filter
+// bar's own --space-2 inside it: three times the gap, so the filter bar wrapping
+// on a phone still reads as one group wrapping, not as three loose controls.
+// The rule claims no vertical order — filters sit above the views here because
+// that is the order #517 settles.
+export const categoryDo = () => stage(`<div style="display:grid;gap:var(--space-6);justify-items:start">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-6);width:100%">
+    ${filterBar({ filters: [{ id: 'sector', label: 'Sector', value: 'Technology', items: SECTORS }] })}
     <span style="margin-left:auto">${button({ label: 'Export', size: 'sm' })}</span>
   </div>
+  ${segmented({ options: ['Overview', 'Performance'], appearance: 'underline', ariaLabel: 'Dataset view', name: 'gl-view' })}
 </div>`);
 // What #508 reported: the saved views and the control that adds a condition, one
-// bar and one style, so nothing says which of them replaces the whole table.
+// bar and one style, so nothing says which of them re-draws every row.
 export const categoryDont = () => stage(`<div style="display:flex;flex-wrap:wrap;gap:var(--space-2)">
   ${[...SAVED_VIEWS, 'Filter'].map((label) => button({ label, size: 'sm' })).join('')}
 </div>`);
