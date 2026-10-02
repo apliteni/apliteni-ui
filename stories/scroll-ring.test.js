@@ -30,7 +30,9 @@ const quiet = (style) => ['', 'none'].includes(style.boxShadow);
 
 /**
  * The five scroll containers #531 ringed, each with the markup that renders it and
- * the box its ring is painted on. `host` is null when the box carries its own.
+ * the box its ring is painted on. `host` is null when the box carries its own, and
+ * `inset` marks the one that draws the ring INWARD, because an outset one — on
+ * either box — would be painted off-screen.
  *
  * A card around a table is written out rather than taken from a factory: `card()`
  * wraps its body, and the rule keys on a table that is the card's own child, which
@@ -59,8 +61,11 @@ const SUBJECTS = [
   {
     name: "a drawer's body",
     box: '.ui-drawer__body',
-    host: '.ui-drawer__panel',
-    why: 'the body is flush with the panel\'s sides and has no radius of its own',
+    host: null,
+    inset: true,
+    why: 'the body is flush with a panel that is flush with a screen edge, so an outset '
+      + 'ring on either box is painted off-screen; the 20px padding is the room for an '
+      + 'inset one',
     markup: () => drawer({ id: 'd', title: 'Record', body: '<p>A line of prose.</p>' }),
   },
   {
@@ -82,25 +87,45 @@ const SUBJECTS = [
   },
 ];
 
+/* The reference each subject is measured against. The outset one is a plain kit
+ * control on the page; the INSET one has to stand where the box it stands in for
+ * stands, because --ring-gap is inherited and the drawer's panel re-points it — a
+ * reference on the page would resolve the page's gap and never match. */
+const REFERENCE = `
+  .fx-ref-inset:focus-visible { box-shadow: var(--ring-inset); }
+`;
+
 function stage(css, theme, accent) {
-  const resolved = desugar(substitute(css, tokensFor(theme, accent)))
+  const resolved = desugar(substitute(css + REFERENCE, tokensFor(theme, accent)))
     .replace(/calc\(([-\d.]+)px \+ ([-\d.]+)px\)/g, (_, a, b) => `${Number(a) + Number(b)}px`);
   const html = `<style>${resolved}</style>${SUBJECTS.map((s) => s.markup()).join('')}`
     + '<button class="ui-focusable">Reference</button>';
-  return new JSDOM(html).window;
+  const win = new JSDOM(html).window;
+  for (const { box, inset } of SUBJECTS) {
+    if (!inset) continue;
+    const el = win.document.querySelector(box);
+    assert.ok(el, `nothing rendered ${box}`);
+    el.parentElement.insertAdjacentHTML('beforeend', '<span class="fx-ref-inset"></span>');
+  }
+  return win;
 }
 
 function check(css, theme, accent) {
   const win = stage(css, theme, accent);
-  const expected = (() => {
-    const reference = win.document.querySelector('.ui-focusable');
+  const ringOf = (selector) => {
+    const reference = win.document.querySelector(selector);
+    assert.ok(reference, `no ${selector} to read the reference ring from`);
     reference.setAttribute('data-ui-state', 'focus-visible');
     const style = win.getComputedStyle(reference);
-    assert.ok(style.boxShadow && style.boxShadow !== 'none', 'the reference ring resolved');
+    assert.ok(style.boxShadow && style.boxShadow !== 'none', `${selector} resolved no ring`);
     return style.boxShadow;
-  })();
+  };
+  const outset = ringOf('.ui-focusable');
+  const insetRing = ringOf('.fx-ref-inset');
+  assert.notEqual(outset, insetRing, 'the inset ring has to differ from the outset one');
 
-  for (const { name, box, host, why } of SUBJECTS) {
+  for (const { name, box, host, why, inset } of SUBJECTS) {
+    const expected = inset ? insetRing : outset;
     const el = win.document.querySelector(box);
     assert.ok(el, `${name}: nothing rendered ${box}`);
     const painter = host ? el.closest(host) : el;
@@ -129,8 +154,11 @@ function check(css, theme, accent) {
     assert.ok(!rings(painter), `${name}: the ring outlives the focus`);
   }
 
-  // Anti-vacuity: the subjects are five and the reading above ran on each.
+  // Anti-vacuity: the subjects are five, one of them inset, and the reading above ran
+  // on each.
   assert.equal(SUBJECTS.length, 5, 'the kit rings five scroll containers that had none on #531');
+  assert.equal(SUBJECTS.filter((s) => s.inset).length, 1, 'only the drawer body draws inward');
+  assert.equal(SUBJECTS.filter((s) => s.host).length, 2, 'two of the five hand their ring to a container');
   win.close();
 }
 
@@ -149,9 +177,9 @@ for (const [name, mutate, expected] of [
   ['the panel\'s ring for the search list',
     (css) => css.replace(/\.ui-dropdown__panel:has\(\.ui-dropdown__list:focus-visible\) \{[^}]*\}/, ''),
     /search list: \.ui-dropdown__panel does not carry/],
-  ['the panel\'s ring for the drawer body',
-    (css) => css.replace(/\.ui-drawer__panel:has\(\.ui-drawer__body:focus-visible\) \{[^}]*\}/, ''),
-    /drawer's body: \.ui-drawer__panel does not carry/],
+  ['the inset ring on the drawer body',
+    (css) => css.replace(/\.ui-drawer__body:focus-visible \{[^}]*\}/, ''),
+    /drawer's body: \.ui-drawer__body does not carry/],
   ['the ring on the consequence',
     (css) => css.replace(/\.ui-confirm__body:focus-visible \{[^}]*\}/, ''),
     /consequence: \.ui-confirm__body does not carry/],
@@ -182,7 +210,10 @@ function emulateForcedColors(css) {
   const flattened = leafRules(css)
     .filter((rule) => rule.at.some((prelude) => FORCED.test(prelude)))
     .map((rule) => `${rule.selector} { ${rule.decls.map((d) => `${d.prop}: ${d.value}`).join('; ')} }`);
-  assert.ok(flattened.length >= 4, 'the forced-colors blocks for the delegating boxes are gone');
+  // Two delegating boxes in the kit — the dropdown's list and the palette's — plus
+  // the snippet's code region, which #474 wrote the pattern for. The drawer's body
+  // has none: it draws its own ring and keeps its own outline.
+  assert.equal(flattened.length, 3, 'the forced-colors blocks for the delegating boxes moved');
   return [css.replace(/box-shadow\s*:[^;}]+/g, 'box-shadow: none'), ...flattened].join('\n');
 }
 
@@ -215,9 +246,27 @@ for (const theme of ['light', 'dark']) {
 // transparent outline standing and the system repaints it inside the container's.
 test('rejects letting a delegating box keep an outline in forced colors', () => {
   const mutated = source.replace(
-    '  .ui-drawer__body:focus-visible { outline: none; }',
-    '  .ui-drawer__body:focus-visible { outline: 2px solid transparent; }');
+    '  .ui-dropdown__list:focus-visible { outline: none; }',
+    '  .ui-dropdown__list:focus-visible { outline: 2px solid transparent; }');
   assert.notEqual(mutated, source, 'the mutation found the rule');
   assert.throws(() => checkForcedColors(mutated, 'light'),
-    /drawer's body: \.ui-drawer__body declares no outline in forced colors/);
+    /search list: \.ui-dropdown__list declares no outline in forced colors/);
+});
+
+// The defect finding 1 of #557's review measured: an outset ring on a box that is
+// flush with a panel flush with the screen is painted off-screen. JSDOM lays nothing
+// out, so what this can prove is that the drawer's ring is the INWARD one — the
+// 390px frames on #531 are what show it reaching a reader.
+test('the drawer body draws the ring inward, not outward', () => {
+  const win = stage(source, 'light', 'default');
+  const body = win.document.querySelector('.ui-drawer__body');
+  const panel = win.document.querySelector('.ui-drawer__panel');
+  const panelAtRest = win.getComputedStyle(panel).boxShadow;
+  body.setAttribute('data-ui-state', 'focus-visible');
+  const painted = win.getComputedStyle(body).boxShadow;
+  assert.equal((painted.match(/inset/g) || []).length, 3,
+    'all three layers are drawn inward, or part of the ring is off-screen again');
+  assert.equal(win.getComputedStyle(panel).boxShadow, panelAtRest,
+    'the panel draws nothing new for a focused body — it cannot, it is flush with the screen');
+  win.close();
 });

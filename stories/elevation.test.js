@@ -145,15 +145,17 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
   // Both themes are walked, so each declaration is counted twice. The drop is read
   // by 13 floating surfaces plus .ui-dropdown__panel:focus-visible, the rule #487
   // wrote to re-state the panel's edge and drop beside the ring — a box-shadow list
-  // replaces the whole list, so taking focus must not drop the rung. #531 adds four
+  // replaces the whole list, so taking focus must not drop the rung. #531 adds three
   // more of exactly that kind: the card's own focus rule for a scrolling table, and
-  // the three panel rules that draw the ring for a focused scroll container inside
-  // them, each re-stating the rung it would otherwise take off.
+  // the two panel rules that draw the ring for a focused scroll container inside
+  // them, each re-stating the rung it would otherwise take off. The drawer's body is
+  // not among them — it draws --ring-inset on itself, because its panel is flush with
+  // a screen edge and can paint no ring outside it.
   const got = Object.fromEntries([...rungs].map(([layer, n]) => [layer, n / THEMES.length]));
   assert.deepStrictEqual(got, {
     'var(--elev-rest)': 2,   // .ui-card, and its focus rule for a scrolling table
     'var(--elev-rail)': 1,   // .ui-app__rail
-    'var(--elev-drop)': 20,  // the floating surfaces, and four panel focus rules
+    'var(--elev-drop)': 19,  // the floating surfaces, and three panel focus rules
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '
     + 'was added, move the number and check it against docs/specification.md#elevation.');
 });

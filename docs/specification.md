@@ -881,16 +881,26 @@ the kit ships is one or the other, and
 
 Eight carry the ring: the scrolling table wrapper, a card around a table, the dropdown
 panel, a dropdown's search list, a drawer's body, a confirm's consequence, the command
-palette's list and a snippet's code region. Four of those are painted on the box AROUND
-the scroller rather than on the scroller — the snippet's card, and the dropdown, drawer
-and palette panels — because a box flush with its container, or inside one that clips,
-can only draw a ring that is cut off or that overhangs the container's rounded corners.
-A delegated ring is one indicator and not two: the scroller keeps the transparent outline
-that suppresses the browser's own, and drops it under `forced-colors: active`, where the
+palette's list and a snippet's code region. Three of those are painted on the box AROUND
+the scroller rather than on the scroller — the snippet's card, and the dropdown and
+palette panels — because a box inside a container that clips, or flush with one, can only
+draw a ring that is cut off or that overhangs the container's rounded corners. A delegated
+ring is one indicator and not two: the scroller keeps the transparent outline that
+suppresses the browser's own, and drops it under `forced-colors: active`, where the
 container's outline is the one the system repaints. The React modal's body is the same
-shape and is painted on the modal. Two boxes are not a keyboard stop at all and carry no
-ring: the underline tab strip and the application rail, each of which holds its own
-tabbable rows and overflows only once it holds more of them than fit.
+shape and is painted on the modal, which is centred and never reaches the viewport edge.
+
+**`--ring-inset`** is the same three layers drawn inward, for a box that can delegate to
+nobody. The drawer's body is the one: it is flush with the panel, and the panel is flush
+with a screen edge — the one surface in the kit that is — so an outset ring on either box
+is painted outside the viewport, which at 390 leaves no indicator at all. It is composed
+from the same `--ring-width`, `--ring-color`, `--ring-gap-width` and `--ring-gap`, and
+recomposed at the same painted containers, so tuning one tunes both. A box that takes it
+needs room of its own to draw in; the drawer's body has its 20px padding.
+
+Two boxes are not a keyboard stop at all and carry no ring: the underline tab strip and
+the application rail, each of which holds its own tabbable rows and overflows only once it
+holds more of them than fit.
 
 The gate discovers every box the kit makes scrollable and holds both lists exactly, with
 the reason beside each entry, so a new overflowing box is triaged rather than shipping

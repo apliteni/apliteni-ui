@@ -153,7 +153,9 @@ export function paintsOf(body) {
   for (const [property, value] of declarations(body)) {
     const bare = value.replace(/!important/gi, '').trim();
     if (property === 'box-shadow') {
-      if (/var\(\s*--ring\s*[,)]/.test(bare)) out.ring = true;
+      // --ring-inset is the same indicator drawn inward, for a box that cannot paint
+      // outside itself. Both are the shared ring. #531
+      if (/var\(\s*--ring(?:-inset)?\s*[,)]/.test(bare)) out.ring = true;
       else out.shadow = /^none$/i.test(bare) ? null : bare;
     }
     if (property === 'outline' || property === 'outline-color' || property === 'outline-style') {

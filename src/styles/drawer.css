@@ -180,27 +180,12 @@
   font-size: var(--text-sm);
   line-height: 1.55;
 }
-/* A body of prose scrolls, which makes it a keyboard stop of Chrome's making —
-   no tabindex and no author rule — and it took the browser's black outline there.
-   Measured on a text-only record body at 1280 and 390: Tab reaches it between the
-   close button and the footer's actions whenever the panel has both, and a body
-   holding a control of its own is not a stop at all.
-
-   The PANEL draws the ring, as the snippet's card does on #474: the body is flush
-   with the panel's left and right edges and has no radius, so a ring on the body
-   paints its side legs over the panel's own edge and out onto the scrim, and draws
-   two lines across the panel where the body meets the header and the footer. The
-   panel's focus rule is reused declaration for declaration, including the
-   directional line it composes instead of a full inset ring.
-   why: docs/specification.md#the-focus-ring */
-.ui-drawer__body:focus-visible { outline: 2px solid transparent; }
-.ui-drawer__panel:has(.ui-drawer__body:focus-visible) { outline: 2px solid transparent; --ring-gap: inherit; box-shadow: var(--ring), var(--drawer-line), var(--elev-drop); }
-/* Forced colors drops box-shadow and both boxes would fall back to their outlines,
-   the system repainting the body's as a square inside the panel's: two indicators
-   for one focus. The panel's is the one that survives. #474 */
-@media (forced-colors: active) {
-  .ui-drawer__body:focus-visible { outline: none; }
-}
+/* A body of prose scrolls, so the browser makes it a keyboard stop and it answered
+   with the native outline. The ring is drawn INWARD, inside the 20px padding: the
+   body is flush with a panel that is itself flush with a screen edge, so an outset
+   ring — on either box — is painted off-screen. Measured at 390, where an outset
+   one left no indicator at all. why: docs/specification.md#the-focus-ring */
+.ui-drawer__body:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring-inset); }
 
 .ui-drawer__footer {
   display: flex;

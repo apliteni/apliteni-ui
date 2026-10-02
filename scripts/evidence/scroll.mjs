@@ -56,7 +56,7 @@ const SUBJECTS = [
     caption: "a dropdown's search list", sizes: [[1280, 520], [390, 560]],
   },
   {
-    id: 'drawer-body', box: '.ui-drawer__body', stop: true, paintedOn: '.ui-drawer__panel',
+    id: 'drawer-body', box: '.ui-drawer__body', stop: true,
     caption: "a drawer's body", sizes: [[1280, 420], [390, 520]],
   },
   {

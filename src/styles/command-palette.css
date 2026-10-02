@@ -143,24 +143,16 @@
   overflow-y: auto;
   padding: var(--space-2);
 }
-/* Which makes the list a keyboard stop of Chrome's making: the rows are
-   `role="option"` with `tabindex="-1"`, so nothing in it is keyboard-focusable and
-   the list takes the stop. The palette's Tab trap holds one item — the input — and
-   wraps there, so a reader of the WIRED palette never arrives. The kit publishes the
-   palette as a string, and the same markup rendered open without the wiring has no
-   trap: measured at 1280 and 390, Tab goes input → list, at the browser's black
-   outline. The rule costs a declaration and paints only once the browser has made
-   the list the keyboard focus.
-
-   The PANEL draws it, as the snippet's card does on #474: the panel clips with
-   `overflow: hidden`, so a ring on the list is cut on three sides. Composed with
-   the floating treatment, as the panel's own focus rule is.
+/* Rows are `role="option" tabindex="-1"`, so the LIST takes the keyboard stop. The
+   wired palette's Tab trap holds one item and never hands it over; the markup the
+   kit publishes as a string, rendered open without the wiring, has no trap and did
+   arrive at the native outline. The panel draws the ring, as a snippet's card does
+   (#474), because the panel clips with `overflow: hidden`.
    why: docs/specification.md#the-focus-ring */
 .ui-cmdk__list:focus-visible { outline: 2px solid transparent; }
-.ui-cmdk__panel:has(.ui-cmdk__list:focus-visible) { outline: 2px solid transparent; --ring-gap: inherit; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); }
-/* Forced colors drops box-shadow and both boxes would fall back to their outlines,
-   the system repainting the list's inside the panel's: two indicators for one
-   focus. The panel's is the one that survives. #474 */
+.ui-cmdk__panel:has(.ui-cmdk__list:focus-visible) { outline: 2px solid transparent; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); }
+/* One indicator, not two: forced colors drops box-shadow and the panel's outline is
+   the one that survives. #474 */
 @media (forced-colors: active) {
   .ui-cmdk__list:focus-visible { outline: none; }
 }

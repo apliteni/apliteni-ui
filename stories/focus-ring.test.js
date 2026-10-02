@@ -407,13 +407,15 @@ const SCROLL_RINGED = {
     + 'list takes the stop — measured at 390 and 1280 with the browser\'s outline. The '
     + 'list sits 6px inside a 16px corner, where a ring on the list leaves the panel\'s '
     + 'rounded corner. #531',
-  '.ui-drawer__body': 'on the PANEL. A text-only body scrolls and Tab reaches it between '
-    + 'the close button and the footer\'s actions. The body is flush with the panel\'s '
-    + 'sides and has no radius, so a ring on it paints onto the scrim and draws two lines '
-    + 'across the panel. #531',
+  '.ui-drawer__body': 'on the body, drawn INWARD with --ring-inset. A text-only body '
+    + 'scrolls and Tab reaches it between the close button and the footer\'s actions. The '
+    + 'body is flush with a panel that is itself flush with a screen edge, so an outset '
+    + 'ring — on either box — is painted off-screen: measured at 390, where the panel\'s '
+    + 'drew no indicator at all. The 20px padding is the room the inset one draws in. #531',
   '.ui-confirm__body': 'on the paragraph itself: the panel insets it by --space-5 on every '
     + 'side, so a square ring on a square scroller clips nothing and reaches no corner — '
-    + 'what .ui-table-scroll already draws. #531',
+    + 'what .ui-table-scroll already draws, including the --space-1 that clears the '
+    + 'glyphs. #531',
   '.ui-cmdk__list': 'on the PANEL, which clips with `overflow: hidden`. The wired '
     + 'palette\'s Tab trap holds one item and never hands the list focus; the markup the '
     + 'kit publishes as a string has no trap and does. #531',
