@@ -1,6 +1,7 @@
 /* ============================================================================
  * Segmented control — .ui-seg  (the deck's pill switch: theme, Deck/Text, plan)
- * The selected button keeps the reading surface and gains an accent edge.
+ * A selected pill keeps the reading surface and gains an accent edge; in the
+ * underline appearance the chosen tab stays on the page and takes the rail alone.
  * ========================================================================== */
 
 /* The strip wraps rather than overflows: a track wider than its column used to
@@ -73,9 +74,13 @@
 }
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
-.ui-seg--underline { flex-wrap: nowrap; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
+/* No padding under the tabs: the chosen tab's rail then sits on the strip's rule
+   rather than floating 5px above it, which is where .ui-nav__tab puts its own
+   underline. It cannot overlap the rule the way that tab does — a negative margin
+   would push the tab past this strip's scroll box — so the two lines meet. #544 */
+.ui-seg--underline { flex-wrap: nowrap; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1) var(--space-1) 0; overflow: auto; max-width: 100%; }
 /* Square bottom corners so the rail reads as a straight bar rather than curling
-   up at both ends, the way .ui-nav__tab's underline does. #544 */
+   up at both ends. #544 */
 .ui-seg--underline button { border-radius: var(--radius-xs) var(--radius-xs) 0 0; border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
 /* The rail is this appearance's selection mark, so the chosen tab drops the pill's
    accent edge: one accent signal on the element. Markup copied from an older

@@ -2407,10 +2407,17 @@ column switches over one dataset, where the order is the reader's map.
 ## The chosen tab in an underline strip
 
 The underline appearance marks its chosen tab with the accent rail alone. The tab
-takes `--strong` ink and no accent edge, so the element spends one accent signal,
-and markup copied from an older release — `aria-selected` rather than
-`aria-pressed` — takes the same rail. The rail's bottom corners are square, which
-is what keeps it a straight bar rather than one that curls up at both ends.
+takes `--strong` ink, no fill and no outline, so the element spends one accent
+signal, and markup copied from an older release — `aria-selected` rather than
+`aria-pressed` — takes the same rail.
+
+The rail is a straight bar on the strip's own rule. The tab's bottom corners are
+square, and the strip pads its sides and top but not under its tabs, so the two
+lines meet. The rail does not overlap the rule the way `.ui-nav__tab`'s underline
+does: this strip scrolls, and a tab pulled past its scroll box would be clipped
+there instead. The same scroll box clips the bottom band of the focus ring. Focus
+follows selection in this control, so the ring the reader sees is closed along the
+bottom by the chosen tab's own rail.
 
 Forced colours repaint every border in the system ink, and this appearance reserves
 a transparent rail on every tab, so the resting rail is restated in the system
@@ -2419,6 +2426,7 @@ every tab reads as chosen.
 
 Held by `src/styles/segmented.test.js`. Decided in
 [#544](https://github.com/apliteni/apliteni-ui/issues/544).
+
 ## Shared React logic and declarations
 
 The main entry exports `dropdownMatch`, `dropdownFiltering`, `rankGroups`,

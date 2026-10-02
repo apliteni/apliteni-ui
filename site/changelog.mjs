@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.64.1', date: '2026-10-02',
     changes: [
-      ['fixed', "The underline segmented control's chosen tab carries one accent mark: the rail, now a straight bar. The 1px accent outline it also drew is gone, in vanilla and React. In forced colours the resting rails step back and the chosen one takes the system highlight, where every tab used to read as chosen. Resolves #544.", ['Segmented']],
+      ['fixed', "The underline segmented control's chosen tab carries one accent mark: the rail, now a straight bar sitting on the strip's rule rather than 5px above it. The 1px accent outline the tab also drew is gone, in vanilla and React, and the strip is 4px shorter for the padding it no longer keeps under its tabs. In forced colours the resting rails step back and the chosen one takes the system highlight, where every tab used to read as chosen. Resolves #544.", ['Segmented']],
     ],
   },
   {

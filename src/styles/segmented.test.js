@@ -59,9 +59,12 @@ test('underline strips scroll on one row', () => {
 /* -- One accent signal on the chosen tab (#544) -----------------------------
  * The cascade below is this sheet's, not a browser's: descendant pairs such as
  * `.ui-seg--underline button.is-active`, class-column specificity, source order,
- * and nothing else. It is blind to inheritance, shorthand expansion (`outline: 0`
- * and `outline-color` are separate keys here), `!important`, which the sheet does
- * not use, and to what the pixels do — the run's screenshots cover that.
+ * and nothing else. It is blind to inheritance, to `!important`, which the sheet
+ * does not use, and to what the pixels do — the run's screenshots cover that. It
+ * also keys declarations by the property as written, so it does not expand a
+ * shorthand into its longhands: an `outline-color` added later would not be seen
+ * to override `outline: 0`, and `border-bottom` does not answer for
+ * `border-bottom-color`. Add a longhand and give it its own case here.
  */
 
 /** The parts of one compound: `.is-active`, `[aria-pressed="true"]`, `:hover`, `:not(.x)`, `button`. */
@@ -142,6 +145,24 @@ const spellingsIn = (rules) => [...new Set(rules.filter((rule) => !rule.media
   .filter((one) => one.startsWith('.ui-seg--underline '))
   .map((one) => one.split(/\s+/)[1]))];
 
+/** Does a winning `outline` value paint anything? `0` and `none` do not. */
+const paintsOutline = (won) => {
+  const outline = won.get('outline');
+  return outline !== undefined && !/^(0|0px|none)$/.test(outline);
+};
+
+/** The four corners of a `border-radius` shorthand, in CSS order. */
+const cornersOf = (value) => {
+  const parts = value.split(/\s+/);
+  return [0, 1, 2, 3].map((i) => parts[[[0, 0, 0, 0], [0, 1, 0, 1], [0, 1, 2, 1], [0, 1, 2, 3]][parts.length - 1][i]]);
+};
+
+/** The bottom of a `padding` shorthand. */
+const paddingBottom = (value) => {
+  const parts = value.split(/\s+/);
+  return parts.length === 1 ? parts[0] : parts[2] ?? parts[0];
+};
+
 test('the chosen tab in an underline strip carries one accent mark', () => {
   const spellings = spellingsIn(RULES);
   assert.deepEqual(spellings, ['button.is-active', 'button[aria-pressed="true"]', 'button[aria-selected="true"]'],
@@ -153,7 +174,19 @@ test('the chosen tab in an underline strip carries one accent mark', () => {
       `${spelling} must spend the accent on the rail alone — the appearance's selection mark. #544`);
     assert.equal(won.get('color'), 'var(--strong)', `${spelling} must also read as chosen in ink, not only on the rail`);
     assert.equal(won.get('background'), 'transparent', `${spelling} must not take the pill fill`);
+    assert.equal(paintsOutline(won), false,
+      `${spelling} must draw no outline at rest: an accent edge around the tab would be the second mark, `
+      + 'and any other outline would be a second shape. #544');
   }
+});
+
+test('the rail is a straight bar sitting on the strip\'s rule', () => {
+  const corners = cornersOf(resolve(TOP, subjectFor('button')).get('border-radius'));
+  assert.deepEqual(corners.slice(2), ['0', '0'],
+    'the rail runs along the tab\'s bottom edge, so square bottom corners are what keep it a straight bar '
+    + 'rather than one curling up at both ends — the top corners stay rounded for the ring. #544');
+  assert.equal(paddingBottom(valueOf('.ui-seg--underline', 'padding')), '0',
+    'with no padding under the tabs the rail meets the strip\'s rule instead of floating above it. #544');
 });
 
 test('a chosen tab under keyboard focus takes the kit ring, not a native outline', () => {
@@ -178,13 +211,18 @@ test('forced colours leave the chosen tab distinguishable', () => {
 });
 
 test('the checks above reject the faults they were written for', () => {
-  // #544 as it stood: the rail and the pill's accent edge at once.
-  const twoMarks = parse(CSS.replace(' outline: 0;', ''));
-  assert.deepEqual(
-    accentMarks(resolve(twoMarks.filter((rule) => !rule.media), subjectFor('button.is-active'))),
-    ['border-bottom-color: var(--accent)', 'outline: 1px solid var(--accent)'],
-    'dropping `outline: 0` must bring the second accent mark back, or the first test proves nothing',
-  );
+  /* #544 as it stood: the rail and an accent edge at once. The fault is INJECTED
+     rather than uncovered by deleting `outline: 0`, because what that line cancels
+     — `outline: 1px solid var(--accent)` on the pill rule — is a declaration the
+     sheet need not keep. #473 removes it, and a mutation that reaches across to a
+     neighbouring rule would fail on a correct rebase while the check it stands for
+     still held. */
+  const twoMarks = parse(`${CSS}\n.ui-seg--underline button.is-active { outline: 1px solid var(--accent); }\n`);
+  const won = resolve(twoMarks.filter((rule) => !rule.media), subjectFor('button.is-active'));
+  assert.equal(accentMarks(won).length, 2,
+    'a second accent declaration on the chosen tab must show up as a second mark, or the first test proves nothing');
+  assert.equal(paintsOutline(won), true,
+    'an outline on the chosen tab must read as painted, or the no-outline clause proves nothing');
   // A sheet that leaves the focus ring to the browser.
   const noRing = parse(CSS.replace('.ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }', ''));
   assert.equal(resolve(noRing.filter((rule) => !rule.media), subjectFor('button.is-active', ['focus-visible'])).get('box-shadow'), undefined,
@@ -196,5 +234,20 @@ test('the checks above reject the faults they were written for', () => {
     undefined,
     'without the resting restatement a resting tab keeps only the transparent border the mode makes visible, '
     + 'and the forced-colours test must fail on that',
+  );
+  // A rail rounded on all four corners, which is what it looked like before #544.
+  const roundRail = parse(CSS.replace('border-radius: var(--radius-xs) var(--radius-xs) 0 0', 'border-radius: var(--radius-xs)'));
+  assert.deepEqual(
+    cornersOf(resolve(roundRail.filter((rule) => !rule.media), subjectFor('button')).get('border-radius')).slice(2),
+    ['var(--radius-xs)', 'var(--radius-xs)'],
+    'rounding the bottom corners back must flip the straight-bar check',
+  );
+  // A strip that pads under its tabs again, floating the rail above the rule.
+  const floating = parse(CSS.replace('padding: var(--space-1) var(--space-1) 0;', 'padding: var(--space-1);'));
+  const strip = floating.find((rule) => !rule.media && rule.selector === '.ui-seg--underline');
+  assert.equal(
+    paddingBottom(/(?:^|;)\s*padding\s*:\s*([^;]+)/.exec(strip.body)[1].trim()),
+    'var(--space-1)',
+    'padding under the tabs must flip the check that seats the rail on the rule',
   );
 });
