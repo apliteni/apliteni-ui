@@ -22,7 +22,7 @@
 
 **Why:** A full table and a written note both ask a reader to read, and reading is what a report is for.
 
-**Do:** Three figures with their trends, then the payouts that need a decision.
+**Do:** The figures with their trends, then the payouts that need a decision.
 
 **Don't:** The whole ledger and a paragraph about it, on the page meant for a glance.
 
@@ -30,15 +30,15 @@
 
 <!-- rule: link-to-the-report -->
 
-**Rule:** Link every item on a dashboard to the report that explains it.
+**Rule:** End each block on a dashboard with a link into the report behind it, and give every reference in it a link to its own row there.
 
-**Why:** A dashboard stops at what happened, so without the link a reader who wants why has to go looking for it.
+**Why:** A dashboard stops at what happened, so without a way through a reader who wants why has to go looking. Only the block's link is drawn below: a reference in a cell takes the row's own ink until a pointer is over it, so no picture can show which references are live.
 
-**Except:** Give the report its own place in the navigation as well, so a reader who already knows the question reaches it without the dashboard.
+**Except:** Where two blocks summarise one report, a single link serves both and a second is a duplicate. Give the report its own place in the navigation as well, so a reader who already knows the question reaches it without the dashboard.
 
-**Do:** Each reference opens that row in the report, and one link under the block opens the whole report.
+**Do:** The exceptions end in a link that opens the payout report.
 
-**Don't:** The same references as plain text, with nothing on the block that opens the report.
+**Don't:** A block that lists what is wrong and offers no way into the report.
 
 ## Build a report for the whole answer
 
@@ -60,6 +60,8 @@
 
 **Why:** A reader narrowing the question, or taking the rows into a spreadsheet, should not have to ask for another screen.
 
+**Gap #555:** The kit's Stock screener is a report and offers filters but no export.
+
 **Do:** A filter row and one export above the table.
 
 **Don't:** A table alone, its period fixed by whoever built the page.
@@ -70,7 +72,7 @@
 
 **Rule:** Show the table a chart was drawn from under the chart, on every report.
 
-**Why:** A chart carries the shape of a change and never the amount, and a report is read for the amount.
+**Why:** A chart carries the shape of a change and rarely the amount, and a report is read for the amount.
 
 **Do:** The months as bars, then the same months as rows.
 

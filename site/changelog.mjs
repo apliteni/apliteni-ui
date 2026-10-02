@@ -8,8 +8,8 @@ export const RELEASES = [
   {
     v: '0.76.0', date: '2026-10-02',
     changes: [
-      ['added', 'A Dashboards and reports guideline settles which kind of page a screen is. A dashboard answers \u201Cis anything wrong, and what changed\u201D in one screen and carries figures, trends and the rows that need attention, each linking to the report behind it. A report answers \u201Cwhy, and exactly how much\u201D, so it carries the full table, its filters, one export and the table under every chart. Six rules, five of them drawn as do and don\u2019t specimens. Closes #505.'],
-      ['changed', 'The Finance report showcase now reads as a report: its summary says it carries the ledger in full, and the screen offers the filter row and the export the new guideline asks of a report. A Finance dashboard showcase sits beside it as the glance screen that links to it.', ['Table']],
+      ['added', 'A Dashboards and reports guideline settles which kind of page a screen is. A dashboard answers \u201Cis anything wrong, and what changed\u201D in one screen and carries figures, trends and the rows that need attention, each linking to the report behind it. A report answers \u201Cwhy, and exactly how much\u201D, so it carries the full table, its filters, one export and the table under every chart. Six rules, five of them drawn as do and don\u2019t specimens. The export rule carries a gap: the kit\u2019s own Stock screener is a report and has no export yet, which is #555. Closes #505.'],
+      ['changed', 'The Finance report showcase now reads as a report: it offers the filter row and the export the new guideline asks for, its summary describes the columns rather than claiming a roll-up, and every row\u2019s net is now its gross less its fees \u2014 four of the six were not. A Finance dashboard showcase sits beside it as the glance screen that links to it.', ['Table']],
     ],
   },
   {

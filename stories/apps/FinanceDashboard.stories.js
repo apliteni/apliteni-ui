@@ -34,10 +34,13 @@ const EXCEPTIONS = [
   ['PO-1159', '2026-06-18', '2,180.00', 'danger', 'Unmatched'],
 ];
 
-// Three rows, not a ledger. Each reference opens its own row in the report.
+// Three rows, not a ledger. Each reference opens its own row in the report, and
+// the block ends in the one link that opens the whole of it. The figures above
+// summarise the same report, so a second link there would be a duplicate.
+// why: guidelines/dashboards-and-reports.md
 const attention = () => card({
   title: 'Needs a decision',
-  sub: '3 of the 214 payouts settled this year.',
+  sub: '3 of the 214 payouts this year.',
   body: `
   <table class="ui-table ui-table--dense ui-table--hover">
     <thead><tr>
@@ -65,8 +68,8 @@ export const Default = {
     body: `
       ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
       ${cashflow()}
-      <div class="ui-toolbar">${button({ label: 'Open the payout report', href: '#', size: 'sm' })}</div>
       ${attention()}
+      <div class="ui-toolbar">${button({ label: 'Open the payout report', href: '#', size: 'sm' })}</div>
     `,
   }),
 };

@@ -154,5 +154,7 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
   assert.equal(rules, 112);
   assert.equal(INTRO, '');
-  assert.equal(PAGES.flatMap(page => page.gaps).length, 0, 'update the Overview when a rule is unmet');
+  // One: the report-offers rule on Dashboards and reports, which the Stock
+  // screener does not meet yet (#555).
+  assert.equal(PAGES.flatMap(page => page.gaps).length, 1, 'update the Overview when a rule is unmet');
 });

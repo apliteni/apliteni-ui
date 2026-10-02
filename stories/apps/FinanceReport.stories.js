@@ -16,9 +16,11 @@ export default {
 // why: guidelines/dashboards-and-reports.md
 
 // What a reader narrows the ledger by. The period stays a segmented control
-// rather than a third chip, so no filter is offered twice.
+// rather than a third chip, so no filter is offered twice. Both chips are
+// unset: the ledger below is every payout, and a chip reading a value the rows
+// do not honour teaches a filter that does nothing.
 const FILTERS = [
-  { id: 'status', label: 'Status', value: 'Failed', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'In transit', value: 'In transit' }, { label: 'Failed', value: 'Failed', selected: true }] },
+  { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'In transit', value: 'In transit' }, { label: 'Failed', value: 'Failed' }] },
   { id: 'currency', label: 'Currency', items: [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
 ];
 
@@ -41,13 +43,15 @@ const kpiStrip = () => statBand({
   ],
 });
 
+// Net is gross less fees in every row, and the five references the Dashboards
+// and reports guideline also prints carry the same three figures there.
 const PAYOUTS = [
-  ['1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '11,871.49', 'success', 'Paid'],
-  ['1163', 'po_1TnSuaGmSZjqJIroOzd7Mc6L', '2026-06-29', '14,490.70', '574.19', '27,834.31', 'success', 'Paid'],
-  ['1164', 'po_1TmNmjGmSZjqJIro7lHBO3ix', '2026-06-26', '14,566.66', '483.97', '15,201.57', 'pending', 'In transit'],
-  ['41',   'po_1Tm1FeGmSZjqJIroa1D9MjbO', '2026-06-25', '39,054.98', '1,369.76', '32,156.22', 'success', 'Paid'],
-  ['42',   'po_1TleVSGmSZjqJIrobtld2b8X', '2026-06-24', '14,969.33', '472.71', '18,774.34', 'danger', 'Failed'],
-  ['43',   'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
+  ['1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '14,452.83', 'success', 'Paid'],
+  ['1163', 'po_1TnSuaGmSZjqJIroOzd7Mc6L', '2026-06-29', '14,490.70', '574.19', '13,916.51', 'success', 'Paid'],
+  ['1164', 'po_1TmNmjGmSZjqJIro7lHBO3ix', '2026-06-26', '14,566.66', '483.97', '14,082.69', 'pending', 'In transit'],
+  ['41',   'po_1Tm1FeGmSZjqJIroa1D9MjbO', '2026-06-25', '39,054.98', '1,369.76', '37,685.22', 'success', 'Paid'],
+  ['42',   'po_1TleVSGmSZjqJIrobtld2b8X', '2026-06-24', '14,969.33', '472.71', '14,496.62', 'danger', 'Failed'],
+  ['43',   'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '17,927.93', 'success', 'Paid'],
 ];
 
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` in
@@ -82,7 +86,7 @@ export const Default = {
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
-    sub: 'The reconciled payout ledger in full, with the cashflow it rolls up to.',
+    sub: 'Every payout reconciled to a bank transaction, down to its fees and net.',
     body: `
       ${controls()}
       ${kpiStrip()}
@@ -110,7 +114,7 @@ export const Loading = {
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
-    sub: 'The reconciled payout ledger in full, with the cashflow it rolls up to.',
+    sub: 'Every payout reconciled to a bank transaction, down to its fees and net.',
     body: `
       ${controls()}
       <div class="ui-stats ui-stats--tiles">${busyRegion({
