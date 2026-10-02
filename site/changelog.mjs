@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.64.1', date: '2026-10-01',
+    changes: [
+      ['changed', 'Nothing the kit renders changes. The kit\u2019s own gates now split a selector list at its top-level commas only, so a rule written with `:where(td, th)` or `:is(:hover, :focus-visible)` reaches them whole instead of in fragments that match nothing. One consequence worth naming: the collapsed rail\u2019s hover and focus-visible labels were being measured for contrast in no state at all, and now are. The only published byte is a comment in `layout.css` citing a line that moved. Resolves #521.'],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],

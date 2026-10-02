@@ -20,6 +20,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { layersOf, inkOf, isFocusRing } from '../../scripts/lib/box-shadow.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import {
   STYLE_FILES, kitCssFor, substitute, desugar, parseColour, composite, ratio,
   effectiveBackground, makeStyleCache, installDomGlobals, storyFiles,
@@ -56,7 +57,7 @@ function ringSelectors(css) {
   const out = [];
   for (const [sel, body] of rules(css)) {
     if (!body.includes('var(--ring)')) continue;
-    for (const s of sel.split(',')) out.push(s.trim());
+    out.push(...splitSelectorList(sel));
   }
   return [...new Set(out)];
 }
@@ -106,8 +107,7 @@ function disabledRules(css) {
   for (const [sel, body] of rules(css)) {
     if (!DISABLED_SEL.test(sel)) continue;
     const m = body.match(/(?:^|;)\s*opacity\s*:\s*([\d.]+)/);
-    for (const s of sel.split(',')) {
-      const selector = s.trim();
+    for (const selector of splitSelectorList(sel)) {
       if (!DISABLED_SEL.test(selector)) continue;
       const opacity = m ? Number(m[1]) : 1;
       const prev = out.get(selector);
@@ -200,8 +200,8 @@ function probeGeometry(css) {
     if (sel.trimStart().startsWith('@')) return whole;
     const extra = [];
     const bases = { before: [], after: [] };
-    for (const part of sel.split(',')) {
-      const m = /^(.*?)::?(before|after)$/.exec(part.trim());
+    for (const part of splitSelectorList(sel)) {
+      const m = /^(.*?)::?(before|after)$/.exec(part);
       if (m && m[1]) bases[m[2]].push(m[1]);
     }
     const retarget = { before: [], after: [] };

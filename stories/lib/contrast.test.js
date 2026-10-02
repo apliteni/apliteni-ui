@@ -10,6 +10,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import {
   AA_LARGE,
   AA_TEXT,
@@ -22,8 +23,11 @@ import {
   parseColour,
   ratio,
   specialiseContextual,
+  kitCssFor,
   stateTargets,
   stateBases,
+  stateHost,
+  STATES,
   substitute,
   tokensFor,
 } from './contrast.js';
@@ -511,4 +515,98 @@ test('colour, background, visibility, thresholds, custom and unknown declaration
   }
   const descendant = stateBases(desugar('.parent:hover { outline:none } .parent:hover .child {color:red}'));
   assert.ok(descendant.hover.has('.parent'), 'a decorative parent still has a contrast-changing descendant rule');
+});
+
+/* ---- a state tag inside :is() or :where() (#521) -------------------------- */
+
+/** The host stateBases would take for one state of one prelude. */
+const hostFor = (prelude, state) => {
+  const sel = desugar(prelude);
+  const i = sel.indexOf(`[data-ui-state~="${state}"]`);
+  assert.ok(i >= 0, `${prelude} desugars without a ${state} tag`);
+  return stateHost(sel.slice(0, i));
+};
+
+test('a state inside :is() or :where() is hosted on the compound in front of it', () => {
+  for (const [prelude, state, want] of [
+    ['.ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label', 'hover', '.ui-nav__item'],
+    ['.ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label', 'focus-visible', '.ui-nav__item'],
+    ['.rail .item:where(:hover) .label', 'hover', '.rail .item'],
+    ['.a:is(:where(:hover)) .b', 'hover', '.a'],
+    // The second :is() closes the first, so its host keeps the earlier tag.
+    ['.a:is(:hover) .b:is(:focus-visible)', 'focus-visible', '.a:is([data-ui-state~="hover"]) .b'],
+    ['.plain:hover .child', 'hover', '.plain'],
+  ]) {
+    assert.equal(hostFor(prelude, state), want, `${prelude} [${state}]`);
+  }
+});
+
+test('a state inside :not() or :has() yields no host rather than a wrong one', () => {
+  // :not(:hover) matches the element that is NOT hovered, so setting the state
+  // would stop the rule matching; :has(:hover) points at a descendant this
+  // function cannot name. Both must come back empty, never half a selector.
+  for (const prelude of ['.a:not(:hover)', '.a:has(:hover)', '.a:not(:is(:hover))']) {
+    assert.equal(hostFor(prelude, 'hover'), '', prelude);
+  }
+});
+
+test('every state base the kit sheet yields is a selector a browser accepts', () => {
+  // The gate that was missing. Before #521 fixed the split, and before stateHost
+  // looked inside :is(), twenty-five of these were fragments ending in `:is(`.
+  // stateTargets drops a base querySelectorAll throws on, with a bare `catch`,
+  // so the rules behind them were measured in no state at all and nothing failed.
+  const dom = new JSDOM('<!doctype html><body></body>');
+  const { document } = dom.window;
+  const offences = [];
+  let counted = 0;
+  for (const theme of ['dark', 'light']) {
+    const bases = stateBases(kitCssFor(theme).css);
+    for (const state of STATES) {
+      for (const base of bases[state]) {
+        counted += 1;
+        try { document.querySelectorAll(base); } catch { offences.push(`${theme} ${state} :: ${base}`); }
+      }
+    }
+  }
+  assert.equal(counted, 266, 'state-base discovery changed: 133 bases per theme, over two themes');
+  assert.deepEqual(offences, [], `a state base no browser would accept:\n  ${offences.join('\n  ')}`);
+  dom.window.close();
+});
+
+/** The functional pseudo-classes still open at the end of this text. */
+const stillOpen = (prefix) => {
+  const open = [];
+  for (let i = 0; i < prefix.length; i += 1) {
+    if (prefix[i] === '\\') { i += 1; continue; }
+    if (prefix[i] === '(') open.push((/(:{1,2}[\w-]+)$/.exec(prefix.slice(0, i)) ?? [, '(anonymous)'])[1]);
+    else if (prefix[i] === ')') open.pop();
+  }
+  return open;
+};
+
+test('a tag with no host is always inside :not(), never inside :has()', () => {
+  // A dropped :not() tag costs no coverage — the walk already measures every
+  // element at rest. A dropped :has() tag would be a state nobody measures, so
+  // it has to fail here rather than disappear.
+  const offences = [];
+  let hostless = 0;
+  for (const theme of ['dark', 'light']) {
+    for (const [, selector] of kitCssFor(theme).css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (selector.trimStart().startsWith('@')) continue;
+      for (const sel of splitSelectorList(selector)) {
+        for (const state of STATES) {
+          const i = sel.indexOf(`[data-ui-state~="${state}"]`);
+          if (i < 0) continue;
+          const prefix = sel.slice(0, i);
+          if (stateHost(prefix)) continue;
+          hostless += 1;
+          const open = stillOpen(prefix);
+          if (open.every((name) => name === ':not')) continue;
+          offences.push(`${theme} ${state} inside ${open.join(' > ')} :: ${sel.replace(/\s+/g, ' ')}`);
+        }
+      }
+    }
+  }
+  assert.ok(hostless > 0, 'no tag came back hostless, so this test is measuring nothing');
+  assert.deepEqual(offences, [], `a state tag with no host that is not a :not():\n  ${offences.join('\n  ')}`);
 });

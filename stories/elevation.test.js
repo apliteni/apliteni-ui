@@ -17,6 +17,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, winnersOf, substitute, parseColour, composite, ratio } from './lib/contrast.js';
 import { boxShadowsIn, customPropertiesIn, layersOf, isCast, isFocusRing, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, TREATMENT_DROP } from '../scripts/lib/box-shadow.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const read = (p) => readFileSync(root(p), 'utf8');
@@ -244,7 +245,7 @@ const classesOf = (branch) => {
   return set;
 };
 const subset = (a, b) => [...a].every((c) => b.has(c));
-const canShareAnElement = (one, other) => one.split(',').some((a) => other.split(',').some((b) => {
+const canShareAnElement = (one, other) => splitSelectorList(one).some((a) => splitSelectorList(other).some((b) => {
   const [x, y] = [classesOf(a), classesOf(b)];
   return x.size > 0 && y.size > 0 && (subset(x, y) || subset(y, x));
 }));

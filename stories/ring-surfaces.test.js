@@ -5,6 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { customPropertiesIn } from '../scripts/lib/box-shadow.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const files = ['src', 'react/src'].flatMap((base) => readdirSync(base, { recursive: true })
   .filter((file) => String(file).endsWith('.css')).map((file) => `${base}/${file}`));
@@ -33,7 +34,8 @@ const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
   assert.equal(surfaces.length, 138, 'surface discovery changed; the folded rail\'s current-row plate adds three and the disabled checkbox box and its radio mark add two');
   const shared = compositions.find((r) => !r.selector.includes(':root'));
-  const covered = (rule) => rule.selector.split(',').every((selector) => shared.selector.split(',').map((s) => s.trim()).includes(selector.trim()));
+  const composed = splitSelectorList(shared.selector);
+  const covered = (rule) => splitSelectorList(rule.selector).every((selector) => composed.includes(selector));
   for (const rule of surfaces) {
     const gap = own(rule).get('--ring-gap');
     const background = /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(rule.body)[1].trim();

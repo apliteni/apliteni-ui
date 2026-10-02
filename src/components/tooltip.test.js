@@ -14,6 +14,7 @@ import { readFileSync } from 'node:fs';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { tooltip, wireTooltip, showTooltip, hideTooltip } from './tooltip.js';
 import { dropdown, wireDropdown } from './dropdown.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const quiet = new VirtualConsole();
 quiet.on('jsdomError', () => {});
@@ -42,7 +43,7 @@ const decl = (rule, prop) => {
   return m.length ? m[m.length - 1][1].trim() : null;
 };
 // A rule about the readout box itself — not its host, not its parts.
-const isReadout = (selector) => selector.split(',').some((s) => /\.ui-tip(?![\w-])/.test(s));
+const isReadout = (selector) => splitSelectorList(selector).some((s) => /\.ui-tip(?![\w-])/.test(s));
 const base = RULES.find((r) => r.selector.trim() === '.ui-tip');
 
 // ---- The stylesheet ------------------------------------------------------

@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { statBand } from '../components/stat.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
@@ -78,7 +79,7 @@ test('colour on a change comes from its tone, never from its direction', () => {
   const painted = rules.filter((r) => /chip-(success|danger)-ink/.test(r.body));
   assert.ok(painted.length >= 4, `found ${painted.length} toned rules`);
   for (const r of painted) {
-    for (const one of r.selector.split(',').map((s) => s.trim())) {
+    for (const one of splitSelectorList(r.selector)) {
       assert.match(one, /^\.ui-stat--(good|bad) /, `${one} paints a change without asking its tone`);
     }
   }

@@ -112,7 +112,7 @@
    second file. What is left here is the rail's own resting step. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1491 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1492 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 .ui-app__rail .ui-nav__item.is-active::before { width: 3px; height: 62%; }
 

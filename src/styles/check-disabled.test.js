@@ -18,6 +18,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseColour, ratio } from '../../stories/lib/contrast.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(path.join(here, rel), 'utf8');
@@ -38,8 +39,7 @@ const rules = (css) => [...blank(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
  * are both accepted spellings; anything else is a leak. */
 const ENABLED_ONLY = /:enabled\b|:not\(\s*:disabled\s*\)/;
 function hoverLeaks(css) {
-  return rules(css).flatMap(({ selector }) => selector.split(',')
-    .map((part) => part.trim())
+  return rules(css).flatMap(({ selector }) => splitSelectorList(selector)
     .filter((part) => part.includes('.ui-check') && part.includes(':hover') && !ENABLED_ONLY.test(part)));
 }
 

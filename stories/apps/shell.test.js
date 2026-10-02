@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import { sidebarNav } from '../../src/components/nav.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -112,7 +113,7 @@ function tokensFor(theme = 'dark') {
   const vars = new Map();
   for (const file of ['src/tokens/brand.generated.css', 'src/tokens/tokens.css', 'src/tokens/accents.css']) {
     for (const [, selector, body] of decomment(read(file)).matchAll(RULE)) {
-      if (!selector.split(',').map((s) => s.trim()).some((s) => wanted.includes(s))) continue;
+      if (!splitSelectorList(selector).some((s) => wanted.includes(s))) continue;
       for (const decl of body.split(';')) {
         const i = decl.indexOf(':');
         if (i < 0) continue;
@@ -297,12 +298,12 @@ test('an icon-less row on the icon-only rail is given a mark of its own', () => 
   const marks = rules
     .filter(([, sel, body]) => sel.includes('::after')
       && /content:\s*""/.test(body) && /\bwidth:\s*\d/.test(body) && /\bheight:\s*\d/.test(body))
-    .flatMap(([, sel]) => sel.split(',').map((x) => x.trim().replace(/::after$/, '')));
+    .flatMap(([, sel]) => splitSelectorList(sel).map((x) => x.replace(/::after$/, '')));
   assert.ok(marks.length, 'nav.css draws no ::after for a rail row — this gate measures nothing');
   const raised = rules
     .filter(([, sel, body]) => sel.includes('.is-collapsed') && sel.includes('::after')
       && /opacity:\s*0?\.\d/.test(body))
-    .flatMap(([, sel]) => sel.split(',').map((x) => x.trim().replace(/::after$/, '')));
+    .flatMap(([, sel]) => splitSelectorList(sel).map((x) => x.replace(/::after$/, '')));
   assert.ok(raised.length, 'the fold raises no ::after, so the mark it draws stays invisible');
   const blank = [...doc.querySelectorAll('.ui-nav__item')].filter((row) => !row.querySelector('.ui-nav__ic'));
   assert.ok(blank.length >= 2, 'the fixture stopped carrying an icon-less child and an icon-less leaf');

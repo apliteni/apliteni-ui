@@ -17,6 +17,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { tokensFor, substitute, parseColour, luminance, ratio } from './lib/contrast.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const read = (p) => readFileSync(fileURLToPath(new URL(`../${p}`, import.meta.url)), 'utf8');
 const SHEET = read('src/styles/dropdown.css');
@@ -46,7 +47,7 @@ function ground(css, selector, theme) {
   if (theme === 'light') wanted.push(`:root[data-theme="light"] ${selector}`);
   let value = null;
   for (const rule of rules(css)) {
-    const list = rule.selector.split(',').map((one) => one.trim());
+    const list = splitSelectorList(rule.selector);
     if (!list.some((one) => wanted.includes(one))) continue;
     const decl = [...rule.body.matchAll(/(?:^|;)\s*background\s*:([^;]*)/g)].at(-1);
     if (decl) value = decl[1].trim();

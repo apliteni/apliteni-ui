@@ -9,6 +9,8 @@
  * the property name decides nothing and the layer has to be read.
  */
 
+import { splitSelectorList } from './selector-list.js';
+
 /** Split a box-shadow value into its comma-separated layers, respecting nesting.
  *  color-mix(in srgb, var(--x) 62%, transparent) carries two commas of its own,
  *  and a naive split turns one layer into three unparseable ones. */
@@ -246,7 +248,7 @@ export function dropOffences(cascade, palette) {
   for (const entry of cascade.decls.get(DROP) ?? []) {
     if (palette.includes(entry.file)) continue;
     // (?![\w-]) rather than \b, so a class named `:root-…` is not read as :root.
-    if (!entry.selector.split(',').some((sel) => /^:root(?![\w-])/.test(sel.trim()))) continue;
+    if (!splitSelectorList(entry.selector).some((sel) => /^:root(?![\w-])/.test(sel))) continue;
     out.push(`${entry.file}  ${entry.selector} { ${DROP}: ${entry.value} } — the palette is the `
       + 'only place this token is declared at :root, and a component sheet declaring it there '
       + 'changes the one shadow every floating surface in the kit reads');
