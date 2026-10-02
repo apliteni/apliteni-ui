@@ -17,16 +17,13 @@ export const SPEC_CSS = `
     .gd-frame .ui-drawer__panel { width: calc(100% - var(--space-12)); }
     .gd-frame .ui-card { padding: var(--space-4); }
     .gd-frame .ui-card + .ui-card { margin-top: var(--space-4); }
-    /* The page half of the drawer-or-page pair: no panel, no scrim and no card — the work
-       sits on the page itself, grouped by heading the way the drawer groups it, so
-       the halves differ by where the work is and not by what it is drawn with. The
-       frame is a floor rather than a height: both halves start at one screen, and
-       the page half grows past it where the drawer can only cut, which is what the
-       narrower viewport shows. */
+    /* The page half: no panel, no scrim, no card, so the halves differ by where the
+       work sits and not by what draws it. The minimum is a floor, not a fixed height:
+       both halves start at one screen and the page half grows past it at 390. */
     .gd-page { height: auto; min-height: 460px; overflow: visible;
       padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
-    /* A page title scaled to the specimen: the kit's own is a rank louder, which
-       beside this document's heading would read as the page's own title. */
+    /* A page title scaled to the specimen. The kit's own is a rank louder and would
+       read as this document's heading. */
     .gd-page__title { margin: 0; color: var(--strong);
       font-size: var(--text-xl); font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight); }
     .gd-page__cols { display: grid; gap: var(--space-6); align-items: start;
@@ -34,9 +31,8 @@ export const SPEC_CSS = `
     /* The group heading the drawer draws, in the same ink and rank. */
     .gd-group__title { margin: 0 0 var(--space-2); color: var(--strong); font-family: var(--font-sans);
       font-size: var(--text-sm); font-weight: var(--weight-semibold); }
-    /* The drawer's own row grid, so a value sits beside its label rather than at the
-       far edge, and one row height for both columns, so the two lists step together.
-       A row is the switch in the row padding the drawer's rows carry. */
+    /* The drawer's own row grid: a value sits beside its label, not at the far edge,
+       and one row height keeps both columns stepping together. */
     .gd-stack { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
       column-gap: var(--space-4); align-items: center;
       grid-auto-rows: minmax(calc(26px + var(--space-2)), auto); }
