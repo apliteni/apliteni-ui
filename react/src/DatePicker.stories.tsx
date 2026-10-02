@@ -57,6 +57,27 @@ export const Bounded: StoryObj<typeof DatePicker> = {
   ),
 };
 
+// Shortcuts against bounds: "This year" is clamped to what the bounds allow and
+// "Previous year" is off, because the grid would refuse all of it cell by cell.
+export const RangeBounded: StoryObj<typeof DatePicker> = {
+  render: function RangeBoundedStory(args) {
+    const [span, setSpan] = useState<DatePickerRange>({ start: '2026-06', end: '2026-08' });
+    return (
+      <DatePicker
+        {...args}
+        mode="range"
+        label="Period:"
+        range={span}
+        onRangeChange={setSpan}
+        presets={presets}
+        min="2026-04"
+        max="2026-09"
+        defaultOpen
+      />
+    );
+  },
+};
+
 export const Range: StoryObj<typeof DatePicker> = {
   render: function RangeStory(args) {
     const [span, setSpan] = useState<DatePickerRange>({ start: '2026-04', end: '2026-08' });
@@ -73,6 +94,44 @@ export const Range: StoryObj<typeof DatePicker> = {
       />
     );
   },
+};
+
+// A period the host blocks inside a chosen range. It keeps neither the tint nor
+// the words "in range": it cannot be picked, so it is not included. The story is
+// here so the contrast gate measures the pair rather than inferring it.
+export const RangeWithBlocked: StoryObj<typeof DatePicker> = {
+  render: function RangeWithBlockedStory(args) {
+    const [span, setSpan] = useState<DatePickerRange>({ start: '2026-04', end: '2026-08' });
+    return (
+      <DatePicker
+        {...args}
+        mode="range"
+        label="Period:"
+        range={span}
+        onRangeChange={setSpan}
+        disabledPeriods={['2026-06']}
+        marks={marks}
+        defaultOpen
+      />
+    );
+  },
+};
+
+// Bounds written in the other grain. A day picker given whole months still
+// honours them: September opens on the 1st and October closes on the 31st.
+export const DayBoundedByMonths: StoryObj<typeof DatePicker> = {
+  render: args => (
+    <DatePicker
+      {...args}
+      mode="day"
+      label="Date:"
+      defaultValue="2026-09-17"
+      min="2026-09"
+      max="2026-10"
+      disabledPeriods={['2026-09']}
+      defaultOpen
+    />
+  ),
 };
 
 export const Day: StoryObj<typeof DatePicker> = {
@@ -130,24 +189,32 @@ export const Keyboard: StoryObj<typeof DatePicker> = {
   ),
 };
 
-// The phone layout, in a 390px column: the panel is a sheet on the bottom edge
-// and the shortcuts sit above the grid.
+// The phone layout: the panel is the kit's bottom drawer, so it arrives with a
+// scrim, a close control and a focus trap, and the shortcuts sit above the grid.
+// `sheet` is passed rather than left to the viewport so the gates that mount
+// this story in JSDOM — which has no matchMedia — measure the sheet and not the
+// popover.
 export const Phone: StoryObj<typeof DatePicker> = {
   globals: { viewport: { value: 'phone', isRotated: false } },
   render: function PhoneStory(args) {
     const [span, setSpan] = useState<DatePickerRange>({ start: '2026-04', end: '2026-08' });
     return (
-      <div style={{ maxWidth: 390 }}>
-        <DatePicker
-          {...args}
-          mode="range"
-          label="Period:"
-          range={span}
-          onRangeChange={setSpan}
-          presets={presets}
-          defaultOpen
-        />
-      </div>
+      <DatePicker
+        {...args}
+        sheet
+        mode="range"
+        label="Period:"
+        range={span}
+        onRangeChange={setSpan}
+        presets={presets}
+        defaultOpen
+      />
     );
   },
+};
+
+// The same sheet in day mode, where the grid is the taller of the two.
+export const PhoneDay: StoryObj<typeof DatePicker> = {
+  globals: { viewport: { value: 'phone', isRotated: false } },
+  render: args => <DatePicker {...args} sheet mode="day" label="Date:" defaultValue="2026-09-17" defaultOpen />,
 };

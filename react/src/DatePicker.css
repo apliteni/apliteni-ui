@@ -171,31 +171,20 @@
 }
 .ui-datepicker__preset { justify-content: flex-start; }
 
-/* -- Phone ----------------------------------------------------------------- */
-/* At the kit's narrowest step a floating panel goes edge to edge, so the picker
-   becomes a sheet on the bottom edge and the shortcuts move above the grid.
-   The selectors carry the shell class too, so `.is-end`'s own `right` cannot
-   outrank them whichever order the two stylesheets are imported in.
+/* -- In the sheet ---------------------------------------------------------- */
+/* Below the kit's narrowest step the panel is a <Drawer>, so the sheet's shape,
+   scrim, close control and focus trap are src/styles/drawer.css's and nothing
+   here repeats them. What is left is the one layout difference: the shortcuts
+   sit above the grid rather than beside it. The modifier is written by the
+   component rather than by a media query, so a picker a consumer puts inside
+   their own drawer at desktop width keeps the two-column layout.
    why: docs/specification.md#breakpoints */
-@media (max-width: 560px) {
-  .ui-dropdown.ui-datepicker .ui-datepicker__panel {
-    position: fixed;
-    inset-block: auto 0;
-    inset-inline: 0;
-    min-width: 0;
-    width: auto;
-    max-width: none;
-    max-height: 85vh;
-    overflow-y: auto;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  }
-  .ui-datepicker__body { flex-direction: column; align-items: stretch; }
-  .ui-datepicker__presets {
-    grid-auto-flow: column;
-    grid-auto-columns: max-content;
-    overflow-x: auto;
-    padding: 0 0 var(--space-3);
-    border-inline-end: 0;
-    border-block-end: 1px solid var(--border);
-  }
+.ui-datepicker__body.is-sheet { flex-direction: column; align-items: stretch; }
+.ui-datepicker__body.is-sheet .ui-datepicker__presets {
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  overflow-x: auto;
+  padding: 0 0 var(--space-3);
+  border-inline-end: 0;
+  border-block-end: 1px solid var(--border);
 }

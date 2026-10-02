@@ -720,23 +720,41 @@ to the component. Import both the kit CSS and the React CSS.
 ```
 
 **The grid has one tab stop.** The arrows move one period and one row, Home and End go to
-the ends of the row, Page Up and Page Down move a year in the month modes and a month in
-day mode, Enter and Space pick, and Escape closes and returns focus to the trigger. A move
-past the edge of the shown year or month turns the page and keeps the reader on the period
-they moved to. `min`, `max` and `disabledPeriods` mark a cell `aria-disabled` and refuse
-the press, and the cell stays focusable so the bound can be met rather than missed.
+the ends of the row — they never leave the month, so the blank slots a day grid pads its
+first and last weeks with are not somewhere they can take you — Page Up and Page Down
+move a year in the month modes and a month in day mode, Enter and Space pick, and Escape
+closes and returns focus to the trigger. A move past the edge of the shown year or month
+turns the page and keeps the reader on the period they moved to. Each cell's accessible
+name says what the cell is: `selected` for the pick in every mode, plus `range start`,
+`range end` and `in range` in range mode, the mark's word, and `today`.
+
+**Bounds hold against your code as well as the reader's.** `min`, `max` and
+`disabledPeriods` are `string`, so a period in the other grain is converted rather than
+dropped: in day mode `min="2026-09"` is 1 September and `max="2026-09"` is the 30th, and
+`disabledPeriods={['2026-09']}` blocks the whole month; in month mode a date means the
+month it falls in. Blocked cells get `aria-disabled` and refuse the press while staying
+focusable. A page step with nowhere to go is disabled.
 
 **Range mode takes a start, then an end**, staying open in between; a second pick above or
 below the first always reads as the same range, so the ends swap rather than restarting.
 `onRangeChange` fires on each end, so `{ start, end: null }` reaches you too. `presets`
-set both ends at once.
+set both ends at once and are held to the same bounds the grid is: a preset that overruns
+them is clamped, and one with no overlap at all is disabled. A blocked period between the
+two ends is not part of the range — it keeps neither the tint nor the words "in range".
 
 **`marks` are the consumer's own notes**, keyed by period. Each shows as a dot in the
 cell, as a word in the legend under the grid, and in the cell's accessible name. Give
 `tone` one of `neutral`, `info`, `success`, `warn` or `danger`.
 
+**Below 560px the panel is a bottom `Drawer`**, so the sheet has the kit's scrim, close
+control and focus trap and the page behind it is inert. Pass `sheet` to force that at any
+width — a host that already knows it is on a phone, or one rendering where no viewport
+can be read, should, because the picker reads the viewport with `matchMedia` and starts
+as the popover until it has.
+
 Pass `today` (a `'YYYY-MM-DD'` date) to fix what the grid calls today — stories and tests
 use it to stay the same whenever they run. `locale` names the months and weekdays,
 `weekStartsOn` sets the first column in day mode, and `align="end"` hangs the panel off
-the trigger's trailing edge. Below 560px the panel is a sheet on the bottom edge. The
-panel stays mounted while closed, and is `inert` while it is.
+the trigger's trailing edge. `ariaLabel` names the trigger and the panel; with `label` it
+replaces the trigger's own text as the accessible name. The popover stays mounted while
+closed, and is `inert` while it is.
