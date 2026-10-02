@@ -8,10 +8,11 @@
  * why: scripts/evidence/README.md
  */
 import { readFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import { inflateSync } from 'node:zlib';
 
 /** { width, height, channels, data } from a PNG Chrome wrote. */
-function decode(file) {
+export function decode(file) {
   const buf = readFileSync(file);
   if (buf.readUInt32BE(0) !== 0x89504e47) throw new Error(`${file} is not a PNG`);
   let head;
@@ -65,6 +66,11 @@ function decode(file) {
   return { ...head, channels, data: out };
 }
 
+// Imported by code-chip.mjs for its pixel sampler: a decoder is worth sharing, its argv is
+// not, so everything below runs only when this file is the entry point.
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) compare();
+
+function compare() {
 const [fileA, fileB, bound = '0'] = process.argv.slice(2);
 const a = decode(fileA);
 const b = decode(fileB);
@@ -92,3 +98,4 @@ const total = a.data.length;
 const where = differing ? ` in x∈[${box.x0},${box.x1}] y∈[${box.y0},${box.y1}]` : '';
 console.log(`${differing} of ${total} samples differ, max delta ${max}${where}`);
 process.exit(max > Number(bound) ? 1 : 0);
+}

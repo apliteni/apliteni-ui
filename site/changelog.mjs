@@ -6,9 +6,16 @@
 
 export const RELEASES = [
   {
-    v: '0.75.0', date: '2026-10-02',
+    v: '0.76.0', date: '2026-10-02',
     changes: [
       ['added', 'React DatePicker picks one month, a range of months, one date, or a range of dates, from the dropdown\u2019s own trigger and panel. The grain and the span are separate questions, so a day range takes the same two presses the month range does and carries the same bounds, blocked periods and shortcuts. It takes min and max bounds, blocked periods, consumer marks shown as a dot, a word in the legend and part of the cell\u2019s name, and consumer presets in range mode. Bounds and blocked periods written in the other grain are converted rather than dropped, and a preset is clamped to the bounds or switched off. The grid has one tab stop: arrows and the Page keys move it and turn the page, and Home and End go to the ends of the row without leaving the month. Every cell says whether it is the pick. A blocked cell goes bare whatever else it is, so a period the host blocks never wears the accent fill or the range tint under disabled ink. A cell under the pointer takes the kit\u2019s neutral row hover, so the accent stays on the pick and the span. A blocked period between the two ends of a range stays in the value the host is handed and says so in its name; only its tint is withheld. Below 560px the panel is a bottom drawer, with the kit\u2019s scrim, close control and focus trap, and the grid reaches the 44px tap floor; pass sheet to force the drawer at any width. Part of #429; resolves #506.', ['DatePicker']],
+    ],
+  },
+  {
+    v: '0.75.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'An inline `.ui-code` chip now paints whichever reading surface its container is not on, so an identifier keeps its chip inside a card, a panel, a drawer, a toast, a table cell and a callout. It painted `--surface`, which is the card, so in all of those it had no chip at all in either theme. Nothing about it changes on the page, and it takes no border and no hairline. Fixes #537.', ['Typography']],
+      ['added', '`--code-bg` names the reading surface an inline code chip paints. A consumer painting a reading surface of its own hands it the other one; `--table-code-bg` and `--wash-code-bg` are the pairs for a table and for a translucent wash, which need one because they swap sides between the themes. See #537.'],
     ],
   },
   {

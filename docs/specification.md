@@ -608,6 +608,41 @@ of a grey text background. Floating readouts use `--bg-elevated` and keep their
 existing edge and shadow treatment. Decided in
 [#455](https://github.com/apliteni/apliteni-ui/issues/455).
 
+**An inline code chip paints the reading surface its container is not on.** A container says
+which one that is in `--code-bg`, and the chip reads it — it never declares it:
+
+| The ground | What it hands a chip | Token |
+| --- | --- | --- |
+| the page | the card | `--code-bg: var(--surface)` on `:root` |
+| a card, a panel, any painted container | the page | `--code-bg: var(--bg)` |
+| a table | the card in dark, the page in light | `--table-code-bg`, the pair of `--table-bg` |
+| a tinted card or snippet | the card it is a variant of | `--code-bg: var(--surface)` |
+| a translucent wash over any of them | the page in dark, the card in light | `--wash-code-bg` |
+
+A consumer painting a reading surface of its own hands `--code-bg` the other one; a consumer
+painting a table surface sets `--table-bg` and `--table-code-bg` together, and one painting a
+wash that takes caller markup sets `--code-bg: var(--wash-code-bg)`. The chip's focus gap is its
+own paint, so a link written inside a chip takes the ring over the surface it is really on.
+
+**The chip keeps at least 1.065 against its ground on every ground the kit draws, in both
+themes** — 1.110 on a card or the page, 1.127 at worst under a wash, and 1.065 and 1.083 on the
+two light tinted cards, which are the floor. That is 792 measured pairs: every ground, every
+wash composited over every ground, both themes, and the one context a ground token is
+re-pointed in. `stories/code-chip.test.js` holds them and `scripts/evidence/code-chip.mjs`
+samples the rendered pixels they are checked against; the two agree within 0.012.
+
+*Why the container has to say it.* The chip cannot read the ground it stands on: a `var()`
+inside a custom property is substituted on the element that **declares** it, so a chip reading
+`--ring-gap` would read back its own. And one value cannot serve both grounds, because in light
+they are `#ffffff` and `#f2f3f6` with nothing between them — a chip that reads on the page is
+invisible on a card and the other way round. A table needs a pair because it is the page in dark
+and white in light and follows its card into one. A tinted surface takes the card because light
+mixes its tint **down from white**, which moves it toward the page and leaves the page 1.02
+away. A **wash** needs its own pair for the opposite reason to a rung: it paints *behind* the
+chip, so it moves the ground and not the chip, and it moves it in opposite directions in the two
+themes — dark's washes lift a near-black ground away from the page, light's darken white toward
+it. Decided on [#537](https://github.com/apliteni/apliteni-ui/issues/537).
+
 **A tinted card stays above the page, and `--card-tint` is what buys that.** `.ui-card--accent`
 and `.ui-card--live` mix their colour into `--surface`. Dark mixes upward off a mid-grey card and
 can spend 9%. Light mixes **down from white**, so every point of tint is a point of lightness the
