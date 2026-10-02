@@ -1948,7 +1948,8 @@ Column labels accept React content, including a kit Tooltip for a header explana
 A scrollable React DataTable scrolls its columns in its own named, keyboard-focusable
 region, as the vanilla kit's table does, and offers no separate control that scrolls it.
 While columns reach past that region, its accessible name ends in “, scroll for more
-columns”; a table whose columns fit keeps the name its consumer gave it. Tables inside
+columns”; a table whose columns fit keeps the name its consumer gave it. The region's
+edge shade says the same thing in paint, and is described under dense financial tables. Tables inside
 cards use the card reading surface for their body, sticky header and pinned cells.
 
 A table may omit selection controls when its consumer has no selection action. Existing
@@ -2110,7 +2111,14 @@ name; missing or failed images retain a letter fallback after initialization.
 A named scroll region holds the native table. Sticky headers and pinned identity cells have
 opaque table backgrounds and the shared G2 focus composition. Narrow pinned identities show
 the symbol, retain the full accessible name, and use a company link for disclosure. The
-consumer supplies a real destination for that link. Columns scroll rather than disappear.
+consumer supplies a real destination for that link. Columns scroll rather than disappear,
+and the region shows a soft shade on whichever edge still has columns behind it, with none
+on an edge that has been reached. The shade darkens on a light ground and lightens on a dark
+one, because ink has nowhere to go on a near-black page. It is CSS alone — background layers
+whose cover rides the content — so vanilla and React tables carry it alike, and because a
+background paints inside the padding box it cannot reach the focus ring the region paints
+outside its border box. The table inside the region hands it the reading surface; the sticky
+header and pinned cells keep their own, since they have to hide what scrolls beneath them.
 
 `FilterBar` is controlled by its consumer: selections, removal and clear-all request changes,
 and never mutate the supplied filters. Updating the mounted host preserves the focused chip
@@ -2327,11 +2335,18 @@ the longest matching section path wins, with matches ending at a path boundary.
 Router links receive the same classes, accessible name, count and navigation handler
 as native links. The rail shares the vanilla fold cookie and 720px fold breakpoint.
 Below 560px, a bottom bar replaces it: up to four sections, or three plus More.
-A shell given one section renders no bottom bar — a bar holding a single row is
-navigation to the page already on screen — and the rail keeps that section.
-The shell sets `--ui-app-bottom-clearance` on the root, including the safe-area inset.
-Page bottom padding, root scroll padding and the React toast stack share this clearance;
-callers can scroll a changed action into view without placing it behind the bar.
+A shell given one section draws no section navigation at any width, and no fold
+control with it: a list of one destination points at the page already on screen,
+and the fold exists to close a list. The brand, search, theme and reader controls
+are unchanged, and the section stays in the command palette.
+While the bottom bar is drawn — below 560px, with two or more sections — the shell
+sets `--ui-app-bottom-clearance` on the root, including the safe-area inset. It is
+declared nowhere else: above 560px, and in a one-section shell at any width, reading
+it yields nothing. Page bottom padding, root scroll padding and the React toast stack
+share it, and each supplies `0px` as the fallback — `var(--ui-app-bottom-clearance, 0px)`
+— which is how a caller must read it too, since a bare `var()` on an undeclared
+property makes the whole declaration invalid. With the clearance in hand, callers can
+scroll a changed action into view without placing it behind the bar.
 See [#384](https://github.com/apliteni/apliteni-ui/issues/384) and
 [#444](https://github.com/apliteni/apliteni-ui/issues/444).
 More opens the React Drawer and closes on navigation. Search uses the React

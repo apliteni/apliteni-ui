@@ -84,17 +84,29 @@ it('leaves shortcuts in editable fields alone and updates the theme', () => {
   expect(document.documentElement.getAttribute('data-theme')).toBe(theme === 'light' ? 'dark' : 'light');
 });
 
-// A bar holding one row is navigation that can only point at the page already on
-// screen, and it keeps 96px of a phone to do it. The clearance those pixels buy
-// is keyed on the bar in AppShell.css, so no page pads for a bar that is absent.
-it('renders no bottom bar for a single section and keeps the rail', () => {
+// Navigation to one destination is navigation to the page already on screen. The
+// rule holds at every width: no rail list, no fold to close it, and no bottom bar
+// — whose 96px of a phone the clearance is keyed on in AppShell.css.
+it('draws no section navigation for a single section, at any width', () => {
   const one = [{ href: '/changes', label: 'Changes', icon: 'doc' }];
   const { rerender } = render(<AppShell {...props} sections={one} pathname="/changes" />);
-  expect(screen.queryByRole('navigation', { name: 'Sections on mobile' })).toBeNull();
+  for (const name of ['Sections', 'Sections on mobile']) {
+    expect(screen.queryByRole('navigation', { name })).toBeNull();
+  }
   expect(document.querySelector('.ui-react-app__bottom')).toBeNull();
-  const rail = within(screen.getByRole('navigation', { name: 'Sections' }));
-  expect(rail.getByRole('link', { name: 'Changes' })).toHaveAttribute('aria-current', 'page');
+  expect(screen.queryByRole('link', { name: 'Changes' })).toBeNull();
+  expect(document.querySelector('[aria-current]')).toBeNull();
+  expect(screen.queryByRole('button', { name: /sidebar$/i })).toBeNull();
+  // What the shell keeps: its brand, and the section as a palette entry.
+  expect(screen.getByRole('link', { name: props.word ?? 'apliteni-ui' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /^Search or run a command/ }));
+  expect(within(screen.getByRole('dialog')).getByText('Changes')).toBeInTheDocument();
+
+  // Two destinations are a choice, and every part comes back.
   rerender(<AppShell {...props} sections={[...one, { href: '/costs', label: 'Costs', icon: 'chart' }]} pathname="/changes" />);
-  const bar = within(screen.getByRole('navigation', { name: 'Sections on mobile' }));
-  expect(bar.getByRole('link', { name: 'Changes' })).toHaveAttribute('aria-current', 'page');
+  for (const name of ['Sections', 'Sections on mobile']) {
+    expect(within(screen.getByRole('navigation', { name })).getByRole('link', { name: 'Changes' }))
+      .toHaveAttribute('aria-current', 'page');
+  }
+  expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
 });
