@@ -442,6 +442,128 @@ describe('range mode', () => {
   });
 });
 
+/* The same two presses as the month range, one grain down. Everything the month
+ * range already holds — the swap, the span, the words, the shortcuts, the
+ * bounds — is asked again here rather than assumed to carry over, because the
+ * grain is what changed. */
+describe('day-range mode', () => {
+  function Example({ presets, ...rest }: {
+    presets?: { label: string; range: DatePickerRange }[];
+    min?: string; max?: string; disabledPeriods?: string[];
+  }) {
+    const [span, setSpan] = useState<DatePickerRange>({ start: null, end: null });
+    return (
+      <DatePicker today={TODAY} mode="day-range" label="Dates:" range={span}
+        onRangeChange={setSpan} presets={presets} defaultOpen {...rest} />
+    );
+  }
+
+  it('shows a day grid and asks for two dates', async () => {
+    const user = userEvent.setup();
+    render(<Example />);
+    expect(within(panel()).getByRole('grid')).toHaveAccessibleName('September 2026');
+    expect(within(panel()).getAllByRole('columnheader')).toHaveLength(7);
+    expect(trigger()).toHaveTextContent('Select dates');
+    await user.click(cell(/\b7 September 2026/));
+    expect(isOpen()).toBe(true);
+    expect(trigger()).toHaveTextContent('From 7 Sept 2026');
+    await user.click(cell(/\b18 September 2026/));
+    expect(isOpen()).toBe(false);
+    expect(trigger()).toHaveTextContent('7 Sept 2026 \u2013 18 Sept 2026');
+  });
+
+  it('reads a backwards pair as the same range', async () => {
+    const user = userEvent.setup();
+    render(<Example />);
+    await user.click(cell(/\b18 September 2026/));
+    await user.click(cell(/\b7 September 2026/));
+    expect(trigger()).toHaveTextContent('7 Sept 2026 \u2013 18 Sept 2026');
+  });
+
+  it('paints and names the days between the two ends', async () => {
+    const user = userEvent.setup();
+    render(<Example />);
+    await user.click(cell(/\b7 September 2026/));
+    await user.click(cell(/\b10 September 2026/));
+    await user.click(trigger());
+    expect(cell(/\b7 September 2026/)).toHaveAccessibleName(expect.stringContaining('range start'));
+    expect(cell(/\b10 September 2026/)).toHaveAccessibleName(expect.stringContaining('range end'));
+    expect(cell(/\b8 September 2026/)).toHaveClass('is-inside');
+    expect(cell(/\b9 September 2026/)).toHaveAccessibleName(expect.stringContaining('in range'));
+    expect(cell(/\b11 September 2026/)).not.toHaveClass('is-inside');
+  });
+
+  it('runs a range across a month boundary', async () => {
+    const user = userEvent.setup();
+    render(<Example />);
+    await user.click(cell(/\b28 September 2026/));
+    await user.click(screen.getByRole('button', { name: /^Next month/ }));
+    await user.click(cell(/\b3 October 2026/));
+    expect(trigger()).toHaveTextContent('28 Sept 2026 \u2013 3 Oct 2026');
+    // Reopening starts from the range's own start, so the span is read on
+    // September's page first and on October's after one step.
+    await user.click(trigger());
+    expect(within(panel()).getByRole('grid')).toHaveAccessibleName('September 2026');
+    expect(cell(/\b29 September 2026/)).toHaveClass('is-inside');
+    await user.click(screen.getByRole('button', { name: /^Next month/ }));
+    expect(cell(/\b1 October 2026/)).toHaveClass('is-inside');
+    expect(cell(/\b3 October 2026/)).toHaveAccessibleName(expect.stringContaining('range end'));
+  });
+
+  it('walks the grid with the same keys', async () => {
+    const user = userEvent.setup();
+    render(<Example />);
+    cell(/\b15 September 2026/).focus();
+    await user.keyboard('{ArrowDown}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('22 September 2026'));
+    await user.keyboard('{Home}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('21 September 2026'));
+    await user.keyboard('{PageUp}');
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('21 August 2026'));
+    await user.keyboard('{Enter}');
+    expect(trigger()).toHaveTextContent('From 21 Aug 2026');
+  });
+
+  it('refuses a blocked day at either end and leaves it out of the span', async () => {
+    const user = userEvent.setup();
+    const onRangeChange = vi.fn();
+    render(
+      <DatePicker today={TODAY} mode="day-range" label="Dates:" defaultOpen
+        onRangeChange={onRangeChange} min="2026-09-03" max="2026-09-25"
+        disabledPeriods={['2026-09-12']} defaultRange={{ start: null, end: null }} />,
+    );
+    expect(cell(/\b2 September 2026/)).toHaveAttribute('aria-disabled', 'true');
+    expect(cell(/\b26 September 2026/)).toHaveAttribute('aria-disabled', 'true');
+    await user.click(cell(/\b12 September 2026/));
+    expect(onRangeChange).not.toHaveBeenCalled();
+    await user.click(cell(/\b7 September 2026/));
+    await user.click(cell(/\b18 September 2026/));
+    await user.click(trigger());
+    const blocked = cell(/\b12 September 2026/);
+    expect(blocked).not.toHaveClass('is-inside');
+    expect(blocked).not.toHaveAccessibleName(expect.stringContaining('in range'));
+    expect(cell(/\b11 September 2026/)).toHaveClass('is-inside');
+  });
+
+  it('takes a shortcut, and refuses one the bounds or a blocked day spoil', async () => {
+    const user = userEvent.setup();
+    render(
+      <Example
+        min="2026-09-03" max="2026-09-25" disabledPeriods={['2026-09-13']}
+        presets={[
+          { label: 'This week', range: { start: '2026-09-14', end: '2026-09-20' } },
+          { label: 'Last week', range: { start: '2026-09-07', end: '2026-09-13' } },
+          { label: 'Last month', range: { start: '2026-08-01', end: '2026-08-31' } },
+        ]}
+      />,
+    );
+    expect(within(panel()).getByRole('button', { name: 'Last week' })).toBeDisabled();
+    expect(within(panel()).getByRole('button', { name: 'Last month' })).toBeDisabled();
+    await user.click(within(panel()).getByRole('button', { name: 'This week' }));
+    expect(trigger()).toHaveTextContent('14 Sept 2026 \u2013 20 Sept 2026');
+  });
+});
+
 /* A host can block the period its own value names. The cell stays the value —
  * it says so — and stops being pickable, and the paint follows the behaviour
  * rather than the value. The ink of that pair is held by the state gate below. */

@@ -15,8 +15,12 @@ import './DatePicker.css';
 // why: docs/specification.md#the-dropdown-panel
 // why: docs/specification.md#react-date-and-month-picker
 
-/** `'month'` and `'range'` work in whole months; `'day'` in whole dates. */
-export type DatePickerMode = 'month' | 'range' | 'day';
+/**
+ * `'month'` and `'range'` work in whole months, `'day'` and `'day-range'` in
+ * whole dates. The two range modes behave alike: a start, then an end, with the
+ * days or months between them shown as the span.
+ */
+export type DatePickerMode = 'month' | 'range' | 'day' | 'day-range';
 
 /**
  * A consumer's note on one period — "incomplete", "estimate". It shows as a dot
@@ -215,7 +219,11 @@ export function DatePicker({
   align = 'start', locale = 'en-GB', weekStartsOn = 1, today, sheet,
   open: openProp, defaultOpen = false, onOpenChange,
 }: DatePickerProps) {
-  const grain: Grain = mode === 'day' ? 'day' : 'month';
+  const grain: Grain = mode === 'day' || mode === 'day-range' ? 'day' : 'month';
+  // Which of the two questions the grid is asking. The grain and the span are
+  // separate: either grain can be picked as one period or as a range, and every
+  // rule below reads this rather than naming a mode.
+  const picksRange = mode === 'range' || mode === 'day-range';
   // Below the kit's narrowest step the panel is a sheet, and a sheet is the
   // kit's drawer rather than a wide popover.
   const phone = usePhone();
@@ -239,6 +247,7 @@ export function DatePicker({
     monthYear: new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }),
     monthYearShort: new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric', timeZone: 'UTC' }),
     day: new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }),
+    dayShort: new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }),
     weekday: new Intl.DateTimeFormat(locale, { weekday: 'long', timeZone: 'UTC' }),
     weekdayShort: new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' }),
   }), [locale]);
@@ -274,7 +283,7 @@ export function DatePicker({
   // piece of state, the way the APG grid pattern keeps it. A page cannot drift
   // from the cell the keyboard is on, because the page is derived from it.
   const anchor = toIndex(picked, grain)
-    ?? toIndex(mode === 'range' ? (span.start ?? span.end) : null, grain)
+    ?? toIndex(picksRange ? (span.start ?? span.end) : null, grain)
     ?? todayIndex;
   const [cursor, setCursor] = useState(() => clamp(anchor, lo, hi));
   // Where DOM focus should land once the grid has rendered. A page step from the
@@ -386,14 +395,14 @@ export function DatePicker({
   // word come off it. One source, so the paint and the name cannot disagree.
   const isInside = (cell: Cell) => !cell.disabled
     && edges[0] != null && edges[1] != null && cell.index > edges[0] && cell.index < edges[1];
-  const isPicked = (index: number) => (mode === 'range'
+  const isPicked = (index: number) => (picksRange
     ? isEdge(index)
     : index === toIndex(picked, grain));
 
   function pick(cell: Cell) {
     if (cell.disabled) return;
     setCursor(cell.index);
-    if (mode === 'range') {
+    if (picksRange) {
       // First press opens a new range, second closes it; a second press below the
       // first is the same range read backwards, so the ends swap rather than
       // asking the reader to start again.
@@ -491,10 +500,13 @@ export function DatePicker({
   }
 
   const shown = useMemo(() => {
-    if (mode === 'range') {
+    if (picksRange) {
+      // A range names both ends in the short form, so the trigger holds a pair
+      // of dates in the width one long date would take.
       const text = (period: string | null) => {
         const index = toIndex(period, grain);
-        return index == null ? null : names.monthYearShort.format(at(index));
+        if (index == null) return null;
+        return grain === 'month' ? names.monthYearShort.format(at(index)) : names.dayShort.format(at(index));
       };
       const from = text(span.start);
       const to = text(span.end);
@@ -506,10 +518,11 @@ export function DatePicker({
     const index = toIndex(picked, grain);
     if (index == null) return null;
     return grain === 'month' ? names.monthYear.format(at(index)) : names.day.format(at(index));
-  }, [mode, grain, span.start, span.end, picked, names, at]);
+  }, [picksRange, grain, span.start, span.end, picked, names, at]);
 
-  const empty = placeholder
-    ?? (mode === 'range' ? 'Select a period' : mode === 'day' ? 'Select a date' : 'Select a month');
+  const empty = placeholder ?? (picksRange
+    ? (grain === 'month' ? 'Select a period' : 'Select dates')
+    : (grain === 'month' ? 'Select a month' : 'Select a date'));
   const name = ariaLabel || (label ? String(label).replace(/:\s*$/, '') : '') || empty;
 
   // The marks on this page, once each, in the order the grid meets them. The
@@ -535,7 +548,7 @@ export function DatePicker({
     const parts = [cell.name];
     if (cell.mark) parts.push(cell.mark.label);
     if (cell.index === todayIndex) parts.push(grain === 'month' ? 'this month' : 'today');
-    if (mode === 'range') {
+    if (picksRange) {
       if (cell.index === edges[0] && cell.index === edges[1]) parts.push('selected');
       else if (cell.index === edges[0]) parts.push('range start');
       else if (cell.index === edges[1]) parts.push('range end');
@@ -557,7 +570,7 @@ export function DatePicker({
 
   const calendar = (
     <div className={cx('ui-datepicker__body', asSheet && 'is-sheet')}>
-      {mode === 'range' && presets?.length ? (
+      {picksRange && presets?.length ? (
         <div className="ui-datepicker__presets" role="group" aria-label="Period shortcuts">
           {presets.map((preset) => {
             // A shortcut the bounds leave nothing of is off rather than absent:
