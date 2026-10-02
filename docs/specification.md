@@ -289,7 +289,8 @@ menu row badge, the footer column title, the code sample's label, the confirmati
 the version badge. Each carried letter-spacing that only capitals need, and it went with them.
 Where the displayed text was a key, the kit now writes the word: `versionSwitcher()` shows
 `Live` and `Archive` for `live` and `archive`. Text a caller hands a badge is shown as handed,
-so a status passed as `paid` reads `paid`.
+so a status passed as `paid` reads `paid`. Ten of those eleven are left: [#429][i429] removed the
+confirmation's eyebrow outright, so the rank table below lists six labels rather than seven.
 
 **Six ranks, each under the one above it.** A screen stacks a page title, card titles,
 running text, labels, captions and chips, and each takes one rank:
@@ -299,7 +300,7 @@ running text, labels, captions and chips, and each takes one rank:
 | `page-title` | `--text-2xl`  | `--weight-bold`     | `1.1`              | the page's `h1` inside `appShell()` |
 | `card-title` | `--text-lg`   | `--weight-semibold` | `--leading-snug`   | a card's title |
 | `body`       | `--text-base` | `--weight-normal`   | `--leading-normal` | running text |
-| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title, a code sample's label, a confirmation's eyebrow |
+| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title, a code sample's label |
 | `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot |
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
@@ -332,6 +333,7 @@ beside it.
 [i268]: https://github.com/apliteni/apliteni-ui/issues/268
 [i269]: https://github.com/apliteni/apliteni-ui/issues/269
 [i310]: https://github.com/apliteni/apliteni-ui/issues/310
+[i429]: https://github.com/apliteni/apliteni-ui/issues/429
 
 ## Motion
 
@@ -2180,7 +2182,7 @@ the contract of the factory they invoke (for example, success actions use `butto
 | `skeleton`, `skeletonTable` | lines array entries, width (scalar/array), height, radius, className | — | — | — |
 | `busyRegion` | label, readyLabel, className, lines array entries | — | — | body |
 | `deniedState` | title, sub, need, className | action href | icon, action enums | — |
-| `success`, `successCheck` | eyebrow, title, body, className, countdown label/seconds; action label | action href | layout, backdrop, level, action enums | — |
+| `success`, `successCheck` | title, body, className, countdown label/seconds; action label | action href | layout, check, level, action enums | — |
 | `feedbackWidget` | label, placeholder, doneTitle, doneBody | — | — | — |
 | `pagination` | label, id | href(page) result | variant | — |
 | `statBand` | basis, label, id; stat label/value; delta value/basis/none | — | variant, delta tone/direction | stat trend |
@@ -2433,6 +2435,80 @@ Held by `react/src/primitives/Pill.test.tsx` and
 `react/src/primitives/StatusDot.test.tsx`; these check DOM behavior and semantics,
 not visual rendering or assistive-technology announcements. Part of
 [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+## React success confirmations
+
+Under [#429](https://github.com/apliteni/apliteni-ui/issues/429), React `SuccessPanel`
+provides the inline title/subtitle confirmation and `SuccessCheck` provides the bare
+shared decorative mark, the same markup as vanilla `successCheck()`. Its size and
+colours come from the containing box, which the inline panel owns. `Success` keeps the
+hero, split and compact layouts and optional confetti, and takes `check` for the mark,
+as described under Success confirmations. They use the shared CSS and reduced-motion
+behavior, without vanilla factories. Actions are React nodes; routing remains with the
+consumer. An omitted or
+empty `actions` omits the actions row. The page confirmation has a polite status region
+and defaults to h1 for hero/split, h2 for compact; `level` allows an explicit rank of
+1 to 6, and any other value takes that layout default. The inline panel keeps its
+existing div title.
+
+An optional countdown calls `onCountdownEnd` once when it reaches zero. Removal or
+unmount cancels it. Changing duration restarts it; changing label or callback keeps
+elapsed time. Durations round down to whole seconds; missing, non-finite, or
+sub-one values use five seconds. `react/src/Success.test.tsx` checks semantics,
+action access and timer ownership; it does not measure browser paint or prove
+screen-reader announcements.
+
+## Success confirmations
+
+A confirmation carries **one title and at most one short line under it**. There is
+no eyebrow: `success()`, `<Success>` and `successPanel()` take a title and a single
+line of detail, and nothing stacks a third tier of text above or between them. A
+label, a headline and a paragraph are three voices reporting one outcome, and the
+block carries more weight than the outcome needs. Put the outcome in the title —
+`Feedback sent`, not `Thanks — it goes straight to the strategy owner` with
+`Feedback sent` as a label above it — and let the line under it add the one detail
+the reader still needs.
+
+`success()` and React `Success` draw that confirmation on a plain elevated card: the
+kit surface, its border, and nothing behind it. There is no backdrop layer, and no
+`backdrop` option — the blurred aurora blobs and the ambient green glow were
+removed under [#429][i429] because they read as smudges rather than depth. The split layout
+keeps its flat tinted visual panel, and the inline `successPanel()` keeps its
+`--glow-green` wash; both are single flat fills, not blurs.
+
+The mark is one of two, chosen with `check` on any of the three — `success()`,
+`successPanel()`, `<Success>`, `<SuccessPanel>` — or with `variant` on `SuccessCheck`
+directly:
+
+| `check` | Mark | Size | Motion |
+| --- | --- | --- | --- |
+| `line` (default) | Lucide `check`, bare, in the success colour | 56px hero, 72px split, 28px compact, 28px inline panel | strokes itself on over `--dur-slow` |
+| `circled` | Lucide `circle-check-big` (the kit's `circleCheck`) | 20px, the kit's label size — every `success()` layout **and** the inline `successPanel()` | at rest |
+
+`line` is sized by the layout it lands in; `circled` is one size everywhere, because a
+status mark that changes size reads as an illustration. The inline panel's box narrows
+to 20px for it rather than stretching it to the 28px the line mark fills.
+
+Both are unmodified Lucide paths at Lucide's own `stroke-width: 2`, in a 24 box.
+Any other `check` value takes `line`. Neither mark has a filled disc or a burst
+ring behind it.
+
+**Guidelines / Iconography reserves a circled glyph for a state and a bare one
+for an action, and a confirmation reports a state.** `circled` is therefore the
+mark that rule asks for; `line` is the default because it carries the moment at
+page size, where a 20px mark does not. A surface that wants the rule met passes
+`check: 'circled'`.
+
+An action that is not a kit `Button` — a router link, a plain `<a>` — takes
+`.ui-focusable`, the kit's opt-in focus class. Without it the browser paints its own
+focus outline, which [#457](https://github.com/apliteni/apliteni-ui/issues/457)
+rejected. The confirmation adds no focus rule of its own; both actions and the link
+are painted by the one shared rule in `src/styles/base.css`.
+
+`src/components/success.test.js` reads the emitted markup: it holds both paths
+against `src/assets/icons.js`, holds the root class against the mark drawn, holds
+the removed backdrop layers out of all three layouts, and counts the text tiers each
+layout emits so a third one cannot return unnoticed. It does not paint, so it cannot
+say how large either mark renders or whether the tick animates.
 
 ## React sidebar navigation
 

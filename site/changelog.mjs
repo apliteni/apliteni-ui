@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.65.0', date: '2026-10-01',
+    changes: [
+      ['added', 'React Success, SuccessPanel and SuccessCheck provide the confirmation layouts and the check mark. Page confirmations accept React actions and a cancelable countdown callback; the caller owns navigation. Part of #429.'],
+      ['changed', 'Success confirmations now sit on a plain elevated card. The blurred aurora blobs and the ambient green glow behind them are gone, and with them the `backdrop` option — vanilla callers passing it are unaffected, since the value is now ignored. This is in the shared stylesheet, so it reaches vanilla and React alike.', ['Success']],
+      ['changed', 'Success confirmations carry one title and at most one short line. The `eyebrow` option is gone from `success()` and the `eyebrow` prop from React `Success`; vanilla callers passing it are unaffected, since the key is now ignored, and React `Success` is unreleased. Put the outcome in the title rather than in a label above it. Part of #429.', ['Success']],
+      ['changed', 'The check mark is now an unmodified Lucide path in the success colour, with no filled disc or burst ring behind it. `check: \'line\'` (the default) is the bare check; `check: \'circled\'` is the smaller circled mark, at 20px, which is what Guidelines / Iconography asks a reported state to use. `success()`, `successPanel()` and both React components take `check`; `successCheck()` takes the same choice as its first argument. The circled mark is 20px wherever it is drawn, the inline panel included, while the line mark keeps the size of the layout it lands in.', ['Success']],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],

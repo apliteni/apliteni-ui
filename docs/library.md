@@ -132,7 +132,7 @@ complete text, URL, enum and trusted-HTML slot inventory and the rejected URL sc
 | `callout`, `toast`, `successPanel` | Inline feedback, inside the page the user is already on. |
 | `calloutIcons` | Default glyph names by tone, shared by vanilla and React callouts. |
 | `pushToast(container, opts)` and `dismissToast(el)`, + `wireToastStack(container)` | The runtime toast stack: push one onto a container, dismiss it, or let the stack expire its own. |
-| `success({ layout, backdrop, level, eyebrow, title, body, actions, confetti, countdown })` + `wireSuccess(root)` | Page-sized confirmation; `successCheck()` is its self-drawing check on its own. The title's heading rank follows the layout — `h1` for `hero` and `split`, which are the page, `h2` for `compact`, which sits beside other content — and `level` overrides it. See [successPanel or success?](#successpanel-or-success) below. |
+| `success({ layout, check, level, title, body, actions, confetti, countdown })` + `wireSuccess(root)` | Page-sized confirmation; one title and at most one short line, no eyebrow tier; `successCheck()` is its self-drawing check on its own. The title's heading rank follows the layout — `h1` for `hero` and `split`, which are the page, `h2` for `compact`, which sits beside other content — and `level` overrides it. See [successPanel or success?](#successpanel-or-success) below. |
 | `emptyState({ art, icon, title, sub, actions })` | Placeholder for an empty list, table or page. `art` is an `illo()` name or raw `<svg>`. |
 | `pagination({ page, pageSize, total, hasMore, pageSizes, variant, label, loading, href, id })` + `wirePagination(root, { onPage, onPageSize })`, with `setPagerStatus(root, text)`, `PAGE_SIZES` and `DEFAULT_PAGE_SIZE` | The strip under a table or a list. No rows go in — it renders a page the caller has already computed. `variant` is `steps`, `numbered` or `jump`; `total: null` draws Prev and Next alone and takes its end from `hasMore`. `wirePagination` makes the steps, the size control and the jump box report back; `setPagerStatus` rewrites the range in place, which is what announces it. Read the two constants rather than writing a page size at a call site. See [Pagination](specification.md#pagination). |
 | `statBand({ stats, variant, basis, label, id })`, with `STAT_VARIANTS` and `STAT_TONES` | A row of key figures, as a `<dl>`. Each figure is `{ label, value, delta, trend }`; `delta` is `{ value, tone, basis, direction, none }`, where `tone` (`good`, `bad`, `neutral`) says whether the change is good news and is never read off its sign. `basis` is the caption above the band: what every change is measured against, and every change points at it; on a band with no changes, what the figures cover. `variant` is `tiles` (a card per figure, the default), `band` (one card) or `open` (no surface). `trend` is trusted markup, your `<svg>`, and is not escaped; the kit draws no chart. See [Stat bands](specification.md#stat-bands). |
@@ -211,12 +211,14 @@ Ask how much of the screen the confirmation owns. If it sits under a form that j
 submitted, or inside a card on a page the user is staying on, you want
 `successPanel({ title, sub })` — a check, a title and one line of sub, with nothing to
 configure. If the confirmation *is* the screen, and the user needs somewhere to go next,
-you want `success({ layout, backdrop, actions, … })`, which picks a layout and a backdrop,
+you want `success({ layout, check, actions, … })`, which picks a layout and a check mark,
 carries follow-up buttons, and can run an auto-redirect countdown once you call
 `wireSuccess()` on the mounted element.
 
-Restyling one never moves the other, because they share no CSS: `successPanel` is
-`.ui-success` in `styles/callout.css`, `success` is `.ui-sx` in `styles/success.css`.
+Restyling one never moves the other's block, because they own separate rules:
+`successPanel` is `.ui-success` in `styles/callout.css`, `success` is `.ui-sx` in
+`styles/success.css`. The check mark is the exception — both draw `successCheck()`, so
+`styles/success.css` paints it for each.
 
 ### Forms
 
