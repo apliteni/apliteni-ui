@@ -69,6 +69,9 @@
   padding: var(--space-2);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
+  /* Equal cells, so the day numerals must be equal too: one width per digit
+     keeps 1 and 11 on the same column centre. */
+  font-variant-numeric: tabular-nums;
   color: var(--text);
   background: transparent;
   border: 1px solid transparent;
@@ -125,8 +128,18 @@
   color: var(--accent-contrast);
 }
 
-/* Weight and no colour: a second one would compete with the pick. */
-.ui-datepicker__opt.is-today { font-weight: var(--weight-bold); }
+/* The period the reader is in, as one ring and nothing else, with the legend
+   under the grid naming it. Weight was the device before and carried no
+   meaning a reader could recover: it was also the bold a blocked pick wears.
+   Hollow for the period you are in, filled for the one you chose.
+   why: guidelines/accessibility-floor.md */
+.ui-datepicker__opt.is-today { border-color: var(--accent); }
+/* The hover edge is inset onto the same band the border occupies, so without
+   this it would paint over the one ring that has to stay put. */
+.ui-datepicker__opt.is-today:hover { outline-color: transparent; }
+/* On the pick's own fill the ring has no accent left to stand against, so it
+   takes the fill's contrast ink — the move the mark dot makes below. */
+.ui-datepicker__opt.is-selected.is-today { border-color: var(--accent-contrast); }
 
 /* A boxless ghost: the bare disabled ink, and no light-up under the pointer. */
 .ui-datepicker__opt.is-disabled {
@@ -134,6 +147,12 @@
   color: var(--disabled-ink-bare);
   cursor: not-allowed;
 }
+/* And the label struck through. Quiet ink alone reads as "less important" next
+   to a marked cell rather than as "you cannot have this", which is the one
+   thing a bound has to say with the pointer nowhere near it. The rule is on the
+   label, so the dot beside it keeps its own meaning.
+   why: guidelines/accessibility-floor.md */
+.ui-datepicker__opt.is-disabled .ui-datepicker__num { text-decoration: line-through; }
 /* Every property the hover rule sets, undone — the edge included. */
 .ui-datepicker__opt.is-disabled:hover {
   outline-color: transparent;
@@ -149,7 +168,8 @@
    cascade such a cell kept its fill and took the disabled ink over it — 1.13:1
    on the accent fill in light, 4.43:1 on the range tint under the green accent.
    So a blocked cell goes bare whatever else it is, and a blocked pick keeps its
-   place as weight, the device `is-today` uses, which spends no second colour.
+   place as weight, which spends no second colour — bold says only that now the
+   current period wears a ring instead.
    Both combinations are written here rather than left to the component, so the
    sheet is right on its own; `showsSpan()` withholds the second one as well.
    why: guidelines/accessibility-floor.md */
@@ -163,7 +183,12 @@
   color: var(--disabled-ink-bare);
 }
 .ui-datepicker__opt.is-disabled.is-selected { font-weight: var(--weight-bold); }
-.ui-datepicker__opt.is-disabled .ui-datepicker__mark { background: var(--muted); }
+/* Blocked sends the FILLS away, which is what the ink over them could not be
+   read against; a hairline carries no ink over a ground, so the current
+   period keeps its ring and the legend's entry keeps a cell to point at.
+   Written after the block above because the two weigh the same. */
+.ui-datepicker__opt.is-disabled.is-today,
+.ui-datepicker__opt.is-disabled.is-today:hover { border-color: var(--accent); }
 
 /* -- Marks ----------------------------------------------------------------- */
 /* A dot under the numeral, out of the text flow so a marked cell is the same
@@ -188,7 +213,15 @@
 .ui-datepicker__mark.is-success { background: var(--green); }
 .ui-datepicker__mark.is-warn { background: var(--amber); }
 .ui-datepicker__mark.is-danger { background: var(--pink); }
-.ui-datepicker__opt.is-selected .ui-datepicker__mark { background: var(--accent-contrast); }
+/* A mark keeps its tone wherever it is drawn, so the dot in a cell and the dot
+   beside its word in the legend pair by colour. On the pick's fill it takes a
+   hairline rather than being repainted: against the default accent's fill in
+   light, an amber dot measured 1.90:1 and a cyan one 1.93:1, and the halo
+   separates them without spending the colour that says which mark it is.
+   why: guidelines/accessibility-floor.md */
+.ui-datepicker__opt.is-selected .ui-datepicker__mark {
+  box-shadow: 0 0 0 1px var(--accent-contrast);
+}
 
 .ui-datepicker__legend {
   display: flex;
@@ -202,6 +235,18 @@
   color: var(--text);
 }
 .ui-datepicker__legend-item { display: inline-flex; align-items: center; gap: var(--space-2); }
+/* The legend's entry for the current period is the cell's own ring shrunk to
+   reading size — a wider box than it is tall, at the cell's own corner — and
+   not a dot: the two keys are different kinds of thing and must not read as two
+   colours of one thing. The corner is scaled with the box, because the cell's
+   own 6px on a swatch this size rounds it back into a hollow dot. */
+.ui-datepicker__now-key {
+  width: 20px;
+  height: 14px;
+  flex: none;
+  border: 1px solid var(--accent);
+  border-radius: calc(var(--radius-xs) / 2);
+}
 
 /* -- Presets --------------------------------------------------------------- */
 .ui-datepicker__presets {

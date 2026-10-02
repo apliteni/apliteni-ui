@@ -2989,10 +2989,13 @@ and cannot be made readable. That is the one place the paint and the name differ
 differs by withholding rather than by claiming. A host that must exclude a period splits
 the range itself and shows two pickers.
 
-**Blocked beats every other state in the paint.** A host may block the period its own
-value names, or one between the two ends of a range. Such a cell goes bare rather than
-keeping the fill or the tint under disabled ink; a
-blocked pick keeps its place by weight instead, spending no second colour. It still says
+**Blocked beats every other state in the paint, and its label is struck through.** A host
+may block the period its own value names, or one between the two ends of a range. Such a
+cell goes bare rather than keeping the fill or the tint under disabled ink; a
+blocked pick keeps its place by weight instead, spending no second colour. The strike is
+what makes unavailable read as unavailable with the pointer nowhere near it: quieter ink
+beside a marked cell reads as "less important", not as "you cannot have this". It sits on
+the label, so the mark's dot beside it is not struck with it. The cell still says
 `selected` in its name and still carries `aria-selected`, because it is still the value —
 it simply cannot be pressed. A shortcut whose end lands on a blocked period is refused
 rather than walked inwards to a range nobody asked for.
@@ -3005,10 +3008,33 @@ on the span, and not on a state the reader is passing over.
 
 **A mark is a dot, a word and a name.** `marks` keyed by period draws a dot in the cell,
 lists the word once under the grid for the page in view, and appends it to the cell's
-accessible name, so the colour is never the only channel. The accent is spent on the pick
-alone: today carries weight and no colour, the span inside a range is an opaque accent
-tint rather than a grey fill, and a blocked cell is a boxless ghost in
-`--disabled-ink-bare`.
+accessible name, so the colour is never the only channel. **A dot keeps its tone wherever
+it is drawn**, so the dot in a cell and the dot beside its word in the legend are the one
+colour a reader can pair: on a blocked cell it is not greyed out, and on the pick's own
+fill it takes a hairline halo in the fill's contrast ink rather than being repainted —
+against the default accent's fill in light, an amber dot measured 1.90:1 and a cyan one
+1.93:1.
+The span inside a range is an opaque accent tint rather than a grey fill, and a blocked
+cell is a boxless ghost in `--disabled-ink-bare`.
+
+**The current period is a ring, and the legend names it.** The cell the reader is in now
+wears a hairline ring in the accent and nothing else, and the legend under the grid opens
+with that ring at reading size beside the words "This month" or "Today", for whichever
+grain the grid is in; the entry is there only while the page in view holds that period.
+Weight was the device before and carried no meaning a reader could recover — it was also
+the bold a blocked pick wears, so one mark stood for two things. Hollow for the period you
+are in and filled for the one you chose is the pair a calendar draws; a ring cannot be
+mistaken for the neutral edge hover paints, and the words keep it off colour alone. A blocked cell keeps the
+ring: blocked sends the fills away, because disabled ink over them cannot be read, and a
+hairline carries no ink over a ground.
+
+**The twelve months are drawn at one length.** ICU abbreviates September to four letters
+in en-GB and the other eleven to three, and in a three-column grid the long one reads as
+emphasis. Each name is cut to the shortest of the twelve when
+they are letters alone and the cut keeps them apart — "Sep", and "сен" beside "окт" — and
+a locale that counts its months, where a name carries a numeral and a counter, is left as
+it writes them. The trigger is prose rather than a lattice and keeps the locale's own
+abbreviation.
 
 **Below 560px the panel is a sheet, and a sheet is the kit's drawer.** It renders
 `Drawer` anchored to the bottom edge, so it arrives with the scrim, the close control, the
@@ -3032,8 +3058,10 @@ picker renders and holds it against the kit's own ring selectors, read out of th
 stylesheets, and holds the component's one breakpoint literal against the table in
 Breakpoints above. A gate of its own measures every combination of cell states in both
 themes and under every shipped accent, because the workspace's contrast walk exempts a
-disabled control and a blocked cell can also be the value. Browser captures verify
-presentation separately.
+disabled control and a blocked cell can also be the value. A second one measures what is
+not ink: that each dot is the same colour in its cell as in the legend, in every state,
+and that the current period's ring clears 3:1 on every ground it lands on. Browser
+captures verify presentation separately.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429); asked for on
 [#506](https://github.com/apliteni/apliteni-ui/issues/506).
 
