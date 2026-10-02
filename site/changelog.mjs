@@ -10,7 +10,7 @@ export const RELEASES = [
     changes: [
       ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],
       ['added', 'NavTabs and Breadcrumbs take renderLink, so a router can own route changes, and the main entry now exports safeUrl and revealCurrentNav for callers that assemble their own navigation markup.', ['Navigation']],
-      ['changed', 'A selected pill tab keeps its soft accent fill and takes body ink in place of accent ink, so one accent signal marks the selection. Vanilla and React share it. See #475.', ['Navigation']],
+      ['changed', 'A selected pill tab keeps its soft accent fill and takes body ink in place of accent ink, so one accent signal marks the selection. Vanilla and React share it. The fill is then the whole signal and it is a step of lightness — 1.091:1 against the page at its weakest, under light emerald. See #475.', ['Navigation']],
       ['fixed', 'Tab rows scroll within narrow containers without widening the page, moving off the page gutter or lifting the active underline off the row rule. React and vanilla wireNav reveal the current route without moving keyboard focus or discarding where the reader scrolled.', ['Navigation']],
     ],
   },

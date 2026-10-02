@@ -382,9 +382,10 @@
     {
       "file": "stories/nav-cascade.test.js",
       "name": "Nav cascade",
-      "does": "Checks three repaired rail declarations against their intended elements. Each was present in the stylesheet but ineffective, including a cancelled focus ring.",
+      "does": "Checks three repaired rail declarations against their intended elements. Each was present in the stylesheet but ineffective, including a cancelled focus ring. Also resolves the selected tab's ink and fill on both tab appearances across four theme and accent cells, so the one-accent-signal ruling on #475 cannot be undone by a later rule; the mutation that re-adds the accent ink is beside it.",
       "blind": [
-        "JSDOM ranks author rules faithfully but does not rank by origin. The user-agent boundary is a known exception, documented in the contribution guide\u2019s cascade section."
+        "JSDOM ranks author rules faithfully but does not rank by origin. The user-agent boundary is a known exception, documented in the contribution guide\u2019s cascade section.",
+        "What the selected pill's fill measures against the page. That is a colour reading, not a cascade one; the numbers are in the specification under Text ink."
       ]
     },
     {

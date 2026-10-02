@@ -462,9 +462,16 @@ explicit exception to the text-surface rule, requested in the r18 review of
 Held by `stories/dropdown-state-contrast.test.js`.
 Dropdown selection uses an accent checkmark and a body-ink title. A selected pill tab keeps
 its soft accent fill and takes body ink, one accent signal for the selection, as the underline
-appearance already did with its rule. Artur chose it on
-[#475](https://github.com/apliteni/apliteni-ui/issues/475). Non-status badges,
-including the legacy accent tone, use body ink; live badges retain status colour.
+appearance already did with its rule. Artur chose that on
+[#475](https://github.com/apliteni/apliteni-ui/issues/475), round r22. The fill is then the
+whole signal and it is a step of lightness, measured after that answer: against the page it
+runs from 1.091:1 under light emerald to 1.342:1 under dark emerald, and sits at 1.152:1 in
+light and 1.158:1 in dark under the default accent. WCAG 1.4.11 asks 3:1 of a mark that
+identifies a state, and the pill carries no line, weight or glyph beside the step. That
+reading is recorded on #475 for Artur. Held by `stories/nav-cascade.test.js`, which resolves
+the cascade on both appearances across four theme and accent cells and carries the mutation
+that re-adds the accent ink. Non-status badges, including the legacy accent tone, use body
+ink; live badges retain status colour.
 Explicit neutral tone, unselected options and missing-comparison sentences use body ink.
 To extend this closed list, open an issue and agree the new class before using it.
 
