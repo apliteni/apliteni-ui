@@ -44,22 +44,27 @@ export function Snippet({ label = 'shell', code = '', children, copy = true, rev
     <div className={reveal ? 'ui-snippet ui-snippet--reveal' : 'ui-snippet'}>
       <div className="ui-snippet__bar">
         <span>{label}</span>
-        {/* Icon-only at rest, the way the kit writes an allowed icon-only control:
+        {/* Icon-only, the way the kit writes an allowed icon-only control:
             aria-label names what is copied and title repeats it as the tooltip.
-            Feedback keeps its words, and aria-label is dropped while they are on
-            screen so the live region announces "Copied", not the resting name. */}
-        {copy && <button
-          type="button"
-          className="ui-snippet__copy"
-          aria-label={status === 'idle' ? copyLabel : undefined}
-          title={copyLabel}
-          aria-live="polite"
-          aria-atomic="true"
-          onClick={handleCopy}
-        >
-          <Icon name={status === 'copied' ? 'check' : 'copy'} />
-          {status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : null}
-        </button>}
+            The confirmation is a glyph swap, so the button holds its 24px box; the
+            word goes to the live region below, which ships empty because a
+            role="status" inserted together with its text is silent on several
+            screen readers. The button's name stays the action, which is still
+            available. Same markup and classes as snippet(). */}
+        {copy && <>
+          <button
+            type="button"
+            className="ui-snippet__copy"
+            aria-label={copyLabel}
+            title={copyLabel}
+            onClick={handleCopy}
+          >
+            <Icon name={status === 'idle' ? 'copy' : 'check'} />
+          </button>
+          <span className="ui-sr ui-snippet__status" role="status" aria-live="polite">
+            {status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : ''}
+          </span>
+        </>}
       </div>
       <pre>{children ?? code}</pre>
     </div>

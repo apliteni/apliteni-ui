@@ -60,7 +60,6 @@
   font-size: calc(var(--text-xs) + 1px);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   padding: 2px 4px;
   /* WCAG 2.5.8's 24 CSS px target floor, taken as a real box rather than as an
      overlay. The height came first (#219): 2 + a 12px label at line-height 1.62

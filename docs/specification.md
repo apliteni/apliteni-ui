@@ -2996,16 +2996,28 @@ command”, “Copy configuration”. It defaults to “Copy code”. The button
 24px target floor on both axes, which the width now carries alone: 4 + a 13px glyph
 + 4 is 21px without it.
 
-The two implementations' copy feedback differs, and has since before React Snippet
-existed, and it keeps its words in both. `wireTopbar()` replaces the vanilla
-button's contents with the text `✓ Copied` and there is no failure state at all;
-React swaps the glyph to `check`, shows `Copied`, and shows `Copy failed` when the
-write is rejected, dropping `aria-label` while those words are on screen so the
-live region announces the confirmation rather than the resting name. The vanilla
-restore reads the markup the button started with, so the glyph comes back with it;
-`data-orig` still records the resting label for a caller that wants it. Nothing
-here depends on the two matching, and the class comparison in
-`react/src/Snippet.test.tsx` does not see them, because none of them is a class.
+Confirming a copy does not change the control's size or its name. The glyph swaps
+from `copy` to `check` inside the same 24px box, and the word goes to a
+visually-hidden live region beside the button — `.ui-sr.ui-snippet__status`, with
+`role="status"` and `aria-live="polite"`, shipped empty because a `role="status"`
+inserted together with its text is silent on several screen readers. Both
+implementations emit that region and the same classes.
+
+Two things follow from putting the word there rather than in the button. The bar
+does not move: words in the button widened a 24px control to 59–87px on every
+click, in a bar that is `justify-content: space-between`, so its left edge jumped
+and came back. And the confirmation is actually announced: a permanent
+`aria-label` outranks an element's contents, so a word written into the button
+would have changed the pixels and left the computed name frozen. The button's own
+name stays the action, which is still available after a copy.
+
+Vanilla announces `Copied` and has no failure state, because its write is not
+awaited; React announces `Copied` or `Copy failed`. The vanilla restore reads the
+markup the button started with, so the glyph comes back rather than the label as
+words; `data-orig` still records the resting label for a caller that wants it.
+Held by `src/components/snippet-copy.test.js`, which resolves the announced name
+with axe-core's accname and rejects three mutations: restoring the label text,
+writing the confirmation into the button, and dropping the live region.
 
 Snippet descendants use the shared `--ring` on `:focus-visible`, including copy
 buttons in vanilla and React. The browser-focusable code region is the exception:

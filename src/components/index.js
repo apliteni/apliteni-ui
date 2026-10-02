@@ -295,13 +295,20 @@ export function emptyState({ art, icon: ic, title, sub, actions } = {}) {
 // than visible text, and it should name what is being copied — "Copy command",
 // "Copy configuration" — the way every other icon-only control in the kit is
 // named (aria-label plus title, as button() and the theme toggle write it).
-// wireTopbar() still swaps the contents to "✓ Copied" and back, so the button is
-// never left nameless; `data-orig` records the resting label for a caller that
-// wants it, and the restore reads the markup so the glyph comes back with it.
+// The confirmation is a glyph swap, not a word: the button holds its 24px box
+// through it, and the word goes to the live region beside it. A permanent
+// aria-label outranks an element's contents, so swapping text into the button
+// would have changed the pixels and left the announced name frozen — the region
+// is what carries "Copied" to a reader who cannot see the check. It ships empty
+// and is filled later, because a role="status" inserted together with its text is
+// silent on several screen readers. The button's own name stays the action, which
+// is still available; wireTopbar() fills the region. `data-orig` records the
+// resting label for a caller that wants it.
 // `type="button"`: without it a snippet dropped inside a <form> submits the form.
 export function snippet({ label = 'shell', code = '', reveal = false, copy = true, copyLabel = 'Copy code' } = {}) {
   const copyBtn = copy
     ? `<button type="button" class="ui-snippet__copy" aria-label="${esc(copyLabel)}" title="${esc(copyLabel)}" data-orig="${esc(copyLabel)}">${icon('copy')}</button>`
+      + '<span class="ui-sr ui-snippet__status" role="status" aria-live="polite"></span>'
     : '';
   return `<div class="${cx('ui-snippet', reveal && 'ui-snippet--reveal')}"><div class="ui-snippet__bar"><span>${esc(label)}</span>${copyBtn}</div><pre>${code}</pre></div>`;
 }

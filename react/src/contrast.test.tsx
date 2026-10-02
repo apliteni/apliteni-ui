@@ -63,14 +63,25 @@ type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string 
 // colour inherits this debt.
 //
 // Round 24 added JSON and TypeScript to the highlighter, so the same two pairs are
-// now painted in two more stories. The grouping key is the colour, the state and the
+// now painted in more stories. The grouping key is the colour, the state and the
 // leaf selector rather than the story, so the counts below did not move: these are
 // the same four and two findings, reached from more places.
-// The file, not a list of story names. What pins this entry is the colour, the
-// state and the path — a token span inside a Snippet's code region — and a new
-// Snippet story painting the same token in the same place is the same debt, not a
-// new one. Naming each story would only guarantee this list goes stale.
-const SNIPPET_STORY = './Snippet.stories.tsx:';
+//
+// The stories are named rather than matched by file. A prefix match would absorb
+// every Snippet story anyone adds later into the accepted debt, with no count
+// change and nobody deciding — which is the opposite of what this list is for.
+// Adding a story that paints these classes should turn the gate red and make
+// somebody look.
+const SNIPPET_STORIES = new Set([
+  './Snippet.stories.tsx:Shell',
+  './Snippet.stories.tsx:Json',
+  './Snippet.stories.tsx:TypeScript',
+  './Snippet.stories.tsx:Variants',
+  './Snippet.stories.tsx:Comparison',
+  './Snippet.stories.tsx:CopyHover',
+  './Snippet.stories.tsx:Copied',
+  './Snippet.stories.tsx:KeyboardFocus',
+]);
 // Two states, one cause. Since #474 the card carries the code region's focus ring,
 // so .ui-snippet joins the containers the state walk re-measures — the same way it
 // already walks every .ui-card. The spans it finds there are the same literals at
@@ -79,24 +90,33 @@ const SNIPPET_STORY = './Snippet.stories.tsx:';
 const STATES = [null, 'focus-visible'];
 const snippetDebt = (f: Finding) => f.theme === 'light' && f.accent === 'default'
   && STATES.includes(f.state) && f.bg === 'rgb(255,255,255)'
-  && [...f.stories].every(story => story.startsWith(SNIPPET_STORY))
+  && [...f.stories].every(story => SNIPPET_STORIES.has(story))
   && [...f.paths].every(path => /div\.ui-snippet > pre > span\.[fsu]$/.test(path));
 const LEDGER: LedgerEntry[] = [
   {
     match: f => snippetDebt(f) && f.fg === 'rgb(12, 143, 168)'
       && [...f.paths].every(path => /span\.[fu]$/.test(path)),
     count: 4,
-    why: 'Vanilla E: light cyan flags and URLs retain the existing 3.81:1 pair, at '
-      + 'rest and with the card ringed. Syntax colour is a second signal; preserving '
-      + 'it does not claim AA compliance.',
+    why: 'Vanilla E: light cyan retains the existing 3.81:1 pair, at rest and with '
+      + 'the card ringed. It paints shell flags and URLs, and since round 24 also '
+      + 'JSON and TypeScript scalars — numbers, true, false, null. In shell the '
+      + 'colour is a second signal over text that reads without it; on a JSON '
+      + 'scalar it is the only colour the value gets, so the debt is larger in kind '
+      + 'than when this entry was written. It is accepted because the value itself '
+      + 'is the text — a reader reads the 3 in "retries": 3, not a hint about it — '
+      + 'and because no token moved; fixing it means re-picking --cyan for the light '
+      + 'card, which is a palette decision and not this PR\'s. No AA claim is made.',
   },
   {
     match: f => snippetDebt(f) && f.fg === 'rgb(28, 138, 44)'
       && [...f.paths].every(path => path.endsWith('span.s')),
     count: 2,
-    why: 'Vanilla C: light green strings retain the existing 4.45:1 pair, at rest '
-      + 'and with the card ringed. The source conveys the meaning; this remains '
-      + 'below the 4.5:1 text floor.',
+    why: 'Vanilla C: light green retains the existing 4.45:1 pair, at rest and with '
+      + 'the card ringed. It paints quoted strings in all three languages — shell '
+      + 'arguments, JSON string values, TypeScript literals. The same widening as '
+      + 'the cyan entry: a JSON string value carries its own meaning rather than '
+      + 'repeating one. Accepted for the same reason and with the same limit — it '
+      + 'is 0.05 under the 4.5:1 floor, and closing it is a palette decision.',
   },
 ];
 

@@ -422,7 +422,7 @@
         "pattern": "export const iconOnlyAllowed"
       },
       {
-        "ref": "stories/guidelines/iconography.test.js:96",
+        "ref": "stories/guidelines/iconography.test.js:165",
         "pattern": "every icon-only control is one the closed list allows"
       },
       {
@@ -760,7 +760,7 @@
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
-        "ref": "stories/contrast.test.js:218",
+        "ref": "stories/contrast.test.js:227",
         "pattern": "inactive components and their whole subtree"
       }
     ],

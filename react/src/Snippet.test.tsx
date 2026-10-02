@@ -89,17 +89,41 @@ it('is icon-only at rest, named and tooltipped by copyLabel', () => {
   expect(container.querySelector('.ui-snippet__copy')).toBe(button);
 });
 
-it('lets the confirmation name the button instead of the resting label', async () => {
+// The confirmation is announced beside the button, not written into it: a
+// permanent aria-label outranks the contents, so a word in the button would show
+// on screen and never reach the name — and it would jerk the 24px box 35px wider.
+it('announces the confirmation in the live region and keeps the button still', async () => {
   vi.useFakeTimers();
   clipboard();
-  render(<Snippet code="npm install example" copyLabel="Copy command" />);
-  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy command' })); });
-  // aria-label would otherwise win over the text and announce the resting name.
-  const copied = screen.getByRole('button', { name: 'Copied' });
-  expect(copied).not.toHaveAttribute('aria-label');
-  expect(copied).toHaveAttribute('title', 'Copy command');
+  const { container } = render(<Snippet code="npm install example" copyLabel="Copy command" />);
+  const button = screen.getByRole('button', { name: 'Copy command' });
+  const status = container.querySelector('.ui-snippet__status')!;
+  expect(status).toHaveAttribute('role', 'status');
+  expect(status).toHaveAttribute('aria-live', 'polite');
+  expect(status).toHaveTextContent('');
+
+  await act(async () => { fireEvent.click(button); });
+  expect(status).toHaveTextContent('Copied');
+  // Same button, same name, no words of its own — only the glyph changed.
+  expect(screen.getByRole('button', { name: 'Copy command' })).toBe(button);
+  expect(button).toHaveTextContent('');
+  expect(button).toHaveAttribute('title', 'Copy command');
+
   act(() => { vi.advanceTimersByTime(1400); });
-  expect(screen.getByRole('button', { name: 'Copy command' })).toHaveTextContent('');
+  expect(status).toHaveTextContent('');
+  expect(screen.getByRole('button', { name: 'Copy command' })).toBe(button);
+});
+
+it('swaps the glyph rather than the name, so the copy stays reachable', async () => {
+  vi.useFakeTimers();
+  clipboard();
+  const { container } = render(<Snippet code="example" copyLabel="Copy command" />);
+  const glyph = () => container.querySelector('.ui-snippet__copy svg')?.outerHTML;
+  const resting = glyph();
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy command' })); });
+  expect(glyph()).not.toEqual(resting);
+  act(() => { vi.advanceTimersByTime(1400); });
+  expect(glyph()).toEqual(resting);
 });
 
 it('copies raw text and announces success briefly without hiding the value', async () => {
@@ -111,11 +135,12 @@ it('copies raw text and announces success briefly without hiding the value', asy
   expect(container.querySelector('pre b')).toBeNull();
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
   expect(write).toHaveBeenCalledWith(code);
-  const button = screen.getByRole('button', { name: 'Copied' });
-  expect(button).toHaveAttribute('aria-live', 'polite');
+  const button = screen.getByRole('button', { name: 'Copy code' });
+  expect(container.querySelector('.ui-snippet__status')).toHaveTextContent('Copied');
   expect(button.querySelector('svg')).not.toBeNull();
   act(() => { vi.advanceTimersByTime(1400); });
   expect(screen.getByRole('button', { name: 'Copy code' })).toBe(button);
+  expect(container.querySelector('.ui-snippet__status')).toHaveTextContent('');
   expect(container.querySelector('pre')?.textContent).toBe(code);
 });
 
@@ -132,19 +157,20 @@ it('supports keyboard copying without submitting its form', async () => {
 
 it('reports a rejected write and allows retry', async () => {
   const write = clipboard(vi.fn().mockRejectedValueOnce(new Error('Denied')).mockResolvedValue(undefined));
-  render(<Snippet code="example" />);
+  const { container } = render(<Snippet code="example" />);
+  const status = container.querySelector('.ui-snippet__status')!;
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
-  expect(screen.getByRole('button', { name: 'Copy failed' })).toHaveAttribute('aria-live', 'polite');
-  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy failed' })); });
-  expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+  expect(status).toHaveTextContent('Copy failed');
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
+  expect(status).toHaveTextContent('Copied');
   expect(write).toHaveBeenCalledTimes(2);
 });
 
 it('does not claim success when the clipboard is unavailable', async () => {
   vi.stubGlobal('navigator', {});
-  render(<Snippet code="Select this manually" />);
+  const { container } = render(<Snippet code="Select this manually" />);
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
-  expect(screen.getByRole('button', { name: 'Copy failed' })).toBeInTheDocument();
+  expect(container.querySelector('.ui-snippet__status')).toHaveTextContent('Copy failed');
   expect(screen.getByText('Select this manually')).toBeInTheDocument();
 });
 
