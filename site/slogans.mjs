@@ -6,30 +6,33 @@
 // slogan's words and its markup cannot drift apart. A themed slogan carries one
 // form per theme and follows the toggle live.
 //
-// Artur picks the shipped set by number on a later round (#463, round r24); the
-// numbering here is the numbering he is choosing from, so do not reorder it.
+// Artur picks the shipped set by number on a later round (#463); the numbering
+// here is the numbering he is choosing from, so do not reorder it. Round r26
+// replaced the whole list: "Try more normal. Don't use polished, decided words",
+// so these describe the kit the way the team would, with no wordplay in any of
+// them.
 
 export const SLOGANS = [
-  'A UI kit, already [polished]',
-  '[Suspiciously] polished',
-  'Nobody argues about [padding] anymore',
-  'Polished down to the [focus ring]',
-  { dark: 'Beautiful in the [dark], too', light: 'Beautiful in the [light], too' },
-  'The styling is [decided]',
-  'Every decision, [already made]',
-  'Dark and light, [four accents]',
-  'Your app, [dressed] already',
-  'Ship the UI, [skip] the arguing',
-  '[Taste], shipped as CSS',
-  'One ring on every [control]',
-  'The [boring] parts, decided',
-  'Looks designed, because it [was]',
-  'No [taste] required',
-  '[Consistency], without the committee',
-  'A kit with [opinions]',
-  'Fewer decisions, [better] screens',
-  'It already [matches] itself',
-  'The [guidelines] ship with it',
+  'A UI kit for [Apliteni products]',
+  'The pieces every screen [needs]',
+  'The [design system] for our products',
+  'Build screens that [match]',
+  { dark: 'Looks right in [dark mode]', light: 'Looks right in [light mode]' },
+  '[Tokens], components and guidelines',
+  'Use it in [HTML or React]',
+  'The [same look] everywhere',
+  'Our interface [building blocks]',
+  '[Install it] and start building',
+  'The components our [products use]',
+  'The [guidelines] are in the package',
+  'Buttons, fields, [tables] and more',
+  'A [shared UI] for every app',
+  'One design system, [every product]',
+  'Fewer things to [get wrong]',
+  'Start with the [components]',
+  'Every control in one [package]',
+  'The [UI layer], ready to use',
+  'Styles and components, [in one place]',
 ];
 
 export const MAX_WORDS = 6;
