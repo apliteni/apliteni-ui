@@ -49,19 +49,76 @@ type Theme = (typeof THEMES)[number];
  * ────────────────────────────────────────────────────────────────────────── */
 type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string };
 
-// EMPTY, and that is the claim: this workspace accepts no contrast failure.
+// An entry belongs here only when A PERSON has decided a failure is debt and
+// written down why. This list was empty until #429 PR 3.8, and it stopped being
+// empty on an agent's judgement — which is why the PR body names these two entries
+// for Artur rather than leaving them to pass as a green suite. Before this gate had
+// anything in it, it found the sort caret painting --muted at opacity .5, 2.39:1
+// dark and 2.16:1 light against a 4.5 floor; #131 removed the opacity rather than
+// ledgering it, and that is still the first thing to try.
 //
-// It held exactly one entry — the Success eyebrow, carried by hand from vanilla
-// ledger C, whose light green ink sat below AA. #429 removed that eyebrow from
-// the markup and the stylesheet, because a confirmation carries one title and at
-// most one line and has no label tier to paint. The debt went with the element,
-// so the entry was deleted rather than left to rot.
+// Both entries carry debt the vanilla side already records. stories/contrast.test.js
+// holds the original rationale and #455's measurements: syntax colour repeats meaning
+// present in the source, and these light pairs still miss AA. No other surface or
+// colour inherits this debt.
 //
-// An empty ledger is only safe because the walk above proves it ran: every cell
-// judges a non-zero number of pairs, every foreground resolves, and both
-// stylesheets are asserted to have reached the document. A failure appearing
-// here now has nowhere to land and turns the per-story assertion red.
-const LEDGER: LedgerEntry[] = [];
+// Round 24 added JSON and TypeScript to the highlighter, so the same two pairs are
+// now painted in more stories. The grouping key is the colour, the state and the
+// leaf selector rather than the story, so the counts below did not move: these are
+// the same four and two findings, reached from more places.
+//
+// The stories are named rather than matched by file. A prefix match would absorb
+// every Snippet story anyone adds later into the accepted debt, with no count
+// change and nobody deciding — which is the opposite of what this list is for.
+// Adding a story that paints these classes should turn the gate red and make
+// somebody look.
+const SNIPPET_STORIES = new Set([
+  './Snippet.stories.tsx:Shell',
+  './Snippet.stories.tsx:Json',
+  './Snippet.stories.tsx:TypeScript',
+  './Snippet.stories.tsx:Variants',
+  './Snippet.stories.tsx:Comparison',
+  './Snippet.stories.tsx:CopyHover',
+  './Snippet.stories.tsx:Copied',
+  './Snippet.stories.tsx:KeyboardFocus',
+]);
+// Two states, one cause. Since #474 the card carries the code region's focus ring,
+// so .ui-snippet joins the containers the state walk re-measures — the same way it
+// already walks every .ui-card. The spans it finds there are the same literals at
+// the same ratios; only the state label differs, which is why each entry's count
+// is exactly twice its resting count and no new colour is accepted.
+const STATES = [null, 'focus-visible'];
+const snippetDebt = (f: Finding) => f.theme === 'light' && f.accent === 'default'
+  && STATES.includes(f.state) && f.bg === 'rgb(255,255,255)'
+  && [...f.stories].every(story => SNIPPET_STORIES.has(story))
+  && [...f.paths].every(path => /div\.ui-snippet > pre > span\.[fsu]$/.test(path));
+const LEDGER: LedgerEntry[] = [
+  {
+    match: f => snippetDebt(f) && f.fg === 'rgb(12, 143, 168)'
+      && [...f.paths].every(path => /span\.[fu]$/.test(path)),
+    count: 4,
+    why: 'Vanilla E: light cyan retains the existing 3.81:1 pair, at rest and with '
+      + 'the card ringed. It paints shell flags and URLs, and since round 24 also '
+      + 'JSON and TypeScript scalars — numbers, true, false, null. In shell the '
+      + 'colour is a second signal over text that reads without it; on a JSON '
+      + 'scalar it is the only colour the value gets, so the debt is larger in kind '
+      + 'than when this entry was written. It is accepted because the value itself '
+      + 'is the text — a reader reads the 3 in "retries": 3, not a hint about it — '
+      + 'and because no token moved; fixing it means re-picking --cyan for the light '
+      + 'card, which is a palette decision and not this PR\'s. No AA claim is made.',
+  },
+  {
+    match: f => snippetDebt(f) && f.fg === 'rgb(28, 138, 44)'
+      && [...f.paths].every(path => path.endsWith('span.s')),
+    count: 2,
+    why: 'Vanilla C: light green retains the existing 4.45:1 pair, at rest and with '
+      + 'the card ringed. It paints quoted strings in all three languages — shell '
+      + 'arguments, JSON string values, TypeScript literals. The same widening as '
+      + 'the cyan entry: a JSON string value carries its own meaning rather than '
+      + 'repeating one. Accepted for the same reason and with the same limit — it '
+      + 'is 0.05 under the 4.5:1 floor, and closing it is a palette decision.',
+  },
+];
 
 type Finding = {
   key: string; theme: string; accent: string; state: string | null;
@@ -334,9 +391,15 @@ describe('contrast: React coverage', () => {
     const ledgered = findings.filter((f) => LEDGER.some((e) => e.match(f)));
     expect(ledgered.length, 'findings covered by the ledger').toBe(
       LEDGER.reduce((n, e) => n + e.count, 0));
-    // The empty ledger stated as a claim rather than left as a silence: adding an
-    // entry is a person deciding to accept a failure, and this is where they say so.
-    expect(findings, 'React accepts no contrast failure; every pair it renders clears AA')
+    // #478 asserted the ledger was empty, and said why: the claim is stated here
+    // rather than left as a silence, so adding an entry forces whoever adds it to
+    // come back and say so. This is that. The ledger stopped being empty on #474,
+    // and what the line claims now is narrower: React accepts the two pairs the
+    // ledger names and nothing else, so an unledgered failure still fails here.
+    // The two entries are named in the PR body for Artur, because the decision to
+    // accept them is his and not a green suite's.
+    expect(findings.filter((f) => !LEDGER.some((e) => e.match(f))),
+      'React accepts only the failures its ledger names; every other pair clears AA')
       .toEqual([]);
   });
 });

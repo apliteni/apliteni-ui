@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.73.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'Snippet copy controls and keyboard-focused code use the shared focus ring in vanilla and React, including the reveal variant.'],
+      ['added', 'React Snippet accepts highlighted token children and can omit its copy button with copy={false}. Copying still uses the original code string. The new codeTokens(raw, lang) helper returns the same tokens the vanilla highlighters use, so displayed tokens and copied text come from one source. Part of #429.'],
+      ['added', 'Syntax highlighting covers JSON and TypeScript as well as shell. hlCode(raw, lang) returns the HTML and codeLanguages lists what lang accepts; hlShell is unchanged. Keys, strings and scalars take different token colours, and the snippet stories show one specimen per language.', ['Snippet']],
+      ['changed', 'The Snippet copy button is icon-only. copyLabel is now its accessible name and its tooltip rather than visible text, so pass something that names what is copied — it defaults to \u201cCopy code\u201d. Confirming a copy swaps the glyph inside the same 24px box and announces the word through a live region beside the button, so the bar no longer jumps and the confirmation reaches a screen reader. A vanilla button restored after copying keeps its glyph, which the old restore dropped.', ['Snippet']],
+    ],
+  },
+  {
     v: '0.72.0', date: '2026-10-02',
     changes: [
       ['added', 'Below the phone step a coarse pointer gets a transparent 44px tap zone outside each small control, so a finger reaches the floor and no control is drawn any bigger. `--tap-min` names the floor. Closes #488.', ['Button', 'Segmented', 'Tabs', 'Dropdown', 'Pagination']],

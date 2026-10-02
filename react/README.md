@@ -43,7 +43,7 @@ Both forward a span ref and native span attributes, including `className`.
 <span><StatusDot live /> API online</span>
 ```
 
-`Snippet` accepts `label`, `code`, `reveal`, and `copyLabel` props. It treats `code`
+`Snippet` accepts `label`, `code`, `reveal`, `copy`, `copyLabel`, and `children` props. It treats `code`
 as plain text and copies it exactly as provided. After a successful clipboard write,
 it shows “Copied” for 1.4 seconds. If copying fails, it shows “Copy failed” so readers
 can try again or select the text manually.
@@ -51,6 +51,32 @@ can try again or select the text manually.
 ```tsx
 <Snippet label="Terminal" code="npm install @apliteni/apliteni-ui" />
 ```
+
+Set `copy={false}` to omit the copy button. Supply React children for highlighted
+text using the existing `.k` (command), `.f` (flag), `.s` (string), `.u` (URL), and
+`.c` (comment) classes. Keep `code` as the original source: copying always uses it,
+regardless of the displayed children. Neither strings nor children are parsed as HTML.
+
+Build the children from `code` with `codeTokens`, the same tokenizer the vanilla
+`hlShell` and `hlCode` use, so the text on screen cannot drift from the text the
+button copies. Writing the spans out by hand means keeping two copies of the string
+in step. The second argument is the language — `shell` (the default), `json` or
+`ts`; `codeLanguages` lists them.
+
+```tsx
+import { codeTokens } from '@apliteni/apliteni-ui';
+
+const code = '{ "url": "https://example.com/mcp" }';
+
+<Snippet label="mcp.json" code={code} copyLabel="Copy configuration">
+  {codeTokens(code, 'json').map(({ cls, text }, at) =>
+    cls ? <span key={at} className={cls}>{text}</span> : text)}
+</Snippet>
+```
+
+The copy button is icon-only: `copyLabel` is its accessible name and its tooltip
+rather than visible text, so name what is being copied — “Copy command”, “Copy
+configuration”. It still shows words while it confirms.
 
 Before a reveal snippet, explain that the secret is stored hashed and will not be
 shown again, and ask the reader to copy it now. The page decides when to remove it.

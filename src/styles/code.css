@@ -30,6 +30,27 @@
   white-space: pre;
   font-family: var(--font-mono);
 }
+/* Scrollable code is a keyboard target, but a <pre> flush with the card and
+   without its radius draws a square ring that cuts across the card and squares
+   its corners. The card carries the ring instead, so it follows --radius-md and
+   survives `overflow: hidden`, which clips descendants and not the card's own
+   shadow. --ring-gap comes from the page here, matching the container rule in
+   tokens.css: a ring outside its own surface cannot use that surface as its gap.
+   The card also keeps a transparent outline, which forced colors repaints as the
+   focus signal once box-shadow is gone; the block below is why only one box has
+   one there. See stories/snippet-focus.test.js. */
+.ui-snippet pre:focus-visible { box-shadow: none; }
+.ui-snippet:has(pre:focus-visible) { outline: 2px solid transparent; --ring-gap: inherit; box-shadow: var(--ring); }
+
+/* Forced colors drops box-shadow, so both boxes fall back to their outlines and
+   the system repaints the pre's transparent one as the square this rule set out
+   to remove — with the card's rounded one 2px further out, two indicators for one
+   focus. The card's outline is the one that survives, so the pre keeps none.
+   Emulated in stories/snippet-focus.test.js and captured in Chromium. #474 */
+@media (forced-colors: active) {
+  .ui-snippet pre:focus-visible { outline: none; }
+}
+
 .ui-snippet__copy {
   background: none;
   border: 0;
@@ -39,14 +60,16 @@
   font-size: calc(var(--text-xs) + 1px);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   padding: 2px 4px;
   /* WCAG 2.5.8's 24 CSS px target floor, taken as a real box rather than as an
-     overlay: 2 + a 12px label at line-height 1.62 + 2 came to 23.44, so the
-     drawn button grows by 0.56px and the bar it sits in grows with it. Nothing
-     smaller than a rounding error moves, which is why this one is not a hit
-     area. Measured in stories/guidelines/accessibility-floor.test.js. #219 */
+     overlay. The height came first (#219): 2 + a 12px label at line-height 1.62
+     + 2 came to 23.44, so the drawn button grew by 0.56px and the bar with it.
+     The width is the same floor on the other axis, and it is load-bearing now
+     that the label is gone: 4 + a 13px glyph + 4 is 21px. Both are measured in
+     stories/guidelines/accessibility-floor.test.js. #474 */
   min-height: 24px;
+  min-width: 24px;
+  justify-content: center;
   transition: color var(--dur-fast) var(--ease);
 }
 .ui-snippet__copy:hover { color: var(--accent); }

@@ -89,9 +89,11 @@ test('the sweep sees every box-shadow the kit ships', () => {
   // cast nothing before, plus the three surfaces it puts on the floating step —
   // the auth card, the success panel and the feedback composer. The eleven
   // floating declarations it rewrites to read --float-edge-inner instead of
-  // --border are rewritten in place and move no count.
-  assert.equal(sweep.length, 73,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 73. `
+  // --border are rewritten in place and move no count. 73 -> 75: the ring a
+// Snippet's card now draws for its focused code region, and the `box-shadow:
+// none` that takes it off the `<pre>` it used to paint square.
+  assert.equal(sweep.length, 75,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 75. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
