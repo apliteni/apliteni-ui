@@ -2,7 +2,11 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState, type ReactNode } from 'react';
 import { vi } from 'vitest';
+import { composeStories } from '@storybook/react';
 import { FilterBar, type Filter } from './FilterBar';
+import * as stories from './FilterBar.stories';
+
+const { Open } = composeStories(stories);
 
 const filters: Filter[] = ['Region', 'Status'].map(label => ({ id: label, label, value: 'All', items: [{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' }] }));
 const callbacks = () => ({ onRemove: vi.fn(), onClear: vi.fn(), onChange: vi.fn() });
@@ -258,4 +262,22 @@ it('drops the row it marked once the chip\'s value moves', async () => {
   await open('any');
   expect(marked()).toEqual([]);
   expect(items.map(it => it.selected)).toEqual([true, undefined, undefined]);
+});
+
+// Renders the Open story itself, so an args-only story cannot come back: with
+// the meta's no-op onChange the menu marks the row just clicked while the
+// trigger keeps the old value, which is #466's confusion.
+it('Open moves the chip and its mark together on a pick, and keeps both after a reopen', async () => {
+  render(<Open />);
+  const marked = () => Array.from(document.querySelectorAll('[data-filter-id="region"] [data-dd-item].is-selected'))
+    .map(row => row.getAttribute('data-value'));
+  expect(screen.getByRole('button', { name: 'Region: All' })).toHaveAttribute('aria-expanded', 'true');
+  expect(marked()).toEqual(['All']);
+  await userEvent.click(screen.getByRole('option', { name: 'Europe' }));
+  const trigger = screen.getByRole('button', { name: 'Region: Europe' });
+  expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  expect(marked()).toEqual(['Europe']);
+  await userEvent.click(trigger);
+  expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  expect(marked()).toEqual(['Europe']);
 });

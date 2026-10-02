@@ -82,25 +82,29 @@
   overflow: hidden;
 }
 
-/* The chosen value takes --glow-purple, the wash .ui-nav--tabs.is-pill gives the
-   tab you are on, and keeps the kit's 16px check. The wash is a 1.2:1 tint, so the
-   check is what identifies the state under WCAG 1.4.1; Apple, Material, Carbon,
-   Primer and Radix all tick a chosen menu row. #549
+/* The chosen value takes a soft accent wash. The trailing check stays in the DOM,
+   but is hidden here so this bar marks the value beside the words. #466
    why: docs/components.md#a-filter-row-holds-its-panels */
-.ui-filter-bar .ui-dropdown__item.is-selected { background: var(--glow-purple); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
+.ui-filter-bar .ui-dropdown__item.is-selected { background: color-mix(in srgb, var(--accent) 10%, transparent); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
+.ui-filter-bar .ui-dropdown__item.is-selected .ui-dropdown__tick { display: none; }
 /* Kit-wide a chosen label steps down to --text, which left the row in force the
    faintest in the panel. Under the wash it holds --strong. */
 .ui-filter-bar .ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--strong); }
+.ui-filter-bar .ui-dropdown__item.is-selected.is-disabled .ui-dropdown__label { color: inherit; }
 /* Focus sets an opaque --surface, which would take the wash off; restated here so
    the guarantee is one declaration a reader and filter-selected-mark.test.js can
    both find. Focus still reads by its own paint — the kit's band, which #578 made a
    real outline a pixel off the row.
    why: guidelines/accessibility-floor.md#measurable-pairs */
-.ui-filter-bar .ui-dropdown__item.is-selected:focus-visible { background: var(--glow-purple); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
+.ui-filter-bar .ui-dropdown__item.is-selected:focus-visible { background: color-mix(in srgb, var(--accent) 16%, transparent); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
 /* Hover's other paint is a 1px edge, 1.06:1 on the wash, which left the row in force
    the one row a pointer got no answer from. Selection is a background highlight, so
    hover deepens it: 9% more accent, the step .ui-table--zebra gives a hovered row.
    The arrow keys need nothing here: ddSetActive() writes no .is-active without a search
    field and filterBar() builds none, so an arrow key moves real focus instead. #578
    why: docs/components.md#a-filter-row-holds-its-panels */
-.ui-filter-bar .ui-dropdown__item.is-selected:hover { background: color-mix(in srgb, var(--glow-purple), var(--accent) 9%); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
+.ui-filter-bar .ui-dropdown__item.is-selected:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
+
+@media (forced-colors: active) {
+  .ui-filter-bar .ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; }
+}

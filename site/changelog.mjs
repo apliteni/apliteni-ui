@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.114.0', date: '2026-10-12',
+    changes: [
+      ['changed', 'A filter chip menu now marks the value the chip shows with a soft accent wash in the filter bar. The row keeps its accessible selected state, and forced colours restore the check mark because the wash is not a durable signal there. Resolves #466.', ['FilterBar']],
+    ],
+  },
+  {
     v: '0.108.0', date: '2026-10-10',
     changes: [
       ['fixed', 'Below 720px a pinned identity column keeps each row name on one line instead of hiding it. The name is capped at `min(var(--panel-sm), 50vw)` and cuts with an ellipsis past the cap; the full text stays in the markup, so the accessible name and company link stay unchanged. Resolves #500.', ['Table']],
