@@ -598,6 +598,16 @@
       "blind": [
         "Does not measure pulse animation, browser contrast, or screen-reader announcements."
       ]
+    },
+    {
+      "file": "stories/table-stack.test.js",
+      "name": "Stacked table rows",
+      "does": "Renders every story that uses the stacked-table modifier and makes three checks on each stacked table it finds. That it names its table, row group, row, column header and cell roles in the markup, and still has a header row to clip, because a stylesheet cannot write a role. That nothing focusable is left in that clipped header, which can draw no focus ring. And that an order announced there by aria-sort has a focusable outside the table naming it in aria-controls, so the order can be changed by whoever is told about it.",
+      "blind": [
+        "Markup is not speech: this reads attributes and cannot tell whether a screen reader announces a stacked row as a table, and it measures no layout, focus order or contrast.",
+        "How much the roles are worth was measured in one engine. In Chromium, stripping them leaves table, row, cell and columnheader standing and loses only the body's row group; WebKit and Gecko are unmeasured, so all five are required rather than the one engine shown to drop.",
+        "No story in the kit announces an order while stacked, so that check passes over the swept stories without judging one. It is held instead by the fixtures beside it, which keep unrelated focusables on the page: an earlier version asked only whether the page had a focusable at all, and passed the exact defect it was written to catch."
+      ]
     }
   ],
   "UNGATED": [

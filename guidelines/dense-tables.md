@@ -72,6 +72,8 @@
 
 **Don't:** Squeeze columns until values are unreadable or silently remove data.
 
+**Except:** On a phone, a row whose long column is a paragraph stacks instead of scrolling: the short values on one line, the paragraph under them, and the header kept for screen readers. No column is dropped.
+
 ## Keep updates stable
 
 <!-- rule: states -->
