@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { customPropertiesIn } from '../scripts/lib/box-shadow.js';
+import { customPropertiesIn, layersOf } from '../scripts/lib/box-shadow.js';
 
 const files = ['src', 'react/src'].flatMap((base) => readdirSync(base, { recursive: true })
   .filter((file) => String(file).endsWith('.css')).map((file) => `${base}/${file}`));
@@ -28,7 +28,9 @@ const surfaces = rules.filter(({ body }) => {
 });
 const own = (rule) => new Map(customPropertiesIn(`${rule.selector}{${rule.body}}`).map((d) => [d.name, d.value]));
 const compositions = rules.filter((r) => own(r).has('--ring'));
-const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(--ring\)/.test(body));
+// --ring-inset is the shared ring drawn inward (#531); a consumer of either owes the
+// same transparent outline for forced colors.
+const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(--ring(?:-inset)?\)/.test(body));
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
   assert.equal(surfaces.length, 138, 'surface discovery changed; the folded rail\'s current-row plate adds three and the disabled checkbox box and its radio mark add two');
@@ -133,6 +135,63 @@ test('the story-surface gate rejects a stage that paints without a gap', () => {
   assert.deepEqual(gapProblems([right]), []);
 });
 
+// ---- --ring and --ring-inset are composed as a pair --------------------------
+//
+// The spec publishes both and promises that tuning one tunes both
+// (docs/specification.md#the-focus-ring). That holds only while every rule that
+// recomposes one recomposes the other, because a var() inside a custom property is
+// substituted on the element that DECLARES it: a rule re-pointing --ring-gap and
+// composing only --ring leaves --ring-inset carrying the gap of the surface above it.
+// The visible cost is small and wrong — the drawer body's 1px gap would paint the page
+// ground inside the drawer surface, 1.32:1 against it in dark — and it is the class of
+// slip the surface gate above exists to catch, which until #531's review it did not.
+
+/** The inset twin of an outset composition: the same layers, each drawn inward. */
+const insetOf = (outset) => layersOf(outset).map((layer) => `inset ${layer}`).join(', ');
+
+/** The problem lines a set of rules produces. Exported shape so the mutation below
+ *  runs the gate itself rather than a paraphrase of it. */
+const pairProblems = (subjects) => subjects.flatMap((rule) => {
+  const declared = own(rule);
+  const outset = declared.get('--ring');
+  const inset = declared.get('--ring-inset');
+  if (outset === undefined) return [`${rule.file}: ${rule.selector} composes --ring-inset without --ring`];
+  if (inset === undefined) return [`${rule.file}: ${rule.selector} composes --ring without --ring-inset`];
+  return insetOf(outset) === inset
+    ? [] : [`${rule.file}: ${rule.selector} draws its inset ring from different layers`];
+});
+
+test('a rule that recomposes the ring recomposes its inset twin, from the same layers', () => {
+  const recomposers = rules.filter((r) => own(r).has('--ring') || own(r).has('--ring-inset'));
+  // Three: :root, the grouped painted-container rule, and .ui-code, which composes its
+  // own because #537 gives a chip the surface its container is not on.
+  assert.equal(recomposers.length, 3,
+    'ring composition discovery changed; name the rule that was added or removed');
+  assert.equal(recomposers.filter((r) => r.selector.includes(':root')).length, 1,
+    'the root composition is not among the subjects, so the walk stopped reading tokens.css');
+  assert.deepEqual(pairProblems(recomposers), []);
+});
+
+test('the pairing gate rejects a composition that drops or alters one half', () => {
+  const both = { file: 'fixture', selector: '.fx', body: '--ring: 0 0 0 1px red, 0 0 2px blue; --ring-inset: inset 0 0 0 1px red, inset 0 0 2px blue;' };
+  assert.deepEqual(pairProblems([both]), []);
+  const outsetOnly = { file: 'fixture', selector: '.fx', body: '--ring: 0 0 0 1px red, 0 0 2px blue;' };
+  assert.deepEqual(pairProblems([outsetOnly]),
+    ['fixture: .fx composes --ring without --ring-inset']);
+  const insetOnly = { file: 'fixture', selector: '.fx', body: '--ring-inset: inset 0 0 0 1px red;' };
+  assert.deepEqual(pairProblems([insetOnly]),
+    ['fixture: .fx composes --ring-inset without --ring']);
+  const drifted = { file: 'fixture', selector: '.fx', body: '--ring: 0 0 0 1px red, 0 0 2px blue; --ring-inset: inset 0 0 0 2px red, inset 0 0 2px blue;' };
+  assert.deepEqual(pairProblems([drifted]),
+    ['fixture: .fx draws its inset ring from different layers']);
+  // A comma inside color-mix() is not a layer break, so the twin of the shipped
+  // recipe has to read as a match.
+  const real = rules.find((r) => r.file === 'src/styles/code.css' && r.selector === '.ui-code');
+  assert.ok(real, 'the chip rule is gone; move this check to another composition');
+  assert.equal(layersOf(own(real).get('--ring')).length, 3, 'the ring is three layers');
+  assert.deepEqual(pairProblems([real]), []);
+});
+
 test('every ring consumer keeps a real outline for forced colors', () => {
   // 27 -> 28: a link inside a table takes the ring on focus instead of the browser's
   // own outline (#510), and like every other consumer keeps a transparent outline
@@ -146,7 +205,11 @@ test('every ring consumer keeps a real outline for forced colors', () => {
   // focus and #487's re-review found still taking the browser's outline. 47 -> 48:
   // a Snippet's card, which now draws the ring for its focused code region because
   // the `<pre>` has no radius of its own.
-  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
+  // 48 -> 54: #531 gave the ring to the six scroll containers that had none — the table
+  // card, the dropdown search list, the drawer body, the confirm body, the palette list
+  // and React's modal body. Four of the six are painted on the container around them, the
+  // way #474 paints a snippet's, so the rule counted here is the one on that container.
+  assert.equal(consumers.length, 54, 'ring consumer discovery changed');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }

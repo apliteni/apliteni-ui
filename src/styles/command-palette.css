@@ -143,6 +143,19 @@
   overflow-y: auto;
   padding: var(--space-2);
 }
+/* Rows are `role="option" tabindex="-1"`, so the LIST takes the keyboard stop. The
+   wired palette's Tab trap holds one item and never hands it over; the markup the
+   kit publishes as a string, rendered open without the wiring, has no trap and did
+   arrive at the native outline. The panel draws the ring, as a snippet's card does
+   (#474), because the panel clips with `overflow: hidden`.
+   why: docs/specification.md#the-focus-ring */
+.ui-cmdk__list:focus-visible { outline: 2px solid transparent; }
+.ui-cmdk__panel:has(.ui-cmdk__list:focus-visible) { outline: 2px solid transparent; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); }
+/* One indicator, not two: forced colors drops box-shadow and the panel's outline is
+   the one that survives. #474 */
+@media (forced-colors: active) {
+  .ui-cmdk__list:focus-visible { outline: none; }
+}
 .ui-cmdk__group + .ui-cmdk__group { margin-top: var(--space-2); }
 
 /* Sentence case at 13px medium — the kit's label role, not a heading and not a

@@ -9,6 +9,16 @@
       ]
     },
     {
+      "file": "stories/scroll-ring.test.js",
+      "name": "Scroll container focus",
+      "does": "Resolves the kit's sheets with the tokens substituted and :focus-visible desugared, then checks each of the five scroll containers #531 ringed: the box carries no ring at rest, the named box carries the shared ring while the container has focus, that box keeps a transparent outline for forced colors, and a container that delegates its ring paints none of its own. Two themes by two accents. Emulates forced colors by flattening the (forced-colors: active) blocks and dropping every box-shadow, then checks that one focused container leaves exactly one box declaring an outline. Seven mutations, one per subject plus the delegating box's outline and its forced-colors override.",
+      "blind": [
+        "JSDOM lays nothing out, so it cannot prove a box scrolls, that the browser makes it a keyboard stop, or that a ring escapes a rounded corner; Chrome captures at 390px and 1280px in both themes cover those on #531.",
+        "contrast.js substitutes each custom property once for the whole sheet, so the per-surface --ring-gap is unmeasured here.",
+        "Which box a delegated ring SHOULD be painted on is a judgement, recorded in the triage in stories/focus-ring.test.js and shown by the captures; this file only checks that it is the box the sheet names."
+      ]
+    },
+    {
       "file": "stories/snippet-focus.test.js",
       "name": "Snippet focus",
       "does": "Discovers buttons, links, code regions and explicit tab stops in Snippet fixtures; checks shared focus shadows and transparent outlines across two themes and accents, that the code region hands its ring to the rounded card it sits in, and that the card still clips. Emulates forced colors by flattening the (forced-colors: active) block and dropping every box-shadow, then checks that one focused code region leaves exactly one box declaring an outline. Seven mutations, each removing one declaration the result depends on.",

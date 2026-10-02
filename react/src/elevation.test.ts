@@ -82,10 +82,12 @@ describe('elevation', () => {
       floating += got.floating;
     }
     expect(offences).toEqual([]);
-    // Both themes are walked, so the modal's one declaration is counted twice.
-    // This workspace ships no card and no rail of its own — it reads the kit's
-    // sheets for both — so the floating rung is the only one it writes.
-    expect(floating).toBe(2);
+    // Both themes are walked, so each declaration is counted twice. This
+    // workspace ships no card and no rail of its own — it reads the kit's sheets
+    // for both — so the floating rung is the only one it writes. 2 -> 4: #531
+    // composes the ring in front of that same rung for the modal's focused body,
+    // because a box-shadow list replaces the whole list.
+    expect(floating).toBe(4);
   });
 
   /* Round 1's finding 4, on this side: a genuine drop parked in a custom property

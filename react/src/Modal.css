@@ -29,6 +29,14 @@
 .rx-modal__title { margin: 0; font-family: var(--font-sans); font-weight: var(--weight-normal); font-size: var(--text-base); color: var(--text); }
 .rx-modal__body { padding: var(--space-4); display: flex; flex-direction: column;
   gap: var(--space-4); min-height: 0; overflow: auto; }
+/* A keyboard stop whenever the caller's children hold no control; the modal draws
+   its ring, and keeps the only outline forced colors repaints. Triaged in
+   react/src/focus-ring.test.tsx. why: docs/specification.md#the-focus-ring */
+.rx-modal__body:focus-visible { outline: 2px solid transparent; }
+.rx-modal:has(.rx-modal__body:focus-visible) { outline: 2px solid transparent; box-shadow: var(--ring), var(--elev-drop); }
+@media (forced-colors: active) {
+  .rx-modal__body:focus-visible { outline: none; }
+}
 .rx-modal__body > * { flex-shrink: 0; }
 .rx-modal__foot { display: flex; justify-content: flex-end; gap: var(--space-3); flex: none;
   padding: var(--space-4); }

@@ -265,6 +265,9 @@
   --ring-gap-width: 1px;
   --ring-gap: var(--bg);
   --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  /* The same three layers drawn inward, for a box that cannot paint outside itself: a
+     scroll container flush with a panel that is flush with the screen. #531 */
+  --ring-inset: inset 0 0 0 var(--ring-gap-width) var(--ring-gap), inset 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), inset 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
 
   /* The ink a cast shadow is made of, and the specular white that reads as gloss on a
      raised surface. Effects mix these instead of writing rgba(). */
@@ -530,6 +533,7 @@
 .ui-toast--solid,
 .vsw__menu {
   --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  --ring-inset: inset 0 0 0 var(--ring-gap-width) var(--ring-gap), inset 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), inset 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
   --code-bg: var(--bg);
 }
 
@@ -563,9 +567,14 @@
 .ui-success { --code-bg: var(--wash-code-bg); }
 
 /* A container focused itself paints outside its own surface; descendants only
- * inherit its inside gap again after focus moves to them. */
+ * inherit its inside gap again after focus moves to them. The `:has()` forms are the
+ * same rule for a container drawing a scroll container's ring (#531): that ring is
+ * outside the container too, so it takes the ground outside it. */
 .ui-card:focus-visible,
 .ui-cmdk__panel:focus-visible,
+.ui-cmdk__panel:has(.ui-cmdk__list:focus-visible),
 .ui-confirm__panel:focus-visible,
 .ui-drawer__panel:focus-visible,
-.rx-modal:focus-visible { --ring-gap: inherit; }
+.ui-dropdown__panel:has(.ui-dropdown__list:focus-visible),
+.rx-modal:focus-visible,
+.rx-modal:has(.rx-modal__body:focus-visible) { --ring-gap: inherit; }

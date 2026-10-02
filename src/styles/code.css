@@ -99,7 +99,9 @@
    and its ring is composed here instead of in the shared recipe: a chip that re-pointed the
    hand-off would hand the page to itself and paint the page everywhere. Backticks become a
    chip wherever the kit renders prose (fmt() in site/changelog.mjs), so a link inside one is
-   ordinary markup and gets the gap of the surface it is actually on. */
+   ordinary markup and gets the gap of the surface it is actually on. Both halves of the
+   ring are composed here: each resolves --ring-gap where it is declared, so a rule that
+   re-points the gap and composes one leaves the other on the surface above it. */
 .ui-code {
   font-family: var(--font-mono);
   font-size: 0.9em;
@@ -108,4 +110,5 @@
   border-radius: var(--radius-xs);
   color: var(--text);
   --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  --ring-inset: inset 0 0 0 var(--ring-gap-width) var(--ring-gap), inset 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), inset 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
 }

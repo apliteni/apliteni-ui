@@ -284,6 +284,19 @@
 .ui-dropdown__search-input:focus-visible { outline: 2px solid transparent; border-color: var(--accent); box-shadow: var(--ring); }
 
 .ui-dropdown__list { max-height: 300px; overflow-y: auto; }
+/* Rows are `role="option" tabindex="-1"`, so the LIST takes the keyboard stop and
+   answered with the native outline. The panel draws its ring, as a snippet's card
+   does (#474): the list sits 6px inside a --radius-lg corner, where its own ring
+   would leave that corner. The floating treatment is restated beside it, because a
+   box-shadow list replaces the whole list.
+   why: docs/specification.md#the-focus-ring */
+.ui-dropdown__list:focus-visible { outline: 2px solid transparent; }
+.ui-dropdown__panel:has(.ui-dropdown__list:focus-visible) { outline: 2px solid transparent; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); }
+/* One indicator, not two: forced colors drops box-shadow and the panel's outline is
+   the one that survives. #474 */
+@media (forced-colors: active) {
+  .ui-dropdown__list:focus-visible { outline: none; }
+}
 /* A row is `display: flex`, which outranks the UA's [hidden], so a row the
    query hides is put away here. */
 .ui-dropdown__list [hidden] { display: none; } /* motion: still — a row the query no longer matches is gone on the next keystroke */
