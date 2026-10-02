@@ -2793,11 +2793,14 @@ says they are there. At 390px the stock screener's three views need 295px of a
 284px column, and `Valuation` was cut at the right edge. Two things come with
 not scrolling: the focus ring's glow is no longer clipped against the strip's own
 4px padding, and the strip is no longer a keyboard stop answering with the
-browser's own outline. Below the phone step a coarse pointer leaves this
-appearance's row gap at that same 4px rather than opening it to `--tap-gap`: an
-underline tab already draws at the 44px floor, so its tap layer never leaves its
-own box and has nothing to grow into. Held by `stories/segmented-wrap.test.js`,
-measured in a browser at 390 and 1280.
+browser's own outline. Its rows stand `--space-5` apart while its track stays
+packed across. A chosen tab's rail is 14px under its own label, and at the
+track's own 4px it was 16px over the next row's, close enough to read as either
+row's mark; at 20px it is 32px, and the focus ring's 17px of glow clears the row
+above instead of overlapping it by 13px. That is the gap `--tap-gap` already
+forced below the phone step on a coarse pointer, so the strip draws the same
+under both pointers. Held by `stories/segmented-wrap.test.js`, measured in a
+browser at 390 and 1280.
 Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
 
 ## Shared React logic and declarations

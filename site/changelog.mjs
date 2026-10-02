@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.76.0', date: '2026-10-02',
     changes: [
-      ['fixed', 'An underline segmented strip wraps onto a further row when its tabs do not fit, instead of keeping one row and scrolling. In a phone-width column the tabs past the fold were cut off with nothing saying they were there: the stock screener showcase lost `Valuation` at 390px. Tabs keep their size, order and type rank. The strip is no longer a scroll box, so it is no longer a keyboard stop answering with the browser\u2019s own outline, and the focus ring on a tab is no longer clipped. Below the phone step a coarse pointer keeps the strip\u2019s own 4px row gap rather than the 20px tap gap, because an underline tab already draws at the 44px floor and needs no room opened around it. Pill strips are unchanged. Resolves #527.', ['Segmented']],
+      ['fixed', 'An underline segmented strip wraps onto a further row when its tabs do not fit, instead of keeping one row and scrolling. In a phone-width column the tabs past the fold were cut off with nothing saying they were there: the stock screener showcase lost `Valuation` at 390px. Tabs keep their size, order and type rank. The strip is no longer a scroll box, so it is no longer a keyboard stop answering with the browser\u2019s own outline, and the focus ring on a tab is no longer clipped. Wrapped rows stand 20px apart while the tabs stay packed across, so a chosen tab\u2019s underline reads as its own and a focus ring on the second row clears the first. That is the gap a coarse pointer was already given below the phone step, so both pointers now draw the strip the same. Pill strips are unchanged. Resolves #527.', ['Segmented']],
     ],
   },
   {

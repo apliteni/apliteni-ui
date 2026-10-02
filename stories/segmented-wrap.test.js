@@ -25,7 +25,19 @@ const PROBE = (html) => {
       return { label: b.textContent.trim(), left: r.left, right: r.right, top: Math.round(r.top) };
     });
     const cs = getComputedStyle(seg);
+    // The ink box of a label, not its padded button box: the question is which
+    // row of WORDS the rail reads as belonging to.
+    const ink = (b) => { const r = document.createRange(); r.selectNodeContents(b); return r.getBoundingClientRect(); };
+    const chosen = seg.querySelector('button.is-active, button[aria-pressed="true"], button[aria-selected="true"]');
+    const nextRow = chosen && [...seg.querySelectorAll('button')]
+      .find((b) => Math.round(b.getBoundingClientRect().top) > Math.round(chosen.getBoundingClientRect().top));
+    const rail = chosen ? chosen.getBoundingClientRect().bottom : null;
     return {
+      rail: chosen && nextRow ? {
+        label: chosen.textContent.trim(),
+        toOwnLabel: +(rail - ink(chosen).bottom).toFixed(1),
+        toNextRowLabel: +(ink(nextRow).top - rail).toFixed(1),
+      } : null,
       left: box.left,
       right: box.right,
       // The padding box is what a scroll box would clip against.
@@ -112,6 +124,18 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
       }
     }
 
+    // A wrapped strip's rail has to read as the mark of the row it is drawn on.
+    // It sits under its own label and over the next row's, so the two distances
+    // are the whole question — at the track's own 4px they were 14 and 16, and
+    // #545 removes the accent box that is carrying selection in the meantime.
+    for (const s of narrow.filter((x) => x.rows > 1 && x.rail)) {
+      assert.ok(
+        s.rail.toNextRowLabel > s.rail.toOwnLabel * 1.5,
+        `${s.story}: the chosen tab's rail is ${s.rail.toOwnLabel}px under its own label and `
+        + `${s.rail.toNextRowLabel}px over the next row's, so it reads as either row's mark.`,
+      );
+    }
+
     // The issue's own subject: at a phone width the screener's three views do not
     // fit one row, so the strip has to use two. A sheet that honoured
     // `flex-wrap: wrap` while shrinking the tabs to fit would pass everything
@@ -139,6 +163,21 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
       'the pre-#527 sheet passed every check above. Nothing here measures the defect.',
     );
     t.diagnostic(`mutation to nowrap + overflow:auto fails ${caught.length} of ${reverted.length} strips`);
+
+    // --- the second mutation. The rows closed back up to the track's own gap,
+    // which is what the strip inherited before #527 set one for the wrap.
+    const tight = await strips(browser, {
+      subjects, css, width: 390,
+      extra: '.ui-seg--underline{row-gap:var(--space-1)!important}',
+    });
+    const ambiguous = tight.filter((s) => s.rows > 1 && s.rail
+      && !(s.rail.toNextRowLabel > s.rail.toOwnLabel * 1.5));
+    assert.ok(
+      ambiguous.length,
+      'closing the rows to the track gap left every rail still reading as its own row. The '
+      + 'check above measures nothing.',
+    );
+    t.diagnostic(`mutation to a 4px row gap fails ${ambiguous.length} of ${tight.filter((s) => s.rows > 1 && s.rail).length} wrapped strips`);
   } finally {
     await browser.close();
   }

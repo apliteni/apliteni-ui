@@ -74,8 +74,13 @@
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
 /* Underline tabs wrap for the reason the pills above do — #435, and #527, which
-   stopped them scrolling. why: docs/specification.md */
-.ui-seg--underline { flex-wrap: wrap; overflow: visible; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); max-width: 100%; }
+   stopped them scrolling. Their rows stand --space-5 apart while the track stays
+   packed across: a tab's rail is 14px under its own label, and at the track's own
+   4px it was 16px over the next row's, which reads as either row's mark. At 20px
+   it is 32px, and the focus ring's 17px of glow clears the row above instead of
+   overlapping it by 13. That is the number --tap-gap already forced on a coarse
+   pointer, so the strip now draws the same under both. why: docs/specification.md */
+.ui-seg--underline { flex-wrap: wrap; overflow: visible; row-gap: var(--space-5); align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); max-width: 100%; }
 .ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
 .ui-seg--underline button.is-active,
 .ui-seg--underline button[aria-pressed="true"] { background: transparent; border-bottom-color: var(--accent); }
