@@ -80,7 +80,7 @@ const SUBJECTS = [
     ],
   },
   {
-    id: 'topbar', kind: 'story', story: 'apps/AccountPreset.stories.js', export: 'WithVersionSwitcher',
+    id: 'topbar', kind: 'story', story: 'components/Topbar.stories.js', export: 'InShell',
     size: [1280, 700],
     controls: [
       ['deck-text', '.dtsw a', 'the deck / text switcher'],
@@ -92,12 +92,12 @@ const SUBJECTS = [
     // The version menu's rows, which #487's re-review found still taking the
     // browser's outline. `click` opens the switcher; the row is role="option"
     // with tabindex="-1", so the kit's arrow keys are what focus it in use.
-    id: 'version-menu', kind: 'story', story: 'apps/AccountPreset.stories.js', export: 'WithVersionSwitcher',
+    id: 'version-menu', kind: 'story', story: 'components/Topbar.stories.js', export: 'InShell',
     size: [1280, 700], click: '.vsw__btn',
     controls: [['row', '.vopt', "a version menu row"]],
   },
   {
-    id: 'account-menu', kind: 'story', story: 'apps/AccountPreset.stories.js', export: 'WithVersionSwitcher',
+    id: 'account-menu', kind: 'story', story: 'components/Topbar.stories.js', export: 'InShell',
     size: [1280, 700], click: '.avatar',
     controls: [['menu-row', '.amenu a', 'an account menu row']],
   },

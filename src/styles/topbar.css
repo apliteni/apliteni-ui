@@ -212,7 +212,18 @@
 .vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 /* The switcher keeps its glyph and drops its label where the shell folds — the
    same step the rail folds at: docs/specification.md#breakpoints. */
-@media (max-width: 720px) { .vsw__btn .lbl { display: none; } }
+/* Below the phone step the band is as wide as the page, so a menu hanging
+   rightwards from the switcher runs off it — and a CLOSED menu is still laid
+   out, so it scrolled the page sideways with nothing visible to explain it.
+   It hangs the other way instead, which is what `.amenu` beside it has always
+   done. The switcher's label goes at the same step; the version itself stays.
+   The band's own controls still want more width than a 320px page has: #558.
+   why: guidelines/layout-and-density.md#use-the-three-breakpoints
+   held by: stories/overlay-css.test.js */
+@media (max-width: 720px) {
+  .vsw__btn .lbl { display: none; }
+  .vsw__menu { left: auto; right: 0; }
+}
 
 /* Account — avatar + dropdown. Gated: hidden until the app confirms a session
    and adds `.on` (mirrors the portal's /auth/me reveal). */

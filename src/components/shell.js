@@ -1,6 +1,6 @@
 // The kit's one page shell: a full-height rail beside one <main>, in two layouts.
-// accountShell() is a thin preset over it that keeps the topbar. wireShell() once
-// after mounting wires the fold, the nav's groups and the reader's menu.
+// `topbar` switches the product band on; it is off unless the caller hands one over.
+// wireShell() once after mounting wires the fold, the nav's groups and the reader's menu.
 // why: docs/specification.md#the-page-shell
 import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
@@ -26,8 +26,8 @@ const isRecord = (v) => typeof v === 'object' && v !== null;
 // settled here, before the first sink sees it. Adding one to appShell() means adding it
 // to SHAPES or deciding in the open that it needs nothing.
 
-// accountShell()'s tuple nav — [id, icon, label, href?, target?] — and nav.js's object
-// shape are accepted side by side. A nav that is not a list falls back to the default;
+// The account menu's nav takes the old tuple — [id, icon, label, href?, target?] — and
+// nav.js's object shape side by side. A nav that is not a list falls back to ACCOUNT_NAV;
 // an entry that is neither shape is dropped. An empty list is an answer and stays.
 const toItems = (nav) => (Array.isArray(nav) ? nav : ACCOUNT_NAV)
   .filter(isRecord)
@@ -433,60 +433,4 @@ export function wireShell(root = document, { persist } = {}) {
     const auto = saved != null && !optedOut(app) && app.getAttribute('data-rail') === 'auto';
     setRail(app, auto ? saved : app.classList.contains('is-collapsed'));
   }
-}
-
-// The /account preset: appShell() with the topbar switched on, and the old
-// `cap` + `crumb` strings folded into the trail the caller now owns.
-export function accountShell({
-  word = 'Account',
-  versions,
-  account = {},
-  nav = ACCOUNT_NAV,
-  active = 'prefs',
-  cap = 'Account',
-  showSwitch = false,
-  crumb,
-  title = '',
-  sub = '',
-  body = '',
-  signOutHref = '#logout',
-  collapsible = true,
-  collapsed,
-  layout,
-  width,
-  search,
-} = {}) {
-  // The same normaliser appShell() runs, called once here so the rail and the
-  // topbar menu are handed one list rather than two readings of `nav`.
-  const items = toItems(nav);
-  const trail = [{ label: cap }, { label: crumb || title }];
-  // The preset hands the topbar the caller's text, as it does the rail. toTopbar()
-  // escapes for the menu's raw sinks and runs once inside appShell(); escaping here as
-  // well would reach the menu as entities.
-  return appShell({
-    word,
-    nav: items,
-    active,
-    navLabel: cap,
-    crumbs: trail,
-    title,
-    sub,
-    body,
-    account,
-    signOutHref,
-    collapsible,
-    collapsed,
-    // Settled nowhere but appShell(). Under `layout: 'topbar'` the bag below is not
-    // drawn, which is what that layout costs the preset.
-    layout,
-    width,
-    search,
-    topbar: {
-      word,
-      view: 'text',
-      showSwitch,
-      versions,
-      account: { ...(isRecord(account) ? account : {}), active, nav: items },
-    },
-  });
 }

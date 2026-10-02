@@ -437,3 +437,76 @@ test('Modal scroll guard rejects a missing cap, scrolling body or fixed slots', 
     assert.throws(() => checkModalScroll(css.replaceAll(declaration, '')));
   }
 });
+
+// ---- which way a topbar menu hangs ---------------------------------------
+//
+// Both topbar menus hang off a trigger at the right end of a band that is as
+// wide as the page. `.amenu` has always been anchored by its RIGHT edge, so it
+// opens leftwards and stays on the page; `.vsw__menu` was anchored by its left,
+// so it opened rightwards off the edge — and a CLOSED menu is still laid out,
+// so it scrolled the page sideways with nothing on screen to explain it.
+// Measured on the built Storybook at 320px: the closed version menu reached
+// 527px of a 320px page, and anchoring it right brought the page back to 397.
+//
+// Limit: this reads the sheet. It cannot measure a box — JSDOM has no layout —
+// so it checks the anchor each menu declares and that the two agree below the
+// phone step. The widths above come from a real Chrome, run by hand the way
+// stories/tap-zone.test.js splits the same job; CI runs this source half.
+const PHONE_STEP = '(max-width: 720px)';
+
+/** The bodies of every `@media (max-width: 720px)` block in a sheet. */
+function phoneBlocks(css) {
+  const out = [];
+  const needle = `@media ${PHONE_STEP}`;
+  for (let at = css.indexOf(needle); at >= 0; at = css.indexOf(needle, at + 1)) {
+    const start = css.indexOf('{', at);
+    if (start < 0) continue;
+    let depth = 0;
+    for (let i = start; i < css.length; i++) {
+      if (css[i] === '{') depth += 1;
+      else if (css[i] === '}' && (depth -= 1) === 0) { out.push(css.slice(start + 1, i)); break; }
+    }
+  }
+  return out;
+}
+
+/** The edge a rule for `sel` anchors to in `css`, as the declarations it writes. */
+const anchorOf = (css, sel) => rules(css)
+  .filter((r) => selects(r, sel))
+  .map((r) => r.body)
+  .join(';');
+
+const hangsLeftwards = (body) => /\bright\s*:\s*0/.test(body) && !/\bleft\s*:\s*0/.test(body);
+
+test('src/styles/topbar.css: neither topbar menu opens off the right of a phone', () => {
+  const css = read('src/styles/topbar.css');
+
+  // The account menu is the one that always did this, and is what the version
+  // menu is being held to. If it stops, this gate is comparing against nothing.
+  assert.ok(
+    hangsLeftwards(anchorOf(css, '.amenu')),
+    '.amenu no longer anchors itself by its right edge, so there is no menu in this sheet '
+    + 'still demonstrating the placement .vsw__menu is held to here',
+  );
+
+  const phone = phoneBlocks(css);
+  assert.ok(phone.length, `topbar.css declares no \`@media ${PHONE_STEP}\` step at all`);
+  const onPhone = phone.map((b) => anchorOf(b, '.vsw__menu')).join(';');
+  assert.ok(
+    hangsLeftwards(onPhone),
+    'below the phone step .vsw__menu still opens rightwards from its trigger. The band is as '
+    + 'wide as the page there, so the menu runs off it — and because a closed menu is still '
+    + 'laid out, the page scrolls sideways with nothing visible to explain it. `left: auto; '
+    + 'right: 0`, which is what .amenu beside it declares, is the whole fix.',
+  );
+});
+
+// The mutation: the gate has to reject the sheet it was written against, not
+// agree with whatever is there.
+test('src/styles/topbar.css: taking the phone anchor back out turns that gate red', () => {
+  const css = read('src/styles/topbar.css');
+  const without = css.replace(/\.vsw__menu\s*\{\s*left:\s*auto;\s*right:\s*0;\s*\}/, '');
+  assert.notEqual(without, css, 'the phone anchor is not written the way this mutation removes it');
+  const onPhone = phoneBlocks(without).map((b) => anchorOf(b, '.vsw__menu')).join(';');
+  assert.equal(hangsLeftwards(onPhone), false, 'the gate above passes a sheet with no phone anchor in it');
+});

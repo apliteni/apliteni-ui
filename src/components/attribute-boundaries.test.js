@@ -49,7 +49,6 @@ const cases = [
   ['accountMenu', () => ui.accountMenu({ email: ui.esc(probe), name: 'Trusted name', nav: [['id', 'check', 'Trusted label', probe, probe]] })],
   ['topbar', () => ui.topbar({ word: 'Trusted word', view: probe })],
   ['appShell', () => ui.appShell({ word: probe, brandHref: probe, account: { name: probe, email: probe } })],
-  ['accountShell', () => ui.accountShell({ word: probe, account: { name: probe, email: probe } })],
   ['skeleton', () => ui.skeleton({ className: probe, width: probe, height: probe, radius: probe })],
   ['skeletonTable', () => ui.skeletonTable({ rows: probe, cols: probe })],
   ['busyRegion', () => ui.busyRegion({ className: probe, label: probe, readyLabel: probe })],
