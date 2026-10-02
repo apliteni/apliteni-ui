@@ -22,6 +22,19 @@
    the rounded corners / clipping its last column. Clipping to the card's
    border-box also keeps zebra stripes from escaping the radius. */
 .ui-card:has(> .ui-table) { overflow-x: auto; }
+/* Which makes the card a keyboard stop: Chrome gives a scroll container one of its
+   own whenever nothing inside it is keyboard-focusable, so a card around a table of
+   plain cells took the browser's outline — black in light mode, which #457 refused.
+   Measured on the shell's table card at 390. A card with a link or a button in a
+   cell is not a stop at all, and this rule then never paints.
+
+   The ring goes on the card itself, unlike the snippet's (#474): a box's own
+   box-shadow is not clipped by its own `overflow`, and the card has the radius for
+   the ring to follow. Composed with --elev-rest, because a box-shadow list replaces
+   the whole list and light carries the card's entire separation in that drop. The
+   gap comes from .ui-card:focus-visible in tokens.css, which hands a container
+   focused itself the ground outside it. #531 */
+.ui-card:has(> .ui-table):focus-visible { outline: 2px solid transparent; box-shadow: var(--ring), var(--elev-rest); }
 
 /* Vertical stacks space cards with the container's gap — see .ui-card-stack.
    (No `.ui-card + .ui-card` margin: it leaks into grid/flex rows and misaligns.) */

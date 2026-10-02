@@ -874,13 +874,29 @@ loses.
 
 **A box that scrolls is a control.** A browser gives a scroll container a keyboard stop
 of its own, with no `tabindex` and no author rule, so an overflowing box needs the ring
-as much as a button does. The kit's scrolling table wrapper, dropdown panel and snippet
-code region carry it; the code region's ring is painted on the card around it, because
-the `pre` is flush with that card on three sides and has no radius of its own, so a ring
-drawn on the box itself overhung the rounded corners. The gate discovers every box the
-kit makes scrollable and holds the list, so a new one is triaged rather than shipping
-with the browser's outline; the boxes still without a ring are named in that list and
-tracked on [#531](https://github.com/apliteni/apliteni-ui/issues/531).
+as much as a button does — unless its own children are keyboard-focusable, in which case
+it is given no stop, because the keyboard already reaches into it. Every scrolling box
+the kit ships is one or the other, and
+[#531](https://github.com/apliteni/apliteni-ui/issues/531) settled which.
+
+Eight carry the ring: the scrolling table wrapper, a card around a table, the dropdown
+panel, a dropdown's search list, a drawer's body, a confirm's consequence, the command
+palette's list and a snippet's code region. Four of those are painted on the box AROUND
+the scroller rather than on the scroller — the snippet's card, and the dropdown, drawer
+and palette panels — because a box flush with its container, or inside one that clips,
+can only draw a ring that is cut off or that overhangs the container's rounded corners.
+A delegated ring is one indicator and not two: the scroller keeps the transparent outline
+that suppresses the browser's own, and drops it under `forced-colors: active`, where the
+container's outline is the one the system repaints. The React modal's body is the same
+shape and is painted on the modal. Two boxes are not a keyboard stop at all and carry no
+ring: the underline tab strip and the application rail, each of which holds its own
+tabbable rows and overflows only once it holds more of them than fit.
+
+The gate discovers every box the kit makes scrollable and holds both lists exactly, with
+the reason beside each entry, so a new overflowing box is triaged rather than shipping
+with the browser's outline. A box excused as no stop is also rendered from its own
+factory and checked to still hold a tabbable row. Where a ring lands is resolved from the
+source separately, so a ring that moves off the box that can draw it fails.
 
 The solid band's unchanged colour is still held at 4.22:1 against the story-derived
 flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel

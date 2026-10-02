@@ -9,6 +9,8 @@ export const RELEASES = [
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],
+      ['fixed', 'Every box the kit scrolls now answers the keyboard with the shared focus ring instead of the browser\u2019s own outline. A card around a table, a dropdown\u2019s search list, a drawer\u2019s body, a confirm\u2019s consequence, the command palette\u2019s list and the React modal\u2019s body took that outline \u2014 black in both themes and blind to the accent \u2014 because a browser makes an overflowing box a keyboard stop with no `tabindex` and no author rule. Four of the six draw their ring on the box around them, as a snippet\u2019s code region does, because a box flush with its container or inside one that clips can only draw a ring that is cut off or that overhangs the container\u2019s rounded corners. Nothing is drawn differently until the box takes focus. Closes #531.', ['Card', 'Table', 'Dropdown', 'Drawer', 'Confirm', 'CommandPalette']],
+      ['fixed', 'The underline tab strip and the application rail are left without a ring on purpose: each holds its own tabbable rows, so a browser gives the scrolling box no keyboard stop of its own, and there is no outline there to replace. Both are measured rather than assumed, and the gate now holds the reason beside each box. See #531.', ['Segmented', 'Tabs']],
     ],
   },
   {

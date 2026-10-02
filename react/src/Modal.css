@@ -29,6 +29,21 @@
 .rx-modal__title { margin: 0; font-family: var(--font-sans); font-weight: var(--weight-normal); font-size: var(--text-base); color: var(--text); }
 .rx-modal__body { padding: var(--space-4); display: flex; flex-direction: column;
   gap: var(--space-4); min-height: 0; overflow: auto; }
+/* Which makes it a keyboard stop of Chrome's making whenever the caller's children
+   hold no control of their own, and it then took the browser's black outline —
+   #457 refused that. This workspace's own scroll container; the kit's eight are
+   triaged in stories/focus-ring.test.js and this one in react/src/focus-ring.test.tsx.
+   The MODAL draws the ring, as the snippet's card does on #474: the body is flush
+   with the panel's sides, the panel clips with `overflow: hidden`, and the body has
+   no radius of its own. Composed with the drop, because a box-shadow list replaces
+   the whole list. #531 */
+.rx-modal__body:focus-visible { outline: 2px solid transparent; }
+.rx-modal:has(.rx-modal__body:focus-visible) { outline: 2px solid transparent; --ring-gap: inherit; box-shadow: var(--ring), var(--elev-drop); }
+/* Forced colors drops box-shadow and both boxes would fall back to their outlines:
+   two indicators for one focus. The modal's is the one that survives. #474 */
+@media (forced-colors: active) {
+  .rx-modal__body:focus-visible { outline: none; }
+}
 .rx-modal__body > * { flex-shrink: 0; }
 .rx-modal__foot { display: flex; justify-content: flex-end; gap: var(--space-3); flex: none;
   padding: var(--space-4); }

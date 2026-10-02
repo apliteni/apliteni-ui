@@ -238,14 +238,67 @@ export function scrollingSelectors(sheets) {
   return [...out];
 }
 
+/**
+ * The selector a `:has()` focus rule keys on, when a rule paints one box's ring
+ * while ANOTHER box is the focus. `.ui-snippet:has(pre:focus-visible)` → `pre`.
+ * #474 introduced that shape for a scroller flush with its container, and #531
+ * reuses it for four more, so the reading has to follow it.
+ */
+function delegatedTo(selector) {
+  const match = /:has\(\s*([^()]*?)\s*:focus(?:-visible)?\s*\)/.exec(selector);
+  return match ? match[1].trim() : null;
+}
+
+/**
+ * Every rule that paints the shared ring while `selector` is the keyboard focus:
+ * one whose own subject reaches it, and one on another box keyed on
+ * `:has(<it>:focus-visible)`. The rules come back rather than a boolean, so a
+ * mutation can take ALL of them out — a box answered by two rules is not proved
+ * by deleting one.
+ *
+ * NOT CHECKED: that a `:has()` host is an ancestor of the focused box. The reading
+ * is "a ring is painted while this box holds focus"; WHICH box carries it is a
+ * judgement, recorded in the triage's prose and shown by the captures.
+ */
+export function ringRulesFor(selector, rules) {
+  return rules.filter((rule) => {
+    if (!rule.paints.ring) return false;
+    const inner = delegatedTo(rule.selector);
+    if (inner) return selector === inner || selector.endsWith(` ${inner}`);
+    return selector === rule.subject || selector.startsWith(`${rule.subject}.`)
+      || selector.startsWith(`${rule.subject} `);
+  });
+}
+
+/** Nothing the keyboard can operate, whatever its tabindex says. */
+const inoperable = (el) => el.hasAttribute('disabled')
+  || el.getAttribute('aria-disabled') === 'true'
+  || (el.tagName === 'INPUT' && el.getAttribute('type') === 'hidden');
+
 export function keyboardStops(root, extra = []) {
   const reachable = [FOCUSABLE, ...extra].join(',');
   return [...root.querySelectorAll(reachable)].filter((el) => {
-    if (el.hasAttribute('disabled') || el.getAttribute('aria-disabled') === 'true') return false;
-    if (el.tagName === 'INPUT' && el.getAttribute('type') === 'hidden') return false;
+    if (inoperable(el)) return false;
     const index = el.getAttribute('tabindex');
     if (index !== null && Number(index) < 0) return ROVING_ROLES.includes(el.getAttribute('role'));
     return true;
+  });
+}
+
+/**
+ * The descendants a browser puts in the TAB order — which is the question Chrome
+ * asks before it makes a scroll container a keyboard stop of its own: a scroller
+ * whose own children are keyboard-focusable is given no stop, because the keyboard
+ * already reaches into it. Narrower than `keyboardStops` on purpose: a roving row
+ * at `tabindex="-1"` is reached by an arrow key and not by Tab, so it does not
+ * spare its container — which is exactly why `.ui-dropdown__list` and
+ * `.ui-cmdk__list`, both full of them, are stops. #531
+ */
+export function tabbableIn(root) {
+  return [...root.querySelectorAll(FOCUSABLE)].filter((el) => {
+    if (inoperable(el)) return false;
+    const index = el.getAttribute('tabindex');
+    return index === null || Number(index) >= 0;
   });
 }
 

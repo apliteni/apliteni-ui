@@ -28,8 +28,9 @@
 //    matches a fixed list of focusable kinds, and an overflowing `div` is in
 //    none of them, although Chrome makes it a keyboard stop. Scroll containers
 //    are covered separately, by the `scrollingSelectors` triage below, which
-//    discovers them from the sheets and holds which carry the ring and which do
-//    not. The seven without one are tracked on #531.
+//    discovers them from the sheets and holds which carry the ring and which are
+//    not a stop at all. #531 emptied the untriaged middle: eight carry the ring
+//    and two hold their own tabbable rows, which is what spares them.
 //  - A roving row the kit focuses with a key rather than Tab is judged only if
 //    its role is in ROVING_ROLES. That list is what the kit uses today; a row
 //    given some other role would drop out of the walk unseen. #487's re-review
@@ -52,11 +53,15 @@ import { JSDOM, VirtualConsole } from 'jsdom';
 import { STYLE_FILES, installDomGlobals, storyFiles } from './lib/contrast.js';
 import {
   focusRules, judgeStops, failures, accessibleName, sheetText,
-  focusPaint, cascadeFailures, specificity, scrollingSelectors,
+  focusPaint, cascadeFailures, specificity, scrollingSelectors, tabbableIn,
+  ringRulesFor,
 } from './lib/focus-walk.js';
 import { topbar, footer, CHROME_CSS } from '../site/chrome.mjs';
 import { catalogueCopy } from '../site/catalogue.mjs';
 import { iconNames } from '../src/assets/icons.js';
+// #531's no-stop half is a fact about the markup these two emit, not about a sheet.
+import { segmented } from '../src/components/index.js';
+import { appShell } from '../src/components/shell.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
@@ -371,91 +376,177 @@ test('focus walk: losing a ring to source order turns the cascade test red', () 
 // walk entirely. The boxes are discovered from the sheets, so a new overflowing
 // one has to be triaged here rather than appearing unseen.
 //
-// NOT A DECISION THIS GATE MAKES. Whether the seven below should paint the ring
-// is Artur's call on #531; several sit inside a region that already takes focus,
-// and the ring on a scrolling table wrapper or the application rail is a visible
-// change on surfaces #482 never named. They are recorded as a measured gap, not
-// excused: the list is asserted exactly, so one of them gaining a ring, or an
-// eighth box appearing, fails here.
-const SCROLL_GAP = [
-  '.ui-card:has(> .ui-table)',
-  '.ui-seg--underline',
-  '.ui-dropdown__list',
-  '.ui-drawer__body',
-  '.ui-confirm__body',
-  '.ui-cmdk__list',
-  '.ui-app__rail',
-];
+// #531 closed the gap #487 recorded. Chrome's rule has a second half: a scroller
+// whose own children are keyboard-focusable gets NO stop of its own, because the
+// keyboard already reaches into it. That splits the ten in two, and each half is
+// held exactly below — a box moving between them, or an eleventh box appearing,
+// fails here.
+//
+// WHAT THIS TRIAGE DOES NOT READ. Which half a box belongs in was decided in a
+// browser, not here: this file reads the sheets, and a sheet does not say whether
+// the markup a factory emits holds a focusable child. The two in SCROLL_NO_STOP
+// are therefore checked against the markup as well, below. Nor does it read WHICH
+// box a delegated ring is painted on — `ringRulesFor` finds the rule, the reason
+// beside each entry names the box, and the captures on #531 show it.
 
 /**
- * The scrolling boxes that carry the ring, each with the reason it does.
- *
- * `.ui-snippet pre` joined them on #474. A shell command overflows it, so Chrome
- * makes it a keyboard stop, and it used to answer with the browser's own outline
- * — black in light mode, which #457 refused. One nuance this reader cannot show:
- * the rule it finds, `.ui-snippet :focus-visible` in base.css, is the one that
- * suppresses the native outline, but the ring is painted on the CARD, by
- * `.ui-snippet:has(pre:focus-visible)` in code.css. A ring on the `pre` itself
- * drew a hard square — the box is flush with its card on three sides and has no
- * radius of its own — so it overhung the rounded corners and cut a line across
- * the card. One indicator either way; the box it is painted on is the card.
+ * The scrolling boxes that carry the ring, each with the reason and the box the
+ * ring is painted on. A ring is reached either by a rule of the box's own or by one
+ * on an ancestor keyed on `:has(<it>:focus-visible)` — the delegation #474
+ * introduced, for a scroller flush with its container or inside one that clips.
  */
-const SCROLL_RINGED = [
-  '.ui-dropdown__panel.is-scroll',
-  '.ui-table-scroll',
-  '.ui-snippet pre',
-];
+const SCROLL_RINGED = {
+  '.ui-card:has(> .ui-table)': 'on the card itself. A card around a table of plain cells '
+    + 'is a stop — measured on the shell at 390 with the browser\'s outline — and a card '
+    + 'with a link or a button in a cell is not a stop at all. A box\'s own box-shadow '
+    + 'survives its own `overflow`, and the card has the radius the ring follows, so no '
+    + 'delegation is needed. #531',
+  '.ui-dropdown__panel.is-scroll': 'on the panel, by the rule written for every panel: '
+    + 'a panel that takes focus any other way has the same claim on the ring. #487',
+  '.ui-dropdown__list': 'on the PANEL. The rows are role="option" tabindex="-1", so the '
+    + 'list takes the stop — measured at 390 and 1280 with the browser\'s outline. The '
+    + 'list sits 6px inside a 16px corner, where a ring on the list leaves the panel\'s '
+    + 'rounded corner. #531',
+  '.ui-drawer__body': 'on the PANEL. A text-only body scrolls and Tab reaches it between '
+    + 'the close button and the footer\'s actions. The body is flush with the panel\'s '
+    + 'sides and has no radius, so a ring on it paints onto the scrim and draws two lines '
+    + 'across the panel. #531',
+  '.ui-confirm__body': 'on the paragraph itself: the panel insets it by --space-5 on every '
+    + 'side, so a square ring on a square scroller clips nothing and reaches no corner — '
+    + 'what .ui-table-scroll already draws. #531',
+  '.ui-cmdk__list': 'on the PANEL, which clips with `overflow: hidden`. The wired '
+    + 'palette\'s Tab trap holds one item and never hands the list focus; the markup the '
+    + 'kit publishes as a string has no trap and does. #531',
+  '.ui-table-scroll': 'on the wrapper itself, which is square and clipped by nothing. '
+    + 'The kit\'s first ringed scroller.',
+  '.ui-snippet pre': 'on the CARD. A shell command overflows the `pre`, which is flush '
+    + 'with its card on three sides and has no radius of its own, so a ring drawn on it '
+    + 'overhung the rounded corners and cut a line across the card. #474',
+};
+
+/**
+ * The scrolling boxes that are NOT a keyboard stop, each with the reason and the
+ * markup that proves it. Chrome gives a scroller no stop of its own while its own
+ * children are keyboard-focusable, so there is no outline here to replace and
+ * nothing to remove: these two hold their rows by construction, and each overflows
+ * only once it holds more of them than fit.
+ *
+ * Measured in Chrome 153 at 1280 and 390, both themes: each had content wider than
+ * its box and neither entered the tab order. Artur's call on #531 was to say why
+ * rather than ring a box the keyboard never lands on.
+ */
+const SCROLL_NO_STOP = {
+  '.ui-seg--underline': {
+    why: 'a tab strip holds its tabs, which are <button>s. It scrolls only when it holds '
+      + 'more tabs than fit across, so a strip that overflows is a strip full of them.',
+    markup: () => segmented({
+      options: [{ label: 'Overview' }, { label: 'Performance' }, { label: 'Costs' }],
+      appearance: 'underline',
+      ariaLabel: 'Dataset view',
+    }),
+  },
+  '.ui-app__rail': {
+    why: 'the rail holds the brand link, its nav rows and the reader\'s menu trigger. It '
+      + 'scrolls down only when it holds more rows than the viewport\'s height, so a rail '
+      + 'that overflows is a rail full of links.',
+    markup: () => appShell({
+      word: 'Finance',
+      layout: 'rail',
+      nav: [
+        { id: 'overview', icon: 'chart', label: 'Overview' },
+        { id: 'reports', icon: 'table', label: 'Reports' },
+      ],
+      active: 'reports',
+      account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+      title: 'Payouts',
+    }),
+  },
+};
 
 test('focus walk: every box the kit makes scrollable is triaged', () => {
   const scrolling = scrollingSelectors(KIT);
-  assert.ok(scrolling.length >= 8,
+  assert.ok(scrolling.length >= 10,
     `only ${scrolling.length} scrolling boxes discovered — the reader is not finding overflow`);
   const ringed = [];
   const bare = [];
   for (const selector of scrolling) {
-    const reached = kitRules.some((rule) => rule.paints.ring
-      && (selector === rule.subject || selector.startsWith(`${rule.subject}.`)
-        || selector.startsWith(`${rule.subject} `)));
-    (reached ? ringed : bare).push(selector);
+    (ringRulesFor(selector, kitRules).length ? ringed : bare).push(selector);
   }
-  assert.deepEqual(ringed, SCROLL_RINGED,
+  assert.deepEqual(ringed, Object.keys(SCROLL_RINGED),
     'a scrolling box gained or lost the ring — move it between the lists and say why');
-  assert.deepEqual(bare, SCROLL_GAP,
-    'the set of scrolling boxes without the ring moved; triage each change on #531');
+  assert.deepEqual(bare, Object.keys(SCROLL_NO_STOP),
+    'the set of scrolling boxes with no ring moved; triage each change on #531');
+  // An entry with no reason is an entry nobody triaged.
+  for (const [selector, why] of Object.entries(SCROLL_RINGED)) {
+    assert.ok(why.length >= 80, `${selector} needs the box its ring is painted on in prose`);
+  }
 });
 
 /** The scrolling boxes a set of sheets rings, read the way the triage reads it. */
 const ringedIn = (sheets) => {
   const rules = sheets.flatMap(({ file, css }) => focusRules(css, file));
-  return scrollingSelectors(sheets).filter((selector) => rules.some((r) => r.paints.ring
-    && (selector === r.subject || selector.startsWith(`${r.subject}.`)
-      || selector.startsWith(`${r.subject} `))));
+  return scrollingSelectors(sheets).filter((selector) => ringRulesFor(selector, rules).length);
 };
 
-// Prove the triage rejects, box by box rather than once. Each ringed box has the
-// rule that reaches it taken back out of its own sheet, and has to fall into the
-// bare list on its own. Mutating only one of them would leave the others agreeing
-// with the tree: before #474 this test deleted the dropdown's rule and asserted
-// the remainder, which said nothing about whether a second ringed box could be
-// caught at all.
+// Prove the triage rejects, box by box rather than once. Each ringed box has EVERY
+// rule that answers its focus taken back out of its own sheet, and has to fall into
+// the bare list on its own. Every rule, because `.ui-snippet pre` is answered by
+// two and deleting one of them proves nothing. Mutating only one box would leave
+// the others agreeing with the tree: before #474 this test deleted the dropdown's
+// rule and asserted the remainder, which said nothing about whether a second ringed
+// box could be caught at all.
 test('focus walk: a scrolling box losing its ring is caught', () => {
-  assert.deepEqual(ringedIn(KIT), SCROLL_RINGED, 'the ringed list moved out from under this test');
-  for (const selector of SCROLL_RINGED) {
-    const rule = kitRules.find((r) => r.paints.ring
-      && (selector === r.subject || selector.startsWith(`${r.subject}.`)
-        || selector.startsWith(`${r.subject} `)));
-    assert.ok(rule, `${selector} has no ring rule to take out`);
-    const sheet = KIT.find(({ file }) => file === rule.origin);
-    assert.ok(sheet, `${rule.origin} is not in the kit sheet list any more`);
-    const mutated = KIT.map((one) => (one === sheet
-      ? { ...one, css: sheetText(one.css).split(rule.raw).join('') }
-      : one));
+  assert.deepEqual(ringedIn(KIT), Object.keys(SCROLL_RINGED),
+    'the ringed list moved out from under this test');
+  for (const selector of Object.keys(SCROLL_RINGED)) {
+    const answering = ringRulesFor(selector, kitRules);
+    assert.ok(answering.length, `${selector} has no ring rule to take out`);
+    const mutated = KIT.map((one) => {
+      const mine = answering.filter((rule) => rule.origin === one.file);
+      if (!mine.length) return one;
+      return { ...one, css: mine.reduce((css, rule) => css.split(rule.raw).join(''), sheetText(one.css)) };
+    });
     assert.deepEqual(
       ringedIn(mutated),
-      SCROLL_RINGED.filter((other) => other !== selector),
-      `${selector} kept a ring after ${rule.origin}'s ${rule.selector} was deleted`,
+      Object.keys(SCROLL_RINGED).filter((other) => other !== selector),
+      `${selector} kept a ring after ${answering.map((r) => `${r.origin}'s ${r.selector}`).join(' and ')} was deleted`,
     );
   }
+});
+
+// The half of the triage the sheets cannot answer: a box is excused ONLY because
+// its own children are keyboard-focusable, and that is a fact about the markup the
+// kit's factories emit. So the markup is rendered and walked. A factory that stops
+// emitting a focusable row fails here instead of shipping a scroller that quietly
+// becomes a stop with the browser's outline on it.
+test('focus walk: every box excused as no stop holds keyboard-focusable rows of its own', () => {
+  for (const [selector, { why, markup }] of Object.entries(SCROLL_NO_STOP)) {
+    const page = new JSDOM(`<!doctype html><html lang="en"><body>${markup()}</body></html>`,
+      { virtualConsole: quiet });
+    const box = page.window.document.querySelector(selector);
+    assert.ok(box, `${selector} is excused ("${why}") but its own factory renders none`);
+    // One is enough, and one is what a roving strip has: `segmented()` gives the
+    // active tab tabindex="0" and the rest tabindex="-1", so Tab enters the strip
+    // once and the arrow keys move inside it. Chrome's question is whether ANY
+    // child is keyboard-focusable, not how many.
+    const inside = tabbableIn(box);
+    assert.ok(inside.length >= 1,
+      `${selector} is excused because it holds its own stops, and holds none`);
+    page.window.close();
+  }
+});
+
+// Prove that check rejects: the same reading over a scroller with nothing focusable
+// in it has to come back empty, which is what would move the box into the ringed
+// half rather than leaving it excused.
+test('focus walk: a scroller with no focusable row of its own is not excused', () => {
+  const page = new JSDOM('<!doctype html><html lang="en"><body>'
+    + '<div class="fx-scroll"><p>text</p><div role="option" tabindex="-1">a row</div></div>'
+    + '</body></html>', { virtualConsole: quiet });
+  const box = page.window.document.querySelector('.fx-scroll');
+  assert.deepEqual(tabbableIn(box).map((el) => el.textContent), [],
+    'a role="option" row at tabindex="-1" is not in the tab order, which is why its list is');
+  page.window.close();
 });
 
 // #482's third criterion. A swatch carries no text and no glyph, so its name is

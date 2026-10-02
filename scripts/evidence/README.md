@@ -295,3 +295,35 @@ sides of every pair it finds into one image per surface and theme, so a reader
 compares pictures instead of filenames. React is not a subject here, for
 `react.mjs`'s reason — a React component needs a bundler, and `focus.html`
 imports modules over HTTP.
+
+`scroll.mjs` is the same rig for the boxes the kit SCROLLS, added for #531. A
+browser makes an overflowing box a keyboard stop with no `tabindex` and no author
+rule, so a scroll container has the same claim on the ring as a button — unless its
+own children are keyboard-focusable, in which case it is given no stop at all. Three
+differences from `focus.mjs`:
+
+- Two widths per subject, 1280 and 390, because a box that scrolls at one may not at
+  the other. The width is in the filename.
+- Each subject is **measured** before it is shot, and the readings are printed and
+  written to `<side>-scroll-measurements.json`: whether the box overflows, how many
+  of its own children are in the tab order, and where Tab actually lands. That
+  measurement is what decides whether a box needs the ring at all.
+- Two subjects are expected NOT to take focus — the underline tab strip and the
+  application rail. For those the rig Tabs into the region and shoots wherever focus
+  landed, which is the row inside: the evidence that the container is not the stop.
+
+The subjects are built from the kit's own factories by `scroll.html`, each forced to
+overflow. The React modal's body is shot off the React Storybook build, for
+`react.mjs`'s reason, so build it first.
+
+```sh
+npm run build-storybook -w react
+git worktree add --detach /tmp/before origin/main
+node scripts/evidence/scroll.mjs .           out/ after
+node scripts/evidence/scroll.mjs /tmp/before out/ before
+node scripts/evidence/scroll.mjs --sheet     out/     # one sheet per subject
+```
+
+A subject whose story is new on this branch is reported as "not found on this
+checkout" rather than taking the before side down; copy the story file across before
+building the other checkout's Storybook if the before frame is wanted.

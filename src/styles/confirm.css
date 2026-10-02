@@ -109,6 +109,22 @@
   line-height: 1.55;
   color: var(--text);
 }
+/* A consequence long enough to scroll makes this paragraph a keyboard stop of
+   Chrome's making — no tabindex and no author rule — and it took the browser's
+   black outline there. Measured on a 26-sentence consequence at 1280 and 390: the
+   paragraph overflows and holds nothing tabbable, which is what gives it the stop.
+   The wired dialog's Tab trap wraps between the two answers, both of which follow
+   the paragraph in DOM order, so a reader of the WIRED confirm does not arrive. The
+   kit publishes the confirm as a string, and the same markup rendered open without
+   the wiring has no trap: there the paragraph is the FIRST stop in the dialog. The
+   rule costs a declaration and paints only once the browser has made it the focus.
+
+   The ring goes on the paragraph itself, unlike the drawer's body: the panel insets
+   it by --space-5 on every side, so a ring 3px out clips nothing and reaches no
+   corner, and the box is square — a square ring on a square scroller is what
+   .ui-table-scroll already draws. The gap is the panel's, inherited.
+   why: docs/specification.md#the-focus-ring */
+.ui-confirm__body:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-confirm__acts {
   display: flex;
   flex: none;

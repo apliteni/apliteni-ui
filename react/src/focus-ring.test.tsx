@@ -28,7 +28,7 @@ import type { ReactElement } from 'react';
 // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
 import { STYLE_FILES } from '../../stories/lib/contrast.js';
 // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
-import { focusRules, judgeStops, failures, keyboardStops } from '../../stories/lib/focus-walk.js';
+import { focusRules, judgeStops, failures, keyboardStops, ringRulesFor, scrollingSelectors, sheetText } from '../../stories/lib/focus-walk.js';
 
 /**
  * The repository root, found by climbing from the working directory rather than
@@ -54,9 +54,10 @@ type Rule = { origin: string; selector: string; subject: string; within: boolean
 
 const kitRules: Rule[] = (STYLE_FILES as string[]).flatMap((file) => focusRules(readKit(file), file));
 const localFiles = Object.keys(import.meta.glob('./**/*.css')).sort();
-const localRules: Rule[] = localFiles.flatMap((file) => focusRules(
-  readLocal(file), `react/src/${file.replace('./', '')}`,
-));
+const localSheets = localFiles.map((file) => ({
+  file: `react/src/${file.replace('./', '')}`, css: readLocal(file),
+}));
+const localRules: Rule[] = localSheets.flatMap(({ file, css }) => focusRules(css, file));
 const rules = [...kitRules, ...localRules];
 
 /**
@@ -160,5 +161,54 @@ describe('focus ring: React stories', () => {
     const { stops } = judgeStops(document.body, without);
     const broken = failures(stops, exempt) as string[];
     expect(broken.some((line) => line.startsWith('native:') && line.includes('ui-snippet__copy'))).toBe(true);
+  });
+});
+
+// ---- #531: the scroll containers this workspace declares --------------------
+//
+// Chrome makes a scroll container a keyboard stop of its own, with no tabindex and
+// no author rule, unless its own children are keyboard-focusable. So an overflowing
+// box has the same claim on the ring as a button. The kit's eight are triaged in
+// stories/focus-ring.test.js; this workspace declares one of its own, and the sheet
+// it is in is never read there. The subject is discovered from the CSS, so a new
+// overflowing box here is triaged rather than shipping with the browser's outline.
+//
+// Separate coverage, shared calculation: `scrollingSelectors` and `ringRulesFor`
+// are the vanilla gate's reading, over this workspace's sheets.
+const RX_SCROLL_RINGED: Record<string, string> = {
+  '.rx-modal__body': 'on the MODAL, the way #474 paints a snippet\'s ring on its card: the '
+    + 'body is flush with the panel\'s sides, the panel clips with `overflow: hidden`, and '
+    + 'the body has no radius of its own, so a ring drawn on it is cut on three sides. '
+    + 'The body is a stop whenever the caller\'s children hold no control. #531',
+};
+
+describe('focus ring: scroll containers', () => {
+  it('every box this workspace makes scrollable is triaged', () => {
+    const scrolling = scrollingSelectors(localSheets) as string[];
+    expect(scrolling, 'a scrolling box appeared or moved — triage it here with its reason')
+      .toEqual(Object.keys(RX_SCROLL_RINGED));
+    const bare = scrolling.filter((selector) => ringRulesFor(selector, rules).length === 0);
+    expect(bare, 'a scrolling box with no ring falls back to the browser\'s outline').toEqual([]);
+    for (const [selector, why] of Object.entries(RX_SCROLL_RINGED)) {
+      expect(why.length, `${selector} needs the box its ring is painted on in prose`)
+        .toBeGreaterThanOrEqual(80);
+    }
+  });
+
+  // Prove it rejects: take every rule that answers the box's focus back out of its
+  // own sheet and the box has to fall into the bare list.
+  it('a scroll container losing its ring is caught', () => {
+    for (const selector of Object.keys(RX_SCROLL_RINGED)) {
+      const answering = ringRulesFor(selector, rules) as Array<Rule & { origin: string; raw: string }>;
+      expect(answering.length, `${selector} has no ring rule to take out`).toBeGreaterThan(0);
+      const mutated = localSheets.map((sheet) => {
+        const mine = answering.filter((rule) => rule.origin === sheet.file);
+        if (!mine.length) return sheet;
+        return { ...sheet, css: mine.reduce((css: string, rule) => css.split(rule.raw).join(''), sheetText(sheet.css) as string) };
+      });
+      const kept = [...kitRules, ...mutated.flatMap(({ file, css }) => focusRules(css, file))];
+      expect(ringRulesFor(selector, kept), `${selector} kept a ring after its rule was deleted`)
+        .toEqual([]);
+    }
   });
 });

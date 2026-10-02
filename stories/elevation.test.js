@@ -91,9 +91,13 @@ test('the sweep sees every box-shadow the kit ships', () => {
   // floating declarations it rewrites to read --float-edge-inner instead of
   // --border are rewritten in place and move no count. 73 -> 75: the ring a
 // Snippet's card now draws for its focused code region, and the `box-shadow:
-// none` that takes it off the `<pre>` it used to paint square.
-  assert.equal(sweep.length, 75,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 75. `
+// none` that takes it off the `<pre>` it used to paint square. 75 -> 80: #531's five
+// rings for the scroll containers that had none — the table card draws its own, and
+// the dropdown panel, the drawer panel and the palette panel draw one for a focused
+// box inside them, as the Snippet's card does, which is three more declarations plus
+// the confirm body's own.
+  assert.equal(sweep.length, 80,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 80. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -141,12 +145,15 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
   // Both themes are walked, so each declaration is counted twice. The drop is read
   // by 13 floating surfaces plus .ui-dropdown__panel:focus-visible, the rule #487
   // wrote to re-state the panel's edge and drop beside the ring — a box-shadow list
-  // replaces the whole list, so taking focus must not drop the rung.
+  // replaces the whole list, so taking focus must not drop the rung. #531 adds four
+  // more of exactly that kind: the card's own focus rule for a scrolling table, and
+  // the three panel rules that draw the ring for a focused scroll container inside
+  // them, each re-stating the rung it would otherwise take off.
   const got = Object.fromEntries([...rungs].map(([layer, n]) => [layer, n / THEMES.length]));
   assert.deepStrictEqual(got, {
-    'var(--elev-rest)': 1,   // .ui-card
+    'var(--elev-rest)': 2,   // .ui-card, and its focus rule for a scrolling table
     'var(--elev-rail)': 1,   // .ui-app__rail
-    'var(--elev-drop)': 17,  // the floating surfaces, and the panel's focus rule
+    'var(--elev-drop)': 20,  // the floating surfaces, and four panel focus rules
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '
     + 'was added, move the number and check it against docs/specification.md#elevation.');
 });

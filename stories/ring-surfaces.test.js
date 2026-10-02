@@ -146,7 +146,11 @@ test('every ring consumer keeps a real outline for forced colors', () => {
   // focus and #487's re-review found still taking the browser's outline. 47 -> 48:
   // a Snippet's card, which now draws the ring for its focused code region because
   // the `<pre>` has no radius of its own.
-  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
+  // 48 -> 54: #531 gave the ring to the six scroll containers that had none — the table
+  // card, the dropdown search list, the drawer body, the confirm body, the palette list
+  // and React's modal body. Four of the six are painted on the container around them, the
+  // way #474 paints a snippet's, so the rule counted here is the one on that container.
+  assert.equal(consumers.length, 54, 'ring consumer discovery changed');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }

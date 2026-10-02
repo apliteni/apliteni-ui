@@ -284,6 +284,26 @@
 .ui-dropdown__search-input:focus-visible { outline: 2px solid transparent; border-color: var(--accent); box-shadow: var(--ring); }
 
 .ui-dropdown__list { max-height: 300px; overflow-y: auto; }
+/* And is therefore a keyboard stop of Chrome's making: the rows are
+   `role="option"` with `tabindex="-1"`, so nothing inside the list is
+   keyboard-focusable and the list takes the stop instead — measured between the
+   search field and the page at both 390 and 1280, with the browser's black
+   outline. The PANEL draws its ring, the way the snippet's card does on #474: the
+   list sits --ui-dropdown-pad (6px) inside a --radius-lg (16px) corner, where a
+   ring on the list itself leaves the panel's rounded corner and cuts across it.
+   The list keeps the transparent outline that suppresses the native one, and the
+   forced-colors block below is why it is the panel's outline that survives there.
+   Composed with the floating treatment, as the panel's own focus rule is.
+   why: docs/specification.md#the-focus-ring */
+.ui-dropdown__list:focus-visible { outline: 2px solid transparent; }
+.ui-dropdown__panel:has(.ui-dropdown__list:focus-visible) { outline: 2px solid transparent; --ring-gap: inherit; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); }
+/* Forced colors drops box-shadow, so both boxes would fall back to their outlines
+   and the system would repaint the list's as the square this delegation set out to
+   remove, with the panel's rounded one outside it: two indicators for one focus.
+   The panel's is the one that survives. #474 found this on the snippet. */
+@media (forced-colors: active) {
+  .ui-dropdown__list:focus-visible { outline: none; }
+}
 /* A row is `display: flex`, which outranks the UA's [hidden], so a row the
    query hides is put away here. */
 .ui-dropdown__list [hidden] { display: none; } /* motion: still — a row the query no longer matches is gone on the next keystroke */
