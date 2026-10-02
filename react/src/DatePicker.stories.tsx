@@ -218,6 +218,19 @@ export const DayRangeBounded: StoryObj<typeof DatePicker> = {
   },
 };
 
+// No label and no ariaLabel: the trigger's own text is the control's only
+// name, in every mode.
+export const Unlabelled: StoryObj<typeof DatePicker> = {
+  render: args => (
+    <div style={{ display: 'grid', gap: 'var(--space-3)', justifyItems: 'start' }}>
+      <DatePicker {...args} defaultValue="2026-08" />
+      <DatePicker {...args} mode="day" defaultValue="2026-09-17" />
+      <DatePicker {...args} mode="range" defaultRange={{ start: '2026-04', end: '2026-08' }} />
+      <DatePicker {...args} mode="day-range" defaultRange={{ start: '2026-09-07', end: '2026-09-18' }} />
+    </div>
+  ),
+};
+
 export const Empty: StoryObj<typeof DatePicker> = {
   render: args => <DatePicker {...args} ariaLabel="Reporting month" />,
 };

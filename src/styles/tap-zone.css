@@ -1,0 +1,185 @@
+/* apliteni-ui — the tap zone. Below the phone step, to a coarse pointer, a
+ * control that draws smaller than --tap-min carries a transparent layer that
+ * reaches the floor, and no control is drawn any bigger. Zones alone do not
+ * finish it: a layer takes HALF the clear space its container declares, so
+ * where the kit packs small controls closer than that, the GAP opens to
+ * --tap-gap. The controls keep their size; the space between them grows.
+ *
+ * Read LAST, after every component sheet — see src/index.css — because each
+ * opening overrides a gap one of them already set.
+ *
+ * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
+ * Held by stories/tap-zone.test.js, measured in a browser at 390.
+ */
+
+:root {
+  /* WCAG 2.5.5, and where iOS and Android land. Not on the spacing scale,
+     which runs 40 then 48, because a fingertip is not spacing. Declared here
+     rather than in tokens.css for the reason field-zoom.css carries its own 16:
+     react/src/index.ts imports this sheet without the token file, and a var()
+     resolving to nothing there would size the layer to `auto` in silence. */
+  --tap-min: 44px;
+
+  /* WCAG 2.5.8 (AA), the target the kit holds at every width: the floor this
+     sheet raises FROM and may never drop below. */
+  --tap-aa: 24px;
+
+  /* 44 − 24: two zones fit between two of the smallest marks the kit draws. */
+  --tap-gap: var(--space-5, 20px);
+
+  /* Clear space to the nearest neighbour, declared by the container that knows
+     its own gap; a zone takes half on each side.
+
+     ZERO by default, so a zone grows nowhere until a container has opened the
+     room — assuming --tap-gap everywhere was measured handing `Keep the
+     workspace` a pixel of its own box that answered for `Delete it
+     permanently`. */
+  --tap-clear-x: 0px;
+  --tap-clear-y: 0px;
+}
+
+@media (max-width: 560px) and (pointer: coarse) {
+  /* The containing block for every layer below. `.ui-btn` already has it; the
+     rest take it only inside this query, because `position: relative` lifts a
+     control over the in-flow one beside it and that changes who wins a shared
+     pixel. */
+  :where(
+    .ui-seg button,
+    .ui-tabs__tab,
+    .ui-dropdown__trigger,
+    .ui-toast__action,
+    .ui-drawer__close,
+    .ui-snippet__copy,
+    .ui-footer__social,
+    /* Already relative in react/src/DatePicker.css, where its mark hangs off
+       it — restated because this gate reads the kit's own sheets and cannot
+       see that one, and a carrier whose containing block it cannot find is a
+       layer that measures against whatever ancestor happens to be positioned. */
+    .ui-datepicker__opt
+  ) { position: relative; }
+
+  /* The layer: centred, transparent, sized to the floor, clamped to half the
+     clearance. */
+  :where(
+    .ui-btn,
+    .ui-seg button,
+    .ui-tabs__tab,
+    .ui-dropdown__trigger,
+    .ui-toast__action,
+    .ui-drawer__close,
+    .ui-snippet__copy,
+    .ui-footer__social,
+    .ui-switch,
+    .ui-datepicker__opt
+  )::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));
+    height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
+  }
+
+  /* ::after on these is spoken for — the tick and the dot, the toast close's
+     glyph plate — so the existing ::before grows, floored at --tap-aa. The
+     floor is load-bearing: `100%` is the PADDING box, 16 on a 19px checkbox
+     with a 1.5px border, so without it the clamp takes this layer DOWN to 22
+     and under the kit's own minimum. */
+  .ui-check input::before,
+  .ui-toast__close::before {
+    width: max(var(--tap-aa), min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x))));
+    height: max(var(--tap-aa), min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y))));
+  }
+
+  /* -- Where the kit opens a gap, and where it cannot --------------------
+   * `!important` for the reason field-zoom.css takes it: each opening
+   * overrides a `gap` shorthand a component sheet set, and the React bundle
+   * ships this sheet without those sheets, where order is the consumer's.   */
+
+  /* A strip keeps its pills packed across — that tight track IS the control —
+     and opens down, where the room is free until it wraps. */
+  .ui-seg {
+    row-gap: var(--tap-gap) !important;
+    --tap-clear-x: var(--space-1, 4px);
+    --tap-clear-y: var(--tap-gap);
+  }
+
+  /* Tabs are wide enough across; down, the panel under them has the room. */
+  .ui-tabs__list { --tap-clear-x: 2px; --tap-clear-y: var(--tap-gap); }
+
+  /* Equal cells read as one strip, so they stay packed across and open down,
+     which is where this strip wraps at this width. */
+  .ui-pager__steps {
+    row-gap: var(--tap-gap) !important;
+    --tap-clear-x: var(--space-1, 4px);
+    --tap-clear-y: var(--tap-gap);
+  }
+  .ui-pager { row-gap: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
+
+  /* Chips open both ways: the row wraps, and the button at the end of it is a
+     target like the chips are. */
+  .ui-filter-bar { gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+
+  /* Inside a chip there is nothing to open: parting the value from its remove
+     mark would draw two controls where the reader sees one. Named on the
+     Accessibility minimums page. */
+  .ui-filter-bar__chip { --tap-clear-x: 0px; --tap-clear-y: 0px; }
+
+  /* Row actions open across — the pair #488 names — and cannot open down:
+     a dense table's rows share an edge, and parting them is the row height the
+     guideline protects. Down, they get the row's own padding, twice. */
+  /* Row actions — the pair #488 names — part ACROSS with a margin: the cell is
+     a `table-cell`, where `gap` does nothing, and declaring it anyway left the
+     mark's zone 9px inside `Revoke`. Nothing down, because a dense table's
+     rows share an edge and its padding is not clearance to spend. */
+  .ui-table__act .ui-btn + .ui-btn { margin-inline-start: var(--tap-gap) !important; }
+  .ui-table__act { --tap-clear-x: var(--tap-gap); --tap-clear-y: 0px; }
+
+  /* Down only, like the nine rows below: a toast is a full row at this width,
+     and opening it across took 24px out of the message for no reach at all —
+     its action already clears the floor on the vertical half. The box does not
+     open either: a toast clips to its own rounded corners for the timer bar,
+     and widening its padding grows the surface rather than the space between
+     controls, measured at four marks for 8px on every toast. */
+  .ui-toast { row-gap: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
+
+  /* The kit's remaining control rows open DOWN only. A row of labelled buttons
+     at 390 is often already full, so widening its column gap does not move the
+     buttons apart — it makes them narrower, and that is the half #488 rules
+     out. Measured on a toolbar of three buttons and a dropdown. These rows
+     wrap, which is also where the review measured them colliding. */
+  .ui-confirm__acts,
+  .ui-toolbar,
+  .ui-empty__actions,
+  .ui-sx__actions,
+  .ui-fbc__foot,
+  .ui-drawer__footer,
+  .ui-snippet__bar,
+  .ui-app__main .ui-card__row {
+    row-gap: var(--tap-gap) !important;
+    --tap-clear-y: var(--tap-gap);
+  }
+
+  /* `.ui-seg`'s shape at seven columns: equal cells packed across — that tight
+     track IS the control — opening down, where the sheet has the room. At 390 a
+     day cell draws 46.6 x 34, over the floor across and ten short down. The
+     rows inherit both clearances from the grid. React-only, so the browser half
+     below reports no subject and react/src/DatePicker.test.tsx holds these
+     declarations instead. */
+  .ui-datepicker__grid {
+    row-gap: var(--tap-gap) !important;
+    --tap-clear-x: var(--space-1, 4px);
+    --tap-clear-y: var(--tap-gap);
+  }
+
+  /* Both ways: fixed squares cannot overflow the way labels can, and a drawer
+     header spends its column gap on the title. Not the accent picker — its
+     swatches are on no carrier list, so opening it bought no reach. */
+  .ui-footer__socials,
+  .ui-drawer__header {
+    gap: var(--tap-gap) !important;
+    --tap-clear-x: var(--tap-gap);
+    --tap-clear-y: var(--tap-gap);
+  }
+}

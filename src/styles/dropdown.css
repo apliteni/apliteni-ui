@@ -71,10 +71,12 @@
   /* The floating step, not the sunken one — a panel held open over a card cannot be
      painted the colour of an inset. why: docs/specification.md#elevation */
   background: var(--bg-elevated); --ring-gap: var(--bg-elevated);
-  /* The two-step edge and the drop: --border-strong outside, --border one pixel
-     inside it, then the broad faint drop. why: docs/specification.md#elevation */
-  border: 1px solid var(--border-strong);
-  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
+  /* The two-step edge and the drop, through the level's own names: in DARK that is
+     --border-strong outside and --border one pixel inside it, then the drop; in LIGHT
+     both lines are transparent and the drop carries the whole separation.
+     why: docs/specification.md#elevation */
+  border: 1px solid var(--float-edge);
+  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: var(--radius-lg);
   padding: var(--ui-dropdown-pad);
   opacity: 0;
@@ -94,6 +96,15 @@
 }
 .ui-dropdown__panel.is-end { left: auto; right: 0; }
 .ui-dropdown__panel.is-scroll { max-height: 300px; overflow-y: auto; }
+
+/* Chrome makes a scroll container a keyboard stop on its own — no tabindex, no
+   author rule — so `.is-scroll` took the browser's outline, black in light mode.
+   #457 refused that, and #487's review measured it here. Written for every panel
+   rather than the scrolling one, as the palette and the drawer write it, because
+   a panel that takes focus any other way has the same claim on the ring. The
+   ring is COMPOSED with the floating treatment rather than over it: a box-shadow
+   list replaces the whole list. why: docs/specification.md#elevation */
+.ui-dropdown__panel:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); }
 
 /* Opening upward. The kit releases its own `top` here so that nothing outside
    the kit has to: an absolute box with both edges pinned is stretched between

@@ -14,7 +14,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
-  boxShadowsIn, layersOf, isCast, isFocusRing, customPropertiesIn, resolutionsOf, dropOffences, TREATMENT_DROP,
+  boxShadowsIn, layersOf, isCast, isFocusRing, customPropertiesIn, resolutionsOf, dropOffences, LADDER_LAYERS,
 } from '../../scripts/lib/box-shadow.js';
 // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
 import { declarationsFor, winnersOf, substitute, TOKEN_FILES } from '../../stories/lib/contrast.js';
@@ -57,7 +57,7 @@ function walk(sheets: Sheet[], theme: string) {
   for (const { name, css } of sheets) {
     for (const d of boxShadowsIn(css)) {
       for (const raw of layersOf(d.value)) {
-        if (raw === TREATMENT_DROP) { floating += 1; continue; }
+        if (LADDER_LAYERS.includes(raw)) { floating += 1; continue; }
         if (raw === 'var(--ring)' && resolutionsOf(raw, cascade).every(isFocusRing)) continue;
         if (!resolutionsOf(raw, cascade).some((v: string) => layersOf(v).some(isCast))) continue;
         offences.push(`${where(name)}:${d.line} (${theme})  ${d.selector} { … ${raw} … }`);
@@ -72,7 +72,7 @@ describe('elevation', () => {
     expect(SHEETS).toEqual(['./AppShell.css', './DataTable.css', './DatePicker.css', './FeedbackShowcase.css', './Field.css', './KeyValueList.css', './Modal.css', './ThemeToggle.css', './Timeline.css', './Toast.css']);
   });
 
-  it('casts nothing but the floating treatment', () => {
+  it('casts nothing but a rung of the ladder', () => {
     const sheets = onDisk();
     const offences: string[] = [];
     let floating = 0;
@@ -83,6 +83,8 @@ describe('elevation', () => {
     }
     expect(offences).toEqual([]);
     // Both themes are walked, so the modal's one declaration is counted twice.
+    // This workspace ships no card and no rail of its own — it reads the kit's
+    // sheets for both — so the floating rung is the only one it writes.
     expect(floating).toBe(2);
   });
 
@@ -92,7 +94,7 @@ describe('elevation', () => {
    * `--rx-lift` resolved to nothing and the layer read as all zeros. The pair is
    * the proof: the plant is refused, and the same sheet without it is clean. */
   it('#314 sees a cast parked in a custom property this workspace declares', () => {
-    const line = 'inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop)';
+    const line = 'inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop)';
     const planted = `.rx-modal {\n  --rx-lift: 0 12px 24px rgba(0,0,0,0.6);\n  box-shadow: var(--rx-lift), ${line};\n}\n`;
     const clean = `.rx-modal {\n  box-shadow: ${line};\n}\n`;
 
@@ -111,7 +113,7 @@ describe('elevation', () => {
    * shadow at a tight dark cast and both gates stayed green. The pair again: the
    * plant is refused, the same sheet without it is clean. */
   it('#314 sees this workspace re-point the drop at :root', () => {
-    const line = 'inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop)';
+    const line = 'inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop)';
     const sheet = './Planted.css';
     const drop = ':root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9); }';
     const planted = `${drop}\n.rx-modal {\n  box-shadow: ${line};\n}\n`;
@@ -120,7 +122,7 @@ describe('elevation', () => {
     expect(walk([{ name: sheet, css: planted }], 'dark').offences).toEqual([
       '(dark)  react/src/Planted.css  :root { --elev-drop: 0 40px 80px rgba(0,0,0,0.9) } — the '
       + 'palette is the only place this token is declared at :root, and a component sheet '
-      + 'declaring it there changes the one shadow every floating surface in the kit reads',
+      + 'declaring it there changes a shadow every surface on that rung reads',
       '(dark)  var(--elev-drop) resolves to "0 40px 80px rgba(0,0,0,0.9)" — 1 layer, where the '
       + 'drop is two',
     ]);

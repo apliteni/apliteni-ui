@@ -83,6 +83,12 @@ export declare function topbar(opts?: Record<string, unknown>): string;
 export declare function commandPaletteList(groups?: readonly Record<string, unknown>[], opts?: { uid?: string; from?: number }): string;
 export declare function deckTextSwitch(active?: string): string;
 export declare function hlShell(raw: string): string;
+/** Token class from styles/code.css, or null for the text between tokens. */
+export type CodeTokenClass = 'c' | 'f' | 'k' | 's' | 'u';
+export type CodeLanguage = 'shell' | 'json' | 'ts';
+export declare const codeLanguages: readonly CodeLanguage[];
+export declare function codeTokens(raw: string, lang?: CodeLanguage): { cls: CodeTokenClass | null; text: string }[];
+export declare function hlCode(raw: string, lang?: CodeLanguage): string;
 export declare function pill(label: string, variant?: string): string;
 export declare function statusDot(live?: boolean): string;
 export declare function successCheck(variant?: 'line' | 'circled'): string;

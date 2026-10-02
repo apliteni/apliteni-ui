@@ -260,3 +260,31 @@ The output includes a JSON measurement ledger and 1x before/default/larger
 screenshots of the first matching story in each component file. The run uses
 light theme and available system fonts; it does not certify other host CSS or
 font metrics. The deliberate flat 16px touch-field protection is excluded.
+
+`focus.mjs` is the keyboard-focus rig, added for #482. Its subject is one control
+at a time rather than a screen: it presses a key so the browser is in keyboard
+modality, moves focus to the control, and **asserts the control matches
+`:focus-visible` before it shoots** — a capture of a control that was only
+clicked would show whatever the mouse state draws and would prove nothing about
+the ring. The key it presses is a bare modifier, because Tab is a key the kit's
+own dropdown handles: it closes an open panel, which would take a subject like an
+account-menu row out of the frame.
+
+Two surfaces, one run: the landing page as `site/build.mjs` writes it, and any
+vanilla story, rendered by `focus.html` from the checkout being served. Each shot
+is the control's box with 16px of room around it, at device scale 2, in both
+themes.
+
+```sh
+git worktree add --detach /tmp/before origin/main
+node scripts/evidence/focus.mjs .           out/ after
+node scripts/evidence/focus.mjs /tmp/before out/ before
+node scripts/evidence/focus.mjs --sheet     out/     # the pairs, laid side by side
+```
+
+Its third argument is the side of the pair and its fourth a name filter over the
+subjects. The `--sheet` pass needs the captures and nothing else: it lays the two
+sides of every pair it finds into one image per surface and theme, so a reader
+compares pictures instead of filenames. React is not a subject here, for
+`react.mjs`'s reason — a React component needs a bundler, and `focus.html`
+imports modules over HTTP.

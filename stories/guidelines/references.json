@@ -16,11 +16,35 @@
       {
         "ref": "src/styles/input.css:150",
         "pattern": ".ui-check input::before"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:25",
+        "pattern": "--tap-aa: 24px;"
+      }
+    ],
+    "tap-zone": [
+      {
+        "ref": "src/styles/tap-zone.css:80",
+        "pattern": "width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:41",
+        "pattern": "@media (max-width: 560px) and (pointer: coarse)"
+      }
+    ],
+    "tap-spacing": [
+      {
+        "ref": "src/styles/tap-zone.css:28",
+        "pattern": "--tap-gap: var(--space-5, 20px);"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:152",
+        "pattern": ".ui-confirm__acts,"
       }
     ],
     "ring-contrast": [
       {
-        "ref": "src/styles/base.css:146",
+        "ref": "src/styles/base.css:147",
         "pattern": "box-shadow: var(--ring);"
       }
     ],
@@ -30,7 +54,7 @@
         "pattern": ".ui-btn[aria-disabled=\"true\"]"
       },
       {
-        "ref": "src/tokens/tokens.css:176",
+        "ref": "src/tokens/tokens.css:185",
         "pattern": "--disabled-ink: var(--muted);"
       }
     ],
@@ -76,7 +100,7 @@
     ],
     "accent-strong": [
       {
-        "ref": "src/tokens/tokens.css:190",
+        "ref": "src/tokens/tokens.css:199",
         "pattern": "--accent-strong: #7c3aed;"
       },
       {
@@ -116,7 +140,7 @@
         "pattern": "export function commandPaletteList"
       },
       {
-        "ref": "src/styles/command-palette.css:148",
+        "ref": "src/styles/command-palette.css:150",
         "pattern": ".ui-cmdk__group-head"
       }
     ],
@@ -160,7 +184,7 @@
         "pattern": "const isRefused = (it) =>"
       },
       {
-        "ref": "src/styles/command-palette.css:236",
+        "ref": "src/styles/command-palette.css:238",
         "pattern": ".ui-cmdk__item.is-danger"
       }
     ]
@@ -228,11 +252,11 @@
         "pattern": "export const dropdownMatch"
       },
       {
-        "ref": "src/styles/dropdown.css:237",
+        "ref": "src/styles/dropdown.css:248",
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:286",
+        "ref": "src/styles/dropdown.css:297",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -244,7 +268,7 @@
         "pattern": ".ui-btn--danger:hover"
       },
       {
-        "ref": "src/styles/dropdown.css:197",
+        "ref": "src/styles/dropdown.css:208",
         "pattern": ".ui-dropdown__item.is-danger:hover"
       },
       {
@@ -354,7 +378,7 @@
         "pattern": "position: absolute;"
       },
       {
-        "ref": "src/styles/tooltip.css:58",
+        "ref": "src/styles/tooltip.css:60",
         "pattern": ".ui-tip.is-open { opacity: 1; visibility: visible; }"
       }
     ],
@@ -398,7 +422,7 @@
         "pattern": "export const iconOnlyAllowed"
       },
       {
-        "ref": "stories/guidelines/iconography.test.js:96",
+        "ref": "stories/guidelines/iconography.test.js:165",
         "pattern": "every icon-only control is one the closed list allows"
       },
       {
@@ -466,11 +490,11 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:416",
+        "ref": "src/styles/layout.css:420",
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:67",
+        "ref": "src/styles/card.css:72",
         "pattern": "rank: card-title"
       }
     ],
@@ -508,7 +532,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:324",
+        "ref": "src/styles/layout.css:328",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -542,7 +566,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:458",
+        "ref": "src/styles/layout.css:462",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -718,11 +742,11 @@
         "pattern": ".ui-focusable:focus-visible,"
       },
       {
-        "ref": "src/styles/base.css:146",
+        "ref": "src/styles/base.css:147",
         "pattern": "box-shadow: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:248",
+        "ref": "src/tokens/tokens.css:257",
         "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
       }
     ],
@@ -736,7 +760,7 @@
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
-        "ref": "stories/contrast.test.js:218",
+        "ref": "stories/contrast.test.js:227",
         "pattern": "inactive components and their whole subtree"
       }
     ],

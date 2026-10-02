@@ -138,6 +138,7 @@ svg:where(:not([width]):not([height])) {
 
 /* Focus-visible ring, shared by all interactive controls */
 .ui-focusable:focus-visible,
+.ui-snippet :focus-visible,
 .ui-btn:focus-visible,
 .ui-input:focus-visible,
 .ui-seg button:focus-visible,

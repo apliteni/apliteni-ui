@@ -77,19 +77,33 @@
   transition:
     background var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease),
+    outline-color var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease);
 }
 .ui-datepicker__grid.is-days .ui-datepicker__opt { min-width: 30px; }
 
+/* Hover is the kit's row hover — a neutral edge over the reading surface, the
+   same answer `.ui-dropdown__item` gives — and not a tint of the accent. On a
+   seven-column grid an accent hover sat within six of 255 per channel of the
+   span's own tint, so the pointer made an outside day read as part of the
+   range; and the accent is spent on the pick and the span, not on a state the
+   reader is only passing over.
+   why: guidelines/density-and-accents.md */
 .ui-datepicker__opt:hover {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  outline: 1px solid var(--control-edge);
+  outline-offset: -1px;
+  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   color: var(--strong);
 }
+/* The ring wins over the hover edge on a cell that is both, the way the
+   dropdown's rows settle the same pair. */
+.ui-datepicker__opt:focus-visible { outline: 2px solid transparent; }
 
 /* The span between the two ends of a range. Tinted with the accent rather than
    greyed, because these cells hold text and an opaque tint can be measured.
    why: guidelines/colour-and-theming.md */
+/* Declared after the hover rule and at the same weight, so a hovered day
+   inside the span keeps the span's tint and takes only hover's edge. */
 .ui-datepicker__opt.is-inside {
   background: color-mix(in srgb, var(--accent) 14%, var(--bg-elevated)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
 }
@@ -202,11 +216,18 @@
    their own drawer at desktop width keeps the two-column layout.
    why: docs/specification.md#breakpoints */
 .ui-datepicker__body.is-sheet { flex-direction: column; align-items: stretch; }
+/* The row scrolls across, and `overflow-x: auto` computes `overflow-y: auto`
+   with it, so the scrollport clips on all four sides. The kit's ring reaches
+   about 4px past a control, and the drawer's trap lands on the first shortcut,
+   so without this padding the first thing a keyboard reader meets on a phone
+   is a ring sliced down its left. `scroll-padding` keeps that room when the
+   row is scrolled rather than at rest. */
 .ui-datepicker__body.is-sheet .ui-datepicker__presets {
   grid-auto-flow: column;
   grid-auto-columns: max-content;
   overflow-x: auto;
-  padding: 0 0 var(--space-3);
+  scroll-padding-inline: var(--space-1);
+  padding: var(--space-1) var(--space-1) var(--space-3);
   border-inline-end: 0;
   border-block-end: 1px solid var(--border);
 }

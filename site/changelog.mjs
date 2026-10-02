@@ -6,9 +6,44 @@
 
 export const RELEASES = [
   {
+    v: '0.74.0', date: '2026-10-02',
+    changes: [
+      ['added', 'React DatePicker picks one month, a range of months, one date, or a range of dates, from the dropdown\u2019s own trigger and panel. The grain and the span are separate questions, so a day range takes the same two presses the month range does and carries the same bounds, blocked periods and shortcuts. It takes min and max bounds, blocked periods, consumer marks shown as a dot, a word in the legend and part of the cell\u2019s name, and consumer presets in range mode. Bounds and blocked periods written in the other grain are converted rather than dropped, and a preset is clamped to the bounds or switched off. The grid has one tab stop: arrows and the Page keys move it and turn the page, and Home and End go to the ends of the row without leaving the month. Every cell says whether it is the pick. A blocked cell goes bare whatever else it is, so a period the host blocks never wears the accent fill or the range tint under disabled ink. A cell under the pointer takes the kit\u2019s neutral row hover, so the accent stays on the pick and the span. A blocked period between the two ends of a range stays in the value the host is handed and says so in its name; only its tint is withheld. Below 560px the panel is a bottom drawer, with the kit\u2019s scrim, close control and focus trap, and the grid reaches the 44px tap floor; pass sheet to force the drawer at any width. Part of #429; resolves #506.', ['DatePicker']],
+    ],
+  },
+  {
+    v: '0.73.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'Snippet copy controls and keyboard-focused code use the shared focus ring in vanilla and React, including the reveal variant.'],
+      ['added', 'React Snippet accepts highlighted token children and can omit its copy button with copy={false}. Copying still uses the original code string. The new codeTokens(raw, lang) helper returns the same tokens the vanilla highlighters use, so displayed tokens and copied text come from one source. Part of #429.'],
+      ['added', 'Syntax highlighting covers JSON and TypeScript as well as shell. hlCode(raw, lang) returns the HTML and codeLanguages lists what lang accepts; hlShell is unchanged. Keys, strings and scalars take different token colours, and the snippet stories show one specimen per language.', ['Snippet']],
+      ['changed', 'The Snippet copy button is icon-only. copyLabel is now its accessible name and its tooltip rather than visible text, so pass something that names what is copied — it defaults to \u201cCopy code\u201d. Confirming a copy swaps the glyph inside the same 24px box and announces the word through a live region beside the button, so the bar no longer jumps and the confirmation reaches a screen reader. A vanilla button restored after copying keeps its glyph, which the old restore dropped.', ['Snippet']],
+    ],
+  },
+  {
+    v: '0.72.0', date: '2026-10-02',
+    changes: [
+      ['added', 'Below the phone step a coarse pointer gets a transparent 44px tap zone outside each small control, so a finger reaches the floor and no control is drawn any bigger. `--tap-min` names the floor. Closes #488.', ['Button', 'Segmented', 'Tabs', 'Dropdown', 'Pagination']],
+      ['changed', 'Below the phone step, to a coarse pointer, the kit\u2019s rows of small controls open to `--tap-gap` (20px) so two zones fit between their drawn edges \u2014 the filter row, a table\u2019s row actions, the confirm, drawer, toolbar, empty-state and success action rows, a segmented strip, a pager, a tabs strip and the footer\u2019s social marks. A row that is already full opens downward only, because widening it across would make the controls narrower. The controls keep their drawn size; the space between them grows a few pixels on a phone.', ['Segmented', 'Tabs', 'Pagination', 'Table', 'Toast', 'Confirm', 'Drawer']],
+      ['added', 'A zone grows only where a container has opened the room for it: `--tap-clear-x` and `--tap-clear-y` default to zero, and a container that opens declares what it gives. A row that cannot open \u2014 a chip whose value and remove mark share an edge, a dense table\u2019s rows \u2014 declares its real clearance instead.'],
+      ['added', '`--tap-min` (44px) is the target the zone reaches for and `--tap-aa` (24px) the WCAG 2.5.8 target the kit holds at every width. The two layers the kit already drew are floored at the second, so a clamp can only ever grow them.'],
+      ['added', 'Two Accessibility minimums rules: the tap zone, and the space two neighbouring small controls need before either can reach the floor.'],
+    ],
+  },
+  {
+    v: '0.71.0', date: '2026-10-02',
+    changes: [
+      ['breaking', 'In the light theme a card, the shell\'s rail and every floating surface no longer draw the neutral hairline. Each casts a soft, diffuse drop instead — `--elev-rest`, `--elev-rail` and a widened `--elev-drop`. Dark is unchanged. A consumer whose light-theme screens relied on the card or rail edge sees a different kit. Closes #490.', ['Card', 'Shell', 'Dropdown', 'Drawer', 'Modal', 'Toast']],
+      ['added', 'Four level tokens name which edge each level draws — `--card-edge`, `--rail-edge`, `--float-edge`, `--float-edge-inner` — so a sheet never has to ask which theme it is in. Light resolves all four to `transparent`.'],
+      ['changed', 'A line that divides two regions of one surface stays a line in both themes: a card\'s rows, a table\'s rules, the rail\'s head band, the topbar. Fields keep their edge, and a tinted card keeps its own coloured one.'],
+      ['fixed', 'The signed-out auth card, the success panel and the feedback composer paint the floating step but never took the floating treatment, so they were the only flat surfaces left on it. All three now carry the two-step edge in dark and the drop in light, like every other floating surface.', ['Shell', 'Success', 'Feedback']],
+    ],
+  },
+  {
     v: '0.70.0', date: '2026-10-02',
     changes: [
-      ['added', 'React DatePicker picks one month, a range of months, one date, or a range of dates, from the dropdown\u2019s own trigger and panel. The grain and the span are separate questions, so a day range takes the same two presses the month range does and carries the same bounds, blocked periods and shortcuts. It takes min and max bounds, blocked periods, consumer marks shown as a dot, a word in the legend and part of the cell\u2019s name, and consumer presets in range mode. Bounds and blocked periods written in the other grain are converted rather than dropped, and a preset is clamped to the bounds or switched off. The grid has one tab stop: arrows and the Page keys move it and turn the page, and Home and End go to the ends of the row without leaving the month. Every cell says whether it is the pick. A blocked cell goes bare whatever else it is, so a period the host blocks never wears the accent fill or the range tint under disabled ink. Below 560px the panel is a bottom drawer, with the kit\u2019s scrim, close control and focus trap; pass sheet to force it. Part of #429; resolves #506.', ['DatePicker']],
+      ['fixed', "Keyboard focus draws the kit's ring on the controls that showed the browser's own outline instead: both brand lockups, the theme toggle, the deck and version switchers and the version menu's rows, the account avatar and its menu rows, snippet copy, footer links and social marks, the interactive card, a toast's action and close, the feedback composer's buttons, and the React table's row-selection checkbox. The version menu's rows are reached with the arrow keys rather than Tab, which is why they were missed until last. Each one keeps a transparent outline, so forced-colours mode still shows a system ring. If your own CSS sets focus on any of these, check that it still outranks the kit's rule. Resolves #482.", ['Topbar', 'Footer', 'Snippet', 'Callout', 'Card', 'Table', 'Feedback']],
+      ['fixed', 'A dropdown panel that scrolls now draws the ring when it takes keyboard focus. A browser makes a scroll container a focus stop of its own, so the panel showed the browser\u2019s outline \u2014 black in light mode. The focus rule repeats the panel\u2019s edge and drop beside the ring, because a box-shadow list replaces the whole list; a consumer who overrode the panel\u2019s box-shadow should do the same. Other scrolling boxes in the kit still have no ring and are listed on #531.', ['Dropdown']],
     ],
   },
   {

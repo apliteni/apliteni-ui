@@ -536,18 +536,31 @@ Decided in [#220](https://github.com/apliteni/apliteni-ui/issues/220), measured 
 
 ## Elevation
 
-**Nothing in the kit casts a shadow except a surface that floats.** A card, a field, a chip and a
-row say how high they are with two things: their step on a ladder of lightness, and the kit's
-hairline around them. A floating surface keeps the step, draws the hairline **twice**, and adds
-one soft drop. The drop is broad and faint, never tight and dark: it separates the panel from
-what it covers, it does not draw its edge. All five deprecated `--shadow-*` tokens stay
-transparent and unread; `--elev-drop`, under that second line, is the one shadow the kit paints.
+**A surface casts a shadow only to say it is higher, and each theme says it its own way.**
+A level — a card, the shell's rail, a floating surface — keeps its step on a ladder of lightness
+in both themes. What marks its edge is the theme's: **dark draws the kit's hairline, light casts
+a soft drop and draws no neutral line at all.** Chosen by Artur on round t3 of
+[#490](https://github.com/apliteni/apliteni-ui/issues/490) — *"It's better"* — against a reference
+app he supplied, after rejecting a stronger hairline on round t2: *"Fuck how I hate hairlines."*
+
+**A line that divides two regions of one surface is not a level, and stays a line in both
+themes.** A card's `__row` dividers, a table's row rules, the rail's head band and the topbar's
+bottom rule all separate parts of the same sheet. Only a surface that is *higher* may cast, so a
+drop keeps exactly one meaning. A field is not a level either: its edge is what says "type here",
+`guidelines/colour-and-theming.md#keep-text-off-grey-fills` asks for it, and a drop under a control inside a
+card would read as a raised button — the opposite of a well.
+
+The drop is broad and faint, never tight and dark: it separates a surface from what it covers by
+**area**, not by a pixel. All five deprecated `--shadow-*` tokens stay transparent and unread.
 
 **What floats is decided by the surface's job, not by its rung on the ladder.** A floating
 surface is one whose whole purpose is to be temporarily above something else: a dropdown menu,
 the account and workspace menus, the small-form popover, `confirm()`, the drawer, the React
-modal, the three toast styles, the command palette, the hover readout, and the collapsed rail's
-flyout label. They paint a reading surface and float because of their role. Hover readouts
+modal, the three toast styles, the command palette, the hover readout, the collapsed rail's
+flyout label, the signed-out auth card, the success panel and the feedback composer. The last
+three painted `--bg-elevated` and took the plain hairline instead of the treatment until #490's
+review found them; `stories/elevation.test.js` now discovers every rule that paints that step and
+requires the rung with it, so the step and the treatment cannot come apart again. They paint a reading surface and float because of their role. Hover readouts
 use `--bg-elevated`; collapsed rail labels use the card surface with the same
 floating edge and shadow treatment.
 
@@ -605,37 +618,92 @@ accent, 1.041:1 for live), and each variant edges itself in its own colour rathe
 two keeping the neutral line. The rule this states is the section's own: **a card is a step above
 the page, whatever it is tinted with.**
 
-**Every floating surface keeps the hairline as well, and the card takes one in both themes.**
-A step of lightness on its own is a contrast of about 1.1 — enough to read as a change of surface,
-not enough to draw an edge. The line draws the edge; the step says which way is up. Dropping
-either one leaves a theme carrying the whole separation on the half that is weak for it.
+### The three rungs, and which device each theme spends on them
 
-**A floating surface draws that line twice, and the second one is a pixel inside the first.**
-`--border-strong` on the border, `--border` as an inset one-pixel line within it: an outer line
-against what is behind, an inner one against the panel. One line measured 1.27 / 1.18 against the
-card in dark / light; two measure **1.64 / 1.44**, and the two lines read 1.30 / 1.23 against each
-other, which is what makes them two rather than one drawn thick.
+A step of lightness on its own is a contrast of about 1.1 — enough to read as a change of surface,
+not enough to draw an edge. Something has to draw it. **A level draws a line or casts a drop, and
+never neither**; losing both at once is the flat card #284 and #295 were opened about, and the gate
+refuses it.
+
+| Level | The token sheets paint | Dark | Light |
+| --- | --- | --- | --- |
+| a card | `--card-edge` + `--elev-rest` | `--border`, no cast | transparent, `--elev-rest` |
+| the shell's rail | `--rail-edge` + `--elev-rail` | `--border`, no cast | transparent, `--elev-rail` |
+| a floating surface | `--float-edge`, `--float-edge-inner` + `--elev-drop` | `--border-strong` outside, `--border` a pixel inside, then the drop | both transparent, the drop alone |
+
+Every rung is two layers: a wide faint one that separates by area, and a short one that keeps the
+surface from floating free of its own footprint. Each layer is offset along **one** axis, blurred
+at least twice as wide as it is offset, and held inside the surface's footprint by a negative
+spread, so none of them reaches out on every side as a halo. **None of them is a glow**: a glow is
+a zero-offset layer of the signal's own colour and says *this is lit*, not *this is high*.
+`--elev-rail` is the one rung that falls sideways, because the rail is flush to a screen edge and
+full height — the same reason the drawer draws its line in one direction.
+
+The widths come from the reference. Measured off it, a card's penumbra runs 12–13 CSS px, a
+floating control's 25, and a popover's 35–40, at cores of 1.03–1.12 against the ground. The kit's
+rungs are built to those widths: 26 px off a 2 px offset under a card, 24 px off 10 px beside the
+rail, 46 px off 20 px under a floating surface.
+
+**A level carried by its rung alone marks every side it exposes.** A shadow falls one way, so
+the side it falls *away* from is the one it can miss, and a layer only clears the surface there
+when `blur ÷ 2` beats `|spread| + offset`. The first pass of #490 shipped `0 10px 22px -14px`
+under a card: that arithmetic is `11 − 24`, thirteen pixels **inside** the card, so its top edge
+had nothing at all while the reference marks its own card on all four sides. A level that still
+draws a line can afford a directional rung, because the line marks every side; a level carried by
+the rung alone cannot. `--elev-rest` is near-ambient for that reason — a small offset under a
+wide blur — and the rail is exempt by geometry rather than by taste: it is flush to a screen edge
+and full height, so its left, top and bottom are off the screen and its right edge is the only one
+a reader can see.
+
+**What keeps a rung from reading as a line is its width, not its peak.** Measured at 1x on a
+card in light, against a page the card sits **1.110** above: the rung peaks at **1.064** at the
+top, **1.084** at the sides and **1.134** under the bottom, which is the lit-from-above side.
+Each of those is the strongest sample of a gradient that runs **16 to 20 px**, where the hairline
+it replaced was 1.116 over exactly one pixel. So the bottom peak is above the card's own step and
+is meant to be: a drop that separates by area can be stronger at its core than the step and still
+read as a lift, because a reader sees the gradient rather than the sample. Peak alone was the
+wrong measure of an edge, and it is why the line went.
+
+These are measurements, not guarantees. What the kit guarantees about a rung is the shape the
+gate holds: two layers, offset on one axis, `blur ≥ 2 × offset`, a negative spread, ink written as
+an alpha, and — for a level with no line — a trailing reach above zero.
+
+**In dark, a floating surface draws its line twice, and the second one is a pixel inside the
+first.** `--border-strong` on the border, `--border` as an inset one-pixel line within it: an outer
+line against what is behind, an inner one against the panel. One line measured 1.27 against the
+card; two measure **1.64**, and the two lines read 1.30 against each other, which is what makes
+them two rather than one drawn thick. Light writes the same two layers and resolves both to
+`transparent`, so the composition is one shape in both themes and only the palette differs.
+
+**In light a floating panel has no step to stand on, and the drop carries all of it.** `--surface`
+and `--bg-elevated` are both `#ffffff`, so a panel over a card differs by 1.000. The second pass on
+#490 concluded from that a drop could not replace the line there. The reference answers it: its
+popover sits at a **1.002** surface step with no border at all and still reads as floating, because
+its drop is three times wider than the kit's was. Width was the variable that pass held fixed. The
+one honest cost is the **top** edge, which a downward drop reaches least; the evidence in the PR
+measures it rather than claiming otherwise.
 
 **Then the drop, and it is the half that carries light.** A floating surface writes both devices
 as one `box-shadow` list, in the order Primer's `--shadow-floating-*` uses — the inset line first,
 then the two broad faint drops:
 
 ```css
-box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
+box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
 ```
 
-`--elev-drop` is one token per theme, so there is one place to change the drop. The line is
-**not** in it, and cannot be: a `var()` written inside a custom property is substituted at
-computed-value time on the element that *declares* it, so an `--elev-edge` read inside a `:root`
-token resolves once, at `:root`, always to the fallback — and every component below that
-re-points it writes a declaration the browser ignores. The alphas are per theme because the
-device is not worth the same in each. Dark spends 62% / 50% of `--shadow-ink` and still only reaches **1.20** at the
-drop's core, because near-black ink on a near-black page has nowhere to go — dark is carried by
-the edge. Light spends 18% / 10%, lands the core at `#d7d7da`, and reads **1.44** on the card,
-which is the strongest separation either theme gets from any device measured for #295. The page
-measured 1.43 for the same drop, because its prototype wrote the ink as a literal `#101626` at 17%
-rather than reading `--shadow-ink`, which is `#1e1e32` here; the kit's own token is what ships, and
-1.43 is what the gate floors.
+Each rung is one token per theme, so there is one place to change each. The line is **not** in
+them, and cannot be: a `var()` written inside a custom property is substituted at computed-value
+time on the element that *declares* it, so an `--elev-edge` read inside a `:root` token resolves
+once, at `:root`, always to the fallback — and every component below that re-points it writes a
+declaration the browser ignores. The alphas are per theme because the device is not worth the same
+in each. Dark spends 62% / 50% of `--shadow-ink` on `--elev-drop` and still only reaches **1.20**
+at the drop's core, because near-black ink on a near-black page has nowhere to go — dark is carried
+by the edge, and its other two rungs are the transparent shadow. Light spends **22% / 12%**, lands
+the core at `#ceced2` and reads **1.57** on the card. That is up from the 18% / 10% #295 shipped,
+and deliberately: there the drop sat behind two lines, and here it carries the separation alone, so
+the gate's floor rises with it from 1.43 to **1.50**. `--elev-rest` and `--elev-rail` spend 16% /
+7%, which puts a card's core at 1.38 before the blur spreads it — the reference's card measures
+1.05 rendered, and these rungs land in the same band.
 
 The treatment has these composition rules.
 
@@ -644,8 +712,11 @@ The treatment has these composition rules.
   as it holds focus. Every floating panel writes the ring in front of the treatment rather than
   over it.
 - **A tinted surface re-points the inner line.** `--elev-edge` is the hook, and because the layer
-  reading it is written on the surface's own rule, the surface can set it: unset it is `--border`,
-  which is what a neutral panel wants. Toasts use the neutral border and drop across all styles.
+  reading it is written on the surface's own rule, the surface can set it: unset it is
+  `--float-edge-inner`, which is what a neutral panel wants. Toasts use the neutral border and drop
+  across all styles. A re-pointed tint is a *signal* colour, not a neutral hairline, so it survives
+  in light — a tinted card (`.ui-card--accent`, `.ui-card--live`) keeps its own coloured edge in
+  both themes for the same reason, and takes `--elev-rest` beneath it.
 - **A flush panel draws the line in one direction.** The drawer sits against a screen edge, so it
   has one edge rather than four; a full inset ring would draw lines across the top and bottom of a
   full-height panel, where there is no edge. It composes `var(--drawer-line), var(--elev-drop)`,
@@ -656,8 +727,11 @@ The treatment has these composition rules.
 Held by `stories/elevation.test.js` and `react/src/elevation.test.ts`, over one reader and one
 cascade resolver in `scripts/lib/box-shadow.js`, with their own tests in
 `scripts/lib/box-shadow.test.js`. Both discover every `box-shadow` the kit declares rather than
-naming a component, read each layer's geometry per theme, and refuse a cast layer that is not
-`--elev-drop`. A layer is judged against every value the kit gives the properties it reads —
+naming a component, read each layer's geometry per theme, and refuse a cast layer that is not one
+of the three rungs. The count of declarations reading each rung is pinned, a planted cast on a card
+proves the walk rejects one, and three more cases carry their own mutations: the line-or-drop rule
+for every level in every theme, the reach rule above, and a sweep of every rule that paints
+`--bg-elevated` against the rung that has to come with it. A layer is judged against every value the kit gives the properties it reads —
 each gate resolving against its own workspace's declarations as well as the token files — not
 against one guess at the cascade, because a reader that keeps one declaration per name can be
 walked past by writing a second one. The drops are read there too, at the shape above rather than
@@ -685,7 +759,13 @@ Held by `stories/contrast.test.js` and `stories/accent-contrast.test.js`, which 
 ground the two token files declare rather than a list typed into a gate.
 
 Decided in [#295](https://github.com/apliteni/apliteni-ui/issues/295), after
-[#284](https://github.com/apliteni/apliteni-ui/issues/284) made the card flat.
+[#284](https://github.com/apliteni/apliteni-ui/issues/284) made the card flat. Reopened and split
+by theme on [#490](https://github.com/apliteni/apliteni-ui/issues/490): Artur chose the soft drop
+over the hairline on triage round **t3** (`rev_fc04893b8bfc`), having rejected a stronger hairline
+on round t2 and a surface step with it. The reference analysis the light rungs are measured
+against is recorded on that issue. This also reopens
+[#454](https://github.com/apliteni/apliteni-ui/issues/454), whose round r22 answer was "no visual
+change to the light rail" — the rail's edge is one of the hairlines round t3 decided against.
 
 ## The focus ring
 
@@ -733,6 +813,39 @@ keyboard input there; this is not a promise of keyboard-only rings. Invalid bord
 keep their error colour while focus uses the shared band. No JavaScript modality
 tracker is required. Every shared-ring consumer retains a transparent 2px outline,
 which becomes a visible system outline when forced colours remove box shadows.
+
+**Every focusable control the kit ships draws it.** The ring is not opt-in: a control
+this kit styles is a control it gives a focus rule, so none falls back to the browser's
+own outline, which ignores the accent, differs between browsers and is black in both
+themes. This covers a control the keyboard reaches with an arrow key rather than Tab: a
+roving row inside a menu or listbox takes the ring like any other stop. Eighteen of them
+shipped without one until [#482](https://github.com/apliteni/apliteni-ui/issues/482),
+so every page that used those components inherited the gap. One control is exempt and states it on its
+own declaration: the command palette's input holds focus for as long as the dialog is up,
+so a ring there would be painted the whole time and mark nothing. A bare `a` in host copy
+is the host's; the kit's own `a` rule sets its colour and nothing else. A gate walks the
+keyboard stops of the marketing landing page and of the shell and footer stories, and
+fails a stop with no ring, or with an outline of its own instead of or beside it.
+
+**Writing the ring is not enough; it has to win.** A focus rule paints only if it
+outranks every always-on rule that writes `box-shadow` on the same element, so a
+component that re-states the property at equal specificity further down its sheet
+silences the ring without removing it. Where the ring is composed with a surface's own
+elevation — the dropdown, drawer and command-palette panels — the focus declaration
+repeats that treatment beside `var(--ring)`, because a `box-shadow` list replaces the
+whole list. The gate resolves the cascade for each keyboard stop, by specificity and
+then document order over the sheets as a page loads them, and fails a stop whose ring
+loses.
+
+**A box that scrolls is a control.** A browser gives a scroll container a keyboard stop
+of its own, with no `tabindex` and no author rule, so an overflowing box needs the ring
+as much as a button does. The kit's scrolling table wrapper, dropdown panel and snippet
+code region carry it; the code region's ring is painted on the card around it, because
+the `pre` is flush with that card on three sides and has no radius of its own, so a ring
+drawn on the box itself overhung the rounded corners. The gate discovers every box the
+kit makes scrollable and holds the list, so a new one is triaged rather than shipping
+with the browser's outline; the boxes still without a ring are named in that list and
+tracked on [#531](https://github.com/apliteni/apliteni-ui/issues/531).
 
 The solid band's unchanged colour is still held at 4.22:1 against the story-derived
 flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel
@@ -806,6 +919,146 @@ fails there too.
 Decided in [#294](https://github.com/apliteni/apliteni-ui/issues/294), after
 [#291](https://github.com/apliteni/apliteni-ui/issues/291) answered it for the dropdown's search
 field alone.
+
+## A tap reaches the floor below the phone step
+
+A finger covers more than a cursor. Below the phone step the kit's own controls measure under
+44px on at least one axis — a segmented pill 31, a tab 38, an `sm` button 27, an `xs` icon button
+24 — and a consumer cannot fix that at the call site for a part the kit sizes or portals.
+
+**The extra size goes outside the drawn shape.** `src/styles/tap-zone.css` gives each of those
+families a transparent, centred `::after`, and the control keeps the size it draws. The kit had
+already run this device on two controls for six weeks — a 24px `::before` over a 19px checkbox and
+the same over the toast's 19px close mark — and this sheet is that pattern generalised and raised
+to `--tap-min`. Growing the controls instead was the first answer and was rejected: every row that
+holds one grows with it, which is a visible change to a page a reader already knows, and the
+issue's own acceptance line asks that no row grow unless its content does.
+
+**A layer never crosses a neighbour's drawn edge.** A centred layer over a control of drawn size
+*s* reaches `(44 − s) / 2` past each edge, so a 24px mark in a row gapped at 8 takes 2px of the
+control beside it. Which of the two then wins those pixels is paint order, and with both layers at
+`z-index: auto` that is **source order** — the control written later in the markup. Measured on
+#488's first pass: the bottom 3px of a menu's `Duplicate` row started running `Revoke`. A
+hit-target change that routes taps into a destructive row has made the screen worse.
+
+So the layer is clamped to the room the layout says it has. `--tap-clear-x` and `--tap-clear-y`
+are the clear space to the nearest neighbour on each axis; a layer takes **half** of that on each
+side and stops, so two neighbouring layers meet at the midpoint of the gap and the nearer control
+wins it rather than the later one. The clamp is declared by the container — the only thing that
+knows its own gap — and inherits down.
+
+**Where the kit packs tighter than a zone needs, the GAP opens.** A layer may take at most half
+the gap, so a row at 8px carries a zone 4px past each edge and no further. The second half of
+#488's answer is therefore spacing: below the step, to a coarse pointer, the kit's own rows of
+small controls open to `--tap-gap`, which is 20 — `44 − 24`, where 24 is the smallest mark the
+kit draws in a row of its own. The filter row, a table's row actions and a toast's action row
+open across; a segmented strip, a pager and a tabs strip keep their packed track and open down,
+where the room is free until the strip wraps. **The controls do not change size**; the space
+between them does, by a few pixels, on a phone, under a finger. That is the cost the issue
+accepted, and it is the half that a floor made of zones alone cannot buy.
+
+**Two floors, and the lower one never moves.** `--tap-min` is 44, the target this sheet reaches
+for; `--tap-aa` is 24, WCAG 2.5.8 and the target the kit holds at every width. The second is
+there because a zone is clamped by its container's clearance, and `100%` on an absolutely
+positioned pseudo-element resolves against the **padding box** — on a 19px checkbox with a 1.5px
+border that is 16, so a clamp with nothing opened would take the hit layer `input.css` already
+draws from 24 down to 22. The two layers this sheet raises are floored at `--tap-aa`, so they
+can only ever grow.
+
+**A zone grows only where a container has opened the room for it.** `--tap-clear-*` defaults to
+**zero**, which is the honest default: the sheet cannot see a layout it has never met, and the
+earlier draft assumed `--tap-gap` everywhere and was wrong outside the rows it opened — the
+review of #488 measured the confirm dialog's `Keep the workspace` losing a pixel of its own box
+to `Delete it permanently`. So a container either opens and says so, or says nothing and its
+controls keep the targets they draw. A row that cannot open but does give something — a chip
+whose value and remove mark share an edge by design, a dense table's rows — declares what it
+gives, and the browser gate fails a declared number that is not true.
+
+**Rows open down unless they cannot overflow.** A row of labelled buttons at 390 is often
+already full, and widening its column gap there does not move the buttons apart: it makes them
+narrower, and a control drawn narrower is the half #488 rules out. Measured on a toolbar holding
+three buttons and a dropdown, and on a toast, where the column half took 24px out of the message
+and bought no reach at all. So the action rows open `row-gap` only — which is also where their
+collision was, since they wrap — and only a row whose marks are each a fixed square, a drawer
+header whose column gap is spent on a title rather than a control, or a dense table's action
+cell, which is the one pair that has to open across, opens the other axis.
+
+**An opening that buys no reach is not an opening.** The accent picker's swatches are bare
+buttons on no carrier list, so spreading that row moved four marks and gained nothing; it was
+reverted. The hero's call to action holds `lg` buttons already drawn 44 tall, so its row gap was
+reverted too. The gate now measures this directly: every container the sheet opens must contain
+a target that reaches further for it.
+
+This sheet is imported **last**, after every component sheet, and its openings take `!important`:
+each one overrides a `gap` a component already set, and the React bundle ships this sheet without
+those component sheets at all, where load order belongs to the consumer. Same trade as
+`field-zoom.css` — a host packing one of these rows tighter at phone width does not win.
+
+**A carrier's pseudo-element must be free.** `.ui-nav__tab::after` is the active underline
+`nav.css` draws, and an earlier draft listed that family: the zone's `top` and `width` landed on
+the indicator, over-constrained it, and moved it from under the label into the middle of it,
+where it read as a strikethrough. The tab is drawn 86x45 and already clears the floor, so it is
+not a carrier. The checkbox and the toast close go the other way — their `::after` is spoken for
+by the tick and the glyph plate, so it is the `::before` each already has as a hit layer that
+grows. Both directions are now held by the gate rather than by a comment.
+
+**Four families get no layer, three cannot carry one, and two are clipped.** A menu's rows, the command palette's
+list and a sidebar's rows share an edge: there is nothing outside a row to put a layer in, and a
+44px one only moves the boundary — the first rows lose a sliver and the last takes the whole gain.
+`input`, `select` and `textarea` generate no pseudo-element at all, with or without
+`appearance: none`; padding with a negative margin is not invisible on a control that paints a
+border and a background, so the only remaining device is a wrapper, which is markup a consumer
+cannot add to a part the kit portals. `.ui-input` and `.ui-textarea` already draw taller than the
+floor; `.ui-select` is 42px and is reached by its own height or not at all. A back link is the fourth family left alone: it stands at the top of a page
+where what sits above it belongs to the shell rather than to the link, so it cannot declare a
+clearance it has no way to know — measured in the app shell at 390, a zone reaching up from it
+met the wordmark. It draws 24 on both axes and clears 2.5.8 as it is. A toast is the third
+case of the other kind: it clips to its own rounded corners so the timer bar can run along the bottom edge, and
+both its controls sit against that clip, so their zones are trimmed rather than stopped. Opening
+the toast's padding was measured and rejected — it bought four marks and cost every toast 8px of
+height, which grows a surface rather than the space between two controls. All of them are named
+on the Accessibility minimums page.
+
+**The pointer clause is not decoration.** A transparent layer is also a hover surface, so under a
+mouse the control lights up with the cursor 8px off it, which reads as the page being misaligned.
+`@media (max-width: 560px) and (pointer: coarse)` is the whole gate: a coarse pointer has no
+hover, so the clause that earns the layer is the clause that removes the side effect. The focus
+ring is unaffected either way — it is a `box-shadow` on the control, drawn on the drawn box, and a
+transparent descendant neither clips it nor moves it.
+
+**`--tap-min` is declared in this sheet rather than in the token file.** `reduced-motion.css` and
+`field-zoom.css` carry their own numbers for the same reason: a net has to reach every bundle the
+kit publishes, and `react/src/index.ts` imports these three sheets without `tokens.css`. A `var()`
+resolving to nothing there would size the layer to `auto` in silence. It is still a token and a
+consumer can move it; the clearances reference the spacing scale with a literal fallback for the
+same reason.
+
+Held by `stories/tap-zone.test.js` in two halves. The source half runs in CI and reads the sheet:
+the floor is a token, the query carries the pointer clause, every carrier has a containing block,
+every clearance names a container the kit declares, and every entry on the exempt ledger is real
+and is not also a carrier. The browser half is the measurement and runs only under `TAP_ZONES=1`,
+because Playwright is deliberately not a dependency of this package. It drives every story at 390
+and 1280, with and without the sheet, asking `elementFromPoint` who owns each pixel of each
+control's drawn box: no control is drawn at a different size, the set of controls whose own box
+runs a different control does not grow, each family the sheet names reaches further than it did,
+and 1280 and a fine pointer are identical either way. That middle claim is stated as a set and
+not as coordinates on purpose — opening a row's gap moves the controls in it, so "the point this
+control owned before" stops being a question with an answer, and what survives the move is who
+collides with whom. It proves its own rejection by unclamping the layer and failing on the result.
+
+The viewport is sized to each story before anything is asked of it. `elementFromPoint` answers
+about the viewport and returns null below the fold, so a fixed box reported every control on the
+lower half of a long story as having no reach and no owner — a rig artefact that reads exactly
+like a layer that was never applied.
+
+What a green run does not prove: one browser, one theme, and only what the kit's own stories
+render. Two controls whose drawn boxes already overlap — a showcase grid at 390 where a `nowrap`
+label outgrows its column — are left out of the loss check, because between two controls that
+already overlap, which one wins a pixel is undetermined before anybody adds a layer.
+
+Decided in [#488](https://github.com/apliteni/apliteni-ui/issues/488), building on
+[#219](https://github.com/apliteni/apliteni-ui/issues/219), which put the first hit layer over the
+checkbox.
 
 ## Icons and glyphs
 
@@ -1440,7 +1693,7 @@ inside it, at the same 9px from the trigger.
 
 **One padding, and two blocks that bleed back through it.** `--ui-dropdown-pad` is declared on
 `.ui-dropdown__panel` beside the offset, and the panel's own `padding` reads it —
-src/styles/dropdown.css:79 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
+src/styles/dropdown.css:81 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
 panel has to come back out through that padding to reach the edge, and before
 [#306](https://github.com/apliteni/apliteni-ui/issues/306) the only way to write that was to copy
 the number: the head's bleed was `margin: -6px -6px 5px` and a page building its own footer wrote
@@ -1448,7 +1701,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:219 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:230 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the
@@ -2242,7 +2495,7 @@ the contract of the factory they invoke (for example, success actions use `butto
 | `toast` | title, body, action string / label | — | variant, style, icon | — |
 | `successPanel` | title, sub | — | — | — |
 | `emptyState` | title, sub | — | icon, named art | SVG art, actions |
-| `snippet`, `hlShell` | label, copyLabel; hlShell raw | — | — | snippet code (use hlShell for raw source) |
+| `snippet`, `hlShell`, `shellTokens` | label, copyLabel; hlShell / shellTokens raw | — | — | snippet code (use hlShell for raw source) |
 | `tabs` | name, ariaLabel, className | — | — | items.label, items.panel |
 | `dropdown` | label, value, placeholder, ariaLabel, id, triggerClass, panelClass, scroll; item label / value / description / target / badge text; section label; search placeholder / label / empty / hint / query | item href | variant, align, direction, item icon / badge tone | triggerContent, header, footer, foot |
 | `sidebarNav` | id, ariaLabel, active; item id / label / target / badge text; section label | item href | activeIs, item icon / badge tone | footer |
@@ -2691,17 +2944,29 @@ at once and carry no selected state of their own, because the grid already says 
 chosen; a preset is held to the same bounds the cells are, clamped where the two overlap
 and switched off where they do not.
 
-**A blocked period inside a range is not in the range.** It cannot be picked, so it is
-not included: it keeps neither the range tint nor the words "in range", however the two
-ends sit around it. One source decides both, so the paint and the name cannot disagree.
+**A range is a pair, so it spans what lies between its ends — blocked periods
+included.** `{ start, end }` has no way to say "all of this but not that", and inventing
+one would make a range something a host cannot round-trip. A blocked period between the
+two ends therefore stays in the value and says so in its accessible name, while
+`aria-disabled` says it cannot be picked; what it loses is only the tint, because the
+disabled ink over the span's own ground measured 4.43:1 under the green accent on dark
+and cannot be made readable. That is the one place the paint and the name differ, and it
+differs by withholding rather than by claiming. A host that must exclude a period splits
+the range itself and shows two pickers.
 
 **Blocked beats every other state in the paint.** A host may block the period its own
-value names, or one between the two ends of a range. Such a cell goes bare, like any
-other blocked cell, rather than keeping the fill or the tint under disabled ink; a
+value names, or one between the two ends of a range. Such a cell goes bare rather than
+keeping the fill or the tint under disabled ink; a
 blocked pick keeps its place by weight instead, spending no second colour. It still says
 `selected` in its name and still carries `aria-selected`, because it is still the value —
 it simply cannot be pressed. A shortcut whose end lands on a blocked period is refused
 rather than walked inwards to a range nobody asked for.
+
+**Hover is the kit's row hover.** A cell under the pointer takes the neutral edge and
+reading surface `.ui-dropdown__item` takes, not a tint of the accent: an accent hover sat
+within six of 255 per channel of the range's own tint, so on a seven-column grid the
+pointer made an outside day read as part of the span. The accent is spent on the pick and
+on the span, and not on a state the reader is passing over.
 
 **A mark is a dot, a word and a name.** `marks` keyed by period draws a dot in the cell,
 lists the word once under the grid for the page in view, and appends it to the cell's
@@ -2719,6 +2984,13 @@ already knows it is on a phone or renders where no viewport can be read.
 Day grids show only the month in view. The slots before the first and after the last are
 empty cells rather than a neighbouring month's dates, because numbers in the same grid
 read as pickable; the arrows cross the boundary instead.
+
+Below the phone step the grid reaches the kit's 44px tap floor: the cells stay packed
+across, which is the shape `.ui-seg` and `.ui-pager__steps` already take, and the gap
+between weeks opens to `--tap-gap` so each cell's layer has the room to grow down. The
+browser half of `stories/tap-zone.test.js` sweeps vanilla stories and reports no subject
+here, so `react/src/DatePicker.test.tsx` holds those declarations instead and the
+measurement is reported on the pull request.
 
 Held by `react/src/DatePicker.test.tsx`, which also discovers every focusable part the
 picker renders and holds it against the kit's own ring selectors, read out of the
@@ -2776,3 +3048,106 @@ up the narrowest thing on it, with its own placeholder cut off. At that step the
 field takes `flex-basis: 100%`, so it has the line and the rest of the row wraps
 under it — the shape a row with one wider control already fell into at this
 width. Decided in [#517](https://github.com/apliteni/apliteni-ui/issues/517).
+
+## React Snippet
+
+`Snippet` displays `code` as plain text by default. Optional React `children` replace
+only the displayed content; copying always writes the original `code` string.
+Token spans use the existing `.k`, `.f`, `.s`, `.u`, and `.c` styles without parsing
+HTML strings. Callers keep displayed tokens consistent with their source text, and
+`codeTokens(raw, lang)` is how: it returns the vanilla highlighters' own tokens as
+`{ cls, text }`, where `cls` is one of those five classes or `null` between tokens
+and the `text` values concatenate back to the string passed in. Deriving children
+from the same string the component copies removes the need to keep a second copy
+in step. `copy={false}` removes the copy button and its tab stop, leaving the label
+and selectable content. Changing `code` or `copy`, or unmounting, invalidates pending
+copy feedback. Held by `react/src/Snippet.test.tsx`, which also compares the
+rendered classes against the `snippet()` factory across `reveal` and `copy`;
+`react/src/snippet-stories.test.tsx` holds the kit's own stories to copying what
+they display, and `src/components/snippet-tokens.test.js` holds `hlShell`'s output
+and the token round trip for every language. These check DOM behavior and strings,
+not browser layout or colour contrast.
+Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
+
+## Code highlighting
+
+`hlCode(raw, lang)` returns highlighted HTML and `codeTokens(raw, lang)` returns the
+same tokens as data; `hlShell(raw)` is the shell case under the name it has always
+had. `codeLanguages` lists what `lang` accepts — `shell`, `json` and `ts` — and an
+unrecognised name is read as shell, the way the kit reads every other unknown
+option name. One tokenizer serves both, so vanilla HTML and React spans cannot
+drift apart.
+
+The five classes carry different meanings per language and are listed here because
+a caller reading the colours needs to know what they stand for:
+
+| Language | `.k` | `.s` | `.f` | `.u` | `.c` |
+| --- | --- | --- | --- | --- | --- |
+| `shell` | the command | a quoted string | a flag | a URL | a `#` comment |
+| `json` | a property key | a string value | a number, `true`, `false`, `null` | — | — |
+| `ts` | a keyword | a string or template | a number or literal | — | a `//` or `/* */` comment |
+
+These are deliberately small. They colour the short snippets the kit's own docs
+show, not arbitrary programs: no nested template expressions, no regular-expression
+literals, and in TypeScript a `//` inside a string reads as a comment unless a `:`
+precedes it, which is what keeps a URL in a string whole. The patterns run over
+escaped text and hand back unescaped text, which is safe only while no token splits
+an HTML entity; `src/components/snippet-tokens.test.js` holds that property, the
+round trip and `hlShell`'s unchanged output for every language it discovers from
+`codeLanguages`.
+
+Three of the five classes miss WCAG AA on the light card and are carried as
+recorded debt, not as a claim of compliance: `.f` and `.u` at 3.81:1 and `.s` at
+4.45:1. `.k` clears it at 5.95:1, and every class clears it in dark. The accepted
+failures and their reasoning live in `stories/contrast.test.js` and
+`react/src/contrast.test.tsx`.
+
+The copy button is icon-only in both implementations. `copy` is on the closed list
+in `src/assets/icons.js`, the bar it sits in is narrow, and the word repeated what
+the glyph already said. `copyLabel` is therefore the accessible name and the
+`title` tooltip rather than visible text, written the way every other icon-only
+control in the kit is written, and it should name what is being copied — “Copy
+command”, “Copy configuration”. It defaults to “Copy code”. The button keeps the
+24px target floor on both axes, which the width now carries alone: 4 + a 13px glyph
++ 4 is 21px without it.
+
+Confirming a copy does not change the control's size or its name. The glyph swaps
+from `copy` to `check` inside the same 24px box, and the word goes to a
+visually-hidden live region beside the button — `.ui-sr.ui-snippet__status`, with
+`role="status"` and `aria-live="polite"`, shipped empty because a `role="status"`
+inserted together with its text is silent on several screen readers. Both
+implementations emit that region and the same classes.
+
+Two things follow from putting the word there rather than in the button. The bar
+does not move: words in the button widened a 24px control to 59–87px on every
+click, in a bar that is `justify-content: space-between`, so its left edge jumped
+and came back. And the confirmation is actually announced: a permanent
+`aria-label` outranks an element's contents, so a word written into the button
+would have changed the pixels and left the computed name frozen. The button's own
+name stays the action, which is still available after a copy.
+
+Vanilla announces `Copied` and has no failure state, because its write is not
+awaited; React announces `Copied` or `Copy failed`. The vanilla restore reads the
+markup the button started with, so the glyph comes back rather than the label as
+words; `data-orig` still records the resting label for a caller that wants it.
+Held by `src/components/snippet-copy.test.js`, which resolves the announced name
+with axe-core's accname and rejects three mutations: restoring the label text,
+writing the confirmation into the button, and dropping the live region.
+
+Snippet descendants use the shared `--ring` on `:focus-visible`, including copy
+buttons in vanilla and React. The browser-focusable code region is the exception:
+a `<pre>` sits flush with its card and has no radius, so a ring on it would paint
+a square that overhangs the rounded card. The card paints that ring instead, with
+`--ring-gap` taken from the page rather than from its own surface, and keeps
+`overflow: hidden`. One focus signal is drawn either way.
+
+Forced colors is the same guarantee by a different route. That mode drops
+box-shadow, so both boxes fall back to their outlines: the card's transparent one
+is repainted as the focus signal, and the code region declares none at all, because
+an outline on it would be the square ring again, inside the card's rounded one.
+Every other focusable part of a Snippet keeps its own outline there.
+
+Held by `stories/snippet-focus.test.js`, which emulates forced colors by flattening
+the media block and dropping every box-shadow; keyboard reachability, the gap
+colour, the colour the system repaints an outline as, and pixels are checked in
+Chromium because JSDOM cannot prove any of them.

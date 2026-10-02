@@ -42,6 +42,28 @@ describe('the trigger', () => {
     expect(trigger()).toHaveTextContent('Select a month');
   });
 
+  /* With no label the trigger's own text is the only name it has, so an
+   * aria-label would speak over it: the reader heard "Select a date" from a
+   * control reading 17 September 2026. All four modes, because the placeholder
+   * differs in each and the bug was in the fallback, not in one mode. */
+  it.each([
+    ['month', { defaultValue: '2026-08' }, 'August 2026'],
+    ['day', { defaultValue: '2026-09-17' }, '17 September 2026'],
+    ['range', { defaultRange: { start: '2026-04', end: '2026-08' } }, 'Apr 2026 \u2013 Aug 2026'],
+    ['day-range', { defaultRange: { start: '2026-09-07', end: '2026-09-18' } },
+      '7 Sept 2026 \u2013 18 Sept 2026'],
+  ] as const)('names itself with the value in %s mode, with no label', (mode, props, expected) => {
+    render(<DatePicker today={TODAY} mode={mode} {...props} />);
+    expect(trigger()).toHaveTextContent(expected);
+    expect(trigger()).toHaveAccessibleName(expected);
+    expect(trigger()).not.toHaveAttribute('aria-label');
+  });
+
+  it('still takes an explicit ariaLabel over its own text', () => {
+    render(<DatePicker today={TODAY} ariaLabel="Reporting month" defaultValue="2026-08" />);
+    expect(trigger()).toHaveAccessibleName('Reporting month');
+  });
+
   it('opens and closes, and gives focus back on Escape', async () => {
     const user = userEvent.setup();
     render(<DatePicker today={TODAY} label="Month:" />);
@@ -539,9 +561,13 @@ describe('day-range mode', () => {
     await user.click(cell(/\b7 September 2026/));
     await user.click(cell(/\b18 September 2026/));
     await user.click(trigger());
+    // The emitted range spans it, so the name says so and `aria-disabled` says
+    // it cannot be picked. Only the tint is withheld, because the disabled ink
+    // over it cannot be read.
     const blocked = cell(/\b12 September 2026/);
     expect(blocked).not.toHaveClass('is-inside');
-    expect(blocked).not.toHaveAccessibleName(expect.stringContaining('in range'));
+    expect(blocked).toHaveAccessibleName(expect.stringContaining('in range'));
+    expect(blocked).toHaveAttribute('aria-disabled', 'true');
     expect(cell(/\b11 September 2026/)).toHaveClass('is-inside');
   });
 
@@ -696,6 +722,7 @@ describe('day mode', () => {
  * What it does not reach: whether the ring is VISIBLE — that is paint, and the
  * browser captures own it. This holds the selector coverage only. */
 describe('the focus ring', () => {
+  const grainOf = (mode: string) => (mode === 'day' || mode === 'day-range' ? 'day' : 'month');
   /** Every selector the kit paints `box-shadow: var(--ring)` on, minus the state. */
   const ringSelectors = ['../../src/styles/base.css', '../../src/styles/dropdown.css']
     .flatMap(file => [...read(file).replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
@@ -715,11 +742,11 @@ describe('the focus ring', () => {
     expect(ringSelectors).toContain('.ui-focusable');
   });
 
-  it.each(['month', 'range', 'day'] as const)('covers every focusable part in %s mode', mode => {
+  it.each(['month', 'range', 'day', 'day-range'] as const)('covers every focusable part in %s mode', mode => {
     const { container } = render(
       <DatePicker
         today={TODAY} mode={mode} label="Period:" defaultOpen
-        defaultValue={mode === 'day' ? '2026-09-17' : '2026-08'}
+        defaultValue={grainOf(mode) === 'day' ? '2026-09-17' : '2026-08'}
         presets={[{ label: 'This year', range: { start: '2026-01', end: '2026-12' } }]}
         marks={{ '2026-06': { label: 'Restated' } }}
       />,
@@ -951,5 +978,61 @@ describe('every cell state is readable', () => {
       expect(fg && Array.isArray(bg), 'the mutation resolved').toBe(true);
       expect(ratio(composite(fg, bg), bg)).toBeLessThan(AA_TEXT);
     } finally { done(); }
+  });
+});
+
+/* The tap zone, from this side.
+ *
+ * `src/styles/tap-zone.css` carries the kit's 44px floor below the phone step,
+ * and its browser half sweeps `stories/*.stories.js` through a vanilla page —
+ * it reports `.ui-datepicker__opt: 0 seen`, because this component is React
+ * only and has no vanilla story to render. So the declarations are held here
+ * instead, read out of that sheet rather than repeated.
+ *
+ * What it does not reach: the pixels. JSDOM lays nothing out, so the measured
+ * zone is reported by hand in the pull request, as that gate's own comment
+ * asks.
+ * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step */
+describe('the tap zone below the phone step', () => {
+  const sheet = read('../../src/styles/tap-zone.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  const coarse = /@media \(max-width: 560px\) and \(pointer: coarse\) \{([\s\S]*)\n\}/.exec(sheet);
+
+  /** The selectors of one `:where(…)` list in that block, by what follows it. */
+  const listBefore = (after: string) => {
+    const m = new RegExp(`:where\\(([^)]+)\\)\\s*${after}`).exec(coarse![1]);
+    return (m?.[1] ?? '').split(',').map(x => x.trim()).filter(Boolean);
+  };
+
+  it('reads the sheet it is holding', () => {
+    expect(coarse, 'the coarse-pointer block').not.toBeNull();
+    expect(listBefore('\\{ position: relative').length).toBeGreaterThan(5);
+    expect(listBefore('::after').length).toBeGreaterThan(5);
+  });
+
+  it('hangs a layer on the cell, and gives it something to hang it on', () => {
+    expect(listBefore('::after')).toContain('.ui-datepicker__opt');
+    expect(listBefore('\\{ position: relative')).toContain('.ui-datepicker__opt');
+  });
+
+  it('opens the week gap and declares the clearance the cells inherit', () => {
+    const rule = /\.ui-datepicker__grid \{([^}]*)\}/.exec(coarse![1]);
+    expect(rule, 'the grid opens no gap').not.toBeNull();
+    expect(rule![1]).toMatch(/row-gap:\s*var\(--tap-gap\)\s*!important/);
+    expect(rule![1]).toMatch(/--tap-clear-y:\s*var\(--tap-gap\)/);
+    expect(rule![1]).toMatch(/--tap-clear-x:/);
+  });
+
+  it('refuses the sheet with the cell taken back off it', () => {
+    const without = sheet.replace(/\n\s*\.ui-datepicker__opt\n/g, '\n');
+    expect(without, 'the carrier lines this gate mutates were renamed').not.toBe(sheet);
+    expect(without).not.toContain('.ui-datepicker__opt');
+  });
+
+  /** The cell's own sheet must not fight the layer. */
+  it('leaves the cell a containing block and its drawn size alone', () => {
+    const own = read('./DatePicker.css');
+    expect(own).toMatch(/\.ui-datepicker__opt \{[^}]*position: relative/);
+    expect(own, 'the cell must not size itself inside the coarse query')
+      .not.toMatch(/@media[^{]*pointer: coarse/);
   });
 });
