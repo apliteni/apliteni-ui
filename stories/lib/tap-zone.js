@@ -150,6 +150,18 @@ export async function rowFixtures() {
         + `</td></tr>`).join('')
       + `</tbody></table>`),
 
+    // The React filter bar's add control (#496), which no vanilla story draws:
+    // a trigger of the kit's own, in the row beside the chips rather than inside
+    // a chip, so the row's clearance is what its zone may grow into. The markup
+    // is the one React renders — the factory’s row with that block spliced in
+    // before the clear button.
+    row('filter-add', kit.filterBar({
+      filters: [{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology' }] }],
+    }).replace('<span data-filter-clear>', `<div data-filter-add>${kit.dropdown({
+      id: 'fx-add', variant: 'menu', triggerContent: 'Add filter', ariaLabel: 'Add filter',
+      items: [{ label: 'Market' }],
+    })}</div><span data-filter-clear>`)),
+
     // And two a consumer would write. Nothing opens these, so nothing may grow
     // into them: the zones have to stay inside the drawn boxes.
     row('packed-row', two('Cancel', 'Continue'), 'display:flex;gap:8px;flex-wrap:wrap'),

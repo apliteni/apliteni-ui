@@ -10,6 +10,8 @@
  * existing, and the sweep fails when it finds none. The check is specificity and
  * not source order: two sheets' order in a consumer's bundle is the consumer's.
  *
+ * One panel answers to the row rather than to its trigger: see unrooted(). #496
+ *
  * why: docs/specification.md#a-filter-row-holds-its-panels
  */
 
@@ -17,7 +19,7 @@
  *
  * WHAT THIS GATE DOES NOT REACH:
  *   - Geometry: it reads declarations, not boxes. That a bounded panel fits a
- *     375px view is measured by filter-bar-fit.mjs, which `npm test` cannot run.
+ *     375px view, the add menu included, is filter-bar-fit.mjs's to measure.
  *   - A floor in a consumer's own sheet, or one an inline style carries — such
  *     as the `min-width` `ddResetSearch()` writes on every search panel.
  *   - A floor written as `width` on an ancestor rather than on the panel.
@@ -35,8 +37,10 @@ import path from 'node:path';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STYLES = path.join(root, 'src/styles');
+const TOKENS = readFileSync(path.join(root, 'src/tokens/tokens.css'), 'utf8');
 const PANEL = '.ui-dropdown__panel';
 const BAR = '.ui-filter-bar';
+const ADD = '[data-filter-add]';
 
 /** Every leaf rule in a sheet as { selector, body }, comments stripped. */
 function rules(css) {
@@ -59,18 +63,23 @@ const declared = (body, prop) => {
   return hit ? hit[1].trim() : null;
 };
 
-/** Class count, which is the whole of the specificity at stake here: every
- *  selector in play is classes only, and a media query adds nothing. */
-const classes = (one) => (one.match(/\.[A-Za-z_-][\w-]*/g) || []).length;
+/** Class count, which is the whole of the specificity at stake here: no selector
+ *  in play carries an id or a tag, and a media query adds nothing. An attribute
+ *  selector weighs the same as a class and is counted with them — `[data-filter-add]`
+ *  is how the add control's menu is named. */
+const classes = (one) => (one.match(/\.[A-Za-z_-][\w-]*|\[[^\]]+\]/g) || []).length;
 
 /** A selector list, split on the commas between its selectors. */
 const selectors = (list) => list.split(',').map((one) => one.trim()).filter(Boolean);
 
-/** Every custom property the sheets declare, last declaration winning. A floor
- *  spelled as a token is still a floor, so the sweep has to be able to read one. */
+/** Every custom property the sheets declare, last declaration winning, over the
+ *  kit's own tokens. The sweep rules over `src/styles/` alone, but a length there
+ *  is written as a token from `src/tokens/`, and one this could not read would be
+ *  reported as a floor of unknown size — which is how `min(var(--panel-sm), 100%)`
+ *  came back as unbounded. Tokens go first, so a fixture can still declare its own. */
 function customProperties(sheets) {
   const vars = new Map();
-  for (const [, css] of sheets) {
+  for (const [, css] of [['src/tokens/tokens.css', TOKENS], ...sheets]) {
     for (const rule of rules(css)) {
       for (const hit of rule.body.matchAll(/(?:^|;)\s*(--[\w-]+)\s*:([^;]*)/g)) {
         vars.set(hit[1], hit[2].trim());
@@ -305,6 +314,113 @@ function unheldOnClose(sheets) {
 
 const gateSource = readFileSync(path.join(root, 'scripts/evidence/filter-bar-fit.mjs'), 'utf8');
 
+/* The add control's menu, #496 — the one panel in a row that asks for more than a
+ * chip's values, because it carries the screen's catalogue with a field over it.
+ * Its width is decided by a CASCADE and not by one rule: the row's open rule
+ * floors every menu, and the add menu's own rule raises that floor. A reader of
+ * named declarations cannot see a rule that takes the width away again, which is
+ * what this resolver is for. */
+
+/** The element chain the add menu's panel hangs in, outermost first, each step as
+ *  the classes and attributes that element carries. A selector matches the menu
+ *  when its compounds walk this chain in order and its last compound lands on the
+ *  panel itself. Searching, because that is the menu the catalogue draws. */
+const ADD_CHAIN = [
+  ['.ui-filter-bar'],
+  ['[data-filter-add]'],
+  ['.ui-dropdown', '.open'],
+  ['.ui-dropdown__panel', '.ui-dropdown__panel--search'],
+];
+
+/** The tokens of one compound selector: `.a.b[c]` → ['.a', '.b', '[c]']. */
+const compound = (one) => one.match(/\.[A-Za-z_-][\w-]*|\[[^\]]+\]/g) || [];
+
+/** Whether a descendant selector matches the chain, its last compound on the last
+ *  element. Walks right to left, taking the nearest ancestor that carries every
+ *  token — the kit writes descendant combinators here and nothing else. */
+function matchesChain(one, chain = ADD_CHAIN) {
+  const parts = one.trim().split(/\s+/).filter(Boolean);
+  if (parts.some((part) => /[>+~]/.test(part))) return false;
+  let at = chain.length - 1;
+  const last = compound(parts[parts.length - 1]);
+  if (!last.length || !last.every((t) => chain[at].includes(t))) return false;
+  at -= 1;
+  for (let i = parts.length - 2; i >= 0; i -= 1) {
+    const want = compound(parts[i]);
+    while (at >= 0 && !want.every((t) => chain[at].includes(t))) at -= 1;
+    if (at < 0) return false;
+    at -= 1;
+  }
+  return true;
+}
+
+/** What the cascade leaves the add menu for one property: the matching declaration
+ *  with the most classes. A tie between two files is reported rather than resolved
+ *  — their order in a consumer's bundle is the consumer's, which is the same
+ *  reason the bound above is checked by specificity and not by source order. */
+function winning(sheets, prop, chain = ADD_CHAIN) {
+  const matched = [];
+  for (const [file, css] of sheets) {
+    for (const rule of rules(css)) {
+      for (const one of selectors(rule.selector)) {
+        if (!matchesChain(one, chain)) continue;
+        const value = declared(rule.body, prop);
+        if (value) matched.push({ file, selector: one, prop, value, rank: classes(one) });
+      }
+    }
+  }
+  if (!matched.length) return null;
+  const top = Math.max(...matched.map((m) => m.rank));
+  const at = matched.filter((m) => m.rank === top);
+  const disagree = at.filter((m) => m.value !== at[at.length - 1].value);
+  if (disagree.length && new Set(at.map((m) => m.file)).size > 1) {
+    return { ...at[at.length - 1], tied: at.map((m) => `${m.selector} in ${m.file}: ${m.value}`) };
+  }
+  return at[at.length - 1];
+}
+
+/** The finding, or null when the cascade leaves the add menu a panel's width that
+ *  cannot leave its row. Two questions, both asked of the resolved cascade rather
+ *  than of a rule somebody named: does it still reach past a chip's floor, and can
+ *  what it reaches exceed the room the row measured? */
+function addMenuWidth(sheets) {
+  const vars = customProperties(sheets);
+  const min = winning(sheets, 'min-width');
+  const max = winning(sheets, 'max-width');
+  const ask = winning(sheets, '--ui-filter-panel-ask');
+  if (!min) return 'nothing in src/styles/ floors the add menu, so it shrinks to its rows';
+  for (const won of [min, max, ask]) {
+    if (won?.tied) {
+      return `two rules tie on the add menu's ${won.prop} and a consumer's bundle order would `
+        + `decide it: ${won.tied.join('; ')}`;
+    }
+  }
+  if (canExceed(resolveVars(min.value, vars), min.selector)) {
+    return `${min.selector} in ${min.file} wins the add menu's min-width with `
+      + `${min.value}, which nothing caps at the room its row measured`;
+  }
+  // The fit writes the floor it resolved; a winner that does not read it renders
+  // whatever that rule says and the menu's ask never reaches the width.
+  if (!min.value.includes('--ui-filter-panel-floor')) {
+    return `${min.selector} in ${min.file} wins the add menu's min-width with ${min.value}, `
+      + 'which does not read the floor the fit resolved';
+  }
+  if (!max || canExceed(resolveVars(max.value, vars), max.selector)) {
+    return `the add menu's max-width resolves to ${max ? max.value : 'nothing'}, which does not `
+      + 'hold it inside the room its row measured';
+  }
+  const asked = Number.parseFloat(resolveVars(ask?.value ?? '', vars) ?? '');
+  if (!ask || !Number.isFinite(asked)) {
+    return 'the add menu declares no --ui-filter-panel-ask, so the fit measures it against a '
+      + "chip's floor and the catalogue draws at a chip's width";
+  }
+  if (asked <= DD_MENU_FLOOR) {
+    return `the add menu asks for ${ask.value} (${asked}px), which is no more than the kit's `
+      + `${DD_MENU_FLOOR}px menu floor — then it does not need to ask at all`;
+  }
+  return null;
+}
+
 const sheets = readdirSync(STYLES)
   .filter((name) => name.endsWith('.css'))
   .map((name) => [`src/styles/${name}`, readFileSync(path.join(STYLES, name), 'utf8')]);
@@ -375,9 +491,11 @@ test('a floor spelled as a token is read, not skipped', () => {
 
 test('every copy of the menu floor agrees', () => {
   const found = menuFloors(sheets, DD_MENU_FLOOR, gateSource);
-  // Four places write it: the standalone panel's rule, the filter row's
-  // fallback, the module both implementations call, and the browser gate.
-  assert.equal(found.length, 4, `floors found: ${found.map((f) => `${f.where}=${f.px}`).join(', ')}`);
+  // Five places write it: the standalone panel's rule, the fallback in each of the
+  // row's two open rules — a chip's menu and the add control's, which is not a
+  // chip's and carries its own copy — the module both implementations call, and
+  // the browser gate.
+  assert.equal(found.length, 5, `floors found: ${found.map((f) => `${f.where}=${f.px}`).join(', ')}`);
   const distinct = [...new Set(found.map((f) => f.px))];
   assert.deepEqual(distinct, [240], found.map((f) => `${f.where}=${f.px}`).join(', '));
 });
@@ -531,4 +649,67 @@ test('the check refuses geometry that only answers .open', () => {
 
 test('the check refuses a sheet that stopped writing the fit at all', () => {
   assert.match(unheldOnClose([['fixture.css', '.ui-dropdown { position: relative; }']]), /no rule writes/);
+});
+
+/* The add control's menu, #496. Its width is the cascade's, so the cascade is what
+ * is asserted — a rule outranking the one below takes the width away in silence. */
+test("the cascade leaves the add menu a panel's width, bounded by its row", () => {
+  assert.equal(addMenuWidth(sheets), null);
+});
+
+test('the resolver reads the chain the menu hangs in, and refuses one it does not', () => {
+  // Without this the check could match nothing and report green.
+  assert.equal(matchesChain('.ui-filter-bar .ui-dropdown.open .ui-dropdown__panel'), true);
+  assert.equal(matchesChain(`${BAR} ${ADD} .ui-dropdown.open ${PANEL}`), true);
+  assert.equal(matchesChain(`${PANEL}--search`), true);
+  assert.equal(matchesChain(`${BAR}__chip ${PANEL}`), false, 'a chip is not in the add menu\'s chain');
+  assert.equal(matchesChain(`${ADD} .ui-dropdown`), false, 'the last compound has to land on the panel');
+  assert.equal(matchesChain(`${BAR} > ${PANEL}`), false, 'a child combinator is not walked');
+  const win = winning(sheets, 'min-width');
+  assert.ok(win && win.rank >= 4, `the winning min-width is ${win && win.selector}`);
+});
+
+test('the check refuses a later rule that takes the width away', () => {
+  // The review's case: a rule nobody names outranks the add menu's own and the
+  // reader of named declarations stays green while the menu is a chip's width.
+  const squeezed = [
+    ['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: min(var(--ui-filter-panel-floor, 240px), var(--ui-filter-panel-room, 100%)); max-width: var(--ui-filter-panel-room, 100%); }`],
+    ['fixture-ask.css', `${BAR} ${ADD} ${PANEL} { --ui-filter-panel-ask: 320px; }`],
+    ['fixture-later.css', `${BAR} ${ADD} .ui-dropdown.open ${PANEL}${PANEL}--search { min-width: 100%; max-width: 100%; }`],
+  ];
+  assert.match(addMenuWidth(squeezed), /does not read the floor the fit resolved/);
+});
+
+test('the check refuses a floor the room does not cap, a menu nothing holds, and one that asks for nothing', () => {
+  const uncapped = [
+    ['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: var(--ui-filter-panel-floor, 240px); max-width: var(--ui-filter-panel-room, 100%); }`],
+  ];
+  assert.match(addMenuWidth(uncapped), /nothing caps at the room/);
+  const unheld = [
+    ['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: min(var(--ui-filter-panel-floor, 240px), 100%); max-width: none; }`],
+  ];
+  assert.match(addMenuWidth(unheld), /does not hold it inside the room/);
+  const silent = [
+    ['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: min(var(--ui-filter-panel-floor, 240px), var(--ui-filter-panel-room, 100%)); max-width: var(--ui-filter-panel-room, 100%); }`],
+  ];
+  assert.match(addMenuWidth(silent), /declares no --ui-filter-panel-ask/);
+  const small = [...silent, ['fixture-ask.css', `${BAR} ${ADD} ${PANEL} { --ui-filter-panel-ask: 240px; }`]];
+  assert.match(addMenuWidth(small), /no more than the kit's 240px menu floor/);
+  assert.match(addMenuWidth([['fixture.css', `${BAR} ${PANEL} { max-width: 100%; }`]]), /nothing in src\/styles\/ floors/);
+});
+
+test('the check refuses a tie between two sheets, where bundle order would decide', () => {
+  const tied = [
+    ['fixture-a.css', `${BAR} ${ADD} .ui-dropdown.open ${PANEL} { min-width: min(var(--ui-filter-panel-floor, 240px), var(--ui-filter-panel-room, 100%)); max-width: var(--ui-filter-panel-room, 100%); }`],
+    ['fixture-b.css', `${BAR} ${ADD} .ui-dropdown.open ${PANEL} { min-width: min(320px, var(--ui-filter-panel-room, 100%)); }`],
+  ];
+  assert.match(addMenuWidth(tied), /two rules tie on the add menu's min-width/);
+});
+
+test('the check accepts the shape the add menu is actually written with', () => {
+  const good = [
+    ['fixture-row.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: min(var(--ui-filter-panel-floor, 240px), var(--ui-filter-panel-room, 100%)); max-width: var(--ui-filter-panel-room, 100%); }`],
+    ['fixture-add.css', `${BAR} ${ADD} ${PANEL} { --ui-filter-panel-ask: var(--panel-sm); }`],
+  ];
+  assert.equal(addMenuWidth(good), null);
 });

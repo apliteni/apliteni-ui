@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.77.0', date: '2026-10-02',
+    changes: [
+      ['added', 'React FilterBar draws the way to add a filter: `add` and `onAdd` put a menu on the chips’ line, after the chips, with one section per filter the bar is not already carrying and a search field once those sections hold ten values between them. A pick asks the consumer for that filter and leaves focus on the chip it appends, and Escape closes the menu without adding. The menu opens at its own trigger like every filter menu, and asks for a panel’s width rather than the menu floor a chip’s values take — it says so on its own panel as `--ui-filter-panel-ask`, and the row measures the room and the slide against that number. The control takes the chip’s corner and the row’s height, on the line and on a line of its own. A menu left open while the viewport changes is re-fitted to the row it is now in, in both halves, so the catalogue’s 320px ask cannot stand outside a phone’s row. The vanilla factory is unchanged and a vanilla page still draws its own control. See #496.', ['React FilterBar']],
+    ],
+  },
+  {
     v: '0.76.0', date: '2026-10-02',
     changes: [
       ['added', 'filterPanelFit() and DD_MENU_FLOOR are published, so a second implementation of the dropdown asks the kit where a filter chip’s menu may sit instead of measuring its own. The floor argument sets the width the menu reaches.', ['Dropdown', 'FilterBar']],
@@ -996,6 +1002,7 @@ const COMPONENTS = {
   Callout:   'components-callout-toast--callouts',
   Confirm:   'components-confirm--playground',
   'React Confirm': 'react-confirm--danger',
+  'React FilterBar': 'react-filterbar--adding',
   CommandPalette: 'components-command-palette--playground',
   Drawer:    'components-drawer--playground',
   Inputs:    'components-inputs--text-fields',

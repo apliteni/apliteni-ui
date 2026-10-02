@@ -605,7 +605,7 @@
     {
       "file": "react/src/FilterBar.test.tsx",
       "name": "React: FilterBar",
-      "does": "Checks controlled filter changes, disabled controls, keyboard selection, focus after removal, that a chip prints its value alone while its name carries the field and its empty state, and that a valueless chip is marked for the placeholder ink.",
+      "does": "Checks controlled filter changes, disabled controls, keyboard selection, focus after removal, that a chip prints its value alone while its name carries the field and its empty state, that a valueless chip is marked for the placeholder ink, and the add menu's sections, search field, Escape and focus on the added chip.",
       "blind": [
         "JSDOM does not measure browser focus styling, layout, or contrast."
       ]

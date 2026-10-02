@@ -1929,6 +1929,23 @@ description is as unbreakable. Every other option row stays 38.3px, and the pane
 width — 113.3px — at every viewport. Without the hint the same page is 473px wide on a 390px view
 and on a 375px one, 83px and 98px over.
 
+**A menu may ask for a wider floor than a chip's, and the row measures against that.** The React
+bar's add control (see below) carries the screen's catalogue — sections of values with a search
+field over them — rather than one chip's options, and the kit's 240px floor leaves its search
+field reading "Searc". Such a panel declares `--ui-filter-panel-ask` in the sheet, which is also what
+makes a menu outside a chip a subject of the fit at all; the fit reads it off the panel when no floor
+is passed, so the room and the slide are the ones that floor needs. The add menu is `--panel-sm` wide
+where its row has the room, its row's width where it does not, and it opens at its own trigger like
+every other menu in the row. The ask and the resolved
+floor are two names because the fit writes the second one back for the sheet to read; one name
+would make a menu that opened once in a narrow row keep that width in a wide one. Nothing about the promise above changes — the
+floor a panel asks for is still capped by the room its row measured, which is what keeps it inside
+the row. Held by `stories/filter-bar-fit.test.js`, which resolves the cascade over the menu rather
+than reading one rule's name, by `src/components/filter-panel-fit.test.js`, which measures the fit
+against a declared ask, and by `scripts/evidence/filter-bar-fit.mjs`, which takes that ask away and
+requires every case to come back at a chip's width. Decided in
+[#496](https://github.com/apliteni/apliteni-ui/issues/496).
+
 On a phone that is the right trade: nothing is hidden and nothing is clipped. On a wide screen the
 same column fragments with the screen empty beside it, because the rule binds the panel to the
 chip's width and not to the room the viewport left. Reading the available room is the measurement
@@ -2023,9 +2040,18 @@ the slide is measured from the trigger's offset along the row. A control that ta
 of the positioning chain — `position: static` on `.ui-dropdown`, so the panel resolves against a
 `position: relative` row — is already bounded by that row, and sliding it by a chip's offset takes it
 outside. Both halves are therefore scoped to `.ui-filter-bar__chip`: the rule does not match such a
-panel and `filterPanelFit()` returns `null` for it. A row-anchored panel owns its width, sets its own
+panel, and `filterPanelFit()` returns `null` for it. A row-anchored panel owns its width, sets its own
 `min-width` and `max-width`, and must not read `--ui-filter-panel-room`, `--ui-filter-panel-shift` or
 `--ui-filter-panel-floor`.
+
+What the scope is standing in for is where a panel is anchored, and a chip is not the only thing a
+panel can hang from. A menu anchored at its own trigger — the add control's, which leaves the
+positioning chain alone — takes the same arithmetic by asking for a width, as the paragraph above
+describes: `filterPanelFit()` is a subject question, not a class one, and a panel that declares
+`--ui-filter-panel-ask` answers it. Such a menu writes its own copy of the open rule, because the
+chip's does not match it, and React clears the search panel's held width on close the way
+`closeDropdown()` does for the vanilla wiring — the same inline `min-width` residue, on the face
+that renders the menu this paragraph is about.
 
 The chip's own width is a separate question this rule does not reach. `.ui-dropdown__trigger` is an
 `inline-flex` without `min-width: 0`, and `.ui-dropdown__value` carries no wrap hint, so a chip
@@ -2618,9 +2644,24 @@ reader can read, not with a row's code. Decided in
 control; after removal focus moves to the next chip, then the previous, then the bar when no
 filter remains. Busy and disabled bars stop their native controls. Dropdown owns opening,
 keyboard selection, Escape and focus return. A chip's panel stays inside the row that holds it at
-every viewport, which is what bounds its width — see A filter row holds its panels. Segmented
-controls support an underline appearance for switching columns over one dataset; arrow keys, Home
-and End skip disabled choices.
+every viewport, which is what bounds its width — see A filter row holds its panels.
+
+**A React bar given `add` and `onAdd` draws its own way to add one.** The control sits on the
+chips' line, after them and before clear-all, so Tab reaches it where it is drawn. Its menu holds
+one section per filter the bar is not already carrying — so no pick can put a second chip under
+one id — and takes a search field at ten values, the count Guidelines / Component choice sets for
+any list. It opens at its own trigger, and asks for a panel's width rather than the menu floor a
+chip's values take — the one panel in a row that does, because it carries the screen's catalogue
+and not one chip's options. A pick asks the consumer for that filter and nothing else, and a consumer
+that answers in the same update lands focus on the new chip; a consumer that answers later owns
+where focus goes. Escape closes the menu and adds nothing, and the control is drawn only while
+something is left to add. The control stands at a chip's height and takes a chip's corner, on the
+line and on a line of its own. The vanilla `filterBar()` factory has no `add` — it takes no new
+options under [#429](https://github.com/apliteni/apliteni-ui/issues/429) — so a vanilla page draws
+its own control. Decided in [#496](https://github.com/apliteni/apliteni-ui/issues/496).
+
+Segmented controls support an underline appearance for switching columns over one dataset; arrow
+keys, Home and End skip disabled choices.
 
 ## Vanilla HTML boundaries
 
