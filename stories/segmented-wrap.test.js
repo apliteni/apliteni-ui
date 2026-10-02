@@ -1,12 +1,13 @@
-/* Rule: an underline segmented strip fits its column. Every tab is drawn inside
- * the strip's own box, so the strip wraps rather than put one past its right
- * edge, and it is never a scroll box. #527
+/* Rule: an underline segmented strip fits its column — every tab inside the
+ * strip's box, no tab too wide for it, no page scrolled sideways, no scroll
+ * box. src/styles/segmented.test.js reads the declarations; this is what they
+ * draw. #527
  *
- * src/styles/segmented.test.js holds the declarations as source text and cannot
- * see clipping a parent reintroduces; this is the rendered outcome. Subjects
- * are discovered from the story sweep, never listed. Opt-in on a browser the
- * way stories/tap-zone.test.js is, for the same reason: CI runs nothing here
- * and the builder reports the numbers. why: scripts/evidence/README.md
+ * Subjects come from the story sweep, with two fixtures for the long labels no
+ * story carries. Limits: the sweep reads stories/ only, so no React strip is
+ * measured, and every discovered subject's labels are short — the fixtures are
+ * what answer that. Opt-in on a browser as stories/tap-zone.test.js is, for the
+ * same reason: CI runs nothing here. why: scripts/evidence/README.md
  *
  *   UI_PLAYWRIGHT=… SEG_WRAP=1 node --test stories/segmented-wrap.test.js
  */
@@ -43,6 +44,13 @@ const PROBE = (html) => {
       // The padding box is what a scroll box would clip against.
       past: +(seg.scrollWidth - seg.clientWidth).toFixed(2),
       overflowX: cs.overflowX,
+      // Drawn inside the box is not the same question as able to fit in it.
+      // `flex-wrap` moves whole items and cannot narrow one that is already too
+      // wide, so a tab wider than the content box is the one that spills. #527
+      widest: +Math.max(...tabs.map((t) => t.right - t.left)).toFixed(1),
+      inner: +(box.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)).toFixed(1),
+      pageScrollWidth: document.documentElement.scrollWidth,
+      viewport: window.innerWidth,
       rows: new Set(tabs.map((t) => t.top)).size,
       tabs,
       // A tab drawn outside the strip is the defect #527 reported.
@@ -73,6 +81,36 @@ async function strips(browser, { subjects, css, width, extra = '' }) {
   }
 }
 
+/**
+ * The two labels no showcase carries, built with the kit's own factory.
+ *
+ * Every discovered subject names a view in one or two short words, so the sweep
+ * alone is green against a tab that cannot fit its column at all — which is the
+ * defect `white-space: nowrap` left behind once the scroll box went. One fixture
+ * is ordinary prose and the other a single unbreakable word, because they fail
+ * differently: prose narrows on `white-space: normal` alone, and the word needs
+ * `overflow-wrap: anywhere` to lower the tab's min-content width.
+ */
+async function longLabelFixtures() {
+  const { segmented } = await import('../src/components/index.js');
+  return [
+    {
+      id: 'fixture:long prose label',
+      html: segmented({
+        options: ['Revenue', 'Operating expenditure by region and segment, year to date', 'Cash'],
+        appearance: 'underline', ariaLabel: 'Views',
+      }),
+    },
+    {
+      id: 'fixture:unbreakable label',
+      html: segmented({
+        options: ['Revenue', 'Operatingexpenditurebyregionandsegmentyeartodate', 'Cash'],
+        appearance: 'underline', ariaLabel: 'Views',
+      }),
+    },
+  ];
+}
+
 test('measured: an underline strip keeps every tab inside its own box', { skip: !RUN && 'set SEG_WRAP=1' }, async (t) => {
   const { storySubjects, kitStylesheet, playwright } = await import('./lib/tap-zone.js');
   const pw = await playwright();
@@ -85,12 +123,15 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
 
   const { subjects: stories, problems } = await storySubjects();
   assert.deepEqual(problems, [], 'a story that will not render is a failure here, not a silence');
-  const subjects = stories.filter((s) => s.html.includes('ui-seg--underline'));
+  const found = stories.filter((s) => s.html.includes('ui-seg--underline'));
   assert.ok(
-    subjects.length >= 2,
-    `${subjects.length} stories render an underline strip. The sweep is the coverage: a filter `
+    found.length >= 2,
+    `${found.length} stories render an underline strip. The sweep is the coverage: a filter `
     + 'that stopped matching would pass while measuring nothing.',
   );
+  const fixtures = await longLabelFixtures();
+  assert.equal(fixtures.length, 2, 'both long-label fixtures have to be measured, not one');
+  const subjects = [...found, ...fixtures];
 
   const css = kitStylesheet();
   const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
@@ -116,10 +157,20 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
           `${s.story}: the strip's content is ${s.past}px wider than its box. Whether that `
           + 'scrolls or spills, a tab is out of sight at rest.',
         );
+        assert.ok(
+          s.widest <= s.inner + 0.5,
+          `${s.story}: a tab is ${s.widest}px wide in a ${s.inner}px column. Wrapping moves whole `
+          + 'tabs and cannot narrow one, so this tab is drawn past the strip whatever the strip does.',
+        );
+        assert.ok(
+          s.pageScrollWidth <= s.viewport,
+          `${s.story}: the page scrolls sideways — scrollWidth ${s.pageScrollWidth} against a `
+          + `${s.viewport}px viewport. A strip that spills drags every sibling with it. #435`,
+        );
         assert.equal(
           s.overflowX, 'visible',
-          `${s.story}: the strip is a scroll box. Chrome makes one a keyboard stop with the `
-          + "browser's own outline, which #457 refused, and it clips the focus ring's glow.",
+          `${s.story}: the strip is a scroll box, so it clips the focus ring's glow against `
+          + 'its own 4px padding and hides at rest whatever does not fit.',
         );
       }
     }
@@ -178,6 +229,24 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
       + 'check above measures nothing.',
     );
     t.diagnostic(`mutation to a 4px row gap fails ${ambiguous.length} of ${tight.filter((s) => s.rows > 1 && s.rail).length} wrapped strips`);
+
+    // --- the third mutation. `white-space: nowrap` on the tab, which is what the
+    // sheet carried while the scroll box contained it. Without the box it draws a
+    // long tab past the viewport, and only the fixtures have a label long enough
+    // to show it — which is why they are here.
+    for (const [name, extra] of [
+      ['nowrap', '.ui-seg--underline button{white-space:nowrap!important}'],
+      ['nowrap, narrow', '.ui-seg--underline button{white-space:normal!important;overflow-wrap:break-word!important}'],
+    ]) {
+      const spilt = await strips(browser, { subjects, css, width: 320, extra });
+      const over = spilt.filter((s) => s.widest > s.inner + 0.5 || s.pageScrollWidth > s.viewport);
+      assert.ok(
+        over.length,
+        `putting ${name} back left every tab inside its column at 320. The containment checks `
+        + 'above measure nothing, or no subject has a label long enough to show it.',
+      );
+      t.diagnostic(`mutation to ${name} fails ${over.length} of ${spilt.length} strips at 320`);
+    }
   } finally {
     await browser.close();
   }

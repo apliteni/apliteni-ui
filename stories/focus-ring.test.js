@@ -378,10 +378,11 @@ test('focus walk: losing a ring to source order turns the cascade test red', () 
 // excused: the list is asserted exactly, so one of them gaining a ring, or a
 // seventh box appearing, fails here.
 //
-// `.ui-seg--underline` left on #527. It was a scroll box only because the strip
-// kept one row and scrolled; it wraps now, so Chrome no longer makes it a stop
-// and there is no bare box left to triage. That is a gap closed by removal, not
-// by a ring, and the tab inside it painted the kit's ring all along.
+// `.ui-seg--underline` left on #527: it wraps now and declares no overflow, so
+// the reader no longer discovers it and there is no box left to triage. It was
+// never a stop in the first place — Chrome gives a scroll container one only
+// when it has no focusable children, and this strip always holds its roving
+// tab stop — so what it leaves behind is a list entry, not a defect.
 const SCROLL_GAP = [
   '.ui-card:has(> .ui-table)',
   '.ui-dropdown__list',
