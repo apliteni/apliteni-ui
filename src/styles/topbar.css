@@ -210,14 +210,14 @@
 }
 .vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 .vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
-/* The switcher keeps its glyph and drops its label where the shell folds — the
-   same step the rail folds at: docs/specification.md#breakpoints. */
-/* Below the phone step the band is as wide as the page, so a menu hanging
-   rightwards from the switcher runs off it — and a CLOSED menu is still laid
-   out, so it scrolled the page sideways with nothing visible to explain it.
-   It hangs the other way instead, which is what `.amenu` beside it has always
-   done. The switcher's label goes at the same step; the version itself stays.
-   The band's own controls still want more width than a 320px page has: #558.
+/* The phone step — the same one the rail folds at: docs/specification.md#breakpoints.
+   The switcher keeps its glyph and drops its label.
+   The menu hangs the other way here. Anchored by its left edge it opened
+   rightwards off a band that is as wide as the page, and a CLOSED menu is still
+   laid out, so it scrolled the page sideways with nothing visible to explain it.
+   `.amenu` beside it has always been anchored right. On a 320px viewport the
+   page's scroll width was 527px and is 397px; the band's own controls still want
+   more room than that page has, which is #558.
    why: guidelines/layout-and-density.md#use-the-three-breakpoints
    held by: stories/overlay-css.test.js */
 @media (max-width: 720px) {
