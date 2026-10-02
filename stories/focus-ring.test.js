@@ -29,7 +29,7 @@
 //    none of them, although Chrome makes it a keyboard stop. Scroll containers
 //    are covered separately, by the `scrollingSelectors` triage below, which
 //    discovers them from the sheets and holds which carry the ring and which do
-//    not. The eight without one are tracked on #531.
+//    not. The seven without one are tracked on #531.
 //  - A roving row the kit focuses with a key rather than Tab is judged only if
 //    its role is in ROVING_ROLES. That list is what the kit uses today; a row
 //    given some other role would drop out of the walk unseen. #487's re-review
@@ -371,12 +371,12 @@ test('focus walk: losing a ring to source order turns the cascade test red', () 
 // walk entirely. The boxes are discovered from the sheets, so a new overflowing
 // one has to be triaged here rather than appearing unseen.
 //
-// NOT A DECISION THIS GATE MAKES. Whether the eight below should paint the ring
+// NOT A DECISION THIS GATE MAKES. Whether the seven below should paint the ring
 // is Artur's call on #531; several sit inside a region that already takes focus,
 // and the ring on a scrolling table wrapper or the application rail is a visible
 // change on surfaces #482 never named. They are recorded as a measured gap, not
-// excused: the list is asserted exactly, so one of them gaining a ring, or a
-// ninth box appearing, fails here.
+// excused: the list is asserted exactly, so one of them gaining a ring, or an
+// eighth box appearing, fails here.
 const SCROLL_GAP = [
   '.ui-card:has(> .ui-table)',
   '.ui-seg--underline',
@@ -384,8 +384,26 @@ const SCROLL_GAP = [
   '.ui-drawer__body',
   '.ui-confirm__body',
   '.ui-cmdk__list',
-  '.ui-snippet pre',
   '.ui-app__rail',
+];
+
+/**
+ * The scrolling boxes that carry the ring, each with the reason it does.
+ *
+ * `.ui-snippet pre` joined them on #474. A shell command overflows it, so Chrome
+ * makes it a keyboard stop, and it used to answer with the browser's own outline
+ * — black in light mode, which #457 refused. One nuance this reader cannot show:
+ * the rule it finds, `.ui-snippet :focus-visible` in base.css, is the one that
+ * suppresses the native outline, but the ring is painted on the CARD, by
+ * `.ui-snippet:has(pre:focus-visible)` in code.css. A ring on the `pre` itself
+ * drew a hard square — the box is flush with its card on three sides and has no
+ * radius of its own — so it overhung the rounded corners and cut a line across
+ * the card. One indicator either way; the box it is painted on is the card.
+ */
+const SCROLL_RINGED = [
+  '.ui-dropdown__panel.is-scroll',
+  '.ui-table-scroll',
+  '.ui-snippet pre',
 ];
 
 test('focus walk: every box the kit makes scrollable is triaged', () => {
@@ -400,28 +418,44 @@ test('focus walk: every box the kit makes scrollable is triaged', () => {
         || selector.startsWith(`${rule.subject} `)));
     (reached ? ringed : bare).push(selector);
   }
-  assert.deepEqual(ringed, ['.ui-dropdown__panel.is-scroll', '.ui-table-scroll'],
+  assert.deepEqual(ringed, SCROLL_RINGED,
     'a scrolling box gained or lost the ring — move it between the lists and say why');
   assert.deepEqual(bare, SCROLL_GAP,
     'the set of scrolling boxes without the ring moved; triage each change on #531');
 });
 
-// Prove the triage rejects: take the ring off the panel this PR gave one to, and
-// the scrolling box has to fall into the bare list.
-test('focus walk: a scrolling box losing its ring is caught', () => {
-  const panel = KIT.find(({ file }) => file === 'src/styles/dropdown.css');
-  assert.ok(panel, 'src/styles/dropdown.css is not in the kit sheet list any more');
-  const rule = kitRules.find((r) => r.selector === '.ui-dropdown__panel:focus-visible');
-  assert.ok(rule, 'the dropdown panel has no focus rule to take out');
-  const mutated = KIT.map((sheet) => (sheet === panel
-    ? { ...sheet, css: sheetText(sheet.css).split(rule.raw).join('') }
-    : sheet));
-  const rules = mutated.flatMap(({ file, css }) => focusRules(css, file));
-  const stillRinged = scrollingSelectors(mutated).filter((selector) => rules.some((r) => r.paints.ring
+/** The scrolling boxes a set of sheets rings, read the way the triage reads it. */
+const ringedIn = (sheets) => {
+  const rules = sheets.flatMap(({ file, css }) => focusRules(css, file));
+  return scrollingSelectors(sheets).filter((selector) => rules.some((r) => r.paints.ring
     && (selector === r.subject || selector.startsWith(`${r.subject}.`)
       || selector.startsWith(`${r.subject} `))));
-  assert.deepEqual(stillRinged, ['.ui-table-scroll'],
-    'the panel kept a ring after its only focus rule was deleted');
+};
+
+// Prove the triage rejects, box by box rather than once. Each ringed box has the
+// rule that reaches it taken back out of its own sheet, and has to fall into the
+// bare list on its own. Mutating only one of them would leave the others agreeing
+// with the tree: before #474 this test deleted the dropdown's rule and asserted
+// the remainder, which said nothing about whether a second ringed box could be
+// caught at all.
+test('focus walk: a scrolling box losing its ring is caught', () => {
+  assert.deepEqual(ringedIn(KIT), SCROLL_RINGED, 'the ringed list moved out from under this test');
+  for (const selector of SCROLL_RINGED) {
+    const rule = kitRules.find((r) => r.paints.ring
+      && (selector === r.subject || selector.startsWith(`${r.subject}.`)
+        || selector.startsWith(`${r.subject} `)));
+    assert.ok(rule, `${selector} has no ring rule to take out`);
+    const sheet = KIT.find(({ file }) => file === rule.origin);
+    assert.ok(sheet, `${rule.origin} is not in the kit sheet list any more`);
+    const mutated = KIT.map((one) => (one === sheet
+      ? { ...one, css: sheetText(one.css).split(rule.raw).join('') }
+      : one));
+    assert.deepEqual(
+      ringedIn(mutated),
+      SCROLL_RINGED.filter((other) => other !== selector),
+      `${selector} kept a ring after ${rule.origin}'s ${rule.selector} was deleted`,
+    );
+  }
 });
 
 // #482's third criterion. A swatch carries no text and no glyph, so its name is

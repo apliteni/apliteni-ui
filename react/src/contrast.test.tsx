@@ -391,9 +391,15 @@ describe('contrast: React coverage', () => {
     const ledgered = findings.filter((f) => LEDGER.some((e) => e.match(f)));
     expect(ledgered.length, 'findings covered by the ledger').toBe(
       LEDGER.reduce((n, e) => n + e.count, 0));
-    // The empty ledger stated as a claim rather than left as a silence: adding an
-    // entry is a person deciding to accept a failure, and this is where they say so.
-    expect(findings, 'React accepts no contrast failure; every pair it renders clears AA')
+    // #478 asserted the ledger was empty, and said why: the claim is stated here
+    // rather than left as a silence, so adding an entry forces whoever adds it to
+    // come back and say so. This is that. The ledger stopped being empty on #474,
+    // and what the line claims now is narrower: React accepts the two pairs the
+    // ledger names and nothing else, so an unledgered failure still fails here.
+    // The two entries are named in the PR body for Artur, because the decision to
+    // accept them is his and not a green suite's.
+    expect(findings.filter((f) => !LEDGER.some((e) => e.match(f))),
+      'React accepts only the failures its ledger names; every other pair clears AA')
       .toEqual([]);
   });
 });

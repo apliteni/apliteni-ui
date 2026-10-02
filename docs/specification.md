@@ -839,11 +839,13 @@ loses.
 
 **A box that scrolls is a control.** A browser gives a scroll container a keyboard stop
 of its own, with no `tabindex` and no author rule, so an overflowing box needs the ring
-as much as a button does. The kit's scrolling table wrapper and dropdown panel carry it.
-The gate discovers every box the kit makes scrollable and holds the list, so a new one is
-triaged rather than shipping with the browser's outline; the boxes still without a ring
-are named in that list and tracked on
-[#531](https://github.com/apliteni/apliteni-ui/issues/531).
+as much as a button does. The kit's scrolling table wrapper, dropdown panel and snippet
+code region carry it; the code region's ring is painted on the card around it, because
+the `pre` is flush with that card on three sides and has no radius of its own, so a ring
+drawn on the box itself overhung the rounded corners. The gate discovers every box the
+kit makes scrollable and holds the list, so a new one is triaged rather than shipping
+with the browser's outline; the boxes still without a ring are named in that list and
+tracked on [#531](https://github.com/apliteni/apliteni-ui/issues/531).
 
 The solid band's unchanged colour is still held at 4.22:1 against the story-derived
 flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel
