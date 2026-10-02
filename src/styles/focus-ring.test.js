@@ -13,7 +13,11 @@ import { fileURLToPath } from 'node:url';
 // ledger; whether :focus-visible matches in a real browser is the browser's, and
 // the showcase captures carry that evidence. Controls the shell composes from
 // other components (Dropdown, Button) carry their own classes and are covered
-// where those components are measured.
+// where those components are measured. Discovery reads literal class strings
+// only, so a control whose className is a template literal — the bar's More
+// button, and every row links() writes — is invisible here and is measured in
+// the browser instead. The count below is therefore a floor on what the shell
+// writes, not a census of it.
 const here = path.dirname(fileURLToPath(import.meta.url));
 const SHELL = readFileSync(path.join(here, '../../react/src/AppShell.tsx'), 'utf8');
 const SHEETS = ['base.css', 'layout.css', 'topbar.css', 'nav.css', 'button.css']
@@ -35,7 +39,7 @@ const covered = (selectors, control) => control.classes
 
 test('every link and button the shell writes takes the kit ring', () => {
   const controls = shellControls();
-  assert.equal(controls.length, 4, 'every shell control must be measured');
+  assert.equal(controls.length, 4, 'every shell control with a literal class list must be measured');
   const bare = controls.filter((control) => !covered(ringSelectors(SHEETS), control))
     .map((control) => control.classes.join(' '));
   assert.deepEqual(bare, [], `these shell controls fall back to the native outline: ${bare}`);

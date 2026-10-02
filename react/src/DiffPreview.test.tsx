@@ -98,18 +98,20 @@ it('emphasizes recovery and gives the inserted content a kit entrance', () => {
   expect(container.querySelector('.ui-stack')).toHaveClass('m-fade-in');
 });
 
-// The kit's DataTable owns the scroll region and its own overflow tests; this
-// only proves the showcase adds no controls of its own beside it, and that one
-// section leaves the phone's bottom bar unrendered.
-it('scrolls its columns in the kit region, with no pager and no one-row bottom bar', () => {
+// The kit's DataTable owns the scroll region and its own overflow tests, and the
+// kit's AppShell owns the one-section rule; this only proves the showcase adds no
+// controls of its own beside either.
+it('scrolls its columns in the kit region, with no pager and no navigation to one place', () => {
   const { container } = mount();
   const region = screen.getByRole('region', { name: 'Cost changes' });
   for (const name of ['Previous columns', 'More columns']) {
     expect(screen.queryByRole('button', { name })).toBeNull();
   }
   expect(screen.queryByRole('group', { name: 'Cost changes columns' })).toBeNull();
+  for (const name of ['Sections', 'Sections on mobile']) {
+    expect(screen.queryByRole('navigation', { name })).toBeNull();
+  }
   expect(container.querySelector('.ui-react-app__bottom')).toBeNull();
-  expect(screen.queryByRole('navigation', { name: 'Sections on mobile' })).toBeNull();
   expect(region.closest('.ui-card')).not.toBeNull();
   expect(container.querySelectorAll('thead th')).toHaveLength(5);
   expect(container.querySelector('thead [aria-hidden]')).toBeNull();

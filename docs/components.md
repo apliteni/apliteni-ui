@@ -398,7 +398,10 @@ The table is markup. A named scroll region contains a native `<table>`, and you 
 recipes as classes. Zebra adds no grey stripes. Hover marks the row edge without tinting the
 data surface. `compact` sets a 33px minimum row, but larger or wrapped content makes the row
 taller. **Columns scroll rather than disappear**, while sticky headers and pinned identity cells
-keep opaque backgrounds, the shared focus composition, and their full accessible names. **A link
+keep opaque backgrounds, the shared focus composition, and their full accessible names. **The
+region shows a soft shade on whichever edge still has columns behind it, and none on an edge
+that has been reached** — darker on a light ground, lighter on a dark one. It is CSS alone, so
+vanilla and React tables carry it alike, and it never reaches the focus ring. **A link
 inside a cell uses the row's ink, gets an underline on hover, and uses the shared ring on
 `:focus-visible`**. The ring surrounds the whole link, including a title-cell link that wraps.
 `numericValue` distinguishes missing from zero. `deltaValue` prints your sign and uses your
