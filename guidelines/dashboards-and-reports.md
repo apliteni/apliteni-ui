@@ -48,7 +48,7 @@
 
 **Why:** Analysis needs the rows themselves, because a summary of them cannot say how much.
 
-**Do:** The payout ledger in full, down to the fees and net on every row.
+**Do:** The payout ledger itself, down to the fees and net on every row.
 
 **Don't:** The same ledger reduced to three figures, so the amounts a reader came for are gone.
 

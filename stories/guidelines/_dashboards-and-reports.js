@@ -47,11 +47,12 @@ const FIGURES = [
 ];
 const cashflow = (id) => statBand({ id, basis: BASIS, stats: FIGURES });
 
-// Reference, fees, net, status — four columns, because a five-column ledger is
-// 453px and a specimen card holds 426. The gross each row came from is kept
-// here because the Finance report prints it in a column this cell has no room
-// for, and its net has to agree with this one.
-const LEDGER = [
+// Reference, fees, net, status. A fifth column does not fit a specimen cell,
+// so the gross stays here undrawn: it is what makes each net checkable, and
+// the Finance report prints it in a column this cell has no room for.
+// stories/dashboard-report-refs.test.js reads it from this export and holds it
+// against the report's, so the agreement is measured rather than asserted.
+export const LEDGER = [
   ['PO-1162', '14,942.27', '489.44', '14,452.83', 'success', 'Paid'],
   ['PO-1163', '14,490.70', '574.19', '13,916.51', 'success', 'Paid'],
   ['PO-1164', '14,566.66', '483.97', '14,082.69', 'pending', 'In transit'],
@@ -151,7 +152,7 @@ export const RULES = withSpecimens(content.rules, [
   },
   {
     id: 'report-depth',
-    doHtml: () => stage(card({ title: 'Payouts', sub: 'Every payout this year.', body: ledgerTable() })),
+    doHtml: () => stage(card({ title: 'Payouts', sub: 'Stripe payouts and their bank reconciliation.', body: ledgerTable() })),
     dontHtml: () => stage(statBand({
       id: 'gd-depth-dont',
       basis: 'The year so far',

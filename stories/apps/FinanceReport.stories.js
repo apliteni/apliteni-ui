@@ -90,7 +90,7 @@ export const Default = {
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
-    sub: 'Every payout this year, down to its fees and its net.',
+    sub: 'The payout ledger, down to its fees and its net.',
     body: `
       ${controls()}
       ${kpiStrip()}
@@ -118,7 +118,7 @@ export const Loading = {
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
-    sub: 'Every payout this year, down to its fees and its net.',
+    sub: 'The payout ledger, down to its fees and its net.',
     body: `
       ${controls()}
       <div class="ui-stats ui-stats--tiles">${busyRegion({
@@ -128,7 +128,7 @@ export const Loading = {
         </div>`).join('')}</div>`,
       })}</div>
       ${card({ title: `<span class="ui-card__icon">${icon('card')}</span> Payouts`, sub: 'Stripe payouts and their bank reconciliation.',
-        body: busyRegion({ label: 'Loading payouts…', body: skeletonTable({ rows: 6, cols: 7 }) }) })}
+        body: busyRegion({ label: 'Loading payouts…', body: skeletonTable({ rows: PAYOUTS.length, cols: 7 }) }) })}
     `,
   }),
 };
