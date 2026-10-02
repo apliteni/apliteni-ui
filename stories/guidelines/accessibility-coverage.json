@@ -667,6 +667,14 @@
         "Collisions are compared as a set of pairs rather than as coordinates, because opening a row’s gap moves the controls in it. A pair that merely moves to a different pixel of the same two controls is not reported.",
         "Two controls whose drawn boxes already overlap are left out, so a layout defect that predates the zone is not reported as one the zone caused."
       ]
+    },
+    {
+      "file": "stories/row-height.test.js",
+      "name": "File drop row height",
+      "does": "Reads the sheet for the row's height floor and the facts group's refusal to wrap, and under ROW_HEIGHTS=1 measures every file drop row in a browser at 1280, 390 and 320 — the vanilla guideline specimens and the React component's own built markup — so that a row whose content fits on one line is the same height in every state and the facts never take a second line.",
+      "blind": [
+        "The browser half is off unless ROW_HEIGHTS=1 and a Playwright is resolvable, so CI runs the source half alone and the measurement is reported by hand in the pull request, as the tap-zone gate's is. It measures heights and line counts, not colour, the focus ring, or whether a truncated word can still be read."
+      ]
     }
   ],
   "UNGATED": [

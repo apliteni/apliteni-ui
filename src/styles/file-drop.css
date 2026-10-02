@@ -23,6 +23,9 @@
 /* Never wraps: a second tier would stack text in one block, so the words
    truncate instead. One step between groups, the step below it inside one. */
 .ui-drop__file { display: flex; flex: 1 1 auto; flex-wrap: nowrap; align-items: center; gap: var(--space-3); min-width: 0; }
+/* What the page has a rule about, held on one line of its own so the words
+   truncate rather than stacking when the actions drop below them. */
+.ui-drop__facts { display: flex; flex: 1 1 auto; flex-wrap: nowrap; align-items: center; gap: var(--space-3); min-width: 0; }
 .ui-drop__size { flex: none; white-space: nowrap; }
 
 /* Closes the line on the edge the content above it ends on, in every state. */
@@ -31,7 +34,7 @@
 
 /* Shrink order is a ratio, not a fraction of one: factors summing below 1 leave
    part of the deficit unabsorbed and the line overflows instead of truncating. */
-.ui-drop__name { flex: 0 100 auto; min-width: var(--space-10); color: var(--strong); font-weight: var(--weight-medium); }
+.ui-drop__name { flex: 0 1000 auto; min-width: var(--space-10); color: var(--strong); font-weight: var(--weight-medium); }
 .ui-drop__word { flex: 0 1 auto; min-width: 0; }
 
 /* A status is a circled mark and a word, because colour alone is not a status. */
@@ -43,7 +46,7 @@
    The ground is the kit's token for sunken tracks; --surface-3 was invisible. */
 .ui-drop__bar {
   display: block; /* so a track outside a flex row still takes its size */
-  flex: 0 1000 var(--space-16);
+  flex: 0 10000 var(--space-16);
   min-width: var(--space-8);
   height: 6px;
   border-radius: var(--radius-pill);
@@ -71,12 +74,12 @@
 .ui-drop.is-disabled .ui-drop__row { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
 .ui-drop.is-disabled .ui-drop__name { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
 
-/* Narrower than the panel the kit draws these in, so the line cannot hold five
-   readable things. The size steps aside: it alone says nothing about what is
-   happening or what to do next. A refused file gives up its name as well — the
-   message is the only part of that row the reader cannot do without, and the
-   name is still in its title. */
+/* Narrower than the panel the kit draws these in, the line cannot hold the words
+   and the buttons at once. The actions take their own line, so everything the
+   page has a rule about — the name, the size, the status and the track — keeps
+   the first one. Controls under text are not a second tier of text. */
 @container (width < 26rem) {
-  .ui-drop__size { display: none; }
-  .ui-drop__file--failed .ui-drop__name { display: none; }
+  .ui-drop__file { flex-wrap: wrap; row-gap: var(--space-2); }
+  .ui-drop__facts { flex-basis: 100%; }
+  .ui-drop__actions { margin-left: 0; }
 }

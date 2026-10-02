@@ -94,6 +94,7 @@ export function FileDrop({
     <div className="ui-drop__row">
       {file
         ? <div className={cx('ui-drop__file', status === 'error' && 'ui-drop__file--failed')}>
+          <span className="ui-drop__facts">
           <span className="ui-drop__name" id={nameId} title={file.name}>{file.name}</span>
           {/* A refused file drops its size: the line has room for the message or
               the size, and only one of them says what to do next. */}
@@ -108,6 +109,7 @@ export function FileDrop({
             aria-valuenow={file.progress} aria-valuemin={0} aria-valuemax={100}>
             <span style={{ width: `${file.progress}%` }} />
           </span>}
+          </span>
           {(onRemove || (status === 'error' && onRetry)) && <span className="ui-drop__actions">
             {status === 'error' && onRetry
               && <Button size="sm" onClick={onRetry} disabled={disabled}>{retryLabel}</Button>}

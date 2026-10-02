@@ -3097,25 +3097,31 @@ announce the change from uploading to uploaded; a consumer that needs that
 announcement owns the live region. `accept` filters the system picker only, and
 the consumer still validates type and size.
 
-The file line never wraps. Name, size, status and actions stay on one line at
-every width, and the file name and the status word truncate with an ellipsis,
-each keeping its full text in a `title`, rather than stacking a second tier of
-text in the same block. The line reads in three groups — identity, status, then
-actions — one spacing step apart, with the step below it inside a group. The
-actions close the line on the edge the content above it ends on, in every state,
-and they are the kit's small buttons, the size the resting row already uses. The
-row declares one height for every state, because the resting button carries a
-glyph and the file line's buttons do not, and a line box alone would step when a
-file arrived. The progress track is one spacing step long and never stretches;
-where a line runs out of room the track gives way first, then the file name,
-then the status.
+The file's name, size and status stay on one line together at every width. They
+never stack into a second tier of text: the name and the status word truncate
+with an ellipsis instead, each keeping its full text in a `title`. The line reads
+in three groups — identity, status, then actions — one spacing step apart, with
+the step below it inside a group. The actions are the kit's small buttons, the
+size the resting row already uses, and while they share the line they close it
+on the edge the content above it ends on; on a line of their own they start on
+the edge the facts start on. The progress track is one spacing step long and
+never stretches; where the line runs out of room the track gives way first, then
+the file name, then the status word.
 
-In a block narrower than a panel the line sheds what it can rather than
-shortening everything on it. The size goes first: it is the only part that says
-nothing about what is happening or what to do next. A refused file also gives up
-its name, so its message stays whole — the message is the part of that row a
-reader cannot act without, and the name is still in its `title`. Narrower than
-about 15rem even that is not enough room, and the message truncates.
+A row carrying a file is 32px wherever its content fits on one line, which is the
+height of a resting row, so the row does not step when a file arrives. Below
+26rem of block width the actions take a line of their own under the facts, and
+the row is 56px there. Nothing is removed to buy that space: the name, the size,
+the status and the track are each named by a rule on the guideline page, and all
+four stay on the first line at every width. A resting row whose note cannot sit
+beside its button wraps the note below it, and is 59px there for the same reason,
+below about 250px of block width.
+
+Narrower still, the words begin to truncate into their `title` rather than
+anything leaving the line. The name truncates first, at a 40px floor; the
+uploading status word follows below about 233px of block width, and a failure
+message below about 184px. The kit draws these in a panel, and `--panel-sm` is
+320px.
 
 Below the phone step a coarse pointer gets the kit's 44px target on `Retry` and
 `Remove`: the pair opens to the tap gap and each button's transparent layer

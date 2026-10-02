@@ -156,17 +156,17 @@ describe('FileDrop once a file is in hand', () => {
     }
   });
 
-  it('names a failed line, so a narrow block can give up its name and keep the message', () => {
+  it('names a failed line, and keeps its name and size at every width', () => {
     render(<FileDrop file={{ name: 'statement-2026-08.pdf', status: 'error', error: 'Larger than 10 MB' }} />);
     expect(document.querySelector('.ui-drop__file')).toHaveClass('ui-drop__file--failed');
 
-    // JSDOM lays nothing out, so the half it can read is the rule: the row
-    // declares one height, and the narrow block drops the size and that name.
-    const css = readRepo('../../src/styles/file-drop.css');
-    expect(/^\.ui-drop__row\s*\{([^}]*)\}/m.exec(css)?.[1]).toMatch(/min-height:\s*var\(--space-8\)/);
-    const narrow = /@container\s*\(width\s*<\s*26rem\)\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
-    expect(narrow).toMatch(/\.ui-drop__size\s*\{\s*display:\s*none/);
-    expect(narrow).toMatch(/\.ui-drop__file--failed\s+\.ui-drop__name\s*\{\s*display:\s*none/);
+    // The name and the size stay in the markup at every width — nothing here
+    // removes them — and the row's heights are measured in a browser by
+    // stories/row-height.test.js rather than grepped for here.
+    expect(screen.getByText('statement-2026-08.pdf')).toBeVisible();
+    const narrow = /@container\s*\(width\s*<\s*26rem\)\s*\{([\s\S]*?)\n\}/
+      .exec(readRepo('../../src/styles/file-drop.css'))?.[1] ?? '';
+    expect(narrow).not.toMatch(/display:\s*none/);
   });
 
   it('says it is uploaded when it is, and removes it on request', () => {

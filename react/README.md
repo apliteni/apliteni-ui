@@ -503,17 +503,18 @@ a region or a dialog.
   file={upload} onFile={send} onRemove={clear} onRetry={send} />
 ```
 
-Your application owns the upload and supplies the `file` it is holding: the name,
-the `size` already written for a reader, `progress` while it uploads, and the
-`error` when it failed. A file with no `status` is uploading, so a file handed
-over before the request starts never reads as uploaded. Each status shows a mark
-and a word, and the word stands with or without a `progress` value. The line
-never wraps: the name and the status word truncate and keep their full text in a
-`title`. In a block narrower than a panel the size drops out, and a failed row
-drops its name too so the message stays whole. `Remove` and `Retry` appear only when you handle them. Children render
-above the row, inside the region the target covers; pass `dragging` to drive that
-target from a parent. `accept` filters the system picker only — validate type and
-size yourself.
+Your application owns the upload and supplies the `file` it is holding: the
+name, the `size` already written for a reader, `progress` while it uploads, and
+the `error` when it failed. A file with no `status` is uploading, so a file
+handed over before the request starts never reads as uploaded. Each status shows
+a mark and a word, and the word stands with or without a `progress` value. The
+line keeps the name, the size and the status together: they truncate into a
+`title` rather than stacking. In a block narrower than 26rem the actions take a
+line of their own underneath, and nothing is dropped to make room. `Remove`
+and `Retry` appear only when you handle them. Children render above the row,
+inside the region the target covers; pass `dragging` to drive that target from a
+parent. `accept` filters the system picker only — validate type and size
+yourself.
 
 Use `Field` when an existing labelled control needs the kit frame. Spread its
 render-prop attributes onto one labelable control, and apply the existing control

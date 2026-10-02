@@ -57,8 +57,8 @@ const restRow = (extra = '') =>
   `<div class="ui-drop__row">${btn('Upload', { glyph: 'upload' })}${note()}${extra}</div>`;
 
 /** The row once a file is in hand. A refused file drops its size, as the component does. */
-const fileRow = (parts, { size = true, failed = false } = {}) => `<div class="ui-drop__row"><div class="ui-drop__file${failed ? ' ui-drop__file--failed' : ''}">
-  <span class="ui-drop__name">statement-08.pdf</span>${size ? '<span class="ui-drop__size">248 KB</span>' : ''}${parts}</div></div>`;
+const fileRow = (parts, { size = true, failed = false, acts = '' } = {}) => `<div class="ui-drop__row"><div class="ui-drop__file${failed ? ' ui-drop__file--failed' : ''}">
+  <span class="ui-drop__facts"><span class="ui-drop__name">statement-08.pdf</span>${size ? '<span class="ui-drop__size">248 KB</span>' : ''}${parts}</span>${acts}</div></div>`;
 
 /** Three statements already received, so a row has the list it feeds above it. */
 const RECEIVED = [['statement-07.pdf', '241 KB'], ['statement-06.pdf', '236 KB']];
@@ -94,8 +94,8 @@ export const RULES = withSpecimens(content.rules, [
   {
     id: 'in-the-row',
     doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow(
-      `${state('Uploading', 'uploading')}${bar(40)}`
-      + actions(btn('Remove', { variant: 'ghost' })),
+      `${state('Uploading', 'uploading')}${bar(40)}`,
+      { acts: actions(btn('Remove', { variant: 'ghost' })) },
     )}</div>`),
     dontHtml: () => panel(`<div class="ui-drop">${restRow()}</div>
       <div class="gf-card">statement-08.pdf<br>248 KB — 40%${bar(40)}</div>${rows()}`),
@@ -103,8 +103,8 @@ export const RULES = withSpecimens(content.rules, [
   {
     id: 'failure',
     doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow(
-      state('Larger than 10 MB', 'error')
-      + actions(btn('Retry') + btn('Remove', { variant: 'ghost' })), { size: false, failed: true },
+      state('Larger than 10 MB', 'error'),
+      { size: false, failed: true, acts: actions(btn('Retry') + btn('Remove', { variant: 'ghost' })) },
     )}</div>`),
     dontHtml: () => panel(`${rows()}<div class="ui-drop"><div class="ui-drop__row">
       ${state('Upload failed', 'error')}${btn('Upload', { glyph: 'upload' })}</div></div>`),
