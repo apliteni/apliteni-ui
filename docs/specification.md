@@ -2504,7 +2504,13 @@ the consumer still validates type and size.
 The file line never wraps. Name, size, status and actions stay on one line at
 every width, and the file name and the status word truncate with an ellipsis,
 each keeping its full text in a `title`, rather than stacking a second tier of
-text in the same block.
+text in the same block. The line reads in three groups — identity, status, then
+actions — one spacing step apart, with the step below it inside a group. The
+actions close the line on the edge the content above it ends on, in every state,
+and they are the kit's small buttons, the size the resting row already uses, so
+the row keeps its height and its type size when a file arrives. The progress
+track is one spacing step long and never stretches; where a line runs out of
+room the track gives way first, then the file name, then the status.
 
 The drop target is painted only while a file is over the region, and it covers
 that region rather than joining it, so the row keeps its place while the reader

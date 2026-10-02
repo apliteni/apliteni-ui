@@ -50,6 +50,7 @@ const state = (words, kind = 'done') =>
   `<span class="ui-drop__state${kind === 'error' ? ' ui-drop__error' : ''}">${icon(MARKS[kind])}`
   + `<span class="ui-drop__word">${words}</span></span>`;
 const target = () => '<div class="ui-drop__target">Drop to upload</div>';
+const actions = (inner) => `<span class="ui-drop__actions">${inner}</span>`;
 
 /** The row at rest: the picker and the accepted types, and nothing else. */
 const restRow = (extra = '') =>
@@ -93,7 +94,8 @@ export const RULES = withSpecimens(content.rules, [
   {
     id: 'in-the-row',
     doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow(
-      `${state('Uploading', 'uploading')}${bar(40)}${btn('Remove', { size: 'xs', variant: 'ghost' })}`,
+      `${state('Uploading', 'uploading')}${bar(40)}`
+      + actions(btn('Remove', { variant: 'ghost' })),
     )}</div>`),
     dontHtml: () => panel(`<div class="ui-drop">${restRow()}</div>
       <div class="gf-card">statement-08.pdf<br>248 KB — 40%${bar(40)}</div>${rows()}`),
@@ -101,8 +103,8 @@ export const RULES = withSpecimens(content.rules, [
   {
     id: 'failure',
     doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow(
-      `${state('Larger than 10 MB', 'error')}${btn('Retry', { size: 'xs' })}`
-      + btn('Remove', { size: 'xs', variant: 'ghost' }), { size: false },
+      state('Larger than 10 MB', 'error')
+      + actions(btn('Retry') + btn('Remove', { variant: 'ghost' })), { size: false },
     )}</div>`),
     dontHtml: () => panel(`${rows()}<div class="ui-drop"><div class="ui-drop__row">
       ${state('Upload failed', 'error')}${btn('Upload', { glyph: 'upload' })}</div></div>`),

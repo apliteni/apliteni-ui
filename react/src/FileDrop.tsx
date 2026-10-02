@@ -108,10 +108,12 @@ export function FileDrop({
             aria-valuenow={file.progress} aria-valuemin={0} aria-valuemax={100}>
             <span style={{ width: `${file.progress}%` }} />
           </span>}
-          {status === 'error' && onRetry
-            && <Button size="xs" onClick={onRetry} disabled={disabled}>{retryLabel}</Button>}
-          {onRemove
-            && <Button variant="ghost" size="xs" onClick={onRemove} disabled={disabled}>{removeLabel}</Button>}
+          {(onRemove || (status === 'error' && onRetry)) && <span className="ui-drop__actions">
+            {status === 'error' && onRetry
+              && <Button size="sm" onClick={onRetry} disabled={disabled}>{retryLabel}</Button>}
+            {onRemove
+              && <Button variant="ghost" size="sm" onClick={onRemove} disabled={disabled}>{removeLabel}</Button>}
+          </span>}
         </div>
         : <>
           <Button size="sm" icon="upload" disabled={disabled}

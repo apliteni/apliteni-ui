@@ -140,6 +140,22 @@ describe('FileDrop once a file is in hand', () => {
     expect(words).toMatch(/white-space:\s*nowrap/);
   });
 
+  it('closes the line with its actions, at the size the resting row already uses', () => {
+    const { rerender } = render(<FileDrop note="PDF or CSV, up to 10 MB" />);
+    const resting = screen.getByRole('button', { name: 'Upload' }).className;
+    rerender(<FileDrop file={{ name: 'statement-2026-08.pdf', status: 'error', error: 'Larger than 10 MB' }}
+      onRetry={() => {}} onRemove={() => {}} />);
+    const actions = document.querySelector('.ui-drop__actions') as HTMLElement;
+    expect(actions).toBeInTheDocument();
+    expect([...actions.children].map(c => c.textContent)).toEqual(['Retry', 'Remove']);
+    // One control size across every state, so the row keeps its height when a
+    // file arrives. The resting Upload button sets it.
+    expect(resting).toContain('ui-btn--sm');
+    for (const button of actions.querySelectorAll('.ui-btn')) {
+      expect(button.className).toContain('ui-btn--sm');
+    }
+  });
+
   it('says it is uploaded when it is, and removes it on request', () => {
     const onRemove = vi.fn();
     render(<FileDrop file={{ name: 'statement-2026-08.pdf', status: 'done' }} onRemove={onRemove} />);

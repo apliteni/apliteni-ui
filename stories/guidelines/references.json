@@ -813,7 +813,7 @@
   "_file-drop.js": {
     "one-row": [
       {
-        "ref": "src/styles/file-drop.css:17",
+        "ref": "src/styles/file-drop.css:8",
         "pattern": ".ui-drop__row {"
       },
       {
@@ -823,17 +823,17 @@
     ],
     "on-drag": [
       {
-        "ref": "src/styles/file-drop.css:68",
+        "ref": "src/styles/file-drop.css:53",
         "pattern": ".ui-drop__target {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:127",
+        "ref": "react/src/FileDrop.tsx:129",
         "pattern": "className=\"ui-drop__target\""
       }
     ],
     "in-the-row": [
       {
-        "ref": "src/styles/file-drop.css:33",
+        "ref": "src/styles/file-drop.css:22",
         "pattern": ".ui-drop__file {"
       },
       {
@@ -843,7 +843,7 @@
     ],
     "failure": [
       {
-        "ref": "src/styles/file-drop.css:48",
+        "ref": "src/styles/file-drop.css:37",
         "pattern": ".ui-drop__error"
       },
       {
@@ -853,19 +853,19 @@
     ],
     "button-path": [
       {
-        "ref": "react/src/FileDrop.tsx:118",
+        "ref": "react/src/FileDrop.tsx:120",
         "pattern": "input.current?.click()"
       }
     ],
     "limits-once": [
       {
-        "ref": "react/src/FileDrop.tsx:119",
+        "ref": "react/src/FileDrop.tsx:121",
         "pattern": "className=\"ui-drop__note\""
       }
     ],
     "which-shape": [
       {
-        "ref": "src/styles/file-drop.css:15",
+        "ref": "src/styles/file-drop.css:6",
         "pattern": ".ui-drop > * + .ui-drop__row"
       },
       {

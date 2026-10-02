@@ -1,17 +1,8 @@
-/* ============================================================================
- * File drop — .ui-drop
- *
- * At rest this is one row: the button that opens the picker and the accepted
- * types beside it. The field-sized dashed box stays with .ui-file, which is a
- * form control with a label above it.
- *
- * The drop target is painted only while a file is over the region that accepts
- * it.
- * why: docs/specification.md#react-file-drop
- * ========================================================================== */
-.ui-drop { position: relative; }
+/* File drop — .ui-drop. One row at rest; the field-sized box stays with .ui-file.
+ * why: docs/specification.md#react-file-drop */
+.ui-drop { position: relative; container-type: inline-size; }
 
-/* Content the region accepts the file for, above the control it is dropped on. */
+/* What the region accepts the file for, above the control. */
 .ui-drop > * + .ui-drop__row { margin-top: var(--space-3); }
 
 .ui-drop__row {
@@ -24,47 +15,41 @@
   overflow-wrap: anywhere;
 }
 
-/* The accepted types and the size limit, in the consumer's words, stated once. */
 .ui-drop__note { margin: 0; }
 
-/* Name, size, status and actions on one line. The line never wraps: a second
-   tier would stack text in one block, so the words truncate instead and keep
-   their full text in a title. Four items share the tighter gap. */
-.ui-drop__file { display: flex; flex: 1 1 auto; flex-wrap: nowrap; align-items: center; gap: var(--space-2); min-width: 0; }
-.ui-drop__file > .ui-btn { flex: none; }
+/* Never wraps: a second tier would stack text in one block, so the words
+   truncate instead. One step between groups, the step below it inside one. */
+.ui-drop__file { display: flex; flex: 1 1 auto; flex-wrap: nowrap; align-items: center; gap: var(--space-3); min-width: 0; }
 .ui-drop__size { flex: none; white-space: nowrap; }
+
+/* Closes the line on the edge the content above it ends on, in every state. */
+.ui-drop__actions { display: flex; flex: none; align-items: center; gap: var(--space-2); margin-left: auto; }
 .ui-drop__name, .ui-drop__word { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* The name yields its width first and the status last: the file's name is also
-   in a title, and what went wrong is only here. */
-.ui-drop__name { flex: 0 1 auto; min-width: var(--space-10); color: var(--strong); font-weight: var(--weight-medium); }
+/* Shrink order is a ratio, not a fraction of one: factors summing below 1 leave
+   part of the deficit unabsorbed and the line overflows instead of truncating. */
+.ui-drop__name { flex: 0 100 auto; min-width: var(--space-10); color: var(--strong); font-weight: var(--weight-medium); }
 .ui-drop__word { flex: 0 1 auto; min-width: 0; }
 
-/* A status is a circled mark and a word, because colour alone is not a status.
-   Its shrink is a fraction of the name's, so it gives up nothing until the name
-   has reached its floor, and its word then truncates with it. */
-.ui-drop__state { display: inline-flex; flex: 0 0.001 auto; align-items: center; gap: var(--space-1); min-width: 0; }
+/* A status is a circled mark and a word, because colour alone is not a status. */
+.ui-drop__state { display: inline-flex; flex: 0 1 auto; align-items: center; gap: var(--space-2); min-width: 0; }
 .ui-drop__state svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 .ui-drop__error { color: var(--pink); }
 
-/* The progress track carries no text, and its fill is the row's one accent. */
+/* One step of the scale long, never stretching, and the first thing to give way.
+   The ground is the kit's token for sunken tracks; --surface-3 was invisible. */
 .ui-drop__bar {
   display: block; /* so a track outside a flex row still takes its size */
-  /* The track fills what the words leave, up to its full length, so it never
-     reserves width the file name needs: the progress is in the word beside it,
-     and the name is the only place the file is named. */
-  flex: 1 1 0;
+  flex: 0 1000 var(--space-16);
   min-width: var(--space-8);
-  max-width: 120px;
-  height: 4px;
+  height: 6px;
   border-radius: var(--radius-pill);
-  background: var(--surface-3); /* ring-gap: inherit — a progress track holds no focus target. */
+  background: var(--surface-2); /* ring-gap: inherit — a progress track holds no focus target. */
   overflow: hidden;
 }
 .ui-drop__bar span { display: block; height: 100%; background: var(--accent); }
 
-/* The target covers the region rather than joining it, so the row keeps its
-   place while the reader aims. */
+/* Covers the region rather than joining it, so the row keeps its place. */
 .ui-drop__target {
   position: absolute;
   inset: 0;
@@ -82,3 +67,9 @@
 
 .ui-drop.is-disabled .ui-drop__row { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
 .ui-drop.is-disabled .ui-drop__name { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
+
+/* Too narrow for five readable things. The size steps aside: it alone says
+   nothing about what is happening or what to do next. The stat band's step. */
+@container (width <= 28rem) {
+  .ui-drop__size { display: none; }
+}
