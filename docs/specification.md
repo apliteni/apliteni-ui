@@ -3086,3 +3086,76 @@ Held by `stories/snippet-focus.test.js`, which emulates forced colors by flatten
 the media block and dropping every box-shadow; keyboard reachability, the gap
 colour, the colour the system repaints an outline as, and pixels are checked in
 Chromium because JSDOM cannot prove any of them.
+
+## React file drop
+
+`FileDrop` is the compact drop: at rest, one row holding the button that opens the
+system picker and, beside it, the accepted types and the size limit in the
+consumer's words. The field-sized dashed box stays with `FileField`, which is a
+labelled form control. `guidelines/file-drop.md` states when a page uses a row, a
+region or a dialog.
+
+The consumer owns the upload. `FileDrop` reports a chosen or dropped file through
+`onFile` and renders the `file` it is given: name, an already-written `size`, and
+the status. A file with no `status` is uploading, so the kit never reports a
+success the consumer has not claimed. Every status carries a circled mark and a
+word — "Uploading", "Uploaded", or the `error` — and the word stands whether or
+not `progress` is known, so an upload with no measurable progress still says what
+it is doing. `state` replaces the word on an uploading or uploaded file. `Remove`
+and `Retry` appear only when `onRemove` and `onRetry` are supplied, so no row
+offers an action nobody handles. A failed file keeps its name in the row and its
+message beside it; the message carries `role="alert"`, and a `progress` bar is
+named by the file name and reports `aria-valuenow` out of 100. The kit does not
+announce the change from uploading to uploaded; a consumer that needs that
+announcement owns the live region. `accept` filters the system picker only, and
+the consumer still validates type and size.
+
+The file's name, size and status stay on one line together at every width. They
+never stack into a second tier of text: the name and the status word truncate
+with an ellipsis instead, each keeping its full text in a `title`. The line reads
+in three groups — identity, status, then actions — one spacing step apart, with
+the step below it inside a group. The actions are the kit's small buttons, the
+size the resting row already uses, and while they share the line they close it
+on the edge the content above it ends on; on a line of their own they start on
+the edge the facts start on. The progress track is one spacing step long and
+never stretches; where the line runs out of room the track gives way first, then
+the file name, then the status word.
+
+A row carrying a file is 32px wherever its content fits on one line, which is the
+height of a resting row, so the row does not step when a file arrives. Below
+26rem of block width the actions take a line of their own under the facts, and
+the row is 56px there. Nothing is removed to buy that space: the name, the size,
+the status and the track are each named by a rule on the guideline page, and all
+four stay on the first line at every width. A resting row whose note cannot sit
+beside its button wraps the note below it, and is 59px there for the same reason,
+below about 250px of block width.
+
+Narrower still, the words begin to truncate into their `title` rather than
+anything leaving the line. The name truncates first, at a 40px floor; the
+uploading status word follows below about 233px of block width, and a failure
+message below about 184px. The kit draws these in a panel, and `--panel-sm` is
+320px.
+
+Below the phone step a coarse pointer gets the kit's 44px target on `Retry` and
+`Remove`: the pair opens to the tap gap and each button's transparent layer
+grows into the clearance the row's floor leaves around it. The buttons are not
+drawn any larger.
+
+The drop target is painted only while a file is over the region, and it covers
+that region rather than joining it, so the row keeps its place while the reader
+aims. Children render above the row inside the same region, which is how one
+panel — or a whole page — becomes the target. The component tracks drag events
+over its own root and ignores a drag that carries no file; passing `dragging`
+overrides that, so a parent listening on its own region decides. A disabled drop
+paints no target and takes no file, and it does not call `preventDefault` on
+`dragover`, so it never declares itself a drop target the pointer can aim at.
+
+The picker opens from a real kit button, and the native input is hidden rather
+than laid over it: a one-row control has no field label to name an overlaid
+input, and the button keeps the kit's own focus ring. The input is cleared after
+each choice, so choosing the same file again reports it; nothing is submitted
+with a form, because the file travels through `onFile`.
+
+Covered by `react/src/FileDrop.test.tsx`, which does not open the system picker,
+measure the target's cover or the focus ring, or check screen-reader speech.
+Closes [#507](https://github.com/apliteni/apliteni-ui/issues/507).

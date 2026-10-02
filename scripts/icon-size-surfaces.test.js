@@ -51,10 +51,11 @@ const rel = (p) => path.relative(root, p);
 // coverage looks exactly like a rule that passes.
 // Report unmeasured subjects as failures.
 //
-// Six rules across four files, width and height apiece. Raise it when you add
+// Nine rules across five files, width and height apiece. Raise it when you add
 // one; lower it in the same commit as the removal, and say why there. Was seven
-// across five before #127, and 12 before #217.
-const EXPECTED_SUBJECTS = 16;
+// across five before #127, and 12 before #217; 16 before #507, whose File drop
+// page draws the tall box a product writes for itself and sizes its glyph.
+const EXPECTED_SUBJECTS = 18;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes

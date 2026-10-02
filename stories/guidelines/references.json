@@ -38,7 +38,7 @@
         "pattern": "--tap-gap: var(--space-5, 20px);"
       },
       {
-        "ref": "src/styles/tap-zone.css:146",
+        "ref": "src/styles/tap-zone.css:155",
         "pattern": ".ui-confirm__acts,"
       }
     ],
@@ -119,7 +119,7 @@
       },
       {
         "ref": "stories/accent-contrast.test.js:2",
-        "pattern": "theme × accent cells"
+        "pattern": "theme \u00d7 accent cells"
       },
       {
         "ref": "react/src/a11y.test.tsx:23",
@@ -753,7 +753,7 @@
     "busy": [
       {
         "ref": "src/components/index.js:39",
-        "pattern": "busy ⇒ disabled"
+        "pattern": "busy \u21d2 disabled"
       },
       {
         "ref": "src/styles/button.css:128",
@@ -831,6 +831,70 @@
       {
         "ref": "src/components/index.js:280",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
+      }
+    ]
+  },
+  "_file-drop.js": {
+    "one-row": [
+      {
+        "ref": "src/styles/file-drop.css:8",
+        "pattern": ".ui-drop__row {"
+      },
+      {
+        "ref": "react/src/FileDrop.tsx:94",
+        "pattern": "className=\"ui-drop__row\""
+      }
+    ],
+    "on-drag": [
+      {
+        "ref": "src/styles/file-drop.css:59",
+        "pattern": ".ui-drop__target {"
+      },
+      {
+        "ref": "react/src/FileDrop.tsx:132",
+        "pattern": "className=\"ui-drop__target\""
+      }
+    ],
+    "in-the-row": [
+      {
+        "ref": "src/styles/file-drop.css:25",
+        "pattern": ".ui-drop__file {"
+      },
+      {
+        "ref": "react/src/FileDrop.tsx:108",
+        "pattern": "role=\"progressbar\""
+      }
+    ],
+    "failure": [
+      {
+        "ref": "src/styles/file-drop.css:43",
+        "pattern": ".ui-drop__error"
+      },
+      {
+        "ref": "react/src/FileDrop.tsx:113",
+        "pattern": "status === 'error' && onRetry"
+      }
+    ],
+    "button-path": [
+      {
+        "ref": "react/src/FileDrop.tsx:122",
+        "pattern": "input.current?.click()"
+      }
+    ],
+    "limits-once": [
+      {
+        "ref": "react/src/FileDrop.tsx:123",
+        "pattern": "className=\"ui-drop__note\""
+      }
+    ],
+    "which-shape": [
+      {
+        "ref": "src/styles/file-drop.css:6",
+        "pattern": ".ui-drop > * + .ui-drop__row"
+      },
+      {
+        "ref": "react/src/FileDrop.tsx:93",
+        "pattern": "{children}"
       }
     ]
   }

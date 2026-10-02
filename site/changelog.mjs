@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-02',
+    changes: [
+      ['added', 'React FileDrop is the compact drop: at rest one row with the Upload button and the accepted types beside it, a drop target painted only while a file is over the region it covers, and the file’s name, size and status on that same line with remove and retry. Your application owns the upload and supplies the file it is holding; a file given with no status is uploading, so the kit never reports a success you have not claimed. The name, the size and the status never stack: they truncate into a title instead, and below 26rem the two actions take a line of their own underneath rather than anything leaving the line. Closes #507.'],
+      ['added', 'Guidelines / File drop sets seven rules for receiving a file: spend one row at rest, paint the target only while a file is over it, keep the file in the row it arrived in, fail in place, offer a button rather than only a drag, state the limits once, and choose between a row, a region and a dialog. Closes #507.'],
+    ],
+  },
+  {
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],
