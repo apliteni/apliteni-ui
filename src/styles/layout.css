@@ -286,6 +286,17 @@
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ z-index: -1; }
+/* Forced colours replaces that fill, so the plate becomes an edge instead — and an
+   edge rather than a Highlight fill because the plate stands BEHIND the glyph, and
+   Highlight under system-painted ink is the one pair the forced palette does not
+   promise. `background: Canvas` is written out rather than left to the fill above,
+   so the glyph stays legible if that fill is ever changed to a colour the mode
+   keeps. The open rail needs nothing here: its marker is a .ui-nav--side rule and
+   nav.css answers it. Inert in normal rendering. Every rule in this block has a
+   twin in the 720px block below, and so does this one. #523 */
+@media (forced-colors: active) {
+  :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { background: Canvas; border: 1px solid Highlight; }
+}
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:hover:not(:focus-visible) { outline: none; }
 /* The label IS the chip. `fixed` is the fallback placement, out of the rail's own
    clip; the @supports branch below pins it to the row and is the only one that
@@ -492,6 +503,12 @@
   .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
   .ui-app__rail .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
   .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ z-index: -1; }
+  /* The twin of the forced-colours rule above the 720px block, nested here rather
+     than written as one `and` query so it stays inside the fold it belongs to —
+     stories/apps/shell-states.test.js compares the two folds rule for rule. #523 */
+  @media (forced-colors: active) {
+    .ui-app__rail .ui-nav__item.is-active::before { background: Canvas; border: 1px solid Highlight; }
+  }
   .ui-app__rail .ui-nav__item:hover:not(:focus-visible) { outline: none; }
   /* The one line of this block that is deliberately NOT the reader's fold: a finger
      is the only pointer this width has, so a row and the account block are held to
@@ -635,3 +652,4 @@
 .ui-section-head { text-align: center; max-width: var(--panel-lg); margin: 0 auto clamp(40px, 6vh, 64px); }
 .ui-section-head h2 { color: var(--strong); font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
 .ui-section-head p { color: var(--text); font-size: calc(var(--text-lg) - 1px); line-height: 1.6; }
+

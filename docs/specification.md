@@ -1439,6 +1439,26 @@ What the shell guarantees:
   way and with no hue: Cloudflare's docs rail paints a flat plate, and `lessly-ui`'s rail is a plate
   and the weight step. Artur asked for it on 2026-09-30. The plate sits behind the glyph on the
   row's own stacking context, so the focus ring is untouched.
+- **In forced colours, the current row is its marker and the folded row is a box.** Forced-colors
+  mode replaces every background that is not a system colour and drops `box-shadow` outright, which
+  between them is all four of the ways the rail says "current": the open row's plate, its hairline,
+  its accent marker and the folded row's plate. So the rail restates the two that can be restated.
+  The open row's marker is painted `Highlight`, and the plate and hairline do not come back — a fill
+  under system-painted ink is the one pair the forced palette does not promise, and the row keeps
+  the weight step besides. The folded row's plate becomes a `Highlight` edge over a `Canvas` ground
+  for that same reason: it stands behind its glyph. Horizontal tabs answer the same way — the
+  underline variant's rule takes `Highlight`, and the chosen pill takes `Highlight` with
+  `HighlightText`. Three of those four go without `forced-color-adjust` deliberately, because that
+  is what leaves the mode free to repaint the ring's transparent outline into the focus indicator
+  and to ink a row's glyph and badge. The chosen pill is the exception and must be: Chromium paints
+  a Canvas backplate behind text, so a fill under words hides them unless the element opts out —
+  which is also why Segmented's chosen pill opts out. An opting-out rule then owes two things back,
+  its focus outline and its badge's ink, and the gate holds that debt. Normal rendering is
+  byte-identical. Held by `stories/forced-colors-states.test.js`, which
+  discovers every current-state paint rule in the three sheets and fails on an eleventh, and
+  measured in Chromium at 390px and 1280px in both themes. Found while fixing the same fault in
+  Segmented on [#473](https://github.com/apliteni/apliteni-ui/pull/473); decided in
+  [#523](https://github.com/apliteni/apliteni-ui/issues/523).
 - **The fold travels, and no glyph moves while it does — except the one that rides the edge.** The
   rail's column keeps its open width and the box closes over it, so nothing inside is laid out a
   second way: the width goes from
@@ -2384,6 +2404,12 @@ behind is inert. The number of results is announced politely, as a count and nev
 a live region holding the list would read all of it out again on every keystroke. On the way out
 focus goes back to whatever opened it, and to the page when the command that ran took the opener
 with it.
+
+The active row survives forced colours without a rule of its own. It is drawn as a fill AND a
+1px outline, and the mode replaces the fill while recolouring the outline, so the row a reader is
+on stays boxed. That outline is therefore not decoration and may not be traded for a background:
+`stories/forced-colors-states.test.js` pins it, alongside the rail's and the tabs' own answers
+for the mode. The accent on its glyph does go, which is why the glyph was never the signal. #523
 
 The palette joins the same stack every kit overlay is on, and paints one step above the drawer
 and one below the confirm. Three steps and not two, because at equal levels paint order falls

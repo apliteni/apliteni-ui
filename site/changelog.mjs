@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'In forced-colors mode (Windows High Contrast) the current rail row, the chosen page tab and the folded rail\u2019s current row now stay distinguishable. The mode replaces every background that is not a system colour and drops box-shadow, which was all four of the ways these parts marked \u201ccurrent\u201d, so in that mode a current row read like every other row. The rail\u2019s accent marker is restated in `Highlight`, the folded rail\u2019s plate becomes a `Highlight` edge over a `Canvas` ground because it sits behind its glyph, the underline tab\u2019s rule takes `Highlight`, and the chosen pill takes `Highlight` with `HighlightText` plus `forced-color-adjust: none` \u2014 Chromium paints a backplate behind text, and without the opt-out a fill under words hides them, so that one rule also restates its own focus outline and badge ink. Normal rendering is byte-identical. Closes #523.', ['SidebarNav', 'Tabs', 'AppShell']],
+      ['changed', 'The command palette needed no change and gained none: its active row is drawn as a fill AND a 1px outline, and the mode recolours that outline rather than replacing it, so the row stays boxed. That outline is now held by a gate, so it cannot later be traded for a background. See #523.', ['CommandPalette']],
+    ],
+  },
+  {
     v: '0.75.0', date: '2026-10-02',
     changes: [
       ['fixed', 'An inline `.ui-code` chip now paints whichever reading surface its container is not on, so an identifier keeps its chip inside a card, a panel, a drawer, a toast, a table cell and a callout. It painted `--surface`, which is the card, so in all of those it had no chip at all in either theme. Nothing about it changes on the page, and it takes no border and no hairline. Fixes #537.', ['Typography']],

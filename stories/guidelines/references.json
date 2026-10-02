@@ -490,7 +490,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:420",
+        "ref": "src/styles/layout.css:431",
         "pattern": "rank: page-title"
       },
       {
@@ -532,7 +532,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:328",
+        "ref": "src/styles/layout.css:339",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -566,7 +566,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:462",
+        "ref": "src/styles/layout.css:473",
         "pattern": "@media (max-width: 720px)"
       },
       {
