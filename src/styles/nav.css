@@ -289,13 +289,38 @@
 
 /* -- Horizontal tabs ----------------------------------------------------- */
 .ui-nav--tabs {
+  /* A scroll box clips at its padding edge, so the ring needs padding, not bare
+     paint room. Equal negative margins give the row back its place on the gutter
+     and in the flow, and the rule is painted as a background line one pixel above
+     the padding — a border-bottom would sit below it and lift the active
+     underline off the rule. */
+  --ui-tabs-ring-room: var(--space-1);
+  --ui-tabs-rule: 1px;
+  min-width: 0;
+  max-width: calc(100% + 2 * var(--ui-tabs-ring-room));
+  overflow-x: auto;
+  padding: var(--ui-tabs-ring-room);
+  margin: calc(-1 * var(--ui-tabs-ring-room)) calc(-1 * var(--ui-tabs-ring-room))
+    calc(var(--ui-tabs-rule) - var(--ui-tabs-ring-room));
   display: flex;
   align-items: stretch;
   gap: 4px;
-  border-bottom: 1px solid var(--border);
+  background-image: linear-gradient(var(--border), var(--border));
+  background-repeat: no-repeat;
+  background-position: center bottom calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule));
+  background-size: calc(100% - 2 * var(--ui-tabs-ring-room)) var(--ui-tabs-rule);
 }
-.ui-nav--tabs.is-pill { border-bottom: 0; gap: 6px; }
+.ui-nav--tabs.is-pill { --ui-tabs-rule: 0px; background-image: none; gap: 6px; }
+@media (forced-colors: active) {
+  /* Forced colours drop background images, so the rule comes back as a border.
+     The last pixel of the bottom padding pays for it and the row keeps its size. */
+  .ui-nav--tabs {
+    padding-bottom: calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule));
+    border-bottom: var(--ui-tabs-rule) solid;
+  }
+}
 .ui-nav__tab {
+  flex: none;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -329,9 +354,11 @@
 /* pill variant */
 .ui-nav--tabs.is-pill .ui-nav__tab { border-radius: var(--radius-pill); padding: 8px 15px; }
 .ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+/* One accent signal on the selected tab: the soft fill. The label keeps the body
+   ink `.is-active` already gives it, as the underline appearance does — accent ink
+   on an accent wash said it twice. Artur chose it on #475. */
 .ui-nav--tabs.is-pill .ui-nav__tab.is-active {
   background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
-  color: var(--accent);
 }
 
 .ui-nav__tab.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; }
