@@ -74,8 +74,26 @@
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
 .ui-seg--underline { flex-wrap: nowrap; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
-.ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
+/* Square bottom corners so the rail reads as a straight bar rather than curling
+   up at both ends, the way .ui-nav__tab's underline does. #544 */
+.ui-seg--underline button { border-radius: var(--radius-xs) var(--radius-xs) 0 0; border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
+/* The rail is this appearance's selection mark, so the chosen tab drops the pill's
+   accent edge: one accent signal on the element. Markup copied from an older
+   release (aria-selected) takes the rail here too, rather than the pill fill. #544 */
 .ui-seg--underline button.is-active,
-.ui-seg--underline button[aria-pressed="true"] { background: transparent; border-bottom-color: var(--accent); }
+.ui-seg--underline button[aria-pressed="true"],
+.ui-seg--underline button[aria-selected="true"] { background: transparent; outline: 0; border-bottom-color: var(--accent); }
 .ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }
+
+/* Forced colours repaint every border in the system ink, and this appearance
+   reserves a transparent 2px border on every tab — so with the accent edge gone,
+   all of them would read chosen. The resting rail is restated in the system
+   background and the chosen one takes Highlight; forced colours keep a system
+   colour the author sets. Inert in normal rendering. #544 */
+@media (forced-colors: active) {
+  .ui-seg--underline button { border-bottom-color: Canvas; }
+  .ui-seg--underline button.is-active,
+  .ui-seg--underline button[aria-pressed="true"],
+  .ui-seg--underline button[aria-selected="true"] { border-bottom-color: Highlight; }
+}

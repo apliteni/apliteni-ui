@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.64.1', date: '2026-10-02',
+    changes: [
+      ['fixed', "The underline segmented control's chosen tab carries one accent mark: the rail, now a straight bar. The 1px accent outline it also drew is gone, in vanilla and React. In forced colours the resting rails step back and the chosen one takes the system highlight, where every tab used to read as chosen. Resolves #544.", ['Segmented']],
+    ],
+  },
+  {
     v: '0.64.0', date: '2026-10-01',
     changes: [
       ['added', 'React Button accepts href for links and leading for caller-supplied artwork before the label. Disabled and busy links block activation while retaining the existing button styles. Part of #429.', ['Button']],

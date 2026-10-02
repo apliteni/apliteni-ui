@@ -2403,6 +2403,22 @@ their side padding, which is what keeps six three-letter months on one row in a
 
 The underline appearance scrolls instead of wrapping, which is the right answer for
 column switches over one dataset, where the order is the reader's map.
+
+## The chosen tab in an underline strip
+
+The underline appearance marks its chosen tab with the accent rail alone. The tab
+takes `--strong` ink and no accent edge, so the element spends one accent signal,
+and markup copied from an older release — `aria-selected` rather than
+`aria-pressed` — takes the same rail. The rail's bottom corners are square, which
+is what keeps it a straight bar rather than one that curls up at both ends.
+
+Forced colours repaint every border in the system ink, and this appearance reserves
+a transparent rail on every tab, so the resting rail is restated in the system
+background and the chosen one takes the system highlight. Without that restatement
+every tab reads as chosen.
+
+Held by `src/styles/segmented.test.js`. Decided in
+[#544](https://github.com/apliteni/apliteni-ui/issues/544).
 ## Shared React logic and declarations
 
 The main entry exports `dropdownMatch`, `dropdownFiltering`, `rankGroups`,
