@@ -460,7 +460,10 @@ in both themes while keeping text at least 4.5:1. This soft badge fill is an
 explicit exception to the text-surface rule, requested in the r18 review of
 [#445](https://github.com/apliteni/apliteni-ui/issues/445).
 Held by `stories/dropdown-state-contrast.test.js`.
-Dropdown selection uses an accent checkmark and a body-ink title. Non-status badges,
+Dropdown selection uses an accent checkmark and a body-ink title. A selected pill tab keeps
+its soft accent fill and takes body ink, one accent signal for the selection, as the underline
+appearance already did with its rule. Artur chose it on
+[#475](https://github.com/apliteni/apliteni-ui/issues/475). Non-status badges,
 including the legacy accent tone, use body ink; live badges retain status colour.
 Explicit neutral tone, unselected options and missing-comparison sentences use body ink.
 To extend this closed list, open an issue and agree the new class before using it.

@@ -354,9 +354,11 @@
 /* pill variant */
 .ui-nav--tabs.is-pill .ui-nav__tab { border-radius: var(--radius-pill); padding: 8px 15px; }
 .ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+/* One accent signal on the selected tab: the soft fill. The label keeps the body
+   ink `.is-active` already gives it, as the underline appearance does — accent ink
+   on an accent wash said it twice. Artur chose it on #475. */
 .ui-nav--tabs.is-pill .ui-nav__tab.is-active {
   background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
-  color: var(--accent);
 }
 
 .ui-nav__tab.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; }
