@@ -6,10 +6,17 @@
 
 export const RELEASES = [
   {
-    v: '0.68.0', date: '2026-10-02',
+    v: '0.69.0', date: '2026-10-02',
     changes: [
       ['changed', 'Every card with a description now has 8px between its title and that line, not 5px. The old value was off the kit\u2019s spacing scale and tight enough that the description read as part of the heading; 8px is the step the page header already uses for the same pair. This moves one line in every card that has a description. Part of #499.', ['Card']],
       ['added', 'A table marked `ui-table--stack` lays each row out as a block below the one-column step: the identity and the short cells on the first line, the cell marked `ui-table__long` on a line under them, and the header row clipped rather than removed, so a cell still reads with its column name. A log or a queue whose last column is a paragraph now fits a phone without scrolling sideways. A stacked table has to name the table, row group, row, column header and cell roles in its own markup, because a stylesheet cannot write a role; in Chromium only the body\u2019s row group is actually lost, and the other four are asked for because WebKit and Gecko were not measured. React is not served yet: `DataTable` builds its own class list, takes no `className` and puts its sort control in the header cell, so reaching the modifier from React means hand-writing the table. Resolves #499.', ['Table']],
+    ],
+  },
+  {
+    v: '0.68.0', date: '2026-10-02',
+    changes: [
+      ['changed', 'A FilterBar chip shows the chosen value by itself instead of printing the field\u2019s name beside it, so a bar of chips reads as the values in force. A chip with nothing chosen shows the field it filters, in placeholder ink, and is named \u201cSector: any\u201d; a chip with a value is named \u201cSector: Technology\u201d. Beside a value the field is no longer drawn: it reaches a reader through that name and the chip\u2019s legend. Keep a filter\u2019s value display text \u2014 it is now the whole visible chip. Vanilla and React. Resolves #535.', ['FilterBar']],
+      ['added', 'filterChipText, filterChipName and filterChipUnset are exported from the entry: the one place that decides what a chip prints, what it is called and whether it counts as unset. Pass a filter; take the line, the name or the state. Part of #535.', ['FilterBar']],
     ],
   },
   {

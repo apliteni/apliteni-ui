@@ -7,7 +7,10 @@
 .ui-filter-bar:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
 
-.ui-filter-bar .ui-dropdown__pre, .ui-filter-bar .ui-dropdown__value { color: inherit; }
+.ui-filter-bar .ui-dropdown__value { color: inherit; }
+/* A chip with nothing chosen prints the field's name in the slot the value will
+   take. `:enabled` leaves a disabled chip its own ink. why: guidelines/labels-and-titles.md */
+.ui-filter-bar button:enabled .ui-dropdown__value.is-placeholder { /* muted-ink: placeholder — a filter chip with nothing chosen */ color: var(--muted); }
 
 /* A chip's panel is as wide as the chip's trigger, never the 240px floor
    .ui-dropdown__panel gives a standalone dropdown. A panel is positioned at its
