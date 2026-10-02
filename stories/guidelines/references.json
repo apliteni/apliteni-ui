@@ -38,7 +38,7 @@
         "pattern": "--tap-gap: var(--space-5, 20px);"
       },
       {
-        "ref": "src/styles/tap-zone.css:160",
+        "ref": "src/styles/tap-zone.css:157",
         "pattern": ".ui-confirm__acts,"
       }
     ],
