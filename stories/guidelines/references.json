@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:130",
+        "ref": "src/styles/table.css:132",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ]
@@ -54,7 +54,7 @@
         "pattern": ".ui-btn[aria-disabled=\"true\"]"
       },
       {
-        "ref": "src/tokens/tokens.css:185",
+        "ref": "src/tokens/tokens.css:195",
         "pattern": "--disabled-ink: var(--muted);"
       }
     ],
@@ -100,7 +100,7 @@
     ],
     "accent-strong": [
       {
-        "ref": "src/tokens/tokens.css:199",
+        "ref": "src/tokens/tokens.css:209",
         "pattern": "--accent-strong: #7c3aed;"
       },
       {
@@ -746,7 +746,7 @@
         "pattern": "box-shadow: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:257",
+        "ref": "src/tokens/tokens.css:267",
         "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
       }
     ],

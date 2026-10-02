@@ -123,8 +123,10 @@
 /* The empty state (.ui-empty) — shown when a table/list has no rows — now
    lives in styles/empty.css as a standalone component (illustration support). */
 
-/* Tables share their containing card’s reading surface, including pinned cells. */
-.ui-card { --table-bg: var(--surface); }
+/* Tables share their containing card’s reading surface, including pinned cells. The code
+   chip's hand-off travels with it, so an identifier in a cell keeps the page rather than
+   the card the cell is now painted with. why: src/tokens/tokens.css */
+.ui-card { --table-bg: var(--surface); --table-code-bg: var(--bg); }
 
 /* White in light, base canvas in dark; never a grey or tinted data surface. */
 .ui-table { background: var(--table-bg); --ring-gap: var(--table-bg); }

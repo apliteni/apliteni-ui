@@ -241,6 +241,14 @@
       ]
     },
     {
+      "file": "stories/code-chip.test.js",
+      "name": "Inline code: the chip's surface",
+      "does": "Discovers every painted ground in the kit's sheets, and every translucent wash that takes caller markup, and measures the step between the chip and its ground — the wash composited over each ground — in both themes and in the one context a ground token is re-pointed in. Holds that the chip paints what it is handed, takes its focus gap from that paint, and draws no edge.",
+      "blind": [
+        "It composites the sheets rather than driving a browser, so it is checked against rendered pixels (scripts/evidence/code-chip.mjs) rather than trusted; the two agree within 0.012. A step is not a text floor — the ink on the chip is the contrast gate's subject. One ground per selector, the last one declared; one accent; washes outside callout.css are not measured. Two light tinted cards are under the step and carry a written reason."
+      ]
+    },
+    {
       "file": "stories/elevation.test.js",
       "name": "Elevation",
       "does": "Checks every box-shadow declared by the kit’s stylesheets, reads each layer’s geometry per theme and rejects a cast shadow that is not the floating treatment. It also checks the floor this page needs: --muted on raised surfaces clears AA in both themes.",

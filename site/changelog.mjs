@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.75.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'An inline `.ui-code` chip now paints whichever reading surface its container is not on, so an identifier keeps its chip inside a card, a panel, a drawer, a toast, a table cell and a callout. It painted `--surface`, which is the card, so in all of those it had no chip at all in either theme. Nothing about it changes on the page, and it takes no border and no hairline. Fixes #537.', ['Typography']],
+      ['added', '`--code-bg` names the reading surface an inline code chip paints. A consumer painting a reading surface of its own hands it the other one; `--table-code-bg` and `--wash-code-bg` are the pairs for a table and for a translucent wash, which need one because they swap sides between the themes. See #537.'],
+    ],
+  },
+  {
     v: '0.74.0', date: '2026-10-02',
     changes: [
       ['changed', 'The status-label guideline no longer asks a status badge for a glyph or a dot: its word and its tone fill are enough. Callouts and toasts keep their glyph. Part of #453.'],

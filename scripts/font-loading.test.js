@@ -99,7 +99,9 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
 // is shot around real type, and in the fallback faces it would be a ring around a
 // different control. It returns to 13 if that rig is ever deleted.
 // The fifteenth is scripts/evidence/levels.html, the #490 producer's shot page.
-const EXPECTED_LOADERS = 15;
+// The sixteenth is scripts/evidence/code-chip.html, the #537 shot page for the
+// inline code chip — a rig page, loading the same two families as the others.
+const EXPECTED_LOADERS = 16;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();
