@@ -1,4 +1,3 @@
-import '../../src/styles/tooltip.css';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 
 export type TooltipProps = {

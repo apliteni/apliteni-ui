@@ -1,5 +1,4 @@
 import { forwardRef, type InputHTMLAttributes } from 'react';
-import '../../src/styles/input.css';
 
 export type SwitchProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'children'> & {
   label: string;

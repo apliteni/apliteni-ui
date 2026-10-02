@@ -484,14 +484,30 @@ test('the React subpath ships built JS, types and CSS', () => {
 });
 
 // Reads the installed tarball; browser rendering is covered by Tooltip's stories.
-test('the packed React CSS includes the tooltip panel and its states', () => {
-  const css = readFileSync(path.join(installed, installedPkg.exports['./react/css']), 'utf8');
+//
+// Asked of `./css`, not of `./react/css`. #408 put the panel in both, and a copy of a
+// kit sheet inside the React bundle lands after the kit's own in the document a
+// consumer builds, where it outranks it — which cost the pager's size control its
+// geometry (#551). So the React Tooltip takes the kit's sheet as a peer the consumer
+// already loads, and what has to be true is that the kit entry carries the panel and
+// the React entry carries no second copy of it.
+test('the packed kit CSS includes the tooltip panel and its states', () => {
+  const entry = path.join(installed, installedPkg.exports['./css']);
+  // src/index.css is @imports and a header comment; the rules are one level down.
+  const css = [...readFileSync(entry, 'utf8').matchAll(/@import\s+"([^"]+)"/g)]
+    .map((m) => readFileSync(path.resolve(path.dirname(entry), m[1]), 'utf8')).join('\n');
   const panels = [...css.matchAll(/\.ui-tip\s*\{([^}]+)\}/g)];
-  assert.equal(panels.length, 1, 'react/css must contain one .ui-tip rule');
+  assert.equal(panels.length, 1, 'the kit CSS must contain one .ui-tip rule');
   assert.match(panels[0][1], /visibility:\s*hidden/, 'closed tooltips must be hidden');
   assert.match(panels[0][1], /position:\s*absolute/, 'tooltips must not change layout');
   assert.match(css, /\.ui-tip\.is-open\s*\{[^}]*visibility:\s*visible/);
   assert.match(css, /\.ui-tip\.is-below\s*\{/);
+
+  const react = readFileSync(path.join(installed, installedPkg.exports['./react/css']), 'utf8');
+  assert.equal([...react.matchAll(/\.ui-tip[\s.:,{]/g)].length, 0,
+    'react/css carries the tooltip panel a second time. A consumer loads the kit CSS first, so '
+    + 'that copy wins every contest the kit had already settled — see #551. Import the sheet '
+    + 'nowhere under react/src; the kit entry above is what serves it.');
 });
 
 // The lockfile states the version twice, and a hand-written bump had missed both

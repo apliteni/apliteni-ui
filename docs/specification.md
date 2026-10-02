@@ -41,6 +41,34 @@ and [#329](https://github.com/apliteni/apliteni-ui/issues/329).
 A React wrapper is published under the `./react` subpath. It is a wrapper — the tokens and the CSS
 are the same file the HTML entry point serves.
 
+### The React stylesheet does not re-emit a kit sheet
+
+A React consumer imports `apliteni-ui/css` and then `apliteni-ui/react/css`. Both, and in that
+order: the React stylesheet carries what React's own components add, not a second copy of the kit.
+
+**The kit CSS is a peer, not a dependency of a React component.** A React component imports its own
+`react/src/*.css` and nothing out of `src/styles/`, because a sheet it imports from there is
+re-emitted into `react/dist/index.css` — and in the consumer's document that copy lands *after* the
+kit's own, where at equal specificity it wins. The kit then overrules itself from a second position.
+That is what took `.ui-pager__size-select` back to a full-size form field in a row of `sm` buttons:
+`pagination.css` had given it its compact width, padding, type size, radius and chevron offset, and
+the re-emitted `input.css` took all five back. Nothing in `react/dist` restored them, and no
+counter-rule is wanted here — one would only move the contest.
+Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551).
+
+The three nets are the exception, and the reason is that order cannot change what they decide:
+`src/index.css` reads `reduced-motion.css` and `field-zoom.css` before any component sheet and
+`tap-zone.css` after every one of them, every declaration they make is behind a media query, and
+the ones that have to win are written `!important` or inside `:where()` at no specificity at all.
+They travel with the React bundle so that a consumer who takes only that stylesheet is not left
+with motion and no net; see
+[Reduced motion travels with the stylesheet](#reduced-motion-travels-with-the-stylesheet).
+
+Held by `stories/react-bundle-cascade.test.js`, which walks the React entry's imports to
+reconstruct the sheets `react/dist/index.css` concatenates, refuses any re-emitted kit sheet that
+decides an ordinary property, and then measures the document a consumer actually gets — kit CSS,
+then that bundle — against the same document with the re-emitted copies removed.
+
 `docs/library.md` is the catalogue: the `src/` layout, the theming model, and every component the
 kit exports. This page states what those components guarantee; that one states what they are.
 
