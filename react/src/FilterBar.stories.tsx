@@ -17,6 +17,8 @@ export const Controlled: Story = { render: function Example(args) {
 } };
 // A chip with nothing chosen shows the field it filters; a chosen one shows the value.
 export const Unset: Story = { args: { filters: [{ id: 'listing', label: 'Listing', items: [{ label: 'Any listing', value: '' }, { label: 'Primary', value: 'Primary' }] }, ...filters] } };
+// Controlled, so the pick moves the trigger and the tick together the way a wired bar does.
+export const Open: Story = { ...Controlled, args: { filters: [{ ...filters[0], open: true }, filters[1]] } };
 export const Busy: Story = { args: { busy: true } };
 export const Disabled: Story = { args: { disabled: true } };
 export const Empty: Story = { args: { filters: [] } };

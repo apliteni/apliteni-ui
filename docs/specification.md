@@ -2191,13 +2191,21 @@ drawn: it reaches a reader through the trigger's accessible name and the chip's 
 legend, which carry it in every state, and nowhere on screen. A filter's `value` is display
 text, because it is the chip's only visible line: a consumer answers a change with text a
 reader can read, not with a row's code. Decided in
-[#535](https://github.com/apliteni/apliteni-ui/issues/535). Updating the mounted host preserves the focused chip
-control; after removal focus moves to the next chip, then the previous, then the bar when no
-filter remains. Busy and disabled bars stop their native controls. Dropdown owns opening,
-keyboard selection, Escape and focus return. A chip's panel stays inside the row that holds it at
-every viewport, which is what bounds its width — see A filter row holds its panels. Segmented
-controls support an underline appearance for switching columns over one dataset; arrow keys, Home
-and End skip disabled choices.
+[#535](https://github.com/apliteni/apliteni-ui/issues/535). That same `value` is what the open
+menu marks, with a soft accent wash on the first row whose label or value equals it, so a row's
+own `selected` cannot disagree with the chip. Every label in the menu keeps one ink, so the row
+in force is not the faintest. The wash is the bar's own treatment; every other listbox keeps
+Dropdown's trailing check, and a forced palette brings the check back here too, because a shape
+survives where a colour does not. `aria-selected` marks the row and the trigger's accessible
+name carries the value, so the selection is never left to the wash alone. A row's `value` is
+compared as text, so a row carrying a number matches the chip that shows it; a row's `label` is
+text already. A value no row carries marks nothing. Updating the mounted host preserves the
+focused chip control; after removal focus moves to the next chip, then the previous, then the
+bar when no filter remains. Busy and disabled bars stop their native controls. Dropdown owns
+opening, keyboard selection, Escape and focus return. A chip's panel stays inside the row that
+holds it at every viewport, which is what bounds its width — see A filter row holds its panels.
+Segmented controls support an underline appearance for switching columns over one dataset;
+arrow keys, Home and End skip disabled choices.
 
 ## Vanilla HTML boundaries
 
@@ -2490,8 +2498,8 @@ column switches over one dataset, where the order is the reader's map.
 ## Shared React logic and declarations
 
 The main entry exports `dropdownMatch`, `dropdownFiltering`, `rankGroups`,
-`rankCommands`, `scoreCommand`, `paletteHotkey`, `segmentedNextIndex`, `PAGE_SIZES`,
-`DEFAULT_PAGE_SIZE`, and `calloutIcons` from shared logic modules. Vanilla factories
+`rankCommands`, `scoreCommand`, `paletteHotkey`, `segmentedNextIndex`, `filterBarItems`,
+`PAGE_SIZES`, `DEFAULT_PAGE_SIZE`, and `calloutIcons` from shared logic modules. Vanilla factories
 use the same logic and retain their exports during the removal migration.
 `formatNumericValue` returns plain text, a unit, and an optional missing-value label;
 `formatDeltaValue` returns plain text, the delta classes, and the comparison basis ID.

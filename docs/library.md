@@ -283,8 +283,13 @@ are that shared set, exported from the entry and asked by both faces.
 
 Each filter also accepts `disabled` and `open` (initial/snapshot state); `items` follow
 Dropdown's entries. React `<FilterBar {...options} onChange={(id,value)=>…}
-onRemove={id=>…} onClear={()=>…} />` uses the same controller. IDs must be unique within
-a bar. Add-filter controls and domain-specific option validation belong to the consumer.
+onRemove={id=>…} onClear={()=>…} />` uses the same controller. Both wrappers mark the open
+menu's current row from the filter's `value` through `filterBarItems(items, value)`: the
+first row whose label or value equals it takes a soft accent wash, and every other row's
+own `selected` is overwritten, so the two cannot disagree. Separators pass through
+untouched. The wash is scoped to the bar; other listboxes keep Dropdown's trailing check,
+which also returns here under a forced palette. IDs must be unique within a bar. Add-filter controls and domain-specific
+option validation belong to the consumer.
 
 `segmentedNextIndex(key, index, length)` is the shared arrow/Home/End index calculation used by both wrappers; unsupported keys return null.
 

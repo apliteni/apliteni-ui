@@ -27,3 +27,28 @@ export function filterChipName(filter = {}) {
   if (!field) return text(filter.value);
   return filterChipUnset(filter) ? `${field}: any` : `${field}: ${text(filter.value)}`;
 }
+
+/**
+ * The chip's items with the current value marked, so the menu ticks the row the
+ * trigger shows — Dropdown's own `selected`, and nothing else.
+ *
+ * `value` is display text, and a consumer answers a change with either the picked
+ * row's `value` or its label, so a row matching either is the current one; only the
+ * first match is marked, so one row carries the tick. Both sides are compared as
+ * strings, because a row's `value` may be a number and a chip echoing one back must
+ * still mark its row. Public because both faces of the filter bar ask it, the way
+ * both ask dropdownMatch().
+ * why: docs/specification.md#dense-financial-tables
+ */
+export function filterBarItems(items = [], value) {
+  const want = value == null ? null : String(value);
+  let marked = false;
+  return items.map((item) => {
+    // Separators and holes pass through untouched; the same rule as the kit's own isRow.
+    if (!item || item === '---' || item.separator) return item;
+    const hit = !marked && want != null
+      && (item.label === want || (item.value != null && String(item.value) === want));
+    if (hit) marked = true;
+    return { ...item, selected: hit };
+  });
+}

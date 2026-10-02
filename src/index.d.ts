@@ -11,6 +11,8 @@ export declare function filterChipText(filter?: { label?: string; value?: string
 export declare function filterChipName(filter?: { label?: string; value?: string }): string;
 export declare function filterChipUnset(filter?: { value?: string }): boolean;
 export declare function segmentedNextIndex(key: string, index: number, length: number): number | null;
+/** The filter chip's items with its current value marked, asked rather than re-implemented by <FilterBar>. */
+export declare function filterBarItems<T>(items?: readonly T[], value?: string | number): T[];
 export declare function icon(name: string, className?: string): string;
 export declare function snippet(opts?: Record<string, unknown>): string;
 export declare function button(opts?: Record<string, unknown>): string;

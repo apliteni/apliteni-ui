@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.70.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'An open filter chip menu now marks the chip\u2019s current value with a soft accent wash on that row, so the applied choice is visible while you pick, and every label in the menu keeps one ink. Vanilla and React read the mark from the chip\u2019s value and overwrite every row\u2019s own selected flag, so the two cannot disagree. The wash is the filter bar\u2019s own treatment: every other dropdown keeps its trailing check, and a forced palette brings the check back in the bar too. Resolves #466.', ['FilterBar']],
+      ['added', '`filterBarItems(items, value)` is exported from the main entry, with a TypeScript declaration, so a consumer building its own chip menu marks the current row by the rule both wrappers use.', ['FilterBar']],
+    ],
+  },
+  {
     v: '0.69.0', date: '2026-10-02',
     changes: [
       ['added', 'React SearchField renders the kit\u2019s search input group for a toolbar: a search glyph, a native search input and an accessible name instead of a visible label, so the row keeps the height of the unlabelled controls beside it. It forwards its ref and the native input props and adds no CSS of its own. There is no clear button, the field the kit already draws. See #517.'],

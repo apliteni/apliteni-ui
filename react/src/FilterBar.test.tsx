@@ -2,7 +2,11 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { vi } from 'vitest';
+import { composeStories } from '@storybook/react';
 import { FilterBar, type Filter } from './FilterBar';
+import * as stories from './FilterBar.stories';
+
+const { Open } = composeStories(stories);
 
 const filters: Filter[] = ['Region', 'Status'].map(label => ({ id: label, label, value: 'All', items: [{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' }] }));
 const callbacks = () => ({ onRemove: vi.fn(), onClear: vi.fn(), onChange: vi.fn() });
@@ -98,4 +102,67 @@ it('chooses the next enabled chip even when an earlier chip is disabled', () => 
   screen.getAllByRole('button', { name: 'Region: All' })[1].focus();
   rerender(<FilterBar filters={items.filter(f => f.id !== 'remove')} {...props} />);
   expect(screen.getByRole('button', { name: 'Status: All' })).toHaveFocus();
+});
+
+// Markup only: the wash is drawn by CSS on .is-selected, which jsdom does not paint. What is
+// held here is that the state is in the markup rather than only in the paint — aria-selected
+// names the chosen row, and the check stays in the DOM as the mark a forced palette falls
+// back to. src/styles/filter-bar-mark.test.js holds the CSS side.
+it('marks the current value in the open menu and nothing else', () => {
+  const props = callbacks();
+  const chips: Filter[] = [
+    { id: 'Region', label: 'Region', value: 'All', open: true,
+      items: [{ label: 'All', value: 'all' }, { label: 'Active', value: 'active', selected: true }, { label: 'All', value: 'legacy' }] },
+    { id: 'Status', label: 'Status', value: 'active', items: [{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' }] },
+    { id: 'Plan', label: 'Plan', value: 'Gone', items: [{ label: 'Free', value: 'free' }] },
+  ];
+  render(<FilterBar filters={chips} {...props} />);
+  const state = (id: string) => Array.from(document.querySelectorAll(`[data-filter-id="${id}"] [data-dd-item]`))
+    .map(row => `${row.getAttribute('aria-selected')}${row.classList.contains('is-selected') ? '+' : ''}`);
+  expect(screen.getByRole('button', { name: 'Region: All' })).toHaveAttribute('aria-expanded', 'true');
+  expect(state('Region')).toEqual(['true+', 'false', 'false']);
+  expect(state('Status')).toEqual(['false', 'true+']);
+  expect(state('Plan')).toEqual(['false']);
+  // Kept in the DOM on purpose: a forced palette drops the wash and falls back to this.
+  expect(document.querySelector('[data-filter-id="Region"] .is-selected .ui-dropdown__tick')).not.toBeNull();
+});
+
+// Markup only, as above. Guards filterBarItems' separator pass-through: without it a '---'
+// string spreads character by character into a blank selectable row. Filter.value is typed
+// string, so the numeric chip below is cast: the case is reachable from untyped callers of a
+// published function, not from typed React, and widening the prop is not this fix's business.
+it('leaves separators alone while it marks, and matches a numeric value as a string', () => {
+  const props = callbacks();
+  const chips: Filter[] = [
+    { id: 'Region', label: 'Region', value: 'Europe', open: true,
+      items: [{ label: 'All', value: 'all' }, '---', { label: 'Europe', value: 'europe' }, { separator: true }] },
+    // The labels differ from the numbers' string form on purpose: with label '2024' the label
+    // branch matches first and the value branch decides nothing.
+    { id: 'Year', label: 'Year', value: 2024 as unknown as string,
+      items: [{ label: 'FY 2023', value: 2023 }, { label: 'FY 2024', value: 2024 }] },
+  ];
+  render(<FilterBar filters={chips} {...props} />);
+  const rows = (id: string) => Array.from(document.querySelectorAll(`[data-filter-id="${id}"] [data-dd-item]`))
+    .map(row => row.getAttribute('aria-selected'));
+  expect(document.querySelectorAll('[data-filter-id="Region"] [data-dd-item]')).toHaveLength(2);
+  expect(document.querySelectorAll('[data-filter-id="Region"] .ui-dropdown__sep')).toHaveLength(2);
+  expect(rows('Region')).toEqual(['false', 'true']);
+  expect(rows('Year')).toEqual(['false', 'true']);
+});
+
+// Renders the Open story itself, so an args-only story cannot come back: with the meta's
+// no-op onChange the menu ticks the row just clicked while the trigger keeps the old
+// value, which is #466's own confusion. Markup only: CSS paints the tick, jsdom does not.
+it('Open moves the chip and its mark together on a pick, and keeps both after a reopen', async () => {
+  render(<Open />);
+  const marked = () => Array.from(document.querySelectorAll('[data-filter-id="region"] [data-dd-item].is-selected')).map(row => row.getAttribute('data-value'));
+  expect(screen.getByRole('button', { name: 'Region: All' })).toHaveAttribute('aria-expanded', 'true');
+  expect(marked()).toEqual(['All']);
+  await userEvent.click(screen.getByRole('option', { name: 'Europe' }));
+  const trigger = screen.getByRole('button', { name: 'Region: Europe' });
+  expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  expect(marked()).toEqual(['Europe']);
+  await userEvent.click(trigger);
+  expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  expect(marked()).toEqual(['Europe']);
 });
