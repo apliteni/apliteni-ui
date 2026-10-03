@@ -300,7 +300,7 @@ running text, labels, captions and chips, and each takes one rank:
 | `page-title` | `--text-2xl`  | `--weight-bold`     | `1.1`              | the page's `h1` inside `appShell()` |
 | `card-title` | `--text-lg`   | `--weight-semibold` | `--leading-snug`   | a card's title |
 | `body`       | `--text-base` | `--weight-normal`   | `--leading-normal` | running text |
-| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title, a code sample's label |
+| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head — including the one a stacked card prints in front of each value — a nav or menu caption, a footer column title, a code sample's label |
 | `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot |
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
@@ -2313,7 +2313,7 @@ Held by `src/components/stat.test.js`, `src/styles/stat.test.js` and `stories/st
 
 Column labels accept React content, including a kit Tooltip for a header explanation.
 
-Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
+Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells. A sortable header's label truncates rather than pushing the sort caret out of a capped column, so a pinned sortable identity keeps its direction visible on a phone.
 
 A table may omit selection controls when its consumer has no selection action. Existing
 selection-enabled tables keep their row and visible-page selection behavior.
@@ -2479,9 +2479,39 @@ names the comparison through `basisId`. `rowIdentity` combines decorative logo, 
 name; missing or failed images retain a letter fallback after initialization.
 
 A named scroll region holds the native table. Sticky headers and pinned identity cells have
-opaque table backgrounds and the shared G2 focus composition. Narrow pinned identities show
-the symbol, retain the full accessible name, and use a company link for disclosure. The
-consumer supplies a real destination for that link. Columns scroll rather than disappear.
+opaque table backgrounds and the shared G2 focus composition. Below the 720px fold a pinned
+identity cell keeps its content on one line, capped by `--ui-table-identity-max` —
+`min(var(--panel-sm), 50vw)` until a consumer retunes that one property — and cuts what passes
+the cap with an ellipsis. The whole text stays in the DOM, so the accessible name is unchanged
+and the company link remains the disclosure; a control in the cell keeps its own marks and its
+focus ring, and the decorative logo is not drawn there. The consumer supplies a real
+destination for that link. Columns scroll rather than disappear. Held by
+`src/styles/table-identity.test.js`; decided in
+[#500](https://github.com/apliteni/apliteni-ui/issues/500).
+
+`ui-table--stacked` is the other answer to the same width, and a consumer chooses one.
+At the 560px one-column step and below it stops drawing a row as a row: the header row is
+not drawn, each `<tr>` is a card edged by the hairline its row rule used to be, the pinned
+identity cell is that card's heading over a rule, and every other cell is a label/value
+line. The label is the cell's own `data-label`, since no header row is left to read it
+from. Above the step nothing changes, and between 561px and 720px the table is still the
+capped pinned column above — the two compositions never apply at once. The modifier is
+opt-in because the markup carries two things no stylesheet can supply: that `data-label`,
+and the ARIA roles — `table`, `rowgroup`, `row`, `columnheader`, `cell`, and `rowheader`
+on the identity — because a browser drops table semantics the moment `display` stops being
+`table-*`. React's `DataTable` writes both from its columns when `stacked` is set, and a
+column whose header is markup rather than a word names its label with `labelText`, which is
+the line's name rather than a copy of the header: anything the header drew and a card does
+not — a unit, a basis — belongs in it. A card
+is as tall as its columns are many, so the composition suits a table a reader scans row by
+row rather than one with fifteen columns to compare. Held by
+`src/styles/table-stacked.test.js` and `react/src/DataTable.test.tsx`; decided in
+[#500](https://github.com/apliteni/apliteni-ui/issues/500).
+
+Limits: a cell's label is CSS generated content, which
+current screen readers announce but which is not a `<th>` association, and a consumer who
+needs that association keeps the table. The roles restore the grid, not the column headers
+the hidden header row took with it.
 
 `FilterBar` is controlled by its consumer: selections, removal and clear-all request changes,
 and never mutate the supplied filters. A chip shows the chosen value alone, and the field's

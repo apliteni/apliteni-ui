@@ -504,6 +504,54 @@ it('rotates the same chevron for ascending sort by default while rows reorder im
   expect(caret).not.toHaveAttribute('data-up');
 });
 
+// JSDOM supplies no layout; src/styles/table-identity.test.js holds the kit rule that
+// leaves a control in a pinned identity cell unclipped, and the #500 captures show the
+// drawn header at 390.
+it('keeps a pinned sortable header a label that can give way and a caret that cannot', () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+    pinnedIdentity stickyHeader scrollLabel="Ledger" />);
+  const header = screen.getByRole('columnheader', { name: 'Name' });
+  expect(header).toHaveClass('ui-table__identity');
+  const button = within(header).getByRole('button', { name: 'Name' });
+  const label = button.querySelector('.rx-sort__label')!;
+  expect(label).toHaveTextContent('Name');
+  // The caret is the button's own child, not the label's: what truncates must not
+  // be able to take the sort direction with it.
+  expect(label.querySelector('svg')).toBeNull();
+  expect(button.querySelector('svg')).toHaveClass('rx-caret');
+});
+
+// The kit gate (src/styles/table-identity.test.js) holds the cell's side of #500:
+// a control in a pinned identity cell is capped, never clipped. This holds the half
+// that lives here — with the label unable to give way, its 231px of text runs over
+// the caret and into the next column inside the 170px the cap leaves it.
+it('gives the sortable label the rules that let it give way, and the caret none of them', () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+    pinnedIdentity stickyHeader scrollLabel="Ledger" />);
+  const header = screen.getByRole('columnheader', { name: 'Name' });
+  const label = within(header).getByRole('button', { name: 'Name' }).querySelector('.rx-sort__label')!;
+  const caret = within(header).getByRole('button', { name: 'Name' }).querySelector('svg')!;
+  const style = document.createElement('style');
+  style.textContent = readFileSync(join(dirname(expect.getState().testPath!), 'DataTable.css'), 'utf8');
+  document.head.append(style);
+  try {
+    const declarations = (selector: Element) => Object.fromEntries(
+      Array.from(style.sheet!.cssRules)
+        .filter(rule => 'selectorText' in rule && selector.matches((rule as CSSStyleRule).selectorText))
+        .flatMap(rule => Array.from((rule as CSSStyleRule).style).map(p => [p, (rule as CSSStyleRule).style.getPropertyValue(p)])));
+    const onLabel = declarations(label);
+    expect(onLabel['overflow']).toBe('hidden');
+    expect(onLabel['text-overflow']).toBe('ellipsis');
+    expect(onLabel['min-width']).toBe('0px');
+    const onButton = declarations(label.parentElement!);
+    expect(onButton['max-width']).toBe('100%');
+    expect(onButton['min-width']).toBe('0px');
+    // What must not give way: the caret is the only visible sort direction.
+    expect(declarations(caret)['flex-shrink']).toBe('0');
+    expect(declarations(caret)['overflow']).toBeUndefined();
+  } finally { style.remove(); }
+});
+
 it('disables the chevron transition under reduced motion', () => {
   render(<DataTable columns={columns} rows={rows} selectable={false} />);
   const caret = screen.getByRole('button', { name: 'Clicks' }).querySelector('svg')!;
@@ -560,4 +608,83 @@ it('offers column navigation only for overflow and disables each reached edge', 
   Object.defineProperty(region, 'clientWidth', { value: 450 });
   fireEvent.scroll(region);
   expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
+});
+
+// Stacked rows (#500). The look is the kit's — src/styles/table-stacked.test.js holds
+// every declaration the step writes, and the captures show the drawn cards at 390 and
+// 320. What lives here is the markup no stylesheet can supply: the label each card
+// prints, and the ARIA roles a browser drops the moment `display` leaves `table-*`.
+const stackedColumns: Column<Row>[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'clicks', label: <b>Clicks</b>, labelText: 'Clicks', num: true },
+];
+
+it('writes the table roles back when a row is drawn as a card', () => {
+  render(<DataTable columns={stackedColumns} rows={rows} selectable={false} pager={false}
+    pinnedIdentity stacked scrollLabel="Ledger" />);
+  const table = screen.getByRole('table');
+  expect(table).toHaveClass('ui-table--stacked');
+  expect(table).toHaveAttribute('role', 'table');
+  // Both row groups, so a block tbody is still a row group and not a bare div.
+  expect(table.querySelectorAll('[role="rowgroup"]')).toHaveLength(2);
+  // Counted as WRITTEN attributes, not through getAllByRole: JSDOM applies no
+  // stylesheet, so every one of these boxes still has its implicit role and a role
+  // query answers the same whether the attribute is there or not.
+  expect(table.querySelectorAll('[role="row"]')).toHaveLength(rows.length + 1);
+  expect(table.querySelectorAll('[role="columnheader"]')).toHaveLength(stackedColumns.length);
+  expect(table.querySelectorAll('[role="rowheader"], [role="cell"]'))
+    .toHaveLength(rows.length * stackedColumns.length);
+  // And they are the roles the table already meant: the queries answer the same.
+  expect(screen.getAllByRole('row')).toHaveLength(rows.length + 1);
+  expect(screen.getAllByRole('columnheader')).toHaveLength(stackedColumns.length);
+  // The identity cell names its row; it is the card's heading, not one of its lines.
+  for (const row of rows) expect(screen.getByRole('rowheader', { name: row.name })).toBeInTheDocument();
+  expect(screen.getAllByRole('cell')).toHaveLength(rows.length);
+});
+
+it('names every stacked line from its column, and the heading not at all', () => {
+  render(<DataTable columns={stackedColumns} rows={rows} selectable={false} pager={false}
+    pinnedIdentity stacked scrollLabel="Ledger" />);
+  const body = screen.getByRole('table').querySelector('tbody')!;
+  const labelled = body.querySelectorAll('td[data-label]');
+  // Coverage, not a sample: every cell that is not the heading carries a label, so a
+  // column added without one fails here rather than printing a bare value on a phone.
+  expect(labelled).toHaveLength(rows.length * (stackedColumns.length - 1));
+  // `Clicks` is drawn as markup, so `labelText` is the only thing it can print.
+  for (const cell of labelled) expect(cell).toHaveAttribute('data-label', 'Clicks');
+  for (const heading of body.querySelectorAll('td.ui-table__identity')) {
+    expect(heading).not.toHaveAttribute('data-label');
+  }
+});
+
+it('prints no label for a column that neither writes one nor names one', () => {
+  // The honest outcome, and the one the specification states: a column whose header is
+  // markup and which names no `labelText` has nothing a cell could print.
+  render(<DataTable columns={[{ key: 'name', label: 'Name' }, { key: 'clicks', label: <b>Clicks</b>, num: true }]}
+    rows={rows} selectable={false} pager={false} pinnedIdentity stacked scrollLabel="Ledger" />);
+  const body = screen.getByRole('table').querySelector('tbody')!;
+  expect(body.querySelectorAll('td[data-label]')).toHaveLength(0);
+  expect(body.querySelectorAll('td')).toHaveLength(rows.length * 2);
+});
+
+it('claims no roles and no labels when the rows are not stacked', () => {
+  render(<DataTable columns={stackedColumns} rows={rows} selectable={false} pager={false}
+    pinnedIdentity scrollLabel="Ledger" />);
+  const table = screen.getByRole('table');
+  expect(table).not.toHaveClass('ui-table--stacked');
+  expect(table).not.toHaveAttribute('role');
+  expect(table.querySelectorAll('[role="rowgroup"], [role="row"], [role="cell"], [role="rowheader"]')).toHaveLength(0);
+  expect(table.querySelectorAll('td[data-label]')).toHaveLength(0);
+  // The implicit roles are still what they were, which is why the explicit ones are
+  // written only where a changed `display` would have taken them.
+  expect(screen.getAllByRole('row')).toHaveLength(rows.length + 1);
+});
+
+it('labels a selection cell by its control rather than by a column', () => {
+  render(<DataTable columns={stackedColumns} rows={rows} pinnedIdentity stacked scrollLabel="Ledger"
+    pager={false} selected={new Set()} onToggle={() => {}} onTogglePage={() => {}} />);
+  const cell = screen.getByRole('checkbox', { name: 'Select A' }).closest('td')!;
+  expect(cell).toHaveClass('ui-table__selection');
+  expect(cell).not.toHaveAttribute('data-label');
+  expect(cell).toHaveAttribute('role', 'cell');
 });
