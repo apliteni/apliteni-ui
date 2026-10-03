@@ -3,8 +3,7 @@ import { useState } from 'react';
 import { DataTable, sortTableRows, type Column, type TableSort } from './DataTable';
 import { Badge } from './primitives/Badge';
 
-// `country` and `revenue` are read only by the stacked story, where a card wants
-// more than two lines under its heading to show what the composition is for.
+// `country` and `revenue` are read only by the stacked story; no other story lists them.
 type Row = { name: string; status: string; clicks: number; country: string; revenue: string };
 const rows: Row[] = [
   { name: 'Nutra — DE push', status: 'live', clicks: 48210, country: 'Germany', revenue: '18,402.55 EUR' },
@@ -109,13 +108,17 @@ const pinnedColumns: Column<Row>[] = [
   { key: 'name', label: 'Campaign and registered trading name', sortable: true },
   ...columns.slice(1),
 ];
-// `status` draws a badge rather than writing a word, so stacked it names its own
-// label; `labelText` is the only way a cell can print a header it does not hold.
+// Five columns, because a card wants more than two lines under its heading to show what
+// the composition is for. `revenue` puts its unit in the header, so its header is markup
+// and not a word — which is the case `labelText` exists for: a cell can print a string,
+// so a column whose header is drawn says here what its stacked line should read.
 const stackedColumns: Column<Row>[] = [
   { key: 'name', label: 'Campaign', render: (r) => <a href={`#${encodeURIComponent(r.name)}`}>{r.name}</a> },
-  { key: 'status', label: <>Status</>, labelText: 'Status', render: (r) => <Badge variant={TONE[r.status]}>{r.status}</Badge> },
+  { key: 'status', label: 'Status', render: (r) => <Badge variant={TONE[r.status]}>{r.status}</Badge> },
   { key: 'clicks', label: 'Clicks', num: true, render: (r) => r.clicks.toLocaleString() },
-  { key: 'revenue', label: 'Revenue', num: true },
+  { key: 'revenue', labelText: 'Revenue', num: true,
+    label: <>Revenue <span className="ui-value__unit">EUR</span></>,
+    render: (r) => r.revenue.replace(' EUR', '') },
   { key: 'country', label: 'Country' },
 ];
 
@@ -136,7 +139,10 @@ export const StackedRows: StoryObj = {
   name: 'Stacked rows (390)',
   parameters: { viewport: { defaultViewport: 'mobile1' } },
   render: () => (
-    <div className="ui-card" style={{ maxWidth: 'var(--panel-lg)' }}>
+    // No width cap, unlike PinnedSortable above: the step asks the viewport, not the card
+    // it sits in, so a card narrower than the step would still draw the table at 1280 —
+    // with its columns scrolling — and say nothing about where the cards begin.
+    <div className="ui-card">
       <DataTable columns={stackedColumns} rows={rows} selectable={false} pager={false}
         density="compact" stickyHeader pinnedIdentity stacked scrollLabel="Campaigns" />
     </div>
