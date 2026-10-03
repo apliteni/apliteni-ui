@@ -316,12 +316,17 @@ test('focus walk: the cascade resolver accounts for every stop it walks', () => 
       buckets.exempt += 1;
     }
   }
-  assert.equal(buckets.self, 157, 'the number of stops whose own cascade was resolved moved');
+  // 157 until #463 rebuilt the landing page: its bento took seven stops away
+  // (the Deck strip, Revoke, Skip, Primary action, Cancel, the hover specimen
+  // and the Role select) and the settings card brought eight, so the page went
+  // 35 to 36 and nothing else moved. Every one of those 36 resolves the kit
+  // ring on its own cascade.
+  assert.equal(buckets.self, 158, 'the number of stops whose own cascade was resolved moved');
   assert.deepEqual([...new Set(buckets.delegated)], [
     '.ui-switch input:focus-visible + .ui-switch__track',
   ], 'a ring painted on another box is not cascade-resolved — add it here with its reason');
-  assert.equal(buckets.delegated.length, 6, 'two switch inputs on the landing page, and two '
-    + 'more on each of the account presets');
+  assert.equal(buckets.delegated.length, 5, 'one switch input on the landing page since #463 '
+    + 'replaced its bento with a settings card, and two more on each of the account presets');
   assert.equal(buckets.exempt, 8, 'the two topbar-layout shell screens hold one palette input '
     + 'and three palette rows each');
 });
