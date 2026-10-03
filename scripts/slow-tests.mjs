@@ -49,8 +49,11 @@ const report = (tests, files) => {
 export default async function* slowTests(source) {
   const tests = [];
   const files = [];
-  try {
-    for await (const event of source) {
+  /* A fault is kept and told at the end. Leaving this loop early aborts Node's event stream, and
+   * an aborted stream is a failed run. */
+  let fault;
+  for await (const event of source) {
+    try {
       const { name, file, details } = event.data ?? {};
       const duration = details?.duration_ms;
       if (typeof duration !== 'number' || !file) continue;
@@ -61,12 +64,13 @@ export default async function* slowTests(source) {
         /* A describe block reports its children's time as its own, so it is not a test here. */
         tests.push({ name: `${relative} > ${name}`, duration, budget: testBudget(relative) });
       }
+    } catch (error) {
+      fault ??= error;
     }
-  } catch (error) {
-    yield `\nslow tests: no report this run (${error}); the run itself is unaffected.\n`;
-    return;
   }
-  yield report(tests, files);
+  yield fault
+    ? `\nslow tests: no report this run (${fault}); the run itself is unaffected.\n`
+    : report(tests, files);
 }
 
 export class SlowTests {
