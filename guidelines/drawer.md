@@ -14,6 +14,20 @@
 
 **Except:** Two-answer questions use confirm. Short forms fit; forms needing steps or more than one screen use a page.
 
+## Drawer or page
+
+<!-- rule: drawer-or-page -->
+
+**Rule:** Use a page to edit more than one group, and a drawer for one short change.
+
+**Why:** Several groups need room to move between them and check them before saving.
+
+**Do:** Edit the roles and the per-unit switches on a page, under a way back to the list.
+
+**Don't:** Edit the same groups in a drawer, stacked in one narrow panel over the list.
+
+**Except:** Change one field inline, in its own row, without opening a panel.
+
 ## Grouped content
 
 <!-- rule: no-cards -->
