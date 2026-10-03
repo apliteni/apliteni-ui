@@ -6,7 +6,6 @@
 import { cssText } from '../src/inline.js';
 import { iconNames } from '../src/assets/icons.js';
 import { catalogueCopy } from './catalogue.mjs';
-import { sloganCopy } from './slogans.mjs';
 import { changelogMain } from './changelog.mjs';
 import { RELEASES, parseContributors, parseIssues } from './changelog.mjs';
 import { execFileSync } from 'node:child_process';
@@ -34,10 +33,10 @@ const chrome = (s, active) => s
   .replace('{{CHROME_CSS}}', CHROME_CSS)
   .replace('{{CHROME_JS}}', CHROME_JS);
 
-const landing = sloganCopy(catalogueCopy(readFileSync(new URL('index.html', here), 'utf8'), {
+const landing = catalogueCopy(readFileSync(new URL('index.html', here), 'utf8'), {
   icons: iconNames,
   buttonSource: readFileSync(new URL('../react/src/primitives/Button.tsx', here), 'utf8'),
-}));
+});
 const html = ver(chrome(landing, ''));
 
 // Contributors and issue refs per release, derived from git between version

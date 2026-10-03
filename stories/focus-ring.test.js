@@ -56,7 +56,6 @@ import {
 } from './lib/focus-walk.js';
 import { topbar, footer, CHROME_CSS } from '../site/chrome.mjs';
 import { catalogueCopy } from '../site/catalogue.mjs';
-import { sloganCopy } from '../site/slogans.mjs';
 import { iconNames } from '../src/assets/icons.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -100,13 +99,10 @@ assert.ok(kitRules.length >= 30, `only ${kitRules.length} focus rules found in t
  *  injected into site/index.html, then the catalogue counts resolved. A renamed
  *  placeholder fails here rather than walking a page with no topbar in it. */
 function landingHtml() {
-  // sloganCopy as well as catalogueCopy: site/build.mjs fills both, and the
-  // hero's {{SLOGAN_CSS}} would otherwise sit raw inside the page's <style>,
-  // where it takes the rules around it out of this walk.
-  let html = sloganCopy(catalogueCopy(read('site/index.html'), {
+  let html = catalogueCopy(read('site/index.html'), {
     icons: iconNames,
     buttonSource: read('react/src/primitives/Button.tsx'),
-  }));
+  });
   for (const [marker, value] of [
     ['{{TOPBAR}}', topbar('')],
     ['{{FOOTER}}', footer()],
