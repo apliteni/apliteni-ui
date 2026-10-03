@@ -156,8 +156,8 @@ const FADE_STOPS = {
 const FALLBACK_COL = 48;
 /**
  * The share of its column a bar takes. Half leaves as much ground between two
- * columns as either column draws, which is what stops twelve months reading as
- * one block — the chart's own reference wall says so and #543 picked it.
+ * columns as either column draws, so twelve months read as twelve rather than as
+ * one block. Decided by Artur on #543; it was 0.62.
  */
 const BAR_SHARE = 0.5;
 

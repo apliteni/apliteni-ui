@@ -1,30 +1,17 @@
-// Contrast gate for the chart's series colours.
+// Contrast gate for the chart's series colours. Restyle 01 put two series in one
+// hue at two weights, the lighter a mix towards the ground; a weight chosen by
+// eye can land anywhere, so this holds the floor. Tones are discovered from the
+// stylesheet and their names from the component's own union, so a tone added to
+// one and not the other fails before it can ship a colour nobody measured.
+// why: #543, docs/specification.md#react-charts
 //
-// Restyle 01 (#543) put two series in one hue at two weights, which moves the
-// question "can these be told apart, and can either be seen at all?" off the eye
-// and onto arithmetic. This gate answers the second half: every tone the chart
-// can draw clears the 3:1 graphic bar against both grounds the kit draws a chart
-// on, in both themes, under every accent.
-//
-// It discovers rather than lists. The tones come out of the stylesheet that
-// declares them and the tone names out of the component's own union; a tone added
-// to one and not the other fails here before it can ship a colour nobody measured.
-//
-// WHAT THIS GATE WILL NOT CATCH.
-//
-//  - The ratios come from the stylesheet's own values, not from painted pixels,
-//    so antialiasing, a host override and a ground a consumer names through
-//    --ui-chart-ground are outside it. The browser captures on the pull request
-//    carry the paint.
-//  - The ramp inside a faded bar is not measured. A bar holds its tone at the
-//    edge on zero and at the edge at its value; the middle, which carries no edge
-//    and no number, is let down to half by --ui-chart-fade-near.
-//  - The zero rule, the dot's rim and the line's casing are structure rather than
-//    series — the kit's hairline and ground tokens — and are not measured against
-//    a bar.
-//  - One series against another is not measured either. Two series are told apart
-//    by which side of zero they stand on and by the legend, never by hue alone,
-//    which is what the specification asks of them.
+// Limits: the ratios are the stylesheet's values, not painted pixels, so
+// antialiasing, host overrides and a consumer's own --ui-chart-ground are out;
+// the browser captures on the PR carry the paint. A faded bar's middle, the zero
+// rule, the dot's rim and the line's casing are not series and are not measured
+// here. Nor is one series against another — two series are told apart by the side
+// of zero they stand on and by the legend, never by hue alone.
+// The same list, kept current, is stories/guidelines/accessibility-coverage.json.
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
