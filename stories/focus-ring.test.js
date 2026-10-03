@@ -371,15 +371,20 @@ test('focus walk: losing a ring to source order turns the cascade test red', () 
 // walk entirely. The boxes are discovered from the sheets, so a new overflowing
 // one has to be triaged here rather than appearing unseen.
 //
-// NOT A DECISION THIS GATE MAKES. Whether the seven below should paint the ring
+// NOT A DECISION THIS GATE MAKES. Whether the six below should paint the ring
 // is Artur's call on #531; several sit inside a region that already takes focus,
 // and the ring on a scrolling table wrapper or the application rail is a visible
 // change on surfaces #482 never named. They are recorded as a measured gap, not
-// excused: the list is asserted exactly, so one of them gaining a ring, or an
-// eighth box appearing, fails here.
+// excused: the list is asserted exactly, so one of them gaining a ring, or a
+// seventh box appearing, fails here.
+//
+// `.ui-seg--underline` left on #527: it wraps now and declares no overflow, so
+// the reader no longer discovers it and there is no box left to triage. It was
+// never a stop in the first place — Chrome gives a scroll container one only
+// when it has no focusable children, and this strip always holds its roving
+// tab stop — so what it leaves behind is a list entry, not a defect.
 const SCROLL_GAP = [
   '.ui-card:has(> .ui-table)',
-  '.ui-seg--underline',
   '.ui-dropdown__list',
   '.ui-drawer__body',
   '.ui-confirm__body',

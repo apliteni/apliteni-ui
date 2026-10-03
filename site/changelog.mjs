@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-02',
+    changes: [
+      ['fixed', 'An underline segmented strip wraps onto a further row when its tabs do not fit, instead of keeping one row and scrolling. In a phone-width column the tabs past the fold were cut off with nothing saying they were there: the stock screener showcase lost `Valuation` at 390px. A label too long for the column now wraps inside its own tab, and a single unbreakable word narrows with it, so no tab label can widen the strip or the page. Tabs keep their size, order and type rank, and a tab\u2019s focus ring is no longer clipped. Pill strips are unchanged. Resolves #527.', ['Segmented']],
+      ['changed', 'The chosen tab in an underline strip is the sidebar\u2019s selected row: the reading surface, a hairline around it, the ink step, and one short accent bar on its leading edge. It was an accent rail on its bottom edge plus the accent outline every chosen segmented button carries, which spent the accent twice and left the mark on an edge two wrapped rows could both claim. Every mark is inside the tab now, so a wrapped strip\u2019s rows stand at its own 4px track gap rather than 20px, under both pointers. Closes #544.', ['Segmented']],
+      ['changed', 'An underline strip no longer draws a rule under its tabs. The chosen tab carries the whole selection, so the line marked nothing. A consumer who wants one draws it on the container.', ['Segmented']],
+      ['changed', '`filterBar` and React `FilterBar` show the clear action only once a filter is applied, in the bordered button skin rather than the ghost one. It used to stand in an empty bar, disabled, as the one thing in the row \u2014 which read as a bar that had been switched off. A consumer reading `[data-filter-clear]` finds nothing while no filter is set.', ['Filter bar']],
+    ],
+  },
+  {
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],

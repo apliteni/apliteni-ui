@@ -73,9 +73,58 @@
 }
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
-.ui-seg--underline { flex-wrap: nowrap; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
-.ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
+/* Underline tabs wrap for the reason the pills above do — #435, and #527, which
+   stopped them scrolling. The strip draws no rule of its own: the chosen tab
+   carries the whole selection, so a line under the row marked nothing and read
+   as noise beside it. why: docs/specification.md */
+.ui-seg--underline { flex-wrap: wrap; overflow: visible; row-gap: var(--space-1); align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; padding: var(--space-1); max-width: 100%; }
+/* A label wraps inside its own tab. `nowrap` was safe only while the scroll box
+   above contained it; without one, a tab wider than the column drew past the
+   viewport and took the page's scrollWidth with it. `anywhere` is the half
+   `break-word` cannot do: it lowers the tab's min-content width, so a single
+   unbreakable word narrows too — which a pill's label still does not. #527
+   The block padding carries the 2px the reserved rail used to add, so the tab
+   draws the 44px it has always drawn and its label sits centred in it. */
+.ui-seg--underline button { position: relative; border-radius: var(--radius-sm); padding: calc(var(--space-3) + 1px) var(--space-3); white-space: normal; overflow-wrap: anywhere; }
+/* The chosen tab wears the sidebar's selected row: the reading surface, the
+   hairline around it, the ink step, and one short accent bar standing in the
+   row's own leading padding — .ui-nav--side .ui-nav__item.is-active, and the
+   62% the shell's rail gives that bar. Every mark is inside the tab's own box,
+   which is what lets the strip wrap: a tab on the second row carries its whole
+   highlight with it, so nothing has to be read against the row above. It also
+   retires the two marks the strip used to spend on one answer — a rail AND the
+   pill rule's accent outline, which `outline` cancels here. #527, #544 */
 .ui-seg--underline button.is-active,
-.ui-seg--underline button[aria-pressed="true"] { background: transparent; border-bottom-color: var(--accent); }
+.ui-seg--underline button[aria-pressed="true"],
+.ui-seg--underline button[aria-selected="true"] {
+  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  color: var(--strong);
+  outline: 0;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.ui-seg--underline button.is-active::before,
+.ui-seg--underline button[aria-pressed="true"]::before,
+.ui-seg--underline button[aria-selected="true"]::before {
+  content: "";
+  position: absolute;
+  left: 4px; top: 50%;
+  width: 3px; height: 62%;
+  border-radius: 3px;
+  background: var(--accent);
+  transform: translateY(-50%); /* motion: still — a mark on the chosen tab, whose own highlight already transitions; this centres it, it does not travel */
+}
+/* Measured in the mode: `box-shadow` computes to `none`, so the hairline is
+   gone, and the plate comes back as Canvas on a Canvas page, which paints
+   nothing a reader can see. An outline survives, and a system colour named here
+   is kept rather than forced, so the pair is restated as a box and a bar in
+   `Highlight` — the two shapes the themes draw, in a colour the mode keeps. */
+@media (forced-colors: active) {
+  .ui-seg--underline button.is-active,
+  .ui-seg--underline button[aria-pressed="true"],
+  .ui-seg--underline button[aria-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
+  .ui-seg--underline button.is-active::before,
+  .ui-seg--underline button[aria-pressed="true"]::before,
+  .ui-seg--underline button[aria-selected="true"]::before { background: Highlight; }
+}
 .ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }
