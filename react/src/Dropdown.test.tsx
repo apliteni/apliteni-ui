@@ -8,12 +8,36 @@
 import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { afterEach } from 'vitest';
-import { dropdown, wireDropdown, dropdownMatch } from '@apliteni/apliteni-ui';
+import { afterEach, vi } from 'vitest';
+import { dropdown, wireDropdown, dropdownMatch, filterPanelFit } from '@apliteni/apliteni-ui';
 import { Dropdown, type DropdownProps, type DropdownEntry } from './Dropdown';
 import { classesOf, classesOfEl } from './test/classlist';
 
 afterEach(cleanup);
+/* The ResizeObserver chipRow({ observer: true }) installs is global, so a later test
+ * would otherwise take the observed path by accident. */
+afterEach(() => { delete (window as unknown as { ResizeObserver?: unknown }).ResizeObserver; });
+
+/* jsdom has no ResizeObserver, which is why the `resize` cases below reach the
+ * fallback path at all. This one reports on demand, so the path a browser actually
+ * takes can be driven: observe() hands back the current box at once, as the real one
+ * does, and the harness's settleRow() is the row changing afterwards — the shell's
+ * rail finishing its 250ms. */
+class FakeObserver {
+  targets: Element[] = [];
+
+  constructor(readonly cb: (entries: { target: Element }[], self: FakeObserver) => void) {
+    FakeObserver.live.push(this);
+  }
+
+  observe(target: Element) { this.targets.push(target); this.cb([{ target }], this); }
+
+  unobserve() { /* the component disconnects instead */ }
+
+  disconnect() { this.targets.length = 0; }
+
+  static live: FakeObserver[] = [];
+}
 
 /** The vanilla factory's output as a DOM container. */
 function vanilla(opts: DropdownProps): Element {
@@ -780,4 +804,343 @@ test('state badge ink and generic metadata match the factory classification', ()
   const { container } = render(<Dropdown items={cases.map(([badge], i) => ({ label: `Option ${i}`, badge }))} />);
   expect([...container.querySelectorAll('.ui-dropdown__badge')].map(el => el.className))
     .toEqual(cases.map(([, tone]) => `ui-dropdown__badge is-${tone}`));
+});
+
+// ---- A filter chip's menu -----------------------------------------------------
+// Inside `.ui-filter-bar__chip` an open menu takes the kit's menu floor and slides
+// back along the row. The arithmetic is the kit's, held by
+// src/components/filter-panel-fit.test.js; what this half owns is writing the
+// numbers the stylesheet reads, writing them again when the viewport moves, and
+// giving a search panel's inline pin back on close. Each of the three was a defect
+// this component shipped while the vanilla wiring did not.
+// why: docs/specification.md#a-filter-row-holds-its-panels
+//
+// LIMITS: JSDOM lays nothing out, so the row and the dropdown are given rects and
+// the panel the width a browser would have bounded it to. That a rendered menu
+// obeys the properties is scripts/evidence/filter-bar-fit.mjs's measurement.
+// Left-to-right rows only.
+
+const PANEL_PROPS = ['room', 'shift', 'floor'];
+const SECTORS: DropdownEntry[] = [
+  { label: 'All', value: 'All', selected: true },
+  { label: 'Consumer Discretionary', value: 'cons' },
+];
+
+/** One <Dropdown> in a filter row, with the two rects filterPanelFit() reads and
+ *  the width the stylesheet would have left the panel at. `resize()` moves the row
+ *  the way a rotation does: new numbers, then the event. */
+function chipRow({ rowWidth = 1200, left = 146, search = false, panelWidth = 240,
+  observer = false } = {}) {
+  // Installed before the render, because the open effect reads it. Taken off in afterEach.
+  FakeObserver.live = [];
+  if (observer) (window as unknown as { ResizeObserver?: unknown }).ResizeObserver = FakeObserver;
+  const observers = FakeObserver.live;
+  const { container } = render(
+    <fieldset className="ui-filter-bar" data-filter-bar="">
+      <legend className="ui-filter-bar__legend">Filters</legend>
+      <fieldset className="ui-filter-bar__chip" data-filter-id="sector">
+        <legend className="ui-filter-bar__legend">Sector</legend>
+        <Dropdown variant="select" ariaLabel="Sector" items={SECTORS} search={search || undefined} />
+      </fieldset>
+    </fieldset>);
+  const bar = container.querySelector('.ui-filter-bar')!;
+  const dd = container.querySelector('.ui-dropdown')!;
+  const panel = dd.querySelector('.ui-dropdown__panel') as HTMLElement;
+  const at = { rowWidth, left, panelWidth };
+  vi.spyOn(bar, 'getBoundingClientRect').mockImplementation(
+    () => ({ left: 0, right: at.rowWidth, width: at.rowWidth }) as DOMRect);
+  vi.spyOn(dd, 'getBoundingClientRect').mockImplementation(
+    () => ({ left: at.left, right: at.left + 60, width: 60 }) as DOMRect);
+  vi.spyOn(panel, 'offsetWidth', 'get').mockImplementation(() => at.panelWidth);
+  return {
+    user: userEvent.setup(), dd, panel, bar, observers,
+    trigger: dd.querySelector('.ui-dropdown__trigger') as HTMLElement,
+    fit: () => PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`)),
+    resize: (next: Partial<typeof at>) => {
+      Object.assign(at, next);
+      window.dispatchEvent(new Event('resize'));
+    },
+    /** The row's own box changing, which is what a ResizeObserver reports. */
+    settleRow: (next: Partial<typeof at>) => {
+      Object.assign(at, next);
+      for (const ro of observers) for (const target of ro.targets) ro.cb([{ target }], ro);
+    },
+    /** The panel's fade reaching its end. */
+    endFade: () => {
+      const e = new Event('transitionend') as TransitionEvent & { propertyName: string };
+      e.propertyName = 'opacity';
+      panel.dispatchEvent(e);
+    },
+  };
+}
+
+it('an open chip menu carries every number the kit measured', async () => {
+  // Derived from the fit rather than listed, so a number the kit starts returning
+  // and this component does not write fails here. React wrote two of the three,
+  // which left the published `floor` argument unable to change a rendered width.
+  const row = chipRow();
+  await row.user.click(row.trigger);
+  const fit = filterPanelFit(row.dd)!;
+  const numbers = Object.entries(fit).filter(([, value]) => typeof value === 'number');
+  expect(numbers).toHaveLength(3);
+  for (const [key, value] of numbers) {
+    expect(row.panel.style.getPropertyValue(`--ui-filter-panel-${key}`), key).toBe(`${value}px`);
+  }
+  expect(row.fit()).toEqual(['1054px', '0px', '240px']);
+});
+
+it('a viewport change re-measures a menu that is still open', async () => {
+  // Opened in a 1200px row and left open in a 358px one — a rotation. Holding the
+  // room it was fitted to put the menu 14px off the page.
+  const row = chipRow();
+  await row.user.click(row.trigger);
+  expect(row.fit()).toEqual(['1054px', '0px', '240px']);
+  row.resize({ rowWidth: 358 });
+  expect(row.fit()).toEqual(['240px', '28px', '240px']);
+});
+
+it('a shut menu is given no numbers, and a resize does not start measuring', () => {
+  // Shut, the panel keeps the trigger's width from the stylesheet alone, which is
+  // what holds #467 on a page where nothing ran.
+  const row = chipRow();
+  expect(row.fit()).toEqual(['', '', '']);
+  row.resize({ rowWidth: 358 });
+  expect(row.fit()).toEqual(['', '', '']);
+});
+
+it('a searchable chip gives its pinned width back when its fade ends', async () => {
+  /* The panel holds the width the whole list needed as an inline `min-width`, and
+   * inline beats the sheet that holds a shut panel to its trigger. Left behind,
+   * that is #467 at the menu floor's width: a shut 240px panel made a 476px page
+   * on a 390px view. Given back at the END of the fade, because the pin is part of
+   * the open geometry and the panel is still being painted. */
+  const row = chipRow({ search: true });
+  await row.user.click(row.trigger);
+  expect(row.panel.style.minWidth).toBe('240px');
+  await row.user.keyboard('{Escape}');
+  expect(row.dd.classList.contains('open')).toBe(false);
+  expect(row.panel.style.minWidth).toBe('240px');
+  row.endFade();
+  expect(row.panel.style.minWidth).toBe('');
+});
+
+it('the row an open menu is fitted to is the box that is watched', async () => {
+  /* Not the viewport. `resize` fires before a row whose width is animating has
+   * settled — the shell's rail transitions over --dur-med — so the handler read a
+   * row 70px narrower than it ends up and the menu kept that number. */
+  const row = chipRow({ observer: true });
+  await row.user.click(row.trigger);
+  expect(row.observers).toHaveLength(1);
+  expect(row.observers[0].targets).toEqual([row.bar]);
+});
+
+it('a row that settles after the event is measured again', async () => {
+  // The screener: opened at 1280, narrowed, and the rail still widening the column
+  // under the menu. The menu has to end up at the row it settles at.
+  const row = chipRow({ observer: true });
+  await row.user.click(row.trigger);
+  expect(row.fit()).toEqual(['1054px', '0px', '240px']);
+  row.settleRow({ rowWidth: 143.625, left: 5 });
+  expect(row.fit()).toEqual(['143.625px', '5px', '143.625px']);
+  row.settleRow({ rowWidth: 214, left: 5 });
+  expect(row.fit()).toEqual(['214px', '5px', '214px']);
+});
+
+it('the row is let go when the menu closes', async () => {
+  const row = chipRow({ observer: true });
+  await row.user.click(row.trigger);
+  await row.user.keyboard('{Escape}');
+  expect(row.observers[0].targets).toEqual([]);
+});
+
+it('where a row is watched, a resize does not measure as well', async () => {
+  /* Two answers to one change, and the worse of them arrives second: the `resize`
+   * handler reads the row mid-animation. It is the fallback for a view with no
+   * ResizeObserver, not a second opinion. */
+  const row = chipRow({ observer: true });
+  await row.user.click(row.trigger);
+  row.settleRow({ rowWidth: 214, left: 5 });
+  expect(row.fit()).toEqual(['214px', '5px', '214px']);
+  row.resize({ rowWidth: 143.625, left: 5 });
+  expect(row.fit()).toEqual(['214px', '5px', '214px']);
+});
+
+it('a closing chip menu keeps its open geometry until the fade ends', async () => {
+  /* `.ui-dropdown.open` stops matching in the frame the menu closes; the panel goes
+   * on being painted for --dur-med. Dropping the fit there collapsed an opaque 240px
+   * menu to its 48px trigger and jumped it 67px sideways — #549, on the way out. */
+  const row = chipRow();
+  await row.user.click(row.trigger);
+  expect(row.fit()).toEqual(['1054px', '0px', '240px']);
+  await row.user.keyboard('{Escape}');
+  expect(row.dd.classList.contains('open')).toBe(false);
+  expect(row.panel.classList.contains('is-closing')).toBe(true);
+  expect(row.fit()).toEqual(['1054px', '0px', '240px']);
+  row.endFade();
+  expect(row.panel.classList.contains('is-closing')).toBe(false);
+  expect(row.fit()).toEqual(['', '', '']);
+});
+
+it('only the panel\'s own fade ends the hold', async () => {
+  // A row's background transition bubbles to the panel too, and it finishes first.
+  const row = chipRow();
+  await row.user.click(row.trigger);
+  await row.user.keyboard('{Escape}');
+  const other = new Event('transitionend', { bubbles: true }) as TransitionEvent & { propertyName: string };
+  other.propertyName = 'background';
+  row.dd.querySelector('.ui-dropdown__item')!.dispatchEvent(other);
+  expect(row.panel.classList.contains('is-closing')).toBe(true);
+  row.endFade();
+  expect(row.panel.classList.contains('is-closing')).toBe(false);
+});
+
+it('the hold is released on a timer when transitionend never comes', async () => {
+  // A fade that did not run fires nothing — and jsdom fires nothing at all, which is
+  // the case this timer is written for. The length comes from the sheet.
+  const row = chipRow();
+  await row.user.click(row.trigger);
+  await row.user.keyboard('{Escape}');
+  expect(row.panel.classList.contains('is-closing')).toBe(true);
+  await new Promise((done) => { setTimeout(done, 120); });
+  expect(row.panel.classList.contains('is-closing')).toBe(false);
+  expect(row.fit()).toEqual(['', '', '']);
+});
+
+it('re-opening mid-fade keeps the new fit and drops the hold', async () => {
+  /* The abandoned wait must not fire late: it would clear the geometry the new open
+   * has just written, leaving an OPEN menu at its trigger's width. */
+  const row = chipRow();
+  await row.user.click(row.trigger);
+  await row.user.keyboard('{Escape}');
+  expect(row.panel.classList.contains('is-closing')).toBe(true);
+  await row.user.click(row.trigger);
+  expect(row.dd.classList.contains('open')).toBe(true);
+  expect(row.panel.classList.contains('is-closing')).toBe(false);
+  expect(row.fit()).toEqual(['1054px', '0px', '240px']);
+  await new Promise((done) => { setTimeout(done, 120); });
+  expect(row.fit()).toEqual(['1054px', '0px', '240px']);
+});
+
+it('a chip menu that was never opened is given no geometry to hold', async () => {
+  /* The close effect runs on first render too. Giving a never-opened panel the open
+   * width is #467 exactly: a hidden box wider than its trigger widens the page. */
+  const row = chipRow();
+  expect(row.panel.classList.contains('is-closing')).toBe(false);
+  expect(row.fit()).toEqual(['', '', '']);
+  await new Promise((done) => { setTimeout(done, 120); });
+  expect(row.panel.classList.contains('is-closing')).toBe(false);
+});
+
+it('a searchable chip reads its pin again at the new width', async () => {
+  // Re-fitting the properties alone leaves the pin from the old row, and a pin
+  // wider than the row outranks every bound in the sheet.
+  const row = chipRow({ search: true });
+  await row.user.click(row.trigger);
+  expect(row.panel.style.minWidth).toBe('240px');
+  row.resize({ rowWidth: 200, panelWidth: 200 });
+  expect(row.fit()).toEqual(['200px', '146px', '200px']);
+  expect(row.panel.style.minWidth).toBe('200px');
+});
+
+/** The add control's menu in the same row (#496). Not a chip's, so what makes it a
+ *  subject is the width it asks for; JSDOM loads no stylesheet, so the ask is set on
+ *  the panel the way src/styles/filter-bar.css sets it. */
+function addRow({ rowWidth = 1200, left = 146, panelWidth = 320, observer = false } = {}) {
+  // Installed before the render, for the reason chipRow() gives. Taken off in afterEach.
+  FakeObserver.live = [];
+  if (observer) (window as unknown as { ResizeObserver?: unknown }).ResizeObserver = FakeObserver;
+  const observers = FakeObserver.live;
+  const { container } = render(
+    <fieldset className="ui-filter-bar" data-filter-bar="">
+      <legend className="ui-filter-bar__legend">Filters</legend>
+      <div data-filter-add="">
+        <Dropdown variant="menu" label="Add filter" ariaLabel="Add filter" items={SECTORS} />
+      </div>
+    </fieldset>);
+  const bar = container.querySelector('.ui-filter-bar')!;
+  const dd = container.querySelector('.ui-dropdown')!;
+  const panel = dd.querySelector('.ui-dropdown__panel') as HTMLElement;
+  panel.style.setProperty('--ui-filter-panel-ask', '320px');
+  const at = { rowWidth, left, panelWidth };
+  vi.spyOn(bar, 'getBoundingClientRect').mockImplementation(
+    () => ({ left: 0, right: at.rowWidth, width: at.rowWidth }) as DOMRect);
+  vi.spyOn(dd, 'getBoundingClientRect').mockImplementation(
+    () => ({ left: at.left, right: at.left + 99, width: 99 }) as DOMRect);
+  vi.spyOn(panel, 'offsetWidth', 'get').mockImplementation(() => at.panelWidth);
+  return {
+    user: userEvent.setup(), dd, panel, bar, observers,
+    trigger: dd.querySelector('.ui-dropdown__trigger') as HTMLElement,
+    fit: () => PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`)),
+    resize: (next: Partial<typeof at>) => {
+      Object.assign(at, next);
+      window.dispatchEvent(new Event('resize'));
+    },
+    settleRow: (next: Partial<typeof at>) => {
+      Object.assign(at, next);
+      for (const ro of observers) for (const target of ro.targets) ro.cb([{ target }], ro);
+    },
+    endFade: () => {
+      const e = new Event('transitionend') as TransitionEvent & { propertyName: string };
+      e.propertyName = 'opacity';
+      panel.dispatchEvent(e);
+    },
+  };
+}
+
+it("an open add menu carries the width it asks for, not a chip's floor", async () => {
+  // 320, not 240: a catalogue with a field over it reads "Searc" at a chip's floor.
+  const row = addRow();
+  await row.user.click(row.trigger);
+  expect(row.fit()).toEqual(['1054px', '0px', '320px']);
+});
+
+it('a viewport change re-measures an add menu that is still open', async () => {
+  /* The add menu asks for 320px where a chip asks for 240px, so it is the first menu
+   * in the row whose stale fit shows on a phone: 240 fits a 288px row and 320 does
+   * not. Opened in a 1200px row, then the row a 390px view gives it, then a 320px
+   * one — the panel slides back where there is room behind it and takes the row's
+   * own width where there is not. */
+  const row = addRow();
+  await row.user.click(row.trigger);
+  expect(row.fit()).toEqual(['1054px', '0px', '320px']);
+  row.resize({ rowWidth: 358, left: 250 });
+  expect(row.fit(), 'a 358px row still holds the 320px ask').toEqual(['320px', '212px', '320px']);
+  row.resize({ rowWidth: 288, left: 16, panelWidth: 288 });
+  expect(row.fit(), 'a 288px row decides instead').toEqual(['288px', '16px', '288px']);
+});
+
+it("the add menu's own row is the box that is watched", async () => {
+  /* The catalogue is not inside a `.ui-filter-bar__chip`, so a watcher keyed on the
+   * chip would leave this one menu on the `resize` fallback while every chip beside
+   * it took the observer. filterPanelRow() answers for both halves. */
+  const row = addRow({ observer: true });
+  await row.user.click(row.trigger);
+  expect(row.observers.length, 'one observer for the add menu too').toBe(1);
+  expect(row.observers[0].targets, 'the row, not the wrapper and not the view').toEqual([row.bar]);
+  row.settleRow({ rowWidth: 358, left: 250 });
+  expect(row.fit(), 'and the ask survives the re-fit').toEqual(['320px', '212px', '320px']);
+});
+
+it('a closing add menu keeps its open geometry until the fade ends', async () => {
+  // The hold reaches the catalogue as well: 320px of panel collapsing to a 99px
+  // trigger is the same repaint on the way out, with 221px more of it.
+  const row = addRow();
+  await row.user.click(row.trigger);
+  expect(row.fit()).toEqual(['1054px', '0px', '320px']);
+  await row.user.click(row.trigger);
+  expect(row.dd.classList.contains('open')).toBe(false);
+  expect(row.panel.classList.contains('is-closing'), 'the hold is on').toBe(true);
+  expect(row.fit(), 'and the geometry with it').toEqual(['1054px', '0px', '320px']);
+  row.endFade();
+  expect(row.panel.classList.contains('is-closing')).toBe(false);
+  expect(row.fit(), 'given back once nothing is painted').toEqual(['', '', '']);
+});
+
+it('a dropdown outside a filter row is given no numbers at all', async () => {
+  const user = userEvent.setup();
+  const { container } = render(<Dropdown ariaLabel="Actions" items={SECTORS} />);
+  const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
+  await user.click(container.querySelector('.ui-dropdown__trigger')!);
+  window.dispatchEvent(new Event('resize'));
+  expect(PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`))).toEqual(['', '', '']);
 });

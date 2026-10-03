@@ -401,7 +401,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
   // Plus the rows no story puts on screen, and two a consumer would write.
   const fixtures = await rowFixtures();
   assert.ok(
-    fixtures.length >= 9,
+    fixtures.length >= 10,
     `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
     + 'could not see, and a list that shrank would quietly give that coverage back.',
   );

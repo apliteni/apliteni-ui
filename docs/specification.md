@@ -1903,9 +1903,16 @@ a page 398px wide on a 390px view — the 8px of
 themselves were never the problem; `.ui-filter-bar` wraps, and at both widths they fitted.
 
 **What a consumer can rely on.** At any viewport, a filter bar's *panels* add nothing to the page's
-scrollable width, and each panel opens inside the row that holds it. The bound is `min-width: 100%;
-max-width: 100%` against the panel's own containing block, so it needs no measuring, no resize
-listener and no JavaScript, and vanilla and React get it from the same rule. What a consumer gives
+scrollable width, and each panel opens inside the row that holds it. An open menu is also at least
+as wide as the kit's 240px menu floor, or as wide as its row where the row is narrower. The two
+promises are kept by different means, and the difference is the part a consumer has to know. A shut
+panel is bounded by `min-width: 100%; max-width: 100%` against its own containing block, so it needs
+no measuring, no resize listener and no JavaScript, and vanilla and React get it from the same rule.
+An open menu's floor is *measured*: it holds once the kit's JavaScript has run, and a row that
+moves under an open menu is measured again — both halves watch the row with a `ResizeObserver`,
+because a menu that kept the fit it opened with stood 11px off a rotated phone. The floor and the
+slide are also held for the length of the menu's fade out, so nothing is ever painted at a width
+narrower than the row allows. What a consumer gives
 up is panel width: a filter whose options are longer than its chip wraps them over more rows
 instead of widening. That suits the values a filter shows — a filter's options are the short words
 its chip already carries — and a list that needs more room than that is a dropdown rather than a
@@ -1922,6 +1929,23 @@ description is as unbreakable. Every other option row stays 38.3px, and the pane
 width — 113.3px — at every viewport. Without the hint the same page is 473px wide on a 390px view
 and on a 375px one, 83px and 98px over.
 
+**A menu may ask for a wider floor than a chip's, and the row measures against that.** The React
+bar's add control (see below) carries the screen's catalogue — sections of values with a search
+field over them — rather than one chip's options, and the kit's 240px floor leaves its search
+field reading "Searc". Such a panel declares `--ui-filter-panel-ask` in the sheet, which is also what
+makes a menu outside a chip a subject of the fit at all; the fit reads it off the panel when no floor
+is passed, so the room and the slide are the ones that floor needs. The add menu is `--panel-sm` wide
+where its row has the room, its row's width where it does not, and it opens at its own trigger like
+every other menu in the row. The ask and the resolved
+floor are two names because the fit writes the second one back for the sheet to read; one name
+would make a menu that opened once in a narrow row keep that width in a wide one. Nothing about the promise above changes — the
+floor a panel asks for is still capped by the room its row measured, which is what keeps it inside
+the row. Held by `stories/filter-bar-fit.test.js`, which resolves the cascade over the menu rather
+than reading one rule's name, by `src/components/filter-panel-fit.test.js`, which measures the fit
+against a declared ask, and by `scripts/evidence/filter-bar-fit.mjs`, which takes that ask away and
+requires every case to come back at a chip's width. Decided in
+[#496](https://github.com/apliteni/apliteni-ui/issues/496).
+
 On a phone that is the right trade: nothing is hidden and nothing is clipped. On a wide screen the
 same column fragments with the screen empty beside it, because the rule binds the panel to the
 chip's width and not to the room the viewport left. Reading the available room is the measurement
@@ -1936,6 +1960,109 @@ that writes one re-opens [#467](https://github.com/apliteni/apliteni-ui/issues/4
 inside the kit, `ddResetSearch()`, sets it to the panel's already-bounded `offsetWidth`, so a search
 dropdown composed inside a filter bar stays inside the row.
 
+**Shut and open are bounded differently, and that is the point.** A shut panel keeps the trigger's
+width: a `visibility: hidden` box is still laid out, so that is what holds #467, and it needs no
+measuring — a page where no JavaScript ran still cannot overflow. An open panel takes the menu
+floor instead. [#536](https://github.com/apliteni/apliteni-ui/issues/536) made a chip print its
+value alone, so a trigger is now as narrow as `US`, and bounding the open menu to it left about
+48px of menu breaking option words mid-letter — [#549](https://github.com/apliteni/apliteni-ui/issues/549).
+
+`filterPanelFit()` is the arithmetic, exported from the kit so `wireDropdown()` and React's
+`<Dropdown>` cannot drift: from the dropdown's inline start it measures the room to the row's end,
+shifts the menu back along the row by what the floor still needs, and never shifts past the row's
+own start. The stylesheet reads three numbers — `--ui-filter-panel-room` caps the width,
+`--ui-filter-panel-floor` is the width reached for, and `--ui-filter-panel-shift` is the slide — and
+both halves write all three, so the `floor` argument reaches a rendered menu wherever the menu is
+rendered. Unset, the three fall back to `100%`, `240px` and `0px`, and it is the `min()` of the
+first two that lands on the trigger's width — neither of the other two does it alone — so a menu
+opened before the measurement runs is bounded rather than unbounded. A panel rendered already-open is fitted when it is wired,
+since it never passes through the open path.
+
+The numbers describe the row as it was when the menu opened, so a change under it invalidates them:
+a menu opened at 1280px and left open at 390px kept a room of 1102px and stood outside a row that
+had since narrowed to 358px — 11px off the page in the wiring and 14px in React. Both halves
+therefore re-measure, and the menu stays open rather than closing under the reader.
+
+**What is watched is the row, not the viewport.** A `resize` event fires before a layout that
+animates has settled. `.ui-app__rail` transitions its width over `--dur-med`, so crossing the
+shell's breakpoint widens the main column under an open menu for a quarter of a second *after* the
+event: a handler reading the row at that instant measured the screener's `Applied Filters` row as
+143.6px, and the menu kept that number inside a row that settles at 214px — #549 standing on a
+shipped page, permanently, in both themes. The row's own box is what every number in a fit comes
+from, so that is what both halves observe; a `ResizeObserver` reports it again at each step of the
+rail's transition and again at its end. `resize` remains the fallback where a view has no
+`ResizeObserver`, where one measurement is better than none, and it is not taken as well where
+there is one — it is the worse of the two readings. Any layout that settles after `resize` — a
+collapsing rail, a container query, a font swap — reaches the same state the same way.
+
+Position is not watched, because the fit does not depend on it: `room` and `shift` are the trigger's
+offsets *within* the row, so a row that only moves leaves both unchanged. A scroll needs no
+re-measurement for the same reason. A portalled panel is the other way round — it is placed in
+viewport coordinates — so that one is re-placed on scroll and not re-fitted here.
+
+**The open geometry is given back when the fade ends, not when the menu closes.** `.ui-dropdown.open`
+stops matching in the frame a menu is told to close; the panel does not stop being painted, because
+it transitions `opacity` and `visibility` over `--dur-med`. Dropping the width there collapsed a
+240px menu to its 48px trigger and moved it 67px sideways at opacity 1.0, still legible at 0.54 a
+frame later: #549's own picture — `A / l / l`, `T / e / c / h / n / o / l / o / g / y` — repainted on
+the way out of every close, in both halves. `.ui-dropdown__panel.is-closing` therefore carries the
+same three declarations the open rule does, and the inline search pin is held with them; both come
+off at the panel's own `transitionend`, backed by a timer sized from the panel's computed transition
+because that event never comes for a fade that did not run. Re-opening mid-fade takes the hold off
+and the abandoned wait fires into nothing. This is the same shape a dialog's exit uses, and it reads
+the duration with the same `transitionMs()`.
+
+**A selected row's tick gives way inside a chip.** `.ui-dropdown__tick` is 16px of `flex: none`
+beside an 11px gap, and a chip printing `All` is a 48px trigger: shut, a selected row's content stood
+5px outside the panel bounding it — the one place in a filter row where text could still reach past
+the box #467 pinned, and `overflow-wrap` cannot answer it because a mark is not text. Inside
+`.ui-filter-bar__chip` the tick may shrink and is clipped, as the label already may. It only ever has
+to while the panel is shut, which is the state nothing is painted in; an open menu is at the floor
+and has 200px of room for a 16px mark.
+
+A menu pinned at its inline end — `dropdown({ align: 'end' })` composed inside a filter row — is
+measured from that edge and slid the other way, because an end-anchored panel grows backwards: the
+room it has is what lies between its own right edge and the row's start. A searchable chip is fitted
+before the width it holds is pinned, so the floor is in before the measurement rather than after it.
+That pin is inline and outranks the shut bound, so it is cleared when the menu closes and read again
+at the new width when the viewport moves — in both halves, by `closeDropdown()` and by `<Dropdown>`'s
+own effect. Left behind once, it was #467 at the floor's width: a shut 240px panel on a 390px view.
+Both compositions sit in `scripts/evidence/filter-bar-fit.html` and in the React
+`FilterBar / Composed` story, because `filterBar()` and `<FilterBar>` pass neither option through
+and a gate that sweeps stories can only measure what one of them renders. The two are the same
+composition chip for chip — the same trigger shape and the same items, which are the two things
+every number in a fit comes from — so the pair differs in the implementation and not in the markup.
+A fixture whose triggers printed the chip's name as well as its value was a 92px trigger, and the
+48px geometry #549 is about was then reached on the React side only.
+
+**A panel anchored to the row, not to a chip.** The floor and the slide are a chip's arithmetic:
+the slide is measured from the trigger's offset along the row. A control that takes its dropdown out
+of the positioning chain — `position: static` on `.ui-dropdown`, so the panel resolves against a
+`position: relative` row — is already bounded by that row, and sliding it by a chip's offset takes it
+outside. Such a panel is therefore not a subject: the sheet's open rule does not match it, and
+`filterPanelFit()` returns `null` for it. A row-anchored panel owns its width, sets its own
+`min-width` and `max-width`, and must not read `--ui-filter-panel-room`, `--ui-filter-panel-shift` or
+`--ui-filter-panel-floor`.
+
+A chip is not the only thing a panel can hang from, though, so the subject is where a panel is
+anchored rather than which class its ancestor carries. A menu anchored at its own trigger — the add
+control's, which leaves the positioning chain alone — takes the same arithmetic by asking for a
+width, as the paragraph above describes, and a panel that declares `--ui-filter-panel-ask` is
+answering that question. `filterPanelRow(dd)` is the question itself, published: it returns the
+`.ui-filter-bar` a menu's fit is measured inside, for a chip's menu and for an asking one, and
+`null` for anything else. Everything downstream of the fit asks it — the stylesheet's open rule,
+whose selector list carries both anchors in one declaration block, the `ResizeObserver` each half
+puts on the row, and the hold that keeps the open geometry through the closing fade. The catalogue
+is where that matters most: its ask is the widest in the row, so it is the first menu whose stale
+fit shows on a phone — a 320px panel 32px outside a 304px row where a chip's 240px still fits —
+and the furthest to fall on the way out, 320px collapsing to a 99px trigger.
+
+The kit's own asking menu is keyed on one attribute: `[data-filter-add]` inside `.ui-filter-bar`.
+That attribute is the whole contract — it is what declares the ask, what carries the open rule's
+room, slide and closing hold, and what gives the trigger a chip's corner and the row's height. A control drawn
+without it is a kit dropdown in a filter row and nothing more: its menu is bounded to its trigger
+at 91.3px, and the trigger is a 30px pill on a 999px corner beside 39.2px chips on a 9px one.
+
 The chip's own width is a separate question this rule does not reach. `.ui-dropdown__trigger` is an
 `inline-flex` without `min-width: 0`, and `.ui-dropdown__value` carries no wrap hint, so a chip
 cannot shrink below its selected value's min-content width: a filter showing
@@ -1945,12 +2072,47 @@ the bound is on the panel. A filter whose applied value can be that long wants a
 value, or a change to the trigger, which is a change to every chip in the kit.
 
 Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
-— resolving one spelled as a token — and requires each to be answered inside the bar, and measured
-in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in both themes.
+— resolving one spelled as a token — requires each to be answered inside the bar, and requires the
+open geometry to reach the closing state as well as the open one; by
+`src/components/filter-panel-fit.test.js` for the arithmetic; and by the wiring's own cases in
+`src/components/dropdown.test.js` and `react/src/Dropdown.test.tsx`, which are the same questions
+asked of each half — which numbers reach an open panel, that a shut one gets none, that a dropdown
+outside a filter row gets none either, that the box observed is the row and not the viewport, that a
+row settling after the event is measured again, that `resize` is not taken as well where the row is
+watched, that the geometry and the search pin are held through the fade and given back at its end,
+that only the panel's own fade ends the hold, that a timer ends it where the event never comes, and
+that re-opening mid-fade keeps the new fit. Four of them are asked a second time of the add
+control's catalogue, which is the row's other anchored menu: that an asking panel is given the width
+it asks for rather than a chip's floor, that a narrower row re-measures it, that its own row is the
+box watched, and that its geometry is held through its fade. `transitionMs()`, which sizes that
+timer, is held by `src/motion.test.js`.
+
+It is measured in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px, 390px and
+1280px in both themes — 1280px because an end-anchored menu leaves its row at every width, and
+because that is where a shell with a collapsing rail reaches the stale-fit state.
 That gate sweeps both Storybook indexes for every story rendering a filter bar, measures each panel
 against the `.ui-dropdown` that contains it, asks every option row whether its own text fits it,
-and puts the floor back to require a panel in every case that carries one to widen. Its fixture
-page carries an unbreakable value so the wrap hint is measured rather than assumed.
+requires every open menu to reach the floor its row allows, narrows the viewport under each open
+menu to every narrower width it names and asks all of it again, and walks every anchored menu's
+close with motion on, sampling every 16ms through the fade and requiring no menu still being painted
+to be under its row's floor. It runs six mutations: putting the 240px floor back has to widen a
+panel, taking the wrap hint away has to make a row spill, taking the menu floor away has to leave a
+menu under its row's floor, leaving the row unobserved and dropping every `resize` listener has to
+leave a narrowed menu outside its row and the add menu among them by name, dropping the closing hold
+has to catch a painted menu at its trigger's width, and taking the add menu's ask away has to draw
+the catalogue at a chip's width. Its fixture page carries an unbreakable value so the wrap hint is
+measured rather than assumed.
+
+Three limits of that gate are worth naming. A case already at the narrowest width is measured once —
+there is no narrower viewport to move to — so about a quarter of the cases contribute one
+measurement rather than two. The close walk is the only arm that runs with motion on: reduced
+motion shortens the fade to nothing, which is exactly the net that hid the collapse. And it is the
+only arm that runs in a browser launched without `--deterministic-mode`, because that flag stops
+frames being produced on their own and a CSS transition is driven by that clock — under it a panel
+told to fade sits at opacity 1 for ever, `requestAnimationFrame` never fires, and a walk that
+waited on one could not return. The walk therefore samples by the clock, every 16ms, which means a
+loaded host samples later and further into the fade. That costs coverage and never a pass: the arm
+reports how many painted samples it took, and a run that took none is a failure.
 
 ## A dropdown row is a div, a link or a button
 
@@ -2496,9 +2658,32 @@ reader can read, not with a row's code. Decided in
 control; after removal focus moves to the next chip, then the previous, then the bar when no
 filter remains. Busy and disabled bars stop their native controls. Dropdown owns opening,
 keyboard selection, Escape and focus return. A chip's panel stays inside the row that holds it at
-every viewport, which is what bounds its width — see A filter row holds its panels. Segmented
-controls support an underline appearance for switching columns over one dataset; arrow keys, Home
-and End skip disabled choices.
+every viewport, which is what bounds its width — see A filter row holds its panels.
+
+**A React bar given `add` and `onAdd` draws its own way to add one.** The control sits on the
+chips' line, after them and before clear-all, so Tab reaches it where it is drawn. Its menu holds
+one section per filter the bar is not already carrying — so no pick can put a second chip under
+one id — and takes a search field at ten values, the count Guidelines / Component choice sets for
+any list. It opens at its own trigger, and asks for a panel's width rather than the menu floor a
+chip's values take — the one panel in a row that does, because it carries the screen's catalogue
+and not one chip's options. A pick asks the consumer for that filter and nothing else, and a consumer
+that answers in the same update lands focus on the new chip; a consumer that answers later owns
+where focus goes. Escape closes the menu and adds nothing, and the control is drawn only while
+something is left to add. The control stands at a chip's height and takes a chip's corner, on the
+line and on a line of its own. The vanilla `filterBar()` factory has no `add` — it takes no new
+options under [#429](https://github.com/apliteni/apliteni-ui/issues/429) — so a vanilla page draws
+its own control, and the kit answers it through markup rather than through an option: a page puts
+its own `dropdown()` inside the bar wrapped in an element carrying `data-filter-add`, and the
+stylesheet does the rest. That attribute is the contract, in both halves. It declares
+`--ui-filter-panel-ask: var(--panel-sm)` on the panel, which is what makes the menu a subject of
+`filterPanelFit()` and so gives it the room, the slide, the re-measurement and the closing hold a
+chip's menu gets; and it gives the trigger `--ui-filter-row-h` and the chip's corner. Left off, the control is a kit
+dropdown in a row and nothing more — a 91.3px menu bounded to its trigger, which is
+[#549](https://github.com/apliteni/apliteni-ui/issues/549) again, on a 30px pill beside 39.2px
+chips. Decided in [#496](https://github.com/apliteni/apliteni-ui/issues/496).
+
+Segmented controls support an underline appearance for switching columns over one dataset; arrow
+keys, Home and End skip disabled choices.
 
 ## Vanilla HTML boundaries
 

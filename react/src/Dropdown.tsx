@@ -2,8 +2,14 @@ import {
   Fragment, useCallback, useEffect, useId, useRef, useState,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode,
 } from 'react';
-import { icon, dropdownMatch, dropdownFiltering } from '@apliteni/apliteni-ui';
+import {
+  icon, dropdownMatch, dropdownFiltering, filterPanelFit, filterPanelRow, transitionMs,
+} from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
+
+// A few frames past the stylesheet's own end, so the backstop timer never cuts the last
+// frame the fade paints. The number a dialog's exit waits by. why: react/src/dialog.ts
+const EXIT_SLACK_MS = 50;
 
 // The React face of the kit's dropdown() factory and of wireDropdown()'s keyboard.
 // The vanilla output is the source of truth for every class, role and aria
@@ -204,6 +210,92 @@ export function Dropdown({
   const close = useRef(setOpen);
   useIsoLayoutEffect(() => { close.current = setOpen; });
 
+  /* #549: inside a filter row an open panel takes the kit's menu floor rather
+   * than the trigger's width, shifted back along the row when the room ahead
+   * cannot hold it. The calculation is the kit's own, asked rather than
+   * re-implemented; what this half owns is writing all three numbers the
+   * stylesheet reads and measuring again when the viewport moves, both held by
+   * Dropdown.test.tsx. Outside a filter row it does nothing.
+   * why: src/styles/filter-bar.css */
+  useIsoLayoutEffect(() => {
+    const el = panel.current;
+    if (!el || !open) return;
+    const fit = () => {
+      const got = filterPanelFit(root.current);
+      if (!got) return;
+      el.style.setProperty('--ui-filter-panel-room', `${got.room}px`);
+      el.style.setProperty('--ui-filter-panel-shift', `${got.shift}px`);
+      el.style.setProperty('--ui-filter-panel-floor', `${got.floor}px`);
+      /* The width a search panel is holding was read at the old viewport, and
+       * inline beats the sheet, so it is read again off the newly bounded box.
+       * The effect below is what writes it in the first place. */
+      if (!el.style.minWidth) return;
+      el.style.minWidth = '';
+      if (el.offsetWidth) el.style.minWidth = `${el.offsetWidth}px`;
+    };
+    fit();
+    /* A menu left open across a viewport change is fitted to a row that no longer
+     * exists: opened at 1280 and kept open at 390 it stood 14px off the page. The
+     * row's own box is what the fit is measured from, and a `resize` event fires
+     * before a row whose width is animating has settled — the shell's rail
+     * transitions over --dur-med, and the handler read a row 70px narrower than it
+     * ends up. So the row is observed instead, and `resize` is the fallback for a
+     * view with no ResizeObserver. wireDropdown() answers the same way.
+     * why: src/components/dropdown.js */
+    const view = root.current?.ownerDocument?.defaultView;
+    // Which menus are fitted, and so which row to observe, is the kit's answer.
+    const row = filterPanelRow(root.current);
+    if (row && typeof view?.ResizeObserver === 'function') {
+      const ro = new view.ResizeObserver(() => fit());
+      ro.observe(row);
+      return () => ro.disconnect();
+    }
+    view?.addEventListener('resize', fit);
+    return () => view?.removeEventListener('resize', fit);
+  }, [open]);
+
+  /* The open geometry is given back at the END of the fade, not in the frame the
+   * menu closes — a chip's values and the add control's catalogue alike, which is
+   * what filterPanelRow() answers.
+   * `.ui-dropdown.open` stops matching at once; the panel keeps being
+   * painted for --dur-med, so dropping the fit and the search pin here collapsed an
+   * opaque 240px menu to a 48px column and jumped it sideways — #549 repainted on
+   * the way out. `is-closing` holds the same geometry until the panel's own
+   * transitionend, backed by a timer because that event is not a promise.
+   * The vanilla half's ddHoldClose() is the same wait.
+   * why: src/styles/filter-bar.css */
+  const opened = useRef(false);
+  useIsoLayoutEffect(() => {
+    const el = panel.current;
+    if (open) { opened.current = true; return; }
+    // A panel that has never been open has no geometry to hold, and giving a shut
+    // one the open width is #467.
+    if (!opened.current || !el || !filterPanelRow(root.current)) return;
+    el.classList.add('is-closing');
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      el.classList.remove('is-closing');
+      el.style.minWidth = '';
+      for (const prop of ['room', 'shift', 'floor']) el.style.removeProperty(`--ui-filter-panel-${prop}`);
+    };
+    // Only the panel's own fade: a row's background transition bubbles here too.
+    const onEnd = (e: TransitionEvent) => {
+      if (e.target === el && e.propertyName === 'opacity') finish();
+    };
+    el.addEventListener('transitionend', onEnd);
+    const timer = setTimeout(finish, transitionMs(el) + EXIT_SLACK_MS);
+    // Re-opened mid-fade, or unmounted: the wait is abandoned and the class comes
+    // off without clearing a fit the new open has already written.
+    return () => {
+      done = true;
+      el.removeEventListener('transitionend', onEnd);
+      clearTimeout(timer);
+      el.classList.remove('is-closing');
+    };
+  }, [open]);
+
   const sx = search ? { ...SEARCH_DEFAULTS, ...strip(search === true ? {} : search) } : null;
   const entries: DropdownEntry[] = sections?.length
     ? sections.flatMap((s) => s.items || [])
@@ -283,7 +375,21 @@ export function Dropdown({
   useIsoLayoutEffect(() => {
     const want = landOn.current;
     landOn.current = null;
-    if (!open) return;
+    if (!open) {
+      /* A search panel carries the width it was opened at as an inline `min-width`,
+       * and inline beats any sheet — including the rule that holds a shut panel to
+       * its trigger. Inside a filter row that residue is #467: with the menu floor
+       * the panel opens at 240px or more, and a shut one stayed that wide. Cleared
+       * here and written again on the next open, as closeDropdown() does for the
+       * vanilla wiring. An anchored panel gives it back at the end of its fade
+       * instead, so it is not taken away while the panel is still painted.
+       * why: src/components/dropdown.js */
+      if (panel.current?.style && root.current?.closest('.ui-filter-bar')
+        && !filterPanelRow(root.current)) {
+        panel.current.style.minWidth = '';
+      }
+      return;
+    }
     // With a field, focus goes to it however the panel was opened, and the row Enter
     // would pick is the selected one or the first. Every open starts from the whole
     // list, so the query is cleared here and not on the way out — a panel fading out
