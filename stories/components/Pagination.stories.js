@@ -40,9 +40,9 @@ export default {
 export const Playground = {};
 
 // A group of specimens under its own heading, on the card. The pager carries a
-// size select and a jump input, and a field paints --surface: on the page ground
-// the inert ones had no fill and no edge left to be seen by, which is what
-// stories/field-ground.test.js measures. Every pager here carries its own
+// size select and a jump input, and a field paints --surface: on light's page
+// ground an inert one measured 1.11:1 fill under a 1.12:1 edge, which is what
+// stories/field-ground.test.js holds. Every pager here carries its own
 // aria-label and its own id: several <nav>s on one page need telling apart, and
 // two labels pointing at one id is a real defect the a11y gate would catch.
 const section = (title, note, ...specimens) =>

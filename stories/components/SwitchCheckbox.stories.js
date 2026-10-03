@@ -2,8 +2,9 @@ import { switchToggle, checkbox, card } from '../../src/components/index.js';
 import { pad, stack } from '../_gallery.js';
 
 // On the card, for the reason the Inputs page gives: a disabled box paints
-// --disabled-surface, which IS the card, so on the page ground it had neither a
-// fill nor an edge to be seen by. stories/field-ground.test.js holds the numbers.
+// --disabled-surface, which IS the card, so in light it stood off the page by
+// 1.11:1 under an edge of 1.12:1 and there was nothing left to find it by.
+// stories/field-ground.test.js holds the numbers, in both themes.
 export default {
   title: 'Components/Switch & Checkbox',
   parameters: { layout: 'fullscreen' },
