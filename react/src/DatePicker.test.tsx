@@ -27,7 +27,7 @@ const trigger = () => document.querySelector<HTMLButtonElement>('.ui-dropdown__t
 
 describe('the trigger', () => {
   it('wears the dropdown shell and says what is chosen', () => {
-    const { container } = render(<DatePicker today={TODAY} label="Month:" defaultValue="2026-08" />);
+    const { container } = render(<DatePicker today={TODAY} defaultValue="2026-08" />);
     expect(container.firstChild).toHaveClass('ui-dropdown');
     expect(container.firstChild).toHaveClass('ui-datepicker');
     expect(trigger()).toHaveAttribute('aria-haspopup', 'dialog');
@@ -36,15 +36,51 @@ describe('the trigger', () => {
     expect(panel()).toHaveAttribute('inert');
   });
 
+  /* The field name in front of the value — "Period: Apr 2026 – Aug 2026" — says
+   * "period" twice and leaves the reader the one word they could already read
+   * off the trigger. The kit's own prefix slot is what it would be drawn in, so
+   * this holds the slot empty rather than the string.
+   * why: guidelines/density-and-accents.md */
+  it('puts no field name in front of the value', () => {
+    render(<DatePicker today={TODAY} mode="range" defaultRange={{ start: '2026-04', end: '2026-08' }} />);
+    expect(trigger().querySelector('.ui-dropdown__pre')).toBeNull();
+    expect(trigger()).toHaveTextContent(/^Apr 2026 \u2013 Aug 2026$/);
+  });
+
   it('shows the placeholder and names itself when nothing is chosen', () => {
     render(<DatePicker today={TODAY} />);
     expect(trigger()).toHaveAccessibleName('Select a month');
     expect(trigger()).toHaveTextContent('Select a month');
   });
 
+<<<<<<< HEAD
+=======
+  /* The trigger's own text is the only name it has, so an aria-label would
+   * speak over it: the reader heard "Select a date" from a control reading
+   * 17 September 2026. All four modes, because the placeholder differs in each
+   * and the bug was in the fallback, not in one mode. */
+  it.each([
+    ['month', { defaultValue: '2026-08' }, 'August 2026'],
+    ['day', { defaultValue: '2026-09-17' }, '17 September 2026'],
+    ['range', { defaultRange: { start: '2026-04', end: '2026-08' } }, 'Apr 2026 \u2013 Aug 2026'],
+    ['day-range', { defaultRange: { start: '2026-09-07', end: '2026-09-18' } },
+      '7 Sept 2026 \u2013 18 Sept 2026'],
+  ] as const)('names itself with the value in %s mode', (mode, props, expected) => {
+    render(<DatePicker today={TODAY} mode={mode} {...props} />);
+    expect(trigger()).toHaveTextContent(expected);
+    expect(trigger()).toHaveAccessibleName(expected);
+    expect(trigger()).not.toHaveAttribute('aria-label');
+  });
+
+  it('still takes an explicit ariaLabel over its own text', () => {
+    render(<DatePicker today={TODAY} ariaLabel="Reporting month" defaultValue="2026-08" />);
+    expect(trigger()).toHaveAccessibleName('Reporting month');
+  });
+
+>>>>>>> dec40476 (fix(react): the picker's trigger and grid drop the words that restate them (#506))
   it('opens and closes, and gives focus back on Escape', async () => {
     const user = userEvent.setup();
-    render(<DatePicker today={TODAY} label="Month:" />);
+    render(<DatePicker today={TODAY} />);
     await user.click(trigger());
     expect(isOpen()).toBe(true);
     expect(panel()).not.toHaveAttribute('inert');
@@ -55,14 +91,14 @@ describe('the trigger', () => {
 
   it('closes on a click outside it', async () => {
     const user = userEvent.setup();
-    render(<><DatePicker today={TODAY} label="Month:" defaultOpen /><button type="button">Elsewhere</button></>);
+    render(<><DatePicker today={TODAY} defaultOpen /><button type="button">Elsewhere</button></>);
     await user.click(screen.getByText('Elsewhere'));
     expect(isOpen()).toBe(false);
   });
 
   it('cannot be opened while disabled', async () => {
     const user = userEvent.setup();
-    render(<DatePicker today={TODAY} label="Month:" disabled />);
+    render(<DatePicker today={TODAY} disabled />);
     await user.click(trigger());
     expect(isOpen()).toBe(false);
   });
@@ -186,7 +222,7 @@ describe('what a cell says it is', () => {
     const user = userEvent.setup();
     function Example() {
       const [span, setSpan] = useState<DatePickerRange>({ start: null, end: null });
-      return <DatePicker today={TODAY} mode="range" label="Period:" range={span}
+      return <DatePicker today={TODAY} mode="range" range={span}
         onRangeChange={setSpan} defaultOpen />;
     }
     render(<Example />);
@@ -308,41 +344,64 @@ describe('the page steps', () => {
   });
 });
 
-describe('marks', () => {
-  const marks = { '2026-06': { label: 'Restated', tone: 'warn' as const } };
+/* The panel draws no key under its grid. A legend is a second place to read,
+ * and every word it held — "This month", and the consumer's own notes beside
+ * their dots — either repeats what the cell already says or stands for a dot
+ * that says nothing on its own. The dots went with it; a host's note about a
+ * period belongs on the surface that shows the period's numbers.
+ * why: guidelines/density-and-accents.md */
+describe('the grid carries no key under it', () => {
+  /** Whatever a panel draws after its grid, and whatever a cell draws beside
+   *  its numeral — the two shapes a key and its swatches would take. */
+  const keyParts = (root: HTMLElement) => [
+    ...[...(root.querySelector('.ui-datepicker__grid')!.parentElement!.children)]
+      .filter(el => !el.classList.contains('ui-datepicker__grid')
+        && !el.classList.contains('ui-datepicker__head')),
+    ...root.querySelectorAll('.ui-datepicker__opt > :not(.ui-datepicker__num)'),
+  ].map(el => `${el.tagName.toLowerCase()}.${el.className}`);
 
-  it('names the mark in the cell and repeats it as a word in the legend', () => {
-    render(<DatePicker today={TODAY} defaultValue="2026-08" marks={marks} defaultOpen />);
-    const june = cell(/^June 2026/);
-    expect(june).toHaveAccessibleName(expect.stringContaining('Restated'));
-    expect(june.querySelector('.ui-datepicker__mark')).toHaveClass('is-warn');
-    const legend = panel().querySelector('.ui-datepicker__legend');
-    expect(legend).toHaveTextContent('Restated');
-  });
-
-  it('lists each mark once, and only while its page is shown', async () => {
-    const user = userEvent.setup();
+  it.each(['month', 'day'] as const)('draws nothing under the %s grid', mode => {
     render(
       <DatePicker
-        today={TODAY} defaultValue="2026-08" defaultOpen
-        marks={{ '2026-06': { label: 'Restated' }, '2026-07': { label: 'Restated' } }}
+        today={TODAY} mode={mode} defaultOpen
+        defaultValue={mode === 'day' ? '2026-09-17' : '2026-08'}
       />,
     );
-    // Two entries: the one mark, listed once for the two months that carry it,
-    // and the current period, which 2026 is the year of.
-    const words = () => [...panel().querySelectorAll('.ui-datepicker__legend-item')]
-      .map(li => li.textContent);
-    expect(words()).toEqual(['This month', 'Restated']);
-    await user.click(screen.getByRole('button', { name: /^Next year/ }));
-    expect(panel().querySelector('.ui-datepicker__legend')).toBeNull();
+    expect(keyParts(panel())).toEqual([]);
+    expect(panel()).not.toHaveTextContent(/This month|Today|Restated|Estimate/);
+  });
+
+  /* Every cell state at once, because a swatch that only the pick or only a
+   * blocked cell drew would pass the two above. */
+  it('paints no swatch in any cell state', () => {
+    render(
+      <DatePicker
+        today={TODAY} mode="range" defaultOpen
+        defaultRange={{ start: '2026-04', end: '2026-08' }}
+        disabledPeriods={['2026-06']}
+      />,
+    );
+    expect(keyParts(panel())).toEqual([]);
+  });
+
+  /* Prove rejection by putting back the two the change took out: the list under
+   * the grid, and a dot inside a cell. */
+  it('catches a key under the grid and a dot in a cell', () => {
+    render(<DatePicker today={TODAY} defaultValue="2026-08" defaultOpen />);
+    const calendar = panel().querySelector('.ui-datepicker__calendar')!;
+    calendar.insertAdjacentHTML('beforeend',
+      '<ul class="ui-datepicker__legend"><li>This month</li></ul>');
+    panel().querySelector('.ui-datepicker__opt')!
+      .insertAdjacentHTML('beforeend', '<span class="ui-datepicker__mark"></span>');
+    expect(keyParts(panel())).toEqual(['ul.ui-datepicker__legend', 'span.ui-datepicker__mark']);
   });
 });
 
-/* The three things a reader had to be told before: which month is this one,
- * which months they cannot have, and which dot belongs to which word. Each is
- * held here as the DOM says it; the paint behind them is the cell-state gate
- * at the end of this file and the browser captures on the pull request. */
-describe('every mark reads without a key beside it', () => {
+/* The two things a reader had to be told before: which month is this one, and
+ * which months they cannot have. Each is held here as the DOM says it; the
+ * paint behind them is the cell-state gate at the end of this file and the
+ * browser captures on the pull request. */
+describe('every signal reads without a key beside it', () => {
   /** The twelve labels the month grid draws, in grid order. */
   const monthLabels = () => [...panel().querySelectorAll('.ui-datepicker__opt .ui-datepicker__num')]
     .map(el => el.textContent ?? '');
@@ -370,10 +429,11 @@ describe('every mark reads without a key beside it', () => {
     expect(monthLabels()[9]).toMatch(/10/);
   });
 
-  it('names the current period in the legend and rings only that cell', () => {
+  /* Hollow for the period you are in, filled for the one you chose, is the
+   * pair a calendar has always drawn, so the ring needs no words under the
+   * grid. The words it would have spent them on are in the cell's own name. */
+  it('rings the current period, alone, and names it in the cell', () => {
     render(<DatePicker today={TODAY} defaultValue="2026-08" defaultOpen />);
-    expect(panel().querySelector('.ui-datepicker__legend')).toHaveTextContent('This month');
-    expect(panel().querySelectorAll('.ui-datepicker__now-key')).toHaveLength(1);
     const ringed = [...panel().querySelectorAll('.ui-datepicker__opt.is-today')];
     expect(ringed.map(el => el.getAttribute('aria-label'))).toEqual(['September 2026, this month']);
     // Weight was the old device and is now the blocked pick's alone, so no
@@ -381,12 +441,12 @@ describe('every mark reads without a key beside it', () => {
     expect(ringed[0]).not.toHaveClass('is-selected');
   });
 
-  it('calls it Today in day grain, and drops the entry off a page without it', async () => {
+  it('calls it today in day grain, and rings nothing on a page without it', async () => {
     const user = userEvent.setup();
     render(<DatePicker today={TODAY} mode="day" defaultValue="2026-09-17" defaultOpen />);
-    expect(panel().querySelector('.ui-datepicker__legend')).toHaveTextContent('Today');
+    expect(cell(/^Tuesday 15 September 2026/)).toHaveAccessibleName(/today$/);
     await user.click(screen.getByRole('button', { name: /^Next month/ }));
-    expect(panel().querySelector('.ui-datepicker__legend')).toBeNull();
+    expect(panel().querySelectorAll('.ui-datepicker__opt.is-today')).toHaveLength(0);
   });
 });
 
@@ -395,7 +455,7 @@ describe('range mode', () => {
     const [span, setSpan] = useState<DatePickerRange>({ start: null, end: null });
     return (
       <DatePicker
-        today={TODAY} mode="range" label="Period:" range={span}
+        today={TODAY} mode="range" range={span}
         onRangeChange={setSpan} presets={presets} defaultOpen
       />
     );
@@ -447,7 +507,7 @@ describe('range mode', () => {
     function Bounded() {
       const [span, setSpan] = useState<DatePickerRange>({ start: null, end: null });
       return (
-        <DatePicker today={TODAY} mode="range" label="Period:" range={span} onRangeChange={setSpan}
+        <DatePicker today={TODAY} mode="range" range={span} onRangeChange={setSpan}
           min="2026-04" max="2026-09" defaultOpen
           presets={[{ label: 'This year', range: { start: '2026-01', end: '2026-12' } }]} />
       );
@@ -461,7 +521,7 @@ describe('range mode', () => {
     const user = userEvent.setup();
     const onRangeChange = vi.fn();
     render(
-      <DatePicker today={TODAY} mode="range" label="Period:" min="2026-04" max="2026-09" defaultOpen
+      <DatePicker today={TODAY} mode="range" min="2026-04" max="2026-09" defaultOpen
         onRangeChange={onRangeChange}
         presets={[{ label: 'Last season', range: { start: '2025-01', end: '2025-12' } }]} />,
     );
@@ -475,7 +535,7 @@ describe('range mode', () => {
     const user = userEvent.setup();
     const onRangeChange = vi.fn();
     render(
-      <DatePicker today={TODAY} mode="range" label="Period:" defaultOpen
+      <DatePicker today={TODAY} mode="range" defaultOpen
         onRangeChange={onRangeChange} disabledPeriods={['2026-12']}
         presets={[
           { label: 'This year', range: { start: '2026-01', end: '2026-12' } },
@@ -509,7 +569,7 @@ describe('day-range mode', () => {
   }) {
     const [span, setSpan] = useState<DatePickerRange>({ start: null, end: null });
     return (
-      <DatePicker today={TODAY} mode="day-range" label="Dates:" range={span}
+      <DatePicker today={TODAY} mode="day-range" range={span}
         onRangeChange={setSpan} presets={presets} defaultOpen {...rest} />
     );
   }
@@ -584,7 +644,7 @@ describe('day-range mode', () => {
     const user = userEvent.setup();
     const onRangeChange = vi.fn();
     render(
-      <DatePicker today={TODAY} mode="day-range" label="Dates:" defaultOpen
+      <DatePicker today={TODAY} mode="day-range" defaultOpen
         onRangeChange={onRangeChange} min="2026-09-03" max="2026-09-25"
         disabledPeriods={['2026-09-12']} defaultRange={{ start: null, end: null }} />,
     );
@@ -644,7 +704,7 @@ describe('a pick the host then blocks', () => {
   it('never carries the range tint and the block at once', async () => {
     const user = userEvent.setup();
     render(
-      <DatePicker today={TODAY} mode="range" label="Period:" defaultOpen
+      <DatePicker today={TODAY} mode="range" defaultOpen
         disabledPeriods={['2026-06']} defaultRange={{ start: null, end: null }} />,
     );
     await user.click(cell(/^April 2026/));
@@ -774,10 +834,14 @@ describe('the focus ring', () => {
   it.each(['month', 'range', 'day'] as const)('covers every focusable part in %s mode', mode => {
     const { container } = render(
       <DatePicker
+<<<<<<< HEAD
         today={TODAY} mode={mode} label="Period:" defaultOpen
         defaultValue={mode === 'day' ? '2026-09-17' : '2026-08'}
+=======
+        today={TODAY} mode={mode} defaultOpen
+        defaultValue={grainOf(mode) === 'day' ? '2026-09-17' : '2026-08'}
+>>>>>>> dec40476 (fix(react): the picker's trigger and grid drop the words that restate them (#506))
         presets={[{ label: 'This year', range: { start: '2026-01', end: '2026-12' } }]}
-        marks={{ '2026-06': { label: 'Restated' } }}
       />,
     );
     expect(uncovered(container)).toEqual([]);
@@ -793,7 +857,7 @@ describe('the sheet', () => {
   const sheet = () => document.querySelector<HTMLElement>('.ui-drawer');
 
   it('is the kit\'s drawer, with its scrim, its close control and its trap', () => {
-    render(<DatePicker today={TODAY} sheet label="Month:" defaultValue="2026-08" defaultOpen />);
+    render(<DatePicker today={TODAY} sheet defaultValue="2026-08" defaultOpen />);
     expect(sheet()).toHaveClass('ui-drawer--bottom');
     expect(sheet()!.querySelector('.ui-drawer__scrim')).toBeInTheDocument();
     const dialog = screen.getByRole('dialog');
@@ -808,7 +872,7 @@ describe('the sheet', () => {
   it('makes the page behind it inert, which the popover never did', () => {
     const { container } = render(
       <div><button type="button">Behind</button>
-        <DatePicker today={TODAY} sheet label="Month:" defaultValue="2026-08" defaultOpen />
+        <DatePicker today={TODAY} sheet defaultValue="2026-08" defaultOpen />
       </div>,
     );
     // dialog.ts marks every sibling of the dialog's root, up to <body>.
@@ -819,7 +883,7 @@ describe('the sheet', () => {
     const user = userEvent.setup();
     function Example() {
       const [open, setOpen] = useState(true);
-      return <DatePicker today={TODAY} sheet label="Month:" open={open} onOpenChange={setOpen} />;
+      return <DatePicker today={TODAY} sheet open={open} onOpenChange={setOpen} />;
     }
     render(<Example />);
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Close' }));
@@ -830,7 +894,7 @@ describe('the sheet', () => {
     const user = userEvent.setup();
     function Example() {
       const [open, setOpen] = useState(false);
-      return <DatePicker today={TODAY} sheet label="Month:" open={open} onOpenChange={setOpen} />;
+      return <DatePicker today={TODAY} sheet open={open} onOpenChange={setOpen} />;
     }
     render(<Example />);
     await user.click(trigger());
@@ -846,7 +910,7 @@ describe('the sheet', () => {
     function Example() {
       const [open, setOpen] = useState(true);
       return (
-        <DatePicker today={TODAY} sheet label="Month:" defaultValue="2026-08"
+        <DatePicker today={TODAY} sheet defaultValue="2026-08"
           open={open} onOpenChange={setOpen} onChange={onChange} />
       );
     }
@@ -868,7 +932,7 @@ describe('the sheet', () => {
     }) as unknown as MediaQueryList;
     Object.defineProperty(window, 'matchMedia', { value: narrow, configurable: true, writable: true });
     try {
-      render(<DatePicker today={TODAY} label="Month:" defaultValue="2026-08" defaultOpen />);
+      render(<DatePicker today={TODAY} defaultValue="2026-08" defaultOpen />);
       expect(document.querySelector('.ui-drawer')).toBeInTheDocument();
     } finally {
       if (had) Object.defineProperty(window, 'matchMedia', had);
@@ -877,7 +941,7 @@ describe('the sheet', () => {
   });
 
   it('is the popover when nothing says the viewport is narrow', () => {
-    render(<DatePicker today={TODAY} label="Month:" defaultValue="2026-08" defaultOpen />);
+    render(<DatePicker today={TODAY} defaultValue="2026-08" defaultOpen />);
     expect(document.querySelector('.ui-drawer')).toBeNull();
     expect(document.querySelector('.ui-datepicker__panel')).toBeInTheDocument();
   });
@@ -1007,31 +1071,25 @@ describe('every cell state is readable', () => {
   });
 });
 
-/* The signals that are not ink: the ring that says which period the reader is
- * in, and the dots that say which word in the legend a cell carries. Both are
- * paint the cell-state gate above cannot see, because it measures `color`
- * against ground and these are a border and a background on a 5px box.
+/* The one signal that is not ink: the ring that says which period the reader is
+ * in. It is paint the cell-state gate above cannot see, because that one
+ * measures `color` against ground and this is a border.
  *
  * Every theme and every shipped accent, as above, and the grounds a cell
  * really sits on. What it does not reach: the browser's own rendering, which
  * the captures on the pull request own.
  * why: guidelines/accessibility-floor.md */
-describe('the ring and the dots are readable, and the dots pair with the legend', () => {
+describe('the current period\'s ring is readable on every ground', () => {
   const THEMES = ['dark', 'light'] as const;
   const ACCENTS = ['default', 'phoenix', 'ocean', 'emerald'] as const;
   const css = read('./DatePicker.css');
 
-  /** Every tone the sheet paints a mark in, discovered rather than listed. */
-  const TONES = [...new Set(
-    [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.ui-datepicker__mark\.(is-[\w-]+)/g)].map(m => m[1]),
-  )];
-
-  /** The cell states a mark or a ring has to survive. */
+  /** The cell states the ring has to survive, discovered rather than listed. */
   const STATES = ['', 'is-today', 'is-selected', 'is-selected is-today',
     'is-inside', 'is-inside is-today', 'is-disabled', 'is-disabled is-today'] as const;
-  const at = (state: string, tone = '') => `[data-at="${state}|${tone}"]`;
+  const at = (state: string) => `[data-at="${state}"]`;
 
-  /** A panel holding one grid cell per state and tone, and the legend beside it. */
+  /** A panel holding one grid cell per state. */
   function harness(theme: string, accent: string, sheet = css) {
     const style = document.createElement('style');
     style.textContent = `${kitCssFor(theme, accent).css}\n${desugar(substitute(sheet, tokensFor(theme, accent)))}`;
@@ -1040,17 +1098,12 @@ describe('the ring and the dots are readable, and the dots pair with the legend'
     if (accent !== 'default') document.documentElement.setAttribute('data-accent', accent);
 
     const host = document.createElement('div');
-    const opt = (state: string, tone: string) =>
+    const opt = (state: string) =>
       `<span class="ui-datepicker__cell"><button class="ui-datepicker__opt ui-focusable ${state}" type="button"`
-      + ` data-at="${state}|${tone}"><span class="ui-datepicker__num">17</span>`
-      + `<span class="ui-datepicker__mark ${tone}" data-at="${state}|${tone}"></span></button></span>`;
+      + ` data-at="${state}"><span class="ui-datepicker__num">17</span></button></span>`;
     host.innerHTML = '<div class="ui-dropdown__panel ui-datepicker__panel"><div class="ui-datepicker__grid">'
-      + STATES.flatMap(state => TONES.map(tone => opt(state, tone))).join('')
-      + '</div><ul class="ui-datepicker__legend">'
-      + '<li class="ui-datepicker__legend-item"><span class="ui-datepicker__now-key"></span>This month</li>'
-      + TONES.map(t => `<li class="ui-datepicker__legend-item"><span class="ui-datepicker__mark ${t}"`
-        + ` data-at="legend|${t}"></span>word</li>`).join('')
-      + '</ul></div>';
+      + STATES.map(opt).join('')
+      + '</div></div>';
     document.body.appendChild(host);
 
     const pick = (sel: string) => host.querySelector<HTMLElement>(sel)!;
@@ -1065,44 +1118,15 @@ describe('the ring and the dots are readable, and the dots pair with the legend'
   const inkOf = (el: HTMLElement, prop: 'backgroundColor' | 'borderTopColor') =>
     parseColour(getComputedStyle(el)[prop]);
 
-  it('discovers the tones the sheet paints', () => {
-    expect(TONES.length, 'mark tones found in the sheet').toBeGreaterThan(3);
-  });
-
-  it.each(THEMES)('%s: a dot is the one colour in the cell and in the legend', theme => {
-    const mismatches: string[] = [];
-    let judged = 0;
-    for (const accent of ACCENTS) {
-      const { pick, done } = harness(theme, accent);
-      try {
-        for (const tone of TONES) {
-          const key = inkOf(pick(`.ui-datepicker__mark${at('legend', tone)}`), 'backgroundColor');
-          for (const state of STATES) {
-            const got = inkOf(pick(`.ui-datepicker__mark${at(state, tone)}`), 'backgroundColor');
-            judged += 1;
-            const where = `${theme}/${accent} ${tone} ${state || '(rest)'}`;
-            if (!key || !got) { mismatches.push(`${where}: unresolved`); continue; }
-            if (String(got) !== String(key)) mismatches.push(`${where}: ${got} not ${key}`);
-          }
-        }
-      } finally { done(); }
-    }
-    expect(judged, 'dots judged').toBe(TONES.length * STATES.length * ACCENTS.length);
-    expect(mismatches, 'dots that do not pair with their legend entry').toEqual([]);
-  });
-
-  /* Prove rejection by putting back the repaint this change took out: the dot
-   * on the pick used to be redrawn in the fill's contrast ink, which is the
-   * pairing failure Artur read off the June cell. */
-  it('catches a dot repainted away from its legend entry', () => {
-    const repainted = `${css}\n.ui-datepicker__opt.is-selected .ui-datepicker__mark { background: var(--accent-contrast); }`;
-    const { pick, done } = harness('light', 'default', repainted);
-    try {
-      const key = inkOf(pick(`.ui-datepicker__mark${at('legend', TONES[0])}`), 'backgroundColor');
-      const got = inkOf(pick(`.ui-datepicker__mark${at('is-selected', TONES[0])}`), 'backgroundColor');
-      expect(key, 'the legend dot resolved').not.toBeNull();
-      expect(String(got)).not.toBe(String(key));
-    } finally { done(); }
+  it('discovers the ring states the sheet paints', () => {
+    const painted = [...new Set(
+      [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.ui-datepicker__opt((?:\.is-[\w-]+)+)/g)]
+        .flatMap(m => m[1].split('.').filter(Boolean)),
+    )];
+    // Every state the sheet knows about is one this harness mounts, so a new
+    // one cannot slip past the measurement below.
+    const mounted = new Set(STATES.flatMap(state => state.split(' ')).filter(Boolean));
+    expect(painted.filter(x => !mounted.has(x)), 'cell states the harness does not mount').toEqual([]);
   });
 
   it.each(THEMES)('%s: the current-period ring clears 3:1 on every ground it lands on', theme => {
@@ -1112,7 +1136,7 @@ describe('the ring and the dots are readable, and the dots pair with the legend'
       const { pick, done } = harness(theme, accent);
       try {
         for (const state of STATES.filter(x => x.includes('is-today'))) {
-          const el = pick(`.ui-datepicker__opt${at(state, TONES[0])}`);
+          const el = pick(`.ui-datepicker__opt${at(state)}`);
           const ring = inkOf(el, 'borderTopColor');
           const ground = effectiveBackground(el, window);
           judged += 1;
@@ -1120,18 +1144,9 @@ describe('the ring and the dots are readable, and the dots pair with the legend'
           const got = ratio(composite(ring, ground), ground);
           if (got < AA_LARGE) failures.push(`${theme}/${accent} ${state}: ${got.toFixed(2)}:1`);
         }
-        // And the legend's key, which is the same ring at reading size.
-        const key = inkOf(pick('.ui-datepicker__now-key'), 'borderTopColor');
-        const ground = effectiveBackground(pick('.ui-datepicker__now-key'), window);
-        judged += 1;
-        if (!key || !Array.isArray(ground)) failures.push(`${theme}/${accent} legend key: unresolved`);
-        else {
-          const got = ratio(composite(key, ground), ground);
-          if (got < AA_LARGE) failures.push(`${theme}/${accent} legend key: ${got.toFixed(2)}:1`);
-        }
       } finally { done(); }
     }
-    expect(judged, 'rings judged').toBe((STATES.filter(x => x.includes('is-today')).length + 1) * ACCENTS.length);
+    expect(judged, 'rings judged').toBe(STATES.filter(x => x.includes('is-today')).length * ACCENTS.length);
     expect(failures, `rings below ${AA_LARGE}:1`).toEqual([]);
   });
 
@@ -1142,7 +1157,7 @@ describe('the ring and the dots are readable, and the dots pair with the legend'
     expect(without, 'the rule this gate mutates was renamed or moved').not.toBe(css);
     const { pick, done } = harness('light', 'default', without);
     try {
-      const el = pick(`.ui-datepicker__opt${at('is-selected is-today', TONES[0])}`);
+      const el = pick(`.ui-datepicker__opt${at('is-selected is-today')}`);
       const ring = inkOf(el, 'borderTopColor');
       const ground = effectiveBackground(el, window);
       expect(ratio(composite(ring, ground), ground)).toBeLessThan(AA_LARGE);

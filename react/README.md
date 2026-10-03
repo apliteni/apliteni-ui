@@ -712,16 +712,21 @@ control. Periods are ISO strings in the mode's grain: `'2026-08'` for months,
 leave the state to the component. Import both the kit CSS and the React CSS.
 
 ```tsx
-<DatePicker label="Month:" value={month} onChange={setMonth}
-  min="2025-01" max="2026-12" disabledPeriods={['2026-07']}
-  marks={{ '2026-06': { label: 'Restated', tone: 'warn' } }} />
+<DatePicker value={month} onChange={setMonth}
+  min="2025-01" max="2026-12" disabledPeriods={['2026-07']} />
 
-<DatePicker mode="range" label="Period:" range={span} onRangeChange={setSpan}
+<DatePicker mode="range" range={span} onRangeChange={setSpan}
   presets={[{ label: 'This year', range: { start: '2026-01', end: '2026-12' } }]} />
 
-<DatePicker mode="day-range" label="Dates:" range={span} onRangeChange={setSpan}
+<DatePicker mode="day-range" range={span} onRangeChange={setSpan}
   presets={[{ label: 'This week', range: { start: '2026-09-14', end: '2026-09-20' } }]} />
 ```
+
+**The trigger shows the value and nothing else.** There is no field name in front of it:
+"Period: Apr 2026 – Aug 2026" says "period" twice, and the picker has no word to add that
+the value does not already carry. Where the surrounding screen leaves the control
+unexplained, name it with `ariaLabel`, which names the trigger and the panel without
+drawing anything.
 
 **The grid has one tab stop.** The arrows move one period and one row, Home and End go to
 the ends of the row — they never leave the month, so the blank slots a day grid pads its
@@ -730,7 +735,7 @@ move a year in the month modes and a month in day mode, Enter and Space pick, an
 closes and returns focus to the trigger. A move past the edge of the shown year or month
 turns the page and keeps the reader on the period they moved to. Each cell's accessible
 name says what the cell is: `selected` for the pick in every mode, plus `range start`,
-`range end` and `in range` in range mode, the mark's word, and `today`.
+`range end` and `in range` in range mode, and `this month` or `today`.
 
 **Bounds hold against your code as well as the reader's.** `min`, `max` and
 `disabledPeriods` are `string`, so a period in the other grain is converted rather than
@@ -757,16 +762,14 @@ kit's neutral row hover, so the accent stays on the pick and the span. Its name 
 says `selected` and the gridcell still carries `aria-selected`: it is still your value,
 it just cannot be pressed.
 
-**`marks` are the consumer's own notes**, keyed by period. Each shows as a dot in the
-cell, as a word in the legend under the grid, and in the cell's accessible name. Give
-`tone` one of `neutral`, `info`, `success`, `warn` or `danger`. A dot keeps its tone
-wherever it is drawn, so the one in the cell and the one beside its word in the legend
-are the same colour to pair.
-
-**The period you are in now wears a ring**, and the legend opens with that ring and the
-words "This month" or "Today" while the page in view holds it. The month grid draws its
-twelve names at one length — "Sep", not en-GB's "Sept" — so no cell reads as emphasised;
-a locale that numbers its months keeps its own names.
+**The period you are in now wears a ring** — hollow for the period you are in, filled for
+the one you chose — and the cell's own name says "this month" or "today". Nothing is drawn
+under the grid to explain it: a key is a second place to read, and these marks are the
+ones a calendar has always drawn. There is no slot for a consumer's own note on a period
+either; a 5px dot can only be read against a key, and a note about a period belongs on the
+surface that shows that period's numbers. The month grid draws its twelve names at one
+length — "Sep", not en-GB's "Sept" — so no cell reads as emphasised; a locale that numbers
+its months keeps its own names.
 
 **Below 560px the panel is a bottom `Drawer`**, so the sheet has the kit's scrim, close
 control and focus trap and the page behind it is inert. Pass `sheet` to force that at any
@@ -777,6 +780,6 @@ as the popover until it has.
 Pass `today` (a `'YYYY-MM-DD'` date) to fix what the grid calls today — stories and tests
 use it to stay the same whenever they run. `locale` names the months and weekdays,
 `weekStartsOn` sets the first column in day mode, and `align="end"` hangs the panel off
-the trigger's trailing edge. `ariaLabel` names the trigger and the panel; with `label` it
-replaces the trigger's own text as the accessible name. The popover stays mounted while
-closed, and is `inert` while it is.
+the trigger's trailing edge. Without `ariaLabel` the trigger's own text is its accessible
+name, so a control reading "17 September 2026" is heard as that rather than as its
+placeholder. The popover stays mounted while closed, and is `inert` while it is.

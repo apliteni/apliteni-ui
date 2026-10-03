@@ -22,17 +22,6 @@ import './DatePicker.css';
  */
 export type DatePickerMode = 'month' | 'range' | 'day' | 'day-range';
 
-/**
- * A consumer's note on one period — "incomplete", "estimate". It shows as a dot
- * in the cell, as a word in the legend under the grid, and in the cell's
- * accessible name, so the colour is never the only channel.
- */
-export type DatePickerMark = {
-  /** The word readers see and hear. */
-  label: string;
-  tone?: 'neutral' | 'info' | 'success' | 'warn' | 'danger';
-};
-
 /** Either end may be null while the reader is still picking. */
 export type DatePickerRange = { start: string | null; end: string | null };
 
@@ -55,14 +44,13 @@ export type DatePickerProps = {
   max?: string;
   /** Periods that cannot be picked, in the mode's own grain. */
   disabledPeriods?: readonly string[];
-  /** Keyed by period: `{ '2026-06': { label: 'Restated' } }`. */
-  marks?: Readonly<Record<string, DatePickerMark>>;
   /** Range mode: the shortcuts beside the grid. */
   presets?: readonly DatePickerPreset[];
-  /** Muted prefix in the trigger, e.g. "Period:". */
-  label?: string;
   placeholder?: string;
-  /** Names the trigger and the panel. */
+  /**
+   * Names the trigger and the panel where the screen around them does not.
+   * With a value, the trigger's own text is already its name.
+   */
   ariaLabel?: string;
   id?: string;
   disabled?: boolean;
@@ -225,15 +213,14 @@ type Cell = {
   label: string;
   name: string;
   disabled: boolean;
-  mark?: DatePickerMark;
 };
 
 export function DatePicker({
   mode = 'month',
   value, defaultValue = null, onChange,
   range, defaultRange, onRangeChange,
-  min, max, disabledPeriods, marks, presets,
-  label, placeholder, ariaLabel, id, disabled = false,
+  min, max, disabledPeriods, presets,
+  placeholder, ariaLabel, id, disabled = false,
   align = 'start', locale = 'en-GB', weekStartsOn = 1, today, sheet,
   open: openProp, defaultOpen = false, onOpenChange,
 }: DatePickerProps) {
@@ -378,11 +365,10 @@ export function DatePicker({
         : String(new Date(index * DAY_MS).getUTCDate()),
       name: periodName(index),
       disabled: isBlocked(index),
-      mark: marks?.[period],
     };
   // `isBlocked` is read here and closes over lo, hi and blocked; all three are
   // in the list below.
-  }), [grain, first, count, monthLabels, at, periodName, marks, lo, hi, blocked]);
+  }), [grain, first, count, monthLabels, at, periodName, lo, hi, blocked]);
 
   // Day grids start the first of the month under its own weekday, so the blanks
   // before it are cells with nothing in them rather than a neighbouring month's
@@ -543,18 +529,7 @@ export function DatePicker({
   const empty = placeholder ?? (picksRange
     ? (grain === 'month' ? 'Select a period' : 'Select dates')
     : (grain === 'month' ? 'Select a month' : 'Select a date'));
-  const name = ariaLabel || (label ? String(label).replace(/:\s*$/, '') : '') || empty;
-
-  // What the grid's paint means, written under it: the period the reader is in,
-  // then each mark on the page in view, once, in the order the grid meets them.
-  // The legend is what keeps a ring or a dot from standing on its own.
-  // why: guidelines/accessibility-floor.md
-  const marksHere: DatePickerMark[] = [];
-  for (const cell of cells) {
-    if (cell.mark && !marksHere.some((m) => m.label === cell.mark!.label)) marksHere.push(cell.mark);
-  }
-  const nowHere = todayIndex >= first && todayIndex <= last;
-  const nowLabel = grain === 'month' ? 'This month' : 'Today';
+  const name = ariaLabel || empty;
 
   const captionId = `${uid}-caption`;
   /** What a page is called: the year, or the month and year. */
@@ -569,7 +544,6 @@ export function DatePicker({
 
   function state(cell: Cell) {
     const parts = [cell.name];
-    if (cell.mark) parts.push(cell.mark.label);
     if (cell.index === todayIndex) parts.push(grain === 'month' ? 'this month' : 'today');
     if (picksRange) {
       if (cell.index === edges[0] && cell.index === edges[1]) parts.push('selected');
@@ -683,12 +657,6 @@ export function DatePicker({
                     onFocus={() => setCursor(cell.index)}
                   >
                     <span className="ui-datepicker__num">{cell.label}</span>
-                    {cell.mark && (
-                      <span
-                        className={`ui-datepicker__mark is-${cell.mark.tone ?? 'neutral'}`}
-                        aria-hidden="true"
-                      />
-                    )}
                   </button>
                 </span>
               ) : (
@@ -697,23 +665,6 @@ export function DatePicker({
             </div>
           ))}
         </div>
-
-        {(nowHere || marksHere.length > 0) && (
-          <ul className="ui-datepicker__legend">
-            {nowHere && (
-              <li className="ui-datepicker__legend-item">
-                <span className="ui-datepicker__now-key" aria-hidden="true" />
-                {nowLabel}
-              </li>
-            )}
-            {marksHere.map((mark) => (
-              <li key={mark.label} className="ui-datepicker__legend-item">
-                <span className={`ui-datepicker__mark is-${mark.tone ?? 'neutral'}`} aria-hidden="true" />
-                {mark.label}
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </div>
   );
@@ -728,12 +679,16 @@ export function DatePicker({
         className="ui-dropdown__trigger ui-datepicker__trigger"
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={ariaLabel || (label ? undefined : name)}
+        // Only when the trigger's own text says nothing: with a value the text
+        // IS the value, and an aria-label would replace "17 September 2026"
+        // with "Select a date".
+        aria-label={ariaLabel || (shown ? undefined : name)}
         disabled={disabled}
         ref={trigger}
         onClick={(e: ReactMouseEvent) => { e.stopPropagation(); setOpen(!open); }}
       >
-        {label && <span className="ui-dropdown__pre">{label}</span>}
+        {/* The value alone: "Period: Apr 2026 – Aug 2026" says "period" twice.
+            why: guidelines/density-and-accents.md */}
         <span className="ui-dropdown__value">{shown ?? empty}</span>
         <span className="ui-dropdown__chevron" aria-hidden="true" />
       </button>
