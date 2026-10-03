@@ -18,13 +18,13 @@
 
 <!-- rule: drawer-or-page -->
 
-**Rule:** Use a page when someone edits more than one group; use a drawer for one short change.
+**Rule:** Use a page to edit more than one group, and a drawer for one short change.
 
-**Why:** Editing several groups means moving between them and checking them before saving, which needs more room than a look at one record.
+**Why:** Several groups need room to move between them and check them before saving.
 
-**Do:** Edit the roles and the per-unit switches on a page, under a way back to the member list.
+**Do:** Edit the roles and the per-unit switches on a page, under a way back to the list.
 
-**Don't:** Edit the same groups in a drawer, where they stack in one narrow panel over the list they came from.
+**Don't:** Edit the same groups in a drawer, stacked in one narrow panel over the list.
 
 **Except:** Change one field inline, in its own row, without opening a panel.
 
