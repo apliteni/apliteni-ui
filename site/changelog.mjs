@@ -14,6 +14,7 @@ export const RELEASES = [
       ['added', 'A document review showcase walks one invoice through review, confirmation and the recorded result, and shows the preview loading, unavailable and refused-approval states. The review step leads with the extracted fields, in the wider column, and keeps the document a quieter preview beside them. See #385.'],
       ['added', 'Density and accents gains a rule: emphasis follows consequence. Where a source sits beside the values a screen will save, the saved values take the leading position, the wider column, the heavier weight and whatever accent the pair carries, and a quieter block is made smaller, later or uncoloured rather than faded. The accent goes on the pane\u2019s own name as ink, never as a border around it. See #385.'],
       ['added', 'React Card merges a caller `className` with the kit class instead of ignoring it, so a page can mark one card without hand-writing `ui-card` beside its own. Part of #385.', ['Card']],
+      ['changed', 'The packaged README is about half its old length and reads as plain English. It keeps what a consumer needs — what the kit is, install, the entry points, a vanilla and a React example, the fonts, theme and accent, and where the guidelines live — and sends the rest to the docs pages that already held it. Nothing about the package itself changed. See #385.'],
     ],
   },
   {
