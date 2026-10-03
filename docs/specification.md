@@ -2039,23 +2039,27 @@ A fixture whose triggers printed the chip's name as well as its value was a 92px
 the slide is measured from the trigger's offset along the row. A control that takes its dropdown out
 of the positioning chain — `position: static` on `.ui-dropdown`, so the panel resolves against a
 `position: relative` row — is already bounded by that row, and sliding it by a chip's offset takes it
-outside. Both halves are therefore scoped to `.ui-filter-bar__chip`: the rule does not match such a
-panel, and `filterPanelFit()` returns `null` for it. A row-anchored panel owns its width, sets its own
+outside. Such a panel is therefore not a subject: the sheet's open rule does not match it, and
+`filterPanelFit()` returns `null` for it. A row-anchored panel owns its width, sets its own
 `min-width` and `max-width`, and must not read `--ui-filter-panel-room`, `--ui-filter-panel-shift` or
 `--ui-filter-panel-floor`.
 
-What the scope is standing in for is where a panel is anchored, and a chip is not the only thing a
-panel can hang from. A menu anchored at its own trigger — the add control's, which leaves the
-positioning chain alone — takes the same arithmetic by asking for a width, as the paragraph above
-describes: `filterPanelFit()` is a subject question, not a class one, and a panel that declares
-`--ui-filter-panel-ask` answers it. Such a menu writes its own copy of the open rule, because the
-chip's does not match it, and it is re-measured on `resize` with the chips: the ask is the widest in
-the row, so it is the first menu whose stale fit shows on a phone — a 320px panel 32px outside a
-304px row where a chip's 240px still fits.
+A chip is not the only thing a panel can hang from, though, so the subject is where a panel is
+anchored rather than which class its ancestor carries. A menu anchored at its own trigger — the add
+control's, which leaves the positioning chain alone — takes the same arithmetic by asking for a
+width, as the paragraph above describes, and a panel that declares `--ui-filter-panel-ask` is
+answering that question. `filterPanelRow(dd)` is the question itself, published: it returns the
+`.ui-filter-bar` a menu's fit is measured inside, for a chip's menu and for an asking one, and
+`null` for anything else. Everything downstream of the fit asks it — the stylesheet's open rule,
+whose selector list carries both anchors in one declaration block, the `ResizeObserver` each half
+puts on the row, and the hold that keeps the open geometry through the closing fade. The catalogue
+is where that matters most: its ask is the widest in the row, so it is the first menu whose stale
+fit shows on a phone — a 320px panel 32px outside a 304px row where a chip's 240px still fits —
+and the furthest to fall on the way out, 320px collapsing to a 99px trigger.
 
 The kit's own asking menu is keyed on one attribute: `[data-filter-add]` inside `.ui-filter-bar`.
 That attribute is the whole contract — it is what declares the ask, what carries the open rule's
-room and slide, and what gives the trigger a chip's corner and the row's height. A control drawn
+room, slide and closing hold, and what gives the trigger a chip's corner and the row's height. A control drawn
 without it is a kit dropdown in a filter row and nothing more: its menu is bounded to its trigger
 at 91.3px, and the trigger is a 30px pill on a 999px corner beside 39.2px chips on a 9px one.
 
@@ -2672,8 +2676,8 @@ its own control, and the kit answers it through markup rather than through an op
 its own `dropdown()` inside the bar wrapped in an element carrying `data-filter-add`, and the
 stylesheet does the rest. That attribute is the contract, in both halves. It declares
 `--ui-filter-panel-ask: var(--panel-sm)` on the panel, which is what makes the menu a subject of
-`filterPanelFit()` and so gives it the room, the slide and the re-measurement a chip's menu gets;
-and it gives the trigger `--ui-filter-row-h` and the chip's corner. Left off, the control is a kit
+`filterPanelFit()` and so gives it the room, the slide, the re-measurement and the closing hold a
+chip's menu gets; and it gives the trigger `--ui-filter-row-h` and the chip's corner. Left off, the control is a kit
 dropdown in a row and nothing more — a 91.3px menu bounded to its trigger, which is
 [#549](https://github.com/apliteni/apliteni-ui/issues/549) again, on a 30px pill beside 39.2px
 chips. Decided in [#496](https://github.com/apliteni/apliteni-ui/issues/496).

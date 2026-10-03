@@ -6,11 +6,9 @@
  *
  * Subjects are swept, not named: both Storybook indexes are rendered and every
  * story putting a `.ui-filter-bar` on the page joins the set, alongside
- * filter-bar-fit.html, the issue's own reproduction. Each panel is measured
- * against the `.ui-dropdown` that contains it, each open menu again at every
- * narrower width the kit names, and each anchored menu's close sampled through its
- * fade; the add control's catalogue is one of those anchored menus (#496). Six
- * mutations below have to be refused.
+ * filter-bar-fit.html. Each panel is measured against the `.ui-dropdown` that
+ * contains it, each open menu again at every narrower width, and each anchored
+ * menu's close through its fade. Six mutations below have to be refused.
  *
  * why: scripts/evidence/README.md
  *
