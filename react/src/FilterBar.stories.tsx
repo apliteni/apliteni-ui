@@ -45,6 +45,9 @@ const Chip = ({ id, name, ...rest }: { id: string; name: string } & Partial<Drop
    the shut-panel residue of #467 came back in React alone. The end-aligned chip
    goes first because an end-anchored panel grows backwards, so a chip at the
    row's start has the least room behind it.
+
+   `scripts/evidence/filter-bar-fit.html` renders this bar chip for chip, so one
+   composition is measured through two implementations.
    why: docs/specification.md#a-filter-row-holds-its-panels */
 export const Composed: Story = { render: () => (
   <fieldset className="ui-filter-bar" data-filter-bar="">

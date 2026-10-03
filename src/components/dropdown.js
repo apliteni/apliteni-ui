@@ -16,6 +16,8 @@ export { dropdownMatch, dropdownFiltering } from '../logic/dropdown.js';
 //   wireDropdown(container);   // or let wireTopbar() do it
 import { esc, icon } from './index.js';
 import { safeUrl } from '../html.js';
+// The fade's own length, read off the stylesheet rather than copied. why: src/motion.js
+import { transitionMs } from '../motion.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 
 // A trailing status badge. `badge` is the text shown, in the case it is written
@@ -395,6 +397,93 @@ function ddRefitFilterPanel(dd, panel) {
   if (panel.offsetWidth) panel.style.minWidth = `${panel.offsetWidth}px`;
 }
 
+/** The row this chip's menu is fitted to, or null outside one. */
+function ddRowOf(dd) {
+  return dd?.closest?.('.ui-filter-bar__chip')?.closest('.ui-filter-bar') || null;
+}
+
+/**
+ * Watch the row an open menu is fitted to, and fit it again when that row's box
+ * changes.
+ *
+ * `resize` fires before a row whose width is animating has settled: .ui-app__rail
+ * transitions over --dur-med, so the handler read the screener's row as 143.6px
+ * and the menu kept that inside a row that ends up 214px — #549 on a shipped page.
+ * The row's box is what the fit is measured from, so that is what is observed.
+ * Position is not: `room` and `shift` are offsets within the row.
+ * why: docs/specification.md#a-filter-row-holds-its-panels
+ */
+function ddWatchRow(dd, panel) {
+  ddUnwatchRow(dd);
+  const row = ddRowOf(dd);
+  const view = dd.ownerDocument?.defaultView;
+  if (!row || typeof view?.ResizeObserver !== 'function') return;
+  // observe() reports the current box at once, which the fit was just written
+  // from, so the first call is a no-op.
+  const ro = new view.ResizeObserver(() => {
+    if (dd.classList.contains('open')) ddRefitFilterPanel(dd, panel);
+  });
+  ro.observe(row);
+  dd.__ddRowFit = ro;
+}
+
+function ddUnwatchRow(dd) {
+  dd.__ddRowFit?.disconnect();
+  dd.__ddRowFit = null;
+}
+
+/* A few frames past the sheet's own end, so the timer never cuts the fade's last
+ * frame. The number the dialogs' exit uses. */
+const DD_EXIT_SLACK_MS = 50;
+
+/**
+ * Hold a closing chip menu's open geometry until its fade has finished.
+ *
+ * `.open` stops matching in the frame the menu closes; the fade does not — the
+ * panel transitions opacity over --dur-med. Dropping the width there left a 240px
+ * menu painted as a 48px column of single letters: #549 on the way out. The timer
+ * is the way out of a transitionend that never comes.
+ * why: src/styles/filter-bar.css
+ */
+function ddHoldClose(dd, panel) {
+  ddCancelClose(dd, panel);
+  panel.classList.add('is-closing');
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    dd.__ddClosing = null;
+    panel.classList.remove('is-closing');
+    panel.style.minWidth = '';
+    for (const prop of ['room', 'shift', 'floor']) {
+      panel.style.removeProperty(`--ui-filter-panel-${prop}`);
+    }
+  };
+  // Only the panel's own fade: a row's background transition bubbles here too.
+  const onEnd = (e) => { if (e.target === panel && e.propertyName === 'opacity') stop(); };
+  const timer = setTimeout(() => stop(), transitionMs(panel) + DD_EXIT_SLACK_MS);
+  function stop() {
+    panel.removeEventListener('transitionend', onEnd);
+    clearTimeout(timer);
+    finish();
+  }
+  panel.addEventListener('transitionend', onEnd);
+  // Re-opened mid-fade: the wait is abandoned, so it cannot clear a fit the new
+  // open has already written.
+  dd.__ddClosing = () => {
+    done = true;
+    dd.__ddClosing = null;
+    panel.removeEventListener('transitionend', onEnd);
+    clearTimeout(timer);
+    panel.classList.remove('is-closing');
+  };
+}
+
+function ddCancelClose(dd, panel) {
+  if (dd.__ddClosing) dd.__ddClosing();
+  else panel?.classList?.remove('is-closing');
+}
+
 // `auto` is the only direction the wiring decides; `up` and the default are the
 // panel's own class, set once at render. Flip only when below is too tight AND
 // above is roomier, so a panel that fits nowhere still opens the way it says.
@@ -445,12 +534,15 @@ function closeDropdown(dd) {
   dd.classList.remove('open');
   const panel = ddPanelOf(dd);
   panel?.classList.remove('is-open');
+  ddUnwatchRow(dd);
   /* A search panel carries the width it was opened at as an inline `min-width`,
-   * and inline beats any sheet. Inside a filter row that outlives the open state
-   * and leaves a SHUT panel wider than its trigger, which is #467 — the menu
-   * floor made the residue 240px instead of a trigger's 50px. Cleared here, and
-   * ddResetSearch() writes it again on the next open. */
-  if (panel?.style && dd.closest?.('.ui-filter-bar')) panel.style.minWidth = '';
+   * and inline beats any sheet. Inside a filter row that leaves a SHUT panel wider
+   * than its trigger, which is #467. Cleared here, and ddResetSearch() writes it
+   * again on the next open — except for a chip's menu, which gives the pin and the
+   * fit back at the END of its fade, both being its open geometry. A portalled
+   * panel is never fitted, so it has none to hold. why: ddHoldClose() */
+  if (panel?.style && !dd.__ddPanel && ddRowOf(dd)) ddHoldClose(dd, panel);
+  else if (panel?.style && dd.closest?.('.ui-filter-bar')) panel.style.minWidth = '';
   dd.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'false');
 }
 
@@ -474,9 +566,11 @@ function openDropdown(dd, focusIdx) {
   const panel = ddPanelOf(dd);
   const search = ddSearchOf(dd);
   if (panel) {
+    // An earlier close may still be holding its geometry; this open owns it now.
+    ddCancelClose(dd, panel);
     ddResolveDirection(dd, panel);
     if (dd.__ddPanel) { positionPortalPanel(dd, panel); panel.classList.add('is-open'); }
-    else ddFitFilterPanel(dd, panel);
+    else { ddFitFilterPanel(dd, panel); ddWatchRow(dd, panel); }
   }
   dd.classList.add('open');
   /* After `open`, and after the fit: ddResetSearch() pins the width it reads off
@@ -535,13 +629,14 @@ function ddListen(doc) {
       if (dd.classList.contains('open') && dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
     }
   };
-  /* A filter menu's fit is widths within its row, which a scroll moves together
-   * and a resize does not: only the width needs re-measuring. Portalled panels
-   * are placed in viewport coordinates, so those stay on the scroll above.
+  /* The fallback re-fit, for a view with no ResizeObserver. Not taken as well where
+   * ddWatchRow() is watching: a `resize` event is the worse measurement of the two.
    * why: docs/specification.md#a-filter-row-holds-its-panels */
   const refit = () => {
     for (const dd of ddLive()) {
-      if (dd.classList.contains('open') && !dd.__ddPanel) ddRefitFilterPanel(dd, ddPanelOf(dd));
+      if (dd.classList.contains('open') && !dd.__ddPanel && !dd.__ddRowFit) {
+        ddRefitFilterPanel(dd, ddPanelOf(dd));
+      }
     }
   };
   const view = doc.defaultView;
@@ -587,7 +682,10 @@ export function wireDropdown(root = document) {
     // fit has to be taken here too — otherwise a story or a server-rendered bar
     // keeps the fallback width and #549 survives in exactly the place a
     // default-open menu makes most visible.
-    if (panel && !dd.__ddPanel && dd.classList.contains('open')) ddFitFilterPanel(dd, panel);
+    if (panel && !dd.__ddPanel && dd.classList.contains('open')) {
+      ddFitFilterPanel(dd, panel);
+      ddWatchRow(dd, panel);
+    }
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();

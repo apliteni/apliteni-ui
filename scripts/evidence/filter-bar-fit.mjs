@@ -6,9 +6,9 @@
  *
  * Subjects are swept, not named: both Storybook indexes are rendered and every
  * story putting a `.ui-filter-bar` on the page joins the set, alongside
- * filter-bar-fit.html, the issue's own reproduction. Each panel is measured
- * against the `.ui-dropdown` that contains it, and each open menu again with the
- * viewport narrowed under it; four mutations below have to be refused.
+ * filter-bar-fit.html. Each panel is measured against the `.ui-dropdown` that
+ * contains it, each open menu again with the viewport narrowed under it, and each
+ * chip menu's close sampled through its fade; five mutations have to be refused.
  *
  * why: scripts/evidence/README.md
  *
@@ -55,21 +55,38 @@ const THEMES = ['dark', 'light'];
  * deliberate act of someone who has seen the new surfaces. */
 const FLOOR_SUBJECTS = 15;   // 8 root + 7 react stories rendering a filter bar
 const FLOOR_PANELLED = 72;   // cases that put a panel on the page, of 128
+/* Chip menus whose close is sampled through its fade, over the close arm. Recorded,
+ * not derived: a walk that stopped opening chips would otherwise report "0 of 0".
+ * Well under one per case, because a chip whose trigger is disabled is skipped and
+ * six of the sixteen subjects are a busy, loading, disabled or empty state. */
+const FLOOR_CLOSES = 20;     // chip menus opened and closed, over the 16 close-arm cases
 // Putting the floor back is one mutation. It is the rule as it stood before the
 // fix, written at a specificity that beats the bound so it cannot be a no-op.
 const FLOOR_BACK = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel'
   + ' { min-width: 240px !important; max-width: none !important; }';
-/* And the resize check's own mutation, which is a listener rather than a rule:
- * with every `resize` handler dropped, both halves keep the fit they opened with,
- * and a menu opened wide and measured narrow has to leave its row or widen the
+/* And the re-fit check's own mutation, which is a signal rather than a rule: both
+ * halves watch the row an open menu is fitted to with a ResizeObserver, and fall
+ * back to `resize` where there is none. With both taken away neither re-measures,
+ * so a menu opened wide and measured narrow has to leave its row or widen the
  * page. Injected before the page loads, so the kit's own registration is the one
- * that never happens. */
-const RESIZE_DEAF = `(() => {
+ * that never happens.
+ *
+ * The observer is refused for the ROW only, not globally: <DataTable> and the
+ * toast stack measure themselves with one too, and a page that lost those would
+ * fail this arm for a reason that has nothing to do with a filter menu. */
+const REFIT_DEAF = `(() => {
   const add = EventTarget.prototype.addEventListener;
   EventTarget.prototype.addEventListener = function (type, ...rest) {
     if (type === 'resize') return;
     return add.call(this, type, ...rest);
   };
+  if (typeof ResizeObserver === 'function') {
+    const observe = ResizeObserver.prototype.observe;
+    ResizeObserver.prototype.observe = function (target, ...rest) {
+      if (target?.classList?.contains('ui-filter-bar')) return;
+      return observe.call(this, target, ...rest);
+    };
+  }
 })()`;
 /* Taking the wrap hint away is the other. The floor mutation only ever widens a
  * panel, so it can never exercise the row-fit check; without this one that check
@@ -80,6 +97,12 @@ const WRAP_OFF = '.ui-filter-bar .ui-dropdown__panel { overflow-wrap: normal !im
  * leave at least one menu under the width its row allows. */
 const FLOOR_OFF = '.ui-filter-bar .ui-dropdown.open .ui-dropdown__panel'
   + ' { min-width: 100% !important; max-width: 100% !important; margin-inline-start: 0 !important; }';
+/* And the fifth: dropping the open geometry in the frame a menu closes, which is
+ * the state the fix replaced. The panel fades for --dur-med, so without the hold
+ * a painted menu has to be caught at its trigger's width. */
+const HOLD_OFF = '.ui-filter-bar__chip .ui-dropdown__panel.is-closing'
+  + ' { min-width: 100% !important; max-width: 100% !important;'
+  + ' margin-inline-start: 0 !important; margin-inline-end: 0 !important; }';
 
 /** A static server over one root, with one page of our own at /__shot. */
 const serve = (root, page) => new Promise((resolve, reject) => {
@@ -108,11 +131,96 @@ for (const build of BUILDS) {
   servers[build.half] = await serve(build.dir, path.join(HERE, 'filter-bar-fit.html'));
 }
 const vanilla = await serve(checkout, path.join(HERE, 'filter-bar-fit.html'));
-const browser = await chromium.launch({
+/* Stable text metrics, so a width measured here is the width measured next time. */
+const RASTER = ['--font-render-hinting=none', '--disable-lcd-text', '--disable-gpu',
+  '--disable-partial-raster', '--disable-skia-runtime-opts'];
+const launchWith = (deterministic) => chromium.launch({
   executablePath: process.env.UI_CHROME,
-  args: ['--font-render-hinting=none', '--disable-lcd-text', '--disable-gpu',
-    '--deterministic-mode', '--disable-partial-raster', '--disable-skia-runtime-opts'],
+  args: deterministic ? [...RASTER, '--deterministic-mode'] : RASTER,
 });
+
+/* `--deterministic-mode` makes raster and frame production repeatable, which is what
+ * a gate comparing widths wants. On some hosts' Chromium it stops frames being
+ * produced AT ALL: `requestAnimationFrame` never fires, and settle() waits on a
+ * double rAF with no timeout of its own, so the sweep stops on its first story and
+ * the run never ends. No transition reaches `finished` either, so every settle()
+ * also burns its 5s ceiling. Two runs were lost to this an hour at a time.
+ *
+ * So it is asked rather than assumed, once, and the answer is printed with the
+ * counts. Dropping the flag costs repeatable frame SCHEDULING; it does not move a
+ * box, because every number here comes from layout, and the raster flags that steady
+ * text metrics are kept either way. */
+const framesRun = async (b) => {
+  const ctx = await b.newContext();
+  const page = await ctx.newPage();
+  await page.setContent('<div>frame probe</div>');
+  const ran = await Promise.race([
+    page.evaluate('new Promise((d) => requestAnimationFrame(() => requestAnimationFrame(() => d(true))))'),
+    new Promise((r) => { setTimeout(() => r(false), 3000); }),
+  ]);
+  await ctx.close();
+  return ran === true;
+};
+
+let deterministic = true;
+let browser = await launchWith(true);
+if (!await framesRun(browser)) {
+  deterministic = false;
+  await browser.close();
+  browser = await launchWith(false);
+}
+const launch = () => launchWith(deterministic);
+
+/* A shared host can take Chromium out mid-run — this gate opens 128 cases and the
+ * machine is not its own. A measurement lost that way is a host condition and not a
+ * verdict on the kit, so the browser is brought back and the case is taken again.
+ * Both are counted and printed, so a crash that repeats is visible rather than
+ * absorbed, and a case that fails twice still throws. */
+let relaunches = 0;
+const lost = [];
+
+/* Where the run has got to, on stderr, under FIT_PROGRESS=1. This gate measures 128
+ * cases over seven arms and prints nothing until the last one, so a run that stops
+ * — a page that never answers, a host that took the browser — looks identical to a
+ * run that is still working. Two of those cost an hour each before this existed.
+ * Off by default: the arms' own counts are the output, and this is for watching. */
+const PROGRESS = !!process.env.FIT_PROGRESS;
+const say = (line) => { if (PROGRESS) process.stderr.write(`· ${line}\n`); };
+const GONE = /has been closed|Target (page|closed)|disconnected|crashed/i;
+
+const freshContext = async (opts) => {
+  if (!browser.isConnected()) { browser = await launch(); relaunches += 1; }
+  return browser.newContext(opts);
+};
+
+async function again(label, run) {
+  try {
+    return await run();
+  } catch (err) {
+    if (!GONE.test(err.message)) throw err;
+    lost.push(`${label}: ${err.message.split('\n')[0]}`);
+    if (!browser.isConnected()) { browser = await launch(); relaunches += 1; }
+    return run();
+  }
+}
+
+/* The close walk's own browser, never deterministic. A CSS transition is driven by
+ * frame production, so under `--deterministic-mode` a panel told to fade sits at
+ * opacity 1 for ever — a walk that cannot see the fade cannot see a menu collapse
+ * inside it. The raster flags stay, because the walk still compares widths.
+ * Probed both ways before this was written: with the flag, opacity reads 1.000 at
+ * every sample out to +320ms; without it, 1.000 → 0.800 → 0.667 → … → 0 by +280ms.
+ * Where the probe above already dropped the flag this is the same browser's twin,
+ * kept separate because this one alone runs with motion on. */
+const launchMotion = () => launchWith(false);
+let motionBrowser = null;
+const motionContext = async (opts) => {
+  if (!motionBrowser?.isConnected()) {
+    if (motionBrowser) relaunches += 1;   // counted with the other half's, and printed
+    motionBrowser = await launchMotion();
+  }
+  return motionBrowser.newContext(opts);
+};
 
 /** What the page and its bars measure, in one round trip. */
 const probe = () => {
@@ -181,12 +289,13 @@ const settled = async (page) => {
 async function sweep() {
   const found = [];
   const unrendered = [];
-  const ctx = await browser.newContext({
+  const ctx = await freshContext({
     viewport: { width: WIDTHS[0], height: 640 }, deviceScaleFactor: 1, reducedMotion: 'reduce',
   });
   const page = await ctx.newPage();
   for (const build of BUILDS) {
     for (const story of indexed(build)) {
+      say(`  sweep ${build.half}: ${story.id}`);
       try {
         await page.goto(storyUrl(servers[build.half].port, story.id, THEMES[0]), { waitUntil: 'load' });
         await settled(page);
@@ -203,14 +312,16 @@ async function sweep() {
   return { found, unrendered };
 }
 
+say('sweeping both Storybook indexes');
 const { found: subjects, unrendered } = await sweep();
+say(`swept: ${subjects.length} subjects`);
 
 /** One case: a rendered subject at a width in a theme, optionally mutated. */
 async function measure({ url, ready, width, theme, mutate, attrTheme, deaf }) {
-  const ctx = await browser.newContext({
+  const ctx = await freshContext({
     viewport: { width, height: 640 }, deviceScaleFactor: 1, reducedMotion: 'reduce',
   });
-  if (deaf) await ctx.addInitScript({ content: RESIZE_DEAF });
+  if (deaf) await ctx.addInitScript({ content: REFIT_DEAF });
   const page = await ctx.newPage();
   await page.goto(url, { waitUntil: 'load' });
   /* Every subject was chosen because it renders a filter bar, so measuring
@@ -256,6 +367,134 @@ async function measure({ url, ready, width, theme, mutate, attrTheme, deaf }) {
   }
   await ctx.close();
   return { ...seen, opens };
+}
+
+/* Every chip menu's box, its row's box and whether it is being painted, as one
+ * expression so the frame walk below and the single read above it ask the same
+ * question. A string for the same reason the mutations are: it is evaluated in the
+ * page, where nothing of this module is in scope. */
+const PAINTED_MENUS = `[...document.querySelectorAll('.ui-filter-bar__chip .ui-dropdown__panel')]
+  .map((panel) => {
+    const bar = panel.closest('.ui-filter-bar');
+    const p = panel.getBoundingClientRect();
+    const b = bar.getBoundingClientRect();
+    const cs = getComputedStyle(panel);
+    return {
+      width: +p.width.toFixed(1), left: +p.left.toFixed(1), right: +p.right.toFixed(1),
+      bar: { left: +b.left.toFixed(1), right: +b.right.toFixed(1), width: +b.width.toFixed(1) },
+      opacity: +Number(cs.opacity).toFixed(3), visibility: cs.visibility,
+      open: !!panel.closest('.ui-dropdown')?.classList.contains('open'),
+      closing: panel.classList.contains('is-closing'),
+    };
+  })`;
+
+/* Sample those every STEP_MS until nothing is painted any more, or for 20 samples —
+ * 320ms, past the 250ms the panel fades over.
+ *
+ * By the clock, not by `requestAnimationFrame`. rAF is the obvious way to walk a
+ * fade and it cannot be used here: this gate launches Chromium with
+ * `--deterministic-mode`, under which no frames are produced on their own and rAF
+ * never fires, so the walk hung for ever rather than reporting anything. The close
+ * arm's browser drops that flag (see launchMotion()) and `setTimeout` is what the
+ * remaining clock is read with. A loaded host therefore samples later, further into
+ * the fade — which costs coverage, never a false pass: the check is that no sample
+ * caught a painted menu under its floor, and the floor below says how many samples
+ * were painted so a run that saw too few is visible. */
+const STEP_MS = 16;
+const FADE_WALK = `(async () => {
+  const painted = (p) => p.opacity > 0.02 && p.visibility !== 'hidden';
+  const frames = [];
+  for (let i = 0; i < 20; i += 1) {
+    const now = ${PAINTED_MENUS};
+    frames.push(now);
+    if (!now.some(painted)) break;
+    await new Promise((r) => setTimeout(r, ${STEP_MS}));
+  }
+  return frames;
+})()`;
+
+/* The two states the close walk waits on, each one condition on the panels it is
+ * about. settle() is wrong for this arm: it reports "still moving" by throwing at a
+ * 5s ceiling, and with motion ON a story carrying a spinner never stops moving, so
+ * one per chip cost this arm ten seconds a chip. A panel's own fade resolves in a
+ * frame or two. The page-level settle() below is kept, so fonts and the first paint
+ * are still waited for once per case. */
+const OPEN_PAINTED = `[...document.querySelectorAll('.ui-filter-bar__chip .ui-dropdown__panel')]
+  .some((p) => {
+    const cs = getComputedStyle(p);
+    return cs.visibility !== 'hidden' && Number(cs.opacity) > 0.98;
+  })`;
+const NONE_PAINTED = `[...document.querySelectorAll('.ui-filter-bar__chip .ui-dropdown__panel')]
+  .every((p) => {
+    const cs = getComputedStyle(p);
+    return cs.visibility === 'hidden' || Number(cs.opacity) <= 0.02;
+  })`;
+
+/* A cap on one in-page call. An `evaluate` has no timeout of its own, so a page that
+ * stops answering stops the whole gate: this one waited on a `requestAnimationFrame`
+ * that `--deterministic-mode` never fires and sat at 0% CPU for an hour. Timed-out
+ * walks are counted and reported, never swallowed. */
+const walkTimeouts = [];
+const capped = (promise, ms, what) => Promise.race([
+  promise,
+  new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`no answer after ${ms}ms: ${what}`)), ms);
+  }),
+]);
+
+/** Bounded: a panel that never reaches the state is what the walk reports, not an error.
+ *  Polled on a timer rather than on frames, for the reason FADE_WALK gives. */
+const reached = async (page, expression) => {
+  try {
+    await page.waitForFunction(expression, null, { timeout: 2000, polling: STEP_MS });
+  } catch { /* reported by the counts below */ }
+};
+
+/**
+ * The close frame. Every other measurement here is of a settled state, and that is
+ * why the defect this arm exists for went unseen: `.ui-dropdown.open` stops
+ * matching in the frame a menu is told to close, while the panel keeps being
+ * painted for --dur-med. An opaque 240px menu collapsed to its 48px trigger and
+ * jumped sideways for the first frames of every close — #549, on the way out.
+ *
+ * Motion is ON here. Reduced motion is the net that hides this: it shortens the
+ * fade to nothing, so the collapsed frame is never painted. And the walk is by
+ * frame rather than by clock, so a loaded host samples the same states, later.
+ */
+async function closeFrames({ url, ready, width, theme, attrTheme, mutate }) {
+  const ctx = await motionContext({
+    viewport: { width, height: 640 }, deviceScaleFactor: 1, reducedMotion: 'no-preference',
+  });
+  const page = await ctx.newPage();
+  const walks = [];
+  try {
+    await page.goto(url, { waitUntil: 'load' });
+    await page.waitForSelector(ready || '.ui-filter-bar', { state: 'attached', timeout: 30000 });
+    if (attrTheme) await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
+    if (mutate) await page.addStyleTag({ content: mutate });
+    /* The lenient wait: with motion on, a story carrying a spinner never settles,
+     * and the question asked below is about a panel's own box relative to its row,
+     * which does not need the rest of the page to have stopped. */
+    await settled(page);
+    const triggers = await page.$$('.ui-filter-bar__chip [data-dropdown-trigger]');
+    for (const [at, trigger] of triggers.entries()) {
+      if (!await trigger.isEnabled()) continue;
+      await trigger.click();
+      await reached(page, OPEN_PAINTED);
+      const open = await page.evaluate(PAINTED_MENUS);
+      await page.keyboard.press('Escape');
+      try {
+        const frames = await capped(page.evaluate(FADE_WALK), 10000, `${url} chip ${at + 1}`);
+        walks.push({ chip: at + 1, open, frames });
+      } catch (err) {
+        walkTimeouts.push(err.message);
+      }
+      await reached(page, NONE_PAINTED);
+    }
+  } finally {
+    await ctx.close();
+  }
+  return walks;
 }
 
 const cases = [];
@@ -347,7 +586,8 @@ const fails = [];
 const panelled = new Set();
 let resizedStates = 0;
 for (const one of cases) {
-  const held = await measure(one);
+  say(`shipped ${ledger.length + 1}/${cases.length}: ${one.name} ${one.width}px ${one.theme}`);
+  const held = await again(one.name, () => measure(one));
   ledger.push({ ...one, mutated: false, ...held });
   if (carriesPanel(held)) panelled.add(one);
   const worst = worstOver(held);
@@ -403,7 +643,8 @@ for (const one of cases) {
  * panel for the floor to widen. */
 const survived = [];
 for (const one of cases) {
-  const broken = await measure({ ...one, mutate: FLOOR_BACK });
+  say(`floor-back ${survived.length}+ : ${one.name} ${one.width}px ${one.theme}`);
+  const broken = await again(one.name, () => measure({ ...one, mutate: FLOOR_BACK }));
   ledger.push({ ...one, mutated: true, ...broken });
   const loose = unbound(broken);
   if (panelled.has(one) && !loose.length) {
@@ -424,7 +665,8 @@ for (const one of cases) {
 const wrapArm = cases.filter((one) => one.width === WIDTHS[0] && one.theme === THEMES[0]);
 const unwrapped = [];
 for (const one of wrapArm) {
-  const loose = await measure({ ...one, mutate: WRAP_OFF });
+  say(`wrap-off: ${one.name}`);
+  const loose = await again(one.name, () => measure({ ...one, mutate: WRAP_OFF }));
   ledger.push({ ...one, mutated: 'wrap-off', ...loose });
   unwrapped.push(...spilled(loose).map((s) => `${one.name}: ${s.text}`));
 }
@@ -434,7 +676,8 @@ for (const one of wrapArm) {
  * same narrow arm, for the same reason. */
 const squeezed = [];
 for (const one of wrapArm) {
-  const narrow = await measure({ ...one, mutate: FLOOR_OFF });
+  say(`floor-off: ${one.name}`);
+  const narrow = await again(one.name, () => measure({ ...one, mutate: FLOOR_OFF }));
   ledger.push({ ...one, mutated: 'floor-off', ...narrow });
   squeezed.push(...tooNarrow(narrow).map((p) => `${one.name}: ${p.width}px under ${p.floor}px`));
 }
@@ -447,14 +690,72 @@ for (const one of wrapArm) {
 const deafArm = cases.filter((one) => one.width === WIDTHS[WIDTHS.length - 1] && one.theme === THEMES[0]);
 const stale = [];
 for (const one of deafArm) {
-  const kept = await measure({ ...one, deaf: true });
+  say(`refit-deaf: ${one.name}`);
+  const kept = await again(one.name, () => measure({ ...one, deaf: true }));
   ledger.push({ ...one, mutated: 'resize-deaf', ...kept });
   const loose = kept.opens.filter((o) => o.resizedTo)
     .filter((o) => o.over > 0 || escapedIn(o).length);
   if (loose.length) stale.push(`${one.name}: ${loose.length} menus kept the fit they opened with`);
 }
 
+/* The close arm, and the fifth mutation beside it. A painted menu may not be
+ * narrower than its row's floor, whatever `open` says: that is the same promise the
+ * shipped arm measures, asked of the frames nothing else here looks at. Run at the
+ * narrowest width in one theme — the collapse is one shared stylesheet rule, so one
+ * arm answers whether it still holds, and the mutation beside it answers whether
+ * this is reading anything. */
+const closeArm = cases.filter((one) => one.width === NARROW && one.theme === THEMES[0]);
+
+/** A painted menu that broke either half of the promise in one sampled frame:
+ *  narrower than its row's floor, or outside the row. */
+const collapsedIn = (frame) => frame
+  .filter((p) => p.opacity > 0.02 && p.visibility !== 'hidden')
+  .map((p) => ({ ...p, floor: Math.min(MENU_FLOOR, p.bar.width) }))
+  .filter((p) => p.width < p.floor - 0.5
+    || p.right > p.bar.right + 0.5 || p.left < p.bar.left - 0.5);
+
+const collapsed = [];
+let closeWalks = 0;
+let closeFramesPainted = 0;
+for (const one of closeArm) {
+  say(`close-walk: ${one.name}`);
+  const walks = await again(one.name, () => closeFrames(one));
+  ledger.push({ ...one, mutated: 'close-frames', walks });
+  for (const walk of walks) {
+    closeWalks += 1;
+    /* One line per menu, not per frame: the same panel is sampled up to twenty
+     * times on the way out, and twenty identical lines read as twenty defects. The
+     * narrowest frame is the one quoted. */
+    let worst = null;
+    for (const [at, frame] of walk.frames.entries()) {
+      closeFramesPainted += frame.filter((pp) => pp.opacity > 0.02 && pp.visibility !== 'hidden').length;
+      for (const panel of collapsedIn(frame)) {
+        if (!worst || panel.width < worst.width) worst = { ...panel, at };
+      }
+    }
+    if (worst) {
+      collapsed.push(`${one.name} at ${one.width}px ${one.theme} chip ${walk.chip} closing, frame `
+        + `${worst.at}: a menu still painted at opacity ${worst.opacity} is ${worst.width}px where its `
+        + `row allows ${worst.floor}px, spanning ${worst.left}..${worst.right} in a row of `
+        + `${worst.bar.left}..${worst.bar.right}`);
+    }
+  }
+}
+
+const unheld = [];
+for (const one of closeArm) {
+  say(`hold-off: ${one.name}`);
+  const walks = await again(one.name, () => closeFrames({ ...one, mutate: HOLD_OFF }));
+  ledger.push({ ...one, mutated: 'hold-off', walks });
+  for (const walk of walks) {
+    for (const frame of walk.frames) {
+      unheld.push(...collapsedIn(frame).map((pp) => `${one.name}: ${pp.width}px under ${pp.floor}px`));
+    }
+  }
+}
+
 await browser.close();
+if (motionBrowser?.isConnected()) await motionBrowser.close();
 for (const half of Object.values(servers)) half.proc.kill();
 vanilla.proc.kill();
 
@@ -480,8 +781,17 @@ console.log(`rows that spill with the wrap hint off: ${unwrapped.length}, over `
 console.log(`menus under their row floor with the menu floor off: ${squeezed.length}, over `
   + `${wrapArm.length} cases`);
 console.log(`open menus measured again at ${NARROW}px: ${resizedStates}`);
-console.log(`cases whose menus went stale with every resize listener dropped: ${stale.length}, `
-  + `over ${deafArm.length} cases at ${WIDTHS[WIDTHS.length - 1]}px ${THEMES[0]}`);
+console.log(`cases whose menus went stale with the row unobserved and resize dropped: `
+  + `${stale.length}, over ${deafArm.length} cases at ${WIDTHS[WIDTHS.length - 1]}px ${THEMES[0]}`);
+console.log(`closes sampled every ${STEP_MS}ms with motion on: ${closeWalks}, floor ${FLOOR_CLOSES}; `
+  + `${closeFramesPainted} painted panel-samples measured, over ${closeArm.length} cases at `
+  + `${NARROW}px ${THEMES[0]}`);
+console.log(`painted menus under their row floor with the close hold off: ${unheld.length}`);
+console.log(`frame production: ${deterministic ? 'deterministic' : "the host's own — "
+  + '--deterministic-mode dropped because requestAnimationFrame does not fire under it here'}`);
+console.log(`browser relaunched mid-run: ${relaunches}`
+  + `${lost.length ? `, cases taken again: ${lost.length}` : ''}`);
+for (const line of lost) console.log(`  · ${line}`);
 
 const problems = [];
 if (cases.length !== expected) problems.push(`measured ${cases.length} cases, expected ${expected}`);
@@ -526,9 +836,26 @@ if (!resizedStates) {
     + 'menu does when the viewport moves under it');
 }
 if (!stale.length) {
-  problems.push('no menu left its row or widened the page with every resize listener dropped, so '
-    + 'the resize check is not measuring anything');
+  problems.push('no menu left its row or widened the page with the row unobserved and every resize '
+    + 'listener dropped, so the re-fit check is not measuring anything');
 }
+/* And the close frames. A walk that sampled no painted panel saw the fade already
+ * over, which is the reduced-motion state this arm exists to leave behind. */
+if (closeWalks < FLOOR_CLOSES) {
+  problems.push(`${closeWalks} closes were sampled through their fade and this kit reaches at least `
+    + `${FLOOR_CLOSES} — a chip menu stopped being closed, or the walk stopped reaching one`);
+}
+if (!closeFramesPainted) {
+  problems.push('no closing menu was caught while it was still being painted, so nothing here says '
+    + 'what a menu looks like on its way out — motion may be off in this browser');
+}
+if (!unheld.length) {
+  problems.push('no painted menu fell under its row floor with the close hold taken away, so the '
+    + 'close-frame check is not measuring anything');
+}
+/* A walk that could not answer is a hole in the arm, not a pass. */
+problems.push(...walkTimeouts.map((line) => `a close walk never returned — ${line}`));
+problems.push(...collapsed);
 problems.push(...unrendered, ...fails, ...survived);
 if (problems.length) {
   for (const line of problems) console.error(`  ✗ ${line}`);
@@ -536,6 +863,7 @@ if (problems.length) {
 } else {
   console.log(`✓ ${cases.length} cases: every shut panel as wide as its .ui-dropdown, every open `
     + `menu at the floor its row allows, all inside their row and adding nothing to the page, `
-    + `at the width they opened at and again at ${NARROW}px; `
+    + `at the width they opened at and again at ${NARROW}px, and no menu under that floor in any `
+    + `frame it is still painted in as it closes; `
     + `${panelled.size} panel-bearing mutations rejected`);
 }

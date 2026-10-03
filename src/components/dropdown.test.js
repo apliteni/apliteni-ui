@@ -537,7 +537,8 @@ const PANEL_PROPS = ['room', 'shift', 'floor'];
 /** One chip in a filter row, wired, with the two rects filterPanelFit() reads
  *  and the width the stylesheet would have left the panel at. `resize()` moves
  *  the row the way a rotation does: new numbers, then the event. */
-function chipRow({ rowWidth = 1200, left = 146, search = false, panelWidth = 240 } = {}) {
+function chipRow({ rowWidth = 1200, left = 146, search = false, panelWidth = 240,
+  observer = false } = {}) {
   const window = mount(
     '<fieldset class="ui-filter-bar" data-filter-bar>'
     + '<legend class="ui-filter-bar__legend">Filters</legend>'
@@ -553,14 +554,38 @@ function chipRow({ rowWidth = 1200, left = 146, search = false, panelWidth = 240
   bar.getBoundingClientRect = () => ({ left: 0, right: at.rowWidth, width: at.rowWidth });
   dd.getBoundingClientRect = () => ({ left: at.left, right: at.left + 60, width: 60 });
   Object.defineProperty(panel, 'offsetWidth', { get: () => at.panelWidth, configurable: true });
+  /* JSDOM has no ResizeObserver, which is the fallback path the `resize` cases
+   * below take. `observer: true` installs one that reports on demand, so the path
+   * a browser actually takes can be driven: observe() hands back the current box
+   * at once, as the real one does, and settleRow() is the row changing after the
+   * event — the rail finishing its 250ms. */
+  const observers = [];
+  if (observer) {
+    window.ResizeObserver = class {
+      constructor(cb) { this.cb = cb; this.targets = []; observers.push(this); }
+      observe(target) { this.targets.push(target); this.cb([{ target }], this); }
+      disconnect() { this.targets.length = 0; }
+    };
+  }
   wireDropdown(doc);
   return {
-    window, dd, panel,
+    window, dd, panel, bar, observers,
     trigger: doc.querySelector('[data-dropdown-trigger]'),
     fit: () => PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`)),
     resize: (next) => {
       Object.assign(at, next);
       window.dispatchEvent(new window.Event('resize'));
+    },
+    /** The row's own box changing, which is what a ResizeObserver reports. */
+    settleRow: (next) => {
+      Object.assign(at, next);
+      for (const ro of observers) for (const target of ro.targets) ro.cb([{ target }], ro);
+    },
+    /** The panel's fade reaching its end. */
+    endFade: () => {
+      const e = new window.Event('transitionend');
+      e.propertyName = 'opacity';
+      panel.dispatchEvent(e);
     },
   };
 }
@@ -592,16 +617,21 @@ test('a shut menu is left alone when the viewport changes', () => {
   assert.deepEqual(row.fit(), ['', '', '']);
 });
 
-test('a searchable chip gives its pinned width back when it closes', () => {
+test('a searchable chip gives its pinned width back when its fade ends', () => {
   /* ddResetSearch() pins the open width inline so the list does not narrow as a
    * query hides rows, and inline beats the sheet that holds a shut panel to its
-   * trigger. Left behind, that is #467 at the menu floor's width. */
+   * trigger. Left behind, that is #467 at the menu floor's width.
+   *
+   * Given back at the END of the fade, not in the frame the menu closes: the pin
+   * is part of the open geometry, and the panel is still being painted. */
   const row = chipRow({ search: true });
   click(row.window, row.trigger);
   assert.equal(row.panel.style.minWidth, '240px');
   click(row.window, row.trigger);
   assert.equal(row.dd.classList.contains('open'), false);
-  assert.equal(row.panel.style.minWidth, '', 'the pin goes with the open state');
+  assert.equal(row.panel.style.minWidth, '240px', 'the pin is held while the panel still paints');
+  row.endFade();
+  assert.equal(row.panel.style.minWidth, '', 'and goes when the fade is over');
 });
 
 test('a searchable chip reads its pin again at the new width', () => {
@@ -613,6 +643,105 @@ test('a searchable chip reads its pin again at the new width', () => {
   row.resize({ rowWidth: 200, panelWidth: 200 });
   assert.deepEqual(row.fit(), ['200px', '146px', '200px']);
   assert.equal(row.panel.style.minWidth, '200px');
+});
+
+test('the row an open menu is fitted to is the box that is watched', () => {
+  /* Not the viewport. `resize` fires before a row whose width is animating has
+   * settled — the shell's rail transitions over --dur-med — so the handler read a
+   * row 70px narrower than it ends up and the menu kept that number. The row's own
+   * box is what the fit is measured from, so that is what is observed. */
+  const row = chipRow({ observer: true });
+  click(row.window, row.trigger);
+  assert.equal(row.observers.length, 1, 'one observer per open menu');
+  assert.deepEqual(row.observers[0].targets, [row.bar], 'the row, not the chip and not the view');
+});
+
+test('a row that settles after the event is measured again', () => {
+  // The screener: opened at 1280, narrowed, and the rail still widening the column
+  // under the menu. The first report is the transient row, the next is the one it
+  // settles at, and the menu has to end up at the second.
+  const row = chipRow({ observer: true });
+  click(row.window, row.trigger);
+  assert.deepEqual(row.fit(), ['1054px', '0px', '240px']);
+  row.settleRow({ rowWidth: 143.625, left: 5 });
+  assert.deepEqual(row.fit(), ['143.625px', '5px', '143.625px'], 'the transient row mid-animation');
+  row.settleRow({ rowWidth: 214, left: 5 });
+  assert.deepEqual(row.fit(), ['214px', '5px', '214px'], 'and the row it settles at');
+});
+
+test('the row is let go when the menu closes', () => {
+  const row = chipRow({ observer: true });
+  click(row.window, row.trigger);
+  click(row.window, row.trigger);
+  assert.deepEqual(row.observers[0].targets, [], 'nothing is left watching a shut menu');
+});
+
+test('where a row is watched, a resize does not measure as well', () => {
+  /* Two answers to one change, and the worse of them arrives second: the `resize`
+   * handler reads the row mid-animation. It is the fallback for a view with no
+   * ResizeObserver, not a second opinion. */
+  const row = chipRow({ observer: true });
+  click(row.window, row.trigger);
+  row.settleRow({ rowWidth: 214, left: 5 });
+  assert.deepEqual(row.fit(), ['214px', '5px', '214px']);
+  row.resize({ rowWidth: 143.625, left: 5 });
+  assert.deepEqual(row.fit(), ['214px', '5px', '214px'], 'the event is not taken as well');
+});
+
+test('a closing chip menu keeps its open geometry until the fade ends', () => {
+  /* `.ui-dropdown.open` stops matching in the frame the menu closes; the panel goes
+   * on being painted for --dur-med. Dropping the fit there collapsed an opaque 240px
+   * menu to its 48px trigger and jumped it sideways — #549, on the way out. */
+  const row = chipRow();
+  click(row.window, row.trigger);
+  assert.deepEqual(row.fit(), ['1054px', '0px', '240px']);
+  click(row.window, row.trigger);
+  assert.equal(row.dd.classList.contains('open'), false);
+  assert.equal(row.panel.classList.contains('is-closing'), true, 'the hold is on');
+  assert.deepEqual(row.fit(), ['1054px', '0px', '240px'], 'and the geometry with it');
+  row.endFade();
+  assert.equal(row.panel.classList.contains('is-closing'), false);
+  assert.deepEqual(row.fit(), ['', '', ''], 'given back once nothing is painted');
+});
+
+test('only the panel\'s own fade ends the hold', () => {
+  // A row's background transition bubbles to the panel too, and it finishes first.
+  const row = chipRow();
+  click(row.window, row.trigger);
+  click(row.window, row.trigger);
+  const other = new row.window.Event('transitionend', { bubbles: true });
+  other.propertyName = 'background';
+  row.dd.querySelector('.ui-dropdown__item').dispatchEvent(other);
+  assert.equal(row.panel.classList.contains('is-closing'), true, 'a descendant\'s transition is not it');
+  row.endFade();
+  assert.equal(row.panel.classList.contains('is-closing'), false);
+});
+
+test('the hold is released on a timer when transitionend never comes', async () => {
+  // A fade that did not run fires nothing — and jsdom fires nothing at all, which
+  // is the case this timer is written for. The length comes from the sheet.
+  const row = chipRow();
+  click(row.window, row.trigger);
+  click(row.window, row.trigger);
+  assert.equal(row.panel.classList.contains('is-closing'), true);
+  await new Promise((done) => setTimeout(done, 120));
+  assert.equal(row.panel.classList.contains('is-closing'), false, 'the way out without the event');
+  assert.deepEqual(row.fit(), ['', '', '']);
+});
+
+test('re-opening mid-fade keeps the new fit and drops the hold', async () => {
+  /* The abandoned wait must not fire late: it would clear the geometry the new open
+   * has just written, leaving an OPEN menu at its trigger's width. */
+  const row = chipRow();
+  click(row.window, row.trigger);
+  click(row.window, row.trigger);
+  assert.equal(row.panel.classList.contains('is-closing'), true);
+  click(row.window, row.trigger);
+  assert.equal(row.dd.classList.contains('open'), true);
+  assert.equal(row.panel.classList.contains('is-closing'), false, 'the hold belongs to the close');
+  assert.deepEqual(row.fit(), ['1054px', '0px', '240px']);
+  await new Promise((done) => setTimeout(done, 120));
+  assert.deepEqual(row.fit(), ['1054px', '0px', '240px'], 'and the old timer does not fire into it');
 });
 
 test('a dropdown outside a filter row is given no numbers at all', () => {

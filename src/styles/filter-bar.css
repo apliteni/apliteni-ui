@@ -18,16 +18,26 @@
 .ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; overflow-wrap: anywhere; }
 
 /* Open, a chip's menu takes the kit's menu floor, measured and slid by
-   filterPanelFit(); unset, these fall back to the trigger's width. Scoped to a
-   chip because the slide is a chip's arithmetic — a panel anchored to the row
-   owns its own width. #549, why: docs/specification.md#a-filter-row-holds-its-panels */
-.ui-filter-bar__chip .ui-dropdown.open .ui-dropdown__panel {
+   filterPanelFit(); `is-closing` holds that geometry through the fade. #549
+   why: docs/specification.md#a-filter-row-holds-its-panels */
+.ui-filter-bar__chip .ui-dropdown.open .ui-dropdown__panel,
+.ui-filter-bar__chip .ui-dropdown__panel.is-closing {
   min-width: min(var(--ui-filter-panel-floor, 240px), var(--ui-filter-panel-room, 100%));
   max-width: var(--ui-filter-panel-room, 100%);
   margin-inline-start: calc(-1 * var(--ui-filter-panel-shift, 0px));
 }
 /* An end-aligned panel is pinned by its right edge, so the slide pushes it. */
-.ui-filter-bar__chip .ui-dropdown.open .ui-dropdown__panel.is-end {
+.ui-filter-bar__chip .ui-dropdown.open .ui-dropdown__panel.is-end,
+.ui-filter-bar__chip .ui-dropdown__panel.is-end.is-closing {
   margin-inline-start: 0;
   margin-inline-end: calc(-1 * var(--ui-filter-panel-shift, 0px));
+}
+
+/* A 16px tick and an 11px gap do not fit the 48px trigger a chip printing `All`
+   gives its shut panel, and overflow-wrap cannot break a mark; the clip is what
+   shrinks the glyph and not just its box. why: docs/specification.md#a-filter-row-holds-its-panels */
+.ui-filter-bar__chip .ui-dropdown__panel .ui-dropdown__tick {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
 }

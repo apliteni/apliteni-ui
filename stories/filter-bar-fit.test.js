@@ -145,10 +145,15 @@ function canExceed(resolved, selector = '') {
    * percentage is what the browser uses. The kit writes these through a custom
    * property that JavaScript sets to an absolute length, so the fallback
    * resolved here is what renders only until the fit runs. A rule that applies
-   * after it has (`.open`) may be read this way; the shut rule, which is the one
-   * #467 is about, may not — a shut-scope floor spelled through a token would
-   * otherwise walk past this guard at any width. */
-  if (min && /\.open\b/.test(selector)) {
+   * after it has may be read this way; the shut rule, which is the one #467 is
+   * about, may not — a shut-scope floor spelled through a token would otherwise
+   * walk past this guard at any width.
+   *
+   * Two scopes qualify, and they are the two in which a panel is PAINTED: `.open`,
+   * and `.is-closing`, which holds the open geometry through the fade out. The fit
+   * has been written in both, and in both the row is what caps the box — the same
+   * reason, so the same reading. Anything else is shut scope and is refused. */
+  if (min && /\.open\b|\.is-closing\b/.test(selector)) {
     return !splitArgs(min[1]).some((arg) => !canExceed(arg.trim(), selector));
   }
   return true;
@@ -245,15 +250,19 @@ function menuFloors(sheets, jsFloor, gateSource) {
   const found = [];
   for (const [file, css] of sheets) {
     for (const rule of rules(css)) {
+      const value = declared(rule.body, 'min-width');
+      if (!value) continue;
+      /* The fallback a filter row's menu reads when the fit has not run. Asked of
+       * the RULE and not of each selector in its list: the open geometry is one
+       * declaration shared by the open scope and the closing one, and counting it
+       * once per selector would report a second copy that does not exist. */
+      const token = /min\(\s*var\(\s*--ui-filter-panel-floor\s*,\s*(\d+(?:\.\d+)?)px\s*\)/.exec(value);
+      if (token) found.push({ where: `${file} (fallback)`, px: Number(token[1]) });
+      // The standalone panel's own floor, not a variant's.
+      const bare = /^(\d+(?:\.\d+)?)px$/.exec(value.trim());
+      if (!bare) continue;
       for (const one of selectors(rule.selector)) {
-        const value = declared(rule.body, 'min-width');
-        if (!value) continue;
-        // The standalone panel's own floor, not a variant's.
-        const bare = /^(\d+(?:\.\d+)?)px$/.exec(value.trim());
-        if (bare && one.trim() === PANEL) found.push({ where: file, px: Number(bare[1]) });
-        // The fallback a filter row's menu reads when the fit has not run.
-        const token = /min\(\s*var\(\s*--ui-filter-panel-floor\s*,\s*(\d+(?:\.\d+)?)px\s*\)/.exec(value);
-        if (token) found.push({ where: `${file} (fallback)`, px: Number(token[1]) });
+        if (one.trim() === PANEL) found.push({ where: file, px: Number(bare[1]) });
       }
     }
   }
@@ -261,6 +270,37 @@ function menuFloors(sheets, jsFloor, gateSource) {
   const gate = /const MENU_FLOOR = (\d+(?:\.\d+)?)/.exec(gateSource);
   if (gate) found.push({ where: 'filter-bar-fit.mjs', px: Number(gate[1]) });
   return found;
+}
+
+/** Every rule that writes a chip menu's open geometry, as the scopes it applies to.
+ *  The geometry is three declarations — the floor, the cap and the slide — and the
+ *  question asked of it is which states they reach. */
+function fitScopes(sheets) {
+  const out = [];
+  for (const [file, css] of sheets) {
+    for (const rule of rules(css)) {
+      const props = ['min-width', 'max-width', 'margin-inline-start', 'margin-inline-end']
+        .filter((prop) => (declared(rule.body, prop) || '').includes('--ui-filter-panel-'));
+      if (!props.length) continue;
+      out.push({ file, props, scopes: selectors(rule.selector) });
+    }
+  }
+  return out;
+}
+
+/** The finding, or null when every state a chip's panel is painted in carries the
+ *  same geometry. A panel fades for --dur-med after `open` goes, so a rule that
+ *  only answers `.open` leaves the fade painting a collapsed menu — #549 again. */
+function unheldOnClose(sheets) {
+  const found = fitScopes(sheets);
+  if (!found.length) return 'no rule writes --ui-filter-panel-* onto a chip menu any more';
+  const bad = found.filter((rule) => rule.scopes.some((one) => /\.open\b/.test(one))
+    && !rule.scopes.some((one) => /\.is-closing\b/.test(one)));
+  if (bad.length) {
+    return `${bad[0].scopes.join(', ')} in ${bad[0].file} gives ${bad[0].props.join(' and ')} to an `
+      + 'open menu and to nothing else, so a closing one drops it while it is still painted';
+  }
+  return null;
 }
 
 const gateSource = readFileSync(path.join(root, 'scripts/evidence/filter-bar-fit.mjs'), 'utf8');
@@ -456,4 +496,39 @@ test('the check accepts the shape the kit actually writes', () => {
     ['fixture-bar.css', `${BAR} ${PANEL} { min-width: 100%; max-width: 100%; }`],
   ];
   assert.equal(unbounded(good), null);
+});
+
+test('the closing scope reads like the open one, and only while it is capped', () => {
+  // `is-closing` holds the open geometry through the fade, so the same reading
+  // applies to it: capped by the room the row leaves, so not a floor.
+  const capped = [
+    ['fixture.css', `${BAR}__chip ${PANEL}.is-closing { min-width: min(240px, var(--room, 100%)); }`],
+    ['fixture-bar.css', `${BAR} ${PANEL} { min-width: 100%; max-width: 100%; }`],
+  ];
+  assert.equal(floors(capped).length, 0);
+  // The mutation: take the cap away and the exemption goes with it.
+  const bare = [['fixture.css', `${BAR}__chip ${PANEL}.is-closing { min-width: 240px; }`]];
+  assert.equal(floors(bare).length, 1);
+});
+
+test('a closing chip menu keeps the open geometry, so #549 is not repainted on the way out', () => {
+  const found = fitScopes(sheets);
+  assert.ok(
+    found.length >= 1,
+    'no rule in src/styles/ writes --ui-filter-panel-* onto a chip menu. Either the properties were '
+    + 'renamed or the fit stopped being read; both leave this check with nothing to measure.',
+  );
+  assert.equal(unheldOnClose(sheets), null);
+});
+
+test('the check refuses geometry that only answers .open', () => {
+  // The state this PR replaced: the fit stops applying in the frame the menu
+  // closes, while the panel keeps fading for --dur-med.
+  const openOnly = [['fixture-bar.css',
+    `${BAR}__chip .ui-dropdown.open ${PANEL} { min-width: min(var(--ui-filter-panel-floor, 240px), 100%); }`]];
+  assert.match(unheldOnClose(openOnly), /open menu and to nothing else/);
+});
+
+test('the check refuses a sheet that stopped writing the fit at all', () => {
+  assert.match(unheldOnClose([['fixture.css', '.ui-dropdown { position: relative; }']]), /no rule writes/);
 });

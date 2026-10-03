@@ -31,7 +31,9 @@ export declare const DD_MENU_FLOOR: number;
 /** Where a filter chip's open menu can sit: the room from the edge it is
  *  anchored at to the far side of its row once slid, how far it had to slide,
  *  the width it reached for, and whether it is anchored at its inline end.
- *  `null` when the dropdown is not inside a `.ui-filter-bar`. */
+ *  `null` unless the dropdown is inside a `.ui-filter-bar__chip`: the slide is a
+ *  chip's offset along its row, so a panel anchored to the row itself is not this
+ *  function's subject and sizes itself. why: docs/library.md */
 export declare function filterPanelFit(
   dd: Element | null | undefined,
   floor?: number,
