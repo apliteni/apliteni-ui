@@ -110,13 +110,14 @@ const pinnedColumns: Column<Row>[] = [
 ];
 // Five columns, because a card wants more than two lines under its heading to show what
 // the composition is for. `revenue` puts its unit in the header, so its header is markup
-// and not a word — which is the case `labelText` exists for: a cell can print a string,
-// so a column whose header is drawn says here what its stacked line should read.
+// and not a word — the case `labelText` exists for. And its label is not just the header's
+// words: the unit was ONLY in the header, which a card does not draw, so the stacked line
+// has to carry it. A column names what its line should read, not what its header says.
 const stackedColumns: Column<Row>[] = [
   { key: 'name', label: 'Campaign', render: (r) => <a href={`#${encodeURIComponent(r.name)}`}>{r.name}</a> },
   { key: 'status', label: 'Status', render: (r) => <Badge variant={TONE[r.status]}>{r.status}</Badge> },
   { key: 'clicks', label: 'Clicks', num: true, render: (r) => r.clicks.toLocaleString() },
-  { key: 'revenue', labelText: 'Revenue', num: true,
+  { key: 'revenue', labelText: 'Revenue (EUR)', num: true,
     label: <>Revenue <span className="ui-value__unit">EUR</span></>,
     render: (r) => r.revenue.replace(' EUR', '') },
   { key: 'country', label: 'Country' },

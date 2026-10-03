@@ -2683,7 +2683,9 @@ opt-in because the markup carries two things no stylesheet can supply: that `dat
 and the ARIA roles — `table`, `rowgroup`, `row`, `columnheader`, `cell`, and `rowheader`
 on the identity — because a browser drops table semantics the moment `display` stops being
 `table-*`. React's `DataTable` writes both from its columns when `stacked` is set, and a
-column whose header is markup rather than a word names its label with `labelText`. A card
+column whose header is markup rather than a word names its label with `labelText`, which is
+the line's name rather than a copy of the header: anything the header drew and a card does
+not — a unit, a basis — belongs in it. A card
 is as tall as its columns are many, so the composition suits a table a reader scans row by
 row rather than one with fifteen columns to compare. Held by
 `src/styles/table-stacked.test.js` and `react/src/DataTable.test.tsx`; decided in
