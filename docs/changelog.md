@@ -71,4 +71,5 @@ owns the git calls (`execFileSync`, args array — no shell).
    for anything that requires a consumer change.
 3. Add any new component to `COMPONENTS`, id verified against `storybook-static/index.json`.
 4. Ensure the release's git tag `v<version>` exists so its contributor row renders.
-5. `node --test site/changelog.test.js`, then `node site/build.mjs` and check the output.
+5. `scripts/check-lock node --test site/changelog.test.js`, then `node site/build.mjs` and
+   check the output.

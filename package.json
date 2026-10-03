@@ -56,7 +56,7 @@
     "build-storybook": "storybook build -o storybook-static",
     "build": "npm run build --workspace react",
     "prepare": "npm run build",
-    "test": "for d in src stories site scripts; do [ -d \"$d\" ] || { echo \"npm test: no such directory: $d\" >&2; exit 1; }; done; node --test 'src/**/*.test.js' 'stories/**/*.test.js' 'site/**/*.test.js' 'scripts/**/*.test.js'",
+    "test": "for d in src stories site scripts; do [ -d \"$d\" ] || { echo \"npm test: no such directory: $d\" >&2; exit 1; }; done; scripts/check-lock node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/slow-tests.mjs --test-reporter-destination=stdout 'src/**/*.test.js' 'stories/**/*.test.js' 'site/**/*.test.js' 'scripts/**/*.test.js'",
     "tokens:sync": "node scripts/sync-brand-tokens.mjs",
     "tokens:check": "node scripts/sync-brand-tokens.mjs --check",
     "tokens:drift": "node scripts/brand-drift.mjs"
