@@ -109,7 +109,10 @@ composed.innerHTML = '<fieldset class="ui-filter-bar" data-filter-bar>'
   + chip('ending', 'Aligned', { align: 'end' })
   + chip('plain', 'Sector', {})
   + chip('searchable', 'Lookup', { search: true })
-  + `<span data-row-anchored="320">${dropdown({ label: 'Add', value: 'Add filter', variant: 'select', items: SECTORS })}</span>`
+  /* Its value alone, for the same reason a chip's trigger carries one: `label`
+     drew an `Add` before it and the control read `Add Add filter`. */
+  + `<span data-row-anchored="320">${dropdown({ value: 'Add filter', variant: 'select',
+      items: SECTORS, ariaLabel: 'Add filter' })}</span>`
   + '</fieldset>';
 document.getElementById('bars').append(composed);
 wireDropdown(composed);
