@@ -1,4 +1,4 @@
-import { badge, button, card, segmented, icon } from '../../src/components/index.js';
+import { badge, button, card, segmented } from '../../src/components/index.js';
 import { filterBar } from '../../src/components/filter-bar.js';
 import { busyRegion, skeleton, skeletonTable } from '../../src/components/loading.js';
 import { statBand } from '../../src/components/stat.js';
@@ -24,10 +24,12 @@ const FILTERS = [
   { id: 'currency', label: 'Currency', items: [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
 ];
 
+// The export is wordless: `download` is on the closed list in src/assets/icons.js,
+// and `label` is still what names it to a reader who cannot see the glyph.
 const controls = () => `<div class="ui-toolbar">
       ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
       ${filterBar({ filters: FILTERS, label: 'Payout filters' })}
-      ${button({ label: 'Export rows', size: 'sm' })}
+      ${button({ label: 'Export rows', icon: 'download', iconOnly: true })}
     </div>`;
 
 // The cashflow figures are the kit's stat band. It folds from its own width, so
@@ -61,7 +63,10 @@ const PAYOUTS = [
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` in
 // card.css is what scrolls seven columns of ledger on a phone, and a wrapper
 // around the table turns that selector off.
-const payoutsCard = () => card({ title: `<span class="ui-card__icon">${icon('card')}</span> Payouts`, sub: 'Stripe payouts and their bank reconciliation.', body: `
+// No glyph and no sub-line. The tile behind the glyph spent the accent on
+// decoration, the glyph repeated the word beside it, and the sentence under it
+// said what the columns already say. why: Artur's review of this screen, #505
+const payoutsCard = () => card({ title: 'Payouts', body: `
   <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover">
     <thead><tr>
       <th>Reference</th><th>Payout ID</th><th>Arrival</th>
@@ -90,7 +95,6 @@ export const Default = {
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
-    sub: 'The payout ledger, down to its fees and its net.',
     body: `
       ${controls()}
       ${kpiStrip()}
@@ -118,7 +122,6 @@ export const Loading = {
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
-    sub: 'The payout ledger, down to its fees and its net.',
     body: `
       ${controls()}
       <div class="ui-stats ui-stats--tiles">${busyRegion({
@@ -127,7 +130,7 @@ export const Loading = {
           ${skeleton({ lines: ['40%'] })}${skeleton({ lines: ['72%'], height: '36px' })}
         </div>`).join('')}</div>`,
       })}</div>
-      ${card({ title: `<span class="ui-card__icon">${icon('card')}</span> Payouts`, sub: 'Stripe payouts and their bank reconciliation.',
+      ${card({ title: 'Payouts',
         body: busyRegion({ label: 'Loading payouts…', body: skeletonTable({ rows: PAYOUTS.length, cols: 7 }) }) })}
     `,
   }),

@@ -512,6 +512,7 @@
 .ui-drawer__panel,
 .ui-dropdown__panel,
 .ui-fbcomposer,
+.ui-filter-bar__chip,
 .ui-footer--app,
 .ui-seg,
 .ui-snippet,
@@ -548,8 +549,13 @@
 .ui-table--zebra tbody tr:nth-child(even) td,
 .ui-table--zebra tbody tr:hover td,
 .ui-table--zebra.ui-table--hover tbody tr:hover td { --code-bg: var(--table-code-bg); }
+/* The segmented track joins them for the opposite reason: it is the one painted ground
+ * BELOW the card rather than at it. --surface-2 is the sunken rung the track paints so a
+ * chosen pill has something to rise out of (#505), and the page is the rung next to it, so
+ * the card is the surface a chip inside the track has left. */
 .ui-card--accent,
 .ui-card--live,
+.ui-seg,
 .ui-snippet--reveal { --code-bg: var(--surface); }
 
 /* A wash is not a rung: it is a layer the kit paints OVER one, and it paints behind a chip

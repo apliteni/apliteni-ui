@@ -432,7 +432,7 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:174",
+        "ref": "src/assets/icons.js:179",
         "pattern": "export const iconMeanings"
       },
       {
@@ -566,7 +566,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:462",
+        "ref": "src/styles/layout.css:467",
         "pattern": "@media (max-width: 720px)"
       },
       {

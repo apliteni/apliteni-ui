@@ -91,9 +91,14 @@ test('the sweep sees every box-shadow the kit ships', () => {
   // floating declarations it rewrites to read --float-edge-inner instead of
   // --border are rewritten in place and move no count. 73 -> 75: the ring a
 // Snippet's card now draws for its focused code region, and the `box-shadow:
-// none` that takes it off the `<pre>` it used to paint square.
-  assert.equal(sweep.length, 75,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 75. `
+// none` that takes it off the `<pre>` it used to paint square. 75 -> 77: the
+// chosen segmented pill's hairline and the `box-shadow: none` that keeps an
+// underline tab from inheriting it (#505). The hairline is an inset line, not a
+// cast shadow — the same declaration the side rail's current row already draws,
+// and the pill is the rung above its track rather than a surface floating over
+// it, so nothing here joins the floating step.
+  assert.equal(sweep.length, 77,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 77. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

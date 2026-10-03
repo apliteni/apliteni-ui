@@ -157,6 +157,11 @@ export const iconOnlyAllowed = {
   moreVertical: 'overflow menu',
   chevronDown: 'expand or collapse',
   chevronUp: 'expand or collapse',
+  // Added by Artur's review of the Finance report, #505: a report's export is a
+  // standing offer sat next to the filters that narrow it, and the tray-and-arrow
+  // is the glyph a reader has already met doing this everywhere else. The entry
+  // is the decision — review did not infer it from the glyph looking obvious.
+  download: 'export or download the rows',
 };
 
 // What a glyph means when a component picks it for the reader rather than a

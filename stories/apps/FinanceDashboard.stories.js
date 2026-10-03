@@ -66,9 +66,8 @@ export const Default = {
     active: 'dashboard',
     crumb: 'Dashboard',
     title: 'Dashboard',
-    sub: 'Whether anything needs a decision today, and how the year is tracking.',
     body: `
-      ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+      <div class="ui-toolbar">${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}</div>
       ${cashflow()}
       ${attention()}
       <div class="ui-toolbar">${button({ label: 'Open the payout report', href: '#', size: 'sm' })}</div>

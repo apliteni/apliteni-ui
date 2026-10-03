@@ -152,7 +152,7 @@ export const RULES = withSpecimens(content.rules, [
   },
   {
     id: 'report-depth',
-    doHtml: () => stage(card({ title: 'Payouts', sub: 'Stripe payouts and their bank reconciliation.', body: ledgerTable() })),
+    doHtml: () => stage(card({ title: 'Payouts', body: ledgerTable() })),
     dontHtml: () => stage(statBand({
       id: 'gd-depth-dont',
       basis: 'The year so far',
@@ -167,9 +167,13 @@ export const RULES = withSpecimens(content.rules, [
     id: 'report-offers',
     doHtml: () => stage(`<div class="ui-toolbar">
       ${filterBar({ filters: FILTERS, label: 'Payout filters' })}
-      ${button({ label: 'Export rows', size: 'sm' })}
+      ${button({ label: 'Export rows', icon: 'download', iconOnly: true })}
     </div>${card({ title: 'Payouts', body: ledgerTable() })}`),
-    dontHtml: () => stage(card({ title: 'Payouts', body: ledgerTable() })),
+    // The Don't carries the period in its title, which is what "fixed by whoever
+    // built the page" looks like on a screen — and what keeps this half from
+    // being the same picture as report-depth's Do, which is a card of the same
+    // ledger teaching the opposite thing.
+    dontHtml: () => stage(card({ title: 'Payouts, 2026', body: ledgerTable() })),
   },
   {
     id: 'table-behind-the-chart',
