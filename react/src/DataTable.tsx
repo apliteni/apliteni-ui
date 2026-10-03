@@ -10,6 +10,8 @@ export type Column<T> = {
    * What a stacked cell prints in front of its value. A `label` that is a string is
    * already that word; markup is not, so a column whose header is drawn rather than
    * written names its own here. Without one a stacked cell shows its value alone.
+   * It is the line's name, not a copy of the header: anything the header drew and a
+   * card does not — a unit, a basis — belongs in it.
    */
   labelText?: string;
 };
