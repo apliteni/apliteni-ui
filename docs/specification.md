@@ -2211,6 +2211,18 @@ over at 390, 62px at 375, 117px at 320. That is true with this rule, without it,
 the bound is on the panel. A filter whose applied value can be that long wants a shorter display
 value, or a change to the trigger, which is a change to every chip in the kit.
 
+**The clear action is offered only when there is something to clear.** `filterBar` and React
+`FilterBar` write it with the first chip and drop it with the last, in the kit's bordered button
+skin. It used to stand in an empty bar, disabled, as the only thing in the row, which reads as a
+bar that has been switched off rather than one with no filters on it — the kit's own `one-page`
+rule, which says a control with no action to offer is not shown. The layout-stability argument
+behind `ends-disable` does not reach it: applying a filter adds a chip to the same row, so the row
+reflows either way. A consumer reading `[data-filter-clear]` finds nothing while no filter is set.
+A disabled or busy bar that *has* chips keeps the control, turned off by the fieldset, so nothing
+leaves the row while a refresh is in flight. Held by `src/components/finance.test.js` and
+`react/src/FilterBar.test.tsx`.
+Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
+
 Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
 — resolving one spelled as a token — and requires each to be answered inside the bar, and measured
 in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in both themes.
@@ -3186,14 +3198,53 @@ inside a pill, and a single unbreakable word narrows with it, which a pill's
 does not. Nothing a caller can put in a tab widens the strip past its column or
 the page past the viewport.
 
-Its rows stand `--space-5` apart while its track stays packed across, which is
-also the gap `--tap-gap` opens below the phone step on a coarse pointer, so the
-strip draws the same under both pointers. The measurements behind that number
-are in [#527](https://github.com/apliteni/apliteni-ui/issues/527).
+Its rows stand at the track's own `--space-1`, across and down alike, so a
+wrapped strip reads as one block rather than as a row and a heading under it.
+That is tighter than the `--tap-gap` a coarse pointer opens for the pill strip
+below the phone step, and the strip opts out of it: a pill draws 31px tall and
+its zone needs the room, while an underline tab draws 41 and reaches the 44px
+floor on 3px of clearance — so the 4px gap it already has carries both zones,
+each taking 1.5px of it. Both pointers therefore draw the strip identically.
+
+## The chosen tab in an underline strip
+
+It is the sidebar's selected row, declaration for declaration: the reading
+surface, the hairline around it, the ink step to `--strong`, and one 3px accent
+bar standing in the tab's own leading padding at the height the shell's rail
+gives it. `src/styles/segmented.test.js` compares the two sheets, so the two
+cannot drift apart silently.
+
+**What a consumer can rely on.** The chosen tab paints the accent exactly once,
+and every mark that says "chosen" is inside that tab's own box. That is what lets
+the strip wrap: a tab on a further row carries its whole highlight with it, and
+nothing has to be read against the row above or the row below. The strip itself
+draws no rule under its tabs — the chosen tab carries the selection, so a line
+there marked nothing — and a consumer that wants one draws it on the container.
+
+This replaces two marks the strip used to spend on one answer: an accent rail on
+the tab's bottom edge, and the 1px accent outline `.ui-seg button.is-active`
+gives every chosen segmented button, which the underline rule now cancels. The
+pill appearance keeps that outline; it is a separate decision on a rule every
+segmented control in the kit shares.
+
+In forced colours neither the plate nor the hairline is left: measured in the
+mode, `box-shadow` computes to `none` and the plate comes back as `Canvas` on a
+`Canvas` page. The tab takes a 2px `Highlight` outline inset over its own edge
+instead, and the bar takes `Highlight` as well. The block is inert in normal
+rendering.
 
 Held by `stories/segmented-wrap.test.js`, which renders the shipped sheet in a
-browser at 320, 390 and 1280 and its mutations at 320.
-Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
+browser at 320, 390 and 1280 on a fine pointer, at 390 on a coarse one and at
+1280 in forced colours, and its mutations at all three. It reads the chosen
+tab's accent count, its box against a resting tab's, the accent bar against the
+tab that carries it, the strip's own borders, the row gap against the track's,
+the tap zone against the 44px floor, and — in forced colours, where a background
+is `Canvas` on a `Canvas` page and paints nothing — the marks that are left
+against a resting tab's. Limits: the marks come from the computed cascade, so what is
+finally painted is the screenshots' evidence; and no React strip is measured,
+the sheet being shared.
+Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527) and
+[#544](https://github.com/apliteni/apliteni-ui/issues/544).
 
 ## Shared React logic and declarations
 
