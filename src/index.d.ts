@@ -39,6 +39,15 @@ export type NumericValueOptions = { value?: string | number | null; unit?: strin
 export type DeltaValueOptions = { value?: string | null; tone?: 'success' | 'danger' | 'neutral'; basisId?: string; missing?: string };
 export declare function formatNumericValue(options?: NumericValueOptions): { text: string; unit: string; missing: string | undefined };
 export declare function formatDeltaValue(options?: DeltaValueOptions): { text: string; className: string; basisId: string | undefined };
+
+/** The smallest band a series is drawn in, as a share of its own reach. */
+export declare const CHART_FLOOR: number;
+export type ChartScaleOptions = { ticks?: number; zero?: boolean; floor?: number; nice?: boolean };
+export type ChartScale = { min: number; max: number; step: number; ticks: number[] };
+export declare function chartScale(values: Iterable<number>, options?: ChartScaleOptions): ChartScale;
+export type BridgeStepInput = { label: string; value?: number; kind?: 'total' | 'change' };
+export type BridgeBar<S> = S & { kind: 'total' | 'change'; value: number; from: number; to: number };
+export declare function bridgeWalk<S extends BridgeStepInput>(steps: Iterable<S>): BridgeBar<S>[];
 export declare const SCORE: Record<'exact' | 'prefix' | 'wordStart' | 'contains' | 'keyword' | 'description' | 'subsequence', number>;
 export declare const iconNames: string[];
 export declare const iconCategories: { name: string; names: string[] }[];

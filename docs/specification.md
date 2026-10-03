@@ -2183,7 +2183,9 @@ moving a readout never changes the size or the place of anything else on the pag
 
 **Not decided yet.** The wiring adds no tab stop to a mark, so whether a chart's marks should take
 focus at all is open on [#282][i282] and waits on the owner. Until it is settled, the rule for
-pages is that no value is reachable only by hovering.
+pages is that no value is reachable only by hovering. React `Chart` answers it for itself without
+closing the question: the chart is one tab stop and no mark is, so the keyboard reaches every
+value through the chart. See [React charts](#react-charts).
 
 The kit had no readout until [#282][i282]. The finance portal's overview drew two, on one screen:
 its bar chart overlaid its readout and nothing moved, while each KPI sparkline inserted its
@@ -2792,7 +2794,11 @@ column switches over one dataset, where the order is the reader's map.
 
 The main entry exports `dropdownMatch`, `dropdownFiltering`, `rankGroups`,
 `rankCommands`, `scoreCommand`, `paletteHotkey`, `segmentedNextIndex`, `PAGE_SIZES`,
-`DEFAULT_PAGE_SIZE`, and `calloutIcons` from shared logic modules. Vanilla factories
+`DEFAULT_PAGE_SIZE`, `calloutIcons`, `chartScale`, `bridgeWalk`, and `CHART_FLOOR` from
+shared logic modules. `chartScale(values, options)` returns the band a series is drawn in
+and the whole-unit ticks beside it; `bridgeWalk(steps)` returns each column's own amount
+and the two ends of the bar that draws it. Both are pure — no DOM, no pixels — so a surface
+that draws these shapes without React asks the kit rather than writing the arithmetic again. Vanilla factories
 use the same logic and retain their exports during the removal migration.
 `formatNumericValue` returns plain text, a unit, and an optional missing-value label;
 `formatDeltaValue` returns plain text, the delta classes, and the comparison basis ID.
@@ -3086,3 +3092,110 @@ Held by `stories/snippet-focus.test.js`, which emulates forced colors by flatten
 the media block and dropping every box-shadow; keyboard reachability, the gap
 colour, the colour the system repaints an outline as, and pixels are checked in
 Chromium because JSDOM cannot prove any of them.
+
+## React charts
+
+`Chart` draws the two shapes a money dashboard keeps redrawing, and the sparkline that
+sits beside a figure. Every product drew its own before [#491](https://github.com/apliteni/apliteni-ui/issues/491),
+and the look, the readout and the keyboard behaviour drifted between them.
+
+- `variant: 'months'` — a column per period, one bar series standing on the zero line, one
+  mirrored under it, and a line series crossing both. A `bars-below` series is given positive
+  magnitudes and drawn downwards, so spend is `31870` and reads as €31,870 wherever it is
+  printed. A bar series names a tone and may fade towards the zero line; a line defaults to
+  neutral and carries a dot per point, so colour is never the only cue.
+- `variant: 'bridge'` — one period walked from a starting total through each component to a
+  result. The first step is a total, every later one a change, and a `total` step with no
+  amount of its own takes the running total rather than repeating a sum the caller already
+  gave piece by piece. A rise, a fall and a total take three tones, and the caller names them:
+  a rise in cost is not good news.
+- `variant: 'spark'` — one series at text size with no axis, no legend and no table, for the
+  stat band's `trend` slot. It is read against itself rather than against zero, and its band is
+  never narrower than `CHART_FLOOR` of the series' own reach, so a series that moves 0.2% is
+  drawn as a flat line and not as a cliff.
+
+**The numbers are the caller's and the arithmetic is the kit's.** `chartScale()` and
+`bridgeWalk()` are exported from the main entry (see [Shared React logic](#shared-react-logic-and-declarations)):
+the band holds every value, the axis steps are whole units, and a flat or empty series is still
+drawable. `format` prints exact values in the readout, the live region and the table;
+`formatAxis` prints the ticks and defaults to `format`.
+
+- **A period that is not final** is drawn with a hatch in its own tone and a dashed outline, the
+  line segment reaching it is dashed, and the state is printed twice in words — in the readout,
+  where it replaces the comparison, and in the legend beside a hatched key. `note` says why.
+- **The readout is the kit's**, `.ui-tip` with its three parts: the series and the period, the
+  value, and one comparison — the change on the previous period, or a bridge step's running
+  total. It opens above the mark and flips below by the kit's own test, because both components
+  place it through one module. It is rendered in the frame rather than in the scroller: a
+  readout inside a horizontal scroller is clipped above the bar it describes. The frame is also
+  the bound that test measures against, so a readout never leaves the chart to open over its own
+  legend and top tick. A tap opens it, a tap on the same mark closes it, and Escape dismisses the
+  mark it was pressed on — the readout returns on the next mark, not on that one.
+- **A mark is a series' own band in its column**, full height, so a pointer that falls between
+  two bars still has one to answer with; a line's mark is a 24px target on its dot, over the
+  band. Every mark is at least 24px in both directions.
+- **A bar stops short of the zero line** by a pixel and a half at whichever edge stands on it.
+  In a bars-above / bars-below chart the two series meet exactly on zero, so a bar that ran to
+  the line would cover it in every column. The channel this leaves is empty ground rather than
+  a stroke painted over the marks: both bars lose the same height, so what the reader compares
+  is unchanged; each bar's own stroke — an estimated column's dash — follows the inset edge and
+  closes on it; and a line series, its dots and the zero rule itself
+  all stay whole. The zero rule is drawn under every mark, in `--border-strong`; a line or a
+  dot crossing zero paints over it.
+- **A faded bar keeps its own tone at the zero line.** The ramp travels towards zero and stops
+  short of it, so a faded column still shows where one series ends and the next begins; a ramp
+  that reached zero washed out at the one edge the reader measures from. What a reader measures
+  is a bar's two edges, and both hold the tone; the middle, which carries no edge and no number,
+  is let down to half.
+- **The plot draws one rule, and it is zero.** The axis keeps a label at every tick, so the
+  scale is still readable, but a line at each of them made twelve columns read through a grid.
+  The one line a reader measures a signed series from is the one worth drawing. Bars take half
+  their column, so there is as much ground between two columns as either column draws.
+- **Two measured series read apart by weight, not by a second hue.** `accent` and `accent-soft`
+  are one hue at two weights: the lighter is `color-mix(in srgb, var(--accent) 70%, …)` over the
+  chart's own ground, opaque rather than faded, so a reader measures one colour. The mix crosses
+  **3:1** against the card and against the page, in both themes and under all four accents, at
+  sixty-seven per cent; seventy ships, so it has room over the bar rather than sitting on it, and
+  measures between 3.22:1 and 4.83:1. The forty per cent the restyle's mock drew measures 1.99:1
+  and 2.03:1 and fails every row. Good and bad stay available and say
+  which way the news runs; two readings of the same money, where no period decides which is the
+  better one, take the two weights instead.
+- **The line is carried on the chart's ground.** A line crosses bars that may be of its own hue,
+  where luminance alone does not separate them, so every segment is drawn twice: a wider stroke
+  in `--ui-chart-ground` first and the coloured stroke over it. That is the rim the dots already
+  wear. Every casing is drawn before any stroke, or a casing would cut the segment before it at
+  the joint. A sparkline crosses nothing and draws none.
+- **The picked column is marked off the hue.** The accent is a series, so it cannot also mean
+  "this one". The column's own label takes a rule the width of the column in `--text` and the
+  strong ink at weight 600 — the shape `.ui-tabs__tab` already gives a chosen thing, in ink
+  rather than in the accent. Every label reserves the rule as a transparent border, so picking
+  one moves no row, and nothing is painted over a mark, so no series measures against anything
+  but the chart's own ground. Decided by Artur on
+  [#543](https://github.com/apliteni/apliteni-ui/pull/543).
+- **One tab stop, and it is the chart.** The frame takes focus and the kit's `--ring`; Left,
+  Right, Home and End step columns, Enter picks one when `selectable` is set, and each step is
+  announced through a polite `role="status"` region that names the period, every series' value
+  and the unfinished state. A column stepped into is scrolled into view. No mark is a tab stop,
+  which is the answer [#282](https://github.com/apliteni/apliteni-ui/issues/282) left open for
+  the vanilla wiring; `role="slider"` with `aria-valuetext` was rejected because the issue asked
+  for the live region, and a slider carrying both would say everything twice. The scroller takes
+  `tabindex="-1"`: a browser makes an overflowing box keyboard-focusable on its own, and the ring
+  it draws there is its own rather than the kit's. A click in the plot moves focus to the group
+  as well, because the scroller is still the nearest focusable ancestor of a mark and it has
+  neither a role nor a name; the column the pointer landed on is the one announced.
+- **The plot scrolls, the value axis does not.** The axis sits outside the scroller; the plot
+  keeps a floor of `--ui-chart-col` per column, so twelve months fit a desktop card and scroll
+  on a phone. Whichever side still hides columns is faded, with a mask rather than a painted
+  gradient, so a chart on a card and a chart on the page both fade correctly.
+- **Nothing animates.** The chart's only transition is the readout's own, which the kit's
+  reduced-motion net already shortens; stepping and selecting change paint and nothing else.
+- `title` names the `role="img"` plot and the table under it, and is never drawn — the card
+  around a chart already carries its title. The table is a `<details>` the reader opens, on for
+  every variant but the sparkline, whose own name carries its first and last value.
+
+Held by `src/logic/chart.test.js` for the arithmetic, `react/src/Chart.test.tsx` for the
+markup, the keyboard, the readout and axe, and `react/src/Chart.contrast.test.tsx` for the
+colour every series is drawn in, measured against both grounds in both themes and under every
+accent. None of the three measures pixels, so the hatch, the fade and the focus ring are
+checked in browser captures. Part of
+[#429](https://github.com/apliteni/apliteni-ui/issues/429).

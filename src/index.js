@@ -34,3 +34,4 @@ export { filterChipText, filterChipName, filterChipUnset } from './logic/filter-
 export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from './logic/pagination.js';
 export { calloutIcons } from './logic/callout.js';
 export { formatNumericValue, formatDeltaValue } from './logic/table-values.js';
+export { CHART_FLOOR, chartScale, bridgeWalk } from './logic/chart.js';
