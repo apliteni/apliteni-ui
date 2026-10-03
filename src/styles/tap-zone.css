@@ -56,10 +56,10 @@
     .ui-drawer__close,
     .ui-snippet__copy,
     .ui-footer__social,
-    /* Already relative in react/src/DatePicker.css, where its mark hangs off
-       it — restated because this gate reads the kit's own sheets and cannot
-       see that one, and a carrier whose containing block it cannot find is a
-       layer that measures against whatever ancestor happens to be positioned. */
+    /* Already relative in react/src/DatePicker.css — restated because this
+       gate reads the kit's own sheets and cannot see that one, and a carrier
+       whose containing block it cannot find is a layer that measures against
+       whatever ancestor happens to be positioned. */
     .ui-datepicker__opt
   ) { position: relative; }
 

@@ -57,7 +57,7 @@ export { Skeleton, SkeletonTable, BusyRegion, Denied } from './Loading';
 export type { SkeletonProps, SkeletonTableProps, BusyRegionProps, DeniedProps } from './Loading';
 export { DatePicker } from './DatePicker';
 export type {
-  DatePickerProps, DatePickerMode, DatePickerMark, DatePickerRange, DatePickerPreset,
+  DatePickerProps, DatePickerMode, DatePickerRange, DatePickerPreset,
 } from './DatePicker';
 export { Dropdown } from './Dropdown';
 export type {

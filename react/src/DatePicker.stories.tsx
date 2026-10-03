@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { DatePicker, type DatePickerMark, type DatePickerRange } from './DatePicker';
+import { DatePicker, type DatePickerRange } from './DatePicker';
 
 // Demo data as of 15 September 2026, so every specimen renders the same grid
 // whenever it is read.
@@ -17,11 +17,6 @@ const meta: Meta<typeof DatePicker> = {
 };
 export default meta;
 
-const marks: Record<string, DatePickerMark> = {
-  '2026-06': { label: 'Restated', tone: 'warn' },
-  '2026-09': { label: 'Estimate', tone: 'info' },
-};
-
 const presets = [
   { label: 'This month', range: { start: '2026-09', end: '2026-09' } },
   { label: 'Previous month', range: { start: '2026-08', end: '2026-08' } },
@@ -30,24 +25,17 @@ const presets = [
 ];
 
 export const Month: StoryObj<typeof DatePicker> = {
-  render: args => <DatePicker {...args} label="Month:" defaultValue="2026-08" />,
+  render: args => <DatePicker {...args} defaultValue="2026-08" />,
 };
 
 export const MonthOpen: StoryObj<typeof DatePicker> = {
-  render: args => <DatePicker {...args} label="Month:" defaultValue="2026-08" defaultOpen />,
-};
-
-export const MonthWithMarks: StoryObj<typeof DatePicker> = {
-  render: args => (
-    <DatePicker {...args} label="Month:" defaultValue="2026-08" marks={marks} defaultOpen />
-  ),
+  render: args => <DatePicker {...args} defaultValue="2026-08" defaultOpen />,
 };
 
 export const Bounded: StoryObj<typeof DatePicker> = {
   render: args => (
     <DatePicker
       {...args}
-      label="Month:"
       defaultValue="2026-08"
       min="2026-03"
       max="2026-09"
@@ -66,7 +54,6 @@ export const RangeBounded: StoryObj<typeof DatePicker> = {
       <DatePicker
         {...args}
         mode="range"
-        label="Period:"
         range={span}
         onRangeChange={setSpan}
         presets={presets}
@@ -85,11 +72,9 @@ export const Range: StoryObj<typeof DatePicker> = {
       <DatePicker
         {...args}
         mode="range"
-        label="Period:"
         range={span}
         onRangeChange={setSpan}
         presets={presets}
-        marks={marks}
         defaultOpen
       />
     );
@@ -107,11 +92,9 @@ export const RangeWithBlocked: StoryObj<typeof DatePicker> = {
       <DatePicker
         {...args}
         mode="range"
-        label="Period:"
         range={span}
         onRangeChange={setSpan}
         disabledPeriods={['2026-06']}
-        marks={marks}
         defaultOpen
       />
     );
@@ -126,7 +109,6 @@ export const DayBoundedByMonths: StoryObj<typeof DatePicker> = {
     <DatePicker
       {...args}
       mode="day"
-      label="Date:"
       defaultValue="2026-09-17"
       min="2026-09"
       max="2026-10"
@@ -145,7 +127,6 @@ export const SelectedThenBlocked: StoryObj<typeof DatePicker> = {
     <DatePicker
       {...args}
       mode="day"
-      label="Date:"
       defaultValue="2026-09-17"
       disabledPeriods={['2026-09-17', '2026-09-18']}
       defaultOpen
@@ -154,7 +135,7 @@ export const SelectedThenBlocked: StoryObj<typeof DatePicker> = {
 };
 
 export const Day: StoryObj<typeof DatePicker> = {
-  render: args => <DatePicker {...args} mode="day" label="Date:" defaultValue="2026-09-17" defaultOpen />,
+  render: args => <DatePicker {...args} mode="day" defaultValue="2026-09-17" defaultOpen />,
 };
 
 export const DayBounded: StoryObj<typeof DatePicker> = {
@@ -162,30 +143,9 @@ export const DayBounded: StoryObj<typeof DatePicker> = {
     <DatePicker
       {...args}
       mode="day"
-      label="Date:"
       defaultValue="2026-09-17"
       min="2026-09-07"
       max="2026-09-25"
-      disabledPeriods={['2026-09-19', '2026-09-20']}
-      defaultOpen
-    />
-  ),
-};
-
-// The day grid carrying everything the month grid carries: a dot in its own
-// tone, a blocked pair struck through, and the ring on today — which is marked
-// as well, so the ring and the dot are read on one cell.
-export const DayWithMarks: StoryObj<typeof DatePicker> = {
-  render: args => (
-    <DatePicker
-      {...args}
-      mode="day"
-      label="Date:"
-      defaultValue="2026-09-17"
-      marks={{
-        '2026-09-11': { label: 'Restated', tone: 'warn' },
-        '2026-09-15': { label: 'Estimate', tone: 'info' },
-      }}
       disabledPeriods={['2026-09-19', '2026-09-20']}
       defaultOpen
     />
@@ -207,7 +167,6 @@ export const DayRange: StoryObj<typeof DatePicker> = {
       <DatePicker
         {...args}
         mode="day-range"
-        label="Dates:"
         range={span}
         onRangeChange={setSpan}
         presets={dayPresets}
@@ -227,7 +186,6 @@ export const DayRangeBounded: StoryObj<typeof DatePicker> = {
       <DatePicker
         {...args}
         mode="day-range"
-        label="Dates:"
         range={span}
         onRangeChange={setSpan}
         presets={dayPresets}
@@ -240,9 +198,10 @@ export const DayRangeBounded: StoryObj<typeof DatePicker> = {
   },
 };
 
-// No label and no ariaLabel: the trigger's own text is the control's only
-// name, in every mode.
-export const Unlabelled: StoryObj<typeof DatePicker> = {
+// The four modes side by side. None of them is labelled: the trigger's own
+// text is the control's name, because a word in front of "Apr 2026 – Aug 2026"
+// can only say what the value already says.
+export const EveryMode: StoryObj<typeof DatePicker> = {
   render: args => (
     <div style={{ display: 'grid', gap: 'var(--space-3)', justifyItems: 'start' }}>
       <DatePicker {...args} defaultValue="2026-08" />
@@ -265,8 +224,8 @@ export const Disabled: StoryObj<typeof DatePicker> = {
   render: args => (
     <div style={{ display: 'grid', gap: 'var(--space-3)', justifyItems: 'start' }}>
       <p style={{ margin: 0, fontSize: 'var(--text-sm)' }}>Enabled, then disabled.</p>
-      <DatePicker {...args} label="Month:" defaultValue="2026-08" />
-      <DatePicker {...args} label="Month:" defaultValue="2026-08" disabled />
+      <DatePicker {...args} defaultValue="2026-08" />
+      <DatePicker {...args} defaultValue="2026-08" disabled />
     </div>
   ),
 };
@@ -278,7 +237,7 @@ export const Keyboard: StoryObj<typeof DatePicker> = {
     // Two columns, because the open panel floats over whatever is under it and
     // the keys have to stay readable beside the grid they describe.
     <div style={{ display: 'grid', gap: 'var(--space-6)', gridTemplateColumns: '300px minmax(0, 1fr)', alignItems: 'start' }}>
-      <DatePicker {...args} label="Month:" defaultValue="2026-08" marks={marks} defaultOpen />
+      <DatePicker {...args} defaultValue="2026-08" defaultOpen />
       <ul style={{ margin: 0, paddingInlineStart: 'var(--space-5)', fontSize: 'var(--text-sm)', display: 'grid', gap: 'var(--space-2)' }}>
         <li>Left and Right move one month; Up and Down move one row.</li>
         <li>Home and End go to the ends of the row.</li>
@@ -303,7 +262,6 @@ export const Phone: StoryObj<typeof DatePicker> = {
         {...args}
         sheet
         mode="range"
-        label="Period:"
         range={span}
         onRangeChange={setSpan}
         presets={presets}
@@ -316,7 +274,7 @@ export const Phone: StoryObj<typeof DatePicker> = {
 // The same sheet in day mode, where the grid is the taller of the two.
 export const PhoneDay: StoryObj<typeof DatePicker> = {
   globals: { viewport: { value: 'phone', isRotated: false } },
-  render: args => <DatePicker {...args} sheet mode="day" label="Date:" defaultValue="2026-09-17" defaultOpen />,
+  render: args => <DatePicker {...args} sheet mode="day" defaultValue="2026-09-17" defaultOpen />,
 };
 
 // A day range in the sheet, with its shortcuts above the grid.
@@ -325,7 +283,7 @@ export const PhoneDayRange: StoryObj<typeof DatePicker> = {
   render: function PhoneDayRangeStory(args) {
     const [span, setSpan] = useState<DatePickerRange>({ start: '2026-09-07', end: '2026-09-18' });
     return (
-      <DatePicker {...args} sheet mode="day-range" label="Dates:" range={span}
+      <DatePicker {...args} sheet mode="day-range" range={span}
         onRangeChange={setSpan} presets={dayPresets} defaultOpen />
     );
   },
