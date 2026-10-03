@@ -24,11 +24,11 @@
     ],
     "tap-zone": [
       {
-        "ref": "src/styles/tap-zone.css:74",
+        "ref": "src/styles/tap-zone.css:85",
         "pattern": "width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));"
       },
       {
-        "ref": "src/styles/tap-zone.css:41",
+        "ref": "src/styles/tap-zone.css:46",
         "pattern": "@media (max-width: 560px) and (pointer: coarse)"
       }
     ],
@@ -38,7 +38,7 @@
         "pattern": "--tap-gap: var(--space-5, 20px);"
       },
       {
-        "ref": "src/styles/tap-zone.css:146",
+        "ref": "src/styles/tap-zone.css:157",
         "pattern": ".ui-confirm__acts,"
       }
     ],

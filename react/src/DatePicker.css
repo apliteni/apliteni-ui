@@ -1,0 +1,195 @@
+/* Date and month picker — only what a calendar adds to the dropdown's shell.
+   why: docs/specification.md#react-date-and-month-picker */
+
+/* `max-content`, because a box hanging off the trigger shrinks to it: at the
+   kit's 240px panel floor the shortcuts spill out of the grid beside them. */
+.ui-datepicker__panel {
+  --ui-dropdown-pad: var(--space-3);
+  width: max-content;
+  max-width: 92vw;
+}
+
+.ui-datepicker__body { display: flex; align-items: flex-start; gap: var(--space-4); }
+.ui-datepicker__calendar { display: grid; gap: var(--space-3); }
+
+/* -- Head: the year or month, and the two steps either side ---------------- */
+.ui-datepicker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.ui-datepicker__caption {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--strong);
+}
+
+/* -- Grid ------------------------------------------------------------------ */
+.ui-datepicker__grid { display: grid; gap: var(--space-1); }
+.ui-datepicker__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+.ui-datepicker__grid.is-days .ui-datepicker__row { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+
+/* Words, so body ink and rank by size. why: guidelines/labels-and-titles.md */
+.ui-datepicker__weekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+}
+
+.ui-datepicker__cell { display: flex; }
+
+/* Relative because the phone step hangs the 44px tap layer off this cell, and
+   a carrier with no containing block measures against whatever ancestor is
+   positioned. why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step */
+.ui-datepicker__opt {
+  position: relative;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 24x24 is the floor. why: guidelines/accessibility-floor.md */
+  min-width: 34px;
+  min-height: 34px;
+  padding: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  /* One width per digit, so 1 and 11 share a column centre. */
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  /* Not `outline-color`: the focus rule resets it to transparent and a
+     transition would animate from the resting ink.
+     why: docs/specification.md#the-focus-ring */
+  transition:
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+.ui-datepicker__grid.is-days .ui-datepicker__opt { min-width: 30px; }
+
+/* The kit's row hover, not an accent tint: an accent hover sat within six of
+   255 per channel of the span's own tint, so the pointer made an outside day
+   read as part of the range. why: guidelines/density-and-accents.md */
+.ui-datepicker__opt:hover {
+  outline: 1px solid var(--control-edge);
+  outline-offset: -1px;
+  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  color: var(--strong);
+}
+/* The ring wins over the hover edge, as the dropdown's rows settle it. */
+.ui-datepicker__opt:focus-visible { outline: 2px solid transparent; }
+
+/* The span, tinted rather than greyed: these cells hold text and an opaque
+   tint can be measured. After the hover rule and at the same weight, so a
+   hovered day inside the span keeps the tint and takes only hover's edge.
+   why: guidelines/colour-and-theming.md */
+.ui-datepicker__opt.is-inside {
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-elevated)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+}
+
+/* The one accent signal in the panel: what is chosen. */
+.ui-datepicker__opt.is-selected {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+/* No edge over the fill: the pick is already a filled chip, and a hairline on
+   top of it is a second signal. why: guidelines/density-and-accents.md */
+.ui-datepicker__opt.is-selected:hover {
+  outline-color: transparent;
+  background: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+
+/* The period the reader is in, as one ring and nothing else. Hollow for where
+   you are and filled for what you chose is the pair a calendar has always
+   drawn, so it needs no key under the grid; the cell's name says the words.
+   why: guidelines/accessibility-floor.md */
+.ui-datepicker__opt.is-today { border-color: var(--accent); }
+/* The hover edge is inset onto the band the border occupies. */
+.ui-datepicker__opt.is-today:hover { outline-color: transparent; }
+/* On the pick's own fill the ring has no accent left to stand against, so it
+   takes the fill's contrast ink. */
+.ui-datepicker__opt.is-selected.is-today { border-color: var(--accent-contrast); }
+
+/* A boxless ghost: the bare disabled ink, and no light-up under the pointer. */
+.ui-datepicker__opt.is-disabled {
+  /* muted-ink: state — a period outside the bounds or blocked by the host */
+  color: var(--disabled-ink-bare);
+  cursor: not-allowed;
+}
+/* And the label struck through: quiet ink alone reads as "less important"
+   rather than "you cannot have this".
+   why: guidelines/accessibility-floor.md */
+.ui-datepicker__opt.is-disabled .ui-datepicker__num { text-decoration: line-through; }
+/* Every property the hover rule sets, undone — the edge included. */
+.ui-datepicker__opt.is-disabled:hover {
+  outline-color: transparent;
+  background: transparent;
+  border-color: transparent;
+  /* muted-ink: state — the same blocked period, holding its ink under the pointer */
+  color: var(--disabled-ink-bare);
+}
+
+/* Blocked beats picked and beats inside. Left to the cascade such a cell kept
+   its fill under the disabled ink — 1.13:1 on the accent fill in light, 4.43:1
+   on the range tint under the green accent — so it goes bare whatever else it
+   is, and a blocked pick keeps its place as weight.
+   why: guidelines/accessibility-floor.md */
+.ui-datepicker__opt.is-disabled.is-selected,
+.ui-datepicker__opt.is-disabled.is-selected:hover,
+.ui-datepicker__opt.is-disabled.is-inside,
+.ui-datepicker__opt.is-disabled.is-inside:hover {
+  background: transparent;
+  border-color: transparent;
+  /* muted-ink: state — a blocked period a range or a value still names */
+  color: var(--disabled-ink-bare);
+}
+.ui-datepicker__opt.is-disabled.is-selected { font-weight: var(--weight-bold); }
+/* Blocked sends the FILLS away; a hairline carries no ink over a ground, so
+   the current period keeps its ring. After the block above: same weight. */
+.ui-datepicker__opt.is-disabled.is-today,
+.ui-datepicker__opt.is-disabled.is-today:hover { border-color: var(--accent); }
+
+/* -- Presets --------------------------------------------------------------- */
+.ui-datepicker__presets {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  padding: 0 var(--space-3) 0 0;
+  border-inline-end: 1px solid var(--border);
+}
+.ui-datepicker__preset { justify-content: flex-start; }
+
+/* -- In the sheet ---------------------------------------------------------- */
+/* In the sheet the shortcuts sit above the grid; everything else is
+   drawer.css's. The modifier is the component's rather than a media query's, so
+   a picker inside a consumer's own drawer at desktop width keeps two columns.
+   why: docs/specification.md#breakpoints */
+.ui-datepicker__body.is-sheet { flex-direction: column; align-items: stretch; }
+/* `overflow-x: auto` computes `overflow-y: auto` with it, so the scrollport
+   clips on all four sides, and the drawer's trap lands on the first shortcut —
+   without this padding its ring arrives sliced. `scroll-padding` keeps that
+   room once the row is scrolled. */
+.ui-datepicker__body.is-sheet .ui-datepicker__presets {
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  overflow-x: auto;
+  scroll-padding-inline: var(--space-1);
+  /* Block padding is the tap layer's room as well as the ring's.
+     why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step */
+  padding: var(--space-3) var(--space-1);
+  border-inline-end: 0;
+  border-block-end: 1px solid var(--border);
+}

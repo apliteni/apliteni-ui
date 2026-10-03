@@ -27,6 +27,11 @@
   /* 44 − 24: two zones fit between two of the smallest marks the kit draws. */
   --tap-gap: var(--space-5, 20px);
 
+  /* For a container of BORDERED controls at the smallest mark: `100%` on the
+     layer is the padding box, so one of those measures two less there and
+     --tap-gap stops its layer short. The floor, less that box. */
+  --tap-gap-bordered: calc(var(--tap-min) - var(--tap-aa) + 2px);
+
   /* Clear space to the nearest neighbour, declared by the container that knows
      its own gap; a zone takes half on each side.
 
@@ -50,7 +55,12 @@
     .ui-toast__action,
     .ui-drawer__close,
     .ui-snippet__copy,
-    .ui-footer__social
+    .ui-footer__social,
+    /* Already relative in react/src/DatePicker.css — restated because this
+       gate reads the kit's own sheets and cannot see that one, and a carrier
+       whose containing block it cannot find is a layer that measures against
+       whatever ancestor happens to be positioned. */
+    .ui-datepicker__opt
   ) { position: relative; }
 
   /* The layer: centred, transparent, sized to the floor, clamped to half the
@@ -64,7 +74,8 @@
     .ui-drawer__close,
     .ui-snippet__copy,
     .ui-footer__social,
-    .ui-switch
+    .ui-switch,
+    .ui-datepicker__opt
   )::after {
     content: "";
     position: absolute;
@@ -154,6 +165,26 @@
     row-gap: var(--tap-gap) !important;
     --tap-clear-y: var(--tap-gap);
   }
+
+  /* `.ui-seg`'s shape at seven columns: cells packed across — that tight track
+     IS the control — opening down, where the sheet has the room. The rows
+     inherit both clearances. React-only, so the browser half below reports no
+     subject and react/src/DatePicker.test.tsx holds these declarations. */
+  .ui-datepicker__grid {
+    row-gap: var(--tap-gap) !important;
+    --tap-clear-x: var(--space-1, 4px);
+    --tap-clear-y: var(--tap-gap);
+  }
+
+  /* Neither axis is opened: the room is already there, a hundred pixels to the
+     caption and twelve to the grid, which is how `.ui-tabs__list` declares its
+     own. The bordered step, because both controls are bordered at --tap-aa. */
+  .ui-datepicker__head { --tap-clear-x: var(--tap-gap-bordered); --tap-clear-y: var(--tap-gap-bordered); }
+
+  /* The row scrolls, so its own block padding is the clearance — anything
+     past the chip is clipped rather than hit. The chips are already wider
+     than the floor, so the gap across stays the kit's. */
+  .ui-datepicker__presets { --tap-clear-x: var(--space-1, 4px); --tap-clear-y: var(--tap-gap-bordered); }
 
   /* Both ways: fixed squares cannot overflow the way labels can, and a drawer
      header spends its column gap on the title. Not the accent picker — its

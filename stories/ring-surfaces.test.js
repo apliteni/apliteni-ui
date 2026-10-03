@@ -31,7 +31,7 @@ const compositions = rules.filter((r) => own(r).has('--ring'));
 const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(--ring\)/.test(body));
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
-  assert.equal(surfaces.length, 138, 'surface discovery changed; the folded rail\'s current-row plate adds three and the disabled checkbox box and its radio mark add two');
+  assert.equal(surfaces.length, 140, 'surface discovery changed; the folded rail\'s current-row plate adds three, the disabled checkbox box and its radio mark add two, and the picker\'s hovered and in-range cells add two');
   // Any composition rule, not only the shared recipe: #537 gives .ui-code its own, because a
   // chip's gap has to be the surface it paints and the shared recipe is also what hands a
   // chip the OTHER surface. The guarantee is unchanged — the rule recomposes --ring — and a
