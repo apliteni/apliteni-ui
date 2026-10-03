@@ -14,12 +14,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { sloganCopy } from './slogans.mjs';
 
 // The page as build.mjs hands it to a browser, minus the shared chrome — the
 // switcher lives entirely in index.html and its own <script>, so the topbar,
 // footer and theme script are noise here.
-const PAGE = sloganCopy(readFileSync(new URL('./index.html', import.meta.url), 'utf8'))
+const PAGE = readFileSync(new URL('./index.html', import.meta.url), 'utf8')
   .replace('{{TOPBAR}}', '')
   .replace('{{FOOTER}}', '')
   .replace('{{CHROME_CSS}}', '')
