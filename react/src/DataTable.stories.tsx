@@ -3,13 +3,15 @@ import { useState } from 'react';
 import { DataTable, sortTableRows, type Column, type TableSort } from './DataTable';
 import { Badge } from './primitives/Badge';
 
-type Row = { name: string; status: string; clicks: number };
+// `country` and `revenue` are read only by the stacked story, where a card wants
+// more than two lines under its heading to show what the composition is for.
+type Row = { name: string; status: string; clicks: number; country: string; revenue: string };
 const rows: Row[] = [
-  { name: 'Nutra — DE push', status: 'live', clicks: 48210 },
-  { name: 'Sweeps — BR pop', status: 'live', clicks: 91032 },
-  { name: 'Dating — FR native', status: 'paused', clicks: 33890 },
-  { name: 'Crypto — global', status: 'paused', clicks: 60112 },
-  { name: 'Ecom — UK shopping', status: 'live', clicks: 8830 },
+  { name: 'Nutra — DE push', status: 'live', clicks: 48210, country: 'Germany', revenue: '18,402.55 EUR' },
+  { name: 'Sweeps — BR pop', status: 'live', clicks: 91032, country: 'Brazil', revenue: '9,118.40 EUR' },
+  { name: 'Dating — FR native', status: 'paused', clicks: 33890, country: 'France', revenue: '12,775.09 EUR' },
+  { name: 'Crypto — global', status: 'paused', clicks: 60112, country: 'Worldwide', revenue: '31,560.72 EUR' },
+  { name: 'Ecom — UK shopping', status: 'live', clicks: 8830, country: 'United Kingdom', revenue: '2,904.13 EUR' },
 ];
 const TONE: Record<string, string> = { live: 'live', paused: 'warn' };
 const columns: Column<Row>[] = [
@@ -107,11 +109,36 @@ const pinnedColumns: Column<Row>[] = [
   { key: 'name', label: 'Campaign and registered trading name', sortable: true },
   ...columns.slice(1),
 ];
+// `status` draws a badge rather than writing a word, so stacked it names its own
+// label; `labelText` is the only way a cell can print a header it does not hold.
+const stackedColumns: Column<Row>[] = [
+  { key: 'name', label: 'Campaign', render: (r) => <a href={`#${encodeURIComponent(r.name)}`}>{r.name}</a> },
+  { key: 'status', label: <>Status</>, labelText: 'Status', render: (r) => <Badge variant={TONE[r.status]}>{r.status}</Badge> },
+  { key: 'clicks', label: 'Clicks', num: true, render: (r) => r.clicks.toLocaleString() },
+  { key: 'revenue', label: 'Revenue', num: true },
+  { key: 'country', label: 'Country' },
+];
+
 export const PinnedSortable: StoryObj = {
   render: () => (
     <div className="ui-card" style={{ maxWidth: 'var(--panel-lg)' }}>
       <DataTable columns={pinnedColumns} rows={rows} selectable={false} pager={false}
         density="compact" stickyHeader pinnedIdentity scrollLabel="Campaigns" />
+    </div>
+  ),
+};
+
+// Stacked rows at 560px and below: each row is a card headed by its identity, every
+// other column a label/value line. Open it at 390. `stacked` is what writes the two
+// things CSS cannot — a `data-label` per cell, from the column, and the ARIA roles a
+// browser drops the moment `display` stops being `table-*`.
+export const StackedRows: StoryObj = {
+  name: 'Stacked rows (390)',
+  parameters: { viewport: { defaultViewport: 'mobile1' } },
+  render: () => (
+    <div className="ui-card" style={{ maxWidth: 'var(--panel-lg)' }}>
+      <DataTable columns={stackedColumns} rows={rows} selectable={false} pager={false}
+        density="compact" stickyHeader pinnedIdentity stacked scrollLabel="Campaigns" />
     </div>
   ),
 };

@@ -10,6 +10,8 @@ export const RELEASES = [
     changes: [
       ['fixed', 'Below the phone fold a pinned identity column keeps its name on one line, capped at `min(var(--panel-sm), 50vw)` and cut with an ellipsis instead of being hidden or running the column across the screen. The whole name stays in the DOM, so the accessible name and the company link are unchanged, and a sortable header in that column keeps its sort caret. Resolves #500.', ['Table']],
       ['added', '`--ui-table-identity-max` retunes that cap without restyling the kit\u2019s cell.', ['Table']],
+      ['added', '`ui-table--stacked` is the other answer to the same width, and a consumer chooses one. At 560px and below it stops drawing a row as a row: the header row is not drawn, each row is a card edged by the hairline its row rule used to be, the pinned identity cell is that card\u2019s heading over a rule, and every other cell is a label/value line. Above the step nothing changes, and between 561px and 720px the table is still the capped pinned column. See #500.', ['Table']],
+      ['added', 'React `DataTable` takes `stacked`, which draws those cards and writes the two things no stylesheet can: a `data-label` per cell, from the column, and the ARIA roles a browser drops the moment `display` stops being `table-*`. A column whose header is markup rather than a word names its label with the new `labelText`. In vanilla the markup carries both by hand \u2014 the Table stories show the shape. See #500.', ['Table']],
     ],
   },
   {

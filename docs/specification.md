@@ -361,7 +361,7 @@ running text, labels, captions and chips, and each takes one rank:
 | `page-title` | `--text-2xl`  | `--weight-bold`     | `1.1`              | the page's `h1` inside `appShell()` |
 | `card-title` | `--text-lg`   | `--weight-semibold` | `--leading-snug`   | a card's title |
 | `body`       | `--text-base` | `--weight-normal`   | `--leading-normal` | running text |
-| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title, a code sample's label |
+| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head — including the one a stacked card prints in front of each value — a nav or menu caption, a footer column title, a code sample's label |
 | `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot |
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
@@ -2671,6 +2671,28 @@ focus ring, and the decorative logo is not drawn there. The consumer supplies a 
 destination for that link. Columns scroll rather than disappear. Held by
 `src/styles/table-identity.test.js`; decided in
 [#500](https://github.com/apliteni/apliteni-ui/issues/500).
+
+`ui-table--stacked` is the other answer to the same width, and a consumer chooses one.
+At the 560px one-column step and below it stops drawing a row as a row: the header row is
+not drawn, each `<tr>` is a card edged by the hairline its row rule used to be, the pinned
+identity cell is that card's heading over a rule, and every other cell is a label/value
+line. The label is the cell's own `data-label`, since no header row is left to read it
+from. Above the step nothing changes, and between 561px and 720px the table is still the
+capped pinned column above — the two compositions never apply at once. The modifier is
+opt-in because the markup carries two things no stylesheet can supply: that `data-label`,
+and the ARIA roles — `table`, `rowgroup`, `row`, `columnheader`, `cell`, and `rowheader`
+on the identity — because a browser drops table semantics the moment `display` stops being
+`table-*`. React's `DataTable` writes both from its columns when `stacked` is set, and a
+column whose header is markup rather than a word names its label with `labelText`. A card
+is as tall as its columns are many, so the composition suits a table a reader scans row by
+row rather than one with fifteen columns to compare. Held by
+`src/styles/table-stacked.test.js` and `react/src/DataTable.test.tsx`; decided in
+[#500](https://github.com/apliteni/apliteni-ui/issues/500).
+
+Limits: a cell's label is CSS generated content, which
+current screen readers announce but which is not a `<th>` association, and a consumer who
+needs that association keeps the table. The roles restore the grid, not the column headers
+the hidden header row took with it.
 
 `FilterBar` is controlled by its consumer: selections, removal and clear-all request changes,
 and never mutate the supplied filters. A chip shows the chosen value alone, and the field's

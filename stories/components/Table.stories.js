@@ -1,4 +1,5 @@
 import { badge, button, icon } from '../../src/components/index.js';
+import { rowIdentity, initRowIdentity, numericValue, deltaValue } from '../../src/components/table-values.js';
 import { pad } from '../_gallery.js';
 
 export default {
@@ -117,4 +118,56 @@ export const CompactRowHeaders = {
       </tbody>
     </table>
   </div>`),
+};
+
+// Stacked rows — the same pinned-identity table as a stack of cards at 560px and
+// below. Open it at 390: the header row is gone, each row is a card headed by the
+// company, and every other column is a label/value line. Widen past 560 and it is
+// the table again, with the pinned column capped below 720 (#500).
+//
+// Two things are in this markup rather than in the stylesheet, because CSS cannot
+// supply either. Each cell carries the `data-label` the card prints in front of its
+// value, and every table box carries the ARIA role it already means, which a browser
+// drops as soon as `display` stops being `table-*`.
+const STACKED_COLUMNS = ['Price', 'Change %', 'Market cap', 'P/E', 'Sector', 'Rating'];
+const STACKED = [
+  ['ASTR', 'Aster Systems', '331.63', '+2.41%', 'success', '952.69', '19.20', 'Technology', 'Buy'],
+  ['CEDA', 'Cedar Infrastructure Holdings International', '94.37', '\u22121.08%', 'danger', '198.05', '32.60', 'Industrials', 'Hold'],
+  ['NORT', 'Northstar Analytics', '222.41', '+0.00%', 'neutral', '598.73', null, 'Financials', 'Sell'],
+];
+// The kit's own value cells, so the story shows what a card does with a unit suffix, a
+// toned change and a missing figure rather than with six strings.
+const stackedCells = ([, , price, change, tone, cap, pe, sector, rating]) => [
+  numericValue({ value: price, unit: 'USD' }),
+  deltaValue({ value: change, tone, basisId: 'stacked-basis' }),
+  numericValue({ value: cap, unit: 'B USD' }),
+  numericValue({ value: pe }),
+  sector,
+  rating,
+];
+
+export const StackedRows = {
+  name: 'Stacked rows (390)',
+  parameters: { viewport: { defaultViewport: 'mobile1' } },
+  render: () => `<div style="padding:var(--space-4);min-height:100vh">
+    <div class="ui-card" style="max-width:720px">
+      <h2 class="ui-card__title"><span class="ui-card__icon">${icon('chart')}</span> Watchlist</h2>
+      <div class="ui-card__sub" id="stacked-basis">Fictional demonstration data. Changes versus previous close.</div>
+      <div class="ui-table-scroll" role="region" aria-label="Watchlist, scroll for more columns" tabindex="0">
+        <table role="table" class="ui-table ui-table--compact ui-table--sticky ui-table--pinned ui-table--stacked ui-table--hover">
+          <thead role="rowgroup"><tr role="row">
+            <th role="columnheader" scope="col" class="ui-table__identity">Company</th>
+            ${STACKED_COLUMNS.map((label, i) => `<th role="columnheader" scope="col" class="${i < 4 ? 'ui-table__num' : ''}">${label}</th>`).join('')}
+          </tr></thead>
+          <tbody role="rowgroup">
+            ${STACKED.map(row => `<tr role="row">
+              <td role="rowheader" class="ui-table__identity">${rowIdentity({ symbol: row[0], name: row[1], href: '#stacked-basis' })}</td>
+              ${stackedCells(row).map((value, i) => `<td role="cell" data-label="${STACKED_COLUMNS[i]}" class="${i < 4 ? 'ui-table__num' : ''}">${value}</td>`).join('')}
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>`,
+  play: ({ canvasElement }) => initRowIdentity(canvasElement),
 };
