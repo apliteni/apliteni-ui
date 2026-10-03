@@ -1,10 +1,14 @@
-// The React package publishes its own stylesheet (`apliteni-ui/react/css`), and a
-// consumer who imports only that one gets neither of the kit's two nets. So both travel
-// with this bundle — the same files src/index.css imports, not a second copy. They are
-// imported from the entry rather than from motion.css because both icon gates read each
-// sheet under src/styles/ alone and refuse an @import inside one.
+// A sheet imported from src/styles/ is re-emitted after the kit's own copy in the consumer's
+// document, where it outranks it — #551, which is why input.css is imported nowhere under
+// react/src. These three are kept because order cannot change what they decide: every
+// declaration is behind a media query and wins by `!important` or at no specificity at all.
+// They serve the consumer who takes only this stylesheet, as Tooltip's tooltip.css does.
+// From the entry rather than motion.css because both icon gates read each sheet under
+// src/styles/ alone and refuse an @import inside one. Adding another means measuring it:
+// stories/react-bundle-cascade.test.js allows a re-emitted sheet only while it moves nothing.
 // why: docs/specification.md#motion
 // why: docs/specification.md#a-field-is-16px-on-a-touch-screen
+// why: docs/specification.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
 import '../../src/styles/reduced-motion.css';
 import '../../src/styles/field-zoom.css';
 import '../../src/styles/tap-zone.css';

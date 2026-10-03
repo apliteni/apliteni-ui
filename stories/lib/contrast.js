@@ -501,8 +501,14 @@ export function groupFindings(records) {
   return [...groups.values()].sort((a, b) => a.ratio - b.ratio);
 }
 
-/** Storybook's HTML renderer returns a string or a DOM node. Accept those two. */
-function serialize(out) {
+/**
+ * Storybook's HTML renderer returns a string or a DOM node. Accept those two.
+ *
+ * Exported for stories/field-ground.test.js, which mounts the same stories this
+ * walk does and has to agree with it about what a story that builds a node
+ * rather than a string renders to.
+ */
+export function serialize(out) {
   if (typeof out === 'string') return out;
   if (out && typeof out === 'object') {
     if (typeof out.outerHTML === 'string') return out.outerHTML;

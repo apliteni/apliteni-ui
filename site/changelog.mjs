@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.75.2', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A pager’s page-size control keeps its compact width, padding, type size, radius and chevron offset in a React app. `apliteni-ui/react/css` carried a copy of the kit’s form-control CSS, and in a document that loads `apliteni-ui/css` first that copy landed later and won, leaving the control a full-size form field in a row of small buttons. Fixes #551.', ['Pagination']],
+      ['changed', '`apliteni-ui/react/css` no longer repeats the kit’s form-control CSS. Import both stylesheets, kit first, as the README has always shown: the React one adds what React’s own components need and cannot stand in for the kit’s. The tooltip panel, the reduced-motion net and the tap-target net still travel with it, because a second copy of each decides nothing the kit had already decided.'],
+    ],
+  },
+  {
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],

@@ -1,6 +1,5 @@
 import { forwardRef, type InputHTMLAttributes } from 'react';
 import { icon } from '@apliteni/apliteni-ui';
-import '../../src/styles/input.css';
 
 export type SearchFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'aria-label'> & {
   /** The control's name. A toolbar search box shows no label, so this is the
