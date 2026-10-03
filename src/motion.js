@@ -102,14 +102,17 @@ export function playEntrance(el, className = 'is-entering') {
 
 /**
  * How long the stylesheet says this element's transition lasts — the longest
- * duration plus its own delay, in ms, and 0 off-DOM.
+ * duration plus its own delay, in ms, and 0 off-DOM or for no element at all.
  *
  * What a backstop timer beside a `transitionend` listener is sized from, so the
  * duration stays the sheet's rather than a copy of --dur-med. The event does not
  * come for a transition that did not run, and jsdom never fires it at all.
  */
 export function transitionMs(el) {
-  const view = el?.ownerDocument?.defaultView
+  // getComputedStyle throws a TypeError for a non-element, and the view below
+  // falls back to the global window, so a missing ref took its caller down.
+  if (el?.nodeType !== 1) return 0;
+  const view = el.ownerDocument?.defaultView
     || (typeof window === 'undefined' ? null : window);
   const cs = view?.getComputedStyle?.(el);
   if (!cs) return 0;

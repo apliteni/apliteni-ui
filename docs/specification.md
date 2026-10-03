@@ -377,6 +377,16 @@ Twenty-six declarations across six stylesheets wrote their own number instead, a
 (`transition: 0.18s ease`) named no property at all, which is `all`, which includes
 `visibility`. They are now the tokens above.
 
+**A published motion helper tolerates not getting an element.** `transitionMs(el)` answers how long
+the stylesheet says `el`'s transition lasts — the longest duration plus its own delay, in
+milliseconds — and `0` for an element off the DOM or for no element at all; `playEntrance()` and
+`replay()` do nothing for one. `getComputedStyle` throws a `TypeError` for anything that is not an
+element, so a helper published so that a caller waiting on a fade can size a backstop timer would
+otherwise take that caller down the first time a ref came back unmounted. Held by
+`stories/motion-missing-element.test.js`, which sweeps every helper whose declaration admits a
+missing element with a window installed — the absent `window` of a bare Node process is the one
+environment the fault cannot appear in, so it is not measured there alone.
+
 ### The two kinds that keep a literal
 
 A `transition` is a response: something the reader did, timed against how long they will wait for

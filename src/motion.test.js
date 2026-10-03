@@ -124,7 +124,11 @@ test('the entrance fallback outlasts the slowest duration token', () => {
  * LIMITS: jsdom resolves no cascade and no tokens, so a value spelled
  * `var(--dur-med)` is not what is read here. That the panel this is called on
  * actually computes to 250ms is measured in a browser by
- * scripts/evidence/filter-bar-fit.mjs.
+ * scripts/evidence/filter-bar-fit.mjs. This process installs no `window` on
+ * globalThis, which is the one environment a missing element cannot throw in, so
+ * the cases below say nothing about what a consumer's engine does with one:
+ * stories/motion-missing-element.test.js asks that with a window present, in
+ * jsdom and in Chromium.
  */
 const styled = (css) => {
   const { window } = new JSDOM(`<div id="x" style="${css}"></div>`);
@@ -150,7 +154,9 @@ test('transitionMs takes the longest property, with its own delay', () => {
 
 test('transitionMs is 0 where there is nothing to read', () => {
   // A backstop timer of 0 still fires; one of NaN never does, which is the failure
-  // this guards — an element off the DOM, or one whose view has gone.
+  // this guards — an element off the DOM, or one whose view has gone. Where a
+  // window IS present these same arguments reach getComputedStyle, which refuses
+  // them; that is the gate named above, not this test.
   assert.equal(transitionMs(null), 0);
   assert.equal(transitionMs(undefined), 0);
   assert.equal(transitionMs({}), 0);

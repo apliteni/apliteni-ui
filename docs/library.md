@@ -165,7 +165,8 @@ mark (`seedling`, `prism`, `brand`) and the motion helpers in `src/motion.js`
 an element's `.is-entering` animation once on a change the reader caused and takes the class off
 at `animationend`, or after `ENTRANCE_FALLBACK_MS` if that never comes, and `transitionMs(el)`,
 which answers how long the stylesheet says that element's transition lasts — the longest
-duration plus its own delay, in milliseconds, and `0` off the DOM. It is published because a
+duration plus its own delay, in milliseconds, and `0` off the DOM or for no element at all,
+so an unmounted ref gets a timer that fires at once rather than an exception. It is published because a
 caller that waits for a fade to finish needs the number the sheet owns rather than a copy of
 `--dur-med`: `transitionend` is not a promise, so a backstop timer is sized from this, and both
 the vanilla dropdown's close and React's dialogs wait by it — see
