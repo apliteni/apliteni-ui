@@ -297,17 +297,37 @@ function fitScopes(sheets) {
   return out;
 }
 
-/** The finding, or null when every state a chip's panel is painted in carries the
- *  same geometry. A panel fades for --dur-med after `open` goes, so a rule that
- *  only answers `.open` leaves the fade painting a collapsed menu — #549 again. */
+/** Which anchor a scope is written for: a chip's values, the add control's
+ *  catalogue, or neither. The two subjects filterPanelRow() answers for, and the
+ *  two the hold has to reach. */
+const anchorOf = (one) => (/\.ui-filter-bar__chip\b/.test(one) ? 'a chip menu'
+  : (/\[data-filter-add\]/.test(one) ? "the add control's menu" : null));
+
+/** The finding, or null when every state an anchored panel is painted in carries
+ *  the same geometry. A panel fades for --dur-med after `open` goes, so a rule that
+ *  only answers `.open` leaves the fade painting a collapsed menu — #549 again.
+ *
+ *  Asked per anchor and inside one rule: the kit writes all four states as one
+ *  selector list, so a list that held the chip and not the catalogue would satisfy
+ *  a check that only asked whether `.is-closing` appears somewhere in it. */
 function unheldOnClose(sheets) {
   const found = fitScopes(sheets);
   if (!found.length) return 'no rule writes --ui-filter-panel-* onto a chip menu any more';
-  const bad = found.filter((rule) => rule.scopes.some((one) => /\.open\b/.test(one))
-    && !rule.scopes.some((one) => /\.is-closing\b/.test(one)));
-  if (bad.length) {
-    return `${bad[0].scopes.join(', ')} in ${bad[0].file} gives ${bad[0].props.join(' and ')} to an `
-      + 'open menu and to nothing else, so a closing one drops it while it is still painted';
+  for (const rule of found) {
+    for (const one of rule.scopes) {
+      if (!/\.open\b/.test(one)) continue;
+      const held = rule.scopes.some((other) => /\.is-closing\b/.test(other)
+        && anchorOf(other) === anchorOf(one));
+      if (held) continue;
+      return `${one} in ${rule.file} gives ${rule.props.join(' and ')} to an `
+        + 'open menu and to nothing else, so a closing one drops it while it is still painted';
+    }
+  }
+  // And both anchors are held, so neither can be dropped from the list in silence.
+  const anchors = new Set(found.flatMap((rule) => rule.scopes
+    .filter((one) => /\.is-closing\b/.test(one)).map(anchorOf)));
+  for (const want of ['a chip menu', "the add control's menu"]) {
+    if (!anchors.has(want)) return `nothing in src/styles/ holds ${want} through its fade`;
   }
   return null;
 }
@@ -491,11 +511,11 @@ test('a floor spelled as a token is read, not skipped', () => {
 
 test('every copy of the menu floor agrees', () => {
   const found = menuFloors(sheets, DD_MENU_FLOOR, gateSource);
-  // Five places write it: the standalone panel's rule, the fallback in each of the
-  // row's two open rules — a chip's menu and the add control's, which is not a
-  // chip's and carries its own copy — the module both implementations call, and
-  // the browser gate.
-  assert.equal(found.length, 5, `floors found: ${found.map((f) => `${f.where}=${f.px}`).join(', ')}`);
+  // Four places write it: the standalone panel's rule, the fallback in the row's
+  // open rule — one declaration block for all four anchored states, so a chip's
+  // menu and the add control's read the same copy — the module both
+  // implementations call, and the browser gate.
+  assert.equal(found.length, 4, `floors found: ${found.map((f) => `${f.where}=${f.px}`).join(', ')}`);
   const distinct = [...new Set(found.map((f) => f.px))];
   assert.deepEqual(distinct, [240], found.map((f) => `${f.where}=${f.px}`).join(', '));
 });
@@ -645,6 +665,23 @@ test('the check refuses geometry that only answers .open', () => {
   const openOnly = [['fixture-bar.css',
     `${BAR}__chip .ui-dropdown.open ${PANEL} { min-width: min(var(--ui-filter-panel-floor, 240px), 100%); }`]];
   assert.match(unheldOnClose(openOnly), /open menu and to nothing else/);
+});
+
+test('the check refuses a list that holds the chip and drops the add menu', () => {
+  /* The shape the merged selector list makes possible, and the reason the reading is
+   * per anchor: `.is-closing` appears, so a check that only looked for it stayed
+   * green while the catalogue collapsed on every close. */
+  const half = [['fixture-bar.css',
+    `${BAR}__chip .ui-dropdown.open ${PANEL},`
+    + ` ${BAR}__chip ${PANEL}.is-closing,`
+    + ` ${BAR} ${ADD} .ui-dropdown.open ${PANEL}`
+    + ' { min-width: min(var(--ui-filter-panel-floor, 240px), 100%); }']];
+  assert.match(unheldOnClose(half), /open menu and to nothing else/);
+  // And the other way: the hold dropped from the list altogether.
+  const none = [['fixture-bar.css',
+    `${BAR}__chip ${PANEL}.is-closing`
+    + ' { min-width: min(var(--ui-filter-panel-floor, 240px), 100%); }']];
+  assert.match(unheldOnClose(none), /holds the add control's menu through its fade/);
 });
 
 test('the check refuses a sheet that stopped writing the fit at all', () => {
