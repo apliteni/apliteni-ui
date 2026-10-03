@@ -81,6 +81,25 @@ test('the shared pair never writes an absent field into a chip or its name', () 
   assert.equal(filterChipUnset({ value: '' }), true);
   assert.equal(filterChipUnset({ value: 0 }), false);
 });
+// Markup only: which control the factory writes, not how it looks.
+test('the clear action is offered only once there is something to clear', () => {
+  const { dom, host } = setup(filterBar({ filters: [] }));
+  assert.equal(host.querySelector('[data-filter-clear]'), null, 'an empty bar offers no clear action');
+  assert.equal(host.querySelectorAll('.ui-filter-bar button').length, 0);
+  host.innerHTML = filterBar({ filters });
+  const clear = host.querySelector('[data-filter-clear] button');
+  assert.ok(clear, 'the first chip brings the clear action back');
+  assert.equal(clear.disabled, false, 'it is live, so it may not be drawn as unavailable');
+  // The bordered skin, not the ghost one: a live action beside two chips has to
+  // read as live. This asserts the class the sheet paints, not the colour.
+  assert.ok(clear.classList.contains('ui-btn--secondary'), `clear carries ${clear.className}`);
+  assert.equal(clear.classList.contains('ui-btn--ghost'), false);
+  // A disabled or busy bar still offers it — the fieldset turns it off natively,
+  // so nothing jumps out of the row while a refresh is in flight.
+  host.innerHTML = filterBar({ filters, busy: true });
+  assert.ok(host.querySelector('[data-filter-clear] button'), 'a busy bar keeps the row it had');
+  dom.window.close();
+});
 test('filter removal is controlled and update recovers focus through the last chip', () => {
   const { dom, host } = setup(filterBar({ filters })); const bar = initFilterBar(host, { filters });
   let requested; host.addEventListener('ui-filter-remove', e => { requested = e.detail.id; });

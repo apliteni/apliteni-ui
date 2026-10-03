@@ -91,9 +91,12 @@ test('the sweep sees every box-shadow the kit ships', () => {
   // floating declarations it rewrites to read --float-edge-inner instead of
   // --border are rewritten in place and move no count. 73 -> 75: the ring a
 // Snippet's card now draws for its focused code region, and the `box-shadow:
-// none` that takes it off the `<pre>` it used to paint square.
-  assert.equal(sweep.length, 75,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 75. `
+// none` that takes it off the `<pre>` it used to paint square. 75 -> 76: the
+// hairline #527 gives an underline strip's chosen tab, which is inset and casts
+// nothing. Its forced-colours restatement is an outline rather than a shadow,
+// because the mode computes box-shadow to none.
+  assert.equal(sweep.length, 76,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 76. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

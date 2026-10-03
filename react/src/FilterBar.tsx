@@ -42,6 +42,8 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all 
       <button type="button" className="ui-filter-bar__remove" data-filter-remove="" aria-label={`Remove ${filter.label} filter`}
         onClick={() => { if (!blocked && !filter.disabled) onRemove(filter.id); }}>×</button>
     </fieldset>)}
-    <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant="ghost" disabled={!filters.length} onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>
+    {/* Shown only once there is something to clear, in the bordered skin. The
+        vanilla factory carries the reasoning. why: docs/specification.md#a-filter-row-holds-its-panels */}
+    {filters.length > 0 && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
   </fieldset></div>;
 }

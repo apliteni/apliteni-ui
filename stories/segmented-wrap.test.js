@@ -1,14 +1,22 @@
-/* Rule: an underline segmented strip fits its column — every tab inside the
- * strip's box, no tab too wide for it, no page scrolled sideways, no scroll
- * box. src/styles/segmented.test.js reads the declarations; this is what they
- * draw. #527
+/* Rule: an underline segmented strip fits its column, and its chosen tab says
+ * so inside its own box — every tab inside the strip, no tab too wide for it,
+ * no page scrolled sideways, no scroll box, and a selection that is one accent
+ * mark drawn entirely within the tab that carries it. #527, #544
  *
- * The shipped sheet is read at 320, 390 and 1280; the mutations at 320, where a
- * label that cannot fit shows soonest. Subjects come from the story sweep, with
- * two fixtures for the long labels no story carries. Limits: the sweep reads stories/ only, so no React strip is
- * measured, and every discovered subject's labels are short — the fixtures are
- * what answer that. Opt-in on a browser as stories/tap-zone.test.js is, for the
- * same reason: CI runs nothing here. why: scripts/evidence/README.md
+ * Why the second half is measured here and not read off the sheet: the strip
+ * wraps, and a mark on a tab's EDGE belongs to whichever row the reader decides
+ * it belongs to. Containment is a geometric claim, and the sheet cannot settle
+ * it.
+ *
+ * The shipped sheet is read at 320, 390 and 1280 on a fine pointer, at 390 on a
+ * coarse one, and at 1280 in forced colours; the mutations at 320, 390 and 1280. Subjects come from the story
+ * sweep, with two fixtures for the long labels no story carries. Limits: the
+ * sweep reads stories/ only, so no React strip is measured; every discovered
+ * subject's labels are short — the fixtures are what answer that; and the marks
+ * are read from the computed cascade, so what a GPU finally paints is the
+ * screenshots' evidence, not this file's. Opt-in on a browser as
+ * stories/tap-zone.test.js is, for the same reason: CI runs nothing here.
+ * why: scripts/evidence/README.md
  *
  *   UI_PLAYWRIGHT=… SEG_WRAP=1 node --test stories/segmented-wrap.test.js
  */
@@ -27,19 +35,70 @@ const PROBE = (html) => {
       return { label: b.textContent.trim(), left: r.left, right: r.right, top: Math.round(r.top) };
     });
     const cs = getComputedStyle(seg);
-    // The ink box of a label, not its padded button box: the question is which
-    // row of WORDS the rail reads as belonging to.
-    const ink = (b) => { const r = document.createRange(); r.selectNodeContents(b); return r.getBoundingClientRect(); };
     const chosen = seg.querySelector('button.is-active, button[aria-pressed="true"], button[aria-selected="true"]');
-    const nextRow = chosen && [...seg.querySelectorAll('button')]
-      .find((b) => Math.round(b.getBoundingClientRect().top) > Math.round(chosen.getBoundingClientRect().top));
-    const rail = chosen ? chosen.getBoundingClientRect().bottom : null;
+    const resting = [...seg.querySelectorAll('button')].find((b) => b !== chosen);
+
+    // --accent as the cascade resolves it, in the rgb() every computed colour
+    // comes back as. Reading the custom property would compare a hex to an rgb.
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--accent)';
+    seg.append(probe);
+    const accent = getComputedStyle(probe).color;
+    probe.remove();
+
+    /** Every place an element can put paint, and whether that paint is the accent. */
+    const marks = (el) => {
+      if (!el) return null;
+      const s = getComputedStyle(el);
+      const before = getComputedStyle(el, '::before');
+      const sides = ['Top', 'Right', 'Bottom', 'Left']
+        .filter((side) => s[`border${side}Style`] !== 'none' && parseFloat(s[`border${side}Width`]) > 0)
+        .map((side) => s[`border${side}Color`]);
+      const outline = s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0 ? [s.outlineColor] : [];
+      const bar = before.content !== 'none' ? [before.backgroundColor] : [];
+      const painted = [s.backgroundColor, ...sides, ...outline, ...bar]
+        .filter((c) => c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent');
+      return {
+        // What actually marks a tab in forced colours, as one string. The
+        // background is left out on purpose: the mode maps an author background
+        // to Canvas, and Canvas on a Canvas page paints nothing a reader can
+        // see, so a chosen tab whose only remaining difference is its
+        // background is a chosen tab nobody can find. Measured — the plate
+        // comes back opaque white against the resting tabs' transparent one.
+        // An outline that does not paint contributes nothing: `outline: 0` and
+        // the UA's own `none 3px` are the same picture.
+        marks: [outline.length ? `${s.outlineStyle} ${s.outlineWidth} ${s.outlineColor}` : '-',
+          before.content === 'none' ? '-' : before.backgroundColor, ...sides].join('|'),
+        accents: painted.filter((c) => c === accent).length,
+        shadowAccent: s.boxShadow.includes(accent),
+        background: s.backgroundColor,
+        boxShadow: s.boxShadow,
+        // A zone grows outside the drawn box; this is the zone, so the tight
+        // row gap is checked against the floor it has to leave standing.
+        zone: (() => { const a = getComputedStyle(el, '::after'); return a.content === 'none' ? null : +parseFloat(a.height).toFixed(1); })(),
+      };
+    };
+
+    // The selection has to be inside the tab that carries it, because a wrapped
+    // strip has a row above and a row below and an edge mark belongs to both.
+    const barBox = (() => {
+      if (!chosen) return null;
+      const b = getComputedStyle(chosen, '::before');
+      if (b.content === 'none') return null;
+      const t = chosen.getBoundingClientRect();
+      // left/top are resolved against the tab's padding box; width/height are
+      // the drawn bar. The question is only whether it stays inside the tab.
+      return { w: parseFloat(b.width), h: parseFloat(b.height), tabW: t.width, tabH: t.height, left: parseFloat(b.left) };
+    })();
+
     return {
-      rail: chosen && nextRow ? {
-        label: chosen.textContent.trim(),
-        toOwnLabel: +(rail - ink(chosen).bottom).toFixed(1),
-        toNextRowLabel: +(ink(nextRow).top - rail).toFixed(1),
-      } : null,
+      chosen: marks(chosen),
+      resting: marks(resting),
+      bar: barBox,
+      stripBorder: ['Top', 'Right', 'Bottom', 'Left']
+        .filter((side) => cs[`border${side}Style`] !== 'none' && parseFloat(cs[`border${side}Width`]) > 0),
+      rowGap: +parseFloat(cs.rowGap).toFixed(1),
+      columnGap: +parseFloat(cs.columnGap).toFixed(1),
       left: box.left,
       right: box.right,
       // The padding box is what a scroll box would clip against.
@@ -63,8 +122,11 @@ const PROBE = (html) => {
 };
 
 /** Every strip on every story, at one width, under one extra sheet. */
-async function strips(browser, { subjects, css, width, extra = '' }) {
-  const ctx = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+async function strips(browser, { subjects, css, width, extra = '', touch = false, forced = false }) {
+  const ctx = await browser.newContext({
+    viewport: { width, height: 900 }, hasTouch: touch, deviceScaleFactor: 1, reducedMotion: 'reduce',
+    ...(forced ? { forcedColors: 'active' } : {}),
+  });
   try {
     const page = await ctx.newPage();
     await page.setContent(
@@ -143,6 +205,10 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
     const tight320 = await strips(browser, { subjects, css, width: 320 });
     const narrow = await strips(browser, { subjects, css, width: 390 });
     const wide = await strips(browser, { subjects, css, width: 1280 });
+    // The one width where tap-zone.css has anything to say. The strip keeps its
+    // own row gap there, so this pass is what proves the gap did not cost the
+    // 44px floor.
+    const coarse = await strips(browser, { subjects, css, width: 390, touch: true });
 
     assert.ok(
       narrow.length >= subjects.length,
@@ -150,7 +216,7 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
       + 'fewer strips than there are stories carrying one, so some went unread.',
     );
 
-    for (const width of [tight320, narrow, wide]) {
+    for (const width of [tight320, narrow, wide, coarse]) {
       for (const s of width) {
         assert.deepEqual(
           s.outside, [],
@@ -180,15 +246,64 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
       }
     }
 
-    // A wrapped strip's rail has to read as the mark of the row it is drawn on.
-    // It sits under its own label and over the next row's, so the two distances
-    // are the whole question — at the track's own 4px they were 14 and 16, and
-    // #545 removes the accent box that is carrying selection in the meantime.
-    for (const s of narrow.filter((x) => x.rows > 1 && x.rail)) {
+    // --- What the chosen tab says, and where it says it.
+    for (const width of [tight320, narrow, wide, coarse]) {
+      for (const s of width.filter((x) => x.chosen)) {
+        assert.equal(
+          s.chosen.accents + (s.chosen.shadowAccent ? 1 : 0), 1,
+          `${s.story}: the chosen tab paints the accent ${s.chosen.accents + (s.chosen.shadowAccent ? 1 : 0)} `
+          + 'times. One element, one accent mark — a rail AND a box is the same sentence said twice. '
+          + `background ${s.chosen.background}, box-shadow ${s.chosen.boxShadow}`,
+        );
+        // Read against a resting tab rather than against a constant: the claim
+        // is that a reader can tell them apart without looking anywhere else.
+        assert.ok(
+          s.resting && (s.chosen.background !== s.resting.background || s.chosen.boxShadow !== s.resting.boxShadow),
+          `${s.story}: the chosen tab's own box is drawn exactly like a resting tab's, so the `
+          + 'accent mark is the only thing saying which is chosen.',
+        );
+        assert.ok(
+          s.bar && s.bar.w <= s.bar.tabW && s.bar.h <= s.bar.tabH && s.bar.left >= 0,
+          `${s.story}: the accent mark is not inside the tab that carries it — ${JSON.stringify(s.bar)}. `
+          + 'On a wrapped strip an edge mark reads as the neighbouring row\'s.',
+        );
+      }
+      for (const s of width) {
+        assert.deepEqual(
+          s.stripBorder, [],
+          `${s.story}: the strip draws a rule on ${s.stripBorder.join(', ')}. The chosen tab carries `
+          + 'the selection, so a line under the row marks nothing and reads as noise. #545',
+        );
+        assert.equal(
+          s.rowGap, s.columnGap,
+          `${s.story}: the strip's rows stand ${s.rowGap}px apart against a ${s.columnGap}px track. A `
+          + 'contained highlight belongs to no row but its own, so the rows close back to the track.',
+        );
+      }
+    }
+    // Forced colours keeps neither the plate nor the hairline — it repaints
+    // `background` and drops `box-shadow` outright — so the chosen tab has to
+    // say it again in something the mode does keep. A resting tab must not pick
+    // up the same mark on the way, which is the failure #544 found on `main`.
+    const forced = await strips(browser, { subjects, css, width: 1280, forced: true });
+    for (const s of forced.filter((x) => x.chosen && x.resting)) {
       assert.ok(
-        s.rail.toNextRowLabel > s.rail.toOwnLabel * 1.5,
-        `${s.story}: the chosen tab's rail is ${s.rail.toOwnLabel}px under its own label and `
-        + `${s.rail.toNextRowLabel}px over the next row's, so it reads as either row's mark.`,
+        s.chosen.marks !== s.resting.marks,
+        `${s.story}: in forced colours the chosen tab is drawn exactly like a resting one — `
+        + `both ${s.chosen.marks}. Nothing there says which view is open.`,
+      );
+    }
+    assert.ok(forced.some((s) => s.chosen), 'no strip carried a chosen tab under forced colours');
+    t.diagnostic(`forced colours: ${forced.filter((s) => s.chosen).length} chosen tabs, each unlike its resting neighbours`);
+
+    // The tight gap may not cost the tap floor. A tab draws 41, and the 4px gap
+    // is what its zone grows into — 1.5px each side, so two rows' zones stop
+    // 1px short of meeting. why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
+    for (const s of coarse.filter((x) => x.chosen && x.chosen.zone != null)) {
+      assert.ok(
+        s.chosen.zone >= 44,
+        `${s.story}: the chosen tab's tap zone is ${s.chosen.zone}px below the phone step, under the `
+        + '44px floor. Closing the rows took the clearance the zone grows into.',
       );
     }
 
@@ -204,7 +319,7 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
     for (const s of wide.filter((x) => x.story.includes('StockScreener'))) {
       assert.equal(s.rows, 1, `${s.story}: expected one row at 1280, got ${s.rows}`);
     }
-    t.diagnostic(`${subjects.length} subjects, ${tight320.length} strips at 320, ${narrow.length} at 390, ${wide.length} at 1280`);
+    t.diagnostic(`${subjects.length} subjects, ${tight320.length} strips at 320, ${narrow.length} at 390, ${wide.length} at 1280, ${coarse.length} at 390 coarse`);
 
     // --- the mutation. The sheet put back the way `main` shipped it: one row and
     // a scroll box. If the checks above still pass against that, they measure
@@ -220,20 +335,76 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
     );
     t.diagnostic(`mutation to nowrap + overflow:auto fails ${caught.length} of ${reverted.length} strips`);
 
-    // --- the second mutation. The rows closed back up to the track's own gap,
-    // which is what the strip inherited before #527 set one for the wrap.
-    const tight = await strips(browser, {
-      subjects, css, width: 390,
-      extra: '.ui-seg--underline{row-gap:var(--space-1)!important}',
+    // --- the selection's own four. Each one puts back something the strip used
+    // to do, and each has to be caught by the block above or that block is
+    // reading nothing.
+    for (const [name, extra, caught] of [
+      [
+        'the pill rule\'s accent outline back on the chosen tab',
+        '.ui-seg--underline button.is-active,.ui-seg--underline button[aria-pressed="true"]'
+        + '{outline:1px solid var(--accent)!important}',
+        (s) => s.chosen && s.chosen.accents + (s.chosen.shadowAccent ? 1 : 0) !== 1,
+      ],
+      [
+        'the pre-#527 chosen tab — a rail on its bottom edge and nothing else',
+        '.ui-seg--underline button.is-active,.ui-seg--underline button[aria-pressed="true"]'
+        + '{background:transparent!important;box-shadow:none!important;'
+        + 'border-bottom:2px solid var(--accent)!important}'
+        + '.ui-seg--underline button.is-active::before,'
+        + '.ui-seg--underline button[aria-pressed="true"]::before{content:none!important}',
+        (s) => s.chosen && (s.resting
+          && s.chosen.background === s.resting.background && s.chosen.boxShadow === s.resting.boxShadow),
+      ],
+      [
+        'the strip\'s bottom rule back under the tabs',
+        '.ui-seg--underline{border-bottom:1px solid var(--border)!important}',
+        (s) => s.stripBorder.length > 0,
+      ],
+      [
+        'the rows stood --space-5 apart again',
+        '.ui-seg--underline{row-gap:var(--space-5)!important}',
+        (s) => s.rowGap !== s.columnGap,
+      ],
+    ]) {
+      const mutated = await strips(browser, { subjects, css, width: 390, extra });
+      const failed = mutated.filter(caught);
+      assert.ok(
+        failed.length,
+        `${name}: every check above stayed green against it, so they measure nothing.`,
+      );
+      t.diagnostic(`mutation — ${name} — fails ${failed.length} of ${mutated.length} strips`);
+    }
+
+    // --- forced colours' own. The block put back the way the sheet read before
+    // it existed: a plate and a hairline the mode throws away, and nothing else.
+    const unstated = await strips(browser, {
+      subjects, css, width: 1280, forced: true,
+      extra: '.ui-seg--underline button.is-active,.ui-seg--underline button[aria-pressed="true"],'
+        + '.ui-seg--underline button[aria-selected="true"]{outline:0!important}'
+        + '.ui-seg--underline button.is-active::before,.ui-seg--underline button[aria-pressed="true"]::before,'
+        + '.ui-seg--underline button[aria-selected="true"]::before{content:none!important}',
     });
-    const ambiguous = tight.filter((s) => s.rows > 1 && s.rail
-      && !(s.rail.toNextRowLabel > s.rail.toOwnLabel * 1.5));
+    const silent = unstated.filter((s) => s.chosen && s.resting && s.chosen.marks === s.resting.marks);
     assert.ok(
-      ambiguous.length,
-      'closing the rows to the track gap left every rail still reading as its own row. The '
-      + 'check above measures nothing.',
+      silent.length,
+      'with the forced-colours restatement gone the chosen tab still read differently, so the '
+      + 'check above is measuring the normal cascade rather than the mode.',
     );
-    t.diagnostic(`mutation to a 4px row gap fails ${ambiguous.length} of ${tight.filter((s) => s.rows > 1 && s.rail).length} wrapped strips`);
+    t.diagnostic(`mutation — no forced-colours restatement — ${silent.length} chosen tabs become indistinguishable`);
+
+    // --- the tap floor's own. The strip keeps a 4px row gap instead of
+    // --tap-gap, and the zone reaches 44 only because 4px of clearance is
+    // declared for it. Take the clearance away and the floor goes with it.
+    const floorless = await strips(browser, {
+      subjects, css, width: 390, touch: true,
+      extra: '.ui-seg--underline{--tap-clear-y:0px!important}',
+    });
+    const short = floorless.filter((s) => s.chosen && s.chosen.zone != null && s.chosen.zone < 44);
+    assert.ok(
+      short.length,
+      'the zones still reached 44 with no clearance declared, so the floor check reads nothing.',
+    );
+    t.diagnostic(`mutation — no vertical clearance — ${short.length} chosen tabs fall under the 44px floor`);
 
     // --- the tab's own two. `nowrap` is what the sheet carried while the scroll
     // box contained it; `break-word` is the weaker half of what replaced it, which
