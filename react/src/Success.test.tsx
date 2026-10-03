@@ -137,7 +137,7 @@ it('lets SuccessCheck pick its own mark, defaulting to the line', () => {
 });
 
 // A bare <a> takes the browser's own outline, which #457 rejected. The kit's answer is
-// src/styles/base.css:140 `.ui-focusable:focus-visible,`, so the composition asserted
+// src/styles/base.css:144 `.ui-focusable:focus-visible,`, so the composition asserted
 // here is the one the README tells a caller to write. jsdom paints nothing: the ring
 // itself is measured in the browser, in this PR's evidence.
 it('keeps action events, keyboard focus and caller routing', async () => {
