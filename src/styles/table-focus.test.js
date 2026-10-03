@@ -164,9 +164,11 @@ test("every link in a table cell takes the kit ring", () => {
     "this table's class list is built at runtime, so a source scan cannot say which rules " +
       "reach the link inside it — measure it in a rendered story and exclude it here",
   );
+  // 4 -> 7: #505's Finance dashboard and the two specimens on the Dashboards and
+  // reports page, each of which links a payout reference out of a cell.
   assert.equal(
     subjects.length,
-    4,
+    7,
     "every link the kit writes in a cell must be measured; update this count with the " +
       `subjects, which are now:\n${subjects.map((s) => `${s.file}: ${s.link}`).join("\n")}`,
   );

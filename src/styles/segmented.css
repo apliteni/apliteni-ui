@@ -14,7 +14,11 @@
      states its own alignment; --block and --underline ask for the width back. */
   align-self: start;
   justify-self: start;
-  background: var(--surface); --ring-gap: var(--surface);
+  /* A track, not a card: --surface-2 is the token for a sunken mark, and the
+     chosen pill is what paints --surface here. While the track WAS --surface the
+     pill's own fill landed on its own colour, which is why an accent outline was
+     doing all the work of saying which option is on. #505 */
+  background: var(--surface-2); --ring-gap: var(--surface-2);
   flex-wrap: wrap;
   max-width: 100%;
   border-radius: var(--radius-2xl);
@@ -35,14 +39,25 @@
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .ui-seg button:hover { color: var(--strong); }
-/* aria-pressed is what segmented() emits now; aria-selected is kept so markup
-   copied from an older release keeps painting its active pill. */
+/* One signal, and the one the side rail already uses: the chosen option is
+   raised onto the reading surface out of the track, under a hairline, exactly as
+   the current nav row is raised off the rail. It replaces an accent outline
+   drawn OVER a fill — two marks for one state, and the louder of them a ring the
+   rest of the kit spends only on focus.
+
+   The hairline is --control-edge rather than --border for the reason button.css
+   already records: --border on a --surface fill measures 1.047:1 in light, which
+   is an edge that is not there.
+
+   aria-pressed is what segmented() emits now; aria-selected is kept so markup
+   copied from an older release keeps painting its active pill.
+   why: Artur's review of the Finance report, #505 */
 .ui-seg button.is-active,
 .ui-seg button[aria-pressed="true"],
 .ui-seg button[aria-selected="true"] {
   color: var(--strong);
   background: var(--surface); /* ring-gap: inherit — the button ring meets its containing track. */
-  outline: 1px solid var(--accent);
+  box-shadow: inset 0 0 0 1px var(--control-edge);
 }
 
 /* Standard pills tighten on phones so six short month names fit one row. */
@@ -76,6 +91,6 @@
 .ui-seg--underline { flex-wrap: nowrap; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
 .ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
 .ui-seg--underline button.is-active,
-.ui-seg--underline button[aria-pressed="true"] { background: transparent; border-bottom-color: var(--accent); }
+.ui-seg--underline button[aria-pressed="true"] { background: transparent; box-shadow: none; border-bottom-color: var(--accent); }
 .ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }

@@ -1311,8 +1311,9 @@ The guideline page contains no code references; the table below is the only rule
   `.ui-table--dense` is all of a page's tables or none of them, and no screen writes cell padding
   of its own — in a style attribute, or in a rule of its own naming `.ui-table`'s cells.
   A table inside a drawer follows the drawer's spacing rather than the page's.
-- **`lede` — include a short introduction; it is two sentences at most.** Add information
-  the title does not give, without repeating it in the opening sentence.
+- **`lede` — a page may open on its title alone; where it carries an introduction, it is two
+  sentences at most.** Add information the title does not give, without repeating it in the
+  opening sentence.
 
 ### Which line of the kit holds each of them
 

@@ -31,7 +31,7 @@ const compositions = rules.filter((r) => own(r).has('--ring'));
 const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(--ring\)/.test(body));
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
-  assert.equal(surfaces.length, 138, 'surface discovery changed; the folded rail\'s current-row plate adds three and the disabled checkbox box and its radio mark add two');
+  assert.equal(surfaces.length, 139, 'surface discovery changed; the folded rail\'s current-row plate adds three, the disabled checkbox box and its radio mark add two, and the filter chip adds one now that it paints the control surface rather than letting the page through');
   // Any composition rule, not only the shared recipe: #537 gives .ui-code its own, because a
   // chip's gap has to be the surface it paints and the shared recipe is also what hands a
   // chip the OTHER surface. The guarantee is unchanged — the rule recomposes --ring — and a
@@ -117,7 +117,8 @@ test('a surface a story paints sets a matching gap, so a ring drawn inside it is
     `only ${storySheets.length} story style blocks found — the walk stopped reading <style> blocks`);
   // 32 -> 34: #488's two inert tap-zone Don't cells on the Accessibility
   // minimums page, which paint the surface and now declare its gap.
-  assert.equal(storySurfaces.length, 34,
+  // 34 -> 35: #505's Dashboards and reports stage.
+  assert.equal(storySurfaces.length, 35,
     'story surface discovery changed; update the count with the stages that moved');
   assert.deepEqual(gapProblems(storySurfaces), [],
     'a story paints a surface whose focus ring would draw its gap in the page colour');

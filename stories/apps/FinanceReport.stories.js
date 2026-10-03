@@ -1,4 +1,5 @@
-import { badge, card, segmented, icon } from '../../src/components/index.js';
+import { badge, button, card, segmented } from '../../src/components/index.js';
+import { filterBar } from '../../src/components/filter-bar.js';
 import { busyRegion, skeleton, skeletonTable } from '../../src/components/loading.js';
 import { statBand } from '../../src/components/stat.js';
 import { financeShell } from './_finance-nav.js';
@@ -8,6 +9,28 @@ export default {
   id: 'apps-finance-report',
   parameters: { layout: 'fullscreen' },
 };
+
+// A report, not a dashboard: it answers why and exactly how much, so it carries
+// the ledger in full, a filter row and one export. The glance screen beside it
+// is the Finance dashboard.
+// why: guidelines/dashboards-and-reports.md
+
+// What a reader narrows the ledger by. The period stays a segmented control
+// rather than a third chip, so no filter is offered twice. Both chips are
+// unset: the ledger below is every payout, and a chip reading a value the rows
+// do not honour teaches a filter that does nothing.
+const FILTERS = [
+  { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'In transit', value: 'In transit' }, { label: 'Failed', value: 'Failed' }] },
+  { id: 'currency', label: 'Currency', items: [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
+];
+
+// The export is wordless: `download` is on the closed list in src/assets/icons.js,
+// and `label` is still what names it to a reader who cannot see the glyph.
+const controls = () => `<div class="ui-toolbar">
+      ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+      ${filterBar({ filters: FILTERS, label: 'Payout filters' })}
+      ${button({ label: 'Export rows', icon: 'download', iconOnly: true })}
+    </div>`;
 
 // The cashflow figures are the kit's stat band. It folds from its own width, so
 // the rail beside the column needs no rule of this screen's.
@@ -22,29 +45,38 @@ const kpiStrip = () => statBand({
   ],
 });
 
+// Net is gross less fees in every row. The references are the ones the Finance
+// dashboard and the Dashboards and reports guideline print, spelled the same
+// way and carrying the same figures, because the dashboard links each of its
+// rows to its row here. stories/dashboard-report-refs.test.js holds the three
+// screens to that, so the agreement survives an edit to any one of them.
 const PAYOUTS = [
-  ['1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '11,871.49', 'success', 'Paid'],
-  ['1163', 'po_1TnSuaGmSZjqJIroOzd7Mc6L', '2026-06-29', '14,490.70', '574.19', '27,834.31', 'success', 'Paid'],
-  ['1164', 'po_1TmNmjGmSZjqJIro7lHBO3ix', '2026-06-26', '14,566.66', '483.97', '15,201.57', 'pending', 'In transit'],
-  ['41',   'po_1Tm1FeGmSZjqJIroa1D9MjbO', '2026-06-25', '39,054.98', '1,369.76', '32,156.22', 'success', 'Paid'],
-  ['42',   'po_1TleVSGmSZjqJIrobtld2b8X', '2026-06-24', '14,969.33', '472.71', '18,774.34', 'danger', 'Failed'],
-  ['43',   'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
+  ['PO-1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '14,452.83', 'success', 'Paid'],
+  ['PO-1163', 'po_1TnSuaGmSZjqJIroOzd7Mc6L', '2026-06-29', '14,490.70', '574.19', '13,916.51', 'success', 'Paid'],
+  ['PO-1164', 'po_1TmNmjGmSZjqJIro7lHBO3ix', '2026-06-26', '14,566.66', '483.97', '14,082.69', 'pending', 'In transit'],
+  ['PO-1165', 'po_1Tm1FeGmSZjqJIroa1D9MjbO', '2026-06-25', '39,054.98', '1,369.76', '37,685.22', 'success', 'Paid'],
+  ['PO-1166', 'po_1TleVSGmSZjqJIrobtld2b8X', '2026-06-24', '14,969.33', '472.71', '14,496.62', 'danger', 'Failed'],
+  ['PO-1167', 'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '17,927.93', 'success', 'Paid'],
+  ['PO-1159', 'po_1TjyHpGmSZjqJIro5cQb9nKW', '2026-06-18', '2,251.40', '71.40', '2,180.00', 'danger', 'Unmatched'],
 ];
 
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` in
 // card.css is what scrolls seven columns of ledger on a phone, and a wrapper
 // around the table turns that selector off.
-const payoutsCard = () => card({ title: `<span class="ui-card__icon">${icon('card')}</span> Payouts`, sub: 'Stripe payouts reconciled to bank transactions.', body: `
+// No glyph and no sub-line. The tile behind the glyph spent the accent on
+// decoration, the glyph repeated the word beside it, and the sentence under it
+// said what the columns already say. why: Artur's review of this screen, #505
+const payoutsCard = () => card({ title: 'Payouts', body: `
   <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover">
     <thead><tr>
-      <th>ID</th><th>Payout ID</th><th>Arrival</th>
+      <th>Reference</th><th>Payout ID</th><th>Arrival</th>
       <th class="ui-table__num">Gross</th><th class="ui-table__num">Fees</th>
       <th class="ui-table__num">Net (EUR)</th><th>Status</th>
     </tr></thead>
     <tbody>
-      ${PAYOUTS.map(([id, pid, arr, gross, fees, net, variant, label]) => `
+      ${PAYOUTS.map(([ref, pid, arr, gross, fees, net, variant, label]) => `
         <tr>
-          <td><a href="#">${id}</a></td>
+          <td><a href="#">${ref}</a></td>
           <td class="ui-table__code">${pid}</td>
           <td>${arr}</td>
           <td class="ui-table__num">${gross}</td>
@@ -63,9 +95,8 @@ export const Default = {
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
-    sub: 'Company cashflow at a glance, then the reconciled payout ledger.',
     body: `
-      ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+      ${controls()}
       ${kpiStrip()}
       ${payoutsCard()}
     `,
@@ -91,17 +122,16 @@ export const Loading = {
     active: 'payouts',
     crumb: 'Payouts',
     title: 'Payouts',
-    sub: 'Company cashflow at a glance, then the reconciled payout ledger.',
     body: `
-      ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
+      ${controls()}
       <div class="ui-stats ui-stats--tiles">${busyRegion({
         label: 'Loading cashflow for the last year…',
         body: `${skeleton({ lines: ['18%'], className: 'ui-stats__basis' })}<div class="ui-stats__list">${['', '', ''].map(() => `<div class="ui-stat ui-card ui-card--pad-sm">
           ${skeleton({ lines: ['40%'] })}${skeleton({ lines: ['72%'], height: '36px' })}
         </div>`).join('')}</div>`,
       })}</div>
-      ${card({ title: `<span class="ui-card__icon">${icon('card')}</span> Payouts`, sub: 'Stripe payouts reconciled to bank transactions.',
-        body: busyRegion({ label: 'Loading payouts…', body: skeletonTable({ rows: 6, cols: 7 }) }) })}
+      ${card({ title: 'Payouts',
+        body: busyRegion({ label: 'Loading payouts…', body: skeletonTable({ rows: PAYOUTS.length, cols: 7 }) }) })}
     `,
   }),
 };

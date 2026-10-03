@@ -8,7 +8,7 @@
 
 **Why:** Without a legend, readers need labels for unfamiliar glyphs.
 
-**Except:** The list grows by decision, not review debate. Today: `x` (close or dismiss), `copy` (copy to clipboard), `moreHorizontal` (overflow menu), `moreVertical` (overflow menu), `chevronDown` (expand or collapse), `chevronUp` (expand or collapse), and the shell’s theme toggle, sidebar toggle and collapsed-rail links.
+**Except:** The list grows by decision, not review debate. Today: `x` (close or dismiss), `copy` (copy to clipboard), `moreHorizontal` (overflow menu), `moreVertical` (overflow menu), `chevronDown` (expand or collapse), `chevronUp` (expand or collapse), `download` (export or download the rows), and the shell’s theme toggle, sidebar toggle and collapsed-rail links.
 
 **Do:** Show an overflow menu without words; keep the Settings label.
 

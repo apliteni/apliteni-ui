@@ -211,7 +211,7 @@ const accepts = (finding) => LEDGER.some((entry) => entry.themes.includes(findin
   && entry.selectors.includes(finding.selector));
 
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 33, 'painted-ground discovery changed; a new painted container must say which surface it hands an inline code chip');
+  assert.equal(grounds.length, 34, 'painted-ground discovery changed; a new painted container must say which surface it hands an inline code chip. 34 since #505, when the filter chip stopped being transparent and started painting the control surface');
   assert.equal(washes.length, 5, 'wash discovery changed; a wash that takes caller markup must say which surface it hands an inline code chip');
   for (const { selector, paint } of washes) {
     assert.ok(pickFor(selector), `${selector} is a wash a caller can write a chip inside and never hands it a surface`);

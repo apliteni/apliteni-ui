@@ -6,6 +6,18 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-02',
+    changes: [
+      ['added', 'A Dashboards and reports guideline settles which kind of page a screen is. A dashboard answers \u201Cis anything wrong, and what changed\u201D in one screen and carries figures, trends and the rows that need attention, each linking to the report behind it. A report answers \u201Cwhy, and exactly how much\u201D, so it carries the full table, its filters, one export and the table under every chart. Six rules, five of them drawn as do and don\u2019t specimens. The export rule carries a gap: the kit\u2019s own Stock screener is a report and has no export yet, which is #555. Closes #505.'],
+      ['changed', 'A segmented control marks the chosen option the way the side rail marks the current page: the track is the sunken surface and the chosen pill is raised onto the reading surface with a hairline. It replaces an accent outline drawn over a fill \u2014 two marks for one state, and the pill\u2019s fill could not be seen because the track painted the same colour. Underline tabs keep their accent rule.', ['Segmented']],
+      ['changed', 'A filter chip is painted like the controls beside it \u2014 the control surface and the same edge a button takes \u2014 and an unset chip prints the field\u2019s name in the page\u2019s reading ink. It used to be transparent with its name in `--muted`, which is the ink `--disabled-ink` resolves to, so an offered filter read as a switched-off one. A chosen value keeps the heavier, darker value ink, so the two are still told apart.', ['FilterBar']],
+      ['changed', 'A control row directly inside the page body sits closer to the block it narrows than to an unrelated one. `.ui-app__body` keeps its gap everywhere else.', ['AppShell']],
+      ['changed', 'A page may open on its title alone. The `lede` rule always read \u201Can introduction \u2026 adds information the title does not give\u201D, but its gate failed any app screen without one, which is how a page ends up carrying a line that repeats its own title. The gate now checks an introduction only where there is one, and the rule and the specification say so.'],
+      ['added', '`download` joins the closed list of actions that may ship as an icon and nothing else, for a report\u2019s export. The list is in `src/assets/icons.js` and the Iconography guideline; a wordless control is still named through `label`.', ['Button']],
+      ['changed', 'The Finance report showcase now reads as a report: it offers the filter row and the export the new guideline asks for. Its ledger gained a seventh row for the unmatched payout the dashboard lists, its ID column became Reference, and its references are now the ones the dashboard and the guideline print, so a reference a reader follows resolves to a row. Every row now nets its gross less its fees; not one of the six it had before did. A Finance dashboard showcase sits beside it as the glance screen that links to it.', ['Table']],
+    ],
+  },
+  {
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],

@@ -443,6 +443,11 @@
    of what you typed. min-width:0 keeps an input's automatic minimum (its `size`
    attribute, ~20 characters) from setting a floor well above the basis. */
 .ui-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
+/* A control row belongs to the block it narrows rather than standing beside it,
+   so it sits closer than .ui-app__body's gap between two blocks that are each
+   their own subject. Not on the last row: there the gap is the page's bottom
+   and nothing is being narrowed. why: Artur's review of the Finance report, #505 */
+.ui-app__body > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-3) - var(--space-5)); }
 .ui-toolbar > .ui-input,
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
 /* At one column the 6rem basis stops being a floor and becomes the field's size:

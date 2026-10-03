@@ -432,7 +432,7 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:174",
+        "ref": "src/assets/icons.js:179",
         "pattern": "export const iconMeanings"
       },
       {
@@ -566,7 +566,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:462",
+        "ref": "src/styles/layout.css:467",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -831,6 +831,32 @@
       {
         "ref": "src/components/index.js:280",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
+      }
+    ]
+  },
+  "_dashboards-and-reports.js": {
+    "figures-and-exceptions": [
+      {
+        "ref": "src/components/stat.js:64",
+        "pattern": "export function statBand("
+      }
+    ],
+    "link-to-the-report": [
+      {
+        "ref": "src/styles/table.css:91",
+        "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
+      }
+    ],
+    "report-depth": [
+      {
+        "ref": "src/styles/table.css:65",
+        "pattern": ".ui-table--dense td"
+      }
+    ],
+    "report-offers": [
+      {
+        "ref": "src/components/filter-bar.js:5",
+        "pattern": "export function filterBar("
       }
     ]
   }
