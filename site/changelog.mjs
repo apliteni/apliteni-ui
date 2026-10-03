@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.80.0', date: '2026-10-04',
     changes: [
-      ['added', 'The drawer guideline now explains when to use a drawer and when a page. Use a page when someone edits more than one group; use a drawer for one short change. The example edits a member\u2019s access, once on a page and once in a drawer. Resolves #492.', ['Drawer']],
+      ['added', 'The drawer guideline now explains when to use a drawer and when a page. Use a page to edit more than one group, and a drawer for one short change. The example edits a member\u2019s access, once on a page and once in a drawer. Resolves #492.', ['Drawer']],
     ],
   },
   {

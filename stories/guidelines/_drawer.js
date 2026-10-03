@@ -16,13 +16,17 @@ export const SPEC_CSS = `
       background: var(--bg); --ring-gap: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
     .gd-frame .ui-drawer { position: absolute; }
     .gd-frame .ui-drawer__panel { width: calc(100% - var(--space-12)); }
-    .gd-frame .ui-card { padding: var(--space-4); }
-    .gd-frame .ui-card + .ui-card { margin-top: var(--space-4); }
-    /* The page half: no panel, no scrim, no card, so the halves differ by where the
-       work sits and not by what draws it. The minimum is a floor, not a fixed height:
-       both halves start at one screen and the page half grows past it at 390. */
+    .gd-frame .ui-drawer__body .ui-card { padding: var(--space-4); }
+    .gd-frame .ui-drawer__body .ui-card + .ui-card { margin-top: var(--space-4); }
+    /* The page half: the canvas carrying one surface, because a form and the words
+       around it sit on a page's surface, not on the ground behind it. The pair then
+       differs by container alone — this surface against the drawer's panel over the list.
+       The minimum is a floor, not a fixed height: both halves start at one screen and the
+       page half grows past it at 390.
+       why: #492, decided by Artur on 2026-10-03 */
     .gd-page { height: auto; min-height: 460px; overflow: visible;
-      padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
+      padding: var(--space-4); display: flex; }
+    .gd-page > .ui-card { flex: 1; display: flex; flex-direction: column; gap: var(--space-5); }
     /* The order the page guideline asks a page to open in: the way back, the title,
        then a short introduction. */
     .gd-page__head { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -74,7 +78,7 @@ const unitRows = () => UNITS.map(([label, on]) => [label, { html: switchToggle({
 
 const group = (title, body) => `<section><h3 class="gd-group__title">${title}</h3>${body}</section>`;
 
-const pageDo = () => `<div class="gd-frame gd-page">
+const pageDo = () => `<div class="gd-frame gd-page">${card({ body: `
   <div class="gd-page__head">
     ${backLink({ href: '#', label: 'Members' })}
     <h2 class="gd-page__title">Member access</h2>
@@ -84,8 +88,7 @@ const pageDo = () => `<div class="gd-frame gd-page">
     ${group('Roles', roles())}
     ${group('Access per unit', unitBoard())}
   </div>
-  <div>${button({ label: 'Save access', variant: 'primary' })}</div>
-</div>`;
+  <div>${button({ label: 'Save access', variant: 'primary' })}</div>` })}</div>`;
 
 const pageDont = () => frame(
   drawerSection({ title: 'Roles', body: roles() }) + drawerSection({ title: 'Access per unit', rows: unitRows() }),
