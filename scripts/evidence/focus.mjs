@@ -13,8 +13,8 @@
  * Playwright is deliberately not a dependency of this package. Point UI_PLAYWRIGHT
  * at an install and UI_CHROME at a Chrome binary. why: scripts/evidence/README.md
  *
- *   node scripts/evidence/focus.mjs <checkout> <outDir> <side> [nameFilter]
- *   node scripts/evidence/focus.mjs --sheet <outDir>
+ *   scripts/check-lock node scripts/evidence/focus.mjs <checkout> <outDir> <side> [nameFilter]
+ *   scripts/check-lock node scripts/evidence/focus.mjs --sheet <outDir>
  *
  * `side` is a prefix — `after` off this checkout, `before` off the other one. The
  * --sheet pass needs no browser of its own beyond composing: it lays the two

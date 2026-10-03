@@ -1,5 +1,5 @@
 /* After every run: the ten slowest tests, the ten slowest files, and anything over budget. The
- * report only reports — a fault in here cannot change the run's exit status.
+ * report only reports — a fault in here prints one line and leaves the run's result alone.
  *
  * Two adapters over one report: the default export is a `node --test` reporter for the kit's
  * suite, and SlowTests is a vitest reporter for the React suite.
@@ -49,16 +49,22 @@ const report = (tests, files) => {
 export default async function* slowTests(source) {
   const tests = [];
   const files = [];
-  for await (const event of source) {
-    const { name, file, details } = event.data ?? {};
-    const duration = details?.duration_ms;
-    if (typeof duration !== 'number' || !file) continue;
-    const relative = path.relative(process.cwd(), file);
-    if (name === relative) {
-      if (event.type === 'test:complete') files.push({ name: relative, duration, budget: FILE_BUDGET_MS });
-    } else if (event.type === 'test:pass' || event.type === 'test:fail') {
-      tests.push({ name: `${relative} > ${name}`, duration, budget: testBudget(relative) });
+  try {
+    for await (const event of source) {
+      const { name, file, details } = event.data ?? {};
+      const duration = details?.duration_ms;
+      if (typeof duration !== 'number' || !file) continue;
+      const relative = path.relative(process.cwd(), file);
+      if (name === relative) {
+        if (event.type === 'test:complete') files.push({ name: relative, duration, budget: FILE_BUDGET_MS });
+      } else if (details.type !== 'suite' && (event.type === 'test:pass' || event.type === 'test:fail')) {
+        /* A describe block reports its children's time as its own, so it is not a test here. */
+        tests.push({ name: `${relative} > ${name}`, duration, budget: testBudget(relative) });
+      }
     }
+  } catch (error) {
+    yield `\nslow tests: no report this run (${error}); the run itself is unaffected.\n`;
+    return;
   }
   yield report(tests, files);
 }

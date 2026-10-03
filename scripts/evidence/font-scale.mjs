@@ -1,5 +1,5 @@
 // One-off #322 comparison against a pre-change revision, using Chromium and real stories.
-// Usage: UI_PLAYWRIGHT=... UI_CHROME=... node scripts/evidence/font-scale.mjs <base-ref> <out-dir>
+// Usage: UI_PLAYWRIGHT=... UI_CHROME=... scripts/check-lock node scripts/evidence/font-scale.mjs <base-ref> <out-dir>
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs';

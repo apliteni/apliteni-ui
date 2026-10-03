@@ -21,14 +21,18 @@ Before handoff, run `npm test` with `jq` installed, `npm test -w react`, `npm ru
 build-storybook`, and `node site/build.mjs`. Stage new files first so git-based tests
 can find them. Add new test directories to both the guard and the glob in `npm test`.
 
-While you work, run the tests for the files you changed. Run both suites once for the
-pull request, on a Linux host where you have one. Their budgets, measured on an idle
-8-core Linux host: `npm test` 3m36s, `npm test -w react` 1m05s.
+While you work, run the tests for the files you changed: `scripts/check-lock node --test
+<file>` where that run drives a browser or takes about a minute, plain `node --test
+<file>` where it is shorter. Run both suites once for the pull request, on a Linux host
+where you have one. Their budgets, measured on an idle 8-core Linux host: `npm test`
+3m36s, `npm test -w react` 1m05s.
 
-Every command that runs tests or a browser goes through `scripts/check-lock`, so one
-suite runs on the machine at a time and a second one waits and says so. Each run then
-lists its ten slowest tests and files, and anything over budget: 5 seconds a test, 10
-for a browser test, 60 for one file. That report never fails a run.
+Both suites, and every other command here that drives a browser or runs for about a
+minute, go through `scripts/check-lock`: one of them runs on the machine at a time, and a
+second waits and says so. React's `test:watch` is the exception, because it would hold the
+lock for as long as somebody keeps it open. Each suite run ends with its ten slowest tests
+and files, and anything over budget: 5 seconds a test, 10 for a browser test, 60 for one
+file. That report never fails a run.
 
 New gates must discover their subjects, fail when cases are not measured, check coverage
 counts, and prove rejection with a failing mutation. Share calculations across
