@@ -6,6 +6,17 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-02',
+    changes: [
+      ['added', 'filterPanelFit() and DD_MENU_FLOOR are published, so a second implementation of the dropdown asks the kit where a filter chip’s menu may sit instead of measuring its own. The floor argument sets the width the menu reaches.', ['Dropdown', 'FilterBar']],
+      ['added', 'transitionMs(el) is published from the motion helpers. It answers how long the stylesheet says an element’s transition lasts, so a caller waiting for a fade to finish sizes its backstop timer from the sheet rather than from a copy of the duration token. A missing element answers 0 rather than throwing, so an unmounted ref gets a timer that fires at once.', ['Motion']],
+      ['fixed', 'An open filter menu is readable again. Since a chip began showing its value alone, bounding the menu to that trigger left it about 48px wide, breaking option words mid-letter; an open menu now takes the kit’s 240px menu floor, shifting along the row when the room on the side it opens from is short, and never leaves the row or widens the page. This reaches an end-aligned chip and a searchable one, which were the two compositions still squeezed. A shut menu is unchanged, which is what keeps #467 fixed. Vanilla and React measure it with the same calculation and write the same three properties. Resolves #549.', ['FilterBar', 'Dropdown']],
+      ['fixed', 'A menu left open while the layout moves under it is re-fitted to the row it is now in. Both halves watch that row with a ResizeObserver rather than listening for one resize event: a shell whose rail animates its width goes on widening the column under an open menu for a quarter of a second after the event, and a menu fitted at that instant kept a width 70px narrower than its row allowed — the state the floor exists to remove, on a settled page.', ['FilterBar', 'Dropdown']],
+      ['fixed', 'Closing a filter chip’s menu no longer collapses it while it is still on screen. The panel fades out over --dur-med, so the floor, the slide and a searchable chip’s width pin are now held until that fade ends instead of being dropped in the frame the menu closes, where an opaque 240px menu became a 48px column of single letters for the first frames of every close.', ['FilterBar', 'Dropdown']],
+      ['fixed', 'A selected option’s tick no longer reaches outside the panel that bounds it inside a filter chip. A 16px mark beside an 11px gap does not fit the 48px trigger a chip printing a short value gives its shut panel, so inside a chip the tick may shrink and is clipped. An open menu is at the floor and has room for it, so nothing visible changes.', ['FilterBar', 'Dropdown']],
+    ],
+  },
+  {
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],

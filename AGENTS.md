@@ -44,6 +44,13 @@ Before opening a PR that changes a control's size, a container's gap, or
 Report the result in the PR. Playwright is not a dependency and CI runs only this
 gate's source half, so the measurement is yours to run.
 
+## Check the motion helpers' missing-element guard locally
+
+Before opening a PR that changes `src/motion.js` or `src/motion.d.ts`, run the browser half:
+`MOTION_GUARDS=1 UI_PLAYWRIGHT=… node --test stories/motion-missing-element.test.js`
+Report the result in the PR. The source half runs in CI against a jsdom window; the engine a
+consumer ships against is yours to measure, because Playwright is not a dependency.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.
