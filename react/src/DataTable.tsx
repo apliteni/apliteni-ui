@@ -6,6 +6,12 @@ import { Button } from './primitives/Button';
 
 export type Column<T> = {
   key: keyof T & string; label: ReactNode; num?: boolean; sortable?: boolean; render?: (row: T) => ReactNode;
+  /**
+   * What a stacked cell prints in front of its value. A `label` that is a string is
+   * already that word; markup is not, so a column whose header is drawn rather than
+   * written names its own here. Without one a stacked cell shows its value alone.
+   */
+  labelText?: string;
 };
 export type TableSort<T> = { key: (keyof T & string) | undefined; dir: 1 | -1 };
 type SelectionProps =
@@ -28,6 +34,14 @@ type PagerProps =
 export type DataTableProps<T> = {
   columns: Column<T>[]; rows: T[];
   dense?: boolean; density?: 'default' | 'dense' | 'compact'; stickyHeader?: boolean; pinnedIdentity?: boolean; scrollLabel?: string; empty?: ReactNode;
+  /**
+   * Below the one-column step each row is drawn as a card: the identity cell is its
+   * heading and every other cell a label/value line. Changing `display` off `table-*`
+   * is what costs a browser the table semantics, so this mode writes the ARIA roles
+   * back explicitly and names each cell from its column — neither of which CSS can do.
+   * why: docs/specification.md#dense-financial-tables
+   */
+  stacked?: boolean;
   pageSize?: number; pageSizes?: readonly number[] | null; onPageSizeChange?: (size: number) => void;
   /** `false` renders no pager at all — for a surface that supplies its own. */
   pager?: boolean;
@@ -56,7 +70,7 @@ export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
 }
 
 export function DataTable<T extends { name: string }>({
-  columns, rows, dense = false, density, stickyHeader = false, pinnedIdentity = false, scrollLabel = 'Table', empty = 'No rows', pageSize, pageSizes = null, onPageSizeChange, pager = true,
+  columns, rows, dense = false, density, stickyHeader = false, pinnedIdentity = false, stacked = false, scrollLabel = 'Table', empty = 'No rows', pageSize, pageSizes = null, onPageSizeChange, pager = true,
   pagerLabel, loading = false,
   selectable = true, selected = new Set<string>(),
   onToggle = () => {}, onTogglePage = () => {}, sort: controlledSort, onSortChange,
@@ -145,6 +159,15 @@ export function DataTable<T extends { name: string }>({
     </svg>
   );
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
+  // Stacked, a cell carries its column's name itself, because the header row is not
+  // drawn. A `label` that is not a string is markup the cell cannot print, so the
+  // column says what to print instead; a column that says neither prints nothing.
+  const stackedLabel = (c: Column<T>) => (stacked
+    ? c.labelText ?? (typeof c.label === 'string' ? c.label : undefined)
+    : undefined);
+  // The roles only ever repeat what the table elements already mean, so they are
+  // written only in the mode that needs them and claim nothing extra anywhere else.
+  const role = (name: string) => (stacked ? name : undefined);
 
   return (
     <>
@@ -157,11 +180,11 @@ export function DataTable<T extends { name: string }>({
           silently either current or stale, with no way to tell which. */}
       <div id={scrollId} ref={scrollRegion} onScroll={measureColumns} className={stickyHeader || pinnedIdentity ? 'ui-table-scroll' : undefined} role={stickyHeader || pinnedIdentity ? 'region' : undefined}
         aria-label={stickyHeader || pinnedIdentity ? scrollLabel : undefined} tabIndex={stickyHeader || pinnedIdentity ? 0 : undefined}>
-      <table className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
+      <table role={role('table')} className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned', stacked && 'ui-table--stacked'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
-        <thead>
-          <tr>
-            {selectable ? <th scope="col" className="ui-table__selection">
+        <thead role={role('rowgroup')}>
+          <tr role={role('row')}>
+            {selectable ? <th scope="col" role={role('columnheader')} className="ui-table__selection">
               {/* No visible text: aria-label is this checkbox's whole name. */}
               <input type="checkbox" checked={pageAllOn} aria-label="Select all rows on this page"
                 onChange={() => onTogglePage(slice.map((r) => r.name))} />
@@ -170,7 +193,7 @@ export function DataTable<T extends { name: string }>({
               // The sort control is a real <button> inside the header cell. It used to be
               // role="button" ON the <th>, which threw away the columnheader role and put
               // aria-sort on a role that forbids it.
-              <th key={c.key} scope="col"
+              <th key={c.key} scope="col" role={role('columnheader')}
                 className={[pinnedIdentity && columnIndex === 0 && 'ui-table__identity', c.num && 'ui-table__num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
                 // External sorting can select a column without an interactive header.
                 // A table whose page is controlled and whose sort is not knows
@@ -193,17 +216,24 @@ export function DataTable<T extends { name: string }>({
             ))}
           </tr>
         </thead>
-        <tbody>
-          {!slice.length && <tr><td colSpan={columns.length + (selectable ? 1 : 0)}>{loading ? 'Loading rows…' : empty}</td></tr>}
+        <tbody role={role('rowgroup')}>
+          {!slice.length && <tr role={role('row')}><td role={role('cell')} colSpan={columns.length + (selectable ? 1 : 0)}>{loading ? 'Loading rows…' : empty}</td></tr>}
           {slice.map((r) => (
-            <tr key={r.name}>
-              {selectable ? <td className="ui-table__selection"><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
+            <tr key={r.name} role={role('row')}>
+              {selectable ? <td role={role('cell')} className="ui-table__selection"><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
                 onChange={() => onToggle(r.name)} /></td> : null}
-              {columns.map((c, columnIndex) => (
-                <td key={c.key} className={[c.num && 'ui-table__num', pinnedIdentity && columnIndex === 0 && 'ui-table__identity'].filter(Boolean).join(' ')}>
-                  {c.render ? c.render(r) : String(r[c.key])}
-                </td>
-              ))}
+              {columns.map((c, columnIndex) => {
+                // The identity cell is the card's heading, so stacked it names its
+                // row rather than printing a label of its own.
+                const heading = pinnedIdentity && columnIndex === 0;
+                return (
+                  <td key={c.key} role={role(heading ? 'rowheader' : 'cell')}
+                    data-label={heading ? undefined : stackedLabel(c)}
+                    className={[c.num && 'ui-table__num', heading && 'ui-table__identity'].filter(Boolean).join(' ')}>
+                    {c.render ? c.render(r) : String(r[c.key])}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

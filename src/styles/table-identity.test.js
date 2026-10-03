@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import { substitute, tokensFor } from '../../stories/lib/contrast.js';
+import { blockRules, decomment, lengthPx, sheetAt } from '../../stories/lib/css-at-width.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -31,85 +32,13 @@ for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLEl
 const { rowIdentity } = await import('../components/table-values.js');
 
 const CSS = read('src/styles/table.css');
-const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, ' ');
 
-/** `(max-width: 720px)`, `(min-width: 721px)` and their conjunctions. Anything else
- *  is a case this gate cannot judge, so it stops rather than passing over it. */
-function mediaApplies(condition, width) {
-  return condition.split(/\s+and\s+/).map((part) => part.trim()).every((part) => {
-    const m = /^\((max|min)-width:\s*(\d+(?:\.\d+)?)px\)$/.exec(part);
-    assert.ok(m, `table.css asks a media condition this gate cannot evaluate: ${part}`);
-    return m[1] === 'max' ? width <= Number(m[2]) : width >= Number(m[2]);
-  });
-}
-
-/** The stylesheet as it stands at one viewport width: top-level rules in source
- *  order, with the body of every media block that applies spliced in at its place. */
-function sheetAt(width) {
-  const css = decomment(CSS);
-  let out = '';
-  for (let i = 0; i < css.length;) {
-    const at = css.indexOf('@media', i);
-    if (at < 0) { out += css.slice(i); break; }
-    out += css.slice(i, at);
-    const open = css.indexOf('{', at);
-    const condition = css.slice(at + '@media'.length, open).trim();
-    let depth = 1;
-    let end = open + 1;
-    for (; end < css.length && depth; end++) {
-      if (css[end] === '{') depth++;
-      else if (css[end] === '}') depth--;
-    }
-    if (mediaApplies(condition, width)) out += css.slice(open + 1, end - 1);
-    i = end;
-  }
-  return substitute(out, tokensFor('light', 'default'));
-}
-
-/** A CSS length in px at a viewport width. `min()` is evaluated here because JSDOM
- *  reports `min(320px, 50vw)` as `320px` whatever the width is. */
-function lengthPx(value, width) {
-  const text = String(value).trim();
-  // Percentages and keywords resolve against a box JSDOM never lays out; the callers
-  // read those as "no px floor or ceiling of its own" and judge them by their text.
-  if (text === '' || text === 'none' || text === 'auto' || text.endsWith('%')) return null;
-  const min = /^min\((.+)\)$/.exec(text);
-  const parts = (min ? min[1] : text).split(',').map((p) => p.trim());
-  const lengths = parts.map((part) => {
-    const px = /^(-?\d+(?:\.\d+)?)px$/.exec(part);
-    if (px) return Number(px[1]);
-    const vw = /^(-?\d+(?:\.\d+)?)vw$/.exec(part);
-    assert.ok(vw, `a length this gate cannot evaluate: ${part}`);
-    return (Number(vw[1]) / 100) * width;
-  });
-  return Math.min(...lengths);
-}
-
-/** Every rule the phone block writes, as `{ selector, declarations }`. Which of them
- *  are a pinned identity's business is decided below by what each one REACHES: a rule
- *  written on any other class — `.ui-table__code` is one the kit itself ships — lands
- *  inside the cell just the same, and a name match never sees it. */
+/** Every rule the phone block writes. Which of them are a pinned identity's business
+ *  is decided below by what each one REACHES: a rule written on any other class —
+ *  `.ui-table__code` is one the kit itself ships — lands inside the cell just the
+ *  same, and a name match never sees it. */
 function phoneRules() {
-  const css = decomment(CSS);
-  const at = css.indexOf('@media (max-width: 720px)');
-  assert.ok(at > 0, 'the phone block for pinned identities is gone from table.css');
-  const open = css.indexOf('{', at);
-  let depth = 1;
-  let end = open + 1;
-  for (; end < css.length && depth; end++) {
-    if (css[end] === '{') depth++;
-    else if (css[end] === '}') depth--;
-  }
-  const out = [];
-  for (const [, selector, body] of css.slice(open + 1, end - 1).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const declarations = [];
-    for (const declaration of body.split(';')) {
-      const i = declaration.indexOf(':');
-      if (i < 0) continue;
-      declarations.push({ property: declaration.slice(0, i).trim(), value: declaration.slice(i + 1).trim() });
-    }
-    if (declarations.length) out.push({ selector: selector.trim(), declarations });
-  }
+  const out = blockRules(CSS, '@media (max-width: 720px)');
   const written = out.reduce((n, rule) => n + rule.declarations.length, 0);
   assert.ok(written >= 18, `the phone block is down to ${written} declarations; what is no longer written is no longer measured`);
   return out;
@@ -118,7 +47,7 @@ function phoneRules() {
 /** The shapes a pinned identity cell is built in, mounted under one stylesheet. */
 function mountAt(width) {
   const document = dom.window.document;
-  document.head.innerHTML = `<style>${sheetAt(width)}</style>`;
+  document.head.innerHTML = `<style>${sheetAt(CSS, width)}</style>`;
   document.body.innerHTML = `<table class="ui-table ui-table--compact ui-table--sticky ui-table--pinned">
     <thead>
       <tr><th class="ui-table__identity" id="head" scope="col"><button type="button" class="rx-sort" id="sort">Company and registered trading name<svg class="rx-caret" id="caret"></svg></button></th><th class="ui-table__num">Price</th></tr>

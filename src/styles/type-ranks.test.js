@@ -160,8 +160,9 @@ const RULES = notedRules(SHEETS);
  * under #429, which dropped the confirmation's eyebrow: a confirmation carries
  * one title and at most one line, so .ui-sx__eyebrow and its note are gone and
  * six labels are left. Move it in the commit that adds or drops a note, and say
- * which. */
-const EXPECTED_NOTES = 14;
+ * which. Fifteen since #500: a stacked card prints its column's name in front of
+ * each value, and that line is the table head the hidden header row took away. */
+const EXPECTED_NOTES = 15;
 
 test('the table has its six ranks and every one is taken', () => {
   assert.deepEqual(RANKS.map((r) => r.name),

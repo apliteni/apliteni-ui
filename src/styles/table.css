@@ -220,3 +220,104 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-table--pinned { --ui-table-selection-width: var(--space-12); --ui-table-identity-max: min(var(--panel-sm), 50vw); }
 .ui-table--pinned .ui-table__selection { box-sizing: border-box; width: var(--ui-table-selection-width); min-width: var(--ui-table-selection-width); max-width: var(--ui-table-selection-width); padding-inline: 0; text-align: center; }
 .ui-table--pinned .ui-table__selection + .ui-table__identity { left: var(--ui-table-selection-width); }
+
+/* ============================================================================
+ * Stacked rows — .ui-table--stacked  (opt-in, one column step and below)
+ *
+ * At 560px and below a row stops being a row: it is drawn as a card, the identity
+ * cell is its heading and every other cell is a label/value line. The label comes
+ * from that cell's own `data-label`, because the header row is no longer drawn.
+ * Above the step the table is exactly the table, and between 561 and 720 it is the
+ * capped pinned column above — the two compositions are alternatives, which is why
+ * this block restates what it needs rather than editing that one.
+ *
+ * Opt-in: a stacked table's markup has to carry two things the CSS cannot supply —
+ * a `data-label` per cell, and the ARIA roles that survive the display change,
+ * because a browser drops table semantics the moment `display` stops being
+ * `table-*`. Markup without them stacks and says nothing about what it is.
+ * why: docs/specification.md#dense-financial-tables, #500
+ * ========================================================================== */
+@media (max-width: 560px) {
+  /* Each box states its own display once, so what a row is drawn as is in one place. */
+  .ui-table--stacked,
+  .ui-table--stacked tbody tr,
+  .ui-table--stacked tbody td { display: block; }
+  /* The header row is now inside the cells, one label each. */
+  .ui-table--stacked thead { display: none; }
+  /* No table box left to size or inset: a consumer's own `min-width` is what keeps
+     columns scrolling, and there are no columns to scroll. */
+  .ui-table--stacked { min-width: 0; padding: 0; }
+  .ui-table--stacked tbody { display: flex; flex-direction: column; gap: var(--space-3); }
+  /* A row is a region of the table's own surface, so it takes the hairline the rules
+     between rows were drawing and casts nothing. why: docs/specification.md#elevation */
+  .ui-table--stacked tbody tr {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+  }
+  /* The cards line up on the containing card's text edge, so neither bleed applies. */
+  .ui-card > .ui-table--stacked { width: 100%; margin-inline: 0; }
+  .ui-card > .ui-table-scroll:has(> .ui-table--stacked) { margin-inline: 0; }
+  /* A region whose job was to scroll columns has none left to scroll, and its height
+     cap would cut a card in half and put the page's own scroll inside a box. Giving the
+     cards back to the page also stops `overflow: auto` cutting a focused link's ring. */
+  .ui-table-scroll:has(> .ui-table--stacked) { max-height: none; overflow: visible; }
+
+  /* A cell is one line of the card. It wraps, because a card has the width for it. */
+  .ui-table--stacked tbody tr td {
+    border-bottom: 0;
+    padding: var(--space-1) 0;
+    white-space: normal;
+    height: auto;
+  }
+  /* Labelled cells are the label/value lines. `margin-right: auto` on the label is
+     what groups the value's parts at the far edge: a column gap here would also land
+     between two row actions, which tap-zone.css has already spaced. */
+  .ui-table--stacked tbody tr td[data-label] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    row-gap: var(--space-1);
+  }
+  .ui-table--stacked tbody tr td[data-label]::before {
+    content: attr(data-label);
+    margin-right: auto;
+    padding-right: var(--space-4);
+    /* rank: label */
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text);
+  }
+
+  /* The identity is the card's heading: the whole width, no label of its own, and a
+     rule under it. It is no longer pinned, and nothing in it is cut — the cap above
+     exists because the column was narrow, and this card is not. */
+  .ui-table--stacked tbody tr td.ui-table__identity,
+  .ui-table--stacked tbody tr td.ui-table__selection {
+    position: static;
+    border-right: 0;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    text-align: left;
+    padding-inline: 0;
+  }
+  .ui-table--stacked tbody tr td.ui-table__identity {
+    display: block;
+    margin-bottom: var(--space-2);
+    padding: 0 0 var(--space-2);
+    border-bottom: 1px solid var(--border);
+    color: var(--strong);
+    font-weight: var(--weight-medium);
+  }
+  .ui-table--stacked tbody tr td.ui-table__identity::before { content: none; }
+  .ui-table--stacked .ui-table__identity,
+  .ui-table--stacked .ui-table__identity > *,
+  .ui-table--stacked .ui-identity,
+  .ui-table--stacked .ui-identity__name {
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
