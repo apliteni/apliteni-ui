@@ -6,10 +6,11 @@
 
 export const RELEASES = [
   {
-    v: '0.76.0', date: '2026-10-02',
+    v: '0.76.0', date: '2026-10-03',
     changes: [
       ['added', 'React Chart draws monthly bars with a line across them, a bridge from a starting total to a result, and a sparkline at text size for a stat band\u2019s trend slot. A period that is not final is hatched and dashed, and named in words in the readout and the legend. The chart is one tab stop: the arrow keys, Home and End step columns and announce each one, Enter picks one, and the same numbers are offered as a table. At phone widths the plot scrolls with the value axis held in place. Part of #429, closes #491.', ['React Chart']],
       ['added', 'The main entry exports chartScale and bridgeWalk, the arithmetic behind those shapes, so a surface that draws them without React asks the kit instead of writing its own scale. Part of #491.'],
+      ['added', 'A chart series may take the `accent-soft` tone: the accent let down towards the chart’s ground, so two series read apart as one hue at two weights rather than as two colours. It is opaque, and clears 3:1 against the card and against the page in both themes under every accent. The showcase’s monthly chart now draws income and spend that way with the net line in `info`, keeps a rule on zero only, and marks a picked column on its label rather than with the accent. See #543.', ['React Chart']],
     ],
   },
   {

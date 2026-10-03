@@ -11,7 +11,8 @@ import { CHART_FLOOR, bridgeWalk, chartScale } from '@apliteni/apliteni-ui';
 import '../../src/styles/chart.css';
 import { placeTip } from './tip';
 
-export type ChartTone = 'accent' | 'good' | 'bad' | 'warn' | 'info' | 'neutral';
+export type ChartTone =
+  | 'accent' | 'accent-soft' | 'good' | 'bad' | 'warn' | 'info' | 'neutral';
 
 export type ChartPeriod = {
   /** The period as the readout and the table name it: `Jan 2026`. */
@@ -33,7 +34,11 @@ export type ChartSeries = {
    * magnitudes (spend given as 31870, not −31870), and `line` crosses both.
    */
   shape?: 'bars' | 'bars-below' | 'line';
-  /** Bars take a tone. A line is `neutral` unless the caller says otherwise. */
+  /**
+   * Bars take a tone. A line is `neutral` unless the caller says otherwise.
+   * `accent` and `accent-soft` are one hue at two weights, which is how two
+   * series read apart without spending a second colour on them.
+   */
   tone?: ChartTone;
   /** Fade the bars towards the zero line. */
   fade?: boolean;
@@ -149,6 +154,12 @@ const FADE_STOPS = {
  * computed without a browser is still the geometry of a readable chart.
  */
 const FALLBACK_COL = 48;
+/**
+ * The share of its column a bar takes. Half leaves as much ground between two
+ * columns as either column draws, which is what stops twelve months reading as
+ * one block — the chart's own reference wall says so and #543 picked it.
+ */
+const BAR_SHARE = 0.5;
 
 /** What the table prints where the caller gave no value, as the kit's numeric
  *  value formatter does. */
@@ -324,7 +335,7 @@ export function Chart(props: ChartProps) {
     [scale.max, span, plotHeight],
   );
   const zero = y(Math.min(Math.max(0, scale.min), scale.max));
-  const barWidth = Math.max(4, Math.min(colWidth * 0.62, colWidth - 6));
+  const barWidth = Math.max(4, Math.min(colWidth * BAR_SHARE, colWidth - 6));
   const centre = useCallback((column: number) => column * colWidth + colWidth / 2, [colWidth]);
 
   const marks = useMemo<Mark[]>(() => {
@@ -633,45 +644,55 @@ export function Chart(props: ChartProps) {
                 )))}
               </defs>
 
-              {/* The zero line is drawn with the gridlines, under every mark. The
-                  bars stop ZERO_INSET short of it, so no bar can cover it; a line
-                  or a dot crossing zero paints over it, which is a mark over a
-                  gridline and is the right way round.
+              {/* The zero rule is the only rule the plot draws. The axis keeps its
+                  labels, so the scale is still readable, and the one line left is
+                  the one the reader measures from. The bars stop ZERO_INSET short
+                  of it, so no bar can cover it; a line or a dot crossing zero
+                  paints over it, which is a mark over a rule and is the right way
+                  round.
                   why: docs/specification.md#react-charts */}
-              {!spark && scale.ticks.map((tick) => (
-                <line
-                  key={tick} className={tick === 0 ? 'ui-chart__zero' : 'ui-chart__grid'}
-                  x1="0" x2={px(plotWidth)} y1={px(y(tick))} y2={px(y(tick))}
-                />
-              ))}
+              {!spark && scale.ticks.includes(0) && (
+                <line className="ui-chart__zero"
+                  x1="0" x2={px(plotWidth)} y1={px(y(0))} y2={px(y(0))} />
+              )}
 
               {marks.filter((m) => m.kind === 'bar').map((mark) => (
                 <rect
                   key={`bar-${mark.id}`}
                   className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
-                    mark.estimated && 'is-estimated', pick === mark.column && 'is-selected')}
-                  x={px(mark.x)} y={px(mark.y)} width={px(mark.w)} height={px(mark.h)} rx="2"
+                    mark.estimated && 'is-estimated')}
+                  x={px(mark.x)} y={px(mark.y)} width={px(mark.w)} height={px(mark.h)} rx="4"
                   style={paintOf(mark, uid)}
                 />
               ))}
 
-              {lines.flatMap((line) => line.values.slice(1).map((value, i) => (
-                Number.isFinite(value) && Number.isFinite(line.values[i]) ? (
-                  <line
-                    key={`${line.id}-seg-${i}`}
-                    className={cx('ui-chart__line', `ui-chart__tone--${line.tone}`,
-                      (columns[i]?.estimated || columns[i + 1]?.estimated) && 'is-estimated')}
-                    x1={px(centre(i))} y1={px(y(line.values[i]))}
-                    x2={px(centre(i + 1))} y2={px(y(value))}
-                  />
-                ) : null
-              )))}
+              {/* Every casing before any stroke. A casing is wider than the stroke
+                  it carries, so one drawn per segment in step with its stroke would
+                  cut the segment before it at the joint. The casing is the ground,
+                  which is how the dots already separate themselves from the line:
+                  it buys the line its 3:1 against whatever it crosses, and the
+                  bars it crosses are now its own hue.
+                  why: docs/specification.md#react-charts */}
+              {(['casing', 'stroke'] as const).map((layer) => lines.flatMap(
+                (line) => line.values.slice(1).map((value, i) => (
+                  Number.isFinite(value) && Number.isFinite(line.values[i]) ? (
+                    <line
+                      key={`${line.id}-${layer}-${i}`}
+                      className={layer === 'casing' ? 'ui-chart__line-casing'
+                        : cx('ui-chart__line', `ui-chart__tone--${line.tone}`,
+                          (columns[i]?.estimated || columns[i + 1]?.estimated) && 'is-estimated')}
+                      x1={px(centre(i))} y1={px(y(line.values[i]))}
+                      x2={px(centre(i + 1))} y2={px(y(value))}
+                    />
+                  ) : null
+                )),
+              ))}
 
               {marks.filter((m) => m.kind === 'dot').map((mark) => (
                 <circle
                   key={`dot-${mark.id}`}
                   className={cx('ui-chart__dot', `ui-chart__tone--${mark.tone}`,
-                    mark.estimated && 'is-estimated', pick === mark.column && 'is-selected')}
+                    mark.estimated && 'is-estimated')}
                   cx={px(mark.x + mark.w / 2)} cy={px(mark.y + mark.h / 2)} r={spark ? 2.5 : 3.5}
                 />
               ))}
@@ -703,7 +724,9 @@ export function Chart(props: ChartProps) {
             {!spark && (
               <div className="ui-chart__periods" aria-hidden="true">
                 {columns.map((column, i) => (
-                  <span key={`${column.label}-${i}`} className="ui-chart__period">{column.short}</span>
+                  <span key={`${column.label}-${i}`}
+                    className={cx('ui-chart__period', pick === i && 'is-selected')}
+                  >{column.short}</span>
                 ))}
               </div>
             )}

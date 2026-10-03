@@ -682,6 +682,13 @@ to `format`. A `bars-below` series takes positive magnitudes and is drawn under 
 A period marked `estimated` is hatched, dashed, and named in words in both the readout and the
 legend; `note` says why.
 
+A bar series names a tone. `accent` and `accent-soft` are one hue at two weights, which is how
+two series read apart without spending a second colour on them; `good` and `bad` say which way
+the news runs, and belong to a series where some direction is better. Every tone is opaque and
+clears 3:1 against the card and against the page, in both themes and under every accent. The
+plot draws one rule, on zero, and the axis keeps a label at every tick; a picked column is
+marked on its own label, so the accent stays with the series.
+
 The chart is one tab stop. Left, Right, Home and End step columns and announce each one
 politely, Enter picks one when `selectable` is set, and `title` names the `role="img"` plot and
 the table under it without being drawn — the card around the chart already carries its title.
@@ -692,9 +699,9 @@ hides columns is faded. Nothing animates.
 <Chart title="Income and spend by month, last 12 months, with net"
   periods={months.map(label => ({ label }))}
   series={[
-    { id: 'income', name: 'Income', values: income, tone: 'good', fade: true },
-    { id: 'spend', name: 'Spend', values: spend, shape: 'bars-below', tone: 'bad', fade: true },
-    { id: 'net', name: 'Net', values: net, shape: 'line' },
+    { id: 'income', name: 'Income', values: income, tone: 'accent', fade: true },
+    { id: 'spend', name: 'Spend', values: spend, shape: 'bars-below', tone: 'accent-soft', fade: true },
+    { id: 'net', name: 'Net', values: net, shape: 'line', tone: 'info' },
   ]}
   format={eur} formatAxis={eurShort} />
 

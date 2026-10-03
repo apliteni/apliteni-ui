@@ -19,10 +19,16 @@ const periods: ChartPeriod[] = MONTHS.map((label, i) => (i === MONTHS.length - 1
   ? { label, estimated: true, note: 'November is still running' }
   : { label }));
 
+/* One hue at two weights for the two measured series, and the second hue for the
+   one derived from them. Income and spend are the same money read two ways, so
+   they read apart by weight and by which side of zero they stand on; net is
+   arithmetic over both and takes the only other colour in play. Good and bad
+   would have said which of the two is the better news, which no month decides.
+   Picked by Artur on #543. */
 const series: ChartSeries[] = [
-  { id: 'income', name: 'Income', values: INCOME, shape: 'bars', tone: 'good', fade: true },
-  { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars-below', tone: 'bad', fade: true },
-  { id: 'net', name: 'Net', values: NET, shape: 'line' },
+  { id: 'income', name: 'Income', values: INCOME, shape: 'bars', tone: 'accent', fade: true },
+  { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars-below', tone: 'accent-soft', fade: true },
+  { id: 'net', name: 'Net', values: NET, shape: 'line', tone: 'info' },
 ];
 
 /** The eleven months that have closed, for the stories that leave November out. */
@@ -108,13 +114,15 @@ export const Sparkline: StoryObj = {
       label: 'Income', value: eur(INCOME[10]),
       delta: { value: '+5.3%', tone: 'good' },
       trend: <Chart variant="spark" title="Income, last 11 closed months"
-        periods={closed} series={[{ id: 'income', name: 'Income', values: INCOME.slice(0, 11), shape: 'line' }]}
+        periods={closed}
+        series={[{ id: 'income', name: 'Income', values: INCOME.slice(0, 11), shape: 'line', tone: 'accent' }]}
         format={eur} />,
     }, {
       label: 'Spend', value: eur(SPEND[10]),
       delta: { value: '+0.5%', tone: 'bad' },
       trend: <Chart variant="spark" title="Spend, last 11 closed months"
-        periods={closed} series={[{ id: 'spend', name: 'Spend', values: SPEND.slice(0, 11), shape: 'line' }]}
+        periods={closed}
+        series={[{ id: 'spend', name: 'Spend', values: SPEND.slice(0, 11), shape: 'line', tone: 'accent-soft' }]}
         format={eur} />,
     }]} />
   ),

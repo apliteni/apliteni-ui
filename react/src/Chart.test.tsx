@@ -7,8 +7,10 @@
 // column width, and the scroll fade is checked as the class the scroll handler
 // writes rather than as a painted gradient. Nothing here measures contrast
 // (react/src/contrast.test.tsx), the hatch, the fade gradient or the focus ring
-// as painted; the browser captures on the pull request carry those. Screen-reader
-// speech is not run — the live region's text is read from the DOM.
+// as painted; the browser captures on the pull request carry those. What colour
+// each series is drawn in, and whether it clears the graphic bar, is measured in
+// react/src/Chart.contrast.test.tsx. Screen-reader speech is not run — the live
+// region's text is read from the DOM.
 import { describe, expect, it, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -428,22 +430,65 @@ it('keeps a line series and its dot whole where they sit on zero', () => {
     'every segment and dot on the line is painted after it').toBe(true);
 });
 
-it('keeps the picked column one accent frame rather than two brackets', () => {
+// The accent is a series now, so it cannot also mean "this one". The picked
+// column is marked where no series is drawn — on its own label — with the shape
+// the kit already gives a chosen thing: a rule the width of the column and the
+// strong ink. Nothing is painted over a mark, which is what keeps every series
+// measuring against the chart's own ground and nothing else.
+it('marks the picked column on its label, and puts no hue on any mark', () => {
   const { container } = months({ selectable: true, selected: 3 });
   const svg = container.querySelector('.ui-chart__svg')!;
-  const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
-  const picked = [...svg.querySelectorAll('rect.ui-chart__bar.is-selected')];
-  expect(picked, 'both of the column\'s bars carry the frame').toHaveLength(2);
-  // Each frame closes on its own inset edge, clear of the zero line, so nothing
-  // is drawn across it afterwards.
-  for (const bar of picked) {
-    const top = Number(bar.getAttribute('y'));
-    const bottom = top + Number(bar.getAttribute('height'));
-    expect(Math.min(Math.abs(top - zeroY), Math.abs(bottom - zeroY))).toBeGreaterThanOrEqual(1.4);
-  }
-  const kinds = [...svg.querySelectorAll('.ui-chart__zero, rect.ui-chart__bar.is-selected')]
-    .map((el) => (el.classList.contains('ui-chart__zero') ? 'zero' : 'picked'));
-  expect(kinds[0]).toBe('zero');
+  expect(svg.querySelectorAll('.is-selected'), 'no mark carries the picked state').toHaveLength(0);
+  const labels = [...container.querySelectorAll('.ui-chart__period')];
+  expect(labels).toHaveLength(MONTHS.length);
+  expect(labels.filter((el) => el.classList.contains('is-selected')).map((el) => el.textContent))
+    .toEqual(['Apr']);
+
+  const css = readRepo('../../src/styles/chart.css');
+  const rule = /\.ui-chart__period\.is-selected\s*\{([^}]*)\}/.exec(css)![1];
+  expect(rule, 'a rule the width of the column').toContain('border-top-color: var(--text)');
+  expect(rule, 'and a weight, which is the half a reader gets without colour')
+    .toMatch(/font-weight:\s*600/);
+  expect(rule, 'the accent stays with the series').not.toContain('--accent');
+  expect(/\.ui-chart__period\s*\{([^}]*)\}/.exec(css)![1],
+    'every label reserves the rule, so picking one moves no row')
+    .toContain('border-top: 2px solid transparent');
+});
+
+// Restyle 01 (#543): the axis keeps every label and the plot keeps one line.
+it('draws one rule, on zero, and keeps every axis label beside it', () => {
+  const { container } = months();
+  const svg = container.querySelector('.ui-chart__svg')!;
+  expect(svg.querySelectorAll('line.ui-chart__zero')).toHaveLength(1);
+  expect(container.querySelectorAll('.ui-chart__tick').length,
+    'the scale is still readable without its gridlines').toBeGreaterThan(1);
+  const stroked = [...svg.querySelectorAll('line, rect, circle')]
+    .map((el) => el.getAttribute('class') ?? '');
+  expect(stroked.filter((c) => /ui-chart__grid\b/.test(c)), 'no gridline survives').toHaveLength(0);
+  expect(readRepo('../../src/styles/chart.css'), 'and none is left to style')
+    .not.toMatch(/\.ui-chart__grid\b/);
+});
+
+// A line now crosses bars of its own hue, where luminance alone does not separate
+// them. The casing is the ground, the way the dots' rim already is.
+it('lays every line casing under every line stroke, and makes it the wider of the two', () => {
+  const { container } = months();
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const drawn = [...svg.querySelectorAll('line.ui-chart__line-casing, line.ui-chart__line')]
+    .map((el) => (el.classList.contains('ui-chart__line-casing') ? 'casing' : 'stroke'));
+  expect(drawn.length, 'a casing and a stroke for each of the three segments').toBe(6);
+  expect(drawn.join(' '), 'no casing is drawn after a stroke it could cut')
+    .toBe('casing casing casing stroke stroke stroke');
+
+  const css = readRepo('../../src/styles/chart.css');
+  const widthOf = (name: string) => Number(/stroke-width:\s*([\d.]+)/
+    .exec(new RegExp(`\\.ui-chart__${name}\\s*\\{([^}]*)\\}`).exec(css)![1])![1]);
+  expect(widthOf('line-casing')).toBeGreaterThan(widthOf('line'));
+  expect(/\.ui-chart__line-casing\s*\{([^}]*)\}/.exec(css)![1],
+    'the casing is the chart\'s own ground, so the line clears it everywhere')
+    .toContain('stroke: var(--ui-chart-ground)');
+  expect(css, 'and a sparkline, which crosses nothing, draws none')
+    .toMatch(/\.ui-chart--spark \.ui-chart__line-casing \{ display: none; \}/);
 });
 
 it('a faded bar keeps its own tone at the zero line', () => {

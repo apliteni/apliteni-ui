@@ -112,15 +112,32 @@
   padding-top: var(--space-1);
 }
 .ui-chart__period {
+  /* Every label carries the rule so the picked one can colour it without moving
+     the row, which is how .ui-tabs__tab carries its indicator. */
+  border-top: 2px solid transparent;
   padding-inline: var(--space-1);
   text-align: center;
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
+/* The picked column. The accent used to say "this one" here and now says
+   "income", so the mark moves off the hue and onto the shape the kit already
+   uses for a chosen thing: a rule the width of the column and a label in the
+   strong ink. The rule is --text on the card, so it is found at a glance among
+   twelve; the weight is the half that survives forced colours and a reader who
+   cannot separate the two inks. Nothing is painted over a bar, so no series
+   measures against anything but the chart's own ground. */
+.ui-chart__period.is-selected {
+  border-top-color: var(--text);
+  color: var(--strong);
+  font-weight: 600;
+}
 
 /* -- the marks ------------------------------------------------------------- */
 
-.ui-chart__grid { stroke: var(--border); stroke-width: 1; }
+/* The plot draws one rule, on zero, and the axis keeps every label. A gridline
+   at each tick made twelve columns read through a grid; the one line a reader
+   measures a signed series from is the one worth drawing. */
 .ui-chart__zero { stroke: var(--border-strong); stroke-width: 1; }
 
 .ui-chart__bar {
@@ -135,10 +152,6 @@
   stroke-width: 1;
   stroke-dasharray: 3 2;
 }
-/* The picked column. The accent is the kit's "this one" and the chart spends it
-   on nothing else; --strong would be a near-black outline in light and a
-   near-white one in dark, which is the outline the kit does not draw. */
-.ui-chart__bar.is-selected { stroke: var(--accent); stroke-width: 2; }
 
 .ui-chart__line {
   fill: none;
@@ -148,13 +161,26 @@
 }
 .ui-chart__line.is-estimated { stroke-dasharray: 5 3; }
 
+/* The ground carried under the line, which is the rim the dots already wear. A
+   line now crosses bars of its own family, where hue alone separates them and
+   luminance does not: a stroke of the ground each side gives the line the 3:1 it
+   cannot get from the bar behind it. It is not drawn where there is nothing to
+   cross — a sparkline has no bars, and at text size the casing would eat the
+   line. */
+.ui-chart__line-casing {
+  fill: none;
+  stroke: var(--ui-chart-ground);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.ui-chart--spark .ui-chart__line-casing { display: none; }
+
 .ui-chart__dot {
   fill: var(--ui-chart-tone);
   stroke: var(--ui-chart-ground);
   stroke-width: 2;
 }
 .ui-chart__dot.is-estimated { fill: var(--ui-chart-ground); stroke: var(--ui-chart-tone); }
-.ui-chart__dot.is-selected { stroke: var(--accent); }
 /* At text size the rim that separates a dot from the line cuts the line into
    dashes instead, so a sparkline's points sit on the line rather than over it. */
 .ui-chart--spark .ui-chart__dot { stroke: none; }
@@ -192,6 +218,15 @@
    --signal-solid-neutral already is: a mid grey in both themes, where --dim
    would paint a bridge's totals near-black in light and near-white in dark. */
 .ui-chart__tone--accent { --ui-chart-tone: var(--accent); }
+/* The accent's second weight: the same hue, let down towards the ground rather
+   than given an opacity, so a mark painted with it is opaque and a reader
+   measures one colour. The mix crosses 3:1 at 67% against the card AND against
+   the page, in both themes, under all four accents, so 70% ships with room over
+   the bar rather than sitting on it — the 40% the restyle's mock drew measures
+   1.99:1 and 2.03:1 and does not ship. */
+.ui-chart__tone--accent-soft {
+  --ui-chart-tone: color-mix(in srgb, var(--accent) 70%, var(--ui-chart-ground));
+}
 .ui-chart__tone--good { --ui-chart-tone: var(--green); }
 .ui-chart__tone--bad { --ui-chart-tone: var(--pink); }
 .ui-chart__tone--warn { --ui-chart-tone: var(--amber); }

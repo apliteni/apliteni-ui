@@ -30,9 +30,19 @@
     {
       "file": "react/src/Chart.test.tsx",
       "name": "React: Chart",
-      "does": "Checks the chart's accessible names, its single tab stop and the kit ring on every focusable part, arrow/Home/End stepping with its polite announcements, Enter selection, the readout's contents and its Escape and tap behaviour, the hatch and dash on an unfinished period, the table fallback, and axe results in both themes.",
+      "does": "Checks the chart's accessible names, its single tab stop and the kit ring on every focusable part, arrow/Home/End stepping with its polite announcements, Enter selection and the ruled, strong-ink label that marks the picked column, the readout's contents and its Escape and tap behaviour, the hatch and dash on an unfinished period, the single zero rule, the ground casing under the line, the table fallback, and axe results in both themes.",
       "blind": [
-        "JSDOM has no layout, so the readout's placement, the hatch, the fade gradient, the scroll fade and the focus ring are not measured as painted; browser captures cover those. Screen-reader speech is not run."
+        "JSDOM has no layout, so the readout's placement, the hatch, the fade gradient, the scroll fade and the focus ring are not measured as painted; browser captures cover those. Which colour each series takes, and whether it clears the graphic bar, is react/src/Chart.contrast.test.tsx. Screen-reader speech is not run."
+      ]
+    },
+    {
+      "file": "react/src/Chart.contrast.test.tsx",
+      "name": "React: Chart contrast",
+      "does": "Discovers every chart tone from the stylesheet and every tone name from the component's own union, fails when the two disagree, and measures each tone against both grounds the kit draws a chart on — the card and the page — in both themes and under every accent discovered in accents.css, against the 3:1 graphic bar. Asserts the measured count, names the tightest row, and proves rejection twice: the lighter weight of the accent drawn at the share the restyle's mock used, and a tone whose value stops resolving.",
+      "blind": [
+        "The ratios come from the stylesheet's own values rather than from painted pixels, so antialiasing, a host override and a ground a consumer names through --ui-chart-ground are outside it; browser captures carry the paint.",
+        "The ramp inside a faded bar is not measured: a bar holds its tone at the edge on zero and at the edge at its value, and the middle, which carries no edge and no number, is let down to half by --ui-chart-fade-near.",
+        "The zero rule, the dot's rim and the line's casing are structure rather than series — the kit's hairline and ground tokens — and are not measured against the bar."
       ]
     },
     {

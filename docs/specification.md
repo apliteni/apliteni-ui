@@ -3102,8 +3102,8 @@ and the look, the readout and the keyboard behaviour drifted between them.
 - `variant: 'months'` — a column per period, one bar series standing on the zero line, one
   mirrored under it, and a line series crossing both. A `bars-below` series is given positive
   magnitudes and drawn downwards, so spend is `31870` and reads as €31,870 wherever it is
-  printed. A bar series names a tone and may fade towards the zero line; a line is neutral and
-  carries a dot per point, so colour is never the only cue.
+  printed. A bar series names a tone and may fade towards the zero line; a line defaults to
+  neutral and carries a dot per point, so colour is never the only cue.
 - `variant: 'bridge'` — one period walked from a starting total through each component to a
   result. The first step is a total, every later one a change, and a `total` step with no
   amount of its own takes the running total rather than repeating a sum the caller already
@@ -3138,13 +3138,40 @@ drawable. `format` prints exact values in the readout, the live region and the t
   In a bars-above / bars-below chart the two series meet exactly on zero, so a bar that ran to
   the line would cover it in every column. The channel this leaves is empty ground rather than
   a stroke painted over the marks: both bars lose the same height, so what the reader compares
-  is unchanged; each bar's own stroke — an estimated column's dash, a picked column's accent —
-  follows the inset edge and closes on it; and a line series, its dots and the zero line itself
-  all stay whole. The zero line is a gridline, drawn under every mark, in `--border-strong`
-  where the others take `--border`; a line or a dot crossing zero paints over it.
+  is unchanged; each bar's own stroke — an estimated column's dash — follows the inset edge and
+  closes on it; and a line series, its dots and the zero rule itself
+  all stay whole. The zero rule is drawn under every mark, in `--border-strong`; a line or a
+  dot crossing zero paints over it.
 - **A faded bar keeps its own tone at the zero line.** The ramp travels towards zero and stops
   short of it, so a faded column still shows where one series ends and the next begins; a ramp
-  that reached zero washed out at the one edge the reader measures from.
+  that reached zero washed out at the one edge the reader measures from. What a reader measures
+  is a bar's two edges, and both hold the tone; the middle, which carries no edge and no number,
+  is let down to half.
+- **The plot draws one rule, and it is zero.** The axis keeps a label at every tick, so the
+  scale is still readable, but a line at each of them made twelve columns read through a grid.
+  The one line a reader measures a signed series from is the one worth drawing. Bars take half
+  their column, so there is as much ground between two columns as either column draws.
+- **Two measured series read apart by weight, not by a second hue.** `accent` and `accent-soft`
+  are one hue at two weights: the lighter is `color-mix(in srgb, var(--accent) 70%, …)` over the
+  chart's own ground, opaque rather than faded, so a reader measures one colour. The mix crosses
+  **3:1** against the card and against the page, in both themes and under all four accents, at
+  sixty-seven per cent; seventy ships, so it has room over the bar rather than sitting on it, and
+  measures between 3.22:1 and 4.83:1. The forty per cent the restyle's mock drew measures 1.99:1
+  and 2.03:1 and fails every row. Good and bad stay available and say
+  which way the news runs; two readings of the same money, where no period decides which is the
+  better one, take the two weights instead.
+- **The line is carried on the chart's ground.** A line crosses bars that may be of its own hue,
+  where luminance alone does not separate them, so every segment is drawn twice: a wider stroke
+  in `--ui-chart-ground` first and the coloured stroke over it. That is the rim the dots already
+  wear. Every casing is drawn before any stroke, or a casing would cut the segment before it at
+  the joint. A sparkline crosses nothing and draws none.
+- **The picked column is marked off the hue.** The accent is a series, so it cannot also mean
+  "this one". The column's own label takes a rule the width of the column in `--text` and the
+  strong ink at weight 600 — the shape `.ui-tabs__tab` already gives a chosen thing, in ink
+  rather than in the accent. Every label reserves the rule as a transparent border, so picking
+  one moves no row, and nothing is painted over a mark, so no series measures against anything
+  but the chart's own ground. Decided by Artur on
+  [#543](https://github.com/apliteni/apliteni-ui/pull/543).
 - **One tab stop, and it is the chart.** The frame takes focus and the kit's `--ring`; Left,
   Right, Home and End step columns, Enter picks one when `selectable` is set, and each step is
   announced through a polite `role="status"` region that names the period, every series' value
@@ -3166,7 +3193,9 @@ drawable. `format` prints exact values in the readout, the live region and the t
   around a chart already carries its title. The table is a `<details>` the reader opens, on for
   every variant but the sparkline, whose own name carries its first and last value.
 
-Held by `src/logic/chart.test.js` for the arithmetic and `react/src/Chart.test.tsx` for the
-markup, the keyboard, the readout and axe; neither measures paint, so the hatch, the fade and
-the focus ring are checked in browser captures. Part of
+Held by `src/logic/chart.test.js` for the arithmetic, `react/src/Chart.test.tsx` for the
+markup, the keyboard, the readout and axe, and `react/src/Chart.contrast.test.tsx` for the
+colour every series is drawn in, measured against both grounds in both themes and under every
+accent. None of the three measures pixels, so the hatch, the fade and the focus ring are
+checked in browser captures. Part of
 [#429](https://github.com/apliteni/apliteni-ui/issues/429).
