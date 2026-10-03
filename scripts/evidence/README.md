@@ -14,21 +14,23 @@ differs, and the before side of a pair is the same rig pointed at `main`.
 ## Running it
 
 Playwright is deliberately not a dependency: the kit ships no browser and nothing
-in `npm test` drives one. Point two variables at what you have.
+in `npm test` drives one. Point two variables at what you have. Every run here takes
+the machine's shared check lock through `scripts/check-lock`, so a rig shot and a test
+suite never drive the box at once.
 
 ```sh
 export UI_PLAYWRIGHT=/path/to/playwright/index.mjs   # or leave unset if it resolves
 export UI_CHROME=/path/to/chrome                     # Chrome, or Chrome for Testing
 
-node scripts/evidence/shoot.mjs . out/               # the eight desktop shots + the phone four
-node scripts/evidence/film.mjs  . out/               # the two filmstrips
-node scripts/evidence/nav.mjs   . out/ nav-collapsed-after
+scripts/check-lock node scripts/evidence/shoot.mjs . out/  # the eight desktop shots + the phone four
+scripts/check-lock node scripts/evidence/film.mjs  . out/  # the two filmstrips
+scripts/check-lock node scripts/evidence/nav.mjs   . out/ nav-collapsed-after
 git worktree add --detach /tmp/before origin/main
-node scripts/evidence/shoot.mjs /tmp/before out/ rail-before
-node scripts/evidence/nav.mjs   /tmp/before out/ nav-collapsed-before
+scripts/check-lock node scripts/evidence/shoot.mjs /tmp/before out/ rail-before
+scripts/check-lock node scripts/evidence/nav.mjs   /tmp/before out/ nav-collapsed-before
 
-node scripts/evidence/dropdown.mjs .          out/ dropdown-after    # the head/foot pair, #306
-node scripts/evidence/dropdown.mjs /tmp/before out/ dropdown-before
+scripts/check-lock node scripts/evidence/dropdown.mjs .          out/ dropdown-after  # the head/foot pair, #306
+scripts/check-lock node scripts/evidence/dropdown.mjs /tmp/before out/ dropdown-before
 ```
 
 The back link's label is its own subject, on its own page (#303) — the link alone
@@ -36,8 +38,8 @@ at 560×340, and the page shell at 390 wide, where a reading column is narrow
 enough for a long destination to reach its edge:
 
 ```sh
-node scripts/evidence/back.mjs . out/               # short, long and the shell, both themes
-node scripts/evidence/back.mjs /tmp/before out/ back-label-before
+scripts/check-lock node scripts/evidence/back.mjs . out/  # short, long and the shell, both themes
+scripts/check-lock node scripts/evidence/back.mjs /tmp/before out/ back-label-before
 ```
 
 A third argument to `shoot.mjs` is a substring filter over the names, so one
@@ -51,8 +53,8 @@ rather than the pull request claiming it. Shoot the same subject off both
 checkouts and compare the pixels:
 
 ```sh
-node scripts/evidence/shoot.mjs /tmp/before out/main   rail-user-menu
-node scripts/evidence/shoot.mjs .           out/branch rail-user-menu
+scripts/check-lock node scripts/evidence/shoot.mjs /tmp/before out/main   rail-user-menu
+scripts/check-lock node scripts/evidence/shoot.mjs .           out/branch rail-user-menu
 node scripts/evidence/diff.mjs out/main/rail-user-menu-light.png out/branch/rail-user-menu-light.png
 ```
 
@@ -78,9 +80,9 @@ its own status. Its third argument is the name prefix rather than a filter,
 because both sides of the pair are the same sixteen names:
 
 ```sh
-node scripts/evidence/float.mjs .          out/ after
+scripts/check-lock node scripts/evidence/float.mjs .          out/ after
 git worktree add --detach /tmp/before origin/main
-node scripts/evidence/float.mjs /tmp/before out/ before
+scripts/check-lock node scripts/evidence/float.mjs /tmp/before out/ before
 ```
 
 It captures `.fl-cell` rather than the viewport, so the frame carries the ground
@@ -105,9 +107,9 @@ committed under it. #310's caption
 evidence is these two calls, eight images:
 
 ```sh
-node scripts/evidence/guideline.mjs .           docs/evidence/caption-rank after
-node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank before
-node scripts/evidence/guideline.mjs . out/ after accessibility-floor "Status labels" 1280,390
+scripts/check-lock node scripts/evidence/guideline.mjs .           docs/evidence/caption-rank after
+scripts/check-lock node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank before
+scripts/check-lock node scripts/evidence/guideline.mjs . out/ after accessibility-floor "Status labels" 1280,390
 ```
 
 `react.mjs` is the same rig pointed at the React workspace's own Storybook build,
@@ -117,8 +119,8 @@ page that imports the factories:
 
 ```sh
 npm run build-storybook -w react                     # react/storybook-static
-node scripts/evidence/react.mjs . out/               # the ten React shots
-node scripts/evidence/react.mjs . out/ select        # one subject, re-taken
+scripts/check-lock node scripts/evidence/react.mjs . out/  # the ten React shots
+scripts/check-lock node scripts/evidence/react.mjs . out/ select  # one subject, re-taken
 ```
 
 It takes the same third-argument filter. Both faces are loaded into the story the
@@ -196,7 +198,7 @@ Raising them is the deliberate act of someone who has seen the new surfaces:
 
 ```sh
 npm run build-storybook && npm run build-storybook -w react
-node scripts/evidence/filter-bar-fit.mjs . out/     # out/ takes a JSON ledger; it is optional
+scripts/check-lock node scripts/evidence/filter-bar-fit.mjs . out/  # out/ takes a JSON ledger; it is optional
 ```
 
 It needs both Storybook builds and the checkout for the vanilla half, and it exits
@@ -260,7 +262,7 @@ and requires each changed selector to grow in at least one real story.
 
 ```sh
 UI_PLAYWRIGHT=/path/to/playwright/index.mjs UI_CHROME=/path/to/chrome \
-  node scripts/evidence/font-scale.mjs <revision-before-322> /tmp/font-scale
+  scripts/check-lock node scripts/evidence/font-scale.mjs <revision-before-322> /tmp/font-scale
 ```
 
 The output includes a JSON measurement ledger and 1x before/default/larger
@@ -284,9 +286,9 @@ themes.
 
 ```sh
 git worktree add --detach /tmp/before origin/main
-node scripts/evidence/focus.mjs .           out/ after
-node scripts/evidence/focus.mjs /tmp/before out/ before
-node scripts/evidence/focus.mjs --sheet     out/     # the pairs, laid side by side
+scripts/check-lock node scripts/evidence/focus.mjs .           out/ after
+scripts/check-lock node scripts/evidence/focus.mjs /tmp/before out/ before
+scripts/check-lock node scripts/evidence/focus.mjs --sheet     out/  # the pairs, laid side by side
 ```
 
 Its third argument is the side of the pair and its fourth a name filter over the

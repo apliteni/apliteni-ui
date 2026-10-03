@@ -234,7 +234,12 @@ presentation, keeping nested links reachable and named.
 Use Node 20 or newer. Install [jq](https://jqlang.github.io/jq/), then run `npm ci` at
 the repository root. Start Storybook with `npm run storybook`. For React, use `npm run
 storybook -w react`. Before opening a PR, run `npm test`, `npm test -w react`, `npm run
-build-storybook`, and `node site/build.mjs`.
+build-storybook`, and `node site/build.mjs`. The two suites have budgets of 3m36s and
+1m05s on an idle 8-core Linux host, and each one first waits for `$HOME/.check-lock`, the
+lock every repository on this machine shares, so a second suite waits instead of running
+beside the first. Each suite run ends with its ten slowest tests and files. See
+[AGENTS.md](AGENTS.md#verification) for which commands take the lock and the per-test
+budgets.
 
 Add a general, composable kit component only when all three checks are true:
 (1) the issue names at least two products that use it or have requested it;

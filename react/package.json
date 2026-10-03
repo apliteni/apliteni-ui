@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsup",
-    "test": "vitest run",
+    "test": "../scripts/check-lock vitest run",
     "test:watch": "vitest",
     "storybook": "storybook dev -p 6007 --no-open",
     "build-storybook": "storybook build -o storybook-static"

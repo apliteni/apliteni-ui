@@ -21,6 +21,19 @@ Before handoff, run `npm test` with `jq` installed, `npm test -w react`, `npm ru
 build-storybook`, and `node site/build.mjs`. Stage new files first so git-based tests
 can find them. Add new test directories to both the guard and the glob in `npm test`.
 
+While you work, run the tests for the files you changed: `scripts/check-lock node --test
+<file>` where that run drives a browser or takes about a minute, plain `node --test
+<file>` where it is shorter. Run both suites once for the pull request, on a Linux host
+where you have one. Their budgets, measured on an idle 8-core Linux host: `npm test`
+3m36s, `npm test -w react` 1m05s.
+
+Both suites, and every other command here that drives a browser or runs for about a
+minute, go through `scripts/check-lock`: one of them runs on the machine at a time, and a
+second waits and says so. React's `test:watch` is the exception, because it would hold the
+lock for as long as somebody keeps it open. Each suite run ends with its ten slowest tests
+and files, and anything over budget: 5 seconds a test, 10 for a browser test, 60 for one
+file. That report never fails a run.
+
 New gates must discover their subjects, fail when cases are not measured, check coverage
 counts, and prove rejection with a failing mutation. Share calculations across
 workspaces, but keep their coverage checks separate. Read the source unless you are
@@ -33,14 +46,14 @@ automatically. Explain the cause and limitation of each accepted failure.
 ## Check accents locally
 
 Before opening a PR that changes colours, tokens or theme/accent CSS, run:
-`CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js`
+`CONTRAST_ACCENTS=1 scripts/check-lock node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js`
 Report the result in the PR. Keep this check out of routine CI to save Actions minutes.
 
 ## Check the phone tap floor locally
 
 Before opening a PR that changes a control's size, a container's gap, or
 `src/styles/tap-zone.css`, measure the tap zones in a real browser:
-`UI_PLAYWRIGHT=… TAP_ZONES=1 node --test stories/tap-zone.test.js`
+`UI_PLAYWRIGHT=… TAP_ZONES=1 scripts/check-lock node --test stories/tap-zone.test.js`
 Report the result in the PR. Playwright is not a dependency and CI runs only this
 gate's source half, so the measurement is yours to run.
 

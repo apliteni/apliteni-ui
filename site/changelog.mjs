@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.75.2', date: '2026-10-03',
+    changes: [
+      ['changed', 'Contributing: the kit suite and the React suite now wait for one shared check lock on the machine that runs them, so two suites no longer run side by side. The README and `AGENTS.md` state each suite\u2019s measured time budget, and every run ends with its ten slowest tests and files. Nothing the package ships behaves differently. See #560.'],
+    ],
+  },
+  {
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],
