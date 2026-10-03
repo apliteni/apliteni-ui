@@ -800,12 +800,18 @@ test('ring: every selector the sheet paints a ring on is landed somewhere by a s
     assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
     const landed = new Set(run.landings.map((l) => l.selector));
     // `.ui-focusable` is the kit's opt-in focus class
-    // (src/styles/base.css:140 `.ui-focusable:focus-visible,`).
-    // No component wears it and no story renders one, so it has no ground to be
-    // measured against — which is a fact about the class, not a hole here. It
-    // is named rather than filtered so it cannot quietly become two.
+    // (src/styles/base.css:140 `.ui-focusable:focus-visible,`). It stood here as a
+    // named exemption until #509's citation link, the first element the VANILLA
+    // stories put in front of this walk wearing it; React's Tooltip trigger has worn
+    // it longer and is swept elsewhere.
+    //
+    // An empty list is narrower than ring coverage: the subjects are the selectors
+    // the sheet ALREADY rings, so a control given no focus rule at all is invisible
+    // here however many stories draw it. stories/focus-ring.test.js walks the controls
+    // instead, on the landing page and the shell, footer and topbar stories; a control
+    // with no ring rule drawn only on a guideline page is caught by neither.
     const orphans = run.selectors.filter((s) => !landed.has(s));
-    assert.deepEqual(orphans, ['.ui-focusable:focus-visible'], `${key}: a ring selector no story renders is a ring nobody measured`);
+    assert.deepEqual(orphans, [], `${key}: a ring selector no story renders is a ring nobody measured`);
   }
 });
 

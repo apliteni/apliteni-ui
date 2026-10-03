@@ -125,8 +125,9 @@ const SUBJECT_FILES = [
   // Added by #487's re-review. The version switcher's rows are `role="option"`
   // with `tabindex="-1"`, focused by the arrow keys in src/components/dropdown.js,
   // and no walked surface rendered one — so `.vopt` shipped with the browser's
-  // own outline and nothing could see it.
-  'apps/AccountPreset.stories.js',
+  // own outline and nothing could see it. The surface was the /account preset's
+  // screen until #509 retired it; the topbar's own stories carry those stops now.
+  'components/Topbar.stories.js',
 ];
 for (const wanted of SUBJECT_FILES) {
   assert.ok(storyFiles.includes(wanted), `${wanted} is not in the story catalogue any more`);
@@ -233,9 +234,16 @@ test('focus walk: the surfaces and stops this gate covers', () => {
     'stories/components/Footer.stories.js:Slim': 7,
     'stories/components/Footer.stories.js:App': 3,
     'stories/components/Footer.stories.js:MobileStacked': 21,
-    // The surface #487's re-review added, for the version switcher's rows.
-    'stories/apps/AccountPreset.stories.js:Default': 13,
-    'stories/apps/AccountPreset.stories.js:WithVersionSwitcher': 18,
+    // The surfaces #487's re-review added, for the version switcher's rows.
+    // They moved off the retired /account preset onto the topbar's own stories
+    // in #509, and every count below is re-measured on them.
+    'stories/components/Topbar.stories.js:Full': 11,
+    'stories/components/Topbar.stories.js:SignedOut': 7,
+    'stories/components/Topbar.stories.js:Pieces': 10,
+    // 18 of these are the stops the preset's own screen had — InShell draws the
+    // same topbar over the same shell — plus the citation link in its lede, which
+    // wears `ui-focusable` because a bare anchor is not a class the sheet rings.
+    'stories/components/Topbar.stories.js:InShell': 19,
   }, 'the walk covers different ground than it did; count the new surface by hand');
   const exempted = walked.flatMap(({ stops }) => stops.filter(exempt));
   assert.equal(exempted.length, 8, 'the two topbar-layout shell screens hold one palette input '
@@ -316,12 +324,14 @@ test('focus walk: the cascade resolver accounts for every stop it walks', () => 
       buckets.exempt += 1;
     }
   }
-  assert.equal(buckets.self, 157, 'the number of stops whose own cascade was resolved moved');
+  // 158 -> 177 in #509: the /account preset's two screens left the walk and the
+  // topbar's four stories joined it, and they carry more chrome between them.
+  assert.equal(buckets.self, 177, 'the number of stops whose own cascade was resolved moved');
   assert.deepEqual([...new Set(buckets.delegated)], [
     '.ui-switch input:focus-visible + .ui-switch__track',
   ], 'a ring painted on another box is not cascade-resolved — add it here with its reason');
-  assert.equal(buckets.delegated.length, 6, 'two switch inputs on the landing page, and two '
-    + 'more on each of the account presets');
+  assert.equal(buckets.delegated.length, 2, 'two switch inputs on the landing page. The four '
+    + 'more came from the /account preset\'s two screens, retired in #509');
   assert.equal(buckets.exempt, 8, 'the two topbar-layout shell screens hold one palette input '
     + 'and three palette rows each');
 });

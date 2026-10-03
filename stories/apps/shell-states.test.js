@@ -1796,13 +1796,13 @@ test('the reading column centres in the track it is given', () => {
 // the same product, the same nav and the same rail with it off. Nothing tells
 // you which is the kit's shape until you flip between two stories.
 //
-// accountShell() is not in that set and must not be pulled into it: the preset
-// keeps its topbar, because dropping it would take the theme toggle and the
-// account menu off every consuming /account page. So the gate is about the
-// screens built directly on appShell(), and it finds them by asking each story
-// file which factory it imports rather than by a list somebody keeps by hand.
-// The four the demo set has always had are pinned below, so a file cannot leave
-// the gate simply by importing the preset.
+// The gate is about the screens built on appShell(), and it finds them by asking
+// each story file which factory it imports rather than by a list somebody keeps
+// by hand. The four the demo set has always had are pinned below, so a file
+// cannot leave the gate by dropping the import. Until #509 the /account preset
+// was excluded here, because it kept a topbar the demo set does not; the preset
+// is retired, and the one story that still draws a topbar over the shell lives
+// in stories/components/ and was never in this set.
 
 const DEMO_SCREENS = ['Access', 'EmptyStates', 'FinanceReport', 'Preferences'];
 
@@ -1853,9 +1853,8 @@ const composesWith = (file, name) => {
     || localModules(src).some((m) => importsFactory(read(path.join('stories/apps', m)), name));
 };
 
-/** Story files that draw a screen with appShell() itself, preset callers aside. */
-const appShellFiles = () => storyFiles()
-  .filter((f) => composesWith(f, 'appShell') && !composesWith(f, 'accountShell'));
+/** Story files in stories/apps that draw a screen with appShell(). */
+const appShellFiles = () => storyFiles().filter((f) => composesWith(f, 'appShell'));
 
 test('every example screen built on appShell() makes the same call about the topbar', async () => {
   const files = appShellFiles().map((f) => f.replace('.stories.js', ''));
@@ -1863,8 +1862,8 @@ test('every example screen built on appShell() makes the same call about the top
     assert.ok(
       files.includes(want),
       `${want}.stories.js is no longer one of the appShell() demo screens this gate holds `
-      + 'together — importing accountShell() into it takes it out of the set rather than '
-      + 'settling what shape the set is',
+      + 'together — dropping the import takes it out of the set rather than settling what '
+      + 'shape the set is',
     );
   }
   const seen = [];
@@ -1883,9 +1882,9 @@ test('every example screen built on appShell() makes the same call about the top
     split.size, 1,
     'the example screens disagree about the topbar: '
     + seen.map(([n, on]) => `${n} ${on ? 'on' : 'off'}`).join(', ')
-    + '. accountShell() keeps its topbar because dropping it would take the theme toggle and '
-    + 'the account menu off every consuming /account page — but appShell() ships with none, '
-    + 'and a demo set that shows both without saying why teaches neither.',
+    + '. appShell() ships with no topbar, so every screen in this set draws none; a demo set '
+    + 'that shows both without saying why teaches neither. The one story that draws the '
+    + 'topbar over the shell is Components/Topbar, which says in its own comment why.',
   );
 });
 
@@ -1956,27 +1955,31 @@ test('the two finance screens are one composition — one column, one trail root
   );
 });
 
-// The preset's topbar composition is the newest thing in the shell and the one
-// thing no story drew: a sticky .topbar over a rail that sticks under it. A
-// story is what makes it visible; this is what makes it discoverable.
-test('a story renders accountShell(), so the preset\'s own composition is on screen somewhere', async () => {
+// appShell()'s topbar composition is the one shell arrangement no screen in the
+// demo set draws: a sticky .topbar over a rail that sticks under it, offset by
+// --ui-app-top. It was on screen only through the /account preset until #509
+// retired that; Components/Topbar carries it now, beside the pieces it is built
+// from. A story is what makes the composition visible; this is what keeps it so.
+//
+// Limit: this asserts the composition is rendered somewhere, not that it is
+// correct. --ui-app-top's own value is measured against .topbar's height by the
+// test below, and the stops inside it by stories/focus-ring.test.js.
+test('a story draws appShell()\'s topbar composition, so it is on screen somewhere', async () => {
+  const file = 'stories/components/Topbar.stories.js';
+  const mod = await import('../components/Topbar.stories.js');
   const drawn = [];
-  for (const file of storyFiles()) {
-    if (!importsFactory(read(path.join('stories/apps', file)), 'accountShell')) continue;
-    const mod = await import(`./${file}`);
-    for (const [name, story] of Object.entries(mod)) {
-      if (name === 'default' || typeof story?.render !== 'function') continue;
-      const out = story.render();
-      if (out.includes('class="ui-app-page"') && out.includes('<header class="topbar"')) {
-        drawn.push(`${file}:${name}`);
-      }
+  for (const [name, story] of Object.entries(mod)) {
+    if (name === 'default' || typeof story?.render !== 'function') continue;
+    const out = story.render();
+    if (out.includes('class="ui-app-page"') && out.includes('<header class="topbar"')) {
+      drawn.push(`${file}:${name}`);
     }
   }
   assert.ok(
     drawn.length,
-    'no story in stories/apps renders accountShell(). Its topbar composition — --ui-app-top, '
-    + 'the sticky topbar, the rail offset beneath it — is new code the workbench never draws, '
-    + 'so nobody sees it break.',
+    `no story in ${file} draws appShell() with a topbar. That composition — --ui-app-top, `
+    + 'the sticky topbar, the rail offset beneath it — is the one shell arrangement the '
+    + 'workbench would otherwise never draw, so nobody sees it break.',
   );
 });
 

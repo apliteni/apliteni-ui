@@ -77,28 +77,35 @@ after the kit's:
 :root { --font-sans: var(--font-display); }
 ```
 
-### Reuse the account page
+### Reuse the page shell
 
-The whole `/account` layout (topbar + sticky sidebar + page body) ships as one
-factory, so every product renders the same account shell instead of re-building it:
+The whole product layout (sticky rail + page body, and a topbar over it when you
+ask for one) ships as one factory, so every product renders the same shell
+instead of re-building it:
 
 ```js
-import { accountShell, card, switchToggle, wireTopbar, wireShell } from '@apliteni/apliteni-ui';
+import { appShell, card, switchToggle, wireShell } from '@apliteni/apliteni-ui';
 
-el.innerHTML = accountShell({
-  word: 'Strategy',                              // the product word in the topbar
-  account: { name, email },                      // signed-in user (drives the avatar menu)
-  active: 'prefs',                               // which sidebar item is current
+el.innerHTML = appShell({
+  word: 'Strategy',                              // the product word in the rail's head
+  nav: [{ id: 'prefs', icon: 'gear', label: 'Preferences' }],
+  active: 'prefs',                               // which rail item is current
+  crumbs: [{ label: 'Strategy' }, { label: 'Preferences' }],
+  account: { name, email },                      // signed-in reader (the rail's foot menu)
+  signOutHref: '/logout',                        // puts Sign out in that menu
   title: 'Preferences',
   sub: 'How the portal looks and speaks to you.',
   body: card({ title: 'Appearance', body: switchToggle({ label: 'Reduce motion' }) }),
 });
-wireTopbar(el);                                  // menus, theme toggle, segmented controls
 wireShell(el);                                   // the toggle that folds the rail, the reader's menu, the nav's groups
 
-// Custom sidebar nav? pass `nav: [['prefs','gear','Preferences'], ['billing','wallet','Billing']]`
+// Want the product topbar above it? pass a `topbar` bag — its own word, the
+// version switcher and the Deck/Text pair — then import wireTopbar and call it on el too.
 // A page that will never call wireShell()? pass `collapsible: false` and no toggle is drawn
 ```
+
+Account and personal settings belong in a modal over the product, not on a page
+of their own: see [Guidelines / Account and settings](guidelines/account-and-settings.md).
 
 Server-rendered apps that inline CSS (like the strategy portal) import the stylesheet
 as **strings** instead:
