@@ -37,3 +37,17 @@
 **Don't:** Make both actions primary or colour every label and value with the accent.
 
 **Except:** Keep [Badge success, pending and danger](https://ui.apli.tech/storybook/?path=/story/components-badge-status--badges) for their named statuses; do not replace those signals with the accent.
+
+## Follow the consequence
+
+<!-- rule: follow-the-consequence -->
+
+**Rule:** Where a screen shows a source beside the values that will be saved, give the saved values the leading position, the wider column, the heavier weight and whatever accent the pair carries; leave the source with none of the four.
+
+**Why:** Emphasis tells the reader what the screen is for. A preview that outweighs the data being committed makes a commitment look like a reading task, and an accent on the reference says the reference is the point. The accent goes on the name because a line drawn strongly enough to carry the signal is an outlined box, which the kit does not draw.
+
+**Do:** Lead with the extracted fields, in the wider column, with each value heavier than its label, and put the accent on the pane's own name.
+
+**Don't:** Give the source document the leading, wider pane, or let a control inside it hold the only accent on the screen while the saved values hold none.
+
+**Except:** Fade nothing to make a block quieter; a quieter block is smaller, later or uncoloured, never muted. See [Limit muted ink](https://ui.apli.tech/storybook/?path=/story/guidelines-labels-and-titles--page).

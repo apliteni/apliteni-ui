@@ -144,3 +144,135 @@ test('compact end cells override the base last-header inset together', () => {
   assert.equal(compactTrailingInset(CSS.replace('.ui-table--compact th:last-child,', '')), null,
     'removing the header override must be rejected');
 });
+
+/* Table footers: the rules that separate totals from line items, and the padding a
+ * footer label takes. Source CSS in jsdom, so this covers the shipped rules and their
+ * cascade — not browser line breaking, not layout, not contrast. Storybook captures
+ * check the rendered edges. Decided in #385. */
+
+// Every modifier in the sheet is a subject, so a new density cannot ship unmeasured.
+const tableModifiers = (css) => {
+  const found = [...new Set(css.match(/\.ui-table--[\w-]+/g))].map((selector) => selector.slice(1));
+  assert.ok(found.length >= 6, 'discover table modifiers from the shipped sheet');
+  return ['', ...found];
+};
+
+function footerTable(css, modifier = '') {
+  return new JSDOM(`<style>${substitute(css, tokensFor('dark', 'default'))}</style>`
+    + `<table class="ui-table ${modifier}">
+    <thead><tr><th>Item</th><th class="ui-table__num">Amount (EUR)</th></tr></thead>
+    <tbody><tr><th scope="row">Sample</th><td>10</td></tr></tbody>
+    <tfoot><tr><th>Subtotal</th><td>10</td></tr>
+      <tr><th class="ui-table__num--strong">Total</th><td class="ui-table__num ui-table__num--strong">12</td></tr></tfoot>
+  </table>`);
+}
+
+function checkFooter(css) {
+  let measured = 0;
+  for (const modifier of tableModifiers(css)) {
+    const dom = footerTable(css, modifier);
+    try {
+      const { document, getComputedStyle } = dom.window;
+      const bodyHeader = document.querySelector('tbody th[scope="row"]');
+      assert.ok(bodyHeader, 'measure the body row header');
+      // A row header is a body cell, so it takes the body cell's padding rather than
+      // the head's: `.ui-table th` pads 0 over and --space-3 under, which inside the
+      // body sits the name low against the values beside it.
+      const header = getComputedStyle(bodyHeader);
+      const value = getComputedStyle(document.querySelector('tbody td'));
+      assert.equal(header.paddingTop, value.paddingTop, `${modifier}: body header top padding`);
+      assert.equal(header.paddingBottom, value.paddingBottom, `${modifier}: body header bottom padding`);
+      if (modifier === 'ui-table--compact') {
+        for (const side of ['Top', 'Bottom']) {
+          assert.equal(header[`padding${side}`], `${SPACE['--space-1']}px`, `compact body header ${side}`);
+        }
+        for (const side of ['Left', 'Right']) {
+          assert.equal(header[`padding${side}`], `${SPACE['--space-3']}px`, `compact body header ${side}`);
+        }
+      }
+      const rows = [...document.querySelectorAll('tfoot tr')];
+      assert.equal(rows.length, 2);
+      for (const row of rows) {
+        const [label, value] = [...row.cells].map((cell) => getComputedStyle(cell));
+        assert.equal(label.borderBottomWidth, value.borderBottomWidth, `${modifier}: complete footer rule`);
+        assert.equal(label.paddingTop, value.paddingTop, `${modifier}: label top padding`);
+        assert.equal(label.paddingBottom, value.paddingBottom, `${modifier}: label bottom padding`);
+        assert.equal(getComputedStyle(row.cells[0]).textAlign, 'right', `${modifier}: footer label sits against its figure`);
+        measured++;
+      }
+      for (const cell of rows[0].cells) {
+        assert.equal(getComputedStyle(cell).borderTopWidth, '2px', `${modifier}: totals open with the strong rule`);
+      }
+      // `.ui-table th` states its own weight and ink, so the strong helper has to
+      // outrank it or the row comes out bold in the figure only.
+      const [totalLabel, totalValue] = [...rows[1].cells].map((cell) => getComputedStyle(cell));
+      assert.equal(totalLabel.fontWeight, totalValue.fontWeight, `${modifier}: the strong row carries one weight`);
+      assert.equal(totalLabel.color, totalValue.color, `${modifier}: the strong row carries one ink`);
+      if (modifier !== 'ui-table--zebra') {
+        assert.equal(getComputedStyle(document.querySelector('tbody td')).borderBottomWidth, '1px',
+          `${modifier}: items close before totals`);
+      }
+      document.querySelector('tfoot').remove();
+      assert.equal(getComputedStyle(document.querySelector('tbody td')).borderBottomWidth, '0px',
+        `${modifier}: no footer preserves last-row behavior`);
+    } finally { dom.window.close(); }
+  }
+  assert.ok(measured >= 14, `every modifier's footer rows must be measured, got ${measured}`);
+}
+
+test('table footers keep complete rules and body padding across table modifiers', () => {
+  checkFooter(CSS);
+});
+
+test('the footer check rejects the old per-row-group border reset', () => {
+  assert.throws(() => checkFooter(`${CSS}\n.ui-table tr:last-child td { border-bottom: 0; }`));
+});
+
+test('the footer check rejects a sheet with no divide before the totals', () => {
+  assert.throws(() => checkFooter(`${CSS}\n.ui-table tfoot tr:first-child > :is(th, td) { border-top: 0; }`));
+});
+
+test('the footer check rejects a sheet that leaves footer labels on the left', () => {
+  assert.throws(() => checkFooter(`${CSS}\n.ui-table tfoot th { text-align: left; }`));
+});
+
+test('the footer check rejects a sheet where the header cell outranks the strong helper', () => {
+  assert.throws(() => checkFooter(`${CSS}\n.ui-table th.ui-table__num--strong { font-weight: var(--weight-medium); }`));
+});
+
+test('the footer check rejects a body row header narrowed back to the footer', () => {
+  const narrowed = CSS.replace('.ui-table--compact :is(tbody, tfoot) th', '.ui-table--compact tfoot th');
+  assert.notEqual(narrowed, CSS, 'mutation must narrow the compact body-cell rule');
+  assert.throws(() => checkFooter(narrowed), /ui-table--compact: body header top padding/);
+});
+
+test('the footer check rejects a dense body row header left on the head\'s padding', () => {
+  const narrowed = CSS.replace('.ui-table--dense :is(tbody, tfoot) th', '.ui-table--dense tfoot th');
+  assert.notEqual(narrowed, CSS, 'mutation must narrow the dense body-cell rule');
+  assert.throws(() => checkFooter(narrowed), /ui-table--dense: body header top padding/);
+});
+
+// A numeric column is sized to its content while .ui-table__title claims the rest, so a
+// two-word numeric header is the only cell in that column that can wrap.
+function checkNumericHeaderWrap(css) {
+  let measured = 0;
+  for (const modifier of tableModifiers(css)) {
+    const dom = footerTable(css, modifier);
+    try {
+      const { document, getComputedStyle } = dom.window;
+      const header = document.querySelector('thead th.ui-table__num');
+      assert.ok(header, `${modifier}: the fixture must carry a numeric header`);
+      assert.equal(getComputedStyle(header).whiteSpace, 'nowrap', `${modifier}: numeric header holds one line`);
+      measured++;
+    } finally { dom.window.close(); }
+  }
+  assert.ok(measured >= 7, `every modifier's numeric header must be measured, got ${measured}`);
+}
+
+test('numeric headers hold one line across table modifiers', () => {
+  checkNumericHeaderWrap(CSS);
+});
+
+test('the numeric-header check rejects a sheet that lets them wrap', () => {
+  assert.throws(() => checkNumericHeaderWrap(`${CSS}\n.ui-table th.ui-table__num { white-space: normal; }`));
+});

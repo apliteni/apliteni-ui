@@ -17,6 +17,35 @@ export const SPEC_CSS = `<style>
   .gda-forced .ui-stats__list { flex-wrap: nowrap; }
   .gda-forced .ui-stats__list > .ui-stat { flex-basis: 0; }
   .gda-coloured .ui-drawer__row dt, .gda-coloured .ui-drawer__row dd { color: var(--accent); }
+  /* Two panes in one order, so the only thing that moves between Do and Don't is which
+     pane is given the width, the weight and the accent. The tracks are 2:1 rather than
+     the screen's 485:420, because a specimen at half a page has to exaggerate a ratio to
+     show it. Stretched, so neither card out-masses the other by accident. minmax(0, …)
+     because two cards on their min-content floors ignore the ratio and push the grid
+     past its own box. */
+  .gda-panes { display: grid; align-items: stretch; gap: var(--space-4); }
+  .gda-panes--saved-wide { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+  .gda-panes--source-wide { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+  /* Below 560 a half-page cell is about 280px, where a 2:1 split leaves the narrow card
+     too thin to hold a word. The pair stacks instead and the emphasised pane goes first,
+     so the lever the reader can still see is position — the same trade the showcase makes
+     below 860. why: guidelines/layout-and-density.md#use-the-three-breakpoints */
+  @media (max-width: 560px) {
+    .gda-panes { grid-template-columns: minmax(0, 1fr); }
+    .gda-panes--source-wide > :first-child { order: 2; }
+  }
+  /* Stacked label-over-value rows rather than a two-column list: at a third of a
+     half-page column a label beside its value has nowhere to wrap, and the kit's rows
+     break inside words to fit. */
+  .gda-panes .ui-card { display: flex; flex-direction: column; }
+  .gda-pane__label { margin: 0; overflow-wrap: normal; }
+  .gda-pane__value { margin: 0 0 var(--space-2); overflow-wrap: normal; }
+  .gda-pane__value--strong { font-weight: var(--weight-medium); }
+  .gda-pane__line { margin: 0 0 var(--space-2); overflow-wrap: normal; }
+  /* The accent as ink on the pane's own name. Not a border: a line strong enough to read
+     as the signal is an outlined box, and not a ground either, because a pane like this
+     one holds a table and a table stays on the reading surface. */
+  .gda-pane--accent .ui-card__title { color: var(--accent); }
   .gda-page .gc-except { box-shadow: none; padding-left: 0; }
 </style>`;
 
@@ -44,8 +73,33 @@ const figures = () => statBand({ variant: 'tiles', basis: 'Payouts · September'
   { label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' },
 ] });
 
+// A source document beside the fields a parser read from it. The fields are what an
+// approval writes to the record. Both panels print the same two cards, so what a reader
+// compares is the width, the value weight and which card's name carries the accent. Below
+// 560 the pair stacks and the emphasised pane leads, so position carries the comparison
+// where width cannot. Three of the rule's four levers at a time, never none.
+const savedPane = (lead) => `<div class="ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}">
+  <h3 class="ui-card__title">Extracted fields</h3>
+  <p class="gda-pane__label">Supplier</p>
+  <p class="gda-pane__value${lead ? ' gda-pane__value--strong' : ''}">Sample Studio</p>
+  <p class="gda-pane__label">Total</p>
+  <p class="gda-pane__value${lead ? ' gda-pane__value--strong' : ''}">1,440.00</p>
+</div>`;
+const sourcePane = (lead) => `<div class="ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}">
+  <h3 class="ui-card__title">Source document</h3>
+  <p class="gda-pane__line">Invoice</p>
+  <p class="gda-pane__line">DEMO-1042</p>
+  <p class="gda-pane__line">Total</p>
+  <p class="gda-pane__line">1,440.00</p>
+</div>`;
+const consequence = (savedLeads) => stage(
+  `<div class="gda-panes gda-panes--${savedLeads ? 'saved' : 'source'}-wide">`
+  + savedPane(savedLeads) + sourcePane(!savedLeads)
+  + '</div>');
+
 export const RULES = withSpecimens(content.rules, [
   { id: 'check-density', doHtml: () => stage(figures(), 'gda-band'), dontHtml: () => stage(figures(), 'gda-band gda-forced') },
   { id: 'reduce-density', doHtml: () => stage(payouts() + preview()), dontHtml: () => stage(payouts() + preview(true)) },
   { id: 'purposeful-accent', doHtml: () => stage(preview()), dontHtml: () => stage(preview(false, true)) },
+  { id: 'follow-the-consequence', doHtml: () => consequence(true), dontHtml: () => consequence(false) },
 ]);

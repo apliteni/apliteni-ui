@@ -43,6 +43,10 @@ not `inline.js`, and shipped unstyled to every consumer of `kit.css`. What holds
 together now is `scripts/stylesheet-manifest.test.js`, which fails when either entry point
 names a stylesheet the other one does not.
 
+Picking individual sheets out of `styles` rather than taking `cssText` whole: `successPanel()`
+needs both `styles.callout`, which lays the panel out, and `styles.success`, which holds the
+glowing check and its reduced-motion rules. Put them after `tokensCss` and `baseCss`.
+
 ## Tokens & theming
 
 Everything visual is a CSS custom property, driven by two orthogonal attributes on

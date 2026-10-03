@@ -4,288 +4,161 @@
 [![license: MIT](https://img.shields.io/npm/l/@apliteni/apliteni-ui?color=3b9dff)](./LICENSE)
 [![live: ui.apli.tech](https://img.shields.io/badge/live-ui.apli.tech-9b5dff)](https://ui.apli.tech)
 
-The Apliteni design system and UI kit supplies shared UI for the strategy deck,
-the text portal, `/account`, the operating model, and future product surfaces.
+The Apliteni design system and UI kit provides shared design tokens, components, themes and
+UI rules for the strategy deck, the text portal, `/account` and future product surfaces.
 
-It provides framework-agnostic **HTML + CSS** and **React components** for stateful
-surfaces, with shared tokens, dark and light themes, and **accent sub-themes**.
-Review components in **Storybook** at **ui.apli.tech**.
+One package carries two layers. **HTML + CSS** includes token CSS, component CSS and
+HTML-string factories. Use this layer for server-rendered pages that do not use a component
+framework. **React components** support surfaces with client-side state, such as tables,
+filters, forms and modals. Both layers use the same `.ui-*` classes and tokens, so a page
+can use both. Choose React when the surface needs state.
 
-- **Live site + Storybook** → [ui.apli.tech](https://ui.apli.tech)
-- **Package** → [`@apliteni/apliteni-ui`](https://www.npmjs.com/package/@apliteni/apliteni-ui) (public npm)
-- **React components** → `@apliteni/apliteni-ui/react` — a subpath of the same package, source in [`react/`](./react)
-
-## HTML + CSS *and* React
-
-The strategy portal (`apliteni/strategy`, `viz/`) server-renders HTML strings from
-`.mjs` modules without a component framework. The kit supplies token CSS, component
-CSS, and HTML-string factories that the portal can import without a rewrite.
-Storybook (`@storybook/html-vite`) renders those same strings.
-
-React components handle client state in dashboards, tables, filters, and forms.
-They use the vanilla kit's `.ui-*` classes and tokens.
-
-**Which one:** does the surface hold meaningful client state? No → the HTML-string
-factories below. Yes → the [React components](#react-components-stateful-surfaces).
-
-Either layer follows the same UI rules — what one page may hold, which component to reach
-for, the states it owes, how colour and wording work. They live in the **Guidelines** section
-of Storybook, which opens on
-[links to every guideline page](https://ui.apli.tech/storybook/?path=/story/guidelines-overview--overview).
-The same guidance ships as plain Markdown in
-`node_modules/@apliteni/apliteni-ui/guidelines/`. Start with
-[guidelines/overview.md](guidelines/overview.md); Storybook reads these documents too.
-
-[The page](https://ui.apli.tech/storybook/?path=/story/guidelines-the-page--the-page) is the one
-to read before you design a screen: the limits one page keeps, whatever it is about.
+Every component is in Storybook at **[ui.apli.tech](https://ui.apli.tech)**.
 
 ## Install
 
-Published on the **public npm registry** — no scope config, no token:
+The package is published on the public npm registry. You do not need scope configuration or
+an npm token:
 
 ```bash
-npm install @apliteni/apliteni-ui
+npm install @apliteni/apliteni-ui react react-dom
 ```
+
+Install React and React DOM yourself, using version 18 or newer. The kit does not declare
+either package as a regular or peer dependency. npm therefore does not install them or warn
+when they are missing. If they are missing, importing `@apliteni/apliteni-ui/react` fails
+at build time or runtime with a module-not-found error. A plain HTML consumer installs only
+the kit and is unaffected because React is not added to its dependency tree.
+
+The React components are a subpath of this package, not a separate package. You get one
+install, one version and one version pin.
+
+| Import | What it is |
+| --- | --- |
+| `@apliteni/apliteni-ui/css` | Tokens and every component stylesheet. Import once at the app root. |
+| `@apliteni/apliteni-ui` | The HTML-string factories: `button()`, `card()`, `topbar()`, `accountShell()` and the rest. |
+| `@apliteni/apliteni-ui/react` | The React components, TypeScript types included. |
+| `@apliteni/apliteni-ui/react/css` | Their shell styles. |
+| `@apliteni/apliteni-ui/inline` | The same CSS as strings, for a server that inlines it. |
+| `@apliteni/apliteni-ui/guidelines/*` | The UI rules as Markdown. |
 
 ## Use it
 
 ```js
-import '@apliteni/apliteni-ui/css';           // once, at app root (load the two fonts too — see below)
-import { button, card, topbar, wireTopbar } from '@apliteni/apliteni-ui';
+import '@apliteni/apliteni-ui/css';
+import { topbar, card, button, wireTopbar } from '@apliteni/apliteni-ui';
 
 el.innerHTML = topbar({ word: 'Strategy', account: { name, email } })
              + card({ title: 'Appearance', body: button({ label: 'Save', variant: 'primary' }) });
-wireTopbar(document);                          // theme toggle, menus, segmented, copy buttons
+wireTopbar(document);   // theme toggle, menus, segmented controls, copy buttons
 ```
 
-### The two fonts
+```tsx
+import '@apliteni/apliteni-ui/css';
+import '@apliteni/apliteni-ui/react/css';
+import { DataTable, Modal } from '@apliteni/apliteni-ui/react';
+```
 
-The kit names two families and bundles neither, so the host page loads them. Poppins is
-`--font-display` — headings, brand marks, large readouts. IBM Plex Sans is `--font-sans` —
-tables, fields, paragraphs, chat, which is most of an application. Weights 300-700 in both:
+The `accountShell()` factory provides the complete `/account` layout: the topbar, sticky
+sidebar and page body, so no product rebuilds it. The
+[component catalog](docs/library.md#component-catalog) lists this factory and every other one.
+
+### Fonts
+
+The kit defines two font families but does not bundle them, so the host page must load them.
+Poppins is `--font-display`, used for headings, brand marks and large readouts. IBM Plex Sans
+is `--font-sans`, used for tables, fields, paragraphs, chat and most application text. Both
+families support weights 300–700.
 
 ```html
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
 ```
 
-If either font is missing, that role falls back to its system stack, and nothing says so.
-For the old single-family appearance, set both roles to the same family in your stylesheet,
-after the kit's:
+If a family does not load, the browser uses its system fallback stack. The kit does not
+display a message about this fallback.
 
-```css
-:root { --font-sans: var(--font-display); }
-```
+## Theme and accent
 
-### Reuse the account page
-
-The whole `/account` layout (topbar + sticky sidebar + page body) ships as one
-factory, so every product renders the same account shell instead of re-building it:
-
-```js
-import { accountShell, card, switchToggle, wireTopbar, wireShell } from '@apliteni/apliteni-ui';
-
-el.innerHTML = accountShell({
-  word: 'Strategy',                              // the product word in the topbar
-  account: { name, email },                      // signed-in user (drives the avatar menu)
-  active: 'prefs',                               // which sidebar item is current
-  title: 'Preferences',
-  sub: 'How the portal looks and speaks to you.',
-  body: card({ title: 'Appearance', body: switchToggle({ label: 'Reduce motion' }) }),
-});
-wireTopbar(el);                                  // menus, theme toggle, segmented controls
-wireShell(el);                                   // the toggle that folds the rail, the reader's menu, the nav's groups
-
-// Custom sidebar nav? pass `nav: [['prefs','gear','Preferences'], ['billing','wallet','Billing']]`
-// A page that will never call wireShell()? pass `collapsible: false` and no toggle is drawn
-```
-
-Server-rendered apps that inline CSS (like the strategy portal) import the stylesheet
-as **strings** instead:
-
-```js
-import { tokensCss, topbarCss, cssText } from '@apliteni/apliteni-ui/inline';
-// …inline tokensCss + topbarCss into the <style> you serve.
-```
-
-`cssText` includes every sheet. When selecting individual sheets from `styles`,
-`successPanel()` needs both `styles.callout` (panel layout) and `styles.success`
-(shared glowing check and reduced-motion styles), after `tokensCss` and `baseCss`.
-
-## React components (stateful surfaces)
-
-`DataTable`, `Pagination`, `Modal`, `Button`, `Badge`, `Card` and `Icon` — same `.ui-*` classes,
-same tokens, TypeScript types included. They ship as a **subpath of this package**,
-not as a package of their own: one install, one version, one pin.
-
-Install `react` and `react-dom`, version 18 or newer, yourself. The kit declares
-neither a regular nor a peer dependency on React, so npm neither installs it nor
-warns when it is missing:
-
-```bash
-npm install @apliteni/apliteni-ui react react-dom
-```
-
-Without them, importing `@apliteni/apliteni-ui/react` fails at build or runtime with
-a module-not-found error for `react`. Plain HTML consumers can install the kit alone;
-the other entry points are unaffected and do not bring React into the dependency tree.
-
-```tsx
-import '@apliteni/apliteni-ui/css';        // kit tokens + .ui-* classes
-import '@apliteni/apliteni-ui/react/css';  // React components' shell styles (modal, sort control)
-import { DataTable, Modal } from '@apliteni/apliteni-ui/react';
-```
-
-The source lives in [`react/`](./react) — a private workspace with its own build
-(tsup) and Storybook on port 6007. When 6007 is taken Storybook moves to the next
-free port, so the root Storybook does not trust the number: it probes the range
-6007 can drift into and composes the first port that proves it is this workspace's
-Storybook. A stranger on the port is never composed — the "React components"
-section is absent instead, and the terminal says why. Details in
-[`react/README.md`](./react/README.md).
-
-### Updating a busy button
-
-Keep the factory-created element in place to animate its label:
-
-```js
-import { button, setButtonBusy } from '@apliteni/apliteni-ui';
-host.innerHTML = button({ label: 'Save changes', variant: 'primary' });
-const control = host.querySelector('button');
-setButtonBusy(control, { busy: true });
-// When the request completes:
-setButtonBusy(control, { busy: false });
-```
-
-The helper keeps focus on the button, uses `aria-disabled` and blocks clicks,
-Enter and Space while busy. Its sibling polite live region announces progress and completion.
-Explicit `disabled: true` stays natively disabled. Static `button({ busy: true })`
-markup uses native disabled until the helper wires it; call `setButtonBusy` to
-switch to the focus-preserving behavior. React `<Button busy={saving}>Save changes</Button>` uses the same treatment.
-The action label slides down, three dots take its place, and the label returns from below
-when complete. Its hidden label preserves the width and accessible name. React retains
-the last ready children while busy; changed children appear on completion. Reduced
-motion switches immediately to static dots.
-See Storybook's **Button / Busy Transition** for the live vanilla example.
-
-## Theming
-
-React forms can use [Checkbox, radio and Switch](react/README.md#checkbox-and-switch)
-with native labels, keyboard behavior and controlled or uncontrolled state.
-
-React pages can use [ThemeToggle and its pre-paint script](react/README.md#themetoggle)
-to save dark, light or auto choices. Auto resolves to dark or light on the root.
-
-Theme is a `data-theme="dark|light"` attribute on `<html>`; accent is an orthogonal
-`data-accent` on top:
+Set the theme on `<html>` with `data-theme="dark|light"`. You can set an accent separately
+with `data-accent`:
 
 ```html
 <html data-theme="dark" data-accent="phoenix">
 ```
 
-Each accent re-points only the accent family (`--accent`, `--purple*`, `--glow-purple`,
-`--ring`, `--grad-*`). Surfaces, text and signal colours (green = live, pink = danger)
-stay put — so **every accent works in both themes** and every component follows with no
-component-level change.
+An accent changes only the accent family: `--accent`, `--purple*`, `--glow-purple`, `--ring`
+and `--grad-*`. Surfaces, text and signal colours remain unchanged. Green remains the live
+colour and pink remains the danger colour. As a result, every accent works in both themes
+without requiring component changes. The shipped accents are **Nebula** (purple and the
+default), **Phoenix** (ember), **Ocean** (azure) and **Emerald** (jade).
 
-Focus uses a surface-coloured gap, a solid band and a decorative glow. Tune
-`--ring-width`, `--ring-color`, `--ring-gap-width` and `--ring-gap` at the root;
-`--ring` remains the composed shadow. Kit surfaces recompose it to match their
-background, so an ancestor's custom `--ring` must also be applied on those surfaces.
-The page shell inherits root overrides; it does not introduce another composition.
-See [the focus-ring contract](docs/specification.md#the-focus-ring).
+Both attributes override the defaults. If neither is present, the kit uses dark Nebula. If
+only `data-accent` is present, the kit uses that accent with the dark theme. An absent
+`data-theme` does *not* mean “follow the system”: the kit has no `prefers-color-scheme`
+rule. If the host wants to follow the operating system preference, its JavaScript must
+choose the theme and add the attribute. See
+[an absent attribute means dark](docs/library.md#an-absent-attribute-means-dark).
 
-Both attributes are overrides, not requirements: with neither present the kit paints dark
-Nebula, and `data-accent` alone paints that accent on the dark theme. An absent `data-theme`
-is *not* "follow the system" — the kit ships no `prefers-color-scheme` rule, so a host that
-wants the OS preference resolves it in JS and stamps the attribute. See
-[`docs/library.md`](./docs/library.md#an-absent-attribute-means-dark).
+You can change the settings at runtime with `applyTheme('light')` and
+`applyAccent('phoenix')`. These functions save the choices to `localStorage`. You can also
+use `accentPicker()`, which `wireTopbar()` connects.
 
-Shipped accents: **Nebula** (purple, default), **Phoenix** (ember), **Ocean** (azure),
-**Emerald** (jade). Runtime helpers: `applyTheme('light')` / `applyAccent('phoenix')`
-(both persist to `localStorage`); or the `accentPicker()` component wired by `wireTopbar()`.
+## The rules
 
-## Layout
+The **Guidelines** explain what a page may contain, which component to choose, which states
+it must support, and how to handle colour and wording. Both kit layers follow these rules.
+The guidelines ship as Markdown in the package and are also available as a Storybook
+section.
 
-```
-src/
-  tokens/tokens.css      # colours, type, spacing, radius, elevation, motion — dark + light
-  tokens/accents.css     # accent sub-themes (data-accent) for both themes
-  styles/*.css           # one file per component (button, card, badge, segmented, input,
-                         #   table, callout, code, topbar, layout)
-  index.css              # bundler entry — import '@apliteni/apliteni-ui/css'
-  inline.js              # CSS as strings for server-render consumers (…/inline)
-  assets/                # brand mark (seedling) + line-icon set
-  components/            # HTML-string factories: button(), card(), badge(), topbar()…
-stories/                 # Storybook: Foundations, Components, Showcases
-site/                    # ui.apli.tech landing page (static site build)
-react/                   # React components — private workspace, built to react/dist/
-  dist/                  #   tsup output; shipped as …/react and …/react/css
-```
+- [guidelines/overview.md](guidelines/overview.md) — the index, and the rules the kit has yet to meet.
+- [guidelines/the-page.md](guidelines/the-page.md) — read this one before designing a screen.
+- [Guidelines in Storybook](https://ui.apli.tech/storybook/?path=/story/guidelines-overview--overview) — the same pages with live specimens.
 
-`SidebarNav` renders flat items or captioned sections with one level of nested
-disclosure, counts, disabled and danger rows, an artwork slot, and a footer slot. Its
-`renderLink(item, linkProps)` hook supports router links; spread the supplied props
-to retain names, children and current-page semantics. `collapsed` changes only
-presentation, keeping nested links reachable and named.
+## Documentation
+
+| Page | What it answers |
+| --- | --- |
+| [specification.md](docs/specification.md) | What the kit guarantees and what it refuses to do. A gate on `npm test` holds every statement. |
+| [library.md](docs/library.md) | Architecture, the `src/` layout, tokens and theming, the component catalog. |
+| [react/README.md](react/README.md) | The React components, their props, and the Storybook on port 6007. |
+| [storybook.md](docs/storybook.md) | The workbench: config, theming toolbar, story conventions. |
+| [landing-page.md](docs/landing-page.md) | ui.apli.tech: the chrome, the static build, the hosting. |
+| [changelog.md](docs/changelog.md) | The changelog's data model and its Storybook deeplinks. |
 
 ## Contribute
 
-Use Node 20 or newer. Install [jq](https://jqlang.github.io/jq/), then run `npm ci` at
-the repository root. Start Storybook with `npm run storybook`. For React, use `npm run
-storybook -w react`. Before opening a PR, run `npm test`, `npm test -w react`, `npm run
-build-storybook`, and `node site/build.mjs`.
-
-Add a general, composable kit component only when all three checks are true:
-(1) the issue names at least two products that use it or have requested it;
-(2) existing components cannot provide it without copying their markup or logic;
-(3) it contains no domain-specific data or rules. Otherwise, build the UI by
-composition and add a Storybook showcase. Keep the vanilla kit’s existing look.
-
-To add a component, put its token-based CSS in `src/styles/`. Include it in
-`src/index.css` and in both the `styles` map and `cssText` in `src/inline.js`. Add the
-HTML factory under `src/components/`, export it from `src/index.js`, and add a
-playground and state examples under `stories/components/`. Put React components in
-`react/src/`, with a test and story that use the shared classes and tokens. Read the
-[guidelines](guidelines/overview.md) for the design rules.
-
-Open an issue, branch from `main`, and link the issue in your PR. Changes to published
-files, including this README, require a version bump in `package.json` and
-`package-lock.json`, plus an entry in `site/changelog.mjs`. Merging the bump starts the
-release workflow. Do not push a tag or publish by hand.
-
-[Agent rules](AGENTS.md) cover review, data handling, and release checks.
-
-## Deploy (ui.apli.tech)
-
-The site is **100% static** (landing + hosted Storybook) — no container, no registry.
-It's served by **Lessly static hosting**, built straight from this repo. The `site`
-service builds from `main` with:
-
-```
-npm ci && npm run build-storybook && node site/build.mjs
-```
-
-and serves `site/public/`, which includes the landing page, `/changelog`, `kit.css`,
-and the Storybook folded in at `/storybook`. Push to `main` and redeploy the `site`
-service to roll it out.
-
-To reproduce the exact static bundle locally:
+Use Node 20 or newer. Install [jq](https://jqlang.github.io/jq/), then run:
 
 ```bash
-npm ci && npm run build-storybook && node site/build.mjs
-# -> site/public/   (landing + /changelog + /storybook + kit.css)
+npm ci
+npm run storybook              # the kit; add -w react for the React workspace
+npm test && npm test -w react && npm run build-storybook && node site/build.mjs
 ```
 
-## Adopting into the strategy portal
+Run the final command before opening a PR.
 
-The topbar CSS keeps the **same class names** the portal already uses (`.topbar`,
-`.brand`, `.dtsw`, `.toggle`, `.acct`, `.amenu`), and the token names match `viz/`
-verbatim — so migration is subtractive: swap the inlined token/topbar CSS for the
-package's `tokensCss` / `topbarCss` and delete the duplication. The deck (`index.html`)
-stays self-contained for the claude.ai Artifact CSP, baking tokens in via its build step.
+Add a general, composable kit component only when all three conditions are true: the issue
+names at least two products that use it or have requested it; existing components cannot
+provide it without copying markup or logic; and it contains no domain-specific data or
+rules. If any condition is missing, compose the UI from existing components and add a
+Storybook showcase. Preserve the vanilla kit's existing look.
+
+To add a component, put its token-based CSS in `src/styles/`. Include that CSS in
+`src/index.css` and in both the `styles` map and `cssText` in `src/inline.js`. Put the HTML
+factory in `src/components/` and export it from `src/index.js`. Add a playground and state
+examples in `stories/components/`. Put React components in `react/src/`; each one needs a
+test and a story that use the shared classes and tokens. The
+[guidelines](guidelines/overview.md) define the design rules.
+
+Open an issue, create a branch from `main`, and link the issue in your PR. If you change a
+published file, including this README, bump the version in `package.json` and
+`package-lock.json`, and add an entry to `site/changelog.mjs`. Merging that version bump
+starts the release workflow. Do not push a tag or publish manually.
+[AGENTS.md](AGENTS.md) describes the review, data-handling and release checks.
 
 ## License
 
-[MIT](./LICENSE) © Apliteni — for the **code**. The Apliteni name, logos, and brand
-marks are trademarks and are **not** covered by the MIT license; see [TRADEMARK.md](./TRADEMARK.md).
+[MIT](./LICENSE) © Apliteni, for the **code**. The Apliteni name, logos and brand marks
+are trademarks and are **not** covered by the MIT license — see
+[TRADEMARK.md](./TRADEMARK.md).

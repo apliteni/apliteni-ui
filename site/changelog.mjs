@@ -6,6 +6,18 @@
 
 export const RELEASES = [
   {
+    v: '0.76.0', date: '2026-10-03',
+    changes: [
+      ['added', 'Table footers are a supported surface: totals open with the strong rule, each footer label sits against the figure it names, and a label marked strong carries the weight across the whole row. Footer labels take the body cell padding in every density. If your CSS left-aligned tfoot labels itself, that override is no longer needed. See #385.', ['Table']],
+      ['fixed', 'A final body row keeps its separator when a footer follows it; previously the last row of every row group lost its rule. Numeric table headers hold one line, so a two-word header such as Amount (EUR) no longer wraps beside a wide identity column.', ['Table']],
+      ['fixed', 'The theme toggle shows the kit focus ring on keyboard focus instead of the browser\u2019s own outline, in the vanilla topbar, React ThemeToggle and the React shell alike. See #385.', ['ThemeToggle']],
+      ['added', 'A document review showcase walks one invoice through review, confirmation and the recorded result, and shows the preview loading, unavailable and refused-approval states. The review step leads with the extracted fields, in the wider column, and keeps the document a quieter preview beside them. See #385.'],
+      ['added', 'Density and accents gains a rule: emphasis follows consequence. Where a source sits beside the values a screen will save, the saved values take the leading position, the wider column, the heavier weight and whatever accent the pair carries, and a quieter block is made smaller, later or uncoloured rather than faded. The accent goes on the pane\u2019s own name as ink, never as a border around it. See #385.'],
+      ['added', 'React Card merges a caller `className` with the kit class instead of ignoring it, so a page can mark one card without hand-writing `ui-card` beside its own. Part of #385.', ['Card']],
+      ['changed', 'The packaged README is about half its old length and reads as plain English. It keeps what a consumer needs — what the kit is, install, the entry points, a vanilla and a React example, the fonts, theme and accent, and where the guidelines live — and sends the rest to the docs pages that already held it. Nothing about the package itself changed. See #385.'],
+    ],
+  },
+  {
     v: '0.75.1', date: '2026-10-02',
     changes: [
       ['fixed', 'A disabled select draws one chevron again, on its right edge, in both themes. The disabled paint was written as the `background` shorthand, which also reset the `background-image`, `-repeat` and `-position` the select draws that chevron with: in light it tiled across the whole field, and in dark it disappeared. The pager’s size control, off while a page loads, showed both. See #511.', ['Inputs']],

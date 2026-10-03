@@ -547,6 +547,14 @@
       ]
     },
     {
+      "file": "react/src/DocumentReview.test.tsx",
+      "name": "React: Document review flow",
+      "does": "Checks that the approval's pending state marks the control disabled and the step busy from one flag, that a refused approval is announced through an alert naming the cause, that the result's title stays under the page title, and that a step under Invoices reports its parent section rather than the current page.",
+      "blind": [
+        "Real browser focus rings, the sticky action row at 560px and every contrast pair; mounted tests use jsdom and the browser captures on #385 carry those."
+      ]
+    },
+    {
       "file": "react/src/Drawer.test.tsx",
       "name": "React: Drawer",
       "does": "Checks the mounted React drawer’s focus, Tab trap, Escape, scrim and close-button dismissal.",

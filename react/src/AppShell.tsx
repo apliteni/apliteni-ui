@@ -74,6 +74,10 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     setCollapsed(next);
     try { document.cookie = `apliteni-ui-rail=${next ? 'collapsed' : 'expanded'}; Max-Age=31536000; Path=/; SameSite=Lax`; } catch { /* Storage may be unavailable. */ }
   };
+  // A back link means the page on screen sits below the active row, so the row reports
+  // aria-current="true": "page" would announce the list as the page the reader is on.
+  // shell.js does the same through sidebarNav()'s `activeIs`.
+  // why: guidelines/going-back.md#keep-the-section-active
   const links = (items: AppShellSection[]) => items.map((section) => {
     const linkProps: ComponentPropsWithoutRef<'a'> = {
       href: section.href,
