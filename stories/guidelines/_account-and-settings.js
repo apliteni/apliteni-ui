@@ -69,10 +69,12 @@ export const SPEC_CSS = `
       border-radius: var(--radius-md); overflow: hidden; }
     .gas-modal__bg { position: absolute; inset: 0; }
     .gas-modal__bg .gas-shell { height: 100%; border-radius: 0; }
-    /* The drawn rail marks its current row in the accent, which is right in rule 1
-       where that rail is the subject. Under a scrim it is a clipped purple dash
-       beside the panel, marking nothing these four rules name, so it goes neutral. */
-    .gas-modal__bg .gas-row--cur {
+    /* The drawn rail marks its current row in the accent. Under a scrim that mark
+       is a clipped dash beside the panel, naming a page nobody is on, so it goes
+       neutral wherever a scrim covers it — in rule 1's frame as well, where the
+       overlay's own row is the "here" the pair is about. */
+    .gas-modal__bg .gas-row--cur,
+    .gas-frame .gas-shell__rail .gas-row--cur {
       /* ring-gap: inherit — a drawn nav row is a mark, not a control. */
       background: color-mix(in srgb, var(--muted) 45%, transparent); }
     .gas-modal__panel { position: relative; border-radius: var(--radius-md); overflow: hidden;
@@ -110,15 +112,30 @@ export const SPEC_CSS = `
       .gas-modal__body, .gas-modal--nav .gas-modal__body { display: block; height: auto; }
       .gas-modal__nav { width: auto; padding: var(--space-2);
         border-right: 0; border-bottom: 1px solid var(--border); }
+      /* Above the pane the rail's open column is a width nothing here has: at 320
+         the panel is narrower than one row, and the panel clips, so every row lost
+         58px at its right edge — two names mid-word, with no ellipsis to say so,
+         and the marked row its own border. Each row takes the width it is given. */
+      .gas-modal__nav .ui-nav--side { --ui-nav-col: 100%; }
+      /* Nothing folds in a drawing, so the reason the rail holds its names on one
+         line and ellipsises them is not in force here, and at 320 the drawn panel
+         is narrower than two of the five names. This rule is about reading them,
+         so a name too long for its row wraps instead. */
+      .gas-modal__nav .ui-nav__label { white-space: normal; }
     }
 
     .gas-acts { display: flex; justify-content: flex-end; gap: var(--space-3);
       margin-top: var(--space-4); }
 
     /* The account menu, in the flow and at its shipped width. */
-    /* Both menus stand on the taller one's own height. One row against five is the
-       whole of this rule, and a pair drawn at two heights stops being a comparison. */
-    .gas-menu { display: flex; justify-content: center; min-height: 392px; }
+    /* One row against five is the whole of this rule, and a pair drawn at two heights
+       stops being a comparison, so side by side both cells stand on the taller one.
+       The grid already gives a pair in one row a shared height; the ground takes it
+       rather than a floor of its own. A floor could not tell the two apart — the pair
+       drops single file long before any breakpoint the kit names, and stacked it only
+       printed empty card under Sign out. */
+    .gc-cell:has(.gas-menu) > .gl-stage { flex: 1; }
+    .gas-menu { display: flex; justify-content: center; }
     .gas-menu .acct { display: block; }
     .gas-menu .amenu { position: static; opacity: 1; visibility: visible;
       pointer-events: auto; transform: none; transition: none; }

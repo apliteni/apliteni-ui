@@ -225,6 +225,17 @@
   .vsw__menu { left: auto; right: 0; }
 }
 
+/* One column, and the band is at its tightest. The row is already full at 390,
+   and at the gap above this one the account avatar stood from 365 to 397 and was
+   cut at the screen edge — the one control on this screen that opens the account
+   area. Packed to --space-2 the band needs 352 of the 362 it has there, so the
+   avatar is whole with the band's own gutter beside it. 320 is still short of the
+   room these controls want, which stays #558.
+   why: docs/specification.md#breakpoints */
+@media (max-width: 560px) {
+  .topbar__in { gap: var(--space-2); }
+}
+
 /* Account — avatar + dropdown. Gated: hidden until the app confirms a session
    and adds `.on` (mirrors the portal's /auth/me reveal). */
 .acct { position: relative; display: none; }

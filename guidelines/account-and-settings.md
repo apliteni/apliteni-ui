@@ -12,6 +12,8 @@
 
 **Don't:** Slide the account area in over the product as a full-width sheet with columns inside it.
 
+**Except:** On a phone the navigation stands above the pane rather than beside it, because a column of names beside the pane leaves the pane narrower than the rows inside it. Both are on screen at once there, so the one Close is still the whole way out.
+
 **Gap #553:** The vanilla kit’s only modal is `confirm()`, a fixed question with two answers, and React’s `Modal` is one pane; neither takes a navigation pane or a width, so this shape has to be built by hand today. The kit published an account preset that drew these settings as a page, and retired it in 0.76.0 rather than keep shipping the shape this rule rejects.
 
 ## Give the modal its own navigation
@@ -20,9 +22,9 @@
 
 **Rule:** List one entry in the modal's navigation for each thing a reader arrives to change: profile, security and sessions, agents and API tokens, appearance, and notifications.
 
-**Why:** A reader already knows which of them they came for, and a list of names beside the pane is quicker to read than every group scrolled past in turn.
+**Why:** A reader already knows which of them they came for, and a list of names is quicker to read than every group scrolled past in turn.
 
-**Do:** Stand the entries beside the pane and mark the one on screen.
+**Do:** Stand the entries beside the pane — above it on a phone — and mark the one on screen.
 
 **Don't:** Drop the navigation and run all five groups down one scroll inside the modal.
 
