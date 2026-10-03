@@ -1,5 +1,5 @@
 import { tabs } from '../../src/components/tabs.js';
-import { button, badge, segmented } from '../../src/components/index.js';
+import { button, badge, segmented, card } from '../../src/components/index.js';
 
 // Interactive stories return HTML strings; the preview decorator wires them via
 // initTabs() after render (roving tabindex + Arrow/Home/End keys).
@@ -8,7 +8,10 @@ export default {
   parameters: { layout: 'centered' },
 };
 
-const bay = (html) => `<div style="width:min(560px,92vw)">${html}</div>`;
+// On the card: a panel holds prose and controls, and a switch paints
+// --surface, so on the page ground the track had nothing to stand off.
+// Measured by stories/field-ground.test.js.
+const bay = (html) => `<div style="width:min(560px,92vw)">${card({ body: html })}</div>`;
 const p = (t) => `<p style="color:var(--dim);font:400 14px/1.6 var(--font-sans);margin:0 0 16px">${t}</p>`;
 const row = (...h) => `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${h.join('')}</div>`;
 

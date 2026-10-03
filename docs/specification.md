@@ -573,6 +573,18 @@ disabled state taken off the element and the cascade read again.
 Decided in [#220](https://github.com/apliteni/apliteni-ui/issues/220), measured in
 [#201](https://github.com/apliteni/apliteni-ui/issues/201).
 
+**A field has no fill step, so the ground it is shown on decides whether its box is seen.**
+`--field-bg` and `--disabled-surface` are both `--surface` in both themes: a field is drawn by
+its edge, never by standing off what is behind it. On the card that edge measures 1.52:1 enabled
+and 1.24:1 disabled in light, and 1.27:1 either way in dark. On the PAGE ground the same disabled
+field measured 1.12:1 in light — a white box on a grey page, under an edge a shade off the page
+itself — which is what Artur reported in round r28: "Disabled fields almost invisible." So the
+kit's own gallery pages show a field on the card, which is where a form lives, and
+`stories/field-ground.test.js` holds them there and records the four readings above. A consumer
+owes a field the same: a form on the page ground gets no help from these tokens.
+
+Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551) round r28.
+
 ## Elevation
 
 **A surface casts a shadow only to say it is higher, and each theme says it its own way.**

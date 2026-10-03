@@ -659,6 +659,17 @@
         "Collisions are compared as a set of pairs rather than as coordinates, because opening a row’s gap moves the controls in it. A pair that merely moves to a different pixel of the same two controls is not reported.",
         "Two controls whose drawn boxes already overlap are left out, so a layout defect that predates the zone is not reported as one the zone caused."
       ]
+    },
+    {
+      "file": "stories/field-ground.test.js",
+      "name": "Field ground",
+      "does": "Walks every gallery under stories/components/ in both themes, composites the ground each field actually sits on, and checks that none of them is the page ground — a field paints --surface, so on the page it has no fill step and only --disabled-border left to be drawn by. Records the disabled text field's ground, fill, border, edge ratio and ink ratio per theme, and asserts its ink clears AA on the field's own paint. One mutation puts a field back on the page ground and the claim reports it.",
+      "blind": [
+        "JSDOM reads winning declarations, not pixels: a rule inside a media query is unmeasured, and so is anything that depends on layout. The Chromium captures at 1280 and 390 in both themes cover paint.",
+        "At rest only — hover, focus and active grounds belong to stories/contrast.test.js.",
+        "stories/components/ only: a guideline page's prose and a showcase's toolbar ground are those pages' decisions, not this gate's.",
+        "A contrast ratio is not legibility. The recorded edge readings are below the 3:1 non-text floor that WCAG 1.4.11 exempts a disabled control from, so they are recorded for review rather than asserted against a bar."
+      ]
     }
   ],
   "UNGATED": [

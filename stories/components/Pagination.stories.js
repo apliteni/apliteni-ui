@@ -12,7 +12,7 @@ const MIDDLE = 25;
 export default {
   title: 'Components/Pagination',
   parameters: { layout: 'fullscreen' },
-  render: (a) => pad(pagination(a)),
+  render: (a) => pad(card({ body: pagination(a) })),
   argTypes: {
     page: { control: 'number' },
     pageSize: { control: 'select', options: PAGE_SIZES },
@@ -39,14 +39,14 @@ export default {
 
 export const Playground = {};
 
-// A heading between groups of specimens. Every pager here carries its own
+// A group of specimens under its own heading, on the card. The pager carries a
+// size select and a jump input, and a field paints --surface: on the page ground
+// the inert ones had no fill and no edge left to be seen by, which is what
+// stories/field-ground.test.js measures. Every pager here carries its own
 // aria-label and its own id: several <nav>s on one page need telling apart, and
 // two labels pointing at one id is a real defect the a11y gate would catch.
-const heading = (title, note) =>
-  `<div style="margin:34px 0 6px">
-     <div style="font:600 15.5px/1.3 var(--font-sans);color:var(--strong)">${title}</div>
-     <div style="font:400 13px/1.5 var(--font-sans);color:var(--muted);max-width:62ch">${note}</div>
-   </div>`;
+const section = (title, note, ...specimens) =>
+  card({ title, sub: note, body: grid(1, ...specimens) });
 
 const at = (variant, page, extra = {}) => pagination({
   variant,
@@ -68,79 +68,82 @@ const trio = (page, where) => [
 ];
 
 export const Gallery = {
-  render: () => pad(`
-    ${heading('The three variants', `The same ${TOTAL.toLocaleString('en-US')} rows at ${DEFAULT_PAGE_SIZE} a page — ${LAST} pages — seen from the start, the middle and the end. A control at an end is disabled, never removed: it keeps its place in the row, and a screen reader still meets it.`)}
-    ${grid(
+  render: () => pad(grid(
     1,
-    ...trio(1, 'first page'),
-    ...trio(MIDDLE, `page ${MIDDLE} of ${LAST}`),
-    ...trio(LAST, 'last page'),
-  )}
-
-    ${heading('The size control', 'Offered or not, per call site. It sits between the status and the steps, so the steps stay where the reader last left them.')}
-    ${grid(
-    1,
-    specimen('With rows-per-page', pagination({
-      page: MIDDLE, pageSize: DEFAULT_PAGE_SIZE, total: TOTAL, pageSizes: PAGE_SIZES,
-      id: 'sized', label: `Pagination with a size control, page ${MIDDLE} of ${LAST}`,
-    })),
-    specimen('Without', at('steps', MIDDLE, { id: 'unsized', label: 'Pagination with no size control' })),
-  )}
-
-    ${heading('An unknown total', 'A cursor API cannot count what it has not fetched, so there is no last page to aim at: Prev and Next only, and the status says which page you are on rather than inventing a range. Next goes off when the caller says nothing follows.')}
-    ${grid(
-    1,
-    specimen('More to come', pagination({
-      page: 3, total: null, hasMore: true, id: 'open-more', label: 'Pagination, unknown total, more rows',
-    })),
-    specimen('Nothing after this page', pagination({
-      page: 3, total: null, hasMore: false, id: 'open-end', label: 'Pagination, unknown total, at the end',
-    })),
-  )}
-
-    ${heading('Loading', 'Every control off and aria-busy on the nav. Nothing moves and nothing goes: the row range stays readable while the next page arrives, which is the number the reader is waiting on.')}
-    ${grid(
-    1,
-    specimen('Steps', pagination({
-      page: MIDDLE, pageSize: DEFAULT_PAGE_SIZE, total: TOTAL, pageSizes: PAGE_SIZES, loading: true,
-      id: 'busy-steps', label: 'Pagination, loading',
-    })),
-    specimen('Numbered', pagination({
-      page: MIDDLE, pageSize: DEFAULT_PAGE_SIZE, total: TOTAL, variant: 'numbered', loading: true,
-      id: 'busy-numbered', label: 'Pagination, numbered, loading',
-    })),
-  )}
-
-    ${heading('One page of content', 'GOV.UK: “Do not show pagination if there’s only one page of content.” With sizes on offer the nav stays for the size control alone — somebody looking at 12 of 12 rows may still want a bigger page. With nothing to choose, the component renders nothing at all.')}
-    ${grid(
-    1,
-    specimen('12 rows, sizes offered', pagination({
-      page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 12, pageSizes: PAGE_SIZES,
-      id: 'single', label: 'Rows per page',
-    })),
-    specimen(
-      '12 rows, no sizes offered',
-      `<div style="border:1px dashed var(--border);border-radius:var(--radius-sm);padding:var(--space-4);color:var(--muted);font:400 13px/1.5 var(--font-sans)">`
-      + `${pagination({ page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 12 })}`
-      + 'The dashed box is this story’s, not the kit’s: pagination() returned an empty string.</div>',
+    section(
+      'The three variants',
+      `The same ${TOTAL.toLocaleString('en-US')} rows at ${DEFAULT_PAGE_SIZE} a page — ${LAST} pages — seen from the start, the middle and the end. A control at an end is disabled, never removed: it keeps its place in the row, and a screen reader still meets it.`,
+      ...trio(1, 'first page'),
+      ...trio(MIDDLE, `page ${MIDDLE} of ${LAST}`),
+      ...trio(LAST, 'last page'),
     ),
-  )}
 
-    ${heading('Pages as links', 'Given an href, a step renders as an anchor a reader can open in a new tab. An end that is off renders as a disabled button instead — an anchor has no disabled state, and a link that goes nowhere reads as available right up until it is followed.')}
-    ${grid(
-    1,
-    specimen('First page, href given', pagination({
-      page: 1, pageSize: DEFAULT_PAGE_SIZE, total: TOTAL, variant: 'numbered',
-      href: (p) => `?page=${p}`, id: 'linked', label: 'Pagination as links, first page',
-    })),
-  )}
-  `),
+    section(
+      'The size control',
+      'Offered or not, per call site. It sits between the status and the steps, so the steps stay where the reader last left them.',
+      specimen('With rows-per-page', pagination({
+        page: MIDDLE, pageSize: DEFAULT_PAGE_SIZE, total: TOTAL, pageSizes: PAGE_SIZES,
+        id: 'sized', label: `Pagination with a size control, page ${MIDDLE} of ${LAST}`,
+      })),
+      specimen('Without', at('steps', MIDDLE, { id: 'unsized', label: 'Pagination with no size control' })),
+    ),
+
+    section(
+      'An unknown total',
+      'A cursor API cannot count what it has not fetched, so there is no last page to aim at: Prev and Next only, and the status says which page you are on rather than inventing a range. Next goes off when the caller says nothing follows.',
+      specimen('More to come', pagination({
+        page: 3, total: null, hasMore: true, id: 'open-more', label: 'Pagination, unknown total, more rows',
+      })),
+      specimen('Nothing after this page', pagination({
+        page: 3, total: null, hasMore: false, id: 'open-end', label: 'Pagination, unknown total, at the end',
+      })),
+    ),
+
+    section(
+      'Loading',
+      'Every control off and aria-busy on the nav. Nothing moves and nothing goes: the row range stays readable while the next page arrives, which is the number the reader is waiting on.',
+      specimen('Steps', pagination({
+        page: MIDDLE, pageSize: DEFAULT_PAGE_SIZE, total: TOTAL, pageSizes: PAGE_SIZES, loading: true,
+        id: 'busy-steps', label: 'Pagination, loading',
+      })),
+      specimen('Numbered', pagination({
+        page: MIDDLE, pageSize: DEFAULT_PAGE_SIZE, total: TOTAL, variant: 'numbered', loading: true,
+        id: 'busy-numbered', label: 'Pagination, numbered, loading',
+      })),
+    ),
+
+    section(
+      'One page of content',
+      'GOV.UK: \u201CDo not show pagination if there\u2019s only one page of content.\u201D With sizes on offer the nav stays for the size control alone \u2014 somebody looking at 12 of 12 rows may still want a bigger page. With nothing to choose, the component renders nothing at all.',
+      specimen('12 rows, sizes offered', pagination({
+        page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 12, pageSizes: PAGE_SIZES,
+        id: 'single', label: 'Rows per page',
+      })),
+      specimen(
+        '12 rows, no sizes offered',
+        `<div style="border:1px dashed var(--border);border-radius:var(--radius-sm);padding:var(--space-4);color:var(--muted);font:400 13px/1.5 var(--font-sans)">`
+        + `${pagination({ page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 12 })}`
+        + 'The dashed box is this story\u2019s, not the kit\u2019s: pagination() returned an empty string.</div>',
+      ),
+    ),
+
+    section(
+      'Pages as links',
+      'Given an href, a step renders as an anchor a reader can open in a new tab. An end that is off renders as a disabled button instead \u2014 an anchor has no disabled state, and a link that goes nowhere reads as available right up until it is followed.',
+      specimen('First page, href given', pagination({
+        page: 1, pageSize: DEFAULT_PAGE_SIZE, total: TOTAL, variant: 'numbered',
+        href: (p) => `?page=${p}`, id: 'linked', label: 'Pagination as links, first page',
+      })),
+    ),
+  )),
 };
 
 // Where a pager actually lives: under a table, inside the card the table sits
-// in. The gallery above is on the page ground, and a boxless disabled button
-// reads differently on every ground, so this is the specimen #273 was judged on —
-// First and Prev off beside Next and Last on, at the first page and the last.
+// in, with the card's own title above it. This is the specimen #273 was judged
+// on — First and Prev off beside Next and Last on, at the first page and the
+// last. The gallery above used to be the other half of that pair, read on the
+// page ground; it is on the card now, so a boxless disabled button is judged on
+// the one ground the kit puts a pager on.
 export const InACard = {
   name: 'In a card',
   render: () => pad(grid(
