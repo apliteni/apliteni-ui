@@ -40,7 +40,7 @@ export const Playground = {};
 const heading = (title, note) =>
   `<div style="margin:34px 0 12px">
      <div style="font:600 15.5px/1.3 var(--font-sans);color:var(--strong)">${title}</div>
-     <div style="font:400 13px/1.5 var(--font-sans);color:var(--muted);max-width:70ch">${note}</div>
+     <div style="font:400 13px/1.5 var(--font-sans);color:var(--text);max-width:70ch">${note}</div>
    </div>`;
 
 // The three layouts side by side, over the same four figures, so a difference
@@ -67,9 +67,8 @@ export const Gallery = {
 export const States = {
   render: () => pad(
     heading('Nothing to compare',
-      'A figure with no earlier value shows the value and stops. It is never shown as +0%, and the band does '
-      + 'not say in words that it has nothing to say &mdash; beside figures that do carry a change, that is noise. '
-      + 'Why there is nothing to compare is the caller’s to say, in a caption, or to leave unsaid.')
+      'A figure with no earlier value shows its value and stops &mdash; never +0%, and never words saying '
+      + 'there is nothing to say.')
     + statBand({
       id: 'states-none',
       basis: BASIS,
@@ -90,11 +89,8 @@ export const States = {
       ],
     })
     + heading('Context that is not a change',
-      'A share of a larger figure is neither a change nor a trend, so it takes the row a change would have taken. '
-      + 'A figure says one thing in that row &mdash; a caption, a change, or a caption leading one &mdash; so the '
-      + 'changes stay on one line across a band whose figures differ. A caption earns that row only by giving a '
-      + 'unit, a period or a limit the figure cannot: a rate could be of income or of orders, so it says which. '
-      + 'Gross margin names its own denominator, so it takes no caption.')
+      'A caption takes the row a change would have taken, and earns it only by giving a unit, a period or a '
+      + 'limit the figure cannot. Gross margin names its own denominator, so it takes none.')
     + statBand({
       id: 'states-caption',
       basis: BASIS,
@@ -106,9 +102,8 @@ export const States = {
       ],
     })
     + heading('How long a caption can be',
-      'A row holding a change is one line, so a caption past the figure\u2019s width is clipped there rather than '
-      + 'wrapped: a wrapped row would put the arrow on one line and its number on the next and drop this change '
-      + 'below the ones beside it. The third figure is past the width, and the whole caption stays in the markup.')
+      'A row holding a change is one line: a caption too long for it is clipped, because wrapping would drop '
+      + 'that change below the ones beside it.')
     + statBand({
       id: 'states-caption-length',
       basis: BASIS,
@@ -120,9 +115,8 @@ export const States = {
       ],
     })
     + heading('A caption standing alone keeps every word',
-      'A caption with no change beside it has no arrow and no number to keep together, so it is never clipped: '
-      + 'it wraps to a second line when the figure is too narrow for it. The caption cut short above reads in '
-      + 'full here.')
+      'With no change to hold on one line, a caption wraps instead of clipping. The caption cut short above '
+      + 'reads in full here.')
     + statBand({
       id: 'states-caption-wraps',
       basis: BASIS,
@@ -133,13 +127,13 @@ export const States = {
       ],
     })
     + heading('Measured against something else',
-      'A figure compared with its own target says so after the change, where it always has. A caption never costs '
-      + 'a reader that comparison: the row reads what the value is, how it moved, and what it moved against.')
+      'A caption never costs a reader the comparison: a change measured against its own target still says so '
+      + 'after the change.')
     + statBand({
       id: 'states-caption-basis',
       stats: [
         { label: 'Refunds', value: '2.4%', caption: 'of income', delta: { value: '+0.3 pts', tone: 'bad', basis: 'against plan' } },
-        { label: 'Net margin', value: '8.0%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
+        { label: 'Net margin', value: '8.0%', delta: { value: '−4.0 pts', tone: 'bad', basis: 'against the 12% target' } },
       ],
     })
     + heading('Figures only', 'No change and no trend: a label and a value is a complete band.')

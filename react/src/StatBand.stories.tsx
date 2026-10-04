@@ -18,11 +18,9 @@ export const Tiles: StoryObj = { render: () => <StatBand stats={STATS} basis={BA
 export const Band: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="band" /> };
 export const Open: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="open" /> };
 
-// A share of a larger figure takes the row a change would have taken, so a band
-// where only some figures carry one still keeps its changes on one line. A caption
-// earns that row only by giving a unit, a period or a limit the figure cannot —
-// a rate could be of income or of orders. Gross margin names its own denominator,
-// so it takes none.
+// A caption earns the row a change would have taken only by giving a unit, a
+// period or a limit the figure cannot: a rate could be of income or of orders.
+// Gross margin names its own denominator, so it takes none.
 export const Caption: StoryObj = {
   render: () => (
     <StatBand
@@ -37,23 +35,22 @@ export const Caption: StoryObj = {
   ),
 };
 
-// The row is one line: a caption past the figure's width is clipped, and a change
-// measured against its own target still says so after the change. Where a tile is
-// too narrow to show that comparison whole, the change carries it in a `tooltip`,
-// which the kit Tooltip opens on hover, on keyboard focus and on touch — so the
-// words a sighted reader cannot finish reading are a press away rather than gone.
+// The row is one line, so words past the figure's width are clipped there. A
+// caption is kept short enough to read; a change's own comparison can outrun a
+// narrow tile, so it carries a `tooltip` the kit Tooltip opens on hover, on
+// keyboard focus and on touch.
 export const CaptionLength: StoryObj = {
   render: () => (
     <StatBand
       basis={BASIS}
       stats={[
         { label: 'Gross margin', value: '36.1%', delta: { value: '+1.2 pts', tone: 'good' } },
-        { label: 'Refunds', value: '2.4%', caption: 'of income, excluding disputed chargebacks', delta: { value: '+0.3 pts', tone: 'bad' } },
+        { label: 'Refunds', value: '2.4%', caption: 'of income, net of disputes', delta: { value: '+0.3 pts', tone: 'bad' } },
         {
           label: 'Unclassified',
           value: '1.3%',
           caption: 'of income',
-          delta: { value: '−0.4 pts', tone: 'good', basis: 'against the 1% target', tooltip: '−0.4 points against the 1% target' },
+          delta: { value: '−0.7 pts', tone: 'good', basis: 'against the 2% target', tooltip: '−0.7 points against the 2% target' },
         },
         { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
       ]}
@@ -61,10 +58,10 @@ export const CaptionLength: StoryObj = {
   ),
 };
 
-// A figure with nothing to compare shows its value and stops, keeping only the
-// caption the caller gave it. Saying "no earlier figure" in words beside figures
-// that do carry a change is noise — Artur, 2026-10-02. Why there is nothing to
-// compare is the caller's to say, in a caption, or to leave unsaid.
+// A figure with nothing to compare shows its value and stops. Saying "no earlier
+// figure" in words beside figures that do carry a change is noise — Artur,
+// 2026-10-02. Why there is nothing to compare is the caller's to say, in a
+// caption, or to leave unsaid.
 export const NothingToCompare: StoryObj = {
   render: () => (
     <StatBand
