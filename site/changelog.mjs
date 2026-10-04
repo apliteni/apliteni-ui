@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.85.0', date: '2026-10-04',
+    changes: [
+      ['fixed', 'A dropdown the keyboard opens puts focus inside itself for a reader who asked for reduced motion. The panel opened and focus stayed on the trigger: under the reduced-motion net an element naming no transition property of its own still transitions the inherited visibility, so everything inside the panel was still hidden in the frame the dropdown focused into it, and focus() on a hidden element does nothing. An open panel now carries no transition inside it at all. The search field, the topbar account menu and the version switcher were the three affected. Fixes #519.', ['Dropdown', 'Topbar']],
+      ['fixed', 'The account menu\u2019s keyboard-focused row draws the whole focus ring. The panel clipped at its own edge with no padding, so a three-pixel ring had one pixel to draw in and arrived as two accent bars above and below the row. The panel now pads by six pixels and its rows are rounded plates inside that padding, the way every other menu in the kit is already built; the header and the separators still reach the panel\u2019s edges, and the rows\u2019 content stays on the line it was on. See #519.', ['Topbar']],
+    ],
+  },
+  {
     v: '0.84.0', date: '2026-10-04',
     changes: [
       ['added', 'Stat band figures take a `caption` for context that is not a change, such as what a rate is a share of. It takes the one row under the value, with no arrow and no colour, and leads that row when the figure also has a change, so the row reads what the value is, how it moved and what it moved against. Give a figure a caption only when it adds a unit, a period or a limit the value and its label cannot carry: a rate could be of income or of orders, so it says which, while `Gross margin 36.1%` already names its own denominator and takes none. Keep it to a short phrase. Vanilla and React. Resolves #497.', ['StatBand']],

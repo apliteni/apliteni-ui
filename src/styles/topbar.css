@@ -188,7 +188,7 @@
   transition: background var(--dur-fast) var(--ease);
 }
 /* Menu rows use the reading surface and an edge on hover — see
-   src/styles/dropdown.css:166 `.ui-dropdown__item:hover`.
+   src/styles/dropdown.css:176 `.ui-dropdown__item:hover`.
    why: docs/specification.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 /* The row is a keyboard stop: src/components/dropdown.js:554
@@ -269,7 +269,12 @@
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: 14px;
-  overflow: hidden;
+  /* Room for the ring a focused row draws 3px outside itself; this panel clipped at its
+     own edge instead, and the ring arrived as two bars. The 6px is what
+     `.ui-dropdown__panel` and `.vsw__menu` already pad by. #519
+     why: docs/specification.md#a-menu-panel-keeps-the-room-its-rows-need */
+  --amenu-pad: 6px;
+  padding: var(--amenu-pad);
   opacity: 0;
   visibility: hidden;
   pointer-events: none; /* see .vsw__menu above */
@@ -290,16 +295,20 @@
   transform: translateY(0);
   transition-property: opacity, transform;
 }
-.amenu .ahead { padding: 13px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 11px; }
+/* Header and separator still reach the edges, pulling back through that padding the way
+   `.ui-dropdown__head` does. why: docs/specification.md#a-menu-panel-keeps-the-room-its-rows-need */
+.amenu .ahead { margin: calc(var(--amenu-pad) * -1) calc(var(--amenu-pad) * -1) 0; padding: 13px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 11px; }
 .amenu .ahead .avatar { cursor: default; }
 .amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu .ahead .aem { color: var(--text); font-size: calc(var(--text-xs) + 0.5px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: var(--text-sm); cursor: pointer; }
+/* A plate inside that padding, rounded like `.ui-dropdown__item`. The horizontal padding
+   gives back what the panel took, so the row's content stays on the header's line. */
+.amenu a { display: flex; align-items: center; gap: 11px; padding: 10px calc(15px - var(--amenu-pad)); border-radius: var(--radius-sm); color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: var(--text-sm); cursor: pointer; }
 .amenu a:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
-.amenu a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+.amenu a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .amenu a.cur { color: var(--accent); }
 .amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.85; }
-.amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }
+.amenu .asep { height: 1px; background: var(--border); margin: 5px calc(var(--amenu-pad) * -1); }
 .amenu a.aout { color: var(--text); }
 .amenu a.aout:hover { color: var(--pink); }
