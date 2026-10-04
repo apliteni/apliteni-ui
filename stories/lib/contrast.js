@@ -784,6 +784,8 @@ const SHARD = new URL('./contrast-shard.mjs', import.meta.url);
  * Linux host, the walk alone: one thread 178.6s wall and 188s of CPU, four threads 62.4s
  * and 231s, eight threads 56.3s and 259s. The last four threads buy six seconds of wall
  * clock for twenty-eight of CPU, and on a saturated box that CPU is the suite's own.
+ *
+ * Measured before the catalogue grew by one story file; the ratio is what matters here.
  */
 export function walkShards(files = storyFiles) {
   const asked = Number.parseInt(process.env.CONTRAST_SHARDS ?? '', 10);

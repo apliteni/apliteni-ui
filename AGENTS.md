@@ -23,7 +23,7 @@ can find them. Add new test directories to both the guard and the glob in `npm t
 
 While you work, run `node --test <file>` for the files you changed. Run both suites once
 for the pull request, on a Linux host where you have one. Their budgets, measured on an
-idle 8-core Linux host: `npm test` 2m41s, `npm test -w react` 1m18s.
+idle 8-core Linux host: `npm test` 2m56s, `npm test -w react` 1m08s.
 
 Each suite run ends with its ten slowest tests and files, and anything over budget: 5
 seconds a test, 10 for a browser test, 60 for one file. That report never fails a run.
