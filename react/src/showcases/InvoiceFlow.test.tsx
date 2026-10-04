@@ -67,6 +67,33 @@ describe('invoice flow prototype', () => {
     expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Cedar Studio');
     expect(screen.getByText('Needs review')).toBeInTheDocument();
   });
+  it('undoes a save on a Ready invoice back to Ready, not to Needs review', async () => {
+    // The record birch-208.pdf was Ready before the save, so undoing that save owes the
+    // reader the status it had as well as the values.
+    const user = userEvent.setup();
+    render(<InvoiceFlow initialState="table" />);
+    await user.click(screen.getByRole('button', { name: 'birch-208.pdf' }));
+    expect(screen.getByText('Ready')).toBeInTheDocument();
+    const supplier = screen.getByRole('textbox', { name: 'Supplier' });
+    await user.clear(supplier); await user.type(supplier, 'Birch Joinery');
+    await user.click(screen.getByRole('button', { name: 'Save invoice' }));
+    expect(screen.getByText('Saved for this session.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Undo last save' }));
+    expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Birch Workshop');
+    expect(screen.getByText('Ready')).toBeInTheDocument();
+    expect(screen.queryByText('Needs review')).not.toBeInTheDocument();
+  });
+  it('keeps the undo snapshot when a second save changes nothing', async () => {
+    const user = userEvent.setup();
+    render(<InvoiceFlow initialState="table" />);
+    await user.click(screen.getByRole('button', { name: 'birch-208.pdf' }));
+    await user.type(screen.getByRole('textbox', { name: 'Supplier' }), ' Ltd');
+    await user.click(screen.getByRole('button', { name: 'Save invoice' }));
+    await user.click(screen.getByRole('button', { name: 'Save invoice' }));
+    await user.click(screen.getByRole('button', { name: 'Undo last save' }));
+    expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Birch Workshop');
+    expect(screen.getByText('Ready')).toBeInTheDocument();
+  });
   it('undoes unsaved edits and validates required fields and positive totals', async () => {
     const user = userEvent.setup();
     render(<InvoiceFlow initialState="editing" />);

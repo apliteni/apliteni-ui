@@ -14,7 +14,9 @@ type Line = { description: string; quantity: string; amount: string };
    objects on purpose: a preview built from `fields` can never disagree with the form
    beside it, and disagreeing is the only thing the comparison is for. */
 type Paper = { supplier: string; address: string; reference: string; issued: string; due: string; lines: Line[]; subtotal: string; vat: string; total: string };
-type Invoice = { name: string; filename: string; status: Status; fields: Fields; original: Fields; paper?: Paper; previous?: Fields; file?: File };
+/* `previous` is the whole record a save replaced, status included: restoring the fields
+   alone put a Ready invoice back as Needs review. */
+type Invoice = { name: string; filename: string; status: Status; fields: Fields; original: Fields; paper?: Paper; previous?: { fields: Fields; status: Status }; file?: File };
 export type InvoiceState = 'empty' | 'table' | 'uploading' | 'parsing' | 'review' | 'editing' | 'ready' | 'error';
 
 const BILL_TO = 'Example Company, 5 Quay Road, Riverton';
@@ -134,14 +136,21 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
       // A rejected save saved nothing, so the success line goes with it.
       setInvalid(true); setMessage(''); return;
     }
-    setInvoices(rows => rows.map(row => row.name === invoice.name ? { ...row, previous: row.fields, fields: { ...draft }, status: 'Ready' } : row));
+    setInvoices(rows => rows.map(row => {
+      if (row.name !== invoice.name) return row;
+      // A save that changes nothing keeps the snapshot the previous one made, so pressing
+      // Save twice does not erase what Undo would restore.
+      const changes = JSON.stringify(draft) !== JSON.stringify(row.fields) || row.status !== 'Ready';
+      return { ...row, previous: changes ? { fields: row.fields, status: row.status } : row.previous, fields: { ...draft }, status: 'Ready' };
+    }));
     setInvalid(false); setMessage('Saved for this session.');
   };
   const undo = () => {
     if (!invoice) return;
-    const restored = dirty ? invoice.fields : invoice.previous ?? invoice.fields;
+    const restored = dirty ? invoice.fields : invoice.previous?.fields ?? invoice.fields;
+    const status = invoice.previous?.status;
     setDrafts(values => ({ ...values, [invoice.name]: { ...restored } }));
-    if (!dirty && invoice.previous) setInvoices(rows => rows.map(row => row.name === invoice.name ? { ...row, fields: { ...restored }, previous: undefined, status: 'Needs review' } : row));
+    if (!dirty && status) setInvoices(rows => rows.map(row => row.name === invoice.name ? { ...row, fields: { ...restored }, previous: undefined, status } : row));
     setInvalid(false); setMessage(dirty ? 'Edits discarded.' : 'Last save undone.');
   };
   const chip = (glyph: string, label: string) => <span className="invoice-flow__status"><Icon name={glyph} />{label}</span>;

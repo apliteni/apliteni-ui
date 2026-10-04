@@ -60,6 +60,12 @@
   .invoice-flow__drop { padding: var(--space-3); }
   .invoice-flow .ui-empty__actions { flex-wrap: wrap; justify-content: center; }
 }
+/* The kit grows a control's tap layer only as far as its container declares clearance,
+   and this row declared none, so Save and Discard stopped at their drawn 33px. The row
+   opens downward — across it is already wide enough — and the buttons keep their size. */
+@media (max-width: 560px) and (pointer: coarse) {
+  .invoice-flow__actions { row-gap: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+}
 .invoice-flow h1:focus { outline: none; }
 .invoice-flow .ui-app__search, .invoice-flow .ui-cmdk__key,
 .invoice-flow .ui-app__av, .invoice-flow .toggle,
