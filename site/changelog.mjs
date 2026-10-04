@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.78.0', date: '2026-10-04',
+    changes: [
+      ['added', 'React FileDrop is the compact drop: at rest one row with the Upload button and the accepted types beside it, and a drop target painted only while a file is over the region it covers. Your application owns the upload and supplies the file it is holding; a file given with no status is uploading, so the kit never reports a success you have not claimed. A file in hand reads as a stack rather than a line: the name on top with the actions at its end, the size — or the failure message — under it, and the progress track the full width below. No tier takes a second line; the name truncates its stem and keeps its extension, and nothing is hidden or moved at any width. Where you give a progress value the track is the status, so the row spends no word on it and the word travels as the track’s accessible name. Closes #507.'],
+      ['added', 'Guidelines / File drop sets seven rules for receiving a file: spend one row at rest, paint the target only while a file is over it, keep the file in the row it arrived in, fail in place, offer a button rather than only a drag, state the limits once, and choose between a row, a region and a dialog. Closes #507.'],
+    ],
+  },
+  {
     v: '0.77.0', date: '2026-10-04',
     changes: [
       ['fixed', 'Every box the kit scrolls now answers the keyboard with a focus indicator of the kit\u2019s own instead of the browser\u2019s outline. A card around a table, a scrolling table wrapper, a dropdown\u2019s search list, a drawer\u2019s body, a confirm\u2019s consequence, the command palette\u2019s list and the React modal\u2019s body took that outline \u2014 black in both themes and blind to the accent \u2014 because a browser makes an overflowing box a keyboard stop with no `tabindex` and no author rule. The underline tab strip and the application rail stay as they are, and now say why: each holds its own tabbable rows, so the browser gives the scrolling box no stop of its own. Nothing is drawn differently until a box takes focus. Closes #531.', ['Card', 'Table', 'Dropdown', 'Drawer', 'Confirm', 'CommandPalette', 'Modal', 'Shell']],

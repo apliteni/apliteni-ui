@@ -3267,3 +3267,89 @@ Held by `stories/snippet-focus.test.js`, which emulates forced colors by flatten
 the media block and dropping every box-shadow; keyboard reachability, the gap
 colour, the colour the system repaints an outline as, and pixels are checked in
 Chromium because JSDOM cannot prove any of them.
+
+## React file drop
+
+`FileDrop` is the compact drop: at rest, one row holding the button that opens the
+system picker and, beside it, the accepted types and the size limit in the
+consumer's words. The field-sized dashed box stays with `FileField`, which is a
+labelled form control. `guidelines/file-drop.md` states when a page uses a row, a
+region or a dialog.
+
+The consumer owns the upload. `FileDrop` reports a chosen or dropped file through
+`onFile` and renders the `file` it is given: name, an already-written `size`, and
+the status. A file with no `status` is uploading, so the kit never reports a
+success the consumer has not claimed.
+
+A status the row draws carries a circled mark and a word — "Uploading",
+"Uploaded", or the `error` — because colour alone is not a status. A measurable
+upload is the one exception: where `progress` is given the track is the status, so
+the row spends no word on it and the word travels instead as the track's own
+accessible name, `"Uploading statement-2026-08.pdf"`. An upload with no
+measurable progress keeps the word, because nothing else there says what it is
+doing. `state` replaces the word on an uploading or uploaded file, and replaces it
+in the track's name too. `Remove` and `Retry` appear only when `onRemove` and
+`onRetry` are supplied, so no row offers an action nobody handles. Remove is the
+icon-only `x` named by `removeLabel`, which defaults to "Remove file"; `x` is on
+the kit's icon-only list and `refresh` is not, so Retry keeps a visible word. A
+failed file keeps its name and puts its message under it with `role="alert"`, and
+drops its size, because the tier has room for the message or the size and only
+one of them says what to do next. The kit does not announce the change from
+uploading to uploaded; a consumer that needs that announcement owns the live
+region. `accept` filters the system picker only, and the consumer still validates
+type and size.
+
+A file in hand is a stack of one-line tiers, not a line. The name owns the top
+tier with the actions at its end; what the page has a rule about — the size while
+it uploads, the message when it is refused — sits on the tier under it; and the
+progress track runs the full width below both. One line asked to carry the name,
+the size, a status word, a track and the buttons at 320px gave the name 62px and
+truncated the failure message, which is the one string on the row that has to be
+read in full. The stack is after Uppy's Dashboard, and Carbon, Drive and Dropbox
+each refuse the same trade: the name gets a line, and the state is said once.
+
+No tier ever takes a second line. The name truncates instead, and it truncates
+its stem while keeping its extension — `frankfurt-settlement-state….pdf`, the way
+Finder, Drive and Dropbox cut a name — because a row cut to
+`frankfurt-settlement-state…` has stopped saying what kind of file it is holding.
+The cost is a small gap before the extension while the stem is cut. The full name
+stays in a `title`, as does a truncated status word. The tiers are one spacing
+step apart, the step below it inside a tier; the actions are the kit's small
+buttons at the size the resting row already uses, and they close the name's line
+on the edge it ends on.
+
+One layout at every width: nothing is hidden, dropped or moved at a breakpoint,
+so the sheet carries no container query. Measured in Chromium at 1280, 390 and
+320 alike, a row with a measurable upload is 73px over three tiers, and every
+other state a file is in — starting, uploaded, failed — is 59px over two. A
+resting row is 32px, the kit's small-control row, wherever its note sits beside
+its button; below about 250px of block width the note wraps under it and the row
+is 59px. At 320 in a panel the truncated name keeps 256px while uploading and
+168px when it has failed, against the 62px and 113px the single line gave it. The
+kit draws these in a panel, and `--panel-sm` is 320px.
+
+Below the phone step a coarse pointer gets the kit's 44px target on `Retry` and
+`Remove`: the pair opens to the tap gap and each button's transparent layer
+grows into the clearance the row's floor leaves around it. The buttons are not
+drawn any larger.
+
+The drop target is painted only while a file is over the region, and it covers
+that region rather than joining it, so the row keeps its place while the reader
+aims. Children render above the row inside the same region, which is how one
+panel — or a whole page — becomes the target. The component tracks drag events
+over its own root and ignores a drag that carries no file; passing `dragging`
+overrides that, so a parent listening on its own region decides. A disabled drop
+paints no target and takes no file, and it does not call `preventDefault` on
+`dragover`, so it never declares itself a drop target the pointer can aim at.
+
+The picker opens from a real kit button, and the native input is hidden rather
+than laid over it: a one-row control has no field label to name an overlaid
+input, and the button keeps the kit's own focus ring. The input is cleared after
+each choice, so choosing the same file again reports it; nothing is submitted
+with a form, because the file travels through `onFile`.
+
+Covered by `react/src/FileDrop.test.tsx`, which does not open the system picker,
+measure the target's cover or the focus ring, or check screen-reader speech, and
+by `stories/row-height.test.js`, which reads the sheet in CI and measures the
+tiers, the heights and the truncation in a browser under `ROW_HEIGHTS=1`.
+Closes [#507](https://github.com/apliteni/apliteni-ui/issues/507).

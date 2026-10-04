@@ -17,6 +17,7 @@ import * as floorContent from './_accessibility-floor.js';
 import * as paginationContent from './_pagination.js';
 import * as statContent from './_stat-bands.js';
 import * as drawerContent from './_drawer.js';
+import * as fileDropContent from './_file-drop.js';
 import * as motionContent from './_motion.js';
 import * as paletteContent from './_command-palette.js';
 import * as hoverContent from './_hover-readouts.js';
@@ -39,6 +40,7 @@ import * as floorStory from './AccessibilityFloor.stories.js';
 import * as paginationStory from './Pagination.stories.js';
 import * as statStory from './StatBands.stories.js';
 import * as drawerStory from './Drawers.stories.js';
+import * as fileDropStory from './FileDrop.stories.js';
 import * as motionStory from './Motion.stories.js';
 import * as paletteStory from './CommandPalette.stories.js';
 import * as hoverStory from './HoverReadouts.stories.js';
@@ -66,6 +68,7 @@ const ENTRIES = [
   [paginationContent, paginationStory],
   [statContent, statStory],
   [drawerContent, drawerStory],
+  [fileDropContent, fileDropStory],
   [motionContent, motionStory],
   [paletteContent, paletteStory],
   [hoverContent, hoverStory],

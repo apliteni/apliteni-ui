@@ -79,6 +79,8 @@ export type { TabsProps, TabItem } from './Tabs';
 export { Timeline } from './Timeline';
 export type { TimelineProps, TimelineEvent, TimelineEventKind } from './Timeline';
 export { Field, TextField, TextArea, SelectField, FileField } from './Field';
+export { FileDrop } from './FileDrop';
+export type { FileDropProps, FileDropFile, FileDropStatus } from './FileDrop';
 export type { FieldProps, FieldControlProps, TextFieldProps, TextAreaProps, SelectFieldProps, FileFieldProps } from './Field';
 export { SearchField } from './SearchField';
 export type { SearchFieldProps } from './SearchField';
