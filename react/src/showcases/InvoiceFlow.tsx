@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppShell } from '../AppShell';
 import { DataTable } from '../DataTable';
 import { EmptyState } from '../EmptyState';
@@ -16,7 +16,7 @@ type Line = { description: string; quantity: string; amount: string };
 type Paper = { supplier: string; address: string; reference: string; issued: string; due: string; lines: Line[]; subtotal: string; vat: string; total: string };
 /* `previous` is the whole record a save replaced, status included: restoring the fields
    alone put a Ready invoice back as Needs review. */
-type Invoice = { name: string; filename: string; status: Status; fields: Fields; original: Fields; paper?: Paper; previous?: { fields: Fields; status: Status }; file?: File };
+type Invoice = { name: string; filename: string; status: Status; fields: Fields; paper?: Paper; previous?: { fields: Fields; status: Status }; file?: File };
 export type InvoiceState = 'empty' | 'table' | 'uploading' | 'parsing' | 'review' | 'editing' | 'ready' | 'error';
 
 const BILL_TO = 'Example Company, 5 Quay Road, Riverton';
@@ -68,7 +68,7 @@ const SAMPLES: { name: string; filename: string; status: Status; parsed: Fields;
   },
 ];
 const sampleFields: Fields = { ...SAMPLES[0].parsed };
-const samples = (): Invoice[] => SAMPLES.map(({ parsed, ...rest }) => ({ ...rest, fields: { ...parsed }, original: { ...parsed } }));
+const samples = (): Invoice[] => SAMPLES.map(({ parsed, ...rest }) => ({ ...rest, fields: { ...parsed } }));
 const statusIcon = (status: Status) => status === 'Ready' ? 'circleCheck' : status === 'Needs review' ? 'circleAlert' : 'clock';
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
 const money = (value: string) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(Number(value));
@@ -125,7 +125,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
     if (files.some(file => !/\.(pdf|png|jpe?g)$/i.test(file.name))) {
       setError('Choose PDF, PNG or JPEG files. No files were added.'); return;
     }
-    const added = files.map(file => ({ name: `upload-${++sequence.current}`, filename: file.name, file, status: 'Uploading' as Status, fields: { ...sampleFields }, original: { ...sampleFields } }));
+    const added = files.map(file => ({ name: `upload-${++sequence.current}`, filename: file.name, file, status: 'Uploading' as Status, fields: { ...sampleFields } }));
     setNavigated(true); setInvoices(rows => [...rows, ...added]); setSelected(null); setError('');
     setMessage(`${files.length} ${files.length === 1 ? 'invoice added' : 'invoices added'}. Upload and parsing are simulated.`);
   };
@@ -154,12 +154,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
     setInvalid(false); setMessage(dirty ? 'Edits discarded.' : 'Last save undone.');
   };
   const chip = (glyph: string, label: string) => <span className="invoice-flow__status"><Icon name={glyph} />{label}</span>;
-  /* An accent bar marks a value the reader has not touched since extraction — the ones
-     still to check against the document. Editing one clears it. */
-  const asParsed = (key: keyof Fields) => !!invoice && draft[key] === invoice.original[key];
-  const marked = (key: keyof Fields, control: ReactNode) => <div className="invoice-flow__field" data-parsed={asParsed(key) || undefined}>{control}</div>;
   const edit = (key: keyof Fields) => (event: { target: { value: string } }) => setDrafts(values => ({ ...values, [invoice!.name]: { ...draft, [key]: event.target.value } }));
-  const provenance = (key: keyof Fields) => asParsed(key) ? 'As parsed' : 'Edited';
 
   return <div className={`invoice-flow${navigated ? ' invoice-flow--navigated' : ''}`} ref={root} onClick={event => {
     const link = (event.target as HTMLElement).closest('a[href="#invoices"]');
@@ -174,21 +169,19 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
       <p className="invoice-flow__note">Parsing uses sample data. Files and edits stay in this tab until reload.</p>
       <p className="invoice-flow__announcement" role="status">{message}</p>
       {invoice ? <>
-        <div className="invoice-flow__summary" role="status">{dirty || invalid ? chip('circleAlert', 'Unsaved changes') : chip(statusIcon(invoice.status), invoice.status)}</div>
         <div className="invoice-flow__columns">
           <section className="invoice-flow__data" data-live={simulate || undefined} aria-labelledby="parsed-title" aria-busy={pending || undefined}>
             <h2 id="parsed-title">Invoice data</h2>
             {pending ? <EmptyState icon="clock" title={invoice.status === 'Uploading' ? 'Adding invoice…' : 'Reading invoice…'} sub="The sample fields will appear here when parsing finishes."
               actions={!simulate && <Button onClick={() => setInvoices(rows => rows.map(row => row.name === invoice.name ? { ...row, status: 'Needs review' } : row))}>Finish demo parsing</Button>} /> : <form noValidate onSubmit={event => { event.preventDefault(); save(); }}>
-              <p>An accent bar marks a value still exactly as the parser read it. Check each one against the document, then save.</p>
               <div className="invoice-flow__fields">
-                {marked('supplier', <TextField label="Supplier" required value={draft.supplier} hint={provenance('supplier')} error={invalid && !draft.supplier.trim() ? 'Enter the supplier.' : undefined} onChange={edit('supplier')} />)}
-                {marked('reference', <TextField label="Invoice number" required value={draft.reference} hint={provenance('reference')} error={invalid && !draft.reference.trim() ? 'Enter the invoice number.' : undefined} onChange={edit('reference')} />)}
-                {marked('date', <TextField label="Invoice date" required hint={provenance('date')} value={draft.date} error={invalid && !validDate(draft.date) ? 'Enter a valid date as YYYY-MM-DD.' : undefined} onChange={edit('date')} />)}
-                {marked('total', <TextField label="Total (EUR)" required type="number" min="0.01" step="0.01" hint={provenance('total')} value={draft.total} error={invalid && (!Number.isFinite(Number(draft.total)) || Number(draft.total) <= 0) ? 'Enter an amount greater than zero.' : undefined} onChange={edit('total')} />)}
+                <TextField label="Supplier" required value={draft.supplier} error={invalid && !draft.supplier.trim() ? 'Enter the supplier.' : undefined} onChange={edit('supplier')} />
+                <TextField label="Invoice number" required value={draft.reference} error={invalid && !draft.reference.trim() ? 'Enter the invoice number.' : undefined} onChange={edit('reference')} />
+                <TextField label="Invoice date" required value={draft.date} error={invalid && !validDate(draft.date) ? 'Enter a valid date as YYYY-MM-DD.' : undefined} onChange={edit('date')} />
+                <TextField label="Total (EUR)" required type="number" min="0.01" step="0.01" value={draft.total} error={invalid && (!Number.isFinite(Number(draft.total)) || Number(draft.total) <= 0) ? 'Enter an amount greater than zero.' : undefined} onChange={edit('total')} />
               </div>
               {invalid && <p role="alert">Check the highlighted fields before saving.</p>}
-              <div className="invoice-flow__actions"><Button variant="primary" type="submit">Save invoice</Button><Button variant="ghost" disabled={!dirty && !invoice.previous} onClick={undo}>{dirty ? 'Discard edits' : 'Undo last save'}</Button></div>
+              <div className="invoice-flow__actions"><Button variant="primary" type="submit">Save invoice</Button><Button variant="secondary" disabled={!dirty && !invoice.previous} onClick={undo}>{dirty ? 'Discard edits' : 'Undo last save'}</Button></div>
             </form>}
           </section>
           <section className="invoice-flow__preview" aria-labelledby="document-title">

@@ -9,6 +9,14 @@
 .invoice-flow .ui-app__rail { border-right: 1px solid var(--border); }
 .invoice-flow h1 { overflow-wrap: anywhere; }
 .invoice-flow h2 { font-size: var(--text-lg); margin: 0 0 var(--space-4); }
+/* Of the two panes, the one whose values a save writes carries the pair's accent, and it
+   carries it as ink on its own name. Not a line: an edge drawn strongly enough to read as
+   the signal is an outlined box, which is what the per-field rules removed in #459 r33 had
+   become. Same answer, same reason, as .doc-flow__saved-pane .ui-card__title. The ground is
+   --table-bg, set at the top of this sheet, and stories/accent-contrast.test.js holds
+   --accent as text on it across all eight theme x accent cells.
+   why: guidelines/density-and-accents.md#follow-the-consequence */
+.invoice-flow__data > h2 { color: var(--accent); }
 .invoice-flow h3 { font-size: var(--text-md); margin: 0; }
 .invoice-flow p { max-width: var(--prose-body); }
 .invoice-flow__note { font-size: var(--text-sm); margin: 0; }
@@ -16,7 +24,7 @@
 .invoice-flow__announcement:empty { display: none; }
 /* No vertical margin of its own: .ui-app__body is a flex column with the kit's page
    gap, so a margin here is added to that gap rather than replacing it. */
-.invoice-flow__summary, .invoice-flow__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin: 0; }
+.invoice-flow__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin: 0; }
 .invoice-flow__status, .invoice-flow__error { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
 /* icon() emits a bare <svg>; `.ui-icon` is only on the shell's hand-drawn fold glyph, so
    this has to name the element to reach these. At 16px, 2.4 paints 1.6 CSS px. */
@@ -25,7 +33,9 @@
 .invoice-flow__columns { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--space-10); align-items: start; }
 .invoice-flow__data { grid-column: 1; grid-row: 1; }
 .invoice-flow__preview { grid-column: 2; grid-row: 1; min-width: 0; }
-.invoice-flow__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); margin: var(--space-6) 0; }
+/* No top margin: the sentence that stood between the heading and the fields is gone, so
+   the h2's own bottom margin sets that gap, as it does everywhere else in this sheet. */
+.invoice-flow__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); margin: 0 0 var(--space-6); }
 .invoice-flow__paper { border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-6); font-size: var(--text-sm); }
 .invoice-flow__paper p { margin: var(--space-5) 0; }
 .invoice-flow__paper dl { margin: var(--space-8) 0; }
@@ -33,10 +43,6 @@
 .invoice-flow__paper dd { margin: 0; font-variant-numeric: tabular-nums; }
 .invoice-flow__preview img, .invoice-flow__preview iframe { width: 100%; border: 1px solid var(--border); }
 .invoice-flow__preview iframe { height: var(--panel-lg); }
-/* The accent marks provenance, not rank: a rule above a field means the value is still
-   exactly what the parser extracted, so it is one the reader has yet to check. */
-.invoice-flow__field { border-block-start: 2px solid transparent; padding-block-start: var(--space-3); }
-.invoice-flow__field[data-parsed] { border-block-start-color: var(--accent); }
 .invoice-flow__paper-line { margin: var(--space-3) 0; }
 .invoice-flow__paper table { width: 100%; border-collapse: collapse; margin: var(--space-6) 0; }
 .invoice-flow__paper th, .invoice-flow__paper td { text-align: start; font-weight: var(--weight-normal); padding: var(--space-2) 0; border-block-end: 1px solid var(--border); }
