@@ -58,10 +58,10 @@ export const CaptionLength: StoryObj = {
   ),
 };
 
-// A figure with nothing to compare shows its value and stops. Saying "no earlier
-// figure" in words beside figures that do carry a change is noise — Artur,
-// 2026-10-02. Why there is nothing to compare is the caller's to say, in a
-// caption, or to leave unsaid.
+// A figure with nothing to compare shows its value and stops: Artur marked the
+// row that said "No earlier figure" with "Noise?" on 2026-10-02, and beside
+// figures that do carry a change that sentence earns no room. Why there is
+// nothing to compare is the caller's to say, in a caption, or to leave unsaid.
 export const NothingToCompare: StoryObj = {
   render: () => (
     <StatBand

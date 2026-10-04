@@ -2518,10 +2518,11 @@ than a figure.
 the test `guidelines/text-length.md` already sets for a caption, and a figure's caption is held to
 it: a rate could be a share of income or of orders, so it says which, and a figure whose label
 already names its denominator takes no caption — `Gross margin 36.1%` is complete, and `of income`
-under it only repeats the word `margin`. Artur struck every caption the showcase drew on
-2026-10-02 with one word, **"Noise?"**, and this is the rule that replaced them: the kit still
-offers the row, and a caption that tells a reader nothing the figure and its label already tell
-them does not belong in it. The row is a slot the caller may leave empty, and most figures should.
+under it only repeats the word `margin`. Artur wrote **"Noise?"** against one row on 2026-10-02;
+read against `useful-captions`, every caption the showcase drew then failed the same test, and
+this is the rule that replaced them: the kit still offers the row, and a caption that tells a
+reader nothing the figure and its label already tell them does not belong in it. The row is a slot
+the caller may leave empty, and most figures should.
 
 **A caption never costs a reader the comparison.** A change's own `basis` is printed whether or
 not the figure has a caption, because a `basis` is passed exactly when a figure is measured
