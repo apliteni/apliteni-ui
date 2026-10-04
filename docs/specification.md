@@ -610,7 +610,7 @@ owes a field the same: a form on the page ground gets no help from these tokens.
 `stories/lib/field-ground.js`. It mounts every story the workspace exports in both themes and
 reads the ground under each field, so a React story that stages a field on `--bg` fails. The rule
 is the kit's, so a gate that walked only the HTML galleries left the published React stories free
-to break it, and 23 stories in five files did.
+to break it, and 27 stories in six files did.
 
 Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551) round r28; the React half
 in [#568](https://github.com/apliteni/apliteni-ui/issues/568).
