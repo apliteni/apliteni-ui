@@ -6,9 +6,16 @@
 
 export const RELEASES = [
   {
-    v: '0.84.1', date: '2026-10-04',
+    v: '0.85.1', date: '2026-10-04',
     changes: [
       ['changed', 'The packaged manifest\u2019s `test` script now ends a run with its ten slowest tests and files, and says which of them are over the stated budget. That report never fails a run. It is for whoever contributes to the kit; nothing the kit ships behaves differently. See #560.'],
+    ],
+  },
+  {
+    v: '0.85.0', date: '2026-10-04',
+    changes: [
+      ['fixed', 'A dropdown the keyboard opens puts focus inside itself for a reader who asked for reduced motion. The panel opened and focus stayed on the trigger: under the reduced-motion net an element naming no transition property of its own still transitions the inherited visibility, so everything inside the panel was still hidden in the frame the dropdown focused into it, and focus() on a hidden element does nothing. An open panel now carries no transition inside it at all. The search field, the topbar account menu and the version switcher were the three affected. Fixes #519.', ['Dropdown', 'Topbar']],
+      ['fixed', 'The account menu\u2019s keyboard-focused row draws the whole focus ring. The panel clipped at its own edge and padded by nothing, so a three-pixel ring had one pixel to draw in and arrived as two accent bars above and below the row. The panel clips nothing now. Its rows keep the geometry they had \u2014 nothing moves, and no colour or token changes \u2014 so the ring crosses the panel\u2019s edge, standing two pixels outside its border, and a hovered last row\u2019s square fill reaches past the panel\u2019s rounded bottom corners with it. See #519.', ['Topbar']],
     ],
   },
   {

@@ -484,9 +484,12 @@ component cannot forget.
 
 The net gives every element a 0.01ms transition, and a child whose `visibility` is inherited then
 turns visible one tick after its parent. An overlay that focuses a control in the frame it opens
-would find that control still hidden. So an open drawer and an open confirm carry no transition
-inside them at all — for as long as they are open, not only in the frame they open — and focus
-lands where it does with motion on. Held by `stories/overlay-css.test.js`.
+would find that control still hidden. So an open drawer, an open confirm, an open palette and an
+open dropdown panel carry no transition inside them at all — for as long as they are open, not only
+in the frame they open — and focus lands where it does with motion on. Held by
+`stories/overlay-css.test.js` for the first two, and for every curtain in the kit by
+`stories/reveal-focus.test.js`, which discovers them rather than listing them. The dropdown panel
+was the one nothing asked, and #519 is what that cost.
 
 Held by `stories/motion-tokens.test.js`, which reads the four tokens out of the table above at run
 time, resolves each through `tokens.css` into the brand primitive it aliases and checks the
@@ -1952,7 +1955,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:230 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:240 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the
@@ -2086,9 +2089,70 @@ first and not the second, and a gate that reads one sheet cannot tell. So the ga
 rule on its own: the panel in place and the portalled panel carry one `pointer-events: auto` each,
 and either alone used to satisfy one assertion standing for both.
 
+**And nothing inside it is held either.** The rule above answers for the panel and not for its
+contents, and under reduced motion an element that names no property of its own still transitions
+the inherited `visibility` — the mechanism is
+[Reduced motion travels with the stylesheet](#reduced-motion-travels-with-the-stylesheet). So an
+open panel carries no transition inside it at all, for as long as it is open.
+[#519](https://github.com/apliteni/apliteni-ui/issues/519) is what that cost: the search field was
+hidden in the frame `openDropdown()` focused it, so the panel stood open with the reader's focus
+left on the trigger, and the topbar's account menu lost its first row the same way. Measured in
+Chrome with reduced motion forced, before and after. One rule says it for all three menus, keyed on
+the hook they share rather than on any one sheet's class: `.open > [data-dropdown-panel] *`, with
+`[data-dropdown-panel].is-open *` for the portalled panel.
+
+Held by `stories/reveal-focus.test.js`, which finds every `visibility: hidden` curtain in the kit's
+sheets rather than taking a list, opens each one that takes focus with the kit's own wiring and
+fails any element inside it that the net does not reach — so the next component to hide itself this
+way is asked the question too. A curtain that holds nothing focusable is named there with the reason
+it is exempt. `react/src/Dropdown.test.tsx` asks the React panel the same question, because the rule
+is in the sheet both faces load and what the React side owes is markup the rule can reach.
+
 Held by `src/components/dropdown.test.js`, which reads the offsets out of the stylesheet — any
 panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom
 property — and feeds the wiring measured rects, JSDOM having no layout of its own.
+
+## A menu panel does not cut off its rows' ring
+
+The kit ring is drawn outside the border box of whatever has focus: one pixel of gap and two of
+ring, from `--ring-gap-width` and `--ring-width`. A row that fills its panel from edge to edge draws
+that ring on the panel's own border and past it. So a menu panel has to leave it one of two ways
+out, and there are only two: **keep the three pixels inside the panel as padding, so the ring lands
+in the padding; or clip nothing at the panel's edge, so the ring crosses it.** A panel that does
+neither cuts the ring away, and the reader gets two accent bars, above and below the row, where a
+ring was meant to be.
+
+`.ui-dropdown__panel` takes the first way out, padding by `--ui-dropdown-pad` and rounding its rows
+with `--radius-sm`; `.vsw__menu` pads by the same six pixels. `.amenu`, the account menu, did
+neither: it padded by nothing and set `overflow: hidden`, which is why it was the one menu in the
+kit whose ring had a single pixel to draw in.
+[#519](https://github.com/apliteni/apliteni-ui/issues/519) is where that became visible, because
+that is the fix that put a reduced-motion reader's focus on the row in the first place.
+
+**`.amenu` takes the second way out: it clips nothing.** Its rows keep the geometry they had — the
+same padding, the same full-bleed band, the header and the separators still reaching the panel's
+edges — and the ring crosses the panel's edge instead of being cut at it. Two things follow from
+that and are accepted: the ring stands two pixels outside the panel's border on each side, which no
+other ring in the kit does, and the hovered last row's square fill reaches past the panel's 14px
+radius at the bottom two corners. Artur chose that over padding the panel and moving its rows; the
+alternative and the rejected third option are recorded on #519.
+
+Measured in Chrome, both themes, at 1280 and 390: the ring is whole on all four sides of the focused
+row, where before it was two bars.
+
+Held by `stories/panel-ring-room.test.js`, which asks every panel the dropdown wiring opens for one
+of the two ways out, reading the ring's spread from `--ring-gap-width` and `--ring-width` at run
+time. It discovers its subjects twice and requires the two readings to agree. It reads the kit's own
+sources, `src/` and `react/src/`, for every place that writes `data-dropdown-panel` into markup,
+naming each panel by the first class on the marked element itself — whichever order that element
+writes the two attributes in, and stopping rather than borrowing a class off a neighbouring element;
+and it reads back the panels its own fixtures render through the factories. Every panel in the first
+reading has to be in the second. So a factory that marks a fourth panel stops the gate until
+somebody renders it here and it is measured with the rest — the case a list of hand-picked examples
+cannot see, and the one the gate proves by building that factory in a string, in either attribute
+order, and failing on each. What it cannot see is pixels: it reads the sheet, and the ring itself was
+measured in a browser. It also asks the panel and not its ancestors, none of which clips here. The
+limits are written beside it.
 
 ## A filter row holds its panels
 
