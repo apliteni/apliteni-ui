@@ -153,6 +153,15 @@ to three short sentences, with no praise, no filler and no test diary. Add detai
 migration step or a behaviour limit. `site/changelog.mjs` stays pure — no git and no filesystem;
 `site/build.mjs` owns the git calls. Keep deploy specifics out of committed files.
 
+## Check the phone end space locally
+
+Before opening a PR that changes `--ui-app-bottom-clearance`, the React shell's phone
+padding or `.ui-app__main`'s own, measure the end of a phone page in a real browser:
+`npm run build-storybook -w react`, then
+`UI_PLAYWRIGHT=… UI_CHROME=… BOTTOM_CLEARANCE=1 node --test src/styles/bottom-clearance.test.js`
+Report the result in the PR. Playwright is not a dependency and CI runs only this gate's
+source half, which reads sheets and lays nothing out.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.

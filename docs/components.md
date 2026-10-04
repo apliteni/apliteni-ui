@@ -783,7 +783,9 @@ that swallowed Space would also prevent the reader from scrolling the page.
   link — draws no rail, no fold control and no bottom bar;** the brand lockup moves to the band
   and the section stays in the command palette. One section under a child page is a destination,
   the page's parent, so that list is drawn and the row takes `aria-current="true"`. It publishes `--ui-app-bottom-clearance`, the
-  height of that bar plus the device's safe-area inset. **Page bottom padding, root scroll padding and the toast
+  height of that bar plus the device's safe-area inset. **A phone page whose shell draws no bar
+  keeps the ordinary end space the kit gives every phone page:** the reservation disappears
+  without taking that space with it. **Page bottom padding, root scroll padding and the toast
   stack all keep that clearance,** so scrolling an action into view never parks it behind the
   bar.
 - **`SidebarNav`** accepts flat items or captioned sections, nested groups, counts and
