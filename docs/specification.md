@@ -2936,7 +2936,9 @@ than that: a short table ends where its values end instead of stretching, which 
 an amount a screen away from its label in
 [#504](https://github.com/apliteni/apliteni-ui/issues/504), and a table whose cells need more
 width than the room renders exactly as before and is carried by its scroll region. Marking a
-text cell `.ui-table__title` gives that column the width left over.
+text cell `.ui-table__title` gives that column the width left over. Below the phone step a
+table marked `.ui-table--stack` is the exception: it lays each row out as a block rather than
+as a table, so it fills its column and there is no content width left to size to.
 
 Nothing sizes a table to the parts attached to it. React `DataTable` caps its pager at the
 measured width of the table it pages: the strip ends where the table ends, starts where the
