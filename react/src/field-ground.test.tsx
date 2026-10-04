@@ -98,9 +98,10 @@ const files = Object.keys(modules).sort();
 /**
  * Every story, with the render CSF3 would give it: its own, the meta's, or — for a
  * story that is nothing but `args` — `<component {...args} />`, which is what
- * Storybook renders for one. Thirteen stories in this catalogue have no render fn
- * of their own or their meta's, and without this fallback all thirteen would leave
- * the walk without being measured and without saying so.
+ * Storybook renders for one. Ten stories in this catalogue reach the walk only this
+ * way — Callout's six and FilterBar's four — and without the fallback all ten would
+ * leave it without being measured and without saying so. Thirteen did before #568
+ * gave SearchField's meta a render of its own.
  */
 const found = files.flatMap((file) => {
   const mod = modules[file];
@@ -182,7 +183,7 @@ describe('field ground: React coverage', () => {
       .toBe(found.length * THEMES.length);
     // Not a floor: every story the catalogue exports. A story the walk cannot
     // render is a hole in the measurement, and before #568 added the `args`
-    // fallback above there were thirteen of them.
+    // fallback above there were thirteen such holes.
     expect(found.map((s) => s.id).sort(), 'a story the walk could not render')
       .toEqual(exported.sort());
   });
