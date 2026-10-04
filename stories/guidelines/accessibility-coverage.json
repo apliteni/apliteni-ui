@@ -398,6 +398,16 @@
       ]
     },
     {
+      "file": "stories/reveal-focus.test.js",
+      "name": "Reveal focus",
+      "does": "Finds every surface in the kit's sheets that hides itself with visibility: hidden, rather than taking a list, and requires each one to be classified. A surface the kit focuses into is opened with the kit's own wiring, and every element inside it must be reached by a reduced-motion rule that switches transitions off: the net's 0.01ms transition on `all` holds an inherited, discrete visibility at hidden for the tick a focus call happens in, which is #519. A surface holding nothing focusable carries the reason it is exempt instead, and a new one nobody classifies fails the gate.",
+      "blind": [
+        "Whether a browser obeys the rules. jsdom evaluates no media query and runs no transition, so the cover is matched against markup and never run.",
+        "Which element the kit focuses. Cover is asked of every element inside an open surface, not of the focus target alone.",
+        "A surface hidden by a consumer's own sheet, or a visibility written into an inline style by a script."
+      ]
+    },
+    {
       "file": "stories/motion-coverage.test.js",
       "name": "Motion coverage",
       "does": "Finds every state rule that shows, hides or moves an element. It requires a transition or entrance animation between states, or a motion: still note explaining why. It also records the motion the reduced-motion net must stop.",
