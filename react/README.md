@@ -700,3 +700,89 @@ the accent from a checked box.
 <Checkbox label="Full access" type="radio" name="scope" value="full" />
 <Switch label="Email notifications" checked={email} onChange={event => setEmail(event.currentTarget.checked)} />
 ```
+
+## DatePicker
+
+`DatePicker` picks one month (`mode="month"`, the default), a range of months
+(`mode="range"`), one date (`mode="day"`) or a range of dates (`mode="day-range"`). It
+uses the dropdown's own trigger and panel, so it sits beside a `Dropdown` as the same
+control. Periods are ISO strings in the mode's grain: `'2026-08'` for months,
+`'2026-08-14'` for dates. Pass `value`/`onChange` for the single-period modes and
+`range`/`onRangeChange` for the two range modes, or `defaultValue`/`defaultRange` to
+leave the state to the component. Import both the kit CSS and the React CSS.
+
+```tsx
+<DatePicker value={month} onChange={setMonth}
+  min="2025-01" max="2026-12" disabledPeriods={['2026-07']} />
+
+<DatePicker mode="range" range={span} onRangeChange={setSpan}
+  presets={[{ label: 'This year', range: { start: '2026-01', end: '2026-12' } }]} />
+
+<DatePicker mode="day-range" range={span} onRangeChange={setSpan}
+  presets={[{ label: 'This week', range: { start: '2026-09-14', end: '2026-09-20' } }]} />
+```
+
+**The trigger shows the value and nothing else.** There is no field name in front of it:
+"Period: Apr 2026 – Aug 2026" says "period" twice, and the picker has no word to add that
+the value does not already carry. Where the surrounding screen leaves the control
+unexplained, name it with `ariaLabel`, which names the trigger and the panel without
+drawing anything.
+
+**The grid has one tab stop.** The arrows move one period and one row, Home and End go to
+the ends of the row — they never leave the month, so the blank slots a day grid pads its
+first and last weeks with are not somewhere they can take you — Page Up and Page Down
+move a year in the month modes and a month in day mode, Enter and Space pick, and Escape
+closes and returns focus to the trigger. A move past the edge of the shown year or month
+turns the page and keeps the reader on the period they moved to. Each cell's accessible
+name says what the cell is: `selected` for the pick in every mode, plus `range start`,
+`range end` and `in range` in range mode, and `this month` or `today`.
+
+**Bounds hold against your code as well as the reader's.** `min`, `max` and
+`disabledPeriods` are `string`, so a period in the other grain is converted rather than
+dropped: in day mode `min="2026-09"` is 1 September and `max="2026-09"` is the 30th, and
+`disabledPeriods={['2026-09']}` blocks the whole month; in month mode a date means the
+month it falls in. Blocked cells get `aria-disabled` and refuse the press while staying
+focusable. A page step with nowhere to go is disabled.
+
+**A range mode takes a start, then an end**, staying open in between; a second pick above
+or below the first always reads as the same range, so the ends swap rather than
+restarting. `range` and `day-range` differ only in grain — a range may run past the page
+it started on, and the span is painted on both pages.
+`onRangeChange` fires on each end, so `{ start, end: null }` reaches you too. `presets`
+set both ends at once and are held to the same bounds the grid is: a preset that overruns
+them is clamped, one with no overlap at all is disabled, and one whose end lands on a
+blocked period is disabled too rather than quietly moved inwards. A blocked period between
+the two ends is still inside the range you are handed — `{ start, end }` is a pair and
+spans it — and says so in its accessible name; only the tint is withheld, because the
+disabled ink over it cannot be read. To exclude a period, split the range and show two
+pickers.
+
+**Blocked beats every other state in the paint, and the label is struck through.** Block
+the period your own `value` names and the cell goes bare, keeping its place by weight
+rather than wearing the accent fill under disabled ink; the strike is what says
+unavailable before the pointer is anywhere near it. A cell under the pointer takes the
+kit's neutral row hover, so the accent stays on the pick and the span. Its name still
+says `selected` and the gridcell still carries `aria-selected`: it is still your value,
+it just cannot be pressed.
+
+**The period you are in now wears a ring** — hollow for the period you are in, filled for
+the one you chose — and the cell's own name says "this month" or "today". Nothing is drawn
+under the grid to explain it: a key is a second place to read, and these marks are the
+ones a calendar has always drawn. There is no slot for a consumer's own note on a period
+either; a 5px dot can only be read against a key, and a note about a period belongs on the
+surface that shows that period's numbers. The month grid draws its twelve names at one
+length — "Sep", not en-GB's "Sept" — so no cell reads as emphasised; a locale that numbers
+its months keeps its own names.
+
+**Below 560px the panel is a bottom `Drawer`**, so the sheet has the kit's scrim, close
+control and focus trap and the page behind it is inert. Pass `sheet` to force that at any
+width — a host that already knows it is on a phone, or one rendering where no viewport
+can be read, should, because the picker reads the viewport with `matchMedia` and starts
+as the popover until it has.
+
+Pass `today` (a `'YYYY-MM-DD'` date) to fix what the grid calls today — stories and tests
+use it to stay the same whenever they run. `locale` names the months and weekdays,
+`weekStartsOn` sets the first column in day mode, and `align="end"` hangs the panel off
+the trigger's trailing edge. Without `ariaLabel` the trigger's own text is its accessible
+name, so a control reading "17 September 2026" is heard as that rather than as its
+placeholder. The popover stays mounted while closed, and is `inert` while it is.

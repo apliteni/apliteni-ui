@@ -59,6 +59,10 @@ export const PAGE_SIZES: readonly number[] = KIT_PAGE_SIZES;
 export const DEFAULT_PAGE_SIZE: number = KIT_DEFAULT_PAGE_SIZE;
 export { Skeleton, SkeletonTable, BusyRegion, Denied } from './Loading';
 export type { SkeletonProps, SkeletonTableProps, BusyRegionProps, DeniedProps } from './Loading';
+export { DatePicker } from './DatePicker';
+export type {
+  DatePickerProps, DatePickerMode, DatePickerRange, DatePickerPreset,
+} from './DatePicker';
 export { Dropdown } from './Dropdown';
 export type {
   DropdownProps, DropdownItem, DropdownEntry, DropdownSection, DropdownSeparator,
