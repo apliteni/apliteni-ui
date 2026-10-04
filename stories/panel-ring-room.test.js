@@ -13,10 +13,11 @@
 // closes: `.ui-dropdown__panel` pads by --ui-dropdown-pad and `.vsw__menu` by the same
 // six pixels, each because somebody chose well rather than because anything asked.
 //
-// Subjects are discovered, not listed: every panel the kit's own factories mark with
-// `data-dropdown-panel`, which is the hook wireDropdown() opens and the hook the
-// reduced-motion rule in dropdown.css is keyed on. A fourth menu built on that wiring
-// is measured here the day it is written.
+// Subjects are discovered twice and the two readings have to agree. One is the kit's own
+// sources: every place under src/ and react/src/ that writes `data-dropdown-panel` into
+// markup, named by the first class the marked element carries. The other is this file's
+// fixtures, read back out of the DOM. A factory that marks a fourth panel is in the first
+// and not the second, so the gate stops until somebody renders it here and measures it.
 //
 // Coverage limits:
 // - This reads the stylesheet, not a browser. It checks that the panel declares the
@@ -24,6 +25,10 @@
 //   measures no pixels. The ring was measured in Chrome for #519, before and after.
 // - Only the panel's own base rule is read. Padding a media query adds or takes away is
 //   not seen, and neither is padding on a wrapper between the panel and its rows.
+// - Only the first class on a marked element is read: the one the panel's own sheet
+//   styles it under. A second — `dropdown({ panelClass })` — is the caller's to answer for.
+// - The source reading covers src/ and react/src/, the trees the package ships. A panel
+//   hand-written into an example page is not read; those pages compose the factories.
 // - It does not ask whether the rows take the ring at all. `.vopt:focus-visible` never
 //   names `.vsw__menu`, so pairing a panel to its rows from the selectors alone would
 //   be guesswork. stories/focus-ring.test.js is the gate that asks every stop for a
@@ -49,7 +54,51 @@ for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLEl
 const { dropdown } = await import('../src/components/dropdown.js');
 const { versionSwitcher, accountMenu } = await import('../src/components/topbar.js');
 
-/* -- the subjects --------------------------------------------------------------- */
+/* -- the subjects, read out of the kit's sources --------------------------------- */
+
+const sourceFiles = ['src', 'react/src'].flatMap((base) => readdirSync(base, { recursive: true })
+  .map(String).filter((file) => /\.(js|mjs|ts|tsx)$/.test(file) && !/\.test\./.test(file))
+  .map((file) => `${base}/${file}`));
+
+/** Comments out, newlines kept, so prose about the attribute is never read as markup. */
+const code = (text) => text
+  .replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '))
+  .replace(/(^|[^:])\/\/[^\n]*/g, (whole, lead) => lead + ' '.repeat(whole.length - lead.length));
+
+/**
+ * Every panel a source marks, by the class its own sheet styles it under.
+ *
+ * The attribute written into markup is the subject; `[data-dropdown-panel]` inside a
+ * selector string is the wiring reading it back, and is skipped. The name is the first
+ * class on the marked element, which both faces write as the first literal of its class
+ * expression: `class="amenu"`, `class="${esc(cx('ui-dropdown__panel', …))}"` and
+ * `className={cx('ui-dropdown__panel', …)}` all start with the panel's own class.
+ */
+const panelsIn = (text) => {
+  const found = [];
+  for (const mark of code(text).matchAll(/(?<![[\w-])data-dropdown-panel(?![\w-\]])/g)) {
+    const before = code(text).slice(0, mark.index);
+    const attrs = [...before.matchAll(/class(?:Name)?\s*=/g)];
+    assert.ok(attrs.length, 'a source marks a panel with no class attribute before it');
+    const name = /['"`]\s*([a-z][\w-]*)/.exec(before.slice(attrs[attrs.length - 1].index));
+    assert.ok(name, 'a source marks a panel whose class this gate cannot read');
+    found.push(name[1]);
+  }
+  return [...new Set(found)].sort();
+};
+
+/** name -> the files that mark it, so a failure says where the panel came from. */
+const declared = (() => {
+  const found = new Map();
+  for (const file of sourceFiles) {
+    for (const name of panelsIn(readFileSync(file, 'utf8'))) {
+      found.set(name, [...(found.get(name) ?? []), file]);
+    }
+  }
+  return found;
+})();
+
+/* -- the subjects, rendered here -------------------------------------------------- */
 
 const items = [{ label: 'Germany', value: 'de', selected: true }, { label: 'France', value: 'fr' }];
 const markup = [
@@ -59,17 +108,16 @@ const markup = [
   accountMenu({ name: 'Ada Lovelace', email: 'ada@apliteni.com' }),
 ].join('');
 
-/** Every panel the wiring opens, named by the class its own sheet styles it under. */
-const panels = (() => {
+/** Every panel the wiring opens here, named by the class its own sheet styles it under. */
+const rendered = (() => {
   const host = dom.window.document.createElement('div');
   host.innerHTML = markup;
-  const found = new Map();
+  const found = new Set();
   for (const el of host.querySelectorAll('[data-dropdown-panel]')) {
     // The first class is the element's own; `is-scroll` and the portal flag are states.
-    const name = el.classList[0];
-    if (!found.has(name)) found.set(name, el.className);
+    found.add(el.classList[0]);
   }
-  return [...found.keys()].sort();
+  return [...found].sort();
 })();
 
 /* -- the stylesheets ------------------------------------------------------------ */
@@ -115,24 +163,43 @@ const spread = (() => {
   return read('--ring-gap-width') + read('--ring-width');
 })();
 
+/* -- what the gate asserts, as functions the mutations below can call -------------- */
+
+/** The two readings have to name the same panels. Throws with the side that is short. */
+const reconcile = (fromSource, here) => {
+  const unmeasured = [...fromSource.keys()].filter((name) => !here.includes(name)).sort();
+  assert.deepEqual(unmeasured, [], unmeasured.length
+    ? `a factory marks a panel this gate never renders, so nothing measures it:\n  ${
+      unmeasured.map((name) => `.${name} in ${fromSource.get(name).join(', ')}`).join('\n  ')
+    }\n  render it in the fixtures above and read the measurement below.`
+    : '');
+  const unsourced = here.filter((name) => !fromSource.has(name)).sort();
+  assert.deepEqual(unsourced, [],
+    `a fixture renders a panel no source marks: ${unsourced.map((n) => `.${n}`).join(', ')
+    }; the source reading has broken, or the factory has gone.`);
+};
+
+/** The panels short of the room, named with the rule that is short. `find` is injectable. */
+const shortOf = (names, find = baseRule) => names.map((name) => {
+  const rule = find(name);
+  assert.ok(rule, `no base rule for .${name}; this gate reads the panel's own rule and found none`);
+  const room = roomIn(rule);
+  assert.notEqual(room, null, `.${name} writes a padding this gate cannot resolve to px: ${declaration(rule.body, 'padding')}`);
+  return room < spread ? `.${name} in ${rule.file}: ${room}px of padding for a ${spread}px ring` : null;
+}).filter(Boolean);
+
 /* -- the gate -------------------------------------------------------------------- */
 
-test('the wiring opens exactly the panels this gate knows about', () => {
-  assert.deepEqual(panels, ['amenu', 'ui-dropdown__panel', 'vsw__menu'],
-    'a panel was added to or taken from the dropdown wiring; measure it below before changing this list');
+test('every panel the kit marks is a panel this gate renders', () => {
+  reconcile(declared, rendered);
+  assert.ok(rendered.length >= 3, `only ${rendered.length} panel(s) found; the kit has had three since #519,`
+    + ' so a reading that finds fewer has broken rather than the kit having shrunk');
   assert.equal(spread, 3, 'the ring\'s spread changed; every panel\'s padding has to be re-read against it');
 });
 
 test('every panel gives its rows the room the ring needs', () => {
-  const short = [];
-  for (const name of panels) {
-    const rule = baseRule(name);
-    assert.ok(rule, `no base rule for .${name}; this gate reads the panel's own rule and found none`);
-    const room = roomIn(rule);
-    assert.notEqual(room, null, `.${name} writes a padding this gate cannot resolve to px: ${declaration(rule.body, 'padding')}`);
-    if (room < spread) short.push(`.${name} in ${rule.file}: ${room}px of padding for a ${spread}px ring`);
-  }
-  assert.deepEqual(short, [], `a menu panel clips its rows' focus ring:\n  ${short.join('\n  ')}`);
+  assert.deepEqual(shortOf(rendered), [],
+    `a menu panel clips its rows' focus ring:\n  ${shortOf(rendered).join('\n  ')}`);
 });
 
 test('the gate fails when a panel takes that room back', () => {
@@ -141,4 +208,25 @@ test('the gate fails when a panel takes that room back', () => {
   const weakened = { ...rule, body: rule.body.replace(/padding:\s*var\(--amenu-pad\);/, '') };
   assert.equal(roomIn(weakened), 0, 'the mutation did not land — .amenu no longer writes its padding this way');
   assert.ok(roomIn(weakened) < spread, 'a panel with no padding has to read as short of the ring\'s spread');
+});
+
+test('the gate fails when a factory marks a panel nobody measured', () => {
+  // A fourth factory as one would be written, and the clipping edge-to-edge rule that
+  // goes with forgetting this guarantee. Both live in these strings; nothing is written.
+  const source = 'export const reviewMenu = ({ name }) => `<div class="review" data-dropdown>'
+    + '<button class="review__btn" data-dropdown-trigger>${name}</button>'
+    + '<div class="review__menu" data-dropdown-panel role="menu">${rows()}</div></div>`;';
+  assert.deepEqual(panelsIn(source), ['review__menu'],
+    'the source reading no longer picks a panel\'s own class out of a factory');
+
+  // It is in the source reading and not in the fixtures, so the first test stops.
+  const added = new Map([...declared, ['review__menu', ['src/components/review.js']]]);
+  assert.throws(() => reconcile(added, rendered), /never renders/,
+    'a factory can mark a panel this gate does not render and still pass');
+
+  // And had somebody rendered it, its own rule reads as short of the ring.
+  const sheet = { file: 'src/styles/review.css', selector: '.review__menu', body: 'overflow: hidden; border-radius: var(--radius-md);' };
+  assert.deepEqual(shortOf(['review__menu'], () => sheet),
+    ['.review__menu in src/styles/review.css: 0px of padding for a 3px ring'],
+    'an unpadded, clipping panel has to read as short of the ring\'s spread');
 });

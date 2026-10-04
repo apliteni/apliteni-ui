@@ -2105,18 +2105,24 @@ padded by nothing and set `overflow: hidden` instead, which is why it was the on
 whose ring had a single pixel to draw in.
 [#519](https://github.com/apliteni/apliteni-ui/issues/519) is where that became visible, because
 that is the fix that put a reduced-motion reader's focus on the row in the first place. Measured in
-Chrome, both themes: one pixel of side room before, six after.
+Chrome, both themes, from the panel's border edge to the row's: one pixel before, which is the
+panel's own border, and seven after — that border plus six pixels of padding, with the ring's three
+inside the padding.
 
 A panel's header and its separators still reach its edges, by pulling back through that padding with
 `calc(var(--amenu-pad) * -1)` — the same move `.ui-dropdown__head` and `.ui-dropdown__foot` make, and
 for the same reason. The rows give back horizontally what the panel took, so a row's icon and its
 label stay on the line the header's own avatar and name are on.
 
-Held by `stories/panel-ring-room.test.js`, which discovers its subjects from the markup rather than a
-list: every element the kit's factories mark `data-dropdown-panel` is a panel the wiring opens, and
-each one's own rule has to declare that room. A fourth menu built on the same wiring is measured the
-day it is written. What it cannot see is pixels — it reads the sheet, and the ring itself was
-measured in a browser.
+Held by `stories/panel-ring-room.test.js`, which discovers its subjects twice and requires the two
+readings to agree. It reads the kit's own sources, `src/` and `react/src/`, for every place that
+writes `data-dropdown-panel` into markup, naming each panel by the first class the marked element
+carries; and it reads back the panels its own fixtures render through the factories. Every panel in
+the first reading has to be in the second, and each one's rule has to declare the room. So a factory
+that marks a fourth panel stops the gate until somebody renders it here and it is measured with the
+rest — the case a list of hand-picked examples cannot see, and the one the gate proves by building
+that factory in a string and failing on it. What it cannot see is pixels — it reads the sheet, and
+the ring itself was measured in a browser. The limits are written beside it.
 
 ## A filter row holds its panels
 
