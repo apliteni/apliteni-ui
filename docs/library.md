@@ -147,6 +147,10 @@ The table itself is markup, not a factory: the scroll region, the sticky header 
 pinned identity column are classes a page applies. See
 [Dense financial tables](specification.md#dense-financial-tables).
 
+A table sizes to its content. Mark a text cell `.ui-table__title` to give that column the
+width left over; `DataTable` has no column flag for that yet. `DataTable` keeps its own
+pager no wider than the table it pages.
+
 ### Page furniture
 
 | Name | What it is |

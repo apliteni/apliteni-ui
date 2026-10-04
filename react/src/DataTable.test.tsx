@@ -561,3 +561,209 @@ it('offers column navigation only for overflow and disables each reached edge', 
   fireEvent.scroll(region);
   expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
 });
+
+/**
+ * Rule: the strip that pages a table is never wider than the rows it pages (#504).
+ *
+ * The pager and the table are siblings — a wrapper around the table would be a third
+ * element between a card and the table, and the card bleed reaches the table as a direct
+ * child, so the width is measured here instead and applied as a cap.
+ *
+ * What it does not reach: layout. jsdom computes no widths, so this asks what the
+ * component does with a measurement rather than what a browser measures. The numbers
+ * themselves are in the pull request, read off Chromium.
+ */
+
+// Supplies the two rectangles jsdom has none of: a table `geometry.width` wide whose left edge
+// sits at `geometry.tableLeft`, in a host box whose content starts at `geometry.hostLeft`. The
+// object is read on every measurement, so a test may move an edge between interactions.
+async function measuring<T>(
+  geometry: { tableLeft: number; hostLeft: number; width?: number },
+  run: (observed: Element[]) => Promise<T>,
+): Promise<T> {
+  const observed: Element[] = [];
+  const realRect = Element.prototype.getBoundingClientRect;
+  const realObserver = globalThis.ResizeObserver;
+  class Observer {
+    constructor(private run: () => void) {}
+    observe(el: Element) { observed.push(el); this.run(); }
+    disconnect() {}
+  }
+  globalThis.ResizeObserver = Observer as unknown as typeof ResizeObserver;
+  Element.prototype.getBoundingClientRect = function rect(this: Element) {
+    const real = realRect.call(this);
+    const width = geometry.width ?? 331;
+    if (this.matches('table.ui-table')) {
+      return { ...real, left: geometry.tableLeft, right: geometry.tableLeft + width, width } as DOMRect;
+    }
+    if (this.matches('[data-host]')) {
+      return { ...real, left: geometry.hostLeft, right: geometry.hostLeft + 900, width: 900 } as DOMRect;
+    }
+    return real;
+  };
+  try {
+    return await run(observed);
+  } finally {
+    Element.prototype.getBoundingClientRect = realRect;
+    globalThis.ResizeObserver = realObserver;
+  }
+}
+
+// Returns what the component wrote on the strip, for a table mounted with its pager.
+async function stripIn(geometry: { tableLeft: number; hostLeft: number }, props = {}) {
+  return measuring(geometry, async () => {
+    const { container } = render(
+      <div data-host>
+        <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} {...props} />
+      </div>);
+    let box: HTMLElement | null = null;
+    await waitFor(() => {
+      box = container.querySelector<HTMLElement>('.rx-table-pager');
+      expect(box?.style.maxWidth).not.toBe('');
+    });
+    return { style: box!.style };
+  });
+}
+
+it('caps its pager at the width of the table it pages', async () => {
+  await measuring({ tableLeft: 0, hostLeft: 0 }, async (observed) => {
+    const { container } = render(
+      <div data-host>
+        <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} />
+      </div>);
+    const box = await waitFor(() => {
+      const found = container.querySelector<HTMLElement>('.rx-table-pager');
+      expect(found?.style.maxWidth).toBe('331px');
+      return found!;
+    });
+    expect(box.style.marginInlineStart).toBe('');
+    expect(box.querySelector('.ui-pager')).not.toBeNull();
+    // The table, not the strip: the strip follows what it pages.
+    expect(observed.some((el) => el.matches('table.ui-table'))).toBe(true);
+  });
+});
+
+/**
+ * A surface that supplies its own pager can ask for this one later, and the cap has to
+ * arrive with the strip. Keyed to the columns and the rows — which such a caller keeps
+ * still — the measurement missed the mount and left a 1232px strip under a 111.5px table
+ * in Chromium. Unmounting the strip drops the measurement with it, so the next one is
+ * capped at its own table rather than at the last one's.
+ */
+it('caps a pager that mounts after the table, and re-measures a later one', async () => {
+  const geometry = { tableLeft: 0, hostLeft: 0, width: 331 };
+  await measuring(geometry, async () => {
+    function Toggle() {
+      const [pager, setPager] = useState(false);
+      return (
+        <div data-host>
+          <button type="button" onClick={() => setPager(!pager)}>Toggle pager</button>
+          {/* `columns` and `rows` never change identity: the dependencies the effect
+              used to watch are exactly what stays still here. */}
+          <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} pager={pager} />
+        </div>);
+    }
+    const { container } = render(<Toggle />);
+    const strip = () => container.querySelector<HTMLElement>('.rx-table-pager');
+    expect(strip()).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Toggle pager' }));
+    await waitFor(() => expect(strip()!.style.maxWidth).toBe('331px'));
+
+    geometry.width = 200;
+    await userEvent.click(screen.getByRole('button', { name: 'Toggle pager' }));
+    expect(strip()).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Toggle pager' }));
+    await waitFor(() => expect(strip()!.style.maxWidth).toBe('200px'));
+  });
+});
+
+/**
+ * `.ui-table-scroll` carries `padding: 0 var(--space-1)`, so a sticky or pinned table
+ * starts 4px inside its region. A cap that copied the width but not the position left the
+ * strip 4px left of the rows at both ends — in the one measurement #504 exists to get right.
+ */
+it("takes the scroll region's inset, so the strip starts where the rows do", async () => {
+  const { style } = await stripIn({ tableLeft: 4, hostLeft: 0 },
+    { stickyHeader: true, pinnedIdentity: true });
+  expect(style.marginInlineStart).toBe('4px');
+  expect(style.maxWidth).toBe('331px');
+});
+
+/**
+ * A dense table in a card is bled 16px out of the card's text column on purpose, so its
+ * columns land on that column's edge. Only the table hangs out: the strip stays inside and
+ * ends where the table ends, which is 315 of the table's 331 here.
+ */
+it('keeps the strip inside the box when the table is bled out of it', async () => {
+  const { style } = await stripIn({ tableLeft: 0, hostLeft: 16 }, { dense: true });
+  expect(style.marginInlineStart).toBe('');
+  expect(style.maxWidth).toBe('315px');
+});
+
+/**
+ * The gap between a table and its pager is one step of the scale, in both faces. The
+ * vanilla sheet declares it on the adjacency a caller writes; this component wraps both
+ * parts, so neither selector reaches it and its own sheet carries the same step. Two
+ * sheets, one value — which is the thing that drifts.
+ */
+it('stands its pager off the table by the step the vanilla sheet uses', () => {
+  const here = dirname(expect.getState().testPath!);
+  const step = /margin-top:\s*var\(--space-4\)/;
+  const vanilla = readFileSync(join(here, '../../src/styles/pagination.css'), 'utf8');
+  const react = readFileSync(join(here, 'DataTable.css'), 'utf8');
+  // Comments out first: both rules carry one that names the other selector.
+  const rule = (css: string, selector: string) => css.replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('}').find((block) => block.includes(selector));
+  expect(rule(vanilla, '.ui-table + .ui-pager')).toMatch(step);
+  const mine = rule(react, '.rx-table-pager');
+  expect(mine).toMatch(step);
+  // The vanilla sheet hangs the step off the strip itself, which is never there when it is
+  // empty. This one hangs it off a wrapper that is, so the step asks for the strip.
+  expect(mine).toContain('.rx-table-pager:has(.ui-pager)');
+});
+
+/**
+ * `Pagination` renders nothing for one page with no size menu, and the wrapper around it
+ * stays. A step on the wrapper alone put 16px of empty space under exactly the short table
+ * #504 is about, so the selector that carries it asks for a strip to be there.
+ */
+it('reserves no space under a table whose pager renders nothing', () => {
+  const { container } = render(
+    <DataTable columns={columns} rows={rows} selectable={false} />);   // one page, no sizes
+  const box = container.querySelector('.rx-table-pager');
+  expect(box).not.toBeNull();
+  expect(box!.querySelector('.ui-pager')).toBeNull();
+  expect(container.querySelector('.rx-table-pager:has(.ui-pager)')).toBeNull();
+
+  const paged = render(<DataTable columns={columns} rows={rows} pageSize={2} selectable={false} />);
+  expect(paged.container.querySelector('.rx-table-pager:has(.ui-pager)')).not.toBeNull();
+});
+
+/**
+ * A table that has not been laid out reports zero, and a cap of zero would collapse the
+ * strip instead of leaving it alone. This is the case jsdom hands every other test here.
+ */
+it('leaves the pager alone when there is no width to read', () => {
+  const { container } = render(
+    <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} />);
+  const box = container.querySelector<HTMLElement>('.rx-table-pager')!;
+  expect(box).not.toBeNull();
+  expect(box.style.maxWidth).toBe('');
+});
+
+/**
+ * The card bleed reaches a dense table through the scroll region as the card's own direct
+ * child — `.ui-card > .ui-table-scroll:has(> .ui-table--dense)`. A wrapper between them
+ * silently cost every dense React table in a card its bleed, and no gate saw it, so the
+ * shape this component renders is asserted here and the selector itself in
+ * `src/styles/table.test.js`.
+ */
+it('renders the scroll region where the card bleed can reach it', () => {
+  const { container } = render(
+    <div className="ui-card">
+      <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} dense
+        stickyHeader pinnedIdentity />
+    </div>);
+  expect(container.querySelector('.ui-card > .ui-table-scroll:has(> .ui-table--dense)')).not.toBeNull();
+});

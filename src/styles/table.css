@@ -3,8 +3,14 @@
  * Row modifiers: .is-dead (revoked/struck), right-aligned .ui-table__act
  * ========================================================================== */
 
+/* A table ends where its values end. Stretching a short one put an amount a
+ * screen away from its label (#504). A table with more content than room is
+ * unchanged: its cells do not wrap, so their total is its floor. A `__title`
+ * cell below still takes the slack when a text column should grow.
+ * why: guidelines/dense-tables.md */
 .ui-table {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   border-collapse: collapse;
   font-size: var(--text-base);
 }
@@ -189,7 +195,7 @@
    padding and never past it, so the columns start on the card's own text edge and the
    scroll region stays empty at rest. why: docs/specification.md#spacing-and-rhythm */
 .ui-card > :where(.ui-table--dense, .ui-table--zebra) {
-  width: calc(100% + 2 * var(--space-3));
+  max-width: calc(100% + 2 * var(--space-3));
   margin-inline: calc(-1 * var(--space-3));
 }
 /* A scroll wrapper owns the bleed for a nested dense table: 4px of focus
@@ -231,7 +237,11 @@
 a.ui-identity:hover { text-decoration: underline; }
 .ui-identity:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
 @media (max-width: 720px) {
-  .ui-table--pinned .ui-table__identity { width: 1%; }
+  /* 1px, not 1%: both mean "as narrow as this column can be", but a percentage resolves
+     against the table box and takes an auto-width table back to its container — a pinned
+     table measured 334px against a 259.5px content width at 390 (#504). Below min-content
+     either way, so the column itself is unchanged. */
+  .ui-table--pinned .ui-table__identity { width: 1px; }
   .ui-table--pinned .ui-identity__logo { display: none; }
   .ui-table--pinned .ui-identity__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .ui-table--pinned .ui-identity { max-width: var(--panel-sm); }

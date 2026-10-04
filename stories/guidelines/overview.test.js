@@ -156,7 +156,7 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   assert.deepEqual(LINKS.map(link => link.title), PAGES.map(page => page.title));
   assert.deepEqual(LINKS.map(link => link.href), PAGES.map(page => page.href));
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
-  assert.equal(rules, 124);
+  assert.equal(rules, 125);
   assert.equal(INTRO, '');
   // One, and it is named: Account and settings prescribes a modal carrying its own
   // navigation, which the vanilla kit cannot draw at all and React's Modal cannot
