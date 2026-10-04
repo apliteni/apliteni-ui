@@ -2475,6 +2475,12 @@ result. A page a server counted and a page sliced out of an array in memory ther
 the same markup, and a surface that pages on the server does not have to defeat a second pager
 inside the component to say so.
 
+The status stays at the start of the strip and the controls together at its far end. A strip
+too narrow for one line wraps, and the wrapped line keeps that far end: an auto margin only
+distributes within its own line, so without this the steps fell to the start of the next one
+and the control group split to opposite corners. Decided in
+[#504](https://github.com/apliteni/apliteni-ui/issues/504).
+
 A result whose size is not known is a supported shape rather than a degraded one. Given no
 total, the pager offers only the step before and the step after, because no other control can be
 computed without a last page; whether a step after exists is the caller's to state. Nothing in
@@ -2790,6 +2796,25 @@ composed into a cell. In a revoked row (`tr.is-dead`) the struck name reaches a 
 where the link carries both lines.
 Decided on [#451](https://github.com/apliteni/apliteni-ui/issues/451) and
 [#510](https://github.com/apliteni/apliteni-ui/issues/510).
+
+A table sizes to its content and is capped at the room it has, unless its cells need more
+than that: a short table ends where its values end instead of stretching, which is what put
+an amount a screen away from its label in
+[#504](https://github.com/apliteni/apliteni-ui/issues/504), and a table whose cells need more
+width than the room renders exactly as before and is carried by its scroll region. Marking a
+text cell `.ui-table__title` gives that column the width left over.
+
+Nothing sizes a table to the parts attached to it. React `DataTable` caps its pager at the
+measured width of the table it pages: the strip ends where the table ends, starts where the
+table starts unless that is outside its own box — a dense table bled into a card's padding
+hangs out alone — and a pager that needs more room wraps inside that width. The cap is
+measured after layout, so a host without `ResizeObserver` leaves the pager at its container's
+width, and a pager that renders nothing takes no space. A pager switched on after the table
+has laid out is capped the same way, because the measurement follows the strip into the tree
+rather than the columns and the rows. `.ui-table__title` is a cell class: a
+vanilla caller marks the growing column, and `DataTable` offers no column flag for it yet.
+Held by `src/styles/table.test.js` and `react/src/DataTable.test.tsx`.
+
 `dense` retains the existing spacing. `compact` uses a 33px minimum row and small text,
 with extra-small unit suffixes in body ink. Larger text or wrapped content grows the row.
 Dense, compact and zebra recipes give headers and values matching horizontal insets in

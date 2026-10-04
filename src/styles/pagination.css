@@ -11,6 +11,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  /* A wrapped line keeps the far end; a single line is unchanged, where the status's auto
+     margin still wins. why: docs/specification.md#pagination */
+  justify-content: flex-end;
   gap: var(--space-3) var(--space-4);
   font-size: var(--text-sm);
 }
@@ -104,11 +107,15 @@
 /* A pager directly after a table stands off it. The strip owns no margin of its
    own — it is dropped under lists and cards too, and a component that carries
    spacing everywhere is one every caller has to cancel somewhere — so the gap is
-   declared on the one adjacency the kit can see. `.rx-pager` carried a bare
-   `margin-top: 16px` for this, which is --space-4; the number moves to the scale
-   with it rather than travelling as a literal.
+   declared on the adjacency instead. `.rx-pager` carried a bare `margin-top: 16px`
+   for this, which is --space-4; the number moves to the scale with it rather than
+   travelling as a literal.
+
+   Both shapes a vanilla caller writes are here; React DataTable wraps both parts, so
+   its own sheet repeats the step.
    why: docs/specification.md#spacing-and-rhythm */
-.ui-table + .ui-pager { margin-top: var(--space-4); }
+.ui-table + .ui-pager,
+.ui-table-scroll + .ui-pager { margin-top: var(--space-4); }
 
 /* A step given an `href` is an anchor, and a host stylesheet's `a:link` is
    (0,1,1) — which outranks `.ui-btn--ghost` at (0,1,0) and paints the enabled
