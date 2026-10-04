@@ -1344,40 +1344,67 @@ Decided in [#511](https://github.com/apliteni/apliteni-ui/issues/511).
 states it as three rules: keep the words; let a glyph beside a label repeat that label's verb, and
 treat every button in a row the same way; and drop the words only when all three tests hold at
 once — the glyph is learned everywhere, the action is on the closed list in `src/assets/icons.js`,
-and the control still carries a name and a hover title. A crowded row is a reason to ask, not an
-answer.
+and the control keeps a name a pointer and a keyboard can both reach. A crowded row is a reason to
+ask, not an answer.
 
-The three tests are where the established systems agree, rather than a reading of any one of them:
+Three parts of that are the kit's own decision rather than a reading of any source: that the list
+is closed, which actions are on it, and what counts as learned everywhere. What the cited systems
+support is the default — words first, a glyph as help — and the requirement that a wordless control
+be named.
 
-- [Nielsen Norman Group](https://www.nngroup.com/articles/icon-usability/) finds a text label must
-  accompany a glyph, names home, print and the magnifying glass as the mostly universal ones, and
-  warns that a hover-only label raises interaction cost and fails on touch.
-- [Carbon](https://carbondesignsystem.com/components/button/usage/) places icons beside labels
-  sparingly, takes icons on all of a group's buttons or none, and requires a tooltip on an
-  icon-only button "regardless of how recognizable an icon may or may not be".
+- [Nielsen Norman Group](https://www.nngroup.com/articles/icon-usability/): "a text label must be
+  present alongside an icon"; home, print and the magnifying glass are the few it names as having
+  mostly universal recognition. It also says not to rely on hover to reveal a label, because that
+  raises interaction cost and fails on touch, and it argues against hiding navigation labels at
+  all. The folded rail is where this kit knowingly differs; see
+  [The page shell](#the-page-shell).
+- [Carbon](https://www.carbondesignsystem.com/building-blocks/core/components/button/guidelines)
+  uses icons beside labels sparingly, takes icons on all of a group's buttons or none, keeps its
+  own table of universal actions, and still requires a tooltip on an icon-only button "regardless
+  of how recognizable an icon may or may not be, or whether that action lies within the universal
+  actions list".
 - [Atlassian](https://atlassian.design/components/button/icon-button/usage) allows icon-only where
-  space is limited and the glyph has a clear association with the action: if an appropriate icon
-  takes more than five seconds to think of, no icon will carry that action.
-- [Polaris](https://polaris.shopify.com/components/actions/button) and
-  [Primer](https://primer.style/components/icon-button) make the accessible label a required part
-  of an icon-only button rather than a recommendation.
-- [GOV.UK](https://design-system.service.gov.uk/components/button/) ships no icon-only button at
-  all; its one glyph, the start button's arrow, is `aria-hidden` beside words that carry the action.
-- [USWDS](https://designsystem.digital.gov/components/button/) adds a glyph only to signal a
-  specific action, such as Download or Open in a new window.
-- Material 3 and Apple's Human Interface Guidelines draw the same split — a universally understood
-  glyph may stand alone, a less common action keeps its label — and both pages render client-side,
-  so neither is quoted here.
+  space is limited and the glyph is clearly associated with the action, and recommends visible
+  words where space allows or importance warrants them. Its five-second rule states a likelihood,
+  not an impossibility: "if it takes you more than five seconds to think of an appropriate icon, it
+  is unlikely that an icon can effectively communicate that action".
+- [Primer](https://primer.style/product/components/icon-button/) documents an accessible label and
+  a descriptive tooltip as parts of an icon-only button. It certifies no particular glyph.
+- [GOV.UK](https://design-system.service.gov.uk/components/button/) ships no icon-only button; its
+  one glyph, the start button's arrow, is `aria-hidden` beside words that carry the action. That is
+  evidence about one component, not about every component in that system.
+- [USWDS](https://designsystem.digital.gov/components/button/) keeps action labels short and adds a
+  glyph only to signal a specific action, such as Download or Open in a new window. It requires a
+  glyph on no particular button.
 
-**The funnel keeps its word.** `filter` is Lucide's funnel: it depicts a thing rather than an
-action, and a reader takes it for filter, sort or export, so it fails the first test and is not on
-the closed list. Filter is a labelled button with the funnel beside the word.
+Material 3 and Apple's Human Interface Guidelines were not checked; both pages render client-side,
+so nothing is attributed to them here.
 
-**The list as it stands passes all three tests.** `x` and the chevrons are universal and repeat per
-row or per section; `copy` sits in the snippet's narrow bar, where the word repeated what the glyph
-already said; `moreHorizontal` and `moreVertical` are the standard overflow affordance; the shell's
-theme toggle, sidebar toggle and collapsed-rail links are state controls in a rail with no room for
-words. Every one of them is named and carries a hover title.
+**The funnel keeps its word.** `filter` is Lucide's funnel. Depicting a thing is not the fault:
+`trash` and `copy` are on the list and depict things too. The kit's reading is that the funnel
+alone does not say whether the control filters, sorts or exports, so it fails the first test and is
+not on the closed list. That is this kit's inference from the sources above, not a measured
+recognition finding. Filter is therefore a labelled button, and the glyph beside the word stays
+optional: Showcases / Empty states ships Filter as text alone.
+
+**What the list claims, and what it does not.** Each entry is an action allowed to drop its
+visible text, not a glyph certified as universal. `x` and the chevrons repeat per row or per
+section; `copy` sits in the snippet's narrow bar, where the word repeated what the glyph already
+said; `moreHorizontal` and `moreVertical` are the standard overflow affordance. A control built
+from the list through `button({ iconOnly })` gets `aria-label` and `title` together, so its name
+reaches a screen reader and a pointer.
+
+`stories/guidelines/iconography.test.js` checks both halves of the rule at every call site: that
+the glyph is on the list, and that the name the control answers to opens with a word
+`iconOnlyNames` allows for it, so `copy` cannot be borrowed for Duplicate.
+
+**The shell's wordless controls are the exception, and two of them carry no title.** The theme
+toggle has one. The sidebar toggle and the folded rail's links do not: they show the label itself
+beside the glyph on hover and on keyboard focus, which `stories/apps/shell-rail.test.js` requires,
+because a `title` would be a second copy of a name the row already carries and would reach a
+pointer only. That is better than a title and still not a visible label, which is the cost NN/g
+names. The rail is a deliberate trade for the width, recorded here rather than presented as agreed
+practice.
 
 Decided in [#565](https://github.com/apliteni/apliteni-ui/issues/565).
 

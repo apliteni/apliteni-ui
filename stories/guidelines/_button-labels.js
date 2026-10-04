@@ -12,23 +12,22 @@ export const SPEC_CSS = `
 
 const row = (...html) => `<div class="gl-stage gl-stage--row">${html.join('')}</div>`;
 
-// Every do half is declared before the first don't half, and that order is load
-// bearing: the closed-list gate stops reviewing call sites for a stretch after a
-// `Dont` export, because a don't half draws the violation on purpose. A do half
-// written below one is excused along with it and goes unreviewed — which is how
-// the wordless overflow menu below passed while naming a glyph off the list.
+// Every do half is declared before the first don't half: the closed-list gate
+// stops reviewing call sites for a stretch after a `Dont` export, so a do half
+// written below one would go unreviewed.
 //
-// Ordinary secondary buttons throughout, so no half is also a specimen of a
-// variant or a contrast fault.
+// No destructive action here. A Delete drawn as an ordinary secondary teaches
+// the accent hover that guidelines/destructive-actions.md forbids, and this page
+// is about words, not colour.
 export const wordsDo = () => row(
   button({ label: 'Export' }),
-  button({ label: 'Duplicate' }),
-  button({ label: 'Delete' }),
+  button({ label: 'Rename' }),
+  button({ label: 'Share' }),
 );
 
 export const verbDo = () => row(
   button({ label: 'Export CSV', icon: 'download' }),
-  button({ label: 'Delete', icon: 'trash' }),
+  button({ label: 'Duplicate', icon: 'copy' }),
 );
 
 // The funnel is the question #565 came from, so it is drawn on both halves: with
@@ -40,13 +39,13 @@ export const wordlessDo = () => row(
 
 export const wordsDont = () => row(
   button({ label: 'Export', icon: 'download', iconOnly: true }),
-  button({ label: 'Duplicate', icon: 'copy', iconOnly: true }),
-  button({ label: 'Delete', icon: 'trash', iconOnly: true }),
+  button({ label: 'Rename', icon: 'edit', iconOnly: true }),
+  button({ label: 'Share', icon: 'share', iconOnly: true }),
 );
 
 export const verbDont = () => row(
   button({ label: 'Export CSV', icon: 'table' }),
-  button({ label: 'Delete' }),
+  button({ label: 'Duplicate' }),
 );
 
 export const wordlessDont = () => row(

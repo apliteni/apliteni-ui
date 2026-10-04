@@ -446,11 +446,11 @@
   "_iconography.js": {
     "icon-only": [
       {
-        "ref": "src/assets/icons.js:159",
+        "ref": "src/assets/icons.js:166",
         "pattern": "export const iconOnlyAllowed"
       },
       {
-        "ref": "stories/guidelines/iconography.test.js:165",
+        "ref": "stories/guidelines/iconography.test.js:249",
         "pattern": "every icon-only control is one the closed list allows"
       },
       {
@@ -460,7 +460,7 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:180",
+        "ref": "src/assets/icons.js:202",
         "pattern": "export const iconMeanings"
       },
       {
@@ -997,7 +997,7 @@
     ],
     "wordless-earns-it": [
       {
-        "ref": "src/assets/icons.js:159",
+        "ref": "src/assets/icons.js:166",
         "pattern": "export const iconOnlyAllowed"
       },
       {
@@ -1005,7 +1005,7 @@
         "pattern": "const named = iconOnly"
       },
       {
-        "ref": "stories/guidelines/iconography.test.js:165",
+        "ref": "stories/guidelines/iconography.test.js:249",
         "pattern": "every icon-only control is one the closed list allows"
       }
     ]

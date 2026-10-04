@@ -45,6 +45,7 @@ export declare const SCORE: Record<'exact' | 'prefix' | 'wordStart' | 'contains'
 export declare const iconNames: string[];
 export declare const iconCategories: { name: string; names: string[] }[];
 export declare const iconOnlyAllowed: Record<string, string>;
+export declare const iconOnlyNames: Record<string, string[]>;
 export declare const iconMeanings: Record<string, string>;
 export declare const sun: string;
 export declare const moon: string;

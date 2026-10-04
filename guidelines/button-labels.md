@@ -6,11 +6,11 @@
 
 **Rule:** Give every button words, and add a glyph only to help those words.
 
-**Why:** Every reader takes the same meaning from a word, while a glyph means whatever that reader learned from some other product.
+**Why:** A word means the same to every reader; a glyph means whatever that reader learned elsewhere.
 
-**Do:** Three actions a reader can tell apart at a glance and name out loud.
+**Do:** Three actions, each readable without a pointer.
 
-**Don't:** Three glyphs identified one hover at a time, and not at all by a finger.
+**Don't:** Three names a hover reveals one at a time, and a finger never reaches.
 
 ## Let the glyph repeat the verb
 
@@ -18,24 +18,22 @@
 
 **Rule:** Add a glyph beside a label only when it depicts that label’s action, and treat every button in a row the same way.
 
-**Why:** A glyph of the subject says what is involved rather than what will happen, and one glyph among three reads as a difference in rank.
+**Except:** A dismissing action beside a committing one is not a peer, and stays plain.
 
-**Except:** A committing action beside a dismissing one is not a row of peers, and the dismissing action stays plain.
+**Do:** Each glyph carries its own label’s verb.
 
-**Do:** Each glyph repeats its own verb, so the row reads as one set of actions.
-
-**Don't:** A table depicts what is exported rather than the export, and its plain neighbour looks demoted.
+**Don't:** A table is what is exported, not the export, and the plain neighbour reads as lesser.
 
 ## Earn a wordless button
 
 <!-- rule: wordless-earns-it -->
 
-**Rule:** Drop a button’s words only when its glyph is learned everywhere, its action is on the closed list, and it keeps a name for a screen reader and a title on hover.
+**Rule:** Drop a button’s words only when its glyph is learned everywhere, its action is on the closed list, and its name reaches a pointer and a keyboard alike.
 
-**Why:** Few glyphs are read the same way by everyone, and a name that appears only on hover reaches neither a touch reader nor a reader in a hurry.
+**Why:** A hovered name reaches neither a finger nor a reader in a hurry, so a wordless control has to be one its reader already knows.
 
-**Except:** A crowded row is a reason to ask, not an answer, and the list under [Icon-only controls](https://ui.apli.tech/storybook/?path=/story/guidelines-iconography--iconography) grows by decision. A funnel is not on it, so Filter keeps its word.
+**Except:** [Icon-only controls](https://ui.apli.tech/storybook/?path=/story/guidelines-iconography--iconography) is the list, and it grows by decision. The folded rail shows its names beside the glyphs instead, so those carry no title.
 
-**Do:** An overflow menu is the same control in every product a reader has used; the funnel is not.
+**Do:** Overflow is the same control in every product; the funnel is not.
 
-**Don't:** Nothing here says whether the funnel filters or sorts, and the cog dropped the word that would have.
+**Don't:** A funnel could filter, sort or export, and the cog gave up the word that said which.

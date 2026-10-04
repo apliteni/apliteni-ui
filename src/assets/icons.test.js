@@ -6,7 +6,7 @@
 // Measure behavior instead of matching the source text.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { icon, iconNames, iconCategories, iconOnlyAllowed, sun, moon } from './icons.js';
+import { icon, iconNames, iconCategories, iconOnlyAllowed, iconOnlyNames, sun, moon } from './icons.js';
 
 test('icon() hides every glyph from assistive tech', () => {
   for (const name of iconNames) {
@@ -80,6 +80,21 @@ test('the emitter ships the numbers its header argues for', () => {
 test('every glyph the icon-only list allows is a glyph the kit ships', () => {
   for (const glyph of Object.keys(iconOnlyAllowed)) {
     assert.ok(iconNames.includes(glyph), `iconOnlyAllowed names ${glyph}, which the kit does not ship`);
+  }
+});
+
+// Rule: the closed list and the names its actions go by stay one decision. Two
+// maps keyed the same way drift apart silently, and a glyph with no names entry
+// would pass the semantic half of the gate by having nothing to check against.
+test('every allowed glyph names the words its action goes by', () => {
+  assert.deepEqual(Object.keys(iconOnlyNames), Object.keys(iconOnlyAllowed),
+    'iconOnlyNames and iconOnlyAllowed list different glyphs, in a different order');
+  for (const [glyph, words] of Object.entries(iconOnlyNames)) {
+    assert.ok(words.length > 0, `${glyph} allows every name, which checks nothing`);
+    for (const word of words) {
+      assert.equal(word, word.toLowerCase(), `${glyph}: "${word}" is compared lowercased`);
+      assert.doesNotMatch(word, /\s/, `${glyph}: "${word}" is an opening word, not a phrase`);
+    }
   }
 });
 
