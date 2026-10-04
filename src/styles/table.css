@@ -206,14 +206,11 @@
 .ui-table--compact th { padding: var(--space-2) var(--space-3); }
 .ui-table--compact th:last-child,
 .ui-table--compact td:last-child { padding-right: var(--space-3); }
-/* Columns past the box's edge, said in paint rather than in a pair of buttons.
-   Two shades, one per side, and two cover layers riding the content: `local`
-   moves a cover with the scroll, so reaching an end slides that end's cover over
-   its shade and the shade goes. A cover is solid for its first 12px and so hides
-   a 12px shade outright: half of 24px, which is why the two sizes are not one.
-   A background paints inside the padding box and the kit ring is a box-shadow
-   outside the border box, so neither reaches the other.
-   why: guidelines/dense-tables.md */
+/* Columns past the box's edge, said in paint. Two shades, one per side, under two
+   cover layers that ride the content: `local` moves a cover with the scroll, so
+   reaching an end slides that cover over its shade. A cover is solid for its first
+   half, so at 24px it hides a 12px shade outright — which is why the two sizes are
+   not one. why: guidelines/dense-tables.md */
 .ui-table-scroll {
   overflow: auto; max-height: var(--ui-table-height, 70vh); padding: 0 var(--space-1);
   background-color: var(--table-bg); /* ring-gap: inherit — the box paints the surface its card already holds, so the ground outside its ring is the one it had. */
@@ -227,19 +224,15 @@
   background-repeat: no-repeat;
   background-attachment: local, local, scroll, scroll;
 }
-/* The edge darkens on a light ground and lightens on a dark one, because ink has
-   nowhere to go on a near-black page — the reason --elev-drop splits its spend and
-   a raised dark surface takes a light --elev-edge. Measured on this showcase at
-   390: light leaves the surface at 255 and reaches 233; dark leaves 33,30,45 and
-   reaches 60,57,70, and on the darker page ground 14,13,20 it reaches 43,42,48.
-   A table on the page, not in a card, is the case a darkening would have missed. */
+/* The edge darkens on a light ground and lightens on a dark one: ink has nowhere to
+   go on a near-black page, which is why --elev-drop splits its spend and a raised
+   dark surface takes a light --elev-edge. */
 .ui-table-scroll { --table-edge: color-mix(in srgb, var(--sheen) 12%, transparent); }
 :root[data-theme="light"] .ui-table-scroll { --table-edge: color-mix(in srgb, var(--shadow-ink) 13%, transparent); }
 /* The surface belongs to the box that scrolls, so the shades land under the cells
-   instead of behind them. The row fills repeat that one surface, so inside the box
-   they repeat nothing and step aside; the gap they set with it stays. The sticky
-   header and the pinned column keep their own paint — they have to hide what
-   scrolls beneath them. */
+   rather than behind them; the row fills repeat that same surface and step aside.
+   The sticky header and pinned column keep their paint: they hide what scrolls
+   beneath them. */
 .ui-table-scroll > .ui-table,
 .ui-table-scroll > .ui-table tbody td:not(.ui-table__identity, .ui-table__selection) { background-color: transparent; }
 /* The kit's first ringed scroller, and a scroll region inside a card like the rest, so
