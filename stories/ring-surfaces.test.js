@@ -164,13 +164,15 @@ const offsetProblems = (subjects) => subjects
   .map((rule) => `${rule.file}: ${rule.selector} takes --ring-scroll without --ring-scroll-offset, so its band draws outside the box`);
 
 test('every scroll region that takes the scroll ring takes its offset too', () => {
-  // Seven: the table card and the table wrapper inside it, the dropdown's search list,
-  // the drawer's body, the confirm's consequence, the palette's list, and React's modal
-  // body. Artur chose the picture on #531 round r30; the list is the surfaces it is on.
-  assert.equal(scrollRules.length, 7,
+  // Eight: the table card and the table wrapper inside it, the dropdown's search list,
+  // the drawer's body, the confirm's consequence, the palette's list, React's modal body,
+  // and the date picker's shortcut row in its phone sheet. Artur chose the picture on #531
+  // round r30; the list is the surfaces it is on.
+  assert.equal(scrollRules.length, 8,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
-  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 1,
-    'React\'s modal body is not among them, so the walk stopped reading react/src');
+  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 2,
+    'React\'s modal body and the picker\'s shortcut row are not both among them, so the walk '
+    + 'stopped reading react/src');
   assert.deepEqual(offsetProblems(scrollRules), []);
 });
 

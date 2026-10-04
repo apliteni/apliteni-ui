@@ -277,6 +277,27 @@ export const PhoneDay: StoryObj<typeof DatePicker> = {
   render: args => <DatePicker {...args} sheet mode="day" defaultValue="2026-09-17" defaultOpen />,
 };
 
+// Last year's shortcuts against this year's bounds, so every chip is switched off. The
+// row still scrolls, and with no chip left to take the stop the scrollport takes it —
+// the state its focus band is for. why: docs/specification.md#the-focus-ring
+const stalePresets = [
+  { label: 'Q1 2025', range: { start: '2025-01', end: '2025-03' } },
+  { label: 'Q2 2025', range: { start: '2025-04', end: '2025-06' } },
+  { label: 'Q3 2025', range: { start: '2025-07', end: '2025-09' } },
+  { label: 'Q4 2025', range: { start: '2025-10', end: '2025-12' } },
+];
+
+export const PhoneShortcutsAllOff: StoryObj<typeof DatePicker> = {
+  globals: { viewport: { value: 'phone', isRotated: false } },
+  render: function PhoneShortcutsAllOffStory(args) {
+    const [span, setSpan] = useState<DatePickerRange>({ start: '2026-04', end: '2026-08' });
+    return (
+      <DatePicker {...args} sheet mode="range" range={span} onRangeChange={setSpan}
+        presets={stalePresets} min="2026-01" max="2026-12" defaultOpen />
+    );
+  },
+};
+
 // A day range in the sheet, with its shortcuts above the grid.
 export const PhoneDayRange: StoryObj<typeof DatePicker> = {
   globals: { viewport: { value: 'phone', isRotated: false } },

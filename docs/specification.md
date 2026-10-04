@@ -1019,17 +1019,18 @@ it is given no stop, because the keyboard already reaches into it. Every scrolli
 the kit ships is one or the other, and
 [#531](https://github.com/apliteni/apliteni-ui/issues/531) settled which.
 
-Eight carry the ring, and they draw one of two pictures.
+Ten carry the ring, and they draw one of two pictures.
 
-**Seven are scroll regions inside a surface** and take `--ring-scroll`: the scrolling
+**Eight are scroll regions inside a surface** and take `--ring-scroll`: the scrolling
 table wrapper, a card around a table, a dropdown's search list, a drawer's body, a
-confirm's consequence, the command palette's list, and React's modal body. Each draws
-the band on itself. Artur chose that picture on #531 after the kit's own `--ring` was
-measured around these boxes: drawn for a 32px control, its halo spreads 14px past the
-band, which on a 400px region lights the surface rather than the box that scrolls. Three
-of the seven also could not have drawn an outset ring at all — the drawer's body is
-flush with a panel that is flush with a screen edge, the palette's list sits inside a
-panel that clips, and the dropdown's list sits 6px inside a 16px corner.
+confirm's consequence, the command palette's list, React's modal body, and the date
+picker's shortcut row in its phone sheet. Each draws the band on itself. Artur chose
+that picture on #531 after the kit's own `--ring` was measured around these boxes: drawn
+for a 32px control, its halo spreads 14px past the band, which on a 400px region lights
+the surface rather than the box that scrolls. Three of the eight also could not have
+drawn an outset ring at all — the drawer's body is flush with a panel that is flush with
+a screen edge, the palette's list sits inside a panel that clips, and the dropdown's
+list sits 6px inside a 16px corner.
 
 The band is an `outline` and not a `box-shadow`, which is what makes it survive the
 scroll it is drawn for: an inset shadow is painted under a box's own children, so a
@@ -1038,7 +1039,8 @@ table scrolled sideways under one erases the band — measured in Chrome at scro
 on the border box while content scrolls beneath it, and follows the radius. A region
 needs its own room for the band to land in rather than on its glyphs: the drawer's body
 has 20px of padding, the modal's 16px, the palette's list 8px, the dropdown's rows 9px,
-the card 24px, and a confirm's consequence carries `--space-1` for it.
+the card 24px, and a confirm's consequence and the picker's shortcut row each carry
+`--space-1` for it.
 
 **One keeps `--ring` on the box AROUND the scroller:** a snippet's code region, which is
 flush with its card on three sides and has no radius of its own, so a ring drawn on it
@@ -1046,7 +1048,7 @@ overhung the rounded corners and cut a line across the card. That card is the ou
 box, where the halo falls on the page rather than on a surface of its own. A delegated
 ring is one indicator and not two: the scroller keeps the transparent outline that
 suppresses the browser's own, and drops it under `forced-colors: active`, where the
-card's outline is the one the system repaints. The dropdown panel is the eighth, and
+card's outline is the one the system repaints. The dropdown panel is the tenth, and
 keeps `--ring` for the same reason — it is itself the outermost box.
 
 Two boxes are not a keyboard stop at all and carry no ring: the underline tab strip and

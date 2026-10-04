@@ -198,3 +198,12 @@
   border-inline-end: 0;
   border-block-end: 1px solid var(--border);
 }
+/* Bounds can leave every shortcut off, and a row of disabled buttons holds no stop
+   for Chrome to prefer, so the scrollport becomes the stop and answers with the
+   browser's outline. It takes the kit's band, drawn inward, like every other scroll
+   region inside a surface. The --space-1 inline padding is its clearance.
+   why: docs/specification.md#the-focus-ring */
+.ui-datepicker__body.is-sheet .ui-datepicker__presets:focus-visible {
+  outline: var(--ring-scroll);
+  outline-offset: var(--ring-scroll-offset);
+}
