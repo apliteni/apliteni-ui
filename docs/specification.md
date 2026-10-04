@@ -2235,12 +2235,15 @@ last chip, from the keyboard and the control that had the focus is gone. The bar
 substitute for it: once the chips go, its fieldset has only an out-of-flow legend left, so it
 measures 0 high and a ring on it is a floating dot or a line above the next control. Both faces
 therefore move the focus to the control a reader's next <kbd>Tab</kbd> would reach — forward in
-document order, else the nearest one behind — which on both showcases is the caller's own
-`Add filter` beside the bar. `nextFocusStop` is exported, so a consumer can read the same answer.
+document order, else the nearest one behind. On the Stock screener that is the caller's own
+`Add filter` beside the bar; in the React Finance composition, which has no such action, it is the
+view strip under it. `nextFocusStop` is exported, so a consumer that wants to place the focus
+itself reads the same answer.
 While the bar still holds chips it does keep the ring, even with every control in them turned off,
 because it still draws a box around them. With nothing beside it to take the focus, the focus goes
-nowhere rather than onto the empty box. Held by `src/components/finance.test.js` and
-`react/src/FilterBar.test.tsx`, which name the control that ends up focused; they read the
+nowhere rather than onto the empty box. Held by `src/components/finance.test.js`,
+`react/src/FilterBar.test.tsx` and `react/src/Finance.test.tsx`, which name the control that ends
+up focused; they read the
 document and not the layout, JSDOM having none, so the 0-high fieldset itself is measured in a
 browser and reported in the pull request.
 Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
