@@ -99,8 +99,12 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // 74 -> 73: the selected accent swatch declares no shadow of its own any more. It
 // is marked by a tick inside the circle, so the kit focus ring is the only edge
 // it ever draws, and the band it used to add outside that ring is gone. #472
-  assert.equal(sweep.length, 73,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 73. `
+// 73 -> 74: the kit ring restated for the chosen tab of an underline strip. #527
+// round r31 left that tab with no box, and cancelling the pill rule's accent outline
+// on it outreaches `.ui-seg button:focus-visible`, so the ring is written again at
+// the same reach. It is the composed indicator, not a cast.
+  assert.equal(sweep.length, 74,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 74. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

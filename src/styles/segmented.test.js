@@ -17,14 +17,13 @@ test('pill strips wrap within their container', () => {
   assert.equal(valueOf('.ui-seg', 'flex-wrap'), 'wrap', 'long pill strips must wrap rather than widen the page');
 });
 
-// The claim this sheet makes about the chosen tab is that it IS the sidebar's
-// selected row. That is checkable rather than describable: both sheets are read
-// and the declarations compared. nav.css carries the row, layout.css the height
-// the shell's rail gives its accent bar — which is the rail on the page #527 was
-// reported from.
-// Top-level rules only: an @media block holds rules with the same selectors —
-// the forced-colours restatement below, the shell's folded rail — and reading
-// them as one would compare a rule against its own exception.
+// What the chosen tab says, read off the sheet. The rendered half — where the
+// bar lands inside the tab, and that a reader can tell the rows apart — is
+// stories/segmented-wrap.test.js's; this file holds the declarations that half
+// depends on, so deleting one fails here without a browser.
+// Top-level rules only: the forced-colours restatement below repeats these
+// selectors, and reading the two as one would compare a rule against its own
+// exception.
 const topLevel = (text) => {
   let depth = 0, out = '', skipping = 0;
   for (let i = 0; i < text.length; i += 1) {
@@ -36,10 +35,7 @@ const topLevel = (text) => {
   }
   return out;
 };
-const sheet = (name) => topLevel(readFileSync(new URL(`./${name}`, import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''));
 const baseCss = topLevel(css);
-const navCss = sheet('nav.css');
-const layoutCss = sheet('layout.css');
 const ruleBody = (text, selector) => {
   const found = [...text.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
     .filter(([, sel]) => sel.split(',').map(part => part.trim()).includes(selector));
@@ -48,31 +44,59 @@ const ruleBody = (text, selector) => {
 };
 const decl = (body, prop) => new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`).exec(body)?.[1].trim();
 
-test('the chosen tab is the sidebar\'s selected row, declaration for declaration', () => {
+test('the chosen tab is a weight step and one bar, and draws no box', () => {
   const tab = ruleBody(baseCss, '.ui-seg--underline button.is-active');
-  const row = ruleBody(navCss, '.ui-nav--side .ui-nav__item.is-active');
-  const rowInk = ruleBody(navCss, '.ui-nav__item.is-active');
-  assert.equal(decl(tab, 'background'), 'var(--surface)', 'the plate is the reading surface, as the row\'s is');
-  assert.equal(decl(tab, 'background'), decl(rowInk, 'background'));
-  assert.equal(decl(tab, 'color'), decl(rowInk, 'color'), 'the ink steps to --strong, as the row\'s does');
-  assert.equal(decl(tab, 'box-shadow'), decl(row, 'box-shadow'), 'the hairline is the row\'s hairline');
+  const resting = ruleBody(baseCss, '.ui-seg--underline button');
+  // Artur, #527 round r31: the plate and the upright rail together read as a
+  // list-row grip, so a reader offered to drag the strip. Both are gone, and
+  // neither may come back without this failing.
+  assert.equal(decl(tab, 'background'), 'none', 'the chosen tab keeps the ground it stands on');
+  assert.equal(decl(tab, 'box-shadow'), undefined, 'the chosen tab draws no hairline of its own');
+  assert.equal(decl(tab, 'border'), undefined);
+  assert.equal(decl(tab, 'border-bottom'), undefined, 'the rail on the tab\'s own edge is what the inset bar replaced');
   // The pill rule above paints an accent outline on every chosen button. Left
-  // standing it would be a second accent mark on a tab that already has one.
+  // standing it is a second accent mark on a tab that already has one — #544.
   assert.equal(decl(tab, 'outline'), '0', 'the pill rule\'s accent outline is cancelled here');
 
+  // The type step. Both halves are read, because one alone is not a step: a
+  // resting tab at --semibold and a chosen tab at --semibold say the same thing.
+  assert.equal(decl(resting, 'font-weight'), 'var(--weight-medium)', 'a reading label sits a weight below the chosen one');
+  assert.equal(decl(tab, 'font-weight'), 'var(--weight-semibold)');
+  assert.equal(decl(tab, 'color'), 'var(--strong)', 'the ink steps with the weight');
+  // Nothing resting is drawn as unavailable: the kit's body rank, not its muted
+  // one. guidelines/labels-and-titles.md
+  assert.equal(decl(ruleBody(baseCss, '.ui-seg button'), 'color'), 'var(--text)');
+
   const bar = ruleBody(baseCss, '.ui-seg--underline button.is-active::before');
-  const rowBar = ruleBody(navCss, '.ui-nav--side .ui-nav__item.is-active::before');
-  for (const prop of ['left', 'width', 'border-radius', 'background', 'transform']) {
-    assert.equal(decl(bar, prop), decl(rowBar, prop), `the accent bar's ${prop} is the sidebar's`);
+  assert.equal(decl(bar, 'height'), '2px');
+  assert.equal(decl(bar, 'background'), 'var(--accent)');
+  // Inset on three sides, which is the whole of why the strip can wrap: a mark
+  // on the tab's bottom edge is a mark on the line between two rows, and the
+  // reader picks which row it belongs to.
+  assert.equal(decl(bar, 'left'), 'var(--space-3)', 'the bar spans the label, not the tab');
+  assert.equal(decl(bar, 'right'), 'var(--space-3)');
+  assert.ok(/^[1-9]/.test(decl(bar, 'bottom') ?? ''), 'the bar stands clear of the tab\'s bottom edge');
+  assert.equal(decl(bar, 'top'), undefined, 'the bar is under the label, not beside it');
+  assert.equal(decl(bar, 'width'), undefined);
+});
+
+test('the chosen tab keeps the kit ring rather than falling back to the browser\'s', () => {
+  // `outline: 0` on the chosen tab reaches (0,3,0); the kit's own focus rule
+  // reaches (0,2,1), so it loses, and the tab focuses with nothing under it.
+  // Artur rejected a native outline on #457, and in forced colours the
+  // transparent outline is the indicator. Restated at the same reach.
+  const focused = ruleBody(baseCss, '.ui-seg--underline button.is-active:focus-visible');
+  assert.equal(decl(focused, 'box-shadow'), 'var(--ring)');
+  assert.equal(decl(focused, 'outline'), '2px solid transparent');
+  for (const selector of ['.ui-seg--underline button[aria-pressed="true"]:focus-visible',
+    '.ui-seg--underline button[aria-selected="true"]:focus-visible']) {
+    assert.equal(decl(ruleBody(baseCss, selector), 'box-shadow'), 'var(--ring)');
   }
-  // Height is the one number the standalone rail and the shell's rail disagree
-  // on; the shell's is the rail on the page the issue was reported from.
-  assert.equal(decl(bar, 'height'), decl(ruleBody(layoutCss, '.ui-app__rail .ui-nav__item.is-active::before'), 'height'));
 });
 
 test('the underline strip draws no rule under its tabs', () => {
   // Artur, on #545: the line under the strip reads as noise. The selection is
-  // the chosen tab's own box now, so the rule marked nothing.
+  // the chosen tab's own label now, so the rule marked nothing.
   const strip = ruleBody(baseCss, '.ui-seg--underline');
   assert.equal(decl(strip, 'border-bottom'), undefined, 'the strip declares no bottom rule');
   assert.equal(decl(strip, 'border'), undefined);

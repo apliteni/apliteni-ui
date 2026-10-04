@@ -236,7 +236,11 @@ test('every ring consumer keeps a real outline for forced colors', () => {
   // with the six scroll regions beside it. A --ring-scroll consumer is not counted here
   // and owes no transparent outline: its band IS an outline, which is the one forced
   // colors repaints. The gate above holds those seven.
-  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  // 47 -> 48: the chosen tab of an underline strip, which #527 round r31 left with no
+  // box of its own. Cancelling the pill rule's accent outline on it reaches further
+  // than `.ui-seg button:focus-visible` does, so that rule is restated for the chosen
+  // tab — and counted here, transparent outline and all, like every other consumer.
+  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }

@@ -3208,41 +3208,73 @@ each taking 1.5px of it. Both pointers therefore draw the strip identically.
 
 ## The chosen tab in an underline strip
 
-It is the sidebar's selected row, declaration for declaration: the reading
-surface, the hairline around it, the ink step to `--strong`, and one 3px accent
-bar standing in the tab's own leading padding at the height the shell's rail
-gives it. `src/styles/segmented.test.js` compares the two sheets, so the two
-cannot drift apart silently.
+It is its own label and 2px of accent under it. No plate, no hairline, no upright
+rail: the tab keeps the ground the strip stands on, its label steps to `--strong`
+at `--weight-semibold` while a reading label sits at `--weight-medium`, and the
+bar spans the label's own width — inset from the tab's edges by the same
+`--space-3` its padding is, and standing 3px clear of its bottom edge.
 
-**What a consumer can rely on.** The chosen tab paints the accent exactly once,
-and every mark that says "chosen" is inside that tab's own box. That is what lets
-the strip wrap: a tab on a further row carries its whole highlight with it, and
-nothing has to be read against the row above or the row below. The strip itself
-draws no rule under its tabs — the chosen tab carries the selection, so a line
-there marked nothing — and a consumer that wants one draws it on the container.
+**Why so little.** The strip was first drawn as the sidebar's selected row: a
+reading-surface plate, a hairline around it, and a 3px accent bar standing in the
+tab's leading padding. Artur, round r29: *"Looks like draggable element."* That
+pair — a lone card raised off the grey page with a vertical bar at its leading
+edge — is the kit's own list-row grip, so the eye offered to drag the strip, and
+the bar was the only mark in it that cleared a contrast floor (the plate reads
+1.11:1 against the page). Round r31 took both away and left the two marks that
+were doing the reading: the type step, and the bar re-pointed under the label.
 
-This replaces two marks the strip used to spend on one answer: an accent rail on
-the tab's bottom edge, and the 1px accent outline `.ui-seg button.is-active`
-gives every chosen segmented button, which the underline rule now cancels. The
-pill appearance keeps that outline; it is a separate decision on a rule every
-segmented control in the kit shares.
+**What a consumer can rely on.** The chosen tab paints the accent exactly once.
+No tab in the strip draws a box — no background a reader can see against the
+strip's ground, no border, no inset shadow — so nothing in it reads as a card
+lying on the page. And every mark that says "chosen" is inside that tab's own
+box, clear of its edges, which is what lets the strip wrap: a tab on a further
+row carries its whole highlight with it, and nothing has to be read against the
+row above or the row below. The strip itself draws no rule under its tabs — the
+chosen tab carries the selection, so a line there marked nothing — and a consumer
+that wants one draws it on the container.
 
-In forced colours neither the plate nor the hairline is left: measured in the
-mode, `box-shadow` computes to `none` and the plate comes back as `Canvas` on a
-`Canvas` page. The tab takes a 2px `Highlight` outline inset over its own edge
-instead, and the bar takes `Highlight` as well. The block is inert in normal
-rendering.
+The accent is spent once because the underline rule cancels the 1px accent
+outline `.ui-seg button.is-active` gives every chosen segmented button, which was
+the second of the two marks [#544](https://github.com/apliteni/apliteni-ui/issues/544)
+reported. The pill appearance keeps that outline; it is a separate decision on a
+rule every segmented control in the kit shares.
 
-Held by `stories/segmented-wrap.test.js`, which renders the shipped sheet in a
-browser at 320, 390 and 1280 on a fine pointer, at 390 on a coarse one and at
-1280 in forced colours, and its mutations at all three. It reads the chosen
-tab's accent count, its box against a resting tab's, the accent bar against the
-tab that carries it, the strip's own borders, the row gap against the track's,
-the tap zone against the 44px floor, and — in forced colours, where a background
-is `Canvas` on a `Canvas` page and paints nothing — the marks that are left
-against a resting tab's. Limits: the marks come from the computed cascade, so what is
-finally painted is the screenshots' evidence; and no React strip is measured,
-the sheet being shared.
+**Two consequences worth knowing.** A chosen label is 100 weight units heavier
+than a reading one, so a tab is a little wider while it is chosen; measured on the
+screener's strip the widest step is under 3px and no strip changes its row count
+across selections. And `outline: 0` on the chosen tab reaches further than the
+kit's own `:focus-visible` rule, so that rule is restated for the chosen tab —
+without it the chosen tab focuses with no indicator at all, which is worse than
+the native outline [#457](https://github.com/apliteni/apliteni-ui/issues/457)
+refused.
+
+In forced colours the bar is restated in `Highlight`. The mode repaints an author
+colour, so `var(--accent)` comes back as the same ink the labels are drawn in,
+leaving the stroke weight as the only difference between two labels — which is
+not a selection a reader should have to find by comparison. `Highlight` is kept
+where it is named, so one painted mark survives the mode. The block is inert in
+normal rendering.
+
+The bar is drawn on `::before`. Below the phone step `tap-zone.css` owns
+`.ui-seg button::after` and sizes it to the 44px floor; a bar drawn there collapses
+that layer to its own 2px — measured both ways, 85×44 against 61×2. The hit test
+still passed, because an underline tab draws 44px on its own, so the loss is latent
+rather than visible; it is the zone the kit relies on the moment a strip is drawn
+tighter.
+
+Held by `src/styles/segmented.test.js` for the declarations and
+`stories/segmented-wrap.test.js` for what is drawn, which renders the shipped
+sheet in a browser at 320, 390 and 1280 on a fine pointer, at 390 on a coarse one
+and at 1280 in forced colours, and nine mutations beside them. It reads the
+chosen tab's accent count, its label's weight and ink against a resting tab's,
+whether any tab draws a box, the accent bar against the tab that carries it and
+against that tab's bottom edge, the strip's own borders, the row gap against the
+track's, the tap zone against the 44px floor — including with the bar moved to
+`::after` — and, in forced colours, the painted marks that are left against a
+resting tab's. Limits: the marks come from the computed cascade, so what is
+finally painted is the screenshots' evidence; the forced-colours half reads
+painted marks only and deliberately ignores the weight step; and no React strip
+is measured, the sheet being shared.
 Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527) and
 [#544](https://github.com/apliteni/apliteni-ui/issues/544).
 
