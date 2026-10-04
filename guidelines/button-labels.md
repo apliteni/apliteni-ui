@@ -34,7 +34,7 @@
 
 **Why:** Few glyphs are read the same way by everyone, and a name that appears only on hover reaches neither a touch reader nor a reader in a hurry.
 
-**Except:** A crowded row is a reason to ask, not an answer, and the list grows by decision. A funnel is not on it, so Filter keeps its word.
+**Except:** A crowded row is a reason to ask, not an answer, and the list under [Icon-only controls](https://ui.apli.tech/storybook/?path=/story/guidelines-iconography--iconography) grows by decision. A funnel is not on it, so Filter keeps its word.
 
 **Do:** An overflow menu is the same control in every product a reader has used; the funnel is not.
 
