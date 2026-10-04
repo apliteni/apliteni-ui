@@ -81,12 +81,16 @@ export const Toolbar: StoryObj = {
       <Card><div className="ui-toolbar">
         <SearchField ariaLabel="Search invoices" placeholder="Vendor or number"
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-        {/* Both panels keep the kit's default start edge. The panel floor is
-            240px, and once the field takes the phone line the chips start it
-            again at the row's left edge, so neither runs off either side. */}
+        {/* A panel's floor is 240px and the card's inset starts this row at x=41,
+            so a start-aligned panel on the second chip ended at 395 on a 375px
+            phone — #570's review measured it. Each chip now hugs the edge it is
+            nearer, through the kit's own `align`: the first keeps the default
+            start, the last takes `end`, and the panels open to 41–281 and
+            31.3–271.3 at 375. Measured open and closed, 375 and 390, both
+            themes, in #570. */}
         <Dropdown variant="select" ariaLabel="Status" value={status} onSelect={(v) => setStatus(String(v))}
           items={STATUS.map((label) => ({ label, value: label, selected: label === status }))} />
-        <Dropdown variant="select" ariaLabel="Period" value={period} onSelect={(v) => setPeriod(String(v))}
+        <Dropdown variant="select" ariaLabel="Period" align="end" value={period} onSelect={(v) => setPeriod(String(v))}
           items={PERIOD.map(([label]) => ({ label, value: label, selected: label === period }))} />
         <Segmented label="View" value={view} onChange={setView}
           options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
