@@ -322,7 +322,7 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  assert.equal(count, 114, 'update the rule count when adding or removing a rule');
+  assert.equal(count, 115, 'update the rule count when adding or removing a rule');
 });
 
 // The checkable half of "Show, less tell" (docs/guidelines.md). A rule the page
@@ -415,9 +415,14 @@ test('inline issue links render as links while code and HTML remain escaped', ()
   assert.equal(JSDOM.fragment(mono('[bad](javascript:alert(1))')).querySelector('a'), null);
 });
 
-test('interrupt guidance distinguishes short modal forms from long drawer forms', async () => {
+// A long form was sent to a drawer here and to a page on the Drawers page. The two
+// pages now say the same thing; this holds the sentence that says it.
+test('interrupt guidance sends a short form to a modal or a drawer and a long one to a page', async () => {
   const { RULES } = await import('./_component-choice.js');
   const matches = RULES.filter((rule) => rule.id === 'interrupt');
   assert.equal(matches.length, 1);
-  assert.equal(matches[0].except, 'Use a content-sized modal for a short form and a drawer for a long form.');
+  assert.equal(
+    matches[0].except,
+    'Use a content-sized modal or a drawer for a short form, and a page for a long one.',
+  );
 });
