@@ -5,13 +5,14 @@ export const TITLE = content.title;
 export const BLURB = content.blurb;
 
 export const SPEC_CSS = `<style>
-  /* The hairline is the room the table has, and the subject of this pair is where
-     the table stops inside it. A ground tinted instead of outlined shows nothing in
-     dark mode, where a table paints the page's own colour. */
-  .gdt-stage { min-width: 0; padding: var(--space-4); border-radius: var(--radius-lg);
-    box-shadow: inset 0 0 0 1px var(--border); }
-  /* The don't half draws the state the kit no longer produces by itself. */
-  .gdt-stretch { width: 100%; max-width: none; }
+  /* The card is the room the table has, and the subject of this pair is where the table
+     stops inside it. It is also the surface this page's first rule asks for: outside a
+     card --table-bg is the page's own ground, which leaves a dark table no surface. */
+  .gdt-stage { min-width: 0; }
+  /* The don't half draws the state the kit no longer produces by itself. It fills the
+     bled box a dense table gets in a card — the same expression table.css caps it at —
+     so both halves start and could end on the same edges. */
+  .gdt-stretch { width: calc(100% + 2 * var(--space-3)); max-width: none; }
 </style>`;
 
 const PAYOUTS = [['1162', '1,240.00'], ['1161', '860.00'], ['1160', '2,100.00']];
@@ -20,7 +21,7 @@ const PAYOUTS = [['1162', '1,240.00'], ['1161', '860.00'], ['1160', '2,100.00']]
 // recipe leaves its last header flush with the table edge while its values keep a
 // right inset — 16px apart, against this page's own rule on numeric alignment three
 // rules above. Short references keep the two halves far apart at phone width.
-const payouts = (stretch = false) => `<div class="gdt-stage">
+const payouts = (stretch = false) => `<div class="gdt-stage ui-card ui-card--pad-sm">
   <table class="ui-table ui-table--dense ui-table--hover${stretch ? ' gdt-stretch' : ''}">
     <caption>Payouts · EUR</caption>
     <thead><tr><th>Reference</th><th class="ui-table__num">Amount</th></tr></thead>
