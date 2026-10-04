@@ -128,6 +128,15 @@
      mark's zone 9px inside `Revoke`. Nothing down, because a dense table's
      rows share an edge and its padding is not clearance to spend. */
   .ui-table__act .ui-btn + .ui-btn { margin-inline-start: var(--tap-gap) !important; }
+
+  /* A file drop's pair opens both ways: the row's own floor leaves clearance
+     under a button shorter than the target, and the panel's padding is below. */
+  .ui-drop__row { --tap-clear-y: var(--tap-gap); }
+  .ui-drop__actions {
+    gap: var(--tap-gap) !important;
+    --tap-clear-x: var(--tap-gap);
+    --tap-clear-y: var(--tap-gap);
+  }
   .ui-table__act { --tap-clear-x: var(--tap-gap); --tap-clear-y: 0px; }
 
   /* Down only, like the nine rows below: a toast is a full row at this width,
