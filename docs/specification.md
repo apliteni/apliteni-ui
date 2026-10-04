@@ -226,6 +226,15 @@ not by rounding half up, and not by whichever step is closer to the number that 
 
 Each value's job is stated where the value is written, and the job decides the direction.
 
+A card header is two gaps: `var(--space-2)` under the title and `var(--space-5)` under the
+description. The first was `5px` until [#499](https://github.com/apliteni/apliteni-ui/issues/499)
+— off this scale, and tight enough that the description read as part of the heading rather than
+as a line under it. `--space-2` is the step the page header already uses between its own title
+and sub, and a gap whose job is to separate two text ranks rounds away from collision. Held by
+`src/styles/card-header.test.js`, which checks those two declarations and not the sheet: the
+icon gap and a setting row's hint offset are a component's interior, and the argument about
+which of `src/styles` is rhythm is the one `stories/table-rhythm.test.js` declines to have.
+
 **A padding modifier moves the vertical rhythm and keeps the horizontal inset**, so cards of
 different padding stacked in one column line their text up. `.ui-card` pads `var(--space-6)` and
 `.ui-card--pad-sm` pads `var(--space-5) var(--space-6)`. `.ui-card` used to pad
@@ -2676,6 +2685,70 @@ A named scroll region holds the native table. Sticky headers and pinned identity
 opaque table backgrounds and the shared G2 focus composition. Narrow pinned identities show
 the symbol, retain the full accessible name, and use a company link for disclosure. The
 consumer supplies a real destination for that link. Columns scroll rather than disappear.
+
+Below the one-column step a table marked `.ui-table--stack` lays each row out as a block
+instead of scrolling: the identity and the short cells on the first line, the cell marked
+`.ui-table__long` on a line under them, and the header row clipped rather than removed, so a
+cell still reads with its column's name. The marked column holds running text at any width;
+the line of its own is what the modifier adds. Pinning, sticky headers and the end-cell inset
+all come off — there is no column left to pin — and a pinned identity shows its full name
+there rather than the symbol the 720px fold leaves it. The card bleed stays, re-pointed: it
+pays for the row's own inset instead of the end cells', so a stacked row's hover outline keeps
+its clearance off the text while the text still lands on the card's text edge. A scroll
+wrapper owns that bleed when it is the card's child, and owes one step more than the table,
+because the wrapper keeps its own focus clearance.
+
+The row pays `var(--space-3)` on all four sides: sideways it is the step a dense cell already
+paid, so the hover outline and the row separator keep the clearance they had at the width
+above, and down the page it is what puts two rows 25px apart — two paddings and the hairline
+— against the `var(--space-1)` between a row's own lines. The values sit `var(--space-3)`
+apart along a line and the paragraph `var(--space-1)` below the last of them, so a row reads
+as one block and not as two; two lines of values are two flex lines, so the step from one to
+the next is that same `var(--space-1)`. Those readings are taken in Chromium at 320 and 390
+by `scripts/evidence/table-stack.mjs`, which reads each line's box rather than counting the
+lines, takes the step between two rows off the boxes as well as off the padding, measures the
+compact composition beside the one the stories ship in, shoots the before and after frames,
+and checks that the 1280px frame is the same pixel for pixel with the modifier and without it.
+
+A stacked cell is as tall as its own text, whatever density the table carries.
+`.ui-table--compact` sets a row height for a cell holding one line, and a cell laid out as a
+block reads that as a cap rather than as a floor, so the paragraph the modifier exists for runs
+out of the bottom of the cell, through the row's separator and onto the next entry — 71.56px of
+text in a 33px cell, which is where
+[#532](https://github.com/apliteni/apliteni-ui/pull/532)'s re-review found it. The stacked
+cell rule takes that height off along with the padding and the `nowrap`; above the step a
+compact table keeps the row height it has always had.
+
+With the header clipped, a short cell is read on a line of facts with nothing above it, so a
+value whose meaning came from its column heading has to carry that meaning itself: the unit in
+the cell, as `.ui-value__unit` draws it, and an abbreviation expanded once in the caption above
+the table. The kit cannot write that — the value and its unit are the consumer's — so it is a
+rule in the dense tables guideline, and the pinned story is what it looks like.
+
+A clipped header is read and not operated, so a stacked table's header cells hold text. A
+control left in one is a focus stop with no ring drawn anywhere, because there is nothing on
+screen to draw it on; a sort or filter control belongs on the row above the table instead,
+where it can draw one, and names the table in `aria-controls`. `aria-sort` still announces the
+column the rows are ordered by, and that naming is what keeps the announcement honest: it is
+the difference between a reader being told the order and a reader being able to set it.
+
+A stacked table carries `role="table"`, `rowgroup`, `row`, `columnheader` and `cell` in its
+own markup, at every width, because a stylesheet cannot write a role and 560px is not a
+moment markup can react to. How much of that is load-bearing depends on the engine, and less
+is lost than changing `display` is usually said to cost: measured in Chromium at 390px with
+these rules applied, stripping every role still leaves `table`, `row`, `cell` and
+`columnheader` in the accessibility tree, and the one role lost is the `tbody`'s `rowgroup`.
+WebKit and Gecko are not measured here, so the kit asks for all five rather than for the one
+Chromium is known to drop: the attributes are cheap and a missing role fails silently.
+
+React is not served yet. `DataTable` builds its own table class list and takes no
+`className`, and it is the only table React ships, so a React consumer reaches the modifier
+only by leaving the component and hand-writing the table and its roles. `DataTable` also
+renders its sort control inside the header cell, which a stacked table clips, so opting it in
+means moving that control above the table first.
+
+Held by `src/styles/table-stack.test.js` and `stories/table-stack.test.js`; decided in
+[#499](https://github.com/apliteni/apliteni-ui/issues/499).
 
 `FilterBar` is controlled by its consumer: selections, removal and clear-all request changes,
 and never mutate the supplied filters. A chip shows the chosen value alone, and the field's

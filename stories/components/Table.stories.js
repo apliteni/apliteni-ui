@@ -1,4 +1,5 @@
 import { badge, button, icon } from '../../src/components/index.js';
+import { numericValue, rowIdentity } from '../../src/components/table-values.js';
 import { pad } from '../_gallery.js';
 
 export default {
@@ -116,5 +117,82 @@ export const CompactRowHeaders = {
         <tr><th scope="row">Prototype review</th><td class="ui-table__num">4</td></tr>
       </tbody>
     </table>
+  </div>`),
+};
+
+// A log whose last column is a paragraph (#499). Below the one-column step
+// `ui-table--stack` lays each row out as a block: the handle, the area and the time on
+// one line, the change on a line of its own. The header is clipped rather than removed,
+// so a cell still reads with its column's name. The roles are written here because a
+// stylesheet cannot write one; what each engine actually drops is in the specification.
+const AUDIT = [
+  ['t.quill', 'Billing', '09:12', 'Raised the monthly spend cap on the Harbor Software workspace from 2,000 to 5,000 EUR, after the June reconciliation closed short.'],
+  ['m.arbor', 'Access', '08:40', 'Revoked the Old integration token. Read-only scope, unused for three weeks.'],
+  ['Review bot', 'Content', '08:02', 'Flagged four pages for a second read: the pricing table and the trial terms disagree on how long the trial runs.'],
+];
+
+export const StackedLog = {
+  render: () => pad(`<div class="ui-card" style="max-width:720px">
+    <h2 class="ui-card__title"><span class="ui-card__icon">${icon('clock')}</span> Audit log</h2>
+    <div class="ui-card__sub">Fabricated entries from one morning, newest first.</div>
+    <table class="ui-table ui-table--dense ui-table--hover ui-table--stack" role="table">
+      <thead role="rowgroup"><tr role="row">
+        <th scope="col" role="columnheader">Who</th>
+        <th scope="col" role="columnheader">Area</th>
+        <th scope="col" role="columnheader">Time</th>
+        <th scope="col" role="columnheader">Change</th>
+      </tr></thead>
+      <tbody role="rowgroup">
+        ${AUDIT.map(([who, area, time, change]) => `
+          <tr role="row">
+            <td role="cell" class="ui-table__code">${who}</td>
+            <td role="cell">${area}</td>
+            <td role="cell">${time}</td>
+            <td role="cell" class="ui-table__long">${change}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`),
+};
+
+// The other half of the modifier (#499): the recipe a wide table actually ships in —
+// pinned identity, sticky header, a scroll region — meeting the one-column step. Above it
+// this is the ledger it has always been; below it the pinning, the stickiness and the end-cell
+// inset all come off, and the pinned identity shows its whole name rather than the symbol the
+// 720px fold leaves it.
+//
+// The clipped header is why the lot count carries its unit and the caption expands the
+// basis point: a stacked row reads as one line of facts, and a bare number in it has no
+// column heading left to say what it counts.
+const DESKS = [
+  ['NORT', 'Northstar Analytics', '128.40', '3', 'Rebalanced into short-duration paper after the June print; the committee asked for the note to be kept on the position until September.'],
+  ['HARB', 'Harbor Software', '96.12', '12', 'Holding. The renewal cohort is the whole thesis and it does not settle until the next quarter closes.'],
+  ['CEDA', 'Cedar Infrastructure', '71.85', '2', 'Trimmed on the roll. Fabricated position, kept here because the note runs longer than the row.'],
+];
+
+export const StackedPinned = {
+  render: () => pad(`<div class="ui-card" style="max-width:860px">
+    <h2 class="ui-card__title"><span class="ui-card__icon">${icon('table')}</span> Desk notes</h2>
+    <div class="ui-card__sub">Fabricated positions, heaviest first; weight is in basis points of the fund and a lot is 100 shares.</div>
+    <div class="ui-table-scroll" role="region" aria-label="Desk notes, scroll for more rows" tabindex="0">
+      <table class="ui-table ui-table--dense ui-table--sticky ui-table--pinned ui-table--hover ui-table--stack"
+        id="desk-notes" role="table">
+        <thead role="rowgroup"><tr role="row">
+          <th scope="col" role="columnheader" class="ui-table__identity">Company</th>
+          <th scope="col" role="columnheader" class="ui-table__num">Weight</th>
+          <th scope="col" role="columnheader" class="ui-table__num">Size</th>
+          <th scope="col" role="columnheader">Note</th>
+        </tr></thead>
+        <tbody role="rowgroup">
+          ${DESKS.map(([symbol, name, weight, lots, note]) => `
+            <tr role="row">
+              <td role="cell" class="ui-table__identity">${rowIdentity({ symbol, name })}</td>
+              <td role="cell" class="ui-table__num">${numericValue({ value: weight, unit: 'bp' })}</td>
+              <td role="cell" class="ui-table__num">${numericValue({ value: lots, unit: 'lots' })}</td>
+              <td role="cell" class="ui-table__long">${note}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
   </div>`),
 };

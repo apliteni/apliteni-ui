@@ -203,6 +203,69 @@ It needs both Storybook builds and the checkout for the vanilla half, and it exi
 non-zero on a finding. `npm test` does not run it — nothing in `npm test` drives a
 browser — so its counts belong in the pull request.
 
+`table-stack.mjs` is the other gate that fails, and it is a shoot as well. It is
+#499's measurement: every gap a stacked row draws, against the token it owes.
+
+`src/styles/table-stack.test.js` resolves the cascade in JSDOM, so it can say which
+declaration wins; JSDOM lays nothing out, so it cannot say where the text lands.
+This measures the boxes — the row's own inset, the gap between two values on a
+line, the gap from one wrapped line of values down to the next, the gap down to
+the paragraph, the step between two rows, and whether the first cell starts on
+the card's own text edge, the reading that was 4px out when round 3 re-reviewed
+it. Each one is checked against a step read from `src/tokens/tokens.css` rather
+than against a number written here.
+
+Two of those readings are taken twice over, because the first form of each
+passed a layout that was wrong. A wrapped line used to be counted and not
+measured, so a margin that pushed one a step too far went unseen; the lines are
+now boxes. The step between two rows used to be the row's padding and rule added
+up, which is what the sheet asks for and not where the boxes sit, so it is now
+read off both and the two have to agree. Every cell's own lines are read as well
+as its box: a cell given a height it cannot hold keeps the height and lets the
+text out of the bottom, and nothing about its box says so.
+
+Each subject is measured in the density its story ships in and again in the
+tighter one, because `--compact` sets a row height for a cell holding one line
+and a stacked cell has to take it off. A run fails if no compact case drew a
+paragraph on more than one line, since a one-line paragraph fits any height and
+challenges nothing.
+
+Three mutations close the run, injected into the page rather than into the sheet:
+a margin under the identity cell, the compact row height put back on a stacked
+cell, and a negative margin under the paragraph. Each has to produce at least one
+finding. The first two are the defects #532's re-review found by hand, and the
+third is the one only the observed row step can see.
+
+Subjects are swept: every story whose source names `ui-table--stack` is rendered
+and each stacked table on the settled page joins the set. The sweep is narrowed by
+the source rather than by rendering the whole index, because the index is several
+hundred stories and a handful could possibly stack; the page is still asked, so a
+story that names the modifier without rendering one does not count.
+
+Each subject is measured at 320 and 390 in both themes. 320 is there for the
+wrapped line: the pinned recipe's values do not fit one line at that width, and the
+run fails if no case wraps, because the gap between two lines of values would
+otherwise go unread. 1280 is shot but not measured — above the one-column step
+there is no stacked row to read — and the claim that the modifier is inert there is
+checked by comparing the two frames, with the modifier and without it, byte for
+byte.
+
+The before side of every pair is the same frame with the class taken off the table,
+which is what `main` draws for the same markup. A modifier inside a media query
+cannot be undone by a rule, so the class is removed rather than overridden.
+
+`FLOOR_SUBJECTS`, `FLOOR_CASES` and `FLOOR_ROWS` hold the coverage, for the reason
+`filter-bar-fit.mjs` holds its own.
+
+```sh
+npm run build-storybook
+node scripts/evidence/table-stack.mjs . out/    # out/ takes the frames and spacing.json
+```
+
+It needs the root Storybook build and the checkout, and exits non-zero on a
+finding. `npm test` does not run it either, so its readings belong in the pull
+request.
+
 ## What is deterministic and what is not
 
 `shoot.mjs`, `nav.mjs`, `float.mjs`, `guideline.mjs`, `back.mjs` and `dropdown.mjs`

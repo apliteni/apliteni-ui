@@ -56,7 +56,7 @@
 
 **Rule:** Keep units smaller and in body ink.
 
-**Do:** Keep units smaller and in body ink, and explain abbreviations in reachable text.
+**Do:** Keep units smaller and in body ink, and explain abbreviations in reachable text. A short value in a stacked row carries its own unit or count word, because the header that named it is no longer on screen.
 
 **Don't:** Hide units in muted text or make readers guess what an abbreviation means.
 
@@ -71,6 +71,8 @@
 **Do:** Use a named keyboard-focusable scroll region with a sticky header and pinned identity column.
 
 **Don't:** Squeeze columns until values are unreadable or silently remove data.
+
+**Except:** On a phone, a row whose long column is a paragraph stacks instead of scrolling: the short values on one line, the paragraph under them, and the header kept for screen readers. No column is dropped.
 
 ## Keep updates stable
 
