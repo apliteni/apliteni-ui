@@ -605,7 +605,15 @@ kit's own gallery pages show a field on the card, which is where a form lives, a
 `stories/field-ground.test.js` holds them there and records the four readings above. A consumer
 owes a field the same: a form on the page ground gets no help from these tokens.
 
-Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551) round r28.
+**Both catalogues, not one.** The React catalogue is held to the same rule by
+`react/src/field-ground.test.tsx`, over the reading both gates share in
+`stories/lib/field-ground.js`. It mounts every story the workspace exports in both themes and
+reads the ground under each field, so a React story that stages a field on `--bg` fails. The rule
+is the kit's, so a gate that walked only the HTML galleries left the published React stories free
+to break it, and 27 stories in six files did.
+
+Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551) round r28; the React half
+in [#568](https://github.com/apliteni/apliteni-ui/issues/568).
 
 **The box reports the state, so a field that is off draws the fainter edge of the two.** Dark
 answered both states with `--border` until [#564][i564]: `--field-edge` and `--disabled-border`

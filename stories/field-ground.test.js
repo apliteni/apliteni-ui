@@ -1,12 +1,14 @@
 /* Rule: a field in a component gallery is shown on a painted surface, never on
- * the page ground.
+ * the page ground. The vanilla half; react/src/field-ground.test.tsx is the other,
+ * over the same reading in stories/lib/field-ground.js.
  *
  * Cause and numbers: docs/specification.md#colour-and-contrast. Raised by Artur in
  * round r28 of #551 — "Disabled fields almost invisible because of that."
  *
  * Limits, read before trusting a green run:
  *  - stories/components/ only. A guideline page's prose and a showcase's toolbar
- *    ground are those pages' decisions, not this one's.
+ *    ground are those pages' decisions, not this one's. The React catalogue is the
+ *    other gate's subject and is not reached from here.
  *  - Winning declarations in JSDOM, not pixels: a rule inside a media query is
  *    unmeasured, and so is anything that depends on layout.
  *  - At rest. Hover, focus and active grounds belong to stories/contrast.test.js.
@@ -27,10 +29,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import {
-  AA_TEXT, composite, desugar, effectiveBackground, fadeOnto, installDomGlobals,
-  kitCssFor, makeStyleCache, parseColour, ratio, selectorPath, serialize, storyFiles,
-  substitute,
+  AA_TEXT, composite, desugar, fadeOnto, installDomGlobals, kitCssFor, makeStyleCache,
+  parseColour, ratio, serialize, storyFiles, substitute,
 } from './lib/contrast.js';
+import { FIELD, hex, readField, stranded } from './lib/field-ground.js';
 // The rejection proof's fixture is built from the kit, not drawn by hand.
 import { card, select } from '../src/components/index.js';
 
@@ -39,13 +41,6 @@ const THEMES = ['dark', 'light'];
 
 // Subjects are discovered, not listed: every gallery under stories/components/.
 const GALLERIES = storyFiles.filter((file) => file.startsWith('components/'));
-
-// What the kit calls a field: the three form controls, plus the two that paint a
-// box of their own out of the same three tokens.
-const FIELD = '.ui-input, .ui-select, .ui-textarea, .ui-check input, .ui-switch__track';
-
-const hex = (colour) => `#${colour.slice(0, 3).map((n) => Math.round(n).toString(16).padStart(2, '0')).join('')}`;
-const same = (a, b) => hex(a) === hex(b);
 
 /* Chromium paints a disabled select the kit's way and then fades the result:
  * its user-agent sheet carries `select:disabled { opacity: 0.7 }`, and a colour
@@ -59,40 +54,6 @@ const UA_FADES_SELECTS = 'select:disabled { opacity: 0.7; }';
 
 /** The declaration that answers it, as the kit writes it. */
 const RESET = /(\.ui-input:disabled[^{]*\{[^}]*?)\n\s*opacity:\s*1;[^\n]*/;
-
-/**
- * One control's paint as a reader meets it: its own colours, each mixed toward
- * the ground it sits on by whatever opacity the control is drawn at.
- *
- * `ground` is what is behind the control, so a faded control's own fill no longer
- * hides it — which is why `fill` is faded too and the ink is read on the result.
- */
-function measure(el, win, styleOf) {
-  const ground = el.parentElement && effectiveBackground(el.parentElement, win, styleOf);
-  if (!Array.isArray(ground)) return null; // an image ground is nobody's to measure
-  // The cache answers only for the properties it was asked to hold, and a border
-  // colour is not one of them, so the control's own reading is taken live.
-  const computed = win.getComputedStyle(el);
-  const fade = Number(computed.opacity);
-  let fill = parseColour(computed.backgroundColor);
-  if (fill && fill[3] < 0.999) fill = composite(fill, ground);
-  fill = fadeOnto(fill, fade, ground);
-  const border = fadeOnto(parseColour(computed.borderTopColor), fade, ground);
-  // The label carries the ink of a checkbox or a switch; the box carries its own.
-  const inkOwner = el.matches('.ui-check input, .ui-switch__track') ? (el.closest('label') || el) : el;
-  const own = win.getComputedStyle(inkOwner);
-  const inkOn = fill && fill[3] >= 0.999 ? fill : ground;
-  const ink = fadeOnto(parseColour(own.color), Number(own.opacity), inkOn);
-  return {
-    groundRgb: ground,
-    fade: Number.isFinite(fade) ? fade : 1,
-    ground: hex(ground),
-    fill: fill ? hex(fill) : null,
-    border: border && border[3] > 0 ? hex(border) : null,
-    edge: border && border[3] > 0 ? Number(ratio(border, ground).toFixed(2)) : null,
-    ink: ink ? Number(ratio(ink, inkOn).toFixed(2)) : null,
-  };
-}
 
 /**
  * One document with the kit's sheet in it, and the user-agent declaration the kit
@@ -118,19 +79,13 @@ function stage(theme, sheet = (css) => css) {
     vars,
     page,
     /** Every control matching FIELD in one piece of markup, measured. */
-    read(html) {
+    read(html, story) {
       styles.mutate(() => { win.document.body.innerHTML = desugar(substitute(html, vars)); });
       const out = [];
       for (const el of win.document.body.querySelectorAll(FIELD)) {
-        const reading = measure(el, win, (node) => styles.of(node));
-        if (!reading) continue;
-        out.push({
-          path: selectorPath(el),
-          leaf: selectorPath(el).split(' > ').pop(),
-          disabled: el.disabled === true || el.hasAttribute('disabled'),
-          onPage: same(reading.groundRgb, page),
-          ...reading,
-        });
+        // null is an image ground, which is nobody's to measure.
+        const reading = readField(el, win, { page, story, styleOf: (node) => styles.of(node) });
+        if (reading) out.push(reading);
       }
       return out;
     },
@@ -155,15 +110,11 @@ async function readFields(theme) {
       const out = serialize(render(args, { globals: { theme }, args }));
       assert.notEqual(out, null, `${rel}:${name} did not render to markup`);
       stories.push(`${rel}:${name}`);
-      for (const reading of staged.read(out)) fields.push({ story: `${rel}:${name}`, ...reading });
+      for (const reading of staged.read(out, `${rel}:${name}`)) fields.push(reading);
     }
   }
   return { fields, stories };
 }
-
-/** The problem lines a set of readings produces. One expression, so the claim and
- *  the mutation below run the same code rather than two spellings of it. */
-const stranded = (fields) => fields.filter((f) => f.onPage).map((f) => `${f.story} → ${f.path}`);
 
 const readings = Object.fromEntries(await Promise.all(
   THEMES.map(async (theme) => [theme, await readFields(theme)]),
@@ -404,8 +355,9 @@ test('the gate rejects a select the browser is left free to fade', () => {
       );
       return out;
     };
-    const [kept] = stage(theme).read(html).filter((f) => f.leaf.startsWith('select.ui-select'));
-    const [lost] = stage(theme, strip).read(html).filter((f) => f.leaf.startsWith('select.ui-select'));
+    const fixture = 'fixture:disabled select on a card';
+    const [kept] = stage(theme).read(html, fixture).filter((f) => f.leaf.startsWith('select.ui-select'));
+    const [lost] = stage(theme, strip).read(html, fixture).filter((f) => f.leaf.startsWith('select.ui-select'));
     assert.ok(kept && lost, `${theme}: the fixture drew no select`);
 
     assert.deepEqual(
