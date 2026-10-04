@@ -3956,28 +3956,41 @@ buttons at the size the resting row already uses, and they close the name's line
 on the edge it ends on.
 
 One layout at every width: nothing is hidden, dropped or moved at a breakpoint,
-so the sheet carries no container query. Measured in Chromium at 1280, 390 and
-320 alike, a row with a measurable upload is 73px over three tiers, and every
-other state a file is in — starting, uploaded, failed — is 59px over two. A
-resting row is 32px, the kit's small-control row, wherever its note sits beside
-its button; below about 250px of block width the note wraps under it and the row
-is 59px. At 320 in a panel `stories/row-height.test.js` measures the truncated stem at
-214px while uploading and 126px when the upload has failed; the single line that
-preceded this stack gave it 62px and 113px. The failed row is the narrower of the
-two because it carries two worded actions on the name's line. The kit draws these
-in a panel, and `--panel-sm` is 320px.
+so the sheet carries no container query. Measured in Chromium with IBM Plex Sans
+loaded, at 1280, 390, 360 and 320 and in both containers alike, a row with a
+measurable upload is 69.55px over three tiers, a failed one is 59.05px over two,
+and a starting or uploaded one is 55.55px over two. A resting row is 32px, the
+kit's small-control row, wherever its note sits beside its button; below about
+250px of block width the note wraps under it and the row is 59.05px.
 
-A name being cut is held to a floor, and the floor depends on what shares its
-line: 150px where the row carries at most one worded action, 120px where it
-carries two. The second is not a preference. At 320 the stack is 288px wide,
-`Retry` and `Remove` with the space between them take 160px, and the name's own
-gap takes 12px, so the one-action floor would need 322px of a 288px line. The
-trade was taken in #566 rather than wrapping the actions under the name, which is
-the layout #541 rejected: remove carries its word because `x` is the kit's glyph
-for close and dismiss, and taking a file off a row is neither. What it costs is
-one case — a 320px panel holding a failed upload whose name is long enough to be
-cut shows about eight characters of its stem. The extension is never cut, at any
-width.
+The containers are the two the kit draws a row into: a plain row given the whole
+block, and a panel inset by `--space-4` on each side — the inset the guideline
+specimens draw and the one `.ui-app__main` takes at the phone step. At 320
+`stories/row-height.test.js` measures the truncated stem at 210px in a plain row
+and 178px in a panel while uploading, and at 119px and 87px when the upload has
+failed. The failed row is the narrower because it carries two worded actions on
+the name's line. `--panel-sm`, the narrowest panel the kit names, is 320px, so
+the panel row at 320 — a 288px line — is also the line a 320px panel gives at
+any viewport. The stem and height numbers this section carried before #566 were
+taken in the engine's fallback font and in no panel at all; they are withdrawn
+rather than adjusted.
+
+A name being cut is held to one floor: 150px, and it is met wherever at most one
+worded action shares the name's line. A row carrying two does not reach it and
+cannot. What the stem gets is the line less `Retry` and `Remove` with the space
+between them, 165px, less the extension, 24px and never shrinking, less the
+name's own gap, 12px — so 150px needs a 351px line. 1280 and 390 have one; a
+panel at 360 and either container at 320 do not. Those rows are held to what
+they measure instead, as four shortfalls the gate records and asserts: 127px in
+a panel at 360, 119px in a plain row at 320, and 87px in a panel at 320 both for
+a long name and for `statement-2026-08.pdf`, which is an ordinary name and is cut
+there too. No second floor is published. What a failed upload's name may be cut
+to in a narrow panel is open in
+[#566](https://github.com/apliteni/apliteni-ui/issues/566) and is Artur's to
+decide: reaching 150px means wrapping the actions under the name, which is the
+layout #541 rejected, or dropping `Remove`'s word, which #566 rejected because
+`x` is the kit's glyph for close and dismiss and taking a file off a row is
+neither. The extension is never cut, at any width or in either container.
 
 Below the phone step a coarse pointer gets the kit's 44px target on `Retry` and
 `Remove`: the pair opens to the tap gap and each button's transparent layer
@@ -4001,8 +4014,10 @@ with a form, because the file travels through `onFile`.
 
 Covered by `react/src/FileDrop.test.tsx`, which does not open the system picker,
 measure the target's cover or the focus ring, or check screen-reader speech, and
-by `stories/row-height.test.js`, which reads the sheet in CI and measures the
-tiers, the heights and the truncation in a browser under `ROW_HEIGHTS=1`.
+by `stories/row-height.test.js`, which reads the sheet in CI with its ledger of
+measured shortfalls, and under `ROW_HEIGHTS=1` measures the tiers, the heights
+and the truncation in a browser — in both containers, at four widths, and with
+IBM Plex Sans loaded, which that half needs the network for.
 Closes [#507](https://github.com/apliteni/apliteni-ui/issues/507).
 
 ## React accent picker
