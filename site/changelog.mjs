@@ -6,9 +6,26 @@
 
 export const RELEASES = [
   {
-    v: '0.79.1', date: '2026-10-04',
+    v: '0.82.0', date: '2026-10-04',
     changes: [
-      ['changed', 'The packaged README states the time budget for each test suite, and says that every run ends with its ten slowest tests and files. This is for whoever contributes to the kit; nothing the package ships behaves differently. See #560.'],
+      ['added', 'A component-choice guideline: group one category at a time. Views, filters, sorting and actions each take their own group and style; a bar that mixes them hides which control re-draws every row and which only narrows them. See #508.'],
+    ],
+  },
+  {
+    v: '0.81.0', date: '2026-10-04',
+    changes: [
+      ['breaking', '`accountShell()` is removed, with the Showcases/Account preset screen that drew it. It laid account settings out as a full-width page in the shell, which is the shape the new guideline rejects. Call `appShell()` instead: pass your own `nav` and `crumbs` \u2014 `[{ label: cap }, { label: crumb }]` is the trail the preset built \u2014 and a `topbar` bag if you want the band, with `versions`, `showSwitch` and `wireTopbar()` as before. `ACCOUNT_NAV` is still exported and is still the account menu\u2019s fallback nav, and the menu still reads the old `[id, icon, label, href?, target?]` tuples. Components/Topbar draws the band over a shell. Part of #509.', ['Shell']],
+      ['fixed', 'Below 720px the topbar\u2019s version menu opens leftwards from its switcher, as the account menu beside it always has. It was anchored by its left edge, and a closed menu is still laid out \u2014 so on a phone it reached well past the right of the page and scrolled it sideways with nothing on screen to explain it. Measured on a 320px viewport: the page’s scroll width was 527px and is 367px. The band\u2019s own controls still need more room than a 320px page gives; that is #558. See #509.', ['Topbar']],
+      ['fixed', 'Below 560px the topbar\u2019s controls sit one spacing step apart, so the account avatar is whole on a 390px page. It stood 7px past the right edge and the page scrolled sideways to reach it \u2014 and the avatar is the only way into the account area on that screen. The band now needs 352px of the 362px a 390px page gives it, and that page does not scroll sideways at all. A 320px page still asks more of these controls than it has, which stays #558. See #509.', ['Topbar']],
+      ['fixed', 'A bare link in a table cell now gives a pointer the 24px target floor, through a layer that changes no layout. It was as tall as its line box \u2014 21px in a dense table \u2014 and growing the link\u2019s own box would have grown every dense row holding one. See #509.', ['Table']],
+      ['added', 'Guidelines / Account and settings says where account and personal settings belong: in one modal over the product, its navigation beside the pane \u2014 above it on a phone \u2014 rather than in a full-width sheet with columns. Five rules cover the modal, the navigation inside it, what the account menu holds, changing a single field in the row that names it, and naming a pane\u2019s action after the change it makes. The page records what the kit cannot draw: it has no modal that takes a navigation pane or a width. Resolves #509.', ['Shell']],
+    ],
+  },
+  {
+    v: '0.80.0', date: '2026-10-04',
+    changes: [
+      ['added', 'The drawer guideline now explains when a drawer fits and when a page does, with a rendered pair that edits one member\u2019s access on a page and in a drawer. A drawer holds one short change: a quick edit, a new key, a filter, a peek at a row\u2019s detail. A long form, several steps, a view with its own address and Back, or work across more than one group belongs on a page, though a drawer may still show groups a reader only reads. Resolves #492.', ['Drawer']],
+      ['changed', 'The component-choice guideline sends a long form to a page rather than a drawer, which is what the drawer guideline says. A short form still takes a content-sized modal or a drawer. See #492.'],
     ],
   },
   {

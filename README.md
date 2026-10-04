@@ -36,7 +36,7 @@ install, one version and one version pin.
 | Import | What it is |
 | --- | --- |
 | `@apliteni/apliteni-ui/css` | Tokens and every component stylesheet. Import once at the app root. |
-| `@apliteni/apliteni-ui` | The HTML-string factories: `button()`, `card()`, `topbar()`, `accountShell()` and the rest. |
+| `@apliteni/apliteni-ui` | The HTML-string factories: `button()`, `card()`, `topbar()`, `appShell()` and the rest. |
 | `@apliteni/apliteni-ui/react` | The React components, TypeScript types included. |
 | `@apliteni/apliteni-ui/react/css` | Their shell styles. |
 | `@apliteni/apliteni-ui/inline` | The same CSS as strings, for a server that inlines it. |
@@ -59,9 +59,11 @@ import '@apliteni/apliteni-ui/react/css';
 import { DataTable, Modal } from '@apliteni/apliteni-ui/react';
 ```
 
-The `accountShell()` factory provides the complete `/account` layout: the topbar, sticky
-sidebar and page body, so no product rebuilds it. The
+The `appShell()` factory provides the complete product layout: the sticky rail, the page body
+and a topbar over it when you ask for one, so no product rebuilds it. The
 [component catalog](docs/library.md#component-catalog) lists this factory and every other one.
+Account and personal settings belong in a modal over the product rather than on a page of
+their own — see [Guidelines / Account and settings](guidelines/account-and-settings.md).
 
 ### Fonts
 
@@ -136,9 +138,7 @@ npm run storybook              # the kit; add -w react for the React workspace
 npm test && npm test -w react && npm run build-storybook && node site/build.mjs
 ```
 
-Run the final command before opening a PR. The two suites have budgets of 3m20s and 1m40s
-on an 8-core Linux host, and each run ends with its ten slowest tests and files. See
-[AGENTS.md](AGENTS.md) for the per-test budgets.
+Run the final command before opening a PR.
 
 Add a general, composable kit component only when all three conditions are true: the issue
 names at least two products that use it or have requested it; existing components cannot
