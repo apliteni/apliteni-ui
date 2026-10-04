@@ -146,7 +146,7 @@ function resolve(css, width) {
       row: parts(body.rows[0], ['display', 'flex-wrap', 'padding-top', 'padding-right',
         'padding-bottom', 'padding-left', 'column-gap', 'row-gap']),
       cells: Object.fromEntries(['identity', 'title', 'num', 'long'].map((name) =>
-        [name, parts(cell(name), ['display', 'white-space', 'position', 'padding-left', 'width', 'flex-basis'])])),
+        [name, parts(cell(name), ['display', 'white-space', 'position', 'padding-left', 'width', 'flex-basis', 'height'])])),
     };
   });
   win.close();
@@ -206,6 +206,13 @@ function stackedProblems({ recipe, table, head, body, row, cells }) {
     }
     if (cell.display !== 'block') problems.push(say(`the ${name} cell is ${cell.display}, not a block`));
     if (cell['padding-left'] !== '0px') problems.push(say(`the ${name} cell keeps the column inset ${cell['padding-left']}`));
+    /* A block cell reads --compact's row height as a fixed height, not a floor, so a
+     * wrapped paragraph spills through the separator and lands on the next row (#532's
+     * re-review measured 71.56px of text in a 33px cell). The text's own height is in
+     * Chromium's half of this, which lays the lines out; this says the cap is gone. */
+    if (cell.height !== 'auto') {
+      problems.push(say(`the ${name} cell is capped at ${cell.height} — a stacked cell is as tall as its text`));
+    }
   }
   if (cells.title.width !== 'auto') {
     problems.push(say(`the title cell keeps width ${cells.title.width}, which has no column to be a share of`));
@@ -237,6 +244,10 @@ test('the modifier does nothing above the one-column step', () => {
     if (cells.long['flex-basis'] !== 'auto') problems.push(say(`the long cell is ${cells.long['flex-basis']} wide`));
     // `__title` keeps the column it has always taken; only a stacked row takes it away.
     if (cells.title.width !== '99%') problems.push(say(`the title cell is ${cells.title.width}`));
+    // The height reset belongs to the stacked row alone: a compact desktop table keeps the
+    // row height it ships with, and a table that was never compact never had one.
+    const wants = recipe.classes.includes('ui-table--compact') ? '33px' : 'auto';
+    if (cells.num.height !== wants) problems.push(say(`the num cell is ${cells.num.height} tall, not ${wants}`));
   }
   assert.deepStrictEqual(problems, []);
 });
@@ -267,6 +278,8 @@ const MUTATIONS = [
     (css) => css.replace('row-gap: var(--space-1);', 'row-gap: var(--space-6);')],
   ['the row left as a table row',
     (css) => css.replace('> tbody > tr {\n    display: flex;', '> tbody > tr {\n    display: table-row;')],
+  ['the compact row height left on a stacked cell, where it caps a wrapped paragraph',
+    (css) => css.replace('max-width: 100%; height: auto;', 'max-width: 100%;')],
   ['the stacked block moved to a step that is not the one-column one',
     (css) => css.replace('@media (max-width: 560px) {\n  .ui-table.ui-table--stack {',
       '@media (max-width: 360px) {\n  .ui-table.ui-table--stack {')],

@@ -209,10 +209,32 @@ browser — so its counts belong in the pull request.
 `src/styles/table-stack.test.js` resolves the cascade in JSDOM, so it can say which
 declaration wins; JSDOM lays nothing out, so it cannot say where the text lands.
 This measures the boxes — the row's own inset, the gap between two values on a
-line, the gap down to the paragraph, the step between two rows, and whether the
-first cell starts on the card's own text edge, the reading that was 4px out when
-round 3 re-reviewed it. Each one is checked against a step read from
-`src/tokens/tokens.css` rather than against a number written here.
+line, the gap from one wrapped line of values down to the next, the gap down to
+the paragraph, the step between two rows, and whether the first cell starts on
+the card's own text edge, the reading that was 4px out when round 3 re-reviewed
+it. Each one is checked against a step read from `src/tokens/tokens.css` rather
+than against a number written here.
+
+Two of those readings are taken twice over, because the first form of each
+passed a layout that was wrong. A wrapped line used to be counted and not
+measured, so a margin that pushed one a step too far went unseen; the lines are
+now boxes. The step between two rows used to be the row's padding and rule added
+up, which is what the sheet asks for and not where the boxes sit, so it is now
+read off both and the two have to agree. Every cell's own lines are read as well
+as its box: a cell given a height it cannot hold keeps the height and lets the
+text out of the bottom, and nothing about its box says so.
+
+Each subject is measured in the density its story ships in and again in the
+tighter one, because `--compact` sets a row height for a cell holding one line
+and a stacked cell has to take it off. A run fails if no compact case drew a
+paragraph on more than one line, since a one-line paragraph fits any height and
+challenges nothing.
+
+Three mutations close the run, injected into the page rather than into the sheet:
+a margin under the identity cell, the compact row height put back on a stacked
+cell, and a negative margin under the paragraph. Each has to produce at least one
+finding. The first two are the defects #532's re-review found by hand, and the
+third is the one only the observed row step can see.
 
 Subjects are swept: every story whose source names `ui-table--stack` is rendered
 and each stacked table on the settled page joins the set. The sweep is narrowed by

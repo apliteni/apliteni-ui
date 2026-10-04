@@ -274,8 +274,12 @@ a.ui-identity:hover { text-decoration: underline; }
     padding: var(--space-3); border-bottom: 1px solid var(--border);
   }
   .ui-table.ui-table--stack > tbody > tr:last-child { border-bottom: 0; }
+  /* `height` is in this list for the same reason `white-space` is: --compact sets a row
+     height for a one-line cell, and a block cell takes it as a fixed height rather than a
+     floor, so a wrapped paragraph spills through the separator into the next row. A stacked
+     cell is as tall as its text. */
   .ui-table.ui-table--stack > tbody > tr > td {
-    display: block; width: auto; min-width: 0; max-width: 100%;
+    display: block; width: auto; min-width: 0; max-width: 100%; height: auto;
     padding: 0; border-bottom: 0; white-space: normal; overflow-wrap: break-word;
   }
   .ui-table.ui-table--stack > tbody > tr > td.ui-table__long { flex: 0 0 100%; text-align: left; }

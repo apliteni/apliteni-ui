@@ -2703,9 +2703,27 @@ paid, so the hover outline and the row separator keep the clearance they had at 
 above, and down the page it is what puts two rows 25px apart — two paddings and the hairline
 — against the `var(--space-1)` between a row's own lines. The values sit `var(--space-3)`
 apart along a line and the paragraph `var(--space-1)` below the last of them, so a row reads
-as one block and not as two. Those readings are taken in Chromium at 320 and 390 by
-`scripts/evidence/table-stack.mjs`, which also shoots the before and after frames and checks
-that the 1280px frame is the same pixel for pixel with the modifier and without it.
+as one block and not as two; two lines of values are two flex lines, so the step from one to
+the next is that same `var(--space-1)`. Those readings are taken in Chromium at 320 and 390
+by `scripts/evidence/table-stack.mjs`, which reads each line's box rather than counting the
+lines, takes the step between two rows off the boxes as well as off the padding, measures the
+compact composition beside the one the stories ship in, shoots the before and after frames,
+and checks that the 1280px frame is the same pixel for pixel with the modifier and without it.
+
+A stacked cell is as tall as its own text, whatever density the table carries.
+`.ui-table--compact` sets a row height for a cell holding one line, and a cell laid out as a
+block reads that as a cap rather than as a floor, so the paragraph the modifier exists for runs
+out of the bottom of the cell, through the row's separator and onto the next entry — 71.56px of
+text in a 33px cell, which is where
+[#532](https://github.com/apliteni/apliteni-ui/pull/532)'s re-review found it. The stacked
+cell rule takes that height off along with the padding and the `nowrap`; above the step a
+compact table keeps the row height it has always had.
+
+With the header clipped, a short cell is read on a line of facts with nothing above it, so a
+value whose meaning came from its column heading has to carry that meaning itself: the unit in
+the cell, as `.ui-value__unit` draws it, and an abbreviation expanded once in the caption above
+the table. The kit cannot write that — the value and its unit are the consumer's — so it is a
+rule in the dense tables guideline, and the pinned story is what it looks like.
 
 A clipped header is read and not operated, so a stacked table's header cells hold text. A
 control left in one is a focus stop with no ring drawn anywhere, because there is nothing on

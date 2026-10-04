@@ -56,7 +56,7 @@
 
 **Rule:** Keep units smaller and in body ink.
 
-**Do:** Keep units smaller and in body ink, and explain abbreviations in reachable text.
+**Do:** Keep units smaller and in body ink, and explain abbreviations in reachable text. A short value in a stacked row carries its own unit or count word, because the header that named it is no longer on screen.
 
 **Don't:** Hide units in muted text or make readers guess what an abbreviation means.
 
