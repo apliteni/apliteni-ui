@@ -2485,7 +2485,9 @@ the colour withheld. A figure with nothing to compare draws no row at all: it sh
 and the caption the caller gave it if there is one, and stops. It is never shown as `+0%`, it
 takes no tone, and the band does not say in words that it has nothing to say — beside figures that
 do carry a change, that sentence is noise. The band said `No earlier figure` there until Artur
-struck it on 2026-10-02; `delta.none`, which worded it, went with it.
+struck it on 2026-10-02 with one word, "Noise?"; `delta.none`, which worded it, went with it. He
+wrote it against `of income   No earlier figure`, so it reached the caption in that row too, and
+the rule a caption now has to meet is below.
 
 A change says what it is measured against, in text a reader can reach: once for the whole band, in
 the band's caption, which every change points at, or beside the change when one figure is measured against
@@ -2511,6 +2513,15 @@ the value is, how it moved, and what it moved against. A second row would drop e
 sat under a caption a line below the rest of the band, which is the layout the band exists to
 keep, and four lines of text around one number read as a paragraph with a figure in it rather
 than a figure.
+
+**A caption earns that row only by giving a unit, a period or a limit the figure cannot.** That is
+the test `guidelines/text-length.md` already sets for a caption, and a figure's caption is held to
+it: a rate could be a share of income or of orders, so it says which, and a figure whose label
+already names its denominator takes no caption — `Gross margin 36.1%` is complete, and `of income`
+under it only repeats the word `margin`. Artur struck every caption the showcase drew on
+2026-10-02 with one word, **"Noise?"**, and this is the rule that replaced them: the kit still
+offers the row, and a caption that tells a reader nothing the figure and its label already tell
+them does not belong in it. The row is a slot the caller may leave empty, and most figures should.
 
 **A caption never costs a reader the comparison.** A change's own `basis` is printed whether or
 not the figure has a caption, because a `basis` is passed exactly when a figure is measured

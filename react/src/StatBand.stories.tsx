@@ -19,16 +19,19 @@ export const Band: StoryObj = { render: () => <StatBand stats={STATS} basis={BAS
 export const Open: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="open" /> };
 
 // A share of a larger figure takes the row a change would have taken, so a band
-// where only some figures carry one still keeps its changes on one line.
+// where only some figures carry one still keeps its changes on one line. A caption
+// earns that row only by giving a unit, a period or a limit the figure cannot —
+// a rate could be of income or of orders. Gross margin names its own denominator,
+// so it takes none.
 export const Caption: StoryObj = {
   render: () => (
     <StatBand
       basis={BASIS}
       stats={[
-        { label: 'Gross margin', value: '36.1%', caption: 'of income' },
+        { label: 'Gross margin', value: '36.1%', delta: { value: '+1.2 pts', tone: 'good' } },
         { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
-        { label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } },
-        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+        { label: 'Refunds', value: '2.4%', caption: 'of income', delta: { value: '+0.3 pts', tone: 'bad' } },
+        { label: 'Unclassified', value: '1.3%', caption: 'of income' },
       ]}
     />
   ),
@@ -44,13 +47,13 @@ export const CaptionLength: StoryObj = {
     <StatBand
       basis={BASIS}
       stats={[
-        { label: 'Gross margin', value: '36.1%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } },
-        { label: 'Net margin', value: '8.0%', caption: 'March revenue in EUR, excluding refunds', delta: { value: '+0.4 pts', tone: 'good' } },
+        { label: 'Gross margin', value: '36.1%', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Refunds', value: '2.4%', caption: 'of income, excluding disputed chargebacks', delta: { value: '+0.3 pts', tone: 'bad' } },
         {
-          label: 'Operating margin',
-          value: '12.4%',
+          label: 'Unclassified',
+          value: '1.3%',
           caption: 'of income',
-          delta: { value: '+1.2 pts', tone: 'good', basis: 'against the 40% target', tooltip: '+1.2 points against the 40% target' },
+          delta: { value: '−0.4 pts', tone: 'good', basis: 'against the 1% target', tooltip: '−0.4 points against the 1% target' },
         },
         { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
       ]}
@@ -60,15 +63,16 @@ export const CaptionLength: StoryObj = {
 
 // A figure with nothing to compare shows its value and stops, keeping only the
 // caption the caller gave it. Saying "no earlier figure" in words beside figures
-// that do carry a change is noise — Artur, 2026-10-02.
+// that do carry a change is noise — Artur, 2026-10-02. Why there is nothing to
+// compare is the caller's to say, in a caption, or to leave unsaid.
 export const NothingToCompare: StoryObj = {
   render: () => (
     <StatBand
       basis={BASIS}
       stats={[
         STATS[1],
-        { label: 'New entity', value: '€ 12,040', delta: { value: null } },
-        { label: 'Refunds', value: '€ 0', caption: 'of income', delta: { value: null } },
+        { label: 'New entity', value: '€ 12,040', caption: 'since 1 March', delta: { value: null } },
+        { label: 'Refunds', value: '€ 0', delta: { value: null } },
       ]}
     />
   ),
