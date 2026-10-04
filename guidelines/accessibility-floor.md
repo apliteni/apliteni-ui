@@ -56,13 +56,13 @@
 
 <!-- rule: disabled-legibility -->
 
-**Rule:** Give a disabled control its own ink and surface pair, and take the accent off it.
+**Rule:** Give a disabled control its own ink, surface and edge, and take the accent off it.
 
 **Do:** Unavailable reads as unavailable with the pointer nowhere near it.
 
 **Don't:** Unavailable keeps the live paint, so only the cursor reports the state.
 
-**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade.
+**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade, and a control that draws no box when it is on — a ghost button — draws none when it is off, so its ink carries the state alone.
 
 ## Touch field text
 

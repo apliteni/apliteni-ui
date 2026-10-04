@@ -598,7 +598,7 @@ Decided in [#220](https://github.com/apliteni/apliteni-ui/issues/220), measured 
 **A field has no fill step, so the ground it is shown on decides whether its box is seen.**
 `--field-bg` and `--disabled-surface` are both `--surface` in both themes: a field is drawn by
 its edge, never by standing off what is behind it. On the card that edge measures 1.52:1 enabled
-and 1.24:1 disabled in light, and 1.27:1 either way in dark. On the PAGE ground the same disabled
+and 1.24:1 disabled in light, and 1.27:1 and 1.16:1 in dark. On the PAGE ground the same disabled
 field measured 1.12:1 in light — a white box on a grey page, under an edge a shade off the page
 itself — which is what Artur reported in round r28: "Disabled fields almost invisible." So the
 kit's own gallery pages show a field on the card, which is where a form lives, and
@@ -606,6 +606,27 @@ kit's own gallery pages show a field on the card, which is where a form lives, a
 owes a field the same: a form on the page ground gets no help from these tokens.
 
 Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551) round r28.
+
+**The box reports the state, so a field that is off draws the fainter edge of the two.** Dark
+answered both states with `--border` until [#564][i564]: `--field-edge` and `--disabled-border`
+resolved to the same hairline, the fill is `--surface` either way, and the words were the whole
+of the difference. `--disabled-border` now drops a rung in dark, to the quiet-fill grey
+`--surface-3`, which is where the headroom ends — the card is `#211e2d` and the hairline
+`#332f45`, so there is 0.27 of ratio between a field's edge and no edge at all, and the rung
+under this one is the 1.12:1 above. Light needed no move: its field edge is `--border-strong`
+and its disabled edge `--border`, a rung apart already. The same two tokens paint a button, so a
+button that is off drops a rung with the field. A ghost button draws no box in either state and
+is unaffected; a switch track has no label and fades instead.
+
+`stories/field-ground.test.js` asserts the gap rather than the sizes: for every disabled text
+field in the galleries, measured against every enabled one on the same card, the off edge is
+the fainter and the two colours differ. Neither reading reaches the 3:1 non-text floor, which
+1.4.11 exempts a disabled control from and which dark's hairline has never met on a near-black
+page.
+
+Decided by Artur in [#564][i564], Amberstone round r30.
+
+[i564]: https://github.com/apliteni/apliteni-ui/issues/564
 
 ## Elevation
 

@@ -194,7 +194,11 @@
      why: docs/specification.md#colour-and-contrast */
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface);
-  --disabled-border: var(--border);
+  /* One rung below the hairline, so an off box is not the live box with quieter words
+     in it: dark answered both with --border. 1.16:1 on the card against the live
+     1.27:1, and as far down as the headroom goes. #564
+     why: docs/specification.md#colour-and-contrast */
+  --disabled-border: var(--surface-3);
   /* The ink of a disabled control that paints no box of its own — a ghost button. With
      no surface beside it, it is read on whatever is behind it, so it is set to clear the
      floor on the dullest ground there is (--surface-3). #273
@@ -371,6 +375,8 @@
   /* Disabled text stays on the card surface; its ink marks the unavailable state. */
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface);
+  /* The hairline, where dark takes the rung under it: light's field edge is already
+     --border-strong, so the two states read 1.52:1 and 1.24:1. #564 */
   --disabled-border: var(--border);
   --disabled-ink-bare: #585e6c;
 

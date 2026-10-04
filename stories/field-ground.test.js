@@ -130,26 +130,49 @@ test('the gate rejects a field left on the page ground', () => {
   );
 });
 
-/* What a disabled field reads on the card, per theme, so a token move changes a
- * number here and a person decides whether it is acceptable.
+/* What a text field reads on the card, off and on, per theme, so a token move
+ * changes a number here and a person decides whether it is acceptable.
  *
- * `edge` is --disabled-border against the card. It is below the 3:1 non-text floor
- * in both themes — the kit's hairline, which WCAG 1.4.11 exempts a disabled control
- * from — so it is recorded rather than asserted against a bar. `ink` is
- * --disabled-ink on the field's own paint and must clear AA: that is the part a
- * reader has to read. What these replaced, and the dark theme's caveat, are in
+ * `edge` is the field's border against the card — --disabled-border off and
+ * --field-edge on. Both are below the 3:1 non-text floor, which WCAG 1.4.11
+ * exempts a disabled control from and the kit's hairline has never reached on a
+ * near-black page, so they are recorded rather than asserted against a bar. What
+ * IS asserted is the gap between them, below. `ink` is the field's colour on its
+ * own paint and must clear AA off as well as on: that is the part a reader has to
+ * read. What these replaced, and the dark theme's headroom, are in
  * docs/specification.md#colour-and-contrast.
  */
 const DISABLED = {
-  dark: { ground: '#211e2d', fill: '#211e2d', border: '#332f45', edge: 1.27, ink: 6.24 },
+  dark: { ground: '#211e2d', fill: '#211e2d', border: '#2d293c', edge: 1.16, ink: 6.24 },
   light: { ground: '#ffffff', fill: '#ffffff', border: '#e4e7ee', edge: 1.24, ink: 6.11 },
 };
+
+/* The same field on. `border` is --field-edge and holds wherever the field is put;
+ * `onCard` is what it reads on the card, which is the ground the disabled reading
+ * above is taken on and so the only one the two can be compared on. A field also
+ * reaches the floating surface — a drawer's form — and the grounds the walk finds
+ * are recorded in GROUNDS below rather than left to a count. */
+const ENABLED = {
+  dark: { border: '#332f45', onCard: { ground: '#211e2d', fill: '#211e2d', edge: 1.27 } },
+  light: { border: '#cdd2dc', onCard: { ground: '#ffffff', fill: '#ffffff', edge: 1.52 } },
+};
+
+// Every ground an enabled text field is drawn on in the galleries: the card, and
+// the floating surface a drawer's form sits on. A new one lands here deliberately.
+const GROUNDS = { dark: ['#211e2d', '#2a2639'], light: ['#ffffff'] };
+
+/** Every plain text field the walk found in one state. An invalid one is left out:
+ *  its border is --pink, which is the error talking and not the state. */
+const boxedFields = (theme, disabled) => readings[theme].fields.filter((f) => (
+  f.disabled === disabled
+  && f.leaf.startsWith('input.ui-input')
+  && !f.leaf.includes('is-invalid')
+));
 
 test('a disabled field is read on the card, and its ink clears AA there', () => {
   for (const theme of THEMES) {
     const expected = DISABLED[theme];
-    const boxed = readings[theme].fields
-      .filter((f) => f.disabled && f.leaf.startsWith('input.ui-input'));
+    const boxed = boxedFields(theme, true);
     assert.ok(boxed.length >= 1, `${theme}: no disabled text field in the walk`);
     for (const f of boxed) {
       assert.deepEqual(
@@ -160,4 +183,69 @@ test('a disabled field is read on the card, and its ink clears AA there', () => 
       assert.ok(f.ink >= AA_TEXT, `${theme}: disabled ink ${f.ink}:1 is below AA on the field's own paint`);
     }
   }
+});
+
+/** What is wrong with one off/on pair, as lines. One expression, so the claim below
+ *  and the mutation after it run the same code rather than two spellings of it. */
+const fainter = (off, on) => [
+  off.edge < on.edge ? null
+    : `edge ${off.edge}:1 off against ${on.edge}:1 on — off has to be the fainter`,
+  off.border === on.border
+    ? `both states draw ${off.border}, so only the words tell them apart` : null,
+].filter(Boolean);
+
+/* Rule: a field that is off draws the fainter edge of the two, in both themes, so
+ * the box and not only the words reports the state. Why dark's gap is the smaller,
+ * and what it cost: docs/specification.md#colour-and-contrast, decided in #564.
+ *
+ * Limits beyond the walk's own: the subject is the text field, which is the control
+ * that carries --field-edge. A checkbox takes --control-edge and a switch track
+ * fades, so neither is read here.
+ */
+test('a disabled field draws a fainter edge than an enabled one, in both themes', () => {
+  for (const theme of THEMES) {
+    const on = boxedFields(theme, false);
+    const off = boxedFields(theme, true);
+    assert.ok(on.length >= 1, `${theme}: no enabled text field in the walk`);
+    assert.ok(off.length >= 1, `${theme}: no disabled text field in the walk`);
+
+    assert.deepEqual(
+      [...new Set(on.map((f) => f.ground))].sort(), [...GROUNDS[theme]].sort(),
+      `${theme}: an enabled field is drawn on a ground this ledger does not record`,
+    );
+    for (const f of on) {
+      assert.equal(f.border, ENABLED[theme].border,
+        `${theme}: an enabled field's edge is ${f.border}, not --field-edge, at ${f.story}`);
+      if (f.ground !== ENABLED[theme].onCard.ground) continue;
+      assert.deepEqual(
+        { ground: f.ground, fill: f.fill, edge: f.edge },
+        ENABLED[theme].onCard,
+        `${theme}: the enabled field's reading on the card moved — review it by hand`,
+      );
+    }
+    // Measured against measured, never ledger against ledger: two constants
+    // compare the same whatever the sheet says, which is a gate that cannot fail.
+    const onCard = on.filter((f) => f.ground === ENABLED[theme].onCard.ground);
+    assert.ok(onCard.length >= 1, `${theme}: no enabled text field on the card in the walk`);
+    for (const f of off) {
+      for (const live of onCard) {
+        assert.deepEqual(fainter(f, live), [],
+          `${theme}: a disabled field does not read as off beside the live one`);
+      }
+    }
+  }
+});
+
+test('the gate rejects a disabled edge that matches the enabled one', () => {
+  const live = { edge: 1.27, border: '#332f45' };
+  assert.deepEqual(fainter({ edge: 1.16, border: '#2d293c' }, live), []);
+  // The state #564 fixed: one token answering both, so the pair is identical.
+  assert.deepEqual(fainter({ edge: 1.27, border: '#332f45' }, live), [
+    'edge 1.27:1 off against 1.27:1 on — off has to be the fainter',
+    'both states draw #332f45, so only the words tell them apart',
+  ]);
+  // And a disabled edge that went the other way, stronger than the live one.
+  assert.deepEqual(fainter({ edge: 1.52, border: '#453f5c' }, live), [
+    'edge 1.52:1 off against 1.27:1 on — off has to be the fainter',
+  ]);
 });
