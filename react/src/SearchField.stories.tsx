@@ -78,19 +78,25 @@ export const Toolbar: StoryObj = {
     // goes around the toolbar, not inside it.
     // react/src/field-ground.test.tsx holds the numbers.
     return <div className="ui-app__body">
-      <Card><div className="ui-toolbar">
+      {/* A panel's floor is 240px and the kit hangs it off its trigger with no
+          measuring of its own — #572 — so `align` chooses which screen edge a
+          narrow row's panel crosses, not whether it crosses one. Containment is
+          this composition's: under 720px each chip takes the whole row, so its
+          panel opens from the card's inner edge — 41–281 at 375, whichever
+          values are chosen — and above it the row holds on one line and the
+          chips sit left of the slack. 720 is the smallest of the kit's three
+          breakpoints that holds: at 560 the clipping runs on to 578, where
+          THESE labels stop fitting on one line. Measured at 375, 390 and 1280
+          in both themes, all nine value pairs, open and closed, and at every
+          width from 320 to 1440.
+          why: guidelines/layout-and-density.md#use-the-three-breakpoints */}
+      <style>{'@media (max-width: 720px) { .invoice-toolbar > .ui-dropdown { flex: 0 0 100%; } }'}</style>
+      <Card><div className="ui-toolbar invoice-toolbar">
         <SearchField ariaLabel="Search invoices" placeholder="Vendor or number"
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-        {/* A panel's floor is 240px and the card's inset starts this row at x=41,
-            so a start-aligned panel on the second chip ended at 395 on a 375px
-            phone — #570's review measured it. Each chip now hugs the edge it is
-            nearer, through the kit's own `align`: the first keeps the default
-            start, the last takes `end`, and the panels open to 41–281 and
-            31.3–271.3 at 375. Measured open and closed, 375 and 390, both
-            themes, in #570. */}
         <Dropdown variant="select" ariaLabel="Status" value={status} onSelect={(v) => setStatus(String(v))}
           items={STATUS.map((label) => ({ label, value: label, selected: label === status }))} />
-        <Dropdown variant="select" ariaLabel="Period" align="end" value={period} onSelect={(v) => setPeriod(String(v))}
+        <Dropdown variant="select" ariaLabel="Period" value={period} onSelect={(v) => setPeriod(String(v))}
           items={PERIOD.map(([label]) => ({ label, value: label, selected: label === period }))} />
         <Segmented label="View" value={view} onChange={setView}
           options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
