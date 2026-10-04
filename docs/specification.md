@@ -2138,13 +2138,15 @@ label stay on the line the header's own avatar and name are on.
 
 Held by `stories/panel-ring-room.test.js`, which discovers its subjects twice and requires the two
 readings to agree. It reads the kit's own sources, `src/` and `react/src/`, for every place that
-writes `data-dropdown-panel` into markup, naming each panel by the first class the marked element
-carries; and it reads back the panels its own fixtures render through the factories. Every panel in
-the first reading has to be in the second, and each one's rule has to declare the room. So a factory
-that marks a fourth panel stops the gate until somebody renders it here and it is measured with the
-rest — the case a list of hand-picked examples cannot see, and the one the gate proves by building
-that factory in a string and failing on it. What it cannot see is pixels — it reads the sheet, and
-the ring itself was measured in a browser. The limits are written beside it.
+writes `data-dropdown-panel` into markup, naming each panel by the first class on the marked element
+itself — whichever order that element writes the two attributes in, and stopping rather than
+borrowing a class off a neighbouring element; and it reads back the panels its own fixtures render
+through the factories. Every panel in the first reading has to be in the second, and each one's rule
+has to declare the room. So a factory that marks a fourth panel stops the gate until somebody
+renders it here and it is measured with the rest — the case a list of hand-picked examples cannot
+see, and the one the gate proves by building that factory in a string, in either attribute order,
+and failing on each. What it cannot see is pixels — it reads the sheet, and the ring itself was
+measured in a browser. The limits are written beside it.
 
 ## A filter row holds its panels
 
