@@ -446,7 +446,7 @@
   "_iconography.js": {
     "icon-only": [
       {
-        "ref": "src/assets/icons.js:166",
+        "ref": "src/assets/icons.js:171",
         "pattern": "export const iconOnlyAllowed"
       },
       {
@@ -460,7 +460,7 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:202",
+        "ref": "src/assets/icons.js:207",
         "pattern": "export const iconMeanings"
       },
       {
@@ -997,7 +997,7 @@
     ],
     "wordless-earns-it": [
       {
-        "ref": "src/assets/icons.js:166",
+        "ref": "src/assets/icons.js:171",
         "pattern": "export const iconOnlyAllowed"
       },
       {

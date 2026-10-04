@@ -8,7 +8,7 @@
 
 **Why:** Without a legend, readers need labels for unfamiliar glyphs.
 
-**Except:** The list grows by decision, not review debate, and [Earn a wordless button](https://ui.apli.tech/storybook/?path=/story/guidelines-button-labels--button-labels) states the three tests an entry passes. Today: `x` (close or dismiss), `copy` (copy to clipboard), `moreHorizontal` (overflow menu), `moreVertical` (overflow menu), `chevronDown` (expand or collapse), `chevronUp` (expand or collapse), and the shell’s theme toggle, sidebar toggle and collapsed-rail links.
+**Except:** The list grows by decision, not review debate, and [Earn a wordless button](https://ui.apli.tech/storybook/?path=/story/guidelines-button-labels--button-labels) states the three tests an entry passes. Today: `x` (close or dismiss), `copy` (copy to clipboard), `moreHorizontal` (overflow menu), `moreVertical` (overflow menu), `chevronDown` (expand or collapse), `chevronUp` (expand or collapse). The shell’s own chrome — theme toggle, sidebar toggle, collapsed-rail links — is wordless by a separate decision, not by passing those tests.
 
 **Do:** Show an overflow menu without words; keep the Settings label.
 

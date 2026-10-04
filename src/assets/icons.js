@@ -152,17 +152,22 @@ export const iconNames = Object.keys(ICONS);
 // is the point: the alternative rules read well and could not be gated.
 //
 // Guidelines / Button labels states the three tests an entry passes: the glyph is
-// learned everywhere, its action is on this list, and the control keeps a name a
-// pointer and a keyboard can both reach. button({ iconOnly }) writes `aria-label`
-// and `title` together, so a control built from the list below has both.
+// learned everywhere, its action is on this list, and the control keeps a name
+// assistive technology reads and a hover shows. button({ iconOnly }) writes
+// `aria-label` and `title` together, so a control built from the list below has
+// both — and neither reaches a keyboard reader who is not running one.
 //
 // The shell's folded-rail links and its sidebar toggle are the stated exception:
 // they show the label itself beside the glyph on hover and on focus, so they carry
-// no `title` — stories/apps/shell-rail.test.js holds them to that.
+// no `title` — stories/apps/shell-rail.test.js holds them to that. They are a
+// separate decision about the shell's own chrome, not entries that passed the
+// tests above.
 //
 // `filter` — Lucide's funnel — fails the first test. Depicting a thing is not the
-// fault; `trash` and `copy` depict things too. Readers divide over what the funnel
-// DOES, reading it as filter, sort or export. See #565.
+// fault; `copy` is on this list and depicts one too. The kit reads the funnel alone
+// as not saying whether the control filters, sorts or exports — its own inference
+// from the sources in docs/specification.md, not a measured recognition finding.
+// See #565.
 export const iconOnlyAllowed = {
   x: 'close or dismiss',
   copy: 'copy to clipboard',

@@ -1344,8 +1344,8 @@ Decided in [#511](https://github.com/apliteni/apliteni-ui/issues/511).
 states it as three rules: keep the words; let a glyph beside a label repeat that label's verb, and
 treat every button in a row the same way; and drop the words only when all three tests hold at
 once — the glyph is learned everywhere, the action is on the closed list in `src/assets/icons.js`,
-and the control keeps a name a pointer and a keyboard can both reach. A crowded row is a reason to
-ask, not an answer.
+and the control keeps a name assistive technology reads and a hover shows. A crowded row is a
+reason to ask, not an answer.
 
 Three parts of that are the kit's own decision rather than a reading of any source: that the list
 is closed, which actions are on it, and what counts as learned everywhere. What the cited systems
@@ -1381,18 +1381,19 @@ Material 3 and Apple's Human Interface Guidelines were not checked; both pages r
 so nothing is attributed to them here.
 
 **The funnel keeps its word.** `filter` is Lucide's funnel. Depicting a thing is not the fault:
-`trash` and `copy` are on the list and depict things too. The kit's reading is that the funnel
-alone does not say whether the control filters, sorts or exports, so it fails the first test and is
-not on the closed list. That is this kit's inference from the sources above, not a measured
-recognition finding. Filter is therefore a labelled button, and the glyph beside the word stays
-optional: Showcases / Empty states ships Filter as text alone.
+`copy` is on the list and depicts one too. The kit's reading is that the funnel alone does not say
+whether the control filters, sorts or exports, so it fails the first test and is not on the closed
+list. That is this kit's inference from the sources above, not a measured recognition finding.
+Filter is therefore a labelled button, and the glyph beside the word stays optional: Showcases /
+Empty states ships Filter as text alone.
 
 **What the list claims, and what it does not.** Each entry is an action allowed to drop its
 visible text, not a glyph certified as universal. `x` and the chevrons repeat per row or per
 section; `copy` sits in the snippet's narrow bar, where the word repeated what the glyph already
 said; `moreHorizontal` and `moreVertical` are the standard overflow affordance. A control built
 from the list through `button({ iconOnly })` gets `aria-label` and `title` together, so its name
-reaches a screen reader and a pointer.
+reaches a screen reader and a hovering pointer, and neither a keyboard reader who is not running
+one nor a finger: on keyboard focus the kit shows the ring, not the name.
 
 `stories/guidelines/iconography.test.js` checks both halves of the rule at every call site: that
 the glyph is on the list, and that the name the control answers to opens with a word
