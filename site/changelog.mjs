@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.82.1', date: '2026-10-04',
+    changes: [
+      ['changed', 'The packaged manifest\u2019s `test` script now ends a run with its ten slowest tests and files, and says which of them are over the stated budget. That report never fails a run. It is for whoever contributes to the kit; nothing the kit ships behaves differently. See #560.'],
+    ],
+  },
+  {
     v: '0.82.0', date: '2026-10-04',
     changes: [
       ['added', 'A component-choice guideline: group one category at a time. Views, filters, sorting and actions each take their own group and style; a bar that mixes them hides which control re-draws every row and which only narrows them. See #508.'],
