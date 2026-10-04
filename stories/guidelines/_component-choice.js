@@ -66,12 +66,16 @@ const SAVED_VIEWS = ['All rows', 'Unclassified', 'This month'];
 // on a phone still reads as one group wrapping, not as three loose controls.
 // The rule claims no vertical order — filters sit above the views here because
 // that is the order #517 settles.
+// The views take the plain strip, as panelsDo above does. The spec reserves the
+// underline appearance for a column switch over one dataset; under views that
+// re-draw rows it paints a tab bar, which is the distinction the panels rule
+// above this one draws.
 export const categoryDo = () => stage(`<div style="display:grid;gap:var(--space-6);justify-items:start">
   <div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-6);width:100%">
     ${filterBar({ filters: [{ id: 'sector', label: 'Sector', value: 'Technology', items: SECTORS }] })}
     <span style="margin-left:auto">${button({ label: 'Export', size: 'sm' })}</span>
   </div>
-  ${segmented({ options: ['Overview', 'Performance'], appearance: 'underline', ariaLabel: 'Dataset view', name: 'gl-view' })}
+  ${segmented({ options: ['Overview', 'Performance'], ariaLabel: 'Dataset view', name: 'gl-view' })}
 </div>`);
 // What #508 reported: the saved views and the control that adds a condition, one
 // bar and one style, so nothing says which of them re-draws every row.
