@@ -2399,6 +2399,8 @@ Column labels accept React content, including a kit Tooltip for a header explana
 
 Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
 
+Both controls keep their words at every width, and the row carrying them stays inside whatever holds it: where the pair no longer fits on one line it stacks, rather than narrowing either control or leaving the container. Below the phone step a coarse pointer reaches both at the tap floor, stacked or not.
+
 A table may omit selection controls when its consumer has no selection action. Existing
 selection-enabled tables keep their row and visible-page selection behavior.
 

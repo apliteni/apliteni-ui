@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.76.1', date: '2026-10-04',
+    changes: [
+      ['fixed', 'A React table\u2019s column pager stays inside the card or column that holds it. Previous columns and More columns are 301px of buttons, and a card at a 320px viewport offers 238px, so the pair ran past the card and took the page sideways with it. The row now stacks when the pair no longer fits on one line; neither action loses its words and neither is drawn narrower. Fixes #571.', ['Table']],
+      ['fixed', 'Below the phone step, a coarse pointer reaches both column pager actions at the 44px tap floor. Outside the app shell the row declared no vertical clearance, so each action kept its drawn 28px height. Nothing is drawn any bigger. See #571.', ['Table']],
+    ],
+  },
+  {
     v: '0.76.0', date: '2026-10-04',
     changes: [
       ['added', 'Table footers are a supported surface: totals open with the strong rule, each footer label sits against the figure it names, and a label marked strong carries the weight across the whole row. Footer labels take the body cell padding in every density. If your CSS left-aligned tfoot labels itself, that override is no longer needed. See #385.', ['Table']],

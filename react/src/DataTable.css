@@ -29,3 +29,10 @@
 @media (prefers-reduced-motion: reduce) {
   .rx-caret { transition: none; }
 }
+
+/* 301px of labelled buttons never fit a card's 238px at 320. The words stay
+   (arrowLeft and arrowRight are not on iconography's icon-only list) and neither
+   action may be drawn narrower, so the row stacks. Intrinsic, not a fourth
+   breakpoint: the width that stops fitting is the label's, not the viewport's.
+   why: docs/specification.md#react-tables, #571 */
+.rx-column-pager { flex-wrap: wrap; }

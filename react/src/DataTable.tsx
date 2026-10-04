@@ -148,7 +148,7 @@ export function DataTable<T extends { name: string }>({
 
   return (
     <>
-      {scrollable && columnScroll.overflow && <div className="ui-card__row" role="group" aria-label={`${scrollLabel} columns`}>
+      {scrollable && columnScroll.overflow && <div className="ui-card__row rx-column-pager" role="group" aria-label={`${scrollLabel} columns`}>
         <Button size="sm" icon="arrowLeft" aria-controls={scrollId} disabled={columnScroll.start} onClick={() => scrollColumns(-1)}>Previous columns</Button>
         <Button size="sm" iconRight="arrowRight" aria-controls={scrollId} disabled={columnScroll.end} onClick={() => scrollColumns(1)}>More columns</Button>
       </div>}

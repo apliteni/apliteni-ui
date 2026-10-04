@@ -109,7 +109,17 @@ const kitCss = readdirSync(path.join(root, 'src/styles'))
   .filter((f) => f.endsWith('.css'))
   .map((f) => decomment(read(`src/styles/${f}`)))
   .join('\n');
-const declares = (selector) => kitCss.includes(selector);
+
+/* The sheets this one ships beside. react/src/index.ts imports tap-zone.css into
+ * `apliteni-ui/react/css`, so a React component's own sheet is a container this
+ * floor can name: `.rx-column-pager` is declared in react/src/DataTable.css and
+ * nowhere under src/styles. The kit's own sheets stay the subject set for the
+ * carrier and pseudo-element tests, which ask about controls the kit draws. */
+const reactCss = readdirSync(path.join(root, 'react/src'))
+  .filter((f) => f.endsWith('.css'))
+  .map((f) => decomment(read(`react/src/${f}`)))
+  .join('\n');
+const declares = (selector) => kitCss.includes(selector) || reactCss.includes(selector);
 
 test('every family that carries a layer has something to hang it on', () => {
   assert.ok(
@@ -165,8 +175,8 @@ test('every clearance and every opened gap names a container the kit declares', 
     assert.ok(
       declares(selector.split(/\s+/).pop()),
       `${SHEET} declares a clearance for ${selector}, which no stylesheet under src/styles/ `
-      + 'mentions. A clearance on a selector nothing matches is a clamp that never runs, and '
-      + 'the layer it was meant to hold back reaches a neighbour instead.',
+      + 'or react/src/ mentions. A clearance on a selector nothing matches is a clamp that '
+      + 'never runs, and the layer it was meant to hold back reaches a neighbour instead.',
     );
     // An opened gap has to outrank the component sheet that already set one.
     // Without `!important` it wins only while this sheet is read last, and the
@@ -182,6 +192,21 @@ test('every clearance and every opened gap names a container the kit declares', 
       );
     }
   }
+});
+
+test('a clearance for a selector no shipped sheet declares is still refused', () => {
+  // The subject set above grew to the sheets tap-zone.css ships beside, so the
+  // check has to be shown still refusing what it was written to refuse. It reads
+  // two files rather than one; reading neither would pass every selector.
+  assert.ok(
+    reactCss.length > 0,
+    'no stylesheet found under react/src/. The clearance check now accepts a selector either '
+    + 'sheet set declares, so an empty React half would let it accept a container nothing '
+    + 'matches on the strength of a file it never read.',
+  );
+  assert.equal(declares('.rx-column-pager'), true, 'react/src/DataTable.css declares it');
+  assert.equal(declares('.ui-card__row'), true, 'src/styles/card.css declares it');
+  assert.equal(declares('.rx-no-such-row'), false, 'nothing declares it, so it stays refused');
 });
 
 test('a container that opens a gap declares the clearance to match it', () => {

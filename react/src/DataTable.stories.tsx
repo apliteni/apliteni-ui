@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { DataTable, sortTableRows, type Column, type TableSort } from './DataTable';
 import { Badge } from './primitives/Badge';
+import { Card } from './primitives/Card';
 
 type Row = { name: string; status: string; clicks: number };
 const rows: Row[] = [
@@ -97,5 +98,42 @@ export const NoPager: StoryObj = {
     // page, the pager would be absent anyway, and the story would demonstrate
     // nothing. Take pager={false} off and a three-page strip appears.
     <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} pager={false} />
+  ),
+};
+
+// The column pager, in the container that showed it did not fit. Its two actions
+// are 301px of labelled buttons, and a card at a 320px viewport offers 238px, so
+// the row used to leave the card and take the page sideways with it; now it
+// stacks. Thirteen columns overflow a card at every width the kit draws, so the
+// pager is on screen at 320 and at 1280 alike. #571
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+type Ledger = { name: string } & Record<typeof MONTHS[number], number>;
+const ledgerRow = (name: string, from: number): Ledger => MONTHS.reduce(
+  (out, month, index) => ({ ...out, [month]: from + index * 137 }), { name } as Ledger);
+const ledgerRows: Ledger[] = [
+  ledgerRow('Nutra — DE push', 4821),
+  ledgerRow('Sweeps — BR pop', 9103),
+  ledgerRow('Dating — FR native', 3389),
+];
+const ledgerColumns: Column<Ledger>[] = [
+  { key: 'name', label: 'Campaign' },
+  ...MONTHS.map((month) => ({
+    key: month, label: month, num: true,
+    render: (r: Ledger) => r[month].toLocaleString(),
+  })),
+];
+
+export const ColumnPagerInCard: StoryObj = {
+  render: () => (
+    <div className="column-pager-card">
+      {/* The story is about the pager, so the table overflows at every width
+          rather than only at the ones where the month columns happen not to fit —
+          the same scaffold Finance composition's PinnedSelection uses. */}
+      <style>{'.column-pager-card .ui-table { min-width: 80rem; }'}</style>
+      <Card title="Monthly clicks" sub="Fabricated figures. Scroll the table, or step the columns.">
+        <DataTable columns={ledgerColumns} rows={ledgerRows} selectable={false} pager={false}
+          dense stickyHeader pinnedIdentity scrollLabel="Monthly clicks" />
+      </Card>
+    </div>
   ),
 };

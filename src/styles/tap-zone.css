@@ -155,6 +155,15 @@
     --tap-clear-y: var(--tap-gap);
   }
 
+  /* A React table's column pager is two labelled actions, and at this width it
+     stacks rather than leave its card — see react/src/DataTable.css. Stacked,
+     the zone needs the room the wrap already opened, and it needs it here
+     because a card row outside the shell gets nothing from the rule above. #571 */
+  .rx-column-pager {
+    row-gap: var(--tap-gap) !important;
+    --tap-clear-y: var(--tap-gap);
+  }
+
   /* Both ways: fixed squares cannot overflow the way labels can, and a drawer
      header spends its column gap on the title. Not the accent picker — its
      swatches are on no carrier list, so opening it bought no reach. */
