@@ -398,6 +398,30 @@
       ]
     },
     {
+      "file": "stories/reveal-focus.test.js",
+      "name": "Reveal focus",
+      "does": "Finds every surface in the kit's sheets that hides itself with visibility: hidden, rather than taking a list, and requires each one to be classified. A surface the kit focuses into is opened with the kit's own wiring, and every element inside it must be reached by a reduced-motion rule that switches transitions off: the net's 0.01ms transition on `all` holds an inherited, discrete visibility at hidden for the tick a focus call happens in, which is #519. A surface holding nothing focusable carries the reason it is exempt instead, and a new one nobody classifies fails the gate.",
+      "blind": [
+        "Whether a browser obeys the rules. jsdom evaluates no media query and runs no transition, so the cover is matched against markup and never run.",
+        "Which element the kit focuses. Cover is asked of every element inside an open surface, not of the focus target alone.",
+        "A surface hidden by a consumer's own sheet, or a visibility written into an inline style by a script."
+      ]
+    },
+    {
+      "file": "stories/panel-ring-room.test.js",
+      "name": "Panel ring room",
+      "does": "Requires every panel the dropdown wiring opens to leave the kit ring one of its two ways out of a row that fills the panel edge to edge: padding at least what the ring spreads outside the row, read from --ring-gap-width and --ring-width at run time, or no clip at the panel's edge. A panel that pads by nothing and clips as well cuts the ring away, which is what left the account menu's keyboard row with two accent bars instead of a ring in #519; the account menu now takes the second way out and the other two panels the first. Discovers the panels twice and requires the two readings to agree: every place src/ and react/src/ write `data-dropdown-panel` into markup, named by the first class on the marked element itself whichever order the two attributes stand in, against the panels its own fixtures render. A factory that marks a fourth panel is in the first reading and not the second, so it stops the gate until somebody renders and measures it. Proves rejection four times over: by putting the clip back on the account menu, by showing the same clip passes over a panel that keeps the room, by building that fourth factory in a string, and by marking a panel before its own class inside a wrapper whose class the fixtures already measure.",
+      "blind": [
+        "Pixels. The reading is of the stylesheet; it checks that the panel leaves the ring a way out, never that a browser drew the ring. Chrome measured that for #519, before and after, in both themes.",
+        "Ancestors. A panel that clips nothing itself can still sit inside something that clips. None of the three does here, and this gate asks the panel.",
+        "Anything but the panel's own base rule — padding or overflow a media query adds, and padding on a wrapper between the panel and its rows.",
+        "A second class on a marked element — a `panelClass` the caller passes, or a consumer's own. Only the first class is read, because that is the one the panel's own sheet styles it under.",
+        "A third way of writing a panel's attributes. The marked element is found by walking the source for tags and attribute lists rather than by parsing it, and a marker it cannot tie to exactly one class attribute stops the gate instead of being named by a neighbour's class.",
+        "A panel hand-written into an example page or a story. The source reading covers src/ and react/src/, the two trees the package ships; those pages compose the factories, which are read.",
+        "Whether the rows take the ring at all. `.vopt:focus-visible` never names `.vsw__menu`, so pairing a panel to its rows from selectors alone would be guesswork; the keyboard walk in stories/focus-ring.test.js is what asks every stop for a ring."
+      ]
+    },
+    {
       "file": "stories/motion-coverage.test.js",
       "name": "Motion coverage",
       "does": "Finds every state rule that shows, hides or moves an element. It requires a transition or entrance animation between states, or a motion: still note explaining why. It also records the motion the reduced-motion net must stop.",

@@ -46,7 +46,7 @@
 
 **Why:** Published bundles cap animations and transitions at 0.01ms under `prefers-reduced-motion`, so focus reaches a visible control without delay.
 
-**Do:** Open drawers and confirmations without internal transitions.
+**Do:** Open drawers, confirmations, command palettes and dropdown panels without internal transitions.
 
 **Don't:** Keep a transition running after reduced motion is requested.
 
