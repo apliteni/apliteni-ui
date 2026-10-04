@@ -2112,41 +2112,47 @@ Held by `src/components/dropdown.test.js`, which reads the offsets out of the st
 panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom
 property — and feeds the wiring measured rects, JSDOM having no layout of its own.
 
-## A menu panel keeps the room its rows need
+## A menu panel does not cut off its rows' ring
 
 The kit ring is drawn outside the border box of whatever has focus: one pixel of gap and two of
-ring, from `--ring-gap-width` and `--ring-width`. A row that fills its panel from edge to edge has
-nowhere to put that. The ring lands on the panel's own border, and a panel that clips at that edge
-cuts it away — the reader gets two accent bars, above and below the row, where a ring was meant to
-be.
+ring, from `--ring-gap-width` and `--ring-width`. A row that fills its panel from edge to edge draws
+that ring on the panel's own border and past it. So a menu panel has to leave it one of two ways
+out, and there are only two: **keep the three pixels inside the panel as padding, so the ring lands
+in the padding; or clip nothing at the panel's edge, so the ring crosses it.** A panel that does
+neither cuts the ring away, and the reader gets two accent bars, above and below the row, where a
+ring was meant to be.
 
-**So every menu panel pads by at least the ring's spread, and its rows are plates inside that
-padding.** `.ui-dropdown__panel` pads by `--ui-dropdown-pad` and rounds its rows with
-`--radius-sm`; `.vsw__menu` pads by the same six pixels. `.amenu`, the account menu, did neither: it
-padded by nothing and set `overflow: hidden` instead, which is why it was the one menu in the kit
-whose ring had a single pixel to draw in.
+`.ui-dropdown__panel` takes the first way out, padding by `--ui-dropdown-pad` and rounding its rows
+with `--radius-sm`; `.vsw__menu` pads by the same six pixels. `.amenu`, the account menu, did
+neither: it padded by nothing and set `overflow: hidden`, which is why it was the one menu in the
+kit whose ring had a single pixel to draw in.
 [#519](https://github.com/apliteni/apliteni-ui/issues/519) is where that became visible, because
-that is the fix that put a reduced-motion reader's focus on the row in the first place. Measured in
-Chrome, both themes, from the panel's border edge to the row's: one pixel before, which is the
-panel's own border, and seven after — that border plus six pixels of padding, with the ring's three
-inside the padding.
+that is the fix that put a reduced-motion reader's focus on the row in the first place.
 
-A panel's header and its separators still reach its edges, by pulling back through that padding with
-`calc(var(--amenu-pad) * -1)` — the same move `.ui-dropdown__head` and `.ui-dropdown__foot` make, and
-for the same reason. The rows give back horizontally what the panel took, so a row's icon and its
-label stay on the line the header's own avatar and name are on.
+**`.amenu` takes the second way out: it clips nothing.** Its rows keep the geometry they had — the
+same padding, the same full-bleed band, the header and the separators still reaching the panel's
+edges — and the ring crosses the panel's edge instead of being cut at it. Two things follow from
+that and are accepted: the ring stands two pixels outside the panel's border on each side, which no
+other ring in the kit does, and the hovered last row's square fill reaches past the panel's 14px
+radius at the bottom two corners. Artur chose that over padding the panel and moving its rows; the
+alternative and the rejected third option are recorded on #519.
 
-Held by `stories/panel-ring-room.test.js`, which discovers its subjects twice and requires the two
-readings to agree. It reads the kit's own sources, `src/` and `react/src/`, for every place that
-writes `data-dropdown-panel` into markup, naming each panel by the first class on the marked element
-itself — whichever order that element writes the two attributes in, and stopping rather than
-borrowing a class off a neighbouring element; and it reads back the panels its own fixtures render
-through the factories. Every panel in the first reading has to be in the second, and each one's rule
-has to declare the room. So a factory that marks a fourth panel stops the gate until somebody
-renders it here and it is measured with the rest — the case a list of hand-picked examples cannot
-see, and the one the gate proves by building that factory in a string, in either attribute order,
-and failing on each. What it cannot see is pixels — it reads the sheet, and the ring itself was
-measured in a browser. The limits are written beside it.
+Measured in Chrome, both themes, at 1280 and 390: the ring is whole on all four sides of the focused
+row, where before it was two bars.
+
+Held by `stories/panel-ring-room.test.js`, which asks every panel the dropdown wiring opens for one
+of the two ways out, reading the ring's spread from `--ring-gap-width` and `--ring-width` at run
+time. It discovers its subjects twice and requires the two readings to agree. It reads the kit's own
+sources, `src/` and `react/src/`, for every place that writes `data-dropdown-panel` into markup,
+naming each panel by the first class on the marked element itself — whichever order that element
+writes the two attributes in, and stopping rather than borrowing a class off a neighbouring element;
+and it reads back the panels its own fixtures render through the factories. Every panel in the first
+reading has to be in the second. So a factory that marks a fourth panel stops the gate until
+somebody renders it here and it is measured with the rest — the case a list of hand-picked examples
+cannot see, and the one the gate proves by building that factory in a string, in either attribute
+order, and failing on each. What it cannot see is pixels: it reads the sheet, and the ring itself was
+measured in a browser. It also asks the panel and not its ancestors, none of which clips here. The
+limits are written beside it.
 
 ## A filter row holds its panels
 

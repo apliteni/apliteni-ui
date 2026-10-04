@@ -1,17 +1,22 @@
-// Rule: a menu panel keeps the room its rows' focus ring needs inside its own box.
+// Rule: a menu panel does not cut off its rows' focus ring.
 //
 // The kit ring is drawn OUTSIDE the border box of the thing that has focus — one pixel
 // of gap and two of ring, from --ring-gap-width and --ring-width. A row that fills its
-// panel edge to edge therefore has nowhere to draw it: the ring lands on the panel's
-// border, and if the panel clips at that edge it is cut away altogether.
+// panel edge to edge therefore draws it on the panel's border and past it. There are two
+// ways for that ring to survive: the panel keeps the three pixels inside its own box as
+// padding, so the ring lands in the padding; or the panel clips nothing, and the ring
+// crosses its edge. A panel that does neither cuts the ring away.
 //
 // #519 is what that cost. `.amenu`, the topbar's account menu, was the one menu in the
-// kit with no padding and `overflow: hidden`, so its rows had a single pixel for a
+// kit with no padding AND `overflow: hidden`, so its rows had a single pixel for a
 // three-pixel ring. #487 had just given those rows `box-shadow: var(--ring)`, and the
 // reader got two accent bars above and below the row instead of a ring around it. The
-// other two menus were already right and nothing said why, which is the hole this
+// other two menus take the first way out and nothing said why, which is the hole this
 // closes: `.ui-dropdown__panel` pads by --ui-dropdown-pad and `.vsw__menu` by the same
 // six pixels, each because somebody chose well rather than because anything asked.
+// `.amenu` takes the second: Artur chose dropping the clip over padding the panel, so
+// its ring crosses the panel's edge and its hovered last row's square fill crosses with
+// it. The decision is on #519 and in the pull request.
 //
 // Subjects are discovered twice and the two readings have to agree. One is the kit's own
 // sources: every place under src/ and react/src/ that writes `data-dropdown-panel` into
@@ -20,11 +25,15 @@
 // and not the second, so the gate stops until somebody renders it here and measures it.
 //
 // Coverage limits:
-// - This reads the stylesheet, not a browser. It checks that the panel declares the
-//   room; it cannot see what a consumer's own CSS does to the panel afterwards, and it
+// - This reads the stylesheet, not a browser. It checks that the panel leaves the ring a
+//   way out; it cannot see what a consumer's own CSS does to the panel afterwards, and it
 //   measures no pixels. The ring was measured in Chrome for #519, before and after.
-// - Only the panel's own base rule is read. Padding a media query adds or takes away is
-//   not seen, and neither is padding on a wrapper between the panel and its rows.
+// - Only the panel's own base rule is read, for its padding and for its overflow. What a
+//   media query or a state class adds or takes away is not seen, and neither is padding
+//   on a wrapper between the panel and its rows.
+// - A panel that clips nothing itself may still sit inside an ancestor that clips. Of the
+//   three panels here none does — the topbar's band and the dropdown's trigger write no
+//   overflow — but this gate asks the panel, not its ancestors.
 // - Only the first class on a marked element is read: the one the panel's own sheet
 //   styles it under. A second — `dropdown({ panelClass })` — is the caller's to answer for.
 // - The marked element is found by walking the source for tags and attribute lists, not
@@ -37,12 +46,9 @@
 // - It does not ask whether the rows take the ring at all. `.vopt:focus-visible` never
 //   names `.vsw__menu`, so pairing a panel to its rows from the selectors alone would
 //   be guesswork. stories/focus-ring.test.js is the gate that asks every stop for a
-//   ring; this one asks the panel for the room to draw it.
-// - A panel that clips is not failed separately. Room is the guarantee either way: with
-//   it the ring is whole whether or not the panel clips, and the kit draws no ring that
-//   crosses a panel's edge.
+//   ring; this one asks the panel to let it be drawn.
 //
-// why: docs/specification.md#a-menu-panel-keeps-the-room-its-rows-need
+// why: docs/specification.md#a-menu-panel-does-not-cut-off-its-rows-ring
 // Weaken the rule and confirm that its test fails.
 
 import test from 'node:test';
@@ -244,13 +250,27 @@ const reconcile = (fromSource, here) => {
     }; the source reading has broken, or the factory has gone.`);
 };
 
-/** The panels short of the room, named with the rule that is short. `find` is injectable. */
-const shortOf = (names, find = baseRule) => names.map((name) => {
+/** Whether a rule clips at its own edge: any overflow side it writes that is not visible. */
+const clipsIn = (rule) => ['overflow', 'overflow-x', 'overflow-y'].some((prop) => {
+  const value = declaration(rule.body, prop);
+  return value !== null && value.split(/\s+/).some((side) => side !== 'visible');
+});
+
+/**
+ * The panels that cut a row's ring off, named with the rule that does it. `find` is injectable.
+ *
+ * Either way out is enough: room inside the box, or no clip at its edge. Only a panel that
+ * clips AND keeps less than the ring's spread inside it is reported.
+ */
+const cutsOff = (names, find = baseRule) => names.map((name) => {
   const rule = find(name);
   assert.ok(rule, `no base rule for .${name}; this gate reads the panel's own rule and found none`);
   const room = roomIn(rule);
   assert.notEqual(room, null, `.${name} writes a padding this gate cannot resolve to px: ${declaration(rule.body, 'padding')}`);
-  return room < spread ? `.${name} in ${rule.file}: ${room}px of padding for a ${spread}px ring` : null;
+  if (!clipsIn(rule)) return null;
+  return room < spread
+    ? `.${name} in ${rule.file}: clips at its edge with ${room}px of padding for a ${spread}px ring`
+    : null;
 }).filter(Boolean);
 
 /* -- the gate -------------------------------------------------------------------- */
@@ -262,17 +282,26 @@ test('every panel the kit marks is a panel this gate renders', () => {
   assert.equal(spread, 3, 'the ring\'s spread changed; every panel\'s padding has to be re-read against it');
 });
 
-test('every panel gives its rows the room the ring needs', () => {
-  assert.deepEqual(shortOf(rendered), [],
-    `a menu panel clips its rows' focus ring:\n  ${shortOf(rendered).join('\n  ')}`);
+test('no panel cuts its rows\' focus ring off', () => {
+  assert.deepEqual(cutsOff(rendered), [],
+    `a menu panel clips its rows' focus ring away:\n  ${cutsOff(rendered).join('\n  ')}\n`
+    + '  give the panel the ring\'s spread as padding, or stop it clipping.');
 });
 
-test('the gate fails when a panel takes that room back', () => {
-  // The #519 state, exactly: .amenu padded by nothing. Nothing on disk is touched.
+test('the gate fails when the account menu clips again, and not when a padded panel does', () => {
+  // The #519 state, exactly: `.amenu` clipping with no padding. Nothing on disk is touched.
   const rule = baseRule('amenu');
-  const weakened = { ...rule, body: rule.body.replace(/padding:\s*var\(--amenu-pad\);/, '') };
-  assert.equal(roomIn(weakened), 0, 'the mutation did not land — .amenu no longer writes its padding this way');
-  assert.ok(roomIn(weakened) < spread, 'a panel with no padding has to read as short of the ring\'s spread');
+  assert.equal(clipsIn(rule), false, 'the mutation has nothing to add — .amenu already clips');
+  assert.equal(roomIn(rule), 0, 'the mutation assumes .amenu pads by nothing, and it no longer does');
+  const clipped = { ...rule, body: `${rule.body} overflow: hidden;` };
+  assert.deepEqual(cutsOff(['amenu'], () => clipped),
+    [`.amenu in ${rule.file}: clips at its edge with 0px of padding for a 3px ring`],
+    'putting the clip back on an unpadded panel has to be reported');
+
+  // And the other way out is real: the same clip over a panel that keeps the room passes.
+  const padded = { ...rule, body: `${rule.body} padding: ${spread}px; overflow: hidden;` };
+  assert.deepEqual(cutsOff(['amenu'], () => padded), [],
+    'a panel that keeps the ring\'s spread inside its own box may clip at its edge');
 });
 
 test('the gate fails when a factory marks a panel nobody measured', () => {
@@ -289,11 +318,11 @@ test('the gate fails when a factory marks a panel nobody measured', () => {
   assert.throws(() => reconcile(added, rendered), /never renders/,
     'a factory can mark a panel this gate does not render and still pass');
 
-  // And had somebody rendered it, its own rule reads as short of the ring.
+  // And had somebody rendered it, its own clipping rule reads as cutting the ring off.
   const sheet = { file: 'src/styles/review.css', selector: '.review__menu', body: 'overflow: hidden; border-radius: var(--radius-md);' };
-  assert.deepEqual(shortOf(['review__menu'], () => sheet),
-    ['.review__menu in src/styles/review.css: 0px of padding for a 3px ring'],
-    'an unpadded, clipping panel has to read as short of the ring\'s spread');
+  assert.deepEqual(cutsOff(['review__menu'], () => sheet),
+    ['.review__menu in src/styles/review.css: clips at its edge with 0px of padding for a 3px ring'],
+    'an unpadded, clipping panel has to read as cutting the ring off');
 });
 
 test('the gate reads the marked element, not the nearest class before it', () => {
@@ -309,9 +338,9 @@ test('the gate reads the marked element, not the nearest class before it', () =>
   assert.throws(() => reconcile(added, rendered), /never renders/,
     'a panel marked before its class can pass as one the fixtures already measure');
 
-  // And the unpadded, clipping rule that goes with it reads as short of the ring.
+  // And the unpadded, clipping rule that goes with it reads as cutting the ring off.
   const sheet = { file: 'src/styles/review.css', selector: '.review-extra-menu', body: 'overflow: hidden; padding: 0;' };
-  assert.deepEqual(shortOf(['review-extra-menu'], () => sheet),
-    ['.review-extra-menu in src/styles/review.css: 0px of padding for a 3px ring'],
-    'a panel that pads by a bare zero has to read as short of the ring\'s spread');
+  assert.deepEqual(cutsOff(['review-extra-menu'], () => sheet),
+    ['.review-extra-menu in src/styles/review.css: clips at its edge with 0px of padding for a 3px ring'],
+    'a clipping panel that pads by a bare zero has to read as cutting the ring off');
 });
