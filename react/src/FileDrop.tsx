@@ -120,8 +120,8 @@ export function FileDrop({
               {/* Both actions carry their word. `x` is on the kit's icon-only
                   list for close and dismiss, and taking a file off a row is
                   neither: the row stays and the file leaves it. Remove stays
-                  plain beside Retry's glyph — guidelines/button-labels.md
-                  keeps a dismissing action off its committing neighbour's tier. */}
+                  plain beside Retry's glyph: a dismissing action is not the
+                  committing one's peer. why: guidelines/button-labels.md */}
               {onRemove && <Button variant="ghost" size="sm"
                 onClick={onRemove} disabled={disabled}>{removeLabel}</Button>}
             </span>}

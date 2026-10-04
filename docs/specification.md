@@ -3932,9 +3932,8 @@ dismiss, and taking a file off a row is neither — the row stays and the file
 leaves it — so nothing in the row is wordless. A failed file keeps its name and
 puts its message under it with `role="alert"`, and drops its size, because the
 tier has room for the message or the size and only one of them says what to do
-next. The kit does not announce the change from
-uploading to uploaded; a consumer that needs that announcement owns the live
-region. `accept` filters the system picker only, and the consumer still validates
+next. The kit does not announce the change from uploading to uploaded; a
+consumer that needs that announcement owns the live region. `accept` filters the system picker only, and the consumer still validates
 type and size.
 
 A file in hand is a stack of one-line tiers, not a line. The name owns the top
@@ -3962,9 +3961,23 @@ so the sheet carries no container query. Measured in Chromium at 1280, 390 and
 other state a file is in — starting, uploaded, failed — is 59px over two. A
 resting row is 32px, the kit's small-control row, wherever its note sits beside
 its button; below about 250px of block width the note wraps under it and the row
-is 59px. At 320 in a panel the truncated name keeps 256px while uploading and
-168px when it has failed, against the 62px and 113px the single line gave it. The
-kit draws these in a panel, and `--panel-sm` is 320px.
+is 59px. At 320 in a panel `stories/row-height.test.js` measures the truncated stem at
+214px while uploading and 126px when the upload has failed; the single line that
+preceded this stack gave it 62px and 113px. The failed row is the narrower of the
+two because it carries two worded actions on the name's line. The kit draws these
+in a panel, and `--panel-sm` is 320px.
+
+A name being cut is held to a floor, and the floor depends on what shares its
+line: 150px where the row carries at most one worded action, 120px where it
+carries two. The second is not a preference. At 320 the stack is 288px wide,
+`Retry` and `Remove` with the space between them take 160px, and the name's own
+gap takes 12px, so the one-action floor would need 322px of a 288px line. The
+trade was taken in #566 rather than wrapping the actions under the name, which is
+the layout #541 rejected: remove carries its word because `x` is the kit's glyph
+for close and dismiss, and taking a file off a row is neither. What it costs is
+one case — a 320px panel holding a failed upload whose name is long enough to be
+cut shows about eight characters of its stem. The extension is never cut, at any
+width.
 
 Below the phone step a coarse pointer gets the kit's 44px target on `Retry` and
 `Remove`: the pair opens to the tap gap and each button's transparent layer

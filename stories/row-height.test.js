@@ -200,6 +200,7 @@ test('measured at 1280, 390 and 320', { skip: !RUN && 'set ROW_HEIGHTS=1' }, asy
             const bar = row.querySelector('.ui-drop__bar');
             const stem = row.querySelector('.ui-drop__stem');
             const ext = row.querySelector('.ui-drop__ext');
+            const acts = row.querySelector('.ui-drop__actions');
             return {
               kind: stack ? 'file' : 'rest',
               height: round(box(row).height),
@@ -215,6 +216,12 @@ test('measured at 1280, 390 and 320', { skip: !RUN && 'set ROW_HEIGHTS=1' }, asy
               stemClipped: stem ? stem.scrollWidth > Math.ceil(box(stem).width) : null,
               extText: ext ? ext.textContent : null,
               extClipped: ext ? ext.scrollWidth > Math.ceil(box(ext).width) : null,
+              // What the name is sharing its line with. A button carrying words
+              // is several times the width of a wordless one, and the floor
+              // below is what is left of the line after them.
+              wordedActions: acts
+                ? [...acts.children].filter((b) => /[A-Za-z]{2,}/.test(b.textContent || '')).length : 0,
+              actionsWidth: acts ? round(box(acts).width) : null,
             };
           });
         }, { html: s.html });
@@ -240,7 +247,8 @@ test('measured at 1280, 390 and 320', { skip: !RUN && 'set ROW_HEIGHTS=1' }, asy
   assert.equal(react.length, 7, 'the React state count moved; the count is what says one was not dropped');
   t.diagnostic(`row-height: ${found.length} rows over ${subjects.length} subjects at ${WIDTHS.join(', ')}`);
   for (const r of found.filter((x) => x.kind === 'file')) {
-    t.diagnostic(`  ${r.id} @${r.width}: ${r.height}px, ${r.tiers} tiers, name ${r.stemWidth}px`);
+    t.diagnostic(`  ${r.id} @${r.width}: ${r.height}px, ${r.tiers} tiers, name ${r.stemWidth}px, `
+      + `${r.wordedActions} worded action(s) in ${r.actionsWidth}px`);
   }
 
   // No tier takes two lines. This is the whole claim: the row grows by tiers it
@@ -270,14 +278,44 @@ test('measured at 1280, 390 and 320', { skip: !RUN && 'set ROW_HEIGHTS=1' }, asy
   // frame and panel inside Storybook's stage and is narrower than the viewport
   // it was measured at. The head this replaced gave the name 62px in a full-width
   // panel while uploading, and cut the failure message to buy it.
+  //
+  // The floor is per row, because a row's actions are what is left of its line.
+  // One worded action leaves 150px for a name being cut. Two do not, and cannot:
+  // at 320 the stack is 288px, Retry (79.88px) and Remove (72.55px) with the 8px
+  // between them take 160.42px, and the name's own gap takes 12px more. 150 + 12
+  // + 160.42 is 322.42px against a 288px line, so no gap or glyph trim reaches
+  // the one-action floor — dropping Retry's glyph and closing both gaps still
+  // lands near 131px. Wrapping the actions under the name would reach it and is
+  // the layout #541 rejected; this is the other side of that trade, taken
+  // knowingly in #566: remove carries its word because `x` is allowed for close
+  // and dismiss, and taking a file off a row is neither.
+  //
+  // What it costs is one case: a 320px panel holding a failed upload whose name
+  // is long enough to be cut shows about eight characters of its stem. The
+  // extension is never cut at any width, which the walk above holds, and 390 and
+  // 1280 are unaffected. Collapse this back to one floor if the row ever stops
+  // carrying two worded actions at 320 — the assertion below says so when it does.
   const FLOOR = 150;
+  const FLOOR_SHARED = 120;
+  const floorFor = (r) => (r.wordedActions >= 2 ? FLOOR_SHARED : FLOOR);
   const PANEL = 280; // --panel-sm (320px) less a panel's --space-4 on each side.
-  const starved = found
-    .filter((r) => r.stemClipped && r.stackWidth >= PANEL && r.stemWidth < FLOOR)
-    .map((r) => `${r.id} @${r.width}: a truncated name got ${r.stemWidth}px of a ${r.stackWidth}px row, under the ${FLOOR}px floor`);
+  const cut = found.filter((r) => r.stemClipped && r.stackWidth >= PANEL);
+  const starved = cut
+    .filter((r) => r.stemWidth < floorFor(r))
+    .map((r) => `${r.id} @${r.width}: a truncated name got ${r.stemWidth}px of a ${r.stackWidth}px row beside `
+      + `${r.wordedActions} worded action(s), under the ${floorFor(r)}px floor`);
   assert.deepEqual(starved, [], 'a file name was cut below the floor the stack exists to hold');
-  assert.ok(found.some((r) => r.stemClipped && r.stackWidth >= PANEL),
-    'no truncated name was measured in a panel-width row, so the floor was asserted against nothing');
+  // Each floor has to be asked of something, or the one nothing reaches is dead.
+  for (const [what, rows] of [['one worded action', cut.filter((r) => r.wordedActions < 2)],
+    ['two worded actions', cut.filter((r) => r.wordedActions >= 2)]]) {
+    assert.ok(rows.length > 0,
+      `no truncated name was measured in a panel-width row with ${what}, so that floor was asserted against nothing`);
+  }
+  // And the lower floor is excusing a real shortfall, not sitting under a row
+  // that would clear 150px anyway. When this stops being true the two floors are
+  // the same floor, and the comment above says to collapse them.
+  assert.ok(cut.some((r) => r.wordedActions >= 2 && r.stemWidth < FLOOR),
+    `every two-action row now clears ${FLOOR}px — drop FLOOR_SHARED and the branch above it`);
   // And the cut is real where it is claimed: a name too long for 320 truncates
   // rather than carrying the row out of the panel.
   const long = found.filter((r) => r.width === 320 && r.id.endsWith('-long'));
