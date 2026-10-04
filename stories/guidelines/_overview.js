@@ -23,6 +23,7 @@ import * as paletteContent from './_command-palette.js';
 import * as hoverContent from './_hover-readouts.js';
 import * as backContent from './_going-back.js';
 import * as pageContent from './_the-page.js';
+import * as accountContent from './_account-and-settings.js';
 
 // Imported for their EXPORT NAMES, which is where a story's URL id comes from.
 import * as destructiveStory from './DestructiveActions.stories.js';
@@ -46,6 +47,7 @@ import * as paletteStory from './CommandPalette.stories.js';
 import * as hoverStory from './HoverReadouts.stories.js';
 import * as backStory from './GoingBack.stories.js';
 import * as pageStory from './ThePage.stories.js';
+import * as accountStory from './AccountAndSettings.stories.js';
 
 import * as densityAccentContent from './_density-and-accents.js';
 import * as densityAccentStory from './DensityAndAccents.stories.js';
@@ -73,6 +75,7 @@ const ENTRIES = [
   [paletteContent, paletteStory],
   [hoverContent, hoverStory],
   [backContent, backStory],
+  [accountContent, accountStory],
 ];
 
 // Storybook's two-step id rule, reproduced rather than imported so the page
