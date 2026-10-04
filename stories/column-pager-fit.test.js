@@ -8,11 +8,8 @@
  * the vertical clearance its tap zones then need.
  *
  * Subjects are discovered from the markup and the sheets, so a renamed row fails
- * here rather than passing an empty sweep. The check is specificity, not source
- * order: two sheets' order in a consumer's bundle is the consumer's. A condition
- * is read on both sides — a wrap inside `@media` is not the row's own fit, and a
- * `nowrap` inside one cancels the fix across that band, because `@media` adds no
- * specificity of its own.
+ * here rather than passing an empty sweep. Specificity and condition both count:
+ * sheet order is the consumer's, and `@media` can cancel a wrap it cannot supply.
  *
  * why: docs/specification.md#react-tables, #571
  */
