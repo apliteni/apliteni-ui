@@ -49,9 +49,25 @@
   white-space: nowrap;
 }
 
+/* A figure's own words about its value, in the caption rank's size and weight
+   with the band's tighter leading, as the label takes, so it claims no rank.
+   Body ink on no fill; no tone reaches it, having no change to colour. */
+.ui-stat__caption {
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
+  line-height: var(--leading-snug);
+}
+
+/* Alone it is the row a change would have taken — the same step down and line
+   box — which holds a band of unlike figures on one line. Leading a change it is
+   a span in that row, spaced off what follows. */
+dd.ui-stat__caption { margin-top: var(--space-2); }
+.ui-stat__delta .ui-stat__caption { margin-inline-end: var(--space-1); }
+
 .ui-stat__delta {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 2px var(--space-1);
   margin-top: var(--space-2);
@@ -61,9 +77,21 @@
   line-height: var(--leading-snug);
 }
 .ui-stat__delta svg { width: 14px; height: 14px; flex: none; stroke-width: 2.7; } /* 2.7 of a 24 box drawn at 14px = 1.58 CSS px. docs/specification.md#icons-and-glyphs */
-.ui-stat__change { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ui-stat__change { font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
 .ui-stat__basis { color: var(--text); font-weight: var(--weight-normal); }
-.ui-stat__delta--none { color: var(--text); font-weight: var(--weight-normal); }
+
+/* The change above does not wrap: wrapped, its arrow ends one line and its number
+   starts the next, and a long caption drops its own change below the ones beside
+   it. The arrow and the number cannot give way, so the words clip — the whole
+   string stays in the markup. Only in that row: a caption standing alone has
+   nothing to orphan, so it takes a second line rather than lose words. */
+.ui-stat__delta .ui-stat__caption,
+.ui-stat__basis { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* A figure is never narrower than its content: without these a long line widens it. */
+dd.ui-stat__caption { contain: inline-size; }
+.ui-stat__delta .ui-stat__caption,
+.ui-stat__basis { width: 0; flex-grow: 1; max-width: max-content; }
 
 /* Tone is set by the caller and says good or bad news. Direction is the arrow's
    job, so an unset tone keeps the change neutral whichever way it points. */
@@ -77,14 +105,15 @@
 .ui-stat--good .ui-stat__trend { color: var(--chip-success-ink); }
 .ui-stat--bad .ui-stat__trend { color: var(--chip-danger-ink); }
 
-/* The band's caption, above the figures rather than in one: it is what every
-   change points at, so it sits outside the ranks and takes none of them. The
-   margin is under it because it leads the row. */
+/* The band's caption, above the figures rather than in one: what every change
+   points at. It governs the row, so it takes the caption rank itself and is
+   never set under a caption inside one figure, and its margin is below it. */
 .ui-stats__basis {
   margin: 0 0 var(--space-5);
   color: var(--text);
-  font-size: var(--text-xs);
-  line-height: var(--leading-snug);
+  /* rank: caption */
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
 }
 
 .ui-stats--tiles .ui-stats__list { gap: var(--space-4); }

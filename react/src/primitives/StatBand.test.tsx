@@ -27,7 +27,13 @@ function shape(root: Element) {
         tags: [...f.children].map((c) => `${c.tagName}.${c.className}`),
         label: f.querySelector('dt')?.textContent,
         value: f.querySelector('.ui-stat__value')?.textContent,
+        caption: f.querySelector('.ui-stat__caption')?.textContent ?? null,
         delta: d && d.textContent?.replace(/\s+/g, ' ').trim(),
+        // The order of the words inside the row, so a caption that moved past the
+        // change — or a basis drawn beside one — is a difference between the two
+        // sides. The glyph is left out: React wraps it and the factory does not.
+        rowParts: [...(d?.querySelectorAll('.ui-stat__caption, .ui-stat__change, .ui-stat__basis') ?? [])]
+          .map((c) => c.className),
         glyph: d?.querySelector('svg')?.innerHTML ?? null,
         describedBy: ref ? doc.getElementById(ref)?.textContent ?? `missing #${ref}` : null,
         trend: !!f.querySelector('.ui-stat__trend svg'),
@@ -64,6 +70,33 @@ const CASES: [string, StatBandProps][] = [
   ['band', { stats: FOUR, variant: 'band', basis: 'x', id: 'b' }],
   ['tiles', { stats: FOUR, variant: 'tiles', basis: 'x', id: 't' }],
   ['open, named', { stats: FOUR, variant: 'open', label: 'Cashflow', id: 'o' }],
+  // Context that is not a change. The band is mixed on purpose: `tags` carries
+  // each figure's rows and `rowParts` the order inside one, so a caption that
+  // opened a second row — the defect #512's review measured — fails here.
+  ['a mixed band: captions, changes, and both at once', {
+    id: 'c',
+    basis: 'Against last year',
+    stats: [
+      { label: 'Gross margin', value: '36.1%', caption: 'of revenue' },
+      { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' }, trend: TREND },
+      { label: 'Operating margin', value: '12.4%', caption: 'of revenue', delta: { value: '+1.2 pts', tone: 'good' } },
+      // The caption takes the basis's place, and the change points at the band.
+      { label: 'Net margin', value: '8.0%', caption: 'of revenue', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
+      // Nothing to compare: the caption stays, and nothing is added after it.
+      { label: 'Refunds', value: '€ 0', caption: 'of revenue', delta: { value: null } },
+      { label: 'Fees', value: '€ 0', delta: { value: null } },
+    ],
+  }],
+  // A band with no caption of its own: the branch where the kit has nothing to
+  // point a change at, which is where a caption used to cost the caller their
+  // basis. Both sides must print it.
+  ['a captioned figure in a band with no caption of its own', {
+    id: 'n',
+    stats: [
+      { label: 'Operating margin', value: '12.4%', caption: 'of revenue', delta: { value: '+1.2 pts', tone: 'good', basis: 'against the 40% target' } },
+      { label: 'Net margin', value: '8.0%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
+    ],
+  }],
   ['every kind of change', {
     id: 'k',
     basis: 'Against last year',
@@ -71,7 +104,7 @@ const CASES: [string, StatBandProps][] = [
       { label: 'Margin', value: '36%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
       { label: 'New', value: '€ 1', delta: { value: null } },
       { label: 'Toned, but nothing to compare', value: '€ 1', delta: { value: null, tone: 'bad' } },
-      { label: 'Worded', value: '€ 1', delta: { value: '', none: 'New this year' } },
+      { label: 'Empty', value: '€ 1', delta: { value: '' } },
       { label: 'Flat', value: '€ 1', delta: { value: '0.0%' } },
       { label: 'Forced', value: '€ 1', delta: { value: '4%', direction: 'down' } },
       { label: 'Hyphen', value: '€ 1', delta: { value: '-4%', tone: 'neutral' } },

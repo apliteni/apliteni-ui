@@ -40,7 +40,7 @@ export const Playground = {};
 const heading = (title, note) =>
   `<div style="margin:34px 0 12px">
      <div style="font:600 15.5px/1.3 var(--font-sans);color:var(--strong)">${title}</div>
-     <div style="font:400 13px/1.5 var(--font-sans);color:var(--muted);max-width:70ch">${note}</div>
+     <div style="font:400 13px/1.5 var(--font-sans);color:var(--text);max-width:70ch">${note}</div>
    </div>`;
 
 // The three layouts side by side, over the same four figures, so a difference
@@ -66,14 +66,16 @@ export const Gallery = {
 // measured against something the others are not, and when it carries no trend.
 export const States = {
   render: () => pad(
-    heading('No earlier figure', 'A change against nothing is not +0% — the band says there is nothing to compare.')
+    heading('Nothing to compare',
+      'A figure with no earlier value shows its value and stops &mdash; never +0%, and never words saying '
+      + 'there is nothing to say.')
     + statBand({
       id: 'states-none',
       basis: BASIS,
       stats: [
         { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
-        { label: 'New entity', value: '€ 12,040', delta: { value: null, none: 'No earlier figure' } },
-        { label: 'Refunds', value: '€ 0', delta: { value: '0.0%' } },
+        { label: 'New entity', value: '€ 12,040', caption: 'since 1 March', delta: { value: null } },
+        { label: 'Refunds', value: '€ 0', delta: { value: null } },
       ],
     })
     + heading('Its own comparison', 'One figure measured against a target rather than the previous period says so beside the change.')
@@ -84,6 +86,56 @@ export const States = {
         { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
         { label: 'Margin', value: '36.1%', delta: { value: '−3.9 pts', tone: 'bad', basis: 'against the 40% target' } },
         { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+      ],
+    })
+    + heading('Context that is not a change',
+      'A caption takes the row a change would have taken, and earns it only by giving a unit, a period or a '
+      + 'limit the figure cannot. Gross margin names its own denominator, so it takes none.')
+    + statBand({
+      id: 'states-caption',
+      basis: BASIS,
+      stats: [
+        { label: 'Gross margin', value: '36.1%', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
+        { label: 'Refunds', value: '2.4%', caption: 'of income', delta: { value: '+0.3 pts', tone: 'bad' } },
+        { label: 'Unclassified', value: '1.3%', caption: 'of income' },
+      ],
+    })
+    + heading('How long a caption can be',
+      'A row holding a change is one line, so a caption that shares it stays short enough to read whole. '
+      + 'Wrapping would drop that change below the ones beside it, and clipping would take the words the '
+      + 'caption is there for.')
+    + statBand({
+      id: 'states-caption-length',
+      basis: BASIS,
+      stats: [
+        { label: 'Gross margin', value: '36.1%', delta: { value: '+1.2 pts', tone: 'good' } },
+        { label: 'Unclassified', value: '1.3%', caption: 'of income', delta: { value: '−0.4 pts', tone: 'good' } },
+        { label: 'Refunds', value: '2.4%', caption: 'of income, net of disputes', delta: { value: '+0.3 pts', tone: 'bad' } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+      ],
+    })
+    + heading('A caption standing alone keeps every word',
+      'With no change beside it, a caption has no arrow and no number to hold together, so it takes a second '
+      + 'line rather than lose a word. A caption this long belongs only in a row it does not share.')
+    + statBand({
+      id: 'states-caption-wraps',
+      basis: BASIS,
+      stats: [
+        { label: 'Refunds', value: '2.4%', caption: 'of income for the quarter, excluding disputed chargebacks' },
+        { label: 'Unclassified', value: '1.3%', caption: 'of income, excluding disputed chargebacks', delta: { value: null } },
+        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
+        { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
+      ],
+    })
+    + heading('Measured against something else',
+      'A caption never costs a reader the comparison: a change measured against its own target still says so '
+      + 'after the change.')
+    + statBand({
+      id: 'states-caption-basis',
+      stats: [
+        { label: 'Refunds', value: '2.4%', caption: 'of income', delta: { value: '+0.3 pts', tone: 'bad', basis: 'against plan' } },
+        { label: 'Net margin', value: '8.0%', delta: { value: '−4.0 pts', tone: 'bad', basis: 'against the 12% target' } },
       ],
     })
     + heading('Figures only', 'No change and no trend: a label and a value is a complete band.')
