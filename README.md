@@ -136,8 +136,8 @@ npm run storybook              # the kit; add -w react for the React workspace
 npm test && npm test -w react && npm run build-storybook && node site/build.mjs
 ```
 
-Run the final command before opening a PR. The two suites have budgets of BUDGET_KIT and
-BUDGET_REACT on an idle 8-core Linux host, and each run ends with its ten slowest tests
+Run the final command before opening a PR. The two suites have budgets of 2m41s and
+1m18s on an idle 8-core Linux host, and each run ends with its ten slowest tests
 and files. See [AGENTS.md](AGENTS.md) for the per-test budgets.
 
 Add a general, composable kit component only when all three conditions are true: the issue

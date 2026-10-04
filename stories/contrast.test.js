@@ -31,7 +31,8 @@ import {
   rgbOf,
   substitute,
   tokensFor,
-  walkStories,
+  walkCells,
+  walkStoriesParallel,
 } from './lib/contrast.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -231,21 +232,18 @@ const walk = {
 //    so every sub-theme panel is measured using the current cell's accent.
 before(async () => {
   const started = Date.now();
-  const records = [];
-  for (const theme of THEMES) {
-    const r = await walkStories({ theme, accent: ACCENT, states: true });
-    records.push(...r.records);
-    walk.problems.push(...r.problems);
-    for (const id of r.stats.storyIds) walk.storyIds.add(id);
-    for (const [k, v] of Object.entries(r.stats)) {
-      if (typeof v === 'number') walk.stats[k] = (walk.stats[k] || 0) + v;
-    }
-    for (const k of Object.keys(walk.cache)) walk.cache[k] += r.cache[k];
-    walk.stats.uaBlue = (walk.stats.uaBlue || []).concat(r.stats.uaBlue);
+  // Both themes in one dealt batch, so a thread pays its cold start once.
+  const r = await walkCells({ cells: THEMES.map((theme) => ({ theme, accent: ACCENT })), states: true });
+  walk.problems.push(...r.problems);
+  for (const id of r.stats.storyIds) walk.storyIds.add(id);
+  for (const [k, v] of Object.entries(r.stats)) {
+    if (typeof v === 'number') walk.stats[k] = v;
   }
+  for (const k of Object.keys(walk.cache)) walk.cache[k] += r.cache[k];
+  walk.stats.uaBlue = r.stats.uaBlue;
   walk.elapsed = Date.now() - started;
-  walk.records = records;
-  walk.findings = groupFindings(records);
+  walk.records = r.records;
+  walk.findings = groupFindings(r.records);
 });
 
 /** The buckets a finding belongs to. Doc buckets and token buckets are disjoint
@@ -791,7 +789,7 @@ for (const accent of ACCENTS.filter((a) => a !== ACCENT)) {
       timeout: 600_000,
     }, async () => {
       const started = Date.now();
-      const result = await walkStories({ theme, accent, states: true });
+      const result = await walkStoriesParallel({ theme, accent, states: true });
       const findings = groupFindings(result.records);
       if (process.env.CONTRAST_LEDGER_REPORT === '1') {
         const measured = Object.fromEntries(ALTERNATE_CAUSES.flatMap((entry) => {

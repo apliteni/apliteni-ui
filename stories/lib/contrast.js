@@ -14,6 +14,8 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { availableParallelism } from 'node:os';
+import { Worker } from 'node:worker_threads';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -597,7 +599,7 @@ export function stateTargets(root, bases) {
   return targets;
 }
 
-export async function walkStories({ theme, accent = 'default', states = true } = {}) {
+export async function walkStories({ theme, accent = 'default', states = true, files = storyFiles } = {}) {
   const { vars, css } = kitCssFor(theme, accent);
   const kitBases = stateBases(css);
 
@@ -626,7 +628,7 @@ export async function walkStories({ theme, accent = 'default', states = true } =
     colorMixTranslucent: 0,
   };
 
-  for (const rel of storyFiles) {
+  for (const rel of files) {
     const mod = await import(path.join(root, 'stories', rel));
     const def = mod.default || {};
     for (const [name, story] of Object.entries(mod)) {
@@ -751,3 +753,96 @@ export async function walkStories({ theme, accent = 'default', states = true } =
   dom.window.close();
   return { records, stats, problems, cache: { ...styles.seen } };
 }
+
+// ---- the walk, dealt out --------------------------------------------------
+
+/*
+ * The walk is the kit suite's longest test by an order of magnitude, and nearly all of it
+ * is spent inside JSDOM's getComputedStyle — one thread, one core. So the catalogue is
+ * dealt out to threads. Each story is independent: it is rendered into a body of its own,
+ * read, and replaced, so a shard needs nothing from the shards beside it and the merge is
+ * addition.
+ *
+ * What sharding does not change: the records, the counts, the cache figures and the
+ * problems are the same set one thread produces. Two things hold that. Every run,
+ * stories/contrast.test.js asserts each ledger bucket's count and worst ratio exactly, and
+ * that the ledger totals what the walk found — a shard that lost a story turns those red.
+ * On demand, CONTRAST_SHARD_PARITY=1 in stories/lib/contrast.test.js compares the two walks
+ * directly.
+ *
+ * Set CONTRAST_SHARDS=1 to walk in this thread instead, which is what to do when the stack
+ * of a story that threw is the thing you need to read.
+ */
+const SHARD = new URL('./contrast-shard.mjs', import.meta.url);
+
+/**
+ * How many threads the walk is worth dealing to: half the machine's cores, at least two,
+ * never more than there are files.
+ *
+ * Half, not all, because `node --test` is already running a file per core beside this one,
+ * so a thread here is taken from a sibling file rather than found. Measured on an 8-core
+ * Linux host, the walk alone: one thread 178.6s wall and 188s of CPU, four threads 62.4s
+ * and 231s, eight threads 56.3s and 259s. The last four threads buy six seconds of wall
+ * clock for twenty-eight of CPU, and on a saturated box that CPU is the suite's own.
+ */
+export function walkShards(files = storyFiles) {
+  const asked = Number.parseInt(process.env.CONTRAST_SHARDS ?? '', 10);
+  const want = Number.isFinite(asked) && asked > 0 ? asked : Math.max(2, Math.floor(availableParallelism() / 2));
+  return Math.max(1, Math.min(want, files.length));
+}
+
+/** Add the shards' answers up, in the shape one walk returns. */
+export function mergeWalks(parts) {
+  const out = {
+    records: [], problems: [],
+    stats: { storyIds: new Set(), uaBlue: [] },
+    cache: { queries: 0, lookups: 0, routedWrites: 0 },
+  };
+  for (const part of parts) {
+    out.records.push(...part.records);
+    out.problems.push(...part.problems);
+    for (const id of part.stats.storyIds) out.stats.storyIds.add(id);
+    out.stats.uaBlue.push(...part.stats.uaBlue);
+    for (const [key, value] of Object.entries(part.stats)) {
+      if (typeof value === 'number') out.stats[key] = (out.stats[key] || 0) + value;
+    }
+    for (const key of Object.keys(out.cache)) out.cache[key] += part.cache[key];
+  }
+  return out;
+}
+
+const shardWalk = (workerData) => new Promise((resolve, reject) => {
+  const worker = new Worker(SHARD, { workerData });
+  worker.once('message', (m) => (m.error ? reject(new Error(m.error)) : resolve(m.walk)));
+  worker.once('error', reject);
+  // A shard that dies without posting leaves the promise pending for ever otherwise.
+  worker.once('exit', (code) => { if (code !== 0) reject(new Error(`a contrast shard exited ${code}`)); });
+});
+
+/**
+ * Walk one or more theme × accent cells across threads, merged into the shape one
+ * walkStories call returns.
+ *
+ * A hand of files is walked for EVERY cell by the same thread, rather than a thread per
+ * cell per hand: a cold thread spends about five seconds importing jsdom, resolving the
+ * token map and parsing the kit's stylesheet before it reads a single colour, and that
+ * is paid once a thread instead of once a cell. It also leaves one ramp up and one ramp
+ * down rather than one of each per cell.
+ */
+export async function walkCells({ cells, states = true, files = storyFiles, shards } = {}) {
+  const n = Math.max(1, Math.min(shards ?? walkShards(files), files.length));
+  if (n === 1) {
+    const parts = [];
+    for (const cell of cells) parts.push(await walkStories({ ...cell, states, files }));
+    return mergeWalks(parts);
+  }
+  /* Dealt round-robin rather than sliced: the catalogue is sorted by path, so files next to
+   * each other belong to one area and cost about the same. Dealing spreads the big ones. */
+  const hands = Array.from({ length: n }, () => []);
+  files.forEach((rel, i) => hands[i % n].push(rel));
+  return mergeWalks(await Promise.all(hands.map((hand) => shardWalk({ cells, states, files: hand }))));
+}
+
+/** One cell, walked across threads. Same answer as walkStories. */
+export const walkStoriesParallel = ({ theme, accent = 'default', ...rest } = {}) =>
+  walkCells({ cells: [{ theme, accent }], ...rest });

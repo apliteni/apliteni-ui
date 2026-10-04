@@ -768,7 +768,7 @@
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
-        "ref": "stories/contrast.test.js:227",
+        "ref": "stories/contrast.test.js:228",
         "pattern": "inactive components and their whole subtree"
       }
     ],

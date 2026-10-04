@@ -19,13 +19,17 @@ import {
   expandAnchors,
   luminance,
   makeStyleCache,
+  mergeWalks,
   parseColour,
   ratio,
   specialiseContextual,
   stateTargets,
   stateBases,
+  storyFiles,
   substitute,
   tokensFor,
+  walkStories,
+  walkStoriesParallel,
 } from './contrast.js';
 
 const near = (actual, expected, what, tol = 0.005) => assert.ok(
@@ -511,4 +515,64 @@ test('colour, background, visibility, thresholds, custom and unknown declaration
   }
   const descendant = stateBases(desugar('.parent:hover { outline:none } .parent:hover .child {color:red}'));
   assert.ok(descendant.hover.has('.parent'), 'a decorative parent still has a contrast-changing descendant rule');
+});
+
+
+test('merging shards adds the counts up, unions the catalogue and keeps every record', () => {
+  // The merge is the only arithmetic sharding introduces. A count summed twice, a Set
+  // overwritten instead of unioned, or a cache figure taken from the last shard would all
+  // leave the gate green while it measured a fraction of the kit.
+  const shard = (story, judged, ids, queries) => ({
+    records: [{ story, ratio: 1 }],
+    problems: [`${story} broke`],
+    stats: { judged, stories: 1, storyIds: new Set(ids), uaBlue: [story] },
+    cache: { queries, lookups: 1, routedWrites: 2 },
+  });
+  // The ids overlap on purpose: a union dedupes `both:One` and still keeps what only one
+  // shard saw, which tells a union apart from the last shard's Set kept whole.
+  const merged = mergeWalks([
+    shard('a', 3, ['a:One', 'both:One'], 10),
+    shard('b', 4, ['b:One', 'both:One'], 20),
+  ]);
+
+  assert.equal(merged.stats.judged, 7, 'numbers add');
+  assert.equal(merged.stats.stories, 2);
+  assert.deepEqual([...merged.stats.storyIds].sort(), ['a:One', 'b:One', 'both:One'],
+    'the catalogue is a union');
+  assert.deepEqual(merged.stats.uaBlue, ['a', 'b'], 'lists concatenate');
+  assert.deepEqual(merged.cache, { queries: 30, lookups: 2, routedWrites: 4 }, 'cache figures add');
+  assert.deepEqual(merged.records.map((r) => r.story), ['a', 'b'], 'no record is dropped');
+  assert.deepEqual(merged.problems, ['a broke', 'b broke'], 'no problem is swallowed');
+  assert.deepEqual(mergeWalks([]).stats.judged, undefined, 'nothing to merge is not a crash');
+});
+
+/* The end-to-end comparison: dealt out, the walk answers what one thread answers.
+ *
+ * Off by default because it costs about twenty seconds — a serial walk plus a shard's cold
+ * start, where a shard pays five seconds to parse the kit's stylesheet into a JSDOM of its
+ * own. Run it with CONTRAST_SHARD_PARITY=1 when the sharding itself changes.
+ *
+ * It is not the only thing watching: stories/contrast.test.js asserts each ledger bucket's
+ * count and worst ratio exactly, and that the ledger totals what the walk found, on the
+ * whole catalogue, every run. A shard that lost a story turns those red.
+ *
+ * Limits: three files, one theme, and record ORDER is left out of it. Shards finish in the
+ * order the threads give them and nothing downstream reads order — groupFindings keys on
+ * the pair, not the position.
+ */
+test('the walk dealt out to threads returns what one thread returns', {
+  skip: process.env.CONTRAST_SHARD_PARITY !== '1',
+}, async () => {
+  const files = storyFiles.filter((f) => /components\/(BadgeStatus|Button|Card)\.stories\.js$/.test(f));
+  assert.equal(files.length, 3, `${files.length} files matched; the subset has moved`);
+
+  const serial = await walkStories({ theme: 'dark', files });
+  const dealt = await walkStoriesParallel({ theme: 'dark', files, shards: 3 });
+
+  const by = (r) => `${r.story}|${r.state}|${r.path}|${r.fg}|${r.bg}|${r.ratio}|${r.unjudgeable}`;
+  assert.deepEqual(dealt.records.map(by).sort(), serial.records.map(by).sort(), 'the same records');
+  assert.deepEqual(dealt.problems.sort(), serial.problems.sort(), 'the same problems');
+  assert.deepEqual(dealt.stats, serial.stats, 'the same counts');
+  assert.deepEqual(dealt.cache, serial.cache, 'the same style-cache figures');
+  assert.ok(serial.stats.judged > 0, 'a comparison of two empty walks proves nothing');
 });

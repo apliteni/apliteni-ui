@@ -23,12 +23,17 @@ can find them. Add new test directories to both the guard and the glob in `npm t
 
 While you work, run `node --test <file>` for the files you changed. Run both suites once
 for the pull request, on a Linux host where you have one. Their budgets, measured on an
-idle 8-core Linux host: `npm test` BUDGET_KIT, `npm test -w react` BUDGET_REACT.
+idle 8-core Linux host: `npm test` 2m41s, `npm test -w react` 1m18s.
 
 Each suite run ends with its ten slowest tests and files, and anything over budget: 5
 seconds a test, 10 for a browser test, 60 for one file. That report never fails a run.
 Keep a suite inside its budget by making its slowest tests faster. Do not serialise the
 machine's test runs behind a lock.
+
+The contrast walk is dealt to half the machine's cores. Set `CONTRAST_SHARDS=1` to walk in
+one thread when you need the stack of a story that threw, and run
+`CONTRAST_SHARD_PARITY=1 node --test stories/lib/contrast.test.js` when you change how it
+is dealt.
 
 New gates must discover their subjects, fail when cases are not measured, check coverage
 counts, and prove rejection with a failing mutation. Share calculations across
