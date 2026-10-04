@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:132",
+        "ref": "src/styles/table.css:159",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ]
@@ -44,7 +44,7 @@
     ],
     "ring-contrast": [
       {
-        "ref": "src/styles/base.css:147",
+        "ref": "src/styles/base.css:152",
         "pattern": "box-shadow: var(--ring);"
       }
     ],
@@ -504,7 +504,7 @@
         "pattern": "const h = [2, 3, 4, 5, 6]"
       },
       {
-        "ref": "react/src/primitives/Card.tsx:9",
+        "ref": "react/src/primitives/Card.tsx:11",
         "pattern": "const Heading"
       }
     ],
@@ -546,7 +546,7 @@
         "pattern": "--space-3: 12px"
       },
       {
-        "ref": "src/styles/table.css:65",
+        "ref": "src/styles/table.css:84",
         "pattern": "padding: var(--space-2) var(--space-3)"
       },
       {
@@ -738,11 +738,11 @@
   "_state-set.js": {
     "focus-visible": [
       {
-        "ref": "src/styles/base.css:140",
+        "ref": "src/styles/base.css:144",
         "pattern": ".ui-focusable:focus-visible,"
       },
       {
-        "ref": "src/styles/base.css:147",
+        "ref": "src/styles/base.css:152",
         "pattern": "box-shadow: var(--ring);"
       },
       {
