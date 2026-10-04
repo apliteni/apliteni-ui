@@ -619,8 +619,8 @@ it('draws no column pair, and measures nothing, when the column pager is off', (
     pinnedIdentity: true, scrollLabel: 'Ledger' };
   const { rerender } = render(<DataTable {...props} />);
   const region = screen.getByRole('region', { name: 'Ledger' });
-  // Counted rather than fixed: measuring the region is the whole cost of a pair nobody
-  // draws, and a scrolling phone table pays it on every frame.
+  // Counted, not fixed: the measurement reads scrollWidth and clientWidth, which forces
+  // layout, and it runs on every scroll event of a table that draws no pair at all.
   let measured = 0;
   Object.defineProperties(region, {
     clientWidth: { configurable: true, get: () => 300 },

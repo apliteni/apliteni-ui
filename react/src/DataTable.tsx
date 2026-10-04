@@ -49,9 +49,9 @@ export type DataTableProps<T> = {
   pager?: boolean;
   /**
    * `false` draws no Previous/More columns pair over a table whose columns overflow.
-   * A pinned identity column anchors the row while the rest scrolls under it, so the
-   * pair restates a gesture the table already answers — and costs a card two controls
-   * at the width that has least room for them.
+   * The region still scrolls by swipe, by trackpad and, once tabbed to, with the arrow
+   * keys, and a pinned identity column holds the row's name in view while it does — so
+   * the pair costs a card two controls at the width that has least room for them.
    * why: docs/specification.md#react-tables
    */
   columnPager?: boolean;
