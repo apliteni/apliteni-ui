@@ -398,45 +398,33 @@ test('all three copies of the accent picker paint the same swatches', () => {
   }
 });
 
-/* ---- the selection ring --------------------------------------------------
- * The ring is a solid colour, so it cannot be the swatch gradient; it is that
- * accent's own --accent, one value per theme, and src/logic/accents.js is where
- * both pickers read it. Derived from the tokens here, same as the gradient above
- * — nothing in this file restates a shipped literal.
+/* ---- the selection mark --------------------------------------------------
+ * Which swatch is selected is said by a tick inside the circle, in one near-black
+ * ink segmented.css reads out of --signal-contrast. It used to be a ring in that
+ * accent's own colour, handed to the button as a paint per theme — and composed
+ * with the kit's focus ring that was two accent edges on one 26px circle, which
+ * #472's review sent back. stories/accent-mark.test.js measures the mark's
+ * contrast on every stop of every swatch; this says the paints carry no
+ * accent-coloured selection colour for it to come back as.
  */
-test("every accent's selection ring is its own --accent in both themes", () => {
+test('a swatch carries its gradient and no selection colour of its own', () => {
   assert.deepEqual(
     [...SHIPPED].sort(), [...ACCENTS].sort(),
     'src/logic/accents.js and src/tokens/accents.css do not list the same accents. Both pickers '
     + 'take their list from the logic module, so an accent missing there is one nobody can pick '
     + 'in either implementation, and one invented there selects a sub-theme that does not exist.',
   );
-  const drift = [];
+  const extra = [];
   for (const accent of ACCENTS) {
-    requireOwnDarkBlock(accent);
-    const style = accentSwatchStyle(accent);
-    for (const theme of ['dark', 'light']) {
-      const vars = tokensFor(theme, accent);
-      const want = parseColour(substitute(vars.get('--accent'), vars));
-      const got = parseColour(style[`--swatch-ring-${theme}`]);
-      if (!got) {
-        drift.push(`${accent}: no --swatch-ring-${theme}, so segmented.css falls the ring back to `
-          + 'var(--accent) — the accent the PAGE is on, which is the bug the property exists to fix');
-        continue;
-      }
-      if (paints(got) !== paints(want)) {
-        drift.push(`${accent} ${theme}: the ring paints ${style[`--swatch-ring-${theme}`]}, `
-          + `${theme} ${accent} ships --accent ${paints(want)}`);
-      }
-    }
+    const carried = Object.keys(accentSwatchStyle(accent));
+    for (const prop of carried.filter((p) => p !== '--swatch')) extra.push(`${accent} carries ${prop}`);
   }
   assert.deepEqual(
-    drift, [],
-    `\n${drift.join('\n')}\n\nThe selected swatch's ring is the one thing that says WHICH accent is `
-    + "on, so it is painted in that accent's own colour and not the page's. It is resolved per "
-    + 'theme because the dark ramp the swatch circle itself wears does not clear 3:1 on the light '
-    + 'card. stories/accent-ring.test.js measures the contrast; this only says the colour is the '
-    + "accent's own.",
+    extra, [],
+    `\n${extra.join('\n')}\n\nA swatch button carries --swatch and nothing else. A second paint per `
+    + "accent is how the selection ring was delivered, and the selected swatch's mark is now one ink "
+    + 'that reads on all eight stops, declared once in segmented.css. An accent-coloured paint handed '
+    + 'to the button is the two-signal edge coming back by another route.',
   );
 });
 

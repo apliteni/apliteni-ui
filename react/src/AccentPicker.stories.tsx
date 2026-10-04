@@ -24,10 +24,10 @@ export const Phoenix: Story = { render: () => <Preview initial="phoenix" /> };
 export const Ocean: Story = { render: () => <Preview initial="ocean" /> };
 export const Emerald: Story = { render: () => <Preview initial="emerald" /> };
 export const Subset: Story = { render: () => <Preview initial="ocean" options={['ocean', 'emerald']} /> };
-// The ring is the SELECTED swatch's own colour, so the four rings differ here.
-// Switch the toolbar's accent and they stay put: before this they all followed
-// the page accent, which told you nothing about which swatch was on.
-export const Rings: Story = {
+// One strip per accent, each with that accent selected. Switch the toolbar's
+// accent and the ticks stay where they are: the mark is not an accent, so it says
+// which swatch is on whatever the page is wearing.
+export const Selected: Story = {
   render: () => <div style={{ background: 'var(--surface)', padding: 'var(--space-4)', display: 'grid', gap: 'var(--space-4)' }}>
     {ACCENTS.map(accent => <Preview key={accent} initial={accent} />)}
   </div>,

@@ -1,28 +1,29 @@
-/* The selected accent swatch while it also holds keyboard focus.
+/* The edge a selected accent swatch draws while it also holds keyboard focus.
  *
- * WHY THIS EXISTS SEPARATELY FROM accent-ring.js: that gate reads the resting
- * two-layer shadow, so it cannot see the edge the control draws when the kit's
- * focus ring is composed with the selection band. #472's review measured the
- * first attempt at that composition — the kit band laid straight against the
- * selection band — at 1.049:1 in light and 1.064:1 in dark with the page on
- * Ocean and Phoenix selected, which is one smear and not two signals.
+ * ASSERTS: that the edge is the kit's focus ring and nothing else. One element
+ * carries one accent signal, so exactly one band here may be an accent colour and
+ * it has to be the accent the PAGE is on. Which swatch is selected is said inside
+ * the circle, by the tick stories/lib/accent-mark.js measures.
  *
- * WHAT THIS READS: the bands of the focused rule, in the order they paint
- * outward, and the contrast between each pair that touches. The page is always
- * put on a DIFFERENT accent from the one selected, because two bands in one
- * colour cannot fail an adjacency check and a gate that sets them equal proves
- * nothing.
+ * SEPARATE FROM accent-mark.js: that gate reads a declaration out of the sheet,
+ * because the mark is a pseudo-element JSDOM does not compute. This one reads a
+ * computed box-shadow off the element, which is the only way to see what the
+ * cascade leaves on the edge once .is-active and :focus-visible have both matched.
  *
- * WHAT IT CANNOT READ: the 12px halo in var(--ring). It is a blurred translucent
- * layer, so the pixels it reaches are the band colours mixed with the ring
- * colour by a fraction no source reader can compute; this gate records that the
- * halo is there, skips it, and measures the opaque bands as declared. The halo
- * pulls both sides of every pair toward one hue, which can only lower a ratio,
- * so a pass here is a ceiling and not the painted result. Browser pixel samples
- * at the band interiors are what close that gap, and #578 removes the halo
- * outright. JSDOM also resolves no var(), which is why the caller substitutes
- * the tokens, and no gradient, so the swatch fill inside the innermost band is
- * not a ground this gate can measure.
+ * REJECTS a band in the SELECTED swatch's own accent, which #472 shipped twice;
+ * the measurements and the decision are in the specification section below.
+ *
+ * CANNOT READ: the 12px halo in var(--ring). It is blurred and translucent, so
+ * the pixels it reaches are the band colours mixed by a fraction no source reader
+ * can compute; this gate counts it, skips it and measures the opaque bands as
+ * declared, which makes a pass a ceiling and not the painted result. Browser
+ * pixel samples close that gap, and #578 removes the halo outright. JSDOM also
+ * resolves no var(), which is why the caller substitutes the tokens, and no
+ * gradient, so the ring's gap band against the swatch fill is recorded by the
+ * caller as a reading rather than asserted: the gap is part of the indicator, the
+ * band it separates is read against the ground on both sides, and the kit gives
+ * every accent-filled control the same geometry.
+ * why: docs/specification.md#react-accent-picker. See issues #429 and #472.
  */
 import assert from 'node:assert/strict';
 import { parseColour, ratio, substitute, tokensFor } from './contrast.js';
@@ -34,8 +35,8 @@ export const BAND_FLOOR = 3;
  * The neutral the kit hands a focused control as the ground under its ring.
  *
  * It is what the outermost band is read against, and it is the same value the
- * separator between the bands takes, so the two never drift apart. A card
- * re-points it at its own surface; at the root it is the page.
+ * ring's own gap takes, so the two never drift apart. A card re-points it at its
+ * own surface; at the root it is the page.
  */
 export function ringGap(theme, accent) {
   const vars = tokensFor(theme, accent);
@@ -44,7 +45,7 @@ export function ringGap(theme, accent) {
   return colour;
 }
 
-/** Split on top-level commas, so `color-mix(in srgb, …)` stays one token. */
+/** Split on a top-level separator, so `color-mix(in srgb, …)` stays one token. */
 function splitTop(value, separator) {
   const out = [];
   let depth = 0;
@@ -62,10 +63,11 @@ function splitTop(value, separator) {
  * A px length, including the `calc()` sums the kit derives its offsets from.
  *
  * The offsets are derived so that a change to --ring-width or --ring-gap-width
- * moves the separator with the band it separates; the cost is that the computed
- * value arrives as text JSDOM has not reduced, so the arithmetic happens here.
- * Only the forms the kit writes are accepted — px terms, each optionally scaled
- * by a bare number — and anything else fails loudly rather than being guessed.
+ * moves the band with the width it is derived from; the cost is that the
+ * computed value arrives as text JSDOM has not reduced, so the arithmetic
+ * happens here. Only the forms the kit writes are accepted — px terms, each
+ * optionally scaled by a bare number — and anything else fails loudly rather
+ * than being guessed.
  */
 export function px(value) {
   const s = String(value).trim();
@@ -115,18 +117,21 @@ function layerOf(text) {
   };
 }
 
+const paints = (c) => `rgb(${c.slice(0, 3).map(Math.round).join(', ')})`;
+
 /**
- * Measure the focused selected swatch and return its bands outward.
+ * Measure the focused selected swatch's edge and return its bands outward.
  *
- * `want` names the two colours this edge must carry: `ring` is the PAGE accent,
- * which is what the kit's focus ring paints, and `selection` is the SELECTED
- * swatch's own accent. Passing both in is what makes this an assertion rather
- * than a reading, and it is what catches a composition that loses one of them.
+ * `want.ring` is the PAGE accent, which is what the kit's focus ring paints.
+ * `want.accents` is every accent colour this theme paints, and `want.selection`
+ * is the selected swatch's own — one of them, and the one this edge must NOT
+ * carry. Passing all three in is what makes this an assertion rather than a
+ * reading, and it is what catches a second accent signal arriving on the edge.
  *
  * Throws unless every pair of bands that touch clears BAND_FLOOR, which is the
- * check the resting gate cannot make: there, one band stands in one gap.
+ * check the mark gate cannot make: there, nothing is laid against anything.
  */
-export function measureFocusedBands(button, win, want) {
+export function measureFocusedEdge(button, win, want) {
   const shadow = win.getComputedStyle(button).boxShadow;
   assert.ok(shadow && shadow !== 'none', 'a focused selected swatch has a box-shadow');
   assert.ok(!shadow.includes('gradient('), 'a gradient cannot be a shadow colour');
@@ -141,21 +146,25 @@ export function measureFocusedBands(button, win, want) {
       `bands paint outward in source order: ${bands[index - 1].spread}px then ${band.spread}px`);
   }
 
-  const paints = (c) => `rgb(${c.slice(0, 3).map(Math.round).join(', ')})`;
   const found = bands.map((band) => paints(band.colour));
   assert.ok(found.includes(paints(want.ring)),
     `the kit focus ring's band is missing from the edge: wanted ${paints(want.ring)}, drew ${found.join(', ')}`);
-  assert.ok(found.includes(paints(want.selection)),
-    'focus erased the selection band, so nothing on the edge says which accent is on: '
-    + `wanted ${paints(want.selection)}, drew ${found.join(', ')}`);
-
-  assert.ok(bands.length >= 3,
-    `the focused selected swatch draws ${bands.length} bands; the kit ring's gap and band plus the `
-    + 'selection band are three at least, and a composition with fewer has dropped one of its two signals');
+  assert.ok(
+    !found.includes(paints(want.selection)),
+    `the edge carries a band in the SELECTED swatch's own accent (${paints(want.selection)}): `
+    + `${found.join(', ')}. That is a second accent signal on a control whose one accent signal is `
+    + 'the kit focus ring, and separating the two with a neutral does not make it one. Selection is '
+    + 'the tick inside the circle — stories/lib/accent-mark.js measures it',
+  );
+  const accented = bands.filter((band) => want.accents.some((accent) => paints(accent) === paints(band.colour)));
+  assert.equal(
+    accented.length, 1,
+    `${accented.length} of this edge's bands paint an accent (${accented.map((b) => b.raw).join(', ')}), `
+    + 'and the kit focus ring is the one that may. One element, one accent signal',
+  );
 
   // Every pair that touches, including the outermost band against the ground the
-  // picker stands on. Two coloured bands laid against each other is the #472
-  // failure, and it is this loop that rejects it.
+  // picker stands on.
   const touching = bands.map((band, index) => [band, bands[index + 1] ?? { colour: want.ground, raw: 'ground' }]);
   const ratios = touching.map(([inner, outer]) => {
     const contrast = ratio(inner.colour, outer.colour);

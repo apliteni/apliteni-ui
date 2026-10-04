@@ -3730,29 +3730,36 @@ host's `onChange` — the decision `Dropdown`, `Drawer` and `ThemeToggle` make f
 their own hooks.
 
 Both pickers read one accent list and one set of swatch paints from the kit, so
-neither can drift from the other or from the accent tokens. The selected swatch's
-ring is that accent's own `--accent`, resolved for the current theme, not the
-accent the page is on: the picker is documented to run before the host has applied
-anything, and a ring in `var(--accent)` would paint every selection in whichever
-accent the page happens to be wearing and in the same hue as the focus ring. The
-dark ramp the swatch circle itself wears does not clear 3:1 on the light card,
-which is why the ring has a value per theme.
+neither can drift from the other or from the accent tokens. A swatch button carries
+one paint, the gradient its circle wears: the accent's dark ramp in both themes,
+because a swatch shows you an accent you are not currently looking at.
 
-Focus stays the kit ring. On the selected swatch the selection band sits outside
-it rather than replacing it, and the ring's own gap width goes between the two, so
-each band is read against that neutral and neither against the other. Two coloured
-bands laid straight against each other are one smear: the page on Ocean beside a
-selected Phoenix measured 1.05:1 in light and 1.06:1 in dark, under the 3:1 the
-ring-contrast floor asks for against every ground a focus indicator reaches,
-halo pixels included. Separated, the lowest pair over all four accents and both
-themes is 5.83:1 read out of the sheet, and 4.04:1 measured in Chromium at 1x and
-3.73:1 at 2x, where the ring's halo tints both sides of the separator. The edge still ends 6px out, inside the 10px gap to the next swatch,
-and the selection band keeps the 2px width it has at rest. Both offsets are
-derived from `--ring-gap-width` and `--ring-width`, so the separator moves with
-the band it separates.
+Which swatch is selected is a tick drawn inside the circle — the mark `.ui-check`
+draws for a checked box, at the same 2px stroke — and focus stays the kit ring. One
+element carries one accent signal, and on a focusable control that signal is the
+ring, so the tick is painted in `--signal-contrast`, the kit's ink for a saturated
+colour once it becomes a fill, and the ring is the only accent edge a swatch ever
+draws. The selected swatch's own box-shadow is the unselected swatch's.
+
+The tick takes `--signal-contrast` rather than the `--accent-contrast` the checkbox
+takes because the circle wears the dark ramp in both themes, and
+`--accent-contrast` is the ink for an `--accent-strong` fill: white on emerald's
+`#16c98a` reads 2.15:1. One near-black ink clears 6.63:1 on the dullest of the eight
+gradient stops — the default accent's `#b479ff` — and 10.82:1 on the brightest, in
+both themes, so it needs no value per theme or per accent and no swatch button
+carries a selection paint for a caller to keep in step. The focus ring's own band reads 5.83:1 or better
+against the ground it stands on, across all four accents and both themes.
+
+Rejected, on [#472](https://github.com/apliteni/apliteni-ui/pull/472): a selection
+ring in the selected swatch's own accent, drawn outside the focus ring. Laid
+straight against the kit's band the two measured 1.05:1 in light and 1.06:1 in dark
+with the page on Ocean and Phoenix selected — one smear rather than two signals.
+Given the ring's own gap width as a separator they cleared the 3:1 floor, and were
+still two accent edges on one 26px circle. Decided by Artur's standing rule of one
+selection signal per element.
 
 Held by `react/src/AccentPicker.test.tsx`,
-`react/src/AccentPicker.ring.test.tsx`, `react/src/AccentPicker.focus.test.tsx`,
-`stories/accent-ring.test.js`, `stories/accent-focus.test.js` and
+`react/src/AccentPicker.mark.test.tsx`, `react/src/AccentPicker.focus.test.tsx`,
+`stories/accent-mark.test.js`, `stories/accent-focus.test.js` and
 `stories/accent-swatch.test.js`. Part of
 [#429](https://github.com/apliteni/apliteni-ui/issues/429).

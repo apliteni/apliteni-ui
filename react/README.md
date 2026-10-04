@@ -813,9 +813,9 @@ It emits no `data-accent-pick` on its buttons, so a page that calls
 accent and persist it behind your `onChange`. This is the same decision `Dropdown`,
 `Drawer` and `ThemeToggle` make with their own wiring hooks.
 
-The selected swatch's ring is painted in that accent's own colour, not in the accent
-the page is currently on, so the ring names the swatch while `data-accent` is still
-unset. Focus is the kit ring (`--ring`); on the selected swatch the selection ring
-moves just outside it rather than disappearing. Accent names and swatch paints come
-from the kit's `ACCENTS` and `accentSwatchStyle`, which the vanilla factory also
-reads, so the two pickers cannot drift.
+The selected swatch is marked by a tick inside the circle, in the kit's ink for a
+saturated fill. Focus is the kit ring (`--ring`) and it is the only accent edge the
+control ever draws: selection and focus are one signal each, and only focus is an
+accent. Accent names and swatch paints come from the kit's `ACCENTS` and
+`accentSwatchStyle`, which the vanilla factory also reads, so the two pickers cannot
+drift.

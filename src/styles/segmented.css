@@ -54,7 +54,7 @@
 .ui-seg--block { display: flex; align-self: stretch; justify-self: stretch; }
 .ui-seg--block button { flex: 1; }
 
-/* Accent picker — round colour swatches, active gets a ring */
+/* Accent picker — round colour swatches, the selected one ticked */
 .ui-accent-picker { display: inline-flex; gap: 10px; align-items: center; }
 .ui-accent-picker button {
   width: 26px;
@@ -63,40 +63,32 @@
   border: 0;
   padding: 0;
   cursor: pointer;
+  position: relative;
   background: var(--swatch, var(--accent));
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 2px var(--surface);
   transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 .ui-accent-picker button:hover { transform: scale(1.08); }
-/* The selection ring is the swatch's OWN accent, not the page's. The picker is
- * documented to run before the host has applied anything, so var(--accent) here
- * paints every selection in whichever accent the page happens to be on — a green
- * swatch with a purple ring, and the same hue as the focus ring. The button
- * carries the two values; an accent the picker has no paints for keeps the
- * var(--accent) fallback it had. It is resolved per theme because the dark ramp
- * the swatch circle itself wears does not clear 3:1 on the light card (emerald
- * is 2.15:1 on #ffffff). Dark is the unstamped default, as in tokens.css, and
- * the theme is stamped on the property rather than on the ring rules — a ring
- * selector that only matches in one theme is a ring the accessibility floor's
- * sweep cannot land in the other. */
-.ui-accent-picker button { --swatch-ring: var(--swatch-ring-dark, var(--accent)); }
-:root[data-theme="light"] .ui-accent-picker button { --swatch-ring: var(--swatch-ring-light, var(--accent)); }
-.ui-accent-picker button.is-active {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch-ring);
+/* Selected is a tick inside the circle, not a second ring around it: one element
+ * carries one accent signal, and on a focusable control that signal is the kit's
+ * focus ring. The mark is the one .ui-check draws for a checked box, at the same
+ * 2px stroke, in --signal-contrast — the circle wears the accent's dark ramp in
+ * both themes, so its ink is the one for a fill, not the --accent-contrast that
+ * pairs with --accent-strong. Held by stories/accent-mark.test.js.
+ * why: docs/specification.md#react-accent-picker */
+.ui-accent-picker button.is-active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  /* Lifted 2px: turning the box leaves the drawn corner below its middle. */
+  top: calc(50% - 2px);
+  width: 6px;
+  height: 11px;
+  border: solid var(--signal-contrast);
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -50%) rotate(45deg); /* motion: still — the turn is the tick's shape, not travel, and the mark lands with the press that asked for it. Nothing else on the swatch changes with selection, so there is no paint for it to arrive with. */
 }
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
-/* A rule of its own because a box-shadow list replaces the whole list: without it
- * focus erases the only mark saying which accent is on. The ring's own gap width
- * goes between the two bands — laid straight against each other they measured
- * 1.05:1 and read as one smear. The offsets are derived so the separator moves
- * with the widths #578 is changing. Held by stories/accent-focus.test.js.
- * why: docs/specification.md#react-accent-picker */
-.ui-accent-picker button.is-active:focus-visible {
-  outline: 2px solid transparent;
-  box-shadow: var(--ring),
-    0 0 0 calc(2 * var(--ring-gap-width) + var(--ring-width)) var(--ring-gap),
-    0 0 0 calc(2 * var(--ring-gap-width) + var(--ring-width) + 2px) var(--swatch-ring);
-}
 
 .ui-seg--underline { flex-wrap: nowrap; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
 .ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }

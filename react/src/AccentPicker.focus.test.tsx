@@ -1,20 +1,22 @@
-// A selected React swatch that also holds keyboard focus keeps both signals.
+// A focused selected React swatch draws one accent edge: the kit's focus ring.
 //
-// The edge then carries two colours — the page's accent, which the kit's focus
-// ring paints, and the selected swatch's own accent — so every case puts the page
-// on a DIFFERENT accent from the one selected. Two bands in one colour cannot
-// fail an adjacency check. AccentPicker.ring.test.tsx measures the resting
-// shadow, where one band stands in one gap, and cannot reach this state. The
-// arithmetic is shared with the vanilla gate; the coverage is separate. The
+// Selection is said inside the circle, by the tick AccentPicker.mark.test.tsx
+// measures, so the edge a selected swatch draws while it holds focus is the same
+// edge an unselected one draws — and this gate compares the two. Every case puts
+// the page on a DIFFERENT accent from the one selected, because a band in the
+// selected swatch's own accent is what has to be absent. AccentPicker.mark
+// .test.tsx reads a declaration out of the sheet and cannot see what the cascade
+// leaves on the edge once `.is-active` and `:focus-visible` have both matched.
+// The arithmetic is shared with the vanilla gate; the coverage is separate. The
 // measurement's limits, including the halo it cannot composite, are listed in
 // stories/lib/accent-focus.js. See issues #429 and #472.
 import { cleanup, render } from '@testing-library/react';
 import { ACCENTS, accentSwatchStyle } from '@apliteni/apliteni-ui';
 import { AccentPicker, type Accent } from './AccentPicker';
 // @ts-expect-error -- shared contrast arithmetic; coverage stays in this workspace.
-import { accentColour, accentRingCss } from '../../stories/lib/accent-ring.js';
+import { accentColour, accentPickerCss, measureSelectionMark, paints } from '../../stories/lib/accent-mark.js';
 // @ts-expect-error -- shared contrast arithmetic; coverage stays in this workspace.
-import { BAND_FLOOR, measureFocusedBands, ringGap } from '../../stories/lib/accent-focus.js';
+import { BAND_FLOOR, measureFocusedEdge, ringGap } from '../../stories/lib/accent-focus.js';
 
 /** A page accent that is NOT the one being selected. */
 const otherThan = (accent: Accent) => ACCENTS[(ACCENTS.indexOf(accent) + 1) % ACCENTS.length];
@@ -22,40 +24,63 @@ const otherThan = (accent: Accent) => ACCENTS[(ACCENTS.indexOf(accent) + 1) % AC
 afterEach(() => { cleanup(); });
 
 for (const theme of ['light', 'dark']) {
-  it(`separates focus from selection on the focused selected swatch in ${theme}`, () => {
+  it(`draws one accent edge on the focused selected swatch in ${theme}`, () => {
     expect(ACCENTS).toHaveLength(4);
     let measured = 0;
     for (const accent of ACCENTS) {
       const page = otherThan(accent);
+      const css = accentPickerCss(theme, page, accentSwatchStyle(accent));
       const style = document.createElement('style');
-      style.textContent = accentRingCss(theme, page, accentSwatchStyle(accent));
+      style.textContent = css;
       document.head.appendChild(style);
       const { container } = render(<AccentPicker value={accent} onChange={() => {}} />);
-      const selected = container.querySelector<HTMLElement>('button.is-active');
-      expect(selected).not.toBeNull();
-      // desugar() in accentRingCss rewrites :focus-visible to this attribute,
+      const buttons = [...container.querySelectorAll<HTMLElement>('button')];
+      const selected = buttons.find(button => button.classList.contains('is-active'));
+      const unselected = buttons.find(button => !button.classList.contains('is-active'));
+      expect(selected && unselected).toBeTruthy();
+      // desugar() in accentPickerCss rewrites :focus-visible to this attribute,
       // because JSDOM matches no focus pseudo-class of its own.
-      selected!.setAttribute('data-ui-state', 'focus-visible');
+      for (const button of [selected!, unselected!]) button.setAttribute('data-ui-state', 'focus-visible');
 
       const want = {
         ring: accentColour(theme, page),
         selection: accentColour(theme, accent),
+        accents: ACCENTS.map(a => accentColour(theme, a)),
         ground: ringGap(theme, page),
       };
-      const { bands, ratios, halos } = measureFocusedBands(selected, window, want);
+      const { bands, ratios, halos } = measureFocusedEdge(selected, window, want);
       expect(halos).toBe(1);
       expect(Math.min(...ratios)).toBeGreaterThanOrEqual(BAND_FLOOR);
+      // Selecting a swatch adds nothing to the edge it draws when focused.
+      expect(window.getComputedStyle(selected!).boxShadow)
+        .toBe(window.getComputedStyle(unselected!).boxShadow);
+      // And focus cannot erase the tick: exactly one rule in the picker's sheet
+      // draws a pseudo-element, so there is no second rule able to cancel it.
+      measureSelectionMark(css, want.accents);
 
-      // The failing mutation: the composition this PR replaced, where the
-      // selection band was laid straight against the kit's band.
-      const ringWidth = bands[1].spread;
-      selected!.style.boxShadow = `0 0 0 ${bands[0].spread}px ${bands[0].raw}, `
-        + `0 0 0 ${ringWidth}px ${bands[1].raw}, 0 0 0 ${ringWidth + 3}px ${bands.at(-1).raw}`;
-      expect(() => measureFocusedBands(selected, window, want)).toThrow(`under the ${BAND_FLOOR}:1 ring floor`);
-      // And a composition that keeps only the focus ring: legible, and it has
-      // erased the only mark saying which accent is on.
-      selected!.style.boxShadow = `0 0 0 ${bands[0].spread}px ${bands[0].raw}, 0 0 0 ${ringWidth}px ${bands[1].raw}`;
-      expect(() => measureFocusedBands(selected, window, want)).toThrow('focus erased the selection band');
+      // The two compositions #472 shipped, in the order it shipped them: the
+      // selection band laid straight against the kit's band, then the same band
+      // given the ring's own gap width as a separator.
+      const [gap, ring] = bands;
+      const band = (spread: number, colour: string) => `0 0 0 ${spread}px ${colour}`;
+      for (const shadow of [
+        [band(gap.spread, gap.raw), band(ring.spread, ring.raw), band(ring.spread + 2, paints(want.selection))],
+        [band(gap.spread, gap.raw), band(ring.spread, ring.raw),
+          band(ring.spread + gap.spread, gap.raw), band(ring.spread + gap.spread + 2, paints(want.selection))],
+      ]) {
+        selected!.style.boxShadow = shadow.join(', ');
+        expect(() => measureFocusedEdge(selected, window, want)).toThrow('own accent');
+      }
+      // A second band that claims no accent but is still close enough to the
+      // ring's colour to read as one thick edge.
+      const nearly = `rgb(${ring.colour.slice(0, 3).map((c: number) => Math.min(255, Math.round(c) + 4)).join(', ')})`;
+      selected!.style.boxShadow = [
+        band(gap.spread, gap.raw), band(ring.spread, ring.raw), band(ring.spread + 2, nearly),
+      ].join(', ');
+      expect(() => measureFocusedEdge(selected, window, want)).toThrow(`under the ${BAND_FLOOR}:1 ring floor`);
+      // And an edge with no ring on it at all.
+      selected!.style.boxShadow = band(gap.spread, gap.raw);
+      expect(() => measureFocusedEdge(selected, window, want)).toThrow("focus ring's band is missing");
 
       cleanup();
       style.remove();
