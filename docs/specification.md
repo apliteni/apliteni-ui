@@ -618,13 +618,37 @@ and its disabled edge `--border`, a rung apart already. The same two tokens pain
 button that is off drops a rung with the field. A ghost button draws no box in either state and
 is unaffected; a switch track has no label and fades instead.
 
-`stories/field-ground.test.js` asserts the gap rather than the sizes: for every disabled text
-field in the galleries, measured against every enabled one on the same card, the off edge is
-the fainter and the two colours differ. Neither reading reaches the 3:1 non-text floor, which
-1.4.11 exempts a disabled control from and which dark's hairline has never met on a near-black
-page.
+**A disabled select carries the kit's own paint and no fade, so the browser's grey-out is
+answered rather than inherited.** A token is only half of what a reader sees here: the kit
+finishes painting the control and the engine then paints over the result. Chromium's
+user-agent stylesheet declares
+`select:disabled { opacity: 0.7 }`, and an opacity is not a colour the cascade hands a property:
+the control is painted whole and then mixed into the card behind it, so the edge and the words
+come down together. Measured in Chromium, that cost the dark edge 1.16:1 → **1.11:1**, under the
+1.12:1 above, and the dark words 6.24:1 → **3.78:1**; in light the edge read 1.16:1 and the words
+**3.15:1**, both below the 4.5:1 a disabled label still owes a reader. Only an author declaration
+outranks a property the kit does not otherwise set, so the kit's disabled field rule resets
+`opacity` to 1 and a select reads exactly what the text field beside it reads: 1.16:1 edge and
+6.24:1 words in dark, 1.24:1 and 6.11:1 in light. No token moved for this, so light's
+declarations are unchanged and light gained the legible words with dark.
 
-Decided by Artur in [#564][i564], Amberstone round r30.
+`stories/field-ground.test.js` asserts the gap rather than the sizes: for every disabled boxed
+field in the galleries, measured against every enabled one on the same card, the off edge is the
+fainter, the two colours differ, and neither state is drawn at a reduced opacity. The boxed
+fields are the three that take `--field-edge` — text field, textarea and select — and the
+galleries draw the first and the last of them off, the textarea live only; the gate counts each
+and fails if one leaves. Neither edge reading reaches the 3:1 non-text floor, which 1.4.11
+exempts a disabled control from and which dark's hairline has never met on a near-black page.
+
+The gate has two halves, and this is why: JSDOM ships no user-agent stylesheet, so the source
+half writes Chromium's one declaration out and installs it under the kit's sheet, which is an
+emulation of a declaration and not of an engine. The browser half, off unless `FIELD_PAINT=1`,
+puts the same galleries in front of Chromium and takes the readings from it. Both halves strip
+the `opacity` reset back out and require the faded numbers to come back, so a reset that stopped
+working fails the gate rather than passing quietly.
+
+Decided by Artur in [#564][i564], Amberstone round r30; the select was found by the independent
+review of [#567](https://github.com/apliteni/apliteni-ui/pull/567).
 
 [i564]: https://github.com/apliteni/apliteni-ui/issues/564
 

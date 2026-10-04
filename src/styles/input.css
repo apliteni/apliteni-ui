@@ -55,6 +55,9 @@
    UA's grey-out, so a disabled one had looked exactly like a live one.
    `background-color`, not `background` — the shorthand also resets the three
    longhands the chevron is drawn with (#511). Held by stories/select-chevron.test.js.
+   `opacity` is the other half of that grey-out, and no colour here outranks it, so
+   the fade is reset below — it took the edge and the words down together. #564,
+   argued at docs/specification.md#colour-and-contrast.
    why: docs/specification.md#icons-and-glyphs */
 .ui-input:disabled,
 .ui-select:disabled,
@@ -62,6 +65,7 @@
   background-color: var(--disabled-surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border-color: var(--disabled-border);
   /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
+  opacity: 1; /* fade-reset: the UA's select:disabled grey-out. #564 */
   cursor: not-allowed;
 }
 

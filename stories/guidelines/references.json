@@ -14,7 +14,7 @@
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:150",
+        "ref": "src/styles/input.css:154",
         "pattern": ".ui-check input::before"
       },
       {
@@ -60,6 +60,10 @@
       {
         "ref": "src/tokens/tokens.css:201",
         "pattern": "--disabled-border: var(--surface-3);"
+      },
+      {
+        "ref": "src/styles/input.css:68",
+        "pattern": "opacity: 1;"
       }
     ],
     "touch-field-size": [

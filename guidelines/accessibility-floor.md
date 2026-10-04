@@ -62,7 +62,7 @@
 
 **Don't:** Unavailable keeps the live paint, so only the cursor reports the state.
 
-**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade, and a control that draws no box when it is on — a ghost button — draws none when it is off, so its ink carries the state alone.
+**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade, and a control that draws no box when it is on — a ghost button — draws none when it is off, so its ink carries the state alone. Where the browser fades a control for you, as Chromium does a disabled select, reset that fade: it takes the edge and the words down together, and the words are what a reader still has to read.
 
 ## Touch field text
 
