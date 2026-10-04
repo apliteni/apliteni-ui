@@ -1535,7 +1535,7 @@ decisions and their reasons.
 
 `appShell()` is the kit's one answer for composing a page, built from the kit's own nav
 primitives. It is the only one: `accountShell()`, the compatibility preset for the `/account`
-pages, was retired in 0.76.0 along with its Showcases screen, because account and settings belong
+pages, was retired in 0.81.0 along with its Showcases screen, because account and settings belong
 in a modal over the product rather than on a page of their own — see
 [Guidelines / Account and settings](../guidelines/account-and-settings.md). A product still on the
 preset calls `appShell()` with a `topbar` bag, its own `nav` and `crumbs` built from the `cap` and
