@@ -13,6 +13,20 @@ import { accentLines, accentOffences } from '../../../stories/lib/accent-paint.j
 // Resolved from the workspace root, the way DocumentReview's gate resolves its own: this
 // suite runs as `npm test -w react`, which puts the cwd there.
 const SHEET = readFileSync(path.join(process.cwd(), 'src/showcases/InvoiceFlow.css'), 'utf8');
+/* The kit's own sheet and tokens, read the same way: the weight check below compares the
+ * showcase's value rule with the kit's label rule, and a number beats a string match. */
+const ROOT = path.join(process.cwd(), '..');
+const KIT_INPUT = readFileSync(path.join(ROOT, 'src/styles/input.css'), 'utf8');
+const WEIGHTS = Object.fromEntries([...readFileSync(path.join(ROOT, 'src/tokens/tokens.css'), 'utf8')
+  .matchAll(/--weight-([a-z]+):\s*(\d+)/g)].map(([, name, value]) => [`--weight-${name}`, Number(value)]));
+/** The weight token a rule assigns, as the number the kit defines for it. */
+const weightOf = (css: string, rule: RegExp, what: string) => {
+  const found = rule.exec(css);
+  expect(found, `${what} sets its font-weight from a --weight token`).not.toBeNull();
+  const token = found![1];
+  expect(WEIGHTS[token], `the kit defines ${token}`).toEqual(expect.any(Number));
+  return WEIGHTS[token];
+};
 
 // Interaction tests cover in-memory state, not PDF rendering or real extraction.
 
@@ -131,6 +145,42 @@ describe('invoice flow prototype', () => {
     expect(screen.getByRole('spinbutton', { name: 'Total (EUR)' })).toHaveAttribute('aria-invalid', 'true');
     expect(summaryAlert()).toHaveTextContent('Check the highlighted fields');
   });
+  it('refuses a sub-cent total instead of saving a record that reads 0.00', async () => {
+    /* 0.001 is finite and above zero, which was the whole of the old test, and the list
+     * writes the amount to the cent — so the record became Ready at EUR 0.00. The field
+     * already declared min 0.01 and step 0.01; the save path now holds the same limits. */
+    const user = userEvent.setup();
+    render(<InvoiceFlow initialState="table" />);
+    await user.click(screen.getByRole('button', { name: 'cedar-1042.pdf' }));
+    const total = screen.getByRole('spinbutton', { name: 'Total (EUR)' });
+    await user.clear(total); await user.type(total, '0.001');
+    await user.click(screen.getByRole('button', { name: 'Save invoice' }));
+    expect(screen.queryByText('Saved for this session.')).not.toBeInTheDocument();
+    expect(total).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByText('Enter an amount of 0.01 or more, written to the cent.')).toBeInTheDocument();
+    expect(summaryAlert()).toHaveTextContent('Check the highlighted fields');
+    // The floor the save path enforces is the one the field advertises, from one constant.
+    expect(total).toHaveAttribute('min', '0.01');
+    expect(total).toHaveAttribute('step', '0.01');
+    await backToList(user);
+    // Nothing was written: the row keeps the parsed amount and the status it came with.
+    expect(rowStatus('cedar-1042.pdf')).toBe('Needs review');
+    expect(screen.queryByText('\u20ac0.00')).not.toBeInTheDocument();
+  });
+  it('saves a cent amount binary floating point cannot hold exactly', async () => {
+    // 0.07 * 100 is 7.000000000000001, so a strict equality on cents would reject it.
+    const user = userEvent.setup();
+    render(<InvoiceFlow initialState="table" />);
+    await user.click(screen.getByRole('button', { name: 'cedar-1042.pdf' }));
+    const total = screen.getByRole('spinbutton', { name: 'Total (EUR)' });
+    await user.clear(total); await user.type(total, '0.07');
+    await user.click(screen.getByRole('button', { name: 'Save invoice' }));
+    expect(screen.getByText('Saved for this session.')).toBeInTheDocument();
+    expect(total).not.toHaveAttribute('aria-invalid', 'true');
+    await backToList(user);
+    expect(rowStatus('cedar-1042.pdf')).toBe('Ready');
+    expect(screen.getByText('\u20ac0.07')).toBeInTheDocument();
+  });
   it('withdraws the saved line when the next save is rejected', async () => {
     /* A save line is the one thing a reviewer trusts; it may not report a save that failed.
      * With the status badge gone, the standing edits show in the action the row offers:
@@ -147,6 +197,31 @@ describe('invoice flow prototype', () => {
     expect(screen.queryByText('Saved for this session.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Discard edits' })).toBeEnabled();
     expect(summaryAlert()).toHaveTextContent('Check the highlighted fields');
+  });
+  it('clears the saved line on the next edit, not on the next save', async () => {
+    /* The line says the values on screen are the saved ones. An edit makes that false at
+     * once, and waiting for the next save left "Saved for this session." standing above a
+     * changed form beside Discard edits. Each of the three transient lines goes the same way. */
+    const user = userEvent.setup();
+    render(<InvoiceFlow initialState="table" />);
+    await user.click(screen.getByRole('button', { name: 'cedar-1042.pdf' }));
+    const supplier = screen.getByRole('textbox', { name: 'Supplier' });
+    await user.type(supplier, ' Ltd');
+    await user.click(screen.getByRole('button', { name: 'Save invoice' }));
+    expect(screen.getByText('Saved for this session.')).toBeInTheDocument();
+    await user.type(supplier, ' II');
+    expect(screen.queryByText('Saved for this session.')).not.toBeInTheDocument();
+    // The record is untouched by the edit, so Undo still has the save to undo.
+    expect(screen.getByRole('button', { name: 'Discard edits' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Discard edits' }));
+    expect(screen.getByText('Edits discarded.')).toBeInTheDocument();
+    await user.type(supplier, '!');
+    expect(screen.queryByText('Edits discarded.')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Discard edits' }));
+    await user.click(screen.getByRole('button', { name: 'Undo last save' }));
+    expect(screen.getByText('Last save undone.')).toBeInTheDocument();
+    await user.type(supplier, '?');
+    expect(screen.queryByText('Last save undone.')).not.toBeInTheDocument();
   });
   it('leaves the review screen without a per-field provenance tier or a status badge', () => {
     /* Artur refused all five in round r32: the accent bar over every field, the "As parsed"
@@ -186,6 +261,18 @@ describe('invoice flow prototype', () => {
     expect(SHEET).toMatch(/\.invoice-flow__data\s*>\s*\.ui-card__title\s*\{[^}]*color:\s*var\(--accent\)/);
     expect(SHEET).not.toMatch(/\.invoice-flow__preview[^{]*\{[^}]*var\(--accent/);
     expect(SHEET).toMatch(/grid-template-columns:\s*minmax\(0, 3fr\) minmax\(0, 2fr\)/);
+  });
+  it('sets each saved value heavier than its label, and leaves the source at neither', () => {
+    /* The fourth of the four marks follow-the-consequence asks for; the pane order, the
+     * wider column and the accent are held above. A bare .ui-input inherits normal while the
+     * kit's field label is medium, so without a rule here the data read lighter than the
+     * words naming it. Compared as numbers from the kit's tokens: a string match would pass
+     * a sheet that set the value one step lighter. */
+    const label = weightOf(KIT_INPUT, /\.ui-field__label\s*\{[^}]*font-weight:\s*var\((--weight-[a-z]+)\)/, 'the kit field label');
+    const value = weightOf(SHEET, /\.invoice-flow__fields\s+\.ui-input\s*\{[^}]*font-weight:\s*var\((--weight-[a-z]+)\)/, 'the saved value');
+    expect(value, `a saved value (${value}) outweighs its label (${label})`).toBeGreaterThan(label);
+    // The source document is the quieter pane: it takes none of the four marks, weight included.
+    expect(SHEET).not.toMatch(/\.invoice-flow__(?:preview|paper)[^{]*\{[^}]*font-weight:\s*var\(--weight-(?:semibold|bold)\)/);
   });
   it('shows a document that can disagree with the parsed data', () => {
     // The whole point of the two columns: the preview is the document, not the form again.

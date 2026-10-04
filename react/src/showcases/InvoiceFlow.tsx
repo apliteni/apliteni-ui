@@ -71,6 +71,16 @@ const sampleFields: Fields = { ...SAMPLES[0].parsed };
 const samples = (): Invoice[] => SAMPLES.map(({ parsed, ...rest }) => ({ ...rest, fields: { ...parsed } }));
 const statusIcon = (status: Status) => status === 'Ready' ? 'circleCheck' : status === 'Needs review' ? 'circleAlert' : 'clock';
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+/* The field declares min 0.01 and step 0.01, and the save path has to mean it: 0.001 is
+   finite and above zero, which is all a "greater than zero" test asks, so it saved and
+   then arrived in the list as Ready at EUR 0.00 — the list writes the amount to the cent.
+   Cent precision is read with a tolerance and not an equality because 0.07 * 100 is
+   7.000000000000001 in binary floating point. */
+const MIN_TOTAL = 0.01;
+const validTotal = (value: string) => {
+  const amount = Number(value);
+  return amount >= MIN_TOTAL && Math.abs(amount * 100 - Math.round(amount * 100)) < 1e-9;
+};
 const money = (value: string) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(Number(value));
 
 // Showcase state stays in memory; uploads and extraction never leave the browser.
@@ -132,7 +142,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
   const open = (name: string) => { setNavigated(true); setSelected(name); setInvalid(false); setMessage(''); };
   const save = () => {
     if (!invoice) return;
-    if (!draft.supplier.trim() || !draft.reference.trim() || !validDate(draft.date) || !Number.isFinite(Number(draft.total)) || Number(draft.total) <= 0) {
+    if (!draft.supplier.trim() || !draft.reference.trim() || !validDate(draft.date) || !validTotal(draft.total)) {
       // A rejected save saved nothing, so the success line goes with it.
       setInvalid(true); setMessage(''); return;
     }
@@ -154,7 +164,13 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
     setInvalid(false); setMessage(dirty ? 'Edits discarded.' : 'Last save undone.');
   };
   const chip = (glyph: string, label: string) => <span className="invoice-flow__status"><Icon name={glyph} />{label}</span>;
-  const edit = (key: keyof Fields) => (event: { target: { value: string } }) => setDrafts(values => ({ ...values, [invoice!.name]: { ...draft, [key]: event.target.value } }));
+  /* The line speaks for the values on screen, so the edit that changes them is what withdraws
+     it. Leaving it to the next save left "Saved for this session." standing over a changed
+     form. The field errors are not touched: they belong to the save that was rejected. */
+  const edit = (key: keyof Fields) => (event: { target: { value: string } }) => {
+    setMessage('');
+    setDrafts(values => ({ ...values, [invoice!.name]: { ...draft, [key]: event.target.value } }));
+  };
 
   return <div className={`invoice-flow${navigated ? ' invoice-flow--navigated' : ''}`} ref={root} onClick={event => {
     const link = (event.target as HTMLElement).closest('a[href="#invoices"]');
@@ -184,7 +200,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
                 <TextField label="Supplier" required value={draft.supplier} error={invalid && !draft.supplier.trim() ? 'Enter the supplier.' : undefined} onChange={edit('supplier')} />
                 <TextField label="Invoice number" required value={draft.reference} error={invalid && !draft.reference.trim() ? 'Enter the invoice number.' : undefined} onChange={edit('reference')} />
                 <TextField label="Invoice date" required value={draft.date} error={invalid && !validDate(draft.date) ? 'Enter a valid date as YYYY-MM-DD.' : undefined} onChange={edit('date')} />
-                <TextField label="Total (EUR)" required type="number" min="0.01" step="0.01" value={draft.total} error={invalid && (!Number.isFinite(Number(draft.total)) || Number(draft.total) <= 0) ? 'Enter an amount greater than zero.' : undefined} onChange={edit('total')} />
+                <TextField label="Total (EUR)" required type="number" min={String(MIN_TOTAL)} step="0.01" value={draft.total} error={invalid && !validTotal(draft.total) ? 'Enter an amount of 0.01 or more, written to the cent.' : undefined} onChange={edit('total')} />
               </div>
               {invalid && <p role="alert">Check the highlighted fields before saving.</p>}
               <div className="invoice-flow__actions"><Button variant="primary" type="submit">Save invoice</Button><Button variant="secondary" disabled={!dirty && !invoice.previous} onClick={undo}>{dirty ? 'Discard edits' : 'Undo last save'}</Button></div>

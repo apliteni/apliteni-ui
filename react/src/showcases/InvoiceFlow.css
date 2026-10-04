@@ -43,6 +43,12 @@
 /* No top margin: the sentence that stood between the heading and the fields is gone, so
    the h2's own bottom margin sets that gap, as it does everywhere else in this sheet. */
 .invoice-flow__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); margin: 0 0 var(--space-6); }
+/* The values a save writes are the heavier of the two lines, and only weight can say so:
+   the kit's field label and its input are both --text-base, so they sit at one size. The
+   label keeps the label rank's medium and the value takes the weight the kit gives a figure
+   in .ui-stat__value. Nothing is faded to get the step — the label is where it always was.
+   why: guidelines/density-and-accents.md#follow-the-consequence */
+.invoice-flow__fields .ui-input { font-weight: var(--weight-semibold); }
 /* No edge, no fill and no inset of its own: the pane around it is the card, and a bordered
    box inside one is a card inside a card. Same answer as .doc-flow__sheet.
    why: guidelines/the-page.md#limit-card-stacks */
