@@ -47,6 +47,22 @@ export const SPEC_CSS = `
       grid-auto-rows: minmax(calc(26px + var(--space-2)), auto); }
     .gd-stack > .ui-check { grid-column: 1 / -1; }
     .gd-unit { display: contents; }
+    /* The phone tap floor, by the kit's own mechanism: below the phone step a
+       coarse pointer gets a transparent layer outside each small control,
+       clamped to the clear space its container declares. Packed for reading at
+       34px rows, this form gave a finger 24px on a checkbox and 26 on a switch,
+       and a tap 20px below the Ledger switch ran nothing. The rows open to
+       --tap-min and the stack declares that much clearance, so the clamp caps
+       every layer at --tap-min and each one fills its own row. The controls
+       keep their drawn size; only the space between them grows.
+       why: #492 review, guidelines/accessibility-floor.md (tap-zone, tap-spacing) */
+    @media (max-width: 560px) and (pointer: coarse) {
+      .gd-page .gd-stack { grid-auto-rows: minmax(var(--tap-min), auto);
+        --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-min); }
+      /* Save is 33px tall with --space-5 above it and the card's padding below,
+         so its layer grows 5.5px each way and the row opens nothing. */
+      .gd-page__act { --tap-clear-y: var(--tap-gap); }
+    }
     /* The ruled rows a page writes by hand, which is the fault the don't shows. */
     .gd-ruled__row { display: flex; justify-content: space-between; gap: var(--space-4);
       padding-block: var(--space-3); border-bottom: 1px solid var(--border); }
@@ -88,7 +104,7 @@ const pageDo = () => `<div class="gd-frame gd-page">${card({ body: `
     ${group('Roles', roles())}
     ${group('Access per unit', unitBoard())}
   </div>
-  <div>${button({ label: 'Save access', variant: 'primary' })}</div>` })}</div>`;
+  <div class="gd-page__act">${button({ label: 'Save access', variant: 'primary' })}</div>` })}</div>`;
 
 const pageDont = () => frame(
   drawerSection({ title: 'Roles', body: roles() }) + drawerSection({ title: 'Access per unit', rows: unitRows() }),
