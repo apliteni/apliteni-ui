@@ -7,12 +7,6 @@ const originalScroll = Element.prototype.scrollIntoView;
 beforeEach(() => { Element.prototype.scrollIntoView = scroll; scroll.mockClear(); });
 afterEach(() => { cleanup(); vi.useRealTimers(); Element.prototype.scrollIntoView = originalScroll; });
 const mount = (empty = false) => render(meta.render!({ change: 'category', empty }, {} as never));
-const bandFigures = (container: HTMLElement) => [...container.querySelectorAll('.ui-stats--band .ui-stat')]
-  .map(stat => [
-    stat.querySelector('.ui-stat__label')?.textContent,
-    stat.querySelector('.ui-stat__value')?.textContent,
-    stat.querySelector('.ui-stat__change')?.textContent,
-  ]);
 
 // JSDOM checks focus and the scroll request, not occlusion. The phone keyboard
 // capture measures Undo and the fixed navigation in the real browser.
@@ -48,31 +42,33 @@ it('carries the change without a sentence built on a live row count', () => {
   expect(container.textContent).not.toMatch(/would move to/);
 });
 
-// Before Apply the figure is what is booked now and the change is what Apply moves;
-// after Apply the figure has moved and the same change reads as history.
-it('states each booked month and the change applying makes, without a tone', () => {
+// Applying has one effect — September is closed, so its rows are rerouted — and the
+// callout under the table states it. A figure block above the table would have to
+// restate the table's own totals under a caption, so there is none, in either state.
+it('states the one effect below the table and sets no figures above it', () => {
   vi.useFakeTimers();
   const { container } = mount();
-  expect(container.querySelector('.ui-stats__basis'))
-    .toHaveTextContent('These costs by booked month, and what applying would change.');
-  expect(bandFigures(container)).toEqual([
-    ['September 2026', '390.00 €', '−390.00 €'],
-    ['October 2026', '120.00 €', '+390.00 €'],
-  ]);
-  // A reroute moves the same money, so neither month is scored good or bad news.
-  expect(container.querySelector('.ui-stat--good, .ui-stat--bad')).toBeNull();
-  for (const delta of container.querySelectorAll('.ui-stats--band .ui-stat__delta')) {
-    const basis = document.getElementById(delta.getAttribute('aria-describedby')!);
-    expect(basis).toHaveClass('ui-stats__basis');
-  }
+  expect(container.querySelector('.ui-stats')).toBeNull();
+  const says = (text: string) => {
+    const callout = [...container.querySelectorAll('.ui-callout')]
+      .find(node => node.textContent?.includes(text));
+    expect(callout, text).toBeDefined();
+    // The table is what the reader reads; the effect follows it.
+    expect(container.querySelector('table')!.compareDocumentPosition(callout!)
+      & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  };
+  says('September is closed. Its 390.00 € will be booked in October.');
+  // The rerouted total is stated once. A second place for it is the block this removed.
+  expect(container.textContent!.match(/390\.00 €/g)).toHaveLength(1);
+
   fireEvent.click(screen.getByRole('button', { name: 'Apply changes' }));
   act(() => { vi.advanceTimersByTime(700); });
-  expect(container.querySelector('.ui-stats__basis'))
-    .toHaveTextContent('These costs by booked month, and what applying changed.');
-  expect(bandFigures(container)).toEqual([
-    ['September 2026', '0.00 €', '−390.00 €'],
-    ['October 2026', '510.00 €', '+390.00 €'],
-  ]);
+  expect(container.querySelector('.ui-stats')).toBeNull();
+  says('September is closed. Its 390.00 € was booked in October.');
+  // What applying did is in the table: every row is now booked in the open month.
+  expect([...container.querySelectorAll('tbody tr')]
+    .map(row => row.querySelectorAll('td')[4].textContent)).toEqual(Array(4).fill('2026-10'));
+  expect(screen.getByRole('heading', { name: 'Changes applied' })).toBeInTheDocument();
 });
 
 // Each block names itself above its own box, as the period showcase does.

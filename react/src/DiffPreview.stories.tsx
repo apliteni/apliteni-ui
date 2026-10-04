@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { AppShell } from './AppShell';
 import { Card } from './primitives/Card';
-import { StatBand, type StatFigure } from './primitives/StatBand';
 import { Callout } from './primitives/Callout';
 import { DataTable, type Column } from './DataTable';
 import { DeltaValue, NumericValue } from './TableValues';
@@ -71,13 +70,8 @@ function Preview({ change, empty }: Args) {
     }, 700);
   };
 
-  // The figure is what is booked now; the change is what Apply moves either way.
-  // A reroute between two months is the same money, so neither side scores a tone.
+  // The one effect Apply has is the reroute, and the callout below the table says it.
   const shift = money(rerouted);
-  const months: StatFigure[] = [
-    { label: 'September 2026', value: money(applied ? 0 : total(CLOSED)), delta: { value: `−${shift}` } },
-    { label: 'October 2026', value: money(applied ? total(OPEN) + rerouted : total(OPEN)), delta: { value: `+${shift}` } },
-  ];
 
   // The header names the comparison on screen; the basis repeats it for each cell.
   const columns: Column<Row>[] = [
@@ -112,10 +106,6 @@ function Preview({ change, empty }: Args) {
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}
     lede={change === 'category' ? 'Move these costs to Software.' : 'Assign these costs to Platform.'}>
     <div className={`ui-stack${showExample ? ' m-fade-in' : ''}`}>
-      {!noChanges && <StatBand variant="band" label="Booked months" stats={months}
-        basis={applied
-          ? 'These costs by booked month, and what applying changed.'
-          : 'These costs by booked month, and what applying would change.'} />}
       {/* The section is named by its own title; the table region keeps a stable name of its own. */}
       <section ref={block} aria-labelledby={blockTitle} style={layout.block}>
         <h2 id={blockTitle} className="ui-card__title" style={layout.title}>{heading}</h2>
