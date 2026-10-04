@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.78.1', date: '2026-10-04',
+    changes: [
+      ['changed', 'The packaged README states how long each test suite takes on an idle machine, and says that every run ends with its ten slowest tests and files. This is for whoever contributes to the kit; nothing the package ships behaves differently. See #560.'],
+    ],
+  },
+  {
     v: '0.78.0', date: '2026-10-04',
     changes: [
       ['added', 'React FileDrop is the compact drop: at rest one row with the Upload button and the accepted types beside it, and a drop target painted only while a file is over the region it covers. Your application owns the upload and supplies the file it is holding; a file given with no status is uploading, so the kit never reports a success you have not claimed. A file in hand reads as a stack rather than a line: the name on top with the actions at its end, the size — or the failure message — under it, and the progress track the full width below. No tier takes a second line; the name truncates its stem and keeps its extension, and nothing is hidden or moved at any width. Where you give a progress value the track is the status, so the row spends no word on it and the word travels as the track’s accessible name. Closes #507.'],
