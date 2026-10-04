@@ -43,9 +43,11 @@ const btn = (label, { size = 'sm', variant = 'secondary', glyph, ring, iconOnly 
   + `${glyph ? `<span aria-hidden="true" style="display:inline-flex">${icon(glyph)}</span>` : ''}`
   + `${iconOnly ? '' : `<span class="ui-btn__label-slot"><span class="ui-btn__label">${label}</span></span>`}</button>`;
 
-/** The two actions, drawn as the component draws them: `x` is on the kit's
- *  icon-only list and `refresh` is not, so remove drops its word and retry keeps one. */
-const removeBtn = () => btn('Remove file', { variant: 'ghost', glyph: 'x', iconOnly: true });
+/** The two actions, drawn as the component draws them: both carry their word.
+ *  `x` is on the kit's icon-only list for close and dismiss, and taking a file
+ *  off a row is neither — the row stays and the file leaves it. Remove stays
+ *  plain beside Retry's glyph, as a dismissing action does. */
+const removeBtn = () => btn('Remove', { variant: 'ghost' });
 const retryBtn = () => btn('Retry', { glyph: 'refresh' });
 
 const NOTE = 'PDF or CSV, up to 10 MB';

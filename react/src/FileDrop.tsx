@@ -29,7 +29,7 @@ export type FileDropProps = {
   accept?: string;
   /** The words on the drop target. */
   dropLabel?: string;
-  /** Names the icon-only remove button; it carries no visible word. */
+  /** The word on the remove button. */
   removeLabel?: string;
   retryLabel?: string;
   /** The file the consumer is holding. Left out, the row is at rest. */
@@ -70,7 +70,7 @@ const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ')
 
 export function FileDrop({
   label = 'Upload', note, accept, dropLabel = 'Drop to upload',
-  removeLabel = 'Remove file', retryLabel = 'Retry',
+  removeLabel = 'Remove', retryLabel = 'Retry',
   file, dragging, disabled, onFile, onRemove, onRetry, children, className,
 }: FileDropProps) {
   const input = useRef<HTMLInputElement>(null);
@@ -117,10 +117,13 @@ export function FileDrop({
             {(onRemove || (status === 'error' && onRetry)) && <span className="ui-drop__actions">
               {status === 'error' && onRetry
                 && <Button size="sm" icon="refresh" onClick={onRetry} disabled={disabled}>{retryLabel}</Button>}
-              {/* `x` is on the kit's icon-only list and `refresh` is not, so
-                  remove drops its word and retry keeps one. */}
-              {onRemove && <Button variant="ghost" size="sm" icon="x" iconOnly
-                aria-label={removeLabel} onClick={onRemove} disabled={disabled} />}
+              {/* Both actions carry their word. `x` is on the kit's icon-only
+                  list for close and dismiss, and taking a file off a row is
+                  neither: the row stays and the file leaves it. Remove stays
+                  plain beside Retry's glyph — guidelines/button-labels.md
+                  keeps a dismissing action off its committing neighbour's tier. */}
+              {onRemove && <Button variant="ghost" size="sm"
+                onClick={onRemove} disabled={disabled}>{removeLabel}</Button>}
             </span>}
           </div>
           {/* The facts tier: the size while it uploads, the message when it is

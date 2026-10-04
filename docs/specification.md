@@ -3925,12 +3925,14 @@ accessible name, `"Uploading statement-2026-08.pdf"`. An upload with no
 measurable progress keeps the word, because nothing else there says what it is
 doing. `state` replaces the word on an uploading or uploaded file, and replaces it
 in the track's name too. `Remove` and `Retry` appear only when `onRemove` and
-`onRetry` are supplied, so no row offers an action nobody handles. Remove is the
-icon-only `x` named by `removeLabel`, which defaults to "Remove file"; `x` is on
-the kit's icon-only list and `refresh` is not, so Retry keeps a visible word. A
-failed file keeps its name and puts its message under it with `role="alert"`, and
-drops its size, because the tier has room for the message or the size and only
-one of them says what to do next. The kit does not announce the change from
+`onRetry` are supplied, so no row offers an action nobody handles. Both carry a
+visible word: Remove is the kit's small text button, worded by `removeLabel`,
+which defaults to "Remove". `x` is on the kit's icon-only list for close and
+dismiss, and taking a file off a row is neither — the row stays and the file
+leaves it — so nothing in the row is wordless. A failed file keeps its name and
+puts its message under it with `role="alert"`, and drops its size, because the
+tier has room for the message or the size and only one of them says what to do
+next. The kit does not announce the change from
 uploading to uploaded; a consumer that needs that announcement owns the live
 region. `accept` filters the system picker only, and the consumer still validates
 type and size.

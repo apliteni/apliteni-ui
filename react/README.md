@@ -515,11 +515,12 @@ instead, and the word goes to the track's accessible name. The file reads as a
 stack: the name on top with the actions at its end, the size — or the failure
 message — under it, and the track the full width below. No tier takes a second
 line. The name truncates its stem and keeps its extension, with the whole name in
-a `title`, and nothing is hidden or moved at any width. `Remove` is the icon-only
-`x`, named by `removeLabel`; `Retry` keeps its word. Both appear only when you
-handle them. Children render above the row, inside the region the target covers;
-pass `dragging` to drive that target from a parent. `accept` filters the system
-picker only — validate type and size yourself.
+a `title`, and nothing is hidden or moved at any width. `Remove` is the kit's
+small text button, worded by `removeLabel`; `Retry` keeps its word beside a
+glyph. Both appear only when you handle them. Children render above the row,
+inside the region the target covers; pass `dragging` to drive that target from
+a parent. `accept` filters the system picker only — validate type and size
+yourself.
 
 Use `Field` when an existing labelled control needs the kit frame. Spread its
 render-prop attributes onto one labelable control, and apply the existing control

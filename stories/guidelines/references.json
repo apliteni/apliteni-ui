@@ -879,7 +879,7 @@
         "pattern": ".ui-drop__target {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:158",
+        "ref": "react/src/FileDrop.tsx:161",
         "pattern": "className=\"ui-drop__target\""
       }
     ],
@@ -889,7 +889,7 @@
         "pattern": ".ui-drop__file {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:141",
+        "ref": "react/src/FileDrop.tsx:144",
         "pattern": "role=\"progressbar\""
       }
     ],
@@ -905,13 +905,13 @@
     ],
     "button-path": [
       {
-        "ref": "react/src/FileDrop.tsx:148",
+        "ref": "react/src/FileDrop.tsx:151",
         "pattern": "input.current?.click()"
       }
     ],
     "limits-once": [
       {
-        "ref": "react/src/FileDrop.tsx:149",
+        "ref": "react/src/FileDrop.tsx:152",
         "pattern": "className=\"ui-drop__note\""
       }
     ],
