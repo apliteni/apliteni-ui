@@ -9,6 +9,16 @@
       ]
     },
     {
+      "file": "stories/scroll-ring.test.js",
+      "name": "Scroll region focus",
+      "does": "Resolves the kit's sheets with the tokens substituted and :focus-visible desugared, then checks each of the six scroll regions #531 rings in the kit: the box draws no band at rest, it draws --ring-scroll while it has focus, that band is --ring-width of ink offset inward by --ring-gap-width + --ring-width read off the tokens, and no box around it changes what it paints. Two themes by two accents. Emulates forced colors by flattening the (forced-colors: active) blocks and dropping every box-shadow, then checks that each focused region still declares an outline the system can repaint and that exactly one box in its ancestry does. Eight mutations: one per region, the outline-offset that draws the band inward, and a region given back a transparent outline.",
+      "blind": [
+        "JSDOM lays nothing out and paints nothing, so it cannot prove a box scrolls, that the browser makes it a keyboard stop, or that the band survives a scroll under it; Chrome captures at 390px and 1280px in both themes, two of them with the content scrolled, cover those on #531.",
+        "contrast.js substitutes each custom property once for the whole sheet, so the per-surface --ring-gap is unmeasured here.",
+        "Which picture a box should draw is Artur's judgement on #531, recorded in the triage in stories/focus-ring.test.js and shown by the captures; this file only checks that the sheet draws the one it names. React's modal body is the seventh region and is held in react/src/focus-ring.test.tsx."
+      ]
+    },
+    {
       "file": "stories/snippet-focus.test.js",
       "name": "Snippet focus",
       "does": "Discovers buttons, links, code regions and explicit tab stops in Snippet fixtures; checks shared focus shadows and transparent outlines across two themes and accents, that the code region hands its ring to the rounded card it sits in, and that the card still clips. Emulates forced colors by flattening the (forced-colors: active) block and dropping every box-shadow, then checks that one focused code region leaves exactly one box declaring an outline. Seven mutations, each removing one declaration the result depends on.",

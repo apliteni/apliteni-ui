@@ -157,6 +157,13 @@ export function paintsOf(body) {
       else out.shadow = /^none$/i.test(bare) ? null : bare;
     }
     if (property === 'outline' || property === 'outline-color' || property === 'outline-style') {
+      // --ring-scroll is the shared ring's own gap and band, drawn inward on a scroll
+      // region as an OUTLINE rather than a shadow, so that the region's own children
+      // cannot paint over it. It is the ring, not a second indicator beside it — and
+      // being a real outline is the whole of what forced colors needs, so the region
+      // owes no transparent one on top. `outline` below means an outline that is NOT
+      // the ring, which is the thing the walk refuses. #531
+      if (/var\(\s*--ring-scroll\s*[,)]/.test(bare)) { out.ring = true; out.outline = null; continue; }
       out.outline = invisibleOutline(bare) ? null : bare;
     }
   }
@@ -238,14 +245,67 @@ export function scrollingSelectors(sheets) {
   return [...out];
 }
 
+/**
+ * The selector a `:has()` focus rule keys on, when a rule paints one box's ring
+ * while ANOTHER box is the focus. `.ui-snippet:has(pre:focus-visible)` → `pre`.
+ * #474 introduced that shape for a scroller flush with its container, and #531
+ * reuses it for four more, so the reading has to follow it.
+ */
+function delegatedTo(selector) {
+  const match = /:has\(\s*([^()]*?)\s*:focus(?:-visible)?\s*\)/.exec(selector);
+  return match ? match[1].trim() : null;
+}
+
+/**
+ * Every rule that paints the shared ring while `selector` is the keyboard focus:
+ * one whose own subject reaches it, and one on another box keyed on
+ * `:has(<it>:focus-visible)`. The rules come back rather than a boolean, so a
+ * mutation can take ALL of them out — a box answered by two rules is not proved
+ * by deleting one.
+ *
+ * NOT CHECKED: that a `:has()` host is an ancestor of the focused box. The reading
+ * is "a ring is painted while this box holds focus"; WHICH box carries it is a
+ * judgement, recorded in the triage's prose and shown by the captures.
+ */
+export function ringRulesFor(selector, rules) {
+  return rules.filter((rule) => {
+    if (!rule.paints.ring) return false;
+    const inner = delegatedTo(rule.selector);
+    if (inner) return selector === inner || selector.endsWith(` ${inner}`);
+    return selector === rule.subject || selector.startsWith(`${rule.subject}.`)
+      || selector.startsWith(`${rule.subject} `);
+  });
+}
+
+/** Nothing the keyboard can operate, whatever its tabindex says. */
+const inoperable = (el) => el.hasAttribute('disabled')
+  || el.getAttribute('aria-disabled') === 'true'
+  || (el.tagName === 'INPUT' && el.getAttribute('type') === 'hidden');
+
 export function keyboardStops(root, extra = []) {
   const reachable = [FOCUSABLE, ...extra].join(',');
   return [...root.querySelectorAll(reachable)].filter((el) => {
-    if (el.hasAttribute('disabled') || el.getAttribute('aria-disabled') === 'true') return false;
-    if (el.tagName === 'INPUT' && el.getAttribute('type') === 'hidden') return false;
+    if (inoperable(el)) return false;
     const index = el.getAttribute('tabindex');
     if (index !== null && Number(index) < 0) return ROVING_ROLES.includes(el.getAttribute('role'));
     return true;
+  });
+}
+
+/**
+ * The descendants a browser puts in the TAB order — which is the question Chrome
+ * asks before it makes a scroll container a keyboard stop of its own: a scroller
+ * whose own children are keyboard-focusable is given no stop, because the keyboard
+ * already reaches into it. Narrower than `keyboardStops` on purpose: a roving row
+ * at `tabindex="-1"` is reached by an arrow key and not by Tab, so it does not
+ * spare its container — which is exactly why `.ui-dropdown__list` and
+ * `.ui-cmdk__list`, both full of them, are stops. #531
+ */
+export function tabbableIn(root) {
+  return [...root.querySelectorAll(FOCUSABLE)].filter((el) => {
+    if (inoperable(el)) return false;
+    const index = el.getAttribute('tabindex');
+    return index === null || Number(index) >= 0;
   });
 }
 
@@ -389,6 +449,10 @@ const negatesFocus = (selector) => compoundsOf(selector)
   .some(({ compound }) => dropFunctional(compound, ['not'], (args) => FOCUS.test(args)) !== compound);
 
 const isRing = (value) => value !== null && /var\(\s*--ring\s*[,)]/.test(value);
+/** The same indicator on a scroll region: the kit's gap and band drawn inward, as an
+ *  outline rather than a shadow, so the region's own children cannot paint over it.
+ *  It competes for `outline` where --ring competes for `box-shadow`. #531 */
+const isScrollRing = (value) => value !== null && /var\(\s*--ring-scroll\s*[,)]/.test(value);
 
 /** A keyframe step, not a selector. `@keyframes` is stripped of its own at-rule
  *  line by the reader, leaving `0%`, `from` and `to` behind; badge.css animates
@@ -449,9 +513,11 @@ export function paintingRules(sheets) {
  * each stop the winner of each property is the matching declaration that
  * outranks every other on specificity, or sits last among equals.
  *
- * `rings` holds the rules that ask for `var(--ring)` ON THIS STOP. A ring the kit
- * delegates to another element is not resolved here; `delegated` counts those, so
- * the gate can hold the number rather than let it grow unseen.
+ * `rings` holds the rules that ask for the ring ON THIS STOP, in either form: a
+ * `box-shadow` of `var(--ring)`, or — on a scroll region — an `outline` of
+ * `var(--ring-scroll)`. A ring the kit delegates to another element is not resolved
+ * here; `delegated` counts those, so the gate can hold the number rather than let it
+ * grow unseen.
  */
 export function focusPaint(root, sheets) {
   const rules = paintingRules(sheets);
@@ -483,7 +549,8 @@ export function focusPaint(root, sheets) {
     return {
       el,
       label: stopLabel(el),
-      rings: matched.filter((rule) => rule.focus && isRing(rule.shadow)),
+      rings: matched.filter((rule) => rule.focus
+        && (isRing(rule.shadow) || isScrollRing(rule.outline))),
       delegated: delegated.map((rule) => rule.selector),
       shadow: win('shadow'),
       outline: win('outline'),
@@ -493,9 +560,11 @@ export function focusPaint(root, sheets) {
 }
 
 /**
- * Stops whose ring is written but not painted: a focus rule matches and asks for
- * `var(--ring)`, and the cascade still hands `box-shadow` — or a visible
- * `outline` — to something else. A stop no ring rule reaches is not reported
+ * Stops whose ring is written but not painted: a focus rule matches and asks for the
+ * ring, and the cascade still hands the property that carries it to something else.
+ * Which property that is depends on the form — `box-shadow` for `var(--ring)`,
+ * `outline` for a scroll region's `var(--ring-scroll)` — so the winner is read on the
+ * property the stop's own rules asked for. A stop no ring rule reaches is not reported
  * here; `failures` already names it.
  */
 export function cascadeFailures({ stops }, exempt = () => false) {
@@ -504,6 +573,17 @@ export function cascadeFailures({ stops }, exempt = () => false) {
     const where = (rule) => `${rule.origin} ${rule.selector} (${rule.spec.join(',')})`;
     const asked = stop.rings.map((rule) => where(rule)).join(', ');
     const lines = [];
+    const inOutline = stop.rings.every((rule) => isScrollRing(rule.outline));
+    if (inOutline) {
+      // The band IS the outline here, so a later outline does not sit beside the ring
+      // — it replaces it, which is the one thing to catch.
+      if (!stop.outline || !isScrollRing(stop.outline.outline)) {
+        lines.push(`${stop.label} — ${asked} asks for var(--ring-scroll), but `
+          + `${stop.outline ? where(stop.outline) : 'nothing'} wins outline with `
+          + `"${stop.outline?.outline ?? 'none'}"`);
+      }
+      return lines;
+    }
     if (!isRing(stop.shadow.shadow)) {
       lines.push(`${stop.label} — ${asked} asks for var(--ring), but `
         + `${where(stop.shadow)} wins box-shadow with "${stop.shadow.shadow}"`);

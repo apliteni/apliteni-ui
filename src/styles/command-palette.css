@@ -143,6 +143,14 @@
   overflow-y: auto;
   padding: var(--space-2);
 }
+/* Rows are `role="option" tabindex="-1"`, so the LIST takes the keyboard stop. The
+   wired palette's Tab trap holds one item and never hands it over; the markup the
+   kit publishes as a string, rendered open without the wiring, has no trap and did
+   arrive at the native outline. The band is drawn INWARD, on the list: the panel clips
+   with `overflow: hidden`, so an outset one is cut off, and the panel is not the box
+   that scrolls. The list's own 8px of padding is where it lands.
+   why: docs/specification.md#the-focus-ring */
+.ui-cmdk__list:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-cmdk__group + .ui-cmdk__group { margin-top: var(--space-2); }
 
 /* Sentence case at 13px medium — the kit's label role, not a heading and not a

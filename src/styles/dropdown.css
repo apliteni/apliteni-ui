@@ -284,6 +284,12 @@
 .ui-dropdown__search-input:focus-visible { outline: 2px solid transparent; border-color: var(--accent); box-shadow: var(--ring); }
 
 .ui-dropdown__list { max-height: 300px; overflow-y: auto; }
+/* Rows are `role="option" tabindex="-1"`, so the LIST takes the keyboard stop and
+   answered with the native outline. The band is drawn INWARD, on the list: an outset
+   one 6px inside a --radius-lg corner leaves the panel, and the panel is not the box
+   that scrolls. It lands in the rows' own 9px of padding, never on a label.
+   why: docs/specification.md#the-focus-ring */
+.ui-dropdown__list:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 /* A row is `display: flex`, which outranks the UA's [hidden], so a row the
    query hides is put away here. */
 .ui-dropdown__list [hidden] { display: none; } /* motion: still — a row the query no longer matches is gone on the next keystroke */

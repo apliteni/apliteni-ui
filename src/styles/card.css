@@ -22,6 +22,12 @@
    the rounded corners / clipping its last column. Clipping to the card's
    border-box also keeps zebra stripes from escaping the radius. */
 .ui-card:has(> .ui-table) { overflow-x: auto; }
+/* Which makes the card a keyboard stop whenever no cell holds a control, so it
+   answered with the native outline. It is a scroll region, so it takes --ring-scroll:
+   the band drawn inward, inside the card's 24px padding and clear of the table.
+   --elev-rest is left alone: the band is an outline, not a layer of the shadow list.
+   why: docs/specification.md#the-focus-ring */
+.ui-card:has(> .ui-table):focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 
 /* Vertical stacks space cards with the container's gap — see .ui-card-stack.
    (No `.ui-card + .ui-card` margin: it leaks into grid/flex rows and misaligns.) */

@@ -269,6 +269,13 @@
   --ring-gap-width: 1px;
   --ring-gap: var(--bg);
   --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  /* What a scroll region inside a surface takes: --ring's gap and band, drawn inward,
+     no halo. An OUTLINE, because an inset shadow is painted under the box's own
+     children and a table scrolled under one erases it. The gap is left unpainted, so
+     neither half reads --ring-gap and neither is recomposed per surface. Chosen by
+     Artur on #531 round r30. why: docs/specification.md#the-focus-ring */
+  --ring-scroll: var(--ring-width) solid var(--ring-color);
+  --ring-scroll-offset: calc(-1 * (var(--ring-gap-width) + var(--ring-width)));
 
   /* The ink a cast shadow is made of, and the specular white that reads as gloss on a
      raised surface. Effects mix these instead of writing rgba(). */
@@ -569,7 +576,9 @@
 .ui-success { --code-bg: var(--wash-code-bg); }
 
 /* A container focused itself paints outside its own surface; descendants only
- * inherit its inside gap again after focus moves to them. */
+ * inherit its inside gap again after focus moves to them. A scroll region inside one
+ * needs no entry here: --ring-scroll paints no gap of its own, so the 1px it leaves is
+ * whatever the region is already standing on. #531 */
 .ui-card:focus-visible,
 .ui-cmdk__panel:focus-visible,
 .ui-confirm__panel:focus-visible,

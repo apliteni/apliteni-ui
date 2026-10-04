@@ -148,7 +148,7 @@
         "pattern": "export function commandPaletteList"
       },
       {
-        "ref": "src/styles/command-palette.css:150",
+        "ref": "src/styles/command-palette.css:158",
         "pattern": ".ui-cmdk__group-head"
       }
     ],
@@ -192,7 +192,7 @@
         "pattern": "const isRefused = (it) =>"
       },
       {
-        "ref": "src/styles/command-palette.css:238",
+        "ref": "src/styles/command-palette.css:246",
         "pattern": ".ui-cmdk__item.is-danger"
       }
     ]
@@ -264,7 +264,7 @@
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:297",
+        "ref": "src/styles/dropdown.css:303",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -322,7 +322,7 @@
         "pattern": "export function drawerSection("
       },
       {
-        "ref": "src/styles/drawer.css:200",
+        "ref": "src/styles/drawer.css:206",
         "pattern": ".ui-drawer__section + .ui-drawer__section"
       }
     ],
@@ -332,7 +332,7 @@
         "pattern": ".ui-drawer__header {"
       },
       {
-        "ref": "src/styles/drawer.css:200",
+        "ref": "src/styles/drawer.css:206",
         "pattern": ".ui-drawer__section + .ui-drawer__section {"
       }
     ],
@@ -342,7 +342,7 @@
         "pattern": "<dl class=\"ui-drawer__rows\">"
       },
       {
-        "ref": "src/styles/drawer.css:230",
+        "ref": "src/styles/drawer.css:236",
         "pattern": ".ui-drawer__row dt { color: var(--text); }"
       }
     ]
@@ -502,7 +502,7 @@
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:72",
+        "ref": "src/styles/card.css:78",
         "pattern": "rank: card-title"
       }
     ],
@@ -670,7 +670,7 @@
         "pattern": "transition-duration: 0.01ms !important;"
       },
       {
-        "ref": "src/styles/drawer.css:243",
+        "ref": "src/styles/drawer.css:249",
         "pattern": ".ui-drawer.is-open * { transition: none !important; }"
       }
     ]

@@ -91,9 +91,13 @@ test('the sweep sees every box-shadow the kit ships', () => {
   // floating declarations it rewrites to read --float-edge-inner instead of
   // --border are rewritten in place and move no count. 73 -> 75: the ring a
 // Snippet's card now draws for its focused code region, and the `box-shadow:
-// none` that takes it off the `<pre>` it used to paint square.
-  assert.equal(sweep.length, 75,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 75. `
+// none` that takes it off the `<pre>` it used to paint square. 75 -> 74: #531 gave the
+// kit's seven scroll regions one indicator between them, and it is an OUTLINE rather
+// than a shadow — an inset shadow is painted under a box's own children, so a table
+// scrolled sideways under one erases the band. Six of the seven never had a shadow
+// rule; the scrolling table wrapper did, and that is the one this number lost.
+  assert.equal(sweep.length, 74,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 74. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -141,7 +145,10 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
   // Both themes are walked, so each declaration is counted twice. The drop is read
   // by 13 floating surfaces plus .ui-dropdown__panel:focus-visible, the rule #487
   // wrote to re-state the panel's edge and drop beside the ring — a box-shadow list
-  // replaces the whole list, so taking focus must not drop the rung.
+  // replaces the whole list, so taking focus must not drop the rung. #531 adds none of
+  // that kind and could not: the seven scroll regions it rings answer with an outline,
+  // which is not a layer of the shadow list, so not one of the surfaces around them has
+  // to re-state the rung it rests on.
   const got = Object.fromEntries([...rungs].map(([layer, n]) => [layer, n / THEMES.length]));
   assert.deepStrictEqual(got, {
     'var(--elev-rest)': 1,   // .ui-card
