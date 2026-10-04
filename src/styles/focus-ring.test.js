@@ -4,20 +4,16 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Every link and button the React shell writes must take the kit ring, so none
-// falls back to the browser's own outline. Subjects are discovered from the
-// markup rather than listed here, so a new shell control joins by existing.
+// Every link and button the React shell writes must take the kit ring, so none falls
+// back to the browser's own outline. Subjects are discovered from the markup, so a new
+// shell control joins by existing. why: #457
 //
-// Limits: this reads the cascade, not paint. Whether the ring is visible against
-// the surface behind it is stories/ring-surfaces.test.js and the contrast
-// ledger; whether :focus-visible matches in a real browser is the browser's, and
-// the showcase captures carry that evidence. Controls the shell composes from
-// other components (Dropdown, Button) carry their own classes and are covered
-// where those components are measured. Discovery reads literal class strings
-// only, so a control whose className is a template literal — the bar's More
-// button, and every row links() writes — is invisible here and is measured in
-// the browser instead. The count below is therefore a floor on what the shell
-// writes, not a census of it.
+// Limits. It reads the cascade, not paint: ring visibility against the surface behind
+// it is stories/ring-surfaces.test.js and the contrast ledger, and whether
+// :focus-visible matches is the browser's, measured in the captures. Discovery reads
+// literal class strings, so a className built as a template literal is invisible here
+// and the count is a floor rather than a census. Controls composed from other
+// components carry their own classes and are covered where those are measured.
 const here = path.dirname(fileURLToPath(import.meta.url));
 const SHELL = readFileSync(path.join(here, '../../react/src/AppShell.tsx'), 'utf8');
 const SHEETS = ['base.css', 'layout.css', 'topbar.css', 'nav.css', 'button.css']
