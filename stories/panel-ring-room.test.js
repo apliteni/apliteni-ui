@@ -13,10 +13,7 @@
 // reader got two accent bars above and below the row instead of a ring around it. The
 // other two menus take the first way out and nothing said why, which is the hole this
 // closes: `.ui-dropdown__panel` pads by --ui-dropdown-pad and `.vsw__menu` by the same
-// six pixels, each because somebody chose well rather than because anything asked.
-// `.amenu` takes the second: Artur chose dropping the clip over padding the panel, so
-// its ring crosses the panel's edge and its hovered last row's square fill crosses with
-// it. The decision is on #519 and in the pull request.
+// six pixels. `.amenu` takes the second; the choice between them is recorded on #519.
 //
 // Subjects are discovered twice and the two readings have to agree. One is the kit's own
 // sources: every place under src/ and react/src/ that writes `data-dropdown-panel` into
@@ -25,15 +22,13 @@
 // and not the second, so the gate stops until somebody renders it here and measures it.
 //
 // Coverage limits:
-// - This reads the stylesheet, not a browser. It checks that the panel leaves the ring a
-//   way out; it cannot see what a consumer's own CSS does to the panel afterwards, and it
-//   measures no pixels. The ring was measured in Chrome for #519, before and after.
-// - Only the panel's own base rule is read, for its padding and for its overflow. What a
-//   media query or a state class adds or takes away is not seen, and neither is padding
-//   on a wrapper between the panel and its rows.
-// - A panel that clips nothing itself may still sit inside an ancestor that clips. Of the
-//   three panels here none does — the topbar's band and the dropdown's trigger write no
-//   overflow — but this gate asks the panel, not its ancestors.
+// - This reads the stylesheet, not a browser: it measures no pixels and cannot see what a
+//   consumer's own CSS does to the panel. Chrome measured the ring for #519.
+// - Only the panel's own base rule is read, for padding and for overflow. What a media
+//   query or a state class changes is not seen, nor padding on a wrapper between the
+//   panel and its rows.
+// - A panel that clips nothing itself may still sit inside an ancestor that clips. None
+//   of these three does; this gate asks the panel, not its ancestors.
 // - Only the first class on a marked element is read: the one the panel's own sheet
 //   styles it under. A second — `dropdown({ panelClass })` — is the caller's to answer for.
 // - The marked element is found by walking the source for tags and attribute lists, not

@@ -790,20 +790,16 @@ test('state badge ink and generic metadata match the factory classification', ()
     .toEqual(cases.map(([, tone]) => `ui-dropdown__badge is-${tone}`));
 });
 
-// #519: under reduced motion the net gives every element a 0.01ms transition, and an
-// element that names no property of its own transitions `all` — including the inherited,
-// discrete `visibility`. So `.ui-dropdown__search` held the field hidden for the frame the
-// panel opened in, and the focus call below landed nowhere. The cure is one rule in
-// src/styles/dropdown.css, which both faces load, and it is keyed on the panel's open
-// markup: `.open > [data-dropdown-panel] *`. So what this side has to answer for is that
-// React's panel IS that markup — a panel carrying the data hook, a direct child of a
-// container carrying `open`.
+// #519: under reduced motion `.ui-dropdown__search` held the field hidden for the frame
+// the panel opened in, and the focus call below landed nowhere. The cure is one rule in
+// src/styles/dropdown.css, which both faces load, keyed on the panel's open markup:
+// `.open > [data-dropdown-panel] *`. What this side answers for is that React's panel IS
+// that markup — the data hook on a direct child of a container carrying `open`.
 //
 // Limits: jsdom evaluates no media query and runs no transition, so the rule is read out
-// of the sheet and matched against the rendered tree. That Chrome then obeys it was
-// measured by hand with reduced motion forced; #519 carries the before and after. The
-// vanilla side asks the same question of every curtain in the kit, in
-// stories/reveal-focus.test.js.
+// of the sheet and matched against the rendered tree. Chrome's obedience was measured by
+// hand; #519 carries the before and after. stories/reveal-focus.test.js asks the same of
+// every curtain in the kit.
 describe('reduced motion: the panel the keyboard opens', () => {
   /** The sheet both faces load. Located from the test's own path, as Timeline's does. */
   const readKitSheet = (name: string) => readFileSync(
