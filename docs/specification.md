@@ -3261,14 +3261,16 @@ page, `--border` is 1.12:1 light and 1.50:1 dark, `--border-strong` 1.37 and
 accent bar's own 6.55:1 in dark. So the strip keeps the kit's hover, and a
 louder one is a decision about both underline tabs rather than about this one.
 
-**Two consequences worth knowing.** A chosen label is 100 weight units heavier
-than a reading one, so a tab is a little wider while it is chosen; measured on the
-screener's strip the widest step is under 3px and no strip changes its row count
-across selections. And `outline: 0` on the chosen tab reaches further than the
-kit's own `:focus-visible` rule, so that rule is restated for the chosen tab —
-without it the chosen tab focuses with no indicator at all, which is worse than
-the native outline [#457](https://github.com/apliteni/apliteni-ui/issues/457)
-refused.
+**Two consequences worth knowing.** The weight step is a drop, not a rise: the
+kit draws every segmented label at `--weight-semibold`, so the chosen tab is the
+weight it always was and a reading one went down a step. A chosen tab is
+therefore exactly as wide as it was before this change, and a tab that becomes
+chosen widens by about a pixel — measured on the screener's strip, 106.66 against
+107.73, and no strip changes its row count across selections. And `outline: 0` on
+the chosen tab reaches further than the kit's own `:focus-visible` rule, so that
+rule is restated for the chosen tab — without it the chosen tab focuses with no
+indicator at all, which is worse than the native outline
+[#457](https://github.com/apliteni/apliteni-ui/issues/457) refused.
 
 In forced colours the bar is restated in `Highlight`. The mode repaints an author
 colour, so `var(--accent)` comes back as the same ink the labels are drawn in,
