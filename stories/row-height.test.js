@@ -140,7 +140,7 @@ const SHORTFALLS = [
       + 'kit\'s glyph for close and dismiss and taking a file off a row is neither. The last row '
       + 'is the one to read twice: its name is `statement-2026-08.pdf` and not a long one at all, '
       + 'so in a panel at 320 an ordinary failed upload is cut too. Limitation: those rows show '
-      + 'roughly six to twelve characters of the stem, so the reader identifies the file by its '
+      + 'eleven to eighteen characters of the stem, so the reader identifies the file by its '
       + 'extension and by the `title` the markup carries rather than by what is on screen. Every '
       + 'other row, container and width clears the floor, and the extension is never cut anywhere.',
   },
