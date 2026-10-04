@@ -82,7 +82,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 0 5px;
+  /* Title to description: the step, not the 5px it was. why: docs/specification.md#spacing-and-rhythm */
+  margin: 0 0 var(--space-2);
 }
 .ui-card__sub {
   color: var(--text);
