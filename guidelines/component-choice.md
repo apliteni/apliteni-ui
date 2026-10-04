@@ -54,6 +54,20 @@
 
 **Don't:** Give those same list filters tab roles when they have no separate panels.
 
+## Group one category at a time
+
+<!-- rule: one-category -->
+
+**Rule:** Give views, filters, sorting and actions separate groups and styles.
+
+**Why:** Identical controls in one bar hide that one of them re-draws every row while its neighbour only narrows them.
+
+**Do:** Keep the filter chips in one bar, the views in a strip of their own, and the action at the right-hand end.
+
+**Don't:** Put three saved views and a filter control in one bar as four buttons of the same size and style.
+
+**Except:** Saved views that re-draw one table take a segmented strip; views that swap panels take tabs.
+
 ## Match confirmation scale
 
 <!-- rule: scale -->
