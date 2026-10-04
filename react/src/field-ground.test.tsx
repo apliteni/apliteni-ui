@@ -203,7 +203,7 @@ describe('field ground: React coverage', () => {
     }
   });
 
-  // The net names five control kinds and a walk that renders four proves nothing
+  // FIELD names five control kinds, and a walk that renders four proves nothing
   // about the fifth. Pinned so the catalogue cannot quietly stop covering one.
   it('the catalogue renders every control kind the rule names', () => {
     const kinds = (theme: Theme) => [...new Set(readings[theme].map((f) => {
