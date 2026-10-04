@@ -2,21 +2,28 @@
   color: var(--text);
   background: var(--table-bg); /* ring-gap: inherit — prototype paint retains the kit focus indicator and its opaque gap. */
 }
+/* The fields are deliberately NOT in this list. Painting .ui-input with --table-bg gave it,
+   in dark, the page's own colour — --table-bg is var(--bg) there — so an input had no fill
+   of its own and a disabled one had nothing left to show. That is the complaint Artur raised
+   at round r28 of #551. The field keeps --field-bg and the panes below carry the surface.
+   why: react/src/field-ground.test.tsx */
 .invoice-flow .ui-app, .invoice-flow .ui-app__rail, .invoice-flow .ui-app__bar,
-.invoice-flow .ui-react-app__bottom, .invoice-flow .ui-input:not(:disabled),
+.invoice-flow .ui-react-app__bottom,
 .invoice-flow .ui-table th, .invoice-flow .ui-table td { background: var(--table-bg); /* ring-gap: inherit — prototype paint retains the kit focus indicator and its opaque gap. */ }
 .invoice-flow .ui-app__main { max-width: var(--container); }
 .invoice-flow .ui-app__rail { border-right: 1px solid var(--border); }
 .invoice-flow h1 { overflow-wrap: anywhere; }
-.invoice-flow h2 { font-size: var(--text-lg); margin: 0 0 var(--space-4); }
+/* The kit sets a card title's margin to 5px, which is the gap before a __sub. These cards
+   carry a title alone, so the step below it is the page's own. */
+.invoice-flow .ui-card__title { margin-block-end: var(--space-4); }
 /* Of the two panes, the one whose values a save writes carries the pair's accent, and it
    carries it as ink on its own name. Not a line: an edge drawn strongly enough to read as
    the signal is an outlined box, which is what the per-field rules removed in #459 r33 had
-   become. Same answer, same reason, as .doc-flow__saved-pane .ui-card__title. The ground is
-   --table-bg, set at the top of this sheet, and stories/accent-contrast.test.js holds
-   --accent as text on it across all eight theme x accent cells.
+   become. Same answer, same selector shape, as .doc-flow__saved-pane .ui-card__title. The
+   ground is the card's --surface, and stories/accent-contrast.test.js holds --accent as text
+   on every ground the kit paints under it, across all eight theme x accent cells.
    why: guidelines/density-and-accents.md#follow-the-consequence */
-.invoice-flow__data > h2 { color: var(--accent); }
+.invoice-flow__data > .ui-card__title { color: var(--accent); }
 .invoice-flow h3 { font-size: var(--text-md); margin: 0; }
 .invoice-flow p { max-width: var(--prose-body); }
 .invoice-flow__note { font-size: var(--text-sm); margin: 0; }
@@ -36,7 +43,10 @@
 /* No top margin: the sentence that stood between the heading and the fields is gone, so
    the h2's own bottom margin sets that gap, as it does everywhere else in this sheet. */
 .invoice-flow__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); margin: 0 0 var(--space-6); }
-.invoice-flow__paper { border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-6); font-size: var(--text-sm); }
+/* No edge, no fill and no inset of its own: the pane around it is the card, and a bordered
+   box inside one is a card inside a card. Same answer as .doc-flow__sheet.
+   why: guidelines/the-page.md#limit-card-stacks */
+.invoice-flow__paper { font-size: var(--text-sm); }
 .invoice-flow__paper p { margin: var(--space-5) 0; }
 .invoice-flow__paper dl { margin: var(--space-8) 0; }
 .invoice-flow__paper dl div { display: flex; justify-content: space-between; gap: var(--space-4); margin: var(--space-3) 0; }

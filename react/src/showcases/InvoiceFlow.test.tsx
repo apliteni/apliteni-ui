@@ -183,7 +183,7 @@ describe('invoice flow prototype', () => {
     const withoutDragState = SHEET.replace(/\.invoice-flow__drop\.is-dragging\s*\{[^}]*\}/g, '');
     expect(accentOffences(withoutDragState, 'InvoiceFlow.css')).toEqual([]);
     // The saved pane leads and is the wider column; the source gets neither, nor the accent.
-    expect(SHEET).toMatch(/\.invoice-flow__data\s*>\s*h2\s*\{[^}]*color:\s*var\(--accent\)/);
+    expect(SHEET).toMatch(/\.invoice-flow__data\s*>\s*\.ui-card__title\s*\{[^}]*color:\s*var\(--accent\)/);
     expect(SHEET).not.toMatch(/\.invoice-flow__preview[^{]*\{[^}]*var\(--accent/);
     expect(SHEET).toMatch(/grid-template-columns:\s*minmax\(0, 3fr\) minmax\(0, 2fr\)/);
   });

@@ -169,9 +169,15 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
       <p className="invoice-flow__note">Parsing uses sample data. Files and edits stay in this tab until reload.</p>
       <p className="invoice-flow__announcement" role="status">{message}</p>
       {invoice ? <>
+        {/* Both panes wear the kit's card rather than calling <Card>: that component renders a
+            plain div, and these two have to stay labelled regions — the data pane also goes
+            aria-busy while the parser runs, which a div cannot say. The classes are the card's
+            own, so the paint, the edge and the ring gap are the kit's.
+            why: react/src/field-ground.test.tsx — a field is shown on a painted surface, never
+            on the page ground, which in dark is what --table-bg resolves to. */}
         <div className="invoice-flow__columns">
-          <section className="invoice-flow__data" data-live={simulate || undefined} aria-labelledby="parsed-title" aria-busy={pending || undefined}>
-            <h2 id="parsed-title">Invoice data</h2>
+          <section className="invoice-flow__data ui-card" data-live={simulate || undefined} aria-labelledby="parsed-title" aria-busy={pending || undefined}>
+            <h2 id="parsed-title" className="ui-card__title">Invoice data</h2>
             {pending ? <EmptyState icon="clock" title={invoice.status === 'Uploading' ? 'Adding invoice…' : 'Reading invoice…'} sub="The sample fields will appear here when parsing finishes."
               actions={!simulate && <Button onClick={() => setInvoices(rows => rows.map(row => row.name === invoice.name ? { ...row, status: 'Needs review' } : row))}>Finish demo parsing</Button>} /> : <form noValidate onSubmit={event => { event.preventDefault(); save(); }}>
               <div className="invoice-flow__fields">
@@ -184,8 +190,8 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
               <div className="invoice-flow__actions"><Button variant="primary" type="submit">Save invoice</Button><Button variant="secondary" disabled={!dirty && !invoice.previous} onClick={undo}>{dirty ? 'Discard edits' : 'Undo last save'}</Button></div>
             </form>}
           </section>
-          <section className="invoice-flow__preview" aria-labelledby="document-title">
-            <h2 id="document-title">Document</h2>
+          <section className="invoice-flow__preview ui-card" aria-labelledby="document-title">
+            <h2 id="document-title" className="ui-card__title">Document</h2>
             {preview ? invoice.file?.type.startsWith('image/') ? <img src={preview} alt={`Invoice document: ${invoice.filename}`} /> : <iframe src={preview} title={`Invoice document: ${invoice.filename}`} />
               : invoice.paper ? <article className="invoice-flow__paper" aria-label={`Invoice document: ${invoice.filename}`}>
                 <h3>{invoice.paper.supplier}</h3>
