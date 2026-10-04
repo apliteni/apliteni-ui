@@ -605,7 +605,15 @@ kit's own gallery pages show a field on the card, which is where a form lives, a
 `stories/field-ground.test.js` holds them there and records the four readings above. A consumer
 owes a field the same: a form on the page ground gets no help from these tokens.
 
-Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551) round r28.
+**Both catalogues, not one.** The React catalogue is held to the same rule by
+`react/src/field-ground.test.tsx`, over the reading both gates share in
+`stories/lib/field-ground.js`. It mounts every story the workspace exports in both themes and
+reads the ground under each field, so a React story that stages a field on `--bg` fails. The rule
+is the kit's, so a gate that walked only the HTML galleries left the published React stories free
+to break it, and 27 stories in six files did.
+
+Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551) round r28; the React half
+in [#568](https://github.com/apliteni/apliteni-ui/issues/568).
 
 **The box reports the state, so a field that is off draws the fainter edge of the two.** Dark
 answered both states with `--border` until [#564][i564]: `--field-edge` and `--disabled-border`
@@ -1534,18 +1542,21 @@ decisions and their reasons.
 ## The page shell
 
 `appShell()` is the kit's one answer for composing a page, built from the kit's own nav
-primitives. `accountShell()` stays as a preset over it for the `/account` pages already on it, and
-`docs/library.md` marks it as such, so nobody has to be told which of two exported factories to
-reach for.
+primitives. It is the only one: `accountShell()`, the compatibility preset for the `/account`
+pages, was retired in 0.81.0 along with its Showcases screen, because account and settings belong
+in a modal over the product rather than on a page of their own — see
+[Guidelines / Account and settings](../guidelines/account-and-settings.md). A product still on the
+preset calls `appShell()` with a `topbar` bag, its own `nav` and `crumbs` built from the `cap` and
+`crumb` strings it used to pass.
 
 What the shell guarantees:
 
 - **A `<main>` landmark**, always.
 - **The caller owns the breadcrumb trail.** `appShell()` renders `breadcrumbs()` from a `crumbs`
   array and invents nothing. Pass no crumbs and there is no trail and no breadcrumb landmark.
-- **The topbar is off by default.** `appShell()` renders none unless the caller passes one;
-  `accountShell()` passes one, because `versions`, `showSwitch` and `wireTopbar()` are published
-  behaviour.
+- **The topbar is off by default.** `appShell()` renders none unless the caller passes one.
+  `versions`, `showSwitch` and `wireTopbar()` are published behaviour inside that bag, and
+  Components/Topbar is the story that draws the composition.
 - **The narrow rail is CSS, not JavaScript.** `sideLeaf()` emits `aria-label` at every width, so
   `layout.css` folds `.ui-nav__label` out of view below 720px with the accessible name intact.
   Nothing re-renders on resize and the consumer wires no listener.
@@ -1767,7 +1778,7 @@ What the shell guarantees:
 
 `appShell({ layout: 'topbar' })` is the same shell with three parts in different places, and
 `layout: 'rail'` — the default, and what every page already on the shell gets — is the
-arrangement above. `accountShell()` passes the option through and settles nothing of its own.
+arrangement above.
 Every guarantee in this section holds in both: the fold, the cookie, `wireShell()`, the name
 chips, the 720px strip and the reader's menu keep the same behaviour and wiring; both layouts meet
 the same accessibility minimums, and their existing gates were extended rather than duplicated.
@@ -2744,7 +2755,7 @@ the contract of the factory they invoke (for example, success actions use `butto
 | `versionSwitcher` | — | — | badge live/archive mapping | version label, meta, custom badge |
 | `accountMenu` | object nav fields are escaped by its adapter | tuple href (already encoded), object href | active, nav icon | name, email, initials, tuple label; tuple id/target are already encoded attribute text |
 | `topbar` | inherits nested factories | inherits | view | word, nested account/version slots |
-| `appShell`, `accountShell` | word, navLabel/cap, crumb, active, account name/email, search palette/placeholder, maxWidth; nested nav/crumb/back/topbar text inputs | brandHref, signOutHref, nested navigation | layout, width | title, sub, body; topbar version label/meta/custom badge |
+| `appShell` | word, navLabel, active, account name/email, search palette/placeholder, maxWidth; nested nav/crumb/back/topbar text inputs | brandHref, signOutHref, nested navigation | layout, width | title, sub, body; topbar version label/meta/custom badge |
 | `skeleton`, `skeletonTable` | lines array entries, width (scalar/array), height, radius, className | — | — | — |
 | `busyRegion` | label, readyLabel, className, lines array entries | — | — | body |
 | `deniedState` | title, sub, need, className | action href | icon, action enums | — |
@@ -2761,8 +2772,8 @@ the contract of the factory they invoke (for example, success actions use `butto
 The legacy topbar and brand text slots still accept pre-escaped HTML. Their shared
 attribute copies preserve existing entities while encoding literal quotes and angle
 brackets; account-menu tuple URLs are scheme-checked after decoding character
-references. Pass raw text to `appShell` and `accountShell`: their compatibility
-adapters already prepare the legacy topbar's HTML. Do not escape ordinary text or
+references. Pass raw text to `appShell`: its compatibility adapter already prepares
+the legacy topbar's HTML. Do not escape ordinary text or
 URL slots before passing them to a factory.
 
 Held by `src/components/attribute-boundaries.test.js`, which parses the emitted HTML

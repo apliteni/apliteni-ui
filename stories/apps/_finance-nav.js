@@ -18,8 +18,8 @@ export const FINANCE_READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' 
 const FINANCE_MAX = '960px';
 
 // appShell() ships with no topbar, so no example screen asks for one: the rail already
-// answers who is signed in and how to leave. accountShell() is the one preset that keeps
-// one — `versions`, `showSwitch` and wireTopbar() are published behaviour there. The
+// answers who is signed in and how to leave. Components/Topbar draws the band over a
+// shell — `versions`, `showSwitch` and wireTopbar() are published behaviour. The
 // trail is built here too, so neither screen rebuilds the same crumb by hand.
 export const financeShell = ({ active, crumb, title, sub, body, back }) => appShell({
   word: 'Finance',

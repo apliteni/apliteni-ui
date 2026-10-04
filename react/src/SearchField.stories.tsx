@@ -8,9 +8,20 @@ import { NumericValue } from './TableValues';
 import { Badge } from './primitives/Badge';
 import { Card } from './primitives/Card';
 
+// On the card, as the vanilla Inputs gallery has been since #556: a search field
+// paints --surface, so on the page ground it has only its edge left to be seen by.
+// This is the meta's render, which is what the three args-only stories below get —
+// the card is the story rather than a decorator, and react/src/field-ground.test.tsx
+// measures it there.
+//
+// The title is load-bearing, not decoration. A field carries no text of its own — its
+// name is an aria-label and its placeholder is not content — so without it these three
+// stories render no text-owning element at all, and react/src/contrast.test.tsx reaches
+// them and has nothing to judge. The name is the vanilla gallery's for the same control.
 const meta: Meta<typeof SearchField> = {
   title: 'React/SearchField', component: SearchField,
   args: { ariaLabel: 'Search invoices', placeholder: 'Vendor or number' },
+  render: (args) => <div style={{ maxWidth: 'calc(var(--panel-md) + var(--space-6) * 2)' }}><Card title="Search input"><SearchField {...args} /></Card></div>,
 };
 export default meta;
 type Story = StoryObj<typeof SearchField>;
@@ -60,22 +71,38 @@ export const Toolbar: StoryObj = {
 
     // .ui-app__body is the kit's own column: the page gap, and min-width:0 on
     // each child, which is what lets the table scroll inside its column on a phone.
+    // Toolbar and table each on a card. The search field is a field, and the
+    // toolbar is a layout class that paints nothing, so on the app column's
+    // ground the field sat on --bg. The toolbar stays the input group's direct
+    // parent — `.ui-toolbar > .ui-input-group` is what sizes it — so the card
+    // goes around the toolbar, not inside it.
+    // react/src/field-ground.test.tsx holds the numbers.
     return <div className="ui-app__body">
-      <div className="ui-toolbar">
+      {/* A panel's floor is 240px and the kit hangs it off its trigger with no
+          measuring of its own — #572 — so `align` chooses which screen edge a
+          narrow row's panel crosses, not whether it crosses one. Containment is
+          this composition's: under 720px each chip takes the whole row, so its
+          panel opens from the card's inner edge — 41–281 at 375, whichever
+          values are chosen — and above it the row holds on one line and the
+          chips sit left of the slack. 720 is the smallest of the kit's three
+          breakpoints that holds: at 560 the clipping runs on to 578, where
+          THESE labels stop fitting on one line. Measured at 375, 390 and 1280
+          in both themes, all nine value pairs, open and closed, and at every
+          width from 320 to 1440.
+          why: guidelines/layout-and-density.md#use-the-three-breakpoints */}
+      <style>{'@media (max-width: 720px) { .invoice-toolbar > .ui-dropdown { flex: 0 0 100%; } }'}</style>
+      <Card><div className="ui-toolbar invoice-toolbar">
         <SearchField ariaLabel="Search invoices" placeholder="Vendor or number"
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-        {/* Both panels keep the kit's default start edge. The panel floor is
-            240px, and once the field takes the phone line the chips start it
-            again at the row's left edge, so neither runs off either side. */}
         <Dropdown variant="select" ariaLabel="Status" value={status} onSelect={(v) => setStatus(String(v))}
           items={STATUS.map((label) => ({ label, value: label, selected: label === status }))} />
         <Dropdown variant="select" ariaLabel="Period" value={period} onSelect={(v) => setPeriod(String(v))}
           items={PERIOD.map(([label]) => ({ label, value: label, selected: label === period }))} />
         <Segmented label="View" value={view} onChange={setView}
           options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
-      </div>
+      </div></Card>
       {view === 'table'
-        ? <DataTable columns={columns} rows={rows} pager={false} selectable={false} stickyHeader />
+        ? <Card><DataTable columns={columns} rows={rows} pager={false} selectable={false} stickyHeader /></Card>
         : <div style={{ display: 'grid', gap: 'var(--space-5)', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
           {rows.map((row) => <Card key={row.number} title={row.name} sub={row.number}>
             <div className="ui-card__row">

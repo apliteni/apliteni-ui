@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { DataTable, sortTableRows, type Column, type TableSort } from './DataTable';
 import { Badge } from './primitives/Badge';
+import { Card } from './primitives/Card';
 
 type Row = { name: string; status: string; clicks: number };
 const rows: Row[] = [
@@ -81,11 +82,17 @@ export const ServerPaged: StoryObj = {
       setSize(nextSize);
       setTimeout(() => setLoading(false), 400);
     };
+    // On the card, the way the vanilla Table gallery renders every table: the pager's
+    // size select is a field, and `.ui-card` is also what declares the table's
+    // --table-bg. On the page ground the select had only its edge to be seen by.
+    // react/src/field-ground.test.tsx holds it here.
     return (
-      <DataTable columns={columns} rows={fetched} selectable={false}
-        sort={sort} onSortChange={setSort}
-        page={page} total={rows.length} pageSize={size} pageSizes={[2, 3, 5]}
-        loading={loading} onPageChange={turn} onPageSizeChange={(s) => turn(1, s)} />
+      <Card>
+        <DataTable columns={columns} rows={fetched} selectable={false}
+          sort={sort} onSortChange={setSort}
+          page={page} total={rows.length} pageSize={size} pageSizes={[2, 3, 5]}
+          loading={loading} onPageChange={turn} onPageSizeChange={(s) => turn(1, s)} />
+      </Card>
     );
   },
 };

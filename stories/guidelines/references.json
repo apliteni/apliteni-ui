@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:159",
+        "ref": "src/styles/table.css:178",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ]
@@ -240,6 +240,20 @@
         "pattern": "not role=\"tablist\""
       }
     ],
+    "one-category": [
+      {
+        "ref": "src/components/filter-bar.js:5",
+        "pattern": "export function filterBar("
+      },
+      {
+        "ref": "src/styles/filter-bar.css:3",
+        "pattern": ".ui-filter-bar__chip {"
+      },
+      {
+        "ref": "src/components/index.js:75",
+        "pattern": "A strip of mutually exclusive toggle buttons."
+      }
+    ],
     "scale": [
       {
         "ref": "src/components/index.js:268",
@@ -314,6 +328,12 @@
       {
         "ref": "src/components/drawer.js:10",
         "pattern": "content over a scrim, focus-trapped, Esc-dismissable"
+      }
+    ],
+    "drawer-or-page": [
+      {
+        "ref": "src/styles/drawer.css:18",
+        "pattern": "--drawer-w: var(--panel-md)"
       }
     ],
     "no-cards": [
@@ -903,6 +923,58 @@
       {
         "ref": "react/src/FileDrop.tsx:107",
         "pattern": "{children}"
+      }
+    ]
+  },
+  "_account-and-settings.js": {
+    "modal": [
+      {
+        "ref": "react/src/Modal.tsx:17",
+        "pattern": "export function Modal("
+      },
+      {
+        "ref": "react/src/Modal.css:17",
+        "pattern": ".rx-modal { width: min("
+      }
+    ],
+    "nav": [
+      {
+        "ref": "src/components/nav.js:106",
+        "pattern": "export function sidebarNav("
+      },
+      {
+        "ref": "src/components/account-nav.js:14",
+        "pattern": "export const ACCOUNT_NAV = ["
+      }
+    ],
+    "menu": [
+      {
+        "ref": "src/components/topbar.js:57",
+        "pattern": "export function accountMenu("
+      },
+      {
+        "ref": "src/components/topbar.js:83",
+        "pattern": "Sign out"
+      }
+    ],
+    "in-row": [
+      {
+        "ref": "src/components/index.js:218",
+        "pattern": "export function switchToggle("
+      },
+      {
+        "ref": "src/styles/card.css:95",
+        "pattern": ".ui-card__row {"
+      }
+    ],
+    "one-action": [
+      {
+        "ref": "src/components/index.js:25",
+        "pattern": "export function button("
+      },
+      {
+        "ref": "src/styles/button.css:45",
+        "pattern": ".ui-btn--primary {"
       }
     ]
   }

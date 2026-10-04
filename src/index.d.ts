@@ -56,7 +56,6 @@ export declare const illoNames: string[];
 // Vanilla factories accept their existing option bags and return HTML.
 export declare function accentPicker(opts?: Record<string, unknown>): string;
 export declare function accountMenu(opts?: Record<string, unknown>): string;
-export declare function accountShell(opts?: Record<string, unknown>): string;
 export declare function appShell(opts?: Record<string, unknown>): string;
 export declare function breadcrumbs(opts?: Record<string, unknown>): string;
 export declare function busyRegion(opts?: Record<string, unknown>): string;

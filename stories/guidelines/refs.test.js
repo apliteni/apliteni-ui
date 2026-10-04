@@ -292,7 +292,7 @@ const plain = (text) => JSDOM.fragment(mono(text)).textContent;
 test('every guideline has packaged Markdown and renders its rule text from it', async () => {
   const docs = readdirSync(markdownDir).filter(file => file.endsWith('.md')).sort();
   const content = pages.filter(file => file.startsWith('_') && !['_layout.js', '_markdown.js', '_overview.js'].includes(file));
-  assert.equal(content.length, 22, 'update the collection count when adding a page');
+  assert.equal(content.length, 23, 'update the collection count when adding a page');
   assert.deepEqual(docs, [...content.map(file => `${file.slice(1, -3)}.md`), 'overview.md'].sort());
   assert.ok(JSON.parse(readFileSync(path.join(root, 'package.json'))).files.includes('guidelines'));
   let count = 0;
@@ -322,7 +322,7 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  assert.equal(count, 114, 'update the rule count when adding or removing a rule');
+  assert.equal(count, 121, 'update the rule count when adding or removing a rule');
 });
 
 // The checkable half of "Show, less tell" (docs/guidelines.md). A rule the page
@@ -415,9 +415,14 @@ test('inline issue links render as links while code and HTML remain escaped', ()
   assert.equal(JSDOM.fragment(mono('[bad](javascript:alert(1))')).querySelector('a'), null);
 });
 
-test('interrupt guidance distinguishes short modal forms from long drawer forms', async () => {
+// A long form was sent to a drawer here and to a page on the Drawers page. The two
+// pages now say the same thing; this holds the sentence that says it.
+test('interrupt guidance sends a short form to a modal or a drawer and a long one to a page', async () => {
   const { RULES } = await import('./_component-choice.js');
   const matches = RULES.filter((rule) => rule.id === 'interrupt');
   assert.equal(matches.length, 1);
-  assert.equal(matches[0].except, 'Use a content-sized modal for a short form and a drawer for a long form.');
+  assert.equal(
+    matches[0].except,
+    'Use a content-sized modal or a drawer for a short form, and a page for a long one.',
+  );
 });

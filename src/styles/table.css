@@ -125,6 +125,25 @@
 .ui-table :where(td, th, caption) a:not([class]) {
   display: inline-block;
   border-radius: var(--radius-xs);
+  position: relative;
+}
+/* A bare link in a cell is only as tall as its line box — 21px in a dense table,
+   under the 24px pointer floor. This layer gives a pointer the floor without
+   moving anything: growing the link's own box would grow every dense row holding
+   one. Written one cell kind per line because the measuring gate splits a
+   selector list on commas, and `:where(td, th, caption)` carries two of its own.
+   why: guidelines/accessibility-floor.md#minimum-target-size
+   held by: stories/guidelines/accessibility-floor.test.js */
+.ui-table td a:not([class])::after,
+.ui-table th a:not([class])::after,
+.ui-table caption a:not([class])::after {
+  content: '';
+  position: absolute;
+  height: 24px;
+  left: 0;
+  right: 0;
+  top: 50%;
+  translate: 0 -50%;
 }
 /* And on keyboard focus every link in a table takes the kit ring, at whatever corner it
    carries, so none falls back to the browser's own outline. `.ui-btn` has the ring already.

@@ -290,6 +290,75 @@ const kitPseudos = readdirSync(path.join(root, 'src/styles'))
     .flatMap((m) => [...m[1].matchAll(/([.\w-]+)(::(?:before|after))/g)]
       .map((p) => ({ selector: p[1], pseudo: p[2], where: `src/styles/${f}` }))));
 
+/**
+ * The phone step, written the way every sheet and story writes it, so the scan
+ * below and the sheet cannot disagree about which block is the phone one.
+ */
+const PHONE_STEP = '@media (max-width: 560px) and (pointer: coarse)';
+
+/** Every .js file under stories/, so a specimen module counts as well as a story. */
+const storyJs = readdirSync(path.join(root, 'stories'), { recursive: true })
+  .map(String).filter((f) => f.endsWith('.js')).sort();
+
+/** The text of one brace-balanced block, starting at the `{` after `from`. */
+const blockAt = (text, from) => {
+  const open = text.indexOf('{', from);
+  if (open < 0) return '';
+  let depth = 0;
+  for (let i = open; i < text.length; i++) {
+    if (text[i] === '{') depth++;
+    else if (text[i] === '}' && --depth === 0) return text.slice(open + 1, i);
+  }
+  return '';
+};
+
+/**
+ * Containers a SPECIMEN declares the phone clearance on, as `{ selector, where }`.
+ *
+ * A story that packs the kit's controls closer than the kit's own rows has to
+ * open its own room, and this sheet cannot do it for them: it may only name
+ * classes the kit ships, which a specimen's own layout class is not. So the
+ * specimen declares --tap-clear-x / --tap-clear-y at the phone step and the
+ * browser half below holds it to the floor — the gap the review of #492 found,
+ * where a green run said nothing about a new positive example whose switches
+ * measured 44x26.
+ *
+ * Discovered, never listed, for the reason the story sweep is: a specimen that
+ * opens its own room is measured the day it does.
+ */
+const storyContainers = storyJs.flatMap((rel) => {
+  const text = decomment(read(`stories/${rel}`));
+  const out = [];
+  for (let at = text.indexOf(PHONE_STEP); at >= 0; at = text.indexOf(PHONE_STEP, at + 1)) {
+    const body = blockAt(text, at + PHONE_STEP.length);
+    for (const m of body.matchAll(/(?:^|[;{}\n])\s*([^{}@;]+?)\s*\{([^{}]*)\}/g)) {
+      if (!/--tap-clear-[xy]\s*:/.test(m[2])) continue;
+      for (const sel of m[1].split(',')) {
+        out.push({ selector: sel.trim(), body: m[2], where: `stories/${rel}` });
+      }
+    }
+  }
+  return out;
+});
+
+test('a specimen that declares the phone clearance is found and names a token', () => {
+  assert.ok(
+    storyContainers.length >= 2,
+    `The story sweep found ${storyContainers.length} specimen containers declaring `
+    + '--tap-clear-x or --tap-clear-y at the phone step. The Drawers page declares two, so a '
+    + 'count below that is a scan that stopped seeing the shape it reads — and the browser '
+    + 'half below would then hold nothing to the floor while still reporting green.',
+  );
+  for (const { selector, body, where } of storyContainers) {
+    assert.match(
+      body, /var\(--tap-(min|gap|aa)\)/,
+      `${where} declares a clearance on ${selector} in hand-written pixels. The floor and the `
+      + "gap are tokens the kit owns; a specimen that copies their numbers keeps its own copy "
+      + 'of them, and the two drift the first time one moves.',
+    );
+  }
+});
+
 /** The containers this sheet opens a gap on, as selectors. */
 const opened = containers
   .filter((r) => /(?:^|[;\s])(?:row-|column-)?gap\s*:\s*var\(--tap-gap\)/.test(r.body))
@@ -494,9 +563,19 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
   const browser = await (await playwright()).chromium.launch();
 
   try {
-    const at = (width, coarse, sheet) =>
+    // The exempt selectors ride along in `families` so a target can say it is on
+    // the ledger; the per-family report below still walks `carriers` alone.
+    const exempt = TAP_EXEMPT.map((e) => e.selector);
+    const specimens = storyContainers.map((c) => c.selector);
+    const at = (width, coarse, sheet, which = subjects) =>
       pass(browser, {
-        subjects, css: sheet, width, coarse, size: TAP_MIN, families: carriers, within: opened,
+        subjects: which,
+        css: sheet,
+        width,
+        coarse,
+        size: TAP_MIN,
+        families: [...carriers, ...exempt],
+        within: [...opened, ...specimens],
       });
 
     const before = await at(390, true, without);
@@ -675,6 +754,70 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       for (const sel of opened) {
         t.diagnostic(`opened ${sel}: ${seenIn.get(sel)} targets seen, ${grewIn.get(sel)} grew`);
       }
+    });
+
+    await t.test('every control inside a specimen that opened its own room reaches the floor', async () => {
+      // The gap the review of #492 found: the sheet's own containers are the
+      // only ones `within` knew about, so a new positive example whose switches
+      // measured 44x26 at 390 sat inside a green run. A specimen that declares
+      // the clearance is making a claim about a finger, and this is where the
+      // claim is checked. Not every control in the tree — the kit's own rows
+      // land in the high thirties and the guideline page says so — only the
+      // ones a specimen opened room for.
+      const onLedger = new Set(exempt);
+      const seen = new Map(specimens.map((sel) => [sel, 0]));
+      const short = [];
+      for (const b of B) {
+        for (const sel of b.within || []) {
+          if (!seen.has(sel)) continue;
+          seen.set(sel, seen.get(sel) + 1);
+          if (b.floorMiss === 0) continue;
+          // A family on the ledger carries no layer at all, and the ledger
+          // already says why; a specimen cannot answer for it.
+          if ((b.fam || []).some((f) => onLedger.has(f))) continue;
+          short.push(`${b.story} — ${name(b)} inside ${sel} reaches ${b.reach.join('x')}`);
+        }
+      }
+      for (const [sel, n] of seen) {
+        assert.ok(
+          n > 0,
+          `${sel} declares the phone clearance and no target was measured inside it. An `
+          + 'unmeasured subject is a failure here: the selector was renamed, or the story that '
+          + 'rendered it stopped rendering, and either way this check now holds nothing.',
+        );
+        t.diagnostic(`specimen ${sel}: ${n} targets measured, all at the floor`);
+      }
+      assert.deepEqual(
+        short, [],
+        `${short.length} control(s) sit inside a specimen that declares the phone clearance and `
+        + `still do not reach ${TAP_MIN}x${TAP_MIN}. The container opened the room and the layer `
+        + 'did not take it: check that the control is on the carrier list in '
+        + `${SHEET}, and that the clearance is at least ${TAP_MIN} minus the control's PADDING `
+        + 'box, which is smaller than it draws wherever it has a border.',
+      );
+    });
+
+    await t.test('this gate rejects a specimen whose clearance is taken away', async () => {
+      // The mutation: the Drawers page before the review of #492 — the same
+      // rows, packed, with no clearance declared. The check above has to fail
+      // on it or it is checking nothing.
+      let cut = 0;
+      const shut = subjects.map((s2) => {
+        const html = s2.html.replace(/--tap-clear-[xy]:\s*var\(--tap-(?:min|gap|aa)\);?/g, '');
+        if (html !== s2.html) cut++;
+        return { ...s2, html };
+      });
+      assert.ok(cut > 0, 'The mutation reached no subject, so it proves nothing.');
+      const mutated = flatten((await at(390, true, withCss, shut)).rows);
+      const missing = mutated.filter((m) => (m.within || []).some((sel) => specimens.includes(sel)))
+        .filter((m) => m.floorMiss > 0);
+      assert.ok(
+        missing.length > 0,
+        'Taking every specimen clearance out of the markup left every control inside those '
+        + 'containers at the floor, which means the check above would pass over the defect it '
+        + 'was written for.',
+      );
+      t.diagnostic(`${cut} subject(s) stripped; ${missing.length} target(s) then miss the floor — the check rejects it`);
     });
 
     await t.test('a zone sized to the floor with the gaps shut is rejected', async () => {
