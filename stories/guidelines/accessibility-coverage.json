@@ -110,6 +110,14 @@
       ]
     },
     {
+      "file": "react/src/FileDrop.test.tsx",
+      "name": "React: File drop",
+      "does": "Checks the resting row, the picker opened from the button, chosen and dropped files, a drag that carries no file, the target a parent drives, the progress bar's name and value, the uploaded and failed states with their retry and remove actions, and a disabled drop that accepts nothing.",
+      "blind": [
+        "JSDOM does not open the system picker, so the choice is simulated. It does not measure the drop target's cover, the focus ring or contrast, and it reads live-region markup rather than spoken screen-reader output; the kit does not announce the change from uploading to uploaded."
+      ]
+    },
+    {
       "file": "react/src/Timeline.test.tsx",
       "name": "React: Timeline",
       "does": "Checks ordered-list semantics, timestamps, event order, keyboard undo and axe violations.",
@@ -676,6 +684,17 @@
         "One engine and one theme. A pseudo-element on a form control is a browser behaviour, not a standard, and Firefox and Safari are not measured here.",
         "Collisions are compared as a set of pairs rather than as coordinates, because opening a row’s gap moves the controls in it. A pair that merely moves to a different pixel of the same two controls is not reported.",
         "Two controls whose drawn boxes already overlap are left out, so a layout defect that predates the zone is not reported as one the zone caused."
+      ]
+    },
+    {
+      "file": "stories/row-height.test.js",
+      "name": "File drop row height",
+      "does": "Reads the sheet for the eight declarations the file row’s layout depends on — the stack, the name line’s refusal to wrap, the stem’s ellipsis, the extension’s refusal to shrink, the facts tier’s refusal to wrap, the full-width track and the resting row’s floor — with a mutation per declaration, and checks that no container query or display:none has come back. Under ROW_HEIGHTS=1 it measures every file drop row in a browser at 1280, 390 and 320 — the vanilla guideline specimens and the React component’s own built markup, seven states including two with a name no width can hold — and checks that no tier takes a second line, that the extension is never clipped, that the track is the width of the row it reports on, that a truncated name keeps 150px in a panel-width row, that a resting row is 32px at 1280, and that each state draws the tier count recorded for it.",
+      "blind": [
+        "The browser half is off unless ROW_HEIGHTS=1 and a Playwright is resolvable, so CI runs the source half alone and the measurement is reported by hand in the pull request, as the tap-zone gate’s is.",
+        "Heights, widths, tier counts and line counts only: not colour, not the focus ring, and not whether a truncated stem still reads. The tier counts are a recorded table, not a derivation, so a state that gains or loses a tier fails here and is reviewed by hand.",
+        "One engine and one theme, and react/dist rather than the source.",
+        "The 150px name floor is asked only of a row at least 280px wide, because a guideline specimen nests its frame and panel inside Storybook’s stage and is narrower than the viewport it is measured at; the floor is therefore proved on the component’s own markup."
       ]
     },
     {

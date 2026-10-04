@@ -38,7 +38,7 @@
         "pattern": "--tap-gap: var(--space-5, 20px);"
       },
       {
-        "ref": "src/styles/tap-zone.css:146",
+        "ref": "src/styles/tap-zone.css:155",
         "pattern": ".ui-confirm__acts,"
       }
     ],
@@ -839,6 +839,70 @@
       {
         "ref": "src/components/index.js:280",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
+      }
+    ]
+  },
+  "_file-drop.js": {
+    "one-row": [
+      {
+        "ref": "src/styles/file-drop.css:8",
+        "pattern": ".ui-drop__row {"
+      },
+      {
+        "ref": "react/src/FileDrop.tsx:108",
+        "pattern": "className=\"ui-drop__row\""
+      }
+    ],
+    "on-drag": [
+      {
+        "ref": "src/styles/file-drop.css:67",
+        "pattern": ".ui-drop__target {"
+      },
+      {
+        "ref": "react/src/FileDrop.tsx:158",
+        "pattern": "className=\"ui-drop__target\""
+      }
+    ],
+    "in-the-row": [
+      {
+        "ref": "src/styles/file-drop.css:26",
+        "pattern": ".ui-drop__file {"
+      },
+      {
+        "ref": "react/src/FileDrop.tsx:141",
+        "pattern": "role=\"progressbar\""
+      }
+    ],
+    "failure": [
+      {
+        "ref": "src/styles/file-drop.css:49",
+        "pattern": ".ui-drop__error"
+      },
+      {
+        "ref": "react/src/FileDrop.tsx:118",
+        "pattern": "status === 'error' && onRetry"
+      }
+    ],
+    "button-path": [
+      {
+        "ref": "react/src/FileDrop.tsx:148",
+        "pattern": "input.current?.click()"
+      }
+    ],
+    "limits-once": [
+      {
+        "ref": "react/src/FileDrop.tsx:149",
+        "pattern": "className=\"ui-drop__note\""
+      }
+    ],
+    "which-shape": [
+      {
+        "ref": "src/styles/file-drop.css:6",
+        "pattern": ".ui-drop > * + .ui-drop__row"
+      },
+      {
+        "ref": "react/src/FileDrop.tsx:107",
+        "pattern": "{children}"
       }
     ]
   }

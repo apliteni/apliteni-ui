@@ -49,8 +49,9 @@ const src = path.resolve(here, '..');
 // `.ui-app__search-ic svg` sizes the magnifier on the topbar layout's search
 // field, a width and a height — the palette's own box and stroke, so the trigger
 // and the thing it opens are not two search marks); 72 (#339: the xs Button
-// glyph adds a width and a height).
-const EXPECTED_SUBJECTS = 74;
+// glyph adds a width and a height); 74 (#507: `.ui-drop__state svg` sizes the
+// circled mark beside an upload's word, a width and a height in one rule).
+const EXPECTED_SUBJECTS = 76;
 
 const SHEETS = kitSheetNames(src);
 

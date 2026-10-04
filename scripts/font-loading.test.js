@@ -106,7 +106,10 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
 // and scripts/evidence/scroll.mjs, which adds the same link to the React Storybook
 // build it shoots the modal off — react.mjs's reason, and react.mjs's own entry
 // above is the same line.
-const EXPECTED_LOADERS = 18;
+// The nineteenth is scripts/evidence/file-drop.mjs, the #507 shot producer: it
+// writes its own page rather than serving a committed one, so the link is in the
+// script. Same two families, for the same reason as every rig above.
+const EXPECTED_LOADERS = 19;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

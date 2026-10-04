@@ -1,0 +1,83 @@
+/* File drop — .ui-drop. One row at rest; the field-sized box stays with .ui-file.
+ * why: docs/specification.md#react-file-drop */
+.ui-drop { position: relative; }
+
+/* What the region accepts the file for, above the control. */
+.ui-drop > * + .ui-drop__row { margin-top: var(--space-3); }
+
+.ui-drop__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* One height at rest, whichever control is in it: the picker button carries a
+     glyph and a note beside it does not. */
+  min-height: var(--space-8);
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.ui-drop__note { margin: 0; }
+
+/* The file in hand is a stack, not a line: the name owns the top tier, what the
+   page has a rule about sits under it, and the track runs the width below both.
+   One line asked to carry all three truncates the name to nothing at 320. */
+.ui-drop__file { display: grid; flex: 1 1 auto; gap: var(--space-2); min-width: 0; }
+
+/* The name tier. Never wraps: the actions stay on the name's line at every
+   width, and the name gives way to them by truncating. */
+.ui-drop__line { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--space-3); min-width: 0; }
+
+/* The extension is the half that says what kind of file this is, so the stem
+   gives way and the tail never does — `frankfurt-settlement-state….pdf`, the
+   way Finder, Drive and Dropbox cut a name. */
+.ui-drop__name { display: flex; flex: 1 1 auto; min-width: var(--space-10); color: var(--strong); font-weight: var(--weight-medium); }
+.ui-drop__stem { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-drop__ext { flex: none; }
+
+/* The facts tier: the size while it uploads, the message when it fails. Never
+   wraps either — a second tier of text here would be a third tier on the row. */
+.ui-drop__facts { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--space-3); min-width: 0; }
+.ui-drop__size { flex: none; white-space: nowrap; }
+.ui-drop__word { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 0 1 auto; min-width: 0; }
+
+/* A status the track does not already draw is a circled mark and a word,
+   because colour alone is not a status. */
+.ui-drop__state { display: inline-flex; flex: 0 1 auto; align-items: center; gap: var(--space-2); min-width: 0; }
+.ui-drop__state svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
+.ui-drop__error { color: var(--pink); }
+
+/* Closes the name's line on the edge the content ends on, in every state. */
+.ui-drop__actions { display: flex; flex: none; align-items: center; gap: var(--space-2); margin-left: auto; }
+
+/* The width of the row it reports on, so 40% reads as 40% rather than as a dash.
+   The ground is the kit's token for sunken tracks; --surface-3 was invisible. */
+.ui-drop__bar {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2); /* ring-gap: inherit — a progress track holds no focus target. */
+  overflow: hidden;
+}
+.ui-drop__bar span { display: block; height: 100%; background: var(--accent); }
+
+/* Covers the region rather than joining it, so the row keeps its place. */
+.ui-drop__target {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--surface); /* ring-gap: inherit — the target is painted while a file is over the region and holds no focus target. */
+  color: var(--strong);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.ui-drop.is-disabled .ui-drop__row { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
+.ui-drop.is-disabled .ui-drop__name { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
