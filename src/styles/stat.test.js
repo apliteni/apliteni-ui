@@ -16,6 +16,7 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^
 const RAW = readFileSync(path.join(here, 'stat.css'), 'utf8');
 const CSS = decomment(RAW);
 const SPEC = readFileSync(path.join(here, '../../docs/specification.md'), 'utf8');
+const TOKENS = readFileSync(path.join(here, '../tokens/tokens.css'), 'utf8');
 
 const rules = [...CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
   .filter((m) => !m[1].trim().startsWith('@'))
@@ -39,10 +40,13 @@ test('a figure never breaks across lines, and its digits sit on one grid', () =>
 // margins once, and every screenshot showed a value flush under its label.
 test('each part of a figure keeps the spacing its own rule gives it', () => {
   const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
-    stats: [{ label: 'Income', value: '€ 1', delta: { value: '+1%' }, trend: '<svg width="1" height="1"></svg>' }],
+    stats: [
+      { label: 'Income', value: '€ 1', delta: { value: '+1%' }, trend: '<svg width="1" height="1"></svg>' },
+      { label: 'Gross margin', value: '36.1%', caption: 'of income' },
+    ],
   })}</body></html>`).window;
   const margin = (sel) => doc.getComputedStyle(doc.document.querySelector(sel)).marginTop;
-  for (const [sel, prop] of [['.ui-stat__value', 'margin-top'], ['.ui-stat__delta', 'margin-top'], ['.ui-stat__trend', 'margin-top']]) {
+  for (const [sel, prop] of [['.ui-stat__value', 'margin-top'], ['dd.ui-stat__caption', 'margin-top'], ['.ui-stat__delta', 'margin-top'], ['.ui-stat__trend', 'margin-top']]) {
     assert.equal(margin(sel), valueOf(ruleFor(sel).body, prop), `${sel} lost its ${prop} to another rule in the sheet`);
   }
 });
@@ -57,6 +61,166 @@ test('the caption carries its space below it, because it leads the row', () => {
   assert.equal(sides.length, 3, `margin: ${margin} — expected three sides, top x bottom`);
   assert.match(sides[0], /^0(px)?$/, `the caption keeps ${sides[0]} above it, and it leads the row`);
   assert.match(sides[2], /^var\(--space-\d+\)$/, `the caption's space below it is ${sides[2]}, not a spacing step`);
+});
+
+/** A rank's size and weight, read off the table in the specification. */
+const rankOf = (name) => {
+  const m = new RegExp(`^\\|\\s*\`${name}\`\\s*\\|\\s*\`(--[\\w-]+)\`\\s*\\|\\s*\`(--[\\w-]+)\`\\s*\\|`, 'm').exec(SPEC);
+  assert.ok(m, `the specification has no rank row for ${name}`);
+  return { size: m[1], weight: m[2] };
+};
+
+// A figure's caption is a sentence under a number, so it takes the caption rank
+// and not the label's: both are 13px and only the weight separates them, and at
+// medium the caption would read as the bolder of the two lines under the value.
+// Body ink and no fill, because it is words and not a mark.
+test("a figure's caption is body ink at the caption rank, on no fill", () => {
+  const rule = ruleFor('.ui-stat__caption');
+  assert.ok(rule, '.ui-stat__caption has no rule of its own');
+  const caption = rankOf('caption');
+  assert.equal(valueOf(rule.body, 'font-size'), `var(${caption.size})`);
+  assert.equal(valueOf(rule.body, 'font-weight'), `var(${caption.weight})`,
+    `the caption is not the rank's weight — at the label's it reads as the bolder line under the value`);
+  assert.equal(valueOf(rule.body, 'color'), 'var(--text)', 'the caption is not body ink');
+  for (const prop of ['background', 'background-color', 'border', 'padding']) {
+    assert.equal(valueOf(rule.body, prop), null, `the caption sets ${prop}; it is a sentence, not a mark`);
+  }
+});
+
+/* A caption alone and a change are the one row a figure draws under its value,
+ * so the two have to be the same box or a band whose figures differ drops half
+ * its changes a line lower — measured at 26.2px before this rule, in #512's
+ * review. jsdom lays nothing out, so what is held here is the cascade behind
+ * that box: the step down to the row and the two things that set its line box.
+ * It does not measure the rendered tops, which is why the band is also drawn
+ * mixed in the showcase. */
+test('a caption alone and a change take the same row box, so a mixed band keeps one line', () => {
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+    basis: 'Against last year',
+    id: 'mixed',
+    stats: [
+      { label: 'Gross margin', value: '36.1%', caption: 'of income' },
+      { label: 'Income', value: '€ 1', delta: { value: '+47.1%' } },
+    ],
+  })}</body></html>`).window;
+  const [cap, delta] = ['.ui-stat__caption', '.ui-stat__delta'].map((sel) => doc.getComputedStyle(doc.document.querySelector(sel)));
+  for (const prop of ['marginTop', 'fontSize', 'lineHeight']) {
+    assert.equal(cap[prop], delta[prop],
+      `the caption's ${prop} is ${cap[prop]} and the change's is ${delta[prop]}, so one sits lower than the other`);
+  }
+  assert.ok(cap.marginTop && cap.fontSize && cap.lineHeight, 'the cascade resolved nothing, so this compared two blanks');
+});
+
+/* The one-row guarantee in src/components/stat.test.js is a markup guarantee: it
+ * counts <dd>s, and a row that wrapped would still be one. This is the other
+ * half — the row is one LINE. A change that wrapped put its arrow at the end of
+ * one line and its number at the start of the next, and a caption long enough to
+ * wrap dropped its own change 20.1px below the changes beside it, measured in
+ * #512's re-review at 32 characters in a 296px tile.
+ *
+ * jsdom lays nothing out, so what is held here is the cascade that makes the
+ * line unbreakable: the row does not wrap, the arrow and the number cannot give
+ * way, and the words can. It does not measure a rendered width — the showcase
+ * draws a caption past the tile's width for that. */
+test('a change is one line: the arrow keeps its number, and the words clip instead', () => {
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+    stats: [{ label: 'Operating margin', value: '12.4%', caption: 'of income before tax and refunds', delta: { value: '+1.2 pts', basis: 'against the 40% target' } }],
+  })}</body></html>`).window;
+  const style = (sel) => doc.getComputedStyle(doc.document.querySelector(sel));
+  assert.equal(style('.ui-stat__delta').flexWrap, 'nowrap', 'the change can wrap, so its arrow can land on a line without its number');
+  for (const sel of ['.ui-stat__delta svg', '.ui-stat__change']) {
+    // `flex: none` resolves to its longhands; the middle one is what matters.
+    assert.equal(style(sel).flexShrink, '0', `${sel} can give way, and then the number it belongs to moves`);
+  }
+  for (const sel of ['.ui-stat__delta .ui-stat__caption', '.ui-stat__basis']) {
+    const got = style(sel);
+    assert.equal(got.minWidth, '0px', `${sel} cannot shrink, so a long one widens the row instead of clipping`);
+    assert.equal(got.overflow, 'hidden', `${sel} spills out of the figure`);
+    assert.equal(got.textOverflow, 'ellipsis', `${sel} is cut with no mark that it was cut`);
+    assert.equal(got.whiteSpace, 'nowrap', `${sel} takes a second line of its own`);
+  }
+  // Clipping is CSS, so the whole string a caller passed is still in the markup
+  // for a screen reader and for a copy. This is what makes clipping acceptable.
+  assert.equal(doc.document.querySelector('.ui-stat__caption').textContent, 'of income before tax and refunds');
+  // And clipping has to be what happens. A figure is never narrower than its own
+  // content, so a line free to size itself widens the figure and takes the room
+  // from the figures beside it rather than giving way. Measured in Chrome before
+  // these three: a 39-character caption made its tile 363px beside 263px
+  // neighbours; after them every tile is 288px and the caption clips.
+  for (const sel of ['.ui-stat__delta .ui-stat__caption', '.ui-stat__basis']) {
+    const got = style(sel);
+    assert.equal(got.width, '0px', `${sel} starts from its own text, so its text sets the figure's width`);
+    assert.equal(got.maxWidth, 'max-content', `${sel} grows past its own text and pushes the change away`);
+    assert.equal(got.flexGrow, '1', `${sel} never reaches its own text, because nothing grows it`);
+  }
+  // The lone caption is a block, not a flex item, so it is bounded the other way.
+  const alone = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+    stats: [{ label: 'Gross margin', value: '36.1%', caption: 'March revenue in EUR, excluding refunds' }],
+  })}</body></html>`).window;
+  assert.equal(alone.getComputedStyle(alone.document.querySelector('dd.ui-stat__caption')).contain, 'inline-size',
+    'a caption alone sizes its figure by its text instead of being sized by it');
+});
+
+/* One row holds words and nothing else: a caption with no change beside it. It
+ * has no arrow and no number to keep together, which is the only reason the clip
+ * exists, so it is not clipped — a second line costs nobody anything and losing
+ * words costs the reader the whole point of them. The clip reached it once, and
+ * 43% of a caption went.
+ *
+ * Measured on the elements themselves rather than on the row around them: a test
+ * that read the row's `flex-wrap` passed while the caption inside it could not
+ * break. jsdom lays nothing out, so what this holds is which rules reach which
+ * element; the showcase draws a caption past the width in both rows for the rest. */
+test('a caption standing alone keeps every word, and the change row clips', () => {
+  const win = (stats) => new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({ stats })}</body></html>`).window;
+  const LONG = 'March revenue in EUR, excluding refunds';
+  const alone = win([{ label: 'Gross margin', value: '36.1%', caption: LONG }]);
+  const clipped = win([{ label: 'Net margin', value: '8.0%', caption: LONG, delta: { value: '+0.4 pts' } }]);
+  const styleOf = (w, sel) => w.getComputedStyle(w.document.querySelector(sel));
+
+  const standing = styleOf(alone, 'dd.ui-stat__caption');
+  assert.notEqual(standing.whiteSpace, 'nowrap', 'a caption alone cannot break, so a long one is cut rather than wrapped');
+  assert.notEqual(standing.overflow, 'hidden', 'a caption alone is clipped, and it has no arrow to keep beside a number');
+
+  // The control: the same string in the row that does hold a change still clips,
+  // so the scoping above did not simply switch the clip off.
+  const inRow = styleOf(clipped, '.ui-stat__delta .ui-stat__caption');
+  assert.equal(inRow.whiteSpace, 'nowrap', 'the caption beside a change may break, and then the change drops below its neighbours');
+  assert.equal(inRow.overflow, 'hidden', 'the caption beside a change is not clipped');
+});
+
+/* The band's caption governs every figure and a figure's caption governs one,
+ * so the wider statement is never set smaller. Both sit on the caption rank;
+ * this reads the px behind the tokens so a later edit to either one fails. */
+test("the band's caption is never set under a caption inside one figure", () => {
+  const size = (rule) => {
+    const token = /var\((--[\w-]+)\)/.exec(valueOf(rule.body, 'font-size') ?? '');
+    assert.ok(token, `${rule.selector} does not set its font-size from a token`);
+    const px = new RegExp(`${token[1]}\\s*:\\s*([\\d.]+)px`).exec(TOKENS);
+    assert.ok(px, `${token[1]} is not a px value in src/tokens/tokens.css`);
+    return Number(px[1]);
+  };
+  const band = size(ruleFor('.ui-stats__basis'));
+  const figure = size(ruleFor('.ui-stat__caption'));
+  assert.ok(band >= figure,
+    `the band's caption is ${band}px and a figure's is ${figure}px, so the eye lands on one figure's words first`);
+});
+
+// The two tests above hold which parts a tone paints. This holds that the
+// caption is not one of them: it reports no change, so there is no news to colour.
+test('no tone reaches a figure\'s caption', () => {
+  const painted = rules.filter((r) => r.selector.includes('.ui-stat__caption') && /color/.test(r.body));
+  assert.deepEqual(painted.map((r) => r.selector), ['.ui-stat__caption'],
+    'a second rule colours the caption, and the only colour it takes is body ink');
+  // Leading a change, the caption sits inside the element a tone paints, so the
+  // rule above is not enough on its own: this is the cascade resolved.
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+    variant: 'band',
+    stats: [{ label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } }],
+  })}</body></html>`).window;
+  const colour = (sel) => doc.getComputedStyle(doc.document.querySelector(sel)).color;
+  assert.equal(colour('.ui-stat__caption'), 'var(--text)', 'the figure\'s tone painted the caption beside the change');
+  assert.equal(colour('.ui-stat__delta'), 'var(--chip-success-ink)', 'the tone stopped reaching the change, so this compared nothing');
 });
 
 test('a figure is never narrower than its value, so a band wraps rather than overlaps', () => {

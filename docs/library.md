@@ -138,7 +138,7 @@ documentation page: no `aria-modal`, no wiring, no Escape.
 
 | Name | What it is |
 |------|------------|
-| `statBand({ stats, variant, basis, label, id })`, with `STAT_VARIANTS`, `STAT_TONES` | A row of key figures as a `<dl>`. `basis` is what every change is measured against; the kit draws no chart. See [Stat bands](specification.md#stat-bands). |
+| `statBand({ stats, variant, basis, label, id })`, with `STAT_VARIANTS`, `STAT_TONES` | A row of key figures as a `<dl>`. Each figure is `{ label, value, caption, delta, trend }`, where `caption` is context that is not a change. `basis` is what every change is measured against; the kit draws no chart. See [Stat bands](specification.md#stat-bands). |
 | `numericValue({ value, unit, missing })`, `deltaValue({ value, tone, basisId })` | Inline value and inline change. Colour never supplies the sign. |
 | `rowIdentity({ symbol, name, logo, href })` + `initRowIdentity(root)` | A company identity cell; failed images reveal the letter fallback. |
 | `formatNumericValue(…)`, `formatDeltaValue(…)` | The same two decisions as plain text, shared with React. |

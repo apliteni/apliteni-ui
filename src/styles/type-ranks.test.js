@@ -159,9 +159,10 @@ const RULES = notedRules(SHEETS);
  * Guidelines / The page — the first note outside the kit's own sheets. 14 again
  * under #429, which dropped the confirmation's eyebrow: a confirmation carries
  * one title and at most one line, so .ui-sx__eyebrow and its note are gone and
- * six labels are left. Move it in the commit that adds or drops a note, and say
- * which. */
-const EXPECTED_NOTES = 14;
+ * six labels are left. 15 at #497, which put the stat band's own caption on the
+ * caption rank so a figure's caption could not outrank it. Move it in the commit
+ * that adds or drops a note, and say which. */
+const EXPECTED_NOTES = 15;
 
 test('the table has its six ranks and every one is taken', () => {
   assert.deepEqual(RANKS.map((r) => r.name),

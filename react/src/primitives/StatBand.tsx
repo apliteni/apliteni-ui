@@ -16,12 +16,15 @@ export interface StatDelta {
   basis?: string;
   tooltip?: string;
   direction?: 'up' | 'down' | 'flat';
-  none?: string;
 }
 
 export interface StatFigure {
   label: string;
   value: ReactNode;
+  /** Context that is not a change, such as "of revenue": no arrow, no tone. It
+   *  takes the row a change would take, and leads that row beside one. A short
+   *  phrase: the row is one line, and a longer caption is clipped. */
+  caption?: string;
   delta?: StatDelta;
   trend?: ReactNode;
 }
@@ -44,18 +47,23 @@ const directionOf = (text: string) => {
 };
 const hasChange = (d?: StatDelta): d is StatDelta & { value: string } => !!d && d.value != null && d.value !== '';
 
-function Delta({ delta, basisId }: { delta: StatDelta; basisId?: string }) {
-  if (!hasChange(delta)) {
-    return <dd className="ui-stat__delta ui-stat__delta--none">{delta.none || 'No earlier figure'}</dd>;
-  }
+// The row under the value, as the factory builds it, in one line: the caption,
+// the change, then what the change is measured against.
+// why: docs/specification.md#stat-bands
+function ContextRow({ caption, delta, basisId }: { caption?: string; delta?: StatDelta; basisId?: string }) {
+  if (!hasChange(delta)) return caption ? <dd className="ui-stat__caption">{caption}</dd> : null;
+  // The trailing space is read, where the gap beside it is only drawn.
+  const lead = caption ? <><span className="ui-stat__caption">{caption}</span>{' '}</> : null;
   const dir = delta.direction && GLYPH[delta.direction] ? delta.direction : directionOf(delta.value);
+  const own = delta.basis || '';
   return (
-    <dd className="ui-stat__delta" aria-describedby={!delta.basis && basisId ? basisId : undefined}>
+    <dd className="ui-stat__delta" aria-describedby={!own && basisId ? basisId : undefined}>
+      {lead}
       <Icon name={GLYPH[dir]} />
       {delta.tooltip
         ? <Tooltip text={delta.tooltip}><span className="ui-stat__change">{delta.value}</span></Tooltip>
         : <span className="ui-stat__change">{delta.value}</span>}
-      {delta.basis ? <>{' '}<span className="ui-stat__basis">{delta.basis}</span></> : null}
+      {own ? <>{' '}<span className="ui-stat__basis">{own}</span></> : null}
     </dd>
   );
 }
@@ -77,7 +85,7 @@ export function StatBand({ stats, variant = 'tiles', basis, basisId: sharedBasis
             <div className={cls} key={`${s.label}-${i}`}>
               <dt className="ui-stat__label">{s.label}</dt>
               <dd className="ui-stat__value">{s.value}</dd>
-              {s.delta ? <Delta delta={s.delta} basisId={basisId} /> : null}
+              <ContextRow caption={s.caption} delta={s.delta} basisId={basisId} />
               {s.trend ? <dd className="ui-stat__trend">{s.trend}</dd> : null}
             </div>
           );
