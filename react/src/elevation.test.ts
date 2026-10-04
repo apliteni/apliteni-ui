@@ -82,9 +82,11 @@ describe('elevation', () => {
       floating += got.floating;
     }
     expect(offences).toEqual([]);
-    // Both themes are walked, so the modal's one declaration is counted twice.
-    // This workspace ships no card and no rail of its own — it reads the kit's
-    // sheets for both — so the floating rung is the only one it writes.
+    // Both themes are walked, so the modal's one declaration is counted twice. This
+    // workspace ships no card and no rail of its own — it reads the kit's sheets
+    // for both — so the floating rung is the only one it writes. #531 adds nothing
+    // here: a focused body answers with an outline, which is not a layer of the
+    // shadow list, so the modal never has to re-state the rung it rests on.
     expect(floating).toBe(2);
   });
 

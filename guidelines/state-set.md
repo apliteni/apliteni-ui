@@ -12,7 +12,7 @@
 
 **Don't:** Give the input a separate muted outline while the button uses `--ring`.
 
-**Except:** Text-entry controls may match `:focus-visible` on mouse focus. Surface backgrounds set the gap colour and recompose `--ring`; adjust width and colour at the root.
+**Except:** A scroll region inside a surface takes `--ring-scroll`: the same 1px gap and 2px band, drawn inward, without the halo. `--ring` is drawn for a 32px control, where the halo is a glint; around a 400px region it spreads 14px past the band and lights the surface instead of the box that scrolls. A box that is itself the outermost surface — a panel, a card — keeps `--ring`. Text-entry controls may match `:focus-visible` on mouse focus. Surface backgrounds set the gap colour and recompose `--ring`; adjust width and colour at the root.
 
 ## Busy controls
 

@@ -935,12 +935,24 @@ comparing the three glow treatments. Glow alone did not reach 3:1 in that eviden
 --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),
         0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color),
         0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+--ring-scroll: var(--ring-width) solid var(--ring-color);
+--ring-scroll-offset: calc(-1 * (var(--ring-gap-width) + var(--ring-width)));
 ```
 
 `--ring` remains a composed shadow for `box-shadow: var(--ring)` consumers.
 Tune the width, colour and gap at `:root`, or at a surface that composes the ring.
 A descendant-only change to one of those inputs cannot alter an already inherited
 shadow: CSS resolves custom-property references where the composition is declared.
+
+`--ring-scroll` is the indicator a SCROLL REGION inside a surface takes: the same 1px
+gap and 2px band, drawn inward, and no halo. It is an `outline` rather than a shadow,
+and `--ring-scroll-offset` is what draws it inward — take the one without the other and
+the band is painted outside the box. Both are declared once, at `:root`, and recomposed
+nowhere, because neither reads `--ring-gap` or any other token a surface re-points: the
+band leaves its 1px gap UNPAINTED, so the gap is whatever surface the region is already
+standing on. Tune it where you tune `--ring`; it is built from the same `--ring-width`,
+`--ring-color` and `--ring-gap-width`. Gates hold the offset on every consumer and hold
+the tokens clear of the surface colours.
 
 Every kit surface that paints `--bg-elevated`, including surfaces using a local
 alias and the React modal, sets `--ring-gap` to its background and recomposes
@@ -973,7 +985,9 @@ fields. Text-entry controls can match it on mouse focus because the browser expe
 keyboard input there; this is not a promise of keyboard-only rings. Invalid borders
 keep their error colour while focus uses the shared band. No JavaScript modality
 tracker is required. Every shared-ring consumer retains a transparent 2px outline,
-which becomes a visible system outline when forced colours remove box shadows.
+which becomes a visible system outline when forced colours remove box shadows. A
+`--ring-scroll` consumer owes none: its band already is a real outline, and that is what
+the system repaints.
 
 **Every focusable control the kit ships draws it.** The ring is not opt-in: a control
 this kit styles is a control it gives a focus rule, so none falls back to the browser's
@@ -1000,13 +1014,51 @@ loses.
 
 **A box that scrolls is a control.** A browser gives a scroll container a keyboard stop
 of its own, with no `tabindex` and no author rule, so an overflowing box needs the ring
-as much as a button does. The kit's scrolling table wrapper, dropdown panel and snippet
-code region carry it; the code region's ring is painted on the card around it, because
-the `pre` is flush with that card on three sides and has no radius of its own, so a ring
-drawn on the box itself overhung the rounded corners. The gate discovers every box the
-kit makes scrollable and holds the list, so a new one is triaged rather than shipping
-with the browser's outline; the boxes still without a ring are named in that list and
-tracked on [#531](https://github.com/apliteni/apliteni-ui/issues/531).
+as much as a button does — unless its own children are keyboard-focusable, in which case
+it is given no stop, because the keyboard already reaches into it. Every scrolling box
+the kit ships is one or the other, and
+[#531](https://github.com/apliteni/apliteni-ui/issues/531) settled which.
+
+Eight carry the ring, and they draw one of two pictures.
+
+**Seven are scroll regions inside a surface** and take `--ring-scroll`: the scrolling
+table wrapper, a card around a table, a dropdown's search list, a drawer's body, a
+confirm's consequence, the command palette's list, and React's modal body. Each draws
+the band on itself. Artur chose that picture on #531 after the kit's own `--ring` was
+measured around these boxes: drawn for a 32px control, its halo spreads 14px past the
+band, which on a 400px region lights the surface rather than the box that scrolls. Three
+of the seven also could not have drawn an outset ring at all — the drawer's body is
+flush with a panel that is flush with a screen edge, the palette's list sits inside a
+panel that clips, and the dropdown's list sits 6px inside a 16px corner.
+
+The band is an `outline` and not a `box-shadow`, which is what makes it survive the
+scroll it is drawn for: an inset shadow is painted under a box's own children, so a
+table scrolled sideways under one erases the band — measured in Chrome at scrollLeft
+300, where the left and right sides went. An outline is painted over the children, stays
+on the border box while content scrolls beneath it, and follows the radius. A region
+needs its own room for the band to land in rather than on its glyphs: the drawer's body
+has 20px of padding, the modal's 16px, the palette's list 8px, the dropdown's rows 9px,
+the card 24px, and a confirm's consequence carries `--space-1` for it.
+
+**One keeps `--ring` on the box AROUND the scroller:** a snippet's code region, which is
+flush with its card on three sides and has no radius of its own, so a ring drawn on it
+overhung the rounded corners and cut a line across the card. That card is the outermost
+box, where the halo falls on the page rather than on a surface of its own. A delegated
+ring is one indicator and not two: the scroller keeps the transparent outline that
+suppresses the browser's own, and drops it under `forced-colors: active`, where the
+card's outline is the one the system repaints. The dropdown panel is the eighth, and
+keeps `--ring` for the same reason — it is itself the outermost box.
+
+Two boxes are not a keyboard stop at all and carry no ring: the underline tab strip and
+the application rail, each of which holds its own tabbable rows and overflows only once it
+holds more of them than fit.
+
+The gate discovers every box the kit makes scrollable and holds both lists exactly, with
+the reason beside each entry, so a new overflowing box is triaged rather than shipping
+with the browser's outline. A box excused as no stop is also rendered from its own
+factory and checked to still hold a tabbable row. What each ringed box DRAWS is resolved
+from the source separately, in both themes and both accents: a region that stops drawing
+the band, or a box around one that starts drawing a second indicator, fails there.
 
 The solid band's unchanged colour is still held at 4.22:1 against the story-derived
 flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel

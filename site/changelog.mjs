@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.77.0', date: '2026-10-04',
+    changes: [
+      ['fixed', 'Every box the kit scrolls now answers the keyboard with a focus indicator of the kit\u2019s own instead of the browser\u2019s outline. A card around a table, a scrolling table wrapper, a dropdown\u2019s search list, a drawer\u2019s body, a confirm\u2019s consequence, the command palette\u2019s list and the React modal\u2019s body took that outline \u2014 black in both themes and blind to the accent \u2014 because a browser makes an overflowing box a keyboard stop with no `tabindex` and no author rule. The underline tab strip and the application rail stay as they are, and now say why: each holds its own tabbable rows, so the browser gives the scrolling box no stop of its own. Nothing is drawn differently until a box takes focus. Closes #531.', ['Card', 'Table', 'Dropdown', 'Drawer', 'Confirm', 'CommandPalette', 'Modal', 'Shell']],
+      ['added', '`--ring-scroll` is what a scroll region inside a surface draws: the shared ring\u2019s own 1px gap and 2px band, drawn inward, without the halo. `--ring` is built for a 32px control, where that halo is a glint; around a 400px scroll region it spreads 14px past the band and lights the surface rather than the box that scrolls. Take it with `--ring-scroll-offset`, which is what draws it inward \u2014 the band paints outside the box without it. Tune it where you tune `--ring`: it is the same width, ink and gap width. A box that is itself the outermost surface, such as a floating panel, keeps `--ring`. See #531.'],
+      ['changed', 'A confirm\u2019s consequence carries `--space-1` of padding, so its focus band clears the glyphs the way a scrolling table\u2019s does. The text moves 4px; nothing else does.', ['Confirm']],
+      ['changed', 'A scrolling table wrapper draws the inward band instead of the full ring, with the six scroll regions beside it. It is a scroll region inside a card like the rest, and was the one left spending a halo across the card around it.', ['Table']],
+    ],
+  },
+  {
     v: '0.76.1', date: '2026-10-04',
     changes: [
       ['fixed', 'In the dark theme a disabled field and a disabled button draw a fainter edge than a live one, so the box reports the state and not only the words. `--disabled-border` resolved to the same hairline as `--field-edge` and `--control-edge`, leaving an unavailable field identical to an available one; it now drops a rung, to `--surface-3`. Light already drew the two states apart and is unchanged. If your CSS reads `--disabled-border`, expect the new value in dark. Fixes #564.', ['Inputs', 'Button']],

@@ -10,7 +10,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import {
-  focusRules, focusSubject, judgeStops, keyboardStops, paintsOf, selectorList,
+  focusRules, focusSubject, judgeStops, keyboardStops, paintsOf, ringRulesFor,
+  selectorList,
 } from './focus-walk.js';
 
 const subject = (selector) => focusSubject(selector);
@@ -78,6 +79,14 @@ test('what a rule paints: the ring, a visible outline, another shadow, or nothin
   assert.equal(paintsOf('box-shadow: var(--ring), var(--elev-drop);').ring, true);
   assert.equal(paintsOf('box-shadow: var(--ring) !important;').ring, true);
   assert.equal(paintsOf('box-shadow: none;').shadow, null);
+  // #531: a scroll region draws the same gap and band inward, as an OUTLINE, so the
+  // region's own children cannot paint over it. It is the ring AND a real outline, and
+  // a reading that saw only one of those would call the region unringed or call it
+  // owing a transparent outline it has no room for.
+  assert.deepEqual(paintsOf('outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset);'),
+    { ring: true, outline: null, shadow: null });
+  // And not any outline: a muted one of a control's own is what the rule forbids.
+  assert.equal(paintsOf('outline: 1px solid var(--control-edge);').ring, false);
 });
 
 const dom = (html) => new JSDOM(`<!doctype html><html><body>${html}</body></html>`).window.document.body;
@@ -125,4 +134,43 @@ test('a selector this reading cannot match is reported, not silently dropped', (
     paints: { ring: true, outline: null, shadow: null },
   }]);
   assert.equal(unmatchable.length, 1, 'an unparsable subject has to surface');
+});
+
+// #531's reading: which rules answer one box's focus. Both shapes the sheets use,
+// and the cases that must NOT match, because a reader that over-matches calls a
+// bare scroller ringed.
+test('a box\'s ring is found on itself and on the box a :has() rule delegates it to', () => {
+  const rules = focusRules(`
+    .ui-table-scroll:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+    .ui-snippet :focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+    .ui-snippet:has(pre:focus-visible) { outline: 2px solid transparent; box-shadow: var(--ring); }
+    .ui-cmdk__panel:has(.ui-cmdk__list:focus-visible) { outline: 2px solid transparent; box-shadow: var(--ring), var(--elev-drop); }
+    .ui-table-scroll:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+    .ui-card:has(> .ui-table):focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+    .ui-seg--underline button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+    .ui-dropdown__item.is-active { box-shadow: inset 2px 0 0 var(--accent); }
+  `, 'fixture');
+  const answering = (selector) => ringRulesFor(selector, rules).map((r) => r.selector).sort();
+
+  // Its own rule, and the scroll ring counts as one: it is the shared ring drawn
+  // inward. Two rules reach this box in the fixture, which is also the case the
+  // reader has to return in full rather than first-match.
+  assert.deepEqual(answering('.ui-table-scroll'),
+    ['.ui-table-scroll:focus-visible', '.ui-table-scroll:focus-visible']);
+  // A subject that is an ancestor, and the ancestor the ring is delegated to.
+  assert.deepEqual(answering('.ui-snippet pre'),
+    ['.ui-snippet :focus-visible', '.ui-snippet:has(pre:focus-visible)']);
+  // Delegation by class. The kit's one delegation is by element (#474's snippet); this
+  // shape is read too, because a rule may key on either.
+  assert.deepEqual(answering('.ui-cmdk__list'),
+    ['.ui-cmdk__panel:has(.ui-cmdk__list:focus-visible)']);
+  // A `:has()` that is part of the SUBJECT rather than the delegation: the focus
+  // pseudo is outside it, so the rule paints on the box that scrolls — which is how
+  // #531 writes the card around a table.
+  assert.deepEqual(answering('.ui-card:has(> .ui-table)'),
+    ['.ui-card:has(> .ui-table):focus-visible']);
+  // The strip is not ringed by its buttons' rule, and a box nothing reaches has
+  // no answer at all.
+  assert.deepEqual(answering('.ui-seg--underline'), []);
+  assert.deepEqual(answering('.ui-drawer__body'), []);
 });

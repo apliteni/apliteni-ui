@@ -59,3 +59,29 @@ export const CollapsedForm: StoryObj<typeof Modal> = {
     );
   },
 };
+
+// The shape #531 was reported on: a body of prose and nothing focusable in it. A
+// browser makes an overflowing box a keyboard stop with no `tabindex` and no author
+// rule, so this body IS one — and until #531 it answered with the browser's own
+// outline, black in both themes. The ring is painted on the modal, because the body
+// is flush with the panel's sides, the panel clips with `overflow: hidden`, and the
+// body has no radius of its own. why: docs/specification.md#the-focus-ring
+export const LongNotice: StoryObj<typeof Modal> = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return (
+      <>
+        <Button variant="primary" onClick={() => setOpen(true)}>Open</Button>
+        <Modal open={open} title="Before you continue" onClose={() => setOpen(false)}
+          footer={<Button variant="primary" onClick={() => setOpen(false)}>I understand</Button>}>
+          {Array.from({ length: 14 }, (_, i) => (
+            <p key={i} style={{ margin: 0 }}>
+              Line {i + 1} of the notice: a plain sentence of prose, which is what makes
+              this body a scroll container and nothing inside it a keyboard target.
+            </p>
+          ))}
+        </Modal>
+      </>
+    );
+  },
+};

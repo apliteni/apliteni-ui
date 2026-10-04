@@ -188,7 +188,13 @@
 .ui-table--compact th:last-child,
 .ui-table--compact td:last-child { padding-right: var(--space-3); }
 .ui-table-scroll { overflow: auto; max-height: var(--ui-table-height, 70vh); padding: 0 var(--space-1); }
-.ui-table-scroll:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+/* The kit's first ringed scroller, and a scroll region inside a card like the rest, so
+   it draws the band inward too rather than spending a halo across the card around it.
+   It had no room of its own to draw in — the padding above is horizontal — which is the
+   second reason the band is an outline: it is painted over the rows, in the cell padding
+   of the first and last, rather than under them. #531
+   why: docs/specification.md#the-focus-ring */
+.ui-table-scroll:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-table--sticky { border-collapse: separate; border-spacing: 0; }
 .ui-table--sticky thead th { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--table-bg); --ring-gap: var(--table-bg); padding-top: var(--space-2); }
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); --ring-gap: var(--table-bg); border-right: 1px solid var(--border); }

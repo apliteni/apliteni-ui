@@ -28,7 +28,7 @@ import type { ReactElement } from 'react';
 // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
 import { STYLE_FILES } from '../../stories/lib/contrast.js';
 // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
-import { focusRules, judgeStops, failures, keyboardStops } from '../../stories/lib/focus-walk.js';
+import { focusRules, judgeStops, failures, keyboardStops, ringRulesFor, scrollingSelectors, sheetText } from '../../stories/lib/focus-walk.js';
 
 /**
  * The repository root, found by climbing from the working directory rather than
@@ -54,9 +54,10 @@ type Rule = { origin: string; selector: string; subject: string; within: boolean
 
 const kitRules: Rule[] = (STYLE_FILES as string[]).flatMap((file) => focusRules(readKit(file), file));
 const localFiles = Object.keys(import.meta.glob('./**/*.css')).sort();
-const localRules: Rule[] = localFiles.flatMap((file) => focusRules(
-  readLocal(file), `react/src/${file.replace('./', '')}`,
-));
+const localSheets = localFiles.map((file) => ({
+  file: `react/src/${file.replace('./', '')}`, css: readLocal(file),
+}));
+const localRules: Rule[] = localSheets.flatMap(({ file, css }) => focusRules(css, file));
 const rules = [...kitRules, ...localRules];
 
 /**
@@ -160,5 +161,70 @@ describe('focus ring: React stories', () => {
     const { stops } = judgeStops(document.body, without);
     const broken = failures(stops, exempt) as string[];
     expect(broken.some((line) => line.startsWith('native:') && line.includes('ui-snippet__copy'))).toBe(true);
+  });
+});
+
+// ---- #531: the scroll containers this workspace declares --------------------
+//
+// Chrome makes a scroll container a keyboard stop of its own, with no tabindex and
+// no author rule, unless its own children are keyboard-focusable. So an overflowing
+// box has the same claim on the ring as a button. The kit's eight are triaged in
+// stories/focus-ring.test.js; this workspace declares one of its own, and the sheet
+// it is in is never read there. The subject is discovered from the CSS, so a new
+// overflowing box here is triaged rather than shipping with the browser's outline.
+//
+// Separate coverage, shared calculation: `scrollingSelectors` and `ringRulesFor`
+// are the vanilla gate's reading, over this workspace's sheets.
+const RX_SCROLL_RINGED: Record<string, string> = {
+  '.rx-modal__body': 'the inward band, on the body itself. A scroll region inside a surface '
+    + 'takes --ring-scroll — the kit\'s own 1px gap and 2px band drawn inward, no halo — '
+    + 'because --ring is drawn for a 32px control and around a dialog-sized region its '
+    + 'bloom lights the dialog instead of the box that scrolls. The band lands in the '
+    + 'body\'s own 16px of padding. It is a stop whenever the caller\'s children hold no '
+    + 'control. Artur chose the picture on #531 round r30.',
+};
+
+describe('focus ring: scroll containers', () => {
+  it('every box this workspace makes scrollable is triaged', () => {
+    const scrolling = scrollingSelectors(localSheets) as string[];
+    expect(scrolling, 'a scrolling box appeared or moved — triage it here with its reason')
+      .toEqual(Object.keys(RX_SCROLL_RINGED));
+    const bare = scrolling.filter((selector) => ringRulesFor(selector, rules).length === 0);
+    expect(bare, 'a scrolling box with no ring falls back to the browser\'s outline').toEqual([]);
+    for (const [selector, why] of Object.entries(RX_SCROLL_RINGED)) {
+      expect(why.length, `${selector} needs the box its ring is painted on in prose`)
+        .toBeGreaterThanOrEqual(80);
+    }
+  });
+
+  // The band is an outline, and `outline-offset` is the whole of what draws it INWARD.
+  // A rule that takes the outline and leaves the offset paints the band outside the
+  // box — which on a body flush with a clipping panel is a band nobody sees. The kit's
+  // seven are held the same way in stories/ring-surfaces.test.js; this is React's one.
+  it('the modal body takes the scroll ring with the offset that draws it inward', () => {
+    const sheet = localSheets.find(({ file }) => file.endsWith('Modal.css'));
+    expect(sheet, 'Modal.css is not among the sheets this gate reads').toBeTruthy();
+    const rule = /\.rx-modal__body:focus-visible\s*\{([^}]*)\}/.exec(sheet!.css)?.[1];
+    expect(rule, '.rx-modal__body has no focus rule to read').toBeTruthy();
+    expect(rule, 'the body no longer takes the shared band').toMatch(/outline:\s*var\(--ring-scroll\)/);
+    expect(rule, 'the band draws outside the body without its offset')
+      .toMatch(/outline-offset:\s*var\(--ring-scroll-offset\)/);
+  });
+
+  // Prove it rejects: take every rule that answers the box's focus back out of its
+  // own sheet and the box has to fall into the bare list.
+  it('a scroll container losing its ring is caught', () => {
+    for (const selector of Object.keys(RX_SCROLL_RINGED)) {
+      const answering = ringRulesFor(selector, rules) as Array<Rule & { origin: string; raw: string }>;
+      expect(answering.length, `${selector} has no ring rule to take out`).toBeGreaterThan(0);
+      const mutated = localSheets.map((sheet) => {
+        const mine = answering.filter((rule) => rule.origin === sheet.file);
+        if (!mine.length) return sheet;
+        return { ...sheet, css: mine.reduce((css: string, rule) => css.split(rule.raw).join(''), sheetText(sheet.css) as string) };
+      });
+      const kept = [...kitRules, ...mutated.flatMap(({ file, css }) => focusRules(css, file))];
+      expect(ringRulesFor(selector, kept), `${selector} kept a ring after its rule was deleted`)
+        .toEqual([]);
+    }
   });
 });
