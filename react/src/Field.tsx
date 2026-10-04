@@ -1,6 +1,5 @@
 import { forwardRef, useEffect, useId, useRef, useState, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react';
 import { esc, icon } from '@apliteni/apliteni-ui';
-import '../../src/styles/input.css';
 import { Icon } from './primitives/Icon';
 import './Field.css';
 

@@ -1,5 +1,4 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
-import '../../src/styles/input.css';
 
 export type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'children'> & {
   label: ReactNode;

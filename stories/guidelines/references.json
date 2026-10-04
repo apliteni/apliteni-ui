@@ -64,7 +64,7 @@
         "pattern": "font-size: 16px !important;"
       },
       {
-        "ref": "react/src/index.ts:9",
+        "ref": "react/src/index.ts:13",
         "pattern": "import '../../src/styles/field-zoom.css';"
       }
     ]
