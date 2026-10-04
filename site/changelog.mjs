@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.78.1', date: '2026-10-04',
     changes: [
-      ['changed', 'The packaged README states how long each test suite takes on an idle machine, and says that every run ends with its ten slowest tests and files. This is for whoever contributes to the kit; nothing the package ships behaves differently. See #560.'],
+      ['changed', 'The packaged README states the time budget for each test suite, and says that every run ends with its ten slowest tests and files. This is for whoever contributes to the kit; nothing the package ships behaves differently. See #560.'],
     ],
   },
   {
