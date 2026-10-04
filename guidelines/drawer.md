@@ -8,11 +8,11 @@
 
 **Why:** Closing the drawer returns the user to the opened row.
 
-**Do:** Use a drawer for a short filter, a new key, or a reclassification.
+**Do:** Open one for a quick edit, a new key, a filter, or a peek at a row’s detail.
 
-**Don't:** Use it for work needing an address, multiple screens, or steps; use a page instead.
+**Don't:** Open one for a long form, several steps, or a view with its own address and Back.
 
-**Except:** Two-answer questions use confirm. Short forms fit; forms needing steps or more than one screen use a page.
+**Except:** A two-answer question uses confirm, not a drawer.
 
 ## Drawer or page
 
@@ -26,7 +26,7 @@
 
 **Don't:** Edit the same groups in a drawer, stacked in one narrow panel over the list.
 
-**Except:** Change one field inline, in its own row, without opening a panel.
+**Except:** Change one field inline, without a panel. A drawer may show groups a reader only reads.
 
 ## Grouped content
 

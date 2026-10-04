@@ -8,7 +8,8 @@ export const RELEASES = [
   {
     v: '0.80.0', date: '2026-10-04',
     changes: [
-      ['added', 'The drawer guideline now explains when to use a drawer and when a page. Use a page to edit more than one group, and a drawer for one short change. The example edits a member\u2019s access, once on a page and once in a drawer. Resolves #492.', ['Drawer']],
+      ['added', 'The drawer guideline now explains when a drawer fits and when a page does, with a rendered pair that edits one member\u2019s access on a page and in a drawer. A drawer holds one short change: a quick edit, a new key, a filter, a peek at a row\u2019s detail. A long form, several steps, a view with its own address and Back, or work across more than one group belongs on a page, though a drawer may still show groups a reader only reads. Resolves #492.', ['Drawer']],
+      ['changed', 'The component-choice guideline sends a long form to a page rather than a drawer, which is what the drawer guideline says. A short form still takes a content-sized modal or a drawer. See #492.'],
     ],
   },
   {
