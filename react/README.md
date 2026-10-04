@@ -752,7 +752,10 @@ it started on, and the span is painted on both pages.
 set both ends at once and are held to the same bounds the grid is: a preset that overruns
 them is clamped, one with no overlap at all is disabled, and one whose end lands on a
 blocked period is disabled too rather than quietly moved inwards. A blocked period between
-the two ends is not part of the range — it keeps neither the tint nor the words "in range".
+the two ends is still inside the range you are handed — `{ start, end }` is a pair and
+spans it — and says so in its accessible name; only the tint is withheld, because the
+disabled ink over it cannot be read. To exclude a period, split the range and show two
+pickers.
 
 **Blocked beats every other state in the paint, and the label is struck through.** Block
 the period your own `value` names and the cell goes bare, keeping its place by weight

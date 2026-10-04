@@ -3118,8 +3118,6 @@ paint or screen-reader speech. `src/styles/check-disabled.test.js` reads the two
 things the story walk cannot: the hover qualification and the pseudo-element mark.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429).
 
-<<<<<<< HEAD
-=======
 ## React date and month picker
 
 `DatePicker` picks one month, a range of months, one date, or a range of dates. At its
@@ -3243,6 +3241,14 @@ focus trap, the inert page behind it and the restored focus that every other she
 kit has. The shortcuts sit above the grid instead of beside it. `sheet` forces that layout at any width, for a host that
 already knows it is on a phone or renders where no viewport can be read.
 
+**The panel is the width of what is in it.** The dropdown's panel has a floor under its
+width, because a list of option rows reads badly narrow; a grid is not that list, and at
+the floor a twelve-month panel ended 80px to the right of December, which reads as a
+fourth column that failed to draw. The picker takes the floor off and sizes to its
+content, so the panel is the grid, the shortcuts beside it where there are any, and the
+padding around them — a month panel is narrower than a day one, and both are as wide as
+their own grid.
+
 Day grids show only the month in view. The slots before the first and after the last are
 empty cells rather than a neighbouring month's dates, because numbers in the same grid
 read as pickable; the arrows cross the boundary instead.
@@ -3266,7 +3272,6 @@ or a dot put back. Browser captures verify presentation separately.
 Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429); asked for on
 [#506](https://github.com/apliteni/apliteni-ui/issues/506).
 
->>>>>>> 50ca33b7 (fix(react): every mark in the picker reads without a key beside it (#506))
 ## React search field
 
 A toolbar above a list opens with a search box, then its filters, then its view
@@ -3502,96 +3507,3 @@ measure the target's cover or the focus ring, or check screen-reader speech, and
 by `stories/row-height.test.js`, which reads the sheet in CI and measures the
 tiers, the heights and the truncation in a browser under `ROW_HEIGHTS=1`.
 Closes [#507](https://github.com/apliteni/apliteni-ui/issues/507).
-## React date and month picker
-
-`DatePicker` picks one month, a range of months, one date, or a range of dates. At its
-ordinary width it wears the dropdown's shell — the same `.ui-dropdown` trigger, chevron and
-`.ui-dropdown__panel` surface — and adds only the grid inside it, so a picker and a
-select standing beside it are the same control at rest. The panel is a `dialog`, because
-a calendar is a grid and a listbox may own only options. It is mounted while closed, the
-way every dropdown panel is, and `inert` while it is: a grid nobody opened is out of the
-tab order, out of the pointer's way and out of the accessibility tree.
-
-**The grain and the span are two questions, not one.** `month` and `day` pick a single
-period; `range` and `day-range` pick a start and an end in the same two presses. Every
-rule below reads which of the two is being asked rather than naming a mode, so the two
-range modes behave alike and a day range is the month range one grain down.
-
-Periods are ISO strings in the mode's own grain — `YYYY-MM` for `month` and `range`,
-`YYYY-MM-DD` for `day` and `day-range` — and every step, bound and comparison is
-arithmetic on one integer per period, so no part of the component walks a `Date` across a daylight-saving
-boundary.
-
-**A period written in the other grain still counts.** `min`, `max` and `disabledPeriods`
-are typed `string`, which is all a type can say about a date, and a bound that fails to
-parse must not quietly mean "no bound". A month read in day grain is its whole span —
-`min="2026-09"` is the 1st and `max="2026-09"` the 30th, so the month it names is
-included whole — and a date read in month grain is the month it falls in. A blocked month
-blocks every day in it. A string that is neither is still no bound.
-
-`min`, `max` and `disabledPeriods` mark a cell `aria-disabled` and refuse the press; the
-cell stays focusable, so a reader meets the bound rather than losing it. A page step that
-could only land outside the bounds is disabled rather than silently doing nothing.
-
-**One tab stop in the grid, on the cell the keyboard is on.** Left and Right move one
-period, Up and Down one row, Page Up and Page Down one year in month modes and one month
-in day mode. **Home and End go to the ends of the row the reader is in, and never leave
-the page**: a day grid pads its first row with blanks, so the slot at the start of week
-one belongs to the month before, and both keys are held to the cells the page actually
-shows. A move that leaves the shown page turns the page and keeps the reader on the
-period they moved to. The shown page is derived from that cell and is not state of its
-own, so the two cannot drift. The head's two steps move the page without taking focus off
-the button that was pressed, and each names where it goes — "Previous year, 2025" — so a
-consumer's "Previous year" shortcut is not a second control with the same name.
-
-**Every cell says what it is in its own accessible name.** The pick lives on the
-gridcell's `aria-selected`, which is the wrapper rather than the element focus lands on,
-so the name on the button carries it too: `selected` in every mode, and `range start`,
-`range end` and `in range` besides, in range mode.
-
-**A range mode takes a start, then an end, and stays open in between.** A second press
-below the first is the same range read backwards, so the ends swap. A range may run past
-the page it started on: the grid turns under it and the span is painted on both pages. `onRangeChange` fires
-on each end, so a half-picked range is visible to the host. Consumer presets set both ends
-at once and carry no selected state of their own, because the grid already says what is
-chosen; a preset is held to the same bounds the cells are, clamped where the two overlap
-and switched off where they do not.
-
-**A blocked period inside a range is not in the range.** It cannot be picked, so it is
-not included: it keeps neither the range tint nor the words "in range", however the two
-ends sit around it. One source decides both, so the paint and the name cannot disagree.
-
-**Blocked beats every other state in the paint.** A host may block the period its own
-value names, or one between the two ends of a range. Such a cell goes bare, like any
-other blocked cell, rather than keeping the fill or the tint under disabled ink; a
-blocked pick keeps its place by weight instead, spending no second colour. It still says
-`selected` in its name and still carries `aria-selected`, because it is still the value —
-it simply cannot be pressed. A shortcut whose end lands on a blocked period is refused
-rather than walked inwards to a range nobody asked for.
-
-**A mark is a dot, a word and a name.** `marks` keyed by period draws a dot in the cell,
-lists the word once under the grid for the page in view, and appends it to the cell's
-accessible name, so the colour is never the only channel. The accent is spent on the pick
-alone: today carries weight and no colour, the span inside a range is an opaque accent
-tint rather than a grey fill, and a blocked cell is a boxless ghost in
-`--disabled-ink-bare`.
-
-**Below 560px the panel is a sheet, and a sheet is the kit's drawer.** It renders
-`Drawer` anchored to the bottom edge, so it arrives with the scrim, the close control, the
-focus trap, the inert page behind it and the restored focus that every other sheet in the
-kit has. The shortcuts sit above the grid instead of beside it. `sheet` forces that layout at any width, for a host that
-already knows it is on a phone or renders where no viewport can be read.
-
-Day grids show only the month in view. The slots before the first and after the last are
-empty cells rather than a neighbouring month's dates, because numbers in the same grid
-read as pickable; the arrows cross the boundary instead.
-
-Held by `react/src/DatePicker.test.tsx`, which also discovers every focusable part the
-picker renders and holds it against the kit's own ring selectors, read out of the
-stylesheets, and holds the component's one breakpoint literal against the table in
-Breakpoints above. A gate of its own measures every combination of cell states in both
-themes and under every shipped accent, because the workspace's contrast walk exempts a
-disabled control and a blocked cell can also be the value. Browser captures verify
-presentation separately.
-Part of [#429](https://github.com/apliteni/apliteni-ui/issues/429); asked for on
-[#506](https://github.com/apliteni/apliteni-ui/issues/506).

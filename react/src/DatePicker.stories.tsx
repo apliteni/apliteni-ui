@@ -198,8 +198,6 @@ export const DayRangeBounded: StoryObj<typeof DatePicker> = {
   },
 };
 
-<<<<<<< HEAD
-=======
 // The four modes side by side. None of them is labelled: the trigger's own
 // text is the control's name, because a word in front of "Apr 2026 – Aug 2026"
 // can only say what the value already says.
@@ -214,7 +212,6 @@ export const EveryMode: StoryObj<typeof DatePicker> = {
   ),
 };
 
->>>>>>> dec40476 (fix(react): the picker's trigger and grid drop the words that restate them (#506))
 export const Empty: StoryObj<typeof DatePicker> = {
   render: args => <DatePicker {...args} ariaLabel="Reporting month" />,
 };

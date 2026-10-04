@@ -53,8 +53,6 @@ describe('the trigger', () => {
     expect(trigger()).toHaveTextContent('Select a month');
   });
 
-<<<<<<< HEAD
-=======
   /* The trigger's own text is the only name it has, so an aria-label would
    * speak over it: the reader heard "Select a date" from a control reading
    * 17 September 2026. All four modes, because the placeholder differs in each
@@ -77,7 +75,6 @@ describe('the trigger', () => {
     expect(trigger()).toHaveAccessibleName('Reporting month');
   });
 
->>>>>>> dec40476 (fix(react): the picker's trigger and grid drop the words that restate them (#506))
   it('opens and closes, and gives focus back on Escape', async () => {
     const user = userEvent.setup();
     render(<DatePicker today={TODAY} />);
@@ -655,9 +652,13 @@ describe('day-range mode', () => {
     await user.click(cell(/\b7 September 2026/));
     await user.click(cell(/\b18 September 2026/));
     await user.click(trigger());
+    // The emitted range spans it, so the name says so and `aria-disabled` says
+    // it cannot be picked. Only the tint is withheld, because the disabled ink
+    // over it cannot be read.
     const blocked = cell(/\b12 September 2026/);
     expect(blocked).not.toHaveClass('is-inside');
-    expect(blocked).not.toHaveAccessibleName(expect.stringContaining('in range'));
+    expect(blocked).toHaveAccessibleName(expect.stringContaining('in range'));
+    expect(blocked).toHaveAttribute('aria-disabled', 'true');
     expect(cell(/\b11 September 2026/)).toHaveClass('is-inside');
   });
 
@@ -812,6 +813,7 @@ describe('day mode', () => {
  * What it does not reach: whether the ring is VISIBLE — that is paint, and the
  * browser captures own it. This holds the selector coverage only. */
 describe('the focus ring', () => {
+  const grainOf = (mode: string) => (mode === 'day' || mode === 'day-range' ? 'day' : 'month');
   /** Every selector the kit paints `box-shadow: var(--ring)` on, minus the state. */
   const ringSelectors = ['../../src/styles/base.css', '../../src/styles/dropdown.css']
     .flatMap(file => [...read(file).replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
@@ -831,16 +833,11 @@ describe('the focus ring', () => {
     expect(ringSelectors).toContain('.ui-focusable');
   });
 
-  it.each(['month', 'range', 'day'] as const)('covers every focusable part in %s mode', mode => {
+  it.each(['month', 'range', 'day', 'day-range'] as const)('covers every focusable part in %s mode', mode => {
     const { container } = render(
       <DatePicker
-<<<<<<< HEAD
-        today={TODAY} mode={mode} label="Period:" defaultOpen
-        defaultValue={mode === 'day' ? '2026-09-17' : '2026-08'}
-=======
         today={TODAY} mode={mode} defaultOpen
         defaultValue={grainOf(mode) === 'day' ? '2026-09-17' : '2026-08'}
->>>>>>> dec40476 (fix(react): the picker's trigger and grid drop the words that restate them (#506))
         presets={[{ label: 'This year', range: { start: '2026-01', end: '2026-12' } }]}
       />,
     );
@@ -1051,7 +1048,10 @@ describe('every cell state is readable', () => {
     }
     expect(judged, 'pairs judged').toBe(combinations.length * 2 * ACCENTS.length);
     expect(failures, `cell states below ${AA_TEXT}:1`).toEqual([]);
-  });
+  // Four sheet builds and 256 resolved pairs per theme: seconds of real work,
+  // and more of it each time the kit's stylesheet grows. The budget is the
+  // host's, not the gate's — a slow machine must not turn this red.
+  }, 60_000);
 
   /* Prove rejection by taking the fix out: without the rule that sends a
    * blocked cell bare, the two collisions this gate was written for come back —
@@ -1309,5 +1309,58 @@ describe('the tap zone below the phone step', () => {
     expect(own).toMatch(/\.ui-datepicker__opt \{[^}]*position: relative/);
     expect(own, 'the cell must not size itself inside the coarse query')
       .not.toMatch(/@media[^{]*pointer: coarse/);
+  });
+});
+
+/* The panel's width, from the source.
+ *
+ * `.ui-dropdown__panel` carries a width floor, because a list of option rows
+ * reads badly narrow. A calendar is not that list: at the floor the
+ * twelve-month grid stopped 80px short of the panel's right edge and the gap
+ * read as a column that failed to draw. So the picker answers every sizing
+ * declaration the kit's panel makes — discovered rather than named, so a floor
+ * the kit renames is met here rather than silently reinstated.
+ *
+ * What it does not reach: the pixels. JSDOM lays nothing out, so the widths
+ * themselves are measured in a browser and reported on the pull request.
+ * why: docs/specification.md#react-date-and-month-picker */
+describe('the panel is the grid\'s width and no wider', () => {
+  const strip = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const kit = strip(read('../../src/styles/dropdown.css'));
+  const own = strip(read('./DatePicker.css'));
+
+  /** The body of a rule whose selector stands alone on its own line. */
+  const bodyOf = (css: string, selector: string) =>
+    new RegExp(`(^|\\n)${selector.replace(/[.]/g, '\\$&')}\\s*\\{([^}]*)\\}`).exec(css)?.[2] ?? null;
+  const props = (body: string) => body.split(';')
+    .map(decl => decl.split(':')[0].trim()).filter(name => /^[a-z-]+$/.test(name));
+
+  /** The widths the kit's panel writes — its floor among them. */
+  const kitWidths = props(bodyOf(kit, '.ui-dropdown__panel') ?? '')
+    .filter(name => /^(min-|max-)?width$/.test(name));
+  /** Of those, the ones the picker's panel leaves standing. */
+  const unanswered = (picker: string) => {
+    const body = bodyOf(picker, '.ui-datepicker__panel');
+    return body === null ? kitWidths : kitWidths.filter(name => !props(body).includes(name));
+  };
+
+  it('reads a floor off the kit to measure against', () => {
+    expect(bodyOf(kit, '.ui-dropdown__panel'), "the kit's panel rule").not.toBeNull();
+    expect(kitWidths, 'the widths the kit\'s panel declares').toContain('min-width');
+  });
+
+  it('answers every width the kit writes, and sizes to its content', () => {
+    expect(unanswered(own)).toEqual([]);
+    const body = bodyOf(own, '.ui-datepicker__panel');
+    expect(body).toMatch(/min-width:\s*0/);
+    expect(body).toMatch(/width:\s*max-content/);
+  });
+
+  /* Prove rejection by running the same reading over the mutant: with the
+   * answer gone, the kit's floor comes back and the gate has to say so. */
+  it('refuses the sheet with the kit\'s floor left standing', () => {
+    const mutant = own.replace(/\n\s*min-width: 0;/, '');
+    expect(mutant, 'the declaration this gate mutates was renamed').not.toBe(own);
+    expect(unanswered(mutant)).toEqual(['min-width']);
   });
 });

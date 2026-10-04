@@ -74,7 +74,8 @@
     .ui-drawer__close,
     .ui-snippet__copy,
     .ui-footer__social,
-    .ui-switch
+    .ui-switch,
+    .ui-datepicker__opt
   )::after {
     content: "";
     position: absolute;

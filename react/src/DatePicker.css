@@ -1,11 +1,16 @@
 /* Date and month picker — only what a calendar adds to the dropdown's shell.
    why: docs/specification.md#react-date-and-month-picker */
 
-/* `max-content`, because a box hanging off the trigger shrinks to it: at the
-   kit's 240px panel floor the shortcuts spill out of the grid beside them. */
+/* The panel is the grid's own width: neither squeezed below it nor held above
+   it. `max-content`, because a box hanging off the trigger shrinks to it and the
+   shortcuts would spill out of the grid beside them; `min-width: 0`, because the
+   kit's 240px floor is the measure a list of option rows needs and a month grid
+   is 136px — the floor left 80px of empty panel right of Mar, Jun, Sep and Dec.
+   why: docs/specification.md#react-date-and-month-picker */
 .ui-datepicker__panel {
   --ui-dropdown-pad: var(--space-3);
   width: max-content;
+  min-width: 0;
   max-width: 92vw;
 }
 
@@ -78,6 +83,15 @@
 }
 .ui-datepicker__grid.is-days .ui-datepicker__opt { min-width: 30px; }
 
+/* The kit's row hover, not an accent tint: an accent hover sat within six of
+   255 per channel of the span's own tint, so the pointer made an outside day
+   read as part of the range. why: guidelines/density-and-accents.md */
+.ui-datepicker__opt:hover {
+  outline: 1px solid var(--control-edge);
+  outline-offset: -1px;
+  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  color: var(--strong);
+}
 /* The ring wins over the hover edge, as the dropdown's rows settle it. */
 .ui-datepicker__opt:focus-visible { outline: 2px solid transparent; }
 
@@ -169,6 +183,14 @@
    a picker inside a consumer's own drawer at desktop width keeps two columns.
    why: docs/specification.md#breakpoints */
 .ui-datepicker__body.is-sheet { flex-direction: column; align-items: stretch; }
+/* `overflow-x: auto` computes `overflow-y: auto` with it, so the scrollport
+   clips on all four sides, and the drawer's trap lands on the first shortcut —
+   without this padding its ring arrives sliced. `scroll-padding` keeps that
+   room once the row is scrolled. */
+.ui-datepicker__body.is-sheet .ui-datepicker__presets {
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  overflow-x: auto;
   scroll-padding-inline: var(--space-1);
   /* Block padding is the tap layer's room as well as the ring's.
      why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step */

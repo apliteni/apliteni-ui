@@ -1,5 +1,5 @@
 import {
-  useCallback, useEffect, useId, useMemo, useRef, useState,
+  useCallback, useEffect, useMemo, useRef, useState,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { Icon } from './primitives/Icon';
@@ -233,8 +233,6 @@ export function DatePicker({
   // kit's drawer rather than a wide popover.
   const phone = usePhone();
   const asSheet = sheet ?? phone;
-  const auto = useId().replace(/:/g, '');
-  const uid = id ?? auto;
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const grid = useRef<HTMLDivElement>(null);
@@ -396,11 +394,16 @@ export function DatePicker({
     : [startIndex ?? endIndex, startIndex ?? endIndex];
 
   const isEdge = (index: number) => index === edges[0] || index === edges[1];
-  // A blocked period is not inside the range, however the two ends sit around
-  // it: it cannot be picked, so it is not included, and both the tint and the
-  // word come off it. One source, so the paint and the name cannot disagree.
-  const isInside = (cell: Cell) => !cell.disabled
-    && edges[0] != null && edges[1] != null && cell.index > edges[0] && cell.index < edges[1];
+  // Inside the span, as the value means it: `{ start, end }` is a pair, so the
+  // range it names runs over every period between them, blocked ones included.
+  // The accessible name says so.
+  const inSpan = (index: number) =>
+    edges[0] != null && edges[1] != null && index > edges[0] && index < edges[1];
+  // Whether the cell WEARS the span. A blocked one does not: the disabled ink
+  // over the span's tint cannot be read — it measured 4.43:1 under the green
+  // accent on dark — so that cell stays bare, and what it loses in paint it
+  // keeps in its name. The one place the two deliberately differ.
+  const showsSpan = (cell: Cell) => inSpan(cell.index) && !cell.disabled;
   const isPicked = (index: number) => (picksRange
     ? isEdge(index)
     : index === toIndex(picked, grain));
@@ -531,7 +534,6 @@ export function DatePicker({
     : (grain === 'month' ? 'Select a month' : 'Select a date'));
   const name = ariaLabel || empty;
 
-  const captionId = `${uid}-caption`;
   /** What a page is called: the year, or the month and year. */
   const pageName = (which: number) => (grain === 'month'
     ? String(which) : names.monthYear.format(at(firstDayOf(which))));
@@ -549,7 +551,7 @@ export function DatePicker({
       if (cell.index === edges[0] && cell.index === edges[1]) parts.push('selected');
       else if (cell.index === edges[0]) parts.push('range start');
       else if (cell.index === edges[1]) parts.push('range end');
-      else if (isInside(cell)) parts.push('in range');
+      else if (inSpan(cell.index)) parts.push('in range');
     } else if (isPicked(cell.index)) {
       // The pick lives on the gridcell's aria-selected, which is the wrapper and
       // not the element focus lands on, so without this the reader arrowing onto
@@ -599,7 +601,10 @@ export function DatePicker({
           >
             <Icon name="chevronLeft" />
           </button>
-          <span className="ui-datepicker__caption" id={captionId} aria-live="polite">{caption}</span>
+          {/* A live region and the grid's label were one element, so a page
+              step was announced twice. The grid takes the same string as a
+              name of its own instead. */}
+          <span className="ui-datepicker__caption" aria-live="polite">{caption}</span>
           <button
             type="button"
             className="ui-btn ui-btn--ghost ui-btn--xs ui-btn--icon ui-datepicker__step"
@@ -614,7 +619,7 @@ export function DatePicker({
         <div
           className={cx('ui-datepicker__grid', grain === 'day' && 'is-days')}
           role="grid"
-          aria-labelledby={captionId}
+          aria-label={caption}
           ref={grid}
           onKeyDown={onGridKeyDown}
         >
@@ -647,7 +652,7 @@ export function DatePicker({
                     data-value={cell.period}
                     className={cx('ui-datepicker__opt', 'ui-focusable',
                       isPicked(cell.index) && 'is-selected',
-                      isInside(cell) && 'is-inside',
+                      showsSpan(cell) && 'is-inside',
                       cell.index === todayIndex && 'is-today',
                       cell.disabled && 'is-disabled')}
                     tabIndex={cell.index === cursor ? 0 : -1}
