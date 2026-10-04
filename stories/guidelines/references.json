@@ -127,7 +127,7 @@
       },
       {
         "ref": "stories/accent-contrast.test.js:2",
-        "pattern": "theme \u00d7 accent cells"
+        "pattern": "theme × accent cells"
       },
       {
         "ref": "react/src/a11y.test.tsx:23",
@@ -781,7 +781,7 @@
     "busy": [
       {
         "ref": "src/components/index.js:40",
-        "pattern": "busy \u21d2 disabled"
+        "pattern": "busy ⇒ disabled"
       },
       {
         "ref": "src/styles/button.css:128",
@@ -959,7 +959,7 @@
     ],
     "in-row": [
       {
-        "ref": "src/components/index.js:218",
+        "ref": "src/components/index.js:210",
         "pattern": "export function switchToggle("
       },
       {
@@ -969,7 +969,7 @@
     ],
     "one-action": [
       {
-        "ref": "src/components/index.js:25",
+        "ref": "src/components/index.js:26",
         "pattern": "export function button("
       },
       {
