@@ -89,7 +89,7 @@ it('leaves shortcuts in editable fields alone and updates the theme', () => {
   expect(document.documentElement.getAttribute('data-theme')).toBe(theme === 'light' ? 'dark' : 'light');
 });
 
-// Navigation to one destination is navigation to the page already on screen. The
+// A list of one destination is a list pointing at the page already on screen. The
 // rule holds at every width: no rail list, no fold to close it, and no bottom bar
 // — whose 96px of a phone the clearance is keyed on in AppShell.css.
 it('draws no section navigation for a single section, at any width', () => {
@@ -112,6 +112,19 @@ it('draws no section navigation for a single section, at any width', () => {
   for (const name of ['Sections', 'Sections on mobile']) {
     expect(within(screen.getByRole('navigation', { name })).getByRole('link', { name: 'Changes' }))
       .toHaveAttribute('aria-current', 'page');
+  }
+  expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
+});
+
+// One section under a child page is somewhere to go: the row is the page's parent, so
+// the list comes back and marks it "true" rather than "page".
+// why: guidelines/going-back.md#keep-the-section-active
+it('keeps a single section when it is the parent of the page on screen', () => {
+  const one = [{ href: '/invoices', label: 'Invoices', icon: 'doc' }];
+  render(<AppShell {...props} sections={one} pathname="/invoices" back={{ href: '/invoices', label: 'Invoices' }} />);
+  for (const name of ['Sections', 'Sections on mobile']) {
+    expect(within(screen.getByRole('navigation', { name })).getByRole('link', { name: 'Invoices' }))
+      .toHaveAttribute('aria-current', 'true');
   }
   expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
 });

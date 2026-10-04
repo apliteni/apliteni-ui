@@ -70,6 +70,6 @@ test('the check rejects each part of the contract when it is broken', () => {
 // drift back to the unconditional sentence the token never kept.
 test('the specification states the condition the token is declared under', () => {
   const spec = readFileSync(path.join(here, '../../docs/specification.md'), 'utf8');
-  assert.match(spec, /While the bottom bar is drawn — below 560px, with two or more sections — the shell\s+sets `--ui-app-bottom-clearance`/);
+  assert.match(spec, /While the bottom bar is drawn — below 560px, for a list with somewhere to go — the\s+shell sets `--ui-app-bottom-clearance`/);
   assert.match(spec, /`var\(--ui-app-bottom-clearance, 0px\)`/);
 });
