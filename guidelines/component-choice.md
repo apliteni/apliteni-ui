@@ -58,7 +58,7 @@
 
 <!-- rule: one-category -->
 
-**Rule:** Put a control in a group only with others of its own category: views, filters, sorting and actions each get their own group and style.
+**Rule:** Give views, filters, sorting and actions separate groups and styles.
 
 **Why:** Identical controls in one bar hide that one of them re-draws every row while its neighbour only narrows them.
 
@@ -66,7 +66,7 @@
 
 **Don't:** Put three saved views and a filter control in one bar as four buttons of the same size and style.
 
-**Except:** Two filters, or two actions, belong together: the categories are what may not mix. Saved views that re-draw one table take a segmented strip; views that swap panels take tabs.
+**Except:** Saved views that re-draw one table take a segmented strip; views that swap panels take tabs.
 
 ## Match confirmation scale
 
