@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.76.1', date: '2026-10-04',
+    changes: [
+      ['fixed', 'In the dark theme a disabled field and a disabled button draw a fainter edge than a live one, so the box reports the state and not only the words. `--disabled-border` resolved to the same hairline as `--field-edge` and `--control-edge`, leaving an unavailable field identical to an available one; it now drops a rung, to `--surface-3`. Light already drew the two states apart and is unchanged. If your CSS reads `--disabled-border`, expect the new value in dark. Fixes #564.', ['Inputs', 'Button']],
+      ['fixed', 'A disabled select is no longer faded by the browser on top of the kit\'s own disabled paint. Chromium applies `select:disabled { opacity: 0.7 }`, which took the edge and the words down together — 1.11:1 edge and 3.78:1 words in dark, 3.15:1 words in light — so the kit now resets `opacity` on a disabled field and a select reads what the text field beside it reads: 1.16:1 edge and 6.24:1 words in dark, 1.24:1 and 6.11:1 in light. If your CSS fades a disabled select deliberately, declare that fade yourself.', ['Inputs', 'Pagination']],
+    ],
+  },
+  {
     v: '0.76.0', date: '2026-10-04',
     changes: [
       ['added', 'Table footers are a supported surface: totals open with the strong rule, each footer label sits against the figure it names, and a label marked strong carries the weight across the whole row. Footer labels take the body cell padding in every density. If your CSS left-aligned tfoot labels itself, that override is no longer needed. See #385.', ['Table']],

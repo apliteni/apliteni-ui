@@ -14,7 +14,7 @@
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:150",
+        "ref": "src/styles/input.css:154",
         "pattern": ".ui-check input::before"
       },
       {
@@ -56,6 +56,14 @@
       {
         "ref": "src/tokens/tokens.css:195",
         "pattern": "--disabled-ink: var(--muted);"
+      },
+      {
+        "ref": "src/tokens/tokens.css:201",
+        "pattern": "--disabled-border: var(--surface-3);"
+      },
+      {
+        "ref": "src/styles/input.css:68",
+        "pattern": "opacity: 1;"
       }
     ],
     "touch-field-size": [
@@ -100,7 +108,7 @@
     ],
     "accent-strong": [
       {
-        "ref": "src/tokens/tokens.css:209",
+        "ref": "src/tokens/tokens.css:213",
         "pattern": "--accent-strong: #7c3aed;"
       },
       {
@@ -746,7 +754,7 @@
         "pattern": "box-shadow: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:267",
+        "ref": "src/tokens/tokens.css:271",
         "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
       }
     ],
