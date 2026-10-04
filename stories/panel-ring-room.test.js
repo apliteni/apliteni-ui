@@ -27,6 +27,11 @@
 //   not seen, and neither is padding on a wrapper between the panel and its rows.
 // - Only the first class on a marked element is read: the one the panel's own sheet
 //   styles it under. A second — `dropdown({ panelClass })` — is the caller's to answer for.
+// - The marked element is found by walking the source for tags and attribute lists, not
+//   by running a parser. Attribute order does not matter, a `>` inside an attribute's own
+//   expression does not end the element and a `<` inside a string does not start one; but
+//   a marker this walk cannot tie to exactly one class attribute stops the gate rather
+//   than being named by whatever class is nearest.
 // - The source reading covers src/ and react/src/, the trees the package ships. A panel
 //   hand-written into an example page is not read; those pages compose the factories.
 // - It does not ask whether the rows take the ring at all. `.vopt:focus-visible` never
@@ -66,22 +71,80 @@ const code = (text) => text
   .replace(/(^|[^:])\/\/[^\n]*/g, (whole, lead) => lead + ' '.repeat(whole.length - lead.length));
 
 /**
+ * The attribute groups a source holds: every `<tag …>` and every `[…]` list, as spans.
+ *
+ * One pass that knows quotes from code, so a `>` inside an attribute's own expression —
+ * `onClick={(e) => …}` — does not end a tag, and a `<` inside a string does not open one.
+ * Both shapes exist because the kit writes a panel's attributes both ways: in the tag
+ * itself, and — in `dropdown()` — as a list of attribute strings spread into one tag.
+ */
+const groupsIn = (text) => {
+  const spans = [];
+  const stack = [];
+  const open = (kind, close, start) => stack.push({ kind, close, start });
+  const shut = (at) => {
+    const done = stack.pop();
+    if (done.kind) spans.push({ start: done.start, end: at });
+  };
+  // A tag head: `<` then a name then whitespace, `/` or `>`. `i < len` is not one, and
+  // a type argument that looks like one closes on its own `>` without holding a marker.
+  const head = /^<[A-Za-z][\w.:-]*(?=[\s/>])/;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    const cur = stack[stack.length - 1];
+    const inside = cur ? cur.close : '';
+    if (inside === '\'' || inside === '"') {
+      if (ch === '\\') i += 1;
+      else if (ch === inside) shut(i);
+      continue;
+    }
+    if (inside === '`') {
+      if (ch === '\\') { i += 1; continue; }
+      if (ch === '`') { shut(i); continue; }
+      // `${` is code again; a tag may open in the markup around it, nothing else does.
+      if (ch === '$' && text[i + 1] === '{') { open(null, '}', i); i += 1; continue; }
+      if (ch === '<' && head.test(text.slice(i))) open('tag', '>', i);
+      continue;
+    }
+    if (ch === inside) { shut(i); continue; }
+    if (ch === '\'' || ch === '"' || ch === '`') open(null, ch, i);
+    else if (ch === '(') open(null, ')', i);
+    else if (ch === '{') open(null, '}', i);
+    else if (ch === '[') open('list', ']', i);
+    else if (ch === '<' && head.test(text.slice(i))) open('tag', '>', i);
+  }
+  return spans;
+};
+
+/**
  * Every panel a source marks, by the class its own sheet styles it under.
  *
  * The attribute written into markup is the subject; `[data-dropdown-panel]` inside a
- * selector string is the wiring reading it back, and is skipped. The name is the first
- * class on the marked element, which both faces write as the first literal of its class
- * expression: `class="amenu"`, `class="${esc(cx('ui-dropdown__panel', …))}"` and
- * `className={cx('ui-dropdown__panel', …)}` all start with the panel's own class.
+ * selector string is the wiring reading it back, and is skipped. The name comes from the
+ * class attribute of the group the marker is in — the marked element's own tag, or the
+ * attribute list spread into it — so the two may stand in either order, and a class on
+ * an element around the marked one is not mistaken for the panel's. The group has to
+ * carry exactly one class attribute, and its first class literal is the panel's own:
+ * `class="amenu"`, `class="${esc(cx('ui-dropdown__panel', …))}"` and
+ * `className={cx('ui-dropdown__panel', …)}` all start with it. A marker this gate cannot
+ * tie to one class attribute stops the gate rather than being named by a neighbour.
  */
-const panelsIn = (text) => {
+const panelsIn = (text, file = 'a source') => {
+  const src = code(text);
+  const groups = groupsIn(src);
   const found = [];
-  for (const mark of code(text).matchAll(/(?<![[\w-])data-dropdown-panel(?![\w-\]])/g)) {
-    const before = code(text).slice(0, mark.index);
-    const attrs = [...before.matchAll(/class(?:Name)?\s*=/g)];
-    assert.ok(attrs.length, 'a source marks a panel with no class attribute before it');
-    const name = /['"`]\s*([a-z][\w-]*)/.exec(before.slice(attrs[attrs.length - 1].index));
-    assert.ok(name, 'a source marks a panel whose class this gate cannot read');
+  for (const mark of src.matchAll(/(?<![[\w-])data-dropdown-panel(?![\w-\]])/g)) {
+    const at = mark.index;
+    const holding = groups.filter((g) => g.start < at && at < g.end);
+    const where = `${file}:${src.slice(0, at).split('\n').length} marks a panel`;
+    assert.ok(holding.length, `${where}: the marker is in no element or attribute list this gate can read`);
+    const group = holding.reduce((a, b) => (b.end - b.start < a.end - a.start ? b : a));
+    const attrs = src.slice(group.start, group.end);
+    const classes = [...attrs.matchAll(/(?<![\w-])class(?:Name)?\s*=/g)];
+    assert.equal(classes.length, 1,
+      `${where}: the marked element carries ${classes.length} class attributes, and this gate names a panel by one`);
+    const name = /['"`]\s*([a-z][\w-]*)/.exec(attrs.slice(classes[0].index));
+    assert.ok(name, `${where}: this gate cannot read the marked element's class`);
     found.push(name[1]);
   }
   return [...new Set(found)].sort();
@@ -91,7 +154,7 @@ const panelsIn = (text) => {
 const declared = (() => {
   const found = new Map();
   for (const file of sourceFiles) {
-    for (const name of panelsIn(readFileSync(file, 'utf8'))) {
+    for (const name of panelsIn(readFileSync(file, 'utf8'), file)) {
       found.set(name, [...(found.get(name) ?? []), file]);
     }
   }
@@ -139,9 +202,11 @@ const declaration = (body, prop) => {
 
 /** px, or a var() the same rule declares — which is how both padded panels write it. */
 const px = (value, body) => {
-  const resolved = value.replace(/var\(\s*(--[\w-]+)\s*\)/g, (whole, name) => declaration(body, name) ?? whole);
-  const match = /^(-?\d+(?:\.\d+)?)px$/.exec(resolved.trim());
-  return match ? Number(match[1]) : null;
+  const resolved = value.replace(/var\(\s*(--[\w-]+)\s*\)/g, (whole, name) => declaration(body, name) ?? whole).trim();
+  const match = /^(-?\d+(?:\.\d+)?)px$/.exec(resolved);
+  if (match) return Number(match[1]);
+  // A bare zero needs no unit, and is the shape a panel that pads by nothing writes.
+  return /^0+(?:\.0+)?$/.test(resolved) ? 0 : null;
 };
 
 /** The smallest of the four sides a `padding` shorthand sets, in px. */
@@ -229,4 +294,24 @@ test('the gate fails when a factory marks a panel nobody measured', () => {
   assert.deepEqual(shortOf(['review__menu'], () => sheet),
     ['.review__menu in src/styles/review.css: 0px of padding for a 3px ring'],
     'an unpadded, clipping panel has to read as short of the ring\'s spread');
+});
+
+test('the gate reads the marked element, not the nearest class before it', () => {
+  // The marker before its own class, inside a wrapper that carries a class already in the
+  // fixtures. Reading the last class attribute before the marker calls this panel `.amenu`
+  // and measures nothing; the element's own attributes name it whichever order they are in.
+  const source = 'export const reviewMenu = () => `<div class="amenu">'
+    + '<div data-dropdown-panel class="review-extra-menu" role="menu"><button>Review</button></div></div>`;';
+  assert.deepEqual(panelsIn(source), ['review-extra-menu'],
+    'a panel marked before its class has to be named by its own class, not by the element around it');
+
+  const added = new Map([...declared, ['review-extra-menu', ['src/components/review.js']]]);
+  assert.throws(() => reconcile(added, rendered), /never renders/,
+    'a panel marked before its class can pass as one the fixtures already measure');
+
+  // And the unpadded, clipping rule that goes with it reads as short of the ring.
+  const sheet = { file: 'src/styles/review.css', selector: '.review-extra-menu', body: 'overflow: hidden; padding: 0;' };
+  assert.deepEqual(shortOf(['review-extra-menu'], () => sheet),
+    ['.review-extra-menu in src/styles/review.css: 0px of padding for a 3px ring'],
+    'a panel that pads by a bare zero has to read as short of the ring\'s spread');
 });
