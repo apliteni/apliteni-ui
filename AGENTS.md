@@ -23,7 +23,7 @@ can find them. Add new test directories to both the guard and the glob in `npm t
 
 While you work, run `node --test <file>` for the files you changed. Run both suites once
 for the pull request, on a Linux host where you have one. Their budgets on an 8-core Linux
-host: `npm test` 3m20s, `npm test -w react` 1m40s. Measured at 3m05s and 1m29s. The budget
+host: `npm test` 3m20s, `npm test -w react` 1m40s. Measured at 3m02s and 1m30s. The budget
 is a ceiling with room for a busier machine, not the best time anyone has seen; a run
 outside it means the machine was loaded or the suite grew.
 
