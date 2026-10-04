@@ -715,6 +715,18 @@
         "stories/components/ only: a guideline page's prose and a showcase's toolbar ground are those pages' decisions, not this gate's.",
         "A contrast ratio is not legibility. The recorded edge readings are below the 3:1 non-text floor that WCAG 1.4.11 exempts a disabled control from, so they are recorded for review rather than asserted against a bar."
       ]
+    },
+    {
+      "file": "react/src/field-ground.test.tsx",
+      "name": "Field ground, React",
+      "does": "The same rule as stories/field-ground.test.js over the React catalogue, off the same reading in stories/lib/field-ground.js. Mounts every *.stories.tsx under react/src in both themes — including the args-only stories, rendered as Storybook renders one — composites the ground each field actually sits on, and checks that none of them is the page ground. Holds the walk to the catalogue by naming every story export, pins the field count, requires a disabled field and all five control kinds, and checks the body really carries --bg so a sheet that never loaded cannot buy a green run. One mutation puts a field back on the page ground and the claim reports it.",
+      "blind": [
+        "A story's render is called, so a decorator is not applied: a surface a decorator paints is unmeasured. This is why the kit's Card sits inside each render rather than in a decorator.",
+        "Storybook's args rendering is reproduced, not its real renderer. Loaders, play functions and argTypes are not run, so a field a play function puts on the page ground is unmeasured.",
+        "JSDOM reads winning declarations, not pixels: a rule inside a media query is unmeasured, and so is anything that depends on layout. The Chromium captures at 1280 and 390 in both themes cover paint.",
+        "At rest only, default accent — hover, focus and active grounds belong to react/src/contrast.test.tsx.",
+        "DOM ancestry stands in for visual stacking, so a field positioned over a non-ancestor reads the ground it descends from rather than the one drawn under it."
+      ]
     }
   ],
   "UNGATED": [
