@@ -2496,7 +2496,7 @@ Held by `src/components/stat.test.js`, `src/styles/stat.test.js` and `stories/st
 
 Column labels accept React content, including a kit Tooltip for a header explanation.
 
-Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells. A sortable header's label truncates rather than pushing the sort caret out of a capped column, so a pinned sortable identity keeps its direction visible on a phone.
+Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. `columnPager={false}` leaves that pair undrawn at any overflow: the scrolling region keeps its name, its landmark role and its keyboard stop, so a pinned identity column anchors the row and the columns are reached by the gesture the table already answers. Nothing else about the table changes with it. Tables inside cards use the card reading surface for their body, sticky header and pinned cells. A sortable header's label truncates rather than pushing the sort caret out of a capped column, so a pinned sortable identity keeps its direction visible on a phone.
 
 A table may omit selection controls when its consumer has no selection action. Existing
 selection-enabled tables keep their row and visible-page selection behavior.

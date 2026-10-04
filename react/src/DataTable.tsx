@@ -48,6 +48,14 @@ export type DataTableProps<T> = {
   /** `false` renders no pager at all — for a surface that supplies its own. */
   pager?: boolean;
   /**
+   * `false` draws no Previous/More columns pair over a table whose columns overflow.
+   * A pinned identity column anchors the row while the rest scrolls under it, so the
+   * pair restates a gesture the table already answers — and costs a card two controls
+   * at the width that has least room for them.
+   * why: docs/specification.md#react-tables
+   */
+  columnPager?: boolean;
+  /**
    * The pager's accessible name. Two tables on one page otherwise publish two
    * landmarks called "Pagination", and a reader listing the landmarks cannot tell
    * which one moves which table. Axe will not catch it: `landmark-unique` is a
@@ -72,7 +80,7 @@ export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
 }
 
 export function DataTable<T extends { name: string }>({
-  columns, rows, dense = false, density, stickyHeader = false, pinnedIdentity = false, stacked = false, scrollLabel = 'Table', empty = 'No rows', pageSize, pageSizes = null, onPageSizeChange, pager = true,
+  columns, rows, dense = false, density, stickyHeader = false, pinnedIdentity = false, stacked = false, scrollLabel = 'Table', empty = 'No rows', pageSize, pageSizes = null, onPageSizeChange, pager = true, columnPager = true,
   pagerLabel, loading = false,
   selectable = true, selected = new Set<string>(),
   onToggle = () => {}, onTogglePage = () => {}, sort: controlledSort, onSortChange,
@@ -90,8 +98,10 @@ export function DataTable<T extends { name: string }>({
       end: region.scrollLeft + region.clientWidth >= region.scrollWidth - 1,
     });
   };
+  // Nothing reads the measurement when the pair is not drawn, so the region is not
+  // observed for it either.
   useEffect(() => {
-    if (!scrollable) return;
+    if (!scrollable || !columnPager) return;
     const region = scrollRegion.current;
     if (!region) return;
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measureColumns);
@@ -99,7 +109,7 @@ export function DataTable<T extends { name: string }>({
     if (region.firstElementChild) observer?.observe(region.firstElementChild);
     measureColumns();
     return () => observer?.disconnect();
-  }, [scrollable, columns, rows]);
+  }, [scrollable, columnPager, columns, rows]);
   const scrollColumns = (direction: number) => {
     const region = scrollRegion.current;
     if (region) region.scrollBy({ left: direction * region.clientWidth / 2, behavior: 'instant' });
@@ -173,14 +183,14 @@ export function DataTable<T extends { name: string }>({
 
   return (
     <>
-      {scrollable && columnScroll.overflow && <div className="ui-card__row" role="group" aria-label={`${scrollLabel} columns`}>
+      {scrollable && columnPager && columnScroll.overflow && <div className="ui-card__row" role="group" aria-label={`${scrollLabel} columns`}>
         <Button size="sm" icon="arrowLeft" aria-controls={scrollId} disabled={columnScroll.start} onClick={() => scrollColumns(-1)}>Previous columns</Button>
         <Button size="sm" iconRight="arrowRight" aria-controls={scrollId} disabled={columnScroll.end} onClick={() => scrollColumns(1)}>More columns</Button>
       </div>}
       {/* The rows stay on screen while the next page is fetched, and the table
           says so. A reader who cannot see it otherwise meets a table that is
           silently either current or stale, with no way to tell which. */}
-      <div id={scrollId} ref={scrollRegion} onScroll={measureColumns} className={stickyHeader || pinnedIdentity ? 'ui-table-scroll' : undefined} role={stickyHeader || pinnedIdentity ? 'region' : undefined}
+      <div id={scrollId} ref={scrollRegion} onScroll={columnPager ? measureColumns : undefined} className={stickyHeader || pinnedIdentity ? 'ui-table-scroll' : undefined} role={stickyHeader || pinnedIdentity ? 'region' : undefined}
         aria-label={stickyHeader || pinnedIdentity ? scrollLabel : undefined} tabIndex={stickyHeader || pinnedIdentity ? 0 : undefined}>
       <table role={role('table')} className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned', stacked && 'ui-table--stacked'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>

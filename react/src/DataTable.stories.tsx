@@ -127,7 +127,7 @@ export const PinnedSortable: StoryObj = {
   render: () => (
     <div className="ui-card" style={{ maxWidth: 'var(--panel-lg)' }}>
       <DataTable columns={pinnedColumns} rows={rows} selectable={false} pager={false}
-        density="compact" stickyHeader pinnedIdentity scrollLabel="Campaigns" />
+        columnPager={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Campaigns" />
     </div>
   ),
 };
@@ -145,7 +145,7 @@ export const StackedRows: StoryObj = {
     // with its columns scrolling — and say nothing about where the cards begin.
     <div className="ui-card">
       <DataTable columns={stackedColumns} rows={rows} selectable={false} pager={false}
-        density="compact" stickyHeader pinnedIdentity stacked scrollLabel="Campaigns" />
+        columnPager={false} density="compact" stickyHeader pinnedIdentity stacked scrollLabel="Campaigns" />
     </div>
   ),
 };

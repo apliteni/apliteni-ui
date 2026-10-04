@@ -610,6 +610,38 @@ it('offers column navigation only for overflow and disables each reached edge', 
   expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
 });
 
+// #500: a pinned identity column anchors the row while the rest scrolls under it, so a
+// surface can refuse the pair without giving up the scrolling region it sits over. The
+// pair is drawn first, with the same region and the same overflow, so what the second
+// half reads is the prop and not a measurement that never ran.
+it('draws no column pair, and measures nothing, when the column pager is off', () => {
+  const props = { columns, rows, selectable: false as const, pager: false,
+    pinnedIdentity: true, scrollLabel: 'Ledger' };
+  const { rerender } = render(<DataTable {...props} />);
+  const region = screen.getByRole('region', { name: 'Ledger' });
+  // Counted rather than fixed: measuring the region is the whole cost of a pair nobody
+  // draws, and a scrolling phone table pays it on every frame.
+  let measured = 0;
+  Object.defineProperties(region, {
+    clientWidth: { configurable: true, get: () => 300 },
+    scrollWidth: { configurable: true, get: () => { measured += 1; return 450; } },
+  });
+  fireEvent.scroll(region);
+  expect(screen.getByRole('group', { name: 'Ledger columns' })).toBeInTheDocument();
+  expect(measured).toBeGreaterThan(0);
+
+  measured = 0;
+  rerender(<DataTable {...props} columnPager={false} />);
+  fireEvent.scroll(region);
+  expect(measured).toBe(0);
+  expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Previous columns' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'More columns' })).toBeNull();
+  // The region is what still carries the columns: a named landmark and a keyboard stop,
+  // which a browser scrolls with the arrow keys.
+  expect(screen.getByRole('region', { name: 'Ledger' })).toHaveAttribute('tabindex', '0');
+});
+
 // Stacked rows (#500). The look is the kit's — src/styles/table-stacked.test.js holds
 // every declaration the step writes, and the captures show the drawn cards at 390 and
 // 320. What lives here is the markup no stylesheet can supply: the label each card
