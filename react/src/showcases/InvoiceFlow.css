@@ -11,10 +11,12 @@
 .invoice-flow h2 { font-size: var(--text-lg); margin: 0 0 var(--space-4); }
 .invoice-flow h3 { font-size: var(--text-md); margin: 0; }
 .invoice-flow p { max-width: var(--prose-body); }
-.invoice-flow__note { font-size: var(--text-sm); margin: 0 0 var(--space-4); }
+.invoice-flow__note { font-size: var(--text-sm); margin: 0; }
 .invoice-flow__announcement { font-size: var(--text-sm); margin: 0; }
 .invoice-flow__announcement:empty { display: none; }
-.invoice-flow__summary, .invoice-flow__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin: var(--space-4) 0; }
+/* No vertical margin of its own: .ui-app__body is a flex column with the kit's page
+   gap, so a margin here is added to that gap rather than replacing it. */
+.invoice-flow__summary, .invoice-flow__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin: 0; }
 .invoice-flow__status, .invoice-flow__error { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
 /* icon() emits a bare <svg>; `.ui-icon` is only on the shell's hand-drawn fold glyph, so
    this has to name the element to reach these. At 16px, 2.4 paints 1.6 CSS px. */
@@ -43,7 +45,7 @@
 /* The identity cell's ghost button carries the control's own inset, which put its text
    18px right of the column header. Pull the box back so the two share an edge. */
 .invoice-flow .ui-table td:first-child .ui-btn { margin-inline-start: calc(-1px - var(--btn-pad-x)); }
-.invoice-flow__drop { border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); margin: var(--space-6) 0; padding: var(--space-4); }
+.invoice-flow__drop { border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); margin: 0; padding: var(--space-4); }
 .invoice-flow__drop > p { margin: 0; font-size: var(--text-sm); }
 .invoice-flow__drop.is-dragging { border-color: var(--accent); }
 .invoice-flow .ui-table { white-space: nowrap; min-width: var(--panel-lg); }
