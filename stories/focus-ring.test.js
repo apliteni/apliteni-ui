@@ -336,9 +336,9 @@ test('focus walk: the cascade resolver accounts for every stop it walks', () => 
       buckets.exempt += 1;
     }
   }
-  // 158 -> 177 in #509: the /account preset's two screens left the walk and the
+  // 158 -> 176 in #509: the /account preset's two screens left the walk and the
   // topbar's four stories joined it, and they carry more chrome between them.
-  assert.equal(buckets.self, 177, 'the number of stops whose own cascade was resolved moved');
+  assert.equal(buckets.self, 176, 'the number of stops whose own cascade was resolved moved');
   assert.deepEqual([...new Set(buckets.delegated)], [
     '.ui-switch input:focus-visible + .ui-switch__track',
   ], 'a ring painted on another box is not cascade-resolved — add it here with its reason');

@@ -1,6 +1,7 @@
 import { topbar, themeToggle, deckTextSwitch, accountMenu, versionSwitcher } from '../../src/components/topbar.js';
 import { appShell } from '../../src/components/shell.js';
 import { card } from '../../src/components/index.js';
+import { statBand } from '../../src/components/stat.js';
 import { specimen } from '../_gallery.js';
 
 const VERSIONS = [
@@ -50,22 +51,22 @@ const SHELL_VERSIONS = [
   { label: 'v2', meta: 'March 2026', badge: 'archive' },
 ];
 
-// The rule the account menu in this band follows, cited on the screen so a reader
-// of the band finds it; stories/guidelines/overview.test.js holds the id in step.
-// `./` resolves against /iframe.html, so this is the manager URL in a static build
-// too. `ui-focusable` is the kit's ring opt-in: the base sheet paints it on control
-// classes, and a bare anchor is not one, so without it this link answers Tab in
-// browser black.
-const GUIDELINE = './?path=/story/guidelines-account-and-settings--account-and-settings';
-const cite = `<a class="ui-focusable" href="${GUIDELINE}" target="_top">Guidelines / Account and settings</a>`;
-
 // The topbar over a shell, which is the only place its composition is visible: a
 // sticky .topbar, the rail offset beneath it by --ui-app-top, and the account menu
 // agreeing with the rail about one nav. The pieces above are drawn on their own;
 // what this adds is how they stack.
 //
-// A plain product page on purpose — the account area itself belongs in a modal now
-// (Guidelines / Account and settings), so this draws an ordinary screen.
+// A plain product screen on purpose. Its lede says what the page counts and over
+// what period, which is what guidelines/the-page.md#write-a-useful-introduction asks
+// of one; a paragraph explaining this story to its reader is documentation standing
+// where the page's own words go. What the account menu may hold is Guidelines /
+// Account and settings, which is where a reader of the collection already is.
+const STATS = [
+  { label: 'Visits', value: '38,412', delta: { value: '+6.1%', tone: 'good' } },
+  { label: 'Signups', value: '1,204', delta: { value: '+2.4%', tone: 'good' } },
+  { label: 'Revenue', value: '€82,310', delta: { value: '-1.8%', tone: 'bad' } },
+];
+
 export const InShell = {
   name: 'In the shell',
   render: () => appShell({
@@ -80,12 +81,12 @@ export const InShell = {
     navLabel: 'Strategy',
     crumbs: [{ label: 'Strategy' }, { label: 'Overview' }],
     title: 'Overview',
-    sub: `The kit’s product topbar over appShell(): the band sticks, and the rail starts below it. What the menu behind the avatar may hold is settled in ${cite}.`,
-    body: card({
-      title: 'This week',
-      body: '<p>Traffic and revenue for the current period. The screen is deliberately '
-        + 'plain: what it exists to show is the chrome above and beside it.</p>',
-    }),
+    sub: 'Traffic and revenue for the current week.',
+    body: statBand({ stats: STATS, basis: 'Against the previous week.', label: 'This week' })
+      + card({
+        title: 'Payouts',
+        body: '<p>Two of the four that arrived this week are waiting for a second approval.</p>',
+      }),
     account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
     signOutHref: '#logout',
     topbar: {

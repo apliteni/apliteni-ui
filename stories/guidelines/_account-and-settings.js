@@ -7,10 +7,9 @@ import { button, card, switchToggle } from '../../src/components/index.js';
 import { sidebarNav } from '../../src/components/nav.js';
 import { accountMenu } from '../../src/components/topbar.js';
 
-// The account modal is a shape the kit cannot draw, which rule 1 records as #553, so
-// the panel here is composed: the two-step edge and raised ground every kit overlay
-// wears, around a real nav and real rows. The product behind it is drawn to scale in
-// the block vocabulary stories/guidelines/_the-page.js established.
+// Rule 1 records the kit's missing modal as #553, so the panel here is composed: the
+// two-step edge and raised ground every kit overlay wears, around a real nav and real
+// rows. The product behind it uses the block vocabulary of _the-page.js.
 export const SPEC_CSS = `
   <style>
     .gas-shell { position: relative; height: 180px; display: flex; gap: 5px;
@@ -42,10 +41,8 @@ export const SPEC_CSS = `
       border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: 0; }
     .gas-over__pane { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 
-    /* Where the overlay opens is a question about a whole screen, and a screen does
-       not fit a 420px cell at life size. Both halves of that pair are drawn to
-       scale in one frame: the product behind, the scrim over it, and the overlay's
-       own shape — a centred panel with a nav column, or a sheet across the foot. */
+    /* A whole screen does not fit a 420px cell at life size, so both halves of the
+       pair are drawn to scale: the product, the scrim, and the overlay's own shape. */
     .gas-frame { position: relative; height: 300px; display: flex; gap: 5px;
       border-radius: var(--radius-sm); overflow: hidden; }
     .gas-frame .gas-shell { height: 100%; flex: 1; }
@@ -53,20 +50,15 @@ export const SPEC_CSS = `
     .gas-over__nav { width: 30%; flex: none; display: flex; flex-direction: column; gap: 6px;
       padding-right: 6px; border-right: 1px solid var(--border); }
 
-    /* The account modal at life size, where the navigation itself is the subject:
-       the panel's own ground and edge, a head over it, the nav beside the pane.
-       Under it is the drawn product rule 1 uses, and the scrim over that. The scrim
-       alone was a dark translucent with nothing behind it, which in light theme
-       composites into an opaque grey mat around the panel — a different wrong
-       reading from the card it was there to prevent. */
+    /* The account modal at life size, where the navigation is the subject: the panel's
+       ground and edge, a head over it, the nav beside the pane. The drawn product goes
+       under the scrim, because a scrim over nothing composites to a grey mat in light. */
     .gas-modal { position: relative; padding: var(--space-5) var(--space-4);
       border-radius: var(--radius-md); overflow: hidden; }
     .gas-modal__bg { position: absolute; inset: 0; }
     .gas-modal__bg .gas-shell { height: 100%; border-radius: 0; }
-    /* The drawn rail marks its current row in the accent. Under a scrim that mark
-       is a clipped dash beside the panel, naming a page nobody is on, so it goes
-       neutral wherever a scrim covers it — in rule 1's frame as well, where the
-       overlay's own row is the "here" the pair is about. */
+    /* Under a scrim the rail's accent dash names a page nobody is on, so it goes
+       neutral wherever a scrim covers it. The overlay's own row is the "here". */
     .gas-modal__bg .gas-row--cur,
     .gas-frame .gas-shell__rail .gas-row--cur {
       /* ring-gap: inherit — a drawn nav row is a mark, not a control. */
@@ -84,9 +76,8 @@ export const SPEC_CSS = `
     /* The one-field don't shows a pane with a single row in it, so its body needs
        no room for five. The floor is the variable, not a second panel. */
     .gas-modal--short { --gas-body: 100px; }
-    /* The navigation pair stands both panels on one body height rather than a
-       floor, so the half with no navigation is cut where its scroll begins —
-       which is the fault that rule is about, drawn rather than described. */
+    /* One body height across the pair, so the half with no navigation is cut where
+       its scroll begins — the fault the rule is about, drawn rather than described. */
     .gas-modal--nav .gas-modal__body { height: 330px; min-height: 0; }
     /* The caption takes the card title's rank without being a heading: a specimen is
        a picture, and the document's outline is the rule headings. */
@@ -98,36 +89,26 @@ export const SPEC_CSS = `
     .gas-modal__pane { flex: 1 1 0; min-width: 0; padding: var(--space-4);
       display: flex; flex-direction: column; gap: var(--space-3); overflow: hidden; }
 
-    /* Below the kit's fold the pane has no room beside a column of names, and a
-       pane cut off at its own edge is not what this page is recommending. The
-       navigation goes above the pane there, which is what the shape has to do on a
-       phone, and the paired body heights come off with it. */
+    /* Below the fold the pane has no room beside a column of names, so the navigation
+       goes above it — the phone shape rule 1's Except names. */
     @media (max-width: 720px) {
       .gas-modal__body, .gas-modal--nav .gas-modal__body { display: block; height: auto; }
       .gas-modal__nav { width: auto; padding: var(--space-2);
         border-right: 0; border-bottom: 1px solid var(--border); }
-      /* Above the pane the rail's open column is a width nothing here has: at 320
-         the panel is narrower than one row, and the panel clips, so every row lost
-         58px at its right edge — two names mid-word, with no ellipsis to say so,
-         and the marked row its own border. Each row takes the width it is given. */
+      /* The rail's open column is wider than the drawn panel at 320, which clipped
+         58px off every row. Each row takes the width it is given instead. */
       .gas-modal__nav .ui-nav--side { --ui-nav-col: 100%; }
-      /* Nothing folds in a drawing, so the reason the rail holds its names on one
-         line and ellipsises them is not in force here, and at 320 the drawn panel
-         is narrower than two of the five names. This rule is about reading them,
-         so a name too long for its row wraps instead. */
+      /* The panel at 320 is narrower than two of the five names, and this rule is
+         about reading them, so a name too long for its row wraps rather than clips. */
       .gas-modal__nav .ui-nav__label { white-space: normal; }
     }
 
     .gas-acts { display: flex; justify-content: flex-end; gap: var(--space-3);
       margin-top: var(--space-4); }
 
-    /* The account menu, in the flow and at its shipped width. */
-    /* One row against five is the whole of this rule, and a pair drawn at two heights
-       stops being a comparison, so side by side both cells stand on the taller one.
-       The grid already gives a pair in one row a shared height; the ground takes it
-       rather than a floor of its own. A floor could not tell the two apart — the pair
-       drops single file long before any breakpoint the kit names, and stacked it only
-       printed empty card under Sign out. */
+    /* The account menu, in the flow and at its shipped width. A pair drawn at two
+       heights stops being a comparison, so side by side both cells take the grid's
+       shared row height rather than a floor, which stacked would print empty card. */
     .gc-cell:has(.gas-menu) > .gl-stage { flex: 1; }
     .gas-menu { display: flex; justify-content: center; }
     .gas-menu .acct { display: block; }
@@ -224,8 +205,7 @@ export const navDont = () => stage(modal(pane('',
 
 // ---- what the account menu holds ----------------------------------------
 
-// No `active`: the row that opens the modal is the way in, not the page the reader
-// is already on, and marking it would also put the pair's only accent on the Do.
+// No `active`: the row opens the modal, it is not the page the reader is on.
 const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 
 // One row, because the menu's job under this rule is the way in and nothing else.
@@ -265,16 +245,13 @@ export const inRowDont = () => stage(modal(withNav('notifications')
 
 // ---- the action a pane carries -------------------------------------------
 
-// Each agent beside the token it holds, masked the way a kit page shows one: the
-// caption, the action and the rule's reason all say tokens, so the pane draws them.
+// Each agent beside the token it holds, masked the way a kit page shows one.
 const TOKENS = [
   ['Deploy bot', 'apl_••••7Q2 · used today'],
   ['Reporting agent', 'apl_••••K4D · used 2 days ago'],
 ];
 
-// In the modal, like the four rules above it: this pair was the only one that left
-// the shape the page spends its first four rules establishing. The rows are the
-// agents the rule's reason names, each holding the token beside it.
+// In the modal, like the four rules above it, so the page keeps one shape.
 const tokens = (label) => stage(modal(withNav('agents') + pane('Agents & API tokens',
   TOKENS.map(([lab, hint]) => settingRow(lab, hint)).join('')
   + `<div class="gas-acts">${button({ label, variant: 'primary' })}</div>`)));
