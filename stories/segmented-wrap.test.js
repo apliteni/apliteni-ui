@@ -47,7 +47,10 @@ const PROBE = (html) => {
         .filter((side) => s[`border${side}Style`] !== 'none' && parseFloat(s[`border${side}Width`]) > 0)
         .map((side) => s[`border${side}Color`]);
       const outline = s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0 ? [s.outlineColor] : [];
-      const bar = before.content !== 'none' ? [before.backgroundColor] : [];
+      // Every tab reserves the bar slot, so a mark counts only once it is drawn:
+      // a resting tab's slot carries --border at opacity 0 and paints nothing.
+      const barShown = before.content !== 'none' && +before.opacity > 0;
+      const bar = barShown ? [before.backgroundColor] : [];
       const painted = [s.backgroundColor, ...sides, ...outline, ...bar]
         .filter((c) => c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent');
       return {
@@ -60,7 +63,7 @@ const PROBE = (html) => {
         // An outline that does not paint contributes nothing: `outline: 0` and
         // the UA's own `none 3px` are the same picture.
         marks: [outline.length ? `${s.outlineStyle} ${s.outlineWidth} ${s.outlineColor}` : '-',
-          before.content === 'none' ? '-' : before.backgroundColor, ...sides].join('|'),
+          barShown ? before.backgroundColor : '-', ...sides].join('|'),
         accents: painted.filter((c) => c === accent).length,
         shadowAccent: s.boxShadow.includes(accent),
         background: s.backgroundColor,
@@ -85,7 +88,7 @@ const PROBE = (html) => {
     const barBox = (() => {
       if (!chosen) return null;
       const b = getComputedStyle(chosen, '::before');
-      if (b.content === 'none') return null;
+      if (b.content === 'none' || +b.opacity === 0) return null;
       const t = chosen.getBoundingClientRect();
       // left/top are resolved against the tab's padding box; width/height are
       // the drawn bar. The question is whether it stays inside the tab, and —
@@ -181,6 +184,38 @@ async function longLabelFixtures() {
       }),
     },
   ];
+}
+
+/**
+ * One strip, with its first resting tab under the pointer. A real hover, because
+ * the reserved bar slot sits on every tab and the question is whether hovering
+ * one draws it — a second accent mark in the strip would be #544 again, reached
+ * by a state instead of by a rule.
+ */
+async function hovered(browser, { html, css, extra = '' }) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+  try {
+    const page = await ctx.newPage();
+    await page.setContent('<!doctype html><html lang="en" data-theme="dark"><head><style>'
+      + 'html,body{margin:0;padding:0}' + css + extra + `</style></head><body>${html}</body></html>`);
+    const tab = page.locator('.ui-seg--underline button:not(.is-active):not([aria-pressed="true"])').first();
+    await tab.hover();
+    // The bar transitions, so an unsettled read catches it part-grown.
+    await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))));
+    await page.waitForTimeout(250);
+    // Awaited inside the try: the `finally` below closes the context, and an
+    // unawaited promise reaches it with the page already gone.
+    return await page.evaluate(() => {
+      const el = document.querySelector('.ui-seg--underline button:not(.is-active):not([aria-pressed="true"])');
+      const b = getComputedStyle(el, '::before');
+      const chosen = document.querySelector('.ui-seg--underline button.is-active, .ui-seg--underline button[aria-pressed="true"]');
+      return {
+        opacity: +b.opacity, transform: b.transform, background: b.backgroundColor,
+        chosenBackground: chosen ? getComputedStyle(chosen, '::before').backgroundColor : null,
+        ink: getComputedStyle(el).color,
+      };
+    });
+  } finally { await ctx.close(); }
 }
 
 test('measured: an underline strip keeps every tab inside its own box', { skip: !RUN && 'set SEG_WRAP=1' }, async (t) => {
@@ -418,18 +453,30 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
 
     // --- forced colours' own. The block put back the way the sheet read before
     // it existed: a plate and a hairline the mode throws away, and nothing else.
+    const SHOW_EVERY_BAR = '.ui-seg--underline button::before{opacity:1!important}';
     const unstated = await strips(browser, {
       subjects, css, width: 1280, forced: true,
-      extra: '.ui-seg--underline button.is-active::before,.ui-seg--underline button[aria-pressed="true"]::before,'
-        + '.ui-seg--underline button[aria-selected="true"]::before{content:none!important}',
+      extra: `${SHOW_EVERY_BAR}.ui-seg--underline button.is-active::before,`
+        + '.ui-seg--underline button[aria-pressed="true"]::before{background:var(--accent)!important}',
     });
     const silent = unstated.filter((s) => s.chosen && s.resting && s.chosen.marks === s.resting.marks);
     assert.ok(
       silent.length,
-      'with the forced-colours restatement gone the chosen tab still read differently, so the '
+      'with the forced-colours restatement gone — and every tab\'s bar drawn, so the chosen one '
+      + 'cannot be found by having a bar at all — the chosen tab still read differently. The '
       + 'check above is measuring the normal cascade rather than the mode.',
     );
     t.diagnostic(`mutation — no forced-colours restatement — ${silent.length} chosen tabs become indistinguishable`);
+    // And the restatement alone answers it: the same strip with every bar drawn,
+    // `Highlight` left in place, keeps the chosen tab apart from its neighbours.
+    const held = await strips(browser, { subjects, css, width: 1280, forced: true, extra: SHOW_EVERY_BAR });
+    for (const s of held.filter((x) => x.chosen && x.resting)) {
+      assert.ok(
+        s.chosen.marks !== s.resting.marks,
+        `${s.story}: with every tab's bar drawn in forced colours the chosen one is not `
+        + `distinguishable — both ${s.chosen.marks}. \`Highlight\` is what has to separate them.`,
+      );
+    }
 
     // --- the tap floor's own. The strip keeps a 4px row gap instead of
     // --tap-gap, and the zone reaches 44 only because 4px of clearance is
@@ -462,6 +509,23 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
       + 'keeping it on ::before measures nothing.',
     );
     t.diagnostic(`mutation — bar on ::after — ${collapsed.length} tap zones collapse under the floor`);
+
+    // --- hover. Every tab carries the bar slot so the mark can travel, which
+    // means a careless hover rule turns a second tab's slot on and the strip
+    // paints the accent twice. Measured under a real pointer.
+    const hoverSubject = { html: subjects[0].html, css };
+    const onHover = await hovered(browser, hoverSubject);
+    assert.equal(
+      onHover.opacity, 0,
+      `a resting tab under the pointer draws its bar (opacity ${onHover.opacity}) in `
+      + `${onHover.background}. The accent belongs to the chosen tab alone — #544.`,
+    );
+    const slotOn = await hovered(browser, { ...hoverSubject, extra: '.ui-seg--underline button:hover::before{opacity:1!important}' });
+    assert.equal(
+      slotOn.opacity, 1,
+      'a hover rule that turns the slot on left it off, so the check above reads nothing.',
+    );
+    t.diagnostic(`hover: resting slot at opacity ${onHover.opacity}, chosen bar ${onHover.chosenBackground}`);
 
     // --- the tab's own two. `nowrap` is what the sheet carried while the scroll
     // box contained it; `break-word` is the weaker half of what replaced it, which

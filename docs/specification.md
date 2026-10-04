@@ -3239,6 +3239,28 @@ the second of the two marks [#544](https://github.com/apliteni/apliteni-ui/issue
 reported. The pill appearance keeps that outline; it is a separate decision on a
 rule every segmented control in the kit shares.
 
+**Every tab reserves the bar, and the chosen one draws it.** The slot sits on
+every tab at `opacity: 0` and `scaleX(0.4)`, and the chosen tab's rule turns it
+on, so the mark grows in place when the choice moves instead of appearing. That
+is `.ui-nav--tabs.is-underline`'s own structure and timing for the same 2px bar,
+and `src/styles/segmented.test.js` reads the two rules against each other: the
+kit draws underline tabs one way, and a strip that snapped the mark between tabs
+would be the exception. Only the chosen tab's slot is ever drawn, so the accent
+is still spent once — a hover rule that turned a second slot on would be #544
+again, reached by a state rather than by a rule, which the browser gate measures
+under a real pointer.
+
+**Hovering says nothing a reader can see, and that is the kit's answer, not this
+strip's.** `.ui-seg button:hover` steps the ink from `--text` to `--strong`:
+1.16:1 in light, 1.22:1 in dark. `.ui-nav__tab:hover` does exactly the same. A
+tab with no box of its own therefore answers the pointer with the cursor and
+little else. Making that louder needs a neutral that reads on the grey page, and
+the kit has none that does not then outweigh the selection: measured against the
+page, `--border` is 1.12:1 light and 1.50:1 dark, `--border-strong` 1.37 and
+1.95, and the first token that clears — `--muted`, at 5.51 and 7.40 — beats the
+accent bar's own 6.55:1 in dark. So the strip keeps the kit's hover, and a
+louder one is a decision about both underline tabs rather than about this one.
+
 **Two consequences worth knowing.** A chosen label is 100 weight units heavier
 than a reading one, so a tab is a little wider while it is chosen; measured on the
 screener's strip the widest step is under 3px and no strip changes its row count
@@ -3270,11 +3292,15 @@ chosen tab's accent count, its label's weight and ink against a resting tab's,
 whether any tab draws a box, the accent bar against the tab that carries it and
 against that tab's bottom edge, the strip's own borders, the row gap against the
 track's, the tap zone against the 44px floor — including with the bar moved to
-`::after` — and, in forced colours, the painted marks that are left against a
-resting tab's. Limits: the marks come from the computed cascade, so what is
-finally painted is the screenshots' evidence; the forced-colours half reads
-painted marks only and deliberately ignores the weight step; and no React strip
-is measured, the sheet being shared.
+`::after` — a resting tab under a real pointer, which must still draw no bar, and, in forced colours, the
+painted marks that are left against a resting tab's, with every tab's bar drawn
+so the chosen one cannot be found merely by having one. A mark counts only once
+it is drawn, so the reserved slot on a resting tab is not read as paint. Limits:
+the marks come from the computed cascade, so what is finally painted is the
+screenshots' evidence; the forced-colours half reads painted marks only and
+deliberately ignores the weight step; hover is measured on one strip rather than
+every one, the rule being shared; and no React strip is measured, the sheet being
+shared.
 Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527) and
 [#544](https://github.com/apliteni/apliteni-ui/issues/544).
 

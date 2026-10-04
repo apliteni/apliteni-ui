@@ -67,17 +67,37 @@ test('the chosen tab is a weight step and one bar, and draws no box', () => {
   // one. guidelines/labels-and-titles.md
   assert.equal(decl(ruleBody(baseCss, '.ui-seg button'), 'color'), 'var(--text)');
 
+  // Every tab reserves the bar; only the chosen one draws it.
+  const slot = ruleBody(baseCss, '.ui-seg--underline button::before');
   const bar = ruleBody(baseCss, '.ui-seg--underline button.is-active::before');
-  assert.equal(decl(bar, 'height'), '2px');
-  assert.equal(decl(bar, 'background'), 'var(--accent)');
+  assert.equal(decl(slot, 'height'), '2px');
+  assert.equal(decl(slot, 'background'), 'var(--accent)');
+  assert.equal(decl(slot, 'opacity'), '0', 'a resting tab reserves the slot and draws nothing in it');
+  assert.equal(decl(bar, 'opacity'), '1');
   // Inset on three sides, which is the whole of why the strip can wrap: a mark
   // on the tab's bottom edge is a mark on the line between two rows, and the
   // reader picks which row it belongs to.
-  assert.equal(decl(bar, 'left'), 'var(--space-3)', 'the bar spans the label, not the tab');
-  assert.equal(decl(bar, 'right'), 'var(--space-3)');
-  assert.ok(/^[1-9]/.test(decl(bar, 'bottom') ?? ''), 'the bar stands clear of the tab\'s bottom edge');
-  assert.equal(decl(bar, 'top'), undefined, 'the bar is under the label, not beside it');
-  assert.equal(decl(bar, 'width'), undefined);
+  assert.equal(decl(slot, 'left'), 'var(--space-3)', 'the bar spans the label, not the tab');
+  assert.equal(decl(slot, 'right'), 'var(--space-3)');
+  assert.ok(/^[1-9]/.test(decl(slot, 'bottom') ?? ''), 'the bar stands clear of the tab\'s bottom edge');
+  assert.equal(decl(slot, 'top'), undefined, 'the bar is under the label, not beside it');
+  assert.equal(decl(slot, 'width'), undefined);
+});
+
+test('the mark grows in place, the way the kit\'s other underline tab does', () => {
+  // The bar is reserved on every tab and revealed on the chosen one, which is
+  // the only structure that can animate it: a mark that exists only while it is
+  // chosen has nothing to transition from. nav.css reaches the same picture
+  // declaration for declaration, so the two are read against each other — a
+  // strip that snapped the mark between tabs would be the one place in the kit
+  // that does. guidelines/motion.md
+  const slot = ruleBody(baseCss, '.ui-seg--underline button::before');
+  const navSlot = ruleBody(topLevel(readFileSync(new URL('./nav.css', import.meta.url), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')), '.ui-nav--tabs.is-underline .ui-nav__tab::after');
+  for (const prop of ['height', 'border-radius', 'background', 'opacity', 'transform', 'transition']) {
+    assert.equal(decl(slot, prop), decl(navSlot, prop), `the bar's ${prop} is the kit's underline tab's`);
+  }
+  assert.equal(decl(ruleBody(baseCss, '.ui-seg--underline button.is-active::before'), 'transform'), 'scaleX(1)');
 });
 
 test('the chosen tab keeps the kit ring rather than falling back to the browser\'s', () => {
@@ -88,10 +108,8 @@ test('the chosen tab keeps the kit ring rather than falling back to the browser\
   const focused = ruleBody(baseCss, '.ui-seg--underline button.is-active:focus-visible');
   assert.equal(decl(focused, 'box-shadow'), 'var(--ring)');
   assert.equal(decl(focused, 'outline'), '2px solid transparent');
-  for (const selector of ['.ui-seg--underline button[aria-pressed="true"]:focus-visible',
-    '.ui-seg--underline button[aria-selected="true"]:focus-visible']) {
-    assert.equal(decl(ruleBody(baseCss, selector), 'box-shadow'), 'var(--ring)');
-  }
+  assert.equal(decl(ruleBody(baseCss, '.ui-seg--underline button[aria-pressed="true"]:focus-visible'),
+    'box-shadow'), 'var(--ring)', 'both selectors the factory can emit carry it');
 });
 
 test('the underline strip draws no rule under its tabs', () => {

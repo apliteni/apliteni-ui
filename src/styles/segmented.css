@@ -104,37 +104,40 @@
    outline the pill rule gives every chosen button, which is #544's second mark.
    #527 r31. why: docs/specification.md#the-chosen-tab-in-an-underline-strip */
 .ui-seg--underline button.is-active,
-.ui-seg--underline button[aria-pressed="true"],
-.ui-seg--underline button[aria-selected="true"] {
+.ui-seg--underline button[aria-pressed="true"] {
   background: none;
   color: var(--strong);
   font-weight: var(--weight-semibold);
   outline: 0;
 }
-/* ::before, not ::after: below the phone step tap-zone.css sizes ::after to the
-   44px floor, and a bar drawn there collapses that layer to 2px. Inset from the
-   tab's bottom edge, which is the line two wrapped rows share. */
-.ui-seg--underline button.is-active::before,
-.ui-seg--underline button[aria-pressed="true"]::before,
-.ui-seg--underline button[aria-selected="true"]::before {
+/* Every tab reserves the bar and hides it, so the mark grows in place when the
+   choice moves rather than appearing — the structure and the timing
+   .ui-nav--tabs.is-underline already uses for the same 2px bar. ::before, not
+   ::after: below the phone step tap-zone.css sizes ::after to the 44px floor,
+   and a bar drawn there collapses that layer to 2px. Inset from the tab's
+   bottom edge, which is the line two wrapped rows share. */
+.ui-seg--underline button::before {
   content: "";
   position: absolute;
   left: var(--space-3); right: var(--space-3); bottom: 3px;
   height: 2px;
   border-radius: 2px;
   background: var(--accent);
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
+.ui-seg--underline button.is-active::before,
+.ui-seg--underline button[aria-pressed="true"]::before { opacity: 1; transform: scaleX(1); }
 /* `outline: 0` above outranks the kit's :focus-visible rule — (0,3,0) against
    (0,2,1) — so the chosen tab would focus with no indicator. Restated here. */
 .ui-seg--underline button.is-active:focus-visible,
-.ui-seg--underline button[aria-pressed="true"]:focus-visible,
-.ui-seg--underline button[aria-selected="true"]:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-seg--underline button[aria-pressed="true"]:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 /* The mode repaints an author colour, so the bar comes back as the labels' own
    ink. `Highlight` is kept where it is named: one mark the mode cannot flatten. */
 @media (forced-colors: active) {
   .ui-seg--underline button.is-active::before,
-  .ui-seg--underline button[aria-pressed="true"]::before,
-  .ui-seg--underline button[aria-selected="true"]::before { background: Highlight; }
+  .ui-seg--underline button[aria-pressed="true"]::before { background: Highlight; }
 }
 .ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }
