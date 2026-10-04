@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.78.1', date: '2026-10-04',
+    changes: [
+      ['fixed', 'A dropdown the keyboard opens puts focus inside itself for a reader who asked for reduced motion. The panel opened and focus stayed on the trigger: under the reduced-motion net an element naming no transition property of its own still transitions the inherited visibility, so everything inside the panel was still hidden in the frame the dropdown focused into it, and focus() on a hidden element does nothing. An open panel now carries no transition inside it at all. The search field, the topbar account menu and the version switcher were the three affected. Fixes #519.', ['Dropdown', 'Topbar']],
+      ['fixed', 'The account menu\u2019s keyboard-focused row draws the whole focus ring. The panel clipped at its own edge with no padding, so a three-pixel ring had one pixel to draw in and arrived as two accent bars above and below the row. The panel now pads by six pixels and its rows are rounded plates inside that padding, the way every other menu in the kit is already built; the header and the separators still reach the panel\u2019s edges, and the rows\u2019 content stays on the line it was on. See #519.', ['Topbar']],
+    ],
+  },
+  {
     v: '0.78.0', date: '2026-10-04',
     changes: [
       ['added', 'React FileDrop is the compact drop: at rest one row with the Upload button and the accepted types beside it, and a drop target painted only while a file is over the region it covers. Your application owns the upload and supplies the file it is holding; a file given with no status is uploading, so the kit never reports a success you have not claimed. A file in hand reads as a stack rather than a line: the name on top with the actions at its end, the size — or the failure message — under it, and the progress track the full width below. No tier takes a second line; the name truncates its stem and keeps its extension, and nothing is hidden or moved at any width. Where you give a progress value the track is the status, so the row spends no word on it and the word travels as the track’s accessible name. Closes #507.'],

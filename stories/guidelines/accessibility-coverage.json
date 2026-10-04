@@ -400,6 +400,16 @@
       ]
     },
     {
+      "file": "stories/panel-ring-room.test.js",
+      "name": "Panel ring room",
+      "does": "Discovers every panel the dropdown wiring opens — each element the kit's factories mark `data-dropdown-panel` — and requires its own rule to declare at least the padding the kit ring spreads outside a focused row, read from --ring-gap-width and --ring-width at run time. A row sitting edge to edge in its panel has nowhere to draw that ring, which is what left the account menu's keyboard row with two accent bars instead of a ring in #519. Holds the list of panels, so a fourth menu on the same wiring is measured rather than assumed, and proves rejection by taking the padding back off the account menu.",
+      "blind": [
+        "Pixels. The reading is of the stylesheet; it checks that the panel declares the room, never that a browser drew the ring. Chrome measured that for #519, before and after, in both themes.",
+        "Padding anywhere but the panel's own base rule — a media query's, or a wrapper's between the panel and its rows.",
+        "Whether the rows take the ring at all. `.vopt:focus-visible` never names `.vsw__menu`, so pairing a panel to its rows from selectors alone would be guesswork; the keyboard walk in stories/focus-ring.test.js is what asks every stop for a ring."
+      ]
+    },
+    {
       "file": "stories/motion-coverage.test.js",
       "name": "Motion coverage",
       "does": "Finds every state rule that shows, hides or moves an element. It requires a transition or entrance animation between states, or a motion: still note explaining why. It also records the motion the reduced-motion net must stop.",

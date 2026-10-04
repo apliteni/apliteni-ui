@@ -1933,7 +1933,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:230 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:240 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the
@@ -2089,6 +2089,34 @@ is in the sheet both faces load and what the React side owes is markup the rule 
 Held by `src/components/dropdown.test.js`, which reads the offsets out of the stylesheet — any
 panel rule that pins `bottom` has to release `top`, and every offset has to read the one custom
 property — and feeds the wiring measured rects, JSDOM having no layout of its own.
+
+## A menu panel keeps the room its rows need
+
+The kit ring is drawn outside the border box of whatever has focus: one pixel of gap and two of
+ring, from `--ring-gap-width` and `--ring-width`. A row that fills its panel from edge to edge has
+nowhere to put that. The ring lands on the panel's own border, and a panel that clips at that edge
+cuts it away — the reader gets two accent bars, above and below the row, where a ring was meant to
+be.
+
+**So every menu panel pads by at least the ring's spread, and its rows are plates inside that
+padding.** `.ui-dropdown__panel` pads by `--ui-dropdown-pad` and rounds its rows with
+`--radius-sm`; `.vsw__menu` pads by the same six pixels. `.amenu`, the account menu, did neither: it
+padded by nothing and set `overflow: hidden` instead, which is why it was the one menu in the kit
+whose ring had a single pixel to draw in.
+[#519](https://github.com/apliteni/apliteni-ui/issues/519) is where that became visible, because
+that is the fix that put a reduced-motion reader's focus on the row in the first place. Measured in
+Chrome, both themes: one pixel of side room before, six after.
+
+A panel's header and its separators still reach its edges, by pulling back through that padding with
+`calc(var(--amenu-pad) * -1)` — the same move `.ui-dropdown__head` and `.ui-dropdown__foot` make, and
+for the same reason. The rows give back horizontally what the panel took, so a row's icon and its
+label stay on the line the header's own avatar and name are on.
+
+Held by `stories/panel-ring-room.test.js`, which discovers its subjects from the markup rather than a
+list: every element the kit's factories mark `data-dropdown-panel` is a panel the wiring opens, and
+each one's own rule has to declare that room. A fourth menu built on the same wiring is measured the
+day it is written. What it cannot see is pixels — it reads the sheet, and the ring itself was
+measured in a browser.
 
 ## A filter row holds its panels
 
