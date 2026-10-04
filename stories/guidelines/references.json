@@ -242,7 +242,7 @@
     ],
     "one-category": [
       {
-        "ref": "src/components/filter-bar.js:4",
+        "ref": "src/components/filter-bar.js:5",
         "pattern": "export function filterBar("
       },
       {
