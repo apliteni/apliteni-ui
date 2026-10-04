@@ -9,7 +9,10 @@
  *
  * Subjects are discovered from the markup and the sheets, so a renamed row fails
  * here rather than passing an empty sweep. The check is specificity, not source
- * order: two sheets' order in a consumer's bundle is the consumer's.
+ * order: two sheets' order in a consumer's bundle is the consumer's. A condition
+ * is read on both sides — a wrap inside `@media` is not the row's own fit, and a
+ * `nowrap` inside one cancels the fix across that band, because `@media` adds no
+ * specificity of its own.
  *
  * why: docs/specification.md#react-tables, #571
  */
@@ -120,6 +123,10 @@ function pagerRows() {
   return found;
 }
 
+/** A wrap this reader can read off the source. An unknown value — a shorthand or
+ *  a token — is not one, and is reported rather than counted either way. */
+const isWrap = (r) => r.value === 'wrap' || r.value === 'wrap-reverse';
+
 /**
  * The finding, or null when the row can wrap on its own account. Shared by the
  * sweep over the shipped sheets and by the mutations below, so the two cannot
@@ -138,6 +145,7 @@ function cannotWrap(sheetSet, rowClasses) {
           file,
           selector: one,
           rank: classes(one),
+          conditions: rule.conditions,
           conditional: rule.conditions.length > 0,
           // A shorthand or a token leaves the value unknown to this reader, and
           // an unknown value is reported rather than counted as a wrap.
@@ -148,7 +156,7 @@ function cannotWrap(sheetSet, rowClasses) {
     }
   }
   const unconditional = reaching.filter((r) => !r.conditional);
-  const wrapping = unconditional.filter((r) => r.value === 'wrap' || r.value === 'wrap-reverse');
+  const wrapping = unconditional.filter(isWrap);
   if (!wrapping.length) {
     const scoped = reaching.filter((r) => r.conditional);
     return reaching.length
@@ -159,12 +167,23 @@ function cannotWrap(sheetSet, rowClasses) {
       : 'no rule in the shipped sheets lets the column pager row wrap, so a row of two labelled'
         + ' actions is as wide as its labels and leaves any container narrower than they are';
   }
-  const blocking = unconditional.filter((r) => r.value !== 'wrap' && r.value !== 'wrap-reverse');
+  /* A wrap that holds at every width has to survive the conditional rules too.
+   * `@media` adds no specificity, so a `nowrap` inside one beats an
+   * unconditional wrap of the same class count and cancels the fix across that
+   * band — leaving every base rule this gate reads intact. Blockers are drawn
+   * from everything that reaches the row, conditional or not. Only an
+   * unconditional wrap answers one: a wrap inside another condition answers
+   * only inside it, and the two bands need not meet. */
+  const blocking = reaching.filter((r) => !isWrap(r));
   const unanswered = blocking.filter((b) => !wrapping.some((w) => w.rank > b.rank));
   if (unanswered.length) {
     const first = unanswered[0];
-    return `${first.selector} in ${first.file} says ${first.written} and no wrapping rule outranks`
-      + ' it, so which one wins is the order of two sheets in a consumer\'s bundle';
+    const says = `${first.selector} in ${first.file} says ${first.written}`;
+    return first.conditional
+      ? `${says} inside ${first.conditions.join(' ')}, and no wrapping rule outranks it, so the row`
+        + ' stops wrapping across that condition while the rule that wraps it reads unchanged'
+      : `${says} and no wrapping rule outranks it, so which one wins is the order of two sheets`
+        + ' in a consumer\'s bundle';
   }
   return null;
 }
@@ -254,6 +273,30 @@ test('the check refuses a wrap a media query supplies', () => {
     '@media (max-width: 720px) { .rx-column-pager { flex-wrap: wrap; } }']];
   assert.match(cannotWrap(scoped, ROW), /inside an at-rule/);
   assert.match(cannotWrap(scoped, ROW), /not the row's own/);
+});
+
+test('the check refuses a nowrap a media query brings back at the phone widths', () => {
+  // The fix is one unconditional wrap, and `@media` adds no specificity: a
+  // phone-width `nowrap` of the same class count outranks nothing and still
+  // wins, restoring the 344px document #571 was filed for with every rule the
+  // other tests here read left exactly as it is.
+  const cancelled = [
+    ['fixture.css', '.rx-column-pager { flex-wrap: wrap; }'],
+    ['fixture-host.css', '@media (max-width: 560px) { .rx-column-pager { flex-wrap: nowrap; } }'],
+  ];
+  assert.match(cannotWrap(cancelled, ROW), /flex-wrap: nowrap/);
+  assert.match(cannotWrap(cancelled, ROW), /inside @media \(max-width: 560px\)/);
+});
+
+test('a conditional rule that agrees with the wrap is not a finding', () => {
+  // Over-rejection costs what under-rejection costs: a media query that wraps
+  // too changes nothing, and a gate that failed on it would be edited away
+  // rather than consulted.
+  const agrees = [
+    ['fixture.css', '.rx-column-pager { flex-wrap: wrap; }'],
+    ['fixture-host.css', '@media (max-width: 560px) { .rx-column-pager { flex-wrap: wrap; } }'],
+  ];
+  assert.equal(cannotWrap(agrees, ROW), null);
 });
 
 test('the check refuses a wrap an ancestor has to supply', () => {
