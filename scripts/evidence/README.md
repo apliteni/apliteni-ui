@@ -14,23 +14,21 @@ differs, and the before side of a pair is the same rig pointed at `main`.
 ## Running it
 
 Playwright is deliberately not a dependency: the kit ships no browser and nothing
-in `npm test` drives one. Point two variables at what you have. Every run here takes
-the machine's shared check lock through `scripts/check-lock`, so a rig shot and a test
-suite never drive the box at once.
+in `npm test` drives one. Point two variables at what you have.
 
 ```sh
 export UI_PLAYWRIGHT=/path/to/playwright/index.mjs   # or leave unset if it resolves
 export UI_CHROME=/path/to/chrome                     # Chrome, or Chrome for Testing
 
-scripts/check-lock node scripts/evidence/shoot.mjs . out/  # the eight desktop shots + the phone four
-scripts/check-lock node scripts/evidence/film.mjs  . out/  # the two filmstrips
-scripts/check-lock node scripts/evidence/nav.mjs   . out/ nav-collapsed-after
+node scripts/evidence/shoot.mjs . out/               # the eight desktop shots + the phone four
+node scripts/evidence/film.mjs  . out/               # the two filmstrips
+node scripts/evidence/nav.mjs   . out/ nav-collapsed-after
 git worktree add --detach /tmp/before origin/main
-scripts/check-lock node scripts/evidence/shoot.mjs /tmp/before out/ rail-before
-scripts/check-lock node scripts/evidence/nav.mjs   /tmp/before out/ nav-collapsed-before
+node scripts/evidence/shoot.mjs /tmp/before out/ rail-before
+node scripts/evidence/nav.mjs   /tmp/before out/ nav-collapsed-before
 
-scripts/check-lock node scripts/evidence/dropdown.mjs .          out/ dropdown-after  # the head/foot pair, #306
-scripts/check-lock node scripts/evidence/dropdown.mjs /tmp/before out/ dropdown-before
+node scripts/evidence/dropdown.mjs .          out/ dropdown-after    # the head/foot pair, #306
+node scripts/evidence/dropdown.mjs /tmp/before out/ dropdown-before
 ```
 
 The back link's label is its own subject, on its own page (#303) — the link alone
@@ -38,8 +36,8 @@ at 560×340, and the page shell at 390 wide, where a reading column is narrow
 enough for a long destination to reach its edge:
 
 ```sh
-scripts/check-lock node scripts/evidence/back.mjs . out/  # short, long and the shell, both themes
-scripts/check-lock node scripts/evidence/back.mjs /tmp/before out/ back-label-before
+node scripts/evidence/back.mjs . out/               # short, long and the shell, both themes
+node scripts/evidence/back.mjs /tmp/before out/ back-label-before
 ```
 
 A third argument to `shoot.mjs` is a substring filter over the names, so one
@@ -53,8 +51,8 @@ rather than the pull request claiming it. Shoot the same subject off both
 checkouts and compare the pixels:
 
 ```sh
-scripts/check-lock node scripts/evidence/shoot.mjs /tmp/before out/main   rail-user-menu
-scripts/check-lock node scripts/evidence/shoot.mjs .           out/branch rail-user-menu
+node scripts/evidence/shoot.mjs /tmp/before out/main   rail-user-menu
+node scripts/evidence/shoot.mjs .           out/branch rail-user-menu
 node scripts/evidence/diff.mjs out/main/rail-user-menu-light.png out/branch/rail-user-menu-light.png
 ```
 
@@ -80,9 +78,9 @@ its own status. Its third argument is the name prefix rather than a filter,
 because both sides of the pair are the same sixteen names:
 
 ```sh
-scripts/check-lock node scripts/evidence/float.mjs .          out/ after
+node scripts/evidence/float.mjs .          out/ after
 git worktree add --detach /tmp/before origin/main
-scripts/check-lock node scripts/evidence/float.mjs /tmp/before out/ before
+node scripts/evidence/float.mjs /tmp/before out/ before
 ```
 
 It captures `.fl-cell` rather than the viewport, so the frame carries the ground
@@ -107,9 +105,9 @@ committed under it. #310's caption
 evidence is these two calls, eight images:
 
 ```sh
-scripts/check-lock node scripts/evidence/guideline.mjs .           docs/evidence/caption-rank after
-scripts/check-lock node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank before
-scripts/check-lock node scripts/evidence/guideline.mjs . out/ after accessibility-floor "Status labels" 1280,390
+node scripts/evidence/guideline.mjs .           docs/evidence/caption-rank after
+node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank before
+node scripts/evidence/guideline.mjs . out/ after accessibility-floor "Status labels" 1280,390
 ```
 
 `react.mjs` is the same rig pointed at the React workspace's own Storybook build,
@@ -119,8 +117,8 @@ page that imports the factories:
 
 ```sh
 npm run build-storybook -w react                     # react/storybook-static
-scripts/check-lock node scripts/evidence/react.mjs . out/  # the ten React shots
-scripts/check-lock node scripts/evidence/react.mjs . out/ select  # one subject, re-taken
+node scripts/evidence/react.mjs . out/               # the ten React shots
+node scripts/evidence/react.mjs . out/ select        # one subject, re-taken
 ```
 
 It takes the same third-argument filter. Both faces are loaded into the story the
@@ -198,7 +196,7 @@ Raising them is the deliberate act of someone who has seen the new surfaces:
 
 ```sh
 npm run build-storybook && npm run build-storybook -w react
-scripts/check-lock node scripts/evidence/filter-bar-fit.mjs . out/  # out/ takes a JSON ledger; it is optional
+node scripts/evidence/filter-bar-fit.mjs . out/     # out/ takes a JSON ledger; it is optional
 ```
 
 It needs both Storybook builds and the checkout for the vanilla half, and it exits
@@ -262,7 +260,7 @@ and requires each changed selector to grow in at least one real story.
 
 ```sh
 UI_PLAYWRIGHT=/path/to/playwright/index.mjs UI_CHROME=/path/to/chrome \
-  scripts/check-lock node scripts/evidence/font-scale.mjs <revision-before-322> /tmp/font-scale
+  node scripts/evidence/font-scale.mjs <revision-before-322> /tmp/font-scale
 ```
 
 The output includes a JSON measurement ledger and 1x before/default/larger
@@ -286,9 +284,9 @@ themes.
 
 ```sh
 git worktree add --detach /tmp/before origin/main
-scripts/check-lock node scripts/evidence/focus.mjs .           out/ after
-scripts/check-lock node scripts/evidence/focus.mjs /tmp/before out/ before
-scripts/check-lock node scripts/evidence/focus.mjs --sheet     out/  # the pairs, laid side by side
+node scripts/evidence/focus.mjs .           out/ after
+node scripts/evidence/focus.mjs /tmp/before out/ before
+node scripts/evidence/focus.mjs --sheet     out/     # the pairs, laid side by side
 ```
 
 Its third argument is the side of the pair and its fourth a name filter over the
@@ -297,3 +295,39 @@ sides of every pair it finds into one image per surface and theme, so a reader
 compares pictures instead of filenames. React is not a subject here, for
 `react.mjs`'s reason — a React component needs a bundler, and `focus.html`
 imports modules over HTTP.
+
+`scroll.mjs` is the same rig for the boxes the kit SCROLLS, added for #531. A
+browser makes an overflowing box a keyboard stop with no `tabindex` and no author
+rule, so a scroll container has the same claim on the ring as a button — unless its
+own children are keyboard-focusable, in which case it is given no stop at all. Three
+differences from `focus.mjs`:
+
+- Two widths per subject, 1280 and 390, because a box that scrolls at one may not at
+  the other. The width is in the filename.
+- Each subject is **measured** before it is shot, and the readings are printed and
+  written to `<side>-scroll-measurements.json`: whether the box overflows, how many
+  of its own children are in the tab order, and where Tab actually lands. That
+  measurement is what decides whether a box needs the ring at all.
+- Two subjects are expected NOT to take focus — the underline tab strip and the
+  application rail. For those the rig Tabs into the region and shoots wherever focus
+  landed, which is the row inside: the evidence that the container is not the stop.
+- The two subjects with a table in them are SCROLLED before the shot. Round r30 made
+  the band an outline rather than an inset shadow because an inset shadow is painted
+  under a box's own children, and a table scrolled sideways under one erased it. The
+  frames are where that is shown rather than argued.
+
+The subjects are built from the kit's own factories by `scroll.html`, each forced to
+overflow. The React modal's body is shot off the React Storybook build, for
+`react.mjs`'s reason, so build it first.
+
+```sh
+npm run build-storybook -w react
+git worktree add --detach /tmp/before origin/main
+node scripts/evidence/scroll.mjs .           out/ after
+node scripts/evidence/scroll.mjs /tmp/before out/ before
+node scripts/evidence/scroll.mjs --sheet     out/     # one sheet per subject
+```
+
+A subject whose story is new on this branch is reported as "not found on this
+checkout" rather than taking the before side down; copy the story file across before
+building the other checkout's Storybook if the before frame is wanted.

@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.75.2', date: '2026-10-03',
     changes: [
-      ['changed', 'Contributing: the kit suite and the React suite now wait for one shared check lock on the machine that runs them, so two suites no longer run side by side. The README and `AGENTS.md` state each suite\u2019s measured time budget, and every run ends with its ten slowest tests and files. Nothing the package ships behaves differently. See #560.'],
+      ['changed', 'Contributing: every test run now ends with its ten slowest tests and files, and says which of them are over budget. The README and `AGENTS.md` state each suite\u2019s measured time budget. Nothing the package ships behaves differently. See #560.'],
     ],
   },
   {
