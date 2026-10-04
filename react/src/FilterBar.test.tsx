@@ -47,16 +47,34 @@ it('marks the valueless chip so the sheet can give it the placeholder ink', () =
   expect(marked).toHaveLength(1);
   expect(marked[0]).toHaveTextContent('Region');
 });
+// A bar beside the caller's own action, which is how both showcases compose it.
+function Example({ start = filters }: { start?: Filter[] }) {
+  const [items, setItems] = useState(start);
+  return <><FilterBar filters={items} onRemove={id => setItems(items.filter(f => f.id !== id))} onClear={() => setItems([])} onChange={() => setItems(items.map(f => ({ ...f, value: 'Active' })))} />
+    <button type="button">Add filter</button></>;
+}
 it('preserves focused controls across updates and moves focus after removal', async () => {
-  function Example() {
-    const [items, setItems] = useState(filters);
-    return <FilterBar filters={items} onRemove={id => setItems(items.filter(f => f.id !== id))} onClear={() => setItems([])} onChange={() => setItems(items.map(f => ({ ...f, value: 'Active' })))} />;
-  }
   render(<Example />);
   await userEvent.click(screen.getByRole('button', { name: 'Remove Region filter' }));
   expect(screen.getByRole('button', { name: 'Status: All' })).toHaveFocus();
+  // Which control holds the focus, not whether it draws a box: JSDOM has no
+  // layout. The emptied fieldset measuring 0 high is measured in a browser and
+  // reported in the pull request.
   await userEvent.click(screen.getByRole('button', { name: 'Remove Status filter' }));
-  expect(screen.getByRole('group', { name: 'Filters' })).toHaveFocus();
+  expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
+});
+it('hands the focus to the action beside it when clearing empties the bar', async () => {
+  render(<Example />);
+  await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
+  expect(screen.queryByRole('button', { name: 'Clear all filters' })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
+});
+it('keeps the ring on the bar while it still holds chips', async () => {
+  render(<FilterBar filters={filters} disabled {...callbacks()} />);
+  const chip = screen.getByRole('button', { name: 'Region: All' });
+  expect(chip).toBeDisabled();
+  // The fieldset still draws a box around two chips, so it may hold the ring.
+  expect(screen.getByRole('group', { name: 'Filters' })).toBeInTheDocument();
 });
 it.each(['busy', 'disabled'] as const)('blocks controls and open panels when %s', async flag => {
   const props = callbacks();
@@ -90,12 +108,22 @@ it('responds to open prop changes after interaction', async () => {
 });
 it('restores focus after consecutive externally controlled removals', () => {
   const props = callbacks();
+  const beside = (items: Filter[]) => <><FilterBar filters={items} {...props} /><button type="button">Add filter</button></>;
+  const { rerender } = render(beside(filters));
+  screen.getByRole('button', { name: 'Region: All' }).focus();
+  rerender(beside([filters[1]]));
+  expect(screen.getByRole('button', { name: 'Status: All' })).toHaveFocus();
+  rerender(beside([]));
+  expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
+});
+// An empty bar is not a fallback: the ring would sit on a line with no height.
+// With nothing beside it to take the focus, the focus goes nowhere instead.
+it('does not park the ring on an empty bar when nothing stands beside it', () => {
+  const props = callbacks();
   const { rerender } = render(<FilterBar filters={filters} {...props} />);
   screen.getByRole('button', { name: 'Region: All' }).focus();
-  rerender(<FilterBar filters={[filters[1]]} {...props} />);
-  expect(screen.getByRole('button', { name: 'Status: All' })).toHaveFocus();
   rerender(<FilterBar filters={[]} {...props} />);
-  expect(screen.getByRole('group', { name: 'Filters' })).toHaveFocus();
+  expect(screen.getByRole('group', { name: 'Filters' })).not.toHaveFocus();
 });
 
 it('chooses the next enabled chip even when an earlier chip is disabled', () => {

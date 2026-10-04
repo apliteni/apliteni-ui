@@ -24,7 +24,7 @@ const PROBE = (html) => {
     const box = seg.getBoundingClientRect();
     const tabs = [...seg.querySelectorAll('button')].map((b) => {
       const r = b.getBoundingClientRect();
-      return { label: b.textContent.trim(), left: r.left, right: r.right, top: Math.round(r.top) };
+      return { label: b.textContent.trim(), left: r.left, right: r.right, top: Math.round(r.top), h: +r.height.toFixed(1) };
     });
     const cs = getComputedStyle(seg);
     const chosen = seg.querySelector('button.is-active, button[aria-pressed="true"], button[aria-selected="true"]');
@@ -368,9 +368,25 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
     assert.ok(forced.some((s) => s.chosen), 'no strip carried a chosen tab under forced colours');
     t.diagnostic(`forced colours: ${forced.filter((s) => s.chosen).length} chosen tabs, each unlike its resting neighbours`);
 
-    // The tight gap may not cost the tap floor. A tab draws 41, and the 4px gap
-    // is what its zone grows into — 1.5px each side, so two rows' zones stop
-    // 1px short of meeting. why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
+    // The tight gap may not cost the tap floor, and it does not have to: the tab
+    // DRAWS the floor — segmented.css gives it `min-height: var(--tap-min)` — so
+    // its layer sits inside the drawn box and the 4px row gap is spent on
+    // nothing. The off-scale padding this replaced left the height to the font:
+    // 44 with the webfont loaded, 41 without, which is under the floor it
+    // claimed. Every tab at every width, because a wrapped row is the case where
+    // a short tab would have nowhere to grow.
+    // why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
+    for (const [name, width] of [['320', tight320], ['390', narrow], ['1280', wide], ['390 coarse', coarse]]) {
+      for (const s of width) {
+        for (const tab of s.tabs) {
+          assert.ok(
+            tab.h >= 44,
+            `${s.story} at ${name}: the tab "${tab.label}" draws ${tab.h}px tall, under the 44px `
+            + 'floor. The height is the tap floor\'s own token; a padding sum is not.',
+          );
+        }
+      }
+    }
     for (const s of coarse.filter((x) => x.chosen && x.chosen.zone != null)) {
       assert.ok(
         s.chosen.zone >= 44,
@@ -479,18 +495,25 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
     }
 
     // --- the tap floor's own. The strip keeps a 4px row gap instead of
-    // --tap-gap, and the zone reaches 44 only because 4px of clearance is
-    // declared for it. Take the clearance away and the floor goes with it.
+    // --tap-gap, and it may only because the tab draws 44 by itself. Take the
+    // min-height away and the padding alone decides: the drawn tab falls under
+    // the floor, and the layer cannot make it up out of a 4px gap either.
     const floorless = await strips(browser, {
       subjects, css, width: 390, touch: true,
-      extra: '.ui-seg--underline{--tap-clear-y:0px!important}',
+      extra: '.ui-seg--underline button{min-height:auto!important}',
     });
+    const shortDrawn = floorless.flatMap((s) => s.tabs.filter((tab) => tab.h < 44));
     const short = floorless.filter((s) => s.chosen && s.chosen.zone != null && s.chosen.zone < 44);
     assert.ok(
-      short.length,
-      'the zones still reached 44 with no clearance declared, so the floor check reads nothing.',
+      shortDrawn.length,
+      'the tabs still drew 44 with no min-height, so the drawn-floor check above reads nothing.',
     );
-    t.diagnostic(`mutation — no vertical clearance — ${short.length} chosen tabs fall under the 44px floor`);
+    assert.ok(
+      short.length,
+      'the zones still reached 44 with the tab drawn short, so the row gap is carrying it after '
+      + 'all and the sheet\'s claim that the drawn height does is wrong.',
+    );
+    t.diagnostic(`mutation — no min-height — ${shortDrawn.length} tabs drawn under 44, ${short.length} chosen zones under it`);
 
     // --- and the placement's own. The bar is on ::before because below the phone
     // step tap-zone.css owns ::after and sizes it to the 44px floor. Drawing the

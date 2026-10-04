@@ -25,13 +25,15 @@ describe('finance composition', () => {
   it('removes and clears controlled filters while recovering keyboard focus', () => {
     function Demo() {
       const [filters, setFilters] = useState([{ id: 'a', label: 'Sector', value: 'Energy', items: [] }, { id: 'b', label: 'Market', value: 'US', items: [] }]);
-      return <FilterBar filters={filters} onChange={() => {}} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} />;
+      return <><FilterBar filters={filters} onChange={() => {}} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} />
+        <button type="button">Add filter</button></>;
     }
     render(<Demo />); const remove = screen.getByRole('button', { name: 'Remove Sector filter' }); remove.focus(); fireEvent.click(remove);
     expect(screen.queryByRole('button', { name: 'Remove Sector filter' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Market/ , expanded: false })).toHaveFocus();
     const clear = screen.getByRole('button', { name: 'Clear all filters' }); clear.focus(); fireEvent.click(clear);
-    expect(screen.getByRole('group', { name: 'Filters' })).toHaveFocus();
+    // The bar is empty and draws no box, so the focus leaves it for the action beside it.
+    expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
   });
   it('skips disabled views and keeps zero deltas neutral', () => {
     function Demo() { const [value, set] = useState('a'); return <Segmented label="Views" value={value} onChange={set} options={[{ label: 'A', value: 'a' }, { label: 'B', value: 'b', disabled: true }, { label: 'C', value: 'c' }]} appearance="underline" />; }

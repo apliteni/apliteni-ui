@@ -44,6 +44,20 @@ const ruleBody = (text, selector) => {
 };
 const decl = (body, prop) => new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`).exec(body)?.[1].trim();
 
+// guidelines/layout-and-density.md, the spacing scale: the step is 12px and 13px
+// is the kind of value the rule names. The tab's height comes from the tap floor
+// token instead of a padding sum, which is also what makes it independent of the
+// font — the off-scale padding it replaced drew 41 without the webfont.
+test('the underline tab pads off the scale and draws the tap floor', () => {
+  const tab = ruleBody(baseCss, '.ui-seg--underline button');
+  const padding = decl(tab, 'padding');
+  assert.match(
+    padding, /^var\(--space-\d+\)(\s+var\(--space-\d+\))?$/,
+    `the tab pads \`${padding}\`; every side has to be a step of the scale`,
+  );
+  assert.match(decl(tab, 'min-height'), /^var\(--tap-min(,\s*44px)?\)$/, 'the drawn height is the floor');
+});
+
 test('the chosen tab is a weight step and one bar, and draws no box', () => {
   const tab = ruleBody(baseCss, '.ui-seg--underline button.is-active');
   const resting = ruleBody(baseCss, '.ui-seg--underline button');

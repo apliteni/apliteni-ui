@@ -1,6 +1,6 @@
 import { button, esc } from './index.js';
 import { dropdown, wireDropdown } from './dropdown.js';
-import { filterChipText, filterChipName, filterChipUnset } from '../logic/filter-bar.js';
+import { filterChipText, filterChipName, filterChipUnset, nextFocusStop } from '../logic/filter-bar.js';
 
 export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear all filters', disabled = false, busy = false } = {}) {
   return `<fieldset class="ui-filter-bar" data-filter-bar${disabled || busy ? ' disabled' : ''}${busy ? ' aria-busy="true"' : ''}>`
@@ -48,7 +48,15 @@ export function initFilterBar(host, options = {}) {
     const control = target?.querySelector(same && focus.remove ? '[data-filter-remove]' : '[data-dropdown-trigger]')
       || host.querySelector('[data-filter-clear] button');
     if (control && !control.disabled && !control.closest('fieldset:disabled')) control.focus();
-    else { const bar = host.querySelector('[data-filter-bar]'); bar.tabIndex = -1; bar.focus(); }
+    else {
+      // A bar that still holds chips draws a box the ring can sit on, even with
+      // every chip turned off. An emptied bar draws nothing — its legend is out
+      // of flow — so the ring would land on a 0-height line, and the focus goes
+      // to the control the reader's next Tab would reach instead.
+      const bar = host.querySelector('[data-filter-bar]');
+      if (bar.querySelector('[data-filter-id]')) { bar.tabIndex = -1; bar.focus(); }
+      else nextFocusStop(host)?.focus();
+    }
   };
   const emit = (type, detail) => host.dispatchEvent(new host.ownerDocument.defaultView.CustomEvent(type, { bubbles: true, detail }));
   const click = e => {

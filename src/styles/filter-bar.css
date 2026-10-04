@@ -23,3 +23,10 @@
    and off the page. It inherits, reaching an option's label and description.
    why: docs/specification.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; overflow-wrap: anywhere; }
+/* The clear action reads louder than a ghost button — Artur, round r28 — and the
+   kit's bordered skin is how, minus its fill: words belong on the page, not on a
+   grey block. Element specificity on purpose, (0,1,1): it outranks `.ui-btn`'s
+   own resting fill and loses to every state the kit paints over it — hover,
+   :focus-visible, :disabled and [aria-busy] are all (0,2,0).
+   why: guidelines/colour-and-theming.md, keep text off grey fills */
+[data-filter-clear] button { background: transparent; }

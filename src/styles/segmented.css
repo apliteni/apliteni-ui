@@ -96,9 +96,13 @@
 .ui-seg--underline { flex-wrap: wrap; overflow: visible; row-gap: var(--space-1); align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; padding: var(--space-1); max-width: 100%; }
 /* `anywhere` is the half `break-word` cannot do: it lowers the tab's min-content
    width, so one unbreakable word narrows rather than widening the page. The
-   block padding carries the 2px the reserved rail used to add, so the tab still
-   draws 44. The radius is left for the focus ring; the tab paints no box. */
-.ui-seg--underline button { position: relative; border-radius: var(--radius-sm); padding: calc(var(--space-3) + 1px) var(--space-3); white-space: normal; overflow-wrap: anywhere; font-weight: var(--weight-medium); }
+   padding is the scale's own step and the height is the tap floor, so the tab
+   draws 44 whatever line box its font hands it: the off-scale `--space-3 + 1px`
+   this replaces drew 44 with the webfont loaded and 41 without, which is under
+   the floor it claimed. The radius is left for the focus ring; the tab paints no
+   box. #527
+   why: guidelines/layout-and-density.md, the spacing scale */
+.ui-seg--underline button { position: relative; border-radius: var(--radius-sm); padding: var(--space-3); min-height: var(--tap-min, 44px); white-space: normal; overflow-wrap: anywhere; font-weight: var(--weight-medium); }
 /* The chosen tab is its label and one bar under it: no plate, no hairline, no
    upright rail — those read as a list-row grip. `outline: 0` cancels the accent
    outline the pill rule gives every chosen button, which is #544's second mark.

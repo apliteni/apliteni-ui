@@ -110,13 +110,15 @@
     --tap-clear-y: var(--tap-gap);
   }
 
-  /* The underline appearance needs far less of that down. A pill draws 31 tall,
-     so its layer reaches 6.5px past each edge and wants the full 20; an
-     underline tab draws 41, so 3px of clearance carries it to the floor and its
-     own 4px row gap already holds more than that — each layer takes 1.5px of
-     the 4 and the two rows' layers stop 1px short of meeting. So the strip
-     keeps the gap it draws at every width, and a wrapped strip reads as one
-     block under both pointers. #527, measured in stories/tap-zone.test.js. */
+  /* The underline appearance keeps the gap it draws, at every width and under
+     both pointers, so a wrapped strip reads as one block. It can because the tab
+     draws the floor itself — segmented.css gives it `min-height: var(--tap-min)`
+     — leaving its layer inside the drawn box. The clearance is still declared,
+     and declared SMALL on purpose: the pill rule above hands every strip
+     --tap-gap, and this one has 4px of row to give, not 20. So a layer here can
+     never reach past the gap it was promised, whatever a tab draws. A pill draws
+     31 tall and does want the full 20. #527, measured in
+     stories/segmented-wrap.test.js. */
   .ui-seg--underline { row-gap: var(--space-1, 4px) !important; --tap-clear-y: var(--space-1, 4px); }
 
   /* Tabs are wide enough across; down, the panel under them has the room. */

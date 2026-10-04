@@ -106,7 +106,38 @@ test('filter removal is controlled and update recovers focus through the last ch
   const remove = host.querySelector('[data-filter-remove]'); remove.focus(); remove.click();
   assert.equal(requested, 'sector'); assert.equal(host.querySelectorAll('[data-filter-id]').length, 2);
   bar.update({ filters: [filters[1]] }); assert.equal(document.activeElement.closest('[data-filter-id]').dataset.filterId, 'market');
-  bar.update({ filters: [] }); assert.equal(document.activeElement, host.querySelector('[data-filter-bar]'));
+  // Chips left, every control in them turned off by the fieldset: the bar still
+  // draws a box, so the ring may sit on the bar itself.
+  bar.update({ filters, disabled: true });
+  assert.equal(document.activeElement, host.querySelector('[data-filter-bar]'));
+  bar.destroy(); dom.window.close();
+});
+// Which control holds the focus, not whether it draws a box: JSDOM has no
+// layout. The geometry — the emptied fieldset measuring 0 high — is measured in
+// a browser and reported in the pull request.
+test('an emptied bar hands the focus to the action beside it, never to its own empty box', () => {
+  for (const empty of [bar => bar.update({ filters: [] }), bar => bar.update({ filters: [], busy: true })]) {
+    const { dom, host } = setup(filterBar({ filters }));
+    const add = document.createElement('button'); add.type = 'button'; add.textContent = 'Add filter';
+    host.after(add);
+    const bar = initFilterBar(host, { filters });
+    host.querySelector('[data-filter-clear] button').focus();
+    empty(bar);
+    assert.equal(host.querySelector('[data-filter-clear]'), null, 'the clear action left with the last chip');
+    assert.equal(document.activeElement, add, `focus went to ${document.activeElement.outerHTML}`);
+    // And the bar it left is the thing with nothing in it to focus.
+    assert.equal(host.querySelectorAll('[data-filter-bar] button').length, 0);
+    bar.destroy(); dom.window.close();
+  }
+});
+test('the last chip removed by keyboard moves the focus out of the bar', () => {
+  const { dom, host } = setup(filterBar({ filters: [filters[0]] }));
+  const add = document.createElement('button'); add.type = 'button'; add.textContent = 'Add filter';
+  host.after(add);
+  const bar = initFilterBar(host, { filters: [filters[0]] });
+  const remove = host.querySelector('[data-filter-remove]'); remove.focus(); remove.click();
+  bar.update({ filters: [] });
+  assert.equal(document.activeElement, add);
   bar.destroy(); dom.window.close();
 });
 test('Dropdown selection reports the filter id and value after its own close', async () => {

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Dropdown, type DropdownEntry } from './Dropdown';
 import { Button } from './primitives/Button';
 import { useIsoLayoutEffect } from './dialog';
-import { filterChipText, filterChipName, filterChipUnset } from '@apliteni/apliteni-ui';
+import { filterChipText, filterChipName, filterChipUnset, nextFocusStop } from '@apliteni/apliteni-ui';
 export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean };
 export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; disabled?: boolean; busy?: boolean;
   onRemove: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void };
@@ -22,7 +22,12 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all 
       || chips.slice(0, prior.index).reverse().find(chip => !chip.disabled);
     const target = !blocked && next?.querySelector<HTMLButtonElement>('[data-dropdown-trigger]');
     focused.current = null;
-    (target || bar.current)?.focus();
+    // The bar itself only while it still holds chips; emptied it draws no box, so
+    // the ring would sit on a 0-height line. The vanilla factory carries the
+    // reasoning. why: docs/specification.md#a-filter-row-holds-its-panels
+    if (target) target.focus();
+    else if (chips.length) bar.current?.focus();
+    else nextFocusStop(bar.current)?.focus();
   });
   return <div><fieldset ref={bar} className="ui-filter-bar" data-filter-bar="" disabled={blocked} aria-busy={busy || undefined} tabIndex={-1}
     onBlur={event => {
