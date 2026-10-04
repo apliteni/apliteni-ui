@@ -10,13 +10,18 @@ import path from 'node:path';
 
 const TEST_BUDGET_MS = 5_000;
 const FILE_BUDGET_MS = 60_000;
-/* stories/tap-zone.test.js is the only file here whose tests drive a real browser, and only when
- * TAP_ZONES=1. why: AGENTS.md#check-the-phone-tap-floor-locally */
-const BROWSER_FILE = 'stories/tap-zone.test.js';
+/* The files whose tests drive a real browser, each only under its own flag: tap-zone under
+ * TAP_ZONES=1, field-ground under FIELD_PAINT=1, row-height under ROW_HEIGHTS=1. They are the
+ * three that reach for UI_PLAYWRIGHT. why: AGENTS.md#verification */
+const BROWSER_FILES = new Set([
+  'stories/tap-zone.test.js',
+  'stories/field-ground.test.js',
+  'stories/row-height.test.js',
+]);
 const BROWSER_BUDGET_MS = 10_000;
 const TOP = 10;
 
-const testBudget = (file) => (file === BROWSER_FILE ? BROWSER_BUDGET_MS : TEST_BUDGET_MS);
+const testBudget = (file) => (BROWSER_FILES.has(file) ? BROWSER_BUDGET_MS : TEST_BUDGET_MS);
 const seconds = (ms) => `${(ms / 1000).toFixed(2)}s`;
 const slowestFirst = (a, b) => b.duration - a.duration;
 const list = (label, entries) =>
@@ -50,23 +55,27 @@ export default async function* slowTests(source) {
   const tests = [];
   const files = [];
   /* A fault is kept and told at the end. Leaving this loop early aborts Node's event stream, and
-   * an aborted stream is a failed run. */
+   * an aborted stream is a failed run — so the `for await` itself is inside the try, not only its
+   * body: a stream that rejects must still end in a sentence rather than in a thrown reporter. */
   let fault;
-  for await (const event of source) {
-    try {
+  try {
+    for await (const event of source) {
       const { name, file, details } = event.data ?? {};
       const duration = details?.duration_ms;
       if (typeof duration !== 'number' || !file) continue;
       const relative = path.relative(process.cwd(), file);
-      if (name === relative) {
+      /* The file-level event is named by the path `node --test` was GIVEN, which is absolute when
+       * the command was given an absolute one. Compared as a path rather than as a string, so a
+       * `node --test /abs/file` run still gets its file row and its 60s budget. */
+      if (path.resolve(name) === path.resolve(file)) {
         if (event.type === 'test:complete') files.push({ name: relative, duration, budget: FILE_BUDGET_MS });
       } else if (details.type !== 'suite' && (event.type === 'test:pass' || event.type === 'test:fail')) {
         /* A describe block reports its children's time as its own, so it is not a test here. */
         tests.push({ name: `${relative} > ${name}`, duration, budget: testBudget(relative) });
       }
-    } catch (error) {
-      fault ??= error;
     }
+  } catch (error) {
+    fault ??= error;
   }
   yield fault
     ? `\nslow tests: no report this run (${fault}); the run itself is unaffected.\n`
@@ -90,7 +99,10 @@ export class SlowTests {
     for (const module of testModules) {
       /* A file's figure is the time its tests and hooks took, which is what the file budget is
        * against; transform and environment time are in vitest's own Duration line. */
-      files.push({ name: module.relativeModuleId, duration: module.diagnostic().duration, budget: FILE_BUDGET_MS });
+      const fileDuration = module.diagnostic()?.duration;
+      if (typeof fileDuration === 'number') {
+        files.push({ name: module.relativeModuleId, duration: fileDuration, budget: FILE_BUDGET_MS });
+      }
       for (const test of module.children.allTests()) {
         const duration = test.diagnostic()?.duration; // a skipped test has none
         if (typeof duration === 'number') {

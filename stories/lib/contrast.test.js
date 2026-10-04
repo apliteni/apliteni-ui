@@ -28,8 +28,7 @@ import {
   storyFiles,
   substitute,
   tokensFor,
-  walkStories,
-  walkStoriesParallel,
+  walkCells,
 } from './contrast.js';
 
 const near = (actual, expected, what, tol = 0.005) => assert.ok(
@@ -556,23 +555,43 @@ test('merging shards adds the counts up, unions the catalogue and keeps every re
  * count and worst ratio exactly, and that the ledger totals what the walk found, on the
  * whole catalogue, every run. A shard that lost a story turns those red.
  *
- * Limits: three files, one theme, and record ORDER is left out of it. Shards finish in the
- * order the threads give them and nothing downstream reads order — groupFindings keys on
- * the pair, not the position.
+ * Two cells over multi-file hands, because that is the shape stories/contrast.test.js runs:
+ * each thread walks its hand for the dark cell and then for the light one, so the second cell
+ * renders modules the first cell's window imported. One cell on one file per thread would not
+ * reach that.
+ *
+ * Limits: three files, and record ORDER is left out of it. Shards finish in the order the
+ * threads give them and nothing downstream reads order — groupFindings keys on the pair, not
+ * the position. uaBlue is compared sorted for the same reason.
  */
 test('the walk dealt out to threads returns what one thread returns', {
   skip: process.env.CONTRAST_SHARD_PARITY !== '1',
 }, async () => {
   const files = storyFiles.filter((f) => /components\/(BadgeStatus|Button|Card)\.stories\.js$/.test(f));
   assert.equal(files.length, 3, `${files.length} files matched; the subset has moved`);
+  const cells = [{ theme: 'dark', accent: 'default' }, { theme: 'light', accent: 'default' }];
 
-  const serial = await walkStories({ theme: 'dark', files });
-  const dealt = await walkStoriesParallel({ theme: 'dark', files, shards: 3 });
+  const serial = await walkCells({ cells, files, shards: 1 });
+  const dealt = await walkCells({ cells, files, shards: 2 });
 
-  const by = (r) => `${r.story}|${r.state}|${r.path}|${r.fg}|${r.bg}|${r.ratio}|${r.unjudgeable}`;
+  const by = (r) => `${r.theme}|${r.story}|${r.state}|${r.path}|${r.fg}|${r.bg}|${r.ratio}|${r.unjudgeable}`;
+  const counts = (w) => ({ ...w.stats, storyIds: [...w.stats.storyIds].sort(), uaBlue: [...w.stats.uaBlue].sort() });
   assert.deepEqual(dealt.records.map(by).sort(), serial.records.map(by).sort(), 'the same records');
   assert.deepEqual(dealt.problems.sort(), serial.problems.sort(), 'the same problems');
-  assert.deepEqual(dealt.stats, serial.stats, 'the same counts');
+  assert.deepEqual(counts(dealt), counts(serial), 'the same counts');
   assert.deepEqual(dealt.cache, serial.cache, 'the same style-cache figures');
   assert.ok(serial.stats.judged > 0, 'a comparison of two empty walks proves nothing');
+});
+
+test('a shard that throws is reported by the story that broke, not as a dead thread', {
+  skip: process.env.CONTRAST_SHARD_PARITY !== '1',
+}, async () => {
+  // The error path across the thread boundary. Without it, a shard's fault is a pending promise
+  // or "worker exited with code 1", and the story that broke is nowhere in the message.
+  await assert.rejects(
+    () => walkCells({ cells: [{ theme: 'dark', accent: 'default' }], shards: 2,
+      files: ['components/BadgeStatus.stories.js', 'components/NoSuchStory.stories.js'] }),
+    (error) => /NoSuchStory/.test(error.message),
+    'the rejection must name the file the shard could not import',
+  );
 });

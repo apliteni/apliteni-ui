@@ -775,6 +775,9 @@ export async function walkStories({ theme, accent = 'default', states = true, fi
  */
 const SHARD = new URL('./contrast-shard.mjs', import.meta.url);
 
+/** The ceiling, measured: past eight threads this walk buys wall clock at a bad price. */
+const MAX_SHARDS = 8;
+
 /**
  * How many threads the walk is worth dealing to: half the machine's cores, at least two,
  * never more than there are files.
@@ -785,12 +788,19 @@ const SHARD = new URL('./contrast-shard.mjs', import.meta.url);
  * and 231s, eight threads 56.3s and 259s. The last four threads buy six seconds of wall
  * clock for twenty-eight of CPU, and on a saturated box that CPU is the suite's own.
  *
+ * One on a single core, because two threads there add two cold starts of about five seconds
+ * each and no parallelism at all — slower than not dealing. Never more than eight: that is
+ * where the measurements above stop paying. CONTRAST_SHARDS is read whole rather than with
+ * parseInt, so `3abc` falls back to the default instead of silently meaning three.
+ *
  * Measured before the catalogue grew by one story file; the ratio is what matters here.
  */
 export function walkShards(files = storyFiles) {
-  const asked = Number.parseInt(process.env.CONTRAST_SHARDS ?? '', 10);
-  const want = Number.isFinite(asked) && asked > 0 ? asked : Math.max(2, Math.floor(availableParallelism() / 2));
-  return Math.max(1, Math.min(want, files.length));
+  const asked = Number(process.env.CONTRAST_SHARDS);
+  if (Number.isInteger(asked) && asked > 0) return Math.max(1, Math.min(asked, files.length));
+  const cores = availableParallelism();
+  if (cores <= 1) return 1;
+  return Math.max(1, Math.min(Math.floor(cores / 2), MAX_SHARDS, files.length));
 }
 
 /** Add the shards' answers up, in the shape one walk returns. */
@@ -806,20 +816,38 @@ export function mergeWalks(parts) {
     for (const id of part.stats.storyIds) out.stats.storyIds.add(id);
     out.stats.uaBlue.push(...part.stats.uaBlue);
     for (const [key, value] of Object.entries(part.stats)) {
-      if (typeof value === 'number') out.stats[key] = (out.stats[key] || 0) + value;
+      if (typeof value === 'number') { out.stats[key] = (out.stats[key] || 0) + value; continue; }
+      /* storyIds and uaBlue are merged above. Anything else new would be dropped in silence, and
+       * one shard's figure standing in for every shard's is how a gate goes green while measuring
+       * a fraction of the kit. */
+      if (key !== 'storyIds' && key !== 'uaBlue') {
+        throw new Error(
+          `walkStories now reports a non-numeric \`${key}\`, and mergeWalks does not know how to `
+          + 'add it up. Teach it, in stories/lib/contrast.js.',
+        );
+      }
     }
     for (const key of Object.keys(out.cache)) out.cache[key] += part.cache[key];
   }
   return out;
 }
 
-const shardWalk = (workerData) => new Promise((resolve, reject) => {
+/* One thread, and a promise that always settles. A shard that exits without posting — under any
+ * exit code, including a clean one — ends the promise here, rather than leaving the `before` hook
+ * waiting on a thread that has already gone. */
+function shardWalk(workerData) {
   const worker = new Worker(SHARD, { workerData });
-  worker.once('message', (m) => (m.error ? reject(new Error(m.error)) : resolve(m.walk)));
-  worker.once('error', reject);
-  // A shard that dies without posting leaves the promise pending for ever otherwise.
-  worker.once('exit', (code) => { if (code !== 0) reject(new Error(`a contrast shard exited ${code}`)); });
-});
+  const walk = new Promise((resolve, reject) => {
+    let settled = false;
+    const once = (fn) => (value) => { if (!settled) { settled = true; fn(value); } };
+    const done = once(resolve);
+    const fail = once(reject);
+    worker.once('message', (m) => (m.error ? fail(new Error(m.error)) : done(m.walk)));
+    worker.once('error', fail);
+    worker.once('exit', (code) => fail(new Error(`a contrast shard exited ${code} without a result`)));
+  });
+  return { worker, walk };
+}
 
 /**
  * Walk one or more theme × accent cells across threads, merged into the shape one
@@ -832,17 +860,28 @@ const shardWalk = (workerData) => new Promise((resolve, reject) => {
  * down rather than one of each per cell.
  */
 export async function walkCells({ cells, states = true, files = storyFiles, shards } = {}) {
-  const n = Math.max(1, Math.min(shards ?? walkShards(files), files.length));
+  const n = shards === undefined ? walkShards(files) : Math.max(1, Math.min(shards, files.length));
   if (n === 1) {
     const parts = [];
     for (const cell of cells) parts.push(await walkStories({ ...cell, states, files }));
     return mergeWalks(parts);
   }
   /* Dealt round-robin rather than sliced: the catalogue is sorted by path, so files next to
-   * each other belong to one area and cost about the same. Dealing spreads the big ones. */
+   * each other belong to one area and cost about the same. Dealing spreads the big ones, though
+   * not evenly: measured at four threads, the hands took 21s, 31s, 35s and 40s, so about a
+   * quarter of the wall clock is threads that have already finished. A shared cursor, where a
+   * thread pulls the next file instead of being dealt a hand, would close that. */
   const hands = Array.from({ length: n }, () => []);
   files.forEach((rel, i) => hands[i % n].push(rel));
-  return mergeWalks(await Promise.all(hands.map((hand) => shardWalk({ cells, states, files: hand }))));
+  const dealt = hands.map((hand) => shardWalk({ cells, states, files: hand }));
+  try {
+    return mergeWalks(await Promise.all(dealt.map((d) => d.walk)));
+  } catch (error) {
+    /* The hook has already failed, so the siblings are spending cores on an answer nobody will
+     * read — and on a full machine those are the cores the other test files are waiting for. */
+    await Promise.allSettled(dealt.map((d) => d.worker.terminate()));
+    throw error;
+  }
 }
 
 /** One cell, walked across threads. Same answer as walkStories. */
