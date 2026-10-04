@@ -31,7 +31,7 @@ const compositions = rules.filter((r) => own(r).has('--ring'));
 const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(--ring\)/.test(body));
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
-  assert.equal(surfaces.length, 140, 'surface discovery changed; the folded rail\'s current-row plate adds three, the disabled checkbox box and its radio mark add two, and the file drop\'s progress track and drop target add two');
+  assert.equal(surfaces.length, 142, 'surface discovery changed; the folded rail\'s current-row plate adds three, the disabled checkbox box and its radio mark add two, the file drop\'s progress track and drop target add two, and the picker\'s hovered and in-range cells add two');
   // Any composition rule, not only the shared recipe: #537 gives .ui-code its own, because a
   // chip's gap has to be the surface it paints and the shared recipe is also what hands a
   // chip the OTHER surface. The guarantee is unchanged — the rule recomposes --ring — and a
@@ -164,13 +164,15 @@ const offsetProblems = (subjects) => subjects
   .map((rule) => `${rule.file}: ${rule.selector} takes --ring-scroll without --ring-scroll-offset, so its band draws outside the box`);
 
 test('every scroll region that takes the scroll ring takes its offset too', () => {
-  // Seven: the table card and the table wrapper inside it, the dropdown's search list,
-  // the drawer's body, the confirm's consequence, the palette's list, and React's modal
-  // body. Artur chose the picture on #531 round r30; the list is the surfaces it is on.
-  assert.equal(scrollRules.length, 7,
+  // Eight: the table card and the table wrapper inside it, the dropdown's search list,
+  // the drawer's body, the confirm's consequence, the palette's list, React's modal body,
+  // and the date picker's shortcut row in its phone sheet. Artur chose the picture on #531
+  // round r30; the list is the surfaces it is on.
+  assert.equal(scrollRules.length, 8,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
-  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 1,
-    'React\'s modal body is not among them, so the walk stopped reading react/src');
+  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 2,
+    'React\'s modal body and the picker\'s shortcut row are not both among them, so the walk '
+    + 'stopped reading react/src');
   assert.deepEqual(offsetProblems(scrollRules), []);
 });
 

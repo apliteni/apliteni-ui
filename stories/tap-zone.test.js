@@ -29,6 +29,88 @@ const css = decomment(read(SHEET));
 
 /* -- The source half -------------------------------------------------------- */
 
+/* Every `--tap-*` this sheet reads, and what it resolves to. A clearance that
+ * names a property nobody declares is not a smaller clearance: `var()` on an
+ * undeclared custom property is invalid at computed-value time, so the whole
+ * `height: min(…, calc(100% + var(--tap-clear-y)))` declaration is dropped and
+ * the layer goes to `auto` — measured at 0 x 0 on the picker's page steps,
+ * with every gate in this repository still green. */
+const tapTokens = (sheet) => ({
+  declared: new Set([...sheet.matchAll(/(--tap-[\w-]+)\s*:/g)].map((m) => m[1])),
+  read: [...new Set([...sheet.matchAll(/var\(\s*(--tap-[\w-]+)/g)].map((m) => m[1]))],
+});
+/** The names a rule reads and the `:root` block never declares. */
+const danglingIn = (sheet) => {
+  const { declared, read } = tapTokens(sheet);
+  return read.filter((name) => !declared.has(name)).sort();
+};
+
+test('every --tap-* a rule reads is a name this sheet declares', () => {
+  const { declared, read } = tapTokens(css);
+  assert.ok(
+    read.length >= 4 && declared.size >= 4,
+    `${SHEET} reads ${read.length} --tap-* names and declares ${declared.size}. A sweep that `
+    + 'collapsed to a handful would pass over a dangling clearance and report the same green '
+    + 'as one that checked them all.',
+  );
+  assert.deepEqual(
+    danglingIn(css), [],
+    `${SHEET} reads ${danglingIn(css).join(', ')} and declares no such property. A clearance `
+    + 'whose name does not resolve does not fall back to a smaller zone — it takes the layer '
+    + 'off the control entirely. Declare it in :root, or read the one that is there. Do not '
+    + 'give the use site a fallback: that hides the break instead of catching it.',
+  );
+});
+
+test('this gate rejects a clearance whose declaration was renamed', () => {
+  // The likeliest way to break it: rename the :root end of a token and leave
+  // the use sites, which every text assertion in this repository still passes.
+  const renamed = css.replace(/(--tap-gap-bordered)(\s*:)/, '$1XX$2');
+  assert.notEqual(
+    renamed, css,
+    `${SHEET} no longer declares --tap-gap-bordered, so this mutation changes nothing and `
+    + 'proves nothing. Point it at a token the sheet does declare.',
+  );
+  assert.deepEqual(
+    danglingIn(renamed), ['--tap-gap-bordered'],
+    'The same reading that passes above has to come back with the dangling name once the '
+    + 'declaration is renamed, or it is not holding the two ends together.',
+  );
+});
+
+/* The arithmetic the clearance has to satisfy, rather than the number it
+ * happens to be: a control drawn at the smallest mark with a 1px border
+ * measures two less at its padding box, which is what the layer sizes
+ * against, so the clearance has to carry it the rest of the way to the floor. */
+test('the bordered clearance reaches the floor from a padding box', () => {
+  const decl = /--tap-gap-bordered:\s*([^;]+);/.exec(css);
+  assert.ok(
+    decl,
+    `${SHEET} declares no --tap-gap-bordered. The containers that raise a bordered control at `
+    + `${TARGET_MIN} read it; without it their layers are dropped, not shrunk.`,
+  );
+  const resolved = Number(new Function(
+    `return ${decl[1]
+      .replace(/calc\(/g, '(')
+      .replace(/var\(--tap-min\)/g, String(TAP_MIN))
+      .replace(/var\(--tap-aa\)/g, String(TARGET_MIN))
+      .replace(/px/g, '')}`,
+  )());
+  assert.ok(
+    Number.isFinite(resolved),
+    `${SHEET} writes --tap-gap-bordered as "${decl[1].trim()}", which this gate cannot resolve `
+    + `from ${TAP_MIN} and ${TARGET_MIN} alone. Keep it an expression of the two floors.`,
+  );
+  // 100% on the layer is the padding box: the border box less its two borders.
+  const paddingBox = TARGET_MIN - 2;
+  assert.ok(
+    paddingBox + resolved >= TAP_MIN,
+    `${SHEET} resolves --tap-gap-bordered to ${resolved}px. A ${TARGET_MIN}px control with a `
+    + `1px border measures ${paddingBox} at its padding box, so its layer stops at `
+    + `${paddingBox + resolved} and never reaches ${TAP_MIN}.`,
+  );
+});
+
 test('both floors are tokens, each written once', () => {
   const aa = css.match(/--tap-aa:\s*(\d+(?:\.\d+)?)px\s*;/);
   assert.ok(

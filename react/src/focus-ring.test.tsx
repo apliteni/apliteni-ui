@@ -176,6 +176,14 @@ describe('focus ring: React stories', () => {
 // Separate coverage, shared calculation: `scrollingSelectors` and `ringRulesFor`
 // are the vanilla gate's reading, over this workspace's sheets.
 const RX_SCROLL_RINGED: Record<string, string> = {
+  // Keyed in the order scrollingSelectors reads the sheets, which is their filenames sorted.
+  '.ui-datepicker__body.is-sheet .ui-datepicker__presets': 'the inward band, on the shortcut '
+    + 'row. In the phone sheet the shortcuts scroll across, and a picker whose bounds leave '
+    + 'every shortcut off renders them all disabled — a scroller holding no stop of its own, '
+    + 'which is exactly when Chrome makes the scrollport the stop and answers it with the '
+    + 'browser\'s outline. It takes --ring-scroll like every other scroll region inside a '
+    + 'surface, in the row\'s own --space-1 of inline padding. Applying Artur\'s #531 r30 '
+    + 'choice, merged as #557.',
   '.rx-modal__body': 'the inward band, on the body itself. A scroll region inside a surface '
     + 'takes --ring-scroll — the kit\'s own 1px gap and 2px band drawn inward, no halo — '
     + 'because --ring is drawn for a 32px control and around a dialog-sized region its '
