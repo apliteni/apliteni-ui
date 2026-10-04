@@ -102,27 +102,29 @@ export const States = {
       ],
     })
     + heading('How long a caption can be',
-      'A row holding a change is one line: a caption too long for it is clipped, because wrapping would drop '
-      + 'that change below the ones beside it.')
+      'A row holding a change is one line, so a caption that shares it stays short enough to read whole. '
+      + 'Wrapping would drop that change below the ones beside it, and clipping would take the words the '
+      + 'caption is there for.')
     + statBand({
       id: 'states-caption-length',
       basis: BASIS,
       stats: [
         { label: 'Gross margin', value: '36.1%', delta: { value: '+1.2 pts', tone: 'good' } },
         { label: 'Unclassified', value: '1.3%', caption: 'of income', delta: { value: '−0.4 pts', tone: 'good' } },
-        { label: 'Refunds', value: '2.4%', caption: 'of income, excluding disputed chargebacks', delta: { value: '+0.3 pts', tone: 'bad' } },
+        { label: 'Refunds', value: '2.4%', caption: 'of income, net of disputes', delta: { value: '+0.3 pts', tone: 'bad' } },
         { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
       ],
     })
     + heading('A caption standing alone keeps every word',
-      'With no change to hold on one line, a caption wraps instead of clipping. The caption cut short above '
-      + 'reads in full here.')
+      'With no change beside it, a caption has no arrow and no number to hold together, so it takes a second '
+      + 'line rather than lose a word. A caption this long belongs only in a row it does not share.')
     + statBand({
       id: 'states-caption-wraps',
       basis: BASIS,
       stats: [
-        { label: 'Refunds', value: '2.4%', caption: 'of income, excluding disputed chargebacks' },
+        { label: 'Refunds', value: '2.4%', caption: 'of income for the quarter, excluding disputed chargebacks' },
         { label: 'Unclassified', value: '1.3%', caption: 'of income, excluding disputed chargebacks', delta: { value: null } },
+        { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
         { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
       ],
     })
