@@ -9,7 +9,7 @@ export const RELEASES = [
     v: '0.86.0', date: '2026-10-05',
     changes: [
       ['added', 'React AccentPicker provides the four existing accent swatches as a controlled group. The host applies and saves the selected accent. Part of #429.'],
-      ['fixed', 'The selected accent swatch shows its ring again, painted in the swatch’s own colour rather than the page accent. Vanilla and React share the fix.', ['AccentPicker']],
+      ['fixed', 'The selected accent swatch shows its ring again, painted in the swatch’s own colour rather than the page accent. It keeps that ring while the swatch also holds keyboard focus, where the focus ring used to replace it and leave nothing saying which accent is on. The two sit on one edge with the focus ring’s own gap width between them, so each is read against that neutral and not against the other: a page on Ocean beside a selected Phoenix measured 1.05:1 between the bands before and 3.73:1 after, against the 3:1 the kit asks of a focus indicator. The edge ends where it did, 6px out. Vanilla and React share the fix.', ['AccentPicker']],
       ['added', '`accentSwatchStyle(accent)` returns the custom properties one swatch button carries — its gradient and the solid colour its selection ring takes in each theme. Both pickers read it, so a page building its own swatch strip paints the same thing.'],
       ['changed', 'The published type of `ACCENTS` narrows from `string[]` to a readonly tuple, so React can derive its `Accent` union from it. TypeScript consumers assigning it to a mutable `string[]` need a copy.'],
     ],

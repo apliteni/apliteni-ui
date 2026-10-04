@@ -85,13 +85,17 @@
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch-ring);
 }
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
-/* Focus is the kit ring and nothing else, so on the selected swatch it used to
- * erase the only thing showing which accent is on. The selection ring moves out
- * to 6px and paints under it instead — still inside the 10px gap to the next
- * swatch, which carries no ring of its own. */
+/* A rule of its own because a box-shadow list replaces the whole list: without it
+ * focus erases the only mark saying which accent is on. The ring's own gap width
+ * goes between the two bands — laid straight against each other they measured
+ * 1.05:1 and read as one smear. The offsets are derived so the separator moves
+ * with the widths #578 is changing. Held by stories/accent-focus.test.js.
+ * why: docs/specification.md#react-accent-picker */
 .ui-accent-picker button.is-active:focus-visible {
   outline: 2px solid transparent;
-  box-shadow: var(--ring), 0 0 0 6px var(--swatch-ring);
+  box-shadow: var(--ring),
+    0 0 0 calc(2 * var(--ring-gap-width) + var(--ring-width)) var(--ring-gap),
+    0 0 0 calc(2 * var(--ring-gap-width) + var(--ring-width) + 2px) var(--swatch-ring);
 }
 
 .ui-seg--underline { flex-wrap: nowrap; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }

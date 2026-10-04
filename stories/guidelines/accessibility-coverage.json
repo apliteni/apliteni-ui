@@ -516,6 +516,24 @@
       ]
     },
     {
+      "file": "stories/accent-focus.test.js",
+      "name": "Vanilla accent swatch: focus beside selection",
+      "does": "Measures the bands a selected vanilla swatch draws while it also holds keyboard focus, with the page on a DIFFERENT accent: both the kit ring's band and the selection band have to be on the edge, the bands have to paint outward in source order, and every pair that touches — including the outermost band against the ground — has to clear 3:1. Rejects the two-coloured-band composition that measured 1.05:1 and a composition that keeps only the focus ring.",
+      "blind": [
+        "The 12px halo in var(--ring): it is blurred and translucent, so the pixels it reaches are the band colours mixed by a fraction no source reader can compute. The gate counts the halo, skips it and measures the opaque bands as declared, which makes a pass a ceiling rather than the painted result; browser pixel samples at the band interiors close that gap.",
+        "Browser paint, antialiasing and host overrides; source CSS is resolved in JSDOM, which also resolves no gradient, so the swatch fill inside the innermost band is not a ground this gate measures."
+      ]
+    },
+    {
+      "file": "react/src/AccentPicker.focus.test.tsx",
+      "name": "React accent swatch: focus beside selection",
+      "does": "The same measurement and the same two rejected compositions for the React picker, over the kit's exported accent list.",
+      "blind": [
+        "The 12px halo in var(--ring): it is blurred and translucent, so the pixels it reaches are the band colours mixed by a fraction no source reader can compute. The gate counts the halo, skips it and measures the opaque bands as declared; browser pixel samples at the band interiors close that gap.",
+        "Browser paint, antialiasing and host overrides; source CSS is resolved in JSDOM, which also resolves no gradient, so the swatch fill inside the innermost band is not a ground this gate measures."
+      ]
+    },
+    {
       "file": "stories/accent-swatch.test.js",
       "name": "Accent swatch",
       "does": "Checks that the accent picker’s swatch uses the tokens selected by the accent in all three picker copies. A stale swatch would misrepresent the available choice.",

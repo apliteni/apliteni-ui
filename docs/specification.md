@@ -3736,9 +3736,23 @@ accent the page is on: the picker is documented to run before the host has appli
 anything, and a ring in `var(--accent)` would paint every selection in whichever
 accent the page happens to be wearing and in the same hue as the focus ring. The
 dark ramp the swatch circle itself wears does not clear 3:1 on the light card,
-which is why the ring has a value per theme. Focus stays the kit ring; on the
-selected swatch the selection ring sits just outside it instead of being replaced.
+which is why the ring has a value per theme.
+
+Focus stays the kit ring. On the selected swatch the selection band sits outside
+it rather than replacing it, and the ring's own gap width goes between the two, so
+each band is read against that neutral and neither against the other. Two coloured
+bands laid straight against each other are one smear: the page on Ocean beside a
+selected Phoenix measured 1.05:1 in light and 1.06:1 in dark, under the 3:1 the
+ring-contrast floor asks for against every ground a focus indicator reaches,
+halo pixels included. Separated, the lowest pair over all four accents and both
+themes is 5.83:1 read out of the sheet, and 4.04:1 measured in Chromium at 1x and
+3.73:1 at 2x, where the ring's halo tints both sides of the separator. The edge still ends 6px out, inside the 10px gap to the next swatch,
+and the selection band keeps the 2px width it has at rest. Both offsets are
+derived from `--ring-gap-width` and `--ring-width`, so the separator moves with
+the band it separates.
+
 Held by `react/src/AccentPicker.test.tsx`,
-`react/src/AccentPicker.ring.test.tsx`, `stories/accent-ring.test.js` and
+`react/src/AccentPicker.ring.test.tsx`, `react/src/AccentPicker.focus.test.tsx`,
+`stories/accent-ring.test.js`, `stories/accent-focus.test.js` and
 `stories/accent-swatch.test.js`. Part of
 [#429](https://github.com/apliteni/apliteni-ui/issues/429).
