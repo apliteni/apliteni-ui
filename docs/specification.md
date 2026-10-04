@@ -2698,6 +2698,15 @@ its clearance off the text while the text still lands on the card's text edge. A
 wrapper owns that bleed when it is the card's child, and owes one step more than the table,
 because the wrapper keeps its own focus clearance.
 
+The row pays `var(--space-3)` on all four sides: sideways it is the step a dense cell already
+paid, so the hover outline and the row separator keep the clearance they had at the width
+above, and down the page it is what puts two rows 25px apart — two paddings and the hairline
+— against the `var(--space-1)` between a row's own lines. The values sit `var(--space-3)`
+apart along a line and the paragraph `var(--space-1)` below the last of them, so a row reads
+as one block and not as two. Those readings are taken in Chromium at 320 and 390 by
+`scripts/evidence/table-stack.mjs`, which also shoots the before and after frames and checks
+that the 1280px frame is the same pixel for pixel with the modifier and without it.
+
 A clipped header is read and not operated, so a stacked table's header cells hold text. A
 control left in one is a focus stop with no ring drawn anywhere, because there is nothing on
 screen to draw it on; a sort or filter control belongs on the row above the table instead,

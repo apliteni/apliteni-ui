@@ -21,6 +21,34 @@ const CSS = readFileSync(
   'utf8',
 );
 
+/**
+ * The spacing scale, named rather than restated: this gate says which step a gap owes, and
+ * what that step is worth stays in src/tokens/tokens.css. A renamed step fails here.
+ */
+const SCALE = tokensFor('light', 'default');
+const step = (token) => {
+  const px = SCALE.get(token);
+  assert.ok(px, `src/tokens/tokens.css no longer carries ${token}`);
+  return px;
+};
+
+/* What a stacked row's gaps owe. The row pays sideways what a dense cell pays, so the hover
+ * outline and the row separator keep the clearance they had at the width above the step; it
+ * pays one step more down the page, because a row is now several lines and the gap between
+ * two rows has to beat the gaps inside one. The values sit a dense column gap apart, and the
+ * paragraph takes the smallest step there is, because it belongs to the row above it.
+ * Measured in Chromium by scripts/evidence/table-stack.mjs, which also proves the text lands
+ * on the card's text edge — the arithmetic this gate cannot do, because JSDOM lays nothing out.
+ */
+const GAPS = {
+  'padding-top': '--space-3',
+  'padding-bottom': '--space-3',
+  'padding-left': '--space-3',
+  'padding-right': '--space-3',
+  'column-gap': '--space-3',
+  'row-gap': '--space-1',
+};
+
 // 390px is the phone the issue names; 1280px is the width the same markup has to be
 // untouched at, because a modifier that reshapes the desktop table is a different bug.
 const PHONE = 390;
@@ -115,7 +143,8 @@ function resolve(css, width) {
       table: parts(table, ['display', 'min-width']),
       head: parts(head, ['display', 'position', 'clip-path', 'height']),
       body: parts(body, ['display']),
-      row: parts(body.rows[0], ['display', 'flex-wrap', 'padding-left', 'padding-right']),
+      row: parts(body.rows[0], ['display', 'flex-wrap', 'padding-top', 'padding-right',
+        'padding-bottom', 'padding-left', 'column-gap', 'row-gap']),
       cells: Object.fromEntries(['identity', 'title', 'num', 'long'].map((name) =>
         [name, parts(cell(name), ['display', 'white-space', 'position', 'padding-left', 'width', 'flex-basis'])])),
     };
@@ -145,13 +174,23 @@ function stackedProblems({ recipe, table, head, body, row, cells }) {
   if (row.display !== 'flex') problems.push(say(`the row is ${row.display}, so its cells still make columns`));
   if (row['flex-wrap'] !== 'wrap') problems.push(say(`the row is ${row['flex-wrap']}, so the long cell cannot take a line`));
 
-  // The hover outline draws at the row's own edge, so the row — not the table — has to carry
-  // the inset, or the outline lands hard against the text on both sides (#71).
-  for (const side of ['padding-left', 'padding-right']) {
-    const px = Number.parseFloat(row[side]);
-    if (!(px > 0)) {
-      problems.push(say(`the row's ${side} is ${row[side]}, so its hover outline has no room off the text`));
+  /* Every gap the row draws, against the step it owes. The hover outline draws at the row's
+   * own edge, so the row — not the table — carries the inset, or the outline lands hard
+   * against the text on both sides (#71); "some inset" was what this asked for until r31,
+   * and it passed the row at a step narrower than the same table's above the fold. */
+  for (const [prop, token] of Object.entries(GAPS)) {
+    if (row[prop] !== step(token)) {
+      problems.push(say(`the row's ${prop} is ${row[prop] || '(unset)'}, not ${token} (${step(token)})`));
     }
+  }
+  // Inside a row has to stay tighter than between two rows, or the paragraph reads as the
+  // next entry. Compared rather than asserted: the step between rows is two paddings and a
+  // rule, so it is a sum and not itself a token.
+  if (Number.parseFloat(row['row-gap']) >= 2 * Number.parseFloat(row['padding-top'])) {
+    problems.push(say(
+      `the row's gaps (${row['row-gap']}) are no tighter than the step between two rows `
+      + `(2 × ${row['padding-top']}), so the paragraph reads as the next row`,
+    ));
   }
 
   // The header has no column to sit over, and a cell still has to read with its column's
@@ -216,8 +255,16 @@ const MUTATIONS = [
   ['the long cell left to share the first line',
     (css) => css.replace('td.ui-table__long { flex: 0 0 100%;', 'td.ui-table__long { flex: 0 1 auto;')],
   ['the row inset put back on the table, where the hover outline cannot use it',
-    (css) => css.replace('padding: var(--space-3) var(--space-2); border-bottom:',
+    (css) => css.replace('padding: var(--space-3); border-bottom:',
       'padding: var(--space-3) 0; border-bottom:')],
+  ['the row inset taken a step in, so the outline loses the clearance it had above the fold',
+    (css) => css.replace('padding: var(--space-3); border-bottom:',
+      'padding: var(--space-3) var(--space-2); border-bottom:')],
+  ['the gaps written as numbers off the scale',
+    (css) => css.replace('column-gap: var(--space-3); row-gap: var(--space-1);',
+      'column-gap: 10px; row-gap: 5px;')],
+  ['the paragraph given the step between two rows, so it reads as the next entry',
+    (css) => css.replace('row-gap: var(--space-1);', 'row-gap: var(--space-6);')],
   ['the row left as a table row',
     (css) => css.replace('> tbody > tr {\n    display: flex;', '> tbody > tr {\n    display: table-row;')],
   ['the stacked block moved to a step that is not the one-column one',
@@ -235,11 +282,13 @@ const wrapperBleed = (css) =>
 test('a stacked table in a scroll wrapper is bled by the step the row pays back', () => {
   const rule = wrapperBleed(CSS);
   assert.ok(rule, 'no stacked scroll-wrapper rule: a stacked log inside a scroll region drifts');
-  assert.match(rule, /margin-inline:\s*calc\(-1 \* var\(--space-3\)\)/,
-    "the wrapper owes the row's --space-2 plus its own --space-1 of focus clearance");
+  assert.match(rule, /margin-inline:\s*calc\(-1 \* var\(--space-4\)\)/,
+    "the wrapper owes the row's --space-3 plus its own --space-1 of focus clearance");
 
-  // Deleting it is the shape the re-review measured: main's `:has(> .ui-table--dense)` rule
-  // bleeds the wrapper a step too far and the stacked text drifts 4px off the card's edge.
+  /* Deleting it is the shape the r3 re-review measured. It now asks for the same step as
+   * main's `:has(> .ui-table--dense)` rule, so a dense stacked table would survive the
+   * deletion; a stacked table that is not dense gets no bleed from that rule at all, which
+   * is what this one is here for, and the mutation below is still rejected. */
   assert.equal(
     wrapperBleed(CSS.replace(/\.ui-card > \.ui-table-scroll:has\(> \.ui-table--stack\)\s*\{[^}]*\}/, '')),
     null,
