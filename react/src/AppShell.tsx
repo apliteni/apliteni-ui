@@ -104,12 +104,15 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
       return renderLink ? renderLink(section, linkProps) : <a {...linkProps} />;
     }} />;
   const foldLabel = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
-  // One destination is not a choice, at any width. A list of it can only point at
-  // the page already on screen, and it marks that row current on every page it
-  // reaches — the shell's one accent signal spent on a control that goes nowhere.
-  // So the shell draws no section navigation at all, and no fold: the fold exists
-  // to close the list, and there is none to close.
-  const navigable = sections.length > 1;
+  // A section list is drawn when it has somewhere to go, at every width. One section
+  // and no back link is the page already on screen: the list would mark that row
+  // current on every page it reaches, spending the shell's one accent signal on a
+  // control that goes nowhere. So the shell draws no section navigation and no fold
+  // — the fold exists to close a list, and there is none to close. One section under
+  // a child page is a different case: the row is that page's parent, a place the
+  // reader can actually go, and it takes aria-current="true" rather than "page"
+  // through activeIs above. why: guidelines/going-back.md#keep-the-section-active
+  const navigable = sections.length > 1 || Boolean(back);
   const visible = sections.length > 4 ? sections.slice(0, 3) : sections;
   const remaining = sections.slice(visible.length);
   const initials = account.name.trim().split(/\s+/).map((part) => part[0]).slice(0, 2).join('');

@@ -781,7 +781,8 @@ that swallowed Space would also prevent the reader from scrolling the page.
   path wins. **Below 560px, a bottom bar replaces the rail:** it shows up to four sections, or
   three sections plus More. **A shell whose list has nowhere to go — one section and no back
   link — draws no rail, no fold control and no bottom bar;** the brand lockup moves to the band
-  and the section stays in the command palette. It publishes `--ui-app-bottom-clearance`, the
+  and the section stays in the command palette. One section under a child page is a destination,
+  the page's parent, so that list is drawn and the row takes `aria-current="true"`. It publishes `--ui-app-bottom-clearance`, the
   height of that bar plus the device's safe-area inset. **Page bottom padding, root scroll padding and the toast
   stack all keep that clearance,** so scrolling an action into view never parks it behind the
   bar.
