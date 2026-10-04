@@ -60,6 +60,20 @@
 
 **Don't:** Hide units in muted text or make readers guess what an abbreviation means.
 
+## Size the table to its content
+
+<!-- rule: content-width -->
+
+**Why:** A short table stretched to the page width leaves a gap between a label and its value, and the reader has to cross it to pair them.
+
+**Rule:** Let a table end where its values end, and keep no column wider than its longest cell plus the cell inset.
+
+**Do:** Let a two-column table size to its content, so each amount sits beside its reference.
+
+**Don't:** Stretch a short table to the width of the page and leave the middle empty.
+
+**Except:** A table with a text column meant to grow — a name or a title — gives that column the width left over.
+
 ## Scroll instead of squeezing
 
 <!-- rule: overflow -->

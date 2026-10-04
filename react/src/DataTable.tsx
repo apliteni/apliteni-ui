@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { Pagination, sizeOf } from './Pagination';
 import './DataTable.css';
@@ -76,6 +76,44 @@ export function DataTable<T extends { name: string }>({
   // and the arrow keys all get to the far columns; the pair of buttons that used to
   // stand above it is retired. why: docs/components.md#react-tables
   const scrollable = stickyHeader || pinnedIdentity;
+  const table = useRef<HTMLTableElement>(null);
+  // The box the strip sits in, held as state and not as a ref: the strip is conditional,
+  // and an effect reading a ref cannot see one arrive. A surface that supplies its own pager
+  // and later asks for this one left the arriving strip uncapped, because the dependencies
+  // below — the columns and the rows — are exactly what such a caller keeps still (#504).
+  const [pagerHost, setPagerHost] = useState<HTMLElement | null>(null);
+  const holdPagerBox = useCallback(
+    (box: HTMLDivElement | null) => setPagerHost(box?.parentElement ?? null), []);
+  const [strip, setStrip] = useState<{ width: number; inset: number }>();
+  // The strip starts where the table starts and ends where it ends, read against the box
+  // the strip itself sits in rather than against the table's own parent: a scroll region
+  // insets the table 4px inside itself, and a dense table in a card is bled 16px out of it,
+  // so neither edge can be copied from the table's width alone. A table bled past its
+  // container keeps the strip inside — only the table hangs into a card's padding.
+  // A width of zero is no measurement: jsdom and a page that has not laid out yet both
+  // report one, and a cap of zero would collapse the strip rather than leave it alone.
+  useEffect(() => {
+    const el = table.current;
+    const host = pagerHost;
+    // No strip, no cap to keep: a width measured for the last one would reach the next.
+    if (!el || !host || typeof ResizeObserver === 'undefined') {
+      setStrip(undefined);
+      return;
+    }
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      const box = host.getBoundingClientRect();
+      const left = box.left + host.clientLeft
+        + (Number.parseFloat(getComputedStyle(host).paddingLeft) || 0);
+      const inset = Math.max(0, rect.left - left);
+      const width = rect.right - left - inset;
+      setStrip(width > 0 ? { width, inset } : undefined);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    measure();
+    return () => observer.disconnect();
+  }, [pagerHost, columns, rows]);
   const [localSort, setLocalSort] = useState<TableSort<T>>(
     { key: columns.find((c) => c.sortable)?.key, dir: -1 });
   const owned = controlledPage === undefined;
@@ -141,7 +179,7 @@ export function DataTable<T extends { name: string }>({
           silently either current or stale, with no way to tell which. */}
       <div className={scrollable ? 'ui-table-scroll' : undefined} role={scrollable ? 'region' : undefined}
         aria-label={scrollable ? scrollLabel : undefined} tabIndex={scrollable ? 0 : undefined}>
-      <table className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
+      <table ref={table} className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
         <thead>
           <tr>
@@ -196,6 +234,12 @@ export function DataTable<T extends { name: string }>({
       {/* One page and no size to choose renders nothing at all — the pager's own
           rule, not a second copy of it here. */}
       {pager ? (
+      // The strip that pages a table may not be wider than the rows it pages (#504).
+      // The two are siblings, and no selector sizes one to the other, so the width is
+      // measured: a cap rather than a width, so a pager wider than the table wraps
+      // inside it and a table wider than the room still leaves the strip in the room.
+      <div className="rx-table-pager" ref={holdPagerBox}
+        style={strip ? { maxWidth: strip.width, marginInlineStart: strip.inset || undefined } : undefined}>
         <Pagination page={page} pageSize={size} total={owned ? ordered.length : total ?? null}
           hasMore={hasMore} pageSizes={pageSizes} loading={loading}
           {...(pagerLabel === undefined ? {} : { label: pagerLabel })}
@@ -209,6 +253,7 @@ export function DataTable<T extends { name: string }>({
             // landed back on the size the reader had just replaced.
             if (owned) setLocalPage(1);
           }} />
+      </div>
       ) : null}
     </>
   );

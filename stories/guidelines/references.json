@@ -5,6 +5,16 @@
         "ref": "src/styles/table.css:231",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
+    ],
+    "content-width": [
+      {
+        "ref": "src/styles/table.css:12",
+        "pattern": "width: auto;"
+      },
+      {
+        "ref": "src/styles/table.css:256",
+        "pattern": "max-width: calc(100% + 2 * var(--space-3));"
+      }
     ]
   },
   "_accessibility-floor.js": {
@@ -574,7 +584,7 @@
         "pattern": "--space-3: 12px"
       },
       {
-        "ref": "src/styles/table.css:84",
+        "ref": "src/styles/table.css:90",
         "pattern": "padding: var(--space-2) var(--space-3)"
       },
       {
