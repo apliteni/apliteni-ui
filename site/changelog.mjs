@@ -6,9 +6,38 @@
 
 export const RELEASES = [
   {
-    v: '0.75.2', date: '2026-10-03',
+    v: '0.77.0', date: '2026-10-04',
     changes: [
-      ['changed', 'Contributing: every test run now ends with its ten slowest tests and files, and says which of them are over budget. The README and `AGENTS.md` state each suite\u2019s measured time budget. Nothing the package ships behaves differently. See #560.'],
+      ['fixed', 'Every box the kit scrolls now answers the keyboard with a focus indicator of the kit\u2019s own instead of the browser\u2019s outline. A card around a table, a scrolling table wrapper, a dropdown\u2019s search list, a drawer\u2019s body, a confirm\u2019s consequence, the command palette\u2019s list and the React modal\u2019s body took that outline \u2014 black in both themes and blind to the accent \u2014 because a browser makes an overflowing box a keyboard stop with no `tabindex` and no author rule. The underline tab strip and the application rail stay as they are, and now say why: each holds its own tabbable rows, so the browser gives the scrolling box no stop of its own. Nothing is drawn differently until a box takes focus. Closes #531.', ['Card', 'Table', 'Dropdown', 'Drawer', 'Confirm', 'CommandPalette', 'Modal', 'Shell']],
+      ['added', '`--ring-scroll` is what a scroll region inside a surface draws: the shared ring\u2019s own 1px gap and 2px band, drawn inward, without the halo. `--ring` is built for a 32px control, where that halo is a glint; around a 400px scroll region it spreads 14px past the band and lights the surface rather than the box that scrolls. Take it with `--ring-scroll-offset`, which is what draws it inward \u2014 the band paints outside the box without it. Tune it where you tune `--ring`: it is the same width, ink and gap width. A box that is itself the outermost surface, such as a floating panel, keeps `--ring`. See #531.'],
+      ['changed', 'A confirm\u2019s consequence carries `--space-1` of padding, so its focus band clears the glyphs the way a scrolling table\u2019s does. The text moves 4px; nothing else does.', ['Confirm']],
+      ['changed', 'A scrolling table wrapper draws the inward band instead of the full ring, with the six scroll regions beside it. It is a scroll region inside a card like the rest, and was the one left spending a halo across the card around it.', ['Table']],
+    ],
+  },
+  {
+    v: '0.76.1', date: '2026-10-04',
+    changes: [
+      ['fixed', 'In the dark theme a disabled field and a disabled button draw a fainter edge than a live one, so the box reports the state and not only the words. `--disabled-border` resolved to the same hairline as `--field-edge` and `--control-edge`, leaving an unavailable field identical to an available one; it now drops a rung, to `--surface-3`. Light already drew the two states apart and is unchanged. If your CSS reads `--disabled-border`, expect the new value in dark. Fixes #564.', ['Inputs', 'Button']],
+      ['fixed', 'A disabled select is no longer faded by the browser on top of the kit\'s own disabled paint. Chromium applies `select:disabled { opacity: 0.7 }`, which took the edge and the words down together — 1.11:1 edge and 3.78:1 words in dark, 3.15:1 words in light — so the kit now resets `opacity` on a disabled field and a select reads what the text field beside it reads: 1.16:1 edge and 6.24:1 words in dark, 1.24:1 and 6.11:1 in light. If your CSS fades a disabled select deliberately, declare that fade yourself.', ['Inputs', 'Pagination']],
+    ],
+  },
+  {
+    v: '0.76.0', date: '2026-10-04',
+    changes: [
+      ['added', 'Table footers are a supported surface: totals open with the strong rule, each footer label sits against the figure it names, and a label marked strong carries the weight across the whole row. Footer labels take the body cell padding in every density. If your CSS left-aligned tfoot labels itself, that override is no longer needed. See #385.', ['Table']],
+      ['fixed', 'A final body row keeps its separator when a footer follows it; previously the last row of every row group lost its rule. Numeric table headers hold one line, so a two-word header such as Amount (EUR) no longer wraps beside a wide identity column.', ['Table']],
+      ['fixed', 'The theme toggle shows the kit focus ring on keyboard focus instead of the browser\u2019s own outline, in the vanilla topbar, React ThemeToggle and the React shell alike. See #385.', ['ThemeToggle']],
+      ['added', 'A document review showcase walks one invoice through review, confirmation and the recorded result, and shows the preview loading, unavailable and refused-approval states. The review step leads with the extracted fields, in the wider column, and keeps the document a quieter preview beside them. See #385.'],
+      ['added', 'Density and accents gains a rule: emphasis follows consequence. Where a source sits beside the values a screen will save, the saved values take the leading position, the wider column, the heavier weight and whatever accent the pair carries, and a quieter block is made smaller, later or uncoloured rather than faded. The accent goes on the pane\u2019s own name as ink, never as a border around it. See #385.'],
+      ['added', 'React Card merges a caller `className` with the kit class instead of ignoring it, so a page can mark one card without hand-writing `ui-card` beside its own. Part of #385.', ['Card']],
+      ['changed', 'The packaged README is about half its old length and reads as plain English. It keeps what a consumer needs — what the kit is, install, the entry points, a vanilla and a React example, the fonts, theme and accent, and where the guidelines live — and sends the rest to the docs pages that already held it. Nothing about the package itself changed. See #385.'],
+    ],
+  },
+  {
+    v: '0.75.2', date: '2026-10-02',
+    changes: [
+      ['fixed', 'A pager’s page-size control keeps its compact width, padding, type size, radius and chevron offset in a React app. `apliteni-ui/react/css` carried a copy of the kit’s form-control CSS, and in a document that loads `apliteni-ui/css` first that copy landed later and won, leaving the control a full-size form field in a row of small buttons. Fixes #551.', ['Pagination']],
+      ['changed', '`apliteni-ui/react/css` no longer repeats the kit’s form-control CSS. Import both stylesheets, kit first, as the README has always shown: the React one adds what React’s own components need and cannot stand in for the kit’s. The tooltip panel, the reduced-motion net and the tap-target net still travel with it, because a second copy of each decides nothing the kit had already decided.'],
     ],
   },
   {

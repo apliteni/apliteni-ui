@@ -32,10 +32,11 @@ const valueOf = (body, prop) =>
 // The kit's, plus react/src/'s own: a `background` shorthand added to a select in
 // react/src/ would reproduce #511 with a src/-only sweep still green.
 //
-// NOT the document a consumer gets. Field/Checkbox/Switch/SearchField import the kit's
-// input.css, so tsup re-emits a COPY of it into react/dist, after the kit's own sheets
-// — a different order, which this concatenation does not reconstruct. It already costs
-// .ui-pager__size-select its compact geometry: #551.
+// NOT the document a consumer gets. A sheet a React module imports out of src/styles/ is
+// re-emitted into react/dist after the kit's own copy — a different order, which this
+// concatenation does not reconstruct. No react/src module imports input.css any more
+// (#551 removed the four modules that did), so nothing here is re-emitted twice; what holds
+// that, and the consumer's real order, is stories/react-bundle-cascade.test.js.
 
 const INDEX = read('src/index.css');
 const KIT_SHEETS = [...INDEX.matchAll(/@import\s+"\.\/(styles\/[\w.-]+\.css)"/g)]

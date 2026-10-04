@@ -9,6 +9,16 @@
       ]
     },
     {
+      "file": "stories/scroll-ring.test.js",
+      "name": "Scroll region focus",
+      "does": "Resolves the kit's sheets with the tokens substituted and :focus-visible desugared, then checks each of the six scroll regions #531 rings in the kit: the box draws no band at rest, it draws --ring-scroll while it has focus, that band is --ring-width of ink offset inward by --ring-gap-width + --ring-width read off the tokens, and no box around it changes what it paints. Two themes by two accents. Emulates forced colors by flattening the (forced-colors: active) blocks and dropping every box-shadow, then checks that each focused region still declares an outline the system can repaint and that exactly one box in its ancestry does. Eight mutations: one per region, the outline-offset that draws the band inward, and a region given back a transparent outline.",
+      "blind": [
+        "JSDOM lays nothing out and paints nothing, so it cannot prove a box scrolls, that the browser makes it a keyboard stop, or that the band survives a scroll under it; Chrome captures at 390px and 1280px in both themes, two of them with the content scrolled, cover those on #531.",
+        "contrast.js substitutes each custom property once for the whole sheet, so the per-surface --ring-gap is unmeasured here.",
+        "Which picture a box should draw is Artur's judgement on #531, recorded in the triage in stories/focus-ring.test.js and shown by the captures; this file only checks that the sheet draws the one it names. React's modal body is the seventh region and is held in react/src/focus-ring.test.tsx."
+      ]
+    },
+    {
       "file": "stories/snippet-focus.test.js",
       "name": "Snippet focus",
       "does": "Discovers buttons, links, code regions and explicit tab stops in Snippet fixtures; checks shared focus shadows and transparent outlines across two themes and accents, that the code region hands its ring to the rounded card it sits in, and that the card still clips. Emulates forced colors by flattening the (forced-colors: active) block and dropping every box-shadow, then checks that one focused code region leaves exactly one box declaring an outline. Seven mutations, each removing one declaration the result depends on.",
@@ -547,6 +557,14 @@
       ]
     },
     {
+      "file": "react/src/DocumentReview.test.tsx",
+      "name": "React: Document review flow",
+      "does": "Checks that the approval's pending state marks the control disabled and the step busy from one flag, that a refused approval is announced through an alert naming the cause, that the result's title stays under the page title, and that a step under Invoices reports its parent section rather than the current page.",
+      "blind": [
+        "Real browser focus rings, the sticky action row at 560px and every contrast pair; mounted tests use jsdom and the browser captures on #385 carry those."
+      ]
+    },
+    {
       "file": "react/src/Drawer.test.tsx",
       "name": "React: Drawer",
       "does": "Checks the mounted React drawer’s focus, Tab trap, Escape, scrim and close-button dismissal.",
@@ -658,6 +676,17 @@
         "One engine and one theme. A pseudo-element on a form control is a browser behaviour, not a standard, and Firefox and Safari are not measured here.",
         "Collisions are compared as a set of pairs rather than as coordinates, because opening a row’s gap moves the controls in it. A pair that merely moves to a different pixel of the same two controls is not reported.",
         "Two controls whose drawn boxes already overlap are left out, so a layout defect that predates the zone is not reported as one the zone caused."
+      ]
+    },
+    {
+      "file": "stories/field-ground.test.js",
+      "name": "Field ground",
+      "does": "Walks every gallery under stories/components/ in both themes, composites the ground each field actually sits on, and checks that none of them is the page ground — a field paints --surface, so on the page it has no fill step and only --disabled-border left to be drawn by. Records the disabled text field's ground, fill, border, edge ratio and ink ratio per theme, and asserts its ink clears AA on the field's own paint. One mutation puts a field back on the page ground and the claim reports it.",
+      "blind": [
+        "JSDOM reads winning declarations, not pixels: a rule inside a media query is unmeasured, and so is anything that depends on layout. The Chromium captures at 1280 and 390 in both themes cover paint.",
+        "At rest only — hover, focus and active grounds belong to stories/contrast.test.js.",
+        "stories/components/ only: a guideline page's prose and a showcase's toolbar ground are those pages' decisions, not this gate's.",
+        "A contrast ratio is not legibility. The recorded edge readings are below the 3:1 non-text floor that WCAG 1.4.11 exempts a disabled control from, so they are recorded for review rather than asserted against a bar."
       ]
     }
   ],

@@ -137,11 +137,16 @@ svg:where(:not([width]):not([height])) {
 }
 
 /* Focus-visible ring, shared by all interactive controls */
+/* `.toggle` is the theme switch — a real button that wears neither .ui-btn nor
+   .ui-focusable, in the vanilla topbar, React ThemeToggle and the React shell's bar
+   alike, so keyboard focus on it fell back to the browser's own outline in all three.
+   It has no class of its own to opt in with; it joins the list instead. Found on #385. */
 .ui-focusable:focus-visible,
 .ui-snippet :focus-visible,
 .ui-btn:focus-visible,
 .ui-input:focus-visible,
 .ui-seg button:focus-visible,
+.toggle:focus-visible,
 .ui-switch:focus-visible {
   outline: 2px solid transparent;
   box-shadow: var(--ring);

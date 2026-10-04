@@ -53,6 +53,16 @@ Before opening a PR that changes a control's size, a container's gap, or
 Report the result in the PR. Playwright is not a dependency and CI runs only this
 gate's source half, so the measurement is yours to run.
 
+## Check the disabled field paint locally
+
+Before opening a PR that changes a field's or a button's disabled paint, or
+`src/styles/input.css`, measure it in a real browser — JSDOM ships no user-agent
+stylesheet, so the source half only emulates the one declaration Chromium fades a
+disabled select with:
+`UI_PLAYWRIGHT=… UI_CHROME=… FIELD_PAINT=1 node --test stories/field-ground.test.js`
+Report the result in the PR. Playwright is not a dependency and CI runs only this
+gate's source half.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.

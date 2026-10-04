@@ -133,6 +133,81 @@ test('the story-surface gate rejects a stage that paints without a gap', () => {
   assert.deepEqual(gapProblems([right]), []);
 });
 
+// ---- the scroll ring is one indicator, drawn where --ring's band is -----------
+//
+// A scroll region inside a surface answers focus with --ring-scroll rather than
+// --ring (docs/specification.md#the-focus-ring): the same 1px gap and 2px band, drawn
+// inward, no halo. It is an OUTLINE, because an inset box-shadow is painted under the
+// box's own children and a table scrolled sideways under one erases the band.
+//
+// Two things make that outline the same picture as --ring's band, and neither is
+// visible in the rule that uses it:
+//
+//  - the offset. `outline-offset` is what puts the band 1px inside the border box; a
+//    rule that takes the outline and leaves the offset draws it OUTSIDE instead, which
+//    is the bug the whole round was about and is invisible in JSDOM.
+//  - the arithmetic. The offset has to be the gap width plus the ring width, negated,
+//    or the band lands somewhere --ring's never does.
+//
+// A third thing holds the token itself: --ring-scroll must read no token that a
+// surface re-points, because it is declared once at :root and a var() inside a custom
+// property is substituted where that property is DECLARED. --ring is recomposed on
+// twenty-odd surfaces for exactly that reason; --ring-scroll needs no such list only
+// while it stays clear of --ring-gap and the surface tokens behind it.
+
+/** Rules that take the scroll ring, and whether each one also takes its offset. */
+const scrollRules = rules.filter(({ body }) => /(?:^|;)\s*outline\s*:[^;]*var\(--ring-scroll\)/.test(body));
+const offsetProblems = (subjects) => subjects
+  .filter(({ body }) => !/(?:^|;)\s*outline-offset\s*:[^;]*var\(--ring-scroll-offset\)/.test(body))
+  .map((rule) => `${rule.file}: ${rule.selector} takes --ring-scroll without --ring-scroll-offset, so its band draws outside the box`);
+
+test('every scroll region that takes the scroll ring takes its offset too', () => {
+  // Seven: the table card and the table wrapper inside it, the dropdown's search list,
+  // the drawer's body, the confirm's consequence, the palette's list, and React's modal
+  // body. Artur chose the picture on #531 round r30; the list is the surfaces it is on.
+  assert.equal(scrollRules.length, 7,
+    'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
+  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 1,
+    'React\'s modal body is not among them, so the walk stopped reading react/src');
+  assert.deepEqual(offsetProblems(scrollRules), []);
+});
+
+test('the offset gate rejects a scroll region that takes the band and leaves the offset', () => {
+  const right = { file: 'fixture', selector: '.fx:focus-visible', body: 'outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset);' };
+  assert.deepEqual(offsetProblems([right]), []);
+  const wrong = { file: 'fixture', selector: '.fx:focus-visible', body: 'outline: var(--ring-scroll);' };
+  assert.deepEqual(offsetProblems([wrong]),
+    ['fixture: .fx:focus-visible takes --ring-scroll without --ring-scroll-offset, so its band draws outside the box']);
+  // And on the tree rather than a fixture: drop the offset from the drawer's rule and
+  // the gate has to name that rule.
+  const real = scrollRules.find((r) => r.file === 'src/styles/drawer.css');
+  assert.ok(real, 'the drawer body no longer takes the scroll ring; move this check');
+  assert.deepEqual(offsetProblems([{ ...real, body: real.body.replace(/outline-offset\s*:[^;]*;/, '') }]),
+    ['src/styles/drawer.css: .ui-drawer__body:focus-visible takes --ring-scroll without --ring-scroll-offset, so its band draws outside the box']);
+});
+
+test('the scroll ring is declared once, from the same widths --ring draws its band from', () => {
+  const declaredAt = declarations.filter((d) => d.name === '--ring-scroll' || d.name === '--ring-scroll-offset');
+  assert.equal(declaredAt.length, 2,
+    'the scroll ring is declared more than once; it reads no surface token, so it needs no second declaration');
+  const band = declaredAt.find((d) => d.name === '--ring-scroll').value.trim();
+  const offset = declaredAt.find((d) => d.name === '--ring-scroll-offset').value.trim();
+  assert.equal(band, 'var(--ring-width) solid var(--ring-color)',
+    'the band is no longer --ring\'s own width and ink');
+  assert.equal(offset, 'calc(-1 * (var(--ring-gap-width) + var(--ring-width)))',
+    'the band no longer lands where --ring\'s band lands: 1px of gap, then the band');
+  // The reason the pair needs no per-surface recomposition, held as a check rather
+  // than as a sentence: neither half reads a token a surface re-points.
+  for (const { name, value } of declaredAt) {
+    for (const ref of references(value)) {
+      assert.ok(!surface(`var(${ref})`),
+        `${name} reads ${ref}, which resolves to a surface colour — recompose it per surface or stop reading it`);
+      assert.notEqual(ref, '--ring-gap',
+        `${name} reads --ring-gap, which is re-pointed by every painted surface and frozen here at :root`);
+    }
+  }
+});
+
 test('every ring consumer keeps a real outline for forced colors', () => {
   // 27 -> 28: a link inside a table takes the ring on focus instead of the browser's
   // own outline (#510), and like every other consumer keeps a transparent outline
@@ -146,7 +221,11 @@ test('every ring consumer keeps a real outline for forced colors', () => {
   // focus and #487's re-review found still taking the browser's outline. 47 -> 48:
   // a Snippet's card, which now draws the ring for its focused code region because
   // the `<pre>` has no radius of its own.
-  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
+  // 48 -> 47: #531 moved the scrolling table wrapper off --ring and onto --ring-scroll
+  // with the six scroll regions beside it. A --ring-scroll consumer is not counted here
+  // and owes no transparent outline: its band IS an outline, which is the one forced
+  // colors repaints. The gate above holds those seven.
+  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
   for (const { file, selector, body } of consumers) {
     assert.match(body, /(?:^|;)\s*outline:\s*2px solid transparent\s*;/, `${file}: ${selector} loses focus when forced colors removes box-shadow`);
   }

@@ -180,6 +180,12 @@
   font-size: var(--text-sm);
   line-height: 1.55;
 }
+/* A body of prose scrolls, so the browser makes it a keyboard stop and it answered
+   with the native outline. The band is drawn INWARD, inside the 20px padding: the body
+   is flush with a panel that is itself flush with a screen edge, so an outset ring — on
+   either box — is painted off-screen. Measured at 390, where an outset one left no
+   indicator at all. why: docs/specification.md#the-focus-ring */
+.ui-drawer__body:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 
 .ui-drawer__footer {
   display: flex;

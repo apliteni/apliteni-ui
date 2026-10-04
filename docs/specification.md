@@ -41,6 +41,45 @@ and [#329](https://github.com/apliteni/apliteni-ui/issues/329).
 A React wrapper is published under the `./react` subpath. It is a wrapper — the tokens and the CSS
 are the same file the HTML entry point serves.
 
+### The React stylesheet does not re-emit a kit sheet
+
+A React consumer imports `apliteni-ui/css` and then `apliteni-ui/react/css`. Both, and in that
+order: the React stylesheet carries what React's own components add, not a second copy of the kit.
+
+**The kit CSS is a peer, not a dependency of a React component.** A sheet a React module imports
+out of `src/styles/` is re-emitted into `react/dist/index.css`, and in the consumer's document
+that copy lands *after* the kit's own, where at equal specificity it wins. The kit then overrules
+itself from a second position. That is what took `.ui-pager__size-select` back to a full-size form
+field in a row of `sm` buttons: `pagination.css` had given it its compact width, padding, type
+size, radius and chevron offset, and the re-emitted `input.css` took all five back. Nothing in
+`react/dist` restored them, and no counter-rule is wanted — one would only move the contest.
+Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551).
+
+**A kit sheet travels with the React bundle only where its second copy can decide nothing.** That
+is a measurement, not a list. Three nets qualify because order cannot change what they decide:
+`src/index.css` reads `reduced-motion.css` and `field-zoom.css` before any component sheet and
+`tap-zone.css` after every one of them, every declaration they make is behind a media query, and
+the ones that have to win are written `!important` or inside `:where()` at no specificity at all.
+`tooltip.css` qualifies because nothing the kit reads after it styles `.ui-tip`, so its copy
+contests no kit rule — measured over the whole story catalogue in both themes, not asserted.
+`input.css` does not qualify, and is imported nowhere under `react/src`.
+
+**The React-only consumer is why those four are there.** A consumer who takes
+`apliteni-ui/react/css` and not `apliteni-ui/css` is not the documented install — they get no
+tokens, no reset and none of the kit's controls — but what the React stylesheet can carry for
+them without cost, it carries. Without `tooltip.css` every `Tooltip`'s text renders inline and
+permanently visible, which is the defect
+[#408](https://github.com/apliteni/apliteni-ui/issues/408) fixed; without the nets they get
+motion with no reduced-motion net and fields that zoom an iPhone. The same reasoning covers all
+four, and it is the only reason any of them is there; see
+[Reduced motion travels with the stylesheet](#reduced-motion-travels-with-the-stylesheet).
+
+Held by `stories/react-bundle-cascade.test.js`, which walks the React entry's imports to
+reconstruct the sheets `react/dist/index.css` concatenates, requires every re-emitted sheet whose
+rules a cascade ranks to reach the story catalogue, and measures the document a consumer actually
+gets — kit CSS, then that bundle — against the same document with the re-emitted copies removed.
+`scripts/packaging.test.js` holds the tooltip panel in the packed React stylesheet.
+
 `docs/library.md` is the catalogue: the `src/` layout, the theming model, and every component the
 kit exports. This page states what those components guarantee; that one states what they are.
 
@@ -208,6 +247,28 @@ underline variants stretch. These extensions are covered by browser measurements
 [#435](https://github.com/apliteni/apliteni-ui/pull/435).
 
 Both decided on [#451](https://github.com/apliteni/apliteni-ui/issues/451).
+
+**A table footer is a row of totals, not a second head.** A `tfoot` label takes the body
+cell's padding for its density, so it sits on the body rhythm; it is right-aligned against
+the figure it names rather than against the first column it spans, because a label that
+spans two columns and hugs the left edge leaves the reader crossing the row. The totals
+open with the 2px `--border-strong` rule the zebra head already uses, in every density and
+in zebra tables, which have no body rules of their own: five identical hairlines told a
+reader nothing about where items end. Borders are collapsed, so that rule meets the last
+body row's hairline and the wider of the two wins — no doubled line. A final body row keeps
+its separator when a footer follows, and the last footer row ends without a partial rule.
+`.ui-table__num--strong` carries ink and weight on either cell type, so a Total row reads as
+one row instead of a bold figure beside a body-weight label. A caller who left-aligned
+`tfoot th` to work around the old behaviour can drop that override.
+
+**A numeric header holds one line.** Its column is sized to its content while
+`.ui-table__title` claims the rest, so a two-word header such as `Amount (EUR)` was the only
+cell in the column that could wrap.
+
+Held by `src/styles/table.test.js` for the shipped rules and their cascade, across every
+modifier in the sheet and with a failing mutation per claim; jsdom has no layout, so
+rendered edges are checked in the browser captures. Decided in
+[#385](https://github.com/apliteni/apliteni-ui/issues/385).
 
 Held by `stories/table-rhythm.test.js`. Decided in
 [#211](https://github.com/apliteni/apliteni-ui/issues/211).
@@ -534,6 +595,63 @@ disabled state taken off the element and the cascade read again.
 Decided in [#220](https://github.com/apliteni/apliteni-ui/issues/220), measured in
 [#201](https://github.com/apliteni/apliteni-ui/issues/201).
 
+**A field has no fill step, so the ground it is shown on decides whether its box is seen.**
+`--field-bg` and `--disabled-surface` are both `--surface` in both themes: a field is drawn by
+its edge, never by standing off what is behind it. On the card that edge measures 1.52:1 enabled
+and 1.24:1 disabled in light, and 1.27:1 and 1.16:1 in dark. On the PAGE ground the same disabled
+field measured 1.12:1 in light — a white box on a grey page, under an edge a shade off the page
+itself — which is what Artur reported in round r28: "Disabled fields almost invisible." So the
+kit's own gallery pages show a field on the card, which is where a form lives, and
+`stories/field-ground.test.js` holds them there and records the four readings above. A consumer
+owes a field the same: a form on the page ground gets no help from these tokens.
+
+Decided in [#551](https://github.com/apliteni/apliteni-ui/issues/551) round r28.
+
+**The box reports the state, so a field that is off draws the fainter edge of the two.** Dark
+answered both states with `--border` until [#564][i564]: `--field-edge` and `--disabled-border`
+resolved to the same hairline, the fill is `--surface` either way, and the words were the whole
+of the difference. `--disabled-border` now drops a rung in dark, to the quiet-fill grey
+`--surface-3`, which is where the headroom ends — the card is `#211e2d` and the hairline
+`#332f45`, so there is 0.27 of ratio between a field's edge and no edge at all, and the rung
+under this one is the 1.12:1 above. Light needed no move: its field edge is `--border-strong`
+and its disabled edge `--border`, a rung apart already. The same two tokens paint a button, so a
+button that is off drops a rung with the field. A ghost button draws no box in either state and
+is unaffected; a switch track has no label and fades instead.
+
+**A disabled select carries the kit's own paint and no fade, so the browser's grey-out is
+answered rather than inherited.** A token is only half of what a reader sees here: the kit
+finishes painting the control and the engine then paints over the result. Chromium's
+user-agent stylesheet declares
+`select:disabled { opacity: 0.7 }`, and an opacity is not a colour the cascade hands a property:
+the control is painted whole and then mixed into the card behind it, so the edge and the words
+come down together. Measured in Chromium, that cost the dark edge 1.16:1 → **1.11:1**, under the
+1.12:1 above, and the dark words 6.24:1 → **3.78:1**; in light the edge read 1.16:1 and the words
+**3.15:1**, both below the 4.5:1 a disabled label still owes a reader. Only an author declaration
+outranks a property the kit does not otherwise set, so the kit's disabled field rule resets
+`opacity` to 1 and a select reads exactly what the text field beside it reads: 1.16:1 edge and
+6.24:1 words in dark, 1.24:1 and 6.11:1 in light. No token moved for this, so light's
+declarations are unchanged and light gained the legible words with dark.
+
+`stories/field-ground.test.js` asserts the gap rather than the sizes: for every disabled boxed
+field in the galleries, measured against every enabled one on the same card, the off edge is the
+fainter, the two colours differ, and neither state is drawn at a reduced opacity. The boxed
+fields are the three that take `--field-edge` — text field, textarea and select — and the
+galleries draw the first and the last of them off, the textarea live only; the gate counts each
+and fails if one leaves. Neither edge reading reaches the 3:1 non-text floor, which 1.4.11
+exempts a disabled control from and which dark's hairline has never met on a near-black page.
+
+The gate has two halves, and this is why: JSDOM ships no user-agent stylesheet, so the source
+half writes Chromium's one declaration out and installs it under the kit's sheet, which is an
+emulation of a declaration and not of an engine. The browser half, off unless `FIELD_PAINT=1`,
+puts the same galleries in front of Chromium and takes the readings from it. Both halves strip
+the `opacity` reset back out and require the faded numbers to come back, so a reset that stopped
+working fails the gate rather than passing quietly.
+
+Decided by Artur in [#564][i564], Amberstone round r30; the select was found by the independent
+review of [#567](https://github.com/apliteni/apliteni-ui/pull/567).
+
+[i564]: https://github.com/apliteni/apliteni-ui/issues/564
+
 ## Elevation
 
 **A surface casts a shadow only to say it is higher, and each theme says it its own way.**
@@ -817,12 +935,24 @@ comparing the three glow treatments. Glow alone did not reach 3:1 in that eviden
 --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),
         0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color),
         0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+--ring-scroll: var(--ring-width) solid var(--ring-color);
+--ring-scroll-offset: calc(-1 * (var(--ring-gap-width) + var(--ring-width)));
 ```
 
 `--ring` remains a composed shadow for `box-shadow: var(--ring)` consumers.
 Tune the width, colour and gap at `:root`, or at a surface that composes the ring.
 A descendant-only change to one of those inputs cannot alter an already inherited
 shadow: CSS resolves custom-property references where the composition is declared.
+
+`--ring-scroll` is the indicator a SCROLL REGION inside a surface takes: the same 1px
+gap and 2px band, drawn inward, and no halo. It is an `outline` rather than a shadow,
+and `--ring-scroll-offset` is what draws it inward — take the one without the other and
+the band is painted outside the box. Both are declared once, at `:root`, and recomposed
+nowhere, because neither reads `--ring-gap` or any other token a surface re-points: the
+band leaves its 1px gap UNPAINTED, so the gap is whatever surface the region is already
+standing on. Tune it where you tune `--ring`; it is built from the same `--ring-width`,
+`--ring-color` and `--ring-gap-width`. Gates hold the offset on every consumer and hold
+the tokens clear of the surface colours.
 
 Every kit surface that paints `--bg-elevated`, including surfaces using a local
 alias and the React modal, sets `--ring-gap` to its background and recomposes
@@ -842,12 +972,22 @@ legacy `--ring` override does not cross a surface that recomposes it; apply the 
 on that surface as well, or tune the component tokens at the root. Focus rings compose
 in front of an existing floating panel's edge and drop, rather than replacing them.
 
+The ring is claimed by a selector list in `base.css`, so a control that wears none of the
+kit's control classes has to join it. The theme toggle is the one that did not: `.toggle`
+is a real button with its own paint in `topbar.css` and neither `.ui-btn` nor
+`.ui-focusable`, so keyboard focus on it fell back to the browser's own outline in the
+vanilla topbar, React `ThemeToggle` and the React shell's bar alike. It is on the list now
+([#385][i385]). The shell's brand link, `.ui-app__brand`, has the same gap and is open as
+[#482](https://github.com/apliteni/apliteni-ui/issues/482).
+
 Controls use native `:focus-visible`, including inputs, textareas, selects and invalid
 fields. Text-entry controls can match it on mouse focus because the browser expects
 keyboard input there; this is not a promise of keyboard-only rings. Invalid borders
 keep their error colour while focus uses the shared band. No JavaScript modality
 tracker is required. Every shared-ring consumer retains a transparent 2px outline,
-which becomes a visible system outline when forced colours remove box shadows.
+which becomes a visible system outline when forced colours remove box shadows. A
+`--ring-scroll` consumer owes none: its band already is a real outline, and that is what
+the system repaints.
 
 **Every focusable control the kit ships draws it.** The ring is not opt-in: a control
 this kit styles is a control it gives a focus rule, so none falls back to the browser's
@@ -874,13 +1014,51 @@ loses.
 
 **A box that scrolls is a control.** A browser gives a scroll container a keyboard stop
 of its own, with no `tabindex` and no author rule, so an overflowing box needs the ring
-as much as a button does. The kit's scrolling table wrapper, dropdown panel and snippet
-code region carry it; the code region's ring is painted on the card around it, because
-the `pre` is flush with that card on three sides and has no radius of its own, so a ring
-drawn on the box itself overhung the rounded corners. The gate discovers every box the
-kit makes scrollable and holds the list, so a new one is triaged rather than shipping
-with the browser's outline; the boxes still without a ring are named in that list and
-tracked on [#531](https://github.com/apliteni/apliteni-ui/issues/531).
+as much as a button does — unless its own children are keyboard-focusable, in which case
+it is given no stop, because the keyboard already reaches into it. Every scrolling box
+the kit ships is one or the other, and
+[#531](https://github.com/apliteni/apliteni-ui/issues/531) settled which.
+
+Eight carry the ring, and they draw one of two pictures.
+
+**Seven are scroll regions inside a surface** and take `--ring-scroll`: the scrolling
+table wrapper, a card around a table, a dropdown's search list, a drawer's body, a
+confirm's consequence, the command palette's list, and React's modal body. Each draws
+the band on itself. Artur chose that picture on #531 after the kit's own `--ring` was
+measured around these boxes: drawn for a 32px control, its halo spreads 14px past the
+band, which on a 400px region lights the surface rather than the box that scrolls. Three
+of the seven also could not have drawn an outset ring at all — the drawer's body is
+flush with a panel that is flush with a screen edge, the palette's list sits inside a
+panel that clips, and the dropdown's list sits 6px inside a 16px corner.
+
+The band is an `outline` and not a `box-shadow`, which is what makes it survive the
+scroll it is drawn for: an inset shadow is painted under a box's own children, so a
+table scrolled sideways under one erases the band — measured in Chrome at scrollLeft
+300, where the left and right sides went. An outline is painted over the children, stays
+on the border box while content scrolls beneath it, and follows the radius. A region
+needs its own room for the band to land in rather than on its glyphs: the drawer's body
+has 20px of padding, the modal's 16px, the palette's list 8px, the dropdown's rows 9px,
+the card 24px, and a confirm's consequence carries `--space-1` for it.
+
+**One keeps `--ring` on the box AROUND the scroller:** a snippet's code region, which is
+flush with its card on three sides and has no radius of its own, so a ring drawn on it
+overhung the rounded corners and cut a line across the card. That card is the outermost
+box, where the halo falls on the page rather than on a surface of its own. A delegated
+ring is one indicator and not two: the scroller keeps the transparent outline that
+suppresses the browser's own, and drops it under `forced-colors: active`, where the
+card's outline is the one the system repaints. The dropdown panel is the eighth, and
+keeps `--ring` for the same reason — it is itself the outermost box.
+
+Two boxes are not a keyboard stop at all and carry no ring: the underline tab strip and
+the application rail, each of which holds its own tabbable rows and overflows only once it
+holds more of them than fit.
+
+The gate discovers every box the kit makes scrollable and holds both lists exactly, with
+the reason beside each entry, so a new overflowing box is triaged rather than shipping
+with the browser's outline. A box excused as no stop is also rendered from its own
+factory and checked to still hold a tabbable row. What each ringed box DRAWS is resolved
+from the source separately, in both themes and both accents: a region that stops drawing
+the band, or a box around one that starts drawing a second indicator, fails there.
 
 The solid band's unchanged colour is still held at 4.22:1 against the story-derived
 flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel
@@ -1701,7 +1879,9 @@ What the kit guarantees:
 - **The section stays lit.** With a back link on the page, the shell keeps the sidebar row the
   caller marks `active` highlighted, and marks it `aria-current="true"` — the current section —
   rather than `"page"`, which would announce the list as the page on screen.
-  `sidebarNav({ activeIs: 'section' })` does the same outside the shell.
+  `sidebarNav({ activeIs: 'section' })` does the same outside the shell. React `AppShell`
+  reads the same `back` prop for the same decision, so a flow's steps report their parent
+  section identically in both faces of the kit ([#385][i385]).
 - **It stays quiet whatever the host does to links.** The link rests in `--text` and takes no
   accent. Its colour rule is (0,2,0), so a host stylesheet's `a:link` at (0,1,1) does not repaint
   it.
@@ -1720,6 +1900,7 @@ the kit emits has a rule at all — the omission [#303][i303] reported — is he
 `src/styles/label-coverage.test.js`.
 
 [i270]: https://github.com/apliteni/apliteni-ui/issues/270
+[i385]: https://github.com/apliteni/apliteni-ui/issues/385
 [i303]: https://github.com/apliteni/apliteni-ui/issues/303
 
 ## The dropdown panel

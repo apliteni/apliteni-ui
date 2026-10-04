@@ -101,7 +101,12 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
 // The fifteenth is scripts/evidence/levels.html, the #490 producer's shot page.
 // The sixteenth is scripts/evidence/code-chip.html, the #537 shot page for the
 // inline code chip — a rig page, loading the same two families as the others.
-const EXPECTED_LOADERS = 16;
+// The seventeenth and eighteenth are #531's scroll-container rig:
+// scripts/evidence/scroll.html for the subjects it builds from the kit's factories,
+// and scripts/evidence/scroll.mjs, which adds the same link to the React Storybook
+// build it shoots the modal off — react.mjs's reason, and react.mjs's own entry
+// above is the same line.
+const EXPECTED_LOADERS = 18;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

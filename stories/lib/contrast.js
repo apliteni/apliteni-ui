@@ -268,6 +268,23 @@ export function parseColour(value) {
 export const composite = (fg, bg) =>
   [0, 1, 2].map((i) => fg[i] * fg[3] + bg[i] * (1 - fg[3])).concat(1);
 
+/**
+ * What one of a faded element's own colours actually reaches the eye as.
+ *
+ * `opacity` is not a colour the cascade hands a property: the element is painted
+ * whole and then that picture is mixed into what is behind it, so every colour on
+ * it — edge, fill and words — comes back toward `backdrop` by the same fraction.
+ * A field's fill IS the ground it sits on in this kit, which is what makes the
+ * single-backdrop form below faithful here; an element whose fill stands off its
+ * ground would need its interior resolved first and then faded as a group.
+ */
+export const fadeOnto = (colour, opacity, backdrop) => {
+  if (!colour) return colour;
+  const a = Number.isFinite(opacity) ? opacity : 1;
+  if (a >= 0.999) return colour;
+  return composite([colour[0], colour[1], colour[2], (colour[3] ?? 1) * a], backdrop);
+};
+
 /** WCAG 2.x relative luminance. */
 export const luminance = (c) => {
   const f = (x) => {
@@ -501,8 +518,14 @@ export function groupFindings(records) {
   return [...groups.values()].sort((a, b) => a.ratio - b.ratio);
 }
 
-/** Storybook's HTML renderer returns a string or a DOM node. Accept those two. */
-function serialize(out) {
+/**
+ * Storybook's HTML renderer returns a string or a DOM node. Accept those two.
+ *
+ * Exported for stories/field-ground.test.js, which mounts the same stories this
+ * walk does and has to agree with it about what a story that builds a node
+ * rather than a string renders to.
+ */
+export function serialize(out) {
   if (typeof out === 'string') return out;
   if (out && typeof out === 'object') {
     if (typeof out.outerHTML === 'string') return out.outerHTML;

@@ -17,14 +17,32 @@
   padding: 0 var(--space-4) var(--space-3) 0;
   border-bottom: 1px solid var(--border);
 }
-.ui-table td {
+/* A row header is a body cell that happens to name its row, so it takes the body cell's
+ * padding. `.ui-table th` pads for the head, where the label sits above the rule and
+ * wants no space over it; inside the body or the footer that left the name sitting low
+ * against the values beside it. `:is()` here is only for specificity — two type
+ * selectors outrank `.ui-table th`, which states the head's padding after this. */
+.ui-table td,
+.ui-table :is(tbody, tfoot) th {
   padding: var(--space-4) var(--space-4) var(--space-4) 0;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   vertical-align: middle;
   white-space: nowrap;
 }
-.ui-table tr:last-child td { border-bottom: 0; }
+/* The last row of the last section, so a final body row keeps its separator when a
+ * footer follows it. `tr:last-child td` closed the wrong edge: it stripped the border
+ * from the last row of every section, leaving items and totals with nothing between
+ * them. why: docs/specification.md#spacing-and-rhythm */
+.ui-table > :last-child > tr:last-child > :is(th, td) { border-bottom: 0; }
+/* Totals open with the 2px rule the zebra header already uses, so a reader can see
+ * where items end and totals begin; five identical hairlines told them nothing.
+ * Collapsed borders paint one edge, so this meets the last body row's hairline and the
+ * wider of the two wins — no doubled line.
+ * A footer label is a row header for the figure beside it, so it sits against that
+ * figure rather than against the first column it spans. */
+.ui-table tfoot tr:first-child > :is(th, td) { border-top: 2px solid var(--border-strong); }
+.ui-table tfoot th { text-align: right; }
 .ui-table td.ui-table__title { color: var(--strong); font-weight: var(--weight-medium); width: 99%; white-space: normal; }
 .ui-table th:last-child { padding-right: 0; }
 .ui-table td.ui-table__act { padding-right: 0; text-align: right; }
@@ -62,14 +80,16 @@
  * why: docs/specification.md#spacing-and-rhythm
  * held by: stories/table-rhythm.test.js */
 .ui-table--dense th { padding: 0 var(--space-3) var(--space-2); }
-.ui-table--dense td { padding: var(--space-2) var(--space-3); font-size: var(--text-sm); white-space: nowrap; }
+.ui-table--dense td,
+.ui-table--dense :is(tbody, tfoot) th { padding: var(--space-2) var(--space-3); font-size: var(--text-sm); white-space: nowrap; }
 .ui-table--dense th:first-child,
 .ui-table--dense td:first-child { padding-left: var(--space-3); }
 .ui-table--dense th:last-child,
 .ui-table--dense td:last-child { padding-right: var(--space-3); }
 
-.ui-table--zebra th { border-bottom-width: 2px; }
-.ui-table--zebra td { border-bottom: 0; }
+.ui-table--zebra thead th { border-bottom-width: 2px; }
+.ui-table--zebra td,
+.ui-table--zebra :is(tbody, tfoot) th { border-bottom: 0; }
 .ui-table--zebra tbody tr:nth-child(even) td { background: var(--surface-2); --ring-gap: var(--surface-2); }
 /* The stripe stays full-bleed (the #71 inset above is hover only), but it only reads right
  * if the end cells are inset from the row's own edge, and `.ui-table td` sets
@@ -116,8 +136,15 @@
 }
 
 .ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }
-.ui-table th.ui-table__num { text-align: right; }
+/* A numeric column is sized to its content while .ui-table__title claims the rest,
+ * so a two-word numeric header wraps where none of its values ever do. */
+.ui-table th.ui-table__num { text-align: right; white-space: nowrap; }
 .ui-table__num--strong { color: var(--strong); font-weight: var(--weight-semibold); }
+/* `.ui-table th` and `.ui-table td` each state their own ink, and `th` its weight too,
+ * so both outranked the helper: a totals row marked strong came out in body ink, and
+ * bold only in the figure. Scoped to the table, the helper wins on either cell and the
+ * row reads as one row. */
+.ui-table :is(th, td).ui-table__num--strong { color: var(--strong); font-weight: var(--weight-semibold); }
 .ui-table__code { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text); }
 
 /* The empty state (.ui-empty) — shown when a table/list has no rows — now
@@ -155,12 +182,19 @@
   padding-inline: 0;
 }
 .ui-table td.ui-table__num { text-align: right; }
-.ui-table--compact td { padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-snug); height: 33px; }
+.ui-table--compact td,
+.ui-table--compact :is(tbody, tfoot) th { padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-snug); height: 33px; }
 .ui-table--compact th { padding: var(--space-2) var(--space-3); }
 .ui-table--compact th:last-child,
 .ui-table--compact td:last-child { padding-right: var(--space-3); }
 .ui-table-scroll { overflow: auto; max-height: var(--ui-table-height, 70vh); padding: 0 var(--space-1); }
-.ui-table-scroll:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+/* The kit's first ringed scroller, and a scroll region inside a card like the rest, so
+   it draws the band inward too rather than spending a halo across the card around it.
+   It had no room of its own to draw in — the padding above is horizontal — which is the
+   second reason the band is an outline: it is painted over the rows, in the cell padding
+   of the first and last, rather than under them. #531
+   why: docs/specification.md#the-focus-ring */
+.ui-table-scroll:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-table--sticky { border-collapse: separate; border-spacing: 0; }
 .ui-table--sticky thead th { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--table-bg); --ring-gap: var(--table-bg); padding-top: var(--space-2); }
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); --ring-gap: var(--table-bg); border-right: 1px solid var(--border); }

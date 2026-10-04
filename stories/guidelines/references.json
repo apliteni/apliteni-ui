@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:132",
+        "ref": "src/styles/table.css:159",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ]
@@ -14,7 +14,7 @@
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:150",
+        "ref": "src/styles/input.css:154",
         "pattern": ".ui-check input::before"
       },
       {
@@ -44,7 +44,7 @@
     ],
     "ring-contrast": [
       {
-        "ref": "src/styles/base.css:147",
+        "ref": "src/styles/base.css:152",
         "pattern": "box-shadow: var(--ring);"
       }
     ],
@@ -56,6 +56,14 @@
       {
         "ref": "src/tokens/tokens.css:195",
         "pattern": "--disabled-ink: var(--muted);"
+      },
+      {
+        "ref": "src/tokens/tokens.css:201",
+        "pattern": "--disabled-border: var(--surface-3);"
+      },
+      {
+        "ref": "src/styles/input.css:68",
+        "pattern": "opacity: 1;"
       }
     ],
     "touch-field-size": [
@@ -64,7 +72,7 @@
         "pattern": "font-size: 16px !important;"
       },
       {
-        "ref": "react/src/index.ts:9",
+        "ref": "react/src/index.ts:13",
         "pattern": "import '../../src/styles/field-zoom.css';"
       }
     ]
@@ -100,7 +108,7 @@
     ],
     "accent-strong": [
       {
-        "ref": "src/tokens/tokens.css:209",
+        "ref": "src/tokens/tokens.css:213",
         "pattern": "--accent-strong: #7c3aed;"
       },
       {
@@ -140,7 +148,7 @@
         "pattern": "export function commandPaletteList"
       },
       {
-        "ref": "src/styles/command-palette.css:150",
+        "ref": "src/styles/command-palette.css:158",
         "pattern": ".ui-cmdk__group-head"
       }
     ],
@@ -184,7 +192,7 @@
         "pattern": "const isRefused = (it) =>"
       },
       {
-        "ref": "src/styles/command-palette.css:238",
+        "ref": "src/styles/command-palette.css:246",
         "pattern": ".ui-cmdk__item.is-danger"
       }
     ]
@@ -256,7 +264,7 @@
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:297",
+        "ref": "src/styles/dropdown.css:303",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -314,7 +322,7 @@
         "pattern": "export function drawerSection("
       },
       {
-        "ref": "src/styles/drawer.css:200",
+        "ref": "src/styles/drawer.css:206",
         "pattern": ".ui-drawer__section + .ui-drawer__section"
       }
     ],
@@ -324,7 +332,7 @@
         "pattern": ".ui-drawer__header {"
       },
       {
-        "ref": "src/styles/drawer.css:200",
+        "ref": "src/styles/drawer.css:206",
         "pattern": ".ui-drawer__section + .ui-drawer__section {"
       }
     ],
@@ -334,7 +342,7 @@
         "pattern": "<dl class=\"ui-drawer__rows\">"
       },
       {
-        "ref": "src/styles/drawer.css:230",
+        "ref": "src/styles/drawer.css:236",
         "pattern": ".ui-drawer__row dt { color: var(--text); }"
       }
     ]
@@ -494,7 +502,7 @@
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:72",
+        "ref": "src/styles/card.css:78",
         "pattern": "rank: card-title"
       }
     ],
@@ -504,7 +512,7 @@
         "pattern": "const h = [2, 3, 4, 5, 6]"
       },
       {
-        "ref": "react/src/primitives/Card.tsx:9",
+        "ref": "react/src/primitives/Card.tsx:11",
         "pattern": "const Heading"
       }
     ],
@@ -546,7 +554,7 @@
         "pattern": "--space-3: 12px"
       },
       {
-        "ref": "src/styles/table.css:65",
+        "ref": "src/styles/table.css:84",
         "pattern": "padding: var(--space-2) var(--space-3)"
       },
       {
@@ -662,7 +670,7 @@
         "pattern": "transition-duration: 0.01ms !important;"
       },
       {
-        "ref": "src/styles/drawer.css:243",
+        "ref": "src/styles/drawer.css:249",
         "pattern": ".ui-drawer.is-open * { transition: none !important; }"
       }
     ]
@@ -738,15 +746,15 @@
   "_state-set.js": {
     "focus-visible": [
       {
-        "ref": "src/styles/base.css:140",
+        "ref": "src/styles/base.css:144",
         "pattern": ".ui-focusable:focus-visible,"
       },
       {
-        "ref": "src/styles/base.css:147",
+        "ref": "src/styles/base.css:152",
         "pattern": "box-shadow: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:267",
+        "ref": "src/tokens/tokens.css:271",
         "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
       }
     ],

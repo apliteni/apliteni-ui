@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="/src/index.css">
+<style>html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--font-sans)}
+  .fx-pad{padding:26px}
+  /* A column narrow enough that the kit's own wide table has to scroll inside its
+     card at 1280 as well as at 390. The rig's frame, not a specimen: a card in a
+     two-column layout is this width in the shell. */
+  .fx-col{max-width:420px}
+  /* A strip narrow enough to overflow, which is the only state in which it is a
+     scroll container at all. */
+  .fx-strip{max-width:260px}</style>
+</head>
+<body>
+<script type="module">
+// #531's subjects: the kit's scroll containers, each forced to overflow, built from
+// the kit's own factories over HTTP from the checkout being served — so the before
+// side of a pair is this same page pointed at a worktree of `main`.
+// why: scripts/evidence/README.md
+const params = new URLSearchParams(location.search);
+document.documentElement.dataset.theme = params.get('theme') || 'dark';
+
+const kit = await import('/src/index.js');
+const { commandPalette, wireCommandPalette, openCommandPalette } = await import('/src/components/command-palette.js');
+const { wireDrawer, openDrawer } = await import('/src/components/drawer.js');
+const { wireConfirm, openConfirm } = await import('/src/components/confirm.js');
+const { appShell } = await import('/src/components/shell.js');
+
+// Fabricated demo data, as this repository requires everywhere.
+const ROWS = Array.from({ length: 6 }, (_, i) => `<tr>`
+  + `<td>PO-${4100 + i}</td><td class="ui-table__code">po_${i}f3c9a1</td><td>12 Oct 2026</td>`
+  + `<td class="ui-table__num">€${(i + 3) * 1000}.00</td><td class="ui-table__num">€${(i + 1) * 12}.40</td>`
+  + `<td class="ui-table__num ui-table__num--strong">€${(i + 3) * 1000 - (i + 1) * 12}.60</td>`
+  + `<td>Reconciled</td></tr>`).join('');
+const PROSE = Array.from({ length: 22 }, (_, i) =>
+  `<p>Line ${i + 1} of the record: a plain sentence of prose, which is what makes this body a `
+  + 'scroll container and nothing else inside it a keyboard target.</p>').join('');
+const CONSEQUENCE = Array.from({ length: 26 }, (_, i) =>
+  `Sentence ${i + 1} of the consequence, spelled out rather than summarised. `).join('');
+const COMMANDS = [{
+  label: 'Go to',
+  items: Array.from({ length: 16 }, (_, i) => ({
+    id: `r${i}`, label: `Open report ${i + 1}`, description: 'Fabricated demo row', icon: 'table',
+  })),
+}];
+
+/** Each subject: the markup, and whatever has to be done to open it. */
+const SUBJECTS = {
+  'table-card': {
+    html: () => '<div class="fx-col"><div class="ui-card">'
+      + '<h2 class="ui-card__title">Payouts</h2>'
+      + `<table class="ui-table ui-table--dense ui-table--zebra"><thead><tr>`
+      + '<th>ID</th><th>Payout ID</th><th>Arrival</th><th class="ui-table__num">Gross</th>'
+      + '<th class="ui-table__num">Fees</th><th class="ui-table__num">Net (EUR)</th><th>Status</th>'
+      + `</tr></thead><tbody>${ROWS}</tbody></table></div></div>`,
+  },
+  'table-scroll': {
+    html: () => '<div class="fx-col"><div class="ui-card">'
+      + '<h2 class="ui-card__title">Payouts</h2>'
+      + '<div class="ui-table-scroll" role="region" aria-label="Payouts, scroll for more rows and columns" tabindex="0">'
+      + '<table class="ui-table ui-table--dense ui-table--zebra"><thead><tr>'
+      + '<th>ID</th><th>Payout ID</th><th>Arrival</th><th class="ui-table__num">Gross</th>'
+      + '<th class="ui-table__num">Fees</th><th class="ui-table__num">Net (EUR)</th><th>Status</th>'
+      + `</tr></thead><tbody>${ROWS}</tbody></table></div></div></div>`,
+  },
+  'dropdown-list': {
+    html: () => kit.dropdown({
+      label: 'Account:', search: true, open: true, ariaLabel: 'Account',
+      items: Array.from({ length: 14 }, (_, i) => ({ label: `Workspace ${i + 1}`, value: `w${i}` })),
+    }),
+  },
+  'drawer-body': {
+    html: () => kit.drawer({
+      id: 'fx-drawer', title: 'Payout PO-4100', body: PROSE,
+      footer: `${kit.button({ label: 'Close', variant: 'secondary' })}${kit.button({ label: 'Approve', variant: 'primary' })}`,
+    }),
+    open: () => { wireDrawer(document); openDrawer(document.getElementById('fx-drawer')); },
+  },
+  'confirm-body': {
+    html: () => kit.confirm({
+      id: 'fx-confirm', title: 'Delete the “Nebula” workspace?', body: CONSEQUENCE,
+      confirmLabel: 'Delete', variant: 'danger',
+    }),
+    open: () => { wireConfirm(document); openConfirm(document.getElementById('fx-confirm')); },
+  },
+  'cmdk-list': {
+    html: () => commandPalette({ id: 'fx-cmdk', groups: COMMANDS }),
+    open: () => { wireCommandPalette(document); openCommandPalette(document.getElementById('fx-cmdk')); },
+  },
+  'seg-underline': {
+    html: () => '<div class="fx-strip">' + kit.segmented({
+      options: [{ label: 'Overview' }, { label: 'Performance' }, { label: 'Costs' }, { label: 'Agents' }],
+      appearance: 'underline', ariaLabel: 'Dataset view',
+    }) + '</div>',
+  },
+  'app-rail': {
+    html: () => appShell({
+      word: 'Finance',
+      layout: 'rail',
+      nav: Array.from({ length: 9 }, (_, i) => ({ id: `n${i}`, icon: 'table', label: `Section ${i + 1}` })),
+      active: 'n2',
+      navLabel: 'Finance',
+      account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
+      title: 'Payouts',
+      body: '<p>Fabricated demo screen.</p>',
+    }),
+  },
+};
+
+const id = params.get('subject');
+const subject = SUBJECTS[id];
+if (!subject) throw new Error(`no subject ${id}`);
+// Padded, because a ring is drawn OUTSIDE its box and a subject flush against the
+// viewport edge would be clipped by the rig rather than by the kit. The shell draws
+// its own frame, so it keeps none.
+const pad = id === 'app-rail' ? '' : 'fx-pad';
+document.body.innerHTML = `<div class="${pad}">${subject.html()}</div>`;
+subject.open?.();
+await document.fonts.ready;
+window.__ready = true;
+</script>
+</body>
+</html>

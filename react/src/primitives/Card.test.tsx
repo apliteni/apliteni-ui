@@ -30,3 +30,14 @@ it('falls back to h2 for a level that is not 2 to 6', () => {
   const { getByRole } = render(<Card title="Payouts" level={7 as 2} />);
   expect(getByRole('heading', { level: 2, name: 'Payouts' })).toBeTruthy();
 });
+
+// Main gave Button a merged className in 0.64.0; the card takes one the same way, so a
+// page can mark a card without hand-writing `.ui-card` beside its own class.
+it('merges a caller className with the kit class instead of replacing it', () => {
+  const { container, rerender } = render(<Card title="Plan" />);
+  expect(container.querySelector('div')?.className).toBe('ui-card');
+  rerender(<Card title="Plan" className="doc-flow__saved-pane" />);
+  const card = container.querySelector('div')!;
+  expect(card).toHaveClass('ui-card');
+  expect(card).toHaveClass('doc-flow__saved-pane');
+});

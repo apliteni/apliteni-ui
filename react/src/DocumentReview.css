@@ -1,0 +1,5 @@
+/* The step's accent: the name of the pane whose values get saved, and the showcase's only
+   colour. It sits here rather than in the story's own style block because the contrast
+   walk substitutes this workspace's CSS and judges what it finds, while an inline block
+   reaches it with var() intact. why: guidelines/density-and-accents.md#follow-the-consequence */
+.doc-flow__saved-pane .ui-card__title { color: var(--accent); }

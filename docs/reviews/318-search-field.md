@@ -100,7 +100,7 @@ to *"Search or run a co…"* (`docs/evidence/shell-layouts/shell-topbar-phone-li
 
 **5. Every one of them styles its own focus. This field does not.** `.ui-app__search` is a
 `<button>` without `.ui-btn`, so the kit's shared ring rule —
-src/styles/base.css:140 `.ui-focusable:focus-visible,` — never reaches it and `:focus-visible` falls
+src/styles/base.css:144 `.ui-focusable:focus-visible,` — never reaches it and `:focus-visible` falls
 through to Chrome's default — a square black-and-white outline drawn around a 12px radius
 (`docs/evidence/shell-layouts/shell-topbar-search-light.png`). This is the one finding in the
 survey that is a defect rather than a preference, and all four variants fix it whichever is

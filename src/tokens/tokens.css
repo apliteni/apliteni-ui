@@ -194,7 +194,11 @@
      why: docs/specification.md#colour-and-contrast */
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface);
-  --disabled-border: var(--border);
+  /* One rung below the hairline, so an off box is not the live box with quieter words
+     in it: dark answered both with --border. 1.16:1 on the card against the live
+     1.27:1, and as far down as the headroom goes. #564
+     why: docs/specification.md#colour-and-contrast */
+  --disabled-border: var(--surface-3);
   /* The ink of a disabled control that paints no box of its own — a ghost button. With
      no surface beside it, it is read on whatever is behind it, so it is set to clear the
      floor on the dullest ground there is (--surface-3). #273
@@ -265,6 +269,13 @@
   --ring-gap-width: 1px;
   --ring-gap: var(--bg);
   --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
+  /* What a scroll region inside a surface takes: --ring's gap and band, drawn inward,
+     no halo. An OUTLINE, because an inset shadow is painted under the box's own
+     children and a table scrolled under one erases it. The gap is left unpainted, so
+     neither half reads --ring-gap and neither is recomposed per surface. Chosen by
+     Artur on #531 round r30. why: docs/specification.md#the-focus-ring */
+  --ring-scroll: var(--ring-width) solid var(--ring-color);
+  --ring-scroll-offset: calc(-1 * (var(--ring-gap-width) + var(--ring-width)));
 
   /* The ink a cast shadow is made of, and the specular white that reads as gloss on a
      raised surface. Effects mix these instead of writing rgba(). */
@@ -371,6 +382,8 @@
   /* Disabled text stays on the card surface; its ink marks the unavailable state. */
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface);
+  /* The hairline, where dark takes the rung under it: light's field edge is already
+     --border-strong, so the two states read 1.52:1 and 1.24:1. #564 */
   --disabled-border: var(--border);
   --disabled-ink-bare: #585e6c;
 
@@ -563,7 +576,9 @@
 .ui-success { --code-bg: var(--wash-code-bg); }
 
 /* A container focused itself paints outside its own surface; descendants only
- * inherit its inside gap again after focus moves to them. */
+ * inherit its inside gap again after focus moves to them. A scroll region inside one
+ * needs no entry here: --ring-scroll paints no gap of its own, so the 1px it leaves is
+ * whatever the region is already standing on. #531 */
 .ui-card:focus-visible,
 .ui-cmdk__panel:focus-visible,
 .ui-confirm__panel:focus-visible,
