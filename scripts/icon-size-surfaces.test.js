@@ -51,10 +51,12 @@ const rel = (p) => path.relative(root, p);
 // coverage looks exactly like a rule that passes.
 // Report unmeasured subjects as failures.
 //
-// Six rules across four files, width and height apiece. Raise it when you add
+// Seven rules across four files, width and height apiece. Raise it when you add
 // one; lower it in the same commit as the removal, and say why there. Was seven
-// across five before #127, and 12 before #217.
-const EXPECTED_SUBJECTS = 16;
+// across five before #127, and 12 before #217. It was 16 until #463 rebuilt the
+// landing page: the bento grid went, taking `.bIcon svg` and `.bico svg` with
+// it, and the decisions row added `.glyphs svg` — two rules out, one in.
+const EXPECTED_SUBJECTS = 14;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes
