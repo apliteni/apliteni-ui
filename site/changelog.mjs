@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.87.0', date: '2026-10-05',
+    changes: [
+      ['fixed', 'An underline segmented strip wraps onto a further row when its tabs do not fit, instead of keeping one row and scrolling. In a phone-width column the tabs past the fold were cut off with nothing saying they were there: the stock screener showcase lost \u2018Valuation\u2019 at 390px. A label too long for the column now wraps inside its own tab, and a single unbreakable word narrows with it, so no tab label can widen the strip or the page. Tabs keep their size, order and type rank, and a tab\u2019s focus ring is no longer clipped. Pill strips are unchanged. Resolves #527.', ['Segmented']],
+      ['changed', 'The chosen tab in an underline strip is its own label and 2px of accent under it \u2014 no plate, no hairline, no upright rail. Its label steps to --strong at --weight-semibold while a reading label sits at --weight-medium, and the bar spans the label\u2019s width, inset from the tab\u2019s bottom edge. It was an accent rail on that bottom edge plus the accent outline every chosen segmented button carries, which spent the accent twice and left the mark on an edge two wrapped rows could both claim. Every mark is inside the tab now, so a wrapped strip\u2019s rows stand at its own 4px track gap rather than 20px, under both pointers. If your CSS relied on the chosen tab painting a background or a border, it no longer does. Closes #544.', ['Segmented']],
+      ['changed', 'An underline strip no longer draws a rule under its tabs. The chosen tab carries the whole selection, so the line marked nothing. A consumer who wants one draws it on the container.', ['Segmented']],
+      ['changed', '`filterBar` and React `FilterBar` show the clear action only once a filter is applied, in the bordered button skin rather than the ghost one. It used to stand in an empty bar, disabled, as the one thing in the row \u2014 which read as a bar that had been switched off. A consumer reading `[data-filter-clear]` finds nothing while no filter is set.', ['Filter bar']],
+    ],
+  },
+  {
     v: '0.86.0', date: '2026-10-05',
     changes: [
       ['added', 'React AccentPicker provides the four existing accent swatches as a controlled group. The host applies and saves the selected accent. Part of #429.'],
