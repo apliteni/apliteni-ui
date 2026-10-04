@@ -4,9 +4,11 @@ import { FileDrop, type FileDropFile } from './FileDrop';
 import { Card } from './primitives/Card';
 import { Checkbox } from './Checkbox';
 
+// The card is in each render rather than in a decorator, as #568 put the other
+// galleries' cards: react/src/field-ground.test.tsx calls renders, so a surface left
+// in a decorator is one no gate reads — and Region's checkbox is a field.
 const meta: Meta<typeof FileDrop> = {
   title: 'React/File drop', component: FileDrop, id: 'react-file-drop',
-  decorators: [Story => <Card><Story /></Card>],
 };
 export default meta;
 
@@ -23,46 +25,48 @@ const Received = () => <>
 </>;
 
 export const AtRest: StoryObj = {
-  render: () => <FileDrop note={NOTE} accept=".pdf,.csv" />,
+  render: () => <Card><FileDrop note={NOTE} accept=".pdf,.csv" /></Card>,
 };
 
 export const Dragging: StoryObj = {
-  render: () => <FileDrop note={NOTE} accept=".pdf,.csv" dragging />,
+  render: () => <Card><FileDrop note={NOTE} accept=".pdf,.csv" dragging /></Card>,
 };
 
 export const Uploading: StoryObj = {
-  render: () => <FileDrop file={{ ...STATEMENT, status: 'uploading', progress: 40 }} onRemove={() => {}} />,
+  render: () => <Card>
+    <FileDrop file={{ ...STATEMENT, status: 'uploading', progress: 40 }} onRemove={() => {}} />
+  </Card>,
 };
 
 /** A file just handed over, before the consumer has said anything about it. */
 export const Starting: StoryObj = {
-  render: () => <FileDrop file={STATEMENT} onRemove={() => {}} />,
+  render: () => <Card><FileDrop file={STATEMENT} onRemove={() => {}} /></Card>,
 };
 
 export const Done: StoryObj = {
-  render: () => <FileDrop file={{ ...STATEMENT, status: 'done' }} onRemove={() => {}} />,
+  render: () => <Card><FileDrop file={{ ...STATEMENT, status: 'done' }} onRemove={() => {}} /></Card>,
 };
 
 export const Failed: StoryObj = {
-  render: () => <FileDrop
+  render: () => <Card><FileDrop
     file={{ ...STATEMENT, status: 'error', error: 'Larger than 10 MB' }}
-    onRetry={() => {}} onRemove={() => {}} />,
+    onRetry={() => {}} onRemove={() => {}} /></Card>,
 };
 
 /** The live row, then the same row while the account cannot receive files. */
 export const Disabled: StoryObj = {
-  render: () => <>
+  render: () => <Card>
     <FileDrop note={NOTE} accept=".pdf,.csv" />
     <p style={{ marginTop: 'var(--space-5)' }}>While the account cannot receive files:</p>
     <FileDrop note={NOTE} disabled />
-  </>,
+  </Card>,
 };
 
 /** One panel owns the file, so the target covers that panel and nothing else. */
 export const Region: StoryObj = {
   render: function RegionStory() {
     const [dragging, setDragging] = useState(true);
-    return <>
+    return <Card>
       <FileDrop note={NOTE} accept=".pdf,.csv" dragging={dragging}>
         <Received />
       </FileDrop>
@@ -70,7 +74,7 @@ export const Region: StoryObj = {
         <Checkbox label="Show the drop target" checked={dragging}
           onChange={event => setDragging(event.target.checked)} />
       </div>
-    </>;
+    </Card>;
   },
 };
 
@@ -78,8 +82,8 @@ export const Region: StoryObj = {
 export const Live: StoryObj = {
   render: function LiveStory() {
     const [file, setFile] = useState<FileDropFile | null>(null);
-    return <FileDrop note={NOTE} accept=".pdf,.csv" file={file}
+    return <Card><FileDrop note={NOTE} accept=".pdf,.csv" file={file}
       onFile={chosen => setFile({ name: chosen.name, size: `${Math.round(chosen.size / 1024)} KB`, status: 'done' })}
-      onRemove={() => setFile(null)} />;
+      onRemove={() => setFile(null)} /></Card>;
   },
 };

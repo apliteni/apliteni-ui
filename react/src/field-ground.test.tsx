@@ -21,7 +21,9 @@
 //  - A story's `render` is called, so a DECORATOR is not applied — the same
 //    mounting react/src/contrast.test.tsx and field-zoom.test.tsx use. A surface a
 //    decorator paints is therefore unmeasured, which is why #568 put the kit's Card
-//    inside each render instead: the card is the story, and the gate sees it.
+//    inside each render instead, File drop's included: the card is the story.
+//  - The `fade` in the shared reading is not asserted here: nothing installs a
+//    user-agent sheet, so every control reads 1. FIELD_PAINT=1 owns that.
 //  - Storybook's own `args` rendering is reproduced, not the real renderer: a story
 //    with no render fn is mounted as `<component {...args} />`, which is what CSF3
 //    does with one. A loader, a play fn and the argTypes machinery are not run, so a
@@ -49,13 +51,13 @@ import {
 } from '../../stories/lib/field-ground.js';
 
 const THEMES = ['dark', 'light'] as const;
-const FIELD_COUNT = 56;
+const FIELD_COUNT = 57;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
 // one set of tokens rather than two.
 const DISABLED: Record<string, unknown> = {
-  dark: { ground: '#211e2d', fill: '#211e2d', border: '#332f45', edge: 1.27, ink: 6.24 },
+  dark: { ground: '#211e2d', fill: '#211e2d', border: '#2d293c', edge: 1.16, ink: 6.24 },
   light: { ground: '#ffffff', fill: '#ffffff', border: '#e4e7ee', edge: 1.24, ink: 6.11 },
 };
 
@@ -254,7 +256,7 @@ describe('field ground: React coverage', () => {
   // the gate green over nothing. Move the number with the specimens that moved.
   //
   // Fields 25, Switch & Checkbox 16, Pagination 5, SearchField 4, Modal 3,
-  // Drawer 2, DataTable 1.
+  // Drawer 2, DataTable 1, File drop 1.
   it('found the fields the catalogue renders, in both themes', () => {
     for (const theme of THEMES) {
       expect(readings[theme].length, `${theme}: field discovery changed; update the count`
@@ -308,7 +310,8 @@ describe('field ground: React coverage', () => {
    * `edge` is --disabled-border against the card, below the 3:1 non-text floor that
    * WCAG 1.4.11 exempts a disabled control from, so it is recorded rather than held
    * to a bar. `ink` is --disabled-ink on the field's own paint and must clear AA:
-   * that is the part a reader has to read.
+   * that is the part a reader has to read. Dark reads 1.16:1 off --surface-3, not
+   * the 1.27:1 one token gave both states until #564 made the off box the fainter.
    */
   it('reads a disabled field on the card, and its ink clears AA there', () => {
     for (const theme of THEMES) {
