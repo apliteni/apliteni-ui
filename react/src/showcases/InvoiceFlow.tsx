@@ -175,7 +175,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
               <div className="invoice-flow__fields">
                 {marked('supplier', <TextField label="Supplier" required value={draft.supplier} hint={provenance('supplier')} error={invalid && !draft.supplier.trim() ? 'Enter the supplier.' : undefined} onChange={edit('supplier')} />)}
                 {marked('reference', <TextField label="Invoice number" required value={draft.reference} hint={provenance('reference')} error={invalid && !draft.reference.trim() ? 'Enter the invoice number.' : undefined} onChange={edit('reference')} />)}
-                {marked('date', <TextField label="Invoice date" required hint={`${provenance('date')} · YYYY-MM-DD`} value={draft.date} error={invalid && !validDate(draft.date) ? 'Enter a valid date as YYYY-MM-DD.' : undefined} onChange={edit('date')} />)}
+                {marked('date', <TextField label="Invoice date" required hint={provenance('date')} value={draft.date} error={invalid && !validDate(draft.date) ? 'Enter a valid date as YYYY-MM-DD.' : undefined} onChange={edit('date')} />)}
                 {marked('total', <TextField label="Total (EUR)" required type="number" min="0.01" step="0.01" hint={provenance('total')} value={draft.total} error={invalid && (!Number.isFinite(Number(draft.total)) || Number(draft.total) <= 0) ? 'Enter an amount greater than zero.' : undefined} onChange={edit('total')} />)}
               </div>
               {invalid && <p role="alert">Check the highlighted fields before saving.</p>}
@@ -209,7 +209,6 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
           </section>
         </div>
       </> : <>
-        {!!invoices.length && <div className="invoice-flow__actions"><Button variant="primary" icon="plus" onClick={pick}>Add invoices</Button><span>{invoices.length} {invoices.length === 1 ? 'invoice' : 'invoices'}</span></div>}
         <input ref={input} className="ui-sr" tabIndex={-1} type="file" multiple accept=".pdf,.png,.jpg,.jpeg" aria-label="Select invoices" onChange={event => { addFiles(Array.from(event.target.files ?? [])); event.target.value = ''; }} />
         {/* The box the copy calls clickable is the control: pointer, Enter and Space all open the
             picker, and it carries ui-focusable so the kit ring is the one that draws. */}
