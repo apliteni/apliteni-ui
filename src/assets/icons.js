@@ -150,6 +150,12 @@ export const iconNames = Object.keys(ICONS);
 // `gear` or `externalLink`, because a reader meets them one at a time and a
 // toolbar is not a legend. Adding an entry is a decision recorded here, which
 // is the point: the alternative rules read well and could not be gated.
+//
+// An entry passes all three tests Guidelines / Button labels states: the glyph is
+// learned everywhere, the control keeps a name and a hover title, and the place it
+// sits in repeats it or has no room for words. Every entry below meets all three.
+// `filter` — Lucide's funnel — fails the first: it depicts a thing, and a reader
+// takes it for filter, sort or export. See #565.
 export const iconOnlyAllowed = {
   x: 'close or dismiss',
   copy: 'copy to clipboard',

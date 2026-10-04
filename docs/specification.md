@@ -1338,6 +1338,49 @@ rather than reading declarations; what it sweeps, and what it does not, is state
 
 Decided in [#511](https://github.com/apliteni/apliteni-ui/issues/511).
 
+### When a button drops its words
+
+**Words are a button's default, and a glyph is the optional part.** Guidelines / Button labels
+states it as three rules: keep the words; let a glyph beside a label repeat that label's verb, and
+treat every button in a row the same way; and drop the words only when all three tests hold at
+once — the glyph is learned everywhere, the action is on the closed list in `src/assets/icons.js`,
+and the control still carries a name and a hover title. A crowded row is a reason to ask, not an
+answer.
+
+The three tests are where the established systems agree, rather than a reading of any one of them:
+
+- [Nielsen Norman Group](https://www.nngroup.com/articles/icon-usability/) finds a text label must
+  accompany a glyph, names home, print and the magnifying glass as the mostly universal ones, and
+  warns that a hover-only label raises interaction cost and fails on touch.
+- [Carbon](https://carbondesignsystem.com/components/button/usage/) places icons beside labels
+  sparingly, takes icons on all of a group's buttons or none, and requires a tooltip on an
+  icon-only button "regardless of how recognizable an icon may or may not be".
+- [Atlassian](https://atlassian.design/components/button/icon-button/usage) allows icon-only where
+  space is limited and the glyph has a clear association with the action: if an appropriate icon
+  takes more than five seconds to think of, no icon will carry that action.
+- [Polaris](https://polaris.shopify.com/components/actions/button) and
+  [Primer](https://primer.style/components/icon-button) make the accessible label a required part
+  of an icon-only button rather than a recommendation.
+- [GOV.UK](https://design-system.service.gov.uk/components/button/) ships no icon-only button at
+  all; its one glyph, the start button's arrow, is `aria-hidden` beside words that carry the action.
+- [USWDS](https://designsystem.digital.gov/components/button/) adds a glyph only to signal a
+  specific action, such as Download or Open in a new window.
+- Material 3 and Apple's Human Interface Guidelines draw the same split — a universally understood
+  glyph may stand alone, a less common action keeps its label — and both pages render client-side,
+  so neither is quoted here.
+
+**The funnel keeps its word.** `filter` is Lucide's funnel: it depicts a thing rather than an
+action, and a reader takes it for filter, sort or export, so it fails the first test and is not on
+the closed list. Filter is a labelled button with the funnel beside the word.
+
+**The list as it stands passes all three tests.** `x` and the chevrons are universal and repeat per
+row or per section; `copy` sits in the snippet's narrow bar, where the word repeated what the glyph
+already said; `moreHorizontal` and `moreVertical` are the standard overflow affordance; the shell's
+theme toggle, sidebar toggle and collapsed-rail links are state controls in a rail with no room for
+words. Every one of them is named and carries a hover title.
+
+Decided in [#565](https://github.com/apliteni/apliteni-ui/issues/565).
+
 ### Busy button labels
 
 Busy buttons replace the visible action label with three centered pulsing dots in the

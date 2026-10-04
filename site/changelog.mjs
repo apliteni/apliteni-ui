@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.88.0', date: '2026-10-05',
+    changes: [
+      ['added', 'Button labels is a new guideline page: keep the words, let a glyph beside a label repeat that label\u2019s verb and treat every button in a row the same way, and drop a button\u2019s words only when its glyph is learned everywhere, its action is on the closed list and the control keeps a name and a hover title. The rules come from where the established design systems agree, and the reasoning and the sources are in the specification. Iconography now points its closed list at them. The funnel is not on the list, so Filter keeps its word. Closes #565.', ['Button']],
+    ],
+  },
+  {
     v: '0.87.0', date: '2026-10-05',
     changes: [
       ['fixed', 'An underline segmented strip wraps onto a further row when its tabs do not fit, instead of keeping one row and scrolling. In a phone-width column the tabs past the fold were cut off with nothing saying they were there: the stock screener showcase lost \u2018Valuation\u2019 at 390px. A label too long for the column now wraps inside its own tab, and a single unbreakable word narrows with it, so no tab label can widen the strip or the page. Tabs keep their size, order and type rank, and a tab\u2019s focus ring is no longer clipped. Pill strips are unchanged. Resolves #527.', ['Segmented']],

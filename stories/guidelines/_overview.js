@@ -10,6 +10,7 @@ import * as componentContent from './_component-choice.js';
 import * as textContent from './_text-length.js';
 import * as microcopyContent from './_microcopy.js';
 import * as labelsContent from './_labels-and-titles.js';
+import * as buttonLabelsContent from './_button-labels.js';
 import * as iconographyContent from './_iconography.js';
 import * as layoutContent from './_layout-and-density.js';
 import * as denseContent from './_dense-tables.js';
@@ -34,6 +35,7 @@ import * as componentStory from './ComponentChoice.stories.js';
 import * as textStory from './TextLength.stories.js';
 import * as microcopyStory from './Microcopy.stories.js';
 import * as labelsStory from './LabelsAndTitles.stories.js';
+import * as buttonLabelsStory from './ButtonLabels.stories.js';
 import * as iconographyStory from './Iconography.stories.js';
 import * as layoutStory from './LayoutAndDensity.stories.js';
 import * as denseStory from './DenseTables.stories.js';
@@ -62,6 +64,7 @@ const ENTRIES = [
   [microcopyContent, microcopyStory],
   [textContent, textStory],
   [labelsContent, labelsStory],
+  [buttonLabelsContent, buttonLabelsStory],
   [iconographyContent, iconographyStory],
   [layoutContent, layoutStory],
   [densityAccentContent, densityAccentStory],

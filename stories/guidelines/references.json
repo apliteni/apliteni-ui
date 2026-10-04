@@ -446,7 +446,7 @@
   "_iconography.js": {
     "icon-only": [
       {
-        "ref": "src/assets/icons.js:153",
+        "ref": "src/assets/icons.js:159",
         "pattern": "export const iconOnlyAllowed"
       },
       {
@@ -460,7 +460,7 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:174",
+        "ref": "src/assets/icons.js:180",
         "pattern": "export const iconMeanings"
       },
       {
@@ -975,6 +975,38 @@
       {
         "ref": "src/styles/button.css:45",
         "pattern": ".ui-btn--primary {"
+      }
+    ]
+  },
+  "_button-labels.js": {
+    "words-first": [
+      {
+        "ref": "src/components/index.js:38",
+        "pattern": "ui-btn__label-slot"
+      },
+      {
+        "ref": "src/components/button.test.js:53",
+        "pattern": "a labelled button gets no aria-label"
+      }
+    ],
+    "glyph-repeats-the-verb": [
+      {
+        "ref": "src/components/index.js:37",
+        "pattern": "const lead = iconSvg"
+      }
+    ],
+    "wordless-earns-it": [
+      {
+        "ref": "src/assets/icons.js:159",
+        "pattern": "export const iconOnlyAllowed"
+      },
+      {
+        "ref": "src/components/index.js:41",
+        "pattern": "const named = iconOnly"
+      },
+      {
+        "ref": "stories/guidelines/iconography.test.js:165",
+        "pattern": "every icon-only control is one the closed list allows"
       }
     ]
   }
