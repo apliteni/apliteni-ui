@@ -2,18 +2,12 @@
  * over the track — and no tier takes a second line. The name gives way by
  * truncating its stem; the extension never does.
  *
- * Two halves, the shape stories/tap-zone.test.js uses and for its reason: the
- * source half reads the sheet in CI with a mutation per declaration, and the
- * browser half measures, off unless ROW_HEIGHTS=1 because Playwright is
- * deliberately not a dependency. The ledger of measured shortfalls sits in the
- * source half with the test that it rejects, so CI holds the honesty of the
- * numbers even where it cannot take them.
- *
- * The browser half loads IBM Plex Sans from the URL README.md gives a consumer
- * and measures in both containers the kit documents a row into, so it needs the
- * network as well as a Playwright. #566's review found it doing neither: a name
- * line is exactly as wide as the font drawing it, and a panel's inset comes off
- * that line before the name sees it.
+ * Two halves, the shape stories/tap-zone.test.js uses: the source half reads the
+ * sheet in CI with a mutation per declaration and holds the shortfall ledger,
+ * and the browser half measures, off unless ROW_HEIGHTS=1 because Playwright is
+ * deliberately not a dependency. That half loads IBM Plex Sans and measures in
+ * both containers the kit documents a row into; #566's review found it doing
+ * neither, and a name line is as wide as the font drawing it.
  *
  *   ROW_HEIGHTS=1 node --test stories/row-height.test.js
  *
@@ -116,20 +110,15 @@ test('no width removes anything from the row', () => {
 
 /* -- The measured shortfall ------------------------------------------------- */
 
-/* A name being cut is held to a floor, and one floor is met everywhere it is
- * asked: 150px where at most one worded action shares the name's line. A row
- * carrying two does not meet it, and no second floor has been chosen, so the
- * rows that fall short are recorded here with the width each one measured —
- * the shape stories/contrast.test.js uses for an accepted contrast failure, and
- * for its reason: a number nobody has agreed to cannot be a guarantee, but a
- * measurement with a cause written beside it can.
+/* The rows that fall short of the 150px floor, with the width each one measured.
+ * No second floor has been chosen, so a measurement with its cause beside it
+ * stands in for one — the shape stories/contrast.test.js uses for an accepted
+ * contrast failure.
  *
  * TODO(#566): Artur decides what a failed upload's name may be cut to in a
- * narrow panel, and nothing here anticipates him. Each width below is what
- * Chromium gave the row with IBM Plex Sans loaded; the gate fails if a row loses
- * another pixel, if a row leaves this list, or if any row not on it falls short.
- * Do not raise a number to re-green a regression and do not put a floor here —
- * the decision is the fix. Written by hand; there is no regenerator.
+ * narrow panel, and nothing here anticipates him. The gate fails if a row loses
+ * another pixel, leaves this list or joins it. Do not raise a number to re-green
+ * a regression. Written by hand; there is no regenerator.
  */
 const SHORTFALLS = [
   {
