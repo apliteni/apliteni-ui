@@ -239,8 +239,8 @@ the edge and the drop it rests on without restating them.
 `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` are still
 published. All five are the transparent shadow `0 0 #0000` in both themes. They are
 transparent rather than `none`, because `none` would invalidate any list in which it
-appears. A zero-offset layer in a signal's own colour is a **glow**. `--glow-*` and `--sheen` have that
-shape. `--ring` does not: it is an `outline` value, so no box-shadow in the kit answers focus.
+appears. A zero-offset layer in a signal's own colour is a **glow**. `--glow-*` and `--sheen`
+have that shape. `--ring` does not: it is an `outline` value, so no box-shadow answers focus.
 
 **An inline code chip paints the reading surface that its container is not on.** The container
 states which surface that is in `--code-bg`, and the chip reads that value. The chip never
