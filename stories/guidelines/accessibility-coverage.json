@@ -858,6 +858,15 @@
         "The page shell's own folded rail (.ui-app__rail), whose rows keep the open column so its fold lays none of them out again and which clips beside a scrolling axis. It is a different box with a different answer; its ring was measured and reported on #575.",
         "Anything a media query or a consumer's sheet does to the rail or its rows: only the rail's own rules and the ones the folded class adds are read."
       ]
+    },
+    {
+      "file": "stories/selected-fill.test.js",
+      "name": "A selected row's highlight",
+      "does": "Measures the background fill a selected, current or active row paints against the ground its own component paints under it, in both themes, and fails a pair under 1.1:1. Since #578 round r34 a selected item is marked by a fill and never by an edge, so a fill that does not step is a row with no mark on it. Four rows are read: the current row of a side nav or an open rail, the row a menu would pick, the row the command palette would run, and the folded rail's plate. A rejection case re-measures the pair that was invisible before the round, light --surface on --bg-elevated at 1.000:1.",
+      "blind": [
+        "1.1:1 is not a WCAG number and does not stand in for one: WCAG sets no contrast requirement for a background that carries no information by itself, and the ink ON these rows is measured by stories/contrast.test.js instead. The grounds are named here rather than discovered, because which container a row ends up inside is not in the stylesheets; a row whose ground its own component does not fix — the pager, which stands on the page in one showcase and on a card in another — is out of scope and says so beside its rule.",
+        "Nothing is laid out or painted: this reads token values, so it cannot see a fill a component overrides further down a sheet, one covered by a pseudo-element, or what either looks like on a real screen."
+      ]
     }
   ],
   "UNGATED": [

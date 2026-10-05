@@ -33,10 +33,14 @@
 }
 
 .ui-btn:hover {
-  border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 14%, var(--surface)); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--strong);
 }
+/* The hover edge steps aside under the band: an accent edge one pixel inside an
+   accent band is the second band #578 round r34 took off the focus rules, and a
+   pointer resting on a focused button would put it back. The fill above is not an
+   edge and stays. why: docs/specification.md#the-focus-ring */
+.ui-btn:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-btn:active { transform: translateY(1px); }
 
 .ui-btn svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }

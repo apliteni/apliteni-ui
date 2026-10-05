@@ -61,7 +61,12 @@
     border-color var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease);
 }
-.ui-footer__social:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
+.ui-footer__social:hover { color: var(--accent); transform: translateY(-1px); }
+/* The hover edge steps aside under the band: an accent edge one pixel inside an
+   accent band is the second band #578 round r34 took off the focus rules, and a
+   pointer resting on a focused control would put it back. One indicator, which is
+   what the kit's rows already chose. why: docs/specification.md#the-focus-ring */
+.ui-footer__social:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-footer__social:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-footer__social svg { width: 17px; height: 17px; display: block; }
 

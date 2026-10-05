@@ -12,7 +12,7 @@
 
 **Don't:** Give the input a separate muted outline while the button uses `--ring`.
 
-**Except:** A scroll region inside a surface takes `--ring-scroll`: the same band drawn inward, with `--ring-scroll-offset`. An inset shadow is painted under a box's own children, so a table scrolled sideways under one erases the band; an outline survives it. A box that is itself the outermost surface — a panel, a card — keeps `--ring`. Text-entry controls may match `:focus-visible` on mouse focus. Both bands are declared once at the root and recomposed nowhere: an outline leaves its offset unpainted, so the 1px between a control and its band is whatever surface the control is standing on. Adjust the width and the colour at the root.
+**Except:** A scroll region inside a surface takes `--ring-scroll`: the same band drawn inward, with `--ring-scroll-offset`. An inset shadow paints under a box's own children, so a table scrolling under one erases the band; an outline survives it. A box that is itself the outermost surface — a panel, a card — keeps `--ring`. Text-entry controls may match `:focus-visible` on mouse focus. Both bands are declared once at the root and recomposed nowhere, because an outline leaves its offset unpainted. Adjust width and colour there.
 
 ## Busy controls
 

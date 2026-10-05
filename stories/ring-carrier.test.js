@@ -181,3 +181,100 @@ test('form focus rules use focus-visible and invalid fields cannot replace the b
   assert.doesNotMatch(form, /:focus(?!-visible)/);
   assert.doesNotMatch(form, /\.is-invalid[^{}]*\{[^}]*box-shadow/);
 });
+
+// ---- one band, and no accent edge beside it (#578 round r34) ----------------
+//
+// Artur, on the round's light captures: "Do not use glowing on outline on light theme."
+// What read as a glow was not a halo — #578 had already taken that off — but a SECOND
+// accent band: five controls recoloured their own 1px border to `--accent` in the same
+// rule that drew the ring, so a focused field painted 2px of accent, 1px of unpainted
+// offset, and 1px of accent again. On the light ground those three read as one soft
+// edge. The band is the only accent the kit draws on a focused control now.
+//
+// Limits: this reads declarations, not pixels. A rule that paints an accent edge from
+// a token this does not recognise as the accent family, or from a pseudo-element, is
+// not seen; the browser captures on the pull request are what close that.
+
+/** Whether a declared value resolves to the accent, through the kit's own properties. */
+const accent = (value, seen = new Set()) => references(value).some((name) => {
+  if (/^--(?:accent|accent-strong|ring-color)$/.test(name)) return true;
+  if (seen.has(name)) return false;
+  return declarations.filter((d) => d.name === name).some((d) => accent(d.value, new Set([...seen, name])));
+});
+/** The edge properties a second band can arrive on, beside the `outline` the band takes. */
+const EDGE = /(?:^|;)\s*(border(?:-(?:top|right|bottom|left))?(?:-color)?|box-shadow|outline-color)\s*:\s*([^;]+)/g;
+const fillOf = (body) => /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(body)?.[1].trim();
+const secondBands = (subjects) => subjects.flatMap((rule) => [...rule.body.matchAll(EDGE)]
+  .filter(([, , value]) => accent(value))
+  // A border in the FILL's own colour is the fill reaching the border box, not an edge
+  // beside the band — the primary button's hover and the picker's chosen day both
+  // paint that pair, and neither draws a line a reader can see.
+  .filter(([, , value]) => value.trim() !== fillOf(rule.body))
+  .map(([, prop]) => `${rule.file}: ${rule.selector} paints ${prop} in the accent beside the band`));
+
+test('a focus rule draws the band and no second accent edge', () => {
+  // Every consumer is read, so this cannot go quiet by losing its subjects: the count
+  // is the one the offset gate pins, and the two have to move together.
+  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
+  assert.deepEqual(secondBands(consumers), []);
+});
+
+test('the second-band gate rejects each way of drawing one', () => {
+  const ring = 'outline: var(--ring); outline-offset: var(--ring-offset);';
+  assert.deepEqual(secondBands([{ file: 'fixture', selector: '.fx:focus-visible', body: ring }]), []);
+  // The shape the five shipped, and the same thing said three other ways.
+  for (const [prop, decl] of [
+    ['border-color', 'border-color: var(--accent);'],
+    ['border', 'border: 1px solid var(--accent-strong);'],
+    ['box-shadow', 'box-shadow: inset 0 0 0 1px var(--ring-color);'],
+    ['border-bottom-color', 'border-bottom-color: var(--accent);'],
+  ]) {
+    assert.deepEqual(
+      secondBands([{ file: 'fixture', selector: '.fx:focus-visible', body: `${decl} ${ring}` }]),
+      [`fixture: .fx:focus-visible paints ${prop} in the accent beside the band`],
+      `a focus rule writing ${decl} has to be named`,
+    );
+  }
+  // A neutral edge beside the band is not a second band and must not be named.
+  assert.deepEqual(secondBands([{
+    file: 'fixture', selector: '.fx:focus-visible', body: `border-color: var(--field-edge); ${ring}`,
+  }]), []);
+  // And on the tree rather than a fixture: give a real consumer the accent border back.
+  const real = consumers.find((r) => r.file === 'src/styles/input.css');
+  assert.ok(real, 'input.css no longer takes the ring; move this check');
+  assert.deepEqual(secondBands([{ ...real, body: `border-color: var(--accent); ${real.body}` }]),
+    [`src/styles/input.css: ${real.selector} paints border-color in the accent beside the band`]);
+});
+
+// An always-on accent edge is the same second band, drawn by the pointer instead of by
+// the focus rule: a control hovered AND focused would paint both. The kit settles that
+// one way — the band wins, one indicator — so every hover rule that paints an accent
+// edge stands aside with `:not(:focus-visible)`.
+const hoverEdges = rules.filter((rule) => /:hover/.test(rule.selector) && secondBands([rule]).length);
+
+test('a hover rule that paints an accent edge stands aside under the band', () => {
+  assert.ok(hoverEdges.length >= 6,
+    `${hoverEdges.length} hover rules paint an accent edge; the kit has at least six `
+    + '(the secondary button, the check box, the social mark, the version button, the '
+    + 'avatar and the dropdown trigger)');
+  const standing = hoverEdges
+    .filter((rule) => !/:not\(\s*:focus-visible\s*\)/.test(rule.selector))
+    .map((rule) => `${rule.file}: ${rule.selector}`);
+  // ONE exception, and it is not a hover mark: the picker paints an accent border on
+  // today's cell AT REST, and these two rules only keep it there while the pointer is
+  // on it, so standing them aside would change nothing. Whether a CURRENT day should
+  // carry a hollow accent ring at all is the open question on #578 round r34 — it is
+  // the calendar's hollow-for-here, filled-for-chosen pair, and replacing it needs a
+  // mark that does not collide with the range tint or the row hover. Artur's call.
+  assert.deepEqual(standing, [
+    'react/src/DatePicker.css: .ui-datepicker__opt.is-disabled.is-today,\n.ui-datepicker__opt.is-disabled.is-today:hover',
+  ]);
+});
+
+test('the hover gate rejects an accent edge left standing under the band', () => {
+  const real = hoverEdges.find((r) => r.file === 'src/styles/dropdown.css');
+  assert.ok(real, 'the dropdown trigger no longer lights its edge on hover; move this check');
+  assert.match(real.selector, /:not\(\s*:focus-visible\s*\)/, 'the real rule stands aside');
+  assert.equal(/:not\(\s*:focus-visible\s*\)/.test(real.selector.replace(':not(:focus-visible)', '')), false,
+    'stripping the guard from the real rule leaves a selector this gate would name');
+});

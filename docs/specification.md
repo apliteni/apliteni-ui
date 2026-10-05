@@ -1010,10 +1010,66 @@ do the picker's three cancellations of its own hover edge, on a selected, a curr
 a blocked day. A gate resolves the cascade for every keyboard stop and fails a stop whose
 ring loses.
 
+**One band, and nothing beside it.** A focused control draws the band and leaves every
+other edge at its resting ink. Six rules used to recolour a control's own 1px border to
+`--accent` in the same breath as drawing the ring — the three text fields, the dropdown's
+trigger and its search input, the drawer's close, the shell's search and React's
+file-drop zone — which put a SECOND accent band one pixel inside the first, with the
+unpainted offset showing between them. On the light ground that pair reads as a halo
+around the band rather than as one edge, and a pixel scan of a focused field at 1280 and
+390 found it: 2px of accent, 1px of white, 1px of accent. Artur rejected it on
+[#578](https://github.com/apliteni/apliteni-ui/issues/578) round r34 — "Do not use
+glowing on outline on light theme". Six hover rules painted the same pair whenever a
+pointer rested on a focused control, so each stands aside with `:not(:focus-visible)`:
+the secondary button, the check box, the social mark, the version switcher, the avatar
+and the dropdown trigger. A drop zone still recolours its dashed edge while a file is
+OVER it, because that edge is the drop target and a drag is not focus. A gate reads every
+ring consumer and fails one that paints an accent border, box-shadow or outline-color
+beside the band; a border in the FILL's own colour is not one, because it is the fill
+reaching the border box and draws no line.
+
+**Selection is a background highlight; an outline means focus.** A selected, current or
+active item is marked by its fill, its ink and its weight — never by an edge drawn around
+it. An edge on a selected row is the shape the focus band has, one pixel further in, so a
+reader cannot tell which of the two they are looking at, and a row that was both selected
+and focused drew both. Artur settled it on #578 round r34, on the open rail's current
+row: "Outline only for focus. Selected - use background highlight." Four marks came off
+for it: the rail's current row lost its 1px hairline, the chosen segmented pill its 1px
+accent outline, the command palette's active row its 1px edge, and the dropdown's active
+row its inset accent bar.
+
+Taking the edge off is half of it. The fill underneath was `--surface`, and in LIGHT
+`--surface` and `--bg-elevated` are both `#ffffff` — 1.000:1 — so on a rail, a menu panel
+or a palette the fill drew nothing and the edge had been the whole mark. Three of the
+four move to a fill that steps off the ground their own component paints: a nav or rail
+row to `--surface-3` (1.140:1 light, 1.160:1 dark, which is the step the folded rail's
+plate already took), and a menu row and a palette row to `--surface-2` on their
+`--bg-elevated` panel (1.183:1 light, 1.234:1 dark). The chosen segmented pill keeps
+`--surface` on the strip's own track, where it already stepped. A gate measures each pair
+in both themes against a 1.1:1 floor, which is not a WCAG number: WCAG sets no
+requirement for a background that carries no information by itself, and the ink on these
+rows is measured elsewhere.
+
+A rail row also keeps the 3px accent marker in its own padding, which is a mark inside
+the row rather than an edge around it, and the folded rail keeps its plate; an underline
+strip's chosen tab keeps the bar under its label
+([#544](https://github.com/apliteni/apliteni-ui/issues/544)). Hover still adds its own
+edge, on a selected row as on any other — hover is a pointer state, not a selection.
+
+**One selected mark is still an edge, and says so.** The current page in a pager keeps
+its `--border` hairline. A pager stands on the page in one showcase and on a card in
+another: `--surface` steps off the page at 1.110:1 and off a card at 1.000:1, so no fill
+marks the current page on both grounds, and the hairline is what survives them. It is
+recorded here and beside its rule rather than quietly left out, and it is open for Artur
+on #578.
+
 **Forced colours needs nothing extra.** The band is a real outline, which is what the
 system repaints once box-shadows are gone. No consumer carries a transparent stand-in
 outline, and a gate fails one that starts to: a stand-in is a second indicator waiting
-to be drawn. The kit has no `forced-colors` block left at all.
+to be drawn. One `forced-colors` block is left in the kit and it is not about focus:
+the underline strip restates its chosen tab's accent bar in `Highlight`, because the
+mode repaints an author colour. A gate holds that count at one and fails a block that
+declares `outline` or `box-shadow`, which would be a correction for the band.
 
 **Compatibility boundary.** `--ring` changed shape on #578: it was a `box-shadow` value
 and it is an `outline` value. A consumer sheet that writes `box-shadow: var(--ring)`
@@ -1758,8 +1814,9 @@ What the shell guarantees:
   plate instead: `--surface-3`, the kit's quiet non-text fill, `--ui-nav-strip` wide at the row's
   own edge — twice a glyph's centre, so the plate is centred on the glyph. The bar cannot serve
   there, because the padding it stands in is the rail's own edge on a strip and a nested row puts it
-  `--space-3` further out again; nor can the resting hairline, which is drawn on a row that keeps
-  the open column and so has its right edge off the strip. Both references mark current the same
+  `--space-3` further out again. The open rail's row carried a 1px hairline as well until #578
+  round r34, where Artur took every edge off a selected item: it is the fill and the marker now.
+  Both references mark current the same
   way and with no hue: Cloudflare's docs rail paints a flat plate, and `lessly-ui`'s rail is a plate
   and the weight step. Artur asked for it on 2026-09-30. The plate sits behind the glyph on the
   row's own stacking context, so the focus ring is untouched.
@@ -2055,7 +2112,7 @@ inside it, at the same 9px from the trigger.
 
 **One padding, and two blocks that bleed back through it.** `--ui-dropdown-pad` is declared on
 `.ui-dropdown__panel` beside the offset, and the panel's own `padding` reads it —
-src/styles/dropdown.css:81 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
+src/styles/dropdown.css:85 `padding: var(--ui-dropdown-pad);`. A block pinned to an edge of the
 panel has to come back out through that padding to reach the edge, and before
 [#306](https://github.com/apliteni/apliteni-ui/issues/306) the only way to write that was to copy
 the number: the head's bleed was `margin: -6px -6px 5px` and a page building its own footer wrote
@@ -2063,7 +2120,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:243 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:247 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the

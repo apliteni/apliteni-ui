@@ -68,6 +68,11 @@
    selector for the markup this component emits, and the spelling that keeps a
    rule about an ENABLED control out of the disabled-rule sweep in
    stories/guidelines/accessibility-floor.test.js, which reads selector text. */
+/* The one selected mark #578 round r34 LEFT as an edge, and why. A pager stands on
+   the page in one showcase and on a card in another; --surface steps off the page at
+   1.110:1 and off a card at 1.000:1, so a fill that marks the current page on one
+   ground marks nothing on the other. The hairline is what survives both. Open for
+   Artur on #578. */
 .ui-pager__page.is-current:not([disabled]) {
   background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border-color: var(--border);

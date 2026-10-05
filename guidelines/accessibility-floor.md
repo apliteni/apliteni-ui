@@ -50,7 +50,7 @@
 
 **Don't:** A glow on its own, with no solid band inside it to measure.
 
-**Except:** The band must clear the bar against the surface its 1px of offset leaves showing, not only against flat ground.
+**Except:** The band must clear the bar against the surface its offset leaves showing, not only flat ground.
 
 ## Disabled control legibility
 

@@ -111,7 +111,11 @@
   padding: 7px 11px 7px 13px;
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
-.vsw__btn:hover { border-color: var(--accent); }
+/* The hover edge steps aside under the band: an accent edge one pixel inside an
+   accent band is the second band #578 round r34 took off the focus rules, and a
+   pointer resting on a focused control would put it back. One indicator, which is
+   what the kit's rows already chose. why: docs/specification.md#the-focus-ring */
+.vsw__btn:hover:not(:focus-visible) { border-color: var(--accent); }
 .vsw__btn:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .vsw__btn .lbl { color: var(--text); }
 .vsw__btn .cur { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
@@ -188,7 +192,7 @@
   transition: background var(--dur-fast) var(--ease);
 }
 /* Menu rows use the reading surface and an edge on hover — see
-   src/styles/dropdown.css:179 `.ui-dropdown__item:hover`.
+   src/styles/dropdown.css:183 `.ui-dropdown__item:hover`.
    why: docs/specification.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 /* The row is a keyboard stop: src/components/dropdown.js:804
@@ -255,7 +259,11 @@
   letter-spacing: 0.02em;
   transition: border-color var(--dur-fast) var(--ease);
 }
-.acct .avatar:hover { border-color: var(--accent); }
+/* The hover edge steps aside under the band: an accent edge one pixel inside an
+   accent band is the second band #578 round r34 took off the focus rules, and a
+   pointer resting on a focused control would put it back. One indicator, which is
+   what the kit's rows already chose. why: docs/specification.md#the-focus-ring */
+.acct .avatar:hover:not(:focus-visible) { border-color: var(--accent); }
 .avatar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .amenu {
   position: absolute;

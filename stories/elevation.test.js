@@ -96,13 +96,20 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // than a shadow — an inset shadow is painted under a box's own children, so a table
 // scrolled sideways under one erases the band. Six of the seven never had a shadow
 // rule; the scrolling table wrapper did, and that is the one this number lost.
-// 74 -> 29: #578 made the kit's own band an outline too, and took the halo off it. The
-// forty-five rules this number lost are the forty-one that wrote `box-shadow: var(--ring)`
-// as their whole declaration, the three `box-shadow: none` rules that had to exempt focus
-// because the band shared the property with a resting hairline, and the snippet card's
-// ring. What is left is elevation and decoration: no box-shadow in the kit answers focus.
-  assert.equal(sweep.length, 29,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 29. `
+// 74 -> 23: #578 made the kit's own band an outline too, and took the halo off it. The
+// fifty-one rules this number lost are the forty-two that wrote `box-shadow: var(--ring)`
+// as their whole declaration — the forty-one of #482 and the chosen tab's restatement of
+// them — the three `box-shadow: none` rules that had to exempt focus because the band
+// shared the property with a resting hairline, the snippet card's ring, and the selected
+// accent swatch's own band. Five more went with them on round r34, where every edge came
+// off a selected item: the open rail's 1px hairline, and the four `box-shadow: none`
+// rules that had exempted a sub-row, a folded row and the shell's two folded rails from
+// it. 23 -> 22: the dropdown's active row drew its mark as an inset accent bar, which is
+// an edge on a selected row and came off with the rest.
+// What is left is elevation and decoration: no box-shadow in the kit answers focus, and
+// none marks a selection.
+  assert.equal(sweep.length, 22,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 22. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

@@ -76,14 +76,21 @@
 }
 .ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/specification.md#the-page-shell */
 .ui-nav__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ color: var(--strong); }
+/* The current row is a FILL, and the fill has to be one a reader can see: a rail is
+   --surface, and --surface on --surface measures 1.000:1 — the hairline this rule used
+   to carry was the whole of the mark on the light theme. --surface-3 is the kit's quiet
+   non-text fill and the step the folded rail's plate already takes: 1.140:1 in light,
+   1.160:1 in dark. #578 round r34. why: docs/specification.md#the-focus-ring */
 .ui-nav__item.is-active {
-  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--strong);
   font-weight: 500;
 }
-.ui-nav--side .ui-nav__item.is-active {
-  box-shadow: inset 0 0 0 1px var(--border);
-}
+/* The current row is its fill and the accent marker below — no hairline around it.
+   An edge on a selected row is the shape the focus band has, one pixel further in,
+   so the two read as the same signal; Artur separated them on #578 round r34:
+   selection is a background highlight, an outline means focus.
+   why: docs/specification.md#the-focus-ring */
 /* Accent rail marker on the active item */
 .ui-nav--side .ui-nav__item.is-active::before {
   content: "";
@@ -132,7 +139,7 @@
    ring is an outline since #578 and this rule outranks it: a row that is hovered AND
    focused draws the ring, which is the choice the kit's rows already made. */
 .ui-nav__item.is-active:not(.is-danger):hover:not(:focus-visible) {
-  background: var(--surface); outline: 1px solid var(--control-edge); outline-offset: -1px; /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  background: var(--surface-3); outline: 1px solid var(--control-edge); outline-offset: -1px; /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
 }
 
 /* Per-item badge / counter */
@@ -197,10 +204,6 @@
   animation: m-slide-down var(--dur-fast) var(--ease-out) both;
 }
 .ui-nav__item--sub { font-size: calc(var(--text-base) - 0.5px); padding: 7px 12px; }
-/* No hairline on a nested current row. Unguarded since #578: box-shadow carried the
-   focus ring as well as the hairline, so this rule had to exempt focus or it cancelled
-   the ring (WCAG 2.4.7). The ring is an outline now and this says only what it means. */
-.ui-nav--side .ui-nav__item--sub.is-active { box-shadow: none; }
 /* Hangs back onto the guide hairline the indent above draws. */
 .ui-nav--side .ui-nav__item--sub.is-active::before { left: calc(-1 * var(--space-3)); height: 15px; }
 
@@ -281,9 +284,8 @@
    negative z-index with no stacking context of its own would drop it behind the rail.
    why: #429 */
 .ui-nav--side.is-collapsed .ui-nav__item.is-active { isolation: isolate; background: none; }
-/* The hairline, off: the plate below is what marks the current row on a folded rail.
-   Unguarded since #578 — the ring is an outline and no longer shares this property. */
-.ui-nav--side.is-collapsed .ui-nav__item.is-active { box-shadow: none; }
+/* The plate is what marks the current row on a folded rail, where the label the
+   open rail highlights is not there to carry it. */
 .ui-nav--side.is-collapsed .ui-nav__item.is-active::before {
   left: 0;
   width: var(--ui-nav-strip);

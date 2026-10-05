@@ -187,7 +187,11 @@
   background: none;
 }
 .ui-cmdk__item[hidden] { display: none; } /* motion: still — a row the query no longer answers is gone on the next keystroke */
-.ui-cmdk__item.is-active { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+/* The row Enter would run: its fill, and no edge. The edge was an outline marking a
+   selection, which is what the focus band is for (#578 r34). --surface-2, not
+   --surface: the panel is --bg-elevated, which --surface matches exactly in light, so
+   the edge had been the whole mark there. 1.183:1 in light, 1.234:1 in dark. */
+.ui-cmdk__item.is-active { background: var(--surface-2); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-cmdk__item.is-active .ui-cmdk__label { color: var(--strong); }
 
 .ui-cmdk__ic {

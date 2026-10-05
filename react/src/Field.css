@@ -16,7 +16,12 @@
   overflow-wrap: anywhere;
 }
 .ui-file:hover { border-color: var(--field-edge-hover); }
-.ui-file:focus-within, .ui-file.is-dragging { border-color: var(--accent); outline: var(--ring); outline-offset: var(--ring-offset); }
+/* A drag over the zone recolours its dashed edge: that edge IS the drop target, and
+   the accent is what says a file will land. Focus draws the band and nothing else —
+   recolouring the edge under it put a second accent band one pixel inside the first,
+   which read as a halo on the light ground (#578 r34). */
+.ui-file.is-dragging { border-color: var(--accent); }
+.ui-file:focus-within, .ui-file.is-dragging { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-file.is-invalid { border-color: var(--pink); }
 .ui-file__glyph { display: flex; padding: 12px; border-radius: var(--radius-md); background: var(--surface-3); /* code-bg: inherit — decorative tile contains no focus target. */ }
 .ui-file__glyph svg { width: 24px; height: 24px; }

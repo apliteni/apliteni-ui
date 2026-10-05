@@ -38,10 +38,14 @@
 .ui-textarea:hover,
 .ui-select:hover { border-color: var(--field-edge-hover); }
 
+/* The band and nothing beside it. Recolouring the field's own 1px edge to the
+   accent drew a SECOND accent band one pixel inside the first, and the unpainted
+   pixel between them read as a halo on the light ground — which is the glow Artur
+   rejected on #578 round r34. The edge keeps its resting ink.
+   why: docs/specification.md#the-focus-ring */
 .ui-input:focus-visible,
 .ui-textarea:focus-visible,
 .ui-select:focus-visible {
-  border-color: var(--accent);
   outline: var(--ring);
   outline-offset: var(--ring-offset);
 }
@@ -163,7 +167,11 @@
 .ui-check input[type="radio"] { border-radius: 50%; }
 /* :enabled, or the accent lights the border of a box that cannot be clicked —
    the same "press me" a disabled control has to stop making. #429 */
-.ui-check input:enabled:hover { border-color: var(--accent); }
+/* The hover edge steps aside under the band: an accent edge one pixel inside an
+   accent band is the second band #578 round r34 took off the focus rules, and a
+   pointer resting on a focused control would put it back. One indicator, which is
+   what the kit's rows already chose. why: docs/specification.md#the-focus-ring */
+.ui-check input:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-check input:checked { background: var(--accent); border-color: var(--accent); }
 .ui-check input[type="checkbox"]:checked::after {
   content: "";

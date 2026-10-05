@@ -19,7 +19,7 @@ export const SPEC_CSS = `
     .gf-rows__row { display: flex; justify-content: space-between; gap: var(--space-4);
       font: 400 13px/1.6 var(--font-sans); color: var(--text); padding-block: var(--space-1); }
     /* The kit ring, shown at rest, because a specimen cannot be focused. */
-    .gf-ring { box-shadow: var(--ring); outline: 2px solid transparent; }
+    .gf-ring { outline: var(--ring); outline-offset: var(--ring-offset); }
     /* The faults the page draws. They are written here because nothing in the kit
        emits them: the tall box is what a product draws for itself, and the kit's
        own field-sized picker is styled by the React workspace's sheet, which this

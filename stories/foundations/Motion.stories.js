@@ -95,7 +95,7 @@ const CSS = `
       border: 0; border-radius: 8px; padding: 7px 12px; cursor: pointer;
       transition: background var(--dur-fast) var(--ease); }
     .mz-replay:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
-    .mz-replay:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+    .mz-replay:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
     /* Reveal demo */
     .mz-reveal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }

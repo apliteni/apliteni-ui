@@ -75,7 +75,7 @@ const PAGE_CSS = `
     /* A prose link is the only focusable part these pages add, and without a rule
        of its own it took the browser's black outline while every kit control beside
        it drew the ring. The gap is the page's --bg, which is what root already sets. */
-    .gc a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+    .gc a:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 
     .gc .gc-intro { margin-bottom: var(--space-6); }
     .gc-rule + .gc-rule { margin-top: var(--space-8); padding-top: var(--space-8);

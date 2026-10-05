@@ -16,7 +16,7 @@ import { ratio } from './lib/contrast.js';
 import { accentPicker } from '../src/components/index.js';
 import { ACCENTS, accentSwatchStyle } from '../src/logic/accents.js';
 import { accentColour, accentPickerCss, measureSelectionMark, paints } from './lib/accent-mark.js';
-import { BAND_FLOOR, measureFocusedEdge, ringGap } from './lib/accent-focus.js';
+import { BAND_FLOOR, measureFocusedEdge, ringGround } from './lib/accent-focus.js';
 
 /** A page accent that is NOT the one being selected. */
 const otherThan = (accent) => ACCENTS[(ACCENTS.indexOf(accent) + 1) % ACCENTS.length];
@@ -48,15 +48,18 @@ for (const theme of ['light', 'dark']) {
         ring: accentColour(theme, page),
         selection: accentColour(theme, accent),
         accents: ACCENTS.map((a) => accentColour(theme, a)),
-        ground: ringGap(theme, page),
+        ground: ringGround(theme, page),
       };
       const { bands, ratios, halos } = measureFocusedEdge(selected, win, want);
-      assert.equal(halos, 1, 'the kit ring brings its one halo, which this gate skips and the browser samples cover');
-      assert.equal(
-        win.getComputedStyle(selected).boxShadow, win.getComputedStyle(unselected).boxShadow,
-        'selecting a swatch adds nothing to the edge it draws when focused. Whether this swatch is '
-        + 'on is said by the tick inside the circle, which is the one signal that is not an accent',
-      );
+      assert.equal(halos, 0, 'the band has no halo since #578, on this control as on every other');
+      for (const prop of ['boxShadow', 'outline', 'outlineOffset']) {
+        assert.equal(
+          win.getComputedStyle(selected)[prop], win.getComputedStyle(unselected)[prop],
+          `selecting a swatch changes its ${prop}, so it adds to the edge it draws when focused. `
+          + 'Whether this swatch is on is said by the tick inside the circle, which is the one '
+          + 'signal that is not an accent',
+        );
+      }
       // Focus cannot erase that tick: the mark gate's own first assertion is that
       // exactly one rule in the picker's sheet draws a pseudo-element, so there
       // is no second rule able to cancel it under :focus-visible.
@@ -66,14 +69,16 @@ for (const theme of ['light', 'dark']) {
       // selection band laid straight against the kit's band, then the same band
       // given the ring's own gap width as a separator. Both have to be rejected,
       // or the assertions above are decoration.
-      const [gap, ring] = bands;
+      const ring = bands.at(-1);
+      const gap = bands.at(-2) ?? { spread: ring.spread - ring.width, raw: paints(want.ground) };
+      const resting = win.getComputedStyle(selected).boxShadow;
       const band = (spread, colour) => `0 0 0 ${spread}px ${colour}`;
       for (const [why, shadow] of [
         ['laid straight against the kit band', [
-          band(gap.spread, gap.raw), band(ring.spread, ring.raw), band(ring.spread + 2, paints(want.selection)),
+          band(gap.spread, gap.raw), band(ring.spread + 2, paints(want.selection)),
         ]],
         ['separated from it by the ring\'s own gap', [
-          band(gap.spread, gap.raw), band(ring.spread, ring.raw),
+          band(gap.spread, gap.raw),
           band(ring.spread + gap.spread, gap.raw), band(ring.spread + gap.spread + 2, paints(want.selection)),
         ]],
       ]) {
@@ -87,17 +92,23 @@ for (const theme of ['light', 'dark']) {
       // And a second band that claims no accent but is still close enough to the
       // ring's colour to read as one thick edge.
       const nearly = `rgb(${ring.colour.slice(0, 3).map((c) => Math.min(255, Math.round(c) + 4)).join(', ')})`;
-      selected.style.boxShadow = [
-        band(gap.spread, gap.raw), band(ring.spread, ring.raw), band(ring.spread + 2, nearly),
-      ].join(', ');
+      selected.style.boxShadow = [band(gap.spread, gap.raw), band(ring.spread + 2, nearly)].join(', ');
       assert.throws(
         () => measureFocusedEdge(selected, win, want),
         new RegExp(`under the ${BAND_FLOOR}:1 ring floor`),
         'a second band laid against the ring in nearly its own colour must fail this gate',
       );
-      // And an edge with no ring on it at all.
-      selected.style.boxShadow = band(gap.spread, gap.raw);
-      assert.throws(() => measureFocusedEdge(selected, win, want), /focus ring's band is missing/);
+      selected.style.boxShadow = resting;
+      // And an edge with no ring on it at all. The band is an outline since #578, so
+      // this is the carrier that has to go away for the ring to be missing.
+      selected.style.outline = 'none';
+      assert.throws(() => measureFocusedEdge(selected, win, want), /outline since #578/);
+      // Put back on a box-shadow, the retired carrier draws nothing a browser paints
+      // and must not read as the band either.
+      selected.style.boxShadow = [band(gap.spread, gap.raw), band(ring.spread, ring.raw)].join(', ');
+      assert.throws(() => measureFocusedEdge(selected, win, want), /outline since #578/);
+      selected.style.outline = '';
+      selected.style.boxShadow = '';
 
       win.close();
       style.remove();

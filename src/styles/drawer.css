@@ -166,7 +166,7 @@
     border-color var(--dur-fast) var(--ease);
 }
 .ui-drawer__close:hover { color: var(--strong); background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-.ui-drawer__close:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-color: var(--accent); }
+.ui-drawer__close:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-drawer__close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.1; }
 
 .ui-drawer__body {
