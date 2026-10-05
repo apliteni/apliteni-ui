@@ -21,6 +21,22 @@ Before handoff, run `npm test` with `jq` installed, `npm test -w react`, `npm ru
 build-storybook`, and `node site/build.mjs`. Stage new files first so git-based tests
 can find them. Add new test directories to both the guard and the glob in `npm test`.
 
+While you work, run `node --test <file>` for the files you changed. Run both suites once
+for the pull request, on a Linux host where you have one. Their budgets on an 8-core Linux
+host: `npm test` 3m20s, `npm test -w react` 1m40s. Measured at 3m02s and 1m30s. The budget
+is a ceiling with room for a busier machine, not the best time anyone has seen; a run
+outside it means the machine was loaded or the suite grew.
+
+Each suite run ends with its ten slowest tests and files, and anything over budget: 5
+seconds a test, 10 for a browser test, 60 for one file. That report never fails a run.
+Keep a suite inside its budget by making its slowest tests faster. Do not serialise the
+machine's test runs behind a lock.
+
+The contrast walk is dealt to half the machine's cores. Set `CONTRAST_SHARDS=1` to walk in
+one thread when you need the stack of a story that threw, and run
+`CONTRAST_SHARD_PARITY=1 node --test stories/lib/contrast.test.js` when you change how it
+is dealt.
+
 New gates must discover their subjects, fail when cases are not measured, check coverage
 counts, and prove rejection with a failing mutation. Share calculations across
 workspaces, but keep their coverage checks separate. Read the source unless you are

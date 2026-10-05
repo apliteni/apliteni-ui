@@ -14,6 +14,8 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { availableParallelism } from 'node:os';
+import { Worker } from 'node:worker_threads';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -597,7 +599,7 @@ export function stateTargets(root, bases) {
   return targets;
 }
 
-export async function walkStories({ theme, accent = 'default', states = true } = {}) {
+export async function walkStories({ theme, accent = 'default', states = true, files = storyFiles } = {}) {
   const { vars, css } = kitCssFor(theme, accent);
   const kitBases = stateBases(css);
 
@@ -626,7 +628,7 @@ export async function walkStories({ theme, accent = 'default', states = true } =
     colorMixTranslucent: 0,
   };
 
-  for (const rel of storyFiles) {
+  for (const rel of files) {
     const mod = await import(path.join(root, 'stories', rel));
     const def = mod.default || {};
     for (const [name, story] of Object.entries(mod)) {
@@ -751,3 +753,137 @@ export async function walkStories({ theme, accent = 'default', states = true } =
   dom.window.close();
   return { records, stats, problems, cache: { ...styles.seen } };
 }
+
+// ---- the walk, dealt out --------------------------------------------------
+
+/*
+ * The walk is the kit suite's longest test by an order of magnitude, and nearly all of it
+ * is spent inside JSDOM's getComputedStyle — one thread, one core. So the catalogue is
+ * dealt out to threads. Each story is independent: it is rendered into a body of its own,
+ * read, and replaced, so a shard needs nothing from the shards beside it and the merge is
+ * addition.
+ *
+ * What sharding does not change: the records, the counts, the cache figures and the
+ * problems are the same set one thread produces. Two things hold that. Every run,
+ * stories/contrast.test.js asserts each ledger bucket's count and worst ratio exactly, and
+ * that the ledger totals what the walk found — a shard that lost a story turns those red.
+ * On demand, CONTRAST_SHARD_PARITY=1 in stories/lib/contrast.test.js compares the two walks
+ * directly.
+ *
+ * Set CONTRAST_SHARDS=1 to walk in this thread instead, which is what to do when the stack
+ * of a story that threw is the thing you need to read.
+ */
+const SHARD = new URL('./contrast-shard.mjs', import.meta.url);
+
+/** The ceiling, measured: past eight threads this walk buys wall clock at a bad price. */
+const MAX_SHARDS = 8;
+
+/**
+ * How many threads the walk is worth dealing to: half the machine's cores, at least two,
+ * never more than there are files.
+ *
+ * Half, not all, because `node --test` is already running a file per core beside this one,
+ * so a thread here is taken from a sibling file rather than found. Measured on an 8-core
+ * Linux host, the walk alone: one thread 178.6s wall and 188s of CPU, four threads 62.4s
+ * and 231s, eight threads 56.3s and 259s. The last four threads buy six seconds of wall
+ * clock for twenty-eight of CPU, and on a saturated box that CPU is the suite's own.
+ *
+ * One on a single core, because two threads there add two cold starts of about five seconds
+ * each and no parallelism at all — slower than not dealing. Never more than eight: that is
+ * where the measurements above stop paying. CONTRAST_SHARDS is read whole rather than with
+ * parseInt, so `3abc` falls back to the default instead of silently meaning three.
+ *
+ * Measured before the catalogue grew by one story file; the ratio is what matters here.
+ */
+export function walkShards(files = storyFiles) {
+  const asked = Number(process.env.CONTRAST_SHARDS);
+  if (Number.isInteger(asked) && asked > 0) return Math.max(1, Math.min(asked, files.length));
+  const cores = availableParallelism();
+  if (cores <= 1) return 1;
+  return Math.max(1, Math.min(Math.floor(cores / 2), MAX_SHARDS, files.length));
+}
+
+/** Add the shards' answers up, in the shape one walk returns. */
+export function mergeWalks(parts) {
+  const out = {
+    records: [], problems: [],
+    stats: { storyIds: new Set(), uaBlue: [] },
+    cache: { queries: 0, lookups: 0, routedWrites: 0 },
+  };
+  for (const part of parts) {
+    out.records.push(...part.records);
+    out.problems.push(...part.problems);
+    for (const id of part.stats.storyIds) out.stats.storyIds.add(id);
+    out.stats.uaBlue.push(...part.stats.uaBlue);
+    for (const [key, value] of Object.entries(part.stats)) {
+      if (typeof value === 'number') { out.stats[key] = (out.stats[key] || 0) + value; continue; }
+      /* storyIds and uaBlue are merged above. Anything else new would be dropped in silence, and
+       * one shard's figure standing in for every shard's is how a gate goes green while measuring
+       * a fraction of the kit. */
+      if (key !== 'storyIds' && key !== 'uaBlue') {
+        throw new Error(
+          `walkStories now reports a non-numeric \`${key}\`, and mergeWalks does not know how to `
+          + 'add it up. Teach it, in stories/lib/contrast.js.',
+        );
+      }
+    }
+    for (const key of Object.keys(out.cache)) out.cache[key] += part.cache[key];
+  }
+  return out;
+}
+
+/* One thread, and a promise that always settles. A shard that exits without posting — under any
+ * exit code, including a clean one — ends the promise here, rather than leaving the `before` hook
+ * waiting on a thread that has already gone. */
+function shardWalk(workerData) {
+  const worker = new Worker(SHARD, { workerData });
+  const walk = new Promise((resolve, reject) => {
+    let settled = false;
+    const once = (fn) => (value) => { if (!settled) { settled = true; fn(value); } };
+    const done = once(resolve);
+    const fail = once(reject);
+    worker.once('message', (m) => (m.error ? fail(new Error(m.error)) : done(m.walk)));
+    worker.once('error', fail);
+    worker.once('exit', (code) => fail(new Error(`a contrast shard exited ${code} without a result`)));
+  });
+  return { worker, walk };
+}
+
+/**
+ * Walk one or more theme × accent cells across threads, merged into the shape one
+ * walkStories call returns.
+ *
+ * A hand of files is walked for EVERY cell by the same thread, rather than a thread per
+ * cell per hand: a cold thread spends about five seconds importing jsdom, resolving the
+ * token map and parsing the kit's stylesheet before it reads a single colour, and that
+ * is paid once a thread instead of once a cell. It also leaves one ramp up and one ramp
+ * down rather than one of each per cell.
+ */
+export async function walkCells({ cells, states = true, files = storyFiles, shards } = {}) {
+  const n = shards === undefined ? walkShards(files) : Math.max(1, Math.min(shards, files.length));
+  if (n === 1) {
+    const parts = [];
+    for (const cell of cells) parts.push(await walkStories({ ...cell, states, files }));
+    return mergeWalks(parts);
+  }
+  /* Dealt round-robin rather than sliced: the catalogue is sorted by path, so files next to
+   * each other belong to one area and cost about the same. Dealing spreads the big ones, though
+   * not evenly: measured at four threads, the hands took 21s, 31s, 35s and 40s, so about a
+   * quarter of the wall clock is threads that have already finished. A shared cursor, where a
+   * thread pulls the next file instead of being dealt a hand, would close that. */
+  const hands = Array.from({ length: n }, () => []);
+  files.forEach((rel, i) => hands[i % n].push(rel));
+  const dealt = hands.map((hand) => shardWalk({ cells, states, files: hand }));
+  try {
+    return mergeWalks(await Promise.all(dealt.map((d) => d.walk)));
+  } catch (error) {
+    /* The hook has already failed, so the siblings are spending cores on an answer nobody will
+     * read — and on a full machine those are the cores the other test files are waiting for. */
+    await Promise.allSettled(dealt.map((d) => d.worker.terminate()));
+    throw error;
+  }
+}
+
+/** One cell, walked across threads. Same answer as walkStories. */
+export const walkStoriesParallel = ({ theme, accent = 'default', ...rest } = {}) =>
+  walkCells({ cells: [{ theme, accent }], ...rest });

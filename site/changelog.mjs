@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.85.1', date: '2026-10-04',
+    changes: [
+      ['changed', 'The packaged manifest\u2019s `test` script now ends a run with its ten slowest tests and files, and says which of them are over the stated budget. That report never fails a run. It is for whoever contributes to the kit; nothing the kit ships behaves differently. See #560.'],
+    ],
+  },
+  {
     v: '0.85.0', date: '2026-10-04',
     changes: [
       ['fixed', 'A dropdown the keyboard opens puts focus inside itself for a reader who asked for reduced motion. The panel opened and focus stayed on the trigger: under the reduced-motion net an element naming no transition property of its own still transitions the inherited visibility, so everything inside the panel was still hidden in the frame the dropdown focused into it, and focus() on a hidden element does nothing. An open panel now carries no transition inside it at all. The search field, the topbar account menu and the version switcher were the three affected. Fixes #519.', ['Dropdown', 'Topbar']],
