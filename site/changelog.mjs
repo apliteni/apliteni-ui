@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.87.0', date: '2026-10-05',
+    changes: [
+      ['added', 'React Tooltip supports a label, value and comparison. TooltipHost positions one readout across consumer-owned chart marks with hover, focus, tap and Escape support. Existing text tooltips keep working. Part of #429.', ['Tooltip']],
+    ],
+  },
+  {
     v: '0.86.0', date: '2026-10-05',
     changes: [
       ['added', 'React AccentPicker provides the four existing accent swatches as a controlled group. The host applies and saves the selected accent. Part of #429.'],

@@ -1,0 +1,31 @@
+/* Showcase composition; the chart belongs to the consumer. */
+.ch-chart { display: block; overflow: visible; }
+.ch-chart--fluid { width: 100%; height: auto; }
+.ch-area { fill: color-mix(in srgb, var(--accent) 14%, transparent); }
+.ch-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ch-hit { fill: transparent; }
+.ch-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; opacity: 0; }
+.ch-bar { fill: color-mix(in srgb, var(--accent) 45%, transparent); }
+.ch-cap { fill: none; }
+[data-tip-value]:hover .ch-dot, .ch-dot.is-on { opacity: 1; }
+[data-tip-value]:hover .ch-bar, .ch-bar.is-on { fill: var(--accent); }
+
+.tt-page { display: flex; flex-direction: column; gap: var(--space-5); max-width: var(--container); }
+.tt-kpis { display: grid; gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--panel-sm), 100%), 1fr)); }
+.tt-figure { margin: var(--space-2) 0 var(--space-4); font: var(--weight-semibold) var(--text-xl)/1.2 var(--font-display);
+  color: var(--strong); font-variant-numeric: tabular-nums; }
+.tt-note { margin: 0; font-size: var(--text-sm); color: var(--text); max-width: var(--prose-body); }
+.tt-room { padding-top: calc(var(--space-16) + var(--space-4)); }
+.tt-clip { overflow: hidden; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px var(--border); padding: 0 var(--space-8); }
+
+/* The vanilla gallery's specimen(): its 10px and its label's rank are the same
+   scaffolding measures, matched here so the two showcases read alike. */
+.tt-specimen { display: flex; flex-direction: column; gap: 10px; }
+.tt-specimen__label { font: 600 11px/1 var(--font-sans); color: var(--text); }
+
+.tooltip-gallery { padding: var(--space-10); min-height: 100vh; }
+/* The vanilla gallery's row(): a content-height flex row, so its wrapped lines
+   are not stretched by the canvas it sits in. Its 14px is the gallery's own
+   scaffolding measure, not a kit token, and is matched here on purpose. */
+.tooltip-placement { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }

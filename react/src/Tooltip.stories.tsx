@@ -31,3 +31,9 @@ export const ReducedMotion: Story = {
   parameters: { docs: { description: { story: 'Enable reduced motion in your browser, then hover or focus the label.' } } },
   render: () => <Example />,
 };
+
+export const Structured: Story = {
+  render: () => <div style={{ padding: 'var(--space-16)' }}>
+    <Tooltip label="March" value="€48,210" detail="+4.2% on February">March revenue</Tooltip>
+  </div>,
+};
