@@ -54,7 +54,7 @@
 .ui-seg--block { display: flex; align-self: stretch; justify-self: stretch; }
 .ui-seg--block button { flex: 1; }
 
-/* Accent picker — round colour swatches, active gets a ring */
+/* Accent picker — round colour swatches, the selected one ticked */
 .ui-accent-picker { display: inline-flex; gap: 10px; align-items: center; }
 .ui-accent-picker button {
   width: 26px;
@@ -63,13 +63,30 @@
   border: 0;
   padding: 0;
   cursor: pointer;
+  position: relative;
   background: var(--swatch, var(--accent));
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 2px var(--surface);
   transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 .ui-accent-picker button:hover { transform: scale(1.08); }
-.ui-accent-picker button.is-active {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch, var(--accent));
+/* Selected is a tick inside the circle, not a second ring around it: one element
+ * carries one accent signal, and on a focusable control that signal is the kit's
+ * focus ring. The mark is the one .ui-check draws for a checked box, at the same
+ * 2px stroke, in --signal-contrast — the circle wears the accent's dark ramp in
+ * both themes, so its ink is the one for a fill, not the --accent-contrast that
+ * pairs with --accent-strong. Held by stories/accent-mark.test.js.
+ * why: docs/specification.md#react-accent-picker */
+.ui-accent-picker button.is-active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  /* Lifted 2px: turning the box leaves the drawn corner below its middle. */
+  top: calc(50% - 2px);
+  width: 6px;
+  height: 11px;
+  border: solid var(--signal-contrast);
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -50%) rotate(45deg); /* motion: still — the turn is the tick's shape, not travel, and the mark lands with the press that asked for it. Nothing else on the swatch changes with selection, so there is no paint for it to arrive with. */
 }
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 

@@ -204,7 +204,7 @@
         "pattern": "a question the page stops for"
       },
       {
-        "ref": "src/components/index.js:225",
+        "ref": "src/components/index.js:217",
         "pattern": "export function callout("
       },
       {
@@ -222,17 +222,17 @@
         "pattern": "a floating, dismissible notification"
       },
       {
-        "ref": "src/components/index.js:251",
+        "ref": "src/components/index.js:243",
         "pattern": "class=\"ui-toast__action\""
       }
     ],
     "panels": [
       {
-        "ref": "src/components/index.js:76",
+        "ref": "src/components/index.js:77",
         "pattern": "It is NOT a tablist: it controls no panel"
       },
       {
-        "ref": "src/components/index.js:81",
+        "ref": "src/components/index.js:82",
         "pattern": "that one owns panels and earns the tab announcement"
       },
       {
@@ -250,17 +250,17 @@
         "pattern": ".ui-filter-bar__chip {"
       },
       {
-        "ref": "src/components/index.js:75",
+        "ref": "src/components/index.js:76",
         "pattern": "A strip of mutually exclusive toggle buttons."
       }
     ],
     "scale": [
       {
-        "ref": "src/components/index.js:268",
+        "ref": "src/components/index.js:260",
         "pattern": "Pick by how much of the screen the confirmation owns"
       },
       {
-        "ref": "src/components/index.js:270",
+        "ref": "src/components/index.js:262",
         "pattern": "export function successPanel("
       },
       {
@@ -314,7 +314,7 @@
         "pattern": "role=\"alertdialog\""
       },
       {
-        "ref": "src/components/index.js:251",
+        "ref": "src/components/index.js:243",
         "pattern": "class=\"ui-toast__action\""
       },
       {
@@ -454,7 +454,7 @@
         "pattern": "every icon-only control is one the closed list allows"
       },
       {
-        "ref": "src/components/index.js:41",
+        "ref": "src/components/index.js:42",
         "pattern": "const named = iconOnly"
       }
     ],
@@ -464,7 +464,7 @@
         "pattern": "export const iconMeanings"
       },
       {
-        "ref": "src/components/index.js:237",
+        "ref": "src/components/index.js:229",
         "pattern": "const TOAST_ICON = {"
       }
     ],
@@ -528,7 +528,7 @@
     ],
     "title-is-heading": [
       {
-        "ref": "src/components/index.js:66",
+        "ref": "src/components/index.js:67",
         "pattern": "const h = [2, 3, 4, 5, 6]"
       },
       {
@@ -624,15 +624,15 @@
     ],
     "never-nameless": [
       {
-        "ref": "src/components/index.js:17",
+        "ref": "src/components/index.js:18",
         "pattern": "kit glyphs are aria-hidden"
       },
       {
-        "ref": "src/components/index.js:19",
+        "ref": "src/components/index.js:20",
         "pattern": "an empty label falls back to the icon"
       },
       {
-        "ref": "src/components/index.js:84",
+        "ref": "src/components/index.js:85",
         "pattern": "not an accessible name"
       }
     ]
@@ -780,7 +780,7 @@
     ],
     "busy": [
       {
-        "ref": "src/components/index.js:39",
+        "ref": "src/components/index.js:40",
         "pattern": "busy ⇒ disabled"
       },
       {
@@ -794,15 +794,15 @@
     ],
     "error-in-markup": [
       {
-        "ref": "src/components/index.js:190",
+        "ref": "src/components/index.js:182",
         "pattern": "`invalid` paints the control red AND says so in aria-invalid"
       },
       {
-        "ref": "src/components/index.js:176",
+        "ref": "src/components/index.js:168",
         "pattern": "'aria-describedby': msgId,"
       },
       {
-        "ref": "src/components/index.js:162",
+        "ref": "src/components/index.js:154",
         "pattern": "markup rather than in the label's wording"
       }
     ],
@@ -816,7 +816,7 @@
         "pattern": "export function setBusy(root,"
       },
       {
-        "ref": "src/components/index.js:257",
+        "ref": "src/components/index.js:249",
         "pattern": "role=\"status\" aria-live=\"polite\""
       }
     ]
@@ -825,13 +825,13 @@
   "_text-length.js": {
     "short-controls": [
       {
-        "ref": "src/components/index.js:25",
+        "ref": "src/components/index.js:26",
         "pattern": "export function button("
       }
     ],
     "useful-callouts": [
       {
-        "ref": "src/components/index.js:225",
+        "ref": "src/components/index.js:217",
         "pattern": "export function callout("
       }
     ]
@@ -857,7 +857,7 @@
   "_empty-states.js": {
     "next-action": [
       {
-        "ref": "src/components/index.js:280",
+        "ref": "src/components/index.js:272",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
       }
     ]
@@ -959,7 +959,7 @@
     ],
     "in-row": [
       {
-        "ref": "src/components/index.js:218",
+        "ref": "src/components/index.js:210",
         "pattern": "export function switchToggle("
       },
       {
@@ -969,7 +969,7 @@
     ],
     "one-action": [
       {
-        "ref": "src/components/index.js:25",
+        "ref": "src/components/index.js:26",
         "pattern": "export function button("
       },
       {

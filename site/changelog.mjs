@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.86.0', date: '2026-10-05',
+    changes: [
+      ['added', 'React AccentPicker provides the four existing accent swatches as a controlled group. The host applies and saves the selected accent. Part of #429.'],
+      ['fixed', 'The selected accent swatch says so again: it carries a tick inside the circle, the same mark a checked box takes, in the kit’s ink for a saturated fill. Nothing said which accent was on before, because the selection ring was declared in the swatch’s own gradient and a gradient is not a colour. The tick also holds while the swatch has keyboard focus, where the focus ring used to replace the only signal there was. Focus stays the kit ring and is now the one accent edge a swatch draws: a selected swatch’s shadow is an unselected one’s. The tick reads 6.63:1 or better on every swatch in both themes. Vanilla and React share the fix.', ['AccentPicker']],
+      ['added', '`accentSwatchStyle(accent)` returns the custom properties one swatch button carries: `--swatch`, the gradient its circle wears. Both pickers read it, so a page building its own swatch strip paints the same thing, and the kit’s stylesheet draws the selected swatch’s tick, so the strip needs no selection paint of its own.'],
+      ['changed', 'The published type of `ACCENTS` narrows from `string[]` to a readonly tuple, so React can derive its `Accent` union from it. TypeScript consumers assigning it to a mutable `string[]` need a copy.'],
+    ],
+  },
+  {
     v: '0.85.1', date: '2026-10-04',
     changes: [
       ['changed', 'The packaged manifest\u2019s `test` script now ends a run with its ten slowest tests and files, and says which of them are over the stated budget. That report never fails a run. It is for whoever contributes to the kit; nothing the kit ships behaves differently. See #560.'],

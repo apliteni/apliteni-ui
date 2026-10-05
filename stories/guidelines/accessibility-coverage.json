@@ -498,6 +498,42 @@
       ]
     },
     {
+      "file": "stories/accent-mark.test.js",
+      "name": "Vanilla accent selection mark",
+      "does": "Checks, with the page on a DIFFERENT accent from the one selected, that the vanilla picker marks the selected swatch with a tick in an ink that is no accent and clears 3:1 against both stops of the gradient the circle wears, in each theme, and that the mark stays inside the circle once it is turned. Rejects a mark in the selected accent, one in the page accent, one the colour of the swatch under it, one grown past the rim, a picker that draws no mark, and a second pseudo-element rule able to cancel the first.",
+      "blind": [
+        "Browser paint, antialiasing, subpixel placement of the turned tick and host overrides; source CSS is resolved in JSDOM, which computes no pseudo-element, so the mark is read as the winning declaration rather than as a computed style.",
+        "The two gradient stops are read as flat colours and the mark is measured against each; the fade between them is not sampled, and the fit is measured against the circle's inscribed square, which is sufficient rather than tightest."
+      ]
+    },
+    {
+      "file": "react/src/AccentPicker.mark.test.tsx",
+      "name": "React accent selection mark",
+      "does": "The same measurement and the same six rejected mutations for the React picker, over the kit's exported accent list, and checks that each button carries the shared module's paints and no data-accent-pick for wireTopbar to adopt.",
+      "blind": [
+        "Browser paint, antialiasing, subpixel placement of the turned tick and host overrides; source CSS is resolved in JSDOM, which computes no pseudo-element.",
+        "The two gradient stops are read as flat colours; the fade between them is not sampled."
+      ]
+    },
+    {
+      "file": "stories/accent-focus.test.js",
+      "name": "Vanilla accent swatch: one accent edge under focus",
+      "does": "Measures the bands a selected vanilla swatch draws while it also holds keyboard focus, with the page on a DIFFERENT accent: the kit ring's band has to be there, no band may paint the selected swatch's own accent, exactly one band may paint an accent at all, the bands have to paint outward in source order, every pair that touches — including the outermost band against the ground — has to clear 3:1, and the focused selected edge has to equal the focused unselected one. Rejects both selection-band compositions #472 shipped, a second band laid against the ring in nearly its own colour, and an edge with no ring on it.",
+      "blind": [
+        "The 12px halo in var(--ring): it is blurred and translucent, so the pixels it reaches are the band colours mixed by a fraction no source reader can compute. The gate counts the halo, skips it and measures the opaque bands as declared, which makes a pass a ceiling rather than the painted result; browser pixel samples at the band interiors close that gap.",
+        "Browser paint, antialiasing and host overrides; source CSS is resolved in JSDOM, which also resolves no gradient, so the ring's gap band against the swatch fill is recorded as a reading and not asserted — the gap is part of the indicator, and the band it separates is read against the ground on both sides."
+      ]
+    },
+    {
+      "file": "react/src/AccentPicker.focus.test.tsx",
+      "name": "React accent swatch: one accent edge under focus",
+      "does": "The same measurement and the same four rejected compositions for the React picker, over the kit's exported accent list.",
+      "blind": [
+        "The 12px halo in var(--ring): it is blurred and translucent, so the pixels it reaches are the band colours mixed by a fraction no source reader can compute. The gate counts the halo, skips it and measures the opaque bands as declared; browser pixel samples at the band interiors close that gap.",
+        "Browser paint, antialiasing and host overrides; source CSS is resolved in JSDOM, which also resolves no gradient, so the ring's gap band against the swatch fill is recorded as a reading and not asserted."
+      ]
+    },
+    {
       "file": "stories/accent-swatch.test.js",
       "name": "Accent swatch",
       "does": "Checks that the accent picker’s swatch uses the tokens selected by the accent in all three picker copies. A stale swatch would misrepresent the available choice.",
@@ -760,6 +796,14 @@
         "Markup is not speech: this reads attributes and cannot tell whether a screen reader announces a stacked row as a table, and it measures no layout, focus order or contrast.",
         "How much the roles are worth was measured in one engine. In Chromium, stripping them leaves table, row, cell and columnheader standing and loses only the body's row group; WebKit and Gecko are unmeasured, so all five are required rather than the one engine shown to drop.",
         "No story in the kit announces an order while stacked, so that check passes over the swept stories without judging one. It is held instead by the fixtures beside it, which keep unrelated focusables on the page: an earlier version asked only whether the page had a focusable at all, and passed the exact defect it was written to catch."
+      ]
+    },
+    {
+      "file": "react/src/AccentPicker.test.tsx",
+      "name": "React: AccentPicker",
+      "does": "Checks controlled accent selection, accessible names and pressed state, native keyboard activation, focus retention, form safety, SSR and host-owned persistence.",
+      "blind": [
+        "JSDOM does not paint gradients, selection rings or focus indicators; browser captures cover appearance and grid alignment."
       ]
     }
   ],

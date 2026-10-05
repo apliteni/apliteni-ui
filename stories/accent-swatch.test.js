@@ -31,6 +31,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { luminance, parseColour, substitute, tokensFor } from './lib/contrast.js';
 import { accentPicker } from '../src/components/index.js';
+import { ACCENTS as SHIPPED, accentSwatchStyle } from '../src/logic/accents.js';
 import { footer } from '../site/chrome.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -395,4 +396,60 @@ test('all three copies of the accent picker paint the same swatches', () => {
       + '`background` there) and in what order they list the accents, but not in what they paint.',
     );
   }
+});
+
+/* ---- the selection mark --------------------------------------------------
+ * Which swatch is selected is said by a tick inside the circle, in one near-black
+ * ink segmented.css reads out of --signal-contrast. It used to be a ring in that
+ * accent's own colour, handed to the button as a paint per theme — and composed
+ * with the kit's focus ring that was two accent edges on one 26px circle, which
+ * #472's review sent back. stories/accent-mark.test.js measures the mark's
+ * contrast on every stop of every swatch; this says the paints carry no
+ * accent-coloured selection colour for it to come back as.
+ */
+test('a swatch carries its gradient and no selection colour of its own', () => {
+  assert.deepEqual(
+    [...SHIPPED].sort(), [...ACCENTS].sort(),
+    'src/logic/accents.js and src/tokens/accents.css do not list the same accents. Both pickers '
+    + 'take their list from the logic module, so an accent missing there is one nobody can pick '
+    + 'in either implementation, and one invented there selects a sub-theme that does not exist.',
+  );
+  const extra = [];
+  for (const accent of ACCENTS) {
+    const carried = Object.keys(accentSwatchStyle(accent));
+    for (const prop of carried.filter((p) => p !== '--swatch')) extra.push(`${accent} carries ${prop}`);
+  }
+  assert.deepEqual(
+    extra, [],
+    `\n${extra.join('\n')}\n\nA swatch button carries --swatch and nothing else. A second paint per `
+    + "accent is how the selection ring was delivered, and the selected swatch's mark is now one ink "
+    + 'that reads on all eight stops, declared once in segmented.css. An accent-coloured paint handed '
+    + 'to the button is the two-signal edge coming back by another route.',
+  );
+});
+
+/* The React picker was a fourth copy of the accent list and the eight gradient
+ * stops, outside every gate above — a fifth accent or a token change shipped a
+ * silently wrong React picker. It now reads src/logic/accents.js, and this says
+ * so by reading the source rather than trusting the import to stay. */
+test('the React picker paints from the shared module, not its own copy', () => {
+  const source = read('react/src/AccentPicker.tsx');
+  assert.match(
+    source, /import \{[^}]*\baccentSwatchStyle\b[^}]*\} from '@apliteni\/apliteni-ui'/,
+    'react/src/AccentPicker.tsx does not take its paints from the kit.',
+  );
+  const literals = [
+    ...[...source.matchAll(/linear-gradient\(/g)].map(() => 'a gradient of its own'),
+    ...[...source.matchAll(/#[\da-fA-F]{3,8}\b/g)].map(([hex]) => `the literal colour ${hex}`),
+    ...ACCENTS.filter((accent) => accent !== 'default')
+      .filter((accent) => source.includes(`'${accent}'`) || source.includes(`"${accent}"`))
+      .map((accent) => `the accent name "${accent}"`),
+  ];
+  assert.deepEqual(
+    literals, [],
+    `react/src/AccentPicker.tsx carries ${literals.join(', ')}. The accent list and every swatch's `
+    + 'paints come from src/logic/accents.js so that the two pickers cannot disagree and so that '
+    + 'the gates in this file reach both. Re-deriving them here puts the React picker back outside '
+    + 'every one of them.',
+  );
 });
