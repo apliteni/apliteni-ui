@@ -255,7 +255,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
             button standing in it, and a focusable box beside that button is the same action
             twice in the tab order. The box keeps its paint, its drop handlers and its pointer
             click; the keyboard path is the button's.
-            why: react/src/FileDrop.tsx, guidelines/file-drop.md#button-path */}
+            why: react/src/FileDrop.tsx, guidelines/file-drop.md#offer-a-button-not-only-a-drag */}
         <div className={`invoice-flow__drop${dragging ? ' is-dragging' : ''}`}
           onClick={pick}
           onDragOver={event => { event.preventDefault(); setDragging(true); }}

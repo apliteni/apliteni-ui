@@ -67,7 +67,7 @@ describe('invoice flow prototype', () => {
     /* The box holds a real button rather than claiming to be one. A region with role="button"
      * has presentational children, so conforming assistive technology drops the role of the
      * button standing in it, and a focusable box beside that button is the same action twice
-     * in the tab order. why: react/src/FileDrop.tsx, guidelines/file-drop.md#button-path */
+     * in the tab order. why: react/src/FileDrop.tsx, guidelines/file-drop.md#offer-a-button-not-only-a-drag */
     const box = container.querySelector<HTMLElement>('.invoice-flow__drop')!;
     expect(box).not.toHaveAttribute('role');
     expect(box).not.toHaveAttribute('tabindex');
@@ -87,8 +87,10 @@ describe('invoice flow prototype', () => {
     opened.mockRestore();
   });
   it('gives the empty box the action, and says only what the button does not', () => {
-    /* guidelines/empty-states.md#next-action asks the empty state for an action, and
-     * file-drop.md#button-path asks for the button rather than a sentence describing the box.
+    /* The empty state is asked for an action, and the file drop for a button rather than a
+     * sentence describing the box.
+     * why: guidelines/empty-states.md#explain-what-is-missing-and-show-the-next-step,
+     * guidelines/file-drop.md#offer-a-button-not-only-a-drag
      * The sub-line is left with the one fact the button cannot carry: the types. Both states
      * of the box offer the same button, so the keyboard reaches the picker on either screen. */
     const { container, unmount } = render(<InvoiceFlow />);

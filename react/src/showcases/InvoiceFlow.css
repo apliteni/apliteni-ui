@@ -32,10 +32,8 @@
 /* No vertical margin of its own: .ui-app__body is a flex column with the kit's page
    gap, so a margin here is added to that gap rather than replacing it. */
 .invoice-flow__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin: 0; }
-/* The summary of a rejected save is a block between the fields and the buttons, and it
-   carried no step of its own: a bare <p> computes margin 0 here, which left the sentence
-   sitting on top of Save invoice. It takes the step the fields above it already use, so the
-   form reads on one step rather than two. why: guidelines/layout-and-density.md#density */
+/* A bare <p> computes margin 0 here, which stood the rejected-save summary on Save invoice.
+   It takes the step the fields set. why: guidelines/layout-and-density.md#use-the-spacing-scale */
 .invoice-flow__summary { margin: 0 0 var(--space-6); }
 .invoice-flow__status, .invoice-flow__error { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
 /* icon() emits a bare <svg>; `.ui-icon` is only on the shell's hand-drawn fold glyph, so
@@ -73,8 +71,7 @@
    18px right of the column header. Pull the box back so the two share an edge. */
 .invoice-flow .ui-table td:first-child .ui-btn { margin-inline-start: calc(-1px - var(--btn-pad-x)); }
 .invoice-flow__drop { border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); margin: 0; padding: var(--space-4); }
-/* One row at rest: the button that opens the picker and the accepted types beside it.
-   why: guidelines/file-drop.md#one-row */
+/* One row at rest: the button and the types. why: guidelines/file-drop.md#spend-one-row-at-rest */
 .invoice-flow__drop-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 .invoice-flow__drop-row p { margin: 0; font-size: var(--text-sm); }
 .invoice-flow__drop.is-dragging { border-color: var(--accent); }
@@ -90,11 +87,11 @@
   .invoice-flow__drop { padding: var(--space-3); }
   .invoice-flow .ui-empty__actions { flex-wrap: wrap; justify-content: center; }
 }
-/* The kit grows a control's tap layer only as far as its container declares clearance,
-   and this row declared none, so Save and Discard stopped at their drawn 33px. The row
-   opens downward — across it is already wide enough — and the buttons keep their size. */
+/* The kit grows a tap layer only as far as its container declares clearance, and these rows
+   declared none, so their buttons stopped at their drawn 33px. The kit's own sheet opens
+   .ui-empty__actions; the drop row is this sheet's own. Both open downward, keeping their size. */
 @media (max-width: 560px) and (pointer: coarse) {
-  .invoice-flow__actions { row-gap: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+  .invoice-flow__actions, .invoice-flow__drop-row { row-gap: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
 }
 .invoice-flow h1:focus { outline: none; }
 .invoice-flow .ui-app__search, .invoice-flow .ui-cmdk__key,
