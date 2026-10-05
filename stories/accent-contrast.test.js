@@ -88,7 +88,7 @@ const GROUNDS = CANDIDATE_GROUNDS.filter((g) => !NOT_MEASURED.has(g));
 /** The grounds the accent WASH is measured over: the BASE surfaces only, derived by subtraction
  *  so a sixth surface joins both lists at once. Leaving the raised ones out is a claim about the
  *  kit rather than a gap here — the accent wash is painted on a base surface, never a raised one.
- *  src/styles/nav.css:160 `.ui-nav__item.is-active .ui-nav__badge.is-accent` once did;
+ *  src/styles/nav.css:168 `.ui-nav__item.is-active .ui-nav__badge.is-accent` once did;
  *  #295 moved its wash because the ladder made --bg-elevated the floating
  *  step, so a wash over it sits far closer to the ink than a wash over the page did, and every dark
  *  cell but Emerald went under the bar. Nothing holds the claim mechanically: a token gate cannot

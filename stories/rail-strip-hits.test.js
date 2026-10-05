@@ -118,18 +118,29 @@ function boxes(win, root) {
     const style = win.getComputedStyle(el);
     const own = px(style.width);
     const takes = own === null && TAKES_THE_COLUMN(style.width);
+    const column = own ?? (takes ? parentColumn : null);
     found.push({
       el,
       name: nameOf(el),
       declared: String(style.width ?? '').trim() || 'auto',
-      column: own ?? (takes ? parentColumn : null),
+      column,
+      // A `min-width` holds a box OPEN against the column it is laid out in, so it is
+      // the second way a box ends up past the strip. The words take `max-content` to
+      // keep their own width while they fade, which is a length no reading of the
+      // cascade can fold — so it is read as a floor the walk cannot bound, and the
+      // only thing that makes it safe is the `pointer-events: none` beside it.
+      floor: String(style.minWidth ?? '').trim() || 'auto',
+      floorPx: px(style.minWidth),
       inert: String(style.pointerEvents).trim() === 'none',
     });
-    for (const kid of el.children) walk(kid, own ?? (takes ? parentColumn : null));
+    for (const kid of el.children) walk(kid, column);
   };
   for (const kid of root.children) walk(kid, px(win.getComputedStyle(root).width));
   return found;
 }
+
+/** A `min-width` that lets the box be as narrow as its column: nothing is held open. */
+const FLOOR_IS_FREE = (value) => ['', 'auto', '0px', '0', 'inherit'].includes(String(value ?? '').trim());
 
 /**
  * The boxes a folded rail lays out past its strip while they still take the pointer, each
@@ -143,10 +154,16 @@ function takesHitsPastStrip(found, strip) {
         + 'length is no measurement of what it takes the pointer over');
       continue;
     }
-    if (box.column <= strip) continue;
+    if (box.floorPx === null && !FLOOR_IS_FREE(box.floor) && !box.inert) {
+      problems.push(`${box.name} is held open by min-width: ${box.floor}, which is no length this `
+        + 'gate can bound against the strip, and it still takes the pointer');
+      continue;
+    }
+    const widest = Math.max(box.column, box.floorPx ?? 0);
+    if (widest <= strip) continue;
     if (box.inert) continue;
-    problems.push(`${box.name} is laid out ${box.column}px wide in a ${strip}px rail — `
-      + `${box.column - strip}px past the strip, where it draws nothing — and still takes the pointer`);
+    problems.push(`${box.name} is laid out ${widest}px wide in a ${strip}px rail — `
+      + `${widest - strip}px past the strip, where it draws nothing — and still takes the pointer`);
   }
   return problems;
 }
@@ -276,4 +293,232 @@ test('the gate fails when a width stops being one it can fold into a length', ()
   const problems = takesHitsPastStrip(found, strip);
   assert.ok(problems.some((p) => /^\.ui-nav__cap is max-content wide, and a box this gate cannot fold/.test(p)),
     `a width this gate cannot fold has to be reported; got:\n  ${problems.join('\n  ')}`);
+});
+
+/* -- the fold's own clock ---------------------------------------------------------- */
+
+// The checks above read the rail at REST, at either end of the fold, and passed while it
+// still took 1,404 of 1,920 probe points on the page beside it for ~220ms of each close and
+// 1,682 for ~190ms of each open. A hit area that is only right at rest is not the guarantee.
+//
+// The rule: a box with a width of ITS OWN travels it on the rail's clock — same duration,
+// delay and curve — or it takes no pointer. A box with no width of its own has nothing to
+// time; it follows the column around it frame for frame, which is why `auto` and `100%` are
+// read as safe here exactly as they are above.
+//
+// Coverage limits:
+// - The declaration, not the frames: no animation is run. Chrome walked the frames for
+//   #588 in both directions and under reduced motion — 0 of 1,920 in all four walks.
+// - JSDOM does not expand the `transition` shorthand, so it is parsed here. A sheet that
+//   wrote the longhands would read as no clock, which is a finding rather than a pass.
+// - A delay is the one part of a clock the reduced-motion net does not cap, so a delay the
+//   rail does not have is a finding even on its own.
+// - The rail's own rules and the ones the folded class adds, not a consumer's sheet.
+
+/**
+ * Split a value on a separator that is not inside brackets.
+ *
+ * `cubic-bezier(0.4, 0, 0.2, 1)` carries both separators the shorthand uses — commas
+ * between its layers and spaces between a layer's parts — so neither can be split on
+ * naively. Reading the curve as `cubic-bezier(0.4,` is how a clock that differs reads
+ * as one that matches.
+ */
+const splitOutside = (value, separator) => {
+  const out = [];
+  let depth = 0; let current = '';
+  for (const ch of String(value ?? '')) {
+    if (ch === '(') depth += 1;
+    if (ch === ')') depth -= 1;
+    if (ch === separator && depth === 0) { out.push(current); current = ''; continue; }
+    current += ch;
+  }
+  out.push(current);
+  return out.map((part) => part.trim().replace(/\s+/g, ' ')).filter(Boolean);
+};
+const layersOf = (value) => splitOutside(value, ',');
+
+const TIME = /^(-?\d*\.?\d+)(ms|s)$/;
+const ms = (token) => {
+  const match = TIME.exec(token);
+  return match ? Number(match[1]) * (match[2] === 's' ? 1000 : 1) : null;
+};
+const EASING = /^(linear|ease|ease-in|ease-out|ease-in-out|step-start|step-end|cubic-bezier\(|steps\()/;
+
+/**
+ * What a box's `transition` says about one property: its duration, delay and curve.
+ *
+ * `null` when the box names no clock for it. The first time in a layer is the duration
+ * and the second is the delay, which is the order the shorthand fixes.
+ */
+function clockFor(declaration, property) {
+  for (const layer of layersOf(declaration)) {
+    const tokens = splitOutside(layer, ' ');
+    const times = tokens.filter((t) => ms(t) !== null).map(ms);
+    const easing = tokens.filter((t) => EASING.test(t)).join(' ');
+    const named = tokens.filter((t) => ms(t) === null && !EASING.test(t));
+    if (!named.includes(property) && !named.includes('all')) continue;
+    return { duration: times[0] ?? 0, delay: times[1] ?? 0, easing };
+  }
+  return null;
+}
+
+const sameClock = (a, b) => a !== null && b !== null
+  && a.duration === b.duration && a.delay === b.delay && a.easing === b.easing;
+const showClock = (c) => (c === null ? 'no clock of its own' : `${c.duration}ms after ${c.delay}ms, ${c.easing || 'no curve'}`);
+
+/** The rail's own clock for `width`: the one every box inside it is measured against. */
+function railClock(win, rail) {
+  const clock = clockFor(win.getComputedStyle(rail).transition, 'width');
+  assert.ok(clock && clock.duration > 0,
+    `the rail names no clock for its own width (${showClock(clock)}), so there is nothing `
+    + 'for the boxes inside it to travel on');
+  return clock;
+}
+
+/**
+ * The same box in the folded rail and in the open one, walked in lockstep.
+ *
+ * The two trees come from one factory with one flag between them, so position pairs them.
+ * A reading that drifted would pair a row with a heading, which is why the tags are
+ * checked rather than assumed.
+ */
+function pairs(win, folded, open) {
+  const out = [];
+  const walk = (a, b) => {
+    assert.equal(a.tagName, b.tagName,
+      `the folded and open rails no longer render the same tree: ${nameOf(a)} against ${nameOf(b)}`);
+    out.push({ name: nameOf(a), folded: a, open: b });
+    const kidsA = [...a.children]; const kidsB = [...b.children];
+    assert.equal(kidsA.length, kidsB.length,
+      `${nameOf(a)} renders ${kidsA.length} children folded and ${kidsB.length} open`);
+    kidsA.forEach((kid, i) => walk(kid, kidsB[i]));
+  };
+  [...folded.children].forEach((kid, i) => walk(kid, [...open.children][i]));
+  return out;
+}
+
+/**
+ * The boxes that travel a width of their own on a clock that is not the rail's, each
+ * named with what is wrong.
+ *
+ * Two boxes are not subjects. One with no width of its own is laid out in the column
+ * around it and cannot lag behind it. One whose width is the SAME at both ends of the
+ * fold — a glyph is 17px either way — never travels, so there is nothing to time; asking
+ * it for a clock would make every fixed box in the rail a finding and the rule unreadable.
+ *
+ * `side` is which of the two rails is being asked, because the way in and the way out are
+ * carried by different rules: a row takes an explicit strip width under the folded class
+ * and the column of its list without it.
+ */
+function offTheRailsClock(win, railPairs, clock, side) {
+  const problems = [];
+  for (const pair of railPairs) {
+    const el = pair[side];
+    const here = px(win.getComputedStyle(el).width);
+    if (here === null) continue;
+    const there = px(win.getComputedStyle(pair[side === 'folded' ? 'open' : 'folded']).width);
+    if (there !== null && there === here) continue;
+    if (String(win.getComputedStyle(el).pointerEvents).trim() === 'none') continue;
+    const own = clockFor(win.getComputedStyle(el).transition, 'width');
+    if (sameClock(own, clock)) continue;
+    problems.push(`${pair.name} is ${here}px wide on ${showClock(own)}, where the rail `
+      + `travels its own width ${showClock(clock)} — so the two are different widths `
+      + 'in the frames between');
+  }
+  return problems;
+}
+
+/** Both rails and the clock every box in them is measured against. */
+function readFold(theme, extra = '') {
+  const { win, rail } = readRail(theme, extra);
+  const open = win.document.querySelector('#open .ui-nav--side');
+  assert.ok(open, 'sidebarNav({ collapsed: false }) no longer renders an open rail');
+  return { win, railPairs: pairs(win, rail, open), clock: railClock(win, rail) };
+}
+
+test('the fold has one clock, and every box inside the rail that has a width travels on it', () => {
+  for (const theme of ['light', 'dark']) {
+    const { win, railPairs, clock } = readFold(theme);
+    const problems = offTheRailsClock(win, railPairs, clock, 'folded');
+    assert.deepEqual(problems, [],
+      `${theme}: a folded rail's boxes do not close when it does:\n  ${problems.join('\n  ')}\n`
+      + '  give the box the rail\'s own width transition, let it take the column of the box '
+      + 'around it, or give it pointer-events: none.');
+  }
+});
+
+test('the way out is carried too: the open rail\'s blocks name the same clock', () => {
+  // The fold is reversible, and the way out is the half no rest reading can see. When the
+  // folded class goes, a block whose clock lives only under that class has no clock at all:
+  // it snaps to the open column in one frame while the rail is still --ui-nav-strip wide.
+  for (const theme of ['light', 'dark']) {
+    const { win, railPairs, clock } = readFold(theme);
+    const problems = offTheRailsClock(win, railPairs, clock, 'open');
+    assert.deepEqual(problems, [],
+      `${theme}: the open rail's boxes would not travel with it on the way out:\n  `
+      + `${problems.join('\n  ')}`);
+  }
+});
+
+test('every box this clock reading covers is one the rail renders', () => {
+  // The count the two checks above are worth. A reading that reached no travelling box
+  // would report the same green on a rail whose every block had drifted.
+  for (const theme of ['light', 'dark']) {
+    const { win, railPairs } = readFold(theme);
+    const travels = railPairs.filter((pair) => {
+      const here = px(win.getComputedStyle(pair.folded).width);
+      const there = px(win.getComputedStyle(pair.open).width);
+      return here !== null && here !== there
+        && String(win.getComputedStyle(pair.folded).pointerEvents).trim() !== 'none';
+    });
+    assert.ok(travels.length >= 9,
+      `${theme}: the clock reading covers ${travels.length} travelling box(es); the fixture `
+      + 'folds two sections, six rows and a foot, so a reading that found fewer has broken. '
+      + `Covered: ${travels.map((pair) => pair.name).join(', ')}`);
+  }
+});
+
+test('the gate fails when a row waits out the words before it closes (#588)', () => {
+  // Exactly what this head replaced: the row holding the open column for --dur-fast after
+  // the fold the reader already has, inside a rail that left without it.
+  const mutation = '.ui-nav--side.is-collapsed .ui-nav__item {'
+    + ' transition: width var(--dur-fast) var(--ease) var(--dur-fast); }';
+  const { win, railPairs, clock } = readFold('dark', substitute(mutation, tokensFor('dark')));
+  const problems = offTheRailsClock(win, railPairs, clock, 'folded');
+  assert.ok(problems.some((p) => /^\.ui-nav__item .* on 150ms after 150ms/.test(p)),
+    `a row that waits out a delay the rail does not have must be reported; got:\n  ${
+      problems.join('\n  ')}`);
+});
+
+test('the gate fails when a block travels the width faster than the rail', () => {
+  // Not only delays: a block that closes in --dur-fast is AHEAD of the rail rather than
+  // behind it, which costs the reader nothing — but the frame it is wrong in is the same
+  // frame, and a rule that accepted it could not say which side of the rail a box was on.
+  const mutation = '.ui-nav--side > * { transition: width var(--dur-fast) var(--ease); }';
+  const { win, railPairs, clock } = readFold('dark', substitute(mutation, tokensFor('dark')));
+  const problems = offTheRailsClock(win, railPairs, clock, 'folded');
+  assert.ok(problems.some((p) => /^\.ui-nav__section .* on 150ms after 0ms/.test(p)),
+    `a block on a shorter clock than the rail must be reported; got:\n  ${problems.join('\n  ')}`);
+});
+
+test('the gate fails when a block names no clock at all, which is the way out going wrong', () => {
+  // The #588 unfold: the width changes in one frame because nothing carries it. `none` is
+  // the shape that reads as "no clock" and it has to be a finding, not an absence.
+  const mutation = '.ui-nav--side > * { transition: none; }';
+  const { win, railPairs, clock } = readFold('dark', mutation);
+  const problems = offTheRailsClock(win, railPairs, clock, 'open');
+  assert.ok(problems.some((p) => /^\.ui-nav__section .* on no clock of its own/.test(p)),
+    `a block that names no clock must be reported; got:\n  ${problems.join('\n  ')}`);
+});
+
+test('the gate fails when the words stop being inert while they keep their own width', () => {
+  // The words hold `min-width: max-content` so they are not squeezed by the closing row,
+  // which puts them past the strip on purpose. The `pointer-events: none` on them is the
+  // whole of what makes that safe, and taking it away has to be a finding.
+  const mutation = '.ui-nav--side.is-collapsed .ui-nav__label { pointer-events: auto; }';
+  const { found, strip } = readRail('dark', mutation);
+  const problems = takesHitsPastStrip(found, strip);
+  assert.ok(problems.length && problems.every((p) => /^\.ui-nav__label is held open by min-width: max-content/.test(p)),
+    `words held open past the strip that take the pointer must be reported, and that has to `
+    + `be the only finding; got:\n  ${problems.join('\n  ')}`);
 });
