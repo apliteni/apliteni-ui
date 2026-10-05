@@ -46,6 +46,18 @@ export declare function filterPanelFit(
   dd: Element | null | undefined,
   floor?: number,
 ): { room: number; shift: number; floor: number; end: boolean } | null;
+/** How wide a panel may be and how far along the inline axis it has to move to
+ *  stay inside the view it is laid out in, measured from where the sheet has put
+ *  it: `shift` is 0 when the edge `align` asked for already fits, and `max` is the
+ *  view less `edge` at each side — write it before measuring again, because capping
+ *  a panel changes the width a shift is calculated from. `at` gives the box a
+ *  caller is about to write instead, which is how the portal's placement asks.
+ *  `null` when there is nothing to measure, or inside a `.ui-filter-bar`, which
+ *  bounds its own panels. why: docs/components.md#the-dropdown-panel */
+export declare function dropdownViewportFit(
+  panel: Element | null | undefined,
+  at?: { left: number; width: number },
+): { shift: number; left: number; width: number; view: number; edge: number; max: number } | null;
 export declare function backLink(opts?: Record<string, unknown>): string;
 export declare function statBand(opts?: Record<string, unknown>): string;
 export declare function commandPalette(opts?: Record<string, unknown>): string;

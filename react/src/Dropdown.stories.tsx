@@ -177,3 +177,40 @@ export const Closed: StoryObj<typeof Dropdown> = {
     </Stage>
   ),
 };
+
+/* A full-width row holding its items at its two ends, which is where a panel runs
+ * out of screen. The 240px panel does not shrink with the view, so a trigger at
+ * the row's end has nowhere to put one at 1280 either; the row only makes that
+ * true at every width. Shut, because a shut panel is laid out too — and because
+ * the containment is the same question in both states.
+ * why: docs/components.md#the-dropdown-panel */
+const Ends = ({ children }: { children: React.ReactNode }) => (
+  <div style={{
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)', width: '100%',
+  }}
+  >
+    {children}
+  </div>
+);
+
+export const NearTheScreenEdges: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Stage>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', width: '100%' }}>
+        <Ends>
+          <Dropdown items={ACTIONS} ariaLabel="Period" triggerContent="Period" align="end" />
+          <Dropdown items={ACTIONS} ariaLabel="Row actions" triggerContent="Actions" />
+        </Ends>
+        <Ends>
+          <Dropdown items={ACTIONS} ariaLabel="Account" triggerContent="Account" align="end" />
+          <Dropdown
+            label="currency:"
+            items={CURRENCIES}
+            ariaLabel="Currency"
+            search={{ placeholder: 'Find a currency' }}
+          />
+        </Ends>
+      </div>
+    </Stage>
+  ),
+};
