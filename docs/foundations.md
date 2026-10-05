@@ -191,6 +191,10 @@ and its text still clears 4.5:1.
   same two tokens paint a button, so a button that is off drops a rung with the field.
 - **A disabled select carries the kit's own paint and no fade.** The kit's disabled field
   rule resets the `opacity: 0.7` that Chromium's user-agent stylesheet applies to one.
+- **A dropdown trigger uses the live control edge while it is live.** It uses
+  `--control-edge`, as `.ui-btn` does. When it is off, it uses `--disabled-border`,
+  `--disabled-ink`, and `cursor: not-allowed`. Hover does not take the accent from an
+  off trigger. A native disabled trigger also leaves the tab order and does not open.
 
 ## Elevation
 

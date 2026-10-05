@@ -249,6 +249,26 @@ test('the default renders exactly what it rendered before the variants existed',
   assert.match(html, /class="ui-dropdown__panel"/);
 });
 
+// `disabled` marks the trigger off with the NATIVE attribute, so the browser
+// takes the stop out of the tab order and dispatches no click from a real
+// pointer or key — the wiring needs to know nothing about the state — and the
+// sheet's disabled rule takes the edge back to --disabled-border. #580
+//
+// Limit: that suppression is the browser's, and JSDOM does not model it —
+// `dispatchEvent` reaches a disabled button here as it does in Chromium. So
+// what is read below is the markup the browser acts on, and the behaviour is
+// Chromium's own, measured on the pull request's captures.
+test('a trigger asked for off carries the attribute, and nothing else does', () => {
+  const off = dropdown({ value: 'Actions', variant: 'menu', items: [{ label: 'Edit' }], disabled: true });
+  assert.match(off, /<button[^>]*\bdisabled\b/);
+  // The state is the button's own, not something the panel or a row inherits.
+  assert.equal((off.match(/\bdisabled\b/g) || []).length, 1);
+  assert.doesNotMatch(off, /aria-disabled/);
+
+  const live = dropdown({ value: 'Actions', variant: 'menu', items: [{ label: 'Edit' }] });
+  assert.doesNotMatch(live, /\bdisabled\b/);
+});
+
 test('no foot is drawn unless one was asked for, and none is invented', () => {
   const html = dropdown({ value: 'Actions', variant: 'menu', items: [{ label: 'Edit' }] });
   assert.doesNotMatch(html, /ui-dropdown__foot/);
