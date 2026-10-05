@@ -8,13 +8,16 @@
  * read, and a build that goes red because a page gained a clause is a build
  * people learn to ignore. So this gate proves the measurement reaches every
  * page and that each verdict rejects what it claims to, and says nothing about
- * whether the pages pass. `npm run check:words` is what judges them.
+ * whether the pages pass. `npm run check:words` is what judges them, and its
+ * exit code is the CLI half at the foot of this file, which states its limit.
  *
  * Discover subjects from source and check the coverage count.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -29,6 +32,13 @@ const page = (...rules) => ['# A page', '', ...rules.flatMap((r) => [
 ])].join('\n');
 
 const filler = (n) => Array.from({ length: n }, (_, i) => `word${i}`).join(' ');
+
+/* The same page with an introduction between its title and its first rule: what
+ * docs/guidelines.md leaves no room for, and what nothing counted before #585. */
+const withIntro = (n, ...rules) => {
+  const [title, ...rest] = page(...rules).split('\n');
+  return [title, '', filler(n), ...rest].join('\n');
+};
 
 test('the measurement reaches every guideline page', () => {
   const files = readdirSync(pages).filter((f) => f.endsWith('.md'));
@@ -50,8 +60,8 @@ test('the measurement reaches every guideline page', () => {
 
   // The page title is a name, not prose: Overview is a title and nothing else.
   const overview = measured.find((m) => m.page === 'overview.md');
-  assert.deepStrictEqual([overview.rules, overview.words, overview.budget], [0, 0, 0],
-    'a page with no rules gets no allowance, so an introduction added to it would be caught');
+  assert.deepStrictEqual([overview.rules, overview.intro, overview.words, overview.budget], [0, 0, 0, 0],
+    'a page with no rules gets no allowance, so an introduction added to it is caught');
 });
 
 test('a recorded figure names a page that exists', () => {
@@ -69,6 +79,30 @@ test('a rule is measured by its title and every field it fills', () => {
   assert.equal(ruleWords({ imperative: 'Use — the `emptyState()` helper' }), 4,
     'a lone dash is not a word and code in backticks is one');
   assert.equal(ruleWords({ imperative: 'A' }), 1, 'an absent field adds nothing');
+});
+
+test('an introduction is prose on the page and spends the rules budget', () => {
+  const one = measure('x.md', withIntro(20, { title: 'T', id: 'a', instruction: filler(10) }));
+  assert.deepStrictEqual([one.rules, one.intro, one.words, one.budget], [1, 20, 31, 60],
+    "the page total is its introduction plus its rules, against the rules' budget");
+
+  /* The page the documentation leaves no room for: a title, an introduction and
+   * no rules. No rules is no allowance, so every word of it is over budget. */
+  const none = measure('overview.md', withIntro(1000));
+  assert.deepStrictEqual([none.rules, none.intro, none.words, none.budget], [0, 1000, 1000, 0]);
+  assert.deepStrictEqual(problemsIn([none], {}), [
+    'overview.md: 1000 words, 1000 over its budget of 0 (0 rules at 60) — cut it',
+  ], 'an introduction on a page with no rules is reported, and names the page');
+
+  // And on a page that has rules, a long introduction spends the room they bought.
+  const long = measure('x.md', withIntro(200, { title: 'T', id: 'a', instruction: filler(10) }));
+  assert.deepStrictEqual(problemsIn([long], {}), [
+    'x.md: 211 words, 151 over its budget of 60 (1 rule at 60) — cut it',
+  ]);
+
+  // The title above the introduction is still a name: a page with neither is 0.
+  assert.deepStrictEqual(problemsIn([measure('x.md', withIntro(0))], {}), [],
+    'a title-only page is not prose and is not reported');
 });
 
 /* The collection is green, so the verdicts are exercised against pages that are
@@ -125,3 +159,39 @@ test('the budget is a round figure a reviewer can move in one place', () => {
   const measured = measure('x.md', page({ title: 'T', id: 'a', instruction: filler(40) }), 30);
   assert.equal(measured.budget, 30, 'the rate is an argument, so the check can be run at another number');
 });
+
+/* -- The CLI half -----------------------------------------------------------
+ *
+ * The verdicts above are the measurement; this is the exit code the command
+ * answers with, which no source test can read. It is OFF unless the variable is
+ * set, because the budget is out of CI (#576) and nothing in CI runs this
+ * command — so the exit code is reported by hand in the pull request, and that
+ * is this gate's largest limit. The fixture is a collection of its own in a
+ * temporary directory: this half never reads the pages the repository ships.
+ *
+ *   WORD_BUDGET_CLI=1 node --test scripts/word-budget.test.js
+ */
+
+const RUN = process.env.WORD_BUDGET_CLI === '1';
+
+test('CLI mutation: a page with a long introduction exits 1 and names itself',
+  { skip: !RUN && 'set WORD_BUDGET_CLI=1' }, () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'word-budget-'));
+    try {
+      writeFileSync(path.join(dir, 'kept.md'), page({ title: 'T', id: 'a', instruction: filler(40) }));
+      writeFileSync(path.join(dir, 'introduced.md'), withIntro(1000, { title: 'T', id: 'a', instruction: filler(10) }));
+
+      const run = spawnSync(process.execPath, [path.join(here, 'word-budget.mjs'), dir], { encoding: 'utf8' });
+
+      assert.equal(run.status, 1,
+        `the CLI exited ${run.status} over a page carrying a 1,000-word introduction\n${run.stdout}${run.stderr}`);
+      assert.match(run.stdout, /^ {2}introduced\.md: 1011 words, 951 over its budget of 60 \(1 rule at 60\) — cut it$/m,
+        'the failure has to name the page, or a reader cannot act on it');
+      assert.doesNotMatch(run.stdout, /kept\.md:.*(over|more than|within|no such)/,
+        'the page inside its budget was reported too, so the CLI is failing the collection and not the page');
+      assert.match(run.stdout, /^introduced\.md +1 +1000 +1011 +60 +11 over by 951$/m,
+        'the measurement prints the introduction, so a count can be read back to the prose it came off');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });

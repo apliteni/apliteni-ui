@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.89.0', date: '2026-10-05',
     changes: [
-      ['changed', '`npm run check:words` measures the prose on each guidelines page and fails one that is over its word budget. The budget is 60 words a rule \u2014 each rule\u2019s title and the fields it fills \u2014 read off the shortest pages in the collection today; the fifteen pages already above it are held at their current size until they are cut. It is a drafting aid for whoever edits the collection, deliberately outside CI, and changes nothing the kit renders. Resolves #576.'],
+      ['changed', '`npm run check:words` measures the prose on each guidelines page and fails one that is over its word budget. The budget is 60 words a rule, read off the shortest pages in the collection today, and the count is every word a reader reads: any introduction above the first rule, then each rule\u2019s title and the fields it fills. An introduction buys no allowance of its own, so a page with no rules has nothing to spend and any introduction on one fails. The fifteen pages already over the budget are held at their current size until they are cut. It is a drafting aid for whoever edits the collection, deliberately outside CI, and changes nothing the kit renders. Resolves #576.'],
     ],
   },
   {

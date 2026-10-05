@@ -10,13 +10,18 @@
  *
  * The subject is every `guidelines/*.md` page, discovered from the directory, so
  * a new page joins the check by existing. The prose is read through the parser
- * the pages are rendered with, so what is counted is what a reader reads: each
- * rule's `##` title and its Rule, Why, Except, Do, Don't and Gap fields. The
- * page title is a name, not prose, and is not counted.
+ * the pages are rendered with, so what is counted is what a reader reads: any
+ * introduction between the title and the first rule, then each rule's `##`
+ * title and its Rule, Why, Except, Do, Don't and Gap fields. The page title is
+ * a name, not prose, and is not counted.
  *
  * A page's budget is its rule count times WORDS_PER_RULE. A rate rather than a
  * flat page figure, because a page of ten rules is not a page of three that has
  * grown; and expressed per page, because that is what a reader opens.
+ *
+ * An introduction buys no allowance of its own: docs/guidelines.md gives a page
+ * a title and rules and no introduction, so the words of one that appears anyway
+ * come out of the rules' budget — and a page with no rules has none to spend.
  *
  * Deliberately NOT in CI (#576): the budget is a drafting aid with a number
  * chosen from how today's pages read, not a published guarantee. `npm test`
@@ -83,20 +88,24 @@ export const ruleWords = (rule) =>
     .reduce((total, field) => total + words(field), 0);
 
 /**
- * One page's measurement.
+ * One page's measurement. `words` is the whole page: its introduction, if it has
+ * one, plus every rule. `intro` is carried separately so the table can show it —
+ * an introduction inside a total and shown nowhere is what this check missed.
  *
  * @param {string} page      the file name, as the recorded figures key it
  * @param {string} text      the page's Markdown
  * @param {number} perRule
- * @returns {{page: string, rules: number, words: number, budget: number, worst: number}}
+ * @returns {{page: string, rules: number, intro: number, words: number, budget: number, worst: number}}
  */
 export function measure(page, text, perRule = WORDS_PER_RULE) {
-  const { rules } = parseGuideline(text);
+  const { blurb, rules } = parseGuideline(text);
   const each = rules.map(ruleWords);
+  const intro = words(blurb);
   return {
     page,
     rules: rules.length,
-    words: each.reduce((a, b) => a + b, 0),
+    intro,
+    words: intro + each.reduce((a, b) => a + b, 0),
     budget: rules.length * perRule,
     worst: each.reduce((a, b) => Math.max(a, b), 0),
   };
@@ -106,7 +115,7 @@ export function measure(page, text, perRule = WORDS_PER_RULE) {
  * What is wrong with the collection, as lines a reader can act on without
  * opening this file. Every line names its page first.
  *
- * @param {Array<{page: string, rules: number, words: number, budget: number}>} measured
+ * @param {Array<{page: string, rules: number, intro: number, words: number, budget: number}>} measured
  * @param {Record<string, number>} recorded
  * @returns {string[]}
  */
@@ -160,15 +169,26 @@ export function measureCollection(dir = path.join(root, 'guidelines'), perRule =
 }
 
 if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').href) {
-  const measured = measureCollection();
-  const problems = problemsIn(measured);
+  /* A directory argument measures another collection — a draft, or the fixture
+   * that proves this check rejects what it claims to. The recorded figures are
+   * this repository's pages at one moment, so they are applied to this
+   * repository's directory and nowhere else. */
+  const own = path.join(root, 'guidelines');
+  const dir = process.argv[2] ? path.resolve(process.argv[2]) : own;
+  const measured = measureCollection(dir);
+  const problems = problemsIn(measured, dir === own ? RECORDED : {});
 
+  if (dir !== own) {
+    const near = path.relative(process.cwd(), dir);
+    console.log(`${!near || near.startsWith('..') ? dir : near}, measured against the budget alone:`
+      + ` the recorded figures belong to this repository's pages.\n`);
+  }
   console.log(`Guideline prose, against ${WORDS_PER_RULE} words a rule:\n`);
-  console.log(['page'.padEnd(26), 'rules'.padStart(5), 'words'.padStart(6), 'budget'.padStart(7), 'worst rule'.padStart(11)].join(' '));
+  console.log(['page'.padEnd(26), 'rules'.padStart(5), 'intro'.padStart(5), 'words'.padStart(6), 'budget'.padStart(7), 'worst rule'.padStart(11)].join(' '));
   for (const m of measured) {
     const over = m.words > m.budget ? ` over by ${m.words - m.budget}` : '';
-    console.log([m.page.padEnd(26), String(m.rules).padStart(5), String(m.words).padStart(6),
-      String(m.budget).padStart(7), String(m.worst).padStart(11)].join(' ') + over);
+    console.log([m.page.padEnd(26), String(m.rules).padStart(5), String(m.intro).padStart(5),
+      String(m.words).padStart(6), String(m.budget).padStart(7), String(m.worst).padStart(11)].join(' ') + over);
   }
 
   if (problems.length === 0) {
