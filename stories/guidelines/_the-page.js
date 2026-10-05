@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('the-page.md', new URL('../../guidelines/the-page.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { card, button, badge } from '../../src/components/index.js';
 
 export const REFERENCE_POLICY = 'code-free';
@@ -213,7 +213,7 @@ export const RULES = withSpecimens(content.rules, [
 // Two limits the same gate walks that this page does not draw. They are not
 // decisions anybody takes per screen — the kit has already taken them, and a
 // designer looking at a mock cannot break either one — so what they guarantee
-// is stated in docs/library.md#the-page-shell, and the ids stay here because
+// is stated in docs/components.md#the-page-shell, and the ids stay here because
 // stories/guidelines/the-page.test.js keys one check to each.
 export const GATED_ELSEWHERE = [
   { id: 'shell', states: 'An application page is the shell’s, and it draws one main region.' },

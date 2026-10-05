@@ -1,5 +1,5 @@
 // Stat band — a row of key figures, as an HTML string.
-// why: docs/library.md#stat-bands
+// why: docs/components.md#stat-bands
 //
 // A band is a <dl>: each figure is a <div> holding its label as a <dt> and its
 // value, change and trend as <dd>s, which is the grouping HTML allows inside a
@@ -24,7 +24,7 @@ const GLYPH = { up: 'arrowUp', down: 'arrowDown', flat: 'minus' };
 const hasChange = (delta) => delta && delta.value != null && delta.value !== '';
 
 // One row and one line: the caption, the change, then what it is measured
-// against. Nothing to compare draws no row. why: docs/library.md#stat-bands
+// against. Nothing to compare draws no row. why: docs/components.md#stat-bands
 const contextRow = (caption, delta, basisId) => {
   if (!hasChange(delta)) return caption ? `<dd class="ui-stat__caption">${esc(caption)}</dd>` : '';
   // The space is read where the CSS gap is only drawn: "of income+1.2 pts" else.
@@ -58,7 +58,7 @@ const figure = ({ label = '', value = '', caption = '', delta, trend = '' }, til
 // `basis` is the band's caption: what every change is measured against, said
 // once before the list the way a table's <caption> is, in every layout — under
 // a row of tiles it would read as a note on the last card.
-// why: docs/library.md#stat-bands
+// why: docs/components.md#stat-bands
 export function statBand({ stats = [], variant = 'tiles', basis = '', label, id } = {}) {
   const v = STAT_VARIANTS.includes(variant) ? variant : 'tiles';
   const base = id ? esc(id) : `ui-stats-${++seq}`;

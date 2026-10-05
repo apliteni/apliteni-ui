@@ -31,7 +31,7 @@
 /* Chevron — border caret that flips when the container is .open. Its ink is an L
    on a rotated square, so centring the BOX leaves the mark off centre; --caret-off
    is that gap, derived rather than typed.
-   why: docs/library.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-dropdown__chevron {
   --caret: 8px;
   --caret-ink: 1.6px;
@@ -50,11 +50,11 @@
 .ui-dropdown__panel {
   /* One number for the trigger-to-panel offset, read by both edges here and by
      the portal's JS, so an upward panel cannot drift from a downward one.
-     why: docs/library.md#the-dropdown-panel */
+     why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-gap: 9px;
   /* Named for the same reason the offset is: a block pinned to an edge has to
      bleed back through it, and #306 is a page copying the number by hand.
-     why: docs/library.md#the-dropdown-panel */
+     why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-pad: 6px;
   /* The panel states its own role rather than inheriting one, because `portal:
      true` moves it onto <body> and an inherited face is then decided by where
@@ -83,7 +83,7 @@
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a
      box that is drawn is a box that is hit. The open rules take this back.
-     why: docs/library.md#the-dropdown-panel */
+     why: docs/components.md#the-dropdown-panel */
   pointer-events: none;
   transform: translateY(-6px);
   transition:
@@ -111,7 +111,7 @@
    them, and a consumer who set `bottom` and left our `top` standing got a
    fourteen-pixel panel. The entry travel is mirrored too, so the panel arrives
    from the trigger whichever way it opens.
-   why: docs/library.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-dropdown__panel.is-up {
   top: auto;
   bottom: calc(100% + var(--ui-dropdown-gap));
@@ -122,7 +122,7 @@
 /* Open, the panel is visible AT ONCE: `visibility` is off the list, so it is not
    held at `hidden` for the frame a key opens the panel in — the frame the focus
    call happens in. Closing still fades on every property it always did.
-   why: docs/library.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-dropdown.open .ui-dropdown__panel,
 .ui-dropdown__panel--portal.is-open { transition-property: opacity, transform; }
 
@@ -130,7 +130,7 @@
    property of its own still transitions the inherited `visibility`, so it is hidden in
    the frame openDropdown() focuses into it — #519. Keyed on the data hook, because the
    topbar's two menus open on the same wiring and keep their own CSS.
-   why: docs/library.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 @media (prefers-reduced-motion: reduce) {
   .open > [data-dropdown-panel] *,
   [data-dropdown-panel].is-open * { transition: none !important; }
@@ -141,7 +141,7 @@
    selector above stops matching the moment it leaves the trigger's subtree, so
    its open state is a class of its own; the wiring writes the viewport
    coordinates inline, and these `auto`s are what it writes over.
-   why: docs/library.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-dropdown__panel--portal {
   position: fixed;
   top: auto; right: auto; bottom: auto; left: auto;
@@ -152,7 +152,7 @@
    <a href> or a <button>: `is-selected` and __tick below mean a row gets
    chosen, and choosing is a button's job. So the tag's own styling is reset
    here, the way .ui-nav__item resets it, and the three render identically.
-   why: docs/library.md#a-dropdown-row-is-a-div-a-link-or-a-button */
+   why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button */
 .ui-dropdown__item {
   display: flex;
   gap: 11px;
@@ -213,7 +213,7 @@
 .ui-dropdown__item.is-disabled .ui-dropdown__desc { color: inherit; }
 /* Body ink at rest, --pink on the way to being pressed. Both states, not hover alone:
    the ring says where the reader is, not that this row ends something.
-   why: docs/library.md#a-dropdown-row-is-a-div-a-link-or-a-button */
+   why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button */
 .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--text); }
 .ui-dropdown__item.is-danger:hover .ui-dropdown__label,
 .ui-dropdown__item.is-danger:focus-visible .ui-dropdown__label { color: var(--pink); }
@@ -234,7 +234,7 @@
 
 /* Optional pinned head/foot blocks — symmetrical: one inner padding, and each
    bleeding to the edge it sits on, lining the edge it faces.
-   why: docs/library.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-dropdown__panel > .ui-dropdown__head,
 .ui-dropdown__panel > .ui-dropdown__foot {
   padding: 11px 13px;
@@ -254,7 +254,7 @@
    reader types. The rows move into a list of their own, so the field stays put
    while the list scrolls. Every rule below keys on a class only the search
    variant emits, so the plain dropdown renders as it did.
-   why: docs/library.md#a-dropdown-with-a-search-field */
+   why: docs/components.md#a-dropdown-with-a-search-field */
 .ui-dropdown__panel--search { min-width: 280px; }
 
 .ui-dropdown__search { position: relative; display: flex; align-items: center; margin-bottom: 6px; }

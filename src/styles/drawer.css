@@ -202,7 +202,7 @@
    panel, and rows are held apart by space alone. Group from group is the one
    division inside the body worth a line; the body's padding insets it, so it
    parts the groups without cutting the panel in two.
-   why: docs/library.md#the-drawer */
+   why: docs/components.md#the-drawer */
 .ui-drawer__section + .ui-drawer__section {
   margin-top: var(--space-6);
   padding-top: var(--space-6);

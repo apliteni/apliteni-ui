@@ -1,7 +1,7 @@
 // The kit's one page shell: a full-height rail beside one <main>, in two layouts.
 // `topbar` switches the product band on; it is off unless the caller hands one over.
 // wireShell() once after mounting wires the fold, the nav's groups and the reader's menu.
-// why: docs/library.md#the-page-shell
+// why: docs/components.md#the-page-shell
 import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
 import { sidebarNav, breadcrumbs, wireNav } from './nav.js';
@@ -12,7 +12,7 @@ import { ACCOUNT_NAV, toMenuTuple, initials } from './account-nav.js';
 import { paletteHotkey } from './command-palette.js';
 import { safeUrl } from '../html.js';
 // The one account navigation definition lives in account-nav.js because topbar.js needs
-// it too; re-exported here so the name docs/library.md publishes keeps working.
+// it too; re-exported here so the name docs/components.md publishes keeps working.
 export { ACCOUNT_NAV };
 
 const str = (v) => (v == null ? '' : String(v));
@@ -44,7 +44,7 @@ const toCrumbs = (crumbs) => (Array.isArray(crumbs) ? crumbs : [])
 
 // A back link replaces the trail rather than joining it: the two would name the same parent
 // twice. Anything but a record is no back link; its fields go through as given, so a back
-// backLink() refuses leaves the trail standing. why: docs/library.md#the-back-link
+// backLink() refuses leaves the trail standing. why: docs/components.md#the-back-link
 const toBack = (b) => (isRecord(b) && !Array.isArray(b) ? { href: b.href, label: b.label } : null);
 
 // The reader, as two strings. railUser() and initials() both read them, and an
@@ -83,7 +83,7 @@ const toTopbar = (t) => {
 //
 // Each is a name the kit knows or the default — read strictly, and not through
 // String(), which turned `['topbar']` into a layout and drew half a page.
-// why: docs/library.md#the-page-shell
+// why: docs/components.md#the-page-shell
 const toLayout = (v) => (v === 'topbar' ? 'topbar' : 'rail');
 
 // why: docs/foundations.md#widths
@@ -91,7 +91,7 @@ const toWidth = (v) => (v === 'wide' ? 'wide' : 'centered');
 
 // `search: 'palette-id'`, or the same id in `{ palette }` with a placeholder beside
 // it. No palette to open, no field — the argument `signOutHref` takes.
-// why: docs/library.md#the-page-shell
+// why: docs/components.md#the-page-shell
 const toSearch = (v) => {
   const given = typeof v === 'string' ? { palette: v } : (isRecord(v) && !Array.isArray(v) ? v : null);
   const palette = given && typeof given.palette === 'string' ? given.palette.trim() : '';
@@ -114,7 +114,7 @@ const mainMax = (v) => {
 // ---- the fold, and where the reader's choice is kept ---------------------
 //
 // A cookie rather than localStorage, because a server can read one and paint the
-// rail at the width the reader left it. why: docs/library.md#the-page-shell
+// rail at the width the reader left it. why: docs/components.md#the-page-shell
 export const RAIL_COOKIE = 'apliteni-ui-rail';
 const RAIL_MAX_AGE = 60 * 60 * 24 * 365;
 const RAIL_VALUE = new RegExp(`(?:^|;\\s*)${RAIL_COOKIE}=(collapsed|expanded)(?:;|$)`);
@@ -142,7 +142,7 @@ const railName = (collapsed) => (collapsed ? 'Expand sidebar' : 'Collapse sideba
 // hand. The seam does not move: it IS the rail, and the compartment it cuts off
 // stays on the side the rail is on. Only the nodes are written here — a child a
 // stylesheet can reach — and they are spliced into icon()'s own wrapper rather
-// than a copy of it. why: docs/library.md#the-page-shell
+// than a copy of it. why: docs/components.md#the-page-shell
 const MARK = '<rect x="3" y="3" width="18" height="18" rx="2"/>'
   + '<path class="ui-app__fold-seam" d="M9 3v18"/>'
   + '<path class="ui-app__fold-arrow" d="m16 15-3-3 3-3"/>';
@@ -151,7 +151,7 @@ const railMark = () => icon('').replace('></svg>', `>${MARK}</svg>`);
 // The rail's own skin, outside the <nav>: folding the rail is not a place to go.
 // It stands at the far end of the head band's brand row, and its name is written
 // out rather than put in a tooltip, because the name IS the chip layout.css lands
-// beside the glyph — at both widths. why: docs/library.md#the-page-shell
+// beside the glyph — at both widths. why: docs/components.md#the-page-shell
 const railToggle = (collapsed) =>
   `<div class="ui-app__fold-row">`
   + `<button type="button" class="ui-nav__item ui-app__fold" data-rail-toggle`
@@ -165,7 +165,7 @@ const SHAPES = {
   nav: toItems, crumbs: toCrumbs, back: toBack, account: toReader, maxWidth: mainMax, topbar: toTopbar,
   layout: toLayout, width: toWidth, search: toSearch,
   // Drawn by default; `collapsible: false` is the way out, for a page that will
-  // never call wireShell(). why: docs/library.md#the-page-shell
+  // never call wireShell(). why: docs/components.md#the-page-shell
   collapsible: (v) => v !== false,
   // A boolean is the caller's answer. Anything else leaves it to the reader.
   collapsed: (v) => (typeof v === 'boolean' ? v : null),
@@ -186,7 +186,7 @@ function settle(options) {
 // The face of the reader block: the initials, and the two lines beside them that
 // the fold takes away. `named` is the accessible name when nothing else carries
 // one; under the menu trigger it is null, because the button is named by the words
-// inside it. why: docs/library.md#the-page-shell
+// inside it. why: docs/components.md#the-page-shell
 const readerFace = (name, email, named, markOnly = false) =>
   `<span class="ui-app__av"${named ? ` role="img" aria-label="Signed in as ${esc(named)}"` : ' aria-hidden="true"'}>`
   + `${esc(initials(name, email))}</span>`
@@ -235,7 +235,7 @@ function readerBlock({ name, email }, signOutHref, { band = false } = {}) {
 
 // A field to look at, a button to press. `data-cmdk-open` and the cap's class are the
 // palette's own, and the cap is NOT aria-hidden: it is half the button's name.
-// why: docs/library.md#the-page-shell
+// why: docs/components.md#the-page-shell
 const searchField = ({ palette, placeholder }) =>
   `<button type="button" class="ui-app__search" data-cmdk-open="${esc(palette)}" aria-haspopup="dialog">`
   + `<span class="ui-app__search-ic" aria-hidden="true">${icon('search')}</span>`
@@ -244,7 +244,7 @@ const searchField = ({ palette, placeholder }) =>
   + `</button>`;
 
 // The band: search at its start, the reader at its end, beside the rail rather than
-// across the top of both. why: docs/library.md#the-page-shell
+// across the top of both. why: docs/components.md#the-page-shell
 const shellBar = (search, account, signOutHref) =>
   `<header class="ui-app__bar">`
   + (search ? searchField(search) : '')
@@ -292,13 +292,13 @@ export function appShell(options = {}) {
     ariaLabel: navLabel,
   });
   // One band over a page, never two: the banded layout draws its own, so the
-  // compatibility bag is not drawn beside it. why: docs/library.md#the-page-shell
+  // compatibility bag is not drawn beside it. why: docs/components.md#the-page-shell
   const compat = banded ? null : topbar;
   // The topbar already says the product word, so the rail head steps aside when there is
   // one. The word is the link's only text and the narrow rail folds it out of view, so
   // the name is written out — the mark itself is aria-hidden. The banded layout's own
   // bar says no word, so there the rail keeps the lockup: that layout's head band IS
-  // the product's mark. why: docs/library.md#the-page-shell
+  // the product's mark. why: docs/components.md#the-page-shell
   const brand = compat ? '' : `<a class="ui-app__brand" href="${esc(safeUrl(brandHref))}" aria-label="${esc(word)}">`
     + `${prism(`appb-${++_shellUid}`, 24)}<span>${esc(word)}</span></a>`;
   // A <div>, not an <aside>: <aside> is the `complementary` landmark, and this holds the
@@ -319,7 +319,7 @@ export function appShell(options = {}) {
     ? `<div class="ui-app__head">${brand}${inHead}</div>`
     : '';
   // The rail's foot: the reader, or the control that took their place. One block
-  // either way. why: docs/library.md#the-page-shell
+  // either way. why: docs/components.md#the-page-shell
   const foot = banded
     ? (fold ? `<div class="ui-app__foot">${fold}</div>` : '')
     : readerBlock(account, signOutHref);
@@ -357,7 +357,7 @@ const _unpersisted = new WeakSet();
 // path is written once — the listener, the reflector and wireShell() all have to mean
 // the same control. A descendant and not a child, because the two layouts stand the
 // row in two places: the head band, or the rail's foot.
-// why: docs/library.md#the-page-shell
+// why: docs/components.md#the-page-shell
 const FOLD_PATH = '.ui-app__fold-row > [data-rail-toggle]';
 const RAIL_FOLD = `.ui-app__rail ${FOLD_PATH}`;
 
@@ -413,7 +413,7 @@ export function wireShell(root = document, { persist } = {}) {
   // other. Idempotent, and a shell with no account draws none to find.
   wireDropdown(root);
   // A server cannot know which key the reader holds, so the browser corrects it here —
-  // off the ROOT's window, not the global one. why: docs/library.md#the-page-shell
+  // off the ROOT's window, not the global one. why: docs/components.md#the-page-shell
   const here = root.nodeType === 9 ? root : root.ownerDocument;
   const view = here && here.defaultView;
   const key = paletteHotkey(view && view.navigator ? view.navigator.platform : '');

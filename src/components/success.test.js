@@ -118,7 +118,7 @@ test('block confirmation shares the full-page check and keeps text escaped', () 
  * Limits: this reads the emitted string. It does not paint, so it cannot say
  * how large either mark renders or whether the tick animates.
  *
- * why: docs/library.md#success-confirmations
+ * why: docs/components.md#success-confirmations
  */
 const LUCIDE = {
   // src/assets/icons.js ships both; read from there so a Lucide bump moves one copy.
@@ -181,7 +181,7 @@ test('the confirmation carries its mark on its root and no backdrop layer', () =
  * cannot tell a short line from a long one — `body` is one element whatever is
  * put in it, and the stories are where the length is judged.
  *
- * why: docs/library.md#success-confirmations
+ * why: docs/components.md#success-confirmations
  */
 const LAYOUTS = ['hero', 'split', 'compact'];
 
@@ -243,7 +243,7 @@ test('the stylesheet keeps no rule for the tier the markup no longer has', () =>
  * sheets agree on a number, not that a browser draws it; the measurement that
  * found the original drift was a browser, and so is the capture in the PR.
  *
- * why: docs/library.md#success-confirmations
+ * why: docs/components.md#success-confirmations
  */
 const sizeOf = (css, selector) => {
   const rule = new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`).exec(css);
@@ -264,14 +264,14 @@ test('the inline panel draws the circled mark at the same size success() does', 
   assert.deepEqual(panel, page,
     `the inline panel sizes the circled mark ${panel.w}x${panel.h} while success() draws it `
     + `${page.w}x${page.h}. The kit promises one status size everywhere, and `
-    + 'docs/library.md#success-confirmations, react/README.md and the changelog all state '
+    + 'docs/components.md#success-confirmations, react/README.md and the changelog all state '
     + 'the number — move all four together or none.');
   assert.equal(page.w, page.h, 'the mark is square; a Lucide glyph in a 24 box has no other shape');
 
   // The guarantee is a number a reader can look up, so hold the number too: a
   // matched pair that both drifted would otherwise satisfy the assertion above.
   assert.equal(page.w, 20,
-    'the circled mark left 20px. That number is published in docs/library.md, react/README.md '
+    'the circled mark left 20px. That number is published in docs/components.md, react/README.md '
     + 'and site/changelog.mjs; change those in the same commit or put it back.');
 
   // The rule only reaches the panel if successPanel() writes the modifier, and only

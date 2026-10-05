@@ -1,5 +1,5 @@
 /* File drop — .ui-drop. One row at rest; the field-sized box stays with .ui-file.
- * why: docs/library.md#react-file-drop */
+ * why: docs/components.md#react-file-drop */
 .ui-drop { position: relative; }
 
 /* What the region accepts the file for, above the control. */

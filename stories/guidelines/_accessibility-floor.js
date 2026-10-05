@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('accessibility-floor.md', new URL('../../guidelines/accessibility-floor.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 //
 // Three of the numbers on this page did not exist anywhere in this tree before
 // #201, and each is pinned by a measurement in

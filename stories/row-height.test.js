@@ -11,7 +11,7 @@
  *
  *   ROW_HEIGHTS=1 node --test stories/row-height.test.js
  *
- * why: docs/library.md#react-file-drop
+ * why: docs/components.md#react-file-drop
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -552,7 +552,7 @@ test('measured at 1280, 390, 360 and 320, in a plain row and in a panel', { skip
   // every width — which is what one layout at every width means. A state that
   // gains or loses a tier, or changes height, is a design change, so it fails
   // here and is reviewed by hand rather than re-recorded. The heights are the
-  // ones docs/library.md publishes; they moved in #566 when this half
+  // ones docs/components.md publishes; they moved in #566 when this half
   // started loading the font, because a tier is as tall as its own line box.
   const STATES = {
     'react:uploading': { tiers: 3, height: 69.55 }, // name, size, track

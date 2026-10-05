@@ -74,7 +74,7 @@
 }
 
 /* -- Sizes -------------------------------------------------------------- */
-/* why: docs/library.md#extra-small-buttons */
+/* why: docs/components.md#extra-small-buttons */
 .ui-btn--xs { --btn-pad-y: 4.5px; --btn-pad-x: 8px; --btn-font: var(--text-xs); min-width: 24px; min-height: 24px; }
 .ui-btn--xs svg { width: 13px; height: 13px; stroke-width: 2.8; }
 .ui-btn--sm { --btn-pad-y: 6px; --btn-pad-x: 12px; --btn-font: calc(var(--text-sm) - 0.5px); }
@@ -123,7 +123,7 @@
    contrast table shows that. The box was reverted and this ink shipped.
    Held by src/styles/button-disabled.test.js. */
 
-/* why: docs/library.md#busy-button-labels */
+/* why: docs/components.md#busy-button-labels */
 .ui-btn { position: relative; }
 .ui-btn[aria-busy="true"] { pointer-events: none; }
 .ui-btn[aria-busy="true"][data-btn-wired] {

@@ -1,4 +1,4 @@
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { badge } from '../../src/components/index.js';
 
 // Render inline code and token names without interpreting prose as HTML.

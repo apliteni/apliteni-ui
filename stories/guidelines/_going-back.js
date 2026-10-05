@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('going-back.md', new URL('../../guidelines/going-back.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { button } from '../../src/components/index.js';
 import { backLink } from '../../src/components/back.js';
 import { breadcrumbs, sidebarNav } from '../../src/components/nav.js';

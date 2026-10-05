@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('layout-and-density.md', new URL('../../guidelines/layout-and-density.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { card } from '../../src/components/index.js';
 
 // The specimens here are rows in a card, because density is a rhythm and a

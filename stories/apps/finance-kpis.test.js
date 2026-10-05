@@ -5,7 +5,7 @@
  * a container query keyed to a width the story argued for in a comment. The band
  * now owns the fold, measured and pinned in src/styles/stat.test.js, so what is
  * left to hold here is that the screen uses it and brings no layout of its own.
- * why: docs/library.md#stat-bands
+ * why: docs/components.md#stat-bands
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

@@ -12,7 +12,7 @@
  * Two densities, one markup: the default packs a row onto one line, and
  * `.ui-cmdk--roomy` gives the description a line of its own.
  *
- * why: docs/library.md#the-command-palette */
+ * why: docs/components.md#the-command-palette */
 
 .ui-cmdk {
   /* The floating step; nothing casts. why: docs/foundations.md#elevation */
@@ -169,7 +169,7 @@
    13.3333px Arial`, centred text and a shrink-to-fit width, and a consumer who
    needs the row operable from the keyboard should get the row this sheet
    describes rather than that. `font: inherit` comes before the line-height it
-   keeps. why: docs/library.md#a-dropdown-row-is-a-div-a-link-or-a-button */
+   keeps. why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button */
 .ui-cmdk__item {
   display: flex;
   border: 0;

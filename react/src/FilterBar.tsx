@@ -25,7 +25,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all 
     // No chip of its own left to hold it: the shared pair decides where the focus
     // goes — the bar itself only while it still holds chips, since emptied it
     // draws no box and the ring would sit on a 0-height line — and checks that it
-    // arrived. why: docs/library.md#a-filter-row-holds-its-panels
+    // arrived. why: docs/components.md#a-filter-row-holds-its-panels
     if (target) target.focus();
     else focusNextStop(bar.current);
   });
@@ -38,7 +38,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all 
       onFocus={() => { focused.current = { id: filter.id, index }; }}>
       <legend className="ui-filter-bar__legend">{filter.label}</legend>
       {/* The chip prints one line; the field's name reaches a reader through the
-          trigger's name and the chip's own legend. why: docs/specification.md#dense-financial-tables */}
+          trigger's name and the chip's own legend. why: docs/components.md#dense-financial-tables */}
       {/* The chip's own value is marked in the items its menu gets, so the line
           the chip prints and the row the menu washes cannot disagree — the same
           shared call the vanilla factory makes. why: src/logic/filter-bar.js */}
@@ -51,7 +51,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all 
         onClick={() => { if (!blocked && !filter.disabled) onRemove(filter.id); }}>×</button>
     </fieldset>)}
     {/* Shown only once there is something to clear, in the bordered skin. The
-        vanilla factory carries the reasoning. why: docs/library.md#a-filter-row-holds-its-panels */}
+        vanilla factory carries the reasoning. why: docs/components.md#a-filter-row-holds-its-panels */}
     {filters.length > 0 && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
   </fieldset></div>;
 }

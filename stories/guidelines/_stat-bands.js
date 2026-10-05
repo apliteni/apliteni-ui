@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('stat-bands.md', new URL('../../guidelines/stat-bands.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { badge, card } from '../../src/components/index.js';
 import { statBand } from '../../src/components/stat.js';
 import { sparkline } from '../lib/sparkline.js';

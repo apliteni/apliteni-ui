@@ -85,7 +85,7 @@ type Entry = { id: number; notice: ToastNotice; remove: () => void };
  * document root so a fixed page action can sit clear of any number of notices
  * rather than guess at the height of one. 0px while the stack is empty, so the
  * action rests in its own corner until a notice needs the space (#388).
- * why: docs/library.md#react-toasts */
+ * why: docs/components.md#react-toasts */
 const REACH = '--rx-toast-stack';
 
 function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: number) {

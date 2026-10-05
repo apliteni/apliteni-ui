@@ -18,7 +18,7 @@
   font-family: var(--font-sans);
   /* The rail's width, and the one property the fold moves: the nav's own column
      plus the inset either side plus the rule, so the shell has no geometry of its
-     own to drift from the rows inside it. why: docs/library.md#the-page-shell */
+     own to drift from the rows inside it. why: docs/components.md#the-page-shell */
   --ui-rail-rule: 1px;
   --ui-rail-w: calc(var(--ui-nav-col) + 2 * var(--space-4) + var(--ui-rail-rule));
 }
@@ -49,7 +49,7 @@
   width: var(--ui-rail-w);
   /* hidden across, auto down: the fold clips what leaves the screen rather than
      laying it out again. Two longhands, not the shorthand — the gates' CSS engine
-     does not read the pair. why: docs/library.md#the-page-shell */
+     does not read the pair. why: docs/components.md#the-page-shell */
   overflow-x: hidden;
   overflow-y: auto;
   transition: width var(--dur-med) var(--ease);
@@ -58,7 +58,7 @@
    nav declares its own; these are the three that are not the nav. Scoped to the rail,
    because the topbar layout draws the reader's block in its band instead and a column
    the rail's width is no measurement for a box on a 52px line.
-   why: docs/library.md#the-page-shell */
+   why: docs/components.md#the-page-shell */
 .ui-app__rail > .ui-app__head,
 .ui-app__rail > .ui-app__user,
 .ui-app__rail > .ui-app__foot { width: var(--ui-nav-col); flex: none; }
@@ -75,7 +75,7 @@
   text-decoration: none;
   /* The lockup leaves on the words' clock, `visibility` with it so the link leaves
      the tab order — `linear`, as every discrete property in the kit is.
-     why: docs/library.md#the-page-shell */
+     why: docs/components.md#the-page-shell */
   transition: opacity var(--dur-fast) var(--ease), visibility var(--dur-fast) linear;
   /* display: brand — the rail's lockup is the same mark topbar.css sets, and the
      two have to be the same face or the shell reads as two products. */
@@ -91,7 +91,7 @@
 
 /* The head band: the product's mark, and the rail's own control at the far end of
    the same line. `min-width: 0` so a long word shrinks the lockup rather than pushing
-   the control off the band. why: docs/library.md#the-page-shell */
+   the control off the band. why: docs/components.md#the-page-shell */
 .ui-app__head {
   display: flex;
   align-items: center;
@@ -139,7 +139,7 @@
 }
 /* The other thing that can close a rail: where the reader's block is in the band,
    the fold's control takes its place under the same rule.
-   why: docs/library.md#the-page-shell */
+   why: docs/components.md#the-page-shell */
 .ui-app__foot {
   display: flex;
   align-items: center;
@@ -152,7 +152,7 @@
 /* The avatar is the reader block's own glyph, so half the difference between the
    glyph column and itself is the inset that centres it on the line every glyph above
    it stands on. The arithmetic and not the 5.5 it comes to: both numbers are declared
-   elsewhere. why: docs/library.md#the-page-shell */
+   elsewhere. why: docs/components.md#the-page-shell */
 .ui-app { --ui-app-av: 30px; }
 .ui-app__av {
   width: var(--ui-app-av); height: var(--ui-app-av); flex: none;
@@ -173,7 +173,7 @@
 /* -- the reader's menu ---------------------------------------------------- */
 /* The account block is a dropdown() trigger, so it takes the rail's own row skin
    rather than the dropdown's pill — in place it is the last row of the rail. The
-   dropdown's own ring is left standing. why: docs/library.md#the-page-shell */
+   dropdown's own ring is left standing. why: docs/components.md#the-page-shell */
 .ui-app__user .ui-dropdown { width: 100%; }
 .ui-app .ui-app__user-trigger {
   width: 100%;
@@ -196,7 +196,7 @@
 .ui-app__user-trigger .ui-app__who { flex: 1 1 auto; text-align: left; }
 /* The panel is portalled onto <body>, so nothing here may hang off .ui-app: by the
    time it is open it is no longer inside the rail that drew it.
-   why: docs/library.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-app__user-panel .ui-dropdown__head { display: flex; flex-direction: column; gap: 2px; }
 .ui-app__user-panel .ui-dropdown__head b { display: block; color: var(--strong); font-size: calc(var(--text-sm) - 0.5px); font-weight: var(--weight-semibold); }
 /* The address wraps rather than truncating: nothing bounds this line, so
@@ -208,7 +208,7 @@
 /* The toggle's cell, at the far end of the brand row: the auto margin puts it there
    with or without a wordmark beside it, and the offset below rides it back onto the
    glyph column as the rail closes. `position: relative` and not a transform, because
-   the chip inside is `position: fixed`. why: docs/library.md#the-page-shell */
+   the chip inside is `position: fixed`. why: docs/components.md#the-page-shell */
 .ui-app__fold-row {
   flex: none;
   margin-inline-start: auto;
@@ -219,12 +219,12 @@
 /* One box on the glyph column at both widths — --ui-nav-strip, the width nav.css
    derives the closed rail from. `gap: 0` leaves that column the whole of the
    content box, so the label below is squeezed to nothing until the chip rule lifts
-   it out. why: docs/library.md#the-page-shell */
+   it out. why: docs/components.md#the-page-shell */
 .ui-app__fold { width: var(--ui-nav-strip); gap: 0; }
 /* The chip rule lifts the name out of the flow, and a 17px glyph is shorter than
    the line the name occupied — so the button lost 0.39px on hover and moved every
    row under it. The glyph box carries the line instead, in both states.
-   why: docs/library.md#the-page-shell */
+   why: docs/components.md#the-page-shell */
 .ui-app__fold .ui-nav__ic { height: 1lh; }
 .ui-app .ui-app__fold { color: var(--text); }
 .ui-app .ui-app__fold:hover,
@@ -243,7 +243,7 @@
 
    The width's own clock, not the words', so the mark and the closing edge arrive
    together; no `!important`, so the reduced-motion net still takes it.
-   why: docs/library.md#the-page-shell */
+   why: docs/components.md#the-page-shell */
 .ui-app__fold .ui-app__fold-arrow {
   transform-box: view-box;
   transform-origin: 15px 12px;
@@ -253,7 +253,7 @@
 
 /* -- The collapsed rail --------------------------------------------------- */
 /* Each rule here has its twin in the 720px block below; nothing lays a row out
-   again. why: docs/library.md#the-page-shell */
+   again. why: docs/components.md#the-page-shell */
 .ui-app.is-collapsed { --ui-rail-w: calc(var(--ui-nav-strip) + 2 * var(--space-4) + var(--ui-rail-rule)); }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__cap,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__label,
@@ -266,14 +266,14 @@
    lockup goes whole, since that column is where its mark stood. The mark may only go
    where the control arrives: below 720px the toggle is not drawn, so the 720px block
    gives the lockup back rather than leaving an empty band with a hairline under it.
-   why: docs/library.md#the-page-shell */
+   why: docs/components.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__head > .ui-app__fold-row { inset-inline-start: calc(var(--ui-nav-strip) - var(--ui-nav-col)); }
 /* …and only in the layout where something arrives on the mark's column. In the
    topbar layout the toggle is at the rail's foot, nothing lands where the mark
    stands, and a lockup faded out there leaves a band with nothing in it and its
    hairline still under it — the defect the 720px block below exists to avoid. So
    that layout keeps the mark and lets the shared rule above fold away its words.
-   why: docs/library.md#the-page-shell */
+   why: docs/components.md#the-page-shell */
 :where(.ui-app:not(.ui-app--topbar).is-collapsed) .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
@@ -282,7 +282,7 @@
    row's own left padding, which on the strip is the rail's edge; the hairline is
    drawn on a row that keeps the open column, so its right edge is off the strip;
    and --ui-nav-strip is twice the glyph's centre, so a box that wide at the row's
-   edge is centred on the glyph. why: docs/library.md#the-page-shell */
+   edge is centred on the glyph. why: docs/components.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ z-index: -1; }
@@ -295,7 +295,7 @@
    It floats by role — a readout placed over the page for as long as a pointer
    rests on a row — so it takes the floating treatment the hover readout takes,
    which is the same shape on the same step: the two-step edge and the drops.
-   why: docs/library.md#the-page-shell
+   why: docs/components.md#the-page-shell
    why: docs/foundations.md#elevation */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who,
@@ -338,7 +338,7 @@
    arrangement where the rail's head band and the band close at the same height — what
    the three heights below are for. Level, not one continuous stroke: the rail insets
    its own rule, and in light that half is 1.009:1 on the rail's ground.
-   why: docs/library.md#the-second-layout */
+   why: docs/components.md#the-second-layout */
 .ui-app { --ui-app-band: 52px; }
 .ui-app__well { display: flex; flex-direction: column; min-width: 0; }
 .ui-app__bar {
@@ -368,7 +368,7 @@
    like is the point. The STEP is not, and that is the one thing this control does
    differently from every other field in the kit: the reason is on the declaration
    below. It gives way before anything else on the band.
-   why: docs/library.md#the-page-shell */
+   why: docs/components.md#the-page-shell */
 .ui-app__search {
   display: flex;
   align-items: center;
@@ -409,7 +409,7 @@
 
 /* The mark alone — no room for two lines on a 52px row. No rule over it, since the
    band's hairline is under the whole of it, and no column, since this is not the rail.
-   why: docs/library.md#the-page-shell */
+   why: docs/components.md#the-page-shell */
 .ui-app__user--bar { flex: none; padding-top: 0; border-top: 0; }
 .ui-app__user--bar .ui-app__av { margin-inline-start: 0; }
 /* Crumb, then the title block. At --space-2 the crumb sat 8px off the h1 and
@@ -447,7 +447,7 @@
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
 /* At one column the 6rem basis stops being a floor and becomes the field's size:
    a row with two narrow chips beside it keeps all three on the line and cuts the
-   field's own placeholder off. why: docs/library.md#a-toolbar-at-one-column */
+   field's own placeholder off. why: docs/components.md#a-toolbar-at-one-column */
 @media (max-width: 560px) {
   .ui-toolbar > .ui-input,
   .ui-toolbar > .ui-input-group { flex-basis: 100%; }
@@ -466,19 +466,19 @@
   /* …and the foot goes with it, for the reason the head band does below: in the
      topbar layout that box holds the toggle and nothing else, so at this width it is
      padding and a hairline drawn over nothing. Scoped to the shell's own rail, like
-     every other rule in this block. why: docs/library.md#the-page-shell */
+     every other rule in this block. why: docs/components.md#the-page-shell */
   .ui-app__rail .ui-app__foot { display: none; }
   /* …and with it the band, when the band has nothing else in it: a head with no
      wordmark is the toggle alone, so at this width it is padding and a hairline
      drawn over nothing. The reader's fold cannot take this rule — there the toggle
-     IS drawn. why: docs/library.md#the-page-shell */
+     IS drawn. why: docs/components.md#the-page-shell */
   .ui-app__head:not(:has(> .ui-app__brand)) { display: none; }
   /* And where the band does hold the mark, the mark stays — at this width the press
      that folded the rail on a desktop still reads out of the cookie, and the control
      that would undo it is the one above. A head band faded to nothing here is an empty
      41px box over a rule, with no way home. The reader's fold cannot take this rule —
      there the toggle lands on the column the mark gives up.
-     why: docs/library.md#the-page-shell */
+     why: docs/components.md#the-page-shell */
   .ui-app__brand { opacity: 1; visibility: visible; pointer-events: auto; }
   .ui-app__rail .ui-nav__cap,
   .ui-app__rail .ui-nav__label,
@@ -496,7 +496,7 @@
   /* The one line of this block that is deliberately NOT the reader's fold: a finger
      is the only pointer this width has, so a row and the account block are held to
      44px. Neither floor can spread to the press, where growing the box is the one
-     thing the travel promises nothing does. why: docs/library.md#the-page-shell */
+     thing the travel promises nothing does. why: docs/components.md#the-page-shell */
   .ui-app__rail .ui-nav__item,
   .ui-app__rail .ui-app__user-trigger { min-height: 44px; }
   .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,

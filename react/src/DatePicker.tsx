@@ -12,8 +12,8 @@ import './DatePicker.css';
 // opens — and adds only the grid inside it, so a picker and a select beside it
 // are the same control at rest. The panel is a dialog rather than a listbox
 // because a calendar is a grid, and a listbox may own only options.
-// why: docs/library.md#the-dropdown-panel
-// why: docs/library.md#react-date-and-month-picker
+// why: docs/components.md#the-dropdown-panel
+// why: docs/components.md#react-date-and-month-picker
 
 /**
  * `'month'` and `'range'` work in whole months, `'day'` and `'day-range'` in
@@ -716,7 +716,7 @@ export function DatePicker({
           // Mounted while closed so the panel can fade out the way every other
           // dropdown in the kit does, and inert while it is, so a grid nobody
           // opened is out of the tab order, out of the pointer's way and out of
-          // the accessibility tree. why: docs/library.md#the-dropdown-panel
+          // the accessibility tree. why: docs/components.md#the-dropdown-panel
           inert={!open}
           onClick={(e: ReactMouseEvent) => e.stopPropagation()}
         >

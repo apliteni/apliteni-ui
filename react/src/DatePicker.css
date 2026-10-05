@@ -1,12 +1,12 @@
 /* Date and month picker — only what a calendar adds to the dropdown's shell.
-   why: docs/library.md#react-date-and-month-picker */
+   why: docs/components.md#react-date-and-month-picker */
 
 /* The panel is the grid's own width: neither squeezed below it nor held above
    it. `max-content`, because a box hanging off the trigger shrinks to it and the
    shortcuts would spill out of the grid beside them; `min-width: 0`, because the
    kit's 240px floor is the measure a list of option rows needs and a month grid
    is 136px — the floor left 80px of empty panel right of Mar, Jun, Sep and Dec.
-   why: docs/library.md#react-date-and-month-picker */
+   why: docs/components.md#react-date-and-month-picker */
 .ui-datepicker__panel {
   --ui-dropdown-pad: var(--space-3);
   width: max-content;

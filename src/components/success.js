@@ -10,7 +10,7 @@ import { esc, button } from './index.js';
 
 // 'line' is the bare Lucide `check`, 'circled' is Lucide circle-check-big. Which
 // is the default, and why that departs from Guidelines / Iconography:
-// why: docs/library.md#success-confirmations
+// why: docs/components.md#success-confirmations
 // Each is written whole because the icon-sizing and glyph-stroke gates find their
 // subjects by scanning source for a class on an `<svg …>`: a tag split across
 // string pieces leaves both silent rather than failing.
@@ -66,7 +66,7 @@ function countdownEl({ seconds = 5, label = 'Redirecting' } = {}) {
 // Both carry one title and at most one short line under it. There is no eyebrow
 // tier: a confirmation stacking a label, a headline and a paragraph reads as
 // three competing voices for one outcome.
-// why: docs/library.md#success-confirmations
+// why: docs/components.md#success-confirmations
 export function success({
   layout = 'hero',          // 'hero' | 'split' | 'compact'
   level,                    // heading level of the title; see the note below

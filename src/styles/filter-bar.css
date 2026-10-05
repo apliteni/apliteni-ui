@@ -14,13 +14,13 @@
 
 /* Shut, a panel is the trigger's width, never the 240px floor a standalone
    dropdown gets: it is laid out while hidden, so a wider one widened the page
-   (#467). why: docs/specification.md#a-filter-row-holds-its-panels */
+   (#467). why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; overflow-wrap: anywhere; }
 /* The clear action takes the kit's bordered skin minus its fill: words belong on
    the page, not on a grey block, in any state — Artur, round r28. Rest stays at
    (0,1,1) so `.ui-btn:hover`'s accent wash still outranks it; the rules under it
    answer each state that paints a NEUTRAL fill, one step above the kit rule
-   writing it. Held by filter-bar.test.js. why: docs/library.md#a-filter-row-holds-its-panels */
+   writing it. Held by filter-bar.test.js. why: docs/components.md#a-filter-row-holds-its-panels */
 [data-filter-clear] button { background: transparent; }
 .ui-filter-bar [data-filter-clear] button:disabled,
 .ui-filter-bar [data-filter-clear] button[aria-disabled="true"],
@@ -35,7 +35,7 @@
 
 /* Open, a chip's menu takes the kit's menu floor, measured and slid by
    filterPanelFit(); `is-closing` holds that geometry through the fade. #549
-   why: docs/specification.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar__chip .ui-dropdown.open .ui-dropdown__panel,
 .ui-filter-bar__chip .ui-dropdown__panel.is-closing {
   min-width: min(var(--ui-filter-panel-floor, 240px), var(--ui-filter-panel-room, 100%));
@@ -57,7 +57,7 @@
    open menu too and left 9.8px of the check in a 240px menu — a chevron, not a
    tick. Open the menu is at the floor with room for the mark, and `is-closing`
    holds the open geometry through the fade, so it is open for this as well. #550
-   why: docs/specification.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar__chip .ui-dropdown:not(.open) .ui-dropdown__panel:not(.is-closing) .ui-dropdown__tick {
   flex-shrink: 1;
   min-width: 0;
@@ -68,7 +68,7 @@
    tab you are on, and keeps the kit's 16px check. The wash is a 1.2:1 tint, so the
    check is what identifies the state under WCAG 1.4.1; Apple, Material, Carbon,
    Primer and Radix all tick a chosen menu row. #549
-   why: docs/specification.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__item.is-selected { background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 /* Kit-wide a chosen label steps down to --text, which left the row in force the
    faintest in the panel. Under the wash it holds --strong. */
@@ -82,5 +82,5 @@
 /* Hover's other paint is a 1px edge, 1.06:1 on the wash, which left the row in force
    the one row a pointer got no answer from. Selection is a background highlight, so
    hover deepens it: 9% more accent, the step .ui-table--zebra gives a hovered row.
-   why: docs/specification.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__item.is-selected:hover { background: color-mix(in srgb, var(--glow-purple), var(--accent) 9%); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }

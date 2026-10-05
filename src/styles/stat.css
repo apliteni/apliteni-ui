@@ -3,7 +3,7 @@
  *   .ui-stats--tiles  one card per figure — the default
  *   .ui-stats--band   one card, figures divided by space
  *   .ui-stats--open   no surface; a rule over each figure
- * why: docs/library.md#stat-bands
+ * why: docs/components.md#stat-bands
  * ========================================================================== */
 
 /* The band lays out from the width of its own box, not the window's: a band in
@@ -129,7 +129,7 @@ dd.ui-stat__caption { contain: inline-size; }
    count stacks. The widths are where four and three tiles of `€ 6,459,401`
    stop fitting, and the open band's larger value moves them out; a longer
    figure still wraps rather than overlaps.
-   why: docs/library.md#stat-bands */
+   why: docs/components.md#stat-bands */
 @container (28rem < width <= 56rem) {
   .ui-stats:not(.ui-stats--open) .ui-stats__list:has(> .ui-stat:nth-child(4):last-child) > .ui-stat { flex-basis: 34%; }
 }

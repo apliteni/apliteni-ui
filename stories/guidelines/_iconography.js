@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('iconography.md', new URL('../../guidelines/iconography.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { button, toast } from '../../src/components/index.js';
 import { icon, iconOnlyAllowed, iconMeanings } from '../../src/assets/icons.js';
 

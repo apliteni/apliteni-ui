@@ -1,12 +1,12 @@
 # Foundations
 
-The values the kit ships and the floors every component meets.
-[library.md](library.md) is the other half — what each component is and what it promises.
-The design rules for a screen are in [the guidelines](../guidelines/overview.md), and why a
-number is what it is lives in the issue that settled it.
+The kit ships these values, and every component meets these minimums.
+[components.md](components.md) is the other half. It explains each component and its promise.
+The design rules for a screen are in [the guidelines](../guidelines/overview.md). The issue that
+settled a number explains why it has that value.
 
-Everything here is a CSS custom property you can read and re-point. Take the tokens with
-`@apliteni/apliteni-ui/tokens` and `/accents`, or the whole stylesheet with `/css`.
+Everything here is a CSS custom property that you can read and re-point. Take the tokens from
+`@apliteni/apliteni-ui/tokens` and `/accents`, or take the full stylesheet from `/css`.
 
 ## Widths
 
@@ -15,12 +15,12 @@ Everything here is a CSS custom property you can read and re-point. Take the tok
 --measure:    860px;   /* the reading column inside a track */
 ```
 
-A box that bounds the page takes the first; a box that bounds a line of text takes the second.
-Nothing in the kit writes a page-scale width as a number.
+Use the first value for a box that bounds the page. Use the second for a box that bounds a line
+of text. The kit does not write a page-scale width as a number.
 
-`appShell({ width })` names the content column: `centered` caps and centres it, and is the
-default; `wide` takes the cap off and fills the track beside the rail. `maxWidth` replaces the
-cap under either name, and a value the kit cannot use drops it.
+`appShell({ width })` sets the content column. `centered` limits and centres it, and is the
+default. `wide` removes that limit and fills the track beside the rail. `maxWidth` replaces the
+limit under either name. If the kit cannot use a value, it drops that value.
 
 ## Boxes below the page
 
@@ -32,13 +32,13 @@ cap under either name, and a value the kit cannot use drops it.
                      --prose-dense:   72ch;   /* reference prose below 13px */
 ```
 
-The unit says which scale applies: a box holding a **component** takes a `--panel-*` step in
-px, a box holding a **line** takes a `--prose-*` step in ch. Put a `--prose-*` step on the
-paragraph, never on a wrapper — `ch` resolves against the font size of the element carrying it.
+The unit tells you which scale to use. A box holding a **component** uses a `--panel-*` step in
+px. A box holding a **line** uses a `--prose-*` step in ch. Put a `--prose-*` step on the
+paragraph, not on a wrapper. `ch` uses the font size of the element that carries it.
 
 ## Breakpoints
 
-The kit has three breakpoints, and every media query it ships is at one of them.
+The kit has three breakpoints, and every media query it ships uses one of them.
 
 | step    | what changes at it                                                                     |
 | ------- | -------------------------------------------------------------------------------------- |
@@ -46,24 +46,24 @@ The kit has three breakpoints, and every media query it ships is at one of them.
 | `720px` | the shell folds — the app rail becomes an icon strip, link columns halve, a secondary label drops out |
 | `560px` | one column — every remaining grid is a single track, and a floating panel goes edge to edge |
 
-A step is a class of viewport, not one surface's preference. The values are written as
-literals, because a media query cannot read a custom property and the kit has no build step to
-inline one. `560` is also `--panel-lg` and `860` is also `--measure`: arithmetic, not a
-relationship — move the reading column and the steps stay where they are.
+A step describes a viewport class, not a preference for one surface. The values are written as
+literals because a media query cannot read a custom property, and the kit has no build step to
+inline one. `560` is also `--panel-lg`, and `860` is also `--measure`. This is arithmetic, not
+a relationship. If you move the reading column, the steps stay where they are.
 
 ## Spacing and rhythm
 
-Every padding, margin and gap in the kit is `0` or a `--space-*` step, modifiers included — a
-density variant is the same scale at a different index. Where a value sat between two steps,
-what it is *for* decided the direction: a dense table rounds down, clearance rounds up.
+Every padding, margin and gap in the kit is `0` or a `--space-*` step, including modifiers. A
+density variant uses the same scale at a different index. When a value fell between two steps,
+its purpose decided the direction: a dense table rounds down, and clearance rounds up.
 
-**A padding modifier moves the vertical rhythm and keeps the horizontal inset**, so cards of
-different padding stacked in one column line their text up, and a dense or zebra table inside a
-card starts its first column on the card's own text edge.
+**A padding modifier changes the vertical rhythm but keeps the horizontal inset**, so cards with
+different padding can stack in one column while their text lines up. It also lets a dense or
+zebra table inside a card start its first column at the card's own text edge.
 
 ## Typefaces
 
-Two families, and the split is a role split:
+The kit uses two families, and the split is based on role:
 
 ```css
 --font-display: 'Poppins', …;        /* headings, brand lockups, large readouts */
@@ -71,25 +71,25 @@ Two families, and the split is a role split:
 --font-mono:    ui-monospace, …;     /* code, identifiers, tabular figures */
 ```
 
-- **The element decides, never the size.** `h1`–`h6` take the display face; everything else
-  takes the text face from `body`. A card, drawer or confirmation title is a heading tag set in
-  the text face, and each says so on its own rule.
-- **A brand mark is not text**: a wordmark keeps the display face at any size. That is the one
+- **The element decides, never the size.** `h1`–`h6` use the display face. Everything else uses
+  the text face from `body`. A card, drawer or confirmation title is a heading tag in the text
+  face, and its own rule states this.
+- **A brand mark is not text**: a wordmark keeps the display face at any size. This is the one
   exception.
-- **`b` and `strong` are `--weight-semibold`.** 700 is still there by name.
-- **Neither family is bundled.** Your page loads both; a family a token names and nothing loads
-  falls back in silence.
+- **`b` and `strong` are `--weight-semibold`.** 700 is still available by name.
+- **Neither family is bundled.** Your page loads both. If a family named by a token is not
+  loaded, the browser falls back silently.
 
-Component sizes follow the `--text-*` scale, and a size between two steps is the nearest step
-plus a fixed pixel offset, so a host override still moves it. The 16px touch-field size is the
-one safety exception; see
+Component sizes use the `--text-*` scale. A size between two steps uses the nearest step plus a
+fixed pixel offset, so a host override still moves it. The 16px touch-field size is the one
+safety exception. See
 [A field is 16px on a touch screen](#a-field-is-16px-on-a-touch-screen).
 
 ## Labels and titles
 
 **Text is never set in capitals by style.** No stylesheet in the kit changes the case of the
-text it is given: no `text-transform`, no small capitals. A label is written in sentence case
-and renders as written, and a word that is capitals in itself stays that way.
+text it receives. It does not use `text-transform` or small capitals. A label is written in
+sentence case and renders as written. A word that is capitalised in itself stays that way.
 
 **Six ranks, each under the one above it.**
 
@@ -102,18 +102,18 @@ and renders as written, and a word that is capitals in itself stays that way.
 | `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot |
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
-That is 30, 18, 14.5, 13, 13 and 11px on the kit's scale. Where two ranks share a size, weight
-separates them: `label` and `caption` are both 13px. Words take body ink, labels and captions
-included; see [Text ink](#text-ink).
+On the kit's scale, these are 30, 18, 14.5, 13, 13 and 11px. When two ranks share a size,
+their weight separates them. `label` and `caption` are both 13px. Words use body ink, including
+labels and captions. See [Text ink](#text-ink).
 
-**A card title is a heading, one level under the page's.** `card()` and `<Card>` emit an `h2`,
-and `level` moves it to `h3`–`h6`. An eyebrow above a card title is a label, not a heading.
+**A card title is a heading, one level under the page's.** `card()` and `<Card>` emit an `h2`.
+`level` moves it to `h3`–`h6`. An eyebrow above a card title is a label, not a heading.
 
 ## Motion
 
-**The drawer is the kit's default motion and everything else copies it.** A panel that appears
-takes 250ms on `cubic-bezier(0.4, 0, 0.2, 1)`, moving `transform` and `opacity` and nothing
-else. Every duration is one of four tokens:
+**The drawer is the kit's default motion, and all other motion follows it.** A panel that
+appears takes 250ms on `cubic-bezier(0.4, 0, 0.2, 1)`. It moves `transform` and `opacity`
+only. Every duration is one of four tokens:
 
 | token           | resolves to | what it times                                                        |
 | --------------- | ----------- | -------------------------------------------------------------------- |
@@ -122,33 +122,40 @@ else. Every duration is one of four tokens:
 | `--dur-med`     | `250ms`     | a surface arriving or leaving — drawer, confirm, dropdown, menu, toast, scrim |
 | `--dur-slow`    | `400ms`     | an entrance or a reveal: the motion library's effects, scroll reveals   |
 
-Every easing is a token too — `--ease` is the default, with `--ease-out`, `--ease-in`,
-`--ease-sharp` and `--ease-spring` beside it — or `linear`.
+Every easing is also a token. `--ease` is the default. The other options are `--ease-out`,
+`--ease-in`, `--ease-sharp` and `--ease-spring`. `linear` is also available.
 
-- **Any transition of `visibility` is timed `linear`.**
-- **Anything that appears or leaves after the page has loaded moves**, and nothing animates on
-  first render. Text that changes in place — a count, a range — changes at once.
+- **Any transition of `visibility` uses `linear`.**
+- **Anything that appears or leaves after the page has loaded moves.** Nothing animates on
+  first render. Text that changes in place, such as a count or a range, changes immediately.
 - A `transition` always reads a duration token. An `animation` may keep its own number in two
   cases, named at the declaration: **ambient** motion with no interaction origin, and
   **choreographed** sequences timed against each other. There is no third kind.
+- **A published motion helper accepts a missing element.** `transitionMs(el)` returns the
+  stylesheet's transition time for `el`: the longest duration plus its own delay, in
+  milliseconds. It returns `0` for an element off the page or for no element. For either case,
+  `playEntrance()` and `replay()` do nothing. A caller sizing a backstop timer for a fade can
+  read the stylesheet instead of copying a duration token. An unmounted ref gets a timer that
+  fires immediately instead of an exception.
 
 ### Reduced motion travels with the stylesheet
 
-Under `prefers-reduced-motion: reduce` nothing slides, fades or loops, and a one-shot settles
-on its final frame. The net lives in one file and **both** published stylesheets carry it, so a
-consumer who takes only `@apliteni/apliteni-ui/react/css` is not left with motion and no net.
-Taking both is harmless — every rule in the net is idempotent.
+With `prefers-reduced-motion: reduce`, nothing slides, fades or loops. A one-shot animation
+settles on its final frame. The net is in one file, and **both** published stylesheets include
+it. A consumer who takes only `@apliteni/apliteni-ui/react/css` therefore gets the net as
+well as the motion styles. Taking both is harmless because every rule in the net is
+idempotent.
 
-The net gives every element a 0.01ms transition. So an open drawer, confirm, palette or
-dropdown panel carries no transition inside it at all while it is open, and focus lands where
-it does with motion on.
+The net gives every element a 0.01ms transition. As a result, an open drawer, confirm,
+palette or dropdown panel has no transition inside it while it is open. Focus also lands
+where it does when motion is enabled.
 
 ## Text ink
 
 Words use `--text`, or the full-strength foreground of their surface, at every size. Do not
-rank descriptions, labels, captions, timestamps, counts, code comments or enabled actions by
-fading them with `--muted`, `--dim` or opacity — hierarchy comes from size, weight and spacing.
-Signal colours still report status and errors, and links keep their link ink.
+show hierarchy by fading descriptions, labels, captions, timestamps, counts, code comments
+or enabled actions with `--muted`, `--dim` or opacity. Use size, weight and spacing for that
+hierarchy. Signal colours still report status and errors. Links keep their link ink.
 
 Muted and dim ink have exactly three uses:
 
@@ -156,43 +163,44 @@ Muted and dim ink have exactly three uses:
 - **state** — colour reporting off, unset, disabled or archived, rather than rank.
 - **placeholder** — a slot with no value, such as an empty field or cell.
 
-An empty-state explanation is not an empty slot, a keyboard shortcut is language, and a count
-is not a status. Generic badges take body ink; archive and disabled variants keep their state
-ink, and a dropdown badge asks for it with `tone: 'state'`. A neutral dropdown chip tints by
-mixing muted ink into the panel — the one soft fill under words the kit draws, and its text
-still clears 4.5:1.
+An empty-state explanation is not an empty slot. A keyboard shortcut is language. A count is
+not a status. Generic badges use body ink. Archive and disabled variants keep their state
+ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral dropdown chip tints
+by mixing muted ink into the panel. This is the one soft fill under words that the kit draws,
+and its text still clears 4.5:1.
 
 ## Colour and contrast
 
-- **The accent is measured against its own wash, not against the surfaces**, and every one of
+- **The accent is measured against its own wash, not against the surfaces.** Every one of
   the eight theme × accent cells clears 4.5:1. The wash *is* the accent at low alpha, so
-  re-tinting one without the other is half a change.
+  changing one without the other is only a partial change.
 - **A disabled control is painted, never faded.** Every disabled rule with a label under it
-  takes `--disabled-ink` on `--disabled-surface` at full opacity; a ghost button paints no box
-  and takes `--disabled-ink-bare`. One rule still fades, the switch track, which has no label
+  uses `--disabled-ink` on `--disabled-surface` at full opacity. A ghost button paints no box
+  and uses `--disabled-ink-bare`. One rule still fades: the switch track, which has no label
   inside it.
 - **The floor is 3:1, and a disabled control never shows the pair it shows enabled.** Contrast
-  carries legibility; the paint carries the state.
+  provides legibility. The paint provides the state.
 - **A field has no fill step, so the ground you put it on decides whether its box is seen.**
-  `--field-bg` and `--disabled-surface` are both `--surface` in both themes: a field is drawn
-  by its edge. On the page ground a disabled field measures 1.12:1 — a white box on a grey
-  page. **Put a form on a card.**
+  `--field-bg` and `--disabled-surface` are both `--surface` in both themes. A field is
+  therefore drawn by its edge. On the page ground, a disabled field measures 1.12:1. This is
+  a white box on a grey page. **Put a form on a card.**
 - **The box reports the state, so a field that is off draws the fainter edge of the two.** The
   same two tokens paint a button, so a button that is off drops a rung with the field.
-- **A disabled select carries the kit's own paint and no fade**, because the kit's disabled
-  field rule resets the `opacity: 0.7` Chromium's user-agent stylesheet fades one with.
+- **A disabled select carries the kit's own paint and no fade.** The kit's disabled field
+  rule resets the `opacity: 0.7` that Chromium's user-agent stylesheet applies to one.
 
 ## Elevation
 
-**A surface casts a shadow only to say it is higher, and each theme says it its own way.** A
-level keeps its step on a ladder of lightness in both themes, and **dark draws the kit's
-hairline while light casts a soft drop and draws no neutral line at all.** A line that divides
-two regions of one surface is not a level and stays a line in both themes — a card's row
-dividers, a table's row rules, the rail's head band, the topbar's bottom rule — and a field is
-not a level either, because its edge is what says "type here". **A level draws a line or casts
-a drop, and never neither**: a step of lightness on its own is a contrast of about 1.1.
+**A surface casts a shadow only to show that it is higher, and each theme expresses this in
+its own way.** A level keeps its step on a ladder of lightness in both themes. **Dark draws
+the kit's hairline. Light casts a soft drop and draws no neutral line at all.** A line that
+divides two regions of one surface is not a level. It stays a line in both themes. Examples
+include a card's row dividers, a table's row rules, the rail's head band and the topbar's
+bottom rule. A field is not a level either because its edge says "type here". **A level draws
+a line or casts a drop, and never neither**. A step of lightness on its own has a contrast of
+about 1.1.
 
-The ladder, bottom to top:
+The ladder, from bottom to top:
 
 | Token | The step | Dark | Light |
 | --- | --- | --- | --- |
@@ -202,30 +210,32 @@ The ladder, bottom to top:
 | `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
 
-**Text sits on the page, card or floating panel surface, never on a grey inset.** Fields, code
-blocks, neutral badges, navigation labels and segmented controls use those reading surfaces in
-both themes; `--surface-2` and `--surface-3` are for non-text fills and tracks.
+**Text sits on the page, card or floating panel surface, never on a grey inset.** In both
+themes, fields, code blocks, neutral badges, navigation labels and segmented controls use
+those reading surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks.
 
-**What floats is decided by the surface's job, not by its rung**: a floating surface is one
-whose whole purpose is to be temporarily above something else. It writes both devices as one
-`box-shadow` list, the inset line first and then the drops, with one token per rung per theme —
-`--elev-rest` under a card, `--elev-rail` beside the rail, `--elev-drop` under a floating
-surface, and `--elev-edge` to re-point the inner line:
+**What floats depends on the surface's job, not on its rung.** A floating surface has the
+whole purpose of being temporarily above something else. It writes both devices as one
+`box-shadow` list. The inset line comes first, followed by the drops. Each rung has one token
+per theme: `--elev-rest` under a card, `--elev-rail` beside the rail, `--elev-drop` under a
+floating surface, and `--elev-edge` to re-point the inner line:
 
 ```css
 box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
 ```
 
-**The focus ring composes with that list.** A `box-shadow` list replaces the whole list, so
-every floating panel writes the ring *in front of* its own edge and drop.
+**The focus ring composes with that list.** A `box-shadow` list replaces the whole list.
+Every floating panel therefore writes the ring *in front of* its own edge and drop.
 
 `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` are still
-published, and all five are the transparent shadow `0 0 #0000` in both themes — transparent
-rather than `none`, which would invalidate any list it appears in. A zero-offset layer of a
-signal's own colour is a **glow**: `--glow-*`, `--sheen` and `--ring` are that shape.
+published. All five are the transparent shadow `0 0 #0000` in both themes. They are
+transparent rather than `none`, because `none` would invalidate any list in which it
+appears. A zero-offset layer in a signal's own colour is a **glow**. `--glow-*`, `--sheen`
+and `--ring` have that shape.
 
-**An inline code chip paints the reading surface its container is not on.** A container says
-which one that is in `--code-bg`, and the chip reads it — it never declares it:
+**An inline code chip paints the reading surface that its container is not on.** The container
+states which surface that is in `--code-bg`, and the chip reads that value. The chip never
+declares it:
 
 | The ground | What it hands a chip | Token |
 | --- | --- | --- |
@@ -235,23 +245,23 @@ which one that is in `--code-bg`, and the chip reads it — it never declares it
 | a tinted card or snippet | the card it is a variant of | `--code-bg: var(--surface)` |
 | a translucent wash over any of them | the page in dark, the card in light | `--wash-code-bg` |
 
-If you paint a reading surface of your own, hand `--code-bg` the other one; a table surface
-sets `--table-bg` and `--table-code-bg` together, and a wash that takes caller markup sets
+If you paint your own reading surface, give `--code-bg` the other surface. A table sets
+`--table-bg` and `--table-code-bg` together. A wash that takes caller markup sets
 `--code-bg: var(--wash-code-bg)`. The chip keeps at least 1.065 against every ground the kit
 draws, in both themes.
 
 **A tinted card stays above the page.** `.ui-card--accent` and `.ui-card--live` mix their
-colour into `--surface` through `--card-tint`: dark can spend 9%, light 5%. Each variant edges
-itself in its own colour.
+colour into `--surface` through `--card-tint`. Dark can spend 9%. Light can spend 5%. Each
+variant edges itself in its own colour.
 
-**The ladder is capped by ink.** `--muted` carries state and placeholder information, so it
-clears AA on every step the ladder raises, re-picked against the top of the ladder rather than
-against the page.
+**The ladder is capped by ink.** `--muted` carries state and placeholder information. It
+clears AA on every step that the ladder raises. It is re-picked against the top of the
+ladder, rather than against the page.
 
 ## The focus ring
 
-One indicator: a 1px surface-coloured gap, a 2px solid accent band, and a soft outer halo. The
-band carries the contrast; the halo is decoration.
+One indicator uses a 1px surface-coloured gap, a 2px solid accent band, and a soft outer halo.
+The band provides the contrast. The halo is decoration.
 
 ```css
 --ring-width: 2px;
@@ -265,106 +275,105 @@ band carries the contrast; the halo is decoration.
 --ring-scroll-offset: calc(-1 * (var(--ring-gap-width) + var(--ring-width)));
 ```
 
-**Every focusable control the kit ships draws it**, including a roving row the keyboard
-reaches with an arrow key rather than Tab, so none falls back to the browser's own outline,
+**Every focusable control the kit ships draws this**, including a roving row that the keyboard
+reaches with an arrow key rather than Tab. This means none uses the browser's own outline,
 which ignores the accent and is black in both themes. The command palette's input is the one
-exemption, declared at its own rule, because it holds focus for as long as the dialog is up.
-**A control of your own wears `.ui-focusable`**, the kit's opt-in class — a router link or a
-plain `<a>` acting as an action needs it.
+exception. Its own rule declares the exception because it keeps focus while the dialog is open.
+**A control of your own wears `.ui-focusable`**, the kit's opt-in class. A router link or a plain
+`<a>` used as an action needs it.
 
-Tune the width, colour and gap at `:root`, or at a surface that composes the ring; a
-descendant-only change to one of those inputs cannot alter an already inherited shadow. **If
-you paint a surface of your own, set `--ring-gap` to its background and recompose `--ring`** —
-changing only the gap leaves the inherited shadow unchanged. Every `--bg-elevated` surface does
-both, and so do cards and the application rail; controls keep the containing gap, not their own
-fill. **A focus rule also has to outrank every always-on rule writing `box-shadow` on the same
-element**, which is why a panel's focus declaration repeats its own edge and drop beside
+Set the width, colour and gap at `:root`, or on a surface that composes the ring. A change to
+one of these inputs on a descendant cannot change an already inherited shadow. **If you paint a
+surface of your own, set `--ring-gap` to its background and recompose `--ring`**. Changing only
+the gap does not change the inherited shadow. Every `--bg-elevated` surface does both. Cards
+and the application rail do this too. Controls use the containing gap, not their own fill.
+**A focus rule also has to outrank every always-on rule writing `box-shadow` on the same
+element**. This is why a panel's focus declaration repeats its own edge and drop beside
 `var(--ring)`.
 
-**`--ring-scroll` is the indicator a scroll region inside a surface takes**: the same 1px gap
-and 2px band, drawn inward, and no halo. It is an `outline` drawn inward by
-`--ring-scroll-offset` — take one without the other and the band lands outside the box. A box
-that scrolls is a keyboard stop of its own unless its children are focusable, so every
-scrolling box the kit ships either takes that ring, with padding for the band to land in, or
-holds its own tabbable rows and takes none.
+**`--ring-scroll` is the indicator a scroll region inside a surface takes**: it uses the same
+1px gap and 2px band, but draws them inward and has no halo. It is an `outline` drawn inward by
+`--ring-scroll-offset`. You need both values, or the band appears outside the box. A scrolling
+box is its own keyboard stop unless its children are focusable. For this reason, every scrolling
+box the kit ships either takes that ring and has padding for the band, or contains its own
+tabbable rows and takes no ring.
 
-Controls use native `:focus-visible`, inputs and invalid fields included; an invalid border
+Controls use native `:focus-visible`, including inputs and invalid fields. An invalid border
 keeps its error colour while focus uses the shared band. Every shared-ring consumer also keeps
-a transparent 2px outline, which forced colours repaint as the focus signal once they remove
-box shadows. A direct `--ring` override still works, but an ancestor's does not cross a surface
-that recomposes the ring. The ring reserves no layout space, so an ancestor's overflow boundary
-can clip its 3px solid footprint and roughly 15px halo.
+a transparent 2px outline. Forced colours repaint this outline as the focus signal when they
+remove box shadows. A direct `--ring` override still works. An ancestor's override does not
+cross a surface that recomposes the ring. The ring uses no layout space, so an ancestor's
+overflow boundary can clip its 3px solid footprint and roughly 15px halo.
 
 ## A field is 16px on a touch screen
 
-iOS Safari zooms the page into a focused field whose text is smaller than 16px, and it does not
+iOS Safari zooms the page into a focused field when its text is smaller than 16px. It does not
 zoom back out.
 
 - **One net, over elements rather than classes.** A single `@media (pointer: coarse)` rule
-  takes `input`, `select` and `textarea` to 16px, and both published stylesheets import it. The
-  controls with nothing to type into are left out; none of them zooms. It takes `!important`,
-  because a net has to outrank a component rule it has never seen.
-- **The size is real, never a scaled 16px.** The zoom reads the computed font size, so a 16px
-  field shrunk back with a `transform` still zooms.
-- **`font-size` and not the viewport.** `user-scalable=no` also stops the zoom, by taking
-  pinch-zoom from every reader of the page, which fails WCAG 1.4.4.
+  sets `input`, `select` and `textarea` to 16px. Both published stylesheets import it. Controls
+  with nothing to type into are excluded because they do not zoom. The rule uses `!important`
+  because it must outrank a component rule that it has not seen.
+- **The size is real, never a scaled 16px.** The zoom uses the computed font size. A 16px field
+  that is made smaller with a `transform` still zooms.
+- **`font-size` and not the viewport.** `user-scalable=no` also stops the zoom. It removes
+  pinch-zoom for every reader of the page, which fails WCAG 1.4.4.
 - **It is a flat size rather than a floor**, so a host field *designed above 16px* — a 20px
-  hero search — is made smaller on a touch screen. The way out is your own `!important` rule,
-  outranking the net rather than repeating it:
+  hero search — becomes smaller on a touch screen. Use your own `!important` rule, with higher
+  specificity than the net, instead of repeating it:
 
 ```css
 /* more specific than the net's bare element, so it wins whichever sheet loads first */
 .hero-search input { font-size: 20px !important; }
 ```
 
-A bare `input { font-size: 20px !important; }` ties the net on specificity and holds only while
-your stylesheet loads after the kit's.
+A bare `input { font-size: 20px !important; }` has the same specificity as the net. It works
+only while your stylesheet loads after the kit's.
 
 ## A tap reaches the floor below the phone step
 
-A finger covers more than a cursor, and below the phone step the kit's own small controls
+A finger covers more area than a cursor. Below the phone step, the kit's own small controls
 measure under 44px on at least one axis. **Two floors:** `--tap-min` is 44, the target the
-sheet reaches for, and `--tap-aa` is 24, WCAG 2.5.8, which the kit holds at every width.
+sheet aims for, and `--tap-aa` is 24, WCAG 2.5.8, which the kit keeps at every width.
 
-**The extra size goes outside the drawn shape** — a transparent, centred layer per
-small-control family — and **the control keeps the size it draws.** A layer never crosses a
-neighbour's drawn edge: `--tap-clear-x` and `--tap-clear-y` are the clear space to the nearest
-neighbour on each axis, a layer takes **half** of that on each side and stops, and the clamp is
-declared by the container, the only thing that knows its own gap. **Both default to zero**, so
-if you build a row of small controls, declare its clearance — otherwise its controls keep the
-targets they draw.
+**The extra size goes outside the drawn shape**. The kit adds a transparent, centred layer for
+each small-control family. **The control keeps the size it draws.** A layer never crosses a
+neighbour's drawn edge. `--tap-clear-x` and `--tap-clear-y` define the clear space to the
+nearest neighbour on each axis. A layer uses **half** of that space on each side and then
+stops. The container declares the clamp because it is the only part that knows its own gap.
+**Both default to zero**, so declare the clearance when you build a row of small controls.
+Otherwise, their targets stay at the size they draw.
 
-**Where the kit packs tighter than a zone needs, the gap opens** to `--tap-gap`, which is 20:
-**the controls do not change size**, the space between them does. A row opens down unless it
-cannot overflow — only a row whose marks are each a fixed square, a drawer header, or a dense
-table's action cell opens across. Some families get no layer at all, and all of them are named
-on the Accessibility minimums page: rows that share an edge have nothing outside a row to put
-one in, `input`, `select` and `textarea` generate no pseudo-element and are reached by their
-own height, and a back link draws 24 on both axes because it cannot know what the shell puts
-above it.
+**Where the kit packs tighter than a zone needs, the gap opens** to `--tap-gap`, which is 20.
+**The controls do not change size**. Only the space between them changes. A row opens down
+unless it cannot overflow. Only a row whose marks are each a fixed square, a drawer header,
+or a dense table's action cell opens across. Some families get no layer. The Accessibility
+minimums page names all of them. Rows that share an edge have no space outside a row for a
+layer. `input`, `select` and `textarea` generate no pseudo-element and use their own height.
+A back link draws 24 on both axes because it cannot know what the shell places above it.
 
-The whole thing is behind `@media (max-width: 560px) and (pointer: coarse)`: a transparent
+The whole system is behind `@media (max-width: 560px) and (pointer: coarse)`. A transparent
 layer is also a hover surface, and a coarse pointer has no hover. The sheet is imported
-**last** and its openings take `!important`, because each overrides a gap a component already
-set. `--tap-min` is declared in that sheet rather than the token file, because the React entry
-imports these nets without `tokens.css`; it is still a token and you can move it.
+**last**, and its openings use `!important` because each one overrides a gap already set by a
+component. `--tap-min` is declared in that sheet rather than the token file because the React
+entry imports these nets without `tokens.css`. It is still a token, and you can move it.
 
 ## Icons and glyphs
 
-**A stroked glyph earns the graphic bar by its width.** What a reader sees is
-`stroke-width × box ÷ viewBox`, so a stroke stated once and reused at a second box is two
-different marks. At or above **1.5 CSS px** a mark is a graphic and takes the 3:1 bar; below it
-the mark is optically a text stem and takes the 4.5:1 text bar instead.
+**A stroked glyph earns the graphic bar from its width.** A reader sees
+`stroke-width × box ÷ viewBox`. So, when the same stroke is stated once and reused at a
+second box, the result is two different marks. At or above **1.5 CSS px**, a mark is a graphic
+and uses the 3:1 bar. Below that, it looks like a text stem and uses the 4.5:1 text bar instead.
 
-**Every stroked glyph in the kit clears 1.5 CSS px.** A rule that decides a glyph's box decides
-its stroke, and both travel together. There is **no second bar for a control's glyph**: a glyph
-inside a button is not exempt for being small.
+**Every stroked glyph in the kit clears 1.5 CSS px.** The rule that sets a glyph's box also sets
+its stroke. The two values stay together. There is **no second bar for a control's glyph**. A
+glyph inside a button is not exempt because it is small.
 
-**A select draws one chevron, on its right edge, in every theme and every state.** The glyph is
-a background image, so it is three longhands — `background-image`, `-repeat` and `-position` —
-and any `background` shorthand reaching the same element resets all three. A rule repainting
-such an element sets `background-color`, not `background`. Controls that paint nothing but a
-colour keep the shorthand.
+**A select draws one chevron on its right edge in every theme and state.** The glyph is a
+background image. Its settings use three longhands: `background-image`, `-repeat` and
+`-position`. Any `background` shorthand applied to the same element resets all three. A rule
+that repaints this element sets `background-color`, not `background`. Controls that paint only
+a colour keep the shorthand.
 
-`iconOnlyAllowed` and `iconMeanings` publish the two icon rulings as data: which glyphs may
-stand without a word, and what each one means.
+`iconOnlyAllowed` and `iconMeanings` publish the two icon rules as data. They state which
+glyphs may appear without a word and what each glyph means.

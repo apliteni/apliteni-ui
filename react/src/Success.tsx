@@ -51,7 +51,7 @@ export type SuccessProps = Omit<HTMLAttributes<HTMLDivElement>, 'title' | 'child
   check?: SuccessMark;
   title?: string;
   /** One short line under the title, or nothing. There is no eyebrow tier.
-   *  why: docs/library.md#success-confirmations */
+   *  why: docs/components.md#success-confirmations */
   body?: string;
   /** Removed: a confirmation carries one title and at most one line. Typed as
    *  `never` so a caller still passing it is told where it went rather than

@@ -5,7 +5,7 @@
  *   .ui-tip        the readout — __label, __value, __detail
  * The readout is an overlay in every state. It is absolutely placed inside its
  * host, so showing it, filling it and moving it change the size of nothing.
- * why: docs/library.md#the-hover-readout
+ * why: docs/components.md#the-hover-readout
  * ========================================================================== */
 
 .ui-tip-host { position: relative; }

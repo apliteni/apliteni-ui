@@ -80,7 +80,7 @@ function ddBody({ items, sections }, listbox, sx) {
 // The match is a substring of the label, anywhere in it, ignoring case and
 // accents; rows keep their order. The factory and the wiring both ask
 // dropdownMatch(), so a preset query and a typed one hide the same rows.
-// why: docs/library.md#a-dropdown-with-a-search-field
+// why: docs/components.md#a-dropdown-with-a-search-field
 // NFD takes the mark off é or ö; ł, ø, đ and the rest are letters of their own
 // with nothing to take off, so they are mapped by hand.
 const ddIsRow = (it) => it && it !== '---' && !it.separator;
@@ -207,7 +207,7 @@ export function dropdown({
 
   // The block the sheet bleeds to the panel's bottom edge. It sits OUTSIDE the
   // unwrapped `footer`, because the block that bleeds is the one that has to
-  // touch the edge. why: docs/library.md#the-dropdown-panel
+  // touch the edge. why: docs/components.md#the-dropdown-panel
   const footBlock = foot ? `<div class="ui-dropdown__foot">${foot}</div>` : '';
 
   const ddAttrs = 'data-dropdown'
@@ -236,7 +236,7 @@ export function dropdown({
 // Every wired container, so the close handlers can reach a dropdown wherever it
 // was drawn: `document.querySelectorAll` enters no shadow root and sees no other
 // document. A Set and not a WeakSet, because this has to be walked.
-// why: docs/library.md#the-dropdown-panel
+// why: docs/components.md#the-dropdown-panel
 const _ddAll = new Set();
 // One pair of close handlers per document that holds a dropdown, the same way
 // wireShell() listens once per document it is handed.
@@ -276,7 +276,7 @@ function ddItemsOf(dd) {
 }
 
 // ---- Search wiring ---------------------------------------------------------
-// why: docs/library.md#a-dropdown-with-a-search-field
+// why: docs/components.md#a-dropdown-with-a-search-field
 const ddSearchOf = (dd) => ddPanelOf(dd)?.querySelector('[data-dd-search]') || null;
 const ddActiveOf = (dd) => ddPanelOf(dd)?.querySelector('[data-dd-item].is-active') || null;
 const ddComposing = (e) => e.isComposing || e.keyCode === 229;
@@ -342,7 +342,7 @@ export const DD_MENU_FLOOR = 240;
  * A panel is anchored at one edge of its dropdown — its inline end when it
  * carries `is-end` — so room is measured from that edge and the slide goes the
  * other way. Measuring an end-anchored panel forwards put one off the page.
- * why: docs/specification.md#a-filter-row-holds-its-panels
+ * why: docs/components.md#a-filter-row-holds-its-panels
  *
  * @param {Element} dd a `.ui-dropdown` that may be inside a filter row
  * @param {number} [floor] the width to reach for
@@ -405,7 +405,7 @@ function ddFitFilterPanel(dd, panel) {
  *  the old width too, and inline beats the sheet, so it is read again off the
  *  newly bounded box; only when the fit moved, because re-reading it is itself a
  *  write.
- *  why: docs/specification.md#a-filter-row-holds-its-panels */
+ *  why: docs/components.md#a-filter-row-holds-its-panels */
 function ddRefitFilterPanel(dd, panel) {
   const fit = panel?.style ? filterPanelFit(dd) : null;
   if (!fit || !ddWriteFit(panel, fit)) return;
@@ -424,7 +424,7 @@ function ddRowOf(dd) {
  *  `position: absolute`, so nothing in it can move a chip along its row. Any
  *  panel, not only the one being fitted: two open menus in one row would
  *  otherwise answer each other a mutation at a time.
- *  why: docs/specification.md#a-filter-row-holds-its-panels */
+ *  why: docs/components.md#a-filter-row-holds-its-panels */
 function ddOurs(node) {
   const el = node?.nodeType === 1 ? node : node?.parentElement;
   return !!el?.closest?.('[data-dropdown-panel]');
@@ -443,7 +443,7 @@ function ddOurs(node) {
  * is laid out.
  *
  * Why those two cover the arithmetic, and the one case they do not:
- * why: docs/specification.md#a-filter-row-holds-its-panels
+ * why: docs/components.md#a-filter-row-holds-its-panels
  */
 function ddWatchRow(dd, panel) {
   ddUnwatchRow(dd);
@@ -664,7 +664,7 @@ function selectOption(dd, item) {
 // Click-outside, Escape and the repositioning sweep, registered once per document
 // that holds a dropdown — the same shape wireShell()'s listen() has, and for the
 // same reason: a frame is its own document and a listener on the page's never
-// fires there. why: docs/library.md#the-dropdown-panel
+// fires there. why: docs/components.md#the-dropdown-panel
 function ddListen(doc) {
   if (!doc || _ddWiredDocs.has(doc)) return;
   _ddWiredDocs.add(doc);
@@ -683,7 +683,7 @@ function ddListen(doc) {
   };
   /* The fallback re-fit, for a view with no ResizeObserver. Not taken as well where
    * ddWatchRow() is watching: a `resize` event is the worse measurement of the two.
-   * why: docs/specification.md#a-filter-row-holds-its-panels */
+   * why: docs/components.md#a-filter-row-holds-its-panels */
   const refit = () => {
     for (const dd of ddLive()) {
       if (dd.classList.contains('open') && !dd.__ddPanel && !dd.__ddRowFit) {
@@ -712,11 +712,11 @@ export function wireDropdown(root = document) {
     // Portal: lift the panel onto <body>. An ancestor whose overflow is not
     // `visible` clips it on both axes, and one that is `position: sticky` opens
     // a stacking context whatever z-index the panel carries — the app rail is
-    // both at once. why: docs/library.md#the-dropdown-panel
+    // both at once. why: docs/components.md#the-dropdown-panel
     if (panel && dd.hasAttribute('data-dropdown-portal')) {
       // The tree the trigger is in, not the page's: a panel lifted out of a
       // frame or a shadow root into the top document leaves its stylesheet and
-      // its close handler behind. why: docs/library.md#the-dropdown-panel
+      // its close handler behind. why: docs/components.md#the-dropdown-panel
       const host = ddHostOf(dd);
       sweepOrphanPanels(host);
       panel.setAttribute('data-dropdown-portal', '');

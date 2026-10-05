@@ -5,7 +5,7 @@
 //
 // Two reader pages are read, because the two tables live where their readers
 // are: the type ranks are a foundation and the band's folds are the band's own.
-// why: docs/library.md#stat-bands
+// why: docs/components.md#stat-bands
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -19,7 +19,7 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^
 const RAW = readFileSync(path.join(here, 'stat.css'), 'utf8');
 const CSS = decomment(RAW);
 const FOUNDATIONS = readFileSync(path.join(here, '../../docs/foundations.md'), 'utf8');
-const LIBRARY = readFileSync(path.join(here, '../../docs/library.md'), 'utf8');
+const COMPONENTS_DOC = readFileSync(path.join(here, '../../docs/components.md'), 'utf8');
 const TOKENS = readFileSync(path.join(here, '../tokens/tokens.css'), 'utf8');
 
 const rules = [...CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
@@ -271,7 +271,7 @@ test('good news takes the success ink, bad news the danger ink, and nothing else
 });
 
 // The fold widths were measured in a browser over every layout at 2, 3 and 4
-// figures, and docs/library.md carries the table. Each fold is read whole —
+// figures, and docs/components.md carries the table. Each fold is read whole —
 // its range, which figures it matches and the basis it sets — so a width, a
 // basis or an overlap between two ranges moved in one place fails here.
 test('the folds are the ones the reader page records, and their ranges do not overlap', () => {
@@ -291,15 +291,15 @@ test('the folds are the ones the reader page records, and their ranges do not ov
   });
   assert.equal(folds.length, 6, `found ${folds.length} folds`);
   const row = (name) => {
-    const m = new RegExp(`^\\|\\s*${name}\\s*\\|\\s*(\\d+)rem\\s*\\|\\s*(\\d+)rem\\s*\\|\\s*(\\d+)rem\\s*\\|`, 'm').exec(LIBRARY);
-    assert.ok(m, `docs/library.md has no fold row for ${name}`);
+    const m = new RegExp(`^\\|\\s*${name}\\s*\\|\\s*(\\d+)rem\\s*\\|\\s*(\\d+)rem\\s*\\|\\s*(\\d+)rem\\s*\\|`, 'm').exec(COMPONENTS_DOC);
+    assert.ok(m, `docs/components.md has no fold row for ${name}`);
     return { pairs: Number(m[1]), odd: Number(m[2]), column: Number(m[3]) };
   };
   for (const [layout, name] of [['band', 'Band and tiles'], ['open', 'Open']]) {
     const mine = Object.fromEntries(folds.filter((f) => f.layout === layout).map((f) => [f.kind, f]));
     const spec = row(name);
     for (const kind of ['pairs', 'odd', 'column']) {
-      assert.equal(mine[kind]?.upper, spec[kind], `${layout} ${kind} folds at ${mine[kind]?.upper}rem, docs/library.md says ${spec[kind]}rem`);
+      assert.equal(mine[kind]?.upper, spec[kind], `${layout} ${kind} folds at ${mine[kind]?.upper}rem, docs/components.md says ${spec[kind]}rem`);
     }
     // Two per row: more than a third, and room for the gap beside a half.
     const pct = Number.parseFloat(mine.pairs.basis);

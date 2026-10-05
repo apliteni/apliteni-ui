@@ -3,7 +3,7 @@
  * The way up from a page to the page it sits under. It stands above the page
  * title, in the slot a breadcrumb trail would take, and it is quiet at rest: it
  * is on every page below a list, and it is never what the page is for.
- * why: docs/library.md#the-back-link
+ * why: docs/components.md#the-back-link
  * ========================================================================== */
 
 /* Its own line, and only as wide as its words, so the hover ground does not run
@@ -44,7 +44,7 @@
 .ui-app__main > .ui-back { margin-bottom: var(--space-5); }
 
 /* The one part that can run long. It clips rather than wrapping, as .ui-nav__label
-   does. why: docs/library.md#the-back-link */
+   does. why: docs/components.md#the-back-link */
 .ui-back__label {
   min-width: 0;
   overflow: hidden;

@@ -1,7 +1,7 @@
 # Agent rules
 
 Human setup is described in [README.md](README.md#contribute). Before changing
-components, read [foundations](docs/foundations.md), [library](docs/library.md)
+components, read [foundations](docs/foundations.md), [components](docs/components.md)
 and the [guidelines](guidelines/overview.md).
 
 ## Data handling
@@ -73,15 +73,27 @@ declaration Chromium fades a disabled select with:
 `UI_PLAYWRIGHT=… UI_CHROME=… FIELD_PAINT=1 node --test stories/field-ground.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 
+## Check the motion helpers' missing-element guard locally
+
+Before opening a PR that changes `src/motion.js` or `src/motion.d.ts`, run the browser half:
+`MOTION_GUARDS=1 UI_PLAYWRIGHT=… node --test stories/motion-missing-element.test.js`
+Report the result in the PR. The source half runs in CI against a jsdom window; the engine a
+consumer ships against is yours to measure, because Playwright is not a dependency.
+
 ## Documentation
 
 Record a consumer guarantee in one of the two reader pages: a token or a floor in
 [docs/foundations.md](docs/foundations.md), a component's promise in
-[docs/library.md](docs/library.md), a rule for a screen in `guidelines/*.md`. Keep it short and
+[docs/components.md](docs/components.md), a rule for a screen in `guidelines/*.md`. Keep it short and
 state it in words a consumer can act on, with no source-file references, no gate names and no
 issue archaeology; a low-level guarantee belongs with the test that holds it. How a gate works
 goes beside the gate, and why a number is what it is goes in the issue. See
 [docs/README.md](docs/README.md#where-a-decision-gets-recorded).
+
+[docs/contributing.md](docs/contributing.md) is the one page for a human working on the kit — the
+tour of the parts and the commands. Keep it short, and put a rule that constrains your own work
+here instead. A page under `docs/` never links to the deployed site — link the file in the
+repository, or a Storybook path under it.
 
 ## Annotations the gates read
 
@@ -99,12 +111,38 @@ parses. There is no unannotated exception.
 Every media query is at one of the three documented breakpoints. Where a spacing value sits
 between two steps, say at the declaration what it is for.
 
-## Check the motion helpers' missing-element guard locally
+## The guidelines collection
 
-Before opening a PR that changes `src/motion.js` or `src/motion.d.ts`, run the browser half:
-`MOTION_GUARDS=1 UI_PLAYWRIGHT=… node --test stories/motion-missing-element.test.js`
-Report the result in the PR. The source half runs in CI against a jsdom window; the engine a
-consumer ships against is yours to measure, because Playwright is not a dependency.
+`guidelines/*.md` ships in the package and is the text Storybook renders, so a page is reading and
+nothing else: a `#` title and its rules, with no introduction and no appendix.
+
+- A rule is a short `##` title, a stable `<!-- rule: id -->` and a one-sentence `**Rule:**`, plus
+  `**Why:**`, `**Do:**`, `**Don't:**`, `**Except:**` and `**Gap #123:**` where they earn their
+  place. Each field stays on one source line.
+- Guideline prose carries no file path, line number, test name, selector, token or function name.
+  A measurement belongs in a reader page; a boundary belongs in `Except`. A citation points at a
+  rule's heading, never at its id.
+- A `Why` gives the reason the rule exists. It may not say the rule again in other words.
+- Give every rule a rendered do-and-don't pair built from kit parts, and let the text say only
+  what the picture cannot. Leave a rule text-only when drawing the failure would break the rule in
+  front of the reader, when the state needs a pointer, keyboard or viewport a static specimen
+  cannot set, or when the rule governs an order of work rather than a result — and name which of
+  the three in the same `Why`.
+- A page is the reading surface, not a card and not the grey page ground.
+- `references.json` and `accessibility-coverage.json` sit beside the gates that read them. Neither
+  ships as guideline content, and no guideline imports either.
+- Adding a page means updating the collection counts, the Overview and `storySort`.
+
+## Storybook and the site
+
+A story calls a factory and puts the returned string on the canvas; the decorator applies the
+theme, the accent and `wireTopbar()`, so hand-wire none of the three. Check a new story id against
+`storybook-static/index.json` rather than deriving it.
+
+A changelog entry is written for someone using the kit: what changed and who is affected, in one
+to three short sentences, with no praise, no filler and no test diary. Add detail only for a
+migration step or a behaviour limit. `site/changelog.mjs` stays pure — no git and no filesystem;
+`site/build.mjs` owns the git calls. Keep deploy specifics out of committed files.
 
 ## Changes
 
@@ -145,5 +183,5 @@ coordinator approves the exact run Artur confirms, after reading its pending dep
 
 Compare every waiting version with `latest`, and report stale runs instead of approving them.
 Retry a canceled release only when it is still needed, on `main` with the version tag as input.
-Never weaken the main-only environment restriction or remove npm's environment binding. See
-[release setup](docs/release-approval.md).
+Never weaken the main-only environment restriction or remove npm's environment binding.
+`.github/workflows/release.yml` records how that boundary is configured and why.

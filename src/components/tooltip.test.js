@@ -6,7 +6,7 @@
 // wiring is watched with a MutationObserver, where the defect would be a node
 // inserted on hover. Placement is arithmetic, fed measured rects by hand.
 //
-// why: docs/library.md#the-hover-readout
+// why: docs/components.md#the-hover-readout
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

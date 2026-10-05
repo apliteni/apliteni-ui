@@ -419,7 +419,7 @@ test('a shell with nobody signed in draws no trigger and no menu', () => {
 // stand, so what is gated here is that wireShell() still reaches them once they
 // have moved — and the one thing the band added: a key hint that is wrong until
 // a browser says what the reader is holding.
-// why: docs/library.md#the-page-shell
+// why: docs/components.md#the-page-shell
 
 const { wireCommandPalette } = await import('../../src/components/command-palette.js');
 

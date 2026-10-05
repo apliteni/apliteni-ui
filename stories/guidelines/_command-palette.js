@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('command-palette.md', new URL('../../guidelines/command-palette.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 //
 // Every specimen is a real commandPalette(), rendered as a `specimen` — a
 // picture of the dialog rather than the dialog, because six modal palettes on

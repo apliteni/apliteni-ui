@@ -23,7 +23,7 @@
  * caller as a reading rather than asserted: the gap is part of the indicator, the
  * band it separates is read against the ground on both sides, and the kit gives
  * every accent-filled control the same geometry.
- * why: docs/library.md#page-furniture. See issues #429 and #472.
+ * why: docs/components.md#page-furniture. See issues #429 and #472.
  */
 import assert from 'node:assert/strict';
 import { parseColour, ratio, substitute, tokensFor } from './contrast.js';

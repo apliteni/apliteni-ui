@@ -5,7 +5,7 @@
 // Three things land in that body: skeleton() while it fetches, your markup once
 // the rows arrive, deniedState() when the answer came back 403.
 //
-// why: docs/library.md#pending-and-denied-states
+// why: docs/components.md#pending-and-denied-states
 import { icon } from '../assets/icons.js';
 import { button, esc } from './index.js';
 import { playEntrance } from '../motion.js';

@@ -133,7 +133,7 @@
    the 20px success() draws it at, rather than stretching a status mark to fill the
    line mark's box. The mark fills the box, so the box is what decides. The modifier
    is written by successPanel(), as success() writes ui-sx--check-circled on its root.
-   why: docs/library.md#success-confirmations */
+   why: docs/components.md#success-confirmations */
 .ui-success__check--circled { width: 20px; height: 20px; }
 .ui-success__title { color: var(--strong); font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: 5px; }
 .ui-success__sub { color: var(--text); font-size: var(--text-base); }

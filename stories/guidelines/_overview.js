@@ -1,7 +1,7 @@
 import { loadGuideline } from './_markdown.js';
 // The index data, read off the pages. What ENTRIES adds is the ORDER, which
 // mirrors the sidebar order in .storybook/preview.js.
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import * as destructiveContent from './_destructive-actions.js';
 import * as colourContent from './_colour-and-theming.js';
 import * as emptyContent from './_empty-states.js';

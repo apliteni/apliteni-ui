@@ -34,9 +34,9 @@ const URL_BEFORE = /:\/\/[^\s)'"`]*$/;
  * counts when it is written one of the three ways a citation actually is — a
  * form test, never a list of filenames:
  *
- *   docs/library.md           it names a page in the documentation tree
+ *   docs/components.md           it names a page in the documentation tree
  *   AGENTS.md#verification   it carries an anchor, so it points inside a page
- *   [library.md](library.md)   it is a markdown link, so a reader can click it
+ *   [components.md](components.md)   it is a markdown link, so a reader can click it
  *
  * A path with none of the three is a string that happens to end in `.md`. The
  * cost of that line is real and worth stating: a bare, unlinked mention of a
@@ -82,8 +82,8 @@ const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: '
   .filter((f) => f !== path.relative(root, fileURLToPath(import.meta.url)));
 
 /* Resolve a cited path the way a reader would: relative to the file doing the
- * citing first, then from the repository root. `[library.md](library.md)` inside
- * docs/ and `docs/library.md` inside src/ are the same page. */
+ * citing first, then from the repository root. `[components.md](components.md)` inside
+ * docs/ and `docs/components.md` inside src/ are the same page. */
 const resolve = (from, cited) => {
   const beside = path.resolve(root, path.dirname(from), cited);
   if (existsSync(beside) && statSync(beside).isFile()) return beside;

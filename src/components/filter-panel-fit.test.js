@@ -2,7 +2,7 @@
  *
  * #536 made a chip print its value alone, so #484's bound to the trigger left a
  * 48px menu breaking options mid-letter — #549.
- * why: docs/specification.md#a-filter-row-holds-its-panels
+ * why: docs/components.md#a-filter-row-holds-its-panels
  *
  * WHAT THIS GATE DOES NOT REACH:
  *   - Layout: rects are supplied here. That a real menu lands where this says is

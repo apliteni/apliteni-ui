@@ -10,7 +10,7 @@
  * fits none of them at the two narrow steps — the case the stack exists for.
  *
  * argv: <checkout> <outDir>
- * why: docs/library.md#react-file-drop
+ * why: docs/components.md#react-file-drop
  */
 import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';

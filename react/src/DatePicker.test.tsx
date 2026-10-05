@@ -967,7 +967,7 @@ describe('the sheet', () => {
  *
  * What it does not reach: real browser paint, the focus ring (the ring gate
  * above owns it) and any state a consumer's own stylesheet adds.
- * why: docs/library.md#react-date-and-month-picker */
+ * why: docs/components.md#react-date-and-month-picker */
 describe('every cell state is readable', () => {
   const THEMES = ['dark', 'light'] as const;
   const ACCENTS = ['default', 'phoenix', 'ocean', 'emerald'] as const;
@@ -1323,7 +1323,7 @@ describe('the tap zone below the phone step', () => {
  *
  * What it does not reach: the pixels. JSDOM lays nothing out, so the widths
  * themselves are measured in a browser and reported on the pull request.
- * why: docs/library.md#react-date-and-month-picker */
+ * why: docs/components.md#react-date-and-month-picker */
 describe('the panel is the grid\'s width and no wider', () => {
   const strip = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '');
   const kit = strip(read('../../src/styles/dropdown.css'));

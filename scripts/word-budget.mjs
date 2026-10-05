@@ -2,7 +2,7 @@
 /**
  * word-budget — fail a guideline page that carries more prose than its budget.
  *
- * why: docs/guidelines.md#show-less-tell
+ * why: AGENTS.md#the-guidelines-collection
  *
  * Guideline pages drift past their length rules because only a reviewer reads
  * them: #514 was cut for verbosity after review, #566 took two rounds to lose
@@ -19,7 +19,7 @@
  * flat page figure, because a page of ten rules is not a page of three that has
  * grown; and expressed per page, because that is what a reader opens.
  *
- * An introduction buys no allowance of its own: docs/guidelines.md gives a page
+ * An introduction buys no allowance of its own: AGENTS.md gives a guideline page
  * a title and rules and no introduction, so the words of one that appears anyway
  * come out of the rules' budget — and a page with no rules has none to spend.
  *

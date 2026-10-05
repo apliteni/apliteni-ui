@@ -7,7 +7,7 @@
  * round r31 rejected.
  *
  * What it measures, its limits, and the reason for each of the nine mutations:
- * why: docs/library.md#the-chosen-tab-in-an-underline-strip
+ * why: docs/components.md#the-chosen-tab-in-an-underline-strip
  * Opt-in on a browser, as stories/tap-zone.test.js is; CI runs nothing here.
  *
  *   UI_PLAYWRIGHT=… SEG_WRAP=1 node --test stories/segmented-wrap.test.js

@@ -9,7 +9,7 @@ import { JSDOM } from "jsdom";
 /**
  * The guarantee: a link written inside a table cell takes the kit ring on keyboard focus.
  * Subjects are discovered from the markup, so a new ledger with a linked ID joins by
- * existing. why: docs/library.md#dense-financial-tables; decided in #510.
+ * existing. why: docs/components.md#dense-financial-tables; decided in #510.
  *
  * Limits: this reads the cascade, not paint. Whether the ring is visible against the
  * surface behind it belongs to stories/ring-surfaces.test.js and the contrast ledger;
@@ -192,14 +192,14 @@ test("the check rejects a cell link dropped from the ring", () => {
 });
 
 test("a cell link is an inline-block box, so a wrapped one paints one ring", () => {
-  // The guarantee `docs/library.md#dense-financial-tables` states: one ring around the whole link, including a
+  // The guarantee `docs/components.md#dense-financial-tables` states: one ring around the whole link, including a
   // title-cell link that wraps. A link left in the inline flow takes a ring per line box —
   // seven of them, measured at 390 on a title cell — so the box is what carries this.
   const subjects = cellLinks();
   const flowed = subjects
     .filter((subject) => declared(SHEETS, "display", element(subject)) !== "inline-block")
     .map((subject) => `${subject.file}: ${subject.link}`);
-  // The corner the ring follows is the other half of that box, and docs/library.md states
+  // The corner the ring follows is the other half of that box, and docs/components.md states
   // it, so it is read the same way rather than left to the comment above the rule.
   const square = subjects
     .filter((subject) => declared(SHEETS, "border-radius", element(subject)) !== "var(--radius-xs)")

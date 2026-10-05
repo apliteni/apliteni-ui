@@ -31,6 +31,34 @@ run-name: Release ${{ inputs.tag }}
 # Provenance records this main workflow revision; the release source SHA is
 # recorded separately in the policy summary and used by the build checkout. Do NOT "fix" this with `npm publish --ignore-scripts` — that skips
 # `prepare` silently and ships a stale or missing react/dist with exit 0.
+#
+# How the approval boundary is configured, and why each part of it is load-bearing:
+#
+#   npm-publish         holds no required reviewers, and its deployment rules are
+#                       Branch: main and nothing else — no `v*` tag rule. The
+#                       branch rule is what stops a dispatch from a tag or a side
+#                       branch reaching the credential. npmjs.com's Trusted
+#                       Publisher entry for the package names this environment, so
+#                       leaving that binding blank would widen the boundary from
+#                       npm's side; never clear it.
+#   npm-publish-review  holds the required reviewers, Prevent self-review, the same
+#                       Branch: main rule and no secrets. Everything the policy does
+#                       not approve on its own waits here. scripts/release-policy.mjs
+#                       refuses to run if its reviewers are unset, so an empty
+#                       reviewer list fails the release rather than publishing.
+#
+# To pause automatic releases, turn required reviewers back on for npm-publish.
+# Do not widen either branch rule and do not remove npm's environment binding.
+#
+# Two limits of the design, stated rather than implied: anyone who can dispatch a
+# workflow can request a release, and anyone who can change main's workflows can
+# change this rule. Main requires no PR approval and allows admin bypass, so this
+# is not a mandatory human check on every release. A failed policy lookup waits for
+# review; a failure reading the review environment's reviewers stops the run.
+#
+# Settings enforcement cannot be proved by a test — GitHub's environment rules and
+# npm's OIDC exchange are account state, not code — so a real release is the only
+# proof that both ends still hold.
 on:
   workflow_dispatch:
     inputs:

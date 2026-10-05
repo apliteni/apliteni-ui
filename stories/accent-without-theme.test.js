@@ -14,7 +14,7 @@
  * READ from a second render rather than written down, so this gate carries no
  * copy of the palette to drift against src/tokens/accents.css.
  *
- * why: docs/library.md#an-absent-attribute-means-dark
+ * why: docs/components.md#an-absent-attribute-means-dark
  */
 import { test } from 'node:test';
 import assert from 'node:assert';

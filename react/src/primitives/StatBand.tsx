@@ -5,7 +5,7 @@ import { Tooltip } from '../Tooltip';
 // The React face of statBand(). Same classes, same <dl>, same rules; the one
 // difference is that `value` and `trend` take React nodes, so a figure can be a
 // link to its drill-down and a trend can be an interactive chart.
-// why: docs/library.md#stat-bands
+// why: docs/components.md#stat-bands
 
 export type StatTone = 'good' | 'bad' | 'neutral';
 export type StatVariant = 'band' | 'tiles' | 'open';
@@ -49,7 +49,7 @@ const hasChange = (d?: StatDelta): d is StatDelta & { value: string } => !!d && 
 
 // The row under the value, as the factory builds it, in one line: the caption,
 // the change, then what the change is measured against.
-// why: docs/library.md#stat-bands
+// why: docs/components.md#stat-bands
 function ContextRow({ caption, delta, basisId }: { caption?: string; delta?: StatDelta; basisId?: string }) {
   if (!hasChange(delta)) return caption ? <dd className="ui-stat__caption">{caption}</dd> : null;
   // The trailing space is read, where the gap beside it is only drawn.

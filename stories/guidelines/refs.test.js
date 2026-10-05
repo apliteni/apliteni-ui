@@ -325,7 +325,7 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   assert.equal(count, 124, 'update the rule count when adding or removing a rule');
 });
 
-// The checkable half of "Show, less tell" (docs/guidelines.md). A rule the page
+// The checkable half of "Show, less tell" (AGENTS.md#the-guidelines-collection). A rule the page
 // does not draw has only its words, so it must at least say why the rule exists;
 // the clause about a `Why` earning its place is a reviewer's call and is not here.
 //

@@ -10,7 +10,7 @@
  * existing, and the sweep fails when it finds none. The check is specificity and
  * not source order: two sheets' order in a consumer's bundle is the consumer's.
  *
- * why: docs/library.md#a-filter-row-holds-its-panels
+ * why: docs/components.md#a-filter-row-holds-its-panels
  */
 
 /* State what this test cannot measure.

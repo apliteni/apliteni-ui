@@ -12,7 +12,7 @@
 // beside it a line lower — 26.2px, measured on #512.
 //
 // Every story is walked, so a band added anywhere is a subject without being
-// listed. why: docs/library.md#stat-bands
+// listed. why: docs/components.md#stat-bands
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
