@@ -2,7 +2,9 @@ import { button, esc } from './index.js';
 import { dropdown, wireDropdown } from './dropdown.js';
 import { filterChipText, filterChipName, filterChipUnset, focusNextStop } from '../logic/filter-bar.js';
 
-export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear all filters', disabled = false, busy = false } = {}) {
+// `Clear all`, not `Clear all filters`: the button sits inside this bar's own fieldset,
+// whose legend names the group, so the noun is already in the control's context. #504
+export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear all', disabled = false, busy = false } = {}) {
   return `<fieldset class="ui-filter-bar" data-filter-bar${disabled || busy ? ' disabled' : ''}${busy ? ' aria-busy="true"' : ''}>`
     + `<legend class="ui-filter-bar__legend">${esc(label)}</legend>`
     + filters.map(filter => `<fieldset class="ui-filter-bar__chip" data-filter-id="${esc(filter.id)}"${filter.disabled ? ' disabled' : ''}>`

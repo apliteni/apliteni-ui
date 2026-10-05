@@ -64,8 +64,9 @@ const preview = (bad = false, colourful = false) => `<div class="ui-card ui-card
 // The vanilla Table/FinanceData recipe and React DataTable share these classes.
 // The ledger sits in a card, as the preview under it does: a table now ends where its
 // values end (#504), and a bare one left this pair reading as a stub above a wider card.
-// The card is the surface the two share an edge on; the table keeps its own width inside it.
-const payouts = () => `<div class="gda-table"><div class="ui-card ui-card--pad-sm"><table class="ui-table ui-table--dense ui-table--zebra">
+// The card ends where the table does (--fit), so the two halves of the pair are compared
+// on their content and neither card carries slack the reader has to read past.
+const payouts = () => `<div class="gda-table"><div class="ui-card ui-card--pad-sm ui-card--fit"><table class="ui-table ui-table--dense ui-table--zebra">
   <caption>Payouts · EUR</caption>
   <thead><tr><th>Reference</th><th class="ui-table__num">Amount</th><th>Status</th></tr></thead>
   <tbody><tr><td>1162</td><td class="ui-table__num">1,240.00</td><td>${badge('In transit', 'pending')}</td></tr>

@@ -7,13 +7,19 @@ export default { title: 'Components/Finance composition', parameters: { layout: 
 function Example() {
   const [view, setView] = useState('overview');
   const [filters, setFilters] = useState<Filter[]>([{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology', value: 'Technology' }, { label: 'Energy', value: 'Energy' }] }]);
-  return <main style={{ padding: 'var(--space-6)' }}><h1>Company comparison</h1><p id="react-finance-basis">Fictional data. Changes versus previous close.</p>
+  // The basis is what every delta cell's aria-describedby resolves to, and nothing else.
+  // It was a visible sentence under the title — a third text tier over the controls — and
+  // the two places it could go instead both cost the table its width: a longer header, or
+  // the period picker's header tooltip, whose readout text is inside the <th> and takes
+  // that column's max-content from 71px to 135px at 390. #504
+  return <main style={{ padding: 'var(--space-6)' }}><h1>Company comparison</h1><p id="react-finance-basis" className="ui-sr">Changes since the previous close.</p>
     <FilterBar filters={filters} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))} />
     <Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
     {/* --table-bg is the card's surface in a card and the page's own ground outside one, and a
-        content-width table no longer covers the page it stands on. #504
+        content-width table no longer covers the page it stands on. --fit so the surface ends
+        where the table does rather than leaving the slack white. #504
         why: guidelines/dense-tables.md, use the right surface */}
-    <div className="ui-card"><DataTable rows={[{ name: 'Aster Systems', sector: 'Technology', price: 228.87, change: '+0.66%' }, { name: 'Birch Energy', sector: 'Energy', price: 0, change: '0.00%' }].filter(r => !filters.length || r.sector === filters[0].value)} selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"
+    <div className="ui-card ui-card--fit"><DataTable rows={[{ name: 'Aster Systems', sector: 'Technology', price: 228.87, change: '+0.66%' }, { name: 'Birch Energy', sector: 'Energy', price: 0, change: '0.00%' }].filter(r => !filters.length || r.sector === filters[0].value)} selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"
       columns={[{ key: 'name', label: 'Company', render: r => <RowIdentity symbol={r.name.slice(0, 4).toUpperCase()} name={r.name} href="#company" /> }, ...(view === 'overview' ? [{ key: 'price' as const, label: 'Price', num: true, sortable: true, render: (r: {price: number}) => <NumericValue value={r.price.toFixed(2)} unit="USD" /> }] : []), { key: 'change', label: 'Change', num: true, render: r => <DeltaValue value={r.change} tone="success" basisId="react-finance-basis" /> }]} /></div>
   </main>;
 }
