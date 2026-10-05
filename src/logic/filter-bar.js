@@ -79,20 +79,25 @@ export function nextFocusStop(host) {
 /** Puts the focus where an emptied bar hands it on, and answers with the element
  *  it ended on, or null if nothing took it.
  *
- *  A bar that still holds chips draws a box around them, so it takes the focus
- *  itself, made focusable for that moment. Emptied, it has only an out-of-flow
- *  legend left and measures 0 high, so the focus goes to the first control
- *  outside it that will have it — on the Stock screener the caller's own
- *  `Add filter`, in the React Finance composition the view strip's chosen tab.
- *
- *  Being reachable is not the same as taking the focus: a control can be visible
- *  and enabled and still refuse, so each candidate is asked and then checked, and
- *  the next one tried.
+ *  The way to add one outlives the chips, so an emptied row can still have a
+ *  control on it, and that is the nearest stop there is. A bar that still holds
+ *  chips draws a box around them and takes the focus itself. With neither left it
+ *  has only an out-of-flow legend and measures 0 high, so the focus goes outside —
+ *  on the Stock screener the caller's own `Add`. Being reachable is not taking the
+ *  focus: each candidate is asked and then checked. #518
  *  why: docs/components.md#a-filter-row-holds-its-panels */
 export function focusNextStop(host) {
   const doc = host && host.ownerDocument;
   if (!doc) return null;
   const bar = host.matches('[data-filter-bar]') ? host : host.querySelector('[data-filter-bar]');
+  // The add control outlives the chips, so an emptied row is not an empty row.
+  if (bar && !bar.querySelector('[data-filter-id]')) {
+    const add = bar.querySelector('[data-filter-add] [data-dropdown-trigger]');
+    if (add && !unreachable(add)) {
+      add.focus();
+      if (doc.activeElement === add) return add;
+    }
+  }
   if (bar && bar.querySelector('[data-filter-id]')) {
     bar.tabIndex = -1; bar.focus();
     return doc.activeElement === bar ? bar : null;

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { filterBar, initFilterBar } from './filter-bar.js';
-import { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop } from '../logic/filter-bar.js';
+import { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop, focusNextStop } from '../logic/filter-bar.js';
 import { segmented } from './index.js';
 import { initSegmented } from './segmented.js';
 import { numericValue, deltaValue, rowIdentity, initRowIdentity } from './table-values.js';
@@ -228,6 +228,38 @@ test('an emptied bar hands the focus to the action beside it, never to its own e
     assert.equal(host.querySelectorAll('[data-filter-bar] button').length, 0);
     bar.destroy(); dom.window.close();
   }
+});
+// The row a vanilla page draws its own way to add a filter on: the contract is one
+// attribute, so the shared answer can find the control without knowing what a consumer
+// put in it. It outlives the chips, which makes an emptied row a row that still has a
+// control on it — the nearest stop there is, and nearer than anything outside the bar.
+// Limit: initFilterBar's update() rebuilds the bar from filterBar(), which draws no such
+// control, so a vanilla page holding one keeps it in the DOM itself; these ask the shared
+// answer, which is the half this kit owns. #518
+const withAdd = (attrs = '') => filterBar({ filters: [] })
+  .replace('</fieldset>', `<div data-filter-add><div class="ui-dropdown">`
+    + `<button type="button" class="ui-dropdown__trigger" data-dropdown-trigger aria-expanded="false"${attrs}>Add</button>`
+    + `</div></div></fieldset>`);
+test('an emptied bar keeps the focus on the way to add a filter, where the row draws one', () => {
+  const { dom, host } = setup(withAdd());
+  const beside = document.createElement('button'); beside.type = 'button'; beside.textContent = 'Add filter';
+  host.after(beside);
+  const add = host.querySelector('[data-filter-add] [data-dropdown-trigger]');
+  assert.equal(focusNextStop(host), add, 'the emptied bar did not offer the control still on its row');
+  assert.equal(document.activeElement, add, `focus went to ${document.activeElement.outerHTML}`);
+  assert.equal(nextFocusStop(host), beside, 'nextFocusStop answers about the controls OUTSIDE the bar');
+  dom.window.close();
+});
+test('an emptied bar walks past an add control a reader cannot reach', () => {
+  // A bar turned off disables the control inside it, and a disabled control refuses
+  // `focus()` silently — so the bar checks and carries on, rather than stranding the
+  // focus on BODY with the next Tab starting over at the top of the page.
+  const { dom, host } = setup(withAdd(' disabled'));
+  const beside = document.createElement('button'); beside.type = 'button'; beside.textContent = 'Add filter';
+  host.after(beside);
+  assert.equal(focusNextStop(host), beside, 'an unavailable control was treated as a stop');
+  assert.equal(document.activeElement, beside, `focus went to ${document.activeElement.outerHTML}`);
+  dom.window.close();
 });
 // Each of these leaves a control in the document, as a tab stop, with a box a
 // browser can still measure — and refuses `focus()`. Before #527's last round the

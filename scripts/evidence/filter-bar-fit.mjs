@@ -7,8 +7,8 @@
  * Subjects are swept, not named: both Storybook indexes are rendered and every
  * story putting a `.ui-filter-bar` on the page joins the set, alongside
  * filter-bar-fit.html. Each panel is measured against the `.ui-dropdown` that
- * contains it, each open menu again with the viewport narrowed under it, and each
- * chip menu's close sampled through its fade; five mutations have to be refused.
+ * contains it, each open menu again at every narrower width, and each anchored
+ * menu's close through its fade. Six mutations below have to be refused.
  *
  * why: scripts/evidence/README.md
  *
@@ -47,6 +47,14 @@ for (const build of BUILDS) {
 const WIDTHS = [320, 375, 390, 1280];
 // The width every open menu is also measured at, whatever width it opened at.
 const NARROW = WIDTHS[0];
+/* And the phone above it. 320px is the hardest case for a chip, but the add menu
+ * asks for 320px, so 390px is where its stale fit is still 32px outside the row
+ * while the viewport itself has the room — a narrowing that a 320px-only check
+ * reads as the same defect for the wrong reason. */
+const PHONE = 390;
+/** The widths one open menu is measured again at: those the kit names below the
+ *  width the case opened at, narrowing rather than widening. */
+const refitAt = (width) => [PHONE, NARROW].filter((w) => w < width);
 const THEMES = ['dark', 'light'];
 /* Floors, recorded from what this kit reaches rather than re-derived from the
  * sweep. A count computed from the same loop that filled it can only restate
@@ -55,11 +63,17 @@ const THEMES = ['dark', 'light'];
  * deliberate act of someone who has seen the new surfaces. */
 const FLOOR_SUBJECTS = 15;   // 8 root + 7 react stories rendering a filter bar
 const FLOOR_PANELLED = 72;   // cases that put a panel on the page, of 128
-/* Chip menus whose close is sampled through its fade, over the close arm. Recorded,
- * not derived: a walk that stopped opening chips would otherwise report "0 of 0".
- * Well under one per case, because a chip whose trigger is disabled is skipped and
- * six of the sixteen subjects are a busy, loading, disabled or empty state. */
-const FLOOR_CLOSES = 20;     // chip menus opened and closed, over the 16 close-arm cases
+const FLOOR_ADD = 16;        // cases that open the add control's menu
+const FLOOR_ADD_REFITS = 16; // add menus measured again after the viewport moved
+/* Anchored menus whose close is sampled through its fade, over the close arm.
+ * Recorded, not derived: a walk that stopped opening menus would otherwise report
+ * "0 of 0". Well under one per case, because a chip whose trigger is disabled is
+ * skipped and six of the sixteen subjects are a busy, loading, disabled or empty
+ * state. */
+const FLOOR_CLOSES = 22;     // anchored menus opened and closed, over the 16 close-arm cases
+/* And of those, the ones that are the add control's catalogue rather than a chip's
+ * values: the two React subjects that draw it. */
+const FLOOR_ADD_CLOSES = 2;  // add menus opened and closed, over the same arm
 /* Chosen rows whose check is measured inside a menu that is being painted. Recorded
  * for the reason the others are: a walk that stopped opening menus, or stories that
  * stopped marking a row, would report "0 of 0 cut" and pass. */
@@ -103,10 +117,17 @@ const FLOOR_OFF = '.ui-filter-bar .ui-dropdown.open .ui-dropdown__panel'
   + ' { min-width: 100% !important; max-width: 100% !important; margin-inline-start: 0 !important; }';
 /* And the fifth: dropping the open geometry in the frame a menu closes, which is
  * the state the fix replaced. The panel fades for --dur-med, so without the hold
- * a painted menu has to be caught at its trigger's width. */
-const HOLD_OFF = '.ui-filter-bar__chip .ui-dropdown__panel.is-closing'
+ * a painted menu has to be caught at its trigger's width. Both anchors, because
+ * both are held and a mutation that reached only one would leave the other's hold
+ * unmeasured. */
+const HOLD_OFF = '.ui-filter-bar__chip .ui-dropdown__panel.is-closing,'
+  + ' .ui-filter-bar [data-filter-add] .ui-dropdown__panel.is-closing'
   + ' { min-width: 100% !important; max-width: 100% !important;'
   + ' margin-inline-start: 0 !important; margin-inline-end: 0 !important; }';
+/* And the sixth takes away what the add menu asks for, leaving it the kit's floor:
+ * the catalogue then draws at a chip's width, which the check below has to report. */
+const ADD_ASK_OFF = '.ui-filter-bar [data-filter-add] .ui-dropdown__panel'
+  + ' { --ui-filter-panel-ask: 0px !important; }';
 
 /* And the sixth: the tick clip as it stood, which let a chosen row's 16px check
  * give way in a menu that is being painted. It is written for every panel in a
@@ -278,6 +299,12 @@ const probe = () => {
         // What a row-anchored panel's own rule asks for, so the gate can see the
         // chip rule taking it away.
         wants: Number(panel.closest('[data-row-anchored]')?.dataset.rowAnchored) || null,
+        // The add control's menu asks for a panel's width rather than a chip's,
+        // and says so on its own panel. why: src/styles/filter-bar.css
+        add: Boolean(panel.closest('[data-filter-add]')),
+        row: +box.width.toFixed(1),
+        // The floor the fit resolved for this panel, which is what it owes its row.
+        asked: Number.parseFloat(getComputedStyle(panel).getPropertyValue('--ui-filter-panel-floor')) || null,
         rows: panel.querySelectorAll('.ui-dropdown__item').length,
         spills, marks,
       };
@@ -291,6 +318,8 @@ const probe = () => {
     page: doc.scrollWidth,
     view: doc.clientWidth,
     over: Math.max(0, doc.scrollWidth - doc.clientWidth),
+    // The width the add menu is held to, read from the token rather than copied.
+    panelSm: parseFloat(getComputedStyle(doc).getPropertyValue('--panel-sm')) || null,
     bars,
   };
 };
@@ -363,9 +392,11 @@ async function measure({ url, ready, width, theme, mutate, attrTheme, deaf }) {
   // Asked of the document rather than of a clock. why: scripts/evidence/README.md
   await settle(page);
   const seen = await page.evaluate(probe);
-  /* Open each chip in turn and measure again: a panel that only fits while it is
-   * shut fits nothing, and the chip that overflows is not always the second one
-   * — the widest option list in the kit sits on the screener's `Sector`. */
+  /* Open each menu in the row in turn and measure again: a panel that only fits
+   * while it is shut fits nothing, and the chip that overflows is not always the
+   * second one — the widest option list in the kit sits on the screener's
+   * `Sector`. The add control (#496) is a menu in the row like the chips', and
+   * the only one that asks for a panel's width, so it is walked with them. */
   const opens = [];
   /* Every trigger in the row, not only a chip's: a menu anchored to the row
    * rather than to a chip is still a menu this gate is about, and measuring it
@@ -382,10 +413,12 @@ async function measure({ url, ready, width, theme, mutate, attrTheme, deaf }) {
      * 11px off the page in vanilla, 14px in React, and no single-viewport
      * measurement can see it. Put back afterwards, so the next chip opens at
      * the case's own width. */
-    if (width !== NARROW) {
-      await page.setViewportSize({ width: NARROW, height: 640 });
+    for (const to of refitAt(width)) {
+      await page.setViewportSize({ width: to, height: 640 });
       await settle(page);
-      opens.push({ chip: at + 1, resizedTo: NARROW, ...await page.evaluate(probe) });
+      opens.push({ chip: at + 1, resizedTo: to, ...await page.evaluate(probe) });
+    }
+    if (refitAt(width).length) {
       await page.setViewportSize({ width, height: 640 });
       await settle(page);
     }
@@ -396,11 +429,18 @@ async function measure({ url, ready, width, theme, mutate, attrTheme, deaf }) {
   return { ...seen, opens };
 }
 
-/* Every chip menu's box, its row's box and whether it is being painted, as one
+/* The menus this arm is about: the two anchored at a trigger of their own, which is
+ * what the kit's filterPanelRow() answers for and what the close hold applies to.
+ * The add control's catalogue asks for 320px where a chip asks for 240px, so it has
+ * the furthest to collapse and is the one a chip-only walk would have missed. */
+const ANCHORED_PANELS = '.ui-filter-bar__chip .ui-dropdown__panel, '
+  + '.ui-filter-bar [data-filter-add] .ui-dropdown__panel';
+
+/* Every anchored menu's box, its row's box and whether it is being painted, as one
  * expression so the frame walk below and the single read above it ask the same
  * question. A string for the same reason the mutations are: it is evaluated in the
  * page, where nothing of this module is in scope. */
-const PAINTED_MENUS = `[...document.querySelectorAll('.ui-filter-bar__chip .ui-dropdown__panel')]
+const PAINTED_MENUS = `[...document.querySelectorAll('${ANCHORED_PANELS}')]
   .map((panel) => {
     const bar = panel.closest('.ui-filter-bar');
     const p = panel.getBoundingClientRect();
@@ -423,6 +463,11 @@ const PAINTED_MENUS = `[...document.querySelectorAll('.ui-filter-bar__chip .ui-d
             clipped: !!g && (tick.clientWidth + 0.5 < g.width || tick.clientHeight + 0.5 < g.height),
           };
         }),
+      add: !!panel.closest('[data-filter-add]'),
+      /* The width this panel asks the fit for, read off the sheet rather than
+         assumed: the catalogue's floor is not a chip's, and the hold has to give it
+         back the one it opened with. */
+      ask: Number.parseFloat(cs.getPropertyValue('--ui-filter-panel-ask')) || null,
     };
   })`;
 
@@ -457,12 +502,12 @@ const FADE_WALK = `(async () => {
  * one per chip cost this arm ten seconds a chip. A panel's own fade resolves in a
  * frame or two. The page-level settle() below is kept, so fonts and the first paint
  * are still waited for once per case. */
-const OPEN_PAINTED = `[...document.querySelectorAll('.ui-filter-bar__chip .ui-dropdown__panel')]
+const OPEN_PAINTED = `[...document.querySelectorAll('${ANCHORED_PANELS}')]
   .some((p) => {
     const cs = getComputedStyle(p);
     return cs.visibility !== 'hidden' && Number(cs.opacity) > 0.98;
   })`;
-const NONE_PAINTED = `[...document.querySelectorAll('.ui-filter-bar__chip .ui-dropdown__panel')]
+const NONE_PAINTED = `[...document.querySelectorAll('${ANCHORED_PANELS}')]
   .every((p) => {
     const cs = getComputedStyle(p);
     return cs.visibility === 'hidden' || Number(cs.opacity) <= 0.02;
@@ -514,16 +559,18 @@ async function closeFrames({ url, ready, width, theme, attrTheme, mutate }) {
      * and the question asked below is about a panel's own box relative to its row,
      * which does not need the rest of the page to have stopped. */
     await settled(page);
-    const triggers = await page.$$('.ui-filter-bar__chip [data-dropdown-trigger]');
+    const triggers = await page.$$('.ui-filter-bar__chip [data-dropdown-trigger], '
+      + '.ui-filter-bar [data-filter-add] [data-dropdown-trigger]');
     for (const [at, trigger] of triggers.entries()) {
       if (!await trigger.isEnabled()) continue;
+      const add = await trigger.evaluate((el) => !!el.closest('[data-filter-add]'));
       await trigger.click();
       await reached(page, OPEN_PAINTED);
       const open = await page.evaluate(PAINTED_MENUS);
       await page.keyboard.press('Escape');
       try {
-        const frames = await capped(page.evaluate(FADE_WALK), 10000, `${url} chip ${at + 1}`);
-        walks.push({ chip: at + 1, open, frames });
+        const frames = await capped(page.evaluate(FADE_WALK), 10000, `${url} menu ${at + 1}`);
+        walks.push({ menu: at + 1, add, open, frames });
       } catch (err) {
         walkTimeouts.push(err.message);
       }
@@ -562,9 +609,11 @@ const panelCount = (state) => state.bars.reduce((n, bar) => n + bar.panels.lengt
 /** The worst overflow a case reached, shut or with any one chip open. */
 const worstOver = (held) => Math.max(held.over, ...held.opens.map((o) => o.over), 0);
 
+/** Every panel one measured state put on the page. */
+const panelsIn = (state) => state.bars.flatMap((bar) => bar.panels);
+
 /** Every panel a case measured, across its shut state and each chip it opened. */
-const allPanels = (held) => [held, ...held.opens]
-  .flatMap((state) => state.bars.flatMap((bar) => bar.panels));
+const allPanels = (held) => [held, ...held.opens].flatMap(panelsIn);
 
 /* The kit's menu floor, the width `.ui-dropdown__panel` writes and the width an
  * open filter menu reaches. A row narrower than the floor decides instead — a
@@ -629,6 +678,25 @@ const escapedIn = (state) => state.bars.flatMap((bar) => bar.panels
   .filter((p) => p.right > bar.right + 0.5 || p.left < bar.left - 0.5)
   .map((p) => ({ panel: p, bar })));
 
+/** Every add menu a case measured, in its opening state and in each state the
+ *  walk resized under it. */
+const addPanels = (held) => allPanels(held).filter((p) => p.add && p.open);
+
+/** What the add control's menu is owed: a panel's width, or the row when the row
+ *  is narrower than one. Read from the token the sheet writes, so a mutation that
+ *  takes the menu's own floor away cannot move the expectation with it. */
+const addWidth = (held, panel) => Math.min(held.panelSm ?? Infinity, panel.row);
+
+/** Open add menus that are not the width the row allows them. */
+const addLoose = (held) => addPanels(held)
+  .filter((p) => !held.panelSm || Math.abs(p.width - addWidth(held, p)) > 0.5);
+
+/** The add menus a case measured again after the viewport moved under them, each
+ *  carrying the width it was narrowed to. `addLoose` and `escapedIn` then judge
+ *  these states beside the opening one; this is what counts them. */
+const addRefits = (held) => held.opens.filter((o) => o.resizedTo)
+  .flatMap((o) => panelsIn(o).filter((p) => p.add && p.open).map((p) => ({ ...p, at: o.resizedTo })));
+
 /** The distinct rows whose text left them, one entry per row however many times
  *  the walk measured it. */
 const spilled = (held) => {
@@ -647,11 +715,14 @@ const fails = [];
 const panelled = new Set();
 let resizedStates = 0;
 let markStates = 0;
+let addRefitStates = 0;
+const withAdd = new Set();
 for (const one of cases) {
   say(`shipped ${ledger.length + 1}/${cases.length}: ${one.name} ${one.width}px ${one.theme}`);
   const held = await again(one.name, () => measure(one));
   ledger.push({ ...one, mutated: false, ...held });
   if (carriesPanel(held)) panelled.add(one);
+  if (addPanels(held).length) withAdd.add(one);
   const worst = worstOver(held);
   if (worst > 0) {
     fails.push(`${one.name} at ${one.width}px ${one.theme}: the page is ${held.page}px wide on a `
@@ -681,6 +752,11 @@ for (const one of cases) {
     fails.push(`${one.name} at ${one.width}px ${one.theme}: a panel is ${panel.width}px inside a `
       + `${panel.dropdown}px .ui-dropdown, so the bound is not deciding its width`);
   }
+  // And the add menu's: a panel's width where the row has it, not a chip's floor.
+  for (const panel of addLoose(held)) {
+    fails.push(`${one.name} at ${one.width}px ${one.theme}: the add menu is ${panel.width}px where `
+      + `the row allows ${addWidth(held, panel)}px (row ${panel.row}px, trigger ${panel.dropdown}px)`);
+  }
   /* Every panel inside the row that holds it, open or shut, and every option's
    * text inside the panel that holds it. A row is reported once per case: the
    * same row is measured shut and again for each chip opened, and twelve
@@ -704,8 +780,17 @@ for (const one of cases) {
     fails.push(`${one.name} at ${one.width}px ${one.theme}: ${held.opens.length} menus were opened `
       + 'and none was measured again at a narrower viewport');
   }
+  /* The add menu by name. It asks for a panel's width where a chip asks for the
+   * menu floor, so it is the first menu in the row whose stale fit shows on a
+   * phone — 320px of panel 32px outside a 304px row. A case that opened one and
+   * never narrowed under it leaves that to the chips, which 240px hides. */
+  if (one.width > NARROW && addPanels(held).length && !addRefits(held).length) {
+    fails.push(`${one.name} at ${one.width}px ${one.theme}: the add menu was opened and never `
+      + `measured again at ${refitAt(one.width).join('px or ')}px`);
+  }
   resizedStates += held.opens.filter((o) => o.resizedTo).length;
   markStates += paintedMarks(held).length;
+  addRefitStates += addRefits(held).length;
 }
 
 /* The mutation. Every case carrying a panel has to come back with at least one
@@ -774,6 +859,7 @@ for (const one of wrapArm) {
  * viewports is largest. */
 const deafArm = cases.filter((one) => one.width === WIDTHS[WIDTHS.length - 1] && one.theme === THEMES[0]);
 const stale = [];
+const staleAdds = [];
 for (const one of deafArm) {
   say(`refit-deaf: ${one.name}`);
   const kept = await again(one.name, () => measure({ ...one, deaf: true }));
@@ -781,6 +867,11 @@ for (const one of deafArm) {
   const loose = kept.opens.filter((o) => o.resizedTo)
     .filter((o) => o.over > 0 || escapedIn(o).length);
   if (loose.length) stale.push(`${one.name}: ${loose.length} menus kept the fit they opened with`);
+  /* And the add menu on its own, because it is the one this gate would otherwise
+   * let pass on the chips' evidence: its ask is the widest in the row. */
+  staleAdds.push(...kept.opens.filter((o) => o.resizedTo)
+    .flatMap((o) => escapedIn(o).filter(({ panel }) => panel.add && panel.open)
+      .map(({ panel }) => `${one.name} at ${o.resizedTo}px: ${panel.left}..${panel.right}`)));
 }
 
 /* The close arm, and the fifth mutation beside it. A painted menu may not be
@@ -792,10 +883,12 @@ for (const one of deafArm) {
 const closeArm = cases.filter((one) => one.width === NARROW && one.theme === THEMES[0]);
 
 /** A painted menu that broke either half of the promise in one sampled frame:
- *  narrower than its row's floor, or outside the row. */
+ *  narrower than its row's floor, or outside the row. The floor is the width this
+ *  panel asks the fit for — the catalogue's 320px, else the kit's 240px — capped by
+ *  the row, which is the same `min()` the stylesheet renders. */
 const collapsedIn = (frame) => frame
   .filter((p) => p.opacity > 0.02 && p.visibility !== 'hidden')
-  .map((p) => ({ ...p, floor: Math.min(MENU_FLOOR, p.bar.width) }))
+  .map((p) => ({ ...p, floor: Math.min(p.ask || MENU_FLOOR, p.bar.width) }))
   .filter((p) => p.width < p.floor - 0.5
     || p.right > p.bar.right + 0.5 || p.left < p.bar.left - 0.5);
 
@@ -812,6 +905,7 @@ const cutIn = (frame) => frame
 const collapsed = [];
 const cutClosing = [];
 let closeWalks = 0;
+let addCloseWalks = 0;
 let closeFramesPainted = 0;
 for (const one of closeArm) {
   say(`close-walk: ${one.name}`);
@@ -819,6 +913,7 @@ for (const one of closeArm) {
   ledger.push({ ...one, mutated: 'close-frames', walks });
   for (const walk of walks) {
     closeWalks += 1;
+    if (walk.add) addCloseWalks += 1;
     /* One line per menu, not per frame: the same panel is sampled up to twenty
      * times on the way out, and twenty identical lines read as twenty defects. The
      * narrowest frame is the one quoted. */
@@ -843,7 +938,8 @@ for (const one of closeArm) {
         + `in a ${thinnest.menu}px menu still being painted — "${thinnest.text}"`);
     }
     if (worst) {
-      collapsed.push(`${one.name} at ${one.width}px ${one.theme} chip ${walk.chip} closing, frame `
+      collapsed.push(`${one.name} at ${one.width}px ${one.theme} `
+        + `${walk.add ? 'add menu' : 'chip'} ${walk.menu} closing, frame `
         + `${worst.at}: a menu still painted at opacity ${worst.opacity} is ${worst.width}px where its `
         + `row allows ${worst.floor}px, spanning ${worst.left}..${worst.right} in a row of `
         + `${worst.bar.left}..${worst.bar.right}`);
@@ -852,14 +948,31 @@ for (const one of closeArm) {
 }
 
 const unheld = [];
+const unheldAdds = [];
 for (const one of closeArm) {
   say(`hold-off: ${one.name}`);
   const walks = await again(one.name, () => closeFrames({ ...one, mutate: HOLD_OFF }));
   ledger.push({ ...one, mutated: 'hold-off', walks });
   for (const walk of walks) {
     for (const frame of walk.frames) {
-      unheld.push(...collapsedIn(frame).map((pp) => `${one.name}: ${pp.width}px under ${pp.floor}px`));
+      const caught = collapsedIn(frame);
+      unheld.push(...caught.map((pp) => `${one.name}: ${pp.width}px under ${pp.floor}px`));
+      unheldAdds.push(...caught.filter((pp) => pp.add));
     }
+  }
+}
+
+/* The sixth. Taking the add menu's ask away has to draw it at a chip's floor in
+ * every case that opens one. Run over every such case and not one arm, because the
+ * width the row allows changes with the viewport. */
+const unsqueezed = [];
+for (const one of withAdd) {
+  say(`add-ask-off: ${one.name}`);
+  const chipWidth = await measure({ ...one, mutate: ADD_ASK_OFF });
+  ledger.push({ ...one, mutated: 'add-ask-off', ...chipWidth });
+  if (!addLoose(chipWidth).length) {
+    unsqueezed.push(`${one.name} at ${one.width}px ${one.theme}: the add menu kept a panel's width `
+      + 'with its ask taken away, so the ask was never what decided it');
   }
 }
 
@@ -883,22 +996,28 @@ console.log(`subjects: ${perHalf.join(' + ')} stories + 1 vanilla page `
 for (const s of subjects) console.log(`  · ${s.half}: ${s.label}`);
 console.log(`cases measured: ${cases.length} of ${expected} expected, at ${WIDTHS.join('px, ')}px`);
 console.log(`cases carrying a panel: ${panelled.size} of ${cases.length}, floor ${FLOOR_PANELLED}`);
+console.log(`cases opening the add menu: ${withAdd.size}, floor ${FLOOR_ADD}; `
+  + `chip-width menus caught with its ask off: ${withAdd.size - unsqueezed.length} of ${withAdd.size}`);
 console.log(`panels measured against their .ui-dropdown: ${measuredPanels}`);
 console.log(`mutations rejected: ${panelled.size - survived.length} of ${panelled.size}`);
 console.log(`rows that spill with the wrap hint off: ${unwrapped.length}, over `
   + `${wrapArm.length} cases at ${WIDTHS[0]}px ${THEMES[0]}`);
 console.log(`menus under their row floor with the menu floor off: ${squeezed.length}, over `
   + `${wrapArm.length} cases`);
-console.log(`open menus measured again at ${NARROW}px: ${resizedStates}`);
+console.log(`open menus measured again at a narrower width: ${resizedStates}, `
+  + `of which add menus: ${addRefitStates}, floor ${FLOOR_ADD_REFITS}`);
 console.log(`chosen rows' checks measured in a painted menu: ${markStates}, floor ${FLOOR_MARKS}`);
 console.log(`checks cut with the chip clip put back over every panel: ${cut.length}, over `
   + `${wrapArm.length} cases at ${WIDTHS[0]}px ${THEMES[0]}`);
 console.log(`cases whose menus went stale with the row unobserved and resize dropped: `
-  + `${stale.length}, over ${deafArm.length} cases at ${WIDTHS[WIDTHS.length - 1]}px ${THEMES[0]}`);
+  + `${stale.length}, over ${deafArm.length} cases at ${WIDTHS[WIDTHS.length - 1]}px ${THEMES[0]}; `
+  + `add menus caught outside their row: ${staleAdds.length}`);
 console.log(`closes sampled every ${STEP_MS}ms with motion on: ${closeWalks}, floor ${FLOOR_CLOSES}; `
+  + `of which the add control's: ${addCloseWalks}, floor ${FLOOR_ADD_CLOSES}; `
   + `${closeFramesPainted} painted panel-samples measured, over ${closeArm.length} cases at `
   + `${NARROW}px ${THEMES[0]}`);
-console.log(`painted menus under their row floor with the close hold off: ${unheld.length}`);
+console.log(`painted menus under their row floor with the close hold off: ${unheld.length}, `
+  + `of which the add control's: ${unheldAdds.length}`);
 console.log(`frame production: ${deterministic ? 'deterministic' : "the host's own — "
   + '--deterministic-mode dropped because requestAnimationFrame does not fire under it here'}`);
 console.log(`browser relaunched mid-run: ${relaunches}`
@@ -917,6 +1036,20 @@ if (panelled.size < FLOOR_PANELLED) {
   problems.push(`${panelled.size} cases carried a panel and this kit reaches at least `
     + `${FLOOR_PANELLED} — panels went unmeasured even though the subjects were found`);
 }
+// The add menu is one React component's, so a sweep that stops reaching it would
+// report the exemption green having never drawn one.
+if (withAdd.size < FLOOR_ADD) {
+  problems.push(`${withAdd.size} cases opened the add control's menu and this kit reaches at `
+    + `least ${FLOOR_ADD} — the width it asks for went unmeasured`);
+}
+// And one where it is never narrowed under would hold the chips' 240px evidence
+// for a 320px panel.
+if (addRefitStates < FLOOR_ADD_REFITS) {
+  problems.push(`${addRefitStates} add menus were measured again after the viewport moved and this `
+    + `kit reaches at least ${FLOOR_ADD_REFITS} — the widest ask in the row went unmeasured across `
+    + 'a resize');
+}
+if (unsqueezed.length) problems.push(...unsqueezed);
 // A sweep that stops finding one half's bars reports every check green having
 // measured only the other half. Both halves ship filter bars, so both have to
 // contribute a subject; how many is free to grow.
@@ -967,7 +1100,14 @@ if (!cut.length) {
  * over, which is the reduced-motion state this arm exists to leave behind. */
 if (closeWalks < FLOOR_CLOSES) {
   problems.push(`${closeWalks} closes were sampled through their fade and this kit reaches at least `
-    + `${FLOOR_CLOSES} — a chip menu stopped being closed, or the walk stopped reaching one`);
+    + `${FLOOR_CLOSES} — a menu stopped being closed, or the walk stopped reaching one`);
+}
+/* The add control is one React component's, and its hold is the newer half of this
+ * arm: a walk that reached only chips would report the hold green having never
+ * closed the panel that asks for 320px. */
+if (addCloseWalks < FLOOR_ADD_CLOSES) {
+  problems.push(`${addCloseWalks} of those closes were the add control's and this kit reaches at `
+    + `least ${FLOOR_ADD_CLOSES} — its own hold went unmeasured`);
 }
 if (!closeFramesPainted) {
   problems.push('no closing menu was caught while it was still being painted, so nothing here says '
@@ -977,9 +1117,17 @@ if (!unheld.length) {
   problems.push('no painted menu fell under its row floor with the close hold taken away, so the '
     + 'close-frame check is not measuring anything');
 }
+if (addCloseWalks && !unheldAdds.length) {
+  problems.push('no painted ADD menu fell under its row floor with the close hold taken away, so '
+    + "nothing here proves the catalogue is held either — only that the chips' menus are");
+}
 /* A walk that could not answer is a hole in the arm, not a pass. */
 problems.push(...walkTimeouts.map((line) => `a close walk never returned — ${line}`));
 problems.push(...collapsed, ...cutClosing);
+if (withAdd.size && !staleAdds.length) {
+  problems.push('no add menu left its row with the row unobserved and every resize listener '
+    + "dropped, so nothing here proves the add control is re-fitted — only that the chips' menus are");
+}
 problems.push(...unrendered, ...fails, ...survived);
 if (problems.length) {
   for (const line of problems) console.error(`  ✗ ${line}`);
@@ -987,8 +1135,8 @@ if (problems.length) {
 } else {
   console.log(`✓ ${cases.length} cases: every shut panel as wide as its .ui-dropdown, every open `
     + `menu at the floor its row allows, all inside their row and adding nothing to the page, `
-    + `at the width they opened at and again at ${NARROW}px, and no menu under that floor in any `
-    + `frame it is still painted in as it closes; ${markStates} chosen-row checks whole at `
-    + `${MARK}px wherever one is painted; `
+    + `at the width they opened at and again at every narrower width the kit names, and no menu `
+    + `under that floor in any frame it is still painted in as it closes; `
+    + `${markStates} chosen-row checks whole at ${MARK}px wherever one is painted; `
     + `${panelled.size} panel-bearing mutations rejected`);
 }

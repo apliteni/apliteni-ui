@@ -15,22 +15,29 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { filterPanelFit, DD_MENU_FLOOR } from './dropdown.js';
 
-/** A dropdown at `left` inside a row of `width`, both as the browser reports. */
+/** A dropdown at `left` inside a row of `width`, both as the browser reports.
+ *  `end` pins its menu to the dropdown's inline end; `asks` is what the panel
+ *  declares as `--ui-filter-panel-ask`, as a browser computes the property. */
 const row = (rowWidth, rowLeft) => ({
   getBoundingClientRect: () => ({ left: rowLeft, right: rowLeft + rowWidth, width: rowWidth }),
   closest: (sel) => (sel === '.ui-filter-bar' ? row(rowWidth, rowLeft) : null),
 });
-const at = (left, rowWidth, rowLeft = 0, end = false) => ({
+const panelOf = (end, asks) => ({
+  classList: { contains: (cls) => cls === 'is-end' && end },
+  ownerDocument: { defaultView: { getComputedStyle: () => ({ getPropertyValue: () => asks }) } },
+});
+const at = (left, rowWidth, rowLeft = 0, end = false, asks = null) => ({
   getBoundingClientRect: () => ({ left: rowLeft + left, right: rowLeft + left + 60, width: 60 }),
-  querySelector: () => ({ classList: { contains: (c) => end && c === 'is-end' } }),
+  querySelector: () => panelOf(end, asks),
   closest: (sel) => (sel === '.ui-filter-bar__chip' ? row(rowWidth, rowLeft) : null),
 });
 
-/** A dropdown in the row but not in a chip — #518's add control, whose panel is
- *  anchored to the row rather than to its trigger. */
-const rowAnchored = (left, rowWidth, rowLeft = 0) => ({
+/** A dropdown in the row but not in a chip. Without an ask its panel is anchored
+ *  to the row and sizes itself; with one — #518's add control — it is measured
+ *  like a chip's, from its own trigger. */
+const rowAnchored = (left, rowWidth, rowLeft = 0, asks = null) => ({
   getBoundingClientRect: () => ({ left: rowLeft + left, right: rowLeft + left + 60, width: 60 }),
-  querySelector: () => null,
+  querySelector: () => (asks === null ? null : panelOf(false, asks)),
   closest: (sel) => (sel === '.ui-filter-bar' ? row(rowWidth, rowLeft) : null),
 });
 
@@ -82,10 +89,9 @@ test('the row offset is honoured, not assumed to start at zero', () => {
 });
 
 test('a panel anchored to the row, not a chip, is not a subject', () => {
-  /* #518's add control takes `position: static` on its dropdown, so its panel
-   * resolves against the row and is already bounded by it. The slide here is
-   * measured from a trigger's offset along the row, so applying it would push
-   * that panel outside — and the width is the add control's own to set. */
+  /* A panel that resolves against the row is already bounded by it, and the slide
+   * here is measured from a trigger's offset along the row, so applying it would
+   * push that panel outside. Such a panel sets its own width. */
   assert.equal(filterPanelFit(rowAnchored(220, 288)), null);
   assert.equal(filterPanelFit(rowAnchored(220, 1248)), null);
   // The same position inside a chip is a subject, so it is the anchor that
@@ -155,4 +161,60 @@ test('a fit that ignored the floor would leave #549 in place', () => {
   // Bounded to the trigger, the menu is 60px wide wherever there is room.
   const fit = filterPanelFit(at(0, 1200));
   assert.ok(fit.room >= DD_MENU_FLOOR, 'a menu with a whole row ahead must reach the floor');
+});
+
+/* The add control's menu asks for more than a chip's values — a catalogue with a
+ * field over it — and says so in the sheet as `--ui-filter-panel-ask`. #496 */
+test('a panel that asks for a wider floor in the sheet gets it, and the shift it needs', () => {
+  // The same dropdown, 146px along a 400px row: 254px ahead, enough for the kit's
+  // floor and not for a panel's, so only the asking one moves.
+  assert.deepEqual(filterPanelFit(at(146, 400)), { room: 254, shift: 0, floor: 240, end: false });
+  assert.deepEqual(filterPanelFit(at(146, 400, 0, false, '320px')), { room: 320, shift: 66, floor: 320, end: false });
+});
+
+test('a floor passed in still wins over the one the sheet asks for', () => {
+  // The argument is the caller's override; the property is the panel's default.
+  assert.deepEqual(filterPanelFit(at(146, 400, 0, false, '320px'), DD_MENU_FLOOR),
+    { room: 254, shift: 0, floor: 240, end: false });
+});
+
+test("an unreadable or absent floor falls back to the kit's, rather than to nothing", () => {
+  for (const asked of [null, '', 'wide', '0px', '-10px']) {
+    assert.deepEqual(
+      filterPanelFit(at(146, 400, 0, false, asked)), { room: 254, shift: 0, floor: 240, end: false },
+      `a panel asking "${asked}" has to be read as asking for nothing`,
+    );
+  }
+});
+
+test('the row still decides when it is narrower than the floor asked for', () => {
+  // A phone's row is 288px: the catalogue asks for 320 and gets the row.
+  const fit = filterPanelFit(at(0, 288, 0, false, '320px'));
+  assert.deepEqual(fit, { room: 288, shift: 0, floor: 288, end: false });
+});
+
+/* And one that is not a chip's but asks for a width — #518's add control, whose
+ * menu is anchored at its own trigger like a chip's and carries a catalogue with
+ * a field over it. The ask is what makes it a subject; nothing else changes. */
+test('a menu that is not a chip\'s is measured when it asks for a width', () => {
+  // 220px along a 1248px row: a panel's width fits ahead, so nothing slides.
+  assert.deepEqual(filterPanelFit(rowAnchored(220, 1248, 0, '320px')),
+    { room: 1028, shift: 0, floor: 320, end: false });
+  // 220px along a 390px row leaves 170px ahead, so it slides back the missing 150.
+  assert.deepEqual(filterPanelFit(rowAnchored(220, 390, 0, '320px')),
+    { room: 320, shift: 150, floor: 320, end: false });
+  // A row narrower than the ask decides, and the slide stops at the row's start.
+  assert.deepEqual(filterPanelFit(rowAnchored(16, 288, 0, '320px')),
+    { room: 288, shift: 16, floor: 288, end: false });
+});
+
+test('an asking menu takes the chip arithmetic and gives a chip none of it', () => {
+  // The same dropdown with and without the ask: one is a subject, one is not,
+  // and a chip at the same offset is measured exactly as it was before.
+  assert.equal(filterPanelFit(rowAnchored(220, 390)), null);
+  assert.ok(filterPanelFit(rowAnchored(220, 390, 0, '320px')));
+  assert.deepEqual(filterPanelFit(at(220, 390)), { room: 240, shift: 70, floor: 240, end: false });
+  // An ask on a chip's panel is still read — the chip rule is what the sheet
+  // scopes, not the arithmetic — so a chip that asked for more would get it.
+  assert.equal(filterPanelFit(at(0, 1000, 0, false, '320px')).floor, 320);
 });

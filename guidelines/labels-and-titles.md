@@ -40,6 +40,18 @@
 
 **Don't:** Display “TOTAL REVENUE” above the figure.
 
+## Say the noun once
+
+<!-- rule: no-repeated-noun -->
+
+**Rule:** Leave a noun out of a label its frame already names.
+
+**Why:** The second mention adds nothing.
+
+**Do:** The chips name the filters; the button says what it does.
+
+**Don't:** The noun arrives twice.
+
 ## Rank card titles
 
 <!-- rule: title-rank -->
