@@ -75,7 +75,7 @@ export const Sidebar = {
     // "where am I". The rail above cannot show this pair: only one row is ever
     // active. It is here so the contrast walk measures it rather than a person's
     // reading of it.
-    // src/styles/nav.css:160 `.ui-nav__item.is-active .ui-nav__badge.is-accent` drops
+    // src/styles/nav.css:168 `.ui-nav__item.is-active .ui-nav__badge.is-accent` drops
     // both the wash and the accent; deleted, that rule broke nothing in the suite
     // until this specimen existed. What it retires is the pair #157 recorded —
     // accent ink on --surface, under WCAG AA in four of the eight theme x accent

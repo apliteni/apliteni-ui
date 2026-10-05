@@ -12,11 +12,11 @@
 /* The rail's two widths, and the one place they are written. --ui-nav-col is the
    open column. --ui-nav-strip is twice a row's own glyph centre — the row's
    padding plus half a glyph — so a strip that wide has the glyph standing in the
-   middle of it, exactly where it stood in the open rail. That is what lets the
-   fold animate: the column keeps --ui-nav-col and is clipped to the strip, so
-   the width travels and nothing inside it is laid out again. layout.css adds the
-   shell rail's own inset to both. stories/apps/shell-states.test.js derives the
-   strip from the resolved cascade and refuses a number that has drifted from it.
+   middle of it, exactly where it stood in the open rail. The fold travels that
+   width on the rail and on the boxes inside it, so a folded rail is only as wide
+   as it draws and has nothing to clip. layout.css adds the shell rail's own
+   inset to both. stories/apps/shell-states.test.js derives the strip from the
+   resolved cascade and refuses a number that has drifted from it.
    Declared for the shell as well as the nav, because the shell's rail is this
    nav with an inset around it, and two copies of 41 is the drift itself. */
 .ui-nav--side,
@@ -31,14 +31,20 @@
      been a second scroll box cutting the rows off at the rail's height. */
   transition: width var(--dur-med) var(--ease);
 }
-/* Every block keeps the open column while the nav clips to the strip. Without
-   this each one stretches to whatever the nav is wide and every row inside it is
-   laid out again on each frame of the fold. */
-.ui-nav--side > * { width: var(--ui-nav-col); flex: none; }
+/* A block takes a width of its own rather than the rail's travelling one, and travels
+   it on the RAIL's clock. Declared here, not beside the fold, so the way OUT carries it:
+   a block with no clock snapped open while the rail was still a strip wide. */
+.ui-nav--side > * {
+  width: var(--ui-nav-col); flex: none;
+  transition: width var(--dur-med) var(--ease);
+}
 .ui-nav__section + .ui-nav__section { margin-top: 14px; }
 .ui-nav__list { display: flex; flex-direction: column; gap: 2px; }
 .ui-nav__cap {
   /* rank: label */
+  /* Words, never a control, at BOTH widths — as __label, __badge and __caret below.
+     why: docs/specification.md#a-folded-rail-takes-the-pointer-only-where-it-draws */
+  pointer-events: none;
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--text);
@@ -101,6 +107,7 @@
 .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
 .ui-nav__label {
   flex: 1 1 auto; min-width: 0;
+  pointer-events: none; /* words, not a control — see .ui-nav__cap */
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   /* The words go before the closing edge reaches them, which is most of why the
      fold is worth animating — a label cut through by that edge reads as the rail
@@ -129,6 +136,7 @@
 /* Per-item badge / counter */
 .ui-nav__badge {
   flex: none;
+  pointer-events: none; /* a count, not a control — see .ui-nav__cap */
   min-width: 20px;
   height: 19px;
   padding: 0 6px;
@@ -163,6 +171,7 @@
 .ui-nav__group { display: flex; flex-direction: column; }
 .ui-nav__caret {
   flex: none;
+  pointer-events: none; /* a mark on the toggle, not a control — see .ui-nav__cap */
   width: 7px; height: 7px;
   border-right: 1.6px solid var(--muted);
   border-bottom: 1.6px solid var(--muted);
@@ -223,53 +232,52 @@
     border-inline-start-width var(--dur-med) var(--ease);
 }
 
-/* Collapsed (icon-only) rail — the same fold the shell's rail makes, drawn once
-   rather than pressed: the column keeps its width and the nav clips to the
-   strip, so no row is laid out again and no glyph moves. A group's children stay
-   rows here, because wireNav() toggles the list's `hidden` attribute and nothing
-   else, so folding .ui-nav__sub away left the toggle announcing a list it could
-   not open. What goes is the indent and the words, and sidebarNav({ collapsed })
-   hands each row its name as a `title` so a pointer can still read it. The
-   shell's rail draws a chip of its own instead, on keyboard focus as well — see
-   layout.css. */
-.ui-nav--side.is-collapsed {
-  width: var(--ui-nav-strip);
-  /* clip, not hidden: a standalone rail has nothing around it to clip for it,
-     and `hidden` would make this a scroll box in both axes and cut the rows off
-     at whatever height it was given. `clip` across leaves `visible` down alone,
-     which is the one pair that does. */
-  overflow-x: clip;
-  overflow-y: visible;
+/* Collapsed (icon-only) rail — the same fold the shell's rail makes. A group's
+   children stay rows here, because wireNav() toggles the list's `hidden` attribute
+   and nothing else, so folding .ui-nav__sub away left the toggle announcing a list it
+   could not open. What goes is the indent and the words, and sidebarNav({ collapsed })
+   hands each row its name as a `title` so a pointer can still read it. The shell's
+   rail draws a chip of its own instead, on keyboard focus as well — see layout.css. */
+.ui-nav--side.is-collapsed { width: var(--ui-nav-strip); }
+/* Every box in the rail closes with it, whether it paints or not. A block that keeps
+   the open column paints nothing and still takes the pointer off 175px of the page
+   beside a positioned rail (#588); clipping it instead cut the rows' ring (#575).
+   why: docs/specification.md#a-folded-rail-takes-the-pointer-only-where-it-draws */
+.ui-nav--side.is-collapsed > * { width: var(--ui-nav-strip); }
+.ui-nav--side.is-collapsed .ui-nav__item { width: var(--ui-nav-strip); }
+/* The heading is the one box that keeps the open column: its line breaks are the rail's
+   height. Inert at both widths, so the column draws and takes nothing; the 175px it adds
+   to a page's scrollable width is the one thing this rail does not promise. */
+.ui-nav--side.is-collapsed .ui-nav__cap { width: var(--ui-nav-col); }
+/* The row takes the rail's clock too, so its box IS the rail's box in every frame and
+   not only at either end. Waiting out the words on a --dur-fast delay left the open
+   column's hit area inside a half-shut rail. (Restates the base it replaces.) */
+.ui-nav--side.is-collapsed .ui-nav__item {
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease),
+    width var(--dur-med) var(--ease);
 }
+/* What that delay was protecting, kept without it: the words hold their own width
+   instead of being squeezed out by the closing row. They overflow it and cost nothing —
+   inert at either width, and painting nothing at opacity 0. */
+.ui-nav--side.is-collapsed .ui-nav__label { min-width: max-content; }
 .ui-nav--side.is-collapsed .ui-nav__cap,
 .ui-nav--side.is-collapsed .ui-nav__label,
 .ui-nav--side.is-collapsed .ui-nav__badge,
-.ui-nav--side.is-collapsed .ui-nav__caret { opacity: 0; pointer-events: none; }
+.ui-nav--side.is-collapsed .ui-nav__caret { opacity: 0; }
 .ui-nav--side.is-collapsed .ui-nav__sub {
   margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0;
 }
 .ui-nav--side.is-collapsed .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
 
-/* The current row on a folded rail: ONE plate on the glyph column, and nothing
-   else. The open rail's marker is a 3px bar standing in the row's own left
-   padding; on the strip that padding is the rail's edge, so the bar reads as a
-   tick on the rail rather than a mark on a row — and a nested row puts it
-   --space-3 further out again, outside the rail altogether. The hairline cannot
-   close either: a row keeps the open column and the rail clips it, so its right
-   edge is drawn off the strip.
-
-   The plate is the strip. --ui-nav-strip is twice a row's own glyph centre, so a
-   box that wide standing at the row's edge is centred on the glyph, and the mark
-   lands where the reader is already looking. --surface-3 is the kit's quiet
-   non-text fill — a step off the rail in both themes, carrying a glyph and never
-   a word. The references mark current the same way and with no hue at all:
-   Cloudflare's docs rail paints a flat plate, and lessly-ui's rail is "a plate and
-   the weight step, no hue". Here the glyph's own step from 0.66 to full ink is the
-   second half of that pair. See #429.
-
-   `isolation` is what puts the plate behind the glyph: a positioned ::before paints
-   over its row's content, and a negative z-index with no stacking context of its
-   own would drop it behind the rail instead. */
+/* The current row on a folded rail: one plate on the glyph column, and nothing else.
+   The open rail's 3px marker would stand in the rail's edge at this width, and a
+   nested row would put it outside the rail; the hairline would be the same mark said
+   twice. The plate is the strip, so it is centred on the glyph, and --surface-3 is the
+   kit's quiet non-text fill — a step off the rail in both themes. The glyph's own step
+   from 0.66 to full ink is the second half of that pair. `isolation` is what puts the
+   plate behind the glyph: a positioned ::before paints over its row's content, and a
+   negative z-index with no stacking context of its own would drop it behind the rail.
+   why: #429 */
 .ui-nav--side.is-collapsed .ui-nav__item.is-active { isolation: isolate; background: none; }
 /* At rest only — box-shadow carries the hairline AND the focus ring (WCAG 2.4.7). */
 .ui-nav--side.is-collapsed .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
@@ -281,10 +289,9 @@
   background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   z-index: -1;
 }
-/* Hover's hairline is an outline on a row that keeps the open column, so on the
-   strip it too is drawn with no right edge. A folded rail answers a pointer with
-   the row's own ink and the name beside it, which is the whole readout at this
-   width. At rest only, so the focus ring is left standing. */
+/* A folded rail answers a pointer with the row's own ink and the name beside it,
+   which is the whole readout at this width — the hover wash stands, the edge
+   around it does not. At rest only, so the focus ring is left standing. */
 .ui-nav--side.is-collapsed .ui-nav__item:hover:not(:focus-visible) { outline: none; }
 
 /* -- Horizontal tabs ----------------------------------------------------- */
