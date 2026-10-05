@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { vi } from 'vitest';
 import { FilterBar, type Filter } from './FilterBar';
 
@@ -48,10 +48,11 @@ it('marks the valueless chip so the sheet can give it the placeholder ink', () =
   expect(marked[0]).toHaveTextContent('Region');
 });
 // A bar beside the caller's own action, which is how both showcases compose it.
-function Example({ start = filters }: { start?: Filter[] }) {
+// `between` stands something else in the gap, to be walked past.
+function Example({ start = filters, between }: { start?: Filter[]; between?: ReactNode }) {
   const [items, setItems] = useState(start);
   return <><FilterBar filters={items} onRemove={id => setItems(items.filter(f => f.id !== id))} onClear={() => setItems([])} onChange={() => setItems(items.map(f => ({ ...f, value: 'Active' })))} />
-    <button type="button">Add filter</button></>;
+    {between}<button type="button">Add filter</button></>;
 }
 it('preserves focused controls across updates and moves focus after removal', async () => {
   render(<Example />);
@@ -68,6 +69,49 @@ it('hands the focus to the action beside it when clearing empties the bar', asyn
   await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
   expect(screen.queryByRole('button', { name: 'Clear all filters' })).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
+});
+// Each of these leaves a tab stop in the document, with a box a browser can still
+// measure, that refuses `focus()`. Handed the focus it drops the request silently
+// and the focus ends on BODY — no ring on anything, the next Tab starting over at
+// the top of the page — with Add filter standing there available the whole time.
+const OUT_OF_REACH: Record<string, ReactNode> = {
+  'hidden itself': <fieldset><button type="button" hidden>Export</button></fieldset>,
+  'inside a hidden ancestor': <fieldset hidden><button type="button">Export</button></fieldset>,
+  'visibility: hidden': <fieldset><button type="button" style={{ visibility: 'hidden' }}>Export</button></fieldset>,
+  'inside a visibility: hidden ancestor': <fieldset style={{ visibility: 'hidden' }}><button type="button">Export</button></fieldset>,
+  'display: none': <fieldset><button type="button" style={{ display: 'none' }}>Export</button></fieldset>,
+  inert: <fieldset><button type="button" inert>Export</button></fieldset>,
+  'inside an inert ancestor': <fieldset inert><button type="button">Export</button></fieldset>,
+  disabled: <fieldset><button type="button" disabled>Export</button></fieldset>,
+  'inside a disabled fieldset': <fieldset disabled><button type="button">Export</button></fieldset>,
+  'out of the tab order': <fieldset><button type="button" tabIndex={-1}>Export</button></fieldset>,
+};
+it.each(Object.keys(OUT_OF_REACH))('walks past a next control that is %s', async how => {
+  render(<Example between={OUT_OF_REACH[how]} />);
+  await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
+  expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
+});
+// The belt the list above is the braces for. `focus()` is a request: a control can
+// be visible, enabled, in the tab order and still not take it, and nothing throws
+// when it does not. So the bar checks where the focus actually landed.
+it('passes over a control that is asked for the focus and does not take it', async () => {
+  render(<Example between={<button type="button">Export</button>} />);
+  const refuses = screen.getByRole('button', { name: 'Export' });
+  Object.defineProperty(refuses, 'focus', { value: () => {} });
+  await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
+  expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
+});
+// The other end of it: with nothing reachable beside the bar there is nothing to
+// hand the focus to, and the emptied 0-high fieldset is still not a substitute.
+it('keeps the ring off its own empty box when nothing reachable stands beside it', async () => {
+  const props = callbacks();
+  const beside = (items: Filter[]) => <><FilterBar filters={items} {...props} />
+    <button type="button" style={{ visibility: 'hidden' }}>Export</button></>;
+  const { rerender } = render(beside(filters));
+  screen.getByRole('button', { name: 'Region: All' }).focus();
+  rerender(beside([]));
+  expect(document.body).toHaveFocus();
+  expect(screen.getByRole('group', { name: 'Filters' })).not.toHaveFocus();
 });
 it('keeps the ring on the bar while it still holds chips', async () => {
   render(<FilterBar filters={filters} disabled {...callbacks()} />);

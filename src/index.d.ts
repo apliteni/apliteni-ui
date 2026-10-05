@@ -11,6 +11,7 @@ export declare function filterChipText(filter?: { label?: string; value?: string
 export declare function filterChipName(filter?: { label?: string; value?: string }): string;
 export declare function filterChipUnset(filter?: { value?: string }): boolean;
 export declare function nextFocusStop(host: Element | null | undefined): HTMLElement | null;
+export declare function focusNextStop(host: Element | null | undefined): HTMLElement | null;
 export declare function segmentedNextIndex(key: string, index: number, length: number): number | null;
 export declare function icon(name: string, className?: string): string;
 export declare function snippet(opts?: Record<string, unknown>): string;

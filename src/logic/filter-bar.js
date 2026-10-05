@@ -34,23 +34,72 @@ export function filterChipName(filter = {}) {
 const FOLLOWING = 4;
 const PRECEDING = 2;
 
-/** The control a reader's next Tab would reach from `host`: forward in document
- *  order, else the nearest one behind it. A filter bar that has just dropped its
- *  last control keeps no box the focus ring can sit on, so the focus has to
- *  leave the bar rather than land on a line with no height.
+/** A tab stop the focus cannot actually land on. `hidden`, a disabled fieldset and
+ *  `inert` are read off the document; `visibility` and `display` are read off the
+ *  cascade, because a `visibility: hidden` control keeps its box and so passes any
+ *  test made of rectangles. Each of them refuses `focus()` in a browser, and a
+ *  refusal is silent: the focus lands on the body, with no ring on anything and
+ *  the next Tab starting over from the top of the page. */
+function unreachable(el) {
+  if (el.tabIndex < 0 || el.disabled || el.inert) return true;
+  if (el.closest('[hidden],[inert],fieldset:disabled')) return true;
+  const view = el.ownerDocument.defaultView;
+  const style = view && view.getComputedStyle(el);
+  return !!style && (style.visibility === 'hidden' || style.visibility === 'collapse'
+    || style.display === 'none');
+}
+
+/** The controls a reader's Tab reaches from `host`, in the order the focus should
+ *  try them: forward in document order, then back from `host`.
  *
  *  It reads the document, not the layout. Where boxes are measurable, a control
  *  that draws nothing is skipped; where nothing has a box — JSDOM has no layout
  *  — every tab stop counts, so the answer stays the document's order rather than
- *  becoming null. why: docs/specification.md#a-filter-row-holds-its-panels */
-export function nextFocusStop(host) {
+ *  becoming empty. */
+function stopsAround(host) {
   const doc = host && host.ownerDocument;
-  if (!doc) return null;
+  if (!doc) return [];
   const stops = [...doc.querySelectorAll('a[href],button,input,select,textarea,[tabindex]')]
-    .filter(el => !host.contains(el) && el.tabIndex > -1 && !el.disabled
-      && !el.closest('fieldset:disabled') && !el.closest('[hidden]'));
+    .filter(el => !host.contains(el) && !unreachable(el));
   const drawn = stops.filter(el => el.getClientRects().length);
   const order = drawn.length ? drawn : stops;
-  const ahead = order.filter(el => host.compareDocumentPosition(el) & FOLLOWING);
-  return ahead[0] || order.filter(el => host.compareDocumentPosition(el) & PRECEDING).pop() || null;
+  return [...order.filter(el => host.compareDocumentPosition(el) & FOLLOWING),
+    ...order.filter(el => host.compareDocumentPosition(el) & PRECEDING).reverse()];
+}
+
+/** The control a reader's next Tab would reach from `host`: forward in document
+ *  order, else the nearest one behind it. A filter bar that has just dropped its
+ *  last control keeps no box the focus ring can sit on, so the focus has to
+ *  leave the bar rather than land on a line with no height.
+ *  why: docs/specification.md#a-filter-row-holds-its-panels */
+export function nextFocusStop(host) {
+  return stopsAround(host)[0] || null;
+}
+
+/** Puts the focus where an emptied bar hands it on, and answers with the element
+ *  it ended on, or null if nothing took it.
+ *
+ *  A bar that still holds chips draws a box around them, so it takes the focus
+ *  itself, made focusable for that moment. Emptied, it has only an out-of-flow
+ *  legend left and measures 0 high, so the focus goes to the first control
+ *  outside it that will have it — on the Stock screener the caller's own
+ *  `Add filter`, in the React Finance composition the view strip's chosen tab.
+ *
+ *  Being reachable is not the same as taking the focus: a control can be visible
+ *  and enabled and still refuse, so each candidate is asked and then checked, and
+ *  the next one tried.
+ *  why: docs/specification.md#a-filter-row-holds-its-panels */
+export function focusNextStop(host) {
+  const doc = host && host.ownerDocument;
+  if (!doc) return null;
+  const bar = host.matches('[data-filter-bar]') ? host : host.querySelector('[data-filter-bar]');
+  if (bar && bar.querySelector('[data-filter-id]')) {
+    bar.tabIndex = -1; bar.focus();
+    return doc.activeElement === bar ? bar : null;
+  }
+  for (const stop of stopsAround(host)) {
+    stop.focus();
+    if (doc.activeElement === stop) return stop;
+  }
+  return null;
 }

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { filterBar, initFilterBar } from './filter-bar.js';
-import { filterChipText, filterChipName, filterChipUnset } from '../logic/filter-bar.js';
+import { filterChipText, filterChipName, filterChipUnset, nextFocusStop } from '../logic/filter-bar.js';
 import { segmented } from './index.js';
 import { initSegmented } from './segmented.js';
 import { numericValue, deltaValue, rowIdentity, initRowIdentity } from './table-values.js';
@@ -129,6 +129,76 @@ test('an emptied bar hands the focus to the action beside it, never to its own e
     assert.equal(host.querySelectorAll('[data-filter-bar] button').length, 0);
     bar.destroy(); dom.window.close();
   }
+});
+// Each of these leaves a control in the document, as a tab stop, with a box a
+// browser can still measure — and refuses `focus()`. Before #527's last round the
+// bar handed the focus to the first one it found and the request was dropped on
+// the floor: the focus ended on BODY, with no ring on anything and the next Tab
+// starting over at the top of the page, while Add filter stood there available.
+// Which control ends up focused, not what it looks like: JSDOM has no layout.
+const OUT_OF_REACH = {
+  'a hidden ancestor': el => { el.parentElement.hidden = true; },
+  'hidden itself': el => { el.hidden = true; },
+  'visibility: hidden': el => { el.style.visibility = 'hidden'; },
+  'a visibility: hidden ancestor': el => { el.parentElement.style.visibility = 'hidden'; },
+  'display: none': el => { el.style.display = 'none'; },
+  inert: el => { el.setAttribute('inert', ''); },
+  'an inert ancestor': el => { el.parentElement.setAttribute('inert', ''); },
+  disabled: el => { el.disabled = true; },
+  'a disabled fieldset': el => { el.closest('fieldset').disabled = true; },
+  'out of the tab order': el => { el.tabIndex = -1; },
+};
+test('an emptied bar walks past a next control no reader could reach', () => {
+  for (const [how, hide] of Object.entries(OUT_OF_REACH)) {
+    const { dom, host } = setup(filterBar({ filters }));
+    // The shape the review reproduced: something unreachable standing between the
+    // bar and the action that is actually available.
+    const wrap = document.createElement('fieldset');
+    wrap.innerHTML = '<button type="button">Export</button>';
+    host.after(wrap);
+    const add = document.createElement('button'); add.type = 'button'; add.textContent = 'Add filter';
+    wrap.after(add);
+    hide(wrap.querySelector('button'));
+    const bar = initFilterBar(host, { filters });
+    host.querySelector('[data-filter-clear] button').focus();
+    bar.update({ filters: [] });
+    assert.equal(document.activeElement, add, `${how}: focus went to ${document.activeElement.tagName}`);
+    // And the exported answer a consumer reads agrees with where the focus went.
+    assert.equal(nextFocusStop(host), add, `${how}: nextFocusStop disagrees with the bar`);
+    bar.destroy(); dom.window.close();
+  }
+});
+// The belt the list above is the braces for. `focus()` is a request: a control can
+// be visible, enabled, in the tab order and still not take it, and nothing throws
+// when it does not. So the bar checks where the focus actually landed.
+test('a control that is asked for the focus and does not take it is passed over', () => {
+  const { dom, host } = setup(filterBar({ filters }));
+  const refuses = document.createElement('button');
+  refuses.type = 'button'; refuses.textContent = 'Export';
+  Object.defineProperty(refuses, 'focus', { value: () => {} });
+  host.after(refuses);
+  const add = document.createElement('button'); add.type = 'button'; add.textContent = 'Add filter';
+  refuses.after(add);
+  const bar = initFilterBar(host, { filters });
+  host.querySelector('[data-filter-clear] button').focus();
+  bar.update({ filters: [] });
+  assert.equal(document.activeElement, add, `focus went to ${document.activeElement.tagName}`);
+  bar.destroy(); dom.window.close();
+});
+// The other end of it: with every control around the bar out of reach there is
+// nothing to hand the focus to, and the emptied 0-high fieldset is still not a
+// substitute for one. The focus goes nowhere rather than onto an empty box.
+test('an emptied bar with nothing reachable beside it keeps the ring off its own box', () => {
+  const { dom, host } = setup(filterBar({ filters }));
+  const hidden = document.createElement('button');
+  hidden.type = 'button'; hidden.textContent = 'Export'; hidden.style.visibility = 'hidden';
+  host.after(hidden);
+  const bar = initFilterBar(host, { filters });
+  host.querySelector('[data-filter-clear] button').focus();
+  bar.update({ filters: [] });
+  assert.equal(document.activeElement, document.body, `focus went to ${document.activeElement.outerHTML}`);
+  assert.equal(nextFocusStop(host), null, 'the exported answer offers a control a reader cannot reach');
+  bar.destroy(); dom.window.close();
 });
 test('the last chip removed by keyboard moves the focus out of the bar', () => {
   const { dom, host } = setup(filterBar({ filters: [filters[0]] }));

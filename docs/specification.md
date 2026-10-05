@@ -2221,14 +2221,29 @@ reading `[data-filter-clear]` finds nothing while no filter is set. A disabled o
 *has* chips keeps the control, turned off by the fieldset, so nothing leaves the row while a
 refresh is in flight.
 
-**It wears the kit's bordered skin without the fill.** The ghost skin it used to take draws no box
-at all, and the action was asked to read louder than that; the bordered skin's edge is that, and
-its `--surface` fill is not, because text on a grey block is what
+**It wears the kit's bordered skin without the fill, in every state.** The ghost skin it used to
+take draws no box at all, and the action was asked to read louder than that; the bordered skin's
+edge is that, and its `--surface` fill is not, because text on a grey block is what
 `guidelines/colour-and-theming.md` keeps off a reading surface — in dark it resolved to
-`rgb(33, 30, 45)` on a `rgb(14, 13, 20)` page. So `filter-bar.css` returns the resting background
-to transparent and leaves every state the kit paints over it alone: hover, `:focus-visible`,
-`:disabled` and `[aria-busy]` all outrank that one declaration, deliberately, so none of them has
-to be restated here and none of them can drift from the kit's own.
+`rgb(33, 30, 45)` on a `rgb(14, 13, 20)` page.
+
+The first attempt turned only the resting fill off, at element specificity, and left every state
+the kit paints over it alone — on the argument that `:disabled` and `[aria-busy]` outranking that
+one declaration kept them the kit's own. It did, including their fill, which is the thing being
+turned off: a disabled bar, and a busy one, put the label straight back on the block. So
+`filter-bar.css` now answers each state that paints a NEUTRAL fill on this control — `:disabled`,
+`[aria-disabled]`, `[aria-busy]` with its hover and active pair, and busy-and-disabled together —
+each at a specificity that beats the kit rule writing it and no more. Hover stays out of it,
+because its fill is an accent wash rather than a grey block, and so stays the kit's own and cannot
+drift from it.
+
+With no fill the label is read on whatever is behind the bar, so a disabled clear action takes
+`--disabled-ink-bare`, the ink `src/styles/button-disabled.test.js` measures against every ground
+the kit paints, for the reason a disabled ghost button takes it. Its edge is untouched: the kit's
+`--disabled-border` is what still says "off" here. Held by `src/styles/filter-bar.test.js`, which
+reads the fills out of `button.css` rather than from a list, so a fill the kit adds later fails
+until this sheet answers it; the paint itself is measured in a browser and reported in the pull
+request.
 
 **An emptied bar hands the focus on rather than keeping it.** Clear the last filter, or remove the
 last chip, from the keyboard and the control that had the focus is gone. The bar is not a
@@ -2237,15 +2252,26 @@ measures 0 high and a ring on it is a floating dot or a line above the next cont
 therefore move the focus to the control a reader's next <kbd>Tab</kbd> would reach — forward in
 document order, else the nearest one behind. On the Stock screener that is the caller's own
 `Add filter` beside the bar; in the React Finance composition, which has no such action, it is the
-view strip under it. `nextFocusStop` is exported, so a consumer that wants to place the focus
-itself reads the same answer.
+view strip's chosen tab under it.
+
+**A control a reader cannot reach is not a place to put the focus.** `focus()` is a request, and a
+refused one is silent: the focus lands on the body, with no ring on anything and the next
+<kbd>Tab</kbd> starting over at the top of the page. A control that is `hidden`, `inert`,
+`visibility: hidden`, `display: none`, disabled, inside a disabled fieldset or out of the tab order
+refuses it, and the first four of those keep a box, so no test made of rectangles catches them.
+Every candidate is therefore filtered against the document and the cascade, and then — because
+being reachable is not the same as taking the focus — asked and checked, with the next one tried
+if it did not arrive. With nothing reachable beside it the focus goes nowhere rather than onto the
+empty box, which is the one case where the body keeps it.
+
 While the bar still holds chips it does keep the ring, even with every control in them turned off,
-because it still draws a box around them. With nothing beside it to take the focus, the focus goes
-nowhere rather than onto the empty box. Held by `src/components/finance.test.js`,
-`react/src/FilterBar.test.tsx` and `react/src/Finance.test.tsx`, which name the control that ends
-up focused; they read the
-document and not the layout, JSDOM having none, so the 0-high fieldset itself is measured in a
-browser and reported in the pull request.
+because it still draws a box around them; it is made focusable for that moment. `nextFocusStop` is
+exported, so a consumer that wants to place the focus itself reads the same answer, and
+`focusNextStop` places it the same way and answers with the element it ended on, or `null` if
+nothing took it. Held by `src/components/finance.test.js`, `react/src/FilterBar.test.tsx` and
+`react/src/Finance.test.tsx`, which name the control that ends up focused in each of those cases;
+they read the document and not the layout, JSDOM having none, so the 0-high fieldset itself is
+measured in a browser and reported in the pull request.
 Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
 
 Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
