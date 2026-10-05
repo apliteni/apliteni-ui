@@ -167,10 +167,10 @@ Muted and dim ink have exactly three uses:
 - **placeholder** — a slot with no value, such as an empty field or cell.
 
 An empty-state explanation is not an empty slot. A keyboard shortcut is language. A count is
-not a status. Generic badges use body ink. Archive and disabled variants keep their state
-ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral dropdown chip tints
-by mixing muted ink into the panel. This is the one soft fill under words that the kit draws,
-and its text still clears 4.5:1.
+not a status, so a metadata pill keeps body ink. The neutral status chip, Archive and disabled
+variants keep their state ink. A dropdown badge asks for state ink with `tone: 'state'`. A chip
+tints by mixing muted ink into its ground. This is the one soft fill under words that the kit
+draws, and its text still clears 4.5:1.
 
 ## Colour and contrast
 
@@ -193,13 +193,11 @@ and its text still clears 4.5:1.
   rule resets the `opacity: 0.7` that Chromium's user-agent stylesheet applies to one.
 - **A neutral chip is a wash, because no flat colour reads on every ground it is handed.** A
   badge lands on five of them — the page, a card, a menu panel, a floating surface and a table
-  — and in light three are `#ffffff`. Filled `var(--surface)`, a neutral chip *was* its ground:
-  1.000:1 on a card in both themes and on light's white table, which drew a four-row status
-  column as two chips and two runs of bold text. The tone takes `--chip-neutral-fill`, muted
-  ink at 12% in dark and 15% in light — the wash the menu's neutral chip already used — and
-  measures 1.18–1.23:1 on all five, in both themes. Soon and Archive stay ink on the card.
-  Each tone in `src/styles/badge.css` annotates itself `chip: filled` or `chip: ink-only`, and
-  a filled tone that resolves to any ground it can be handed fails the gate.
+  — and in light three are `#ffffff`, so a flat fill is the ground it stands on. The tone is a
+  pair: `--chip-neutral-fill` separates from all five at 1.18–1.23:1 in both themes, and
+  `--chip-neutral-ink` is state ink, so the chip reporting nothing to do is the quietest in the
+  set. Its ink clears 4.5:1 on four of the five; over light's sunken grey, which a zebra or
+  hovered row paints, it measures 4.25:1. Soon and Archive stay ink on the card.
 
 ## Elevation
 

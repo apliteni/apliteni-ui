@@ -4,7 +4,7 @@
  * whose fill was var(--surface) — the table's own white — so the column drew two chips and
  * two runs of bold text. The same chip on a card measured 1.000:1 in BOTH themes.
  *
- * Each tone in src/styles/badge.css therefore annotates itself beside its `background`, and
+ * Each tone in src/styles/badge.css therefore annotates itself beside the fill it paints, and
  * this gate reads those annotations rather than a list of its own. `chip: filled` may equal no
  * ground, and reads as a chip on the card, the table and a floating surface. `chip: ink-only`
  * takes the surface it sits on by #455, which moved Soon and Archive onto card ink to clear
@@ -51,8 +51,19 @@ const CHIP_FLOOR = 1.15;
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 
 /**
- * Every tone in the sheet: a rule whose head names .ui-badge or .ui-pill and that declares a
- * background. Discovered from the sheet, so a tone added without an annotation lands in
+ * The fill a rule paints, whatever property sets it. `background` and `background-color` both
+ * paint one, and the other `background-*` longhands do not, so `-color` is the only one read
+ * beside the shorthand. Where a rule writes both, the last of them is what paints, exactly as
+ * the cascade resolves two declarations inside one rule.
+ */
+function fillOf(body) {
+  const painted = [...body.matchAll(/(?:^|[;{])\s*background(?:-color)?\s*:\s*([^;]+)/g)];
+  return painted.length ? painted[painted.length - 1][1].trim() : undefined;
+}
+
+/**
+ * Every tone in the sheet: a rule whose head names .ui-badge or .ui-pill and that paints a
+ * fill. Discovered from the sheet, so a tone added without an annotation lands in
  * `unannotated` below rather than quietly outside the gate.
  */
 function tonesOf(source) {
@@ -61,7 +72,7 @@ function tonesOf(source) {
   for (const match of bare.matchAll(RULE)) {
     const selector = match[1].trim();
     if (!/^\.ui-(?:badge|pill)/.test(selector)) continue;
-    const fill = /(?:^|[;{])\s*background\s*:\s*([^;]+)/.exec(match[2])?.[1].trim();
+    const fill = fillOf(match[2]);
     if (!fill) continue;
     const text = source.slice(match.index, match.index + match[0].length);
     const annotation = /\/\* chip: (filled|ink-only)(?: — ([^*]+?))? \*\//.exec(text);
@@ -126,9 +137,42 @@ test('every tone in the sheet says whether it fills or takes its ground', () => 
   }
 });
 
+for (const theme of THEMES) {
+  test(`a tone that paints with background-color is discovered and held — ${theme}`, () => {
+    // `background` is not the only property that paints a fill. While discovery read the
+    // shorthand alone, appending `.ui-badge--regression { background-color: var(--surface); }`
+    // to the sheet left this gate's nine tests passing: the tone was asked for no annotation
+    // and measured on no ground, and on a card it would have been invisible. Both halves are
+    // proved here — the coverage assertion names it, and the floor catches what it paints.
+    const planted = `${raw}\n.ui-badge--regression { background-color: var(--surface); }\n`;
+    const tones = tonesOf(planted);
+    assert.equal(tones.length, TONES.length + 1, 'the background-color tone was not discovered');
+    assert.deepEqual(tones.filter((t) => !t.kind).map((t) => t.selector), ['.ui-badge--regression'],
+      'the coverage assertion has to name the unannotated longhand tone');
+    // The widening stops at the one longhand that paints: the rest are not a fill.
+    assert.deepEqual(tonesOf('.ui-badge--x { background-image: none; background-clip: text; }'), [],
+      'a background longhand that paints nothing must not be read as a fill');
+
+    // Annotated, the tone reaches the DOM and the chip floor is what holds it. Painted inline
+    // for the same reason the mutation below is: the cascade must not answer from elsewhere.
+    const { css, vars } = kitCssFor(theme);
+    const win = new JSDOM(`<style>${css}</style>`
+      + substitute('<div id="g" style="background:var(--surface)">'
+        + '<span id="c" class="ui-badge" style="background-color:var(--surface)">x</span></div>', vars)).window;
+    const read = (id) => parseColour(win.getComputedStyle(win.document.getElementById(id)).backgroundColor);
+    const chip = read('c');
+    const under = read('g');
+    assert.deepEqual(chip.slice(0, 3).map(Math.round), under.slice(0, 3).map(Math.round),
+      'the planted longhand fill did not reach the element');
+    assert.ok(ratio(chip, under) < CHIP_FLOOR, 'the planted longhand fill has to fail the chip floor');
+    win.close();
+  });
+}
+
 test('the coverage check rejects a tone that arrives with no annotation', () => {
-  const planted = raw.replace('.ui-badge--neutral { color: var(--text); /* chip: filled */',
-    '.ui-badge--neutral { color: var(--text);');
+  // Matched rather than quoted, so the mutation survives a change to the ink the tone takes
+  // and still fails loudly if the rule itself leaves the sheet.
+  const planted = raw.replace(/(\.ui-badge--neutral \{[^}]*?)\s*\/\* chip: filled \*\//, '$1');
   assert.notEqual(planted, raw, 'the mutation did not land — the neutral rule moved, so move the mutation');
   assert.deepEqual(tonesOf(planted).filter((t) => !t.kind).map((t) => t.selector), ['.ui-badge--neutral']);
 });

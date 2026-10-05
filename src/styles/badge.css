@@ -14,7 +14,9 @@
   font-weight: var(--weight-semibold);
   padding: 3px 9px;
   border-radius: var(--radius-pill);
-  color: var(--text);
+  /* muted-ink: state — the neutral tone reports a record between states, and a badge
+     with no modifier takes that tone. */
+  color: var(--chip-neutral-ink);
   /* chip: filled — the neutral tone, which is what a badge with no modifier is. */
   background: var(--chip-neutral-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   white-space: nowrap;
@@ -36,8 +38,10 @@
 .ui-badge--success { color: var(--chip-success-ink); /* chip: filled */ background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 .ui-badge--pending { color: var(--chip-warn-ink); /* chip: filled */ background: var(--chip-warn-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 /* A status column puts this tone beside the filled ones, so it is a chip too — it was the
-   card's own colour until #459, which drew two chips and two runs of bold text. */
-.ui-badge--neutral { color: var(--text); /* chip: filled */ background: var(--chip-neutral-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+   card's own colour until #459, which drew two chips and two runs of bold text. Its ink is
+   the other half of the pair: body ink on the new wash made the row that asks nothing the
+   heaviest mark in the column, over the one that asks for a person. */
+.ui-badge--neutral { /* muted-ink: state — a record between states: uploading, parsing, dismissed. */ color: var(--chip-neutral-ink); /* chip: filled */ background: var(--chip-neutral-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* Pill: same shape, sentence case, a touch larger — a metadata chip */
 .ui-pill {

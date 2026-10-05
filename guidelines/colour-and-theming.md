@@ -59,12 +59,12 @@
 
 <!-- rule: text-surface -->
 
-**Rule:** Put text on the page or card surface, never on a grey fill.
+**Rule:** Put a reading area on the page or card surface, never on a grey fill.
 
 **Why:** Grey blocks make reading areas look disabled.
 
-**Do:** Draw inputs with an edge. Keep grey fills for non-text states. A status chip's tint is a signal, not a reading area.
+**Do:** Draw inputs with an edge. Keep grey fills for non-text states, such as disabled tracks and dividers.
 
 **Don't:** Put text on grey fields, chips, headers or footers.
 
-**Except:** The sidebar rail's current row. Its mark may be neither an accent nor an edge — an outline there means focus — and in the page shell the rail is the card surface already. It takes the quiet fill a rung off its rail, label and all. Artur, r34 of [#475](https://github.com/apliteni/apliteni-ui/issues/475).
+**Except:** A chip's tint is a mark, not a reading area. The sidebar rail's current row. Its mark may be neither an accent nor an edge — an outline there means focus — and in the page shell the rail is the card surface already. It takes the quiet fill a rung off its rail, label and all. Artur, r34 of [#475](https://github.com/apliteni/apliteni-ui/issues/475).
