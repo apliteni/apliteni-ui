@@ -626,9 +626,10 @@
     {
       "file": "react/src/showcases/InvoiceFlow.test.tsx",
       "name": "React: Invoice flow prototype",
-      "does": "Checks that the drop box opens the file picker by pointer, Enter and Space and takes several files, that the busy region and the field errors stay truthful after a rejected save, and that the review screen carries no per-field provenance mark and no status badge.",
+      "does": "Checks that the button inside the drop box opens the file picker by pointer, Enter and Space while the box claims no role of its own and takes several files, that the empty state carries that button rather than a sentence describing the box, that the busy region and the field errors stay truthful after a rejected save, and that the review screen carries no per-field provenance mark and no status badge.",
       "blind": [
         "JSDOM does not measure the focus ring, layout or contrast, and no real file picker opens — only that the hidden input's click is reached.",
+        "The gap the rejected-save summary holds off the button row is read from the sheet as text, not measured: vitest applies no imported CSS, so the rendered step is checked in a browser by hand.",
         "Drag and drop is driven by synthetic events, so pointer-device and operating-system drag behaviour are unmeasured."
       ]
     },

@@ -59,22 +59,47 @@ describe('invoice flow prototype', () => {
     expect(screen.getAllByText('Uploading')).toHaveLength(3);
     expect(screen.getAllByRole('button', { name: 'one.pdf' })).toHaveLength(2);
   });
-  it('opens the picker from the drop box by pointer, Enter and Space', async () => {
+  it('opens the picker from the button in the box, by pointer, Enter and Space', async () => {
     const user = userEvent.setup();
-    render(<InvoiceFlow />);
-    // The copy calls the box clickable, so every activation route has to reach the input.
+    const { container } = render(<InvoiceFlow />);
     const input = screen.getByLabelText<HTMLInputElement>('Select invoices');
     const opened = vi.spyOn(input, 'click').mockImplementation(() => {});
-    const box = screen.getByRole('button', { name: /Drop PDF, PNG or JPEG files anywhere in this box/ });
-    await user.click(box);
+    /* The box holds a real button rather than claiming to be one. A region with role="button"
+     * has presentational children, so conforming assistive technology drops the role of the
+     * button standing in it, and a focusable box beside that button is the same action twice
+     * in the tab order. why: react/src/FileDrop.tsx, guidelines/file-drop.md#button-path */
+    const box = container.querySelector<HTMLElement>('.invoice-flow__drop')!;
+    expect(box).not.toHaveAttribute('role');
+    expect(box).not.toHaveAttribute('tabindex');
+    const button = screen.getByRole('button', { name: 'Select files' });
+    await user.click(button);
+    // Once, not once per handler the click passes on its way out of the box.
     expect(opened).toHaveBeenCalledTimes(1);
-    box.focus();
-    expect(box).toHaveFocus();
+    button.focus();
+    expect(button).toHaveFocus();
     await user.keyboard('{Enter}');
     expect(opened).toHaveBeenCalledTimes(2);
     await user.keyboard(' ');
     expect(opened).toHaveBeenCalledTimes(3);
+    // The box's own click survives as a pointer shortcut, the way the drag is.
+    await user.click(box);
+    expect(opened).toHaveBeenCalledTimes(4);
     opened.mockRestore();
+  });
+  it('gives the empty box the action, and says only what the button does not', () => {
+    /* guidelines/empty-states.md#next-action asks the empty state for an action, and
+     * file-drop.md#button-path asks for the button rather than a sentence describing the box.
+     * The sub-line is left with the one fact the button cannot carry: the types. Both states
+     * of the box offer the same button, so the keyboard reaches the picker on either screen. */
+    const { container, unmount } = render(<InvoiceFlow />);
+    const empty = container.querySelector('.ui-empty')!;
+    expect(within(empty as HTMLElement).getByRole('button', { name: 'Select files' })).toBeInTheDocument();
+    expect(empty.querySelector('.ui-empty__sub')).toHaveTextContent('PDF, PNG or JPEG.');
+    // No sentence hired to explain that the box is clickable or that a file can be dropped.
+    expect(screen.queryByText(/click it|click this box|anywhere in this box/i)).not.toBeInTheDocument();
+    unmount();
+    render(<InvoiceFlow initialState="table" />);
+    expect(screen.getByRole('button', { name: 'Select files' })).toBeInTheDocument();
   });
   it('rejects an unsupported drop and recovers with a valid batch', () => {
     const { container } = render(<InvoiceFlow />);
@@ -210,6 +235,26 @@ describe('invoice flow prototype', () => {
     expect(screen.queryByText('Saved for this session.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Discard edits' })).toBeEnabled();
     expect(summaryAlert()).toHaveTextContent('Check the highlighted fields');
+  });
+  it('stands the rejected-save summary off the buttons by the step the fields use', async () => {
+    /* The summary carried no class and so no margin, which left it flush on Save invoice.
+     * The step is compared with the one the fields set below themselves rather than matched
+     * on its own: a sheet that moves the form's step and leaves the summary behind fails.
+     * Limit: vitest applies no imported CSS in jsdom, so the rule is read from the sheet as
+     * text and the rendered gap is measured in a browser, by hand, not here. */
+    const user = userEvent.setup();
+    render(<InvoiceFlow initialState="review" />);
+    await user.clear(screen.getByRole('textbox', { name: 'Supplier' }));
+    await user.click(screen.getByRole('button', { name: 'Save invoice' }));
+    expect(summaryAlert()).toHaveClass('invoice-flow__summary');
+    const stepOf = (rule: RegExp, what: string) => {
+      const found = rule.exec(SHEET);
+      expect(found, `${what} sets its bottom margin from a --space token`).not.toBeNull();
+      return found![1];
+    };
+    const fields = stepOf(/\.invoice-flow__fields\s*\{[^}]*margin:\s*0 0 var\((--space-\d+)\)/, 'the field grid');
+    const summary = stepOf(/\.invoice-flow__summary\s*\{[^}]*margin:\s*0 0 var\((--space-\d+)\)/, 'the summary');
+    expect(summary, `the summary (${summary}) takes the form's own step (${fields})`).toBe(fields);
   });
   it('clears the saved line on the next edit, not on the next save', async () => {
     /* The line says the values on screen are the saved ones. An edit makes that false at

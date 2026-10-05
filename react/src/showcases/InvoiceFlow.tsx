@@ -142,6 +142,9 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
   }, [invoices, simulate]);
 
   const pick = () => input.current?.click();
+  /* The control that opens the picker, in both states of the box. stopPropagation keeps the
+     box's own click — a pointer shortcut, as dragging is — from opening the picker twice. */
+  const picker = <Button variant="primary" onClick={event => { event.stopPropagation(); pick(); }}>Select files</Button>;
   const addFiles = (files: File[]) => {
     if (!files.length) return;
     if (files.some(file => !/\.(pdf|png|jpe?g)$/i.test(file.name))) {
@@ -214,7 +217,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
                 <TextField label="Invoice date" required value={draft.date} error={invalid && !validDate(draft.date) ? 'Enter a valid date as YYYY-MM-DD.' : undefined} onChange={edit('date')} />
                 <TextField label="Total (EUR)" required type="number" min={MIN_TOTAL} step="0.01" value={draft.total} error={invalid && !validTotal(draft.total) ? `Enter an amount of ${MIN_TOTAL} or more, written to the cent.` : undefined} onChange={edit('total')} />
               </div>
-              {invalid && <p role="alert">Check the highlighted fields before saving.</p>}
+              {invalid && <p role="alert" className="invoice-flow__summary">Check the highlighted fields before saving.</p>}
               <div className="invoice-flow__actions"><Button variant="primary" type="submit">Save invoice</Button><Button variant="secondary" disabled={!dirty && !invoice.previous} onClick={undo}>{dirty ? 'Discard edits' : 'Undo last save'}</Button></div>
             </form>}
           </section>
@@ -246,16 +249,20 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
         </div>
       </> : <>
         <input ref={input} className="ui-sr" tabIndex={-1} type="file" multiple accept=".pdf,.png,.jpg,.jpeg" aria-label="Select invoices" onChange={event => { addFiles(Array.from(event.target.files ?? [])); event.target.value = ''; }} />
-        {/* The box the copy calls clickable is the control: pointer, Enter and Space all open the
-            picker, and it carries ui-focusable so the kit ring is the one that draws. */}
-        <div className={`invoice-flow__drop ui-focusable${dragging ? ' is-dragging' : ''}`} role="button" tabIndex={0}
+        {/* The box catches the drag and the button inside it opens the picker, which is how the
+            kit's own FileDrop splits the two: a region that claims role="button" has
+            presentational children, so conforming assistive technology drops the role of any
+            button standing in it, and a focusable box beside that button is the same action
+            twice in the tab order. The box keeps its paint, its drop handlers and its pointer
+            click; the keyboard path is the button's.
+            why: react/src/FileDrop.tsx, guidelines/file-drop.md#button-path */}
+        <div className={`invoice-flow__drop${dragging ? ' is-dragging' : ''}`}
           onClick={pick}
-          onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); pick(); } }}
           onDragOver={event => { event.preventDefault(); setDragging(true); }}
           onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false); }}
           onDrop={event => { event.preventDefault(); setDragging(false); addFiles(Array.from(event.dataTransfer.files)); }}>
-          {!invoices.length ? <EmptyState icon="upload" title="Add your first invoices" sub="Drop PDF, PNG or JPEG files anywhere in this box, or click it to select several at once." />
-            : <p>Drop more invoices here, or click this box to select them.</p>}
+          {!invoices.length ? <EmptyState icon="upload" title="Add your first invoices" sub="PDF, PNG or JPEG." actions={picker} />
+            : <div className="invoice-flow__drop-row">{picker}<p>PDF, PNG or JPEG.</p></div>}
         </div>
         {error && <p role="alert" className="invoice-flow__error"><Icon name="circleAlert" />{error}</p>}
         {!!invoices.length && <DataTable selectable={false} pager={false} stickyHeader pinnedIdentity scrollLabel="Invoices" rows={invoices} columns={[
