@@ -207,12 +207,12 @@
   margin-left: auto;
   flex: none;
   color: var(--text);
-  background: color-mix(in srgb, var(--muted) 12%, transparent); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
+  /* The wash this chip asked for at #445 r18 is a token now, because the badge takes the
+     same one since #459 — two sheets reading one pair instead of each mixing its own, and
+     the per-theme percentage moved into the theme blocks that already carry the others. */
+  background: var(--chip-neutral-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
 }
-.ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
-:root[data-theme="light"] .ui-dropdown__badge:not(.is-live) {
-  background: color-mix(in srgb, var(--muted) 15%, transparent); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
-}
+.ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* Disabled + danger rows */
 .ui-dropdown__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }

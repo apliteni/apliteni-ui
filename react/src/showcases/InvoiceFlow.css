@@ -1,5 +1,8 @@
-/* The prototype's own sheet, and all of it: every rule places a kit part, none repaints one
-   or re-ranks its type. The two that name a kit class carry marks the kit has no class for.
+/* The prototype's own sheet, and all of it: every rule places a kit part, and none paints a
+   ground, casts a rung or sets a type ramp. Two name a kit class, and each carries one mark
+   the kit has no class for: .ui-card__title takes the pair's accent, and .ui-input carries a
+   saved value heavier than its label. Beyond those two, the only paint in this sheet is the
+   drop box's own dashed edge, and that box is this screen's, not a kit part.
    why: guidelines/density-and-accents.md#follow-the-consequence, AGENTS.md, #601
    held by: react/src/showcases/InvoiceFlow.test.tsx */
 

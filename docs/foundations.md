@@ -191,6 +191,15 @@ and its text still clears 4.5:1.
   same two tokens paint a button, so a button that is off drops a rung with the field.
 - **A disabled select carries the kit's own paint and no fade.** The kit's disabled field
   rule resets the `opacity: 0.7` that Chromium's user-agent stylesheet applies to one.
+- **A neutral chip is a wash, because no flat colour reads on every ground it is handed.** A
+  badge lands on five of them — the page, a card, a menu panel, a floating surface and a table
+  — and in light three are `#ffffff`. Filled `var(--surface)`, a neutral chip *was* its ground:
+  1.000:1 on a card in both themes and on light's white table, which drew a four-row status
+  column as two chips and two runs of bold text. The tone takes `--chip-neutral-fill`, muted
+  ink at 12% in dark and 15% in light — the wash the menu's neutral chip already used — and
+  measures 1.18–1.23:1 on all five, in both themes. Soon and Archive stay ink on the card.
+  Each tone in `src/styles/badge.css` annotates itself `chip: filled` or `chip: ink-only`, and
+  a filled tone that resolves to any ground it can be handed fails the gate.
 
 ## Elevation
 
@@ -214,8 +223,9 @@ The ladder, from bottom to top:
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
 
 **Text sits on the page, card or floating panel surface, never on a grey inset.** In both
-themes, fields, code blocks, neutral badges, navigation labels and segmented controls use
-those reading surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks.
+themes, fields, code blocks, navigation labels and segmented controls use
+those reading surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks. A
+neutral chip is the one exception and takes a wash instead; see **Colour and contrast** above.
 
 **A selected item is the one exception.** Selection is marked by a background highlight, and the
 only fills that step off a reading surface are the grey ones. A chosen segmented pill fills

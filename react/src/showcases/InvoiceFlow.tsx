@@ -71,7 +71,9 @@ const sampleFields: Fields = { ...SAMPLES[0].parsed };
 const samples = (): Invoice[] => SAMPLES.map(({ parsed, ...rest }) => ({ ...rest, fields: { ...parsed } }));
 /* The kit's own DataTable story writes a record's state as a <Badge> in the Status column, so
    that is what carries it here. The two in-flight states share the neutral chip: nothing is
-   being asked of the reader while a file uploads or parses. why: react/src/DataTable.stories.tsx */
+   being asked of the reader while a file uploads or parses, and the tone carries no signal
+   hue for that reason — it is still a chip, which is what #459 fixed in the kit.
+   why: react/src/DataTable.stories.tsx, src/styles/badge.css */
 const TONE: Record<Status, string> = { Uploading: 'neutral', Parsing: 'neutral', 'Needs review': 'pending', Ready: 'success' };
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
 /* The field declares min 0.01 and step 0.01, and the save path has to mean it: 0.001 is

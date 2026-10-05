@@ -15,24 +15,29 @@
   padding: 3px 9px;
   border-radius: var(--radius-pill);
   color: var(--text);
-  background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
+  /* chip: filled — the neutral tone, which is what a badge with no modifier is. */
+  background: var(--chip-neutral-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   white-space: nowrap;
 }
 /* Status chips take the --chip-* pairs, so the light app's solid fills live in
    tokens.css rather than in a theme override down here: on white the glow-tints
-   wash out and the ink has to deepen to clear AA, and that is a token decision. */
-.ui-badge--live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
-.ui-badge--soon { color: var(--accent); background: var(--surface); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ }
-.ui-badge--info { color: var(--chip-info-ink); background: var(--chip-info-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
-.ui-badge--warn { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
-.ui-badge--danger { color: var(--chip-danger-ink); background: var(--chip-danger-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
-.ui-badge--archive { /* muted-ink: state — archived record */ color: var(--muted); background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
+   wash out and the ink has to deepen to clear AA, and that is a token decision.
+   Every tone says whether it fills or leaves its ground alone, in a `chip:`
+   annotation beside its `background`. Held by stories/badge-tone-contrast.test.js. */
+.ui-badge--live { color: var(--chip-success-ink); /* chip: filled */ background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-badge--soon { color: var(--accent); /* chip: ink-only — #455 put Soon on the card as accent ink to clear AA; a wash under it was the F ledger row. */ background: var(--surface); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-badge--info { color: var(--chip-info-ink); /* chip: filled */ background: var(--chip-info-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-badge--warn { color: var(--chip-warn-ink); /* chip: filled */ background: var(--chip-warn-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-badge--danger { color: var(--chip-danger-ink); /* chip: filled */ background: var(--chip-danger-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-badge--archive { /* muted-ink: state — archived record */ color: var(--muted); /* chip: ink-only — the archived record's state ink on the card, #455; its own fill would read as a live chip. */ background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* Semantic status variants — for record/row status in data tables
    (paid / verified / pending / failed …). Same chip, mapped to meaning. */
-.ui-badge--success { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
-.ui-badge--pending { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
-.ui-badge--neutral { color: var(--text); background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
+.ui-badge--success { color: var(--chip-success-ink); /* chip: filled */ background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-badge--pending { color: var(--chip-warn-ink); /* chip: filled */ background: var(--chip-warn-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+/* A status column puts this tone beside the filled ones, so it is a chip too — it was the
+   card's own colour until #459, which drew two chips and two runs of bold text. */
+.ui-badge--neutral { color: var(--text); /* chip: filled */ background: var(--chip-neutral-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* Pill: same shape, sentence case, a touch larger — a metadata chip */
 .ui-pill {
@@ -42,7 +47,8 @@
   /* rank: chip */
   font-size: var(--text-xs);
   color: var(--text);
-  background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
+  /* chip: filled — the same neutral tone the badge takes, for the same reason. */
+  background: var(--chip-neutral-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   border-radius: var(--radius-pill);
   padding: 4px 11px;
   font-weight: var(--weight-semibold);
@@ -50,8 +56,8 @@
 /* The live pill is the same status paint as the live badge, so it takes the
    same pair. On its own it was --green on --glow-green, which is 3.97:1 over
    white — under AA, while the badge beside it cleared at 4.64:1. See issue #131. */
-.ui-pill--live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
-.ui-pill--soon { color: var(--accent); background: var(--surface); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ }
+.ui-pill--live { color: var(--chip-success-ink); /* chip: filled */ background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-pill--soon { color: var(--accent); /* chip: ink-only — the Soon badge's own #455 decision, on the pill. */ background: var(--surface); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 
 /* Status dot */
 .ui-dot {
