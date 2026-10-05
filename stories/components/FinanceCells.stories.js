@@ -4,7 +4,7 @@ import { segmented } from '../../src/components/index.js';
 import { initSegmented } from '../../src/components/segmented.js';
 import { pad } from '../_gallery.js';
 export default { title: 'Components/Finance cells', parameters: { layout: 'fullscreen' } };
-const filters = [{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology', value: 'Technology', selected: true }, { label: 'Energy', value: 'Energy' }] }, { id: 'market', label: 'Market', value: 'US', items: [{ label: 'US', value: 'US' }] }];
+const filters = [{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology', value: 'Technology' }, { label: 'Energy', value: 'Energy' }] }, { id: 'market', label: 'Market', value: 'US', items: [{ label: 'US', value: 'US' }] }];
 export const Values = { render: () => pad(`<p id="cells-basis">Changes versus previous close.</p><table class="ui-table ui-table--compact"><thead><tr><th>State</th><th>Value</th><th>Change</th><th>Company</th></tr></thead><tbody>${[
   ['Positive', numericValue({ value: '228.87', unit: 'USD' }), deltaValue({ value: '+0.66%', tone: 'success', basisId: 'cells-basis' }), rowIdentity({ symbol: 'ASTR', name: 'Aster Systems', href: '#company' })],
   ['Negative', numericValue({ value: '−24.60', unit: 'USD' }), deltaValue({ value: '−2.01%', tone: 'danger', basisId: 'cells-basis' }), rowIdentity({ symbol: 'CEDR', name: 'Cedar Infrastructure Holdings International' })],

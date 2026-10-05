@@ -12,6 +12,12 @@ export declare function filterChipName(filter?: { label?: string; value?: string
 export declare function filterChipUnset(filter?: { value?: string }): boolean;
 export declare function nextFocusStop(host: Element | null | undefined): HTMLElement | null;
 export declare function focusNextStop(host: Element | null | undefined): HTMLElement | null;
+/** The chip's items with the chip's own `value` marked `selected`, so the line the chip
+ *  prints and the row its menu marks cannot disagree. A row is matched by `value`, or by
+ *  `label` where it has none. Every row's flag is written, so a chip that is unset or
+ *  whose value is in no row marks nothing rather than leaving a `selected` the caller
+ *  set standing. The caller's array and objects are not written to. */
+export declare function filterChipItems<T>(filter?: { value?: string; items?: T[] }): T[];
 export declare function segmentedNextIndex(key: string, index: number, length: number): number | null;
 export declare function icon(name: string, className?: string): string;
 export declare function snippet(opts?: Record<string, unknown>): string;
@@ -28,6 +34,18 @@ export declare function wireDropdown(root?: Document | Element): void;
 /** The kit's own match, asked rather than re-implemented by <Dropdown>. */
 export declare function dropdownMatch(label: unknown, query: unknown): boolean;
 export declare function dropdownFiltering(query: unknown): boolean;
+/** The kit's menu floor, the width `.ui-dropdown__panel` writes. */
+export declare const DD_MENU_FLOOR: number;
+/** Where a filter chip's open menu can sit: the room from the edge it is
+ *  anchored at to the far side of its row once slid, how far it had to slide,
+ *  the width it reached for, and whether it is anchored at its inline end.
+ *  `null` unless the dropdown is inside a `.ui-filter-bar__chip`: the slide is a
+ *  chip's offset along its row, so a panel anchored to the row itself is not this
+ *  function's subject and sizes itself. why: docs/library.md */
+export declare function filterPanelFit(
+  dd: Element | null | undefined,
+  floor?: number,
+): { room: number; shift: number; floor: number; end: boolean } | null;
 export declare function backLink(opts?: Record<string, unknown>): string;
 export declare function statBand(opts?: Record<string, unknown>): string;
 export declare function commandPalette(opts?: Record<string, unknown>): string;

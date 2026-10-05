@@ -733,6 +733,17 @@
       ]
     },
     {
+      "file": "stories/filter-selected-mark.test.js",
+      "name": "A chosen filter value is never marked by colour alone",
+      "does": "Sweeps every story that draws a filter bar, opens each chip\u2019s menu and measures the chosen row in both themes: the accent wash is painted and stays a wash rather than becoming a fill, the kit\u2019s check is drawn and clears 3:1 over that wash (WCAG 2.2 SC 1.4.11), and the chosen label holds --strong at AA over it. It then drives hover, the keyboard cursor and focus, and fails a state that takes the wash off the row, loses hover\u2019s edge or the cursor\u2019s bar, or falls back to the browser\u2019s own outline instead of the kit ring. It also reads the slot the cascade gives the check in each of the three geometries a chip\u2019s panel has, and fails a mark allowed to shrink or be clipped while the menu is open or still fading out, or one that stops giving way in the shut panel #467 bounded to a 48px trigger. Eleven mutations, each re-breaking one guarantee, have to be rejected.",
+      "blind": [
+        "Pixels. JSDOM lays nothing out, so a 16px glyph is measured as a colour on a ground and as the declarations around its slot, never as a drawn mark. What width that slot comes out as, at four viewports in both themes and in the frames a menu is still painted in as it closes, is the browser fixture\u2019s measurement.",
+        "Colour-vision simulation. It measures luminance contrast, which is what 1.4.11 is written in. That a dichromat cannot separate the two hues is the reason the check exists, and is not itself computed here.",
+        "The React half. The rule is one kit declaration both faces load; React\u2019s own tests match the class and the mark against its rendered tree, never the paint.",
+        "Accents other than the default. The other five redefine --glow-purple and are walked by the accent arm of the contrast ledger, not here."
+      ]
+    },
+    {
       "file": "stories/focus-ring.test.js",
       "name": "Focus ring: the keyboard walk",
       "does": "Walks the keyboard stops of the landing page and of the shell, footer and topbar stories, and fails a stop that draws the browser's own outline, an outline of its own, or a box-shadow that is not the shared ring. It then resolves the cascade for each stop over the sheets in the order a page loads them, and fails a stop whose ring is written but outranked by an always-on rule. It also discovers every box the kit makes scrollable, holds the list of those with and without a ring, and checks that every accent swatch is named and says whether it is on.",

@@ -12,16 +12,9 @@
    take. `:enabled` leaves a disabled chip its own ink. why: guidelines/labels-and-titles.md */
 .ui-filter-bar button:enabled .ui-dropdown__value.is-placeholder { /* muted-ink: placeholder — a filter chip with nothing chosen */ color: var(--muted); }
 
-/* A chip's panel is as wide as the chip's trigger, never the 240px floor
-   .ui-dropdown__panel gives a standalone dropdown. A panel is positioned at its
-   trigger's inline start, so on a narrow row a later chip put its panel past the
-   screen — shut as well as open, a `visibility: hidden` box still being laid out.
-   The percentage resolves against .ui-dropdown, the panel's containing block,
-   which is the trigger's width because the trigger is its one in-flow child.
-   `overflow-wrap` keeps that a bound rather than a clip: a panel is
-   `overflow: visible`, so a value with no break opportunity would run out of it
-   and off the page. It inherits, reaching an option's label and description.
-   why: docs/specification.md#a-filter-row-holds-its-panels */
+/* Shut, a panel is the trigger's width, never the 240px floor a standalone
+   dropdown gets: it is laid out while hidden, so a wider one widened the page
+   (#467). why: docs/specification.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; overflow-wrap: anywhere; }
 /* The clear action takes the kit's bordered skin minus its fill: words belong on
    the page, not on a grey block, in any state — Artur, round r28. Rest stays at
@@ -39,3 +32,55 @@
    measures on every ground. The edge stays the kit's --disabled-border. */
 .ui-filter-bar [data-filter-clear] button:disabled,
 .ui-filter-bar [data-filter-clear] button[aria-disabled="true"] { /* muted-ink: state — the clear action is off and its words sit on the page */ color: var(--disabled-ink-bare); }
+
+/* Open, a chip's menu takes the kit's menu floor, measured and slid by
+   filterPanelFit(); `is-closing` holds that geometry through the fade. #549
+   why: docs/specification.md#a-filter-row-holds-its-panels */
+.ui-filter-bar__chip .ui-dropdown.open .ui-dropdown__panel,
+.ui-filter-bar__chip .ui-dropdown__panel.is-closing {
+  min-width: min(var(--ui-filter-panel-floor, 240px), var(--ui-filter-panel-room, 100%));
+  max-width: var(--ui-filter-panel-room, 100%);
+  margin-inline-start: calc(-1 * var(--ui-filter-panel-shift, 0px));
+}
+/* An end-aligned panel is pinned by its right edge, so the slide pushes it. */
+.ui-filter-bar__chip .ui-dropdown.open .ui-dropdown__panel.is-end,
+.ui-filter-bar__chip .ui-dropdown__panel.is-end.is-closing {
+  margin-inline-start: 0;
+  margin-inline-end: calc(-1 * var(--ui-filter-panel-shift, 0px));
+}
+
+/* A 16px tick and an 11px gap do not fit the 48px trigger a chip printing `All`
+   gives its SHUT panel, and overflow-wrap cannot break a mark; the clip is what
+   shrinks the glyph and not just its box.
+
+   Shut is the whole of it. Written for every panel in a chip, this reached the
+   open menu too and left 9.8px of the check in a 240px menu — a chevron, not a
+   tick. Open the menu is at the floor with room for the mark, and `is-closing`
+   holds the open geometry through the fade, so it is open for this as well. #550
+   why: docs/specification.md#a-filter-row-holds-its-panels */
+.ui-filter-bar__chip .ui-dropdown:not(.open) .ui-dropdown__panel:not(.is-closing) .ui-dropdown__tick {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* The chosen value takes --glow-purple, the wash .ui-nav--tabs.is-pill gives the
+   tab you are on, and keeps the kit's 16px check. The wash is a 1.2:1 tint, so the
+   check is what identifies the state under WCAG 1.4.1; Apple, Material, Carbon,
+   Primer and Radix all tick a chosen menu row. #549
+   why: docs/specification.md#a-filter-row-holds-its-panels */
+.ui-filter-bar .ui-dropdown__item.is-selected { background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+/* Kit-wide a chosen label steps down to --text, which left the row in force the
+   faintest in the panel. Under the wash it holds --strong. */
+.ui-filter-bar .ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--strong); }
+/* The keyboard cursor and focus each set an opaque --surface, which would take the
+   wash off; restated here so the guarantee is one declaration a reader and
+   filter-selected-mark.test.js can both find, and each still reads by its own paint.
+   why: guidelines/accessibility-floor.md#measurable-pairs */
+.ui-filter-bar .ui-dropdown__item.is-selected:focus-visible,
+.ui-filter-bar .ui-dropdown__item.is-selected.is-active { background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+/* Hover's other paint is a 1px edge, 1.06:1 on the wash, which left the row in force
+   the one row a pointer got no answer from. Selection is a background highlight, so
+   hover deepens it: 9% more accent, the step .ui-table--zebra gives a hovered row.
+   why: docs/specification.md#a-filter-row-holds-its-panels */
+.ui-filter-bar .ui-dropdown__item.is-selected:hover { background: color-mix(in srgb, var(--glow-purple), var(--accent) 9%); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }

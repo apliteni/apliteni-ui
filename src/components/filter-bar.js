@@ -1,13 +1,13 @@
 import { button, esc } from './index.js';
 import { dropdown, wireDropdown } from './dropdown.js';
-import { filterChipText, filterChipName, filterChipUnset, focusNextStop } from '../logic/filter-bar.js';
+import { filterChipText, filterChipName, filterChipUnset, filterChipItems, focusNextStop } from '../logic/filter-bar.js';
 
 export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear all filters', disabled = false, busy = false } = {}) {
   return `<fieldset class="ui-filter-bar" data-filter-bar${disabled || busy ? ' disabled' : ''}${busy ? ' aria-busy="true"' : ''}>`
     + `<legend class="ui-filter-bar__legend">${esc(label)}</legend>`
     + filters.map(filter => `<fieldset class="ui-filter-bar__chip" data-filter-id="${esc(filter.id)}"${filter.disabled ? ' disabled' : ''}>`
       + `<legend class="ui-filter-bar__legend">${esc(filter.label)}</legend>`
-      + dropdown({ items: filter.items || [], variant: 'select',
+      + dropdown({ items: filterChipItems(filter), variant: 'select',
         // The chip prints one line; the field's name reaches a reader through the
         // trigger's name and the chip's own legend. why: docs/specification.md#dense-financial-tables
         triggerContent: `<span class="${filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}">${esc(filterChipText(filter))}</span>`,
