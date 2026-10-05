@@ -981,7 +981,7 @@
   "_button-labels.js": {
     "words-first": [
       {
-        "ref": "src/components/index.js:38",
+        "ref": "src/components/index.js:39",
         "pattern": "ui-btn__label-slot"
       },
       {
@@ -991,7 +991,7 @@
     ],
     "glyph-repeats-the-verb": [
       {
-        "ref": "src/components/index.js:37",
+        "ref": "src/components/index.js:38",
         "pattern": "const lead = iconSvg"
       }
     ],
@@ -1001,7 +1001,7 @@
         "pattern": "export const iconOnlyAllowed"
       },
       {
-        "ref": "src/components/index.js:41",
+        "ref": "src/components/index.js:42",
         "pattern": "const named = iconOnly"
       },
       {
