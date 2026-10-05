@@ -6,7 +6,7 @@
  * `--compact` and `__title` reach a cell with two classes, so a one-class stack rule loses
  * to them. Reading declarations would report the rule present and the layout broken.
  *
- * why: docs/specification.md#dense-financial-tables
+ * why: docs/library.md#dense-financial-tables
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

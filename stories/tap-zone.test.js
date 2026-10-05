@@ -11,7 +11,7 @@
  *   TAP_ZONES=1 node --test stories/tap-zone.test.js
  *
  * Discover subjects from source and check the coverage count.
- * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
+ * why: docs/foundations.md#a-tap-reaches-the-floor-below-the-phone-step
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -172,7 +172,7 @@ test('the query asks about the pointer as well as the width', () => {
     assert.match(
       q, /max-width:\s*560px/,
       `${SHEET} gates a layer on "${q}". The phone step is 560px — the list is in `
-      + 'docs/specification.md#breakpoints and stories/breakpoints.test.js holds it.',
+      + 'docs/foundations.md#breakpoints and stories/breakpoints.test.js holds it.',
     );
   }
 });

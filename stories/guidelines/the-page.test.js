@@ -9,7 +9,7 @@
  * one of the accessibility gates the Accessibility minimums page lists — and what it cannot
  * see is stated there with the rest.
  *
- * why: docs/specification.md#the-page
+ * why: guidelines/the-page.md#the-page
  * Discover subjects from source and check the coverage count.
  */
 import test from 'node:test';
@@ -376,110 +376,140 @@ test('the overlay selectors are classes the kit really writes', () => {
     + 'that matches nothing passes every screen and hides the rule it was written for.');
 });
 
-// The limits are stated three times — in the rule prose, in this gate, and in
-// the specification's contract — and only the first two are one object. This is
-// the third: the section has to say the same numbers, spelled either way.
+// A limit is stated twice — in the rule prose a designer reads and in this gate
+// — and the two have to agree. guidelines/the-page.md is the reader's home for
+// these rules, so it is the copy read here.
 //
-// Each is held against the SENTENCE that states it and not against the section
-// at large. Searching the section for a bare number was close to vacuous:
-// LIMITS.cards could go from 6 to 1 and the check stayed green, because the word
-// "one" appears a dozen times in that section while the specification went on
-// saying "Six stacked cards at most". Only `primary` ever failed, and only
-// because neither "0" nor "zero" happens to be written there. So each pattern
-// carries the limit's own noun, and the number is the one part of it that moves.
+// Each is held against the SENTENCE that states it and not against the page at
+// large. Searching a page for a bare number was close to vacuous: LIMITS.cards
+// could go from 6 to 1 and the check stayed green, because the word "one"
+// appears a dozen times there. So each pattern carries the limit's own noun, and
+// the number is the one part of it that moves.
 const WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
-/** `6` or `six`, either spelling, for a number the specification may write out. */
+/** `6` or `six`, either spelling, for a number the page may write out. */
 const either = (n) => `(?:${n}${WORD[n] ? `|${WORD[n]}` : ''})`;
 
-const SPEC_SENTENCE = {
+const PAGE_SENTENCE = {
   cards: (n) => ({
-    re: new RegExp(`\\b${either(n)}\\s+stacked cards at most\\b`, 'i'),
-    says: `"${WORD[n] || n} stacked cards at most"`,
+    re: new RegExp(`\\bno more than\\s+${either(n)}\\s+cards\\b`, 'i'),
+    says: `"no more than ${WORD[n] || n} cards"`,
   }),
   lede: (n) => ({
-    re: new RegExp(`\\bit is\\s+${either(n)}\\s+sentences? at most\\b`, 'i'),
-    says: `"a lede … is ${WORD[n] || n} sentences at most"`,
+    re: new RegExp(`\\b${either(n)}\\s+sentences?\\s+or fewer\\b`, 'i'),
+    says: `"${WORD[n] || n} sentences or fewer"`,
   }),
   outline: (n) => ({
-    re: new RegExp(`\\bstops at \`h${n}\``),
-    says: `"the outline … stops at \`h${n}\`"`,
+    re: new RegExp(`\\bstops?\\s+at\\s+\`?h${n}\`?\\b`, 'i'),
+    says: `"stop at h${n}"`,
   }),
   primary: (n) => ({
-    re: new RegExp(`\\b${either(n)}\\s+primary action at most\\b`, 'i'),
-    says: `"${WORD[n] || n} primary action at most"`,
+    re: new RegExp(`\\b${either(n)}\\s+filled button for the main action\\b`, 'i'),
+    says: `"${WORD[n] || n} filled button for the main action"`,
   }),
 };
 
-test('the specification states the same limits this gate measures', () => {
-  const spec = readFileSync(path.join(root, 'docs/specification.md'), 'utf8');
-  const section = spec.slice(spec.indexOf('\n## The page\n'), spec.indexOf('\n## The page shell\n'));
-  assert.ok(section.length > 400, 'docs/specification.md has no "## The page" section to read');
+const GUIDELINE = 'guidelines/the-page.md';
+
+test('the guideline page states the same limits this gate measures', () => {
+  const page = readFileSync(path.join(root, GUIDELINE), 'utf8');
+  assert.ok(page.length > 400, `${GUIDELINE} has no rules to read`);
 
   // Every limit is checked, so a fifth one added to LIMITS with no sentence to
-  // hold it to fails here rather than going unwritten in the contract.
+  // hold it to fails here rather than going unwritten for the reader.
   assert.deepEqual(
-    Object.keys(LIMITS).sort(), Object.keys(SPEC_SENTENCE).sort(),
-    'a limit has no sentence in docs/specification.md that this gate knows how to read, or a '
-    + 'pattern here names a limit that is gone. Either way one of the three copies is unheld.',
+    Object.keys(LIMITS).sort(), Object.keys(PAGE_SENTENCE).sort(),
+    `a limit has no sentence in ${GUIDELINE} that this gate knows how to read, or a pattern here `
+    + 'names a limit that is gone. Either way one of the two copies is unheld.',
   );
 
   const missing = Object.entries(LIMITS)
-    .map(([key, n]) => ({ key, n, ...SPEC_SENTENCE[key](n) }))
-    .filter(({ re }) => !re.test(section))
-    .map(({ key, says }) => `${key}: the section does not say ${says}`);
-  assert.deepEqual(missing, [], 'the specification and the page disagree about a limit, or the '
-    + 'specification stopped stating one. The number moved in stories/guidelines/_the-page.js and '
-    + 'the sentence in docs/specification.md#the-page did not:\n  ' + missing.join('\n  '));
+    .map(([key, n]) => ({ key, n, ...PAGE_SENTENCE[key](n) }))
+    .filter(({ re }) => !re.test(page))
+    .map(({ key, says }) => `${key}: the page does not say ${says}`);
+  assert.deepEqual(missing, [], `${GUIDELINE} and this gate disagree about a limit, or the page `
+    + 'stopped stating one. The number moved in stories/guidelines/_the-page.js and the sentence '
+    + `in ${GUIDELINE} did not:\n  ` + missing.join('\n  '));
 });
 
-// ---- the rule-to-code table ----------------------------------------------
-// The contract's table is the only rule-to-code mapping. The guideline page
-// carries no code references. It carries no line numbers on purpose, which is
-// the right call and has a cost: a path that stops existing and a symbol that is
-// renamed both go quiet. So the fenced spans are read out of the table and
-// resolved. Subjects are discovered from the table itself, so a row added
-// tomorrow is checked without editing this file.
+// A rule reaches this gate two ways — drawn on the guideline page, or named only
+// in GATED_ELSEWHERE beside it — and the union is what the gate has to walk.
+// Either list drifting from CHECKS is the same failure: a rule with no check is a
+// wish, and a check with no rule is a rule the reader is held to and never told.
+const GATED = [
+  ...RULES.map((r) => ({ id: r.id, says: r.imperative })),
+  ...GATED_ELSEWHERE.map((r) => ({ id: r.id, says: r.states })),
+];
+
+// ---- the rule-to-code mapping --------------------------------------------
+// RULE_TO_CODE below is the only rule-to-code mapping, and it sits beside this
+// gate because neither home for a reader will take it: the guideline page is
+// written for a designer and carries no code references, and the pages under
+// docs/ state what the kit guarantees rather than which line holds it. It
+// carries no line numbers on purpose, which is the right call and has a cost: a
+// path that stops existing and a symbol that is renamed both go quiet. So its
+// spans are resolved here. Subjects are discovered from the mapping itself, so
+// an entry added tomorrow is checked without editing this file.
 //
 // Ledger, what a pass does not say: nothing about whether the line found is the
 // line that HOLDS the rule — only that the file is there and the name is in it.
 // A symbol is searched as text, so a mention in a comment counts.
 
-const TABLE_HEADING = '### Which line of the kit holds each of them';
-/** A fenced span that names a file rather than a symbol or a selector. */
+/* Where the kit holds each rule of the Guidelines / The page collection.
+ *
+ * This is the only rule-to-code mapping for that page, and it lives in the gate
+ * that resolves it rather than in a document: the guideline page is written for
+ * a designer and carries no file paths at all, and the pages under docs/ state
+ * what the kit guarantees rather than which line holds it.
+ *
+ * It names files and symbols instead of line numbers, so moving a line does not
+ * break a reference.
+ *
+ * An entry may name a sibling by basename alone, the way `confirm.js` follows
+ * `src/components/drawer.js`; a bare name resolves against the directories the
+ * entry has already spelled out.
+ */
+const RULE_TO_CODE = {
+  layout: ['appShell()', 'src/components/shell.js', '.ui-app__bar', 'src/styles/layout.css'],
+  width: ['appShell()', 'src/components/shell.js', '.ui-app__main--wide', 'src/styles/layout.css'],
+  shell: ['appShell()', 'src/components/shell.js', 'financeShell()', 'stories/apps/_finance-nav.js'],
+  head: ['src/components/shell.js', '<h1>', '.ui-app__sub', '.ui-app__body'],
+  'one-h1': ['card()', 'src/components/index.js', 'success()', 'src/components/success.js'],
+  outline: ['rank: page-title', 'src/styles/layout.css', 'rank: card-title', 'src/styles/card.css'],
+  'one-primary': ['.ui-btn--primary', 'src/styles/button.css'],
+  stacking: ['.ui-card', 'src/styles/card.css'],
+  navs: ['sidebarNav()', 'breadcrumbs()', 'src/components/nav.js', 'appShell()', 'src/components/shell.js'],
+  'at-rest': ['drawer()', 'confirm()', 'commandPalette()', 'tooltip()',
+    'src/components/drawer.js', 'confirm.js', 'command-palette.js', 'tooltip.js'],
+  density: ['.ui-table--dense', 'src/styles/table.css'],
+  lede: ['.ui-app__sub', 'appShell()', 'src/components/shell.js'],
+};
+
+const MAPPING = 'the RULE_TO_CODE table in this file';
+/** A span that names a file rather than a symbol or a selector. */
 const isPath = (span) => /^[\w.\-/]+\.(?:js|css|mjs)$/.test(span);
 
-/** The table's rows, each as `{ rule, spans }`, read out of the contract. */
-function ruleToCode(spec) {
-  const at = spec.indexOf(TABLE_HEADING);
-  assert.ok(at >= 0, `docs/specification.md no longer carries "${TABLE_HEADING}" — this gate is `
-    + 'reading nothing, and the rules whose only mapping lives there are unheld');
-  const section = spec.slice(at, spec.indexOf('\n## ', at + 1));
-  const rows = section.split('\n')
-    .filter((line) => line.startsWith('|') && !/^\|\s*-+/.test(line) && !/^\|\s*Rule\s*\|/.test(line))
-    .map((line) => line.split('|').slice(1, -1).map((c) => c.trim()));
-  const fenced = (cell) => [...cell.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
-  return rows.map(([rule, where]) => ({ rule: fenced(rule)[0] ?? rule, spans: fenced(where) }));
-}
+/** The mapping's entries, each as `{ rule, spans }`. */
+const ruleToCode = (table) => Object.entries(table).map(([rule, spans]) => ({ rule, spans }));
 
-const SPEC = readFileSync(path.join(root, 'docs/specification.md'), 'utf8');
-
-test('the contract’s rule-to-code table names one row per rule, and only rules', () => {
-  const table = ruleToCode(SPEC);
+test('the rule-to-code mapping names one entry per rule, and only rules', () => {
+  const table = ruleToCode(RULE_TO_CODE);
+  assert.ok(table.length > 0, `${MAPPING} is empty, so this gate is reading nothing and the rules `
+    + 'whose only mapping lives there are unheld');
   assert.deepEqual(
     table.map((r) => r.rule).sort(), GATED.map((r) => r.id).sort(),
-    'the rule-to-code table in docs/specification.md#the-page and the rules themselves have '
-    + 'drifted. Every rule needs a row saying where the kit holds it, and a row needs a rule.',
+    `${MAPPING} and the rules themselves have drifted. Every rule needs an entry saying where the `
+    + 'kit holds it, and an entry needs a rule.',
   );
 });
 
-test('every file the rule-to-code table names exists, and every name it fences is in one', () => {
+test('every file the mapping names exists, and every name it fences is in one', () => {
   const problems = [];
-  for (const { rule, spans } of ruleToCode(SPEC)) {
+  for (const { rule, spans } of ruleToCode(RULE_TO_CODE)) {
     const paths = spans.filter(isPath);
-    if (!paths.length) { problems.push(`${rule}: the row names no file at all`); continue; }
-    // A row may name siblings by basename alone — `confirm.js` after
+    if (!paths.length) { problems.push(`${rule}: the entry names no file at all`); continue; }
+    // An entry may name siblings by basename alone — `confirm.js` after
     // `src/components/drawer.js` — so a bare name resolves against the
-    // directories the row has already spelled out.
+    // directories the entry has already spelled out.
     const dirs = [...new Set(paths.filter((f) => f.includes('/')).map((f) => path.dirname(f)))];
     const resolved = [];
     for (const file of paths) {
@@ -499,19 +529,10 @@ test('every file the rule-to-code table names exists, and every name it fences i
       }
     }
   }
-  assert.deepEqual(problems, [], 'the rule-to-code table in docs/specification.md#the-page cites '
-    + 'code that is not there. The table is the only rule-to-code mapping, and it '
-    + 'carries no line numbers, so nothing else would have said so:\n  ' + problems.join('\n  '));
+  assert.deepEqual(problems, [], `${MAPPING} cites code that is not there. It is the only `
+    + 'rule-to-code mapping, and it carries no line numbers, so nothing else would have said '
+    + 'so:\n  ' + problems.join('\n  '));
 });
-
-// A rule reaches this gate two ways — drawn on the page, or stated only in the
-// contract — and the union is what the gate has to walk. Either list drifting
-// from CHECKS is the same failure: a rule with no check is a wish, and a check
-// with no rule is a rule the reader is held to and never told.
-const GATED = [
-  ...RULES.map((r) => ({ id: r.id, says: r.imperative })),
-  ...GATED_ELSEWHERE.map((r) => ({ id: r.id, says: r.states })),
-];
 
 test('every page rule owns a check here, and every check owns a rule', () => {
   // stories/guidelines/refs.test.js holds the shape of a rule on the page and

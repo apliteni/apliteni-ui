@@ -13,7 +13,7 @@
  * page. Both halves carry the mutation that kills their case — the rule under
  * test is taken back out and the assertion has to fail.
  *
- * why: docs/specification.md#typefaces */
+ * why: docs/foundations.md#typefaces */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -134,7 +134,7 @@ test('a display face outside the heading rule says which exception it is', () =>
       KINDS.includes(note[1]),
       `${d.where} claims the display face as "${note[1]}", which is not one of ${KINDS.join(', ')}. `
       + 'The kinds are closed on purpose — a third one is a change to '
-      + 'docs/specification.md#typefaces, not a word typed at a use site.',
+      + 'docs/foundations.md#typefaces, not a word typed at a use site.',
     );
     assert.ok(
       note[2].trim().length >= 20,
@@ -275,7 +275,7 @@ test('b and strong are the semibold step, not the browser\'s bold', () => {
  * and once after the move, and the assertion is that they are the same answer.
  * A panel that inherited would give two.
  *
- * why: docs/specification.md#typefaces */
+ * why: docs/foundations.md#typefaces */
 test('a dropdown panel keeps its role when the portal moves it onto <body>', async () => {
   const quiet = new VirtualConsole();
   quiet.on('jsdomError', () => {});

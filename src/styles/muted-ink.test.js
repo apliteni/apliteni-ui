@@ -7,7 +7,7 @@
  * overrides and story examples are outside this CSS gate. Alias tracing is
  * conservative across scopes/themes: any possible muted path requires a note.
  *
- * why: docs/specification.md#text-ink
+ * why: docs/foundations.md#text-ink
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

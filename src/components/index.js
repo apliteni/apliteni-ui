@@ -61,7 +61,7 @@ export function statusDot(live = false) {
 
 // ---- Card ----------------------------------------------------------------
 // The title is a heading one level under the page's h1 unless `level` says
-// otherwise. why: docs/specification.md#labels-and-titles
+// otherwise. why: docs/foundations.md#labels-and-titles
 export function card({ title, sub, body = '', variant, pad, icon: ic, level = 2 } = {}) {
   const cls = cx('ui-card', variant && `ui-card--${variant}`, pad && `ui-card--pad-${pad}`);
   const h = [2, 3, 4, 5, 6].includes(Number(level)) ? `h${Number(level)}` : 'h2';

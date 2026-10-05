@@ -5,7 +5,7 @@ import { Icon } from './primitives/Icon';
 // consumer rendering the factory's string through dangerouslySetInnerHTML puts a
 // wrapper between `.ui-app__main` and `.ui-back`, and the shell's direct-child rule
 // stops matching. BackLink.test.tsx compares this against the factory rule for rule.
-// why: docs/specification.md#the-back-link
+// why: docs/library.md#the-back-link
 
 // "Back" names a direction rather than a place. It is what a caller who names no
 // destination gets, and the one label that is not spelled out as "Back to …".

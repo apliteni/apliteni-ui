@@ -9,7 +9,7 @@
  *
  * The steps are read out of tokens.css, never repeated here.
  *
- * why: docs/specification.md#spacing-and-rhythm
+ * why: docs/foundations.md#spacing-and-rhythm
  * Discover subjects from source and check the coverage count.
  * Weaken the rule and confirm that its test fails.
  */

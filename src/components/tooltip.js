@@ -11,7 +11,7 @@
 // A mark carries `data-tip-value`, with `data-tip-label` and `data-tip-detail`;
 // a `[data-tip-anchor]` inside it is where the readout opens. Under a finger
 // there is no hover, so a tap is the switch: see Pointer kinds below.
-// why: docs/specification.md#the-hover-readout
+// why: docs/library.md#the-hover-readout
 import { esc } from './index.js';
 
 const cx = (...a) => a.filter(Boolean).join(' ');

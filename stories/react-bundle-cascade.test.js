@@ -9,7 +9,7 @@
  * removed. Each test states its own limits.
  *
  * Resolve the winning declarations before measuring the result.
- * why: #551, docs/specification.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
+ * why: #551, docs/library.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -394,7 +394,7 @@ test('tooltip.css is in the bundle because it contests nothing, and that is meas
   const SHEET = 'src/styles/tooltip.css';
   assert.ok(BUNDLE.includes(SHEET), `${SHEET} has left the React bundle. #408 put it there for a `
     + 'consumer who loads only `react/css`; if that consumer is no longer supported, say so where '
-    + 'the nets are justified in the specification, because it is the only reason given for them.');
+    + 'the nets are justified in docs/library.md, because it is the only reason given for them.');
   assert.ok(rankableRules([SHEET]).length > 0,
     `${SHEET} no longer writes a rule a cascade ranks, so its presence is no longer the thing `
     + 'this file is measuring and this test has stopped meaning anything');

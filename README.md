@@ -121,8 +121,8 @@ section.
 
 | Page | What it answers |
 | --- | --- |
-| [specification.md](docs/specification.md) | What the kit guarantees and what it refuses to do. A gate on `npm test` holds every statement. |
-| [library.md](docs/library.md) | Architecture, the `src/` layout, tokens and theming, the component catalog. |
+| [foundations.md](docs/foundations.md) | The tokens and the floors: widths, breakpoints, spacing, type, colour, elevation, the focus ring, the tap floor. |
+| [library.md](docs/library.md) | The package: the `src/` layout, theming, the component catalog, and what each component guarantees. |
 | [react/README.md](react/README.md) | The React components, their props, and the Storybook on port 6007. |
 | [storybook.md](docs/storybook.md) | The workbench: config, theming toolbar, story conventions. |
 | [landing-page.md](docs/landing-page.md) | ui.apli.tech: the chrome, the static build, the hosting. |

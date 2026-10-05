@@ -51,7 +51,7 @@ async function open(story, theme, { width = 560, height = 380 } = {}) {
   // Reduced motion, because every subject here is a panel that opens: the kit's net
   // takes the travel off rather than changing what is drawn, so the frame is the rest
   // state by construction and no shot can catch a compositor layer mid-flight.
-  // why: docs/specification.md#motion
+  // why: docs/foundations.md#motion
   const ctx = await browser.newContext({
     viewport: { width, height }, deviceScaleFactor: 1, reducedMotion: 'reduce',
   });

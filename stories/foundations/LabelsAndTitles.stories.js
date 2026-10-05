@@ -1,5 +1,5 @@
 // Every label and title the kit sets, on one board. The guideline these obey:
-// docs/specification.md#labels-and-titles
+// docs/foundations.md#labels-and-titles
 import { card, badge, pill, snippet } from '../../src/components/index.js';
 import { sidebarNav } from '../../src/components/nav.js';
 import { dropdown } from '../../src/components/dropdown.js';

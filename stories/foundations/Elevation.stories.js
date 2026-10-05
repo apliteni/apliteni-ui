@@ -11,7 +11,7 @@ export default {
 // than drawing a line of its own: two of these rungs are levels and carry a real
 // treatment, and the other three are grounds and fills that carry none. Without
 // this the page showed five crisp hairlines in light, where the kit draws none.
-// why: docs/specification.md#elevation
+// why: docs/foundations.md#elevation
 const SWATCH = 'border:1px solid var(--border)';
 const CARD = 'border:1px solid var(--card-edge);box-shadow:var(--elev-rest)';
 const FLOATING = 'border:1px solid var(--float-edge);'

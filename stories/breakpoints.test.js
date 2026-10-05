@@ -5,7 +5,7 @@
  * literal and the discipline comes from a documented list with a gate over it.
  *
  * The list is NOT written here: it is read out of the table in
- * docs/specification.md at run time, because two copies of three numbers drift
+ * docs/foundations.md at run time, because two copies of three numbers drift
  * the way six literals in ten files drifted.
  *
  * Subjects are swept, never enumerated, and the sweep reads RAW TEXT rather than
@@ -13,7 +13,7 @@
  * Directories are skipped, which keeps site/public out: build output that does
  * not exist in CI.
  *
- * why: docs/specification.md#breakpoints
+ * why: docs/foundations.md#breakpoints
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -29,9 +29,9 @@ const read = (rel) => readFileSync(at(rel), 'utf8');
 /** Blank out comments, keeping newlines so line numbers stay true. */
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 
-/* -- The list, read from the specification rather than repeated ------------- */
+/* -- The list, read from the reader page rather than repeated --------------- */
 
-const SPEC = 'docs/specification.md';
+const SPEC = 'docs/foundations.md';
 const HEADING = '## Breakpoints';
 
 const section = (() => {

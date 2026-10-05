@@ -36,7 +36,7 @@ function linkList(links = []) {
 // matter, and h2 is the one rank that cannot skip whatever heading came before
 // it. It was an h4 — the only h4 the kit drew — which read h2 → h4 on the
 // landing page and left a rank a reader hears missing. The look is the class's,
-// not the tag's. why: docs/specification.md#the-page
+// not the tag's. why: guidelines/the-page.md#the-page
 function column({ title, links = [] } = {}) {
   return `<div class="ui-footer__col">` +
     (title ? `<h2 class="ui-footer__col-title">${esc(title)}</h2>` : '') +

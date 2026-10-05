@@ -2,7 +2,7 @@
  * in the stylesheets the package ships.
  *
  * Discover subjects from source and check the coverage count.
- * why: docs/specification.md#icons-and-glyphs */
+ * why: docs/foundations.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';

@@ -11,7 +11,7 @@
 // docs/reviews/270-back-control.html and the owner chose this one, so the other
 // three — a bordered button above the title, an icon-only arrow beside it, and
 // the breadcrumb trail alone — are not built here.
-// why: docs/specification.md#the-back-link
+// why: docs/library.md#the-back-link
 import { esc, icon } from './index.js';
 
 // "Back" names a direction rather than a place. It is what a caller who names no
@@ -29,7 +29,7 @@ const TAB_OR_NEWLINE = /[\t\n\r]/g;
 
 // A label that already says "Back to Invoices" names the place after those words, or the
 // link would be read as "Back to Back to Invoices". The whole phrase, since "Backups" and
-// "Back office" are places too. why: docs/specification.md#the-back-link
+// "Back office" are places too. why: docs/library.md#the-back-link
 const SAID = /^back\s+to(?:\s+|$)/i;
 
 const text = (v) => (typeof v === 'string' || typeof v === 'number' ? String(v).trim() : '');

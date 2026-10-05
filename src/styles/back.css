@@ -3,7 +3,7 @@
  * The way up from a page to the page it sits under. It stands above the page
  * title, in the slot a breadcrumb trail would take, and it is quiet at rest: it
  * is on every page below a list, and it is never what the page is for.
- * why: docs/specification.md#the-back-link
+ * why: docs/library.md#the-back-link
  * ========================================================================== */
 
 /* Its own line, and only as wide as its words, so the hover ground does not run
@@ -36,7 +36,7 @@
 
 /* 16px, with the stroke raised to match: the glyph set draws at 1.7 on a 24-unit
    box, which is 1.13 CSS px at this size and under the kit's 1.5 for a stroked
-   mark. 2.4 paints 1.6. why: docs/specification.md#icons-and-glyphs */
+   mark. 2.4 paints 1.6. why: docs/foundations.md#icons-and-glyphs */
 .ui-back svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 
 /* In the page shell it takes the trail's place, and the trail's distance from
@@ -44,7 +44,7 @@
 .ui-app__main > .ui-back { margin-bottom: var(--space-5); }
 
 /* The one part that can run long. It clips rather than wrapping, as .ui-nav__label
-   does. why: docs/specification.md#the-back-link */
+   does. why: docs/library.md#the-back-link */
 .ui-back__label {
   min-width: 0;
   overflow: hidden;

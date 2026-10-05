@@ -20,7 +20,7 @@
    the page, not on a grey block, in any state — Artur, round r28. Rest stays at
    (0,1,1) so `.ui-btn:hover`'s accent wash still outranks it; the rules under it
    answer each state that paints a NEUTRAL fill, one step above the kit rule
-   writing it. Held by filter-bar.test.js. why: docs/specification.md#a-filter-row-holds-its-panels */
+   writing it. Held by filter-bar.test.js. why: docs/library.md#a-filter-row-holds-its-panels */
 [data-filter-clear] button { background: transparent; }
 .ui-filter-bar [data-filter-clear] button:disabled,
 .ui-filter-bar [data-filter-clear] button[aria-disabled="true"],

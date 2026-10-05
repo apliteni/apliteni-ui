@@ -7,7 +7,7 @@
 // which is why the walks are per workspace and this reading is not.
 // Share the calculation but check each workspace separately.
 //
-// Cause and numbers: docs/specification.md#colour-and-contrast. Raised by Artur in
+// Cause and numbers: docs/foundations.md#colour-and-contrast. Raised by Artur in
 // round r28 of #551 — "Disabled fields almost invisible because of that."
 
 import {

@@ -6,7 +6,7 @@ export const BLURB = content.blurb;
 //
 // No rule here has a specimen pair. Motion is the one thing a still picture
 // cannot show, so each rule stands on its why and on the gate named in
-// docs/specification.md#motion.
+// docs/foundations.md#motion.
 
 export const RULES = withSpecimens(content.rules, [
 { id: 'after-load' },

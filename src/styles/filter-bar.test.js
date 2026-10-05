@@ -9,7 +9,7 @@
  * control, and requires filter-bar.css to answer each. Read as text, like
  * pagination.test.js next door, because the package ships CSS as its artifact.
  * It measures the cascade and not pixels; the paint is measured in a browser.
- * why: docs/specification.md#a-filter-row-holds-its-panels
+ * why: docs/library.md#a-filter-row-holds-its-panels
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

@@ -23,7 +23,7 @@ A guideline page shows its rule and says the least it can.
 
 Give every rule a picture can carry a rendered do and don't pair, built from kit parts.
 Keep each field to a line or two. The rule states what to do, and each caption says what
-its picture cannot. Measurements and token names belong in the specification; `Except`
+its picture cannot. Measurements and token names belong in the reader pages; `Except`
 keeps the boundaries.
 
 `Why` gives the reason the rule exists, which a picture rarely carries, so a rule may
@@ -72,7 +72,8 @@ rule text, caption, boundary or gap note reads on the page ground.
 beside the test that checks coverage. Neither file ships as guideline content.
 
 The page guideline also forbids selectors, tokens and function names in its prose.
-Its implementation mapping stays in the specification.
+Its implementation mapping stays in `stories/guidelines/the-page.test.js`, the gate that
+resolves it.
 
 ## Adding a page
 

@@ -17,7 +17,7 @@ const specimen = (label: string, content: ReactNode) => <div style={{ display: '
 </div>;
 
 // The outcome is the title and the detail is one short line — the block carries
-// no third text tier. why: docs/specification.md#success-confirmations
+// no third text tier. why: docs/library.md#success-confirmations
 export const Hero: Story = {
   render: () => wrap(<Success title="Feedback sent"
     body="It goes straight to the strategy owner."

@@ -801,7 +801,7 @@ test('an open rail leaves its labels where they are, in both states', () => {
 });
 
 // The one row of the rail that is icon-only at BOTH widths, so it is the one
-// whose chip is not scoped to the fold. why: docs/specification.md#the-page-shell
+// whose chip is not scoped to the fold. why: docs/library.md#the-page-shell
 test('the toggle carries a name at both widths, because it is wordless at both', () => {
   for (const [rail, at] of [['an open', mount(PAIR(false))], ['a folded', mount(PAIR(true))]]) {
     const btn = at.q('.ui-app__fold');
@@ -831,7 +831,7 @@ test('the toggle carries a name at both widths, because it is wordless at both',
 // and the glyph left standing there is shorter than the line the name vacated, so
 // the button shrank under the pointer and took the nav below it up with it.
 // #282's rule is that a hover readout overlays the page and never reflows it.
-// why: docs/specification.md#the-page-shell
+// why: docs/library.md#the-page-shell
 
 /** The line a box sets, in px — what the name occupies while it is in the flow. */
 const lineBox = (at, el) => {
@@ -1417,7 +1417,7 @@ test('the rail keeps the step off the page that ships, in both themes', () => {
  * dark one's perceptual distance from its page — and that is what the reporter
  * on #454 was looking at, not the ratio. This gate holds the ceiling light can
  * reach with the tokens that exist. Going past it needs `--bg` to come down,
- * which is a theme decision; docs/specification.md records both. */
+ * which is a theme decision; docs/library.md#the-page-shell has the step.  */
 
 // These checks resolve CSS states in JSDOM; browser captures verify their appearance.
 test('hovered rail rows use an edge on the reading surface', () => {
@@ -1527,7 +1527,7 @@ test('the toggle\'s own mark clears the floor a control answers to', () => {
 // them, and the fold is what makes it matter: the box closes to the strip over a
 // column that keeps its width. The toggle's cell is not one of them — it is a cell
 // of the head band, at its end, and the gate under this one is the one that holds
-// it there. why: docs/specification.md#the-page-shell
+// it there. why: docs/library.md#the-page-shell
 
 test('every block of the rail keeps the open column while the box closes over it', () => {
   const col = pxOf('src/styles/nav.css', '.ui-app', '--ui-nav-col');
@@ -1558,7 +1558,7 @@ test('every block of the rail keeps the open column while the box closes over it
 // an open rail, which is the one thing the round before it had bought — so the
 // three gates here hold what it keeps instead: the end of the band while the rail
 // is open, the closing edge all the way down the travel, and the glyph column when
-// the travel stops. why: docs/specification.md#the-page-shell
+// the travel stops. why: docs/library.md#the-page-shell
 
 test('the toggle stands at the far end of the brand row, on the wordmark\'s own line', () => {
   const band = /\.ui-app__head\s*\{([^{}]*)\}/.exec(decomment(read('src/styles/layout.css')));

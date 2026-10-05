@@ -2,12 +2,12 @@
 // menuitems and a listbox takes options, so a Save / Cancel pair goes in the
 // search variant's dialog and nowhere else.
 //
-// It is a sentence in the specification, so it is measured rather than asserted:
+// It is a sentence in docs/library.md, so it is measured rather than asserted:
 // the same foot goes into each panel the factory emits and axe says which it
 // refuses. An axe that stops refusing turns this red rather than turning the
 // sentence quietly false.
 //
-// why: docs/specification.md#the-dropdown-panel
+// why: docs/library.md#the-dropdown-panel
 // Measure behavior instead of matching the source text.
 
 import test, { after } from 'node:test';
@@ -88,7 +88,7 @@ test('a foot of controls belongs in the dialog panel, and axe refuses the other 
   }
   assert.deepEqual(
     refused.map(([role]) => role), ['menu', 'listbox'],
-    'the specification says a list panel takes rows and nothing else, and that the search '
+    'docs/library.md says a list panel takes rows and nothing else, and that the search '
     + 'variant\'s dialog is where a control-bearing foot goes. axe now disagrees: it refused '
     + `${JSON.stringify(refused.map(([role]) => role))}`,
   );

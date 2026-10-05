@@ -12,7 +12,7 @@
 // it fades takes one more click — which on a confirm runs the caller's destructive handler
 // a second time.
 //
-// why: docs/specification.md#motion
+// why: docs/foundations.md#motion
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -307,7 +307,7 @@ test('src/styles/confirm.css: a consequence too long for the viewport scrolls', 
 //
 // Every menu the kit ships, not just `dropdown()`'s own panel: the fixes key on
 // `.ui-dropdown__panel` and two of the four menus are written in another sheet.
-// why: docs/specification.md#the-dropdown-panel
+// why: docs/library.md#the-dropdown-panel
 const MENUS = [
   {
     file: 'src/styles/dropdown.css',

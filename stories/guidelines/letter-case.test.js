@@ -8,7 +8,7 @@
  * - a declaration after a `/*` that sits inside a JS string: the comment strip
  *   takes everything up to the next `*​/` with it.
  *
- * why: docs/specification.md#labels-and-titles
+ * why: docs/foundations.md#labels-and-titles
  * Discover subjects from source and check the coverage count.
  */
 import { test } from 'node:test';
@@ -117,7 +117,7 @@ test('nothing in the kit sets text in capitals by style', () => {
   assert.deepEqual(offenders, [],
     'Write the label in sentence case and delete the case change. A word that is capitals in '
     + 'itself — an acronym, a currency code, a key name — is typed that way. The letter-spacing '
-    + 'that came with the capitals goes too. docs/specification.md#labels-and-titles');
+    + 'that came with the capitals goes too. docs/foundations.md#labels-and-titles');
 });
 
 /* The subjects are every case declaration the sweep reads, `none` included, so a
@@ -197,7 +197,7 @@ test('putting the badge’s capitals back is caught at its line', () => {
  * `shell` had been relying on `text-transform` to look like labels.
  *
  * The subjects are discovered twice over and never listed: the SELECTORS are every
- * rule that claims `rank: label` or `rank: chip` (docs/specification.md#labels-and-titles),
+ * rule that claims `rank: label` or `rank: chip` (docs/foundations.md#labels-and-titles),
  * read off the sheets the kit ships; the TEXT is whatever every story and every site
  * page actually renders into one.
  *
@@ -210,7 +210,7 @@ test('putting the badge’s capitals back is caught at its line', () => {
  * - the case of a name. A first word that is not letters alone — `mcp.json`,
  *   `phoenix.2026.002` — is spelled, not written, and is left as it is.
  *
- * why: docs/specification.md#labels-and-titles
+ * why: docs/foundations.md#labels-and-titles
  * Discover subjects from source and check the coverage count.
  */
 // Storybook's HTML renderer hands back a string or a node; stories/a11y.test.js
@@ -344,5 +344,5 @@ test('every label and chip a story or a site page renders starts with a capital'
   assert.deepEqual(bad, [],
     '\nWrite the label in sentence case. A key is not a label — write the word for it, the way '
     + 'versionSwitcher() writes "Live" for `live`.\n'
-    + 'docs/specification.md#labels-and-titles\n');
+    + 'docs/foundations.md#labels-and-titles\n');
 });

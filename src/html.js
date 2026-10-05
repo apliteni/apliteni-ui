@@ -5,7 +5,7 @@ export const esc = value => String(value == null ? '' : value).replace(/[&<>"]/g
 // Legacy topbar/brand slots accept already escaped HTML. Preserve their entities.
 export const trustedAttr = value => String(value ?? '').replace(/[<>"]/g, c => ENTITIES[c]);
 
-// why: docs/specification.md#vanilla-html-boundaries
+// why: docs/library.md#escaping-and-url-slots
 export function safeUrl(value, fallback = '#') {
   const raw = String(value ?? '');
   const scheme = raw.replace(/[\t\n\r]/g, '').replace(/^[\u0000-\u0020]+/, '');

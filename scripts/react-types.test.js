@@ -1,7 +1,7 @@
 /* Rule: React Button's published type surface keeps compiling for the consumer
  * patterns in react/src/primitives/Button.types.tsx.
  *
- * why: docs/specification.md#react-button-links-and-leading-artwork
+ * why: docs/library.md#react-button-links-and-leading-artwork
  *
  * Three of them — forwarding the exported `ButtonProps` back in, reading
  * `ComponentProps<typeof Button>`, and `Button.displayName` — compiled on 0.59.0 and

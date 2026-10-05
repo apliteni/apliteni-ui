@@ -166,7 +166,7 @@ it.each(['disabled', 'busy'] as const)('blocks all link activation while %s', st
 });
 
 // The documented precedence, both halves of it.
-// why: docs/specification.md#react-button-links-and-leading-artwork
+// why: docs/library.md#react-button-links-and-leading-artwork
 it('merges a caller className and keeps its own state attributes ahead of spread props', () => {
   const { getByRole } = render(<Button busy className="mine" type="submit"
     aria-busy={false} aria-disabled={false} data-btn-disabled="">Saving</Button>);

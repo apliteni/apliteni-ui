@@ -5,7 +5,7 @@ export const BLURB = content.blurb;
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { card, button, badge } from '../../src/components/index.js';
 
-export const REFERENCE_POLICY = 'specification-only';
+export const REFERENCE_POLICY = 'code-free';
 
 // The four limits the rules are stated in. They are here rather than in the
 // prose because stories/guidelines/the-page.test.js measures the kit's own
@@ -69,7 +69,7 @@ export const SPEC_CSS = `
     .tp-rows { display: flex; flex-direction: column; gap: var(--space-4); }
 
     /* One ink, and size carries the rank. Every text below is var(--text), and
-       every size is a row of the table in docs/specification.md#labels-and-titles
+       every size is a row of the table in docs/foundations.md#labels-and-titles
        rather than a number of this page's own: 30, 18, 14.5, 13. The selectors
        belong to stories/guidelines/_layout.js, which draws sixteen other
        guideline pages, so they are restated here — after it — and only this page
@@ -195,7 +195,8 @@ export const widthDont = () => frame(true, true);
 
 // The rules a designer decides, in the order a page is read. Each is one
 // sentence, a picture where a picture says it better, and one line of why.
-// Which line of the kit holds each of them is docs/specification.md#the-page.
+// Which line of the kit holds each of them is the RULE_TO_CODE table in
+// stories/guidelines/the-page.test.js.
 export const RULES = withSpecimens(content.rules, [
 { id: 'layout' },
 { id: 'width', doHtml: widthDo, dontHtml: widthDont },
@@ -211,8 +212,8 @@ export const RULES = withSpecimens(content.rules, [
 
 // Two limits the same gate walks that this page does not draw. They are not
 // decisions anybody takes per screen — the kit has already taken them, and a
-// designer looking at a mock cannot break either one — so they are stated in
-// the contract, docs/specification.md#the-page, and the ids stay here because
+// designer looking at a mock cannot break either one — so what they guarantee
+// is stated in docs/library.md#the-page-shell, and the ids stay here because
 // stories/guidelines/the-page.test.js keys one check to each.
 export const GATED_ELSEWHERE = [
   { id: 'shell', states: 'An application page is the shell’s, and it draws one main region.' },

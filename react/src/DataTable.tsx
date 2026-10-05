@@ -19,7 +19,7 @@ type SelectionProps =
 // arm, and `total: null` — the honest answer from a caller who cannot count —
 // requires `hasMore` in its place, because whether a page follows this one is
 // then the only thing left that a control can be computed from.
-// why: docs/specification.md#react-tables
+// why: docs/library.md#react-tables
 type PagerProps =
   | { page?: never; onPageChange?: (page: number) => void; total?: never; hasMore?: never }
   | { page: number; onPageChange: (page: number) => void; total: number; hasMore?: boolean }
@@ -46,7 +46,7 @@ export type DataTableProps<T> = {
 // The absence of a sort, as a value: the order is whatever the rows arrived in.
 const NO_SORT = { key: undefined, dir: -1 } as const;
 
-// why: docs/specification.md#react-tables
+// why: docs/library.md#react-tables
 // Every path returns a copy. Values must be comparable with JavaScript < and >.
 export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
   if (sort.key === undefined) return [...rows];

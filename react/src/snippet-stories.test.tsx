@@ -2,7 +2,7 @@
 // caller holds two references to the same text. Nothing in the component can
 // check they agree, which makes "displays one thing, copies another" its one
 // silent failure mode. This gate holds the kit's own stories to the guarantee
-// the specification places on callers.
+// docs/library.md places on callers.
 //
 // Limits: jsdom, so this measures text and not rendering. It says nothing about
 // token colours (contrast.test.tsx) or layout (browser captures). It also cannot

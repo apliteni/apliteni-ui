@@ -24,7 +24,7 @@
   font-size: var(--text-base);
   color: var(--strong);
   /* Fields use the card surface and an edge in both themes.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   background: var(--field-bg); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border: 1px solid var(--field-edge);
   border-radius: var(--radius-md);
@@ -57,8 +57,8 @@
    longhands the chevron is drawn with (#511). Held by stories/select-chevron.test.js.
    `opacity` is the other half of that grey-out, and no colour here outranks it, so
    the fade is reset below — it took the edge and the words down together. #564,
-   argued at docs/specification.md#colour-and-contrast.
-   why: docs/specification.md#icons-and-glyphs */
+   argued at docs/foundations.md#colour-and-contrast.
+   why: docs/foundations.md#icons-and-glyphs */
 .ui-input:disabled,
 .ui-select:disabled,
 .ui-textarea:disabled {
@@ -81,7 +81,7 @@
    `search` glyph and no clear button, so a field without one is what the
    design already says. Measured in Chromium; Firefox draws nothing here and
    Edge is untested.
-   why: docs/specification.md#colour-and-contrast */
+   why: docs/foundations.md#colour-and-contrast */
 .ui-input[type="search"]::-webkit-search-cancel-button {
   appearance: none;
   display: none;
@@ -106,7 +106,7 @@
    which is the colour every other quiet glyph on a field takes. It was one frozen
    hex until #295, dark --muted's old value, which the ladder's re-pick left behind
    at 2.49:1 on the light field. Held by stories/colour-tokens.test.js.
-   why: docs/specification.md#colour-and-contrast */
+   why: docs/foundations.md#colour-and-contrast */
 .ui-select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a29db6' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
@@ -233,7 +233,7 @@
   /* --shadow-sm was the knob's only edge until #295, and a white knob on a light
      off-track has 1.20:1 to spare. --border-strong and not --border, which measures
      1.03:1 against that track and draws nothing — the checkbox above edges itself
-     the same way. why: docs/specification.md#elevation */
+     the same way. why: docs/foundations.md#elevation */
   border: 1px solid var(--border-strong);
   box-sizing: border-box;
   border-radius: 50%;

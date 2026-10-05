@@ -34,7 +34,7 @@ const URL_BEFORE = /:\/\/[^\s)'"`]*$/;
  * counts when it is written one of the three ways a citation actually is — a
  * form test, never a list of filenames:
  *
- *   docs/specification.md      it names a page in the documentation tree
+ *   docs/library.md           it names a page in the documentation tree
  *   AGENTS.md#verification   it carries an anchor, so it points inside a page
  *   [library.md](library.md)   it is a markdown link, so a reader can click it
  *

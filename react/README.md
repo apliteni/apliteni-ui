@@ -541,7 +541,7 @@ An optional `id` lets the caller choose the control ID; it must be unique.
 `type="search"` input, and no visible label, so the row keeps the height of the
 unlabelled controls beside it. `ariaLabel` is required and is the control's only
 name. It forwards its ref and the native input props, and `className` joins
-`.ui-input`. There is no clear button — see the specification for why.
+`.ui-input`. There is no clear button — see docs/library.md#react-search-field for why.
 
 ```tsx
 <div className="ui-toolbar">

@@ -10,7 +10,7 @@ import { esc, button } from './index.js';
 
 // 'line' is the bare Lucide `check`, 'circled' is Lucide circle-check-big. Which
 // is the default, and why that departs from Guidelines / Iconography:
-// why: docs/specification.md#success-confirmations
+// why: docs/library.md#success-confirmations
 // Each is written whole because the icon-sizing and glyph-stroke gates find their
 // subjects by scanning source for a class on an `<svg …>`: a tag split across
 // string pieces leaves both silent rather than failing.
@@ -66,7 +66,7 @@ function countdownEl({ seconds = 5, label = 'Redirecting' } = {}) {
 // Both carry one title and at most one short line under it. There is no eyebrow
 // tier: a confirmation stacking a label, a headline and a paragraph reads as
 // three competing voices for one outcome.
-// why: docs/specification.md#success-confirmations
+// why: docs/library.md#success-confirmations
 export function success({
   layout = 'hero',          // 'hero' | 'split' | 'compact'
   level,                    // heading level of the title; see the note below
@@ -88,7 +88,7 @@ export function success({
   // takes h2. It was an h3 either way, which left a page whose whole content is
   // a success() with no h1 at all — the fault Guidelines / The page names.
   // A caller who knows better passes `level`. The look is the class's.
-  // why: docs/specification.md#the-page
+  // why: guidelines/the-page.md#the-page
   const rank = [1, 2, 3, 4, 5, 6].includes(Number(level)) ? Number(level) : (layout === 'compact' ? 2 : 1);
   const h = `h${rank}`;
 

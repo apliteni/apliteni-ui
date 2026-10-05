@@ -121,7 +121,7 @@
 
 /* Responsive — columns collapse to a stacked layout on narrow screens. Two of
    the kit's three steps, and the second one is the phone step rather than a
-   fourth value of the footer's own: docs/specification.md#breakpoints. */
+   fourth value of the footer's own: docs/foundations.md#breakpoints. */
 @media (max-width: 720px) {
   .ui-footer__top { flex-direction: column; gap: 30px; }
   .ui-footer__nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 30px; }

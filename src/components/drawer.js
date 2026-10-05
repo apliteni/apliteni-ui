@@ -75,7 +75,7 @@ export function drawer({
  *
  *   drawer({ title, body: drawerSection({ title: 'Source', rows: [['Statement', '#4102']] }) })
  *
- * why: docs/specification.md#the-drawer
+ * why: docs/library.md#the-drawer
  *
  * @param {object} [o]
  * @param {string} [o.title]  group heading (escaped)

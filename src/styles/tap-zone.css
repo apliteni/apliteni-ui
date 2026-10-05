@@ -8,7 +8,7 @@
  * Read LAST, after every component sheet — see src/index.css — because each
  * opening overrides a gap one of them already set.
  *
- * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
+ * why: docs/foundations.md#a-tap-reaches-the-floor-below-the-phone-step
  * Held by stories/tap-zone.test.js, measured in a browser at 390.
  */
 

@@ -3,7 +3,7 @@
  *
  * argv: <checkout> <outDir> [prefix=after] [only]
  * why: scripts/evidence/README.md
- * why: docs/specification.md#elevation
+ * why: docs/foundations.md#elevation
  */
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';

@@ -9,7 +9,7 @@ it('renders title, sub and body', () => {
   expect(getByText('body')).not.toBeNull();
 });
 
-// why: docs/specification.md#labels-and-titles
+// why: docs/foundations.md#labels-and-titles
 it('titles a card with a heading one level under the page title', () => {
   const { getByRole, rerender } = render(<Card title="Payouts" />);
   expect(getByRole('heading', { level: 2, name: 'Payouts' })).toHaveClass('ui-card__title');

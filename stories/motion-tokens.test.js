@@ -6,12 +6,12 @@
  * one walks the tree rather than holding a list.
  *
  * The vocabulary is NOT written here: it is read out of the table in
- * docs/specification.md at run time. And the numbers are RESOLVED rather than
+ * docs/foundations.md at run time. And the numbers are RESOLVED rather than
  * asserted — both ends of `var(--duration-normal, 0.25s)` are followed, because
  * a comment claiming 250ms next to a token that resolves to 200 would pass a
  * gate that read comments.
  *
- * why: docs/specification.md#motion
+ * why: docs/foundations.md#motion
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,9 +19,9 @@ import { statSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { at, read, ms, decomment, sheetsUnder, sheets, netBlocks } from './lib/motion-css.js';
 
-/* -- The vocabulary, read from the specification rather than repeated -------- */
+/* -- The vocabulary, read from the reader page rather than repeated ---------- */
 
-const SPEC = 'docs/specification.md';
+const SPEC = 'docs/foundations.md';
 const HEADING = '## Motion';
 
 const section = (() => {
@@ -116,7 +116,7 @@ const site = (d) => `${d.where}:${d.line}`;
 
 /* -- The rule ---------------------------------------------------------------- */
 
-test('every duration in the kit resolves to one the specification lists', () => {
+test('every duration in the kit resolves to one the reader page lists', () => {
   const tokens = read('src/tokens/tokens.css');
   const brand = read('src/tokens/brand.generated.css');
 
@@ -346,7 +346,7 @@ test('every documented duration is one something uses', () => {
   );
 });
 
-test('every duration a sheet uses is one the specification documents', () => {
+test('every duration a sheet uses is one the reader page documents', () => {
   const offences = [];
   for (const { where, text } of sheets()) {
     const src = decomment(text);
@@ -358,7 +358,7 @@ test('every duration a sheet uses is one the specification documents', () => {
 
   assert.deepStrictEqual(
     offences, [],
-    'a sheet reads a --dur-* token the specification does not list. The table is the vocabulary; a '
+    'a sheet reads a --dur-* token the reader page does not list. The table is the vocabulary; a '
     + `fifth speed invented at a use site is the drift this gate exists to stop. Add it to `
     + `"${HEADING}" in ${SPEC} with what it times, or use one of `
     + `${[...DURATIONS].join(', ')}:\n  ` + offences.join('\n  '),

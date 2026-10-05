@@ -6,7 +6,7 @@
  *
  * `value` is display text: it is the chip's only visible line, so a consumer
  * answers a change with text a reader can read, not a raw code.
- * why: docs/specification.md#dense-financial-tables
+ * why: docs/library.md#dense-financial-tables
  */
 
 const text = (v) => (v == null ? '' : String(v));
@@ -71,7 +71,7 @@ function stopsAround(host) {
  *  order, else the nearest one behind it. A filter bar that has just dropped its
  *  last control keeps no box the focus ring can sit on, so the focus has to
  *  leave the bar rather than land on a line with no height.
- *  why: docs/specification.md#a-filter-row-holds-its-panels */
+ *  why: docs/library.md#a-filter-row-holds-its-panels */
 export function nextFocusStop(host) {
   return stopsAround(host)[0] || null;
 }
@@ -88,7 +88,7 @@ export function nextFocusStop(host) {
  *  Being reachable is not the same as taking the focus: a control can be visible
  *  and enabled and still refuse, so each candidate is asked and then checked, and
  *  the next one tried.
- *  why: docs/specification.md#a-filter-row-holds-its-panels */
+ *  why: docs/library.md#a-filter-row-holds-its-panels */
 export function focusNextStop(host) {
   const doc = host && host.ownerDocument;
   if (!doc) return null;
