@@ -761,6 +761,15 @@
         "How much the roles are worth was measured in one engine. In Chromium, stripping them leaves table, row, cell and columnheader standing and loses only the body's row group; WebKit and Gecko are unmeasured, so all five are required rather than the one engine shown to drop.",
         "No story in the kit announces an order while stacked, so that check passes over the swept stories without judging one. It is held instead by the fixtures beside it, which keep unrelated focusables on the page: an earlier version asked only whether the page had a focusable at all, and passed the exact defect it was written to catch."
       ]
+    },
+    {
+      "file": "stories/toast-pile.test.js",
+      "name": "Toast pile",
+      "does": "Checks that a collapsed toast stack fans out on focus as well as hover, that the newest notice is the one in front, that a reader with no hover is left the plain column, and that the auto-dismiss line and its countdown both stop while a notice holds focus.",
+      "blind": [
+        "JSDOM lays nothing out, so every notice height is stubbed and the published offsets are read as numbers, never as paint.",
+        "JSDOM evaluates no media query and no :hover, so the stylesheet's fan-out, its coarse-pointer fallback and its reduced-motion rule are read as text and never applied."
+      ]
     }
   ],
   "UNGATED": [

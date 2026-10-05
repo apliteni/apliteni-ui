@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.86.0', date: '2026-10-05',
+    changes: [
+      ['added', 'React Toast notices accept compact and dismissible options. Compact notices omit body text; hiding the close button preserves the timer and action behavior. Part of #429.', ['Toast']],
+      ['added', 'A toast stack can collapse into a pile: notices rest behind the newest one, and the pile fans out on hover or when focus reaches a control inside it. Use collapseToastStack(stack) in vanilla or <Toast collapse> in React. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss progress line now stops while a notice holds focus, not only while the pointer is over it, so a keyboard reader gets the same reprieve. Set progress: false on a React notice to keep the timing without the line. Under reduced motion the line is no longer drawn: it could not move, so it read as time not yet spent. Part of #429.', ['Toast']],
+    ],
+  },
+  {
     v: '0.85.0', date: '2026-10-04',
     changes: [
       ['fixed', 'A dropdown the keyboard opens puts focus inside itself for a reader who asked for reduced motion. The panel opened and focus stayed on the trigger: under the reduced-motion net an element naming no transition property of its own still transitions the inherited visibility, so everything inside the panel was still hidden in the frame the dropdown focused into it, and focus() on a hidden element does nothing. An open panel now carries no transition inside it at all. The search field, the topbar account menu and the version switcher were the three affected. Fixes #519.', ['Dropdown', 'Topbar']],
