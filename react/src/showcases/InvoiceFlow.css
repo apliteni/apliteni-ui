@@ -1,113 +1,61 @@
-.invoice-flow {
-  color: var(--text);
-  background: var(--table-bg); /* ring-gap: inherit — prototype paint retains the kit focus indicator and its opaque gap. */
-}
-/* The fields are deliberately NOT in this list. Painting .ui-input with --table-bg gave it,
-   in dark, the page's own colour — --table-bg is var(--bg) there — so an input had no fill
-   of its own and a disabled one had nothing left to show. That is the complaint Artur raised
-   at round r28 of #551. The field keeps --field-bg and the panes below carry the surface.
-   why: react/src/field-ground.test.tsx */
-.invoice-flow .ui-app, .invoice-flow .ui-app__rail, .invoice-flow .ui-app__bar,
-.invoice-flow .ui-react-app__bottom,
-.invoice-flow .ui-table th, .invoice-flow .ui-table td { background: var(--table-bg); /* ring-gap: inherit — prototype paint retains the kit focus indicator and its opaque gap. */ }
-.invoice-flow .ui-app__main { max-width: var(--container); }
-.invoice-flow .ui-app__rail { border-right: 1px solid var(--border); }
+/* The prototype's own sheet, and all of it: every rule places a kit part, none repaints one
+   or re-ranks its type. The two that name a kit class carry marks the kit has no class for.
+   why: guidelines/density-and-accents.md#follow-the-consequence, AGENTS.md, #601
+   held by: react/src/showcases/InvoiceFlow.test.tsx */
+
+/* The shell's own hook for its main width, not an override of its rule. */
+.invoice-flow { --ui-app-main: var(--container); }
+/* The page title is a filename, and the kit's h1 declares no wrap. */
 .invoice-flow h1 { overflow-wrap: anywhere; }
-/* The kit sets a card title's margin to 5px, which is the gap before a __sub. These cards
-   carry a title alone, so the step below it is the page's own. */
-.invoice-flow .ui-card__title { margin-block-end: var(--space-4); }
-/* Of the two panes, the one whose values a save writes carries the pair's accent, and it
-   carries it as ink on its own name. Not a line: an edge drawn strongly enough to read as
-   the signal is an outlined box, which is what the per-field rules removed in #459 r33 had
-   become. Same answer, same selector shape, as .doc-flow__saved-pane .ui-card__title. The
-   ground is the card's --surface, and stories/accent-contrast.test.js holds --accent as text
-   on every ground the kit paints under it, across all eight theme x accent cells.
-   why: guidelines/density-and-accents.md#follow-the-consequence */
+
+/* The pane a save writes leads and takes the wider track: 533 x 317 against the document's
+   355 x 447 at 1280, where the r36 review measured the pair inverted at 1.41. */
+.invoice-flow__columns {
+  display: grid; align-items: start; gap: var(--space-10);
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+}
+/* The pair's accent, as ink on that pane's name — the rule DocumentReview.css also carries. */
 .invoice-flow__data > .ui-card__title { color: var(--accent); }
-.invoice-flow h3 { font-size: var(--text-md); margin: 0; }
-.invoice-flow p { max-width: var(--prose-body); }
-.invoice-flow__note { font-size: var(--text-sm); margin: 0; }
-.invoice-flow__announcement { font-size: var(--text-sm); margin: 0; }
-.invoice-flow__announcement:empty { display: none; }
-/* No vertical margin of its own: .ui-app__body is a flex column with the kit's page
-   gap, so a margin here is added to that gap rather than replacing it. */
-.invoice-flow__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin: 0; }
-/* A bare <p> computes margin 0 here, which stood the rejected-save summary on Save invoice.
-   It takes the step the fields set. why: guidelines/layout-and-density.md#use-the-spacing-scale */
-.invoice-flow__summary { margin: 0 0 var(--space-6); }
-.invoice-flow__status, .invoice-flow__error { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
-/* icon() emits a bare <svg>; `.ui-icon` is only on the shell's hand-drawn fold glyph, so
-   this has to name the element to reach these. At 16px, 2.4 paints 1.6 CSS px. */
-.invoice-flow__status svg, .invoice-flow__error svg { width: var(--space-4); height: var(--space-4); stroke-width: 2.4; }
-.invoice-flow__error { white-space: normal; color: var(--pink); }
-.invoice-flow__columns { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--space-10); align-items: start; }
-.invoice-flow__data { grid-column: 1; grid-row: 1; }
-.invoice-flow__preview { grid-column: 2; grid-row: 1; min-width: 0; }
-/* No top margin: the sentence that stood between the heading and the fields is gone, so
-   the h2's own bottom margin sets that gap, as it does everywhere else in this sheet. */
-.invoice-flow__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); margin: 0 0 var(--space-6); }
-/* The values a save writes are the heavier of the two lines, and only weight can say so:
-   the kit's field label and its input are both --text-base, so they sit at one size. The
-   label keeps the label rank's medium and the value takes the weight the kit gives a figure
-   in .ui-stat__value. Nothing is faded to get the step — the label is where it always was.
-   why: guidelines/density-and-accents.md#follow-the-consequence */
+/* And its values heavier than their labels; the kit leaves .ui-input at normal. */
 .invoice-flow__fields .ui-input { font-weight: var(--weight-semibold); }
-/* No edge, no fill and no inset of its own: the pane around it is the card, and a bordered
-   box inside one is a card inside a card. Same answer as .doc-flow__sheet.
+
+/* Two fields to a row, and the step the form keeps below itself. */
+.invoice-flow__fields {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6); margin: 0 0 var(--space-6);
+}
+/* The rejected-save summary takes that same step, so it never sits on the button row. */
+.invoice-flow__summary { margin: 0 0 var(--space-6); }
+/* No margin: .ui-app__body is a flex column already carrying the page gap. */
+.invoice-flow__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin: 0; }
+/* The save line is a live region, so it exists before it has text and holds no space until then. */
+.invoice-flow__announcement { margin: 0; }
+.invoice-flow__announcement:empty { display: none; }
+
+/* The facsimile's stack, and the reset for margins <h3> and <p> arrive with. */
+.invoice-flow__paper { display: grid; gap: var(--space-5); }
+.invoice-flow__paper > * { margin: 0; }
+/* A file the reader added, sized to its pane. No edge: the pane is the card.
    why: guidelines/the-page.md#limit-card-stacks */
-.invoice-flow__paper { font-size: var(--text-sm); }
-.invoice-flow__paper p { margin: var(--space-5) 0; }
-.invoice-flow__paper dl { margin: var(--space-8) 0; }
-.invoice-flow__paper dl div { display: flex; justify-content: space-between; gap: var(--space-4); margin: var(--space-3) 0; }
-.invoice-flow__paper dd { margin: 0; font-variant-numeric: tabular-nums; }
-.invoice-flow__preview img, .invoice-flow__preview iframe { width: 100%; border: 1px solid var(--border); }
+.invoice-flow__preview :is(img, iframe) { width: 100%; }
 .invoice-flow__preview iframe { height: var(--panel-lg); }
-.invoice-flow__paper-line { margin: var(--space-3) 0; }
-.invoice-flow__paper table { width: 100%; border-collapse: collapse; margin: var(--space-6) 0; }
-.invoice-flow__paper th, .invoice-flow__paper td { text-align: start; font-weight: var(--weight-normal); padding: var(--space-2) 0; border-block-end: 1px solid var(--border); }
-.invoice-flow__paper th:not(:first-child), .invoice-flow__paper td:not(:first-child) { text-align: end; font-variant-numeric: tabular-nums; }
-.invoice-flow__paper-sums div:last-child { border-block-start: 1px solid var(--border-strong); padding-block-start: var(--space-3); font-weight: var(--weight-medium); }
-/* The identity cell's ghost button carries the control's own inset, which put its text
-   18px right of the column header. Pull the box back so the two share an edge. */
-.invoice-flow .ui-table td:first-child .ui-btn { margin-inline-start: calc(-1px - var(--btn-pad-x)); }
+
+/* The box Artur shaped at r23; decision 2 is still his, so its edge stands. Inside it the row
+   is the kit's .ui-drop__row. why: guidelines/file-drop.md#spend-one-row-at-rest */
 .invoice-flow__drop { border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); margin: 0; padding: var(--space-4); }
-/* One row at rest: the button and the types. why: guidelines/file-drop.md#spend-one-row-at-rest */
-.invoice-flow__drop-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
-.invoice-flow__drop-row p { margin: 0; font-size: var(--text-sm); }
+/* The screen's one accent line, drawn the way the kit draws .ui-drop__target. */
 .invoice-flow__drop.is-dragging { border-color: var(--accent); }
-.invoice-flow .ui-table { white-space: nowrap; min-width: var(--panel-lg); }
-.invoice-flow .ui-table td:last-child { padding-right: 0; }
-.invoice-flow .ui-table .ui-btn { white-space: nowrap; text-align: left; }
+
 @media (max-width: 860px) {
   .invoice-flow__columns { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
-  .invoice-flow__data, .invoice-flow__preview { grid-column: auto; grid-row: auto; }
 }
 @media (max-width: 560px) {
   .invoice-flow__fields { grid-template-columns: minmax(0, 1fr); }
   .invoice-flow__drop { padding: var(--space-3); }
-  .invoice-flow .ui-empty__actions { flex-wrap: wrap; justify-content: center; }
 }
-/* The kit grows a tap layer only as far as its container declares clearance, and these rows
-   declared none, so their buttons stopped at their drawn 33px. The kit's own sheet opens
-   .ui-empty__actions; the drop row is this sheet's own. Both open downward, keeping their size. */
+/* The kit's sheet opens .ui-drop__row and .ui-empty__actions; this row is this sheet's own. */
 @media (max-width: 560px) and (pointer: coarse) {
-  .invoice-flow__actions, .invoice-flow__drop-row { row-gap: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+  .invoice-flow__actions { row-gap: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
 }
-.invoice-flow h1:focus { outline: none; }
-.invoice-flow .ui-app__search, .invoice-flow .ui-cmdk__key,
-.invoice-flow .ui-app__av, .invoice-flow .toggle,
-.invoice-flow .ui-nav__item, .invoice-flow .ui-nav__item:hover,
-.invoice-flow .ui-dropdown__panel, .invoice-flow .ui-dropdown__item,
-.invoice-flow .ui-btn--secondary, .invoice-flow .ui-btn--ghost:not(:disabled):hover {
-  background: var(--table-bg); /* ring-gap: inherit — prototype paint retains the kit focus indicator and its opaque gap. */
-}
-.invoice-flow--navigated .invoice-flow__columns { animation: invoice-arrive var(--dur-slow) var(--ease-out); }
-@keyframes invoice-arrive { from { opacity: 0; transform: translateY(var(--space-2)); } to { opacity: 1; transform: translateY(0); } }
-@media (prefers-reduced-motion: reduce) { .invoice-flow--navigated .invoice-flow__columns { animation: none; } }
-.invoice-flow--navigated .ui-table-scroll { animation: invoice-arrive var(--dur-slow) var(--ease-out); }
-@media (prefers-reduced-motion: reduce) { .invoice-flow--navigated .ui-table-scroll { animation: none; } }
-
-.invoice-flow__data[data-live] form { animation: invoice-arrive var(--dur-slow) var(--ease-out); }
-@media (prefers-reduced-motion: reduce) { .invoice-flow__data[data-live] form { animation: none; } }
-/* Keep focused controls clear of the shell's fixed mobile navigation. */
+/* Keeps a focused control clear of the shell's fixed bottom navigation. */
 .invoice-flow :is(button, input, a) { scroll-margin-block: calc(var(--space-16) + var(--space-16)); }

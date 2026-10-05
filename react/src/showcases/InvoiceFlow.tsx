@@ -3,8 +3,10 @@ import { AppShell } from '../AppShell';
 import { DataTable } from '../DataTable';
 import { EmptyState } from '../EmptyState';
 import { TextField } from '../Field';
+import { DrawerSection, KeyValueList } from '../KeyValueList';
+import { Badge } from '../primitives/Badge';
 import { Button } from '../primitives/Button';
-import { Icon } from '../primitives/Icon';
+import { Callout } from '../primitives/Callout';
 import './InvoiceFlow.css';
 
 type Status = 'Uploading' | 'Parsing' | 'Needs review' | 'Ready';
@@ -13,14 +15,12 @@ type Line = { description: string; quantity: string; amount: string };
 /* The document, held apart from the fields the parser produced from it. Two separate
    objects on purpose: a preview built from `fields` can never disagree with the form
    beside it, and disagreeing is the only thing the comparison is for. */
-type Paper = { supplier: string; address: string; reference: string; issued: string; due: string; lines: Line[]; subtotal: string; vat: string; total: string };
+type Paper = { supplier: string; address: string; reference: string; issued: string; lines: Line[]; subtotal: string; vat: string; total: string };
 /* `previous` is the whole record a save replaced, status included: restoring the fields
    alone put a Ready invoice back as Needs review. */
 type Invoice = { name: string; filename: string; status: Status; fields: Fields; paper?: Paper; previous?: { fields: Fields; status: Status }; file?: File };
 export type InvoiceState = 'empty' | 'table' | 'uploading' | 'parsing' | 'review' | 'editing' | 'ready' | 'error';
 
-const BILL_TO = 'Example Company, 5 Quay Road, Riverton';
-const TERMS = 'Payment due within 14 days. Quote the invoice number with payment.';
 const line = (description: string, quantity: string, amount: string): Line => ({ description, quantity, amount });
 /* Fabricated demo invoices. cedar's document totals 1,704.00 while its parsed total reads
    1,740.00 — a transposition of the kind extraction makes, left in so that checking the
@@ -31,7 +31,7 @@ const SAMPLES: { name: string; filename: string; status: Status; parsed: Fields;
     parsed: { supplier: 'Cedar Studio', reference: 'INV-1042', date: '2026-09-18', total: '1740.00' },
     paper: {
       supplier: 'Cedar Studio', address: '14 Alder Lane, Riverton', reference: 'INV-1042',
-      issued: '18 September 2026', due: '2 October 2026',
+      issued: '18 September 2026',
       lines: [line('Brand identity refresh', '1', '980.00'), line('Print artwork, per sheet', '4', '440.00')],
       subtotal: '1420.00', vat: '284.00', total: '1704.00',
     },
@@ -41,7 +41,7 @@ const SAMPLES: { name: string; filename: string; status: Status; parsed: Fields;
     parsed: { supplier: 'Birch Workshop', reference: 'INV-208', date: '2026-09-19', total: '816.00' },
     paper: {
       supplier: 'Birch Workshop', address: '3 Kiln Row, Riverton', reference: 'INV-208',
-      issued: '19 September 2026', due: '3 October 2026',
+      issued: '19 September 2026',
       lines: [line('Facilitated workshop day', '2', '680.00')],
       subtotal: '680.00', vat: '136.00', total: '816.00',
     },
@@ -51,7 +51,7 @@ const SAMPLES: { name: string; filename: string; status: Status; parsed: Fields;
     parsed: { supplier: 'Maple Press', reference: 'INV-315', date: '2026-09-22', total: '378.00' },
     paper: {
       supplier: 'Maple Press', address: '8 Foundry Yard, Riverton', reference: 'INV-315',
-      issued: '22 September 2026', due: '6 October 2026',
+      issued: '22 September 2026',
       lines: [line('Poster print run, per 100', '3', '315.00')],
       subtotal: '315.00', vat: '63.00', total: '378.00',
     },
@@ -61,7 +61,7 @@ const SAMPLES: { name: string; filename: string; status: Status; parsed: Fields;
     parsed: { supplier: 'Elm Logistics', reference: 'INV-116', date: '2026-09-23', total: '139.68' },
     paper: {
       supplier: 'Elm Logistics', address: '21 Wharf Street, Riverton', reference: 'INV-116',
-      issued: '23 September 2026', due: '7 October 2026',
+      issued: '23 September 2026',
       lines: [line('Courier collection', '8', '116.40')],
       subtotal: '116.40', vat: '23.28', total: '139.68',
     },
@@ -69,7 +69,10 @@ const SAMPLES: { name: string; filename: string; status: Status; parsed: Fields;
 ];
 const sampleFields: Fields = { ...SAMPLES[0].parsed };
 const samples = (): Invoice[] => SAMPLES.map(({ parsed, ...rest }) => ({ ...rest, fields: { ...parsed } }));
-const statusIcon = (status: Status) => status === 'Ready' ? 'circleCheck' : status === 'Needs review' ? 'circleAlert' : 'clock';
+/* The kit's own DataTable story writes a record's state as a <Badge> in the Status column, so
+   that is what carries it here. The two in-flight states share the neutral chip: nothing is
+   being asked of the reader while a file uploads or parses. why: react/src/DataTable.stories.tsx */
+const TONE: Record<Status, string> = { Uploading: 'neutral', Parsing: 'neutral', 'Needs review': 'pending', Ready: 'success' };
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
 /* The field declares min 0.01 and step 0.01, and the save path has to mean it: 0.001 is
    finite and above zero, which is all a "greater than zero" test asks, so it saved and
@@ -132,7 +135,13 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
   useEffect(() => {
     if (!mounted.current) { mounted.current = true; return; }
     const heading = root.current?.querySelector('h1');
+    /* The screen changed without a page load, so the new title is what a reader is sent to.
+       `ui-focusable` is the kit's own ring class, and it draws on :focus-visible only — so a
+       pointer-driven arrival shows nothing and a keyboard-driven one shows the kit ring,
+       instead of the sheet suppressing the outline for both.
+       why: src/styles/base.css, guidelines/state-set.md#focus-rings */
     heading?.setAttribute('tabindex', '-1');
+    heading?.classList.add('ui-focusable');
     heading?.focus();
   }, [selected]);
   useEffect(() => {
@@ -144,7 +153,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
   const pick = () => input.current?.click();
   /* The control that opens the picker, in both states of the box. stopPropagation keeps the
      box's own click — a pointer shortcut, as dragging is — from opening the picker twice. */
-  const picker = <Button variant="primary" onClick={event => { event.stopPropagation(); pick(); }}>Select files</Button>;
+  const picker = <Button size="sm" icon="upload" onClick={event => { event.stopPropagation(); pick(); }}>Upload</Button>;
   const addFiles = (files: File[]) => {
     if (!files.length) return;
     if (files.some(file => !/\.(pdf|png|jpe?g)$/i.test(file.name))) {
@@ -178,7 +187,6 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
     if (!dirty && status) setInvoices(rows => rows.map(row => row.name === invoice.name ? { ...row, fields: { ...restored }, previous: undefined, status } : row));
     setInvalid(false); setMessage(dirty ? 'Edits discarded.' : 'Last save undone.');
   };
-  const chip = (glyph: string, label: string) => <span className="invoice-flow__status"><Icon name={glyph} />{label}</span>;
   /* The line speaks for the values on screen, so the edit that changes them is what withdraws
      it. Leaving it to the next save left "Saved for this session." standing over a changed
      form. The field errors are not touched: they belong to the save that was rejected. */
@@ -187,30 +195,36 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
     setDrafts(values => ({ ...values, [invoice!.name]: { ...draft, [key]: event.target.value } }));
   };
 
-  return <div className={`invoice-flow${navigated ? ' invoice-flow--navigated' : ''}`} ref={root} onClick={event => {
-    const link = (event.target as HTMLElement).closest('a[href="#invoices"]');
-    if (link) { event.preventDefault(); setNavigated(true); setSelected(null); setMessage(''); }
+  /* One handler for every in-page link on the screen: the shell's brand, its rail link and
+     its back link all point at #invoices, and the list writes each record as a link too. A
+     href this prototype does not own is left to the browser. */
+  return <div className="invoice-flow" ref={root} onClick={event => {
+    const href = (event.target as HTMLElement).closest('a[href^="#"]')?.getAttribute('href')?.slice(1);
+    if (href === undefined) return;
+    if (href === 'invoices') { event.preventDefault(); setNavigated(true); setSelected(null); setMessage(''); return; }
+    if (invoices.some(row => row.name === href)) { event.preventDefault(); open(href); }
   }}>
     <AppShell word="Invoices" brandHref="#invoices" sections={[{ href: '#invoices', label: 'Invoices', icon: 'doc' }]}
       renderLink={(section, props) => <a {...props} aria-current={selected ? 'true' : 'page'} />}
       pathname="#invoices" title={invoice ? invoice.filename : 'Invoices'} width="wide"
       back={invoice ? { href: '#invoices', label: 'Invoices' } : undefined}
+      lede="Parsing uses sample data. Files and edits stay in this tab until reload."
       account={{ name: 'Demo reviewer', email: 'demo@example.com' }} onSignOut={() => setMessage('This prototype has no account to sign out of.')}
       palette={{ groups: [{ label: 'Invoices', items: invoices.filter(row => row.name !== selected).map(row => ({ id: row.name, label: row.filename })) }], onSelect: item => open(item.id) }}>
-      <p className="invoice-flow__note">Parsing uses sample data. Files and edits stay in this tab until reload.</p>
       <p className="invoice-flow__announcement" role="status">{message}</p>
       {invoice ? <>
         {/* Both panes wear the kit's card rather than calling <Card>: that component renders a
             plain div, and these two have to stay labelled regions — the data pane also goes
             aria-busy while the parser runs, which a div cannot say. The classes are the card's
-            own, so the paint, the edge and the ring gap are the kit's.
-            why: react/src/field-ground.test.tsx — a field is shown on a painted surface, never
-            on the page ground, which in dark is what --table-bg resolves to. */}
-        <div className="invoice-flow__columns">
-          <section className="invoice-flow__data ui-card" data-live={simulate || undefined} aria-labelledby="parsed-title" aria-busy={pending || undefined}>
+            own, so the paint, the edge and the ring gap are all the kit's and this sheet
+            declares none of them.
+            why: react/src/field-ground.test.tsx — a field is shown on a painted surface,
+            never on the page ground. */}
+        <div className={`invoice-flow__columns${navigated ? ' m-slide-up' : ''}`}>
+          <section className="invoice-flow__data ui-card" aria-labelledby="parsed-title" aria-busy={pending || undefined}>
             <h2 id="parsed-title" className="ui-card__title">Invoice data</h2>
             {pending ? <EmptyState icon="clock" title={invoice.status === 'Uploading' ? 'Adding invoice…' : 'Reading invoice…'} sub="The sample fields will appear here when parsing finishes."
-              actions={!simulate && <Button onClick={() => setInvoices(rows => rows.map(row => row.name === invoice.name ? { ...row, status: 'Needs review' } : row))}>Finish demo parsing</Button>} /> : <form noValidate onSubmit={event => { event.preventDefault(); save(); }}>
+              actions={!simulate && <Button onClick={() => setInvoices(rows => rows.map(row => row.name === invoice.name ? { ...row, status: 'Needs review' } : row))}>Finish parsing</Button>} /> : <form className={simulate ? 'm-slide-up' : undefined} noValidate onSubmit={event => { event.preventDefault(); save(); }}>
               <div className="invoice-flow__fields">
                 <TextField label="Supplier" required value={draft.supplier} error={invalid && !draft.supplier.trim() ? 'Enter the supplier.' : undefined} onChange={edit('supplier')} />
                 <TextField label="Invoice number" required value={draft.reference} error={invalid && !draft.reference.trim() ? 'Enter the invoice number.' : undefined} onChange={edit('reference')} />
@@ -218,31 +232,39 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
                 <TextField label="Total (EUR)" required type="number" min={MIN_TOTAL} step="0.01" value={draft.total} error={invalid && !validTotal(draft.total) ? `Enter an amount of ${MIN_TOTAL} or more, written to the cent.` : undefined} onChange={edit('total')} />
               </div>
               {invalid && <p role="alert" className="invoice-flow__summary">Check the highlighted fields before saving.</p>}
-              <div className="invoice-flow__actions"><Button variant="primary" type="submit">Save invoice</Button><Button variant="secondary" disabled={!dirty && !invoice.previous} onClick={undo}>{dirty ? 'Discard edits' : 'Undo last save'}</Button></div>
+              <div className="invoice-flow__actions"><Button variant="primary" type="submit">Save</Button><Button variant="secondary" disabled={!dirty && !invoice.previous} onClick={undo}>{dirty ? 'Discard' : 'Undo'}</Button></div>
             </form>}
           </section>
           <section className="invoice-flow__preview ui-card" aria-labelledby="document-title">
             <h2 id="document-title" className="ui-card__title">Document</h2>
             {preview ? invoice.file?.type.startsWith('image/') ? <img src={preview} alt={`Invoice document: ${invoice.filename}`} /> : <iframe src={preview} title={`Invoice document: ${invoice.filename}`} />
+              /* The reference, on kit parts: DrawerSection's heading rank, KeyValueList for
+                 the header block, and .ui-table--dense for the lines — its <tfoot> draws the
+                 totals rule this sheet used to draw itself. It carries only what the four
+                 fields are checked against; the payment terms and the two rows no field
+                 answers went at r37, which is also what stops it outweighing this pane.
+                 why: react/src/DocumentReview.stories.tsx, #459 r36 */
               : invoice.paper ? <article className="invoice-flow__paper" aria-label={`Invoice document: ${invoice.filename}`}>
-                <h3>{invoice.paper.supplier}</h3>
-                <p className="invoice-flow__paper-line">{invoice.paper.address}</p>
-                <p className="invoice-flow__paper-line">Invoice {invoice.paper.reference}</p>
-                <dl>
-                  <div><dt>Issued</dt><dd>{invoice.paper.issued}</dd></div>
-                  <div><dt>Payment due</dt><dd>{invoice.paper.due}</dd></div>
-                  <div><dt>Bill to</dt><dd>{BILL_TO}</dd></div>
-                </dl>
-                <table>
-                  <thead><tr><th scope="col">Description</th><th scope="col">Qty</th><th scope="col">Amount</th></tr></thead>
-                  <tbody>{invoice.paper.lines.map(row => <tr key={row.description}><td>{row.description}</td><td>{row.quantity}</td><td>{money(row.amount)}</td></tr>)}</tbody>
+                <DrawerSection title={invoice.paper.supplier}>
+                  <KeyValueList rows={[
+                    { label: 'Address', value: invoice.paper.address },
+                    { label: 'Invoice', value: invoice.paper.reference },
+                    { label: 'Issued', value: invoice.paper.issued },
+                  ]} />
+                </DrawerSection>
+                <table className="ui-table ui-table--dense">
+                  <thead><tr><th scope="col">Description</th><th scope="col" className="ui-table__num">Qty</th><th scope="col" className="ui-table__num">Amount</th></tr></thead>
+                  <tbody>{invoice.paper.lines.map(row => <tr key={row.description}>
+                    <td className="ui-table__title">{row.description}</td>
+                    <td className="ui-table__num">{row.quantity}</td>
+                    <td className="ui-table__num">{money(row.amount)}</td>
+                  </tr>)}</tbody>
+                  <tfoot>
+                    <tr><th scope="row" colSpan={2}>Subtotal</th><td className="ui-table__num">{money(invoice.paper.subtotal)}</td></tr>
+                    <tr><th scope="row" colSpan={2}>VAT (20%)</th><td className="ui-table__num">{money(invoice.paper.vat)}</td></tr>
+                    <tr><th scope="row" colSpan={2}>Total due</th><td className="ui-table__num ui-table__num--strong">{money(invoice.paper.total)}</td></tr>
+                  </tfoot>
                 </table>
-                <dl className="invoice-flow__paper-sums">
-                  <div><dt>Subtotal</dt><dd>{money(invoice.paper.subtotal)}</dd></div>
-                  <div><dt>VAT (20%)</dt><dd>{money(invoice.paper.vat)}</dd></div>
-                  <div><dt>Total due</dt><dd>{money(invoice.paper.total)}</dd></div>
-                </dl>
-                <p className="invoice-flow__paper-line">{TERMS}</p>
               </article>
                 : <p>This prototype shows the file you added. Your browser offers no preview for {invoice.filename}.</p>}
           </section>
@@ -256,20 +278,28 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
             twice in the tab order. The box keeps its paint, its drop handlers and its pointer
             click; the keyboard path is the button's.
             why: react/src/FileDrop.tsx, guidelines/file-drop.md#offer-a-button-not-only-a-drag */}
-        <div className={`invoice-flow__drop${dragging ? ' is-dragging' : ''}`}
+        <div className={`ui-drop invoice-flow__drop${dragging ? ' is-dragging' : ''}`}
           onClick={pick}
           onDragOver={event => { event.preventDefault(); setDragging(true); }}
           onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false); }}
           onDrop={event => { event.preventDefault(); setDragging(false); addFiles(Array.from(event.dataTransfer.files)); }}>
           {!invoices.length ? <EmptyState icon="upload" title="Add your first invoices" sub="PDF, PNG or JPEG." actions={picker} />
-            : <div className="invoice-flow__drop-row">{picker}<p>PDF, PNG or JPEG.</p></div>}
+            : <div className="ui-drop__row">{picker}<p className="ui-drop__note">PDF, PNG or JPEG.</p></div>}
         </div>
-        {error && <p role="alert" className="invoice-flow__error"><Icon name="circleAlert" />{error}</p>}
-        {!!invoices.length && <DataTable selectable={false} pager={false} stickyHeader pinnedIdentity scrollLabel="Invoices" rows={invoices} columns={[
-          { key: 'filename', label: 'Invoice', render: row => <Button variant="ghost" onClick={() => open(row.name)}>{row.filename}</Button> },
-          { key: 'status', label: 'Status', render: row => chip(statusIcon(row.status), row.status) },
-          { key: 'fields', label: 'Total (EUR)', num: true, render: row => row.status === 'Uploading' || row.status === 'Parsing' ? '—' : money(row.fields.total) },
-        ]} />}
+        {/* The kit's own inline message, which sets role="alert" for its danger tone and
+            carries the glyph and the paint the kit gives a refusal. */}
+        {error && <Callout variant="danger">{error}</Callout>}
+        {/* The identity cell is a link, which is what the kit's own DataTable story puts
+            there; a ghost button in it carried the control's inset and had to be pulled back
+            by a negative margin to share the column's edge.
+            why: react/src/DataTable.stories.tsx */}
+        {!!invoices.length && <div className={navigated ? 'm-slide-up' : undefined}>
+          <DataTable selectable={false} pager={false} stickyHeader pinnedIdentity scrollLabel="Invoices" rows={invoices} columns={[
+            { key: 'filename', label: 'Invoice', render: row => <a href={`#${row.name}`}>{row.filename}</a> },
+            { key: 'status', label: 'Status', render: row => <Badge variant={TONE[row.status]}>{row.status}</Badge> },
+            { key: 'fields', label: 'Total (EUR)', num: true, render: row => row.status === 'Uploading' || row.status === 'Parsing' ? '—' : money(row.fields.total) },
+          ]} />
+        </div>}
       </>}
     </AppShell>
   </div>;
