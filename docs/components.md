@@ -581,6 +581,10 @@ is the mark that rule requires. `line` is the default because it carries the mom
 size. An action that is not a kit `Button` — a router link or a plain `<a>` — is ringed already and
 needs no class; `.ui-focusable` is for a focusable that is neither a link nor a kit control.
 
+`callout()` uses the same status split as toasts. Success, danger and warning use
+`circleCheck`, `circleX` and `circleAlert`. Info and neutral callouts use `info`. A caller can
+still pass `icon` when the tone does not say enough.
+
 ### Pending and denied states
 
 Every screen has two states: it is still fetching, and the reader is not allowed to see it.

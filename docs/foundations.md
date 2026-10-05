@@ -168,9 +168,11 @@ Muted and dim ink have exactly three uses:
 
 An empty-state explanation is not an empty slot. A keyboard shortcut is language. A count is
 not a status. Generic badges use body ink. Archive and disabled variants keep their state
-ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral dropdown chip tints
-by mixing muted ink into the panel. This is the one soft fill under words that the kit draws,
-and its text still clears 4.5:1.
+ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral chip uses
+`--chip-neutral-fill`, a low-alpha muted wash. Badge, pill, dropdown chip and archived
+version badge all use that token when the tone carries no verdict. The wash leaves its
+ground in the same direction as status chip fills. It is lighter in dark and darker in light.
+Its text still clears 4.5:1.
 
 ## Colour and contrast
 
@@ -218,8 +220,11 @@ The ladder, from bottom to top:
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
 
 **Text sits on the page, card or floating panel surface, never on a grey inset.** In both
-themes, fields, code blocks, neutral badges, navigation labels and segmented controls use
-those reading surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks.
+themes, fields, code blocks, navigation labels and segmented controls use those reading
+surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks. A status chip
+is the named exception. It uses a soft fill, and neutral chip tones use
+`--chip-neutral-fill`. This avoids the old card-surface badge, which sat darker than a
+floating panel in dark and vanished on a white card in light.
 
 **A selected item is the one exception.** Selection is marked by a background highlight, and the
 only fills that step off a reading surface are the grey ones. A chosen segmented pill fills
@@ -239,6 +244,10 @@ box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--ele
 
 **The focus ring does not touch that list.** The band is an `outline`, so a focused panel keeps
 the edge and the drop it rests on without restating them.
+
+Inside a floating panel, rows keep a reading surface and fields use the same field tokens as
+elsewhere. A chip uses `--chip-neutral-fill` rather than the card surface. The floating panel is
+itself lighter than a card in dark, so the card surface is the darker step there.
 
 `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` are still
 published. All five are the transparent shadow `0 0 #0000` in both themes. They are
@@ -433,3 +442,9 @@ a colour keep the shorthand.
 
 `iconOnlyAllowed` and `iconMeanings` publish the two icon rules as data. They state which
 glyphs may appear without a word and what each glyph means.
+
+**A status glyph is circled.** A circled glyph reports a state. A bare glyph names an action.
+`toast()` and `callout()` use the circled status glyphs for success, danger and warning:
+`circleCheck`, `circleX` and `circleAlert`. Info and neutral callouts use `info`. An explicit
+`icon` still wins. A neutral toast still uses `bolt`, because it reports an event without a
+verdict.
