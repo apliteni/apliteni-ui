@@ -4,7 +4,7 @@ Use Node 20 or newer and install [jq](https://jqlang.github.io/jq/). Then:
 
 ```bash
 npm ci
-npm run storybook              # the kit; add -w react for the React workspace
+npm run storybook              # the kit on 6006; -w react for React's own, on 6007
 npm test && npm test -w react && npm run build-storybook && node site/build.mjs
 ```
 
@@ -13,7 +13,7 @@ Run that last line before you open a pull request.
 The kit's own promises are in [components.md](components.md) and
 [foundations.md](foundations.md); the design rules for a screen are in
 [guidelines](../guidelines/overview.md). [AGENTS.md](../AGENTS.md) holds the rules an agent
-follows, and this page is the tour of the parts.
+follows.
 
 ```
 src/          the kit: tokens, one stylesheet per component, HTML-string factories
@@ -47,8 +47,8 @@ A decorator applies the toolbar's globals to `<html>`, paints the canvas with th
 `--bg` and calls `wireTopbar()`, so every story is viewable in two themes and four accents
 with no code of its own. Do not wire theming or `wireTopbar` yourself.
 
-The toolbar has a one-click **Theme** toggle — it shows the theme you are in, and one click
-flips it — plus **Inspect** and **Accent** dropdowns. The config is in `.storybook/`:
+The toolbar has a **Theme** toggle that shows the theme you are in and flips it in one
+click, plus **Inspect** and **Accent** dropdowns. The config is in `.storybook/`:
 `main.js` for the framework and the story glob, `preview.js` for the globals, the decorator
 and the section order, and `manager.js` with `manager-head.html` for the Storybook shell's
 own brand.
@@ -84,8 +84,9 @@ collection counts and run the suites.
 
 ## The site
 
-`site/` is a static homepage, the changelog and the hosted Storybook, served by one
-dependency-free Node server.
+`site/` builds the public site: a static homepage, the changelog and the hosted Storybook.
+There is no server — `site/public/` is one self-contained static tree that the host serves
+directly.
 
 ```
 site/
@@ -93,21 +94,22 @@ site/
   changelog.html    the changelog page's shell
   chrome.mjs        the one shared topbar, footer and their CSS and JS
   changelog.mjs     the RELEASES data and the render helpers — pure, no git and no fs
+  catalogue.mjs     the counts the homepage prints, read off the published types
   build.mjs         emits site/public/
-  server.mjs        static server; mounts Storybook at /storybook
 ```
 
 `node site/build.mjs` imports `cssText` from the package's own `src/inline.js`, so the site
-always styles itself with the CSS the package ships, hashes it so a deploy cannot serve a
-stale sheet, fills the chrome placeholders and resolves the version. To add a page, create
-`site/<page>.html` with those placeholders and run it through the same two helpers in
-`build.mjs`.
+always styles itself with the CSS the package ships. It hashes that CSS, so a deploy cannot
+serve a stale sheet, fills the chrome placeholders, resolves the version and folds a built
+Storybook into `public/storybook/`. To add a page, create `site/<page>.html` with those
+placeholders and run it through the same two helpers in `build.mjs`.
 
 ```bash
-node site/build.mjs        # → site/public/
 npm run build-storybook    # → storybook-static/, only if you want /storybook
-node site/server.mjs       # http://localhost:8080
+node site/build.mjs        # → site/public/
 ```
+
+To look at the result, serve `site/public/` with any static server.
 
 ## The changelog
 
