@@ -34,7 +34,7 @@ function SelectableExample() {
     <DataTable rows={rows} selected={selected} onToggle={name => setSelected(current => {
       const next = new Set(current); if (next.has(name)) next.delete(name); else next.add(name); return next;
     })} onTogglePage={names => setSelected(current => names.every(name => current.has(name)) ? new Set() : new Set(names))}
-      density="compact" stickyHeader pinnedIdentity scrollLabel="Selectable companies" pager={false}
+      density="compact" stickyHeader pinnedIdentity scrollLabel="Selectable companies, scroll for more columns" pager={false}
       columns={[{ key: 'name', label: 'Company', render: r => <RowIdentity symbol={r.name.slice(0, 4).toUpperCase()} name={r.name} href="#company" /> }, { key: 'price', label: 'Price', num: true, render: r => <NumericValue value={r.price} unit="USD" /> }, { key: 'sector', label: 'Sector' }]} />
   </main>;
 }
