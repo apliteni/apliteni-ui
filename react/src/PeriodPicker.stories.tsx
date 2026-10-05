@@ -166,7 +166,7 @@ function Example({ busy = false }: { busy?: boolean }) {
           <section aria-labelledby="ledger-heading" style={layout.control}>
             <h2 id="ledger-heading" className="ui-card__title" style={{ margin: 0 }}>Ledger</h2>
             <Card>
-              {/* The kit keeps categories pinned and offers column controls on overflow. */}
+              {/* The kit keeps categories pinned and scrolls the rest (#581). */}
               {pending(`Loading ${selected.name} ledger…`, <SkeletonTable rows={4} cols={4} />,
                 <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense
                   stickyHeader pinnedIdentity scrollLabel={`${selected.name} 2026 ledger`} />)}

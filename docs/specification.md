@@ -3062,7 +3062,7 @@ Held by `src/components/stat.test.js`, `src/styles/stat.test.js` and `stories/st
 
 Column labels accept React content, including a kit Tooltip for a header explanation.
 
-Scrollable React DataTables show Previous columns and More columns controls when their columns overflow, disabling each control at its corresponding edge. Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
+A scrollable React DataTable reaches its far columns by scrolling, and offers no control of its own for it; decided in [#581](https://github.com/apliteni/apliteni-ui/issues/581). The region holding the table is named, is a keyboard stop, and draws the kit's inward ring when it takes focus, so a trackpad, a finger and the arrow keys all reach the same columns. `scrollLabel` is that name. It defaults to `Table`, which says only what the region holds: `stickyHeader` and `pinnedIdentity` draw the region whether or not the columns overflow, so the kit cannot name a scroll that may not be there. Pass the table's own subject — `Invoices`. Name the gesture only where the columns overflow at every width the surface supports, as a table forcing a `min-width` wider than its column does: `Selectable companies, scroll for more columns`. Where they fit on the desk and overflow only on the phone, the name is the content alone: a name has one state, and a gesture named in it is wrong at the width where nothing scrolls (`guidelines/microcopy.md#name-the-current-state`). Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
 
 A table may omit selection controls when its consumer has no selection action. Existing
 selection-enabled tables keep their row and visible-page selection behavior.

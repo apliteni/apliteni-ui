@@ -222,10 +222,12 @@
           <button class="ui-btn ui-btn--ghost">Cancel</button>
         </div>
       </div>
-      <!-- The kit's own scroller, so four columns on a phone scroll inside the
-           card instead of widening the page. It is a focus stop and carries the
-           kit ring from src/styles/table.css. -->
-      <div class="ui-table-scroll" role="region" aria-label="Services, scroll for more columns" tabindex="0">
+      <!-- The kit's own scroller, so a wider table scrolls inside the card
+           instead of widening the page. It is a focus stop and carries the kit
+           ring from src/styles/table.css. These four columns fit at every width,
+           so the name says what the region holds and promises no gesture.
+           why: guidelines/microcopy.md#name-the-current-state -->
+      <div class="ui-table-scroll" role="region" aria-label="Services" tabindex="0">
         <table class="ui-table ui-table--hover">
           <thead><tr><th>Service</th><th>Status</th><th>Last deploy</th><th></th></tr></thead>
           <tbody>

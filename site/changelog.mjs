@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.92.0', date: '2026-10-05',
+    changes: [
+      ['breaking', 'The React DataTable\u2019s column pager is removed. A scrollable table — one with `stickyHeader` or `pinnedIdentity` — used to draw a Previous columns / More columns pair above itself as soon as its columns overflowed. Reach the far columns by scrolling the table instead: the region around it is already a named, keyboard-focusable scroll region that draws the kit\u2019s inward ring, so a trackpad, a finger and the arrow keys all get there, and the two buttons only repeated a gesture every pointer already has. Nothing replaces them, and no prop is involved: if you were hiding the pair by leaving `stickyHeader` and `pinnedIdentity` off, you can turn them back on. The pager row sat in a `ui-card__row` inside the card, so a table in a card is one row shorter. Resolves #581.', ['DataTable']],
+    ],
+  },
+  {
     v: '0.91.0', date: '2026-10-05',
     changes: [
       ['changed', 'A filter chip’s menu marks the value the chip is showing: the row takes a soft accent wash and keeps the kit’s 16px check. The wash is 1.16:1 over the panel in light and 1.20:1 in dark — a tint, not a fill — so the check is what identifies the state for a reader who cannot separate the two hues, at 6.35:1 and 4.13:1 over the wash. The chosen label holds --strong where the kit elsewhere stepped it down to --text, and the wash survives the keyboard cursor and focus, which each paint an opaque surface and used to take it off — both still read by the paint that is not a fill, the cursor’s bar and the kit ring. Hover deepens the wash by a measured step instead, because its own other paint is a 1px edge that reads 1.06:1 on a washed row: 1.14:1 over the resting wash in dark and 1.15:1 in light, against the 1.11:1 the kit’s opaque fill gives any other row in the panel. Refs #549.', ['FilterBar', 'Dropdown']],

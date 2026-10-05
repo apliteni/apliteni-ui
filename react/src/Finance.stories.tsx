@@ -1,13 +1,19 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { DataTable } from './DataTable';
 import { NumericValue, DeltaValue, RowIdentity } from './TableValues';
 import { FilterBar, type Filter } from './FilterBar';
 import { Segmented } from './Segmented';
 export default { title: 'Components/Finance composition', parameters: { layout: 'fullscreen' } };
+// Both compositions sit in the kit's own page column, `.ui-app__main--wide`, with
+// the introduction on `.ui-app__sub`. The page title's rank, its narrow step and
+// both of the head's gaps are declared there, so neither story carries a copy of a
+// size or a gap, and a hand-rolled h1 cannot drift off the rank the shell draws.
+// Wide, not centred, because both hold a table — guidelines/the-page.md, width.
+// why: #581.
 function Example() {
   const [view, setView] = useState('overview');
   const [filters, setFilters] = useState<Filter[]>([{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology', value: 'Technology' }, { label: 'Energy', value: 'Energy' }] }]);
-  return <main style={{ padding: 'var(--space-6)' }}><h1>Company comparison</h1><p id="react-finance-basis">Fictional data. Changes versus previous close.</p>
+  return <main className="ui-app__main ui-app__main--wide"><h1>Company comparison</h1><p id="react-finance-basis" className="ui-app__sub">Fictional data. Changes versus previous close.</p>
     <FilterBar filters={filters} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))} />
     <Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
     <DataTable rows={[{ name: 'Aster Systems', sector: 'Technology', price: 228.87, change: '+0.66%' }, { name: 'Birch Energy', sector: 'Energy', price: 0, change: '0.00%' }].filter(r => !filters.length || r.sector === filters[0].value)} selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"
@@ -19,13 +25,16 @@ export const Comparison = { render: () => <Example /> };
 function SelectableExample() {
   const rows = [{ name: 'Aster Systems', price: 228.87, sector: 'Technology' }, { name: 'Birch Energy', price: 84.12, sector: 'Energy' }];
   const [selected, setSelected] = useState(new Set<string>());
-  return <main className="pinned-selection" style={{ maxWidth: '60rem', padding: 'var(--space-6)' }}>
+  // The cap the shell writes for a `maxWidth` page, here so the 70rem table below
+  // overflows a column a reader would actually meet. `--ui-app-main` is the seam
+  // the shell uses for the same number.
+  return <main className="ui-app__main ui-app__main--wide pinned-selection" style={{ '--ui-app-main': '60rem' } as CSSProperties}>
     <style>{'.pinned-selection .ui-table { min-width: 70rem; }'}</style>
-    <h1>Select companies</h1><p>Fictional data. Scroll to compare values while keeping company selection in view.</p>
+    <h1>Select companies</h1><p className="ui-app__sub">Fictional data. Scroll to compare values while keeping company selection in view.</p>
     <DataTable rows={rows} selected={selected} onToggle={name => setSelected(current => {
       const next = new Set(current); if (next.has(name)) next.delete(name); else next.add(name); return next;
     })} onTogglePage={names => setSelected(current => names.every(name => current.has(name)) ? new Set() : new Set(names))}
-      density="compact" stickyHeader pinnedIdentity scrollLabel="Selectable companies" pager={false}
+      density="compact" stickyHeader pinnedIdentity scrollLabel="Selectable companies, scroll for more columns" pager={false}
       columns={[{ key: 'name', label: 'Company', render: r => <RowIdentity symbol={r.name.slice(0, 4).toUpperCase()} name={r.name} href="#company" /> }, { key: 'price', label: 'Price', num: true, render: r => <NumericValue value={r.price} unit="USD" /> }, { key: 'sector', label: 'Sector' }]} />
   </main>;
 }

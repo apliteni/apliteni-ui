@@ -102,7 +102,8 @@ export const Toolbar: StoryObj = {
           options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
       </div></Card>
       {view === 'table'
-        ? <Card><DataTable columns={columns} rows={rows} pager={false} selectable={false} stickyHeader /></Card>
+        ? <Card><DataTable columns={columns} rows={rows} pager={false} selectable={false} stickyHeader
+          scrollLabel="Invoices" /></Card>
         : <div style={{ display: 'grid', gap: 'var(--space-5)', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
           {rows.map((row) => <Card key={row.number} title={row.name} sub={row.number}>
             <div className="ui-card__row">

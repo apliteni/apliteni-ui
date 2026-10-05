@@ -19,8 +19,6 @@ const views = ['Overview', 'Performance', 'Valuation'];
 const headers = ['Company', 'Price', 'Change %', 'Volume', 'Rel. volume', 'Market cap', 'P/E', 'EPS', 'EPS growth', 'Div. yield', 'Revenue', 'Rev. growth', 'Beta', 'Sector', 'Rating'];
 const css = `<style>
 .screener { min-width:0; }
-.screener h1 { font-size:var(--text-xl); margin-bottom:var(--space-2); }
-.screener__context { font-size:var(--text-sm); margin-bottom:var(--space-4); }
 .screener__filters { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2); margin-bottom:var(--space-2); }
 /* A row of small controls needs --tap-gap between them at the phone step or the
    tap zones overlap. why: guidelines/accessibility-floor.md, space between small targets */
