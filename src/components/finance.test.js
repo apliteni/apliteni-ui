@@ -247,19 +247,25 @@ test('an emptied bar keeps the focus on the way to add a filter, where the row d
   const add = host.querySelector('[data-filter-add] [data-dropdown-trigger]');
   assert.equal(focusNextStop(host), add, 'the emptied bar did not offer the control still on its row');
   assert.equal(document.activeElement, add, `focus went to ${document.activeElement.outerHTML}`);
-  assert.equal(nextFocusStop(host), beside, 'nextFocusStop answers about the controls OUTSIDE the bar');
+  // Both halves of the published pair read one list, so the consumer who moves the
+  // focus itself is sent where the bar would have sent it, not past the row.
+  assert.equal(nextFocusStop(host), add, 'the answer a consumer reads skipped the control on the row');
   dom.window.close();
 });
 test('an emptied bar walks past an add control a reader cannot reach', () => {
   // A bar turned off disables the control inside it, and a disabled control refuses
   // `focus()` silently — so the bar checks and carries on, rather than stranding the
   // focus on BODY with the next Tab starting over at the top of the page.
-  const { dom, host } = setup(withAdd(' disabled'));
-  const beside = document.createElement('button'); beside.type = 'button'; beside.textContent = 'Add filter';
-  host.after(beside);
-  assert.equal(focusNextStop(host), beside, 'an unavailable control was treated as a stop');
-  assert.equal(document.activeElement, beside, `focus went to ${document.activeElement.outerHTML}`);
-  dom.window.close();
+  for (const [how, attrs] of Object.entries({ disabled: ' disabled', hidden: ' hidden',
+    'out of the tab order': ' tabindex="-1"' })) {
+    const { dom, host } = setup(withAdd(attrs));
+    const beside = document.createElement('button'); beside.type = 'button'; beside.textContent = 'Add filter';
+    host.after(beside);
+    assert.equal(focusNextStop(host), beside, `${how}: an unavailable control was treated as a stop`);
+    assert.equal(document.activeElement, beside, `${how}: focus went to ${document.activeElement.outerHTML}`);
+    assert.equal(nextFocusStop(host), beside, `${how}: the pair disagrees about an unreachable control`);
+    dom.window.close();
+  }
 });
 // Each of these leaves a control in the document, as a tab stop, with a box a
 // browser can still measure — and refuses `focus()`. Before #527's last round the

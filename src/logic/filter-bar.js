@@ -67,42 +67,55 @@ function stopsAround(host) {
     ...order.filter(el => host.compareDocumentPosition(el) & PRECEDING).reverse()];
 }
 
-/** The control a reader's next Tab would reach from `host`: forward in document
- *  order, else the nearest one behind it. A filter bar that has just dropped its
- *  last control keeps no box the focus ring can sit on, so the focus has to
- *  leave the bar rather than land on a line with no height.
+/** The bar `host` is, or the one inside it. */
+function barIn(host) {
+  if (!host || typeof host.matches !== 'function') return null;
+  return host.matches('[data-filter-bar]') ? host : host.querySelector('[data-filter-bar]');
+}
+
+/** Where an emptied bar hands the focus, in the order it tries: the way to add one
+ *  still drawn on the row, which outlives the chips and so is nearer than anything
+ *  outside, then the controls around the bar. The answer a consumer reads and the
+ *  move the bar makes both come from here, so the two cannot disagree. A control
+ *  the reader cannot reach is left out of the list. #518 */
+function focusStops(host) {
+  const bar = barIn(host);
+  const add = bar && !bar.querySelector('[data-filter-id]')
+    && bar.querySelector('[data-filter-add] [data-dropdown-trigger]');
+  const around = stopsAround(host);
+  return add && !unreachable(add) ? [add, ...around] : around;
+}
+
+/** Where an emptied bar sends the focus, without moving it: the way to add one
+ *  still on its row, else the control a reader's next Tab would reach — forward in
+ *  document order, else the nearest one behind. A bar that has just dropped its
+ *  last chip keeps no box the focus ring can sit on, so with no control of its own
+ *  left the focus has to leave rather than land on a line with no height.
+ *  `focusNextStop()` acts on this same list.
  *  why: docs/components.md#a-filter-row-holds-its-panels */
 export function nextFocusStop(host) {
-  return stopsAround(host)[0] || null;
+  return focusStops(host)[0] || null;
 }
 
 /** Puts the focus where an emptied bar hands it on, and answers with the element
  *  it ended on, or null if nothing took it.
  *
- *  The way to add one outlives the chips, so an emptied row can still have a
- *  control on it, and that is the nearest stop there is. A bar that still holds
- *  chips draws a box around them and takes the focus itself. With neither left it
- *  has only an out-of-flow legend and measures 0 high, so the focus goes outside —
- *  on the Stock screener the caller's own `Add`. Being reachable is not taking the
- *  focus: each candidate is asked and then checked. #518
+ *  A bar that still holds chips draws a box around them and takes the focus
+ *  itself. Emptied of them it has only an out-of-flow legend and measures 0 high,
+ *  so the focus goes where `nextFocusStop()` names — the way to add one still on
+ *  the row, else outside the bar, on the Stock screener the caller's own `Add`.
+ *  Being reachable is not taking the focus: each candidate is asked and then
+ *  checked. #518
  *  why: docs/components.md#a-filter-row-holds-its-panels */
 export function focusNextStop(host) {
   const doc = host && host.ownerDocument;
   if (!doc) return null;
-  const bar = host.matches('[data-filter-bar]') ? host : host.querySelector('[data-filter-bar]');
-  // The add control outlives the chips, so an emptied row is not an empty row.
-  if (bar && !bar.querySelector('[data-filter-id]')) {
-    const add = bar.querySelector('[data-filter-add] [data-dropdown-trigger]');
-    if (add && !unreachable(add)) {
-      add.focus();
-      if (doc.activeElement === add) return add;
-    }
-  }
+  const bar = barIn(host);
   if (bar && bar.querySelector('[data-filter-id]')) {
     bar.tabIndex = -1; bar.focus();
     return doc.activeElement === bar ? bar : null;
   }
-  for (const stop of stopsAround(host)) {
+  for (const stop of focusStops(host)) {
     stop.focus();
     if (doc.activeElement === stop) return stop;
   }
