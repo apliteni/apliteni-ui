@@ -27,14 +27,14 @@
 .ui-badge--live { color: var(--chip-success-ink); /* chip: filled */ background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 .ui-badge--soon { color: var(--accent); /* chip: ink-only — #455 put Soon on the card as accent ink to clear AA; a wash under it was the F ledger row. */ background: var(--surface); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 .ui-badge--info { color: var(--chip-info-ink); /* chip: filled */ background: var(--chip-info-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
-.ui-badge--warn { color: var(--chip-warn-ink); /* chip: filled */ background: var(--chip-warn-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-badge--warn { color: var(--chip-warn-ink); /* chip: filled */ background: var(--chip-warn-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 .ui-badge--danger { color: var(--chip-danger-ink); /* chip: filled */ background: var(--chip-danger-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 .ui-badge--archive { /* muted-ink: state — archived record */ color: var(--muted); /* chip: ink-only — the archived record's state ink on the card, #455; its own fill would read as a live chip. */ background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 
 /* Semantic status variants — for record/row status in data tables
    (paid / verified / pending / failed …). Same chip, mapped to meaning. */
 .ui-badge--success { color: var(--chip-success-ink); /* chip: filled */ background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
-.ui-badge--pending { color: var(--chip-warn-ink); /* chip: filled */ background: var(--chip-warn-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-badge--pending { color: var(--chip-warn-ink); /* chip: filled */ background: var(--chip-warn-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 /* A status column puts this tone beside the filled ones, so it is a chip too — it was the
    card's own colour until #459, which drew two chips and two runs of bold text. */
 .ui-badge--neutral { color: var(--text); /* chip: filled */ background: var(--chip-neutral-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
