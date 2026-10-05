@@ -183,3 +183,79 @@ it('chooses the next enabled chip even when an earlier chip is disabled', () => 
   rerender(<FilterBar filters={items.filter(f => f.id !== 'remove')} {...props} />);
   expect(screen.getByRole('button', { name: 'Status: All' })).toHaveFocus();
 });
+
+// DOM only: the class and the mark React writes on the chosen row. The paint —
+// the wash, its ratio over the panel and what each state may not take away —
+// is stories/filter-selected-mark.test.js, which reads the one kit declaration
+// both faces load.
+it('marks the row the chip is showing, with no `selected` from the consumer', async () => {
+  const props = callbacks();
+  const marked: Filter[] = [{ id: 'Region', label: 'Region', value: 'active',
+    items: [{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' }] }];
+  const { rerender } = render(<FilterBar filters={marked} {...props} />);
+  await userEvent.click(screen.getByRole('button', { name: 'Region: active' }));
+  const rows = () => screen.getAllByRole('option');
+  expect(rows().map(el => el.classList.contains('is-selected'))).toEqual([false, true]);
+  expect(rows().map(el => el.getAttribute('aria-selected'))).toEqual(['false', 'true']);
+  // The non-colour cue travels with the class: the kit's check, in the trailing slot.
+  expect(rows()[1].querySelector('.ui-dropdown__tick')).toBeTruthy();
+
+  // Nothing chosen: no row is marked, because a wash on the first row would
+  // state a filter the bar is not applying.
+  rerender(<FilterBar filters={[{ ...marked[0], value: undefined }]} {...props} />);
+  expect(rows().some(el => el.classList.contains('is-selected'))).toBe(false);
+
+  // A value no row carries is the same answer. `value` is display text, so a
+  // consumer whose rows hold codes answers with the row's label.
+  rerender(<FilterBar filters={[{ ...marked[0], value: 'Active' }]} {...props} />);
+  expect(rows().some(el => el.classList.contains('is-selected'))).toBe(false);
+});
+
+/* DOM only, and the state a single render cannot reach: the chip's value moves and
+ * the menu is reopened. The consumer's items are written once and keep the mark
+ * they were written with, so a chip whose value has moved on had two ways to
+ * contradict itself here — the consumer's own flag, and <Dropdown>'s memory of the
+ * row this reader last picked. Both had to stop deciding. #550 */
+it('drops the row it marked once the chip\'s value moves', async () => {
+  const props = callbacks();
+  // `All` is marked by the consumer, the way a consumer writes a default.
+  const items = [{ label: 'All', value: 'All', selected: true },
+    { label: 'Europe', value: 'Europe' }, { label: 'Asia', value: 'Asia' }];
+  const chip = (value?: string): Filter[] => [{ id: 'Region', label: 'Region', value, items }];
+  const { rerender } = render(<FilterBar filters={chip('All')} {...props} />);
+  /* Read from both marks at once: a row the sheet washes and a row a reader hears
+   * are two attributes, and either one left behind is the contradiction. */
+  const marked = () => screen.getAllByRole('option')
+    .filter(el => el.classList.contains('is-selected') || el.getAttribute('aria-selected') === 'true')
+    .map(el => el.querySelector('.ui-dropdown__label')?.textContent);
+  const open = async (name: string) => {
+    await userEvent.click(screen.getByRole('button', { name: `Region: ${name}` }));
+  };
+  const shut = async () => { await userEvent.keyboard('{Escape}'); };
+
+  await open('All');
+  expect(marked()).toEqual(['All']);
+
+  // The reader picks the last row. The consumer is what answers, and here it
+  // answers with a different value — a bar that normalises a pick, or one whose
+  // request lost a race, both arrive here.
+  await userEvent.keyboard('{End}{Enter}');
+  expect(props.onChange).toHaveBeenCalledWith('Region', 'Asia');
+  rerender(<FilterBar filters={chip('Europe')} {...props} />);
+  await open('Europe');
+  expect(marked()).toEqual(['Europe']);
+  await shut();
+
+  // A value in no row marks no row, rather than leaving the consumer's default
+  // standing in for a filter the bar is not applying.
+  rerender(<FilterBar filters={chip('Africa')} {...props} />);
+  await open('Africa');
+  expect(marked()).toEqual([]);
+  await shut();
+
+  // Cleared, the chip prints its field's name again and still marks nothing.
+  rerender(<FilterBar filters={chip(undefined)} {...props} />);
+  await open('any');
+  expect(marked()).toEqual([]);
+  expect(items.map(it => it.selected)).toEqual([true, undefined, undefined]);
+});

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { filterBar, initFilterBar } from './filter-bar.js';
-import { filterChipText, filterChipName, filterChipUnset, nextFocusStop } from '../logic/filter-bar.js';
+import { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop } from '../logic/filter-bar.js';
 import { segmented } from './index.js';
 import { initSegmented } from './segmented.js';
 import { numericValue, deltaValue, rowIdentity, initRowIdentity } from './table-values.js';
@@ -80,6 +80,105 @@ test('the shared pair never writes an absent field into a chip or its name', () 
   assert.equal(filterChipText({ label: 'Listing', value: 0 }), '0', 'zero is a value');
   assert.equal(filterChipUnset({ value: '' }), true);
   assert.equal(filterChipUnset({ value: 0 }), false);
+});
+// The returned list only, not the paint: which row the menu washes and ticks is
+// stories/filter-selected-mark.test.js.
+test('a chip marks its own value in the items its menu gets, and marks nothing else', () => {
+  const items = [{ label: 'Energy', value: 'energy' }, '---', { label: 'Technology', value: 'tech' }, { separator: true }, { label: 'Other' }];
+  const marked = filterChipItems({ value: 'tech', items });
+  assert.deepEqual(marked.map((it) => (typeof it === 'string' || it.separator ? it : !!it.selected)),
+    [false, '---', true, { separator: true }, false], 'one row is marked and the separators pass through');
+  assert.notEqual(marked[0], items[0], 'the consumer\'s own objects are not written to');
+  assert.deepEqual(items.map((it) => (typeof it === 'string' || it.separator ? it : it.selected)),
+    [undefined, '---', undefined, { separator: true }, undefined], 'the caller\'s array is left as it was');
+
+  // A row with no value of its own is identified by its label, the way the
+  // dropdown identifies it when it reports the pick.
+  assert.equal(filterChipItems({ value: 'Other', items })[4].selected, true);
+
+  // Nothing chosen, and a value in no row, mark nothing: a guessed row would wash
+  // a value that is not in force. Every row's flag is written even then, so a
+  // mark the consumer left on a row is cleared rather than carried — handing the
+  // list back untouched left a menu checking `All`, with `aria-selected="true"`,
+  // under a chip printing `Asia`. #550
+  const premarked = [{ label: 'All', value: 'all', selected: true }, { label: 'Europe', value: 'eu' }];
+  for (const filter of [{ items: premarked }, { value: '', items: premarked },
+    { value: 'Asia', items: premarked }]) {
+    assert.deepEqual(filterChipItems(filter).map((it) => it.selected), [false, false],
+      `${filter.value === undefined ? 'an unset' : `"${filter.value}"`} chip marks no row`);
+  }
+  assert.deepEqual(premarked.map((it) => it.selected), [true, undefined],
+    'and the caller\'s own objects are still not written to');
+  assert.deepEqual(filterChipItems({ items })
+    .map((it) => (typeof it === 'string' || it.separator ? it : !!it.selected)),
+  [false, '---', false, { separator: true }, false], 'the separators still pass through');
+  assert.deepEqual(filterChipItems(), []);
+  assert.deepEqual(filterChipItems({ value: 'tech' }), []);
+
+  // A value of 0 is a value, and a consumer who already marked a row keeps the
+  // chip's answer rather than their own.
+  const zero = [{ label: 'None', value: 0 }, { label: 'Some', value: 1, selected: true }];
+  assert.deepEqual(filterChipItems({ value: 0, items: zero }).map((it) => it.selected), [true, false]);
+});
+// Markup only: the class and the mark the factory writes, not their paint.
+test('a chip\'s menu marks the row the chip is showing, with no help from the consumer', () => {
+  const { dom, host } = setup(filterBar({ filters: [{ id: 'sector', label: 'Sector', value: 'tech',
+    items: [{ label: 'Energy', value: 'energy' }, { label: 'Technology', value: 'tech' }] }] }));
+  const rows = [...host.querySelectorAll('.ui-dropdown__item')];
+  assert.deepEqual(rows.map((r) => r.classList.contains('is-selected')), [false, true]);
+  assert.deepEqual(rows.map((r) => r.getAttribute('aria-selected')), ['false', 'true'],
+    'the mark a reader hears is written beside the one a reader sees');
+  // The non-colour cue: the kit's check, in the row's trailing slot.
+  assert.ok(rows[1].querySelector('.ui-dropdown__tick svg'), 'the chosen row carries the kit check');
+
+  // Unset, nothing is marked — a wash on the first row would state a filter the
+  // bar is not applying.
+  host.innerHTML = filterBar({ filters: [{ id: 'sector', label: 'Sector',
+    items: [{ label: 'Energy', value: 'energy' }, { label: 'Technology', value: 'tech' }] }] });
+  assert.equal(host.querySelector('.ui-dropdown__item.is-selected'), null);
+  dom.window.close();
+});
+/* Markup only, and the state a single render cannot reach: the chip's value moves
+ * and the menu is read again. A controlled bar answers a pick through update(),
+ * which re-renders the row, so the menu a reader reopens is built from the value
+ * now in force — and the consumer's own items, written once, still carry the mark
+ * they were written with. That stale flag used to survive both moves. #550 */
+test('a chip\'s menu drops the row it marked once the chip\'s value moves', () => {
+  // `All` is marked by the consumer, the way a consumer writes a default. The
+  // chip's value is what decides from here on.
+  const items = [{ label: 'All', value: 'All', selected: true },
+    { label: 'Europe', value: 'Europe' }, { label: 'Asia', value: 'Asia' }];
+  const options = (value) => ({ filters: [{ id: 'region', label: 'Region', value, items, open: true }] });
+  const { dom, host } = setup(filterBar(options('All')));
+  const bar = initFilterBar(host, options('All'));
+  /* Read from both marks at once: a row the sheet washes and a row a reader hears
+   * are two attributes, and either one left behind is the contradiction. */
+  const marked = () => [...host.querySelectorAll('.ui-dropdown__item')]
+    .filter((r) => r.classList.contains('is-selected') || r.getAttribute('aria-selected') === 'true')
+    .map((r) => r.querySelector('.ui-dropdown__label').textContent);
+  const printed = () => host.querySelector('.ui-dropdown__value').textContent;
+  assert.deepEqual(marked(), ['All'], 'the chip starts on the value it was given');
+
+  bar.update(options('Europe'));
+  assert.equal(printed(), 'Europe');
+  assert.deepEqual(marked(), ['Europe'], 'the menu marks the value in force, not the one it had');
+
+  // And a value in no row leaves the menu with nothing marked rather than with
+  // the consumer's default standing in for it.
+  bar.update(options('Asia'));
+  assert.deepEqual(marked(), ['Asia']);
+  bar.update(options('Africa'));
+  assert.equal(printed(), 'Africa');
+  assert.deepEqual(marked(), [], 'a value in no row marks no row');
+
+  // Cleared, the chip prints its field's name again and still marks nothing.
+  bar.update(options(undefined));
+  assert.equal(printed(), 'Region');
+  assert.deepEqual(marked(), [], 'an unset chip marks no row');
+  assert.deepEqual(items.map((it) => it.selected), [true, undefined, undefined],
+    'through all of it the consumer\'s own items are untouched');
+  bar.destroy();
+  dom.window.close();
 });
 // Markup only: which control the factory writes, not how it looks.
 test('the clear action is offered only once there is something to clear', () => {

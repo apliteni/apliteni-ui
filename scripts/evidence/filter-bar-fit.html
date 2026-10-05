@@ -6,13 +6,25 @@
 <style>html,body{margin:0;padding:0}.pad{padding:16px}</style>
 </head>
 <body>
-<!-- The vanilla side of the #467 measurement: the same three bars the React
-     stories render, through filterBar() and wireDropdown(), so the pair differs
-     in the implementation and in nothing else.
+<!-- The vanilla side of the #467 and #549 measurements, through filterBar() and
+     wireDropdown(), so each bar below differs from its React counterpart in the
+     implementation and not in the markup.
+
+     The composed bar matches `React/FilterBar > Composed` chip for chip: the same
+     trigger shape and the same items, which are the two things every number in a
+     fit comes from. It carries one control that story does not — a panel anchored
+     to the row rather than to a chip — because the rule that one guards is shared
+     CSS, so one half proving it is enough, and <Dropdown> would need this page's
+     own stylesheet to take that shape.
+
+     The three filterBar() bars carry one chip more than the React stories do, the
+     campaign value below, for the same reason: the wrap hint it measures is one
+     shared declaration.
      why: docs/specification.md#a-filter-row-holds-its-panels -->
 <div class="pad" id="bars"></div>
 <script type="module">
 import { filterBar, initFilterBar } from '/src/components/filter-bar.js';
+import { dropdown, wireDropdown } from '/src/components/dropdown.js';
 
 const filters = [
   { id: 'region', label: 'Region', value: 'All', items: [{ label: 'All', value: 'All' }, { label: 'Europe', value: 'Europe' }] },
@@ -46,6 +58,79 @@ for (const [name, options] of [
   document.getElementById('bars').append(host);
   initFilterBar(host, options);
 }
+/* Two compositions filterBar() cannot express and the specification supports: a
+   chip whose menu is end-aligned, and a searchable one. Both still showed #549
+   after the floor landed — the end-aligned menu grew leftwards 49px off the page
+   because the fit measured room forwards, and the searchable one stayed 74px
+   because ddResetSearch() pinned a width read before the floor applied. Written
+   as markup because filterBar() passes neither option through. */
+/* `All` is the selected row, as it is in the React story: a selected row carries
+   the 16px tick, which is the widest thing a chip's menu has to hold and the one
+   that had to be taught to give way at a 48px trigger. */
+const SECTORS = [
+  { label: 'All', value: 'All', selected: true },
+  { label: 'Technology', value: 'tech' },
+  { label: 'Consumer Discretionary', value: 'cons' },
+];
+/* And a chosen row named in full, which is longer than the menu that holds it.
+   Flex lays a row's label out at its own length before anything wraps, so
+   whatever the mark is allowed to give up it is given up here: this is the one
+   shape in which a painted tick can be clipped, and the rows above are all short
+   enough that a clip would never show on them. The chip still prints a short
+   value — `MSCI` is the row's own value, so the line the chip prints and the row
+   the menu marks agree — which keeps the 48px-trigger geometry the rest of this
+   page measures. #550 */
+const MARKED = [
+  { label: 'All', value: 'All' },
+  { label: 'MSCI World consumer discretionary investments', value: 'MSCI', selected: true },
+];
+/* The trigger prints the value alone, which is the shape filterBar() ships and
+   the shape #549 is about: `All` is a 48px trigger, as narrow as `US`. Passing
+   `label` instead put the chip's name inside the trigger as well as in the
+   legend — two lines of the same word, and a 92px trigger, so the 48px geometry
+   this gate exists to measure was never reached on the vanilla side.
+   why: src/components/filter-bar.js */
+const chip = (id, name, opts) =>
+  `<fieldset class="ui-filter-bar__chip" data-filter-id="${id}">`
+  + `<legend class="ui-filter-bar__legend">${name}</legend>`
+  + dropdown({ variant: 'select', items: SECTORS, ariaLabel: name,
+      triggerContent: '<span class="ui-dropdown__value">All</span>', ...opts })
+  + `<button type="button" class="ui-filter-bar__remove" data-filter-remove`
+  + ` aria-label="Remove ${name} filter">\u00d7</button></fieldset>`;
+
+/* A panel anchored to the row rather than to its trigger, the shape #518's
+   add-filter control takes: `position: static` on the dropdown hands the panel
+   to the row, which then bounds it. The chip rule must not reach it — sliding it
+   by a chip's offset would push it out of the row — so the gate measures that it
+   keeps its own width and stays inside. */
+const rowAnchored = document.createElement('style');
+rowAnchored.textContent = `
+  [data-case="composed"] .ui-filter-bar { position: relative; }
+  [data-row-anchored] .ui-dropdown { position: static; }
+  [data-row-anchored] .ui-dropdown__panel { min-width: min(320px, 100%); max-width: 100%; }`;
+document.head.append(rowAnchored);
+
+const composed = document.createElement('div');
+composed.dataset.case = 'composed';
+composed.innerHTML = '<fieldset class="ui-filter-bar" data-filter-bar>'
+  + '<legend class="ui-filter-bar__legend">Composed filters</legend>'
+  // The end-aligned chip goes first on purpose: an end-anchored panel grows
+  // backwards, so the room it has is what lies behind it, and a chip at the
+  // row's start has least. Measured here, the unfixed rule put it 176px past the
+  // row's start and off the page.
+  + chip('ending', 'Aligned', { align: 'end' })
+  + chip('plain', 'Sector', {})
+  + chip('searchable', 'Lookup', { search: true })
+  + chip('marked', 'Holdings', { items: MARKED,
+      triggerContent: '<span class="ui-dropdown__value">MSCI</span>' })
+  /* Its value alone, for the same reason a chip's trigger carries one: `label`
+     drew an `Add` before it and the control read `Add Add filter`. */
+  + `<span data-row-anchored="320">${dropdown({ value: 'Add filter', variant: 'select',
+      items: SECTORS, ariaLabel: 'Add filter' })}</span>`
+  + '</fieldset>';
+document.getElementById('bars').append(composed);
+wireDropdown(composed);
+
 document.documentElement.dataset.ready = 'yes';
 </script>
 </body>

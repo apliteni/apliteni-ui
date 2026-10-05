@@ -447,6 +447,16 @@ Twenty-six declarations across six stylesheets wrote their own number instead, a
 (`transition: 0.18s ease`) named no property at all, which is `all`, which includes
 `visibility`. They are now the tokens above.
 
+**A published motion helper tolerates not getting an element.** `transitionMs(el)` answers how long
+the stylesheet says `el`'s transition lasts — the longest duration plus its own delay, in
+milliseconds — and `0` for an element off the DOM or for no element at all; `playEntrance()` and
+`replay()` do nothing for one. `getComputedStyle` throws a `TypeError` for anything that is not an
+element, so a helper published so that a caller waiting on a fade can size a backstop timer would
+otherwise take that caller down the first time a ref came back unmounted. Held by
+`stories/motion-missing-element.test.js`, which sweeps every helper whose declaration admits a
+missing element with a window installed — the absent `window` of a bare Node process is the one
+environment the fault cannot appear in, so it is not measured there alone.
+
 ### The two kinds that keep a literal
 
 A `transition` is a response: something the reader did, timed against how long they will wait for
@@ -2305,9 +2315,17 @@ a page 398px wide on a 390px view — the 8px of
 themselves were never the problem; `.ui-filter-bar` wraps, and at both widths they fitted.
 
 **What a consumer can rely on.** At any viewport, a filter bar's *panels* add nothing to the page's
-scrollable width, and each panel opens inside the row that holds it. The bound is `min-width: 100%;
-max-width: 100%` against the panel's own containing block, so it needs no measuring, no resize
-listener and no JavaScript, and vanilla and React get it from the same rule. What a consumer gives
+scrollable width, and each panel opens inside the row that holds it. An open menu is also at least
+as wide as the kit's 240px menu floor, or as wide as its row where the row is narrower. The two
+promises are kept by different means, and the difference is the part a consumer has to know. A shut
+panel is bounded by `min-width: 100%; max-width: 100%` against its own containing block, so it needs
+no measuring, no resize listener and no JavaScript, and vanilla and React get it from the same rule.
+An open menu's floor is *measured*: it holds once the kit's JavaScript has run, and a row that
+changes under an open menu, or a chip that moves along it, is measured again — because a menu that
+kept the fit it opened with stood 11px off a rotated phone, and one whose neighbour grew stood 12px
+off a phone that had not moved at all. The floor and the
+slide are also held for the length of the menu's fade out, so nothing is ever painted at a width
+narrower than the row allows. What a consumer gives
 up is panel width: a filter whose options are longer than its chip wraps them over more rows
 instead of widening. That suits the values a filter shows — a filter's options are the short words
 its chip already carries — and a list that needs more room than that is a dropdown rather than a
@@ -2337,6 +2355,183 @@ panel, which beats a stylesheet `max-width` whatever its specificity, so a consu
 that writes one re-opens [#467](https://github.com/apliteni/apliteni-ui/issues/467). The one writer
 inside the kit, `ddResetSearch()`, sets it to the panel's already-bounded `offsetWidth`, so a search
 dropdown composed inside a filter bar stays inside the row.
+
+**Shut and open are bounded differently, and that is the point.** A shut panel keeps the trigger's
+width: a `visibility: hidden` box is still laid out, so that is what holds #467, and it needs no
+measuring — a page where no JavaScript ran still cannot overflow. An open panel takes the menu
+floor instead. [#536](https://github.com/apliteni/apliteni-ui/issues/536) made a chip print its
+value alone, so a trigger is now as narrow as `US`, and bounding the open menu to it left about
+48px of menu breaking option words mid-letter — [#549](https://github.com/apliteni/apliteni-ui/issues/549).
+
+`filterPanelFit()` is the arithmetic, exported from the kit so `wireDropdown()` and React's
+`<Dropdown>` cannot drift: from the dropdown's inline start it measures the room to the row's end,
+shifts the menu back along the row by what the floor still needs, and never shifts past the row's
+own start. The stylesheet reads three numbers — `--ui-filter-panel-room` caps the width,
+`--ui-filter-panel-floor` is the width reached for, and `--ui-filter-panel-shift` is the slide — and
+both halves write all three, so the `floor` argument reaches a rendered menu wherever the menu is
+rendered. Unset, the three fall back to `100%`, `240px` and `0px`, and it is the `min()` of the
+first two that lands on the trigger's width — neither of the other two does it alone — so a menu
+opened before the measurement runs is bounded rather than unbounded. A panel rendered already-open is fitted when it is wired,
+since it never passes through the open path.
+
+The numbers describe the row as it was when the menu opened, so a change under it invalidates them:
+a menu opened at 1280px and left open at 390px kept a room of 1102px and stood outside a row that
+had since narrowed to 358px — 11px off the page in the wiring and 14px in React. Both halves
+therefore re-measure, and the menu stays open rather than closing under the reader.
+
+**What is watched is the row, not the viewport.** A `resize` event fires before a layout that
+animates has settled. `.ui-app__rail` transitions its width over `--dur-med`, so crossing the
+shell's breakpoint widens the main column under an open menu for a quarter of a second *after* the
+event: a handler reading the row at that instant measured the screener's `Applied Filters` row as
+143.6px, and the menu kept that number inside a row that settles at 214px — #549 standing on a
+shipped page, permanently, in both themes. So a `ResizeObserver` reports the row's box again at each
+step of the rail's transition and again at its end. `resize` remains the fallback where a view has
+no `ResizeObserver`, where one measurement is better than none, and it is not taken as well where
+there is one — it is the worse of the two readings.
+
+**The row's box is not the whole of the fit, and watching it alone was not enough.** The other half
+is where the chip sits *along* the row, and that moves without the row's box changing at all: widen
+the chip in front of an open menu and the row keeps both of its dimensions while the chip beside it
+slides. Measured at 390px, a React prop update printing `Global marketwide` where a preceding chip
+had printed `Worldwide EU` held the row at 358 × 73.66px and carried the open menu's right edge
+from 374px to 401.97px — the page 402px wide, the menu over its edge, until something else asked for
+a re-measurement.
+
+What moves a chip is the *size* of the boxes laid out in front of it, so those are observed too: the
+row and each of its children, which is one `ResizeObserver` per open menu. A size change is reported
+through its animation, as the rail's is, so a neighbour that grows gradually is followed rather than
+read once. And because a layout change is a frame late to any observer, the cause is watched as
+well — the DOM change that moved the chip. Each open menu watches its row for a mutation: a child
+list, an attribute, or character data, which is the one a re-rendered value arrives as. A change
+inside *any* dropdown panel is skipped: a panel is absolutely positioned, so nothing in it can move
+a chip, and it is where every write the fit makes lands — two open menus in one row would otherwise
+answer each other a mutation at a time. For the same reason a fit that lands on the numbers already
+written writes nothing.
+
+Those two watchers cover the arithmetic, because `room` and `shift` are differences taken inside the
+row: only the row's width and the chip's offset within it reach them, so a row that only moves
+leaves both unchanged and a scroll needs no re-measurement. **The limit** is a chip moved with no
+mutation in the row and no box in it changing size — the row's own spacing or alignment
+*transitioning*, which is read in the frame the transition starts rather than at its end, and a rule
+arriving from outside the row that re-aligns it. Neither is reachable in the kit's own pages, and
+neither is claimed as covered. A portalled panel is the other way round — it is placed in viewport
+coordinates — so that one is re-placed on scroll and not re-fitted here.
+
+**The open geometry is given back when the fade ends, not when the menu closes.** `.ui-dropdown.open`
+stops matching in the frame a menu is told to close; the panel does not stop being painted, because
+it transitions `opacity` and `visibility` over `--dur-med`. Dropping the width there collapsed a
+240px menu to its 48px trigger and moved it 67px sideways at opacity 1.0, still legible at 0.54 a
+frame later: #549's own picture — `A / l / l`, `T / e / c / h / n / o / l / o / g / y` — repainted on
+the way out of every close, in both halves. `.ui-dropdown__panel.is-closing` therefore carries the
+same three declarations the open rule does, and the inline search pin is held with them; both come
+off at the panel's own `transitionend`, backed by a timer sized from the panel's computed transition
+because that event never comes for a fade that did not run. Re-opening mid-fade takes the hold off
+and the abandoned wait fires into nothing. This is the same shape a dialog's exit uses, and it reads
+the duration with the same `transitionMs()`.
+
+**The chosen value is washed and ticked, never washed alone.** In a filter menu the row holding
+the value the chip is showing takes `--glow-purple`, the soft accent wash `.ui-nav--tabs.is-pill`
+gives the tab you are on, and its label holds `--strong` where the kit elsewhere steps a chosen
+label down to `--text` — under the wash that step left the row in force the faintest in the panel.
+The wash is a wash: 1.157:1 over the panel in light and 1.201:1 in dark. It is deliberately not a
+3:1 fill, because a fill that strong in a menu reads as the row the pointer is on, and the kit
+already spends an opaque `--surface` on hover, the keyboard cursor and focus.
+
+A wash that quiet cannot be the mark. Colour alone distinguishing a chosen row is what WCAG 2.2
+SC 1.4.1 Use of Color (Level A) forbids — "Color is not used as the only visual means of conveying
+information … or distinguishing a visual element" — and a reader who cannot separate two hues has
+nothing left to read a 1.2:1 step by. SC 1.4.11 Non-text Contrast (Level AA) does not condemn the
+wash itself: it excuses "changes in color that differentiate between states of an individual
+component … when they do not appear next to each other", which a row's own rest and chosen fills
+are. But it does ask 3:1 of whatever *does* identify the state, so the mark it asks about is the
+kit's own 16px `check`: 6.35:1 over the wash in light and 4.13:1 in dark.
+
+So the chosen row carries both, and the two are independent — one a colour, one a shape. Every
+platform the kit reads marks a chosen menu row with a tick: Apple's HIG says people know the item
+in effect "because it displays a checkmark", Material 3 marks the chosen option in an exposed
+dropdown with a check icon, Primer's `ActionList` represents a selection "with a `check` octicon
+placed at the beginning of the item", and Radix renders its `ItemIndicator` only when the item is
+checked. Two of them pair the tick with a fill, as this does — Carbon's selected option is
+`$layer-selected` behind a `$icon-primary` checkmark. The kit's tick is trailing rather than
+leading, which is the kit's own choice and not a disagreement with Primer: a filter menu's rows
+are short values in a narrow column, and a leading mark would indent every label to leave room for
+a mark one row has.
+
+**The wash survives every state, and hover deepens it.** Hover, the keyboard cursor and focus each
+paint an opaque `--surface` on a dropdown row, which would take the wash off the chosen one.
+`filter-bar.css` restates the wash for the cursor and for focus, so the row the filter is on does
+not stop looking chosen; each of those two still reads by the paint that is not a fill — the
+cursor's inset accent bar and the kit ring, never a browser's own outline. Hover had nothing left:
+its other paint is the kit's 1px `--control-edge`, which on the wash is 1.06:1 in dark, so the one
+row in the panel already in force was the one row a pointer got no answer from. Selection is a
+background highlight and an outline belongs to focus, so hover deepens the highlight instead — 9%
+more of the accent mixed into the wash, the step a zebra table already gives a hovered row. That is
+1.14:1 over the resting wash in dark and 1.15:1 in light, against the 1.11:1 the kit's opaque fill
+gives any other row in the same panel and the nothing it gives one in light, where `--surface` is
+the panel. It stays a tint: 1.37:1 over the panel, and the check and the label are re-measured on
+the deeper ground at 3.62:1 and 10.69:1. One translucent layer over one opaque ground is also the
+only form whose text pair can be measured, so the chosen label's own ratio stays readable off the
+sheet: 16.69:1 in light, 12.18:1 in dark. `stories/filter-selected-mark.test.js` measures the pair
+and the three states in both themes across every story that draws a filter bar, measures hover's
+step as a ratio rather than asserting that paint exists, and rejects a mutation of each guarantee —
+including the restated wash that left hover at 1.00:1.
+
+**Which row is chosen is the chip's answer, not the consumer's.** `filterChipItems(filter)` hands
+the menu the chip's items with the chip's own `value` marked `selected`, matching a row by its
+`value` or, where it has none, by its `label` — the way the dropdown identifies a row when it
+reports a pick. Both faces call it, so the line the chip prints and the row the menu washes cannot
+disagree, and a consumer who marked no row still gets the mark. A chip with nothing chosen, or a
+value in no row, marks nothing: a guessed row would wash a value the bar is not applying, which is
+worse than marking nothing. Every row's flag is written even then, so a consumer's own `selected` is
+overridden either way — handing those items back as they were written left a menu washing and
+checking `All`, with `aria-selected="true"` on it, under a chip printing `Asia`, and the chip's
+value is the only answer to which row is in force. The consumer's array and objects are not
+written to.
+
+**A selected row's tick gives way in a shut chip panel, and nowhere else.** `.ui-dropdown__tick` is
+16px of `flex: none` beside an 11px gap, and a chip printing `All` is a 48px trigger: shut, a
+selected row's content stood 5px outside the panel bounding it — the one place in a filter row where
+text could still reach past the box #467 pinned, and `overflow-wrap` cannot answer it because a mark
+is not text. Inside `.ui-filter-bar__chip` the tick may shrink and is clipped while the panel is
+shut, as the label already may, and shut is the whole of it: the clip is carried by
+`.ui-dropdown:not(.open) .ui-dropdown__panel:not(.is-closing)`.
+
+Written for every panel in a chip it reached the open menu as well, where the mark has 200px of room
+and no need of it. Flex lays a row out from each item's own basis, and a chosen row's label is
+measured at its full length before anything wraps, so the mark was handed whatever the label left:
+9.8px of a 16px check inside a 240px menu, which draws as a small chevron and not as a tick. The
+check is the non-colour cue a 1.2:1 wash cannot carry, so a clipped one leaves SC 1.4.1 unanswered
+however well the two colours measure. Open — and through the fade `is-closing` holds the open
+geometry for — the mark keeps `flex: none` and the label is what wraps.
+`stories/filter-selected-mark.test.js` reads the slot the cascade gives the mark in each of those
+three geometries and rejects a mutation of each; `scripts/evidence/filter-bar-fit.mjs` measures that
+slot as a box at four viewports in both themes, in every menu it opens and in every frame one is
+still painted in as it closes, and has to catch a mark cut when the clip is put back over every
+panel.
+
+A menu pinned at its inline end — `dropdown({ align: 'end' })` composed inside a filter row — is
+measured from that edge and slid the other way, because an end-anchored panel grows backwards: the
+room it has is what lies between its own right edge and the row's start. A searchable chip is fitted
+before the width it holds is pinned, so the floor is in before the measurement rather than after it.
+That pin is inline and outranks the shut bound, so it is cleared when the menu closes and read again
+at the new width when the viewport moves — in both halves, by `closeDropdown()` and by `<Dropdown>`'s
+own effect. Left behind once, it was #467 at the floor's width: a shut 240px panel on a 390px view.
+Both compositions sit in `scripts/evidence/filter-bar-fit.html` and in the React
+`FilterBar / Composed` story, because `filterBar()` and `<FilterBar>` pass neither option through
+and a gate that sweeps stories can only measure what one of them renders. The two are the same
+composition chip for chip — the same trigger shape and the same items, which are the two things
+every number in a fit comes from — so the pair differs in the implementation and not in the markup.
+A fixture whose triggers printed the chip's name as well as its value was a 92px trigger, and the
+48px geometry #549 is about was then reached on the React side only.
+
+**A panel anchored to the row, not to a chip.** The floor and the slide are a chip's arithmetic:
+the slide is measured from the trigger's offset along the row. A control that takes its dropdown out
+of the positioning chain — `position: static` on `.ui-dropdown`, so the panel resolves against a
+`position: relative` row — is already bounded by that row, and sliding it by a chip's offset takes it
+outside. Both halves are therefore scoped to `.ui-filter-bar__chip`: the rule does not match such a
+panel and `filterPanelFit()` returns `null` for it. A row-anchored panel owns its width, sets its own
+`min-width` and `max-width`, and must not read `--ui-filter-panel-room`, `--ui-filter-panel-shift` or
+`--ui-filter-panel-floor`.
 
 The chip's own width is a separate question this rule does not reach. `.ui-dropdown__trigger` is an
 `inline-flex` without `min-width: 0`, and `.ui-dropdown__value` carries no wrap hint, so a chip
@@ -2410,12 +2605,43 @@ measured in a browser and reported in the pull request.
 Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
 
 Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
-— resolving one spelled as a token — and requires each to be answered inside the bar, and measured
-in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in both themes.
+— resolving one spelled as a token — requires each to be answered inside the bar, and requires the
+open geometry to reach the closing state as well as the open one; by
+`src/components/filter-panel-fit.test.js` for the arithmetic; and by the wiring's own cases in
+`src/components/dropdown.test.js` and `react/src/Dropdown.test.tsx`, which are the same questions
+asked of each half — which numbers reach an open panel, that a shut one gets none, that a dropdown
+outside a filter row gets none either, that the box observed is the row and not the viewport, that a
+row settling after the event is measured again, that `resize` is not taken as well where the row is
+watched, that the geometry and the search pin are held through the fade and given back at its end,
+that only the panel's own fade ends the hold, that a timer ends it where the event never comes, and
+that re-opening mid-fade keeps the new fit. `transitionMs()`, which sizes that timer, is held by
+`src/motion.test.js`.
+
+It is measured in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px, 390px and
+1280px in both themes — 1280px because an end-anchored menu leaves its row at every width, and
+because that is where a shell with a collapsing rail reaches the stale-fit state.
 That gate sweeps both Storybook indexes for every story rendering a filter bar, measures each panel
 against the `.ui-dropdown` that contains it, asks every option row whether its own text fits it,
-and puts the floor back to require a panel in every case that carries one to widen. Its fixture
-page carries an unbreakable value so the wrap hint is measured rather than assumed.
+requires every open menu to reach the floor its row allows, narrows the viewport under each open
+menu that did not open at the narrowest width and asks all of it again, and walks every chip menu's
+close with motion on, sampling every 16ms through the fade and requiring no menu still being painted to be under its
+row's floor. It runs five mutations: putting the 240px floor back has to widen a panel, taking the
+wrap hint away has to make a row spill, taking the menu floor away has to leave a menu under its
+row's floor, leaving the row unobserved and dropping every `resize` listener has to leave a narrowed
+menu outside its row, and dropping the closing hold has to catch a painted menu at its trigger's
+width. Its fixture page carries an unbreakable value so the wrap hint is measured rather than
+assumed.
+
+Three limits of that gate are worth naming. A case already at the narrowest width is measured once —
+there is no narrower viewport to move to — so about a quarter of the cases contribute one
+measurement rather than two. The close walk is the only arm that runs with motion on: reduced
+motion shortens the fade to nothing, which is exactly the net that hid the collapse. And it is the
+only arm that runs in a browser launched without `--deterministic-mode`, because that flag stops
+frames being produced on their own and a CSS transition is driven by that clock — under it a panel
+told to fade sits at opacity 1 for ever, `requestAnimationFrame` never fires, and a walk that
+waited on one could not return. The walk therefore samples by the clock, every 16ms, which means a
+loaded host samples later and further into the fade. That costs coverage and never a pass: the arm
+reports how many painted samples it took, and a run that took none is a failure.
 
 ## A dropdown row is a div, a link or a button
 

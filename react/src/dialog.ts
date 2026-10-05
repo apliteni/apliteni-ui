@@ -5,6 +5,9 @@ import {
   createContext, useContext, useEffect, useLayoutEffect, useRef, useState,
   type MouseEvent as ReactMouseEvent, type RefObject,
 } from 'react';
+// The exit wait is sized from the stylesheet's own duration, and the kit already reads
+// it for the vanilla dropdown's close. One calculation, asked rather than copied.
+import { transitionMs } from '@apliteni/apliteni-ui';
 
 // The candidates, in DOM order — `tabbable` below decides which of them Tab reaches. A
 // disclosure's summary is focusable to the browser without matching any of the others.
@@ -64,19 +67,6 @@ type Ref = RefObject<HTMLElement | null>;
 // paints. A plain effect on the server, where React 18 warns about the other. Exported
 // for <Dropdown>, which needs the same answer and must not carry a second copy of it.
 export const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
-
-/** The longest `transition-duration` + `transition-delay` on `el`, in ms, as computed. */
-function transitionMs(el: Element): number {
-  const cs = getComputedStyle(el);
-  const times = (list: string) => list.split(',').map((t) => {
-    const n = Number.parseFloat(t);
-    if (!Number.isFinite(n)) return 0;
-    return t.trim().endsWith('ms') ? n : n * 1000;
-  });
-  const durations = times(cs.transitionDuration);
-  const delays = times(cs.transitionDelay);
-  return Math.max(0, ...durations.map((d, i) => d + delays[i % delays.length]));
-}
 
 // ---- the page's stack --------------------------------------------------------
 // Every open React dialog, bottom → top. Which one Escape talks to, where Tab may go and

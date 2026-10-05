@@ -103,3 +103,23 @@ export function focusNextStop(host) {
   }
   return null;
 }
+
+/** The chip's menu with the chip's own value marked, so the line the chip prints
+ *  and the row the menu marks cannot disagree. A row is identified the way the
+ *  dropdown identifies it when it reports a pick: by `value`, or by `label` where
+ *  it carries none.
+ *
+ *  Every row's flag is written, not only the chosen one's, so a chip with nothing
+ *  chosen or a value in no row marks no row. Handing those items back as the
+ *  consumer wrote them left whatever they had marked standing — a menu checking
+ *  `All`, `aria-selected="true"` on it, under a chip printing `Asia`. The
+ *  consumer's own array and objects are not written to. #550
+ *  why: docs/specification.md#a-filter-row-holds-its-panels */
+export function filterChipItems(filter = {}) {
+  const items = filter.items || [];
+  const chosen = text(filter.value);
+  const row = (it) => !!it && it !== '---' && !it.separator;
+  const key = (it) => text(it.value != null ? it.value : it.label);
+  const inForce = !filterChipUnset(filter) && items.some((it) => row(it) && key(it) === chosen);
+  return items.map((it) => (row(it) ? { ...it, selected: inForce && key(it) === chosen } : it));
+}

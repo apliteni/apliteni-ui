@@ -29,6 +29,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
+import { DD_MENU_FLOOR } from '../src/components/dropdown.js';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -129,8 +130,51 @@ function resolveVars(value, vars, depth = 0) {
   return out.trim();
 }
 
-/** A width floor: a rule giving a panel a `min-width` or `width` that is not a
- *  percentage, so it can hold the box wider than whatever contains it.
+/** Whether a resolved length can exceed its containing block. A percentage
+ *  cannot, and neither can a `min()` holding one: `min(240px, 100%)` is at most
+ *  `100%` whatever the first term says. That is arithmetic rather than a special
+ *  case, and it is what lets a filter row floor an open menu — the floor is
+ *  capped by the room the row leaves, so it can never hold the box wider than
+ *  the row. A `max()` is the opposite and stays a floor. */
+function canExceed(resolved, selector = '') {
+  if (resolved === null) return true;
+  const value = resolved.trim();
+  if (value.endsWith('%') || value === '0') return false;
+  const min = /^min\(([\s\S]*)\)$/.exec(value);
+  /* A `min()` holding a percentage is at most that percentage — but only if the
+   * percentage is what the browser uses. The kit writes these through a custom
+   * property that JavaScript sets to an absolute length, so the fallback
+   * resolved here is what renders only until the fit runs. A rule that applies
+   * after it has may be read this way; the shut rule, which is the one #467 is
+   * about, may not — a shut-scope floor spelled through a token would otherwise
+   * walk past this guard at any width.
+   *
+   * Two scopes qualify, and they are the two in which a panel is PAINTED: `.open`,
+   * and `.is-closing`, which holds the open geometry through the fade out. The fit
+   * has been written in both, and in both the row is what caps the box — the same
+   * reason, so the same reading. Anything else is shut scope and is refused. */
+  if (min && /\.open\b|\.is-closing\b/.test(selector)) {
+    return !splitArgs(min[1]).some((arg) => !canExceed(arg.trim(), selector));
+  }
+  return true;
+}
+
+/** A function's arguments, split on its own top-level commas. */
+function splitArgs(inside) {
+  const out = [];
+  let depth = 0;
+  let at = 0;
+  for (let i = 0; i < inside.length; i += 1) {
+    if (inside[i] === '(') depth += 1;
+    else if (inside[i] === ')') depth -= 1;
+    else if (inside[i] === ',' && !depth) { out.push(inside.slice(at, i)); at = i + 1; }
+  }
+  out.push(inside.slice(at));
+  return out;
+}
+
+/** A width floor: a rule giving a panel a `min-width` or `width` that can hold
+ *  the box wider than whatever contains it.
  *
  *  A token is resolved rather than skipped. In a kit whose lengths are tokens,
  *  `var(--panel-floor, 320px)` is the likely shape of the next floor, and one
@@ -149,7 +193,7 @@ function floors(sheets) {
           const value = declared(rule.body, prop);
           if (!value) continue;
           const resolved = resolveVars(value, vars);
-          if (resolved !== null && (resolved.endsWith('%') || resolved === '0')) continue;
+          if (!canExceed(resolved, one)) continue;
           found.push({ file, selector: one, prop, value, resolved, rank: classes(one) });
         }
       }
@@ -197,6 +241,69 @@ function unbounded(sheets) {
   }
   return null;
 }
+
+/** Every place the kit writes its menu floor, read rather than repeated. The
+ *  number lives in two stylesheets, in the module both implementations call and
+ *  in the browser gate; a copy that drifts is a menu that disagrees with itself,
+ *  and nothing else would notice. */
+function menuFloors(sheets, jsFloor, gateSource) {
+  const found = [];
+  for (const [file, css] of sheets) {
+    for (const rule of rules(css)) {
+      const value = declared(rule.body, 'min-width');
+      if (!value) continue;
+      /* The fallback a filter row's menu reads when the fit has not run. Asked of
+       * the RULE and not of each selector in its list: the open geometry is one
+       * declaration shared by the open scope and the closing one, and counting it
+       * once per selector would report a second copy that does not exist. */
+      const token = /min\(\s*var\(\s*--ui-filter-panel-floor\s*,\s*(\d+(?:\.\d+)?)px\s*\)/.exec(value);
+      if (token) found.push({ where: `${file} (fallback)`, px: Number(token[1]) });
+      // The standalone panel's own floor, not a variant's.
+      const bare = /^(\d+(?:\.\d+)?)px$/.exec(value.trim());
+      if (!bare) continue;
+      for (const one of selectors(rule.selector)) {
+        if (one.trim() === PANEL) found.push({ where: file, px: Number(bare[1]) });
+      }
+    }
+  }
+  found.push({ where: 'DD_MENU_FLOOR', px: jsFloor });
+  const gate = /const MENU_FLOOR = (\d+(?:\.\d+)?)/.exec(gateSource);
+  if (gate) found.push({ where: 'filter-bar-fit.mjs', px: Number(gate[1]) });
+  return found;
+}
+
+/** Every rule that writes a chip menu's open geometry, as the scopes it applies to.
+ *  The geometry is three declarations — the floor, the cap and the slide — and the
+ *  question asked of it is which states they reach. */
+function fitScopes(sheets) {
+  const out = [];
+  for (const [file, css] of sheets) {
+    for (const rule of rules(css)) {
+      const props = ['min-width', 'max-width', 'margin-inline-start', 'margin-inline-end']
+        .filter((prop) => (declared(rule.body, prop) || '').includes('--ui-filter-panel-'));
+      if (!props.length) continue;
+      out.push({ file, props, scopes: selectors(rule.selector) });
+    }
+  }
+  return out;
+}
+
+/** The finding, or null when every state a chip's panel is painted in carries the
+ *  same geometry. A panel fades for --dur-med after `open` goes, so a rule that
+ *  only answers `.open` leaves the fade painting a collapsed menu — #549 again. */
+function unheldOnClose(sheets) {
+  const found = fitScopes(sheets);
+  if (!found.length) return 'no rule writes --ui-filter-panel-* onto a chip menu any more';
+  const bad = found.filter((rule) => rule.scopes.some((one) => /\.open\b/.test(one))
+    && !rule.scopes.some((one) => /\.is-closing\b/.test(one)));
+  if (bad.length) {
+    return `${bad[0].scopes.join(', ')} in ${bad[0].file} gives ${bad[0].props.join(' and ')} to an `
+      + 'open menu and to nothing else, so a closing one drops it while it is still painted';
+  }
+  return null;
+}
+
+const gateSource = readFileSync(path.join(root, 'scripts/evidence/filter-bar-fit.mjs'), 'utf8');
 
 const sheets = readdirSync(STYLES)
   .filter((name) => name.endsWith('.css'))
@@ -266,6 +373,74 @@ test('a floor spelled as a token is read, not skipped', () => {
   assert.equal(unbounded(token) === null, unbounded(literal) === null);
 });
 
+test('every copy of the menu floor agrees', () => {
+  const found = menuFloors(sheets, DD_MENU_FLOOR, gateSource);
+  // Four places write it: the standalone panel's rule, the filter row's
+  // fallback, the module both implementations call, and the browser gate.
+  assert.equal(found.length, 4, `floors found: ${found.map((f) => `${f.where}=${f.px}`).join(', ')}`);
+  const distinct = [...new Set(found.map((f) => f.px))];
+  assert.deepEqual(distinct, [240], found.map((f) => `${f.where}=${f.px}`).join(', '));
+});
+
+test('the sweep refuses a floor that drifted in one place', () => {
+  // The mutation the old assertion could not fail: change the stylesheet alone
+  // and the constant no longer describes what ships.
+  const drifted = sheets.map(([file, css]) => [
+    file,
+    file.endsWith('dropdown.css') ? css.replace('min-width: 240px', 'min-width: 260px') : css,
+  ]);
+  const found = menuFloors(drifted, DD_MENU_FLOOR, gateSource);
+  assert.notDeepEqual([...new Set(found.map((f) => f.px))], [240]);
+});
+
+test('the sweep refuses a floor that drifted in the module', () => {
+  const found = menuFloors(sheets, 260, gateSource);
+  assert.notDeepEqual([...new Set(found.map((f) => f.px))], [240]);
+});
+
+test('the sweep refuses a floor that drifted in the browser gate', () => {
+  const found = menuFloors(sheets, DD_MENU_FLOOR, 'const MENU_FLOOR = 260;');
+  assert.notDeepEqual([...new Set(found.map((f) => f.px))], [240]);
+});
+
+test('a shut-scope floor spelled through a token is still a floor', () => {
+  // #467's guard. A custom property a browser resolves from JavaScript never
+  // reads the fallback this parser does, so outside `.open` the exemption would
+  // admit a floor of any width.
+  const shut = [
+    ['fixture.css', `${BAR} ${PANEL} { min-width: min(400px, var(--x, 100%)); }`],
+    ['fixture-bar.css', `${BAR} ${PANEL} { max-width: 100%; }`],
+  ];
+  assert.equal(floors(shut).length, 1);
+  assert.match(unbounded(shut), /outranks every bound|max-width/);
+});
+
+test('a floor capped by a percentage is not a floor, however it is spelled', () => {
+  // `min(240px, 100%)` is at most `100%`, so it cannot hold the box wider than
+  // what contains it. That is what lets a filter row floor an OPEN menu without
+  // re-opening #467: the floor is capped by the room the row leaves.
+  const capped = [
+    ['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: min(240px, 100%); }`],
+    ['fixture-bar.css', `${BAR} ${PANEL} { min-width: 100%; max-width: 100%; }`],
+  ];
+  assert.equal(floors(capped).length, 0);
+  // Through a token, the way the kit actually writes it.
+  const viaVar = [
+    ['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: min(240px, var(--room, 100%)); }`],
+    ['fixture-bar.css', `${BAR} ${PANEL} { min-width: 100%; max-width: 100%; }`],
+  ];
+  assert.equal(floors(viaVar).length, 0);
+});
+
+test('an uncapped length inside a min() is still a floor', () => {
+  // The mutation: drop the percentage and the cap goes with it.
+  const bare = [['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: min(240px, 320px); }`]];
+  assert.equal(floors(bare).length, 1);
+  // And a max() is the opposite of a min(): it can only grow the box.
+  const grows = [['fixture.css', `${BAR} .ui-dropdown.open ${PANEL} { min-width: max(240px, 100%); }`]];
+  assert.equal(floors(grows).length, 1);
+});
+
 test('a floor written inside the bar\'s own scope is seen, not skipped', () => {
   // The sweep used to ignore any selector mentioning the bar, which is where the
   // most dangerous floor lives: inside the bar's scope it carries more classes
@@ -321,4 +496,39 @@ test('the check accepts the shape the kit actually writes', () => {
     ['fixture-bar.css', `${BAR} ${PANEL} { min-width: 100%; max-width: 100%; }`],
   ];
   assert.equal(unbounded(good), null);
+});
+
+test('the closing scope reads like the open one, and only while it is capped', () => {
+  // `is-closing` holds the open geometry through the fade, so the same reading
+  // applies to it: capped by the room the row leaves, so not a floor.
+  const capped = [
+    ['fixture.css', `${BAR}__chip ${PANEL}.is-closing { min-width: min(240px, var(--room, 100%)); }`],
+    ['fixture-bar.css', `${BAR} ${PANEL} { min-width: 100%; max-width: 100%; }`],
+  ];
+  assert.equal(floors(capped).length, 0);
+  // The mutation: take the cap away and the exemption goes with it.
+  const bare = [['fixture.css', `${BAR}__chip ${PANEL}.is-closing { min-width: 240px; }`]];
+  assert.equal(floors(bare).length, 1);
+});
+
+test('a closing chip menu keeps the open geometry, so #549 is not repainted on the way out', () => {
+  const found = fitScopes(sheets);
+  assert.ok(
+    found.length >= 1,
+    'no rule in src/styles/ writes --ui-filter-panel-* onto a chip menu. Either the properties were '
+    + 'renamed or the fit stopped being read; both leave this check with nothing to measure.',
+  );
+  assert.equal(unheldOnClose(sheets), null);
+});
+
+test('the check refuses geometry that only answers .open', () => {
+  // The state this PR replaced: the fit stops applying in the frame the menu
+  // closes, while the panel keeps fading for --dur-med.
+  const openOnly = [['fixture-bar.css',
+    `${BAR}__chip .ui-dropdown.open ${PANEL} { min-width: min(var(--ui-filter-panel-floor, 240px), 100%); }`]];
+  assert.match(unheldOnClose(openOnly), /open menu and to nothing else/);
+});
+
+test('the check refuses a sheet that stopped writing the fit at all', () => {
+  assert.match(unheldOnClose([['fixture.css', '.ui-dropdown { position: relative; }']]), /no rule writes/);
 });
