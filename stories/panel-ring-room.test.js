@@ -36,6 +36,10 @@
 //   expression does not end the element and a `<` inside a string does not start one; but
 //   a marker this walk cannot tie to exactly one class attribute stops the gate rather
 //   than being named by whatever class is nearest.
+// - Comments are told from text by a second walk, also not a parser. A `//` or `/*` inside
+//   a string, a template or a regex literal is markup and stays; only a comment is
+//   blanked. Source that walk cannot finish stops the gate rather than being read half
+//   lexed, and an apostrophe in JSX text it takes for a string costs that one line.
 // - The source reading covers src/ and react/src/, the trees the package ships. A panel
 //   hand-written into an example page is not read; those pages compose the factories.
 // - It does not ask whether the rows take the ring at all. `.vopt:focus-visible` never
@@ -66,10 +70,78 @@ const sourceFiles = ['src', 'react/src'].flatMap((base) => readdirSync(base, { r
   .map(String).filter((file) => /\.(js|mjs|ts|tsx)$/.test(file) && !/\.test\./.test(file))
   .map((file) => `${base}/${file}`));
 
-/** Comments out, newlines kept, so prose about the attribute is never read as markup. */
-const code = (text) => text
-  .replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '))
-  .replace(/(^|[^:])\/\/[^\n]*/g, (whole, lead) => lead + ' '.repeat(whole.length - lead.length));
+/**
+ * Comments out, newlines kept, so prose about the attribute is never read as markup.
+ *
+ * A walk, not a pair of regexes: `//` and `/*` open a comment in code only. In a string or
+ * a template they are text the markup keeps — `data-help="//example.test/help"` is an
+ * attribute — and blanking the rest of that line takes a real marker beside it with it,
+ * which is #579. Regex literals are walked for the same reason the other way round:
+ * `/[&<>"]/` carries a quote that opens no string, and a walk that read one would take the
+ * code after it for string text and strip no comment out of it.
+ *
+ * A walk that does not end in code has lost its place in the file, so it says so rather
+ * than handing back a reading of it.
+ */
+const code = (text, file = 'a source') => {
+  const out = text.split('');
+  const blank = (from, to) => { for (let i = from; i < to; i += 1) if (out[i] !== '\n') out[i] = ' '; };
+  // A `/` divides after a value and opens a regex where an expression may start. The last
+  // code character says which of the two it is, except after a keyword, which is no value.
+  const AFTER_VALUE = /[)\]]/;
+  const KEYWORD = /^(?:return|typeof|instanceof|in|of|new|delete|void|case|do|else|yield|await)$/;
+  const nested = [];       // the brace depth of each template an interpolation sits inside
+  let mode = 'code';       // code, the quote of the string being read, or regex
+  let depth = 0;           // braces opened since the innermost `${`
+  let last = '';           // the last code character that is not whitespace
+  let word = '';           // the identifier that character ends, when it is one
+  let inClass = false;     // inside a regex's `[…]`, where a `/` is literal
+  const read = (ch) => { word = /[\w$]/.test(ch) ? word + ch : ''; last = ch; };
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (mode === '\'' || mode === '"') {
+      // No string holds a raw newline, so a quote this walk misread — an apostrophe in JSX
+      // text — costs the rest of its own line and no more.
+      if (ch === '\\') i += 1;
+      else if (ch === mode || ch === '\n') { mode = 'code'; read(ch); }
+    } else if (mode === '`') {
+      if (ch === '\\') i += 1;
+      else if (ch === '`') { mode = 'code'; read(ch); }
+      else if (ch === '$' && text[i + 1] === '{') { nested.push(depth); depth = 0; mode = 'code'; read('{'); i += 1; }
+    } else if (mode === 'regex') {
+      // A regex holds no raw newline either, which is where a misread `/` gives up.
+      if (ch === '\\') i += 1;
+      else if (ch === '\n') mode = 'code';
+      else if (inClass) inClass = ch !== ']';
+      else if (ch === '[') inClass = true;
+      else if (ch === '/') { mode = 'code'; read('/'); }
+    } else if (ch === '/' && text[i + 1] === '/') {
+      const stop = text.indexOf('\n', i);
+      blank(i, stop === -1 ? text.length : stop);
+      i = (stop === -1 ? text.length : stop) - 1;
+    } else if (ch === '/' && text[i + 1] === '*') {
+      const close = text.indexOf('*/', i + 2);
+      blank(i, close === -1 ? text.length : close + 2);
+      i = (close === -1 ? text.length : close + 2) - 1;
+    } else if (ch === '\'' || ch === '"' || ch === '`') {
+      mode = ch;
+    } else if (ch === '/' && (word ? KEYWORD.test(word) : !AFTER_VALUE.test(last))) {
+      mode = 'regex';
+      inClass = false;
+    } else if (!/\s/.test(ch)) {
+      if (ch === '{') depth += 1;
+      else if (ch === '}' && depth) depth -= 1;
+      else if (ch === '}' && nested.length) { depth = nested.pop(); mode = '`'; continue; }
+      read(ch);
+    }
+  }
+  if (mode !== 'code' || nested.length) {
+    const lost = mode === 'regex' ? 'a regex' : mode === 'code' ? 'a template interpolation' : 'a string';
+    throw new Error(`${file}: this gate cannot tell this source's code from its text`
+      + ` — the walk reaches the end of the file inside ${lost}`);
+  }
+  return out.join('');
+};
 
 /**
  * The attribute groups a source holds: every `<tag …>` and every `[…]` list, as spans.
@@ -131,7 +203,7 @@ const groupsIn = (text) => {
  * tie to one class attribute stops the gate rather than being named by a neighbour.
  */
 const panelsIn = (text, file = 'a source') => {
-  const src = code(text);
+  const src = code(text, file);
   const groups = groupsIn(src);
   const found = [];
   for (const mark of src.matchAll(/(?<![[\w-])data-dropdown-panel(?![\w-\]])/g)) {
@@ -338,4 +410,40 @@ test('the gate reads the marked element, not the nearest class before it', () =>
   assert.deepEqual(cutsOff(['review-extra-menu'], () => sheet),
     ['.review-extra-menu in src/styles/review.css: clips at its edge with 0px of padding for a 3px ring'],
     'a clipping panel that pads by a bare zero has to read as cutting the ring off');
+});
+
+test('the gate reads a quoted // as markup and a comment as a comment', () => {
+  // #579: comment stripping blanked from any `//` to the line's end, quoted or not. A
+  // protocol-relative URL in an attribute took the marker standing beside it with it, and
+  // the panel it marked was discovered by nobody.
+  const url = 'export const reviewMenu = () => `<div data-help="//example.test/help"'
+    + ' data-dropdown-panel class="review-extra-menu" role="menu"><button>Review</button></div>`;';
+  assert.deepEqual(panelsIn(url), ['review-extra-menu'],
+    'a quoted // before a marker has to leave the marker readable');
+
+  // `/*` the same way, and with no closing pair it used to blank the rest of the file.
+  const block = 'export const reviewMenu = () => `<div data-tip="6px /* not a comment"'
+    + ' data-dropdown-panel class="review-extra-menu"><button>Review</button></div>`;';
+  assert.deepEqual(panelsIn(block), ['review-extra-menu'],
+    'a quoted /* before a marker has to leave the marker readable');
+
+  // Either way it is a panel the fixtures never render, so the reconciliation stops. The
+  // clipping rule that goes with it reads as cutting the ring off; the test above proves that.
+  const added = new Map([...declared, ['review-extra-menu', ['src/components/review.js']]]);
+  assert.throws(() => reconcile(added, rendered), /never renders/,
+    'a panel marked after a quoted // can pass as one the fixtures already measure');
+
+  // And the stripping is still stripping: a comment that writes the attribute marks nothing,
+  // alone on its line, after a quoted // on the same line, and in a block.
+  const prose = '// A panel carries data-dropdown-panel, which this gate reads.\n'
+    + 'const help = "//example.test/help"; // data-dropdown-panel in prose beside it\n'
+    + '/* data-dropdown-panel in a block comment */\n'
+    + 'export const plain = () => `<div class="review-extra-menu"></div>`;';
+  assert.deepEqual(panelsIn(prose), [],
+    'prose that names the attribute has to mark no panel');
+
+  // And a source the walk cannot finish stops the gate rather than being read half lexed.
+  assert.throws(() => panelsIn('const open = `<div data-dropdown-panel class="x">', 'src/components/review.js'),
+    /cannot tell this source's code from its text/,
+    'an unfinished template has to stop the gate, not be read as far as the walk got');
 });
