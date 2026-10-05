@@ -45,7 +45,7 @@ const SPEC_CSS = `
 
 /* A guideline page is reading, so the page IS the reading surface rather than a
  * grey ground with reading on it. Light spends its white here
- * (src/tokens/tokens.css), and twenty-three pages of rules, reasons and captions
+ * (src/tokens/tokens.css), and twenty-four pages of rules, reasons and captions
  * straight on --bg is the page ground doing a surface's job.
  *
  * A surface and not a card: ten of these pages draw a card as a SPECIMEN, and a

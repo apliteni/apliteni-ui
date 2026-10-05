@@ -1,7 +1,7 @@
 /* Rule: a guideline page's prose stands on the reading surface, never on the
  * page ground.
  *
- * Twenty-three rule pages and the Overview are reading, and the kit spends its
+ * Twenty-four rule pages and the Overview are reading, and the kit spends its
  * light theme's white on the surface a reader reads on rather than on the page
  * behind it. The rule pages are drawn by one layout, so the fault was one fault
  * and the check is one check: every page is mounted under the kit's stylesheets,
@@ -70,7 +70,7 @@ const pageFiles = readdirSync(here).filter((f) => f.endsWith('.stories.js')).sor
 
 /* The floors are what the collection holds today, not a round number under it: a
  * floor with slack in it is a floor a deleted page walks under. */
-const FOUND = { pages: 24, stories: 24, prose: 907 };
+const FOUND = { pages: 25, stories: 25, prose: 927 };
 
 /* Every prose carrier the collection writes. Each name is held against the
  * source below, so a renamed class fails here instead of quietly leaving the
@@ -196,7 +196,7 @@ test('the gate found every guideline page, in both themes', () => {
       + `${theme} theme, against ${FOUND.prose} when this was written. A gate measuring nothing `
       + 'passes everything.');
     // Every page contributes, so one page emptying itself cannot hide behind the
-    // other twenty-three in the total above.
+    // other twenty-four in the total above.
     const silent = storyIds.filter((id) => !rows.some((r) => r.where === id));
     assert.deepEqual(silent, [], `a guideline page wrote no prose at all in the ${theme} theme`);
   }
