@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState, type ReactNode } from 'react';
 import { vi } from 'vitest';
+import { nextFocusStop } from '@apliteni/apliteni-ui';
 import { FilterBar, type AddFilter, type Filter } from './FilterBar';
 
 const filters: Filter[] = ['Region', 'Status'].map(label => ({ id: label, label, value: 'All', items: [{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' }] }));
@@ -355,7 +356,11 @@ it('lands the focus on the add control when clearing empties the chips', async (
   render(<Emptying />);
   await userEvent.click(screen.getByRole('button', { name: 'Clear all' }));
   expect(screen.queryByRole('button', { name: 'Clear all' })).not.toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Add' })).toHaveFocus();
+  const add = screen.getByRole('button', { name: 'Add' });
+  expect(add).toHaveFocus();
+  // The published answer a consumer reads names the control the bar chose, not the
+  // page's own button past the row: one list, both faces.
+  expect(nextFocusStop(document.querySelector('[data-filter-bar]'))).toBe(add);
 });
 it('lands the focus on the add control when the last chip is removed', async () => {
   render(<Emptying start={[filters[0]]} />);
