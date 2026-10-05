@@ -2225,6 +2225,47 @@ order, and failing on each. What it cannot see is pixels: it reads the sheet, an
 measured in a browser. It also asks the panel and not its ancestors, none of which clips here. The
 limits are written beside it.
 
+## A folded rail takes the pointer only where it draws
+
+A folded sidebar rail is `--ui-nav-strip` wide — one glyph column — and every box inside it is laid
+out in that strip: the sections, the lists, the rows and the rule the footer draws above itself. The
+one exception is a section heading, which keeps `--ui-nav-col` so that its line breaks are the ones
+the open rail gives it and the fold changes no height. At that width it is `opacity: 0` and
+`pointer-events: none`, so the column it keeps draws nothing and takes no pointer.
+
+**What a consumer can rely on.** A folded rail takes the pointer only where it draws. Compose one
+beside a page and give it any `position` — `static`, `relative`, `sticky` or `absolute` — and every
+click and tap on the page beside it still lands on the page.
+
+Both halves of that were learned in opposite directions. Until
+[#575](https://github.com/apliteni/apliteni-ui/issues/575) the rail laid every row out from the open
+column and clipped itself to the strip with `overflow-x: clip`. The kit draws the focus ring
+`--ring-gap-width` + `--ring-width` outside the row, so that clip took both ends of it and a keyboard
+reader met two accent bars above and below the glyph — the shape
+[#519](https://github.com/apliteni/apliteni-ui/issues/519) had just left on the account menu.
+Closing the rows and dropping the clip drew the ring whole, and left the blocks around them 216px
+wide inside a 41px rail, painting nothing and hit-testable again. Beside a `position: sticky` rail a
+band probe at 4px spacing found 5,848 of 7,840 points on the page where the rail took the
+pointer, and 0 of 5 targets beside it reachable. The page shell escaped it only because `.ui-app__rail`
+carries `overflow: hidden auto`; the standalone component no longer contained itself. Closing the
+blocks as well is what makes the rail's hit area the rail, and it needs no clip, so the ring stays
+whole.
+
+**What a folded rail does not promise: its scrollable width.** The heading's 216px box is laid out,
+and a laid-out box counts towards the page's scrollable width however invisible and inert it is — the
+same arithmetic as the filter row below. A folded rail flush to a page's right edge adds 175px to
+that width, measured at 1280 and 390, and the same before this was fixed and on the release before
+it. Closing the heading too would make the fold change the rail's height whenever a heading wraps,
+and clipping the section would put a clip back beside the ring, which is what #575 was. Neither was
+taken: a left-hand rail has at least `--ui-nav-col` of page beside it, so the box lands inside the
+viewport and the page does not scroll.
+
+Held by `stories/rail-strip-hits.test.js` for the hit area and `stories/rail-ring-room.test.js` for
+the ring. The two are a pair, because the clip that contained the rail was the clip that cut the
+ring, and a gate that reads one of them cannot see the other go wrong. Measured in Chrome at 1280 and
+390 in both themes, vanilla and React: 0 probe points on the page beside a positioned folded rail,
+5 of 5 targets reachable, and the ring whole on all four sides of all 13 rows.
+
 ## A filter row holds its panels
 
 A filter chip's dropdown panel is as wide as the chip's trigger. It is the one place in the kit

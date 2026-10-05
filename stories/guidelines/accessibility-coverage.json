@@ -817,6 +817,19 @@
       "blind": [
         "JSDOM does not paint gradients, selection rings or focus indicators; browser captures cover appearance and grid alignment."
       ]
+    },
+    {
+      "file": "stories/rail-strip-hits.test.js",
+      "name": "Rail strip hit area",
+      "does": "Requires a folded sidebar rail to take the pointer only where it draws. The rail is --ui-nav-strip wide and lays its rows out from --ui-nav-col, so the fold has to close the boxes inside it as well as the rail itself; a block that keeps the open column paints nothing at this width and is hit-testable all the same — 216px of box inside a 41px rail, 175px of it over the page beside it, with nothing drawn there to warn a reader. #575 took off the overflow-x: clip that was cutting the rows' focus ring, and #588 is what that cost before the blocks closed too: beside a position: sticky folded rail a band probe at 4px spacing took 5,848 of 7,840 points on the page away from it, and left 0 of 5 targets beside it reachable. This gate and stories/rail-ring-room.test.js are a pair, because the one declaration was containing the rail and cutting the ring. Subjects are discovered rather than listed: the kit's sheets are resolved with the tokens substituted, and every box a rendered folded rail contains is walked with the column it is laid out in carried down, so a list that is auto inside a 216px section is measured at 216px and not at its own declared width. The blocks and rows the fixture renders are reconciled against the boxes the walk reached. Two themes. Proves rejection five times over: by leaving the blocks at the open column (#588 exactly), by widening a section and requiring the auto list inside it to be reported, by laying a row out from the open column, by taking pointer-events: none off the one box that keeps the open column, and by giving that box a max-content width no reading of the cascade can fold into a length.",
+      "blind": [
+        "Widths, not offsets or hit testing. JSDOM lays nothing out and hit-tests nothing; what is read is the resolved cascade. A box pushed past the strip by a margin or a transform is not read here. Chrome measured the hit area itself for #588, before and after: 5,848 of 7,840 probe points on the page beside a sticky rail taken by it, then 0, with 5 of 5 targets reachable at 1280 and 390 in both themes, vanilla and React.",
+        "pointer-events has to be declared on the box that is past the strip. It is an inherited property and the cascade this gate reads does not inherit it, so an auto box inside a none one reads as auto. Conservative on purpose: the box past the strip is where the declaration belongs, and a reading that guessed would miss one that re-enabled the pointer.",
+        "A width this gate cannot fold into a length is a failure rather than a pass, except auto and 100%, which take the column of the box around them and are followed as such.",
+        "Anything a media query or a consumer's sheet does to the rail or the boxes inside it: only the rail's own rules and the ones the folded class adds are read.",
+        "The page shell's own folded rail (.ui-app__rail), whose rows keep the open column and which contains them with overflow: hidden auto. A different box with a different answer, and not this gate's subject — see #589.",
+        "Whether a row is big enough to hit, which is stories/tap-zone.test.js's question. This gate asks the opposite: whether anything claims a hit area it does not draw."
+      ]
     }
   ],
   "UNGATED": [

@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.89.1', date: '2026-10-05',
+    changes: [
+      ['fixed', 'A keyboard-focused link on a folded sidebar rail draws the whole focus ring. The rail is one glyph wide and was clipped across while every row inside it was still laid out from the open column, so a three-pixel ring had both its ends cut away and arrived as two accent bars above and below the glyph. Every box in a folded rail is now the rail\u2019s own width, which leaves the rail nothing to clip and keeps the rail\u2019s hit area the rail \u2014 the blocks around the rows kept the open column, so beside a positioned rail they took clicks and taps off 175px of the page while drawing nothing there. Fixes #575.', ['Navigation', 'SidebarNav']],
+    ],
+  },
+  {
     v: '0.89.0', date: '2026-10-05',
     changes: [
       ['changed', '`npm run check:words` measures the prose on each guidelines page and fails one that is over its word budget. The budget is 60 words a rule, read off the shortest pages in the collection today, and the count is every word a reader reads: any introduction above the first rule, then each rule\u2019s title and the fields it fills. An introduction buys no allowance of its own, so a page with no rules has nothing to spend and any introduction on one fails. The fifteen pages already over the budget are held at their current size until they are cut. It is a drafting aid for whoever edits the collection, deliberately outside CI, and changes nothing the kit renders. Resolves #576.'],
