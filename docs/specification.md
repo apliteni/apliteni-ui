@@ -532,7 +532,37 @@ in light and 12% in dark over the panel, giving roughly the same fill separation
 in both themes while keeping text at least 4.5:1. This soft badge fill is an
 explicit exception to the text-surface rule, requested in the r18 review of
 [#445](https://github.com/apliteni/apliteni-ui/issues/445).
-Held by `stories/dropdown-state-contrast.test.js`.
+[#453](https://github.com/apliteni/apliteni-ui/issues/453) published it as
+`--chip-neutral-fill` and gave it to the badge, the pill and the archived version
+badge as well, so the tones with no status to carry are one family with the four
+that have one: each fill leaves its panel in the same direction, lighter in dark
+and darker in light. A consumer may re-point the token; the two alphas are set so
+the themes separate by the same amount (1.22:1 and 1.23:1 off a card) rather than
+by the same alpha, because `--muted` is a light violet-grey in dark and a mid
+slate in light. Held by `stories/dropdown-state-contrast.test.js` and
+`stories/badge-tones.test.js`.
+
+**The exception is named with its thinnest pairs, and they are per ground.** A chip
+sits on three grounds — the page, a card and a floating panel — and a translucent wash
+is not equally safe on all three, so the numbers that matter are the worst ones rather
+than the card's. `stories/badge-tones.test.js` measures every tone on all three, under
+both themes and all four accents, because the review of
+[#485](https://github.com/apliteni/apliteni-ui/pull/485) found a 4.04:1 chip that a
+card-only gate had passed. The pairs with the least room today:
+
+| Pair | Ground | Ink | Why it is the thinnest |
+| --- | --- | --- | --- |
+| `.ui-badge--archive` | light page | **4.51:1** | `--muted` on the 15% muted wash, over `--bg` rather than white. 0.01 over the floor; a later `--muted` tweak drops it under, and this line is what says so. |
+| `.ui-badge--archive` | dark floating panel | **4.56:1** | the same pair at the other theme's lightest ground. |
+| `.ui-badge--danger` | dark floating panel | 6.30:1 | was 4.23:1 under the floor while `--chip-danger-ink` was `--pink`; see the status-chip pair rule below. |
+
+Separation is thinnest in the other direction: on the **light page** the warn and
+pending fills leave their ground by only 1.043:1 and live by 1.047:1, because a light
+glow wash sits close to `--bg`. Those stay legible because a status chip is told apart
+by its ink as well as its fill, which is not true of the non-status tones — those
+measure 1.222:1 on the same ground, and holding that is what the family rule is for.
+Tightening the light page means moving the light glow alphas, which is a token decision
+and its own issue.
 Dropdown selection uses an accent checkmark and a body-ink title. Non-status badges,
 including the legacy accent tone, use body ink; live badges retain status colour.
 Explicit neutral tone, unselected options and missing-comparison sentences use body ink.
@@ -573,6 +603,32 @@ Held by `stories/accent-contrast.test.js` and `stories/signal-contrast.test.js`,
 take the accent list from `accents.css` rather than from a list typed into the gate.
 
 Decided in [#157](https://github.com/apliteni/apliteni-ui/issues/157).
+
+**A status chip's ink and fill are one pair, and the success pair is held above the
+floor rather than at it.** Light `--chip-success-ink` was `#1c7034`, which measured
+5.29:1 on `--chip-success-fill`: over AA and well under the 7:1 body aim in
+`guidelines/accessibility-floor.md`. It is the verdict a finance row carries — a
+"Paid" chip, read at `--text-xs` — so
+[#453](https://github.com/apliteni/apliteni-ui/issues/453) deepened it to `#145a26`,
+which measures **7.17:1** on that fill and **8.33:1** on a white card. The fill did
+not move: it clears white by 1.16:1, and lightening it to buy ratio would have cost
+the chip its soft, edgeless shape. White on the deepened ink reads 8.33:1, so the
+solid success surface it also feeds improved with it. The other three light pairs sit
+at 4.85:1 (danger), 5.27:1 (info) and 5.37:1 (warn) — above the floor, under the aim,
+and not part of this change.
+
+The same rule caught a second pair on the way through. Dark `--chip-danger-ink` was
+`--pink` itself, which reads 4.23:1 on `--chip-danger-fill` over a **floating panel** —
+the lightest dark ground, so the one that leaves a translucent tint least to work with,
+and under the 4.5:1 floor this section sets for both themes. It passed every gate because
+no badge gate measured that ground. It is now `#f5aec6`, the same hue lifted toward
+white: 8.64:1 on the page, 7.02:1 on a card, 6.30:1 on a panel, which puts danger back
+beside info (6.50:1) and warn (6.90:1). The `--pink` signal and the solid-toast pair are
+unchanged; only the chip ink moved, which is what light has always done here.
+
+Held by `stories/contrast.test.js`, whose chip-pair probe measures both halves of
+every `--chip-*` pair whether or not a story renders it, and by
+`stories/badge-tones.test.js` on all three grounds.
 
 **A disabled control is painted, never faded.** `opacity` is a group property: it pulls a label
 and the box under it toward the ground together, so what a reader is left with is wherever that
@@ -734,9 +790,16 @@ The ladder, bottom to top:
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
 
 **Text sits on the page, card or floating panel surface, never on a grey inset.**
-Fields, code blocks, neutral badges, navigation labels and segmented controls use
-these reading surfaces in both themes. Grey fills remain for non-text marks and
-tracks. Inputs use `--field-bg: var(--surface)` and their field edge tokens;
+Fields, code blocks, navigation labels and segmented controls use these reading
+surfaces in both themes. Grey fills remain for non-text marks and
+tracks. A status chip is the one exception, and it is a named one: every badge,
+pill and menu chip carries a soft fill, `--chip-neutral-fill` where the tone
+reports no verdict. #455 gave the neutral tones the card surface instead, and
+[#453](https://github.com/apliteni/apliteni-ui/issues/453) took that back —
+an opaque card surface made them the only soft badges that sat *darker* than a
+floating panel in dark and invisible on a white card in light, which is the
+disagreement the tone family was supposed to remove.
+Inputs use `--field-bg: var(--surface)` and their field edge tokens;
 disabled text controls use the same reading surface with disabled ink. Status
 colours keep their meaning, and badge text must clear 4.5:1 in both themes.
 
@@ -917,8 +980,10 @@ is declared at `:root` in the palette and nowhere else, because a sheet re-point
 changes what every floating surface casts. The numbers
 above are floored there, so a treatment can get better and cannot quietly get worse.
 
-**Inside a floating panel, text retains a reading surface.** Neutral rows and
-chips use the card surface; fields use the same field tokens as elsewhere.
+**Inside a floating panel, text retains a reading surface.** Neutral rows use the
+card surface and fields use the same field tokens as elsewhere. A chip takes
+`--chip-neutral-fill` rather than the card surface, because inside a panel that is
+itself lighter than a card the card surface is the darker of the two (#453).
 Accent counters use accent ink on that surface, without stacking translucent
 washes on a selected row.
 
@@ -1337,6 +1402,30 @@ it under the chevron. Held by `stories/select-chevron.test.js`, which resolves t
 rather than reading declarations; what it sweeps, and what it does not, is stated there.
 
 Decided in [#511](https://github.com/apliteni/apliteni-ui/issues/511).
+
+### A status glyph is circled
+
+A circled glyph reports a state the system is in; a bare glyph names an action the
+reader can take (`iconMeanings` in `src/assets/icons.js`). Both components that
+report a status choose their glyph from that split: `toast()` reads `TOAST_ICON`
+and `callout()` reads the published `calloutIcons`, and the four status tones in
+each are `circleCheck`, `circleX`, `circleAlert` and `info`. An explicit `icon`
+still wins, so a caller can say something the tone cannot.
+
+The neutral tones differ on purpose, and only there: a neutral toast takes `bolt`,
+"it happened, with no verdict attached", while a neutral callout takes `info`,
+because a callout is a standing note on the page rather than something that just
+occurred.
+
+Until [#453](https://github.com/apliteni/apliteni-ui/issues/453) `calloutIcons`
+shipped the bare `check` and `alert`, which is why the showcases overrode the tone
+per instance.
+
+Held by `react/src/primitives/Callout.test.tsx`, which asserts the glyph of all five
+tones. The vanilla `calloutIcons` map has no gate of its own: the stories that
+render a toned callout without an `icon` would show a changed glyph, and nothing
+would fail. `stories/guidelines/iconography.test.js` does not cover this — it checks
+which controls may go wordless, not which family a status glyph comes from.
 
 ### Busy button labels
 

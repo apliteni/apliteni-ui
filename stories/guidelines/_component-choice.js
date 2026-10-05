@@ -36,7 +36,6 @@ export const interruptDont = () => stage(callout({
 
 export const transientDo = () => stage(callout({
   variant: 'warn',
-  icon: 'alert',
   body: 'This token is shown once. Copy it now — you won’t see it again.',
 }));
 // No `action` here on purpose: a warn toast carrying one paints --amber ink
