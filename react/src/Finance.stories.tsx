@@ -4,6 +4,10 @@ import { NumericValue, DeltaValue, RowIdentity } from './TableValues';
 import { FilterBar, type Filter } from './FilterBar';
 import { Segmented } from './Segmented';
 export default { title: 'Components/Finance composition', parameters: { layout: 'fullscreen' } };
+// `.ui-app__sub` puts 32px between a page introduction and the block under it,
+// which Showcases/Stock screener and Showcases/Finance report both measure at.
+// This composition builds its head by hand, so it says the step by hand.
+const intro = { marginBottom: 'var(--space-8)' };
 function Example() {
   const [view, setView] = useState('overview');
   const [filters, setFilters] = useState<Filter[]>([{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology', value: 'Technology' }, { label: 'Energy', value: 'Energy' }] }]);
@@ -21,7 +25,7 @@ function SelectableExample() {
   const [selected, setSelected] = useState(new Set<string>());
   return <main className="pinned-selection" style={{ maxWidth: '60rem', padding: 'var(--space-6)' }}>
     <style>{'.pinned-selection .ui-table { min-width: 70rem; }'}</style>
-    <h1>Select companies</h1><p>Fictional data. Scroll to compare values while keeping company selection in view.</p>
+    <h1>Select companies</h1><p style={intro}>Fictional data. Scroll to compare values while keeping company selection in view.</p>
     <DataTable rows={rows} selected={selected} onToggle={name => setSelected(current => {
       const next = new Set(current); if (next.has(name)) next.delete(name); else next.add(name); return next;
     })} onTogglePage={names => setSelected(current => names.every(name => current.has(name)) ? new Set() : new Set(names))}
