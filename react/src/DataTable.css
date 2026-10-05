@@ -29,3 +29,13 @@
 @media (prefers-reduced-motion: reduce) {
   .rx-caret { transition: none; }
 }
+
+/* The step the vanilla sheet puts on `.ui-table + .ui-pager`. That selector cannot reach
+   this component — the table and the pager are each inside a wrapper of their own — so the
+   same step is declared here, and DataTable.test.tsx holds the two to one value.
+   Guarded, because the wrapper outlives the strip: `Pagination` renders nothing for one
+   page with no size menu, and the step on the box alone reserved 16px under every short
+   table — the case #504 is about. The vanilla sheet never had this, because it hangs the
+   step off the strip itself.
+   why: docs/specification.md#spacing-and-rhythm */
+.rx-table-pager:has(.ui-pager) { margin-top: var(--space-4); }

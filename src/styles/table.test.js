@@ -276,3 +276,176 @@ test('numeric headers hold one line across table modifiers', () => {
 test('the numeric-header check rejects a sheet that lets them wrap', () => {
   assert.throws(() => checkNumericHeaderWrap(`${CSS}\n.ui-table th.ui-table__num { white-space: normal; }`));
 });
+
+/**
+ * Rule: a table sizes to its content and is capped at the room it has (#504). No rule in
+ * this sheet stretches one.
+ *
+ * Subjects are discovered by what a rule's last compound targets: a table element, bare or
+ * by class. Cell rules are out: `__title`'s 99% is how a text column takes the slack.
+ *
+ * What it does not reach: layout, and any sheet but this one. Nothing in either workspace
+ * measures a rendered width — the numbers for that are in the pull request, read off
+ * Chromium. What a React table does with a measured width is held by
+ * `react/src/DataTable.test.tsx`, in jsdom, which computes no widths either.
+ */
+const CELL = /(?:__|\s(?:thead|tbody|tr|caption)\b)/;
+// Comments out first: the header comment above the base rule names a cell class,
+// and an uncommented scan read it as part of that rule's selector.
+const noComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+// `:where(…)` and `:is(…)` hold their own comma lists, so the wrapper goes before the
+// selector is split on commas — `.ui-card > :where(.ui-table--dense, .ui-table--zebra)`
+// is two selectors, and the second one ended in a bracket the match could not read.
+const compounds = (selector) => selector.replace(/:where\(|:is\(|\)/g, '').split(',')
+  .map((part) => part.trim().split(/[\s>+~]+/).filter(Boolean).pop() || '');
+const TABLE_ELEMENT = /^(?:table|\.ui-table(?:--[\w-]+)?)(?:[:.[][^\s]*)?$/;
+const targetsTable = (selector) => compounds(selector).some((last) => TABLE_ELEMENT.test(last));
+
+// A brace walk, not one regex: a media block opens a block of its own, and a match that
+// stops at the first `}` swallows the first rule inside it. The stacked phone layout lives
+// in one, so every rule there has to be a subject of its own or the sheet can hide one.
+const rulesIn = (css) => {
+  const src = noComments(css);
+  const open = [];
+  const out = [];
+  let start = 0;
+  for (let i = 0; i < src.length; i += 1) {
+    if (src[i] === '{') {
+      open.push(src.slice(start, i).trim());
+      start = i + 1;
+    } else if (src[i] === '}') {
+      const selector = open.pop() || '';
+      const body = src.slice(start, i);
+      if (selector && !selector.startsWith('@') && !body.includes('{')) out.push({ selector, body });
+      start = i + 1;
+    }
+  }
+  return out;
+};
+const tableSizingRules = (css) => rulesIn(css)
+  .filter(({ selector, body }) => targetsTable(selector) && !CELL.test(selector)
+    && /(?:^|;|\s)width\s*:/.test(body));
+
+// Below the phone step `--stack` stops laying out as a table at all: `display: block` makes
+// each row its own flex block, so the column is the width and there is no content width left
+// to size to. The two rules are named one by one rather than the class exempted, so a
+// `--stack` rule written anywhere else is still a subject.
+const STACK_LAYOUT = ['.ui-table.ui-table--stack', '.ui-card > .ui-table--stack'];
+
+function tableWidths(css) {
+  const rules = tableSizingRules(css);
+  assert.ok(rules.length > 0, 'no rule in this sheet sizes a table — the subject is gone');
+  const problems = [];
+  let measured = 0;
+
+  for (const { selector, body } of rules) {
+    for (const [, value] of body.matchAll(/(?:^|;|\s)width\s*:\s*([^;}]+)/g)) {
+      const width = value.trim();
+      if (width !== 'auto' && !STACK_LAYOUT.includes(selector)) {
+        problems.push(`${selector} sizes the table itself: width: ${width}`);
+      }
+      measured++;
+    }
+  }
+  assert.equal(measured, rules.length, 'every sizing rule must be measured once');
+  // An exemption that no longer names a rule in the sheet is a hole with nothing behind it.
+  for (const selector of STACK_LAYOUT) {
+    if (!rules.some((rule) => rule.selector === selector)) {
+      problems.push(`${selector} is exempt here and is no longer in the sheet`);
+    }
+  }
+
+  // The cap is the other half: without it a short table shrinks but a bled one
+  // inside a card loses the end inset it bleeds into.
+  const caps = rulesIn(css).filter(({ selector, body }) => /max-width/.test(body)
+    && targetsTable(selector) && !CELL.test(selector));
+  if (!caps.some(({ body }) => /max-width\s*:\s*100%/.test(body))) {
+    problems.push('no rule caps a table at the room it has');
+  }
+  if (!caps.some(({ selector, body }) => selector.includes('.ui-card') && /calc\(100%/.test(body))) {
+    problems.push('the card bleed no longer caps a table at the width it bleeds to');
+  }
+  return problems;
+}
+
+test('a table sizes to its content and is capped, never stretched', () => {
+  assert.deepEqual(tableWidths(CSS), []);
+});
+
+test('the width gate rejects a table stretched back to its container', () => {
+  for (const [name, mutation] of [
+    ['the base rule', CSS.replace('  width: auto;', '  width: 100%;')],
+    ['a modifier', `${CSS}\n.ui-table--dense { width: 100%; }`],
+    ['a composition inside a card', `${CSS}\n.ui-card > .ui-table--zebra { width: calc(100% + 2 * var(--space-3)); }`],
+    // The hole #504's first review named: a bare `table` reached through the scroll
+    // host stretches every table in the kit and names no `.ui-table` class at all.
+    ['a bare table under the scroll host', `${CSS}\n.ui-table-scroll > table { width: 100%; }`],
+    // And the one its second review named: a wrapper sized to a pager, with the table
+    // filling it, is a stretch written in two rules instead of one.
+    ['a table filling a box of its own', `${CSS}\n.ui-table-frame .ui-table { width: 100%; }`],
+    // The stacked phone layout is exempt by its two selectors, not by its class: a third
+    // rule stretching `--stack` anywhere else is still a stretch.
+    ['a stack rule outside the phone layout', `${CSS}\n.ui-table--stack { width: 100%; }`],
+    // The media block the exemption lives in: a rule hidden in one used to be unreadable,
+    // because the match that read its opener stopped at the first `}` inside it.
+    ['a rule inside a media block', `${CSS}\n@media (max-width: 560px) { .ui-table--hover { width: 100%; } }`],
+  ]) {
+    assert.ok(tableWidths(mutation).length > 0, `${name} must be rejected`);
+  }
+  assert.ok(tableWidths(CSS.replace('  max-width: 100%;', '')).length > 0,
+    'removing the cap must be rejected');
+  assert.ok(tableWidths(CSS.replace('max-width: calc(100% + 2 * var(--space-3));', 'max-width: 100%;')).length > 0,
+    'a card bleed that caps at the card instead of the bled width must be rejected');
+});
+
+/**
+ * Rule: the card bleed reaches the table in the shapes the kit actually renders.
+ *
+ * Both bleed rules are direct-child selectors on the card, and a wrapper added inside
+ * `DataTable` put a `<div>` between them and the table: every dense React table in a card
+ * lost its bleed, its columns moved 24px off the card's text edge, and every gate stayed
+ * green. The selectors are read out of the sheet rather than written here, so renaming one
+ * fails this rather than passing it quietly.
+ *
+ * What it does not reach: the bleed's own numbers, and any shape the kit does not render.
+ * jsdom matches selectors; the margin it would pull is the rule above's business.
+ */
+const SHAPES = {
+  'a vanilla dense table in a card': '<div class="ui-card"><table class="ui-table ui-table--dense"></table></div>',
+  'a vanilla zebra table in a card': '<div class="ui-card"><table class="ui-table ui-table--zebra"></table></div>',
+  'a React dense table in a card': '<div class="ui-card"><div class="ui-table-scroll">'
+    + '<table class="ui-table ui-table--dense"></table></div></div>',
+};
+
+function bleedReaches(css, shapes = SHAPES) {
+  const selectors = rulesIn(css)
+    .filter(({ selector, body }) => selector.startsWith('.ui-card >') && /margin-inline/.test(body))
+    .map(({ selector }) => selector);
+  assert.ok(selectors.length >= 2, `the card bleed is gone from the sheet: ${selectors.length} rule(s)`);
+  const missed = [];
+  let measured = 0;
+  for (const [name, html] of Object.entries(shapes)) {
+    const win = new JSDOM(html).window;
+    if (!selectors.some((selector) => win.document.querySelector(selector))) missed.push(name);
+    measured++;
+    win.close();
+  }
+  assert.equal(measured, Object.keys(shapes).length, 'every shape must be measured');
+  return missed;
+}
+
+test('the card bleed reaches the table in every shape the kit renders', () => {
+  assert.deepEqual(bleedReaches(CSS), []);
+});
+
+test('the bleed gate rejects a wrapper that puts the table out of reach', () => {
+  assert.deepEqual(
+    bleedReaches(CSS, {
+      framed: '<div class="ui-card"><div class="ui-table-frame"><div class="ui-table-scroll">'
+        + '<table class="ui-table ui-table--dense"></table></div></div></div>',
+    }),
+    ['framed'],
+    'a table one wrapper further from the card must be reported',
+  );
+  assert.throws(() => bleedReaches(CSS.replace(/margin-inline/g, 'margin-left')), /card bleed is gone/);
+});

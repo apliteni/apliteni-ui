@@ -6,6 +6,16 @@
 
 export const RELEASES = [
   {
+    v: '0.89.0', date: '2026-10-05',
+    changes: [
+      ['changed', 'A table now sizes to its content instead of stretching to its container, so a short table ends where its values end and an amount sits beside its label. A table whose cells need more room than it has renders exactly as before. Mark a text cell `ui-table__title` to give that column the width left over. The same stylesheet rule reaches the React table, and React `DataTable` keeps its pager no wider than the table it pages: the strip follows the table and wraps inside that width rather than the table widening to meet it. Resolves #504.', ['Table', 'DataTable', 'Pagination']],
+      ['fixed', 'A pager that wraps keeps its controls at the far end instead of dropping them to the start of the next line, so the status and the page controls stay where this strip has always said they are. It reaches every pager, not only a table\u2019s.', ['Pagination']],
+      ['added', 'The dense-tables guidance states the width rule and shows the do and don\u2019t pair.'],
+      ['added', '`.ui-card--fit` ends a card where its contents end. A card that frames one table is that table\u2019s surface, and since a table stops at its values the card was left holding the slack as white space. The modifier is capped at the room it has, so a table too wide for the column still fills it and scrolls inside the card. Plain `.ui-card` is unchanged: a card holding prose, rows or a form is still a column.', ['Card']],
+      ['fixed', 'A `.ui-card__row` whose two ends cannot share a line wraps instead of running past the page. The React table\u2019s column-scroll buttons are this row, and at a 320px width they took the document 32px wider than the viewport once the table stopped filling its scroll region. A row with room on its line is unchanged.', ['Card', 'DataTable']],
+    ],
+  },
+  {
     v: '0.88.0', date: '2026-10-05',
     changes: [
       ['changed', 'React `FileDrop` draws remove as the kit’s small text button reading “Remove”, where it drew a wordless `x`. `x` is on the kit’s icon-only list for close and dismiss, and taking a file off a row is neither — the row stays and the file leaves it. `removeLabel` now sets a visible word and defaults to “Remove”; a caller passing the old “Remove file” will see those two words on the button, so shorten it. Two worded actions take more of the name’s line than one word and an `x` did: at 320 a failed upload whose name is long enough to be cut gets 119px of stem in a plain row and 87px inside a panel — about seventeen and thirteen characters. A panel at 360 gives 127px, and an ordinary name is cut there too. The extension is never cut, and 390 and wider are unchanged. Refs #565.', ['File drop']],

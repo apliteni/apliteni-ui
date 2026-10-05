@@ -40,6 +40,11 @@
 .ui-card--pad-sm { padding: var(--space-5) var(--space-6); }
 .ui-card--pad-lg { padding: var(--space-8) var(--space-10); }
 
+/* A card framing one content-width block ends where the block ends — a 359px table sat in
+   a 1232px card (#504) — and is capped, so a wider block still fills the room and scrolls.
+   why: docs/specification.md#spacing-and-rhythm */
+.ui-card--fit { width: fit-content; max-width: 100%; }
+
 /* An accent-tinted card, e.g. a highlighted plan / success surface. The accent edge is
    the card's own hairline re-coloured: an inset ring over it would draw two. #295
    The strength is --card-tint, per theme: light mixes down from white, so a tint that
@@ -97,6 +102,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Wraps rather than running past the page: at 320 the React table's column-scroll
+     group — this row — took the document to 352px. #504 */
+  flex-wrap: wrap;
   gap: var(--space-5);
   padding: var(--space-4) 2px;
 }

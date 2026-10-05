@@ -2,8 +2,18 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:178",
+        "ref": "src/styles/table.css:184",
         "pattern": ".ui-table { background: var(--table-bg);"
+      }
+    ],
+    "content-width": [
+      {
+        "ref": "src/styles/table.css:12",
+        "pattern": "width: auto;"
+      },
+      {
+        "ref": "src/styles/table.css:198",
+        "pattern": "max-width: calc(100% + 2 * var(--space-3));"
       }
     ]
   },
@@ -522,7 +532,7 @@
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:78",
+        "ref": "src/styles/card.css:83",
         "pattern": "rank: card-title"
       }
     ],
@@ -574,7 +584,7 @@
         "pattern": "--space-3: 12px"
       },
       {
-        "ref": "src/styles/table.css:84",
+        "ref": "src/styles/table.css:90",
         "pattern": "padding: var(--space-2) var(--space-3)"
       },
       {
@@ -963,7 +973,7 @@
         "pattern": "export function switchToggle("
       },
       {
-        "ref": "src/styles/card.css:96",
+        "ref": "src/styles/card.css:101",
         "pattern": ".ui-card__row {"
       }
     ],
