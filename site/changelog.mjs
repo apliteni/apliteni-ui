@@ -12,7 +12,6 @@ export const RELEASES = [
       ['fixed', 'A pager that wraps keeps its controls at the far end instead of dropping them to the start of the next line, so the status and the page controls stay where this strip has always said they are. It reaches every pager, not only a table\u2019s.', ['Pagination']],
       ['added', 'The dense-tables guidance states the width rule and shows the do and don\u2019t pair.'],
       ['added', '`.ui-card--fit` ends a card where its contents end. A card that frames one table is that table\u2019s surface, and since a table stops at its values the card was left holding the slack as white space. The modifier is capped at the room it has, so a table too wide for the column still fills it and scrolls inside the card. Plain `.ui-card` is unchanged: a card holding prose, rows or a form is still a column.', ['Card']],
-      ['changed', 'The filter bar\u2019s clear button reads `Clear all` rather than `Clear all filters`. The button sits inside the bar\u2019s own fieldset, whose legend already names the group, so the noun was being said twice. Pass `clearLabel` to keep the old wording.', ['FilterBar']],
       ['fixed', 'A `.ui-card__row` whose two ends cannot share a line wraps instead of running past the page. The React table\u2019s column-scroll buttons are this row, and at a 320px width they took the document 32px wider than the viewport once the table stopped filling its scroll region. A row with room on its line is unchanged.', ['Card', 'DataTable']],
     ],
   },

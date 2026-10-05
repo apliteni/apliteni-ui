@@ -7,9 +7,7 @@ export type Filter = { id: string; label: string; /** empty or absent while noth
 export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; disabled?: boolean; busy?: boolean;
   onRemove: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void };
 
-// `Clear all`, not `Clear all filters`: the button sits inside this bar's own fieldset,
-// whose legend names the group, so the noun is already in the control's context. #504
-export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', disabled = false, busy = false, onRemove, onClear, onChange }: FilterBarProps) {
+export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all filters', disabled = false, busy = false, onRemove, onClear, onChange }: FilterBarProps) {
   const bar = useRef<HTMLFieldSetElement>(null);
   const focused = useRef<{ id: string | null; index: number } | null>(null);
   const [opened, setOpened] = useState<Record<string, { open: boolean; against: boolean | undefined }>>({});

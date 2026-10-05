@@ -1,25 +1,14 @@
-/* Rule: a card that frames one content-width block ends where the block ends, and no card
- * modifier ships a width the page cannot contain (#504).
+/* Rule: a card sized to its contents is capped at the room it has, and a card row wraps.
  *
- * A table stops at its values now, so a card that kept filling its column left the slack as
- * white space — a 359px table in a 1232px card on the finance composition showcase. The
- * answer is `.ui-card--fit`. The hazard it introduces is the opposite one: a width that is
- * not a percentage escapes its column, and a card whose contents are wider than the room
- * would then push the page sideways. So this reads every width a card rule sets out of the
- * sheet and requires each to be capped.
+ * `.ui-card--fit` ends a card where its table ends (#504). The hazard it introduces is the
+ * opposite one: a width that is not a percentage escapes its column and pushes the page
+ * sideways. So every width a card rule sets is read out of the sheet and must carry a cap.
+ * `.ui-card__row` is here because the React table's column-scroll group is that row, and
+ * at 320 its two buttons took the document to 352px before it was allowed to wrap.
  *
- * It also holds the row this change made wrap: `.ui-card__row` puts its two ends at the far
- * ends of one line, and at 320 the React table's column-scroll group — that row — took the
- * document to 352px before it was allowed to wrap.
- *
- * Subjects are discovered from the sheet, not listed here: every rule whose selector names
- * `.ui-card` and whose body sets `width`. A modifier added later is a subject the day it
- * lands, and a renamed one fails this rather than passing it quietly.
- *
- * What it does not reach: a rendered width or a rendered page. jsdom computes neither, and
- * nothing in either workspace does. The widths behind this rule — the card's box against its
- * table's at 1280, 390 and 320, and the document's own scroll width at each — are read off
- * Chromium and recorded in the pull request.
+ * Subjects come from the sheet, not from a list here, so a modifier added later is a
+ * subject the day it lands. Limits: jsdom computes no width and renders no page. Every
+ * number behind this rule is read off Chromium and recorded on the pull request.
  *
  * why: docs/specification.md#spacing-and-rhythm
  */
