@@ -376,6 +376,71 @@ const press = (window, el, key) =>
 
 const MENU = [{ label: 'Settings' }, { label: 'Billing' }, { label: 'Sign out' }];
 
+/** Enter on a <button> is a keydown whose default action is a click. JSDOM runs
+ *  no default action, so the pair is dispatched here the way Chromium does it:
+ *  the click follows only when nothing called preventDefault on the key. */
+const enter = (window, el) => { if (press(window, el, 'Enter')) click(window, el); };
+
+/** The off spellings the SHEET paints, each written as the markup attribute a
+ *  page would carry, so a third spelling joins this sweep by being written into
+ *  src/styles/dropdown.css rather than into this file. */
+function offSpellings() {
+  const states = [...new Set(RULES
+    .filter((r) => decl(r, 'cursor') === 'not-allowed')
+    .flatMap((r) => r.selector.split(','))
+    .map((s) => s.trim())
+    .filter((s) => s.startsWith('.ui-dropdown__trigger') && s !== '.ui-dropdown__trigger')
+    .map((s) => s.slice('.ui-dropdown__trigger'.length)))];
+  return [...new Set(states.map((state) => {
+    if (/:disabled\b/.test(state)) return 'disabled';
+    const attr = state.match(/\[([\w-]+)="([^"]*)"\]/);
+    assert.ok(attr, `the sheet paints ${state} off and this test cannot write it as markup`);
+    return `${attr[1]}="${attr[2]}"`;
+  }))];
+}
+
+// #580 round two: the sheet paints BOTH spellings unavailable — the native
+// attribute and aria-disabled — and the aria one is still a keyboard stop, so
+// no browser refuses its click or its Enter. The wiring has to, the way the
+// panel's own rows already refuse an aria-disabled row one handler down. The
+// native spelling is read here as well, because JSDOM dispatches to a disabled
+// button where Chromium would not, so the guard is what holds in both.
+test('a trigger the sheet paints off opens nothing, by click, by Enter or by arrow', () => {
+  const spellings = offSpellings();
+  assert.deepEqual(
+    [...spellings].sort(), ['aria-disabled="true"', 'disabled'],
+    'both spellings the sheet paints off are measured here',
+  );
+
+  for (const off of spellings) {
+    const html = dropdown({ value: 'Actions', variant: 'menu', items: MENU })
+      .replace('data-dropdown-trigger', `data-dropdown-trigger ${off}`);
+    const window = mount(html);
+    const doc = window.document;
+    measure(window, { triggerTop: 20 });
+    wireDropdown(doc);
+    const dd = doc.querySelector('.ui-dropdown');
+    const trigger = doc.querySelector('[data-dropdown-trigger]');
+
+    for (const [how, act] of [['a click', click], ['Enter', enter], ['ArrowDown', (w, el) => press(w, el, 'ArrowDown')]]) {
+      act(window, trigger);
+      assert.equal(dd.classList.contains('open'), false, `${off}: ${how} opened the panel`);
+      assert.equal(trigger.getAttribute('aria-expanded'), 'false', `${off}: ${how} marked it expanded`);
+    }
+  }
+
+  // The same harness on a live trigger, so the three refusals above cannot be
+  // the harness failing to reach the wiring at all.
+  const window = mount(dropdown({ value: 'Actions', variant: 'menu', items: MENU }));
+  const doc = window.document;
+  measure(window, { triggerTop: 20 });
+  wireDropdown(doc);
+  const live = doc.querySelector('[data-dropdown-trigger]');
+  click(window, live);
+  assert.ok(doc.querySelector('.ui-dropdown').classList.contains('open'), 'a live trigger still opens');
+  assert.equal(live.getAttribute('aria-expanded'), 'true');
+});
+
 test('a portalled panel is moved onto <body>, out of every ancestor', () => {
   const window = mount(dropdown({ value: 'Workspace', variant: 'menu', portal: true, items: MENU }));
   const doc = window.document;

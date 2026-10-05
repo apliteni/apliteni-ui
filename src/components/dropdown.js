@@ -274,6 +274,17 @@ const DD_GAP = 9;
 // below asks the container for its panel rather than querying inside it.
 const ddPanelOf = (dd) => dd.__ddPanel || dd.querySelector('[data-dropdown-panel]');
 
+// A trigger the sheet paints off. The kit paints both spellings unavailable, so
+// the wiring refuses both: the native attribute keeps the browser from
+// dispatching anything, but an aria-disabled trigger is still a keyboard stop,
+// and a click or an Enter on it reached openDropdown() until #580's round two.
+// ddItemsOf() above refuses an aria-disabled ROW the same way.
+// why: docs/foundations.md#colour-and-contrast
+const ddTriggerOff = (dd) => {
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  return !!trigger && (trigger.disabled === true || trigger.getAttribute('aria-disabled') === 'true');
+};
+
 function ddGap(panel) {
   const declared = parseFloat(ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-gap'));
   return Number.isFinite(declared) ? declared : DD_GAP;
@@ -841,6 +852,9 @@ function closeAllDropdowns(except) {
 }
 
 function openDropdown(dd, focusIdx) {
+  // Every way in goes through here — the trigger's click, the Enter the browser
+  // turns into one, and the arrows — so one refusal covers them all. #580
+  if (ddTriggerOff(dd)) return;
   closeAllDropdowns(dd);
   const panel = ddPanelOf(dd);
   const search = ddSearchOf(dd);

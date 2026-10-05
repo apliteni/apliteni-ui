@@ -34,9 +34,10 @@
 .ui-dropdown__trigger:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-dropdown__trigger:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 /* Off. The hover spelling matches the live hover selector's weight, so a pointer
-   over a dead control does not take the accent. An aria-disabled trigger is still
-   a keyboard stop, so the ring above still reaches it and only the edge is taken
-   back. #580 why: docs/foundations.md#colour-and-contrast */
+   over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
+   No fill: --disabled-surface IS this control's --surface, in both themes. The
+   activation is refused in ddTriggerOff(), not with pointer-events, which would
+   take that stop away. #580 why: docs/foundations.md#colour-and-contrast */
 .ui-dropdown__trigger:disabled,
 .ui-dropdown__trigger:disabled:hover,
 .ui-dropdown__trigger:disabled:hover:not(:focus-visible),

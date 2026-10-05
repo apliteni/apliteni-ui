@@ -70,8 +70,8 @@ const SHEETS = [...KIT_SHEETS, ...REACT_SHEETS];
  * and draws the unavailable edge, so it is classified as off and not as hover. */
 const STATES = [
   ['off', /:disabled\b|\[disabled\]|:not\(\s*:enabled\s*\)|\[aria-disabled\s*=\s*("true"|'true'|true)\]/i],
-  ['focus', /:focus(-visible|-within)?\b/i],
   ['hover', /:hover\b/i],
+  ['focus', /:focus(-visible|-within)?\b/i],
   ['open', /\.open\b|\[aria-expanded\s*=\s*("true"|'true'|true)\]/i],
 ];
 /* The whole state vocabulary. A rule at a state that is not in it fails the gate
@@ -79,7 +79,7 @@ const STATES = [
 const MEASURED = ['rest', ...STATES.map(([name]) => name)];
 /* The states the kit's own trigger has to answer. `open` is allowed and not
  * required: the kit answers opening on the chevron, not on the trigger's edge. */
-const REQUIRED = ['rest', 'hover', 'focus', 'off'];
+const REQUIRED = ['rest', 'hover', 'off'];
 /* `off` is the one state whose edge is supposed to be the unavailable ink. In
  * every other state, painting it is the defect #580 reports. */
 const LIVE = MEASURED.filter((state) => state !== 'off');
@@ -409,14 +409,13 @@ test('the reading refuses every way the two edges can come back together', () =>
     // The keyboard stop's accent rewritten to the off ink where it stands, ring and
     // all: the trigger a reader is on reads as unavailable while the resting rule
     // beside it stays correct, so reading `rest` alone goes straight past it.
-    [{ from: 'box-shadow: var(--ring); border-color: var(--accent)',
-      to: 'box-shadow: var(--ring); border-color: var(--disabled-border)' }, 'live-is-off'],
+    ['.ui-dropdown__trigger:focus-visible { border-color: var(--disabled-border); }', 'live-is-off'],
     // The same defect one state along, under the pointer.
-    [{ from: ':hover { border-color: var(--accent)', to: ':hover { border-color: var(--disabled-border)' },
+    [{ from: ':hover:not(:focus-visible) { border-color: var(--accent)', to: ':hover:not(:focus-visible) { border-color: var(--disabled-border)' },
       'live-is-off'],
     // An edge this arithmetic cannot resolve, which must be reported rather than
     // counted as "not the off ink".
-    [{ from: ':hover { border-color: var(--accent)', to: ':hover { border-color: currentColor' },
+    [{ from: ':hover:not(:focus-visible) { border-color: var(--accent)', to: ':hover:not(:focus-visible) { border-color: currentColor' },
       'unreadable-edge'],
     // A scoped resting edge deep enough to freeze the states beside it — the
     // fault the fix itself could have introduced.
@@ -424,9 +423,9 @@ test('the reading refuses every way the two edges can come back together', () =>
     // A state nobody measured, ranked as resting and counted as covered.
     ['.ui-dropdown__trigger:active { border-color: var(--border); }', 'unmeasured-state'],
     // The off edge quietly re-pointed at a live control's ink.
-    ['.ui-dropdown__trigger:disabled { border-color: var(--control-edge); }', 'off-not-off'],
+    ['.ui-dropdown__trigger:disabled:hover:not(:focus-visible), .ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible) { border-color: var(--control-edge); }', 'off-not-off'],
     // And taken away altogether, which is what dark shipped before #580.
-    ['.ui-dropdown__trigger:disabled { border: 0; }', 'off-not-off'],
+    ['.ui-dropdown__trigger:disabled:hover:not(:focus-visible), .ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible) { border: 0; }', 'off-not-off'],
   ];
   const missed = cases.filter(([rule, finding]) => !findings(readingWith(rule)).includes(finding))
     .map(([rule, finding]) => `${finding} not raised by: ${asText(rule)}`);
@@ -438,7 +437,7 @@ test('the reading refuses every way the two edges can come back together', () =>
     '.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; }',
     '.ui-dropdown__panel { border-color: var(--disabled-border); }',
     '/* .ui-dropdown__trigger { border-color: var(--border); } */',
-    { from: ':hover { border-color: var(--accent)', to: ':hover { border-color: var(--accent-strong)' },
+    { from: ':hover:not(:focus-visible) { border-color: var(--accent)', to: ':hover:not(:focus-visible) { border-color: var(--accent-strong)' },
   ]) {
     assert.deepEqual(findings(readingWith(fine)), [], `false finding on: ${asText(fine)}`);
   }
@@ -450,6 +449,6 @@ test('the sheet still says what the gate reads, so none of this is checking a gh
     `${TRIGGER} no longer takes the kit's live control edge`);
   assert.match(css, /\.ui-dropdown__trigger:disabled[\s\S]{0,400}?border-color:\s*var\(--disabled-border\)/,
     `${TRIGGER}:disabled no longer takes ${OFF_EDGE}`);
-  assert.match(css, /\.ui-dropdown__trigger:hover\s*\{[^}]*border-color:\s*var\(--accent\)/,
+  assert.match(css, /\.ui-dropdown__trigger:hover:not\(:focus-visible\)\s*\{[^}]*border-color:\s*var\(--accent\)/,
     'the trigger no longer answers the pointer');
 });
