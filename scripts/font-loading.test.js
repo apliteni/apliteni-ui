@@ -109,7 +109,10 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
 // The nineteenth is scripts/evidence/file-drop.mjs, the #507 shot producer: it
 // writes its own page rather than serving a committed one, so the link is in the
 // script. Same two families, for the same reason as every rig above.
-const EXPECTED_LOADERS = 19;
+// The twentieth is scripts/evidence/tones.html (#453, the badge and callout tone
+// family): the chips are small type on a soft fill, so the faces are part of what
+// the shot is of.
+const EXPECTED_LOADERS = 20;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

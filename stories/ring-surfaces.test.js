@@ -15,7 +15,11 @@ const sheets = files.map((file) => {
 const declarations = sheets.flatMap(({ file, css }) => customPropertiesIn(css).map((d) => ({ file, ...d })));
 const references = (value) => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]);
 const surface = (value, seen = new Set()) => references(value).some((name) => {
-  if (/^--(?:bg(?:-elevated)?|surface(?:-[23])?|glow-[\w-]+|signal-solid-[\w-]+)$/.test(name)) return true;
+  // chip-*-fill is named here rather than left to the recursion: in dark every signal
+  // fill is an alias of a --glow-* the recursion already finds, but --chip-neutral-fill
+  // is mixed from --muted and the light fills are flat hexes, so a chip that paints one
+  // would leave the gate without being discovered. #453
+  if (/^--(?:bg(?:-elevated)?|surface(?:-[23])?|glow-[\w-]+|signal-solid-[\w-]+|chip-[\w-]+-fill)$/.test(name)) return true;
   if (seen.has(name)) return false;
   return declarations.filter((d) => d.name === name).some((d) => surface(d.value, new Set([...seen, name])));
 });
@@ -31,7 +35,7 @@ const compositions = rules.filter((r) => own(r).has('--ring'));
 const consumers = rules.filter(({ body }) => /(?:^|;)\s*box-shadow\s*:[^;]*var\(--ring\)/.test(body));
 
 test('every painted surface sets a matching gap or explains why the containing gap is correct', () => {
-  assert.equal(surfaces.length, 142, 'surface discovery changed; the folded rail\'s current-row plate adds three, the disabled checkbox box and its radio mark add two, the file drop\'s progress track and drop target add two, and the picker\'s hovered and in-range cells add two');
+  assert.equal(surfaces.length, 143, 'surface discovery changed; the folded rail\'s current-row plate adds three, the disabled checkbox box and its radio mark add two, the file drop\'s progress track and drop target add two, and the picker\'s hovered and in-range cells add two, and the neutral chip fill adds one since #453');
   // Any composition rule, not only the shared recipe: #537 gives .ui-code its own, because a
   // chip's gap has to be the surface it paints and the shared recipe is also what hands a
   // chip the OTHER surface. The guarantee is unchanged — the rule recomposes --ring — and a

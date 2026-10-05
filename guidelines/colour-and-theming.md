@@ -66,3 +66,5 @@
 **Do:** Draw inputs with an edge. Keep grey fills for non-text states, such as disabled tracks and dividers.
 
 **Don't:** Put text on grey fields, chips, headers or footers.
+
+**Except:** A status chip carries a soft fill. Where its tone reports no verdict it takes `--chip-neutral-fill`, a low-alpha tint of muted ink that leaves the panel in one direction per theme, so the neutral tones read as the same family as the coloured ones.
