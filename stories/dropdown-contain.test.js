@@ -625,20 +625,44 @@ test('measured in a browser, both layers, four widths and both themes', {
       problems, [],
       'A story that will not render is not skipped here: an unmeasured subject is a failure.',
     );
-    // And the React subjects, discovered the only way a built index can be asked:
-    // every story in it is opened once, and the ones that put a standalone panel on
-    // the page join the sweep.
+    /* And the React subjects, discovered the only way a built index can be asked:
+       every story in it is opened once, and the ones that put a standalone panel on
+       the page join the sweep. A story that will not render is not skipped either:
+       discovery decides what the eight passes below measure, so one missed here
+       leaves this gate smaller with nothing saying by how much. An earlier answer
+       waited on a body class that Storybook sets before the story commits, and
+       discovered 18 React subjects one run and 20 the next — the 18 showed up as
+       483 cases against a floor of 500, eight passes later. */
     const all = indexed(reactBuild);
-    const found = await reactPass(browser, react.port, { width: 390, theme: 'dark', ids: all });
-    const ids = all.filter((s) => found.some((r) => r.subject === s.label));
+    const found = await reactPass(browser, react.port, {
+      width: 390, theme: 'dark', ids: all, discovering: true,
+    });
+    assert.deepEqual(
+      found.problems, [],
+      'A React story that would not render is not skipped here: an unreached story is an '
+      + 'unmeasured subject, and discovery is where this gate decides what it covers.',
+    );
+    const ids = all.filter((s) => found.rows.some((r) => r.subject === s.label));
 
     const rows = [];
+    /* And the same subjects, measured again at every width and theme: a subject
+       discovered and then not measured is named by the pass that lost it, rather
+       than counted as a case this gate never had. */
+    const lost = [];
     for (const width of WIDTHS) {
       for (const theme of THEMES) {
-        rows.push(...await vanillaPass(browser, vanilla.port, { width, theme, subjects }));
-        rows.push(...await reactPass(browser, react.port, { width, theme, ids }));
+        const half = [
+          await vanillaPass(browser, vanilla.port, { width, theme, subjects }),
+          await reactPass(browser, react.port, { width, theme, ids }),
+        ];
+        for (const pass of half) { rows.push(...pass.rows); lost.push(...pass.problems); }
       }
     }
+    assert.deepEqual(
+      lost, [],
+      `${lost.length} subjects were discovered and then went unmeasured. Each is a story this `
+      + 'walk reached once and lost, which is a smaller gate reported as a passing one.',
+    );
     const measured = panels(rows);
     const cases = rows.length;
     const seen = new Set(rows.map((r) => `${r.half}:${r.subject}`));
@@ -708,7 +732,7 @@ test('measured in a browser, both layers, four widths and both themes', {
         const pass = half === 'vanilla'
           ? await vanillaPass(browser, vanilla.port, { width: 375, theme: 'dark', subjects, mutation: TRANSLATE_OFF })
           : await reactPass(browser, react.port, { width: 375, theme: 'dark', ids, mutation: TRANSLATE_OFF });
-        caught[half] = outside(panels(pass)).length;
+        caught[half] = outside(panels(pass.rows)).length;
         console.log(`translate refused, ${half}: ${caught[half]} panels outside`);
         assert.ok(
           caught[half] > 0,
@@ -725,7 +749,7 @@ test('measured in a browser, both layers, four widths and both themes', {
       const pass = await vanillaPass(browser, vanilla.port, {
         width: 375, theme: 'dark', subjects, script: PORTAL_MIRROR,
       });
-      const out = outside(panels(pass)).filter((p) => p.portal);
+      const out = outside(panels(pass.rows)).filter((p) => p.portal);
       console.log(`portal mirror put back: ${out.length} portalled panels outside`);
       assert.ok(
         out.length > 0,

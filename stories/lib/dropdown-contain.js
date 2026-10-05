@@ -151,7 +151,10 @@ export const sheets = () => {
 
 /** Every vanilla story's markup, measured in one live page per width and theme: the
  *  markup is injected and the kit's own `wireDropdown()` is called on it, which is
- *  where an in-place panel is fitted. */
+ *  where an in-place panel is fitted. Returns `{ rows, problems }`, the shape the
+ *  React half returns: a subject whose markup holds a panel and whose measurement
+ *  finds none is named rather than dropped, so a pass that comes back a row short
+ *  says which story it was. */
 export async function vanillaPass(browser, port, { width, theme, subjects, mutation = null, script = null }) {
   const ctx = await browser.newContext({ viewport: { width, height: 760 } });
   const page = await ctx.newPage();
@@ -161,6 +164,7 @@ export async function vanillaPass(browser, port, { width, theme, subjects, mutat
   await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
   if (mutation) await page.addStyleTag({ content: mutation });
   const rows = [];
+  const problems = [];
   for (const s of subjects) {
     const has = await page.evaluate((html) => {
       // A fresh page per subject, portalled leftovers included: a panel moved onto
@@ -181,9 +185,10 @@ export async function vanillaPass(browser, port, { width, theme, subjects, mutat
     });
     const row = await page.evaluate(`(${MEASURE})(${JSON.stringify(s.id)})`);
     if (row.shut.length) rows.push({ ...row, half: 'vanilla', width, theme });
+    else problems.push(`${s.id} at ${width}/${theme} → a panel in the markup and none to measure`);
   }
   await ctx.close();
-  return rows;
+  return { rows, problems };
 }
 
 /** Every story in a built Storybook index, as { id, label }. */
@@ -193,33 +198,101 @@ export const indexed = (dir) => Object.values(
   .filter((entry) => entry.type === 'story')
   .map((entry) => ({ id: entry.id, label: `${entry.title} > ${entry.name}` }));
 
+/* Storybook's own report that a story has arrived, which is NOT what the body class
+ * says: `sb-show-main` is added while `sb-show-preparing-story` is still on the
+ * body, the phase is still `rendering` and the story root is still empty, so a
+ * panel looked for then is looked for in a page the story has not reached. Waiting
+ * on a panel instead is what this cannot do — most of this index has no dropdown,
+ * and a whole timeout each is twenty minutes over 168 stories — and nor on the
+ * root's children, which `React/Toast > Tones` leaves empty by rendering into a
+ * portal. The phases this preview reports, in order: preparing, rendering,
+ * completing, afterEach, finished, with errored and aborted terminal too.
+ * why: #572 */
+export const STORY_DONE = 'finished';
+export const STORY_FAILED = ['errored', 'aborted'];
+
+/** How long one story is given to reach a terminal phase, and how many times one
+ *  that does not is navigated to again. A retry costs about a second; accepting a
+ *  story that never rendered costs that subject out of every pass, silently. */
+export const STORY_MS = 20000;
+export const STORY_TRIES = 3;
+
+/** Opens one story and waits for its render to reach a terminal phase, navigating
+ *  again if it does not. Returns what the preview finally reported: the phase, and
+ *  the id it says it rendered — which the caller compares with the id it asked
+ *  for, so a page left showing the story before it cannot pass for this one. */
+export async function openStory(page, story, {
+  port, theme, tries = STORY_TRIES, ms = STORY_MS,
+}) {
+  let last = { phase: 'the preview reported no render at all', id: null, tries: 0 };
+  for (let i = 1; i <= tries; i += 1) {
+    await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${story.id}&viewMode=story&globals=theme:${theme}`);
+    try {
+      await page.waitForFunction(
+        (ends) => {
+          const r = window.__STORYBOOK_PREVIEW__ && window.__STORYBOOK_PREVIEW__.currentRender;
+          return !!r && ends.includes(r.phase);
+        },
+        [STORY_DONE, ...STORY_FAILED],
+        { timeout: ms },
+      );
+      last = {
+        ...await page.evaluate(() => ({
+          phase: window.__STORYBOOK_PREVIEW__.currentRender.phase,
+          id: window.__STORYBOOK_PREVIEW__.currentRender.id,
+        })),
+        tries: i,
+      };
+    } catch {
+      last = { phase: `no terminal phase inside ${ms}ms`, id: null, tries: i };
+    }
+    if (last.phase === STORY_DONE && last.id === story.id) return last;
+  }
+  return last;
+}
+
 /** The React half, which has to be a built Storybook rather than injected markup:
- *  React's fit is an effect, so it only exists where React is running. Subjects are
- *  the stories that put a standalone panel on the page, found by asking each once. */
-export async function reactPass(browser, port, { width, theme, ids, mutation = null }) {
+ *  React's fit is an effect, so it only exists where React is running.
+ *
+ *  Discovery and measurement are the same walk under different expectations. While
+ *  `discovering`, a story with no panel in it is the answer — most of this index
+ *  has no dropdown — and only a story that never rendered is a problem. Afterwards
+ *  every id is a subject discovery already found, so one that comes back without a
+ *  panel is a subject this walk LOST, and it is named here rather than left to
+ *  surface as a count short of its floor. */
+export async function reactPass(browser, port, {
+  width, theme, ids, mutation = null, discovering = false,
+}) {
   const ctx = await browser.newContext({ viewport: { width, height: 760 } });
   const page = await ctx.newPage();
   const rows = [];
+  const problems = [];
+  const at = `${width}/${theme}`;
   for (const story of ids) {
-    await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${story.id}&viewMode=story&globals=theme:${theme}`);
-    /* Waited on Storybook's own "the story is on screen" class rather than on a
-       panel: most of this index has no dropdown in it, and waiting for one that is
-       never coming spends the whole timeout on each of them — twenty minutes over
-       168 stories, which is how the first run of this gate was lost. Not on the
-       story root's children either: `React/Toast > Tones` renders into a portal
-       and leaves that root empty, so it read as a story that never committed. */
-    await page.waitForFunction(() => document.body.classList.contains('sb-show-main'), null, { timeout: 20000 });
+    const got = await openStory(page, story, { port, theme });
+    if (got.phase !== STORY_DONE || got.id !== story.id) {
+      problems.push(`${story.label} (${story.id}) at ${at} → ${got.phase}`
+        + (got.id && got.id !== story.id ? `, with ${got.id} on the page` : '')
+        + `, after ${got.tries} ${got.tries === 1 ? 'try' : 'tries'}`);
+      continue;
+    }
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => new Promise((done) => {
       requestAnimationFrame(() => requestAnimationFrame(done));
     }));
-    if (!await page.evaluate(() => !!document.querySelector('[data-dropdown-panel]'))) continue;
+    if (!await page.evaluate(() => !!document.querySelector('[data-dropdown-panel]'))) {
+      if (!discovering) problems.push(`${story.label} at ${at} → rendered, and no panel on the page`);
+      continue;
+    }
     if (mutation) await page.addStyleTag({ content: mutation });
     const row = await page.evaluate(`(${MEASURE})(${JSON.stringify(story.label)})`);
     if (row.shut.length) rows.push({ ...row, half: 'react', width, theme });
+    else if (!discovering) {
+      problems.push(`${story.label} at ${at} → a panel on the page and none of it to measure`);
+    }
   }
   await ctx.close();
-  return rows;
+  return { rows, problems };
 }
 
 /** Every panel in a pass, flattened, with the case it came from. */
@@ -334,6 +407,51 @@ const settle = (page) => page.evaluate(() => new Promise((done) => {
   requestAnimationFrame(() => requestAnimationFrame(done));
 }));
 
+/** The kit's settle timer, read out of the kit so there is one number rather than a
+ *  copy of it here: a transition starting anywhere in the page arms it, and a fired
+ *  one re-fits every panel. */
+export const settleMs = () => {
+  const src = readFileSync(path.join(root, 'src/components/dropdown.js'), 'utf8');
+  const found = src.match(/DD_SETTLE_MS\s*=\s*(\d+)/);
+  if (!found) {
+    throw new Error('no DD_SETTLE_MS in src/components/dropdown.js. The fixtures below wait that '
+      + 'timer out before they move anything, and a wait taken from a stale copy of the number '
+      + 'would put the race back.');
+  }
+  return Number(found[1]);
+};
+
+/** Opens a trigger with no pointer in the page. `locator.click()` moves the mouse
+ *  onto the trigger and LEAVES it there, and every case below then moves that
+ *  trigger out from under it: the trigger loses `:hover`, its `border-color`
+ *  transition runs, and the kit re-fits every panel when that transition ends. That
+ *  re-fit is a second answer to the move, arriving 60–100ms after it, so a reading
+ *  taken before it measures the move and one taken after measures the re-fit —
+ *  which is why the arm refusing the text-change observation caught nothing on a
+ *  loaded host and caught it on an idle one. A synthetic click never gives the page
+ *  a pointer to lose, which is what the discovery sweep next door has always done.
+ *  why: AGENTS.md */
+const openTrigger = (page, which = 0) => page.evaluate(
+  (i) => { document.querySelectorAll('[data-dropdown-trigger]')[i].click(); },
+  which,
+);
+
+/** Waits until the page has finished answering whatever happened last: nothing
+ *  animating, and the kit's settle timer fired and cleared. Each case below changes
+ *  one thing and reads the panel, and the kit answers a move through several
+ *  mechanisms — a transition still running or a timer still pending is a second
+ *  answer arriving after the change, which makes the reading a race rather than a
+ *  measurement. Its cost is one settle per move, which is what a repeatable arm is
+ *  worth here. */
+const quiet = async (page) => {
+  await page.waitForFunction(
+    () => document.getAnimations().every((a) => a.playState === 'finished'),
+    null,
+    { timeout: 5000 },
+  );
+  await page.waitForTimeout(motionWait(settleMs()));
+};
+
 /** The five cases in the vanilla layer, each injected into /__shot and wired by
  *  the kit itself. Returns one row per reading. */
 export async function vanillaEdgeCases(browser, port, {
@@ -361,8 +479,9 @@ export async function vanillaEdgeCases(browser, port, {
     window.kit.wireDropdown(document);
     window.__long = long;
   }, LONG_LABEL);
-  await page.locator('[data-dropdown-trigger]').click();
+  await openTrigger(page);
   await settle(page);
+  await quiet(page);
   await reading('a row that reorders', 'open');
   await page.evaluate(() => { document.querySelector('#row').style.justifyContent = 'flex-end'; });
   await settle(page);
@@ -380,8 +499,9 @@ export async function vanillaEdgeCases(browser, port, {
       })}</div></div>`;
     window.kit.wireDropdown(document);
   });
-  await page.locator('[data-dropdown-trigger]').click();
+  await openTrigger(page);
   await settle(page);
+  await quiet(page);
   await reading('an ancestor scrolled sideways', 'open');
   await page.evaluate(() => { document.querySelector('#scroller').scrollLeft = 250; });
   await settle(page);
@@ -393,6 +513,7 @@ export async function vanillaEdgeCases(browser, port, {
      258…498 of 390; React has always answered both. */
   await page.keyboard.press('Escape');
   await settle(page);
+  await quiet(page);
   await page.evaluate(() => { document.querySelector('#scroller').scrollLeft = 0; });
   await settle(page);
   await reading('an ancestor scrolled sideways', 'shut, scrolled back');
@@ -413,7 +534,7 @@ export async function vanillaEdgeCases(browser, port, {
     await settle(page);
     const where = portal ? 'portalled' : 'in place';
     await reading('a label longer than the screen', `${where}, shut`);
-    await page.locator('[data-dropdown-trigger]').click();
+    await openTrigger(page);
     await settle(page);
     await reading('a label longer than the screen', `${where}, open`);
   }
@@ -433,8 +554,9 @@ export async function vanillaEdgeCases(browser, port, {
       + '</div>';
     window.kit.wireDropdown(document);
   });
-  await page.locator('[data-dropdown-trigger]').click();
+  await openTrigger(page);
   await settle(page);
+  await quiet(page);
   await reading('a sibling text node that grows', 'open');
   await page.evaluate((n) => { document.querySelector('#grow').firstChild.data = 'a'.repeat(n); }, GROWN_TEXT);
   await settle(page);
@@ -455,8 +577,9 @@ export async function vanillaEdgeCases(browser, port, {
     window.kit.wireDropdown(document);
     document.querySelector('.ui-dropdown').style.transition = `transform ${ms}ms linear`;
   }, motionMs);
-  await page.locator('[data-dropdown-trigger]').click();
+  await openTrigger(page);
   await settle(page);
+  await quiet(page);
   await reading('a trigger slid by a transition', 'open');
   await page.evaluate(() => {
     document.querySelector('.ui-dropdown').style.transform = 'translateX(220px)';
@@ -483,9 +606,17 @@ export async function reactEdgeCases(browser, port, {
   const reading = async (name, state) => {
     rows.push({ case: name, state, half: 'react', ...await page.evaluate(`(${READ})()`) });
   };
+  // The same readiness the sweep waits on, and for the same reason: `sb-show-main`
+  // is on the body before the story has committed, so a fixture that started work
+  // there would start it in an empty page. A story that will not render is named
+  // here rather than left to surface as a reading short of its count.
   const open = async () => {
-    await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${story}&viewMode=story&globals=theme:${theme}`);
-    await page.waitForFunction(() => document.body.classList.contains('sb-show-main'), null, { timeout: 20000 });
+    const got = await openStory(page, { id: story }, { port, theme });
+    if (got.phase !== STORY_DONE || got.id !== story) {
+      throw new Error(`the React fixture story ${story} did not render: ${got.phase}`
+        + (got.id && got.id !== story ? `, with ${got.id} on the page` : '')
+        + `, after ${got.tries} ${got.tries === 1 ? 'try' : 'tries'}`);
+    }
     await page.evaluate(() => document.fonts.ready);
     await page.locator('[data-dropdown-panel]').first().waitFor({ state: 'attached' });
     if (mutation) await page.addStyleTag({ content: mutation });
@@ -494,8 +625,9 @@ export async function reactEdgeCases(browser, port, {
 
   // 1. The story's own flex row, told to hold its children at the other end.
   await open();
-  await page.locator('[data-dropdown-trigger]').first().click();
+  await openTrigger(page);
   await settle(page);
+  await quiet(page);
   await reading('a row that reorders', 'open');
   await page.evaluate(() => {
     const dd = document.querySelector('.ui-dropdown');
@@ -518,8 +650,9 @@ export async function reactEdgeCases(browser, port, {
     scroller.appendChild(root);
     root.setAttribute('style', 'width:800px;padding-left:260px');
   });
-  await page.locator('[data-dropdown-trigger]').first().click();
+  await openTrigger(page);
   await settle(page);
+  await quiet(page);
   await reading('an ancestor scrolled sideways', 'open');
   await page.evaluate(() => { document.querySelector('#scroller').scrollLeft = 250; });
   await settle(page);
@@ -528,6 +661,7 @@ export async function reactEdgeCases(browser, port, {
   // refit answers, and the one the two layers used to answer differently.
   await page.keyboard.press('Escape');
   await settle(page);
+  await quiet(page);
   await page.evaluate(() => { document.querySelector('#scroller').scrollLeft = 0; });
   await settle(page);
   await reading('an ancestor scrolled sideways', 'shut, scrolled back');
@@ -539,7 +673,7 @@ export async function reactEdgeCases(browser, port, {
   }, LONG_LABEL);
   await settle(page);
   await reading('a label longer than the screen', 'shut');
-  await page.locator('[data-dropdown-trigger]').first().click();
+  await openTrigger(page);
   await settle(page);
   await reading('a label longer than the screen', 'open');
 
@@ -559,8 +693,9 @@ export async function reactEdgeCases(browser, port, {
     row.insertBefore(span, dd);
     window.__grow = span.firstChild;
   });
-  await page.locator('[data-dropdown-trigger]').first().click();
+  await openTrigger(page);
   await settle(page);
+  await quiet(page);
   await reading('a sibling text node that grows', 'open');
   await page.evaluate((n) => { window.__grow.data = 'a'.repeat(n); }, GROWN_TEXT);
   await settle(page);
@@ -580,8 +715,9 @@ export async function reactEdgeCases(browser, port, {
     row.setAttribute('style', 'display:block;width:100%');
     dd.style.transition = `transform ${ms}ms linear`;
   }, motionMs);
-  await page.locator('[data-dropdown-trigger]').first().click();
+  await openTrigger(page);
   await settle(page);
+  await quiet(page);
   await reading('a trigger slid by a transition', 'open');
   await page.evaluate(() => {
     document.querySelector('.ui-dropdown').style.transform = 'translateX(220px)';
