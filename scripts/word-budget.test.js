@@ -57,11 +57,6 @@ test('the measurement reaches every guideline page', () => {
   assert.ok(totalRules >= 100, `only ${totalRules} rules found across the collection`);
   assert.deepStrictEqual(withRules.filter((m) => m.words === 0), [],
     'a page with rules and no words means the fields are not being read');
-
-  // The page title is a name, not prose: Overview is a title and nothing else.
-  const overview = measured.find((m) => m.page === 'overview.md');
-  assert.deepStrictEqual([overview.rules, overview.intro, overview.words, overview.budget], [0, 0, 0, 0],
-    'a page with no rules gets no allowance, so an introduction added to it is caught');
 });
 
 test('a recorded figure names a page that exists', () => {
@@ -100,8 +95,14 @@ test('an introduction is prose on the page and spends the rules budget', () => {
     'x.md: 211 words, 151 over its budget of 60 (1 rule at 60) — cut it',
   ]);
 
-  // The title above the introduction is still a name: a page with neither is 0.
-  assert.deepStrictEqual(problemsIn([measure('x.md', withIntro(0))], {}), [],
+  /* The title above the introduction is still a name, so a page carrying
+   * neither measures nothing and is allowed nothing. A fixture, not the
+   * collection's own title-only page: what the shipped pages measure is
+   * `npm run check:words`'s verdict and no test's. */
+  const titleOnly = measure('x.md', withIntro(0));
+  assert.deepStrictEqual([titleOnly.rules, titleOnly.intro, titleOnly.words, titleOnly.budget], [0, 0, 0, 0],
+    'a page with no rules gets no allowance, so an introduction added to it is caught');
+  assert.deepStrictEqual(problemsIn([titleOnly], {}), [],
     'a title-only page is not prose and is not reported');
 });
 
