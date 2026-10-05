@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.89.1', date: '2026-10-05',
+    v: '0.90.0', date: '2026-10-05',
     changes: [
       ['fixed', 'A keyboard-focused link on a folded sidebar rail draws the whole focus ring. The rail was clipped across rows still laid out from the open column, so a three-pixel ring lost both ends and arrived as two accent bars above and below the glyph. Every box in the rail is now the rail\u2019s own width and travels it on the rail\u2019s clock, which leaves nothing to clip and keeps the hit area the rail in every frame of the fold; clicks beside a positioned rail used to stop landing on 175px of the page. One limit comes with it: a folded rail flush to a page\u2019s right edge now adds 175px to the page\u2019s scrollable width, where the clip that cut the ring used to hide it. Fixes #575.', ['Navigation', 'SidebarNav']],
     ],
