@@ -3,8 +3,10 @@
 // stories/focus-ring.test.js triages the boxes and says which carry a ring; this
 // file says what each one draws and that exactly one indicator is drawn per focus.
 // The two readings are separate on purpose: a triage that reads "a rule answers this
-// box" cannot tell the kit's outset ring from the inward band a scroll region takes,
-// and on #531 round r30 the difference was the whole review.
+// box" cannot tell the kit's outward band from the inward one a scroll region takes,
+// and on #531 round r30 the difference was the whole review. Since #578 both bands are
+// outlines of the same ink and width, so the OFFSET is the whole of the difference —
+// which makes reading it here the only way to tell them apart at all.
 //
 // The pattern is stories/snippet-focus.test.js's, for the same reason: the kit's
 // sheets are resolved with the tokens substituted and `:focus-visible` desugared to
@@ -21,14 +23,13 @@
 // WHAT THIS GATE WILL NOT CATCH. JSDOM lays nothing out and paints nothing, so it
 // cannot prove a box scrolls, that Chrome makes it a stop, or that the band survives
 // a scroll — the measurement above is a Chromium one, re-taken on #531 at 390 and
-// 1280 in both themes. `--ring-gap: inherit` is not measurable either; contrast.js
-// substitutes each custom property once for the whole sheet.
+// 1280 in both themes.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { STYLE_FILES, desugar, substitute, tokensFor } from './lib/contrast.js';
-import { leafRules } from './lib/motion-css.js';
+
 import { confirm, drawer, dropdown } from '../src/index.js';
 import { commandPalette } from '../src/components/command-palette.js';
 
@@ -138,8 +139,12 @@ function check(css, theme, accent) {
     focus(reference);
     return reference;
   };
-  const outsetRing = win.getComputedStyle(ringOf('.ui-focusable')).boxShadow;
-  assert.ok(outsetRing && outsetRing !== 'none', 'the outset ring resolved nothing');
+  const outward = win.getComputedStyle(ringOf('.ui-focusable'));
+  assert.ok(outward.outline && !/transparent|none/.test(outward.outline),
+    'the outward band resolved nothing');
+  assert.ok(Number.parseFloat(outward.outlineOffset) > 0,
+    'the outward band is no longer drawn outside the border box, so the two are not '
+    + 'distinguishable by their offsets and the reading below proves nothing');
   const band = bandOf(win, ringOf('.fx-ref-scroll'));
   assert.ok(band.outline && !/transparent|none/.test(band.outline),
     'the scroll ring resolved no visible outline');
@@ -220,68 +225,45 @@ for (const [name, mutate, expected] of [
   });
 }
 
-// ---- forced colors --------------------------------------------------------
+// ---- forced colours -------------------------------------------------------
 //
-// That mode drops every box-shadow and applies the `(forced-colors: active)` blocks.
-// It is the reason the kit's outset-ring consumers all carry `outline: 2px solid
-// transparent`: with the shadow gone, the outline is the only thing left for the
-// system to repaint. A scroll region owes nothing extra — its band IS an outline, and
-// a real one — which is what this reads.
+// Forced colours drops every box-shadow and repaints the outlines it is left. Until #578
+// that was the reason every outward-ring consumer carried `outline: 2px solid
+// transparent`: with the shadow gone, the stand-in was the only thing left to repaint,
+// and a scroll region owed none because its band already was a real outline. The band is
+// an outline everywhere now, so no consumer owes a stand-in and no block corrects one.
 //
-// JSDOM evaluates no media query, so the kit's blocks are flattened in by hand after
-// the shadows are stripped, which is also the proof they are reachable.
-const FORCED = /forced-colors\s*:\s*active/;
+// What is left to hold is that nothing brings either back — a region given a stand-in and
+// a shadow is a region forced colours cannot draw, which is the defect this reading is for
+// and which the band check above now catches on its own.
+test('nothing is left for forced colours to correct', () => {
+  const standIns = [...source.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, , body]) => /outline\s*:\s*2px solid transparent/.test(body))
+    .map(([, selector]) => selector.trim().replace(/\s+/g, ' '));
+  assert.deepEqual(standIns, [],
+    'a transparent stand-in outline is back; with the band on the same property it is '
+    + 'either silencing the band or waiting to be repainted beside it');
+  // One forced-colors block is left in the kit and it is not about focus: #527's
+  // underline strip restates its CHOSEN TAB's accent bar in `Highlight`, because the
+  // mode repaints an author colour and would otherwise leave that bar in the labels'
+  // own ink. A block that declares `outline` or `box-shadow` would be correcting the
+  // band instead, which is the thing #578 removed the need for.
+  const forced = [...source.replace(/\/\*[\s\S]*?\*\//g, '')
+    .matchAll(/@media\s*\(forced-colors:\s*active\)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)]
+    .map(([, body]) => body);
+  assert.equal(forced.length, 1,
+    'a forced-colors block was added or removed. The band is a real outline now, so a '
+    + 'new block is either a second indicator or a correction for one');
+  assert.doesNotMatch(forced[0], /(?:^|[;{\s])(?:outline|box-shadow)\s*:/,
+    'the kit\'s one forced-colors block has started correcting a focus indicator; the '
+    + 'band is a real outline and the mode repaints it without help');
+});
 
-function emulateForcedColors(css) {
-  const flattened = leafRules(css)
-    .filter((rule) => rule.at.some((prelude) => FORCED.test(prelude)))
-    .map((rule) => `${rule.selector} { ${rule.decls.map((d) => `${d.prop}: ${d.value}`).join('; ')} }`);
-  // Two blocks in the kit, neither of them a scroll region. The snippet's `<pre>`
-  // hands its ring to the card around it (#474) and drops its own transparent
-  // outline so the system repaints one indicator rather than two. The underline
-  // strip's chosen tab (#527) restates its accent bar in `Highlight`, because the
-  // mode repaints an author colour and would otherwise leave the bar in the labels'
-  // own ink. #531's regions delegate to nobody and need no block at all — which is
-  // what makes this number the check it is: a third block, or either of these two
-  // going missing, is a region that has started delegating.
-  assert.equal(flattened.length, 2,
-    'a forced-colors block was added or removed; a scroll region that needs one is a '
-    + 'scroll region that has started delegating');
-  return [css.replace(/box-shadow\s*:[^;}]+/g, 'box-shadow: none'), ...flattened].join('\n');
-}
-
-function checkForcedColors(css, theme) {
-  const win = stage(emulateForcedColors(css), theme, 'default');
-  for (const { name, box } of SUBJECTS) {
-    const el = win.document.querySelector(box);
-    el.setAttribute('data-ui-state', 'focus-visible');
-    assert.ok(quiet(win.getComputedStyle(el)),
-      `${name}: forced colors leaves no box-shadow at all, so the outline is the only signal`);
-    assert.ok(!bareOutline(win.getComputedStyle(el)),
-      `${name}: ${box} declares no outline the system can repaint`);
-    // And exactly one box does, counting the region and every box around it.
-    const drawing = [el];
-    for (let host = el.parentElement; host; host = host.parentElement) {
-      if (!bareOutline(win.getComputedStyle(host))) drawing.push(host);
-    }
-    assert.equal(drawing.length, 1, `${name}: one focused region draws one indicator, not two`);
-    el.removeAttribute('data-ui-state');
-  }
-  win.close();
-}
-
-for (const theme of ['light', 'dark']) {
-  test(`a scroll region draws one indicator in forced colors: ${theme}`,
-    () => checkForcedColors(source, theme));
-}
-
-// The defect that reading exists for, restored: give a region back a transparent
-// outline and forced colors has nothing to repaint.
-test('rejects a scroll region whose band forced colors cannot repaint', () => {
+test('rejects a scroll region put back on the retired box-shadow form', () => {
   const mutated = source.replace(
     '.ui-drawer__body:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }',
     '.ui-drawer__body:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }');
   assert.notEqual(mutated, source, 'the mutation found the rule');
-  assert.throws(() => checkForcedColors(mutated, 'light'),
-    /drawer's body: \.ui-drawer__body declares no outline the system can repaint/);
+  assert.throws(() => check(mutated, 'light', 'default'),
+    /\.ui-drawer__body does not draw the shared band/);
 });

@@ -12,7 +12,9 @@
 // property at equal specificity further down the page. `focusPaint` therefore
 // resolves the cascade itself — every rule declaring `box-shadow` or `outline`,
 // ranked by specificity then by document order across the sheets as the page
-// loads them — and names the declaration that wins.
+// loads them — and names the declaration that wins. Since #578 the band is an
+// `outline`, so it competes with the kit's own hover edges and state hairlines for
+// one property, and that is the competition this resolves.
 //
 // That resolution covers specificity and order, and nothing else. It does not
 // model `!important`, an inline `style=`, a media or container query's condition
@@ -144,8 +146,12 @@ const declarations = (body) => body.split(';')
   .map((d) => [d.slice(0, d.indexOf(':')).trim().toLowerCase(), d.slice(d.indexOf(':') + 1).trim()])
   .filter(([property]) => property);
 
-/** Nothing a reader can see: the kit's forced-colours outline, or none at all. */
+/** Nothing a reader can see: `none`, a zero width, or a transparent ink. */
 const invisibleOutline = (value) => /^(?:none|0|0px)$/i.test(value) || /\btransparent\b/i.test(value);
+
+/** Either of the kit's two bands, read as it is WRITTEN rather than as it resolves:
+ *  `--ring` outward on a control, `--ring-scroll` inward on a scroll region. #578 */
+const RING = /var\(\s*--ring(?:-scroll)?\s*[,)]/;
 
 /** What a focus rule's body paints. */
 export function paintsOf(body) {
@@ -153,17 +159,20 @@ export function paintsOf(body) {
   for (const [property, value] of declarations(body)) {
     const bare = value.replace(/!important/gi, '').trim();
     if (property === 'box-shadow') {
-      if (/var\(\s*--ring\s*[,)]/.test(bare)) out.ring = true;
-      else out.shadow = /^none$/i.test(bare) ? null : bare;
+      // Never the ring since #578. A focus rule that still writes one is writing a
+      // second indicator beside the band, or the retired form of it, and either is
+      // reported rather than read as a ring.
+      out.shadow = /^none$/i.test(bare) ? null : bare;
     }
     if (property === 'outline' || property === 'outline-color' || property === 'outline-style') {
-      // --ring-scroll is the shared ring's own gap and band, drawn inward on a scroll
-      // region as an OUTLINE rather than a shadow, so that the region's own children
-      // cannot paint over it. It is the ring, not a second indicator beside it — and
-      // being a real outline is the whole of what forced colors needs, so the region
-      // owes no transparent one on top. `outline` below means an outline that is NOT
-      // the ring, which is the thing the walk refuses. #531
-      if (/var\(\s*--ring-scroll\s*[,)]/.test(bare)) { out.ring = true; out.outline = null; continue; }
+      // Both of the kit's bands are real outlines: --ring drawn outward on a control,
+      // --ring-scroll drawn inward on a scroll region, so the region's own children
+      // cannot paint over it. Either one IS the indicator rather than a second one
+      // beside it, and being a real outline is the whole of what forced colors needs,
+      // so no consumer owes a transparent one on top. `outline` below means an outline
+      // that is NOT the ring, which is the thing the walk refuses. #531, #578
+      if (RING.test(bare)) { out.ring = true; out.outline = null; continue; }
+      out.ring = false;
       out.outline = invisibleOutline(bare) ? null : bare;
     }
   }
@@ -448,11 +457,9 @@ const outranks = (a, b) => {
 const negatesFocus = (selector) => compoundsOf(selector)
   .some(({ compound }) => dropFunctional(compound, ['not'], (args) => FOCUS.test(args)) !== compound);
 
-const isRing = (value) => value !== null && /var\(\s*--ring\s*[,)]/.test(value);
-/** The same indicator on a scroll region: the kit's gap and band drawn inward, as an
- *  outline rather than a shadow, so the region's own children cannot paint over it.
- *  It competes for `outline` where --ring competes for `box-shadow`. #531 */
-const isScrollRing = (value) => value !== null && /var\(\s*--ring-scroll\s*[,)]/.test(value);
+/** Either band, outward or inward. Both are outlines since #578, so both compete for
+ *  the same property and one resolver settles them. #531, #578 */
+const isRing = (value) => value !== null && RING.test(value);
 
 /** A keyframe step, not a selector. `@keyframes` is stripped of its own at-rule
  *  line by the reader, leaving `0%`, `from` and `to` behind; badge.css animates
@@ -513,11 +520,11 @@ export function paintingRules(sheets) {
  * each stop the winner of each property is the matching declaration that
  * outranks every other on specificity, or sits last among equals.
  *
- * `rings` holds the rules that ask for the ring ON THIS STOP, in either form: a
- * `box-shadow` of `var(--ring)`, or — on a scroll region — an `outline` of
- * `var(--ring-scroll)`. A ring the kit delegates to another element is not resolved
- * here; `delegated` counts those, so the gate can hold the number rather than let it
- * grow unseen.
+ * `rings` holds the rules that ask for a band ON THIS STOP, in either form: an
+ * `outline` of `var(--ring)`, or — on a scroll region — one of `var(--ring-scroll)`.
+ * Both carry it on the same property since #578, so one winner settles both. A ring
+ * the kit delegates to another element is not resolved here; `delegated` counts those,
+ * so the gate can hold the number rather than let it grow unseen.
  */
 export function focusPaint(root, sheets) {
   const rules = paintingRules(sheets);
@@ -549,8 +556,7 @@ export function focusPaint(root, sheets) {
     return {
       el,
       label: stopLabel(el),
-      rings: matched.filter((rule) => rule.focus
-        && (isRing(rule.shadow) || isScrollRing(rule.outline))),
+      rings: matched.filter((rule) => rule.focus && isRing(rule.outline)),
       delegated: delegated.map((rule) => rule.selector),
       shadow: win('shadow'),
       outline: win('outline'),
@@ -560,37 +566,29 @@ export function focusPaint(root, sheets) {
 }
 
 /**
- * Stops whose ring is written but not painted: a focus rule matches and asks for the
- * ring, and the cascade still hands the property that carries it to something else.
- * Which property that is depends on the form — `box-shadow` for `var(--ring)`,
- * `outline` for a scroll region's `var(--ring-scroll)` — so the winner is read on the
- * property the stop's own rules asked for. A stop no ring rule reaches is not reported
- * here; `failures` already names it.
+ * Stops whose ring is written but not painted: a focus rule matches and asks for a
+ * band, and the cascade still hands `outline` to something else. Since #578 both bands
+ * are outlines, so there is one property to resolve and a later outline does not sit
+ * BESIDE the ring — it replaces it, which is the one thing to catch. A focus rule that
+ * writes a box-shadow of its own is reported separately: the band no longer uses that
+ * property, so anything a focus rule puts there is a second indicator.
+ *
+ * A stop no ring rule reaches is not reported here; `failures` already names it.
  */
 export function cascadeFailures({ stops }, exempt = () => false) {
   return stops.flatMap((stop) => {
     if (!stop.rings.length || exempt(stop)) return [];
     const where = (rule) => `${rule.origin} ${rule.selector} (${rule.spec.join(',')})`;
-    const asked = stop.rings.map((rule) => where(rule)).join(', ');
+    const asked = stop.rings.map((rule) => `${where(rule)} → ${rule.outline}`).join(', ');
     const lines = [];
-    const inOutline = stop.rings.every((rule) => isScrollRing(rule.outline));
-    if (inOutline) {
-      // The band IS the outline here, so a later outline does not sit beside the ring
-      // — it replaces it, which is the one thing to catch.
-      if (!stop.outline || !isScrollRing(stop.outline.outline)) {
-        lines.push(`${stop.label} — ${asked} asks for var(--ring-scroll), but `
-          + `${stop.outline ? where(stop.outline) : 'nothing'} wins outline with `
-          + `"${stop.outline?.outline ?? 'none'}"`);
-      }
-      return lines;
+    if (!stop.outline || !isRing(stop.outline.outline)) {
+      lines.push(`${stop.label} — ${asked}, but `
+        + `${stop.outline ? where(stop.outline) : 'nothing'} wins outline with `
+        + `"${stop.outline?.outline ?? 'none'}"`);
     }
-    if (!isRing(stop.shadow.shadow)) {
-      lines.push(`${stop.label} — ${asked} asks for var(--ring), but `
-        + `${where(stop.shadow)} wins box-shadow with "${stop.shadow.shadow}"`);
-    }
-    if (stop.outline && !invisibleOutline(stop.outline.outline)) {
-      lines.push(`${stop.label} — ${where(stop.outline)} wins outline with `
-        + `"${stop.outline.outline}", a second indicator beside the ring`);
+    if (stop.shadow && stop.shadow.focus && stop.shadow.shadow !== null) {
+      lines.push(`${stop.label} — ${where(stop.shadow)} wins box-shadow with `
+        + `"${stop.shadow.shadow}", a second indicator beside the ring`);
     }
     return lines;
   });

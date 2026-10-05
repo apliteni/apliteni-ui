@@ -57,7 +57,7 @@ it('keeps the kit ring on its one focusable part', async () => {
   expect(document.activeElement).toBe(field);
   expect(field.className.split(/\s+/)).toContain('ui-input');
   expect(readRepo('../../src/styles/input.css'))
-    .toMatch(/\.ui-input:focus-visible,[\s\S]{0,200}?\{[^}]*outline:\s*2px solid transparent;[^}]*box-shadow:\s*var\(--ring\)/);
+    .toMatch(/\.ui-input:focus-visible,[\s\S]{0,200}?\{[^}]*outline:\s*var\(--ring\);[^}]*outline-offset:\s*var\(--ring-offset\)/);
 });
 
 it('forwards its ref, its className and the native input props', async () => {

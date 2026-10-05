@@ -88,14 +88,22 @@ export const CHROME_CSS = `
   /* The kit's ring on the chrome's own controls. Without these three rules the
      nav links, the accent dots and the footer links fall back to the browser's
      outline, which ignores the accent and is black in both themes. #482 */
-  .site-topbar .lk:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+  .site-topbar .lk:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
   .ver { font-size: 11px; font-weight: 600; letter-spacing: .03em; color: var(--muted); background: var(--surface-2); border-radius: 999px; padding: 3px 9px; }
 
   .accents { display: inline-flex; gap: 9px; }
   .accents button { width: 22px; height: 22px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: 0 0 0 2px var(--bg); transition: transform .15s; }
   .accents button:hover { transform: scale(1.12); }
-  .accents button.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
-  .accents button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+  /* The selected dot's own accent ring stands aside under the band, the way this PR's
+     kit hover rules do, leaving the circle the page-coloured band every dot carries.
+     While \`--ring\` was a box-shadow the focus rule REPLACED this ring; an outline does
+     not, and the two fuse — the shadow fills 0-2px outside the border box and the band
+     1-3px, so a focused selected dot measured one flush 3px accent edge instead of the
+     kit's 2px at a 1px offset. Written as \`:not(:focus-visible)\` rather than as a
+     box-shadow under \`:focus-visible\`, which would be a second indicator beside the
+     band and is what stories/focus-ring.test.js reads for. #578 */
+  .accents button.on:not(:focus-visible) { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+  .accents button:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
   .site-footer { border-top: 1px solid var(--border); padding: 34px 0; margin-top: 20px; }
   .site-footer__in { max-width: var(--container); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px);
@@ -103,7 +111,7 @@ export const CHROME_CSS = `
     color: var(--muted); font-size: 13px; }
   .site-footer a { color: var(--muted); text-decoration: none; transition: color .15s ease; }
   .site-footer a:hover { color: var(--strong); text-decoration: underline; text-underline-offset: 3px; }
-  .site-footer a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+  .site-footer a:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
   @media (max-width: 560px) {
     .site-topbar .hide-sm { display: none; }
     /* The bar keeps four items on a phone — brand, two nav links, theme — and

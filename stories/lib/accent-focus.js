@@ -6,24 +6,26 @@
  * the circle, by the tick stories/lib/accent-mark.js measures.
  *
  * SEPARATE FROM accent-mark.js: that gate reads a declaration out of the sheet,
- * because the mark is a pseudo-element JSDOM does not compute. This one reads a
- * computed box-shadow off the element, which is the only way to see what the
- * cascade leaves on the edge once .is-active and :focus-visible have both matched.
+ * because the mark is a pseudo-element JSDOM does not compute. This one reads the
+ * computed edge off the element, which is the only way to see what the cascade
+ * leaves there once .is-active and :focus-visible have both matched.
+ *
+ * TWO CARRIERS, BOTH READ. Since #578 the band is a real `outline` and the swatch
+ * keeps a `box-shadow` of its own, so the edge is whatever the two draw together
+ * and a second accent signal can arrive on either. The outline is read from the
+ * shorthand because JSDOM expands no shorthand into longhands.
  *
  * REJECTS a band in the SELECTED swatch's own accent, which #472 shipped twice;
  * the measurements and the decision are in the specification section below.
  *
- * CANNOT READ: the 12px halo in var(--ring). It is blurred and translucent, so
- * the pixels it reaches are the band colours mixed by a fraction no source reader
- * can compute; this gate counts it, skips it and measures the opaque bands as
- * declared, which makes a pass a ceiling and not the painted result. Browser
- * pixel samples close that gap, and #578 removes the halo outright. JSDOM also
- * resolves no var(), which is why the caller substitutes the tokens, and no
- * gradient, so the ring's gap band against the swatch fill is recorded by the
- * caller as a reading rather than asserted: the gap is part of the indicator, the
- * band it separates is read against the ground on both sides, and the kit gives
- * every accent-filled control the same geometry.
- * why: docs/components.md#page-furniture. See issues #429 and #472.
+ * CANNOT READ: anything about where the bands actually land. JSDOM lays nothing
+ * out, so this reads declared widths and colours and the ORDER they stack in —
+ * a pass is a ceiling and not the painted result, and browser pixel samples are
+ * what close that gap. It also resolves no var(), which is why the caller
+ * substitutes the tokens, and no gradient, so the ring's gap against the swatch
+ * fill is recorded by the caller as a reading rather than asserted: an outline
+ * leaves its offset UNPAINTED, so what shows there is the swatch's own shadow.
+ * why: docs/components.md#page-furniture. See issues #429, #472 and #578.
  */
 import assert from 'node:assert/strict';
 import { parseColour, ratio, substitute, tokensFor } from './contrast.js';
@@ -32,16 +34,17 @@ import { parseColour, ratio, substitute, tokensFor } from './contrast.js';
 export const BAND_FLOOR = 3;
 
 /**
- * The neutral the kit hands a focused control as the ground under its ring.
+ * The ground a focused control's outermost band is read against.
  *
- * It is what the outermost band is read against, and it is the same value the
- * ring's own gap takes, so the two never drift apart. A card re-points it at its
- * own surface; at the root it is the page.
+ * Until #578 the kit named it: the ring painted its own gap in `--ring-gap`, which
+ * was `var(--bg)`. An outline paints no gap, so there is no token to read and the
+ * ground is simply the surface the control stands on — which for the picker in
+ * these fixtures, with no card between it and the page, is the page.
  */
-export function ringGap(theme, accent) {
+export function ringGround(theme, accent) {
   const vars = tokensFor(theme, accent);
-  const colour = parseColour(substitute(vars.get('--ring-gap'), vars));
-  assert.ok(colour, `${theme} declares no --ring-gap this gate can read`);
+  const colour = parseColour(substitute(vars.get('--bg'), vars));
+  assert.ok(colour, `${theme} declares no --bg this gate can read`);
   return colour;
 }
 
@@ -120,6 +123,34 @@ function layerOf(text) {
 const paints = (c) => `rgb(${c.slice(0, 3).map(Math.round).join(', ')})`;
 
 /**
+ * The band an `outline` shorthand declares, as `{ spread, colour, raw }`.
+ *
+ * `spread` is where its OUTER edge falls from the border box, so it sorts beside a
+ * box-shadow band's spread: the offset carries the band out, and the band is as
+ * wide as the outline. JSDOM leaves the shorthand as written, so this parses it.
+ */
+function outlineBand(style) {
+  const text = String(style.outline || '').trim();
+  if (!text || ['none', '0', '0px'].includes(text)) return null;
+  const parts = splitTop(text, ' ');
+  const widths = parts.filter((part) => /^(-?[\d.]+(px)?$|calc\()/.test(part));
+  const keywords = parts.filter((part) => /^(solid|dashed|dotted|double|groove|ridge|inset|outset|auto|none)$/.test(part));
+  const colour = parts.filter((part) => !widths.includes(part) && !keywords.includes(part)).join(' ');
+  assert.equal(widths.length, 1, `an outline takes one width this gate can read: ${text}`);
+  assert.deepEqual(keywords, ['solid'], `the kit's band is a solid outline: ${text}`);
+  assert.ok(colour, `an outline with no colour: ${text}`);
+  const offset = String(style.outlineOffset || '0').trim();
+  return {
+    spread: px(offset || '0') + px(widths[0]),
+    width: px(widths[0]),
+    colour: parseColour(colour),
+    raw: colour,
+    halo: false,
+    carrier: 'outline',
+  };
+}
+
+/**
  * Measure the focused selected swatch's edge and return its bands outward.
  *
  * `want.ring` is the PAGE accent, which is what the kit's focus ring paints.
@@ -128,22 +159,41 @@ const paints = (c) => `rgb(${c.slice(0, 3).map(Math.round).join(', ')})`;
  * carry. Passing all three in is what makes this an assertion rather than a
  * reading, and it is what catches a second accent signal arriving on the edge.
  *
+ * Both carriers are read together and sorted outward, because a second signal can
+ * arrive on either: the band is an outline since #578 and the swatch keeps a
+ * box-shadow of its own.
+ *
  * Throws unless every pair of bands that touch clears BAND_FLOOR, which is the
  * check the mark gate cannot make: there, nothing is laid against anything.
  */
 export function measureFocusedEdge(button, win, want) {
-  const shadow = win.getComputedStyle(button).boxShadow;
-  assert.ok(shadow && shadow !== 'none', 'a focused selected swatch has a box-shadow');
-  assert.ok(!shadow.includes('gradient('), 'a gradient cannot be a shadow colour');
-  const layers = splitTop(shadow, ',').map(layerOf);
+  const style = win.getComputedStyle(button);
+  const ring = outlineBand(style);
+  assert.ok(ring, 'a focused selected swatch draws the kit band, which is an outline since #578');
 
-  const bands = layers.filter((layer) => !layer.halo);
+  const shadow = style.boxShadow;
+  assert.ok(!String(shadow || '').includes('gradient('), 'a gradient cannot be a shadow colour');
+  const layers = shadow && shadow !== 'none' ? splitTop(shadow, ',').map(layerOf) : [];
+
+  // A shadow's layers are painted in source order, so they have to be written
+  // outward or one hides under the next.
+  const cast = layers.filter((layer) => !layer.halo);
+  for (const [index, band] of cast.entries()) {
+    if (index === 0) continue;
+    assert.ok(band.spread > cast[index - 1].spread,
+      `shadow bands paint outward in source order: ${cast[index - 1].spread}px then ${band.spread}px`);
+  }
+  // The two carriers are then read as one edge, outward. An outline is painted over
+  // the cast whatever order the sheet writes them in, so position is the only thing
+  // that puts it among them — and two bands at one spread means one is not drawn.
+  const bands = [...cast, ring].sort((a, b) => a.spread - b.spread);
   assert.ok(bands.every((band) => band.colour && band.colour[3] === 1),
     `every band paints an opaque colour this gate can read: ${bands.map((b) => b.raw).join(' | ')}`);
   for (const [index, band] of bands.entries()) {
     if (index === 0) continue;
     assert.ok(band.spread > bands[index - 1].spread,
-      `bands paint outward in source order: ${bands[index - 1].spread}px then ${band.spread}px`);
+      `two bands reach ${band.spread}px, so one of them is painted over: `
+      + `${bands[index - 1].raw} and ${band.raw}`);
   }
 
   const found = bands.map((band) => paints(band.colour));
@@ -162,6 +212,8 @@ export function measureFocusedEdge(button, win, want) {
     `${accented.length} of this edge's bands paint an accent (${accented.map((b) => b.raw).join(', ')}), `
     + 'and the kit focus ring is the one that may. One element, one accent signal',
   );
+  assert.equal(accented[0].carrier, 'outline',
+    'the one accent band on this edge is the kit ring, and the kit ring is an outline (#578)');
 
   // Every pair that touches, including the outermost band against the ground the
   // picker stands on.

@@ -25,7 +25,7 @@ import {
 // because this file has a leafRules() of its own, on a different shape.
 import { leafRules as motionRules, inNet, ms } from '../lib/motion-css.js';
 import { appShell } from '../../src/components/shell.js';
-import { layersOf, geometryOf } from '../../scripts/lib/box-shadow.js';
+import { focusBand } from '../../scripts/lib/box-shadow.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1315,13 +1315,15 @@ test('the nav inside the rail keeps its own height, so the rail is what scrolls'
   );
 });
 
-// overflow clips at the padding box, so a spread-only box-shadow survives
-// exactly as far as the scroll container's own padding.
+// overflow clips at the padding box, so the band survives exactly as far as the scroll
+// container's own padding reaches. The band is an `outline` since #578 and its footprint
+// is its offset plus its width — the same 3px the box-shadow's outer spread was.
 test('the rail\'s scroll box has room for the solid focus band at every edge', () => {
   const vars = tokensFor('dark');
-  const bands = layersOf(substitute(vars.get('--ring'), vars)).map(geometryOf).filter((g) => g.blur === 0);
-  assert.equal(bands.length, 2, 'the gap and solid band must both be measured');
-  const need = Math.max(...bands.map((g) => g.spread));
+  const band = focusBand(substitute(vars.get('--ring'), vars));
+  assert.ok(band, 'the band is no longer a solid outline, so its footprint is unmeasured');
+  const offset = substitute(vars.get('--ring-offset'), vars);
+  const need = Number.parseFloat(band[0]) + Number.parseFloat(offset);
   assert.ok(Number.isFinite(need) && need > 0, 'the solid footprint did not resolve');
   for (const [mode, html, narrow] of [['wide', SHELL, false], ['folded', SHELL, true], ['collapsed', PAIR(true), false]]) {
     const at = mount(html, { narrow });

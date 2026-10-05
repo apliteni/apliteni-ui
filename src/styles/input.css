@@ -25,7 +25,7 @@
   color: var(--strong);
   /* Fields use the card surface and an edge in both themes.
      why: docs/foundations.md#elevation */
-  background: var(--field-bg); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border: 1px solid var(--field-edge);
   border-radius: var(--radius-md);
   padding: 12px 15px;
@@ -38,12 +38,16 @@
 .ui-textarea:hover,
 .ui-select:hover { border-color: var(--field-edge-hover); }
 
+/* The band and nothing beside it. Recolouring the field's own 1px edge to the
+   accent drew a SECOND accent band one pixel inside the first, and the unpainted
+   pixel between them read as a halo on the light ground — which is the glow Artur
+   rejected on #578 round r34. The edge keeps its resting ink.
+   why: docs/foundations.md#the-focus-ring */
 .ui-input:focus-visible,
 .ui-textarea:focus-visible,
 .ui-select:focus-visible {
-  outline: 2px solid transparent;
-  border-color: var(--accent);
-  box-shadow: var(--ring);
+  outline: var(--ring);
+  outline-offset: var(--ring-offset);
 }
 
 .ui-input::placeholder,
@@ -62,7 +66,7 @@
 .ui-input:disabled,
 .ui-select:disabled,
 .ui-textarea:disabled {
-  background-color: var(--disabled-surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background-color: var(--disabled-surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border-color: var(--disabled-border);
   /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
   opacity: 1; /* fade-reset: the UA's select:disabled grey-out. #564 */
@@ -137,7 +141,7 @@
   margin-top: 1px;
   border: 1.5px solid var(--border-strong);
   border-radius: var(--radius-xs);
-  background: var(--surface-2); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface-2); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
   position: relative;
@@ -163,7 +167,11 @@
 .ui-check input[type="radio"] { border-radius: 50%; }
 /* :enabled, or the accent lights the border of a box that cannot be clicked —
    the same "press me" a disabled control has to stop making. #429 */
-.ui-check input:enabled:hover { border-color: var(--accent); }
+/* The hover edge steps aside under the band: an accent edge one pixel inside an
+   accent band is the second band #578 round r34 took off the focus rules, and a
+   pointer resting on a focused control would put it back. One indicator, which is
+   what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
+.ui-check input:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-check input:checked { background: var(--accent); border-color: var(--accent); }
 .ui-check input[type="checkbox"]:checked::after {
   content: "";
@@ -181,7 +189,7 @@
   border-radius: 50%;
   background: var(--accent-contrast);
 }
-.ui-check input:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-check input:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* Off. `.ui-check` had no disabled rule at all until #429 put a disabled checkbox
    on screen: the box kept --surface-2 and --border-strong, its words kept --text,
@@ -192,13 +200,13 @@
    button does: the accent IS the "press me". Its mark inverts to --disabled-surface,
    so the tick and the dot keep the measured --disabled-ink pair in both themes. */
 .ui-check input:disabled {
-  background: var(--disabled-surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--disabled-surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border-color: var(--disabled-border);
   cursor: not-allowed;
 }
 .ui-check input:disabled:checked { background: var(--disabled-ink); border-color: var(--disabled-ink); }
 .ui-check input[type="checkbox"]:disabled:checked::after { border-color: var(--disabled-surface); }
-.ui-check input[type="radio"]:disabled:checked::after { background: var(--disabled-surface); /* ring-gap: inherit — the mark inside the box; the box carries the focus indicator. */ }
+.ui-check input[type="radio"]:disabled:checked::after { background: var(--disabled-surface); /* code-bg: inherit — the mark inside the box; the box carries the focus indicator. */ }
 /* The label is the click target, so the cursor belongs on it, and the words it
    holds go quiet with the box beside them. */
 .ui-check:has(input:disabled) { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; }
@@ -217,7 +225,7 @@
 .ui-switch__track {
   position: absolute;
   inset: 0;
-  background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition: background var(--dur-med) var(--ease);
@@ -243,5 +251,5 @@
 .ui-switch input:checked + .ui-switch__track::before {
   transform: translateX(calc(var(--sw-w) - var(--sw-h)));
 }
-.ui-switch input:focus-visible + .ui-switch__track { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-switch input:focus-visible + .ui-switch__track { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-switch input:disabled + .ui-switch__track { opacity: 0.5; cursor: not-allowed; }

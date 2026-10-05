@@ -291,12 +291,12 @@ test('focus walk: a native fallback and a flat outline are both rejected', () =>
   assert.equal(judge('.t{color:red}').status, 'native', 'a stop no focus rule reaches is native');
   assert.equal(judge('.t:focus-visible{outline:2px solid var(--accent)}').status, 'outline',
     'a flat accent outline is not the ring');
-  assert.equal(judge('.t:focus-visible{outline:2px solid transparent;box-shadow:0 0 0 2px blue}').status,
-    'shadow', 'a box-shadow that is not the ring is not the ring');
-  assert.equal(judge('.t:focus-visible{outline:2px solid transparent;box-shadow:var(--ring)}').status,
+  assert.equal(judge('.t:focus-visible{outline:none;box-shadow:0 0 0 2px blue}').status,
+    'shadow', 'a box-shadow is not the band; the band is an outline (#578)');
+  assert.equal(judge('.t:focus-visible{outline:var(--ring);outline-offset:var(--ring-offset)}').status,
     'ring', 'the shared ring passes');
-  assert.equal(judge('.t:focus-visible{outline:2px solid var(--accent);box-shadow:var(--ring)}').status,
-    'outline', 'a visible outline beside the ring is two indicators, not one');
+  assert.equal(judge('.t:focus-visible{outline:2px solid transparent;box-shadow:var(--ring)}').status,
+    'shadow', 'the retired box-shadow form draws no band, and the stand-in outline is invisible');
   dom.window.close();
 });
 
@@ -324,11 +324,9 @@ test('focus walk: the cascade resolver accounts for every stop it walks', () => 
     for (const stop of paint.stops) {
       if (stop.rings.length) {
         buckets.self += 1;
-        // A scroll region's band is an `outline` rather than a `box-shadow` (#531), so
-        // the property that has to have a winner is the one its rules asked for.
-        const carrier = stop.rings.every((rule) => /var\(\s*--ring-scroll\s*[,)]/.test(rule.outline ?? ''))
-          ? 'outline' : 'shadow';
-        assert.ok(stop[carrier], `${stop.label} asks for the ring with no winning ${carrier}`);
+        // Both bands are `outline` since #578 — outward on a control, inward on a
+        // scroll region — so there is one property that has to have a winner.
+        assert.ok(stop.outline, `${stop.label} asks for the ring with no winning outline`);
         continue;
       }
       if (stop.delegated.length) { buckets.delegated.push(...stop.delegated); continue; }
@@ -360,18 +358,19 @@ test('focus walk: specificity is counted the way the cascade counts it', () => {
   assert.deepEqual(specificity('*'), [0, 0, 0]);
 });
 
-// The mutation that proves it: take the landing page's own focus rule for the
-// playground swatches back out, leaving the shared chrome's rule to tie with
-// `.on` and lose. The presence reading above stays green — that is the whole
-// point — and the cascade reading has to go red, naming the selected swatch.
+// The mutation that proves it: give the playground's selected swatch an always-on
+// `outline` of its own, in the page's own block, which ties the shared chrome's focus
+// rule at (0,2,1) and stands after it. That is the collision the carrier change moved:
+// until #578 the band was a `box-shadow` and `.play-accents button.on`'s own band was
+// the rule that silenced it (#482/#487); now the band is an `outline` and a flat edge
+// is what can take it. The presence reading stays green — that is the whole point —
+// and the cascade reading has to go red, naming the selected swatch.
 test('focus walk: losing a ring to source order turns the cascade test red', () => {
   const subject = subjects.find(({ id }) => id === 'site/index.html');
-  const rule = '.play-accents button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }';
   const page = subject.sheets.at(-1);
-  assert.equal(sheetText(page.css).split(rule).length, 2,
-    'the landing page no longer carries exactly one playground-swatch focus rule');
+  const collision = '.play-accents button.on { outline: 1px solid var(--border); }';
   const mutated = subject.sheets.map((sheet) => (sheet === page
-    ? { ...sheet, css: sheetText(sheet.css).split(rule).join('') }
+    ? { ...sheet, css: `${sheetText(sheet.css)}\n${collision}` }
     : sheet));
 
   const stillPresent = failures(
@@ -379,17 +378,20 @@ test('focus walk: losing a ring to source order turns the cascade test red', () 
     exempt,
   );
   assert.deepEqual(stillPresent, [],
-    'the presence reading is supposed to miss this — if it now catches it, re-state both tests');
+    'the presence reading is supposed to miss this — the rule carries no focus pseudo, '
+    + 'so it is not a focus rule at all. If it now catches it, re-state both tests');
 
   const lost = cascadeFailures(focusPaint(subject.body, mutated), exempt);
   assert.equal(lost.length, 1, `expected the one selected swatch, got:\n  ${lost.join('\n  ')}`);
   assert.match(lost[0], /play-accents button\.on/,
     'the finding has to name the always-on rule that wins');
+  assert.match(lost[0], /var\(--ring\)/,
+    'the finding has to say which band was asked for');
 });
 
-// The same reading for the other carrier. A scroll region's band is an `outline`
-// (#531), so the rule that can silence it is a later `outline`, not a later
-// `box-shadow` — and before r30 the resolver read only `box-shadow`, which would
+// The same reading on a scroll region, whose band is drawn inward. One property
+// carries both bands since #578, so the rule that can silence either is a later
+// `outline` — and before #531's r30 the resolver read only `box-shadow`, which would
 // have let one through. The mutation is a plausible one: a product sheet turning a
 // scroll region's outline off, the way a reset does.
 test('focus walk: a later outline taking a scroll region\'s band turns the cascade test red', () => {

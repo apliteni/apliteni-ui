@@ -217,6 +217,12 @@ The ladder, from bottom to top:
 themes, fields, code blocks, neutral badges, navigation labels and segmented controls use
 those reading surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks.
 
+**A selected item is the one exception.** Selection is marked by a background highlight, and the
+only fills that step off a reading surface are the grey ones. A chosen segmented pill fills
+`--surface-3` on its track; a chosen menu row and the palette row the keyboard is on fill
+`--surface-2` on their panel. A chosen pill is therefore the one place in the kit where a label
+rests on a quiet grey fill.
+
 **What floats depends on the surface's job, not on its rung.** A floating surface has the
 whole purpose of being temporarily above something else. It writes both devices as one
 `box-shadow` list. The inset line comes first, followed by the drops. Each rung has one token
@@ -227,14 +233,14 @@ floating surface, and `--elev-edge` to re-point the inner line:
 box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
 ```
 
-**The focus ring composes with that list.** A `box-shadow` list replaces the whole list.
-Every floating panel therefore writes the ring *in front of* its own edge and drop.
+**The focus ring does not touch that list.** The band is an `outline`, so a focused panel keeps
+the edge and the drop it rests on without restating them.
 
 `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` are still
 published. All five are the transparent shadow `0 0 #0000` in both themes. They are
 transparent rather than `none`, because `none` would invalidate any list in which it
-appears. A zero-offset layer in a signal's own colour is a **glow**. `--glow-*`, `--sheen`
-and `--ring` have that shape.
+appears. A zero-offset layer in a signal's own colour is a **glow**. `--glow-*` and `--sheen` have that
+shape. `--ring` does not: it is an `outline` value, so no box-shadow in the kit answers focus.
 
 **An inline code chip paints the reading surface that its container is not on.** The container
 states which surface that is in `--code-bg`, and the chip reads that value. The chip never
@@ -263,50 +269,68 @@ ladder, rather than against the page.
 
 ## The focus ring
 
-One indicator uses a 1px surface-coloured gap, a 2px solid accent band, and a soft outer halo.
-The band provides the contrast. The halo is decoration.
+One indicator: a 2px solid accent band, drawn as a real `outline`, with 1px between it and the
+control. There is no halo. The offset is left **unpainted**, so what shows in that 1px is
+whatever surface the control is already standing on.
 
 ```css
 --ring-width: 2px;
 --ring-color: var(--accent);
 --ring-gap-width: 1px;
---ring-gap: var(--bg);
---ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),
-        0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color),
-        0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
---ring-scroll: var(--ring-width) solid var(--ring-color);
+--ring: var(--ring-width) solid var(--ring-color);
+--ring-offset: var(--ring-gap-width);
+--ring-scroll: var(--ring);
 --ring-scroll-offset: calc(-1 * (var(--ring-gap-width) + var(--ring-width)));
 ```
 
-**Every focusable control the kit ships draws this**, including a roving row that the keyboard
-reaches with an arrow key rather than Tab. This means none uses the browser's own outline,
-which ignores the accent and is black in both themes. The command palette's input is the one
-exception. Its own rule declares the exception because it keeps focus while the dialog is open.
-**A control of your own wears `.ui-focusable`**, the kit's opt-in class. A router link or a plain
-`<a>` used as an action needs it.
+A consumer takes the band and the offset that places it. Take one without the other and the band
+is drawn flush against the control, closing the gap it is read across:
 
-Set the width, colour and gap at `:root`, or on a surface that composes the ring. A change to
-one of these inputs on a descendant cannot change an already inherited shadow. **If you paint a
-surface of your own, set `--ring-gap` to its background and recompose `--ring`**. Changing only
-the gap does not change the inherited shadow. Every `--bg-elevated` surface does both. Cards
-and the application rail do this too. Controls use the containing gap, not their own fill.
-**A focus rule also has to outrank every always-on rule writing `box-shadow` on the same
-element**. This is why a panel's focus declaration repeats its own edge and drop beside
-`var(--ring)`.
+```css
+.my-control:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+```
 
-**`--ring-scroll` is the indicator a scroll region inside a surface takes**: it uses the same
-1px gap and 2px band, but draws them inward and has no halo. It is an `outline` drawn inward by
-`--ring-scroll-offset`. You need both values, or the band appears outside the box. A scrolling
-box is its own keyboard stop unless its children are focusable. For this reason, every scrolling
-box the kit ships either takes that ring and has padding for the band, or contains its own
-tabbable rows and takes no ring.
+Tune it at `--ring-width`, `--ring-color` and `--ring-gap-width`. The four values built from them
+are declared once each, at `:root`, and **no surface recomposes any of them**: a direct `--ring`
+override reaches every control. There is no gap colour to hand down.
 
-Controls use native `:focus-visible`, including inputs and invalid fields. An invalid border
-keeps its error colour while focus uses the shared band. Every shared-ring consumer also keeps
-a transparent 2px outline. Forced colours repaint this outline as the focus signal when they
-remove box shadows. A direct `--ring` override still works. An ancestor's override does not
-cross a surface that recomposes the ring. The ring uses no layout space, so an ancestor's
-overflow boundary can clip its 3px solid footprint and roughly 15px halo.
+**`--ring-scroll` is the indicator a scroll region inside a surface takes.** It is the same band,
+drawn inward by `--ring-scroll-offset`. You need both values, or the band appears outside the box.
+A scrolling box is its own keyboard stop unless its children are focusable, so every scrolling box
+the kit ships either takes that ring and has padding for the band, or contains its own tabbable
+rows and takes no ring.
+
+**Every focusable control the kit ships draws the band**, including a roving row the keyboard
+reaches with an arrow key rather than Tab. None falls back to the browser's own outline, which
+ignores the accent and is black in both themes. The command palette's input is the one exception,
+and its own rule says why: it keeps focus while the dialog is open. **A control of your own wears
+`.ui-focusable`**, the kit's opt-in class. A router link or a plain `<a>` used as an action needs
+it.
+
+**A focused control draws the band and nothing beside it.** Every other edge keeps its resting
+ink. Where a resting or hover rule would outrank the focus rule, it stands aside with
+`:not(:focus-visible)` rather than painting a second accent edge one pixel inside the first. A
+control that is hovered and focused at once therefore draws the band alone. A drop zone still
+recolours its dashed edge while a file is over it: that edge is the drop target, not a focus mark.
+
+**An outline means focus; selection is a background highlight.** A selected, current or active
+item is marked by its fill, its ink and its weight, never by an edge drawn around it — an edge on
+a selected row is the band's own shape one pixel further in. Two marks are deliberate exceptions
+and say so beside their rules: the current page in a pager keeps a `--border` hairline, because no
+fill marks it on both the page and a card; and the date picker's current period keeps its accent
+hairline at rest, which stands aside while the cell holds focus.
+
+Controls use native `:focus-visible`, including inputs and invalid fields. An invalid border keeps
+its error colour while focus uses the shared band. **Forced colours needs nothing extra**: the band
+is a real outline, which is what the system repaints, so no consumer carries a transparent stand-in
+outline. The ring uses no layout space, so an ancestor's overflow boundary can clip its 3px
+footprint.
+
+**Migrating from the box-shadow ring.** `--ring` was a `box-shadow` value and is an `outline`
+value. A sheet that writes `box-shadow: var(--ring)` draws nothing — the declaration is invalid —
+and has to write the pair above instead. `--ring-gap` is gone with the painted gap it coloured; if
+you set it on a painted container of your own, or recomposed `--ring` there, delete both.
+`--ring-width`, `--ring-color` and `--ring-gap-width` are unchanged.
 
 ## A field is 16px on a touch screen
 

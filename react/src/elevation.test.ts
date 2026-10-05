@@ -14,7 +14,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
-  boxShadowsIn, layersOf, isCast, isFocusRing, customPropertiesIn, resolutionsOf, dropOffences, LADDER_LAYERS,
+  boxShadowsIn, layersOf, isCast, customPropertiesIn, resolutionsOf, dropOffences, LADDER_LAYERS,
 } from '../../scripts/lib/box-shadow.js';
 // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
 import { declarationsFor, winnersOf, substitute, TOKEN_FILES } from '../../stories/lib/contrast.js';
@@ -58,7 +58,7 @@ function walk(sheets: Sheet[], theme: string) {
     for (const d of boxShadowsIn(css)) {
       for (const raw of layersOf(d.value)) {
         if (LADDER_LAYERS.includes(raw)) { floating += 1; continue; }
-        if (raw === 'var(--ring)' && resolutionsOf(raw, cascade).every(isFocusRing)) continue;
+        // No exception for the focus band: it is an `outline` since #578.
         if (!resolutionsOf(raw, cascade).some((v: string) => layersOf(v).some(isCast))) continue;
         offences.push(`${where(name)}:${d.line} (${theme})  ${d.selector} { … ${raw} … }`);
       }

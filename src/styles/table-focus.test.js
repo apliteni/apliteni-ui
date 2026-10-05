@@ -12,7 +12,7 @@ import { JSDOM } from "jsdom";
  * existing. why: docs/components.md#dense-financial-tables; decided in #510.
  *
  * Limits: this reads the cascade, not paint. Whether the ring is visible against the
- * surface behind it belongs to stories/ring-surfaces.test.js and the contrast ledger;
+ * surface behind it belongs to stories/ring-carrier.test.js and the contrast ledger;
  * whether `:focus-visible` matches on a real keystroke is the browser's, and the PR's
  * captures carry that evidence. It reads markup written as literal tags — a cell whose
  * link or whose table's class list is assembled at runtime cannot be read from source,
@@ -88,10 +88,11 @@ const selectorParts = (list) => {
   return [...parts, current].map((part) => part.trim()).filter(Boolean);
 };
 
-/** Selectors of every rule that paints the kit ring on focus. Comments come out first,
- *  or the prose above a rule is read as part of its selector. */
+/** Selectors of every rule that paints the kit ring on focus. The band is an `outline`
+ *  since #578. Comments come out first, or the prose above a rule is read as part of
+ *  its selector. */
 const ringSelectors = (css) => [...css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-  .filter(([, , body]) => /box-shadow:\s*var\(--ring\)/.test(body))
+  .filter(([, , body]) => /outline:\s*var\(--ring\)/.test(body))
   .flatMap(([, selector]) => selectorParts(selector))
   .filter((part) => part.includes(":focus-visible"));
 

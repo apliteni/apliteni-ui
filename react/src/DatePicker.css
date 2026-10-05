@@ -73,8 +73,8 @@
   border: 1px solid transparent;
   border-radius: var(--radius-xs);
   cursor: pointer;
-  /* Not `outline-color`: the focus rule resets it to transparent and a
-     transition would animate from the resting ink.
+  /* Not `outline-color`: the ring is an outline, so a transition on that property
+     would fade the band in from the hover edge's ink.
      why: docs/foundations.md#the-focus-ring */
   transition:
     background var(--dur-fast) var(--ease),
@@ -89,18 +89,20 @@
 .ui-datepicker__opt:hover {
   outline: 1px solid var(--control-edge);
   outline-offset: -1px;
-  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--strong);
 }
-/* The ring wins over the hover edge, as the dropdown's rows settle it. */
-.ui-datepicker__opt:focus-visible { outline: 2px solid transparent; }
+/* The ring wins over the hover edge, as the dropdown's rows settle it — written here
+   rather than left to base.css because the hover rule above ties it on specificity and
+   stands later in the cascade. */
+.ui-datepicker__opt:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* The span, tinted rather than greyed: these cells hold text and an opaque
    tint can be measured. After the hover rule and at the same weight, so a
    hovered day inside the span keeps the tint and takes only hover's edge.
    why: guidelines/colour-and-theming.md */
 .ui-datepicker__opt.is-inside {
-  background: color-mix(in srgb, var(--accent) 14%, var(--bg-elevated)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-elevated)); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
 }
 
 /* The one accent signal in the panel: what is chosen. */
@@ -111,7 +113,7 @@
 }
 /* No edge over the fill: the pick is already a filled chip, and a hairline on
    top of it is a second signal. why: guidelines/density-and-accents.md */
-.ui-datepicker__opt.is-selected:hover {
+.ui-datepicker__opt.is-selected:hover:not(:focus-visible) {
   outline-color: transparent;
   background: var(--accent-strong);
   color: var(--accent-contrast);
@@ -122,11 +124,22 @@
    drawn, so it needs no key under the grid; the cell's name says the words.
    why: guidelines/accessibility-floor.md */
 .ui-datepicker__opt.is-today { border-color: var(--accent); }
-/* The hover edge is inset onto the band the border occupies. */
-.ui-datepicker__opt.is-today:hover { outline-color: transparent; }
+/* The hover edge is inset onto the band the border occupies. Each of these three
+   cancellations outranks the focus rule above, so each stands aside for it: the ring
+   is an outline since #578 and `outline-color: transparent` would erase it. */
+.ui-datepicker__opt.is-today:hover:not(:focus-visible) { outline-color: transparent; }
 /* On the pick's own fill the ring has no accent left to stand against, so it
    takes the fill's contrast ink. */
 .ui-datepicker__opt.is-selected.is-today { border-color: var(--accent-contrast); }
+/* Under the keyboard the current period's own edge stands aside, so the band is the
+   one shape on the cell. The border sits inside the box and the band 1px outside it,
+   so left standing the two painted a 1px accent edge, then a pixel of nothing, then the
+   2px band — the double accent mark #578 round r34 took off the fields, one pixel apart
+   and in the same shape.
+   After `.is-selected.is-today`, which ties with this on specificity, so a focused
+   TODAY that is also the pick draws the band alone too. The resting hollow square is
+   untouched and is the open question on #578. why: docs/foundations.md#the-focus-ring */
+.ui-datepicker__opt.is-today:focus-visible { border-color: transparent; }
 
 /* A boxless ghost: the bare disabled ink, and no light-up under the pointer. */
 .ui-datepicker__opt.is-disabled {
@@ -140,12 +153,12 @@
 .ui-datepicker__opt.is-disabled .ui-datepicker__num { text-decoration: line-through; }
 /* Every property the hover rule sets, undone — the edge included. */
 .ui-datepicker__opt.is-disabled:hover {
-  outline-color: transparent;
   background: transparent;
   border-color: transparent;
   /* muted-ink: state — the same blocked period, holding its ink under the pointer */
   color: var(--disabled-ink-bare);
 }
+.ui-datepicker__opt.is-disabled:hover:not(:focus-visible) { outline-color: transparent; }
 
 /* Blocked beats picked and beats inside. Left to the cascade such a cell kept
    its fill under the disabled ink — 1.13:1 on the accent fill in light, 4.43:1

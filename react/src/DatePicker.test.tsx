@@ -814,10 +814,10 @@ describe('day mode', () => {
  * browser captures own it. This holds the selector coverage only. */
 describe('the focus ring', () => {
   const grainOf = (mode: string) => (mode === 'day' || mode === 'day-range' ? 'day' : 'month');
-  /** Every selector the kit paints `box-shadow: var(--ring)` on, minus the state. */
+  /** Every selector the kit paints `outline: var(--ring)` on, minus the state. #578 */
   const ringSelectors = ['../../src/styles/base.css', '../../src/styles/dropdown.css']
     .flatMap(file => [...read(file).replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-      .filter(([, , body]) => /box-shadow\s*:[^;]*var\(--ring\)/.test(body))
+      .filter(([, , body]) => /outline\s*:[^;]*var\(--ring\)/.test(body))
       .flatMap(([, selector]) => selector.split(',')))
     .map(s => s.trim().replace(/:focus-visible/g, ''))
     .filter(Boolean);
@@ -1179,27 +1179,33 @@ describe('the current period\'s ring is readable on every ground', () => {
  * outline and the cell-state gate above measures ink against ground. The paint
  * itself is measured in a browser and reported on the pull request. */
 describe('the hover edge', () => {
-  // Comments out: an inline `ring-gap:` annotation inside a rule body would
+  // Comments out: an inline `code-bg:` annotation inside a rule body would
   // otherwise read as a declaration and hide the one after it.
   const css = read('./DatePicker.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  const escape = (selector: string) => selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const ruleFor = (selector: string) =>
-    new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? null;
+    new RegExp(`${escape(selector)}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? null;
 
-  it('never transitions the outline, so focus is the ring at once', () => {
+  it('never transitions the outline, so focus is the band at once', () => {
     const rest = ruleFor('.ui-datepicker__opt');
     expect(rest, 'the cell rule').not.toBeNull();
     const transition = /transition:([^;]*);/.exec(rest!)?.[1] ?? '';
     expect(transition, 'the cell transitions something').not.toBe('');
-    // The focus rule resets the outline to transparent; animating its colour
-    // starts that reset from the resting currentColor and paints a band.
+    // The band is an outline since #578; animating its colour would fade it in from
+    // the hover edge's own ink instead of drawing it where focus lands.
     expect(transition).not.toMatch(/outline/);
   });
 
   it('is undone in full on a cell that cannot be pressed', () => {
     const hover = ruleFor('.ui-datepicker__opt:hover');
-    const off = ruleFor('.ui-datepicker__opt.is-disabled:hover');
+    // The reset is two rules since #578: the band is an outline and it outranks nothing
+    // here, so the cancellation of hover's own edge has to stand aside for focus while
+    // the rest of the reset does not.
+    const off = [ruleFor('.ui-datepicker__opt.is-disabled:hover'),
+      ruleFor('.ui-datepicker__opt.is-disabled:hover:not(:focus-visible)')];
     expect(hover, 'the hover rule').not.toBeNull();
-    expect(off, 'the disabled hover reset').not.toBeNull();
+    for (const [at, body] of off.entries()) expect(body, `the disabled hover reset, part ${at + 1}`).not.toBeNull();
+    const answered = off.join(';');
     // Every property hover paints has to be answered, or the blocked cell keeps it.
     const propsOf = (body: string) => body.split(';')
       .map(d => d.split(':')[0].trim()).filter(d => /^[a-z-]+$/.test(d));
@@ -1207,12 +1213,47 @@ describe('the hover edge', () => {
     expect(painted.length, 'properties the hover rule sets').toBeGreaterThan(2);
     for (const prop of painted) {
       const family = prop === 'outline' ? /outline(-color)?\s*:/ : new RegExp(`${prop}\\s*:`);
-      expect(off, `hover sets ${prop} and the disabled reset does not answer it`).toMatch(family);
+      expect(answered, `hover sets ${prop} and the disabled reset does not answer it`).toMatch(family);
     }
   });
 
   it('spends no second edge on the pick, which is already a filled chip', () => {
-    expect(ruleFor('.ui-datepicker__opt.is-selected:hover')).toMatch(/outline-color:\s*transparent/);
+    expect(ruleFor('.ui-datepicker__opt.is-selected:hover:not(:focus-visible)'))
+      .toMatch(/outline-color:\s*transparent/);
+  });
+
+  // The three cancellations outrank the focus rule above them, so each stands aside for
+  // it: `outline-color: transparent` on a focused cell would erase the band itself.
+  it('lets the band through on a selected, current or blocked cell', () => {
+    for (const state of ['is-selected', 'is-today', 'is-disabled']) {
+      const guarded = ruleFor(`.ui-datepicker__opt.${state}:hover:not(:focus-visible)`);
+      expect(guarded, `.${state} cancels the edge without standing aside for the band`)
+        .toMatch(/outline-color:\s*transparent/);
+    }
+  });
+
+  /* A focused current period draws ONE band. `.is-today` keeps an accent BORDER at
+   * rest, inside the box, and the band sits 1px outside it, so left standing the two
+   * painted the double accent mark #578 round r34 took off the fields — Chrome read
+   * `outline: rgb(106,45,204) solid 2px; border: 1px solid rgb(106,45,204)` (#590).
+   * Held as text, for the reason the describe above is: JSDOM resolves no outline, so
+   * "one band" cannot be counted here. This holds that the border is cancelled under
+   * focus and that the cancellation reaches the pick too — those two rules tie at
+   * (0,3,0), so only source order decides it. The paint is a capture on the PR. */
+  it('takes the current period\'s own edge off under the band', () => {
+    expect(ruleFor('.ui-datepicker__opt.is-today:focus-visible'),
+      'a focused current period keeps its accent border, which is a second band beside the ring')
+      .toMatch(/border-color:\s*transparent/);
+    // At rest it is still the hollow square: the mark itself did not come off.
+    expect(ruleFor('.ui-datepicker__opt.is-today')).toMatch(/border-color:\s*var\(--accent\)/);
+    // And after the pick's own rule, which ties it on specificity.
+    const focused = css.indexOf('.ui-datepicker__opt.is-today:focus-visible');
+    const pickToo = css.indexOf('.ui-datepicker__opt.is-selected.is-today');
+    expect(pickToo, 'the pick-and-today rule was renamed; this ordering check measures nothing')
+      .toBeGreaterThan(-1);
+    expect(focused, 'the cancellation stands before .is-selected.is-today, which ties it at '
+      + '(0,3,0) and wins on order — so a focused TODAY that is also the pick keeps an edge')
+      .toBeGreaterThan(pickToo);
   });
 });
 

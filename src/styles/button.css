@@ -22,7 +22,7 @@
   /* Light needs a stronger line here: --border on this fill measures 1.047:1.
      why: docs/foundations.md#elevation */
   border: 1px solid var(--control-edge);
-  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--text);
   white-space: nowrap;
   transition: background var(--dur-fast) var(--ease),
@@ -33,10 +33,14 @@
 }
 
 .ui-btn:hover {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface)); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface)); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--strong);
 }
+/* The hover edge steps aside under the band: an accent edge one pixel inside an
+   accent band is the second band #578 round r34 took off the focus rules, and a
+   pointer resting on a focused button would put it back. The fill above is not an
+   edge and stays. why: docs/foundations.md#the-focus-ring */
+.ui-btn:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-btn:active { transform: translateY(1px); }
 
 .ui-btn svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
@@ -61,7 +65,7 @@
   color: var(--text);
 }
 .ui-btn--ghost:hover {
-  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border-color: transparent;
   color: var(--strong);
 }
@@ -70,7 +74,7 @@
 .ui-btn--danger:hover, .ui-btn--danger:focus-visible {
   color: var(--pink);
   border-color: var(--pink);
-  background: color-mix(in srgb, var(--pink) 10%, transparent); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: color-mix(in srgb, var(--pink) 10%, transparent); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
 }
 
 /* -- Sizes -------------------------------------------------------------- */
@@ -95,7 +99,7 @@
    makes this read as inert; the quiet ink is the rest. #220 */
 .ui-btn:disabled,
 .ui-btn[aria-disabled="true"] {
-  background: var(--disabled-surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--disabled-surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border-color: var(--disabled-border);
   /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
   cursor: not-allowed;
@@ -137,7 +141,7 @@
 .ui-btn[aria-busy="true"],
 .ui-btn[aria-busy="true"]:hover,
 .ui-btn[aria-busy="true"]:active {
-  background: var(--surface); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  background: var(--surface); /* code-bg: inherit — busy paint retains the button's containing gap. */
   border-color: var(--border);
   color: var(--text);
   filter: none;
@@ -146,35 +150,35 @@
 .ui-btn[aria-busy="true"].ui-btn--primary,
 .ui-btn[aria-busy="true"].ui-btn--primary:hover,
 .ui-btn[aria-busy="true"].ui-btn--primary:active {
-  background: var(--accent-strong); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  background: var(--accent-strong); /* code-bg: inherit — busy paint retains the button's containing gap. */
   border-color: var(--accent-strong);
   color: var(--accent-contrast);
 }
 .ui-btn[aria-busy="true"].ui-btn--ghost,
 .ui-btn[aria-busy="true"].ui-btn--ghost:hover,
 .ui-btn[aria-busy="true"].ui-btn--ghost:active {
-  background: transparent; /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  background: transparent; /* code-bg: inherit — busy paint retains the button's containing gap. */
   border-color: transparent;
   color: var(--text);
 }
 .ui-btn[aria-busy="true"].ui-btn--danger,
 .ui-btn[aria-busy="true"].ui-btn--danger:hover,
 .ui-btn[aria-busy="true"].ui-btn--danger:active {
-  background: var(--surface); /* ring-gap: inherit — busy paint retains the button's containing gap. */
+  background: var(--surface); /* code-bg: inherit — busy paint retains the button's containing gap. */
   border-color: var(--border);
   color: var(--text);
 }
 /* A caller can mark a control both busy and unavailable. The explicit marker
    keeps that ordinary disabled state from inheriting the busy variant paint. */
 .ui-btn[aria-busy="true"][data-btn-disabled] {
-  background: var(--disabled-surface); /* ring-gap: inherit — busy+disabled keeps its containing gap. */
+  background: var(--disabled-surface); /* code-bg: inherit — busy+disabled keeps its containing gap. */
   border-color: var(--disabled-border);
   /* muted-ink: state — busy+disabled control */ color: var(--disabled-ink);
   cursor: not-allowed;
   pointer-events: none;
 }
 .ui-btn--ghost[aria-busy="true"][data-btn-disabled] {
-  background: transparent; /* ring-gap: inherit — busy+disabled keeps its containing gap. */
+  background: transparent; /* code-bg: inherit — busy+disabled keeps its containing gap. */
   border-color: transparent;
   /* muted-ink: state — busy+disabled ghost */ color: var(--disabled-ink-bare);
 }
@@ -182,7 +186,6 @@
 .ui-btn__label {
   grid-area: 1 / 1;
   transform: translateY(0);
-
 }
 .ui-btn[data-btn-ready] .ui-btn__label { animation: ui-btn-label-in var(--dur-med) var(--ease-out) both; }
 .ui-btn[aria-busy="true"] .ui-btn__label {

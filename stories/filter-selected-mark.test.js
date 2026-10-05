@@ -2,11 +2,11 @@
  *
  * The wash is a ~1.2:1 step, so on its own it is what WCAG 2.2 SC 1.4.1 forbids;
  * the kit's 16px check is the non-colour cue, and SC 1.4.11 asks 3:1 of it. This
- * measures the pair, and what hover, the keyboard cursor and focus may not take
- * away — each sets an opaque `--surface`, and focus has to be the kit ring rather
- * than a native outline (#457). Hover is measured, not declared: its step off the
- * wash is read as a ratio. Subjects are swept from the stories, not listed, and a
- * sweep that finds none fails.
+ * measures the pair, and what hover and focus may not take away — each sets an
+ * opaque `--surface`, and focus has to be the kit's band in the accent, which
+ * since #578 is an `outline`, rather than a native one (#457). Hover is measured,
+ * not declared: its step off the wash is read as a ratio. Subjects are swept from
+ * the stories, not listed, and a sweep that finds none fails.
  * why: docs/components.md#a-filter-row-holds-its-panels,
  *      guidelines/accessibility-floor.md#status-labels
  */
@@ -173,11 +173,17 @@ function washGround(subject) {
  *  the walk `CONTRAST_ACCENTS=1` runs. */
 const HOVER_STEP = 1.1;
 
-/** What hover, the keyboard cursor and focus may not take away, and what hover owes.
+/** What hover and focus may not take away, and what hover owes.
  *
- *  The state markers are taken off in a `finally`: a failed assertion is thrown
- *  out of the middle of the walk, and a row left carrying `is-active` or
- *  `data-ui-state` would answer the next reading in a state nobody asked for. */
+ *  The state marker is taken off in a `finally`: a failed assertion is thrown out
+ *  of the middle of the walk, and a row left carrying `data-ui-state` would answer
+ *  the next reading in a state nobody asked for.
+ *
+ *  The arrow keys are not a state here. `filterBar()` builds every chip's panel
+ *  without a search field, and `ddSetActive()` returns before it writes
+ *  `.is-active` when there is none — React gates it on the same thing — so an
+ *  arrow key moves real focus onto the row and the `focus-visible` reading below
+ *  is what it draws. A browser probe of a wired chip is in #590's evidence. */
 function measureStates(subject) {
   const { row, win } = subject;
   const rest = washGround(subject);
@@ -194,21 +200,19 @@ function measureStates(subject) {
         out.hoverStep = measureHover(subject, { rest, panel, edge, cs });
       } else {
         assert.deepEqual(effectiveBackground(row, win), rest, `${subject.id}: ${state} takes the wash off the chosen row`);
-        // The ring is an outward band in the accent; the cursor's bar is inset and
-        // in the same accent, so the direction is what separates them. #457
-        assert.ok(!/inset/.test(cs.boxShadow) && cs.boxShadow.includes(accent),
-          `${subject.id}: focus draws no kit ring (${cs.boxShadow || 'none'})`);
-        assert.ok(!edge.ink || edge.ink[3] === 0, `${subject.id}: focus falls back to a native outline (${cs.outline})`);
+        // Since #578 the band is a real `outline` in the accent, carried out by
+        // --ring-offset, so the outline is where the band is read rather than the
+        // shadow. A solid edge in any other ink is the browser's own. #457, #578
+        assert.ok(edge.width > 0 && edge.style === 'solid',
+          `${subject.id}: focus draws no kit ring (${cs.outline || 'none'})`);
+        assert.deepEqual(edge.ink, parseColour(accent),
+          `${subject.id}: focus falls back to a native outline (${cs.outline})`);
       }
       out[state] = cs.boxShadow;
       row.removeAttribute('data-ui-state');
     }
-    row.classList.add('is-active');
-    assert.deepEqual(effectiveBackground(row, win), rest, `${subject.id}: the keyboard cursor takes the wash off the chosen row`);
-    assert.match(win.getComputedStyle(row).boxShadow, /inset/, `${subject.id}: the keyboard cursor loses its bar`);
   } finally {
     row.removeAttribute('data-ui-state');
-    row.classList.remove('is-active');
   }
   return out;
 }
@@ -378,9 +382,6 @@ const MUTATIONS = [
 const STATE_MUTATIONS = [
   ['the chosen row repainted off the wash', (row) => { row.setAttribute('style', 'background: rgb(255, 255, 255)'); }, /the chosen row is not the wash/],
   ['focus given a native outline', (row) => { row.style.outline = '2px solid rgb(0, 0, 0)'; row.style.boxShadow = 'none'; }, /native outline|draws no kit ring/],
-  // One inline box-shadow reaches every state, so this breaks the cursor’s bar and
-  // the ring together; either rejection is the gate doing its job.
-  ['the cursor’s bar and the ring replaced by one flat shadow', (row) => { row.style.boxShadow = '0 0 0 1px rgb(0, 0, 0)'; }, /loses its bar|draws no kit ring/],
 ];
 
 /* Hover is driven by the attribute `desugar()` rewrites `:hover` to, so an inline
@@ -400,28 +401,38 @@ const HOVER_MUTATIONS = [
   ['the kit\'s 1px edge taken off the hovered row', () => 'outline: none', /hover loses the kit's 1px edge \(none\)/],
 ];
 
-/** One rule for the hovered chosen row, appended after the kit's sheet. */
-function overrideHover(subject, declarations) {
+/* Focus's own. Since #578 the band is an `outline`, which an inline style cannot take
+ * off for focus alone — it would take hover's 1px edge with it and be rejected on
+ * that instead. Written as a rule, the rejection is the one being proved. */
+const FOCUS_MUTATIONS = [
+  ['the band taken off the focused chosen row', () => 'outline: none', /draws no kit ring \(none\)/],
+  ['the band recoloured to the browser\'s own ink', () => 'outline: 2px solid rgb(0, 0, 0)', /falls back to a native outline/],
+];
+
+/** One rule for a state of the chosen row, appended after the kit's sheet. */
+function overrideState(subject, match, declarations) {
   const style = subject.win.document.createElement('style');
-  style.textContent = `${CHOSEN}[data-ui-state~="hover"] { ${declarations}; }`;
+  style.textContent = `${CHOSEN}${match} { ${declarations}; }`;
   subject.win.document.head.append(style);
   return () => style.remove();
 }
 
 for (const theme of THEMES) {
-  test(`the ${theme} gate rejects a hover the pointer cannot find on the chosen row`, async () => {
+  test(`the ${theme} gate rejects a hover or a band the reader cannot find on the chosen row`, async () => {
     const { found } = await subjects(theme);
     assert.ok(found.length >= ROW_FLOOR, 'the hover mutation pass needs the same subjects');
     const subject = found[0];
     const panel = effectiveBackground(subject.row.closest('.ui-dropdown__panel'), subject.win);
-    for (const [what, declare, rejects] of HOVER_MUTATIONS) {
-      const off = overrideHover(subject, declare({ theme, ground: washGround(subject), panel }));
-      try {
-        assert.throws(() => measureStates(subject), rejects, `${what} must be rejected`);
-      } finally {
-        off();
+    for (const [match, mutations] of [['[data-ui-state~="hover"]', HOVER_MUTATIONS], ['[data-ui-state~="focus-visible"]', FOCUS_MUTATIONS]]) {
+      for (const [what, declare, rejects] of mutations) {
+        const off = overrideState(subject, match, declare({ theme, ground: washGround(subject), panel }));
+        try {
+          assert.throws(() => measureStates(subject), rejects, `${what} must be rejected`);
+        } finally {
+          off();
+        }
+        measureStates(subject);
       }
-      measureStates(subject);
     }
   });
 }

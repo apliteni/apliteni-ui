@@ -282,7 +282,11 @@ bounds it. The kit leaves it unchanged. This dropdown must not read the
 keeps the kit's 16px check. The wash is a tint. Its contrast is 1.16:1 over the panel in light
 mode and 1.20:1 in dark mode. The check identifies the chosen row: its contrast is 6.35:1 over
 the wash in light mode and 4.13:1 in dark mode. Hover makes the wash darker instead of adding an
-outline. The wash remains under the keyboard cursor and focus, which each paint over it.
+outline: 9% more accent, which reads 1.15:1 off the resting wash in light and 1.14:1 in dark. The
+wash remains under focus, which would otherwise paint an opaque fill over it; focus reads by the
+band instead. **The arrow keys are not a third state here.** A filter chip's panel carries no
+search field, and without one a dropdown marks no active row, so what an arrow key moves in this
+bar is real focus: the row keeps its wash and its check and takes the band over them.
 `filterChipItems(filter)` chooses the row. It gives the menu the chip's items and marks the
 chip's own value. It matches a row by its `value`, or by its `label` when it has no `value`.
 Both faces call it. The text printed by the chip and the row marked by the menu therefore use the
@@ -318,8 +322,8 @@ and turns `--pink` on the way to being pressed**, in both hover and focus.
 `search: true` adds a text field above a dropdown's rows. It filters the rows as the reader types.
 This is opt-in. A dropdown without it renders as before. **Typing filters, and focus stays in the
 field**, which has `role="combobox"` over the list. `aria-activedescendant` names the row that
-Enter would pick. The field carries the focus ring. The active row gets the hover fill and an
-accent bar. **The match is anywhere in the label**, with case and accents ignored. Rows keep their
+Enter would pick. The field carries the focus ring. The active row is marked by the hover fill
+alone — an edge around a row would be the focus band's own shape. **The match is anywhere in the label**, with case and accents ignored. Rows keep their
 original order. Descriptions are not searched, so put the words a reader will type in the label.
 **Every open starts from the whole list**, and a query with no matches says so instead of showing
 an empty panel. **The panel is a dialog**, because a listbox may own only options. When a dropdown
@@ -548,8 +552,10 @@ column wraps inside its own tab. Arrow keys, Home and End skip disabled choices.
 ### The chosen tab in an underline strip
 
 The chosen tab is its own label with 2px of accent under it. It has no plate, hairline or upright
-rail. **The accent is spent once.** No tab draws a visible box against the strip's ground. It
-has no background, border or inset shadow. Nothing in it reads as a card lying on the page. The
+rail. **The accent is spent once.** No tab draws a visible box against the strip's ground. The
+pill appearance marks its chosen button with a fill; the underline strip overrides that fill back
+to `none`, because the bar under the label is its whole mark. It has no background, border or
+inset shadow. Nothing in it reads as a card lying on the page. The
 strip also draws no rule under its tabs. A consumer that wants one draws it on the container.
 
 **Every mark that says "chosen" sits inside that tab's own box**, clear of its edges. This lets the
@@ -659,7 +665,8 @@ of the row without leaving the page**. **Every cell says what it is in its own a
 `{ start, end }` cannot say "all of this but not that". Such a period keeps its place in the value
 and loses only the tint. **Blocked beats every other state in the paint, and its label is struck
 through.** **Hover is the kit's row hover**, not a tint of the accent. **The current period is a
-ring**, a hairline in the accent. **Nothing is drawn under the grid:** no legend and no per-period
+ring**, a hairline in the accent, and it stands aside while the cell holds focus, so a focused
+current period draws one band and not two. **Nothing is drawn under the grid:** no legend and no per-period
 swatch. **Below 560px the panel is a sheet, and a sheet is the kit's drawer**, and below the phone
 step the gap between weeks opens to reach the 44px tap floor. Its one breakpoint literal is one of
 the steps in [Breakpoints](foundations.md#breakpoints).

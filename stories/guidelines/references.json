@@ -10,11 +10,11 @@
   "_accessibility-floor.js": {
     "target-size": [
       {
-        "ref": "src/styles/button.css:80",
+        "ref": "src/styles/button.css:84",
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:154",
+        "ref": "src/styles/input.css:158",
         "pattern": ".ui-check input::before"
       },
       {
@@ -44,13 +44,13 @@
     ],
     "ring-contrast": [
       {
-        "ref": "src/styles/base.css:152",
-        "pattern": "box-shadow: var(--ring);"
+        "ref": "src/styles/base.css:151",
+        "pattern": "outline: var(--ring);"
       }
     ],
     "disabled-legibility": [
       {
-        "ref": "src/styles/button.css:97",
+        "ref": "src/styles/button.css:101",
         "pattern": ".ui-btn[aria-disabled=\"true\"]"
       },
       {
@@ -62,7 +62,7 @@
         "pattern": "--disabled-border: var(--surface-3);"
       },
       {
-        "ref": "src/styles/input.css:68",
+        "ref": "src/styles/input.css:72",
         "pattern": "opacity: 1;"
       }
     ],
@@ -112,7 +112,7 @@
         "pattern": "--accent-strong: #7c3aed;"
       },
       {
-        "ref": "src/styles/button.css:46",
+        "ref": "src/styles/button.css:50",
         "pattern": "background: var(--accent-strong);"
       },
       {
@@ -148,7 +148,7 @@
         "pattern": "export function commandPaletteList"
       },
       {
-        "ref": "src/styles/command-palette.css:158",
+        "ref": "src/styles/command-palette.css:157",
         "pattern": ".ui-cmdk__group-head"
       }
     ],
@@ -192,7 +192,7 @@
         "pattern": "const isRefused = (it) =>"
       },
       {
-        "ref": "src/styles/command-palette.css:246",
+        "ref": "src/styles/command-palette.css:249",
         "pattern": ".ui-cmdk__item.is-danger"
       }
     ]
@@ -274,11 +274,11 @@
         "pattern": "export const dropdownMatch"
       },
       {
-        "ref": "src/styles/dropdown.css:258",
+        "ref": "src/styles/dropdown.css:265",
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:313",
+        "ref": "src/styles/dropdown.css:323",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -286,11 +286,11 @@
   "_destructive-actions.js": {
     "colour": [
       {
-        "ref": "src/styles/button.css:70",
+        "ref": "src/styles/button.css:74",
         "pattern": ".ui-btn--danger:hover"
       },
       {
-        "ref": "src/styles/dropdown.css:218",
+        "ref": "src/styles/dropdown.css:225",
         "pattern": ".ui-dropdown__item.is-danger:hover"
       },
       {
@@ -342,17 +342,17 @@
         "pattern": "export function drawerSection("
       },
       {
-        "ref": "src/styles/drawer.css:206",
+        "ref": "src/styles/drawer.css:205",
         "pattern": ".ui-drawer__section + .ui-drawer__section"
       }
     ],
     "three-lines": [
       {
-        "ref": "src/styles/drawer.css:131",
+        "ref": "src/styles/drawer.css:130",
         "pattern": ".ui-drawer__header {"
       },
       {
-        "ref": "src/styles/drawer.css:206",
+        "ref": "src/styles/drawer.css:205",
         "pattern": ".ui-drawer__section + .ui-drawer__section {"
       }
     ],
@@ -362,7 +362,7 @@
         "pattern": "<dl class=\"ui-drawer__rows\">"
       },
       {
-        "ref": "src/styles/drawer.css:236",
+        "ref": "src/styles/drawer.css:235",
         "pattern": ".ui-drawer__row dt { color: var(--text); }"
       }
     ]
@@ -690,7 +690,7 @@
         "pattern": "transition-duration: 0.01ms !important;"
       },
       {
-        "ref": "src/styles/drawer.css:249",
+        "ref": "src/styles/drawer.css:248",
         "pattern": ".ui-drawer.is-open * { transition: none !important; }"
       }
     ]
@@ -770,12 +770,12 @@
         "pattern": ".ui-focusable:focus-visible,"
       },
       {
-        "ref": "src/styles/base.css:152",
-        "pattern": "box-shadow: var(--ring);"
+        "ref": "src/styles/base.css:151",
+        "pattern": "outline: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:271",
-        "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
+        "ref": "src/tokens/tokens.css:276",
+        "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
       }
     ],
     "busy": [
@@ -784,7 +784,7 @@
         "pattern": "busy ⇒ disabled"
       },
       {
-        "ref": "src/styles/button.css:128",
+        "ref": "src/styles/button.css:132",
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
@@ -839,7 +839,7 @@
   "_density-and-accents.js": {
     "purposeful-accent": [
       {
-        "ref": "src/styles/button.css:46",
+        "ref": "src/styles/button.css:50",
         "pattern": "background: var(--accent-strong)"
       }
     ],
@@ -973,7 +973,7 @@
         "pattern": "export function button("
       },
       {
-        "ref": "src/styles/button.css:45",
+        "ref": "src/styles/button.css:49",
         "pattern": ".ui-btn--primary {"
       }
     ]

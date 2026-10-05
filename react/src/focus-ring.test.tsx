@@ -185,8 +185,8 @@ const RX_SCROLL_RINGED: Record<string, string> = {
     + 'surface, in the row\'s own --space-1 of inline padding. Applying Artur\'s #531 r30 '
     + 'choice, merged as #557.',
   '.rx-modal__body': 'the inward band, on the body itself. A scroll region inside a surface '
-    + 'takes --ring-scroll — the kit\'s own 1px gap and 2px band drawn inward, no halo — '
-    + 'because --ring is drawn for a 32px control and around a dialog-sized region its '
+    + 'takes --ring-scroll — the kit\'s own band drawn inward — because --ring is drawn '
+    + 'for a 32px control and, while it still carried a halo, around a dialog-sized region its '
     + 'bloom lights the dialog instead of the box that scrolls. The band lands in the '
     + 'body\'s own 16px of padding. It is a stop whenever the caller\'s children hold no '
     + 'control. Artur chose the picture on #531 round r30.',
@@ -208,7 +208,7 @@ describe('focus ring: scroll containers', () => {
   // The band is an outline, and `outline-offset` is the whole of what draws it INWARD.
   // A rule that takes the outline and leaves the offset paints the band outside the
   // box — which on a body flush with a clipping panel is a band nobody sees. The kit's
-  // seven are held the same way in stories/ring-surfaces.test.js; this is React's one.
+  // seven are held the same way in stories/ring-carrier.test.js; this is React's one.
   it('the modal body takes the scroll ring with the offset that draws it inward', () => {
     const sheet = localSheets.find(({ file }) => file.endsWith('Modal.css'));
     expect(sheet, 'Modal.css is not among the sheets this gate reads').toBeTruthy();

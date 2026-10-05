@@ -82,23 +82,24 @@ const SNIPPET_STORIES = new Set([
   './Snippet.stories.tsx:Copied',
   './Snippet.stories.tsx:KeyboardFocus',
 ]);
-// Two states, one cause. Since #474 the card carries the code region's focus ring,
-// so .ui-snippet joins the containers the state walk re-measures — the same way it
-// already walks every .ui-card. The spans it finds there are the same literals at
-// the same ratios; only the state label differs, which is why each entry's count
-// is exactly twice its resting count and no new colour is accepted.
-const STATES = [null, 'focus-visible'];
+// At rest, and only at rest. The walk re-measures a container's descendants in a state
+// when a state rule on that container can change a captured colour; `.ui-snippet:has(pre
+// :focus-visible)` writes nothing but the band now, so focus reaches none of these spans.
+// Until #578 the same rule also carried `--ring-gap: inherit` — a custom property, which
+// the walk cannot rule out — so every entry was counted twice, once at rest and once
+// under a state that painted the same literals at the same ratios. The halving below is
+// that artifact going, not a debt being paid.
 const snippetDebt = (f: Finding) => f.theme === 'light' && f.accent === 'default'
-  && STATES.includes(f.state) && f.bg === 'rgb(255,255,255)'
+  && f.state === null && f.bg === 'rgb(255,255,255)'
   && [...f.stories].every(story => SNIPPET_STORIES.has(story))
   && [...f.paths].every(path => /div\.ui-snippet > pre > span\.[fsu]$/.test(path));
 const LEDGER: LedgerEntry[] = [
   {
     match: f => snippetDebt(f) && f.fg === 'rgb(12, 143, 168)'
       && [...f.paths].every(path => /span\.[fu]$/.test(path)),
-    count: 4,
-    why: 'Vanilla E: light cyan retains the existing 3.81:1 pair, at rest and with '
-      + 'the card ringed. It paints shell flags and URLs, and since round 24 also '
+    count: 2,
+    why: 'Vanilla E: light cyan retains the existing 3.81:1 pair. '
+      + 'It paints shell flags and URLs, and since round 24 also '
       + 'JSON and TypeScript scalars — numbers, true, false, null. In shell the '
       + 'colour is a second signal over text that reads without it; on a JSON '
       + 'scalar it is the only colour the value gets, so the debt is larger in kind '
@@ -110,9 +111,9 @@ const LEDGER: LedgerEntry[] = [
   {
     match: f => snippetDebt(f) && f.fg === 'rgb(28, 138, 44)'
       && [...f.paths].every(path => path.endsWith('span.s')),
-    count: 2,
-    why: 'Vanilla C: light green retains the existing 4.45:1 pair, at rest and with '
-      + 'the card ringed. It paints quoted strings in all three languages — shell '
+    count: 1,
+    why: 'Vanilla C: light green retains the existing 4.45:1 pair. '
+      + 'It paints quoted strings in all three languages — shell '
       + 'arguments, JSON string values, TypeScript literals. The same widening as '
       + 'the cyan entry: a JSON string value carries its own meaning rather than '
       + 'repeating one. Accepted for the same reason and with the same limit — it '

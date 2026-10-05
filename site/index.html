@@ -47,11 +47,14 @@
     box-shadow: 0 0 0 1px var(--border); color: var(--text); font: 600 14px/1 var(--font-sans);
     cursor: pointer; transition: color .15s, box-shadow .15s, transform .15s; }
   .play-accents button:hover { transform: translateY(-2px); color: var(--strong); }
-  .play-accents button.on { color: var(--strong); box-shadow: 0 0 0 2px var(--accent); }
-  /* Later than `.on` on purpose: both tie with CHROME_CSS's `.accents button:focus-visible`
-     at (0,2,1), and CHROME_CSS is injected above this block, so `.on` would otherwise
-     keep its flat accent band while focused. #482 */
-  .play-accents button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+  .play-accents button.on { color: var(--strong); }
+  /* The chip's accent ring stands aside under the band, as the dot's does in CHROME_CSS,
+     and falls back to the hairline every chip carries — so the band is one 2px shape at
+     its 1px offset rather than fusing with the ring into a flush 3px edge. Later than
+     CHROME_CSS's `.accents button.on:not(:focus-visible)` and tying it at (0,3,1), which
+     is what keeps a chip from taking the round dot's two-layer ring. The ink step stays
+     on `.on` above, so a focused chip is still the one in --strong. #482, #578 */
+  .play-accents button.on:not(:focus-visible) { box-shadow: 0 0 0 2px var(--accent); }
   .play-accents .play-sw { width: 18px; height: 18px; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
 
   /* The demo screen: the settings column beside the table at desk width,
@@ -84,7 +87,7 @@
      the reader to press Tab. A span, so it takes no focus of its own. */
   .ringspec { width: 78px; height: 26px; border-radius: var(--radius-sm);
     border: 1px solid var(--control-edge); background: var(--surface);
-    box-shadow: var(--ring); display: block; }
+    outline: var(--ring); outline-offset: var(--ring-offset); display: block; }
   .steps { display: flex; align-items: flex-end; gap: 5px; }
   .steps i { display: block; width: 9px; background: var(--accent); border-radius: 2px; }
   .glyphs { display: flex; gap: 9px; color: var(--accent); }
@@ -110,9 +113,9 @@
      and its panel. This was a flat 2px accent outline with an offset until #482:
      a second focus shape nobody else in the kit draws. The panel is focusable
      (tabindex="0" above), so it needs a ring of its own too. */
-  .path-card:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+  .path-card:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
   .paths-panel > div:not([hidden]) { display: flex; flex-direction: column; gap: 14px; }
-  .paths-panel [role="tabpanel"]:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: 8px; }
+  .paths-panel [role="tabpanel"]:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: 8px; }
   /* Code uses the kit's reading surface, as .ui-snippet does. */
   .term { position: relative; border-radius: 12px; overflow: hidden;
     --term-bg: var(--surface); --term-bd: var(--border); --term-fg: var(--text);
@@ -125,7 +128,7 @@
     background: var(--term-btn-bg); color: var(--term-btn-fg); border: 1px solid var(--term-btn-bd);
     border-radius: 8px; cursor: pointer; transition: background .15s, color .15s; }
   .term__copy:hover { background: var(--term-btn-hover); color: var(--term-fg); border-color: var(--accent); }
-  .term__copy:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+  .term__copy:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
   .term__copy .ic { grid-area: 1 / 1; width: 15px; height: 15px; stroke: currentColor; fill: none;
     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     transition: opacity .22s ease, transform .22s ease; }
@@ -261,7 +264,7 @@
     </div>
     <div class="dec">
       <h3>Focus</h3>
-      <p>One ring on every control: a gap, a solid band in your accent, then a soft halo.</p>
+      <p>One ring on every control: a two-pixel band in your accent, a pixel off its edge. Nothing glows behind it.</p>
       <div class="dec__spec"><span class="ringspec" aria-hidden="true"></span></div>
     </div>
     <div class="dec">
