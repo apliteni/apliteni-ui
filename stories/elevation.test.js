@@ -103,8 +103,13 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // round r31 left that tab with no box, and cancelling the pill rule's accent outline
 // on it outreaches `.ui-seg button:focus-visible`, so the ring is written again at
 // the same reach. It is the composed indicator, not a cast.
-  assert.equal(sweep.length, 74,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 74. `
+// 74 -> 69: #475 made the plate the current rail row's whole mark, and its second
+// review round made that plate a fill with a step instead of a hairline. Four
+// rules went with the hairline — the nested row's `box-shadow: none`, the hairline
+// itself, and the `none` each of the two folded rails wrote to switch it off at
+// rest. On a rail row box-shadow is the focus ring now and nothing else.
+  assert.equal(sweep.length, 69,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 69. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

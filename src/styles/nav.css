@@ -75,34 +75,27 @@
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/components.md#the-page-shell */
-.ui-nav__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ color: var(--strong); }
+.ui-nav__item:hover { background: color-mix(in srgb, var(--surface) 50%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--strong); }
 .ui-nav__item.is-active {
   background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   color: var(--strong);
   font-weight: 500;
 }
-.ui-nav--side .ui-nav__item.is-active {
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-/* Accent rail marker on the active item */
-.ui-nav--side .ui-nav__item.is-active::before {
-  content: "";
-  position: absolute;
-  left: 4px; top: 50%;
-  width: 3px; height: 17px;
-  border-radius: 3px;
-  background: var(--accent);
-  transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */
-}
+/* The current row's one mark is a plate, and nothing closes it: on a rail row an
+   outline means focus and only focus. The plate is the quiet fill a rung off the
+   ground the rail stands on, so layout.css takes it the next rung where the rail
+   is itself --surface. #475 r33/r34. why: docs/components.md#the-page-shell */
+
 .ui-nav__item:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-nav__item.is-active:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
 .ui-nav__ic { display: inline-flex; flex: none; }
 .ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; opacity: 0.72; }
-/* The glyph brightens with its row and takes the row's ink, not the accent. One
-   accent signal per row: that is the marker above, which is the only thing on a
-   rail that means "here". A glyph in --accent beside it is the same sentence
-   said twice, and beside an accent counter it was said three times. See #429. */
+/* The glyph brightens with its row and takes the row's ink, not the accent. A
+   rail row carries no accent at all since #475: the plate above is what means
+   "here", and the glyph's own step to full ink is the other half of that pair.
+   A glyph in --accent beside it was the same sentence said twice, and beside an
+   accent counter it was said three times. See #429 and #475. */
 .ui-nav__item.is-active .ui-nav__ic svg,
 .ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
 .ui-nav__label {
@@ -126,12 +119,6 @@
 /* An unavailable row uses disabled ink directly; opacity would also fade its
    background and pull its label toward the rail behind it (#220). */
 .ui-nav__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; pointer-events: none; }
-
-/* Hover adds an edge without changing the current row's reading surface.
-   The danger row keeps its own state treatment. */
-.ui-nav__item.is-active:not(.is-danger):hover {
-  background: var(--surface); outline: 1px solid var(--control-edge); outline-offset: -1px; /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
-}
 
 /* Per-item badge / counter */
 .ui-nav__badge {
@@ -160,8 +147,8 @@
 .ui-nav__item.is-active .ui-nav__badge.is-neutral { background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); }
 /* Same shape, one row up: on the current row the accent counter drops both the
    wash and the accent and reads as the neutral one beside it. The row already
-   carries the one accent signal it is allowed — the marker — and the count is a
-   number, not a second answer to "where am I". It also retires the pair #157
+   carries the one mark it is allowed — the plate — and the count is a number,
+   not a second answer to "where am I". It also retires the pair #157
    recorded: accent ink on --surface fell under WCAG AA in four of the eight
    theme x accent cells (4.08 in dark Nebula), and no alpha cleared it. Nothing
    now paints that pair. See #429 and docs/foundations.md#colour-and-contrast. */
@@ -195,12 +182,10 @@
   animation: m-slide-down var(--dur-fast) var(--ease-out) both;
 }
 .ui-nav__item--sub { font-size: calc(var(--text-base) - 0.5px); padding: 7px 12px; }
-/* No hairline on a nested current row — but only at rest. box-shadow carries
-   both the hairline and the focus ring, so a rule about the resting look must
-   say so, or it silently cancels the ring (WCAG 2.4.7). */
-.ui-nav--side .ui-nav__item--sub.is-active:not(:focus-visible) { box-shadow: none; }
-/* Hangs back onto the guide hairline the indent above draws. */
-.ui-nav--side .ui-nav__item--sub.is-active::before { left: calc(-1 * var(--space-3)); height: 15px; }
+/* A nested current row takes the plate whole, like a top-level one. It used to
+   take neither half — the bar hung back onto the guide hairline and the plate's
+   own hairline was switched off so the two would not stack — and a fill with no
+   edge is not a mark the kit accepts. See #475. */
 
 /* Footer slot (divider + trailing links, e.g. sign-out) */
 .ui-nav__foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
@@ -272,27 +257,31 @@
 /* The current row on a folded rail: one plate on the glyph column, and nothing else.
    The open rail's 3px marker would stand in the rail's edge at this width, and a
    nested row would put it outside the rail; the hairline would be the same mark said
-   twice. The plate is the strip, so it is centred on the glyph, and --surface-3 is the
-   kit's quiet non-text fill — a step off the rail in both themes. The glyph's own step
-   from 0.66 to full ink is the second half of that pair. `isolation` is what puts the
-   plate behind the glyph: a positioned ::before paints over its row's content, and a
-   negative z-index with no stacking context of its own would drop it behind the rail.
-   why: #429 */
+   twice. The plate is the strip, so it is centred on the glyph, and its fill is the
+   rung the open row takes — one off the ground the rail stands on, which layout.css
+   takes one further in the shell — so a rail marks the same row with the same
+   material at both widths. The glyph's own step from 0.66 to full ink is the second
+   half of that pair. `isolation` is what puts the plate behind the glyph: a
+   positioned ::before paints over its row's content, and a negative z-index with no
+   stacking context of its own would drop it behind the rail.
+   why: #429 and #475 */
 .ui-nav--side.is-collapsed .ui-nav__item.is-active { isolation: isolate; background: none; }
-/* At rest only — box-shadow carries the hairline AND the focus ring (WCAG 2.4.7). */
-.ui-nav--side.is-collapsed .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
 .ui-nav--side.is-collapsed .ui-nav__item.is-active::before {
-  left: 0;
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
   width: var(--ui-nav-strip);
   height: 100%;
   border-radius: 10px;
-  background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */
+  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   z-index: -1;
 }
-/* A folded rail answers a pointer with the row's own ink and the name beside it,
-   which is the whole readout at this width — the hover wash stands, the edge
-   around it does not. At rest only, so the focus ring is left standing. */
-.ui-nav--side.is-collapsed .ui-nav__item:hover:not(:focus-visible) { outline: none; }
+/* Nothing switches the hover wash off here: since #588 a folded row is only as wide
+   as the rail draws, so the wash is the box the plate paints, a rung quieter. It is
+   the whole answer a pointer gets outside the shell, where the floating name is
+   layout.css's. (The `outline: none` that stood here switched off an edge #475
+   removed.) #475 */
 
 /* -- Horizontal tabs ----------------------------------------------------- */
 .ui-nav--tabs {

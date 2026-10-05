@@ -362,8 +362,9 @@ function boxOf(el, cs, glyph) {
     if (box.height != null) hitH = Math.max(hitH, box.height);
     // A pseudo can only WIDEN a width already known. It cannot supply one: the
     // target is at least the drawn box, and where that is layout's answer the
-    // union of the two is layout's answer as well. Introducing it read the
-    // 3px active marker on .ui-nav__item as a 3px-wide nav item.
+    // union of the two is layout's answer as well. Introducing it read the rail's
+    // own 3px active marker — the accent bar #475 later took off — as a 3px-wide
+    // nav item.
     if (box.width != null && hitW != null) hitW = Math.max(hitW, box.width);
   }
 
