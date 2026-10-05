@@ -446,11 +446,11 @@
   "_iconography.js": {
     "icon-only": [
       {
-        "ref": "src/assets/icons.js:153",
+        "ref": "src/assets/icons.js:171",
         "pattern": "export const iconOnlyAllowed"
       },
       {
-        "ref": "stories/guidelines/iconography.test.js:165",
+        "ref": "stories/guidelines/iconography.test.js:249",
         "pattern": "every icon-only control is one the closed list allows"
       },
       {
@@ -460,7 +460,7 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:174",
+        "ref": "src/assets/icons.js:207",
         "pattern": "export const iconMeanings"
       },
       {
@@ -879,7 +879,7 @@
         "pattern": ".ui-drop__target {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:158",
+        "ref": "react/src/FileDrop.tsx:161",
         "pattern": "className=\"ui-drop__target\""
       }
     ],
@@ -889,7 +889,7 @@
         "pattern": ".ui-drop__file {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:141",
+        "ref": "react/src/FileDrop.tsx:144",
         "pattern": "role=\"progressbar\""
       }
     ],
@@ -905,13 +905,13 @@
     ],
     "button-path": [
       {
-        "ref": "react/src/FileDrop.tsx:148",
+        "ref": "react/src/FileDrop.tsx:151",
         "pattern": "input.current?.click()"
       }
     ],
     "limits-once": [
       {
-        "ref": "react/src/FileDrop.tsx:149",
+        "ref": "react/src/FileDrop.tsx:152",
         "pattern": "className=\"ui-drop__note\""
       }
     ],
@@ -975,6 +975,38 @@
       {
         "ref": "src/styles/button.css:45",
         "pattern": ".ui-btn--primary {"
+      }
+    ]
+  },
+  "_button-labels.js": {
+    "words-first": [
+      {
+        "ref": "src/components/index.js:39",
+        "pattern": "ui-btn__label-slot"
+      },
+      {
+        "ref": "src/components/button.test.js:53",
+        "pattern": "a labelled button gets no aria-label"
+      }
+    ],
+    "glyph-repeats-the-verb": [
+      {
+        "ref": "src/components/index.js:38",
+        "pattern": "const lead = iconSvg"
+      }
+    ],
+    "wordless-earns-it": [
+      {
+        "ref": "src/assets/icons.js:171",
+        "pattern": "export const iconOnlyAllowed"
+      },
+      {
+        "ref": "src/components/index.js:42",
+        "pattern": "const named = iconOnly"
+      },
+      {
+        "ref": "stories/guidelines/iconography.test.js:249",
+        "pattern": "every icon-only control is one the closed list allows"
       }
     ]
   }

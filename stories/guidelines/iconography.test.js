@@ -20,7 +20,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-import { iconOnlyAllowed, iconNames } from '../../src/assets/icons.js';
+import { iconOnlyAllowed, iconOnlyNames, iconNames } from '../../src/assets/icons.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -67,6 +67,67 @@ const DONT = /\b(?:export\s+)?const\s+\w*Dont\s*=/g;
 const dontSpans = (text) => [...text.matchAll(DONT)].map((m) => [m.index, m.index + 400]);
 const insideDont = (spans, at) => spans.some(([a, b]) => at >= a && at <= b);
 
+/* -- the name the control answers to ----------------------------------------
+ * Membership alone is half a gate. #566's review rewrote the Button labels page's
+ * wordless overflow button as Duplicate carrying `copy` and every test stayed
+ * green, although the list allows `copy` for copying to the clipboard. So each
+ * call site also hands over its accessible name, and `iconOnlyNames` says which
+ * word that name may open with.
+ *
+ * A name is read from `label` or `aria-label`, whichever sits nearest — the same
+ * nearest-wins rule the glyph uses, for the same reason. A name given as an
+ * expression (`aria-label={copyLabel}`) is resolved through the default of the
+ * identifier it names, which is how both Snippet copy buttons are read. A name
+ * that stays unread is a problem below, not a skip.
+ */
+const NAME = /\b(?:aria-)?label\s*[:=]\s*('[^']*'|"[^"]*"|\{[^}]*\}|`[^`]*`)/g;
+const IDENT = /[A-Za-z_$][\w$]*/g;
+
+/** The name a value spells, resolving an expression through its default. */
+const readName = (raw, text) => {
+  if (raw === undefined) return {};
+  if (/^['"][^'"]*['"]$/.test(raw) && !raw.includes('${')) {
+    return { name: raw.slice(1, -1), nameFrom: 'literal' };
+  }
+  for (const id of [...raw.matchAll(IDENT)].map((m) => m[0]).reverse()) {
+    const found = new RegExp(`\\b${id}\\s*=\\s*['"]([^'"]+)['"]`).exec(text);
+    if (found) return { name: found[1], nameFrom: 'default' };
+  }
+  return {};
+};
+
+/* The call the hit sits in, not a window around it. A window took the label of
+ * the NEXT button in a row of three — closer, by a comma and a call name, than
+ * the one belonging to this control. Walk back to the unmatched opener, then
+ * forward to its close: `button({ … })`, `<Button … />`, either way. */
+const callAt = (text, at) => {
+  let depth = 0;
+  let start = at;
+  while (start > 0) {
+    const ch = text[start - 1];
+    if (ch === ')' || ch === '}' || ch === '>') depth += 1;
+    else if (ch === '(' || ch === '{' || ch === '<') { if (depth === 0) break; depth -= 1; }
+    start -= 1;
+  }
+  depth = 0;
+  let end = at;
+  while (end < text.length) {
+    const ch = text[end];
+    if (ch === '(' || ch === '{' || ch === '<') depth += 1;
+    else if (ch === ')' || ch === '}' || ch === '>') { if (depth === 0) break; depth -= 1; }
+    end += 1;
+  }
+  return { body: text.slice(start, end), from: start };
+};
+
+/** The `label`/`aria-label` nearest `at` within the call it belongs to. */
+const nameNear = (text, at) => {
+  const { body, from } = callAt(text, at);
+  return [...body.matchAll(NAME)]
+    .map((m) => ({ raw: m[1], distance: Math.abs(from + m.index - at) }))
+    .sort((a, b) => a.distance - b.distance)[0]?.raw;
+};
+
 const callSites = [];
 let excluded = 0;
 for (const file of sources) {
@@ -84,7 +145,10 @@ for (const file of sources) {
     if (!named.length) continue;
     if (isTest(file) || insideDont(dontSpans(text), hit.index)) { excluded += 1; continue; }
     const line = text.slice(0, hit.index).split('\n').length;
-    callSites.push({ file: path.relative(root, file), line, glyph: named[0].glyph, how: 'iconOnly' });
+    callSites.push({
+      file: path.relative(root, file), line, glyph: named[0].glyph, how: 'iconOnly',
+      ...readName(nameNear(text, hit.index), text),
+    });
   }
 }
 
@@ -136,7 +200,10 @@ for (const file of sources) {
     if (isTest(file) || insideDont(dontSpans(text), control.index)) { excluded += 1; continue; }
     if (callSites.some((c) => c.file === path.relative(root, file) && Math.abs(c.line - line) < 3)) continue;
     wordless += 1;
-    callSites.push({ file: path.relative(root, file), line, glyph: glyphs[0], how: 'wordless' });
+    callSites.push({
+      file: path.relative(root, file), line, glyph: glyphs[0], how: 'wordless',
+      ...readName(/\baria-label\s*=\s*("[^"]*"|'[^']*'|\{[^}]*\})/.exec(attrs)?.[1], text),
+    });
   }
 }
 
@@ -148,6 +215,9 @@ test('the walk reaches the call sites it is meant to review', () => {
   assert.ok(wordless > 0,
     'no hand-written wordless control found, so the second spelling is dead and a control '
     + 'written the way snippet() writes one would go unreviewed');
+  assert.ok(callSites.some((c) => c.nameFrom === 'default'),
+    'no name was resolved through a prop default, so both Snippet copy buttons — the only '
+    + 'controls that name themselves from a variable — dropped out of the name read');
 });
 
 // #474 gave the kit two wordless controls written the second way. Naming them is
@@ -162,13 +232,23 @@ test('the second spelling reaches both Snippet copy buttons', () => {
   }
 });
 
+/** The problems a set of call sites has against the closed list. Exported shape
+ *  so the mutations below run the gate itself rather than a paraphrase of it. */
+const listProblems = (sites) => sites.flatMap((c) => {
+  if (!Object.hasOwn(iconOnlyAllowed, c.glyph)) {
+    return [`${c.file}:${c.line} — ${c.how} with “${c.glyph}”, which is not on the list`];
+  }
+  if (!c.name) {
+    return [`${c.file}:${c.line} — wordless “${c.glyph}” whose name this gate could not read`];
+  }
+  const opening = c.name.trim().toLowerCase().split(/[^a-z]+/).filter(Boolean)[0];
+  return iconOnlyNames[c.glyph].includes(opening) ? []
+    : [`${c.file}:${c.line} — “${c.name}” carries “${c.glyph}”, which is allowed for ${iconOnlyAllowed[c.glyph]}`];
+});
+
 test('every icon-only control is one the closed list allows', () => {
-  const allowed = Object.keys(iconOnlyAllowed);
-  const offenders = callSites
-    .filter((c) => !allowed.includes(c.glyph))
-    .map((c) => `${c.file}:${c.line} — ${c.how} with “${c.glyph}”, which is not on the list`);
-  assert.deepEqual(offenders, [],
-    `icon-only is allowed for: ${allowed.map((g) => `${g} (${iconOnlyAllowed[g]})`).join(', ')}`);
+  assert.deepEqual(listProblems(callSites), [],
+    `icon-only is allowed for: ${Object.keys(iconOnlyAllowed).map((g) => `${g} (${iconOnlyAllowed[g]})`).join(', ')}`);
 });
 
 // The list is only worth having if a glyph off it would actually be caught. A
@@ -181,4 +261,20 @@ test('removing an allowance turns the gate red — it is reading real call sites
   const caught = callSites.filter((c) => !weakened.includes(c.glyph));
   assert.ok(caught.length > 0,
     'dropping “x” from the list caught nothing, so no call site using it was ever read');
+});
+
+// The other half of the rule has its own way of going quietly green: the glyph is
+// on the list and the action beside it is not the one the list allows. #566's
+// review found exactly that, so the rejection is proved against its case.
+test('a listed glyph carried by an action the list does not allow turns the gate red', () => {
+  const site = { file: 'fixture', line: 1, how: 'iconOnly', glyph: 'copy' };
+  assert.deepEqual(listProblems([{ ...site, name: 'Duplicate' }]),
+    ['fixture:1 — “Duplicate” carries “copy”, which is allowed for copy to clipboard']);
+  assert.equal(listProblems([{ ...site, glyph: 'x', name: 'Cancel' }]).length, 1,
+    'a close button renamed Cancel keeps a glyph whose action is close or dismiss');
+  // The qualified name the kit actually ships still passes, so the check reads the
+  // opening word and not the whole string.
+  assert.deepEqual(listProblems([{ ...site, name: 'Copy project ID' }]), []);
+  assert.equal(listProblems([{ ...site, name: undefined }]).length, 1,
+    'a name the walk cannot read must be reported, not skipped');
 });

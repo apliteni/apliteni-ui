@@ -179,10 +179,12 @@ describe('FileDrop once a file is in hand', () => {
     const actions = document.querySelector('.ui-drop__actions') as HTMLElement;
     // On the name's line, not under it: that is what keeps the facts tier whole.
     expect(actions.parentElement).toHaveClass('ui-drop__line');
-    // Retry keeps its word and remove drops one: `x` is on the kit's icon-only
-    // list and `refresh` is not, so the wordless button is the allowed one.
-    expect([...actions.children].map(c => c.textContent)).toEqual(['Retry', '']);
-    expect(screen.getByRole('button', { name: 'Remove file' })).toHaveClass('ui-btn--icon');
+    // Both actions carry their word. `x` is on the kit's icon-only list for
+    // close and dismiss, and taking a file off a row is neither, so remove is
+    // the kit's small text button and nothing in the row is wordless.
+    expect([...actions.children].map(c => c.textContent)).toEqual(['Retry', 'Remove']);
+    expect(screen.getByRole('button', { name: 'Remove' })).not.toHaveClass('ui-btn--icon');
+    expect(actions.querySelector('.ui-btn--icon')).toBeNull();
     // One control size across every state, so the row keeps its height when a
     // file arrives. The resting Upload button sets it.
     expect(resting).toContain('ui-btn--sm');
@@ -212,7 +214,7 @@ describe('FileDrop once a file is in hand', () => {
     render(<FileDrop file={{ name: 'statement-2026-08.pdf', status: 'done' }} onRemove={onRemove} />);
     expect(screen.getByText('Uploaded')).toBeInTheDocument();
     expect(screen.queryByRole('progressbar')).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Remove file' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
     expect(onRemove).toHaveBeenCalled();
   });
 

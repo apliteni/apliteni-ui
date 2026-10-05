@@ -106,7 +106,7 @@ to say what a factory takes, not what it does.
 | `skeleton({ lines, width, height, radius })`, `skeletonTable({ rows, cols, head })` | Placeholder shapes, `aria-hidden` throughout. |
 | `snippet({ label, code, reveal, copy, copyLabel })` | Code block with an icon-only copy button. `hlCode(raw, lang)`, `hlShell(raw)` and `codeTokens(raw, lang)` highlight the languages `codeLanguages` lists. See [Code highlighting](specification.md#code-highlighting). |
 | `icon(name, cls)`, `illo(name)`, with `iconNames`, `iconCategories`, `illoNames` | Line icons and illustrations as SVG strings; `sun` and `moon` are also exported bare. |
-| `iconOnlyAllowed`, `iconMeanings` | The two icon rulings as data. See [Icons and glyphs](specification.md#icons-and-glyphs). |
+| `iconOnlyAllowed`, `iconOnlyNames`, `iconMeanings` | The icon rulings as data. `iconOnlyNames` gives each wordless glyph the words its button’s name may open with, so `copy` cannot be borrowed for Duplicate. See [Icons and glyphs](specification.md#icons-and-glyphs). |
 | `seedling`, `prism`, `brand` | The brand mark. |
 
 ### Controls and input

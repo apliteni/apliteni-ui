@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.88.0', date: '2026-10-05',
+    changes: [
+      ['changed', 'React `FileDrop` draws remove as the kit’s small text button reading “Remove”, where it drew a wordless `x`. `x` is on the kit’s icon-only list for close and dismiss, and taking a file off a row is neither — the row stays and the file leaves it. `removeLabel` now sets a visible word and defaults to “Remove”; a caller passing the old “Remove file” will see those two words on the button, so shorten it. Two worded actions take more of the name’s line than one word and an `x` did: at 320 a failed upload whose name is long enough to be cut gets 119px of stem in a plain row and 87px inside a panel — about seventeen and thirteen characters. A panel at 360 gives 127px, and an ordinary name is cut there too. The extension is never cut, and 390 and wider are unchanged. Refs #565.', ['File drop']],
+      ['added', 'Button labels is a new guideline page: keep the words, let a glyph beside a label repeat that label\u2019s verb and treat every button in a row the same way, and drop a button\u2019s words only when its glyph is learned everywhere, its action is on the closed list and its name is left to assistive technology and a hover title. The closed list is the kit\u2019s own decision; the specification keeps it apart from what the cited design systems actually support, and records the shell\u2019s folded rail as a separate trade that shows its labels instead of carrying a tooltip. The funnel is not on the list, so Filter keeps its word, and the glyph beside that word stays optional. Closes #565.', ['Button']],
+      ['added', '`iconOnlyNames` says which word a wordless control\u2019s name may open with. A glyph on the closed list can no longer be borrowed for the action beside it \u2014 a `copy` glyph on a Duplicate button now fails the kit\u2019s own gate. Part of #565.', ['Button']],
+      ['fixed', 'A link in guideline prose takes the kit focus ring on keyboard focus instead of the browser\u2019s own outline, in both themes. Part of #565.'],
+    ],
+  },
+  {
     v: '0.87.0', date: '2026-10-05',
     changes: [
       ['fixed', 'An underline segmented strip wraps onto a further row when its tabs do not fit, instead of keeping one row and scrolling. In a phone-width column the tabs past the fold were cut off with nothing saying they were there: the stock screener showcase lost \u2018Valuation\u2019 at 390px. A label too long for the column now wraps inside its own tab, and a single unbreakable word narrows with it, so no tab label can widen the strip or the page. Tabs keep their size, order and type rank, and a tab\u2019s focus ring is no longer clipped. Pill strips are unchanged. Resolves #527.', ['Segmented']],

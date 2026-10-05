@@ -1338,6 +1338,77 @@ rather than reading declarations; what it sweeps, and what it does not, is state
 
 Decided in [#511](https://github.com/apliteni/apliteni-ui/issues/511).
 
+### When a button drops its words
+
+**Words are a button's default, and a glyph is the optional part.** Guidelines / Button labels
+states it as three rules: keep the words; let a glyph beside a label repeat that label's verb, and
+treat every button in a row the same way; and drop the words only when all three tests hold at
+once — the glyph is learned everywhere, the action is on the closed list in `src/assets/icons.js`,
+and the control keeps a name assistive technology reads and a hover shows. A crowded row is a
+reason to ask, not an answer.
+
+Three parts of that are the kit's own decision rather than a reading of any source: that the list
+is closed, which actions are on it, and what counts as learned everywhere. What the cited systems
+support is the default — words first, a glyph as help — and the requirement that a wordless control
+be named.
+
+- [Nielsen Norman Group](https://www.nngroup.com/articles/icon-usability/): "a text label must be
+  present alongside an icon"; home, print and the magnifying glass are the few it names as having
+  mostly universal recognition. It also says not to rely on hover to reveal a label, because that
+  raises interaction cost and fails on touch, and it argues against hiding navigation labels at
+  all. The folded rail is where this kit knowingly differs; see
+  [The page shell](#the-page-shell).
+- [Carbon](https://www.carbondesignsystem.com/building-blocks/core/components/button/guidelines)
+  uses icons beside labels sparingly, takes icons on all of a group's buttons or none, keeps its
+  own table of universal actions, and still requires a tooltip on an icon-only button "regardless
+  of how recognizable an icon may or may not be, or whether that action lies within the universal
+  actions list".
+- [Atlassian](https://atlassian.design/components/button/icon-button/usage) allows icon-only where
+  space is limited and the glyph is clearly associated with the action, and recommends visible
+  words where space allows or importance warrants them. Its five-second rule states a likelihood,
+  not an impossibility: "if it takes you more than five seconds to think of an appropriate icon, it
+  is unlikely that an icon can effectively communicate that action".
+- [Primer](https://primer.style/product/components/icon-button/) documents an accessible label and
+  a descriptive tooltip as parts of an icon-only button. It certifies no particular glyph.
+- [GOV.UK](https://design-system.service.gov.uk/components/button/) ships no icon-only button; its
+  one glyph, the start button's arrow, is `aria-hidden` beside words that carry the action. That is
+  evidence about one component, not about every component in that system.
+- [USWDS](https://designsystem.digital.gov/components/button/) keeps action labels short and adds a
+  glyph only to signal a specific action, such as Download or Open in a new window. It requires a
+  glyph on no particular button.
+
+Material 3 and Apple's Human Interface Guidelines were not checked; both pages render client-side,
+so nothing is attributed to them here.
+
+**The funnel keeps its word.** `filter` is Lucide's funnel. Depicting a thing is not the fault:
+`copy` is on the list and depicts one too. The kit's reading is that the funnel alone does not say
+whether the control filters, sorts or exports, so it fails the first test and is not on the closed
+list. That is this kit's inference from the sources above, not a measured recognition finding.
+Filter is therefore a labelled button, and the glyph beside the word stays optional: Showcases /
+Empty states ships Filter as text alone.
+
+**What the list claims, and what it does not.** Each entry is an action allowed to drop its
+visible text, not a glyph certified as universal. `x` and the chevrons repeat per row or per
+section; `copy` sits in the snippet's narrow bar, where the word repeated what the glyph already
+said; `moreHorizontal` and `moreVertical` are the standard overflow affordance. A control built
+from the list through `button({ iconOnly })` gets `aria-label` and `title` together, so its name
+reaches a screen reader and a hovering pointer, and neither a keyboard reader who is not running
+one nor a finger: on keyboard focus the kit shows the ring, not the name.
+
+`stories/guidelines/iconography.test.js` checks both halves of the rule at every call site: that
+the glyph is on the list, and that the name the control answers to opens with a word
+`iconOnlyNames` allows for it, so `copy` cannot be borrowed for Duplicate.
+
+**The shell's wordless controls are the exception, and two of them carry no title.** The theme
+toggle has one. The sidebar toggle and the folded rail's links do not: they show the label itself
+beside the glyph on hover and on keyboard focus, which `stories/apps/shell-rail.test.js` requires,
+because a `title` would be a second copy of a name the row already carries and would reach a
+pointer only. That is better than a title and still not a visible label, which is the cost NN/g
+names. The rail is a deliberate trade for the width, recorded here rather than presented as agreed
+practice.
+
+Decided in [#565](https://github.com/apliteni/apliteni-ui/issues/565).
+
 ### Busy button labels
 
 Busy buttons replace the visible action label with three centered pulsing dots in the
@@ -3854,14 +3925,15 @@ accessible name, `"Uploading statement-2026-08.pdf"`. An upload with no
 measurable progress keeps the word, because nothing else there says what it is
 doing. `state` replaces the word on an uploading or uploaded file, and replaces it
 in the track's name too. `Remove` and `Retry` appear only when `onRemove` and
-`onRetry` are supplied, so no row offers an action nobody handles. Remove is the
-icon-only `x` named by `removeLabel`, which defaults to "Remove file"; `x` is on
-the kit's icon-only list and `refresh` is not, so Retry keeps a visible word. A
-failed file keeps its name and puts its message under it with `role="alert"`, and
-drops its size, because the tier has room for the message or the size and only
-one of them says what to do next. The kit does not announce the change from
-uploading to uploaded; a consumer that needs that announcement owns the live
-region. `accept` filters the system picker only, and the consumer still validates
+`onRetry` are supplied, so no row offers an action nobody handles. Both carry a
+visible word: Remove is the kit's small text button, worded by `removeLabel`,
+which defaults to "Remove". `x` is on the kit's icon-only list for close and
+dismiss, and taking a file off a row is neither — the row stays and the file
+leaves it — so nothing in the row is wordless. A failed file keeps its name and
+puts its message under it with `role="alert"`, and drops its size, because the
+tier has room for the message or the size and only one of them says what to do
+next. The kit does not announce the change from uploading to uploaded; a
+consumer that needs that announcement owns the live region. `accept` filters the system picker only, and the consumer still validates
 type and size.
 
 A file in hand is a stack of one-line tiers, not a line. The name owns the top
@@ -3884,14 +3956,41 @@ buttons at the size the resting row already uses, and they close the name's line
 on the edge it ends on.
 
 One layout at every width: nothing is hidden, dropped or moved at a breakpoint,
-so the sheet carries no container query. Measured in Chromium at 1280, 390 and
-320 alike, a row with a measurable upload is 73px over three tiers, and every
-other state a file is in — starting, uploaded, failed — is 59px over two. A
-resting row is 32px, the kit's small-control row, wherever its note sits beside
-its button; below about 250px of block width the note wraps under it and the row
-is 59px. At 320 in a panel the truncated name keeps 256px while uploading and
-168px when it has failed, against the 62px and 113px the single line gave it. The
-kit draws these in a panel, and `--panel-sm` is 320px.
+so the sheet carries no container query. Measured in Chromium with IBM Plex Sans
+loaded, at 1280, 390, 360 and 320 and in both containers alike, a row with a
+measurable upload is 69.55px over three tiers, a failed one is 59.05px over two,
+and a starting or uploaded one is 55.55px over two. A resting row is 32px, the
+kit's small-control row, wherever its note sits beside its button; below about
+250px of block width the note wraps under it and the row is 59.05px.
+
+The containers are the two the kit draws a row into: a plain row given the whole
+block, and a panel inset by `--space-4` on each side — the inset the guideline
+specimens draw and the one `.ui-app__main` takes at the phone step. At 320
+`stories/row-height.test.js` measures the truncated stem at 210px in a plain row
+and 178px in a panel while uploading, and at 119px and 87px when the upload has
+failed. The failed row is the narrower because it carries two worded actions on
+the name's line. `--panel-sm`, the narrowest panel the kit names, is 320px, so
+the panel row at 320 — a 288px line — is also the line a 320px panel gives at
+any viewport. The stem and height numbers this section carried before #566 were
+taken in the engine's fallback font and in no panel at all; they are withdrawn
+rather than adjusted.
+
+A name being cut is held to one floor: 150px, and it is met wherever at most one
+worded action shares the name's line. A row carrying two does not reach it and
+cannot. What the stem gets is the line less `Retry` and `Remove` with the space
+between them, 165px, less the extension, 24px and never shrinking, less the
+name's own gap, 12px — so 150px needs a 351px line. 1280 and 390 have one; a
+panel at 360 and either container at 320 do not. Those rows are held to what
+they measure instead, as four shortfalls the gate records and asserts: 127px in
+a panel at 360, 119px in a plain row at 320, and 87px in a panel at 320 both for
+a long name and for `statement-2026-08.pdf`, which is an ordinary name and is cut
+there too. No second floor is published. What a failed upload's name may be cut
+to in a narrow panel is open in
+[#566](https://github.com/apliteni/apliteni-ui/issues/566) and is Artur's to
+decide: reaching 150px means wrapping the actions under the name, which is the
+layout #541 rejected, or dropping `Remove`'s word, which #566 rejected because
+`x` is the kit's glyph for close and dismiss and taking a file off a row is
+neither. The extension is never cut, at any width or in either container.
 
 Below the phone step a coarse pointer gets the kit's 44px target on `Retry` and
 `Remove`: the pair opens to the tap gap and each button's transparent layer
@@ -3915,8 +4014,10 @@ with a form, because the file travels through `onFile`.
 
 Covered by `react/src/FileDrop.test.tsx`, which does not open the system picker,
 measure the target's cover or the focus ring, or check screen-reader speech, and
-by `stories/row-height.test.js`, which reads the sheet in CI and measures the
-tiers, the heights and the truncation in a browser under `ROW_HEIGHTS=1`.
+by `stories/row-height.test.js`, which reads the sheet in CI with its ledger of
+measured shortfalls, and under `ROW_HEIGHTS=1` measures the tiers, the heights
+and the truncation in a browser — in both containers, at four widths, and with
+IBM Plex Sans loaded, which that half needs the network for.
 Closes [#507](https://github.com/apliteni/apliteni-ui/issues/507).
 
 ## React accent picker

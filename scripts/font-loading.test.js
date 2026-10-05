@@ -109,7 +109,12 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
 // The nineteenth is scripts/evidence/file-drop.mjs, the #507 shot producer: it
 // writes its own page rather than serving a committed one, so the link is in the
 // script. Same two families, for the same reason as every rig above.
-const EXPECTED_LOADERS = 19;
+// The twentieth is stories/row-height.test.js, which is a gate rather than a rig:
+// #566's review found it measuring a file name's width in whatever the engine
+// falls back to, and a name line is exactly as wide as the font drawing it. Its
+// browser half now builds its page with the same link and fails when the families
+// do not arrive, so it belongs on this list like any other page.
+const EXPECTED_LOADERS = 20;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

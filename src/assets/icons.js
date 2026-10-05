@@ -150,6 +150,24 @@ export const iconNames = Object.keys(ICONS);
 // `gear` or `externalLink`, because a reader meets them one at a time and a
 // toolbar is not a legend. Adding an entry is a decision recorded here, which
 // is the point: the alternative rules read well and could not be gated.
+//
+// Guidelines / Button labels states the three tests an entry passes: the glyph is
+// learned everywhere, its action is on this list, and the control keeps a name
+// assistive technology reads and a hover shows. button({ iconOnly }) writes
+// `aria-label` and `title` together, so a control built from the list below has
+// both — and neither reaches a keyboard reader who is not running one.
+//
+// The shell's folded-rail links and its sidebar toggle are the stated exception:
+// they show the label itself beside the glyph on hover and on focus, so they carry
+// no `title` — stories/apps/shell-rail.test.js holds them to that. They are a
+// separate decision about the shell's own chrome, not entries that passed the
+// tests above.
+//
+// `filter` — Lucide's funnel — fails the first test. Depicting a thing is not the
+// fault; `copy` is on this list and depicts one too. The kit reads the funnel alone
+// as not saying whether the control filters, sorts or exports — its own inference
+// from the sources in docs/specification.md, not a measured recognition finding.
+// See #565.
 export const iconOnlyAllowed = {
   x: 'close or dismiss',
   copy: 'copy to clipboard',
@@ -157,6 +175,21 @@ export const iconOnlyAllowed = {
   moreVertical: 'overflow menu',
   chevronDown: 'expand or collapse',
   chevronUp: 'expand or collapse',
+};
+
+// The word a wordless control's name may open with. The list above says which
+// ACTIONS may drop their text; without this, a glyph on it carries any action a
+// caller likes — `copy` for Duplicate, `x` for Cancel — and the gate stays green,
+// which is what #566's review found. The opening word, not the whole name, so
+// "Copy project ID" is Copy naming what it copies.
+// stories/guidelines/iconography.test.js reads call sites against both maps.
+export const iconOnlyNames = {
+  x: ['close', 'dismiss'],
+  copy: ['copy'],
+  moreHorizontal: ['more'],
+  moreVertical: ['more'],
+  chevronDown: ['expand', 'collapse', 'show', 'hide'],
+  chevronUp: ['expand', 'collapse', 'show', 'hide'],
 };
 
 // What a glyph means when a component picks it for the reader rather than a
