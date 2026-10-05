@@ -45,6 +45,12 @@ carries a `Why`, and the number of pairless rules is asserted, so a page cannot 
 of the check unnoticed. Whether a `Why` earns its place, and whether a field is a line or
 two, is read by a reviewer.
 
+`npm run check:words` reads the other half as a number: a page may carry 60 prose words
+per rule, counting each rule's title and the fields it fills, and the check fails a page
+over that or one that has grown past the figure recorded for it in
+`scripts/word-budget.mjs`. The budget comes from the shortest pages in the collection
+today, so it stays out of CI (#576). Run it before handing over a change to a page.
+
 ## Tests and references
 
 `stories/guidelines/references.json` maps rule ids to implementation references for
