@@ -121,15 +121,16 @@ export const DisabledItem = {
   ))),
 };
 
-// Closed, so the trigger's own edge is the subject. #580
+// Closed, so the trigger's own edge is the subject, and the pair carries the same
+// label and items so the state is the only thing that differs. #580
 export const DisabledTrigger = {
   name: 'Disabled trigger',
   parameters: { layout: 'fullscreen' },
   render: () => pad(specimen(
-    'A trigger that is off, beside a live one',
+    'disabled: true — Tab skips it, and a click opens nothing',
     row(
-      dropdown({ label: 'version:', ariaLabel: 'Version', items: VERSIONS }),
-      dropdown({ label: 'region:', ariaLabel: 'Region', items: LONG, disabled: true }),
+      dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Actions', items: ACTIONS }),
+      dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Actions', items: ACTIONS, disabled: true }),
     ),
   )),
 };

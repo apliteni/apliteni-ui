@@ -11,7 +11,10 @@
  * one's edge. #580, found by #518's builder.
  *
  * So this gate reads the trigger's edge out of the sheets, per state and per
- * scope, and holds both halves: live is never the off ink, off is always it. It
+ * scope, and holds both halves: live is never the off ink, off is always it. The
+ * live half is read in EVERY state a reader can still use the control in, not on
+ * the resting rule alone: a hover or focus rule that paints the off edge is the
+ * same defect one state along, and a correct resting rule does not undo it. It
  * also RANKS each state rule against its scope's resting rule, because the fix
  * itself could have broken that — a resting declaration written three classes
  * deep outranks `.ui-dropdown__trigger:hover` and would freeze the edge.
@@ -77,6 +80,9 @@ const MEASURED = ['rest', ...STATES.map(([name]) => name)];
 /* The states the kit's own trigger has to answer. `open` is allowed and not
  * required: the kit answers opening on the chevron, not on the trigger's edge. */
 const REQUIRED = ['rest', 'hover', 'focus', 'off'];
+/* `off` is the one state whose edge is supposed to be the unavailable ink. In
+ * every other state, painting it is the defect #580 reports. */
+const LIVE = MEASURED.filter((state) => state !== 'off');
 
 /* Anything in a selector that reports a state rather than naming a box. One
  * source for two jobs: stripped, it leaves the SCOPE — the control a run of
@@ -131,12 +137,14 @@ function edgeOf(body) {
 
 /* Every rule in the cascade whose SUBJECT is a dropdown trigger — the last
  * compound of the selector names it. A rule that only has one as an ancestor
- * styles something else and is not read here. */
-function subjects(sheets = SHEETS) {
+ * styles something else and is not read here. `overrides` stands a sheet's text
+ * in for the file's own without touching the disk, which is how the mutations at
+ * the end of this file are read. */
+function subjects(overrides = {}) {
   const out = [];
   let order = 0;
-  for (const file of sheets) {
-    const css = decomment(read(file));
+  for (const file of SHEETS) {
+    const css = decomment(overrides[file] ?? read(file));
     for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
       if (selectors.trimStart().startsWith('@')) continue;
       for (const selector of selectors.split(',').map((s) => s.trim()).filter(Boolean)) {
@@ -210,20 +218,38 @@ const winner = (rules, state) => rules
   .filter((r) => r.state === state && r.edge)
   .reduce((best, r) => (best && outranks(best, r) ? best : r), null);
 
-test('no live trigger draws the ink an unavailable one draws, in either theme', () => {
-  const wrong = [];
-  for (const [scope, rules] of BY_SCOPE) {
-    const rest = winner(rules, 'rest');
-    if (!rest || !rest.edge.drawn) continue; // a scope that paints no edge cannot look unavailable
-    assert.ok(rest.edge.colour, `${scope} declares a resting edge this gate cannot read: ${rest.edge.declared}`);
-    for (const theme of THEMES) {
-      const live = inkOf(theme, rest.edge.colour);
-      const off = inkOf(theme, `var(${OFF_EDGE})`);
-      assert.ok(live && off, `${scope} in ${theme}: an edge resolved to nothing`);
-      if (live.join() === off.join()) wrong.push(`${theme} — ${scope} rests on ${OFF_EDGE}'s ink`);
+/* Every scope and live state whose winning edge is the unavailable ink, read one
+ * state at a time: the resting rule can be right while the rule for the state the
+ * reader is actually in paints the off edge, and nothing else on the page tells
+ * them apart. An edge whose colour this arithmetic cannot resolve comes back under
+ * `unreadable` rather than passing as "not off". */
+function liveIsOff(byScope) {
+  const found = [];
+  const unreadable = [];
+  for (const [scope, rules] of byScope) {
+    for (const state of LIVE) {
+      const won = winner(rules, state);
+      if (!won || !won.edge.drawn) continue; // a state that paints no edge cannot look unavailable
+      if (!won.edge.colour) {
+        unreadable.push(`${scope} at ${state}: ${won.edge.declared}`);
+        continue;
+      }
+      for (const theme of THEMES) {
+        const live = inkOf(theme, won.edge.colour);
+        const off = inkOf(theme, `var(${OFF_EDGE})`);
+        if (!live || !off) unreadable.push(`${theme} — ${scope} at ${state}: ${won.edge.colour} resolved to nothing`);
+        else if (live.join() === off.join()) found.push(`${theme} — ${scope} draws ${OFF_EDGE}'s ink at ${state}`);
+      }
     }
   }
-  assert.deepEqual(wrong, [],
+  return { found: [...new Set(found)], unreadable: [...new Set(unreadable)] };
+}
+
+test('no live trigger draws the ink an unavailable one draws, in any state or theme', () => {
+  const { found, unreadable } = liveIsOff(BY_SCOPE);
+  assert.deepEqual(unreadable, [],
+    'a trigger declares an edge this gate cannot resolve, so it cannot say whether it is the off one');
+  assert.deepEqual(found, [],
     'a trigger a reader can use draws exactly the line the kit paints an unavailable control with');
 });
 
@@ -343,41 +369,28 @@ test('the live edge and the off edge are measured against each other and every g
 
 // ---- 5. the gate refuses what it is written to refuse ----------------------
 
-/* Each mutation is the real sheet with one rule APPENDED — the last word in the
- * cascade, which is how a regression actually arrives. The sheets are re-read
- * from disk every time, so only the named file differs. */
-function readingWith(extra) {
+/* A mutation is the real sheet with one rule APPENDED — the last word in the
+ * cascade, which is how a regression arrives when somebody adds a rule — or, given
+ * `{ from, to }`, with one declaration REWRITTEN where it already stands, which
+ * keeps its position, specificity and neighbours and is how one arrives when
+ * somebody edits the rule that is already there. Every other sheet is re-read from
+ * disk, so only this one differs. */
+function mutate(extra) {
   const original = read('src/styles/dropdown.css');
-  const rules = [];
-  let order = 0;
-  for (const file of SHEETS) {
-    const css = decomment(file === 'src/styles/dropdown.css' ? `${original}\n${extra}\n` : read(file));
-    for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      if (selectors.trimStart().startsWith('@')) continue;
-      for (const selector of selectors.split(',').map((s) => s.trim()).filter(Boolean)) {
-        order += 1;
-        const subject = selector.split(/\s+(?![^(]*\))/).at(-1);
-        if (!subject.includes(TRIGGER)) continue;
-        rules.push({
-          file, order, selector, scope: scopeOf(selector), state: classify(selector),
-          spec: specificity(selector), edge: edgeOf(body),
-        });
-      }
-    }
-  }
-  return scopes(rules);
+  if (typeof extra === 'string') return `${original}\n${extra}\n`;
+  assert.ok(original.includes(extra.from),
+    `the sheet no longer says "${extra.from}", so this mutation changes nothing and proves nothing`);
+  return original.replace(extra.from, extra.to);
 }
+const readingWith = (extra) => scopes(subjects({ 'src/styles/dropdown.css': mutate(extra) }));
+const asText = (extra) => (typeof extra === 'string' ? extra : `${extra.from} → ${extra.to}`);
 
-/* The four findings this gate exists to make, each asked of a mutated sheet. */
+/* The five findings this gate exists to make, each asked of a mutated sheet. */
 const findings = (byScope) => {
   const out = [];
-  for (const [, rules] of byScope) {
-    const rest = winner(rules, 'rest');
-    if (!rest?.edge?.drawn || !rest.edge.colour) continue;
-    for (const theme of THEMES) {
-      if (inkOf(theme, rest.edge.colour)?.join() === inkOf(theme, `var(${OFF_EDGE})`)?.join()) out.push('live-is-off');
-    }
-  }
+  const live = liveIsOff(byScope);
+  if (live.found.length) out.push('live-is-off');
+  if (live.unreadable.length) out.push('unreadable-edge');
   if (frozenPairs(byScope).length) out.push('frozen');
   if ([...byScope.values()].flat().some((r) => !MEASURED.includes(r.state))) out.push('unmeasured-state');
   const off = winner(byScope.get(TRIGGER) ?? [], 'off');
@@ -393,6 +406,18 @@ test('the reading refuses every way the two edges can come back together', () =>
     ['.ui-dropdown__trigger { border-color: var(--border); }', 'live-is-off'],
     // The same thing said with the token's own light value.
     [':root[data-theme="light"] .ui-dropdown__trigger { border-color: #e4e7ee; }', 'live-is-off'],
+    // The keyboard stop's accent rewritten to the off ink where it stands, ring and
+    // all: the trigger a reader is on reads as unavailable while the resting rule
+    // beside it stays correct, so reading `rest` alone goes straight past it.
+    [{ from: 'box-shadow: var(--ring); border-color: var(--accent)',
+      to: 'box-shadow: var(--ring); border-color: var(--disabled-border)' }, 'live-is-off'],
+    // The same defect one state along, under the pointer.
+    [{ from: ':hover { border-color: var(--accent)', to: ':hover { border-color: var(--disabled-border)' },
+      'live-is-off'],
+    // An edge this arithmetic cannot resolve, which must be reported rather than
+    // counted as "not the off ink".
+    [{ from: ':hover { border-color: var(--accent)', to: ':hover { border-color: currentColor' },
+      'unreadable-edge'],
     // A scoped resting edge deep enough to freeze the states beside it — the
     // fault the fix itself could have introduced.
     ['.ui-card .ui-filter-bar .ui-dropdown__trigger { border-color: var(--accent); }', 'frozen'],
@@ -404,7 +429,7 @@ test('the reading refuses every way the two edges can come back together', () =>
     ['.ui-dropdown__trigger:disabled { border: 0; }', 'off-not-off'],
   ];
   const missed = cases.filter(([rule, finding]) => !findings(readingWith(rule)).includes(finding))
-    .map(([rule, finding]) => `${finding} not raised by: ${rule}`);
+    .map(([rule, finding]) => `${finding} not raised by: ${asText(rule)}`);
   assert.deepEqual(missed, [], 'these regressions go straight past the reading');
 
   // And it does not fire on a rule that is fine, or on one it is not about.
@@ -413,8 +438,9 @@ test('the reading refuses every way the two edges can come back together', () =>
     '.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; }',
     '.ui-dropdown__panel { border-color: var(--disabled-border); }',
     '/* .ui-dropdown__trigger { border-color: var(--border); } */',
+    { from: ':hover { border-color: var(--accent)', to: ':hover { border-color: var(--accent-strong)' },
   ]) {
-    assert.deepEqual(findings(readingWith(fine)), [], `false finding on: ${fine}`);
+    assert.deepEqual(findings(readingWith(fine)), [], `false finding on: ${asText(fine)}`);
   }
 });
 

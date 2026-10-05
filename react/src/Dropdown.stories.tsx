@@ -172,7 +172,7 @@ export const Off: StoryObj<typeof Dropdown> = {
     <Stage>
       <div style={{ display: 'flex', gap: 12 }}>
         <Dropdown items={ACTIONS} ariaLabel="Row actions" triggerContent="Actions" />
-        <Dropdown items={ACTIONS} ariaLabel="Row actions, unavailable" triggerContent="Actions" disabled />
+        <Dropdown items={ACTIONS} ariaLabel="Row actions" triggerContent="Actions" disabled />
       </div>
     </Stage>
   ),
