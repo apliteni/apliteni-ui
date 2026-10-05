@@ -9,10 +9,10 @@
   font: inherit;
   color: inherit;
 }
-.rx-sort:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: 4px; }
+.rx-sort:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: 4px; }
 /* The row-selection checkbox is a bare <input>, not the kit's .ui-check, so the
    shared ring in base.css does not reach it and the browser drew its own. #482 */
-.ui-table__selection input[type="checkbox"]:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+.ui-table__selection input[type="checkbox"]:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 /* Keep the sort mark in undiluted muted ink; see #131. */
 .rx-caret {
   margin-left: 2px;

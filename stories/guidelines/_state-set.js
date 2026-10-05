@@ -7,7 +7,7 @@ import { button, callout, field, input, card } from '../../src/components/index.
 import { busyRegion, skeletonTable } from '../../src/components/loading.js';
 
 // `.gl-ring` pins what :focus-visible paints (src/styles/base.css), because a
-// focus ring exists only under a live keyboard and cannot be screenshotted.
+// focus band exists only under a live keyboard and cannot be screenshotted.
 export const SPEC_CSS = `
   <style>
     .gl-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
@@ -15,8 +15,8 @@ export const SPEC_CSS = `
        wraps the button off it. Let it take the slack instead. */
     .gl-row .ui-input { flex: 1 1 11rem; width: auto; min-width: 0; }
     .gl-stack { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-4); }
-    .gl-ring .ui-btn, .gl-ring .ui-input { box-shadow: var(--ring); }
-    .gl-ring--adhoc .ui-input { box-shadow: none; outline: 2px solid var(--muted); outline-offset: 2px; }
+    .gl-ring .ui-btn, .gl-ring .ui-input { outline: var(--ring); outline-offset: var(--ring-offset); }
+    .gl-ring--adhoc .ui-input { outline: 2px solid var(--muted); outline-offset: 2px; }
   </style>`;
 
 const stage = (html, mod = '') => `<div class="gl-stage ${mod}">${html}</div>`;

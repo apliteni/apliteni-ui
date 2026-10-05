@@ -4,7 +4,7 @@
  * ========================================================================== */
 
 .ui-snippet {
-  background: var(--surface); --ring-gap: var(--surface);
+  background: var(--surface);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -34,22 +34,12 @@
    without its radius draws a square ring that cuts across the card and squares
    its corners. The card carries the ring instead, so it follows --radius-md and
    survives `overflow: hidden`, which clips descendants and not the card's own
-   shadow. --ring-gap comes from the page here, matching the container rule in
-   tokens.css: a ring outside its own surface cannot use that surface as its gap.
-   The card also keeps a transparent outline, which forced colors repaints as the
-   focus signal once box-shadow is gone; the block below is why only one box has
-   one there. See stories/snippet-focus.test.js. */
-.ui-snippet pre:focus-visible { box-shadow: none; }
-.ui-snippet:has(pre:focus-visible) { outline: 2px solid transparent; --ring-gap: inherit; box-shadow: var(--ring); }
-
-/* Forced colors drops box-shadow, so both boxes fall back to their outlines and
-   the system repaints the pre's transparent one as the square this rule set out
-   to remove — with the card's rounded one 2px further out, two indicators for one
-   focus. The card's outline is the one that survives, so the pre keeps none.
-   Emulated in stories/snippet-focus.test.js and captured in Chromium. #474 */
-@media (forced-colors: active) {
-  .ui-snippet pre:focus-visible { outline: none; }
-}
+   outline. The pre takes none, in every colour mode: the ring is a real outline
+   since #578, so `outline: none` here is what forced colors reads too, and the
+   @media block that used to say so is gone with the transparent stand-in it was
+   written for. See stories/snippet-focus.test.js. */
+.ui-snippet pre:focus-visible { outline: none; }
+.ui-snippet:has(pre:focus-visible) { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 .ui-snippet__copy {
   background: none;
@@ -74,7 +64,7 @@
 }
 .ui-snippet__copy:hover { color: var(--accent); }
 .ui-snippet--reveal .ui-snippet__copy:hover { color: var(--strong); }
-.ui-snippet__copy:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+.ui-snippet__copy:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .ui-snippet__copy svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.8; }
 
 /* Shell token highlighting (matches viz/account.mjs classes) */
@@ -86,7 +76,7 @@
 
 /* Reveal: a live secret/token, tinted green */
 .ui-snippet--reveal {
-  background: color-mix(in srgb, var(--green) 10%, var(--surface)); --ring-gap: color-mix(in srgb, var(--green) 10%, var(--surface));
+  background: color-mix(in srgb, var(--green) 10%, var(--surface));
 }
 .ui-snippet--reveal .ui-snippet__bar > span { color: var(--chip-success-ink); }
 .ui-snippet--reveal pre { color: var(--chip-success-ink); word-break: break-all; white-space: pre-wrap; }
@@ -95,17 +85,16 @@
    identifier keeps its chip on the page and inside a card, with no edge of its own. The
    container hands the surface over in --code-bg; see src/tokens/tokens.css. #537
 
-   The chip READS --code-bg and never declares it, which is why its gap can match its paint
-   and its ring is composed here instead of in the shared recipe: a chip that re-pointed the
-   hand-off would hand the page to itself and paint the page everywhere. Backticks become a
-   chip wherever the kit renders prose (fmt() in site/changelog.mjs), so a link inside one is
-   ordinary markup and gets the gap of the surface it is actually on. */
+   The chip READS --code-bg and never declares it: a chip that re-pointed the hand-off would
+   hand the page to itself and paint the page everywhere. Backticks become a chip wherever
+   the kit renders prose (fmt() in site/changelog.mjs), so a link inside one is ordinary
+   markup, and the ring it draws needs nothing from the chip now that an outline leaves its
+   1px of offset unpainted. */
 .ui-code {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  background: var(--code-bg); --ring-gap: var(--code-bg);
+  background: var(--code-bg);
   padding: 2px 6px;
   border-radius: var(--radius-xs);
   color: var(--text);
-  --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
 }

@@ -46,11 +46,11 @@
 
 **Rule:** Keep a focus indicator at least 3:1 against every ground it reaches.
 
-**Do:** The solid band, with a surface-coloured gap around an accent-filled control.
+**Do:** One solid accent band, drawn 1px off the control it marks.
 
-**Don't:** The halo on its own, with no solid band inside it to measure.
+**Don't:** A glow on its own, with no solid band inside it to measure.
 
-**Except:** The band must clear the bar against the gap and halo pixels too, not only against flat ground.
+**Except:** The band must clear the bar against the surface its 1px of offset leaves showing, not only against flat ground.
 
 ## Disabled control legibility
 

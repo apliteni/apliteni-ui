@@ -15,7 +15,7 @@
     inset: auto 0 0;
     z-index: var(--z-sticky);
     padding: var(--space-2) var(--space-2) calc(var(--space-2) + env(safe-area-inset-bottom));
-    background: var(--bg); /* ring-gap: inherit — matches the page background and its root focus gap. */
+    background: var(--bg); /* code-bg: inherit — matches the page background and its root focus gap. */
     border-top: 1px solid var(--border);
   }
   .ui-react-app__bottom .ui-nav__list { display: flex; flex-direction: row; }

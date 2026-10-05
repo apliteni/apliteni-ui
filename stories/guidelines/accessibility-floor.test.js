@@ -19,7 +19,7 @@ import path from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { JSDOM, VirtualConsole } from 'jsdom';
-import { layersOf, inkOf, isFocusRing } from '../../scripts/lib/box-shadow.js';
+import { focusBand } from '../../scripts/lib/box-shadow.js';
 import {
   STYLE_FILES, kitCssFor, substitute, desugar, parseColour, composite, ratio,
   effectiveBackground, makeStyleCache, installDomGlobals, storyFiles,
@@ -51,11 +51,16 @@ function rules(css) {
 
 // ---- discovery ------------------------------------------------------------
 
-/** Selectors that paint the focus ring, taken from the sheet that paints it. */
+/**
+ * Selectors that paint the focus band, taken from the sheet that paints it. It is an
+ * `outline` since #578, so the property is part of the reading: `:root` mentions
+ * `var(--ring)` too — `--ring-scroll` is built from it — and declaring the band is not
+ * drawing it.
+ */
 function ringSelectors(css) {
   const out = [];
   for (const [sel, body] of rules(css)) {
-    if (!body.includes('var(--ring)')) continue;
+    if (!/(?:^|;)\s*outline\s*:[^;]*var\(--ring\)/.test(body)) continue;
     for (const s of sel.split(',')) out.push(s.trim());
   }
   return [...new Set(out)];
@@ -758,8 +763,9 @@ const ringRun = await (async () => {
     // --ring is a var() now, not a literal, so it is resolved through the same
     // token map the sheet is. Reading the raw declaration would find no colour.
     const ringValue = substitute(vars.get('--ring') || '', vars);
-    assert.ok(isFocusRing(ringValue), `${theme}/${accent}: the shared ring lost the G2 shape`);
-    const ring = parseColour(inkOf(layersOf(ringValue)[1]));
+    const band = focusBand(ringValue);
+    assert.ok(band, `${theme}/${accent}: the shared ring is no longer a solid outline band`);
+    const ring = parseColour(band[1]);
     assert.ok(ring, `${theme}/${accent}: the solid band colour did not resolve`);
     const landings = new Map();
     const { stories } = await walk(win, styles, vars, () => {
@@ -851,10 +857,14 @@ test('ring: the Accessibility minimums page claims no gap, because there is none
   assert.equal(ring.unmet, undefined, 'the ring clears the bar — retire the ledger rather than leaving it');
 });
 
-// Surfaces recompose the same recipe so their gap colour reaches descendant rings.
-// The browser evidence measures blur edges; this walk measures the solid band against flat grounds.
-test('ring: surface compositions retain the same tunable G2 recipe', () => {
-  // Discover every composition so a new surface cannot introduce a different recipe.
+// One declaration, tunable at its three inputs. Until #578 there were three, because a
+// box-shadow ring PAINTED its 1px gap and could only get that colour from the surface
+// the control stood on, so every painted container recomposed the token. An outline
+// leaves the gap unpainted, so one declaration reaches every control — and a second one
+// is now drift rather than a surface doing its job.
+// The browser evidence measures the band's edges; this walk measures its ink against
+// flat grounds.
+test('ring: the band is declared once, from the widths and the ink that tune it', () => {
   const declared = readdirSync(path.join(root, 'src'), { recursive: true })
     .map((f) => String(f).split(path.sep).join('/'))
     .filter((f) => f.endsWith('.css'))
@@ -862,15 +872,15 @@ test('ring: surface compositions retain the same tunable G2 recipe', () => {
     .flatMap((f) => [...decomment(readFileSync(path.join(root, 'src', f), 'utf8'))
       .matchAll(/(?:^|[;{])\s*--ring\s*:([^;}]*)/g)].map((m) => `src/${f}: ${m[1].trim()}`));
   const canonical = tokensFor('dark').get('--ring');
-  // 3 since #537: root, the shared container composition, and .ui-code. The chip composes
-  // its own because its gap has to be the surface it paints and the shared rule is also what
-  // hands a chip the OTHER surface — a chip in that list would hand the page to itself. The
-  // recipe is still one recipe: the equality below is what holds that, not the count.
-  assert.equal(declared.length, 3, 'root, the shared container composition and the code chip, including React surfaces');
+  assert.equal(declared.length, 1, 'the band is declared at :root and nowhere else');
   for (const entry of declared) assert.equal(entry.slice(entry.indexOf(': ') + 2), canonical, entry);
-  for (const token of ['--ring-width', '--ring-color', '--ring-gap-width', '--ring-gap']) {
-    assert.ok(canonical.includes(`var(${token})`), `${token} no longer tunes the composition`);
+  for (const token of ['--ring-width', '--ring-color']) {
+    assert.ok(canonical.includes(`var(${token})`), `${token} no longer tunes the band`);
   }
+  // The gap's width is not in the band; it is the offset that places it.
+  const offset = tokensFor('dark').get('--ring-offset');
+  assert.ok(offset?.includes('var(--ring-gap-width)'),
+    '--ring-offset no longer reads --ring-gap-width, so the gap is not tunable');
 });
 
 // ---- 3. the disabled legibility floor --------------------------------------

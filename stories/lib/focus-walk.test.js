@@ -67,26 +67,26 @@ test('a pseudo-element is not part of the base selector', () => {
 });
 
 test('what a rule paints: the ring, a visible outline, another shadow, or nothing', () => {
-  assert.deepEqual(paintsOf('outline: 2px solid transparent; box-shadow: var(--ring);'),
+  assert.deepEqual(paintsOf('outline: var(--ring); outline-offset: var(--ring-offset);'),
     { ring: true, outline: null, shadow: null });
   assert.deepEqual(paintsOf('outline: 2px solid var(--accent); outline-offset: 2px;'),
     { ring: false, outline: '2px solid var(--accent)', shadow: null });
   assert.deepEqual(paintsOf('outline: none; box-shadow: 0 0 0 2px blue;'),
     { ring: false, outline: null, shadow: '0 0 0 2px blue' });
   assert.deepEqual(paintsOf('color: red;'), { ring: false, outline: null, shadow: null });
-  // The composed forms the kit ships: the ring first in a longer list, and a
-  // !important a net would need.
-  assert.equal(paintsOf('box-shadow: var(--ring), var(--elev-drop);').ring, true);
-  assert.equal(paintsOf('box-shadow: var(--ring) !important;').ring, true);
+  // An !important a net would need.
+  assert.equal(paintsOf('outline: var(--ring) !important;').ring, true);
   assert.equal(paintsOf('box-shadow: none;').shadow, null);
-  // #531: a scroll region draws the same gap and band inward, as an OUTLINE, so the
-  // region's own children cannot paint over it. It is the ring AND a real outline, and
-  // a reading that saw only one of those would call the region unringed or call it
-  // owing a transparent outline it has no room for.
+  // #531: a scroll region draws the same band inward, so the region's own children
+  // cannot paint over it. Same property, same reading, the other direction.
   assert.deepEqual(paintsOf('outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset);'),
     { ring: true, outline: null, shadow: null });
   // And not any outline: a muted one of a control's own is what the rule forbids.
   assert.equal(paintsOf('outline: 1px solid var(--control-edge);').ring, false);
+  // #578 retired the box-shadow form. A rule that still writes it is writing something
+  // that is not the band, and is reported as a shadow rather than read as a ring.
+  assert.deepEqual(paintsOf('box-shadow: var(--ring);'),
+    { ring: false, outline: null, shadow: 'var(--ring)' });
 });
 
 const dom = (html) => new JSDOM(`<!doctype html><html><body>${html}</body></html>`).window.document.body;
@@ -119,10 +119,10 @@ test('the verdict names what the reader would see', () => {
   const judge = (css) => judgeStops(body, focusRules(css, 'fixture')).stops[0];
   assert.equal(judge('.t{color:red}').status, 'native');
   assert.equal(judge('.t:focus-visible{outline:2px solid var(--accent)}').status, 'outline');
-  assert.equal(judge('.t:focus-visible{outline:2px solid transparent;box-shadow:var(--ring)}').status, 'ring');
+  assert.equal(judge('.t:focus-visible{outline:var(--ring);outline-offset:var(--ring-offset)}').status, 'ring');
   // The ring can come from a rule inside a media block; the at-rule is not a rule.
   assert.equal(
-    judge('@media (min-width: 1px){.t:focus-visible{outline:2px solid transparent;box-shadow:var(--ring)}}').status,
+    judge('@media (min-width: 1px){.t:focus-visible{outline:var(--ring);outline-offset:var(--ring-offset)}}').status,
     'ring',
   );
 });
@@ -141,13 +141,13 @@ test('a selector this reading cannot match is reported, not silently dropped', (
 // bare scroller ringed.
 test('a box\'s ring is found on itself and on the box a :has() rule delegates it to', () => {
   const rules = focusRules(`
-    .ui-table-scroll:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
-    .ui-snippet :focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
-    .ui-snippet:has(pre:focus-visible) { outline: 2px solid transparent; box-shadow: var(--ring); }
-    .ui-cmdk__panel:has(.ui-cmdk__list:focus-visible) { outline: 2px solid transparent; box-shadow: var(--ring), var(--elev-drop); }
+    .ui-table-scroll:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+    .ui-snippet :focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+    .ui-snippet:has(pre:focus-visible) { outline: var(--ring); outline-offset: var(--ring-offset); }
+    .ui-cmdk__panel:has(.ui-cmdk__list:focus-visible) { outline: var(--ring); outline-offset: var(--ring-offset); }
     .ui-table-scroll:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
     .ui-card:has(> .ui-table):focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
-    .ui-seg--underline button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+    .ui-seg--underline button:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
     .ui-dropdown__item.is-active { box-shadow: inset 2px 0 0 var(--accent); }
   `, 'fixture');
   const answering = (selector) => ringRulesFor(selector, rules).map((r) => r.selector).sort();

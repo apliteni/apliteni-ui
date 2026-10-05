@@ -1,19 +1,30 @@
-// Resolves source CSS with forced focus-visible, in the default mode and in
-// forced colors. JSDOM cannot prove keyboard reachability, clipping, or the
-// per-surface ring gap — contrast.js substitutes each custom property once for the
-// whole sheet, so --ring-gap: inherit is not measurable here — and it cannot show
-// what the system repaints an outline as. Chromium captures at 390px and 1280px
-// cover those, including one forced-colors frame.
+// Rule: a focused code region inside a Snippet draws ONE indicator, and the card draws it.
+//
+// A `<pre>` flush with its card on three sides and with no radius of its own can only
+// draw a square band, cutting a line across the rounded card. So the card draws the band
+// for it (#474), and the pre draws nothing at all.
+//
+// Resolves the source CSS with `:focus-visible` forced on, in both themes and two
+// accents. Since #578 the band is a real `outline`, which is what makes this reading
+// shorter than it was: there is one property to resolve rather than a box-shadow band
+// plus a transparent outline standing in for it under forced colours, and the kit has no
+// `forced-colors` block left to emulate.
+//
+// WHAT THIS DOES NOT READ. JSDOM cannot prove keyboard reachability or clipping, and it
+// evaluates no media query. What the system repaints an outline AS is the browser's
+// business; this reads which boxes declare one, because that is what decides how many
+// indicators appear and what shape they are. Chromium captures at 390px and 1280px cover
+// the rest.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { snippet } from '../src/components/index.js';
 import { desugar, substitute, tokensFor } from './lib/contrast.js';
-import { leafRules } from './lib/motion-css.js';
 
 const source = ['base', 'code'].map(name => readFileSync(new URL(`../src/styles/${name}.css`, import.meta.url), 'utf8')).join('\n');
-const quiet = style => ['', 'none'].includes(style.boxShadow);
+/** Nothing a reader can see on this property. JSDOM leaves an undeclared shorthand empty. */
+const bare = value => ['', 'none'].includes(value);
 
 function check(css, theme, accent) {
   const vars = tokensFor(theme, accent);
@@ -22,8 +33,12 @@ function check(css, theme, accent) {
   const reference = win.document.querySelector('.ui-focusable');
   reference.setAttribute('data-ui-state', 'focus-visible');
   const expected = win.getComputedStyle(reference);
-  assert.notEqual(expected.boxShadow, 'none');
-  assert.ok(expected.boxShadow);
+  // The band itself, read off a control that takes it plainly, so every assertion below
+  // compares against what the kit actually draws rather than against a literal.
+  assert.ok(!bare(expected.outline), 'the reference control draws no band at all');
+  assert.match(expected.outline, /(?:^|\s)2px(?:\s|$)/, 'the band is no longer 2px of solid ink');
+  assert.doesNotMatch(expected.outline, /transparent/, 'the band is a visible outline, not a stand-in');
+
   const targets = win.document.querySelectorAll('.ui-snippet button, .ui-snippet a[href], .ui-snippet pre, .ui-snippet [tabindex]');
   assert.equal(targets.length, 10, 'two copy buttons, four code regions and four composed links');
   for (const target of targets) {
@@ -31,23 +46,24 @@ function check(css, theme, accent) {
     target.setAttribute('data-ui-state', 'focus-visible');
     const style = win.getComputedStyle(target);
     const cardStyle = win.getComputedStyle(card);
-    assert.equal(style.outline, expected.outline, `${target.tagName} suppresses the native outline`);
-    assert.match(style.outline, /transparent/);
     if (target.tagName === 'PRE') {
-      // A <pre> flush with its card and with no radius of its own can only draw
-      // a square ring, so the card draws it instead. #474
-      assert.equal(style.boxShadow, 'none', 'the code region paints no ring of its own');
-      assert.equal(cardStyle.boxShadow, expected.boxShadow, 'the card carries the code ring');
+      assert.equal(style.outline, 'none', 'the code region paints no band of its own');
+      assert.equal(cardStyle.outline, expected.outline, 'the card carries the code band');
       // JSDOM leaves an undeclared shorthand empty and does not expand longhands.
-      assert.ok(['', '0', '0px'].includes(style.borderRadius), 'the pre is square, which is why it cannot carry the ring');
-      assert.ok(Number.parseFloat(cardStyle.borderRadius) > 0, 'the card the ring follows is rounded');
+      assert.ok(['', '0', '0px'].includes(style.borderRadius), 'the pre is square, which is why it cannot carry the band');
+      assert.ok(Number.parseFloat(cardStyle.borderRadius) > 0, 'the card the band follows is rounded');
+      assert.equal([target, card].filter(el => !bare(win.getComputedStyle(el).outline)).length, 1,
+        'one focused code region draws one indicator, not two');
     } else {
-      assert.equal(style.boxShadow, expected.boxShadow, `${target.tagName} uses the shared ring`);
-      assert.ok(quiet(cardStyle), 'only the code region hands its ring to the card');
+      assert.equal(style.outline, expected.outline, `${target.tagName} uses the shared band`);
+      assert.ok(bare(cardStyle.outline), 'only the code region hands its band to the card');
     }
+    // Nothing writes a focus box-shadow any more: the band left that property in #578, so
+    // anything there while a control has focus is a second indicator.
+    assert.ok(bare(style.boxShadow), `${target.tagName} paints a box-shadow beside the band`);
     target.removeAttribute('data-ui-state');
-    assert.ok(quiet(win.getComputedStyle(target)), 'ring is keyboard-focus only');
-    assert.ok(quiet(win.getComputedStyle(card)), 'the card ring is keyboard-focus only');
+    assert.ok(bare(win.getComputedStyle(target).outline), 'band is keyboard-focus only');
+    assert.ok(bare(win.getComputedStyle(card).outline), 'the card band is keyboard-focus only');
   }
   for (const root of win.document.querySelectorAll('.ui-snippet')) {
     assert.equal(win.getComputedStyle(root).overflow, 'hidden', 'the card still clips its code');
@@ -55,15 +71,17 @@ function check(css, theme, accent) {
   win.close();
 }
 for (const theme of ['light', 'dark']) for (const accent of ['default', 'ocean']) {
-  test(`Snippet focus uses the kit ring: ${theme}/${accent}`, () => check(source, theme, accent));
+  test(`Snippet focus uses the kit band: ${theme}/${accent}`, () => check(source, theme, accent));
 }
 
 // Each mutation removes one declaration the fix depends on, so a later edit that
 // drops it fails here rather than in a screenshot nobody re-takes.
 for (const [name, mutate, expected] of [
-  ['the shared ring selector', css => css.replace('.ui-snippet :focus-visible,', ''), /suppresses the native outline/],
-  ['the ring on the card', css => css.replace(/\.ui-snippet:has\(pre:focus-visible\) \{[^}]*\}/, ''), /the card carries the code ring/],
-  ['the square ring on the pre', css => css.replace('.ui-snippet pre:focus-visible { box-shadow: none; }', ''), /paints no ring of its own/],
+  ['the shared ring selector', css => css.replace('.ui-snippet :focus-visible,', ''), /uses the shared band/],
+  ['the band on the card', css => css.replace(/\.ui-snippet:has\(pre:focus-visible\) \{[^}]*\}/, ''), /the card carries the code band/],
+  // Without it the pre takes base.css's band itself: a square one, inside the card's
+  // rounded one, which is the two-indicator defect #474 corrected.
+  ['the suppression on the pre', css => css.replace('.ui-snippet pre:focus-visible { outline: none; }', ''), /paints no band of its own/],
   ['the clip on the card', css => css.replace('border-radius: var(--radius-md);\n  overflow: hidden;', 'border-radius: var(--radius-md);\n  overflow: visible;'), /still clips/],
 ]) {
   test(`rejects removing ${name}`, () => {
@@ -73,81 +91,23 @@ for (const [name, mutate, expected] of [
   });
 }
 
-// ---- forced colors --------------------------------------------------------
+// ---- forced colours -------------------------------------------------------
 //
-// That mode does two things and both are emulated here: the
-// `(forced-colors: active)` block applies, and every box-shadow is dropped. JSDOM
-// evaluates no media query, so the block is flattened in by hand after the shadows
-// are stripped, which is also the proof the block is reachable at all. What the
-// system repaints a declared outline AS is the browser's business; this checks
-// which boxes declare one, because that is what decides how many focus
-// indicators appear and what shape they are.
-const FORCED = /forced-colors\s*:\s*active/;
-
-function emulateForcedColors(css) {
-  const flattened = leafRules(css)
-    .filter(rule => rule.at.some(prelude => FORCED.test(prelude)))
-    .map(rule => `${rule.selector} { ${rule.decls.map(d => `${d.prop}: ${d.value}`).join('; ')} }`);
-  assert.ok(flattened.length, 'no @media (forced-colors: active) block left to emulate');
-  return [css.replace(/box-shadow\s*:[^;}]+/g, 'box-shadow: none'), ...flattened].join('\n');
-}
-
-function checkForcedColors(css, theme) {
-  const vars = tokensFor(theme, 'default');
-  const resolved = desugar(substitute(emulateForcedColors(css), vars));
-  const win = new JSDOM(`<style>${resolved}</style>${snippet({ code: 'curl -s https://example.com/api' })}`).window;
-  const card = win.document.querySelector('.ui-snippet');
-  const pre = card.querySelector('pre');
-  const button = card.querySelector('.ui-snippet__copy');
-  const declares = style => !['', 'none'].includes(style.outline);
-
-  pre.setAttribute('data-ui-state', 'focus-visible');
-  assert.ok(quiet(win.getComputedStyle(pre)) && quiet(win.getComputedStyle(card)),
-    'forced colors leaves no box-shadow, so an outline is the only focus signal left');
-  // The pre is flush with the card on three sides and has no radius, so any
-  // outline on it is the square ring again — and the card is already drawing one.
-  assert.equal(win.getComputedStyle(pre).outline, 'none',
-    'the code region declares no outline in forced colors');
-  assert.match(win.getComputedStyle(card).outline, /(?:^|\s)2px(?:\s|$)/,
-    'the card declares the outline that replaces it');
-  assert.equal([pre, card].filter(el => declares(win.getComputedStyle(el))).length, 1,
-    'one focused code region draws one indicator, not two');
-  pre.removeAttribute('data-ui-state');
-
-  // The copy button is the other keyboard target. It keeps its own outline, and
-  // the card must not add a second one around it.
-  button.setAttribute('data-ui-state', 'focus-visible');
-  assert.match(win.getComputedStyle(button).outline, /(?:^|\s)2px(?:\s|$)/,
-    'the copy button keeps its outline in forced colors');
-  assert.ok(!declares(win.getComputedStyle(card)),
-    'the card draws no outline while the copy button has focus');
-  win.close();
-}
-
-for (const theme of ['light', 'dark']) {
-  test(`Snippet focus draws one indicator in forced colors: ${theme}`, () => checkForcedColors(source, theme));
-}
-
-// The defect this block fixes, restored: before #474's correction the pre kept the
-// transparent outline in forced colors too, and the system repainted it as a square
-// inside the card's rounded one.
-test('rejects letting the code region keep an outline in forced colors', () => {
-  const mutated = source.replace(
-    '  .ui-snippet pre:focus-visible { outline: none; }',
-    '  .ui-snippet pre:focus-visible { outline: 2px solid transparent; }');
-  assert.notEqual(mutated, source, 'the mutation found the rule');
-  assert.throws(() => checkForcedColors(mutated, 'light'), /the code region declares no outline in forced colors/);
-});
-
-test('rejects removing the forced-colors block', () => {
-  const mutated = source.replace(/@media \(forced-colors: active\) \{[^}]*\}\s*\}/, '');
-  assert.notEqual(mutated, source, 'the mutation found the block');
-  assert.throws(() => checkForcedColors(mutated, 'light'), /no @media \(forced-colors: active\) block left/);
-});
-
-test('rejects dropping the card outline the forced-colors signal rests on', () => {
-  const mutated = source.replace('.ui-snippet:has(pre:focus-visible) { outline: 2px solid transparent;',
-    '.ui-snippet:has(pre:focus-visible) {');
-  assert.notEqual(mutated, source, 'the mutation found the declaration');
-  assert.throws(() => checkForcedColors(mutated, 'light'), /the card declares the outline that replaces it/);
+// Forced colours drops every box-shadow and repaints the outlines it is left. Until #578
+// that mattered here: the band was a box-shadow, so every consumer carried a transparent
+// 2px outline for the system to repaint, the pre's was a square one inside the card's, and
+// code.css carried an `@media (forced-colors: active)` block to take it off again. That
+// block and the stand-in are both gone — the band IS an outline, the pre declares `none`
+// in every colour mode, and the reading above is the reading in forced colours too.
+//
+// What is left to hold is that nothing brings either of them back.
+test('nothing is left for forced colours to correct', () => {
+  assert.doesNotMatch(source, /forced-colors/,
+    'a forced-colors block is back in base.css or code.css. The band is a real outline '
+    + 'now, so one is either a second indicator or a correction for one');
+  const standIns = [...source.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, , body]) => /outline\s*:\s*2px solid transparent/.test(body))
+    .map(([, selector]) => selector.trim().replace(/\s+/g, ' '));
+  assert.deepEqual(standIns, [], 'a transparent stand-in outline is back; it would be the '
+    + 'second indicator the system repaints beside the band');
 });

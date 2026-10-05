@@ -61,7 +61,7 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-5);
-  background: var(--confirm-surface); --ring-gap: var(--confirm-surface);
+  background: var(--confirm-surface);
   /* The two-step edge and the drop, through the level's own names: in DARK that is
      --border-strong outside and --border one pixel inside it, then the drop; in LIGHT
      both lines are transparent and the drop carries the whole separation.
@@ -76,11 +76,11 @@
     transform var(--dur-med) var(--ease);
 }
 .ui-confirm.is-open .ui-confirm__panel { opacity: 1; transform: none; }
-/* The ring is COMPOSED with the floating treatment, not written over it: a
-   box-shadow list replaces the whole list, so `box-shadow: var(--ring)` alone
-   took the panel's edge and its drop off for as long as it held focus.
+/* The ring leaves the panel's own elevation alone: it is an outline since #578, so
+   it no longer has to be composed into the box-shadow list that carries the edge and
+   the drop — and the list no longer has to be restated here to survive focus.
    why: docs/specification.md#elevation */
-.ui-confirm__panel:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); }
+.ui-confirm__panel:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* -- Slots ----------------------------------------------------------------- */
 /* The question and the answers keep their size; the consequence between them is

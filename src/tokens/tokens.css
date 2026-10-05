@@ -254,27 +254,32 @@
      reading one gets nothing rather than an unresolved var(), and a consumer who wants a
      cast shadow sets them. Nothing in src/ reads them.
 
-     A transparent shadow, not `none`, because these are read in a LIST. The kit's own
-     pre-0.32 pattern was `box-shadow: var(--shadow-lg), var(--ring)`, and `none` is only
-     valid alone — it makes the whole declaration invalid, which silently takes the focus
-     ring with it. `0 0 #0000` composes. why: docs/specification.md#elevation */
+     A transparent shadow, not `none`, because these are read in a LIST — a surface's
+     edge and its drop are two layers of one declaration — and `none` is valid only
+     alone, so it makes the whole declaration invalid and takes the layers beside it
+     with it. `0 0 #0000` composes. why: docs/specification.md#elevation */
   --shadow-sm: 0 0 #0000;
   --shadow-md: 0 0 #0000;
   --shadow-lg: 0 0 #0000;
   --shadow-seg: 0 0 #0000;
   --shadow-card: 0 0 #0000;
-  /* G2: the band carries contrast; the halo decorates it. why: docs/specification.md#the-focus-ring */
+  /* ONE band, drawn as a real OUTLINE, and no halo. Artur took the halo off on #578
+     after #557 drew a scroll region's band without one. An outline leaves its offset
+     UNPAINTED, so the 1px between the control and the band is whatever surface the
+     control is already standing on — which is what retired --ring-gap and the
+     per-surface recomposition behind it, and what leaves forced colors a real outline
+     to repaint instead of a transparent stand-in.
+     why: docs/specification.md#the-focus-ring */
   --ring-width: 2px;
   --ring-color: var(--accent);
   --ring-gap-width: 1px;
-  --ring-gap: var(--bg);
-  --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
-  /* What a scroll region inside a surface takes: --ring's gap and band, drawn inward,
-     no halo. An OUTLINE, because an inset shadow is painted under the box's own
-     children and a table scrolled under one erases it. The gap is left unpainted, so
-     neither half reads --ring-gap and neither is recomposed per surface. Chosen by
-     Artur on #531 round r30. why: docs/specification.md#the-focus-ring */
-  --ring-scroll: var(--ring-width) solid var(--ring-color);
+  --ring: var(--ring-width) solid var(--ring-color);
+  --ring-offset: var(--ring-gap-width);
+  /* What a scroll region inside a surface takes: the same band, drawn inward rather
+     than outward, because an inset shadow is painted under the box's own children and
+     a table scrolled under one erases it. Only the offset differs. Chosen by Artur on
+     #531 round r30. why: docs/specification.md#the-focus-ring */
+  --ring-scroll: var(--ring);
   --ring-scroll-offset: calc(-1 * (var(--ring-gap-width) + var(--ring-width)));
 
   /* The ink a cast shadow is made of, and the specular white that reads as gloss on a
@@ -297,7 +302,7 @@
   /* The ladder's two resting rungs, which only light climbs. Transparent here and
      not `none`, for the reason the deprecated --shadow-* tokens are: these are read
      in a layer list, and `none` is valid only alone — it would invalidate the whole
-     declaration and take the focus ring with it. why: docs/specification.md#elevation */
+     declaration and take the layers beside it with it. why: docs/specification.md#elevation */
   --elev-rest: 0 0 #0000;   /* a card */
   --elev-rail: 0 0 #0000;   /* the shell's rail, cast sideways */
 
@@ -436,7 +441,7 @@
   --shadow-lg: 0 0 #0000;
   --shadow-seg: 0 0 #0000;
   --shadow-card: 0 0 #0000;
-  /* No --ring here. :root's is var(--accent), and light re-points --accent. */
+  /* No --ring here. :root's band is var(--accent), and light re-points --accent. */
 
   --shadow-ink: #1e1e32;
   --sheen: #ffffff;
@@ -505,11 +510,9 @@
  * Held by stories/code-chip.test.js. why: docs/specification.md#elevation */
 :root { --code-bg: var(--surface); }
 
-/* Recompose only at painted containers; controls inherit the outside gap, and each hands an
- * inline code chip the page. One recipe keeps surface propagation cheap and consistent.
- * .ui-code composes its own ring in src/styles/code.css instead of joining this list: a
- * chip cannot both paint --code-bg and re-point it, and its gap has to be the surface it
- * actually paints. why: docs/specification.md#the-focus-ring */
+/* Every painted container hands an inline code chip the page. One recipe keeps surface
+ * propagation cheap and consistent. The ring is not in this list since #578: an outline
+ * paints no gap of its own, so a focused control needs nothing handed down to it. */
 .amenu,
 .dtsw,
 .rx-modal,
@@ -542,7 +545,6 @@
 .ui-toast--outline,
 .ui-toast--solid,
 .vsw__menu {
-  --ring: 0 0 0 var(--ring-gap-width) var(--ring-gap), 0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color), 0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
   --code-bg: var(--bg);
 }
 
@@ -574,13 +576,3 @@
 .ui-callout--warn,
 .ui-callout--danger,
 .ui-success { --code-bg: var(--wash-code-bg); }
-
-/* A container focused itself paints outside its own surface; descendants only
- * inherit its inside gap again after focus moves to them. A scroll region inside one
- * needs no entry here: --ring-scroll paints no gap of its own, so the 1px it leaves is
- * whatever the region is already standing on. #531 */
-.ui-card:focus-visible,
-.ui-cmdk__panel:focus-visible,
-.ui-confirm__panel:focus-visible,
-.ui-drawer__panel:focus-visible,
-.rx-modal:focus-visible { --ring-gap: inherit; }

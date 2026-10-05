@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.93.0', date: '2026-10-05',
+    changes: [
+      ['changed', 'The focus ring is one solid accent band with no glow, drawn as a real `outline` 1px off the control it marks. Every focusable control in the kit draws it \u2014 buttons, fields, checkboxes, switches, menu rows, tabs, links, chips and panels, in vanilla and React, light and dark. The band\u2019s colour and width are unchanged, so the contrast floor it is held to is the number it already measured; what is gone is the 12px halo over it, which was decoration rather than something a reader read. Artur chose this on #578 after #557 drew a scroll region\u2019s band the same way. Resolves #578.', ['Focus']],
+      ['breaking', '`--ring` is an `outline` value now, not a `box-shadow` value. A consumer sheet that writes `box-shadow: var(--ring)` draws nothing after this release; write `outline: var(--ring); outline-offset: var(--ring-offset);` instead. `--ring-gap` is removed with the painted gap it coloured \u2014 an outline leaves its offset unpainted, so the 1px between a control and its band is whatever surface the control is already standing on. If you recomposed `--ring` or set `--ring-gap` on your own painted containers, delete both: one declaration at the root now reaches every control. `--ring-width`, `--ring-color` and `--ring-gap-width` are unchanged and still where you tune it. See #578.', ['Focus']],
+      ['changed', 'Two things the old carrier forced are gone. No control carries the transparent 2px outline that stood in for the ring under forced colours \u2014 the band is a real outline, which is what the system repaints \u2014 and a floating panel keeps its own edge and drop while it holds focus instead of restating them in its focus rule. A row that is hovered and focused at once draws the band and not the hover edge, which is the one indicator the kit\u2019s menu rows already chose.', ['Focus', 'Dropdown', 'Drawer', 'CommandPalette']],
+    ],
+  },
+  {
     v: '0.92.0', date: '2026-10-05',
     changes: [
       ['breaking', 'The React DataTable\u2019s column pager is removed. A scrollable table — one with `stickyHeader` or `pinnedIdentity` — used to draw a Previous columns / More columns pair above itself as soon as its columns overflowed. Reach the far columns by scrolling the table instead: the region around it is already a named, keyboard-focusable scroll region that draws the kit\u2019s inward ring, so a trackpad, a finger and the arrow keys all get there, and the two buttons only repeated a gesture every pointer already has. Nothing replaces them, and no prop is involved: if you were hiding the pair by leaving `stickyHeader` and `pinnedIdentity` off, you can turn them back on. The pager row sat in a `ui-card__row` inside the card, so a table in a card is one row shorter. Resolves #581.', ['DataTable']],

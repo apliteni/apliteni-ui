@@ -75,9 +75,9 @@
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/specification.md#the-page-shell */
-.ui-nav__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ color: var(--strong); }
+.ui-nav__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ color: var(--strong); }
 .ui-nav__item.is-active {
-  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--strong);
   font-weight: 500;
 }
@@ -94,8 +94,8 @@
   background: var(--accent);
   transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */
 }
-.ui-nav__item:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
-.ui-nav__item.is-active:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-nav__item:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-nav__item.is-active:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 .ui-nav__ic { display: inline-flex; flex: none; }
 .ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; opacity: 0.72; }
@@ -119,18 +119,20 @@
 /* Destructive row (sign out, revoke). Body ink at rest, --pink once a pointer or
    the keyboard reaches it — as .ui-btn--danger and .ui-dropdown__item do. */
 .ui-nav__item.is-danger { color: var(--text); }
-.ui-nav__item.is-danger:hover { background: var(--glow-pink); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--pink); }
+.ui-nav__item.is-danger:hover { background: var(--glow-pink); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ color: var(--pink); }
 /* Tabbing onto it is the same "about to click this" the pointer means. The ring
    says where you are; only this says what the row does. */
-.ui-nav__item.is-danger:focus-visible { background: var(--glow-pink); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--pink); }
+.ui-nav__item.is-danger:focus-visible { background: var(--glow-pink); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ color: var(--pink); }
 /* An unavailable row uses disabled ink directly; opacity would also fade its
    background and pull its label toward the rail behind it (#220). */
 .ui-nav__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; pointer-events: none; }
 
 /* Hover adds an edge without changing the current row's reading surface.
-   The danger row keeps its own state treatment. */
-.ui-nav__item.is-active:not(.is-danger):hover {
-  background: var(--surface); outline: 1px solid var(--control-edge); outline-offset: -1px; /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+   The danger row keeps its own state treatment. `:not(:focus-visible)` because the
+   ring is an outline since #578 and this rule outranks it: a row that is hovered AND
+   focused draws the ring, which is the choice the kit's rows already made. */
+.ui-nav__item.is-active:not(.is-danger):hover:not(:focus-visible) {
+  background: var(--surface); outline: 1px solid var(--control-edge); outline-offset: -1px; /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
 }
 
 /* Per-item badge / counter */
@@ -147,17 +149,17 @@
   font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1;
-  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
   color: var(--text);
   /* The count fades with the words. It is never lost: sidebarNav() spells it
      into the row's aria-label, so "Pending 3" is what a reader hears at either
      width. */
   transition: opacity var(--dur-fast) var(--ease);
 }
-.ui-nav__badge.is-accent { background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--accent); }
-.ui-nav__badge.is-live { background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--chip-success-ink); }
-.ui-nav__badge.is-danger { background: var(--glow-pink); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--pink); }
-.ui-nav__item.is-active .ui-nav__badge.is-neutral { background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); }
+.ui-nav__badge.is-accent { background: var(--glow-purple); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ color: var(--accent); }
+.ui-nav__badge.is-live { background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ color: var(--chip-success-ink); }
+.ui-nav__badge.is-danger { background: var(--glow-pink); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ color: var(--pink); }
+.ui-nav__item.is-active .ui-nav__badge.is-neutral { background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ color: var(--strong); }
 /* Same shape, one row up: on the current row the accent counter drops both the
    wash and the accent and reads as the neutral one beside it. The row already
    carries the one accent signal it is allowed — the marker — and the count is a
@@ -165,7 +167,7 @@
    recorded: accent ink on --surface fell under WCAG AA in four of the eight
    theme x accent cells (4.08 in dark Nebula), and no alpha cleared it. Nothing
    now paints that pair. See #429 and docs/specification.md#colour-and-contrast. */
-.ui-nav__item.is-active .ui-nav__badge.is-accent { background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); }
+.ui-nav__item.is-active .ui-nav__badge.is-accent { background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ color: var(--strong); }
 
 /* Collapsible group */
 .ui-nav__group { display: flex; flex-direction: column; }
@@ -195,10 +197,10 @@
   animation: m-slide-down var(--dur-fast) var(--ease-out) both;
 }
 .ui-nav__item--sub { font-size: calc(var(--text-base) - 0.5px); padding: 7px 12px; }
-/* No hairline on a nested current row — but only at rest. box-shadow carries
-   both the hairline and the focus ring, so a rule about the resting look must
-   say so, or it silently cancels the ring (WCAG 2.4.7). */
-.ui-nav--side .ui-nav__item--sub.is-active:not(:focus-visible) { box-shadow: none; }
+/* No hairline on a nested current row. Unguarded since #578: box-shadow carried the
+   focus ring as well as the hairline, so this rule had to exempt focus or it cancelled
+   the ring (WCAG 2.4.7). The ring is an outline now and this says only what it means. */
+.ui-nav--side .ui-nav__item--sub.is-active { box-shadow: none; }
 /* Hangs back onto the guide hairline the indent above draws. */
 .ui-nav--side .ui-nav__item--sub.is-active::before { left: calc(-1 * var(--space-3)); height: 15px; }
 
@@ -279,14 +281,15 @@
    negative z-index with no stacking context of its own would drop it behind the rail.
    why: #429 */
 .ui-nav--side.is-collapsed .ui-nav__item.is-active { isolation: isolate; background: none; }
-/* At rest only — box-shadow carries the hairline AND the focus ring (WCAG 2.4.7). */
-.ui-nav--side.is-collapsed .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
+/* The hairline, off: the plate below is what marks the current row on a folded rail.
+   Unguarded since #578 — the ring is an outline and no longer shares this property. */
+.ui-nav--side.is-collapsed .ui-nav__item.is-active { box-shadow: none; }
 .ui-nav--side.is-collapsed .ui-nav__item.is-active::before {
   left: 0;
   width: var(--ui-nav-strip);
   height: 100%;
   border-radius: 10px;
-  background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  background: var(--surface-3); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
   z-index: -1;
 }
 /* A folded rail answers a pointer with the row's own ink and the name beside it,
@@ -316,7 +319,7 @@
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .ui-nav__tab:hover { color: var(--strong); }
-.ui-nav__tab:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: 8px; }
+.ui-nav__tab:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: 8px; }
 .ui-nav__tab.is-active { color: var(--strong); }
 
 /* underline variant */
@@ -335,9 +338,9 @@
 
 /* pill variant */
 .ui-nav--tabs.is-pill .ui-nav__tab { border-radius: var(--radius-pill); padding: 8px 15px; }
-.ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-nav--tabs.is-pill .ui-nav__tab.is-active {
-  background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
+  background: var(--glow-purple); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */
   color: var(--accent);
 }
 
@@ -372,7 +375,7 @@
    does above: a linked crumb is an <a>, and a host stylesheet's `a:link` is
    (0,1,1), which outranks a bare (0,1,0) class. */
 .ui-nav .ui-nav__crumb { color: var(--text); }
-a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
-a.ui-nav__crumb:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+a.ui-nav__crumb:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }
 .ui-nav__crumb .ui-nav__ic svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }

@@ -14,7 +14,7 @@
      states its own alignment; --block and --underline ask for the width back. */
   align-self: start;
   justify-self: start;
-  background: var(--surface); --ring-gap: var(--surface);
+  background: var(--surface);
   flex-wrap: wrap;
   max-width: 100%;
   border-radius: var(--radius-2xl);
@@ -41,7 +41,7 @@
 .ui-seg button[aria-pressed="true"],
 .ui-seg button[aria-selected="true"] {
   color: var(--strong);
-  background: var(--surface); /* ring-gap: inherit — the button ring meets its containing track. */
+  background: var(--surface); /* code-bg: inherit — the button ring meets its containing track. */
   outline: 1px solid var(--accent);
 }
 
@@ -88,12 +88,12 @@
   border-width: 0 2px 2px 0;
   transform: translate(-50%, -50%) rotate(45deg); /* motion: still — the turn is the tick's shape, not travel, and the mark lands with the press that asked for it. Nothing else on the swatch changes with selection, so there is no paint for it to arrive with. */
 }
-.ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-accent-picker button:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* Underline tabs wrap for the reason the pills above do — #435 — and draw no
    rule of their own: the chosen tab carries the selection. #527, #545
    why: docs/specification.md#the-chosen-tab-in-an-underline-strip */
-.ui-seg--underline { flex-wrap: wrap; overflow: visible; row-gap: var(--space-1); align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; padding: var(--space-1); max-width: 100%; }
+.ui-seg--underline { flex-wrap: wrap; overflow: visible; row-gap: var(--space-1); align-self: stretch; justify-self: stretch; background: transparent; border-radius: 0; padding: var(--space-1); max-width: 100%; }
 /* `anywhere` is the half `break-word` cannot do: it lowers the tab's min-content
    width, so one unbreakable word narrows rather than widening the page. The
    padding is the scale's own step and the height is the tap floor, so the tab
@@ -136,12 +136,12 @@
 /* `outline: 0` above outranks the kit's :focus-visible rule — (0,3,0) against
    (0,2,1) — so the chosen tab would focus with no indicator. Restated here. */
 .ui-seg--underline button.is-active:focus-visible,
-.ui-seg--underline button[aria-pressed="true"]:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-seg--underline button[aria-pressed="true"]:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 /* The mode repaints an author colour, so the bar comes back as the labels' own
    ink. `Highlight` is kept where it is named: one mark the mode cannot flatten. */
 @media (forced-colors: active) {
   .ui-seg--underline button.is-active::before,
   .ui-seg--underline button[aria-pressed="true"]::before { background: Highlight; }
 }
-.ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-seg button:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }

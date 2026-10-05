@@ -83,17 +83,20 @@ export function isCast(layer) {
   return x !== 0 || y !== 0 || blur !== 0;
 }
 
-/** Only the approved three-layer focus treatment may add a decorative halo.
- * why: docs/specification.md#the-focus-ring */
-export function isFocusRing(value) {
-  const layers = layersOf(value);
-  if (layers.length !== 3 || layers.some((layer) => /\binset\b/.test(layer))) return false;
-  const geometry = layers.map(geometryOf);
-  if (geometry.some(({ x, y }) => x !== 0 || y !== 0)) return false;
-  if (geometry[0].blur !== 0 || geometry[0].spread !== 1
-    || geometry[1].blur !== 0 || geometry[1].spread !== 3
-    || geometry[2].blur !== 12 || geometry[2].spread !== 2) return false;
-  return inkOf(layers[2]) === `color-mix(in srgb, ${inkOf(layers[1])} 45%, transparent)`;
+/**
+ * The kit's focus band, read out of an `outline` shorthand: `[width, ink]`, or null
+ * for anything that is not `<length> solid <ink>`.
+ *
+ * It lives beside the box-shadow readers because every gate that has to tell an
+ * indicator from a cast shadow needs both, and until #578 the band was one of these
+ * layers. It is not one any more: `isFocusRing`, which admitted the old three-layer
+ * shape and its halo, is gone with the shape. A box-shadow layer that glows is a cast
+ * shadow now, with no exception above it.
+ * why: docs/specification.md#the-focus-ring
+ */
+export function focusBand(value) {
+  const match = /^\s*(\S+)\s+solid\s+(.+?)\s*$/.exec(value || '');
+  return match ? [match[1], match[2]] : null;
 }
 
 /* Every box-shadow declaration in a stylesheet, with the selector it sits under.

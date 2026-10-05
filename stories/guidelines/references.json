@@ -44,8 +44,8 @@
     ],
     "ring-contrast": [
       {
-        "ref": "src/styles/base.css:152",
-        "pattern": "box-shadow: var(--ring);"
+        "ref": "src/styles/base.css:151",
+        "pattern": "outline: var(--ring);"
       }
     ],
     "disabled-legibility": [
@@ -148,7 +148,7 @@
         "pattern": "export function commandPaletteList"
       },
       {
-        "ref": "src/styles/command-palette.css:158",
+        "ref": "src/styles/command-palette.css:157",
         "pattern": ".ui-cmdk__group-head"
       }
     ],
@@ -274,11 +274,11 @@
         "pattern": "export const dropdownMatch"
       },
       {
-        "ref": "src/styles/dropdown.css:258",
+        "ref": "src/styles/dropdown.css:261",
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:313",
+        "ref": "src/styles/dropdown.css:316",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -290,7 +290,7 @@
         "pattern": ".ui-btn--danger:hover"
       },
       {
-        "ref": "src/styles/dropdown.css:218",
+        "ref": "src/styles/dropdown.css:221",
         "pattern": ".ui-dropdown__item.is-danger:hover"
       },
       {
@@ -342,17 +342,17 @@
         "pattern": "export function drawerSection("
       },
       {
-        "ref": "src/styles/drawer.css:206",
+        "ref": "src/styles/drawer.css:205",
         "pattern": ".ui-drawer__section + .ui-drawer__section"
       }
     ],
     "three-lines": [
       {
-        "ref": "src/styles/drawer.css:131",
+        "ref": "src/styles/drawer.css:130",
         "pattern": ".ui-drawer__header {"
       },
       {
-        "ref": "src/styles/drawer.css:206",
+        "ref": "src/styles/drawer.css:205",
         "pattern": ".ui-drawer__section + .ui-drawer__section {"
       }
     ],
@@ -362,7 +362,7 @@
         "pattern": "<dl class=\"ui-drawer__rows\">"
       },
       {
-        "ref": "src/styles/drawer.css:236",
+        "ref": "src/styles/drawer.css:235",
         "pattern": ".ui-drawer__row dt { color: var(--text); }"
       }
     ]
@@ -518,7 +518,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:420",
+        "ref": "src/styles/layout.css:419",
         "pattern": "rank: page-title"
       },
       {
@@ -560,7 +560,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:328",
+        "ref": "src/styles/layout.css:327",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -594,7 +594,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:462",
+        "ref": "src/styles/layout.css:461",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -690,7 +690,7 @@
         "pattern": "transition-duration: 0.01ms !important;"
       },
       {
-        "ref": "src/styles/drawer.css:249",
+        "ref": "src/styles/drawer.css:248",
         "pattern": ".ui-drawer.is-open * { transition: none !important; }"
       }
     ]
@@ -770,12 +770,12 @@
         "pattern": ".ui-focusable:focus-visible,"
       },
       {
-        "ref": "src/styles/base.css:152",
-        "pattern": "box-shadow: var(--ring);"
+        "ref": "src/styles/base.css:151",
+        "pattern": "outline: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:271",
-        "pattern": "--ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),"
+        "ref": "src/tokens/tokens.css:276",
+        "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
       }
     ],
     "busy": [

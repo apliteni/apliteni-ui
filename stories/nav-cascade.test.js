@@ -199,7 +199,9 @@ test("the active nested row's marker paints inside the nav box", () => {
 for (const [theme, accent] of THEMES) {
   test(`every focusable row shows the ring on :focus-visible — ${theme} / ${accent}`, () => {
     const r = rail(theme, accent);
-    // Resolve nested width, gap and colour tokens before comparing the composed shadow.
+    // Resolve the width and the colour before comparing the band the row draws. It is
+    // an `outline` since #578, which is also the property the kit's hover edge and the
+    // folded rail's hairline use — so a row that loses the band loses it to one of those.
     const ring = substitute(r.vars.get('--ring') || '', r.vars).trim();
     assert.ok(ring, `no --ring token resolved for ${theme}/${accent} — the harness is not reading the kit`);
     assert.ok(!ring.includes('var('), `--ring did not resolve for ${theme}/${accent}: ${ring}`);
@@ -211,7 +213,7 @@ for (const [theme, accent] of THEMES) {
     };
     for (const [what, sel] of Object.entries(rows)) {
       assert.equal(
-        r.inState(sel, 'focus-visible', 'boxShadow'), ring,
+        r.inState(sel, 'focus-visible', 'outline'), ring,
         `${what} (${sel}) shows no focus ring when keyboard-focused in ${theme}/${accent} — `
         + 'WCAG 2.4.7. A later rule of equal specificity is cancelling '
         + '.ui-nav__item.is-active:focus-visible; resolve the conflict, do not stack another override.',

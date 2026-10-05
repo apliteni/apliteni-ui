@@ -16,7 +16,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 20px;
-  background: var(--bg-elevated); --ring-gap: var(--bg-elevated);   /* Elevated surface for the confirmation and its actions. */
+  background: var(--bg-elevated);   /* Elevated surface for the confirmation and its actions. */
   /* The floating treatment, like every other surface on that step.
      why: docs/specification.md#elevation */
   border: 1px solid var(--float-edge);
@@ -50,7 +50,7 @@
 }
 .ui-sx--split .ui-sx__visual {
   display: grid; place-items: center; padding: 40px 24px;
-  background: color-mix(in srgb, var(--green) 8%, transparent); /* ring-gap: inherit — decorative illustration has no nested focus target. */
+  background: color-mix(in srgb, var(--green) 8%, transparent); /* code-bg: inherit — decorative illustration has no nested focus target. */
   border-right: 1px solid var(--border);
 }
 .ui-sx--split .ui-sx__check { width: 72px; height: 72px; }
@@ -119,7 +119,7 @@
 .ui-sx--hero .ui-sx__count { justify-content: center; }
 .ui-sx__count-ring {
   flex: none; width: 16px; height: 16px; border-radius: 50%;
-  background: conic-gradient(var(--green) var(--sx-a, 360deg), var(--surface-2) 0); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  background: conic-gradient(var(--green) var(--sx-a, 360deg), var(--surface-2) 0); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
   mask: radial-gradient(circle, transparent 5px, #000 6px);
   -webkit-mask: radial-gradient(circle, transparent 5px, #000 6px);
   animation: ui-sx-sweep var(--sx-secs, 5s) linear forwards; /* motion: ambient — the caller sets the countdown; the ring just spends it */
@@ -132,7 +132,7 @@
 @media (prefers-reduced-motion: reduce) {
   .ui-sx__check--line .ui-sx__tick { animation: none; stroke-dashoffset: 0; }
   .ui-sx__confetti { display: none; }
-  .ui-sx__count-ring { animation: none; background: var(--surface-2); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+  .ui-sx__count-ring { animation: none; background: var(--surface-2); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
 }
 
 /* ---- Narrow — split stacks -------------------------------------------- */

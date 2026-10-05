@@ -190,7 +190,7 @@ export const SPEC_CSS = `
        dashed line on the same square as the solid one, which IS the mistake. */
     .gl-target__ink { width: 19px; height: 19px;
       border: 1.5px solid var(--border-strong); border-radius: var(--radius-xs);
-      background: var(--surface-2); --ring-gap: var(--surface-2); outline: 1.5px dashed var(--pink); }
+      background: var(--surface-2); outline: 1.5px dashed var(--pink); }
 
     /* The phone floor's two pairs. The layer src/styles/tap-zone.css declares is
        live only below the phone step and only to a coarse pointer, so on this
@@ -225,7 +225,7 @@ export const SPEC_CSS = `
        is the box, not the press. The pink edge is where the row grows to. */
     .gl-tap__fat { display: inline-flex; align-items: center; justify-content: center;
       height: 44px; padding: 0 17px; border-radius: var(--radius-sm);
-      border: 1px solid var(--control-edge); background: var(--surface); --ring-gap: var(--surface);
+      border: 1px solid var(--control-edge); background: var(--surface);
       color: var(--text); font-family: var(--font-sans); font-size: var(--text-sm);
       font-weight: var(--weight-medium); outline: 1.5px dashed var(--pink); }
 
@@ -235,23 +235,24 @@ export const SPEC_CSS = `
     .gl-tap--tight { gap: var(--space-2); --tap-clear-x: 44px; --tap-clear-y: 44px; }
     .gl-tap--tight .gl-tap__ink { position: relative; width: 24px; height: 24px;
       border: 1px solid var(--control-edge); border-radius: var(--radius-sm);
-      background: var(--surface); --ring-gap: var(--surface); }
+      background: var(--surface); }
     .gl-tap--tight .gl-tap__ink::after {
       content: ""; position: absolute; left: 50%; top: 50%;
       width: 44px; height: 44px; transform: translate(-50%, -50%);
       outline: 1.5px dashed var(--pink); pointer-events: none;
     }
 
-    /* A focus ring exists only under a live keyboard, so the Do cell pins what
-       :focus-visible paints — var(--ring), the composition src/styles/base.css
-       applies. Same device as stories/guidelines/_state-set.js. */
-    .gl-ring .ui-btn { box-shadow: var(--ring); }
+    /* A focus band exists only under a live keyboard, so the Do cell pins what
+       :focus-visible paints — var(--ring) with the offset that places it, which is
+       what src/styles/base.css applies. Same device as stories/guidelines/_state-set.js. */
+    .gl-ring .ui-btn { outline: var(--ring); outline-offset: var(--ring-offset); }
 
-    /* The Don't is that composition with the solid band taken out, so the pair
-       differs by the band and nothing else. Glow alone is the treatment the ring
-       evidence measured under the bar, which is why the kit ships no selector
-       for it and why this half has to be drawn rather than borrowed. */
-    .gl-ring--halo .ui-btn { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 34%, transparent); }
+    /* The Don't is the band taken out and a glow left standing, so the pair differs by
+       the band and nothing else. Glow alone is the treatment the ring evidence measured
+       under the bar, which is why the kit ships no selector for it and why this half has
+       to be drawn rather than borrowed. #578 took the kit's own halo off the band, so the
+       glow here is drawn for the Don't and appears nowhere the kit ships. */
+    .gl-ring--halo .ui-btn { outline: none; box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 34%, transparent); }
 
     /* A word is what this chip is missing, so the Don't cannot carry one. The
        fill, radius and padding are the badge's own; only the box a word would
@@ -266,7 +267,7 @@ export const SPEC_CSS = `
        as a measurement. */
     .gl-measure { display: block; margin: 0; max-width: none;
       padding: var(--space-3); border-radius: var(--radius-md); color: var(--text); }
-    .gl-measure--gradient { background: linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--accent) 30%, var(--surface))); /* ring-gap: inherit — a gradient has no single colour to hand a ring, which is the rule this cell is drawing. */ }
+    .gl-measure--gradient { background: linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--accent) 30%, var(--surface))); }
   </style>`;
 
 const row = (...html) => `<div class="gl-stage gl-stage--row">${html.join('')}</div>`;

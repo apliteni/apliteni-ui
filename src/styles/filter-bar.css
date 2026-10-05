@@ -4,7 +4,7 @@
 .ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); }
 .ui-filter-bar__remove { border: 0; background: transparent; color: var(--text); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-xs); cursor: pointer; }
 .ui-filter-bar__remove:focus-visible,
-.ui-filter-bar:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-filter-bar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
 
 .ui-filter-bar .ui-dropdown__value { color: inherit; }

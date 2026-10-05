@@ -13,7 +13,7 @@
   display: grid;
   grid-template-columns: max-content 1fr;
   min-height: calc(100vh - var(--ui-app-top, 0px));
-  background: var(--bg); /* ring-gap: inherit — page background inherits root overrides. */
+  background: var(--bg); /* code-bg: inherit — page background inherits root overrides. */
   color: var(--text);
   font-family: var(--font-sans);
   /* The rail's width, and the one property the fold moves: the nav's own column
@@ -42,7 +42,7 @@
   padding: var(--space-5) var(--space-4);
   border-right: var(--ui-rail-rule) solid var(--rail-edge);
   box-shadow: var(--elev-rail);
-  background: var(--surface); --ring-gap: var(--surface);
+  background: var(--surface);
   position: sticky;
   top: var(--ui-app-top, 0px);
   height: calc(100vh - var(--ui-app-top, 0px));
@@ -66,7 +66,7 @@
    The danger row and the current row are left out by name because this
    rule outranks the states nav.css writes for them.
    */
-.ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-app__brand {
   display: flex;
   align-items: center;
@@ -86,7 +86,7 @@
 /* Carries the shell's class as well as its own, for the same reason the rail
    rows do (see nav.css): a host stylesheet's `a:link` is (0,1,1). */
 .ui-app .ui-app__brand { color: var(--strong); }
-.ui-app__brand:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+.ui-app__brand:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .ui-app__brand svg { display: block; flex: none; }
 
 /* The head band: the product's mark, and the rail's own control at the far end of
@@ -116,7 +116,7 @@
    second file. What is left here is the rail's own resting step. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1491 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1493 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 .ui-app__rail .ui-nav__item.is-active::before { width: 3px; height: 62%; }
 
@@ -158,7 +158,7 @@
   width: var(--ui-app-av); height: var(--ui-app-av); flex: none;
   margin-inline-start: calc((var(--ui-nav-strip) - var(--ui-app-av)) / 2);
   border-radius: var(--radius-pill);
-  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
   color: var(--strong);
   display: grid; place-items: center;
   font-size: calc(var(--text-xs) + 1px);
@@ -192,7 +192,7 @@
   font-weight: inherit;
   letter-spacing: normal;
 }
-.ui-app .ui-app__user-trigger:hover { background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-app .ui-app__user-trigger:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-app__user-trigger .ui-app__who { flex: 1 1 auto; text-align: left; }
 /* The panel is portalled onto <body>, so nothing here may hang off .ui-app: by the
    time it is open it is no longer inside the rail that drew it.
@@ -283,9 +283,8 @@
    drawn on a row that keeps the open column, so its right edge is off the strip;
    and --ui-nav-strip is twice the glyph's centre, so a box that wide at the row's
    edge is centred on the glyph. why: docs/specification.md#the-page-shell */
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ z-index: -1; }
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; box-shadow: none; }
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ z-index: -1; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:hover:not(:focus-visible) { outline: none; }
 /* The label IS the chip. `fixed` is the fallback placement, out of the rail's own
    clip; the @supports branch below pins it to the row and is the only one that
@@ -299,7 +298,7 @@
    why: docs/specification.md#elevation */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who,
-.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--float-edge); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
+.ui-app__rail .ui-app__fold:is(:hover, :focus-visible) > .ui-nav__label { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--float-edge); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ color: var(--strong); opacity: 1; pointer-events: none; }
 @supports (anchor-name: --a) and (anchor-scope: --a) {
   .ui-app.is-collapsed,
   .ui-app:has(.ui-app__fold) { anchor-scope: --ui-rail; }
@@ -348,7 +347,7 @@
   height: var(--ui-app-band);
   flex: none;
   padding-inline: clamp(24px, 4vw, 56px);
-  background: var(--bg); /* ring-gap: inherit — page background inherits root overrides. */
+  background: var(--bg); /* code-bg: inherit — page background inherits root overrides. */
   border-bottom: 1px solid var(--border);
   /* Sticky for the reason the rail beside it is: chrome that scrolls away is chrome
      you scroll back up for. */
@@ -384,7 +383,7 @@
   color: var(--text);
   /* The band search uses the same reading surface as other text controls.
      why: docs/specification.md#elevation */
-  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -395,10 +394,10 @@
    without `.ui-btn`, so base.css's shared rule never reached it and focus fell
    through to the browser's own square outline, drawn around a 12px radius.
    why: docs/specification.md#the-focus-ring */
-.ui-app__search:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-color: var(--accent); }
+.ui-app__search:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-color: var(--accent); }
 /* The same glyph the palette draws in its own search box, at the same box and the
    same stroke: the trigger and the thing it opens are not two search marks.
-   src/styles/command-palette.css:109 `.ui-cmdk__search-ic svg` */
+   src/styles/command-palette.css:108 `.ui-cmdk__search-ic svg` */
 .ui-app__search-ic { display: flex; flex: none; }
 .ui-app__search-ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 /* Part of the button's name, so it is squeezed rather than dropped: an ellipsis
@@ -489,9 +488,8 @@
   .ui-app__brand span { opacity: 0; pointer-events: none; }
   .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
   .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
-  .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
-  .ui-app__rail .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
-  .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ z-index: -1; }
+  .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; box-shadow: none; }
+  .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ z-index: -1; }
   .ui-app__rail .ui-nav__item:hover:not(:focus-visible) { outline: none; }
   /* The one line of this block that is deliberately NOT the reader's fold: a finger
      is the only pointer this width has, so a row and the account block are held to
@@ -500,7 +498,7 @@
   .ui-app__rail .ui-nav__item,
   .ui-app__rail .ui-app__user-trigger { min-height: 44px; }
   .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
-  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--float-edge); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); opacity: 1; pointer-events: none; }
+  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--float-edge); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ color: var(--strong); opacity: 1; pointer-events: none; }
   @supports (anchor-name: --a) and (anchor-scope: --a) {
     .ui-app { anchor-scope: --ui-rail; }
     .ui-app__rail { anchor-name: --ui-rail; }
@@ -535,7 +533,7 @@
   /* Floats over a spotlit page, so it takes the floating step and the floating
      treatment: the two-step edge in dark, the drop alone in light.
      why: docs/specification.md#elevation */
-  background: var(--bg-elevated); --ring-gap: var(--bg-elevated);
+  background: var(--bg-elevated);
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: 22px;
@@ -558,7 +556,7 @@
   width: 38px; height: 38px; flex: none;
   border-radius: 11px;
   display: grid; place-items: center;
-  background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
+  background: var(--glow-purple); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */
   color: var(--accent);
 }
 .ui-scope__icon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.8; }
@@ -579,7 +577,7 @@
   font-size: calc(var(--text-xs) + 1px);
   letter-spacing: 0.06em;
   color: var(--purple-mid);
-  background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
+  background: var(--glow-purple); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */
   border-radius: 999px;
   padding: 6px 14px;
   margin-bottom: 26px;
@@ -624,7 +622,7 @@
   width: 46px; height: 46px;
   border-radius: 13px;
   display: grid; place-items: center;
-  background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
+  background: var(--glow-purple); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */
   color: var(--accent);
   margin-bottom: 16px;
 }

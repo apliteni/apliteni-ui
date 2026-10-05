@@ -6,13 +6,13 @@
 
 **Rule:** Give every focusable control the same `--ring`, and show it only on `:focus-visible`.
 
-**Why:** One solid band and halo keep focus consistent while the browser decides when to show it.
+**Why:** One solid band keeps focus consistent while the browser decides when to show it.
 
-**Do:** Apply `--ring` to both the button and input on keyboard focus.
+**Do:** Apply `--ring`, with `--ring-offset`, to both the button and input on keyboard focus.
 
 **Don't:** Give the input a separate muted outline while the button uses `--ring`.
 
-**Except:** A scroll region inside a surface takes `--ring-scroll`: the same 1px gap and 2px band, drawn inward, without the halo. `--ring` is drawn for a 32px control, where the halo is a glint; around a 400px region it spreads 14px past the band and lights the surface instead of the box that scrolls. A box that is itself the outermost surface — a panel, a card — keeps `--ring`. Text-entry controls may match `:focus-visible` on mouse focus. Surface backgrounds set the gap colour and recompose `--ring`; adjust width and colour at the root.
+**Except:** A scroll region inside a surface takes `--ring-scroll`: the same band drawn inward, with `--ring-scroll-offset`. An inset shadow is painted under a box's own children, so a table scrolled sideways under one erases the band; an outline survives it. A box that is itself the outermost surface — a panel, a card — keeps `--ring`. Text-entry controls may match `:focus-visible` on mouse focus. Both bands are declared once at the root and recomposed nowhere: an outline leaves its offset unpainted, so the 1px between a control and its band is whatever surface the control is standing on. Adjust the width and the colour at the root.
 
 ## Busy controls
 

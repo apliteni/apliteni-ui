@@ -67,7 +67,7 @@
   border-spacing: 0;
   padding: 0 var(--space-2);
 }
-.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td { background: var(--surface-2); --ring-gap: var(--surface-2); }
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td { background: var(--surface-2); }
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:first-child {
   border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:last-child {
@@ -90,7 +90,7 @@
 .ui-table--zebra thead th { border-bottom-width: 2px; }
 .ui-table--zebra td,
 .ui-table--zebra :is(tbody, tfoot) th { border-bottom: 0; }
-.ui-table--zebra tbody tr:nth-child(even) td { background: var(--surface-2); --ring-gap: var(--surface-2); }
+.ui-table--zebra tbody tr:nth-child(even) td { background: var(--surface-2); }
 /* The stripe stays full-bleed (the #71 inset above is hover only), but it only reads right
  * if the end cells are inset from the row's own edge, and `.ui-table td` sets
  * `padding-left: 0`. Only `--dense` supplied that inset, so `--zebra` without `--dense` —
@@ -102,7 +102,7 @@
 .ui-table--zebra th:last-child,
 .ui-table--zebra td:last-child { padding-right: var(--space-3); }
 .ui-table--zebra.ui-table--hover tbody tr:hover td,
-.ui-table--zebra tbody tr:hover td { --ring-gap: inherit; background: color-mix(in srgb, var(--accent) 8%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-table--zebra tbody tr:hover td { background: color-mix(in srgb, var(--accent) 8%, transparent); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ }
 
 /* A link in a cell is a value that happens to open something: the row's ink, underlined
    on hover — what .ui-identity below has always done. Without it, base.css's bare
@@ -150,8 +150,8 @@
    why: guidelines/state-set.md#focus-rings
    held by: src/styles/table-focus.test.js */
 .ui-table a:not(.ui-btn):focus-visible {
-  outline: 2px solid transparent;
-  box-shadow: var(--ring);
+  outline: var(--ring);
+  outline-offset: var(--ring-offset);
 }
 
 .ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -175,12 +175,12 @@
 .ui-card { --table-bg: var(--surface); --table-code-bg: var(--bg); }
 
 /* White in light, base canvas in dark; never a grey or tinted data surface. */
-.ui-table { background: var(--table-bg); --ring-gap: var(--table-bg); }
+.ui-table { background: var(--table-bg); }
 .ui-table--zebra tbody tr:nth-child(even) td,
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,
 .ui-table--zebra tbody tr:hover td,
 .ui-table--zebra.ui-table--hover tbody tr:hover td {
-  background: var(--table-bg); --ring-gap: var(--table-bg);
+  background: var(--table-bg);
 }
 .ui-table tbody tr:hover { outline: 1px solid var(--border-strong); outline-offset: -1px; }
 
@@ -215,8 +215,8 @@
    why: docs/specification.md#the-focus-ring */
 .ui-table-scroll:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-table--sticky { border-collapse: separate; border-spacing: 0; }
-.ui-table--sticky thead th { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--table-bg); --ring-gap: var(--table-bg); padding-top: var(--space-2); }
-.ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); --ring-gap: var(--table-bg); border-right: 1px solid var(--border); }
+.ui-table--sticky thead th { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--table-bg); padding-top: var(--space-2); }
+.ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); border-right: 1px solid var(--border); }
 .ui-table--pinned thead .ui-table__identity, .ui-table--pinned thead .ui-table__selection { z-index: calc(var(--z-sticky) + 1); }
 .ui-value, .ui-delta { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ui-value__unit { margin-left: var(--space-1); font-size: var(--text-xs); color: var(--text); }
@@ -229,7 +229,7 @@
 .ui-identity__logo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
 a.ui-identity:hover { text-decoration: underline; }
-.ui-identity:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+.ui-identity:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 @media (max-width: 720px) {
   .ui-table--pinned .ui-table__identity { width: 1%; }
   .ui-table--pinned .ui-identity__logo { display: none; }

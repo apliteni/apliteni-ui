@@ -68,7 +68,7 @@
   display: flex;
   flex-direction: column;
   font-family: var(--font-sans);
-  background: var(--cmdk-surface); --ring-gap: var(--cmdk-surface);
+  background: var(--cmdk-surface);
   /* The two-step edge and the drop, through the level's own names: in DARK that is
      --border-strong outside and --border one pixel inside it, then the drop; in LIGHT
      both lines are transparent and the drop carries the whole separation.
@@ -84,11 +84,10 @@
     transform var(--dur-med) var(--ease);
 }
 .ui-cmdk.is-open .ui-cmdk__panel { opacity: 1; transform: translate(-50%, 0); }
-/* The ring is COMPOSED with the floating treatment, not written over it: a
-   box-shadow list replaces the whole list, so `box-shadow: var(--ring)` alone
-   took the panel's edge and its drop off for as long as it held focus.
+/* The ring leaves the panel's own elevation alone: it is an outline since #578, so
+   the edge and the drop no longer have to be restated here to survive focus.
    why: docs/specification.md#elevation */
-.ui-cmdk__panel:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); }
+.ui-cmdk__panel:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* -- The text box --------------------------------------------------------- */
 
@@ -126,7 +125,7 @@
   background: none;
   border: 0;
   /* The one control in the kit that removes the indicator and puts no
-     box-shadow: var(--ring) back, against base.css. It is the only tab stop in
+     outline: var(--ring) back, against base.css. It is the only tab stop in
      the dialog and it holds focus from the frame it opens, so a ring would be
      painted the whole time the palette is up and would mark nothing; the panel
      already carries one, and the caret says where the typing goes. */
@@ -188,7 +187,7 @@
   background: none;
 }
 .ui-cmdk__item[hidden] { display: none; } /* motion: still — a row the query no longer answers is gone on the next keystroke */
-.ui-cmdk__item.is-active { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.ui-cmdk__item.is-active { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-cmdk__item.is-active .ui-cmdk__label { color: var(--strong); }
 
 .ui-cmdk__ic {
@@ -268,7 +267,7 @@
   border-radius: var(--radius-xs);
   /* Key caps use an edge on the card surface, keeping the shortcut readable.
      why: docs/specification.md#elevation */
-  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   line-height: 1.5;
@@ -311,10 +310,10 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
   border: 1px solid var(--border);
 }
-.ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
 
 /* -- Narrow --------------------------------------------------------------- */
 /* At the kit's narrowest step the palette is the page: full width, off the top

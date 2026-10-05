@@ -715,14 +715,15 @@ floating edge and shadow treatment.
 `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` are still
 published so a consumer reading one does not break, and all five are the transparent shadow
 `0 0 #0000` in both themes. Nothing under `src/` reads them. **Transparent and not `none`**,
-because a shadow token is read in a list: the kit's own pre-0.32 pattern was
-`box-shadow: var(--shadow-lg), var(--ring)`, and `none` is valid only on its own — it invalidates
-the whole declaration and takes the focus ring out with it.
+because a shadow token is read in a list — a floating surface's edge and its drop are two
+layers of one declaration — and `none` is valid only on its own: it invalidates the whole
+declaration and takes the layers beside it out with it.
 
 A cast shadow is an **offset** layer of ink under a surface. A zero-offset layer of the signal's
 own colour is a glow, not a shadow: it says *this is lit*, not *this is high*. `--glow-*`,
-`--sheen`, `--ring` and the two `drop-shadow()` glows on the success mark are all that shape, and
-none of them is what the rule above is about.
+`--sheen` and the two `drop-shadow()` glows on the success mark are all that shape, and none of
+them is what the rule above is about. The focus band used to be on that list and is not any
+more: #578 took its halo off and made it an outline, so no box-shadow in the kit answers focus.
 
 Decided on [#309](https://github.com/apliteni/apliteni-ui/issues/309), against the frames and the
 numbers in `docs/reviews/295-popover-variants.html`. The complaint that opened it was that a
@@ -890,10 +891,11 @@ the gate's floor rises with it from 1.43 to **1.50**. `--elev-rest` and `--elev-
 
 The treatment has these composition rules.
 
-- **The focus ring composes with it.** A `box-shadow` list replaces the whole list, so a panel
-  writing `box-shadow: var(--ring)` on focus takes off its own edge and its own drop for as long
-  as it holds focus. Every floating panel writes the ring in front of the treatment rather than
-  over it.
+- **The focus ring does not touch it.** The band is an `outline` since #578, so a focused panel
+  keeps the edge and the drop it rests on without saying so twice. Until then the band was a
+  layer of the same `box-shadow` list, a list replaces the whole list, and all four floating
+  panels had to restate the treatment in their own focus rule or lose it for as long as they
+  held focus.
 - **A tinted surface re-points the inner line.** `--elev-edge` is the hook, and because the layer
   reading it is written on the surface's own rule, the surface can set it: unset it is
   `--float-edge-inner`, which is what a neutral panel wants. Toasts use the neutral border and drop
@@ -952,55 +954,77 @@ change to the light rail" — the rail's edge is one of the hairlines round t3 d
 
 ## The focus ring
 
-The shared indicator is G2: a 1px surface-coloured gap, a 2px solid accent band,
-and a soft outer halo. The band carries contrast; the halo is decorative.
-Artur chose it on [#343](https://github.com/apliteni/apliteni-ui/issues/343), after
-comparing the three glow treatments. Glow alone did not reach 3:1 in that evidence.
+The shared indicator is one 2px solid accent band, with 1px of the surface the control
+is standing on between the band and the control. It is drawn as a real `outline`, and
+there is no halo. Artur asked for it on
+[#578](https://github.com/apliteni/apliteni-ui/issues/578), on merging
+[#557](https://github.com/apliteni/apliteni-ui/pull/557), which drew a scroll region's
+band the same way: "I think we should make that outline now. Not sure if glowing is ok
+for others." The picture before it was G2, chosen on
+[#343](https://github.com/apliteni/apliteni-ui/issues/343): the same gap and band,
+PAINTED as a three-layer `box-shadow`, with a 12px halo over them. The band is what
+carried contrast in that evidence — glow alone did not reach 3:1 there — and its ink and
+width are unchanged, so what came off is the layer the evidence had already found
+decorative.
 
 ```css
 --ring-width: 2px;
 --ring-color: var(--accent);
 --ring-gap-width: 1px;
---ring-gap: var(--bg);
---ring: 0 0 0 var(--ring-gap-width) var(--ring-gap),
-        0 0 0 calc(var(--ring-gap-width) + var(--ring-width)) var(--ring-color),
-        0 0 12px 2px color-mix(in srgb, var(--ring-color) 45%, transparent);
---ring-scroll: var(--ring-width) solid var(--ring-color);
+--ring: var(--ring-width) solid var(--ring-color);
+--ring-offset: var(--ring-gap-width);
+--ring-scroll: var(--ring);
 --ring-scroll-offset: calc(-1 * (var(--ring-gap-width) + var(--ring-width)));
 ```
 
-`--ring` remains a composed shadow for `box-shadow: var(--ring)` consumers.
-Tune the width, colour and gap at `:root`, or at a surface that composes the ring.
-A descendant-only change to one of those inputs cannot alter an already inherited
-shadow: CSS resolves custom-property references where the composition is declared.
+A consumer takes the band and the offset that places it:
 
-`--ring-scroll` is the indicator a SCROLL REGION inside a surface takes: the same 1px
-gap and 2px band, drawn inward, and no halo. It is an `outline` rather than a shadow,
-and `--ring-scroll-offset` is what draws it inward — take the one without the other and
-the band is painted outside the box. Both are declared once, at `:root`, and recomposed
-nowhere, because neither reads `--ring-gap` or any other token a surface re-points: the
-band leaves its 1px gap UNPAINTED, so the gap is whatever surface the region is already
-standing on. Tune it where you tune `--ring`; it is built from the same `--ring-width`,
-`--ring-color` and `--ring-gap-width`. Gates hold the offset on every consumer and hold
-the tokens clear of the surface colours.
+```css
+.my-control:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+```
 
-Every kit surface that paints `--bg-elevated`, including surfaces using a local
-alias and the React modal, sets `--ring-gap` to its background and recomposes
-`--ring`. Cards and the application rail do the same for their own surface colours.
-Custom surfaces must do both too; changing only the gap leaves the inherited shadow
-unchanged. One grouped rule composes the ring on painted containers. The app shell keeps
-the root composition because it uses the page background. A discovery gate follows
-background aliases, surface tokens and colour mixes through both workspaces; each
-subject either sets its gap or states locally why it inherits one. Controls keep the
-containing gap, not their own fill. Transparent washes keep the opaque containing
-gap rather than layering a translucent gap over the halo. Focusable cards and
-dialog/drawer panels inherit their outside gap while focused themselves; when focus
-moves inside, their children use the inside gap.
+Take the one without the other and the band is drawn flush against the control, closing
+the gap it is read across. A gate holds the offset on every consumer in both workspaces.
 
-**Compatibility boundary:** a direct `--ring` override still works. An ancestor's
-legacy `--ring` override does not cross a surface that recomposes it; apply the override
-on that surface as well, or tune the component tokens at the root. Focus rings compose
-in front of an existing floating panel's edge and drop, rather than replacing them.
+Tune it at `--ring-width`, `--ring-color` and `--ring-gap-width`. The four values built
+from them — `--ring`, `--ring-offset`, `--ring-scroll` and `--ring-scroll-offset` — are
+declared once each, at `:root`, and no surface recomposes any of them. That is what the
+carrier buys: an outline leaves its offset UNPAINTED, so the 1px between a control and
+its band is whatever surface the control is already standing on, and there is nothing to
+hand down. A gate holds the four declarations to one each and holds them clear of the
+surface colours, because a `var()` inside a custom property is substituted where that
+property is DECLARED — one that read a surface token would freeze at `:root`.
+
+`--ring-scroll` is the same band, drawn inward rather than outward, and it is what a
+SCROLL REGION inside a surface takes. Only the offset differs. `--ring-scroll-offset`
+is what draws it inward, and the same gate holds it on every consumer.
+
+**The band competes for `outline`.** The kit's hover edges and state hairlines are
+outlines too, so a focus rule has to outrank them, and a rule that writes `outline`
+later at equal specificity silences the ring without removing it. That is settled one
+way across the kit: a control that is hovered AND focused draws the ring and not the
+hover edge — one indicator, which is what the kit's menu rows already did. Where a
+resting rule outranks the focus rule it steps aside with `:not(:focus-visible)`, which is
+what the folded rail's rows already did: the open rail's current row joins them, and so
+do the picker's three cancellations of its own hover edge, on a selected, a current and
+a blocked day. A gate resolves the cascade for every keyboard stop and fails a stop whose
+ring loses.
+
+**Forced colours needs nothing extra.** The band is a real outline, which is what the
+system repaints once box-shadows are gone. No consumer carries a transparent stand-in
+outline, and a gate fails one that starts to: a stand-in is a second indicator waiting
+to be drawn. The kit has no `forced-colors` block left at all.
+
+**Compatibility boundary.** `--ring` changed shape on #578: it was a `box-shadow` value
+and it is an `outline` value. A consumer sheet that writes `box-shadow: var(--ring)`
+draws nothing after this release — the declaration is invalid — and has to write the
+pair above instead. A direct `--ring` override still works and now reaches every
+control, because nothing recomposes the token between the root and the control.
+`--ring-gap` is retired: it was the colour the box-shadow painted its gap with, and an
+outline paints no gap. `--ring-gap-width` stays, as the width of the unpainted gap and
+the input both offsets read. A focus ring no longer touches a floating panel's own
+`box-shadow`, so a panel's edge and drop stand while it holds focus instead of being
+restated in the focus rule.
 
 The ring is claimed by a selector list in `base.css`, so a control that wears none of the
 kit's control classes has to join it. The theme toggle is the one that did not: `.toggle`
@@ -1014,10 +1038,7 @@ Controls use native `:focus-visible`, including inputs, textareas, selects and i
 fields. Text-entry controls can match it on mouse focus because the browser expects
 keyboard input there; this is not a promise of keyboard-only rings. Invalid borders
 keep their error colour while focus uses the shared band. No JavaScript modality
-tracker is required. Every shared-ring consumer retains a transparent 2px outline,
-which becomes a visible system outline when forced colours remove box shadows. A
-`--ring-scroll` consumer owes none: its band already is a real outline, and that is what
-the system repaints.
+tracker is required.
 
 **Every focusable control the kit ships draws it.** The ring is not opt-in: a control
 this kit styles is a control it gives a focus rule, so none falls back to the browser's
@@ -1033,14 +1054,12 @@ keyboard stops of the marketing landing page and of the shell and footer stories
 fails a stop with no ring, or with an outline of its own instead of or beside it.
 
 **Writing the ring is not enough; it has to win.** A focus rule paints only if it
-outranks every always-on rule that writes `box-shadow` on the same element, so a
-component that re-states the property at equal specificity further down its sheet
-silences the ring without removing it. Where the ring is composed with a surface's own
-elevation — the dropdown, drawer and command-palette panels — the focus declaration
-repeats that treatment beside `var(--ring)`, because a `box-shadow` list replaces the
-whole list. The gate resolves the cascade for each keyboard stop, by specificity and
-then document order over the sheets as a page loads them, and fails a stop whose ring
-loses.
+outranks every always-on rule that writes `outline` on the same element, so a component
+that re-states the property at equal specificity further down its sheet silences the
+ring without removing it. The gate resolves the cascade for each keyboard stop, by
+specificity and then document order over the sheets as a page loads them, and fails a
+stop whose ring loses — and fails a focus rule that writes a `box-shadow` of its own
+beside the band, which would be a second indicator now that the band uses neither.
 
 **A box that scrolls is a control.** A browser gives a scroll container a keyboard stop
 of its own, with no `tabindex` and no author rule, so an overflowing box needs the ring
@@ -1055,18 +1074,22 @@ Ten carry the ring, and they draw one of two pictures.
 table wrapper, a card around a table, a dropdown's search list, a drawer's body, a
 confirm's consequence, the command palette's list, React's modal body, and the date
 picker's shortcut row in its phone sheet. Each draws the band on itself. Artur chose
-that picture on #531 after the kit's own `--ring` was measured around these boxes: drawn
-for a 32px control, its halo spreads 14px past the band, which on a 400px region lights
-the surface rather than the box that scrolls. Three of the eight also could not have
-drawn an outset ring at all — the drawer's body is flush with a panel that is flush with
-a screen edge, the palette's list sits inside a panel that clips, and the dropdown's
-list sits 6px inside a 16px corner.
+that picture on #531 after the kit's own ring — which still carried its halo then — was
+measured around these boxes: drawn for a 32px control, the halo spread 14px past the
+band, which on a 400px region lit the surface rather than the box that scrolls. #578
+took that halo off the whole kit, so what separates the two pictures now is only which
+way the band is drawn. Three of the eight also could not have drawn an outset band at
+all — the drawer's body is flush with a panel that is flush with a screen edge, the
+palette's list sits inside a panel that clips, and the dropdown's list sits 6px inside a
+16px corner.
 
-The band is an `outline` and not a `box-shadow`, which is what makes it survive the
-scroll it is drawn for: an inset shadow is painted under a box's own children, so a
-table scrolled sideways under one erases the band — measured in Chrome at scrollLeft
-300, where the left and right sides went. An outline is painted over the children, stays
-on the border box while content scrolls beneath it, and follows the radius. A region
+Drawing the inward band as an `outline` is what makes it survive the scroll it is drawn
+for: an inset shadow is painted under a box's own children, so a table scrolled sideways
+under one erases the band — measured in Chrome at scrollLeft 300, where the left and
+right sides went. An outline is painted over the children, stays on the border box while
+content scrolls beneath it, and follows the radius. That measurement on #531 is also the
+reason #578 could make the outward band an outline without re-measuring it: the carrier
+had already been proved on the harder case. A region
 needs its own room for the band to land in rather than on its glyphs: the drawer's body
 has 20px of padding, the modal's 16px, the palette's list 8px, the dropdown's rows 9px,
 the card 24px, and a confirm's consequence and the picker's shortcut row each carry
@@ -1075,11 +1098,10 @@ the card 24px, and a confirm's consequence and the picker's shortcut row each ca
 **One keeps `--ring` on the box AROUND the scroller:** a snippet's code region, which is
 flush with its card on three sides and has no radius of its own, so a ring drawn on it
 overhung the rounded corners and cut a line across the card. That card is the outermost
-box, where the halo falls on the page rather than on a surface of its own. A delegated
-ring is one indicator and not two: the scroller keeps the transparent outline that
-suppresses the browser's own, and drops it under `forced-colors: active`, where the
-card's outline is the one the system repaints. The dropdown panel is the tenth, and
-keeps `--ring` for the same reason — it is itself the outermost box.
+box, so the band falls on the page rather than across a surface of its own. A delegated
+ring is one indicator and not two: the scroller carries `outline: none`, in every colour
+mode, so only the card draws anything. The dropdown panel is the tenth, and keeps
+`--ring` for the same reason — it is itself the outermost box.
 
 Two boxes are not a keyboard stop at all and carry no ring: the underline tab strip and
 the application rail, each of which holds its own tabbable rows and overflows only once it
@@ -1092,14 +1114,19 @@ factory and checked to still hold a tabbable row. What each ringed box DRAWS is 
 from the source separately, in both themes and both accents: a region that stops drawing
 the band, or a box around one that starts drawing a second indicator, fails there.
 
-The solid band's unchanged colour is still held at 4.22:1 against the story-derived
-flat grounds. That arithmetic gate does not measure the gap or blur. Chromium pixel
-measurements must additionally check both actual band neighbours across every shipped
-accent, both themes, and the page and elevated grounds. The gap follows the containing surface:
-toasts retain the shared focus ring, with `--surface` as the gap colour.
-The glow brightens or darkens the outer neighbour and therefore reduces that edge's contrast relative to bare ground.
-The ring reserves no layout space; its 3px solid footprint and approximately 15px faint
-halo can be clipped by an ancestor's overflow boundary.
+The band's colour is unchanged by #578 and is still held at 4.22:1 against the
+story-derived flat grounds. That arithmetic gate measures the band and not the gap.
+Chromium pixel measurements must additionally check both of the band's actual neighbours
+across every shipped accent, both themes, and the page and elevated grounds — which is
+simpler to read than it was: the band's inner neighbour is the surface the control is
+standing on rather than a token guess at it, and nothing brightens its outer neighbour
+now that the halo is gone.
+
+The ring reserves no layout space. Its footprint is 3px outside the border box — 1px of
+offset and the 2px band — and an ancestor's overflow boundary can clip it, exactly as it
+clipped the old shadow. A menu panel therefore keeps those 3px inside its own padding or
+clips nothing at its edge; a gate holds both ways out, discovering the panels from the
+markup that marks them.
 
 ## A field is 16px on a touch screen
 
@@ -2036,7 +2063,7 @@ the same `-6px` by hand, which its design-token guard refused as a magic number.
 
 `.ui-dropdown__head` and `.ui-dropdown__foot` are that pair, and they are symmetrical by
 construction. One rule gives both their inner padding, at
-src/styles/dropdown.css:240 `padding: 11px 13px;`, so the two cannot drift; each then pulls
+src/styles/dropdown.css:243 `padding: 11px 13px;`, so the two cannot drift; each then pulls
 back to the edge it sits on with
 `calc(var(--ui-dropdown-pad) * -1)`, draws its line on the edge it faces, and rounds the two corners
 it stands in. `dropdown({ foot })` draws the foot; the head is the page's own markup through the

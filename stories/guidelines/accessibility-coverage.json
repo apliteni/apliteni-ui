@@ -150,11 +150,13 @@
       ]
     },
     {
-      "file": "stories/ring-surfaces.test.js",
-      "name": "Ring surfaces",
-      "does": "Finds raised backgrounds and their aliases in both workspaces. It requires a matching gap and the shared ring composition. Form focus rules use focus-visible.",
+      "file": "stories/ring-carrier.test.js",
+      "name": "Ring carrier",
+      "does": "Reads both workspaces' stylesheets and holds the focus band to one declaration and one shape: --ring, --ring-offset, --ring-scroll and --ring-scroll-offset are each declared once, at :root, the two bands differ only in which way they are drawn, and none of the four reads a token a painted surface re-points. It then requires every rule that takes a band to take the offset that places it, since a band without its offset is drawn on the border box instead of 1px off it, and holds the consumer count so a control that stops drawing the ring is named. Two tripwires: nothing declares or reads --ring-gap, which #578 retired with the painted gap, and no consumer keeps the transparent 2px outline that stood in for the band under forced colors. Proves rejection four times: the offset dropped from the shared rule in base.css and from the drawer's inward band, and both offset readings run on fixtures as well. Form focus rules use focus-visible.",
       "blind": [
-        "Rendered blur contrast, clipping and browser focus behaviour require Chromium pixel and keyboard evidence."
+        "It reads the sheets as text and measures no pixels: that the band lands 1px out and 2px wide, and what it contrasts against, need Chromium evidence and the contrast ledger.",
+        "It asks whether a rule writes the band whole, not whether that rule WINS over the always-on rules on the same element — the focus walk resolves the cascade — and not whether every keyboard stop has a rule at all.",
+        "A consumer outside src/ and react/src/ is not read; an example page composes the kit's own classes."
       ]
     },
     {

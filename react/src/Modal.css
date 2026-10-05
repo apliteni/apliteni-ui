@@ -8,7 +8,7 @@
  * It paints on the confirm's layer, one above the drawer's, because a modal opened
  * from a drawer is a question about the drawer.
  * why: docs/specification.md#motion */
-.rx-scrim { /* ring-gap: inherit — The dialog supplies the ground for every focusable control. */
+.rx-scrim { /* code-bg: inherit — The dialog supplies the ground for every focusable control. */
   position: fixed; inset: 0; background: color-mix(in srgb, var(--shadow-ink) 82%, transparent);
   display: grid; place-items: center; z-index: calc(var(--z-overlay) + 1);
   opacity: 0; transition: opacity var(--dur-med) var(--ease); }
@@ -16,7 +16,7 @@
 /* The deep scrim separates the dialog; the shared drop needs no edge here. */
 .rx-modal { width: min(calc(var(--panel-lg) - var(--space-10) * 2), 96vw);
   max-height: 96vh; max-height: 96dvh; display: flex; flex-direction: column;
-  background: var(--bg-elevated); --ring-gap: var(--bg-elevated); border: 0;
+  background: var(--bg-elevated); border: 0;
   box-shadow: var(--elev-drop);
   border-radius: var(--radius-md); overflow: hidden;
   transform: translateY(var(--space-2)); transition: transform var(--dur-med) var(--ease); }
