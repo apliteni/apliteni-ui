@@ -128,6 +128,14 @@ export async function reactStorybookRef(urls = reactStorybookCandidateUrls(), { 
 /** @type { import('@storybook/html-vite').StorybookConfig } */
 const config = {
   stories: ['../stories/**/*.stories.@(js|mjs)'],
+  // The one image the stories draw is a demo company logo, and it has to be a
+  // real URL: `safeUrl` (src/html.js) refuses a `data:` src, so an inlined logo
+  // reaches the page as `src=""` and the browser draws the story's own document
+  // as a broken image — #583. This root is what makes `demo-assets/...` resolve
+  // in `storybook dev` and in the built Storybook alike. Stories reference it
+  // relatively, because site/build.mjs folds this build into public/storybook/,
+  // where a root-absolute `/demo-assets/...` would point above the Storybook.
+  staticDirs: [{ from: '../stories/assets', to: '/demo-assets' }],
   // Storybook 10 folded the former "essentials" addons (controls, actions,
   // backgrounds, viewport, measure, outline, docs) into core, so only the
   // still-separate a11y addon is listed. The background/measure/outline tools
