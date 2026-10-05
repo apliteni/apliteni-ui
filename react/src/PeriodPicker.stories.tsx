@@ -169,7 +169,7 @@ function Example({ busy = false }: { busy?: boolean }) {
               {/* The kit keeps categories pinned and scrolls the rest (#581). */}
               {pending(`Loading ${selected.name} ledger…`, <SkeletonTable rows={4} cols={4} />,
                 <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense
-                  stickyHeader pinnedIdentity scrollLabel={`${selected.name} 2026 ledger, scroll for more columns`} />)}
+                  stickyHeader pinnedIdentity scrollLabel={`${selected.name} 2026 ledger`} />)}
             </Card>
           </section>
         </div>
