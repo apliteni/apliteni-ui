@@ -522,42 +522,26 @@ it('disables the chevron transition under reduced motion', () => {
   } finally { style.remove(); }
 });
 
-// JSDOM supplies no layout; browser captures check real widths and pinned cells.
-it('offers column navigation only for overflow and disables each reached edge', async () => {
-  const user = userEvent.setup();
+// The column pager is retired (#581): a wide table is reached by scrolling it.
+// The overflow this reproduces is the exact condition the pager keyed on, so the
+// test fails the moment those controls come back. JSDOM supplies no layout, so
+// what it cannot say is that the region actually scrolls — browser captures and
+// stories/scroll-ring.test.js carry that half.
+it('offers no column pager when the columns overflow, only the scroll region', () => {
   render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
     pinnedIdentity scrollLabel="Ledger" />);
   const region = screen.getByRole('region', { name: 'Ledger' });
-  expect(screen.queryByRole('button', { name: 'More columns' })).toBeNull();
   Object.defineProperties(region, {
     clientWidth: { configurable: true, value: 300 },
     scrollWidth: { configurable: true, value: 450 },
-    scrollBy: { value: ({ left }: { left: number }) => {
-      region.scrollLeft += left;
-      fireEvent.scroll(region);
-    } },
   });
   fireEvent.scroll(region);
-  const previous = screen.getByRole('button', { name: 'Previous columns' });
-  const more = screen.getByRole('button', { name: 'More columns' });
-  expect(previous).toBeDisabled();
-  expect(more).toBeEnabled();
-  expect(more).toHaveAttribute('aria-controls', region.id);
-  // Glyphs must be flex siblings of the label slot, never inline in its text.
-  for (const button of [previous, more]) {
-    expect(button.querySelector('.ui-btn__label svg')).toBeNull();
-    expect(button.querySelector(':scope > span[aria-hidden="true"] > svg')).not.toBeNull();
+  for (const name of ['Previous columns', 'More columns']) {
+    expect(screen.queryByRole('button', { name })).toBeNull();
   }
-  expect(previous.firstElementChild).toHaveAttribute('aria-hidden', 'true');
-  expect(more.lastElementChild).toHaveAttribute('aria-hidden', 'true');
-  await user.click(more);
-  expect(region.scrollLeft).toBe(150);
-  expect(more).toBeDisabled();
-  expect(previous).toBeEnabled();
-  await user.click(previous);
-  expect(region.scrollLeft).toBe(0);
-  expect(previous).toBeDisabled();
-  Object.defineProperty(region, 'clientWidth', { value: 450 });
-  fireEvent.scroll(region);
   expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
+  // What replaces them: the region is a named keyboard stop, which is what the
+  // kit's inward ring and the arrow keys hang off.
+  expect(region).toHaveClass('ui-table-scroll');
+  expect(region).toHaveAttribute('tabindex', '0');
 });
