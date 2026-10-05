@@ -1,35 +1,16 @@
 /* Rule: a badge tone that fills never paints the colour it is standing on.
  *
- * #459 put a status column on a white table and asked each row for a chip. Two of the four
- * tones mapped to `neutral`, whose fill was `var(--surface)` — the table's own white — so the
- * column rendered as two chips and two runs of bold text, at every width. The same bare chip
- * on a card measured 1.000:1 in BOTH themes; the review saw dark pass only because a dark
- * table is flush with the page. A fill equal to its ground is not a quiet chip, it is no chip.
+ * #459 asked a white table's status column for four chips. Two tones mapped to `neutral`,
+ * whose fill was var(--surface) — the table's own white — so the column drew two chips and
+ * two runs of bold text. The same chip on a card measured 1.000:1 in BOTH themes.
  *
- * So each tone in src/styles/badge.css declares which of the two it is, in a `chip:`
- * annotation beside its `background`, and this gate reads those annotations rather than a
- * list kept here:
+ * Each tone in src/styles/badge.css therefore annotates itself beside its `background`, and
+ * this gate reads those annotations rather than a list of its own. `chip: filled` may equal no
+ * ground, and reads as a chip on the card, the table and a floating surface. `chip: ink-only`
+ * takes the surface it sits on by #455, which moved Soon and Archive onto card ink to clear
+ * AA; its ink is signal-contrast's and muted-ink's business. An unannotated tone fails.
  *
- *   chip: filled    — paints a fill of its own. It may not equal any ground the kit draws a
- *                     badge on, and on the card and the table it must read as a chip.
- *   chip: ink-only  — takes the surface it sits on, by the #455 decision that moved Soon and
- *                     Archive onto card ink to clear AA. Its ink is what carries it, and the
- *                     ink floors are stories/signal-contrast.test.js's and
- *                     src/styles/muted-ink.test.js's business, not this gate's.
- *
- * An unannotated tone fails, so a new one cannot arrive unmeasured, and an ink-only tone is
- * checked to really be its ground rather than merely claim to be.
- *
- * Limits, which are real:
- *   - Measured through the source cascade in JSDOM, like every contrast gate here: no layout,
- *     no browser pseudo-classes, no anti-aliased pixels.
- *   - The grounds are the five opaque tokens below, read as tokens. A chip inside a TINTED
- *     card, or over one of the kit's washes, stands on a ground this gate never builds —
- *     a wash paints behind the chip and moves the ground, not the chip.
- *   - It measures fill against ground only. Whether the chip's TEXT clears AA on that fill is
- *     stories/signal-contrast.test.js's rule, and it owns the deepened --chip-*-ink pairs.
- *   - .ui-dot is not a chip and is not read here; it draws no text of its own.
- *
+ * Limits are recorded in stories/guidelines/accessibility-coverage.json, with this gate's row.
  * Measure a chip's fill against the ground it is handed.
  */
 import test from 'node:test';
