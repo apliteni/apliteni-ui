@@ -2570,18 +2570,13 @@ leading, which is the kit's own choice and not a disagreement with Primer: a fil
 are short values in a narrow column, and a leading mark would indent every label to leave room for
 a mark one row has.
 
-**The wash survives focus, and hover and the keyboard cursor deepen it.** Hover, the keyboard
-cursor and focus each paint an opaque fill on a dropdown row, which would take the wash off the
-chosen one. `filter-bar.css` restates the wash for focus, so the row the filter is on does not stop
-looking chosen; focus still reads by the paint that is not a fill — the kit's band, which #578 made
-a real `outline` a pixel off the row, never a browser's own. The cursor had read by a paint that is
-not a fill too, its inset accent bar, until #578 round r34 took that bar off every selected state:
-an inset accent bar is an edge, and an edge belongs to focus. So the cursor takes hover's answer
-below, the same deeper wash — a pointer and an arrow key are not on one row at once, so the two
-sharing a ground costs a reader nothing, and what each needs is the same thing: a step off the
-wash that does not erase it. Hover had nothing left either:
-its other paint is the kit's 1px `--control-edge`, which on the wash is 1.06:1 in dark, so the one
-row in the panel already in force was the one row a pointer got no answer from. Selection is a
+**The wash survives focus, and hover deepens it.** Hover and focus each paint an opaque fill on a
+dropdown row, which would take the wash off the chosen one. `filter-bar.css` restates the wash for
+focus, so the row the filter is on does not stop looking chosen; focus still reads by the paint
+that is not a fill — the kit's band, which #578 made a real `outline` a pixel off the row, never a
+browser's own. Hover had nothing left: its other paint is the kit's 1px `--control-edge`, which on
+the wash is 1.06:1 in dark, so the one row in the panel already in force was the one row a pointer
+got no answer from. Selection is a
 background highlight and an outline belongs to focus, so hover deepens the highlight instead — 9%
 more of the accent mixed into the wash, the step a zebra table already gives a hovered row. That is
 1.14:1 over the resting wash in dark and 1.15:1 in light, against the 1.11:1 the kit's opaque fill
@@ -2590,10 +2585,21 @@ the panel. It stays a tint: 1.37:1 over the panel, and the check and the label a
 the deeper ground at 3.62:1 and 10.69:1. One translucent layer over one opaque ground is also the
 only form whose text pair can be measured, so the chosen label's own ratio stays readable off the
 sheet: 16.69:1 in light, 12.18:1 in dark. `stories/filter-selected-mark.test.js` measures the pair
-and the three states in both themes across every story that draws a filter bar, measures hover's
-and the cursor's step as a ratio rather than asserting that paint exists, and rejects a mutation of
-each guarantee — including the restated wash that left hover at 1.00:1, and the one that left the
-cursor there once its bar was gone.
+and the two states in both themes across every story that draws a filter bar, measures hover's step
+as a ratio rather than asserting that paint exists, and rejects a mutation of each guarantee —
+including the restated wash that left hover at 1.00:1.
+
+**The arrow keys are not a third state here.** #578 round r36 wrote a rule deepening the wash for
+`.is-active` as well, on the premise that an arrow key onto the chosen row had been left with no
+mark once r34 took the inset accent bar off every selected state. Its design review disproved the
+premise and the rule came out again. A filter chip's panel carries no search field — `filterBar()`
+builds every chip as `dropdown({ variant: 'select' })`, and `ddSetActive()` returns before it
+writes `.is-active` when there is none, which React gates on the same thing — so `.is-active` never
+reaches a row in this bar. What an arrow key moves here is real focus: the row matches
+`:focus-visible`, restates its wash under the rule above and draws the band over it, with its check
+still on it. Driven in a wired chip in one Chrome, both themes, at 1280 and 390: no search field in
+the panel, no `.is-active` after a pointer sweep over every row or after an arrow-key walk, and the
+chosen row under the keyboard painting its wash and `outline: 2px solid var(--accent)` at `1px`.
 
 **Which row is chosen is the chip's answer, not the consumer's.** `filterChipItems(filter)` hands
 the menu the chip's items with the chip's own `value` marked `selected`, matching a row by its
