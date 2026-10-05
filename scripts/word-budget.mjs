@@ -71,7 +71,6 @@ export const RECORDED = {
   'going-back.md': 375,
   'hover-readouts.md': 333,
   'iconography.md': 321,
-  'labels-and-titles.md': 384,
   'layout-and-density.md': 318,
   'state-set.md': 331,
   'stat-bands.md': 233,
