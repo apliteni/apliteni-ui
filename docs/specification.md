@@ -3062,7 +3062,7 @@ Held by `src/components/stat.test.js`, `src/styles/stat.test.js` and `stories/st
 
 Column labels accept React content, including a kit Tooltip for a header explanation.
 
-A scrollable React DataTable reaches its far columns by scrolling, and offers no control of its own for it. The region holding the table is named, is a keyboard stop, and draws the kit's inward ring when it takes focus, so a trackpad, a finger and the arrow keys all reach the same columns. The pair of buttons the kit used to draw above such a table — Previous columns and More columns — is gone, and nothing replaces it: two controls that only repeat a gesture every pointer already has cost a row of the card and a reader's attention. Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
+A scrollable React DataTable reaches its far columns by scrolling, and offers no control of its own for it. The region holding the table is named, is a keyboard stop, and draws the kit's inward ring when it takes focus, so a trackpad, a finger and the arrow keys all reach the same columns. The pair of buttons the kit used to draw above such a table — Previous columns and More columns — is gone, and nothing replaces it. They repeated a gesture every pointer already had, and cost the table a 62px row above it, measured on the two screens that drew them. Tables inside cards use the card reading surface for their body, sticky header and pinned cells.
 
 A table may omit selection controls when its consumer has no selection action. Existing
 selection-enabled tables keep their row and visible-page selection behavior.
