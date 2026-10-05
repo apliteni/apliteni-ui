@@ -9,9 +9,12 @@ export default { title: 'Components/Finance cells', parameters: { layout: 'fulls
 const DEMO_LOGO = 'demo-assets/demo-logo.svg';
 const filters = [{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology', value: 'Technology', selected: true }, { label: 'Energy', value: 'Energy' }] }, { id: 'market', label: 'Market', value: 'US', items: [{ label: 'US', value: 'US' }] }];
 // --table-bg is the card's surface in a card and the page's own ground outside one, and a
-// content-width table no longer covers the page it stands on. #504
+// content-width table no longer covers the page it stands on. --fit so the surface ends
+// where the table does rather than leaving the slack white. #504
 // why: guidelines/dense-tables.md, use the right surface
-export const Values = { render: () => pad(`<p id="cells-basis">Changes versus previous close.</p><div class="ui-card"><table class="ui-table ui-table--compact"><thead><tr><th>State</th><th>Value</th><th>Change</th><th>Company</th></tr></thead><tbody>${[
+// The basis is the table's own caption, which is what aria-describedby resolves to.
+// It was a paragraph above the card, a loose sentence over a block of figures.
+export const Values = { render: () => pad(`<div class="ui-card ui-card--fit"><table class="ui-table ui-table--compact"><caption id="cells-basis">Changes since the previous close</caption><thead><tr><th>State</th><th>Value</th><th>Change</th><th>Company</th></tr></thead><tbody>${[
   ['Positive', numericValue({ value: '228.87', unit: 'USD' }), deltaValue({ value: '+0.66%', tone: 'success', basisId: 'cells-basis' }), rowIdentity({ symbol: 'ASTR', name: 'Aster Systems', href: '#company' })],
   ['Negative', numericValue({ value: '−24.60', unit: 'USD' }), deltaValue({ value: '−2.01%', tone: 'danger', basisId: 'cells-basis' }), rowIdentity({ symbol: 'CEDR', name: 'Cedar Infrastructure Holdings International' })],
   ['Zero', numericValue({ value: '0.00', unit: 'USD' }), deltaValue({ value: '0.00%', tone: 'success', basisId: 'cells-basis' }), rowIdentity({ symbol: 'TEST', name: '会社の長い名前', logo: DEMO_LOGO })],
