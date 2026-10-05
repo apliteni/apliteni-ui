@@ -27,7 +27,8 @@
  * chosen from how today's pages read, not a published guarantee. `npm test`
  * checks this tool, never the pages.
  *
- * Usage: npm run check:words
+ * Usage: npm run check:words — or `node scripts/word-budget.mjs <dir>` to measure
+ * another collection against the budget alone.
  *
  * Exit 0 and the measurement when every page is within its budget and the
  * recorded figures match, exit 1 and a line per page when they are not.
