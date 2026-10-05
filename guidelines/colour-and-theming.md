@@ -63,7 +63,7 @@
 
 **Why:** Grey blocks make reading areas look disabled.
 
-**Do:** Draw inputs with an edge. Keep grey fills for non-text states, such as disabled tracks and dividers.
+**Do:** Draw inputs with an edge. Keep grey fills for non-text states. A status chip's tint is a signal, not a reading area.
 
 **Don't:** Put text on grey fields, chips, headers or footers.
 
