@@ -37,9 +37,12 @@
 //   a marker this walk cannot tie to exactly one class attribute stops the gate rather
 //   than being named by whatever class is nearest.
 // - Comments are told from text by a second walk, also not a parser. A `//` or `/*` inside
-//   a string, a template or a regex literal is markup and stays; only a comment is
-//   blanked. Source that walk cannot finish stops the gate rather than being read half
-//   lexed, and an apostrophe in JSX text it takes for a string costs that one line.
+//   a string, a template or a regex literal is markup and stays; a comment is blanked, and
+//   so is a regex literal the walk is sure of, which the markup walk could not read. Which
+//   of a regex and a division a `/` opens is read off the code before it: a value divides,
+//   a keyword and a control statement's head do not. Source that walk cannot finish stops
+//   the gate rather than being read half lexed; a `/` it cannot be sure of, and an
+//   apostrophe in JSX text it takes for a string, cost the stripping of that one line.
 // - The source reading covers src/ and react/src/, the trees the package ships. A panel
 //   hand-written into an example page is not read; those pages compose the factories.
 // - It does not ask whether the rows take the ring at all. `.vopt:focus-visible` never
@@ -70,6 +73,9 @@ const sourceFiles = ['src', 'react/src'].flatMap((base) => readdirSync(base, { r
   .map(String).filter((file) => /\.(js|mjs|ts|tsx)$/.test(file) && !/\.test\./.test(file))
   .map((file) => `${base}/${file}`));
 
+/** The characters JavaScript ends a line with, and so the characters a line comment ends at. */
+const ENDS_LINE = /[\n\r\u2028\u2029]/;
+
 /**
  * Comments out, newlines kept, so prose about the attribute is never read as markup.
  *
@@ -85,60 +91,87 @@ const sourceFiles = ['src', 'react/src'].flatMap((base) => readdirSync(base, { r
  */
 const code = (text, file = 'a source') => {
   const out = text.split('');
-  const blank = (from, to) => { for (let i = from; i < to; i += 1) if (out[i] !== '\n') out[i] = ' '; };
-  // A `/` divides after a value and opens a regex where an expression may start. The last
-  // code character says which of the two it is, except after a keyword, which is no value.
-  const AFTER_VALUE = /[)\]]/;
+  const blank = (from, to) => { for (let i = from; i < to; i += 1) if (!ENDS_LINE.test(out[i])) out[i] = ' '; };
+  const lost = (where) => new Error(`${file}: this gate cannot tell this source's code from its text — ${where}`);
+  // Which of the two a `/` opens is read off the code before it. A value divides and nothing
+  // else does: a name, a number, a string, a template, a `]`, and a `)` that closed a call.
+  // A keyword is no value, and nor is the `)` of a control statement's head, so each `(`
+  // records whether a control keyword opened it. Read as division, `if (x) /[/*]/.test(y)`
+  // hands that `/*` to the comment walk, which blanks on to the next closing pair (#598);
+  // read as a regex, a division swallows its line and leaves a real comment standing.
+  const AFTER_VALUE = /[)\]'"`]/;
   const KEYWORD = /^(?:return|typeof|instanceof|in|of|new|delete|void|case|do|else|yield|await)$/;
+  const CONTROL = /^(?:if|for|while|switch|catch|with)$/;
+  // A regex the walk is sure of is blanked like a comment, because the markup walk after it
+  // knows quotes and brackets and nothing of regexes: `esc()`'s `/[&<>"]/` would open a
+  // string in it. It is sure after an operator, an opener, a keyword or a control head;
+  // after a `<` or a `}` it is reading JSX as often as code — `</span>`, `{...rest} />` —
+  // and there it leaves every character alone, because blanking between two such slashes
+  // takes the markup between them with it.
+  const SURE = /[=(,;:?!&|+\-*%^~{[]/;
   const nested = [];       // the brace depth of each template an interpolation sits inside
+  const heads = [];        // for each `(` still open, whether a control keyword opened it
   let mode = 'code';       // code, the quote of the string being read, or regex
   let depth = 0;           // braces opened since the innermost `${`
   let last = '';           // the last code character that is not whitespace
   let word = '';           // the identifier that character ends, when it is one
   let inClass = false;     // inside a regex's `[…]`, where a `/` is literal
-  const read = (ch) => { word = /[\w$]/.test(ch) ? word + ch : ''; last = ch; };
+  let opened = -1;         // where the regex being read opened, if it is one for sure
+  let head = false;        // that character is the `)` of a control statement's head
+  const read = (ch) => { word = /[\w$]/.test(ch) ? word + ch : ''; last = ch; head = false; };
   for (let i = 0; i < text.length; i += 1) {
     const ch = text[i];
     if (mode === '\'' || mode === '"') {
-      // No string holds a raw newline, so a quote this walk misread — an apostrophe in JSX
-      // text — costs the rest of its own line and no more.
+      // No string holds a raw line break, so a quote this walk misread — an apostrophe in
+      // JSX text — costs the rest of its own line and no more.
       if (ch === '\\') i += 1;
-      else if (ch === mode || ch === '\n') { mode = 'code'; read(ch); }
+      else if (ch === mode || ENDS_LINE.test(ch)) { mode = 'code'; read(ch); }
     } else if (mode === '`') {
       if (ch === '\\') i += 1;
       else if (ch === '`') { mode = 'code'; read(ch); }
       else if (ch === '$' && text[i + 1] === '{') { nested.push(depth); depth = 0; mode = 'code'; read('{'); i += 1; }
     } else if (mode === 'regex') {
-      // A regex holds no raw newline either, which is where a misread `/` gives up.
+      // A regex holds no raw line break either, which is where a misread `/` gives up — and
+      // gives up without blanking, because what it read may be code.
       if (ch === '\\') i += 1;
-      else if (ch === '\n') mode = 'code';
+      else if (ENDS_LINE.test(ch)) mode = 'code';
       else if (inClass) inClass = ch !== ']';
       else if (ch === '[') inClass = true;
-      else if (ch === '/') { mode = 'code'; read('/'); }
+      else if (ch === '/') { if (opened !== -1) blank(opened, i + 1); mode = 'code'; read('/'); }
     } else if (ch === '/' && text[i + 1] === '/') {
-      const stop = text.indexOf('\n', i);
-      blank(i, stop === -1 ? text.length : stop);
-      i = (stop === -1 ? text.length : stop) - 1;
+      // A comment opens on `//` wherever code may hold a `/`: no regex is empty. It ends at
+      // the line's end, every character that ends one, so a file written with CR alone does
+      // not lose the code below its first comment.
+      let stop = i;
+      while (stop < text.length && !ENDS_LINE.test(text[stop])) stop += 1;
+      blank(i, stop);
+      i = stop - 1;
     } else if (ch === '/' && text[i + 1] === '*') {
       const close = text.indexOf('*/', i + 2);
-      blank(i, close === -1 ? text.length : close + 2);
-      i = (close === -1 ? text.length : close + 2) - 1;
+      // A block comment with no end is not source this gate can read: blanking to the end of
+      // the file would take every panel below it away silently.
+      if (close === -1) throw lost('a block comment is never closed');
+      blank(i, close + 2);
+      i = close + 1;
     } else if (ch === '\'' || ch === '"' || ch === '`') {
       mode = ch;
-    } else if (ch === '/' && (word ? KEYWORD.test(word) : !AFTER_VALUE.test(last))) {
+    } else if (ch === '/' && (word ? KEYWORD.test(word) : head || !AFTER_VALUE.test(last))) {
       mode = 'regex';
       inClass = false;
+      opened = head || SURE.test(last) || KEYWORD.test(word) ? i : -1;
     } else if (!/\s/.test(ch)) {
       if (ch === '{') depth += 1;
       else if (ch === '}' && depth) depth -= 1;
       else if (ch === '}' && nested.length) { depth = nested.pop(); mode = '`'; continue; }
+      else if (ch === '(') heads.push(CONTROL.test(word));
+      const closed = ch === ')' && heads.pop() === true;
       read(ch);
+      head = closed;
     }
   }
   if (mode !== 'code' || nested.length) {
-    const lost = mode === 'regex' ? 'a regex' : mode === 'code' ? 'a template interpolation' : 'a string';
-    throw new Error(`${file}: this gate cannot tell this source's code from its text`
-      + ` — the walk reaches the end of the file inside ${lost}`);
+    const inside = mode === 'regex' ? 'a regex' : mode === 'code' ? 'a template interpolation' : 'a string';
+    throw lost(`the walk reaches the end of the file inside ${inside}`);
   }
   return out.join('');
 };
@@ -442,8 +475,70 @@ test('the gate reads a quoted // as markup and a comment as a comment', () => {
   assert.deepEqual(panelsIn(prose), [],
     'prose that names the attribute has to mark no panel');
 
-  // And a source the walk cannot finish stops the gate rather than being read half lexed.
+  // A comment ends at every character that ends a line in JavaScript, not only at a newline:
+  // a source written with CR alone lost every panel below its first comment to one `//`.
+  assert.deepEqual(panelsIn('// A panel carries data-dropdown-panel, which this gate reads.\r'
+    + 'export const reviewMenu = () => `<div data-dropdown-panel class="review-extra-menu"></div>`;'),
+    ['review-extra-menu'],
+    'a line comment has to end at a lone CR, not run to the end of the file');
+
+  // And a source the walk cannot finish stops the gate rather than being read half lexed:
+  // a template with no end, and a block comment with no end — blanking that one to the end
+  // of the file would take every panel below it away without a word.
   assert.throws(() => panelsIn('const open = `<div data-dropdown-panel class="x">', 'src/components/review.js'),
     /cannot tell this source's code from its text/,
     'an unfinished template has to stop the gate, not be read as far as the walk got');
+  assert.throws(() => panelsIn('/* unfinished\nexport const reviewMenu = () =>'
+    + ' `<div data-dropdown-panel class="review-extra-menu"></div>`;', 'src/components/review.js'),
+    /a block comment is never closed/,
+    'an unfinished block comment has to stop the gate, not blank the rest of the file');
+});
+
+test('the gate tells a regex literal after a control statement from a division', () => {
+  const panel = 'export const reviewMenu = () =>'
+    + ' `<div data-dropdown-panel class="review-extra-menu" role="menu"><button>Review</button></div>`;';
+
+  // #598: the walk read the `/` after a control statement's head as division, because the
+  // character before it is a `)`. This source is valid JavaScript, and the `/*` inside the
+  // character class then opened a comment that ran to the real comment's closing pair,
+  // blanking the factory between them. `panelsIn` found no panel and said nothing; the gate
+  // passed all six of its tests with a panel nobody had measured.
+  assert.deepEqual(panelsIn(`if (true) /[/*]/.test("x");\n${panel}\n/* genuine trailing comment */`),
+    ['review-extra-menu'],
+    'a regex after a control statement\'s head is a regex, and the factory under it stands');
+
+  // The same `)`, with a quote and with a backtick inside the regex: read as division, each
+  // one opened a string or a template that ran on through the factory below it.
+  assert.deepEqual(panelsIn(`for (const row of rows) /["]/.test(row); // data-dropdown-panel in prose\n${panel}`),
+    ['review-extra-menu'],
+    'a quote inside a regex after a control head opens no string, and the comment beside it still goes');
+  assert.deepEqual(panelsIn(`while (next()) /[\`]/.test(next()); // data-dropdown-panel in prose\n${panel}`),
+    ['review-extra-menu'],
+    'the `)` of a call inside a control head leaves the head\'s own `)` to answer for it');
+
+  // And the other way round, which the same heuristic got wrong in the other direction: a `/`
+  // after a value divides, whatever the value is. Read as a regex it swallowed the rest of the
+  // line, and the real comment behind it was left standing to be read as markup.
+  assert.deepEqual(panelsIn(`const ratio = "4" / 2; // data-dropdown-panel in prose\n${panel}`),
+    ['review-extra-menu'],
+    'a division after a quoted value is division, and the comment after it is still blanked');
+  assert.deepEqual(panelsIn(`const half = width(2) / 2; // data-dropdown-panel in prose\n${panel}`),
+    ['review-extra-menu'],
+    'a `)` that closed a call is a value, so the `/` after it divides');
+
+  // A regex the walk is not sure of is walked and left alone, because in TSX a `/` after a
+  // `}` or a `<` is as often JSX: here `{...rest} />` opens what the walk takes for a regex
+  // and `/>` two tags later closes it, and blanking everything between the two would take
+  // the marked element away. React's StatBand is written this way.
+  const jsx = 'export const Row = ({ kids, ...rest }) => (\n'
+    + '  <div><b {...rest} />{kids ? <i data-dropdown-panel className="review-extra-menu" /> : null}</div>\n'
+    + '); // data-dropdown-panel in prose';
+  assert.deepEqual(panelsIn(jsx), ['review-extra-menu'],
+    'a slash the walk cannot be sure of has to cost the stripping of its line, never the markup');
+
+  // Either way it is a panel the fixtures never render, so the reconciliation stops; the
+  // clipping rule that goes with it reads as cutting the ring off, which the tests above prove.
+  const added = new Map([...declared, ['review-extra-menu', ['src/components/review.js']]]);
+  assert.throws(() => reconcile(added, rendered), /never renders/,
+    'a panel behind a regex literal can pass as one the fixtures already measure');
 });
