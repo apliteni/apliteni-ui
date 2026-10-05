@@ -242,6 +242,20 @@ different padding stacked in one column line their text up. `.ui-card` pads `var
 put a stat tile's text 6px out from the card under it. `.ui-card--pad-lg` keeps its own roomier
 inset — it is the centred landing card and is never stacked with plain ones.
 
+**`.ui-card--fit` ends the card where its contents end**, so a card framing one
+content-width block is that block's surface rather than a column holding it. A table stops
+at its values now, and a plain card kept filling its column: a 359px table sat in a 1232px
+card on the finance composition showcase. The modifier is `width: fit-content` with a
+`max-width: 100%` cap, so a block wider than the room still fills it and the card's own
+scroll region carries the overflow. It is opt-in: a card holding prose, setting rows or a
+form is a column, and sizing that to its longest line is a different card.
+Decided on [#504](https://github.com/apliteni/apliteni-ui/issues/504).
+
+**A `.ui-card__row` wraps rather than running past the page.** Its two ends sit at the far
+ends of one line while they both fit; when they do not, the second wraps under the first. The
+React table's column-scroll group is this row, and at 320 its two buttons took the document
+to 352px once the table stopped filling its scroll region.
+
 **A `dense` or `zebra` table inside a card starts its first column on the card's own text edge.**
 Both recipes inset their end cells by `--space-3` so a row's highlight has room at its ends (see
 Dense financial tables), and that inset was being paid for by the grid: a ledger's first column
@@ -2805,6 +2819,12 @@ width than the room renders exactly as before and is carried by its scroll regio
 text cell `.ui-table__title` gives that column the width left over. Below the phone step a
 table marked `.ui-table--stack` is the exception: it lays each row out as a block rather than
 as a table, so it fills its column and there is no content width left to size to.
+
+A table paints `--table-bg`, which is the page's own ground outside a card and the card's
+surface inside one, so a table that no longer covers the ground it stands on needs the card
+this page's first dense-tables rule asks for. A card around one table takes
+`.ui-card--fit`, or the surface ends where the column does and the slack reads as empty
+card rather than as page.
 
 Nothing sizes a table to the parts attached to it. React `DataTable` caps its pager at the
 measured width of the table it pages: the strip ends where the table ends, starts where the

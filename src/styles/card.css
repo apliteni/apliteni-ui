@@ -40,6 +40,15 @@
 .ui-card--pad-sm { padding: var(--space-5) var(--space-6); }
 .ui-card--pad-lg { padding: var(--space-8) var(--space-10); }
 
+/* A card that frames one content-width block is that block's surface, so it ends where
+   the block ends. A table stops at its values now (#504), and a card that kept filling
+   its column left the slack as white space — a 359px table in a 1232px card. The cap
+   keeps a block wider than the room inside it, where .ui-card:has(> .ui-table) above
+   still scrolls it. Not the default: a card holding prose, rows or a form is a column,
+   and sizing that to its longest line is a different card.
+   why: guidelines/dense-tables.md#size-the-table-to-its-content */
+.ui-card--fit { width: fit-content; max-width: 100%; }
+
 /* An accent-tinted card, e.g. a highlighted plan / success surface. The accent edge is
    the card's own hairline re-coloured: an inset ring over it would draw two. #295
    The strength is --card-tint, per theme: light mixes down from white, so a tint that
@@ -97,6 +106,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* A row whose two ends cannot both fit wraps rather than running past the page. The
+     React table's column-scroll group is this row, and at 320 its two buttons took the
+     document to 352px once the table stopped filling its region (#504). A row with room
+     is unchanged: wrapping only decides what happens after the line is full. */
+  flex-wrap: wrap;
   gap: var(--space-5);
   padding: var(--space-4) 2px;
 }

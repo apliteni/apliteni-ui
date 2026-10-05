@@ -16,7 +16,7 @@ it('requests changes and preserves controlled filters', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Remove Region filter' }));
   expect(props.onRemove).toHaveBeenCalledWith('Region');
   expect(screen.getByRole('button', { name: 'Region: All' })).toBeInTheDocument();
-  await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Clear all' }));
   expect(props.onClear).toHaveBeenCalledTimes(1);
 });
 // DOM text and names only; these do not measure appearance.

@@ -9,6 +9,9 @@ export const SPEC_CSS = `<style>
      stops inside it. It is also the surface this page's first rule asks for: outside a
      card --table-bg is the page's own ground, which leaves a dark table no surface. */
   .gdt-stage { min-width: 0; }
+  /* The do half's card ends where its table does — the surface is the block, and a
+     card holding the slack as white space is the shape this rule is against. The
+     don't half keeps the column's full width, which is what it is showing. */
   /* The don't half draws the state the kit no longer produces by itself. It fills the
      bled box a dense table gets in a card — the same expression table.css caps it at —
      so both halves start and could end on the same edges. */
@@ -21,7 +24,7 @@ const PAYOUTS = [['1162', '1,240.00'], ['1161', '860.00'], ['1160', '2,100.00']]
 // recipe leaves its last header flush with the table edge while its values keep a
 // right inset — 16px apart, against this page's own rule on numeric alignment three
 // rules above. Short references keep the two halves far apart at phone width.
-const payouts = (stretch = false) => `<div class="gdt-stage ui-card ui-card--pad-sm">
+const payouts = (stretch = false) => `<div class="gdt-stage ui-card ui-card--pad-sm${stretch ? '' : ' ui-card--fit'}">
   <table class="ui-table ui-table--dense ui-table--hover${stretch ? ' gdt-stretch' : ''}">
     <caption>Payouts · EUR</caption>
     <thead><tr><th>Reference</th><th class="ui-table__num">Amount</th></tr></thead>

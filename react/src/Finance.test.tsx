@@ -30,7 +30,7 @@ describe('finance composition', () => {
     render(<Demo />); const remove = screen.getByRole('button', { name: 'Remove Sector filter' }); remove.focus(); fireEvent.click(remove);
     expect(screen.queryByRole('button', { name: 'Remove Sector filter' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Market/ , expanded: false })).toHaveFocus();
-    const clear = screen.getByRole('button', { name: 'Clear all filters' }); clear.focus(); fireEvent.click(clear);
+    const clear = screen.getByRole('button', { name: 'Clear all' }); clear.focus(); fireEvent.click(clear);
     expect(screen.getByRole('group', { name: 'Filters' })).toHaveFocus();
   });
   it('skips disabled views and keeps zero deltas neutral', () => {
