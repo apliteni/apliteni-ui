@@ -9,9 +9,12 @@ const filters = [{ id: 'sector', label: 'Sector', value: 'Technology', items: [{
 // content-width table no longer covers the page it stands on. --fit so the surface ends
 // where the table does rather than leaving the slack white. #504
 // why: guidelines/dense-tables.md, use the right surface
-// The basis is the table's own caption, which is what aria-describedby resolves to.
-// It was a paragraph above the card, a loose sentence over a block of figures.
-export const Values = { render: () => pad(`<div class="ui-card ui-card--fit"><table class="ui-table ui-table--compact"><caption id="cells-basis">Changes since the previous close</caption><thead><tr><th>State</th><th>Value</th><th>Change</th><th>Company</th></tr></thead><tbody>${[
+// The basis is what every delta cell's aria-describedby resolves to, and nothing else —
+// the same answer the React showcase gives. It was a visible paragraph above the card, a
+// loose sentence over a block of figures. A <caption> was tried and taken out: this table
+// is 501px at a phone width, so the caption scrolls with it inside the card and its first
+// words are off the card's edge at rest.
+export const Values = { render: () => pad(`<p id="cells-basis" class="ui-sr">Changes since the previous close.</p><div class="ui-card ui-card--fit"><table class="ui-table ui-table--compact"><thead><tr><th>State</th><th>Value</th><th>Change</th><th>Company</th></tr></thead><tbody>${[
   ['Positive', numericValue({ value: '228.87', unit: 'USD' }), deltaValue({ value: '+0.66%', tone: 'success', basisId: 'cells-basis' }), rowIdentity({ symbol: 'ASTR', name: 'Aster Systems', href: '#company' })],
   ['Negative', numericValue({ value: '−24.60', unit: 'USD' }), deltaValue({ value: '−2.01%', tone: 'danger', basisId: 'cells-basis' }), rowIdentity({ symbol: 'CEDR', name: 'Cedar Infrastructure Holdings International' })],
   ['Zero', numericValue({ value: '0.00', unit: 'USD' }), deltaValue({ value: '0.00%', tone: 'success', basisId: 'cells-basis' }), rowIdentity({ symbol: 'TEST', name: '会社の長い名前', logo: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="24" height="24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23808080"/%3E%3C/svg%3E' })],
