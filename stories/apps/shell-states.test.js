@@ -25,7 +25,8 @@ import {
 // because this file has a leafRules() of its own, on a different shape.
 import { leafRules as motionRules, inNet, ms } from '../lib/motion-css.js';
 import { appShell } from '../../src/components/shell.js';
-import { focusBand } from '../../scripts/lib/box-shadow.js';
+import { themeToggle } from '../../src/components/topbar.js';
+import { focusBand, layersOf, geometryOf } from '../../scripts/lib/box-shadow.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -110,9 +111,17 @@ const PAIR = (collapsed) => appShell({
   collapsed,
 });
 
-function mount(html, { theme = 'dark', accent = 'default', narrow = false, phone = false, extra = '' } = {}) {
+function mount(html, { theme = 'dark', accent = 'default', narrow = false, phone = false, drop = [], extra = '' } = {}) {
   const vars = tokensFor(theme, accent);
   let raw = decomment(SHEETS.map(read).join('\n'));
+  // One rule taken out of the sheet before the cascade runs, so a gate can show
+  // what the rule is holding rather than assert that its text is present. Each
+  // pattern has to match, or the mutation proves nothing.
+  for (const pattern of drop) {
+    const cut = raw.replace(pattern, '');
+    assert.notEqual(cut, raw, `nothing in the sheet matches ${pattern} — the mutation changes nothing`);
+    raw = cut;
+  }
   // `phone` is the narrow width and one step further down: a phone viewport is
   // inside both blocks, and a browser applies them in source order.
   for (const [lift, query] of [[narrow || phone, FOLD], [phone, PHONE]]) {
@@ -530,6 +539,49 @@ test('the band search reads one word at one column, and is named the same at bot
     assert.equal(narrow.css(sel, 'width'), '1px', `${what} still takes its own width on the band`);
     assert.equal(narrow.css(sel, 'overflow'), 'hidden', `${what} is clipped to 1px with its text spilling out of it`);
   }
+});
+
+// A band crowded the way a page crowds it: the trigger, a control the page put
+// beside it, the theme switch and the reader's mark. The switch is the one icon
+// square on this band and the trigger is what gives way, so the switch keeps a
+// shrink of zero. Measured in a browser at 390 without it, the switch drew 19x34
+// — half a square — and a tap zone clamped to the padding box could then only
+// reach 29 of the 44 the phone step asks for.
+//
+// Limit: the 34px square itself is topbar.css's and that sheet is not in SHEETS,
+// so what this reads is the one declaration layout.css adds. The width is
+// browser evidence and is reported in the pull request.
+const CROWDED = BANDED(false).replace(
+  '<span class="ui-app__bar-gap"></span>',
+  '<span class="ui-app__bar-gap"></span>'
+  + '<button type="button" class="ui-btn ui-btn--ghost ui-btn--sm">Workspace</button>'
+  + themeToggle('dark'),
+);
+const SWITCH_RULE = /\.ui-app__bar \.toggle \{ flex: none; \}/;
+
+test('the band\'s theme switch keeps its square; the trigger is what gives way', () => {
+  const at = mount(CROWDED, { phone: true });
+  assert.ok(at.q('.ui-app__bar .toggle'), 'the fixture stopped putting a theme switch on the band');
+  assert.equal(
+    at.css('.ui-app__bar .toggle', 'flexShrink'), '0',
+    'the band\'s theme switch shrinks with the row. A flex item with the default shrink does not '
+    + 'wait its turn: measured at 390 with a control beside the trigger, a 34px square glyph plate '
+    + 'drew 19px wide, and the tap zone src/styles/tap-zone.css clamps to its padding box reached '
+    + '29 rather than 44. The trigger is the part of this band that gives way — layout.css says so '
+    + 'on its own flex-basis.',
+  );
+  assert.equal(
+    at.css('.ui-app__search', 'flexShrink'), '1',
+    'the trigger stopped giving way, so the band has nothing left to take its crowding out of and '
+    + 'the row overflows instead',
+  );
+
+  const without = mount(CROWDED, { phone: true, drop: [SWITCH_RULE] });
+  assert.equal(
+    without.css('.ui-app__bar .toggle', 'flexShrink'), '1',
+    'taking the rule out of layout.css left the switch at a shrink of zero, so the check above is '
+    + 'reading a default rather than the declaration it is meant to hold',
+  );
 });
 
 test('the phone strip drops the rail\'s foot with nothing left in it, and the reader\'s fold keeps it', () => {

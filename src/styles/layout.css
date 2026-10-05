@@ -119,7 +119,7 @@
    resting step. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1597 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1598 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 
 /* A destructive row of the rail is a navigation row and rests like one; the danger
@@ -413,6 +413,12 @@
    band's hairline is under the whole of it, and no column, since this is not the rail.
    why: docs/components.md#the-page-shell */
 .ui-app__user--bar { flex: none; padding-top: 0; border-top: 0; }
+/* The switch is a 34px square and stays one: the trigger above is the thing on this
+   band that gives way, and a flex item with the default shrink does not wait its
+   turn. Measured in the React band at 390 with a control beside the trigger, the
+   switch drew 19x34 — a square glyph plate squashed to half its width, and a tap
+   zone the sheet could only clamp to 29. why: docs/specification.md#the-page-shell */
+.ui-app__bar .toggle { flex: none; }
 .ui-app__user--bar .ui-app__av { margin-inline-start: 0; }
 /* Crumb, then the title block. At --space-2 the crumb sat 8px off the h1 and
    the h1 8px off its subtitle, so all three ranks read as one. */

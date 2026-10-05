@@ -24,7 +24,7 @@
     ],
     "tap-zone": [
       {
-        "ref": "src/styles/tap-zone.css:85",
+        "ref": "src/styles/tap-zone.css:89",
         "pattern": "width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));"
       },
       {
@@ -38,7 +38,7 @@
         "pattern": "--tap-gap: var(--space-5, 20px);"
       },
       {
-        "ref": "src/styles/tap-zone.css:177",
+        "ref": "src/styles/tap-zone.css:181",
         "pattern": ".ui-confirm__acts,"
       }
     ],
@@ -518,7 +518,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:422",
+        "ref": "src/styles/layout.css:428",
         "pattern": "rank: page-title"
       },
       {
@@ -594,7 +594,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:467",
+        "ref": "src/styles/layout.css:473",
         "pattern": "@media (max-width: 720px)"
       },
       {
