@@ -642,6 +642,15 @@ export function Dropdown({
   };
 
   const onKeyDown = (e: ReactKeyboardEvent) => {
+    // #580: a trigger the kit paints off opens nothing. React drops a mouse event
+    // on a disabled button before any handler sees it, so the trigger's onClick
+    // below needs no guard — but a key event still reaches this container, and
+    // ArrowDown opened the panel of a trigger painted unavailable. A shut off
+    // dropdown has no keyboard behaviour at all; a controlled one that is open
+    // keeps Escape and Tab, so it still closes. wireDropdown() refuses the same
+    // trigger in openDropdown(), where it also has to answer the aria spelling.
+    // why: src/components/dropdown.js
+    if (disabled && !open) return;
     const onTrigger = e.target === trigger.current;
     const onField = e.target === field.current;
     if (onField && composing(e)) return;
