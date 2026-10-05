@@ -1,6 +1,5 @@
 // The shape of a rule and the gates that walk this page: docs/guidelines.md
 import { badge } from '../../src/components/index.js';
-import { pad } from '../_gallery.js';
 
 // Render inline code and token names without interpreting prose as HTML.
 const escape = (text) => String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
@@ -29,6 +28,9 @@ const SPEC_CSS = `
           --gl-page: calc(var(--gl-cell) * 2 + var(--space-4)); }
     .gl code { font-family: var(--font-mono); font-size: .88em; color: var(--text);
       background: color-mix(in srgb, var(--accent) 12%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ border-radius: 6px; padding: 2px 6px; }
+    /* Flush with the reading surface since the page took it: the hairline is what
+       frames a specimen now, and the fill is kept so a stage is still a stage
+       wherever one is rendered outside this layout. */
     .gl-stage { background: var(--surface); --ring-gap: var(--surface); border-radius: var(--radius-lg);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
     .gl-cursor { display: inline-flex; align-items: center; gap: 7px; margin-top: var(--space-3);
@@ -40,6 +42,28 @@ const SPEC_CSS = `
     .gl-stage--confirm .ui-confirm__scrim { display: none; }
     .gl-stage--confirm .ui-confirm__panel { position: static; translate: none; width: auto; }
   </style>`;
+
+/* A guideline page is reading, so the page IS the reading surface rather than a
+ * grey ground with reading on it. Light spends its white here
+ * (src/tokens/tokens.css), and twenty-four pages of rules, reasons and captions
+ * straight on --bg is the page ground doing a surface's job.
+ *
+ * A surface and not a card: ten of these pages draw a card as a SPECIMEN, and a
+ * card sheet would put all forty-eight of them inside another card — the one
+ * thing guidelines/the-page.md says never to do.
+ *
+ * Exported because the Overview is a guideline page too and is not drawn by
+ * guidelinePage(). It is the ground, not a layout: what stands on it is the
+ * caller's.
+ *
+ * Held by stories/guidelines/reading-surface.test.js.
+ * why: guidelines/colour-and-theming.md#keep-text-off-grey-fills */
+export const GROUND_CSS = `
+  <style>
+    .gl-page { background: var(--surface); --ring-gap: var(--surface);
+      padding: var(--space-10); min-height: 100vh; }
+  </style>`;
+export const ground = (html) => `<div class="gl-page">${html}</div>`;
 
 const PAGE_CSS = `
   <style>
@@ -125,7 +149,10 @@ const ruleBlock = (rule) => `
     ${exceptLine(rule)}
   </section>`;
 
-export const guidelinePage = ({ title, blurb, rules, css = '' }) => `${SPEC_CSS}${PAGE_CSS}${css}${pad(`<div class="gl gc">
+// Every rule page is drawn here, so putting the collection on the reading surface
+// is this one call and no page's business.
+export const guidelinePage = ({ title, blurb, rules, css = '' }) => `${SPEC_CSS}${GROUND_CSS}${PAGE_CSS}${css}${ground(`
+  <div class="gl gc">
     <h1>${mono(title)}</h1>
     ${rules.map(ruleBlock).join('')}
   </div>`)}`;

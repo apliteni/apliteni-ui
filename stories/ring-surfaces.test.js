@@ -126,7 +126,10 @@ test('a surface a story paints sets a matching gap, so a ring drawn inside it is
   // it paints.
   // 45 -> 46: the same account page again, muting the drawn rail's current row
   // where it sits under a scrim rather than being the subject. Also no control.
-  assert.equal(storySurfaces.length, 46,
+  // 46 -> 47: #577's .gl-page, the ground every guideline page stands on. It is
+  // the reading surface now rather than the page, so it declares the gap a ring
+  // inside it draws — the links on the Overview are focusable.
+  assert.equal(storySurfaces.length, 47,
     'story surface discovery changed; update the count with the stages that moved');
   assert.deepEqual(gapProblems(storySurfaces), [],
     'a story paints a surface whose focus ring would draw its gap in the page colour');

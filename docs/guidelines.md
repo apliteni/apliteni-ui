@@ -53,6 +53,17 @@ of its own, so on a page with no rules there is nothing to spend and any introdu
 fails. The budget comes from the shortest pages in the collection today, so it stays out
 of CI (#576). Run it before handing over a change to a page.
 
+## The ground a page stands on
+
+Every guideline page is reading, so the page is the reading surface rather than the
+grey page ground with reading on it. `guidelinePage()` draws that ground; a page it
+does not draw — the Overview — takes the same ground from `_layout.js` instead of
+painting one of its own. It is a surface and not a card: ten of these pages show a
+card as a specimen, and a card around the page would put each of them inside another.
+
+`reading-surface.test.js` mounts every page in both themes and fails any whose title,
+rule text, caption, boundary or gap note reads on the page ground.
+
 ## Tests and references
 
 `stories/guidelines/references.json` maps rule ids to implementation references for
