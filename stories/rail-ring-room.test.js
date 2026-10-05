@@ -1,7 +1,7 @@
 // Rule: a folded rail does not cut off its rows' focus ring.
 //
 // The kit ring is drawn OUTSIDE the border box of the thing that has focus — one pixel
-// of gap and two of ring, from --ring-gap-width and --ring-width. stories/
+// of offset and two of band, from --ring-gap-width and --ring-width. stories/
 // panel-ring-room.test.js asks a menu panel to leave that spread a way out: padding
 // inside its own box, or no clip at its edge. A folded rail has to answer the same
 // question and ONE MORE, because its rows are not cut to its width. The rail is
@@ -24,8 +24,11 @@
 //
 // Coverage limits:
 // - Pixels. This resolves the kit's sheets with the tokens substituted and
-//   `:focus-visible` desugared to an attribute, so JSDOM computes a real box-shadow
-//   and a real width; it lays nothing out and paints nothing. Chrome measured the ring
+//   `:focus-visible` desugared to an attribute, so JSDOM computes a real outline and a
+//   real width; it lays nothing out and paints nothing. The band is an `outline` since
+//   #578 — it was a three-layer box-shadow when this gate was written, and the property
+//   is the only thing that changed: the band is still 2px standing 1px off the border
+//   box, so every number below is the number it was written against. Chrome measured the ring
 //   itself for #575, before and after, at both widths in both themes.
 // - Whether the row takes the ring AT ALL is stories/focus-ring.test.js's question.
 //   This gate reads only the rows that already draw it, and a rail whose rows lost
@@ -90,7 +93,8 @@ const railMarkup = (collapsed) => sidebarNav({
   ariaLabel: 'Primary', sections: SECTIONS, active: 'pending', collapsed, footer: SIGN_OUT,
 });
 
-/** 1px of gap and 2px of ring: what --ring draws outside the border box. */
+/** 1px of offset and 2px of band: what --ring draws outside the border box. --ring-offset
+ *  is --ring-gap-width, so the spread is the same three pixels an outline leaves. */
 const spread = (() => {
   const tokens = readFileSync('src/tokens/tokens.css', 'utf8');
   const read = (name) => Number(/^(-?\d+(?:\.\d+)?)px$/.exec(
@@ -164,7 +168,7 @@ function ringCarriers(win, root, ring) {
   for (const el of root.querySelectorAll('*')) {
     focus(el);
     const style = win.getComputedStyle(el);
-    const draws = style.boxShadow && style.boxShadow.trim() === ring;
+    const draws = style.outline && style.outline.trim() === ring;
     el.removeAttribute('data-ui-state');
     if (!draws) continue;
     found.push({
@@ -222,7 +226,7 @@ function readRail(theme, extra = '') {
   const doc = win.document;
   const reference = doc.querySelector('#ref');
   focus(reference);
-  const ring = win.getComputedStyle(reference).boxShadow.trim();
+  const ring = win.getComputedStyle(reference).outline.trim();
   assert.ok(ring && ring !== 'none', `the kit ring resolved nothing in ${theme}`);
   const rail = doc.querySelector('#folded .ui-nav--side.is-collapsed');
   assert.ok(rail, 'sidebarNav({ collapsed: true }) no longer renders a folded rail');
@@ -328,7 +332,7 @@ test('the other way out is real: a rail that keeps the room may clip', () => {
   // fixture: rail 24..65, row 27..62, ring ink at 24,25 and 63,64 — inside the clip
   // edge on both sides. The current plate closes with the row, because a plate left at
   // the strip paints OVER the ring's right band: it is a z-index: -1 ::before, which
-  // paints after its row's own box-shadow.
+  // paints after its row's own background.
   const strip = stripWidth();
   const mutation = `.ui-nav--side.is-collapsed { overflow-x: clip; padding: ${spread}px; }`
     + `.ui-nav--side.is-collapsed .ui-nav__item { width: ${strip - 2 * spread}px; }`

@@ -76,21 +76,18 @@
 }
 .ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/specification.md#the-page-shell */
 .ui-nav__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ color: var(--strong); }
-/* The current row is a FILL, and the fill has to be one a reader can see: a rail is
-   --surface, and --surface on --surface measures 1.000:1 — the hairline this rule used
-   to carry was the whole of the mark on the light theme. --surface-3 is the kit's quiet
-   non-text fill and the step the folded rail's plate already takes: 1.140:1 in light,
-   1.160:1 in dark. #578 round r34. why: docs/specification.md#the-focus-ring */
+/* The current row's own mark — its fill, its hairline and its marker — is #475's
+   subject, reworked to a plate on #593. #578 changes only what the BAND is made of
+   here, so this row keeps the look it shipped with and the two changes do not collide.
+   why: docs/specification.md#the-focus-ring */
 .ui-nav__item.is-active {
-  background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--strong);
   font-weight: 500;
 }
-/* The current row is its fill and the accent marker below — no hairline around it.
-   An edge on a selected row is the shape the focus band has, one pixel further in,
-   so the two read as the same signal; Artur separated them on #578 round r34:
-   selection is a background highlight, an outline means focus.
-   why: docs/specification.md#the-focus-ring */
+.ui-nav--side .ui-nav__item.is-active {
+  box-shadow: inset 0 0 0 1px var(--border);
+}
 /* Accent rail marker on the active item */
 .ui-nav--side .ui-nav__item.is-active::before {
   content: "";
@@ -139,7 +136,7 @@
    ring is an outline since #578 and this rule outranks it: a row that is hovered AND
    focused draws the ring, which is the choice the kit's rows already made. */
 .ui-nav__item.is-active:not(.is-danger):hover:not(:focus-visible) {
-  background: var(--surface-3); outline: 1px solid var(--control-edge); outline-offset: -1px; /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  background: var(--surface); outline: 1px solid var(--control-edge); outline-offset: -1px; /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
 }
 
 /* Per-item badge / counter */
@@ -204,6 +201,12 @@
   animation: m-slide-down var(--dur-fast) var(--ease-out) both;
 }
 .ui-nav__item--sub { font-size: calc(var(--text-base) - 0.5px); padding: 7px 12px; }
+/* No hairline on a nested current row: the indent above already draws a guide, and a
+   box around the row inside it reads as a second one. The `:not(:focus-visible)` this
+   rule carried is gone with #578 — box-shadow used to carry the ring as well as the
+   hairline, so cancelling it at rest had to say "at rest" or it silenced the band
+   (WCAG 2.4.7). The band is an `outline` now and this reaches neither. */
+.ui-nav--side .ui-nav__item--sub.is-active { box-shadow: none; }
 /* Hangs back onto the guide hairline the indent above draws. */
 .ui-nav--side .ui-nav__item--sub.is-active::before { left: calc(-1 * var(--space-3)); height: 15px; }
 
@@ -282,8 +285,12 @@
    from 0.66 to full ink is the second half of that pair. `isolation` is what puts the
    plate behind the glyph: a positioned ::before paints over its row's content, and a
    negative z-index with no stacking context of its own would drop it behind the rail.
-   why: #429 */
-.ui-nav--side.is-collapsed .ui-nav__item.is-active { isolation: isolate; background: none; }
+
+   `box-shadow: none` is what takes the open rail's hairline off, and it is unconditional
+   since #578: box-shadow carried the hairline AND the ring, so cancelling it at rest had
+   to say "at rest" or it silenced the band (WCAG 2.4.7). The band is an `outline` now and
+   this reaches neither. why: #429 */
+.ui-nav--side.is-collapsed .ui-nav__item.is-active { isolation: isolate; background: none; box-shadow: none; }
 /* The plate is what marks the current row on a folded rail, where the label the
    open rail highlights is not there to carry it. */
 .ui-nav--side.is-collapsed .ui-nav__item.is-active::before {

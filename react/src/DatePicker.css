@@ -131,6 +131,15 @@
 /* On the pick's own fill the ring has no accent left to stand against, so it
    takes the fill's contrast ink. */
 .ui-datepicker__opt.is-selected.is-today { border-color: var(--accent-contrast); }
+/* Under the keyboard the current period's own edge stands aside, so the band is the
+   one shape on the cell. The border sits inside the box and the band 1px outside it,
+   so left standing the two painted a 1px accent edge, then a pixel of nothing, then the
+   2px band — the double accent mark #578 round r34 took off the fields, one pixel apart
+   and in the same shape.
+   After `.is-selected.is-today`, which ties with this on specificity, so a focused
+   TODAY that is also the pick draws the band alone too. The resting hollow square is
+   untouched and is the open question on #578. why: docs/specification.md#the-focus-ring */
+.ui-datepicker__opt.is-today:focus-visible { border-color: transparent; }
 
 /* A boxless ghost: the bare disabled ink, and no light-up under the pointer. */
 .ui-datepicker__opt.is-disabled {

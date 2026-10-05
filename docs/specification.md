@@ -752,10 +752,21 @@ disabled text controls use the same reading surface with disabled ink. Status
 colours keep their meaning, and badge text must clear 4.5:1 in both themes.
 
 `--surface-2` and `--surface-3` remain available for non-text fills. A control's
-hover or selected state uses its edge, text weight or a meaningful accent instead
-of a grey text background. Floating readouts use `--bg-elevated` and keep their
-existing edge and shadow treatment. Decided in
+HOVER state uses its edge, text weight or a meaningful accent instead of a grey text
+background. Floating readouts use `--bg-elevated` and keep their existing edge and
+shadow treatment. Decided in
 [#455](https://github.com/apliteni/apliteni-ui/issues/455).
+
+A control's SELECTED state is the one exception, and #578 round r34 is what made it one:
+"Outline only for focus. Selected - use background highlight." #455 offered a selected
+state an edge, and r34 took the edge away, so for a text-bearing control the two
+decisions cannot both hold — the mark has to be a fill, and the only fills that step off
+a reading surface are the grey ones. Three selected marks take one: the chosen segmented
+pill on `--surface-3`, and a menu row and a palette row on `--surface-2`. The menu and
+palette rows are transient, moving with the pointer or the arrow keys; the chosen pill is
+not, so it is the one place in the kit where a label rests on a quiet grey fill. It is
+recorded here rather than argued away, and which of the two decisions should give is open
+for Artur on [#578](https://github.com/apliteni/apliteni-ui/issues/578).
 
 **An inline code chip paints the reading surface its container is not on.** A container says
 which one that is in `--code-bg`, and the chip reads it — it never declares it:
@@ -1007,8 +1018,13 @@ hover edge — one indicator, which is what the kit's menu rows already did. Whe
 resting rule outranks the focus rule it steps aside with `:not(:focus-visible)`, which is
 what the folded rail's rows already did: the open rail's current row joins them, and so
 do the picker's three cancellations of its own hover edge, on a selected, a current and
-a blocked day. A gate resolves the cascade for every keyboard stop and fails a stop whose
-ring loses.
+a blocked day, and the site's own selected accent controls — the topbar's accent dot and
+the landing playground's accent chip, which mark themselves with an accent `box-shadow`.
+That shadow was REPLACED while the band was a box-shadow; an outline does not replace it,
+so the two fused into one flush 3px accent edge until each stood aside. A gate resolves
+the cascade for every keyboard stop and fails a stop whose ring loses — for the kit's two
+trees. `site/` is a consumer of the kit rather than part of it, and
+stories/ring-carrier.test.js says so in its own coverage limits.
 
 **One band, and nothing beside it.** A focused control draws the band and leaves every
 other edge at its resting ink. Six rules used to recolour a control's own 1px border to
@@ -1033,28 +1049,42 @@ active item is marked by its fill, its ink and its weight — never by an edge d
 it. An edge on a selected row is the shape the focus band has, one pixel further in, so a
 reader cannot tell which of the two they are looking at, and a row that was both selected
 and focused drew both. Artur settled it on #578 round r34, on the open rail's current
-row: "Outline only for focus. Selected - use background highlight." Four marks came off
-for it: the rail's current row lost its 1px hairline, the chosen segmented pill its 1px
-accent outline, the command palette's active row its 1px edge, and the dropdown's active
-row its inset accent bar.
+row: "Outline only for focus. Selected - use background highlight." Three marks came off
+for it: the chosen segmented pill lost its 1px accent outline, the command palette's
+active row its 1px edge, and the dropdown's active row its inset accent bar. The OPEN
+RAIL'S own current row is left exactly as it shipped, hairline and all: that row is
+[#475](https://github.com/apliteni/apliteni-ui/issues/475)'s subject and is reworked to a
+plate on [#593](https://github.com/apliteni/apliteni-ui/pull/593), so changing it here
+would mark the same row twice over.
 
-Taking the edge off is half of it. The fill underneath was `--surface`, and in LIGHT
-`--surface` and `--bg-elevated` are both `#ffffff` — 1.000:1 — so on a rail, a menu panel
-or a palette the fill drew nothing and the edge had been the whole mark. Three of the
-four move to a fill that steps off the ground their own component paints: a nav or rail
-row to `--surface-3` (1.140:1 light, 1.160:1 dark, which is the step the folded rail's
-plate already took), and a menu row and a palette row to `--surface-2` on their
-`--bg-elevated` panel (1.183:1 light, 1.234:1 dark). The chosen segmented pill keeps
-`--surface` on the strip's own track, where it already stepped. A gate measures each pair
-in both themes against a 1.1:1 floor, which is not a WCAG number: WCAG sets no
-requirement for a background that carries no information by itself, and the ink on these
-rows is measured elsewhere.
+Taking the edge off is half of it. The fill underneath was the ground the component
+itself paints — `--surface` on a menu panel is `#ffffff` on `#ffffff` in LIGHT, 1.000:1 —
+so on a panel, a palette or the segmented strip's own track the fill drew nothing and the
+edge had been the whole mark. All three move to a fill that steps off that ground: the
+chosen pill to `--surface-3` on the track (1.140:1 light, 1.160:1 dark, which is the step
+the folded rail's plate already took), and a menu row and a palette row to `--surface-2`
+on their `--bg-elevated` panel (1.183:1 light, 1.234:1 dark). A gate measures each pair in
+both themes against a 1.1:1 floor, which is not a WCAG number: WCAG sets no requirement
+for a background that carries no information by itself, and the ink on these rows is
+measured elsewhere. The gate DISCOVERS the kit's selected fills rather than taking a list,
+and it measures every background a selector is given rather than the first — a later rule
+is what a reader sees, and a flattening override is what it is there to catch.
 
-A rail row also keeps the 3px accent marker in its own padding, which is a mark inside
-the row rather than an edge around it, and the folded rail keeps its plate; an underline
+The folded rail keeps its plate, the open rail's row keeps the 3px accent marker in its
+own padding — a mark inside the row rather than an edge around it — and an underline
 strip's chosen tab keeps the bar under its label
 ([#544](https://github.com/apliteni/apliteni-ui/issues/544)). Hover still adds its own
 edge, on a selected row as on any other — hover is a pointer state, not a selection.
+
+**A current period's hollow square comes off under the band.** The picker marks the
+period the reader is in with a 1px accent BORDER, which sits inside the box while the
+band sits 1px outside it: left standing, a focused current day painted 1px of accent,
+1px unpainted and then the 2px band — the same double mark the fields lost above, in the
+same shape. So `.is-today` takes its border off under `:focus-visible`, after the rule
+that paints a current-and-chosen day, which ties it on specificity. At rest the hollow
+square is untouched: hollow for where you are, filled for what you chose, which is the
+pair a calendar has always drawn. Whether the current day should be an accent edge at all
+is open for Artur on #578.
 
 **One selected mark is still an edge, and says so.** The current page in a pager keeps
 its `--border` hairline. A pager stands on the page in one showcase and on a card in
@@ -1814,9 +1844,8 @@ What the shell guarantees:
   plate instead: `--surface-3`, the kit's quiet non-text fill, `--ui-nav-strip` wide at the row's
   own edge — twice a glyph's centre, so the plate is centred on the glyph. The bar cannot serve
   there, because the padding it stands in is the rail's own edge on a strip and a nested row puts it
-  `--space-3` further out again. The open rail's row carried a 1px hairline as well until #578
-  round r34, where Artur took every edge off a selected item: it is the fill and the marker now.
-  Both references mark current the same
+  `--space-3` further out again; nor can the resting hairline, which is drawn on a row that keeps
+  the open column and so has its right edge off the strip. Both references mark current the same
   way and with no hue: Cloudflare's docs rail paints a flat plate, and `lessly-ui`'s rail is a plate
   and the weight step. Artur asked for it on 2026-09-30. The plate sits behind the glyph on the
   row's own stacking context, so the focus ring is untouched.
@@ -3734,11 +3763,13 @@ row above or the row below. The strip itself draws no rule under its tabs — th
 chosen tab carries the selection, so a line there marked nothing — and a consumer
 that wants one draws it on the container.
 
-The accent is spent once because the underline rule cancels the 1px accent
-outline `.ui-seg button.is-active` gives every chosen segmented button, which was
-the second of the two marks [#544](https://github.com/apliteni/apliteni-ui/issues/544)
-reported. The pill appearance keeps that outline; it is a separate decision on a
-rule every segmented control in the kit shares.
+The accent is spent once, and since #578 round r34 there is nothing for the underline
+rule to cancel: `.ui-seg button.is-active` gave every chosen button a 1px accent outline,
+which was the second of the two marks
+[#544](https://github.com/apliteni/apliteni-ui/issues/544) reported, and r34 took it off
+the shared rule for every appearance. The pill appearance marks its chosen button with a
+fill instead; the underline strip overrides that fill back to `none`, because the bar
+under the label is its whole mark.
 
 **Every tab reserves the bar, and the chosen one draws it.** The slot sits on
 every tab at `opacity: 0` and `scaleX(0.4)`, and the chosen tab's rule turns it

@@ -27,11 +27,9 @@ export const SPEC_CSS = `
       background: var(--surface);
       box-shadow: inset 0 0 0 1px var(--border); }
     .gas-row { height: 6px; border-radius: 2px; flex: none;
-
       background: color-mix(in srgb, var(--muted) 45%, transparent); }
     .gas-row--cur { background: var(--accent); }
     .gas-ln { height: 5px; border-radius: 2px; flex: none;
-
       background: color-mix(in srgb, var(--muted) 45%, transparent); }
     .gas-ln--short { width: 44%; }
     .gas-ln--half { width: 62%; }
@@ -39,7 +37,6 @@ export const SPEC_CSS = `
     /* What an overlay does to the page under it, at the same scale. */
     .gas-scrim { position: absolute; inset: 0; background: var(--scrim); }
     .gas-over { position: absolute; background: var(--bg-elevated);
-
       border: 1px solid var(--border-strong);
       box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
       display: flex; gap: 6px; padding: 8px; }

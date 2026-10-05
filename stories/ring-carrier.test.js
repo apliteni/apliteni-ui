@@ -36,8 +36,12 @@
 // - It asks whether a rule that writes the ring writes it whole. Whether the rule WINS
 //   over the always-on rules on the same element is stories/focus-ring.test.js, and
 //   whether every keyboard stop has a rule at all is that gate too.
-// - A consumer outside these two trees — an example page, a story's own <style> — is not
-//   read. Those compose the kit's classes.
+// - A consumer outside these two trees — an example page, a story's own <style>, and the
+//   whole of site/ — is not read. Those compose the kit's classes. site/ matters here
+//   because it has rules of its own that compete with the band: its selected accent
+//   controls mark themselves with an accent box-shadow, which an outline does not
+//   replace, so each stands aside under the band (#590 review). What reads site/ is
+//   stories/focus-ring.test.js, which resolves the cascade on the built page.
 //
 // why: docs/specification.md#the-focus-ring
 // Weaken the rule and confirm that its test fails.

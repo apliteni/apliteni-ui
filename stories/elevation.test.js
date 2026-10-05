@@ -102,14 +102,18 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // them — the three `box-shadow: none` rules that had to exempt focus because the band
 // shared the property with a resting hairline, the snippet card's ring, and the selected
 // accent swatch's own band. Five more went with them on round r34, where every edge came
-// off a selected item: the open rail's 1px hairline, and the four `box-shadow: none`
-// rules that had exempted a sub-row, a folded row and the shell's two folded rails from
-// it. 23 -> 22: the dropdown's active row drew its mark as an inset accent bar, which is
-// an edge on a selected row and came off with the rest.
-// What is left is elevation and decoration: no box-shadow in the kit answers focus, and
-// none marks a selection.
-  assert.equal(sweep.length, 22,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 22. `
+// off a selected item: the dropdown's active row drew its mark as an inset accent bar,
+// which is an edge on a selected row and came off with the rest.
+// 22 -> 27: #590 handed the OPEN RAIL'S current row back to #475, which reworks it to a
+// plate on #593, so this change leaves that row the look it shipped with rather than
+// marking it twice over. Back with it came its 1px hairline and the four
+// `box-shadow: none` rules that take the hairline off a sub-row, a folded row and the
+// shell's two folded rails. Those four no longer say `:not(:focus-visible)`: they had to
+// while the band shared the property with the hairline, and the band is an outline now.
+// What is left is elevation, decoration and that one row: no box-shadow in the kit
+// answers focus, and the only selection a box-shadow still marks is #593's subject.
+  assert.equal(sweep.length, 27,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 27. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/specification.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

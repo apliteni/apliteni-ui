@@ -48,15 +48,21 @@ const SUBJECTS = [
       ['brand', '.site-topbar .brand', 'the topbar brand link'],
       ['nav-link', '.site-topbar .lk', 'a topbar nav link'],
       ['theme-toggle', '.site-topbar .toggle', 'the theme toggle'],
-      ['accent-swatch', '.play-accents button', 'a playground accent swatch'],
+      // `:not(.on)` because the FIRST swatch is the selected one: both of these read
+      // `.play-accents button` first otherwise, so the pair shot the same element twice
+      // and proved nothing about the difference between them (#590 review round).
+      ['accent-swatch', '.play-accents button:not(.on)', 'an unchosen playground accent swatch'],
       // The SELECTED swatch is a separate subject: it is the one #487's review
       // found painting nothing when focused, because `.on` tied the chrome's
-      // focus rule on specificity and won on source order.
+      // focus rule on specificity and won on source order. Since #578 the band is an
+      // `outline` and `.on`'s accent ring is a box-shadow, so the two no longer replace
+      // one another — `.on` stands aside under the band instead.
       ['accent-swatch-on', '.play-accents button.on', 'the selected playground accent swatch'],
       ['path-card', '.path-card', 'an adoption-path tab'],
       ['tab-panel', '#paths-panel-humans', 'the adoption-path panel'],
       ['copy', '.term__copy', 'a snippet copy button'],
-      ['footer-dot', '.site-footer .accents button', 'a footer accent dot'],
+      ['footer-dot', '.site-footer .accents button:not(.on)', 'an unchosen footer accent dot'],
+      ['footer-dot-on', '.site-footer .accents button.on', 'the selected footer accent dot'],
       ['footer-link', '.site-footer a', 'a footer link'],
     ],
   },

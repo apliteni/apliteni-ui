@@ -47,7 +47,14 @@
     box-shadow: 0 0 0 1px var(--border); color: var(--text); font: 600 14px/1 var(--font-sans);
     cursor: pointer; transition: color .15s, box-shadow .15s, transform .15s; }
   .play-accents button:hover { transform: translateY(-2px); color: var(--strong); }
-  .play-accents button.on { color: var(--strong); box-shadow: 0 0 0 2px var(--accent); }
+  .play-accents button.on { color: var(--strong); }
+  /* The chip's accent ring stands aside under the band, as the dot's does in CHROME_CSS,
+     and falls back to the hairline every chip carries — so the band is one 2px shape at
+     its 1px offset rather than fusing with the ring into a flush 3px edge. Later than
+     CHROME_CSS's `.accents button.on:not(:focus-visible)` and tying it at (0,3,1), which
+     is what keeps a chip from taking the round dot's two-layer ring. The ink step stays
+     on `.on` above, so a focused chip is still the one in --strong. #482, #578 */
+  .play-accents button.on:not(:focus-visible) { box-shadow: 0 0 0 2px var(--accent); }
   .play-accents .play-sw { width: 18px; height: 18px; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
 
   /* The demo screen: the settings column beside the table at desk width,

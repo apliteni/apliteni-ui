@@ -1231,6 +1231,30 @@ describe('the hover edge', () => {
         .toMatch(/outline-color:\s*transparent/);
     }
   });
+
+  /* A focused current period draws ONE band. `.is-today` keeps an accent BORDER at
+   * rest, inside the box, and the band sits 1px outside it, so left standing the two
+   * painted the double accent mark #578 round r34 took off the fields — Chrome read
+   * `outline: rgb(106,45,204) solid 2px; border: 1px solid rgb(106,45,204)` (#590).
+   * Held as text, for the reason the describe above is: JSDOM resolves no outline, so
+   * "one band" cannot be counted here. This holds that the border is cancelled under
+   * focus and that the cancellation reaches the pick too — those two rules tie at
+   * (0,3,0), so only source order decides it. The paint is a capture on the PR. */
+  it('takes the current period\'s own edge off under the band', () => {
+    expect(ruleFor('.ui-datepicker__opt.is-today:focus-visible'),
+      'a focused current period keeps its accent border, which is a second band beside the ring')
+      .toMatch(/border-color:\s*transparent/);
+    // At rest it is still the hollow square: the mark itself did not come off.
+    expect(ruleFor('.ui-datepicker__opt.is-today')).toMatch(/border-color:\s*var\(--accent\)/);
+    // And after the pick's own rule, which ties it on specificity.
+    const focused = css.indexOf('.ui-datepicker__opt.is-today:focus-visible');
+    const pickToo = css.indexOf('.ui-datepicker__opt.is-selected.is-today');
+    expect(pickToo, 'the pick-and-today rule was renamed; this ordering check measures nothing')
+      .toBeGreaterThan(-1);
+    expect(focused, 'the cancellation stands before .is-selected.is-today, which ties it at '
+      + '(0,3,0) and wins on order — so a focused TODAY that is also the pick keeps an edge')
+      .toBeGreaterThan(pickToo);
+  });
 });
 
 /* The tap zone, from this side.

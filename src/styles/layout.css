@@ -279,10 +279,14 @@
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
 /* The current row is ONE plate on the glyph column. Same rules as nav.css writes
    for a standalone folded rail, and for the same reasons: the bar stands in the
-   row's own left padding, which on the strip is the rail's edge, and
-   --ui-nav-strip is twice the glyph's centre, so a box that wide at the row's
-   edge is centred on the glyph. why: docs/specification.md#the-page-shell */
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
+   row's own left padding, which on the strip is the rail's edge; the hairline is
+   drawn on a row that keeps the open column, so its right edge is off the strip;
+   and --ui-nav-strip is twice the glyph's centre, so a box that wide at the row's
+   edge is centred on the glyph. `box-shadow: none` is unconditional since #578:
+   box-shadow carried the hairline AND the ring, so cancelling it at rest had to say
+   "at rest" or it silenced the band (WCAG 2.4.7). The band is an `outline` now.
+   why: docs/specification.md#the-page-shell */
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; box-shadow: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ z-index: -1; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:hover:not(:focus-visible) { outline: none; }
 /* The label IS the chip. `fixed` is the fallback placement, out of the rail's own
@@ -487,7 +491,7 @@
   .ui-app__brand span { opacity: 0; pointer-events: none; }
   .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
   .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
-  .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
+  .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; box-shadow: none; }
   .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ z-index: -1; }
   .ui-app__rail .ui-nav__item:hover:not(:focus-visible) { outline: none; }
   /* The one line of this block that is deliberately NOT the reader's fold: a finger
