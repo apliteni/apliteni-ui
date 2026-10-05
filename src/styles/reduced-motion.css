@@ -6,8 +6,8 @@
  * `iteration-count: 1` lets one-shot animations settle on their final frame — a
  * checkmark stays drawn — instead of snapping back to the start.
  *
- * why: docs/specification.md#reduced-motion-travels-with-the-stylesheet
- * why: docs/specification.md#motion */
+ * why: docs/foundations.md#reduced-motion-travels-with-the-stylesheet
+ * why: docs/foundations.md#motion */
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto !important; }

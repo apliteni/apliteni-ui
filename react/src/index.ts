@@ -6,9 +6,9 @@
 // From the entry rather than motion.css because both icon gates read each sheet under
 // src/styles/ alone and refuse an @import inside one. Adding another means measuring it:
 // stories/react-bundle-cascade.test.js allows a re-emitted sheet only while it moves nothing.
-// why: docs/specification.md#motion
-// why: docs/specification.md#a-field-is-16px-on-a-touch-screen
-// why: docs/specification.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
+// why: docs/foundations.md#motion
+// why: docs/foundations.md#a-field-is-16px-on-a-touch-screen
+// why: docs/components.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
 import '../../src/styles/reduced-motion.css';
 import '../../src/styles/field-zoom.css';
 import '../../src/styles/tap-zone.css';
@@ -52,7 +52,7 @@ export type { PaginationProps } from './Pagination';
 // skipLibCheck off, `any` with it on). The declaration that ships now names
 // only itself. `readonly`, because the scale is the kit's answer and not an
 // array a call site may push a fourth step onto.
-// why: docs/specification.md#pagination
+// why: docs/components.md#pagination
 import { PAGE_SIZES as KIT_PAGE_SIZES, DEFAULT_PAGE_SIZE as KIT_DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 
 export const PAGE_SIZES: readonly number[] = KIT_PAGE_SIZES;

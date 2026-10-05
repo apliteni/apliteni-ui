@@ -1,6 +1,6 @@
 // The index: one row per page. Every title, count, gap and link comes from
 // _overview.js — nothing on this page is typed twice.
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { GROUND_CSS, ground } from './_layout.js';
 import { TITLE, LINKS } from './_overview.js';
 

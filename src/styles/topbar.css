@@ -132,7 +132,7 @@
   /* The two-step edge and the drop, through the level's own names: in DARK that is
      --border-strong outside and --border one pixel inside it, then the drop; in LIGHT
      both lines are transparent and the drop carries the whole separation.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: 16px;
@@ -141,7 +141,7 @@
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a box
      that is drawn is a box that is hit. The open rule takes this back.
-     why: docs/specification.md#the-dropdown-panel */
+     why: docs/components.md#the-dropdown-panel */
   pointer-events: none;
   transform: translateY(-6px);
   /* Named properties, not the bare shorthand: `transition: 0.18s` is `all`, and `all`
@@ -159,7 +159,7 @@
    open transition, because the frame the open class lands is the frame the wiring moves
    focus onto a row in and a browser will not focus inside a hidden box; and
    `pointer-events` back on, because the closed rule turned it off.
-   why: docs/specification.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .vsw.open .vsw__menu {
   opacity: 1;
   visibility: visible;
@@ -189,7 +189,7 @@
 }
 /* Menu rows use the reading surface and an edge on hover — see
    src/styles/dropdown.css:176 `.ui-dropdown__item:hover`.
-   why: docs/specification.md#elevation */
+   why: docs/foundations.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 /* The row is a keyboard stop: src/components/dropdown.js:804
    `items[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
@@ -210,7 +210,7 @@
 }
 .vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
 .vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
-/* The phone step — the same one the rail folds at: docs/specification.md#breakpoints.
+/* The phone step — the same one the rail folds at: docs/foundations.md#breakpoints.
    The switcher keeps its glyph and drops its label.
    The menu hangs the other way here. Anchored by its left edge it opened
    rightwards off a band that is as wide as the page, and a CLOSED menu is still
@@ -231,7 +231,7 @@
    area. Packed to --space-2 the band needs 352 of the 362 it has there, so the
    avatar is whole with the band's own gutter beside it. 320 is still short of the
    room these controls want, which stays #558.
-   why: docs/specification.md#breakpoints */
+   why: docs/foundations.md#breakpoints */
 @media (max-width: 560px) {
   .topbar__in { gap: var(--space-2); }
 }
@@ -265,14 +265,14 @@
   /* The two-step edge and the drop, through the level's own names: in DARK that is
      --border-strong outside and --border one pixel inside it, then the drop; in LIGHT
      both lines are transparent and the drop carries the whole separation.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: 14px;
   /* No clip. The rows reach this panel's edges, and the ring a focused row draws reaches
      3px past itself; `overflow: hidden` here cut that down to the one pixel of border it
      had, and the reader met two accent bars instead of a ring. The ring crosses the edge
-     now. #519 why: docs/specification.md#a-menu-panel-does-not-cut-off-its-rows-ring */
+     now. #519 why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
   opacity: 0;
   visibility: hidden;
   pointer-events: none; /* see .vsw__menu above */

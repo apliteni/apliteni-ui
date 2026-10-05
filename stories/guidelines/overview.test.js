@@ -1,5 +1,5 @@
 /* Rule: the Overview lists every guideline page, and every link it builds is a
- * story id Storybook actually publishes. See docs/guidelines.md.
+ * story id Storybook actually publishes. See AGENTS.md#the-guidelines-collection.
  *
  * An index that misses a page is worse than no index — the reader believes they
  * have seen the collection. So this gate never enumerates the pages: it

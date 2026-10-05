@@ -21,7 +21,7 @@
  * surface token in both themes, and holds any disabled rule that gives its box
  * back to the ground to that ink.
  *
- * why: docs/specification.md#pagination
+ * why: docs/components.md#pagination
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

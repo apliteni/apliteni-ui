@@ -41,7 +41,7 @@ export declare const DD_MENU_FLOOR: number;
  *  the width it reached for, and whether it is anchored at its inline end.
  *  `null` unless the dropdown is inside a `.ui-filter-bar__chip`: the slide is a
  *  chip's offset along its row, so a panel anchored to the row itself is not this
- *  function's subject and sizes itself. why: docs/library.md */
+ *  function's subject and sizes itself. why: docs/components.md */
 export declare function filterPanelFit(
   dd: Element | null | undefined,
   floor?: number,

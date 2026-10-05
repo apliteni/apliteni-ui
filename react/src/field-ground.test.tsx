@@ -2,7 +2,7 @@
 // never on the page ground. The React half; stories/field-ground.test.js is the
 // other, over the same reading in stories/lib/field-ground.js.
 //
-// Cause and numbers: docs/specification.md#colour-and-contrast. Raised by Artur in
+// Cause and numbers: docs/foundations.md#colour-and-contrast. Raised by Artur in
 // round r28 of #551 — "Disabled fields almost invisible because of that." #556 moved
 // the vanilla galleries onto the card and left this catalogue unwalked; #568 is that
 // gap.

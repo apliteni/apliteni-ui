@@ -38,7 +38,7 @@
   /* -- Measure ------------------------------------------------------------
    * --container is the page, gutter to gutter; --measure is the reading column
    * INSIDE a track, beside a sidebar. Different axes, never interchangeable.
-   * why: docs/specification.md#widths */
+   * why: docs/foundations.md#widths */
   --container: 1120px;
   --measure: 860px;
 
@@ -50,7 +50,7 @@
    * smears, worst of all in Cyrillic, which is where the kit spends most of its
    * pixels. IBM Plex Sans is humanist and narrower, and its Cyrillic was drawn
    * by the same team as its Latin.
-   * why: docs/specification.md#typefaces */
+   * why: docs/foundations.md#typefaces */
   --font-display: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -136,7 +136,7 @@
   /* The elevation ladder, bottom to top. A surface says how high it is with its step
      and, IN DARK, with the hairline around it; --muted caps how far the ladder can go.
      Nothing casts in dark below the floating step, and the floating step adds
-     --elev-drop under its inner line. why: docs/specification.md#elevation */
+     --elev-drop under its inner line. why: docs/foundations.md#elevation */
   --bg: #0e0d14;
   --table-bg: var(--bg);
   /* A dark table is flush with the page, so the reading surface an inline code chip has
@@ -163,20 +163,20 @@
   /* WHICH EDGE EACH LEVEL DRAWS. One name per level, so a sheet never has to ask
      which theme it is in. Dark answers all four with the hairline, because a drop
      on a near-black page reaches 1.20 at its core and has nowhere else to go —
-     light answers them with the drop instead. why: docs/specification.md#elevation */
+     light answers them with the drop instead. why: docs/foundations.md#elevation */
   --card-edge: var(--border);          /* a card */
   --rail-edge: var(--border);          /* the shell's rail */
   --float-edge: var(--border-strong);  /* a floating surface, outer line */
   --float-edge-inner: var(--border);   /* a floating surface, inner line */
 
-  /* Fields use the card surface and an edge in both themes. why: docs/specification.md#elevation */
+  /* Fields use the card surface and an edge in both themes. why: docs/foundations.md#elevation */
   --field-bg: var(--surface);
   --field-edge: var(--border);
   --field-edge-hover: var(--border-strong);
   --control-edge: var(--border);
 
   /* How much of its own colour a tinted card mixes in. Dark mixes upward off a mid-grey
-     card, so it can afford this much. why: docs/specification.md#elevation */
+     card, so it can afford this much. why: docs/foundations.md#elevation */
   --card-tint: 9%;
 
   --text: #e9e7f0;
@@ -184,31 +184,31 @@
   --dim: #c6c2d6;
   /* Picked against the TOP of the ladder above, not against the page: #948fa8 cleared the
      two floating steps by hundredths. Same violet-grey, fourteen steps up every channel.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   --muted: #a29db6;
 
   /* The paint of a control that is off. NOT an opacity: `opacity` is a group property,
      so it fades label and box toward the ground TOGETHER — a disabled primary button
      measured 1.48:1 that way. These three are aliases that composite predictably, the
      ink read on the surface beside it. Held by guidelines/accessibility-floor.test.js.
-     why: docs/specification.md#colour-and-contrast */
+     why: docs/foundations.md#colour-and-contrast */
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface);
   /* One rung below the hairline, so an off box is not the live box with quieter words
      in it: dark answered both with --border. 1.16:1 on the card against the live
      1.27:1, and as far down as the headroom goes. #564
-     why: docs/specification.md#colour-and-contrast */
+     why: docs/foundations.md#colour-and-contrast */
   --disabled-border: var(--surface-3);
   /* The ink of a disabled control that paints no box of its own — a ghost button. With
      no surface beside it, it is read on whatever is behind it, so it is set to clear the
      floor on the dullest ground there is (--surface-3). #273
-     why: docs/specification.md#colour-and-contrast */
+     why: docs/foundations.md#colour-and-contrast */
   --disabled-ink-bare: #a39eb7;
 
   /* Lifted from #9b5dff, which cleared the flat surfaces and failed on its own wash over
      a card; the value was already in the ramp. --ring-color is var(--accent) and follows by
      reference. Held by stories/accent-contrast.test.js. #157.
-     why: docs/specification.md#colour-and-contrast */
+     why: docs/foundations.md#colour-and-contrast */
   --accent: #b479ff;
   --accent-strong: #7c3aed; /* button bg — white text clears WCAG AA at 5.70:1 */
   --accent-contrast: #ffffff;
@@ -216,7 +216,7 @@
   /* Ink that reads on a SIGNAL colour once that colour becomes a fill — the glyph in a
      success circle, or on a toast's status circle. One near-black ink clears all five in
      dark; danger keeps its own token because LIGHT still needs one.
-     why: docs/specification.md#colour-and-contrast */
+     why: docs/foundations.md#colour-and-contrast */
   --signal-contrast: #0c0c0c;
   --danger-contrast: var(--signal-contrast);
 
@@ -257,13 +257,13 @@
      A transparent shadow, not `none`, because these are read in a LIST. The kit's own
      pre-0.32 pattern was `box-shadow: var(--shadow-lg), var(--ring)`, and `none` is only
      valid alone — it makes the whole declaration invalid, which silently takes the focus
-     ring with it. `0 0 #0000` composes. why: docs/specification.md#elevation */
+     ring with it. `0 0 #0000` composes. why: docs/foundations.md#elevation */
   --shadow-sm: 0 0 #0000;
   --shadow-md: 0 0 #0000;
   --shadow-lg: 0 0 #0000;
   --shadow-seg: 0 0 #0000;
   --shadow-card: 0 0 #0000;
-  /* G2: the band carries contrast; the halo decorates it. why: docs/specification.md#the-focus-ring */
+  /* G2: the band carries contrast; the halo decorates it. why: docs/foundations.md#the-focus-ring */
   --ring-width: 2px;
   --ring-color: var(--accent);
   --ring-gap-width: 1px;
@@ -273,7 +273,7 @@
      no halo. An OUTLINE, because an inset shadow is painted under the box's own
      children and a table scrolled under one erases it. The gap is left unpainted, so
      neither half reads --ring-gap and neither is recomposed per surface. Chosen by
-     Artur on #531 round r30. why: docs/specification.md#the-focus-ring */
+     Artur on #531 round r30. why: docs/foundations.md#the-focus-ring */
   --ring-scroll: var(--ring-width) solid var(--ring-color);
   --ring-scroll-offset: calc(-1 * (var(--ring-gap-width) + var(--ring-width)));
 
@@ -289,7 +289,7 @@
      nothing below could re-point it. A floating surface writes the pair itself:
        box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
      Dark spends 62% / 50% of the ink and reaches 1.20 at the drop's core, having
-     nowhere to go on a near-black page. why: docs/specification.md#elevation */
+     nowhere to go on a near-black page. why: docs/foundations.md#elevation */
   --elev-drop:
     0 14px 30px -12px color-mix(in srgb, var(--shadow-ink) 62%, transparent),
     0 3px 9px -4px color-mix(in srgb, var(--shadow-ink) 50%, transparent);
@@ -297,7 +297,7 @@
   /* The ladder's two resting rungs, which only light climbs. Transparent here and
      not `none`, for the reason the deprecated --shadow-* tokens are: these are read
      in a layer list, and `none` is valid only alone — it would invalidate the whole
-     declaration and take the focus ring with it. why: docs/specification.md#elevation */
+     declaration and take the focus ring with it. why: docs/foundations.md#elevation */
   --elev-rest: 0 0 #0000;   /* a card */
   --elev-rail: 0 0 #0000;   /* the shell's rail, cast sideways */
 
@@ -337,7 +337,7 @@
      blue than the one it replaces. Light spends its white on the surface you read
      ON, and separates the panel that floats over it by role — its two-step edge and
      its drop — rather than by a rung it has nothing left to pay for. See issue #448.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   --bg: #f2f3f6;
   --table-bg: #ffffff;
   --table-code-bg: var(--bg);
@@ -356,7 +356,7 @@
      the reference he supplied. A line divides two regions of ONE surface (a card's
      rows, a table's rules, the rail's head band, the topbar); a drop says a surface
      is HIGHER, and only a higher surface may cast one.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   --card-edge: transparent;
   --rail-edge: transparent;
   --float-edge: transparent;
@@ -364,14 +364,14 @@
 
   /* Light draws a field with its EDGE, because since #448 it has no well left to draw it
      with: a card and a panel are both white, the sunken step falls two rungs under either,
-     and --border on it measures 1.047:1. why: docs/specification.md#elevation */
+     and --border on it measures 1.047:1. why: docs/foundations.md#elevation */
   --field-bg: var(--surface);
   --field-edge: var(--border-strong);
   --field-edge-hover: var(--muted);
   --control-edge: var(--border-strong);
 
   /* Light mixes DOWN from white, so tint costs lightness: 5% is the most a card can spend
-     and stay above the page. why: docs/specification.md#elevation */
+     and stay above the page. why: docs/foundations.md#elevation */
   --card-tint: 5%;
 
   --text: #1a1e27;
@@ -446,7 +446,7 @@
      and held in by a negative spread. None is a glow — a glow is a zero-offset layer of
      the signal's own colour. A level with no line casts a rung that reaches on every
      side it exposes, which is why the wide layer's offset stays under half its blur.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   --elev-rest:
     0 2px 26px -3px color-mix(in srgb, var(--shadow-ink) 9%, transparent),
     0 1px 3px -1px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
@@ -471,7 +471,7 @@
  *   a box that holds a LINE        ->  --prose-*   (ch)
  *
  * Both are theme-invariant, so they sit outside the palette blocks.
- * why: docs/specification.md#boxes-below-the-page
+ * why: docs/foundations.md#boxes-below-the-page
  * ========================================================================== */
 :root {
   /* -- Panel widths -------------------------------------------------------
@@ -502,14 +502,14 @@
  * substituted on the element that DECLARES it — so the painted container hands it the one
  * it is not using itself, and the chip keeps a step wherever it is written. The page hands
  * over the card below; every painted container hands over the page, in the recipe under it.
- * Held by stories/code-chip.test.js. why: docs/specification.md#elevation */
+ * Held by stories/code-chip.test.js. why: docs/foundations.md#elevation */
 :root { --code-bg: var(--surface); }
 
 /* Recompose only at painted containers; controls inherit the outside gap, and each hands an
  * inline code chip the page. One recipe keeps surface propagation cheap and consistent.
  * .ui-code composes its own ring in src/styles/code.css instead of joining this list: a
  * chip cannot both paint --code-bg and re-point it, and its gap has to be the surface it
- * actually paints. why: docs/specification.md#the-focus-ring */
+ * actually paints. why: docs/foundations.md#the-focus-ring */
 .amenu,
 .dtsw,
 .rx-modal,

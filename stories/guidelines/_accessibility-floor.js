@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('accessibility-floor.md', new URL('../../guidelines/accessibility-floor.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 //
 // Three of the numbers on this page did not exist anywhere in this tree before
 // #201, and each is pinned by a measurement in
@@ -82,7 +82,7 @@ export const RING_FLOOR = 4.22;
 // #448 gave the card back its white and lifted light's pair to 5.17, so this is the
 // bar that decision set rather than what the kit measures today — a floor a theme
 // clears by 0.28 is still the floor, and lowering it later is a decision too.
-// why: docs/specification.md#elevation
+// why: docs/foundations.md#elevation
 export const DISABLED_FLOOR = 4.89;
 
 /**

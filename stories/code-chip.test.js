@@ -21,7 +21,7 @@
  *    ships no browser. Source-over in sRGB is what Chrome does, and it is checked against
  *    rendered pixels rather than asserted — the producer is scripts/evidence/code-chip.mjs,
  *    which samples the real chip and its real ground and whose numbers are quoted beside
- *    the ladder in docs/specification.md. Every computed pair here lands within 0.01 of
+ *    the ladder in docs/foundations.md#elevation. Every computed pair here lands within 0.01 of
  *    the rendered one. The INK on the chip is stories/contrast.test.js's subject, not this.
  *  - The wash subjects are the washes that take CALLER markup: `callout()` and the success
  *    panel hand their body straight through, so a chip inside one is ordinary product

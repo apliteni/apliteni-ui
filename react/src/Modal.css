@@ -7,7 +7,7 @@
  * transition before it unmounts. The reduced-motion net shortens both to 0.01ms.
  * It paints on the confirm's layer, one above the drawer's, because a modal opened
  * from a drawer is a question about the drawer.
- * why: docs/specification.md#motion */
+ * why: docs/foundations.md#motion */
 .rx-scrim { /* ring-gap: inherit — The dialog supplies the ground for every focusable control. */
   position: fixed; inset: 0; background: color-mix(in srgb, var(--shadow-ink) 82%, transparent);
   display: grid; place-items: center; z-index: calc(var(--z-overlay) + 1);
@@ -29,7 +29,7 @@
 .rx-modal__title { margin: 0; font-family: var(--font-sans); font-weight: var(--weight-normal); font-size: var(--text-base); color: var(--text); }
 .rx-modal__body { padding: var(--space-4); display: flex; flex-direction: column;
   gap: var(--space-4); min-height: 0; overflow: auto; }
-/* A scroll region, so the band draws inward. why: docs/specification.md#the-focus-ring */
+/* A scroll region, so the band draws inward. why: docs/foundations.md#the-focus-ring */
 .rx-modal__body:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .rx-modal__body > * { flex-shrink: 0; }
 .rx-modal__foot { display: flex; justify-content: flex-end; gap: var(--space-3); flex: none;

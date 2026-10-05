@@ -1,7 +1,7 @@
 /* Rule: the word-budget tool measures every guideline page, and rejects a page
  * that is over budget, one that grew, and a recorded figure that has gone stale.
  *
- * why: docs/guidelines.md#show-less-tell
+ * why: AGENTS.md#the-guidelines-collection
  *
  * The subject here is the TOOL, never the collection. #576 asked for the budget
  * deliberately outside CI: the number is read off how today's pages happen to
@@ -34,7 +34,7 @@ const page = (...rules) => ['# A page', '', ...rules.flatMap((r) => [
 const filler = (n) => Array.from({ length: n }, (_, i) => `word${i}`).join(' ');
 
 /* The same page with an introduction between its title and its first rule: what
- * docs/guidelines.md leaves no room for, and what nothing counted before #585. */
+ * AGENTS.md leaves no room for, and what nothing counted before #585. */
 const withIntro = (n, ...rules) => {
   const [title, ...rest] = page(...rules).split('\n');
   return [title, '', filler(n), ...rest].join('\n');

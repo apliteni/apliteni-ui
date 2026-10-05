@@ -4,8 +4,8 @@
  * that knew it. The glyph-box rule extends it to every stroked glyph in the kit, so the
  * number now decides two gates and lives in neither of them.
  *
- * why: docs/specification.md#icons-and-glyphs
- *      docs/specification.md#icons-and-glyphs */
+ * why: docs/foundations.md#icons-and-glyphs
+ *      docs/foundations.md#icons-and-glyphs */
 
 /** CSS px at which a stroke paints as one. Under this a stroke cannot put three
  *  quarters of its colour into any device pixel row at 1x — worst-case sub-pixel

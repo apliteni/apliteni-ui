@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
  * `var()` values, which jsdom resolves to nothing, and the third is an ellipsis,
  * which needs a layout jsdom does not have. What the clip looks like when a
  * browser does the layout is docs/evidence/back-label-long-*.png.
- * why: docs/specification.md#the-back-link
+ * why: docs/components.md#the-back-link
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(path.join(here, rel), 'utf8');

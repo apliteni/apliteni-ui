@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('drawer.md', new URL('../../guidelines/drawer.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { button, card, checkbox, switchToggle } from '../../src/components/index.js';
 import { drawer, drawerSection } from '../../src/components/drawer.js';
 import { backLink } from '../../src/components/back.js';

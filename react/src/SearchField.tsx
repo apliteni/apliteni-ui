@@ -17,7 +17,7 @@ export type SearchFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type
  * No clear button. The browser paints its own near-black on the light field and
  * white on the dark one, beside the kit's `--muted` magnifier — two glyphs, and
  * only one answers to a token — so `input.css` suppresses it.
- * why: docs/specification.md#react-search-field
+ * why: docs/components.md#react-search-field
  */
 export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField(
   { ariaLabel, className, ...props }, ref,

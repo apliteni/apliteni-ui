@@ -17,7 +17,7 @@
  * THE CASE THAT MATTERS: the root is put on a DIFFERENT accent from the one
  * selected. A gate that sets the root to the accent it then selects cannot see a
  * mark painted in var(--accent) at all.
- * why: docs/specification.md#react-accent-picker. See issues #429 and #472.
+ * why: docs/components.md#page-furniture. See issues #429 and #472.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

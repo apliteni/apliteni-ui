@@ -528,7 +528,7 @@ test('the success-panel tick clears 3:1 against the panel wash in both themes', 
  * over a composited ground. It does not prove the drawn mark's coverage, which the
  * browser captures in the PR cover.
  *
- * why: docs/specification.md#success-confirmations
+ * why: docs/components.md#success-confirmations
  */
 test('the page confirmation\'s mark clears 3:1 on every ground and mark it has', () => {
   // [layout, which stroke sits on which ground] — the split mark is the only one on the

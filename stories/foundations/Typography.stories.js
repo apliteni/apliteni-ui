@@ -18,7 +18,7 @@ const h3 = (t, note) => `
 
 /* The same paragraph twice, one face each, at the size the complaint is about.
    Cyrillic on purpose: it is where the two faces differ most, and it is most of
-   what the kit renders. why: docs/specification.md#typefaces */
+   what the kit renders. why: docs/foundations.md#typefaces */
 const SAMPLE = 'Отчёт за неделю: расход вырос на 12%, конверсия держится. '
   + 'The row you are reading is set at 13px, which is what a table cell, a form '
   + 'field and a chat bubble are set at — <b>and this is bold</b>.';
@@ -49,7 +49,7 @@ export const Scale = {
       ${specimenRow('30px', 700, 'Page title, h1', 'Access &amp; agents', 'display')}
       ${specimenRow('22px', 600, 'Section', 'Connect over MCP', 'display')}
 
-      ${h3('Text — <code style="font-family:var(--font-mono);font-size:.85em">--font-sans</code>', 'IBM Plex Sans. Humanist and narrower, with Cyrillic drawn by the same team as its Latin. This is the face the reading happens in. Page title, card title, body, label, caption and chip are the six ranks in docs/specification.md#labels-and-titles.')}
+      ${h3('Text — <code style="font-family:var(--font-mono);font-size:.85em">--font-sans</code>', 'IBM Plex Sans. Humanist and narrower, with Cyrillic drawn by the same team as its Latin. This is the face the reading happens in. Page title, card title, body, label, caption and chip are the six ranks in docs/foundations.md#labels-and-titles.')}
       ${specimenRow('18px', 600, 'Card title, h2', 'Appearance', 'sans')}
       ${specimenRow('15.5px', 400, 'Body large', 'The readable long-form version of the strategy.', 'sans')}
       ${specimenRow('14.5px', 400, 'Body', 'Personal tokens agents use to read the strategy.', 'sans')}

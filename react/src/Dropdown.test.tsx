@@ -821,7 +821,7 @@ test('state badge ink and generic metadata match the factory classification', ()
 // numbers the stylesheet reads, writing them again when the viewport moves, and
 // giving a search panel's inline pin back on close. Each of the three was a defect
 // this component shipped while the vanilla wiring did not.
-// why: docs/specification.md#a-filter-row-holds-its-panels
+// why: docs/components.md#a-filter-row-holds-its-panels
 //
 // LIMITS: JSDOM lays nothing out, so the row and the dropdown are given rects and
 // the panel the width a browser would have bounded it to. That a rendered menu

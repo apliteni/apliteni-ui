@@ -1,5 +1,5 @@
 // The stat band's markup contract.
-// why: docs/specification.md#stat-bands
+// why: docs/components.md#stat-bands
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
@@ -113,7 +113,7 @@ test('two bands on one page never share a caption id', () => {
 // A figure with nothing to compare shows its value and stops. The band used to
 // say "No earlier figure" under it; beside the figures that do carry a change,
 // that sentence is noise, and Artur struck it on 2026-10-02.
-// why: docs/specification.md#stat-bands
+// why: docs/components.md#stat-bands
 test('a figure with nothing to compare shows its value, and says nothing about it', () => {
   for (const [name, delta] of [['null', { value: null }], ['empty', { value: '' }], ['worded', { value: null, none: 'New this year' }]]) {
     const fig = one({ label: 'New entity', value: '€ 12,040', delta });
@@ -135,7 +135,7 @@ test('a figure with nothing to compare shows its value, and says nothing about i
 // goes. It is the row a change would have taken — a figure says at most one
 // thing there — so no figure stacks four text lines around its number, and a
 // band whose figures differ does not drop half its changes a line lower.
-// why: docs/specification.md#stat-bands
+// why: docs/components.md#stat-bands
 test("a figure's caption is the row a change would take, with no arrow and no tone", () => {
   const rows = (fig) => [...one(fig).querySelectorAll('.ui-stat > dd')].map((d) => d.className.split(' ')[0]);
   const own = one({ label: 'Margin', value: '36.1%', caption: 'of income' });
@@ -233,7 +233,7 @@ test('each layout puts its surface where it says', () => {
 });
 
 // Tiles, chosen by Artur on 2026-09-12 from the three rendered layouts.
-// why: docs/specification.md#stat-bands
+// why: docs/components.md#stat-bands
 test('a caller who names no layout gets tiles', () => {
   const doc = dom(statBand({ stats: FOUR }));
   assert.ok(doc.querySelector('.ui-stats--tiles'), 'the default layout is not tiles');

@@ -808,7 +808,7 @@ describe('day mode', () => {
  * renders in each mode and holds every one of them against the kit's own ring
  * rule, read out of the stylesheets rather than written here. Artur rejected a
  * control falling back to the browser's native outline on #457.
- * why: docs/specification.md#the-focus-ring
+ * why: docs/foundations.md#the-focus-ring
  *
  * What it does not reach: whether the ring is VISIBLE — that is paint, and the
  * browser captures own it. This holds the selector coverage only. */
@@ -945,12 +945,12 @@ describe('the sheet', () => {
 
   /* The step the component holds in TypeScript is one of the three the kit
    * documents, read from the table the CSS gate reads rather than repeated. */
-  it('breaks at a step the specification lists', () => {
-    const spec = read('../../docs/specification.md');
+  it('breaks at a step the reader page lists', () => {
+    const spec = read('../../docs/foundations.md');
     const section = spec.slice(spec.indexOf('\n## Breakpoints\n'));
     const steps = [...section.slice(0, section.indexOf('\n## ', 1)).matchAll(/^\|\s*`?(\d+)px`?\s*\|/gm)]
       .map(m => Number(m[1]));
-    expect(steps.length, 'steps read out of the specification').toBeGreaterThan(1);
+    expect(steps.length, 'steps read out of the reader page').toBeGreaterThan(1);
     const written = /const PHONE_MAX = (\d+);/.exec(read('./DatePicker.tsx'));
     expect(written, 'the component names its step as a literal this gate can read').not.toBeNull();
     expect(steps).toContain(Number(written![1]));
@@ -967,7 +967,7 @@ describe('the sheet', () => {
  *
  * What it does not reach: real browser paint, the focus ring (the ring gate
  * above owns it) and any state a consumer's own stylesheet adds.
- * why: docs/specification.md#react-date-and-month-picker */
+ * why: docs/components.md#react-date-and-month-picker */
 describe('every cell state is readable', () => {
   const THEMES = ['dark', 'light'] as const;
   const ACCENTS = ['default', 'phoenix', 'ocean', 'emerald'] as const;
@@ -1227,7 +1227,7 @@ describe('the hover edge', () => {
  * What it does not reach: the pixels. JSDOM lays nothing out, so the measured
  * zone is reported by hand in the pull request, as that gate's own comment
  * asks.
- * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step */
+ * why: docs/foundations.md#a-tap-reaches-the-floor-below-the-phone-step */
 describe('the tap zone below the phone step', () => {
   const sheet = read('../../src/styles/tap-zone.css').replace(/\/\*[\s\S]*?\*\//g, '');
 
@@ -1323,7 +1323,7 @@ describe('the tap zone below the phone step', () => {
  *
  * What it does not reach: the pixels. JSDOM lays nothing out, so the widths
  * themselves are measured in a browser and reported on the pull request.
- * why: docs/specification.md#react-date-and-month-picker */
+ * why: docs/components.md#react-date-and-month-picker */
 describe('the panel is the grid\'s width and no wider', () => {
   const strip = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '');
   const kit = strip(read('../../src/styles/dropdown.css'));

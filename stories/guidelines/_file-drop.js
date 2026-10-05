@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('file-drop.md', new URL('../../guidelines/file-drop.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { icon } from '../../src/assets/icons.js';
 
 // Each pair is drawn at the width of a panel, because that is where a drop row

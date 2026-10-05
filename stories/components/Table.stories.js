@@ -84,7 +84,7 @@ export const Empty = {
 };
 
 // The footer: totals open with the strong rule, labels sit against their figures, and
-// the Total row carries one weight across both cells. why: docs/specification.md#spacing-and-rhythm
+// the Total row carries one weight across both cells. why: docs/foundations.md#spacing-and-rhythm
 export const WithTotals = {
   render: () => pad(`<div class="ui-card" style="max-width:720px">
     <h2 class="ui-card__title">Sample invoice</h2>
@@ -124,7 +124,7 @@ export const CompactRowHeaders = {
 // `ui-table--stack` lays each row out as a block: the handle, the area and the time on
 // one line, the change on a line of its own. The header is clipped rather than removed,
 // so a cell still reads with its column's name. The roles are written here because a
-// stylesheet cannot write one; what each engine actually drops is in the specification.
+// stylesheet cannot write one; what each engine actually drops is in docs/components.md.
 const AUDIT = [
   ['t.quill', 'Billing', '09:12', 'Raised the monthly spend cap on the Harbor Software workspace from 2,000 to 5,000 EUR, after the June reconciliation closed short.'],
   ['m.arbor', 'Access', '08:40', 'Revoked the Old integration token. Read-only scope, unused for three weeks.'],

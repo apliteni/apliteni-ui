@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('state-set.md', new URL('../../guidelines/state-set.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { button, callout, field, input, card } from '../../src/components/index.js';
 import { busyRegion, skeletonTable } from '../../src/components/loading.js';
 

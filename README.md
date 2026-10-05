@@ -61,7 +61,7 @@ import { DataTable, Modal } from '@apliteni/apliteni-ui/react';
 
 The `appShell()` factory provides the complete product layout: the sticky rail, the page body
 and a topbar over it when you ask for one, so no product rebuilds it. The
-[component catalog](docs/library.md#component-catalog) lists this factory and every other one.
+[component catalog](docs/components.md#component-catalog) lists this factory and every other one.
 Account and personal settings belong in a modal over the product rather than on a page of
 their own — see [Guidelines / Account and settings](guidelines/account-and-settings.md).
 
@@ -100,7 +100,7 @@ only `data-accent` is present, the kit uses that accent with the dark theme. An 
 `data-theme` does *not* mean “follow the system”: the kit has no `prefers-color-scheme`
 rule. If the host wants to follow the operating system preference, its JavaScript must
 choose the theme and add the attribute. See
-[an absent attribute means dark](docs/library.md#an-absent-attribute-means-dark).
+[an absent attribute means dark](docs/components.md#an-absent-attribute-means-dark).
 
 You can change the settings at runtime with `applyTheme('light')` and
 `applyAccent('phoenix')`. These functions save the choices to `localStorage`. You can also
@@ -121,12 +121,10 @@ section.
 
 | Page | What it answers |
 | --- | --- |
-| [specification.md](docs/specification.md) | What the kit guarantees and what it refuses to do. A gate on `npm test` holds every statement. |
-| [library.md](docs/library.md) | Architecture, the `src/` layout, tokens and theming, the component catalog. |
+| [foundations.md](docs/foundations.md) | The tokens and the floors: widths, breakpoints, spacing, type, colour, elevation, the focus ring, the tap floor. |
+| [components.md](docs/components.md) | The package: what to import, theming, the component catalog, and what each component guarantees. |
 | [react/README.md](react/README.md) | The React components, their props, and the Storybook on port 6007. |
-| [storybook.md](docs/storybook.md) | The workbench: config, theming toolbar, story conventions. |
-| [landing-page.md](docs/landing-page.md) | ui.apli.tech: the chrome, the static build, the hosting. |
-| [changelog.md](docs/changelog.md) | The changelog's data model and its Storybook deeplinks. |
+| [contributing.md](docs/contributing.md) | Working on the kit: the repository's layout, Storybook, the guidelines collection, the site, the changelog and releases. |
 
 ## Contribute
 

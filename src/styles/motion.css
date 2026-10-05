@@ -13,7 +13,7 @@
  * @imported from here — the icon gates read each stylesheet on its own and
  * refuse a sheet that pulls in another.
  *
- * why: docs/specification.md#motion */
+ * why: docs/foundations.md#motion */
 
 /* -- Entrances -------------------------------------------------------------
  * `both` fill so the element starts at the "from" frame (hidden) and holds

@@ -7,7 +7,7 @@
  * round r31 rejected.
  *
  * What it measures, its limits, and the reason for each of the nine mutations:
- * why: docs/specification.md#the-chosen-tab-in-an-underline-strip
+ * why: docs/components.md#the-chosen-tab-in-an-underline-strip
  * Opt-in on a browser, as stories/tap-zone.test.js is; CI runs nothing here.
  *
  *   UI_PLAYWRIGHT=… SEG_WRAP=1 node --test stories/segmented-wrap.test.js
@@ -375,7 +375,7 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
     // 44 with the webfont loaded, 41 without, which is under the floor it
     // claimed. Every tab at every width, because a wrapped row is the case where
     // a short tab would have nowhere to grow.
-    // why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
+    // why: docs/foundations.md#a-tap-reaches-the-floor-below-the-phone-step
     for (const [name, width] of [['320', tight320], ['390', narrow], ['1280', wide], ['390 coarse', coarse]]) {
       for (const s of width) {
         for (const tab of s.tabs) {

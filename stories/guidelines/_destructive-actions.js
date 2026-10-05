@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('destructive-actions.md', new URL('../../guidelines/destructive-actions.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { toast } from '../../src/components/index.js';
 import { dropdown } from '../../src/components/dropdown.js';
 import { confirm } from '../../src/components/confirm.js';

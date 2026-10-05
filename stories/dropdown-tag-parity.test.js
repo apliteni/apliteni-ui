@@ -13,7 +13,7 @@
  * with the reset gone, the transcribed rule wins here exactly as the UA sheet
  * wins there.
  *
- * why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button
+ * why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

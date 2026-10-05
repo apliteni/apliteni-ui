@@ -8,7 +8,7 @@
 // gate's name; the vanilla gate's apply here unchanged.
 //
 // Share the calculation but check each workspace separately.
-// why: docs/specification.md#a-field-is-16px-on-a-touch-screen
+// why: docs/foundations.md#a-field-is-16px-on-a-touch-screen
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';

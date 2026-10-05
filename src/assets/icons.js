@@ -166,7 +166,7 @@ export const iconNames = Object.keys(ICONS);
 // `filter` — Lucide's funnel — fails the first test. Depicting a thing is not the
 // fault; `copy` is on this list and depicts one too. The kit reads the funnel alone
 // as not saying whether the control filters, sorts or exports — its own inference
-// from the sources in docs/specification.md, not a measured recognition finding.
+// from the sources in docs/foundations.md, not a measured recognition finding.
 // See #565.
 export const iconOnlyAllowed = {
   x: 'close or dismiss',

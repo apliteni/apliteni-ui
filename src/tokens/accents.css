@@ -25,7 +25,7 @@
  * property to one half of a pair and not the other is what breaks that, and
  * stories/accent-without-theme.test.js is the gate that says so.
  *
- * why: docs/specification.md#the-focus-ring */
+ * why: docs/foundations.md#the-focus-ring */
 
 /* ---- Phoenix — ember / rising fire (the strategy's namesake) ------------- */
 :root[data-accent="phoenix"],

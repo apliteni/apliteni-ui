@@ -9,7 +9,7 @@
  * A media query is a question about the viewport rather than a width assigned to
  * a box, and the declaration regex never matches inside `@media (…)`.
  *
- * why: docs/specification.md#boxes-below-the-page
+ * why: docs/foundations.md#boxes-below-the-page
  * Discover subjects from source and check the coverage count.
  */
 import { test } from 'node:test';

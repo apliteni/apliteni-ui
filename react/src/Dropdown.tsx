@@ -26,9 +26,9 @@ const inPanel = (node: Node | null) => {
 // there rather than a drift. The one rule that is not re-expressed at all is the
 // search match: dropdownMatch() is imported, so a list a server rendered and the
 // same list after a keystroke hide the same rows.
-// why: docs/specification.md#the-dropdown-panel
-// why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button
-// why: docs/specification.md#a-dropdown-with-a-search-field
+// why: docs/components.md#the-dropdown-panel
+// why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button
+// why: docs/components.md#a-dropdown-with-a-search-field
 
 export type DropdownBadge = string | { text: string; tone?: string };
 
@@ -202,7 +202,7 @@ export function Dropdown({
   const field = useRef<HTMLInputElement>(null);
   // Where the keyboard asked focus to land once the panel is open: an index, or the
   // selected row. Read in a layout effect, because the rows have to be styled open
-  // before one of them can take focus. why: docs/specification.md#the-dropdown-panel
+  // before one of them can take focus. why: docs/components.md#the-dropdown-panel
   const landOn = useRef<number | 'selected' | null>(null);
   // The pointer's last position. A move event carrying the one it already had is the
   // browser's own after a scroll, not the reader's, and it would take the active row
@@ -261,7 +261,7 @@ export function Dropdown({
      * menu out of its row. So the boxes laid out in the row are observed too, and
      * the mutation that moved the chip is watched. wireDropdown() answers the same
      * way and states the limit the two leave.
-     * why: docs/specification.md#a-filter-row-holds-its-panels */
+     * why: docs/components.md#a-filter-row-holds-its-panels */
     const view = root.current?.ownerDocument?.defaultView;
     const row = root.current?.closest('.ui-filter-bar__chip')?.closest('.ui-filter-bar');
     if (!row || !view) return;

@@ -9,7 +9,7 @@ export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear
       + `<legend class="ui-filter-bar__legend">${esc(filter.label)}</legend>`
       + dropdown({ items: filterChipItems(filter), variant: 'select',
         // The chip prints one line; the field's name reaches a reader through the
-        // trigger's name and the chip's own legend. why: docs/specification.md#dense-financial-tables
+        // trigger's name and the chip's own legend. why: docs/components.md#dense-financial-tables
         triggerContent: `<span class="${filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}">${esc(filterChipText(filter))}</span>`,
         ariaLabel: filterChipName(filter), open: !!filter.open && !disabled && !busy && !filter.disabled })
       + `<button type="button" class="ui-filter-bar__remove" data-filter-remove aria-label="${esc(`Remove ${filter.label} filter`)}">×</button></fieldset>`).join('')
@@ -19,7 +19,7 @@ export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear
     // rule — a control with no action to offer is not shown. It returns with
     // the first chip, in the bordered skin rather than the ghost one, because a
     // live action beside two chips has to read as live.
-    // why: docs/specification.md#a-filter-row-holds-its-panels
+    // why: docs/components.md#a-filter-row-holds-its-panels
     + (filters.length
       ? `<span data-filter-clear>${button({ label: clearLabel, size: 'sm' })}</span>`
       : '')

@@ -42,7 +42,7 @@ const CITATION = /(?<![\w#/.-])((?:[\w.-]+\/)*[\w.-]+\.[a-z]+):(\d+)(?:-(\d+))?(
  *
  * A `kit` entry is a JavaScript object literal, so the handover is only made for
  * a citation written in one. The same shape quoted in a markdown table is
- * documentation of the form rather than an instance of it — `docs/guidelines.md`
+ * documentation of the form rather than an instance of it — `AGENTS.md`
  * carries one — and the sibling `pattern:` is a perfectly good anchor, so it is
  * resolved here instead of being waved through. */
 const REF_KEYED_BEFORE = /\bref:\s*['"]$/;

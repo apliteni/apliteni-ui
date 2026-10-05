@@ -3,7 +3,7 @@
  * One implementation, imported by the gate in each workspace —
  * Share the calculation but check each workspace separately.
  *
- * The rule in docs/specification.md#elevation turns on one distinction: a CAST
+ * The rule in docs/foundations.md#elevation turns on one distinction: a CAST
  * shadow is an offset layer of ink under a surface, and a ring or a glow is a
  * zero-offset layer that says *this is lit*. Both are written `box-shadow`, so
  * the property name decides nothing and the layer has to be read.
@@ -84,7 +84,7 @@ export function isCast(layer) {
 }
 
 /** Only the approved three-layer focus treatment may add a decorative halo.
- * why: docs/specification.md#the-focus-ring */
+ * why: docs/foundations.md#the-focus-ring */
 export function isFocusRing(value) {
   const layers = layersOf(value);
   if (layers.length !== 3 || layers.some((layer) => /\binset\b/.test(layer))) return false;
@@ -205,7 +205,7 @@ export function resolutionsOf(raw, { vars, decls, substitute }) {
  * and the spelling a sheet writes. Light climbs all three — a card rests on
  * --elev-rest, the rail casts --elev-rail sideways, and a floating surface keeps
  * --elev-drop. Dark climbs only the last and holds the other two at the
- * transparent shadow. why: docs/specification.md#elevation
+ * transparent shadow. why: docs/foundations.md#elevation
  *
  * Both gates used to count --elev-drop's spelling and never read it — isCast()
  * would refuse the kit's own shadow on every floating surface — and #314's third
@@ -232,7 +232,7 @@ export const FLAT = '0 0 #0000';
  *  pulls that box in by `|spread|`, so the trailing reach is `b/2 - (|spread| + offset)`.
  *  Negative means the layer is still inside the surface there and that side gets nothing,
  *  which is what left a card's top edge bare at the first pass of #490.
- *  why: docs/specification.md#elevation */
+ *  why: docs/foundations.md#elevation */
 export function trailingReach(layer, axis = 'y') {
   const g = geometryOf(layer);
   return g.blur / 2 - (Math.abs(g.spread) + g[axis]);
@@ -251,7 +251,7 @@ export function reachesTrailingSide(value, axis = 'y') {
  *  rather than a colour. `axis` is 'y' for a surface that floats above the page and
  *  'x' for one flush to a screen edge, which is the rail. The transparent shadow is
  *  allowed and means the theme does not climb this rung.
- *  why: docs/specification.md#elevation */
+ *  why: docs/foundations.md#elevation */
 export function dropShapeOffence(value, axis = 'y') {
   if (value.trim() === FLAT) return '';
   const cross = axis === 'x' ? 'y' : 'x';

@@ -31,7 +31,7 @@
 /* Chevron — border caret that flips when the container is .open. Its ink is an L
    on a rotated square, so centring the BOX leaves the mark off centre; --caret-off
    is that gap, derived rather than typed.
-   why: docs/specification.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-dropdown__chevron {
   --caret: 8px;
   --caret-ink: 1.6px;
@@ -50,11 +50,11 @@
 .ui-dropdown__panel {
   /* One number for the trigger-to-panel offset, read by both edges here and by
      the portal's JS, so an upward panel cannot drift from a downward one.
-     why: docs/specification.md#the-dropdown-panel */
+     why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-gap: 9px;
   /* Named for the same reason the offset is: a block pinned to an edge has to
      bleed back through it, and #306 is a page copying the number by hand.
-     why: docs/specification.md#the-dropdown-panel */
+     why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-pad: 6px;
   /* The panel states its own role rather than inheriting one, because `portal:
      true` moves it onto <body> and an inherited face is then decided by where
@@ -62,19 +62,19 @@
      inside a display-face subtree resolved to var(--font-display) in place and
      var(--font-sans) once portalled — a positioning flag changing the typeface.
      A list of item rows is text, so it is the text face in both placements.
-     why: docs/specification.md#typefaces */
+     why: docs/foundations.md#typefaces */
   font-family: var(--font-sans);
   position: absolute;
   top: calc(100% + var(--ui-dropdown-gap));
   left: 0;
   min-width: 240px;
   /* The floating step, not the sunken one — a panel held open over a card cannot be
-     painted the colour of an inset. why: docs/specification.md#elevation */
+     painted the colour of an inset. why: docs/foundations.md#elevation */
   background: var(--bg-elevated); --ring-gap: var(--bg-elevated);
   /* The two-step edge and the drop, through the level's own names: in DARK that is
      --border-strong outside and --border one pixel inside it, then the drop; in LIGHT
      both lines are transparent and the drop carries the whole separation.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: var(--radius-lg);
@@ -83,7 +83,7 @@
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a
      box that is drawn is a box that is hit. The open rules take this back.
-     why: docs/specification.md#the-dropdown-panel */
+     why: docs/components.md#the-dropdown-panel */
   pointer-events: none;
   transform: translateY(-6px);
   transition:
@@ -103,7 +103,7 @@
    rather than the scrolling one, as the palette and the drawer write it, because
    a panel that takes focus any other way has the same claim on the ring. The
    ring is COMPOSED with the floating treatment rather than over it: a box-shadow
-   list replaces the whole list. why: docs/specification.md#elevation */
+   list replaces the whole list. why: docs/foundations.md#elevation */
 .ui-dropdown__panel:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); }
 
 /* Opening upward. The kit releases its own `top` here so that nothing outside
@@ -111,7 +111,7 @@
    them, and a consumer who set `bottom` and left our `top` standing got a
    fourteen-pixel panel. The entry travel is mirrored too, so the panel arrives
    from the trigger whichever way it opens.
-   why: docs/specification.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-dropdown__panel.is-up {
   top: auto;
   bottom: calc(100% + var(--ui-dropdown-gap));
@@ -122,7 +122,7 @@
 /* Open, the panel is visible AT ONCE: `visibility` is off the list, so it is not
    held at `hidden` for the frame a key opens the panel in — the frame the focus
    call happens in. Closing still fades on every property it always did.
-   why: docs/specification.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-dropdown.open .ui-dropdown__panel,
 .ui-dropdown__panel--portal.is-open { transition-property: opacity, transform; }
 
@@ -130,7 +130,7 @@
    property of its own still transitions the inherited `visibility`, so it is hidden in
    the frame openDropdown() focuses into it — #519. Keyed on the data hook, because the
    topbar's two menus open on the same wiring and keep their own CSS.
-   why: docs/specification.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 @media (prefers-reduced-motion: reduce) {
   .open > [data-dropdown-panel] *,
   [data-dropdown-panel].is-open * { transition: none !important; }
@@ -141,7 +141,7 @@
    selector above stops matching the moment it leaves the trigger's subtree, so
    its open state is a class of its own; the wiring writes the viewport
    coordinates inline, and these `auto`s are what it writes over.
-   why: docs/specification.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-dropdown__panel--portal {
   position: fixed;
   top: auto; right: auto; bottom: auto; left: auto;
@@ -152,7 +152,7 @@
    <a href> or a <button>: `is-selected` and __tick below mean a row gets
    chosen, and choosing is a button's job. So the tag's own styling is reset
    here, the way .ui-nav__item resets it, and the three render identically.
-   why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button */
+   why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button */
 .ui-dropdown__item {
   display: flex;
   gap: 11px;
@@ -172,7 +172,7 @@
   color: var(--text);
   transition: background var(--dur-fast) var(--ease);
 }
-/* Rows keep a reading surface; hover adds an edge. why: docs/specification.md#elevation */
+/* Rows keep a reading surface; hover adds an edge. why: docs/foundations.md#elevation */
 .ui-dropdown__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-dropdown__item:focus-visible { outline: 2px solid transparent; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ box-shadow: var(--ring); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -213,7 +213,7 @@
 .ui-dropdown__item.is-disabled .ui-dropdown__desc { color: inherit; }
 /* Body ink at rest, --pink on the way to being pressed. Both states, not hover alone:
    the ring says where the reader is, not that this row ends something.
-   why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button */
+   why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button */
 .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--text); }
 .ui-dropdown__item.is-danger:hover .ui-dropdown__label,
 .ui-dropdown__item.is-danger:focus-visible .ui-dropdown__label { color: var(--pink); }
@@ -234,7 +234,7 @@
 
 /* Optional pinned head/foot blocks — symmetrical: one inner padding, and each
    bleeding to the edge it sits on, lining the edge it faces.
-   why: docs/specification.md#the-dropdown-panel */
+   why: docs/components.md#the-dropdown-panel */
 .ui-dropdown__panel > .ui-dropdown__head,
 .ui-dropdown__panel > .ui-dropdown__foot {
   padding: 11px 13px;
@@ -254,7 +254,7 @@
    reader types. The rows move into a list of their own, so the field stays put
    while the list scrolls. Every rule below keys on a class only the search
    variant emits, so the plain dropdown renders as it did.
-   why: docs/specification.md#a-dropdown-with-a-search-field */
+   why: docs/components.md#a-dropdown-with-a-search-field */
 .ui-dropdown__panel--search { min-width: 280px; }
 
 .ui-dropdown__search { position: relative; display: flex; align-items: center; margin-bottom: 6px; }
@@ -269,13 +269,13 @@
 .ui-dropdown__search-ic svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
 /* 12.5px with a mouse only. On a touch screen the touch-zoom net in
    src/styles/field-zoom.css takes this field, and every other field the kit
-   ships, to 16px. why: docs/specification.md#a-field-is-16px-on-a-touch-screen */
+   ships, to 16px. why: docs/foundations.md#a-field-is-16px-on-a-touch-screen */
 .ui-dropdown__search-input {
   width: 100%;
   font: inherit;
   font-size: calc(var(--text-sm) - 0.5px);
   color: var(--strong);
-  /* The ground and line .ui-input takes. why: docs/specification.md#elevation */
+  /* The ground and line .ui-input takes. why: docs/foundations.md#elevation */
   background: var(--field-bg); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
   border: 1px solid var(--field-edge);
   border-radius: var(--radius-sm);
@@ -287,7 +287,7 @@
 }
 /* The light-only `background: var(--bg)` override this field used to carry is gone:
    --field-bg says the same thing for every field. Gated by
-   stories/dropdown-field-ground.test.js. why: docs/specification.md#elevation */
+   stories/dropdown-field-ground.test.js. why: docs/foundations.md#elevation */
 
 .ui-dropdown__search-input::placeholder { /* muted-ink: placeholder — empty search field */ color: var(--muted); }
 .ui-dropdown__search-input:hover { border-color: var(--field-edge-hover); }
@@ -298,7 +298,7 @@
    answered with the native outline. The band is drawn INWARD, on the list: an outset
    one 6px inside a --radius-lg corner leaves the panel, and the panel is not the box
    that scrolls. It lands in the rows' own 9px of padding, never on a label.
-   why: docs/specification.md#the-focus-ring */
+   why: docs/foundations.md#the-focus-ring */
 .ui-dropdown__list:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 /* A row is `display: flex`, which outranks the UA's [hidden], so a row the
    query hides is put away here. */

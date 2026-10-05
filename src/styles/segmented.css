@@ -75,7 +75,7 @@
  * 2px stroke, in --signal-contrast — the circle wears the accent's dark ramp in
  * both themes, so its ink is the one for a fill, not the --accent-contrast that
  * pairs with --accent-strong. Held by stories/accent-mark.test.js.
- * why: docs/specification.md#react-accent-picker */
+ * why: docs/components.md#page-furniture, and #472 for the ring that was rejected. */
 .ui-accent-picker button.is-active::after {
   content: "";
   position: absolute;
@@ -92,7 +92,7 @@
 
 /* Underline tabs wrap for the reason the pills above do — #435 — and draw no
    rule of their own: the chosen tab carries the selection. #527, #545
-   why: docs/specification.md#the-chosen-tab-in-an-underline-strip */
+   why: docs/components.md#the-chosen-tab-in-an-underline-strip */
 .ui-seg--underline { flex-wrap: wrap; overflow: visible; row-gap: var(--space-1); align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; padding: var(--space-1); max-width: 100%; }
 /* `anywhere` is the half `break-word` cannot do: it lowers the tab's min-content
    width, so one unbreakable word narrows rather than widening the page. The
@@ -106,7 +106,7 @@
 /* The chosen tab is its label and one bar under it: no plate, no hairline, no
    upright rail — those read as a list-row grip. `outline: 0` cancels the accent
    outline the pill rule gives every chosen button, which is #544's second mark.
-   #527 r31. why: docs/specification.md#the-chosen-tab-in-an-underline-strip */
+   #527 r31. why: docs/components.md#the-chosen-tab-in-an-underline-strip */
 .ui-seg--underline button.is-active,
 .ui-seg--underline button[aria-pressed="true"] {
   background: none;

@@ -9,7 +9,7 @@
  * LOOKS and a declaration cannot say. The reference is the kit's own ordinary
  * field on a card, per theme, so the bar moves when the ladder does.
  *
- * why: docs/specification.md#elevation
+ * why: docs/foundations.md#elevation
  * Measure behavior instead of matching the source text.
  */
 import { test } from 'node:test';

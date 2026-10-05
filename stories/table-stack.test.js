@@ -9,7 +9,7 @@
  * and columnheader, and only the body's rowgroup goes. WebKit and Gecko were not measured,
  * so all five are required rather than the one Chromium is known to drop.
  *
- * why: docs/specification.md#dense-financial-tables
+ * why: docs/components.md#dense-financial-tables
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -245,7 +245,7 @@ test('the gate rejects a stacked table that leans on the implicit roles', () => 
   assert.deepStrictEqual(survived, [], 'a stacked table missing its roles passed this gate');
 });
 
-// The shape the specification prescribes: the order is announced in the clipped header and
+// The shape docs/components.md prescribes: the order is announced in the clipped header and
 // the control that changes it sits above the table, where it can draw a focus ring.
 test('the gate accepts an announced order whose control sits above the table', () => {
   assert.equal(stackedTables(ANNOUNCED, 'fixture').problems.length, 1, 'with no control, rejected');
@@ -255,7 +255,7 @@ test('the gate accepts an announced order whose control sits above the table', (
       'fixture',
     ),
     { tables: 1, problems: [] },
-    'a control that names the table is what the specification asks for, bystanders or not',
+    'a control that names the table is what docs/components.md asks for, bystanders or not',
   );
   // `aria-controls` takes a list, and a toolbar control often drives more than one thing.
   assert.deepEqual(

@@ -14,7 +14,7 @@
  * the property name decides nothing — a ring, a glow and a drop are all written
  * `box-shadow`, and only a layer's geometry says which it is.
  *
- * why: docs/specification.md#elevation
+ * why: docs/foundations.md#elevation
  * Check every shadow layer, including resolved custom properties.
  * Discover subjects from source and check the coverage count.
  */
@@ -33,7 +33,7 @@ const THEMES = ['dark', 'light'];
  * because a var() inside a custom property is substituted on the element that
  * DECLARES it: an --elev-edge read inside a :root token resolves at :root, and
  * every component that re-points it writes a dead declaration. #314 found five.
- * why: docs/specification.md#elevation */
+ * why: docs/foundations.md#elevation */
 const TREATMENT_LINE = 'inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner))';
 /* TREATMENT_DROP — `var(--elev-drop)` — comes from the reader, which also holds
  * the two rules that read the layer rather than counting its spelling. */
@@ -106,7 +106,7 @@ test('the sweep sees every box-shadow the kit ships', () => {
   assert.equal(sweep.length, 74,
     `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 74. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
-    + 'against docs/specification.md#elevation.');
+    + 'against docs/foundations.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
     'the sweep collapsed onto a handful of files — STYLE_FILES is probably not resolving');
 });
@@ -162,7 +162,7 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
     'var(--elev-rail)': 1,   // .ui-app__rail
     'var(--elev-drop)': 17,  // the floating surfaces, and the panel's focus rule
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '
-    + 'was added, move the number and check it against docs/specification.md#elevation.');
+    + 'was added, move the number and check it against docs/foundations.md#elevation.');
 });
 
 /* Proof of rejection, on the same walk: a card that lifts itself with a cast of
@@ -500,7 +500,7 @@ test('every surface painted on the floating step carries the floating treatment'
   assert.equal(ELEVATED.length, 6,
     `${ELEVATED.length} rules paint background: var(--bg-elevated), not the pinned 6. `
     + 'A surface added to or removed from the floating step is fine — move the number, and '
-    + 'check the new rule against docs/specification.md#elevation.');
+    + 'check the new rule against docs/foundations.md#elevation.');
   const offences = ELEVATED
     .filter(({ body }) => !layersOf(bodyShadow(body)).includes(TREATMENT_DROP))
     .map((d) => `${d.file}  ${d.selector}`);

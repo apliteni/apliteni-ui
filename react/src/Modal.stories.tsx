@@ -21,7 +21,7 @@ export const Playground: StoryObj<typeof Modal> = {
           {/* The one textarea in the React catalogue: without it the touch-zoom
               gate next door covers only two of the net's three element kinds,
               and react/src/field-zoom.test.tsx pins that it stays.
-              why: docs/specification.md#a-field-is-16px-on-a-touch-screen */}
+              why: docs/foundations.md#a-field-is-16px-on-a-touch-screen */}
           <div className="ui-field">
             <label className="ui-field__label" htmlFor="rx-modal-demo-notes">Notes</label>
             <textarea id="rx-modal-demo-notes" className="ui-textarea" rows={3}
@@ -65,7 +65,7 @@ export const CollapsedForm: StoryObj<typeof Modal> = {
 // rule, so this body IS one — and until #531 it answered with the browser's own
 // outline, black in both themes. The ring is painted on the modal, because the body
 // is flush with the panel's sides, the panel clips with `overflow: hidden`, and the
-// body has no radius of its own. why: docs/specification.md#the-focus-ring
+// body has no radius of its own. why: docs/foundations.md#the-focus-ring
 export const LongNotice: StoryObj<typeof Modal> = {
   render: () => {
     const [open, setOpen] = useState(true);

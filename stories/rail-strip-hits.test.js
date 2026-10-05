@@ -39,7 +39,7 @@
 // - Whether a row is big enough to hit is stories/tap-zone.test.js's question. This one
 //   asks the opposite: whether anything claims a hit area it does not draw.
 //
-// why: docs/specification.md#a-folded-rail-takes-the-pointer-only-where-it-draws
+// why: docs/components.md#a-folded-rail-takes-the-pointer-only-where-it-draws
 // Weaken the rule and confirm that its test fails.
 
 import test from 'node:test';

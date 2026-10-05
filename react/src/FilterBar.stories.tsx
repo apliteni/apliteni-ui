@@ -59,7 +59,7 @@ const Chip = ({ id, name, ...rest }: { id: string; name: string } & Partial<Drop
 
    `scripts/evidence/filter-bar-fit.html` renders this bar chip for chip, so one
    composition is measured through two implementations.
-   why: docs/specification.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#a-filter-row-holds-its-panels */
 export const Composed: Story = { render: () => (
   <fieldset className="ui-filter-bar" data-filter-bar="">
     <legend className="ui-filter-bar__legend">Composed filters</legend>

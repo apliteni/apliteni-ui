@@ -2,7 +2,7 @@
 // and what a query with no match shows. Real markup, the kit's own wiring and
 // real events, then the DOM is read back.
 //
-// why: docs/specification.md#a-dropdown-with-a-search-field
+// why: docs/components.md#a-dropdown-with-a-search-field
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

@@ -9,7 +9,7 @@
 // that came out open is walked over with a pointer, focus and Escape, and each
 // has to be open at the end.
 //
-// why: docs/specification.md#the-hover-readout
+// why: docs/components.md#the-hover-readout
 // Discover subjects from source and check the coverage count.
 
 import test from 'node:test';

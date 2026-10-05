@@ -8,7 +8,7 @@
  * transform still zooms, and this is a flat size rather than a floor, so a host
  * field designed ABOVE 16px is shrunk here. The override recipe is there too.
  *
- * why: docs/specification.md#a-field-is-16px-on-a-touch-screen */
+ * why: docs/foundations.md#a-field-is-16px-on-a-touch-screen */
 
 @media (pointer: coarse) {
   input:not(:where(

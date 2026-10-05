@@ -1,5 +1,5 @@
 /* Rule: a select draws ONE chevron, anchored to its right edge, in every theme and
- * every state the sheets give it. why: #511, docs/specification.md#icons-and-glyphs
+ * every state the sheets give it. why: #511, docs/foundations.md#icons-and-glyphs
  *
  * The chevron is three longhands, so any `background` shorthand reaching the same
  * element resets all three, and which rule outranks which decides whether that reads

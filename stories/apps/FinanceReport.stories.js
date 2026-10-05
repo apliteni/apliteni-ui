@@ -11,7 +11,7 @@ export default {
 
 // The cashflow figures are the kit's stat band. It folds from its own width, so
 // the rail beside the column needs no rule of this screen's.
-// why: docs/specification.md#stat-bands
+// why: docs/components.md#stat-bands
 const kpiStrip = () => statBand({
   id: 'fr-cashflow',
   basis: 'Jul 1 – Jun 30',

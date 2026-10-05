@@ -43,7 +43,7 @@ a {
  * reader notices. A component that wants a heading tag set in the text face
  * says so on its own rule, which outranks this one at (0,1,0); .ui-card__title,
  * .ui-drawer__title and .ui-confirm__title are the three that do.
- * why: docs/specification.md#typefaces */
+ * why: docs/foundations.md#typefaces */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
 }
@@ -52,7 +52,7 @@ h1, h2, h3, h4, h5, h6 {
  * chat feeds run at, 700 stops reading as emphasis and starts reading as a
  * filled-in shape. The semibold step is the emphasis; the bold step stays
  * available to anything that asks for it by name.
- * why: docs/specification.md#typefaces */
+ * why: docs/foundations.md#typefaces */
 b,
 strong {
   font-weight: var(--weight-semibold);
@@ -115,7 +115,7 @@ strong {
 .ui-stack > * + * { margin-top: var(--space-4); }
 
 /* Eyebrow — the label above a title or a figure, in sentence case like every
-   label in the kit. why: docs/specification.md#labels-and-titles */
+   label in the kit. why: docs/foundations.md#labels-and-titles */
 .ui-eyebrow {
   /* rank: label */
   font-size: var(--text-sm);

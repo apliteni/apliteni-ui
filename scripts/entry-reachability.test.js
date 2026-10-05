@@ -8,7 +8,7 @@
 // import (footer() and success(), through 0.8.1), exported-but-absent throws
 // ERR_MODULE_NOT_FOUND at load. Read both sides from source files.
 // Story rendering alone does not check package exports.
-// docs/library.md states the contract.
+// docs/components.md states the contract.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -182,7 +182,7 @@ test('the entry actually re-exports the names those modules define', async () =>
 
 /* ---------------------------------------------------------------------------
  * The other kind of unreachable: a factory a consumer can import but cannot find.
- * The catalog in docs/library.md drifted the way src/index.js did — dropdown(),
+ * The catalog in docs/components.md drifted the way src/index.js did — dropdown(),
  * drawer(), nav(), footer() and success() were published and written down nowhere.
  *
  * Only inline code spans count: the catalog says "select a passage" about the
@@ -193,9 +193,9 @@ test('the entry actually re-exports the names those modules define', async () =>
  * option reads as covered — delete the `footer()` row and `footer` still appears
  * inside `drawer({ …, footer, … })`. A factory with no row anywhere is caught.
  * ------------------------------------------------------------------------- */
-const docFile = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'docs', 'library.md');
+const docFile = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'docs', 'components.md');
 
-/* Names the entry publishes that docs/library.md deliberately does not describe.
+/* Names the entry publishes that docs/components.md deliberately does not describe.
  * Empty: every export is in the catalog, the theming section or the note under
  * it. An entry here needs a reason a consumer is better off not knowing. */
 const NOT_DOCUMENTED = [
@@ -232,21 +232,21 @@ test('the docs scan reads code spans, not prose', async () => {
     `the entry namespace has ${Object.keys(entry).length} names — too few to be the kit, ` +
       'so the coverage check is comparing against almost nothing.',
   );
-  const canary = 'orthogonal';
+  const canary = 'decorative';
   assert.ok(
     md.includes(canary),
-    `this test uses "${canary}" as a prose-only canary and docs/library.md no longer ` +
+    `this test uses "${canary}" as a prose-only canary and docs/components.md no longer ` +
       'contains it. Pick another word that appears in the prose and never in backticks.',
   );
   assert.ok(
     !documented.has(canary),
-    `"${canary}" appears in docs/library.md only as prose, and the scan picked it up ` +
+    `"${canary}" appears in docs/components.md only as prose, and the scan picked it up ` +
       'anyway — it is reading the whole file, not the code spans, so every export would ' +
       'come out documented no matter what the catalog says.',
   );
 });
 
-test('every name the entry publishes is written down in docs/library.md', async () => {
+test('every name the entry publishes is written down in docs/components.md', async () => {
   const documented = documentedNames(readFileSync(docFile, 'utf8'));
   const entry = await import(pathToFileURL(entryFile).href);
   const exempt = new Set(NOT_DOCUMENTED.map((e) => e.name));
@@ -259,9 +259,9 @@ test('every name the entry publishes is written down in docs/library.md', async 
     undocumented,
     [],
     `${undocumented.join(', ')} — published from src/index.js and named nowhere in ` +
-      'docs/library.md. A consumer can import it and has no way to learn it exists, which ' +
+      'docs/components.md. A consumer can import it and has no way to learn it exists, which ' +
       'is the reachability bug one step further out. Add a catalog row in ' +
-      'docs/library.md, or list it in NOT_DOCUMENTED above with a reason.',
+      'docs/components.md, or list it in NOT_DOCUMENTED above with a reason.',
   );
 });
 
@@ -276,7 +276,7 @@ test('every NOT_DOCUMENTED entry still names a live, undocumented export', async
   assert.deepEqual(
     stale,
     [],
-    'NOT_DOCUMENTED names an export the entry no longer publishes, or one docs/library.md ' +
+    'NOT_DOCUMENTED names an export the entry no longer publishes, or one docs/components.md ' +
       `now covers anyway — the list is lying about the kit:\n  ${stale.join('\n  ')}`,
   );
 });

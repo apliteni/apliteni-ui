@@ -2,8 +2,8 @@
 // that interpolates raw. It lives here rather than in shell.js because both
 // shell.js and topbar.js need it and shell.js already imports topbar.js — the
 // other direction would be a cycle. shell.js re-exports ACCOUNT_NAV, which is
-// the published name docs/library.md documents.
-// why: docs/specification.md#the-page-shell
+// the published name docs/components.md documents.
+// why: docs/components.md#the-page-shell
 import { esc } from './index.js';
 
 // nav.js item objects. Labels are raw text — every nav primitive escapes, so a

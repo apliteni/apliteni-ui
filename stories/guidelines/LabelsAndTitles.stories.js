@@ -1,4 +1,4 @@
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { guidelinePage } from './_layout.js';
 import { TITLE, BLURB, RULES } from './_labels-and-titles.js';
 

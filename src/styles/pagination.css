@@ -107,7 +107,7 @@
    declared on the one adjacency the kit can see. `.rx-pager` carried a bare
    `margin-top: 16px` for this, which is --space-4; the number moves to the scale
    with it rather than travelling as a literal.
-   why: docs/specification.md#spacing-and-rhythm */
+   why: docs/foundations.md#spacing-and-rhythm */
 .ui-table + .ui-pager { margin-top: var(--space-4); }
 
 /* A step given an `href` is an anchor, and a host stylesheet's `a:link` is
@@ -118,7 +118,7 @@
    `.ui-nav .ui-nav__item` in nav.css. Storybook ships no `a:link`, so the "Pages
    as links" story cannot show it — which is why the rule is stated rather than
    discovered.
-   why: docs/specification.md#pagination */
+   why: docs/components.md#pagination */
 a.ui-pager__step,
 a.ui-pager__page { color: var(--text); }
 a.ui-pager__step:hover,

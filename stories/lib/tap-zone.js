@@ -9,7 +9,7 @@
  *
  * Nothing is asserted here. The gate next door does the asserting.
  *
- * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
+ * why: docs/foundations.md#a-tap-reaches-the-floor-below-the-phone-step
  */
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
@@ -169,7 +169,7 @@ export async function rowFixtures() {
  * drawn box belong to somebody else. The third is kept as points rather than a
  * count so the gate can ask whether a control LOST one it used to own.
  *
- * why: docs/specification.md#a-tap-reaches-the-floor-below-the-phone-step
+ * why: docs/foundations.md#a-tap-reaches-the-floor-below-the-phone-step
  */
 export const PROBE = ({ html, size, interior, families, within }) => {
   document.body.innerHTML = html;

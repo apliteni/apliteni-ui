@@ -51,7 +51,7 @@
 //   different answer and it is not this gate's subject; its ring was measured and
 //   reported on #575.
 //
-// why: docs/specification.md#a-menu-panel-does-not-cut-off-its-rows-ring
+// why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring
 // Weaken the rule and confirm that its test fails.
 
 import test from 'node:test';

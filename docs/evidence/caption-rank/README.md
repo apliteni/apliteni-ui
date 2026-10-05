@@ -1,7 +1,7 @@
 # #310 — the caption rank
 
 `Guidelines/The page` at 1200px wide, in both themes, before and after the `caption` row
-(`docs/specification.md#labels-and-titles`). Before is `origin/main` at `233a1e7`; after is this
+(`docs/foundations.md#labels-and-titles`). Before is `origin/main` at `233a1e7`; after is this
 branch.
 
 | | light | dark |

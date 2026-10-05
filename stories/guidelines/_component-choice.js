@@ -2,7 +2,7 @@ import { loadGuideline, withSpecimens } from './_markdown.js';
 const content = await loadGuideline('component-choice.md', new URL('../../guidelines/component-choice.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
-// The shape of a rule and the gates that walk this page: docs/guidelines.md
+// The shape of a rule: AGENTS.md#the-guidelines-collection
 import { button, callout, card, segmented, successPanel, toast } from '../../src/components/index.js';
 import { filterBar } from '../../src/components/filter-bar.js';
 import { confirm } from '../../src/components/confirm.js';

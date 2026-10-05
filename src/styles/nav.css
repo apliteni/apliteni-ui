@@ -43,7 +43,7 @@
 .ui-nav__cap {
   /* rank: label */
   /* Words, never a control, at BOTH widths — as __label, __badge and __caret below.
-     why: docs/specification.md#a-folded-rail-takes-the-pointer-only-where-it-draws */
+     why: docs/components.md#a-folded-rail-takes-the-pointer-only-where-it-draws */
   pointer-events: none;
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
@@ -74,7 +74,7 @@
   font-family: inherit;
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
-.ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/specification.md#the-page-shell */
+.ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/components.md#the-page-shell */
 .ui-nav__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ color: var(--strong); }
 .ui-nav__item.is-active {
   background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
@@ -164,7 +164,7 @@
    number, not a second answer to "where am I". It also retires the pair #157
    recorded: accent ink on --surface fell under WCAG AA in four of the eight
    theme x accent cells (4.08 in dark Nebula), and no alpha cleared it. Nothing
-   now paints that pair. See #429 and docs/specification.md#colour-and-contrast. */
+   now paints that pair. See #429 and docs/foundations.md#colour-and-contrast. */
 .ui-nav__item.is-active .ui-nav__badge.is-accent { background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ color: var(--strong); }
 
 /* Collapsible group */
@@ -242,7 +242,7 @@
 /* Every box in the rail closes with it, whether it paints or not. A block that keeps
    the open column paints nothing and still takes the pointer off 175px of the page
    beside a positioned rail (#588); clipping it instead cut the rows' ring (#575).
-   why: docs/specification.md#a-folded-rail-takes-the-pointer-only-where-it-draws */
+   why: docs/components.md#a-folded-rail-takes-the-pointer-only-where-it-draws */
 .ui-nav--side.is-collapsed > * { width: var(--ui-nav-strip); }
 .ui-nav--side.is-collapsed .ui-nav__item { width: var(--ui-nav-strip); }
 /* The heading is the one box that keeps the open column: its line breaks are the rail's

@@ -1,7 +1,7 @@
 /* Rule: an icon-sizing rule in the React workspace is measured too.
  *
  * Share the calculation but check each workspace separately.
- * why: docs/specification.md#icons-and-glyphs */
+ * why: docs/foundations.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';

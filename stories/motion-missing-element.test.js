@@ -8,7 +8,7 @@
  * here installs a jsdom one and the browser half asks Chromium.
  *
  * Subjects come from src/motion.d.ts; rejection is proved by removing a guard.
- * why: docs/specification.md#motion
+ * why: docs/foundations.md#motion
  */
 
 /* State what this test cannot measure.

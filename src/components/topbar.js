@@ -30,7 +30,7 @@ export function deckTextSwitch(active = 'deck') {
 // bespoke .vsw/.vopt classes for a pixel-identical look, but emits the generic
 // [data-dropdown] hooks so there's ONE open/close/keyboard implementation.
 // `badge` is a tone key and the kit writes the word for it; the stylesheet used
-// to uppercase the key itself. why: docs/specification.md#labels-and-titles
+// to uppercase the key itself. why: docs/foundations.md#labels-and-titles
 const VBADGE = { live: 'Live', archive: 'Archive' };
 export function versionSwitcher(versions = [], activeIdx = 0) {
   const cur = versions[activeIdx]?.label || '';

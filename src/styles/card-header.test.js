@@ -10,7 +10,7 @@
  * part of its heading rather than under it. Artur marked it on #532. The steps are read out of
  * tokens.css, never repeated here.
  *
- * why: docs/specification.md#spacing-and-rhythm
+ * why: docs/foundations.md#spacing-and-rhythm
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

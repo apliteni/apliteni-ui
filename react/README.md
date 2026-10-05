@@ -246,7 +246,7 @@ this component and compares what is left.
 Two things the factory has that this does not, both deliberate. It emits no `data-dropdown`
 on the container, so a page that calls `wireDropdown(document)` cannot adopt a dropdown React
 owns — the same decision `Drawer` makes about `data-drawer`; the row and panel hooks stay,
-because they are the row contract `docs/library.md` publishes. And it has no `portal: true`: the
+because they are the row contract `docs/components.md` publishes. And it has no `portal: true`: the
 panel is a child of the trigger's container, so a dropdown inside `.ui-app__rail`
 (`position: sticky` with `overflow-y: auto`) still wants the vanilla factory.
 
@@ -541,7 +541,7 @@ An optional `id` lets the caller choose the control ID; it must be unique.
 `type="search"` input, and no visible label, so the row keeps the height of the
 unlabelled controls beside it. `ariaLabel` is required and is the control's only
 name. It forwards its ref and the native input props, and `className` joins
-`.ui-input`. There is no clear button — see the specification for why.
+`.ui-input`. There is no clear button — see docs/components.md#react-search-field for why.
 
 ```tsx
 <div className="ui-toolbar">
