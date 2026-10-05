@@ -88,6 +88,8 @@ test('every control that takes the ring takes the offset that places it', () => 
   // filling the table cell. The narrow table cell keeps the inward band instead.
   // 50 -> 51: #513 gives an unmarked pinned identity cell the outset band again in a
   // stacked card after the phone rule moves its direct link's focus ring to the cell.
+  // 51 -> measured on the first rebased commit: this rebase keeps main's #513 pinned
+  // identity cell rule. Main had 51, and the full branch had 50 before this rebase.
   assert.equal(consumers.length, 51, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '

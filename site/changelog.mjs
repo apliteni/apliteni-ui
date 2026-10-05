@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.109.0', date: '2026-10-11',
+    changes: [
+      ['added', 'React Toast notices accept compact and dismissible options. Compact notices omit body text; hiding the close button preserves the timer and action behavior. Part of #429.', ['Toast']],
+      ['added', 'A toast stack can collapse into a pile: notices rest behind the newest one, and the pile fans out on hover or when focus reaches a control inside it. Use collapseToastStack(stack) in vanilla or <Toast collapse> in React. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss progress line now stops while a notice holds focus, not only while the pointer is over it, so a keyboard reader gets the same reprieve. Set progress: false on a React notice to keep the timing without the line. Under reduced motion the line is no longer drawn: it could not move, so it read as time not yet spent. Part of #429.', ['Toast']],
+    ],
+  },
+  {
     v: '0.108.0', date: '2026-10-10',
     changes: [
       ['fixed', 'Below 720px a pinned identity column keeps each row name on one line instead of hiding it. The name is capped at `min(var(--panel-sm), 50vw)` and cuts with an ellipsis past the cap; the full text stays in the markup, so the accessible name and company link stay unchanged. Resolves #500.', ['Table']],

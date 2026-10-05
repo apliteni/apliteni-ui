@@ -1,5 +1,5 @@
 import { callout, toast, successPanel, button } from '../../src/components/index.js';
-import { wireToastStack, pushToast } from '../../src/components/toasts.js';
+import { wireToastStack, pushToast, collapseToastStack } from '../../src/components/toasts.js';
 import { pad, specimen, stack, grid } from '../_gallery.js';
 
 export default {
@@ -58,6 +58,7 @@ export const StatusAndStyle = {
 const ACTIONS = { success: 'Undo', info: 'Reload', warn: 'Rotate', danger: 'Retry', neutral: 'Open' };
 const actionColumnFor = (style) => col(...STATUSES.map(([variant, title, body]) =>
   toast({ variant, style, title, body, action: ACTIONS[variant] })));
+const piledToast = (opts, style) => toast(opts).replace('class="ui-toast ', `style="${style}" class="ui-toast `);
 
 // Affordances: action buttons, a compact single-line form, and the auto-dismiss
 // timer bar (shown here static; it animates in the Stack story).
@@ -107,6 +108,46 @@ export const Stack = {
     });
     return root;
   },
+};
+
+// The collapsed pile: several notices rest as one, newest in front, and fan out
+// under the pointer or once focus reaches any control inside them. The cards
+// peeking behind the front one are what say more is waiting.
+export const CollapsedStack = {
+  parameters: { docs: { description: { story: 'Hover the pile, or press Tab into it, to fan it out. It collapses again when you leave. "Fan out" is the same move without a pointer.' } } },
+  render: () => {
+    const root = document.createElement('div');
+    root.innerHTML = pad(`<div style="display:flex;flex-direction:column;gap:20px;align-items:flex-start">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${button({ label: 'Add a notice', variant: 'primary', size: 'sm' })}
+        ${button({ label: 'Fan out', variant: 'ghost', size: 'sm' })}
+      </div>
+      <div class="ui-toast-stack" data-stack></div>
+    </div>`);
+    requestAnimationFrame(() => {
+      const s = root.querySelector('[data-stack]');
+      wireToastStack(s);
+      // pushToast() prepends, so this stack reads newest-first.
+      collapseToastStack(s, { newestFirst: true });
+      let next = 0;
+      const add = () => pushToast(s, { ...SAMPLES[next % SAMPLES.length], timer: false });
+      const [addButton, fanButton] = root.querySelectorAll('.ui-btn');
+      addButton.addEventListener('click', () => { next += 1; add(); });
+      // Keyboard readers fan the pile by tabbing into it; this button is the
+      // pointer-free way to do the same from outside it, for the story.
+      fanButton.addEventListener('click', () => s.querySelector('.ui-toast__close')?.focus());
+      for (let i = 0; i < 3; i += 1) { next += 1; add(); }
+    });
+    return root;
+  },
+};
+
+export const CollapsedStackFocus = {
+  render: () => pad(`<div class="ui-toast-stack ui-toast-stack--collapsed" tabindex="0" style="--toast-pile-height:106px;--toast-fan-height:262px">
+    ${piledToast({ variant: 'success', style: 'soft', title: 'Saved', body: 'Your changes are live.', timer: 5 }, '--toast-card-lift:0px;--toast-card-scale:1;--toast-card-fan:0px;--toast-card-depth:3')}
+    ${piledToast({ variant: 'info', style: 'soft', title: 'Note deleted', body: '“Q3 plan” was removed.', timer: 5 }, '--toast-card-lift:8px;--toast-card-scale:.96;--toast-card-fan:90px;--toast-card-depth:2')}
+    ${piledToast({ variant: 'danger', style: 'soft', title: 'Upload failed', body: 'The file was larger than 25 MB.', timer: 5 }, '--toast-card-lift:16px;--toast-card-scale:.92;--toast-card-fan:180px;--toast-card-depth:1')}
+  </div>`),
 };
 
 export const Success = {

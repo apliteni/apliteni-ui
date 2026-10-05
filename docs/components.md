@@ -98,6 +98,7 @@ what a factory accepts. They do not describe what the factory does.
 | `card({ title, sub, body, variant, pad, icon, level })` | Surface container. `title` and `sub` are trusted markup; keep the title to inline content. |
 | `callout`, `toast`, `successPanel` | Inline feedback inside the page the reader is on; `calloutIcons` is the default glyph per tone. |
 | `pushToast(container, opts)`, `dismissToast(el)`, `wireToastStack(container)` | The runtime toast stack. |
+| `collapseToastStack(container, { newestFirst })` + `applyToastPile(stack, opts)`, `clearToastPile(stack)`, `watchToastPile(stack, opts)`, `toastPileGeometry(heights, gap)`, with `TOAST_PEEK`, `TOAST_SCALE_STEP`, `TOAST_TIERS`, `TOAST_PILE_MIN` and `TOAST_GAP` | Collapses a stack of notices into a pile that fans out on hover or focus, newest in front. `collapseToastStack` is the whole thing; pass `newestFirst: true` for a stack `pushToast()` prepends to. The lower functions place the pile in a face that renders the stack itself, and `toastPileGeometry` is the arithmetic alone. See [Toast stacks](#toast-stacks). |
 | `success({ layout, check, level, title, body, actions, confetti, countdown })` + `wireSuccess(root)` | Page-sized confirmation; `successCheck()` is its mark alone. See [Success confirmations](#success-confirmations) and [successPanel or success?](#successpanel-or-success). |
 | `emptyState({ art, icon, title, sub, actions })` | Placeholder for an empty list, table or page; `art` is an `illo()` name or raw SVG. |
 | `deniedState({ title, sub, need, actions, icon })` | The 403, in the same layout language. See [Pending and denied states](#pending-and-denied-states). |
@@ -748,14 +749,45 @@ upload.
 
 ### React toasts
 
+React notices accept `compact`, `dismissible` and `progress`. `compact` omits body text.
+`dismissible={false}` hides the close button without changing timing or action behavior.
+`progress={false}` drops the elapsing-time line without changing the timing.
+
 `Toast` and `useToast()` render the vanilla toast classes in a fixed stack. The newest notice is
 at the bottom. The stack is anchored to the bottom-right corner. **The provider publishes how far
 the stack reaches up the viewport** as `--rx-toast-stack` on the document root. It is `0px` while
 the stack is empty. A fixed page action can use this value to stay clear of any number of notices.
 Use **one** provider per document, because that property is a document-root global. Notices without
-actions dismiss after five seconds. They pause while hovered or focused. Notices with an action
-stay until the reader selects or dismisses it. Ordinary notices are polite. Danger notices are
-assertive. Adding a notice does not move focus.
+actions dismiss after five seconds. Their countdown and timer bar pause while hovered or focused,
+then resume with the remaining time. Notices with an action stay until the reader selects or
+dismisses it. Ordinary notices are polite. Danger notices are assertive. Adding a notice does not
+move focus.
+
+## Toast stacks
+
+A stack of notices can collapse into a pile. `.ui-toast-stack--collapsed` draws its notices on top
+of one another, bottom-aligned, with the newest in front. Notices past `TOAST_TIERS` rest on the
+last tier, so a ninth notice makes the pile no taller than a third one. The cards peeking behind
+the front one are what say more is waiting. The pile carries no counted chip above it.
+
+The pile fans out into the ordinary column on `:hover` and on `:focus-within`. Thus a keyboard
+reader opens it by tabbing into it, and it collapses again when both states end. Nothing listens
+for either state. The stylesheet switches between two sets of published values, which lets the
+reduced-motion net cap the travel like any other transition.
+
+The values are measured, because notices are not the same height. For each notice, a script
+publishes `--toast-card-lift`, `--toast-card-scale`, `--toast-card-fan` and
+`--toast-card-depth`. For the stack, it publishes `--toast-pile-height` and
+`--toast-fan-height`. `toastPileGeometry()` is the calculation both faces share. A pile re-measures
+when notices arrive or leave and when one changes height.
+
+Under `(hover: none)` the stack stays the plain column. Half of what opens a pile is hover, and
+the notices behind the front card are not focusable. A pile there would be one nobody could open.
+
+`.ui-toast__timer` spends the notice's own dismiss timer. It pauses on the notice's `:hover` and
+`:focus-within` from the stylesheet, so the line and the countdown stop together. Under reduced
+motion the line is not drawn at all, because its animation is capped to nothing. The notice still
+expires on time.
 
 ### React search field
 
