@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.89.0', date: '2026-10-05',
+    changes: [
+      ['changed', '`npm run check:words` measures the prose on each guidelines page and fails one that is over its word budget. The budget is 60 words a rule, read off the shortest pages in the collection today, and the count is every word a reader reads: any introduction above the first rule, then each rule\u2019s title and the fields it fills. An introduction buys no allowance of its own, so a page with no rules has nothing to spend and any introduction on one fails. The fifteen pages already over the budget are held at their current size until they are cut. It is a drafting aid for whoever edits the collection, deliberately outside CI, and changes nothing the kit renders. Resolves #576.'],
+    ],
+  },
+  {
     v: '0.88.0', date: '2026-10-05',
     changes: [
       ['changed', 'React `FileDrop` draws remove as the kit’s small text button reading “Remove”, where it drew a wordless `x`. `x` is on the kit’s icon-only list for close and dismiss, and taking a file off a row is neither — the row stays and the file leaves it. `removeLabel` now sets a visible word and defaults to “Remove”; a caller passing the old “Remove file” will see those two words on the button, so shorten it. Two worded actions take more of the name’s line than one word and an `x` did: at 320 a failed upload whose name is long enough to be cut gets 119px of stem in a plain row and 87px inside a panel — about seventeen and thirteen characters. A panel at 360 gives 127px, and an ordinary name is cut there too. The extension is never cut, and 390 and wider are unchanged. Refs #565.', ['File drop']],

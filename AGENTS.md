@@ -37,6 +37,12 @@ one thread when you need the stack of a story that threw, and run
 `CONTRAST_SHARD_PARITY=1 node --test stories/lib/contrast.test.js` when you change how it
 is dealt.
 
+Before handing over a guideline change run `npm run check:words`, which is not in CI and
+fails a `guidelines/*.md` page that is over its word budget or has grown past its
+recorded figure. Nothing in CI runs that command, so when you change what it counts also
+run its CLI half and report the result in the PR:
+`WORD_BUDGET_CLI=1 node --test scripts/word-budget.test.js`
+
 New gates must discover their subjects, fail when cases are not measured, check coverage
 counts, and prove rejection with a failing mutation. Share calculations across
 workspaces, but keep their coverage checks separate. Read the source unless you are
