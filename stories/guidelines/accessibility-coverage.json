@@ -626,11 +626,14 @@
     {
       "file": "react/src/showcases/InvoiceFlow.test.tsx",
       "name": "React: Invoice flow prototype",
-      "does": "Checks that the button inside the drop box opens the file picker by pointer, Enter and Space while the box claims no role of its own and takes several files, that the empty state carries that button rather than a sentence describing the box, that the busy region and the field errors stay truthful after a rejected save, and that the review screen carries no per-field provenance mark and no status badge.",
+      "does": "Checks that the button inside the drop box opens the file picker by pointer, Enter and Space while the box claims no role of its own and takes several files, that the empty state carries that button rather than a sentence describing the box, that the busy region and the field errors stay truthful after a rejected save, that the review screen carries no per-field provenance mark and no status badge, that the picker is the kit's drop-row button rather than a filled primary, that no button on any of the eight states spends more than two words without being on a named list, and that the showcase's own sheet declares no paint, no type ramp, no keyframe and no override of a kit class beyond the two marks follow-the-consequence asks for.",
       "blind": [
         "JSDOM does not measure the focus ring, layout or contrast, and no real file picker opens — only that the hidden input's click is reached.",
         "The gap the rejected-save summary holds off the button row is read from the sheet as text, not measured: vitest applies no imported CSS, so the rendered step is checked in a browser by hand.",
-        "Drag and drop is driven by synthetic events, so pointer-device and operating-system drag behaviour are unmeasured."
+        "Drag and drop is driven by synthetic events, so pointer-device and operating-system drag behaviour are unmeasured.",
+        "The picker's shape is asserted as classes, not as paint; which size and fill those classes draw is the kit's own gates' business.",
+        "The button walk reaches buttons only. A link's words \u2014 the back link, the skip link, the list's identity links \u2014 are outside it.",
+        "The sheet check reads this one stylesheet. A declaration written inline in the component, or a kit class used for a job it was not drawn for, passes it; the kit-wide version is #601."
       ]
     },
     {
