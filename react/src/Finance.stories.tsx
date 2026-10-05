@@ -7,13 +7,16 @@ export default { title: 'Components/Finance composition', parameters: { layout: 
 function Example() {
   const [view, setView] = useState('overview');
   const [filters, setFilters] = useState<Filter[]>([{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology', value: 'Technology' }, { label: 'Energy', value: 'Energy' }] }]);
+  // `Clear all`, not the kit's default `Clear all filters`: the button is inside the bar's
+  // own fieldset, whose legend names the group, so the noun is already in its context. The
+  // default is not changed here — see the pull request and #549. #504
   // The basis is what every delta cell's aria-describedby resolves to, and nothing else.
   // It was a visible sentence under the title — a third text tier over the controls — and
   // the two places it could go instead both cost the table its width: a longer header, or
   // the period picker's header tooltip, whose readout text is inside the <th> and takes
   // that column's max-content from 71px to 135px at 390. #504
   return <main style={{ padding: 'var(--space-6)' }}><h1>Company comparison</h1><p id="react-finance-basis" className="ui-sr">Changes since the previous close.</p>
-    <FilterBar filters={filters} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))} />
+    <FilterBar filters={filters} clearLabel="Clear all" onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))} />
     <Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
     {/* --table-bg is the card's surface in a card and the page's own ground outside one, and a
         content-width table no longer covers the page it stands on. --fit so the surface ends

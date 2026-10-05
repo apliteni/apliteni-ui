@@ -16,7 +16,7 @@ it('requests changes and preserves controlled filters', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Remove Region filter' }));
   expect(props.onRemove).toHaveBeenCalledWith('Region');
   expect(screen.getByRole('button', { name: 'Region: All' })).toBeInTheDocument();
-  await userEvent.click(screen.getByRole('button', { name: 'Clear all' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
   expect(props.onClear).toHaveBeenCalledTimes(1);
 });
 // DOM only: which control is rendered, not how it looks.
