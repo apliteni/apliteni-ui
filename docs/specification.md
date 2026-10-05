@@ -2570,11 +2570,16 @@ leading, which is the kit's own choice and not a disagreement with Primer: a fil
 are short values in a narrow column, and a leading mark would indent every label to leave room for
 a mark one row has.
 
-**The wash survives every state, and hover deepens it.** Hover, the keyboard cursor and focus each
-paint an opaque `--surface` on a dropdown row, which would take the wash off the chosen one.
-`filter-bar.css` restates the wash for the cursor and for focus, so the row the filter is on does
-not stop looking chosen; each of those two still reads by the paint that is not a fill — the
-cursor's inset accent bar and the kit ring, never a browser's own outline. Hover had nothing left:
+**The wash survives focus, and hover and the keyboard cursor deepen it.** Hover, the keyboard
+cursor and focus each paint an opaque fill on a dropdown row, which would take the wash off the
+chosen one. `filter-bar.css` restates the wash for focus, so the row the filter is on does not stop
+looking chosen; focus still reads by the paint that is not a fill — the kit's band, which #578 made
+a real `outline` a pixel off the row, never a browser's own. The cursor had read by a paint that is
+not a fill too, its inset accent bar, until #578 round r34 took that bar off every selected state:
+an inset accent bar is an edge, and an edge belongs to focus. So the cursor takes hover's answer
+below, the same deeper wash — a pointer and an arrow key are not on one row at once, so the two
+sharing a ground costs a reader nothing, and what each needs is the same thing: a step off the
+wash that does not erase it. Hover had nothing left either:
 its other paint is the kit's 1px `--control-edge`, which on the wash is 1.06:1 in dark, so the one
 row in the panel already in force was the one row a pointer got no answer from. Selection is a
 background highlight and an outline belongs to focus, so hover deepens the highlight instead — 9%
@@ -2586,8 +2591,9 @@ the deeper ground at 3.62:1 and 10.69:1. One translucent layer over one opaque g
 only form whose text pair can be measured, so the chosen label's own ratio stays readable off the
 sheet: 16.69:1 in light, 12.18:1 in dark. `stories/filter-selected-mark.test.js` measures the pair
 and the three states in both themes across every story that draws a filter bar, measures hover's
-step as a ratio rather than asserting that paint exists, and rejects a mutation of each guarantee —
-including the restated wash that left hover at 1.00:1.
+and the cursor's step as a ratio rather than asserting that paint exists, and rejects a mutation of
+each guarantee — including the restated wash that left hover at 1.00:1, and the one that left the
+cursor there once its bar was gone.
 
 **Which row is chosen is the chip's answer, not the consumer's.** `filterChipItems(filter)` hands
 the menu the chip's items with the chip's own `value` marked `selected`, matching a row by its

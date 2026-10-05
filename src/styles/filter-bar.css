@@ -69,18 +69,27 @@
    check is what identifies the state under WCAG 1.4.1; Apple, Material, Carbon,
    Primer and Radix all tick a chosen menu row. #549
    why: docs/specification.md#a-filter-row-holds-its-panels */
-.ui-filter-bar .ui-dropdown__item.is-selected { background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-filter-bar .ui-dropdown__item.is-selected { background: var(--glow-purple); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
 /* Kit-wide a chosen label steps down to --text, which left the row in force the
    faintest in the panel. Under the wash it holds --strong. */
 .ui-filter-bar .ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--strong); }
-/* The keyboard cursor and focus each set an opaque --surface, which would take the
-   wash off; restated here so the guarantee is one declaration a reader and
-   filter-selected-mark.test.js can both find, and each still reads by its own paint.
+/* Focus sets an opaque --surface, which would take the wash off; restated here so
+   the guarantee is one declaration a reader and filter-selected-mark.test.js can
+   both find. Focus still reads by its own paint — the kit's band, which #578 made a
+   real outline a pixel off the row.
    why: guidelines/accessibility-floor.md#measurable-pairs */
-.ui-filter-bar .ui-dropdown__item.is-selected:focus-visible,
-.ui-filter-bar .ui-dropdown__item.is-selected.is-active { background: var(--glow-purple); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-filter-bar .ui-dropdown__item.is-selected:focus-visible { background: var(--glow-purple); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
 /* Hover's other paint is a 1px edge, 1.06:1 on the wash, which left the row in force
    the one row a pointer got no answer from. Selection is a background highlight, so
    hover deepens it: 9% more accent, the step .ui-table--zebra gives a hovered row.
+
+   The keyboard cursor takes the same deeper wash. Kit-wide it is marked by a
+   --surface-2 fill, which on this row would erase the wash, and the inset accent bar
+   it used to carry beside that fill is an edge on a selected row — which #578 round
+   r34 took off every selected state. Deepening the wash is the one mark left that
+   neither erases the selection nor restates it as an edge, and it is already
+   measured here. A pointer and an arrow key are not on the same row at once, so the
+   two states sharing a ground costs a reader nothing.
    why: docs/specification.md#a-filter-row-holds-its-panels */
-.ui-filter-bar .ui-dropdown__item.is-selected:hover { background: color-mix(in srgb, var(--glow-purple), var(--accent) 9%); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-filter-bar .ui-dropdown__item.is-selected:hover,
+.ui-filter-bar .ui-dropdown__item.is-selected.is-active { background: color-mix(in srgb, var(--glow-purple), var(--accent) 9%); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
