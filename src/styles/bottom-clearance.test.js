@@ -379,10 +379,27 @@ test('measured in a browser: a phone page ends below the action a reader is on',
     return { ctx, page };
   };
 
+  /* A sheet the page has been handed is not yet the end space the next line measures:
+   * the mutation below read the kit's 56px twice off a page that had already taken its
+   * 0px, because `addStyleTag` resolves before the page recomputes, and reduced motion
+   * is not a settled style. Every read waits for the end space it is taken at, and
+   * names the one it found instead. why: the review of #434 */
+  const endSpaceSettles = async (page, px) => {
+    const endSpace = () => page.evaluate(() =>
+      getComputedStyle(document.querySelector('.ui-app__main')).paddingBottom);
+    await page.waitForFunction((want) =>
+      getComputedStyle(document.querySelector('.ui-app__main')).paddingBottom === want,
+    `${px}px`, { timeout: 5000 }).catch(async () => {
+      throw new Error(`the page settled on ${await endSpace()} of end space, not the ${px}px `
+        + 'this measurement is taken at');
+    });
+  };
+
   /** Read the fixture the way a reader meets its end: scrolled there, on the action. */
-  const atFixtureEnd = async (page) => {
+  const atFixtureEnd = async (page, endSpace) => {
     const action = page.getByRole('button', { name: 'Export activity' });
     await action.waitFor();
+    await endSpaceSettles(page, endSpace);
     await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
     await action.focus();
     return page.evaluate(PROBE);
@@ -394,7 +411,7 @@ test('measured in a browser: a phone page ends below the action a reader is on',
   await t.test('a shell with no bottom bar keeps the end space the kit gives it', async () => {
     const { ctx, page } = await open(FIXTURE);
     try {
-      const read = await atFixtureEnd(page);
+      const read = await atFixtureEnd(page, 56);
       assert.equal(read.bar, false, 'this story is the no-bar case; it drew a bottom bar');
       assert.equal(read.focused, 'Export activity');
       assert.ok(read.overflow > 0, `the fixture must overflow its ${VIEWPORT.height}px viewport to be scrolled to an end`);
@@ -414,7 +431,7 @@ test('measured in a browser: a phone page ends below the action a reader is on',
     const { ctx, page } = await open(FIXTURE);
     try {
       await page.addStyleTag({ content: DEFECT });
-      const read = await atFixtureEnd(page);
+      const read = await atFixtureEnd(page, 0);
       assert.equal(read.endSpace, 0, 'the mutation must take the end space off the page');
       assert.ok(read.overflow > 0, 'the mutation left the fixture with nothing to scroll, so this probe proves nothing');
       assert.equal(read.atEnd, true, 'the page was not scrolled to its end');
