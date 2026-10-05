@@ -145,15 +145,18 @@ describe('invoice flow prototype', () => {
     expect(screen.getByRole('spinbutton', { name: 'Total (EUR)' })).toHaveAttribute('aria-invalid', 'true');
     expect(summaryAlert()).toHaveTextContent('Check the highlighted fields');
   });
-  it('refuses a sub-cent total instead of saving a record that reads 0.00', async () => {
-    /* 0.001 is finite and above zero, which was the whole of the old test, and the list
-     * writes the amount to the cent — so the record became Ready at EUR 0.00. The field
-     * already declared min 0.01 and step 0.01; the save path now holds the same limits. */
+  /* 0.001 is finite and above zero, which was the whole of the old test, and the list
+   * writes the amount to the cent — so the record became Ready at EUR 0.00. The field
+   * already declared min 0.01 and step 0.01; the save path now holds the same limits,
+   * counted in cents, so 131072.021 is refused for the same reason 0.001 is.
+   * Limit: these are written amounts, not every string Chromium will hold — an amount in
+   * exponent notation is refused, and no case here covers that. */
+  it.each(['0.001', '0', '131072.021'])('refuses the total %s and writes nothing to the record', async amount => {
     const user = userEvent.setup();
     render(<InvoiceFlow initialState="table" />);
     await user.click(screen.getByRole('button', { name: 'cedar-1042.pdf' }));
     const total = screen.getByRole('spinbutton', { name: 'Total (EUR)' });
-    await user.clear(total); await user.type(total, '0.001');
+    await user.clear(total); await user.type(total, amount);
     await user.click(screen.getByRole('button', { name: 'Save invoice' }));
     expect(screen.queryByText('Saved for this session.')).not.toBeInTheDocument();
     expect(total).toHaveAttribute('aria-invalid', 'true');
@@ -167,19 +170,29 @@ describe('invoice flow prototype', () => {
     expect(rowStatus('cedar-1042.pdf')).toBe('Needs review');
     expect(screen.queryByText('\u20ac0.00')).not.toBeInTheDocument();
   });
-  it('saves a cent amount binary floating point cannot hold exactly', async () => {
-    // 0.07 * 100 is 7.000000000000001, so a strict equality on cents would reject it.
+  /* 0.07 * 100 is 7.000000000000001, so a strict equality on cents rejects it; the fixed
+   * tolerance that let 0.07 through then rejected 131072.02, whose product misses a whole
+   * cent by 1.9e-9. Counting digits makes the amount's size irrelevant, which is what the
+   * last two rows measure — the field sets no max, and a nine-figure total's cents are an
+   * exact integer five orders of magnitude clear of Number.MAX_SAFE_INTEGER. Each listed
+   * amount is written out, so the test cannot agree with a wrong one through the formatter. */
+  it.each([
+    ['0.01', '\u20ac0.01'],
+    ['0.07', '\u20ac0.07'],
+    ['131072.02', '\u20ac131,072.02'],
+    ['99999999.99', '\u20ac99,999,999.99'],
+  ])('saves the cent amount %s and lists it as %s', async (amount, listed) => {
     const user = userEvent.setup();
     render(<InvoiceFlow initialState="table" />);
     await user.click(screen.getByRole('button', { name: 'cedar-1042.pdf' }));
     const total = screen.getByRole('spinbutton', { name: 'Total (EUR)' });
-    await user.clear(total); await user.type(total, '0.07');
+    await user.clear(total); await user.type(total, amount);
     await user.click(screen.getByRole('button', { name: 'Save invoice' }));
     expect(screen.getByText('Saved for this session.')).toBeInTheDocument();
     expect(total).not.toHaveAttribute('aria-invalid', 'true');
     await backToList(user);
     expect(rowStatus('cedar-1042.pdf')).toBe('Ready');
-    expect(screen.getByText('\u20ac0.07')).toBeInTheDocument();
+    expect(screen.getByText(listed)).toBeInTheDocument();
   });
   it('withdraws the saved line when the next save is rejected', async () => {
     /* A save line is the one thing a reviewer trusts; it may not report a save that failed.

@@ -74,12 +74,24 @@ const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Numbe
 /* The field declares min 0.01 and step 0.01, and the save path has to mean it: 0.001 is
    finite and above zero, which is all a "greater than zero" test asks, so it saved and
    then arrived in the list as Ready at EUR 0.00 — the list writes the amount to the cent.
-   Cent precision is read with a tolerance and not an equality because 0.07 * 100 is
-   7.000000000000001 in binary floating point. */
-const MIN_TOTAL = 0.01;
+   Cents are counted off the written digits rather than off amount * 100, whose error grows
+   with the amount: that product is 7.000000000000001 for 0.07 and misses a whole cent by
+   1.9e-9 for 131072.02, so a fixed tolerance is a guess about how large an invoice gets.
+   Limit: an amount in exponent notation is refused rather than converted. */
+const MIN_CENTS = 1;
+const MIN_TOTAL = (MIN_CENTS / 100).toFixed(2);
+/** The written amount as a whole number of cents, or null below the cent. */
+const centsOf = (value: string) => {
+  const written = /^(\d*)(?:\.(\d*))?$/.exec(value.trim());
+  if (!written) return null;
+  const [, whole, fraction = ''] = written;
+  if (!whole && !fraction) return null;
+  if (/[1-9]/.test(fraction.slice(2))) return null;
+  return Number((whole || '0') + fraction.slice(0, 2).padEnd(2, '0'));
+};
 const validTotal = (value: string) => {
-  const amount = Number(value);
-  return amount >= MIN_TOTAL && Math.abs(amount * 100 - Math.round(amount * 100)) < 1e-9;
+  const cents = centsOf(value);
+  return cents !== null && cents >= MIN_CENTS;
 };
 const money = (value: string) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(Number(value));
 
@@ -200,7 +212,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
                 <TextField label="Supplier" required value={draft.supplier} error={invalid && !draft.supplier.trim() ? 'Enter the supplier.' : undefined} onChange={edit('supplier')} />
                 <TextField label="Invoice number" required value={draft.reference} error={invalid && !draft.reference.trim() ? 'Enter the invoice number.' : undefined} onChange={edit('reference')} />
                 <TextField label="Invoice date" required value={draft.date} error={invalid && !validDate(draft.date) ? 'Enter a valid date as YYYY-MM-DD.' : undefined} onChange={edit('date')} />
-                <TextField label="Total (EUR)" required type="number" min={String(MIN_TOTAL)} step="0.01" value={draft.total} error={invalid && !validTotal(draft.total) ? 'Enter an amount of 0.01 or more, written to the cent.' : undefined} onChange={edit('total')} />
+                <TextField label="Total (EUR)" required type="number" min={MIN_TOTAL} step="0.01" value={draft.total} error={invalid && !validTotal(draft.total) ? `Enter an amount of ${MIN_TOTAL} or more, written to the cent.` : undefined} onChange={edit('total')} />
               </div>
               {invalid && <p role="alert">Check the highlighted fields before saving.</p>}
               <div className="invoice-flow__actions"><Button variant="primary" type="submit">Save invoice</Button><Button variant="secondary" disabled={!dirty && !invoice.previous} onClick={undo}>{dirty ? 'Discard edits' : 'Undo last save'}</Button></div>
