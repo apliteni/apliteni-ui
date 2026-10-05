@@ -430,9 +430,15 @@ it. **A destructive row with no confirm is rendered disabled instead of running.
 beats a prefix. A prefix beats a word start. A word start beats a substring. A keyword beats a
 note. Initials come last. Groups use the score of their best row. Equal scores keep the order
 you passed. The kit remembers nothing between openings, and **a palette fed by a server does not
-rank results at all**. It renders the results it receives, in that order, while applying the
-same exported function. **The keyboard has six keys and no more**. Tab is not one of them, and
-**focus opens in the text box and never leaves it while the palette is open**, over an inert page.
+rank results at all**: the client keeps the order it was handed, and the ranking above becomes
+the server's to apply — with `rankGroups`, the exported function both faces use, rather than a
+second one written beside it, so a list drawn on a server and the same list after a keystroke
+cannot disagree about what comes first. **The keyboard is these keys and no others.** Cmd or
+Ctrl+K opens the palette, the arrows move the active row and wrap at both ends, Enter runs it,
+and Escape closes the top overlay. Tab is trapped in the panel. Home and End stay with the text
+caret, which is what the ARIA combobox pattern gives them for, and Ctrl+K inside another text
+box is left alone, because it is kill-to-end-of-line there — Cmd+K still opens from one.
+**Focus opens in the text box and never leaves it while the palette is open**, over an inert page.
 **It opens empty**, and **it paints one step above the drawer and one below the confirm**. A
 confirm opened by a row appears over both and answers the first Escape.
 
@@ -762,8 +768,10 @@ find them by class. These attributes make the row work:
 - `type="button"` — without it, a row inside a form submits the form
 - `aria-disabled="true"` for a disabled row, not the native `disabled` attribute: the item walk
   filters rows using this attribute
-- `aria-selected="true|false"` on a `select` row, and keep the `.ui-dropdown__label` span —
-  the pick is written into the first span, and the trigger's value is copied from the second
+- `aria-selected="true|false"` on a `select` row, and keep the `.ui-dropdown__label` span — the
+  pick is written to `aria-selected` on the row itself, never on a span inside it, and the row
+  also takes `is-selected`, which is what shows its tick. The trigger's `.ui-dropdown__value`
+  text is copied from the picked row's `.ui-dropdown__label`
 - `data-value="…"` if you read the pick from the element
 
 ### Forms

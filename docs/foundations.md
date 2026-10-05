@@ -133,10 +133,13 @@ Every easing is also a token. `--ease` is the default. The other options are `--
   **choreographed** sequences timed against each other. There is no third kind.
 - **A published motion helper accepts a missing element.** `transitionMs(el)` returns the
   stylesheet's transition time for `el`: the longest duration plus its own delay, in
-  milliseconds. It returns `0` for an element off the page or for no element. For either case,
-  `playEntrance()` and `replay()` do nothing. A caller sizing a backstop timer for a fade can
-  read the stylesheet instead of copying a duration token. An unmounted ref gets a timer that
-  fires immediately instead of an exception.
+  milliseconds. It returns `0` for no element, for anything that is not an element, and `0`
+  again where there is no window to ask for a computed style. `playEntrance()` and `replay()`
+  do nothing for a missing element. None of the three ask whether the element is still in the
+  document, so a node you detached gets no promise here: what `transitionMs()` answers for one
+  is whatever the engine's style API says about it. A caller sizing a backstop timer for a fade
+  can read the stylesheet instead of copying a duration token, and an unmounted ref gets a timer
+  that fires immediately instead of an exception.
 
 ### Reduced motion travels with the stylesheet
 
