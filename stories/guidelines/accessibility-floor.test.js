@@ -754,8 +754,32 @@ const ACCENTS = ['default', ...new Set(
 )];
 const CELLS = THEMES.flatMap((theme) => ACCENTS.map((accent) => ({ theme, accent })));
 
+/**
+ * Ring selectors this walk cannot land, each with the reason and where the ring
+ * it paints IS measured. Not an excuse list: the test below fails the moment one
+ * of them stops being a ring selector, starts landing here, or is worn by any
+ * markup a vanilla story renders — so an entry cannot outlive what it excuses.
+ */
+const RING_UNLANDED = [
+  {
+    selector: '.ui-focusable:focus-visible',
+    carrier: '.ui-focusable',
+    why: 'the kit\'s opt-in focus class, for a focusable that is no kit control: React\'s '
+      + 'Tooltip trigger is a span, its Modal\'s disclosure is a summary, the picker\'s days '
+      + 'are plain buttons. Every wearer the kit ships is a React one, and '
+      + 'react/src/focus-ring.test.tsx mounts every React story and judges each of them, so '
+      + 'the ring they draw is checked — in that workspace\'s gate, not this one. A plain <a> '
+      + 'is no longer among them: #587 put `a` on the shared list, so the one wearer a vanilla '
+      + 'consumer had to reach for is gone, and stories/inline-link-ring.test.js holds it.',
+  },
+];
+
 const ringRun = await (async () => {
   const selectors = ringSelectors(sheet());
+  // Which excused carriers a story actually renders. Collected here because this
+  // is the walk whose landings the exemptions are about: the same DOM, read for
+  // the class rather than for the ground under it.
+  const worn = new Set();
   const byCell = {};
   for (const { theme, accent } of CELLS) {
     const { vars, css } = kitCssFor(theme, accent);
@@ -770,6 +794,9 @@ const ringRun = await (async () => {
     assert.ok(ring, `${theme}/${accent}: the solid band colour did not resolve`);
     const landings = new Map();
     const { stories } = await walk(win, styles, vars, () => {
+      for (const { carrier } of RING_UNLANDED) {
+        if (win.document.body.querySelector(carrier)) worn.add(carrier);
+      }
       for (const sel of selectors) {
         // The ring's own state pseudo-classes are what the sheet keys on; the
         // GROUND does not move when the control takes focus, so the base
@@ -796,31 +823,56 @@ const ringRun = await (async () => {
       theme, accent, ring: ringValue.trim(), stories, landings: [...landings.values()], selectors,
     };
   }
-  return byCell;
+  return { byCell, worn: [...worn] };
 })();
 
-const CELL_KEYS = Object.keys(ringRun);
+const CELL_KEYS = Object.keys(ringRun.byCell);
 
 test('ring: every selector the sheet paints a ring on is landed somewhere by a story', () => {
   for (const key of CELL_KEYS) {
-    const run = ringRun[key];
+    const run = ringRun.byCell[key];
     assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
     const landed = new Set(run.landings.map((l) => l.selector));
-    // `.ui-focusable` is the kit's opt-in focus class
-    // (src/styles/base.css:144 `.ui-focusable:focus-visible,`). No vanilla component
-    // wears it and no vanilla story renders one, so it has no ground to be measured
-    // against — a fact about the class, not a hole here. React's Tooltip trigger wears
-    // it and is swept elsewhere. It is named rather than filtered so it cannot quietly
-    // become two.
+    // The one selector no vanilla story can land is excused by name in
+    // RING_UNLANDED, with the gate below holding that excuse to its reason.
     //
     // A reader looking for the gap this leaves: the subjects are the selectors the
     // sheet ALREADY rings, so a control given no focus rule at all is invisible here
     // however many stories draw it. stories/focus-ring.test.js walks the controls
-    // instead, on the landing page and the shell, footer and topbar stories; a control
-    // with no ring rule drawn only on a guideline page is caught by neither.
-    const orphans = run.selectors.filter((s) => !landed.has(s));
-    assert.deepEqual(orphans, ['.ui-focusable:focus-visible'], `${key}: a ring selector no story renders is a ring nobody measured`);
+    // instead, on the landing page and the shell, footer and topbar stories, and
+    // stories/inline-link-ring.test.js walks every link the whole catalogue draws;
+    // a control that is neither, with no ring rule, drawn only on a guideline page,
+    // is caught by none of the three.
+    const excused = new Set(RING_UNLANDED.map((e) => e.selector));
+    const orphans = run.selectors.filter((s) => !landed.has(s) && !excused.has(s));
+    assert.deepEqual(orphans, [], `${key}: a ring selector no story renders is a ring nobody measured`);
   }
+});
+
+// The excuse, held to its reason. An entry here is a selector this walk cannot
+// reach, and each of the three ways that can stop being true fails the gate
+// instead of leaving a stale excuse in place: the selector leaves the sheet, a
+// story starts landing it, or some vanilla markup starts wearing the class.
+test('ring: every excused selector is still in the sheet, still unlanded, and still unworn', () => {
+  assert.ok(RING_UNLANDED.length, 'the excuse list is empty — delete it and the filter with it');
+  for (const key of CELL_KEYS) {
+    const run = ringRun.byCell[key];
+    for (const { selector } of RING_UNLANDED) {
+      assert.ok(
+        run.selectors.includes(selector),
+        `${key}: ${selector} paints no ring any more — retire its entry`,
+      );
+      assert.ok(
+        !run.landings.some((l) => l.selector === selector),
+        `${key}: ${selector} lands in a story now — retire its entry and let this gate measure it`,
+      );
+    }
+  }
+  assert.deepEqual(
+    ringRun.worn, [],
+    'a story renders markup wearing an excused class, so the ring it draws has a ground to be '
+    + 'measured against — retire the entry rather than keep the excuse',
+  );
 });
 
 // Every accent is swept, not just the two themes: the ring is var(--accent) and
@@ -828,7 +880,7 @@ test('ring: every selector the sheet paints a ring on is landed somewhere by a s
 // surfaces. #201 measured the default accent only and reported 1.50 as the
 // worst the kit had; light emerald was 1.35 the whole time.
 test(`ring: ${RING_MIN}:1 against every ground it lands on, in every theme x accent cell`, () => {
-  const failing = CELL_KEYS.flatMap((key) => ringRun[key].landings
+  const failing = CELL_KEYS.flatMap((key) => ringRun.byCell[key].landings
     .filter((l) => l.ratio != null && l.ratio < RING_MIN)
     .map((l) => `${key}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`));
   assert.deepEqual(
@@ -843,7 +895,7 @@ test(`ring: ${RING_MIN}:1 against every ground it lands on, in every theme x acc
 // warning anyone gets. It is the measured worst, so it moves only by being
 // re-measured (the measured-pin rule).
 test(`ring: nothing has drifted below ${RING_FLOOR}:1, the worst the kit measures today`, () => {
-  const worse = CELL_KEYS.flatMap((key) => ringRun[key].landings
+  const worse = CELL_KEYS.flatMap((key) => ringRun.byCell[key].landings
     .filter((l) => l.ratio != null && Math.round(l.ratio * 100) / 100 < RING_FLOOR)
     .map((l) => `${key}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`));
   assert.deepEqual(worse, [], 'a token moved a ring landing below the worst #218 measured');

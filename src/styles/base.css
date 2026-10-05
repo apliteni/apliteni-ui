@@ -141,6 +141,13 @@ svg:where(:not([width]):not([height])) {
    .ui-focusable, in the vanilla topbar, React ThemeToggle and the React shell's bar
    alike, so keyboard focus on it fell back to the browser's own outline in all three.
    It has no class of its own to opt in with; it joins the list instead. Found on #385. */
+/* `a` is here as an ELEMENT, not a class, because a link in running text is the one
+   control a consumer writes with no class on it at all — so it took the browser's
+   outline, which #457 refused. The net is over every anchor; a component that rings
+   its own anchor outranks this at two classes and keeps the shape it chose. The band
+   sits at whatever corner the link carries, which is the rule .ui-table's links
+   already take. Found on #586, decided on #587. */
+a:focus-visible,
 .ui-focusable:focus-visible,
 .ui-snippet :focus-visible,
 .ui-btn:focus-visible,

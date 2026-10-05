@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:178",
+        "ref": "src/styles/table.css:176",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ]
@@ -44,7 +44,7 @@
     ],
     "ring-contrast": [
       {
-        "ref": "src/styles/base.css:151",
+        "ref": "src/styles/base.css:158",
         "pattern": "outline: var(--ring);"
       }
     ],
@@ -766,11 +766,11 @@
   "_state-set.js": {
     "focus-visible": [
       {
-        "ref": "src/styles/base.css:144",
+        "ref": "src/styles/base.css:151",
         "pattern": ".ui-focusable:focus-visible,"
       },
       {
-        "ref": "src/styles/base.css:151",
+        "ref": "src/styles/base.css:158",
         "pattern": "outline: var(--ring);"
       },
       {

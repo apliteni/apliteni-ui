@@ -178,17 +178,21 @@ test("every link in a table cell takes the kit ring", () => {
   );
 });
 
+// The rule this mutation takes out is the shared one in `base.css`, not a rule of
+// table.css's own: since #587 the element `a` is on that list, which is what reaches a
+// cell link. The equality is the point — if any subject survived the cut, a THIRD rule
+// would be covering it and this gate would be measuring the wrong one.
 test("the check rejects a cell link dropped from the ring", () => {
   const subjects = cellLinks();
-  const rule = /\.ui-table a:not\(\.ui-btn\):focus-visible \{[^}]*\}/;
-  assert.ok(rule.test(SHEETS), "the rule this gate holds must exist to be taken out");
+  const claim = "a:focus-visible,\n";
+  assert.ok(SHEETS.includes(claim), "the rule this gate holds must exist to be taken out");
 
-  const stripped = SHEETS.replace(rule, "");
+  const stripped = SHEETS.split(claim).join("");
   assert.equal(
     bare(stripped, subjects).length,
     subjects.length,
-    "without the table's focus rule every cell link must be reported bare — if any still " +
-      "passes, a second rule is covering it and this gate is measuring the wrong one",
+    "without the kit's claim on the `a` element every cell link must be reported bare — " +
+      "if any still passes, a second rule is covering it and this gate is measuring the wrong one",
   );
 });
 
@@ -287,12 +291,15 @@ test("a JSX subject is read the same as its HTML spelling", () => {
   assert.deepEqual(bare(SHEETS, [jsx]), [], "a JSX cell link must be seen to take the ring");
 
   // And the normaliser is load-bearing: parsed as JSX writes it, the table carries the
-  // attribute `classname`, its `classList` is empty, and no ring selector reaches the link.
+  // attribute `classname` and its `classList` is empty, so every rule keyed on `.ui-table`
+  // misses. The ring is no longer one of them — since #587 the element `a` carries it,
+  // table or no table — so the trap is read on the box instead, which is the other half
+  // of this file's guarantee and is still the table's own rule to give.
   const raw = new JSDOM(`${jsx.table}<tbody><tr>${jsx.cellOpen}${jsx.link}ID</a></td></tr></tbody></table>`)
     .window.document.querySelector("a");
   assert.equal(raw.closest("table").classList.length, 0, "HTML parsing must drop the JSX class");
-  assert.ok(
-    !ringSelectors(SHEETS).some((part) => reaches(part, raw, [":focus-visible"])),
+  assert.notEqual(
+    declared(SHEETS, "display", raw), "inline-block",
     "the trap this normaliser removes must still be there to remove",
   );
   assert.deepEqual(bare(SHEETS, [html]), [], "the HTML spelling reads the same way");

@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.97.0', date: '2026-10-10',
+    changes: [
+      ['fixed', 'Every link the kit renders answers the keyboard with the kit’s focus ring. A link in running text wears none of the kit’s control classes, so no rule in the stylesheet reached it and the browser drew its own outline — black in both themes and blind to the accent — on the Guidelines index, a callout’s action, a confirmation’s consequence and every prose link beside them. The ring is claimed for the `a` element now, so a consumer’s own links are covered with nothing to opt into; a component that rings its own anchor, such as a table cell’s link or the footer’s, is the more specific rule and keeps the shape and the corner it already drew. In React a plain `<a>` and a router link no longer need `className="ui-focusable"`: that class is left for a focusable that is neither a link nor a kit control, such as a `div` or `span` given a `tabIndex`. Fixes #587.', ['Callout', 'Confirm', 'StatBand']],
+    ],
+  },
+  {
     v: '0.96.1', date: '2026-10-10',
     changes: [
       ['changed', 'The Iconography and Button labels guideline pages read shorter. Both lost repeated wording and captions that restated their own rule; every rule, reason, boundary and example they carried is still on the page. Nothing the kit draws changed. Closes #594.'],

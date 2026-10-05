@@ -123,6 +123,33 @@ const SUBJECTS = [
     size: [1000, 520],
     controls: [['interactive', '.ui-card--interactive', 'an interactive card']],
   },
+  // ---- #587: a link in running text, which wears no class and so took no ring ----
+  {
+    id: 'link-guidelines', kind: 'story', story: 'guidelines/Overview.stories.js', export: 'Overview',
+    size: [1000, 760],
+    controls: [['index', '.gi-list a', 'a link on the Guidelines index']],
+  },
+  {
+    id: 'link-callout', kind: 'story', story: 'components/CalloutToast.stories.js', export: 'CalloutActions',
+    size: [900, 620],
+    controls: [['body', '.ui-callout a', "a link in a callout's body"]],
+  },
+  {
+    // The link the Confirm stories put on the page, which that file says is there
+    // to Tab to: a plain paragraph link with no class on it. Playground, not the
+    // states gallery — there the scrim is over the page and dims the band with it.
+    id: 'link-prose', kind: 'story', story: 'components/Confirm.stories.js', export: 'Playground',
+    size: [1000, 720],
+    controls: [['page', 'a[href="#nebula"]', 'a link in a paragraph']],
+  },
+  {
+    // The other half of the collection: a rule page's prose link, on the same
+    // reading surface as the index. The pair is what shows one band shape and one
+    // gap colour across both, which is what #604's review asked for.
+    id: 'link-rule-page', kind: 'story', story: 'guidelines/DensityAndAccents.stories.js', export: 'DensityAndAccents',
+    size: [1100, 900],
+    controls: [['prose', '.gc a', 'a prose link on a guideline rule page']],
+  },
   {
     id: 'toast', kind: 'story', story: 'components/CalloutToast.stories.js', export: 'Affordances',
     size: [1000, 620],

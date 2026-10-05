@@ -496,7 +496,8 @@ uses the kit surface and its border, with nothing behind it. There is no backdro
 are unmodified Lucide paths in a 24 box. Neither has a filled disc or a burst ring behind it.
 [Iconography](../guidelines/iconography.md) reserves a circled glyph for a state, so `circled`
 is the mark that rule requires. `line` is the default because it carries the moment at page
-size. An action that is not a kit `Button` uses `.ui-focusable`.
+size. An action that is not a kit `Button` — a router link or a plain `<a>` — is ringed already and
+needs no class; `.ui-focusable` is for a focusable that is neither a link nor a kit control.
 
 ### Pending and denied states
 
