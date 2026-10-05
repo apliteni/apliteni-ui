@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Dropdown, type DropdownEntry } from './Dropdown';
 import { Button } from './primitives/Button';
 import { useIsoLayoutEffect } from './dialog';
-import { filterChipText, filterChipName, filterChipUnset } from '@apliteni/apliteni-ui';
+import { filterChipText, filterChipName, filterChipUnset, focusNextStop } from '@apliteni/apliteni-ui';
 export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean };
 export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; disabled?: boolean; busy?: boolean;
   onRemove: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void };
@@ -22,7 +22,12 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all 
       || chips.slice(0, prior.index).reverse().find(chip => !chip.disabled);
     const target = !blocked && next?.querySelector<HTMLButtonElement>('[data-dropdown-trigger]');
     focused.current = null;
-    (target || bar.current)?.focus();
+    // No chip of its own left to hold it: the shared pair decides where the focus
+    // goes — the bar itself only while it still holds chips, since emptied it
+    // draws no box and the ring would sit on a 0-height line — and checks that it
+    // arrived. why: docs/specification.md#a-filter-row-holds-its-panels
+    if (target) target.focus();
+    else focusNextStop(bar.current);
   });
   return <div><fieldset ref={bar} className="ui-filter-bar" data-filter-bar="" disabled={blocked} aria-busy={busy || undefined} tabIndex={-1}
     onBlur={event => {
@@ -42,6 +47,8 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all 
       <button type="button" className="ui-filter-bar__remove" data-filter-remove="" aria-label={`Remove ${filter.label} filter`}
         onClick={() => { if (!blocked && !filter.disabled) onRemove(filter.id); }}>×</button>
     </fieldset>)}
-    <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant="ghost" disabled={!filters.length} onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>
+    {/* Shown only once there is something to clear, in the bordered skin. The
+        vanilla factory carries the reasoning. why: docs/specification.md#a-filter-row-holds-its-panels */}
+    {filters.length > 0 && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
   </fieldset></div>;
 }

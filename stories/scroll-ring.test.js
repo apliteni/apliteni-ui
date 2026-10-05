@@ -236,11 +236,15 @@ function emulateForcedColors(css) {
   const flattened = leafRules(css)
     .filter((rule) => rule.at.some((prelude) => FORCED.test(prelude)))
     .map((rule) => `${rule.selector} { ${rule.decls.map((d) => `${d.prop}: ${d.value}`).join('; ')} }`);
-  // One block in the kit: the snippet's `<pre>`, which hands its ring to the card
-  // around it (#474) and drops its own transparent outline so the system repaints one
-  // indicator rather than two. #531's regions delegate to nobody and need no such
-  // block — which is what makes this number the check it is.
-  assert.equal(flattened.length, 1,
+  // Two blocks in the kit, neither of them a scroll region. The snippet's `<pre>`
+  // hands its ring to the card around it (#474) and drops its own transparent
+  // outline so the system repaints one indicator rather than two. The underline
+  // strip's chosen tab (#527) restates its accent bar in `Highlight`, because the
+  // mode repaints an author colour and would otherwise leave the bar in the labels'
+  // own ink. #531's regions delegate to nobody and need no block at all — which is
+  // what makes this number the check it is: a third block, or either of these two
+  // going missing, is a region that has started delegating.
+  assert.equal(flattened.length, 2,
     'a forced-colors block was added or removed; a scroll region that needs one is a '
     + 'scroll region that has started delegating');
   return [css.replace(/box-shadow\s*:[^;}]+/g, 'box-shadow: none'), ...flattened].join('\n');

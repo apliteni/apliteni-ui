@@ -90,9 +90,58 @@
 }
 .ui-accent-picker button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
-.ui-seg--underline { flex-wrap: nowrap; align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; border-bottom: 1px solid var(--border); padding: var(--space-1); overflow: auto; max-width: 100%; }
-.ui-seg--underline button { border-radius: var(--radius-xs); border-bottom: 2px solid transparent; padding: var(--space-3); white-space: nowrap; }
+/* Underline tabs wrap for the reason the pills above do — #435 — and draw no
+   rule of their own: the chosen tab carries the selection. #527, #545
+   why: docs/specification.md#the-chosen-tab-in-an-underline-strip */
+.ui-seg--underline { flex-wrap: wrap; overflow: visible; row-gap: var(--space-1); align-self: stretch; justify-self: stretch; background: transparent; --ring-gap: inherit; border-radius: 0; padding: var(--space-1); max-width: 100%; }
+/* `anywhere` is the half `break-word` cannot do: it lowers the tab's min-content
+   width, so one unbreakable word narrows rather than widening the page. The
+   padding is the scale's own step and the height is the tap floor, so the tab
+   draws 44 whatever line box its font hands it: the off-scale `--space-3 + 1px`
+   this replaces drew 44 with the webfont loaded and 41 without, which is under
+   the floor it claimed. The radius is left for the focus ring; the tab paints no
+   box. #527
+   why: guidelines/layout-and-density.md, the spacing scale */
+.ui-seg--underline button { position: relative; border-radius: var(--radius-sm); padding: var(--space-3); min-height: var(--tap-min, 44px); white-space: normal; overflow-wrap: anywhere; font-weight: var(--weight-medium); }
+/* The chosen tab is its label and one bar under it: no plate, no hairline, no
+   upright rail — those read as a list-row grip. `outline: 0` cancels the accent
+   outline the pill rule gives every chosen button, which is #544's second mark.
+   #527 r31. why: docs/specification.md#the-chosen-tab-in-an-underline-strip */
 .ui-seg--underline button.is-active,
-.ui-seg--underline button[aria-pressed="true"] { background: transparent; border-bottom-color: var(--accent); }
+.ui-seg--underline button[aria-pressed="true"] {
+  background: none;
+  color: var(--strong);
+  font-weight: var(--weight-semibold);
+  outline: 0;
+}
+/* Every tab reserves the bar and hides it, so the mark grows in place when the
+   choice moves rather than appearing — the structure and the timing
+   .ui-nav--tabs.is-underline already uses for the same 2px bar. ::before, not
+   ::after: below the phone step tap-zone.css sizes ::after to the 44px floor,
+   and a bar drawn there collapses that layer to 2px. Inset from the tab's
+   bottom edge, which is the line two wrapped rows share. */
+.ui-seg--underline button::before {
+  content: "";
+  position: absolute;
+  left: var(--space-3); right: var(--space-3); bottom: 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.ui-seg--underline button.is-active::before,
+.ui-seg--underline button[aria-pressed="true"]::before { opacity: 1; transform: scaleX(1); }
+/* `outline: 0` above outranks the kit's :focus-visible rule — (0,3,0) against
+   (0,2,1) — so the chosen tab would focus with no indicator. Restated here. */
+.ui-seg--underline button.is-active:focus-visible,
+.ui-seg--underline button[aria-pressed="true"]:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+/* The mode repaints an author colour, so the bar comes back as the labels' own
+   ink. `Highlight` is kept where it is named: one mark the mode cannot flatten. */
+@media (forced-colors: active) {
+  .ui-seg--underline button.is-active::before,
+  .ui-seg--underline button[aria-pressed="true"]::before { background: Highlight; }
+}
 .ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }

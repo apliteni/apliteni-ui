@@ -1,6 +1,6 @@
 import { button, esc } from './index.js';
 import { dropdown, wireDropdown } from './dropdown.js';
-import { filterChipText, filterChipName, filterChipUnset } from '../logic/filter-bar.js';
+import { filterChipText, filterChipName, filterChipUnset, focusNextStop } from '../logic/filter-bar.js';
 
 export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear all filters', disabled = false, busy = false } = {}) {
   return `<fieldset class="ui-filter-bar" data-filter-bar${disabled || busy ? ' disabled' : ''}${busy ? ' aria-busy="true"' : ''}>`
@@ -13,7 +13,17 @@ export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear
         triggerContent: `<span class="${filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}">${esc(filterChipText(filter))}</span>`,
         ariaLabel: filterChipName(filter), open: !!filter.open && !disabled && !busy && !filter.disabled })
       + `<button type="button" class="ui-filter-bar__remove" data-filter-remove aria-label="${esc(`Remove ${filter.label} filter`)}">×</button></fieldset>`).join('')
-    + `<span data-filter-clear>${button({ label: clearLabel, size: 'sm', variant: 'ghost', disabled: !filters.length })}</span></fieldset>`;
+    // Nothing to clear, no control: an unavailable action standing in an empty
+    // row is the only thing in it, and it reads as a bar that has been turned
+    // off rather than one with no filters on it. It is the kit's own `one-page`
+    // rule — a control with no action to offer is not shown. It returns with
+    // the first chip, in the bordered skin rather than the ghost one, because a
+    // live action beside two chips has to read as live.
+    // why: docs/specification.md#a-filter-row-holds-its-panels
+    + (filters.length
+      ? `<span data-filter-clear>${button({ label: clearLabel, size: 'sm' })}</span>`
+      : '')
+    + '</fieldset>';
 }
 
 // The host stays mounted; update() restores the action's focus after controlled removal.
@@ -38,7 +48,9 @@ export function initFilterBar(host, options = {}) {
     const control = target?.querySelector(same && focus.remove ? '[data-filter-remove]' : '[data-dropdown-trigger]')
       || host.querySelector('[data-filter-clear] button');
     if (control && !control.disabled && !control.closest('fieldset:disabled')) control.focus();
-    else { const bar = host.querySelector('[data-filter-bar]'); bar.tabIndex = -1; bar.focus(); }
+    // No control of its own left to hold it: the shared pair decides where the
+    // focus goes and checks that it arrived. why: src/logic/filter-bar.js
+    else focusNextStop(host);
   };
   const emit = (type, detail) => host.dispatchEvent(new host.ownerDocument.defaultView.CustomEvent(type, { bubbles: true, detail }));
   const click = e => {

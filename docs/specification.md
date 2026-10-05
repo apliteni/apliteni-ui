@@ -2211,6 +2211,69 @@ over at 390, 62px at 375, 117px at 320. That is true with this rule, without it,
 the bound is on the panel. A filter whose applied value can be that long wants a shorter display
 value, or a change to the trigger, which is a change to every chip in the kit.
 
+**The clear action is offered only when there is something to clear.** `filterBar` and React
+`FilterBar` write it with the first chip and drop it with the last. It used to stand in an empty
+bar, disabled, as the only thing in the row, which reads as a bar that has been switched off
+rather than one with no filters on it — the kit's own `one-page` rule, which says a control with
+no action to offer is not shown. The layout-stability argument behind `ends-disable` does not
+reach it: applying a filter adds a chip to the same row, so the row reflows either way. A consumer
+reading `[data-filter-clear]` finds nothing while no filter is set. A disabled or busy bar that
+*has* chips keeps the control, turned off by the fieldset, so nothing leaves the row while a
+refresh is in flight.
+
+**It wears the kit's bordered skin without the fill, in every state.** The ghost skin it used to
+take draws no box at all, and the action was asked to read louder than that; the bordered skin's
+edge is that, and its `--surface` fill is not, because text on a grey block is what
+`guidelines/colour-and-theming.md` keeps off a reading surface — in dark it resolved to
+`rgb(33, 30, 45)` on a `rgb(14, 13, 20)` page.
+
+The first attempt turned only the resting fill off, at element specificity, and left every state
+the kit paints over it alone — on the argument that `:disabled` and `[aria-busy]` outranking that
+one declaration kept them the kit's own. It did, including their fill, which is the thing being
+turned off: a disabled bar, and a busy one, put the label straight back on the block. So
+`filter-bar.css` now answers each state that paints a NEUTRAL fill on this control — `:disabled`,
+`[aria-disabled]`, `[aria-busy]` with its hover and active pair, and busy-and-disabled together —
+each at a specificity that beats the kit rule writing it and no more. Hover stays out of it,
+because its fill is an accent wash rather than a grey block, and so stays the kit's own and cannot
+drift from it.
+
+With no fill the label is read on whatever is behind the bar, so a disabled clear action takes
+`--disabled-ink-bare`, the ink `src/styles/button-disabled.test.js` measures against every ground
+the kit paints, for the reason a disabled ghost button takes it. Its edge is untouched: the kit's
+`--disabled-border` is what still says "off" here. Held by `src/styles/filter-bar.test.js`, which
+reads the fills out of `button.css` rather than from a list, so a fill the kit adds later fails
+until this sheet answers it; the paint itself is measured in a browser and reported in the pull
+request.
+
+**An emptied bar hands the focus on rather than keeping it.** Clear the last filter, or remove the
+last chip, from the keyboard and the control that had the focus is gone. The bar is not a
+substitute for it: once the chips go, its fieldset has only an out-of-flow legend left, so it
+measures 0 high and a ring on it is a floating dot or a line above the next control. Both faces
+therefore move the focus to the control a reader's next <kbd>Tab</kbd> would reach — forward in
+document order, else the nearest one behind. On the Stock screener that is the caller's own
+`Add filter` beside the bar; in the React Finance composition, which has no such action, it is the
+view strip's chosen tab under it.
+
+**A control a reader cannot reach is not a place to put the focus.** `focus()` is a request, and a
+refused one is silent: the focus lands on the body, with no ring on anything and the next
+<kbd>Tab</kbd> starting over at the top of the page. A control that is `hidden`, `inert`,
+`visibility: hidden`, `display: none`, disabled, inside a disabled fieldset or out of the tab order
+refuses it, and the first four of those keep a box, so no test made of rectangles catches them.
+Every candidate is therefore filtered against the document and the cascade, and then — because
+being reachable is not the same as taking the focus — asked and checked, with the next one tried
+if it did not arrive. With nothing reachable beside it the focus goes nowhere rather than onto the
+empty box, which is the one case where the body keeps it.
+
+While the bar still holds chips it does keep the ring, even with every control in them turned off,
+because it still draws a box around them; it is made focusable for that moment. `nextFocusStop` is
+exported, so a consumer that wants to place the focus itself reads the same answer, and
+`focusNextStop` places it the same way and answers with the element it ended on, or `null` if
+nothing took it. Held by `src/components/finance.test.js`, `react/src/FilterBar.test.tsx` and
+`react/src/Finance.test.tsx`, which name the control that ends up focused in each of those cases;
+they read the document and not the layout, JSDOM having none, so the 0-high fieldset itself is
+measured in a browser and reported in the pull request.
+Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527).
+
 Held by `stories/filter-bar-fit.test.js`, which reads every width floor the kit writes for a panel
 — resolving one spelled as a token — and requires each to be answered inside the bar, and measured
 in a browser by `scripts/evidence/filter-bar-fit.mjs` at 320px, 375px and 390px in both themes.
@@ -3175,8 +3238,148 @@ sideways and drags every other block with it. Below 560px the standard-size pill
 their side padding, which is what keeps six three-letter months on one row in a
 390px column; the type rank is unchanged at every width.
 
-The underline appearance scrolls instead of wrapping, which is the right answer for
-column switches over one dataset, where the order is the reader's map.
+The underline appearance wraps the same way, and is not a scroll box. It used to
+keep one row and scroll, on the reading that the order is the reader's map; a
+strip that scrolls hides the tabs past the fold at rest and shows nothing that
+says they are there. With no scroll box the focus ring's glow is no longer
+clipped against the strip's own 4px padding.
+
+A label too long for the column wraps inside its own tab, as it already does
+inside a pill, and a single unbreakable word narrows with it, which a pill's
+does not. Nothing a caller can put in a tab widens the strip past its column or
+the page past the viewport.
+
+Its rows stand at the track's own `--space-1`, across and down alike, so a
+wrapped strip reads as one block rather than as a row and a heading under it.
+That is tighter than the `--tap-gap` a coarse pointer opens for the pill strip
+below the phone step, and the strip opts out of it: a pill draws 31px tall and
+its zone needs the room, while an underline tab draws the 44px floor itself. Its
+padding is the scale's own `--space-3` and its height is
+`min-height: var(--tap-min)`, so the floor is drawn rather than found in the
+space around it, and it holds whatever line box the font supplies. The clearance
+is still declared, and declared small — 4px, the row this strip actually has,
+against the 20px the pill rule would otherwise hand it — so a layer here can
+never reach past its own gap. Both pointers therefore draw the strip
+identically.
+
+## The chosen tab in an underline strip
+
+It is its own label and 2px of accent under it. No plate, no hairline, no upright
+rail: the tab keeps the ground the strip stands on, its label steps to `--strong`
+at `--weight-semibold` while a reading label sits at `--weight-medium`, and the
+bar spans the label's own width — inset from the tab's edges by the same
+`--space-3` its padding is, and standing 3px clear of its bottom edge.
+
+**Why so little.** The strip was first drawn as the sidebar's selected row: a
+reading-surface plate, a hairline around it, and a 3px accent bar standing in the
+tab's leading padding. Artur, round r29: *"Looks like draggable element."* That
+pair — a lone card raised off the grey page with a vertical bar at its leading
+edge — is the kit's own list-row grip, so the eye offered to drag the strip, and
+the bar was the only mark in it that cleared a contrast floor (the plate reads
+1.11:1 against the page). Round r31 took both away and left the two marks that
+were doing the reading: the type step, and the bar re-pointed under the label.
+
+**What a consumer can rely on.** The chosen tab paints the accent exactly once.
+No tab in the strip draws a box — no background a reader can see against the
+strip's ground, no border, no inset shadow — so nothing in it reads as a card
+lying on the page. And every mark that says "chosen" is inside that tab's own
+box, clear of its edges, which is what lets the strip wrap: a tab on a further
+row carries its whole highlight with it, and nothing has to be read against the
+row above or the row below. The strip itself draws no rule under its tabs — the
+chosen tab carries the selection, so a line there marked nothing — and a consumer
+that wants one draws it on the container.
+
+The accent is spent once because the underline rule cancels the 1px accent
+outline `.ui-seg button.is-active` gives every chosen segmented button, which was
+the second of the two marks [#544](https://github.com/apliteni/apliteni-ui/issues/544)
+reported. The pill appearance keeps that outline; it is a separate decision on a
+rule every segmented control in the kit shares.
+
+**Every tab reserves the bar, and the chosen one draws it.** The slot sits on
+every tab at `opacity: 0` and `scaleX(0.4)`, and the chosen tab's rule turns it
+on, so the mark grows in place when the choice moves instead of appearing. That
+is `.ui-nav--tabs.is-underline`'s own structure and timing for the same 2px bar,
+and `src/styles/segmented.test.js` reads the two rules against each other: the
+kit draws underline tabs one way, and a strip that snapped the mark between tabs
+would be the exception. Only the chosen tab's slot is ever drawn, so the accent
+is still spent once — a hover rule that turned a second slot on would be #544
+again, reached by a state rather than by a rule, which the browser gate measures
+under a real pointer.
+
+**Hovering is a small ink step, and the step is the kit's answer rather than
+this strip's.** `.ui-seg button:hover` takes the ink from `--text` to `--strong`:
+1.16:1 in light, 1.22:1 in dark. `.ui-nav__tab:hover` does exactly the same, so
+a tab with no box of its own answers the pointer with the cursor and that step.
+Whether a reader notices it is a design judgment and not something these figures
+settle: a ratio between two text colours measures how far apart they are, not a
+threshold below which seeing stops.
+
+Raising it with a neutral token runs into the ladder. Measured against the page,
+`--border` is 1.12:1 in light and 1.50:1 in dark, `--border-strong` 1.37 and
+1.95, and the first that clears a text floor is `--muted`, at 5.51:1 in light
+and 7.40:1 in dark — which in dark is above the accent bar's own 6.55:1 and in
+light below its 6.62:1. So the loudest neutral ink the kit has outweighs the
+selection in one theme and not the other, which is the cost to weigh rather than
+a closed door. Nor is a token the only avenue: neutral shape — a hairline, a
+dotted rule, a hover underline of its own — is paint that does not compete with
+the accent on contrast at all. The strip keeps the kit's hover for now, and
+changing it is a decision about both underline tabs rather than about this one.
+
+**The tab's box comes from the scale and the floor.** `padding: var(--space-3)`
+across and down, and `min-height: var(--tap-min)` for the height. The padding
+this replaced was `--space-3` plus one pixel, which
+`guidelines/layout-and-density.md` rejects by name — the declared step is 12 —
+and which also left the drawn height to the font: 44px with the kit's webfont
+loaded and 41px without it, so the 44 it claimed depended on a font having
+arrived. Reading the height off the floor token makes it 44 either way, and
+`stories/segmented-wrap.test.js` now measures every tab at every width against
+that floor, with the `min-height` taken away as its mutation.
+
+**Two consequences worth knowing.** The weight step is a drop, not a rise: the
+kit draws every segmented label at `--weight-semibold`, so the chosen tab is the
+weight it always was and a reading one went down a step. A chosen tab is
+therefore exactly as wide as it was before this change, and a tab that becomes
+chosen widens by about a pixel — measured on the screener's strip, 106.66 against
+107.73, and no strip changes its row count across selections. And `outline: 0` on
+the chosen tab reaches further than the kit's own `:focus-visible` rule, so that
+rule is restated for the chosen tab — without it the chosen tab focuses with no
+indicator at all, which is worse than the native outline
+[#457](https://github.com/apliteni/apliteni-ui/issues/457) refused.
+
+In forced colours the bar is restated in `Highlight`. The mode repaints an author
+colour, so `var(--accent)` comes back as the same ink the labels are drawn in,
+leaving the stroke weight as the only difference between two labels — which is
+not a selection a reader should have to find by comparison. `Highlight` is kept
+where it is named, so one painted mark survives the mode. The block is inert in
+normal rendering.
+
+The bar is drawn on `::before`. Below the phone step `tap-zone.css` owns
+`.ui-seg button::after` and sizes it to the 44px floor; a bar drawn there collapses
+that layer to its own 2px — measured both ways, 85×44 against 61×2. The hit test
+still passed, because an underline tab draws 44px on its own, so the loss is latent
+rather than visible; it is the zone the kit relies on the moment a strip is drawn
+tighter.
+
+Held by `src/styles/segmented.test.js` for the declarations and
+`stories/segmented-wrap.test.js` for what is drawn, which renders the shipped
+sheet in a browser at 320, 390 and 1280 on a fine pointer, at 390 on a coarse one
+and at 1280 in forced colours, and nine mutations beside them. It reads the
+chosen tab's accent count, its label's weight and ink against a resting tab's,
+whether any tab draws a box, the accent bar against the tab that carries it and
+against that tab's bottom edge, the strip's own borders, the row gap against the
+track's, the tap zone against the 44px floor — including with the bar moved to
+`::after` — a resting tab under a real pointer, which must still draw no bar, and, in forced colours, the
+painted marks that are left against a resting tab's, with every tab's bar drawn
+so the chosen one cannot be found merely by having one. A mark counts only once
+it is drawn, so the reserved slot on a resting tab is not read as paint. Limits:
+the marks come from the computed cascade, so what is finally painted is the
+screenshots' evidence; the forced-colours half reads painted marks only and
+deliberately ignores the weight step; hover is measured on one strip rather than
+every one, the rule being shared; and no React strip is measured, the sheet being
+shared.
+Decided on [#527](https://github.com/apliteni/apliteni-ui/issues/527) and
+[#544](https://github.com/apliteni/apliteni-ui/issues/544).
+
 ## Shared React logic and declarations
 
 The main entry exports `dropdownMatch`, `dropdownFiltering`, `rankGroups`,
