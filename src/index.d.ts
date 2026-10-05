@@ -131,6 +131,28 @@ export declare function nearestSection(node: Node | null, root?: Element | null)
 export declare function dismissToast(element: HTMLElement): void;
 export declare function wireToastStack(container: Element | string | null): Element | null;
 export declare function pushToast(container: Element | string | null, opts?: Record<string, unknown>): Element | null;
+
+/** Geometry for a collapsed toast stack — see logic/toast-stack.js. */
+export declare const TOAST_PEEK: number;
+export declare const TOAST_SCALE_STEP: number;
+export declare const TOAST_TIERS: number;
+export declare const TOAST_PILE_MIN: number;
+export declare const TOAST_GAP: number;
+export declare type ToastPileCard = { depth: number; tier: number; scale: number; lift: number; fan: number };
+export declare function toastPileGeometry(heights: number[], gap?: number): {
+  cards: ToastPileCard[]; collapsedHeight: number; fannedHeight: number;
+};
+export declare type ToastPileOptions = { newestFirst?: boolean; gap?: number };
+export declare function applyToastPile(stack: Element | null, options?: ToastPileOptions): {
+  cards: ToastPileCard[]; collapsedHeight: number; fannedHeight: number;
+} | null;
+export declare function clearToastPile(stack: Element | null): void;
+export declare function watchToastPile(
+  stack: Element | null,
+  options?: ToastPileOptions & { onSync?: (stack: Element) => void },
+): () => void;
+export declare function collapseToastStack(container: Element | string | null, options?: ToastPileOptions):
+  { sync(): void; stop(): void } | null;
 export declare function setBusy(root: Element | string | null, opts?: { busy?: boolean; message?: string; body?: string }): Element | null;
 export declare function setButtonBusy(element: HTMLElement, opts?: { busy?: boolean }): void;
 export declare function setPagerStatus(root: Element | string | null, text: string): Element | null;
