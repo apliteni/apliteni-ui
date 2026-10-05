@@ -60,3 +60,21 @@ export const Wide: Story = { render, args: { width: 'wide',
   bandControl: <Button variant="ghost" size="sm">Workspace</Button> } };
 export const Tablet: Story = { render, globals: { viewport: { value: 'tablet', isRotated: false } } };
 export const Phone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } } };
+
+/* A phone page that scrolls on its own and ends in an action. The bottom-clearance gate
+ * measures the room left below that action, and no showcase's content length may decide
+ * whether there is anything to scroll. One section and no back link, so no bottom bar.
+ * why: src/styles/bottom-clearance.test.js */
+const activity = Array.from({ length: 20 }, (_, index) => ({
+  label: `Week ${20 - index}`, value: `${12 + index} files added`,
+}));
+export const LongPage: Story = {
+  args: { sections: sections.slice(0, 1), pathname: '/overview', title: 'Overview' },
+  render: (args) => <AppShell {...args} word="Demo" lede="Files added each week, newest first."
+    account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}>
+    <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
+      <Card title="Weekly activity"><KeyValueList rows={activity} /></Card>
+      <div><Button variant="primary">Export activity</Button></div>
+    </div>
+  </AppShell>,
+};

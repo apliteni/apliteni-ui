@@ -320,6 +320,13 @@ const RUN_BROWSER = process.env.BOTTOM_CLEARANCE === '1';
 /** The phone the measurement is taken on: the step the kit draws for, and its height. */
 const VIEWPORT = { width: PHONE, height: 844 };
 
+/* The gate's own page, because only one with something to scroll can clip anything.
+ * The review of #434 caught this measured on a showcase instead: a block trimmed from
+ * that page left it exactly one viewport tall, the mutation kept 242px below the action,
+ * and the proof passed under the defect. Both halves below assert the overflow they
+ * measure, so a fixture that stops scrolling fails loudly rather than proving nothing. */
+const FIXTURE = 'react-appshell--long-page';
+
 /** What one page says about its own end, read where a reader meets it. */
 const PROBE = () => {
   const el = document.activeElement;
@@ -331,9 +338,19 @@ const PROBE = () => {
     bar: Boolean(document.querySelector('.ui-react-app__bottom')),
     endSpace: parseFloat(getComputedStyle(main).paddingBottom),
     scrollPadding: getComputedStyle(document.documentElement).scrollPaddingBottom,
+    overflow: document.documentElement.scrollHeight - innerHeight,
     atEnd: Math.abs(document.documentElement.scrollHeight - innerHeight - scrollY) <= 1,
   };
 };
+
+/* The two declarations this PR replaced, as a consumer's page carried them before it.
+ * Only the first bites at a document's end: `:root { scroll-padding-bottom: auto }` is
+ * outranked there by the shipped `:root:has(.ui-react-app)` rule, and scroll padding
+ * does not reach a page already scrolled to its last pixel. The clip measured below is
+ * the missing end space, which is the half the sheets above cannot see. */
+const DEFECT = '@media (max-width: 560px) {'
+  + '.ui-react-app .ui-app__main { padding-bottom: var(--ui-app-bottom-clearance, 0px); }'
+  + ':root { scroll-padding-bottom: auto; } }';
 
 test('measured in a browser: a phone page ends below the action a reader is on', { skip: !RUN_BROWSER && 'set BOTTOM_CLEARANCE=1' }, async (t) => {
   const { playwright } = await import('../../stories/lib/tap-zone.js');
@@ -362,11 +379,54 @@ test('measured in a browser: a phone page ends below the action a reader is on',
     return { ctx, page };
   };
 
+  /** Read the fixture the way a reader meets its end: scrolled there, on the action. */
+  const atFixtureEnd = async (page) => {
+    const action = page.getByRole('button', { name: 'Export activity' });
+    await action.waitFor();
+    await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+    await action.focus();
+    return page.evaluate(PROBE);
+  };
+
   const reach = ringReach(sheets().get('src/tokens/tokens.css'));
 
-  // The reported defect, replayed: reach the page's one action with the keyboard, apply,
-  // and wait for the action it becomes. The showcase scrolls that action into view itself.
+  // The guarantee, on a page long enough for the end to be somewhere a reader arrives.
   await t.test('a shell with no bottom bar keeps the end space the kit gives it', async () => {
+    const { ctx, page } = await open(FIXTURE);
+    try {
+      const read = await atFixtureEnd(page);
+      assert.equal(read.bar, false, 'this story is the no-bar case; it drew a bottom bar');
+      assert.equal(read.focused, 'Export activity');
+      assert.ok(read.overflow > 0, `the fixture must overflow its ${VIEWPORT.height}px viewport to be scrolled to an end`);
+      assert.equal(read.atEnd, true, 'the page was not scrolled to its end');
+      assert.equal(read.endSpace, 56, 'the page lost the kit\'s phone end space');
+      assert.equal(read.scrollPadding, '20px', 'the root holds no room for the ring');
+      assert.ok(read.gapBelow >= reach,
+        `the focused action has ${read.gapBelow}px below it and its ring reaches ${reach}px`);
+    } finally { await ctx.close(); }
+  });
+
+  // The rejection, on the same fixture: the two declarations this PR replaced, put back
+  // over the built sheet. The mutation also shortens the page by the end space it takes,
+  // so the overflow is asserted again under it — a probe on a page with nothing to
+  // scroll measures nothing, which is how this proof passed under the defect. #434
+  await t.test('the measurement rejects the padding that clipped the ring', async () => {
+    const { ctx, page } = await open(FIXTURE);
+    try {
+      await page.addStyleTag({ content: DEFECT });
+      const read = await atFixtureEnd(page);
+      assert.equal(read.endSpace, 0, 'the mutation must take the end space off the page');
+      assert.ok(read.overflow > 0, 'the mutation left the fixture with nothing to scroll, so this probe proves nothing');
+      assert.equal(read.atEnd, true, 'the page was not scrolled to its end');
+      assert.ok(read.gapBelow < reach,
+        `the mutation left ${read.gapBelow}px below the focused action, so this probe proves nothing`);
+    } finally { await ctx.close(); }
+  });
+
+  // The page the finding was filed on, after the keyboard flow that found it. Its length
+  // is a showcase's to change, so only the length-free half of the guarantee is read
+  // here: no bar, the kit's end space, and the room the root reserves when it scrolls.
+  await t.test('the showcase the finding was filed on carries the same clearance', async () => {
     const { ctx, page } = await open('showcases-diff-preview--playground');
     try {
       await page.getByRole('button', { name: 'Apply changes' }).focus();
@@ -384,29 +444,8 @@ test('measured in a browser: a phone page ends below the action a reader is on',
     } finally { await ctx.close(); }
   });
 
-  // The rejection, on the page the finding was measured on: the two declarations this
-  // PR replaced, put back over the built sheet. A probe that passes under them would be
-  // measuring nothing. #434
-  await t.test('the measurement rejects the padding that clipped the ring', async () => {
-    const { ctx, page } = await open('showcases-diff-preview--playground');
-    try {
-      await page.addStyleTag({ content: '@media (max-width: 560px) {'
-        + '.ui-react-app .ui-app__main { padding-bottom: var(--ui-app-bottom-clearance, 0px); }'
-        + ':root { scroll-padding-bottom: auto; } }' });
-      await page.getByRole('button', { name: 'Apply changes' }).focus();
-      await page.keyboard.press('Enter');
-      const undo = page.getByRole('button', { name: 'Undo changes' });
-      await undo.waitFor();
-      await undo.focus();
-      const read = await page.evaluate(PROBE);
-      assert.equal(read.endSpace, 0, 'the mutation must take the end space off the page');
-      assert.ok(read.gapBelow < reach,
-        `the mutation left ${read.gapBelow}px below the focused action, so this probe proves nothing`);
-    } finally { await ctx.close(); }
-  });
-
-  // The other answer, on the same page: five sections, so the bar is drawn and the
-  // clearance is what the page pads for.
+  // The other answer, on a five-section page: the bar is drawn, and the clearance is
+  // what the page pads for.
   await t.test('a shell that draws the bar pads for it', async () => {
     const { ctx, page } = await open('react-appshell--centered');
     try {
