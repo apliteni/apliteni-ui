@@ -250,7 +250,7 @@
         "pattern": ".ui-filter-bar__chip {"
       },
       {
-        "ref": "src/components/index.js:75",
+        "ref": "src/components/index.js:76",
         "pattern": "A strip of mutually exclusive toggle buttons."
       }
     ],
