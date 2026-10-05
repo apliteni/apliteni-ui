@@ -112,6 +112,8 @@ export type DropdownProps = {
   /** Replaces the trigger's label/value pair. With `ariaLabel`, names the trigger. */
   triggerContent?: ReactNode;
   triggerClass?: string;
+  /** The trigger is off: no stop, no panel, the kit's unavailable paint. #580 */
+  disabled?: boolean;
   chevron?: boolean;
   /** The edge the panel hugs. */
   align?: 'start' | 'end';
@@ -185,7 +187,7 @@ const SEARCH_DEFAULTS = {
 
 export function Dropdown({
   label, value, placeholder = 'Select…', variant, items, sections,
-  header, footer, triggerContent, triggerClass = '', chevron = true,
+  header, footer, triggerContent, triggerClass = '', disabled = false, chevron = true,
   align = 'start', direction = 'down', scroll = false, search = false,
   ariaLabel, id, panelClass = '',
   open: openProp, defaultOpen = false, onOpenChange, onSelect, row,
@@ -784,6 +786,7 @@ export function Dropdown({
         type="button"
         className={cx('ui-dropdown__trigger', triggerClass)}
         data-dropdown-trigger=""
+        disabled={disabled || undefined}
         aria-haspopup={sx ? 'dialog' : listRole}
         aria-expanded={open}
         aria-label={ariaLabel && triggerContent != null ? ariaLabel : undefined}

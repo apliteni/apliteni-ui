@@ -121,6 +121,19 @@ export const DisabledItem = {
   ))),
 };
 
+// Closed, so the trigger's own edge is the subject. #580
+export const DisabledTrigger = {
+  name: 'Disabled trigger',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(specimen(
+    'A trigger that is off, beside a live one',
+    row(
+      dropdown({ label: 'version:', ariaLabel: 'Version', items: VERSIONS }),
+      dropdown({ label: 'region:', ariaLabel: 'Region', items: LONG, disabled: true }),
+    ),
+  )),
+};
+
 export const Scrollable = {
   name: 'Long / scrollable list (open)',
   parameters: { layout: 'fullscreen' },

@@ -18,7 +18,11 @@
   font-weight: 500;
   color: var(--text);
   background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
-  border: 1px solid var(--border);
+  /* The kit's live control edge, the one .ui-btn takes on the same fill. --border
+     is what --disabled-border resolves to in LIGHT, so a live trigger used to draw
+     the exact line the kit paints an unavailable control with. #580
+     why: docs/foundations.md#colour-and-contrast */
+  border: 1px solid var(--control-edge);
   border-radius: var(--radius-pill);
   padding: 7px 11px 7px 13px;
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
@@ -29,6 +33,27 @@
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
 .ui-dropdown__trigger:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-dropdown__trigger:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+/* Off. The hover spelling matches the live hover selector's weight, so a pointer
+   over a dead control does not take the accent. An aria-disabled trigger is still
+   a keyboard stop, so the ring above still reaches it and only the edge is taken
+   back. #580 why: docs/foundations.md#colour-and-contrast */
+.ui-dropdown__trigger:disabled,
+.ui-dropdown__trigger:disabled:hover,
+.ui-dropdown__trigger:disabled:hover:not(:focus-visible),
+.ui-dropdown__trigger:disabled:focus-visible,
+.ui-dropdown__trigger[aria-disabled="true"]:hover,
+.ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible),
+.ui-dropdown__trigger[aria-disabled="true"]:focus-visible,
+.ui-dropdown__trigger[aria-disabled="true"] {
+  border-color: var(--disabled-border);
+  /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
+  cursor: not-allowed;
+}
+/* The prefix and the value carry inks of their own, so they take the state's. */
+.ui-dropdown__trigger:disabled .ui-dropdown__pre,
+.ui-dropdown__trigger:disabled .ui-dropdown__value,
+.ui-dropdown__trigger[aria-disabled="true"] .ui-dropdown__pre,
+.ui-dropdown__trigger[aria-disabled="true"] .ui-dropdown__value { color: inherit; }
 .ui-dropdown__pre { color: var(--text); }
 .ui-dropdown__value { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 

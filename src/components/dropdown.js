@@ -157,6 +157,8 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
  * @param {boolean} [o.portal]     mount the panel on <body>, for a clipping or sticky ancestor
  * @param {boolean|number} [o.scroll] true, or a maxHeight in px, to cap and scroll
  * @param {boolean} [o.open]       render already-open (handy for screenshots)
+ * @param {boolean} [o.disabled]   the trigger is off: no stop, no panel, the kit's
+ *   unavailable paint. #580
  * @param {string} [o.ariaLabel]   accessible name for the panel and trigger
  * @param {boolean|object} [o.search] true, or { placeholder, label, empty, hint, query } —
  *   a field above the rows that filters them; `empty` may carry {q}
@@ -166,7 +168,7 @@ export function dropdown({
   label, value, placeholder = 'Select…', variant, items, sections,
   foot = '', header = '', footer = '', triggerContent, triggerClass = '', chevron = true,
   align = 'start', direction = 'down', portal = false,
-  scroll = false, open = false, ariaLabel, id, panelClass = '', search = false,
+  scroll = false, open = false, disabled = false, ariaLabel, id, panelClass = '', search = false,
 } = {}) {
   const flat = sections ? sections.flatMap((s) => s.items || []) : (items || []);
   const isSelect = variant === 'select' || (variant == null && flat.some((it) => it && (it.selected || it.value != null)));
@@ -185,6 +187,9 @@ export function dropdown({
     'data-dropdown-trigger',
     `aria-haspopup="${sx ? 'dialog' : listRole}"`,
     `aria-expanded="${open ? 'true' : 'false'}"`,
+    // The attribute, not aria-disabled: a dropdown's trigger carries no message a
+    // reader has to stop on, so it leaves the tab order the way .ui-btn's does.
+    disabled ? 'disabled' : '',
     ariaLabel && triggerContent != null ? `aria-label="${esc(ariaLabel)}"` : '',
   ].filter(Boolean).join(' ');
 
