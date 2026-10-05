@@ -43,6 +43,10 @@
 //   a keyword and a control statement's head do not. Source that walk cannot finish stops
 //   the gate rather than being read half lexed; a `/` it cannot be sure of, and an
 //   apostrophe in JSX text it takes for a string, cost the stripping of that one line.
+// - A `/` the walk is sure of and reads the wrong way round is the one thing that costs code
+//   silently, so what it reads a control head from is a closed list: the keywords below and
+//   the two pairs that open one, `else if` and `for await`. #598 is that cost twice, once for
+//   `if (…)` and once for the pairs. The check against a parser is by hand, and on #598.
 // - The source reading covers src/ and react/src/, the trees the package ships. A panel
 //   hand-written into an example page is not read; those pages compose the factories.
 // - It does not ask whether the rows take the ring at all. `.vopt:focus-visible` never
@@ -102,6 +106,10 @@ const code = (text, file = 'a source') => {
   const AFTER_VALUE = /[)\]'"`]/;
   const KEYWORD = /^(?:return|typeof|instanceof|in|of|new|delete|void|case|do|else|yield|await)$/;
   const CONTROL = /^(?:if|for|while|switch|catch|with)$/;
+  // The two pairs the language opens a control head with. Nothing ended a token at whitespace
+  // until #598 was reviewed, so `else if` read as one word `elseif` and `for await` as
+  // `forawait`; neither is a control keyword, so the `/` after their head divided (#598).
+  const COMPOUND = /^(?:else if|for await)$/;
   // A regex the walk is sure of is blanked like a comment, because the markup walk after it
   // knows quotes and brackets and nothing of regexes: `esc()`'s `/[&<>"]/` would open a
   // string in it. It is sure after an operator, an opener, a keyword or a control head;
@@ -110,15 +118,29 @@ const code = (text, file = 'a source') => {
   // takes the markup between them with it.
   const SURE = /[=(,;:?!&|+\-*%^~{[]/;
   const nested = [];       // the brace depth of each template an interpolation sits inside
-  const heads = [];        // for each `(` still open, whether a control keyword opened it
+  const heads = [];        // for each `(` still open, whether a control head opened it
   let mode = 'code';       // code, the quote of the string being read, or regex
   let depth = 0;           // braces opened since the innermost `${`
   let last = '';           // the last code character that is not whitespace
-  let word = '';           // the identifier that character ends, when it is one
+  let word = '';           // the identifier this character is still inside, if it is one
+  let tok = '';            // the identifier just finished; '' past anything but whitespace
+  let pre = '';            // the one before that, so the two pairs above read as one head
   let inClass = false;     // inside a regex's `[…]`, where a `/` is literal
   let opened = -1;         // where the regex being read opened, if it is one for sure
   let head = false;        // that character is the `)` of a control statement's head
-  const read = (ch) => { word = /[\w$]/.test(ch) ? word + ch : ''; last = ch; head = false; };
+  // Any character that is not part of an identifier ends the one being read. A code character
+  // also empties what the walk remembers of it: no identifier stands beside the next one.
+  const read = (ch) => {
+    if (/[\w$]/.test(ch)) word += ch;
+    else { word = ''; tok = ''; pre = ''; }
+    last = ch;
+    head = false;
+  };
+  // Whitespace and a comment end a token without standing between two, so each keeps what it
+  // ended: `near` is the identifier before this character, `before` the one before that.
+  const ended = () => { if (word) { pre = tok; tok = word; word = ''; } };
+  const near = () => word || tok;
+  const before = () => (word ? tok : pre);
   for (let i = 0; i < text.length; i += 1) {
     const ch = text[i];
     if (mode === '\'' || mode === '"') {
@@ -142,11 +164,15 @@ const code = (text, file = 'a source') => {
       // A comment opens on `//` wherever code may hold a `/`: no regex is empty. It ends at
       // the line's end, every character that ends one, so a file written with CR alone does
       // not lose the code below its first comment.
+      ended();
       let stop = i;
       while (stop < text.length && !ENDS_LINE.test(text[stop])) stop += 1;
       blank(i, stop);
       i = stop - 1;
     } else if (ch === '/' && text[i + 1] === '*') {
+      // `else/* why */if (…)` is a control head too: a comment between two keywords ends the
+      // first of them without standing between them, the way whitespace does.
+      ended();
       const close = text.indexOf('*/', i + 2);
       // A block comment with no end is not source this gate can read: blanking to the end of
       // the file would take every panel below it away silently.
@@ -155,18 +181,20 @@ const code = (text, file = 'a source') => {
       i = close + 1;
     } else if (ch === '\'' || ch === '"' || ch === '`') {
       mode = ch;
-    } else if (ch === '/' && (word ? KEYWORD.test(word) : head || !AFTER_VALUE.test(last))) {
+    } else if (ch === '/' && (near() ? KEYWORD.test(near()) : head || !AFTER_VALUE.test(last))) {
       mode = 'regex';
       inClass = false;
-      opened = head || SURE.test(last) || KEYWORD.test(word) ? i : -1;
+      opened = head || SURE.test(last) || KEYWORD.test(near()) ? i : -1;
     } else if (!/\s/.test(ch)) {
       if (ch === '{') depth += 1;
       else if (ch === '}' && depth) depth -= 1;
       else if (ch === '}' && nested.length) { depth = nested.pop(); mode = '`'; continue; }
-      else if (ch === '(') heads.push(CONTROL.test(word));
+      else if (ch === '(') heads.push(CONTROL.test(near()) || COMPOUND.test(`${before()} ${near()}`));
       const closed = ch === ')' && heads.pop() === true;
       read(ch);
       head = closed;
+    } else {
+      ended();
     }
   }
   if (mode !== 'code' || nested.length) {
@@ -541,4 +569,46 @@ test('the gate tells a regex literal after a control statement from a division',
   const added = new Map([...declared, ['review-extra-menu', ['src/components/review.js']]]);
   assert.throws(() => reconcile(added, rendered), /never renders/,
     'a panel behind a regex literal can pass as one the fixtures already measure');
+});
+
+test('the gate tells a regex after a compound control head from a division', () => {
+  const panel = 'export const reviewMenu = () =>'
+    + ' `<div data-dropdown-panel class="review-extra-menu" role="menu"><button>Review</button></div>`;';
+
+  // #598, round two: whitespace ended no identifier, so `else if` read as one word `elseif`
+  // and `for await` as `forawait`. Neither `(` was recorded as a head, the `/` after it
+  // divided, and the `/*` in its character class blanked on to the real comment's closing
+  // pair — taking the factory between them, with all seven of the gate's tests passing.
+  assert.deepEqual(panelsIn(`if (false) {} else if (true) /[/*]/.test("x");\n${panel}\n/* genuine trailing comment */`),
+    ['review-extra-menu'],
+    'a regex after an `else if` head is a regex, and the factory under it stands');
+  assert.deepEqual(panelsIn(`async function f(xs) { for await (const x of xs) /[/*]/.test(x); }\n${panel}\n`
+    + '/* genuine trailing comment */'),
+    ['review-extra-menu'],
+    'a regex after a `for await` head is a regex, and the factory under it stands');
+
+  // A comment between the two keywords ends the first of them the way whitespace does, so the
+  // head is still a head: this source bypassed the gate as silently as the two above.
+  assert.deepEqual(panelsIn(`if (a) {} else/* why */if (true) /[/*]/.test("x");\n${panel}\n`
+    + '/* genuine trailing comment */'),
+    ['review-extra-menu'],
+    'a comment between `else` and `if` leaves the head it opens readable');
+
+  // The boundary itself. `of` here opens a regex carrying a quote; merged into `constchof` it
+  // divided, so the quote opened a string that ran to the line's end and left the comment
+  // beside it standing to be read as markup.
+  assert.deepEqual(panelsIn(`for (const ch of /["]/.source) count(ch); // data-dropdown-panel in prose\n${panel}`),
+    ['review-extra-menu'],
+    'whitespace ends an identifier, so the keyword before a regex is the one beside it');
+  // The pairs are the two the language has, not every keyword before a name: read as a head,
+  // this `(` would make the `/` after its `)` a regex that swallows the line.
+  assert.deepEqual(panelsIn(`const since = new Date(stamp) / 1000; // data-dropdown-panel in prose\n${panel}`),
+    ['review-extra-menu'],
+    'a keyword before a name opens no control head, so the `/` after its call divides');
+
+  // Either way it is a panel the fixtures never render, so the reconciliation stops; the
+  // clipping rule that goes with it reads as cutting the ring off, which the tests above prove.
+  const added = new Map([...declared, ['review-extra-menu', ['src/components/review.js']]]);
+  assert.throws(() => reconcile(added, rendered), /never renders/,
+    'a panel behind a regex after a compound head can pass as one the fixtures already measure');
 });
