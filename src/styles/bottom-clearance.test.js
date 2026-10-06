@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
  * and is off unless BOTTOM_CLEARANCE=1. The cascade is weighed crudely, one point per
  * class, pseudo-class, attribute or id, at 390px. A declaration nested inside another
  * rule is read as its parent's. Consumers reading the token in their own CSS are
- * outside this repository. why: docs/specification.md#react-appshell
+ * outside this repository. why: docs/components.md#react-components
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '../..');
@@ -280,15 +280,15 @@ test('the check rejects each part of the contract when it is broken', () => {
   }
 });
 
-// The spec is the only place a consumer reads the condition from, so it may not drift
-// back to the unconditional sentence the token never kept, nor to the bare reservation
-// that cost a no-bar page its end space.
-test('the specification states the condition the token is declared under', () => {
-  const spec = readFileSync(path.join(root, 'docs/specification.md'), 'utf8');
-  assert.match(spec, /While the bottom bar is drawn — below 560px, for a list with somewhere to go — the\s+shell sets `--ui-app-bottom-clearance`/);
-  assert.match(spec, /`var\(--ui-app-bottom-clearance, 0px\)`/);
-  assert.match(spec, /overridden only where the bar is drawn: a shell that draws none keeps the 56px end space/);
-  assert.match(spec, /Root scroll padding is set for every phone shell, and adds the ring's own\s+room/);
+// The reader page is the only place a consumer reads the condition from, so it may not
+// drift back to the unconditional sentence the token never kept, nor to the bare
+// reservation that cost a no-bar page its end space.
+test('the reader page states the condition the token is declared under', () => {
+  const doc = readFileSync(path.join(root, 'docs/components.md'), 'utf8');
+  assert.match(doc, /It publishes\s+`--ui-app-bottom-clearance`, the height of that bar plus the device's safe-area inset/);
+  assert.match(doc, /A shell whose list has nowhere to go — one section and no back\s+link — draws no rail, no fold control and no bottom bar/);
+  assert.match(doc, /A phone page whose shell draws no bar\s+keeps the ordinary end space the kit gives every phone page/);
+  assert.match(doc, /Page bottom padding, root scroll\s+padding and the toast\s+stack all keep that clearance/);
 });
 
 test('every part of the contract has a mutation aimed at it', () => {
