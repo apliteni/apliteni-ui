@@ -484,7 +484,7 @@
         "pattern": "stroke-width: 2.1;"
       },
       {
-        "ref": "stories/signal-contrast.test.js:592",
+        "ref": "stories/signal-contrast.test.js:826",
         "pattern": "const barFor = (px) =>"
       }
     ]

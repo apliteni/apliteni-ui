@@ -170,7 +170,7 @@ An empty-state explanation is not an empty slot. A keyboard shortcut is language
 not a status, so a metadata pill keeps body ink. The neutral status chip, Archive and disabled
 variants keep their state ink. A dropdown badge asks for state ink with `tone: 'state'`. A chip
 tints by mixing muted ink into its ground. This is the one soft fill under words that the kit
-draws, and its text still clears 4.5:1.
+draws, and its text clears 4.5:1 on every ground the kit hands it.
 
 ## Colour and contrast
 
@@ -192,12 +192,14 @@ draws, and its text still clears 4.5:1.
 - **A disabled select carries the kit's own paint and no fade.** The kit's disabled field
   rule resets the `opacity: 0.7` that Chromium's user-agent stylesheet applies to one.
 - **A neutral chip is a wash, because no flat colour reads on every ground it is handed.** A
-  badge lands on five of them — the page, a card, a menu panel, a floating surface and a table
-  — and in light three are `#ffffff`, so a flat fill is the ground it stands on. The tone is a
-  pair: `--chip-neutral-fill` separates from all five at 1.18–1.23:1 in both themes, and
+  badge lands on four of them — the page, a card, a floating surface and a table — and in light
+  three of those are `#ffffff`, so a flat fill is the ground it stands on. The tone is a pair:
+  `--chip-neutral-fill` separates from all four at 1.18–1.23:1 in both themes, and
   `--chip-neutral-ink` is state ink, so the chip reporting nothing to do is the quietest in the
-  set. Its ink clears 4.5:1 on four of the five; over light's sunken grey, which a zebra or
-  hovered row paints, it measures 4.25:1. Soon and Archive stay ink on the card.
+  set. Its ink clears 4.5:1 on all four, 4.51:1 at its worst. The sunken grey would take it to
+  4.25:1, and nothing in the kit hands a chip that ground: a data row paints the table's own
+  surface, hovered as well as at rest, and a menu panel floats. Soon and Archive stay ink on
+  the card.
 
 ## Elevation
 

@@ -51,8 +51,10 @@
   /* rank: chip */
   font-size: var(--text-xs);
   color: var(--text);
-  /* chip: filled — the same neutral tone the badge takes, for the same reason. */
-  background: var(--chip-neutral-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
+  /* chip: ink-only — a count is not a status, so this one keeps body ink on the surface it
+     sits on. #459 handed it the neutral tone's wash as well, and body ink on that wash made
+     the count the heaviest mark in a row of status chips. */
+  background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */
   border-radius: var(--radius-pill);
   padding: 4px 11px;
   font-weight: var(--weight-semibold);

@@ -433,7 +433,10 @@
   --chip-info-fill: #ddeff3;
   /* Light mixes three points more, so the two themes land on roughly one separation —
      1.23:1 over a card here against 1.22:1 in dark. See the dark block for why this one
-     tone is a wash and not a solid. */
+     tone is a wash and not a solid. The ink is restated for the same reason the other
+     four families restate theirs: a theme block that answers the fill and not the ink
+     leaves half a pair here and the whole pair to be read from the other theme. */
+  --chip-neutral-ink: var(--muted);
   --chip-neutral-fill: color-mix(in srgb, var(--muted) 15%, transparent);
 
   /* Light runs the same rule the other way. The signals are mid-tone here, so NO ink

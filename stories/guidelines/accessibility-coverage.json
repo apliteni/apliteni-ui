@@ -302,9 +302,11 @@
     {
       "file": "stories/signal-contrast.test.js",
       "name": "Signal contrast",
-      "does": "Reads declarations from the source and checks twenty status-glyph pairs against the stroke-width rule’s bar.",
+      "does": "Reads declarations from the source and checks twenty status-glyph pairs against the stroke-width rule’s bar. It also reads every rule that paints a signal ink as text, each on the ground it lands on, and the neutral chip’s ink across the whole surface ladder in both themes: the 4.5:1 floor on the four grounds a component hands a chip, and the two cells docs/foundations.md states by number. The rules reading that pair are discovered from the two sheets, so one arriving unnamed fails, and three plants prove rejection — a wash deepened to 25%, which every fill gate in the kit gets happier about; an ink that clears the floor while both published cells quietly stop being true; and a --chip-* family shipping one half of its pair in one theme.",
       "blind": [
-        "Colour for glyphs without a status. Width is checked next door; ratio is not."
+        "Colour for glyphs without a status. Width is checked next door; ratio is not.",
+        "Which grounds a component really hands a chip. That is a reading of the sheets written into the table by hand, and a new container can make it wrong without failing anything here.",
+        "The arithmetic composites tokens at 8 bits, the way a framebuffer does, so a cell parts company with a browser’s measurement in the third decimal. The two published cells are pinned within a hundredth rather than to the digit."
       ]
     },
     {

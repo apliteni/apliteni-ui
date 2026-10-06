@@ -358,7 +358,7 @@ const sectionLive = () => {
       ${liveSpecimen(
         'Live pill',
         pill('Live', 'live'),
-        `now ${code('--chip-success-*')} — ${code('src/styles/badge.css:63')} ${code('.ui-pill--live')}`,
+        `now ${code('--chip-success-*')} — ${code('src/styles/badge.css:65')} ${code('.ui-pill--live')}`,
         chip('success', byKey.green),
       )}
       ${liveSpecimen(
