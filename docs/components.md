@@ -469,9 +469,6 @@ kit sizes and colours your `<svg>` and draws no chart. Three layouts ship. `tile
 puts each figure on its own card. `band` is one card. `open` draws no surface and sets the value
 larger.
 
-A card header can contain a short report link with `.ui-card__link` and `.ui-focusable`.
-The link has a 24px target height and uses the kit focus ring.
-
 ### Dense financial tables
 
 The table is markup. A named scroll region contains a native `<table>`, and you apply the
@@ -491,7 +488,7 @@ inside a cell uses the row's ink, gets an underline on hover, and uses the share
 explicit judgement. **Colour never supplies the sign.**
 
 A cell can group its reference and status with `.ui-table__pair`. They stack when the cell cannot fit them side by side.
-A row marked `is-target` uses the selection background. Keyboard focus uses the inward kit ring.
+A landed row uses the selection background unless it has keyboard focus. Keyboard focus uses only the inward kit ring.
 The caller brings the target row into view and keeps its mark until the next arrival.
 
 **Below the one-column step, a table marked `.ui-table--stack` lays each row out as a block

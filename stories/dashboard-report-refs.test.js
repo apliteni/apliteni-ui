@@ -39,6 +39,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
+import { installDomGlobals } from './lib/contrast.js';
 
 import { Default as Dashboard } from './apps/FinanceDashboard.stories.js';
 import { Default as Report } from './apps/FinanceReport.stories.js';
@@ -238,14 +239,10 @@ test('every link in an exceptions block opens the report, and every reference op
     ...blockLinks(Dashboard.render(), 'the Finance dashboard'),
     ...blockLinks(DashboardsAndReports.render(), 'the guideline page'),
   ];
-  // Three references on the dashboard
-  // and eight on the guideline page: the exceptions card is drawn three times, in
-  // figures-and-exceptions' Do and both halves of link-to-the-report, and the two
-  // Dos carry four links each. The link-to-the-report Don't carries none at all,
-  // which is what its caption says of it. The count is the anti-vacuity guard.
-  assert.equal(links.length, 11,
-    `found ${links.length} links, not the 11 these screens draw:\n${links.map((l) => `${l.where}: ${l.kind} ${l.text} -> ${l.href}`).join('\n')}`);
-  assert.equal(links.filter((l) => l.kind === 'onward').length, 2, 'a block gained or lost its link into the report');
+  // Three dashboard references and three in each of the two Do specimens.
+  assert.equal(links.length, 9,
+    `found ${links.length} links, not the 9 these screens draw:\n${links.map((l) => `${l.where}: ${l.kind} ${l.text} -> ${l.href}`).join('\n')}`);
+  assert.equal(links.filter((l) => l.kind === 'onward').length, 0, 'a block gained or lost its link into the report');
   assert.deepEqual(linkProblems(links, rows), [],
     `a link in an exceptions block does not reach the report row it stands for:\n  ${linkProblems(links, rows).join('\n  ')}`);
 });
@@ -463,7 +460,7 @@ test('a reference followed in a bare preview carries the theme and the accent it
   const event = clickLink(frame.doc, 'PO-1166');
 
   assert.ok(event.defaultPrevented, 'the bare href was followed, and it names no globals');
-  assert.equal(frame.win.assigned, previewHref(REPORT_STORY, payoutRowId('PO-1166'), 'theme:light,accent:ocean'),
+  assert.equal(frame.win.assigned, previewHref(REPORT_STORY, payoutRowId('PO-1166'), 'theme:light;accent:ocean'),
     'a preview opened on its own carries its globals in its URL, so a link out of it that names none arrives on the default theme');
   assert.deepEqual(frame.emitted, [], 'a frame with no manager over it asked a manager to navigate');
 });
@@ -564,4 +561,39 @@ test('landing on the wrong row is a finding, and landing on none says so', () =>
   assert.deepEqual(arrivalProblems({ ...landing(), landed: frame.doc.getElementById(other) }).slice(0, 1), ['PO-1159: landed on PO-1164']);
   assert.deepEqual(arrivalProblems({ text: 'PO-1159', row: 'payout-po-9999', landed: null }),
     ['PO-1159: no row of the report answers #payout-po-9999']);
+});
+
+// These checks exercise the sample controls in JSDOM. Browser evidence checks paint and focus.
+test('the Finance report filters Paid rows and clears both filters', async () => {
+  const doc = docOf(Report.render());
+  installDomGlobals(doc.defaultView);
+  Report.play({ canvasElement: doc.body });
+  const host = doc.querySelector('[data-finance-filters]');
+  const change = (id, value) => host.dispatchEvent(new doc.defaultView.CustomEvent('ui-filter-change', { detail: { id, value } }));
+  change('status', 'Paid');
+  assert.equal(doc.querySelectorAll('tbody tr').length, 4);
+  assert.ok([...doc.querySelectorAll('tbody .ui-badge')].every(badge => badge.textContent === 'Paid'));
+  change('currency', 'USD');
+  assert.match(doc.querySelector('tbody').textContent, /No payouts match/);
+  host.dispatchEvent(new doc.defaultView.CustomEvent('ui-filter-clear'));
+  assert.equal(doc.querySelectorAll('tbody tr').length, 7);
+});
+
+test('both Finance periods change totals and the dashboard trends', () => {
+  const dashboard = docOf(Dashboard.render());
+  const report = docOf(Report.render());
+  installDomGlobals(report.defaultView);
+  Dashboard.play({ canvasElement: dashboard.body });
+  Report.play({ canvasElement: report.body });
+  const figures = doc => [...doc.querySelectorAll('.ui-stat__value')].map(node => node.textContent);
+  const yearly = figures(report);
+  const yearlyTrend = dashboard.querySelector('.ui-stat__trend').innerHTML;
+  for (const doc of [dashboard, report]) doc.querySelector('[data-seg] button').click();
+  assert.notDeepEqual(figures(report), yearly);
+  assert.deepEqual(figures(report), figures(dashboard));
+  assert.notEqual(dashboard.querySelector('.ui-stat__trend').innerHTML, yearlyTrend);
+  assert.match(dashboard.querySelector('[data-period-basis]').textContent, /3 months/);
+  for (const doc of [dashboard, report]) [...doc.querySelectorAll('[data-seg] button')].at(-1).click();
+  assert.deepEqual(figures(report), figures(dashboard));
+  assert.equal(dashboard.querySelectorAll('.ui-stat__delta').length, 0, 'All has no preceding period to compare');
 });

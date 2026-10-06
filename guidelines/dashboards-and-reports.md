@@ -26,17 +26,15 @@
 
 **Don't:** The whole ledger and a paragraph about it.
 
-## Link every item to its report
+## Link each reference to its row
 
 <!-- rule: link-to-the-report -->
 
-**Rule:** Link each block to its report from the block’s own head, named for the report, and every reference to its row — in view, marked.
+**Rule:** Link each reference to its report row and bring that row into view.
 
 **Why:** A dashboard stops at what happened; a report opening at its own top has not answered the reference.
 
-**Except:** When references reach their rows and navigation names the report, omit the repeated report link.
-
-**Do:** The card names the payout report in its head; each reference opens its row.
+**Do:** Each payout reference opens its row in the report.
 
 **Don't:** A block that lists what is wrong and offers no way in.
 

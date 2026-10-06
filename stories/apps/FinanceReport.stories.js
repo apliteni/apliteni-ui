@@ -1,6 +1,8 @@
-import { badge, button, card, segmented } from '../../src/components/index.js';
-import { filterBar } from '../../src/components/filter-bar.js';
+import { badge, button, card, segmented, emptyState } from '../../src/components/index.js';
+import { filterBar, initFilterBar } from '../../src/components/filter-bar.js';
 import { busyRegion, skeleton, skeletonTable } from '../../src/components/loading.js';
+import { cashflowStats, PERIODS, periodStart } from './_finance-data.js';
+import { initSegmented } from '../../src/components/segmented.js';
 import { statBand } from '../../src/components/stat.js';
 import { financeShell, payoutRowId } from './_finance-nav.js';
 
@@ -27,11 +29,11 @@ const FILTERS = [
 // The export is wordless: `download` is on the closed list in src/assets/icons.js,
 // and `label` is still what names it to a reader who cannot see the glyph. It
 // sits at the far end of the row — `ui-toolbar--split` — because it acts on the
-// ledger rather than narrowing it, and beside "Clear all filters" it read as the
+// ledger rather than narrowing it, and beside "Clear all" it read as the
 // filter row's third control. why: Artur's review of this screen, #505
 const controls = () => `<div class="ui-toolbar ui-toolbar--split">
-      ${segmented({ ariaLabel: 'Period', options: ['3M', '6M', '1Y', 'All'], active: 2 })}
-      ${filterBar({ filters: FILTERS, label: 'Payout filters' })}
+      ${segmented({ ariaLabel: 'Period', options: PERIODS, active: 2 })}
+      <div data-finance-filters>${filterBar({ filters: FILTERS, label: 'Payout filters', clearLabel: 'Clear all' })}</div>
       ${button({ label: 'Export rows', icon: 'download', iconOnly: true })}
     </div>`;
 
@@ -42,14 +44,7 @@ const controls = () => `<div class="ui-toolbar ui-toolbar--split">
 // No caption over the figures: these three are totals rather than changes, so
 // there is no comparison to name, and the date range that used to sit here said
 // again what the period control above it already sets. why: Artur, round r32
-const kpiStrip = () => statBand({
-  id: 'fr-cashflow',
-  stats: [
-    { label: 'Money in', value: '759,988 €' },
-    { label: 'Money out', value: '3,048,559 €' },
-    { label: 'Net result', value: '−2,288,571 €' },
-  ],
-});
+const kpiStrip = (period = '1Y') => statBand({ id: 'fr-cashflow', stats: cashflowStats(period) });
 
 // Net is gross less fees in every row. The references are the ones the Finance
 // dashboard and the Dashboards and reports guideline print, spelled the same
@@ -73,7 +68,7 @@ const PAYOUTS = [
 // No glyph and no sub-line. The tile behind the glyph spent the accent on
 // decoration, the glyph repeated the word beside it, and the sentence under it
 // said what the columns already say. why: Artur's review of this screen, #505
-const payoutsCard = () => card({ title: 'Payouts', body: `
+const payoutsCard = (rows = PAYOUTS) => card({ title: 'Payouts', body: `
   <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover">
     <thead><tr>
       <th>Reference</th><th>Payout ID</th><th>Arrival</th>
@@ -81,7 +76,7 @@ const payoutsCard = () => card({ title: 'Payouts', body: `
       <th class="ui-table__num">Net (EUR)</th><th>Status</th>
     </tr></thead>
     <tbody>
-      ${PAYOUTS.map(([ref, pid, arr, gross, fees, net, variant, label]) => `
+      ${rows.map(([ref, pid, arr, gross, fees, net, variant, label]) => `
         <tr id="${payoutRowId(ref)}">
           <td>${ref}</td>
           <td class="ui-table__code">${pid}</td>
@@ -90,7 +85,7 @@ const payoutsCard = () => card({ title: 'Payouts', body: `
           <td class="ui-table__num">${fees}</td>
           <td class="ui-table__num ui-table__num--strong">${net}</td>
           <td>${badge(label, variant)}</td>
-        </tr>`).join('')}
+        </tr>`).join('') || `<tr><td colspan="7">${emptyState({ title: 'No payouts match', actions: `<span data-finance-reset>${button({ label: 'Clear all', size: 'sm' })}</span>` })}</td></tr>`}
     </tbody>
   </table>` });
 
@@ -108,6 +103,48 @@ export const Default = {
       ${payoutsCard()}
     `,
   }),
+  play: ({ canvasElement }) => {
+    initSegmented(canvasElement);
+    let selected = '1Y';
+    let filters = FILTERS.map(filter => ({ ...filter }));
+    const host = canvasElement.querySelector('[data-finance-filters]');
+    const bar = initFilterBar(host, { filters, label: 'Payout filters', clearLabel: 'Clear all' });
+    const repaint = () => {
+      const values = Object.fromEntries(filters.map(filter => [filter.id, filter.value]));
+      const rows = PAYOUTS.filter(row => row[2] >= periodStart(selected)
+        && (!values.status || row[7] === values.status)
+        && (!values.currency || values.currency === 'EUR'));
+      canvasElement.querySelector('.ui-stats').outerHTML = kpiStrip(selected);
+      canvasElement.querySelector('.ui-card:has(> .ui-table)').outerHTML = payoutsCard(rows);
+    };
+    const update = () => {
+      bar.update({ filters, label: 'Payout filters', clearLabel: 'Clear all' });
+      repaint();
+    };
+    host.addEventListener('ui-filter-change', event => {
+      filters = filters.map(filter => filter.id === event.detail.id ? { ...filter, value: event.detail.value } : filter);
+      update();
+    });
+    host.addEventListener('ui-filter-remove', event => {
+      filters = filters.map(filter => filter.id === event.detail.id ? { ...filter, value: '' } : filter);
+      update();
+    });
+    const clear = () => {
+      filters = FILTERS.map(filter => ({ ...filter }));
+      update();
+    };
+    host.addEventListener('ui-filter-clear', clear);
+    canvasElement.addEventListener('click', event => {
+      if (event.target.closest('[data-finance-reset] button')) {
+        clear();
+        host.querySelector('[data-dropdown-trigger]').focus();
+      }
+    });
+    canvasElement.addEventListener('ui-segment-change', event => {
+      selected = event.detail.value;
+      repaint();
+    });
+  },
 };
 
 // The same screen while the ledger is still in flight. Two regions, not one:
