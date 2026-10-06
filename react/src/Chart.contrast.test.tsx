@@ -7,8 +7,8 @@
 //
 // Limits: the ratios are the stylesheet's values, not painted pixels, so
 // antialiasing, host overrides and a consumer's own --ui-chart-ground are out;
-// the browser captures on the PR carry the paint. A faded bar's middle, the zero
-// rule, the dot's rim and the line's casing are not series and are not measured
+// the browser captures on the PR carry the paint. The zero
+// rule, the isolated point's rim and the line's casing are not series and are not measured
 // here. Nor is one series against another — two series are told apart by the side
 // of zero they stand on and by the legend, never by hue alone.
 // The same list, kept current, is stories/guidelines/accessibility-coverage.json.

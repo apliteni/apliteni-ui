@@ -61,12 +61,11 @@
   white-space: nowrap;
 }
 .ui-chart__key-mark { flex: none; }
-.ui-chart__key-note { white-space: normal; }
 .ui-chart__key-swatch { fill: var(--ui-chart-tone); }
 .ui-chart__key-line { fill: none; stroke: var(--ui-chart-tone); stroke-width: 2; stroke-linecap: round; }
 .ui-chart__key-estimated {
-  fill: var(--ui-chart-ground);
-  stroke: var(--ui-chart-tone);
+  fill: var(--ui-chart-tone);
+  stroke: var(--ui-chart-ground);
   stroke-width: 1;
   stroke-dasharray: 2 2;
 }
@@ -82,7 +81,7 @@
 }
 
 .ui-chart__axis {
-  /* muted-ink: chrome — a tick names the scale; the value is printed in full in the readout and the table */
+  /* muted-ink: chrome — a tick names the scale; exact values are reachable through the readout */
   color: var(--muted);
   display: flex;
   flex-direction: column;
@@ -127,7 +126,7 @@
   padding-top: var(--space-2);
 }
 .ui-chart__period {
-  /* muted-ink: chrome — a period label names a column; its values are printed in full in the readout and the table */
+  /* muted-ink: chrome — a period label names a column; its values are reachable through the readout */
   color: var(--muted);
   padding-inline: var(--space-1);
   text-align: center;
@@ -172,21 +171,17 @@
   fill: var(--ui-chart-tone);
   stroke: none;
 }
-/* A period that is not final is drawn hollow: the chart's own ground inside its
-   series' dashed edge. The diagonal hatch it replaces is drawn by none of the
-   ten charts round 32 read, and at half a column wide it moiréd. The edge keeps
-   the series' tone, so the column is still read as that series, and the dash is
-   the non-colour cue the legend repeats in words. */
+/* Keep each series' fill weight. Ground-coloured dashes mark unfinished data
+   without joining the mirrored bars across the zero channel. */
 .ui-chart__bar.is-estimated {
-  /* A wash of its own tone inside the dashed edge, rather than bare ground. At
-     a capped width an empty outline read as a placeholder box where a column
-     should be; the wash gives the period the mass the reader is counting, and
-     the dash says it is not final without spending a second colour on it. */
-  fill: color-mix(in srgb, var(--ui-chart-tone) 14%, var(--ui-chart-ground));
-  stroke: var(--ui-chart-tone);
+  fill: var(--ui-chart-tone);
+  stroke: var(--ui-chart-ground);
   stroke-width: 1;
   stroke-dasharray: 3 2;
 }
+
+/* An isolated value has no segment to draw it. Connected points need no dot. */
+.ui-chart__isolated { fill: var(--ui-chart-tone); stroke: var(--ui-chart-ground); stroke-width: 1; }
 
 .ui-chart__line {
   fill: none;
