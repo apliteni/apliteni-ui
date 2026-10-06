@@ -9,7 +9,7 @@
   height: 52px;
   display: flex;
   align-items: center;
-  background: var(--bg); /* ring-gap: inherit — page background inherits root overrides. */
+  background: var(--bg); /* code-bg: inherit — page background inherits root overrides. */
   border-bottom: 1px solid var(--border);
 }
 .topbar__in {
@@ -43,7 +43,7 @@
 .topbar .brand { font-size: var(--text-sm); }
 /* The lockup is a link, so it takes focus: the shared ring, with a radius of its
    own because the mark and the word have no box to borrow one from. #482 */
-.brand:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+.brand:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .topbar .spacer { flex: 1; }
 
 /* Deck / Text (segmented, pill) */
@@ -51,7 +51,7 @@
   display: none;
   align-items: center;
   gap: 2px;
-  background: var(--surface); --ring-gap: var(--surface);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 24px;
   padding: 3px;
@@ -69,8 +69,8 @@
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .dtsw a:hover { color: var(--strong); }
-.dtsw a.cur { color: var(--strong); background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
-.dtsw a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.dtsw a.cur { color: var(--strong); background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.dtsw a:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* Theme toggle — a single icon-only switch (no label). */
 .toggle {
@@ -79,7 +79,7 @@
   width: 34px;
   height: 34px;
   cursor: pointer;
-  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -90,7 +90,7 @@
     border-color var(--dur-fast) var(--ease);
 }
 .toggle:hover { transform: translateY(-1px); border-color: var(--border-strong); }
-.toggle:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.toggle:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .toggle .ic { width: 17px; height: 17px; display: inline-block; color: var(--text); }
 .toggle .ic svg { display: block; width: 100%; height: 100%; stroke-width: 2.2; }
 
@@ -105,14 +105,18 @@
   font-size: calc(var(--text-sm) - 0.5px);
   font-weight: 500;
   color: var(--text);
-  background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */
+  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border: 1px solid var(--border);
   border-radius: 24px;
   padding: 7px 11px 7px 13px;
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
-.vsw__btn:hover { border-color: var(--accent); }
-.vsw__btn:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+/* The hover edge steps aside under the band: an accent edge one pixel inside an
+   accent band is the second band #578 round r34 took off the focus rules, and a
+   pointer resting on a focused control would put it back. One indicator, which is
+   what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
+.vsw__btn:hover:not(:focus-visible) { border-color: var(--accent); }
+.vsw__btn:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .vsw__btn .lbl { color: var(--text); }
 .vsw__btn .cur { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vsw__btn .car {
@@ -128,7 +132,7 @@
   top: calc(100% + 9px);
   left: 0;
   min-width: 266px;
-  background: var(--bg-elevated); --ring-gap: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
+  background: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
   /* The two-step edge and the drop, through the level's own names: in DARK that is
      --border-strong outside and --border one pixel inside it, then the drop; in LIGHT
      both lines are transparent and the drop carries the whole separation.
@@ -188,14 +192,14 @@
   transition: background var(--dur-fast) var(--ease);
 }
 /* Menu rows use the reading surface and an edge on hover — see
-   src/styles/dropdown.css:176 `.ui-dropdown__item:hover`.
+   src/styles/dropdown.css:183 `.ui-dropdown__item:hover`.
    why: docs/foundations.md#elevation */
-.vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+.vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 /* The row is a keyboard stop: src/components/dropdown.js:804
    `items[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
    the arrow keys, and this is one. It takes the ring on its own 10px radius, the
    same way `.amenu a` above does. #482 */
-.vopt:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.vopt:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .vopt .vname { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vopt .vmeta { font-size: var(--text-xs); color: var(--text); margin-top: 2px; }
 .vopt .vbadge {
@@ -208,8 +212,8 @@
   flex: none;
   margin-top: 1px;
 }
-.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
-.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
+.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
 /* The phone step — the same one the rail folds at: docs/foundations.md#breakpoints.
    The switcher keeps its glyph and drops its label.
    The menu hangs the other way here. Anchored by its left edge it opened
@@ -255,13 +259,17 @@
   letter-spacing: 0.02em;
   transition: border-color var(--dur-fast) var(--ease);
 }
-.acct .avatar:hover { border-color: var(--accent); }
-.avatar:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+/* The hover edge steps aside under the band: an accent edge one pixel inside an
+   accent band is the second band #578 round r34 took off the focus rules, and a
+   pointer resting on a focused control would put it back. One indicator, which is
+   what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
+.acct .avatar:hover:not(:focus-visible) { border-color: var(--accent); }
+.avatar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .amenu {
   position: absolute;
   right: 0; top: 44px;
   width: 252px;
-  background: var(--bg-elevated); --ring-gap: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
+  background: var(--bg-elevated);   /* the floating step — see dropdown.css. #295 */
   /* The two-step edge and the drop, through the level's own names: in DARK that is
      --border-strong outside and --border one pixel inside it, then the drop; in LIGHT
      both lines are transparent and the drop carries the whole separation.
@@ -299,8 +307,8 @@
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu .ahead .aem { color: var(--text); font-size: calc(var(--text-xs) + 0.5px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: var(--text-sm); cursor: pointer; }
-.amenu a:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
-.amenu a:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+.amenu a:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.amenu a:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .amenu a.cur { color: var(--accent); }
 .amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.85; }
 .amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }

@@ -58,7 +58,7 @@
   width: 100%;
   height: 6px;
   border-radius: var(--radius-pill);
-  background: var(--surface-2); /* ring-gap: inherit — a progress track holds no focus target. */
+  background: var(--surface-2); /* code-bg: inherit — a progress track holds no focus target. */
   overflow: hidden;
 }
 .ui-drop__bar span { display: block; height: 100%; background: var(--accent); }
@@ -73,7 +73,7 @@
   padding: var(--space-3);
   border: 1px dashed var(--accent);
   border-radius: var(--radius-md);
-  background: var(--surface); /* ring-gap: inherit — the target is painted while a file is over the region and holds no focus target. */
+  background: var(--surface); /* code-bg: inherit — the target is painted while a file is over the region and holds no focus target. */
   color: var(--strong);
   font-size: var(--text-sm);
   text-align: center;

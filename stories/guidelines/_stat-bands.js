@@ -11,7 +11,7 @@ import { sparkline } from '../lib/sparkline.js';
 // halves of a pair differ in one decision and not in their data.
 export const SPEC_CSS = `
   <style>
-    .gs-stage { background: var(--bg); --ring-gap: var(--bg); border-radius: var(--radius-lg); padding: var(--space-4); }
+    .gs-stage { background: var(--bg); border-radius: var(--radius-lg); padding: var(--space-4); }
   </style>`;
 
 const stage = (html) => `<div class="gs-stage">${html}</div>`;

@@ -27,7 +27,7 @@ const css = `<style>
 .screener .ui-table { min-width:110rem; }
 .screener .ui-identity__name { white-space:nowrap; }
 .screener__sort { background:none; border:0; color:inherit; font:inherit; padding:var(--space-1); border-radius:var(--radius-xs); cursor:pointer; }
-.screener__sort:focus-visible { outline:2px solid transparent; box-shadow:var(--ring); }
+.screener__sort:focus-visible { outline:var(--ring); outline-offset:var(--ring-offset); }
 .screener__foot { font-size:var(--text-sm); margin-top:var(--space-3); }
 
 </style>`;

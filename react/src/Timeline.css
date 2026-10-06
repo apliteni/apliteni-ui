@@ -48,7 +48,6 @@
 .ui-timeline__undo { white-space: normal; }
 .ui-timeline__undo:hover,
 .ui-timeline__undo:focus-visible { color: var(--pink); }
-
 .ui-timeline--kinds .ui-timeline__event { padding-inline-start: var(--space-8); }
 .ui-timeline--kinds .ui-timeline__event::before { inset-inline-start: calc(var(--space-5) / 2); }
 .ui-timeline--kinds .ui-timeline__marker {
@@ -65,7 +64,7 @@
   width: var(--space-5);
   height: var(--space-5);
   border: 1px solid var(--muted);
-  /* ring-gap: inherit — decorative marker contains no focus target. */
+  /* code-bg: inherit — decorative marker contains no focus target. */
   background: var(--surface);
   /* muted-ink: glyph — non-word event-kind symbol */
   color: var(--muted);

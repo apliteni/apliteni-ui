@@ -31,9 +31,15 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const THEMES = ['dark', 'light'];
 
 /**
- * The subjects: every control #482 gave a ring to, on a surface that renders it.
- * `page` is the landing site; `story` is a story of the checkout being shot.
- * `click` opens a surface that has to be opened before its rows can take focus.
+ * The subjects: every control #482 gave a ring to, plus the eight control families
+ * #578 changed the band's carrier for. `page` is the landing site; `story` is a story of
+ * the checkout being shot. `click` opens a surface that has to be opened before its rows
+ * can take focus.
+ *
+ * `size` is one viewport; `sizes` is a list of them, which is how a subject gets shot at
+ * desk and phone width. A control tuple is `[name, selector, caption]`, or
+ * `[name, selector, caption, clip]` when the box to crop to is not the box that takes
+ * focus — a switch hides its own `input` and the band is drawn on the track beside it.
  */
 const SUBJECTS = [
   {
@@ -42,15 +48,21 @@ const SUBJECTS = [
       ['brand', '.site-topbar .brand', 'the topbar brand link'],
       ['nav-link', '.site-topbar .lk', 'a topbar nav link'],
       ['theme-toggle', '.site-topbar .toggle', 'the theme toggle'],
-      ['accent-swatch', '.play-accents button', 'a playground accent swatch'],
+      // `:not(.on)` because the FIRST swatch is the selected one: both of these read
+      // `.play-accents button` first otherwise, so the pair shot the same element twice
+      // and proved nothing about the difference between them (#590 review round).
+      ['accent-swatch', '.play-accents button:not(.on)', 'an unchosen playground accent swatch'],
       // The SELECTED swatch is a separate subject: it is the one #487's review
       // found painting nothing when focused, because `.on` tied the chrome's
-      // focus rule on specificity and won on source order.
+      // focus rule on specificity and won on source order. Since #578 the band is an
+      // `outline` and `.on`'s accent ring is a box-shadow, so the two no longer replace
+      // one another — `.on` stands aside under the band instead.
       ['accent-swatch-on', '.play-accents button.on', 'the selected playground accent swatch'],
       ['path-card', '.path-card', 'an adoption-path tab'],
       ['tab-panel', '#paths-panel-humans', 'the adoption-path panel'],
       ['copy', '.term__copy', 'a snippet copy button'],
-      ['footer-dot', '.site-footer .accents button', 'a footer accent dot'],
+      ['footer-dot', '.site-footer .accents button:not(.on)', 'an unchosen footer accent dot'],
+      ['footer-dot-on', '.site-footer .accents button.on', 'the selected footer accent dot'],
       ['footer-link', '.site-footer a', 'a footer link'],
     ],
   },
@@ -127,7 +139,69 @@ const SUBJECTS = [
       ['dismiss', '.ui-fbc__x', "the composer's dismiss"],
     ],
   },
+
+  // ---- #578: one control per family the band is drawn on, at desk and phone width ----
+  {
+    id: 'f578-buttons', kind: 'story', story: 'components/Button.stories.js', export: 'Variants',
+    sizes: [[1280, 560], [390, 760]],
+    controls: [
+      ['primary', '.ui-btn--primary', 'the primary button'],
+      ['secondary', '.ui-btn:not(.ui-btn--primary):not(.ui-btn--ghost):not(.ui-btn--danger)', 'a secondary button'],
+      ['ghost', '.ui-btn--ghost', 'a ghost button'],
+    ],
+  },
+  {
+    id: 'f578-fields', kind: 'story', story: 'components/Inputs.stories.js', export: 'TextFields',
+    sizes: [[1280, 700], [390, 900]],
+    controls: [['input', '.ui-input', 'a text field']],
+  },
+  {
+    id: 'f578-select', kind: 'story', story: 'components/Inputs.stories.js', export: 'SelectAndSearch',
+    sizes: [[1280, 620], [390, 860]],
+    controls: [['select', '.ui-select', 'a select']],
+  },
+  {
+    // The band is drawn on the track: the input is the keyboard stop and is visually
+    // hidden, so the crop follows the track beside it.
+    id: 'f578-switch', kind: 'story', story: 'components/SwitchCheckbox.stories.js', export: 'Switches',
+    sizes: [[1280, 520], [390, 700]],
+    controls: [['switch', '.ui-switch input', 'a switch', '.ui-switch']],
+  },
+  {
+    id: 'f578-checkbox', kind: 'story', story: 'components/SwitchCheckbox.stories.js', export: 'Checkboxes',
+    sizes: [[1280, 520], [390, 700]],
+    controls: [['checkbox', '.ui-check input[type="checkbox"]', 'a checkbox', '.ui-check']],
+  },
+  {
+    // An open panel, so the row is reachable without the wiring.
+    id: 'f578-menu', kind: 'story', story: 'components/Dropdown.stories.js', export: 'Scrollable',
+    sizes: [[1280, 620], [390, 700]],
+    controls: [['item', '.ui-dropdown__item', 'a menu row']],
+  },
+  {
+    id: 'f578-tabs', kind: 'story', story: 'components/Tabs.stories.js', export: 'Default',
+    sizes: [[1280, 520], [390, 640]],
+    controls: [['tab', '.ui-tabs__tab', 'a tab']],
+  },
+  {
+    id: 'f578-segmented', kind: 'story', story: 'components/Segmented.stories.js', export: 'Examples',
+    sizes: [[1280, 620], [390, 860]],
+    controls: [['pill', '.ui-seg button', 'a segmented pill']],
+  },
+  {
+    id: 'f578-links', kind: 'story', story: 'components/Table.stories.js', export: 'FinanceData',
+    sizes: [[1280, 700], [390, 900]],
+    controls: [['cell-link', '.ui-table a:not(.ui-btn)', 'a link in a table cell']],
+  },
+  {
+    id: 'f578-chip', kind: 'story', story: 'components/FinanceCells.stories.js', export: 'FilterStates',
+    sizes: [[1280, 700], [390, 860]],
+    controls: [['filter-chip', '.ui-filter-bar__chip .ui-dropdown__trigger', 'a filter chip']],
+  },
 ];
+
+/** Every subject's viewports, defaulting to the one `size` it names. */
+const viewports = (subject) => subject.sizes || [subject.size];
 
 const PAD = 16;
 
@@ -156,8 +230,7 @@ async function shoot([checkout, outDir, side, only]) {
   try {
     for (const subject of SUBJECTS) {
       if (only && !subject.id.includes(only)) continue;
-      for (const theme of THEMES) {
-        const [width, height] = subject.size;
+      for (const [width, height] of viewports(subject)) for (const theme of THEMES) {
         const ctx = await browser.newContext({
           viewport: { width, height }, deviceScaleFactor: 2, reducedMotion: 'reduce',
         });
@@ -177,7 +250,7 @@ async function shoot([checkout, outDir, side, only]) {
           await page.click(subject.click);
           await settle(page);
         }
-        for (const [name, selector, caption] of subject.controls) {
+        for (const [name, selector, caption, clip] of subject.controls) {
           const target = page.locator(selector).first();
           if (!await target.count()) { missing.push(`${subject.id}/${name}: no ${selector}`); continue; }
           // Keyboard modality first, then the move: Chrome matches
@@ -190,13 +263,16 @@ async function shoot([checkout, outDir, side, only]) {
           await settle(page);
           const visible = await target.evaluate((el) => el.matches(':focus-visible'));
           if (!visible) throw new Error(`${subject.id}/${name}: ${selector} did not reach :focus-visible`);
-          const box = await target.boundingBox();
-          const clip = {
+          // The box to crop to is the box the band is drawn on, which is the focused
+          // control unless the subject names another — a switch hides its own input.
+          const box = await (clip ? page.locator(clip).first() : target).boundingBox();
+          const frame = {
             x: Math.max(0, box.x - PAD), y: Math.max(0, box.y - PAD),
             width: Math.min(width, box.width + PAD * 2), height: Math.min(height, box.height + PAD * 2),
           };
-          const file = `${side}-${subject.id}-${name}-${theme}.png`;
-          await page.screenshot({ path: path.join(outDir, file), clip });
+          const at = viewports(subject).length > 1 ? `-${width}` : '';
+          const file = `${side}-${subject.id}-${name}${at}-${theme}.png`;
+          await page.screenshot({ path: path.join(outDir, file), clip: frame });
           console.log(`  ${file}  ${caption}`);
         }
         await ctx.close();
@@ -220,9 +296,13 @@ async function sheet([outDir]) {
     if (!pairs.has(rest)) pairs.set(rest, {});
     pairs.get(rest)[side] = file;
   }
-  const order = SUBJECTS.flatMap((s) => s.controls.map(([name, , caption]) => ({
-    subject: s.id, key: `${s.id}-${name}`, caption,
-  })));
+  // One row per control per viewport: a subject shot at two widths carries the width in
+  // its filename, and the caption says which so the sheet reads without the filenames.
+  const order = SUBJECTS.flatMap((s) => viewports(s).flatMap(([width]) => s.controls
+    .map(([name, , caption]) => ({
+      subject: s.id, caption: viewports(s).length > 1 ? `${caption} — ${width}px` : caption,
+      key: viewports(s).length > 1 ? `${s.id}-${name}-${width}` : `${s.id}-${name}`,
+    }))));
   const browser = await chromium.launch({ executablePath: process.env.UI_CHROME });
   const data = (file) => `data:image/png;base64,${readFileSync(path.join(outDir, file)).toString('base64')}`;
   try {
@@ -251,7 +331,7 @@ async function sheet([outDir]) {
             outline:1px solid ${theme === 'dark' ? '#2a2a36' : '#dcdce6'}}
           .none{opacity:.5;font-style:italic}
         </style>
-        <h1>#482 — keyboard focus on the ${subject.id} surface, ${theme}</h1>
+        <h1>keyboard focus on the ${subject.id} surface, ${theme}</h1>
         <p class="sub">Each control focused from the keyboard and asserted to match
           <code>:focus-visible</code> before the shot. Left: <code>main</code>. Right: this branch.</p>
         <table><tr><th></th><th>before</th><th>after</th></tr>

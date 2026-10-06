@@ -150,11 +150,13 @@
       ]
     },
     {
-      "file": "stories/ring-surfaces.test.js",
-      "name": "Ring surfaces",
-      "does": "Finds raised backgrounds and their aliases in both workspaces. It requires a matching gap and the shared ring composition. Form focus rules use focus-visible.",
+      "file": "stories/ring-carrier.test.js",
+      "name": "Ring carrier",
+      "does": "Reads both workspaces' stylesheets and holds the focus band to one declaration and one shape: --ring, --ring-offset, --ring-scroll and --ring-scroll-offset are each declared once, at :root, the two bands differ only in which way they are drawn, and none of the four reads a token a painted surface re-points. It then requires every rule that takes a band to take the offset that places it, since a band without its offset is drawn on the border box instead of 1px off it, and holds the consumer count so a control that stops drawing the ring is named. Two tripwires: nothing declares or reads --ring-gap, which #578 retired with the painted gap, and no consumer keeps the transparent 2px outline that stood in for the band under forced colors. Proves rejection four times: the offset dropped from the shared rule in base.css and from the drawer's inward band, and both offset readings run on fixtures as well. Form focus rules use focus-visible.",
       "blind": [
-        "Rendered blur contrast, clipping and browser focus behaviour require Chromium pixel and keyboard evidence."
+        "It reads the sheets as text and measures no pixels: that the band lands 1px out and 2px wide, and what it contrasts against, need Chromium evidence and the contrast ledger.",
+        "It asks whether a rule writes the band whole, not whether that rule WINS over the always-on rules on the same element — the focus walk resolves the cascade — and not whether every keyboard stop has a rule at all.",
+        "A consumer outside src/ and react/src/ is not read; an example page composes the kit's own classes."
       ]
     },
     {
@@ -857,6 +859,16 @@
         "Ancestors. A rail that clips nothing itself can still stand inside something that clips, and this gate asks the rail.",
         "The page shell's own folded rail (.ui-app__rail), whose rows keep the open column so its fold lays none of them out again and which clips beside a scrolling axis. It is a different box with a different answer; its ring was measured and reported on #575.",
         "Anything a media query or a consumer's sheet does to the rail or its rows: only the rail's own rules and the ones the folded class adds are read."
+      ]
+    },
+    {
+      "file": "stories/selected-fill.test.js",
+      "name": "A selected item's highlight",
+      "does": "Measures the background fill a selected, current or active item paints against the ground its own component paints under it, in both themes, and fails a pair under 1.1:1. Since #578 round r34 a selected item is marked by a fill and never by an edge, so a fill that does not step is an item with no mark on it. Six are read: the chosen pill in a segmented group in all three spellings its factory can emit, the row a menu would pick, the row the command palette would run, and the current plate on the three folded rails the kit draws. Subjects are DISCOVERED rather than listed: every rule in src/**.css and react/src/**.css whose own last compound carries a selected marker and declares a background has to be a measured subject, a rule that takes a fill away, an accent mark, or a named exclusion with the issue that owns it — so a new selected fill cannot ship unmeasured. Each subject is measured against EVERY background its selector is given rather than the first, because a later rule is what a reader sees. Proves rejection three times over: by re-measuring the pair that was invisible before the round, light --surface on --bg-elevated at 1.000:1; by appending a later rule that repaints each subject in its own ground, which is the mutation the #590 review used to walk through the reading this gate replaced; and by requiring every subject and every exclusion to still resolve to a real rule.",
+      "blind": [
+        "1.1:1 is not a WCAG number and does not stand in for one: WCAG sets no contrast requirement for a background that carries no information by itself, and the ink ON these items is measured by stories/contrast.test.js instead. The grounds are named here rather than discovered, because which container an item ends up inside is not in the stylesheets; an item whose ground its own component does not fix — the pager, which stands on the page in one showcase and on a card in another — is a named exclusion and says so beside its rule.",
+        "Two selected marks are excluded by name rather than measured, and each names its owner: the open rail's current row, whose mark is #475's subject and is reworked to a plate on #593, and the pager's current page, which is the one mark #578 round r34 left as an edge and is open for Artur.",
+        "Nothing is laid out or painted: this reads declared values with the tokens substituted. It cannot see a fill covered by a pseudo-element, one a width query makes unreachable, or what any of them looks like on a real screen. A box painted WITHIN a selected item rather than being its mark — a count badge, an icon tile — is not discovered at all, because its marker sits on an ancestor compound."
       ]
     }
   ],

@@ -23,7 +23,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, winnersOf, substitute, parseColour, composite, ratio } from './lib/contrast.js';
-import { boxShadowsIn, customPropertiesIn, layersOf, isCast, isFocusRing, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, reachesTrailingSide, TREATMENT_DROP, LADDER, LADDER_LAYERS, FLAT } from '../scripts/lib/box-shadow.js';
+import { boxShadowsIn, customPropertiesIn, layersOf, isCast, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, reachesTrailingSide, TREATMENT_DROP, LADDER, LADDER_LAYERS, FLAT } from '../scripts/lib/box-shadow.js';
 
 const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const read = (p) => readFileSync(root(p), 'utf8');
@@ -96,20 +96,10 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // than a shadow — an inset shadow is painted under a box's own children, so a table
 // scrolled sideways under one erases the band. Six of the seven never had a shadow
 // rule; the scrolling table wrapper did, and that is the one this number lost.
-// 74 -> 73: the selected accent swatch declares no shadow of its own any more. It
-// is marked by a tick inside the circle, so the kit focus ring is the only edge
-// it ever draws, and the band it used to add outside that ring is gone. #472
-// 73 -> 74: the kit ring restated for the chosen tab of an underline strip. #527
-// round r31 left that tab with no box, and cancelling the pill rule's accent outline
-// on it outreaches `.ui-seg button:focus-visible`, so the ring is written again at
-// the same reach. It is the composed indicator, not a cast.
-// 74 -> 69: #475 made the plate the current rail row's whole mark, and its second
-// review round made that plate a fill with a step instead of a hairline. Four
-// rules went with the hairline — the nested row's `box-shadow: none`, the hairline
-// itself, and the `none` each of the two folded rails wrote to switch it off at
-// rest. On a rail row box-shadow is the focus ring now and nothing else.
-  assert.equal(sweep.length, 69,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 69. `
+// The focus ring uses an outline. The rail uses a selection fill without a shadow.
+// These changes leave 22 shadow declarations for elevation and decoration.
+  assert.equal(sweep.length, 22,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 22. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -138,7 +128,8 @@ const castWalk = (sweeps) => {
     for (const d of sweeps) {
       for (const raw of layersOf(d.value)) {
         if (rungs.has(raw)) { rungs.set(raw, rungs.get(raw) + 1); continue; }
-        if (raw === 'var(--ring)' && resolutionsOf(raw, cascade).every(isFocusRing)) continue;
+        // No exception for the focus band: it is an `outline` since #578, so a layer
+        // of a box-shadow list that glows is a cast shadow and nothing else.
         const casts = resolutionsOf(raw, cascade).some((v) => layersOf(v).some(isCast));
         if (!casts) continue;
         offences.push(`${d.file}:${d.line} (${theme})  ${d.selector} { box-shadow: … ${raw} … }`);
@@ -154,18 +145,18 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
     'a cast shadow that is not a rung of the ladder. A surface casts only to say it is '
     + 'higher, and only --elev-rest, --elev-rail and --elev-drop say it:\n  '
     + offences.join('\n  '));
-  // Both themes are walked, so each declaration is counted twice. The drop is read
-  // by 13 floating surfaces plus .ui-dropdown__panel:focus-visible, the rule #487
-  // wrote to re-state the panel's edge and drop beside the ring — a box-shadow list
-  // replaces the whole list, so taking focus must not drop the rung. #531 adds none of
-  // that kind and could not: the seven scroll regions it rings answer with an outline,
-  // which is not a layer of the shadow list, so not one of the surfaces around them has
-  // to re-state the rung it rests on.
+  // Both themes are walked, so each declaration is counted twice. The drop is read by
+  // the 13 floating surfaces, and by nothing else: until #578 four of them restated it
+  // in their own focus rule, because the band was a layer of the same box-shadow list
+  // and writing the band alone dropped the panel's edge and its drop for as long as it
+  // held focus. The band is an outline now, so a focused panel keeps the rung it rests
+  // on without saying so twice — which is also why #531's scroll regions never needed
+  // such a rule from the surfaces around them.
   const got = Object.fromEntries([...rungs].map(([layer, n]) => [layer, n / THEMES.length]));
   assert.deepStrictEqual(got, {
     'var(--elev-rest)': 1,   // .ui-card
     'var(--elev-rail)': 1,   // .ui-app__rail
-    'var(--elev-drop)': 17,  // the floating surfaces, and the panel's focus rule
+    'var(--elev-drop)': 13,  // the floating surfaces, each saying it once
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '
     + 'was added, move the number and check it against docs/foundations.md#elevation.');
 });

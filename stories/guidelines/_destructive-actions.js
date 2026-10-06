@@ -15,7 +15,7 @@ export const SPEC_CSS = `
     .gl-stage--menu { display: flex; flex-direction: column; align-items: flex-start; }
     .gl-stage--menu .ui-dropdown { display: flex; flex-direction: column; align-items: flex-start; }
     .gl-stage--menu .ui-dropdown__panel { position: static; transform: none; margin-top: var(--space-2); }
-    .gl-hovering .ui-dropdown__item.is-danger { background: var(--surface); --ring-gap: var(--surface); }
+    .gl-hovering .ui-dropdown__item.is-danger { background: var(--surface); }
     .gl-hovering--accent .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--accent); }
     .gl-hovering--pink   .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--pink); }
   </style>`;

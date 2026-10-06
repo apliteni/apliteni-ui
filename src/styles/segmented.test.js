@@ -68,9 +68,15 @@ test('the chosen tab is a weight step and one bar, and draws no box', () => {
   assert.equal(decl(tab, 'box-shadow'), undefined, 'the chosen tab draws no hairline of its own');
   assert.equal(decl(tab, 'border'), undefined);
   assert.equal(decl(tab, 'border-bottom'), undefined, 'the rail on the tab\'s own edge is what the inset bar replaced');
-  // The pill rule above paints an accent outline on every chosen button. Left
-  // standing it is a second accent mark on a tab that already has one — #544.
-  assert.equal(decl(tab, 'outline'), '0', 'the pill rule\'s accent outline is cancelled here');
+  // The pill rule above used to paint an accent outline on every chosen button, and
+  // this rule cancelled it with `outline: 0` — a second accent mark on a tab that
+  // already had one (#544). #578 round r34 took that outline off the pill rule, so
+  // there is nothing to cancel and nothing here may write the property: an `outline`
+  // on a chosen tab outranks the kit's focus rule and silences the band.
+  assert.equal(decl(ruleBody(baseCss, '.ui-seg button.is-active'), 'outline'), undefined,
+    'a chosen pill marks itself with its fill; an outline is what focus draws');
+  assert.equal(decl(tab, 'outline'), undefined,
+    'the chosen tab writes no outline, so the kit\'s focus rule reaches it');
 
   // The type step. Both halves are read, because one alone is not a step: a
   // resting tab at --semibold and a chosen tab at --semibold say the same thing.
@@ -115,15 +121,26 @@ test('the mark grows in place, the way the kit\'s other underline tab does', () 
 });
 
 test('the chosen tab keeps the kit ring rather than falling back to the browser\'s', () => {
-  // `outline: 0` on the chosen tab reaches (0,3,0); the kit's own focus rule
-  // reaches (0,2,1), so it loses, and the tab focuses with nothing under it.
-  // Artur rejected a native outline on #457, and in forced colours the
-  // transparent outline is the indicator. Restated at the same reach.
-  const focused = ruleBody(baseCss, '.ui-seg--underline button.is-active:focus-visible');
-  assert.equal(decl(focused, 'box-shadow'), 'var(--ring)');
-  assert.equal(decl(focused, 'outline'), '2px solid transparent');
-  assert.equal(decl(ruleBody(baseCss, '.ui-seg--underline button[aria-pressed="true"]:focus-visible'),
-    'box-shadow'), 'var(--ring)', 'both selectors the factory can emit carry it');
+  // The band is the shared rule's, and it reaches a chosen tab because nothing on the
+  // chosen-tab path writes `outline` any more. While `outline: 0` stood there it did:
+  // it reaches (0,3,0) against the focus rule's (0,2,1), so the tab focused with
+  // nothing under it, and the rule had to be restated at the same reach. Artur
+  // rejected a native outline on #457.
+  const ring = ruleBody(baseCss, '.ui-seg button:focus-visible');
+  assert.equal(decl(ring, 'outline'), 'var(--ring)', 'the shared rule carries the band');
+  assert.equal(decl(ring, 'outline-offset'), 'var(--ring-offset)', 'and the offset that places it');
+  // Every always-on rule on the chosen-tab path, in both spellings the factory emits.
+  // One of these writing `outline` outranks the shared rule and silences the band,
+  // which is the defect this reading exists for.
+  for (const selector of [
+    '.ui-seg button.is-active', '.ui-seg button[aria-pressed="true"]',
+    '.ui-seg button[aria-selected="true"]',
+    '.ui-seg--underline button', '.ui-seg--underline button.is-active',
+    '.ui-seg--underline button[aria-pressed="true"]',
+  ]) {
+    assert.equal(decl(ruleBody(baseCss, selector), 'outline'), undefined,
+      `${selector} writes an outline, which outranks the kit's focus rule and silences the band`);
+  }
 });
 
 test('the underline strip draws no rule under its tabs', () => {
