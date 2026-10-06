@@ -100,8 +100,9 @@ const SUBJECTS = [
   {
     name: 'a tab row with every tab disabled',
     box: '.ui-nav--tabs',
-    why: 'the row clips at its own padding edge, so an outset ring on it is cut off by '
-      + 'the box that scrolls; its 4px of padding is the room the band draws in',
+    why: 'a row that scrolls clips at its own padding edge, so an outset ring on it is '
+      + 'cut off by the box that scrolls; its 4px of padding is the room the band draws '
+      + 'in. A row with room for its links scrolls nothing and is no stop either',
     markup: () => navTabs({
       ariaLabel: 'Finance views',
       items: [
