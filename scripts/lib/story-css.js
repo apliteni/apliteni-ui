@@ -35,23 +35,46 @@
  * recorded figures, which is what AGENTS.md#verification asks for.
  *
  * LIMITS, so a pass is not read as more than it is:
- *  - Source, not paint. This reads the text of a `<style>` block, a story-only
- *    stylesheet and a `style=` attribute. A declaration assembled at run time out of
- *    string pieces, or set through `element.style.x = …`, is not seen.
+ *  - Source, not paint. This reads the text of a `<style>` block, a story-owned
+ *    stylesheet and a `style=` attribute. A declaration set through `element.style.x = …`
+ *    is not seen at all. One assembled at run time out of string pieces is not read
+ *    either, but it is reported as unreadable rather than measured as nothing.
  *  - A `style=` attribute's subject is the `class` its own tag spells out literally,
  *    wherever in the tag it is written. A className built by an expression reads as no
  *    class at all, so a placement onto a kit class written that way lands in `glue`
  *    rather than in the allow-list.
- *  - `style={name}` and `style={name.key}` are read through to the `const name = {…}`
- *    object literal in the same file. Any other expression is reported as unreadable.
- *  - A `...spread` inside a style object is not followed. The object it spreads is
- *    measured where that object's own declarations are written, not again at the tag.
+ *  - A style object is read the way React reads it. `style={name}`, `style={name.key}`
+ *    and a `...spread` of either are followed to the `const` object literal in the same
+ *    file, and a later key answers an earlier one of the same name — so
+ *    `{ ...stack, gap: 14 }` is every property `stack` holds with one of them answered.
+ *    The list counts at every tag that uses it: an object two tags share is measured
+ *    twice, because it is two tags' worth of declarations on the page.
+ *  - A name this file binds twice is resolved to neither of the two. Which one paints is
+ *    a question about scope, and a reader that guesses measures the wrong object in
+ *    silence, so the style is reported as unreadable instead. So is a spread of a call,
+ *    a parameter or a conditional.
+ *  - A `<style>` block's text has to be in the source: the text in the tag, a string
+ *    literal, or a name bound to one literal in the same file. A concatenation, an
+ *    interpolated `${…}` and an unresolved name are reported as unreadable.
  *  - One property, one verdict, by name. `border: 0` reads as paint because `border`
  *    paints; a story that clears one is still deciding how a part looks.
- *  - Specificity is not resolved. A story rule that loses the cascade still counts: it
- *    was written to win, and a reader reads it as the story's intent.
- *  - `@media` bodies are read, their conditions are not. A glue declaration inside a
- *    breakpoint costs the same as one outside it.
+ *  - Specificity is not resolved, and neither is the cascade inside one block: a story
+ *    rule that loses still counts, and two CSS declarations of one property count twice.
+ *    Both were written to win, and a reader reads them as the story's intent. A style
+ *    object is the one exception, because one key is one declaration however many times
+ *    the source writes it.
+ *  - Nesting and at-rules are read to any depth, and a nested selector is written out
+ *    against its parent, so `.ui-card { & > b { … } }` is a placement onto `.ui-card`.
+ *    `@media` bodies are read, their conditions are not: a glue declaration inside a
+ *    breakpoint costs the same as one outside it. An at-rule this file does not know is
+ *    reported rather than walked.
+ *  - The stylesheet reading is a parser. The JavaScript around it is not: this reads text
+ *    rather than a syntax tree, so a `/` opening a regular expression reads as division
+ *    and an apostrophe in JSX text reads as the start of a string. Either can blank a
+ *    region that is not a string — and when it does, the style it covers reports as
+ *    unreadable rather than as empty, so the result is a gate failure and not a pass.
+ *    Each gate's recorded declaration total is a lower bound for the same reason: a
+ *    reading that stops reaching source fails before it passes.
  */
 
 /* Placement: where a box sits, how big it is, and how its children are dealt. Nothing
@@ -158,69 +181,115 @@ export function classify({ selector, property, value }, kitTokens) {
 
 const lineAt = (src, index) => src.slice(0, index).split('\n').length;
 
-/** Blank `/* … *\/` comments, keeping every newline so a line number stays true. */
-const blankCssComments = (text) =>
-  text.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
-
-/** The same for a JS object literal, where `//` also starts one — and a string does not. */
-function blankJsComments(text) {
-  let out = '';
-  let quote = null;
-  for (let i = 0; i < text.length; i += 1) {
-    const ch = text[i];
-    if (quote) {
-      out += ch;
-      if (ch === '\\') { out += text[i + 1] ?? ''; i += 1; continue; }
-      if (ch === quote) quote = null;
-      continue;
-    }
-    if (ch === "'" || ch === '"' || ch === '`') { quote = ch; out += ch; continue; }
-    if (ch === '/' && (text[i + 1] === '*' || text[i + 1] === '/')) {
-      const end = text[i + 1] === '*' ? text.indexOf('*/', i + 2) : text.indexOf('\n', i);
-      const stop = end < 0 ? text.length : end + (text[i + 1] === '*' ? 2 : 0);
-      out += text.slice(i, stop).replace(/[^\n]/g, ' ');
-      i = stop - 1;
-      continue;
-    }
-    out += ch;
+/**
+ * The index just past the comment or string that opens at `at`, or -1 when nothing
+ * opens there. A template literal's `${…}` is walked rather than scanned over, so a
+ * nested template inside one ends at its own backtick and not at the outer one — which
+ * is how most of the vanilla stories are written.
+ *
+ * @param {'css'|'js'} lang  JS also ends a comment at a newline and quotes with a backtick
+ */
+function literalEnd(src, at, lang) {
+  const ch = src[at];
+  if (ch === '/' && src[at + 1] === '*') {
+    const close = src.indexOf('*/', at + 2);
+    return close < 0 ? src.length : close + 2;
   }
-  return out;
+  if (lang === 'js' && ch === '/' && src[at + 1] === '/') {
+    const close = src.indexOf('\n', at + 2);
+    return close < 0 ? src.length : close;
+  }
+  if (ch !== '"' && ch !== "'" && !(lang === 'js' && ch === '`')) return -1;
+  for (let i = at + 1; i < src.length; i += 1) {
+    if (src[i] === '\\') { i += 1; continue; }
+    if (src[i] === ch) return i + 1;
+    if (ch === '`' && src[i] === '$' && src[i + 1] === '{') i = interpolationEnd(src, i + 2) - 1;
+  }
+  return src.length;
+}
+
+/** The index just past the `}` that closes a `${` whose contents begin at `at`. */
+function interpolationEnd(src, at) {
+  let depth = 1;
+  for (let i = at; i < src.length; i += 1) {
+    const end = literalEnd(src, i, 'js');
+    if (end >= 0) { i = end - 1; continue; }
+    if (src[i] === '{') depth += 1;
+    else if (src[i] === '}') { depth -= 1; if (depth === 0) return i + 1; }
+  }
+  return src.length;
 }
 
 /**
- * Split a declaration list into its top-level chunks, skipping over quoted text and
- * anything bracketed — a `;` inside `url(a;b)` and a `,` inside `rgb(0, 0, 0)` are not
- * separators.
+ * One pass over a source, giving the two readings everything below works from. Both are
+ * the same length as `src`, with every newline kept, so an index into either is an index
+ * into the source and a line number stays true.
+ *
+ *   clean  the comments blanked, the strings left alone. Every piece of text this module
+ *          reports or measures is a slice of it, so a comment cannot reach a selector.
+ *   mask   the comments and the inside of every string blanked. Every bracket balanced
+ *          and every list split below is done on it, so a `}` inside `/* } *\/`, a `;`
+ *          inside `url(a;b)` and a brace inside a string are not syntax.
+ *
+ * A string is blanked only in `mask`: a vanilla story's whole markup, `<style>` blocks
+ * and all, is the inside of one template literal.
+ *
+ * @param {'css'|'js'} lang
  */
-function chunks(text, separator) {
+function scan(src, lang) {
+  const clean = src.split('');
+  const mask = src.split('');
+  for (let i = 0; i < src.length; i += 1) {
+    const end = literalEnd(src, i, lang);
+    if (end < 0) continue;
+    const comment = src[i] === '/';
+    for (let j = comment ? i : i + 1; j < (comment ? end : end - 1); j += 1) {
+      if (src[j] === '\n') continue;
+      mask[j] = ' ';
+      if (comment) clean[j] = ' ';
+    }
+    i = end - 1;
+  }
+  return { clean: clean.join(''), mask: mask.join('') };
+}
+
+/** The text inside the balanced `{…}` that opens at `at`, or null when it never closes. */
+function braced(src, mask, at) {
+  let depth = 0;
+  for (let i = at; i < mask.length; i += 1) {
+    if (mask[i] === '{') depth += 1;
+    else if (mask[i] === '}') { depth -= 1; if (depth === 0) return src.slice(at + 1, i); }
+  }
+  return null;
+}
+
+/** The same, for a fragment this has to scan first. */
+const bracedIn = (text, lang, at = text.indexOf('{')) => (at < 0 ? null
+  : braced(text, scan(text, lang).mask, at));
+
+/**
+ * Split a list into its top-level chunks on `mask`, so a separator inside brackets, a
+ * string or a comment is not one. The chunks come back as slices of `text`.
+ */
+function chunks(text, mask, separator) {
   const parts = [];
   let depth = 0;
-  let quote = null;
-  let buffer = '';
-  for (let i = 0; i < text.length; i += 1) {
-    const ch = text[i];
-    if (quote) {
-      buffer += ch;
-      if (ch === '\\') { buffer += text[i + 1] ?? ''; i += 1; continue; }
-      if (ch === quote) quote = null;
-      continue;
-    }
-    if (ch === "'" || ch === '"' || ch === '`') { quote = ch; buffer += ch; continue; }
+  let start = 0;
+  for (let i = 0; i < mask.length; i += 1) {
+    const ch = mask[i];
     if ('([{'.includes(ch)) depth += 1;
     else if (')]}'.includes(ch)) depth = Math.max(0, depth - 1);
-    else if (ch === separator && depth === 0) { parts.push(buffer); buffer = ''; continue; }
-    buffer += ch;
+    else if (ch === separator && depth === 0) { parts.push(text.slice(start, i)); start = i + 1; }
   }
-  parts.push(buffer);
+  parts.push(text.slice(start));
   return parts;
 }
 
-/** One CSS declaration list: comments blanked, then split on `;`. */
-const cssDeclarations = (text) => chunks(blankCssComments(text), ';').map(named).filter(Boolean);
-
-/** One JS object literal's body: comments blanked, split on `,`, a spread skipped. */
-const jsxDeclarations = (text) => chunks(blankJsComments(text), ',')
-  .filter((p) => !p.trim().startsWith('...')).map(named).filter(Boolean);
+/** One CSS declaration list, split on `;`, with its comments gone. */
+function cssDeclarations(text) {
+  const { clean, mask } = scan(text, 'css');
+  return chunks(clean, mask, ';').map(named).filter(Boolean);
+}
 
 /**
  * `prop: value` → `{property, value}`, with a JSX `maxWidth` spelled as CSS.
@@ -245,46 +314,293 @@ const brief = (text) => {
   return one.length > 72 ? `${one.slice(0, 71)}…` : one;
 };
 
+/* ---- the names a story binds -------------------------------------------- */
+
 /**
- * Every stylesheet a story source carries: each `<style>` block, and the template
- * literal behind a `<style>{CSS}</style>` reference.
+ * The object literals a story binds by name: `const row = {…}`. A `style={row}` is an
+ * ordinary list of source declarations that happens to be written a few lines up, so it
+ * is read there rather than counted as nothing.
  *
- * @returns {Array<{css: string, line: number}>}
+ * A name bound twice in one file is recorded as ambiguous and never resolved to the
+ * first of the two. Which one paints is a question about scope, and a reader that
+ * guesses measures the wrong object in silence — the shape of a bypass, not of a limit.
+ *
+ * @returns {Map<string, {body: string}|{ambiguous: true}>}
  */
-export function styleSheets(src) {
-  const found = [];
-  const references = new Set();
-  for (const m of src.matchAll(/<style[^>]*>\s*\{\s*([A-Za-z_$][\w$]*)\s*\}\s*<\/style>/g)) references.add(m[1]);
-  for (const m of src.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
-    const body = m[1];
-    if (/^\s*\{\s*[A-Za-z_$][\w$]*\s*\}\s*$/.test(body)) continue;
-    const css = body.replace(/^\s*\{\s*(['"`])/, '').replace(/(['"`])\s*\}\s*$/, '');
-    found.push({ css, line: lineAt(src, m.index + m[0].indexOf(body)) });
+function objectBindings(src, mask) {
+  const bound = new Map();
+  for (const m of mask.matchAll(/(?<![\w$])(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::[^=;{]*)?=\s*\{/g)) {
+    const body = braced(src, mask, m.index + m[0].length - 1);
+    if (bound.has(m[1]) || body == null) bound.set(m[1], { ambiguous: true });
+    else bound.set(m[1], { body });
   }
-  for (const name of references) {
-    const m = new RegExp(`\\b${name}\\s*=\\s*\`([\\s\\S]*?)\`\\s*;`).exec(src);
-    if (m) found.push({ css: m[1], line: lineAt(src, m.index + m[0].indexOf(m[1])) });
+  return bound;
+}
+
+/**
+ * The strings a story binds by name: `const CSS = '…'`, in any of the three quotes.
+ * One literal of plain text and nothing else — a concatenation, a `${…}` interpolated
+ * into it, and a name bound twice are all recorded as ambiguous, because a stylesheet
+ * assembled at run time is not source and must not read as an empty one.
+ *
+ * @returns {Map<string, {text: string, at: number}|{ambiguous: true}>}
+ */
+function stringBindings(src, mask) {
+  const bound = new Map();
+  for (const m of mask.matchAll(/(?<![\w$])(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::[^=;{]*)?=\s*(?=['"`])/g)) {
+    const at = m.index + m[0].length;
+    const end = literalEnd(src, at, 'js');
+    const text = stringValue(src.slice(at, end));
+    const settled = text != null && /^\s*(?:as\s+const\s*)?[;\n]/.test(mask.slice(end));
+    if (bound.has(m[1]) || !settled) bound.set(m[1], { ambiguous: true });
+    else bound.set(m[1], { text, at: at + 1 });
+  }
+  return bound;
+}
+
+/** The text one string literal holds, or null when it is not one literal of plain text. */
+function stringValue(raw) {
+  const quote = raw[0];
+  if (raw.length < 2 || raw[raw.length - 1] !== quote) return null;
+  if (quote === '`' && raw.includes('${')) return null;
+  return raw.slice(1, -1).replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\(.)/g, '$1');
+}
+
+/** One `key: {…}` member of a bound object, by key, or null. */
+function memberBody(body, key) {
+  const { clean, mask } = scan(body, 'js');
+  for (const chunk of chunks(clean, mask, ',')) {
+    const at = chunk.indexOf(':');
+    if (at < 0) continue;
+    const name = chunk.slice(0, at).trim().replace(/^(['"])([\s\S]*)\1$/, '$2');
+    const value = chunk.slice(at + 1).trim();
+    if (name === key && value.startsWith('{')) return bracedIn(value, 'js', 0);
+  }
+  return null;
+}
+
+/**
+ * The object body an expression stands for: a literal written there, a name bound in
+ * this file, or one `name.key` member of one. Null for anything else — a call, a
+ * parameter, a conditional, a name bound twice, or a name that spreads itself.
+ *
+ * @returns {{body: string, names: string[]}|null}
+ */
+function resolveObject(expression, scope, seen) {
+  const text = expression.trim();
+  if (text.startsWith('{')) {
+    const body = bracedIn(text, 'js', 0);
+    return body == null ? null : { body, names: [] };
+  }
+  const member = /^([A-Za-z_$][\w$]*)\.([\w$]+)$/.exec(text);
+  const name = /^[A-Za-z_$][\w$]*$/.test(text) ? text : member?.[1];
+  if (!name || seen.includes(name)) return null;
+  const bound = scope.get(name);
+  if (!bound || bound.ambiguous) return null;
+  const body = member ? memberBody(bound.body, member[2]) : bound.body;
+  return body == null ? null : { body, names: [name] };
+}
+
+/**
+ * A style object read the way React reads it: a `...spread` followed into the object it
+ * names, and a later key replacing an earlier one of the same name. So
+ * `{ ...stack, gap: 14 }` is every property `stack` holds with one of them answered —
+ * which is the declaration list the element really carries, and the one a reader of the
+ * story sees.
+ *
+ * A spread this file cannot settle is one unreadable declaration and never a skipped
+ * one: skipping it measured the paint it carries as zero.
+ */
+function objectDeclarations(body, scope, seen = []) {
+  const byProperty = new Map();
+  const unreadable = [];
+  const take = (d) => { if (d.property) byProperty.set(d.property, d); else unreadable.push(d); };
+  const { clean, mask } = scan(body, 'js');
+  for (const chunk of chunks(clean, mask, ',')) {
+    const text = chunk.trim();
+    if (!text) continue;
+    if (!text.startsWith('...')) { const d = named(chunk); if (d) take(d); continue; }
+    const spread = resolveObject(text.slice(3), scope, seen);
+    if (!spread) { unreadable.push({ unreadable: brief(text) }); continue; }
+    for (const d of objectDeclarations(spread.body, scope, [...seen, ...spread.names])) take(d);
+  }
+  return [...byProperty.values(), ...unreadable];
+}
+
+/* ---- the stylesheets a story carries ------------------------------------ */
+
+/**
+ * Every stylesheet a story source carries: each `<style>` block's own text, and the
+ * string behind a `<style>{CSS}</style>` reference — a template literal, a quoted
+ * string, or a name bound to one in the same file.
+ *
+ * A block whose text this cannot settle comes back as `{unreadable}` and is reported,
+ * never measured as zero. A `<style>` a gate reads as empty is a sheet that can paint
+ * whatever it likes, so an unresolved name, a concatenation, a name bound twice and a
+ * `${…}` interpolated into the CSS itself all fail here.
+ *
+ * @returns {Array<{css?: string, unreadable?: string, line: number}>}
+ */
+export function styleSheets(source) {
+  const { clean: src, mask } = scan(source, 'js');
+  const strings = stringBindings(src, mask);
+  const found = [];
+  for (const m of src.matchAll(/<style[^>]*>/g)) {
+    const from = m.index + m[0].length;
+    const close = src.indexOf('</style>', from);
+    const line = lineAt(src, from);
+    if (close < 0) { found.push({ unreadable: brief(src.slice(from, from + 80)), line }); continue; }
+    const body = src.slice(from, close);
+    if (!body.trim()) continue;
+
+    // A JSX expression container: `<style>{CSS}</style>`, `<style>{`…`}</style>`.
+    if (body.trimStart().startsWith('{')) {
+      const opens = from + body.indexOf('{');
+      const inner = braced(src, mask, opens);
+      const sheet = inner == null ? null : sheetText(inner, opens + 1, strings);
+      found.push(sheet ? { css: sheet.css, line: lineAt(src, sheet.at) }
+        : { unreadable: brief(body), line });
+      continue;
+    }
+
+    // Plain text inside the tag — which, in a vanilla story, is text inside a template
+    // literal. A `${…}` in it means the CSS is assembled at run time.
+    if (body.includes('${')) { found.push({ unreadable: brief(body), line }); continue; }
+    found.push({ css: body, line });
   }
   return found;
 }
 
-/** The text inside the balanced `{…}` that opens at `at`, or null when it never closes. */
-function braced(src, at) {
-  let depth = 0;
-  let quote = null;
-  for (let i = at; i < src.length; i += 1) {
-    const ch = src[i];
-    if (quote) {
-      if (ch === '\\') { i += 1; continue; }
-      if (ch === quote) quote = null;
-      continue;
-    }
-    if (ch === "'" || ch === '"' || ch === '`') { quote = ch; continue; }
-    if (ch === '{') depth += 1;
-    else if (ch === '}') { depth -= 1; if (depth === 0) return src.slice(at + 1, i); }
+/**
+ * The CSS a `<style>{…}</style>` expression stands for, and where that text begins —
+ * `from` is where the expression itself begins, so a story with two of them reports the
+ * right line for each.
+ */
+function sheetText(expression, from, strings) {
+  const at = expression.search(/\S/);
+  if (at < 0) return null;
+  const text = expression.slice(at).trimEnd();
+  const offset = from + at;
+  if (/^['"`]/.test(text)) {
+    const end = literalEnd(text, 0, 'js');
+    const css = end === text.length ? stringValue(text) : null;
+    return css == null ? null : { css, at: offset + 1 };
   }
-  return null;
+  if (!/^[A-Za-z_$][\w$]*$/.test(text)) return null;
+  const bound = strings.get(text);
+  return !bound || bound.ambiguous ? null : { css: bound.text, at: bound.at };
 }
+
+/* ---- the rules in one stylesheet ---------------------------------------- */
+
+/* The at-rules that wrap rules in a condition, and so add nothing of their own. */
+const CONDITION_AT = /^@(?:media|supports|container|layer|scope)(?![\w-])/;
+/* The at-rules whose block is a declaration list with the at-rule as its subject. */
+const DECLARATION_AT = /^@(?:(?:-[a-z]+-)?keyframes|font-face|page|property|counter-style|font-palette-values)(?![\w-])/;
+
+/**
+ * A stylesheet read as a tree and flattened to rules: nesting at any depth, at-rules at
+ * any depth, and nothing left over.
+ *
+ * Nothing left over is the point. Text this cannot place — a declaration outside any
+ * rule, a stray brace, an at-rule it does not know — comes back as an unreadable
+ * declaration rather than being dropped, because a sheet measured as fewer declarations
+ * than it holds is a sheet the gate does not gate. The reading it replaced matched the
+ * innermost `{…}` of a nested rule and dropped the outer rule's own declarations.
+ *
+ * A nested rule's selector is composed with its parent's, `&` taking the parent's place,
+ * so `.ui-card { & > b { margin: 0 } }` reads as a placement onto `.ui-card`.
+ *
+ * @returns {Array<{selector: string, decls: object[], line: number, media: string|null}>}
+ */
+export function rulesIn(sheet, firstLine = 1) {
+  const { clean: css, mask } = scan(sheet, 'css');
+  const lineOf = (index) => firstLine + css.slice(0, index).split('\n').length - 1;
+  const firstWord = (index, text) => index + text.length - text.trimStart().length;
+  const rules = [];
+
+  /** One `{…}` body: its own declarations, and a recursion per rule inside it. */
+  const block = (from, to, selector, conditions) => {
+    const decls = [];
+    let start = from;
+    let at = -1;
+    const keep = (text, index) => {
+      if (!text.trim()) return;
+      // A declaration outside every rule cannot paint anything and is not a declaration.
+      decls.push(...(selector ? cssDeclarations(text) : [{ unreadable: brief(text) }]));
+      if (at < 0) at = firstWord(index, text);
+    };
+    // Bracket depth, because none of `;`, `{` and `}` is syntax inside `url(a;b)`, a
+    // `:is(…)` list or an attribute selector.
+    let depth = 0;
+    for (let i = from; i < to; i += 1) {
+      const ch = mask[i];
+      if ('(['.includes(ch)) { depth += 1; continue; }
+      if (')]'.includes(ch)) { depth = Math.max(0, depth - 1); continue; }
+      if (depth > 0) continue;
+      if (ch === '{') {
+        const body = braced(css, mask, i);
+        const end = body == null ? to : i + 1 + body.length;
+        child(start, i, end, selector, conditions);
+        i = end;
+        start = i + 1;
+        continue;
+      }
+      if (ch === ';') { keep(css.slice(start, i), start); start = i + 1; continue; }
+      if (ch === '}') { keep(`${css.slice(start, i)}}`, start); start = i + 1; }
+    }
+    keep(css.slice(start, to), start);
+    if (!decls.length) return;
+    rules.push({
+      selector: selector || '(stylesheet)',
+      decls,
+      line: lineOf(at < 0 ? from : at),
+      media: conditions.length ? conditions.join(' / ') : null,
+    });
+  };
+
+  /** One rule inside a block: `preludeFrom..preludeTo` names it, `preludeTo + 1..to` is it. */
+  const child = (preludeFrom, preludeTo, to, parent, conditions) => {
+    const prelude = css.slice(preludeFrom, preludeTo);
+    const text = prelude.trim();
+    const line = lineOf(firstWord(preludeFrom, prelude));
+    const unknown = (shown) => rules.push({
+      selector: parent || '(stylesheet)', decls: [{ unreadable: brief(shown) }], line, media: null,
+    });
+    if (!text) { unknown(`{ ${css.slice(preludeTo + 1, to)} }`); return; }
+    if (!text.startsWith('@')) { block(preludeTo + 1, to, compose(parent, text), conditions); return; }
+    // `@media` and its kin add a condition and no subject; `@font-face` and `@keyframes`
+    // are the subject themselves. An at-rule in neither list is reported, not walked.
+    if (CONDITION_AT.test(text)) {
+      block(preludeTo + 1, to, parent, [...conditions, text.replace(/^@media\s*/, '')]);
+    } else if (DECLARATION_AT.test(text)) {
+      block(preludeTo + 1, to, text, conditions);
+    } else {
+      unknown(`${text} { … }`);
+    }
+  };
+
+  block(0, css.length, '', []);
+  return rules;
+}
+
+/**
+ * A nested selector written out against the one it sits in, so the subject a declaration
+ * lands on is the one it lands on in the browser. A parent of more than one selector
+ * becomes `:is(a, b)`, which is what CSS nesting does with it.
+ */
+function compose(parent, selector) {
+  if (!parent) return selector.replace(/&/g, '').trim() || selector;
+  const { clean, mask } = scan(selector, 'css');
+  const parts = chunks(parent, scan(parent, 'css').mask, ',');
+  const subject = parts.length > 1 ? `:is(${parent})` : parent;
+  return chunks(clean, mask, ',').map((one) => {
+    const part = one.trim();
+    return part.includes('&') ? part.replace(/&/g, subject) : `${subject} ${part}`;
+  }).join(', ');
+}
+
+/* ---- the inline styles a story writes ----------------------------------- */
 
 /**
  * The opening tag a `style=` sits in: from its `<` to the `>` that closes it, skipping
@@ -295,15 +611,10 @@ function openTag(src, at) {
   const open = src.lastIndexOf('<', at);
   if (open < 0) return '';
   let depth = 0;
-  let quote = null;
   for (let i = open; i < src.length; i += 1) {
+    const end = literalEnd(src, i, 'js');
+    if (end >= 0) { i = end - 1; continue; }
     const ch = src[i];
-    if (quote) {
-      if (ch === '\\') { i += 1; continue; }
-      if (ch === quote) quote = null;
-      continue;
-    }
-    if (ch === "'" || ch === '"' || ch === '`') { quote = ch; continue; }
     if ('([{'.includes(ch)) depth += 1;
     else if (')]}'.includes(ch)) depth -= 1;
     else if (ch === '>' && depth === 0) return src.slice(open, i + 1);
@@ -319,43 +630,16 @@ function classesIn(tag) {
 }
 
 /**
- * The object literals a story binds by name: `const row = {…}`. A `style={row}` is an
- * ordinary list of source declarations that happens to be written a few lines up, so it
- * is read there rather than counted as nothing.
- *
- * @returns {Map<string, string>} the name → the text inside its braces
- */
-function objectBindings(src) {
-  const bound = new Map();
-  for (const m of src.matchAll(/(?<![\w$])(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::[^=;{]*)?=\s*\{/g)) {
-    const body = braced(src, m.index + m[0].length - 1);
-    if (body != null && !bound.has(m[1])) bound.set(m[1], body);
-  }
-  return bound;
-}
-
-/** One `key: {…}` member of a bound object, by key, or null. */
-function memberBody(body, key) {
-  for (const chunk of chunks(blankJsComments(body), ',')) {
-    const at = chunk.indexOf(':');
-    if (at < 0) continue;
-    const name = chunk.slice(0, at).trim().replace(/^(['"])([\s\S]*)\1$/, '$2');
-    const value = chunk.slice(at + 1).trim();
-    if (name === key && value.startsWith('{')) return braced(value, 0);
-  }
-  return null;
-}
-
-/**
  * Every `style=` attribute and `style={…}` prop in a story source, with the kit classes
- * of the tag it sits on. Both quote forms, either attribute order, comments, and a JSX
- * object with brackets of its own. A block this cannot read is reported as unreadable
- * and never as empty — see LIMITS.
+ * of the tag it sits on. Both quote forms, either attribute order, comments, a JSX
+ * object with brackets of its own, a name bound to one, and a spread of either. A block
+ * this cannot read is reported as unreadable and never as empty — see LIMITS.
  *
  * @returns {Array<{selector: string, decls: Array<{property?: string, value?: string, unreadable?: string}>, line: number}>}
  */
-export function inlineStyles(src) {
-  const bound = objectBindings(src);
+export function inlineStyles(source) {
+  const { clean: src, mask } = scan(source, 'js');
+  const scope = objectBindings(src, mask);
   const found = [];
   for (const m of src.matchAll(/(?<![\w$-])style\s*=\s*/g)) {
     const at = m.index + m[0].length;
@@ -373,49 +657,14 @@ export function inlineStyles(src) {
 
     if (opener !== '{') { unreadable(src.slice(at, at + 80)); continue; }
 
-    const inner = braced(src, at);
+    const inner = braced(src, mask, at);
     if (inner == null) { unreadable(src.slice(at, at + 80)); continue; }
-    const expression = inner.trim();
-    const member = /^([A-Za-z_$][\w$]*)\.([\w$]+)$/.exec(expression);
-    const object = expression.startsWith('{') ? braced(expression, 0)
-      : /^[A-Za-z_$][\w$]*$/.test(expression) ? bound.get(expression) ?? null
-        : member ? memberBody(bound.get(member[1]) ?? '', member[2])
-          : null;
-    if (object == null) unreadable(expression);
-    else found.push({ selector, line, decls: jsxDeclarations(object) });
+    const object = resolveObject(inner, scope, []);
+    if (!object) unreadable(inner);
+    else found.push({ selector, line, decls: objectDeclarations(object.body, scope, object.names) });
   }
   return found;
 }
-
-/**
- * A stylesheet flattened to rules. One level of `@media` nesting is unwrapped, which is
- * all these sheets use.
- *
- * @returns {Array<{selector: string, decls: object[], line: number, media: string|null}>}
- */
-export function rulesIn(css, firstLine = 1) {
-  // Blank the comments but keep every newline, so the line numbers stay true.
-  const clean = blankCssComments(css);
-  const line = (index) => firstLine + clean.slice(0, index).split('\n').length - 1;
-  const rules = [];
-  const blocks = [];
-  const flat = clean.replace(/@media([^{]+)\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g, (m, condition, body, index) => {
-    blocks.push({ condition: condition.trim(), body, at: index + m.indexOf(body) });
-    return m.replace(/[^\n]/g, ' ');
-  });
-  const collect = (text, offset, media) => {
-    for (const m of text.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      const selector = m[1].trim();
-      if (!selector || selector.startsWith('@')) continue;
-      const at = offset + m.index + (m[1].length - m[1].trimStart().length);
-      rules.push({ selector, decls: cssDeclarations(m[2]), line: line(at), media });
-    }
-  };
-  collect(flat, 0, null);
-  for (const block of blocks) collect(block.body, block.at, block.condition);
-  return rules;
-}
-
 /* ---- one story's measurement -------------------------------------------- */
 
 /**
@@ -434,6 +683,10 @@ export function measureStory(file, src, kitTokens) {
     }
   } else {
     for (const sheet of styleSheets(src)) {
+      if (sheet.css == null) {
+        decls.push({ unreadable: sheet.unreadable, selector: '(stylesheet)', line: sheet.line, media: null });
+        continue;
+      }
       for (const rule of rulesIn(sheet.css, sheet.line)) {
         for (const d of rule.decls) decls.push({ ...d, selector: rule.selector, line: rule.line, media: rule.media });
       }
