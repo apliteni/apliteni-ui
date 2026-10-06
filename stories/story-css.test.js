@@ -26,6 +26,10 @@
  * LIMITS are stated in scripts/lib/story-css.js, next to the reader they belong to. The
  * one that matters most here: this is source, not paint. A story that sets
  * `element.style`, or toggles a class the kit does not own, walks past this gate.
+ *
+ * The subjects are the stories, the `_name.js` modules they build with, and the
+ * stylesheets those import: a served story reaches paint through its own module graph as
+ * easily as through a `<style>` block.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -71,17 +75,49 @@ const SUPPORT = /(?:^|\/)_[\w-]+\.m?js$/;
  * paint. Gating them would demand an allow-list longer than the pages. */
 const EXCLUDED = /^stories\/(?:foundations|guidelines)\//;
 
-/** The subjects among a list of paths, so a mutation can hand this one it invented. */
-export const subjectsAmong = (paths) => paths
-  .filter((p) => !EXCLUDED.test(p) && (SERVED.test(p) || SUPPORT.test(p))).sort();
+/* The stylesheets the stories own. A served story can reach paint through its own module
+ * graph — `import './review.css'` puts a sheet on the page with nothing left in the story
+ * for a reader of the story to find — so a sheet a story imports is the story's CSS and a
+ * subject. A sheet imported from outside this folder, or by something that is not a story,
+ * belongs to whatever imports it: the same ownership rule react/src/story-css.test.ts
+ * applies to that workspace's component sheets. */
+const SHEET = /\.css$/;
+
+/** Does `source`, the text of `file`, import `sheet`? Resolved against `file`'s folder,
+ * so an import from a subfolder or with a `../` in it names the same sheet. */
+const importsSheet = (file, source, sheet) => {
+  const from = path.posix.dirname(file);
+  for (const m of source.matchAll(/['"]([^'"]+\.css)['"]/g)) {
+    if (path.posix.normalize(path.posix.join(from, m[1])) === sheet) return true;
+  }
+  return false;
+};
+
+/**
+ * The subjects among a list of paths: every story Storybook serves, the support modules
+ * they build with, and the stylesheets those import. `sourceOf` reads a path, so a
+ * mutation can hand this one a story and a sheet that do not exist yet.
+ */
+export const subjectsAmong = (paths, sourceOf) => {
+  const stories = paths.filter((p) => !EXCLUDED.test(p) && (SERVED.test(p) || SUPPORT.test(p)));
+  const sources = new Map(stories.map((story) => [story, sourceOf(story)]));
+  const sheets = paths.filter((p) => !EXCLUDED.test(p) && SHEET.test(p)
+    && stories.some((story) => importsSheet(story, sources.get(story), p)));
+  return [...stories, ...sheets].sort();
+};
 
 const files = filesUnder('stories');
-const subjects = subjectsAmong(files);
+const subjects = subjectsAmong(files, read);
+
+/** A reader for a mutation's invented paths: the real files from disk, an invented one
+ * empty unless the case gives it a source. */
+const sourceAmong = (invented = {}) => (file) => invented[file]
+  ?? (files.includes(file) ? read(file) : '');
 
 /* Measured, not guessed: the figures as this gate last audited them. Every one is a
  * lower bound, so the gate fails when the reading stops reaching something rather than
  * when the collection grows. */
-const FOUND = { subjects: 41, served: 37, declarations: 520, carriers: 35 };
+const FOUND = { subjects: 41, served: 37, declarations: 520, carriers: 35, sheets: 0 };
 
 const tokens = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -153,15 +189,16 @@ const ALLOWED = {
 
 /* ---- the glue ceiling --------------------------------------------------- */
 
-/* Read off the stories that wrote no shadow CSS at all — by construction, the ones that
- * used the kit. Across both workspaces there are 47 of them, the widest needs 22 glue
- * declarations (CalloutToast's stack of toasts), the median needs 1, and 40 of the 47
- * need 11 or fewer; nine in ten need 13 or fewer.
+/* Read off the 47 stories across both workspaces that wrote no shadow CSS at all — by
+ * construction, the ones that used the kit. The median needs 1 glue declaration, 40 of
+ * the 47 need 11 or fewer, and 22 is the second-widest, CalloutToast's stack of toasts.
  *
- * So 22 is the measured cost of the widest honest composition in the collection, not a
- * round number over it. Five subjects in the two workspaces are above it, and all five
- * carry shadow CSS as well: the ceiling and the shadow rule pick out the same five
- * stories without being told to. That is the evidence the number is in the right place. */
+ * Six subjects are above 22. Five carry shadow CSS as well, so the ceiling and the shadow
+ * rule pick out the same stories without being told to; the sixth is
+ * react/src/SwitchCheckbox.stories.tsx at 26, which is clean, and it is recorded at its
+ * figure rather than the line being moved up to it — a ceiling of 26 lets every story in
+ * both collections lay out a page. Whether 22 or 26 is right is the open question on
+ * #601, which holds the distribution it came from. */
 export const GLUE_CEILING = 22;
 
 /* ---- what the collection carries today ---------------------------------- */
@@ -254,10 +291,18 @@ test('every story Storybook serves is a subject, and the sweep goes all the way 
     'the sweep did not descend into stories/guidelines, so it is not reading folders at all');
 });
 
-test('every subject this gate reads is a story or a story support module', () => {
-  const stray = subjects.filter((f) => !SERVED.test(f) && !SUPPORT.test(f));
-  assert.deepEqual(stray, [], 'the sweep reached a file that is neither a story nor a support '
-    + 'module for one. Kit source has its own gates and its own permissions.');
+test('every subject is a story, a support module, or a stylesheet one of them imports', () => {
+  const stray = subjects.filter((f) => !SERVED.test(f) && !SUPPORT.test(f) && !SHEET.test(f));
+  assert.deepEqual(stray, [], 'the sweep reached a file that is neither a story, nor a support '
+    + 'module for one, nor a sheet they import. Kit source has its own gates and its own '
+    + 'permissions.');
+
+  // No story in this collection imports a stylesheet today, which is why the figure is
+  // zero rather than a lower bound. The rule is proven on an invented sheet below, through
+  // the complete gate; this line is what fails on the day a real one arrives.
+  assert.equal(subjects.filter((f) => SHEET.test(f)).length, FOUND.sheets, 'a story now imports '
+    + `a stylesheet: ${subjects.filter((f) => SHEET.test(f)).join(', ')}. Read its figures, record `
+    + 'them if it carries paint, and set FOUND.sheets to the new count.');
 });
 
 /* ---- the rule ----------------------------------------------------------- */
@@ -418,6 +463,104 @@ test('the gate reports a style attribute whose text it cannot read', () => {
     `an unreadable style attribute was measured as empty:\n${problems.join('\n')}`);
 });
 
+test('the gate reads the outer rule of a nested one, not only the inner', () => {
+  // The reading this replaced matched the innermost `{…}`, so `.x { color: red; & > b {
+  // margin: 0 } }` measured the margin and dropped the colour. Chromium paints both.
+  const problems = withEdit(clean, plant('<style>.ct-x { color: #ff0000; & > b { margin: 0 } }</style>'));
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')),
+    `the outer rule of a nested rule was dropped:\n${problems.join('\n')}`);
+});
+
+test('the gate reads a nested rule as a placement onto the kit class it sits in', () => {
+  // The nested selector is written out against its parent, so `&` and a bare descendant
+  // both reach the allow-list rather than passing as the story's own glue.
+  for (const markup of [
+    '<style>.ui-callout { & > b { max-width: 10px } }</style>',
+    '<style>.ui-callout { b { max-width: 10px } }</style>',
+  ]) {
+    const problems = withEdit(clean, plant(markup));
+    assert.ok(problems.some((p) => p.includes(`${clean}|.ui-callout`)),
+      `the parent kit class in \`${markup}\` was not read as the subject:\n${problems.join('\n')}`);
+  }
+});
+
+test('the gate reports a style block it cannot account for', () => {
+  // Three ways a sheet used to read as fewer declarations than it holds: an at-rule the
+  // reader does not know, a declaration outside every rule, and an unbalanced block.
+  for (const [markup, what] of [
+    ['<style>@scope-nonsense (.a) { .ct-x { color: #ff0000 } }</style>', 'an unknown at-rule'],
+    ['<style>color: #ff0000;</style>', 'a declaration outside every rule'],
+    ['<style>.ct-x { color: #ff0000 } }</style>', 'a stray brace'],
+  ]) {
+    const problems = withEdit(clean, plant(markup));
+    assert.ok(problems.some((p) => p.includes(clean) && p.includes('cannot read')),
+      `${what} was measured as nothing:\n${problems.join('\n')}`);
+  }
+});
+
+test('the gate reports a style block assembled at run time', () => {
+  // `<style>.ct-x { color: ${red} }</style>` is CSS the source does not hold. It used to
+  // read as a rule with a literal `${red}` in it; now it reads as unaccounted for.
+  const mutant = 'const MUTANT = `<style>.ct-x { color: ${RED} }</style>`;';
+  const problems = withEdit(clean, (src) => `${src}\n${mutant}\n`);
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('cannot read')),
+    `an interpolated stylesheet was measured as source:\n${problems.join('\n')}`);
+});
+
+test('the gate reads a declaration whose value carries a comment or a bracketed `;`', () => {
+  // A `;` inside `url(a;b)` and a `}` inside a quoted value are not syntax, so neither
+  // splits one declaration into two nor closes the rule it sits in.
+  for (const markup of [
+    '<style>.ct-x { background: url(a;b.png); color: #ff0000 }</style>',
+    '<style>.ct-x { content: "}"; color: #ff0000 }</style>',
+    '<style>[data-ct="}"] { color: #ff0000 }</style>',
+  ]) {
+    const problems = withEdit(clean, plant(markup));
+    assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')
+      && !p.includes('cannot read')), `\`${markup}\` was misread:\n${problems.join('\n')}`);
+  }
+
+  for (const declaration of ['color: /* the brand red */ #ff0000', 'color: rgb(255 0 0 / 50%)']) {
+    const problems = withEdit(clean, plant(`<style>.ct-x { ${declaration} }</style>`));
+    assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')),
+      `\`${declaration}\` was dropped:\n${problems.join('\n')}`);
+  }
+});
+
+test('a stylesheet a story imports is a subject, and its paint fails the gate', () => {
+  // The last way into this collection without writing a line of CSS in a story: put the
+  // paint in a sheet and import it. Storybook serves it through the story's own module
+  // graph, so the sheet is the story's CSS.
+  const story = 'stories/components/Review.stories.mjs';
+  const sheet = 'stories/components/review.css';
+  const imports = { [story]: "import './review.css';\nexport default { title: 'Review' };\n" };
+  assert.ok(subjectsAmong([...files, story, sheet], sourceAmong(imports)).includes(sheet),
+    `${story} imports ${sheet} and this gate would not read it`);
+
+  const problems = problemsIn(
+    [...measured, measureStory(sheet, '.ui-card { background: #ff0000 }', tokens)], against,
+  );
+  assert.ok(problems.some((p) => p.includes(sheet) && p.includes('background')),
+    `paint in an imported ${sheet} was not reported:\n${problems.join('\n')}`);
+
+  // Resolved against the importing file, so a `../` and a subfolder both land on it.
+  const deep = 'stories/apps/nested/Deep.stories.js';
+  assert.ok(subjectsAmong([...files, deep, sheet],
+    sourceAmong({ [deep]: "import '../../components/review.css';" })).includes(sheet),
+  `an import with a \`../\` in it did not resolve to ${sheet}`);
+
+  // Matched on the resolved path and nothing else: another sheet's name, a sheet nothing
+  // imports, and a guideline page's own sheet all stay out.
+  assert.ok(!subjectsAmong([...files, story, sheet],
+    sourceAmong({ [story]: "import './other.css';" })).includes(sheet),
+  `${sheet} became a subject without being imported`);
+  const page = 'stories/guidelines/deep/Page.stories.js';
+  const pageSheet = 'stories/guidelines/deep/page.css';
+  assert.ok(!subjectsAmong([...files, page, pageSheet],
+    sourceAmong({ [page]: "import './page.css';" })).includes(pageSheet),
+  'a guideline page\'s own sheet must stay out of this gate');
+});
+
 test('the gate reports a dead allow-list entry', () => {
   const problems = problemsIn(measured, {
     ...against,
@@ -436,7 +579,7 @@ test('a story served from a new folder or a new extension becomes a subject, pai
     'stories/apps/nested/deeper/New.stories.mjs',
     'stories/nested/_support.js',
   ]) {
-    assert.ok(subjectsAmong([...files, file]).includes(file),
+    assert.ok(subjectsAmong([...files, file], sourceAmong()).includes(file),
       `Storybook would serve ${file} and this gate would not read it`);
     const problems = problemsIn(
       [...measured, measureStory(file, '<style>.n { color: #ff0000 }</style>', tokens)],
@@ -448,12 +591,12 @@ test('a story served from a new folder or a new extension becomes a subject, pai
 
   // The two exclusions are still exclusions, at any depth.
   for (const file of ['stories/foundations/New.stories.js', 'stories/guidelines/deep/New.stories.mjs']) {
-    assert.ok(!subjectsAmong([...files, file]).includes(file),
+    assert.ok(!subjectsAmong([...files, file], sourceAmong()).includes(file),
       `${file} is a foundations or guideline page and must stay out of this gate`);
   }
 
-  // A test, a test helper and a stylesheet are not stories.
+  // A test, a test helper and a stylesheet nothing imports are not stories.
   for (const file of ['stories/components/New.test.js', 'stories/lib/helper.js', 'stories/x.css']) {
-    assert.ok(!subjectsAmong([...files, file]).includes(file), `${file} is not a story`);
+    assert.ok(!subjectsAmong([...files, file], sourceAmong()).includes(file), `${file} is not a story`);
   }
 });

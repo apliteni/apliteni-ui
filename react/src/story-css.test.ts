@@ -14,8 +14,8 @@
 // The limits of the reading are stated in scripts/lib/story-css.js. The one that bites
 // hardest in JSX: a `style={{…}}` whose `className` is built by an expression reads as
 // no class at all, so a placement onto a kit class written that way is counted as glue
-// rather than sent to the allow-list. A `style={name}` is read through to the `const`
-// object literal it names; any other expression is reported as unreadable.
+// rather than sent to the allow-list. A `style={name}` and a `...spread` of one are read
+// the way React reads them; anything this file cannot settle reports as unreadable.
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -75,7 +75,7 @@ const subjects: string[] = [
 // Measured, not guessed: 36 stories and the two showcase sheets, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows.
-const FOUND = { subjects: 38, declarations: 311, carriers: 29, sheets: 2 };
+const FOUND = { subjects: 38, declarations: 321, carriers: 29, sheets: 2 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -119,27 +119,25 @@ const ALLOWED: Record<string, string> = {
 /* ---- the glue ceiling --------------------------------------------------- */
 
 // Derived in stories/story-css.test.js from the 47 stories across both workspaces that
-// wrote no shadow CSS at all: the widest needs 22 glue declarations, the median needs 1,
-// and 40 of the 47 need 11 or fewer. One ceiling, because it is one rule about one kind
-// of story.
+// wrote no shadow CSS at all: the median needs 1 glue declaration, 40 of the 47 need 11 or
+// fewer, and 22 is the second-widest. The widest is this workspace's SwitchCheckbox at 26,
+// which is recorded at its figure below rather than moving the line up to it. One ceiling,
+// because it is one rule about one kind of story.
 const GLUE_CEILING = 22;
 
 /* ---- what this workspace carries today ---------------------------------- */
 
 // The shadow CSS already written, at the size it was when this gate was added, and the
-// glue of the three stories over the ceiling.
+// glue of the stories over the ceiling. One cause covers every line: the story was
+// written before anything measured it. A recorded story may stay as it is indefinitely;
+// what it may not do is grow, and when it comes under its figure the smaller one gets
+// recorded, until the line goes. Maintained by hand, never regenerated.
 //
-// One cause covers every line: the story was written before anything measured it. The
-// limitation is the same for all of them and is the real cost of this table — a recorded
-// story may stay as it is indefinitely. What it may not do is grow, and when it comes
-// under its figure the smaller one gets recorded, until the line goes.
-//
-// Maintained by hand. Never regenerated.
-//
-// The follow-ups are in #601's audit; DocumentReview's six `font-weight` rules on a kit
-// table and FeedbackShowcase.css's twelve lines of page-head type are the largest.
-// BadgeStatus's 39 is the one figure that rose without its story changing: the reader
-// used to drop the three `style={row}` specimen rows it writes its layout with.
+// Three figures rose without their story changing, each because the reader stopped
+// dropping source: BadgeStatus's glue, 27 to 39, for three `style={row}` rows;
+// FeedbackShowcase's shadow, 1 to 2, for a `transition` inherited through a spread; and
+// SwitchCheckbox's glue, newly 26, for the three properties each of two rows inherits
+// from the object it spreads. The follow-ups and the reasons are on #601.
 const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/AccentPicker.stories.tsx': { shadow: 3 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
@@ -149,8 +147,9 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/DocumentReview.css': { shadow: 1 },
   'react/src/DocumentReview.stories.tsx': { shadow: 12, glue: 31 },
   'react/src/FeedbackShowcase.css': { shadow: 12 },
-  'react/src/FeedbackShowcase.stories.tsx': { shadow: 1 },
+  'react/src/FeedbackShowcase.stories.tsx': { shadow: 2 },
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
+  'react/src/SwitchCheckbox.stories.tsx': { glue: 26 },
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
 };
 
@@ -233,7 +232,15 @@ describe('story CSS', () => {
   });
 
   it('reports a story whose layout glue goes over the ceiling', () => {
-    const glue = Array.from({ length: GLUE_CEILING + 1 }, (_, i) => `marginTop: ${i}`).join(', ');
+    // Distinct properties, because a style object is read the way React reads it: one
+    // key, one declaration, however many times the source writes it.
+    const PLACES = ['display', 'position', 'top', 'right', 'bottom', 'left', 'zIndex',
+      'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight', 'marginTop',
+      'marginRight', 'marginBottom', 'marginLeft', 'paddingTop', 'paddingRight',
+      'paddingBottom', 'paddingLeft', 'gap', 'order', 'boxSizing'];
+    expect(new Set(PLACES).size, 'the ceiling mutation needs distinct glue properties')
+      .toBeGreaterThan(GLUE_CEILING);
+    const glue = PLACES.slice(0, GLUE_CEILING + 1).map((property) => `${property}: 0`).join(', ');
     const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ ${glue} }} />;\n`);
     expect(problems.join('\n')).toContain(`ceiling of ${GLUE_CEILING}`);
   });
@@ -317,6 +324,107 @@ describe('story CSS', () => {
     // not follow and it measured zero declarations, which reads like a story with no CSS.
     const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={props.style} />;\n`);
     expect(problems.join('\n')).toContain('cannot read');
+  });
+
+  it('follows a spread into the object it names', () => {
+    // A `...spread` used to be skipped, and an object nothing else references is never
+    // measured on its own, so `style={{ ...PAINT }}` measured the paint as zero.
+    const mutant = "\nconst MUTANT_PAINT = { color: '#f00' };\nconst MUTANT = <div style={{ ...MUTANT_PAINT }} />;\n";
+    expect(withEdit(clean, (src) => src + mutant).join('\n')).toContain('color');
+
+    // Through a member, through a spread of a spread, and into an object written there.
+    const member = "\nconst MUTANT_SHEET = { head: { color: '#f00' } };\nconst MUTANT = <div style={{ ...MUTANT_SHEET.head }} />;\n";
+    expect(withEdit(clean, (src) => src + member).join('\n')).toContain('color');
+    const chained = "\nconst MUTANT_A = { color: '#f00' };\nconst MUTANT_B = { ...MUTANT_A };\nconst MUTANT = <div style={{ ...MUTANT_B }} />;\n";
+    expect(withEdit(clean, (src) => src + chained).join('\n')).toContain('color');
+    const inline = "\nconst MUTANT = <div style={{ ...{ color: '#f00' } }} />;\n";
+    expect(withEdit(clean, (src) => src + inline).join('\n')).toContain('color');
+  });
+
+  it('reads a spread object the way React reads it: a later key answers an earlier one', () => {
+    // `{ ...stack, gap: 14 }` is every property `stack` holds with one of them answered.
+    // Both halves matter: the geometry it inherits is measured, and the paint it inherits
+    // is not measured twice because the tag writes the same property again.
+    const mutant = "\nconst MUTANT_BASE = { color: '#f00', marginTop: 1 };"
+      + "\nconst MUTANT = <div style={{ ...MUTANT_BASE, marginTop: 2 }} />;\n";
+    const before = measured.find((s) => s.file === clean)!;
+    const after = measureStory(clean, read(clean) + mutant, tokens);
+    expect(after.total - before.total).toBe(2);
+    expect(withEdit(clean, (src) => src + mutant).join('\n')).toContain('color');
+
+    // A spread after an explicit key is the one that wins, which is how React reads it.
+    const reversed = "\nconst MUTANT_BASE = { color: '#f00' };"
+      + "\nconst MUTANT = <div style={{ color: 'red', ...MUTANT_BASE }} />;\n";
+    const painted = measureStory(clean, read(clean) + reversed, tokens);
+    expect(painted.shadows.map((d: { value: string }) => d.value)).toEqual(["'#f00'"]);
+  });
+
+  it('reports a spread it cannot settle rather than skipping it', () => {
+    for (const expression of ['...props.style', '...paintFor(theme)', '...(open ? a : b)']) {
+      const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ ${expression} }} />;\n`);
+      expect(problems.join('\n'), `${expression} was skipped`).toContain('cannot read');
+    }
+    // A name that spreads itself has no declarations to find and must not loop.
+    const cyclic = '\nconst MUTANT_LOOP = { ...MUTANT_LOOP, color: 1 };\nconst MUTANT = <div style={MUTANT_LOOP} />;\n';
+    expect(withEdit(clean, (src) => src + cyclic).join('\n')).toContain('cannot read');
+  });
+
+  it('reports a name this file binds twice instead of reading the first of the two', () => {
+    // Which of the two paints is a question about scope. The reader used to answer it with
+    // the first binding in the file, so a scoped object that paints measured as the
+    // module-level one that does not.
+    const mutant = "\nconst MUTANT_ROW = { marginTop: 0 };"
+      + "\nfunction MutantDemo() { const MUTANT_ROW = { color: '#f00' }; return <div style={MUTANT_ROW} />; }\n";
+    expect(withEdit(clean, (src) => src + mutant).join('\n')).toContain('cannot read');
+  });
+
+  it('reads a style object past a comment that holds a brace', () => {
+    // `braced()` used to balance the source's braces without skipping comments, so the
+    // `}` in `/* } */` closed the object and the paint after it measured as zero.
+    const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ /* } */ color: '#f00' }} />;\n`);
+    expect(problems.join('\n')).toContain('color');
+  });
+
+  it('reads a stylesheet the story names, in any of the three quotes', () => {
+    // `<style>{CSS}</style>` used to resolve only a backtick, so changing one quote took
+    // the whole sheet out of coverage.
+    for (const quote of ['`', "'", '"']) {
+      const mutant = `\nconst MUTANT_CSS = ${quote}.mutant { color: #f00 }${quote};`
+        + '\nconst MUTANT = <style>{MUTANT_CSS}</style>;\n';
+      const problems = withEdit(clean, (src) => src + mutant);
+      expect(problems.join('\n'), `a ${quote}-quoted stylesheet was dropped`).toContain('color');
+    }
+    // And written at the tag, which is how the two showcase stories would write one.
+    const inline = '\nconst MUTANT = <style>{`.mutant { color: #f00 }`}</style>;\n';
+    expect(withEdit(clean, (src) => src + inline).join('\n')).toContain('color');
+  });
+
+  it('reports a stylesheet it cannot settle rather than measuring it as empty', () => {
+    // Each of these used to measure zero declarations, which reads exactly like a story
+    // that writes no CSS at all.
+    const cases: Array<[string, string]> = [
+      ['an unresolved name', '\nconst MUTANT = <style>{externalCSS}</style>;\n'],
+      ['a concatenation', "\nconst MUTANT_CSS = '.a {' + paint + '}';\nconst MUTANT = <style>{MUTANT_CSS}</style>;\n"],
+      ['an interpolated template', '\nconst MUTANT = <style>{`.mutant { color: ${red} }`}</style>;\n'],
+      ['a call', '\nconst MUTANT = <style>{sheetFor(theme)}</style>;\n'],
+      ['a name bound twice', "\nconst MUTANT_CSS = '.a { color: #f00 }';\nconst MUTANT_CSS = '.b { margin: 0 }';\nconst MUTANT = <style>{MUTANT_CSS}</style>;\n"],
+    ];
+    for (const [what, mutant] of cases) {
+      const problems = withEdit(clean, (src) => src + mutant);
+      expect(problems.join('\n'), `${what} was measured as an empty sheet`).toContain('cannot read');
+    }
+  });
+
+  it('reads the outer rule of a nested one, not only the inner', () => {
+    // The reading this replaced matched the innermost `{…}`, so nesting one rule inside
+    // another took the outer rule's own declarations out of coverage. Chromium paints
+    // both: the run's evidence holds the measurement.
+    const nested = '\nconst MUTANT = <style>{`.mutant { color: #f00; & > span { margin: 0 } }`}</style>;\n';
+    expect(withEdit(clean, (src) => src + nested).join('\n')).toContain('color');
+
+    // And a nested rule is written out against its parent, so it reaches the allow-list.
+    const placed = '\nconst MUTANT = <style>{`.ui-tabs { & > span { max-width: 10px } }`}</style>;\n';
+    expect(withEdit(clean, (src) => src + placed).join('\n')).toContain(`${clean}|.ui-tabs > span`);
   });
 
   it('reports a dead allow-list entry', () => {
