@@ -317,10 +317,13 @@ const CHECKS = {
     const main = s.doc.querySelector('main.ui-app__main');
     const title = text(main.querySelector('h1'));
     const lede = text(main.querySelector('p.ui-app__sub'));
-    if (!lede) {
-      return [`${s.where} has a title and no lede. What is counted, how far back and where the `
-        + 'numbers come from is what the title cannot say.'];
-    }
+    // A page may open on its title alone. The written rule holds an introduction
+    // to two sentences and to saying something the title does not; it has never
+    // required one, and this check used to. A line added only to satisfy a gate
+    // is the restatement the rule exists to stop. The coverage test below is
+    // what keeps the when-present half from passing on an empty set.
+    // why: Artur's r28 review of the Finance report, #505
+    if (!lede) return [];
     const problems = [];
     // Abbreviations end in a full stop and do not end a sentence. Counting
     // segments rather than stops also counts a last sentence with no stop
@@ -549,6 +552,21 @@ test('every page rule owns a check here, and every check owns a rule', () => {
     + 'stories/guidelines/_the-page.js or listed in its GATED_ELSEWHERE needs a check here, and a '
     + 'check needs one of the two to have stated it.',
   );
+});
+
+// `lede` only measures a screen that carries one, so a kit whose screens all
+// dropped their introduction would leave both halves of that check — the
+// sentence count and the restatement — asserting over nothing and reporting
+// green. The subjects are counted here instead, from the same rendered screens.
+test('the lede checks still reach screens that carry one', () => {
+  const carrying = screens.filter((s) => s.kind === 'app'
+    && text(s.doc.querySelector('main.ui-app__main p.ui-app__sub')));
+  assert.ok(carrying.length >= 20,
+    `${carrying.length} app screen(s) carry a lede; 23 do today, across Access, AccountPreset, `
+    + 'CollapsibleRail, EmptyStates, Preferences, ShellLayouts and StockScreener. Below twenty the '
+    + 'two when-present checks are measuring too little to catch a two-sentence limit or a lede '
+    + 'that opens on its own title. Lowering this is the deliberate act of someone who has seen '
+    + `the screens: today they are ${carrying.map((s) => s.where).join(', ')}.`);
 });
 
 for (const rule of GATED) {

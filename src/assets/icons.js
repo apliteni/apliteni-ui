@@ -175,6 +175,11 @@ export const iconOnlyAllowed = {
   moreVertical: 'overflow menu',
   chevronDown: 'expand or collapse',
   chevronUp: 'expand or collapse',
+  // Added by Artur's review of the Finance report, #505: a report's export is a
+  // standing offer sat next to the filters that narrow it, and the tray-and-arrow
+  // is the glyph a reader has already met doing this everywhere else. The entry
+  // is the decision — review did not infer it from the glyph looking obvious.
+  download: 'export or download the rows',
 };
 
 // The word a wordless control's name may open with. The list above says which
@@ -190,6 +195,11 @@ export const iconOnlyNames = {
   moreVertical: ['more'],
   chevronDown: ['expand', 'collapse', 'show', 'hide'],
   chevronUp: ['expand', 'collapse', 'show', 'hide'],
+  // The report's export, #505. Export is the word the kit's own call sites open
+  // with; download is the reader's other name for the same action, and the glyph
+  // depicts it, so a consumer naming it that way is not borrowing the tray for
+  // something else.
+  download: ['export', 'download'],
 };
 
 // What a glyph means when a component picks it for the reader rather than a

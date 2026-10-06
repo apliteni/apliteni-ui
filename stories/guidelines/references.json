@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:176",
+        "ref": "src/styles/table.css:201",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ]
@@ -246,7 +246,7 @@
         "pattern": "export function filterBar("
       },
       {
-        "ref": "src/styles/filter-bar.css:3",
+        "ref": "src/styles/filter-bar.css:6",
         "pattern": ".ui-filter-bar__chip {"
       },
       {
@@ -460,7 +460,7 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:207",
+        "ref": "src/assets/icons.js:217",
         "pattern": "export const iconMeanings"
       },
       {
@@ -594,7 +594,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:463",
+        "ref": "src/styles/layout.css:496",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -963,7 +963,7 @@
         "pattern": "export function switchToggle("
       },
       {
-        "ref": "src/styles/card.css:96",
+        "ref": "src/styles/card.css:103",
         "pattern": ".ui-card__row {"
       }
     ],
@@ -1007,6 +1007,44 @@
       {
         "ref": "stories/guidelines/iconography.test.js:249",
         "pattern": "every icon-only control is one the closed list allows"
+      }
+    ]
+  },
+  "_dashboards-and-reports.js": {
+    "figures-and-exceptions": [
+      {
+        "ref": "src/components/stat.js:71",
+        "pattern": "export function statBand("
+      }
+    ],
+    "link-to-the-report": [
+      {
+        "ref": "src/styles/table.css:111",
+        "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
+      },
+      {
+        "ref": "src/styles/table.css:130",
+        "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
+      },
+      {
+        "ref": "src/styles/table.css:225",
+        "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
+      },
+      {
+        "ref": "stories/lib/story-link.js:71",
+        "pattern": "export const landOnRow = (doc, rowId) => {"
+      }
+    ],
+    "report-depth": [
+      {
+        "ref": "src/styles/table.css:83",
+        "pattern": ".ui-table--dense td"
+      }
+    ],
+    "report-offers": [
+      {
+        "ref": "src/components/filter-bar.js:5",
+        "pattern": "export function filterBar("
       }
     ]
   }

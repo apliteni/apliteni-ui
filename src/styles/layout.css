@@ -119,7 +119,7 @@
    resting step. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1597 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1606 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 
 /* A destructive row of the rail is a navigation row and rests like one; the danger
@@ -422,10 +422,9 @@
   letter-spacing: var(--tracking-tight);
   margin-bottom: 8px;
 }
-/* The head keeps the kit's second step below it whether or not a lede is there to
-   carry it: with no lede the title's own margin takes the step instead. */
-.ui-app__main h1:not(.ui-card h1):not(:has(+ .ui-app__sub)) { margin-bottom: var(--space-8); }
 .ui-app__sub { color: var(--text); font-size: calc(var(--text-base) + 0.5px); line-height: 1.6; max-width: var(--prose-body); margin-bottom: var(--space-8); }
+/* A page may open on its title alone; then the title carries the head's step. */
+.ui-app__main > h1:not(:has(+ .ui-app__sub)) { margin-bottom: var(--space-8); }
 .ui-app__body { display: flex; flex-direction: column; gap: var(--space-5); }
 /* A flex child's min-width is its content by default, so one wide block — a
    ledger, a code sample — pushes the whole page sideways instead of scrolling
@@ -444,14 +443,48 @@
    of what you typed. min-width:0 keeps an input's automatic minimum (its `size`
    attribute, ~20 characters) from setting a floor well above the basis. */
 .ui-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
+/* A control row belongs to the block it narrows rather than standing beside it,
+   so it sits closer than .ui-app__body's gap between two blocks that are each
+   their own subject. Not on the last row: there the gap is the page's bottom
+   and nothing is being narrowed. why: Artur's review of the Finance report, #505 */
+.ui-app__body > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-3) - var(--space-5)); }
 .ui-toolbar > .ui-input,
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
+/* A row that offers the block two unrelated things — what to narrow it by, and
+   what to do with it — puts the second at the far end instead of beside the
+   first. The auto margin is the same one the rail's fold toggle rides to the end
+   of the brand row, so the gap between the two groups is whatever the line has
+   left and the row still wraps on its own. Above the phone step a wrapped line
+   keeps the end it was sent to; below it there is no line, and the rule in the
+   query further down takes the margin off.
+   why: Artur's review of the Finance report, #505 */
+.ui-toolbar--split > :last-child { margin-inline-start: auto; }
 /* At one column the 6rem basis stops being a floor and becomes the field's size:
    a row with two narrow chips beside it keeps all three on the line and cuts the
    field's own placeholder off. why: docs/components.md#a-toolbar-at-one-column */
 @media (max-width: 560px) {
   .ui-toolbar > .ui-input,
   .ui-toolbar > .ui-input-group { flex-basis: 100%; }
+  /* The end control stays IN the row at this width rather than dropping under it.
+     A flex line breaks on hypothetical sizes, so a group whose content is wider
+     than the line takes that line alone however much it shrinks afterwards: at
+     390 the report's filter group asks for about 340px of chips and clear in a
+     284px row, so the 36px export went to a line of its own, left-aligned under
+     the clear button — which is the reading `--split` exists to prevent, drawn
+     vertically. Given a basis the group no longer claims the whole line, the end
+     control fits beside it, and the group grows into what is left. 60% rather
+     than half because at 560 half still left room for the group beside the
+     period strip, which put the export back under the row.
+
+     The auto margin goes: with the group grown there is no slack for it to take,
+     and on the line it did have it left the control against the right edge of an
+     otherwise empty row — a mark that came loose rather than what to do with the
+     block, which is what Artur marked on round r31. `align-self` is what keeps
+     the control its own height beside a group two lines tall; it sits at the
+     row's top end, the corner it keeps above this step.
+     why: Artur's review of the Finance report, rounds r31 and r34, #505 */
+  .ui-toolbar--split > :nth-last-child(2) { flex: 1 1 60%; min-width: 0; }
+  .ui-toolbar--split > :last-child { margin-inline-start: 0; align-self: start; }
 }
 
 /* -- The narrow rail ------------------------------------------------------ */

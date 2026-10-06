@@ -290,6 +290,16 @@
       ]
     },
     {
+      "file": "stories/dashboard-report-refs.test.js",
+      "name": "Dashboard references",
+      "does": "Drives the links between the kit's dashboard and the report behind it in JSDOM, in both frames a story can be looked at from, and reads back what each click arrives at: that the row the reference names is marked, brought to the middle of the view and never sideways, and given the keyboard, so a screen reader arrives on the row with the reader rather than at the top of the report.",
+      "blind": [
+        "No layout and no paint. JSDOM ships no scrollIntoView, so what is held is the ask and not where the row lands on a screen; a browser run in the pull request carries that, at 1280, 390 and 320.",
+        "Not whether a screen reader announces the row it was moved to. What is read is document.activeElement, which is markup, not speech.",
+        "Not the Storybook manager. That selecting a story keeps the manager's globals, and so the theme, is Storybook's own behaviour; this only holds that the click asks the manager to select the story instead of replacing the frame with a bare preview URL, which is what dropped the theme."
+      ]
+    },
+    {
       "file": "stories/drawer-focus.test.js",
       "name": "Drawer focus",
       "does": "Checks that opening the drawer requests focus inside its panel.",

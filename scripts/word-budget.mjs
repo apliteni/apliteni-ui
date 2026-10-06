@@ -70,11 +70,11 @@ export const RECORDED = {
   'file-drop.md': 558,
   'going-back.md': 375,
   'hover-readouts.md': 333,
-  'iconography.md': 316,
+  'iconography.md': 291,
   'labels-and-titles.md': 384,
   'layout-and-density.md': 318,
   'state-set.md': 331,
-  'stat-bands.md': 233,
+  'stat-bands.md': 232,
 };
 
 /* A word is a whitespace-separated token holding a letter or a digit, so an em
