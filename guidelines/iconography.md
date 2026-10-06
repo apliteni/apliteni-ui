@@ -8,7 +8,7 @@
 
 **Why:** Without a legend, readers need labels for unfamiliar glyphs.
 
-**Except:** [Earn a wordless button](https://ui.apli.tech/storybook/?path=/story/guidelines-button-labels--button-labels) sets the three tests an entry passes, and the list grows by decision. Today: `x` to close or dismiss, `copy` to the clipboard, `moreHorizontal` and `moreVertical` for an overflow menu, `chevronDown` and `chevronUp` to expand or collapse. The shell’s chrome — theme toggle, sidebar toggle, collapsed-rail links — is wordless by a separate decision.
+**Except:** [Earn a wordless button](https://ui.apli.tech/storybook/?path=/story/guidelines-button-labels--button-labels) sets the three tests an entry passes, and the list grows by decision. Today: `x` to close or dismiss, `copy` to copy to clipboard, `moreHorizontal` and `moreVertical` for an overflow menu, `chevronDown` and `chevronUp` to expand or collapse. The shell’s chrome — theme toggle, sidebar toggle, collapsed-rail links — is wordless by a separate decision.
 
 **Do:** Show an overflow menu without words; keep the Settings label.
 
@@ -34,11 +34,11 @@
 
 **Rule:** Use the Lucide path unchanged, and state when a glyph name differs.
 
-**Why:** One source keeps the set consistent; the commit records a renaming.
+**Why:** One source keeps the set consistent, and a recorded rename still traces back to it.
 
 **Except:** A brand mark with no Lucide original is allowed: `github` and `linkedin` are the vendor’s own marks and belong in BRAND.
 
-**Do:** `filter` is Lucide’s funnel, renamed and recorded.
+**Do:** `circleCheck` is Lucide’s circle-check-big, path unchanged and name recorded.
 
 **Don't:** A redrawn path, or a rename nobody recorded.
 
@@ -50,7 +50,7 @@
 
 **Why:** Visible width is `stroke-width × box ÷ 24`; below 1.5 CSS px a stroke reads as a text stem and needs 4.5:1; above it, WCAG 1.4.11’s 3:1 graphic bar applies.
 
-**Except:** A close button or a chevron has no status pair to measure; its control owns its contrast.
+**Except:** Non-status glyphs, such as close buttons and chevrons, have no five-status pair to measure; their control owns their contrast.
 
 **Do:** A 1.5 CSS px stroke, held to 3:1.
 
