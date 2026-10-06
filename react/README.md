@@ -35,13 +35,14 @@ reset and none of the kit's control CSS, so it cannot stand in for the first imp
 Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Segmented`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Segmented` is a controlled choice toolbar: pass `options`, `value`, `onChange`,
-and a `label` for its accessible name. Use `size="sm"` for compact choices and
-`block` to fill the available width. `block` also works with
-`appearance="underline"`, but `size="sm"` does not: under underline it changes the
-type size and leaves the control at its full height. Omitting both preserves the
-standard pill presentation. Options support `ariaLabel` and `disabled`;
-`disabled` on the toolbar disables all choices.
-Use tabs for panels and links for navigation between pages.
+and a `label` for its accessible name. `size="sm"` compacts it, `block` makes it
+fill its container, and `appearance="underline"` draws the underline strip instead
+of the pill track; omit all three for the standard pill. Options support
+`ariaLabel` and `disabled`; `disabled` on the toolbar disables every choice. What
+each presentation guarantees is in
+docs/components.md#the-rest-of-the-react-surface.
+Reach for it when a choice filters or switches a view in place; use `Tabs` when the
+choice owns a panel, and links when it changes the page.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
