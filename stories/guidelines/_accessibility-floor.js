@@ -313,7 +313,7 @@ export const tapSpacingDont = () => tapRow(
 const ringed = (mod) => `
   <div class="gl-stage gl-ring ${mod}">
     <div class="gl-stage--row">
-      ${button({ label: 'Publish', variant: 'primary' })}
+      ${button({ label: 'Publish', variant: 'primary' }).replace('class="ui-btn', 'class="ui-focusable ui-btn')}
       ${button({ label: 'Discard' })}
     </div>
     <div class="gl-cursor">Both drawn focused</div>
