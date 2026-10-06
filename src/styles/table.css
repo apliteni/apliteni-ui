@@ -244,13 +244,10 @@
 .ui-table--sticky thead th { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--table-bg); padding-top: var(--space-2); }
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); border-right: 1px solid var(--border); }
 .ui-table--pinned thead .ui-table__identity, .ui-table--pinned thead .ui-table__selection { z-index: calc(var(--z-sticky) + 1); }
-/* The divider is the pin's edge: it says the column stayed while the rest moved under
-   it. A table whose columns all fit never moves, so the line divides nothing and reads
-   as an arbitrary rule after the first column. The region reports whether it can scroll
-   at all, and the line stands down where it cannot. Enhancement only: a browser that
-   cannot answer never matches, and keeps the line it draws today. Scroll-state makes a
-   query container, not a size one, so nothing here is laid out differently.
-   why: guidelines/dense-tables.md */
+/* The divider is the pin's edge: it says the column stayed while the rest moved under it.
+   Columns that all fit never move, so the line divides nothing and reads as an arbitrary
+   rule. The resting rule keeps it, so an engine that cannot answer the query is unchanged;
+   scroll-state makes a query container, not a size one. why: guidelines/dense-tables.md */
 .ui-table-scroll { container-type: scroll-state; }
 @container scroll-state(scrollable: none) {
   .ui-table--pinned :is(.ui-table__identity, .ui-table__selection) { border-right-color: transparent; }
