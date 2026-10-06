@@ -62,6 +62,24 @@ export const Solid: StoryObj = {
   ),
 };
 
+/** The same two measures standing side by side on the zero line instead of
+ *  mirrored across it, which is the shape the references draw. #491 asks for
+ *  the mirror, so the mirror is what Months draws; this is the alternative,
+ *  rendered from the same component and the same numbers. */
+export const SideBySide: StoryObj = {
+  render: () => (
+    <Card title="Income and spend" sub="Last 12 months">
+      <Chart title="Income and spend by month, last 12 months, with net"
+        periods={periods} format={eur} formatAxis={eurAxis}
+        series={[
+          { id: 'income', name: 'Income', values: INCOME, shape: 'bars', tone: 'accent' },
+          { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars', tone: 'accent-soft' },
+          { id: 'net', name: 'Net', values: NET, shape: 'line', tone: 'info' },
+        ]} />
+    </Card>
+  ),
+};
+
 export const Bridge: StoryObj = {
   render: () => (
     <Card title="Cash, third quarter" sub="Opening to closing">
