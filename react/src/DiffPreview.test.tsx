@@ -69,6 +69,7 @@ it('states the one effect below the table and sets no figures above it', () => {
   expect([...container.querySelectorAll('tbody tr')]
     .map(row => row.querySelectorAll('td')[4].textContent)).toEqual(Array(4).fill('2026-10'));
   expect(screen.getByRole('heading', { name: 'Changes applied' })).toBeInTheDocument();
+  expect(screen.queryByText('Move these costs to Software.')).toBeNull();
 });
 
 // The block's name is the card's own title, so the title and the table's first
@@ -92,6 +93,8 @@ it('gives the card its own title instead of standing one on the page ground', ()
 it('emphasizes recovery and gives the inserted content a kit entrance', () => {
   const { container } = mount(true);
   expect(container.querySelector('.ui-stack')).not.toHaveClass('m-fade-in');
+  expect(screen.queryByRole('heading', { name: 'Proposed changes' })).toBeNull();
+  expect(screen.queryByText('Move these costs to Software.')).toBeNull();
   const recovery = screen.getByRole('button', { name: 'Load samples' });
   expect(recovery).toHaveClass('ui-btn--primary');
   fireEvent.click(recovery);

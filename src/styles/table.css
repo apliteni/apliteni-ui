@@ -249,7 +249,32 @@
    rule. The resting rule keeps it, so an engine that cannot answer the query is unchanged;
    scroll-state makes a query container, not a size one. why: guidelines/dense-tables.md */
 .ui-table-scroll { container-type: scroll-state; }
-@container scroll-state(scrollable: none) {
+/* A shared grid cell puts the edge shade over the opaque sticky header.
+   The shade takes the table's height and stays at the scrollport's right edge. */
+@supports (container-type: scroll-state) {
+  .ui-table-scroll {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    background-size: var(--space-6) 100%, var(--space-6) 100%, var(--space-3) 100%, 0 100%;
+  }
+  .ui-table-scroll > .ui-table { grid-area: 1 / 1; }
+  .ui-table-scroll::after {
+    content: '';
+    grid-area: 1 / 1;
+    position: sticky;
+    top: 0;
+    left: calc(100% - var(--space-3));
+    right: 0;
+    justify-self: end;
+    width: var(--space-3);
+    z-index: calc(var(--z-sticky) + 2);
+    pointer-events: none;
+  }
+  @container scroll-state(scrollable: right) {
+    .ui-table-scroll::after { background: linear-gradient(to left, var(--table-edge), transparent); }
+  }
+}
+@container not scroll-state(scrollable: x) {
   .ui-table--pinned :is(.ui-table__identity, .ui-table__selection) { border-right-color: transparent; }
 }
 .ui-value, .ui-delta { white-space: nowrap; font-variant-numeric: tabular-nums; }

@@ -279,16 +279,16 @@ test('the numeric-header check rejects a sheet that lets them wrap', () => {
 
 /**
  * The pin's divider is the edge a column keeps while the rest moves under it, so it may
- * only be painted where the region can actually move. The sheet says this in two halves:
+ * only be painted where the region can actually move horizontally. The sheet says this in two halves:
  * the scroll box reports its scroll state, and a query stands the divider down where the
- * answer is "nowhere". Both halves are read here, because either one alone paints the
+ * answer is "no horizontal scroll". Both halves are read here, because either one alone paints the
  * line at every width — the first with nothing listening, the second with nothing to ask.
  *
  * Its limit: this reads the declarations, not the paint. JSDOM resolves no container
  * query, so that the divider is transparent at 1280 and solid at 390 is measured in
  * Chromium, in stories/contrast.test.js's ledger and the captures on the issue.
  */
-const PIN_PAINT = /@container\s+scroll-state\(\s*scrollable:\s*none\s*\)\s*\{([^}]*\{[^}]*\}[^}]*)\}/;
+const PIN_PAINT = /@container\s+not\s+scroll-state\(\s*scrollable:\s*x\s*\)\s*\{([^}]*\{[^}]*\}[^}]*)\}/;
 
 const checkPinDividerPaint = (css) => {
   const resting = css.match(
@@ -337,7 +337,7 @@ test('the pin-paint check rejects a sheet that never stands the divider down', (
 
 test('the pin-paint check rejects a sheet that stands only the identity column down', () => {
   assert.throws(() => checkPinDividerPaint(
-    CSS.replace(/(@container scroll-state\(scrollable: none\) \{\s*\.ui-table--pinned )[^{]*(\{)/,
+    CSS.replace(/(@container not scroll-state\(scrollable: x\) \{\s*\.ui-table--pinned )[^{]*(\{)/,
       '$1.ui-table__identity $2'),
   ));
 });
@@ -345,5 +345,11 @@ test('the pin-paint check rejects a sheet that stands only the identity column d
 test('the pin-paint check rejects a sheet that drops the divider from the resting rule', () => {
   assert.throws(() => checkPinDividerPaint(
     CSS.replace(/(\.ui-table--pinned \.ui-table__identity[^{]*\{[^}]*)border-right:\s*1px solid var\(--border\);/, '$1'),
+  ));
+});
+
+ test('the pin-paint check rejects a condition that counts vertical overflow', () => {
+  assert.throws(() => checkPinDividerPaint(
+    CSS.replace('not scroll-state(scrollable: x)', 'scroll-state(scrollable: none)'),
   ));
 });

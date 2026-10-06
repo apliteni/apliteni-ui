@@ -97,7 +97,7 @@ function Preview({ change, empty }: Args) {
       onSelect: () => { if (noChanges) setShowExample(true); else if (applied) undo(); else apply(); },
     }}
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}
-    lede={change === 'category' ? 'Move these costs to Software.' : 'Assign these costs to Platform.'}>
+    lede={applied || noChanges ? undefined : change === 'category' ? 'Move these costs to Software.' : 'Assign these costs to Platform.'}>
     <div ref={block} className={`ui-stack${showExample ? ' m-fade-in' : ''}`}>
       {previewRows.length > 0 && <>
         <p id={rowBasis} className="ui-sr">Each change is measured against the {target} total.</p>
@@ -105,7 +105,7 @@ function Preview({ change, empty }: Args) {
       </>}
       {/* The card carries its own title, so the title and the first column share the
           card's text edge. The table region keeps a stable name of its own. */}
-      <Card title={heading}>
+      <Card title={noChanges ? undefined : heading}>
         {previewRows.length > 0
           /* Column navigation comes from the kit; this showcase keeps no copy of it. */
           ? <DataTable columns={columns} rows={previewRows} selectable={false} pager={false}
