@@ -236,16 +236,21 @@ function emulateForcedColors(css) {
   const flattened = leafRules(css)
     .filter((rule) => rule.at.some((prelude) => FORCED.test(prelude)))
     .map((rule) => `${rule.selector} { ${rule.decls.map((d) => `${d.prop}: ${d.value}`).join('; ')} }`);
-  // Two blocks in the kit, neither of them a scroll region. The snippet's `<pre>`
+  // Five rules in the kit, not one of them a scroll region. The snippet's `<pre>`
   // hands its ring to the card around it (#474) and drops its own transparent
-  // outline so the system repaints one indicator rather than two. The underline
-  // strip's chosen tab (#527) restates its accent bar in `Highlight`, because the
-  // mode repaints an author colour and would otherwise leave the bar in the labels'
-  // own ink. #531's regions delegate to nobody and need no block at all — which is
-  // what makes this number the check it is: a third block, or either of these two
-  // going missing, is a region that has started delegating.
-  assert.equal(flattened.length, 2,
-    'a forced-colors block was added or removed; a scroll region that needs one is a '
+  // outline so the system repaints one indicator rather than two. The other four are
+  // Segmented's. The underline strip's chosen tab (#527) restates its accent bar in
+  // `Highlight`, because the mode repaints an author colour and would otherwise leave
+  // the bar in the labels' own ink. The pill appearance's three are #475: its
+  // selection is carried by `background` alone, which the mode drops, so the chosen
+  // pill opts out of the palette and takes `Highlight`, and opting out carries its
+  // focus outline and its disabled paint out with it. #531's regions delegate to
+  // nobody and need no rule at all — which is what makes this number the check it is:
+  // a sixth rule, or any of these five going missing, is read here by hand before the
+  // number moves. A pill is not an overflow box, so none of the four can be an
+  // ancestor of a region staged below.
+  assert.equal(flattened.length, 5,
+    'a forced-colors rule was added or removed; a scroll region that needs one is a '
     + 'scroll region that has started delegating');
   return [css.replace(/box-shadow\s*:[^;}]+/g, 'box-shadow: none'), ...flattened].join('\n');
 }

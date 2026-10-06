@@ -549,14 +549,18 @@
   --code-bg: var(--bg);
 }
 
-/* The two painted grounds that are not a plain card, and what each has left to hand over.
+/* The painted grounds that are not a plain card, and what each has left to hand over.
  *
  * A table paints the page in dark and white in light and follows its card when it is in
  * one, so its hand-off travels with --table-bg as a token pair (src/styles/table.css
  * re-points both). A TINTED surface mixes its colour INTO the card, so the card is the
  * surface it still has: light mixes the tint down from white, which moves a tinted card
  * toward the page and leaves the page 1.02 away, while the card it is a variant of stays
- * 1.07-1.14 off in both themes. Measured in stories/code-chip.test.js. */
+ * 1.07-1.14 off in both themes. A SUNKEN track is the same shape of problem from the other
+ * side: since #475 the segmented track is --surface-2, a rung below the card, so the page
+ * it used to hand over is 1.07 away in both themes and the card is the surface it still
+ * has, at 1.11 and 1.18. The chosen pill inside it rides back above the card and hands the
+ * page over again, from the recipe above. Measured in stories/code-chip.test.js. */
 .ui-table,
 .ui-table--sticky thead th,
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection,
@@ -566,6 +570,7 @@
 .ui-table--zebra.ui-table--hover tbody tr:hover td { --code-bg: var(--table-code-bg); }
 .ui-card--accent,
 .ui-card--live,
+.ui-seg,
 .ui-snippet--reveal { --code-bg: var(--surface); }
 
 /* A wash is not a rung: it is a layer the kit paints OVER one, and it paints behind a chip
