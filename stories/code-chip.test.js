@@ -289,7 +289,7 @@ test('the ground discovery refuses a painted container that hands a chip nothing
 });
 
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 33, 'painted-ground discovery changed; a new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
+  assert.equal(grounds.length, 34, 'painted-ground discovery changed; a new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
   // The page entry is named, not discovered, so it is held against the rule that paints it.
   const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
   assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');

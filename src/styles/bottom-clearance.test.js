@@ -446,14 +446,14 @@ test('measured in a browser: a phone page ends below the action a reader is on',
   await t.test('the showcase the finding was filed on carries the same clearance', async () => {
     const { ctx, page } = await open('showcases-diff-preview--playground');
     try {
-      await page.getByRole('button', { name: 'Apply changes' }).focus();
+      await page.getByRole('button', { name: 'Apply', exact: true }).focus();
       await page.keyboard.press('Enter');
-      const undo = page.getByRole('button', { name: 'Undo changes' });
+      const undo = page.getByRole('button', { name: 'Undo', exact: true });
       await undo.waitFor();
       await undo.focus();
       const read = await page.evaluate(PROBE);
       assert.equal(read.bar, false, 'this story is the no-bar case; it drew a bottom bar');
-      assert.equal(read.focused, 'Undo changes');
+      assert.equal(read.focused, 'Undo');
       assert.equal(read.endSpace, 56, 'the page lost the kit\'s phone end space');
       assert.equal(read.scrollPadding, '20px', 'the root holds no room for the ring');
       assert.ok(read.gapBelow >= reach,
