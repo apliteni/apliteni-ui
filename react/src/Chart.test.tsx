@@ -828,6 +828,29 @@ it('lays two bar series in one band side by side, with ground between them', () 
     .toBe(MONTHS.length);
 });
 
+// A band centres the lanes it has, not the lanes the widest band has.
+it('centres a band that has fewer lanes than the chart\'s widest', () => {
+  const { container } = render(
+    <Chart title="Income and spend" periods={periods} format={eur}
+      series={[
+        { id: 'a', name: 'Fees', values: INCOME, shape: 'bars', tone: 'accent' },
+        { id: 'b', name: 'Sales', values: SPEND, shape: 'bars', tone: 'accent-soft' },
+        { id: 'c', name: 'Spend', values: SPEND, shape: 'bars-below', tone: 'bad' },
+      ]} />,
+  );
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const bars = [...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf);
+  const columnWidth = Number(svg.getAttribute('width')) / MONTHS.length;
+  const below = bars.slice(MONTHS.length * 2);
+  expect(below).toHaveLength(MONTHS.length);
+  below.forEach((bar, i) => {
+    expect(bar.x + bar.width / 2, 'the lone bar below zero sits on its column\'s centre')
+      .toBeCloseTo(columnWidth * (i + 0.5), 1);
+  });
+  expect(new Set(bars.map((b) => Math.round(b.width * 10))).size,
+    'and every bar in the chart is still one width').toBe(1);
+});
+
 // A column grows with the card; a mark does not. Without the cap, twelve months
 // at a desktop width were twelve 45px blocks and the plot read as one mass.
 it('caps a bar at a mark\'s width however wide its column is', () => {
