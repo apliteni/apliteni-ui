@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.96.0', date: '2026-10-06',
+    changes: [
+      ['fixed', 'A dropdown panel stays inside the viewport horizontally, in both the vanilla kit and React. A trigger near either edge of the screen opened its 240px panel off that edge, open and shut alike, and `align` only moved the clipping to the other side; a page could only work around it by moving the trigger. `align` still chooses the edge the panel hangs from and keeps it wherever it fits. A shut panel no longer widens the page either: the same row made its page 489px wide on a 375px view with nothing clicked. Panel width is unchanged — the 240px floor stands — and a filter row still bounds its own panels. Fixes #572.', ['Dropdown']],
+      ['fixed', 'A panel keeps that place while the page moves its trigger. A longer run of text beside the trigger, a row that re-lays itself out, an ancestor scrolling sideways, and a transition that slides the trigger are each followed, shut as well as open — the last one to where the motion stops rather than through the frames on the way. What a page still has to reopen the panel for is a trigger it moves every frame; the panel is not measured per frame. See #572.', ['Dropdown']],
+      ['added', '`--ui-dropdown-edge` names the gap a panel keeps from the edge of the screen, declared on `.ui-dropdown__panel` beside the offset and the padding; set it to 0 for a panel flush with the edge, or wider for more room. `dropdownViewportFit(panel)` is the measurement behind it — how far along the inline axis a panel has to move to stay in view, and `null` for a panel a filter row already bounds — published so a second implementation of this dropdown asks the kit rather than writing its own. See #572.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.95.0', date: '2026-10-06',
     changes: [
       ['changed', 'The focus ring is one solid accent band with no glow, drawn as a real `outline` 1px off the control it marks. Every focusable control in the kit draws it \u2014 buttons, fields, checkboxes, switches, menu rows, tabs, links, chips and panels, in vanilla and React, light and dark. The band\u2019s colour and width are unchanged, so the contrast floor it is held to is the number it already measured; what is gone is the 12px halo over it, which was decoration rather than something a reader read. Artur chose this on #578 after #557 drew a scroll region\u2019s band the same way. Resolves #578.', ['Focus']],

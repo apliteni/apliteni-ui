@@ -267,6 +267,44 @@ export const AutoDirection = {
   )),
 };
 
+/* A full-width row holding its items at its two ends, which is where a panel runs
+ * out of screen. A 240px panel does not shrink with the view, so a trigger at the
+ * row's end has nowhere to put one at 1280 either — the clipping is not a phone's
+ * problem, the row only makes it one at every width.
+ * why: docs/components.md#the-dropdown-panel */
+const ends = (...items) =>
+  `<div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);width:100%">${items.join('')}</div>`;
+
+// stack() from the gallery caps its column at the reading measure, which would
+// hold the row's end 600px short of the screen's on a wide view — the one place
+// this story has to reach.
+const full = (...items) =>
+  `<div style="display:flex;flex-direction:column;gap:var(--space-6);width:100%">${items.join('')}</div>`;
+
+export const NearTheScreenEdges = {
+  name: 'Near the screen edges',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(full(
+    specimen(
+      'align: "end" at the start of the row, "start" at its end — open one and narrow the preview',
+      ends(
+        dropdown({ value: 'Period', variant: 'menu', ariaLabel: 'Period', align: 'end', items: ACTIONS }),
+        dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Row actions', items: ACTIONS }),
+      ),
+    ),
+    specimen(
+      'The same two edges, portalled and with a search field',
+      ends(
+        dropdown({ value: 'Account', variant: 'menu', ariaLabel: 'Account', align: 'end', portal: true, items: ACCOUNT }),
+        dropdown({
+          label: 'region:', ariaLabel: 'Region', items: LONG, scroll: true,
+          search: { placeholder: 'Find a region' },
+        }),
+      ),
+    ),
+  ), 420)),
+};
+
 // A sticky, scrolling rail — .ui-app__rail is both, and either one on its own is
 // enough to trap a panel. why: docs/components.md#the-dropdown-panel
 const rail = (html) =>

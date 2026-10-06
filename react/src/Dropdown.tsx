@@ -3,7 +3,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode,
 } from 'react';
 import {
-  icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs,
+  icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs, dropdownViewportFit,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 
@@ -11,8 +11,14 @@ import { useIsoLayoutEffect } from './dialog';
 // frame the fade paints. The number a dialog's exit waits by. why: react/src/dialog.ts
 const EXIT_SLACK_MS = 50;
 
-/** Is this node inside some dropdown panel? The fit writes to panels and nowhere
- *  else, so this is the test for a change that is one of its own.
+/* How long the settle fallback waits: past --dur-slow (400ms), the longest motion
+ * the kit ships, plus the same slack. A motion longer than this is answered by its
+ * own end event. The vanilla half's DD_SETTLE_MS is the same number.
+ * why: src/components/dropdown.js */
+const SETTLE_MS = 450;
+
+/** Is this node inside some dropdown panel? The fits write to panels and nowhere
+ *  else, so this is the test for a change that is one of their own.
  *  why: src/components/dropdown.js */
 const inPanel = (node: Node | null) => {
   const el = node?.nodeType === 1 ? (node as Element) : node?.parentElement ?? null;
@@ -472,6 +478,115 @@ export function Dropdown({
       list.scrollTop = top + el.offsetHeight - list.clientHeight;
     }
   });
+
+  /* #572: the panel hangs from its trigger, so a trigger near either edge of the
+   * screen opened its 240px panel off it — `align` chooses which side is clipped
+   * and nothing measured the view. The arithmetic is the kit's own, asked rather
+   * than re-implemented; what this half owns is when it is asked. Shut as well as
+   * open, because a shut panel is `visibility: hidden` and still laid out, and a
+   * laid-out box counts towards the page's scrollable width.
+   * why: docs/components.md#the-dropdown-panel */
+  useIsoLayoutEffect(() => {
+    const el = panel.current;
+    /* A filter row's panels are its own: that row bounds them, which is what
+       dropdownViewportFit() returns `null` for, and the effect above is the one
+       that fits them. Declined here rather than inside the fit, so a chip's menu is
+       not watched for an answer it never gets — ddInFilterRow() is the same
+       sentence on the other half. why: docs/components.md#a-filter-row-holds-its-panels */
+    if (!el || el.closest('.ui-filter-bar')) return;
+    const fit = () => {
+      let got = dropdownViewportFit(el);
+      if (!got) return;
+      /* The ceiling before the shift: a row holding one long unbroken token — a
+         filename — asked for a 548px panel on a 390px screen, which no placement
+         can hold. Capping a panel changes the width a shift is measured from, so an
+         over-wide one is measured a second time; a panel already under its ceiling
+         is measured once. The number is the kit's, like the shift.
+         why: src/styles/dropdown.css */
+      el.style.setProperty('--ui-dropdown-ceiling', got.max > 0 ? `${got.max}px` : '');
+      if (got.width > got.max) got = dropdownViewportFit(el) ?? got;
+      // A transform, so the shift moves no layout and the width it was measured
+      // against is still the panel's own. why: src/components/dropdown.js
+      el.style.translate = got.shift ? `${got.shift}px` : '';
+    };
+    fit();
+    const view = root.current?.ownerDocument?.defaultView;
+    if (!view) return;
+    const stop: Array<() => void> = [];
+    /* Both boxes the fit is measured from are watched: the trigger, whose edge an
+       end-aligned panel hangs from, and the panel, whose own width is the other
+       half of the sum. wireDropdown() answers the same way.
+       why: src/components/dropdown.js */
+    if (typeof view.ResizeObserver === 'function') {
+      const ro = new view.ResizeObserver(() => fit());
+      if (trigger.current) ro.observe(trigger.current);
+      ro.observe(el);
+      stop.push(() => ro.disconnect());
+    }
+    const on = (type: string, capture = false, handler: () => void = fit) => {
+      view.addEventListener(type, handler, capture);
+      stop.push(() => view.removeEventListener(type, handler, capture));
+    };
+    /* The view's own width is the third number in the fit and no box reports it, so
+       `resize` is taken too. The rest are the moves no box reports at all: #572's
+       review moved a trigger the width of its flex row and scrolled another
+       sideways, and neither resizes anything. So the CAUSE is watched — the DOM
+       change that moved the trigger — with scroll for the move that is no DOM
+       change. why: src/components/dropdown.js */
+    on('resize');
+    on('scroll', true);
+    /* Where motion leaves the trigger, read once it has stopped. The style write
+       that starts a transition is a mutation measured in the frame it lands, when
+       the trigger has not moved yet: one given `transition: transform 200ms` and
+       then translated 220px left this panel 240px outside the view for good, not
+       for 200ms. The end events answer that; the timer answers the end event that
+       never comes — a cancelled transition's, or one on a box no listener here
+       hears from. One is pending at a time and the effect's cleanup clears it, so
+       a menu closed or unmounted mid-motion leaves nothing running. The frames in
+       between are what this declines, the limit the rule states.
+       why: src/components/dropdown.js */
+    let settling: ReturnType<typeof setTimeout> | null = null;
+    const settle = () => {
+      if (settling != null) clearTimeout(settling);
+      settling = setTimeout(() => { settling = null; fit(); }, SETTLE_MS);
+    };
+    /* The two end events are written out rather than taken through on(): the guard
+       that holds every wait on an end event to a way out reads an addEventListener
+       and the timer beside it, and a helper hides both from it.
+       why: stories/reduced-motion.test.js */
+    view.addEventListener('transitionend', fit, true);
+    view.addEventListener('animationend', fit, true);
+    stop.push(() => {
+      view.removeEventListener('transitionend', fit, true);
+      view.removeEventListener('animationend', fit, true);
+      if (settling != null) clearTimeout(settling);
+    });
+    on('transitionstart', true, settle);
+    on('animationstart', true, settle);
+    const html = view.document?.documentElement;
+    if (typeof view.MutationObserver === 'function' && html) {
+      const mo = new view.MutationObserver((records) => {
+        /* Any panel, not only this one. Every fit writes to a panel and to nothing
+           else, so a change inside one is never news — and `el.contains` alone was
+           not enough: two <Dropdown>s on a page each saw the OTHER's write as news
+           and answered it, which is a mutation each way for ever. A page with two
+           menus on it spun until the gate timed out. why: src/components/dropdown.js */
+        if (records.every((m) => inPanel(m.target))) return;
+        fit();
+      });
+      /* characterData too: growing a sibling TEXT NODE moves the trigger along a
+         flex row without changing one observed box, and neither a child list nor
+         an attribute changes with it. 39 characters of 10px monospace in front of
+         a menu carried this panel from 8…248 to 236.8…476.8 and left the page
+         477px wide. Text inside a panel is still skipped — inPanel() reads a text
+         node's parent. why: src/components/dropdown.js */
+      mo.observe(html, {
+        subtree: true, childList: true, attributes: true, characterData: true,
+      });
+      stop.push(() => mo.disconnect());
+    }
+    return () => { stop.forEach((off) => off()); };
+  }, [open]);
 
   const choose = (item: DropdownItem, e: ReactMouseEvent) => {
     if (item.disabled) { e.preventDefault(); return; }

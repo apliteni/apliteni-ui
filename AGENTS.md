@@ -80,6 +80,15 @@ Before opening a PR that changes `src/motion.js` or `src/motion.d.ts`, run the b
 Report the result in the PR. The source half runs in CI against a jsdom window; the engine a
 consumer ships against is yours to measure, because Playwright is not a dependency.
 
+## Check a panel's containment locally
+
+Before opening a PR that changes `src/styles/dropdown.css`, the dropdown wiring's placement or
+React `<Dropdown>`, measure the panels in a real browser:
+`UI_PLAYWRIGHT=… DROPDOWN_EDGES=1 node --test stories/dropdown-contain.test.js`
+It needs `npm run build-storybook -w react` first — React's fit is an effect, so it only exists
+where React is running. Report the result in the PR. Keep this check out of routine CI to save
+Actions minutes.
+
 ## Documentation
 
 Record a consumer guarantee in one of the two reader pages: a token or a floor in

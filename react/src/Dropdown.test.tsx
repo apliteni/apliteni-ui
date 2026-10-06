@@ -1253,3 +1253,282 @@ describe('reduced motion: the panel the keyboard opens', () => {
     expect(inside.filter((el) => !off.some((s) => el.matches(s)))).toEqual([]);
   });
 });
+
+/* #572: the panel stays inside the view it is laid out in, shut as well as open.
+ * This half owns WHEN the fit is asked and that its answer lands on the panel; the
+ * arithmetic is the kit's own and is swept by stories/dropdown-contain.test.js,
+ * and where a real panel lands is measured in a browser there too.
+ *
+ * JSDOM lays nothing out, so the two boxes the fit reads are supplied here. */
+function laidOut(where: { panelLeft: number; panelWidth?: number; view?: number }) {
+  const spy = vi.spyOn(Element.prototype, 'getBoundingClientRect');
+  Object.defineProperty(document.documentElement, 'clientWidth', { value: where.view ?? 375, configurable: true });
+  // `where` is read on each call rather than destructured, so a test can move the
+  // trigger — the move that resizes nothing is half of this rule.
+  spy.mockImplementation(function box(this: Element) {
+    const panel = this.classList.contains('ui-dropdown__panel');
+    const shift = panel ? parseFloat((this as HTMLElement).style.translate) || 0 : 0;
+    const left = panel ? where.panelLeft + shift : 0;
+    const width = panel ? (where.panelWidth ?? 240) : 96;
+    return {
+      left, right: left + width, width, top: 0, bottom: 31, height: 31, x: left, y: 0,
+      toJSON: () => ({}),
+    } as DOMRect;
+  });
+  return spy;
+}
+
+it('a shut panel over the edge of the view is brought back inside it', () => {
+  // align: 'end' near the start of a row: the panel's right edge is the trigger's,
+  // so it reaches back past 0. Nothing has been clicked.
+  const spy = laidOut({ panelLeft: -136 });
+  const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" align="end" />);
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  expect(panel.style.translate).toBe('144px');
+  expect(panel.getBoundingClientRect().left).toBe(8);
+  spy.mockRestore();
+});
+
+it('a panel with room keeps the edge align asked for', () => {
+  const spy = laidOut({ panelLeft: 40, view: 1280 });
+  const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Actions" />);
+  expect(container.querySelector<HTMLElement>('.ui-dropdown__panel')!.style.translate).toBe('');
+  spy.mockRestore();
+});
+
+it('opening asks again, so a panel opened after a resize is fitted to the view it has', async () => {
+  const user = userEvent.setup();
+  const spy = laidOut({ panelLeft: 200 });
+  const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Actions" />);
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  expect(panel.style.translate).toBe('-73px');
+  Object.defineProperty(document.documentElement, 'clientWidth', { value: 1280, configurable: true });
+  await user.click(container.querySelector('.ui-dropdown__trigger')!);
+  expect(panel.style.translate).toBe('');
+  spy.mockRestore();
+});
+
+// A mutation observer's callback is a microtask, so a sweep is one tick away.
+const settled = () => new Promise((done) => { setTimeout(done, 0); });
+
+it('a trigger moved by its row, with nothing resized, is followed', async () => {
+  const user = userEvent.setup();
+  // align: 'end' at the start of a 390px row, then the row holds its children at
+  // the other end: every box the same size, and no observer of a size sees it.
+  const at = { panelLeft: -136, view: 390 };
+  const spy = laidOut(at);
+  const { container } = render(
+    <div style={{ display: 'flex' }}>
+      <Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" align="end" />
+    </div>,
+  );
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  await user.click(container.querySelector('.ui-dropdown__trigger')!);
+  expect(panel.style.translate).toBe('144px');
+  at.panelLeft = 110;
+  container.firstElementChild!.setAttribute('style', 'display:flex;justify-content:flex-end');
+  await settled();
+  expect(panel.style.translate).toBe('');
+  expect(panel.getBoundingClientRect().left).toBe(110);
+  spy.mockRestore();
+});
+
+it('a panel shut after its anchor moved is fitted on the way out', async () => {
+  const user = userEvent.setup();
+  const at = { panelLeft: -136, view: 390 };
+  const spy = laidOut(at);
+  const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" align="end" />);
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  const trigger = container.querySelector('.ui-dropdown__trigger')!;
+  await user.click(trigger);
+  at.panelLeft = 110;
+  await user.click(trigger);
+  // A shut panel is laid out, so a stale shift goes on widening the page: #572's
+  // review measured one left at 237.6…477.6 on a 390px screen with nothing open.
+  expect(panel.style.translate).toBe('');
+  spy.mockRestore();
+});
+
+it('an ancestor scrolled sideways moves the open panel with the trigger', async () => {
+  const user = userEvent.setup();
+  const at = { panelLeft: 260, view: 390 };
+  const spy = laidOut(at);
+  const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" />);
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  await user.click(container.querySelector('.ui-dropdown__trigger')!);
+  expect(panel.style.translate).toBe('-118px');
+  // The scroll changes no style and resizes nothing; only the coordinates move.
+  at.panelLeft = 10;
+  window.dispatchEvent(new Event('scroll'));
+  expect(panel.style.translate).toBe('');
+  expect(panel.getBoundingClientRect().left).toBe(10);
+  spy.mockRestore();
+});
+
+it('a sibling text node that grows moves the trigger, and the panel follows', async () => {
+  const user = userEvent.setup();
+  const at = { panelLeft: 8, view: 390 };
+  const spy = laidOut(at);
+  const { container } = render(
+    <div style={{ display: 'flex' }}>
+      <Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" />
+    </div>,
+  );
+  const row = container.firstElementChild!;
+  // The text node goes in before the panel opens, so growing it later is the only
+  // change under the open panel — and it is neither a child list nor an attribute.
+  const text = document.createTextNode('a');
+  row.insertBefore(text, row.firstChild);
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  await user.click(container.querySelector('.ui-dropdown__trigger')!);
+  expect(panel.style.translate).toBe('');
+  // A longer run of text pushes the trigger along the row with every box the fit
+  // reads the same size.
+  at.panelLeft = 234;
+  text.data = 'a'.repeat(39);
+  await settled();
+  expect(panel.style.translate).toBe('-92px');
+  expect(panel.getBoundingClientRect().right).toBe(382);
+  spy.mockRestore();
+});
+
+it('a trigger slid by a transition is fitted where the motion stops', async () => {
+  const user = userEvent.setup();
+  const at = { panelLeft: 8, view: 390 };
+  const spy = laidOut(at);
+  const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" />);
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  const dd = container.querySelector<HTMLElement>('.ui-dropdown')!;
+  await user.click(container.querySelector('.ui-dropdown__trigger')!);
+  /* The style write that starts the motion is a mutation, measured in the frame it
+     lands — when the trigger has not moved yet. That reading is right, and it is
+     not the one that goes stale. */
+  dd.setAttribute('style', 'transition: transform 200ms linear; transform: translateX(220px)');
+  await settled();
+  expect(panel.style.translate).toBe('');
+  // Where the motion leaves it, reported by the end event and by nothing else.
+  at.panelLeft = 228;
+  dd.dispatchEvent(new Event('transitionend', { bubbles: true }));
+  expect(panel.style.translate).toBe('-86px');
+  spy.mockRestore();
+});
+
+it('a motion whose end event never comes is answered by a timer', async () => {
+  const user = userEvent.setup();
+  const at = { panelLeft: 8, view: 390 };
+  const spy = laidOut(at);
+  const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" />);
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  const dd = container.querySelector<HTMLElement>('.ui-dropdown')!;
+  await user.click(container.querySelector('.ui-dropdown__trigger')!);
+  // A cancelled transition fires no end event, and a trigger carried by one on a
+  // box no listener here hears from fires nothing either.
+  dd.dispatchEvent(new Event('transitionstart', { bubbles: true }));
+  at.panelLeft = 228;
+  // SETTLE_MS is 450: past --dur-slow, the longest motion the kit ships.
+  await new Promise((done) => { setTimeout(done, 560); });
+  expect(panel.style.translate).toBe('-86px');
+  spy.mockRestore();
+});
+
+it('a menu unmounted mid-motion leaves no timer to answer with', async () => {
+  const at = { panelLeft: 8, view: 390 };
+  const spy = laidOut(at);
+  const { container, unmount } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" />);
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  const dd = container.querySelector<HTMLElement>('.ui-dropdown')!;
+  dd.dispatchEvent(new Event('transitionstart', { bubbles: true }));
+  unmount();
+  // Where the motion would have left it. Nothing is listening for it any more.
+  at.panelLeft = 228;
+  await new Promise((done) => { setTimeout(done, 560); });
+  expect(panel.style.translate).toBe('');
+  spy.mockRestore();
+});
+
+it('a move is news to every menu once, and no menu answers another menu', async () => {
+  /* Each <Dropdown> installs its own observer, so each sees the other's write. A
+     filter that skipped only a panel's OWN writes left two menus answering each
+     other, a mutation each way, for ever — a page with two of them spun until the
+     browser gate timed out at sixteen minutes. Every panel is skipped now.
+
+     Counted by the one property a fit always writes, rather than by mutation
+     records: an identical style write produces no record in JSDOM, so records
+     would count nothing here. */
+  const at = { panelLeft: 8, view: 390 };
+  const spy = laidOut(at);
+  const { container } = render(
+    <div style={{ display: 'flex' }}>
+      <Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" align="end" />
+      <Dropdown items={[{ label: 'Settings' }]} triggerContent="Actions" />
+    </div>,
+  );
+  const panels = [...container.querySelectorAll<HTMLElement>('.ui-dropdown__panel')];
+  expect(panels).toHaveLength(2);
+  const writes = vi.spyOn(CSSStyleDeclaration.prototype, 'setProperty');
+  const fits = () => writes.mock.calls.filter((c) => c[0] === '--ui-dropdown-ceiling').length;
+
+  // A move outside the panels: each menu answers it, and each answers it once.
+  const before = fits();
+  container.firstElementChild!.setAttribute('style', 'display:flex;justify-content:flex-end');
+  await settled();
+  await settled();
+  expect(fits()).toBe(before + panels.length);
+
+  // And a write of the shape a fit's own answer has: news to nobody.
+  const settledAt = fits();
+  panels[0].style.translate = '5px';
+  await settled();
+  await settled();
+  expect(fits()).toBe(settledAt);
+
+  writes.mockRestore();
+  spy.mockRestore();
+});
+
+it('the panel is told how wide it may be, in the coordinates its box is in', () => {
+  const at = { panelLeft: 8, view: 390 };
+  const spy = laidOut(at);
+  const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Export" />);
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  // 390 less the 8px gap at each edge. The number comes off the layout viewport
+  // and not from 100vw, which counts a scrollbar the panel's own box does not.
+  expect(panel.style.getPropertyValue('--ui-dropdown-ceiling')).toBe('374px');
+  spy.mockRestore();
+});
+
+it('a row longer than the view is bounded, and the shift measured from the bound', () => {
+  /* A long filename asked for a 548px panel on a 390px screen, open and shut. The
+     bound is the stylesheet's; what this half owns is writing it before the shift,
+     because capping a panel changes the width the shift is measured from. */
+  const at = { panelLeft: 8, panelWidth: 548, view: 390 };
+  const spy = laidOut(at);
+  const { container } = render(<Dropdown items={[{ label: 'Invoice_2026.csv' }]} triggerContent="Export" />);
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  expect(panel.style.getPropertyValue('--ui-dropdown-ceiling')).toBe('374px');
+  // JSDOM applies no stylesheet, so the bound is honoured here by hand, and the
+  // second measurement is the one that has to answer for the narrowed panel.
+  at.panelWidth = 374;
+  window.dispatchEvent(new Event('resize'));
+  expect(panel.style.translate).toBe('');
+  expect(panel.getBoundingClientRect().right).toBe(382);
+  spy.mockRestore();
+});
+
+it('a panel in a filter row is left to the row that bounds it', () => {
+  // #549's own fit slides a chip's menu along its row, and two fits writing one
+  // panel's position would be two answers. The kit's function refuses the subject;
+  // this half's job is to hand it the dropdown and write nothing of its own.
+  const spy = laidOut({ panelLeft: -136 });
+  const { container } = render(
+    <div className="ui-filter-bar">
+      <div className="ui-filter-bar__chip">
+        <Dropdown items={[{ label: 'Paid' }]} triggerContent="Status" align="end" />
+      </div>
+    </div>,
+  );
+  const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
+  expect(panel.style.translate).toBe('');
+  expect(panel.style.getPropertyValue('--ui-dropdown-ceiling')).toBe('');
+  spy.mockRestore();
+});

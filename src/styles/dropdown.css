@@ -56,6 +56,12 @@
      the portal's JS, so an upward panel cannot drift from a downward one.
      why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-gap: 9px;
+  /* The least a panel keeps between itself and the edge of the view it is laid out
+     in. The wiring reads it off the panel and moves the panel along the inline axis
+     when the edge `align` asked for does not fit; a page wanting a panel flush with
+     the screen's edge sets it to 0.
+     why: docs/components.md#the-dropdown-panel */
+  --ui-dropdown-edge: 8px;
   /* Named for the same reason the offset is: a block pinned to an edge has to
      bleed back through it, and #306 is a page copying the number by hand.
      why: docs/components.md#the-dropdown-panel */
@@ -72,6 +78,24 @@
   top: calc(100% + var(--ui-dropdown-gap));
   left: 0;
   min-width: 240px;
+  /* …and no wider than the view it is laid out in, less the keep-out it owes each
+     edge. This bound is what holds a PORTALLED panel: that one is `position: fixed`,
+     so the room beside its own offsets is the whole view and a shrink-to-fit box
+     takes all of it — measured at 390px on a 390px screen with this line gone.
+     The floor above wins where the two disagree, which is a view under 2 × edge +
+     240. The wiring writes the property off the LAYOUT viewport; the fallback is
+     for a page whose JS has not run, and is a classic scrollbar's width too
+     generous, because `100vw` counts a scrollbar the panel's own box does not.
+     why: docs/components.md#the-dropdown-panel */
+  max-width: var(--ui-dropdown-ceiling, calc(100vw - 2 * var(--ui-dropdown-edge)));
+  /* And this is what holds an IN-PLACE one, whose room is its trigger's block: a
+     shrink-to-fit box is its min-content wide at the least, and one 70-character
+     token's min-content was 508px on a 390px screen. Breaking anywhere takes that
+     to one character, so the panel settles on the floor above — and keeps the token
+     inside its own box, since overflowing inline text widens the page whatever the
+     box says. The treatment a filter row's panels and the rail's account block
+     already take. why: src/styles/filter-bar.css */
+  overflow-wrap: anywhere;
   /* The floating step, not the sunken one — a panel held open over a card cannot be
      painted the colour of an inset. why: docs/foundations.md#elevation */
   background: var(--bg-elevated);

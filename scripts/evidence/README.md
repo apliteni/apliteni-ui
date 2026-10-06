@@ -31,6 +31,21 @@ node scripts/evidence/dropdown.mjs .          out/ dropdown-after    # the head/
 node scripts/evidence/dropdown.mjs /tmp/before out/ dropdown-before
 ```
 
+A dropdown panel at the ends of a row is its own subject too (#572), and its rig
+is the two Storybook builds rather than `shot.html`: the subject is a row of
+triggers at the screen's edges, and React's half of it only exists where React is
+running. Build both first, then shoot the same story off both checkouts:
+
+```sh
+npm run build-storybook && npm run build-storybook -w react
+node scripts/evidence/dropdown-edges.mjs . out/ dropdown-edges-after
+# …and the same two builds in /tmp/before for the pair's other side.
+```
+
+Each image is one panel open at one end of the row, at 375 and 1280, in both
+themes and both layers. The viewport is the frame on purpose: a panel that is off
+the screen has to look off the screen.
+
 The back link's label is its own subject, on its own page (#303) — the link alone
 at 560×340, and the page shell at 390 wide, where a reading column is narrow
 enough for a long destination to reach its edge:

@@ -268,6 +268,26 @@ function ddGap(panel) {
   return Number.isFinite(declared) ? declared : DD_GAP;
 }
 
+// The least a panel keeps between itself and the edge of its view. The number is
+// --ui-dropdown-edge in src/styles/dropdown.css, and this is the fallback for a
+// document that has not loaded the sheet, as DD_GAP is for the offset.
+const DD_EDGE = 8;
+
+function ddEdge(panel) {
+  const declared = parseFloat(ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-edge'));
+  return Number.isFinite(declared) ? declared : DD_EDGE;
+}
+
+/** The width a panel has to stay inside: the LAYOUT viewport, which is what both
+ *  `position: fixed` and a page's scrollable width are measured against. A classic
+ *  scrollbar is in `innerWidth` and not in the box either of those means, so an
+ *  end-anchored panel written from `innerWidth` sat a scrollbar's width inside its
+ *  trigger. The fallback is for a view that lays nothing out, JSDOM among them. */
+const ddViewWidth = (panel) => {
+  const view = ddViewOf(panel);
+  return view.document?.documentElement?.clientWidth || view.innerWidth || 0;
+};
+
 function ddItemsOf(dd) {
   const panel = ddPanelOf(dd);
   if (!panel) return [];
@@ -419,12 +439,14 @@ function ddRowOf(dd) {
   return dd?.closest?.('.ui-filter-bar__chip')?.closest('.ui-filter-bar') || null;
 }
 
-/** Is this node inside some dropdown panel? The fit writes to a panel and to
+/** Is this node inside some dropdown panel? Both fits write to a panel and to
  *  nothing else, so a change inside one is never news — and a panel is
  *  `position: absolute`, so nothing in it can move a chip along its row. Any
  *  panel, not only the one being fitted: two open menus in one row would
- *  otherwise answer each other a mutation at a time.
- *  why: docs/components.md#a-filter-row-holds-its-panels */
+ *  otherwise answer each other a mutation at a time, and so did two <Dropdown>s
+ *  on a page, until the browser gate timed out.
+ *  why: docs/components.md#a-filter-row-holds-its-panels
+ *  why: docs/components.md#the-dropdown-panel */
 function ddOurs(node) {
   const el = node?.nodeType === 1 ? node : node?.parentElement;
   return !!el?.closest?.('[data-dropdown-panel]');
@@ -484,9 +506,30 @@ function ddUnwatchRow(dd) {
   dd.__ddRowMo = null;
 }
 
+/* ---- Following a panel's anchor --------------------------------------------
+ * A position change need not resize anything and no event reports one, so the CAUSE
+ * is watched instead: the DOM change that moved the trigger. Measured on the first
+ * answer to #572, a flex row told to end-align its children left a panel at
+ * 237.6…477.6 on a 390px screen and an ancestor scrolled sideways left one at
+ * −108…132; a ResizeObserver sees neither. The limit, and why no end event is
+ * taken for the middle of an animation, is stated with the rule.
+ * why: docs/components.md#the-dropdown-panel */
+
+/** Fit a panel again where it now is, whichever placement it uses. */
+function ddPlace(dd) {
+  if (dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
+  else ddFitViewport(dd, ddPanelOf(dd));
+}
+
 /* A few frames past the sheet's own end, so the timer never cuts the fade's last
  * frame. The number the dialogs' exit uses. */
 const DD_EXIT_SLACK_MS = 50;
+
+/* How long the settle fallback waits: past --dur-slow (400ms), the longest motion
+ * the kit ships, plus the same slack. A motion longer than this is answered by its
+ * own end event; this timer is for the end event that never comes.
+ * why: src/tokens/tokens.css */
+const DD_SETTLE_MS = 450;
 
 /**
  * Hold a closing chip menu's open geometry until its fade has finished.
@@ -548,6 +591,100 @@ function ddResolveDirection(dd, panel) {
   panel.classList.toggle('is-up', below < panel.offsetHeight + ddGap(panel) && t.top > below);
 }
 
+/** The shift a panel is already carrying, the one ddFitViewport() wrote. Taken
+ *  off before the next measurement, so asking twice answers the same as asking
+ *  once — the fit is measured from where the sheet puts the panel, not from where
+ *  the last fit left it. */
+const ddShiftOf = (panel) => parseFloat(panel.style?.translate) || 0;
+
+/** The widest a panel may be: the view it is laid out in, less the keep-out it owes
+ *  each edge. It is the bound a PORTALLED panel needs, whose room is the whole view
+ *  because it is `position: fixed`; an in-place one is bounded by its trigger's own
+ *  block, once `overflow-wrap` has let its long tokens break.
+ *  why: src/styles/dropdown.css */
+const ddCeiling = (panel) => Math.max(0, ddViewWidth(panel) - 2 * ddEdge(panel));
+
+/** Write the ceiling, BEFORE the panel is measured: capping a panel's width
+ *  changes the width a shift would be calculated from. The sheet reads the
+ *  property and keeps its own 240px floor where the two disagree, which is a view
+ *  narrower than 2 × edge + 240. why: src/styles/dropdown.css */
+function ddWriteCeiling(panel) {
+  const max = ddCeiling(panel);
+  panel.style?.setProperty('--ui-dropdown-ceiling', max > 0 ? `${max}px` : '');
+}
+
+/** A panel a filter row bounds to the row itself. It is nothing the viewport fit
+ *  has to measure, and nothing the wiring has to watch for it.
+ *  why: docs/components.md#a-filter-row-holds-its-panels */
+const ddInFilterRow = (panel) => typeof panel?.closest === 'function' && !!panel.closest('.ui-filter-bar');
+
+/**
+ * How wide a panel may be and how far along the inline axis it has to move to stay
+ * inside the view it is laid out in: `left` at or after the edge, `right` at or
+ * before the far one.
+ *
+ * `align` decides the edge of the trigger a panel hangs from, and that is all it
+ * decides — on a phone it moves the clipping from one side to the other rather
+ * than removing it, which is #572. So the preferred edge is measured and kept
+ * whenever it fits, and overridden only when it does not: the same shape
+ * `direction: 'auto'` gives the block axis.
+ *
+ * Measured, not derived from the classes: the panel's own box is where the sheet
+ * has actually put it, so one answer covers `left: 0`, `.is-end`'s `right: 0` and
+ * the topbar's bespoke menus alike, and a rule nobody here has read about cannot
+ * send it the wrong way.
+ *
+ * A panel inside a `.ui-filter-bar` is not this function's subject: a filter row
+ * bounds its panels to the row itself, which already holds them inside the view.
+ * why: docs/components.md#a-filter-row-holds-its-panels
+ *
+ * @param {Element} panel a `[data-dropdown-panel]`, as the sheet has placed it
+ * @param {{left: number, width: number}} [at] the box the caller is about to
+ *   write, for a panel it places itself — the portal, whose own box is still the
+ *   one the last call left it at
+ * @returns {{shift: number, left: number, width: number, view: number, edge: number,
+ *   max: number}|null}
+ */
+export function dropdownViewportFit(panel, at) {
+  if (!panel || typeof panel.getBoundingClientRect !== 'function') return null;
+  if (!at && ddInFilterRow(panel)) return null;
+  const view = ddViewWidth(panel);
+  const box = panel.getBoundingClientRect();
+  const width = at ? at.width : box.width;
+  const left = at ? at.left : box.left - ddShiftOf(panel);
+  if (!(view > 0) || !(width > 0) || !Number.isFinite(left)) return null;
+  const slack = view - width;
+  /* The gap is what a panel can afford rather than what it asks for. A panel still
+     wider than its view — the floor, inside a view too narrow for it — has no room
+     for one and cannot honour both edges at all; it keeps its start, so the reader
+     meets the beginning of the rows and not the end. */
+  const edge = Math.max(0, Math.min(ddEdge(panel), slack / 2));
+  const want = Math.max(edge, Math.min(left, slack - edge));
+  return { shift: want - left, left: want, width, view, edge, max: ddCeiling(panel) };
+}
+
+/**
+ * Keep a panel in place inside its view, by moving it along the inline axis.
+ *
+ * `translate` and not `left`, `right` or a margin: an absolutely positioned box is
+ * shrink-to-fit, so its width is measured against the room left between its own
+ * offsets, and a shift written as one of those offsets changes the width the shift
+ * was calculated from. A transform moves no layout, so the number stays true. The
+ * entry travel keeps `transform` to itself, and the property is off the panel's
+ * transition list, so a panel already open lands at once rather than sliding.
+ *
+ * A portalled panel is placed by positionPortalPanel(), which writes its edges in
+ * viewport coordinates and clamps them there.
+ * why: docs/components.md#the-dropdown-panel
+ */
+function ddFitViewport(dd, panel) {
+  if (!panel?.style || dd?.__ddPanel === panel || ddInFilterRow(panel)) return;
+  ddWriteCeiling(panel);
+  const fit = dropdownViewportFit(panel);
+  if (!fit) return;
+  panel.style.translate = fit.shift ? `${fit.shift}px` : '';
+}
+
 // Nothing lays a portalled panel out any more, so these four inline values are
 // its layout. Inline, so no rule in any sheet can pin the opposite edge.
 function positionPortalPanel(dd, panel) {
@@ -564,12 +701,21 @@ function positionPortalPanel(dd, panel) {
     s.bottom = 'auto';
     s.top = `${t.bottom + gap}px`;
   }
-  if (panel.classList.contains('is-end')) {
+  /* The inline axis is fitted rather than mirrored. Both of these edges put a
+     240px panel off the screen from a trigger near the one it is anchored to, and
+     #572 is that: the fit is asked with the box this function is about to write,
+     because the panel's own is still where the last call left it. */
+  const end = panel.classList.contains('is-end');
+  ddWriteCeiling(panel);
+  const width = panel.getBoundingClientRect().width;
+  const left = end ? t.right - width : t.left;
+  const shift = dropdownViewportFit(panel, { left, width })?.shift || 0;
+  if (end) {
     s.left = 'auto';
-    s.right = `${view.innerWidth - t.right}px`;
+    s.right = `${ddViewWidth(panel) - t.right - shift}px`;
   } else {
     s.right = 'auto';
-    s.left = `${t.left}px`;
+    s.left = `${t.left + shift}px`;
   }
 }
 
@@ -596,6 +742,11 @@ function closeDropdown(dd) {
   if (panel?.style && !dd.__ddPanel && ddRowOf(dd)) ddHoldClose(dd, panel);
   else if (panel?.style && dd.closest?.('.ui-filter-bar')) panel.style.minWidth = '';
   dd.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'false');
+  /* The anchor may have moved while the panel was open, and a shut panel is laid
+     out: its box goes on counting towards the page's scrollable width. One reading
+     on the way out, so a panel left behind at 237.6…477.6 does not keep the page
+     478px wide with nothing open. why: ddPlace() */
+  if (panel) ddFitViewport(dd, panel);
 }
 
 /** Every wired dropdown still in a tree, the ones in frames and shadow roots
@@ -622,7 +773,11 @@ function openDropdown(dd, focusIdx) {
     ddCancelClose(dd, panel);
     ddResolveDirection(dd, panel);
     if (dd.__ddPanel) { positionPortalPanel(dd, panel); panel.classList.add('is-open'); }
-    else { ddFitFilterPanel(dd, panel); ddWatchRow(dd, panel); }
+    /* Both fits, because each one answers for the panels the other declines:
+       filterPanelFit() is null outside a filter chip, and dropdownViewportFit()
+       is null inside a filter row, whose own row already bounds its panels.
+       why: docs/components.md#a-filter-row-holds-its-panels */
+    else { ddFitFilterPanel(dd, panel); ddWatchRow(dd, panel); ddFitViewport(dd, panel); }
   }
   dd.classList.add('open');
   /* After `open`, and after the fit: ddResetSearch() pins the width it reads off
@@ -674,12 +829,14 @@ function ddListen(doc) {
     const open = ddLive().find((dd) => dd.classList.contains('open') && dd.ownerDocument === doc);
     if (open) { closeDropdown(open); open.querySelector('[data-dropdown-trigger]')?.focus(); }
   });
-  // Viewport coordinates go stale the moment anything scrolls. Capture, so a
-  // scroll inside the rail the panel was lifted out of counts too.
+  /* Viewport coordinates go stale the moment anything scrolls, and an in-place
+     panel's fit is measured against the view as much as a portalled one's: a
+     trigger slid from x=260 to x=10 inside a row that scrolls sideways left its
+     panel at −108…132, with the first row's label off the screen. Capture, so a
+     scroll inside the rail the panel was lifted out of, or inside that row, counts
+     too. why: docs/components.md#the-dropdown-panel */
   const reposition = () => {
-    for (const dd of ddLive()) {
-      if (dd.classList.contains('open') && dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
-    }
+    for (const dd of ddLive()) if (dd.classList.contains('open')) ddPlace(dd);
   };
   /* The fallback re-fit, for a view with no ResizeObserver. Not taken as well where
    * ddWatchRow() is watching: a `resize` event is the worse measurement of the two.
@@ -691,11 +848,65 @@ function ddListen(doc) {
       }
     }
   };
+  /* The shut ones, which the sweep above does not reach and which no reader is
+     looking at: a shut panel is laid out, so a panel fitted at 1280 and left shut
+     at 375 keeps the page scrolling sideways with nothing open. A shut PORTALLED
+     panel is not one of them — `position: fixed` puts it in no page's scrollable
+     width. why: docs/components.md#the-dropdown-panel */
+  const refitInPlace = () => {
+    for (const dd of ddLive()) {
+      if (!dd.__ddPanel && !dd.classList.contains('open')) ddFitViewport(dd, ddPanelOf(dd));
+    }
+  };
+  // The two together, which is every panel that owes anybody an answer.
+  const follow = () => { reposition(); refitInPlace(); };
   const view = doc.defaultView;
   if (!view) return;
-  view.addEventListener('scroll', reposition, true);
+  /* Both states on a scroll, not the open one alone: a shut panel is laid out, so
+     an ancestor scrolled back to where it started left one at 258…498 on a 390px
+     screen with nothing open — #501's page width, in the state the open sweep
+     cannot reach. React's half has always answered both; this is that answer.
+     why: docs/components.md#the-dropdown-panel */
+  view.addEventListener('scroll', follow, true);
   view.addEventListener('resize', reposition);
   view.addEventListener('resize', refit);
+  view.addEventListener('resize', refitInPlace);
+  /* Where motion leaves a trigger, read once it has stopped. The style write that
+     starts a transition is a mutation measured in the frame it lands, when the
+     trigger has not moved yet: one given `transition: transform 200ms` and then
+     translated 220px left its panel 240px outside the view for good, not for 200ms.
+     The end events answer that, and one timer per document answers the end event
+     that never comes — a cancelled transition's, or one on a box this document
+     never hears from. Armed when motion starts and cleared before it is armed
+     again, so one is pending at a time, and a fired one walks ddLive(), which has
+     already dropped whatever was removed meanwhile. The frames in between are what
+     this declines: the reader is owed the final position, not a measurement per
+     frame per panel. why: docs/components.md#the-dropdown-panel */
+  let settling = null;
+  const settle = () => {
+    clearTimeout(settling);
+    settling = setTimeout(() => { settling = null; follow(); }, DD_SETTLE_MS);
+  };
+  view.addEventListener('transitionend', follow, true);
+  view.addEventListener('animationend', follow, true);
+  view.addEventListener('transitionstart', settle, true);
+  view.addEventListener('animationstart', settle, true);
+  if (typeof view.MutationObserver === 'function' && doc.documentElement) {
+    const mo = new view.MutationObserver((records) => {
+      if (records.every((m) => ddOurs(m.target))) return;
+      follow();
+    });
+    /* characterData as well as the two structural kinds: growing a sibling TEXT
+       NODE moves a trigger along a flex row without changing one observed box, and
+       neither a child list nor an attribute changes with it. 39 characters of 10px
+       monospace in front of a menu carried both layers' panels from 8…248 to
+       236.8…476.8 and left the page 477px wide. A change inside any panel is still
+       skipped, text included: ddOurs() reads a text node's parent.
+       why: docs/components.md#the-dropdown-panel */
+    mo.observe(doc.documentElement, {
+      subtree: true, childList: true, attributes: true, characterData: true,
+    });
+  }
 }
 
 export function wireDropdown(root = document) {
@@ -827,6 +1038,25 @@ export function wireDropdown(root = document) {
         new ResizeObserver(() => {
           if (dd.classList.contains('open')) positionPortalPanel(dd, dd.__ddPanel);
         }).observe(trigger);
+      }
+    } else if (panel && !ddInFilterRow(panel)) {
+      /* And an in-place panel is fitted here, before anything is clicked, because
+         a shut panel is laid out and a laid-out box counts towards the page's
+         scrollable width. The two boxes the fit is measured from are both watched:
+         the trigger, because the edge an end-aligned panel hangs from is the
+         trigger's, and the panel, because its own width is the other half of the
+         sum. The view's observer and not the module's: a panel in a frame is laid
+         out in that frame. A filter row's panels are skipped outright rather than
+         watched for a fit that declines them: that row is their bound, and
+         ddWatchRow() is the observer they get instead.
+         why: docs/components.md#the-dropdown-panel */
+      ddFitViewport(dd, panel);
+      const view = dd.ownerDocument?.defaultView;
+      if (typeof view?.ResizeObserver === 'function') {
+        // Writing a translate moves no layout, so a fit cannot report itself back.
+        const ro = new view.ResizeObserver(() => ddFitViewport(dd, panel));
+        ro.observe(trigger);
+        ro.observe(panel);
       }
     }
   });
