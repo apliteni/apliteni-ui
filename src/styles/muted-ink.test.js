@@ -17,7 +17,7 @@ const root = new URL('../../', import.meta.url);
 const files = ['src', 'react/src'].flatMap(dir => readdirSync(new URL(dir, root), { recursive: true })
   .filter(file => file.endsWith('.css')).map(file => `${dir}/${file}`));
 const sheets = files.map(file => ({ file, css: readFileSync(new URL(file, root), 'utf8') }));
-const classes = new Set(['glyph', 'state', 'placeholder']);
+const classes = new Set(['glyph', 'state', 'placeholder', 'chrome']);
 const blank = text => text.replace(/\/\*[\s\S]*?\*\//g, c => c.replace(/[^\n]/g, ' '));
 const refs = value => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1]);
 
@@ -59,7 +59,7 @@ function inspect(sources) {
     && !(d.property === '-webkit-text-fill-color' && normalize(d.value) === 'transparent' && d.clipped)
     && quiet(d.value));
   const problems = subjects.filter(d => !d.note || !classes.has(d.note[1]) || !d.note[2].trim())
-    .map(d => `${d.file}:${d.line} ${d.selector}: ${d.value} needs a muted-ink glyph/state/placeholder note with a reason`);
+    .map(d => `${d.file}:${d.line} ${d.selector}: ${d.value} needs a muted-ink ${[...classes].join('/')} note with a reason`);
   return { subjects, problems };
 }
 
@@ -109,6 +109,19 @@ test('removing any real exception note is detected', () => {
       ? { ...s, css: s.css.slice(0, subject.noteStart) + s.css.slice(subject.noteStart + subject.note[0].length) } : s);
     assert(inspect(modified).problems.length > 0, `${subject.file}: ${subject.selector}`);
   }
+});
+
+test('the chrome class stays on a drawing\'s own furniture', () => {
+  // The fourth class was agreed for one shape: the scale and the key a chart
+  // prints beside its marks, where every value it names is also given in full
+  // in the readout and in the values table. A class with no bound is a second
+  // default, so the declarations taking it are listed rather than counted.
+  assert.deepEqual(result.subjects.filter(d => d.note?.[1] === 'chrome')
+    .map(d => `${d.file} ${d.selector}`).sort(), [
+    'src/styles/chart.css .ui-chart__axis',
+    'src/styles/chart.css .ui-chart__legend',
+    'src/styles/chart.css .ui-chart__period',
+  ]);
 });
 
 test('literal token equivalents seed aliases across both themes', () => {

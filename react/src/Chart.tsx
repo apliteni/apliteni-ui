@@ -2,7 +2,7 @@
 // beside a figure. The arithmetic is the kit's (src/logic/chart.js), the readout
 // is the kit's tooltip, and the paint is the kit's tokens — this file owns the
 // pixels, the keyboard and the markup, and nothing else.
-// why: docs/specification.md#react-charts
+// why: docs/components.md#react-charts
 import {
   useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState,
   type CSSProperties, type KeyboardEvent as ReactKeyboardEvent,
@@ -16,7 +16,7 @@ import { placeTip } from './tip';
 // copy at equal specificity. The chart has no vanilla markup for a story to
 // render, so there is nothing to measure that re-emission against. A consumer
 // imports both sheets, which is what react/README.md asks for, and the kit's copy
-// is the only one. why: docs/specification.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
+// is the only one. why: docs/components.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
 
 export type ChartTone =
   | 'accent' | 'accent-soft' | 'good' | 'bad' | 'warn' | 'info' | 'neutral';
@@ -128,6 +128,8 @@ type Frame = {
   bars: { id: string; name: string; tone: ChartTone; column: number; from: number; to: number;
     detail: string; band: Band }[];
   lines: Line[];
+  /** A bridge carries its running total from each step to the next. */
+  links: boolean;
   keys: Key[];
   tableHead: string[];
   tableRows: { column: Column; cells: string[] }[];
@@ -165,20 +167,27 @@ const PHONE_MAX = 560;
  */
 const FALLBACK_COL = 48;
 /**
- * The share of its column a bar takes. Half leaves as much ground between two
- * columns as either column draws, so twelve months read as twelve rather than as
- * one block. It was 0.62 and came down to 0.5 with restyle 01 on #543; the
- * references run from a third of the column to well over half, so the spread is
- * real and the width is drawn as an alternative rather than changed again.
+ * The share of its column a bar may take, and the width it may never pass. The
+ * share alone let a bar grow with the card: at a desktop width twelve months
+ * became twelve 45px blocks and the plot read as one mass of colour. A mark is
+ * capped instead, and the rest of the column is ground — which is the one
+ * proportion every reference keeps, however wide the chart is drawn.
  */
 const BAR_SHARE = 0.5;
+const BAR_MAX = 24;
+/**
+ * The same cap for a bridge, whose columns are not a month's. A bridge draws
+ * one column per step and each carries its own name, so a column is three or
+ * four times as wide; a mark capped at a month's width would be a sliver in it,
+ * and the carry joining two steps would be longer than the steps it joins.
+ */
+const BAR_MAX_BRIDGE = 40;
 /**
  * The corner radius a bar spends on the end the reader measures from. The other
  * end stands on the zero line and stays square: a rounded foot lifts the bar off
  * the one rule the chart draws, and the top of a bar has to measure its length.
- * why: docs/specification.md#react-charts
  */
-const BAR_RADIUS = 3;
+const BAR_RADIUS = 4;
 
 /** What the table prints where the caller gave no value, as the kit's numeric
  *  value formatter does. */
@@ -290,6 +299,7 @@ function seriesFrame(
     scale,
     bars,
     lines,
+    links: false,
     keys: series.map((s) => ({
       id: s.id, name: s.name, shape: shapeOf(s),
       tone: s.tone ?? (shapeOf(s) === 'line' ? 'neutral' : 'accent'),
@@ -330,6 +340,7 @@ function bridgeFrame(
       band: 'full' as Band,
     })),
     lines: [],
+    links: true,
     keys: named,
     tableHead: ['Step', 'Amount', 'Running total'],
     tableRows: walk.map((step, i) => ({ column: columns[i], cells: [format(step.value), format(step.to)] })),
@@ -394,7 +405,7 @@ export function Chart(props: ChartProps) {
    * a point near the top read 28 x 19.4 where its attributes said 28 x 32. The
    * line keeps the height it is drawn at and is centred in the taller box, so
    * the reader sees the same sparkline and the target is whole.
-   * why: docs/specification.md#react-charts
+   * why: docs/components.md#react-charts
    */
   const boxHeight = Math.max(plotHeight, floor);
   const boxTop = -(boxHeight - plotHeight) / 2;
@@ -404,7 +415,8 @@ export function Chart(props: ChartProps) {
     [scale.max, span, plotHeight],
   );
   const zero = y(Math.min(Math.max(0, scale.min), scale.max));
-  const barWidth = Math.max(4, Math.min(colWidth * BAR_SHARE, colWidth - 6));
+  const barWidth = Math.max(4, Math.min(colWidth * BAR_SHARE, colWidth - 6,
+    variant === 'bridge' ? BAR_MAX_BRIDGE : BAR_MAX));
   const centre = useCallback((column: number) => column * colWidth + colWidth / 2, [colWidth]);
 
   const marks = useMemo<Mark[]>(() => {
@@ -522,7 +534,7 @@ export function Chart(props: ChartProps) {
   }, [openId]);
 
   // Escape dismisses the mark it was pressed on; the readout comes back on the
-  // next one, not on that one. why: docs/specification.md#the-hover-readout
+  // next one, not on that one. why: docs/components.md#the-hover-readout
   const show = (id: string | null | undefined) => {
     if (!id || dismissed.current === id) return;
     dismissed.current = null;
@@ -662,7 +674,7 @@ export function Chart(props: ChartProps) {
             ring it draws there is the browser's, not the kit's. The frame is the
             chart's one tab stop and its arrows scroll this box, so the box is
             taken out of the tab order rather than given a second name.
-            why: docs/specification.md#react-charts */}
+            why: docs/components.md#react-charts */}
         <div ref={scroller} className="ui-chart__scroll" tabIndex={-1} onScroll={syncEdges}>
           <div ref={plot} className="ui-chart__plot" style={{ '--ui-chart-cols': count } as CSSProperties}>
             <svg
@@ -718,13 +730,37 @@ export function Chart(props: ChartProps) {
                 announce(mark.column, selectable ? mark.column : pick);
               }}
             >
+              {/* The picked column, behind everything the chart draws. Selection
+                  is a background highlight and nothing else; the outline on the
+                  frame belongs to focus. The band is a quiet fill rather than
+                  the accent, which the chart spends on a series, and the picked
+                  label carries the weight that survives with no colour at all. */}
+              {!spark && pick !== null && pick >= 0 && pick < count && (
+                <rect className="ui-chart__band"
+                  x={px(pick * colWidth)} width={px(colWidth)}
+                  y={px(boxTop)} height={px(boxHeight)} />
+              )}
+
+              {/* The carry a bridge draws from each step to the next: the running
+                  total leaves one column at the height it reached and meets the
+                  next where it starts from. Without it a waterfall is a row of
+                  floating blocks and the reader has to find the walk. */}
+              {frame.links && frame.bars.slice(0, -1).map((bar, i) => {
+                const from = byId.get(bar.id);
+                const to = byId.get(frame.bars[i + 1].id);
+                return from && to ? (
+                  <line key={`carry-${bar.id}`} className="ui-chart__carry"
+                    x1={px(from.x + from.w)} x2={px(to.x)}
+                    y1={px(y(bar.to))} y2={px(y(bar.to))} />
+                ) : null;
+              })}
+
               {/* A hairline at every tick, and the zero rule over them. The grid is
                   what carries a value across twelve columns to its label; the one
                   line a signed series is measured from is drawn heavier, which is
                   the one rule every reference keeps. Both go under every mark: the
                   bars stop ZERO_INSET short of zero so no bar can cover it, and a
-                  line or a dot crossing a rule paints over it.
-                  why: docs/specification.md#react-charts */}
+                  line or a dot crossing a rule paints over it. */}
               {!spark && scale.ticks.filter((tick) => tick !== 0).map((tick) => (
                 <line key={`grid-${tick}`} className="ui-chart__grid"
                   x1="0" x2={px(plotWidth)} y1={px(y(tick))} y2={px(y(tick))} />
@@ -749,7 +785,7 @@ export function Chart(props: ChartProps) {
                   which is how the dots already separate themselves from the line:
                   it buys the line its 3:1 against whatever it crosses, and the
                   bars it crosses are now its own hue.
-                  why: docs/specification.md#react-charts */}
+                  why: docs/components.md#react-charts */}
               {(['casing', 'stroke'] as const).map((layer) => lines.flatMap(
                 (line) => line.values.slice(1).map((value, i) => (
                   Number.isFinite(value) && Number.isFinite(line.values[i]) ? (
@@ -827,7 +863,7 @@ export function Chart(props: ChartProps) {
               them. A browser makes an overflowing box keyboard-focusable on its
               own, so the box is named and takes the kit's inward band rather
               than the browser's outline.
-              why: docs/specification.md#react-charts */}
+              why: docs/components.md#react-charts */}
           <div
             className="ui-table-scroll" role="region" tabIndex={0}
             aria-label={`${title}, as a table. Scroll for more columns.`}

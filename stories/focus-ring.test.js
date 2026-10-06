@@ -534,7 +534,7 @@ const SCROLL_NOT_A_STOP = [
   // The chart's plot overflows below the phone step. Its own frame is the one tab
   // stop and takes `--ring`; the arrow keys step columns from there and the scroller
   // follows. Joined on #543, when the restyle's rebase first brought the chart under
-  // this walk. why: docs/specification.md#react-charts
+  // this walk. why: docs/components.md#react-charts
   { selector: '.ui-chart__scroll', source: 'react/src/Chart.tsx', marks: /className="ui-chart__scroll" tabIndex=\{-1\}/ },
 ];
 
