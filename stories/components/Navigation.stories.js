@@ -70,18 +70,19 @@ export const Sidebar = {
       }),
     ),
     // The accent counter ON the active row. Since #429 it reads as the neutral one
-    // beside it: the row already carries the one accent signal a rail row is
-    // allowed — the marker — and the count is a number, not a second answer to
-    // "where am I". The rail above cannot show this pair: only one row is ever
+    // beside it: the row already carries the one mark a rail row is allowed — the
+    // plate — and the count is a number, not a second answer to "where am I".
+    // #475 took the accent bar off that plate; nothing on the row is accented
+    // now. The rail above cannot show this pair: only one row is ever
     // active. It is here so the contrast walk measures it rather than a person's
     // reading of it.
-    // src/styles/nav.css:168 `.ui-nav__item.is-active .ui-nav__badge.is-accent` drops
+    // src/styles/nav.css:155 `.ui-nav__item.is-active .ui-nav__badge.is-accent` drops
     // both the wash and the accent; deleted, that rule broke nothing in the suite
     // until this specimen existed. What it retires is the pair #157 recorded —
     // accent ink on --surface, under WCAG AA in four of the eight theme x accent
     // cells. See #157 and #429.
     specimen(
-      'The accent counter on the active row — the row carries the one accent signal, so the counter reads as the neutral one beside it',
+      'The accent counter on the active row',
       sidebarNav({
         ariaLabel: 'Overview',
         sections: [SECTIONS[0]],

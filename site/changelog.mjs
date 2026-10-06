@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.94.0', date: '2026-10-06',
+    changes: [
+      ['changed', 'The sidebar rail marks the current row with a plate alone, and the plate is now a fill you can see. The accent bar that stood in the row’s own left padding is gone, so no rail row is painted in the accent at any width. The plate is the quiet fill a rung off whatever the rail stands on: a rail on the page keeps the card surface, and inside the page shell — where the rail is that surface already — the row takes the kit’s quiet non-text fill instead. A rail folded to its glyph column marks the same row the same way and takes the same rung, so one standing on the page now paints the card surface where it painted the quiet fill. Nothing closes any of them: a selected row is a background and an outline means focus, so the hairline is gone and a hovered row takes half the plate’s fill instead of an edge. That keeps the row under the pointer quieter than the row you are on, at both widths and in both themes — on a folded rail in light it used to be the other way round. A folded rail outside the page shell answers a pointer with that wash, and sign out keeps its pink one, because such a rail has no floating name to answer with; inside the shell, where that name floats out of the rail, an ordinary folded row stays still under the pointer. Vanilla and React share the stylesheet, so both change together. Refs #475.', ['SidebarNav', 'AppShell']],
+    ],
+  },
+  {
     v: '0.93.0', date: '2026-10-05',
     changes: [
       ['changed', 'The kit\u2019s documentation is two reader pages instead of one specification: `docs/foundations.md` holds the tokens and the floors, and `docs/components.md` keeps the catalogue and says what each component guarantees. The specification is retired \u2014 a guarantee you rely on is now on one of those two pages, the per-prop React reference stays in `react/README.md`, and a heading you cited in the specification has moved to whichever page carries it. Nothing the kit draws changed: no CSS, no markup, no component behaviour, and no published name moved. Closes #559.'],

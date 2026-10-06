@@ -62,11 +62,13 @@
 .ui-app__rail > .ui-app__head,
 .ui-app__rail > .ui-app__user,
 .ui-app__rail > .ui-app__foot { width: var(--ui-nav-col); flex: none; }
-/* Hover keeps the reading surface and uses the edge declared in nav.css.
-   The danger row and the current row are left out by name because this
-   rule outranks the states nav.css writes for them.
-   */
-.ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: var(--surface); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
+/* The rail is itself --surface, so nav.css's plate has no step here: 1.000:1, with a
+   hairline as the whole resting mark. Both marks go a rung further — the current row
+   to the --surface-3 the folded rail already paints, a hovered row to half of it, so
+   the pointer stays quieter than the reader's own row in both themes (#475 r34). The
+   danger and current rows are named out: this rule outranks nav.css's states. */
+.ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+.ui-app__rail .ui-nav__item.is-active { background: var(--surface-3); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
 .ui-app__brand {
   display: flex;
   align-items: center;
@@ -107,18 +109,18 @@
    anywhere — so the rail's foot is the account block alone. */
 .ui-app__rail .ui-nav--side { flex: 1 1 auto; }
 
-/* Which row is current is structural here, not chromatic: the resting glyphs
-   step down so the current one is the brightest whatever --accent is doing, and
-   the bar beside it carries the hue. A 3x17px bar on a 45x44 tile was the
-   smallest of three weak signals doing the most work, so it grows with the row.
-   The current glyph's own ink is nav.css's rule now, not a copy here: since #429
-   EVERY rail reads it that way, so the rail's copy was the same sentence in a
-   second file. What is left here is the rail's own resting step. */
+/* Which row is current is structural here, not chromatic: the resting glyphs step
+   down so the current one is the brightest whatever --accent is doing, and the
+   plate nav.css draws around it carries no hue at all. #475 took the accent bar
+   that used to stand beside the glyph off every rail, so the line that grew it to
+   the taller tile here went with it. The current glyph's own ink is nav.css's rule
+   too, not a copy here: since #429 EVERY rail reads it that way, so the rail's copy
+   was the same sentence in a second file. What is left here is the rail's own
+   resting step. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1491 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1595 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
-.ui-app__rail .ui-nav__item.is-active::before { width: 3px; height: 62%; }
 
 /* A destructive row of the rail is a navigation row and rests like one; the danger
    intent is the step nav.css writes for it. Both of nav.css's danger states are
@@ -277,16 +279,12 @@
 :where(.ui-app:not(.ui-app--topbar).is-collapsed) .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
-/* The current row is ONE plate on the glyph column. Same rules as nav.css writes
-   for a standalone folded rail, and for the same reasons: the bar stands in the
-   row's own left padding, which on the strip is the rail's edge; the hairline is
-   drawn on a row that keeps the open column, so its right edge is off the strip;
-   and --ui-nav-strip is twice the glyph's centre, so a box that wide at the row's
-   edge is centred on the glyph. why: docs/components.md#the-page-shell */
+/* The current row's plate on the glyph column, and beside it the one thing a bare rail
+   does not do: an ordinary row drops its wash here, answered by the floating name below.
+   nav.css's folded rules, a rung further. why: docs/components.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ z-index: -1; }
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:hover:not(:focus-visible) { outline: none; }
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */ background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ z-index: -1; }
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: none; }
 /* The label IS the chip. `fixed` is the fallback placement, out of the rail's own
    clip; the @supports branch below pins it to the row and is the only one that
    survives a scroll. The toggle's selector is unscoped, because it is wordless at
@@ -490,9 +488,8 @@
   .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
   .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
   .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
-  .ui-app__rail .ui-nav__item.is-active:not(:focus-visible) { box-shadow: none; }
-  .ui-app__rail .ui-nav__item.is-active::before { left: 0; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ z-index: -1; }
-  .ui-app__rail .ui-nav__item:hover:not(:focus-visible) { outline: none; }
+  .ui-app__rail .ui-nav__item.is-active::before { content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */ background: var(--surface-3); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ z-index: -1; }
+  .ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: none; }
   /* The one line of this block that is deliberately NOT the reader's fold: a finger
      is the only pointer this width has, so a row and the account block are held to
      44px. Neither floor can spread to the press, where growing the box is the one

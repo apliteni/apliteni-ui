@@ -455,9 +455,10 @@
     {
       "file": "stories/nav-cascade.test.js",
       "name": "Nav cascade",
-      "does": "Checks three repaired rail declarations against their intended elements. Each was present in the stylesheet but ineffective, including a cancelled focus ring.",
+      "does": "Resolves the sidebar rail’s own cascade and reads four things out of it: that a nested group is indented, that the current row’s plate is a measured step above the ground the rail stands on with a hovered row strictly quieter than it and no outline on either, on a top-level row and a nested one alike, with no pseudo-element left painting on an open rail, that every focusable row shows the kit ring on :focus-visible, and that the current row keeps the heavier weight. Each rule gated here was once present in the stylesheet and ineffective, including a cancelled focus ring and a plate painted the colour of its own rail.",
       "blind": [
-        "JSDOM ranks author rules faithfully but does not rank by origin. The user-agent boundary is a known exception, documented in the contribution guide’s cascade section."
+        "JSDOM ranks author rules faithfully but does not rank by origin. The user-agent boundary is a known exception, documented in the contribution guide’s cascade section.",
+        "How large the mark looks to an eye. The step is composited down the ancestor chain and read as a contrast ratio, which is a number and not a perceptual distance — 1.19:1 is ΔL* 8.3 in dark and 1.11:1 is ΔL* 4.2 in light, so the same floor buys less in light. The rail inside the page shell stands on a different ground and is measured in stories/apps/shell-states.test.js; the browser captures on the pull request show both."
       ]
     },
     {
@@ -486,7 +487,7 @@
     {
       "file": "stories/apps/shell-states.test.js",
       "name": "Shell states",
-      "does": "Resolves the shell through the real cascade at every width, theme and accent so nothing disappears. It also checks the folded rail against the narrow-rail rule for each property and every element, both at rest and focused.",
+      "does": "Resolves the shell through the real cascade at every width, theme and accent so nothing disappears. It also checks the folded rail against the narrow-rail rule for each property and every element, both at rest and focused, and measures the contrast of the rail against the page and of the current and hovered rail rows against the rail.",
       "blind": [
         "Layout. Width is represented by a class, not a viewport."
       ]

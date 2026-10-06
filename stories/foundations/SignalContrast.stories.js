@@ -241,7 +241,7 @@ const CSS = `
     .sc-live__nums b { font-weight: 600; color: var(--strong); font-variant-numeric: tabular-nums; }
 
     /* The nav row's danger paint only exists on :hover
-       (src/styles/nav.css:122 \`.ui-nav__item.is-danger:hover\`).
+       (src/styles/nav.css:115 \`.ui-nav__item.is-danger:hover\`).
        A specimen cannot be hovered, so the same two declarations are restated
        here — tokens, identical values — to hold the row in its hover state. */
     .sc-hover .ui-nav__item.is-danger { background: var(--glow-pink); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ color: var(--pink); }
@@ -352,7 +352,7 @@ const sectionLive = () => {
           active: 'keys',
           ariaLabel: 'Account settings',
         }),
-        `${code('--pink')} on ${code('--glow-pink')} — ${code('src/styles/nav.css:122')} ${code('.ui-nav__item.is-danger:hover')}`,
+        `${code('--pink')} on ${code('--glow-pink')} — ${code('src/styles/nav.css:115')} ${code('.ui-nav__item.is-danger:hover')}`,
         both(byKey.pink, glowHex(byKey.pink), dGlow(byKey.pink)),
       )}
       ${liveSpecimen(

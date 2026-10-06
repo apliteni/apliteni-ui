@@ -185,12 +185,17 @@ unique name. It does not invent a breadcrumb that you did not pass. It does not 
 unless you pass one. **The rail folds** below 720px through CSS alone and through a `<button>`
 that the reader presses. That button writes the `apliteni-ui-rail` cookie, so a server can first
 paint the folded width with `railCollapsed()`. A folded row keeps its name and count for keyboard
-and pointer users. Every control in it clears the 24px floor and shows the ring. Pass
+and pointer users. Every control in it clears the 24px floor and shows the ring. **The current
+row is one plate, at either width.** It is a quiet fill behind the row, a measured step off
+whatever the rail stands on, and nothing closes it: no accent bar, no hairline and no outline,
+because an outline on a rail row means focus alone. A row under the pointer takes a lighter wash
+of the same fill, so the row the reader is on stays the louder of the two in both themes. Pass
 `signOutHref` and the reader's block becomes a kit `dropdown()`, with signing out as one of its
 rows. **The rail holds nothing that has to escape it**. It is sticky and scrolls. A dropdown
-mounted inside it therefore passes `portal: true`, and the panel stands one measured step from the
-page under every accent. `accountShell()` was retired in 0.81.0. Account and settings belong in
-a modal over the product, as [Account and settings](../guidelines/account-and-settings.md) says.
+mounted inside it therefore passes `portal: true`, and the panel stands one measured step from
+the page under every accent. `accountShell()` was retired in 0.81.0. Account and settings belong
+in a modal over the product, as [Account and settings](../guidelines/account-and-settings.md)
+says.
 
 #### A folded rail takes the pointer only where it draws
 

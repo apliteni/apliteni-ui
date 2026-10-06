@@ -294,7 +294,7 @@
         "pattern": ".ui-dropdown__item.is-danger:hover"
       },
       {
-        "ref": "src/styles/nav.css:122",
+        "ref": "src/styles/nav.css:115",
         "pattern": ".ui-nav__item.is-danger:hover"
       }
     ],
@@ -518,7 +518,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:420",
+        "ref": "src/styles/layout.css:418",
         "pattern": "rank: page-title"
       },
       {
@@ -560,7 +560,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:328",
+        "ref": "src/styles/layout.css:326",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -594,7 +594,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:462",
+        "ref": "src/styles/layout.css:460",
         "pattern": "@media (max-width: 720px)"
       },
       {
