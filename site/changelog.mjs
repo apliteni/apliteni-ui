@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.96.1', date: '2026-10-10',
+    changes: [
+      ['changed', 'The Iconography and Button labels guideline pages read shorter. Both lost repeated wording and captions that restated their own rule; every rule, reason, boundary and example they carried is still on the page. Nothing the kit draws changed. Closes #594.'],
+    ],
+  },
+  {
     v: '0.96.0', date: '2026-10-06',
     changes: [
       ['fixed', 'A dropdown panel stays inside the viewport horizontally, in both the vanilla kit and React. A trigger near either edge of the screen opened its 240px panel off that edge, open and shut alike, and `align` only moved the clipping to the other side; a page could only work around it by moving the trigger. `align` still chooses the edge the panel hangs from and keeps it wherever it fits. A shut panel no longer widens the page either: the same row made its page 489px wide on a 375px view with nothing clicked. Panel width is unchanged — the 240px floor stands — and a filter row still bounds its own panels. Fixes #572.', ['Dropdown']],
