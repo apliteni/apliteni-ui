@@ -574,7 +574,7 @@ test('the Finance report filters Paid rows and clears both filters', async () =>
   assert.equal(doc.querySelectorAll('tbody tr').length, 4);
   assert.ok([...doc.querySelectorAll('tbody .ui-badge')].every(badge => badge.textContent === 'Paid'));
   change('currency', 'USD');
-  assert.match(doc.querySelector('tbody').textContent, /No payouts match/);
+  assert.match(doc.querySelector('.ui-empty').textContent, /No payouts match/);
   host.dispatchEvent(new doc.defaultView.CustomEvent('ui-filter-clear'));
   assert.equal(doc.querySelectorAll('tbody tr').length, 7);
 });
