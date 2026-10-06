@@ -280,13 +280,13 @@ test('the numeric-header check rejects a sheet that lets them wrap', () => {
 /**
  * The pin's divider is the edge a column keeps while the rest moves under it, so it may
  * only be painted where the region can actually move horizontally. The sheet says this in two halves:
- * the scroll box reports its scroll state, and a query stands the divider down where the
- * answer is "no horizontal scroll". Both halves are read here, because either one alone paints the
+ * the scroll box reports its scroll state, and a query hides the divider where the
+ * answer is "no horizontal scroll". Either half alone paints the
  * line at every width — the first with nothing listening, the second with nothing to ask.
  *
  * Its limit: this reads the declarations, not the paint. JSDOM resolves no container
  * query, so that the divider is transparent at 1280 and solid at 390 is measured in
- * Chromium, in stories/contrast.test.js's ledger and the captures on the issue.
+ * Chromium by the three-shape checks in the review evidence.
  */
 const PIN_PAINT = /@container\s+not\s+scroll-state\(\s*scrollable:\s*x\s*\)\s*\{([^}]*\{[^}]*\}[^}]*)\}/;
 
@@ -348,7 +348,7 @@ test('the pin-paint check rejects a sheet that drops the divider from the restin
   ));
 });
 
- test('the pin-paint check rejects a condition that counts vertical overflow', () => {
+test('the pin-paint check rejects a condition that counts vertical overflow', () => {
   assert.throws(() => checkPinDividerPaint(
     CSS.replace('not scroll-state(scrollable: x)', 'scroll-state(scrollable: none)'),
   ));
