@@ -791,6 +791,43 @@ it('carries a bridge step\'s running total to the step beside it', () => {
     'a months chart carries nothing between its columns').toHaveLength(0);
 });
 
+// Two bar series standing on the same side of zero used to be drawn at the same
+// x, one over the other: the second hid the first and only its readout gave the
+// value away. They take a lane each instead.
+it('lays two bar series in one band side by side, with ground between them', () => {
+  const gap = Number(/const LANE_GAP = (\d+)/.exec(readRepo('./Chart.tsx'))![1]);
+  const { container } = render(
+    <Chart title="Income and spend" periods={periods} format={eur}
+      series={[
+        { id: 'income', name: 'Income', values: INCOME, shape: 'bars', tone: 'accent' },
+        { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars', tone: 'accent-soft' },
+      ]} />,
+  );
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const bars = [...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf);
+  const income = bars.slice(0, MONTHS.length);
+  const spend = bars.slice(MONTHS.length);
+  expect(spend).toHaveLength(MONTHS.length);
+  income.forEach((a, i) => {
+    expect(a.x, 'the first series takes the left lane').toBeLessThan(spend[i].x);
+    expect(spend[i].x - (a.x + a.width), 'with the ground between them')
+      .toBeCloseTo(gap, 1);
+    expect(a.width, 'and both lanes are drawn at one width').toBeCloseTo(spend[i].width, 1);
+  });
+  // Each lane answers for its own half of the column, so a pointer between the
+  // two bars still has the bar it is nearer to answer with.
+  const hits = [...svg.querySelectorAll('[data-mark] .ui-chart__hit')]
+    .map((h) => ({ x: Number(h.getAttribute('x')), w: Number(h.getAttribute('width')) }));
+  const columnWidth = Number(svg.getAttribute('width')) / MONTHS.length;
+  expect(hits[0].w).toBeCloseTo(columnWidth / 2, 1);
+  expect(hits[MONTHS.length].x).toBeCloseTo(columnWidth / 2, 1);
+  // The mirror the issue asks for is unchanged: one lane each side of zero.
+  const mirrored = months().container.querySelectorAll('path.ui-chart__bar');
+  const xs = new Set([...mirrored].map((b) => Math.round(boxOf(b).x)));
+  expect(xs.size, 'a mirrored chart draws one bar per column per side, centred')
+    .toBe(MONTHS.length);
+});
+
 // A column grows with the card; a mark does not. Without the cap, twelve months
 // at a desktop width were twelve 45px blocks and the plot read as one mass.
 it('caps a bar at a mark\'s width however wide its column is', () => {
