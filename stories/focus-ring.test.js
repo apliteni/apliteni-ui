@@ -61,6 +61,7 @@ import { catalogueCopy } from '../site/catalogue.mjs';
 import { iconNames } from '../src/assets/icons.js';
 // #531's no-stop half is a fact about the markup these two emit, not about a sheet.
 import { segmented } from '../src/components/index.js';
+import { navTabs } from '../src/components/nav.js';
 import { appShell } from '../src/components/shell.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -465,6 +466,12 @@ const SCROLL_RINGED = {
     + 'tabindex="-1", so the list takes the stop — measured at 390 and 1280 with the '
     + 'browser\'s outline. It sits 6px inside a 16px corner, where an outset ring leaves '
     + 'the panel and lights a box that is not the one that scrolls. #531',
+  '.ui-nav--tabs': 'the inward band, on the row. A tab row clips at its own padding '
+    + 'edge, so an outset ring on it is cut off by the very box that scrolls. The row is '
+    + 'a stop only while it scrolls AND every tab is disabled, because a disabled tab is '
+    + 'a <span> and the row is then left holding no link of its own — measured at 390 '
+    + 'with the browser\'s black outline on it, which is what #429 round r1 found. A row '
+    + 'with room for its links is no scroll box and no stop at all. #429',
   '.ui-drawer__body': 'the inward band, on the body. A text-only body scrolls and Tab '
     + 'reaches it between the close button and the footer\'s actions. The body is flush '
     + 'with a panel that is itself flush with a screen edge, so an outset ring — on either '
@@ -589,6 +596,36 @@ test('focus walk: every box excused as no stop holds keyboard-focusable rows of 
       `${selector} is excused because it holds its own stops, and holds none`);
     page.window.close();
   }
+});
+
+// Why the tab row is in the ringed half while the strip and the rail are excused.
+// Both of those hold rows the keyboard reaches by construction; `navTabs` does not —
+// every item may be disabled, and a disabled tab is a <span>. The row is then an
+// overflowing box with no stop inside it, so Chrome makes IT the stop and answered
+// that with its own black outline until #429 round r1 gave the row the band. This
+// reads the markup; the browser half is scripts/evidence/navigation-scroll.mjs.
+test('focus walk: a tab row loses its last stop when every tab is disabled', () => {
+  const render = (disabled) => navTabs({
+    ariaLabel: 'Finance views',
+    items: ['Summary', 'Payouts', 'Transactions'].map((label) => ({
+      id: label.toLowerCase(), label, disabled,
+    })),
+  });
+  const read = (markup) => {
+    const page = new JSDOM(`<!doctype html><html lang="en"><body>${markup}</body></html>`,
+      { virtualConsole: quiet });
+    const row = page.window.document.querySelector('.ui-nav--tabs');
+    assert.ok(row, 'navTabs rendered no row');
+    const stops = tabbableIn(row).length;
+    page.window.close();
+    return stops;
+  };
+  assert.ok(read(render(false)) >= 1, 'a row of enabled tabs holds the stops its links are');
+  assert.equal(read(render(true)), 0,
+    'an all-disabled row holds no stop, which is why the row carries a ring of its own');
+  // And the sheets answer that row's focus, which is the half this file reads.
+  assert.ok(ringRulesFor('.ui-nav--tabs', kitRules).length,
+    'nothing in the kit answers an all-disabled tab row\'s own focus');
 });
 
 // Prove that check rejects: the same reading over a scroller with nothing focusable

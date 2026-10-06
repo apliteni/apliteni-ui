@@ -388,7 +388,7 @@
     ],
     "section-lit": [
       {
-        "ref": "src/components/nav.js:109",
+        "ref": "src/components/nav.js:110",
         "pattern": "const current = activeIs === 'section'"
       }
     ],
@@ -939,7 +939,7 @@
     ],
     "nav": [
       {
-        "ref": "src/components/nav.js:106",
+        "ref": "src/components/nav.js:107",
         "pattern": "export function sidebarNav("
       },
       {

@@ -6,6 +6,16 @@
 
 export const RELEASES = [
   {
+    v: '0.96.0', date: '2026-10-06',
+    changes: [
+      ['added', 'React NavTabs and Breadcrumbs provide route navigation with native links, disabled text, and current-page announcements. Both accept renderLink for routers. Part of #429.', ['Navigation']],
+      ['added', 'Custom navigation can use safeUrl, observeNavFit, revealCurrentNav, and revealFocusedNav from the main entry. Call the function returned by observeNavFit when removing a row.', ['Navigation']],
+      ['changed', 'Selected pill tabs keep their soft accent fill and use body ink. The fill remains the only visible selection signal in ordinary colours. Its strength remains an open decision in #614.', ['Navigation']],
+      ['fixed', 'Tab rows contain scrolling without widening the page and update when labels, badges, or available width change. Keyboard focus reveals the whole focus band. Content measurements preserve the scroll position where space permits.', ['Navigation']],
+      ['fixed', 'An overflowing row with only disabled tabs draws the kit focus band on the row. Both tab appearances retain their selected mark in forced colours.', ['Navigation']],
+    ],
+  },
+  {
     v: '0.95.0', date: '2026-10-06',
     changes: [
       ['changed', 'The focus ring is one solid accent band with no glow, drawn as a real `outline` 1px off the control it marks. Every focusable control in the kit draws it \u2014 buttons, fields, checkboxes, switches, menu rows, tabs, links, chips and panels, in vanilla and React, light and dark. The band\u2019s colour and width are unchanged, so the contrast floor it is held to is the number it already measured; what is gone is the 12px halo over it, which was decoration rather than something a reader read. Artur chose this on #578 after #557 drew a scroll region\u2019s band the same way. Resolves #578.', ['Focus']],
