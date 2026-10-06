@@ -148,15 +148,17 @@ test('underline strips wrap and clip nothing', () => {
 });
 
 /* ---- forced colours ------------------------------------------------------
- * Forced-colors mode replaces `background-color` and keeps `outline`, `border`
- * and anything under `forced-color-adjust: none`. Since #475 the chosen segment
- * is carried by background alone, so without an answer here every pill reads
- * unselected; the underline appearance reserves a transparent bottom border on
- * every tab, which the mode makes visible, so there every tab reads selected.
- * Both faults were found by review on b6d9103, not by a gate — this is the gate.
- * Subjects are discovered from the sheet, so a third appearance with a selected
- * rule fails here until someone decides what it does in forced colours.
- * Browser evidence covers the rendered result; this holds the contract. */
+ * Forced-colors mode replaces every author colour. A declaration survives it by
+ * naming a system colour, or by sitting under `forced-color-adjust: none`;
+ * `opacity`, which is not a colour, is kept either way.
+ * That is a fault in each appearance, and a different one. The pill's selection
+ * is carried by `background` alone since #475, so with no answer here every pill
+ * reads unselected. The underline tab's mark is a bar painted `--accent`, which
+ * the mode repaints as the ink every resting label already has, so the bar would
+ * be there and say nothing. Both are restated below.
+ * Subjects are discovered from the sheet, so a third appearance with a chosen
+ * rule fails this file until someone decides what it says in the mode.
+ * The rendered result is browser evidence; this holds the contract. */
 const BLOCKS = (() => {
   const out = [];
   const open = /@media\s*\(\s*forced-colors\s*:\s*active\s*\)\s*\{/g;
@@ -168,44 +170,67 @@ const BLOCKS = (() => {
   return out;
 })();
 const forced = BLOCKS.join('\n');
-const forcedRules = [...forced.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, s, b]) => ({ selector: s.trim(), body: b }));
+const forcedRules = [...forced.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, sel, body]) => ({ selector: sel.trim(), body }));
 const SELECTED = /\.is-active|\[aria-pressed="true"\]|\[aria-selected="true"\]/;
-const PRESERVED = /(?:^|;)\s*(?:forced-color-adjust|outline|border(?!-radius)|text-decoration)/;
-// Rules outside the block that paint a chosen segment, and nothing else.
-const baseCss = BLOCKS.reduce((acc, block) => acc.split(block).join(''), css);
-const painted = [...baseCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-  .map(([, selector, body]) => ({ selector: selector.trim(), body }))
-  .filter((r) => SELECTED.test(r.selector) && /(?:^|;)\s*background(?:-color)?\s*:/.test(r.body));
+const SYSTEM = /\b(?:Highlight|HighlightText|Canvas|CanvasText|GrayText|ButtonFace|ButtonText|ButtonBorder)\b/;
+// What the mode can flatten, and therefore what owes it an answer. `opacity` is
+// not here: it is not a colour, so the reveal it drives survives the mode.
+const FLATTENED = /(?:^|;)\s*(?:background(?:-color)?|border(?:-[a-z]+)*-color|box-shadow|outline-color)\s*:/;
+// Which appearance a selector belongs to. `.ui-seg:not(.ui-seg--underline)` is
+// the pill, so the first `.ui-seg` wins and the exclusion is ignored.
+const appearanceOf = (selector) => /\.ui-seg(--[\w-]+)?/.exec(selector)?.[0] ?? null;
+const baseRules = [...baseCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .map(([, selector, body]) => ({ selector: selector.trim(), body }));
 
-test('forced colours: the sheet states a chosen segment with a property the mode keeps', () => {
-  assert.ok(BLOCKS.length === 1, 'expected exactly one forced-colors block to review');
-  assert.equal(painted.length, 2, 'selected-state paint rules changed; decide what each does in forced colours');
-  const answered = forcedRules.filter((r) => SELECTED.test(r.selector) && PRESERVED.test(r.body));
-  assert.ok(answered.length >= 2, 'every appearance that paints a chosen segment needs a forced-colors answer');
-  for (const appearance of [/:not\(\.ui-seg--underline\)/, /\.ui-seg--underline/]) {
-    assert.ok(
-      answered.some((r) => appearance.test(r.selector)),
-      `no forced-colors rule marks the chosen segment for ${appearance}`,
-    );
+test('forced colours: every appearance that marks a chosen segment answers the mode', () => {
+  assert.equal(BLOCKS.length, 1,
+    'the sheet answers forced colours in one block, so what the control says without the palette reads in one pass');
+  const marked = [...new Set(baseRules
+    .filter((r) => SELECTED.test(r.selector) && FLATTENED.test(r.body))
+    .map((r) => appearanceOf(r.selector))
+    .filter(Boolean))].sort();
+  assert.deepEqual(marked, ['.ui-seg', '.ui-seg--underline'],
+    'the appearances marking a chosen segment changed; decide what each says in forced colours');
+  const answered = new Set(forcedRules
+    .filter((r) => SELECTED.test(r.selector) && (SYSTEM.test(r.body) || /forced-color-adjust/.test(r.body)))
+    .map((r) => appearanceOf(r.selector)));
+  for (const appearance of marked) {
+    assert.ok(answered.has(appearance),
+      `${appearance} marks a chosen segment with a colour the mode drops and restates nothing`);
   }
 });
 
-test('forced colours: the underline appearance hides the edge it reserves on every tab', () => {
-  const reserved = rules.find((r) => r.selector === '.ui-seg--underline button');
-  assert.match(reserved.body, /border-bottom:[^;]*transparent/, 'the reserved transparent edge moved');
-  const hidden = forcedRules.find((r) => r.selector === '.ui-seg--underline button');
-  assert.match(
-    hidden?.body ?? '', /border-bottom-color:\s*Canvas/,
-    'forced colours paints the reserved edge on every tab unless it is named away, so all tabs read selected',
-  );
+test('forced colours: the chosen pill keeps a fill, and its ring and disabled pair come with it', () => {
+  // Opting out is what lets the pill keep a fill at all — and it carries the
+  // focus outline and the disabled paint out with it, so both are restated.
+  const chosen = forcedRules.find((r) => r.selector.includes('.ui-seg:not(.ui-seg--underline) button.is-active,'));
+  assert.equal(decl(chosen.body, 'forced-color-adjust'), 'none');
+  assert.equal(decl(chosen.body, 'background'), 'Highlight');
+  assert.equal(decl(chosen.body, 'color'), 'HighlightText', 'the label is read on the fill the mode gives it');
+  const ring = forcedRules.find((r) => r.selector.includes('.ui-seg:not(.ui-seg--underline) button.is-active:focus-visible'));
+  assert.match(decl(ring.body, 'outline') ?? '', /HighlightText/, 'an opted-out pill gets no outline from the mode');
+  assert.ok(/^-/.test(decl(ring.body, 'outline-offset') ?? ''),
+    'the ring is drawn inside the fill, which is the one colour that fill is guaranteed to contrast');
+  const off = forcedRules.find((r) => r.selector === '.ui-seg:not(.ui-seg--underline) button:disabled');
+  assert.equal(decl(off.body, 'color'), 'GrayText', 'an unavailable choice is the mode\'s own grey, not the kit\'s');
+});
+
+test('forced colours: the chosen tab\'s bar is restated, and its reveal is not', () => {
+  const slot = ruleBody(baseCss, '.ui-seg--underline button::before');
+  assert.equal(decl(slot, 'background'), 'var(--accent)', 'the bar the mode would flatten');
+  assert.equal(decl(slot, 'opacity'), '0');
+  const bar = forcedRules.find((r) => r.selector.includes('.ui-seg--underline button.is-active::before'));
+  assert.equal(decl(bar.body, 'background'), 'Highlight',
+    'repainted as the labels\' own ink, the bar would be drawn and mark nothing');
+  assert.equal(forcedRules.some((r) => /(?:^|;)\s*opacity\s*:/.test(r.body)), false,
+    'the mode keeps opacity, so the reveal needs no restatement here');
 });
 
 test('forced colours: system colours stay inside the block, so normal rendering is untouched', () => {
-  const SYSTEM = /\b(?:Highlight|HighlightText|Canvas|CanvasText|GrayText|ButtonFace|ButtonText|ButtonBorder)\b/g;
   const outside = css.split(forced).join('');
   assert.equal(
-    outside.match(SYSTEM), null,
+    outside.match(new RegExp(SYSTEM.source, 'g')), null,
     'a system colour outside the forced-colors block would change the look Artur picked on r23',
   );
-  assert.ok(forced.match(SYSTEM).length >= 4, 'the block should name system colours rather than kit tokens');
+  assert.ok(forced.match(new RegExp(SYSTEM.source, 'g')).length >= 4, 'the block should name system colours rather than kit tokens');
 });

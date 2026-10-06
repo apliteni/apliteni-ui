@@ -142,25 +142,21 @@
    (0,2,1) — so the chosen tab would focus with no indicator. Restated here. */
 .ui-seg--underline button.is-active:focus-visible,
 .ui-seg--underline button[aria-pressed="true"]:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
-/* The mode repaints an author colour, so the bar comes back as the labels' own
-   ink. `Highlight` is kept where it is named: one mark the mode cannot flatten. */
+/* Forced colours is answered in one place, so what the control says when the
+   palette is taken away can be read in one pass.
+   The mode repaints an author colour, so the bar comes back as the labels' own
+   ink. `Highlight` is kept where it is named: one mark the mode cannot flatten.
+   The bar is still revealed by `opacity`, which the mode keeps, so a resting tab
+   goes on showing nothing.
+   The pill appearance has the harder fault. Since #475 its selection is carried
+   by `background` alone, and the mode drops every author background — so without
+   an answer here every pill reads unselected. Opting the chosen pill out is what
+   lets it keep a fill at all; that also stops the mode recolouring its focus
+   outline and its disabled pair, so both are restated rather than left to the
+   rules above. #475 */
 @media (forced-colors: active) {
   .ui-seg--underline button.is-active::before,
   .ui-seg--underline button[aria-pressed="true"]::before { background: Highlight; }
-}
-.ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
-.ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }
-
-/* Forced colours drop `background-color`, and since #475 the raised step is the
-   only thing carrying selection — so without this block every pill reads
-   unselected. The underline appearance has the opposite fault: it reserves a
-   transparent bottom border on every tab and the mode makes all of them visible,
-   so every tab reads selected. Both states are restated with properties the mode
-   keeps. The block is inert in normal rendering, so Artur's r23 look is untouched.
-   Opting the chosen pill out is what lets it keep a fill at all; that also stops
-   the mode recolouring its focus outline and its disabled pair, so both are
-   restated here rather than left to the rules above. #475 */
-@media (forced-colors: active) {
   .ui-seg:not(.ui-seg--underline) button.is-active,
   .ui-seg:not(.ui-seg--underline) button[aria-pressed="true"],
   .ui-seg:not(.ui-seg--underline) button[aria-selected="true"] {
@@ -168,6 +164,8 @@
     background: Highlight;
     color: HighlightText;
   }
+  /* Offset inwards: at 0 the ring would be drawn against the Highlight fill it
+     surrounds, in the one colour that fill is guaranteed to contrast. */
   .ui-seg:not(.ui-seg--underline) button.is-active:focus-visible,
   .ui-seg:not(.ui-seg--underline) button[aria-pressed="true"]:focus-visible,
   .ui-seg:not(.ui-seg--underline) button[aria-selected="true"]:focus-visible {
@@ -179,8 +177,6 @@
     background: Canvas;
     color: GrayText;
   }
-  .ui-seg--underline button { border-bottom-color: Canvas; }
-  .ui-seg--underline button.is-active,
-  .ui-seg--underline button[aria-pressed="true"] { border-bottom-color: Highlight; }
-  .ui-seg--underline button:disabled { color: GrayText; }
 }
+.ui-seg button:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }
