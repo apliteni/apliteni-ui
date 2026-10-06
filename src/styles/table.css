@@ -211,7 +211,7 @@
    not one. why: guidelines/dense-tables.md */
 .ui-table-scroll {
   overflow: auto; max-height: var(--ui-table-height, 70vh); padding: 0 var(--space-1);
-  background-color: var(--table-bg); /* ring-gap: inherit — the box paints the surface its card already holds, so the ground outside its ring is the one it had. */
+  background-color: var(--table-bg);
   background-image:
     linear-gradient(to right, var(--table-bg) 50%, transparent),
     linear-gradient(to left, var(--table-bg) 50%, transparent),

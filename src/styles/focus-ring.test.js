@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 // shell control joins by existing. why: #457
 //
 // Limits. It reads the cascade, not paint: ring visibility against the surface behind
-// it is stories/ring-surfaces.test.js and the contrast ledger, and whether
+// it is stories/focus-ring.test.js and the contrast ledger, and whether
 // :focus-visible matches is the browser's, measured in the captures. Discovery reads
 // literal class strings, so a className built as a template literal is invisible here
 // and the count is a floor rather than a census. Controls composed from other
@@ -25,7 +25,7 @@ const shellControls = () => [...SHELL.matchAll(/<(a|button)\s[^>]*className="([^
 
 // Rules that paint the kit ring, with the selectors that reach it.
 const ringSelectors = (css) => [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-  .filter(([, , body]) => /box-shadow:\s*var\(--ring\)/.test(body))
+  .filter(([, , body]) => /outline:\s*var\(--ring\)/.test(body))
   .flatMap(([, selector]) => selector.split(','))
   .filter((part) => part.includes(':focus-visible'));
 
@@ -46,8 +46,8 @@ test('every link and button the shell writes takes the kit ring', () => {
 // by the shared ring list in base.css and by the vanilla topbar's own one-liner, so
 // dropping either alone leaves the other.
 const MUTATIONS = [
-  ['.toggle:focus-visible,\n', '.toggle:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }\n'],
-  ['.ui-app__brand:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }\n'],
+  ['.toggle:focus-visible,\n', '.toggle:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }\n'],
+  ['.ui-app__brand:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }\n'],
 ];
 
 test('the check rejects a shell control dropped from the ring', () => {

@@ -129,11 +129,11 @@ function winner(map, { prop, subject, bar }) {
   return found.sort((a, b) => weight(a.selector) - weight(b.selector) || a.order - b.order).pop() || null;
 }
 
-/** The ring's reach past a control's border box: its gap, its band, and the halo past them. */
+/** The outline reaches its offset plus its width past the control. */
 function ringReach(tokens) {
-  const halo = /0 0 (\d+)px (\d+)px color-mix/.exec(tokens);
-  assert.ok(halo, 'the halo is no longer the last shadow in --ring; this gate reads it to size the room below a focused action');
-  return pxOf('var(--ring-gap-width)', tokens) + pxOf('var(--ring-width)', tokens) + Number(halo[1]) + Number(halo[2]);
+  assert.match(tokens, /--ring:\s*var\(--ring-width\) solid var\(--ring-color\)/,
+    'the measurement requires the kit outline recipe');
+  return pxOf('var(--ring-offset)', tokens) + pxOf('var(--ring-width)', tokens);
 }
 
 /* Every use of the token, and nothing else, with the context it is written under. The
@@ -259,7 +259,7 @@ const MUTATIONS = [
       'var(--ui-app-bottom-clearance, 0px)']],
   ['the ring\'s room shrunk under the ring',
     ['react/src/AppShell.css', 'calc(var(--space-5) + var(--ui-app-bottom-clearance, 0px))',
-      'calc(var(--space-1) + var(--ui-app-bottom-clearance, 0px))']],
+      'calc(1px + var(--ui-app-bottom-clearance, 0px))']],
   ['the kit\'s phone end space spent, leaving a no-bar page nothing below its last row',
     ['src/styles/layout.css', '.ui-app__main { padding: 28px var(--space-4) 56px; }',
       '.ui-app__main { padding: 28px var(--space-4) 0; }']],
@@ -303,7 +303,7 @@ test('every part of the contract has a mutation aimed at it', () => {
  *
  * What #434 shipped read correctly and measured wrong: the phone shell's bottom padding
  * was 0, the root's scroll padding `auto`, and a focused Undo ended at 843.953px of an
- * 844px viewport with its band and halo off the screen. No sheet reading finds that.
+ * 844px viewport with its outline off the screen. No sheet reading finds that.
  *
  * Off unless BOTTOM_CLEARANCE=1, because Playwright is not a dependency and CI drives
  * no browser. Build the React Storybook, then run it by hand and report it in the PR:

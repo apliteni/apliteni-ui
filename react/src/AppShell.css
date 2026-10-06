@@ -10,9 +10,7 @@
   /* Keyed on the bar, not the shell: a one-section shell renders no bar, so that page
      has nothing to hold room for. */
   :root:has(.ui-react-app__bottom) { --ui-app-bottom-clearance: calc(96px + env(safe-area-inset-bottom)); }
-  /* Keyed on the shell, because the ring is drawn whether a bar is or not: scrolling an
-     action into view lands its border box on the viewport edge, and the 3px band and the
-     14px halo past it are then off the screen. The bar's room is added to the ring's. */
+  /* Root scroll padding leaves room for the outline with or without the bottom bar. */
   :root:has(.ui-react-app) { scroll-padding-bottom: calc(var(--space-5) + var(--ui-app-bottom-clearance, 0px)); }
   .ui-react-app { display: block; }
   .ui-react-app > .ui-app__rail { display: none; }
