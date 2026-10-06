@@ -16,7 +16,7 @@ import { payoutHref, reportHref } from '../apps/_finance-nav.js';
 // pair differ in one decision.
 export const SPEC_CSS = `${CHART_CSS}
   <style>
-    .gd-stage { background: var(--bg); --ring-gap: var(--bg); border-radius: var(--radius-lg);
+    .gd-stage { background: var(--bg); border-radius: var(--radius-lg);
       padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
     .gd-note { margin: var(--space-3) 0 0; font: var(--weight-normal) var(--text-sm)/1.65 var(--font-sans);
       color: var(--text); max-width: var(--prose-dense); }

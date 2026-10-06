@@ -225,15 +225,10 @@
 .ui-table tbody tr.is-target > :is(td, th),
 .ui-table--hover tbody tr.is-target:hover > :is(td, th),
 .ui-table--zebra.ui-table--hover tbody tr.is-target:hover > :is(td, th) {
-  background: color-mix(in srgb, var(--accent) 12%, transparent); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
+  background: color-mix(in srgb, var(--accent) 12%, transparent); /* code-bg: inherit — this translucent wash leaves the chip on its opaque ground. */
 }
 
-/* The row the keyboard is standing on takes --ring-scroll — the band without the halo,
-   drawn inward — and not the shadow ring: a row is as wide as the table, and --ring's halo
-   spreads 14px past its band, so on a row it would wash the rows above and below and the
-   card around them. It is the same picture the table's own scroll region takes (card.css),
-   so a focused row inside one draws that band rather than a second, louder one, and no row
-   that can take the keyboard falls back to the browser's own outline.
+/* A focused row draws the shared ring inward, like its containing scroll region.
    why: docs/foundations.md#the-focus-ring */
 .ui-table tbody tr:focus-visible {
   outline: var(--ring-scroll);
