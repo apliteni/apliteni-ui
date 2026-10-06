@@ -13,7 +13,7 @@
 }
 
 /* Selection highlight kept while the composer is open */
-.ui-fbmark { background: var(--ui-fb-sel); border-radius: 3px; box-shadow: 0 0 0 3px var(--ui-fb-sel); /* ring-gap: inherit — translucent wash around the reader's own selected words, with no nested focus target. */ }
+.ui-fbmark { background: var(--ui-fb-sel); border-radius: 3px; box-shadow: 0 0 0 3px var(--ui-fb-sel); }
 
 /* The floating pill anchored above the selection */
 .ui-fbpill {

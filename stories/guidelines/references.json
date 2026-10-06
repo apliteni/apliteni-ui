@@ -774,7 +774,7 @@
         "pattern": "outline: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:276",
+        "ref": "src/tokens/tokens.css:284",
         "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
       }
     ],
