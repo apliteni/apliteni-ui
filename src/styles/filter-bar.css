@@ -10,7 +10,7 @@
      button — so it is a painted container, not a control that inherits the gap
      outside it. It joins the shared recomposition in tokens.css beside .ui-seg,
      which is also what hands an inline code chip the page from here. */
-  background: var(--surface); --ring-gap: var(--surface);
+  background: var(--surface);
 }
 .ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); }
 .ui-filter-bar__remove { border: 0; background: transparent; color: var(--text); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-xs); cursor: pointer; }
