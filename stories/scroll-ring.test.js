@@ -259,23 +259,10 @@ test('nothing is left for forced colours to correct', () => {
   assert.deepEqual(standIns, [],
     'a transparent stand-in outline is back; with the band on the same property it is '
     + 'either silencing the band or waiting to be repainted beside it');
-  // One forced-colors block is left in the kit and it is not about focus: #527's
-  // underline strip restates its CHOSEN TAB's accent bar in `Highlight`, because the
-  // mode repaints an author colour and would otherwise leave that bar in the labels'
-  // own ink. A block that declares `outline` or `box-shadow` would be correcting the
-  // band instead, which is the thing #578 removed the need for.
-  const forced = [...source.replace(/\/\*[\s\S]*?\*\//g, '')
-    .matchAll(/@media\s*\(forced-colors:\s*active\)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)]
-    .map(([, body]) => body);
-  assert.equal(forced.length, 1,
-    'a forced-colors block was added or removed. The band is a real outline now, so a '
-    + 'new block is either a second indicator or a correction for one');
-  assert.doesNotMatch(forced[0], /(?:^|[;{\s])(?:outline|box-shadow)\s*:/,
-    'the kit\'s one forced-colors block has started correcting a focus indicator; the '
-    + 'band is a real outline and the mode repaints it without help');
+
 });
 
-const INDICATOR = /^(outline|box-shadow)/;
+
 
 /**
  * The forced-colours blocks that are NOT about a focus indicator, each named by its
@@ -295,6 +282,8 @@ const INDICATOR = /^(outline|box-shadow)/;
  * through by being WRITTEN DOWN here, declaration by declaration; anything else fails
  * whatever it declares, and a permitted block that grows a declaration fails too.
  */
+const FORCED = /forced-colors\s*:\s*active/;
+const INDICATOR = /^(outline|box-shadow)/;
 const PERMITTED_FORCED = {
   '.ui-seg--underline button.is-active::before, .ui-seg--underline button[aria-pressed="true"]::before': {
     why: 'the underline strip\'s chosen tab restates its accent bar in `Highlight`, because '
@@ -336,10 +325,7 @@ function emulateForcedColors(css) {
   // Every block is flattened in, which is the proof each one is reachable.
   const flattened = blocks
     .map((rule) => `${rule.selector} { ${rule.decls.map((d) => `${d.prop}: ${d.value}`).join('; ')} }`);
-  // Of those, one touches a focus indicator: the snippet's `<pre>`, which hands its
-  // ring to the card around it (#474) and drops its own transparent outline so the
-  // system repaints one indicator rather than two. #531's regions delegate to nobody
-  // and need no such block — which is what makes this number the check it is.
+  // A real outline needs no forced-colour correction.
   const indicators = blocks.filter((rule) => rule.decls.some((d) => INDICATOR.test(d.prop)));
   assert.equal(indicators.length, 0,
     'a forced-colors block touching a focus indicator was added or removed; a scroll '

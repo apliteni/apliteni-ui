@@ -1,5 +1,5 @@
 import { Fragment, forwardRef, useEffect, useRef, useImperativeHandle, type ComponentPropsWithoutRef, type ReactNode } from 'react';
-import { safeUrl, revealCurrentNav, revealFocusedNav } from '@apliteni/apliteni-ui';
+import { safeUrl, observeNavFit, revealCurrentNav, revealFocusedNav } from '@apliteni/apliteni-ui';
 
 export type NavTabBadge = string | number | {
   text: string | number;
@@ -27,19 +27,12 @@ export const NavTabs = forwardRef<HTMLElement, NavTabsProps>(function NavTabs({
 }, ref) {
   const navRef = useRef<HTMLElement>(null);
   useImperativeHandle(ref, () => navRef.current!, []);
-  // The item list, not the array holding it: an inline `items={[…]}` is a new
-  // array on every parent render, and re-running this would rewrite scrollLeft
-  // out from under a reader who had scrolled the row.
   const signature = items.map((item) => item.id).join('\u0000');
-  // `variant` is in here with them because it changes the row's gaps and a tab's
-  // padding, so it changes whether the links still fit — which is what decides
-  // whether the row scrolls, and clips, at all.
+  useEffect(() => observeNavFit(navRef.current!), []);
+  // Content and size measurements never reveal the active route again.
   useEffect(() => {
-    const reveal = () => { if (navRef.current) revealCurrentNav(navRef.current); };
-    reveal();
-    window.addEventListener('resize', reveal);
-    return () => window.removeEventListener('resize', reveal);
-  }, [active, signature, variant]);
+    if (navRef.current) revealCurrentNav(navRef.current);
+  }, [active, signature]);
   return (
     <nav {...rest} ref={navRef}
       className={['ui-nav', 'ui-nav--tabs', `is-${variant}`, className].filter(Boolean).join(' ')}

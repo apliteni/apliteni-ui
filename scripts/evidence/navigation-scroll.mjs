@@ -36,7 +36,7 @@ const WALK = `(() => {
     inRow: true, label: el.textContent.trim(), scrollLeft: round(nav.scrollLeft),
     clipped: round(Math.max(0, b.right + ${RING} - n.right, n.left - (b.left - ${RING}))),
     nativeOutline: style.outlineStyle === 'auto',
-    ringShadow: style.boxShadow !== 'none' && style.boxShadow !== '',
+    kitRing: style.outlineStyle === 'solid' && parseFloat(style.outlineWidth) === 2,
   };
 })()`;
 
@@ -104,7 +104,7 @@ try {
         const nav = document.querySelector('.ui-nav--tabs');
         nav.querySelector('[aria-current]')?.removeAttribute('aria-current');
         nav.querySelectorAll('a')[3].setAttribute('aria-current', 'page');
-        const { wireNav } = await import('/src/components/nav.js');
+        const { wireNav } = await import('${base}/src/components/nav.js');
         wireNav();
         return true;
       })()`);
@@ -146,7 +146,7 @@ try {
         assert.equal(step.clipped, 0,
           `${subject.id} ${theme}: "${step.label}" draws ${step.clipped}px of its band outside the row`);
         assert(!step.nativeOutline, `${subject.id} ${theme}: "${step.label}" fell back to a native outline`);
-        assert(step.ringShadow, `${subject.id} ${theme}: "${step.label}" draws no kit ring`);
+        assert(step.kitRing, `${subject.id} ${theme}: "${step.label}" draws no kit ring`);
         walks.push({ workspace, story: subject.id, theme, ...step });
       }
       assert.equal(seen, 3, `${subject.id} ${theme}: Tab reached ${seen} links in the row, expected 3`);

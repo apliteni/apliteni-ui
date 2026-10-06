@@ -237,22 +237,16 @@ current section, not the page. When a page should take one:
 the column, the row scrolls inside itself and the page does not widen.** A breadcrumb trail does
 the opposite, and wraps.
 
-A scroll box clips its children's paint at its padding edge, and the focus ring uses no layout
-space, so a row that scrolls keeps 4px of room inside its box for the ring's 3px band and takes
-the same 4px back in negative margins. The row therefore still starts on the page gutter, and the
-active underline still sits on the row's rule. **Only a row whose links do not fit scrolls**: a
-row with room to spare clips nothing, so the ring on a link in it keeps its halo. Deciding that
-needs a measurement, which is `wireNav()`'s and `revealCurrentNav()`'s job. A row rendered on a
-server, or left unwired, scrolls at every width; it holds the page either way.
+**The row stays aligned with the page gutter, and the active underline stays on the row rule.**
+Call `wireNav()` for vanilla rows. React rows update automatically when their labels, badges, or available width change.
+Use `observeNavFit()` for custom rows, and call its returned function when removing the row.
+Server-rendered or unwired rows keep their scroll containment.
 
-**A row that scrolls brings the link the keyboard lands on to its content edge**, which leaves
-that 4px between the link and the scrolling edge for the band. Chromium brings a focused link no
-further than the edge itself, so a link at the end of a row arrived with its band cut off. The
-scroll moves neither focus nor the page.
+**Keyboard navigation reveals each focused link with its complete focus band.**
+The row scrolls without moving focus or scrolling the page. Content and container changes preserve the reader's scroll position where space permits.
 
-**A row whose tabs are all disabled holds no link, so the row itself becomes the keyboard stop.**
-It answers with the inward band the kit's other scroll regions draw, and never with the browser's
-own outline.
+**An overflowing row with only disabled tabs becomes a keyboard stop.**
+It draws the kit's inward focus band. A fitting row supplies no separate keyboard stop.
 
 ### The selected tab spends one accent
 
@@ -263,13 +257,8 @@ lightness**: against the page it runs from 1.091:1 to 1.342:1 across the themes 
 the 3:1 that WCAG 1.4.11 asks of a mark identifying a state. Both appearances therefore name the
 state as well, with `aria-current="page"`.
 
-**Forced colours are the one place that step says nothing**, because the mode repaints the pill's
-wash and the underline's bar with the page's own ground. There, and only there, the selected tab
-takes the system's own selected pair: `Highlight` behind it, `HighlightText` on it, the badge
-riding the same pair inverted, and the underline's bar `Highlight`. The shade comes from the
-reader's theme rather than from the kit, and the pair contrasts by construction. The selected pill
-opts out of the forced palette, because Chromium plates each run of text with the page ground and
-a plated label is no longer on the fill behind it. Ordinary colours are untouched.
+**In forced colours, both appearances retain a visible selected mark using the reader's system colours.**
+The pill label and badge remain readable. Ordinary colours are unchanged.
 
 ### The dropdown panel
 
@@ -748,7 +737,7 @@ that swallowed Space would also prevent the reader from scrolling the page.
 
 ### React route navigation
 
-`NavTabs` and `Breadcrumbs` render the same `nav.css` classes as the vanilla factories, so every
+`NavTabs` and `Breadcrumbs` use the same presentation as the vanilla factories, so every
 guarantee above holds for them too. `NavTabs` takes unique item IDs, a controlled active ID, the
 underline or pill presentation, and optional badges. It uses native links and
 `aria-current="page"`, with no tablist or panel roles. **A disabled item is non-focusable text**

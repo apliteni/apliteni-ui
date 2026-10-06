@@ -6,14 +6,13 @@
 
 export const RELEASES = [
   {
-    v: '0.94.0', date: '2026-10-06',
+    v: '0.96.0', date: '2026-10-06',
     changes: [
-      ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],
-      ['added', 'NavTabs and Breadcrumbs take renderLink, so a router can own route changes, and the main entry now exports safeUrl, revealCurrentNav and revealFocusedNav for callers that assemble their own navigation markup.', ['Navigation']],
-      ['changed', 'A selected pill tab keeps its soft accent fill and takes body ink in place of accent ink, so one accent signal marks the selection. Vanilla and React share it. The fill is then the whole signal and it is a step of lightness \u2014 1.091:1 against the page at its weakest, under light emerald. See #475.', ['Navigation']],
-      ['fixed', 'Tab rows scroll within narrow containers without widening the page, moving off the page gutter or lifting the active underline off the row rule. A row whose tabs all fit scrolls nothing and clips nothing, so a focus ring keeps its halo at a desktop width. React and vanilla wireNav reveal the current route without moving keyboard focus or discarding where the reader scrolled.', ['Navigation']],
-      ['fixed', 'A tab row that does scroll now scrolls to a link the keyboard lands on, so its focus ring clears the scrolling edge instead of being cut off at the end of the row. A row whose tabs are all disabled takes the kit ring on itself rather than the browser\u2019s outline, because it holds no link to carry one.', ['Navigation']],
-      ['fixed', 'In forced-colours mode the selected tab keeps a visible mark in both appearances. The mode repaints the pill\u2019s fill and the underline\u2019s accent bar with the page ground, so the selected tab now takes the system\u2019s own selected colours there. Ordinary colours are unchanged.', ['Navigation']],
+      ['added', 'React NavTabs and Breadcrumbs provide route navigation with native links, disabled text, and current-page announcements. Both accept renderLink for routers. Part of #429.', ['Navigation']],
+      ['added', 'Custom navigation can use safeUrl, observeNavFit, revealCurrentNav, and revealFocusedNav from the main entry. Call the function returned by observeNavFit when removing a row.', ['Navigation']],
+      ['changed', 'Selected pill tabs keep their soft accent fill and use body ink. The fill remains the only visible selection signal in ordinary colours. Its strength remains an open decision in #614.', ['Navigation']],
+      ['fixed', 'Tab rows contain scrolling without widening the page and update when labels, badges, or available width change. Keyboard focus reveals the whole focus band. Content measurements preserve the scroll position where space permits.', ['Navigation']],
+      ['fixed', 'An overflowing row with only disabled tabs draws the kit focus band on the row. Both tab appearances retain their selected mark in forced colours.', ['Navigation']],
     ],
   },
   {

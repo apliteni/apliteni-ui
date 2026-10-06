@@ -72,7 +72,7 @@
     {
       "file": "react/src/NavTabs.test.tsx",
       "name": "React: NavTabs",
-      "does": "Checks native route-link semantics, current and disabled state, keyboard order, root refs, badge text, safe destinations and axe results.",
+      "does": "Checks native route-link semantics, current and disabled state, keyboard order, root refs, badge text, safe destinations and axe results. Checks content and container remeasurement without resetting the scroll position.",
       "blind": [
         "JSDOM does not measure responsive layout, focus-ring pixels or actual browser navigation. Story contrast and browser captures cover the shared styling."
       ]

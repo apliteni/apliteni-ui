@@ -1,6 +1,6 @@
 // DOM semantics and keyboard order; browser evidence covers shared CSS and layout.
 import { createRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { NavTabs } from './NavTabs';
@@ -128,14 +128,14 @@ it('leaves an overflowing row the scroll box that holds the page', () => {
   rerender(<NavTabs items={items} active="payouts" />);
   expect(nav.hasAttribute('data-nav-fit')).toBe(false);
 });
-it('measures the row again when the appearance changes', () => {
+it('measures the row again when the appearance changes', async () => {
   // The pill row's gaps and padding are its own, so the same links can fit one
   // appearance and overflow the other: `variant` is a reason to measure again.
   const { rerender } = render(<NavTabs items={items} active="summary" />);
   const nav = screen.getByRole('navigation');
   Object.defineProperties(nav, { clientWidth: { value: 1208 }, scrollWidth: { value: 513 } });
   rerender(<NavTabs items={items} active="summary" variant="pill" />);
-  expect(nav.hasAttribute('data-nav-fit')).toBe(true);
+  await waitFor(() => expect(nav.hasAttribute('data-nav-fit')).toBe(true));
 });
 it('still calls a caller\'s own onFocus while revealing the link', () => {
   const seen: string[] = [];
@@ -179,4 +179,50 @@ it('keeps the reader\'s scroll position when a parent re-renders with the same t
   expect(nav.scrollLeft).toBe(40);
   rerender(<NavTabs items={[...items, { id: 'ledger', label: 'Ledger' }]} active="payouts" />);
   expect(nav.scrollLeft).toBe(140);
+});
+
+// JSDOM supplies no layout. These widths model content growth; browser checks measure real boxes.
+it.each(['label', 'badge'] as const)('remeasures changed %s with identical IDs without revealing the route', async field => {
+  const initial = [{ id: 'one', label: 'One', badge: '2' }, { id: 'two', label: 'Two' }];
+  const { rerender } = render(<NavTabs items={initial} active="one" />);
+  const nav = screen.getByRole('navigation');
+  Object.defineProperties(nav, {
+    clientWidth: { value: 300 },
+    scrollWidth: { get: () => nav.textContent!.length > 30 ? 700 : 200 },
+  });
+  rerender(<NavTabs items={initial} active="two" />);
+  expect(nav).toHaveAttribute('data-nav-fit');
+  nav.scrollLeft = 40;
+  const changed = initial.map(item => ({ ...item, [field]: 'A much longer destination label or badge' }));
+  rerender(<NavTabs items={changed} active="two" />);
+  await waitFor(() => expect(nav).not.toHaveAttribute('data-nav-fit'));
+  expect(nav.scrollLeft).toBe(40);
+  rerender(<NavTabs items={initial} active="two" />);
+  await waitFor(() => expect(nav).toHaveAttribute('data-nav-fit'));
+});
+it('observes container size and disconnects after unmount', () => {
+  let resized = () => {};
+  const observe = vi.fn();
+  const disconnect = vi.fn();
+  vi.stubGlobal('ResizeObserver', class {
+    constructor(callback: () => void) { resized = callback; }
+    observe = observe;
+    disconnect = disconnect;
+  });
+  try {
+    const { unmount } = render(<NavTabs items={items} active="payouts" />);
+    const nav = screen.getByRole('navigation');
+    let width = 800;
+    Object.defineProperties(nav, { clientWidth: { get: () => width }, scrollWidth: { value: 500 } });
+    act(resized);
+    expect(nav).toHaveAttribute('data-nav-fit');
+    expect(observe).toHaveBeenCalledWith(nav);
+    width = 300;
+    nav.scrollLeft = 40;
+    act(resized);
+    expect(nav).not.toHaveAttribute('data-nav-fit');
+    expect(nav.scrollLeft).toBe(40);
+    unmount();
+    expect(disconnect).toHaveBeenCalledTimes(2);
+  } finally { vi.unstubAllGlobals(); }
 });
