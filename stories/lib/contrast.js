@@ -308,6 +308,9 @@ export const ratio = (a, b) => {
  */
 const CAPTURED = [
   'color', 'backgroundColor', 'backgroundImage',
+  // The edge, for a state that is said by the line around a box rather than by its
+  // ink — read for equality between two states, never for a ratio. #518
+  'borderTopColor',
   'display', 'visibility', 'opacity',
   'fontSize', 'fontWeight',
 ];

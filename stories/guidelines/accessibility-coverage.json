@@ -328,14 +328,15 @@
     {
       "file": "stories/guidelines/accessibility-floor.test.js",
       "name": "Accessibility minimums",
-      "does": "Pins three page numbers: target size for every rendered control, using its box UNION generated pseudo-elements; ring contrast against every ground; and the composite left by a disabled control. Each disabled control is measured as rendered and again without its disabled attribute, so the pair must change. Every control in a folded rail is measured separately, with its name read while the label is off-screen.",
+      "does": "Pins three page numbers: target size for every rendered control, using its box UNION generated pseudo-elements; ring contrast against every ground; and the composite left by a disabled control. Each disabled control is measured as rendered and again without its disabled attribute, so the pair must change — the ink, the fill and the edge around the box, because a state can be said by the line as well as by the ink. A rule that says it with that line alone is asked about its own box and not about the labels inside it, which are painted by whichever rule paints THEIR ink. Every control in a folded rail is measured separately, with its name read while the label is off-screen.",
       "blind": [
         "A disabled input’s value. The walk measures text nodes, while an input stores its value in a property. Thus .ui-input:disabled is found and repainted but contributes no pair; its tokens are measured on other controls using them.",
         "Width for anything sized by a line of text. It is reported unmeasurable, not passed. An overlay may widen known width but cannot provide one.",
         "The 2.5.8 spacing exception, which is entirely a layout question.",
         "Overlay position. Size is read but offset is not, so both a clear overlay and one covering a neighbour count without that distinction being reported.",
         "Clipping. An overflow:hidden ancestor can cut an overlay, but boxes are not composited here. .ui-toast clips, and its close control was checked by hand.",
-        "The ring’s inner edge. Only the outside ground is measured."
+        "The ring’s inner edge. Only the outside ground is measured.",
+        "What an unavailable edge measures against the ground behind it. The comparison is the state’s own paint against the live one, so a rule changing an edge to an equally faint ink still counts as a repaint. stories/filter-row-edge.test.js resolves which token each box on the filter row draws, and the contrast walk owns the ratios."
       ]
     },
     {
@@ -715,7 +716,7 @@
     {
       "file": "react/src/FilterBar.test.tsx",
       "name": "React: FilterBar",
-      "does": "Checks controlled filter changes, disabled controls, keyboard selection, focus after removal, that a chip prints its value alone while its name carries the field and its empty state, and that a valueless chip is marked for the placeholder ink.",
+      "does": "Checks controlled filter changes, disabled controls, keyboard selection, focus after removal and after clearing — on the add control while the row still draws one, and on the first stop outside the bar once it does not — that a chip prints its value alone while its name carries the field and its empty state, that a valueless chip is marked for the placeholder ink, and the add menu's sections, search field, Escape and focus on the added chip.",
       "blind": [
         "JSDOM does not measure browser focus styling, layout, or contrast."
       ]
@@ -739,11 +740,11 @@
     {
       "file": "stories/filter-selected-mark.test.js",
       "name": "A chosen filter value is never marked by colour alone",
-      "does": "Sweeps every story that draws a filter bar, opens each chip\u2019s menu and measures the chosen row in both themes: the accent wash is painted and stays a wash rather than becoming a fill, the kit\u2019s check is drawn and clears 3:1 over that wash (WCAG 2.2 SC 1.4.11), and the chosen label holds --strong at AA over it. It then drives hover, the keyboard cursor and focus, and fails a state that takes the wash off the row, loses hover\u2019s edge or the cursor\u2019s bar, or falls back to the browser\u2019s own outline instead of the kit ring. It also reads the slot the cascade gives the check in each of the three geometries a chip\u2019s panel has, and fails a mark allowed to shrink or be clipped while the menu is open or still fading out, or one that stops giving way in the shut panel #467 bounded to a 48px trigger. Eleven mutations, each re-breaking one guarantee, have to be rejected.",
+      "does": "Sweeps every story that draws a filter bar, opens each chip’s menu and measures the chosen row in both themes: the accent wash is painted and stays a wash rather than becoming a fill, the kit’s check is drawn and clears 3:1 over that wash (WCAG 2.2 SC 1.4.11), and the chosen label holds --strong at AA over it. It then drives hover, the keyboard cursor and focus, and fails a state that takes the wash off the row, loses hover’s edge or the cursor’s bar, or falls back to the browser’s own outline instead of the kit ring. It also reads the slot the cascade gives the check in each of the three geometries a chip’s panel has, and fails a mark allowed to shrink or be clipped while the menu is open or still fading out, or one that stops giving way in the shut panel #467 bounded to a 48px trigger. Eleven mutations, each re-breaking one guarantee, have to be rejected.",
       "blind": [
-        "Pixels. JSDOM lays nothing out, so a 16px glyph is measured as a colour on a ground and as the declarations around its slot, never as a drawn mark. What width that slot comes out as, at four viewports in both themes and in the frames a menu is still painted in as it closes, is the browser fixture\u2019s measurement.",
+        "Pixels. JSDOM lays nothing out, so a 16px glyph is measured as a colour on a ground and as the declarations around its slot, never as a drawn mark. What width that slot comes out as, at four viewports in both themes and in the frames a menu is still painted in as it closes, is the browser fixture’s measurement.",
         "Colour-vision simulation. It measures luminance contrast, which is what 1.4.11 is written in. That a dichromat cannot separate the two hues is the reason the check exists, and is not itself computed here.",
-        "The React half. The rule is one kit declaration both faces load; React\u2019s own tests match the class and the mark against its rendered tree, never the paint.",
+        "The React half. The rule is one kit declaration both faces load; React’s own tests match the class and the mark against its rendered tree, never the paint.",
         "Accents other than the default. The other five redefine --glow-purple and are walked by the accent arm of the contrast ledger, not here."
       ]
     },
@@ -778,7 +779,8 @@
         "The measuring half is off unless TAP_ZONES=1, because Playwright is deliberately not a dependency of this package, so CI runs only the source checks and the measurement is reported by hand in the pull request.",
         "One engine and one theme. A pseudo-element on a form control is a browser behaviour, not a standard, and Firefox and Safari are not measured here.",
         "Collisions are compared as a set of pairs rather than as coordinates, because opening a row’s gap moves the controls in it. A pair that merely moves to a different pixel of the same two controls is not reported.",
-        "Two controls whose drawn boxes already overlap are left out, so a layout defect that predates the zone is not reported as one the zone caused."
+        "Two controls whose drawn boxes already overlap are left out, so a layout defect that predates the zone is not reported as one the zone caused.",
+        "The one pixel two abutting controls share, where the neighbour's own drawn box reaches into that same pixel. Chromium awards it to one side by rounding — not a zone overreaching, and the same answer with the sheet off, for half of the sub-pixel offsets a panel can land on. Every other pixel centre a control holds is read, including one in a pixel it only partly covers, so an overreach smaller than that single shared pixel is unmeasured at such an edge and nothing else is. Two mutations hold both halves: a menu row's layer reaching a whole --tap-gap into the row beneath it, and a layer reaching 8.2px over a fractional edge, which an earlier whole-pixel sampling hid."
       ]
     },
     {
@@ -869,6 +871,18 @@
         "1.1:1 is not a WCAG number and does not stand in for one: WCAG sets no contrast requirement for a background that carries no information by itself, and the ink ON these items is measured by stories/contrast.test.js instead. The grounds are named here rather than discovered, because which container an item ends up inside is not in the stylesheets; an item whose ground its own component does not fix — the pager, which stands on the page in one showcase and on a card in another — is a named exclusion and says so beside its rule.",
         "Two selected marks are excluded by name rather than measured, and each names its owner: the open rail's current row, whose mark is #475's subject and is reworked to a plate on #593, and the pager's current page, which is the one mark #578 round r34 left as an edge and is open for Artur.",
         "Nothing is laid out or painted: this reads declared values with the tokens substituted. It cannot see a fill covered by a pseudo-element, one a width query makes unreachable, or what any of them looks like on a real screen. A box painted WITHIN a selected item rather than being its mark — a count badge, an icon tile — is not discovered at all, because its marker sits on an ancestor compound."
+      ]
+    },
+    {
+      "file": "stories/filter-row-edge.test.js",
+      "name": "Filter row: quiet edges and a text button",
+      "does": "Discovers the chip and every data-filter wrapper, then reads each declared edge state and the states its primitive can paint. Chips and Add retain the chip edge at rest and on hover. Clear requires transparent edges in every state. Disabled chips and Add use the disabled edge, while keyboard focus uses the accent. Missing subjects, missing states, unknown states and weaker overrides fail. Eighteen mutations prove rejection.",
+      "blind": [
+        "Paint. It reads the sheets' declarations by selector and specificity, not pixels. The Chromium measurements at 1280 and 390 in both themes, at rest, hovered, focused, with the catalogue open and with the row off, cover what is drawn.",
+        "An !important, an inline style, a consumer override and an @media block are not read, so an edge overridden in one of those is uncovered. A neighbour is discovered only where this sheet names its attribute: one a consumer draws from its own sheet is outside the gate.",
+        "Which of two carriers of one state matches a real element. A bar turned off does not set :disabled on a nested fieldset, so the chip is required to take its unavailable edge both from its own state and from the bar's, rather than measured as doing so; the browser captures show which one paints.",
+        "Contrast. It checks which token is drawn, not what that edge measures against the fill behind it; the contrast walk and the accessibility floor own those numbers.",
+        "Whether :focus-visible matches on a real keystroke, and whether the ring is visible once it does. The focus-ring gates and the browser captures own both."
       ]
     }
   ],

@@ -3,7 +3,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode,
 } from 'react';
 import {
-  icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs,
+  icon, dropdownMatch, dropdownFiltering, filterPanelFit, filterPanelRow, transitionMs,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 
@@ -263,7 +263,8 @@ export function Dropdown({
      * way and states the limit the two leave.
      * why: docs/components.md#a-filter-row-holds-its-panels */
     const view = root.current?.ownerDocument?.defaultView;
-    const row = root.current?.closest('.ui-filter-bar__chip')?.closest('.ui-filter-bar');
+    // Which menus are fitted, and so which row to observe, is the kit's answer.
+    const row = filterPanelRow(root.current);
     if (!row || !view) return;
     const stop: Array<() => void> = [];
     let ro: ResizeObserver | null = null;
@@ -301,7 +302,9 @@ export function Dropdown({
   }, [open]);
 
   /* The open geometry is given back at the END of the fade, not in the frame the
-   * menu closes. `.ui-dropdown.open` stops matching at once; the panel keeps being
+   * menu closes — a chip's values and the add control's catalogue alike, which is
+   * what filterPanelRow() answers.
+   * `.ui-dropdown.open` stops matching at once; the panel keeps being
    * painted for --dur-med, so dropping the fit and the search pin here collapsed an
    * opaque 240px menu to a 48px column and jumped it sideways — #549 repainted on
    * the way out. `is-closing` holds the same geometry until the panel's own
@@ -314,7 +317,7 @@ export function Dropdown({
     if (open) { opened.current = true; return; }
     // A panel that has never been open has no geometry to hold, and giving a shut
     // one the open width is #467.
-    if (!opened.current || !el || !root.current?.closest('.ui-filter-bar__chip')) return;
+    if (!opened.current || !el || !filterPanelRow(root.current)) return;
     el.classList.add('is-closing');
     let done = false;
     const finish = () => {
@@ -425,11 +428,11 @@ export function Dropdown({
        * its trigger. Inside a filter row that residue is #467: with the menu floor
        * the panel opens at 240px or more, and a shut one stayed that wide. Cleared
        * here and written again on the next open, as closeDropdown() does for the
-       * vanilla wiring. A chip's panel gives it back at the end of its fade
+       * vanilla wiring. An anchored panel gives it back at the end of its fade
        * instead, so it is not taken away while the panel is still painted.
        * why: src/components/dropdown.js */
       if (panel.current?.style && root.current?.closest('.ui-filter-bar')
-        && !root.current.closest('.ui-filter-bar__chip')) {
+        && !filterPanelRow(root.current)) {
         panel.current.style.minWidth = '';
       }
       return;

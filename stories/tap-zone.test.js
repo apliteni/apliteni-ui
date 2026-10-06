@@ -552,7 +552,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
   // Plus the rows no story puts on screen, and two a consumer would write.
   const fixtures = await rowFixtures();
   assert.ok(
-    fixtures.length >= 9,
+    fixtures.length >= 10,
     `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
     + 'could not see, and a list that shrank would quietly give that coverage back.',
   );
@@ -613,9 +613,9 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       // a tap anywhere on a control's own drawn box runs that control — and
       // the comparison is by who collides with whom, not by where.
       //
-      // The kit does not start clean: 73 pairs of its own controls already
-      // overlap at 390 before any of this loads, most of them a shell whose
-      // rail does not fold. So the test is that the set does not GROW.
+      // The kit does not start clean: pairs of its own controls already overlap
+      // at 390 before any of this loads, most of them a shell whose rail does
+      // not fold. So the test is that the set does not GROW.
       const pairs = (rows) => {
         const out = new Set();
         for (const t of rows) {
@@ -626,6 +626,9 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
         }
         return out;
       };
+      // Limit: a point in the one pixel two ABUTTING controls share is excused when the
+      // neighbour's own drawn box reaches into it, so an overreach smaller than that pixel
+      // is unread at such an edge. Both mutations below measure that line. #496, #518
       const was = pairs(A);
       const now = pairs(B);
       const added = [...now].filter((p) => !was.has(p));
@@ -845,6 +848,83 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
         + 'the check above would pass over the very defect it was written for.',
       );
       t.diagnostic(`zones at the floor with the gaps shut add ${added.length} colliding pair(s) — the check rejects it`);
+    });
+
+    await t.test('a menu row whose layer reaches into the next row is rejected', async () => {
+      // The case the whole-pixel sampling could have excused, and the one the
+      // message above names: a menu row's layer reaching past a shared edge
+      // into the row below, which on an action menu is the destructive row.
+      const broken = `${withCss}\n.ui-dropdown__item { position: relative; }\n`
+        + '.ui-dropdown__item::after { content: ""; position: absolute; left: 50%; top: 50%;'
+        + ' transform: translate(-50%, -50%); width: 100%;'
+        + ' height: calc(100% + var(--tap-gap)); }\n';
+      assert.notEqual(broken, withCss, 'The mutation did not apply, so it proves nothing.');
+      const collisions = (rows) => new Set(rows.flatMap((r) => r.lostTo
+        .filter(([, to]) => to !== 'nothing')
+        .map(([, to]) => `${r.story} — ${name(r)} <- ${to.split(' \u201c')[0]}`)));
+      const already = collisions(A);
+      const added = [...collisions(flatten((await at(390, true, broken)).rows))]
+        .filter((pair) => !already.has(pair));
+      const rows = added.filter((pair) => /ui-dropdown__item.*<- div\.ui-dropdown__item/.test(pair));
+      assert.ok(
+        rows.length > 0,
+        'A layer reaching half of --tap-gap past every menu row put no row\'s drawn pixels '
+        + 'under the row below it, so the collision check is sampling too little to see the '
+        + 'defect it exists for.',
+      );
+      t.diagnostic(`an overreaching menu-row layer adds ${added.length} colliding pair(s), ${rows.length} row-on-row — the check rejects it`);
+    });
+
+    await t.test('a layer reaching over a fractional edge is rejected, and a shared pixel is not', async () => {
+      // The narrowing this rig carried for one round read only the pixels a box wholly
+      // covers, which hid a layer reaching 8.2px into the box beside it whenever that box's
+      // own edge fell on a fraction. Measured by click: the same tap at (100.5, 40.5) runs
+      // Keep without the layer and Delete with it, and the narrowed rig reported nothing
+      // either way. Reading every pixel centre the box holds sees it; the one pixel two
+      // ABUTTING boxes share is answered by asking who took it instead, so the rounding
+      // award that reads the same with no sheet loaded is still forgiven. Both halves are
+      // measured here, because each one is the other's failure mode. #496, #518
+      const GAP = '#safe,#danger{position:absolute;top:20.2px;height:44px;width:80.6px;border:0;border-radius:0}'
+        + '#safe{left:20.2px}#danger{left:108.8px}'
+        + '#danger::after{content:"";position:absolute;inset:0;left:var(--reach,0px)}';
+      const ABUT = '#first,#second{position:absolute;left:10px;width:120px;height:20.7px;border:0;border-radius:0}'
+        + '#first{top:10px}#second{top:30.7px}';
+      const pair = (a, b) => `<button id="${a}">Keep</button><button id="${b}">Delete</button>`;
+      const edge = [
+        { id: 'fractional-gap', html: pair('safe', 'danger') },
+        { id: 'abutting-rows', html: pair('first', 'second') },
+      ];
+      const took = async (reach) => {
+        const rows = flatten((await at(390, true, `${GAP}${ABUT}:root{--reach:${reach}}`, edge)).rows);
+        return Object.fromEntries(edge.map((s) => [s.id, rows
+          .filter((r) => r.story === s.id && r.text === 'Keep')
+          .flatMap((r) => r.lostTo.map(([, who]) => who))]));
+      };
+      const clean = await took('0px');
+      assert.deepEqual(
+        clean['fractional-gap'], [],
+        'The fixture is dirty before the mutation, so the mutation below proves nothing.',
+      );
+      assert.deepEqual(
+        clean['abutting-rows'], [],
+        'The one pixel row two abutting controls share is being read as an overreach. Chromium '
+        + 'awards it by rounding and answers the same with no sheet loaded, so this is the false '
+        + 'positive narrowing the sampling was meant to answer — and the narrowing is what hid '
+        + 'the case below.',
+      );
+      const broken = await took('-8.2px');
+      assert.ok(
+        broken['fractional-gap'].some((who) => /Delete/.test(who)),
+        'A layer reaching 8.2px over a fractional edge took a point a tap lands on — measured by '
+        + 'click, the same tap runs Keep without the layer and Delete with it — and the rig did '
+        + 'not see it. The sampling is reading too little again.',
+      );
+      assert.deepEqual(
+        broken['abutting-rows'], [],
+        'The abutting pair carries no layer in either run, so anything it reports here is the '
+        + 'sampling and not the sheet.',
+      );
+      t.diagnostic(`fractional edge: ${broken['fractional-gap'].join(', ') || 'nothing'} took the point, and the shared pixel row stays forgiven`);
     });
 
     await t.test('1280 and a fine pointer are untouched', async () => {

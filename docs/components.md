@@ -116,8 +116,8 @@ what a factory accepts. They do not describe what the factory does.
 | `input`, `textarea`, `select`, `checkbox`, `switchToggle` | The controls `field` wraps; each also renders on its own. |
 | `segmented({ options, active, size, block, name, ariaLabel })` + `segmentedNextIndex(key, index, length)`, `initSegmented(root)` | Toolbar of toggle buttons. See [Segmented or tabs?](#segmented-or-tabs) and [Segmented strips that outgrow their column](#segmented-strips-that-outgrow-their-column). |
 | `tabs({ items, active, name, ariaLabel })` + `initTabs(root)` | Tablist and its panels, one per item. |
-| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit, and `filterPanelFit(dd, floor)` with `DD_MENU_FLOOR` is the same for a filter chip's menu: inside `.ui-filter-bar` an **open** menu takes the kit's 240px floor rather than its trigger's width, and a shut one keeps the trigger's. Both halves ask the kit and write the three `--ui-filter-panel-*` properties the stylesheet reads, measure again whenever the row's width or the chip's place in it changes, and hold the open geometry until the menu's fade has finished. See [The dropdown panel](#the-dropdown-panel), [A dropdown with a search field](#a-dropdown-with-a-search-field) and [A filter row holds its panels](#a-filter-row-holds-its-panels). |
-| `filterBar(options)` + `initFilterBar(host, options)`, with `filterChipText`, `filterChipName`, `filterChipUnset`, `filterChipItems`, `nextFocusStop`, `focusNextStop` | The controlled filter row above a table. The consumer owns the filters and calls `update()`. `filterChipItems(filter)` marks the chip's own value in the items it hands its menu, so the line the chip prints and the row the menu marks cannot disagree; a chip that is unset, or whose value is in no row, marks nothing, and a `selected` the consumer set does not stand in for it. `nextFocusStop(host)` names the control a reader's next <kbd>Tab</kbd> would reach, which is where an emptied bar sends the focus; `focusNextStop(host)` puts it there, skipping anything the reader cannot reach, and answers with the element it ended on. See [A filter row holds its panels](#a-filter-row-holds-its-panels). |
+| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit, and `filterPanelFit(dd, floor)` with `DD_MENU_FLOOR` is the same for an anchored filter menu: inside `.ui-filter-bar` an **open** menu takes the kit's 240px floor rather than its trigger's width, and a shut one keeps the trigger's. `filterPanelRow(dd)` answers which row such a menu is measured inside — a chip's, or one asking for a width with `--ui-filter-panel-ask` — so both halves ask the kit instead of each carrying a selector. Both halves ask the kit and write the three `--ui-filter-panel-*` properties the stylesheet reads, measure again whenever the row's width or the chip's place in it changes, and hold the open geometry until the menu's fade has finished. See [The dropdown panel](#the-dropdown-panel), [A dropdown with a search field](#a-dropdown-with-a-search-field) and [A filter row holds its panels](#a-filter-row-holds-its-panels). |
+| `filterBar(options)` + `initFilterBar(host, options)`, with `filterChipText`, `filterChipName`, `filterChipUnset`, `filterChipItems`, `nextFocusStop`, `focusNextStop` | The controlled filter row above a table. The consumer owns the filters and calls `update()`. `filterChipItems(filter)` marks the chip's own value in the items it hands its menu, so the line the chip prints and the row the menu marks cannot disagree; a chip that is unset, or whose value is in no row, marks nothing, and a `selected` the consumer set does not stand in for it. `nextFocusStop(host)` names where an emptied bar sends the focus — the way to add a filter still on the row, drawn from `data-filter-add`, else the control a reader's next <kbd>Tab</kbd> would reach; `focusNextStop(host)` puts it there, skipping anything the reader cannot reach, and answers with the element it ended on. See [A filter row holds its panels](#a-filter-row-holds-its-panels). |
 | `pagination({ page, pageSize, total, hasMore, pageSizes, variant, label, loading, href, id })` + `wirePagination(root, …)`, `setPagerStatus(root, text)`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE` | The strip under a table or list; it renders a page the caller already computed. See [Pagination](#pagination). |
 | `commandPalette({ groups, items, label, placeholder, query, empty, density, hint, rank, hotkey, open, specimen, id })` + `wireCommandPalette`, `openCommandPalette`, `closeCommandPalette`, `commandPaletteList`, `setPaletteResults`, `rankCommands`, `rankGroups`, `scoreCommand`, `SCORE`, `paletteHotkey()` | The ⌘K overlay and the ranking behind it; `SCORE` is the ladder itself, for a server that sorts the same way. See [The command palette](#the-command-palette). |
 | `feedbackWidget()` + `wireFeedback(…)`, `nearestSection(node, root)` | Select a passage, give feedback. |
@@ -278,6 +278,15 @@ A dropdown composed against the row, rather than against a chip, owns its width.
 bounds it. The kit leaves it unchanged. This dropdown must not read the
 `--ui-filter-panel-*` properties.
 
+**A menu may ask for a wider floor than a chip's.** A chip's menu holds one chip's values; a
+catalogue menu with a search field over it needs more room than the 240px floor leaves. Such a
+panel declares `--ui-filter-panel-ask` in the stylesheet, which is also what makes a menu outside
+a chip a subject of the fit: it is then `--panel-sm` wide where its row has the room and its row's
+width where it does not. `filterPanelRow(dropdown)` is published. It answers which
+`.ui-filter-bar` a menu's fit is measured inside — a chip's menu, or a menu that asks for a
+width — and `null` for anything else, so both faces decide which menus they re-fit and hold
+from one calculation.
+
 **The menu marks the value the chip is showing.** The active row receives a soft accent wash and
 keeps the kit's 16px check. The wash is a tint. Its contrast is 1.16:1 over the panel in light
 mode and 1.20:1 in dark mode. The check identifies the chosen row: its contrast is 6.35:1 over
@@ -295,17 +304,41 @@ or with a value that matches no row, marks nothing. A `selected` value you set d
 value that the bar is not applying. The kit never writes to your own array or objects.
 
 **The clear action is offered only when there is something to clear.** `filterBar` and React
-`FilterBar` render it after a filter is applied. It uses the kit's bordered skin without its fill.
-There is no grey block under the words in any state. A disabled or busy bar keeps the border and
-uses the box-less unavailable ink. A consumer reading `[data-filter-clear]` finds nothing when no
-filter is set.
+`FilterBar` render it after a filter is applied. It uses the kit's ghost button without a fill
+or border. A consumer reading `[data-filter-clear]` finds nothing when no filter is set.
+Both faces label it `Clear all`; `clearLabel` takes any wording.
+
+**Filter labels use secondary-control ink and weight.** The remove mark uses glyph ink.
+The chip and Add retain their quiet edge when hovered or open. Only keyboard focus adds
+an accent edge and the shared `--ring`. Clear remains a text button in every state.
+A disabled chip or Add takes `--disabled-border`. None of the controls carries a fill.
 
 **An emptied bar hands the focus on rather than keeping it.** When you clear the last filter or
 remove the last chip with the keyboard, the focused control disappears. The bar moves focus to
-the control that a reader would reach with the next <kbd>Tab</kbd>. It skips controls the reader
-cannot reach. If nothing beside the bar can take focus, the focus stays where it is.
+the way to add a filter where the row still draws one — that control outlives the chips, so an
+emptied row is not an empty row — then to the control that a reader would reach with the next
+<kbd>Tab</kbd>. It skips controls the reader cannot reach: being reachable is not the same as
+taking the focus, so each candidate is asked and then checked. If nothing beside the bar can take
+focus, the focus stays where it is.
 `nextFocusStop(host)` identifies that control. `focusNextStop(host)` moves focus there and returns
 the element that received it. A consumer that wants to move focus itself can read the same result.
+
+**A React bar given `add` and `onAdd` draws its own way to add one.** The control sits on the
+chips' line, after them and before the clear action, so <kbd>Tab</kbd> reaches it where it is
+drawn. Its menu holds one section per filter the bar is not already carrying, so no pick can put
+a second chip under one id, and takes a search field at ten values. A pick asks you for that
+filter and nothing else; answer it in the same update and focus lands on the new chip, answer it
+later and you own where focus goes. <kbd>Esc</kbd> closes the menu and adds nothing. The control
+is drawn only while something is left to add, and it stands at a chip's height and corner. It is
+labelled `Add`, for the reason the clear action is labelled `Clear all`; `addLabel` takes any
+wording. The vanilla `filterBar()` has no `add`, so a vanilla page draws its own control and the
+kit answers it through markup: put your own `dropdown()` inside the bar, wrapped in an element
+carrying `data-filter-add`. That attribute is the whole contract — it declares the ask, carries
+the open rule's room, slide and closing hold, gives the trigger the chip's corner, height and
+edge, and is what the focus answer looks for. A pick inside it is yours to act on: the bar
+reports a change for a chip's menu and for nothing else. `initFilterBar()`'s `update()`
+rebuilds the bar from `filterBar()`, which draws no such control, so keep your wrapper in the
+DOM yourself. The Stock screener showcase draws one.
 
 ### A dropdown row is a div, a link or a button
 
@@ -422,7 +455,8 @@ roles at every width because a stylesheet cannot add them. A value whose meaning
 heading must carry that meaning itself. This is a rule in [Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
-change the filters you supplied. **A chip shows only the chosen value**, while the field's name
+change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
+[A filter row holds its panels](#a-filter-row-holds-its-panels). **A chip shows only the chosen value**, while the field's name
 appears only when nothing is chosen. Next to a value, the name reaches the reader through the
 trigger's accessible name and a hidden legend.
 

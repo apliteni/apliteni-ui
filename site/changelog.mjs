@@ -6,6 +6,18 @@
 
 export const RELEASES = [
   {
+    v: '0.96.0', date: '2026-10-06',
+    changes: [
+      ['changed', 'The filter bar’s clear button is labelled `Clear all`, not `Clear all filters`, and the React bar’s add control `Add`, not `Add filter`. A row of filter chips already names what either one acts on, so neither label repeats that noun. Pass `clearLabel` or `addLabel` to keep your own wording. The label is also the accessible name, so a test finding either control by name moves with it. See #496.', ['FilterBar', 'React FilterBar']],
+      ['added', 'A labels guideline: say the noun once. A label leaves out a noun its own frame already names. The clear button in a filter bar is the drawn pair. See #496.'],
+      ['fixed', 'Filter chips and Add use the weight of secondary controls, and the remove mark uses glyph ink. Clear all is a text button without a box. Add keeps its quiet edge when hovered or open, with the shared ring reserved for keyboard focus. See #496.', ['React FilterBar', 'FilterBar']],
+      ['fixed', 'The add-filter control puts its words on the page, not on a grey block. It had inherited the kit trigger’s --surface fill; it is transparent in every state now, which is what the clear button was given in 0.88.0. See #496.', ['React FilterBar']],
+      ['fixed', 'Clearing a React filter bar no longer loses the focus. With the add control drawn, clearing the row — or removing its last chip — left the focus on the page body; it now lands on that control where the row still draws one, and leaves the bar for the first control outside it only where it does not. nextFocusStop() and focusNextStop() answer from one list, so the control a consumer reads is the one the bar moves to, on a vanilla page drawing its own control from data-filter-add as well. See #496.', ['React FilterBar', 'FilterBar']],
+      ['added', 'React FilterBar draws the way to add a filter: `add` and `onAdd` put a catalogue menu on the chips’ line, after the chips, with one section per filter the bar is not already carrying and a search field once those sections hold ten values between them. A pick asks the consumer for that filter and leaves focus on the chip it appends; Escape closes the menu without adding. The control takes the chip’s corner and the row’s height, and its menu is a panel wide rather than the narrower floor a chip’s values take. A pick inside that control is the page’s own to act on: a vanilla bar reports `ui-filter-change` for a chip’s menu and for nothing else. Limit: the vanilla factory is unchanged, so a vanilla page still draws its own control from `data-filter-add` on a wrapper inside the bar, and keeps that wrapper in the DOM across `update()`; the Stock screener showcase draws one. See #496.', ['React FilterBar']],
+      ['added', 'filterPanelRow(dd) is published. It answers which `.ui-filter-bar` a menu’s fit is measured inside — a chip’s menu, or a menu asking for a width with `--ui-filter-panel-ask` — so both halves decide which menus they re-fit and hold from one calculation instead of each carrying its own selector. See #496.', ['Dropdown', 'FilterBar']],
+    ],
+  },
+  {
     v: '0.95.0', date: '2026-10-06',
     changes: [
       ['changed', 'The focus ring is one solid accent band with no glow, drawn as a real `outline` 1px off the control it marks. Every focusable control in the kit draws it \u2014 buttons, fields, checkboxes, switches, menu rows, tabs, links, chips and panels, in vanilla and React, light and dark. The band\u2019s colour and width are unchanged, so the contrast floor it is held to is the number it already measured; what is gone is the 12px halo over it, which was decoration rather than something a reader read. Artur chose this on #578 after #557 drew a scroll region\u2019s band the same way. Resolves #578.', ['Focus']],
@@ -1171,6 +1183,7 @@ const COMPONENTS = {
   Callout:   'components-callout-toast--callouts',
   Confirm:   'components-confirm--playground',
   'React Confirm': 'react-confirm--danger',
+  'React FilterBar': 'react-filterbar--adding',
   CommandPalette: 'components-command-palette--playground',
   Drawer:    'components-drawer--playground',
   Inputs:    'components-inputs--text-fields',

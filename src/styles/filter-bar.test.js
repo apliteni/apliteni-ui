@@ -1,9 +1,10 @@
 /**
- * Rule: the filter bar's clear action never puts its words on a grey block, in
- * every state and not just the one that was photographed. The first fix turned
- * the resting fill off and left the rest to the kit — which kept their fill, the
- * thing being turned off, so a disabled or busy bar put the label back on
- * `rgb(33, 30, 45)`.
+ * Rule: no box on the filter row puts its words on a grey block, in every state and
+ * not just the one that was photographed. The first fix turned the clear action's
+ * resting fill off and left the rest to the kit — which kept their fill, the thing
+ * being turned off, so a disabled or busy bar put the label back on
+ * `rgb(33, 30, 45)`. #518's add control arrived with the same fill, from the kit's
+ * trigger instead of the kit's button, and kept it when the row was off.
  *
  * So this reads button.css, works out which of its fills can land on THIS
  * control, and requires filter-bar.css to answer each. Read as text, like
@@ -23,6 +24,7 @@ const read = (rel) => readFileSync(path.join(here, rel), 'utf8');
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 
 const BUTTON = decomment(read('button.css'));
+const DROPDOWN = decomment(read('dropdown.css'));
 const BAR = decomment(read('filter-bar.css'));
 const ENTRY = read('../index.css');
 
@@ -60,32 +62,38 @@ const outranks = (a, b) => {
   for (let i = 0; i < 3; i += 1) if (a[i] !== b[i]) return a[i] > b[i];
   return true; // A tie goes to the sheet imported later, asserted below.
 };
-/** The state qualifiers on a compound selector: `:disabled`, `[aria-busy="true"]`. */
+/** The state qualifiers on a compound selector: `:disabled`, `[aria-busy="true"]`. A
+ *  `data-filter-*` attribute is which box the rule is for, not a state it is in. */
 const qualifiers = (compound) => (compound.match(/\[[^\]]+\]|:[\w-]+(?!\()/g) ?? [])
-  .filter((q) => !/^\[data-filter-clear/.test(q)).sort();
+  .filter((q) => !/^\[data-filter-/.test(q)).sort();
 const subset = (small, big) => small.every((q) => big.includes(q));
 
 /* What the factory writes for this control, read from the factory rather than
    assumed: the variant decides which of the kit's rules can reach it at all. */
-const FACTORY = read('../components/index.js');
-const CLEAR_VARIANT = /variant = '(\w+)'/.exec(FACTORY)?.[1];
+const FACTORY = read('../components/filter-bar.js');
+const CLEAR_VARIANT = /variant: '(\w+)'[^}]*\}\)\}<\/span>/.exec(FACTORY)?.[1];
 const CLEAR_SIZE = 'sm';
 
-/* The kit fills that can land on the clear action: a plain `.ui-btn` rule, with
-   or without state qualifiers, carrying no OTHER variant's class. */
-const kitFills = rules(BUTTON).filter(({ selector, body }) => {
-  if (!selector.startsWith('.ui-btn')) return false;
+/* The kit fills that can land on one of the row's boxes: a rule on the kit class itself,
+   with or without state qualifiers, carrying no OTHER variant's class. */
+const kitFillsOf = (css, kit) => rules(css).filter(({ selector, body }) => {
+  if (!selector.startsWith(kit)) return false;
   const variants = selector.match(/\.ui-btn--[\w-]+/g) ?? [];
   if (variants.some((v) => ![`.ui-btn--${CLEAR_VARIANT}`, `.ui-btn--${CLEAR_SIZE}`].includes(v))) return false;
   if (/[\s>+~]/.test(selector)) return false; // a descendant, not the control itself
   const fill = fillOf(body);
   return !!fill && !INVISIBLE.test(fill) && !ACCENTED.test(fill);
 });
+const kitFills = kitFillsOf(BUTTON, '.ui-btn');
+/* And the ones the kit's trigger paints, which is the box `[data-filter-add]` holds. */
+const triggerFills = kitFillsOf(DROPDOWN, '.ui-dropdown__trigger');
 
-/* The sheet's answers: a transparent fill written for the clear action. */
-const answers = rules(BAR)
-  .filter(({ selector, body }) => selector.includes('[data-filter-clear]')
+/* The sheet's answers: a transparent fill written for one of the row's boxes. */
+const answersFor = (attr) => rules(BAR)
+  .filter(({ selector, body }) => selector.includes(`[${attr}]`)
     && INVISIBLE.test(fillOf(body) ?? ''));
+const answers = answersFor('data-filter-clear');
+const addAnswers = answersFor('data-filter-add');
 
 const unanswered = (kit, given) => kit.filter(({ selector }) => {
   const state = qualifiers(selector);
@@ -98,8 +106,9 @@ test('both sheets are being read, and the later one is the filter bar', () => {
   // Every assertion below compares one sheet against the other, so an empty read
   // on either side passes whatever the kit does.
   assert.ok(rules(BUTTON).length >= 20, `parsed ${rules(BUTTON).length} rules out of button.css`);
+  assert.ok(rules(DROPDOWN).length >= 20, `parsed ${rules(DROPDOWN).length} rules out of dropdown.css`);
   assert.ok(rules(BAR).length >= 8, `parsed ${rules(BAR).length} rules out of filter-bar.css`);
-  assert.equal(CLEAR_VARIANT, 'secondary', `the button factory now defaults to ${CLEAR_VARIANT}`);
+  assert.equal(CLEAR_VARIANT, 'ghost', `the button factory now defaults to ${CLEAR_VARIANT}`);
   // A tie on specificity is decided by import order, so the comparator above only
   // holds while filter-bar.css is the one imported second.
   assert.ok(ENTRY.indexOf('styles/filter-bar.css') > ENTRY.indexOf('styles/button.css'),
@@ -112,6 +121,7 @@ test('every neutral fill the kit can paint on this control is discovered', () =>
   const states = kitFills.map((r) => r.selector).sort();
   assert.deepEqual(states, [
     '.ui-btn',
+    '.ui-btn--ghost:hover',
     '.ui-btn:disabled',
     '.ui-btn[aria-busy="true"]',
     '.ui-btn[aria-busy="true"]:active',
@@ -139,6 +149,7 @@ test('the sweep refuses a sheet that answers only the resting fill', () => {
   const restOnly = answers.filter((a) => qualifiers(a.selector).length === 0);
   assert.equal(restOnly.length, 1, 'expected exactly one unqualified resting answer');
   assert.deepEqual(unanswered(kitFills, restOnly).sort(), [
+    '.ui-btn--ghost:hover',
     '.ui-btn:disabled',
     '.ui-btn[aria-busy="true"]',
     '.ui-btn[aria-busy="true"]:active',
@@ -156,6 +167,28 @@ test('the sweep refuses a sheet that answers only the resting fill', () => {
   assert.equal(answers.every((a) => a.selector.includes('[data-filter-clear]')), true);
 });
 
+test('every neutral fill the kit can paint on the add control is discovered', () => {
+  // The trigger paints at rest and nowhere else, so one answer covers every state — and
+  // this is the assertion that notices the day that stops being true.
+  assert.deepEqual(triggerFills.map((r) => r.selector).sort(), ['.ui-dropdown__trigger'],
+    'dropdown.css paints a different set of neutral fills now — answer the new ones in filter-bar.css');
+});
+
+test('the add control answers every one of them with no fill at all', () => {
+  assert.ok(addAnswers.length >= 1, `filter-bar.css writes ${addAnswers.length} transparent fills for it`);
+  assert.deepEqual(unanswered(triggerFills, addAnswers), [],
+    'the kit\'s trigger fill out-ranks the add control\'s own, so its words land on a grey block');
+});
+
+test('the sweep refuses a sheet that leaves the add control its kit fill', () => {
+  assert.deepEqual(unanswered(triggerFills, []), ['.ui-dropdown__trigger'],
+    'with no answer at all the sweep still reports the control as covered');
+  // And an answer written at the kit's own weight is refused: the row's rule has to out-rank it.
+  const weak = [{ selector: '[data-filter-add] .ui-dropdown__trigger', body: 'background: transparent' }];
+  assert.deepEqual(unanswered(triggerFills, weak), [],
+    'a (0,2,0) answer should out-rank the kit\'s (0,1,0) resting rule');
+});
+
 /* With no fill of its own the label is read on whatever is behind the bar, which
  * is the one case button-disabled.test.js measured --disabled-ink-bare for. That
  * gate only reads button.css, so the same rule is held here for this sheet. */
@@ -167,7 +200,21 @@ test('a disabled clear action takes the ink measured on every ground', () => {
   assert.equal(ink, 'var(--disabled-ink-bare)',
     'the disabled clear action paints no fill, so its words are read on the page — and that is the'
     + ' one ink button-disabled.test.js measures against every ground the kit paints.');
-  // The edge is the kit's and is not restated here: that is what still says "off".
-  assert.equal(off.every(({ body }) => !valueOf(body, 'border-color')), true,
-    'the sheet restates the disabled edge, which should stay --disabled-border from button.css');
 });
+
+/* Clear keeps no edge, including disabled and busy states. The browser checks the paint. */
+test('the clear action has no edge at rest or when unavailable', () => {
+  const edgeOf = (selector) => rules(BAR).filter((r) => r.selector === selector)
+    .map(({ body }) => valueOf(body, 'border-color')).filter(Boolean).at(-1);
+  const rest = '.ui-filter-bar [data-filter-clear] button';
+  assert.equal(edgeOf(rest), 'transparent', 'the clear action draws an edge');
+  for (const state of [':disabled', '[aria-disabled="true"]', '[aria-busy="true"][data-btn-disabled]']) {
+    assert.equal(edgeOf(`${rest}${state}`) ?? restated(rest, state), 'transparent',
+      `${state} is left to a kit rule this sheet's resting rule out-ranks`);
+  }
+});
+/** The ink a grouped selector list gives one of its parts. */
+function restated(rest, state) {
+  const group = rules(BAR).find((r) => r.selector === `${rest}${state}`);
+  return group ? valueOf(group.body, 'border-color') : null;
+}

@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { filterBar, initFilterBar } from './filter-bar.js';
-import { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop } from '../logic/filter-bar.js';
+import { dropdown } from './dropdown.js';
+import { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop, focusNextStop } from '../logic/filter-bar.js';
 import { segmented } from './index.js';
 import { initSegmented } from './segmented.js';
 import { numericValue, deltaValue, rowIdentity, initRowIdentity } from './table-values.js';
@@ -189,10 +190,9 @@ test('the clear action is offered only once there is something to clear', () => 
   const clear = host.querySelector('[data-filter-clear] button');
   assert.ok(clear, 'the first chip brings the clear action back');
   assert.equal(clear.disabled, false, 'it is live, so it may not be drawn as unavailable');
-  // The bordered skin, not the ghost one: a live action beside two chips has to
-  // read as live. This asserts the class the sheet paints, not the colour.
-  assert.ok(clear.classList.contains('ui-btn--secondary'), `clear carries ${clear.className}`);
-  assert.equal(clear.classList.contains('ui-btn--ghost'), false);
+  // The class holds the text-button contract; browser evidence measures its paint.
+  assert.ok(clear.classList.contains('ui-btn--ghost'), `clear carries ${clear.className}`);
+  assert.equal(clear.classList.contains('ui-btn--secondary'), false);
   // A disabled or busy bar still offers it — the fieldset turns it off natively,
   // so nothing jumps out of the row while a refresh is in flight.
   host.innerHTML = filterBar({ filters, busy: true });
@@ -227,6 +227,44 @@ test('an emptied bar hands the focus to the action beside it, never to its own e
     // And the bar it left is the thing with nothing in it to focus.
     assert.equal(host.querySelectorAll('[data-filter-bar] button').length, 0);
     bar.destroy(); dom.window.close();
+  }
+});
+// The row a vanilla page draws its own way to add a filter on: the contract is one
+// attribute, so the shared answer can find the control without knowing what a consumer
+// put in it. It outlives the chips, which makes an emptied row a row that still has a
+// control on it — the nearest stop there is, and nearer than anything outside the bar.
+// Limit: initFilterBar's update() rebuilds the bar from filterBar(), which draws no such
+// control, so a vanilla page holding one keeps it in the DOM itself; these ask the shared
+// answer, which is the half this kit owns. #518
+const withAdd = (attrs = '') => filterBar({ filters: [] })
+  .replace('</fieldset>', `<div data-filter-add><div class="ui-dropdown">`
+    + `<button type="button" class="ui-dropdown__trigger" data-dropdown-trigger aria-expanded="false"${attrs}>Add</button>`
+    + `</div></div></fieldset>`);
+test('an emptied bar keeps the focus on the way to add a filter, where the row draws one', () => {
+  const { dom, host } = setup(withAdd());
+  const beside = document.createElement('button'); beside.type = 'button'; beside.textContent = 'Add filter';
+  host.after(beside);
+  const add = host.querySelector('[data-filter-add] [data-dropdown-trigger]');
+  assert.equal(focusNextStop(host), add, 'the emptied bar did not offer the control still on its row');
+  assert.equal(document.activeElement, add, `focus went to ${document.activeElement.outerHTML}`);
+  // Both halves of the published pair read one list, so the consumer who moves the
+  // focus itself is sent where the bar would have sent it, not past the row.
+  assert.equal(nextFocusStop(host), add, 'the answer a consumer reads skipped the control on the row');
+  dom.window.close();
+});
+test('an emptied bar walks past an add control a reader cannot reach', () => {
+  // A bar turned off disables the control inside it, and a disabled control refuses
+  // `focus()` silently — so the bar checks and carries on, rather than stranding the
+  // focus on BODY with the next Tab starting over at the top of the page.
+  for (const [how, attrs] of Object.entries({ disabled: ' disabled', hidden: ' hidden',
+    'out of the tab order': ' tabindex="-1"' })) {
+    const { dom, host } = setup(withAdd(attrs));
+    const beside = document.createElement('button'); beside.type = 'button'; beside.textContent = 'Add filter';
+    host.after(beside);
+    assert.equal(focusNextStop(host), beside, `${how}: an unavailable control was treated as a stop`);
+    assert.equal(document.activeElement, beside, `${how}: focus went to ${document.activeElement.outerHTML}`);
+    assert.equal(nextFocusStop(host), beside, `${how}: the pair disagrees about an unreachable control`);
+    dom.window.close();
   }
 });
 // Each of these leaves a control in the document, as a tab stop, with a box a
@@ -321,6 +359,25 @@ test('Dropdown selection reports the filter id and value after its own close', a
   assert.equal(host.querySelector('[data-dropdown-trigger]').getAttribute('aria-expanded'), 'false');
   bar.update({ filters, busy: true }); result = undefined;
   host.querySelector('[data-filter-remove]').click(); assert.equal(result, undefined);
+  bar.destroy(); dom.window.close();
+});
+test('a pick in the page\'s own catalogue is not reported as a chip\'s change', async () => {
+  // The bar owns the chips; the control a vanilla page draws under `data-filter-add` is the
+  // page's, and its rows name a filter the row is not carrying. Reported as a change, with
+  // no chip to name, it had the documented consumer write the catalogue's value into every
+  // filter the bar held. A chip's own menu still reports — the test above measures that. #518
+  const catalogue = filterBar({ filters: [filters[0]] })
+    .replace('<span data-filter-clear>', `<div data-filter-add>${dropdown({
+      variant: 'menu', ariaLabel: 'Add', triggerContent: 'Add',
+      sections: [{ label: 'Market', items: [{ label: 'US', value: 'market:US' }] }],
+    })}</div><span data-filter-clear>`);
+  const { dom, host } = setup(catalogue);
+  const bar = initFilterBar(host, { filters: [filters[0]] });
+  const seen = [];
+  host.addEventListener('ui-filter-change', e => { seen.push(e.detail); });
+  host.querySelector('[data-filter-add] [data-dd-item]').click();
+  await Promise.resolve();
+  assert.deepEqual(seen, [], 'the bar reported a change for a menu that is not a chip\'s');
   bar.destroy(); dom.window.close();
 });
 test('segmented arrows wrap, skip disabled options and emit once after repeated initialization', () => {

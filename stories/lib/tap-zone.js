@@ -150,6 +150,18 @@ export async function rowFixtures() {
         + `</td></tr>`).join('')
       + `</tbody></table>`),
 
+    // The React filter bar's add control (#496), which no vanilla story draws:
+    // a trigger of the kit's own, in the row beside the chips rather than inside
+    // a chip, so the row's clearance is what its zone may grow into. The markup
+    // is the one React renders — the factory’s row with that block spliced in
+    // before the clear button.
+    row('filter-add', kit.filterBar({
+      filters: [{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology' }] }],
+    }).replace('<span data-filter-clear>', `<div data-filter-add>${kit.dropdown({
+      id: 'fx-add', variant: 'menu', triggerContent: 'Add', ariaLabel: 'Add',
+      items: [{ label: 'Market' }],
+    })}</div><span data-filter-clear>`)),
+
     // And two a consumer would write. Nothing opens these, so nothing may grow
     // into them: the zones have to stay inside the drawn boxes.
     row('packed-row', two('Cancel', 'Continue'), 'display:flex;gap:8px;flex-wrap:wrap'),
@@ -284,6 +296,23 @@ export const PROBE = ({ html, size, interior, families, within }) => {
           ? `.${els[j].className.trim().split(/\s+/).join('.')}` : '')
         + ((els[j].textContent || '').trim()
           ? ` “${(els[j].textContent || '').replace(/\s+/g, ' ').trim().slice(0, 32)}”` : ''));
+    // The one pixel two boxes' own edges meet inside. Chromium awards it to one side by
+    // rounding, which answers the same with this sheet off and flips with the sub-pixel
+    // offset a panel happens to land on — so a neighbour whose own DRAWN box reaches into
+    // that same pixel is not read as having overreached there. A layer reaching from a box
+    // that does not share the pixel is, however small the reach: that is the fractional-edge
+    // collision a whole-pixel sampling hid. #496, #518
+    const cuts = (lo, hi, p) => (lo > p && lo < p + 1) || (hi > p && hi < p + 1);
+    const over = (lo, hi, p) => hi > p && lo < p + 1;
+    const shared = (j, x, y) => {
+      if (j < 0) return false;
+      const px = Math.floor(x);
+      const py = Math.floor(y);
+      // Only a pixel this control itself does not wholly cover can be a shared one.
+      if (!cuts(b.x, b.right, px) && !cuts(b.y, b.bottom, py)) return false;
+      const o = boxes[j];
+      return over(o.left, o.right, px) && over(o.top, o.bottom, py);
+    };
     const ask = (x, y) => {
       if (x < 0 || y < 0 || x >= window.innerWidth) return;
       const o = owner(x, y);
@@ -292,6 +321,7 @@ export const PROBE = ({ html, size, interior, families, within }) => {
       // card's or some track's is not one the control had to give away.
       if (o === i || (o !== -1 && related(i, o))) return;
       if (overlapping.has(o)) return;
+      if (shared(o, x, y)) return;
       const key = Math.round(x) * 100000 + Math.round(y);
       lost.push(key);
       // One entry per DISTINCT thief, and never a slot spent on `nothing`.
@@ -306,10 +336,23 @@ export const PROBE = ({ html, size, interior, families, within }) => {
     // otherwise be sampled at 249.06 — half inside a pixel the browser's own
     // hit test resolves at 1/64 of one, which flaps between runs that differ
     // nowhere else.
-    const x0 = Math.floor(b.x) + 0.5 < b.x ? Math.ceil(b.x) + 0.5 : Math.floor(b.x) + 0.5;
-    const y0 = Math.floor(b.y) + 0.5 < b.y ? Math.ceil(b.y) + 0.5 : Math.floor(b.y) + 0.5;
-    const x1 = Math.ceil(b.right) - 0.5 > b.right ? Math.floor(b.right) - 0.5 : Math.ceil(b.right) - 0.5;
-    const y1 = Math.ceil(b.bottom) - 0.5 > b.bottom ? Math.floor(b.bottom) - 0.5 : Math.ceil(b.bottom) - 0.5;
+    //
+    // Every pixel centre the box holds, including one in a pixel it only partly
+    // covers: a point 0.3px inside a fractional edge is a point a tap lands on,
+    // and ownership of it changing is the defect this reads. Reading only the
+    // wholly covered pixels hid a layer reaching 8.2px into the box next door.
+    // The one pixel two abutting boxes share is answered by shared() below
+    // instead, which asks WHO took the point rather than dropping the point.
+    // #496, #518
+    const centres = (lo, hi) => {
+      const first = Math.floor(lo) + 0.5 < lo ? Math.ceil(lo) + 0.5 : Math.floor(lo) + 0.5;
+      const last = Math.ceil(hi) - 0.5 > hi ? Math.floor(hi) - 0.5 : Math.ceil(hi) - 0.5;
+      // A box covering no whole pixel is sampled at its centre: an unsampled
+      // target reads exactly like a clean one.
+      return first <= last ? [first, last] : [(lo + hi) / 2, (lo + hi) / 2];
+    };
+    const [x0, x1] = centres(b.x, b.right);
+    const [y0, y1] = centres(b.y, b.bottom);
     for (let x = x0; x <= x1; x += 1) { ask(x, y0); ask(x, y1); }
     for (let y = y0; y <= y1; y += 1) { ask(x0, y); ask(x1, y); }
     for (let y = y0; y <= y1; y += interior) {
