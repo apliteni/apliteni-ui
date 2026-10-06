@@ -8,7 +8,7 @@ import { filterBar } from '../../src/components/filter-bar.js';
 import { statBand } from '../../src/components/stat.js';
 import { sparkline } from '../lib/sparkline.js';
 import { CHART_CSS, bars } from '../_chart.js';
-import { payoutHref, reportHref } from '../apps/_finance-nav.js';
+import { payoutHref } from '../apps/_finance-nav.js';
 
 // One made-up portal supplies every specimen, and the Finance report showcase
 // prints the same payouts with the same fees and nets —
@@ -16,10 +16,7 @@ import { payoutHref, reportHref } from '../apps/_finance-nav.js';
 // pair differ in one decision.
 export const SPEC_CSS = `${CHART_CSS}
   <style>
-    .gd-stage { background: var(--bg); border-radius: var(--radius-lg);
-      padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
-    .gd-note { margin: var(--space-3) 0 0; font: var(--weight-normal) var(--text-sm)/1.65 var(--font-sans);
-      color: var(--text); max-width: var(--prose-dense); }
+    .gd-stage { display: flex; flex-direction: column; gap: var(--space-4); }
     /* The chart is a picture above a table, not the table's own head band: the
        scale's gap is what keeps the bar baselines off the header's cap height. */
     /* The dense table under it hangs out of the card by --space-3 so its columns
@@ -28,14 +25,12 @@ export const SPEC_CSS = `${CHART_CSS}
     .gd-chart { display: flex; flex-direction: column; gap: var(--space-2);
       width: calc(100% + 2 * var(--space-3)); margin-inline: calc(-1 * var(--space-3));
       margin-bottom: var(--space-4); }
-    .gd-chart__months { display: flex; font: var(--weight-normal) var(--text-xs)/1 var(--font-sans);
-      color: var(--text); }
+    .gd-chart__months { display: flex; }
     .gd-chart__months span { flex: 1 1 0; min-width: 0; text-align: center; }
   </style>`;
 
 const stage = (html) => `<div class="gd-stage">${html}</div>`;
 
-const BASIS = 'Change against the previous 12 months';
 const MONEY_IN = [412, 455, 430, 498, 520, 505, 560, 548, 590, 610, 587, 640];
 const MONEY_OUT = [298, 304, 312, 309, 321, 317, 329, 334, 327, 339, 341, 318];
 
@@ -46,7 +41,9 @@ const FIGURES = [
   { label: 'Money in', value: '759,988 €', delta: { value: '+12.4%', tone: 'good' }, trend: sparkline(MONEY_IN, 'Money in, last 12 months') },
   { label: 'Money out', value: '3,048,559 €', delta: { value: '+31.8%', tone: 'bad' }, trend: sparkline(MONEY_OUT, 'Money out, last 12 months') },
 ];
-const cashflow = (id) => statBand({ id, basis: BASIS, stats: FIGURES });
+const cashflow = (id) => statBand({ id,
+  stats: FIGURES.map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' } })),
+});
 
 // Reference, fees, net, status. A fifth column does not fit a specimen cell,
 // so the gross stays here undrawn: it is what makes each net checkable, and
@@ -113,14 +110,8 @@ const exceptionsTable = ({ onward = true } = {}) => `
     </tbody>
   </table>`;
 
-// The card, with the one link that opens the whole report in its own head — the
-// shape the Finance dashboard draws. The link is named for the report it opens,
-// not for the block it leaves, and the head is where it sits so it is read with
-// the block's title rather than found under the rows. No count over the table:
-// the rows a reader decides on are the three drawn below it. why: Artur, round r33
 const attention = ({ onward = true } = {}) => card({
   title: 'Needs a decision',
-  sub: onward ? `<a class="ui-focusable ui-card__link" href="${reportHref()}">All payouts</a>` : undefined,
   body: exceptionsTable({ onward }),
 });
 
@@ -132,7 +123,7 @@ const NET_BY_MONTH = [412, 455, 430, 498, 520, 505];
 const monthChart = () => `<div class="gd-chart">${bars({
   values: NET_BY_MONTH, width: 320, height: 96, fluid: true,
   label: 'Net settled by month, first half of the year',
-}).svg}<div class="gd-chart__months" aria-hidden="true">${MONTHS.map((month) => `<span>${month}</span>`).join('')}</div></div>`;
+}).svg}<div class="gd-chart__months ui-stat__label" aria-hidden="true">${MONTHS.map((month) => `<span>${month}</span>`).join('')}</div></div>`;
 
 const monthTable = () => `
   <table class="ui-table ui-table--dense">
@@ -156,7 +147,7 @@ export const RULES = withSpecimens(content.rules, [
     doHtml: () => stage(`${cashflow('gd-glance-do')}${attention()}`),
     dontHtml: () => stage(card({
       title: 'Payouts',
-      body: `${ledgerTable()}<p class="gd-note">Fees rose with volume this quarter, and the one
+      body: `${ledgerTable()}<p class="ui-card__sub">Fees rose with volume this quarter, and the one
         unmatched transfer from June is still with the bank.</p>`,
     })),
   },
@@ -170,7 +161,6 @@ export const RULES = withSpecimens(content.rules, [
     doHtml: () => stage(card({ title: 'Payouts', body: ledgerTable() })),
     dontHtml: () => stage(statBand({
       id: 'gd-depth-dont',
-      basis: 'The year so far',
       stats: [
         { label: 'Payouts', value: '214' },
         { label: 'Fees', value: '68,412 €' },
@@ -184,7 +174,7 @@ export const RULES = withSpecimens(content.rules, [
     // on the ledger, and the filters narrow it. why: Artur's review of the
     // Finance report, #505
     doHtml: () => stage(`<div class="ui-toolbar ui-toolbar--split">
-      ${filterBar({ filters: FILTERS, label: 'Payout filters' })}
+      ${filterBar({ filters: FILTERS, label: 'Payout filters', clearLabel: 'Clear all' })}
       ${button({ label: 'Export rows', icon: 'download', iconOnly: true })}
     </div>${card({ title: 'Payouts', body: ledgerTable() })}`),
     // The Don't carries the period in its title, which is what "fixed by whoever

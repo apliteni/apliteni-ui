@@ -963,7 +963,7 @@
         "pattern": "export function switchToggle("
       },
       {
-        "ref": "src/styles/card.css:103",
+        "ref": "src/styles/card.css:95",
         "pattern": ".ui-card__row {"
       }
     ],
@@ -1027,8 +1027,8 @@
         "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
       },
       {
-        "ref": "src/styles/table.css:225",
-        "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
+        "ref": "src/styles/table.css:226",
+        "pattern": ".ui-table tbody tr.is-target:not(:focus-visible) > :is(td, th),"
       },
       {
         "ref": "stories/lib/story-link.js:71",

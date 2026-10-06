@@ -38,7 +38,7 @@ export const financeShell = ({ active, crumb, title, sub, body, back }) => appSh
   nav: FINANCE_NAV,
   active,
   navLabel: 'Finance',
-  crumbs: [{ label: 'Finance', href: '#' }, { label: crumb || title }],
+  crumbs: [{ label: 'Finance', href: previewHref(DASHBOARD_STORY) }, { label: crumb || title }],
   back,
   title,
   sub,

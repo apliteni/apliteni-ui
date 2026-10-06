@@ -125,7 +125,7 @@
    .ui-table__pair is the cell that carries a reference and its state, so the exception is
    as narrow as that cell. The ink is base.css's own `a { color: var(--accent) }`, at
    7.34:1 in light and 5.53:1 in dark on the table's ground.
-   why: Artur, round r34; guidelines/dashboards-and-reports.md#link-every-item-to-its-report
+   why: Artur, round r34; guidelines/dashboards-and-reports.md#link-each-reference-to-its-row
    held by: src/styles/table.test.js */
 .ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }
 .ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity):hover {
@@ -207,7 +207,8 @@
 }
 .ui-table tbody tr:hover { outline: 1px solid var(--border-strong); outline-offset: -1px; }
 
-/* The row a reference landed a reader on. The mark is a GROUND, not a line: an outline
+/* Focus takes precedence over the arrival background.
+   The row a reference landed a reader on. The mark is a GROUND, not a line: an outline
    says the keyboard is here (Artur, r34), and this one persists — it answers which row the
    reader came for, so it stays until the next arrival and must not wear the picture focus
    draws. It took --ring-scroll until #505's review found a landed row still outlined in the
@@ -220,11 +221,11 @@
    row, because the hover and zebra rules paint cells and would otherwise cover it; the two
    hover selectors are repeated with .is-target so a pointer passing over the row does not
    take its mark off.
-   why: Artur, round r34; guidelines/dashboards-and-reports.md#link-every-item-to-its-report
+   why: Artur, round r34; guidelines/dashboards-and-reports.md#link-each-reference-to-its-row
    held by: stories/dashboard-report-refs.test.js, src/styles/table-focus.test.js */
-.ui-table tbody tr.is-target > :is(td, th),
-.ui-table--hover tbody tr.is-target:hover > :is(td, th),
-.ui-table--zebra.ui-table--hover tbody tr.is-target:hover > :is(td, th) {
+.ui-table tbody tr.is-target:not(:focus-visible) > :is(td, th),
+.ui-table--hover tbody tr.is-target:not(:focus-visible):hover > :is(td, th),
+.ui-table--zebra.ui-table--hover tbody tr.is-target:not(:focus-visible):hover > :is(td, th) {
   background: color-mix(in srgb, var(--accent) 12%, transparent); /* code-bg: inherit — this translucent wash leaves the chip on its opaque ground. */
 }
 

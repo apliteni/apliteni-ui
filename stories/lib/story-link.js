@@ -36,7 +36,7 @@ export const linkTarget = (href) => {
 export const globalsParam = (root) => {
   const theme = root?.getAttribute?.('data-theme-choice') || root?.getAttribute?.('data-theme');
   const accent = root?.getAttribute?.('data-accent');
-  return [theme && `theme:${theme}`, accent && `accent:${accent}`].filter(Boolean).join(',');
+  return [theme && `theme:${theme}`, accent && `accent:${accent}`].filter(Boolean).join(';');
 };
 
 /** The row a reference asked for. While the preview is framed the manager carries it, in
