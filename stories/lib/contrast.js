@@ -266,6 +266,30 @@ export function parseColour(value) {
   return null;
 }
 
+/**
+ * A token value or a color-mix() of them, resolved to [r, g, b, a].
+ *
+ * The mix is PREMULTIPLIED, which is what CSS does and is not a detail here:
+ * `color-mix(in srgb, var(--amber) 13%, transparent)` is how the kit writes an
+ * alpha, and interpolating its channels straight would drag the amber towards
+ * black and report a dark-theme wash the browser never paints. Premultiplied,
+ * that mix is the amber at alpha 0.13, which is what Chrome renders.
+ *
+ * Null for syntax it cannot read, on parseColour's terms: a resolver that
+ * guesses fabricates a passing ratio.
+ */
+export function colourOf(value, vars) {
+  const resolved = substitute(String(value).trim(), vars).trim();
+  const mix = /^color-mix\(\s*in srgb\s*,\s*(.+?)\s+([\d.]+)%\s*,\s*(.+?)\s*\)$/.exec(resolved);
+  if (!mix) return parseColour(resolved);
+  const [a, b] = [colourOf(mix[1], vars), colourOf(mix[3], vars)];
+  if (!a || !b) return null;
+  const share = Number.parseFloat(mix[2]) / 100;
+  const alpha = a[3] * share + b[3] * (1 - share);
+  if (alpha === 0) return [0, 0, 0, 0];
+  return [0, 1, 2].map((i) => (a[i] * a[3] * share + b[i] * b[3] * (1 - share)) / alpha).concat(alpha);
+}
+
 /** Source-over: paint fg (with its alpha) onto an opaque bg. */
 export const composite = (fg, bg) =>
   [0, 1, 2].map((i) => fg[i] * fg[3] + bg[i] * (1 - fg[3])).concat(1);

@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.111.0', date: '2026-10-11',
+    changes: [
+      ['added', 'React Chart draws monthly bars with a line, a bridge from a starting total to a result, and a sparkline at text size for a stat band trend slot. A period that is not final keeps its series fill with a dashed edge and is said in words in the readout and the optional table. The chart is one tab stop, and the same numbers are available as a table.', ['React Chart']],
+      ['added', 'The main entry exports chartScale, bridgeWalk and pointTarget, the arithmetic behind those shapes, so a surface that draws them without React asks the kit instead of writing its own scale and its own pointer targets.'],
+    ],
+  },
+  {
     v: '0.108.0', date: '2026-10-10',
     changes: [
       ['fixed', 'Below 720px a pinned identity column keeps each row name on one line instead of hiding it. The name is capped at `min(var(--panel-sm), 50vw)` and cuts with an ellipsis past the cap; the full text stays in the markup, so the accessible name and company link stay unchanged. Resolves #500.', ['Table']],
