@@ -131,8 +131,17 @@ const backgroundIn = (body) => {
  */
 const fillsOf = (selector, css = rules) => css
   .filter((rule) => selectorsOf(rule.selector).includes(selector))
-  .map((rule) => backgroundIn(rule.body))
-  .filter(Boolean);
+  .flatMap((rule) => {
+    const fill = backgroundIn(rule.body);
+    // The phone shell removes the row fill and paints its measured plate instead.
+    if (selector === '.ui-app__rail .ui-nav__item.is-active'
+      && fill === 'none' && /^\s*isolation:\s*isolate;\s*background:\s*none;\s*$/.test(rule.body)) {
+      const plate = fillsOf('.ui-app__rail .ui-nav__item.is-active::before', css);
+      assert.ok(plate.length, 'the folded shell row has no replacement plate');
+      return plate;
+    }
+    return fill ? [fill] : [];
+  });
 
 /**
  * The selected items, each with the selector that paints it, the selector that paints
@@ -140,6 +149,16 @@ const fillsOf = (selector, css = rules) => css
  * because which container an item ends up in is not in the stylesheets.
  */
 const SUBJECTS = [
+  {
+    name: "the standalone rail's current row",
+    rule: '.ui-nav__item.is-active', ground: '--bg',
+    paintedBy: 'the page ground; layout.css overrides this fill inside a shell',
+  },
+  {
+    name: "the open shell rail's current row",
+    rule: '.ui-app__rail .ui-nav__item.is-active', ground: '--surface',
+    paintedBy: '.ui-app__rail, which layout.css paints --surface',
+  },
   // All three spellings segmented() can emit, because each is a rule a consumer sheet
   // can override on its own and the pill is only marked if every one of them steps.
   ...['[aria-pressed="true"]', '[aria-selected="true"]', '.is-active'].map((state) => ({
@@ -158,9 +177,9 @@ const SUBJECTS = [
     paintedBy: '.ui-cmdk__panel, through --cmdk-surface',
   },
   {
-    name: "the folded rail's current plate",
-    rule: '.ui-nav--side.is-collapsed .ui-nav__item.is-active::before', ground: '--surface',
-    paintedBy: '.ui-app__rail, which layout.css paints --surface',
+    name: "the folded standalone rail's current plate",
+    rule: '.ui-nav--side.is-collapsed .ui-nav__item.is-active::before', ground: '--bg',
+    paintedBy: 'the page ground; layout.css overrides this plate inside a shell',
   },
   {
     name: "the folded shell rail's current plate",
@@ -179,13 +198,6 @@ const SUBJECTS = [
  * still resolve to a rule below, so an exclusion cannot outlive its selector.
  */
 const EXCLUSIONS = [
-  {
-    rule: '.ui-nav__item.is-active',
-    why: 'the open rail\'s current row. Its mark is the 3px accent marker in its own '
-      + 'padding and a --border hairline, which is #475\'s subject and is reworked to a '
-      + 'plate on #593. #578 changes only what the BAND on this row is made of, so the '
-      + 'row keeps the look it shipped with and the two changes do not collide.',
-  },
   {
     rule: '.ui-pager__page.is-current:not([disabled])',
     why: 'the one selected mark #578 round r34 left as an edge, recorded beside its rule '
@@ -322,5 +334,15 @@ test('a later rule that flattens a subject\'s fill fails this gate', () => {
       `${subject.name} still passes with a later rule repainting it var(${subject.ground}) — `
       + 'the reading is taking one declaration and ignoring the rest, which is the defect '
       + 'the #590 review found. Measure every background the selector is given');
+  }
+});
+
+// Removing a fill is not the same as moving the mark to the folded shell's plate.
+test('a later rule that removes a selected fill fails this gate', () => {
+  for (const subject of SUBJECTS) {
+    const removed = [...rules, { selector: subject.rule, body: 'background: none;' }];
+    assert.ok(fillsOf(subject.rule, removed).includes('none'),
+      `${subject.name}: the reading ignored a removed selection fill`);
+    assert.throws(() => against('none', subject.ground, 'light'), /not a colour/);
   }
 });

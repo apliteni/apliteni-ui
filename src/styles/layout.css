@@ -119,7 +119,7 @@
    resting step. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1595 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1597 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 
 /* A destructive row of the rail is a navigation row and rests like one; the danger
