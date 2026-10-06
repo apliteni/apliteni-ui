@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { filterBar, initFilterBar } from './filter-bar.js';
+import { dropdown } from './dropdown.js';
 import { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop, focusNextStop } from '../logic/filter-bar.js';
 import { segmented } from './index.js';
 import { initSegmented } from './segmented.js';
@@ -359,6 +360,25 @@ test('Dropdown selection reports the filter id and value after its own close', a
   assert.equal(host.querySelector('[data-dropdown-trigger]').getAttribute('aria-expanded'), 'false');
   bar.update({ filters, busy: true }); result = undefined;
   host.querySelector('[data-filter-remove]').click(); assert.equal(result, undefined);
+  bar.destroy(); dom.window.close();
+});
+test('a pick in the page\'s own catalogue is not reported as a chip\'s change', async () => {
+  // The bar owns the chips; the control a vanilla page draws under `data-filter-add` is the
+  // page's, and its rows name a filter the row is not carrying. Reported as a change, with
+  // no chip to name, it had the documented consumer write the catalogue's value into every
+  // filter the bar held. A chip's own menu still reports — the test above measures that. #518
+  const catalogue = filterBar({ filters: [filters[0]] })
+    .replace('<span data-filter-clear>', `<div data-filter-add>${dropdown({
+      variant: 'menu', ariaLabel: 'Add', triggerContent: 'Add',
+      sections: [{ label: 'Market', items: [{ label: 'US', value: 'market:US' }] }],
+    })}</div><span data-filter-clear>`);
+  const { dom, host } = setup(catalogue);
+  const bar = initFilterBar(host, { filters: [filters[0]] });
+  const seen = [];
+  host.addEventListener('ui-filter-change', e => { seen.push(e.detail); });
+  host.querySelector('[data-filter-add] [data-dd-item]').click();
+  await Promise.resolve();
+  assert.deepEqual(seen, [], 'the bar reported a change for a menu that is not a chip\'s');
   bar.destroy(); dom.window.close();
 });
 test('segmented arrows wrap, skip disabled options and emit once after repeated initialization', () => {

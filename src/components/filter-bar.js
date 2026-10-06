@@ -58,7 +58,10 @@ export function initFilterBar(host, options = {}) {
     const chip = e.target.closest('[data-filter-id]');
     if (e.target.closest('[data-filter-remove]')) emit('ui-filter-remove', { id: chip.dataset.filterId });
     else if (e.target.closest('[data-filter-clear] button')) emit('ui-filter-clear', {});
-    else if (e.target.closest('[data-dd-item]')) {
+    // A chip's menu only. The catalogue a vanilla page draws under `data-filter-add` is the
+    // page's own, and a pick in it names no chip: reported as a change, it had a consumer
+    // mapping over its filters and writing the catalogue's value into every one of them. #518
+    else if (e.target.closest('[data-dd-item]') && !e.target.closest('[data-filter-add]')) {
       const item = e.target.closest('[data-dd-item]');
       if (item.getAttribute('aria-disabled') !== 'true') {
         const id = chip?.dataset.filterId, value = item.dataset.value;
