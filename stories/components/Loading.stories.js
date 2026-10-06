@@ -74,7 +74,7 @@ export const Transitions = {
     const table = `<table class="ui-table ui-table--dense ui-table--hover">
       <thead><tr><th>ID</th><th>Arrival</th><th class="ui-table__num">Net (EUR)</th></tr></thead>
       <tbody>${ROWS.map(([id, arr, net]) =>
-        `<tr><td><a href="#">${id}</a></td><td>${arr}</td><td class="ui-table__num">${net}</td></tr>`).join('')}</tbody>
+        `<tr><td class="ui-table__linked"><a href="#">${id}</a></td><td>${arr}</td><td class="ui-table__num">${net}</td></tr>`).join('')}</tbody>
     </table>`;
 
     wrap.innerHTML = `

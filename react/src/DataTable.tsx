@@ -5,6 +5,16 @@ import './DataTable.css';
 
 export type Column<T> = {
   key: keyof T & string; label: ReactNode; num?: boolean; sortable?: boolean; render?: (row: T) => ReactNode;
+  /**
+   * `true` marks this column's body cells as holding one link and nothing else, so the
+   * link fills its cell and its focus ring outlines the cell rather than the words. It is
+   * the consumer's to declare because CSS counts elements and not words: a cell reading
+   * "Invoice 1162" with the number linked looks the same to a selector, and filling that
+   * one would put the number on a line of its own. The header cell is never marked — it
+   * holds a label, or a sort button that keeps its own ring.
+   * why: docs/components.md#dense-financial-tables
+   */
+  linked?: boolean;
 };
 export type TableSort<T> = { key: (keyof T & string) | undefined; dir: 1 | -1 };
 type SelectionProps =
@@ -155,8 +165,11 @@ export function DataTable<T extends { name: string }>({
                   : (c.sortable && sortIsKnown ? 'none' : undefined)}>
                 {c.sortable
                   ? (
+                    // The label is its own box so it can truncate: in a pinned
+                    // identity column on a phone the header is capped, and a bare
+                    // text node would push the caret out of the cell instead.
                     <button type="button" className="rx-sort" onClick={() => onSort(c.key)}>
-                      {c.label}{caret(c.key)}
+                      <span className="rx-sort__label">{c.label}</span>{caret(c.key)}
                     </button>
                   )
                   : c.label}
@@ -171,7 +184,7 @@ export function DataTable<T extends { name: string }>({
               {selectable ? <td className="ui-table__selection"><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
                 onChange={() => onToggle(r.name)} /></td> : null}
               {columns.map((c, columnIndex) => (
-                <td key={c.key} className={[c.num && 'ui-table__num', pinnedIdentity && columnIndex === 0 && 'ui-table__identity'].filter(Boolean).join(' ')}>
+                <td key={c.key} className={[c.num && 'ui-table__num', pinnedIdentity && columnIndex === 0 && 'ui-table__identity', c.linked && 'ui-table__linked'].filter(Boolean).join(' ')}>
                   {c.render ? c.render(r) : String(r[c.key])}
                 </td>
               ))}

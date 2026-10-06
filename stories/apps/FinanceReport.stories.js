@@ -112,7 +112,7 @@ const payoutsCard = (rows = PAYOUTS) => card({ title: 'Payouts', body: rows.leng
     <tbody>
       ${rows.map(([ref, pid, arr, gross, fees, net, variant, label]) => `
         <tr id="${payoutRowId(ref)}">
-          <td>${ref}</td>
+          <td class="ui-table__linked"><a href="#">${ref}</a></td>
           <td class="ui-table__code">${pid}</td>
           <td>${arr}</td>
           <td class="ui-table__num">${gross}</td>

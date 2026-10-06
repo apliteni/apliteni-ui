@@ -9,7 +9,10 @@ export default {
   id: 'apps-stock-screener',
   parameters: { layout: 'fullscreen' },
 };
-const names = ['Aster Systems', 'Birch Semiconductor', 'Cobalt Energy', 'Dovetail Health', 'Elm Networks', 'Fable Robotics', 'Grove Financial', 'Harbor Software', 'Iris Materials', 'Juniper Devices', 'Kestrel Logistics', 'Linden Foods', 'Morrow Industries', 'Northstar Analytics', 'Opal Telecom', 'Pine Mobility', 'Quartz Medical', 'Reed Computing', 'Solstice Power', 'Tern Aerospace', 'Umber Retail', 'Vale Instruments', 'Willow Biotech', 'Xenon Storage', 'Yarrow Payments', 'Zephyr Motors', 'Alder Water', 'Bracken Research', 'Cedar Infrastructure', 'Drift Media'];
+const names = ['Aster Systems', 'Birch Semiconductor', 'Cobalt Energy', 'Dovetail Health', 'Elm Networks', 'Fable Robotics', 'Grove Financial', 'Harbor Software', 'Iris Materials', 'Juniper Devices', 'Kestrel Logistics', 'Linden Foods', 'Morrow Industries', 'Northstar Analytics', 'Opal Telecom', 'Pine Mobility', 'Quartz Medical', 'Reed Computing', 'Solstice Power', 'Tern Aerospace', 'Umber Retail', 'Vale Instruments', 'Willow Biotech', 'Xenon Storage', 'Yarrow Payments', 'Zephyr Motors', 'Alder Water', 'Bracken Research', 'Cedar Infrastructure Group', 'Drift Media'];
+// One name is just longer than the phone cap on purpose: the column's own ellipsis is
+// what #500 is about, and every other name fits. Just longer, because at 1280 the
+// longest name sets the column for all thirty rows. #513
 const sectors = ['Technology', 'Energy', 'Health care', 'Financials', 'Industrials'];
 const rows = names.map((name, i) => ({ name, symbol: name.slice(0, 4).toUpperCase(), price: 340 - i * 8.37, cap: 980 - i * 27.31, sector: sectors[i % sectors.length], i }));
 const signed = n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toFixed(2)}%`;
@@ -35,7 +38,7 @@ const table = (data, density, view = 'Overview', sort = 'desc', emptyMessage = '
   const order = view === 'Performance' ? [0, 2, 8, 11, 1, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14] : view === 'Valuation' ? [0, 5, 6, 7, 1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14] : headers.map((_, i) => i);
   return `<table class="ui-table ui-table--${density} ui-table--sticky ui-table--pinned ui-table--hover"><caption class="ui-filter-bar__legend">Fictional stock screener, ${view}, values in USD</caption><thead><tr>${order.map(i => `<th scope="col" class="${i === 0 ? 'ui-table__identity' : i < 13 ? 'ui-table__num' : ''}"${i === 5 ? ` aria-sort="${sort === 'desc' ? 'descending' : 'ascending'}"` : ''}>${i === 5 ? `<button type="button" class="screener__sort">Market cap ${sort === 'desc' ? '↓' : '↑'}</button>` : headers[i]}</th>`).join('')}</tr></thead><tbody>${data.map(({ name, symbol, price, cap, sector, i }) => {
     const cells = [rowIdentity({ name, symbol, href: '#company-detail' }), numericValue({ value: price.toFixed(2), unit: 'USD' }), change(i === 8 ? 0 : ((i * 17) % 63 - 28) / 10), numericValue({ value: (95 - i * 2.71).toFixed(2), unit: 'M' }), (0.6 + i * .07).toFixed(2), numericValue({ value: cap.toFixed(2), unit: 'B USD' }), numericValue({ value: i === 5 ? null : (18 + i * 1.2).toFixed(2) }), numericValue({ value: (11 - i * .23).toFixed(2), unit: 'USD' }), change(22 - i * 1.7), `${(i * .13).toFixed(2)}%`, numericValue({ value: (72 - i * 1.9).toFixed(2), unit: 'B USD' }), change(17 - i * .8), (0.7 + i * .03).toFixed(2), sector, ['Buy', 'Hold', 'Sell'][i % 3]];
-    return `<tr>${order.map(j => `<td class="${j === 0 ? 'ui-table__identity' : j < 13 ? 'ui-table__num' : ''}">${cells[j]}</td>`).join('')}</tr>`;
+    return `<tr>${order.map(j => `<td class="${j === 0 ? 'ui-table__identity ui-table__linked' : j < 13 ? 'ui-table__num' : ''}">${cells[j]}</td>`).join('')}</tr>`;
   }).join('') || `<tr><td colspan="15">${emptyMessage}</td></tr>`}</tbody></table>`;
 };
 // Checked against the rule and left as it is: the views are their own strip in
