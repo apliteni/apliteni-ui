@@ -178,26 +178,32 @@ try {
       /* -- The same row at a desktop width, where nothing scrolls ------------ */
       open('', 1280);
       const fit = evaluate(READ_FIT);
-      assert(!fit.overflowing,
-        `${subject.id} ${theme}: ${fit.links}px of links in a ${fit.row}px row at 1280 — the `
-        + 'row overflows, so this width no longer exercises the case');
       assert(fit.marked, `${subject.id} ${theme}: a row with room for its links is not marked as fitting`);
       assert(!fit.clips,
         `${subject.id} ${theme}: the row computes overflow ${fit.overflowX}/${fit.overflowY} at 1280, `
         + 'so it still clips the halo of every ring painted in it where nothing scrolls');
       assert(fit.pageFits, `${subject.id} ${theme}: the page overflows at 1280`);
-      // Prove the reading can fail: take the mark off and the sheet puts the clip
-      // back, which is the defect round r2's review measured.
+      // Prove the reading can fail: take the mark off and the sheet puts the clip back,
+      // which is the defect round r2's review measured. The links are measured here
+      // rather than above, because a row with the overflow off reports no overflow
+      // whatever its links do — `scrollWidth` never goes below `clientWidth`.
       const clipped = evaluate(`(() => {
         const nav = document.querySelector('.ui-nav--tabs');
         nav.removeAttribute('data-nav-fit');
         const style = getComputedStyle(nav);
-        return { clips: style.overflowX !== 'visible' || style.overflowY !== 'visible' };
+        return {
+          clips: style.overflowX !== 'visible' || style.overflowY !== 'visible',
+          overflowing: nav.scrollWidth - nav.clientWidth > 1,
+          links: Math.round(nav.scrollWidth), row: Math.round(nav.clientWidth),
+        };
       })()`);
       assert(clipped.clips,
         `${subject.id} ${theme}: the row clips nothing with the mark removed, so the reading `
         + 'above proves nothing');
-      fits.push({ workspace, story: subject.id, theme, ...fit });
+      assert(!clipped.overflowing,
+        `${subject.id} ${theme}: ${clipped.links}px of links in a ${clipped.row}px row at 1280 — `
+        + 'the row overflows, so this width no longer exercises the case');
+      fits.push({ workspace, story: subject.id, theme, ...fit, unmarked: clipped });
     }
   }
   assert.equal(results.length, 8, 'Both workspaces, both variants, both themes measured');
