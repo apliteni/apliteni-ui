@@ -836,10 +836,19 @@ words in both the readout and the legend; `note` says why.
 A bar series names a tone. `accent` and `accent-soft` are one hue at two weights, which is how
 two series read apart without spending a second colour on them; `good` and `bad` say which way
 the news runs, and belong to a series where some direction is better. Every tone is opaque and
-clears 3:1 against the card and against the page, in both themes and under every accent. The
-plot draws a hairline at every tick and the zero rule over them, the axis keeps a label at
-every tick, and a bar is flat and rounded only at the end away from zero. A picked column is
-marked on its own label, so the accent stays with the series.
+clears 3:1 against the card and against the page, in both themes and under every accent.
+
+The plot draws a hairline at every tick and the zero rule over them, and the axis keeps a label
+at every tick. A bar is flat, rounded only at the end away from zero, and **never wider than a
+mark**: a chart that grows with the card gains ground between its columns rather than twelve
+wider blocks. Two bar series on the same side of the zero line stand side by side with ground
+between them. A bridge carries each step's running total across to the step beside it. The
+value axis, the period row and the legend are drawn quietly, and every value they name is also
+in the readout and in the table at full strength.
+
+Picking a column paints the column's own ground behind it and sets its label in the strong ink
+at a heavier weight. No mark changes colour, so the accent stays with the series it names, and
+the only outline the chart draws is the focus ring on the plot.
 
 The plot is one tab stop. Left, Right, Home and End step columns and announce each one
 politely, Enter picks one when `selectable` is set, and `title` names the `role="img"` plot and
@@ -865,6 +874,7 @@ same line drawn in the middle of it.
   series={[
     { id: 'income', name: 'Income', values: income, tone: 'accent' },
     { id: 'spend', name: 'Spend', values: spend, shape: 'bars-below', tone: 'accent-soft' },
+    /* or `shape: 'bars'` for the two standing side by side on the zero line */
     { id: 'net', name: 'Net', values: net, shape: 'line', tone: 'info' },
   ]}
   format={eur} formatAxis={eurShort} />
