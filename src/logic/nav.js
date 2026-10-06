@@ -15,26 +15,40 @@ function revealNavItem(nav, item) {
   else if (box.right > right) nav.scrollLeft += box.right - right;
 }
 
-// Whether the row scrolls AT ALL is measured here, because a sheet cannot ask whether
-// the links fit. A scroll box clips its children's paint at its padding edge, and the
-// ring's halo reaches about 14px against the 4px of padding inside the box — so a row
-// with room to spare was still cutting the halo off every ring in it, at 1280 as much
-// as at 390. `data-nav-fit` takes the overflow back off that row; it is an attribute
-// rather than a class because React owns the class attribute on its own row. The
-// padding and the negative margins stay in both states, so no tab moves. One pixel of
-// slack absorbs what a fractional column leaves between the two numbers, and spills
-// into the margin the row already bleeds. A row with no layout yet — folded away, or a
-// JSDOM tree — keeps the scroll box the sheet wrote, which holds a narrow row inside
-// the page. #429
+// Measure with overflow enabled so visible child paint cannot inflate scrollWidth.
+// One pixel allows fractional columns. Unmeasured rows keep their scroll containment.
 function fitNav(nav) {
   nav.removeAttribute('data-nav-fit');
   if (!nav.clientWidth) return;
   if (nav.scrollWidth - nav.clientWidth <= 1) nav.setAttribute('data-nav-fit', '');
 }
 
-// Size the row to its links and reveal the current route, without scrolling the page
-// or moving focus. Both halves want the same moments: a load, a resize, a route
-// change, a row whose links were replaced.
+// Watch layout independently from route changes so a resize preserves the reader's scroll.
+export function observeNavFit(nav) {
+  const win = nav.ownerDocument.defaultView;
+  const measure = () => fitNav(nav);
+  const resize = win.ResizeObserver ? new win.ResizeObserver(measure) : null;
+  const observe = () => {
+    resize?.disconnect();
+    resize?.observe(nav);
+    for (const child of nav.children) resize?.observe(child);
+    measure();
+  };
+  const changes = new win.MutationObserver(observe);
+  changes.observe(nav, {
+    childList: true, subtree: true, characterData: true,
+    attributes: true, attributeFilter: ['class', 'style'],
+  });
+  observe();
+  win.addEventListener('resize', measure);
+  return () => {
+    resize?.disconnect();
+    changes.disconnect();
+    win.removeEventListener('resize', measure);
+  };
+}
+
+// Reveal only on an explicit route change or initial wiring.
 export function revealCurrentNav(nav) {
   fitNav(nav);
   revealNavItem(nav, nav.querySelector('[aria-current="page"]'));

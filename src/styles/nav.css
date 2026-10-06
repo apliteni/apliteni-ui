@@ -306,14 +306,8 @@
   background-position: center bottom calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule));
   background-size: calc(100% - 2 * var(--ui-tabs-ring-room)) var(--ui-tabs-rule);
 }
-/* A row with room for its links is not a scroll box at all, so it clips nothing. The
-   box above clips its children's PAINT at its padding edge — 4px of room for a ring
-   that reaches about 14px — so a row that scrolled nothing still arrived with the halo
-   cut to a hard-edged band, at every width. The padding and the negative margins stay
-   in both states, so no tab moves; only the clipping goes. A sheet cannot ask whether
-   the links fit, so `revealCurrentNav()` measures the row and writes this; unwired, or
-   on a server, the row keeps the scroll box that holds a narrow one inside the page.
-   An attribute rather than a class because React rewrites the class on its own row. */
+/* Fitting rows keep overflow visible. Measurements retain the same padding and margins,
+   so switching containment does not move the links. Unwired rows keep containment. */
 .ui-nav--tabs[data-nav-fit] { overflow: visible; }
 .ui-nav--tabs.is-pill { --ui-tabs-rule: 0px; background-image: none; gap: 6px; }
 /* The row is a keyboard stop of its own only while it scrolls AND holds no focusable

@@ -1,3 +1,5 @@
+/** Watch tab content and width without changing the current route. Call the result on removal. */
+export declare function observeNavFit(nav: HTMLElement): () => void;
 export declare function esc(value: unknown): string;
 /** The URL boundary every factory and React component sends a destination through. */
 export declare function safeUrl(value: unknown, fallback?: string): string;

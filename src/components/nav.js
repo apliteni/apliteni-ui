@@ -9,7 +9,7 @@
 import { esc, icon } from './index.js';
 import { playEntrance } from '../motion.js';
 import { safeUrl } from '../html.js';
-import { revealCurrentNav, revealFocusedNav } from '../logic/nav.js';
+import { observeNavFit, revealCurrentNav, revealFocusedNav } from '../logic/nav.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 
 // Unique-per-render ids so a section heading can label its own list. Module
@@ -195,12 +195,18 @@ function toggleGroup(btn) {
   }
 }
 
+const fitObservers = new Map();
 export function wireNav(root = document) {
-  root.querySelectorAll('.ui-nav--tabs').forEach(revealCurrentNav);
+  for (const [nav, stop] of fitObservers) {
+    if (!nav.isConnected) { stop(); fitObservers.delete(nav); }
+  }
+  root.querySelectorAll('.ui-nav--tabs').forEach((nav) => {
+    if (!fitObservers.has(nav)) fitObservers.set(nav, observeNavFit(nav));
+    revealCurrentNav(nav);
+  });
   // Per-collapsed-rail behaviour would go here; groups use one delegated handler.
   if (_navGlobalWired) return;
   _navGlobalWired = true;
-  window.addEventListener('resize', () => document.querySelectorAll('.ui-nav--tabs').forEach(revealCurrentNav));
   // A tab row scrolls its own focused link clear of its edge, so the ring the link
   // draws is not cut off by the scroll box. Delegated, because the links come and go.
   document.addEventListener('focusin', (e) => {
