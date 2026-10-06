@@ -44,7 +44,7 @@ const payoutsCard = () => card({ title: `<span class="ui-card__icon">${icon('car
     <tbody>
       ${PAYOUTS.map(([id, pid, arr, gross, fees, net, variant, label]) => `
         <tr>
-          <td><a href="#">${id}</a></td>
+          <td class="ui-table__linked"><a href="#">${id}</a></td>
           <td class="ui-table__code">${pid}</td>
           <td>${arr}</td>
           <td class="ui-table__num">${gross}</td>

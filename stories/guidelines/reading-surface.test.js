@@ -69,8 +69,12 @@ const THEMES = ['dark', 'light'];
 const pageFiles = readdirSync(here).filter((f) => f.endsWith('.stories.js')).sort();
 
 /* The floors are what the collection holds today, not a round number under it: a
- * floor with slack in it is a floor a deleted page walks under. */
-const FOUND = { pages: 25, stories: 25, prose: 927 };
+ * floor with slack in it is a floor a deleted page walks under.
+ * 927 → 926: the state-set page's ring boundary now names the 32px control in
+ * prose instead of repeating `--ring`, so it writes one code span fewer. Keep
+ * this note clear of the words the minimums page's gate list is discovered by;
+ * saying one of them outside an import enrols this file in that list. */
+const FOUND = { pages: 25, stories: 25, prose: 926 };
 
 /* Every prose carrier the collection writes. Each name is held against the
  * source below, so a renamed class fails here instead of quietly leaving the

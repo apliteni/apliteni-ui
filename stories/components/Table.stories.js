@@ -31,7 +31,7 @@ export const FinanceData = {
       <tbody>
         ${PAYOUTS.map(([id, pid, arr, gross, fees, net, variant, label]) => `
           <tr>
-            <td><a href="#">${id}</a></td>
+            <td class="ui-table__linked"><a href="#">${id}</a></td>
             <td class="ui-table__code">${pid}</td>
             <td>${arr}</td>
             <td class="ui-table__num">${gross}</td>
@@ -186,7 +186,7 @@ export const StackedPinned = {
         <tbody role="rowgroup">
           ${DESKS.map(([symbol, name, weight, lots, note]) => `
             <tr role="row">
-              <td role="cell" class="ui-table__identity">${rowIdentity({ symbol, name })}</td>
+              <td role="cell" class="ui-table__identity ui-table__linked">${rowIdentity({ symbol, name, href: '#position' })}</td>
               <td role="cell" class="ui-table__num">${numericValue({ value: weight, unit: 'bp' })}</td>
               <td role="cell" class="ui-table__num">${numericValue({ value: lots, unit: 'lots' })}</td>
               <td role="cell" class="ui-table__long">${note}</td>

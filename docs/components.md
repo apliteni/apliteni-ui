@@ -481,10 +481,28 @@ inside a cell uses the row's ink, gets an underline on hover, and uses the share
 `numericValue` distinguishes missing from zero. `deltaValue` prints your sign and uses your
 explicit judgement. **Colour never supplies the sign.**
 
+**A cell marked `.ui-table__linked` holds one link and nothing else, and the kit then gives that
+link the whole cell.** The focus ring and the pointer target become the cell rather than the two
+words inside it, and the ring there is the inward band. The cell hands its padding over, so
+nothing on the page moves and no row changes height. Mark the cell yourself: a cell reading
+`Invoice 1162` with the number linked looks the same to a stylesheet, and filling that one would
+put the number on a line of its own. A marked cell holding anything else keeps the plain link box.
+**Every other anchor the kit styles keeps the box, the corner and the paint its own component
+sets**, marked cell or not: `.ui-btn`, and a `.ui-dropdown__item`, `.ui-nav__item` or crumb
+composed into a cell.
+
+**Below 720px a pinned identity cell keeps its content on one line**, capped at
+`--ui-table-identity-max` and cut with an ellipsis past the cap. The default cap is
+`min(var(--panel-sm), 50vw)`, and that one property is yours to retune. The whole text stays in
+the markup, so the accessible name is unchanged and the company link remains the disclosure. The
+decorative logo is not drawn there. A control in the cell keeps its own marks and its focus ring
+through the cut, and a kit anchor cuts inside its own box rather than over the column beside it.
+
 **Below the one-column step, a table marked `.ui-table--stack` lays each row out as a block
 instead of scrolling.** The identity and short cells appear on the first line. `.ui-table__long`
-appears below them. The header row is clipped rather than removed, so a cell still reads with
-its column's name. **A clipped header is read but not operated**, so put a sort or filter control
+appears below them. A card is as wide as the row, so a pinned identity wraps its whole name there,
+and the one-line cap and the filled cell both come off. The header row is clipped rather than
+removed, so a cell still reads with its column's name. **A clipped header is read but not operated**, so put a sort or filter control
 on the row above the table and name the table in `aria-controls`. The markup includes the table
 roles at every width because a stylesheet cannot add them. A value whose meaning comes from its
 heading must carry that meaning itself. This is a rule in [Dense tables](../guidelines/dense-tables.md).
@@ -680,7 +698,13 @@ sort key and equal values both preserve input order. Ordering returns its own li
 supply are never reordered through the result. **Paging is on the same terms:** a controlled table
 shows all the rows it was given. Those rows are the page, and you provide the count it reports.
 `DataTable` builds its own class list and takes no `className`. It renders its sort control inside
-the header cell. A stacked table clips that control.
+the header cell. A stacked table clips that control. **A sortable header's label gives way with an
+ellipsis rather than pushing the sort caret out of a capped column**, so a pinned sortable identity
+keeps its direction visible on a phone.
+
+**A column marked `linked` marks that column's body cells, and never its header**, which holds a
+label or a sort control of its own. It is how a React table opts a column of ID or identity links
+into the filled cell described under Dense financial tables.
 
 ### React fields
 

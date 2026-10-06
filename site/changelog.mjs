@@ -6,6 +6,17 @@
 
 export const RELEASES = [
   {
+    v: '0.102.0', date: '2026-10-10',
+    changes: [
+      ['fixed', 'Below 720px a pinned identity column keeps each row name on one line instead of hiding it. The name is capped at `min(var(--panel-sm), 50vw)` and cuts with an ellipsis past the cap; the full text stays in the markup, so the accessible name and company link stay unchanged. Resolves #500.', ['Table']],
+      ['added', '`--ui-table-identity-max` retunes that cap on a consumer table without restyling the kit cell.', ['Table']],
+      ['added', 'A table cell marked `ui-table__linked` holds one link and nothing else, and the kit gives that link the whole cell. The focus ring and pointer target become the cell, while the cell hands its padding to the link so the page does not move.', ['Table']],
+      ['added', 'React `DataTable` columns take `linked`. `true` marks that column body cells and never its header, so an ID or identity column opts into the filled cell.', ['Table']],
+      ['fixed', 'A React sortable header in a capped pinned column keeps its sort caret. Its label gives way with an ellipsis before the caret leaves the cell.', ['Table']],
+      ['fixed', 'A table marked `ui-table--stack` wraps its identity name again. The one-line rule is for the narrow pinned column, and a stacked row is a card with the width to wrap. See #499.', ['Table']],
+    ],
+  },
+  {
     v: '0.100.0', date: '2026-10-10',
     changes: [
       ['added', 'While the React AppShell draws its phone bottom bar \u2014 below 560px, for a section list with somewhere to go \u2014 it publishes `--ui-app-bottom-clearance` on the root, including the safe-area inset. The page\u2019s bottom padding, root scroll padding and the React toast stack read it, each with `0px` as the fallback, and root scroll padding adds the focus ring\u2019s own room on top \u2014 so a changed action scrolled into view lands above the bar with its whole ring on screen. A phone page whose shell draws no bar keeps the ordinary end space the kit gives every phone page. The token is declared nowhere else, so read it as `var(--ui-app-bottom-clearance, 0px)`.'],

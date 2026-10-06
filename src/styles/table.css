@@ -145,12 +145,42 @@
   top: 50%;
   translate: 0 -50%;
 }
-/* No focus rule here any more. #510 gave a cell link the ring with a rule of this file's
-   own, because `base.css` reached no bare `a`; #587 put `a` on that shared list, so this
-   one painted the same two declarations a second time. The guarantee is unchanged and
-   still held by src/styles/table-focus.test.js — the corner the band follows is the
-   `border-radius` above, which is this file's and stays.
-   why: guidelines/state-set.md#focus-rings */
+/* No generic focus rule here. #510 gave a cell link the ring because `base.css`
+   reached no bare `a`; #587 put `a` on that shared list, so this file only keeps
+   the filled-cell override below. why: guidelines/state-set.md#focus-rings */
+/* The handle: a cell MARKED `.ui-table__linked` holds one link and nothing else, so the
+   link fills the cell and its ring outlines the cell rather than the words. The cell hands
+   its padding over and nothing moves. `height: 1px` is the cell stating no height of its
+   own, which a percentage height on the link can resolve against; a cell is stretched to
+   its row either way, so no row changes.
+   The mark is the consumer's because a selector counts elements and not words: `:only-child`
+   reads `<td>Invoice <a>1162</a></td>` as a lone link too. The link is named rather than
+   denied — a denylist of the anchors that own their box went stale twice (#510).
+   why: docs/components.md#dense-financial-tables, #500
+   held by: src/styles/table-focus.test.js */
+.ui-table td.ui-table__linked:has(> :is(a:not([class]), a.ui-identity):only-child) { padding: 0; height: 1px; }
+.ui-table td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-4) var(--space-4) var(--space-4) 0;
+  border-radius: var(--radius-xs);
+}
+.ui-table--dense td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-2) var(--space-3); }
+.ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-1) var(--space-3); }
+/* Zebra insets the row's END cells only, so the fill does too: a marked identity behind a
+   selection column is a middle cell, and a step it never gave up would move its name. */
+.ui-table--zebra td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: var(--space-3); }
+.ui-table--zebra td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-3); }
+/* The inward band, the one a scroll region takes: a filled cell's edges are the
+   table's, where the pinned column's border and the scroller's 4px side padding
+   cut an outset ring away. Its 1px gap is unpainted, and the ring is the outline. */
+.ui-table td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child:focus-visible {
+  outline: var(--ring-scroll);
+  outline-offset: var(--ring-scroll-offset);
+}
 
 .ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }
 /* A numeric column is sized to its content while .ui-table__title claims the rest,
@@ -295,15 +325,62 @@
 .ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
 a.ui-identity:hover { text-decoration: underline; }
 .ui-identity:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
+/* Below the fold a pinned identity is one line wide: nothing wraps, so the floor is a
+   whole line and --ui-table-identity-max is the ceiling a consumer retunes.
+   why: docs/components.md#dense-financial-tables, #500 */
 @media (max-width: 720px) {
-  .ui-table--pinned .ui-table__identity { width: 1%; }
+  .ui-table--pinned .ui-table__identity {
+    width: 1%;
+    max-width: var(--ui-table-identity-max);
+    white-space: nowrap;
+    /* `clip` with a margin rather than `hidden`: the ellipsis lands on the cell's own
+       edge either way, and the 16px keeps the header's sort button — the one control
+       here still drawing the outset ring, glow and all — out of the cut. */
+    overflow: clip;
+    overflow-clip-margin: var(--space-4);
+    text-overflow: ellipsis;
+  }
+  /* A sub-line is a block of its own, so the cell's own ellipsis cannot reach it:
+     every child is held to the cap and cuts itself the same way. */
+  .ui-table--pinned .ui-table__identity > * {
+    max-width: 100%;
+    min-width: 0;
+    overflow: clip;
+    overflow-clip-margin: var(--space-4);
+    text-overflow: ellipsis;
+  }
+  /* Except a control, which is a mark a clip removes rather than shortens: its own
+     caret or ring sits past the box the cap leaves it. A box merely HOLDING one is
+     not on this list — it cuts, and the 16px above is what keeps the ring it holds
+     out of the cut. A lone link is off it: its ring is drawn inward. #513 */
+  .ui-table--pinned .ui-table__identity > :is(.ui-identity, button, input, select, textarea, svg) {
+    overflow: visible;
+    text-overflow: clip;
+  }
+  /* And it cuts only as a block box: the fill makes the link a flex box, whose text is
+     an anonymous item `text-overflow` never reaches — it came out cut mid-word over the
+     next column. `align-content` leaves the line where the flex box centred it. #513 */
+  .ui-table--pinned .ui-table__identity.ui-table__linked > a:not([class]):only-child {
+    display: block;
+    align-content: center;
+  }
+  /* A kit anchor keeping its own box here — a `.ui-btn`, a `.ui-nav__item`, a dropdown
+     row, a crumb — is a flex box, whose words the cut above reaches no more than the
+     fill's: it came out mid-word, 16px past its own border. It gives up those 16px, which
+     only a ring it does not hold ever needed, and cuts as an inline-block box where it
+     holds nothing else — at the width its own component sets. The zero carries a unit
+     because Chromium drops a unitless one here and leaves the 16px standing. #513 */
+  .ui-table--pinned .ui-table__identity > a[class]:not(.ui-identity) { overflow-clip-margin: 0px; }
+  .ui-table--pinned .ui-table__identity > a[class]:not(.ui-identity):not(:has(> *)) { display: inline-block; }
   .ui-table--pinned .ui-identity__logo { display: none; }
-  .ui-table--pinned .ui-identity__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .ui-table--pinned .ui-identity { max-width: var(--panel-sm); }
+  .ui-table--pinned .ui-identity { max-width: 100%; }
+  /* The whole name stays in the DOM — the accessible name and the link's own
+     disclosure are what they were; only the drawn line is cut. */
+  .ui-table--pinned .ui-identity__name { min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 
 /* One width reserves the selection track and offsets the adjacent identity. */
-.ui-table--pinned { --ui-table-selection-width: var(--space-12); }
+.ui-table--pinned { --ui-table-selection-width: var(--space-12); --ui-table-identity-max: min(var(--panel-sm), 50vw); }
 .ui-table--pinned .ui-table__selection { box-sizing: border-box; width: var(--ui-table-selection-width); min-width: var(--ui-table-selection-width); max-width: var(--ui-table-selection-width); padding-inline: 0; text-align: center; }
 .ui-table--pinned .ui-table__selection + .ui-table__identity { left: var(--ui-table-selection-width); }
 
@@ -353,10 +430,31 @@ a.ui-identity:hover { text-decoration: underline; }
   .ui-table.ui-table--stack.ui-table--pinned > :where(thead, tbody) > tr > :where(.ui-table__identity, .ui-table__selection) {
     position: static; width: auto; min-width: 0; max-width: none;
     padding-inline: 0; border-right: 0; text-align: left;
+    /* The cap's cut goes with the cap: a card is as wide as the row, so there is
+       nothing to cut, and a clip box here would only reach a focused link's ring. */
+    overflow: visible; text-overflow: clip;
   }
+  /* The name is what the card is about, and a card has the width to wrap it. #500 put
+     `nowrap` on it for the narrow column, so the stacked row takes that off too. */
   .ui-table.ui-table--stack.ui-table--pinned .ui-identity__name {
     position: static; width: auto; height: auto; max-width: none;
-    overflow: visible; clip-path: none;
+    overflow: visible; clip-path: none; white-space: normal; text-overflow: clip;
+  }
+  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > * {
+    overflow: visible; text-overflow: clip;
+  }
+  /* A card has no column to fill: every cell is a block on its own line and the ROW pays
+     the inset, so the fill's padding would stand the link a step right of the card's text
+     edge and the cell's `height: 1px` would hold a block cell to one pixel. Written through
+     the row like the resets above it, so it outranks the fill and its density. */
+  .ui-table.ui-table--stack > tbody > tr > td.ui-table__linked:has(> :is(a:not([class]), a.ui-identity):only-child) { height: auto; }
+  .ui-table.ui-table--stack > tbody > tr > td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child {
+    width: auto; height: auto; padding: 0;
+  }
+  /* The stacked card gives the link its own box again, so it takes the outset band. */
+  .ui-table.ui-table--stack > tbody > tr > td.ui-table__linked > a:only-child:focus-visible {
+    outline: var(--ring);
+    outline-offset: var(--ring-offset);
   }
   /* The bleed now pays for the row's inset instead of the end cells', so the cells still
      start on the card's own text edge and the outline keeps its room on both sides. Same

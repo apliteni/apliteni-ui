@@ -17,7 +17,7 @@ function Example() {
     <FilterBar filters={filters} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))} />
     <Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
     <DataTable rows={[{ name: 'Aster Systems', sector: 'Technology', price: 228.87, change: '+0.66%' }, { name: 'Birch Energy', sector: 'Energy', price: 0, change: '0.00%' }].filter(r => !filters.length || r.sector === filters[0].value)} selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"
-      columns={[{ key: 'name', label: 'Company', render: r => <RowIdentity symbol={r.name.slice(0, 4).toUpperCase()} name={r.name} href="#company" /> }, ...(view === 'overview' ? [{ key: 'price' as const, label: 'Price', num: true, sortable: true, render: (r: {price: number}) => <NumericValue value={r.price.toFixed(2)} unit="USD" /> }] : []), { key: 'change', label: 'Change', num: true, render: r => <DeltaValue value={r.change} tone="success" basisId="react-finance-basis" /> }]} />
+      columns={[{ key: 'name', label: 'Company', linked: true, render: r => <RowIdentity symbol={r.name.slice(0, 4).toUpperCase()} name={r.name} href="#company" /> }, ...(view === 'overview' ? [{ key: 'price' as const, label: 'Price', num: true, sortable: true, render: (r: {price: number}) => <NumericValue value={r.price.toFixed(2)} unit="USD" /> }] : []), { key: 'change', label: 'Change', num: true, render: r => <DeltaValue value={r.change} tone="success" basisId="react-finance-basis" /> }]} />
   </main>;
 }
 export const Comparison = { render: () => <Example /> };
@@ -35,7 +35,7 @@ function SelectableExample() {
       const next = new Set(current); if (next.has(name)) next.delete(name); else next.add(name); return next;
     })} onTogglePage={names => setSelected(current => names.every(name => current.has(name)) ? new Set() : new Set(names))}
       density="compact" stickyHeader pinnedIdentity scrollLabel="Selectable companies, scroll for more columns" pager={false}
-      columns={[{ key: 'name', label: 'Company', render: r => <RowIdentity symbol={r.name.slice(0, 4).toUpperCase()} name={r.name} href="#company" /> }, { key: 'price', label: 'Price', num: true, render: r => <NumericValue value={r.price} unit="USD" /> }, { key: 'sector', label: 'Sector' }]} />
+      columns={[{ key: 'name', label: 'Company', linked: true, render: r => <RowIdentity symbol={r.name.slice(0, 4).toUpperCase()} name={r.name} href="#company" /> }, { key: 'price', label: 'Price', num: true, render: r => <NumericValue value={r.price} unit="USD" /> }, { key: 'sector', label: 'Sector' }]} />
   </main>;
 }
 

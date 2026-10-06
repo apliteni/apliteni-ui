@@ -73,7 +73,7 @@ export const RECORDED = {
   'iconography.md': 316,
   'labels-and-titles.md': 384,
   'layout-and-density.md': 318,
-  'state-set.md': 331,
+  'state-set.md': 317,
   'stat-bands.md': 233,
 };
 

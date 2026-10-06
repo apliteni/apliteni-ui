@@ -298,11 +298,10 @@ Tune it at `--ring-width`, `--ring-color` and `--ring-gap-width`. The four value
 are declared once each, at `:root`, and **no surface recomposes any of them**: a direct `--ring`
 override reaches every control. There is no gap colour to hand down.
 
-**`--ring-scroll` is the indicator a scroll region inside a surface takes.** It is the same band,
-drawn inward by `--ring-scroll-offset`. You need both values, or the band appears outside the box.
-A scrolling box is its own keyboard stop unless its children are focusable, so every scrolling box
-the kit ships either takes that ring and has padding for the band, or contains its own tabbable
-rows and takes no ring.
+**`--ring-scroll` is the indicator a box takes when its own edges are a surface's edges.** It uses
+the same 1px gap and 2px band, but draws them inward. A scroll region inside a surface is one such
+box, and a link filling a table cell is another. You need both values, or the band appears outside
+the box.
 
 **Every focusable control the kit ships draws the band**, including a roving row the keyboard
 reaches with an arrow key rather than Tab. None falls back to the browser's own outline, which
