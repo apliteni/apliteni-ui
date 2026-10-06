@@ -307,7 +307,7 @@ it('puts one element in the tab order inside the plot, and it is the frame', asy
 // the way the contrast gate resolves them, per theme. Whether the browser then
 // paints it is a browser question, answered by the captures on the PR.
 describe.each(['dark', 'light'])('the kit ring resolves [%s]', (theme) => {
-  it('is a real ring over a transparent outline, and the chart adds none of its own', () => {
+  it('uses the solid kit outline without a local ring or glow', () => {
     const base = readRepo('../../src/styles/base.css');
     const tokens = readRepo('../../src/tokens/tokens.css') + readRepo('../../src/tokens/brand.generated.css');
     const vars = tokensFor(theme);
@@ -315,9 +315,9 @@ describe.each(['dark', 'light'])('the kit ring resolves [%s]', (theme) => {
     const resolved = substitute(rule, vars);
     expect(tokens, 'the ramp the resolver reads').toContain('--ring:');
     expect(resolved, 'every token resolved').not.toContain('var(');
-    expect(resolved, 'a real outline survives forced colours').toMatch(/outline:\s*2px solid transparent/);
-    const shadow = /box-shadow:\s*([^;]+)/.exec(resolved)![1];
-    expect(shadow, 'the ring carries real colours, not the browser\'s default').toMatch(/#[0-9a-f]{3,8}|rgba?\(/i);
+    expect(resolved, 'the kit outline survives forced colours').toMatch(/outline:\s*2px solid #[0-9a-f]{3,8}/i);
+    expect(resolved).toContain('outline-offset: 1px');
+    expect(resolved).not.toContain('box-shadow');
     expect(readRepo('../../src/styles/chart.css'),
       'the chart declares no outline of its own, so nothing reverts to the browser\'s')
       .not.toMatch(/outline\s*:/);
@@ -385,19 +385,17 @@ it('prints the unfinished state in the readout instead of a comparison, and in t
   expect(screen.getByRole('tooltip').querySelector('.ui-tip__detail'))
     .toHaveTextContent('Estimated — April is still running');
   const key = [...container.querySelectorAll('.ui-chart__key')].find((k) => k.textContent?.startsWith('Estimated'))!;
-  expect(key).toHaveTextContent('Estimated April is still running');
+  expect(key.textContent?.trim()).toBe('Estimated');
 });
 
-it('draws an unfinished period hollow, with a dashed edge in its own tone', () => {
+it('keeps the series fill on unfinished periods with a dashed ground edge', () => {
   const { container } = months();
   const bars = [...container.querySelectorAll('path.ui-chart__bar')];
   const april = bars.filter((b) => b.classList.contains('is-estimated'));
-  expect(april, 'one hollow bar per bar series in the unfinished column').toHaveLength(2);
-  // A wash of the bar's own tone over the chart's ground, inside the dashed
-  // edge. Bare ground read as a placeholder box once the bar was capped at a
-  // mark's width; the wash gives the period the mass the reader is counting.
+  expect(april, 'one estimated bar per bar series in the unfinished column').toHaveLength(2);
   const rule = /\.ui-chart__bar\.is-estimated\s*\{([^}]*)\}/.exec(readRepo('../../src/styles/chart.css'))![1];
-  expect(rule).toMatch(/fill:\s*color-mix\(in srgb, var\(--ui-chart-tone\) \d+%, var\(--ui-chart-ground\)\)/);
+  expect(rule).toContain('fill: var(--ui-chart-tone)');
+  expect(rule).toContain('stroke: var(--ui-chart-ground)');
   expect(rule, 'the dash is the cue a reader who cannot see the tone still gets')
     .toContain('stroke-dasharray: 3 2');
   expect(container.querySelectorAll('pattern'), 'no hatch is declared').toHaveLength(0);
@@ -922,9 +920,9 @@ it('draws the Estimated key in the tone of the series it describes, not in body 
     .toContain('ui-chart__tone--good');
   const css = readRepo('../../src/styles/chart.css');
   const rule = /\.ui-chart__key-estimated\s*\{([^}]*)\}/.exec(css)![1];
-  expect(rule, 'the key strokes the tone').toContain('stroke: var(--ui-chart-tone)');
-  expect(rule, 'and is hollow, the way the column it stands for is')
-    .toContain('fill: var(--ui-chart-ground)');
+  expect(rule, 'the key cuts dashes into the fill').toContain('stroke: var(--ui-chart-ground)');
+  expect(rule, 'the key keeps the series fill')
+    .toContain('fill: var(--ui-chart-tone)');
   expect(rule, 'the key draws no maximum-contrast outline').not.toMatch(/var\(--(text|strong)\)/);
 });
 
@@ -1045,4 +1043,53 @@ it('a click on a selectable column picks it and announces that it is picked', as
   await user.click(markEl('income-1'));
   expect(onSelect).toHaveBeenCalledWith(1);
   expect(screen.getByRole('status')).toHaveTextContent('Feb 2026. Income €1,500. Spend €900. Net €600. Selected.');
+});
+
+// Sparse values must remain visible. These tests inspect SVG marks, not raster paint.
+it.each([[42], [42, NaN, 44], [NaN, 42, NaN]])('draws isolated finite values in %j', (...values) => {
+  const { container } = render(<Chart variant="spark" title="Sparse" format={String}
+    periods={values.map((_, i) => ({ label: String(i) }))}
+    series={[{ id: 's', name: 'Series', shape: 'line', values }]} />);
+  expect(container.querySelectorAll('.ui-chart__isolated')).toHaveLength(values.filter(Number.isFinite).length);
+  expect(container.querySelectorAll('line.ui-chart__line')).toHaveLength(0);
+});
+
+it('does not add isolated markers to connected points', () => {
+  const { container } = months();
+  expect(container.querySelectorAll('.ui-chart__isolated')).toHaveLength(0);
+});
+
+it('clears the readout and announces a missing period without a table', () => {
+  render(<Chart variant="spark" title="Sparse" format={String} table={false}
+    periods={[{ label: 'Jan' }, { label: 'Feb' }, { label: 'Mar' }]}
+    series={[{ id: 's', name: 'Series', shape: 'line', values: [42, NaN, 44] }]} />);
+  fireEvent.focus(frame());
+  expect(screen.getByRole('tooltip')).toHaveTextContent('42');
+  fireEvent.keyDown(frame(), { key: 'ArrowRight' });
+  expect(screen.queryByRole('tooltip')).toBeNull();
+  expect(screen.getByRole('status')).toHaveTextContent('Feb. No value.');
+  fireEvent.keyDown(frame(), { key: 'ArrowRight' });
+  expect(screen.getByRole('tooltip')).toHaveTextContent('44');
+});
+
+it('clears a readout when scrolling its mark outside the viewport', () => {
+  const { container } = months();
+  hover('income-0');
+  const anchor = container.querySelector('[data-anchor="income-0"]')!;
+  const scroll = container.querySelector('.ui-chart__scroll')!;
+  vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue({ left: -30, right: -6 } as DOMRect);
+  vi.spyOn(scroll, 'getBoundingClientRect').mockReturnValue({ left: 0, right: 300 } as DOMRect);
+  fireEvent.scroll(scroll);
+  expect(screen.queryByRole('tooltip')).toBeNull();
+  fireEvent.keyDown(frame(), { key: 'ArrowRight' });
+  expect(screen.getByRole('tooltip')).toHaveTextContent('Feb');
+});
+
+it('keeps short floating bridge steps rectangular', () => {
+  const { container } = render(<Chart variant="bridge" title="Cash" format={eur}
+    steps={[{ label: 'Opening', value: 100000 }, { label: 'Fees', value: -4500, estimated: true }]} />);
+  const bar = container.querySelector('.ui-chart__bar.is-estimated')!;
+  const height = boxOf(bar).height;
+  const radius = Number(/a([\d.]+)/.exec(bar.getAttribute('d')!)![1]);
+  expect(radius).toBeLessThanOrEqual(height / 4 + 0.1);
 });

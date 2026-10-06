@@ -747,11 +747,12 @@ series on the same side of the zero line stand side by side with ground between 
 rounded only at the end away from zero, and its foot stands square on the rule it is measured
 from. A bridge carries each step's running total across to the step beside it.
 
-**A period that is not final is drawn hollow** — a wash of its own tone behind a dashed edge —
-and said in words in both the readout and the legend. `note` says why.
+**An unfinished period keeps its series fill with a dashed edge.** The legend names the estimated state.
+The readout and the optional table show the state and its `note`.
 
 **The value axis, the period row and the legend are quiet, and nothing is only there.** Every
-value they name is also in the hover readout and in the values table, at full strength.
+data value is reachable at full strength through pointer readouts and keyboard announcements.
+The optional values table opens on request.
 
 **Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
 paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark

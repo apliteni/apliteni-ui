@@ -218,7 +218,7 @@ function onPrevious(value: number, previous: number | undefined, when: string) {
  * running totals and stands on nothing, so it is rounded at both ends.
  */
 function barPath(m: { x: number; y: number; w: number; h: number; foot: 'top' | 'bottom' | null }): string {
-  const r = Math.min(BAR_RADIUS, m.w / 2, m.h / (m.foot ? 1 : 2));
+  const r = Math.min(BAR_RADIUS, m.w / 2, m.h / (m.foot ? 1 : 4));
   const { x, y: top, w, h } = m;
   const bottom = top + h;
   const arc = (dx: number, dy: number, sweep: 0 | 1) =>
@@ -562,7 +562,8 @@ export function Chart(props: ChartProps) {
   // Escape dismisses the mark it was pressed on; the readout comes back on the
   // next one, not on that one. why: docs/components.md#the-hover-readout
   const show = (id: string | null | undefined) => {
-    if (!id || dismissed.current === id) return;
+    if (!id) { setOpenId(null); return; }
+    if (dismissed.current === id) return;
     dismissed.current = null;
     setOpenId(id);
   };
@@ -575,7 +576,7 @@ export function Chart(props: ChartProps) {
     const where = columns[column];
     if (!where) return;
     const values = marks.filter((m) => m.column === column)
-      .map((m) => `${m.name} ${format(m.value)}`).join('. ');
+      .map((m) => `${m.name} ${format(m.value)}`).join('. ') || 'No value';
     const state = stateOf(where);
     setSaid(`${where.label}. ${values}.${state ? ` ${state}.` : ''}${picked === column ? ' Selected.' : ''}`);
   }, [columns, marks, format, pick]);
@@ -617,7 +618,6 @@ export function Chart(props: ChartProps) {
   /* -- the drawing --------------------------------------------------------- */
 
   const estimated = columns.filter((c) => c.estimated);
-  const firstNote = estimated.find((c) => c.note)?.note;
   // The key is drawn in the tone of the unfinished mark it stands for, so it
   // looks like that bar rather than like an outline of its own: the income bar
   // in a months chart, the step that is not invoiced yet in a bridge.
@@ -663,7 +663,6 @@ export function Chart(props: ChartProps) {
                 <rect className="ui-chart__key-estimated" x="1.5" y="1.5" width="9" height="9" rx="1" />
               </svg>
               Estimated
-              {firstNote && <>{' '}<span className="ui-chart__key-note">{firstNote}</span></>}
             </li>
           )}
         </ul>
@@ -701,7 +700,16 @@ export function Chart(props: ChartProps) {
             chart's one tab stop and its arrows scroll this box, so the box is
             taken out of the tab order rather than given a second name.
             why: docs/components.md#react-charts */}
-        <div ref={scroller} className="ui-chart__scroll" tabIndex={-1} onScroll={syncEdges}>
+        <div ref={scroller} className="ui-chart__scroll" tabIndex={-1} onScroll={() => {
+          syncEdges();
+          const anchor = [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
+            .find((el) => el.getAttribute('data-anchor') === openId);
+          if (!anchor || !scroller.current || !frameEl.current || !tipEl.current) return;
+          const mark = anchor.getBoundingClientRect();
+          const view = scroller.current.getBoundingClientRect();
+          if (mark.right <= view.left || mark.left >= view.right) setOpenId(null);
+          else placeTip(frameEl.current, anchor, tipEl.current, frameEl.current);
+        }}>
           <div ref={plot} className="ui-chart__plot" style={{ '--ui-chart-cols': count } as CSSProperties}>
             <svg
               ref={svgEl}
@@ -826,6 +834,15 @@ export function Chart(props: ChartProps) {
                   ) : null
                 )),
               ))}
+
+              {lines.flatMap((line) => line.values.map((value, i) => (
+                Number.isFinite(value) && !Number.isFinite(line.values[i - 1])
+                  && !Number.isFinite(line.values[i + 1]) ? (
+                    <circle key={`isolated-${line.id}-${i}`}
+                      className={cx('ui-chart__isolated', `ui-chart__tone--${line.tone}`)}
+                      cx={px(centre(i))} cy={px(y(value))} r="2" />
+                  ) : null
+              )))}
 
               {/* The hit areas last, so a point's box wins over the band under it.
                   A bar's is its own band in the column, full height, so a pointer
