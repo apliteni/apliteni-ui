@@ -457,7 +457,13 @@ export function Chart(props: ChartProps) {
         value: bar.band === 'down' ? bar.from - bar.to : bar.to - bar.from,
         detail: bar.detail, kind: 'bar', band: bar.band, foot,
         lane: bar.lane, lanes: bar.lanes,
-        x: centre(bar.column) - groupWidth / 2 + bar.lane * (barWidth + LANE_GAP),
+        // Every bar in the chart is drawn at one width, and each band centres
+        // the lanes it actually has: a chart with two series above the line and
+        // one below puts the single one in the middle of its column rather than
+        // in the left half of a group it does not fill.
+        x: centre(bar.column)
+          - (bar.lanes * barWidth + LANE_GAP * (bar.lanes - 1)) / 2
+          + bar.lane * (barWidth + LANE_GAP),
         y: top, w: barWidth, h: Math.max(bottom - top, 1),
         estimated: Boolean(frame.columns[bar.column]?.estimated),
       };
