@@ -68,7 +68,7 @@ const PAYOUTS = [
 // No glyph and no sub-line. The tile behind the glyph spent the accent on
 // decoration, the glyph repeated the word beside it, and the sentence under it
 // said what the columns already say. why: Artur's review of this screen, #505
-const payoutsCard = (rows = PAYOUTS) => card({ title: 'Payouts', body: `
+const payoutsCard = (rows = PAYOUTS) => card({ title: 'Payouts', body: rows.length ? `
   <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover">
     <thead><tr>
       <th>Reference</th><th>Payout ID</th><th>Arrival</th>
@@ -85,9 +85,11 @@ const payoutsCard = (rows = PAYOUTS) => card({ title: 'Payouts', body: `
           <td class="ui-table__num">${fees}</td>
           <td class="ui-table__num ui-table__num--strong">${net}</td>
           <td>${badge(label, variant)}</td>
-        </tr>`).join('') || `<tr><td colspan="7">${emptyState({ title: 'No payouts match', actions: `<span data-finance-reset>${button({ label: 'Clear all', size: 'sm' })}</span>` })}</td></tr>`}
+        </tr>`).join('')}
     </tbody>
-  </table>` });
+  </table>` : emptyState({ title: 'No payouts match',
+    actions: `<span data-finance-reset>${button({ label: 'Clear all', size: 'sm' })}</span>`,
+  }) });
 
 // The cashflow KPIs + reconciled payout ledger, in the portal's one shell —
 // financeShell() in _finance-nav.js, the same call the empty-state screens make.
@@ -115,7 +117,7 @@ export const Default = {
         && (!values.status || row[7] === values.status)
         && (!values.currency || values.currency === 'EUR'));
       canvasElement.querySelector('.ui-stats').outerHTML = kpiStrip(selected);
-      canvasElement.querySelector('.ui-card:has(> .ui-table)').outerHTML = payoutsCard(rows);
+      canvasElement.querySelector('.ui-app__body > .ui-card').outerHTML = payoutsCard(rows);
     };
     const update = () => {
       bar.update({ filters, label: 'Payout filters', clearLabel: 'Clear all' });
