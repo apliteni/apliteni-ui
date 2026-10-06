@@ -32,7 +32,7 @@ import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 Both stylesheets. The React one adds what React's own components need — it carries no tokens, no
 reset and none of the kit's control CSS, so it cannot stand in for the first import.
 
-Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Chart`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Pill` renders metadata with the existing pill spacing. Omit `variant` for neutral
 metadata or use `live` or `soon`. Its children accept React content.
@@ -820,3 +820,70 @@ control ever draws: selection and focus are one signal each, and only focus is a
 accent. Accent names and swatch paints come from the kit's `ACCENTS` and
 `accentSwatchStyle`, which the vanilla factory also reads, so the two pickers cannot
 drift.
+
+## Chart
+
+`Chart` draws three shapes from the kit's tokens: `months`, a column per period with bars and
+a line across them; `bridge`, one period walked from a starting total to a result; and `spark`,
+one series at text size with no axis, for a stat band's `trend` slot.
+
+The numbers are yours and so is the wording. `format` prints exact values in the readout, the
+live region and the table; `formatAxis` prints the ticks, which are whole units, and defaults
+to `format`. A `bars-below` series takes positive magnitudes and is drawn under the zero line.
+A period marked `estimated` keeps its series fill with a dashed edge. The legend names the state.
+The readout and the optional table show the state and its `note`.
+
+A bar series names a tone. `accent` and `accent-soft` are one hue at two weights, which is how
+two series read apart without spending a second colour on them; `good` and `bad` say which way
+the news runs, and belong to a series where some direction is better. Every tone is opaque and
+clears 3:1 against the card and against the page, in both themes and under every accent.
+
+The plot draws a hairline at every tick and the zero rule over them, and the axis keeps a label
+at every tick. A bar is flat, rounded only at the end away from zero, and **never wider than a
+mark**: a chart that grows with the card gains ground between its columns rather than twelve
+wider blocks. Two bar series on the same side of the zero line stand side by side with ground
+between them. A bridge carries each step's running total across to the step beside it. The
+value axis, the period row and the legend are drawn quietly, and every value they name is also
+in the readout and in the table at full strength.
+
+Picking a column paints the column's own ground behind it and sets its label in the strong ink
+at a heavier weight. No mark changes colour, so the accent stays with the series it names, and
+the only outline the chart draws is the focus ring on the plot.
+
+The plot is one tab stop. Left, Right, Home and End step columns and announce each one
+politely, Enter picks one when `selectable` is set, and `title` names the `role="img"` plot and
+the table under it without being drawn — the card around the chart already carries its title.
+The table the reader opens adds the two stops it needs of its own: its summary, and the named
+scroller that carries its columns sideways so your card and your page keep their width.
+At phone widths the plot scrolls with the value axis held in place, and the side that still
+hides columns is faded. Nothing animates.
+
+On a touch screen a tap opens the readout and a second tap on the same mark closes it. **The
+tap that opens a readout does not call `onSelect`** — it is the reader asking what a mark is
+worth — while the tap that closes one, and an ordinary mouse click, do. The click itself is
+never swallowed, so your own listener around the chart still hears every tap. Below 560px, to
+a coarse pointer, a line's point grows an invisible 44px target, stopping at its own column so
+no two periods answer for each other; the drawn line does not change. A sparkline's box grows
+with it — 32px of drawing cannot hold a 44px target, and the part outside the box would be
+clipped by the chart's own edge — so a `trend` slot is 44px tall there instead of 32, with the
+same line drawn in the middle of it.
+
+```tsx
+<Chart title="Income and spend by month, last 12 months, with net"
+  periods={months.map(label => ({ label }))}
+  series={[
+    { id: 'income', name: 'Income', values: income, tone: 'accent' },
+    { id: 'spend', name: 'Spend', values: spend, shape: 'bars-below', tone: 'accent-soft' },
+    /* or `shape: 'bars'` for the two standing side by side on the zero line */
+    { id: 'net', name: 'Net', values: net, shape: 'line', tone: 'info' },
+  ]}
+  format={eur} formatAxis={eurShort} />
+
+<Chart variant="bridge" title="Cash from opening to closing" format={eur}
+  steps={[
+    { label: 'Opening', value: 120000 },
+    { label: 'Subscriptions', value: 42600 },
+    { label: 'Payroll', value: -58200 },
+    { label: 'Closing', kind: 'total' },
+  ]} />
+```

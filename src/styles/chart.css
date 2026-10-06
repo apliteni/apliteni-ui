@@ -1,0 +1,273 @@
+/* ============================================================================
+ * Chart — .ui-chart, the shapes a money dashboard keeps redrawing.
+ *   .ui-chart__legend  one key per series, plus the unfinished-period key
+ *   .ui-chart__frame   the tab stop; the value axis beside the scroller
+ *   .ui-chart__scroll  the scroller, masked on whichever side hides columns
+ *   .ui-chart__plot    the drawing and its column labels
+ *   .ui-chart__data    the same numbers as a table
+ * The component sets --ui-chart-h, the plot's height, which the axis matches.
+ * why: docs/components.md#react-charts
+ * ========================================================================== */
+
+.ui-chart {
+  --ui-chart-col: var(--space-12);
+  /* The ground the marks are drawn on, so an unfinished period and the rim the
+     line is carried on read as cut out of it. A chart outside a card names its
+     own. */
+  --ui-chart-ground: var(--surface);
+  /* The tick's own line box. The axis spans the band the gridlines are drawn
+     in — the plot less the room a stroke needs at each edge — and is half a
+     line box taller at each end, so every tick's middle lands on its gridline
+     without taking a single label out of flow. */
+  --ui-chart-tick: calc(var(--text-xs) * 1.45);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text);
+}
+
+.ui-chart--bridge { --ui-chart-col: calc(var(--space-16) + var(--space-6)); }
+.ui-chart--spark {
+  --ui-chart-col: var(--space-4);
+  gap: 0;
+}
+/* No axis, so the scroller takes the whole frame rather than the auto column
+   the axis would have held. */
+.ui-chart--spark .ui-chart__frame { grid-template-columns: minmax(0, 1fr); }
+/* The box, not the drawing: a phone target does not fit in 32px. Written here
+   rather than left to the height attribute, which `.ui-stat__trend svg` beats.
+   why: docs/components.md#react-charts */
+.ui-chart--spark .ui-chart__svg { height: var(--ui-chart-box); }
+
+/* -- the legend ------------------------------------------------------------ */
+
+.ui-chart__legend {
+  /* muted-ink: chrome — the key names the marks and is not the chart's words */
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-chart__key {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+.ui-chart__key-mark { flex: none; }
+.ui-chart__key-swatch { fill: var(--ui-chart-tone); }
+.ui-chart__key-line { fill: none; stroke: var(--ui-chart-tone); stroke-width: 2; stroke-linecap: round; }
+.ui-chart__key-estimated {
+  fill: var(--ui-chart-tone);
+  stroke: var(--ui-chart-ground);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+/* -- the frame ------------------------------------------------------------- */
+
+.ui-chart__frame {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--space-2);
+  border-radius: var(--radius-xs);
+}
+
+.ui-chart__axis {
+  /* muted-ink: chrome — a tick names the scale; exact values are reachable through the readout */
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(var(--ui-chart-h) - var(--ui-chart-pad) * 2 + var(--ui-chart-tick));
+  margin-block: calc(var(--ui-chart-pad) - var(--ui-chart-tick) / 2);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ui-chart__tick { line-height: 1.45; }
+
+/* The mask fades whichever side still hides periods. It paints no ground of its
+   own, so a chart on the card and one on the page both fade correctly — and it
+   sits on the scroller rather than the tab stop, which would mask its ring. */
+.ui-chart__scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+.ui-chart__scroll.is-more-before {
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--space-6));
+}
+.ui-chart__scroll.is-more-after {
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--space-6)), transparent 100%);
+}
+.ui-chart__scroll.is-more-before.is-more-after {
+  mask-image: linear-gradient(
+    to right, transparent 0, #000 var(--space-6),
+    #000 calc(100% - var(--space-6)), transparent 100%);
+}
+
+.ui-chart__plot { min-width: calc(var(--ui-chart-col) * var(--ui-chart-cols, 1)); }
+.ui-chart__svg { display: block; }
+
+.ui-chart__periods {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  /* The row stood 4px under the plot plus the 2px rule every label reserved for
+     the picked one. The rule is gone and the gap keeps that step on the scale
+     rather than between two of its steps. */
+  padding-top: var(--space-2);
+}
+.ui-chart__period {
+  /* muted-ink: chrome — a period label names a column; its values are reachable through the readout */
+  color: var(--muted);
+  padding-inline: var(--space-1);
+  text-align: center;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+/* The picked column's label: the body ink the rest of the row gives up, at the
+   weight a reader who separates no colours still reads. Selection is otherwise
+   the band behind the column and the band alone — the outline the chart draws
+   belongs to focus. */
+.ui-chart__period.is-selected {
+  color: var(--strong);
+  font-weight: 600;
+}
+
+/* -- the marks ------------------------------------------------------------- */
+
+/* The rules. A hairline at each tick carries a bar's height across twelve columns
+   to the label that names it, which is the one job a grid has; it is the kit's
+   faintest edge, so it is found when a reader looks for it and not before. The
+   zero rule keeps --border-strong above it: the line a signed series is measured
+   from leads the ones it is measured against. Both sit under every mark. */
+.ui-chart__grid { stroke: var(--border); stroke-width: 1; }
+.ui-chart__zero { stroke: var(--border-strong); stroke-width: 1; }
+
+/* The carry a bridge draws between two steps: the running total leaves one
+   column at the height it reached and meets the next where it starts from. It
+   takes --border-strong, the zero rule's weight rather than the grid's, because
+   it is read along rather than looked up. Solid, like every other rule here: a
+   dash would read as a forecast. */
+.ui-chart__carry { stroke: var(--border-strong); stroke-width: 1; }
+
+/* The picked column, behind every mark and every rule. A quiet fill rather than
+   the accent, which the chart spends on a series; it is wider than any bar, so
+   the column is found before the bar in it is read. */
+.ui-chart__band { fill: var(--surface-3); }
+
+.ui-chart__bar {
+  /* One flat tone, the whole bar. A ramp down the bar was the one thing in the
+     drawing that carried no number: it let the middle go while both edges held,
+     so a reader comparing two months compared two shaded cylinders. */
+  fill: var(--ui-chart-tone);
+  stroke: none;
+}
+/* Keep each series' fill weight. Ground-coloured dashes mark unfinished data
+   without joining the mirrored bars across the zero channel. */
+.ui-chart__bar.is-estimated {
+  fill: var(--ui-chart-tone);
+  stroke: var(--ui-chart-ground);
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+
+/* An isolated value has no segment to draw it. Connected points need no dot. */
+.ui-chart__isolated { fill: var(--ui-chart-tone); stroke: var(--ui-chart-ground); stroke-width: 1; }
+
+.ui-chart__line {
+  fill: none;
+  stroke: var(--ui-chart-tone);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.ui-chart__line.is-estimated { stroke-dasharray: 5 3; }
+
+/* The ground carried under the line. The line crosses bars of its own family,
+   where hue alone separates them and luminance does not: a stroke of the ground
+   each side gives the line the 3:1 it cannot get from the bar behind it. It is
+   not drawn where there is nothing to cross — a sparkline has no bars, and at
+   text size the casing would eat the line. The line carries no marker of its
+   own; a dot on every point drew nothing the line had not already drawn. */
+.ui-chart__line-casing {
+  fill: none;
+  stroke: var(--ui-chart-ground);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.ui-chart--spark .ui-chart__line-casing { display: none; }
+
+.ui-chart--spark .ui-chart__line { stroke-width: 1.6; }
+
+/* The edge the readout is placed against: the mark's top. Geometry only — it
+   paints nothing. The readout opens above that edge where the frame has the
+   room and flips below it where it has not, which near the top of the plot
+   means covering the mark and the first axis labels. The guideline asks for
+   that flip rather than for a readout outside the part.
+   why: guidelines/hover-readouts.md#prefer-above-the-mark */
+.ui-chart__anchor { fill: none; pointer-events: none; }
+
+/* The hit area a pointer lands on. It is the series' own band in the column, so
+   a pointer between two bars still has a bar to answer with. */
+.ui-chart__hit { fill: transparent; }
+
+/* A chart whose columns can be picked says so under the pointer. The key
+   compound names the element rather than a class, which is how the kit's
+   clickable-chrome gate reads `.ui-seg button` and `.ui-check input`: the mark
+   is this <g> and cannot be moved onto a <button>, so there is no button
+   chrome to measure. */
+.ui-chart--pick [data-mark] { cursor: pointer; }
+
+/* The tones. A series names one; the token behind it is the kit's, and the same
+   in both themes' terms. The neutral one is --muted, which is what
+   --signal-solid-neutral already is: a mid grey in both themes, where --dim
+   would paint a bridge's totals near-black in light and near-white in dark. */
+.ui-chart__tone--accent { --ui-chart-tone: var(--accent); }
+/* The accent's second weight: the same hue, let down towards the ground rather
+   than given an opacity, so a mark painted with it is opaque and a reader
+   measures one colour. The mix crosses 3:1 at 67% against the card AND against
+   the page, in both themes, under all four accents, so 70% ships with room over
+   the bar rather than sitting on it — the 40% the restyle's mock drew measures
+   1.99:1 and 2.03:1 and does not ship. */
+.ui-chart__tone--accent-soft {
+  --ui-chart-tone: color-mix(in srgb, var(--accent) 70%, var(--ui-chart-ground));
+}
+.ui-chart__tone--good { --ui-chart-tone: var(--green); }
+.ui-chart__tone--bad { --ui-chart-tone: var(--pink); }
+.ui-chart__tone--warn { --ui-chart-tone: var(--amber); }
+.ui-chart__tone--info { --ui-chart-tone: var(--cyan); }
+.ui-chart__tone--neutral { --ui-chart-tone: var(--muted); }
+
+/* -- the table ------------------------------------------------------------- */
+
+.ui-chart__data > summary {
+  width: max-content;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+.ui-chart__data[open] > summary { margin-bottom: var(--space-3); }
+/* The table is the one place a phone reader gets exact values, and how wide it
+   is depends on the caller's series: it carries them sideways inside the kit's
+   own scroller, so the card and the page keep their width whatever it holds.
+   Sideways only — there are as many rows as the chart has columns, and capping
+   their height would hide the last period behind a second scrollbar. */
+.ui-chart__data .ui-table-scroll { --ui-table-height: none; }
+.ui-chart__data .ui-table { margin: 0; }
+/* Why a period is not final is a sentence, not a label, so it wraps under the
+   period it qualifies instead of carrying the money columns another two hundred
+   pixels to the right of a 390px card. */
+.ui-chart__data .ui-table tbody th { white-space: normal; }
+.ui-chart__state {
+  /* muted-ink: state — the word that marks a period as not final */
+  color: var(--muted);
+}

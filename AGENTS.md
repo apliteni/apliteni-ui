@@ -65,6 +65,17 @@ Before opening a PR that changes a control's size, a container's gap, or
 `UI_PLAYWRIGHT=… TAP_ZONES=1 node --test stories/tap-zone.test.js`
 Report the result in the PR. CI runs only this gate's source half, so the measurement is yours.
 
+## Check the chart's point targets locally
+
+Before opening a PR that changes a chart's point target, its plot height or
+`src/styles/chart.css`, measure the targets in a real browser — a hit test is
+something only an engine answers, and a rect's attributes certified a clipped
+target once already:
+`npm run build-storybook -w react`, then
+`UI_PLAYWRIGHT=… CHART_TARGETS=1 node --test stories/chart-target.test.js`
+Report the result in the PR. Playwright is not a dependency and CI runs only this
+gate's source half.
+
 ## Check the disabled field paint locally
 
 Before opening a PR that changes a field's or a button's disabled paint, or
@@ -109,8 +120,8 @@ repository, or a Storybook path under it.
 A declaration a gate cannot judge on its own carries its reason beside it, in the shape the gate
 parses. There is no unannotated exception.
 
-- `/* muted-ink: glyph|state|placeholder — reason */` on every `color` or
-  `-webkit-text-fill-color` that can reach muted or dim ink. The three classes are a closed list.
+- `/* muted-ink: glyph|state|placeholder|chrome — reason */` on every `color` or
+  `-webkit-text-fill-color` that can reach muted or dim ink. The four classes are a closed list.
 - `/* motion: still — why */` on a state rule that shows, hides or moves an element without
   moving; `/* motion: ambient — why */` or `/* motion: choreographed — why */` on an animation
   keeping its own number. There is no third kind.

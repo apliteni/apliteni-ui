@@ -46,6 +46,23 @@
       ]
     },
     {
+      "file": "react/src/Chart.test.tsx",
+      "name": "React: Chart",
+      "does": "Checks the chart's accessible names, the one tab stop inside the plot and the kit ring on every focusable part — including the named scroller around the table, which the sheet rings rather than the browser — arrow/Home/End stepping with its polite announcements, Enter selection and the band behind the picked column with its strong-ink, heavier label, the readout's contents and its Escape behaviour, the whole touch sequence down to the click behind it, where the tap that opens a readout picks nothing and the tap that closes one does, the box every mark offers a pointer and how much of the room around it a line's point may take once a coarse pointer asks for the phone floor, the hollow bar and dash on an unfinished period, the hairline at every tick with the zero rule over them, the flat fill, the one rounded end and the capped width on every bar, the lane two bar series in one band take each, the carry a bridge draws from one step to the next, the ground casing under a line that carries no markers, the table fallback, and axe results in both themes.",
+      "blind": [
+        "JSDOM has no layout, so the readout's placement, the grid's hairline beside the zero rule, the scroll fade and the focus ring are not measured as painted; browser captures cover those. The pointer targets are read off the attributes the component writes, with the media query and the plot's measured width both stubbed, so what a real coarse pointer gets — and whether the table's scroller really overflows a 390px card — is a browser measurement too. Which colour each series takes, and whether it clears the graphic bar, is react/src/Chart.contrast.test.tsx. Screen-reader speech is not run, and no test drives real touch hardware: the sequence is fired as events."
+      ]
+    },
+    {
+      "file": "react/src/Chart.contrast.test.tsx",
+      "name": "React: Chart contrast",
+      "does": "Discovers every chart tone from the stylesheet and every tone name from the component's own union, fails when the two disagree, and measures each tone against both grounds the kit draws a chart on — the card and the page — in both themes and under every accent discovered in accents.css, against the 3:1 graphic bar. Asserts the measured count, names the tightest row, and proves rejection twice: the lighter weight of the accent drawn at the share the restyle's mock used, and a tone whose value stops resolving.",
+      "blind": [
+        "The ratios come from the stylesheet's own values rather than from painted pixels, so antialiasing, a host override and a ground a consumer names through --ui-chart-ground are outside it; browser captures carry the paint.",
+        "The grid, the zero rule and the line's casing are structure rather than series — the kit's edge and ground tokens — and are not measured against the bar."
+      ]
+    },
+    {
       "file": "react/src/Checkbox.test.tsx",
       "name": "React: Checkbox and radio",
       "does": "Checks accessible labels, pointer and Space activation, controlled radio selection and arrow navigation, disabled inputs, refs, form values, reset and axe results.",

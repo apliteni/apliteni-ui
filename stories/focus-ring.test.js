@@ -517,6 +517,29 @@ const SCROLL_NO_STOP = {
   },
 };
 
+/**
+ * The scrolling boxes that are not a keyboard stop at all, so the question the two
+ * lists above answer never arises for them.
+ *
+ * Chrome's focusable-scroller rule reads `tabindex`, and `-1` is its opt-out: a box
+ * carrying it is reachable by script and never by Tab, so it draws no outline of its
+ * own and needs no ring. That is a claim about a component's markup rather than about
+ * a stylesheet, so each entry names the source that makes it and the gate reads that
+ * source below — an entry whose component drops the attribute fails here instead of
+ * quietly becoming an untriaged box.
+ *
+ * These are NOT recorded as a gap on #531. The boxes above are ones a reader can Tab
+ * into; these cannot be reached that way, and the focus their component does take is
+ * the frame around them, which carries the kit ring.
+ */
+const SCROLL_NOT_A_STOP = [
+  // The chart's plot overflows below the phone step. Its own frame is the one tab
+  // stop and takes `--ring`; the arrow keys step columns from there and the scroller
+  // follows. Joined on #543, when the restyle's rebase first brought the chart under
+  // this walk. why: docs/components.md#react-charts
+  { selector: '.ui-chart__scroll', source: 'react/src/Chart.tsx', marks: /className="ui-chart__scroll" tabIndex=\{-1\}/ },
+];
+
 test('focus walk: every box the kit makes scrollable is triaged', () => {
   const scrolling = scrollingSelectors(KIT);
   // Nine since #527 took the underline strip's scroll box away; ten before it.
@@ -529,7 +552,19 @@ test('focus walk: every box the kit makes scrollable is triaged', () => {
   }
   assert.deepEqual(ringed, Object.keys(SCROLL_RINGED),
     'a scrolling box gained or lost the ring — move it between the lists and say why');
-  assert.deepEqual(bare, Object.keys(SCROLL_NO_STOP),
+  // Every claimed opt-out is read out of the component that makes it, so the list
+  // cannot excuse a box whose markup no longer opts out.
+  for (const { selector, source, marks } of SCROLL_NOT_A_STOP) {
+    assert.ok(bare.includes(selector),
+      `${selector} is listed as never a keyboard stop but the walk no longer finds it `
+      + 'scrolling without the ring — drop the entry or move it to a list that fits');
+    assert.match(read(source), marks,
+      `${selector} is excused as never a keyboard stop, but ${source} no longer marks it `
+      + 'tabindex="-1" — without that attribute Chrome makes it a stop and it draws the '
+      + "browser's own outline, which #457 refused");
+  }
+  const excused = new Set(SCROLL_NOT_A_STOP.map((entry) => entry.selector));
+  assert.deepEqual(bare.filter((selector) => !excused.has(selector)), Object.keys(SCROLL_NO_STOP),
     'the set of scrolling boxes with no ring moved; triage each change on #531');
   // An entry with no reason is an entry nobody triaged.
   for (const [selector, why] of Object.entries(SCROLL_RINGED)) {

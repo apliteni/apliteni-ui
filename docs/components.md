@@ -141,6 +141,7 @@ documentation page. It does not add `aria-modal`, wiring or Escape handling.
 | `numericValue({ value, unit, missing })`, `deltaValue({ value, tone, basisId })` | Inline value and inline change. Colour never supplies the sign. |
 | `rowIdentity({ symbol, name, logo, href })` + `initRowIdentity(root)` | A company identity cell, with a letter fallback. |
 | `formatNumericValue(…)`, `formatDeltaValue(…)` | The same two decisions as plain text, shared with React. |
+| `chartScale(values, options)`, `bridgeWalk(steps)`, `pointTarget(point, options)`, `CHART_FLOOR` | The arithmetic a chart needs, with no DOM and no pixels: the band a series is drawn in with its whole-unit ticks, each bridge column's own amount and the two ends of the bar that draws it, and where a pointer target sits over a drawn point. The kit draws no chart of its own; React `Chart` is the one here that uses them. See [React charts](#react-charts). |
 
 The table is markup, not a factory. The page adds the scroll region, sticky header and pinned
 identity column through classes. See
@@ -731,6 +732,46 @@ control removes. This prevents a caller from leaving a busy or disabled control 
 **Space is blocked on button roots only**, because it never activates an anchor. A busy link
 that swallowed Space would also prevent the reader from scrolling the page.
 
+### React charts
+
+`Chart` draws three shapes: `months`, a column per period with bars and a line across them;
+`bridge`, one period walked from a starting total to a result; and `spark`, one series at text
+size with no axis, for a stat band's `trend` slot. The numbers, the wording and the formatting
+are yours — `format` prints exact values in the readout, the live region and the table, and
+`formatAxis` prints the ticks, which are whole units.
+
+**A mark is capped, whatever its column is worth.** A bar never passes a mark's width, so a chart
+that grows with the card gains ground between its columns rather than twelve wider blocks. Two bar
+series on the same side of the zero line stand side by side with ground between them; a
+`bars-below` series takes positive magnitudes and hangs under the line instead. A bar is flat,
+rounded only at the end away from zero, and its foot stands square on the rule it is measured
+from. A bridge carries each step's running total across to the step beside it.
+
+**An unfinished period keeps its series fill with a dashed edge.** The legend names the estimated state.
+The readout and the optional table show the state and its `note`.
+
+**The value axis, the period row and the legend are quiet, and nothing is only there.** Every
+data value is reachable at full strength through pointer readouts and keyboard announcements.
+The optional values table opens on request.
+
+**Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
+paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark
+changes colour, so the accent stays with the series it names. The chart is one tab stop: Left,
+Right, Home and End step columns and announce each one politely, Enter picks one when `selectable`
+is set, and `title` names the plot and the table under it without being drawn, because the card
+around a chart already carries its title.
+
+**On a touch screen a tap opens the readout and a second tap on the same mark closes it. The tap
+that opens a readout does not call `onSelect`** — it is the reader asking what a mark is worth.
+The tap that closes one, and an ordinary mouse click, do, and the click itself is never swallowed,
+so your own listener around the chart still hears every tap. Below 560px, to a coarse pointer, a
+line's point grows a 44px target that stays inside its own column, and a sparkline's slot grows
+with it, so a `trend` slot is 44px tall there instead of 32.
+
+The table the reader opens carries its columns sideways in a named scroller, so your card and your
+page keep their width whatever series you pass. At phone widths the plot scrolls with the value
+axis held in place, and the side that still hides columns is faded. Nothing animates.
+
 ### The rest of the React surface
 
 - **`Tabs`** unmounts inactive panel content. Arrow keys, Home and End move between tabs and
@@ -760,8 +801,9 @@ that swallowed Space would also prevent the reader from scrolling the page.
   status text belongs beside the dot.
 - **`SuccessPanel`** is the inline confirmation. **`SuccessCheck`** is the bare shared mark.
 - **Shared logic.** `dropdownMatch`, `dropdownFiltering`, `rankGroups`, `rankCommands`,
-  `scoreCommand`, `paletteHotkey`, `segmentedNextIndex`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE` and
-  `calloutIcons` come from the main entry. So do `formatNumericValue` and
+  `scoreCommand`, `paletteHotkey`, `segmentedNextIndex`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE`,
+  `calloutIcons`, `chartScale`, `bridgeWalk`, `pointTarget` and `CHART_FLOOR` come from the main
+  entry. So do `formatNumericValue` and
   `formatDeltaValue`. They return plain text and classes for React to render and never HTML.
 
 ## What the kit does not do
