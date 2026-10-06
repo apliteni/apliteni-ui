@@ -136,7 +136,7 @@ type Frame = {
 };
 
 /** The plot's height when the caller names none. */
-const HEIGHT = { months: 216, bridge: 216, spark: 32 };
+const HEIGHT = { months: 180, bridge: 180, spark: 32 };
 /** Room for a stroke at the band's edges, so a full-height bar is not shaved. */
 const PAD = 2;
 /**
@@ -174,7 +174,7 @@ const FALLBACK_COL = 48;
  * proportion every reference keeps, however wide the chart is drawn.
  */
 const BAR_SHARE = 0.5;
-const BAR_MAX = 24;
+const BAR_MAX = 20;
 /**
  * The same cap for a bridge, whose columns are not a month's. A bridge draws
  * one column per step and each carries its own name, so a column is three or
@@ -662,10 +662,14 @@ export function Chart(props: ChartProps) {
           setSaid('');
         }}
       >
+        {/* Direction B labels the axis at its ends and at zero only; every other
+            tick keeps its line box so the rows still line up. */}
         {!spark && scale.ticks.length > 0 && (
           <div className="ui-chart__axis" aria-hidden="true">
-            {[...scale.ticks].reverse().map((tick) => (
-              <span key={tick} className="ui-chart__tick">{formatAxis(tick)}</span>
+            {[...scale.ticks].reverse().map((tick, i, all) => (
+              <span key={tick} className="ui-chart__tick">
+                {i === 0 || i === all.length - 1 || tick === 0 ? formatAxis(tick) : ''}
+              </span>
             ))}
           </div>
         )}
@@ -761,10 +765,7 @@ export function Chart(props: ChartProps) {
                   the one rule every reference keeps. Both go under every mark: the
                   bars stop ZERO_INSET short of zero so no bar can cover it, and a
                   line or a dot crossing a rule paints over it. */}
-              {!spark && scale.ticks.filter((tick) => tick !== 0).map((tick) => (
-                <line key={`grid-${tick}`} className="ui-chart__grid"
-                  x1="0" x2={px(plotWidth)} y1={px(y(tick))} y2={px(y(tick))} />
-              ))}
+              {/* Direction B draws no grid: the zero rule alone. */}
               {!spark && scale.ticks.includes(0) && (
                 <line className="ui-chart__zero"
                   x1="0" x2={px(plotWidth)} y1={px(y(0))} y2={px(y(0))} />
