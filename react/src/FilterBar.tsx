@@ -97,8 +97,8 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
           onAdd?.(id, value == null ? undefined : String(value));
         }} />
     </div>}
-    {/* Shown only once there is something to clear, in the bordered skin. The
+    {/* Shown only once there is something to clear, as a quiet text button. The
         vanilla factory carries the reasoning. why: docs/components.md#a-filter-row-holds-its-panels */}
-    {filters.length > 0 && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
+    {filters.length > 0 && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant="ghost" onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
   </fieldset></div>;
 }

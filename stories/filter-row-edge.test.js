@@ -1,9 +1,7 @@
-/* Rule: every box standing on the filter row draws the chip's own edge, and no live one draws
- * the edge the kit gives an unavailable control.
+/* Rule: chips and Add retain quiet edges, while Clear has no visible edge.
+ * Focus alone uses an accent edge. Disabled chips and Add use the unavailable edge.
  *
- * #518's add control kept a trigger's `border: 1px solid var(--border)`; the clear action kept
- * `.ui-btn`'s --control-edge, which is that same fainter ink in dark. A resting rule scoped this
- * deep outranks the kit rule writing each state, so every state is ranked as well as read.
+ * The row overrides the primitive edge rules, so every state must be measured.
  *
  * Subjects and their state vocabularies are discovered, not listed; each check below states what
  * it cannot see. why: docs/components.md#a-filter-row-holds-its-panels
@@ -99,10 +97,9 @@ function aimedAt(part, { attr, box }) {
  *  control is off. `want: null` means the chip's own edge, read off the sheet. */
 const MEASURED = [
   { what: 'unavailable', is: (s) => /:disabled|\[aria-disabled="true"\]|\[data-btn-disabled\]/.test(s), want: 'var(--disabled-border)' },
-  // Busy is work in flight on a control that is still there, so it keeps the row's live edge.
-  // The kit's own busy rule drops to --border, which is the ink this row may not draw.
+  // Busy retains the resting edge. Clear has its own transparent-edge contract.
   { what: 'busy', is: (s) => /\[aria-busy="true"\]/.test(s), want: null },
-  { what: 'hover', is: (s) => s.includes(':hover'), want: 'var(--accent)' },
+  { what: 'hover', is: (s) => s.includes(':hover'), want: null },
   { what: 'keyboard focus', is: (s) => s.includes(':focus-visible'), want: 'var(--accent)' },
   { what: 'rest', is: (s) => s === '', want: null },
 ];
@@ -110,8 +107,8 @@ const classOf = (state) => MEASURED.find((one) => one.is(state));
 
 /* What the factory writes for the clear action, read from the factory rather than assumed: the
    variant decides which of the kit's own rules can reach it at all. */
-const FACTORY = read('src/components/index.js');
-const VARIANTS = [/variant = '(\w+)'/.exec(FACTORY)?.[1], 'sm'].filter(Boolean).map((v) => `.ui-btn--${v}`);
+const FACTORY = read('src/components/filter-bar.js');
+const VARIANTS = [/variant: '(\w+)'[^}]*\}\)\}<\/span>/.exec(FACTORY)?.[1], 'sm'].filter(Boolean).map((v) => `.ui-btn--${v}`);
 
 /** The states the kit itself paints an edge on this box in. Those are the states the row has to
  *  answer, because its own resting rule sits deeper than every one of them. */
@@ -222,7 +219,8 @@ function findings(css) {
     }
 
     // Every subject answers every state it can be in, and with the ink the row's guarantee names.
-    for (const { what, want } of wanted(subject)) {
+    for (const { what, want: expected } of wanted(subject)) {
+      const want = subject.attr === 'data-filter-clear' ? 'transparent' : expected;
       const at = edges.filter((one) => classOf(one.state)?.what === what);
       if (!at.length) {
         out.push(what === 'rest'
@@ -271,7 +269,7 @@ function findings(css) {
   return out;
 }
 
-test('every box on the filter row draws the chip\'s edge, in both themes', () => {
+test('filter edges stay quiet and Clear stays unboxed in both themes', () => {
   assert.deepEqual(findings(SHEET), []);
 });
 
@@ -311,7 +309,7 @@ test('the gate refuses a sheet that brings any of it back', () => {
     ['the add control\'s resting edge dropped', (css) => css.replace('min-height: var(--ui-filter-row-h); border-color: var(--border-strong); background: transparent;', 'min-height: var(--ui-filter-row-h); background: transparent;')],
     ['the add control\'s resting edge back to a trigger\'s --border', (css) => css.replace('border-color: var(--border-strong); background: transparent;', 'border-color: var(--border); background: transparent;')],
     ['the add control\'s unavailable edge dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*:disabled \{ border-color: var\(--disabled-border\); \}/, '')],
-    ['the add control\'s hover and focus response dropped', (css) => css.replace(/\n[^\n]*:enabled:hover,\n[^\n]*\[data-filter-add\][^\n]*:focus-visible \{ border-color: var\(--accent\); \}/, '')],
+    ['the add control hover response dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*:enabled:hover \{ border-color: var\(--border-strong\); \}/, '')],
     ['a state the gate has no ink for', (css) => `${css}\n${BAR} [data-filter-add] .ui-dropdown__trigger:active { border-color: #000; }\n`],
     ['a second neighbour given only the unavailable edge', (css) => `${css}\n${BAR} [data-filter-export] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }\n`],
     // The discovery is the attribute, so a wrapper holding a box and declaring no edge at all is
@@ -320,11 +318,11 @@ test('the gate refuses a sheet that brings any of it back', () => {
     ['a second neighbour holding the kit\'s button with no edge at all', (css) => `${css}\n${BAR} [data-filter-export] button { padding: 0; }\n`],
     ['a wrapper the sheet names and puts no box inside', (css) => `${css}\n${BAR} [data-filter-export] { display: flex; }\n`],
     // The clear action, the subject an earlier narrowing excluded outright. #518
-    ['the clear action\'s resting edge dropped', (css) => css.replace('\n.ui-filter-bar [data-filter-clear] button { border-color: var(--border-strong); }', '')],
-    ['the clear action resting on the kit\'s --control-edge', (css) => css.replace('.ui-filter-bar [data-filter-clear] button { border-color: var(--border-strong); }', '.ui-filter-bar [data-filter-clear] button { border-color: var(--control-edge); }')],
-    ['the clear action\'s busy edge left to the kit', (css) => css.replace(/\n\.ui-filter-bar \[data-filter-clear\] button\[aria-busy="true"\],\n[^\n]*\n[^\n]*:active \{ border-color: var\(--border-strong\); \}/, '')],
-    ['the clear action\'s unavailable edge left to the kit, which this depth outranks', (css) => css.replace(/\n\.ui-filter-bar \[data-filter-clear\] button:disabled,\n\.ui-filter-bar \[data-filter-clear\] button\[aria-disabled="true"\],\n\.ui-filter-bar \[data-filter-clear\] button\[aria-busy="true"\]\[data-btn-disabled\] \{ border-color: var\(--disabled-border\); \}/, '')],
-    ['the clear action\'s hover response frozen by its own resting rule', (css) => css.replace(/\n\.ui-filter-bar \[data-filter-clear\] button:enabled:hover \{ border-color: var\(--accent\); \}/, '')],
+    ['the clear action\'s resting edge dropped', (css) => css.replace('\n.ui-filter-bar [data-filter-clear] button { border-color: transparent; }', '')],
+    ['the clear action resting on the kit\'s --control-edge', (css) => css.replace('.ui-filter-bar [data-filter-clear] button { border-color: transparent; }', '.ui-filter-bar [data-filter-clear] button { border-color: var(--control-edge); }')],
+    ['the clear action\'s busy edge left to the kit', (css) => css.replace(/\n\.ui-filter-bar \[data-filter-clear\] button\[aria-busy="true"\],\n[^\n]*\n[^\n]*:active \{ border-color: transparent; \}/, '')],
+    ['the clear action\'s unavailable edge left to the kit, which this depth outranks', (css) => css.replace(/\n\.ui-filter-bar \[data-filter-clear\] button:disabled,\n\.ui-filter-bar \[data-filter-clear\] button\[aria-disabled="true"\],\n\.ui-filter-bar \[data-filter-clear\] button\[aria-busy="true"\]\[data-btn-disabled\] \{ border-color: transparent; \}/, '')],
+    ['the clear action\'s hover response frozen by its own resting rule', (css) => css.replace(/\n\.ui-filter-bar \[data-filter-clear\] button:hover \{ border-color: transparent; background: transparent; \}/, '')],
     // The chip, the box every other one is measured against. #518
     ['the chip keeping its live edge when the row is off', (css) => css.replace(/\n\.ui-filter-bar__chip:disabled,\n\.ui-filter-bar:disabled \.ui-filter-bar__chip \{ border-color: var\(--disabled-border\); \}/, '')],
     ['the chip off only by its own state, which a bar turned off does not set', (css) => css.replace('.ui-filter-bar__chip:disabled,\n.ui-filter-bar:disabled .ui-filter-bar__chip {', '.ui-filter-bar__chip:disabled {')],
