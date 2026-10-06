@@ -197,15 +197,17 @@ describe('document review flow', () => {
     // holds the selector that sheet paints together with the class the markup wears —
     // the two halves that put the accent on this one name.
     expect(SHEET).toMatch(/\.doc-flow__saved-pane\s+\.ui-card__title\s*\{[^}]*color:\s*var\(--accent\)/);
-    // The preview carries none of it: not on its name, not on a card ground, and the one
-    // control inside it marks its selection with the strong edge instead of the accent
-    // outline `.ui-seg` paints by default.
+    // The preview carries none of it: not on its name, not on a card ground, and not on
+    // the one control inside it. That control used to need an answer here, because the
+    // kit outlined a chosen pill in the accent and a reference pane cannot hold the
+    // step's only colour; since the kit marks the chosen pill by raising it instead, the
+    // showcase writes nothing about `.ui-seg` and the neutral mark is the kit's own.
     expect(source).not.toHaveClass('doc-flow__saved-pane');
     expect(source.querySelectorAll('.ui-card--accent, .ui-card--live, .doc-flow__saved-pane'))
       .toHaveLength(0);
     const pressed = [...source.querySelectorAll('.ui-seg button[aria-pressed="true"]')];
     expect(pressed).toHaveLength(1);
-    expect(getComputedStyle(pressed[0] as HTMLElement).outlineColor).toBe('var(--border-strong)');
+    expect(SHEET).not.toMatch(/\.ui-seg/);
     // Neither card draws an edge of its own, so both keep one hairline between them.
     // Limit: the kit stylesheet is not loaded here, so this holds that the showcase
     // declares no edge on either card; the painted hairlines are measured in the #385

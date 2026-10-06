@@ -409,6 +409,36 @@ test('focus walk: a later outline taking a scroll region\'s band turns the casca
     'the finding has to say which indicator was asked for');
 });
 
+// The one query whose condition this walk can decide: it is not in forced
+// colours. `deforce` blanks that block, because inside it an outline IS the kit's
+// ring — the mode drops every box-shadow and repaints the transparent outline the
+// kit pairs with it, so a control that opts OUT of the mode's palette has to
+// restate that outline in a system colour or focus with nothing. Read as if it
+// always applied, the chosen segmented pill's restatement is a second indicator
+// beside the ring, which is the thing this walk refuses. The exception is scoped
+// to the query and to nothing else, which is what the lift below proves: the very
+// same declaration, moved out of it, is caught.
+test('focus walk: a forced-colours answer is skipped, and the same rule outside the query is not', () => {
+  const subject = subjects.find(({ id }) => id === 'site/index.html');
+  const sheet = subject.sheets.find(({ css }) => /forced-colors/.test(css) && /HighlightText/.test(css));
+  assert.ok(sheet, 'no walked sheet carries a forced-colours answer, so this holds nothing');
+
+  const rules = subject.sheets.flatMap(({ file, css }) => focusRules(css, file));
+  assert.deepEqual(failures(judgeStops(subject.body, rules).stops, exempt), [],
+    'a rule inside the query is the mode\'s own answer and not a finding');
+
+  const lifted = subject.sheets.map((one) => (one === sheet
+    ? { ...one, css: `${sheetText(one.css)}\n.ui-seg button.is-active:focus-visible { outline: 2px solid HighlightText; }` }
+    : one));
+  const found = failures(
+    judgeStops(subject.body, lifted.flatMap(({ file, css }) => focusRules(css, file))).stops,
+    exempt,
+  );
+  assert.ok(found.length >= 1, 'the same declaration outside the query was not caught');
+  assert.ok(found.every((line) => /is-active/.test(line)),
+    `only the chosen pill should be reported, got:\n  ${found.join('\n  ')}`);
+});
+
 // The stop kinds a fixed focusable list misses. Chrome makes a scroll container
 // a keyboard stop with no tabindex and no author rule, so an overflowing box
 // draws the browser's own outline — black in light mode, which #457 refused.

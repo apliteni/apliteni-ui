@@ -5,7 +5,8 @@
  * indicator, and that is the accepted cost of the option Artur picked on r23,
  * so a floor here would assert a bar this control knowingly does not clear.
  * The numbers otherwise lived only in a PR body, where the next edit to either
- * token would have moved them with nobody measuring.
+ * token would have moved them with nobody measuring. docs/components.md states the
+ * step for a consumer; this holds it.
  * Forced-colors mode, where the step is gone entirely, is covered next door in
  * src/styles/segmented.test.js. why: #475, measured on #473
  */
@@ -16,7 +17,7 @@ import { parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
 const THEMES = ['dark', 'light'];
 const resolve = (name, theme) => parseColour(substitute(`var(${name})`, tokensFor(theme)));
 
-/** Measured in Chromium at b6d9103 and recomputed from the tokens here. */
+/** Measured in Chromium, and recomputed from the tokens here on every run. */
 const STEP = { dark: 1.51, light: 1.18 };
 
 /** The ink does not help: --strong against --text is a rounding error apart. */
@@ -47,7 +48,7 @@ test('the step is below the state-indicator floor, which is why it is pinned and
   }
 });
 
-test('ink is not a second cue, so the spec may say the step carries selection alone', () => {
+test('ink is not a second cue, so the reader page may say the step carries selection alone', () => {
   for (const theme of THEMES) {
     const chosen = resolve('--strong', theme);
     const other = resolve('--text', theme);
@@ -55,7 +56,7 @@ test('ink is not a second cue, so the spec may say the step carries selection al
     assert.ok(
       measured < INK_IS_NOT_A_CUE,
       `${theme}: --strong now reads ${measured.toFixed(2)}:1 against --text. If the ink became a real\n`
-      + 'second cue, docs/specification.md and this file both understate the control and should say so.',
+      + 'second cue, docs/components.md and this file both understate the control and should say so.',
     );
   }
 });

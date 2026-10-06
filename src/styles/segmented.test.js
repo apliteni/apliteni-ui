@@ -68,9 +68,11 @@ test('the chosen tab is a weight step and one bar, and draws no box', () => {
   assert.equal(decl(tab, 'box-shadow'), undefined, 'the chosen tab draws no hairline of its own');
   assert.equal(decl(tab, 'border'), undefined);
   assert.equal(decl(tab, 'border-bottom'), undefined, 'the rail on the tab\'s own edge is what the inset bar replaced');
-  // The pill rule above paints an accent outline on every chosen button. Left
-  // standing it is a second accent mark on a tab that already has one — #544.
-  assert.equal(decl(tab, 'outline'), '0', 'the pill rule\'s accent outline is cancelled here');
+  // This is what holds the tab to no box. It cancelled the accent outline the pill
+  // rule gave every chosen button, a second accent mark on a tab that already had one
+  // — #544 — and since #475 took that outline off the pill rule it goes on refusing
+  // any other outline a later rule would put here.
+  assert.equal(decl(tab, 'outline'), '0', 'the chosen tab declares no outline of its own');
 
   // The type step. Both halves are read, because one alone is not a step: a
   // resting tab at --semibold and a chosen tab at --semibold say the same thing.

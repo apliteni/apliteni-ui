@@ -129,14 +129,6 @@ const CSS = `
      stay neutral: this step compares two readings of the same numbers, and colouring one
      side's Total says they differ.
      why: guidelines/density-and-accents.md#follow-the-consequence */
-  /* The zoom control sits in the reference pane, so its selected pill marks itself with
-     the kit's strong edge instead of the accent. Between the two panes the accent names
-     the data that gets saved, and a reference cannot hold the step's only colour. The
-     focus state is left alone: :not(:focus-visible) keeps the ring's own transparent
-     outline off this rule. why: guidelines/density-and-accents.md#follow-the-consequence */
-  .doc-flow__toolbar .ui-seg button[aria-pressed="true"]:not(:focus-visible) {
-    outline-color: var(--border-strong);
-  }
   /* The values the approval writes carry the weight; their labels keep theirs. Rank
      here is weight, not ink: the rule asks for size, weight and spacing, and a colour
      written in a story's own style block is one the contrast walk cannot resolve, so it

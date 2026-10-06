@@ -428,7 +428,7 @@ test('measured: an underline strip keeps every tab inside its own box', { skip: 
     // to be caught by the block above or that block is reading nothing.
     for (const [name, extra, caught] of [
       [
-        'the pill rule\'s accent outline back on the chosen tab',
+        'a second accent mark — an outline — back on the chosen tab',
         '.ui-seg--underline button.is-active,.ui-seg--underline button[aria-pressed="true"]{outline:1px solid var(--accent)!important}',
         (s) => s.chosen && s.chosen.accents + (s.chosen.shadowAccent ? 1 : 0) !== 1,
       ],

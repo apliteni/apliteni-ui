@@ -16,7 +16,8 @@
 //
 // That resolution covers specificity and order, and nothing else. It does not
 // model `!important`, an inline `style=`, a media or container query's condition
-// (a nested rule is read as if it always applied), a state the static DOM is not
+// (a nested rule is read as if it always applied — except forced colours, which
+// `deforce` below blanks, for the reason stated there), a state the static DOM is not
 // in (`:hover`, `:checked`), or `var()` expansion — a ring is recognised by the
 // `var(--ring)` it is written with, not by the layers it resolves to. So this is
 // not what a browser computes; it is the part of the computation that decides
@@ -170,8 +171,28 @@ export function paintsOf(body) {
   return out;
 }
 
+/**
+ * `@media (forced-colors: active)` blanked, in place, so offsets do not move.
+ *
+ * The walk judges what a page paints normally, and this is the one query whose
+ * condition it can decide: it is not in forced colours. Reading its rules as if
+ * they always applied would report the mode's own answers as defects on the
+ * normal page — and they are the opposite of a defect. The kit marks a focus
+ * stop with a `box-shadow` ring and a transparent `outline`, and the mode drops
+ * every shadow and repaints the outline, so inside this query an outline IS the
+ * ring rather than a second indicator beside it. A control that opts out of the
+ * mode's palette has to restate that outline in a system colour, which is a
+ * declaration this walk would otherwise refuse. Nothing else changes: a rule
+ * outside the query is read exactly as before, which is what
+ * `stories/focus-ring.test.js` holds by moving one in and out of it.
+ */
+const deforce = (css) => css.replace(
+  /@media\s*\(\s*forced-colors\s*:\s*active\s*\)\s*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g,
+  (m) => m.replace(/[^\n]/g, ' '),
+);
+
 /** One stylesheet with its comments blanked, which is the text `raw` indexes. */
-export const sheetText = (css) => decomment(css);
+export const sheetText = (css) => deforce(decomment(css));
 
 /**
  * Every focus rule in one stylesheet, with the element it keys on.
