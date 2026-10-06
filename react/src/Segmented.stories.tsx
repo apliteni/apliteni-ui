@@ -40,14 +40,14 @@ export const DisabledOption: Story = { ...SmallBlock, args: { ...SmallBlock.args
 
 function Specimen({ label, children }: { label: string; children: ReactNode }) {
   return <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-    <div style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)' }}>{label}</div>{children}
+    <div className="ui-eyebrow">{label}</div>{children}
   </div>;
 }
 export const Examples: Story = {
   parameters: { layout: 'fullscreen', docs: { description: { story: 'The vanilla Segmented examples as controlled choices. These specimens select values; they do not navigate or own panels.' } } },
   render: () => <div style={{ padding: 'var(--space-10)' }}>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', maxWidth: 'var(--measure)' }}>
-      <Specimen label="Two options — Deck / Text"><Choice label="View" options={options(['Deck', 'Text'])} value="Deck" onChange={() => {}} /></Specimen>
+      <Specimen label="Two options"><Choice label="View" options={options(['Deck', 'Text'])} value="Deck" onChange={() => {}} /></Specimen>
       <Specimen label="Theme"><Choice label="Theme" options={options(['Dark', 'Light', 'System'])} value="Dark" onChange={() => {}} /></Specimen>
       <Specimen label="Small"><Choice label="Language" options={options(['EN', 'RU'])} value="EN" size="sm" onChange={() => {}} /></Specimen>
       <Specimen label="Full width (block)"><div style={{ maxWidth: 'var(--panel-md)' }}><Choice label="Section" options={options(['Overview', 'Agents', 'Billing'])} value="Agents" block onChange={() => {}} /></div></Specimen>
