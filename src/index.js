@@ -35,3 +35,4 @@ export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from './logic/pagination.js';
 export { calloutIcons } from './logic/callout.js';
 export { formatNumericValue, formatDeltaValue } from './logic/table-values.js';
 export { accentSwatchStyle } from './logic/accents.js';
+export { revealCurrentNav, revealFocusedNav } from './logic/nav.js';

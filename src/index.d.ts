@@ -1,4 +1,10 @@
 export declare function esc(value: unknown): string;
+/** The URL boundary every factory and React component sends a destination through. */
+export declare function safeUrl(value: unknown, fallback?: string): string;
+/** Scroll a tab row so its `aria-current` link is inside the viewport. */
+export declare function revealCurrentNav(nav: HTMLElement): void;
+/** Scroll a tab row so the link a focus event landed on clears the row's edge. */
+export declare function revealFocusedNav(nav: HTMLElement, target: EventTarget | null): void;
 export declare function field(opts?: Record<string, unknown>): string;
 export declare function input(opts?: Record<string, unknown>): string;
 export declare function textarea(opts?: Record<string, unknown>): string;

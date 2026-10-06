@@ -108,3 +108,7 @@ export { SidebarNav } from './SidebarNav';
 export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';
 export { AccentPicker } from './AccentPicker';
 export type { Accent, AccentPickerProps } from './AccentPicker';
+export { NavTabs } from './NavTabs';
+export type { NavTabsProps, NavTabItem, NavTabBadge } from './NavTabs';
+export { Breadcrumbs } from './Breadcrumbs';
+export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';
