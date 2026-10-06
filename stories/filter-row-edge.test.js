@@ -301,7 +301,7 @@ test('every subject, box and state the sheet aims at this row is measured', () =
   // box in a state the add control's box is never in, and the other way round.
   const kit = (box) => [...kitStates(box).keys()].sort();
   assert.deepEqual(kit('.ui-btn'), ['busy', 'hover', 'rest', 'unavailable']);
-  assert.deepEqual(kit('.ui-dropdown__trigger'), ['hover', 'keyboard focus', 'rest']);
+  assert.deepEqual(kit('.ui-dropdown__trigger'), ['hover', 'rest']);
 });
 
 test('the gate refuses a sheet that brings any of it back', () => {

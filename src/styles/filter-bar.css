@@ -12,6 +12,7 @@
 .ui-filter-bar__remove:focus-visible,
 .ui-filter-bar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
+.ui-filter-bar .ui-filter-bar__remove:disabled { /* muted-ink: state — unavailable remove mark on the page */ color: var(--disabled-ink-bare); }
 
 .ui-filter-bar .ui-dropdown__value { color: inherit; font-weight: inherit; letter-spacing: normal; }
 /* A chip with nothing chosen prints the field's name in the slot the value will
@@ -119,5 +120,4 @@
 .ui-filter-bar [data-filter-add] .ui-dropdown { display: flex; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-radius: var(--radius-sm); min-height: var(--ui-filter-row-h); border-color: var(--border-strong); background: transparent; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover { border-color: var(--border-strong); }
-.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:focus-visible { border-color: var(--accent); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }
