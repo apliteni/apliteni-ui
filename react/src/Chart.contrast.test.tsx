@@ -3,7 +3,7 @@
 // eye can land anywhere, so this holds the floor. Tones are discovered from the
 // stylesheet and their names from the component's own union, so a tone added to
 // one and not the other fails before it can ship a colour nobody measured.
-// why: #543, docs/specification.md#react-charts
+// why: #543, docs/components.md#react-charts
 //
 // Limits: the ratios are the stylesheet's values, not painted pixels, so
 // antialiasing, host overrides and a consumer's own --ui-chart-ground are out;

@@ -2,7 +2,7 @@
 // whole reason it is a module: a chart that copied this would drift from the
 // placement the specification states, and the flip test is the part that drifts
 // first.
-// why: docs/specification.md#the-hover-readout
+// why: docs/components.md#the-hover-readout
 
 /**
  * Place `tip` against `mark` inside `host`, above it and centred, flipping below
@@ -14,7 +14,7 @@
  * `host` must be the box the readout is positioned in: the three custom
  * properties below are written in its coordinates. `bound` narrows the
  * measurement to one element, for a part that keeps its readout inside itself.
- * why: docs/specification.md#the-hover-readout
+ * why: docs/components.md#the-hover-readout
  */
 export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bound?: Element): void {
   const mrect = mark.getBoundingClientRect();

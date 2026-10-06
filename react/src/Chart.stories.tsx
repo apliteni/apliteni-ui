@@ -24,9 +24,8 @@ const periods: ChartPeriod[] = MONTHS.map((label, i) => (i === MONTHS.length - 1
    they read apart by weight and by which side of zero they stand on. Good and
    bad would have said which of the two is the better news, which no month
    decides.
-   Round 27 of #543 picked these two hues. That is not a settled direction:
-   rounds 30 and 31 asked for a richer palette and for modern references, and
-   the choice is still open on the issue. */
+   Round 27 of #543 picked these two hues; the drawing around them was redrawn
+   against eight references on round 37, and the hues were kept. */
 const series: ChartSeries[] = [
   { id: 'income', name: 'Income', values: INCOME, shape: 'bars', tone: 'accent' },
   { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars-below', tone: 'accent-soft' },
@@ -94,6 +93,9 @@ export const Narrow: StoryObj = {
   ),
 };
 
+/** The picked month is drawn — a band behind its column and its label at weight
+ *  — and said, through the chart's own live region. A line under the card
+ *  repeating it told a reader nothing the chart had not already told them. */
 export const Selectable: StoryObj = {
   render: function SelectableStory() {
     const [month, setMonth] = useState<number | null>(null);
@@ -102,7 +104,6 @@ export const Selectable: StoryObj = {
         <Chart title="Income and spend by month, last 12 months, with net"
           periods={periods} series={series} format={eur} formatAxis={eurAxis}
           selectable selected={month} onSelect={setMonth} />
-        <p>{month === null ? 'No month picked yet.' : `Picked ${periods[month].label}.`}</p>
       </Card>
     );
   },

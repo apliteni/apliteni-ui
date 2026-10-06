@@ -6,7 +6,7 @@
  *   .ui-chart__plot    the drawing and its column labels
  *   .ui-chart__data    the same numbers as a table
  * The component sets --ui-chart-h, the plot's height, which the axis matches.
- * why: docs/specification.md#react-charts
+ * why: docs/components.md#react-charts
  * ========================================================================== */
 
 .ui-chart {
@@ -37,12 +37,14 @@
 .ui-chart--spark .ui-chart__frame { grid-template-columns: minmax(0, 1fr); }
 /* The box, not the drawing: a phone target does not fit in 32px. Written here
    rather than left to the height attribute, which `.ui-stat__trend svg` beats.
-   why: docs/specification.md#react-charts */
+   why: docs/components.md#react-charts */
 .ui-chart--spark .ui-chart__svg { height: var(--ui-chart-box); }
 
 /* -- the legend ------------------------------------------------------------ */
 
 .ui-chart__legend {
+  /* muted-ink: chrome — the key names the marks and is not the chart's words */
+  color: var(--muted);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -80,6 +82,8 @@
 }
 
 .ui-chart__axis {
+  /* muted-ink: chrome — a tick names the scale; the value is printed in full in the readout and the table */
+  color: var(--muted);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -117,26 +121,24 @@
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  padding-top: var(--space-1);
+  /* The row stood 4px under the plot plus the 2px rule every label reserved for
+     the picked one. The rule is gone and the gap keeps that step on the scale
+     rather than between two of its steps. */
+  padding-top: var(--space-2);
 }
 .ui-chart__period {
-  /* Every label carries the rule so the picked one can colour it without moving
-     the row, which is how .ui-tabs__tab carries its indicator. */
-  border-top: 2px solid transparent;
+  /* muted-ink: chrome — a period label names a column; its values are printed in full in the readout and the table */
+  color: var(--muted);
   padding-inline: var(--space-1);
   text-align: center;
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
-/* The picked column. The accent used to say "this one" here and now says
-   "income", so the mark moves off the hue and onto the shape the kit already
-   uses for a chosen thing: a rule the width of the column and a label in the
-   strong ink. The rule is --text on the card, so it is found at a glance among
-   twelve; the weight is the half that survives forced colours and a reader who
-   cannot separate the two inks. Nothing is painted over a bar, so no series
-   measures against anything but the chart's own ground. */
+/* The picked column's label: the body ink the rest of the row gives up, at the
+   weight a reader who separates no colours still reads. Selection is otherwise
+   the band behind the column and the band alone — the outline the chart draws
+   belongs to focus. */
 .ui-chart__period.is-selected {
-  border-top-color: var(--text);
   color: var(--strong);
   font-weight: 600;
 }
@@ -151,6 +153,18 @@
 .ui-chart__grid { stroke: var(--border); stroke-width: 1; }
 .ui-chart__zero { stroke: var(--border-strong); stroke-width: 1; }
 
+/* The carry a bridge draws between two steps: the running total leaves one
+   column at the height it reached and meets the next where it starts from. It
+   is the chart's quietest rule, because it is not a measurement — it is the
+   same number twice. Solid, like every other rule here: a dash would read as a
+   forecast. */
+.ui-chart__carry { stroke: var(--border-strong); stroke-width: 1; }
+
+/* The picked column, behind every mark and every rule. A quiet fill rather than
+   the accent, which the chart spends on a series; it is wider than any bar, so
+   the column is found before the bar in it is read. */
+.ui-chart__band { fill: var(--surface-3); }
+
 .ui-chart__bar {
   /* One flat tone, the whole bar. A ramp down the bar was the one thing in the
      drawing that carried no number: it let the middle go while both edges held,
@@ -164,7 +178,11 @@
    the series' tone, so the column is still read as that series, and the dash is
    the non-colour cue the legend repeats in words. */
 .ui-chart__bar.is-estimated {
-  fill: var(--ui-chart-ground);
+  /* A wash of its own tone inside the dashed edge, rather than bare ground. At
+     a capped width an empty outline read as a placeholder box where a column
+     should be; the wash gives the period the mass the reader is counting, and
+     the dash says it is not final without spending a second colour on it. */
+  fill: color-mix(in srgb, var(--ui-chart-tone) 14%, var(--ui-chart-ground));
   stroke: var(--ui-chart-tone);
   stroke-width: 1;
   stroke-dasharray: 3 2;

@@ -10,7 +10,7 @@
  *   npm run build-storybook -w react
  *   UI_PLAYWRIGHT=... CHART_TARGETS=1 node --test stories/chart-target.test.js
  *
- * why: docs/specification.md#react-charts
+ * why: docs/components.md#react-charts
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

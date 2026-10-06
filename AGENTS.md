@@ -120,8 +120,8 @@ repository, or a Storybook path under it.
 A declaration a gate cannot judge on its own carries its reason beside it, in the shape the gate
 parses. There is no unannotated exception.
 
-- `/* muted-ink: glyph|state|placeholder — reason */` on every `color` or
-  `-webkit-text-fill-color` that can reach muted or dim ink. The three classes are a closed list.
+- `/* muted-ink: glyph|state|placeholder|chrome — reason */` on every `color` or
+  `-webkit-text-fill-color` that can reach muted or dim ink. The four classes are a closed list.
 - `/* motion: still — why */` on a state rule that shows, hides or moves an element without
   moving; `/* motion: ambient — why */` or `/* motion: choreographed — why */` on an animation
   keeping its own number. There is no third kind.
