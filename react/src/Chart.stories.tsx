@@ -28,7 +28,7 @@ const periods: ChartPeriod[] = MONTHS.map((label, i) => (i === MONTHS.length - 1
    against eight references on round 37, and the hues were kept. */
 const series: ChartSeries[] = [
   { id: 'income', name: 'Income', values: INCOME, shape: 'bars', tone: 'accent' },
-  { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars-below', tone: 'accent-soft' },
+  { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars', tone: 'accent-soft' },
   { id: 'net', name: 'Net', values: NET, shape: 'line', tone: 'info' },
 ];
 

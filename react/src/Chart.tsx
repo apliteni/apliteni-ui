@@ -107,6 +107,8 @@ type Mark = {
   /** The readout's one comparison. */
   detail: string;
   x: number; y: number; w: number; h: number;
+  /** Which of its band's bars this is, and how many share the column. */
+  lane: number; lanes: number;
   /** A point's pointer target: bigger than the box the readout is placed
    *  against once a coarse pointer asks for the phone floor, and placed by
    *  `pointTarget` so the chart's edge never clips it. */
@@ -126,7 +128,7 @@ type Frame = {
   scale: { min: number; max: number; step: number; ticks: number[] };
   /** A bar per column, laid out once the plot's width is known. */
   bars: { id: string; name: string; tone: ChartTone; column: number; from: number; to: number;
-    detail: string; band: Band }[];
+    detail: string; band: Band; lane: number; lanes: number }[];
   lines: Line[];
   /** A bridge carries its running total from each step to the next. */
   links: boolean;
@@ -182,6 +184,8 @@ const BAR_MAX = 24;
  * and the carry joining two steps would be longer than the steps it joins.
  */
 const BAR_MAX_BRIDGE = 40;
+/** The ground between two bars that share a column. */
+const LANE_GAP = 2;
 /**
  * The corner radius a bar spends on the end the reader measures from. The other
  * end stands on the zero line and stays square: a rounded foot lifts the bar off
@@ -273,6 +277,11 @@ function seriesFrame(
 
   const bars: Frame['bars'] = [];
   const lines: Line[] = [];
+  /* Two series of bars in one band used to be drawn at the same x, one over the
+     other. They are laid side by side instead, which is how every reference
+     draws two measures of one period. */
+  const bandOf = (s: ChartSeries) => (split ? (shapeOf(s) === 'bars-below' ? 'down' : 'up') : 'full');
+  const inBand = (band: string) => series.filter((s) => shapeOf(s) !== 'line' && bandOf(s) === band);
   for (const s of series) {
     const shape = shapeOf(s);
     const tone = s.tone ?? (shape === 'line' ? 'neutral' : 'accent');
@@ -281,6 +290,9 @@ function seriesFrame(
       continue;
     }
     const below = shape === 'bars-below';
+    const band = bandOf(s) as Band;
+    const lanes = inBand(band).length;
+    const lane = inBand(band).indexOf(s);
     s.values.forEach((raw, i) => {
       // A value the caller did not give draws no bar at all. A zero-height bar
       // standing on the zero line would read as a period that earned nothing.
@@ -290,7 +302,7 @@ function seriesFrame(
         id: `${s.id}-${i}`, name: s.name, tone, column: i,
         from: 0, to: below ? -value : value,
         detail: onPrevious(value, s.values[i - 1], columns[i - 1]?.short ?? ''),
-        band: split ? (below ? 'down' : 'up') : 'full',
+        band, lane, lanes,
       });
     });
   }
@@ -337,7 +349,7 @@ function bridgeFrame(
       id: `step-${i}`, name: step.label, tone: toneOf(step), column: i,
       from: step.from, to: step.to,
       detail: step.kind === 'total' ? '' : `Running total ${format(step.to)}`,
-      band: 'full' as Band,
+      band: 'full' as Band, lane: 0, lanes: 1,
     })),
     lines: [],
     links: true,
@@ -415,8 +427,14 @@ export function Chart(props: ChartProps) {
     [scale.max, span, plotHeight],
   );
   const zero = y(Math.min(Math.max(0, scale.min), scale.max));
-  const barWidth = Math.max(4, Math.min(colWidth * BAR_SHARE, colWidth - 6,
-    variant === 'bridge' ? BAR_MAX_BRIDGE : BAR_MAX));
+  /* The group a column draws, and one bar's slot inside it. The cap is the
+     mark's, so two bars in a column take two caps and the gap between them;
+     the share is the column's, so a narrow column still keeps its ground. */
+  const lanes = Math.max(1, ...frame.bars.map((b) => b.lanes));
+  const cap = variant === 'bridge' ? BAR_MAX_BRIDGE : BAR_MAX;
+  const groupWidth = Math.max(4, Math.min(colWidth * BAR_SHARE, colWidth - 6,
+    cap * lanes + LANE_GAP * (lanes - 1)));
+  const barWidth = (groupWidth - LANE_GAP * (lanes - 1)) / lanes;
   const centre = useCallback((column: number) => column * colWidth + colWidth / 2, [colWidth]);
 
   const marks = useMemo<Mark[]>(() => {
@@ -438,7 +456,9 @@ export function Chart(props: ChartProps) {
         id: bar.id, column: bar.column, name: bar.name, tone: bar.tone,
         value: bar.band === 'down' ? bar.from - bar.to : bar.to - bar.from,
         detail: bar.detail, kind: 'bar', band: bar.band, foot,
-        x: centre(bar.column) - barWidth / 2, y: top, w: barWidth, h: Math.max(bottom - top, 1),
+        lane: bar.lane, lanes: bar.lanes,
+        x: centre(bar.column) - groupWidth / 2 + bar.lane * (barWidth + LANE_GAP),
+        y: top, w: barWidth, h: Math.max(bottom - top, 1),
         estimated: Boolean(frame.columns[bar.column]?.estimated),
       };
     });
@@ -450,7 +470,7 @@ export function Chart(props: ChartProps) {
           id: `${line.id}-${i}`, column: i,
           name: keys.find((k) => k.id === line.id)?.name ?? line.id, tone: line.tone,
           value, detail: onPrevious(value, line.values[i - 1], columns[i - 1]?.short ?? ''),
-          kind: 'dot', band: 'full', foot: null,
+          kind: 'dot', band: 'full', foot: null, lane: 0, lanes: 1,
           x: centre(i) - TARGET / 2, y: y(value) - TARGET / 2, w: TARGET, h: TARGET,
           estimated: Boolean(columns[i]?.estimated),
         });
@@ -472,7 +492,7 @@ export function Chart(props: ChartProps) {
       );
     }
     return [...out, ...dots];
-  }, [frame, lines, keys, columns, centre, barWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
+  }, [frame, lines, keys, columns, centre, barWidth, groupWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
 
   const byId = useMemo(() => new Map(marks.map((m) => [m.id, m])), [marks]);
   /** The mark a keystroke opens for a column: its first, in drawing order. */
@@ -808,7 +828,9 @@ export function Chart(props: ChartProps) {
                 <g key={`hit-${mark.id}`} data-mark={mark.id}>
                   {mark.kind === 'bar' ? (
                     <rect
-                      className="ui-chart__hit" x={px(mark.column * colWidth)} width={px(colWidth)}
+                      className="ui-chart__hit"
+                      x={px(mark.column * colWidth + (mark.lane * colWidth) / mark.lanes)}
+                      width={px(colWidth / mark.lanes)}
                       y={px(hitBand(mark.band).y)} height={px(hitBand(mark.band).h)}
                     />
                   ) : (
