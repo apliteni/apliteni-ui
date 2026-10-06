@@ -35,7 +35,13 @@ test('the skeleton sits in the band it stands in for', () => {
   assert.ok(band, 'the loading figures are not in a band, so they fold differently from what replaces them');
   assert.equal(band.className, docOf(Default).querySelector('.ui-stats').className,
     'the skeleton sits in a different layout from the figures that replace it');
-  assert.ok(band.querySelector('.ui-stats__basis'), 'the skeleton holds no place for the caption, so the card grows when it lands');
+  // Either both carry a caption line or neither does: a skeleton that reserves a
+  // line the figures do not have shrinks the block when they land, and one that
+  // leaves out a line they do have grows it. The report's figures are totals and
+  // name no comparison, so today both are at none.
+  const captions = (doc) => doc.querySelectorAll('.ui-stats__basis').length;
+  assert.equal(captions(doc), captions(docOf(Default)),
+    'the skeleton reserves a different number of caption lines than the figures carry, so the block resizes when they land');
   const figures = band.querySelectorAll('.ui-stats__list > .ui-stat');
   assert.equal(figures.length, docOf(Default).querySelectorAll('.ui-stat').length,
     'the skeleton reserves a different number of figures than arrive');

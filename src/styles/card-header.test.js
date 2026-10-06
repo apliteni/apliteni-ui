@@ -18,6 +18,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
+import { TARGET_MIN } from '../../stories/guidelines/_accessibility-floor.js';
+
 const here = path.dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(path.join(here, rel), 'utf8');
 
@@ -117,4 +119,51 @@ test('the roominess check rejects the floor step', () => {
   const tight = CSS.replace('margin: 0 0 var(--space-2);', 'margin: 0 0 var(--space-1);');
   assert.notEqual(tight, CSS);
   assert.ok(SPACE[step(bottomMargin(tight, '.ui-card__title'))] < SPACE['--space-2']);
+});
+
+/* -- The link a block carries in its head ----------------------------------
+ *
+ * A second rule in the same head, and the same kind of argument: the link into
+ * the report behind the block is a target standing on its own, not a word inside
+ * a sentence, so it carries WCAG 2.5.8's 24px itself. The head's line box draws
+ * 20.3px, which is what stories/guidelines/accessibility-floor.test.js measured
+ * when the link first moved here on #505 — that gate reads the rendered box and
+ * is the measurement; this one holds the declaration that answers it, so the
+ * answer cannot be deleted and leave only a browser run to notice.
+ *
+ * Read out of the sheet rather than named here: TARGET_MIN is the floor's one
+ * home, in stories/guidelines/_accessibility-floor.js.
+ */
+const headLink = () => {
+  const found = [...CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, sel]) => sel.split(',').map((s) => s.trim()).includes('.ui-card__link'));
+  assert.equal(found.length, 1, 'the card head link has no rule of its own, or more than one');
+  return found[0][2];
+};
+
+test('the link in a card\'s head carries the target floor itself', () => {
+  const body = headLink();
+  const min = /min-height:\s*(\d+(?:\.\d+)?)px/.exec(body);
+  assert.ok(min, 'the head link states no min-height, so its box is the line box again');
+  assert.ok(Number(min[1]) >= TARGET_MIN,
+    `the head link floors at ${min[1]}px, under the ${TARGET_MIN}px of WCAG 2.5.8`);
+  // A min-height on an inline box does nothing: without the display change the
+  // declaration above reads as an answer and measures as the line box it was.
+  assert.match(/display:\s*(inline-flex|flex)/.exec(body)?.[0] || '', /flex/,
+    'min-height on an inline link is not a box; the rule needs the display that gives it one');
+});
+
+test('the head-link gate rejects a floor that is only written down', () => {
+  for (const [what, mutated] of [
+    ['the floor dropped below 2.5.8', CSS.replace('min-height: 24px', 'min-height: 20px')],
+    ['the floor with no box to apply to', CSS.replace('display: inline-flex; align-items: center; ', '')],
+    ['the rule gone', CSS.replace(/\.ui-card__link \{[^}]*\}/, '')],
+  ]) {
+    assert.notEqual(mutated, CSS, `the mutation "${what}" changes nothing, so it proves nothing`);
+    const body = [...mutated.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter(([, sel]) => sel.split(',').map((s) => s.trim()).includes('.ui-card__link'))[0]?.[2];
+    const min = body ? /min-height:\s*(\d+(?:\.\d+)?)px/.exec(body) : null;
+    const boxed = body ? /display:\s*(inline-flex|flex)/.test(body) : false;
+    assert.ok(!(min && Number(min[1]) >= TARGET_MIN && boxed), `"${what}" passed the gate`);
+  }
 });

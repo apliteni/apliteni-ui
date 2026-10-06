@@ -91,6 +91,13 @@
   line-height: var(--leading-snug);
   margin-bottom: var(--space-5);
 }
+/* The one link a block carries into the report behind it, in the card's head —
+   the shape guidelines/dashboards-and-reports.md asks for. It is a target
+   standing on its own rather than a word inside a sentence, so WCAG 2.5.8's 24px
+   is its own to carry: the head's line box draws 20.3px and there is no padding
+   above it to inherit. The box grows around the text and the head's two steps are
+   unchanged. It still takes the kit ring through `.ui-focusable`. #505 */
+.ui-card__link { display: inline-flex; align-items: center; min-height: 24px; }
 
 /* Setting rows: label + control, divided by a hairline */
 .ui-card__row {

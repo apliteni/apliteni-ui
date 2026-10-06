@@ -139,6 +139,20 @@ dd.ui-stat__caption { contain: inline-size; }
 @container (width <= 28rem) {
   .ui-stats__list > .ui-stat { flex-basis: 100%; }
 }
+
+/* Stacking runs out before a phone does. One figure to a row, a value can still
+   be wider than the box holding it — it may neither wrap nor truncate — so the
+   band pushed its column sideways: at 320, 15px past the shell's 214px column
+   and 19px past a specimen cell. Below its own width the value takes the rank
+   under it. A width each, because a tile pads its figure and an open band does
+   not, so they stop fitting 16px apart; what a figure longer than the kit's own
+   still does is in docs/components.md#stat-bands. #505 */
+@container (width <= 14rem) {
+  .ui-stats:not(.ui-stats--open) .ui-stats__list > .ui-stat .ui-stat__value { font-size: var(--text-xl); }
+}
+@container (width <= 15rem) {
+  .ui-stats--open .ui-stats__list > .ui-stat .ui-stat__value { font-size: var(--text-2xl); }
+}
 @container (32rem < width <= 66rem) {
   .ui-stats--open .ui-stats__list:has(> .ui-stat:nth-child(4):last-child) > .ui-stat { flex-basis: 34%; }
 }

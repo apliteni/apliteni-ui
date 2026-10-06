@@ -32,6 +32,8 @@ test('a band is a description list, one group per figure, label as the term', ()
 });
 
 test('label, value, change and caption are text, never markup', () => {
+  assert.equal(dom(statBand({ basisId: '"><q>b</q>', stats: [{ label: 'a', value: '1', delta: { value: '+1%' } }] }))
+    .querySelectorAll('q').length, 0, 'a basis id reached the markup unescaped');
   const doc = dom(statBand({
     basis: '<s>c</s>',
     label: '"><em>g</em>',
@@ -76,6 +78,25 @@ test('the band says once what every change is measured against, and each change 
   const deltas = [...doc.querySelectorAll('.ui-stat__delta')];
   assert.equal(deltas.length, 4);
   for (const d of deltas) assert.equal(d.getAttribute('aria-describedby'), 'kpi-basis');
+});
+
+// A band whose basis is stated beside it draws no caption and points its changes
+// at that statement instead — the dashboard's period control is the case. React's
+// StatBand has carried `basisId` since the period showcase; this is the factory's.
+test('a band given a basis elsewhere draws no caption and points every change at it', () => {
+  const doc = dom(statBand({ stats: FOUR, basisId: 'period-basis', id: 'kpi' }));
+  assert.equal(doc.querySelectorAll('.ui-stats__basis').length, 0, 'the band drew a caption it was not given');
+  const deltas = [...doc.querySelectorAll('.ui-stat__delta')];
+  assert.equal(deltas.length, 4);
+  for (const d of deltas) assert.equal(d.getAttribute('aria-describedby'), 'period-basis');
+});
+
+test('a band given both draws its own caption, and the id it hands out is that caption\'s', () => {
+  const doc = dom(statBand({ stats: FOUR, basis: 'Against last year', basisId: 'period-basis', id: 'kpi' }));
+  assert.equal(doc.querySelector('.ui-stats__basis').id, 'kpi-basis');
+  for (const d of doc.querySelectorAll('.ui-stat__delta')) {
+    assert.equal(d.getAttribute('aria-describedby'), 'kpi-basis', 'a change points past the caption the band drew');
+  }
 });
 
 // One statement about every figure is read before them and belongs to none of
