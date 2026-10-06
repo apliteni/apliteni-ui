@@ -44,9 +44,9 @@ it('offers the clear action only once there is something to clear', () => {
   rerender(<FilterBar filters={filters} {...props} />);
   const clear = screen.getByRole('button', { name: 'Clear all' });
   expect(clear).toBeEnabled();
-  // The bordered skin, as the vanilla factory writes it; the class, not the colour.
-  expect(clear).toHaveClass('ui-btn--secondary');
-  expect(clear).not.toHaveClass('ui-btn--ghost');
+  // The class holds the text-button contract; browser evidence measures its paint.
+  expect(clear).toHaveClass('ui-btn--ghost');
+  expect(clear).not.toHaveClass('ui-btn--secondary');
 });
 // DOM text and names only; these do not measure appearance.
 it('prints the chosen value alone and names the field it filters', () => {

@@ -21,7 +21,7 @@ export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear
     // live action beside two chips has to read as live.
     // why: docs/components.md#a-filter-row-holds-its-panels
     + (filters.length
-      ? `<span data-filter-clear>${button({ label: clearLabel, size: 'sm' })}</span>`
+      ? `<span data-filter-clear>${button({ label: clearLabel, size: 'sm', variant: 'ghost' })}</span>`
       : '')
     + '</fieldset>';
 }

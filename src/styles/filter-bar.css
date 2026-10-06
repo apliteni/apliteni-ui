@@ -8,12 +8,12 @@
    why: guidelines/accessibility-floor.md#disabled-control-legibility */
 .ui-filter-bar__chip:disabled,
 .ui-filter-bar:disabled .ui-filter-bar__chip { border-color: var(--disabled-border); }
-.ui-filter-bar__remove { border: 0; background: transparent; color: var(--text); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-xs); cursor: pointer; }
+.ui-filter-bar__remove { border: 0; background: transparent; /* muted-ink: glyph — filter remove mark */ color: var(--muted); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-xs); cursor: pointer; }
 .ui-filter-bar__remove:focus-visible,
 .ui-filter-bar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
 
-.ui-filter-bar .ui-dropdown__value { color: inherit; }
+.ui-filter-bar .ui-dropdown__value { color: inherit; font-weight: inherit; letter-spacing: normal; }
 /* A chip with nothing chosen prints the field's name in the slot the value will
    take. `:enabled` leaves a disabled chip its own ink. why: guidelines/labels-and-titles.md */
 .ui-filter-bar button:enabled .ui-dropdown__value.is-placeholder { /* muted-ink: placeholder — a filter chip with nothing chosen */ color: var(--muted); }
@@ -22,14 +22,7 @@
    dropdown gets: it is laid out while hidden, so a wider one widened the page
    (#467). why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; overflow-wrap: anywhere; }
-/* The clear action takes the kit's bordered skin on the row's terms: no fill, and the chip's
-   edge. Words belong on the page, not on a grey block, in any state — Artur, round r28 — and
-   `.ui-btn` takes --control-edge, which is --border-strong in light and --border in dark, so
-   the row agreed in light and had one box of three a rung fainter in dark: Artur, round r31,
-   "Outline is incorrect". The resting fill stays at (0,1,1) so `.ui-btn:hover`'s accent wash
-   still outranks it. Every rule below answers one kit rule, one step above it, because this
-   depth outranks it — and busy would be wrong rather than frozen, since the kit drops that
-   edge to --border. Held by filter-bar.test.js and stories/filter-row-edge.test.js. #518
+/* Clear is a quiet text button. Keep its fill and edge transparent in every state.
    why: docs/components.md#a-filter-row-holds-its-panels */
 [data-filter-clear] button { background: transparent; }
 .ui-filter-bar [data-filter-clear] button:disabled,
@@ -41,14 +34,14 @@
 /* The ink button-disabled.test.js measures on every ground, since there is no fill. */
 .ui-filter-bar [data-filter-clear] button:disabled,
 .ui-filter-bar [data-filter-clear] button[aria-disabled="true"] { /* muted-ink: state — the clear action is off and its words sit on the page */ color: var(--disabled-ink-bare); }
-.ui-filter-bar [data-filter-clear] button { border-color: var(--border-strong); }
+.ui-filter-bar [data-filter-clear] button { border-color: transparent; }
 .ui-filter-bar [data-filter-clear] button[aria-busy="true"],
 .ui-filter-bar [data-filter-clear] button[aria-busy="true"]:hover,
-.ui-filter-bar [data-filter-clear] button[aria-busy="true"]:active { border-color: var(--border-strong); }
-.ui-filter-bar [data-filter-clear] button:enabled:hover { border-color: var(--accent); }
+.ui-filter-bar [data-filter-clear] button[aria-busy="true"]:active { border-color: transparent; }
+.ui-filter-bar [data-filter-clear] button:hover { border-color: transparent; background: transparent; }
 .ui-filter-bar [data-filter-clear] button:disabled,
 .ui-filter-bar [data-filter-clear] button[aria-disabled="true"],
-.ui-filter-bar [data-filter-clear] button[aria-busy="true"][data-btn-disabled] { border-color: var(--disabled-border); }
+.ui-filter-bar [data-filter-clear] button[aria-busy="true"][data-btn-disabled] { border-color: transparent; }
 
 /* Open, a filter menu anchored at its own trigger takes a floor measured and slid by
    filterPanelFit(); `is-closing` holds that geometry through the fade. A chip's menu
@@ -125,6 +118,6 @@
 .ui-filter-bar [data-filter-add] { display: flex; align-self: stretch; }
 .ui-filter-bar [data-filter-add] .ui-dropdown { display: flex; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-radius: var(--radius-sm); min-height: var(--ui-filter-row-h); border-color: var(--border-strong); background: transparent; }
-.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover,
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover { border-color: var(--border-strong); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:focus-visible { border-color: var(--accent); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }

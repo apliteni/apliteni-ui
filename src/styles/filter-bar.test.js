@@ -70,8 +70,8 @@ const subset = (small, big) => small.every((q) => big.includes(q));
 
 /* What the factory writes for this control, read from the factory rather than
    assumed: the variant decides which of the kit's rules can reach it at all. */
-const FACTORY = read('../components/index.js');
-const CLEAR_VARIANT = /variant = '(\w+)'/.exec(FACTORY)?.[1];
+const FACTORY = read('../components/filter-bar.js');
+const CLEAR_VARIANT = /variant: '(\w+)'[^}]*\}\)\}<\/span>/.exec(FACTORY)?.[1];
 const CLEAR_SIZE = 'sm';
 
 /* The kit fills that can land on one of the row's boxes: a rule on the kit class itself,
@@ -108,7 +108,7 @@ test('both sheets are being read, and the later one is the filter bar', () => {
   assert.ok(rules(BUTTON).length >= 20, `parsed ${rules(BUTTON).length} rules out of button.css`);
   assert.ok(rules(DROPDOWN).length >= 20, `parsed ${rules(DROPDOWN).length} rules out of dropdown.css`);
   assert.ok(rules(BAR).length >= 8, `parsed ${rules(BAR).length} rules out of filter-bar.css`);
-  assert.equal(CLEAR_VARIANT, 'secondary', `the button factory now defaults to ${CLEAR_VARIANT}`);
+  assert.equal(CLEAR_VARIANT, 'ghost', `the button factory now defaults to ${CLEAR_VARIANT}`);
   // A tie on specificity is decided by import order, so the comparator above only
   // holds while filter-bar.css is the one imported second.
   assert.ok(ENTRY.indexOf('styles/filter-bar.css') > ENTRY.indexOf('styles/button.css'),
@@ -121,6 +121,7 @@ test('every neutral fill the kit can paint on this control is discovered', () =>
   const states = kitFills.map((r) => r.selector).sort();
   assert.deepEqual(states, [
     '.ui-btn',
+    '.ui-btn--ghost:hover',
     '.ui-btn:disabled',
     '.ui-btn[aria-busy="true"]',
     '.ui-btn[aria-busy="true"]:active',
@@ -148,6 +149,7 @@ test('the sweep refuses a sheet that answers only the resting fill', () => {
   const restOnly = answers.filter((a) => qualifiers(a.selector).length === 0);
   assert.equal(restOnly.length, 1, 'expected exactly one unqualified resting answer');
   assert.deepEqual(unanswered(kitFills, restOnly).sort(), [
+    '.ui-btn--ghost:hover',
     '.ui-btn:disabled',
     '.ui-btn[aria-busy="true"]',
     '.ui-btn[aria-busy="true"]:active',
@@ -200,17 +202,14 @@ test('a disabled clear action takes the ink measured on every ground', () => {
     + ' one ink button-disabled.test.js measures against every ground the kit paints.');
 });
 
-/* The edge is restated, and that is a change of its own: the row rests on --border-strong
- * where `.ui-btn` rests on --control-edge, so the row's resting rule sits deeper than the
- * kit's own disabled rule and would hold a live edge through it. #518 — the ink itself is
- * held by stories/filter-row-edge.test.js, which resolves it in both themes. */
-test('a restated resting edge brings the unavailable edge with it', () => {
+/* Clear keeps no edge, including disabled and busy states. The browser checks the paint. */
+test('the clear action has no edge at rest or when unavailable', () => {
   const edgeOf = (selector) => rules(BAR).filter((r) => r.selector === selector)
     .map(({ body }) => valueOf(body, 'border-color')).filter(Boolean).at(-1);
   const rest = '.ui-filter-bar [data-filter-clear] button';
-  assert.equal(edgeOf(rest), 'var(--border-strong)', 'the clear action no longer rests on the row\'s edge');
+  assert.equal(edgeOf(rest), 'transparent', 'the clear action draws an edge');
   for (const state of [':disabled', '[aria-disabled="true"]', '[aria-busy="true"][data-btn-disabled]']) {
-    assert.equal(edgeOf(`${rest}${state}`) ?? restated(rest, state), 'var(--disabled-border)',
+    assert.equal(edgeOf(`${rest}${state}`) ?? restated(rest, state), 'transparent',
       `${state} is left to a kit rule this sheet's resting rule out-ranks`);
   }
 });

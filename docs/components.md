@@ -304,18 +304,14 @@ or with a value that matches no row, marks nothing. A `selected` value you set d
 value that the bar is not applying. The kit never writes to your own array or objects.
 
 **The clear action is offered only when there is something to clear.** `filterBar` and React
-`FilterBar` render it after a filter is applied. It uses the kit's bordered skin without its fill.
-There is no grey block under the words in any state. A disabled or busy bar keeps the border and
-uses the box-less unavailable ink. A consumer reading `[data-filter-clear]` finds nothing when no
-filter is set. Both faces label it `Clear all`. A row of filter chips already names what the
-button clears, so the label does not repeat that noun; `clearLabel` takes any wording.
+`FilterBar` render it after a filter is applied. It uses the kit's ghost button without a fill
+or border. A consumer reading `[data-filter-clear]` finds nothing when no filter is set.
+Both faces label it `Clear all`; `clearLabel` takes any wording.
 
-**Every box on this row is lit the same way, and none of them carries a fill.** The row draws
-three kinds of box — the chip, the add control and the clear action. In both themes all three
-rest on the chip's own `--border-strong`, each answers the pointer and the keyboard the way its
-kit part does, each takes `--disabled-border` when the row is off, and work in flight on the clear
-action keeps the row's live edge rather than the kit's fainter busy one. Focus is the shared
-`--ring` and nothing local. None of the three carries a fill, in any state.
+**Filter labels use secondary-control ink and weight.** The remove mark uses glyph ink.
+The chip and Add retain their quiet edge when hovered or open. Only keyboard focus adds
+an accent edge and the shared `--ring`. Clear remains a text button in every state.
+A disabled chip or Add takes `--disabled-border`. None of the controls carries a fill.
 
 **An emptied bar hands the focus on rather than keeping it.** When you clear the last filter or
 remove the last chip with the keyboard, the focused control disappears. The bar moves focus to
