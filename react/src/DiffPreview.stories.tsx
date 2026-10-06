@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { AppShell } from './AppShell';
 import { Card } from './primitives/Card';
 import { Callout } from './primitives/Callout';
@@ -25,12 +25,6 @@ const total = (period: string) => rows
 // September is shut, so applying reroutes its rows into October.
 const rerouted = total(CLOSED);
 
-// A section title sits above its block, not inside it.
-const layout = {
-  block: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 'var(--space-2)' },
-  title: { margin: 0 },
-} satisfies Record<string, CSSProperties>;
-
 type Args = { change: 'category' | 'ownership'; empty: boolean };
 
 function Preview({ change, empty }: Args) {
@@ -39,7 +33,6 @@ function Preview({ change, empty }: Args) {
   const [hasApplied, setHasApplied] = useState(false);
   const [showExample, setShowExample] = useState(false);
   const rowBasis = useId();
-  const blockTitle = useId();
   const action = useRef<HTMLButtonElement>(null);
   const block = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -98,34 +91,32 @@ function Preview({ change, empty }: Args) {
     sections={[{ href: '/changes', label: 'Changes', icon: 'doc' }]}
     palette={{
       groups: [{ label: 'Actions', items: [{ id: 'change',
-        label: noChanges ? 'Load sample changes' : applied ? 'Undo changes' : 'Apply changes',
+        label: noChanges ? 'Load samples' : applied ? 'Undo' : 'Apply',
         disabled: busy,
       }] }],
       onSelect: () => { if (noChanges) setShowExample(true); else if (applied) undo(); else apply(); },
     }}
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}
     lede={change === 'category' ? 'Move these costs to Software.' : 'Assign these costs to Platform.'}>
-    <div className={`ui-stack${showExample ? ' m-fade-in' : ''}`}>
-      {/* The section is named by its own title; the table region keeps a stable name of its own. */}
-      <section ref={block} aria-labelledby={blockTitle} style={layout.block}>
-        <h2 id={blockTitle} className="ui-card__title" style={layout.title}>{heading}</h2>
-        {previewRows.length > 0 && <>
-          <p id={rowBasis} className="ui-sr">Each change is measured against the {target} total.</p>
-          <p role="status" className="ui-sr">{applied ? 'Changes applied.' : 'Changes not applied.'}</p>
-        </>}
-        <Card>
-          {previewRows.length > 0
-            /* Column navigation comes from the kit; this showcase keeps no copy of it. */
-            ? <DataTable columns={columns} rows={previewRows} selectable={false} pager={false}
-              density="dense" stickyHeader pinnedIdentity scrollLabel="Cost changes" loading={busy} />
-            : <EmptyState
-              icon="doc"
-              title="No costs would move"
-              sub="Nothing matches this change."
-              actions={<Button variant="primary" onClick={() => setShowExample(true)}>Load sample changes</Button>}
-            />}
-        </Card>
-      </section>
+    <div ref={block} className={`ui-stack${showExample ? ' m-fade-in' : ''}`}>
+      {previewRows.length > 0 && <>
+        <p id={rowBasis} className="ui-sr">Each change is measured against the {target} total.</p>
+        <p role="status" className="ui-sr">{applied ? 'Changes applied.' : 'Changes not applied.'}</p>
+      </>}
+      {/* The card carries its own title, so the title and the first column share the
+          card's text edge. The table region keeps a stable name of its own. */}
+      <Card title={heading}>
+        {previewRows.length > 0
+          /* Column navigation comes from the kit; this showcase keeps no copy of it. */
+          ? <DataTable columns={columns} rows={previewRows} selectable={false} pager={false}
+            density="dense" stickyHeader pinnedIdentity scrollLabel="Cost changes" loading={busy} />
+          : <EmptyState
+            icon="doc"
+            title="No costs would move"
+            sub="Nothing matches this change."
+            actions={<Button variant="primary" onClick={() => setShowExample(true)}>Load samples</Button>}
+          />}
+      </Card>
       {previewRows.length > 0 && <>
         <div className={hasApplied ? 'm-fade-in' : undefined} key={applied ? 'applied' : 'proposed'}>
           {applied
@@ -133,8 +124,8 @@ function Preview({ change, empty }: Args) {
             : <Callout variant="warn"><b>September is closed.</b> Its {shift} will be booked in October.</Callout>}
         </div>
         <div>{applied
-          ? <Button ref={action} onClick={undo}>Undo changes</Button>
-          : <Button ref={action} variant="primary" busy={busy} completionMessage="" onClick={apply}>Apply changes</Button>}</div>
+          ? <Button ref={action} onClick={undo}>Undo</Button>
+          : <Button ref={action} variant="primary" busy={busy} completionMessage="" onClick={apply}>Apply</Button>}</div>
       </>}
     </div>
   </AppShell>;
