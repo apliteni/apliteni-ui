@@ -49,7 +49,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { customPropertiesIn, namesRead } from '../scripts/lib/box-shadow.js';
-import { composite, parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
+import { colourOf, composite, parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (file) => readFileSync(path.join(root, file), 'utf8');
@@ -133,26 +133,6 @@ const contexts = [{ where: 'the page', overrides: new Map() },
 
 const varsFor = (theme, overrides) => new Map([...tokensFor(theme), ...overrides]);
 
-/* The shapes of color-mix the kit writes, plus the hex and rgb() parseColour reads.
- *
- * The mix is PREMULTIPLIED, which is what CSS does and is not a detail here: the kit writes
- * `color-mix(in srgb, var(--amber) 13%, transparent)` for the warn wash, and interpolating
- * its channels straight would drag the amber toward black and report a dark-theme wash that
- * the browser never paints. Premultiplied, that mix is the amber at alpha 0.13, which is
- * what Chrome renders and what the rendered-pixel producer measures. */
-const colourOf = (value, vars) => {
-  const resolved = substitute(String(value).trim(), vars).trim();
-  const mix = /^color-mix\(\s*in srgb\s*,\s*(.+?)\s+([\d.]+)%\s*,\s*(.+?)\s*\)$/.exec(resolved);
-  if (mix) {
-    const [a, b] = [colourOf(mix[1], vars), colourOf(mix[3], vars)];
-    if (!a || !b) return null;
-    const share = Number.parseFloat(mix[2]) / 100;
-    const alpha = a[3] * share + b[3] * (1 - share);
-    if (alpha === 0) return [0, 0, 0, 0];
-    return [0, 1, 2].map((i) => (a[i] * a[3] * share + b[i] * b[3] * (1 - share)) / alpha).concat(alpha);
-  }
-  return parseColour(resolved);
-};
 
 /* The washes a chip can be written inside, discovered from the sheet that draws them: a rule
  * in callout.css whose paint is translucent and whose selector is a block, not an element of

@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.94.0', date: '2026-10-06',
+    changes: [
+      ['added', 'React Chart draws the three shapes a money dashboard keeps redrawing: monthly bars with a line across them, a bridge from a starting total to a result, and a sparkline at text size for a stat band\u2019s trend slot. A period that is not final is drawn hollow behind a dashed edge and said in words in the readout and the legend. The chart is one tab stop \u2014 the arrow keys, Home and End step columns and announce each one, Enter picks one \u2014 and the same numbers are offered as a table. At phone widths the plot scrolls sideways and the value axis stays put.', ['React Chart']],
+      ['added', 'The main entry exports chartScale, bridgeWalk and pointTarget, the arithmetic behind those shapes, so a surface that draws them without React asks the kit instead of writing its own scale and its own pointer targets.'],
+    ],
+  },
+  {
     v: '0.93.0', date: '2026-10-05',
     changes: [
       ['changed', 'The kit\u2019s documentation is two reader pages instead of one specification: `docs/foundations.md` holds the tokens and the floors, and `docs/components.md` keeps the catalogue and says what each component guarantees. The specification is retired \u2014 a guarantee you rely on is now on one of those two pages, the per-prop React reference stays in `react/README.md`, and a heading you cited in the specification has moved to whichever page carries it. Nothing the kit draws changed: no CSS, no markup, no component behaviour, and no published name moved. Closes #559.'],
