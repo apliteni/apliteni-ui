@@ -393,11 +393,11 @@ it('draws an unfinished period hollow, with a dashed edge in its own tone', () =
   const bars = [...container.querySelectorAll('path.ui-chart__bar')];
   const april = bars.filter((b) => b.classList.contains('is-estimated'));
   expect(april, 'one hollow bar per bar series in the unfinished column').toHaveLength(2);
-  // The hollow is the chart's own ground, so the column reads as cut out of the
-  // card rather than as a lighter weight of its series — which, at this bar
-  // width, is what the diagonal hatch it replaced had started to look like.
+  // A wash of the bar's own tone over the chart's ground, inside the dashed
+  // edge. Bare ground read as a placeholder box once the bar was capped at a
+  // mark's width; the wash gives the period the mass the reader is counting.
   const rule = /\.ui-chart__bar\.is-estimated\s*\{([^}]*)\}/.exec(readRepo('../../src/styles/chart.css'))![1];
-  expect(rule).toContain('fill: var(--ui-chart-ground)');
+  expect(rule).toMatch(/fill:\s*color-mix\(in srgb, var\(--ui-chart-tone\) \d+%, var\(--ui-chart-ground\)\)/);
   expect(rule, 'the dash is the cue a reader who cannot see the tone still gets')
     .toContain('stroke-dasharray: 3 2');
   expect(container.querySelectorAll('pattern'), 'no hatch is declared').toHaveLength(0);
@@ -429,6 +429,10 @@ it('spends a bar\'s corner radius on the end away from zero, and none on the foo
   const { container } = months();
   const svg = container.querySelector('.ui-chart__svg')!;
   const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
+  // The tolerance is the radius itself, read from the component: an arc leaves
+  // the edge it rounds exactly that far, so hard-coding it here would fail the
+  // next time the radius moves and would say nothing about where the arc is.
+  const radius = Number(/const BAR_RADIUS = (\d+)/.exec(readRepo('./Chart.tsx'))![1]);
   for (const bar of svg.querySelectorAll('path.ui-chart__bar')) {
     const box = boxOf(bar);
     const arcs = arcsOf(bar);
@@ -436,7 +440,7 @@ it('spends a bar\'s corner radius on the end away from zero, and none on the foo
     const onZero = Math.abs(box.y - zeroY) < Math.abs(box.y + box.height - zeroY) ? 'top' : 'bottom';
     const far = onZero === 'top' ? box.y + box.height : box.y;
     for (const at of arcs) {
-      expect(Math.abs(at - far), `${classOf(bar)} rounds the end it stands on`).toBeLessThanOrEqual(3);
+      expect(Math.abs(at - far), `${classOf(bar)} rounds the end it stands on`).toBeLessThanOrEqual(radius);
     }
   }
 });
@@ -726,24 +730,80 @@ it('keeps a line series whole where it sits on zero', () => {
 // the kit already gives a chosen thing: a rule the width of the column and the
 // strong ink. Nothing is painted over a mark, which is what keeps every series
 // measuring against the chart's own ground and nothing else.
-it('marks the picked column on its label, and puts no hue on any mark', () => {
+// Selection is a background highlight and nothing else; an outline on this
+// component belongs to focus, which the frame draws. The picked label keeps the
+// weight, which is the half a reader who separates no colours still gets.
+it('marks the picked column with a band behind it, and puts no hue on any mark', () => {
   const { container } = months({ selectable: true, selected: 3 });
   const svg = container.querySelector('.ui-chart__svg')!;
   expect(svg.querySelectorAll('.is-selected'), 'no mark carries the picked state').toHaveLength(0);
+
+  const bands = [...svg.querySelectorAll('rect.ui-chart__band')];
+  expect(bands, 'one band, behind the picked column').toHaveLength(1);
+  expect(svg.firstElementChild, 'and behind every rule and every mark').toBe(bands[0]);
+  const columnWidth = Number(svg.getAttribute('width')) / MONTHS.length;
+  expect(Number(bands[0].getAttribute('x'))).toBeCloseTo(3 * columnWidth, 1);
+  expect(Number(bands[0].getAttribute('width')), 'the column, not the bar in it')
+    .toBeCloseTo(columnWidth, 1);
+
   const labels = [...container.querySelectorAll('.ui-chart__period')];
   expect(labels).toHaveLength(MONTHS.length);
   expect(labels.filter((el) => el.classList.contains('is-selected')).map((el) => el.textContent))
     .toEqual(['Apr']);
+  expect(months({ selectable: true }).container.querySelectorAll('rect.ui-chart__band'),
+    'and nothing picked draws no band').toHaveLength(0);
 
   const css = readRepo('../../src/styles/chart.css');
   const rule = /\.ui-chart__period\.is-selected\s*\{([^}]*)\}/.exec(css)![1];
-  expect(rule, 'a rule the width of the column').toContain('border-top-color: var(--text)');
-  expect(rule, 'and a weight, which is the half a reader gets without colour')
-    .toMatch(/font-weight:\s*600/);
+  expect(rule, 'the label keeps the weight').toMatch(/font-weight:\s*600/);
+  expect(rule, 'and takes back the body ink the row gives up').toContain('color: var(--strong)');
   expect(rule, 'the accent stays with the series').not.toContain('--accent');
-  expect(/\.ui-chart__period\s*\{([^}]*)\}/.exec(css)![1],
-    'every label reserves the rule, so picking one moves no row')
-    .toContain('border-top: 2px solid transparent');
+  expect(rule, 'and the rule the label used to carry is gone').not.toContain('border');
+  expect(/\.ui-chart__band\s*\{([^}]*)\}/.exec(css)![1],
+    'the band is a quiet fill, not the accent').toBe(' fill: var(--surface-3); ');
+});
+
+// A waterfall whose steps do not carry their running total to the next column is
+// a row of floating blocks, and the reader has to find the walk.
+it('carries a bridge step\'s running total to the step beside it', () => {
+  const { container } = render(
+    <Chart variant="bridge" title="Cash" format={eur}
+      steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 },
+        { label: 'Fees', value: -150 }, { label: 'Closing', kind: 'total' }]} />,
+  );
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const carries = [...svg.querySelectorAll('line.ui-chart__carry')];
+  expect(carries, 'one between each pair of steps, and none after the last').toHaveLength(3);
+  const bars = [...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf);
+  carries.forEach((carry, i) => {
+    expect(Number(carry.getAttribute('y1')), 'level, at the total the step reached')
+      .toBe(Number(carry.getAttribute('y2')));
+    expect(Number(carry.getAttribute('x1')), 'from the step it leaves')
+      .toBeCloseTo(bars[i].x + bars[i].width, 1);
+    expect(Number(carry.getAttribute('x2')), 'to the step it meets')
+      .toBeCloseTo(bars[i + 1].x, 1);
+  });
+  // Opening closes at 1000 and Sales opens there; Sales closes at 1400.
+  const level = (i: number) => Number(carries[i].getAttribute('y1'));
+  expect(level(0)).toBeCloseTo(bars[0].y, 1);
+  expect(level(1)).toBeCloseTo(bars[1].y, 1);
+  expect(months().container.querySelectorAll('line.ui-chart__carry'),
+    'a months chart carries nothing between its columns').toHaveLength(0);
+});
+
+// A column grows with the card; a mark does not. Without the cap, twelve months
+// at a desktop width were twelve 45px blocks and the plot read as one mass.
+it('caps a bar at a mark\'s width however wide its column is', () => {
+  const cap = Number(/const BAR_MAX = (\d+)/.exec(readRepo('./Chart.tsx'))![1]);
+  const share = Number(/const BAR_SHARE = ([\d.]+)/.exec(readRepo('./Chart.tsx'))![1]);
+  const { container } = months();
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const columnWidth = Number(svg.getAttribute('width')) / MONTHS.length;
+  const widths = [...svg.querySelectorAll('path.ui-chart__bar')].map((b) => boxOf(b).width);
+  expect(new Set(widths).size, 'every bar is drawn at one width').toBe(1);
+  expect(widths[0]).toBeLessThanOrEqual(cap);
+  expect(widths[0], 'and never more than its share of a narrow column')
+    .toBeLessThanOrEqual(columnWidth * share);
 });
 
 // Round 32 (#543): a hairline at every tick carries a bar's height across twelve

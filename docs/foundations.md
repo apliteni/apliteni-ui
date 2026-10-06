@@ -160,11 +160,16 @@ show hierarchy by fading descriptions, labels, captions, timestamps, counts, cod
 or enabled actions with `--muted`, `--dim` or opacity. Use size, weight and spacing for that
 hierarchy. Signal colours still report status and errors. Links keep their link ink.
 
-Muted and dim ink have exactly three uses:
+Muted and dim ink have exactly four uses:
 
 - **glyph** — a mark that is not words: an arrow, a chevron, a dismiss icon.
 - **state** — colour reporting off, unset, disabled or archived, rather than rank.
 - **placeholder** — a slot with no value, such as an empty field or cell.
+- **chrome** — the furniture around a drawing: a chart's value axis, its period row
+  and its legend. It is bounded: every value the chrome names is also given at full
+  strength in the same component, in the hover readout and in the values table, so
+  nothing is reachable only in quiet ink. A field's label, a caption and a timestamp
+  are the words of the thing they sit in, not furniture, and keep body ink.
 
 An empty-state explanation is not an empty slot. A keyboard shortcut is language. A count is
 not a status. Generic badges use body ink. Archive and disabled variants keep their state

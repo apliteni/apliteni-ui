@@ -1,6 +1,6 @@
 // Chart arithmetic, shared by the React Chart and by anything that draws the
 // same shapes without it. No DOM, no pixels: a scale and a walk, both pure.
-// why: docs/specification.md#react-charts
+// why: docs/components.md#react-charts
 
 /** The steps a whole-unit axis may take, per decade, smallest first. 2.5 is
  *  among them — 25000 is a whole step and the one that turns a four-tick axis
