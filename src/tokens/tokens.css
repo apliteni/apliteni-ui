@@ -237,6 +237,14 @@
   --chip-danger-fill: var(--glow-pink);
   --chip-info-ink: var(--cyan);
   --chip-info-fill: var(--glow-cyan);
+  /* The neutral tone's pair. Its ink is state ink in both themes, because --muted already
+     moves with the theme: on body ink the wash made the state that asks nothing the
+     loudest mark in a status column. The fill is the only TRANSLUCENT member — a solid fill
+     can be handed a ground of its own colour, and var(--surface) was, 1.000:1 on a card in
+     both themes and on light's white table. Asked for at #445 r18, taken by the badge at
+     #459. why: docs/foundations.md#colour-and-contrast */
+  --chip-neutral-ink: var(--muted);
+  --chip-neutral-fill: color-mix(in srgb, var(--muted) 12%, transparent);
 
   /* Solid signal surfaces — a status that has stopped being ink and become the FILL (a
      solid toast). Fill and ink are ONE pair, never two independent picks: the fill is the
@@ -423,6 +431,13 @@
      already occupy. See issue #131. */
   --chip-info-ink: #096a7c;
   --chip-info-fill: #ddeff3;
+  /* Light mixes three points more, so the two themes land on roughly one separation —
+     1.23:1 over a card here against 1.22:1 in dark. See the dark block for why this one
+     tone is a wash and not a solid. The ink is restated for the same reason the other
+     four families restate theirs: a theme block that answers the fill and not the ink
+     leaves half a pair here and the whole pair to be read from the other theme. */
+  --chip-neutral-ink: var(--muted);
+  --chip-neutral-fill: color-mix(in srgb, var(--muted) 15%, transparent);
 
   /* Light runs the same rule the other way. The signals are mid-tone here, so NO ink
      rescues them and the fill is what has to move: it takes the deepened form the chip

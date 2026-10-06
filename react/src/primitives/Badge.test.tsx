@@ -10,7 +10,11 @@ it('matches the vanilla badge class list (warn)', () => {
   expect(react).toEqual(vanilla);
 });
 
-it('neutral badge has no modifier class', () => {
+/* Neutral is named, not implied. It used to be the one tone left out of the class list, which
+ * is how a status column mapping two of its four rows to neutral got a bare .ui-badge — the
+ * card's own colour until #459. Both faces write the tone, so the two cannot drift apart. */
+it('names the neutral tone, and matches the vanilla badge there too', () => {
   const { container } = render(<Badge>live</Badge>);
-  expect(classesOfEl(container.firstElementChild!)).toEqual(['ui-badge']);
+  expect(classesOfEl(container.firstElementChild!)).toEqual(['ui-badge', 'ui-badge--neutral']);
+  expect(classesOfEl(container.firstElementChild!)).toEqual(classesOf(badge('live')));
 });

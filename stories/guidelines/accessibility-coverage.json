@@ -302,9 +302,11 @@
     {
       "file": "stories/signal-contrast.test.js",
       "name": "Signal contrast",
-      "does": "Reads declarations from the source and checks twenty status-glyph pairs against the stroke-width rule’s bar.",
+      "does": "Reads declarations from the source and checks twenty status-glyph pairs against the stroke-width rule’s bar. It also reads every rule that paints a signal ink as text, each on the ground it lands on, and the neutral chip’s ink across the whole surface ladder in both themes: the 4.5:1 floor on the four grounds a component hands a chip, and the two cells docs/foundations.md states by number. The rules reading that pair are discovered from the two sheets, so one arriving unnamed fails, and three plants prove rejection — a wash deepened to 25%, which every fill gate in the kit gets happier about; an ink that clears the floor while both published cells quietly stop being true; and a --chip-* family shipping one half of its pair in one theme.",
       "blind": [
-        "Colour for glyphs without a status. Width is checked next door; ratio is not."
+        "Colour for glyphs without a status. Width is checked next door; ratio is not.",
+        "Which grounds a component really hands a chip. That is a reading of the sheets written into the table by hand, and a new container can make it wrong without failing anything here.",
+        "The arithmetic composites tokens at 8 bits, the way a framebuffer does, so a cell parts company with a browser’s measurement in the third decimal. The two published cells are pinned within a hundredth rather than to the digit."
       ]
     },
     {
@@ -360,6 +362,18 @@
       "does": "Reads both overlay stylesheets as text and asks the same questions of each, because the broken rules involved transitioned visibility that JSDOM cannot run.",
       "blind": [
         "Whether the rule reaches the element. It reads declarations, not the cascade."
+      ]
+    },
+    {
+      "file": "stories/badge-tone-contrast.test.js",
+      "name": "Badge tones against their ground",
+      "does": "Reads every tone in src/styles/badge.css that paints a fill \u2014 with `background` or `background-color`, whichever of them the rule writes last \u2014 and the `chip:` annotation each one carries, then composites its fill over the five opaque grounds the kit hands a badge \u2014 the page, a card, a menu panel, a floating surface and a data table \u2014 in both themes. A tone annotated `chip: filled` may not resolve to the ground it stands on, and on the card, the table and a floating surface it has to clear 1.15:1 against it; a tone annotated `chip: ink-only` is checked to really be the card surface it claims, and has to argue for itself in the sheet. A tone that paints a fill and carries no annotation fails, and the halves are held by three mutations: an annotation removed, the neutral tone pointed back at var(--surface) \u2014 the 1.000:1 column #459 found on a white table and on a card in both themes \u2014 and a tone arriving as `background-color`, which read as the shorthand alone escaped discovery entirely.",
+      "blind": [
+        "Measured through the source cascade in JSDOM: no layout, no browser pseudo-classes and no anti-aliased pixels, so what a screen draws at 11px is not what is read here.",
+        "The grounds are the five tokens, read as tokens. A chip inside a tinted card, or over one of the kit's washes, stands on a ground this gate never builds \u2014 a wash paints behind the chip and moves the ground rather than the chip.",
+        "It measures fill against ground only. Whether the chip's text clears AA on that fill is stories/signal-contrast.test.js's rule, and the deepened --chip-*-ink pairs are its business.",
+        "The floor is 1.15:1 on three grounds and nothing at all on the page and the menu panel, where the kit's own signal fills already measure as little as 1.002:1 in light. That debt is recorded, not fixed here.",
+        "It reads one sheet. A badge painted by a consumer's own CSS, or a kit class borrowed for a job it was not drawn for, passes it."
       ]
     },
     {
@@ -621,6 +635,20 @@
       "does": "Checks danger-only alerts, hidden glyphs, and keyboard access to body links and actions.",
       "blind": [
         "Does not measure glyph size, action wrapping, or colour contrast in a browser."
+      ]
+    },
+    {
+      "file": "react/src/showcases/InvoiceFlow.test.tsx",
+      "name": "React: Invoice flow prototype",
+      "does": "Checks that the button inside the drop box opens the file picker by pointer, Enter and Space while the box claims no role of its own and takes several files, that the empty state carries that button rather than a sentence describing the box, that the busy region and the field errors stay truthful after a rejected save, that the review screen carries no per-field provenance mark and no status badge, that the empty screen uses primary Upload and the list uses the kit's small secondary Upload, that no button on any of the eight states spends more than two words without being on a named list, and that the showcase's own sheet paints no ground, casts no rung, sets no type ramp, writes no keyframe and never overrides a kit class.",
+      "blind": [
+        "JSDOM does not measure the focus ring, layout or contrast, and no real file picker opens — only that the hidden input's click is reached.",
+        "The gap the rejected-save summary holds off the button row is read from the sheet as text, not measured: vitest applies no imported CSS, so the rendered step is checked in a browser by hand.",
+        "Drag and drop is driven by synthetic events, so pointer-device and operating-system drag behaviour are unmeasured.",
+        "The picker's shape is asserted as classes, not as paint; which size and fill those classes draw is the kit's own gates' business.",
+        "The button walk reaches buttons only. A link's words \u2014 the back link, the skip link, the list's identity links \u2014 are outside it.",
+        "The sheet check reads this one stylesheet. A declaration written inline in the component, or a kit class used for a job it was not drawn for, passes it; the kit-wide version is #601.",
+        "The sheet check's banned list is grounds, rungs and type ramps \u2014 background, box-shadow and the five type properties. A border is not on it, so the drop box's own dashed edge and its dragging accent are declared and unmeasured here; they are the box Artur shaped at r23 and they paint no reading surface."
       ]
     },
     {

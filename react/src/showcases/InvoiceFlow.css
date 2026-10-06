@@ -1,0 +1,50 @@
+/* Layout for kit parts and the approved drop box. Kit parts keep their own paint and type. */
+
+/* The shell's own hook for its main width, not an override of its rule. */
+.invoice-flow { --ui-app-main: var(--container); }
+/* The page title is a filename, and the kit's h1 declares no wrap. */
+.invoice-flow h1 { overflow-wrap: anywhere; }
+
+/* The saved data leads and takes the wider track. */
+.invoice-flow__columns {
+  display: grid; align-items: start; gap: var(--space-10);
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+}
+.invoice-flow__fields {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6); margin: 0 0 var(--space-6);
+}
+/* The rejected-save summary takes that same step, so it never sits on the button row. */
+.invoice-flow__summary { margin: 0 0 var(--space-6); }
+/* No margin: .ui-app__body is a flex column already carrying the page gap. */
+.invoice-flow__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin: 0; }
+/* The save line is a live region, so it exists before it has text and holds no space until then. */
+.invoice-flow__announcement { margin: 0; }
+.invoice-flow__announcement:empty { display: none; }
+
+.invoice-flow__paper { display: grid; gap: var(--space-5); }
+.invoice-flow__paper > * { margin: 0; }
+/* A file the reader added, sized to its pane. No edge: the pane is the card.
+   why: guidelines/the-page.md#limit-card-stacks */
+.invoice-flow__preview :is(img, iframe) { width: 100%; }
+.invoice-flow__preview iframe { height: var(--panel-lg); }
+
+/* The box Artur shaped at r23; decision 2 is still his, so its edge stands. Inside it the row
+   is the kit's .ui-drop__row. why: guidelines/file-drop.md#spend-one-row-at-rest */
+.invoice-flow__drop { border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); margin: 0; padding: var(--space-4); }
+/* The screen's one accent line, drawn the way the kit draws .ui-drop__target. */
+.invoice-flow__drop.is-dragging { border-color: var(--accent); }
+
+@media (max-width: 860px) {
+  .invoice-flow__columns { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
+}
+@media (max-width: 560px) {
+  .invoice-flow__fields { grid-template-columns: minmax(0, 1fr); }
+  .invoice-flow__drop { padding: var(--space-3); }
+}
+/* The kit's sheet opens .ui-drop__row and .ui-empty__actions; this row is this sheet's own. */
+@media (max-width: 560px) and (pointer: coarse) {
+  .invoice-flow__actions { row-gap: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+}
+/* Keeps a focused control clear of the shell's fixed bottom navigation. */
+.invoice-flow :is(button, input, a) { scroll-margin-block: calc(var(--space-16) + var(--space-16)); }

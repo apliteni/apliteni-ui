@@ -167,10 +167,10 @@ Muted and dim ink have exactly three uses:
 - **placeholder** — a slot with no value, such as an empty field or cell.
 
 An empty-state explanation is not an empty slot. A keyboard shortcut is language. A count is
-not a status. Generic badges use body ink. Archive and disabled variants keep their state
-ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral dropdown chip tints
-by mixing muted ink into the panel. This is the one soft fill under words that the kit draws,
-and its text still clears 4.5:1.
+not a status, so a metadata pill keeps body ink. The neutral status chip, Archive and disabled
+variants keep their state ink. A dropdown badge asks for state ink with `tone: 'state'`. A chip
+tints by mixing muted ink into its ground. This is the one soft fill under words that the kit
+draws, and its text clears 4.5:1 on every ground the kit hands it.
 
 ## Colour and contrast
 
@@ -191,6 +191,15 @@ and its text still clears 4.5:1.
   same two tokens paint a button, so a button that is off drops a rung with the field.
 - **A disabled select carries the kit's own paint and no fade.** The kit's disabled field
   rule resets the `opacity: 0.7` that Chromium's user-agent stylesheet applies to one.
+- **A neutral chip is a wash, because no flat colour reads on every ground it is handed.** A
+  badge lands on four of them — the page, a card, a floating surface and a table — and in light
+  three of those are `#ffffff`, so a flat fill is the ground it stands on. The tone is a pair:
+  `--chip-neutral-fill` separates from all four at 1.18–1.23:1 in both themes, and
+  `--chip-neutral-ink` is state ink, so the chip reporting nothing to do is the quietest in the
+  set. Its ink clears 4.5:1 on all four, 4.51:1 at its worst. The sunken grey would take it to
+  4.25:1, and nothing in the kit hands a chip that ground: a data row paints the table's own
+  surface, hovered as well as at rest, and a menu panel floats. Soon and Archive stay ink on
+  the card.
 
 ## Elevation
 
@@ -214,8 +223,9 @@ The ladder, from bottom to top:
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
 
 **Text sits on the page, card or floating panel surface, never on a grey inset.** In both
-themes, fields, code blocks, neutral badges, navigation labels and segmented controls use
-those reading surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks.
+themes, fields, code blocks, navigation labels and segmented controls use
+those reading surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks. A
+neutral chip is the one exception and takes a wash instead; see **Colour and contrast** above.
 
 **A selected item is the one exception.** Selection is marked by a background highlight, and the
 only fills that step off a reading surface are the grey ones. A chosen segmented pill fills

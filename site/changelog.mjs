@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.96.0', date: '2026-10-06',
+    changes: [
+      ['fixed', 'A badge\u2019s neutral tone draws a chip on every ground the kit hands it. Its fill was `var(--surface)`, which on a card is that card and in light is also the white table and the white floating panel, so a neutral badge measured 1.000:1 against what it stood on \u2014 in both themes on a card, and in light wherever the ground is white. A status column mapping two of four rows to `neutral` therefore drew two chips and two runs of bold text. The tone now takes the new `--chip-neutral-fill`, muted ink at 12% in dark and 15% in light, which is the wash the dropdown\u2019s own neutral chip has used since #445; a wash cannot equal what is behind it, and it measures 1.18\u20131.23:1 on the page, a card, a floating surface and a table, in both themes. If your CSS relied on a neutral badge painting `--surface`, it no longer does; a bare `.ui-pill`, Soon and Archive are unchanged and still read as ink on the surface they sit on. Resolves #459.', ['Badge']],
+      ['changed', '`badge(label, variant)` and React `Badge` write the tone into the class list for every variant, `neutral` included, where both left it out and rendered a bare `.ui-badge`. A neutral badge is now `ui-badge ui-badge--neutral`. Both classes paint the same chip, so this matters only to code reading a chip\u2019s tone off its classes \u2014 which is what could not tell a neutral chip from an untoned one. A selector written for `.ui-badge` still matches.', ['Badge']],
+      ['changed', 'A badge\u2019s neutral tone takes state ink rather than body ink, from the new `--chip-neutral-ink`. On the wash below it body ink made the quietest state the heaviest mark on screen: in a status column the row that asks nothing outweighed the row that asks for a person. A count is not a status, so a metadata pill keeps body ink and the surface it sits on.', ['Badge']],
+      ['added', '`--chip-neutral-ink` and `--chip-neutral-fill` join the `--chip-*` family as the neutral tone\u2019s pair, and the fill is the one member that is translucent in both themes. The badge and the dropdown\u2019s trailing chip both read the fill, so the wash is defined once instead of mixed in each sheet. Re-point the pair to change every neutral chip at once.', ['Badge', 'Dropdown']],
+    ],
+  },
+  {
     v: '0.95.0', date: '2026-10-06',
     changes: [
       ['changed', 'The focus ring is one solid accent band with no glow, drawn as a real `outline` 1px off the control it marks. Every focusable control in the kit draws it \u2014 buttons, fields, checkboxes, switches, menu rows, tabs, links, chips and panels, in vanilla and React, light and dark. The band\u2019s colour and width are unchanged, so the contrast floor it is held to is the number it already measured; what is gone is the 12px halo over it, which was decoration rather than something a reader read. Artur chose this on #578 after #557 drew a scroll region\u2019s band the same way. Resolves #578.', ['Focus']],

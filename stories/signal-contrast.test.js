@@ -126,10 +126,12 @@ const GATED = [
   { file: '../src/styles/badge.css', selector: '.ui-pill--live', on: 'var(--bg)' },
   { file: '../src/styles/badge.css', selector: '.ui-badge--live', on: 'var(--bg)' },
   { file: '../src/styles/nav.css', selector: '.ui-nav__badge.is-live', on: 'var(--bg)' },
-  // both menus draw their panel on --surface-2, which is the harsher of the two
-  // grounds a badge inside them can land on.
-  { file: '../src/styles/dropdown.css', selector: '.ui-dropdown__badge.is-live', on: 'var(--surface-2)' },
-  { file: '../src/styles/topbar.css', selector: '.vbadge.live', on: 'var(--surface-2)' },
+  // both menus draw their panel on --bg-elevated, the floating step. They were read
+  // on --surface-2 until #459, which is a ground neither of them paints: that token
+  // is the sunken grey, and in dark it is DARKER than the panel, so a light signal
+  // ink was being measured on an easier ground than the one it lands on.
+  { file: '../src/styles/dropdown.css', selector: '.ui-dropdown__badge.is-live', on: 'var(--bg-elevated)' },
+  { file: '../src/styles/topbar.css', selector: '.vbadge.live', on: 'var(--bg-elevated)' },
   { file: '../site/changelog.html', selector: '.tag--added', on: 'var(--bg)' },
 
   /* info */
@@ -183,18 +185,35 @@ function paintOf({ file, selector }) {
   return undefined;
 }
 
-/** Measured ratio of a gated rule in a theme, plus the colours it resolved to. */
-function measure(rule, theme) {
+/** A { ink, fill } pair measured on an opaque ground, in a theme. Taken apart from
+ *  the rule it came out of so a planted pair can be put through the same arithmetic
+ *  as a shipped one, which is what the mutations below rely on. */
+function measurePaint(paint, on, theme) {
   const vars = tokensFor(theme);
-  const paint = paintOf(rule);
-  assert.ok(paint, `${rule.selector} not found in ${rule.file.replace('../', '')}`);
-
-  const surface = resolve(rule.on, vars);
-  assert.strictEqual(surface.alpha, 1, `${rule.on} must be opaque to serve as a ground`);
+  const surface = resolve(on, vars);
+  assert.strictEqual(surface.alpha, 1, `${on} must be opaque to serve as a ground`);
 
   const ground = paint.fill ? composite(resolve(paint.fill, vars), surface.rgb) : surface.rgb;
   const ink = composite(resolve(paint.ink, vars), ground);
   return { ratio: contrast(ink, ground), ink, ground, paint };
+}
+
+/** Measured ratio of a gated rule in a theme, plus the colours it resolved to.
+ *  A rule that declares only `color` can still be read on a fill of its own: the
+ *  menu's state chip is the menu's chip with its ink swapped. `fillFrom` names the
+ *  rule that paints that fill, and it is read from the sheet rather than copied
+ *  here, so the two cannot drift apart. */
+function measure(rule, theme) {
+  const paint = paintOf(rule);
+  assert.ok(paint, `${rule.selector} not found in ${rule.file.replace('../', '')}`);
+
+  let { fill } = paint;
+  if (!fill && rule.fillFrom) {
+    const base = paintOf({ file: rule.file, selector: rule.fillFrom });
+    assert.ok(base?.fill, `${rule.fillFrom} paints no fill for ${rule.selector} to be read on`);
+    fill = base.fill;
+  }
+  return measurePaint({ ...paint, fill }, rule.on, theme);
 }
 
 const show = (n) => n.toFixed(2);
@@ -216,6 +235,221 @@ for (const theme of ['dark', 'light']) {
     });
   }
 }
+
+/* ---- the neutral chip's ink, across the whole ladder ----------------------
+ * Every rule above is read on the one ground it lands on. The neutral tone is
+ * the exception, because docs/foundations.md publishes its ink as a floor over
+ * the whole ladder: a record between states takes this tone wherever it is
+ * drawn, so the page states a figure for every ground rather than for one.
+ *
+ * Three figures are published and all three are held here — 4.5:1 on the four
+ * grounds a component can hand a chip, 4.51:1 as the worst of those cells, and
+ * 4.25:1 on the sunken grey, which no component hands a chip: a data row paints
+ * the table's own surface, hovered as well as at rest, and a menu panel floats.
+ * The grey is measured anyway, because a reader of that page can read the
+ * figure and a consumer can build the ground by hand.
+ *
+ * The tone gate next door reads fills and blinds chip ink by design; the menu's
+ * own chip is measured in rendered stories by stories/dropdown-state-contrast.test.js,
+ * on the panel alone. Neither holds the pair across the ladder, which is this.
+ *
+ * Measure signal ink against the surface beneath it. */
+
+/** The grounds the neutral tone is read on, and whether a component can hand it
+ *  one. The sunken grey is in the ladder and in no component's chip. */
+const NEUTRAL_GROUNDS = [
+  { on: 'var(--bg)', reachable: true, what: 'the page, where a chip sits outside a card' },
+  { on: 'var(--surface)', reachable: true, what: 'a card' },
+  { on: 'var(--bg-elevated)', reachable: true, what: 'a floating surface — a menu panel, a drawer, a modal' },
+  { on: 'var(--table-bg)', reachable: true, what: "a data table's own ground" },
+  { on: 'var(--surface-2)', reachable: false, what: 'the sunken grey, which no component hands a chip' },
+];
+
+/** The figures docs/foundations.md publishes for this tone. The floor is the AA
+ *  bar; the other two are cells, pinned so the page cannot quietly stop being
+ *  true — a pair that moves has to move the sentence with it.
+ *
+ *  Pinned within a hundredth, not to the digit. The page's numbers were measured
+ *  in a browser and this gate composites at 8 bits, the way a framebuffer does
+ *  (see the note above composite()), so the two models part company in the third
+ *  decimal: the sunken-grey cell is 4.245 here and 4.253 rendered. The gap is an
+ *  order of magnitude smaller than the smallest move either half of the pair can
+ *  make, so a drift is still caught. */
+const NEUTRAL_WORST = 4.51; // light, on the page — the worst cell a reader reaches
+const NEUTRAL_SUNKEN = 4.25; // light, on the sunken grey — the cell nothing hands it
+const NEUTRAL_PIN = 0.02;
+
+/** What each rule reading the neutral pair takes as its ink. `state` is the pair's
+ *  own quiet ink, held to the floor; `body` is body ink, which is the other half of
+ *  the same page — a count is not a status, so a metadata chip keeps body ink. */
+const NEUTRAL_INK = {
+  'src/styles/badge.css|.ui-badge': 'state',
+  'src/styles/badge.css|.ui-badge--neutral': 'state',
+  'src/styles/dropdown.css|.ui-dropdown__badge': 'body',
+  'src/styles/dropdown.css|.ui-dropdown__badge.is-state': 'state',
+};
+
+const NEUTRAL_SHEETS = ['../src/styles/badge.css', '../src/styles/dropdown.css'];
+const neutralKey = (rule) => `${rule.file.replace('../', '')}|${rule.selector}`;
+
+/** Every rule that reads the neutral pair, discovered from the sheets rather than
+ *  listed: the rules that paint the wash, and the rules that swap the ink of one
+ *  that paints it without painting a fill of their own. A tone with a fill of its
+ *  own is not one of these — it is a family of its own and is gated above. */
+function neutralRules() {
+  const found = [];
+  for (const file of NEUTRAL_SHEETS) {
+    const rules = [...sourceOf(file).matchAll(RULE)]
+      .flatMap(([, sel, body]) => heads(sel).map((selector) => ({ selector, body })));
+    const washed = rules.filter((r) => /background\s*:\s*var\(\s*--chip-neutral-fill\s*\)/.test(r.body));
+    for (const { selector } of washed) found.push({ file, selector });
+    for (const { selector, body } of rules) {
+      if (/(?:^|[;{])\s*background(?:-color)?\s*:/.test(body)) continue;
+      if (!/(?:^|[;{])\s*color\s*:/.test(body)) continue;
+      const base = washed.find((w) => w.selector !== selector && selector.startsWith(w.selector));
+      if (base) found.push({ file, selector, fillFrom: base.selector });
+    }
+  }
+  return found;
+}
+
+const neutralOf = (kind) => neutralRules().filter((rule) => NEUTRAL_INK[neutralKey(rule)] === kind);
+
+/** Every cell of a rule × the ladder, in one theme. */
+const neutralCells = (rule, theme) => NEUTRAL_GROUNDS
+  .map((ground) => ({ ...ground, ...measure({ ...rule, on: ground.on }, theme) }));
+
+test('every rule that reads the neutral chip pair is measured here', () => {
+  const found = neutralRules();
+  assert.ok(found.length >= 4, `the neutral-pair scan found only ${found.length} rules — it is broken`);
+  assert.deepStrictEqual(
+    found.map(neutralKey).filter((key) => !(key in NEUTRAL_INK)), [],
+    'a rule takes --chip-neutral-fill, or swaps the ink of one that does, and nothing\n'
+    + 'here measures it. Name it in NEUTRAL_INK and say which ink it takes: the page\n'
+    + 'publishes a floor for the state ink and a rule for body ink, and an unnamed rule\n'
+    + 'is covered by neither.',
+  );
+  assert.deepStrictEqual(
+    Object.keys(NEUTRAL_INK).filter((key) => !found.map(neutralKey).includes(key)), [],
+    'NEUTRAL_INK names a rule the sheets no longer have — a figure is being held\n'
+    + 'against a rule that left, which is a gate measuring its own table.',
+  );
+  assert.ok(neutralOf('state').length >= 3, 'the state-ink half of the table emptied');
+  assert.ok(neutralOf('body').length >= 1, 'the body-ink half of the table emptied');
+});
+
+for (const theme of ['dark', 'light']) {
+  for (const rule of neutralOf('state')) {
+    test(`${rule.selector} holds the neutral ink floor where a chip lands — ${theme}`, () => {
+      const cells = neutralCells(rule, theme).filter((c) => c.reachable);
+      assert.strictEqual(cells.length, 4, 'a ground a component hands a chip went unmeasured');
+      for (const cell of cells) {
+        assert.ok(
+          cell.ratio >= AA,
+          `${rule.selector} in ${theme} measures ${show(cell.ratio)}:1 on ${cell.on} — `
+          + `${cell.what} — under the ${AA}:1 floor docs/foundations.md publishes for it.\n`
+          + `It paints color: ${cell.paint.ink} on background: ${cell.paint.fill}.\n`
+          + 'The ink and the fill are one pair: deepening the wash spends the ink\'s\n'
+          + 'headroom, and moving the ink spends the chip\'s. Move them together, or\n'
+          + 'move the figure on that page and say what it bought.',
+        );
+      }
+    });
+  }
+}
+
+test('the two cells the page states by number are the cells measured', () => {
+  const pinned = (label, measured, published) => assert.ok(
+    Math.abs(measured - published) <= NEUTRAL_PIN,
+    `the neutral chip's ink measures ${show(measured)}:1 ${label}, and docs/foundations.md\n`
+    + `says ${published.toFixed(2)}:1. Both figures are published, so the page moves with the\n`
+    + 'pair or the pair goes back. See the pinning note above NEUTRAL_WORST for why this\n'
+    + 'is a hundredth and not a digit.',
+  );
+  for (const rule of neutralOf('state')) {
+    const reachable = ['dark', 'light'].flatMap((theme) => neutralCells(rule, theme).filter((c) => c.reachable));
+    pinned('at its worst reachable ground', Math.min(...reachable.map((c) => c.ratio)), NEUTRAL_WORST);
+    const sunken = neutralCells(rule, 'light').find((c) => !c.reachable);
+    pinned('on light\'s sunken grey', sunken.ratio, NEUTRAL_SUNKEN);
+  }
+});
+
+test('a chip that is not a status keeps body ink on the same wash', () => {
+  for (const rule of neutralOf('body')) {
+    const paint = paintOf(rule);
+    assert.strictEqual(
+      paint.ink.replace(/\s+/g, ''), 'var(--text)',
+      `${rule.selector} takes the neutral wash and paints color: ${paint.ink}.\n`
+      + 'A count is not a status, so a metadata chip keeps body ink; a chip that has\n'
+      + 'become a status reads the pair\'s own ink and moves to the state half of\n'
+      + 'NEUTRAL_INK, where the published floor holds it.',
+    );
+    for (const theme of ['dark', 'light']) {
+      for (const cell of neutralCells(rule, theme)) {
+        assert.ok(cell.ratio >= AA, `${rule.selector} in ${theme} measures ${show(cell.ratio)}:1 on ${cell.on}`);
+      }
+    }
+  }
+});
+
+/* ---- the mutations -------------------------------------------------------- */
+
+test('the floor rejects a wash deepened under the ink it carries', () => {
+  // The edit this is written against is "make the neutral chip easier to see". The
+  // wash is the half that can move without touching an ink token, and every fill
+  // gate in the kit gets HAPPIER as it deepens — the chip is more separable from
+  // its ground, not less. At 25% the chip's own text is what gives way.
+  const planted = { ink: 'var(--chip-neutral-ink)', fill: 'color-mix(in srgb, var(--muted) 25%, transparent)' };
+  const failed = [];
+  for (const theme of ['dark', 'light']) {
+    for (const ground of NEUTRAL_GROUNDS.filter((g) => g.reachable)) {
+      const { ratio } = measurePaint(planted, ground.on, theme);
+      if (ratio < AA) failed.push(`${theme} ${ground.on} ${show(ratio)}:1`);
+      // and it really is a wash that got deeper, not a different colour
+      assert.ok(resolve(planted.fill, tokensFor(theme)).alpha > resolve('var(--chip-neutral-fill)', tokensFor(theme)).alpha,
+        'the planted wash is not deeper than the shipped one');
+    }
+  }
+  assert.ok(failed.length >= 2, `a 25% wash has to fail the floor in both themes; it failed on ${failed.join(', ') || 'nothing'}`);
+});
+
+test('the published figures reject an ink that clears the floor and moves them', () => {
+  // --disabled-ink-bare is the nearest grey the tokens hold, and it clears AA on
+  // every ground in both themes — so the floor alone would take it while both
+  // figures on the reader page quietly stopped being true. The pins are what
+  // catches it, which is why they are exact and not a band.
+  const planted = { ink: 'var(--disabled-ink-bare)', fill: 'var(--chip-neutral-fill)' };
+  const light = NEUTRAL_GROUNDS.map((ground) => ({ ...ground, ...measurePaint(planted, ground.on, 'light') }));
+  for (const theme of ['dark', 'light']) {
+    for (const ground of NEUTRAL_GROUNDS) {
+      assert.ok(measurePaint(planted, ground.on, theme).ratio >= AA,
+        'the planted ink has to pass the floor, or it proves nothing about the pins');
+    }
+  }
+  assert.ok(Math.abs(light.find((c) => !c.reachable).ratio - NEUTRAL_SUNKEN) > NEUTRAL_PIN,
+    'the sunken-grey pin did not move under the planted ink');
+  assert.ok(Math.abs(Math.min(...light.filter((c) => c.reachable).map((c) => c.ratio)) - NEUTRAL_WORST) > NEUTRAL_PIN,
+    'the worst-cell pin did not move under the planted ink');
+});
+
+test('every --chip-* fill ships the ink it is one half of, in both themes', () => {
+  // The defect #459 shipped first: --chip-neutral-fill arrived without a
+  // --chip-neutral-ink, and the badge paired the new wash with body ink. Fill and
+  // ink are one pair, read here off the token file rather than trusted — and read
+  // per theme, because a theme block answering one half is the shape the defect
+  // had: light declared the wash and left the ink to be found in the dark block.
+  const families = new Set([...TOKENS.matchAll(/--chip-([\w-]+)-(?:fill|ink)\s*:/g)].map((m) => m[1]));
+  assert.ok(families.size >= 5, `only ${families.size} --chip-* families found — the scan is broken`);
+  for (const theme of ['dark', 'light']) {
+    const vars = tokensFor(theme);
+    assert.deepStrictEqual(
+      [...families].filter((f) => !(vars.has(`--chip-${f}-fill`) && vars.has(`--chip-${f}-ink`))), [],
+      `a --chip-* tone ships one half of its pair in ${theme}. A fill with no ink leaves\n`
+      + 'whatever ink was already on the rule standing on a ground it was not chosen\n'
+      + 'against, which is the inversion #459 shipped in light.',
+    );
+  }
+});
 
 /* ---- the glows stay tints of their own token -----------------------------
  * A glow is its own colour at low alpha — nothing more. The same hue is spent at
