@@ -468,9 +468,10 @@ const SCROLL_RINGED = {
     + 'the panel and lights a box that is not the one that scrolls. #531',
   '.ui-nav--tabs': 'the inward band, on the row. A tab row clips at its own padding '
     + 'edge, so an outset ring on it is cut off by the very box that scrolls. The row is '
-    + 'a stop only when EVERY tab is disabled, because a disabled tab is a <span> and the '
-    + 'row is then left holding no link of its own — measured at 390 with the browser\'s '
-    + 'black outline on it, which is what #429 round r1 found. #429',
+    + 'a stop only while it scrolls AND every tab is disabled, because a disabled tab is '
+    + 'a <span> and the row is then left holding no link of its own — measured at 390 '
+    + 'with the browser\'s black outline on it, which is what #429 round r1 found. A row '
+    + 'with room for its links is no scroll box and no stop at all. #429',
   '.ui-drawer__body': 'the inward band, on the body. A text-only body scrolls and Tab '
     + 'reaches it between the close button and the footer\'s actions. The body is flush '
     + 'with a panel that is itself flush with a screen edge, so an outset ring — on either '

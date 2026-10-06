@@ -4,9 +4,23 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { revealCurrentNav, revealFocusedNav } from './nav.js';
 
+/** The attribute calls `fitNav` makes, read back with `hasAttribute`. */
+const attributes = () => {
+  const held = new Set();
+  return {
+    setAttribute: (name) => held.add(name),
+    removeAttribute: (name) => held.delete(name),
+    hasAttribute: (name) => held.has(name),
+  };
+};
+
+/** Does the row say it has room for its links? */
+const fits = (nav) => nav.hasAttribute('data-nav-fit');
+
 /** A row whose current link sits at `rect`, in a row `scrollWidth` wide. */
 const row = ({ scrollWidth, clientWidth = 310, rect }) => ({
   scrollLeft: 0, scrollWidth, clientWidth,
+  ...attributes(),
   ownerDocument: { defaultView: { getComputedStyle: () => ({ paddingLeft: '4px', paddingRight: '4px' }) } },
   querySelector: () => (rect ? { getBoundingClientRect: () => rect } : null),
   getBoundingClientRect: () => ({ left: 40, right: 350 }),
@@ -64,6 +78,7 @@ test('a row that fits is left alone even when its current link measures outside 
 
 const PHONE_ROW = {
   scrollLeft: 0, scrollWidth: 456, clientWidth: 318,
+  ...attributes(),
   ownerDocument: { defaultView: { getComputedStyle: () => ({ paddingLeft: '4px', paddingRight: '4px' }) } },
   getBoundingClientRect: () => ({ left: 36, right: 354 }),
   contains: () => true,
@@ -99,6 +114,77 @@ test('a tab belonging to another row leaves this row alone', () => {
   const nav = { ...PHONE_ROW, contains: () => false };
   revealFocusedNav(nav, tab({ left: 290, right: 354.859375 }));
   assert.equal(nav.scrollLeft, 0);
+});
+
+/* -- Whether the row is a scroll box at all ---------------------------------- */
+//
+// A scroll box clips its children's PAINT at its padding edge, so a row that scrolls
+// nothing still cut the ring's halo off every link in it — 4px of the roughly 14px it
+// reaches survived, at 1280 as much as at 390. `data-nav-fit` is the row saying it has
+// room, and the sheet takes the overflow back off it. The numbers below are the two
+// states a reader meets: a desktop column with 513px of links in it, and the same row
+// at 390.
+
+test('a row with room for its links stops being a scroll box', () => {
+  const nav = row({ scrollWidth: 513, clientWidth: 1208, rect: { left: 60, right: 150 } });
+  revealCurrentNav(nav);
+  assert.equal(
+    fits(nav), true,
+    'a row whose links fit is still marked as scrolling, so the sheet goes on clipping '
+    + 'the halo of every ring painted in it at a width where nothing scrolls',
+  );
+});
+
+test('a row whose links overflow stays a scroll box', () => {
+  const nav = row({ scrollWidth: 521, clientWidth: 318, rect: { left: 60, right: 150 } });
+  revealCurrentNav(nav);
+  assert.equal(
+    fits(nav), false,
+    'an overflowing row was marked as fitting, which takes the overflow off the one box '
+    + 'that holds a narrow row inside the page',
+  );
+});
+
+test('a pixel between the two numbers still counts as room', () => {
+  // A fractional column leaves the two measurements a sub-pixel apart, and a row that
+  // flipped between the states on that would clip at some widths and not others. One
+  // pixel of a link spilling lands in the 4px the row already bleeds into the gutter.
+  const spare = row({ scrollWidth: 319, clientWidth: 318, rect: null });
+  revealCurrentNav(spare);
+  assert.equal(fits(spare), true, 'one pixel of slack was read as an overflowing row');
+  const scrolls = row({ scrollWidth: 320, clientWidth: 318, rect: null });
+  revealCurrentNav(scrolls);
+  assert.equal(fits(scrolls), false, 'two pixels over is an overflow and has to scroll');
+});
+
+test('a row with no layout yet keeps what the sheet wrote', () => {
+  // Folded away, or a tree with no layout engine: 0 and 0 would read as a fitting row
+  // and take the containment off a row nobody has measured.
+  const nav = row({ scrollWidth: 0, clientWidth: 0, rect: null });
+  revealCurrentNav(nav);
+  assert.equal(fits(nav), false, 'an unmeasured row was marked as fitting');
+});
+
+/* -- The mutation that kills the fit case ------------------------------------ */
+
+const FIT = "nav.setAttribute('data-nav-fit', '')";
+
+test('the fit case fails when the row stops being marked as fitting', async () => {
+  const source = readFileSync(new URL('./nav.js', import.meta.url), 'utf8');
+  assert.equal(
+    source.split(FIT).length - 1, 1,
+    `the mutation found no single copy of \`${FIT}\` — the measurement moved or was `
+    + 'reworded, so move the mutation with it rather than deleting this test',
+  );
+  const mutated = `data:text/javascript,${encodeURIComponent(source.replace(FIT, 'void 0'))}`;
+  const { revealCurrentNav: unmarked } = await import(mutated);
+  const nav = row({ scrollWidth: 513, clientWidth: 1208, rect: { left: 60, right: 150 } });
+  unmarked(nav);
+  assert.equal(
+    fits(nav), false,
+    'the mark was deleted and the fitting row still reads as fitting, so the case above '
+    + 'would pass with the clipping back in place and is measuring nothing',
+  );
 });
 
 /* -- The mutation that kills the ring-room case ------------------------------ */

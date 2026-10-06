@@ -116,25 +116,21 @@ export const Tabs = {
 
 export const TabsPill = {
   name: 'Horizontal tabs — pill',
-  render: () => pad(specimen(
-    'The same tabs with a pill active affordance instead of an underline',
+  render: () => pad(
     navTabs({ ariaLabel: 'Finance views', items: TABS, active: 'payouts', variant: 'pill' }),
-  )),
+  ),
 };
 
 export const Breadcrumbs = {
   name: 'Breadcrumbs',
   render: () => pad(stack(
-    specimen(
-      'The Finance / Payouts trail — the last crumb is the current page',
-      breadcrumbs({
-        items: [
-          { label: 'Finance', href: '#finance' },
-          { label: 'Payouts', href: '#payouts' },
-          { label: 'PY-4821' },
-        ],
-      }),
-    ),
+    breadcrumbs({
+      items: [
+        { label: 'Finance', href: '#finance' },
+        { label: 'Payouts', href: '#payouts' },
+        { label: 'PY-4821' },
+      ],
+    }),
     specimen(
       'With a leading home icon',
       breadcrumbs({

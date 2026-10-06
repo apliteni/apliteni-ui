@@ -1,6 +1,13 @@
 // Browser-only check; needs agent-browser and both built Storybooks served at base.
-// Measures page overflow, current-link visibility, the band a Tab-reached link draws
-// and the band an all-disabled row draws. Not screen-reader speech.
+// Measures page overflow, current-link visibility, the band a Tab-reached link draws,
+// the band an all-disabled row draws, and whether a row with room for its links is a
+// scroll box at all. Not screen-reader speech.
+//
+// WHAT THE LAST ONE READS, AND WHAT IT DOES NOT. Whether a box clips its children's
+// paint is not in the CSSOM, so what is measured is the cause: a row whose links fit
+// carries `data-nav-fit` and computes `overflow: visible`, and a box with visible
+// overflow clips nothing by definition. The pixel ramp above a focused tab is in round
+// r2's captures on the pull request.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
@@ -44,6 +51,24 @@ const ALL_DISABLED = `(() => {
   return { stops: nav.querySelectorAll('a[href],[tabindex]').length };
 })()`;
 
+/* A row with room for its links, read at a desktop width. `overflow-x: auto` makes
+ * `overflow-y` compute to auto as well, so the row clipped the halo of every ring
+ * painted in it even where nothing scrolled — 4px of the roughly 14px it reaches. The
+ * measurement that decides it is JavaScript's, so both halves are read: the attribute
+ * the kit writes, and the overflow the sheet computes from it. */
+const READ_FIT = `(() => {
+  const nav = document.querySelector('.ui-nav--tabs');
+  const style = getComputedStyle(nav);
+  const overflowing = nav.scrollWidth - nav.clientWidth > 1;
+  return {
+    marked: nav.hasAttribute('data-nav-fit'), overflowing,
+    overflowX: style.overflowX, overflowY: style.overflowY,
+    clips: style.overflowX !== 'visible' || style.overflowY !== 'visible',
+    links: Math.round(nav.scrollWidth), row: Math.round(nav.clientWidth),
+    pageFits: document.documentElement.scrollWidth <= innerWidth,
+  };
+})()`;
+
 const READ_ROW = `(() => {
   const nav = document.querySelector('.ui-nav--tabs');
   const style = getComputedStyle(nav);
@@ -59,6 +84,7 @@ const READ_ROW = `(() => {
 const results = [];
 const walks = [];
 const rows = [];
+const fits = [];
 try {
   for (const [workspace, prefix] of [['vanilla', 'storybook-static'], ['react', 'react/storybook-static']]) {
     const index = await (await fetch(`${base}/${prefix}/index.json`)).json();
@@ -67,8 +93,8 @@ try {
         entry.title === 'Components/Navigation' && /^Tabs(?:Pill)?$/.test(entry.exportName)));
     assert.equal(subjects.length, 2, `${workspace}: discover underline and pill stories`);
     for (const subject of subjects) for (const theme of ['light', 'dark']) {
-      const open = (args = '') => {
-        browser('set', 'viewport', '390', '600');
+      const open = (args = '', width = 390) => {
+        browser('set', 'viewport', String(width), '600');
         browser('open', `${base}/${prefix}/iframe.html?id=${subject.id}&viewMode=story&globals=theme:${theme}${args}`);
         browser('wait', '--fn', '!!document.querySelector(".ui-nav--tabs")');
         evaluate('document.fonts.ready.then(() => true)');
@@ -148,15 +174,41 @@ try {
       assert(parseFloat(row.outlineOffset) < 0,
         `${subject.id} ${theme}: the row's band is not drawn inward, so the scroll box clips it`);
       rows.push({ workspace, story: subject.id, theme, ...row });
+
+      /* -- The same row at a desktop width, where nothing scrolls ------------ */
+      open('', 1280);
+      const fit = evaluate(READ_FIT);
+      assert(!fit.overflowing,
+        `${subject.id} ${theme}: ${fit.links}px of links in a ${fit.row}px row at 1280 — the `
+        + 'row overflows, so this width no longer exercises the case');
+      assert(fit.marked, `${subject.id} ${theme}: a row with room for its links is not marked as fitting`);
+      assert(!fit.clips,
+        `${subject.id} ${theme}: the row computes overflow ${fit.overflowX}/${fit.overflowY} at 1280, `
+        + 'so it still clips the halo of every ring painted in it where nothing scrolls');
+      assert(fit.pageFits, `${subject.id} ${theme}: the page overflows at 1280`);
+      // Prove the reading can fail: take the mark off and the sheet puts the clip
+      // back, which is the defect round r2's review measured.
+      const clipped = evaluate(`(() => {
+        const nav = document.querySelector('.ui-nav--tabs');
+        nav.removeAttribute('data-nav-fit');
+        const style = getComputedStyle(nav);
+        return { clips: style.overflowX !== 'visible' || style.overflowY !== 'visible' };
+      })()`);
+      assert(clipped.clips,
+        `${subject.id} ${theme}: the row clips nothing with the mark removed, so the reading `
+        + 'above proves nothing');
+      fits.push({ workspace, story: subject.id, theme, ...fit });
     }
   }
   assert.equal(results.length, 8, 'Both workspaces, both variants, both themes measured');
   assert.equal(walks.length, 24, 'Three Tab-reached links measured in each of the 8 rows');
   assert.equal(rows.length, 8, 'Each of the 8 rows measured with every tab disabled');
-  writeFileSync(output, JSON.stringify({ results, walks, rows }, null, 2) + '\n');
+  assert.equal(fits.length, 8, 'Each of the 8 rows measured again at 1280, where it fits');
+  writeFileSync(output, JSON.stringify({ results, walks, rows, fits }, null, 2) + '\n');
   console.log('PASS: 8 browser cases at 390px; 8 overflow mutations rejected; current links visible;\n'
     + '      24 Tab-reached links draw a whole kit ring (8 unrevealed rows clip it);\n'
-    + '      8 all-disabled rows take the kit band inward, none a native outline.');
+    + '      8 all-disabled rows take the kit band inward, none a native outline;\n'
+    + '      8 rows at 1280 fit their links, clip nothing, and clip again unmarked.');
 } finally {
   browser('close');
 }

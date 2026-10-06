@@ -31,12 +31,15 @@ export const NavTabs = forwardRef<HTMLElement, NavTabsProps>(function NavTabs({
   // array on every parent render, and re-running this would rewrite scrollLeft
   // out from under a reader who had scrolled the row.
   const signature = items.map((item) => item.id).join('\u0000');
+  // `variant` is in here with them because it changes the row's gaps and a tab's
+  // padding, so it changes whether the links still fit — which is what decides
+  // whether the row scrolls, and clips, at all.
   useEffect(() => {
     const reveal = () => { if (navRef.current) revealCurrentNav(navRef.current); };
     reveal();
     window.addEventListener('resize', reveal);
     return () => window.removeEventListener('resize', reveal);
-  }, [active, signature]);
+  }, [active, signature, variant]);
   return (
     <nav {...rest} ref={navRef}
       className={['ui-nav', 'ui-nav--tabs', `is-${variant}`, className].filter(Boolean).join(' ')}

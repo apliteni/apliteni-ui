@@ -867,9 +867,11 @@ root ref. Use `aria-label` to distinguish navigation landmarks. Link items accep
 `target`. Script, data, and VBScript destinations fall back to `#`.
 
 Tab rows scroll within their container when the links do not fit; a breadcrumb
-trail wraps instead. The current route is revealed after mounting and on route
-changes and window resize, and a re-render that does not change the links leaves
-the row where the reader scrolled it. Keyboard focus stays put throughout.
+trail wraps instead. A row whose links do fit scrolls nothing and clips nothing, so
+a focus ring in it keeps its halo. The current route is revealed after mounting, on
+route changes, on a change of `variant` and on window resize, and a re-render that
+does not change the links leaves the row where the reader scrolled it. Keyboard
+focus stays put throughout.
 
 A row also scrolls to a link that takes focus, far enough that the ring the link
 draws clears the scrolling edge rather than being cut off by it. `NavTabs` does

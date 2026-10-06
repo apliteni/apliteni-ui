@@ -99,6 +99,44 @@ it('reveals a link Tab lands on, so the ring it draws clears the row', async () 
   // between it and the scrollport for a 3px band.
   expect(nav.scrollLeft).toBeCloseTo(4.859375, 5);
 });
+/* -- Whether the row is a scroll box at all ---------------------------------- */
+//
+// `overflow-x: auto` makes `overflow-y` compute to auto with it, so a tab row clipped
+// the halo of every ring painted in it — at a desktop width as much as at 390, where
+// nothing scrolls. The sheet cannot ask whether the links fit, so the kit measures the
+// row and writes `data-nav-fit`; the three readings below are that measurement's
+// React half. JSDOM lays nothing out, so the widths are the ones Chromium measured:
+// 513px of links in a 1208px row at 1280, and 521px in a 318px row at 390.
+
+it('marks a row with room for its links, and keeps the mark through a re-render', () => {
+  // An attribute and not a class, because React owns the class attribute on this row:
+  // the second rerender rewrites it, and a measured word in it would go with it.
+  const { rerender } = render(<NavTabs items={items} active="summary" />);
+  const nav = screen.getByRole('navigation');
+  Object.defineProperties(nav, { clientWidth: { value: 1208 }, scrollWidth: { value: 513 } });
+  rerender(<NavTabs items={items} active="payouts" />);
+  expect(nav.hasAttribute('data-nav-fit')).toBe(true);
+  rerender(<NavTabs items={items} active="payouts" className="page-tabs" />);
+  expect(nav.className).toContain('page-tabs');
+  expect(nav.hasAttribute('data-nav-fit')).toBe(true);
+});
+it('leaves an overflowing row the scroll box that holds the page', () => {
+  const { rerender } = render(<NavTabs items={items} active="summary" />);
+  const nav = screen.getByRole('navigation');
+  Object.defineProperties(nav, { clientWidth: { value: 318 }, scrollWidth: { value: 521 } });
+  nav.getBoundingClientRect = () => ({ left: 36, right: 354 }) as DOMRect;
+  rerender(<NavTabs items={items} active="payouts" />);
+  expect(nav.hasAttribute('data-nav-fit')).toBe(false);
+});
+it('measures the row again when the appearance changes', () => {
+  // The pill row's gaps and padding are its own, so the same links can fit one
+  // appearance and overflow the other: `variant` is a reason to measure again.
+  const { rerender } = render(<NavTabs items={items} active="summary" />);
+  const nav = screen.getByRole('navigation');
+  Object.defineProperties(nav, { clientWidth: { value: 1208 }, scrollWidth: { value: 513 } });
+  rerender(<NavTabs items={items} active="summary" variant="pill" />);
+  expect(nav.hasAttribute('data-nav-fit')).toBe(true);
+});
 it('still calls a caller\'s own onFocus while revealing the link', () => {
   const seen: string[] = [];
   render(<NavTabs items={items} active="summary"
