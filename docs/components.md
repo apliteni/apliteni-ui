@@ -339,8 +339,10 @@ wording. The vanilla `filterBar()` has no `add`, so a vanilla page draws its own
 kit answers it through markup: put your own `dropdown()` inside the bar, wrapped in an element
 carrying `data-filter-add`. That attribute is the whole contract — it declares the ask, carries
 the open rule's room, slide and closing hold, gives the trigger the chip's corner, height and
-edge, and is what the focus answer looks for. `initFilterBar()`'s `update()` rebuilds the bar
-from `filterBar()`, which draws no such control, so keep your wrapper in the DOM yourself.
+edge, and is what the focus answer looks for. A pick inside it is yours to act on: the bar
+reports a change for a chip's menu and for nothing else. `initFilterBar()`'s `update()`
+rebuilds the bar from `filterBar()`, which draws no such control, so keep your wrapper in the
+DOM yourself. The Stock screener showcase draws one.
 
 ### A dropdown row is a div, a link or a button
 
