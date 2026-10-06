@@ -15,21 +15,6 @@ import { leafRules } from '../../../stories/lib/motion-css.js';
 // Resolved from the workspace root, the way DocumentReview's gate resolves its own: this
 // suite runs as `npm test -w react`, which puts the cwd there.
 const SHEET = readFileSync(path.join(process.cwd(), 'src/showcases/InvoiceFlow.css'), 'utf8');
-/* The kit's own sheet and tokens, read the same way: the weight check below compares the
- * showcase's value rule with the kit's label rule, and a number beats a string match. */
-const ROOT = path.join(process.cwd(), '..');
-const KIT_INPUT = readFileSync(path.join(ROOT, 'src/styles/input.css'), 'utf8');
-const WEIGHTS = Object.fromEntries([...readFileSync(path.join(ROOT, 'src/tokens/tokens.css'), 'utf8')
-  .matchAll(/--weight-([a-z]+):\s*(\d+)/g)].map(([, name, value]) => [`--weight-${name}`, Number(value)]));
-/** The weight token a rule assigns, as the number the kit defines for it. */
-const weightOf = (css: string, rule: RegExp, what: string) => {
-  const found = rule.exec(css);
-  expect(found, `${what} sets its font-weight from a --weight token`).not.toBeNull();
-  const token = found![1];
-  expect(WEIGHTS[token], `the kit defines ${token}`).toEqual(expect.any(Number));
-  return WEIGHTS[token];
-};
-
 // Interaction tests cover in-memory state, not PDF rendering or real extraction.
 
 /* The form's own summary, named by its text rather than by role. Each invalid field
@@ -302,13 +287,7 @@ describe('invoice flow prototype', () => {
     expect(container.querySelectorAll('.ui-field__hint')).toHaveLength(0);
   });
 
-  /* The other half of that removal, held in the sheet rather than the markup. The bars were
-   * accent LINES, which is the one thing the kit's shared accent judgement forbids, and no
-   * gate reached this file to say so. This is that gate, and it also holds the accent that
-   * replaced them: ink on the saved pane's own name, which is where
-   * guidelines/density-and-accents.md#follow-the-consequence puts the accent of a pair that
-   * shows a source beside the values a save writes. */
-  it('paints the accent as ink on the saved pane\u2019s name, never as a line', () => {
+  it('keeps the data column wider and reserves the accent edge for dragging', () => {
     expect(SHEET, 'the showcase ships a sheet beside the story').toContain('.invoice-flow');
     /* One accent line is allowed, and only one: the drop box while a file is over it. The
      * kit draws its own drop target the same way — `.ui-drop__target` in
@@ -321,7 +300,6 @@ describe('invoice flow prototype', () => {
     const withoutDragState = SHEET.replace(/\.invoice-flow__drop\.is-dragging\s*\{[^}]*\}/g, '');
     expect(accentOffences(withoutDragState, 'InvoiceFlow.css')).toEqual([]);
     // The saved pane leads and is the wider column; the source gets neither, nor the accent.
-    expect(SHEET).toMatch(/\.invoice-flow__data\s*>\s*\.ui-card__title\s*\{[^}]*color:\s*var\(--accent\)/);
     expect(SHEET).not.toMatch(/\.invoice-flow__preview[^{]*\{[^}]*var\(--accent/);
     /* The saved values take the wider track. Held as the two numbers rather than as a
        string, so a sheet that swaps them — the inversion the r36 review measured at 1.41
@@ -329,18 +307,6 @@ describe('invoice flow prototype', () => {
     const tracks = /\.invoice-flow__columns\s*\{[^}]*grid-template-columns:\s*minmax\(0, (\d+)fr\) minmax\(0, (\d+)fr\)/.exec(SHEET);
     expect(tracks, 'the pane pair sets two fr tracks').not.toBeNull();
     expect(Number(tracks![1]), 'the saved pane takes the wider track').toBeGreaterThan(Number(tracks![2]));
-  });
-  it('sets each saved value heavier than its label, and leaves the source at neither', () => {
-    /* The fourth of the four marks follow-the-consequence asks for; the pane order, the
-     * wider column and the accent are held above. A bare .ui-input inherits normal while the
-     * kit's field label is medium, so without a rule here the data read lighter than the
-     * words naming it. Compared as numbers from the kit's tokens: a string match would pass
-     * a sheet that set the value one step lighter. */
-    const label = weightOf(KIT_INPUT, /\.ui-field__label\s*\{[^}]*font-weight:\s*var\((--weight-[a-z]+)\)/, 'the kit field label');
-    const value = weightOf(SHEET, /\.invoice-flow__fields\s+\.ui-input\s*\{[^}]*font-weight:\s*var\((--weight-[a-z]+)\)/, 'the saved value');
-    expect(value, `a saved value (${value}) outweighs its label (${label})`).toBeGreaterThan(label);
-    // The source document is the quieter pane: it takes none of the four marks, weight included.
-    expect(SHEET).not.toMatch(/\.invoice-flow__(?:preview|paper)[^{]*\{[^}]*font-weight:\s*var\(--weight-(?:semibold|bold)\)/);
   });
   it('shows a document that can disagree with the parsed data', () => {
     // The whole point of the two columns: the preview is the document, not the form again.
@@ -388,26 +354,17 @@ describe('invoice flow prototype', () => {
    * restyle or re-implement them. The kit-wide gate for the third is #601; this is
    * the half that holds this prototype. */
 
-  it('gives the picker the kit’s drop-row shape — small, secondary, upload glyph', () => {
-    /* Artur, r36: "The picker is the kit's small secondary button (with the upload glyph,
-     * as the kit's drop row), not a filled primary." The kit's own FileDrop writes
-     * `<Button size="sm" icon="upload">`, and `secondary` is Button's own default, so a
-     * `variant="primary"` put back on this control fails here.
-     * Limit: the classes are asserted, not the paint — jsdom applies no stylesheet. */
-    const { container, unmount } = render(<InvoiceFlow initialState="table" />);
-    for (const where of ['the list screen', 'the empty screen']) {
+  it('uses primary Upload only on the empty screen and keeps the list picker secondary', () => {
+    // Class checks cannot measure browser paint or the system picker.
+    for (const state of ['empty', 'table'] as const) {
+      const { container, unmount } = render(<InvoiceFlow initialState={state} />);
       const picker = screen.getByRole('button', { name: 'Upload' });
-      expect(picker, `${where}: the picker is small`).toHaveClass('ui-btn--sm');
-      expect(picker, `${where}: the picker is secondary`).toHaveClass('ui-btn--secondary');
-      expect(picker, `${where}: the picker is not filled`).not.toHaveClass('ui-btn--primary');
-      expect(picker.querySelector('svg'), `${where}: the picker carries a glyph`).not.toBeNull();
-      if (where === 'the list screen') {
-        // The row at rest is the kit's, so the types beside the button are .ui-drop__note.
-        expect(container.querySelector('.ui-drop__row')).toContainElement(picker);
-        expect(container.querySelector('.ui-drop__note')).toHaveTextContent('PDF, PNG or JPEG.');
-        unmount();
-        render(<InvoiceFlow initialState="empty" />);
-      }
+      expect(picker).toHaveClass('ui-btn--sm');
+      expect(picker).toHaveClass(state === 'empty' ? 'ui-btn--primary' : 'ui-btn--secondary');
+      expect(picker).not.toHaveClass(state === 'empty' ? 'ui-btn--secondary' : 'ui-btn--primary');
+      expect(picker.querySelector('svg')).not.toBeNull();
+      expect(container.querySelector(state === 'empty' ? '.ui-empty__actions' : '.ui-drop__row')).toContainElement(picker);
+      unmount();
     }
   });
 
@@ -442,14 +399,7 @@ describe('invoice flow prototype', () => {
   });
 
   it('keeps the sheet to layout glue: nothing in it repaints or re-ranks a kit part', () => {
-    /* Artur, r36: "If in showcases you overwrites or makes a lot of css - you failed to use
-     * the kit. Showcases are to demonstrate the power of the kit, not to make shadow kit."
-     * So: no rule in this sheet may paint a ground, cast a rung, or set a type ramp, and a
-     * rule that names a kit class may declare only the two marks
-     * guidelines/density-and-accents.md#follow-the-consequence asks for and the kit has no
-     * class to carry. The kit-wide version of this check is #601.
-     * Limit: it reads the sheet, so a declaration written inline in the component, or a kit
-     * class used for a job it was not drawn for, is outside it. */
+    // This source check cannot detect inline styles or measure browser paint.
     const rules = leafRules(SHEET) as { selector: string; decls: { prop: string; value: string }[] }[];
     expect(rules.length, 'the sheet parses into rules').toBeGreaterThan(5);
 
@@ -464,20 +414,8 @@ describe('invoice flow prototype', () => {
      * it is restating a guarantee it already has. why: src/styles/reduced-motion.css */
     expect(SHEET).not.toMatch(/prefers-reduced-motion/);
 
-    // What a rule aimed at a kit class is allowed to say, and why each one is allowed.
-    const MARKS: Record<string, string> = {
-      '.invoice-flow__data > .ui-card__title|color': 'follow-the-consequence puts the pair’s accent on the saved pane’s name',
-      '.invoice-flow__fields .ui-input|font-weight': 'follow-the-consequence makes a saved value outweigh its label',
-    };
-    const offences = rules.flatMap(({ selector, decls }) => selector.includes('.ui-')
-      ? decls.filter(d => !(`${selector}|${d.prop}` in MARKS)).map(d => `${selector} { ${d.prop} }`)
-      : []);
-    expect(offences, 'a rule naming a kit class declares only a mark the guideline asks for').toEqual([]);
-    // The marks are listed by selector, so each must still be in the sheet.
-    for (const key of Object.keys(MARKS)) {
-      const [selector, prop] = key.split('|');
-      expect(rules.some(r => r.selector === selector && r.decls.some(d => d.prop === prop)),
-        `${selector} still sets ${prop}`).toBe(true);
-    }
+    const overrides = rules.filter(({ selector }) => selector.includes('.ui-'));
+    expect(overrides, 'the showcase does not override kit classes').toEqual([]);
+    expect(SHEET).not.toMatch(/font-weight\s*:|(?<!-)color\s*:/);
   });
 });

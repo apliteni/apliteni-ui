@@ -113,7 +113,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
   });
   const [selected, setSelected] = useState<string | null>(typeof window !== 'undefined' && window.location.hash === '#invoices' ? null : detail ? 'cedar' : null);
   const [drafts, setDrafts] = useState<Record<string, Fields>>(initialState === 'editing' ? { cedar: { ...sampleFields, supplier: 'Cedar Design Studio' } } : {});
-  const [error, setError] = useState(initialState === 'error' ? 'Choose PDF, PNG or JPEG files. No files were added.' : '');
+  const [error, setError] = useState(initialState === 'error' ? 'Unsupported file type. No files were added.' : '');
   const [message, setMessage] = useState('');
   const [dragging, setDragging] = useState(false);
   const [invalid, setInvalid] = useState(false);
@@ -155,11 +155,11 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
   const pick = () => input.current?.click();
   /* The control that opens the picker, in both states of the box. stopPropagation keeps the
      box's own click — a pointer shortcut, as dragging is — from opening the picker twice. */
-  const picker = <Button size="sm" icon="upload" onClick={event => { event.stopPropagation(); pick(); }}>Upload</Button>;
+  const picker = <Button variant={invoices.length ? 'secondary' : 'primary'} size="sm" icon="upload" onClick={event => { event.stopPropagation(); pick(); }}>Upload</Button>;
   const addFiles = (files: File[]) => {
     if (!files.length) return;
     if (files.some(file => !/\.(pdf|png|jpe?g)$/i.test(file.name))) {
-      setError('Choose PDF, PNG or JPEG files. No files were added.'); return;
+      setError('Unsupported file type. No files were added.'); return;
     }
     const added = files.map(file => ({ name: `upload-${++sequence.current}`, filename: file.name, file, status: 'Uploading' as Status, fields: { ...sampleFields } }));
     setNavigated(true); setInvoices(rows => [...rows, ...added]); setSelected(null); setError('');

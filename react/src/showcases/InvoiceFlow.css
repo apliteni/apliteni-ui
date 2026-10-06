@@ -1,26 +1,15 @@
-/* The prototype's own sheet, and all of it: every rule places a kit part; none paints a ground,
-   casts a rung or sets a type ramp. The two that name a kit class carry marks the kit has no
-   class for, and the drop box's dashed edge is the box itself rather than a kit part.
-   why: guidelines/density-and-accents.md#follow-the-consequence, AGENTS.md, #601
-   held by: react/src/showcases/InvoiceFlow.test.tsx */
+/* Layout for kit parts and the approved drop box. Kit parts keep their own paint and type. */
 
 /* The shell's own hook for its main width, not an override of its rule. */
 .invoice-flow { --ui-app-main: var(--container); }
 /* The page title is a filename, and the kit's h1 declares no wrap. */
 .invoice-flow h1 { overflow-wrap: anywhere; }
 
-/* The pane a save writes leads and takes the wider track: 533 x 317 against the document's
-   355 x 447 at 1280, where the r36 review measured the pair inverted at 1.41. */
+/* The saved data leads and takes the wider track. */
 .invoice-flow__columns {
   display: grid; align-items: start; gap: var(--space-10);
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
 }
-/* The pair's accent, as ink on that pane's name — the rule DocumentReview.css also carries. */
-.invoice-flow__data > .ui-card__title { color: var(--accent); }
-/* And its values heavier than their labels; the kit leaves .ui-input at normal. */
-.invoice-flow__fields .ui-input { font-weight: var(--weight-semibold); }
-
-/* Two fields to a row, and the step the form keeps below itself. */
 .invoice-flow__fields {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-6); margin: 0 0 var(--space-6);
@@ -33,7 +22,6 @@
 .invoice-flow__announcement { margin: 0; }
 .invoice-flow__announcement:empty { display: none; }
 
-/* The facsimile's stack, and the reset for margins <h3> and <p> arrive with. */
 .invoice-flow__paper { display: grid; gap: var(--space-5); }
 .invoice-flow__paper > * { margin: 0; }
 /* A file the reader added, sized to its pane. No edge: the pane is the card.
