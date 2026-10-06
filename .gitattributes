@@ -1,0 +1,3 @@
+# site/build.mjs writes the deployable static tree into site/public/. It is
+# gitignored and rebuildable, so it is generated, not work in progress.
+site/public/** linguist-generated=true

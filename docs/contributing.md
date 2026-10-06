@@ -111,6 +111,10 @@ node site/build.mjs        # → site/public/
 
 To look at the result, serve `site/public/` with any static server.
 
+`site/public/` is gitignored, and `.gitattributes` declares it generated so a tool reading
+the repository can tell a built tree from work in progress. Declare build output you add
+in that file too.
+
 ## The changelog
 
 The changelog is hand-written, newest release first, in `site/changelog.mjs`:
