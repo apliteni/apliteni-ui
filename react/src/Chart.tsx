@@ -758,7 +758,7 @@ export function Chart(props: ChartProps) {
               {!spark && pick !== null && pick >= 0 && pick < count && (
                 <rect className="ui-chart__band"
                   x={px(pick * colWidth)} width={px(colWidth)}
-                  y={px(boxTop)} height={px(boxHeight)} />
+                  y="0" height={px(plotHeight)} />
               )}
 
               {/* The carry a bridge draws from each step to the next: the running
