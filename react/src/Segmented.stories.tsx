@@ -26,9 +26,9 @@ export const Block: Story = { ...Playground, args: { label: 'Section', options: 
 export const SmallBlock: Story = { ...Block, args: { ...Block.args, size: 'sm' } };
 export const Underline: Story = { ...Playground, args: { appearance: 'underline' } };
 export const UnderlineBlock: Story = { ...Block, args: { ...Block.args, appearance: 'underline' } };
-export const Disabled: Story = { ...SmallBlock, args: { ...SmallBlock.args, disabled: true },
-  render: args => <Specimen label="Section selection is unavailable"><Choice {...args} /></Specimen>,
-};
+// No caption: a disabled strip says it is unavailable by the way it is painted,
+// and a line saying so again is the kind of restatement the guidelines refuse.
+export const Disabled: Story = { ...SmallBlock, args: { ...SmallBlock.args, disabled: true } };
 export const DisabledOption: Story = { ...SmallBlock, args: { ...SmallBlock.args, options: [
   { label: 'Overview', value: 'Overview' }, { label: 'Agents', value: 'Agents' }, { label: 'Billing', value: 'Billing', disabled: true },
 ] } };
