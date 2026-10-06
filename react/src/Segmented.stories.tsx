@@ -26,9 +26,14 @@ export const Block: Story = { ...Playground, args: { label: 'Section', options: 
 export const SmallBlock: Story = { ...Block, args: { ...Block.args, size: 'sm' } };
 export const Underline: Story = { ...Playground, args: { appearance: 'underline' } };
 export const UnderlineBlock: Story = { ...Block, args: { ...Block.args, appearance: 'underline' } };
-// No caption: a disabled strip says it is unavailable by the way it is painted,
-// and a line saying so again is the kind of restatement the guidelines refuse.
-export const Disabled: Story = { ...SmallBlock, args: { ...SmallBlock.args, disabled: true } };
+// There is no whole-strip Disabled story. The one it replaced carried a caption
+// saying the control was unavailable, which the guidelines refuse — a caption may
+// not restate a control's state — and with the caption gone the story rendered
+// nothing a contrast walk can judge, because every label in it is disabled ink and
+// WCAG 1.4.3 exempts those. The caption was the only pair that cell ever measured.
+// The disabled paint is shown by DisabledOption below, beside live labels, which is
+// also the case a consumer reaches; `disabled` on the whole toolbar is held by
+// Segmented.test.tsx.
 export const DisabledOption: Story = { ...SmallBlock, args: { ...SmallBlock.args, options: [
   { label: 'Overview', value: 'Overview' }, { label: 'Agents', value: 'Agents' }, { label: 'Billing', value: 'Billing', disabled: true },
 ] } };
