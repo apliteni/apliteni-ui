@@ -155,9 +155,9 @@
 
 /* The carry a bridge draws between two steps: the running total leaves one
    column at the height it reached and meets the next where it starts from. It
-   is the chart's quietest rule, because it is not a measurement — it is the
-   same number twice. Solid, like every other rule here: a dash would read as a
-   forecast. */
+   takes --border-strong, the zero rule's weight rather than the grid's, because
+   it is read along rather than looked up. Solid, like every other rule here: a
+   dash would read as a forecast. */
 .ui-chart__carry { stroke: var(--border-strong); stroke-width: 1; }
 
 /* The picked column, behind every mark and every rule. A quiet fill rather than
