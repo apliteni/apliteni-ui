@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Fabricated demo mark for the kit's story tables: a neutral tile with a
+       knocked-out stroke. Hand-drawn rather than a Lucide path, because it
+       stands in for a company's own artwork and not for one of our glyphs. The
+       one grey reads on the light and the dark ground alike, so the mark needs
+       no theme of its own; it belongs to no real company. -->
+  <rect x="2" y="2" width="20" height="20" rx="5" fill="#8a8f98"/>
+  <path d="M8.5 16.5 15.5 7.5" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
