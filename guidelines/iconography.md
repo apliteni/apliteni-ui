@@ -8,7 +8,7 @@
 
 **Why:** Without a legend, readers need labels for unfamiliar glyphs.
 
-**Except:** The list grows by decision, not review debate, and [Earn a wordless button](https://ui.apli.tech/storybook/?path=/story/guidelines-button-labels--button-labels) states the three tests an entry passes. Today: `x` (close or dismiss), `copy` (copy to clipboard), `moreHorizontal` (overflow menu), `moreVertical` (overflow menu), `chevronDown` (expand or collapse), `chevronUp` (expand or collapse). The shell’s own chrome — theme toggle, sidebar toggle, collapsed-rail links — is wordless by a separate decision, not by passing those tests.
+**Except:** [Earn a wordless button](https://ui.apli.tech/storybook/?path=/story/guidelines-button-labels--button-labels) sets the three tests an entry passes, and the list grows by decision. Today: `x` to close or dismiss, `copy` to the clipboard, `moreHorizontal` and `moreVertical` for an overflow menu, `chevronDown` and `chevronUp` to expand or collapse. The shell’s chrome — theme toggle, sidebar toggle, collapsed-rail links — is wordless by a separate decision.
 
 **Do:** Show an overflow menu without words; keep the Settings label.
 
@@ -18,15 +18,15 @@
 
 <!-- rule: meaning -->
 
-**Rule:** A circled glyph represents a state; a bare glyph represents an action.
+**Rule:** A circled glyph is a state; a bare glyph is an action.
 
 **Why:** Two meanings force readers to decide from context each time.
 
-**Except:** Most glyphs show a thing, not a state or action, including `globe`, `database`, and `layers`. This split guides component choices, not catalogue organisation.
+**Except:** Most glyphs show a thing, not a state or action, including `globe`, `database` and `layers`. The split guides component choice, not the catalogue.
 
-**Do:** Use `circleX` to report failure and the bare `x` to close a toast.
+**Do:** `circleX` reports the failure; the bare `x` closes the toast.
 
-**Don't:** Use the same `x` for two different meanings.
+**Don't:** The same `x` carries both meanings.
 
 ## Preserve glyph paths
 
@@ -34,13 +34,13 @@
 
 **Rule:** Use the Lucide path unchanged, and state when a glyph name differs.
 
-**Why:** The shared source keeps the set consistent, while the commit records its origin.
+**Why:** One source keeps the set consistent; the commit records a renaming.
 
-**Except:** A brand mark without a Lucide original is allowed. `github` and `linkedin` are the vendor’s own marks and belong in BRAND.
+**Except:** A brand mark with no Lucide original is allowed: `github` and `linkedin` are the vendor’s own marks and belong in BRAND.
 
-**Do:** Keep the Lucide path unchanged and document a different name.
+**Do:** `filter` is Lucide’s funnel, renamed and recorded.
 
-**Don't:** Redraw a Lucide path or rename the glyph without recording its original name.
+**Don't:** A redrawn path, or a rename nobody recorded.
 
 ## Status stroke width
 
@@ -48,10 +48,10 @@
 
 **Rule:** Stroke a status glyph at 1.5 CSS px or wider, or require 4.5:1 text contrast instead of 3:1 graphic contrast.
 
-**Why:** Visible width is `stroke-width × box ÷ 24`; below 1.5 CSS px, the stroke reads as a text stem and needs 4.5:1, while above it uses WCAG 1.4.11’s 3:1 graphic bar.
+**Why:** Visible width is `stroke-width × box ÷ 24`; below 1.5 CSS px a stroke reads as a text stem and needs 4.5:1; above it, WCAG 1.4.11’s 3:1 graphic bar applies.
 
-**Except:** Non-status glyphs, such as close buttons and chevrons, have no five-status pair to measure; their control owns their contrast.
+**Except:** A close button or a chevron has no status pair to measure; its control owns its contrast.
 
-**Do:** Use a stroke at least 1.5 CSS px wide before using the 3:1 graphic contrast minimum.
+**Do:** A 1.5 CSS px stroke, held to 3:1.
 
-**Don't:** Accept a thinner status stroke at only 3:1 contrast.
+**Don't:** A thinner stroke, still only 3:1.
