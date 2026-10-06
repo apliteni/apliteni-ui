@@ -161,6 +161,12 @@ Keep explicit Storybook IDs stable. Give every React component a test and a stor
 detector on new example pages. When overriding styles, check every existing state. Remove
 obsolete guideline `unmet` markers when closing an issue.
 
+A showcase and a component story use kit classes. Their own CSS may only place kit parts: a
+glue declaration, and a kit class named only with a reason in the allow-list beside the gate.
+Paint, type, motion or a re-declared token is a shadow kit — fix it, or file the part the kit is
+missing. Treat local CSS in a showcase as a defect to justify in review, not a style choice.
+See #601.
+
 Change generated brand tokens and marks in `apliteni/design-system`, then sync them here. Use
 unmodified Lucide paths for glyphs, recording the Lucide source name when it differs from the kit
 name and explaining any hand-drawn path. Name and group glyphs by what they depict, and use the
