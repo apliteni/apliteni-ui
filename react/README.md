@@ -830,8 +830,8 @@ one series at text size with no axis, for a stat band's `trend` slot.
 The numbers are yours and so is the wording. `format` prints exact values in the readout, the
 live region and the table; `formatAxis` prints the ticks, which are whole units, and defaults
 to `format`. A `bars-below` series takes positive magnitudes and is drawn under the zero line.
-A period marked `estimated` is drawn hollow behind a dashed edge in its own tone, and named in
-words in both the readout and the legend; `note` says why.
+A period marked `estimated` keeps its series fill with a dashed edge. The legend names the state.
+The readout and the optional table show the state and its `note`.
 
 A bar series names a tone. `accent` and `accent-soft` are one hue at two weights, which is how
 two series read apart without spending a second colour on them; `good` and `bad` say which way
