@@ -19,9 +19,13 @@
  *  - shadow — paint, type, motion, or a kit token re-declared — never allowed, and held
  *    at the figure in RECORDED until it is gone.
  *
+ * A fourth answer, unknown, is this gate admitting it cannot sort something: a property
+ * in neither vocabulary, or a style block it cannot read. Both fail, because a gate that
+ * passes what it cannot classify is a gate with a hole in it.
+ *
  * LIMITS are stated in scripts/lib/story-css.js, next to the reader they belong to. The
- * one that matters most here: this is source, not paint. A story that assembles a
- * declaration at run time, or sets `element.style`, walks past this gate.
+ * one that matters most here: this is source, not paint. A story that sets
+ * `element.style`, or toggles a class the kit does not own, walks past this gate.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -37,19 +41,27 @@ const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 
 /* ---- the subjects ------------------------------------------------------- */
 
-/* Every showcase and component story, discovered from the directories so a new story
- * joins by existing — plus the `_name.js` support modules the stories build with. Those
- * are in because they are where this collection's worst habit lives: `_gallery.js`
- * writes the specimen label's type for twenty-four stories at once, so a gate that read
- * only the stories would call every one of them clean. */
-const subjects = [
-  ...readdirSync(path.join(root, 'stories')).filter((f) => /^_[\w-]+\.js$/.test(f))
-    .map((f) => `stories/${f}`),
-  ...readdirSync(path.join(root, 'stories/apps')).filter((f) => /\.stories\.js$|^_[\w-]+\.js$/.test(f))
-    .map((f) => `stories/apps/${f}`),
-  ...readdirSync(path.join(root, 'stories/components')).filter((f) => f.endsWith('.stories.js'))
-    .map((f) => `stories/components/${f}`),
-].sort();
+/** Every file under a directory, repo-relative, however deep it sits. */
+function filesUnder(rel, acc = []) {
+  for (const entry of readdirSync(path.join(root, rel), { withFileTypes: true })) {
+    const next = `${rel}/${entry.name}`;
+    if (entry.isDirectory()) filesUnder(next, acc);
+    else acc.push(next);
+  }
+  return acc;
+}
+
+/* What .storybook/main.js serves: `../stories/**\/*.stories.@(js|mjs)`. Recursive, and
+ * two extensions — so this sweep is too. A sweep narrower than the glob gates less than
+ * Storybook ships, and the gap is silent: the aggregate counts below stay green while a
+ * story in a new folder paints whatever it likes. */
+const SERVED = /\.stories\.m?js$/;
+
+/* The `_name.js` support modules the stories build with. They are subjects because they
+ * are where this collection's worst habit lives: `_gallery.js` writes the specimen
+ * label's type for twenty-four stories at once, so a gate that read only the stories
+ * would call every one of them clean. */
+const SUPPORT = /(?:^|\/)_[\w-]+\.m?js$/;
 
 /* Foundations and guideline pages are deliberately NOT subjects. A foundations page's
  * job is to draw the token — a swatch of `--surface-3` is the specimen, and painting it
@@ -57,7 +69,19 @@ const subjects = [
  * gates measure it (stories/guidelines/reading-surface.test.js). #601 measured them
  * anyway, for the record: 1812 declarations across the two collections, 783 of them
  * paint. Gating them would demand an allow-list longer than the pages. */
-const FOUND = { subjects: 41, declarations: 520, carriers: 34 };
+const EXCLUDED = /^stories\/(?:foundations|guidelines)\//;
+
+/** The subjects among a list of paths, so a mutation can hand this one it invented. */
+export const subjectsAmong = (paths) => paths
+  .filter((p) => !EXCLUDED.test(p) && (SERVED.test(p) || SUPPORT.test(p))).sort();
+
+const files = filesUnder('stories');
+const subjects = subjectsAmong(files);
+
+/* Measured, not guessed: the figures as this gate last audited them. Every one is a
+ * lower bound, so the gate fails when the reading stops reaching something rather than
+ * when the collection grows. */
+const FOUND = { subjects: 41, served: 37, declarations: 520, carriers: 35 };
 
 const tokens = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -85,6 +109,7 @@ const ALLOWED = {
   // ground, a frame and padding, and lets the column it sits in say how wide it is.
   'stories/apps/Consent.stories.js|.ui-auth__card': 'the auth card takes its width from the screen',
   'stories/components/BadgeStatus.stories.js|.ui-card': 'a specimen card is as wide as its specimen',
+  'stories/components/SwitchCheckbox.stories.js|.ui-card': 'a specimen card is as wide as its specimen',
   'stories/components/Table.stories.js|.ui-card': 'a specimen card is as wide as its specimen',
 
   // Space between two kit parts belongs to whatever stacks them, and these pages stack
@@ -130,8 +155,8 @@ const ALLOWED = {
 
 /* Read off the stories that wrote no shadow CSS at all — by construction, the ones that
  * used the kit. Across both workspaces there are 47 of them, the widest needs 22 glue
- * declarations (CalloutToast's stack of toasts), nine in ten need 11 or fewer, and the
- * median needs 1.
+ * declarations (CalloutToast's stack of toasts), the median needs 1, and 40 of the 47
+ * need 11 or fewer; nine in ten need 13 or fewer.
  *
  * So 22 is the measured cost of the widest honest composition in the collection, not a
  * round number over it. Five subjects in the two workspaces are above it, and all five
@@ -215,8 +240,22 @@ test('the gate found every showcase and component story, and read CSS out of the
   }
 });
 
+test('every story Storybook serves is a subject, and the sweep goes all the way down', () => {
+  const served = files.filter((f) => SERVED.test(f));
+  assert.ok(served.length >= FOUND.served, `only ${served.length} served stories found under `
+    + `stories/, against ${FOUND.served} when this gate was written.`);
+
+  const ungated = served.filter((f) => !EXCLUDED.test(f) && !subjects.includes(f));
+  assert.deepEqual(ungated, [], 'Storybook serves these stories and this gate does not read them. '
+    + 'Either they are subjects or the exclusion above has to say why not.');
+
+  // The sweep is recursive, proven on a folder that exists: the exclusions are reached.
+  assert.ok(files.some((f) => /^stories\/guidelines\/[^/]+$/.test(f)),
+    'the sweep did not descend into stories/guidelines, so it is not reading folders at all');
+});
+
 test('every subject this gate reads is a story or a story support module', () => {
-  const stray = subjects.filter((f) => !/\.stories\.js$/.test(f) && !/\/_[\w-]+\.js$/.test(f));
+  const stray = subjects.filter((f) => !SERVED.test(f) && !SUPPORT.test(f));
   assert.deepEqual(stray, [], 'the sweep reached a file that is neither a story nor a support '
     + 'module for one. Kit source has its own gates and its own permissions.');
 });
@@ -252,53 +291,47 @@ const withEdit = (file, edit) => problemsIn(
   against,
 );
 
+/* CalloutToast writes no shadow CSS, so paint added to it has nowhere to hide; Footer
+ * writes two glue declarations, so glue added to it does not also trip the ceiling. */
+const clean = 'stories/components/CalloutToast.stories.js';
+const spare = 'stories/components/Footer.stories.js';
+
+/** Put one more declaration list into a story, ahead of its first export. */
+const plant = (markup) => (src) => src.replace(
+  'export const', `/* */ const MUTANT = \`${markup}\`;\nexport const`,
+);
+
 test('the gate reports a story that paints something of its own', () => {
-  // CalloutToast writes no shadow CSS today, so a colour added to it has nowhere to hide.
-  const file = 'stories/components/CalloutToast.stories.js';
-  const before = measured.find((s) => s.file === file);
-  assert.equal(before.shadows.length, 0, `${file} was the clean subject this mutation needs and `
+  const before = measured.find((s) => s.file === clean);
+  assert.equal(before.shadows.length, 0, `${clean} was the clean subject this mutation needs and `
     + 'is no longer clean — pick another and say so here.');
-  const problems = withEdit(file, (src) => src.replace(
-    'export const', '/* */ const MUTANT = `<style>.ct-x { color: #ff0000; }</style>`;\nexport const',
-  ));
-  assert.ok(problems.some((p) => p.includes(file) && p.includes('color')),
+  const problems = withEdit(clean, plant('<style>.ct-x { color: #ff0000; }</style>'));
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')),
     `a story painting its own ink was not reported:\n${problems.join('\n')}`);
 });
 
 test('the gate reports a story that restyles a kit class', () => {
-  const file = 'stories/components/CalloutToast.stories.js';
-  const problems = withEdit(file, (src) => src.replace(
-    'export const', '/* */ const MUTANT = `<style>.ui-callout { background: #ff0000; }</style>`;\nexport const',
-  ));
-  assert.ok(problems.some((p) => p.includes(file) && p.includes('.ui-callout')),
+  const problems = withEdit(clean, plant('<style>.ui-callout { background: #ff0000; }</style>'));
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('.ui-callout')),
     `repainting a kit class was not reported:\n${problems.join('\n')}`);
 });
 
 test('the gate reports a placement onto a kit class with no reason on record', () => {
-  const file = 'stories/components/CalloutToast.stories.js';
-  const problems = withEdit(file, (src) => src.replace(
-    'export const', '/* */ const MUTANT = `<style>.ui-callout { max-width: 10px; }</style>`;\nexport const',
-  ));
-  assert.ok(problems.some((p) => p.includes(`${file}|.ui-callout`)),
+  const problems = withEdit(clean, plant('<style>.ui-callout { max-width: 10px; }</style>'));
+  assert.ok(problems.some((p) => p.includes(`${clean}|.ui-callout`)),
     `an unlisted placement was not reported:\n${problems.join('\n')}`);
 });
 
 test('the gate reports a story that re-declares a kit token', () => {
-  const file = 'stories/components/CalloutToast.stories.js';
-  const problems = withEdit(file, (src) => src.replace(
-    'export const', '/* */ const MUTANT = `<style>.ct-x { --space-4: 3px; }</style>`;\nexport const',
-  ));
-  assert.ok(problems.some((p) => p.includes(file) && p.includes('--space-4')),
+  const problems = withEdit(clean, plant('<style>.ct-x { --space-4: 3px; }</style>'));
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('--space-4')),
     `a re-declared kit token was not reported:\n${problems.join('\n')}`);
 });
 
 test('the gate reports a story whose layout glue goes over the ceiling', () => {
-  const file = 'stories/components/Footer.stories.js';
   const glue = `.mx { ${Array.from({ length: GLUE_CEILING + 1 }, (_, i) => `margin-top: ${i}px`).join(';')} }`;
-  const problems = withEdit(file, (src) => src.replace(
-    'export const', `/* */ const MUTANT = \`<style>${glue}</style>\`;\nexport const`,
-  ));
-  assert.ok(problems.some((p) => p.includes(file) && p.includes(`ceiling of ${GLUE_CEILING}`)),
+  const problems = withEdit(spare, plant(`<style>${glue}</style>`));
+  assert.ok(problems.some((p) => p.includes(spare) && p.includes(`ceiling of ${GLUE_CEILING}`)),
     `glue over the ceiling was not reported:\n${problems.join('\n')}`);
 });
 
@@ -317,18 +350,72 @@ test('the gate reports a recorded story that grows, shrinks, or comes clean', ()
   assert.ok(shrunk.some((p) => p.includes(file) && p.includes('down from the 3 recorded')),
     `a recorded story that came under its figure was not reported:\n${shrunk.join('\n')}`);
 
-  const clean = withEdit(file, (src) => src.replace(/font-size: var\(--text-sm\);|color: var\(--(?:muted|text)\);/g, ''));
-  assert.ok(clean.some((p) => p.includes(file) && p.includes('writes no paint')),
-    `a story that has nothing left to record was not reported:\n${clean.join('\n')}`);
+  const clear = withEdit(file, (src) => src.replace(/font-size: var\(--text-sm\);|color: var\(--(?:muted|text)\);/g, ''));
+  assert.ok(clear.some((p) => p.includes(file) && p.includes('writes no paint')),
+    `a story that has nothing left to record was not reported:\n${clear.join('\n')}`);
 });
 
 test('the gate reports a property it cannot sort', () => {
-  const file = 'stories/components/CalloutToast.stories.js';
-  const problems = withEdit(file, (src) => src.replace(
-    'export const', '/* */ const MUTANT = `<style>.ct-x { scrollbar-gutter: stable; }</style>`;\nexport const',
-  ));
+  const problems = withEdit(clean, plant('<style>.ct-x { scrollbar-gutter: stable; }</style>'));
   assert.ok(problems.some((p) => p.includes('scrollbar-gutter') && p.includes('does not sort')),
     `an unsorted property was not reported:\n${problems.join('\n')}`);
+});
+
+test('the gate reports a property it cannot sort even on a kit class', () => {
+  // The vocabularies are consulted before the selector. A kit class used to buy a
+  // declaration the word "placement", whatever the property did.
+  const problems = withEdit(clean, plant('<style>.ui-callout { scrollbar-color: #ff0000 #00ff00; }</style>'));
+  assert.ok(problems.some((p) => p.includes('scrollbar-color') && p.includes('does not sort')),
+    `an unsorted property on a kit class was not reported as unsorted:\n${problems.join('\n')}`);
+});
+
+test('the gate reports a column rule as paint and smooth scrolling as motion', () => {
+  // Both used to read as placement: a `column-[\w-]+` pattern answered for
+  // `column-rule-color`, and a `scroll-[\w-]+` one for `scroll-behavior`.
+  for (const declaration of [
+    'column-rule: 8px solid #ff0000',
+    'column-rule-color: #ff0000',
+    'scroll-behavior: smooth',
+  ]) {
+    const problems = withEdit(clean, plant(`<style>.ct-x { ${declaration}; }</style>`));
+    const [property] = declaration.split(':');
+    assert.ok(problems.some((p) => p.includes(clean) && p.includes(property)),
+      `\`${declaration}\` was not reported as paint:\n${problems.join('\n')}`);
+  }
+});
+
+/* ---- anti-vacuity: the reader does not drop ordinary source ------------- */
+
+test('the gate reads a single-quoted style attribute', () => {
+  const problems = withEdit(clean, plant("<div style='color: #ff0000'></div>"));
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')),
+    `a single-quoted style attribute was dropped:\n${problems.join('\n')}`);
+});
+
+test('the gate reads a style attribute that carries a comment', () => {
+  const problems = withEdit(clean, plant('<div style="/* the brand red */ color: #ff0000"></div>'));
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')),
+    `a commented style attribute was dropped:\n${problems.join('\n')}`);
+});
+
+test('the gate reads the kit class whether it is written before or after the style', () => {
+  for (const tag of [
+    '<div class="ui-callout" style="max-width: 10px"></div>',
+    '<div style="max-width: 10px" class="ui-callout"></div>',
+  ]) {
+    const problems = withEdit(clean, plant(tag));
+    assert.ok(problems.some((p) => p.includes(`${clean}|.ui-callout`)),
+      `the kit class in \`${tag}\` was not read as the subject:\n${problems.join('\n')}`);
+  }
+});
+
+test('the gate reports a style attribute whose text it cannot read', () => {
+  // The dodge the reader used to pass in silence: assemble the attribute and it measured
+  // zero declarations, which reads exactly like a story that writes no CSS.
+  const mutant = 'const MUTANT = `<div style="${paint}"></div>`;';
+  const problems = withEdit(clean, (src) => `${src}\n${mutant}\n`);
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('cannot read')),
+    `an unreadable style attribute was measured as empty:\n${problems.join('\n')}`);
 });
 
 test('the gate reports a dead allow-list entry', () => {
@@ -338,4 +425,35 @@ test('the gate reports a dead allow-list entry', () => {
   });
   assert.ok(problems.some((p) => p.includes('.ui-nowhere') && p.includes('nothing matches it')),
     `a dead allow-list entry was not reported:\n${problems.join('\n')}`);
+});
+
+/* ---- anti-vacuity: discovery ------------------------------------------- */
+
+test('a story served from a new folder or a new extension becomes a subject, paint and all', () => {
+  for (const file of [
+    'stories/components/New.stories.mjs',
+    'stories/components/nested/New.stories.js',
+    'stories/apps/nested/deeper/New.stories.mjs',
+    'stories/nested/_support.js',
+  ]) {
+    assert.ok(subjectsAmong([...files, file]).includes(file),
+      `Storybook would serve ${file} and this gate would not read it`);
+    const problems = problemsIn(
+      [...measured, measureStory(file, '<style>.n { color: #ff0000 }</style>', tokens)],
+      against,
+    );
+    assert.ok(problems.some((p) => p.includes(file) && p.includes('color')),
+      `paint in a newly served ${file} was not reported:\n${problems.join('\n')}`);
+  }
+
+  // The two exclusions are still exclusions, at any depth.
+  for (const file of ['stories/foundations/New.stories.js', 'stories/guidelines/deep/New.stories.mjs']) {
+    assert.ok(!subjectsAmong([...files, file]).includes(file),
+      `${file} is a foundations or guideline page and must stay out of this gate`);
+  }
+
+  // A test, a test helper and a stylesheet are not stories.
+  for (const file of ['stories/components/New.test.js', 'stories/lib/helper.js', 'stories/x.css']) {
+    assert.ok(!subjectsAmong([...files, file]).includes(file), `${file} is not a story`);
+  }
 });

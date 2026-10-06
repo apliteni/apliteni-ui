@@ -14,7 +14,8 @@
 // The limits of the reading are stated in scripts/lib/story-css.js. The one that bites
 // hardest in JSX: a `style={{…}}` whose `className` is built by an expression reads as
 // no class at all, so a placement onto a kit class written that way is counted as glue
-// rather than sent to the allow-list.
+// rather than sent to the allow-list. A `style={name}` is read through to the `const`
+// object literal it names; any other expression is reported as unreadable.
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -29,20 +30,52 @@ const read = (rel: string) => readFileSync(path.join(root, rel), 'utf8');
 
 /* ---- the subjects ------------------------------------------------------- */
 
-const entries = readdirSync(here);
+/** Every file under a directory, repo-relative, however deep it sits. */
+function filesUnder(rel: string, acc: string[] = []): string[] {
+  for (const entry of readdirSync(path.join(root, rel), { withFileTypes: true })) {
+    const next = `${rel}/${entry.name}`;
+    if (entry.isDirectory()) filesUnder(next, acc);
+    else acc.push(next);
+  }
+  return acc;
+}
+
+// What react/.storybook/main.ts serves: `../src/**/*.stories.@(tsx|ts)`. Recursive, and
+// two extensions — so this sweep is too. A sweep narrower than the glob gates less than
+// Storybook ships, and the gap is silent: the aggregate counts below stay green while a
+// story in a new folder paints whatever it likes.
+const SERVED = /\.stories\.tsx?$/;
+
+const files = filesUnder('react/src');
+
+/** A module that could own a stylesheet: not a story, not a test. */
+const isModule = (file: string) => /\.tsx?$/.test(file)
+  && !SERVED.test(file) && !/\.test\.tsx?$/.test(file);
+
+/** Does `file` import `sheet`? Resolved, so an import from a subfolder counts. */
+const importsSheet = (file: string, sheet: string) => {
+  const from = path.dirname(path.join(root, file));
+  for (const m of read(file).matchAll(/['"]([^'"]+\.css)['"]/g)) {
+    if (path.resolve(from, m[1]) === path.join(root, sheet)) return true;
+  }
+  return false;
+};
 
 /** A sheet nothing but a story (or a test) imports is story CSS. */
-const storyOnlySheet = (sheet: string) => entries
-  .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$|\.stories\.tsx$/.test(f))
-  .every((f) => !readFileSync(path.join(here, f), 'utf8').includes(`./${sheet}`));
+const storyOnlySheet = (sheet: string) => !files.filter(isModule).some((f) => importsSheet(f, sheet));
+
+/** The subjects among a list of paths, so a mutation can hand this one it invented. */
+export const subjectsAmong = (paths: string[]) => paths.filter((p) => SERVED.test(p)).sort();
 
 const subjects: string[] = [
-  ...entries.filter((f) => f.endsWith('.stories.tsx')),
-  ...entries.filter((f) => f.endsWith('.css')).filter(storyOnlySheet),
-].map((f) => `react/src/${f}`).sort();
+  ...subjectsAmong(files),
+  ...files.filter((f) => f.endsWith('.css')).filter(storyOnlySheet),
+].sort();
 
-// 36 stories and the two showcase sheets, when this gate was written.
-const FOUND = { subjects: 38, declarations: 264, carriers: 23, sheets: 2 };
+// Measured, not guessed: 36 stories and the two showcase sheets, as this gate last
+// audited them. Every figure is a lower bound, so the gate fails when the reading stops
+// reaching something rather than when the workspace grows.
+const FOUND = { subjects: 38, declarations: 311, carriers: 29, sheets: 2 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -86,8 +119,9 @@ const ALLOWED: Record<string, string> = {
 /* ---- the glue ceiling --------------------------------------------------- */
 
 // Derived in stories/story-css.test.js from the 47 stories across both workspaces that
-// wrote no shadow CSS at all: the widest needs 22 glue declarations, nine in ten need 11
-// or fewer. One ceiling, because it is one rule about one kind of story.
+// wrote no shadow CSS at all: the widest needs 22 glue declarations, the median needs 1,
+// and 40 of the 47 need 11 or fewer. One ceiling, because it is one rule about one kind
+// of story.
 const GLUE_CEILING = 22;
 
 /* ---- what this workspace carries today ---------------------------------- */
@@ -102,13 +136,13 @@ const GLUE_CEILING = 22;
 //
 // Maintained by hand. Never regenerated.
 //
-// The follow-ups are in #601's audit. DocumentReview is the largest: six of its twelve
-// are `font-weight` on a kit table and a kit drawer row, which is the rank the kit's own
-// type ranks should be able to express. FeedbackShowcase.css is twelve declarations of
-// page-head and prose type that a kit page-head part would carry.
+// The follow-ups are in #601's audit; DocumentReview's six `font-weight` rules on a kit
+// table and FeedbackShowcase.css's twelve lines of page-head type are the largest.
+// BadgeStatus's 39 is the one figure that rose without its story changing: the reader
+// used to drop the three `style={row}` specimen rows it writes its layout with.
 const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/AccentPicker.stories.tsx': { shadow: 3 },
-  'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 27 },
+  'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
   'react/src/Button.stories.tsx': { shadow: 1 },
   'react/src/CommandPalette.stories.tsx': { shadow: 2 },
   'react/src/DatePicker.stories.tsx': { shadow: 2 },
@@ -139,6 +173,12 @@ describe('story CSS', () => {
     // A component's own sheet is not a subject: it is this workspace's kit source.
     expect(subjects).not.toContain('react/src/DataTable.css');
     expect(tokens.size).toBeGreaterThan(100);
+  });
+
+  it('sweeps every folder under src, so a nested story cannot hide', () => {
+    expect(files.some((f) => f.startsWith('react/src/primitives/'))).toBe(true);
+    // Everything Storybook serves is read; nothing here is excluded on purpose.
+    expect(files.filter((f) => SERVED.test(f)).filter((f) => !subjects.includes(f))).toEqual([]);
   });
 
   it('reads CSS out of them', () => {
@@ -217,11 +257,102 @@ describe('story CSS', () => {
     expect(problems.join('\n')).toContain('does not sort');
   });
 
+  it('reports a property it cannot sort even on a kit class', () => {
+    // The vocabularies are consulted before the selector. A kit class used to buy a
+    // declaration the word "placement", whatever the property did.
+    const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div className="ui-card" style={{ scrollbarColor: '#f00 #0f0' }} />;\n`);
+    expect(problems.join('\n')).toContain('scrollbar-color');
+    expect(problems.join('\n')).toContain('does not sort');
+  });
+
+  it('reports a column rule as paint and smooth scrolling as motion', () => {
+    // Both used to read as placement: a `column-[\w-]+` pattern answered for
+    // `column-rule-color`, and a `scroll-[\w-]+` one for `scroll-behavior`.
+    for (const [property, declaration] of [
+      ['column-rule', "columnRule: '8px solid #f00'"],
+      ['column-rule-color', "columnRuleColor: '#f00'"],
+      ['scroll-behavior', "scrollBehavior: 'smooth'"],
+    ]) {
+      const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ ${declaration} }} />;\n`);
+      expect(problems.join('\n'), `${declaration} was not reported as paint`).toContain(property);
+    }
+  });
+
+  /* ---- anti-vacuity: the reader does not drop ordinary source ----------- */
+
+  it('reads a style object that carries a comment', () => {
+    const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ /* the brand red */ color: '#f00' }} />;\n`);
+    expect(problems.join('\n')).toContain('color');
+  });
+
+  it('reads a style object whose value has brackets of its own', () => {
+    // The old reader stopped at the first `}`, so a nested object threw the whole style
+    // away and the story measured zero declarations.
+    const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ color: ({ light: '#f00', dark: '#0f0' })[theme] }} />;\n`);
+    expect(problems.join('\n')).toContain('color');
+  });
+
+  it('reads the kit class whether it is written before or after the style', () => {
+    for (const tag of [
+      '<div className="ui-tabs" style={{ maxWidth: 10 }} />',
+      '<div style={{ maxWidth: 10 }} className="ui-tabs" />',
+    ]) {
+      const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = ${tag};\n`);
+      expect(problems.join('\n'), `the kit class in ${tag} was not read`).toContain(`${clean}|.ui-tabs`);
+    }
+  });
+
+  it('reads a style object the story binds by name', () => {
+    // `style={row}` is an ordinary declaration list written a few lines up. Three of
+    // this workspace's stories write their layout that way.
+    const mutant = "\nconst MUTANT_PAINT = { color: '#f00' };\nconst MUTANT = <div style={MUTANT_PAINT} />;\n";
+    expect(withEdit(clean, (src) => src + mutant).join('\n')).toContain('color');
+
+    const member = "\nconst MUTANT_SHEET = { head: { color: '#f00' } };\nconst MUTANT = <div style={MUTANT_SHEET.head} />;\n";
+    expect(withEdit(clean, (src) => src + member).join('\n')).toContain('color');
+  });
+
+  it('reports a style object it cannot read', () => {
+    // The dodge the reader used to pass in silence: hand `style` an expression it could
+    // not follow and it measured zero declarations, which reads like a story with no CSS.
+    const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={props.style} />;\n`);
+    expect(problems.join('\n')).toContain('cannot read');
+  });
+
   it('reports a dead allow-list entry', () => {
     const problems = problemsIn(measured, {
       ...against,
       allowed: { ...ALLOWED, 'react/src/Modal.stories.tsx|.ui-nowhere': 'nothing matches this' },
     });
     expect(problems.join('\n')).toContain('nothing matches it');
+  });
+
+  /* ---- anti-vacuity: discovery ----------------------------------------- */
+
+  it('makes a story served from a new folder or a new extension a subject, paint and all', () => {
+    for (const file of [
+      'react/src/New.stories.ts',
+      'react/src/nested/New.stories.tsx',
+      'react/src/primitives/deeper/New.stories.ts',
+    ]) {
+      expect(subjectsAmong([...files, file]), `Storybook would serve ${file} and this gate would not read it`).toContain(file);
+      const planted = measureStory(file, "const M = <div style={{ color: '#f00' }} />;", tokens);
+      const problems = problemsIn([...measured, planted], against);
+      expect(problems.join('\n'), `paint in a newly served ${file} was not reported`).toContain(file);
+    }
+
+    // A test and a stylesheet are not stories.
+    for (const file of ['react/src/New.test.tsx', 'react/src/New.css']) {
+      expect(subjectsAmong([...files, file])).not.toContain(file);
+    }
+  });
+
+  it('owns a stylesheet by who imports it, from any folder', () => {
+    // A component's sheet stays the component's however deep the import sits, and a
+    // showcase's sheet stays story CSS because only its story imports it.
+    expect(importsSheet('react/src/DataTable.tsx', 'react/src/DataTable.css')).toBe(true);
+    expect(storyOnlySheet('react/src/DataTable.css')).toBe(false);
+    expect(storyOnlySheet('react/src/FeedbackShowcase.css')).toBe(true);
+    expect(files.filter(isModule).some((f) => f.startsWith('react/src/primitives/'))).toBe(true);
   });
 });
