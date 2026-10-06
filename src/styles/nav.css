@@ -285,13 +285,35 @@
 
 /* -- Horizontal tabs ----------------------------------------------------- */
 .ui-nav--tabs {
+  /* A scroll box clips at its padding edge, so the ring needs padding, not bare
+     paint room. Equal negative margins give the row back its place on the gutter
+     and in the flow, and the rule is painted as a background line one pixel above
+     the padding — a border-bottom would sit below it and lift the active
+     underline off the rule. */
+  --ui-tabs-ring-room: var(--space-1);
+  --ui-tabs-rule: 1px;
+  min-width: 0;
+  max-width: calc(100% + 2 * var(--ui-tabs-ring-room));
+  overflow-x: auto;
+  padding: var(--ui-tabs-ring-room);
+  margin: calc(-1 * var(--ui-tabs-ring-room)) calc(-1 * var(--ui-tabs-ring-room))
+    calc(var(--ui-tabs-rule) - var(--ui-tabs-ring-room));
   display: flex;
   align-items: stretch;
   gap: 4px;
-  border-bottom: 1px solid var(--border);
+  background-image: linear-gradient(var(--border), var(--border));
+  background-repeat: no-repeat;
+  background-position: center bottom calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule));
+  background-size: calc(100% - 2 * var(--ui-tabs-ring-room)) var(--ui-tabs-rule);
 }
-.ui-nav--tabs.is-pill { border-bottom: 0; gap: 6px; }
+.ui-nav--tabs.is-pill { --ui-tabs-rule: 0px; background-image: none; gap: 6px; }
+/* The row is a keyboard stop of its own only when it holds no focusable link — every
+   tab disabled — and Chromium answers that stop with its black outline. It is a scroll
+   region, so it takes the kit's inward band like the other six: an outset ring would be
+   clipped by the very box that scrolls. #531's reading, on #429's row. */
+.ui-nav--tabs:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-nav__tab {
+  flex: none;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -324,10 +346,44 @@
 
 /* pill variant */
 .ui-nav--tabs.is-pill .ui-nav__tab { border-radius: var(--radius-pill); padding: 8px 15px; }
-.ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface); /* code-bg: inherit — control paint; its focus indicator uses the containing surface. */ }
+/* One accent signal on the selected tab: the soft fill. The label keeps the body
+   ink `.is-active` already gives it, as the underline appearance does — accent ink
+   on an accent wash said it twice. Artur chose it on #475. */
 .ui-nav--tabs.is-pill .ui-nav__tab.is-active {
-  background: var(--glow-purple); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */
-  color: var(--accent);
+  background: var(--glow-purple); /* code-bg: inherit — translucent wash retains the opaque containing gap. */
+}
+
+/* Forced colours, after the two appearances have had their say: this block declares
+   `background-color`, and the pill's `background` shorthand above would reset it from
+   the same specificity if it came first. */
+@media (forced-colors: active) {
+  /* Forced colours drop background images, so the row's rule comes back as a border.
+     The last pixel of the bottom padding pays for it and the row keeps its size. */
+  .ui-nav--tabs {
+    padding-bottom: calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule));
+    border-bottom: var(--ui-tabs-rule) solid;
+  }
+  /* What marks the selected tab is a colour, and forced colours take colours away:
+     the pill's wash is repainted Canvas and the underline's accent bar Canvas too, so
+     measured on a white ground both appearances left every tab looking alike. The
+     system's own selected pair says it instead — the kit picks no shade here, the
+     reader's own theme does, and the pair contrasts by construction. Normal colours
+     keep the treatment Artur chose on #475; this speaks only where it was silent. */
+  .ui-nav--tabs.is-pill .ui-nav__tab.is-active {
+    /* Chromium plates every run of text with Canvas, so a label left on `auto` is
+       painted on white inside the fill and the pair stops being a pair. `none` hands
+       this one capsule back to the declarations below — which name no shade of our
+       own: Highlight and HighlightText come from the reader's theme and contrast by
+       construction, and the badge rides the same pair inverted. */
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  .ui-nav--tabs.is-pill .ui-nav__tab.is-active .ui-nav__badge {
+    background-color: HighlightText; color: Highlight; border-color: HighlightText;
+  }
+  .ui-nav--tabs.is-underline .ui-nav__tab.is-active::after { background-color: Highlight; }
 }
 
 .ui-nav__tab.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; }

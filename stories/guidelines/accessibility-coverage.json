@@ -70,6 +70,22 @@
       ]
     },
     {
+      "file": "react/src/NavTabs.test.tsx",
+      "name": "React: NavTabs",
+      "does": "Checks native route-link semantics, current and disabled state, keyboard order, root refs, badge text, safe destinations and axe results.",
+      "blind": [
+        "JSDOM does not measure responsive layout, focus-ring pixels or actual browser navigation. Story contrast and browser captures cover the shared styling."
+      ]
+    },
+    {
+      "file": "react/src/Breadcrumbs.test.tsx",
+      "name": "React: Breadcrumbs",
+      "does": "Checks ordered trail semantics, current-page text, ancestor links, decorative icons, keyboard focus, root refs, safe destinations and axe results.",
+      "blind": [
+        "JSDOM does not measure browser layout, visual separators or spoken screen-reader output. Story contrast and browser captures cover shared styling."
+      ]
+    },
+    {
       "file": "react/src/Tooltip.test.tsx",
       "name": "React: Tooltip",
       "does": "Checks description IDs, keyboard focus, Escape dismissal, touch toggling, placement and axe results.",

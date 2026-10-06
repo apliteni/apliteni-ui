@@ -152,7 +152,7 @@ identity column through classes. See
 |------|------------|
 | `appShell({ word, brandHref, nav, active, navLabel, crumbs, back, title, sub, body, account, signOutHref, layout, width, search, topbar, maxWidth, collapsible, collapsed })` | The kit's one page shell, and the one to call for new work. See [The page shell](#the-page-shell) and [The second layout](#the-second-layout). |
 | `wireShell(root, { persist })` + `railCollapsed(cookieHeader?)`, `RAIL_COOKIE` | Wires the rail's fold, the reader's menu and the nav's groups; the cookie lets a server paint the right width first. |
-| `nav({ variant })`, dispatching to `sidebarNav`, `navTabs` or `breadcrumbs`, + `wireNav(root)` | Wayfinding. Each shape is also exported on its own. |
+| `nav({ variant })`, dispatching to `sidebarNav`, `navTabs` or `breadcrumbs`, + `wireNav(root)` | Wayfinding. Each shape is also exported on its own. `wireNav` opens the sidebar's groups, sizes a tab row to its links on load and on resize, scrolls the row to its current link, and scrolls it to a link the keyboard lands on. See [A tab row scrolls inside its column](#a-tab-row-scrolls-inside-its-column). |
 | `backLink({ href, label })` | The way up to the page this one sits under — an `<a href>`, never a history step. See [The back link](#the-back-link). |
 | `topbar(…)` + `wireTopbar(root)` | The product topbar. `themeToggle(theme)`, `accountMenu({ name, email, active, nav, initials })`, `versionSwitcher(versions, activeIdx)` and `deckTextSwitch(active)` are its parts, usable alone; `themeIcon(t)` and `themeName(t)` label your own toggle. |
 | `accentPicker({ active, options })`, with `ACCENTS` and `accentSwatchStyle(accent)` | The accent swatches, wired by `wireTopbar()`. `ACCENTS` is the list the kit ships; `accentSwatchStyle(accent)` is the one custom property a swatch button carries, `--swatch`, the gradient its circle wears. Both pickers read them, so a page building its own strip paints the same thing — and the kit's stylesheet draws the selected swatch's tick, so the strip needs no selection paint of its own. An accent with no paints gets `--swatch: transparent`, an empty circle you can still press. |
@@ -166,6 +166,9 @@ identity column through classes. See
 |------|------------|
 | `prefersReducedMotion()`, `staggerDelay`, `initReveal`, `replay`, `playEntrance`, `transitionMs(el)`, `ENTRANCE_FALLBACK_MS` | The motion helpers. `transitionMs(el)` answers how long the stylesheet says an element's transition lasts, so a caller sizing a backstop timer for a fade reads the sheet rather than copying a duration token; a missing or non-element argument answers `0`, which fires at once rather than never. See [Motion](foundations.md#motion). |
 | `esc(s)` | HTML-escape a text value. Every factory already applies it to its own text arguments; you need it for markup you assemble yourself. |
+| `safeUrl(url, fallback?)` | The URL boundary every factory sends an `href` through: a `javascript:`, `data:` or `vbscript:` destination becomes the fallback, `#` unless you name another. You need it for markup you assemble yourself; the React components call this same function. See [Escaping and URL slots](#escaping-and-url-slots). |
+| `revealCurrentNav(row)` | Size one `.ui-nav--tabs` row to its links and bring its `aria-current` link inside it, moving neither focus nor the page. `wireNav()` calls it; call it yourself after replacing a row's links. |
+| `revealFocusedNav(row, target)` | The same scroll for the link a focus event landed on, so the ring that link draws clears the row's scrolling edge. `target` is the event's target; a target that is not a tab in `row` is ignored. `wireNav()` wires it, and React's `NavTabs` calls it on focus. |
 
 The public JS surface is the set of exports from the package entry. A module that the entry does
 not name still ships in the tarball. You still cannot import it, because the package declares no
@@ -227,6 +230,46 @@ clips instead of wrapping. **It takes the trail's place, above the title**. A pa
 other. The shell keeps the row you marked `active` lit as `aria-current="true"`. This marks the
 current section, not the page. When a page should take one:
 [Going back](../guidelines/going-back.md).
+
+### A tab row scrolls inside its column
+
+`navTabs()` lays its links out in one row and never wraps them. **When the links are wider than
+the column, the row scrolls inside itself and the page does not widen.** A breadcrumb trail does
+the opposite, and wraps.
+
+A scroll box clips its children's paint at its padding edge, and the focus ring uses no layout
+space, so a row that scrolls keeps 4px of room inside its box for the ring's 3px band and takes
+the same 4px back in negative margins. The row therefore still starts on the page gutter, and the
+active underline still sits on the row's rule. **Only a row whose links do not fit scrolls**: a
+row with room to spare clips nothing, so the ring on a link in it keeps its halo. Deciding that
+needs a measurement, which is `wireNav()`'s and `revealCurrentNav()`'s job. A row rendered on a
+server, or left unwired, scrolls at every width; it holds the page either way.
+
+**A row that scrolls brings the link the keyboard lands on to its content edge**, which leaves
+that 4px between the link and the scrolling edge for the band. Chromium brings a focused link no
+further than the edge itself, so a link at the end of a row arrived with its band cut off. The
+scroll moves neither focus nor the page.
+
+**A row whose tabs are all disabled holds no link, so the row itself becomes the keyboard stop.**
+It answers with the inward band the kit's other scroll regions draw, and never with the browser's
+own outline.
+
+### The selected tab spends one accent
+
+**A selected pill tab keeps its soft accent fill and takes body ink**, the same ink the underline
+appearance gives it. The underline appearance spends its accent on the 2px bar alone, and the pill
+spends it on the fill alone. **The fill is then the whole visible signal, and it is a step of
+lightness**: against the page it runs from 1.091:1 to 1.342:1 across the themes and accents, under
+the 3:1 that WCAG 1.4.11 asks of a mark identifying a state. Both appearances therefore name the
+state as well, with `aria-current="page"`.
+
+**Forced colours are the one place that step says nothing**, because the mode repaints the pill's
+wash and the underline's bar with the page's own ground. There, and only there, the selected tab
+takes the system's own selected pair: `Highlight` behind it, `HighlightText` on it, the badge
+riding the same pair inverted, and the underline's bar `Highlight`. The shade comes from the
+reader's theme rather than from the kit, and the pair contrasts by construction. The selected pill
+opts out of the forced palette, because Chromium plates each run of text with the page ground and
+a plated label is no longer on the fill behind it. Ordinary colours are untouched.
 
 ### The dropdown panel
 
@@ -702,6 +745,30 @@ the `data-btn-*` hooks, a link's `role`, and the `href` and `tabIndex` that a di
 control removes. This prevents a caller from leaving a busy or disabled control looking idle.
 **Space is blocked on button roots only**, because it never activates an anchor. A busy link
 that swallowed Space would also prevent the reader from scrolling the page.
+
+### React route navigation
+
+`NavTabs` and `Breadcrumbs` render the same `nav.css` classes as the vanilla factories, so every
+guarantee above holds for them too. `NavTabs` takes unique item IDs, a controlled active ID, the
+underline or pill presentation, and optional badges. It uses native links and
+`aria-current="page"`, with no tablist or panel roles. **A disabled item is non-focusable text**
+marked `aria-disabled`, and cannot be the current link. An item with no destination uses its ID as
+a fragment. A badge of zero stays visible; a null or empty badge is dropped, the way the vanilla
+factory drops it.
+
+`Breadcrumbs` renders a named navigation landmark and an ordered list. **The last item is
+current-page text even when it has a destination**, and an earlier item without one stays text.
+Icons are decorative. Both components forward root attributes and refs, keep native link keyboard
+behaviour, and send every destination through the kit's URL boundary.
+
+**Both take `renderLink` with the signature `AppShell` uses**, so a router renders each link from
+the kit's class, destination, current state and children, and a route change need not reload the
+document.
+
+`NavTabs` sizes its row and reveals the current route on mount, on a route change and on window
+resize, moving neither focus nor the page, and reveals a link a focus event lands on. There is
+nothing to wire for it; `wireNav()` is for the vanilla rows. React imports the kit's own `safeUrl`
+and reveal functions rather than a copy bundled into `react/dist`.
 
 ### The rest of the React surface
 

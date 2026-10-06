@@ -31,7 +31,7 @@ const dom = new JSDOM('<!doctype html><html lang="en"><head></head><body></body>
 for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLElement', 'Event']) {
   Object.defineProperty(globalThis, key, { value: dom.window[key] ?? dom.window, configurable: true, writable: true });
 }
-const { sidebarNav } = await import('../src/components/nav.js');
+const { sidebarNav, navTabs } = await import('../src/components/nav.js');
 
 // ---- token resolution ----------------------------------------------------
 
@@ -539,5 +539,102 @@ test('the resolver reaches the real cascade', () => {
   assert.equal(
     r.css('.ui-nav__item.is-disabled', 'pointerEvents'), 'none',
     'the disabled row is still interactive',
+  );
+});
+
+// ---- 5. one accent signal on the selected tab (#475) ---------------------
+
+/* Artur chose this on round r22 of #475: a selected navigation item carries one
+ * accent signal, not two. The pill appearance carried accent ink ON an accent
+ * fill; it keeps the fill and takes the body ink `.ui-nav__tab.is-active`
+ * already gives it, which is what the underline appearance has always used.
+ *
+ * Resolved rather than grepped, for this file's reason: `color: var(--accent)`
+ * coming back on a later rule is exactly the regression this guards, and a rule
+ * that is in the file can still lose. Recorded in docs/components.md under
+ * The selected tab spends one accent.
+ */
+
+const TAB_ITEMS = [
+  { id: 'summary', label: 'Summary' },
+  { id: 'payouts', label: 'Payouts', badge: 3 },
+  { id: 'exports', label: 'Exports', disabled: true },
+];
+
+/** Mount one tab row under a theme/accent and hand back a resolver. */
+function tabRow(variant, theme = 'dark', accent = 'default', sheet = read('src/styles/nav.css')) {
+  const vars = tokensFor(theme, accent);
+  const css = desugar(substitute(decomment(read('src/styles/base.css') + '\n' + sheet), vars));
+  const w = new JSDOM(
+    `<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}</style></head>`
+    + `<body>${navTabs({ items: TAB_ITEMS, active: 'payouts', variant })}</body></html>`,
+    { pretendToBeVisual: true },
+  ).window;
+  const q = (sel) => {
+    const el = w.document.querySelector(sel);
+    assert.ok(el, `the ${variant} row has no ${sel} — the fixture stopped exercising the rule under test`);
+    return el;
+  };
+  return { vars, css: (sel, prop) => w.getComputedStyle(q(sel))[prop] };
+}
+
+const SELECTED_TAB = '.ui-nav__tab.is-active';
+
+// The token file writes the wash as rgba(…, 0.10); JSDOM hands it back as 0.1.
+const channels = (v) => String(v).match(/[\d.]+/g).map(Number);
+
+for (const [theme, accent] of THEMES) {
+  test(`the selected pill signals with its fill alone, in body ink — ${theme} / ${accent}`, () => {
+    const r = tabRow('pill', theme, accent);
+    const strong = colour(r.vars.get('--strong'));
+    const accentInk = colour(r.vars.get('--accent'));
+
+    assert.notEqual(
+      r.css(SELECTED_TAB, 'color'), accentInk,
+      `the selected pill resolves to the accent (${accentInk}) in ${theme}/${accent}, on an `
+      + 'accent fill — two accent signals on one element. Artur chose one on round r22 of '
+      + '#475: keep the fill, leave the ink alone.',
+    );
+    assert.equal(
+      r.css(SELECTED_TAB, 'color'), strong,
+      `the selected pill resolves to ${r.css(SELECTED_TAB, 'color')} rather than --strong `
+      + `(${strong}) in ${theme}/${accent}. Body ink is what .ui-nav__tab.is-active already `
+      + 'gives it and what the underline appearance uses; a third colour makes the two '
+      + 'appearances disagree.',
+    );
+    assert.deepEqual(
+      channels(r.css(SELECTED_TAB, 'backgroundColor')),
+      channels(substitute('var(--glow-purple)', r.vars)),
+      'the selected pill lost its accent fill. The fill is the one signal left after #475 — '
+      + 'without it the selected tab is distinguished by nothing at all.',
+    );
+  });
+
+  test(`the selected underline tab takes the same body ink — ${theme} / ${accent}`, () => {
+    const r = tabRow('underline', theme, accent);
+    assert.equal(
+      r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--strong')),
+      `the selected underline tab is ${r.css(SELECTED_TAB, 'color')} in ${theme}/${accent}. `
+      + 'Its accent signal is the rule under it; the ink is the half both appearances share.',
+    );
+  });
+}
+
+/* -- The mutation that kills the case above ---------------------------------- */
+
+const PILL_INK = /(\.ui-nav--tabs\.is-pill \.ui-nav__tab\.is-active \{)/;
+
+test('the selected-pill gate rejects the accent ink coming back', () => {
+  const sheet = read('src/styles/nav.css');
+  assert.match(
+    sheet, PILL_INK,
+    'the selected pill rule moved or was reworded, so this mutation re-adds the accent ink to '
+    + 'nothing — move the mutation with the rule rather than deleting this test',
+  );
+  const r = tabRow('pill', 'dark', 'default', sheet.replace(PILL_INK, '$1 color: var(--accent);'));
+  assert.equal(
+    r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--accent')),
+    'the accent ink was put back on the selected pill and the resolver still reads --strong, '
+    + 'so the gate above would pass with the regression in place and is measuring nothing',
   );
 });
