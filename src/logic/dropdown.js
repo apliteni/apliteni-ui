@@ -25,12 +25,15 @@ export const dropdownMatch = (label, query) => fold(label).includes(fold(query).
  * the viewport in one and past it in the other is the bug this answers (#489).
  *
  * `min` is a floor: a trigger near the edge has little room, and a panel reduced
- * to a sliver is worse than one that spends some of the edge inset to stay
- * usable. The floor never spends room PAST the edge to get there, though,
- * because that room does not exist — it spends the inset instead, down to
- * nothing, and the panel still ends at or before the edge.
+ * to a sliver is worse than one left to its content height. The floor never
+ * spends room PAST the edge to reach itself, because that room does not exist.
+ * Once even the whole inset cannot reach it, there is no cap a reader could
+ * use, so this returns `Infinity`: "nothing measured," the word a caller
+ * already reads from an unmeasured panel. The panel then keeps its content
+ * height, the document grows, and a reader reaches every row by scrolling the
+ * page — a 27px sliver hiding 446px of rows was danger 1 in #641's review.
  */
 export const dropdownAvail = ({ anchorTop, anchorBottom, viewport, gap, inset, min, up = false }) => {
   const room = Math.max(up ? anchorTop - gap : viewport - anchorBottom - gap, 0);
-  return Math.max(room - inset, Math.min(min, room));
+  return room < min ? Infinity : Math.max(room - inset, min);
 };

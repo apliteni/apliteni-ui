@@ -37,31 +37,33 @@ test('a menu opened 300px above the bottom of a phone is capped short of its con
   assert.equal(bottom, 844 - 8, 'the panel ends one edge-inset above the viewport\'s bottom edge');
 });
 
-test('the floor spends the edge inset, never the room past the edge', () => {
-  // A trigger with its bottom 15px of raw room past the gap — short of the
-  // 120px floor, but only 27px short of the viewport edge, not past it.
+test('a room too small for the floor even after spending the inset is left uncapped', () => {
+  // A trigger with its bottom 27px of raw room past the gap — short of the
+  // 120px floor even once the whole inset is spent. Design review on #641:
+  // capping here drew a 27px sliver hiding 446px of rows, worse than the
+  // content-height panel it replaced. Infinity means "measure nothing," so the
+  // sheet's own fallback stands and the panel keeps its content height.
   const avail = dropdownAvail({
     anchorTop: 777, anchorBottom: 808, viewport: 844, gap: 9, inset: 8, min: 120,
   });
-  assert.equal(avail, 844 - 808 - 9, 'the floor reaches for 120 but stops at the room before the edge');
-  assert.equal(808 + 9 + avail, 844, 'the panel ends exactly at the edge, never past it');
+  assert.equal(avail, Infinity, 'below the floor even spending the whole inset, the panel is left uncapped');
 });
 
-test('a trigger with no room left keeps a nought-pixel cap rather than overhang', () => {
+test('a trigger with no room left is also left uncapped, not pinned to a nought-pixel sliver', () => {
   // The gap alone already reaches the edge: there is no room the floor could
-  // spend without passing it.
+  // spend without passing it, and none to show a usable panel with either.
   const avail = dropdownAvail({
     anchorTop: 808, anchorBottom: 839, viewport: 844, gap: 9, inset: 8, min: 120,
   });
-  assert.equal(avail, 0);
+  assert.equal(avail, Infinity);
 });
 
-test('the floor cannot be asked to spend room upward instead of the inset', () => {
+test('the floor leaves a tight room uncapped the same way above the trigger as below it', () => {
   // `up` measures from the trigger's own top, the same shape in both directions.
   const avail = dropdownAvail({
     anchorTop: 36, anchorBottom: 67, viewport: 844, gap: 9, inset: 8, min: 120, up: true,
   });
-  assert.equal(avail, 36 - 9, 'the floor reaches for 120 but stops at the room before the top edge');
+  assert.equal(avail, Infinity, 'below the floor even spending the whole inset, the panel is left uncapped');
 });
 
 /* -- The stylesheet ----------------------------------------------------------- */
@@ -185,6 +187,19 @@ test('a dropdown rendered already open is capped at wiring time, with no click t
   assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), `${844 - 544 - 9 - 8}px`);
 });
 
+test('a trigger too close to the edge for the floor writes no avail, rather than a sliver', () => {
+  // The design review's own case: the trigger's bottom 36px above the viewport's,
+  // short of the 120px floor even spending the whole inset. #641
+  const { window, trigger, panel } = phone(
+    dropdown({ value: 'Account', variant: 'menu', items: TWELVE }), { bottom: 844 - 36 },
+  );
+  click(window, trigger);
+  assert.equal(
+    panel.style.getPropertyValue('--ui-dropdown-avail'), '',
+    'below the floor, the property is removed so the sheet\'s own fallback stands',
+  );
+});
+
 /* -- The browser half --------------------------------------------------------- */
 /* The measurement. JSDOM lays nothing out, so where a panel's edge actually lands,
  * and whether a wheel event scrolls the panel or the page underneath it, are both
@@ -202,7 +217,7 @@ test('a dropdown rendered already open is capped at wiring time, with no click t
 const RUN = process.env.DROPDOWN_REACH === '1';
 const VIEWPORT = { width: 390, height: 844 };
 
-test('the last row is reachable near the bottom edge, and the wheel over the panel leaves the page scroll at 0', {
+test('the last row is reachable near the bottom edge, by the panel scroll at 300px and the page scroll at 36px', {
   skip: !RUN && 'set DROPDOWN_REACH=1',
 }, async () => {
   const pw = await playwright();
@@ -217,33 +232,54 @@ test('the last row is reachable near the bottom edge, and the wheel over the pan
   const vanilla = await serve(root, path.join(root, 'stories/lib/dropdown-reach.html'));
   const react = await serve(reactBuild, path.join(root, 'stories/lib/dropdown-reach.html'));
 
-  const measure = async (page) => {
+  // At 300px the panel caps and scrolls inside itself; the wheel stays on the
+  // panel and the page never moves. At 36px — below the floor, #641's danger 1
+  // — the panel is left at its content height, so there is nothing for the
+  // panel itself to scroll: the wheel reaches the page instead, the way it did
+  // on the merge base, and that growth is what makes every row reachable.
+  const measure = async (page, { capped }) => {
     const panel = page.locator('[data-dropdown-panel]');
     const lastRow = page.locator('[data-dropdown-panel] [data-dd-item]').last();
-    await panel.evaluate((el) => { el.scrollTop = el.scrollHeight; });
-    const panelBox = await panel.boundingBox();
-    const rowBox = await lastRow.boundingBox();
-    // A panel near the edge can sit mostly or wholly off-screen before the wheel
-    // moves anything — exactly the geometry under test — so the mouse is moved to
-    // its box directly, clamped into the viewport, rather than through an
-    // actionability check that requires the target already be visible.
-    if (panelBox) {
+    if (capped) await panel.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+    let panelBox = await panel.boundingBox();
+    // Below the floor, the panel is in document flow and re-measured on every
+    // page scroll, the way #489's own capped panel already is: scrolling moves
+    // the trigger, which can hand the wiring more room and re-cap it smaller
+    // mid-scroll. A reader keeps wheeling until a row answers, so this repeats
+    // the gesture rather than reading one wheel tick as final. why:
+    // the 'scroll' listener ddPlace() answers, src/components/dropdown.js
+    for (let i = 0; i < 8 && panelBox; i += 1) {
       const x = Math.min(Math.max(panelBox.x + panelBox.width / 2, 1), VIEWPORT.width - 1);
       const y = Math.min(Math.max(panelBox.y + panelBox.height / 2, 1), VIEWPORT.height - 1);
       await page.mouse.move(x, y);
       await page.mouse.wheel(0, 2000);
-      await page.waitForTimeout(50);
+      // `html { scroll-behavior: smooth }` animates a wheel-triggered scroll
+      // rather than jumping, so a short wait can read a scroll still mid-flight.
+      // why: src/styles/base.css
+      await page.waitForTimeout(400);
+      const rowBox = await lastRow.boundingBox();
+      if (rowBox && rowBox.y < VIEWPORT.height && rowBox.y + rowBox.height > 0) break;
+      panelBox = await panel.boundingBox();
     }
+    panelBox = await panel.boundingBox();
+    const rowBox = await lastRow.boundingBox();
     const pageScroll = await page.evaluate(() => window.scrollY);
-    return { panelBox, rowBox, pageScroll };
+    const docHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+    return { panelBox, rowBox, pageScroll, docHeight };
   };
 
   try {
     const cases = [];
 
     // Vanilla, both placements, both the acceptance case and the near-edge one.
+    // `portal: true` makes the panel itself `position: fixed` on <body> — out of
+    // document flow by design, the same way the shell's rail uses it for a panel
+    // an `overflow: hidden` ancestor would clip. Below the floor that means the
+    // page-grows fallback cannot reach it; this predates #641 and is not this
+    // review's surface, so it is measured and reported, not asserted reachable.
     for (const portal of [false, true]) {
       for (const bottomGap of [300, 36]) {
+        const capped = bottomGap === 300;
         const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 });
         const page = await ctx.newPage();
         await page.goto(
@@ -252,37 +288,71 @@ test('the last row is reachable near the bottom edge, and the wheel over the pan
         );
         await page.waitForFunction(() => window.__ready === true);
         await page.locator('[data-dropdown-trigger]').click();
-        const got = await measure(page);
-        cases.push({ label: `vanilla ${portal ? 'portalled' : 'ordinary'} bottomGap=${bottomGap}`, ...got });
+        const got = await measure(page, { capped });
+        cases.push({
+          label: `vanilla ${portal ? 'portalled' : 'ordinary'} bottomGap=${bottomGap}`,
+          capped, fixed: portal && !capped, ...got,
+        });
         await ctx.close();
       }
     }
 
-    // React, the two stories built for this case.
+    // React, the two stories built for this case. Both triggers sit in normal
+    // document flow (EdgeStage in Dropdown.stories.tsx), so neither is `fixed`.
     const all = JSON.parse(readFileSync(path.join(reactBuild, 'index.json'), 'utf8')).entries;
     for (const id of ['react-dropdown--bottom-edge', 'react-dropdown--near-bottom-edge']) {
+      const capped = id === 'react-dropdown--bottom-edge';
       const story = Object.values(all).find((e) => e.id === id);
       assert.ok(story, `no built React story with the id ${id} — react/src/Dropdown.stories.tsx may have moved it.`);
       const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 });
       const page = await ctx.newPage();
       const opened = await openStory(page, story, { port: react.port, theme: 'dark' });
       assert.equal(opened.phase, 'finished', `React story ${id} did not finish rendering: ${opened.phase}`);
-      const got = await measure(page);
-      cases.push({ label: `react ${id}`, ...got });
+      const got = await measure(page, { capped });
+      cases.push({ label: `react ${id}`, capped, fixed: false, ...got });
       await ctx.close();
     }
 
-    console.log(cases.map((c) => `${c.label}: panel bottom ${c.panelBox?.y + c.panelBox?.height}, `
-      + `last row ${c.rowBox?.y}…${c.rowBox?.y + c.rowBox?.height}, page scroll ${c.pageScroll}`).join('\n'));
+    console.log(cases.map((c) => `${c.label}: panel height ${c.panelBox?.height}, panel bottom `
+      + `${c.panelBox && c.panelBox.y + c.panelBox.height}, last row ${c.rowBox?.y}…`
+      + `${c.rowBox && c.rowBox.y + c.rowBox.height}, page scroll ${c.pageScroll}, doc height ${c.docHeight}`)
+      .join('\n'));
 
-    const outside = cases.filter((c) => !c.panelBox || c.panelBox.y + c.panelBox.height > VIEWPORT.height + 0.5);
-    assert.deepEqual(outside.map((c) => c.label), [], 'a panel ran past the viewport edge');
+    const capped = cases.filter((c) => c.capped);
+    const grows = cases.filter((c) => !c.capped && !c.fixed);
+    const fixed = cases.filter((c) => !c.capped && c.fixed);
 
-    const unreachable = cases.filter((c) => !c.rowBox || c.rowBox.y >= VIEWPORT.height || c.rowBox.y + c.rowBox.height <= 0);
+    const outside = capped.filter((c) => !c.panelBox || c.panelBox.y + c.panelBox.height > VIEWPORT.height + 0.5);
+    assert.deepEqual(outside.map((c) => c.label), [], 'a capped panel ran past the viewport edge');
+
+    const cappedLeaked = capped.filter((c) => c.pageScroll !== 0);
+    assert.deepEqual(
+      cappedLeaked.map((c) => c.label), [],
+      'the wheel over a capped panel scrolled the page instead of the panel',
+    );
+
+    // Below the floor, in document flow, the panel is content-height and the
+    // document is expected to grow past the viewport — that growth is the fix.
+    const stillCapped = grows.filter((c) => c.docHeight <= VIEWPORT.height + 0.5);
+    assert.deepEqual(stillCapped.map((c) => c.label), [], 'below the floor, the document never grew past the viewport');
+
+    const pageDidNotScroll = grows.filter((c) => c.pageScroll === 0);
+    assert.deepEqual(
+      pageDidNotScroll.map((c) => c.label), [],
+      'below the floor, the wheel over the panel never moved the page',
+    );
+
+    const reachable = [...capped, ...grows];
+    const unreachable = reachable.filter(
+      (c) => !c.rowBox || c.rowBox.y >= VIEWPORT.height || c.rowBox.y + c.rowBox.height <= 0,
+    );
     assert.deepEqual(unreachable.map((c) => c.label), [], 'the last row never entered the viewport');
 
-    const leaked = cases.filter((c) => c.pageScroll !== 0);
-    assert.deepEqual(leaked.map((c) => c.label), [], 'the wheel over the panel scrolled the page instead of the panel');
+    // Not asserted reachable — see the comment above the vanilla loop — but a
+    // fixed/portalled panel below the floor must still be its content height,
+    // not the old room-sized sliver, so it is at least no worse than before.
+    const fixedSliver = fixed.filter((c) => !c.panelBox || c.panelBox.height < 120);
+    assert.deepEqual(fixedSliver.map((c) => c.label), [], 'a portalled panel below the floor kept a sub-120px sliver');
   } finally {
     await browser.close();
     vanilla.proc.kill();

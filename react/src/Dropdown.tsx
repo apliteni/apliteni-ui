@@ -444,7 +444,16 @@ export function Dropdown({
     const size = () => {
       const avail = dropdownHeightFit(root.current, el);
       if (avail == null) return;
-      el.style.setProperty('--ui-dropdown-avail', `${avail}px`);
+      // Infinity: the floor could not be met even by spending the whole inset, so
+      // the property is removed rather than written, and the sheet's own fallback
+      // takes over. why: dropdownAvail(), src/logic/dropdown.js
+      if (Number.isFinite(avail)) el.style.setProperty('--ui-dropdown-avail', `${avail}px`);
+      else el.style.removeProperty('--ui-dropdown-avail');
+      // `.is-unbounded` only where that leaves no cap at all — a `scroll` prop
+      // still clamps the panel through --ui-dropdown-cap, and that clamp is still
+      // real room to scroll. why: src/styles/dropdown.css
+      const cap = el.ownerDocument.defaultView?.getComputedStyle(el).getPropertyValue('--ui-dropdown-cap').trim();
+      el.classList.toggle('is-unbounded', !Number.isFinite(avail) && !cap);
     };
     size();
     const view = el.ownerDocument?.defaultView ?? window;

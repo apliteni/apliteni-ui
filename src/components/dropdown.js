@@ -564,14 +564,24 @@ function ddSizeHeight(dd, panel) {
   if (!panel?.style) return;
   const avail = dropdownHeightFit(dd, panel);
   if (avail == null) return;
+  // Infinity means the floor could not be met even by spending the whole inset:
+  // the property is removed rather than written, so the sheet's own fallback — the
+  // viewport less the edge inset, not a trigger-sized sliver — takes over. why:
+  // dropdownAvail(), src/logic/dropdown.js
+  //
+  // `.is-unbounded` is only added where that leaves NO cap at all: a consumer's
+  // own `--ui-dropdown-cap` (`.is-scroll` or a numeric `scroll`) still clamps the
+  // panel, and that clamp is still real room to scroll. why: src/styles/dropdown.css
+  const cap = ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-cap').trim();
+  panel.classList.toggle('is-unbounded', !Number.isFinite(avail) && !cap);
   // A number that has not changed is not written again, the way the width fit's
   // own write is guarded: a mutation inside the row that moved nothing vertically
   // would otherwise answer its own write, over and over, through the document
   // observer below. why: dropdownViewportFit()'s own "moved" guard, same file
-  const next = `${avail}px`;
-  if (panel.style.getPropertyValue('--ui-dropdown-avail') !== next) {
-    panel.style.setProperty('--ui-dropdown-avail', next);
-  }
+  const next = Number.isFinite(avail) ? `${avail}px` : '';
+  if (panel.style.getPropertyValue('--ui-dropdown-avail') === next) return;
+  if (next) panel.style.setProperty('--ui-dropdown-avail', next);
+  else panel.style.removeProperty('--ui-dropdown-avail');
 }
 
 /** Fit a panel again where it now is, whichever placement it uses. */

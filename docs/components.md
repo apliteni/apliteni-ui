@@ -286,10 +286,12 @@ smaller wins:
   sizing one is [#501](https://github.com/apliteni/apliteni-ui/issues/501).
 
 A trigger near the edge can leave less room than `--ui-dropdown-min` (120px) wants for a usable
-panel. The floor then spends the edge inset, down to nothing, to reach 120px, but it never spends
-room past the edge, because that room does not exist: the panel still ends at or before the edge,
-and the guarantee above always holds. A search panel is a column, so this cap lands on the rows and
-not on the field: `.ui-dropdown__list` shrinks to whatever room the capped panel leaves it.
+panel. The floor spends the edge inset, down to nothing, to try to reach 120px, but it never spends
+room past the edge, because that room does not exist. Where even the whole inset falls short of
+120px, the guarantee above does not hold: the panel is left at its content height instead of a
+sliver no reader could use, so it may run past the trigger's edge and grow the page, the way an
+unmeasured panel does. A search panel is a column, so this cap lands on the rows and not on the
+field: `.ui-dropdown__list` shrinks to whatever room the capped panel leaves it.
 
 **A panel keeps its place while the page moves its trigger.** A row that re-lays itself out, an
 ancestor scrolling sideways, a longer run of text beside the trigger, and a transition that slides

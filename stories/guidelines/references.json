@@ -274,11 +274,11 @@
         "pattern": "export const dropdownMatch"
       },
       {
-        "ref": "src/styles/dropdown.css:289",
+        "ref": "src/styles/dropdown.css:331",
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:347",
+        "ref": "src/styles/dropdown.css:393",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -290,7 +290,7 @@
         "pattern": ".ui-btn--danger:hover"
       },
       {
-        "ref": "src/styles/dropdown.css:249",
+        "ref": "src/styles/dropdown.css:287",
         "pattern": ".ui-dropdown__item.is-danger:hover"
       },
       {

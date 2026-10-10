@@ -1561,18 +1561,20 @@ it('an open panel is capped at the room between its trigger and the viewport edg
   expect(availOf(container)).toBe(`${844 - 544 - 9 - 8}px`);
 });
 
-it('a trigger with no room left keeps a nought-pixel cap rather than overhang', () => {
+it('a trigger with no room left is left uncapped, not pinned to a nought-pixel sliver', () => {
   phone(844 - 5); // the gap alone already reaches the edge
   const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
-  expect(availOf(container)).toBe('0px');
+  expect(availOf(container)).toBe('');
 });
 
-it('the floor spends the edge inset, never the room past the edge (#502 review)', () => {
-  // The trigger's bottom at 808 on a 390x844 phone, as the review measured: 15px
-  // of room past the inset, short of the 120px floor, but 27px short of the edge.
+it('a room too small for the floor even after spending the inset writes no avail (#641 review)', () => {
+  // The trigger's bottom at 808 on a 390x844 phone, as the review measured: 27px
+  // of room past the gap, short of the 120px floor even spending the whole inset.
+  // Capping here drew a 27px sliver hiding 446px of rows — danger 1 in #641's
+  // review — so the property is removed and the panel keeps its content height.
   phone(808);
   const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
-  expect(availOf(container)).toBe('27px');
+  expect(availOf(container)).toBe('');
 });
 
 it('the room is re-measured when the page scrolls under an open panel', () => {
