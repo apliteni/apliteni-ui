@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.99.0', date: '2026-10-10',
+    changes: [
+      ['fixed', 'Dropdown triggers now keep the live edge and the disabled edge separate. An enabled dropdown trigger no longer shows the disabled edge. A disabled dropdown trigger no longer gets the accent on hover.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.98.0', date: '2026-10-10',
     changes: [
       ['fixed', 'Floating dropdown panels — the vanilla kit, React’s `<Dropdown>`, and the topbar’s version switcher and account menus — now cap their height to the room their trigger leaves before the viewport edge they open toward, less `--ui-dropdown-edge` at that edge, and scroll inside that cap: the wheel over one stops at the panel’s own end instead of carrying on down the page underneath. `<Tooltip>` keeps no height cap, and `<CommandPalette>` keeps its own separate limit; neither changed here. Before this a panel took its content’s full height: a twelve-row menu opened 300px above the bottom of a 390×844 phone ended past the fold with its last rows unreachable, and the wheel scrolled the page instead. Two custom properties decide the cap and the smaller wins — `--ui-dropdown-cap` is what the consumer asked for, so the fixed-height modifier still works the same way: `scroll: true` still writes 300px and `scroll: <n>` still writes n pixels. `--ui-dropdown-avail` is the measured room, re-written on every open, scroll and resize from one calculation the vanilla kit and React’s `<Dropdown>` share, so neither can disagree about where a panel ends. A trigger with less than `--ui-dropdown-min` (120px) of room spends the edge inset first, down to nothing; where even that is not enough, ordinary and `portal: true` panels keep their content height instead of a sliver. An ordinary panel then grows the page so a reader can reach every row by page scroll, and when scroll gives the trigger 120px of room again, the panel re-caps to that floor and scrolls inside itself with all rows still reachable. A `portal: true` panel stays fixed in the viewport and does not grow the page; #643 tracks that portalled limit. A search panel lays its field and list in a column, so the cap lands on the rows and the field keeps its own height. Resolves #489.', ['Dropdown']],
