@@ -2,7 +2,7 @@
  * the page ground. The vanilla half; react/src/field-ground.test.tsx is the other,
  * over the same reading in stories/lib/field-ground.js.
  *
- * Cause and numbers: docs/specification.md#colour-and-contrast. Raised by Artur in
+ * Cause and numbers: docs/foundations.md#colour-and-contrast. Raised by Artur in
  * round r28 of #551 — "Disabled fields almost invisible because of that."
  *
  * Limits, read before trusting a green run:
@@ -158,7 +158,7 @@ test('the gate rejects a field left on the page ground', () => {
  * IS asserted is the gap between them, below. `ink` is the field's colour on its
  * own paint and must clear AA off as well as on: that is the part a reader has to
  * read. What these replaced, and the dark theme's headroom, are in
- * docs/specification.md#colour-and-contrast.
+ * docs/foundations.md#colour-and-contrast.
  */
 const DISABLED = {
   dark: { ground: '#211e2d', fill: '#211e2d', border: '#2d293c', edge: 1.16, ink: 6.24 },
@@ -271,7 +271,7 @@ const fainter = (off, on) => [
 
 /* Rule: a field that is off draws the fainter edge of the two, in both themes, so
  * the box and not only the words reports the state. Why dark's gap is the smaller,
- * and what it cost: docs/specification.md#colour-and-contrast, decided in #564.
+ * and what it cost: docs/foundations.md#colour-and-contrast, decided in #564.
  *
  * Limits beyond the walk's own: the subject is the text field, which is the control
  * that carries --field-edge. A checkbox takes --control-edge and a switch track

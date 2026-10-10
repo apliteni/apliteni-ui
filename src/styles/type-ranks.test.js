@@ -1,4 +1,4 @@
-/* Rule: each rank in docs/specification.md#labels-and-titles is held by the rules
+/* Rule: each rank in docs/foundations.md#labels-and-titles is held by the rules
  * that claim it with a `/* rank: label *​/` note, and the ranks keep their order.
  *
  * What it does not reach:
@@ -8,7 +8,7 @@
  *   below 720px in layout.css. Overrides are not followed.
  * - a consumer's own scale. This reads the kit's tokens and nobody else's.
  *
- * why: docs/specification.md#labels-and-titles
+ * why: docs/foundations.md#labels-and-titles
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -20,7 +20,7 @@ import { card } from '../components/index.js';
 
 const src = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(src, '..');
-const SPEC = readFileSync(path.join(root, 'docs/specification.md'), 'utf8');
+const SPEC = readFileSync(path.join(root, 'docs/foundations.md'), 'utf8');
 const TOKENS = readFileSync(path.join(src, 'tokens/tokens.css'), 'utf8');
 
 /* The subjects: the sheets the kit ships, in import order, and then every other
@@ -44,7 +44,7 @@ const SHEETS = [
 /** The rank table under "## Labels and titles", top row first. */
 const readRanks = (spec) => {
   const section = spec.split(/^## /m).find((s) => s.startsWith('Labels and titles'));
-  assert.ok(section, 'docs/specification.md has no "## Labels and titles" section to read the ranks from');
+  assert.ok(section, 'docs/foundations.md has no "## Labels and titles" section to read the ranks from');
   return [...section.matchAll(/^\|\s*`([a-z-]+)`\s*\|\s*`(--[\w-]+)`\s*\|\s*`(--[\w-]+)`\s*\|\s*([^|]+?)\s*\|/gm)]
     .map(([, name, size, weight, leading]) => ({
       name, size, weight, leading: leading === 'inherited' ? null : leading.replace(/`/g, ''),
@@ -90,7 +90,7 @@ const rankProblems = (ranks, rules) => {
     const rank = byName.get(r.rank);
     if (!rank) {
       out.push(`${r.where} \`${r.selector}\` claims rank "${r.rank}", which is not a row of the table in `
-        + `docs/specification.md#labels-and-titles (${[...byName.keys()].join(', ')}).`);
+        + `docs/foundations.md#labels-and-titles (${[...byName.keys()].join(', ')}).`);
       continue;
     }
     if ('font' in r.decls) {

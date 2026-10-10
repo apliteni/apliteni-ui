@@ -46,7 +46,7 @@ it('keeps its decoration hidden and carries no backdrop layer', () => {
  * Limits: it counts tiers, not words. `body` is one element whatever length of
  * line is put in it.
  *
- * why: docs/specification.md#success-confirmations
+ * why: docs/components.md#success-confirmations
  */
 const tiers = (container: HTMLElement) =>
   [...container.querySelector('.ui-sx__content')!.children]
@@ -118,7 +118,7 @@ it('lets the inline panel pick its mark too', () => {
 // The circled mark is one status size everywhere, and the panel's box is what sets
 // it. Vanilla writes the same modifier; src/components/success.test.js holds the two
 // stylesheets to the same number, and this holds React to the same markup.
-// why: docs/specification.md#success-confirmations
+// why: docs/components.md#success-confirmations
 it('narrows the panel box for the circled mark, as vanilla does', () => {
   const { container, rerender } = render(<SuccessPanel check="circled" />);
   expect(container.querySelector('.ui-success__check')).toHaveClass('ui-success__check--circled');

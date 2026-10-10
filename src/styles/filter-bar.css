@@ -21,5 +21,5 @@
    `overflow-wrap` keeps that a bound rather than a clip: a panel is
    `overflow: visible`, so a value with no break opportunity would run out of it
    and off the page. It inherits, reaching an option's label and description.
-   why: docs/specification.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; overflow-wrap: anywhere; }

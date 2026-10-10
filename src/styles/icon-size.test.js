@@ -1,6 +1,6 @@
 /* Rule: a component rule that sizes an icon is the rule that decides its size.
  *
- * why: docs/specification.md#icons-and-glyphs */
+ * why: docs/foundations.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

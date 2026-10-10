@@ -1,10 +1,10 @@
 /* Confirm — the kit's confirmation dialog: a centred panel over a scrim, for the
  * question a destructive action has to ask. Shares its scrim and focus trap with
  * the drawer (see overlay.js). Local tokens: --confirm-surface, --confirm-scrim.
- * why: docs/specification.md#motion */
+ * why: docs/foundations.md#motion */
 
 .ui-confirm {
-  /* The floating step; nothing casts. why: docs/specification.md#elevation */
+  /* The floating step; nothing casts. why: docs/foundations.md#elevation */
   --confirm-surface: var(--bg-elevated);
   --confirm-scrim: var(--scrim);
   --confirm-w: var(--panel-md);
@@ -65,7 +65,7 @@
   /* The two-step edge and the drop, through the level's own names: in DARK that is
      --border-strong outside and --border one pixel inside it, then the drop; in LIGHT
      both lines are transparent and the drop carries the whole separation.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: var(--radius-lg);
@@ -79,7 +79,7 @@
 /* The ring is COMPOSED with the floating treatment, not written over it: a
    box-shadow list replaces the whole list, so `box-shadow: var(--ring)` alone
    took the panel's edge and its drop off for as long as it held focus.
-   why: docs/specification.md#elevation */
+   why: docs/foundations.md#elevation */
 .ui-confirm__panel:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring), inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); }
 
 /* -- Slots ----------------------------------------------------------------- */
@@ -88,7 +88,7 @@
    footer makes. The title is an h2 and opts out of the display face base.css
    gives a heading, for the same reason .ui-drawer__title does: at --text-md it
    is the question on a dialog, set at the size the answer beneath it is set at.
-   why: docs/specification.md#typefaces */
+   why: docs/foundations.md#typefaces */
 .ui-confirm__title {
   margin: 0;
   flex: none;
@@ -118,7 +118,7 @@
    follow it; the markup the kit publishes as a string, rendered open without the
    wiring, has no trap and makes it the first stop. The band is drawn INWARD, inside
    the --space-1 above, which is what keeps it off the glyphs.
-   why: docs/specification.md#the-focus-ring */
+   why: docs/foundations.md#the-focus-ring */
 .ui-confirm__body:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-confirm__acts {
   display: flex;
@@ -135,7 +135,7 @@
    root, so the answer openConfirm() focuses is still hidden and focus falls to
    <body>. So an open confirm carries no transition inside it at all — for as
    long as it is open, not only in the frame it opens.
-   why: docs/specification.md#reduced-motion-travels-with-the-stylesheet */
+   why: docs/foundations.md#reduced-motion-travels-with-the-stylesheet */
 @media (prefers-reduced-motion: reduce) {
   .ui-confirm.is-open * { transition: none !important; }
 }

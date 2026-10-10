@@ -9,7 +9,7 @@
  * removed. Each test states its own limits.
  *
  * Resolve the winning declarations before measuring the result.
- * why: #551, docs/specification.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
+ * why: #551, docs/components.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

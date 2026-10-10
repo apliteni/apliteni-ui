@@ -9,7 +9,7 @@
  * own red made it read as a fault the reader had committed. The lock says which
  * of the two it is.
  *
- * why: docs/specification.md#pending-and-denied-states */
+ * why: docs/components.md#pending-and-denied-states */
 
 /* Visually hidden, still read aloud. The kit had no such utility, and the live
    region needs one: its message is for assistive tech only — the sighted

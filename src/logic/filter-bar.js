@@ -5,7 +5,7 @@
  *
  * `value` is display text: it is the chip's only visible line, so a consumer
  * answers a change with text a reader can read, not a raw code.
- * why: docs/specification.md#dense-financial-tables
+ * why: docs/components.md#dense-financial-tables
  */
 
 const text = (v) => (v == null ? '' : String(v));

@@ -9,10 +9,10 @@ import { JSDOM } from "jsdom";
 /**
  * The guarantee: a link written inside a table cell takes the kit ring on keyboard focus.
  * Subjects are discovered from the markup, so a new ledger with a linked ID joins by
- * existing. why: docs/specification.md#dense-financial-tables; decided in #510.
+ * existing. why: docs/components.md#dense-financial-tables; decided in #510.
  *
  * Limits: this reads the cascade, not paint. Whether the ring is visible against the
- * surface behind it belongs to stories/ring-surfaces.test.js and the contrast ledger;
+ * surface behind it belongs to stories/ring-carrier.test.js and the contrast ledger;
  * whether `:focus-visible` matches on a real keystroke is the browser's, and the PR's
  * captures carry that evidence. It reads markup written as literal tags — a cell whose
  * link or whose table's class list is assembled at runtime cannot be read from source,
@@ -88,10 +88,11 @@ const selectorParts = (list) => {
   return [...parts, current].map((part) => part.trim()).filter(Boolean);
 };
 
-/** Selectors of every rule that paints the kit ring on focus. Comments come out first,
- *  or the prose above a rule is read as part of its selector. */
+/** Selectors of every rule that paints the kit ring on focus. The band is an `outline`
+ *  since #578. Comments come out first, or the prose above a rule is read as part of
+ *  its selector. */
 const ringSelectors = (css) => [...css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-  .filter(([, , body]) => /box-shadow:\s*var\(--ring\)/.test(body))
+  .filter(([, , body]) => /outline:\s*var\(--ring\)/.test(body))
   .flatMap(([, selector]) => selectorParts(selector))
   .filter((part) => part.includes(":focus-visible"));
 
@@ -177,29 +178,33 @@ test("every link in a table cell takes the kit ring", () => {
   );
 });
 
+// The rule this mutation takes out is the shared one in `base.css`, not a rule of
+// table.css's own: since #587 the element `a` is on that list, which is what reaches a
+// cell link. The equality is the point — if any subject survived the cut, a THIRD rule
+// would be covering it and this gate would be measuring the wrong one.
 test("the check rejects a cell link dropped from the ring", () => {
   const subjects = cellLinks();
-  const rule = /\.ui-table a:not\(\.ui-btn\):focus-visible \{[^}]*\}/;
-  assert.ok(rule.test(SHEETS), "the rule this gate holds must exist to be taken out");
+  const claim = "a:focus-visible,\n";
+  assert.ok(SHEETS.includes(claim), "the rule this gate holds must exist to be taken out");
 
-  const stripped = SHEETS.replace(rule, "");
+  const stripped = SHEETS.split(claim).join("");
   assert.equal(
     bare(stripped, subjects).length,
     subjects.length,
-    "without the table's focus rule every cell link must be reported bare — if any still " +
-      "passes, a second rule is covering it and this gate is measuring the wrong one",
+    "without the kit's claim on the `a` element every cell link must be reported bare — " +
+      "if any still passes, a second rule is covering it and this gate is measuring the wrong one",
   );
 });
 
 test("a cell link is an inline-block box, so a wrapped one paints one ring", () => {
-  // The guarantee `docs/specification.md` states: one ring around the whole link, including a
+  // The guarantee `docs/components.md#dense-financial-tables` states: one ring around the whole link, including a
   // title-cell link that wraps. A link left in the inline flow takes a ring per line box —
   // seven of them, measured at 390 on a title cell — so the box is what carries this.
   const subjects = cellLinks();
   const flowed = subjects
     .filter((subject) => declared(SHEETS, "display", element(subject)) !== "inline-block")
     .map((subject) => `${subject.file}: ${subject.link}`);
-  // The corner the ring follows is the other half of that box, and the specification states
+  // The corner the ring follows is the other half of that box, and docs/components.md states
   // it, so it is read the same way rather than left to the comment above the rule.
   const square = subjects
     .filter((subject) => declared(SHEETS, "border-radius", element(subject)) !== "var(--radius-xs)")
@@ -286,12 +291,15 @@ test("a JSX subject is read the same as its HTML spelling", () => {
   assert.deepEqual(bare(SHEETS, [jsx]), [], "a JSX cell link must be seen to take the ring");
 
   // And the normaliser is load-bearing: parsed as JSX writes it, the table carries the
-  // attribute `classname`, its `classList` is empty, and no ring selector reaches the link.
+  // attribute `classname` and its `classList` is empty, so every rule keyed on `.ui-table`
+  // misses. The ring is no longer one of them — since #587 the element `a` carries it,
+  // table or no table — so the trap is read on the box instead, which is the other half
+  // of this file's guarantee and is still the table's own rule to give.
   const raw = new JSDOM(`${jsx.table}<tbody><tr>${jsx.cellOpen}${jsx.link}ID</a></td></tr></tbody></table>`)
     .window.document.querySelector("a");
   assert.equal(raw.closest("table").classList.length, 0, "HTML parsing must drop the JSX class");
-  assert.ok(
-    !ringSelectors(SHEETS).some((part) => reaches(part, raw, [":focus-visible"])),
+  assert.notEqual(
+    declared(SHEETS, "display", raw), "inline-block",
     "the trap this normaliser removes must still be there to remove",
   );
   assert.deepEqual(bare(SHEETS, [html]), [], "the HTML spelling reads the same way");

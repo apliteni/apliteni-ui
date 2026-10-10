@@ -45,7 +45,7 @@ export const accentVars = (ac) =>
 
 // The badge shows the theme, and a theme key is not a label. The kit writes the
 // word for a key rather than styling the key into one — the same move
-// versionSwitcher() makes for `live`. why: docs/specification.md#labels-and-titles
+// versionSwitcher() makes for `live`. why: docs/foundations.md#labels-and-titles
 const THEME_WORD = { dark: 'Dark', light: 'Light' };
 
 // This wall's button row is the shape the Accessibility minimums page warns

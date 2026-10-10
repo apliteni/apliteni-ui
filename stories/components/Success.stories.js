@@ -11,7 +11,7 @@ const wrap = (html, w = 620) => `<div style="max-width:${w}px;margin:0 auto">${h
 // 1 — Hero (upgraded default): the check draws itself on a plain elevated card,
 // with follow-up actions. It shares its check with the block-sized successPanel().
 // The outcome is the title and the detail is one short line — the block carries
-// no third text tier. why: docs/specification.md#success-confirmations
+// no third text tier. why: docs/components.md#success-confirmations
 export const Hero = {
   render: () => pad(wrap(success({
     layout: 'hero',

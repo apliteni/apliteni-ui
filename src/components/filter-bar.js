@@ -9,7 +9,7 @@ export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear
       + `<legend class="ui-filter-bar__legend">${esc(filter.label)}</legend>`
       + dropdown({ items: filter.items || [], variant: 'select',
         // The chip prints one line; the field's name reaches a reader through the
-        // trigger's name and the chip's own legend. why: docs/specification.md#dense-financial-tables
+        // trigger's name and the chip's own legend. why: docs/components.md#dense-financial-tables
         triggerContent: `<span class="${filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}">${esc(filterChipText(filter))}</span>`,
         ariaLabel: filterChipName(filter), open: !!filter.open && !disabled && !busy && !filter.disabled })
       + `<button type="button" class="ui-filter-bar__remove" data-filter-remove aria-label="${esc(`Remove ${filter.label} filter`)}">×</button></fieldset>`).join('')

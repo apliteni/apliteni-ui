@@ -84,7 +84,7 @@ export const Empty = {
 };
 
 // The footer: totals open with the strong rule, labels sit against their figures, and
-// the Total row carries one weight across both cells. why: docs/specification.md#spacing-and-rhythm
+// the Total row carries one weight across both cells. why: docs/foundations.md#spacing-and-rhythm
 export const WithTotals = {
   render: () => pad(`<div class="ui-card" style="max-width:720px">
     <h2 class="ui-card__title">Sample invoice</h2>

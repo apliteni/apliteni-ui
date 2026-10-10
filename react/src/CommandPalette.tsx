@@ -9,7 +9,7 @@ import { DialogScope, dismissOnScrim, useDialog } from './dialog';
 // src/components/command-palette.js is a failure there rather than a drift. The
 // ranking is not re-implemented at all: rankGroups() is imported from the kit,
 // so a product cannot get one order in a server render and another in React.
-// why: docs/specification.md#the-command-palette
+// why: docs/components.md#the-command-palette
 
 export type CommandItem = {
   id: string;

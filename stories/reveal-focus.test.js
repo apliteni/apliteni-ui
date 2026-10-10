@@ -30,7 +30,7 @@
 //   drawer, the confirm and the palette already state in their sheets, and a narrower
 //   one would have to re-derive each element's cascade to be worth anything.
 //
-// why: docs/specification.md#reduced-motion-travels-with-the-stylesheet
+// why: docs/foundations.md#reduced-motion-travels-with-the-stylesheet
 // Weaken the rule and confirm that its test fails.
 
 import test from 'node:test';

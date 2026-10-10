@@ -1,8 +1,11 @@
 // What stat.css guarantees. jsdom lays nothing out and resolves no @container,
 // so the layout guarantees are held by their structure and the fold widths by
-// the table in the specification they were measured for; the cascade between
-// the sheet's own rules is resolved in jsdom.
-// why: docs/specification.md#stat-bands
+// the reader page's table they were measured for; the cascade between the
+// sheet's own rules is resolved in jsdom.
+//
+// Two reader pages are read, because the two tables live where their readers
+// are: the type ranks are a foundation and the band's folds are the band's own.
+// why: docs/components.md#stat-bands
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -15,7 +18,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 const RAW = readFileSync(path.join(here, 'stat.css'), 'utf8');
 const CSS = decomment(RAW);
-const SPEC = readFileSync(path.join(here, '../../docs/specification.md'), 'utf8');
+const FOUNDATIONS = readFileSync(path.join(here, '../../docs/foundations.md'), 'utf8');
+const COMPONENTS_DOC = readFileSync(path.join(here, '../../docs/components.md'), 'utf8');
 const TOKENS = readFileSync(path.join(here, '../tokens/tokens.css'), 'utf8');
 
 const rules = [...CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
@@ -63,10 +67,10 @@ test('the caption carries its space below it, because it leads the row', () => {
   assert.match(sides[2], /^var\(--space-\d+\)$/, `the caption's space below it is ${sides[2]}, not a spacing step`);
 });
 
-/** A rank's size and weight, read off the table in the specification. */
+/** A rank's size and weight, read off the rank table in docs/foundations.md. */
 const rankOf = (name) => {
-  const m = new RegExp(`^\\|\\s*\`${name}\`\\s*\\|\\s*\`(--[\\w-]+)\`\\s*\\|\\s*\`(--[\\w-]+)\`\\s*\\|`, 'm').exec(SPEC);
-  assert.ok(m, `the specification has no rank row for ${name}`);
+  const m = new RegExp(`^\\|\\s*\`${name}\`\\s*\\|\\s*\`(--[\\w-]+)\`\\s*\\|\\s*\`(--[\\w-]+)\`\\s*\\|`, 'm').exec(FOUNDATIONS);
+  assert.ok(m, `docs/foundations.md has no rank row for ${name}`);
   return { size: m[1], weight: m[2] };
 };
 
@@ -267,10 +271,10 @@ test('good news takes the success ink, bad news the danger ink, and nothing else
 });
 
 // The fold widths were measured in a browser over every layout at 2, 3 and 4
-// figures, and the specification carries the table. Each fold is read whole —
+// figures, and docs/components.md carries the table. Each fold is read whole —
 // its range, which figures it matches and the basis it sets — so a width, a
 // basis or an overlap between two ranges moved in one place fails here.
-test('the folds are the ones the specification records, and their ranges do not overlap', () => {
+test('the folds are the ones the reader page records, and their ranges do not overlap', () => {
   const folds = [...CSS.matchAll(/@container\s*\(([^)]*)\)\s*\{\s*([^{]+)\{([^}]*)\}\s*\}/g)].map(([, cond, sel, body]) => {
     const upper = /width\s*<=\s*(\d+)rem/.exec(cond);
     const lower = /(\d+)rem\s*<\s*width/.exec(cond);
@@ -287,15 +291,15 @@ test('the folds are the ones the specification records, and their ranges do not 
   });
   assert.equal(folds.length, 6, `found ${folds.length} folds`);
   const row = (name) => {
-    const m = new RegExp(`^\\|\\s*${name}\\s*\\|\\s*(\\d+)rem\\s*\\|\\s*(\\d+)rem\\s*\\|\\s*(\\d+)rem\\s*\\|`, 'm').exec(SPEC);
-    assert.ok(m, `the specification has no fold row for ${name}`);
+    const m = new RegExp(`^\\|\\s*${name}\\s*\\|\\s*(\\d+)rem\\s*\\|\\s*(\\d+)rem\\s*\\|\\s*(\\d+)rem\\s*\\|`, 'm').exec(COMPONENTS_DOC);
+    assert.ok(m, `docs/components.md has no fold row for ${name}`);
     return { pairs: Number(m[1]), odd: Number(m[2]), column: Number(m[3]) };
   };
   for (const [layout, name] of [['band', 'Band and tiles'], ['open', 'Open']]) {
     const mine = Object.fromEntries(folds.filter((f) => f.layout === layout).map((f) => [f.kind, f]));
     const spec = row(name);
     for (const kind of ['pairs', 'odd', 'column']) {
-      assert.equal(mine[kind]?.upper, spec[kind], `${layout} ${kind} folds at ${mine[kind]?.upper}rem, the specification says ${spec[kind]}rem`);
+      assert.equal(mine[kind]?.upper, spec[kind], `${layout} ${kind} folds at ${mine[kind]?.upper}rem, docs/components.md says ${spec[kind]}rem`);
     }
     // Two per row: more than a third, and room for the gap beside a half.
     const pct = Number.parseFloat(mine.pairs.basis);

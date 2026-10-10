@@ -573,14 +573,14 @@ for (const theme of ['dark', 'light']) {
  * WCAG 1.4.11 asks 3:1 of a graphical object; #206 ruled that 3:1 is the bar for a GRAPHIC and a
  * stroke has to be wide enough to be one. What a reader sees is stroke-width x box / 24, and
  * under 1.5 CSS px a mark is optically a text stem, so it takes the text bar instead. Why 1.5,
- * and what GLYPH_FLOOR is doing here: docs/specification.md#icons-and-glyphs.
+ * and what GLYPH_FLOOR is doing here: docs/foundations.md#icons-and-glyphs.
  *
  */
 const GRAPHIC_AA = 3;      // WCAG 1.4.11, for a graphical object
 /* A ratchet on where the twenty pairs landed, not a bar; the closest is still well
  * over GRAPHIC_AA. It came down at #295 with the four callout glyphs, which are
  * painted on the callout's own wash over a light page that is no longer white.
- * why: docs/specification.md#elevation */
+ * why: docs/foundations.md#elevation */
 const GLYPH_FLOOR = 3.85;
 /* SOLID_STROKE — the 1.5 CSS px line — and VIEWBOX are imported rather than
  * declared: #217 extended the same line to every stroked glyph in the kit, and
@@ -751,7 +751,7 @@ for (const theme of ['dark', 'light']) {
             + `It paints color: ${m.ink} (${hex(m.glyph)}) on ${hex(m.ground)}.\n`
             + 'This is a ratchet, not the bar: something moved a token under a pair that was\n'
             + 'measured above it. Either put the pair back, or lower GLYPH_FLOOR on purpose\n'
-            + 'and say in docs/specification.md what it bought.',
+            + 'and say in docs/foundations.md#elevation what it bought.',
           );
         }
       });

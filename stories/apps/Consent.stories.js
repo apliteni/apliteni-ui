@@ -16,7 +16,7 @@ const scope = (ic, t, d) => `
 
 /* Two glyphs here are sized by the demo rather than by a kit slot, so the demo
  * states their stroke as well as their box — that is the whole rule in
- * docs/specification.md#icons-and-glyphs, and
+ * docs/foundations.md#icons-and-glyphs, and
  * stories/glyph-stroke.test.js holds this markup to it like any other. */
 const shell = (inner, prefix) => `
   <style>
@@ -61,7 +61,7 @@ export const Grant = {
 // had no heading at all until #275 — nothing for a reader moving by heading to
 // land on. .ui-success__title sets the size, weight and colour; the tag brings
 // the display face every other title on an auth card already takes.
-// why: docs/specification.md#the-page
+// why: guidelines/the-page.md#the-page
 export const Granted = {
   render: () => shell(`
     <div class="ui-success" style="background:transparent;padding:16px 0 6px">

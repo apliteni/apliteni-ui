@@ -12,7 +12,7 @@
 
 .ui-drawer {
   /* The floating step; the edge is the hairline each --drawer--<edge> rule below draws.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   --drawer-surface: var(--bg-elevated);
   --drawer-scrim: var(--scrim);
   --drawer-w: var(--panel-md);   /* left|right panels: width  */
@@ -66,7 +66,7 @@
      line with the drops instead. The line is a variable so the focus rule can
      compose all three layers without knowing which edge it is on; its default is a
      no-op layer rather than `none`, which is valid only alone and would invalidate
-     the list. why: docs/specification.md#elevation */
+     the list. why: docs/foundations.md#elevation */
   --drawer-line: 0 0 0 0 transparent;
   box-shadow: var(--drawer-line), var(--elev-drop);
   transition: transform var(--dur-med) var(--ease);
@@ -114,7 +114,7 @@
 /* The ring is COMPOSED with the floating treatment rather than written over it — a
    box-shadow list replaces the whole list, so a bare `box-shadow: var(--ring)` would
    take the drawer's edge and its drop off for as long as it held focus.
-   why: docs/specification.md#elevation */
+   why: docs/foundations.md#elevation */
 .ui-drawer__panel:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring), var(--drawer-line), var(--elev-drop); }
 
 /* -- Sizes ----------------------------------------------------------------- */
@@ -140,7 +140,7 @@
 /* An h2, and base.css would give it the display face. It opts out: at 15px in a
    panel header it is a label on a piece of UI rather than a heading anybody
    reads, and the display face at that size is exactly what #253 was about.
-   why: docs/specification.md#typefaces */
+   why: docs/foundations.md#typefaces */
 .ui-drawer__title {
   margin: 0;
   font-family: var(--font-sans);
@@ -184,7 +184,7 @@
    with the native outline. The band is drawn INWARD, inside the 20px padding: the body
    is flush with a panel that is itself flush with a screen edge, so an outset ring — on
    either box — is painted off-screen. Measured at 390, where an outset one left no
-   indicator at all. why: docs/specification.md#the-focus-ring */
+   indicator at all. why: docs/foundations.md#the-focus-ring */
 .ui-drawer__body:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 
 .ui-drawer__footer {
@@ -202,14 +202,14 @@
    panel, and rows are held apart by space alone. Group from group is the one
    division inside the body worth a line; the body's padding insets it, so it
    parts the groups without cutting the panel in two.
-   why: docs/specification.md#the-drawer */
+   why: docs/components.md#the-drawer */
 .ui-drawer__section + .ui-drawer__section {
   margin-top: var(--space-6);
   padding-top: var(--space-6);
   border-top: 1px solid var(--border);
 }
 /* An h3, and it opts out of the display face for the reason .ui-drawer__title does.
-   why: docs/specification.md#typefaces */
+   why: docs/foundations.md#typefaces */
 .ui-drawer__section-title {
   margin: 0 0 var(--space-2);
   font-family: var(--font-sans);
@@ -244,7 +244,7 @@
    open drawer carries no transition inside it at all — for as long as it is
    open, not only in the frame it opens — which is what reduced motion asked
    for anyway: under the net nothing inside had longer than 0.01ms to run.
-   why: docs/specification.md#reduced-motion-travels-with-the-stylesheet */
+   why: docs/foundations.md#reduced-motion-travels-with-the-stylesheet */
 @media (prefers-reduced-motion: reduce) {
   .ui-drawer.is-open * { transition: none !important; }
 }

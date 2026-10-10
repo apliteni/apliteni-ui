@@ -10,7 +10,7 @@
  * subjects by rendering those screens, and a component nothing renders is a
  * component that gate is silent about.
  *
- * why: docs/specification.md#the-page
+ * why: guidelines/the-page.md#the-page
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -118,7 +118,7 @@ test('block confirmation shares the full-page check and keeps text escaped', () 
  * Limits: this reads the emitted string. It does not paint, so it cannot say
  * how large either mark renders or whether the tick animates.
  *
- * why: docs/specification.md#success-confirmations
+ * why: docs/components.md#success-confirmations
  */
 const LUCIDE = {
   // src/assets/icons.js ships both; read from there so a Lucide bump moves one copy.
@@ -181,7 +181,7 @@ test('the confirmation carries its mark on its root and no backdrop layer', () =
  * cannot tell a short line from a long one — `body` is one element whatever is
  * put in it, and the stories are where the length is judged.
  *
- * why: docs/specification.md#success-confirmations
+ * why: docs/components.md#success-confirmations
  */
 const LAYOUTS = ['hero', 'split', 'compact'];
 
@@ -243,7 +243,7 @@ test('the stylesheet keeps no rule for the tier the markup no longer has', () =>
  * sheets agree on a number, not that a browser draws it; the measurement that
  * found the original drift was a browser, and so is the capture in the PR.
  *
- * why: docs/specification.md#success-confirmations
+ * why: docs/components.md#success-confirmations
  */
 const sizeOf = (css, selector) => {
   const rule = new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`).exec(css);
@@ -264,7 +264,7 @@ test('the inline panel draws the circled mark at the same size success() does', 
   assert.deepEqual(panel, page,
     `the inline panel sizes the circled mark ${panel.w}x${panel.h} while success() draws it `
     + `${page.w}x${page.h}. The specification promises one status size everywhere, and `
-    + 'docs/specification.md#success-confirmations, react/README.md and the changelog all state '
+    + 'docs/components.md#success-confirmations, react/README.md and the changelog all state '
     + 'the number — move all four together or none.');
   assert.equal(page.w, page.h, 'the mark is square; a Lucide glyph in a 24 box has no other shape');
 

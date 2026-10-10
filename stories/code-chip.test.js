@@ -21,7 +21,7 @@
  *    ships no browser. Source-over in sRGB is what Chrome does, and it is checked against
  *    rendered pixels rather than asserted — the producer is scripts/evidence/code-chip.mjs,
  *    which samples the real chip and its real ground and whose numbers are quoted beside
- *    the ladder in docs/specification.md. Every computed pair here lands within 0.01 of
+ *    the ladder in docs/foundations.md#elevation. Every computed pair here lands within 0.01 of
  *    the rendered one. The INK on the chip is stories/contrast.test.js's subject, not this.
  *  - The wash subjects are the washes that take CALLER markup: `callout()` and the success
  *    panel hand their body straight through, so a chip inside one is ordinary product
@@ -80,58 +80,19 @@ const selectorsOf = (list) => {
   return out.filter(Boolean);
 };
 
-const rulesIn = (file) => [...decomment(read(file)).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-  .filter(([, selector]) => !selector.trim().startsWith('@'))
-  .map((match) => ({ file, selector: match[1].trim(), body: match[2] }));
+const rulesIn = (file) => {
+  const raw = read(file);
+  return [...decomment(raw).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, selector]) => !selector.trim().startsWith('@'))
+    .map((match) => ({
+      file, selector: match[1].trim(), body: match[2],
+      raw: raw.slice(match.index, match.index + match[0].length),
+    }));
+};
 
-const sheets = files.flatMap(rulesIn);
-const own = (rule) => new Map(customPropertiesIn(`${rule.selector}{${rule.body}}`).map((d) => [d.name, d.value]));
-
-/* The painted grounds: a rule that paints and says so by setting its own gap. The page is
- * one of them and declares its pair on :root, so it is discovered with the rest. A theme
- * block is still the page — `:root, :root[data-theme="dark"]` writes the gap once for both. */
-const painted = sheets.flatMap((rule) => {
-  const gap = own(rule).get('--ring-gap');
-  if (!gap || gap === 'inherit') return [];
-  // The chip is not a ground a chip stands on. It declares a gap so that a focusable inside
-  // it takes the surface the chip actually paints — reading the hand-off, never setting it.
-  if (rule.selector === '.ui-code') return [];
-  return selectorsOf(rule.selector)
-    .map((selector) => (selector.startsWith(':root') ? ':root' : selector))
-    .map((selector) => ({ file: rule.file, selector, gap }));
-});
-/* Last paint wins: a selector the sheets paint twice stands on the second one. */
-const grounds = [...new Map(painted.map((ground) => [ground.selector, ground])).values()];
-
-/* Every rule that hands a chip a surface, in document order. tokens.css owns all of them:
- * which surface is free is a property of the ladder, not of a component sheet. */
-const handOffs = rulesIn('src/tokens/tokens.css').flatMap((rule) => {
-  const pick = own(rule).get('--code-bg');
-  return pick ? selectorsOf(rule.selector).map((selector) => ({ selector, pick })) : [];
-});
-const pickFor = (selector) => handOffs.filter((hand) => hand.selector === selector).at(-1)?.pick;
-
-/* A container may RE-POINT a token a ground or a hand-off is written in — a table takes
- * its card's surface — and that is a second context the pair has to hold in. The contexts
- * are discovered from the sheets, so a new one has to be answered here rather than ignored.
- *
- * Only a LADDER token counts, meaning one the page declares itself. A component that
- * declares its own surface alias (--drawer-surface, --cmdk-surface, --footer-surface) is
- * not re-pointing a ground: that declaration is the only one the token has, it is already
- * in the page's own resolution, and reading it as an overlay would hand one component's
- * surface to a sibling that never sees it. */
-const ladder = new Set(rulesIn('src/tokens/tokens.css')
-  .filter((rule) => rule.selector.startsWith(':root'))
-  .flatMap((rule) => [...own(rule).keys()]));
-const written = new Set(grounds.flatMap(({ gap, selector }) => [gap, pickFor(selector) ?? '']
-  .flatMap((value) => [...namesRead(value, tokensFor('dark'))])).filter((name) => ladder.has(name)));
-const contexts = [{ where: 'the page', overrides: new Map() },
-  ...sheets.filter((rule) => !rule.selector.startsWith(':root'))
-    .map((rule) => ({ rule, overrides: new Map([...own(rule)].filter(([name]) => written.has(name))) }))
-    .filter(({ overrides }) => overrides.size)
-    .map(({ rule, overrides }) => ({ where: `inside ${rule.selector}`, overrides }))];
-
-const varsFor = (theme, overrides) => new Map([...tokensFor(theme), ...overrides]);
+const paintOf = (body) => /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(body)?.[1].trim();
+/** A rule that paints something a chip never stands in says so, with its reason. */
+const HANDS_NOTHING_ON = /\/\* code-bg: inherit — .+\. \*\//;
 
 /* The shapes of color-mix the kit writes, plus the hex and rgb() parseColour reads.
  *
@@ -154,6 +115,105 @@ const colourOf = (value, vars) => {
   return parseColour(resolved);
 };
 
+
+const sheets = files.flatMap(rulesIn);
+const own = (rule) => new Map(customPropertiesIn(`${rule.selector}{${rule.body}}`).map((d) => [d.name, d.value]));
+
+/* Whether a value is one of the kit's READING SURFACES, followed through its own aliases:
+ * a drawer paints --drawer-surface, which is --bg-elevated. A paint that is not one of
+ * these is not a ground a chip stands on — a primary button's fill, a status dot, an
+ * accent strip — and needs no note to be left out.
+ *
+ * This test used to live in the ring gate, which read the same sheets for the same reason:
+ * a box-shadow focus ring painted its own gap, so a painted surface had to hand its colour
+ * down. #578 made the band an outline and retired that hand-off; the chip's is the one
+ * left, so the test moved here with it. */
+const allDeclarations = sheets.flatMap((rule) => [...own(rule)].map(([name, value]) => ({ name, value })));
+const referencesIn = (value) => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]);
+const isSurface = (value, seen = new Set()) => referencesIn(value).some((name) => {
+  if (/^--(?:bg(?:-elevated)?|surface(?:-[23])?|glow-[\w-]+|signal-solid-[\w-]+)$/.test(name)) return true;
+  if (seen.has(name)) return false;
+  return allDeclarations.filter((d) => d.name === name)
+    .some((d) => isSurface(d.value, new Set([...seen, name])));
+});
+
+/* The painted grounds: a rule that paints a box a chip can be written inside, read off the
+ * `background` it actually paints. A rule that paints something else — a control's own
+ * fill, a decorative tile, a translucent wash, a page the root already covers — says so
+ * with a `code-bg: inherit` note and the reason, and is not a ground.
+ *
+ * Until #578 the note had a declaration beside it: a box-shadow focus ring painted its own
+ * 1px gap, so every painted container restated its colour in `--ring-gap` and this walk
+ * read that restatement. An outline leaves the gap unpainted, so the restatement is gone
+ * and the paint itself is what gets read — one statement fewer to drift from.
+ *
+ * The PAGE is named rather than discovered: `body` is the rule that paints it and carries
+ * the note, because every root override reaches it. Its colour is asserted against that
+ * rule below, so this entry cannot drift from the sheet either. */
+const PAGE = { file: 'src/styles/base.css', selector: ':root', paint: 'var(--bg)' };
+const painted = sheets.flatMap((rule) => {
+  const paint = paintOf(rule.body);
+  if (!paint || HANDS_NOTHING_ON.test(rule.raw)) return [];
+  // The chip is not a ground a chip stands on: it READS the hand-off and never declares one.
+  if (rule.selector === '.ui-code') return [];
+  // Only a reading surface is a rung. A translucent one is a wash, measured over every
+  // rung below rather than as one.
+  if (!isSurface(paint) && !paint.startsWith('color-mix(')) return [];
+  const flat = colourOf(paint, tokensFor('light'));
+  if (!flat || flat[3] < 1) return [];
+  return selectorsOf(rule.selector)
+    .filter((selector) => !selector.startsWith(':root'))
+    .map((selector) => ({ file: rule.file, selector, paint }));
+});
+/* And a variant that paints through an alias its BASE declares: `.ui-footer--app` writes
+ * no background of its own, it re-points --footer-surface, which `.ui-footer` paints. The
+ * base is transparent and says so with the note; the variant is an opaque ground. */
+const paintedAliases = new Set(sheets
+  .filter((rule) => HANDS_NOTHING_ON.test(rule.raw))
+  .map((rule) => paintOf(rule.body))
+  .filter((paint) => paint && /^var\(\s*--[\w-]+\s*\)$/.test(paint))
+  .map((paint) => /^var\(\s*(--[\w-]+)/.exec(paint)[1]));
+const aliased = sheets.flatMap((rule) => {
+  if (rule.selector.startsWith(':root') || paintOf(rule.body)) return [];
+  return [...own(rule)]
+    .filter(([name, value]) => paintedAliases.has(name) && isSurface(value))
+    .flatMap(([, value]) => selectorsOf(rule.selector)
+      .map((selector) => ({ file: rule.file, selector, paint: value })));
+});
+
+/* Last paint wins: a selector the sheets paint twice stands on the second one. */
+const grounds = [PAGE, ...new Map([...painted, ...aliased].map((g) => [g.selector, g])).values()];
+
+/* Every rule that hands a chip a surface, in document order. tokens.css owns all of them:
+ * which surface is free is a property of the ladder, not of a component sheet. */
+const handOffs = rulesIn('src/tokens/tokens.css').flatMap((rule) => {
+  const pick = own(rule).get('--code-bg');
+  return pick ? selectorsOf(rule.selector).map((selector) => ({ selector, pick })) : [];
+});
+const pickFor = (selector) => handOffs.filter((hand) => hand.selector === selector).at(-1)?.pick;
+
+/* A container may RE-POINT a token a ground or a hand-off is written in — a table takes
+ * its card's surface — and that is a second context the pair has to hold in. The contexts
+ * are discovered from the sheets, so a new one has to be answered here rather than ignored.
+ *
+ * Only a LADDER token counts, meaning one the page declares itself. A component that
+ * declares its own surface alias (--drawer-surface, --cmdk-surface, --footer-surface) is
+ * not re-pointing a ground: that declaration is the only one the token has, it is already
+ * in the page's own resolution, and reading it as an overlay would hand one component's
+ * surface to a sibling that never sees it. */
+const ladder = new Set(rulesIn('src/tokens/tokens.css')
+  .filter((rule) => rule.selector.startsWith(':root'))
+  .flatMap((rule) => [...own(rule).keys()]));
+const written = new Set(grounds.flatMap(({ paint, selector }) => [paint, pickFor(selector) ?? '']
+  .flatMap((value) => [...namesRead(value, tokensFor('dark'))])).filter((name) => ladder.has(name)));
+const contexts = [{ where: 'the page', overrides: new Map() },
+  ...sheets.filter((rule) => !rule.selector.startsWith(':root'))
+    .map((rule) => ({ rule, overrides: new Map([...own(rule)].filter(([name]) => written.has(name))) }))
+    .filter(({ overrides }) => overrides.size)
+    .map(({ rule, overrides }) => ({ where: `inside ${rule.selector}`, overrides }))];
+
+const varsFor = (theme, overrides) => new Map([...tokensFor(theme), ...overrides]);
+
 /* The washes a chip can be written inside, discovered from the sheet that draws them: a rule
  * in callout.css whose paint is translucent and whose selector is a block, not an element of
  * one and not a state. That is callout()'s four tones and the success panel — the two the kit
@@ -169,17 +229,17 @@ const washes = rulesIn('src/styles/callout.css')
  * hand-off against the wash over that rung — the chip itself never moves. */
 const steps = () => THEMES.flatMap((theme) => contexts.flatMap(({ where, overrides }) => {
   const vars = varsFor(theme, overrides);
-  const rung = ({ selector, gap }) => ({
+  const rung = ({ selector, paint }) => ({
     theme,
     where,
     selector,
-    step: ratio(colourOf(gap, vars), colourOf(pickFor(selector), vars)),
+    step: ratio(colourOf(paint, vars), colourOf(pickFor(selector), vars)),
   });
   const under = (wash, ground) => ({
     theme,
     where,
     selector: `${wash.selector} over ${ground.selector}`,
-    step: ratio(composite(colourOf(wash.paint, vars), colourOf(ground.gap, vars)),
+    step: ratio(composite(colourOf(wash.paint, vars), colourOf(ground.paint, vars)),
       colourOf(pickFor(wash.selector), vars)),
   });
   return [
@@ -210,8 +270,30 @@ const LEDGER = [{
 const accepts = (finding) => LEDGER.some((entry) => entry.themes.includes(finding.theme)
   && entry.selectors.includes(finding.selector));
 
+test('the ground discovery refuses a painted container that hands a chip nothing', () => {
+  // The mutation the discovery is for: a new painted container, with no note and no
+  // hand-off. The old reading leaned on a `--ring-gap` restatement of the same colour,
+  // which #578 retired; this one reads the paint itself, so a container cannot be a
+  // ground in one reading and absent from the other.
+  const fixture = {
+    file: 'fixture', selector: '.fx-panel',
+    body: 'background: var(--bg-elevated); border-radius: 8px;',
+    raw: '.fx-panel { background: var(--bg-elevated); border-radius: 8px; }',
+  };
+  assert.ok(isSurface(paintOf(fixture.body)), 'the fixture must paint a reading surface');
+  assert.ok(!HANDS_NOTHING_ON.test(fixture.raw), 'the fixture must carry no note');
+  assert.equal(pickFor(fixture.selector), undefined, 'and hand a chip nothing');
+  // Noted instead, it is not a ground at all — which is the way out a control's own fill takes.
+  const noted = { ...fixture, raw: `${fixture.raw.slice(0, -1)}/* code-bg: inherit — a fixture. */ }` };
+  assert.ok(HANDS_NOTHING_ON.test(noted.raw), 'the note is what takes a paint out of the discovery');
+});
+
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 33, 'painted-ground discovery changed; a new painted container must say which surface it hands an inline code chip');
+  assert.equal(grounds.length, 33, 'painted-ground discovery changed; a new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
+  // The page entry is named, not discovered, so it is held against the rule that paints it.
+  const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
+  assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');
+  assert.match(bodyRule.raw, HANDS_NOTHING_ON, 'the page\'s own rule must carry the note, or it is discovered twice');
   assert.equal(washes.length, 5, 'wash discovery changed; a wash that takes caller markup must say which surface it hands an inline code chip');
   for (const { selector, paint } of washes) {
     assert.ok(pickFor(selector), `${selector} is a wash a caller can write a chip inside and never hands it a surface`);
@@ -225,8 +307,11 @@ test('the chip gate discovers every ground, wash, context and theme', () => {
   for (const theme of THEMES) {
     for (const { where, overrides } of contexts) {
       const vars = varsFor(theme, overrides);
-      for (const { file, selector, gap } of grounds) {
-        assert.ok(colourOf(gap, vars), `${file}: ${selector} ground is unreadable in ${theme}, ${where}`);
+      for (const { file, selector, paint } of grounds) {
+        assert.ok(colourOf(paint, vars), `${file}: ${selector} ground is unreadable in ${theme}, ${where}`);
+        // A translucent paint is a wash, measured over every rung below rather than as one.
+        assert.equal(colourOf(paint, vars)[3], 1,
+          `${file}: ${selector} is read as an opaque ground and paints translucently in ${theme}, ${where}`);
         assert.ok(colourOf(pickFor(selector), vars), `${file}: ${selector} chip surface is unreadable in ${theme}, ${where}`);
       }
     }
@@ -261,8 +346,10 @@ test('the chip paints the surface it is handed, and claims no edge of its own', 
   // gap match the paint: a focusable inside a chip is ordinary markup wherever the kit turns
   // backticks into chips, and before #540's review it drew a band of the other surface.
   assert.doesNotMatch(rule.body, /--code-bg\s*:/, 'the chip must read the hand-off, never declare it');
-  assert.match(rule.body, /--ring-gap:\s*var\(--code-bg\)\s*;/, 'a focusable inside a chip needs the gap of the surface the chip paints');
-  assert.match(rule.body, /--ring:\s*0 0 0 var\(--ring-gap-width\) var\(--ring-gap\)/, 'the chip composes the kit ring with its own gap');
+  // And it composes no ring of its own. It used to, because a box-shadow band painted a
+  // 1px gap and the chip's gap had to be the surface the chip paints. An outline paints no
+  // gap, so a focusable inside a chip needs nothing from it. #578
+  assert.doesNotMatch(rule.body, /--ring[\w-]*\s*:/, 'the chip composes no ring; the band leaves its offset unpainted');
   const recipe = rulesIn('src/tokens/tokens.css').find((r) => own(r).get('--code-bg') === 'var(--bg)');
   assert.ok(!selectorsOf(recipe.selector).includes('.ui-code'),
     'the chip cannot be in the hand-off list: it would hand the page to itself and paint the page everywhere');

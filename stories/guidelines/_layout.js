@@ -21,7 +21,7 @@ export const mono = (text) => String(text).split(/(`[^`]+`|\[[^\]]+\]\(https:\/\
 // stories/guidelines/destructive-actions.test.js still holds the two in step.
 // --measure does NOT replace it — this grid sizes to its widest SPECIMEN, not
 // to a page.
-// why: docs/specification.md#boxes-below-the-page
+// why: docs/foundations.md#boxes-below-the-page
 const SPEC_CSS = `
   <style>
     .gl { --gl-specimen: var(--panel-md);

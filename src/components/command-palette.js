@@ -9,7 +9,7 @@ export { SCORE, scoreCommand, rankCommands, rankGroups, paletteHotkey } from '..
 // The kit ships the shell and the ranking and names no result kinds; a row goes
 // somewhere, runs something, or asks a confirm first. Inertness, Escape and the
 // focus trap come from ./overlay.js, the stack the drawer and the confirm share.
-// why: docs/specification.md#the-command-palette
+// why: docs/components.md#the-command-palette
 import { esc, icon } from './index.js';
 import { OVERLAY_LAYER, adoptOverlay, popOverlay, pushOverlay, returnFocus, syncOverlays } from './overlay.js';
 import { safeUrl } from '../html.js';
@@ -61,7 +61,7 @@ function keysFor(shortcut) {
  * the wiring, which is also what makes Cmd+Enter open it in a tab.
  *
  * A destructive item that names no confirm is rendered DISABLED. The kit's rule
- * is that a delete asks first (docs/specification.md#the-command-palette), and a
+ * is that a delete asks first (docs/components.md#the-command-palette), and a
  * palette is the one surface where a reader is typing fast and choosing from a
  * list that reorders under them.
  */

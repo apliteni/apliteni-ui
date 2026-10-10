@@ -5,7 +5,7 @@
 // react/src/AccentPicker.tsx call accentSwatchStyle(); site/chrome.mjs and
 // site/index.html still hand-keep the same four gradients. Held by
 // stories/accent-swatch.test.js, which derives both sides out of src/tokens/.
-// why: docs/specification.md#react-accent-picker. See issues #190 and #429.
+// why: docs/components.md#page-furniture. See issues #190 and #429.
 export const ACCENTS = ['default', 'phoenix', 'ocean', 'emerald'];
 
 // Per accent, the gradient's two stops — each the value src/tokens/ declares for

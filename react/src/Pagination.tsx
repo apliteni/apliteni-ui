@@ -5,7 +5,7 @@ import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 // source of truth for every class name here, and Pagination.test.tsx compares
 // the two shape by shape — a rule this file expresses differently from
 // src/components/pagination.js is a failure there rather than a drift.
-// why: docs/specification.md#pagination
+// why: docs/components.md#pagination
 
 export type PaginationProps = {
   page?: number;
@@ -121,7 +121,7 @@ export function Pagination({
   // A browser drops focus to <body> from a control that turns disabled. Once
   // the page has arrived, a pressed step gets focus back, or the nearest live
   // step does. Only focus a press lost; never while loading, never into the rows.
-  // why: docs/specification.md#pagination
+  // why: docs/components.md#pagination
   useEffect(() => {
     const was = pressed.current;
     if (!was || loading) return;

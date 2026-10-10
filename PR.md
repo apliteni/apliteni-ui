@@ -52,7 +52,7 @@ the Colour page, what a tap does is an act rather than an appearance, and there 
 photograph. The rule below it, *Never make hover the only way to a value*, keeps its place and
 loses the half of its open question that is now answered.
 
-**The spec and the catalogue.** `docs/specification.md#the-hover-readout` states the tap as a
+**The spec and the catalogue.** `docs/components.md#the-hover-readout` states the tap as a
 guarantee and narrows *Not decided yet* to the one thing still open — whether a chart's marks
 should take a tab stop at all. `docs/library.md` says it in a sentence. Every kit citation on the
 guideline page is re-pinned against `tooltip.js` as it now stands — the file grew, and
@@ -137,10 +137,9 @@ Conflicts, and how each was settled:
   with the folded rail and its `backLink()` row with the React note all stand as main wrote them.
 - **`PR.md` — a modify/delete.** Main carries no `PR.md` any more; each merge drops it. This
   branch's copy stands, with this section and the two above it rewritten for this pass.
-- **`docs/specification.md` merged without a conflict.** Main grew *Elevation*, *The second
-  layout* and the rest elsewhere in the file while this branch rewrote *The hover readout*; both
-  sides' text is present. One line was rewrapped by hand where the merge left it over the file's
-  width.
+- **The reader pages merged without a conflict.** Main moved the old specification into
+  `docs/foundations.md` and `docs/components.md`; this branch's hover readout text now lives in
+  `docs/components.md`.
 - **`src/components/tooltip.js` applied without a conflict.** Main's only change to it was the
   class-sweep comment above `PARTS`, which the sweep in `src/styles/label-coverage.test.js`
   needs; it is still there, above the new pointer-kind block rather than displaced by it.
@@ -184,11 +183,11 @@ carries a test that fails when its fix is undone.
   on the tap's side of the line: it presses a screen rather than resting over one, the tablets it
   comes with report `(pointer: coarse)`, and the few millimetres of hover a modern pen offers is
   not what the readout is placed against. The mouse is the fine pointer, and the rule is written
-  down in the spec rather than left in one clause of the code.
+  down in the component page rather than left in one clause of the code.
 
-`docs/specification.md`, the guideline page's *On a touch screen* and *Never make hover the only
-way to a value* rules, and the changelog entry all state the behaviour as it now is. The version
-stays **0.34.2**: `origin/main` is still 0.34.1.
+`docs/components.md`, the guideline page's *On a touch screen* and *Never make hover the only way
+to a value* rules, and the changelog entry all state the behaviour as it now is. The version stays
+**0.34.2**: `origin/main` is still 0.34.1.
 
 ## Verification after the rebase
 
@@ -204,8 +203,8 @@ stays **0.34.2**: `origin/main` is still 0.34.1.
   `danger-colour` and `elevation` — 121 pass; `react/src/elevation.test.ts` and
   `react/src/contrast.test.tsx` — 83 pass.
 - The slop detector over every file this branch touches: clean, except one pre-existing
-  `scope-template` warning in `docs/specification.md` that is main's, in the drawer's motion
-  paragraph, and untouched here.
+  `scope-template` warning in the reader pages that is main's, in the drawer's motion paragraph,
+  and untouched here.
 - A browser, at 1440px and 390px, in both themes, under real `Input.dispatchTouchEvent` touches
   with `(pointer: coarse)` true and `maxTouchPoints` 5: a tap opens the readout, a second tap on
   the same mark closes it, a tap elsewhere closes it, and with touch emulation off a mouse still

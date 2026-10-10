@@ -33,7 +33,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all 
       onFocus={() => { focused.current = { id: filter.id, index }; }}>
       <legend className="ui-filter-bar__legend">{filter.label}</legend>
       {/* The chip prints one line; the field's name reaches a reader through the
-          trigger's name and the chip's own legend. why: docs/specification.md#dense-financial-tables */}
+          trigger's name and the chip's own legend. why: docs/components.md#dense-financial-tables */}
       <Dropdown items={filter.items} variant="select" ariaLabel={filterChipName(filter)}
         triggerContent={<span className={filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}>{filterChipText(filter)}</span>}
         open={!blocked && !filter.disabled && (opened[filter.id] && opened[filter.id].against === filter.open ? opened[filter.id].open : !!filter.open)}

@@ -86,7 +86,7 @@ const unmetProblems = (page, rule) => {
   return problems;
 };
 
-// The page guideline keeps its mapping in the specification. Check what a
+// The page guideline keeps its rule-to-code mapping beside its gate. Check what a
 // reader sees as well as the data, so moving a citation into prose still fails.
 const codeFreeProblems = (mod, html = guidelinePage({ title: mod.TITLE, rules: mod.RULES, css: mod.SPEC_CSS })) => {
   const problems = [];
@@ -100,18 +100,18 @@ const codeFreeProblems = (mod, html = guidelinePage({ title: mod.TITLE, rules: m
   return problems;
 };
 
-const specificationOnly = [];
+const codeFree = [];
 
 for (const page of pages) {
   const mod = await import(path.join(here, page));
   if (!Array.isArray(mod.RULES)) continue;
-  if (mod.REFERENCE_POLICY === 'specification-only') specificationOnly.push(page);
+  if (mod.REFERENCE_POLICY === 'code-free') codeFree.push(page);
 
   test(`guideline references resolve: stories/guidelines/${page}`, () => {
-    assert.ok(mod.REFERENCE_POLICY === undefined || mod.REFERENCE_POLICY === 'specification-only',
+    assert.ok(mod.REFERENCE_POLICY === undefined || mod.REFERENCE_POLICY === 'code-free',
       `${page}: unknown reference policy`);
-    if (mod.REFERENCE_POLICY === 'specification-only') {
-      assert.deepEqual(codeFreeProblems(mod), [], `${page}: code references belong only in the specification`);
+    if (mod.REFERENCE_POLICY === 'code-free') {
+      assert.deepEqual(codeFreeProblems(mod), [], `${page}: this page renders no code references; its mapping lives beside its gate`);
       return;
     }
     assert.ok(mod.RULES.some((rule) => references[page]?.[rule.id]?.length), `${page}: no kit citations to resolve`);
@@ -179,15 +179,15 @@ for (const page of pages) {
   });
 }
 
-test('only The page declares specification-only references', () => {
-  assert.deepEqual(specificationOnly, ['_the-page.js']);
+test('only The page declares code-free references', () => {
+  assert.deepEqual(codeFree, ['_the-page.js']);
 });
 
 test('The page story renders no code references', () => {
   assert.deepEqual(codeFreeProblems(thePage, ThePage.render()), []);
 });
 
-test('specification-only pages reject citations moved into visible text', () => {
+test('a code-free page rejects citations moved into visible text', () => {
   const mod = { TITLE: 'Example', RULES: [{ id: 'r', imperative: 'Keep it clear.', why: 'Help readers.' }] };
   assert.deepEqual(codeFreeProblems(mod), []);
   for (const extra of [
@@ -203,7 +203,7 @@ test('specification-only pages reject citations moved into visible text', () => 
     { why: 'Read the the-page gate.' },
     { doHtml: () => '<div>Example</div>', dontHtml: () => '<div>Example</div>',
       doCaption: 'Use appShell().', dontCaption: 'Avoid extra content.' },
-    { why: 'Read docs/specification.md.' },
+    { why: 'Read docs/foundations.md.' },
     { doHtml: () => '<div>Example</div>', dontHtml: () => '<div>Example</div>',
       doCaption: 'Use --space-2.', dontCaption: 'Avoid custom spacing.' },
   ]) {
@@ -292,7 +292,7 @@ const plain = (text) => JSDOM.fragment(mono(text)).textContent;
 test('every guideline has packaged Markdown and renders its rule text from it', async () => {
   const docs = readdirSync(markdownDir).filter(file => file.endsWith('.md')).sort();
   const content = pages.filter(file => file.startsWith('_') && !['_layout.js', '_markdown.js', '_overview.js'].includes(file));
-  assert.equal(content.length, 23, 'update the collection count when adding a page');
+  assert.equal(content.length, 24, 'update the collection count when adding a page');
   assert.deepEqual(docs, [...content.map(file => `${file.slice(1, -3)}.md`), 'overview.md'].sort());
   assert.ok(JSON.parse(readFileSync(path.join(root, 'package.json'))).files.includes('guidelines'));
   let count = 0;
@@ -322,10 +322,10 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  assert.equal(count, 121, 'update the rule count when adding or removing a rule');
+  assert.equal(count, 124, 'update the rule count when adding or removing a rule');
 });
 
-// The checkable half of "Show, less tell" (docs/guidelines.md). A rule the page
+// The checkable half of "Show, less tell" (AGENTS.md#the-guidelines-collection). A rule the page
 // does not draw has only its words, so it must at least say why the rule exists;
 // the clause about a `Why` earning its place is a reviewer's call and is not here.
 //

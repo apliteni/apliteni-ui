@@ -131,7 +131,7 @@ export const Scrollable = {
 };
 
 // Search — a field above the rows that filters them as the reader types.
-// why: docs/specification.md#a-dropdown-with-a-search-field
+// why: docs/components.md#a-dropdown-with-a-search-field
 const CURRENCY = { label: 'currency:', ariaLabel: 'Currency', search: { placeholder: 'Search currencies' } };
 
 export const Search = {
@@ -194,7 +194,7 @@ export const SearchGrouped = {
 // bleed and the line; what goes inside is the page's, laid out by the page.
 // `foot` draws its block; a head is the page's own markup through the unwrapped
 // `header` slot, which is how `railUser()` has always written one.
-// why: docs/specification.md#the-dropdown-panel
+// why: docs/components.md#the-dropdown-panel
 const FILTERS = [
   { label: 'Unpaid', description: '12 payouts', icon: 'clock' },
   { label: 'Awaiting approval', description: '3 payouts', icon: 'shield' },
@@ -223,7 +223,7 @@ export const HeadAndFoot = {
 // and a listbox takes options, so a Save / Cancel pair under either is refused
 // by axe's aria-required-children; `search: true` makes the panel a dialog,
 // which is the same answer the kit already gives for the field above the rows.
-// why: docs/specification.md#the-dropdown-panel
+// why: docs/components.md#the-dropdown-panel
 export const FootOfControls = {
   name: 'A foot of controls (open)',
   parameters: { layout: 'fullscreen' },
@@ -268,7 +268,7 @@ export const AutoDirection = {
 };
 
 // A sticky, scrolling rail — .ui-app__rail is both, and either one on its own is
-// enough to trap a panel. why: docs/specification.md#the-dropdown-panel
+// enough to trap a panel. why: docs/components.md#the-dropdown-panel
 const rail = (html) =>
   `<div class="ui-app" style="grid-template-columns:249px 1fr">` +
     `<aside class="ui-app__rail" style="width:249px">${html}</aside>` +
@@ -296,7 +296,7 @@ export const InAppRail = {
 // factory emits two of them and this story is about the third. `is-selected`
 // and __tick mean a row gets chosen, and choosing is a <button>'s job — so a
 // page builds one, and .ui-dropdown__item takes the browser's button skin back
-// off. why: docs/specification.md#a-dropdown-row-is-a-div-a-link-or-a-button
+// off. why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button
 const GUTS = '<span class="ui-dropdown__main">'
   + '<span class="ui-dropdown__label">phoenix.2026.002</span>'
   + '<span class="ui-dropdown__desc">Product units, animated deck</span></span>'

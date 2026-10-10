@@ -9,7 +9,7 @@
  * and columnheader, and only the body's rowgroup goes. WebKit and Gecko were not measured,
  * so all five are required rather than the one Chromium is known to drop.
  *
- * why: docs/specification.md#dense-financial-tables
+ * why: docs/components.md#dense-financial-tables
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

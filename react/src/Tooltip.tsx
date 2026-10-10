@@ -102,7 +102,7 @@ export const TooltipHost = forwardRef<HTMLDivElement, TooltipHostProps>(function
  * the host's top left.
  *
  * Internal to this module: the showcase uses it, `index.ts` does not export it.
- * why: docs/specification.md#the-hover-readout
+ * why: docs/components.md#the-react-tooltip
  */
 export function TooltipPicture({ x, y, placement = 'top', children, style, className, ...parts }: Parts & {
   x: number; y: number; placement?: 'top' | 'bottom'; children: ReactNode; style?: CSSProperties; className?: string;

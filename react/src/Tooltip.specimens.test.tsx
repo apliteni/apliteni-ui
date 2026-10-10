@@ -10,7 +10,7 @@
 // wireTooltip(); React stories mount, and their wiring is the component's own.
 // Same contract, its own coverage count.
 //
-// why: docs/specification.md#the-hover-readout
+// why: docs/components.md#the-react-tooltip
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, expect, it } from 'vitest';
 import type { ReactElement } from 'react';

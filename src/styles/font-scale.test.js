@@ -1,5 +1,5 @@
 // Fixed component text follows the scale; token offsets preserve default pixels.
-// why: docs/specification.md#typefaces
+// why: docs/foundations.md#typefaces
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';

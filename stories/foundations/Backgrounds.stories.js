@@ -7,7 +7,7 @@ export default {
 };
 
 // The elevation ladder, bottom to top — the order is the rule, not a list.
-// why: docs/specification.md#elevation
+// why: docs/foundations.md#elevation
 const SURFACES = [
   ['--bg', 'Page', 'The base canvas behind everything.'],
   ['--surface-2', 'Sunken', 'Sunken table rows, tracks, disabled boxes.'],

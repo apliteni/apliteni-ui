@@ -51,7 +51,7 @@ export type SuccessProps = Omit<HTMLAttributes<HTMLDivElement>, 'title' | 'child
   check?: SuccessMark;
   title?: string;
   /** One short line under the title, or nothing. There is no eyebrow tier.
-   *  why: docs/specification.md#success-confirmations */
+   *  why: docs/components.md#success-confirmations */
   body?: string;
   /** Removed: a confirmation carries one title and at most one line. Typed as
    *  `never` so a caller still passing it is told where it went rather than
@@ -104,7 +104,7 @@ export const Success = forwardRef<HTMLDivElement, SuccessProps>(function Success
   void _removedEyebrow;
   // Clamp the rank as vanilla does: an out-of-range level renders no heading at all,
   // leaving a page whose whole content is a Success without one.
-  // why: docs/specification.md#the-page
+  // why: guidelines/the-page.md#the-page
   const rank = [1, 2, 3, 4, 5, 6].includes(Number(level)) ? Number(level) : (layout === 'compact' ? 2 : 1);
   const Heading = `h${rank}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
   // Vanilla writes the row only for actions.length; an empty one still adds its 20px margin.

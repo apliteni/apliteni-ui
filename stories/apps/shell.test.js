@@ -399,7 +399,7 @@ test('the toggle is named for the press and announces the rail as it is', () => 
 // travels has to be a child a stylesheet can reach, and icon() emits one opaque
 // string. The <svg> around them is icon()'s own, so the box, the stroke and the
 // aria pair cannot drift from the glyphs above it. "By construction" is what this
-// gate makes true. why: docs/specification.md#the-page-shell
+// gate makes true. why: docs/components.md#the-page-shell
 test('the toggle\'s mark is drawn inside icon()\'s own wrapper, aria pair and all', () => {
   const attrs = (svg) => Object.fromEntries([...svg.attributes].map((a) => [a.name, a.value]));
   const mark = dom(appShell({ collapsible: true })).querySelector('[data-rail-toggle] .ui-nav__ic svg');
@@ -582,7 +582,7 @@ test('the shell has no sign-out link unless the caller asks for one', () => {
 
 // Signing out ends a session; it does not go anywhere. It was the one destructive
 // thing standing among the places to go, and it is a row of the reader's menu now
-// (#286). why: docs/specification.md#the-page-shell
+// (#286). why: docs/components.md#the-page-shell
 test('sign out is a row of the reader\'s menu, and is nowhere in the nav list', () => {
   const doc = dom(appShell({ account: READER, signOutHref: '#logout' }));
   const out = doc.querySelector('.ui-app__user [data-dropdown-panel] .ui-dropdown__item.is-danger');
@@ -601,7 +601,7 @@ test('sign out is a row of the reader\'s menu, and is nowhere in the nav list', 
 // The block is the last thing in a full-height rail, so a menu that opened
 // downward would open off the bottom of it. The marker is read off dropdown()
 // rather than written out here, so renaming it in the kit moves this gate with
-// it. why: docs/specification.md#the-page-shell
+// it. why: docs/components.md#the-page-shell
 test('the reader\'s menu opens upward, off the foot of a full-height rail', () => {
   const panel = (html) => dom(html).querySelector('[data-dropdown-panel]');
   const spec = { variant: 'menu', items: [{ label: 'Sign out', href: '#logout' }] };
@@ -1107,7 +1107,7 @@ test('the shell\'s own anchors keep the kit\'s ink under a consumer\'s a:link', 
 // One shell, two arrangements. What these gates hold is that the parts move
 // rather than multiply: one reader block, one fold control, one band, one
 // content column, whichever layout and whichever width the caller asked for.
-// why: docs/specification.md#the-page-shell
+// why: docs/components.md#the-page-shell
 
 /** The shell at a layout and a width, with every part it can draw. */
 const LAID = (o = {}) => appShell({

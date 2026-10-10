@@ -279,7 +279,7 @@ export const PhoneDay: StoryObj<typeof DatePicker> = {
 
 // Last year's shortcuts against this year's bounds, so every chip is switched off. The
 // row still scrolls, and with no chip left to take the stop the scrollport takes it —
-// the state its focus band is for. why: docs/specification.md#the-focus-ring
+// the state its focus band is for. why: docs/foundations.md#the-focus-ring
 const stalePresets = [
   { label: 'Q1 2025', range: { start: '2025-01', end: '2025-03' } },
   { label: 'Q2 2025', range: { start: '2025-04', end: '2025-06' } },

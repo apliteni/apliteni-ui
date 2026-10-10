@@ -145,7 +145,7 @@ test('the story-surface gate rejects a stage that paints without a gap', () => {
 // ---- the scroll ring is one indicator, drawn where --ring's band is -----------
 //
 // A scroll region inside a surface answers focus with --ring-scroll rather than
-// --ring (docs/specification.md#the-focus-ring): the same 1px gap and 2px band, drawn
+// --ring (docs/foundations.md#the-focus-ring): the same 1px gap and 2px band, drawn
 // inward, no halo. It is an OUTLINE, because an inset box-shadow is painted under the
 // box's own children and a table scrolled sideways under one erases the band.
 //

@@ -12,8 +12,8 @@ import './DatePicker.css';
 // opens — and adds only the grid inside it, so a picker and a select beside it
 // are the same control at rest. The panel is a dialog rather than a listbox
 // because a calendar is a grid, and a listbox may own only options.
-// why: docs/specification.md#the-dropdown-panel
-// why: docs/specification.md#react-date-and-month-picker
+// why: docs/components.md#the-dropdown-panel
+// why: docs/components.md#react-date-and-month-picker
 
 /**
  * `'month'` and `'range'` work in whole months, `'day'` and `'day-range'` in
@@ -89,7 +89,7 @@ const DAY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
  * for the reason every breakpoint in the kit is one — a media query cannot read
  * a custom property — and DatePicker.test.tsx holds it against the table in the
  * specification so this copy cannot drift from the other three.
- * why: docs/specification.md#breakpoints
+ * why: docs/foundations.md#breakpoints
  */
 const PHONE_MAX = 560;
 
@@ -716,7 +716,7 @@ export function DatePicker({
           // Mounted while closed so the panel can fade out the way every other
           // dropdown in the kit does, and inert while it is, so a grid nobody
           // opened is out of the tab order, out of the pointer's way and out of
-          // the accessibility tree. why: docs/specification.md#the-dropdown-panel
+          // the accessibility tree. why: docs/components.md#the-dropdown-panel
           inert={!open}
           onClick={(e: ReactMouseEvent) => e.stopPropagation()}
         >

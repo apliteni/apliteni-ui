@@ -82,7 +82,7 @@ export const RING_FLOOR = 4.22;
 // #448 gave the card back its white and lifted light's pair to 5.17, so this is the
 // bar that decision set rather than what the kit measures today — a floor a theme
 // clears by 0.28 is still the floor, and lowering it later is a decision too.
-// why: docs/specification.md#elevation
+// why: docs/foundations.md#elevation
 export const DISABLED_FLOOR = 4.89;
 
 /**

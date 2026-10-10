@@ -6,14 +6,14 @@
 /* The surface is the step; what makes it legible depends on the theme. Dark edges the
    card with the hairline (--card-edge). Light draws no line at all and casts --elev-rest
    instead — a 22px penumbra off a 10px offset, the width Artur's reference uses on a
-   card. Chosen by him on #490 round t3. why: docs/specification.md#elevation */
+   card. Chosen by him on #490 round t3. why: docs/foundations.md#elevation */
 .ui-card {
   background: var(--surface); --ring-gap: var(--surface);
   border: 1px solid var(--card-edge);
   box-shadow: var(--elev-rest);
   border-radius: var(--radius-xl);
   /* Was `var(--space-6) 26px`; 26 is off the scale and broke the column's text edge.
-     why: docs/specification.md#spacing-and-rhythm */
+     why: docs/foundations.md#spacing-and-rhythm */
   padding: var(--space-6);
   position: relative;
 }
@@ -26,7 +26,7 @@
    answered with the native outline. It is a scroll region, so it takes --ring-scroll:
    the band drawn inward, inside the card's 24px padding and clear of the table.
    --elev-rest is left alone: the band is an outline, not a layer of the shadow list.
-   why: docs/specification.md#the-focus-ring */
+   why: docs/foundations.md#the-focus-ring */
 .ui-card:has(> .ui-table):focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 
 /* Vertical stacks space cards with the container's gap — see .ui-card-stack.
@@ -36,7 +36,7 @@
 /* A padding modifier moves the vertical rhythm and keeps the text edge, so cards of
    different padding line up in one column. --pad-lg is the centred landing card, never
    stacked with plain ones, and keeps its own inset.
-   why: docs/specification.md#spacing-and-rhythm */
+   why: docs/foundations.md#spacing-and-rhythm */
 .ui-card--pad-sm { padding: var(--space-5) var(--space-6); }
 .ui-card--pad-lg { padding: var(--space-8) var(--space-10); }
 
@@ -44,7 +44,7 @@
    the card's own hairline re-coloured: an inset ring over it would draw two. #295
    The strength is --card-tint, per theme: light mixes down from white, so a tint that
    works in dark sinks a light card below the page. Each variant edges itself in its own
-   colour. why: docs/specification.md#elevation */
+   colour. why: docs/foundations.md#elevation */
 .ui-card--accent {
   background: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface)); --ring-gap: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
   border-color: color-mix(in srgb, var(--accent) 22%, transparent);
@@ -66,12 +66,12 @@
   transition: transform var(--dur-fast) var(--ease);
 }
 /* The lift alone: the card's own rung is what says it is raised, and hover is not a
-   change of level. why: docs/specification.md#elevation */
+   change of level. why: docs/foundations.md#elevation */
 .ui-card--interactive:hover { transform: translateY(-2px); }
 .ui-card--interactive:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
 
 /* card() emits the title as an h2, so the text face is named here rather than
-   left to the element. why: docs/specification.md#labels-and-titles */
+   left to the element. why: docs/foundations.md#labels-and-titles */
 .ui-card__title {
   color: var(--strong);
   font-family: var(--font-sans);
@@ -82,7 +82,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  /* Title to description: the step, not the 5px it was. why: docs/specification.md#spacing-and-rhythm */
+  /* Title to description: the step, not the 5px it was. why: docs/foundations.md#spacing-and-rhythm */
   margin: 0 0 var(--space-2);
 }
 .ui-card__sub {

@@ -5,54 +5,60 @@ deploy). These pages explain how each part works.
 
 ```
 @apliteni/apliteni-ui        the kit — tokens + component CSS + HTML-string factories   (src/)
-      ├── Storybook           the workbench where components are built and reviewed      (stories/, .storybook/)
-      └── ui.apli.tech        the public site: landing + hosted Storybook + changelog    (site/)
+      ├── Storybook          the workbench where components are built and reviewed      (stories/, .storybook/)
+      └── the public site    landing page + hosted Storybook + changelog                (site/)
 ```
 
-- [specification.md](specification.md) — the contract: what the kit ships, what it
-  guarantees, what a consumer may rely on, and what it deliberately does not do. Every
-  statement in it is held by a gate that runs on `npm test`.
-- [library.md](library.md) — the package: architecture, `src/` layout, tokens &
-  theming, the component catalog.
-- [landing-page.md](landing-page.md) — the `ui.apli.tech` site: chrome, the build
-  pipeline, the server.
-- [changelog.md](changelog.md) — the changelog: data model, Storybook deeplinks,
-  breaking flags, git-derived contributors.
-- [storybook.md](storybook.md) — the workbench: config, theming toolbar, story
-  conventions.
-- [guidelines.md](guidelines.md) — the Guidelines collection: the shape of a rule,
-  the gates that walk the pages, how to add one.
-- **[Guidelines](https://ui.apli.tech/storybook/?path=/story/guidelines-overview--overview)**
-  — a Storybook section, not a page in this folder: what one page may hold, the UI rules for
-  colour and theming, the full state set, component choice, destructive actions, and microcopy
-  and tone. The link lands on the overview, which lists the pages and the rules the kit has yet
-  to meet.
+Two pages are for someone using the kit:
+
+- [foundations.md](foundations.md) — the tokens and the floors: widths, breakpoints,
+  spacing, type, labels and titles, motion, ink, colour and contrast, elevation, the focus
+  ring, the 16px field, the tap floor, icons.
+- [components.md](components.md) — the package: what to import, theming, the component
+  catalog, and what each component guarantees.
+
+One is for someone working on the kit:
+
+- [contributing.md](contributing.md) — the tour: the layout of the repository, Storybook,
+  the guidelines collection, the site, the changelog and how a release goes out.
+
+The design rules for a screen are a Storybook section rather than a page here: what one page
+may hold, colour and theming, the full state set, component choice, destructive actions,
+microcopy and tone. [guidelines/overview.md](../guidelines/overview.md) is their index, and it
+also lists the rules the kit has yet to meet.
 
 ## Where a decision gets recorded
 
-Three places: choose the home by the kind of statement:
+Four places, and the kind of statement picks the home.
 
-**What the kit guarantees** goes in [specification.md](specification.md). A consumer needs to
-know that every stroked glyph clears 1.5 CSS px; they do not need the sub-pixel argument that
-settled on 1.5. State the guarantee, name the gate holding it, link the issue.
+**What the kit guarantees** goes in a reader page: a token or a floor in
+[foundations.md](foundations.md), a component's promise in [components.md](components.md), a rule
+for a screen in `guidelines/`. State the guarantee in words a consumer can act on. A reader
+needs to know that every stroked glyph clears 1.5 CSS px; they do not need the sub-pixel
+argument that settled on 1.5, and they do not need the name of the gate holding it.
 
-**How to contribute** goes in the [README](../README.md#contribute).
-[AGENTS.md](../AGENTS.md) holds rules that need agent judgment. Tests explain
-what they check, what they miss and how to fix a failure.
+**How a gate works** goes beside the gate: what it discovers, what it cannot measure, and
+what a failure means. [AGENTS.md](../AGENTS.md#verification) asks for that, and it is the one
+home for it — a reader page that described a gate would be documenting this repository rather
+than the package.
 
-**Why a design was chosen** goes in the issue. Keep measurements, alternatives and discussion
-in that thread, and link to them instead of maintaining a second copy.
+**How to contribute** goes in [contributing.md](contributing.md) — how the parts fit together
+and what to run. [AGENTS.md](../AGENTS.md) holds the rules an agent follows.
+
+**Why a design was chosen** goes in the issue. Keep measurements, alternatives, rejected
+options, round numbers and quotes in that thread, and link to them instead of maintaining a
+second copy.
 
 An issue opens with a problem, so closing it does not itself record a decision. [#198][i198]
 asked that "someone has to say which is right and why the others exist" but closed without an
 answer in the thread. **When you close an issue that settled something, write the decision into
 it**: what was chosen, what was rejected, and who chose if it was a call rather than a derivation.
-This gives the specification's outcome a record a reader can check.
+That gives a guarantee's outcome a record a reader can check.
 
-Code cites the specification, never an issue:
+Code cites a reader page, never an issue:
 
 ```js
-// why: docs/specification.md#icons-and-glyphs
+// why: docs/foundations.md#icons-and-glyphs
 ```
 
 One line, pointing at a heading. `scripts/doc-refs.test.js` resolves every one of them — the file

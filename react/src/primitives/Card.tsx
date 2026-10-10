@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 type Level = 2 | 3 | 4 | 5 | 6;
 
 // The title is a heading one level under the page's h1 unless `level` says
-// otherwise. why: docs/specification.md#labels-and-titles
+// otherwise. why: docs/foundations.md#labels-and-titles
 // A caller's `className` is merged with the kit class rather than replacing it, the way
 // Button merges one, so a page can mark one card without losing `.ui-card`.
 export function Card({ title, sub, level = 2, className, children }: { title?: ReactNode; sub?: ReactNode; level?: Level; className?: string; children?: ReactNode }) {

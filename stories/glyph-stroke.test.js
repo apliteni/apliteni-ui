@@ -9,7 +9,7 @@
  * paints no stroke, so it has no width to hold. The brand marks, the provider logos and
  * the footer's social icons drop out by their own paint rather than by name.
  *
- * why: docs/specification.md#icons-and-glyphs
+ * why: docs/foundations.md#icons-and-glyphs
  * Discover subjects from source and check the coverage count. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -297,7 +297,7 @@ test('every stroked glyph the kit renders clears the 1.5 CSS px line', () => {
     + 'A stroke-width is stated in the glyph\'s own box, so widen the stroke or grow the box. Where '
     + 'a rule states a box and no stroke, the stroke it gets is whatever the markup emitted — state '
     + 'it in the rule that decides the box. See '
-    + 'docs/specification.md#icons-and-glyphs.');
+    + 'docs/foundations.md#icons-and-glyphs.');
 });
 
 test('the widest thing this gate can say about the kit is still true', () => {

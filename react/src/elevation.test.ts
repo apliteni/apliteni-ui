@@ -1,6 +1,6 @@
 // The elevation rule, for the React workspace.
 //
-// why: docs/specification.md#elevation
+// why: docs/foundations.md#elevation
 // Share the calculation but check each workspace separately.
 // Check every shadow layer, including resolved custom properties.
 //

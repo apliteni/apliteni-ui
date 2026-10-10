@@ -78,7 +78,7 @@ function ddBody({ items, sections }, listbox, sx) {
 // The match is a substring of the label, anywhere in it, ignoring case and
 // accents; rows keep their order. The factory and the wiring both ask
 // dropdownMatch(), so a preset query and a typed one hide the same rows.
-// why: docs/specification.md#a-dropdown-with-a-search-field
+// why: docs/components.md#a-dropdown-with-a-search-field
 // NFD takes the mark off é or ö; ł, ø, đ and the rest are letters of their own
 // with nothing to take off, so they are mapped by hand.
 const ddIsRow = (it) => it && it !== '---' && !it.separator;
@@ -205,7 +205,7 @@ export function dropdown({
 
   // The block the sheet bleeds to the panel's bottom edge. It sits OUTSIDE the
   // unwrapped `footer`, because the block that bleeds is the one that has to
-  // touch the edge. why: docs/specification.md#the-dropdown-panel
+  // touch the edge. why: docs/components.md#the-dropdown-panel
   const footBlock = foot ? `<div class="ui-dropdown__foot">${foot}</div>` : '';
 
   const ddAttrs = 'data-dropdown'
@@ -234,7 +234,7 @@ export function dropdown({
 // Every wired container, so the close handlers can reach a dropdown wherever it
 // was drawn: `document.querySelectorAll` enters no shadow root and sees no other
 // document. A Set and not a WeakSet, because this has to be walked.
-// why: docs/specification.md#the-dropdown-panel
+// why: docs/components.md#the-dropdown-panel
 const _ddAll = new Set();
 // One pair of close handlers per document that holds a dropdown, the same way
 // wireShell() listens once per document it is handed.
@@ -274,7 +274,7 @@ function ddItemsOf(dd) {
 }
 
 // ---- Search wiring ---------------------------------------------------------
-// why: docs/specification.md#a-dropdown-with-a-search-field
+// why: docs/components.md#a-dropdown-with-a-search-field
 const ddSearchOf = (dd) => ddPanelOf(dd)?.querySelector('[data-dd-search]') || null;
 const ddActiveOf = (dd) => ddPanelOf(dd)?.querySelector('[data-dd-item].is-active') || null;
 const ddComposing = (e) => e.isComposing || e.keyCode === 229;
@@ -434,7 +434,7 @@ function selectOption(dd, item) {
 // Click-outside, Escape and the repositioning sweep, registered once per document
 // that holds a dropdown — the same shape wireShell()'s listen() has, and for the
 // same reason: a frame is its own document and a listener on the page's never
-// fires there. why: docs/specification.md#the-dropdown-panel
+// fires there. why: docs/components.md#the-dropdown-panel
 function ddListen(doc) {
   if (!doc || _ddWiredDocs.has(doc)) return;
   _ddWiredDocs.add(doc);
@@ -471,11 +471,11 @@ export function wireDropdown(root = document) {
     // Portal: lift the panel onto <body>. An ancestor whose overflow is not
     // `visible` clips it on both axes, and one that is `position: sticky` opens
     // a stacking context whatever z-index the panel carries — the app rail is
-    // both at once. why: docs/specification.md#the-dropdown-panel
+    // both at once. why: docs/components.md#the-dropdown-panel
     if (panel && dd.hasAttribute('data-dropdown-portal')) {
       // The tree the trigger is in, not the page's: a panel lifted out of a
       // frame or a shadow root into the top document leaves its stylesheet and
-      // its close handler behind. why: docs/specification.md#the-dropdown-panel
+      // its close handler behind. why: docs/components.md#the-dropdown-panel
       const host = ddHostOf(dd);
       sweepOrphanPanels(host);
       panel.setAttribute('data-dropdown-portal', '');

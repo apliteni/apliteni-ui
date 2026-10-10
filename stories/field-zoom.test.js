@@ -9,7 +9,7 @@
 // green run does not prove is on the Accessibility minimums page, beside this gate's name.
 //
 // Resolve the winning declarations before measuring the result.
-// why: docs/specification.md#a-field-is-16px-on-a-touch-screen
+// why: docs/foundations.md#a-field-is-16px-on-a-touch-screen
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

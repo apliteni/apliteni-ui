@@ -122,7 +122,7 @@ test('applyTheme queries no hook that themeToggle() does not render', () => {
 
 // The stylesheet used to uppercase the tone key itself; now the kit writes the
 // word, and anything else the caller passes is shown as passed.
-// why: docs/specification.md#labels-and-titles
+// why: docs/foundations.md#labels-and-titles
 test('a version badge shows the word for its tone, not the key', () => {
   const html = versionSwitcher([
     { label: 'v3', badge: 'live' }, { label: 'v2', badge: 'archive' }, { label: 'v1' },

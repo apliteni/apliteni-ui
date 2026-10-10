@@ -773,7 +773,7 @@ export const RELEASES = [
     changes: [
       ["changed", "Disabled controls now use disabled colours at full opacity instead of `opacity`. Labels use `--disabled-ink` on `--disabled-surface`, measuring 5.56:1–6.11:1 in both themes.", ["Button", "Input", "Nav", "Dropdown"]],
       ["added", "Disabled colours now use neutral aliases: `--disabled-ink`, `--disabled-surface`, and `--disabled-border` alias `--muted`, `--surface-2`, and `--border`. Disabled controls therefore do not follow the accent ramp."],
-      ["added", "The disabled-state guarantee now requires at least 3:1 contrast and a colour pair that differs from the enabled state. The contrast floor is documented at `docs/specification.md#colour-and-contrast`."],
+      ["added", "The disabled-state guarantee now requires at least 3:1 contrast and a colour pair that differs from the enabled state. The contrast floor is documented at `docs/foundations.md#colour-and-contrast`."],
       ["changed", "The disabled-control gate now finds subjects from disabled selectors and checks each subject with and without its disabled state. It rejects `opacity` under a disabled selector when that selector has a label. The switch track may still use a fade because it has no written content."],
       ["changed", "The accessibility floor page now records the disabled-state requirement as a numeric value. The disabled gap and its ledger have been removed."],
     ],
@@ -781,7 +781,7 @@ export const RELEASES = [
   {
     v: "0.21.0", date: "2026-08-14",
     changes: [
-      ["changed", "The kit now has three breakpoints: `860px`, `720px`, and `560px`. They mark the three-track limit, shell folding, and one-column layout. The breakpoint table is in `docs/specification.md`; related collapses now move to these larger steps."],
+      ["changed", "The kit now has three breakpoints: `860px`, `720px`, and `560px`. They mark the three-track limit, shell folding, and one-column layout. The breakpoint table is in `docs/foundations.md#breakpoints`; related collapses now move to these larger steps."],
       ["added", "A gate now checks every `@media` px value in `src/styles/` and `site/` against the three breakpoint steps from the specification. It fails for unused steps and for values not in the list. `site/public/` is not scanned."],
       ["changed", "The layout guideline now explains that matching numbers do not create a shared breakpoint token. `560` also names `--panel-lg`, and `860` also names `--measure`, but breakpoints describe viewports while tokens bound boxes."],
     ],
@@ -798,7 +798,7 @@ export const RELEASES = [
   {
     v: "0.19.1", date: "2026-08-14",
     changes: [
-      ["added", "`docs/specification.md` now defines what the kit ships, guarantees, supports, and does not do. A gate checks every statement during `npm test` and fails when a guarantee becomes untrue."],
+      ["added", "The kit now defines what it ships, guarantees, supports, and does not do. A gate checks every statement during `npm test` and fails when a guarantee becomes untrue."],
       ["changed", "`docs/adr/` has been removed. Its content is now organized by audience: the specification covers consumer guarantees, the contributor guide covered repository mechanics, and the issue that settled a shape explains why it was chosen. Code behavior is unchanged; edits under `src/` point to the new locations."],
       ["added", "Documentation citations now have an automated validity gate. `scripts/doc-refs.test.js` checks tracked files, resolves cited files and anchors, and fails when a file or heading is missing. It discovers citations instead of using a fixed list."],
     ],
@@ -807,7 +807,7 @@ export const RELEASES = [
     v: "0.19.0", date: "2026-08-14",
     changes: [
       ["changed", "All stroked glyphs now use at least 1.5 CSS px. Eighteen rules were widened or given explicit strokes, with final widths from 1.51 to 1.60. Glyph weight no longer depends on its slot; token values are unchanged."],
-      ["added", "The glyph-width gate now builds every story, resolves the cascade, and measures rendered glyphs. It also rejects sizing rules that no story renders; this found that `.ui-feature__icon` had no specimen. `docs/specification.md#icons-and-glyphs` records the rule."],
+      ["added", "The glyph-width gate now builds every story, resolves the cascade, and measures rendered glyphs. It also rejects sizing rules that no story renders; this found that `.ui-feature__icon` had no specimen. `docs/foundations.md#icons-and-glyphs` records the rule."],
       ["added", "The error-row glyph now has an explicit size. `.ui-field__error` no longer uses the reset value of `1.1em`, so its box does not change with the surrounding font size."],
     ],
   },
@@ -815,7 +815,7 @@ export const RELEASES = [
     v: "0.18.0", date: "2026-08-14",
     changes: [
       ["fixed", "The focus ring now uses the accent colour at full opacity through one declaration. `--ring: 0 0 0 3px var(--accent)` gives all eight theme × accent cells at least 4.22:1, above the 3:1 WCAG 1.4.11 requirement.", ["Focus"]],
-      ["changed", "Seven duplicate `--ring` declarations have been removed from `tokens.css` and `accents.css`. Sub-themes now inherit the ring when they change the accent family. Measurements are recorded at `docs/specification.md#the-focus-ring`."],
+      ["changed", "Seven duplicate `--ring` declarations have been removed from `tokens.css` and `accents.css`. Sub-themes now inherit the ring when they change the accent family. Measurements are recorded at `docs/foundations.md#the-focus-ring`."],
       ["added", "The accessibility-floor page now states a 4.22:1 ring floor. `stories/guidelines/accessibility-floor.test.js` checks all eight theme × accent cells, enforces 3:1, and fails if `--ring` is declared more than once under `src/`."],
     ],
   },
@@ -823,7 +823,7 @@ export const RELEASES = [
     v: "0.17.0", date: "2026-08-14",
     changes: [
       ["changed", "Table row spacing now follows the spacing scale for base and `--dense` rows. Base rows are 2px taller, dense rows are 4px shorter, and a 20-row ledger saves 369px instead of 249px.", ["Table"]],
-      ["changed", "Spacing values exactly between scale steps now round according to purpose. `--dense` rounds down to remain tighter; the hover inset rounds up to keep clearance from the container edge. The rule is recorded at `docs/specification.md#spacing-and-rhythm`."],
+      ["changed", "Spacing values exactly between scale steps now round according to purpose. `--dense` rounds down to remain tighter; the hover inset rounds up to keep clearance from the container edge. The rule is recorded at `docs/foundations.md#spacing-and-rhythm`."],
       ["added", "The table-spacing gate now reads spacing steps from the token file, discovers padding, margin, and gap values, and enforces the tie-break rule. The Layout and density page now documents the modifier's steps instead of recording a nonexistent gap."],
     ],
   },
@@ -834,7 +834,7 @@ export const RELEASES = [
       ["changed", "Several component and text widths now use shared tokens: panels use 420px or 560px, and prose uses 44ch, 54ch, or 62ch. Empty and denied subtext use `--prose-caption`; thirteen of eighteen reconciled declarations did not change.", ["Toast", "Empty", "Denied", "Feedback", "Hero", "Shell"]],
       ["changed", "The measure gate now uses the smallest panel step as its floor and reads it from the token file. Bare `Nch` and `Npx` values at or above the floor fail and identify the nearest step. The explanation for the old floor was removed."],
       ["fixed", "The measure gate now reads inline `style=\"…\"` attributes as CSS. The 840px reading column in `site/index.html` and the changelog's 820px wrapper now use `--measure`. The attribute parser was also fixed so quoted values do not consume following markup."],
-      ["added", "The kit now documents its breakpoint convention. Breakpoints remain six documented literals because media queries cannot read custom properties. `docs/specification.md#boxes-below-the-page` records the choice and the role `@custom-media` could have played."],
+      ["added", "The kit now documents its breakpoint convention. Breakpoints remain six documented literals because media queries cannot read custom properties. `docs/foundations.md#boxes-below-the-page` records the choice and the role `@custom-media` could have played."],
     ],
   },
   {
@@ -843,7 +843,7 @@ export const RELEASES = [
       ["changed", "The callout and toast status glyphs now use strokes wide enough for their contrast requirement. Their `stroke-width` values are 2.1 and 2.8, which produce CSS widths above 1.5px in their 24-unit boxes.", ["Callout", "Toast"]],
       ["fixed", "Callout icons now use text-grade `--chip-*-ink` colours. This raises the light-theme warn icon from 3.10:1 against its wash; dark-theme values are unchanged.", ["Callout"]],
       ["fixed", "The neutral toast check now uses `--signal-solid-ink` with its neutral circle. Contrast is now 6.29:1 and 6.11:1 instead of 3.11:1 and 3.16:1.", ["Toast"]],
-      ["added", "The glyph-contrast gate now checks twenty status pairs across two glyph families, five statuses, and both themes. It discovers glyphs, statuses, and the five-status list from the stylesheet. Missing status paint tokens now fail. The rule is documented at `docs/specification.md#icons-and-glyphs`."],
+      ["added", "The glyph-contrast gate now checks twenty status pairs across two glyph families, five statuses, and both themes. It discovers glyphs, statuses, and the five-status list from the stylesheet. Missing status paint tokens now fail. The rule is documented at `docs/foundations.md#icons-and-glyphs`."],
     ],
   },
   {

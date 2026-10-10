@@ -9,7 +9,7 @@
  *
  *   ROW_HEIGHTS=1 node --test stories/row-height.test.js
  *
- * why: docs/specification.md#react-file-drop
+ * why: docs/components.md#react-file-drop
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

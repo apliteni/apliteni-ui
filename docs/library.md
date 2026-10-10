@@ -14,7 +14,7 @@ Strings rather than components, because the strategy portal server-renders HTML 
 strings for review.
 
 This page is the map: what ships, what to import, and what every published name is.
-What each component guarantees is in [the specification](specification.md); what the
+What each component guarantees is in [components](components.md); what the
 rules are is in [the guidelines collection](guidelines.md); React is in
 [react/README.md](../react/README.md).
 
@@ -67,7 +67,7 @@ Everything visual is a CSS custom property, driven by two orthogonal attributes 
 Type is the one axis neither attribute touches: `--font-display` for headings and brand
 marks, `--font-sans` for everything read, `--font-mono` for code. Neither family ships
 with the package — the host page loads both. See
-[Typefaces](specification.md#typefaces).
+[Typefaces](foundations.md#typefaces).
 
 `applyTheme('light')` and `applyAccent('phoenix')` persist to `localStorage`; `ACCENTS`
 is the list of names `applyAccent` takes. Or ship `accentPicker()` and let
@@ -94,19 +94,19 @@ to say what a factory takes, not what it does.
 | Name | What it is |
 |------|------------|
 | `button({ label, variant, size, icon, iconRight, block, disabled, busy, href, iconOnly })` | `<button>`, or `<a>` with `href`. |
-| `setButtonBusy(element, { busy })` | Flips a mounted button to its busy state and back. See [Busy button labels](specification.md#busy-button-labels). |
+| `setButtonBusy(element, { busy })` | Flips a mounted button to its busy state and back. See [Busy button labels](components.md#busy-button-labels). |
 | `badge(label, variant)`, `pill(label, variant)`, `statusDot(live)` | Status chip, rounded chip, live dot. |
 | `card({ title, sub, body, variant, pad, icon, level })` | Surface container. `title` and `sub` are trusted markup; keep the title to inline content. |
 | `callout`, `toast`, `successPanel` | Inline feedback, inside the page the reader is on. `calloutIcons` is the default glyph per tone. |
 | `pushToast(container, opts)`, `dismissToast(el)`, `wireToastStack(container)` | The runtime toast stack. |
-| `success({ layout, check, level, title, body, actions, confetti, countdown })` + `wireSuccess(root)` | Page-sized confirmation; `successCheck()` is its check mark alone. See [Success confirmations](specification.md#success-confirmations) and [successPanel or success?](#successpanel-or-success). |
+| `success({ layout, check, level, title, body, actions, confetti, countdown })` + `wireSuccess(root)` | Page-sized confirmation; `successCheck()` is its check mark alone. See [Success confirmations](components.md#success-confirmations) and [successPanel or success?](#successpanel-or-success). |
 | `emptyState({ art, icon, title, sub, actions })` | Placeholder for an empty list, table or page; `art` is an `illo()` name or raw SVG. |
-| `deniedState({ title, sub, need, actions, icon })` | The 403, in the same layout language. See [Pending and denied states](specification.md#pending-and-denied-states). |
+| `deniedState({ title, sub, need, actions, icon })` | The 403, in the same layout language. See [Pending and denied states](components.md#pending-and-denied-states). |
 | `busyRegion({ label, readyLabel, busy, body, lines })` + `setBusy(root, …)` | The screen's pending state, and the only thing in the kit that announces one. |
 | `skeleton({ lines, width, height, radius })`, `skeletonTable({ rows, cols, head })` | Placeholder shapes, `aria-hidden` throughout. |
-| `snippet({ label, code, reveal, copy, copyLabel })` | Code block with an icon-only copy button. `hlCode(raw, lang)`, `hlShell(raw)` and `codeTokens(raw, lang)` highlight the languages `codeLanguages` lists. See [Code highlighting](specification.md#code-highlighting). |
+| `snippet({ label, code, reveal, copy, copyLabel })` | Code block with an icon-only copy button. `hlCode(raw, lang)`, `hlShell(raw)` and `codeTokens(raw, lang)` highlight the languages `codeLanguages` lists. See [Code highlighting](components.md#code-highlighting). |
 | `icon(name, cls)`, `illo(name)`, with `iconNames`, `iconCategories`, `illoNames` | Line icons and illustrations as SVG strings; `sun` and `moon` are also exported bare. |
-| `iconOnlyAllowed`, `iconMeanings` | The two icon rulings as data. See [Icons and glyphs](specification.md#icons-and-glyphs). |
+| `iconOnlyAllowed`, `iconMeanings` | The two icon rulings as data. See [Icons and glyphs](foundations.md#icons-and-glyphs). |
 | `seedling`, `prism`, `brand` | The brand mark. |
 
 ### Controls and input
@@ -117,19 +117,19 @@ to say what a factory takes, not what it does.
 | `input`, `textarea`, `select`, `checkbox`, `switchToggle` | The controls `field` wraps; each also renders on its own. |
 | `segmented({ options, active, size, block, name, ariaLabel })` + `segmentedNextIndex(key, index, length)`, `initSegmented(root)` | Toolbar of toggle buttons. See [Segmented or tabs?](#segmented-or-tabs). |
 | `tabs({ items, active, name, ariaLabel })` + `initTabs(root)` | Tablist and its panels, one per item. |
-| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit. See [The dropdown panel](specification.md#the-dropdown-panel) and [A dropdown with a search field](specification.md#a-dropdown-with-a-search-field). |
-| `filterBar(options)` + `initFilterBar(host, options)`, with `filterChipText`, `filterChipName`, `filterChipUnset` | The controlled filter row above a table. The consumer owns the filters and calls `update()`. See [A filter row holds its panels](specification.md#a-filter-row-holds-its-panels). |
-| `pagination({ page, pageSize, total, hasMore, pageSizes, variant, label, loading, href, id })` + `wirePagination(root, …)`, `setPagerStatus(root, text)`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE` | The strip under a table or list; it renders a page the caller already computed. See [Pagination](specification.md#pagination). |
-| `commandPalette({ groups, items, label, placeholder, query, empty, density, hint, rank, hotkey, open, specimen, id })` + `wireCommandPalette`, `openCommandPalette`, `closeCommandPalette`, `commandPaletteList`, `setPaletteResults`, `rankCommands`, `rankGroups`, `scoreCommand`, `SCORE`, `paletteHotkey()` | The ⌘K overlay and the ranking behind it; `SCORE` is the ladder itself, for a server that sorts the same way. See [The command palette](specification.md#the-command-palette). |
+| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit. See [The dropdown panel](components.md#the-dropdown-panel) and [A dropdown with a search field](components.md#a-dropdown-with-a-search-field). |
+| `filterBar(options)` + `initFilterBar(host, options)`, with `filterChipText`, `filterChipName`, `filterChipUnset` | The controlled filter row above a table. The consumer owns the filters and calls `update()`. See [A filter row holds its panels](components.md#a-filter-row-holds-its-panels). |
+| `pagination({ page, pageSize, total, hasMore, pageSizes, variant, label, loading, href, id })` + `wirePagination(root, …)`, `setPagerStatus(root, text)`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE` | The strip under a table or list; it renders a page the caller already computed. See [Pagination](components.md#pagination). |
+| `commandPalette({ groups, items, label, placeholder, query, empty, density, hint, rank, hotkey, open, specimen, id })` + `wireCommandPalette`, `openCommandPalette`, `closeCommandPalette`, `commandPaletteList`, `setPaletteResults`, `rankCommands`, `rankGroups`, `scoreCommand`, `SCORE`, `paletteHotkey()` | The ⌘K overlay and the ranking behind it; `SCORE` is the ladder itself, for a server that sorts the same way. See [The command palette](components.md#the-command-palette). |
 | `feedbackWidget()` + `wireFeedback(…)`, `nearestSection(node, root)` | Select a passage, give feedback. |
 
 ### Overlays
 
 | Name | What it is |
 |------|------------|
-| `drawer({ side, size, title, body, footer, open, specimen, dismissible })` + `wireDrawer`, `openDrawer`, `closeDrawer`, and `drawerSection({ title, rows, body })` for one group of its body | Panel anchored to a screen edge, over a scrim. See [The drawer](specification.md#the-drawer). |
+| `drawer({ side, size, title, body, footer, open, specimen, dismissible })` + `wireDrawer`, `openDrawer`, `closeDrawer`, and `drawerSection({ title, rows, body })` for one group of its body | Panel anchored to a screen edge, over a scrim. See [The drawer](components.md#the-drawer). |
 | `confirm({ title, body, confirmLabel, cancelLabel, variant, open, specimen, id })` + `wireConfirm`, `openConfirm`, `closeConfirm` | Modal question over a scrim, for a destructive action the page has to stop for. |
-| `tooltip({ label, value, detail, placement, open, x, y, id })` + `wireTooltip`, `showTooltip`, `hideTooltip` | The readout over a chart mark, opened by hover or by tap. See [The hover readout](specification.md#the-hover-readout). |
+| `tooltip({ label, value, detail, placement, open, x, y, id })` + `wireTooltip`, `showTooltip`, `hideTooltip` | The readout over a chart mark, opened by hover or by tap. See [The hover readout](components.md#the-hover-readout). |
 
 Both `drawer()` and `confirm()` take `specimen: true`, which draws a picture of one for a
 documentation page: no `aria-modal`, no wiring, no Escape.
@@ -138,34 +138,34 @@ documentation page: no `aria-modal`, no wiring, no Escape.
 
 | Name | What it is |
 |------|------------|
-| `statBand({ stats, variant, basis, label, id })`, with `STAT_VARIANTS`, `STAT_TONES` | A row of key figures as a `<dl>`. Each figure is `{ label, value, caption, delta, trend }`, where `caption` is context that is not a change. `basis` is what every change is measured against; the kit draws no chart. See [Stat bands](specification.md#stat-bands). |
+| `statBand({ stats, variant, basis, label, id })`, with `STAT_VARIANTS`, `STAT_TONES` | A row of key figures as a `<dl>`. Each figure is `{ label, value, caption, delta, trend }`, where `caption` is context that is not a change. `basis` is what every change is measured against; the kit draws no chart. See [Stat bands](components.md#stat-bands). |
 | `numericValue({ value, unit, missing })`, `deltaValue({ value, tone, basisId })` | Inline value and inline change. Colour never supplies the sign. |
 | `rowIdentity({ symbol, name, logo, href })` + `initRowIdentity(root)` | A company identity cell; failed images reveal the letter fallback. |
 | `formatNumericValue(…)`, `formatDeltaValue(…)` | The same two decisions as plain text, shared with React. |
 
 The table itself is markup, not a factory: the scroll region, the sticky header and the
 pinned identity column are classes a page applies. See
-[Dense financial tables](specification.md#dense-financial-tables).
+[Dense financial tables](components.md#dense-financial-tables).
 
 ### Page furniture
 
 | Name | What it is |
 |------|------------|
-| `appShell({ word, brandHref, nav, active, navLabel, crumbs, back, title, sub, body, account, signOutHref, layout, width, search, topbar, maxWidth, collapsible, collapsed })` | The kit's one page shell, and the one to call for new work. See [The page shell](specification.md#the-page-shell) and [The second layout](specification.md#the-second-layout). |
+| `appShell({ word, brandHref, nav, active, navLabel, crumbs, back, title, sub, body, account, signOutHref, layout, width, search, topbar, maxWidth, collapsible, collapsed })` | The kit's one page shell, and the one to call for new work. See [The page shell](components.md#the-page-shell) and [The second layout](components.md#the-second-layout). |
 | `wireShell(root, { persist })` + `railCollapsed(cookieHeader?)`, `RAIL_COOKIE` | Wires the rail's fold, the reader's menu and the nav's groups; a server paints the right width first from the cookie. |
 | `nav({ variant })`, dispatching to `sidebarNav`, `navTabs` or `breadcrumbs`, + `wireNav(root)` | Wayfinding. Each shape is also exported on its own. |
-| `backLink({ href, label })` | The way up from a page to the page it sits under — an `<a href>`, never a step through history. See [The back link](specification.md#the-back-link). |
+| `backLink({ href, label })` | The way up from a page to the page it sits under — an `<a href>`, never a step through history. See [The back link](components.md#the-back-link). |
 | `topbar(…)` + `wireTopbar(root)` | The product topbar. `themeToggle(theme)`, `accountMenu({ name, email, active, nav, initials })`, `versionSwitcher(versions, activeIdx)` and `deckTextSwitch(active)` are its parts, usable alone; `themeIcon(t)` and `themeName(t)` label a toggle you build yourself. |
 | `accentPicker({ active, options })`, with `ACCENTS` and `accentSwatchStyle(accent)` | The accent swatches, wired by `wireTopbar()`. `ACCENTS` is the list the kit ships; `accentSwatchStyle(accent)` is the one custom property a swatch button carries, `--swatch`, the gradient its circle wears. Both pickers read them, so a page building its own strip paints the same thing — and the kit's stylesheet draws the selected swatch's tick, so the strip needs no selection paint of its own. An accent with no paints gets `--swatch: transparent`, an empty circle you can still press. |
 | `ACCOUNT_NAV` | The account navigation the kit ships, as `sidebarNav()` items. It is what the account menu falls back to; a caller's own entries replace it. |
 | `footer({ variant, brand, tagline, columns, social, legal, legalLinks, switcher })` | Site or app footer: `full`, `slim` or `app`. |
-| `.ui-toolbar` (class, no factory) | A row of controls above a list. See [A toolbar at one column](specification.md#a-toolbar-at-one-column). |
+| `.ui-toolbar` (class, no factory) | A row of controls above a list. See [A toolbar at one column](components.md#a-toolbar-at-one-column). |
 
 ### Motion and escaping
 
 | Name | What it is |
 |------|------------|
-| `prefersReducedMotion()`, `staggerDelay`, `initReveal`, `replay`, `playEntrance`, `ENTRANCE_FALLBACK_MS` | The motion helpers. See [Motion](specification.md#motion). |
+| `prefersReducedMotion()`, `staggerDelay`, `initReveal`, `replay`, `playEntrance`, `ENTRANCE_FALLBACK_MS` | The motion helpers. See [Motion](foundations.md#motion). |
 | `esc(s)` | HTML-escape a text value. Every factory already applies it to its own text arguments; you need it for markup you assemble yourself. |
 
 The public JS surface is whatever `src/index.js` re-exports — add a factory there to
@@ -181,7 +181,7 @@ name is missing from the catalog above.
 `<button class="ui-dropdown__item">` renders as the row `dropdown()` emits — the class
 cancels the chrome a browser paints on a button. Write one when the row has to be a
 native control; the reasoning is in
-[A dropdown row is a div, a link or a button](specification.md#a-dropdown-row-is-a-div-a-link-or-a-button).
+[A dropdown row is a div, a link or a button](components.md#a-dropdown-row-is-a-div-a-link-or-a-button).
 
 ```html
 <button type="button" class="ui-dropdown__item" data-dd-item role="menuitem" tabindex="-1">

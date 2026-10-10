@@ -43,7 +43,7 @@
 //   be guesswork. stories/focus-ring.test.js is the gate that asks every stop for a
 //   ring; this one asks the panel to let it be drawn.
 //
-// why: docs/specification.md#a-menu-panel-does-not-cut-off-its-rows-ring
+// why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring
 // Weaken the rule and confirm that its test fails.
 
 import test from 'node:test';

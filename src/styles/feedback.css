@@ -38,7 +38,7 @@
      fill strength on the page, found the way the solid toast is found. What is left is an
      inset sheen — gloss on the surface, not a shadow under it — so the hover is the travel
      alone and the box-shadow it transitioned went with it.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sheen) 28%, transparent);
   transition:
     transform var(--dur-fast) var(--ease-spring),
@@ -69,7 +69,7 @@
   width: min(520px, calc(100vw - 32px)); background: var(--bg-elevated); --ring-gap: var(--bg-elevated); border-radius: 18px;
   /* The shadow was its only edge until #295, which replaced it with the hairline; since
      #490 light is back on the drop and dark keeps the line.
-     why: docs/specification.md#elevation */
+     why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   opacity: 0; pointer-events: none;

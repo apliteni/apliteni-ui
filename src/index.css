@@ -9,7 +9,7 @@
  * (--font-sans, everything else). Weights 300-700 in both. Neither is
  * bundled; a family that never loads falls back to the system stack behind
  * it, in silence.
- * why: docs/specification.md#typefaces
+ * why: docs/foundations.md#typefaces
  * ========================================================================== */
 @import "./tokens/brand.generated.css";
 @import "./tokens/tokens.css";

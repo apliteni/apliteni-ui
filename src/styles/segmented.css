@@ -75,7 +75,7 @@
  * 2px stroke, in --signal-contrast — the circle wears the accent's dark ramp in
  * both themes, so its ink is the one for a fill, not the --accent-contrast that
  * pairs with --accent-strong. Held by stories/accent-mark.test.js.
- * why: docs/specification.md#react-accent-picker */
+ * why: docs/components.md#page-furniture */
 .ui-accent-picker button.is-active::after {
   content: "";
   position: absolute;

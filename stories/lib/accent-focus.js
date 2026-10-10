@@ -23,7 +23,7 @@
  * caller as a reading rather than asserted: the gap is part of the indicator, the
  * band it separates is read against the ground on both sides, and the kit gives
  * every accent-filled control the same geometry.
- * why: docs/specification.md#react-accent-picker. See issues #429 and #472.
+ * why: docs/components.md#page-furniture. See issues #429 and #472.
  */
 import assert from 'node:assert/strict';
 import { parseColour, ratio, substitute, tokensFor } from './contrast.js';
@@ -99,7 +99,7 @@ export function px(value) {
  *
  * The kit writes the colour last, which is the form this reads. A layer with a
  * blur is the halo: it decorates and carries no contrast of its own, which is
- * the kit's own G2 rule in docs/specification.md#the-focus-ring.
+ * the kit's own G2 rule in docs/foundations.md#the-focus-ring.
  */
 function layerOf(text) {
   const parts = splitTop(text, ' ');

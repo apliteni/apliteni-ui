@@ -7,7 +7,7 @@
 // refuses. An axe that stops refusing turns this red rather than turning the
 // sentence quietly false.
 //
-// why: docs/specification.md#the-dropdown-panel
+// why: docs/components.md#the-dropdown-panel
 // Measure behavior instead of matching the source text.
 
 import test, { after } from 'node:test';

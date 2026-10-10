@@ -11,7 +11,7 @@
  * costs, which is why this file affords all eight cells and that one runs two. The two are
  * complements; neither reaches a ground a component mixes for itself.
  *
- * why: docs/specification.md#colour-and-contrast
+ * why: docs/foundations.md#colour-and-contrast
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

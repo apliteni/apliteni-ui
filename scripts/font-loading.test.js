@@ -12,7 +12,7 @@
  * that starts with a system keyword (--font-mono) is not. Add a third role
  * tomorrow and this gate has an opinion about it without being edited.
  *
- * why: docs/specification.md#typefaces */
+ * why: docs/foundations.md#typefaces */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -184,6 +184,6 @@ test('the Storybook manager names the same two families the tokens do', () => {
     wordmark[1], roles['--font-display'],
     `the sidebar wordmark is drawn in "${wordmark[1]}" while the kit's display role is `
     + `"${roles['--font-display']}". A wordmark is a mark and follows the display role wherever `
-    + 'it goes — see docs/specification.md#typefaces.',
+    + 'it goes — see docs/foundations.md#typefaces.',
   );
 });

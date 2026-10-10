@@ -25,7 +25,7 @@ import {
 // because this file has a leafRules() of its own, on a different shape.
 import { leafRules as motionRules, inNet, ms } from '../lib/motion-css.js';
 import { appShell } from '../../src/components/shell.js';
-import { layersOf, geometryOf } from '../../scripts/lib/box-shadow.js';
+import { focusBand } from '../../scripts/lib/box-shadow.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -95,7 +95,7 @@ const PAIR = (collapsed) => appShell({
   collapsed,
 });
 
-function mount(html, { theme = 'dark', accent = 'default', narrow = false } = {}) {
+function mount(html, { theme = 'dark', accent = 'default', narrow = false, extra = '' } = {}) {
   const vars = tokensFor(theme, accent);
   let raw = decomment(SHEETS.map(read).join('\n'));
   if (narrow) {
@@ -103,6 +103,9 @@ function mount(html, { theme = 'dark', accent = 'default', narrow = false } = {}
     assert.ok(body, `layout.css no longer folds at ${FOLD} — this gate is measuring nothing`);
     raw += `\n${body}`;
   }
+  // Appended last, which is how C1b's mutation re-paints one declaration and runs
+  // that gate's own readings against the defect it is there to refuse.
+  if (extra) raw += `\n${extra}`;
   const css = desugar(substitute(raw, vars));
   const win = new JSDOM(
     `<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}</style></head>`
@@ -130,6 +133,14 @@ function mount(html, { theme = 'dark', accent = 'default', narrow = false } = {}
     },
     /** The colour actually composited beneath an element. */
     bg: (sel) => effectiveBackground(q(sel), win),
+    /** The colour an element's own fill reaches the eye as, in a state or at rest. */
+    fill: (sel, state = null) => {
+      const el = q(sel);
+      if (state) el.setAttribute('data-ui-state', state);
+      const value = effectiveBackground(el, win);
+      el.removeAttribute('data-ui-state');
+      return value;
+    },
     /** Is this node on screen — or does something above it say display:none? */
     shown: (el) => {
       for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
@@ -801,7 +812,7 @@ test('an open rail leaves its labels where they are, in both states', () => {
 });
 
 // The one row of the rail that is icon-only at BOTH widths, so it is the one
-// whose chip is not scoped to the fold. why: docs/specification.md#the-page-shell
+// whose chip is not scoped to the fold. why: docs/components.md#the-page-shell
 test('the toggle carries a name at both widths, because it is wordless at both', () => {
   for (const [rail, at] of [['an open', mount(PAIR(false))], ['a folded', mount(PAIR(true))]]) {
     const btn = at.q('.ui-app__fold');
@@ -831,7 +842,7 @@ test('the toggle carries a name at both widths, because it is wordless at both',
 // and the glyph left standing there is shorter than the line the name vacated, so
 // the button shrank under the pointer and took the nav below it up with it.
 // #282's rule is that a hover readout overlays the page and never reflows it.
-// why: docs/specification.md#the-page-shell
+// why: docs/components.md#the-page-shell
 
 /** The line a box sets, in px — what the name occupies while it is in the flow. */
 const lineBox = (at, el) => {
@@ -1304,13 +1315,15 @@ test('the nav inside the rail keeps its own height, so the rail is what scrolls'
   );
 });
 
-// overflow clips at the padding box, so a spread-only box-shadow survives
-// exactly as far as the scroll container's own padding.
+// overflow clips at the padding box, so the band survives exactly as far as the scroll
+// container's own padding reaches. The band is an `outline` since #578 and its footprint
+// is its offset plus its width — the same 3px the box-shadow's outer spread was.
 test('the rail\'s scroll box has room for the solid focus band at every edge', () => {
   const vars = tokensFor('dark');
-  const bands = layersOf(substitute(vars.get('--ring'), vars)).map(geometryOf).filter((g) => g.blur === 0);
-  assert.equal(bands.length, 2, 'the gap and solid band must both be measured');
-  const need = Math.max(...bands.map((g) => g.spread));
+  const band = focusBand(substitute(vars.get('--ring'), vars));
+  assert.ok(band, 'the band is no longer a solid outline, so its footprint is unmeasured');
+  const offset = substitute(vars.get('--ring-offset'), vars);
+  const need = Number.parseFloat(band[0]) + Number.parseFloat(offset);
   assert.ok(Number.isFinite(need) && need > 0, 'the solid footprint did not resolve');
   for (const [mode, html, narrow] of [['wide', SHELL, false], ['folded', SHELL, true], ['collapsed', PAIR(true), false]]) {
     const at = mount(html, { narrow });
@@ -1417,26 +1430,118 @@ test('the rail keeps the step off the page that ships, in both themes', () => {
  * dark one's perceptual distance from its page — and that is what the reporter
  * on #454 was looking at, not the ratio. This gate holds the ceiling light can
  * reach with the tokens that exist. Going past it needs `--bg` to come down,
- * which is a theme decision; docs/specification.md records both. */
+ * which is a theme decision; docs/components.md#the-page-shell has the step.  */
 
-// These checks resolve CSS states in JSDOM; browser captures verify their appearance.
-test('hovered rail rows use an edge on the reading surface', () => {
+// ---- C1b. the rail's own rows, measured against the rail -----------------
+//
+// The rail is --surface, so the plate nav.css paints for a rail standing on the
+// page has no step here at all. That is what shipped on the first pass of #475:
+// 1.000:1, and a 1px hairline left as the only resting mark on the row the reader
+// was on — while a row under the pointer drew an edge of its own that outranked it
+// in light. layout.css now takes both marks a rung further, to the --surface-3 the
+// folded rail already paints and to half of it for a hovered row.
+//
+// Read as composites down the ancestor chain, not as token names: --surface is the
+// right token for the plate and was the wrong ground, which is a defect no
+// assertion on the name can see. The three readings are the plate against the
+// rail, a hovered row against the rail, and their order.
+
+/** What ships for the rail inside the shell. Measured, not chosen. */
+const RAIL_ROW = {
+  dark: { plate: 1.160, hover: 1.074 },
+  light: { plate: 1.140, hover: 1.067 },
+};
+const ROW_BAND = 0.01;
+const CURRENT_ROW = '.ui-app__rail .ui-nav__item.is-active';
+/* The fold toggle wears a rail row's skin and stands above the rows, so it is what
+ * `.ui-nav__item` reaches first — named out, as the glyph gates below name it out. */
+const PLAIN_ROW = '.ui-app__rail .ui-nav__item:not(.is-active):not(.is-danger):not(.ui-app__fold)';
+
+/** The three readings this gate is made of, for one mounted shell. */
+const rowSteps = (at) => {
+  const ground = at.bg('.ui-app__rail');
+  return {
+    plate: ratio(at.fill(CURRENT_ROW), ground),
+    hover: ratio(at.fill(PLAIN_ROW, 'hover'), ground),
+  };
+};
+
+test('the current row is a plate against the rail, and a hovered row stays quieter', () => {
+  const measured = new Map();
   for (const theme of ['dark', 'light']) {
-    const at = mount(SHELL, { theme });
-    const row = '.ui-app__rail .ui-nav__item:not(.is-active)';
-    assert.deepEqual(parseColour(at.inState(row, 'hover', 'backgroundColor')), at.bg('.ui-app__rail'));
-    assert.match(at.inState(row, 'hover', 'outline'), /1px solid/);
+    for (const accent of RAIL_ACCENTS) {
+      const at = mount(SHELL, { theme, accent });
+      const got = rowSteps(at);
+      const want = RAIL_ROW[theme];
+      measured.set(`${theme}/${accent}`, got);
+
+      assert.ok(
+        Math.abs(got.plate - want.plate) <= ROW_BAND,
+        `${theme}/${accent}: the current row's plate is ${r3(got.plate)}:1 against the rail and what `
+        + `ships is ${r3(want.plate)}:1. At 1.000:1 the plate is painted the rail's own token and the `
+        + 'row has no resting mark — the defect the second review round of #475 was opened on. These '
+        + 'are the folded plate\'s own numbers, so the two widths read as one mark.',
+      );
+      assert.ok(
+        Math.abs(got.hover - want.hover) <= ROW_BAND,
+        `${theme}/${accent}: a hovered row is ${r3(got.hover)}:1 against the rail and what ships is `
+        + `${r3(want.hover)}:1. The wash is half the plate's own fill; a value off this band means `
+        + 'it is no longer derived from the plate and the two states can cross.',
+      );
+      assert.ok(
+        got.plate > got.hover,
+        `${theme}/${accent}: the current row is ${r3(got.plate)}:1 and a row under the pointer is `
+        + `${r3(got.hover)}:1, so pointing at a row outranks being on it. In light the hover edge `
+        + 'this replaced measured 1.516:1 against the current row\'s 1.238:1, which is that defect.',
+      );
+      // r34: a selected row is a background highlight; an outline means focus.
+      for (const [what, drawn] of [
+        ['the current row', at.css(CURRENT_ROW, 'outlineStyle')],
+        ['a hovered row', at.inState(PLAIN_ROW, 'hover', 'outlineStyle')],
+        ['the hovered current row', at.inState(CURRENT_ROW, 'hover', 'outlineStyle')],
+      ]) {
+        assert.ok(
+          drawn === '' || drawn === 'none',
+          `${theme}/${accent}: ${what} draws an outline (${drawn}) with no keyboard anywhere near `
+          + 'it. On a rail row an outline means focus and only focus.',
+        );
+      }
+      const rest = at.css(CURRENT_ROW, 'boxShadow');
+      assert.ok(
+        rest === '' || rest === 'none',
+        `${theme}/${accent}: the current row resolves box-shadow ${rest} at rest. On this row `
+        + 'box-shadow is the focus ring and nothing else.',
+      );
+    }
   }
+  assert.deepEqual(
+    [...measured.keys()].sort(),
+    ['dark', 'light'].flatMap((theme) => RAIL_ACCENTS.map((a) => `${theme}/${a}`)).sort(),
+    `${measured.size} cells were measured against ${2 * RAIL_ACCENTS.length} themes × accents`,
+  );
 });
 
-test('hovering the current row adds an edge in both themes', () => {
-  for (const theme of ['dark', 'light']) {
-    const at = mount(SHELL, { theme });
-    const row = '.ui-app__rail .ui-nav__item.is-active';
-    const rest = at.css(row, 'outline');
-    const hover = at.inState(row, 'hover', 'outline');
-    assert.notEqual(hover, rest);
-    assert.match(hover, /1px solid/);
+/* What this does not measure: how large the step looks. The plate is ΔL* 5.22 under the
+ * light rail and ΔL* 5.55 over the dark one, so unlike the rail's own step off the page
+ * the two themes land within half a step of each other. The hover wash is half of that
+ * again. A browser capture is what says whether half a step is enough. */
+
+// The failing mutation for the gate above. Each defect is one declaration, appended
+// to the real sheets, and the gate's own readings have to refuse it.
+test('the row gate rejects a plate painted the rail, and a hover that reaches the plate', () => {
+  const defects = [
+    ['the plate painted the rail\'s own token', `${CURRENT_ROW} { background: var(--surface); }`],
+    ['a hovered row painted the plate itself', `${PLAIN_ROW}:hover { background: var(--surface-3); }`],
+  ];
+  for (const [what, mutation] of defects) {
+    for (const theme of ['dark', 'light']) {
+      const got = rowSteps(mount(SHELL, { theme, extra: mutation }));
+      assert.ok(
+        Math.abs(got.plate - RAIL_ROW[theme].plate) > ROW_BAND || got.plate <= got.hover,
+        `${what} passes the gate above in ${theme}: plate ${r3(got.plate)}:1, hovered row `
+        + `${r3(got.hover)}:1. The readings are not reaching the declaration they measure.`,
+      );
+    }
   }
 });
 
@@ -1483,8 +1588,9 @@ test('the active glyph takes no colour from the accent at all', () => {
   }
   assert.equal(
     strokes.size, 1,
-    `the active glyph is stroked ${[...strokes].join(', ')} across the four accents. The bar `
-    + 'beside the row is what carries the hue; the glyph is a structural signal.',
+    `the active glyph is stroked ${[...strokes].join(', ')} across the four accents. Since `
+    + '#475 nothing on a rail row carries a hue at all — the mark is the plate — and the glyph '
+    + 'is a structural signal.',
   );
 });
 
@@ -1527,7 +1633,7 @@ test('the toggle\'s own mark clears the floor a control answers to', () => {
 // them, and the fold is what makes it matter: the box closes to the strip over a
 // column that keeps its width. The toggle's cell is not one of them — it is a cell
 // of the head band, at its end, and the gate under this one is the one that holds
-// it there. why: docs/specification.md#the-page-shell
+// it there. why: docs/components.md#the-page-shell
 
 test('every block of the rail keeps the open column while the box closes over it', () => {
   const col = pxOf('src/styles/nav.css', '.ui-app', '--ui-nav-col');
@@ -1558,7 +1664,7 @@ test('every block of the rail keeps the open column while the box closes over it
 // an open rail, which is the one thing the round before it had bought — so the
 // three gates here hold what it keeps instead: the end of the band while the rail
 // is open, the closing edge all the way down the travel, and the glyph column when
-// the travel stops. why: docs/specification.md#the-page-shell
+// the travel stops. why: docs/components.md#the-page-shell
 
 test('the toggle stands at the far end of the brand row, on the wordmark\'s own line', () => {
   const band = /\.ui-app__head\s*\{([^{}]*)\}/.exec(decomment(read('src/styles/layout.css')));

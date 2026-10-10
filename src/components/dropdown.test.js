@@ -7,7 +7,7 @@
 // the defect is a declaration, and the wiring's arithmetic is fed measurements
 // by hand where the defect is a number.
 //
-// why: docs/specification.md#the-dropdown-panel
+// why: docs/components.md#the-dropdown-panel
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -140,7 +140,7 @@ test('a block bleeding through the panel reads the padding, never a number of it
 // box and centring the box leaves the mark off centre — measured in Chrome at
 // dSF 8: 1.75px low closed, 3.88px high open, against the trigger's middle.
 // Both halves of the fix are read here, because either one alone leaves it wrong.
-// why: docs/specification.md#the-dropdown-panel
+// why: docs/components.md#the-dropdown-panel
 test('the caret is centred in both states, and shifted in page space', () => {
   const closed = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__chevron'));
   const open = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown.open .ui-dropdown__chevron'));
@@ -272,7 +272,7 @@ test('a foot is drawn at the panel\'s bottom edge, below the rows', () => {
 // shape `railUser()` in src/components/shell.js has always written — and the
 // foot is the one block the factory draws. Both still bleed, so the order in
 // the panel has to hold across the two ways in.
-// why: docs/specification.md#the-dropdown-panel
+// why: docs/components.md#the-dropdown-panel
 test('a head written by hand and a foot drawn by the factory keep their order', () => {
   const html = dropdown({
     value: 'Filters', variant: 'menu', items: [{ label: 'Unpaid' }],
