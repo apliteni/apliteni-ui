@@ -31,8 +31,9 @@ const FILTERS = [
 // sits at the far end of the row — `ui-toolbar--split` — because it acts on the
 // ledger rather than narrowing it, and beside "Clear all" it read as the
 // filter row's third control. why: Artur's review of this screen, #505
+const INITIAL_PERIOD = '1Y';
 const controls = () => `<div class="ui-toolbar ui-toolbar--split">
-      ${segmented({ ariaLabel: 'Period', options: PERIODS, active: 2 })}
+      ${segmented({ ariaLabel: 'Period', options: PERIODS, active: PERIODS.indexOf(INITIAL_PERIOD) })}
       <div data-finance-filters>${filterBar({ filters: FILTERS, label: 'Payout filters', clearLabel: 'Clear all' })}</div>
       ${button({ label: 'Export rows', icon: 'download', iconOnly: true })}
     </div>`;
@@ -74,6 +75,16 @@ const kpiStrip = (rows = PAYOUTS) => statBand({ id: 'fr-cashflow', stats: payout
 // Arrivals are spread across periodStart()'s four windows, not bunched into
 // one, so the period control actually narrows the ledger instead of passing
 // every row at every width. why: PR #552 code review, finding F1
+//
+// Every row a dashboard reference can send a reader to sits inside the report's
+// own default window: PO-1159 moved from 2024-09-20 (inside All only) to
+// 2025-07-15 (inside 1Y, the earliest row there), so the exceptions card's three
+// references all resolve on first paint instead of only after the reader
+// touches the period control. Its distance from the other payouts is what the
+// Unmatched status leans on, not the particular year, and it keeps that distance
+// as the oldest row the default window shows; PO-1167 alone still falls outside
+// 1Y, so the control still narrows going from All to 1Y. why: PR #552 design
+// re-review, finding A
 const PAYOUTS = [
   ['PO-1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '14,452.83', 'success', 'Paid'],
   ['PO-1163', 'po_1TnSuaGmSZjqJIroOzd7Mc6L', '2026-05-15', '14,490.70', '574.19', '13,916.51', 'success', 'Paid'],
@@ -81,8 +92,16 @@ const PAYOUTS = [
   ['PO-1165', 'po_1Tm1FeGmSZjqJIroa1D9MjbO', '2025-11-10', '39,054.98', '1,369.76', '37,685.22', 'success', 'Paid'],
   ['PO-1166', 'po_1TleVSGmSZjqJIrobtld2b8X', '2025-08-05', '14,969.33', '472.71', '14,496.62', 'danger', 'Failed'],
   ['PO-1167', 'po_1TlISNGmSZjqJIrodu8TdOXP', '2025-03-12', '18,554.27', '626.34', '17,927.93', 'success', 'Paid'],
-  ['PO-1159', 'po_1TjyHpGmSZjqJIro5cQb9nKW', '2024-09-20', '2,251.40', '71.40', '2,180.00', 'danger', 'Unmatched'],
+  ['PO-1159', 'po_1TjyHpGmSZjqJIro5cQb9nKW', '2025-07-15', '2,251.40', '71.40', '2,180.00', 'danger', 'Unmatched'],
 ];
+
+// What the period control and the filter bar together leave on the ledger.
+// Shared by the first paint and every repaint, so the two can never disagree
+// about what a given period and filter state show. why: PR #552 design
+// re-review, finding B
+const filterPayouts = (period, values = {}) => PAYOUTS.filter(row => row[2] >= periodStart(period)
+  && (!values.status || row[7] === values.status)
+  && (!values.currency || values.currency === 'EUR'));
 
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` in
 // card.css is what scrolls seven columns of ledger on a phone, and a wrapper
@@ -123,21 +142,19 @@ export const Default = {
     title: 'Payouts',
     body: `
       ${controls()}
-      ${kpiStrip()}
-      ${payoutsCard()}
+      ${kpiStrip(filterPayouts(INITIAL_PERIOD))}
+      ${payoutsCard(filterPayouts(INITIAL_PERIOD))}
     `,
   }),
   play: ({ canvasElement }) => {
     initSegmented(canvasElement);
-    let selected = '1Y';
+    let selected = INITIAL_PERIOD;
     let filters = FILTERS.map(filter => ({ ...filter }));
     const host = canvasElement.querySelector('[data-finance-filters]');
     const bar = initFilterBar(host, { filters, label: 'Payout filters', clearLabel: 'Clear all' });
     const repaint = () => {
       const values = Object.fromEntries(filters.map(filter => [filter.id, filter.value]));
-      const rows = PAYOUTS.filter(row => row[2] >= periodStart(selected)
-        && (!values.status || row[7] === values.status)
-        && (!values.currency || values.currency === 'EUR'));
+      const rows = filterPayouts(selected, values);
       canvasElement.querySelector('.ui-stats').outerHTML = kpiStrip(rows);
       canvasElement.querySelector('.ui-app__body > .ui-card').outerHTML = payoutsCard(rows);
     };

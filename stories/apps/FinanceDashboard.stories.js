@@ -26,10 +26,13 @@ const cashflow = (selected = '1Y') => statBand({
 // past its right edge. Stacked under the reference it costs no width, and the
 // arrival nobody decides on is what scrolls off instead.
 // why: guidelines/dashboards-and-reports.md, #505
+// PO-1159's arrival matches the Finance report's own row: moved from
+// 2024-09-20 to 2025-07-15 so the reference resolves inside the report's
+// default period on first paint. why: PR #552 design re-review, finding A
 const EXCEPTIONS = [
   ['PO-1166', '14,496.62', 'danger', 'Failed', '2025-08-05'],
   ['PO-1164', '14,082.69', 'pending', 'In transit', '2026-02-20'],
-  ['PO-1159', '2,180.00', 'danger', 'Unmatched', '2024-09-20'],
+  ['PO-1159', '2,180.00', 'danger', 'Unmatched', '2025-07-15'],
 ];
 
 // Each reference opens its payout row in the report.

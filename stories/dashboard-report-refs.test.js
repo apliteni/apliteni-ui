@@ -239,7 +239,10 @@ export const linkProblems = (links, rows) => {
 
 test('every link in an exceptions block opens the report, and every reference opens its own row', () => {
   const rows = reportRowIds();
-  assert.equal(rows.size, 7, 'the report draws a different number of identified rows; count them by hand');
+  // Six, not all seven PAYOUTS: the first paint holds to the period control's own
+  // 1Y default (PR #552 design re-review, finding B), and PO-1167 alone sits
+  // outside that window.
+  assert.equal(rows.size, 6, 'the report draws a different number of identified rows; count them by hand');
 
   const links = [
     ...blockLinks(Dashboard.render(), 'the Finance dashboard'),
@@ -581,9 +584,10 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   const host = doc.querySelector('[data-finance-filters]');
   const change = (id, value) => host.dispatchEvent(new doc.defaultView.CustomEvent('ui-filter-change', { detail: { id, value } }));
   const atRest = figures();
-  // The control starts on 1Y, so every repaint below also carries that window:
-  // arrivals are spread across periodStart()'s four windows (F1), so 1Y alone
-  // already drops PO-1167 and PO-1159 before the status filter narrows further.
+  // The control starts on 1Y, and the first paint already holds to that window
+  // (PR #552 design re-review, finding B): arrivals are spread across
+  // periodStart()'s four windows (F1), so 1Y alone already drops PO-1167 before
+  // the status filter narrows further.
   change('status', 'Paid');
   assert.equal(doc.querySelectorAll('tbody tr').length, 3);
   assert.ok([...doc.querySelectorAll('tbody .ui-badge')].every(badge => badge.textContent === 'Paid'));
@@ -594,10 +598,10 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   assert.match(doc.querySelector('.ui-empty').textContent, /No payouts match/);
   assert.deepEqual(figures(), ['0.00 €', '0.00 €', '0.00 €'], 'no row is shown, so no figure is drawn from one');
   host.dispatchEvent(new doc.defaultView.CustomEvent('ui-filter-clear'));
-  assert.equal(doc.querySelectorAll('tbody tr').length, 5, 'clearing the filters still leaves the 1Y window in force');
-  assert.deepEqual(figures(), ['98,023.94 €', '3,390.07 €', '94,633.87 €']);
-  assert.notDeepEqual(figures(), atRest,
-    'the unfiltered static render ignores the active period, so it still differs from the repainted 1Y view');
+  assert.equal(doc.querySelectorAll('tbody tr').length, 6, 'clearing the filters still leaves the 1Y window in force');
+  assert.deepEqual(figures(), ['100,275.34 €', '3,461.47 €', '96,813.87 €']);
+  assert.deepEqual(figures(), atRest,
+    'the first paint already holds to the 1Y window, so clearing the filters returns to exactly what was there at rest');
 });
 
 test('the Finance dashboard period changes its totals and trends', () => {
