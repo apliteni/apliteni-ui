@@ -61,26 +61,26 @@ const THEMES = ['dark', 'light'];
  * itself: a sweep that silently stopped reaching half the surfaces would report
  * "36 of 36 expected" and pass. These fail instead, and raising them is the
  * deliberate act of someone who has seen the new surfaces. */
-const FLOOR_SUBJECTS = 15;   // 8 root + 7 react stories rendering a filter bar
-const FLOOR_PANELLED = 72;   // cases that put a panel on the page, of 128
-const FLOOR_ADD = 16;        // cases that open the add control's menu
-const FLOOR_ADD_REFITS = 16; // add menus measured again after the viewport moved
+const FLOOR_SUBJECTS = 19;   // 10 root stories + 8 react stories + 1 vanilla page
+const FLOOR_PANELLED = 144;  // cases that put a panel on the page, of 152
+const FLOOR_ADD = 64;        // cases that open the add control's menu
+const FLOOR_ADD_REFITS = 64; // add menus measured again after the viewport moved
 /* Anchored menus whose close is sampled through its fade, over the close arm.
  * Recorded, not derived: a walk that stopped opening menus would otherwise report
  * "0 of 0". Well under one per case, because a chip whose trigger is disabled is
- * skipped and six of the sixteen subjects are a busy, loading, disabled or empty
- * state. */
-const FLOOR_CLOSES = 22;     // anchored menus opened and closed, over the 16 close-arm cases
+ * skipped and some subjects are busy, loading, disabled or empty states. */
+const FLOOR_CLOSES = 37;     // anchored menus opened and closed, over the 19 close-arm cases
 /* And of those, the ones that are the add control's catalogue rather than a chip's
- * values: the two React subjects that draw it. */
-const FLOOR_ADD_CLOSES = 2;  // add menus opened and closed, over the same arm
+ * values. */
+const FLOOR_ADD_CLOSES = 8;  // add menus opened and closed, over the same arm
 /* Chosen rows whose check is measured inside a menu that is being painted. Recorded
  * for the reason the others are: a walk that stopped opening menus, or stories that
  * stopped marking a row, would report "0 of 0 cut" and pass. */
-const FLOOR_MARKS = 280;     // painted checks measured across the shipped arm; this kit reaches 302
+const FLOOR_MARKS = 440;     // painted checks measured across the shipped arm
 // Putting the floor back is one mutation. It is the rule as it stood before the
 // fix, written at a specificity that beats the bound so it cannot be a no-op.
-const FLOOR_BACK = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel'
+const FLOOR_BACK = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel,'
+  + ' .ui-filter-bar [data-filter-add] .ui-dropdown__panel'
   + ' { min-width: 240px !important; max-width: none !important; }';
 /* And the re-fit check's own mutation, which is a signal rather than a rule: both
  * halves watch the row an open menu is fitted to with a ResizeObserver, and fall
@@ -620,13 +620,13 @@ const allPanels = (held) => [held, ...held.opens].flatMap(panelsIn);
  * menu may never leave its row. why: src/components/dropdown.js */
 const MENU_FLOOR = 240;
 
-/** A shut chip panel's width is its containing block's: that is what keeps a
+/** A shut chip or add panel's width is its containing block's: that is what keeps a
  *  hidden but laid-out box off the page's scrollable width, which is #467. An
  *  open one is floored instead, so it is measured by `tooNarrow` rather than
  *  here, and a row-anchored panel is bounded by its row rather than by a
  *  trigger — the row check below is what holds that one. */
 const unbound = (held) => allPanels(held)
-  .filter((p) => p.chip && !p.open)
+  .filter((p) => (p.chip || p.add) && !p.open)
   .filter((p) => p.dropdown === null || Math.abs(p.width - p.dropdown) > 0.5);
 
 /** A panel that is not a chip's, rendered narrower than its own rule asks for:
@@ -992,7 +992,7 @@ const perHalf = BUILDS.map((b) => `${subjects.filter((s) => s.half === b.half).l
 const expected = WIDTHS.length * THEMES.length * (subjects.length + 1);
 console.log(`swept: ${swept} stories across ${BUILDS.length} Storybook indexes`);
 console.log(`subjects: ${perHalf.join(' + ')} stories + 1 vanilla page `
-  + `(${subjects.length} stories against a floor of ${FLOOR_SUBJECTS})`);
+  + `(${subjects.length + 1} total subjects against a floor of ${FLOOR_SUBJECTS})`);
 for (const s of subjects) console.log(`  · ${s.half}: ${s.label}`);
 console.log(`cases measured: ${cases.length} of ${expected} expected, at ${WIDTHS.join('px, ')}px`);
 console.log(`cases carrying a panel: ${panelled.size} of ${cases.length}, floor ${FLOOR_PANELLED}`);
@@ -1028,8 +1028,8 @@ const problems = [];
 if (cases.length !== expected) problems.push(`measured ${cases.length} cases, expected ${expected}`);
 // The counts that cannot come from the sweep. A surface lost to a rename, a
 // moved bar or a broken story fails here rather than renumbering quietly.
-if (subjects.length < FLOOR_SUBJECTS) {
-  problems.push(`the sweep found ${subjects.length} stories rendering .ui-filter-bar and this kit `
+if (subjects.length + 1 < FLOOR_SUBJECTS) {
+  problems.push(`the sweep found ${subjects.length + 1} subjects rendering .ui-filter-bar and this kit `
     + `has at least ${FLOOR_SUBJECTS} — a surface was lost, or the sweep stopped reaching it`);
 }
 if (panelled.size < FLOOR_PANELLED) {
