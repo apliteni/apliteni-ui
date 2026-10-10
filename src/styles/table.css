@@ -249,26 +249,32 @@
    rule. The resting rule keeps it, so an engine that cannot answer the query is unchanged;
    scroll-state makes a query container, not a size one. why: guidelines/dense-tables.md */
 .ui-table-scroll { container-type: scroll-state; }
-/* A shared grid cell puts the edge shade over the opaque sticky header.
-   The shade takes the table's height and stays at the scrollport's right edge. */
+/* A shared grid cell puts the edge shade over the opaque sticky header, on both
+   sides: the radial-gradient shades below answer only the table's own background
+   and fall to nothing where the sticky header paints over them, so an engine that
+   can ask whether the scrollport still has room sticks a shade of its own above
+   it instead and the base radial pair is sized to 0 here. #434 review round 2 */
 @supports (container-type: scroll-state) {
   .ui-table-scroll {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    background-size: var(--space-6) 100%, var(--space-6) 100%, var(--space-3) 100%, 0 100%;
+    background-size: var(--space-6) 100%, var(--space-6) 100%, 0 100%, 0 100%;
   }
   .ui-table-scroll > .ui-table { grid-area: 1 / 1; }
+  .ui-table-scroll::before,
   .ui-table-scroll::after {
     content: '';
     grid-area: 1 / 1;
     position: sticky;
     top: 0;
-    left: calc(100% - var(--space-3));
-    right: 0;
-    justify-self: end;
     width: var(--space-3);
     z-index: calc(var(--z-sticky) + 2);
     pointer-events: none;
+  }
+  .ui-table-scroll::before { left: 0; right: calc(100% - var(--space-3)); justify-self: start; }
+  .ui-table-scroll::after { left: calc(100% - var(--space-3)); right: 0; justify-self: end; }
+  @container scroll-state(scrollable: left) {
+    .ui-table-scroll::before { background: linear-gradient(to right, var(--table-edge), transparent); }
   }
   @container scroll-state(scrollable: right) {
     .ui-table-scroll::after { background: linear-gradient(to left, var(--table-edge), transparent); }

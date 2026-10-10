@@ -89,6 +89,13 @@ It needs `npm run build-storybook -w react` first — React's fit is an effect, 
 where React is running. Report the result in the PR. Keep this check out of routine CI to save
 Actions minutes.
 
+## Check the table edge shade locally
+
+Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` edge-shade rules,
+measure both edges in a real browser — the source half only reads selectors, not paint:
+`UI_PLAYWRIGHT=… UI_CHROME=… EDGE_SHADE=1 node --test stories/table-edge-shade.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
 ## Documentation
 
 Record a consumer guarantee in one of the two reader pages: a token or a floor in
