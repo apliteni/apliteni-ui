@@ -29,7 +29,7 @@ const bare = value => ['', 'none'].includes(value);
 function check(css, theme, accent) {
   const vars = tokensFor(theme, accent);
   const resolved = desugar(substitute(css, vars)).replace(/calc\(([-\d.]+)px \+ ([-\d.]+)px\)/g, (_, a, b) => `${Number(a) + Number(b)}px`);
-  const win = new JSDOM(`<style>${resolved}</style>${[false, true].flatMap(reveal => [true, false].map(copy => snippet({ reveal, copy, code: '<a href="#example">Example</a>' }))).join('')}<button class="ui-focusable">Reference</button>`).window;
+  const win = new JSDOM(`<style>${resolved}</style>${[false, true].flatMap(reveal => [true, false].map(copy => snippet({ reveal, copy, code: '<a href="#example">Example</a><span tabindex="0">flag</span>' }))).join('')}<button class="ui-focusable">Reference</button>`).window;
   const reference = win.document.querySelector('.ui-focusable');
   reference.setAttribute('data-ui-state', 'focus-visible');
   const expected = win.getComputedStyle(reference);
@@ -40,7 +40,7 @@ function check(css, theme, accent) {
   assert.doesNotMatch(expected.outline, /transparent/, 'the band is a visible outline, not a stand-in');
 
   const targets = win.document.querySelectorAll('.ui-snippet button, .ui-snippet a[href], .ui-snippet pre, .ui-snippet [tabindex]');
-  assert.equal(targets.length, 10, 'two copy buttons, four code regions and four composed links');
+  assert.equal(targets.length, 14, 'two copy buttons, four code regions, four composed links and four composed tabindex flags');
   for (const target of targets) {
     const card = target.closest('.ui-snippet');
     target.setAttribute('data-ui-state', 'focus-visible');
