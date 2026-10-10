@@ -2,7 +2,15 @@ import { useEffect, useRef } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Tooltip } from './Tooltip';
 
-function Example({ state = 'closed', clipped = false }: { state?: 'closed' | 'hover' | 'focus' | 'dismissed'; clipped?: boolean }) {
+function Example({
+  state = 'closed',
+  clipped = false,
+  structured = false,
+}: {
+  state?: 'closed' | 'hover' | 'focus' | 'dismissed';
+  clipped?: boolean;
+  structured?: boolean;
+}) {
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const trigger = root.current!.querySelector<HTMLElement>('.ui-focusable')!;
@@ -12,8 +20,12 @@ function Example({ state = 'closed', clipped = false }: { state?: 'closed' | 'ho
   }, [state]);
   return (
     <div ref={root} style={{ padding: clipped ? '4px 48px 64px' : '64px 48px', overflow: clipped ? 'hidden' : undefined }}>
-      <Tooltip text="Updated daily">Balance</Tooltip>
-      <p>Balances are updated daily.</p>
+      {structured
+        ? <Tooltip label="March" value="€48,210" detail="+4.2% on February">March revenue</Tooltip>
+        : <>
+          <Tooltip text="Updated daily">Balance</Tooltip>
+          <p>Balances are updated daily.</p>
+        </>}
     </div>
   );
 }
@@ -33,7 +45,5 @@ export const ReducedMotion: Story = {
 };
 
 export const Structured: Story = {
-  render: () => <div style={{ padding: 'var(--space-16)' }}>
-    <Tooltip label="March" value="€48,210" detail="+4.2% on February">March revenue</Tooltip>
-  </div>,
+  render: () => <Example state="hover" structured />,
 };
