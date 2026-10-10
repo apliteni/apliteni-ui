@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.107.0', date: '2026-10-11',
+    changes: [
+      ['fixed', 'Dropdown triggers now keep the live edge and the disabled edge separate. An enabled dropdown trigger no longer shows the disabled edge. A disabled dropdown trigger no longer gets the accent on hover.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.105.0', date: '2026-10-10',
     changes: [
       ['added', 'Dashboard and report guidelines ship linked Finance examples with filters and a period control that narrows the ledger rows, and the Money in, Money out and Net result figures follow the filtered and dated rows.'],
