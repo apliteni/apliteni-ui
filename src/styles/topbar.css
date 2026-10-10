@@ -164,6 +164,13 @@
     visibility var(--dur-med) linear;
   z-index: var(--z-dropdown);
 }
+/* Chrome makes a scroll container a keyboard stop on its own — no tabindex, no
+   author rule — and #489's cap is what gave this menu the `overflow-y` that
+   makes it one, the same way `.ui-dropdown__panel` got it. `.vopt` is
+   `tabindex="-1"` and reached only by the arrow keys, so Tab lands on the menu
+   itself rather than a row inside it, and the ring belongs here for the same
+   reason `.ui-dropdown__panel` keeps it. why: docs/foundations.md#elevation */
+.vsw__menu:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 /* Open, the menu is clickable and visible AT ONCE. Both menus in this file are
    `wireDropdown()` in bespoke clothes — same hooks, same keyboard, same fade — so they
    owe a panel's two rules as much as `.ui-dropdown__panel` does: `visibility` off the
@@ -284,10 +291,13 @@
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: 14px;
-  /* No clip. The rows reach this panel's edges, and the ring a focused row draws reaches
-     3px past itself; `overflow: hidden` here cut that down to the one pixel of border it
-     had, and the reader met two accent bars instead of a ring. The ring crosses the edge
-     now. #519 why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
+  /* #519 chose no clip over padding: `overflow: hidden` with no room cut the ring down to
+     the one pixel of border this panel had, so the rule took the clip away instead and let
+     the ring cross the edge. #489's cap takes that choice away — `overflow-y: auto` clips
+     again, because a menu that scrolls has to stop its content at its own edge — so this
+     reserves the room instead, the same 6px `.vsw__menu` and `.ui-dropdown__panel` already
+     keep rather than a new figure. why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
+  padding: 6px;
   /* The same cap `.ui-dropdown__panel` writes itself — see .vsw__menu above. #489 */
   max-height: min(var(--ui-dropdown-cap, 100dvh), var(--ui-dropdown-avail, calc(100dvh - 16px)));
   overflow-y: auto;
@@ -303,6 +313,10 @@
     visibility var(--dur-med) linear;
   z-index: var(--z-dropdown);
 }
+/* The same gap as `.vsw__menu` above, from the same cause: #489's cap. `.amenu
+   a` is `tabindex="-1"` too, so Tab still lands on the menu and not a row, and
+   the ring belongs here. why: docs/foundations.md#elevation */
+.amenu:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 /* Clickable and visible at once — see .vsw.open .vsw__menu above. The row this one
    costs is `.aout`: a stray click in the fade out ends the reader's session. */
 .acct.open .amenu {
