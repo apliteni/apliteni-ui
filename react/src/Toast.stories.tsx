@@ -64,15 +64,11 @@ export const PresentationsGallery: StoryObj = {
   render: args => <Toast key={JSON.stringify(args)}><Presentations {...args} /></Toast>,
 };
 
-// The pile: several notices rest as one, newest in front, and fan out under the
-// pointer or once focus reaches a control inside them. The cards peeking behind
-// the front one are what say more is waiting.
+// The pile: several self-dismissing notices rest as one, newest in front, and
+// fan out under the pointer or once focus reaches the stack.
 function Pile() {
   const push = useToast();
-  // Each notice carries its action, so the pile stays put while it is read
-  // rather than expiring under the reader five seconds in.
-  const add = (notice: typeof statuses[number]) =>
-    push({ ...notice, action: { label: actions[notice.tone], onClick() {} } });
+  const add = (notice: typeof statuses[number]) => push({ ...notice });
   const show = () => statuses.forEach(add);
   useEffect(() => { statuses.slice(0, 3).forEach(add); }, [push]);
   return <Button onClick={show}>Add five more</Button>;
@@ -85,15 +81,15 @@ export const CollapsedStack: StoryObj = {
 // The elapsing-time line. It spends the notice's own five seconds, stops while
 // the notice is hovered or holds focus, and is left out under reduced motion —
 // a line that cannot move would read as time not yet spent.
-function Progress({ progress = true }: { progress?: boolean }) {
+function Progress({ timer = true }: { timer?: boolean }) {
   const push = useToast();
   return <Button onClick={() => push({
-    tone: 'info', title: 'Uploading report.csv', text: 'This dismisses on its own.', progress,
+    tone: 'info', title: 'Uploading report.csv', text: 'This dismisses on its own.', timer,
   })}>Show notice</Button>;
 }
 export const ElapsingTime: StoryObj = {
-  args: { progress: true },
-  argTypes: { progress: { control: 'boolean' } },
-  parameters: { docs: { description: { story: 'Show the notice, then hover it or Tab to its close button: the line and the countdown stop together. Turn progress off to keep the timing without the line.' } } },
-  render: (args: { progress?: boolean }) => <Toast><Progress {...args} /></Toast>,
+  args: { timer: true },
+  argTypes: { timer: { control: 'boolean' } },
+  parameters: { docs: { description: { story: 'Show the notice, then hover it or Tab to its close button: the line and the countdown stop together. Turn timer off to keep the notice until it is dismissed.' } } },
+  render: (args: { timer?: boolean }) => <Toast><Progress {...args} /></Toast>,
 };

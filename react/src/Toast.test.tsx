@@ -262,24 +262,52 @@ it('leaves the stack alone unless collapsing was asked for', () => {
   expect(pile()).not.toHaveClass('ui-toast-stack--collapsed');
 });
 
-it('draws the progress line on an auto-dismissing notice and drops it on request', () => {
+it('draws the timer line on an auto-dismissing notice and drops it on request', () => {
   setup({ title: 'Saved' });
   fireEvent.click(screen.getByText('Notify'));
   expect(screen.getByRole('status').querySelector('.ui-toast__timer')).not.toBeNull();
   cleanup();
-  setup({ title: 'Saved', progress: false });
+  setup({ title: 'Saved', timer: false });
   fireEvent.click(screen.getByText('Notify'));
   expect(screen.getByRole('status').querySelector('.ui-toast__timer')).toBeNull();
 });
-it('still expires a notice whose progress line was turned off', () => {
+it('keeps a notice when its timer was turned off', () => {
   vi.useFakeTimers();
-  setup({ title: 'Saved', progress: false });
+  setup({ title: 'Saved', timer: false });
   fireEvent.click(screen.getByText('Notify'));
   const notice = screen.getByRole('status');
-  act(() => vi.advanceTimersByTime(4999));
+  act(() => vi.advanceTimersByTime(60000));
+  expect(notice).toBeInTheDocument();
   expect(notice).not.toHaveClass('is-leaving');
-  act(() => vi.advanceTimersByTime(1));
-  expect(notice).toHaveClass('is-leaving');
+});
+it('holds every notice while a collapsed pile is hovered', () => {
+  vi.useFakeTimers(); const restore = stubHeights(80);
+  try {
+    collapsing();
+    const notify = screen.getByText('Notify');
+    for (let i = 0; i < 5; i += 1) fireEvent.click(notify);
+    const stack = pile();
+    fireEvent.mouseEnter(stack);
+    act(() => vi.advanceTimersByTime(20000));
+    expect(notices()).toHaveLength(5);
+    for (const notice of notices()) expect(notice).not.toHaveClass('is-leaving');
+    fireEvent.mouseLeave(stack);
+    act(() => vi.advanceTimersByTime(5000));
+    expect(notices().every(notice => notice.classList.contains('is-leaving'))).toBe(true);
+  } finally { restore(); }
+});
+it('lets a keyboard reader open a non-dismissible pile without actions', () => {
+  vi.useFakeTimers(); const restore = stubHeights(80);
+  try {
+    collapsing({ title: 'Saved', dismissible: false });
+    const notify = screen.getByText('Notify');
+    fireEvent.click(notify); fireEvent.click(notify); fireEvent.click(notify);
+    expect(pile()).toHaveAttribute('tabindex', '0');
+    act(() => pile().focus());
+    expect(pile()).toHaveFocus();
+    act(() => vi.advanceTimersByTime(20000));
+    expect(notices()).toHaveLength(3);
+  } finally { restore(); }
 });
 it('has no axe violations with a collapsed pile on screen', async () => {
   const restore = stubHeights(80);

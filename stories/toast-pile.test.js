@@ -90,6 +90,25 @@ test('the fan-out is keyed on both the pointer and focus', () => {
   }
 });
 
+test('a collapsed stack pauses every timer line in the pile', () => {
+  const paused = rules.filter((rule) => rule.body.includes('animation-play-state: paused'));
+  const selector = paused.map((rule) => rule.selector).join('\n');
+  for (const state of [':hover', ':focus-within']) {
+    assert.ok(selector.includes(`.ui-toast-stack--collapsed${state} > .ui-toast > .ui-toast__timer.is-running`),
+      `${SHEET}: a collapsed stack on \`${state}\` does not pause every timer line it contains.`);
+  }
+});
+
+test('a collapsed stack is keyboard focusable and clips tall back cards', () => {
+  const stack = pileRules.find((rule) => rule.selector === '.ui-toast-stack--collapsed');
+  assert.ok(stack?.body.includes('overflow: hidden'),
+    `${SHEET}: the collapsed stack does not clip a taller back card that would protrude below the front card.`);
+  assert.ok(rules.some((rule) => rule.selector === '.ui-toast-stack--collapsed:focus-visible'),
+    `${SHEET}: the keyboard entry point for a collapsed stack has no visible focus style.`);
+  assert.ok(script.includes("setAttribute('tabindex', '0')"),
+    `${SCRIPT}: a collapsed stack with no action or close button has no keyboard entry point.`);
+});
+
 test('a resting card is placed with translate and scale, never transform', () => {
   const card = pileRules.find((rule) => /^\.ui-toast-stack--collapsed\s*>\s*\.ui-toast$/.test(rule.selector));
   assert.ok(card, `${SHEET} no longer has a plain \`.ui-toast-stack--collapsed > .ui-toast\` rule.`);
@@ -126,6 +145,9 @@ test('a reader with no hover is not shown a pile they cannot open', () => {
 
   const column = /([^{}]*)\{([^}]*height:\s*auto[^}]*)\}/.exec(block);
   assert.ok(column, `${SHEET}: a hoverless stack keeps the pile's measured height, so it still hides its notices.`);
+  assert.ok(block.includes('.ui-toast-stack--collapsed.ui-toast-stack--newest-first')
+    && block.includes('flex-direction: column-reverse'),
+    `${SHEET}: a hoverless stack fed newest-first changes reading order instead of keeping the front notice at the bottom.`);
   const cards = /([^{}]*)\{([^}]*translate:\s*none[^}]*)\}/.exec(block);
   assert.ok(cards, `${SHEET}: a hoverless card keeps the offset it only has while absolute.`);
   for (const property of ['position: static', 'scale: 1']) {
@@ -174,16 +196,16 @@ test('every control inside a notice wears the kit ring, never the browser outlin
     const rule = rules.find((r) => r.selector.split(',').some((s) => s.trim() === `.${control}:focus-visible`));
     assert.ok(rule, `${SHEET}: \`.${control}\` has no \`:focus-visible\` rule, so it falls back to the `
       + "browser's own outline. The kit uses `--ring` (#457).");
-    assert.match(rule.body, /box-shadow:\s*var\(--ring\)/,
-      `${SHEET}: \`.${control}:focus-visible\` does not draw \`var(--ring)\`.`);
-    assert.match(rule.body, /outline:\s*2px solid transparent/,
-      `${SHEET}: \`.${control}:focus-visible\` loses focus when forced colors removes box-shadow.`);
+    assert.match(rule.body, /outline:\s*var\(--ring\)/,
+      `${SHEET}: \`.${control}:focus-visible\` does not draw the current kit ring.`);
+    assert.match(rule.body, /outline-offset:\s*var\(--ring-offset\)/,
+      `${SHEET}: \`.${control}:focus-visible\` does not keep the current kit ring offset.`);
   }
 });
 
-/* -- The progress line pauses for both readers -------------------------------- */
+/* -- The timer line pauses for both readers ----------------------------------- */
 
-test('the progress line pauses under the pointer and under focus', () => {
+test('the timer line pauses under the pointer and under focus', () => {
   const paused = [...css.matchAll(/([^{}]*\.ui-toast__timer[^{}]*)\{([^}]*animation-play-state:\s*paused[^}]*)\}/g)];
   assert.equal(paused.length, 1,
     `${SHEET} has ${paused.length} rules pausing \`.ui-toast__timer\`; the line's pause is one rule.`);
@@ -267,6 +289,16 @@ test('a stack fed by pushToast keeps its newest notice in front', () => {
   stack.remove();
 });
 
+test('a stack fed by pushToast keeps the same reading order without hover', () => {
+  const stack = stackOf(80, 80, 80);
+  const pile = collapseToastStack(stack, { newestFirst: true });
+  assert.ok(stack.classList.contains('ui-toast-stack--newest-first'),
+    'a newest-first stack has no class for the hoverless stylesheet to keep its reading order');
+  pile.stop();
+  assert.ok(!stack.classList.contains('ui-toast-stack--newest-first'));
+  stack.remove();
+});
+
 test('fanning out leaves the front card where it already was', () => {
   // The pile grows away from the corner it is anchored to. The card the reader
   // is looking at is the one that must not move when the pile opens, whichever
@@ -333,6 +365,30 @@ test('a collapsed stack re-measures as notices come and go, and adds nothing to 
   stack.remove();
 });
 
+test('a collapsed stack holds every countdown while the pile is held', () => {
+  mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    const stack = document.createElement('div');
+    stack.className = 'ui-toast-stack';
+    stack.innerHTML = [
+      toast({ variant: 'info', title: 'One', timer: 5 }),
+      toast({ variant: 'info', title: 'Two', timer: 5 }),
+      toast({ variant: 'info', title: 'Three', timer: 5 }),
+    ].join('');
+    document.body.append(stack);
+    wireToastStack(stack);
+    const pile = collapseToastStack(stack);
+    stack.dispatchEvent(new dom.window.Event('mouseenter'));
+    mock.timers.tick(30000);
+    assert.equal(cardsOf(stack).length, 3, 'a notice expired while the pile was held');
+    stack.dispatchEvent(new dom.window.Event('mouseleave'));
+    mock.timers.tick(5000);
+    assert.ok(cardsOf(stack).every(leaving), 'the held countdowns did not resume when the pile was released');
+    pile.stop();
+    stack.remove();
+  } finally { mock.timers.reset(); }
+});
+
 test('one notice is not a pile', () => {
   const stack = stackOf(80);
   const pile = collapseToastStack(stack);
@@ -344,7 +400,7 @@ test('one notice is not a pile', () => {
 
 /* -- The countdown stops with the line ---------------------------------------- */
 
-/** A wired, running notice with a progress line and a control inside it. */
+/** A wired, running notice with a timer line and a control inside it. */
 function running() {
   const stack = document.createElement('div');
   stack.className = 'ui-toast-stack';

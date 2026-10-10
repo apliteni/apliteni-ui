@@ -18,6 +18,10 @@ import { toastPileGeometry, TOAST_GAP, TOAST_PILE_MIN } from '../logic/toast-sta
 
 const reduceMotion = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PILE_HOLD = 'ui-toast-pile-hold';
+const PILE_RELEASE = 'ui-toast-pile-release';
+const PILE_TABINDEX = 'data-toast-pile-tabindex';
+const PILE_LABEL = 'data-toast-pile-label';
 
 const resolve = (container) =>
   (typeof container === 'string' ? document.querySelector(container) : container) || null;
@@ -60,6 +64,8 @@ function wireToast(el) {
     el.addEventListener('mouseenter', hold);
     el.addEventListener('mouseleave', release);
     el.addEventListener('focusin', hold);
+    el.addEventListener(PILE_HOLD, hold);
+    el.addEventListener(PILE_RELEASE, release);
     // At focusout the old target has already blurred and the new one has not
     // focused yet, so :focus-within reads false even for a move from the close
     // button to the action. relatedTarget is the only thing that knows.
@@ -206,12 +212,56 @@ export function watchToastPile(stack, { onSync, ...options } = {}) {
 export function collapseToastStack(container, options = {}) {
   const root = resolve(container);
   if (!root) return null;
-  const mark = (stack) => {
-    root.classList.toggle('ui-toast-stack--collapsed', pileCards(stack).length >= TOAST_PILE_MIN);
+  const setKeyboardEntry = (on) => {
+    if (on) {
+      if (!root.hasAttribute('tabindex')) {
+        root.setAttribute('tabindex', '0');
+        root.setAttribute(PILE_TABINDEX, '1');
+      }
+      if (!root.hasAttribute('aria-label')) {
+        root.setAttribute('aria-label', 'Notifications');
+        root.setAttribute(PILE_LABEL, '1');
+      }
+    } else {
+      if (root.getAttribute(PILE_TABINDEX)) root.removeAttribute('tabindex');
+      if (root.getAttribute(PILE_LABEL)) root.removeAttribute('aria-label');
+      root.removeAttribute(PILE_TABINDEX);
+      root.removeAttribute(PILE_LABEL);
+    }
   };
+  const dispatch = (type) => {
+    for (const card of pileCards(root)) card.dispatchEvent(new Event(type));
+  };
+  const hold = () => dispatch(PILE_HOLD);
+  const release = (event) => {
+    if (event?.relatedTarget && root.contains(event.relatedTarget)) return;
+    if (root.matches(':hover, :focus-within')) return;
+    dispatch(PILE_RELEASE);
+  };
+  const mark = (stack) => {
+    const collapsed = pileCards(stack).length >= TOAST_PILE_MIN;
+    root.classList.toggle('ui-toast-stack--collapsed', collapsed);
+    root.classList.toggle('ui-toast-stack--newest-first', collapsed && options.newestFirst === true);
+    setKeyboardEntry(collapsed);
+    if (collapsed && root.matches(':hover, :focus-within')) hold();
+  };
+  root.addEventListener('mouseenter', hold);
+  root.addEventListener('mouseleave', release);
+  root.addEventListener('focusin', hold);
+  root.addEventListener('focusout', release);
   const stop = watchToastPile(root, { ...options, onSync: mark });
   return {
     sync: () => { applyToastPile(root, options); mark(root); },
-    stop() { stop(); root.classList.remove('ui-toast-stack--collapsed'); },
+    stop() {
+      root.removeEventListener('mouseenter', hold);
+      root.removeEventListener('mouseleave', release);
+      root.removeEventListener('focusin', hold);
+      root.removeEventListener('focusout', release);
+      dispatch(PILE_RELEASE);
+      stop();
+      root.classList.remove('ui-toast-stack--collapsed');
+      root.classList.remove('ui-toast-stack--newest-first');
+      setKeyboardEntry(false);
+    },
   };
 }

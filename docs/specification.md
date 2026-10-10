@@ -3078,10 +3078,10 @@ Vanilla and React share this styling.
 
 React notices accept `compact` (false by default; when true the body text is
 omitted), `dismissible` (true by default; set it false to hide the close
-button) and `progress` (true by default; set it false to drop the elapsing-time
-line without changing the timing). Hiding the close button does not change timing
-or action behavior. React notices always carry the `soft` style class. These
-presentation options are checked in `react/src/Toast.test.tsx`.
+button) and `timer` (true by default; set it false to stop auto-dismiss and the
+elapsing-time line, or pass a number of seconds). Hiding the close button does
+not change timing or action behavior. React notices always carry the `soft`
+style class. These presentation options are checked in `react/src/Toast.test.tsx`.
 
 `Toast` and `useToast()` render the vanilla toast classes in a fixed stack, newest
 at the bottom, anchored to the bottom-right corner. The provider measures the stack
@@ -3108,10 +3108,11 @@ say more is waiting; the pile carries no counted chip above it. A pile needs
 `TOAST_PILE_MIN` notices: one notice collapsed would only hide behind itself.
 
 The pile fans out into the ordinary column on `:hover` and on `:focus-within`,
-so a keyboard reader opens it by tabbing into it, and collapses again when both
-end. Nothing listens for either state: the stylesheet switches between two sets
-of published values, which is what lets the reduced-motion net cap the travel
-like any other transition.
+so a keyboard reader opens it by tabbing into the stack or a control inside it.
+It collapses again when both end. The stack is the keyboard entry point when its
+notices have no close button and no action. Nothing listens for either state:
+the stylesheet switches between two sets of published values, which is what lets
+the reduced-motion net cap the travel like any other transition.
 
 Those values are measured, because notices are not the same height. For each
 notice a script publishes `--toast-card-lift`, `--toast-card-scale`,
@@ -3123,16 +3124,16 @@ card rather than assuming it: `pushToast()` prepends, so a live vanilla stack
 reads newest-first, while the React provider appends and reads oldest-first.
 
 Under `(hover: none)` the stack stays the plain column: half of what opens a
-pile is hover, and the notices behind the front card are not focusable, so a
-pile there would be one nobody could open. The query asks about
-hover rather than pointer precision, because `(pointer: coarse)` is the field
-sizing net's question and `stories/field-zoom.test.js` keeps it to one sheet.
+pile is hover, and a plain column keeps every notice visible without requiring a
+focus stop on the stack. A vanilla stack fed by `pushToast()` reverses that
+plain column, so the newest notice stays at the bottom in both states. The query
+asks about hover rather than pointer precision, because `(pointer: coarse)` is
+the field sizing net's question and `stories/field-zoom.test.js` keeps it to one
+sheet.
 
 A pile fans out away from the corner it is anchored to, with the newest notice
 staying where it already was, so the card the reader is looking at does not move
-when the pile opens. A vanilla stack fed by `pushToast()` therefore reads oldest
-at the top while it is collapsed, which is the reverse of the order the same
-stack shows uncollapsed.
+when the pile opens.
 
 `toastPileGeometry()` in `src/logic/toast-stack.js` is the calculation both faces
 share; `applyToastPile()`, `watchToastPile()` and `collapseToastStack()` in
@@ -3146,12 +3147,12 @@ on screen is checked by capture.
 ### The elapsing-time line
 
 `.ui-toast__timer` spends the notice's own dismiss timer. It pauses on the
-notice's `:hover` and `:focus-within` from the stylesheet, so the line and the
-countdown stop together for a pointer reader and a keyboard reader alike, and
-each face only has to hold its own timer. Under reduced motion the line is not
-drawn at all: its animation is capped to nothing, so it would sit full for the
-whole five seconds and read as time not yet spent. The notice still expires on
-time.
+notice's `:hover` and `:focus-within` from the stylesheet. In a collapsed pile,
+the stack's `:hover` and `:focus-within` pause every line in the pile. The
+countdown stops with the line, so a reader can hold the whole pile open. Under
+reduced motion the line is not drawn at all: its animation is capped to nothing,
+so it would sit full for the whole five seconds and read as time not yet spent.
+The notice still expires on time.
 
 ## React AppShell
 

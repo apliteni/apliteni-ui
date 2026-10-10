@@ -67,7 +67,7 @@
 /* Tone ink keeps actions readable on the neutral surface. */
 .ui-toast__action { flex: none; align-self: center; background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
 .ui-toast__action:hover { background: color-mix(in srgb, var(--bg) 55%, transparent); /* ring-gap: inherit — control paint; its focus indicator uses the containing surface. */ }
-.ui-toast__action:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }
+.ui-toast__action:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 .ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; /* muted-ink: glyph — dismiss icon */ color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; position: relative; font: inherit; }
 .ui-toast__close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
@@ -91,7 +91,7 @@
   transform: translate(-50%, -50%);
 }
 .ui-toast__close:hover { color: var(--text); }
-.ui-toast__close:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); border-radius: var(--radius-xs); }
+.ui-toast__close:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 
 /* auto-dismiss progress line — .is-running is added by wireToastStack() */
 .ui-toast__timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--toast-accent); opacity: 0.85; transform-origin: left; }
@@ -102,7 +102,9 @@
    countdown from drifting apart, and gives a keyboard reader the same reprieve
    a pointer reader gets. */
 .ui-toast:hover > .ui-toast__timer.is-running,
-.ui-toast:focus-within > .ui-toast__timer.is-running { animation-play-state: paused; }
+.ui-toast:focus-within > .ui-toast__timer.is-running,
+.ui-toast-stack--collapsed:hover > .ui-toast > .ui-toast__timer.is-running,
+.ui-toast-stack--collapsed:focus-within > .ui-toast > .ui-toast__timer.is-running { animation-play-state: paused; }
 
 /* Legacy style classes share the neutral card. */
 .ui-toast--soft, .ui-toast--solid, .ui-toast--outline { background: var(--surface); --ring-gap: var(--surface); color: var(--text); }
@@ -137,8 +139,10 @@
   position: relative;
   display: block;
   height: var(--toast-pile-height, auto);
+  overflow: hidden;
   transition: height var(--dur-med) var(--ease);
 }
+.ui-toast-stack--collapsed:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-toast-stack--collapsed > .ui-toast {
   position: absolute;
   right: 0;
@@ -161,19 +165,19 @@
   scale: 1;
 }
 
-/* Half of what opens a pile is hover. Where the reader has none, and the cards
-   behind the front one are not focusable, a pile is one nobody can open — so
-   the stack stays the plain column.
+/* Half of what opens a pile is hover. Where the reader has none, the plain
+   column keeps every notice visible without one more stop on the page.
    The question is hover, not precision: `(pointer: coarse)` is the kit's field
    sizing net and answers a different one (stories/field-zoom.test.js).
    Each fanned state is named again rather than left to the shorter selector:
-   a tap still lands focus inside the stack, and `:focus-within` above would
+   a tap can still land focus inside the stack, and `:focus-within` above would
    otherwise hand a static card the offset it only has while absolute. This
    block therefore has to stay BELOW the rules it answers for. */
 @media (hover: none) {
   .ui-toast-stack--collapsed,
   .ui-toast-stack--collapsed:hover,
   .ui-toast-stack--collapsed:focus-within { display: flex; height: auto; }
+  .ui-toast-stack--collapsed.ui-toast-stack--newest-first { flex-direction: column-reverse; }
   .ui-toast-stack--collapsed > .ui-toast,
   .ui-toast-stack--collapsed:hover > .ui-toast,
   .ui-toast-stack--collapsed:focus-within > .ui-toast { position: static; translate: none; scale: 1; }

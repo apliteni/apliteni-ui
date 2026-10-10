@@ -567,6 +567,7 @@ Pass `compact: true` to show only the title, or `dismissible: false` to hide the
 close button. Hiding the close button keeps the five-second timer for notices
 without actions; notices with actions remain until their action is selected, so a
 notice with an action and no close button has no other dismissal affordance.
+Pass `timer: false` to keep a notice until it is dismissed.
 
 ```tsx
 function SaveButton() {

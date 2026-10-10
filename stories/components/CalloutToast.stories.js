@@ -109,9 +109,8 @@ export const Stack = {
   },
 };
 
-// The collapsed pile: several notices rest as one, newest in front, and fan out
-// under the pointer or once focus reaches any control inside them. The cards
-// peeking behind the front one are what say more is waiting.
+// The collapsed pile: several self-dismissing notices rest as one, newest in
+// front, and fan out under the pointer or once focus reaches the stack.
 export const CollapsedStack = {
   parameters: { docs: { description: { story: 'Hover the pile, or press Tab into it, to fan it out. It collapses again when you leave. "Fan out" is the same move without a pointer.' } } },
   render: () => {
@@ -129,7 +128,7 @@ export const CollapsedStack = {
       // pushToast() prepends, so this stack reads newest-first.
       collapseToastStack(s, { newestFirst: true });
       let next = 0;
-      const add = () => pushToast(s, { ...SAMPLES[next % SAMPLES.length], timer: false });
+      const add = () => pushToast(s, { ...SAMPLES[next % SAMPLES.length], timer: 5 });
       const [addButton, fanButton] = root.querySelectorAll('.ui-btn');
       addButton.addEventListener('click', () => { next += 1; add(); });
       // Keyboard readers fan the pile by tabbing into it; this button is the
