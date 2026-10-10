@@ -1,20 +1,8 @@
-// Rule: every change a stat band shows says what it is measured against, in
-// text a reader can reach — beside the change, in the band's caption that the
-// change points at, or beside the period control that selects the window, where
-// a caption would only say the control's own state again. A hover `title` is not
-// that: it is the rejected shape in #267, which makes this an accessibility
-// gate, and the Accessibility minimums page names it as one. What a change may
-// point at is a closed list; `allowedBases` is it.
-//
-// Second: the caption is read BEFORE the figures it explains, the way a table's
-// caption is. The default layout is tiles, and a caption under a row of
-// separate cards is one a reader takes for a note on the last card.
-//
-// Third: a figure adds what it has to add in one row. Two rows drop the changes
-// beside it a line lower — 26.2px, measured on #512.
-//
-// Every story is walked, so a band added anywhere is a subject without being
-// listed. why: docs/components.md#stat-bands
+// Rule: every stat change says what it is measured against in reachable text.
+// Accepted shapes are a figure basis, a band caption, or a period-control basis.
+// A hover `title` does not count. A caption leads the figures. A figure uses one row.
+// Every story is walked, so a new band becomes a subject by default.
+// why: docs/components.md#stat-bands
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
@@ -22,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { installDomGlobals, storyFiles } from './lib/contrast.js';
 import { statBand } from '../src/components/stat.js';
+import { Default as FinanceDashboard } from './apps/FinanceDashboard.stories.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const quiet = new VirtualConsole();
@@ -30,31 +19,9 @@ const dom = new JSDOM('<!doctype html><html lang="en"><body></body></html>', { p
 installDomGlobals(dom.window);
 const doc = dom.window.document;
 
-/**
- * The statements under `root` a change is allowed to point at, by element id.
- * Two shapes: the band's own caption, and a basis stated beside a period control
- * that selects the window — the band then draws no caption, because one under a
- * control reading "1Y" says the control's state again. Anything else with an id
- * does not count: pointing a change at the page title would have passed before.
- *
- * The second shape is three conditions, and #505's review found the check holding
- * only one of them: every id-bearing DESCENDANT of a pressed strip's parent passed,
- * so a "Table / Chart" view switch beside `<h1 id="title">` lent the page title to
- * a change, and a statement nested anywhere in the row did the same. The closed
- * list the Stat bands page promises is these three:
- *
- *   - the strip has a pressed option, because an unpressed one selects nothing;
- *   - the statement carries `data-period-basis`, so it is the one the author
- *     DESIGNATED, not whatever else in the row happens to have an id;
- *   - and it is a direct child of the strip's own row, which is what "beside the
- *     control" means.
- *
- * WHAT THIS CANNOT MEASURE: that the strip really selects a period. Nothing in the
- * markup says a window rather than a view, which is exactly why the designation is
- * an attribute on the STATEMENT — the author's claim about the control beside it,
- * made in one place a reader of the source can find — and not a guess from a label
- * or a `data-seg` name. Reject the claim and the band owes a caption again.
- */
+// Allowed shared descriptions are a band caption or a direct `data-period-basis`
+// child beside a pressed segment. The attribute is the author's period claim.
+// The gate does not infer a period from a segment label or `data-seg` name.
 export const allowedBases = (root) => {
   const found = new Map();
   for (const caption of root.querySelectorAll('.ui-stats__basis[id]')) {
@@ -124,7 +91,7 @@ test('the check finds a change with nothing to say what it is measured against',
  */
 
 /** A period row: the strip, and the basis beside it, as the dashboard draws them. */
-const periodRow = ({ pressed = true, basis = 'Each change is against the 12 months before.' } = {}) =>
+const periodRow = ({ pressed = true, basis = 'vs previous 12 months' } = {}) =>
   '<div class="ui-toolbar">'
   + `<div class="ui-seg" role="toolbar" aria-label="Period" data-seg="period">${
     ['3M', '6M', '1Y', 'All'].map((o, i) => `<button type="button" aria-pressed="${pressed && i === 2}">${o}</button>`).join('')
@@ -146,9 +113,19 @@ test('a change takes its basis from the statement beside a period control', () =
   assert.equal(allowedBases(box).get('period-basis'), "the period control's basis");
 });
 
+test('the Finance dashboard period basis is a label all three changes describe', () => {
+  const box = mount(FinanceDashboard.render());
+  const basis = box.querySelector('#fd-period-basis');
+  assert.equal(basis?.textContent.trim(), 'vs previous 12 months');
+  const deltas = [...box.querySelectorAll('.ui-stat__delta')];
+  assert.equal(deltas.length, 3);
+  for (const d of deltas) assert.equal(d.getAttribute('aria-describedby'), 'fd-period-basis');
+  assert.equal(unexplained(box).length, 0);
+});
+
 test('a change with no caption and no period control beside it still fails', () => {
   const box = mount(statBand({ stats: CHANGES, basisId: 'period-basis', id: 'band' })
-    + '<p id="period-basis">Each change is against the 12 months before.</p>');
+    + '<p id="period-basis">vs previous 12 months</p>');
   assert.equal(unexplained(box).length, 2,
     'a statement with the right id but no period control selecting a window passed as a basis');
 });
@@ -199,7 +176,7 @@ test('the row\'s other text is not a basis just because it sits in the row', () 
 
 test('a designated basis nested in the row is not beside the control', () => {
   const box = mount(periodRow({ basis: '' })
-      .replace('</div>', '<div><p class="ui-sr" id="period-basis" data-period-basis>Against the 12 months before.</p></div></div>')
+      .replace('</div>', '<div><p class="ui-sr" id="period-basis" data-period-basis>vs previous 12 months</p></div></div>')
     + statBand({ stats: CHANGES, basisId: 'period-basis', id: 'band' }));
   assert.ok(box.querySelector('[data-period-basis]'), 'premise: the statement is in the row, one level down');
   assert.equal(allowedBases(box).has('period-basis'), false);
