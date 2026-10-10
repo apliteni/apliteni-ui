@@ -158,8 +158,8 @@ export const RULES = withSpecimens(content.rules, [
       id: 'gd-depth-dont',
       stats: [
         { label: 'Payouts', value: '214' },
-        { label: 'Fees', value: '68,412 €' },
-        { label: 'Net', value: '3,118,904 €' },
+        { label: 'Fees', value: '68,412.00 €' },
+        { label: 'Net', value: '3,118,904.00 €' },
       ],
     })),
   },

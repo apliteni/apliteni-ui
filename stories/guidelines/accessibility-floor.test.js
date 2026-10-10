@@ -806,13 +806,19 @@ test('ring: every selector the sheet paints a ring on is landed somewhere by a s
     const run = ringRun[key];
     assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
     const landed = new Set(run.landings.map((l) => l.selector));
-    // Every ring selector the sheet declares is now landed. `.ui-focusable`, the
-    // kit's opt-in focus class for an action that is not a kit Button, was the one
-    // exception for as long as no vanilla story drew one: it had no ground to be
-    // measured against, which was a fact about the class rather than a hole here.
-    // The Finance dashboard's head link wears it — a plain `<a>` into the report
-    // behind the block — so the ring on it is measured against the card's own
-    // surface in every theme x accent cell below. #505
+    // `.ui-focusable` is the kit's opt-in focus class
+    // (src/styles/base.css:144 `.ui-focusable:focus-visible,`). No vanilla component
+    // wears it and no vanilla story renders one, so it has no ground to be measured
+    // against — a fact about the class, not a hole here. React's Tooltip trigger wears
+    // it and is swept elsewhere. It is named rather than filtered so it cannot quietly
+    // become two.
+    //
+    // The Finance dashboard's head link wore it until round 38 removed that link.
+    // A later commit on this PR claimed coverage back by string-pasting the class
+    // onto a primary Button, which measures the ring against the button's own
+    // fill — already covered by `.ui-btn:focus-visible` — rather than against a
+    // real surface. PR #552 code review, finding F5: the exception is restored
+    // rather than that false carrier kept.
     //
     // A reader looking for the gap this leaves: the subjects are the selectors the
     // sheet ALREADY rings, so a control given no focus rule at all is invisible here
@@ -820,7 +826,7 @@ test('ring: every selector the sheet paints a ring on is landed somewhere by a s
     // instead, on the landing page and the shell, footer and topbar stories; a control
     // with no ring rule drawn only on a guideline page is caught by neither.
     const orphans = run.selectors.filter((s) => !landed.has(s));
-    assert.deepEqual(orphans, [], `${key}: a ring selector no story renders is a ring nobody measured`);
+    assert.deepEqual(orphans, ['.ui-focusable:focus-visible'], `${key}: a ring selector no story renders is a ring nobody measured`);
   }
 });
 

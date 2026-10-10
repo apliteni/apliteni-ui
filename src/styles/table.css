@@ -223,7 +223,12 @@
    hover selectors are repeated with .is-target so a pointer passing over the row does not
    take its mark off.
    why: Artur, round r34; guidelines/dashboards-and-reports.md#link-each-reference-to-its-row
-   held by: stories/dashboard-report-refs.test.js, src/styles/table-focus.test.js */
+   held by: stories/dashboard-report-refs.test.js, for landOnRow() marking the right row and
+   only the right row; stories/contrast.test.js, for the wash's contrast, now that
+   stories/components/Table.stories.js:FinanceData renders a row wearing the mark at rest.
+   Neither gate reads paint against focus: the ground and the ring share no selector and no
+   condition, which is why one cannot switch the other off, and that is proved by the PR's
+   browser captures rather than by a gate. PR #552 code review, finding F6. */
 .ui-table tbody tr.is-target > :is(td, th),
 .ui-table--hover tbody tr.is-target:hover > :is(td, th),
 .ui-table--zebra.ui-table--hover tbody tr.is-target:hover > :is(td, th) {
