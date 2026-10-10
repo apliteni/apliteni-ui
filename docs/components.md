@@ -488,7 +488,7 @@ inside a cell uses the row's ink, gets an underline on hover, and uses the share
 explicit judgement. **Colour never supplies the sign.**
 
 A cell can group its reference and status with `.ui-table__pair`. They stack when the cell cannot fit them side by side.
-A landed row keeps its selection background through keyboard focus, so arrival and focus show together and stay distinguishable.
+A landed row's `.is-target` mark shows on pointer arrival as well as keyboard focus, and it outlives focus, so arrival and focus show together and stay distinguishable.
 The caller brings the target row into view and keeps its mark until the next arrival.
 
 **Below the one-column step, a table marked `.ui-table--stack` lays each row out as a block
@@ -620,8 +620,8 @@ floor. So at that width the field uses `flex-basis: 100%`. It takes the full lin
 of the row wraps below it.
 
 A title without an introduction keeps a 32px gap before the page body.
-A control row directly inside the body sits closer to the block it controls.
-Use `.ui-toolbar--split` to place the final control at the row's end. On a phone, it starts its own line.
+A control row directly inside the body sits 8px closer to the block it controls.
+Use `.ui-toolbar--split` to place the final control at the row's end. On a phone, it stays in that row beside the control before it, rather than dropping to its own line.
 
 ### Segmented strips that outgrow their column
 

@@ -1,7 +1,7 @@
 import { badge, button, card, segmented, emptyState } from '../../src/components/index.js';
 import { filterBar, initFilterBar } from '../../src/components/filter-bar.js';
 import { busyRegion, skeleton, skeletonTable } from '../../src/components/loading.js';
-import { PERIODS, periodStart, money } from './_finance-data.js';
+import { PERIODS, periodStart } from './_finance-data.js';
 import { initSegmented } from '../../src/components/segmented.js';
 import { statBand } from '../../src/components/stat.js';
 import { financeShell, payoutRowId } from './_finance-nav.js';
@@ -42,12 +42,18 @@ const controls = () => `<div class="ui-toolbar ui-toolbar--split">
 // does not move with a filter chip. Money in and out are each row's own gross
 // and fees; net is each row's own net, so the three stay the rows' own sum.
 // why: PR #552 design re-review, finding A
+//
+// Fixed at two decimals: this is the only band that sums a column of cents,
+// and the Net (EUR) column it stands beside always carries two, so this is
+// where that decision belongs — not in money(), which every other band also
+// calls on whole euros. why: PR #552 code review, finding F4
 const parseAmount = value => Number.parseFloat(value.replace(/,/g, ''));
+const twoDecimals = value => `${value < 0 ? '−' : ''}${Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 const payoutStats = rows => [
   ['Money in', 3],
   ['Money out', 4],
   ['Net result', 5],
-].map(([label, column]) => ({ label, value: money(rows.reduce((sum, row) => sum + parseAmount(row[column]), 0)) }));
+].map(([label, column]) => ({ label, value: twoDecimals(rows.reduce((sum, row) => sum + parseAmount(row[column]), 0)) }));
 
 // The cashflow figures are the kit's stat band. It folds from its own width, so
 // the rail beside the column needs no rule of this screen's.
@@ -64,14 +70,18 @@ const kpiStrip = (rows = PAYOUTS) => statBand({ id: 'fr-cashflow', stats: payout
 // rows to its row here — which is also why every row carries payoutRowId()'s id,
 // the name the link on the other screen uses for it. stories/dashboard-report-refs.test.js holds the three
 // screens to that, so the agreement survives an edit to any one of them.
+//
+// Arrivals are spread across periodStart()'s four windows, not bunched into
+// one, so the period control actually narrows the ledger instead of passing
+// every row at every width. why: PR #552 code review, finding F1
 const PAYOUTS = [
   ['PO-1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '14,452.83', 'success', 'Paid'],
-  ['PO-1163', 'po_1TnSuaGmSZjqJIroOzd7Mc6L', '2026-06-29', '14,490.70', '574.19', '13,916.51', 'success', 'Paid'],
-  ['PO-1164', 'po_1TmNmjGmSZjqJIro7lHBO3ix', '2026-06-26', '14,566.66', '483.97', '14,082.69', 'pending', 'In transit'],
-  ['PO-1165', 'po_1Tm1FeGmSZjqJIroa1D9MjbO', '2026-06-25', '39,054.98', '1,369.76', '37,685.22', 'success', 'Paid'],
-  ['PO-1166', 'po_1TleVSGmSZjqJIrobtld2b8X', '2026-06-24', '14,969.33', '472.71', '14,496.62', 'danger', 'Failed'],
-  ['PO-1167', 'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '17,927.93', 'success', 'Paid'],
-  ['PO-1159', 'po_1TjyHpGmSZjqJIro5cQb9nKW', '2026-06-18', '2,251.40', '71.40', '2,180.00', 'danger', 'Unmatched'],
+  ['PO-1163', 'po_1TnSuaGmSZjqJIroOzd7Mc6L', '2026-05-15', '14,490.70', '574.19', '13,916.51', 'success', 'Paid'],
+  ['PO-1164', 'po_1TmNmjGmSZjqJIro7lHBO3ix', '2026-02-20', '14,566.66', '483.97', '14,082.69', 'pending', 'In transit'],
+  ['PO-1165', 'po_1Tm1FeGmSZjqJIroa1D9MjbO', '2025-11-10', '39,054.98', '1,369.76', '37,685.22', 'success', 'Paid'],
+  ['PO-1166', 'po_1TleVSGmSZjqJIrobtld2b8X', '2025-08-05', '14,969.33', '472.71', '14,496.62', 'danger', 'Failed'],
+  ['PO-1167', 'po_1TlISNGmSZjqJIrodu8TdOXP', '2025-03-12', '18,554.27', '626.34', '17,927.93', 'success', 'Paid'],
+  ['PO-1159', 'po_1TjyHpGmSZjqJIro5cQb9nKW', '2024-09-20', '2,251.40', '71.40', '2,180.00', 'danger', 'Unmatched'],
 ];
 
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` in

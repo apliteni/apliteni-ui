@@ -179,9 +179,13 @@ test('the gross the guideline keeps undrawn is the report\'s gross, and its nets
 /* -- Where a reference sends a reader ------------------------------------------
  *
  * The other half of the pair: the figures agreeing is worth nothing if the link
- * beside them goes nowhere. Every link in an exceptions block — each reference and
- * the one in the card's head that opens the whole report — is read out of the
- * rendered screen and held against the story it names and the row that story draws.
+ * beside them goes nowhere. Every reference link in an exceptions block is read
+ * out of the rendered screen and held against the story it names and the row
+ * that story draws. Round 38 removed the card's own head link into the whole
+ * report (#505's decision table records it; the test below holds the onward-link
+ * count at zero), so the `onward` kind below now matches nothing on a real
+ * screen; it stays so a card that gains one again is caught by the same check,
+ * and the hand-built fixtures further down still exercise it.
  */
 
 /** Every link an exceptions block draws: its text, its href, and where it was. */
@@ -194,9 +198,11 @@ const blockLinks = (html, where) => {
       found.push({ where, kind: 'reference', text: plainText(a), href: a.getAttribute('href') });
     }
   }
-  // The block's own link is in the card's head, beside the title, rather than in a
-  // control row under the table — which is also why it is read out of
-  // `.ui-card__sub` and not out of a button. why: Artur, round r33
+  // Round 38 removed the Finance dashboard's own card-head link, which lived
+  // here rather than in a control row under the table. No rendered screen puts
+  // one in `.ui-card__sub` any more, so this finds nothing on the dashboard
+  // today; it stays for a card that gains one again. why: Artur, round r33 (the
+  // placement decision), round 38 (the removal), #552 code review finding F6
   for (const a of doc.querySelectorAll('.ui-card__sub a[href]')) {
     found.push({ where, kind: 'onward', text: a.textContent.trim(), href: a.getAttribute('href') });
   }
@@ -421,7 +427,10 @@ test('a reference followed inside the manager asks Storybook to select the story
     [{ type: SELECT_STORY, payload: { storyId: REPORT_STORY, scrollTo: payoutRowId('PO-1159') } }]);
 });
 
-test('the block\'s own link opens the whole report, at its top and marked nowhere', () => {
+test('the rail\'s Payouts entry opens the whole report, at its top and marked nowhere', () => {
+  // Round 38 removed the card's own head link (the test above holds the onward-link
+  // count at zero); the rail's nav entry is now the only control that opens the whole
+  // report rather than one of its rows, so this test follows that one instead.
   const frame = frameOf(Dashboard.render(), { framed: true });
   clickLink(frame.doc, 'Payouts');
   assert.deepEqual(frame.emitted, [{ type: SELECT_STORY, payload: { storyId: REPORT_STORY, scrollTo: undefined } }]);
@@ -572,18 +581,23 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   const host = doc.querySelector('[data-finance-filters]');
   const change = (id, value) => host.dispatchEvent(new doc.defaultView.CustomEvent('ui-filter-change', { detail: { id, value } }));
   const atRest = figures();
+  // The control starts on 1Y, so every repaint below also carries that window:
+  // arrivals are spread across periodStart()'s four windows (F1), so 1Y alone
+  // already drops PO-1167 and PO-1159 before the status filter narrows further.
   change('status', 'Paid');
-  assert.equal(doc.querySelectorAll('tbody tr').length, 4);
+  assert.equal(doc.querySelectorAll('tbody tr').length, 3);
   assert.ok([...doc.querySelectorAll('tbody .ui-badge')].every(badge => badge.textContent === 'Paid'));
-  assert.deepEqual(figures(), ['87,042.22 €', '3,059.73 €', '83,982.49 €'],
-    'the figures must describe the four Paid rows now shown, not the unfiltered ledger');
+  assert.deepEqual(figures(), ['68,487.95 €', '2,433.39 €', '66,054.56 €'],
+    'the figures must describe the three Paid rows inside the 1Y window, not the unfiltered ledger');
   assert.notDeepEqual(figures(), atRest);
   change('currency', 'USD');
   assert.match(doc.querySelector('.ui-empty').textContent, /No payouts match/);
   assert.deepEqual(figures(), ['0.00 €', '0.00 €', '0.00 €'], 'no row is shown, so no figure is drawn from one');
   host.dispatchEvent(new doc.defaultView.CustomEvent('ui-filter-clear'));
-  assert.equal(doc.querySelectorAll('tbody tr').length, 7);
-  assert.deepEqual(figures(), atRest);
+  assert.equal(doc.querySelectorAll('tbody tr').length, 5, 'clearing the filters still leaves the 1Y window in force');
+  assert.deepEqual(figures(), ['98,023.94 €', '3,390.07 €', '94,633.87 €']);
+  assert.notDeepEqual(figures(), atRest,
+    'the unfiltered static render ignores the active period, so it still differs from the repainted 1Y view');
 });
 
 test('the Finance dashboard period changes its totals and trends', () => {

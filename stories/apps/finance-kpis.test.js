@@ -11,6 +11,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { Default, Loading } from './FinanceReport.stories.js';
+import { statBand } from '../../src/components/stat.js';
 
 const docOf = (story) => new JSDOM(`<!doctype html><html lang="en"><body>${story.render()}</body></html>`).window.document;
 
@@ -38,8 +39,14 @@ test('the skeleton sits in the band it stands in for', () => {
   // Either both carry a caption line or neither does: a skeleton that reserves a
   // line the figures do not have shrinks the block when they land, and one that
   // leaves out a line they do have grows it. The report's figures are totals and
-  // name no comparison, so today both are at none.
+  // name no comparison, so today both are at none — a fact this checks directly,
+  // rather than only comparing two readings that could both silently miss a
+  // renamed class: `.ui-stats__basis` is confirmed live first, against a band
+  // built with an explicit caption.
   const captions = (doc) => doc.querySelectorAll('.ui-stats__basis').length;
+  const sanity = new JSDOM(statBand({ id: 'fk-sanity', basis: 'sanity', stats: [{ label: 'A', value: '1' }] })).window.document;
+  assert.equal(captions(sanity), 1, '.ui-stats__basis no longer matches the caption a band with an explicit basis draws');
+  assert.equal(captions(docOf(Default)), 0, 'the report\'s totals carry no caption (round r32), so its band must draw none');
   assert.equal(captions(doc), captions(docOf(Default)),
     'the skeleton reserves a different number of caption lines than the figures carry, so the block resizes when they land');
   const figures = band.querySelectorAll('.ui-stats__list > .ui-stat');

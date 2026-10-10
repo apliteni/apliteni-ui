@@ -18,6 +18,11 @@ const PAYOUTS = [
   ['43',   'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
 ];
 
+// Row '1164' wears `.is-target`, the mark src/styles/table.css paints on a row a
+// reference landed a reader on, at rest rather than through play(). A story's
+// static markup is what the contrast walk and the tap-floor gate read, so this
+// is the published surface measured, not a state only a click ever reaches.
+// why: PR #552 code review, finding F6
 export const FinanceData = {
   render: () => pad(`<div class="ui-card" style="max-width:1040px">
     <h2 class="ui-card__title"><span class="ui-card__icon">${icon('key')}</span> Payouts</h2>
@@ -30,7 +35,7 @@ export const FinanceData = {
       </tr></thead>
       <tbody>
         ${PAYOUTS.map(([id, pid, arr, gross, fees, net, variant, label]) => `
-          <tr>
+          <tr class="${id === '1164' ? 'is-target' : ''}">
             <td><a href="#">${id}</a></td>
             <td class="ui-table__code">${pid}</td>
             <td>${arr}</td>
