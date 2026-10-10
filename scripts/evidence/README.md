@@ -168,6 +168,29 @@ open itself is opened by the rig with a real click once the page has settled: th
 dropdown panel freezes the width the whole list needs as it opens, so a panel open
 before the webfaces land freezes a width measured in the fallback.
 
+`band.mjs` is the page shell's band on its own, off either built Storybook. The
+frame is the band's own box rather than the viewport — the subject is 52px tall
+and a whole shell is mostly page — and the context is given a touch pointer,
+because the tap layer `src/styles/tap-zone.css` draws is gated on a coarse one.
+Its subjects are `story:theme:WxH`, with an optional fourth field `zones`:
+
+```sh
+npm run build-storybook && npm run build-storybook -w react
+node scripts/evidence/band.mjs react/storybook-static out/ after react-appshell--phone:light:390x844
+node scripts/evidence/band.mjs react/storybook-static out/ after react-appshell--phone:light:390x844:zones
+```
+
+`zones` tints each band control's 44x44 tap square green where the control owns
+the whole square and red where it does not. It is a drawing on top of the real
+page, never instead of it: the squares are read back off `elementFromPoint`, the
+same question `stories/tap-zone.test.js` asks, so a zone that is not there cannot
+be painted. Use it to show a reviewer a layer the kit draws transparent; use the
+frame without it for what a reader sees.
+
+It drops `--deterministic-mode` from the switch list the other producers take,
+which hangs a React Storybook story. The three that remain are what the two runs
+behind this PR's pixel comparisons agreed to the byte on.
+
 `filter-bar-fit.mjs` is a gate rather than a shoot, and the only producer here
 that fails. It is #467's measurement: a filter row adds nothing to the page's
 scrollable width on a phone, and its panels open inside the row.

@@ -394,6 +394,23 @@ layer is also a hover surface, and a coarse pointer has no hover. The sheet is i
 component. `--tap-min` is declared in that sheet rather than the token file because the React
 entry imports these nets without `tokens.css`. It is still a token, and you can move it.
 
+**A row that already has the room opens nothing and still says so.** The shell's band and the
+strategy topbar are both 52px rows with a gap of their own, and each holds a control drawn under
+the floor: the band's palette trigger measures 37.05 tall once the phone band swaps its sentence
+for the short word, and the theme switch is 34 square in both. Neither row is opened — the space
+is already between the controls and above and below them — so both declare the clearance they
+give and nothing else. Half of 12px is 6px a side, but the switch's own layer stops at the 44px
+floor first, 5px a side. The topbar's gap is 14px above the 560px step, where this transparent
+tap layer does not exist. Below that step, which is the only width where the layer exists, the
+gap packs to 8px, so the switch has 4px to the midline of its neighbour, not 7px. The layer
+crosses that midline by 1px on each side, but neither neighbour
+carries a layer of its own there, so nothing mis-taps. The row's leftover height is 7.4px above
+and below the trigger against the 3.5 a 44px layer needs. Measured at 390 on a coarse pointer:
+both reach 44x44, both draw the size they drew, and
+the band keeps its height, its gap and its paint. The clearance is `--space-3` rather than
+`--tap-gap` for the reason the clamp exists at all — 20 would claim 10px a side where the trigger
+has 7.4, and a declared number that is not true is what the browser half fails a container for.
+
 ## Icons and glyphs
 
 **A stroked glyph earns the graphic bar from its width.** A reader sees

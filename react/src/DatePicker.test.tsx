@@ -1336,7 +1336,12 @@ describe('the tap zone below the phone step', () => {
    * String.replace works: the same reading that passes above must come back
    * with both offences once the cell is off the two lists. */
   it('refuses the sheet with the cell taken back off it', () => {
-    const without = sheet.replace(/\n\s*\.ui-datepicker__opt\n/g, '\n');
+    // The optional comma is load-bearing: the cell is written last in both of the
+    // sheet's lists today, and a carrier added after it in either one puts a comma
+    // on this line. Without the `,?` the mutation then reaches one list and the
+    // check came back with half its offences and still passed — the shape it is
+    // written to catch, one list down.
+    const without = sheet.replace(/\n\s*\.ui-datepicker__opt,?\n/g, '\n');
     expect(without, 'the carrier lines this gate mutates were renamed').not.toBe(sheet);
     expect(coarseOf(without), 'the mutant still parses').not.toBeNull();
     expect(listIn(without, '::after').length, 'the other carriers survive the mutation')

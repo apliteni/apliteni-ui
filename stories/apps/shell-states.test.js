@@ -25,7 +25,8 @@ import {
 // because this file has a leafRules() of its own, on a different shape.
 import { leafRules as motionRules, inNet, ms } from '../lib/motion-css.js';
 import { appShell } from '../../src/components/shell.js';
-import { focusBand } from '../../scripts/lib/box-shadow.js';
+import { themeToggle } from '../../src/components/topbar.js';
+import { focusBand, layersOf, geometryOf } from '../../scripts/lib/box-shadow.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -40,19 +41,34 @@ const SHEETS = [
   'src/styles/base.css', 'src/styles/dropdown.css', 'src/styles/nav.css', 'src/styles/layout.css',
 ];
 const FOLD = '@media (max-width: 720px)';
+const PHONE = '@media (max-width: 560px)';
 
-/** One at-rule's body, brace-matched — the regex the other resolvers use cannot nest. */
-function unwrap(css, query) {
-  const at = css.indexOf(query);
-  if (at < 0) return null;
-  const open = css.indexOf('{', at);
-  let depth = 0;
-  for (let i = open; i < css.length; i++) {
-    if (css[i] === '{') depth += 1;
-    else if (css[i] === '}') { depth -= 1; if (depth === 0) return css.slice(open + 1, i); }
+/** Every body an at-rule has, brace-matched, in source order — the regex the other
+ *  resolvers use cannot nest, and layout.css writes one step more than once: the
+ *  toolbar's 560px block sits beside the toolbar and the band search's beside the
+ *  band. A browser applies them all, so lifting the first alone resolves whichever
+ *  subject happens to be written higher up the file. */
+function unwrapAll(css, query) {
+  const bodies = [];
+  for (let from = 0; ; ) {
+    const at = css.indexOf(query, from);
+    if (at < 0) return bodies;
+    const open = css.indexOf('{', at);
+    if (open < 0) return bodies;
+    let depth = 0;
+    let close = -1;
+    for (let i = open; i < css.length; i++) {
+      if (css[i] === '{') depth += 1;
+      else if (css[i] === '}') { depth -= 1; if (depth === 0) { close = i; break; } }
+    }
+    if (close < 0) return bodies;
+    bodies.push(css.slice(open + 1, close));
+    from = close + 1;
   }
-  return null;
 }
+
+/** The first of them, for a caller reading one block's own rules. */
+const unwrap = (css, query) => unwrapAll(css, query)[0] ?? null;
 
 const SHELL = appShell({
   word: 'Finance',
@@ -95,13 +111,24 @@ const PAIR = (collapsed) => appShell({
   collapsed,
 });
 
-function mount(html, { theme = 'dark', accent = 'default', narrow = false, extra = '' } = {}) {
+function mount(html, { theme = 'dark', accent = 'default', narrow = false, phone = false, drop = [], extra = '' } = {}) {
   const vars = tokensFor(theme, accent);
   let raw = decomment(SHEETS.map(read).join('\n'));
-  if (narrow) {
-    const body = unwrap(raw, FOLD);
-    assert.ok(body, `layout.css no longer folds at ${FOLD} — this gate is measuring nothing`);
-    raw += `\n${body}`;
+  // One rule taken out of the sheet before the cascade runs, so a gate can show
+  // what the rule is holding rather than assert that its text is present. Each
+  // pattern has to match, or the mutation proves nothing.
+  for (const pattern of drop) {
+    const cut = raw.replace(pattern, '');
+    assert.notEqual(cut, raw, `nothing in the sheet matches ${pattern} — the mutation changes nothing`);
+    raw = cut;
+  }
+  // `phone` is the narrow width and one step further down: a phone viewport is
+  // inside both blocks, and a browser applies them in source order.
+  for (const [lift, query] of [[narrow || phone, FOLD], [phone, PHONE]]) {
+    if (!lift) continue;
+    const bodies = unwrapAll(raw, query);
+    assert.ok(bodies.length, `layout.css no longer has a ${query} block — this gate is measuring nothing`);
+    raw += `\n${bodies.join('\n')}`;
   }
   // Appended last, which is how C1b's mutation re-paints one declaration and runs
   // that gate's own readings against the defect it is there to refuse.
@@ -475,6 +502,86 @@ const BANDED = (collapsed) => appShell({
   signOutHref: '#logout',
   collapsible: true,
   collapsed,
+});
+
+test('the band search reads one word at one column, and is named the same at both', () => {
+  const wide = mount(BANDED(false));
+  const narrow = mount(BANDED(false), { phone: true });
+
+  assert.equal(
+    wide.css('.ui-app__search-short', 'display'), 'none',
+    'the short word is drawn beside the sentence it stands in for, so the band says the same thing twice',
+  );
+  assert.equal(
+    wide.css('.ui-app__search-txt', 'position'), 'static',
+    'the sentence is clipped at a width where it fits, so the band reads as a word for no reason',
+  );
+  assert.equal(wide.shown(wide.q('.ui-app__search kbd')), true, 'the key cap is not drawn where there is room for it');
+
+  assert.notEqual(
+    narrow.css('.ui-app__search-short', 'display'), 'none',
+    'below 560px the band still draws the sentence alone, so it truncates mid-word — "Search or run a co…" — '
+    + "beside the reader's mark and whatever the page puts between them",
+  );
+  assert.equal(
+    narrow.css('.ui-app__search-short', 'textOverflow'), 'ellipsis',
+    'the short word cannot give way, so at a large font scale it pushes the reader\'s mark off the row',
+  );
+
+  // Clipped, not dropped: both halves of the name survive the width.
+  for (const [sel, what] of [['.ui-app__search-txt', 'the sentence'], ['.ui-app__search kbd', 'the key cap']]) {
+    assert.equal(
+      narrow.shown(narrow.q(sel)), true,
+      `${what} leaves the tree below 560px, so the button is called something shorter on a phone than on a `
+      + 'desktop. #308 put the cap inside that name on purpose.',
+    );
+    assert.equal(narrow.css(sel, 'position'), 'absolute', `${what} is not lifted out of the row it no longer fits`);
+    assert.equal(narrow.css(sel, 'width'), '1px', `${what} still takes its own width on the band`);
+    assert.equal(narrow.css(sel, 'overflow'), 'hidden', `${what} is clipped to 1px with its text spilling out of it`);
+  }
+});
+
+// A band crowded the way a page crowds it: the trigger, a control the page put
+// beside it, the theme switch and the reader's mark. The switch is the one icon
+// square on this band and the trigger is what gives way, so the switch keeps a
+// shrink of zero. Measured in a browser at 390 without it, the switch drew 19x34
+// — half a square — and a tap zone clamped to the padding box could then only
+// reach 29 of the 44 the phone step asks for.
+//
+// Limit: the 34px square itself is topbar.css's and that sheet is not in SHEETS,
+// so what this reads is the one declaration layout.css adds. The width is
+// browser evidence and is reported in the pull request.
+const CROWDED = BANDED(false).replace(
+  '<span class="ui-app__bar-gap"></span>',
+  '<span class="ui-app__bar-gap"></span>'
+  + '<button type="button" class="ui-btn ui-btn--ghost ui-btn--sm">Workspace</button>'
+  + themeToggle('dark'),
+);
+const SWITCH_RULE = /\.ui-app__bar \.toggle, \.topbar__in \.toggle \{ flex: none; \}/;
+
+test('the band\'s theme switch keeps its square; the trigger is what gives way', () => {
+  const at = mount(CROWDED, { phone: true });
+  assert.ok(at.q('.ui-app__bar .toggle'), 'the fixture stopped putting a theme switch on the band');
+  assert.equal(
+    at.css('.ui-app__bar .toggle', 'flexShrink'), '0',
+    'the band\'s theme switch shrinks with the row. A flex item with the default shrink does not '
+    + 'wait its turn: measured at 390 with a control beside the trigger, a 34px square glyph plate '
+    + 'drew 19px wide, and the tap zone src/styles/tap-zone.css clamps to its padding box reached '
+    + '29 rather than 44. The trigger is the part of this band that gives way — layout.css says so '
+    + 'on its own flex-basis.',
+  );
+  assert.equal(
+    at.css('.ui-app__search', 'flexShrink'), '1',
+    'the trigger stopped giving way, so the band has nothing left to take its crowding out of and '
+    + 'the row overflows instead',
+  );
+
+  const without = mount(CROWDED, { phone: true, drop: [SWITCH_RULE] });
+  assert.equal(
+    without.css('.ui-app__bar .toggle', 'flexShrink'), '1',
+    'taking the rule out of layout.css left the switch at a shrink of zero, so the check above is '
+    + 'reading a default rather than the declaration it is meant to hold',
+  );
 });
 
 test('the phone strip drops the rail\'s foot with nothing left in it, and the reader\'s fold keeps it', () => {

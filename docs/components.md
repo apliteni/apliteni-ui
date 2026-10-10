@@ -218,6 +218,18 @@ a page, never two:** `layout: 'topbar'` and the compatibility `topbar` bag are n
 unknown `layout` or `width` is read as the layout the kit has always drawn. React's own shell is
 [React AppShell](#the-rest-of-the-react-surface).
 
+**Below 560px the trigger reads one word, and is still called the same thing.** At one column
+the band holds the trigger, the reader's mark and whatever else the product puts between them,
+so the sentence had a few characters to stand in and broke mid-word — "Search or run a co…".
+`search: { palette, placeholder, shortLabel }` names that word, and with nothing named it is
+`Search`. The short word is `aria-hidden`, and the sentence and the key cap are **clipped rather
+than dropped** at that width, so the button's accessible name is the same string at 1280px and at
+390px: a control that says something shorter to a screen reader on a phone is a second control.
+The swap is one block in `layout.css`, so the React `AppShell` — `searchLabel` and
+`searchShortLabel` — gets it from the same rules rather than a second copy of them. The palette's
+own placeholder is not this text and does not shorten.
+Decided in [#486](https://github.com/apliteni/apliteni-ui/issues/486).
+
 ### The back link
 
 `backLink()` is the way to reach the page that contains this one. You place it with
@@ -791,7 +803,9 @@ that swallowed Space would also prevent the reader from scrolling the page.
   keeps the ordinary end space the kit gives every phone page:** the reservation disappears
   without taking that space with it. **Page bottom padding, root scroll padding and the toast
   stack all keep that clearance,** so scrolling an action into view never parks it behind the
-  bar.
+  bar. `searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
+  shared stylesheet draws the short one and clips the sentence and the key cap rather than
+  dropping them, so the button keeps one accessible name at every width.
 - **`SidebarNav`** accepts flat items or captioned sections, nested groups, counts and
   router-link rendering. **Nesting stops one level deep.** Each row keeps its name and count when
   collapsed.
