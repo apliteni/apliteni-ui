@@ -557,7 +557,7 @@ const CROWDED = BANDED(false).replace(
   + '<button type="button" class="ui-btn ui-btn--ghost ui-btn--sm">Workspace</button>'
   + themeToggle('dark'),
 );
-const SWITCH_RULE = /\.ui-app__bar \.toggle \{ flex: none; \}/;
+const SWITCH_RULE = /\.ui-app__bar \.toggle, \.topbar__in \.toggle \{ flex: none; \}/;
 
 test('the band\'s theme switch keeps its square; the trigger is what gives way', () => {
   const at = mount(CROWDED, { phone: true });

@@ -415,10 +415,10 @@
 .ui-app__user--bar { flex: none; padding-top: 0; border-top: 0; }
 /* The switch is a 34px square and stays one: the trigger above is the thing on this
    band that gives way, and a flex item with the default shrink does not wait its
-   turn. Measured in the React band at 390 with a control beside the trigger, the
-   switch drew 19x34 — a square glyph plate squashed to half its width, and a tap
-   zone the sheet could only clamp to 29. why: docs/components.md#the-page-shell */
-.ui-app__bar .toggle { flex: none; }
+   turn. Measured at 390 with a control beside the trigger, the React band's switch
+   drew 19x34 and the strategy topbar's drew 28.47x34 — a square glyph plate squashed,
+   and a tap zone the sheet could only clamp to 29 or 39. why: docs/components.md#the-page-shell */
+.ui-app__bar .toggle, .topbar__in .toggle { flex: none; }
 .ui-app__user--bar .ui-app__av { margin-inline-start: 0; }
 /* Crumb, then the title block. At --space-2 the crumb sat 8px off the h1 and
    the h1 8px off its subtitle, so all three ranks read as one. */
