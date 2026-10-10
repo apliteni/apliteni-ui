@@ -399,10 +399,11 @@ strategy topbar are both 52px rows with a gap of their own, and each holds a con
 the floor: the band's palette trigger measures 37.05 tall once the phone band swaps its sentence
 for the short word, and the theme switch is 34 square in both. Neither row is opened — the space
 is already between the controls and above and below them — so both declare the clearance they
-give and nothing else. Half of 12px is 6px a side. The topbar's gap is 14px above the 560px
-step, where this transparent tap layer does not exist. Below that step, which is the only width
-where the layer exists, the gap packs to 8px, so the switch has 4px to the midline of its
-neighbour, not 7px. The layer crosses that midline by 1px on each side, but neither neighbour
+give and nothing else. Half of 12px is 6px a side, but the switch's own layer stops at the 44px
+floor first, 5px a side. The topbar's gap is 14px above the 560px step, where this transparent
+tap layer does not exist. Below that step, which is the only width where the layer exists, the
+gap packs to 8px, so the switch has 4px to the midline of its neighbour, not 7px. The layer
+crosses that midline by 1px on each side, but neither neighbour
 carries a layer of its own there, so nothing mis-taps. The row's leftover height is 7.4px above
 and below the trigger against the 3.5 a 44px layer needs. Measured at 390 on a coarse pointer:
 both reach 44x44, both draw the size they drew, and
