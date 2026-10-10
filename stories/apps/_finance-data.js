@@ -44,5 +44,5 @@ export function cashflowStats(period = '1Y', trends = false) {
 
 export const periodBasis = period => period === 'All'
   ? 'All available months, July 2024 through June 2026.'
-  : `Each change is measured against the ${lengths[period]} months before the selected period.`;
+  : `vs previous ${lengths[period]} months`;
 export const periodStart = period => ({ '3M': '2026-04-01', '6M': '2026-01-01', '1Y': '2025-07-01', All: '2024-07-01' })[period];
