@@ -33,8 +33,8 @@
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
 .ui-dropdown__trigger:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-dropdown__trigger:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-/* Off. The hover spelling matches the live hover selector's weight, so a pointer
-   over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
+/* Off. The off hover selectors are (0,4,0), above live hover's (0,3,0).
+   A pointer over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
    No fill: --disabled-surface IS this control's --surface, in both themes. The
    activation is refused in ddTriggerOff(), not with pointer-events, which would
    take that stop away. #580 why: docs/foundations.md#colour-and-contrast */

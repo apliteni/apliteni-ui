@@ -127,7 +127,7 @@ export const DisabledTrigger = {
   name: 'Disabled trigger',
   parameters: { layout: 'fullscreen' },
   render: () => pad(specimen(
-    'disabled: true — Tab skips it',
+    'disabled: true',
     row(
       dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Actions', items: ACTIONS }),
       dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Actions', items: ACTIONS, disabled: true }),
