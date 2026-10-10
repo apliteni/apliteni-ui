@@ -97,7 +97,9 @@ test('every control that takes the ring takes the offset that places it', () => 
   // scroll by default, so each needs the ring on its own scroll region the way
   // `.ui-dropdown__panel` already does — `.vsw__menu:focus-visible` and
   // `.amenu:focus-visible`.
-  assert.equal(consumers.length, 49, 'ring consumer discovery changed');
+  // 49 -> 50: #500 gives a stacked table-card link the outset band again after it stops
+  // filling the table cell. The narrow table cell keeps the inward band instead.
+  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -119,11 +121,12 @@ test('the offset gate rejects a control that takes the band and leaves the offse
 });
 
 test('every scroll region that takes the inward band takes its offset too', () => {
-  // Eight: the table card and the table wrapper inside it, the dropdown's search list,
+  // Nine: the table card, the table wrapper inside it, the filled table-cell link,
+  // the dropdown's search list,
   // the drawer's body, the confirm's consequence, the palette's list, React's modal body,
   // and the date picker's shortcut row in its phone sheet. Artur chose the picture on #531
   // round r30; the list is the surfaces it is on.
-  assert.equal(scrollRules.length, 8,
+  assert.equal(scrollRules.length, 9,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 2,
     'React\'s modal body and the picker\'s shortcut row are not both among them, so the walk '
@@ -226,7 +229,7 @@ const secondBands = (subjects) => subjects.flatMap((rule) => [...rule.body.match
 test('a focus rule draws the band and no second accent edge', () => {
   // Every consumer is read, so this cannot go quiet by losing its subjects: the count
   // is the one the offset gate pins, and the two have to move together.
-  assert.equal(consumers.length, 49, 'ring consumer discovery changed');
+  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   assert.deepEqual(secondBands(consumers), []);
 });
 

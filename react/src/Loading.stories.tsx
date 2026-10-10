@@ -19,7 +19,7 @@ const Table = () => (
   <table className="ui-table ui-table--dense ui-table--hover">
     <thead><tr><th>ID</th><th>Arrival</th><th className="ui-table__num">Net (EUR)</th></tr></thead>
     <tbody>{ROWS.map(([id, arr, net]) => (
-      <tr key={id}><td><a href="#payout">{id}</a></td><td>{arr}</td><td className="ui-table__num">{net}</td></tr>
+      <tr key={id}><td className="ui-table__linked"><a href="#payout">{id}</a></td><td>{arr}</td><td className="ui-table__num">{net}</td></tr>
     ))}</tbody>
   </table>
 );

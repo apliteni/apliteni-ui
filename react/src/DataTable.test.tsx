@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { DataTable, sortTableRows, type Column, type TableSort } from './DataTable';
-import { ServerPaged } from './DataTable.stories';
+import { PinnedSortable, ServerPaged } from './DataTable.stories';
 
 type Row = { name: string; clicks: number };
 const rows: Row[] = [
@@ -504,6 +504,54 @@ it('rotates the same chevron for ascending sort by default while rows reorder im
   expect(caret).not.toHaveAttribute('data-up');
 });
 
+// JSDOM supplies no layout; src/styles/table-identity.test.js holds the kit rule that
+// leaves a control in a pinned identity cell unclipped, and the #500 captures show the
+// drawn header at 390.
+it('keeps a pinned sortable header a label that can give way and a caret that cannot', () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+    pinnedIdentity stickyHeader scrollLabel="Ledger" />);
+  const header = screen.getByRole('columnheader', { name: 'Name' });
+  expect(header).toHaveClass('ui-table__identity');
+  const button = within(header).getByRole('button', { name: 'Name' });
+  const label = button.querySelector('.rx-sort__label')!;
+  expect(label).toHaveTextContent('Name');
+  // The caret is the button's own child, not the label's: what truncates must not
+  // be able to take the sort direction with it.
+  expect(label.querySelector('svg')).toBeNull();
+  expect(button.querySelector('svg')).toHaveClass('rx-caret');
+});
+
+// The kit gate (src/styles/table-identity.test.js) holds the cell's side of #500:
+// a control in a pinned identity cell is capped, never clipped. This holds the half
+// that lives here — with the label unable to give way, its 231px of text runs over
+// the caret and into the next column inside the 170px the cap leaves it.
+it('gives the sortable label the rules that let it give way, and the caret none of them', () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+    pinnedIdentity stickyHeader scrollLabel="Ledger" />);
+  const header = screen.getByRole('columnheader', { name: 'Name' });
+  const label = within(header).getByRole('button', { name: 'Name' }).querySelector('.rx-sort__label')!;
+  const caret = within(header).getByRole('button', { name: 'Name' }).querySelector('svg')!;
+  const style = document.createElement('style');
+  style.textContent = readFileSync(join(dirname(expect.getState().testPath!), 'DataTable.css'), 'utf8');
+  document.head.append(style);
+  try {
+    const declarations = (selector: Element) => Object.fromEntries(
+      Array.from(style.sheet!.cssRules)
+        .filter(rule => 'selectorText' in rule && selector.matches((rule as CSSStyleRule).selectorText))
+        .flatMap(rule => Array.from((rule as CSSStyleRule).style).map(p => [p, (rule as CSSStyleRule).style.getPropertyValue(p)])));
+    const onLabel = declarations(label);
+    expect(onLabel['overflow']).toBe('hidden');
+    expect(onLabel['text-overflow']).toBe('ellipsis');
+    expect(onLabel['min-width']).toBe('0px');
+    const onButton = declarations(label.parentElement!);
+    expect(onButton['max-width']).toBe('100%');
+    expect(onButton['min-width']).toBe('0px');
+    // What must not give way: the caret is the only visible sort direction.
+    expect(declarations(caret)['flex-shrink']).toBe('0');
+    expect(declarations(caret)['overflow']).toBeUndefined();
+  } finally { style.remove(); }
+});
+
 it('disables the chevron transition under reduced motion', () => {
   render(<DataTable columns={columns} rows={rows} selectable={false} />);
   const caret = screen.getByRole('button', { name: 'Clicks' }).querySelector('svg')!;
@@ -544,4 +592,63 @@ it('offers no column pager when the columns overflow, only the scroll region', (
   // kit's inward ring and the arrow keys hang off.
   expect(region).toHaveClass('ui-table-scroll');
   expect(region).toHaveAttribute('tabindex', '0');
+});
+
+// #500: a column whose body cells hold one link and nothing else can say so, and the kit
+// then gives the link the whole cell and the inward focus band. The mark is the consumer's
+// because CSS counts elements and not words — src/styles/table-focus.test.js holds what
+// the stylesheet does with it, including the cell reading "Invoice 1162" that must not be
+// filled. What is held here is that the prop reaches the body cell and nothing else.
+it('marks the body cells of a linked column, and never the header', () => {
+  const linked = [{ ...columns[0], linked: true }, ...columns.slice(1)];
+  render(<DataTable columns={linked} rows={rows} selectable={false} pager={false}
+    pinnedIdentity stickyHeader scrollLabel="Ledger" />);
+
+  const header = screen.getByRole('columnheader', { name: 'Name' });
+  expect(header).toHaveClass('ui-table__identity');
+  // The header holds a label or a sort button, which keeps its own ring.
+  expect(header).not.toHaveClass('ui-table__linked');
+
+  const row = screen.getAllByRole('row')[1];
+  const cells = within(row).getAllByRole('cell');
+  expect(cells[0]).toHaveClass('ui-table__linked');
+  expect(cells[0]).toHaveClass('ui-table__identity');
+  // Only the column that asked for it: the mark is per column, not per table.
+  for (const cell of cells.slice(1)) expect(cell).not.toHaveClass('ui-table__linked');
+});
+
+it('leaves every cell unmarked when no column asks for it', () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} />);
+  expect(document.querySelectorAll('.ui-table__linked')).toHaveLength(0);
+});
+
+// #513: the cut the pinned cap draws reached no shipped frame, so the reviewer had to
+// inject data to capture it. This holds the story that carries it — a marked cell whose
+// whole content is a bare link, and one name longer than the column can draw.
+//
+// Limit: JSDOM lays nothing out, so the overrun is held as a character count against the
+// cap's own basis rather than as a drawn box — 195px of 13px compact text is about 32
+// characters. Chromium drew the ellipsis at 390 for the captures on the pull request.
+const CAP_IN_CHARACTERS = 32;
+
+it('ships a pinned story whose identity is a filled link and whose longest name overruns', () => {
+  const Story = PinnedSortable.render as unknown as () => React.ReactElement;
+  render(<Story />);
+
+  const rowEls = screen.getAllByRole('row').slice(1);
+  const identities = rowEls.map((row) => within(row).getAllByRole('cell')[0]);
+  expect(identities.length).toBeGreaterThan(0);
+  for (const cell of identities) {
+    expect(cell).toHaveClass('ui-table__identity');
+    expect(cell).toHaveClass('ui-table__linked');
+    // The fill is written for a link that is all the cell holds; another element
+    // beside it drops the cell back to an ordinary one.
+    expect(cell.childElementCount).toBe(1);
+    expect(cell.firstElementChild?.tagName).toBe('A');
+    // A bare anchor: the fill names `a:not([class])`, and a class would miss it.
+    expect(cell.firstElementChild).not.toHaveAttribute('class');
+  }
+
+  const longest = Math.max(...identities.map((cell) => cell.textContent!.length));
+  expect(longest).toBeGreaterThan(CAP_IN_CHARACTERS);
 });
