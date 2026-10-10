@@ -33,12 +33,15 @@ const FINANCE_MAX = '960px';
 // answers who is signed in and how to leave. Components/Topbar draws the band over a
 // shell — `versions`, `showSwitch` and wireTopbar() are published behaviour. The
 // trail is built here too, so neither screen rebuilds the same crumb by hand.
+// The dashboard's trail is one unlinked crumb, not a parent crumb addressing itself.
 export const financeShell = ({ active, crumb, title, sub, body, back }) => appShell({
   word: 'Finance',
   nav: FINANCE_NAV,
   active,
   navLabel: 'Finance',
-  crumbs: [{ label: 'Finance', href: previewHref(DASHBOARD_STORY) }, { label: crumb || title }],
+  crumbs: active === 'dashboard'
+    ? [{ label: 'Finance' }]
+    : [{ label: 'Finance', href: previewHref(DASHBOARD_STORY) }, { label: crumb || title }],
   back,
   title,
   sub,

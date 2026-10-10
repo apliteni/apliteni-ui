@@ -488,7 +488,7 @@ inside a cell uses the row's ink, gets an underline on hover, and uses the share
 explicit judgement. **Colour never supplies the sign.**
 
 A cell can group its reference and status with `.ui-table__pair`. They stack when the cell cannot fit them side by side.
-A landed row uses the selection background unless it has keyboard focus. Keyboard focus uses only the inward kit ring.
+A landed row keeps its selection background through keyboard focus, so arrival and focus show together and stay distinguishable.
 The caller brings the target row into view and keeps its mark until the next arrival.
 
 **Below the one-column step, a table marked `.ui-table--stack` lays each row out as a block

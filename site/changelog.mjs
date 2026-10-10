@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.103.0', date: '2026-10-10',
     changes: [
-      ['added', 'Dashboard and report guidelines now include linked Finance examples with working filters and periods. Report links preserve the theme and accent, and landed rows separate focus from selection. Figure bands and report controls fit narrow screens.'],
+      ['added', 'Dashboard and report guidelines now include linked Finance examples with filters and periods, and the Money in, Money out and Net result figures describe the filtered ledger rows. Report links keep the theme and accent, and a landed row shows its arrival highlight and the focus ring together. Figure bands and report controls fit narrow screens.'],
     ],
   },
   {

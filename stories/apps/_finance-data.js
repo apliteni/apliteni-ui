@@ -11,7 +11,7 @@ const MONTHS = [
 ];
 export const PERIODS = ['3M', '6M', '1Y', 'All'];
 const lengths = { '3M': 3, '6M': 6, '1Y': 12, All: 24 };
-const money = value => `${value < 0 ? '−' : ''}${Math.abs(value).toLocaleString('en-US')} €`;
+export const money = value => `${value < 0 ? '−' : ''}${Math.abs(value).toLocaleString('en-US')} €`;
 const total = rows => rows.reduce((sum, row) => sum.map((n, i) => n + row[i]), [0, 0]);
 
 export function cashflowStats(period = '1Y', trends = false) {
@@ -23,16 +23,20 @@ export function cashflowStats(period = '1Y', trends = false) {
   return [
     ['Money in', income, oldIncome, 0],
     ['Money out', expense, oldExpense, 1],
-    ['Net result', income - expense, oldIncome - oldExpense],
+    ['Net result', income - expense, oldIncome - oldExpense, 'net'],
   ].map(([label, value, old, column]) => {
     const change = old ? (value - old) / Math.abs(old) * 100 : 0;
+    // Net's own trend is each month's income less its expense, not a column of
+    // the table: it has none, and leaving it untraced left its tile 48px short
+    // of the two beside it. why: PR #552 design re-review, finding D
+    const trendValues = column === 'net' ? rows.map(row => row[0] - row[1]) : rows.map(row => row[column]);
     return { label, value: money(value),
       ...(trends && previous.length === length ? {
         delta: { value: `${change >= 0 ? '+' : '−'}${Math.abs(change).toFixed(1)}%`,
           tone: label === 'Net result' ? 'neutral' : (column === 0 ? change >= 0 : change <= 0) ? 'good' : 'bad' },
       } : {}),
-      ...(trends && column !== undefined ? {
-        trend: sparkline(rows.map(row => row[column]), `${label}, last ${length} months`),
+      ...(trends ? {
+        trend: sparkline(trendValues, `${label}, last ${length} months`),
       } : {}),
     };
   });
