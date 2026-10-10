@@ -21,6 +21,7 @@ import { mock, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import { CollapsedStack } from './components/CalloutToast.stories.js';
 
 const SHEET = 'src/styles/callout.css';
 const SCRIPT = 'src/components/toasts.js';
@@ -230,6 +231,7 @@ const dom = new JSDOM('<!doctype html><html lang="en"><body></body></html>', { p
 for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLElement', 'Event', 'MouseEvent', 'FocusEvent', 'getComputedStyle']) {
   Object.defineProperty(globalThis, key, { value: dom.window[key] ?? dom.window, configurable: true, writable: true });
 }
+globalThis.requestAnimationFrame = (callback) => setTimeout(callback, 0);
 // JSDOM lays nothing out, so each notice carries the height it would have had.
 Object.defineProperty(dom.window.HTMLElement.prototype, 'offsetHeight', {
   configurable: true,
@@ -386,6 +388,35 @@ test('a collapsed stack holds every countdown while the pile is held', () => {
     assert.ok(cardsOf(stack).every(leaving), 'the held countdowns did not resume when the pile was released');
     pile.stop();
     stack.remove();
+  } finally { mock.timers.reset(); }
+});
+
+test('the shipped vanilla pile ignores card leave events while the stack is held', async () => {
+  mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    const root = CollapsedStack.render();
+    document.body.append(root);
+    mock.timers.tick(0);
+    await Promise.resolve();
+    const stack = root.querySelector('[data-stack]');
+    const cards = cardsOf(stack);
+    assert.equal(cards.length, 3, 'the shipped CollapsedStack story did not seed three notices');
+    assert.ok(stack.classList.contains('ui-toast-stack--collapsed'),
+      'the shipped CollapsedStack story is not exercising the collapsed pile');
+
+    stack.dispatchEvent(new dom.window.MouseEvent('mouseenter', { bubbles: true }));
+    for (const card of cards) {
+      card.dispatchEvent(new dom.window.MouseEvent('mouseenter', { bubbles: true }));
+      card.dispatchEvent(new dom.window.MouseEvent('mouseleave', { bubbles: true, relatedTarget: stack }));
+    }
+    mock.timers.tick(5000);
+    assert.ok(cardsOf(stack).every((card) => !leaving(card)),
+      'a card-level mouseleave released a countdown while the pointer still held the pile');
+
+    stack.dispatchEvent(new dom.window.MouseEvent('mouseleave', { bubbles: true }));
+    mock.timers.tick(5000);
+    assert.ok(cardsOf(stack).every(leaving), 'the shipped pile did not resume after the pointer left it');
+    root.remove();
   } finally { mock.timers.reset(); }
 });
 

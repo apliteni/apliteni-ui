@@ -54,18 +54,21 @@ function wireToast(el) {
     // it covers a keyboard reader too. What is left here is the countdown that
     // has to stop with it — read back off the paused line so the two agree.
     let held = false;
+    let pileHeld = false;
     const hold = () => { if (held) return; held = true; clearTimeout(timer); };
     const release = () => {
-      if (!held || el.matches(':hover, :focus-within')) return;
+      if (!held || pileHeld || el.matches(':hover, :focus-within')) return;
       held = false;
       const left = (parseFloat(getComputedStyle(bar).transform.split(',')[0].slice(7)) || 1);
       timer = setTimeout(() => dismissToast(el), dur * 1000 * left);
     };
+    const pileHold = () => { pileHeld = true; hold(); };
+    const pileRelease = () => { pileHeld = false; release(); };
     el.addEventListener('mouseenter', hold);
     el.addEventListener('mouseleave', release);
     el.addEventListener('focusin', hold);
-    el.addEventListener(PILE_HOLD, hold);
-    el.addEventListener(PILE_RELEASE, release);
+    el.addEventListener(PILE_HOLD, pileHold);
+    el.addEventListener(PILE_RELEASE, pileRelease);
     // At focusout the old target has already blurred and the new one has not
     // focused yet, so :focus-within reads false even for a move from the close
     // button to the action. relatedTarget is the only thing that knows.
