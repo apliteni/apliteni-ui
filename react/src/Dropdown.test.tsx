@@ -25,6 +25,9 @@ afterEach(cleanup);
 /* The ResizeObserver chipRow({ observer: true }) installs is global, so a later test
  * would otherwise take the observed path by accident. */
 afterEach(() => { delete (window as unknown as { ResizeObserver?: unknown }).ResizeObserver; });
+/* phone() below spies on window.innerHeight and the trigger's own rect; restored
+ * here rather than per test, so a later test cannot inherit either by accident. */
+afterEach(() => { vi.restoreAllMocks(); });
 
 /* jsdom has no ResizeObserver, which is why the `resize` cases below reach the
  * fallback path at all. This one reports on demand, so the path a browser actually
@@ -1531,4 +1534,93 @@ it('a panel in a filter row is left to the row that bounds it', () => {
   expect(panel.style.translate).toBe('');
   expect(panel.style.getPropertyValue('--ui-dropdown-ceiling')).toBe('');
   spy.mockRestore();
+});
+
+// ---- The cap (#489) --------------------------------------------------------
+// The sheet caps every panel at the room between its trigger and the viewport
+// edge, and the room is a number the wiring has to measure. React has wiring of
+// its own, so it measures it too — from the same dropdownHeightFit(), so the two
+// cannot disagree about where a panel ends.
+// why: docs/components.md#the-dropdown-panel
+
+/** A phone, with the trigger's own bottom `bottom` px down a `view`px-tall screen. */
+function phone(bottom: number, view = 844) {
+  vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(view);
+  vi.spyOn(HTMLButtonElement.prototype, 'getBoundingClientRect').mockReturnValue({
+    top: bottom - 31, bottom, left: 16, right: 176, width: 160, height: 31, x: 16, y: bottom - 31,
+    toJSON: () => ({}),
+  } as DOMRect);
+}
+
+const availOf = (c: Element) =>
+  (c.querySelector('.ui-dropdown__panel') as HTMLElement).style.getPropertyValue('--ui-dropdown-avail');
+
+it('an open panel is capped at the room between its trigger and the viewport edge', () => {
+  phone(544); // 844 − 300 − 31 + 31, the trigger ending 300px above the bottom
+  const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
+  expect(availOf(container)).toBe(`${844 - 544 - 9 - 8}px`);
+});
+
+it('a trigger with no room left keeps a nought-pixel cap rather than overhang', () => {
+  phone(844 - 5); // the gap alone already reaches the edge
+  const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
+  expect(availOf(container)).toBe('0px');
+});
+
+it('the floor spends the edge inset, never the room past the edge (#502 review)', () => {
+  // The trigger's bottom at 808 on a 390x844 phone, as the review measured: 15px
+  // of room past the inset, short of the 120px floor, but 27px short of the edge.
+  phone(808);
+  const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
+  expect(availOf(container)).toBe('27px');
+});
+
+it('the room is re-measured when the page scrolls under an open panel', () => {
+  phone(231);
+  const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
+  expect(availOf(container)).toBe(`${844 - 231 - 9 - 8}px`);
+  phone(631);
+  window.dispatchEvent(new Event('scroll'));
+  expect(availOf(container)).toBe(`${844 - 631 - 9 - 8}px`);
+});
+
+it('a closed panel is not measured, so nothing is written until it opens', () => {
+  phone(231);
+  const { container } = render(<Dropdown value="Account" variant="menu" items={MENU} />);
+  expect(availOf(container)).toBe('');
+});
+
+it('the `scroll` option asks for the cap property, never an inline height', () => {
+  const { container } = render(<Dropdown value="Account" variant="menu" scroll={420} items={MENU} />);
+  const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
+  expect(panel.style.getPropertyValue('--ui-dropdown-cap')).toBe('420px');
+  expect(panel.style.maxHeight).toBe('');
+});
+
+it('a keyboard open sizes the panel before focusing a row (#502 review)', async () => {
+  // Twelve rows, the last one selected: ArrowUp on the trigger lands focus on
+  // that row. If the cap were applied after the focus effect, that row's own
+  // focus() could run — and in a real browser, scroll the page — before the
+  // cap had been measured, taking the trigger's position with it. Sizing first
+  // means --ui-dropdown-avail is already written by the time any row is focused.
+  phone(544);
+  const TWELVE: DropdownEntry[] = Array.from({ length: 12 }, (_, i) => ({
+    label: `Row ${i + 1}`, value: String(i + 1), selected: i === 11,
+  }));
+  const { container } = render(<Dropdown variant="select" items={TWELVE} />);
+  const dd = container.querySelector('.ui-dropdown')!;
+  const trigger = within(dd as HTMLElement).getByRole('button');
+
+  let availAtFocus: string | null = null;
+  const realFocus = HTMLElement.prototype.focus;
+  vi.spyOn(HTMLElement.prototype, 'focus').mockImplementation(function (this: HTMLElement) {
+    if (availAtFocus === null && this.matches('[data-dd-item]')) availAtFocus = availOf(container);
+    return realFocus.call(this);
+  });
+
+  trigger.focus();
+  await userEvent.setup().keyboard('{ArrowUp}');
+
+  expect(document.activeElement).toBe(rowsOf(dd)[11]);
+  expect(availAtFocus).toBe(`${844 - 544 - 9 - 8}px`);
 });

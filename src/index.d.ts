@@ -34,6 +34,13 @@ export declare function wireDropdown(root?: Document | Element): void;
 /** The kit's own match, asked rather than re-implemented by <Dropdown>. */
 export declare function dropdownMatch(label: unknown, query: unknown): boolean;
 export declare function dropdownFiltering(query: unknown): boolean;
+/** How tall a floating panel may be: the room between its anchor and the
+ *  viewport edge, less `gap` and `inset`. `min` is a floor that spends `inset`,
+ *  down to nothing, rather than room past the edge, which does not exist. */
+export declare function dropdownAvail(opts: {
+  anchorTop: number; anchorBottom: number; viewport: number;
+  gap: number; inset: number; min: number; up?: boolean;
+}): number;
 /** The kit's menu floor, the width `.ui-dropdown__panel` writes. */
 export declare const DD_MENU_FLOOR: number;
 /** Where a filter chip's open menu can sit: the room from the edge it is
@@ -58,6 +65,14 @@ export declare function dropdownViewportFit(
   panel: Element | null | undefined,
   at?: { left: number; width: number },
 ): { shift: number; left: number; width: number; view: number; edge: number; max: number } | null;
+/** How tall a panel may be: the room between its trigger (inside `dd`) and the
+ *  viewport edge, from the same dropdownAvail() dropdownViewportFit's `max`
+ *  shares its calculation with. `null` when there is nothing to measure.
+ *  why: docs/components.md#the-dropdown-panel */
+export declare function dropdownHeightFit(
+  dd: Element | null | undefined,
+  panel: Element | null | undefined,
+): number | null;
 export declare function backLink(opts?: Record<string, unknown>): string;
 export declare function statBand(opts?: Record<string, unknown>): string;
 export declare function commandPalette(opts?: Record<string, unknown>): string;

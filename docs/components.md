@@ -260,6 +260,31 @@ disagree, which is a view narrower than 256px. A long unbroken token — a filen
 breaks in the middle rather than reaching past the bound, so one row cannot make the panel wider
 than the screen. The tradeoff is a broken word.
 
+**A panel never runs past the viewport edge, on the other axis either.** Every floating panel the
+kit ships is capped at the room between its trigger and the edge it opens towards, less the gap it
+keeps from the trigger and `--ui-dropdown-edge` at the edge, and scrolls inside that cap — the wheel
+over it stops there too, rather than carrying on down the page underneath. That is the whole of
+[#489](https://github.com/apliteni/apliteni-ui/issues/489): before it a panel took its content's
+height unless the consumer reached for the `scroll` modifier, so a twelve-row menu opened 300px
+above the bottom of a 390×844 phone ended past the fold and its last rows could not be reached, and
+the wheel over it scrolled the page instead. Capped, the same menu ends inside the viewport and
+scrolls on its own. Two custom properties decide the height and the smaller wins:
+
+- `--ui-dropdown-cap` is what the consumer asked for. `scroll: true` is `.is-scroll`, which sets it
+  to 300px; `scroll: <n>` writes it inline, as the property and not `max-height`, because an inline
+  height would outrank the panel's own `min()` and put it back past the edge.
+- `--ui-dropdown-avail` is the measured room. The wiring writes it on every open and re-writes it on
+  every scroll and resize, from `dropdownAvail()` in `src/logic/dropdown.js` — one calculation, so
+  the vanilla wiring and the React `<Dropdown>` cannot disagree about where a panel ends. Unwritten,
+  the sheet falls back to `calc(100dvh - 2 * var(--ui-dropdown-edge))`, the same promise at a coarser
+  grain for a server-rendered page before anything has hydrated.
+
+A trigger near the edge can leave less room than `--ui-dropdown-min` (120px) wants for a usable
+panel. The floor then spends the edge inset, down to nothing, to reach 120px, but it never spends
+room past the edge, because that room does not exist: the panel still ends at or before the edge,
+and the guarantee above always holds. A search panel is a column, so this cap lands on the rows and
+not on the field: `.ui-dropdown__list` shrinks to whatever room the capped panel leaves it.
+
 **A panel keeps its place while the page moves its trigger.** A row that re-lays itself out, an
 ancestor scrolling sideways, a longer run of text beside the trigger, and a transition that slides
 the trigger are each followed, closed as well as open. A transition is followed to where it stops

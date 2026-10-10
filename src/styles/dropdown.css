@@ -62,6 +62,12 @@
      the screen's edge sets it to 0.
      why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-edge: 8px;
+  /* The least height a capped panel keeps before it would rather spend the edge
+     inset above than shrink further — three rows or so. Below it the panel
+     still ends at or before the edge; it never spends room past the edge to
+     reach this floor, because that room does not exist. #489
+     why: docs/components.md#the-dropdown-panel */
+  --ui-dropdown-min: 120px;
   /* Named for the same reason the offset is: a block pinned to an edge has to
      bleed back through it, and #306 is a page copying the number by hand.
      why: docs/components.md#the-dropdown-panel */
@@ -107,6 +113,24 @@
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: var(--radius-lg);
   padding: var(--ui-dropdown-pad);
+  /* The cap, and the whole of #489: a panel took its content's height until that
+     height ran off the screen, and then it took what was left. Two numbers decide
+     it and the smaller wins — --ui-dropdown-cap is what the consumer asked for
+     (the `scroll` option writes it), --ui-dropdown-avail is the room between the
+     trigger and the viewport edge, which the wiring measures on every open and
+     every scroll. Neither is declared here: an unset cap means the consumer wants
+     the whole list, and an unset avail means nothing has measured yet, which is a
+     server-rendered page before hydration — so the fallback promises the same
+     thing at a coarser grain, the viewport less the edge inset at each end.
+     why: docs/components.md#the-dropdown-panel */
+  max-height: min(
+    var(--ui-dropdown-cap, 100dvh),
+    var(--ui-dropdown-avail, calc(100dvh - 2 * var(--ui-dropdown-edge)))
+  );
+  overflow-y: auto;
+  /* The wheel stops at the panel's own end instead of carrying on down the page
+     underneath it — the second half of #489. */
+  overscroll-behavior: contain;
   opacity: 0;
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a
@@ -123,7 +147,9 @@
   z-index: var(--z-dropdown);
 }
 .ui-dropdown__panel.is-end { left: auto; right: 0; }
-.ui-dropdown__panel.is-scroll { max-height: 300px; overflow-y: auto; }
+/* `.is-scroll` asks for 300px specifically; the panel above caps every panel at
+   the room the viewport left either way. #489 */
+.ui-dropdown__panel.is-scroll { --ui-dropdown-cap: 300px; }
 
 /* Chrome makes a scroll container a keyboard stop on its own — no tabindex, no
    author rule — so `.is-scroll` took the browser's outline, black in light mode.
@@ -286,7 +312,13 @@
    while the list scrolls. Every rule below keys on a class only the search
    variant emits, so the plain dropdown renders as it did.
    why: docs/components.md#a-dropdown-with-a-search-field */
-.ui-dropdown__panel--search { min-width: 280px; }
+/* A column, so the panel's own avail-based max-height (above) lands on the rows
+   and not on the field: the field and the empty-state block keep their content
+   height, and the list — the child that can overflow — gives up the room they
+   take. #489 */
+.ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }
+.ui-dropdown__panel--search > * { flex: none; }
+.ui-dropdown__panel--search > .ui-dropdown__list { flex: 1 1 auto; min-height: 0; }
 
 .ui-dropdown__search { position: relative; display: flex; align-items: center; margin-bottom: 6px; }
 .ui-dropdown__search-ic {
@@ -324,7 +356,9 @@
 .ui-dropdown__search-input:hover { border-color: var(--field-edge-hover); }
 .ui-dropdown__search-input:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
-.ui-dropdown__list { max-height: 300px; overflow-y: auto; }
+/* The rows' own cap, read from the same property the panel reads: the `scroll`
+   option lands on the list when there is a field above it. #489 */
+.ui-dropdown__list { max-height: var(--ui-dropdown-cap, 300px); overflow-y: auto; overscroll-behavior: contain; }
 /* Rows are `role="option" tabindex="-1"`, so the LIST takes the keyboard stop and
    answered with the native outline. The band is drawn INWARD, on the list: an outset
    one 6px inside a --radius-lg corner leaves the panel, and the panel is not the box

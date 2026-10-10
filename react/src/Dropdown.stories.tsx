@@ -214,3 +214,28 @@ export const NearTheScreenEdges: StoryObj<typeof Dropdown> = {
     </Stage>
   ),
 };
+
+// Twelve rows, no `scroll` — the automatic cap has to reach without it — and a
+// trigger pinned 300px above the bottom, the shape #489's acceptance names.
+// stories/dropdown-reach.test.js opens this story by id to measure it in a
+// real browser: both ends inside the viewport and the wheel over it scrolling
+// the panel rather than the page.
+const TWELVE: DropdownEntry[] = Array.from({ length: 12 }, (_, i) => ({ label: `Row ${i + 1}`, value: String(i + 1) }));
+export const BottomEdge: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <div style={{ position: 'fixed', left: 24, bottom: 300 }}>
+      <Dropdown items={TWELVE} ariaLabel="Account" triggerContent="Account" defaultOpen />
+    </div>
+  ),
+};
+
+// The floor's own case: a trigger with almost no room left, where the cap has to
+// spend the edge inset rather than the room past it. #502's review measured this
+// with the trigger's own bottom 36px above the viewport's.
+export const NearBottomEdge: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <div style={{ position: 'fixed', left: 24, bottom: 36 }}>
+      <Dropdown items={TWELVE} ariaLabel="Account" triggerContent="Account" defaultOpen />
+    </div>
+  ),
+};
