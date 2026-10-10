@@ -29,6 +29,10 @@ const bare = value => ['', 'none'].includes(value);
 function check(css, theme, accent) {
   const vars = tokensFor(theme, accent);
   const resolved = desugar(substitute(css, vars)).replace(/calc\(([-\d.]+)px \+ ([-\d.]+)px\)/g, (_, a, b) => `${Number(a) + Number(b)}px`);
+  // The composed `<span tabindex="0">` is the only element the shared `.ui-snippet
+  // :focus-visible` selector still uniquely reaches since #587 gave the link its own
+  // element rule. It is the one fixture subject that loses its band if that selector
+  // is cut, which is what keeps this file's mutation able to go red.
   const win = new JSDOM(`<style>${resolved}</style>${[false, true].flatMap(reveal => [true, false].map(copy => snippet({ reveal, copy, code: '<a href="#example">Example</a><span tabindex="0">flag</span>' }))).join('')}<button class="ui-focusable">Reference</button>`).window;
   const reference = win.document.querySelector('.ui-focusable');
   reference.setAttribute('data-ui-state', 'focus-visible');

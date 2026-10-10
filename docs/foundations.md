@@ -273,6 +273,10 @@ One indicator: a 2px solid accent band, drawn as a real `outline`, with 1px betw
 control. There is no halo. The offset is left **unpainted**, so what shows in that 1px is
 whatever surface the control is already standing on.
 
+A link that breaks across two lines draws one band per line, because an `outline` follows each
+line box it covers. This is the same thing the browser's own outline already did, so a link
+gets no new limit by taking the kit's band instead.
+
 ```css
 --ring-width: 2px;
 --ring-color: var(--accent);

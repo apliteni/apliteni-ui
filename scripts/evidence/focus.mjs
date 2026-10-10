@@ -144,8 +144,8 @@ const SUBJECTS = [
   },
   {
     // The other half of the collection: a rule page's prose link, on the same
-    // reading surface as the index. The pair is what shows one band shape and one
-    // gap colour across both, which is what #604's review asked for.
+    // reading surface as the index. The pair is what shows one band shape across
+    // both, which is what #604's review asked for.
     id: 'link-rule-page', kind: 'story', story: 'guidelines/DensityAndAccents.stories.js', export: 'DensityAndAccents',
     size: [1100, 900],
     controls: [['prose', '.gc a', 'a prose link on a guideline rule page']],
