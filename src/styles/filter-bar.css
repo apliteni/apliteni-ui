@@ -39,11 +39,8 @@
 .ui-filter-bar [data-filter-clear] button[aria-busy="true"],
 .ui-filter-bar [data-filter-clear] button[aria-busy="true"]:hover,
 .ui-filter-bar [data-filter-clear] button[aria-busy="true"]:active { border-color: transparent; }
-/* The pointer gets the kit's own answer: `.ui-btn:hover` washes --accent over the control and
-   steps its ink to --strong. Mixed over nothing, not over --surface, because a grey block under
-   words is what the colour guideline refuses; the edge stays off, so the control stays unboxed.
-   Busy answers with nothing, restated after this rule because this depth reaches it. #518
-   why: docs/components.md#a-filter-row-holds-its-panels */
+/* The kit's own pointer answer, `.ui-btn:hover`: --accent at 14% and --strong ink, over the page
+   ground rather than --surface, which would be a grey block under words. Busy restated after. */
 .ui-filter-bar [data-filter-clear] button:enabled:hover { border-color: transparent; background: color-mix(in srgb, var(--accent) 14%, transparent); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
 .ui-filter-bar [data-filter-clear] button[aria-busy="true"]:hover { background: transparent; }
 .ui-filter-bar [data-filter-clear] button:disabled,
@@ -120,14 +117,11 @@
    --disabled-border, while its --surface made the row's least consequential action its loudest
    box — and off, with its edge down, the one thing still looking pressable. The states are
    spelled out because this depth outranks the base rules; the fill needs one rule, because the
-   kit paints it at rest only. #496, #518
+   kit paints it at rest only. Under a pointer it takes the kit's trigger edge, --accent, which
+   steps aside under the band; held at --border-strong, hover and rest were one paint. #496, #518
    why: guidelines/colour-and-theming.md#keep-text-off-grey-fills */
 .ui-filter-bar [data-filter-add] { display: flex; align-self: stretch; }
 .ui-filter-bar [data-filter-add] .ui-dropdown { display: flex; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-radius: var(--radius-sm); min-height: var(--ui-filter-row-h); border-color: var(--border-strong); background: transparent; }
-/* And this box answers the way its own primitive does: the kit's trigger moves its edge to
-   --accent, and steps aside under the band. Quiet at rest was the row's ask; held at
-   --border-strong, hover and rest were one paint. #518
-   why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }
