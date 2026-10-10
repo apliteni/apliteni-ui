@@ -8,7 +8,9 @@ export const RELEASES = [
   {
     v: '0.103.0', date: '2026-10-10',
     changes: [
-      ['added', 'Dashboard and report guidelines ship linked Finance examples with filters and a period control that narrows the ledger rows, and the Money in, Money out and Net result figures follow the filtered and dated rows. Report links keep the theme and accent, and a landed row shows its arrival highlight and the focus ring together. Figure bands and report controls fit narrow screens.'],
+      ['added', 'Dashboard and report guidelines ship linked Finance examples with filters and a period control that narrows the ledger rows, and the Money in, Money out and Net result figures follow the filtered and dated rows.'],
+      ['added', 'Report links keep the theme and accent, and a landed row shows its arrival highlight and the focus ring together.'],
+      ['added', 'Figure bands and report controls fit narrow screens.'],
       ['changed', '`.ui-filter-bar__chip` now paints a surface and a `--control-edge` border, where it was transparent before, and this reaches every filter chip you already ship.', ['FilterBar']],
       ['changed', 'An unset chip’s name now reads in `--text` at normal weight, where it read in `--muted` before.', ['FilterBar']],
       ['changed', '`.ui-app__main > h1` with no `.ui-app__sub` now keeps a 32px bottom margin, reaching every title-only app screen you ship.', ['Shell']],

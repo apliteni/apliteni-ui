@@ -76,15 +76,8 @@ const kpiStrip = (rows = PAYOUTS) => statBand({ id: 'fr-cashflow', stats: payout
 // one, so the period control actually narrows the ledger instead of passing
 // every row at every width. why: PR #552 code review, finding F1
 //
-// Every row a dashboard reference can send a reader to sits inside the report's
-// own default window: PO-1159 moved from 2024-09-20 (inside All only) to
-// 2025-07-15 (inside 1Y, the earliest row there), so the exceptions card's three
-// references all resolve on first paint instead of only after the reader
-// touches the period control. Its distance from the other payouts is what the
-// Unmatched status leans on, not the particular year, and it keeps that distance
-// as the oldest row the default window shows; PO-1167 alone still falls outside
-// 1Y, so the control still narrows going from All to 1Y. why: PR #552 design
-// re-review, finding A
+// PO-1159 moved from 2024-09-20 to 2025-07-15 so the three dashboard references
+// resolve on first paint. why: PR #552 design re-review, finding A (reasoning: sign-off comment).
 const PAYOUTS = [
   ['PO-1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '14,452.83', 'success', 'Paid'],
   ['PO-1163', 'po_1TnSuaGmSZjqJIroOzd7Mc6L', '2026-05-15', '14,490.70', '574.19', '13,916.51', 'success', 'Paid'],
