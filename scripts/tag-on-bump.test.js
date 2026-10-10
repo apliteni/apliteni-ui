@@ -558,22 +558,33 @@ test('a version that is not semver stops before anything is written', () => {
 /** The stub's zero point, so run timestamps are readable in a failure message. */
 const CLOCK_EPOCH = '2026-01-01T00:00:00Z';
 
-/** `date`, over the virtual clock. Only the forms the step actually uses. */
-const DATE_STUB = `#!/usr/bin/env node
-'use strict';
-const fs = require('fs');
-const now = Number(fs.readFileSync(process.env.CLOCK_FILE, 'utf8').trim());
-const BASE = Date.parse(${JSON.stringify(CLOCK_EPOCH)});
-const argv = process.argv.slice(2);
-if (argv.includes('+%s')) { process.stdout.write(String(now) + '\\n'); process.exit(0); }
-let sec = now;
-const at = argv.indexOf('-d');
-if (at !== -1) {
-  const m = /^(\\d+)\\s+minutes?\\s+ago$/.exec(argv[at + 1] || '');
-  if (!m) { process.stderr.write('date stub: unsupported -d ' + argv[at + 1] + '\\n'); process.exit(1); }
-  sec = now - Number(m[1]) * 60;
-}
-process.stdout.write(new Date(BASE + sec * 1000).toISOString().replace(/\\.\\d+Z$/, 'Z') + '\\n');
+/**
+ * `date`, over the virtual clock. Only the forms the step actually uses.
+ *
+ * A shell script calling the real `date` binary, not a Node one: this stub sits in the
+ * hot loop of every polling test, and a fresh Node process pays about 45ms to start
+ * before it reads a byte — measured at 9.03s for 200 calls against 0.38s for 200 calls
+ * of this shape, a ~24x difference that was the dominant cost in this file's slowest
+ * tests. `BASE_EPOCH` is `Date.parse(CLOCK_EPOCH)/1000`, folded in at template-build
+ * time so the shell script never has to parse the epoch string itself.
+ */
+const BASE_EPOCH = Date.parse(CLOCK_EPOCH) / 1000;
+const DATE_STUB = `#!/bin/sh
+now=$(cat "$CLOCK_FILE")
+if [ "$1" = "+%s" ]; then
+  printf '%s\\n' "$now"
+  exit 0
+fi
+sec="$now"
+if [ "$1" = "-d" ]; then
+  n=$(printf '%s' "$2" | sed -n 's/^\\([0-9][0-9]*\\) minutes\\{0,1\\} ago$/\\1/p')
+  if [ -z "$n" ]; then
+    printf 'date stub: unsupported -d %s\\n' "$2" >&2
+    exit 1
+  fi
+  sec=$((now - n * 60))
+fi
+date -u -d "@$((${BASE_EPOCH} + sec))" +'%Y-%m-%dT%H:%M:%SZ'
 `;
 
 /** `sleep`, which moves the virtual clock instead of the real one. */

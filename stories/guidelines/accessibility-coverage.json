@@ -236,9 +236,23 @@
       ]
     },
     {
-      "file": "stories/contrast.test.js",
-      "name": "Contrast",
-      "does": "Measures every text-owning element in every story and both themes against the background composited above it.",
+      "file": "stories/contrast-dark.test.js",
+      "name": "Contrast (dark)",
+      "does": "Measures every text-owning element in every story, in the dark theme, against the background composited above it. Split from one combined file so each theme's walk stays inside its own time budget (#562); stories/contrast-light.test.js is the light half and carries the self-checks that do not depend on a theme.",
+      "blind": [
+        "Layout, including a toast over the page, a dropdown over a card or a drawer over its scrim. DOM ancestry stands in for visual stacking and is wrong where the two differ. This is the gate’s largest gap; only a browser closes it (#131).",
+        "Paint layers the walk cannot see, such as a ::before backdrop or sibling glow. Nine pairs per backdrop are judged against the wrong ground.",
+        "Gradients and images an element owns or inherits. These are reported as unjudgeable, not passed.",
+        "Filters. .ui-btn--primary:hover brightens, but the gate reads the pre-filter colour.",
+        "Inactive components and everything inside them. This is the gap filled by this page’s third number.",
+        "Non-text contrast such as borders, focus rings and icon strokes, which requires geometry.",
+        "More than one accent and any state beyond hover, focus-visible, focus and active."
+      ]
+    },
+    {
+      "file": "stories/contrast-light.test.js",
+      "name": "Contrast (light)",
+      "does": "Measures every text-owning element in every story, in the light theme, against the background composited above it. The other half of the split in stories/contrast-dark.test.js (#562); this file also carries the toast, success-panel and chip self-checks that run once over both themes because they do not depend on either theme's walk.",
       "blind": [
         "Layout, including a toast over the page, a dropdown over a card or a drawer over its scrim. DOM ancestry stands in for visual stacking and is wrong where the two differ. This is the gate’s largest gap; only a browser closes it (#131).",
         "Paint layers the walk cannot see, such as a ::before backdrop or sibling glow. Nine pairs per backdrop are judged against the wrong ground.",
