@@ -309,9 +309,12 @@ or border. A consumer reading `[data-filter-clear]` finds nothing when no filter
 Both faces label it `Clear all`; `clearLabel` takes any wording.
 
 **Filter labels use secondary-control ink and weight.** The remove mark uses glyph ink.
-The chip and Add retain their quiet edge when hovered or open. Only keyboard focus adds
-an accent edge and the shared `--ring`. Clear remains a text button in every state.
-A disabled chip or Add takes `--disabled-border`. None of the controls carries a fill.
+A chip keeps its quiet edge when hovered or open. Add moves its edge to the accent under the
+pointer, the way every trigger in the kit does, and steps that edge aside while it holds the
+focus ring. Clear keeps no edge in any state and answers the pointer with the accent wash the
+kit's buttons hover with. A control that is disabled or busy answers the pointer with nothing.
+Keyboard focus draws the shared `--ring`. A disabled chip or Add takes `--disabled-border`.
+None of the controls carries a resting fill.
 
 **An emptied bar hands the focus on rather than keeping it.** When you clear the last filter or
 remove the last chip with the keyboard, the focused control disappears. The bar moves focus to
