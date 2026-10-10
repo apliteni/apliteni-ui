@@ -564,36 +564,39 @@ test('landing on the wrong row is a finding, and landing on none says so', () =>
 });
 
 // These checks exercise the sample controls in JSDOM. Browser evidence checks paint and focus.
-test('the Finance report filters Paid rows and clears both filters', async () => {
+test('the Finance report filters Paid rows and clears both filters, and its figures follow', async () => {
   const doc = docOf(Report.render());
   installDomGlobals(doc.defaultView);
   Report.play({ canvasElement: doc.body });
+  const figures = () => [...doc.querySelectorAll('.ui-stat__value')].map(node => node.textContent);
   const host = doc.querySelector('[data-finance-filters]');
   const change = (id, value) => host.dispatchEvent(new doc.defaultView.CustomEvent('ui-filter-change', { detail: { id, value } }));
+  const atRest = figures();
   change('status', 'Paid');
   assert.equal(doc.querySelectorAll('tbody tr').length, 4);
   assert.ok([...doc.querySelectorAll('tbody .ui-badge')].every(badge => badge.textContent === 'Paid'));
+  assert.deepEqual(figures(), ['87,042.22 €', '3,059.73 €', '83,982.49 €'],
+    'the figures must describe the four Paid rows now shown, not the unfiltered ledger');
+  assert.notDeepEqual(figures(), atRest);
   change('currency', 'USD');
   assert.match(doc.querySelector('.ui-empty').textContent, /No payouts match/);
+  assert.deepEqual(figures(), ['0 €', '0 €', '0 €'], 'no row is shown, so no figure is drawn from one');
   host.dispatchEvent(new doc.defaultView.CustomEvent('ui-filter-clear'));
   assert.equal(doc.querySelectorAll('tbody tr').length, 7);
+  assert.deepEqual(figures(), atRest);
 });
 
-test('both Finance periods change totals and the dashboard trends', () => {
+test('the Finance dashboard period changes its totals and trends', () => {
   const dashboard = docOf(Dashboard.render());
-  const report = docOf(Report.render());
-  installDomGlobals(report.defaultView);
+  installDomGlobals(dashboard.defaultView);
   Dashboard.play({ canvasElement: dashboard.body });
-  Report.play({ canvasElement: report.body });
-  const figures = doc => [...doc.querySelectorAll('.ui-stat__value')].map(node => node.textContent);
-  const yearly = figures(report);
+  const figures = () => [...dashboard.querySelectorAll('.ui-stat__value')].map(node => node.textContent);
+  const yearly = figures();
   const yearlyTrend = dashboard.querySelector('.ui-stat__trend').innerHTML;
-  for (const doc of [dashboard, report]) doc.querySelector('[data-seg] button').click();
-  assert.notDeepEqual(figures(report), yearly);
-  assert.deepEqual(figures(report), figures(dashboard));
+  dashboard.querySelector('[data-seg] button').click();
+  assert.notDeepEqual(figures(), yearly);
   assert.notEqual(dashboard.querySelector('.ui-stat__trend').innerHTML, yearlyTrend);
   assert.match(dashboard.querySelector('[data-period-basis]').textContent, /3 months/);
-  for (const doc of [dashboard, report]) [...doc.querySelectorAll('[data-seg] button')].at(-1).click();
-  assert.deepEqual(figures(report), figures(dashboard));
+  [...dashboard.querySelectorAll('[data-seg] button')].at(-1).click();
   assert.equal(dashboard.querySelectorAll('.ui-stat__delta').length, 0, 'All has no preceding period to compare');
 });

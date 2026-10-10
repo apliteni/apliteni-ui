@@ -1,7 +1,7 @@
 import { badge, button, card, segmented, emptyState } from '../../src/components/index.js';
 import { filterBar, initFilterBar } from '../../src/components/filter-bar.js';
 import { busyRegion, skeleton, skeletonTable } from '../../src/components/loading.js';
-import { cashflowStats, PERIODS, periodStart } from './_finance-data.js';
+import { PERIODS, periodStart, money } from './_finance-data.js';
 import { initSegmented } from '../../src/components/segmented.js';
 import { statBand } from '../../src/components/stat.js';
 import { financeShell, payoutRowId } from './_finance-nav.js';
@@ -37,6 +37,18 @@ const controls = () => `<div class="ui-toolbar ui-toolbar--split">
       ${button({ label: 'Export rows', icon: 'download', iconOnly: true })}
     </div>`;
 
+// The three figures, over whichever rows the period and the filters currently
+// leave on the ledger below them — not the portal's monthly cashflow, which
+// does not move with a filter chip. Money in and out are each row's own gross
+// and fees; net is each row's own net, so the three stay the rows' own sum.
+// why: PR #552 design re-review, finding A
+const parseAmount = value => Number.parseFloat(value.replace(/,/g, ''));
+const payoutStats = rows => [
+  ['Money in', 3],
+  ['Money out', 4],
+  ['Net result', 5],
+].map(([label, column]) => ({ label, value: money(rows.reduce((sum, row) => sum + parseAmount(row[column]), 0)) }));
+
 // The cashflow figures are the kit's stat band. It folds from its own width, so
 // the rail beside the column needs no rule of this screen's.
 // why: docs/components.md#stat-bands
@@ -44,7 +56,7 @@ const controls = () => `<div class="ui-toolbar ui-toolbar--split">
 // No caption over the figures: these three are totals rather than changes, so
 // there is no comparison to name, and the date range that used to sit here said
 // again what the period control above it already sets. why: Artur, round r32
-const kpiStrip = (period = '1Y') => statBand({ id: 'fr-cashflow', stats: cashflowStats(period) });
+const kpiStrip = (rows = PAYOUTS) => statBand({ id: 'fr-cashflow', stats: payoutStats(rows) });
 
 // Net is gross less fees in every row. The references are the ones the Finance
 // dashboard and the Dashboards and reports guideline print, spelled the same
@@ -116,7 +128,7 @@ export const Default = {
       const rows = PAYOUTS.filter(row => row[2] >= periodStart(selected)
         && (!values.status || row[7] === values.status)
         && (!values.currency || values.currency === 'EUR'));
-      canvasElement.querySelector('.ui-stats').outerHTML = kpiStrip(selected);
+      canvasElement.querySelector('.ui-stats').outerHTML = kpiStrip(rows);
       canvasElement.querySelector('.ui-app__body > .ui-card').outerHTML = payoutsCard(rows);
     };
     const update = () => {

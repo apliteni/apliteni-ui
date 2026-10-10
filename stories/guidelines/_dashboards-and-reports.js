@@ -6,9 +6,9 @@ export const BLURB = content.blurb;
 import { badge, button, card } from '../../src/components/index.js';
 import { filterBar } from '../../src/components/filter-bar.js';
 import { statBand } from '../../src/components/stat.js';
-import { sparkline } from '../lib/sparkline.js';
 import { CHART_CSS, bars } from '../_chart.js';
 import { payoutHref } from '../apps/_finance-nav.js';
+import { cashflowStats } from '../apps/_finance-data.js';
 
 // One made-up portal supplies every specimen, and the Finance report showcase
 // prints the same payouts with the same fees and nets —
@@ -31,18 +31,13 @@ export const SPEC_CSS = `${CHART_CSS}
 
 const stage = (html) => `<div class="gd-stage">${html}</div>`;
 
-const MONEY_IN = [412, 455, 430, 498, 520, 505, 560, 548, 590, 610, 587, 640];
-const MONEY_OUT = [298, 304, 312, 309, 321, 317, 329, 334, 327, 339, 341, 318];
-
-// Cashflow for the year, the figures the portal's dashboard opens with. A
-// specimen cell is under 28rem, so every figure takes a row of its own; a pair
-// stays readable when the Do draws two of them rather than the screen's three.
-const FIGURES = [
-  { label: 'Money in', value: '759,988 €', delta: { value: '+12.4%', tone: 'good' }, trend: sparkline(MONEY_IN, 'Money in, last 12 months') },
-  { label: 'Money out', value: '3,048,559 €', delta: { value: '+31.8%', tone: 'bad' }, trend: sparkline(MONEY_OUT, 'Money out, last 12 months') },
-];
+// Cashflow for the year, the same figures the portal's dashboard opens with —
+// cashflowStats('1Y', true) is the dashboard's own call, so a specimen cannot
+// drift from the showcase it draws. A specimen cell is under 28rem, so every
+// figure takes a row of its own; a pair stays readable when the Do draws two
+// of them rather than the screen's three. why: PR #552 design re-review, finding C
 const cashflow = (id) => statBand({ id,
-  stats: FIGURES.map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' } })),
+  stats: cashflowStats('1Y', true).slice(0, 2).map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' } })),
 });
 
 // Reference, fees, net, status. A fifth column does not fit a specimen cell,

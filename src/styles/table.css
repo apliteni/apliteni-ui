@@ -207,12 +207,13 @@
 }
 .ui-table tbody tr:hover { outline: 1px solid var(--border-strong); outline-offset: -1px; }
 
-/* Focus takes precedence over the arrival background.
-   The row a reference landed a reader on. The mark is a GROUND, not a line: an outline
+/* The row a reference landed a reader on. The mark is a GROUND, not a line: an outline
    says the keyboard is here (Artur, r34), and this one persists — it answers which row the
    reader came for, so it stays until the next arrival and must not wear the picture focus
    draws. It took --ring-scroll until #505's review found a landed row still outlined in the
    accent after focus had moved on, with a second row beside it wearing the same box.
+   The ground and the ring paint together on arrival: `landOnRow()` focuses the row, so a
+   reader must see both at once, not the ring now and the ground only after they tab away.
 
    The wash is the accent over the table's own ground: the family `tbody tr:hover` already
    uses for "this row", one step up from its 8% so the two are told apart. 12% is the
@@ -223,9 +224,9 @@
    take its mark off.
    why: Artur, round r34; guidelines/dashboards-and-reports.md#link-each-reference-to-its-row
    held by: stories/dashboard-report-refs.test.js, src/styles/table-focus.test.js */
-.ui-table tbody tr.is-target:not(:focus-visible) > :is(td, th),
-.ui-table--hover tbody tr.is-target:not(:focus-visible):hover > :is(td, th),
-.ui-table--zebra.ui-table--hover tbody tr.is-target:not(:focus-visible):hover > :is(td, th) {
+.ui-table tbody tr.is-target > :is(td, th),
+.ui-table--hover tbody tr.is-target:hover > :is(td, th),
+.ui-table--zebra.ui-table--hover tbody tr.is-target:hover > :is(td, th) {
   background: color-mix(in srgb, var(--accent) 12%, transparent); /* code-bg: inherit — this translucent wash leaves the chip on its opaque ground. */
 }
 
