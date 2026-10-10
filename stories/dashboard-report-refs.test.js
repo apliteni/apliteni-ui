@@ -580,7 +580,7 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   assert.notDeepEqual(figures(), atRest);
   change('currency', 'USD');
   assert.match(doc.querySelector('.ui-empty').textContent, /No payouts match/);
-  assert.deepEqual(figures(), ['0 €', '0 €', '0 €'], 'no row is shown, so no figure is drawn from one');
+  assert.deepEqual(figures(), ['0.00 €', '0.00 €', '0.00 €'], 'no row is shown, so no figure is drawn from one');
   host.dispatchEvent(new doc.defaultView.CustomEvent('ui-filter-clear'));
   assert.equal(doc.querySelectorAll('tbody tr').length, 7);
   assert.deepEqual(figures(), atRest);

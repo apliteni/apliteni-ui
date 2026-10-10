@@ -11,7 +11,10 @@ const MONTHS = [
 ];
 export const PERIODS = ['3M', '6M', '1Y', 'All'];
 const lengths = { '3M': 3, '6M': 6, '1Y': 12, All: 24 };
-export const money = value => `${value < 0 ? '−' : ''}${Math.abs(value).toLocaleString('en-US')} €`;
+// Fixed at two decimals: the Net (EUR) column it stands beside always carries
+// two, and the kit's own toLocaleString default drops a trailing zero.
+// why: PR #552 design re-review, the one new finding
+export const money = value => `${value < 0 ? '−' : ''}${Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 const total = rows => rows.reduce((sum, row) => sum.map((n, i) => n + row[i]), [0, 0]);
 
 export function cashflowStats(period = '1Y', trends = false) {
