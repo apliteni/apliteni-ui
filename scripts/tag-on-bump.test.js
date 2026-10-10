@@ -569,6 +569,10 @@ const CLOCK_EPOCH = '2026-01-01T00:00:00Z';
  * time so the shell script never has to parse the epoch string itself.
  */
 const BASE_EPOCH = Date.parse(CLOCK_EPOCH) / 1000;
+
+/** Where the real date lives, so the stub's own fallback formatting does not call itself. */
+const REAL_DATE = execFileSync('sh', ['-c', 'command -v date'], { encoding: 'utf8' }).trim();
+
 const DATE_STUB = `#!/bin/sh
 now=$(cat "$CLOCK_FILE")
 if [ "$1" = "+%s" ]; then
@@ -584,7 +588,7 @@ if [ "$1" = "-d" ]; then
   fi
   sec=$((now - n * 60))
 fi
-date -u -d "@$((${BASE_EPOCH} + sec))" +'%Y-%m-%dT%H:%M:%SZ'
+exec ${REAL_DATE} -u -d "@$((${BASE_EPOCH} + sec))" +'%Y-%m-%dT%H:%M:%SZ'
 `;
 
 /** `sleep`, which moves the virtual clock instead of the real one. */
