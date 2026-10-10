@@ -6,10 +6,8 @@
  * `rgb(33, 30, 45)`. #518's add control arrived with the same fill, from the kit's
  * trigger instead of the kit's button, and kept it when the row was off.
  *
- * So this reads button.css, works out which of its fills can land on THIS
- * control, and requires filter-bar.css to answer each — with no fill, or with the
- * accent wash the row paints under a pointer, which is the one fill the kit itself
- * does not count as a grey block. Read as text, like
+ * So this reads button.css, works out which of its greys can land on THIS
+ * control, and requires filter-bar.css to answer each. Read as text, like
  * pagination.test.js next door, because the package ships CSS as its artifact.
  * It measures the cascade and not pixels; the paint is measured in a browser.
  * why: docs/components.md#a-filter-row-holds-its-panels
