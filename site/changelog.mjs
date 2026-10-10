@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.101.0', date: '2026-10-10',
+    v: '0.103.0', date: '2026-10-10',
     changes: [
       ['added', 'The app shell’s band search takes a short label for phone widths — `shortLabel` inside the vanilla `search` option, and `searchShortLabel` beside a new `searchLabel` on React `AppShell`. With nothing named the short word is “Search”, and the long form is the sentence the band already drew. Resolves #486.', ['Shell']],
       ['fixed', 'Below 560px the band trigger no longer truncates mid-word. It read “Search or run a co…” where the band also holds the reader’s mark and whatever the product puts between them; it draws the short word there instead. The sentence and the key cap are clipped rather than dropped, so the button’s accessible name is the same string at 1280px and at 390px — a control that says something shorter to a screen reader on a phone is a second control. The command palette’s own placeholder is not this text and is unchanged. See #486.', ['Shell']],
