@@ -246,9 +246,15 @@
 /* One column, and the band is at its tightest. The row is already full at 390,
    and at the gap above this one the account avatar stood from 365 to 397 and was
    cut at the screen edge — the one control on this screen that opens the account
-   area. Packed to --space-2 the band needs 352 of the 362 it has there, so the
-   avatar is whole with the band's own gutter beside it. 320 is still short of the
-   room these controls want, which stays #558.
+   area. Packed to --space-2 the band needs 367.53 of the 362px it has there, a
+   5.53px shortfall, because layout.css now pins the theme switch to a full 34px
+   square so it keeps the tap floor it was given.
+   The wordmark, the Deck/Text switch and the version label are each already at
+   the width their own text needs, and the switch must not shrink again, so the
+   account block's trailing gutter is what gives: it narrows from 14.00px to
+   8.47px. The avatar itself stays whole, which keeps the same priority this row
+   held at the gap above — avatar whole over gutter kept full. 320 is still short
+   of the room these controls want, which stays #558.
    why: docs/foundations.md#breakpoints */
 @media (max-width: 560px) {
   .topbar__in { gap: var(--space-2); }

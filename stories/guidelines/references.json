@@ -518,7 +518,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:428",
+        "ref": "src/styles/layout.css:433",
         "pattern": "rank: page-title"
       },
       {
@@ -594,7 +594,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:473",
+        "ref": "src/styles/layout.css:478",
         "pattern": "@media (max-width: 720px)"
       },
       {

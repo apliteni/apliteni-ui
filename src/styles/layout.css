@@ -417,7 +417,12 @@
    band that gives way, and a flex item with the default shrink does not wait its
    turn. Measured at 390 with a control beside the trigger, the React band's switch
    drew 19x34 and the strategy topbar's drew 28.47x34 — a square glyph plate squashed,
-   and a tap zone the sheet could only clamp to 29 or 39. why: docs/components.md#the-page-shell */
+   and a tap zone the sheet could only clamp to 29 or 39.
+   Pinning the strategy topbar's half of this rule does not make its row narrower: it
+   moves a 5.53px shortfall onto the account block's trailing gutter instead, because
+   nothing before it in that row has width to spare. topbar.css's --space-2 comment
+   names that choice and the gutter it leaves.
+   why: docs/components.md#the-page-shell */
 .ui-app__bar .toggle, .topbar__in .toggle { flex: none; }
 .ui-app__user--bar .ui-app__av { margin-inline-start: 0; }
 /* Crumb, then the title block. At --space-2 the crumb sat 8px off the h1 and

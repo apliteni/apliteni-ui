@@ -225,7 +225,10 @@
      sentence for the short word, and the theme switch at 34 square on both.
      Neither row opens anything — the room is already in it, which is why these
      two declare a clearance and no gap. Across, 6px a side against the band's
-     own 12px gap and the topbar's 14. Down, the row's leftover height is 7.4px
+     own 12px gap and the topbar's 8 below 560px, where this layer exists — not
+     the topbar's 14 above that step, where it does not. 6px a side crosses the
+     topbar's 4px midline by 1px, which does not mis-tap: neither neighbour on
+     that row carries a layer of its own. Down, the row's leftover height is 7.4px
      above and below the trigger and 9 around the switch, where a 44px layer
      needs 3.5 and 5. The rows keep their height, their gaps and their paint.
      #486
