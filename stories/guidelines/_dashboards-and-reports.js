@@ -78,21 +78,9 @@ const EXCEPTIONS = [
   ['PO-1159', '2,180.00', 'danger', 'Unmatched'],
 ];
 
-// Every reference opens the Finance report at its own row, and the pair below can
-// show it: a reference inside .ui-table__pair takes the kit's link ink, so a
-// reader sees which cells are a way through without a pointer.
-//
-// `onward: false` draws the same rows with no link on any of them — neither the
-// reference nor the block's head. Both halves used to print the same three
-// accent references and only the head link told them apart, which made the
-// Don't's own caption, "offers no way in", false of the picture under it: three
-// accent links are three ways in. The half that teaches the rule by missing it
-// has to miss the whole of it. why: the design review of 617b937, #505
-//
-// The status rides in the reference's cell, as it does on the portal's own
-// dashboard: a specimen cell is 195px wide at 320, which a third column of
-// status does not fit, and the state of the row is what the row is here for.
-// why: #505
+// `onward: false` removes the head link and row links, so the Don't offers no way in.
+// The status stays in the reference cell because a third column does not fit at 320.
+// why: #505 design review of 617b937.
 const exceptionsTable = ({ onward = true } = {}) => `
   <table class="ui-table ui-table--dense">
     <thead><tr><th>Reference</th><th class="ui-table__num">Net (EUR)</th></tr></thead>

@@ -1,4 +1,5 @@
 // Rule: every stat change says what it is measured against in reachable text.
+// Accessibility gate: every change needs a reachable comparison basis.
 // Accepted shapes are a figure basis, a band caption, or a period-control basis.
 // A hover `title` does not count. A caption leads the figures. A figure uses one row.
 // Every story is walked, so a new band becomes a subject by default.
