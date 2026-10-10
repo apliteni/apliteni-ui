@@ -60,6 +60,7 @@ const isText = (abs) => {
 test('no tracked file ships a merge-conflict marker', () => {
   const files = tracked();
   const problems = [];
+  const unreadable = [];
   let scanned = 0;
   for (const rel of files) {
     if (ALLOWED.includes(rel)) continue;
@@ -68,13 +69,22 @@ test('no tracked file ships a merge-conflict marker', () => {
     try {
       if (!isText(abs)) continue;
       text = readFileSync(abs, 'utf8');
-    } catch { continue; } // a submodule or a path the checkout does not hold
+    } catch (err) {
+      // A submodule's gitlink or a path the checkout does not hold reads as a
+      // directory or as missing; neither is a subject this gate can scan. Any
+      // other failure — most of all a permission error — is not a cleared
+      // file, so it is reported rather than silently dropped from the sweep.
+      if (err.code === 'ENOENT' || err.code === 'EISDIR') continue;
+      unreadable.push(`  ${rel} — cannot read (${err.code}): ${err.message}`);
+      continue;
+    }
     scanned += 1;
     for (const { line, name } of conflictsIn(text)) {
       problems.push(`  ${rel}:${line} — ${name} marker. Resolve the merge; do not commit the markers.`);
     }
   }
   assert.ok(files.length > 300, `git ls-files returned ${files.length} paths — the sweep is broken, not the tree`);
+  assert.deepEqual(unreadable, [], `\nA tracked file could not be read, so it was not cleared:\n${unreadable.join('\n')}\n`);
   assert.ok(scanned > 200, `only ${scanned} text files were scanned out of ${files.length} tracked — the sweep is broken`);
   assert.deepEqual(problems, [], `\nA merge-conflict marker is committed:\n${problems.join('\n')}\n`);
 });
