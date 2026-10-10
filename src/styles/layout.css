@@ -422,7 +422,10 @@
   letter-spacing: var(--tracking-tight);
   margin-bottom: 8px;
 }
-.ui-app__sub { color: var(--text); font-size: calc(var(--text-base) + 0.5px); line-height: 1.6; max-width: var(--prose-body); margin-bottom: 32px; }
+/* The head keeps the kit's second step below it whether or not a lede is there to
+   carry it: with no lede the title's own margin takes the step instead. */
+.ui-app__main h1:not(.ui-card h1):not(:has(+ .ui-app__sub)) { margin-bottom: var(--space-8); }
+.ui-app__sub { color: var(--text); font-size: calc(var(--text-base) + 0.5px); line-height: 1.6; max-width: var(--prose-body); margin-bottom: var(--space-8); }
 .ui-app__body { display: flex; flex-direction: column; gap: var(--space-5); }
 /* A flex child's min-width is its content by default, so one wide block — a
    ledger, a code sample — pushes the whole page sideways instead of scrolling

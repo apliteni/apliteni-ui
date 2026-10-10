@@ -204,7 +204,35 @@
 .ui-table--compact th { padding: var(--space-2) var(--space-3); }
 .ui-table--compact th:last-child,
 .ui-table--compact td:last-child { padding-right: var(--space-3); }
-.ui-table-scroll { overflow: auto; max-height: var(--ui-table-height, 70vh); padding: 0 var(--space-1); }
+/* Columns past the box's edge, said in paint. Two shades, one per side, under two
+   cover layers that ride the content: `local` moves a cover with the scroll, so
+   reaching an end slides that cover over its shade. A cover is solid for its first
+   half, so at 24px it hides a 12px shade outright — which is why the two sizes are
+   not one. why: guidelines/dense-tables.md */
+.ui-table-scroll {
+  overflow: auto; max-height: var(--ui-table-height, 70vh); padding: 0 var(--space-1);
+  background-color: var(--table-bg);
+  background-image:
+    linear-gradient(to right, var(--table-bg) 50%, transparent),
+    linear-gradient(to left, var(--table-bg) 50%, transparent),
+    radial-gradient(farthest-side at 0 50%, var(--table-edge), transparent),
+    radial-gradient(farthest-side at 100% 50%, var(--table-edge), transparent);
+  background-position: 0 0, 100% 0, 0 0, 100% 0;
+  background-size: var(--space-6) 100%, var(--space-6) 100%, var(--space-3) 100%, var(--space-3) 100%;
+  background-repeat: no-repeat;
+  background-attachment: local, local, scroll, scroll;
+}
+/* The edge darkens on a light ground and lightens on a dark one: ink has nowhere to
+   go on a near-black page, which is why --elev-drop splits its spend and a raised
+   dark surface takes a light --elev-edge. */
+.ui-table-scroll { --table-edge: color-mix(in srgb, var(--sheen) 12%, transparent); }
+:root[data-theme="light"] .ui-table-scroll { --table-edge: color-mix(in srgb, var(--shadow-ink) 13%, transparent); }
+/* The surface belongs to the box that scrolls, so the shades land under the cells
+   rather than behind them; the row fills repeat that same surface and step aside.
+   The sticky header and pinned column keep their paint: they hide what scrolls
+   beneath them. */
+.ui-table-scroll > .ui-table,
+.ui-table-scroll > .ui-table tbody td:not(.ui-table__identity, .ui-table__selection) { background-color: transparent; }
 /* The kit's first ringed scroller, and a scroll region inside a card like the rest, so
    it draws the band inward too rather than spending a halo across the card around it.
    It had no room of its own to draw in — the padding above is horizontal — which is the
@@ -216,6 +244,45 @@
 .ui-table--sticky thead th { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--table-bg); padding-top: var(--space-2); }
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); border-right: 1px solid var(--border); }
 .ui-table--pinned thead .ui-table__identity, .ui-table--pinned thead .ui-table__selection { z-index: calc(var(--z-sticky) + 1); }
+/* The divider is the pin's edge: it says the column stayed while the rest moved under it.
+   Columns that all fit never move, so the line divides nothing and reads as an arbitrary
+   rule. The resting rule keeps it, so an engine that cannot answer the query is unchanged;
+   scroll-state makes a query container, not a size one. why: guidelines/dense-tables.md */
+.ui-table-scroll { container-type: scroll-state; }
+/* A shared grid cell puts the edge shade over the opaque sticky header, on both
+   sides: the radial-gradient shades below answer only the table's own background
+   and fall to nothing where the sticky header paints over them, so an engine that
+   can ask whether the scrollport still has room sticks a shade of its own above
+   it instead and the base radial pair is sized to 0 here. #434 review round 2 */
+@supports (container-type: scroll-state) {
+  .ui-table-scroll {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    background-size: var(--space-6) 100%, var(--space-6) 100%, 0 100%, 0 100%;
+  }
+  .ui-table-scroll > .ui-table { grid-area: 1 / 1; }
+  .ui-table-scroll::before,
+  .ui-table-scroll::after {
+    content: '';
+    grid-area: 1 / 1;
+    position: sticky;
+    top: 0;
+    width: var(--space-3);
+    z-index: calc(var(--z-sticky) + 2);
+    pointer-events: none;
+  }
+  .ui-table-scroll::before { left: 0; right: calc(100% - var(--space-3)); justify-self: start; }
+  .ui-table-scroll::after { left: calc(100% - var(--space-3)); right: 0; justify-self: end; }
+  @container scroll-state(scrollable: left) {
+    .ui-table-scroll::before { background: linear-gradient(to right, var(--table-edge), transparent); }
+  }
+  @container scroll-state(scrollable: right) {
+    .ui-table-scroll::after { background: linear-gradient(to left, var(--table-edge), transparent); }
+  }
+}
+@container not scroll-state(scrollable: x) {
+  .ui-table--pinned :is(.ui-table__identity, .ui-table__selection) { border-right-color: transparent; }
+}
 .ui-value, .ui-delta { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ui-value__unit { margin-left: var(--space-1); font-size: var(--text-xs); color: var(--text); }
 .ui-delta--success { color: var(--chip-success-ink); }

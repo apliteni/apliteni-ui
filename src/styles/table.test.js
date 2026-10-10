@@ -276,3 +276,80 @@ test('numeric headers hold one line across table modifiers', () => {
 test('the numeric-header check rejects a sheet that lets them wrap', () => {
   assert.throws(() => checkNumericHeaderWrap(`${CSS}\n.ui-table th.ui-table__num { white-space: normal; }`));
 });
+
+/**
+ * The pin's divider is the edge a column keeps while the rest moves under it, so it may
+ * only be painted where the region can actually move horizontally. The sheet says this in two halves:
+ * the scroll box reports its scroll state, and a query hides the divider where the
+ * answer is "no horizontal scroll". Either half alone paints the
+ * line at every width — the first with nothing listening, the second with nothing to ask.
+ *
+ * Its limit: this reads the declarations, not the paint. JSDOM resolves no container
+ * query, so that the divider is transparent at 1280 and solid at 390 is measured in
+ * Chromium by the three-shape checks in the review evidence.
+ */
+const PIN_PAINT = /@container\s+not\s+scroll-state\(\s*scrollable:\s*x\s*\)\s*\{([^}]*\{[^}]*\}[^}]*)\}/;
+
+const checkPinDividerPaint = (css) => {
+  const resting = css.match(
+    /\.ui-table--pinned\s+\.ui-table__identity[^{]*\{([^}]*)\}/,
+  );
+  assert.ok(resting, 'the pinned column must declare its resting paint');
+  assert.match(
+    resting[1],
+    /border-right:\s*1px\s+solid\s+var\(--border\)/,
+    'the pinned column keeps its divider at rest, so an engine that cannot answer the query keeps it',
+  );
+
+  assert.match(
+    css,
+    /\.ui-table-scroll\s*\{[^}]*container-type:\s*scroll-state/,
+    'the scroll box must report its scroll state, or nothing can ask whether it scrolls',
+  );
+
+  const stood = css.match(PIN_PAINT);
+  assert.ok(stood, 'a scroll-state query must cover the region that cannot scroll');
+  assert.match(
+    stood[1],
+    /\.ui-table--pinned[^{]*\.ui-table__identity[^{]*\{[^}]*border-right-color:\s*transparent/,
+    'where the region cannot scroll, the pinned divider stands down',
+  );
+  assert.match(
+    stood[1],
+    /\.ui-table__selection/,
+    'the selection column pins on the same terms, so it stands down on the same terms',
+  );
+};
+
+test('the pinned divider is painted only where the region can scroll', () => {
+  checkPinDividerPaint(CSS);
+});
+
+test('the pin-paint check rejects a sheet whose scroll box reports no scroll state', () => {
+  assert.throws(() => checkPinDividerPaint(
+    CSS.replace(/\.ui-table-scroll\s*\{\s*container-type:\s*scroll-state;\s*\}/, ''),
+  ));
+});
+
+test('the pin-paint check rejects a sheet that never stands the divider down', () => {
+  assert.throws(() => checkPinDividerPaint(CSS.replace(PIN_PAINT, '')));
+});
+
+test('the pin-paint check rejects a sheet that stands only the identity column down', () => {
+  assert.throws(() => checkPinDividerPaint(
+    CSS.replace(/(@container not scroll-state\(scrollable: x\) \{\s*\.ui-table--pinned )[^{]*(\{)/,
+      '$1.ui-table__identity $2'),
+  ));
+});
+
+test('the pin-paint check rejects a sheet that drops the divider from the resting rule', () => {
+  assert.throws(() => checkPinDividerPaint(
+    CSS.replace(/(\.ui-table--pinned \.ui-table__identity[^{]*\{[^}]*)border-right:\s*1px solid var\(--border\);/, '$1'),
+  ));
+});
+
+test('the pin-paint check rejects a condition that counts vertical overflow', () => {
+  assert.throws(() => checkPinDividerPaint(
+    CSS.replace('not scroll-state(scrollable: x)', 'scroll-state(scrollable: none)'),
+  ));
+});

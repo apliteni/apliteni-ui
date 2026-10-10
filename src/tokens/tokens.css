@@ -534,6 +534,7 @@
 .ui-snippet--reveal,
 .ui-sx,
 .ui-table,
+.ui-table-scroll,
 .ui-table--sticky thead th,
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection,
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,
@@ -557,6 +558,7 @@
  * toward the page and leaves the page 1.02 away, while the card it is a variant of stays
  * 1.07-1.14 off in both themes. Measured in stories/code-chip.test.js. */
 .ui-table,
+.ui-table-scroll,
 .ui-table--sticky thead th,
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection,
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,

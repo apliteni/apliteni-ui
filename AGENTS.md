@@ -89,6 +89,13 @@ It needs `npm run build-storybook -w react` first — React's fit is an effect, 
 where React is running. Report the result in the PR. Keep this check out of routine CI to save
 Actions minutes.
 
+## Check the table edge shade locally
+
+Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` edge-shade rules,
+measure both edges in a real browser — the source half only reads selectors, not paint:
+`UI_PLAYWRIGHT=… UI_CHROME=… EDGE_SHADE=1 node --test stories/table-edge-shade.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
 ## Documentation
 
 Record a consumer guarantee in one of the two reader pages: a token or a floor in
@@ -152,6 +159,15 @@ A changelog entry is written for someone using the kit: what changed and who is 
 to three short sentences, with no praise, no filler and no test diary. Add detail only for a
 migration step or a behaviour limit. `site/changelog.mjs` stays pure — no git and no filesystem;
 `site/build.mjs` owns the git calls. Keep deploy specifics out of committed files.
+
+## Check the phone end space locally
+
+Before opening a PR that changes `--ui-app-bottom-clearance`, the React shell's phone
+padding or `.ui-app__main`'s own, measure the end of a phone page in a real browser:
+`npm run build-storybook -w react`, then
+`UI_PLAYWRIGHT=… UI_CHROME=… BOTTOM_CLEARANCE=1 node --test src/styles/bottom-clearance.test.js`
+Report the result in the PR. Playwright is not a dependency and CI runs only this gate's
+source half, which reads sheets and lays nothing out.
 
 ## Changes
 

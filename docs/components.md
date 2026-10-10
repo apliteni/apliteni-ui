@@ -181,7 +181,8 @@ otherwise need to discover. Each rule's test contains its detail. React's own no
 
 `appShell()` is the kit's one way to compose a page. It draws the chrome, and you decide what
 goes inside. It always draws **one `<main>` landmark** and gives every navigation landmark a
-unique name. It does not invent a breadcrumb that you did not pass. It does not render a topbar
+unique name. **The page title keeps the same step above your content whether or not you pass a
+`sub`.** It does not invent a breadcrumb that you did not pass. It does not render a topbar
 unless you pass one. **The rail folds** below 720px through CSS alone and through a `<button>`
 that the reader presses. That button writes the `apliteni-ui-rail` cookie, so a server can first
 paint the folded width with `railCollapsed()`. A folded row keeps its name and count for keyboard
@@ -468,7 +469,13 @@ The table is markup. A named scroll region contains a native `<table>`, and you 
 recipes as classes. Zebra adds no grey stripes. Hover marks the row edge without tinting the
 data surface. `compact` sets a 33px minimum row, but larger or wrapped content makes the row
 taller. **Columns scroll rather than disappear**, while sticky headers and pinned identity cells
-keep opaque backgrounds, the shared focus composition, and their full accessible names. **A link
+keep opaque backgrounds, the shared focus composition, and their full accessible names. **A
+pinned column draws its divider only where the region can actually scroll:** at a width where
+every column fits, the line divides nothing, so it is not drawn. **The region shows a soft shade
+on whichever edge still has columns behind it, and none on an edge that has been reached** —
+darker on a light ground, lighter on a dark one. Both are CSS alone, so vanilla and React tables
+carry them alike, and neither reaches the focus ring. An engine that cannot report a scroll state
+keeps the divider at every width. **A link
 inside a cell uses the row's ink, gets an underline on hover, and uses the shared ring on
 `:focus-visible`**. The ring surrounds the whole link, including a title-cell link that wraps.
 `numericValue` distinguishes missing from zero. `deltaValue` prints your sign and uses your
@@ -776,7 +783,15 @@ that swallowed Space would also prevent the reader from scrolling the page.
   filled.** A new ID in a non-empty history plays an entrance. Editing existing IDs does not.
 - **`AppShell`** shares the vanilla fold cookie and 720px fold. The longest matching section
   path wins. **Below 560px, a bottom bar replaces the rail:** it shows up to four sections, or
-  three sections plus More.
+  three sections plus More. **A shell whose list has nowhere to go — one section and no back
+  link — draws no rail, no fold control and no bottom bar;** the brand lockup moves to the band
+  and the section stays in the command palette. One section under a child page is a destination,
+  the page's parent, so that list is drawn and the row takes `aria-current="true"`. It publishes
+  `--ui-app-bottom-clearance`, the height of that bar plus the device's safe-area inset. **A phone page whose shell draws no bar
+  keeps the ordinary end space the kit gives every phone page:** the reservation disappears
+  without taking that space with it. **Page bottom padding, root scroll padding and the toast
+  stack all keep that clearance,** so scrolling an action into view never parks it behind the
+  bar.
 - **`SidebarNav`** accepts flat items or captioned sections, nested groups, counts and
   router-link rendering. **Nesting stops one level deep.** Each row keeps its name and count when
   collapsed.
