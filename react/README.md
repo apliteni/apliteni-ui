@@ -658,9 +658,10 @@ size. Neither has a filled disc behind it.
 there is no backdrop layer and no `backdrop` prop. Pass `title`, one short `body`
 line, and React `actions`. There is no `eyebrow` prop: a confirmation carries one
 title and at most one line under it, so put the outcome in the title rather than in a
-label above it. A kit `Button` carries the focus ring already; a router link or
-a plain `<a>` must also take `className="ui-focusable"`, or it falls back to the
-browser's own focus outline. An omitted or empty `actions`
+label above it. A kit `Button` carries the focus ring already, and so does
+a router link or a plain `<a>`: the kit rings every anchor on `:focus-visible`. A
+focusable that is neither — a `div` or `span` given `tabIndex` — still needs
+`className="ui-focusable"`, or it falls back to the browser's own focus outline. An omitted or empty `actions`
 leaves out the actions row. Hero and split default to h1; compact defaults to h2.
 `level` overrides the heading rank, and a value outside 1–6 falls back to that layout
 default. `confetti` enables the existing decorative animation. All three components

@@ -27,6 +27,17 @@
       ]
     },
     {
+      "file": "stories/inline-link-ring.test.js",
+      "name": "Inline link focus",
+      "does": "Renders every story the vanilla catalogue exports, collects every anchor they draw, and resolves the kit's focus rules over each one by specificity and document order: a link has to draw var(--ring) on :focus-visible, never the browser's own outline and never an outline of its own beside it. Counts the stories rendered, the stories that draw a link and the links judged, so a catalogue that stopped drawing links could not leave it green. Deletes the element-wide rule from the sheet it lives in and requires the walk to go red, and judges the four verdicts one declaration apart on a fixture link.",
+      "blind": [
+        "JSDOM computes neither box-shadow nor :focus-visible, so the cascade is resolved from the source text instead; !important, inline style, a media query's condition, a state the static DOM is not in and var() expansion are not modelled, as stories/lib/focus-walk.js states.",
+        "It reads no paint. The band's colour against each ground it lands on is measured by the ring walk in stories/guidelines/accessibility-floor.test.js, and its pixels come from Chromium captures.",
+        "Only the vanilla catalogue, and only markup a story renders synchronously: a link a script adds after render is unwalked, and React's anchors are judged in react/src/focus-ring.test.tsx.",
+        "It reads a rule and not a shape, so a WRAPPED link is unmeasured: a link broken across two lines draws a closed rectangle per line, one focus with two indicators, and an outline behaves the same way in Chromium. None of the links this walk judges wraps."
+      ]
+    },
+    {
       "file": "stories/snippet-focus.test.js",
       "name": "Snippet focus",
       "does": "Discovers buttons, links, code regions and explicit tab stops in Snippet fixtures; checks shared focus shadows and transparent outlines across two themes and accents, that the code region hands its ring to the rounded card it sits in, and that the card still clips. Emulates forced colors by flattening the (forced-colors: active) block and dropping every box-shadow, then checks that one focused code region leaves exactly one box declaring an outline. Seven mutations, each removing one declaration the result depends on.",

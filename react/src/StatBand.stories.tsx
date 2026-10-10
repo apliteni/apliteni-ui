@@ -5,7 +5,7 @@ const meta: Meta = { title: 'React/Stat band' };
 export default meta;
 
 const STATS: StatBandProps['stats'] = [
-  { label: 'Income', value: <a className="ui-focusable" href="#income">€ 6,459,401</a>, delta: { value: '+47.1%', tone: 'good' } },
+  { label: 'Income', value: <a href="#income">€ 6,459,401</a>, delta: { value: '+47.1%', tone: 'good' } },
   { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
   { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%' } },
   { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', tone: 'good' } },

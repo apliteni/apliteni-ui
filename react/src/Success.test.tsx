@@ -136,14 +136,16 @@ it('lets SuccessCheck pick its own mark, defaulting to the line', () => {
   expect(container.querySelectorAll('path')).toHaveLength(2);
 });
 
-// A bare <a> takes the browser's own outline, which #457 rejected. The kit's answer is
-// src/styles/base.css:144 `.ui-focusable:focus-visible,`, so the composition asserted
-// here is the one the README tells a caller to write. jsdom paints nothing: the ring
-// itself is measured in the browser, in this PR's evidence.
+// A bare <a> took the browser's own outline, which #457 rejected, until #587 put the
+// element on the kit's shared ring list — src/styles/base.css:150 `a:focus-visible,`. So
+// the action asserted here is the plain anchor the README now tells a caller to write,
+// with no focus class on it. jsdom paints nothing: that the SELECTOR reaches every link
+// the catalogue draws is held by stories/inline-link-ring.test.js, and the band itself is
+// measured in the browser.
 it('keeps action events, keyboard focus and caller routing', async () => {
   const user = userEvent.setup();
   const click = vi.fn();
-  const { getByRole } = render(<Success actions={<><Button onClick={click}>Continue</Button><a className="ui-focusable" href="#receipt">Receipt</a></>} />);
+  const { getByRole } = render(<Success actions={<><Button onClick={click}>Continue</Button><a href="#receipt">Receipt</a></>} />);
   await user.tab();
   expect(getByRole('button')).toHaveFocus();
   await user.keyboard('{Enter}');
@@ -151,7 +153,7 @@ it('keeps action events, keyboard focus and caller routing', async () => {
   await user.tab();
   expect(getByRole('link')).toHaveFocus();
   expect(getByRole('link')).toHaveAttribute('href', '#receipt');
-  expect(getByRole('link')).toHaveClass('ui-focusable');
+  expect(getByRole('link').className).toBe('');
 });
 
 it('renders panel text safely and shares the decorative check', () => {

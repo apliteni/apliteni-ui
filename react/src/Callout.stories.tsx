@@ -17,7 +17,7 @@ export const Info: Story = {
   args: { variant: 'info', children: <><b>Adjusted.</b> Amounts use the exchange rate at the close of each day.</> },
 };
 export const Success: Story = {
-  args: { variant: 'success', children: <><b>Complete.</b> All rows have been reconciled. Read the <a className="ui-focusable" href="#period">period notes</a>.</> },
+  args: { variant: 'success', children: <><b>Complete.</b> All rows have been reconciled. Read the <a href="#period">period notes</a>.</> },
 };
 export const Warn: Story = {
   args: { variant: 'warn', children: <><b>Incomplete.</b> This period is still open.</> },
@@ -28,7 +28,7 @@ export const Danger: Story = {
 export const WithActions: Story = {
   args: {
     variant: 'warn',
-    children: <><b>Incomplete.</b> Review the <a className="ui-focusable" href="#period">period notes</a> before closing this period.</>,
+    children: <><b>Incomplete.</b> Review the <a href="#period">period notes</a> before closing this period.</>,
     actions: <><Button size="sm">Review period</Button><Button size="sm">View unconverted rows</Button></>,
   },
 };

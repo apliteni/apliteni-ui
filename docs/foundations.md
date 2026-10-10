@@ -273,6 +273,10 @@ One indicator: a 2px solid accent band, drawn as a real `outline`, with 1px betw
 control. There is no halo. The offset is left **unpainted**, so what shows in that 1px is
 whatever surface the control is already standing on.
 
+A link that breaks across two lines draws one band per line, because an `outline` follows each
+line box it covers. This is the same thing the browser's own outline already did, so a link
+gets no new limit by taking the kit's band instead.
+
 ```css
 --ring-width: 2px;
 --ring-color: var(--accent);
@@ -303,9 +307,14 @@ rows and takes no ring.
 **Every focusable control the kit ships draws the band**, including a roving row the keyboard
 reaches with an arrow key rather than Tab. None falls back to the browser's own outline, which
 ignores the accent and is black in both themes. The command palette's input is the one exception,
-and its own rule says why: it keeps focus while the dialog is open. **A control of your own wears
-`.ui-focusable`**, the kit's opt-in class. A router link or a plain `<a>` used as an action needs
-it.
+and its own rule says why: it keeps focus while the dialog is open. **Every link draws it too,
+including one of your own with no class on it.** The ring is claimed for the `a` element, so a
+link in running text, a router link and a plain `<a>` used as an action all answer the keyboard
+with the band and take nothing to opt into. A component that rings its own anchor — a table
+cell's link, the footer's, a breadcrumb — is the more specific rule and keeps the shape and the
+corner it already drew. **A control of your own wears `.ui-focusable`**, the kit's opt-in class,
+for a focusable that is neither a link nor a kit control — a `div` or `span` you gave a
+`tabindex`.
 
 **A focused control draws the band and nothing beside it.** Every other edge keeps its resting
 ink. Where a resting or hover rule would outrank the focus rule, it stands aside with

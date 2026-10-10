@@ -145,14 +145,12 @@
   top: 50%;
   translate: 0 -50%;
 }
-/* And on keyboard focus every link in a table takes the kit ring, at whatever corner it
-   carries, so none falls back to the browser's own outline. `.ui-btn` has the ring already.
-   why: guidelines/state-set.md#focus-rings
-   held by: src/styles/table-focus.test.js */
-.ui-table a:not(.ui-btn):focus-visible {
-  outline: var(--ring);
-  outline-offset: var(--ring-offset);
-}
+/* No focus rule here any more. #510 gave a cell link the ring with a rule of this file's
+   own, because `base.css` reached no bare `a`; #587 put `a` on that shared list, so this
+   one painted the same two declarations a second time. The guarantee is unchanged and
+   still held by src/styles/table-focus.test.js — the corner the band follows is the
+   `border-radius` above, which is this file's and stays.
+   why: guidelines/state-set.md#focus-rings */
 
 .ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }
 /* A numeric column is sized to its content while .ui-table__title claims the rest,

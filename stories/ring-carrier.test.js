@@ -90,7 +90,10 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 47 -> 48: the picker's day cell, which used to write the transparent stand-in alone
   // and take the band from base.css. It has to write the band itself now, because the
   // hover rule above it ties base.css's rule on specificity and stands later.
-  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
+  // 48 -> 47: #587 put the `a` element on the shared rule in base.css — one existing
+  // selector list gains a member, not a new rule — and removed table.css's own copy of
+  // the link's ring, which was its own rule block and so its own consumer.
+  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -219,7 +222,7 @@ const secondBands = (subjects) => subjects.flatMap((rule) => [...rule.body.match
 test('a focus rule draws the band and no second accent edge', () => {
   // Every consumer is read, so this cannot go quiet by losing its subjects: the count
   // is the one the offset gate pins, and the two have to move together.
-  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
+  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
   assert.deepEqual(secondBands(consumers), []);
 });
 

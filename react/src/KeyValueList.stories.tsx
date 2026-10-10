@@ -12,7 +12,7 @@ export default meta;
 const rows = [
   { label: 'Reference', value: 'INV-1001' },
   { label: 'Status', value: <Badge variant="success">Posted</Badge> },
-  { label: 'Invoice', value: <a className="ui-focusable" href="#invoice">View invoice</a> },
+  { label: 'Invoice', value: <a href="#invoice">View invoice</a> },
   { label: 'Amount', value: '€ 1,240.00' },
 ];
 
