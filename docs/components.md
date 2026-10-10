@@ -181,7 +181,8 @@ otherwise need to discover. Each rule's test contains its detail. React's own no
 
 `appShell()` is the kit's one way to compose a page. It draws the chrome, and you decide what
 goes inside. It always draws **one `<main>` landmark** and gives every navigation landmark a
-unique name. It does not invent a breadcrumb that you did not pass. It does not render a topbar
+unique name. **The page title keeps the same step above your content whether or not you pass a
+`sub`.** It does not invent a breadcrumb that you did not pass. It does not render a topbar
 unless you pass one. **The rail folds** below 720px through CSS alone and through a `<button>`
 that the reader presses. That button writes the `apliteni-ui-rail` cookie, so a server can first
 paint the folded width with `railCollapsed()`. A folded row keeps its name and count for keyboard
