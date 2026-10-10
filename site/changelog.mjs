@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.98.0', date: '2026-10-10',
+    changes: [
+      ['fixed', 'Every floating panel the kit draws is capped to the room its trigger leaves before the viewport edge it opens toward, less `--ui-dropdown-edge` at that edge, and scrolls inside that cap — the wheel over it stops at the panel’s own end instead of carrying on down the page underneath. Before this a panel took its content’s full height: a twelve-row menu opened 300px above the bottom of a 390×844 phone ended past the fold with its last rows unreachable, and the wheel scrolled the page instead. Two custom properties decide the cap and the smaller wins — `--ui-dropdown-cap` is what the consumer asked for, so the fixed-height modifier still works the same way: `scroll: true` still writes 300px and `scroll: <n>` still writes n pixels. `--ui-dropdown-avail` is the measured room, re-written on every open, scroll and resize from one calculation the vanilla kit and React’s `<Dropdown>` share, so neither can disagree about where a panel ends. A trigger with less than `--ui-dropdown-min` (120px) of room spends the edge inset first, down to nothing, before shrinking further — it never spends room past the edge. A search panel lays its field and list in a column, so the cap lands on the rows and the field keeps its own height. Resolves #489.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.97.0', date: '2026-10-10',
     changes: [
       ['fixed', 'Every link the kit renders answers the keyboard with the kit’s focus ring. The ring is claimed for the `a` element now, so a consumer’s own links are covered with nothing to opt into; a component that rings its own anchor, such as a table cell’s link or the footer’s, is the more specific rule and keeps the shape and the corner it already drew. In React a plain `<a>` and a router link no longer need `className="ui-focusable"`: that class is left for a focusable that is neither a link nor a kit control, such as a `div` or `span` given a `tabIndex`. Fixes #587.', ['Callout', 'Confirm', 'StatBand']],
