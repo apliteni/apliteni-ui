@@ -7,7 +7,9 @@
  * trigger instead of the kit's button, and kept it when the row was off.
  *
  * So this reads button.css, works out which of its fills can land on THIS
- * control, and requires filter-bar.css to answer each. Read as text, like
+ * control, and requires filter-bar.css to answer each — with no fill, or with the
+ * accent wash the row paints under a pointer, which is the one fill the kit itself
+ * does not count as a grey block. Read as text, like
  * pagination.test.js next door, because the package ships CSS as its artifact.
  * It measures the cascade and not pixels; the paint is measured in a browser.
  * why: docs/components.md#a-filter-row-holds-its-panels
@@ -88,18 +90,27 @@ const kitFills = kitFillsOf(BUTTON, '.ui-btn');
 /* And the ones the kit's trigger paints, which is the box `[data-filter-add]` holds. */
 const triggerFills = kitFillsOf(DROPDOWN, '.ui-dropdown__trigger');
 
-/* The sheet's answers: a transparent fill written for one of the row's boxes. */
-const answersFor = (attr) => rules(BAR)
+/* The sheet's answers: a fill written for one of the row's boxes that is not a grey block —
+   transparent, or carrying the control's own colour. Limit: ACCENTED asks which token a fill
+   mixes, not how opaque the result is or what the ink on it then measures; the contrast walk
+   reads the paint. */
+const answersFor = (attr, css = BAR) => rules(css)
   .filter(({ selector, body }) => selector.includes(`[${attr}]`)
-    && INVISIBLE.test(fillOf(body) ?? ''));
+    && (INVISIBLE.test(fillOf(body) ?? '') || ACCENTED.test(fillOf(body) ?? '')));
 const answers = answersFor('data-filter-clear');
 const addAnswers = answersFor('data-filter-add');
 
+/* A kit rule lands on a live control and on a dead one alike, and `:enabled` and `:disabled`
+   are the two halves of that, so each half is asked on its own. An answer may qualify itself
+   with the half it is written for — the pointer wash is for a live control — and the other
+   half then has to be answered as well. */
+const HALVES = [':enabled', ':disabled'];
 const unanswered = (kit, given) => kit.filter(({ selector }) => {
   const state = qualifiers(selector);
   const weight = specificity(selector);
-  return !given.some((answer) => subset(qualifiers(answer.selector), state)
-    && outranks(specificity(answer.selector), weight));
+  return !HALVES.every((half) => given.some(
+    (answer) => subset(qualifiers(answer.selector), [...state, half])
+      && outranks(specificity(answer.selector), weight)));
 }).map(({ selector }) => selector);
 
 test('both sheets are being read, and the later one is the filter bar', () => {
@@ -135,11 +146,33 @@ test('every neutral fill the kit can paint on this control is discovered', () =>
     'the accent hover wash is being treated as a neutral fill');
 });
 
-test('the clear action answers every one of them with no fill at all', () => {
-  assert.ok(answers.length >= 2, `filter-bar.css writes ${answers.length} transparent fills for it`);
+test('the clear action answers every one of them with no grey block', () => {
+  assert.ok(answers.length >= 2, `filter-bar.css writes ${answers.length} answering fills for it`);
   assert.deepEqual(unanswered(kitFills, answers), [],
     'these kit fills out-rank the clear action\'s own, so its words land on a grey block in that state',
   );
+});
+
+test('the sweep refuses a grey fill written into the clear action\'s pointer answer', () => {
+  // The mutation for the answer this gate learned to accept: the row\'s own hover wash. Swapped
+  // for the kit\'s grey surface it stops being an answer, and .ui-btn--ghost:hover is uncovered.
+  const grey = BAR.replace('background: color-mix(in srgb, var(--accent) 14%, transparent)', 'background: var(--surface)');
+  assert.notEqual(grey, BAR, 'the mutation changed nothing, so it proves nothing');
+  assert.deepEqual(unanswered(kitFills, answersFor('data-filter-clear', grey)), ['.ui-btn--ghost:hover'],
+    'a grey hover fill on the clear action is being read as an answer');
+});
+
+test('the sweep refuses a sheet that answers only the half a pointer is in', () => {
+  // The other side of the two halves: with the live control's wash in place but the dead
+  // control's flat fill gone, the kit's greys reach a disabled control and the sweep says so.
+  const group = '.ui-filter-bar [data-filter-clear] button:disabled,\n'
+    + '.ui-filter-bar [data-filter-clear] button[aria-disabled="true"],\n'
+    + '.ui-filter-bar [data-filter-clear] button[aria-busy="true"],';
+  const live = BAR.replace(group, group.split('\n').slice(1).join('\n'));
+  assert.notEqual(live, BAR, 'the mutation changed nothing, so it proves nothing');
+  assert.deepEqual(unanswered(kitFills, answersFor('data-filter-clear', live)).sort(),
+    ['.ui-btn--ghost:hover', '.ui-btn:disabled'],
+    'the enabled half alone is being read as answering a kit fill');
 });
 
 test('the sweep refuses a sheet that answers only the resting fill', () => {
