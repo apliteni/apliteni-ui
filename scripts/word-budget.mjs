@@ -70,7 +70,7 @@ export const RECORDED = {
   'file-drop.md': 558,
   'going-back.md': 375,
   'hover-readouts.md': 333,
-  'iconography.md': 321,
+  'iconography.md': 316,
   'labels-and-titles.md': 384,
   'layout-and-density.md': 318,
   'state-set.md': 331,
