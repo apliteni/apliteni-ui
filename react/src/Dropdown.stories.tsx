@@ -214,3 +214,45 @@ export const NearTheScreenEdges: StoryObj<typeof Dropdown> = {
     </Stage>
   ),
 };
+
+// Pushes the trigger to `bottomGap`px above the viewport's bottom edge, in
+// normal document flow rather than `position: fixed`. A panel left at its
+// content height below the floor can only grow the page and let a reader
+// reach it by scrolling when its trigger's own ancestors are in flow; a
+// `position: fixed` wrapper would detach it the way `portal: true` does. #641
+const EdgeStage = ({ bottomGap, children }: { bottomGap: number; children: React.ReactNode }) => (
+  <div style={{
+    minHeight: '100vh', boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
+    justifyContent: 'flex-end', paddingLeft: 24, paddingBottom: bottomGap,
+  }}
+  >
+    {children}
+  </div>
+);
+
+// Twelve rows, no `scroll` — the automatic cap has to reach without it — and a
+// trigger pinned 300px above the bottom, the shape #489's acceptance names.
+// stories/dropdown-reach.test.js opens this story by id to measure it in a
+// real browser: both ends inside the viewport and the wheel over it scrolling
+// the panel rather than the page.
+const TWELVE: DropdownEntry[] = Array.from({ length: 12 }, (_, i) => ({ label: `Row ${i + 1}`, value: String(i + 1) }));
+export const BottomEdge: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <EdgeStage bottomGap={300}>
+      <Dropdown items={TWELVE} ariaLabel="Account" triggerContent="Account" defaultOpen />
+    </EdgeStage>
+  ),
+};
+
+// The floor's own case: a trigger with almost no room left, below even the
+// 120px floor once the whole edge inset is spent. The panel is left at its
+// content height instead, so the page grows and scrolls to reach every row.
+// #502's review measured this with the trigger's own bottom 36px above the
+// viewport's; #641's review found the sliver it drew before this was fixed.
+export const NearBottomEdge: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <EdgeStage bottomGap={36}>
+      <Dropdown items={TWELVE} ariaLabel="Account" triggerContent="Account" defaultOpen />
+    </EdgeStage>
+  ),
+};

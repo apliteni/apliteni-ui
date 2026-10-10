@@ -417,17 +417,21 @@ test('no panel cuts its rows\' focus ring off', () => {
 });
 
 test('the gate fails when the account menu clips again, and not when a padded panel does', () => {
-  // The #519 state, exactly: `.amenu` clipping with no padding. Nothing on disk is touched.
-  const rule = baseRule('amenu');
-  assert.equal(clipsIn(rule), false, 'the mutation has nothing to add — .amenu already clips');
-  assert.equal(roomIn(rule), 0, 'the mutation assumes .amenu pads by nothing, and it no longer does');
-  const clipped = { ...rule, body: `${rule.body} overflow: hidden;` };
+  // The #519 state, exactly: a panel that clips with no padding, which is what `.amenu`
+  // was before it kept room for the ring. A fixture rather than `baseRule('amenu')`: #489
+  // gave the live rule a legitimate overflow and #519's own padding fix now keeps it from
+  // clipping, so reading the shipped rule here would couple this detector proof to CSS
+  // that is free to keep changing. The fixture reproduces the #519 case on its own terms.
+  const rule = { file: 'src/styles/topbar.css', selector: '.fixture', body: '' };
+  const clipped = { ...rule, body: 'overflow: hidden;' };
+  assert.equal(clipsIn(clipped), true, 'the fixture has to clip for the mutation to mean anything');
+  assert.equal(roomIn(clipped), 0, 'the fixture has to pad by nothing for the mutation to mean anything');
   assert.deepEqual(cutsOff(['amenu'], () => clipped),
     [`.amenu in ${rule.file}: clips at its edge with 0px of padding for a 3px ring`],
-    'putting the clip back on an unpadded panel has to be reported');
+    'putting a clip on an unpadded panel has to be reported');
 
   // And the other way out is real: the same clip over a panel that keeps the room passes.
-  const padded = { ...rule, body: `${rule.body} padding: ${spread}px; overflow: hidden;` };
+  const padded = { ...rule, body: `padding: ${spread}px; overflow: hidden;` };
   assert.deepEqual(cutsOff(['amenu'], () => padded), [],
     'a panel that keeps the ring\'s spread inside its own box may clip at its edge');
 });

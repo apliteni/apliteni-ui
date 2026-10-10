@@ -116,7 +116,7 @@ what a factory accepts. They do not describe what the factory does.
 | `input`, `textarea`, `select`, `checkbox`, `switchToggle` | The controls `field` wraps; each also renders on its own. |
 | `segmented({ options, active, size, block, name, ariaLabel })` + `segmentedNextIndex(key, index, length)`, `initSegmented(root)` | Toolbar of toggle buttons. See [Segmented or tabs?](#segmented-or-tabs) and [Segmented strips that outgrow their column](#segmented-strips-that-outgrow-their-column). |
 | `tabs({ items, active, name, ariaLabel })` + `initTabs(root)` | Tablist and its panels, one per item. |
-| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit, and `filterPanelFit(dd, floor)` with `DD_MENU_FLOOR` is the same for a filter chip's menu: inside `.ui-filter-bar` an **open** menu takes the kit's 240px floor rather than its trigger's width, and a shut one keeps the trigger's. Both halves ask the kit and write the three `--ui-filter-panel-*` properties the stylesheet reads, measure again whenever the row's width or the chip's place in it changes, and hold the open geometry until the menu's fade has finished. `dropdownViewportFit(panel)` is the third, and answers for a panel outside a filter row: how wide it may be and how far it has to move to stay inside the view it is laid out in. `--ui-dropdown-edge` is the gap it keeps from the view's edge. See [The dropdown panel](#the-dropdown-panel), [A dropdown with a search field](#a-dropdown-with-a-search-field) and [A filter row holds its panels](#a-filter-row-holds-its-panels). |
+| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit, and `filterPanelFit(dd, floor)` with `DD_MENU_FLOOR` is the same for a filter chip's menu: inside `.ui-filter-bar` an **open** menu takes the kit's 240px floor rather than its trigger's width, and a shut one keeps the trigger's. Both halves ask the kit and write the three `--ui-filter-panel-*` properties the stylesheet reads, measure again whenever the row's width or the chip's place in it changes, and hold the open geometry until the menu's fade has finished. `dropdownViewportFit(panel)` is the third, and answers for a panel outside a filter row: how wide it may be and how far it has to move to stay inside the view it is laid out in. `--ui-dropdown-edge` is the gap it keeps from the view's edge. `dropdownHeightFit(dd, panel)` is the fourth: how tall an **open** panel may be, the room between its trigger and the viewport edge it opens towards. It answers nothing for a closed panel. See [The dropdown panel](#the-dropdown-panel), [A dropdown with a search field](#a-dropdown-with-a-search-field) and [A filter row holds its panels](#a-filter-row-holds-its-panels). |
 | `filterBar(options)` + `initFilterBar(host, options)`, with `filterChipText`, `filterChipName`, `filterChipUnset`, `filterChipItems`, `nextFocusStop`, `focusNextStop` | The controlled filter row above a table. The consumer owns the filters and calls `update()`. `filterChipItems(filter)` marks the chip's own value in the items it hands its menu, so the line the chip prints and the row the menu marks cannot disagree; a chip that is unset, or whose value is in no row, marks nothing, and a `selected` the consumer set does not stand in for it. `nextFocusStop(host)` names the control a reader's next <kbd>Tab</kbd> would reach, which is where an emptied bar sends the focus; `focusNextStop(host)` puts it there, skipping anything the reader cannot reach, and answers with the element it ended on. See [A filter row holds its panels](#a-filter-row-holds-its-panels). |
 | `pagination({ page, pageSize, total, hasMore, pageSizes, variant, label, loading, href, id })` + `wirePagination(root, …)`, `setPagerStatus(root, text)`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE` | The strip under a table or list; it renders a page the caller already computed. See [Pagination](#pagination). |
 | `commandPalette({ groups, items, label, placeholder, query, empty, density, hint, rank, hotkey, open, specimen, id })` + `wireCommandPalette`, `openCommandPalette`, `closeCommandPalette`, `commandPaletteList`, `setPaletteResults`, `rankCommands`, `rankGroups`, `scoreCommand`, `SCORE`, `paletteHotkey()` | The ⌘K overlay and the ranking behind it; `SCORE` is the ladder itself, for a server that sorts the same way. See [The command palette](#the-command-palette). |
@@ -259,6 +259,39 @@ rows readable. The ceiling is the view less that gap at each side. The floor win
 disagree, which is a view narrower than 256px. A long unbroken token — a filename, a key, a URL —
 breaks in the middle rather than reaching past the bound, so one row cannot make the panel wider
 than the screen. The tradeoff is a broken word.
+
+**An open panel never runs past the viewport edge, on the other axis either.** A wired panel is
+capped at the room between its trigger and the edge it opens towards, less the gap it keeps from
+the trigger and `--ui-dropdown-edge` at the edge, and scrolls inside that cap — the wheel over it
+stops there too, rather than carrying on down the page underneath. The cap takes hold when a panel
+opens, and also right away for a panel that is already open when the wiring reaches it. That is the
+whole of [#489](https://github.com/apliteni/apliteni-ui/issues/489): before it an opened
+panel took its content's height unless the consumer reached for the `scroll` modifier, so a
+twelve-row menu opened 300px above the bottom of a 390×844 phone ended past the fold and its last
+rows could not be reached, and the wheel over it scrolled the page instead. Capped, the same menu
+ends inside the viewport and scrolls on its own. Two custom properties decide the height and the
+smaller wins:
+
+- `--ui-dropdown-cap` is what the consumer asked for. `scroll: true` is `.is-scroll`, which sets it
+  to 300px; `scroll: <n>` writes it inline, as the property and not `max-height`, because an inline
+  height would outrank the panel's own `min()` and put it back past the edge.
+- `--ui-dropdown-avail` is the measured room. The wiring writes it when a panel opens, or is already
+  open when the wiring attaches, and re-writes it on every scroll and resize while the panel stays
+  open, from `dropdownAvail()` in `src/logic/dropdown.js` — one calculation, so the vanilla wiring
+  and the React `<Dropdown>` cannot disagree about where an open panel ends. `dropdownHeightFit(dd,
+  panel)` is that calculation, published so a second implementation can read it instead of measuring
+  its own. A closed panel carries no measured room: `--ui-dropdown-avail` stays unwritten, and the
+  sheet's fallback, `calc(100dvh - 2 * var(--ui-dropdown-edge))`, is the viewport's height, not the
+  trigger-to-edge room this section promises. A closed panel's height is outside this guarantee;
+  sizing one is [#501](https://github.com/apliteni/apliteni-ui/issues/501).
+
+A trigger near the edge can leave less room than `--ui-dropdown-min` (120px) wants for a usable
+panel. The floor spends the edge inset, down to nothing, to try to reach 120px, but it never spends
+room past the edge, because that room does not exist. Where even the whole inset falls short of
+120px, the guarantee above does not hold: the panel is left at its content height instead of a
+sliver no reader could use, so it may run past the trigger's edge and grow the page, the way an
+unmeasured panel does. A search panel is a column, so this cap lands on the rows and not on the
+field: `.ui-dropdown__list` shrinks to whatever room the capped panel leaves it.
 
 **A panel keeps its place while the page moves its trigger.** A row that re-lays itself out, an
 ancestor scrolling sideways, a longer run of text beside the trigger, and a transition that slides

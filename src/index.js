@@ -27,7 +27,7 @@ export * from './components/table-values.js';
 export * from './components/segmented.js';
 export * from './components/filter-bar.js';
 
-export { dropdownMatch, dropdownFiltering } from './logic/dropdown.js';
+export { dropdownMatch, dropdownFiltering, dropdownAvail } from './logic/dropdown.js';
 export { SCORE, rankGroups, rankCommands, scoreCommand, paletteHotkey } from './logic/command-palette.js';
 export { segmentedNextIndex } from './logic/segmented.js';
 export { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop, focusNextStop } from './logic/filter-bar.js';

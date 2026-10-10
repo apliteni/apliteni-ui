@@ -1,9 +1,11 @@
 import {
   Fragment, useCallback, useEffect, useId, useRef, useState,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode,
 } from 'react';
 import {
   icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs, dropdownViewportFit,
+  dropdownHeightFit,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 
@@ -422,6 +424,47 @@ export function Dropdown({
     };
   }, [open]);
 
+  /* The room the panel may take, written as the custom property the shared sheet
+   * caps itself with — the same number src/components/dropdown.js writes, from
+   * the same dropdownHeightFit(), so a panel opened low on a phone ends inside
+   * the viewport in React exactly as it does in vanilla. Re-measured on scroll
+   * and resize, because the page moves under the trigger and the viewport edge
+   * does not.
+   *
+   * Ordered BEFORE the focus effect below, and not after it (#502 review): with
+   * a field-less menu, focusing a row before the cap is applied can scroll the
+   * page to bring that row into view — moving the trigger and measuring the cap
+   * against its new, wrong position. Sizing first keeps the trigger where the
+   * cap is measured from. why: docs/components.md#the-dropdown-panel
+   */
+  useIsoLayoutEffect(() => {
+    if (!open) return;
+    const el = panel.current;
+    if (!el) return;
+    const size = () => {
+      const avail = dropdownHeightFit(root.current, el);
+      if (avail == null) return;
+      // Infinity: the floor could not be met even by spending the whole inset, so
+      // the property is removed rather than written, and the sheet's own fallback
+      // takes over. why: dropdownAvail(), src/logic/dropdown.js
+      if (Number.isFinite(avail)) el.style.setProperty('--ui-dropdown-avail', `${avail}px`);
+      else el.style.removeProperty('--ui-dropdown-avail');
+      // `.is-unbounded` only where that leaves no cap at all — a `scroll` prop
+      // still clamps the panel through --ui-dropdown-cap, and that clamp is still
+      // real room to scroll. why: src/styles/dropdown.css
+      const cap = el.ownerDocument.defaultView?.getComputedStyle(el).getPropertyValue('--ui-dropdown-cap').trim();
+      el.classList.toggle('is-unbounded', !Number.isFinite(avail) && !cap);
+    };
+    size();
+    const view = el.ownerDocument?.defaultView ?? window;
+    view.addEventListener('scroll', size, true);
+    view.addEventListener('resize', size);
+    return () => {
+      view.removeEventListener('scroll', size, true);
+      view.removeEventListener('resize', size);
+    };
+  }, [open, direction]);
+
   useIsoLayoutEffect(() => {
     const want = landOn.current;
     landOn.current = null;
@@ -721,8 +764,10 @@ export function Dropdown({
     })
     : (items || []).map((entry, i) => renderRow(entry, `i${i}`));
 
+  // The cap property and not `maxHeight`: an inline height would outrank the
+  // sheet's min() and put the panel back past the viewport edge. #489
   const cap = scroll && scroll !== true
-    ? { maxHeight: typeof scroll === 'number' ? `${scroll}px` : scroll }
+    ? { '--ui-dropdown-cap': typeof scroll === 'number' ? `${scroll}px` : scroll } as CSSProperties
     : undefined;
   // The no-match state. A function replacer, so a `$&` typed into the field is text
   // rather than a replacement pattern.

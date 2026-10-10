@@ -93,7 +93,11 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 48 -> 47: #587 put the `a` element on the shared rule in base.css — one existing
   // selector list gains a member, not a new rule — and removed table.css's own copy of
   // the link's ring, which was its own rule block and so its own consumer.
-  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  // 47 -> 49: #489's cap made the topbar's version switcher menu and account menu
+  // scroll by default, so each needs the ring on its own scroll region the way
+  // `.ui-dropdown__panel` already does — `.vsw__menu:focus-visible` and
+  // `.amenu:focus-visible`.
+  assert.equal(consumers.length, 49, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -222,7 +226,7 @@ const secondBands = (subjects) => subjects.flatMap((rule) => [...rule.body.match
 test('a focus rule draws the band and no second accent edge', () => {
   // Every consumer is read, so this cannot go quiet by losing its subjects: the count
   // is the one the offset gate pins, and the two have to move together.
-  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  assert.equal(consumers.length, 49, 'ring consumer discovery changed');
   assert.deepEqual(secondBands(consumers), []);
 });
 

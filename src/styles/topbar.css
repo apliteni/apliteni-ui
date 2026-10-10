@@ -141,6 +141,13 @@
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: 16px;
   padding: 6px;
+  /* The same cap `.ui-dropdown__panel` writes itself, in bespoke clothes: this
+     menu is `wireDropdown()` too, so wireDropdown() measures it the same way and
+     writes the same two properties. #489
+     why: docs/components.md#the-dropdown-panel */
+  max-height: min(var(--ui-dropdown-cap, 100dvh), var(--ui-dropdown-avail, calc(100dvh - 16px)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   opacity: 0;
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a box
@@ -157,6 +164,13 @@
     visibility var(--dur-med) linear;
   z-index: var(--z-dropdown);
 }
+/* Chrome makes a scroll container a keyboard stop on its own — no tabindex, no
+   author rule — and #489's cap is what gave this menu the `overflow-y` that
+   makes it one, the same way `.ui-dropdown__panel` got it. `.vopt` is
+   `tabindex="-1"` and reached only by the arrow keys, so Tab lands on the menu
+   itself rather than a row inside it, and the ring belongs here for the same
+   reason `.ui-dropdown__panel` keeps it. why: docs/foundations.md#elevation */
+.vsw__menu:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 /* Open, the menu is clickable and visible AT ONCE. Both menus in this file are
    `wireDropdown()` in bespoke clothes — same hooks, same keyboard, same fade — so they
    owe a panel's two rules as much as `.ui-dropdown__panel` does: `visibility` off the
@@ -192,10 +206,10 @@
   transition: background var(--dur-fast) var(--ease);
 }
 /* Menu rows use the reading surface and an edge on hover — see
-   src/styles/dropdown.css:207 `.ui-dropdown__item:hover`.
+   src/styles/dropdown.css:245 `.ui-dropdown__item:hover`.
    why: docs/foundations.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-/* The row is a keyboard stop: src/components/dropdown.js:1015
+/* The row is a keyboard stop: src/components/dropdown.js:1088
    `items[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
    the arrow keys, and this is one. It takes the ring on its own 10px radius, the
    same way `.amenu a` above does. #482 */
@@ -277,10 +291,24 @@
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   border-radius: 14px;
-  /* No clip. The rows reach this panel's edges, and the ring a focused row draws reaches
-     3px past itself; `overflow: hidden` here cut that down to the one pixel of border it
-     had, and the reader met two accent bars instead of a ring. The ring crosses the edge
-     now. #519 why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
+  /* #519 chose no clip over padding: `overflow: hidden` with no room cut the ring down to
+     the one pixel of border this panel had, so the rule took the clip away instead and let
+     the ring cross the edge. #489's cap takes that choice away — `overflow-y: auto` clips
+     again, because a menu that scrolls has to stop its content at its own edge — so this
+     reserves the room instead, the same 6px `.vsw__menu` and `.ui-dropdown__panel` already
+     keep rather than a new figure. why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
+  padding: 6px;
+  /* The same cap `.ui-dropdown__panel` writes itself — see .vsw__menu above. #489 */
+  max-height: min(var(--ui-dropdown-cap, 100dvh), var(--ui-dropdown-avail, calc(100dvh - 16px)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Chromium scrolls a focused row flush with the scrollport edge, which is 3px
+     short of the row's own ring: 1px of gap plus a 2px band. The padding above
+     reserves that room while the menu stands still; this keeps it reserved once
+     scrolling the menu — reaching the first row this PR made it do — puts a
+     focused row at either end. #641's danger 2.
+     why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
+  scroll-padding-block: 3px;
   opacity: 0;
   visibility: hidden;
   pointer-events: none; /* see .vsw__menu above */
@@ -292,6 +320,10 @@
     visibility var(--dur-med) linear;
   z-index: var(--z-dropdown);
 }
+/* The same gap as `.vsw__menu` above, from the same cause: #489's cap. `.amenu
+   a` is `tabindex="-1"` too, so Tab still lands on the menu and not a row, and
+   the ring belongs here. why: docs/foundations.md#elevation */
+.amenu:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 /* Clickable and visible at once — see .vsw.open .vsw__menu above. The row this one
    costs is `.aout`: a stray click in the fade out ends the reader's session. */
 .acct.open .amenu {
@@ -301,12 +333,28 @@
   transform: translateY(0);
   transition-property: opacity, transform;
 }
-.amenu .ahead { padding: 13px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 11px; }
+/* `margin` bleeds the head back through the 6px panel padding above, the way
+   `.ui-dropdown__panel > .ui-dropdown__head` already does for its own panel:
+   the border-bottom hairline reaches the panel's edge instead of stopping a
+   notch short of it. #641's warning.
+   why: docs/components.md#the-dropdown-panel */
+.amenu .ahead {
+  padding: 13px 15px;
+  margin: -6px -6px 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 14px 14px 0 0;
+  display: flex; align-items: center; gap: 11px;
+}
 .amenu .ahead .avatar { cursor: default; }
 .amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu .ahead .aem { color: var(--text); font-size: calc(var(--text-xs) + 0.5px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: var(--text-sm); cursor: pointer; }
+/* `scroll-margin-block` on the row, beside `scroll-padding-block` on the panel
+   above: Chromium's own focus-follow scroll honoured the padding scrolling
+   toward the end of the list and not the start, so the row carries its own
+   reserve too rather than leaving the start of the list short. #641's danger 2.
+   why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
+.amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: var(--text-sm); cursor: pointer; scroll-margin-block: 3px; }
 .amenu a:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .amenu a:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .amenu a.cur { color: var(--accent); }

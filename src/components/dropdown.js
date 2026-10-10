@@ -1,5 +1,5 @@
-import { dropdownMatch, dropdownFiltering } from '../logic/dropdown.js';
-export { dropdownMatch, dropdownFiltering } from '../logic/dropdown.js';
+import { dropdownMatch, dropdownFiltering, dropdownAvail } from '../logic/dropdown.js';
+export { dropdownMatch, dropdownFiltering, dropdownAvail } from '../logic/dropdown.js';
 // Dropdown — the kit's one popover-list primitive. A trigger opens a panel of
 // item rows; two flavours share the same panel and the same open/close JS:
 //
@@ -120,7 +120,10 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
   const rows = ddBody({ items, sections }, true, sx);
   const flat = (sections ? sections.flatMap((s) => s.items || []) : (items || [])).filter(ddIsRow);
   const shown = flat.some((it) => dropdownMatch(it.label, sx.q));
-  const cap = scroll && scroll !== true ? ` style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '';
+  // The cap property and not `max-height`: an inline height outranks the sheet's
+  // min() and would put the panel back past the viewport edge. #489
+  const cap = scroll && scroll !== true
+    ? ` style="--ui-dropdown-cap:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '';
   const input = [
     'class="ui-dropdown__search-input"', 'type="text"', 'role="combobox"',
     'aria-autocomplete="list"', 'aria-expanded="true"', `aria-controls="${esc(listId)}"`,
@@ -202,7 +205,10 @@ export function dropdown({
     // With search the panel holds a field and a list, which a listbox may not.
     `role="${sx ? 'dialog' : listRole}"`,
     sx ? `aria-label="${esc(name)}"` : (ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''),
-    scroll && scroll !== true && !sx ? `style="max-height:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '',
+    // The cap property and not `max-height`: an inline height outranks the
+    // sheet's min() and would put the panel back past the viewport edge. #489
+    scroll && scroll !== true && !sx
+      ? `style="--ui-dropdown-cap:${typeof scroll === 'number' ? scroll + 'px' : esc(scroll)}"` : '',
   ].filter(Boolean).join(' ');
 
   // The block the sheet bleeds to the panel's bottom edge. It sits OUTSIDE the
@@ -276,6 +282,16 @@ const DD_EDGE = 8;
 function ddEdge(panel) {
   const declared = parseFloat(ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-edge'));
   return Number.isFinite(declared) ? declared : DD_EDGE;
+}
+
+// The least height a capped panel keeps, below which it would rather spend the
+// edge inset than shrink further. The number is --ui-dropdown-min in
+// src/styles/dropdown.css. #489
+const DD_MIN = 120;
+
+function ddMin(panel) {
+  const declared = parseFloat(ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-min'));
+  return Number.isFinite(declared) ? declared : DD_MIN;
 }
 
 /** The width a panel has to stay inside: the LAYOUT viewport, which is what both
@@ -515,10 +531,65 @@ function ddUnwatchRow(dd) {
  * taken for the middle of an animation, is stated with the rule.
  * why: docs/components.md#the-dropdown-panel */
 
+/**
+ * How tall a panel may be: the room between its trigger and the viewport edge,
+ * from dropdownAvail() in src/logic/dropdown.js — one calculation, so the
+ * vanilla wiring and the React `<Dropdown>` cannot disagree about where a panel
+ * ends. Measured from the trigger, not the panel, the way dropdownViewportFit()
+ * is measured from the panel and not the trigger: each is the box the number it
+ * answers actually depends on. `null` when there is nothing to measure.
+ * why: docs/components.md#the-dropdown-panel
+ *
+ * @param {Element} dd the `[data-dropdown]` container the trigger lives in
+ * @param {Element} panel a `[data-dropdown-panel]`, for its gap/edge/min and its
+ *   `is-up` direction
+ */
+export function dropdownHeightFit(dd, panel) {
+  const trigger = dd?.querySelector?.('[data-dropdown-trigger]');
+  if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !panel) return null;
+  const t = trigger.getBoundingClientRect();
+  const view = ddViewOf(panel);
+  return dropdownAvail({
+    anchorTop: t.top,
+    anchorBottom: t.bottom,
+    viewport: view.innerHeight,
+    gap: ddGap(panel),
+    inset: ddEdge(panel),
+    min: ddMin(panel),
+    up: panel.classList.contains('is-up'),
+  });
+}
+
+function ddSizeHeight(dd, panel) {
+  if (!panel?.style) return;
+  const avail = dropdownHeightFit(dd, panel);
+  if (avail == null) return;
+  // Infinity means the floor could not be met even by spending the whole inset:
+  // the property is removed rather than written, so the sheet's own fallback — the
+  // viewport less the edge inset, not a trigger-sized sliver — takes over. why:
+  // dropdownAvail(), src/logic/dropdown.js
+  //
+  // `.is-unbounded` is only added where that leaves NO cap at all: a consumer's
+  // own `--ui-dropdown-cap` (`.is-scroll` or a numeric `scroll`) still clamps the
+  // panel, and that clamp is still real room to scroll. why: src/styles/dropdown.css
+  const cap = ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-cap').trim();
+  panel.classList.toggle('is-unbounded', !Number.isFinite(avail) && !cap);
+  // A number that has not changed is not written again, the way the width fit's
+  // own write is guarded: a mutation inside the row that moved nothing vertically
+  // would otherwise answer its own write, over and over, through the document
+  // observer below. why: dropdownViewportFit()'s own "moved" guard, same file
+  const next = Number.isFinite(avail) ? `${avail}px` : '';
+  if (panel.style.getPropertyValue('--ui-dropdown-avail') === next) return;
+  if (next) panel.style.setProperty('--ui-dropdown-avail', next);
+  else panel.style.removeProperty('--ui-dropdown-avail');
+}
+
 /** Fit a panel again where it now is, whichever placement it uses. */
 function ddPlace(dd) {
+  const panel = dd.__ddPanel || ddPanelOf(dd);
   if (dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
   else ddFitViewport(dd, ddPanelOf(dd));
+  ddSizeHeight(dd, panel);
 }
 
 /* A few frames past the sheet's own end, so the timer never cuts the fade's last
@@ -778,6 +849,7 @@ function openDropdown(dd, focusIdx) {
        is null inside a filter row, whose own row already bounds its panels.
        why: docs/components.md#a-filter-row-holds-its-panels */
     else { ddFitFilterPanel(dd, panel); ddWatchRow(dd, panel); ddFitViewport(dd, panel); }
+    ddSizeHeight(dd, panel);
   }
   dd.classList.add('open');
   /* After `open`, and after the fit: ddResetSearch() pins the width it reads off
@@ -949,6 +1021,7 @@ export function wireDropdown(root = document) {
       ddFitFilterPanel(dd, panel);
       ddWatchRow(dd, panel);
     }
+    if (panel && dd.classList.contains('open')) ddSizeHeight(dd, panel);
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();

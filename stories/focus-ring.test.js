@@ -457,10 +457,13 @@ const SCROLL_RINGED = {
     + 'table of plain cells is a stop — measured on the shell at 390 with the browser\'s '
     + 'outline — and a card with a link or a button in a cell is not a stop at all. The '
     + 'band lands in the card\'s own 24px padding, clear of the table. #531',
-  '.ui-dropdown__panel.is-scroll': 'the kit ring, on the panel, by the rule written for '
+  '.ui-dropdown__panel': 'the kit ring, on the panel, by the rule written for '
     + 'every panel: the panel is the outermost box, so its halo falls on the page rather '
-    + 'than on a surface of its own. A panel that takes focus any other way has the same '
-    + 'claim on it. #487',
+    + 'than on a surface of its own. #489 capped every panel to the room the viewport '
+    + 'leaves, so the panel now scrolls by default instead of only on the `scroll` '
+    + 'opt-in — a keyboard reader tabbing into it meets the same ring whether the list '
+    + 'fits or runs past the cap, because the rule was never keyed to `.is-scroll`. A '
+    + 'panel that takes focus any other way has the same claim on it. #487',
   '.ui-dropdown__list': 'the inward band, on the list. The rows are role="option" '
     + 'tabindex="-1", so the list takes the stop — measured at 390 and 1280 with the '
     + 'browser\'s outline. It sits 6px inside a 16px corner, where an outset ring leaves '
@@ -484,6 +487,16 @@ const SCROLL_RINGED = {
     + 'which is flush with its card on three sides and has no radius of its own, so a ring '
     + 'drawn on it overhung the rounded corners and cut a line across the card. The card '
     + 'is the outermost box, so it keeps --ring. #474',
+  '.vsw__menu': 'the kit ring, on the menu, by a rule written for the menu itself. #489 '
+    + 'capped this menu the same way it capped `.ui-dropdown__panel`, so it now scrolls by '
+    + 'default, and `.vopt` is `tabindex="-1"` and reached only by the arrow keys, so it is '
+    + 'not a stop of its own — the menu is the outermost box Tab actually lands on, the '
+    + 'same claim `.ui-dropdown__panel` has on --ring. #489',
+  '.amenu': 'the kit ring, on the menu, for the same reason as `.vsw__menu` above: #489\'s '
+    + 'cap made it scroll by default, `.amenu a` is `tabindex="-1"` and reached only by the '
+    + 'arrow keys, and the menu is the outermost box, so a keyboard reader tabbing onto the '
+    + 'scroll region meets the same ring as every other panel rather than the browser\'s '
+    + 'outline. #489',
 };
 
 /**

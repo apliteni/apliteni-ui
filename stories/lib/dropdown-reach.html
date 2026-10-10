@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="/src/index.css">
+<style>html,body{margin:0;padding:0}</style>
+</head>
+<body>
+<script type="module">
+// The vanilla half of #489's acceptance case: a twelve-row menu, no `scroll`,
+// with its trigger a chosen distance above the viewport's bottom edge.
+// stories/dropdown-reach.test.js serves this at /__shot.
+// why: docs/components.md#the-dropdown-panel
+import { dropdown, wireDropdown } from '/src/components/dropdown.js';
+
+const params = new URLSearchParams(location.search);
+document.documentElement.dataset.theme = params.get('theme') || 'dark';
+const portal = params.get('portal') === '1';
+// Distance from the trigger's own bottom edge to the viewport's bottom edge.
+const bottomGap = Number(params.get('bottomGap') || '300');
+const items = Array.from({ length: 12 }, (_, i) => ({ label: `Row ${i + 1}` }));
+
+const spacer = document.createElement('div');
+document.body.appendChild(spacer);
+const host = document.createElement('div');
+host.innerHTML = dropdown({ value: 'Account', variant: 'menu', items, portal, align: 'start' });
+document.body.appendChild(host);
+wireDropdown(document.body);
+
+const trigger = host.querySelector('[data-dropdown-trigger]');
+const target = window.innerHeight - bottomGap;
+spacer.style.height = `${Math.max(0, target - trigger.getBoundingClientRect().height)}px`;
+window.__triggerBottom = trigger.getBoundingClientRect().bottom;
+window.__ready = true;
+</script>
+</body>
+</html>
