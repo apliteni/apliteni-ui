@@ -206,11 +206,13 @@ test('links: a native fallback and a flat outline on a link are both rejected', 
   assert.equal(judge('a{color:red}').status, 'native', 'a link no focus rule reaches is native');
   assert.equal(judge('a:focus-visible{outline:2px solid var(--accent)}').status, 'outline',
     'a flat accent outline is not the ring');
-  assert.equal(judge('a:focus-visible{outline:2px solid transparent;box-shadow:0 0 0 2px blue}').status,
-    'shadow', 'a box-shadow that is not the ring is not the ring');
-  assert.equal(judge('a:focus-visible{outline:2px solid transparent;box-shadow:var(--ring)}').status,
+  assert.equal(judge('a:focus-visible{box-shadow:0 0 0 2px blue}').status,
+    'shadow', 'a box-shadow is never the ring since #578');
+  assert.equal(judge('a:focus-visible{outline:var(--ring);outline-offset:var(--ring-offset)}').status,
     'ring', 'the shared ring passes');
-  assert.equal(judge('a:focus-visible{outline:2px solid var(--accent);box-shadow:var(--ring)}').status,
+  assert.equal(
+    judge('a:focus-visible{outline:var(--ring);outline-offset:var(--ring-offset)} '
+      + 'a:focus-visible{outline:2px solid var(--accent)}').status,
     'outline', 'a visible outline beside the ring is two indicators, not one');
   dom.window.close();
 });
