@@ -249,6 +249,26 @@ test('the default renders exactly what it rendered before the variants existed',
   assert.match(html, /class="ui-dropdown__panel"/);
 });
 
+// `disabled` marks the trigger off with the NATIVE attribute, so the browser
+// takes the stop out of the tab order and dispatches no click from a real
+// pointer or key — the wiring needs to know nothing about the state — and the
+// sheet's disabled rule takes the edge back to --disabled-border. #580
+//
+// Limit: that suppression is the browser's, and JSDOM does not model it —
+// `dispatchEvent` reaches a disabled button here as it does in Chromium. So
+// what is read below is the markup the browser acts on, and the behaviour is
+// Chromium's own, measured on the pull request's captures.
+test('a trigger asked for off carries the attribute, and nothing else does', () => {
+  const off = dropdown({ value: 'Actions', variant: 'menu', items: [{ label: 'Edit' }], disabled: true });
+  assert.match(off, /<button[^>]*\bdisabled\b/);
+  // The state is the button's own, not something the panel or a row inherits.
+  assert.equal((off.match(/\bdisabled\b/g) || []).length, 1);
+  assert.doesNotMatch(off, /aria-disabled/);
+
+  const live = dropdown({ value: 'Actions', variant: 'menu', items: [{ label: 'Edit' }] });
+  assert.doesNotMatch(live, /\bdisabled\b/);
+});
+
 test('no foot is drawn unless one was asked for, and none is invented', () => {
   const html = dropdown({ value: 'Actions', variant: 'menu', items: [{ label: 'Edit' }] });
   assert.doesNotMatch(html, /ui-dropdown__foot/);
@@ -355,6 +375,71 @@ const press = (window, el, key) =>
   el.dispatchEvent(new window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
 
 const MENU = [{ label: 'Settings' }, { label: 'Billing' }, { label: 'Sign out' }];
+
+/** Enter on a <button> is a keydown whose default action is a click. JSDOM runs
+ *  no default action, so the pair is dispatched here the way Chromium does it:
+ *  the click follows only when nothing called preventDefault on the key. */
+const enter = (window, el) => { if (press(window, el, 'Enter')) click(window, el); };
+
+/** The off spellings the SHEET paints, each written as the markup attribute a
+ *  page would carry, so a third spelling joins this sweep by being written into
+ *  src/styles/dropdown.css rather than into this file. */
+function offSpellings() {
+  const states = [...new Set(RULES
+    .filter((r) => decl(r, 'cursor') === 'not-allowed')
+    .flatMap((r) => r.selector.split(','))
+    .map((s) => s.trim())
+    .filter((s) => s.startsWith('.ui-dropdown__trigger') && s !== '.ui-dropdown__trigger')
+    .map((s) => s.slice('.ui-dropdown__trigger'.length)))];
+  return [...new Set(states.map((state) => {
+    if (/:disabled\b/.test(state)) return 'disabled';
+    const attr = state.match(/\[([\w-]+)="([^"]*)"\]/);
+    assert.ok(attr, `the sheet paints ${state} off and this test cannot write it as markup`);
+    return `${attr[1]}="${attr[2]}"`;
+  }))];
+}
+
+// #580 round two: the sheet paints BOTH spellings unavailable — the native
+// attribute and aria-disabled — and the aria one is still a keyboard stop, so
+// no browser refuses its click or its Enter. The wiring has to, the way the
+// panel's own rows already refuse an aria-disabled row one handler down. The
+// native spelling is read here as well, because JSDOM dispatches to a disabled
+// button where Chromium would not, so the guard is what holds in both.
+test('a trigger the sheet paints off opens nothing, by click, by Enter or by arrow', () => {
+  const spellings = offSpellings();
+  assert.deepEqual(
+    [...spellings].sort(), ['aria-disabled="true"', 'disabled'],
+    'both spellings the sheet paints off are measured here',
+  );
+
+  for (const off of spellings) {
+    const html = dropdown({ value: 'Actions', variant: 'menu', items: MENU })
+      .replace('data-dropdown-trigger', `data-dropdown-trigger ${off}`);
+    const window = mount(html);
+    const doc = window.document;
+    measure(window, { triggerTop: 20 });
+    wireDropdown(doc);
+    const dd = doc.querySelector('.ui-dropdown');
+    const trigger = doc.querySelector('[data-dropdown-trigger]');
+
+    for (const [how, act] of [['a click', click], ['Enter', enter], ['ArrowDown', (w, el) => press(w, el, 'ArrowDown')]]) {
+      act(window, trigger);
+      assert.equal(dd.classList.contains('open'), false, `${off}: ${how} opened the panel`);
+      assert.equal(trigger.getAttribute('aria-expanded'), 'false', `${off}: ${how} marked it expanded`);
+    }
+  }
+
+  // The same harness on a live trigger, so the three refusals above cannot be
+  // the harness failing to reach the wiring at all.
+  const window = mount(dropdown({ value: 'Actions', variant: 'menu', items: MENU }));
+  const doc = window.document;
+  measure(window, { triggerTop: 20 });
+  wireDropdown(doc);
+  const live = doc.querySelector('[data-dropdown-trigger]');
+  click(window, live);
+  assert.ok(doc.querySelector('.ui-dropdown').classList.contains('open'), 'a live trigger still opens');
+  assert.equal(live.getAttribute('aria-expanded'), 'true');
+});
 
 test('a portalled panel is moved onto <body>, out of every ancestor', () => {
   const window = mount(dropdown({ value: 'Workspace', variant: 'menu', portal: true, items: MENU }));

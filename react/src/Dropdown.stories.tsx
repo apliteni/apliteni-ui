@@ -165,6 +165,19 @@ export const SearchWithLinkRows: StoryObj<typeof Dropdown> = {
   ),
 };
 
+// A trigger that is off, beside a live one: no stop, no panel, the kit's
+// unavailable edge rather than a live control's. #580
+export const Off: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Stage>
+      <div style={{ display: 'flex', gap: 12 }}>
+        <Dropdown items={ACTIONS} ariaLabel="Row actions" triggerContent="Actions" />
+        <Dropdown items={ACTIONS} ariaLabel="Row actions" triggerContent="Actions" disabled />
+      </div>
+    </Stage>
+  ),
+};
+
 // Closed, so the trigger itself is the subject — and the end edge, for a menu that
 // would otherwise run off the right of its column.
 export const Closed: StoryObj<typeof Dropdown> = {

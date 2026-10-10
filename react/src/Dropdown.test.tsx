@@ -5,7 +5,7 @@
 // container's class list plus the shape read off each DOM. The one thing not
 // compared is `data-dropdown` on the container, which is deliberate — see the test
 // that asserts its absence, at the foot of the parity block.
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
@@ -75,6 +75,9 @@ function shape(dd: Element) {
       pre: trigger.querySelector('.ui-dropdown__pre')?.textContent ?? null,
       value: trigger.querySelector('.ui-dropdown__value')?.textContent ?? null,
       chevron: trigger.querySelectorAll('.ui-dropdown__chevron').length,
+      // The native attribute, which is what takes the stop out of the tab order
+      // and what the sheet's disabled rule keys on. #580
+      off: (trigger as HTMLButtonElement).disabled,
     },
     panel: {
       cls: classesOfEl(panel).join(' '),
@@ -229,6 +232,7 @@ const CASES: [string, DropdownProps][] = [
   ['a panel class of its own', { items: MENU, panelClass: 'app-menu' }],
   ['a trigger class of its own', { items: MENU, triggerClass: 'app-trigger' }],
   ['no chevron', { items: MENU, chevron: false }],
+  ['a trigger that is off', { items: MENU, ariaLabel: 'Row actions', disabled: true }],
   ['an id of its own', { items: MENU, id: 'row-actions' }],
   ['a named panel', { items: MENU, ariaLabel: 'Row actions' }],
   ['an icon in a row', { items: [{ label: 'Rename', icon: 'edit' }] }],
@@ -255,6 +259,54 @@ for (const [name, opts] of CASES) {
     parity(name, opts);
   });
 }
+
+// #580: off is the button's own state. React Testing Library's pointer and
+// keyboard model refuses a disabled control the way a browser does, so both
+// halves of "no stop, no panel" are read here rather than asserted from markup.
+it('an off trigger takes no keyboard stop and opens nothing', async () => {
+  const user = userEvent.setup();
+  const { container } = render(<Dropdown items={MENU} ariaLabel="Row actions" disabled />);
+  const dd = container.querySelector('.ui-dropdown')!;
+  const trigger = dd.querySelector('.ui-dropdown__trigger') as HTMLButtonElement;
+
+  await user.click(trigger);
+  expect(dd.classList.contains('open')).toBe(false);
+  expect(trigger.getAttribute('aria-expanded')).toBe('false');
+
+  await user.tab();
+  expect(document.activeElement).not.toBe(trigger);
+});
+
+// #580 round two: the refusal is the component's own, not the browser's. Each
+// event below is dispatched straight at the off trigger, which is what a page
+// outside the pointer and keyboard model can still do — and what the vanilla
+// face had to answer, where a hand-written `aria-disabled` trigger keeps its
+// keyboard stop and no browser refuses anything. Enter on a <button> is a
+// keydown whose default action is a click, so the pair is fired the way
+// Chromium fires it; the arrows are the wiring's own way in.
+// why: src/components/dropdown.test.js
+it('an off trigger refuses the events a page can still dispatch at it', () => {
+  const { container } = render(<Dropdown items={MENU} ariaLabel="Row actions" disabled />);
+  const dd = container.querySelector('.ui-dropdown')!;
+  const trigger = dd.querySelector('.ui-dropdown__trigger') as HTMLButtonElement;
+
+  const shut = (how: string) => {
+    expect(dd.classList.contains('open'), `${how} opened the panel`).toBe(false);
+    expect(trigger.getAttribute('aria-expanded'), `${how} marked it expanded`).toBe('false');
+  };
+
+  fireEvent.click(trigger);
+  shut('a click');
+
+  if (fireEvent.keyDown(trigger, { key: 'Enter' })) fireEvent.click(trigger);
+  shut('Enter');
+
+  fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+  shut('ArrowDown');
+
+  fireEvent.keyDown(trigger, { key: 'ArrowUp' });
+  shut('ArrowUp');
+});
 
 it('renders open when it is told to, the way `open: true` does', () => {
   const opts: DropdownProps = { items: MENU, ariaLabel: 'Row actions' };

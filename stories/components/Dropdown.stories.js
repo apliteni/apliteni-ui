@@ -121,6 +121,20 @@ export const DisabledItem = {
   ))),
 };
 
+// Closed, so the trigger's own edge is the subject, and the pair carries the same
+// label and items so the state is the only thing that differs. #580
+export const DisabledTrigger = {
+  name: 'Disabled trigger',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(specimen(
+    'disabled: true',
+    row(
+      dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Actions', items: ACTIONS }),
+      dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Actions', items: ACTIONS, disabled: true }),
+    ),
+  )),
+};
+
 export const Scrollable = {
   name: 'Long / scrollable list (open)',
   parameters: { layout: 'fullscreen' },
