@@ -102,7 +102,9 @@
    countdown from drifting apart, and gives a keyboard reader the same reprieve
    a pointer reader gets. */
 .ui-toast:hover > .ui-toast__timer.is-running,
-.ui-toast:focus-within > .ui-toast__timer.is-running { animation-play-state: paused; }
+.ui-toast:focus-within > .ui-toast__timer.is-running,
+.ui-toast-stack--collapsed:hover > .ui-toast > .ui-toast__timer.is-running,
+.ui-toast-stack--collapsed:focus-within > .ui-toast > .ui-toast__timer.is-running { animation-play-state: paused; }
 
 /* Legacy style classes share the neutral card. */
 .ui-toast--soft, .ui-toast--solid, .ui-toast--outline { background: var(--surface); color: var(--text); }
@@ -137,8 +139,10 @@
   position: relative;
   display: block;
   height: var(--toast-pile-height, auto);
+  overflow: hidden;
   transition: height var(--dur-med) var(--ease);
 }
+.ui-toast-stack--collapsed:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-toast-stack--collapsed > .ui-toast {
   position: absolute;
   right: 0;
@@ -161,19 +165,19 @@
   scale: 1;
 }
 
-/* Half of what opens a pile is hover. Where the reader has none, and the cards
-   behind the front one are not focusable, a pile is one nobody can open — so
-   the stack stays the plain column.
+/* Half of what opens a pile is hover. Where the reader has none, the plain
+   column keeps every notice visible without one more stop on the page.
    The question is hover, not precision: `(pointer: coarse)` is the kit's field
    sizing net and answers a different one (stories/field-zoom.test.js).
    Each fanned state is named again rather than left to the shorter selector:
-   a tap still lands focus inside the stack, and `:focus-within` above would
+   a tap can still land focus inside the stack, and `:focus-within` above would
    otherwise hand a static card the offset it only has while absolute. This
    block therefore has to stay BELOW the rules it answers for. */
 @media (hover: none) {
   .ui-toast-stack--collapsed,
   .ui-toast-stack--collapsed:hover,
   .ui-toast-stack--collapsed:focus-within { display: flex; height: auto; }
+  .ui-toast-stack--collapsed.ui-toast-stack--newest-first { flex-direction: column-reverse; }
   .ui-toast-stack--collapsed > .ui-toast,
   .ui-toast-stack--collapsed:hover > .ui-toast,
   .ui-toast-stack--collapsed:focus-within > .ui-toast { position: static; translate: none; scale: 1; }
