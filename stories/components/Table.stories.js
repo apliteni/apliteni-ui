@@ -196,6 +196,12 @@ export const StackedPinned = {
               <td role="cell" class="ui-table__num">${numericValue({ value: lots, unit: 'lots' })}</td>
               <td role="cell" class="ui-table__long">${note}</td>
             </tr>`).join('')}
+          <tr role="row">
+            <td role="cell" class="ui-table__identity"><a href="#position">Cedar Infrastructure Holdings International</a></td>
+            <td role="cell" class="ui-table__num">${numericValue({ value: '18.40', unit: 'bp' })}</td>
+            <td role="cell" class="ui-table__num">${numericValue({ value: '4', unit: 'lots' })}</td>
+            <td role="cell" class="ui-table__long">Watchlist line. It keeps the direct link shape that consumers can write without marking the cell.</td>
+          </tr>
         </tbody>
       </table>
     </div>

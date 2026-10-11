@@ -412,6 +412,9 @@ a.ui-identity:hover { text-decoration: underline; }
     overflow: visible;
     text-overflow: clip;
   }
+  .ui-table--pinned .ui-table__identity > *:has(:is(svg, img, canvas, video, picture)) {
+    text-overflow: clip;
+  }
   /* A control's label is text, so it yields: held to the cell and cut at its END. A kit
      control centres its label, and a capped one that centres loses the front of it. #513 */
   .ui-table--pinned .ui-table__identity :is(.ui-btn, .ui-nav__item, .ui-badge, button, input, select, textarea) {
@@ -440,6 +443,12 @@ a.ui-identity:hover { text-decoration: underline; }
     border-radius: var(--radius-xs);
   }
   .ui-table--pinned .ui-table__identity > * a:focus-visible { outline: none; }
+  .ui-table--pinned .ui-table__identity:not(.ui-table__linked):has(> a:focus-visible) {
+    outline: var(--ring-scroll);
+    outline-offset: var(--ring-scroll-offset);
+    border-radius: var(--radius-xs);
+  }
+  .ui-table--pinned .ui-table__identity:not(.ui-table__linked) > a:focus-visible { outline: none; }
   .ui-table--pinned .ui-identity__logo { display: none; }
   /* An inline-flex box is the one child block layout does not hold to the cell, so the
      cap belongs on it. The whole name stays in the DOM; only the drawn line is cut. */
@@ -513,6 +522,16 @@ a.ui-identity:hover { text-decoration: underline; }
   }
   .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > * a {
     max-width: none; overflow: visible; text-overflow: clip;
+  }
+  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > a:not([class]) {
+    display: inline-block;
+  }
+  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity:not(.ui-table__linked):has(> a:focus-visible) {
+    outline: none;
+  }
+  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity:not(.ui-table__linked) > a:focus-visible {
+    outline: var(--ring);
+    outline-offset: var(--ring-offset);
   }
   /* A card has no column to fill: every cell is a block on its own line and the ROW pays
      the inset, so the fill's padding would stand the link a step right of the card's text

@@ -224,6 +224,7 @@ test("every link in a table cell takes the kit ring", () => {
       "reach the link inside it — measure it in a rendered story and exclude it here",
   );
   // 5 -> 6: #513 makes the Finance report reference a filled cell link.
+  // 6 -> 7: #513 renders the unmarked direct-link shape in the stacked pinned story.
   // 4 -> 5: #505's Finance dashboard and the exceptions specimen on the
   // Dashboards and reports page each link a payout reference out of a cell, and
   // the Finance report and the guideline's ledger stopped: a reference on the
@@ -231,7 +232,7 @@ test("every link in a table cell takes the kit ring", () => {
   // left to go and is the row's own text now.
   assert.equal(
     subjects.length,
-    6,
+    7,
     "every link the kit writes in a cell must be measured; update this count with the " +
       `subjects, which are now:\n${subjects.map((s) => `${s.file}: ${s.link}`).join("\n")}`,
   );
@@ -370,6 +371,7 @@ test("every composition the reader pages name takes the ring and keeps the box i
 const RING_RULES = {
   outset: /a:focus-visible,\n/,
   inward: /\.ui-table td\.ui-table__linked > :is\(a:not\(\[class\]\), a\.ui-identity\):only-child:focus-visible \{[^}]*\}/,
+  stackedDirect: /\.ui-table\.ui-table--stack\.ui-table--pinned \.ui-table__identity:not\(\.ui-table__linked\) > a:focus-visible \{[^}]*\}/,
 };
 
 test("the check rejects a cell link dropped from the ring", () => {
@@ -385,12 +387,12 @@ test("the check rejects a cell link dropped from the ring", () => {
     [],
     "with the inward rule gone a filled cell link must fall back to the outset ring",
   );
-  // Both gone is the hole, and it has to reach every subject.
+  // All gone is the hole, and it has to reach every subject.
   const stripped = Object.values(RING_RULES).reduce((css, rule) => css.replace(rule, ""), SHEETS);
   assert.equal(
     bare(stripped, subjects).length,
     subjects.length,
-    "without the shared link selector and the inward override every cell link must be reported bare — if any still " +
+    "without the shared link selector and the table overrides every cell link must be reported bare — if any still " +
       "passes, a third rule is covering it and this gate is measuring the wrong one",
   );
   // And half an inward ring is no ring: the offset is what draws the band inside the box, so
@@ -456,11 +458,12 @@ test("a cell link is one box, so a wrapped one paints one ring", () => {
 });
 
 test("the check rejects a cell link left in the inline flow", () => {
-  // Two rules give a cell link a box — the plain-link one, and the fill rule that puts the
-  // link's box over its whole cell. Both have to go, or the survivor covers the hole.
+  // Three rules give a cell link a box: the plain-link one, the fill rule, and the stacked
+  // direct-link reset. All have to go, or the survivor covers the hole.
   const rules = [
     /\n\.ui-table :where\(td, th, caption\) a:not\(\[class\]\) \{[^}]*\}/,
     /\n\.ui-table td\.ui-table__linked > :is\(a:not\(\[class\]\), a\.ui-identity\):only-child \{[^}]*\}/,
+    /\n  \.ui-table\.ui-table--stack\.ui-table--pinned \.ui-table__identity > a:not\(\[class\]\) \{[^}]*\}/,
   ];
   for (const rule of rules) assert.ok(rule.test(SHEETS), "the box rules must exist to be taken out");
 

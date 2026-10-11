@@ -82,24 +82,13 @@ const offsetProblems = (subjects, token) => subjects
   .map((rule) => `${rule.file}: ${rule.selector} takes ${token} without ${token}-offset, so its band draws on the border box`);
 
 test('every control that takes the ring takes the offset that places it', () => {
-  // 47 since #482 and #510 — the nineteen controls that had no focus rule at all, and a
-  // link inside a table — minus the seven #531 moved onto the inward band, plus the
-  // Snippet's card, which draws the ring for its focused code region because the <pre>
-  // has no radius of its own. #578 changed the carrier and not the list: the same rules
-  // write `outline: var(--ring)` where they wrote `box-shadow: var(--ring)`.
-  // 47 -> 48: the picker's day cell, which used to write the transparent stand-in alone
-  // and take the band from base.css. It has to write the band itself now, because the
-  // hover rule above it ties base.css's rule on specificity and stands later.
-  // 48 -> 47: #587 put the `a` element on the shared rule in base.css — one existing
-  // selector list gains a member, not a new rule — and removed table.css's own copy of
-  // the link's ring, which was its own rule block and so its own consumer.
-  // 47 -> 49: #489's cap made the topbar's version switcher menu and account menu
-  // scroll by default, so each needs the ring on its own scroll region the way
-  // `.ui-dropdown__panel` already does — `.vsw__menu:focus-visible` and
-  // `.amenu:focus-visible`.
+  // 47 since #482 and #510. The count moved when #531 changed seven surfaces to the
+  // inward band, #587 moved cell links to base.css, and #489 added two menu regions.
   // 49 -> 50: #500 gives a stacked table-card link the outset band again after it stops
   // filling the table cell. The narrow table cell keeps the inward band instead.
-  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
+  // 50 -> 51: #513 gives an unmarked pinned identity cell the outset band again in a
+  // stacked card after the phone rule moves its direct link's focus ring to the cell.
+  assert.equal(consumers.length, 51, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -121,18 +110,17 @@ test('the offset gate rejects a control that takes the band and leaves the offse
 });
 
 test('every scroll region that takes the inward band takes its offset too', () => {
-  // Eleven: the table card, the table wrapper inside it, the filled table-cell link,
-  // the focused table row, the pinned identity sub-line, the dropdown's search list,
-  // the drawer's body, the confirm's consequence, the palette's list, React's modal
-  // body, and the date picker's shortcut row in its phone sheet. Artur chose the picture
-  // on #531 round r30; the list is the surfaces it is on.
+  // Twelve surfaces take the inward band, including six table surfaces and six overlay
+  // or picker surfaces.
   // 10 -> 11: #513 puts the band on a pinned identity sub-line holding a focused link.
   // Below 720px the cell clips, so a ring on the link has no surface to draw its right
-  // side on, while the sub-line's own inline edges are the cell's. Two of the eleven are not
+  // side on, while the sub-line's own inline edges are the cell's. Three of the twelve are not
   // scroll regions, so this test's name is now narrower than the list it walks: what the
-  // eleven share is that their own edges are a surface's, which is what state-set.md's
+  // twelve share is that their own edges are a surface's, which is what state-set.md's
   // Except and the --ring-scroll paragraph in foundations both say.
-  assert.equal(scrollRules.length, 11,
+  // 11 -> 12: #513 puts the band on the unmarked pinned identity cell when its direct
+  // bare link has focus. The link can be longer than the clipped cell.
+  assert.equal(scrollRules.length, 12,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 2,
     'React\'s modal body and the picker\'s shortcut row are not both among them, so the walk '
@@ -235,7 +223,7 @@ const secondBands = (subjects) => subjects.flatMap((rule) => [...rule.body.match
 test('a focus rule draws the band and no second accent edge', () => {
   // Every consumer is read, so this cannot go quiet by losing its subjects: the count
   // is the one the offset gate pins, and the two have to move together.
-  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
+  assert.equal(consumers.length, 51, 'ring consumer discovery changed');
   assert.deepEqual(secondBands(consumers), []);
 });
 

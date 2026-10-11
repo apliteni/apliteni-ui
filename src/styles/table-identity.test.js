@@ -72,6 +72,7 @@ function mountAt(width, extra = '', css = CSS) {
     <tbody>
       <tr><td class="ui-table__identity ui-table__linked" id="kit">${rowIdentity({ symbol: 'NORT', name: 'Northstar Analytics Incorporated', href: '#company' })}</td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity ui-table__linked" id="bare"><a href="#company">Cedar Infrastructure Holdings International</a></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="direct"><a href="#company">Cedar Infrastructure Holdings International</a></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="plain">North region</td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="sub"><div>North region</div><div class="ui-table__code" id="subline">EU-NORTH-1 district office</div></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="subel"><div>South region</div><div class="ui-table__code" id="sublineel"><span>EU-SOUTH-2 district office</span></div></td><td class="ui-table__num">1.00</td></tr>
@@ -81,12 +82,14 @@ function mountAt(width, extra = '', css = CSS) {
       <tr><td class="ui-table__identity" id="substrong"><div>Southwest region</div><div class="ui-table__code" id="sublinestrong"><strong><a href="#office">EU-SOUTHWEST-6 district office</a></strong></div></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="subtwo"><div>Map region</div><div class="ui-table__code" id="sublinethree"><a href="#office">EU-MAP-7 district office</a> <a href="#map">map</a></div></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="subclass"><div>Classed region</div><div class="ui-table__code" id="sublineclass"><a class="u-office-link" href="#office">EU-CLASSED-8 district office</a></div></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="subsibling"><div>Legal name</div><div class="ui-table__code" id="sublinesibling"><span>Registered trading name</span> <a href="#office">Northwind Holdings International</a></div></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="subpicture"><div>Picture mark</div><div class="ui-table__code" id="sublinepicture">Registered <img id="sublinepicture-shape" alt="" width="240" height="24" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='24'%3E%3C/svg%3E"> company</div></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="btn"><a class="ui-btn ui-btn--sm" href="#company" id="btnlink">Open the registered trading name</a></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="nav"><a class="ui-nav__item" href="#company" id="navlink"><svg class="ui-nav__ic"></svg>Open the registered trading name</a></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="svgmark"><svg id="svgmark-shape" viewBox="0 0 240 24" width="240" height="24"></svg></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="imgmark"><img id="imgmark-shape" alt="" width="240" height="24" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='24'%3E%3C/svg%3E"></td><td class="ui-table__num">1.00</td></tr>
     </tbody></table>`;
-  const cells = ['#head', '#kit', '#bare', '#plain', '#sub', '#subel', '#sublink', '#submixed', '#subspan', '#substrong', '#subtwo', '#subclass', '#btn', '#nav', '#svgmark', '#imgmark'];
+  const cells = ['#head', '#kit', '#bare', '#direct', '#plain', '#sub', '#subel', '#sublink', '#submixed', '#subspan', '#substrong', '#subtwo', '#subclass', '#subsibling', '#subpicture', '#btn', '#nav', '#svgmark', '#imgmark'];
   const style = (sel) => dom.window.getComputedStyle(typeof sel === 'string' ? document.querySelector(sel) : sel);
   return { document, cells, style, cap };
 }
@@ -99,6 +102,7 @@ const contextOf = (el, cap) => ({
   cell: el.classList.contains('ui-table__identity'),
   decorative: el.classList.contains('ui-identity__logo'),
   picture: el.matches(PICTURES),
+  pictureLine: Boolean(el.querySelector?.(PICTURES)),
   control: el.matches(CONTROLS),
   link: el.matches('a'),
 });
@@ -140,7 +144,7 @@ const OUTCOME = {
     ? `the cell has a clip margin of ${v}, so sticky ink can paint over the next column`
     : (lengthPx(v, 390) >= 4 ? null
       : `a cut ${v} from the box leaves a focused line no room for its ring`)),
-  'text-overflow': (v, { cell, picture }) => (picture && !cell
+  'text-overflow': (v, { cell, picture, pictureLine }) => ((picture || pictureLine) && !cell
     ? (v === 'clip' ? null : `${v} promises a cut that a box overflowing in the open never draws`)
     : (v === 'ellipsis' ? null : `${v} cuts text without saying so`)),
   // Only the decorative logo is dropped; the column itself has to be drawn.
@@ -283,7 +287,7 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
     assert.ok(['clip', 'hidden'].includes(style(subLine).overflow), `${subLine} runs past the cap`);
   }
   const subLinesWithLinks = [...document.querySelectorAll('.ui-table__identity > *')].filter((el) => el.querySelector('a'));
-  assert.equal(subLinesWithLinks.length, 6, 'the fixture must cover each sub-line link shape');
+  assert.equal(subLinesWithLinks.length, 7, 'the fixture must cover each sub-line link shape');
   for (const subLine of subLinesWithLinks) {
     assert.equal(style(subLine).display, 'block', `#${subLine.id} stopped being running text`);
     assert.equal(style(subLine).overflowClipMargin, '4px', `#${subLine.id} does not keep the line ring room`);
@@ -309,6 +313,7 @@ const SUBLINE_ROWS = [
   ['strong-link', '<strong><a href="#office">EU-SOUTHWEST-6 district office</a></strong>'],
   ['two-links', '<a href="#office">EU-MAP-7 district office</a> <a href="#map">map</a>'],
   ['classed-link', '<a class="u-office-link" href="#office">EU-CLASSED-8 district office</a>'],
+  ['sibling-link', '<span data-sibling>Registered trading name</span> <a href="#office">Northwind Holdings International</a>'],
 ];
 
 function subLineFixture(css, width, rows = SUBLINE_ROWS) {
@@ -347,6 +352,149 @@ function rightmostChangedPixel(before, after, box) {
     }
   }
   return found;
+}
+
+function changedPixels(before, after, box) {
+  assert.equal(before.width, after.width, 'screenshots must have the same width');
+  assert.equal(before.height, after.height, 'screenshots must have the same height');
+  const left = Math.max(0, Math.floor(box.left));
+  const right = Math.min(before.width - 1, Math.ceil(box.right));
+  const top = Math.max(0, Math.floor(box.top));
+  const bottom = Math.min(before.height - 1, Math.ceil(box.bottom));
+  let count = 0;
+  for (let y = top; y <= bottom; y += 1) {
+    for (let x = left; x <= right; x += 1) {
+      if (differs(before, after, (y * before.width + x) * 4)) count++;
+    }
+  }
+  return count;
+}
+
+const BLUE_MARK = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22240%22 height=%2224%22%3E%3Crect width=%22240%22 height=%2224%22 fill=%22%230060ff%22/%3E%3C/svg%3E';
+
+function stackedRunningFixture(css, width) {
+  return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">
+    <style>${css}</style>
+    <style>body{margin:0}.stage{width:${width}px}.ui-table-scroll{max-height:none}</style>
+    </head><body><div class="stage"><div class="ui-table-scroll">
+    <table class="ui-table ui-table--compact ui-table--sticky ui-table--pinned ui-table--stack" role="table">
+      <thead><tr><th scope="col" role="columnheader" class="ui-table__identity">Office</th><th scope="col" role="columnheader" class="ui-table__num">Price</th></tr></thead>
+      <tbody><tr role="row"><td role="cell" class="ui-table__identity"><div data-stacked-line>Office: <a href="#office">North</a> <a href="#map">map</a></div></td><td role="cell" class="ui-table__num">1.00</td></tr></tbody>
+    </table></div></div></body></html>`;
+}
+
+async function measureStackedRunningGaps(page, css, width) {
+  await page.setViewportSize({ width, height: 180 });
+  await page.setContent(stackedRunningFixture(css, width), { waitUntil: 'load' });
+  await page.waitForTimeout(100);
+  return page.evaluate(() => {
+    const line = document.querySelector('[data-stacked-line]');
+    const links = [...line.querySelectorAll('a')];
+    const text = line.firstChild;
+    const range = document.createRange();
+    range.setStart(text, 0);
+    range.setEnd(text, 'Office:'.length);
+    const label = range.getBoundingClientRect();
+    const first = links[0].getBoundingClientRect();
+    const second = links[1].getBoundingClientRect();
+    return {
+      display: getComputedStyle(line).display,
+      labelToFirst: first.left - label.right,
+      firstToSecond: second.left - first.right,
+    };
+  });
+}
+
+async function measureSiblingLine(page, css, width) {
+  await page.setViewportSize({ width, height: 240 });
+  await page.setContent(subLineFixture(css, width, [
+    ['sibling-link', '<span data-sibling>Registered trading name</span> <a href="#office">Northwind Holdings International</a>'],
+  ]), { waitUntil: 'load' });
+  await page.waitForTimeout(100);
+  const subject = await page.evaluate(() => {
+    const sibling = document.querySelector('[data-sibling]');
+    const link = document.querySelector('[data-subline] a');
+    const range = document.createRange();
+    range.selectNodeContents(sibling);
+    const textBox = range.getBoundingClientRect();
+    const siblingBox = sibling.getBoundingClientRect();
+    const linkBox = link.getBoundingClientRect();
+    return {
+      siblingWidth: siblingBox.width,
+      textBeyondSiblingPx: Math.max(0, textBox.right - siblingBox.right),
+      linkBox: { left: linkBox.left, right: linkBox.right, top: linkBox.top, bottom: linkBox.bottom },
+    };
+  });
+  const before = decodePNG(await page.screenshot());
+  await page.evaluate(() => { document.querySelector('[data-sibling]').style.visibility = 'hidden'; });
+  const after = decodePNG(await page.screenshot());
+  return {
+    ...subject,
+    siblingPaintInsideLinkPx: changedPixels(before, after, subject.linkBox),
+  };
+}
+
+function pictureLineFixture(css, width) {
+  return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">
+    <style>${css}</style>
+    <style>body{margin:0}.stage{width:${width}px}.ui-table-scroll{max-height:none}</style>
+    </head><body><div class="stage"><div class="ui-table-scroll">
+    <table class="ui-table ui-table--compact ui-table--sticky ui-table--pinned">
+      <thead><tr><th class="ui-table__identity">Region</th><th class="ui-table__num">Price</th></tr></thead>
+      <tbody><tr><td class="ui-table__identity"><div>Region</div><div class="ui-table__code" data-picture-line>Registered <img data-blue-mark alt="" width="240" height="24" src="${BLUE_MARK}"> company</div></td><td class="ui-table__num">1.00</td></tr></tbody>
+    </table></div></div></body></html>`;
+}
+
+async function measurePicturePixels(page, css, width) {
+  await page.setViewportSize({ width, height: 220 });
+  await page.setContent(pictureLineFixture(css, width), { waitUntil: 'load' });
+  await page.waitForTimeout(100);
+  const shot = decodePNG(await page.screenshot());
+  let blue = 0;
+  for (let index = 0; index < shot.data.length; index += 4) {
+    if (shot.data[index] < 16 && shot.data[index + 1] > 80 && shot.data[index + 1] < 120 && shot.data[index + 2] > 240) blue++;
+  }
+  return blue;
+}
+
+function directLinkFixture(css, width) {
+  return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">
+    <style>${css}</style>
+    <style>body{margin:0}.stage{width:${width}px}.ui-table-scroll{max-height:none}</style>
+    </head><body><div class="stage"><div class="ui-table-scroll">
+    <table class="ui-table ui-table--compact ui-table--sticky ui-table--pinned">
+      <thead><tr><th class="ui-table__identity">Company</th><th class="ui-table__num">Price</th></tr></thead>
+      <tbody><tr><td class="ui-table__identity" data-direct-cell><a href="#company" data-direct-link>Cedar Infrastructure Holdings International</a></td><td class="ui-table__num">1.00</td></tr></tbody>
+    </table></div></div></body></html>`;
+}
+
+async function measureDirectLinkFocus(page, css, width) {
+  await page.setViewportSize({ width, height: 180 });
+  await page.setContent(directLinkFixture(css, width), { waitUntil: 'load' });
+  await page.waitForTimeout(100);
+  const before = decodePNG(await page.screenshot());
+  await page.focus('[data-direct-link]');
+  const after = decodePNG(await page.screenshot());
+  const boxes = await page.evaluate(() => {
+    const cell = document.querySelector('[data-direct-cell]').getBoundingClientRect();
+    const link = document.querySelector('[data-direct-link]').getBoundingClientRect();
+    return {
+      cell: { left: cell.left, right: cell.right, top: cell.top, bottom: cell.bottom },
+      link: { left: link.left, right: link.right, top: link.top, bottom: link.bottom },
+    };
+  });
+  const vertical = (x1, x2) => changedPixels(before, after, {
+    left: x1,
+    right: x2,
+    top: boxes.cell.top,
+    bottom: boxes.cell.bottom,
+  });
+  return {
+    cellRight: round(boxes.cell.right),
+    linkRight: round(boxes.link.right),
+    leftEdgePixels: vertical(boxes.cell.left, boxes.cell.left + 8),
+    rightEdgePixels: vertical(boxes.cell.right - 8, boxes.cell.right),
+  };
 }
 
 async function measureSubLineOverflow(page, css, width, rows = SUBLINE_ROWS) {
@@ -414,6 +562,24 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
         assert.ok(row.paintedOverflowPx <= 0.5, `${row.id} paints ${row.paintedOverflowPx}px past the cell at ${width}`);
         assert.equal(row.lineTextOverflow, 'ellipsis', `${row.id} does not promise a line ellipsis at ${width}`);
       }
+      const card = await measureStackedRunningGaps(page, css, width);
+      assert.ok(card.labelToFirst >= 3, `stacked card welded label to first link: ${card.labelToFirst}px at ${width}`);
+      assert.ok(card.firstToSecond >= 3, `stacked card welded two links: ${card.firstToSecond}px at ${width}`);
+
+      const sibling = await measureSiblingLine(page, css, width);
+      assert.ok(sibling.textBeyondSiblingPx <= 0.5,
+        `sibling text paints ${sibling.textBeyondSiblingPx}px beyond its own box at ${width}`);
+      assert.equal(sibling.siblingPaintInsideLinkPx, 0,
+        `sibling paints ${sibling.siblingPaintInsideLinkPx} pixels inside the link at ${width}`);
+
+      const picturePixels = await measurePicturePixels(page, css, width);
+      assert.ok(picturePixels > 0, `the nested picture paints no blue pixels at ${width}`);
+
+      const directFocus = await measureDirectLinkFocus(page, css, width);
+      assert.ok(directFocus.linkRight > directFocus.cellRight,
+        `the direct-link fixture stopped proving a longer link at ${width}: ${JSON.stringify(directFocus)}`);
+      assert.ok(directFocus.leftEdgePixels > 0 && directFocus.rightEdgePixels > 0,
+        `the direct-link line ring is open at ${width}: ${JSON.stringify(directFocus)}`);
     }
 
     const discovered = await measureSubLineOverflow(page, css, 390, [
@@ -436,6 +602,67 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
     }
     assert.ok(new Set(failures.map((row) => row.width)).size === PHONE_WIDTHS.length,
       `dropping only the link's overflow clip did not fail at both widths: ${JSON.stringify(failures)}`);
+
+    const stackedDefect = `${css}
+@media (max-width: 560px) {
+  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > *:has(a) {
+    display: flex;
+  }
+}`;
+    const welded = [];
+    for (const width of PHONE_WIDTHS) {
+      const card = await measureStackedRunningGaps(page, stackedDefect, width);
+      if (card.labelToFirst <= 0.5 || card.firstToSecond <= 0.5) welded.push({ width, ...card });
+    }
+    assert.ok(new Set(welded.map((row) => row.width)).size === PHONE_WIDTHS.length,
+      `the stacked-card mutation did not weld running text at both widths: ${JSON.stringify(welded)}`);
+
+    const siblingDefect = `${css}
+@media (max-width: 720px) {
+  .ui-table--pinned .ui-table__identity > *:has(> span):has(> a) {
+    display: flex;
+  }
+  .ui-table--pinned .ui-table__identity > *:has(> span):has(> a) > * {
+    min-width: 0;
+  }
+}`;
+    const overlaps = [];
+    for (const width of PHONE_WIDTHS) {
+      const sibling = await measureSiblingLine(page, siblingDefect, width);
+      if (sibling.textBeyondSiblingPx > 0.5 || sibling.siblingPaintInsideLinkPx > 0) overlaps.push({ width, ...sibling });
+    }
+    assert.ok(new Set(overlaps.map((row) => row.width)).size === PHONE_WIDTHS.length,
+      `the sibling mutation did not overlap painted text at both widths: ${JSON.stringify(overlaps)}`);
+
+    const pictureDefect = `${css}
+@media (max-width: 720px) {
+  .ui-table--pinned .ui-table__identity > *:has(:is(svg, img, canvas, video, picture)) {
+    text-overflow: ellipsis;
+  }
+}`;
+    const hiddenPictures = [];
+    for (const width of PHONE_WIDTHS) {
+      const picturePixels = await measurePicturePixels(page, pictureDefect, width);
+      if (picturePixels === 0) hiddenPictures.push({ width, picturePixels });
+    }
+    assert.ok(new Set(hiddenPictures.map((row) => row.width)).size === PHONE_WIDTHS.length,
+      `the picture mutation did not hide the nested image at both widths: ${JSON.stringify(hiddenPictures)}`);
+
+    const focusDefect = css
+      .replace(`  .ui-table--pinned .ui-table__identity:not(.ui-table__linked):has(> a:focus-visible) {
+    outline: var(--ring-scroll);
+    outline-offset: var(--ring-scroll-offset);
+    border-radius: var(--radius-xs);
+  }
+`, '');
+    assert.notEqual(focusDefect, css, 'the direct-link focus mutation no longer matches table.css, so it proves nothing');
+    const openRings = [];
+    for (const width of PHONE_WIDTHS) {
+      const directFocus = await measureDirectLinkFocus(page, focusDefect, width);
+      if (directFocus.rightEdgePixels === 0) openRings.push({ width, ...directFocus });
+    }
+    assert.ok(new Set(openRings.map((row) => row.width)).size === PHONE_WIDTHS.length,
+      `the direct-link focus mutation did not open the ring at both widths: ${JSON.stringify(openRings)}`);
   } finally {
     await browser.close();
   }
