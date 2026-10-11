@@ -77,7 +77,11 @@
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   column-gap: var(--space-2);
+  padding-block: calc(var(--ring-width, 2px) + var(--ring-offset, 1px));
   border-radius: var(--radius-xs);
+}
+.ui-chart__frame:focus-visible {
+  outline-offset: calc(var(--ring-offset) + var(--ui-chart-tick) / 2);
 }
 
 .ui-chart__axis {
@@ -250,6 +254,10 @@
 
 .ui-chart__data > summary {
   width: max-content;
+  min-height: var(--tap-min, 44px);
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-xs);
   cursor: pointer;

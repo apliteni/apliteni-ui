@@ -3,9 +3,10 @@
  *
  * Two halves. The SOURCE half runs in CI. The BROWSER half is the measurement —
  * only an engine answers a hit test, and #543 found a point declaring 28x32
- * whose usable area was 28x19.4 — and it is OFF unless CHART_TARGETS=1, because
- * Playwright is deliberately not a dependency here. That is this gate's largest
- * limit; the others are stated beside the tests they belong to.
+ * whose usable area was 28x19.4, then a point opening the next month at 320 —
+ * and it is OFF unless CHART_TARGETS=1, because Playwright is deliberately not
+ * a dependency here. That is this gate's largest limit; the others are stated
+ * beside the tests they belong to.
  *
  *   npm run build-storybook -w react
  *   UI_PLAYWRIGHT=... CHART_TARGETS=1 node --test stories/chart-target.test.js
@@ -362,6 +363,117 @@ test(
       });
     } finally {
       await ctx.close();
+      await browser.close();
+      served.proc.kill();
+    }
+  },
+);
+
+test(
+  'every spark point owns its hit-tested target at 320 and 390, coarse',
+  { skip: !RUN && 'set CHART_TARGETS=1' },
+  async (t) => {
+    const pw = await (async () => {
+      try { return await import(process.env.UI_PLAYWRIGHT || 'playwright'); } catch { return null; }
+    })();
+    assert.ok(
+      pw,
+      'CHART_TARGETS=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one '
+      + 'or leave the variable unset. A browser gate that quietly skipped would report the same '
+      + 'green as one that measured.',
+    );
+    assert.ok(
+      existsSync(path.join(BUILT, 'iframe.html')),
+      `${BUILT} holds no built Storybook. Run "npm run build-storybook -w react" first; a `
+      + 'measurement with nothing to measure is not a pass.',
+    );
+
+    const served = await new Promise((resolve, reject) => {
+      const proc = spawn(process.execPath, [
+        path.join(root, 'scripts/evidence/serve.mjs'), BUILT, path.join(BUILT, 'iframe.html'),
+      ]);
+      proc.stdout.once('data', (d) => resolve({ port: Number(String(d).trim()), proc }));
+      proc.stderr.on('data', (d) => process.stderr.write(d));
+      proc.once('error', reject);
+    });
+    const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+
+    try {
+      const spark = storySubjects().find((s) => s.spark);
+      const failures = [];
+      for (const width of [320, 390]) {
+        for (const theme of ['light', 'dark']) {
+          const ctx = await browser.newContext({
+            viewport: { width, height: 844 },
+            deviceScaleFactor: 1,
+            hasTouch: true,
+            reducedMotion: 'reduce',
+          });
+          try {
+            const page = await ctx.newPage();
+            await page.goto(
+              `http://127.0.0.1:${served.port}/iframe.html?id=${spark.id}&globals=theme:${theme}`,
+              { waitUntil: 'load' },
+            );
+            await page.waitForFunction(
+              () => document.getElementById('storybook-root')?.childElementCount > 0,
+            );
+            await page.waitForFunction(() => document.querySelectorAll('.ui-chart__hit').length > 0);
+            await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running'));
+            const media = await page.evaluate(() => ({
+              coarse: matchMedia('(pointer: coarse)').matches,
+              hover: matchMedia('(hover: hover)').matches,
+              width: window.innerWidth,
+            }));
+            assert.deepEqual(
+              media, { coarse: true, hover: false, width },
+              `The rig did not report a coarse pointer at ${width}, so the phone floor never `
+              + 'applied and the result would be a desktop measurement.',
+            );
+
+            const result = await page.evaluate(() => {
+              const STEP = 0.05;
+              const round = (n) => Math.round(n * 100) / 100;
+              const rows = [...document.querySelectorAll('.ui-chart__hit')].map((hit) => {
+                const id = hit.closest('[data-mark]').getAttribute('data-mark');
+                const box = hit.getBoundingClientRect();
+                const y = box.top + box.height / 2;
+                let owned = 0;
+                let stolen = 0;
+                for (let x = box.left + STEP / 2; x < box.right; x += STEP) {
+                  const owner = document.elementFromPoint(x, y)
+                    ?.closest('[data-mark]')?.getAttribute('data-mark') ?? null;
+                  if (owner === id) owned += 1;
+                  else stolen += 1;
+                }
+                return {
+                  id,
+                  declared: round(box.width),
+                  owned: round(owned * STEP),
+                  stolen,
+                };
+              });
+              const min = rows.reduce((best, row) => Math.min(best, row.owned), Infinity);
+              return { min: round(min), rows };
+            });
+            const stolen = result.rows.filter((row) => row.stolen > 0);
+            if (stolen.length) {
+              failures.push(`${width}/${theme}: min owned ${result.min}px; `
+                + stolen.map((row) => `${row.id} lost ${row.stolen} samples`).join(', '));
+            }
+            t.diagnostic(`${width}/${theme}: minimum owned width ${result.min}px`);
+          } finally {
+            await ctx.close();
+          }
+        }
+      }
+      assert.deepEqual(
+        failures,
+        [],
+        'A spark point declared samples that the browser handed to another point. This is the '
+        + '320px failure: the page, not the SVG attributes, decides which month a tap opens.',
+      );
+    } finally {
       await browser.close();
       served.proc.kill();
     }

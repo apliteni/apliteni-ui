@@ -105,14 +105,15 @@ const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
  * asks for, stops at half the clear space to the nearest point on each side,
  * and is then held inside the box the chart draws in — a target that reached
  * past the chart's edge would be clipped there, and a nominal 44 that a
- * drawing clips to 19 is not a target. `min` is the floor it keeps even where
- * there is no room; shrinking to fit is the one thing the floor forbids.
+ * drawing clips to 19 is not a target. `min` is the floor it keeps where the
+ * column has room. A narrower column owns the whole column instead, so no point
+ * answers for the period beside it.
  * why: guidelines/accessibility-floor.md#tap-target-on-a-phone
  *
  * @param {{x: number, y: number}} point the point's centre
  * @param {object} limits
  * @param {number} limits.floor the target this pointer asks for, each way
- * @param {number} [limits.min] the smallest target, kept even without the room
+ * @param {number} [limits.min] the smallest target, where the column has room
  * @param {{left: number, right: number, top: number, bottom: number}} limits.box
  *   the chart's own drawn box, which nothing may reach past
  * @param {[number, number]} limits.column the point's own column, left and right
@@ -129,7 +130,7 @@ export function pointTarget({ x, y }, { floor, min = floor, box, column, apart =
       if (n < centre) lo = Math.max(lo, mid);
       if (n > centre) hi = Math.min(hi, mid);
     }
-    const size = Math.max(min, Math.min(floor, hi - lo));
+    const size = Math.min(floor, Math.max(0, hi - lo));
     // Centred on the point, then held inside the space it may own, then inside
     // the chart's box. The box is last so the point on the chart's own edge
     // keeps a whole target instead of half of one.

@@ -153,7 +153,7 @@ test('an explicit opening change does not silently become a total', () => {
 /* The sparkline a stat tile draws on a 390px phone, which is the layout #543's
  * re-review measured a missed tap in: eleven closed months in a 308px slot, so
  * 28px columns, and 32px of drawing. The phone floor is 44 and the AA floor the
- * kit holds at every width is 24.
+ * kit holds where a column has room is 24.
  *
  * What this does NOT reach: the DOM, the SVG the component writes, and real
  * hit-testing. That the rectangles computed here are the ones a browser
@@ -278,16 +278,16 @@ test('a target stops at the midpoint to the next point in its column, not short 
   assert.ok(b.h >= 24, 'and keeps at least the AA floor');
 });
 
-test('a column narrower than the AA floor keeps the floor rather than shrinking', () => {
+test('a column narrower than the AA floor owns its column rather than a neighbour', () => {
   // A four-column sparkline in 64px: 16px columns. Growing a target to 44
   // across would make one point answer for nearly three periods, so it takes
-  // the AA floor and no more — and is still held inside the box, so the first
+  // the column and no more — and is still held inside the box, so the first
   // and last points are whole.
   const box = { left: 0, right: 64, top: -6, bottom: 38 };
   const first = pointTarget({ x: 8, y: 2 }, { floor: 44, min: 24, box, column: [0, 16] });
   const last = pointTarget({ x: 56, y: 30 }, { floor: 44, min: 24, box, column: [48, 64] });
-  assert.deepEqual([first.w, first.x], [24, 0], 'the first target is whole and starts at the edge');
-  assert.deepEqual([last.w, last.x + last.w], [24, 64], 'and the last one ends at the other edge');
+  assert.deepEqual([first.w, first.x], [16, 0], 'the first target owns its column and starts at the edge');
+  assert.deepEqual([last.w, last.x + last.w], [16, 64], 'and the last one owns its column to the edge');
   assert.equal(first.h, 44, 'down there is nothing to share the column with');
 });
 

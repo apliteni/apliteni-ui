@@ -175,19 +175,19 @@ it('a coarse pointer below the phone step grows a point to 44, inside its own co
   expect(hitBox('income-1').h).toBeGreaterThan(44);
 });
 
-it('a sparkline keeps the 24px floor across rather than letting one point answer for three', () => {
+it('a sparkline owns a narrow column rather than letting one point answer for three', () => {
   coarse(true);
   measuredAt(4 * 16); // four columns at the sheet's --ui-chart-col for a sparkline, 16px
   render(
     <Chart variant="spark" title="Income" periods={periods} series={[{ ...series[0], shape: 'line' }]}
       format={eur} />,
   );
-  // 16px columns cannot each hold 44 ACROSS: growing them would make one point
-  // answer for nearly three months, which is the one thing the floor must not
-  // do, so the points keep the AA floor they are drawn with. Down there is
+  // 16px columns cannot each hold 24 or 44 ACROSS: growing them would make one
+  // point answer for another month, which is the one thing the floor must not
+  // do, so the points own their columns. Down there is
   // nothing to share a column with, so the target takes the whole phone floor
   // — the box the chart draws in is grown to hold it.
-  expect(hitBox('income-1')).toMatchObject({ w: 24, h: 44 });
+  expect(hitBox('income-1')).toMatchObject({ w: 16, h: 44 });
 });
 
 /**

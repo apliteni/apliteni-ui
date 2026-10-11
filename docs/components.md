@@ -845,7 +845,7 @@ The readout and the optional table show the state and its `note`.
 
 **The value axis, the period row and the legend are quiet, and nothing is only there.** Every
 data value is reachable at full strength through pointer readouts and keyboard announcements.
-The optional values table opens on request.
+The optional values table opens on a control that reaches the phone tap floor.
 
 **Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
 paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark
@@ -858,8 +858,10 @@ around a chart already carries its title.
 that opens a readout does not call `onSelect`** — it is the reader asking what a mark is worth.
 The tap that closes one, and an ordinary mouse click, do, and the click itself is never swallowed,
 so your own listener around the chart still hears every tap. Below 560px, to a coarse pointer, a
-line's point grows a 44px target that stays inside its own column, and a sparkline's slot grows
-with it, so a `trend` slot is 44px tall there instead of 32.
+line's point grows to the room its column gives. It never crosses into a neighbour's column. A
+narrow sparkline can therefore own less than 44px across, but still owns the full 44px down. A
+sparkline's slot grows with that vertical target, so a `trend` slot is 44px tall there instead
+of 32.
 
 The table the reader opens carries its columns sideways in a named scroller, so your card and your
 page keep their width whatever series you pass. At phone widths the plot scrolls with the value

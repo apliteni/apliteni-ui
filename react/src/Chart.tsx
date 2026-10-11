@@ -494,7 +494,7 @@ export function Chart(props: ChartProps) {
         .map((d) => d.y + d.h / 2);
       dot.hit = pointTarget(
         { x: dot.x + dot.w / 2, y: dot.y + dot.h / 2 },
-        { floor, min: TARGET, box, column: [dot.column * colWidth, (dot.column + 1) * colWidth], apart },
+        { floor, min: Math.min(TARGET, colWidth), box, column: [dot.column * colWidth, (dot.column + 1) * colWidth], apart },
       );
     }
     return [...out, ...dots];
