@@ -205,7 +205,7 @@ const ringOn = (css, el) => {
 
 /** Links the cascade leaves with no kit ring at all. Read from the winning declarations and
  *  not from whether a ring rule REACHES the link: a later, more specific rule can reach it
- *  too and take the shadow straight back off, which a reach-only reading calls covered. */
+ *  too and take the outline straight back off, which a reach-only reading calls covered. */
 const bare = (css, subjects) => subjects
   .filter((subject) => !ringOn(css, element(subject)))
   .map((subject) => `${subject.file}: ${subject.link}`);
@@ -395,7 +395,7 @@ test("the check rejects a cell link dropped from the ring", () => {
   // And half an inward ring is no ring: the offset is what draws the band inside the box, so
   // a rule that keeps the band and loses the offset paints it OUTSIDE — on the cell's edges,
   // where the pinned column and the scroller cut it. The outset ring does not come back to
-  // cover that, because the same rule has already taken the shadow off.
+  // cover that, because the same rule has already taken the outline off.
   assert.equal(
     bare(SHEETS.replace("\n  outline-offset: var(--ring-scroll-offset);", ""), subjects).length,
     subjects.length,

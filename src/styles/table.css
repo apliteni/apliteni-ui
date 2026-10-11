@@ -394,8 +394,7 @@ a.ui-identity:hover { text-decoration: underline; }
     max-width: var(--ui-table-identity-max);
     white-space: nowrap;
     /* `clip` with a margin rather than `hidden`: the ellipsis lands on the cell's own
-       edge either way, and the 16px keeps the header's sort button — the one control
-       here still drawing the outset ring, glow and all — out of the cut. */
+       edge either way, and the 16px keeps a descendant's focus ring outside the cut. */
     overflow: clip;
     overflow-clip-margin: var(--space-4);
     text-overflow: ellipsis;
@@ -407,6 +406,14 @@ a.ui-identity:hover { text-decoration: underline; }
     min-width: 0;
     overflow: clip;
     overflow-clip-margin: var(--space-4);
+    text-overflow: ellipsis;
+  }
+  /* When the sub-line holds a link, the link is the box that owns the text. It
+     takes the same cap, so Chrome draws the ellipsis and the ring stays closed
+     inside the sub-line's cut margin. */
+  .ui-table--pinned .ui-table__identity > * > a:not([class]):only-child {
+    max-width: 100%;
+    overflow: clip;
     text-overflow: ellipsis;
   }
   /* Except a control, which is a mark a clip removes rather than shortens: its own
@@ -502,6 +509,9 @@ a.ui-identity:hover { text-decoration: underline; }
   }
   .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > * {
     overflow: visible; text-overflow: clip;
+  }
+  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > * > a:not([class]):only-child {
+    max-width: none; overflow: visible; text-overflow: clip;
   }
   /* A card has no column to fill: every cell is a block on its own line and the ROW pays
      the inset, so the fill's padding would stand the link a step right of the card's text

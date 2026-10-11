@@ -21,6 +21,13 @@ for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLEl
 const { rowIdentity } = await import('../components/table-values.js');
 
 const CSS = read('src/styles/table.css');
+const BROWSER_CSS = [
+  'src/tokens/brand.generated.css',
+  'src/tokens/tokens.css',
+  'src/tokens/accents.css',
+  'src/styles/base.css',
+  'src/styles/table.css',
+].map(read).join('\n');
 
 /** Every rule the phone block writes. Which of them are a pinned identity's business
  *  is decided below by what each one REACHES: a rule written on any other class —
@@ -259,16 +266,97 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   assert.equal(style('#kit .ui-identity').maxWidth.trim(), '100%', 'the identity link is capped away from the cell it sits in');
   assert.equal(style('#kit .ui-identity__logo').display, 'none', 'the logo is back in the narrow column');
 
-  // A sub-line cuts itself with an ellipsis whatever holds its text — bare, in a
-  // `<span>`, or around a link, which keeps its ring through the cut's 16px margin.
-  // Only a control itself keeps its own layout, because its marks sit past its box.
+  // A sub-line cuts itself with an ellipsis. When it holds a link, the link takes
+  // the cap too. Chrome then draws the ellipsis and keeps the ring closed.
   for (const subLine of ['#subline', '#sublineel', '#sublinelink']) {
     assert.equal(style(subLine).textOverflow, 'ellipsis', `${subLine} is cut without saying so`);
     assert.ok(['clip', 'hidden'].includes(style(subLine).overflow), `${subLine} runs past the cap`);
   }
+  const subLineLink = style('#sublinelink a');
+  assert.equal(subLineLink.maxWidth.trim(), '100%', 'a sub-line link is not held to its line');
+  assert.equal(subLineLink.textOverflow, 'ellipsis', 'a sub-line link cuts without saying so');
+  assert.ok(['clip', 'hidden'].includes(subLineLink.overflow), `a sub-line link runs past the cap at ${subLineLink.overflow}`);
   const sort = style('#sort');
   assert.equal(sort.maxWidth.trim(), '100%', 'a sort button is not held to the cell it sits in');
   assert.ok(['', 'visible'].includes(sort.overflow), `a sort button is clipped, which takes its caret: ${sort.overflow}`);
+});
+
+const round = (n) => Math.round(n * 100) / 100;
+
+function subLineFixture(css, width) {
+  return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">
+    <style>${css}</style>
+    <style>body{margin:0}.stage{width:${width}px}.ui-table-scroll{max-height:none}</style>
+    </head><body><div class="stage"><div class="ui-table-scroll">
+    <table class="ui-table ui-table--compact ui-table--sticky ui-table--pinned">
+      <thead><tr><th class="ui-table__identity">Region</th><th class="ui-table__num">Price</th></tr></thead>
+      <tbody>
+        <tr><td class="ui-table__identity" id="plain"><div>North region</div><div class="ui-table__code" id="subline">EU-NORTH-1 district office</div></td><td class="ui-table__num">1.00</td></tr>
+        <tr><td class="ui-table__identity" id="span"><div>South region</div><div class="ui-table__code" id="sublineel"><span>EU-SOUTH-2 district office</span></div></td><td class="ui-table__num">1.00</td></tr>
+        <tr><td class="ui-table__identity" id="sublink"><div>West region</div><div class="ui-table__code" id="sublinelink"><a href="#office">EU-WEST-3 district office</a></div></td><td class="ui-table__num">1.00</td></tr>
+      </tbody>
+    </table></div></div></body></html>`;
+}
+
+async function measureSubLineOverflow(page, css, width) {
+  const html = subLineFixture(css, width);
+  await page.setViewportSize({ width, height: 360 });
+  await page.setContent(html, { waitUntil: 'load' });
+  await page.waitForTimeout(100);
+  const result = await page.evaluate((viewportWidth) => {
+      const link = document.querySelector('#sublinelink a');
+      link.focus();
+      const cell = document.querySelector('#sublink').getBoundingClientRect();
+      const line = document.querySelector('#sublinelink').getBoundingClientRect();
+      const linkBox = link.getBoundingClientRect();
+      const cs = getComputedStyle(link);
+      const outline = parseFloat(cs.outlineWidth) || 0;
+      const offset = parseFloat(cs.outlineOffset) || 0;
+      const clipMargin = parseFloat(getComputedStyle(document.querySelector('#sublinelink')).overflowClipMargin) || 0;
+      const ringRight = linkBox.right + Math.max(0, outline + offset);
+      return {
+        width: viewportWidth,
+        textOverflowPx: Math.max(0, linkBox.right - cell.right),
+        ringOverflowPx: Math.max(0, ringRight - line.right - clipMargin),
+        linkDisplay: cs.display,
+        linkOverflow: cs.overflow,
+        linkTextOverflow: cs.textOverflow,
+        linkRight: linkBox.right,
+        cellRight: cell.right
+      };
+  }, width);
+  return Object.fromEntries(Object.entries(result).map(([key, value]) => (
+    typeof value === 'number' ? [key, round(value)] : [key, value]
+  )));
+}
+
+test('Chrome keeps a sub-line link inside the pinned identity cap at phone widths', {
+  skip: !process.env.TABLE_IDENTITY_BROWSER && 'set TABLE_IDENTITY_BROWSER=1 to run the Chrome layout gate',
+}, async () => {
+  const css = BROWSER_CSS;
+  const pw = await import(process.env.UI_PLAYWRIGHT || 'playwright');
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME || undefined });
+  const page = await browser.newPage();
+  try {
+    for (const width of PHONE_WIDTHS) {
+      const row = await measureSubLineOverflow(page, css, width);
+      assert.ok(row.textOverflowPx <= 0.5, `the link text paints ${row.textOverflowPx}px past the cell at ${width}`);
+      assert.ok(row.ringOverflowPx <= 0.5, `the focused link ring is open by ${row.ringOverflowPx}px at ${width}`);
+      assert.equal(row.linkTextOverflow, 'ellipsis', `the link does not promise an ellipsis at ${width}`);
+    }
+
+    const defect = css.replace(/  \.ui-table--pinned \.ui-table__identity > \* > a:not\(\[class\]\):only-child \{[\s\S]*?  \}\n/, '');
+    assert.notEqual(defect, css, 'the browser mutation no longer matches table.css, so it proves nothing');
+    const failures = [];
+    for (const width of PHONE_WIDTHS) {
+      const row = await measureSubLineOverflow(page, defect, width);
+      if (row.textOverflowPx > 0.5 || row.ringOverflowPx > 0.5) failures.push(row);
+    }
+    assert.equal(failures.length, PHONE_WIDTHS.length,
+      `the restored defect did not fail at both widths: ${JSON.stringify(failures)}`);
+  } finally {
+    await browser.close();
+  }
 });
 
 test('at 1280 the phone rules are off and the desktop identity is what it was', () => {
