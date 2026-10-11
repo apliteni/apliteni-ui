@@ -61,7 +61,9 @@ export const Wide: Story = { render, args: { width: 'wide',
 export const Tablet: Story = { render, globals: { viewport: { value: 'tablet', isRotated: false } } };
 // A band with a control on it beside the reader's mark — the crowding that left the
 // trigger a few characters and truncated its sentence mid-word. It draws `Search`
-// here; the button is still named "Search or run a command…Ctrl K". (#486)
+// here, and the button's name is the same as at every other width. AppShell.test.tsx
+// asserts that name; do not quote it back here, because an ungated copy is what three
+// edits in a row corrupted. (#486)
 export const Phone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { bandControl: <Button variant="ghost" size="sm">Workspace</Button> } };
 

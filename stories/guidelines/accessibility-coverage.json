@@ -99,9 +99,10 @@
     {
       "file": "react/src/AppShell.test.tsx",
       "name": "React: AppShell",
-      "does": "Checks route-derived link names and counts, fold persistence, search focus and shortcut, account actions, and sheet dismissal.",
+      "does": "Checks route-derived link names and counts, fold persistence, the search trigger's whole accessible name, search focus and shortcut, account actions, and sheet dismissal.",
       "blind": [
-        "JSDOM does not measure responsive layout, hover labels, target sizes or rendered contrast."
+        "JSDOM does not measure responsive layout, hover labels, target sizes or rendered contrast.",
+        "JSDOM builds a name from contents by joining the spans with no separator, and a browser inserts a space between non-inline children. The search trigger's name is asserted with that one separator matched rather than written, so this gate does not hold which of the two a reader hears."
       ]
     },
     {
