@@ -140,6 +140,9 @@
   /* Chips open both ways: the row wraps, and the button at the end of it is a
      target like the chips are. */
   .ui-filter-bar { gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+  /* In a split toolbar the rail row beside the report sits on the same line as
+     Clear all. One step more across keeps the button's layer off that row. */
+  .ui-toolbar--split .ui-filter-bar { column-gap: calc(var(--tap-gap) + var(--space-1)) !important; }
 
   /* Inside a chip there is nothing to open: parting the value from its remove
      mark would draw two controls where the reader sees one. Named on the
