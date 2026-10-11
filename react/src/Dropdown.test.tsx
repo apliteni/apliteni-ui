@@ -1270,7 +1270,7 @@ function addRow({ rowWidth = 1200, left = 146, panelWidth = 320, observer = fals
     <fieldset className="ui-filter-bar" data-filter-bar="">
       <legend className="ui-filter-bar__legend">Filters</legend>
       <div data-filter-add="">
-        <Dropdown variant="menu" label="Add filter" ariaLabel="Add filter" items={SECTORS} />
+        <Dropdown variant="menu" label="Filter" ariaLabel="Filter" items={SECTORS} />
       </div>
     </fieldset>);
   const bar = container.querySelector('.ui-filter-bar')!;

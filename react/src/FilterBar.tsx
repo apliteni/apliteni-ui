@@ -15,7 +15,7 @@ export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: s
 const SEARCH_AT = 10;
 const isRow = (entry: DropdownEntry): entry is DropdownItem => entry !== '---' && !(entry as { separator?: boolean }).separator;
 
-export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', add, addLabel = 'Add', disabled = false, busy = false, onRemove, onClear, onChange, onAdd }: FilterBarProps) {
+export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', add, addLabel = 'Filter', disabled = false, busy = false, onRemove, onClear, onChange, onAdd }: FilterBarProps) {
   const bar = useRef<HTMLFieldSetElement>(null);
   const focused = useRef<{ id: string | null; index: number } | null>(null);
   // The filter the add menu just asked for. Consumed by the first layout pass after the

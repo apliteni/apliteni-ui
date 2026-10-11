@@ -238,7 +238,7 @@ test('an emptied bar hands the focus to the action beside it, never to its own e
 // answer, which is the half this kit owns. #518
 const withAdd = (attrs = '') => filterBar({ filters: [] })
   .replace('</fieldset>', `<div data-filter-add><div class="ui-dropdown">`
-    + `<button type="button" class="ui-dropdown__trigger" data-dropdown-trigger aria-expanded="false"${attrs}>Add</button>`
+    + `<button type="button" class="ui-dropdown__trigger" data-dropdown-trigger aria-expanded="false"${attrs}>Filter</button>`
     + `</div></div></fieldset>`);
 test('an emptied bar keeps the focus on the way to add a filter, where the row draws one', () => {
   const { dom, host } = setup(withAdd());
@@ -368,7 +368,7 @@ test('a pick in the page\'s own catalogue is not reported as a chip\'s change', 
   // filter the bar held. A chip's own menu still reports — the test above measures that. #518
   const catalogue = filterBar({ filters: [filters[0]] })
     .replace('<span data-filter-clear>', `<div data-filter-add>${dropdown({
-      variant: 'menu', ariaLabel: 'Add', triggerContent: 'Add',
+      variant: 'menu', ariaLabel: 'Filter', triggerContent: 'Filter',
       sections: [{ label: 'Market', items: [{ label: 'US', value: 'market:US' }] }],
     })}</div><span data-filter-clear>`);
   const { dom, host } = setup(catalogue);

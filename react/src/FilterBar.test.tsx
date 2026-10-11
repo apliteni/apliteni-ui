@@ -287,7 +287,7 @@ it('adds a filter from the bar and lands focus on the new chip', async () => {
   expect([...bar.querySelectorAll('[data-filter-id], [data-filter-add], [data-filter-clear]')]
     .map(el => (el.getAttribute('data-filter-id') ? 'chip' : el.hasAttribute('data-filter-add') ? 'add' : 'clear')))
     .toEqual(['chip', 'add', 'clear']);
-  await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Filter' }));
   expect(screen.getByRole('group', { name: 'Month' })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: 'Unit' })).toBeInTheDocument();
   await userEvent.click(screen.getByRole('menuitem', { name: 'April' }));
@@ -298,7 +298,7 @@ it('adds a filter from the bar and lands focus on the new chip', async () => {
 it('closes the add menu on Escape without adding', async () => {
   const onAdd = vi.fn();
   render(<Adding onAdd={onAdd} />);
-  const trigger = screen.getByRole('button', { name: 'Add' });
+  const trigger = screen.getByRole('button', { name: 'Filter' });
   await userEvent.click(trigger);
   expect(trigger).toHaveAttribute('aria-expanded', 'true');
   await userEvent.keyboard('{Escape}');
@@ -310,15 +310,15 @@ it('closes the add menu on Escape without adding', async () => {
 });
 it('offers only the filters the bar is not holding, and drops the control at the last one', async () => {
   render(<Adding add={[catalogue[0]]} />);
-  await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Filter' }));
   await userEvent.click(screen.getByRole('menuitem', { name: 'March' }));
   expect(screen.getByRole('button', { name: 'Month: March' })).toHaveFocus();
-  expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Filter' })).toBeNull();
 });
 it.each([[9, false], [10, true]] as const)('puts a field over %i options: %s', async (count, field) => {
   const items = Array.from({ length: count - 1 }, (_, i) => ({ label: `Month ${i + 1}`, value: `m${i + 1}` }));
   render(<Adding add={[{ ...catalogue[0], items }, catalogue[1]]} />);
-  await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Filter' }));
   const search = document.querySelector('[data-dd-search]');
   expect(Boolean(search)).toBe(field);
   if (search) expect(search).toHaveAttribute('aria-label', 'Search filters');
@@ -326,7 +326,7 @@ it.each([[9, false], [10, true]] as const)('puts a field over %i options: %s', a
 it.each(['busy', 'disabled'] as const)('stops the add control when %s', async flag => {
   const onAdd = vi.fn();
   render(<Adding onAdd={onAdd} {...{ [flag]: true }} />);
-  const trigger = screen.getByRole('button', { name: 'Add' });
+  const trigger = screen.getByRole('button', { name: 'Filter' });
   expect(trigger).toBeDisabled();
   await userEvent.click(trigger);
   expect(trigger).toHaveAttribute('aria-expanded', 'false');
@@ -335,9 +335,9 @@ it.each(['busy', 'disabled'] as const)('stops the add control when %s', async fl
 it('draws no add control without a catalogue or without onAdd', () => {
   const props = callbacks();
   const { rerender } = render(<FilterBar filters={filters} {...props} />);
-  expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Filter' })).toBeNull();
   rerender(<FilterBar filters={filters} add={catalogue} {...props} />);
-  expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Filter' })).toBeNull();
 });
 
 // Emptying the chips does not empty the row while the add control is still drawn, so the
@@ -356,7 +356,7 @@ it('lands the focus on the add control when clearing empties the chips', async (
   render(<Emptying />);
   await userEvent.click(screen.getByRole('button', { name: 'Clear all' }));
   expect(screen.queryByRole('button', { name: 'Clear all' })).not.toBeInTheDocument();
-  const add = screen.getByRole('button', { name: 'Add' });
+  const add = screen.getByRole('button', { name: 'Filter' });
   expect(add).toHaveFocus();
   // The published answer a consumer reads names the control the bar chose, not the
   // page's own button past the row: one list, both faces.
@@ -366,7 +366,7 @@ it('lands the focus on the add control when the last chip is removed', async () 
   render(<Emptying start={[filters[0]]} />);
   await userEvent.click(screen.getByRole('button', { name: `Remove ${filters[0].label} filter` }));
   expect(screen.queryByRole('button', { name: `Remove ${filters[0].label} filter` })).toBeNull();
-  expect(screen.getByRole('button', { name: 'Add' })).toHaveFocus();
+  expect(screen.getByRole('button', { name: 'Filter' })).toHaveFocus();
 });
 
 it('clears the width a searching menu held when it closes inside the row', async () => {
@@ -378,7 +378,7 @@ it('clears the width a searching menu held when it closes inside the row', async
   // gate's to measure.
   const months = Array.from({ length: 12 }, (_, i) => ({ label: `Month ${i + 1}`, value: `m${i + 1}` }));
   render(<Adding add={[{ id: 'Month', label: 'Month', items: months }]} />);
-  await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Filter' }));
   const panel = document.querySelector<HTMLElement>('[data-filter-add] .ui-dropdown__panel')!;
   expect(panel.querySelector('[data-dd-search]')).not.toBeNull();
   panel.style.minWidth = '320px';

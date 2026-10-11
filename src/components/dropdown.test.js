@@ -1014,7 +1014,7 @@ function addRow({ rowWidth = 1200, left = 146, ask = '320px', panelWidth = 320,
     '<fieldset class="ui-filter-bar" data-filter-bar>'
     + '<legend class="ui-filter-bar__legend">Filters</legend>'
     + '<div data-filter-add>'
-    + dropdown({ label: 'Add filter', variant: 'menu', items: SECTORS })
+    + dropdown({ label: 'Filter', variant: 'menu', items: SECTORS })
     + '</div></fieldset>',
   );
   const doc = window.document;

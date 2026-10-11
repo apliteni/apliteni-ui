@@ -383,12 +383,12 @@ or border. A consumer reading `[data-filter-clear]` finds nothing when no filter
 Both faces label it `Clear all`; `clearLabel` takes any wording.
 
 **Filter labels use secondary-control ink and weight.** The remove mark uses glyph ink.
-A chip keeps its quiet edge when hovered or open. Add moves its edge to the accent under the
-pointer, the way every trigger in the kit does, and steps that edge aside while it holds the
-focus ring. Clear keeps no edge in any state and answers the pointer with the accent wash the
-kit's buttons hover with. A control that is disabled or busy answers the pointer with nothing.
-Keyboard focus draws the shared `--ring`. A disabled chip or Add takes `--disabled-border`.
-None of the controls carries a resting fill.
+A chip keeps its quiet edge when hovered or open. The add control moves its edge to the accent
+under the pointer, the way every trigger in the kit does, and steps that edge aside while it
+holds the focus ring. Clear keeps no edge in any state and answers the pointer with the accent
+wash the kit's buttons hover with. A control that is disabled or busy answers the pointer with
+nothing. Keyboard focus draws the shared `--ring`. A disabled chip or add control takes
+`--disabled-border`. None of the controls carries a resting fill.
 
 **An emptied bar hands the focus on rather than keeping it.** When you clear the last filter or
 remove the last chip with the keyboard, the focused control disappears. The bar moves focus to
@@ -407,7 +407,7 @@ a second chip under one id, and takes a search field at ten values. A pick asks 
 filter and nothing else; answer it in the same update and focus lands on the new chip, answer it
 later and you own where focus goes. <kbd>Esc</kbd> closes the menu and adds nothing. The control
 is drawn only while something is left to add, and it stands at a chip's height and corner. It is
-labelled `Add`, for the reason the clear action is labelled `Clear all`; `addLabel` takes any
+labelled `Filter`, for the reason the clear action is labelled `Clear all`; `addLabel` takes any
 wording. The vanilla `filterBar()` has no `add`, so a vanilla page draws its own control and the
 kit answers it through markup: put your own `dropdown()` inside the bar, wrapped in an element
 carrying `data-filter-add`. That attribute is the whole contract — it declares the ask, carries
