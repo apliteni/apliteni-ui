@@ -408,10 +408,19 @@ a.ui-identity:hover { text-decoration: underline; }
     overflow-clip-margin: var(--space-4);
     text-overflow: ellipsis;
   }
-  /* When the sub-line holds a link, the link is the box that owns the text. It
-     takes the same cap, so Chrome draws the ellipsis and the ring stays closed
-     inside the sub-line's cut margin. */
-  .ui-table--pinned .ui-table__identity > * > a:not([class]):only-child {
+  /* When a sub-line holds a link, the line becomes the box that shares its space
+     among text and links. Each link can then shrink, draw an ellipsis, and keep
+     its focus ring closed inside the sub-line's cut margin. */
+  .ui-table--pinned .ui-table__identity > *:has(a) {
+    display: flex;
+    align-items: baseline;
+  }
+  .ui-table--pinned .ui-table__identity > *:has(a) > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .ui-table--pinned .ui-table__identity > * a {
+    min-width: 0;
     max-width: 100%;
     overflow: clip;
     text-overflow: ellipsis;
@@ -510,7 +519,7 @@ a.ui-identity:hover { text-decoration: underline; }
   .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > * {
     overflow: visible; text-overflow: clip;
   }
-  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > * > a:not([class]):only-child {
+  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > * a {
     max-width: none; overflow: visible; text-overflow: clip;
   }
   /* A card has no column to fill: every cell is a block on its own line and the ROW pays

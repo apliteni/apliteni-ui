@@ -517,8 +517,8 @@ composed into a cell.
 `--ui-table-identity-max` and cut with an ellipsis past the cap. The default cap is
 `min(var(--panel-sm), 50vw)`, and that one property is yours to retune. The whole text stays in
 the markup, so the accessible name is unchanged and the company link remains the disclosure. The
-decorative logo is not drawn there. A sub-line cuts in its own box. A sub-line link also cuts in
-that box, draws an ellipsis, and keeps a closed focus ring. A control in the cell keeps its own
+decorative logo is not drawn there. A sub-line cuts in its own box. Any link in a sub-line cuts
+in that box, draws an ellipsis, and keeps a closed focus ring. A control in the cell keeps its own
 marks and focus ring through the cut. A kit anchor cuts inside its own box rather than over the
 column beside it.
 

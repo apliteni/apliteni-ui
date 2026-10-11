@@ -9,6 +9,7 @@ import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import { substitute, tokensFor } from '../../stories/lib/contrast.js';
 import { blockRules, decomment, lengthPx, sheetAt } from '../../stories/lib/css-at-width.js';
+import { decodePNG } from '../../stories/lib/table-edge-shade.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -45,8 +46,9 @@ function phoneRules() {
  * for ONE viewport width: the kit's `rowIdentity()`, marked `.ui-table__linked` — the shape
  * the column and the cell fill meet on — a marked cell holding a BARE link, the other shape
  * the fill is written for, a two-word plain cell, a sub-line as bare text, the same in a
- * `<span>`, one around a link, a sortable header, and two kit anchors keeping their own box,
- * a `.ui-btn` of words alone and a `.ui-nav__item` holding artwork. `extra` composes another
+ * `<span>`, several lines that hold links in different markup, a sortable header, and two
+ * kit anchors keeping their own box, a `.ui-btn` of words alone and a `.ui-nav__item`
+ * holding artwork. `extra` composes another
  * modifier onto the same shapes, and `css` mounts the mutations below as the stylesheet is.
  * Limit: JSDOM models no layout, so every outcome below is read from the cascade and not
  * from a drawn box. Chromium measured the boxes for #500 — a 195px cap cut at its edge, a
@@ -74,10 +76,15 @@ function mountAt(width, extra = '', css = CSS) {
       <tr><td class="ui-table__identity" id="sub"><div>North region</div><div class="ui-table__code" id="subline">EU-NORTH-1 district office</div></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="subel"><div>South region</div><div class="ui-table__code" id="sublineel"><span>EU-SOUTH-2 district office</span></div></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="sublink"><div>West region</div><div class="ui-table__code" id="sublinelink"><a href="#office">EU-WEST-3 district office</a></div></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="submixed"><div>Central region</div><div class="ui-table__code" id="sublinemixed">Office: <a href="#office">EU-CENTRAL-4 district office</a></div></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="subspan"><div>East region</div><div class="ui-table__code" id="sublinespan"><span><a href="#office">EU-EAST-5 district office</a></span></div></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="substrong"><div>Southwest region</div><div class="ui-table__code" id="sublinestrong"><strong><a href="#office">EU-SOUTHWEST-6 district office</a></strong></div></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="subtwo"><div>Map region</div><div class="ui-table__code" id="sublinethree"><a href="#office">EU-MAP-7 district office</a> <a href="#map">map</a></div></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="subclass"><div>Classed region</div><div class="ui-table__code" id="sublineclass"><a class="u-office-link" href="#office">EU-CLASSED-8 district office</a></div></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="btn"><a class="ui-btn ui-btn--sm" href="#company" id="btnlink">Open the registered trading name</a></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="nav"><a class="ui-nav__item" href="#company" id="navlink"><svg class="ui-nav__ic"></svg>Open the registered trading name</a></td><td class="ui-table__num">1.00</td></tr>
     </tbody></table>`;
-  const cells = ['#head', '#kit', '#bare', '#plain', '#sub', '#subel', '#sublink', '#btn', '#nav'];
+  const cells = ['#head', '#kit', '#bare', '#plain', '#sub', '#subel', '#sublink', '#submixed', '#subspan', '#substrong', '#subtwo', '#subclass', '#btn', '#nav'];
   const style = (sel) => dom.window.getComputedStyle(typeof sel === 'string' ? document.querySelector(sel) : sel);
   return { document, cells, style, cap };
 }
@@ -153,6 +160,8 @@ const OUTCOME = {
   // reaches. Measured in Chromium: flex cut "…Holdings Inte" with no ellipsis. #513
   'align-content': (v) => (v === 'center' ? null
     : `${v} drops the filled link's line to the top of a row taller than one line`),
+  'align-items': (v) => (v === 'baseline' ? null
+    : `${v} does not keep mixed sub-line text and links on one baseline`),
   // The two ways #500 hid the name: out of flow, or clipped to nothing.
   position: (v) => (['static', 'relative', 'sticky'].includes(v) ? null
     : `${v} takes this out of the row, which is how the name was hidden before #500`),
@@ -188,7 +197,7 @@ test('at 390 every rule that reaches a pinned identity comes to the outcome it i
  *  narrowest screen the kit draws for. */
 const PHONE_WIDTHS = [390, 320];
 /** The shapes `mountAt` builds a pinned identity cell in, header included. */
-const SHAPES = 9;
+const SHAPES = 14;
 
 /**
  * The cap the column is held to at one width, and the cells held to it — read from the
@@ -266,16 +275,24 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   assert.equal(style('#kit .ui-identity').maxWidth.trim(), '100%', 'the identity link is capped away from the cell it sits in');
   assert.equal(style('#kit .ui-identity__logo').display, 'none', 'the logo is back in the narrow column');
 
-  // A sub-line cuts itself with an ellipsis. When it holds a link, the link takes
-  // the cap too. Chrome then draws the ellipsis and keeps the ring closed.
+  // A sub-line cuts itself with an ellipsis. When it holds a link, every way of
+  // wrapping that link gets the same cap too. Chrome then draws the ellipsis and
+  // keeps the ring closed.
   for (const subLine of ['#subline', '#sublineel', '#sublinelink']) {
     assert.equal(style(subLine).textOverflow, 'ellipsis', `${subLine} is cut without saying so`);
     assert.ok(['clip', 'hidden'].includes(style(subLine).overflow), `${subLine} runs past the cap`);
   }
-  const subLineLink = style('#sublinelink a');
-  assert.equal(subLineLink.maxWidth.trim(), '100%', 'a sub-line link is not held to its line');
-  assert.equal(subLineLink.textOverflow, 'ellipsis', 'a sub-line link cuts without saying so');
-  assert.ok(['clip', 'hidden'].includes(subLineLink.overflow), `a sub-line link runs past the cap at ${subLineLink.overflow}`);
+  const subLinesWithLinks = [...document.querySelectorAll('.ui-table__identity > *')].filter((el) => el.querySelector('a'));
+  assert.equal(subLinesWithLinks.length, 6, 'the fixture must cover each sub-line link shape');
+  for (const subLine of subLinesWithLinks) {
+    assert.equal(style(subLine).display, 'flex', `#${subLine.id} does not share the line among its link and text`);
+    for (const link of subLine.querySelectorAll('a')) {
+      const linkStyle = style(link);
+      assert.equal(linkStyle.maxWidth.trim(), '100%', `#${subLine.id} link is not held to its line`);
+      assert.equal(linkStyle.textOverflow, 'ellipsis', `#${subLine.id} link cuts without saying so`);
+      assert.ok(['clip', 'hidden'].includes(linkStyle.overflow), `#${subLine.id} link runs past the cap at ${linkStyle.overflow}`);
+    }
+  }
   const sort = style('#sort');
   assert.equal(sort.maxWidth.trim(), '100%', 'a sort button is not held to the cell it sits in');
   assert.ok(['', 'visible'].includes(sort.overflow), `a sort button is clipped, which takes its caret: ${sort.overflow}`);
@@ -283,51 +300,100 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
 
 const round = (n) => Math.round(n * 100) / 100;
 
-function subLineFixture(css, width) {
+const SUBLINE_ROWS = [
+  ['plain-link', '<a href="#office">EU-WEST-3 district office</a>'],
+  ['mixed-link', 'Office: <a href="#office">EU-CENTRAL-4 district office</a>'],
+  ['span-link', '<span><a href="#office">EU-EAST-5 district office</a></span>'],
+  ['strong-link', '<strong><a href="#office">EU-SOUTHWEST-6 district office</a></strong>'],
+  ['two-links', '<a href="#office">EU-MAP-7 district office</a> <a href="#map">map</a>'],
+  ['classed-link', '<a class="u-office-link" href="#office">EU-CLASSED-8 district office</a>'],
+];
+
+function subLineFixture(css, width, rows = SUBLINE_ROWS) {
+  const bodyRows = rows.map(([id, markup], index) => `
+        <tr><td class="ui-table__identity" id="cell-${id}">
+          <div>Region ${index + 1}</div>
+          <div class="ui-table__code" data-subline="${id}">${markup}</div>
+        </td><td class="ui-table__num">1.00</td></tr>`).join('');
   return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">
     <style>${css}</style>
     <style>body{margin:0}.stage{width:${width}px}.ui-table-scroll{max-height:none}</style>
     </head><body><div class="stage"><div class="ui-table-scroll">
     <table class="ui-table ui-table--compact ui-table--sticky ui-table--pinned">
       <thead><tr><th class="ui-table__identity">Region</th><th class="ui-table__num">Price</th></tr></thead>
-      <tbody>
-        <tr><td class="ui-table__identity" id="plain"><div>North region</div><div class="ui-table__code" id="subline">EU-NORTH-1 district office</div></td><td class="ui-table__num">1.00</td></tr>
-        <tr><td class="ui-table__identity" id="span"><div>South region</div><div class="ui-table__code" id="sublineel"><span>EU-SOUTH-2 district office</span></div></td><td class="ui-table__num">1.00</td></tr>
-        <tr><td class="ui-table__identity" id="sublink"><div>West region</div><div class="ui-table__code" id="sublinelink"><a href="#office">EU-WEST-3 district office</a></div></td><td class="ui-table__num">1.00</td></tr>
-      </tbody>
+      <tbody>${bodyRows}</tbody>
     </table></div></div></body></html>`;
 }
 
-async function measureSubLineOverflow(page, css, width) {
-  const html = subLineFixture(css, width);
+const differs = (a, b, index) =>
+  Math.abs(a.data[index] - b.data[index])
+    + Math.abs(a.data[index + 1] - b.data[index + 1])
+    + Math.abs(a.data[index + 2] - b.data[index + 2])
+    + Math.abs(a.data[index + 3] - b.data[index + 3]) > 12;
+
+function rightmostChangedPixel(before, after, box) {
+  assert.equal(before.width, after.width, 'screenshots must have the same width');
+  assert.equal(before.height, after.height, 'screenshots must have the same height');
+  const left = Math.max(0, Math.floor(box.left) - 2);
+  const right = Math.min(before.width - 1, Math.ceil(box.right) + 24);
+  const top = Math.max(0, Math.floor(box.top) - 8);
+  const bottom = Math.min(before.height - 1, Math.ceil(box.bottom) + 8);
+  let found = -1;
+  for (let y = top; y <= bottom; y += 1) {
+    for (let x = left; x <= right; x += 1) {
+      if (differs(before, after, (y * before.width + x) * 4)) found = Math.max(found, x);
+    }
+  }
+  return found;
+}
+
+async function measureSubLineOverflow(page, css, width, rows = SUBLINE_ROWS) {
+  const html = subLineFixture(css, width, rows);
   await page.setViewportSize({ width, height: 360 });
   await page.setContent(html, { waitUntil: 'load' });
   await page.waitForTimeout(100);
-  const result = await page.evaluate((viewportWidth) => {
-      const link = document.querySelector('#sublinelink a');
-      link.focus();
-      const cell = document.querySelector('#sublink').getBoundingClientRect();
-      const line = document.querySelector('#sublinelink').getBoundingClientRect();
+  const subjects = await page.evaluate(() => [...document.querySelectorAll('.ui-table__identity > *:has(a)')]
+    .map((line, index) => {
+      const link = line.querySelector('a');
+      const cell = line.closest('.ui-table__identity').getBoundingClientRect();
+      const lineBox = line.getBoundingClientRect();
       const linkBox = link.getBoundingClientRect();
       const cs = getComputedStyle(link);
-      const outline = parseFloat(cs.outlineWidth) || 0;
-      const offset = parseFloat(cs.outlineOffset) || 0;
-      const clipMargin = parseFloat(getComputedStyle(document.querySelector('#sublinelink')).overflowClipMargin) || 0;
-      const ringRight = linkBox.right + Math.max(0, outline + offset);
       return {
-        width: viewportWidth,
-        textOverflowPx: Math.max(0, linkBox.right - cell.right),
-        ringOverflowPx: Math.max(0, ringRight - line.right - clipMargin),
-        linkDisplay: cs.display,
+        index,
+        id: line.getAttribute('data-subline'),
         linkOverflow: cs.overflow,
         linkTextOverflow: cs.textOverflow,
+        cellRight: cell.right,
+        lineRight: lineBox.right,
         linkRight: linkBox.right,
-        cellRight: cell.right
+        lineBox: { left: lineBox.left, right: lineBox.right, top: lineBox.top, bottom: lineBox.bottom },
       };
-  }, width);
-  return Object.fromEntries(Object.entries(result).map(([key, value]) => (
-    typeof value === 'number' ? [key, round(value)] : [key, value]
-  )));
+    }));
+  assert.ok(subjects.length >= 6, `only ${subjects.length} sub-line link shapes were discovered`);
+  const out = [];
+  for (const subject of subjects) {
+    await page.evaluate((index) => {
+      const line = document.querySelectorAll('.ui-table__identity > *:has(a)')[index];
+      line.querySelector('a').focus();
+    }, subject.index);
+    const before = decodePNG(await page.screenshot());
+    await page.evaluate((index) => {
+      document.querySelectorAll('.ui-table__identity > *:has(a)')[index].style.visibility = 'hidden';
+    }, subject.index);
+    const after = decodePNG(await page.screenshot());
+    await page.evaluate((index) => {
+      document.querySelectorAll('.ui-table__identity > *:has(a)')[index].style.visibility = '';
+    }, subject.index);
+    const paintedRight = rightmostChangedPixel(before, after, subject.lineBox);
+    out.push({
+      ...subject,
+      width,
+      paintedOverflowPx: round(Math.max(0, paintedRight + 1 - subject.cellRight)),
+      boxOverflowPx: round(Math.max(0, subject.linkRight - subject.cellRight)),
+    });
+  }
+  return out;
 }
 
 test('Chrome keeps a sub-line link inside the pinned identity cap at phone widths', {
@@ -335,25 +401,34 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
 }, async () => {
   const css = BROWSER_CSS;
   const pw = await import(process.env.UI_PLAYWRIGHT || 'playwright');
-  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME || undefined });
+  const { chromium } = pw.chromium ? pw : pw.default;
+  const browser = await chromium.launch({ executablePath: process.env.UI_CHROME || undefined });
   const page = await browser.newPage();
   try {
     for (const width of PHONE_WIDTHS) {
-      const row = await measureSubLineOverflow(page, css, width);
-      assert.ok(row.textOverflowPx <= 0.5, `the link text paints ${row.textOverflowPx}px past the cell at ${width}`);
-      assert.ok(row.ringOverflowPx <= 0.5, `the focused link ring is open by ${row.ringOverflowPx}px at ${width}`);
-      assert.equal(row.linkTextOverflow, 'ellipsis', `the link does not promise an ellipsis at ${width}`);
+      const rows = await measureSubLineOverflow(page, css, width);
+      for (const row of rows) {
+        assert.ok(row.paintedOverflowPx <= 0.5, `${row.id} paints ${row.paintedOverflowPx}px past the cell at ${width}`);
+        assert.equal(row.linkTextOverflow, 'ellipsis', `${row.id} does not promise an ellipsis at ${width}`);
+      }
     }
 
-    const defect = css.replace(/  \.ui-table--pinned \.ui-table__identity > \* > a:not\(\[class\]\):only-child \{[\s\S]*?  \}\n/, '');
+    const discovered = await measureSubLineOverflow(page, css, 390, [
+      ...SUBLINE_ROWS,
+      ['new-markup', '<em><a href="#office">EU-ADDED-9 district office</a></em>'],
+    ]);
+    assert.equal(discovered.length, SUBLINE_ROWS.length + 1,
+      'a new sub-line link markup must be discovered without being listed in the measuring code');
+
+    const defect = css.replace(/(?<=  \.ui-table--pinned \.ui-table__identity > \* a \{[\s\S]*?)    overflow: clip;\n(?=    text-overflow: ellipsis;\n  \})/, '');
     assert.notEqual(defect, css, 'the browser mutation no longer matches table.css, so it proves nothing');
     const failures = [];
     for (const width of PHONE_WIDTHS) {
-      const row = await measureSubLineOverflow(page, defect, width);
-      if (row.textOverflowPx > 0.5 || row.ringOverflowPx > 0.5) failures.push(row);
+      const rows = await measureSubLineOverflow(page, defect, width);
+      failures.push(...rows.filter((row) => row.paintedOverflowPx > 0.5));
     }
-    assert.equal(failures.length, PHONE_WIDTHS.length,
-      `the restored defect did not fail at both widths: ${JSON.stringify(failures)}`);
+    assert.ok(new Set(failures.map((row) => row.width)).size === PHONE_WIDTHS.length,
+      `dropping only the link's overflow clip did not fail at both widths: ${JSON.stringify(failures)}`);
   } finally {
     await browser.close();
   }
@@ -395,6 +470,8 @@ const STACKED_OUTCOME = {
   // Inert in a card: the link's height is its own line there, so there is no box to
   // centre a line in. Left written for the column, which has one.
   'align-content': () => null,
+  // Inert in a card: a sub-line can still align its text and link on one baseline.
+  'align-items': () => null,
   // The decorative logo stays out of a stacked card too. That is #499's call about the
   // card, not #500's about the column, so this sweep does not reopen it.
   display: () => null,
