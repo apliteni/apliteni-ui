@@ -859,9 +859,9 @@ that opens a readout does not call `onSelect`** — it is the reader asking what
 The tap that closes one, and an ordinary mouse click, do, and the click itself is never swallowed,
 so your own listener around the chart still hears every tap. Below 560px, to a coarse pointer, a
 line's point grows to the room its column gives. It never crosses into a neighbour's column. A
-narrow sparkline can therefore own less than 44px across, but still owns the full 44px down. A
-sparkline's slot grows with that vertical target, so a `trend` slot is 44px tall there instead
-of 32.
+narrow sparkline can therefore own less than 44px across, but it still owns at least 24px
+across and the full 44px down. A sparkline's slot grows with that vertical target, so a
+`trend` slot is 44px tall there instead of 32.
 
 The table the reader opens carries its columns sideways in a named scroller, so your card and your
 page keep their width whatever series you pass. At phone widths the plot scrolls with the value

@@ -3,10 +3,12 @@
  *
  * Two halves. The SOURCE half runs in CI. The BROWSER half is the measurement —
  * only an engine answers a hit test, and #543 found a point declaring 28x32
- * whose usable area was 28x19.4, then a point opening the next month at 320 —
+ * whose usable area was 28x19.4, then a point owning only 21.6px at 320 —
  * and it is OFF unless CHART_TARGETS=1, because Playwright is deliberately not
- * a dependency here. That is this gate's largest limit; the others are stated
- * beside the tests they belong to.
+ * a dependency here. `CHART_TARGET_MUTATION=thin|missing|adjacent` proves the
+ * hit-test gate can fail and can keep passing for unrelated changes.
+ * That is this gate's largest limit; the others are stated beside the tests
+ * they belong to.
  *
  *   npm run build-storybook -w react
  *   UI_PLAYWRIGHT=... CHART_TARGETS=1 node --test stories/chart-target.test.js
@@ -197,6 +199,7 @@ test('this gate rejects a chart rule scoped too weakly to win', () => {
  * writes is react/src/Chart.test.tsx. The readout's wording is measured
  * nowhere here. */
 const RUN = process.env.CHART_TARGETS === '1';
+const TARGET_MUTATION = process.env.CHART_TARGET_MUTATION || '';
 const BUILT = path.join(root, 'react/storybook-static');
 
 test(
@@ -370,7 +373,7 @@ test(
 );
 
 test(
-  'every spark point owns its hit-tested target at 320 and 390, coarse',
+  `every spark point owns the ${TARGET_MIN}px hit-tested target at 320 and 390, coarse`,
   { skip: !RUN && 'set CHART_TARGETS=1' },
   async (t) => {
     const pw = await (async () => {
@@ -431,9 +434,20 @@ test(
               + 'applied and the result would be a desktop measurement.',
             );
 
-            const result = await page.evaluate(() => {
+            const result = await page.evaluate((mutation) => {
+              if (mutation === 'thin') {
+                document.querySelectorAll('.ui-chart__hit')
+                  .forEach((hit) => hit.setAttribute('style', 'pointer-events: none'));
+              }
+              if (mutation === 'missing') {
+                document.querySelector('.ui-chart__hit')?.remove();
+              }
+              if (mutation === 'adjacent') {
+                document.querySelector('.ui-chart__period')?.setAttribute('data-adjacent-proof', 'changed');
+              }
               const STEP = 0.05;
               const round = (n) => Math.round(n * 100) / 100;
+              const anchorCount = document.querySelectorAll('[data-anchor]').length;
               const rows = [...document.querySelectorAll('.ui-chart__hit')].map((hit) => {
                 const id = hit.closest('[data-mark]').getAttribute('data-mark');
                 const box = hit.getBoundingClientRect();
@@ -454,8 +468,17 @@ test(
                 };
               });
               const min = rows.reduce((best, row) => Math.min(best, row.owned), Infinity);
-              return { min: round(min), rows };
-            });
+              return { anchorCount, min: round(min), rows };
+            }, TARGET_MUTATION);
+            if (result.rows.length !== result.anchorCount) {
+              failures.push(`${width}/${theme}: ${result.rows.length} targets for `
+                + `${result.anchorCount} anchors`);
+            }
+            const undersized = result.rows.filter((row) => row.owned < TARGET_MIN - 0.05);
+            if (undersized.length) {
+              failures.push(`${width}/${theme}: min owned ${result.min}px; `
+                + undersized.map((row) => `${row.id} owned ${row.owned}px`).join(', '));
+            }
             const stolen = result.rows.filter((row) => row.stolen > 0);
             if (stolen.length) {
               failures.push(`${width}/${theme}: min owned ${result.min}px; `
@@ -470,8 +493,8 @@ test(
       assert.deepEqual(
         failures,
         [],
-        'A spark point declared samples that the browser handed to another point. This is the '
-        + '320px failure: the page, not the SVG attributes, decides which month a tap opens.',
+        `A spark point must own ${TARGET_MIN}px by browser hit test. This is the 320px failure: `
+        + 'the page, not the SVG attributes, decides which month a tap opens.',
       );
     } finally {
       await browser.close();

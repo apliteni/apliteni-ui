@@ -635,6 +635,7 @@ export function Chart(props: ChartProps) {
       style={{
         '--ui-chart-h': `${plotHeight}px`,
         '--ui-chart-box': `${px(boxHeight)}px`,
+        '--ui-chart-cols': count,
         '--ui-chart-pad': `${PAD}px`,
       } as CSSProperties}
     >
@@ -710,7 +711,7 @@ export function Chart(props: ChartProps) {
           if (mark.right <= view.left || mark.left >= view.right) setOpenId(null);
           else placeTip(frameEl.current, anchor, tipEl.current, frameEl.current);
         }}>
-          <div ref={plot} className="ui-chart__plot" style={{ '--ui-chart-cols': count } as CSSProperties}>
+          <div ref={plot} className="ui-chart__plot">
             <svg
               ref={svgEl}
               className="ui-chart__svg"

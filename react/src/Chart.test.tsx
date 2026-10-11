@@ -175,19 +175,17 @@ it('a coarse pointer below the phone step grows a point to 44, inside its own co
   expect(hitBox('income-1').h).toBeGreaterThan(44);
 });
 
-it('a sparkline owns a narrow column rather than letting one point answer for three', () => {
+it('a sparkline owns the kit floor across by giving each point a wide enough column', () => {
   coarse(true);
-  measuredAt(4 * 16); // four columns at the sheet's --ui-chart-col for a sparkline, 16px
+  measuredAt(4 * 24); // four columns at the sheet's --ui-chart-col for a sparkline, 24px
   render(
     <Chart variant="spark" title="Income" periods={periods} series={[{ ...series[0], shape: 'line' }]}
       format={eur} />,
   );
-  // 16px columns cannot each hold 24 or 44 ACROSS: growing them would make one
-  // point answer for another month, which is the one thing the floor must not
-  // do, so the points own their columns. Down there is
-  // nothing to share a column with, so the target takes the whole phone floor
-  // — the box the chart draws in is grown to hold it.
-  expect(hitBox('income-1')).toMatchObject({ w: 16, h: 44 });
+  // A sparkline may still be narrower than the 44px phone target across,
+  // because no point may answer for another period. It must still keep the
+  // kit's 24px floor across, and the box grows to hold the phone floor down.
+  expect(hitBox('income-1')).toMatchObject({ w: 24, h: 44 });
 });
 
 /**
@@ -321,6 +319,12 @@ describe.each(['dark', 'light'])('the kit ring resolves [%s]', (theme) => {
     expect(readRepo('../../src/styles/chart.css'),
       'the chart declares no outline of its own, so nothing reverts to the browser\'s')
       .not.toMatch(/outline\s*:/);
+    expect(readRepo('../../src/styles/chart.css'),
+      'the chart keeps the same unpainted offset as the kit ring')
+      .toMatch(/\.ui-chart__frame:focus-visible\s*\{[^}]*outline-offset:\s*var\(--ring-offset,\s*1px\)/);
+    expect(readRepo('../../src/styles/chart.css'),
+      'the chart must not offset focus by the tick row')
+      .not.toMatch(/outline-offset:\s*calc\([^)]*ui-chart-tick/);
   });
 });
 

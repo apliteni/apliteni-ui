@@ -278,16 +278,15 @@ test('a target stops at the midpoint to the next point in its column, not short 
   assert.ok(b.h >= 24, 'and keeps at least the AA floor');
 });
 
-test('a column narrower than the AA floor owns its column rather than a neighbour', () => {
-  // A four-column sparkline in 64px: 16px columns. Growing a target to 44
-  // across would make one point answer for nearly three periods, so it takes
-  // the column and no more — and is still held inside the box, so the first
-  // and last points are whole.
-  const box = { left: 0, right: 64, top: -6, bottom: 38 };
-  const first = pointTarget({ x: 8, y: 2 }, { floor: 44, min: 24, box, column: [0, 16] });
-  const last = pointTarget({ x: 56, y: 30 }, { floor: 44, min: 24, box, column: [48, 64] });
-  assert.deepEqual([first.w, first.x], [16, 0], 'the first target owns its column and starts at the edge');
-  assert.deepEqual([last.w, last.x + last.w], [16, 64], 'and the last one owns its column to the edge');
+test('a column at the AA floor gives the whole floor across without crossing a neighbour', () => {
+  // A four-column sparkline in 96px: 24px columns. The component's stylesheet
+  // gives a sparkline this much room, so the point keeps the AA floor across
+  // and still does not answer for another period.
+  const box = { left: 0, right: 96, top: -6, bottom: 38 };
+  const first = pointTarget({ x: 12, y: 2 }, { floor: 44, min: 24, box, column: [0, 24] });
+  const last = pointTarget({ x: 84, y: 30 }, { floor: 44, min: 24, box, column: [72, 96] });
+  assert.deepEqual([first.w, first.x], [24, 0], 'the first target owns the AA floor at the edge');
+  assert.deepEqual([last.w, last.x + last.w], [24, 96], 'and the last one owns the AA floor at the edge');
   assert.equal(first.h, 44, 'down there is nothing to share the column with');
 });
 

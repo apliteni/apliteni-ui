@@ -874,11 +874,11 @@ tap that opens a readout does not call `onSelect`** — it is the reader asking 
 worth — while the tap that closes one, and an ordinary mouse click, do. The click itself is
 never swallowed, so your own listener around the chart still hears every tap. Below 560px, to
 a coarse pointer, a line's point grows an invisible target that stops at its own column so
-no two periods answer for each other. A narrow sparkline can own less than 44px across. It still
-owns the full 44px down, and the drawn line does not change. A sparkline's box grows with it —
-32px of drawing cannot hold the vertical target, and the part outside the box would be clipped by
-the chart's own edge — so a `trend` slot is 44px tall there instead of 32, with the same line drawn
-in the middle of it.
+no two periods answer for each other. A narrow sparkline can own less than 44px across, but it
+still owns at least 24px across and the full 44px down. The drawn line does not change. A
+sparkline's box grows with it — 32px of drawing cannot hold the vertical target, and the part
+outside the box would be clipped by the chart's own edge — so a `trend` slot is 44px tall there
+instead of 32, with the same line drawn in the middle of it.
 
 ```tsx
 <Chart title="Income and spend by month, last 12 months, with net"

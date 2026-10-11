@@ -29,8 +29,9 @@
 
 .ui-chart--bridge { --ui-chart-col: calc(var(--space-16) + var(--space-6)); }
 .ui-chart--spark {
-  --ui-chart-col: var(--space-4);
+  --ui-chart-col: var(--space-6);
   gap: 0;
+  min-width: calc(var(--ui-chart-col) * var(--ui-chart-cols, 1));
 }
 /* No axis, so the scroller takes the whole frame rather than the auto column
    the axis would have held. */
@@ -81,7 +82,7 @@
   border-radius: var(--radius-xs);
 }
 .ui-chart__frame:focus-visible {
-  outline-offset: calc(var(--ring-offset) + var(--ui-chart-tick) / 2);
+  outline-offset: var(--ring-offset, 1px);
 }
 
 .ui-chart__axis {
