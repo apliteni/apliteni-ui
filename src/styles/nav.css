@@ -318,6 +318,7 @@
 .ui-nav__tab {
   flex: none;
   position: relative;
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -332,6 +333,7 @@
 .ui-nav__tab:hover { color: var(--strong); }
 .ui-nav__tab:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: 8px; }
 .ui-nav__tab.is-active { color: var(--strong); }
+.ui-nav__tab-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* underline variant */
 .ui-nav--tabs.is-underline .ui-nav__tab::after {

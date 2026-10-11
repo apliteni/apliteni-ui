@@ -517,6 +517,14 @@
       ]
     },
     {
+      "file": "stories/nav-long-label.test.js",
+      "name": "Nav long label",
+      "does": "In a real browser, renders a current tab with a long route label at 320px and measures that its label start and focus ring stay inside the row. It also removes the label cap in memory and requires the hidden start and clipped ring to return.",
+      "blind": [
+        "Runs only when NAV_LONG_LABEL=1 and Playwright is available. It covers one long English label, one direct-gate theme and Chromium; PR evidence renders vanilla and React stories in both themes."
+      ]
+    },
+    {
       "file": "stories/button-chrome.test.js",
       "name": "Button chrome",
       "does": "Mounts every clickable class the kit ships where a story renders it, once with browser button chrome and once without. It requires equal background, border, font-family, font-size, line-height, text-align and width. The three font facets are separate because Chrome writes them as one shorthand, `font: 400 13.3333px Arial`; a font-family longhand restores the face but leaves size and leading. Width also requires rejecting `width: auto` and `width: fit-content`, even when readings match. Three failing classes and three excluded classes are pinned by name, so the derived count remains stable.",
