@@ -8,7 +8,7 @@
 
 **Why:** Without a legend, readers need labels for unfamiliar glyphs.
 
-**Except:** New entries require a decision and the three tests in Earn a wordless button. Allowed: close, copy, overflow, expand, collapse and export. Theme toggles, sidebar toggles and collapsed-rail links have separate approval.
+**Except:** New entries require a decision and the three tests in [Earn a wordless button](https://ui.apli.tech/storybook/?path=/story/guidelines-button-labels--button-labels). Allowed: close, copy, overflow, expand, collapse and export. Theme toggles, sidebar toggles and collapsed-rail links have separate approval.
 
 **Do:** Show an overflow menu without words; keep the Settings label.
 
