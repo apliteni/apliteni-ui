@@ -43,6 +43,46 @@ const ruleBody = (text, selector) => {
   return found[0][2];
 };
 const decl = (body, prop) => new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`).exec(body)?.[1].trim();
+const splitSelectors = (selector) => selector.split(',').map(part => part.trim()).filter(Boolean);
+const specificity = (selector) => [
+  [...selector.matchAll(/#[\w-]+/g)].length,
+  [...selector.matchAll(/\.[\w-]+|\[[^\]]+\]|:[\w-]+(?:\([^)]*\))?/g)].length,
+  [...selector.replace(/:[\w-]+(?:\([^)]*\))?/g, '').matchAll(/(^|[\s>+~])button\b/g)].length,
+];
+const compareSpec = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+const buttonSelectorMatches = (selector, classes) => {
+  if (!/(^|[\s>+~])button\b/.test(selector)) return false;
+  const beforeButton = selector.replace(/\s*button\b.*$/, '');
+  const selectorClasses = [...beforeButton.matchAll(/\.([\w-]+)/g)].map((m) => m[1]);
+  return selectorClasses.every((name) => classes.includes(name));
+};
+const cascadeDecl = (text, classes, prop) => {
+  let winner;
+  [...text.matchAll(/([^{}]+)\{([^{}]*)\}/g)].forEach(([, selectorList, body], order) => {
+    for (const selector of splitSelectors(selectorList)) {
+      if (!buttonSelectorMatches(selector, classes)) continue;
+      const value = decl(body, prop);
+      if (value === undefined) continue;
+      const spec = specificity(selector);
+      if (!winner || compareSpec(spec, winner.spec) > 0 || (compareSpec(spec, winner.spec) === 0 && order > winner.order)) {
+        winner = { value, spec, order, selector };
+      }
+    }
+  });
+  return winner;
+};
+const moveSmButtonRuleLast = (text) => {
+  const rule = /\.ui-seg--sm button\s*\{[^{}]*\}/.exec(text);
+  assert.ok(rule, 'expected the compact pill rule to exist');
+  return `${text.slice(0, rule.index)}${text.slice(rule.index + rule[0].length)}\n${rule[0]}`;
+};
+const pxOf = (value) => {
+  if (value === 'var(--tap-min, 44px)') return 44;
+  if (value === 'var(--space-6)') return 24;
+  if (value === 'var(--space-3)') return 12;
+  if (value === 'var(--space-1) var(--space-3)') return 4;
+  throw new Error(`no px mapping for ${value}`);
+};
 
 // guidelines/layout-and-density.md, the spacing scale: the step is 12px and 13px
 // is the kind of value the rule names. The tab's height comes from the tap floor
@@ -56,6 +96,28 @@ test('the underline tab pads off the scale and draws the tap floor', () => {
     `the tab pads \`${padding}\`; every side has to be a step of the scale`,
   );
   assert.match(decl(tab, 'min-height'), /^var\(--tap-min(,\s*44px)?\)$/, 'the drawn height is the floor');
+});
+
+test('the underline small tab keeps its floor when the compact pill rule is later', () => {
+  // The reader page promises that size="sm" compacts only the type for the
+  // underline appearance. This test moves the compact pill rule to the end in
+  // memory, so the promise must be held by selector reach and not by sheet order.
+  const moved = moveSmButtonRuleLast(baseCss);
+  const classes = ['ui-seg', 'ui-seg--underline', 'ui-seg--sm'];
+  const minHeight = cascadeDecl(moved, classes, 'min-height');
+  const padding = cascadeDecl(moved, classes, 'padding');
+  const fontSize = cascadeDecl(moved, classes, 'font-size');
+  const drawn = pxOf(minHeight?.value);
+  const tapLayer = Math.min(44, drawn + 4);
+
+  assert.equal(
+    drawn,
+    44,
+    `source-order mutation computed drawn height ${drawn}px and tap layer ${tapLayer}px `
+    + `from ${minHeight?.selector}; the underline small tab must keep the 44px floor`,
+  );
+  assert.equal(padding?.value, 'var(--space-3)', `source-order mutation let ${padding?.selector} set padding`);
+  assert.equal(fontSize?.value, 'calc(var(--text-xs) + 1px)', 'size="sm" still owns the compact type size');
 });
 
 test('the chosen tab is a weight step and one bar, and draws no box', () => {
