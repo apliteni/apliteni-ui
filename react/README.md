@@ -883,6 +883,8 @@ a focus ring in it keeps its complete band. The current route is revealed after
 mounting and route changes. Content and container changes update the fit state
 without revealing the route again, so they preserve the reader's scroll position
 where space permits. Keyboard focus stays put throughout.
+When a link already fits in the row, it keeps its content width. The cap only
+limits one link that is wider than the row.
 
 A row also scrolls to a link that takes focus, far enough that the ring the link
 draws clears the scrolling edge rather than being cut off by it. `NavTabs` does

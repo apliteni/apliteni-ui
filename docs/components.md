@@ -258,6 +258,8 @@ Server-rendered or unwired rows keep their scroll containment.
 
 **Keyboard navigation reveals each focused link with its complete focus band.**
 The row scrolls without moving focus or scrolling the page. Content and container changes preserve the reader's scroll position where space permits.
+When a link already fits in the row, it keeps its content width. The cap only limits one link
+that is wider than the row.
 
 **An overflowing row with only disabled tabs becomes a keyboard stop.**
 It draws the kit's inward focus band. A fitting row supplies no separate keyboard stop.
