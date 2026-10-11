@@ -776,6 +776,11 @@ that swallowed Space would also prevent the reader from scrolling the page.
 
 - **`Tabs`** unmounts inactive panel content. Arrow keys, Home and End move between tabs and
   activate them.
+- **`Segmented`** is a controlled choice toolbar: one named toolbar, pressed buttons and **one
+  Tab stop whatever the choice is.** Arrow keys wrap past disabled options; Home and End reach
+  the first and last enabled choice. `block` fills the container with either appearance.
+  **`size="sm"` compacts the pill appearance only:** under the underline appearance it changes
+  the type size and leaves the tab at its full height.
 - **`Confirm`** builds on `Modal` as an `alertdialog`. It focuses the safe action and draws it
   before the committing action. `onConfirm` only reports the press. Saving, errors and closing
   are yours.
