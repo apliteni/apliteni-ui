@@ -25,6 +25,7 @@ import * as hoverContent from './_hover-readouts.js';
 import * as backContent from './_going-back.js';
 import * as pageContent from './_the-page.js';
 import * as accountContent from './_account-and-settings.js';
+import * as kindContent from './_dashboards-and-reports.js';
 
 // Imported for their EXPORT NAMES, which is where a story's URL id comes from.
 import * as destructiveStory from './DestructiveActions.stories.js';
@@ -50,12 +51,14 @@ import * as hoverStory from './HoverReadouts.stories.js';
 import * as backStory from './GoingBack.stories.js';
 import * as pageStory from './ThePage.stories.js';
 import * as accountStory from './AccountAndSettings.stories.js';
+import * as kindStory from './DashboardsAndReports.stories.js';
 
 import * as densityAccentContent from './_density-and-accents.js';
 import * as densityAccentStory from './DensityAndAccents.stories.js';
 
 const ENTRIES = [
   [pageContent, pageStory],
+  [kindContent, kindStory],
   [destructiveContent, destructiveStory],
   [colourContent, colourStory],
   [stateContent, stateStory],

@@ -119,11 +119,12 @@ test('the offset gate rejects a control that takes the band and leaves the offse
 });
 
 test('every scroll region that takes the inward band takes its offset too', () => {
-  // Eight: the table card and the table wrapper inside it, the dropdown's search list,
+  // Nine: the table card and the table wrapper inside it, the dropdown's search list,
   // the drawer's body, the confirm's consequence, the palette's list, React's modal body,
   // and the date picker's shortcut row in its phone sheet. Artur chose the picture on #531
   // round r30; the list is the surfaces it is on.
-  assert.equal(scrollRules.length, 8,
+  // The ninth consumer is a focused table row, which uses the inward band.
+  assert.equal(scrollRules.length, 9,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 2,
     'React\'s modal body and the picker\'s shortcut row are not both among them, so the walk '

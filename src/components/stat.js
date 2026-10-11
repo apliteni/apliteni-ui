@@ -58,11 +58,20 @@ const figure = ({ label = '', value = '', caption = '', delta, trend = '' }, til
 // `basis` is the band's caption: what every change is measured against, said
 // once before the list the way a table's <caption> is, in every layout — under
 // a row of tiles it would read as a note on the last card.
+//
+// `basisId` is the other way to answer the same question: the id of a statement
+// the caller has already placed before the figures, which each change points at
+// instead. It is for a band whose basis is stated by something beside it — a
+// period control over a dashboard's figures selects the window every change is
+// measured against, and a caption under it would say that again. React's
+// StatBand has carried it since the period showcase; this is the factory's half.
+// `basis` wins when both are passed, because a band that draws its own caption
+// has said it.
 // why: docs/components.md#stat-bands
-export function statBand({ stats = [], variant = 'tiles', basis = '', label, id } = {}) {
+export function statBand({ stats = [], variant = 'tiles', basis = '', basisId: shared = '', label, id } = {}) {
   const v = STAT_VARIANTS.includes(variant) ? variant : 'tiles';
   const base = id ? esc(id) : `ui-stats-${++seq}`;
-  const basisId = basis ? `${base}-basis` : '';
+  const basisId = basis ? `${base}-basis` : (shared ? esc(shared) : '');
   const cls = cx('ui-stats', `ui-stats--${v}`, v === 'band' && 'ui-card');
   const named = label ? ` role="group" aria-label="${esc(label)}"` : '';
   const items = stats.map((s) => figure(s, v === 'tiles', basisId)).join('');

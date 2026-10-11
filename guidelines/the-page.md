@@ -114,10 +114,10 @@
 
 <!-- rule: lede -->
 
-**Rule:** Keep the introduction to two sentences or fewer and add information the title does not give.
+**Rule:** A page may open on its title alone; where there is an introduction, keep it to two sentences or fewer and add information the title does not give.
 
 **Why:** Repeating the title wastes the reader’s time.
 
 **Do:** Below “Payouts”, say “Payouts arrive within three business days.”
 
-**Don't:** Write “This is the payouts page” below “Payouts.”
+**Don't:** Write “This is the payouts page” below “Payouts,” or keep a line there because the page looks bare without one.

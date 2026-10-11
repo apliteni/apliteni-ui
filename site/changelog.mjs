@@ -6,6 +6,21 @@
 
 export const RELEASES = [
   {
+    v: '0.105.0', date: '2026-10-10',
+    changes: [
+      ['added', 'Dashboard and report guidelines ship linked Finance examples with filters and a period control that narrows the ledger rows, and the Money in, Money out and Net result figures follow the filtered and dated rows.'],
+      ['added', 'Report links keep the theme and accent, and a landed row shows its arrival highlight and the focus ring together.'],
+      ['added', 'Figure bands and report controls fit narrow screens.'],
+      ['changed', '`.ui-filter-bar__chip` now paints a surface and a `--control-edge` border, where it was transparent before, and this reaches every filter chip you already ship.', ['FilterBar']],
+      ['changed', 'An unset chip’s name now reads in `--text` at normal weight, where it read in `--muted` before.', ['FilterBar']],
+      ['changed', '`.ui-app__main > h1` with no `.ui-app__sub` now keeps a 32px bottom margin, reaching every title-only app screen you ship.', ['Shell']],
+      ['added', '`.ui-toolbar--split` lays out a control row whose last control sits at the row’s end.'],
+      ['added', '`.ui-table__pair` lays out a cell that stacks a reference and a status.', ['Table']],
+      ['added', '`.is-target` marks the row a reference landed a reader on.', ['Table']],
+      ['added', '`statBand`’s `basisId` points a band at comparison text stated elsewhere.', ['StatBand']],
+    ],
+  },
+  {
     v: '0.104.0', date: '2026-10-11',
     changes: [
       ['added', 'React Segmented accepts size="sm" and block for compact and full-width choices. block composes with the underline appearance; under underline, size="sm" changes only the type size. Part of #429.', ['Segmented']],
