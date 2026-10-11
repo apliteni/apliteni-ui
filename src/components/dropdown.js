@@ -157,6 +157,8 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
  * @param {boolean} [o.portal]     mount the panel on <body>, for a clipping or sticky ancestor
  * @param {boolean|number} [o.scroll] true, or a maxHeight in px, to cap and scroll
  * @param {boolean} [o.open]       render already-open (handy for screenshots)
+ * @param {boolean} [o.disabled]   the trigger is off: no stop, no panel, the kit's
+ *   unavailable paint. #580
  * @param {string} [o.ariaLabel]   accessible name for the panel and trigger
  * @param {boolean|object} [o.search] true, or { placeholder, label, empty, hint, query } —
  *   a field above the rows that filters them; `empty` may carry {q}
@@ -166,7 +168,7 @@ export function dropdown({
   label, value, placeholder = 'Select…', variant, items, sections,
   foot = '', header = '', footer = '', triggerContent, triggerClass = '', chevron = true,
   align = 'start', direction = 'down', portal = false,
-  scroll = false, open = false, ariaLabel, id, panelClass = '', search = false,
+  scroll = false, open = false, disabled = false, ariaLabel, id, panelClass = '', search = false,
 } = {}) {
   const flat = sections ? sections.flatMap((s) => s.items || []) : (items || []);
   const isSelect = variant === 'select' || (variant == null && flat.some((it) => it && (it.selected || it.value != null)));
@@ -185,6 +187,9 @@ export function dropdown({
     'data-dropdown-trigger',
     `aria-haspopup="${sx ? 'dialog' : listRole}"`,
     `aria-expanded="${open ? 'true' : 'false'}"`,
+    // The attribute, not aria-disabled: a dropdown's trigger carries no message a
+    // reader has to stop on, so it leaves the tab order the way .ui-btn's does.
+    disabled ? 'disabled' : '',
     ariaLabel && triggerContent != null ? `aria-label="${esc(ariaLabel)}"` : '',
   ].filter(Boolean).join(' ');
 
@@ -268,6 +273,17 @@ const DD_GAP = 9;
 // A portalled panel is no longer a descendant of its container, so everything
 // below asks the container for its panel rather than querying inside it.
 const ddPanelOf = (dd) => dd.__ddPanel || dd.querySelector('[data-dropdown-panel]');
+
+// A trigger the sheet paints off. The kit paints both spellings unavailable, so
+// the wiring refuses both: the native attribute keeps the browser from
+// dispatching anything, but an aria-disabled trigger is still a keyboard stop,
+// and a click or an Enter on it reached openDropdown() until #580's round two.
+// ddItemsOf() above refuses an aria-disabled ROW the same way.
+// why: docs/foundations.md#colour-and-contrast
+const ddTriggerOff = (dd) => {
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  return !!trigger && (trigger.disabled === true || trigger.getAttribute('aria-disabled') === 'true');
+};
 
 function ddGap(panel) {
   const declared = parseFloat(ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-gap'));
@@ -836,6 +852,9 @@ function closeAllDropdowns(except) {
 }
 
 function openDropdown(dd, focusIdx) {
+  // Every way in goes through here — the trigger's click, the Enter the browser
+  // turns into one, and the arrows — so one refusal covers them all. #580
+  if (ddTriggerOff(dd)) return;
   closeAllDropdowns(dd);
   const panel = ddPanelOf(dd);
   const search = ddSearchOf(dd);

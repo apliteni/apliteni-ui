@@ -112,6 +112,8 @@ export type DropdownProps = {
   /** Replaces the trigger's label/value pair. With `ariaLabel`, names the trigger. */
   triggerContent?: ReactNode;
   triggerClass?: string;
+  /** The trigger is off: no stop, no panel, the kit's unavailable paint. #580 */
+  disabled?: boolean;
   chevron?: boolean;
   /** The edge the panel hugs. */
   align?: 'start' | 'end';
@@ -185,7 +187,7 @@ const SEARCH_DEFAULTS = {
 
 export function Dropdown({
   label, value, placeholder = 'Select…', variant, items, sections,
-  header, footer, triggerContent, triggerClass = '', chevron = true,
+  header, footer, triggerContent, triggerClass = '', disabled = false, chevron = true,
   align = 'start', direction = 'down', scroll = false, search = false,
   ariaLabel, id, panelClass = '',
   open: openProp, defaultOpen = false, onOpenChange, onSelect, row,
@@ -640,6 +642,15 @@ export function Dropdown({
   };
 
   const onKeyDown = (e: ReactKeyboardEvent) => {
+    // #580: a trigger the kit paints off opens nothing. React drops a mouse event
+    // on a disabled button before any handler sees it, so the trigger's onClick
+    // below needs no guard — but a key event still reaches this container, and
+    // ArrowDown opened the panel of a trigger painted unavailable. A shut off
+    // dropdown has no keyboard behaviour at all; a controlled one that is open
+    // keeps Escape and Tab, so it still closes. wireDropdown() refuses the same
+    // trigger in openDropdown(), where it also has to answer the aria spelling.
+    // why: src/components/dropdown.js
+    if (disabled && !open) return;
     const onTrigger = e.target === trigger.current;
     const onField = e.target === field.current;
     if (onField && composing(e)) return;
@@ -784,6 +795,7 @@ export function Dropdown({
         type="button"
         className={cx('ui-dropdown__trigger', triggerClass)}
         data-dropdown-trigger=""
+        disabled={disabled || undefined}
         aria-haspopup={sx ? 'dialog' : listRole}
         aria-expanded={open}
         aria-label={ariaLabel && triggerContent != null ? ariaLabel : undefined}
