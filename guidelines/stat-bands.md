@@ -34,7 +34,7 @@
 
 **Why:** Percentages need a basis that readers can find.
 
-**Except:** A comparison basis may be screen-reader-only when the visible control names the period. Use this exception for the Finance dashboard pattern. Artur chose it for `vs previous 12 months`.
+**Except:** A comparison basis may be screen-reader-only when the visible control names the period. Use this exception for the Finance dashboard pattern.
 
 **Do:** The basis once, in a caption each change references or beside one exception; the caption before and outside every figure.
 
