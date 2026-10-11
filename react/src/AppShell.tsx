@@ -23,6 +23,10 @@ export type AppShellProps = {
   lede?: string;
   actions?: ReactNode;
   bandControl?: ReactNode;
+  /** The band trigger's words. Below 560px the shell draws `searchShortLabel` instead;
+   *  both stay the button's name, which does not change with the viewport. */
+  searchLabel?: string;
+  searchShortLabel?: string;
   account: { name: string; email: string };
   onSignOut: () => void;
   /** Server-read fold preference. The browser restores the shared rail cookie. */
@@ -36,6 +40,7 @@ const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/
 
 export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand,
   brandHref = '/', width = 'centered', back, lede, actions, bandControl, account, onSignOut,
+  searchLabel = 'Search or run a command…', searchShortLabel = 'Search',
   defaultCollapsed = false, palette, renderLink }: AppShellProps) {
   const uid = useId();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
@@ -138,7 +143,9 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
         {!navigable && lockup}
         <button type="button" className="ui-app__search" aria-haspopup="dialog" onClick={() => setSearch(true)}>
           <span className="ui-app__search-ic"><Icon name="search" /></span>
-          <span className="ui-app__search-txt">Search or run a command…</span><kbd className="ui-cmdk__key">{paletteHotkey()}</kbd>
+          <span className="ui-app__search-txt">{searchLabel}</span>
+          <span className="ui-app__search-short" aria-hidden="true">{searchShortLabel}</span>
+          <kbd className="ui-cmdk__key">{paletteHotkey()}</kbd>
         </button>
         <span className="ui-app__bar-gap" />{bandControl}
         <button type="button" className="toggle" aria-label={themeName(theme)} title={themeName(theme)} onClick={() => applyTheme(theme === 'light' ? 'dark' : 'light')}>

@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { paletteHotkey } from '@apliteni/apliteni-ui';
 import { AppShell } from './AppShell';
 
 const sections = [
@@ -62,6 +63,30 @@ it('opens search with its button and shortcut, dismisses with Escape', () => {
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
   expect(screen.getByRole('combobox')).toHaveFocus();
+});
+
+it('draws a short word for the phone band without changing the trigger\'s name', () => {
+  render(<AppShell {...props} />);
+  const trigger = screen.getByRole('button', { name: /Search or run/ });
+  // aria-hidden, so the short word is not part of the name the assertion above read.
+  const short = trigger.querySelector('.ui-app__search-short');
+  expect(short).toHaveTextContent('Search');
+  expect(short).toHaveAttribute('aria-hidden', 'true');
+  expect(trigger.querySelector('.ui-app__search-txt')).toHaveTextContent('Search or run a command…');
+  // The whole name, anchored: the label, the kit's hotkey for this platform, nothing
+  // else. The separator is the engine's, so it is matched and not written — jsdom joins
+  // the spans with nothing, and Chromium puts a space there because the label span is a
+  // blockified flex item. Measured in Chromium on #486, the same at 1280px and 390px.
+  expect(trigger).toHaveAccessibleName(
+    expect.stringMatching(new RegExp(`^Search or run a command… ?${paletteHotkey()}$`)));
+  // Which word is drawn is layout.css's 560px block; JSDOM resolves no @media, so
+  // stories/apps/shell-states.test.js reads that swap through the real cascade.
+  cleanup();
+
+  render(<AppShell {...props} searchLabel="Find anything" searchShortLabel="Find" />);
+  const named = screen.getByRole('button', { name: /Find anything/ });
+  expect(named.querySelector('.ui-app__search-short')).toHaveTextContent('Find');
+  expect(named).toHaveAccessibleName(expect.stringContaining('Find anything'));
 });
 
 it('opens the account menu and signs out', () => {

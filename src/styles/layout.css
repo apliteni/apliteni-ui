@@ -119,7 +119,7 @@
    resting step. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1597 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1704 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 
 /* A destructive row of the rail is a navigation row and rests like one; the danger
@@ -404,11 +404,26 @@
 .ui-app__search-txt { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* The other half of the name, so it never gives way. */
 .ui-app__search kbd { flex: none; }
+/* The one word the phone band draws instead of the sentence. Above 560px the
+   sentence fits and this is a second copy of it, so it is not drawn.
+   why: docs/components.md#the-page-shell */
+.ui-app__search-short { display: none; }
 
 /* The mark alone — no room for two lines on a 52px row. No rule over it, since the
    band's hairline is under the whole of it, and no column, since this is not the rail.
    why: docs/components.md#the-page-shell */
 .ui-app__user--bar { flex: none; padding-top: 0; border-top: 0; }
+/* The switch is a 34px square and stays one: the trigger above is the thing on this
+   band that gives way, and a flex item with the default shrink does not wait its
+   turn. Measured at 390 with a control beside the trigger, the React band's switch
+   drew 19x34 and the strategy topbar's drew 28.47x34 — a square glyph plate squashed,
+   and a tap zone the sheet could only clamp to 29 or 39.
+   Pinning the strategy topbar's half of this rule does not make its row narrower: it
+   moves a 5.53px shortfall onto the account block's trailing gutter instead, because
+   nothing before it in that row has width to spare. topbar.css's --space-2 comment
+   names that choice and the gutter it leaves.
+   why: docs/components.md#the-page-shell */
+.ui-app__bar .toggle, .topbar__in .toggle { flex: none; }
 .ui-app__user--bar .ui-app__av { margin-inline-start: 0; }
 /* Crumb, then the title block. At --space-2 the crumb sat 8px off the h1 and
    the h1 8px off its subtitle, so all three ranks read as one. */
@@ -516,6 +531,31 @@
      rather than written into card.css, because a card row outside a shell is
      somebody else's container to size — see the report. */
   .ui-app__main .ui-card__row { flex-wrap: wrap; gap: var(--space-3); }
+}
+
+/* -- The band's search at one column --------------------------------------- */
+/* The band holds the trigger, the reader's mark and whatever the page puts between
+   them, so the sentence broke mid-word — "Search or run a co…". The short word takes
+   its place. Neither the sentence nor the cap is `display: none`: both are inside
+   the button's accessible name — the cap by Artur's call on #308 — so they are
+   clipped the way `.ui-sr` in loading.css clips, and the name holds at every width.
+   why: docs/components.md#the-page-shell */
+@media (max-width: 560px) {
+  .ui-app__search-txt,
+  .ui-app__search kbd {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  /* It gives way before the band does: at a large font scale the word ellipsises
+     rather than pushing the reader's mark off the row. */
+  .ui-app__search-short { display: block; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 
 /* -- Auth card (sign-in / consent) — centered, glowing --------------------- */

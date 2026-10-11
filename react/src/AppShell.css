@@ -19,8 +19,8 @@
      action's own ring. A page with no bar keeps the padding layout.css gives it. #434 */
   :root:has(.ui-react-app__bottom) .ui-react-app .ui-app__main { padding-bottom: var(--ui-app-bottom-clearance, 0px); }
   .ui-react-app .ui-app__bar { padding-inline: var(--space-4); }
-  .ui-react-app .ui-app__search { min-width: 0; }
-  .ui-react-app .ui-app__search kbd { display: none; }
+  /* No rule here for the band search at this width: layout.css's own 560px block
+     owns it, so React's band and the vanilla one shorten the same way. */
   /* Below this width every shell hides its rail, so none shows the lockup; a
      one-section shell is not the exception, and the band keeps its room for search. */
   .ui-react-app .ui-app__bar > .ui-app__brand { display: none; }

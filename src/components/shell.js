@@ -91,12 +91,17 @@ const toWidth = (v) => (v === 'wide' ? 'wide' : 'centered');
 
 // `search: 'palette-id'`, or the same id in `{ palette }` with a placeholder beside
 // it. No palette to open, no field — the argument `signOutHref` takes.
-// why: docs/components.md#the-page-shell
+// `shortLabel` is the word the band draws below 560px, where the sentence used to
+// truncate mid-word. why: docs/components.md#the-page-shell
 const toSearch = (v) => {
   const given = typeof v === 'string' ? { palette: v } : (isRecord(v) && !Array.isArray(v) ? v : null);
   const palette = given && typeof given.palette === 'string' ? given.palette.trim() : '';
   if (!palette) return null;
-  return { palette, placeholder: str(given.placeholder) || 'Search or run a command…' };
+  return {
+    palette,
+    placeholder: str(given.placeholder) || 'Search or run a command…',
+    shortLabel: str(given.shortLabel) || 'Search',
+  };
 };
 
 // `maxWidth` lands inside a style attribute, so a length is all this accepts — a number
@@ -236,10 +241,13 @@ function readerBlock({ name, email }, signOutHref, { band = false } = {}) {
 // A field to look at, a button to press. `data-cmdk-open` and the cap's class are the
 // palette's own, and the cap is NOT aria-hidden: it is half the button's name.
 // why: docs/components.md#the-page-shell
-const searchField = ({ palette, placeholder }) =>
+// The short word repeats the sentence, so it is `aria-hidden`: the sentence and the
+// cap are the name at every width, and layout.css clips rather than drops them.
+const searchField = ({ palette, placeholder, shortLabel }) =>
   `<button type="button" class="ui-app__search" data-cmdk-open="${esc(palette)}" aria-haspopup="dialog">`
   + `<span class="ui-app__search-ic" aria-hidden="true">${icon('search')}</span>`
   + `<span class="ui-app__search-txt">${esc(placeholder)}</span>`
+  + `<span class="ui-app__search-short" aria-hidden="true">${esc(shortLabel)}</span>`
   + `<kbd class="ui-cmdk__key" data-palette-hotkey>${esc(paletteHotkey())}</kbd>`
   + `</button>`;
 

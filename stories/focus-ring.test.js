@@ -233,6 +233,12 @@ test('focus walk: the surfaces and stops this gate covers', () => {
     // palette holds are rows it never focuses, exempted by name below.
     'stories/apps/ShellLayouts.stories.js:TopbarWide': 15,
     'stories/apps/ShellLayouts.stories.js:TopbarCentered': 15,
+    // Same markup as TopbarCentered: the phone story differs by its viewport global,
+    // and JSDOM resolves no media query, so this surface repeats that one's stops
+    // rather than adding ground. It is walked because the walk takes every story
+    // these files export, and a story excluded by name is one a later change can
+    // quietly take out of the gate. (#486)
+    'stories/apps/ShellLayouts.stories.js:TopbarPhone': 15,
     'stories/apps/ShellLayouts.stories.js:RailWide': 10,
     'stories/apps/ShellLayouts.stories.js:RailCentered': 10,
     'stories/components/Footer.stories.js:Full': 22,
@@ -250,7 +256,7 @@ test('focus walk: the surfaces and stops this gate covers', () => {
     'stories/components/Topbar.stories.js:InShell': 18,
   }, 'the walk covers different ground than it did; count the new surface by hand');
   const exempted = walked.flatMap(({ stops }) => stops.filter(exempt));
-  assert.equal(exempted.length, 8, 'the two topbar-layout shell screens hold one palette input '
+  assert.equal(exempted.length, 12, 'the three topbar-layout shell screens hold one palette input '
     + 'and three palette rows each');
 });
 
@@ -336,14 +342,16 @@ test('focus walk: the cascade resolver accounts for every stop it walks', () => 
   }
   // 158 -> 177 in #509: the /account preset's two screens left the walk and the
   // topbar's four stories joined it, and they carry more chrome between them.
-  assert.equal(buckets.self, 177, 'the number of stops whose own cascade was resolved moved');
+  // 177 -> 188 in #486, which added the band's phone story — the same chrome as
+  // TopbarCentered, minus the four palette stops counted as exempt below.
+  assert.equal(buckets.self, 188, 'the number of stops whose own cascade was resolved moved');
   assert.deepEqual([...new Set(buckets.delegated)], [
     '.ui-switch input:focus-visible + .ui-switch__track',
   ], 'a ring painted on another box is not cascade-resolved — add it here with its reason');
   assert.equal(buckets.delegated.length, 1, 'one switch input on the landing page since #463 '
     + 'replaced its bento with a settings card. The four more came from the /account '
     + 'preset\'s two screens, retired in #509');
-  assert.equal(buckets.exempt, 8, 'the two topbar-layout shell screens hold one palette input '
+  assert.equal(buckets.exempt, 12, 'the three topbar-layout shell screens hold one palette input '
     + 'and three palette rows each');
 });
 

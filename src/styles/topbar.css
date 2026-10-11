@@ -246,12 +246,31 @@
 /* One column, and the band is at its tightest. The row is already full at 390,
    and at the gap above this one the account avatar stood from 365 to 397 and was
    cut at the screen edge — the one control on this screen that opens the account
-   area. Packed to --space-2 the band needs 352 of the 362 it has there, so the
-   avatar is whole with the band's own gutter beside it. 320 is still short of the
-   room these controls want, which stays #558.
+   area. Packed to --space-2 and a flat 14px trailing gutter the band needs 367.53
+   of the 362px it has there, a 5.53px shortfall, because layout.css now pins the
+   theme switch to a full 34px square so it keeps the tap floor it was given.
+   The wordmark, the Deck/Text switch and the version label are each already at
+   the width their own text needs, and the switch must not shrink again, so the
+   account block's trailing gutter is what gives — but a FLAT 14px gutter has no
+   fallback below the width it was sized for: at 375 it has already given every
+   one of its 14px and the row is still 6.53px short, so the avatar was cut and
+   the page gained 7px of horizontal scroll (#486 review round 2), worse again
+   at 320.
+   Both carry a share now, continuously, rather than the gutter alone holding a
+   fixed budget: the gutter still narrows first, from 14px at 390 down to 0 by
+   381.53px of available row width, and once it is spent the inter-control gap
+   takes the rest, from --space-2 down to its own floor of --space-1. 381.53px is
+   this row's own fixed width minus its gutter's full 14px — not a general
+   formula, a number that belongs to this composition's own wordmark, switch and
+   version label. The avatar is whole and the page carries no horizontal scroll
+   down to 375px. 320 still falls 41.53px short with both all the way down,
+   which stays #558; it is 5px better than main's own 46.53px there, not solved.
    why: docs/foundations.md#breakpoints */
 @media (max-width: 560px) {
-  .topbar__in { gap: var(--space-2); }
+  .topbar__in {
+    gap: clamp(var(--space-1), calc(var(--space-2) - (381.53px - 100vw) / 5), var(--space-2));
+    padding-right: clamp(0px, calc(100vw - 381.53px), 14px);
+  }
 }
 
 /* Account — avatar + dropdown. Gated: hidden until the app confirms a session

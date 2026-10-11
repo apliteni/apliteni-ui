@@ -59,7 +59,13 @@ export const Wide: Story = { render, args: { width: 'wide',
   back: { href: '/overview', label: 'Overview' }, actions: <Button>New report</Button>,
   bandControl: <Button variant="ghost" size="sm">Workspace</Button> } };
 export const Tablet: Story = { render, globals: { viewport: { value: 'tablet', isRotated: false } } };
-export const Phone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } } };
+// A band with a control on it beside the reader's mark — the crowding that left the
+// trigger a few characters and truncated its sentence mid-word. It draws `Search`
+// here, and the button's name is the same as at every other width. AppShell.test.tsx
+// asserts that name; do not quote it back here, because an ungated copy is what three
+// edits in a row corrupted. (#486)
+export const Phone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  args: { bandControl: <Button variant="ghost" size="sm">Workspace</Button> } };
 
 /* A phone page that scrolls on its own and ends in an action. The bottom-clearance gate
  * measures the room left below that action, and no showcase's content length may decide
