@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.103.0', date: '2026-10-10',
+    v: '0.104.0', date: '2026-10-10',
     changes: [
       ['added', 'Dashboard and report guidelines ship linked Finance examples with filters and a period control that narrows the ledger rows, and the Money in, Money out and Net result figures follow the filtered and dated rows.'],
       ['added', 'Report links keep the theme and accent, and a landed row shows its arrival highlight and the focus ring together.'],
