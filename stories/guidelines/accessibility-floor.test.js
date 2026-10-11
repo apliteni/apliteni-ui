@@ -807,7 +807,7 @@ test('ring: every selector the sheet paints a ring on is landed somewhere by a s
     assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
     const landed = new Set(run.landings.map((l) => l.selector));
     // `.ui-focusable` is the kit's opt-in focus class
-    // (src/styles/base.css:144 `.ui-focusable:focus-visible,`). No vanilla component
+    // (src/styles/base.css:151 `.ui-focusable:focus-visible,`). No vanilla component
     // wears it and no vanilla story renders one, so it has no ground to be measured
     // against — a fact about the class, not a hole here. React's Tooltip trigger wears
     // it and is swept elsewhere. It is named rather than filtered so it cannot quietly
