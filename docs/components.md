@@ -784,10 +784,10 @@ when notices arrive or leave and when one changes height.
 Under `(hover: none)` the stack stays the plain column. Half of what opens a pile is hover, and
 the notices behind the front card are not focusable. A pile there would be one nobody could open.
 
-`.ui-toast__timer` spends the notice's own dismiss timer. It pauses on the notice's `:hover` and
-`:focus-within` from the stylesheet, so the line and the countdown stop together. Under reduced
-motion the line is not drawn at all, because its animation is capped to nothing. The notice still
-expires on time.
+`.ui-toast__timer` spends the notice's own dismiss timer. It pauses on the notice's `:hover`,
+`:focus-within`, and on a held pile, so the line and the countdown stop together. Under reduced
+motion the line is not drawn at all, because its animation is capped to nothing. The countdown
+still pauses while the notice or the pile is held.
 
 ### React search field
 

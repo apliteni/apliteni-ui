@@ -46,21 +46,34 @@ function wireToast(el) {
   el.querySelector('.ui-toast__close')?.addEventListener('click', () => dismissToast(el));
 
   const bar = el.querySelector('[data-toast-timer]');
-  if (bar && !reduceMotion()) {
+  if (bar) {
     bar.classList.add('is-running');
     const dur = parseFloat(getComputedStyle(el).getPropertyValue('--toast-dur')) || 5;
-    let timer = setTimeout(() => dismissToast(el), dur * 1000);
+    let remaining = dur * 1000;
+    let started = Date.now();
+    let timer = setTimeout(() => dismissToast(el), remaining);
     // The line's own pause lives in the sheet, on :hover and :focus-within, so
     // it covers a keyboard reader too. What is left here is the countdown that
-    // has to stop with it — read back off the paused line so the two agree.
+    // has to stop with it. This runs even under reduced motion, where the line
+    // is hidden but the reader still gets the same hold.
     let held = false;
     let pileHeld = false;
-    const hold = () => { if (held) return; held = true; clearTimeout(timer); };
+    const hold = () => {
+      if (held) return;
+      held = true;
+      clearTimeout(timer);
+      const visualLeft = !reduceMotion()
+        ? parseFloat(getComputedStyle(bar).transform.split(',')[0].slice(7))
+        : NaN;
+      remaining = Number.isFinite(visualLeft)
+        ? dur * 1000 * visualLeft
+        : Math.max(0, remaining - (Date.now() - started));
+    };
     const release = () => {
       if (!held || pileHeld || el.matches(':hover, :focus-within')) return;
       held = false;
-      const left = (parseFloat(getComputedStyle(bar).transform.split(',')[0].slice(7)) || 1);
-      timer = setTimeout(() => dismissToast(el), dur * 1000 * left);
+      started = Date.now();
+      timer = setTimeout(() => dismissToast(el), remaining);
     };
     const pileHold = () => { pileHeld = true; hold(); };
     const pileRelease = () => { pileHeld = false; release(); };
@@ -73,10 +86,6 @@ function wireToast(el) {
     // focused yet, so :focus-within reads false even for a move from the close
     // button to the action. relatedTarget is the only thing that knows.
     el.addEventListener('focusout', (e) => { if (!el.contains(e.relatedTarget)) release(); });
-  } else if (bar && reduceMotion()) {
-    // No animated bar under reduced motion, but still auto-dismiss on time.
-    const dur = parseFloat(getComputedStyle(el).getPropertyValue('--toast-dur')) || 5;
-    setTimeout(() => dismissToast(el), dur * 1000);
   }
 
   // Swipe-to-dismiss (ignore drags that start on a button).

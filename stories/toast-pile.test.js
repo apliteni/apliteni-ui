@@ -135,6 +135,15 @@ test('the React stack keeps its corner when it collapses', () => {
     + 'and if that is the kit\'s, a collapsing React stack drops out of its corner and into the page.');
 });
 
+test('the React pile receives pointer events in the gaps between notices', () => {
+  const react = readFileSync('react/src/Toast.css', 'utf8');
+  const rule = /([^{}]*\.ui-toast-stack\.rx-toast-stack\.ui-toast-stack--collapsed[^{},]*)\{([^}]*)\}/.exec(react);
+  assert.ok(rule, 'react/src/Toast.css has no collapsed React stack rule, so the pile cannot own the gaps.');
+  assert.match(rule[2], /pointer-events:\s*auto/,
+    'react/src/Toast.css: the collapsed stack leaves pointer events on the cards only. A pointer stopped '
+    + 'between fanned notices loses the pile hold.');
+});
+
 test('a reader with no hover is not shown a pile they cannot open', () => {
   // The cards behind the front one are not focusable, so where there is no
   // hover a pile would simply hide notices. The question is hover, not pointer
@@ -391,6 +400,39 @@ test('a collapsed stack holds every countdown while the pile is held', () => {
   } finally { mock.timers.reset(); }
 });
 
+test('a reduced-motion collapsed stack holds every countdown for pointer and keyboard input', () => {
+  const previous = globalThis.matchMedia;
+  globalThis.matchMedia = () => ({ matches: true });
+  mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  try {
+    for (const input of ['pointer', 'keyboard']) {
+      const stack = document.createElement('div');
+      stack.className = 'ui-toast-stack';
+      stack.innerHTML = [
+        toast({ variant: 'info', title: `${input} one`, timer: 1 }),
+        toast({ variant: 'info', title: `${input} two`, timer: 1 }),
+        toast({ variant: 'info', title: `${input} three`, timer: 1 }),
+      ].join('');
+      document.body.append(stack);
+      wireToastStack(stack);
+      const pile = collapseToastStack(stack);
+      if (input === 'pointer') stack.dispatchEvent(new dom.window.Event('mouseenter'));
+      else stack.dispatchEvent(new dom.window.FocusEvent('focusin', { bubbles: true }));
+      mock.timers.tick(1400);
+      assert.equal(cardsOf(stack).length, 3, `${input} hold lost reduced-motion notices`);
+      if (input === 'pointer') stack.dispatchEvent(new dom.window.Event('mouseleave'));
+      else stack.dispatchEvent(new dom.window.FocusEvent('focusout', { bubbles: true, relatedTarget: document.body }));
+      mock.timers.tick(1000);
+      assert.equal(cardsOf(stack).length, 0, `${input} release did not let reduced-motion notices expire`);
+      pile.stop();
+      stack.remove();
+    }
+  } finally {
+    mock.timers.reset();
+    globalThis.matchMedia = previous;
+  }
+});
+
 test('the shipped vanilla pile ignores card leave events while the stack is held', async () => {
   mock.timers.enable({ apis: ['setTimeout'] });
   try {
@@ -455,9 +497,9 @@ test('focus holds the countdown, and letting go spends what is left', () => {
     assert.equal(leaving(notice), false,
       'the notice expired while a reader had focus inside it — the reprieve a pointer gets, a keyboard does not');
     notice.dispatchEvent(new dom.window.FocusEvent('focusout', { bubbles: true, relatedTarget: document.body }));
-    mock.timers.tick(4999);
-    assert.equal(leaving(notice), false);
     mock.timers.tick(1);
+    assert.equal(leaving(notice), false);
+    mock.timers.tick(5000);
     assert.equal(leaving(notice), true, 'the countdown never resumed after focus left');
     stack.remove();
   } finally { mock.timers.reset(); }
