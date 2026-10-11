@@ -83,6 +83,16 @@ const REQUIRED = ['rest', 'hover', 'off'];
 /* `off` is the one state whose edge is supposed to be the unavailable ink. In
  * every other state, painting it is the defect #580 reports. */
 const LIVE = MEASURED.filter((state) => state !== 'off');
+const DISABLED_TARGETS = [
+  { spelling: 'native', state: 'rest', hover: false, focus: false },
+  { spelling: 'native', state: 'hover', hover: true, focus: false },
+  { spelling: 'native', state: 'focus', hover: false, focus: true },
+  { spelling: 'native', state: 'hover focus', hover: true, focus: true },
+  { spelling: 'aria', state: 'rest', hover: false, focus: false },
+  { spelling: 'aria', state: 'hover', hover: true, focus: false },
+  { spelling: 'aria', state: 'focus', hover: false, focus: true },
+  { spelling: 'aria', state: 'hover focus', hover: true, focus: true },
+];
 
 /* Anything in a selector that reports a state rather than naming a box. One
  * source for two jobs: stripped, it leaves the SCOPE — the control a run of
@@ -218,6 +228,43 @@ const winner = (rules, state) => rules
   .filter((r) => r.state === state && r.edge)
   .reduce((best, r) => (best && outranks(best, r) ? best : r), null);
 
+const stripNot = (selector) => selector.replace(/:not\([^)]*\)/gi, '');
+const hasNativeDisabled = (selector) => /:disabled\b|\[disabled\]|:not\(\s*:enabled\s*\)/i.test(selector);
+const hasAriaDisabled = (selector) => /\[aria-disabled\s*=\s*("true"|'true'|true)\]/i.test(selector);
+const hasPositiveFocus = (selector) => /:focus(?:-visible|-within)?\b/i.test(stripNot(selector));
+const hasNotFocus = (selector) => /:not\(\s*:focus(?:-visible|-within)?\s*\)/i.test(selector);
+
+function matchesDisabledTarget(rule, target) {
+  const selector = rule.selector;
+  const wantsNative = hasNativeDisabled(selector);
+  const wantsAria = hasAriaDisabled(selector);
+  if (target.spelling === 'native' && wantsAria) return false;
+  if (target.spelling === 'aria' && wantsNative) return false;
+  if (/:hover\b/i.test(selector) && !target.hover) return false;
+  if (hasPositiveFocus(selector) && !target.focus) return false;
+  if (hasNotFocus(selector) && target.focus) return false;
+  return true;
+}
+
+const disabledWinner = (rules, target) => rules
+  .filter((r) => r.edge && matchesDisabledTarget(r, target))
+  .reduce((best, r) => (best && outranks(best, r) ? best : r), null);
+
+function disabledEdgeFindings(byScope) {
+  const rules = byScope.get(TRIGGER) ?? [];
+  return DISABLED_TARGETS.flatMap((target) => {
+    const won = disabledWinner(rules, target);
+    const name = `${target.spelling} ${target.state}`;
+    if (!won) return [`${name}: no edge rule reaches the target`];
+    if (!won.edge.drawn) return [`${name}: ${won.selector} removes the edge`];
+    if (!won.edge.colour) return [`${name}: ${won.selector} declares ${won.edge.declared}, which this gate cannot resolve`];
+    if (!new RegExp(`^var\\(\\s*${OFF_EDGE}\\s*\\)$`).test(won.edge.colour)) {
+      return [`${name}: ${won.selector} paints ${won.edge.colour} instead of ${OFF_EDGE}`];
+    }
+    return [];
+  });
+}
+
 /* Every scope and live state whose winning edge is the unavailable ink, read one
  * state at a time: the resting rule can be right while the rule for the state the
  * reader is actually in paints the off edge, and nothing else on the page tells
@@ -254,13 +301,11 @@ test('no live trigger draws the ink an unavailable one draws, in any state or th
 });
 
 test('an unavailable trigger draws the kit\'s own off edge, in both themes', () => {
-  const off = winner(BY_SCOPE.get(TRIGGER), 'off');
-  assert.ok(off, `${TRIGGER} has no disabled rule`);
-  assert.ok(off.edge.drawn, 'the disabled trigger gives its box back to the ground, which this gate does not cover');
-  assert.match(off.edge.colour, new RegExp(`^var\\(\\s*${OFF_EDGE}\\s*\\)$`),
-    `the disabled trigger paints ${off.edge.colour} rather than the kit's ${OFF_EDGE}`);
+  const findings = disabledEdgeFindings(BY_SCOPE);
+  assert.deepEqual(findings, [],
+    'a disabled trigger state does not draw the kit\'s off edge');
   for (const theme of THEMES) {
-    assert.ok(inkOf(theme, off.edge.colour), `${OFF_EDGE} resolves to nothing in ${theme}`);
+    assert.ok(inkOf(theme, `var(${OFF_EDGE})`), `${OFF_EDGE} resolves to nothing in ${theme}`);
   }
 });
 
@@ -393,8 +438,7 @@ const findings = (byScope) => {
   if (live.unreadable.length) out.push('unreadable-edge');
   if (frozenPairs(byScope).length) out.push('frozen');
   if ([...byScope.values()].flat().some((r) => !MEASURED.includes(r.state))) out.push('unmeasured-state');
-  const off = winner(byScope.get(TRIGGER) ?? [], 'off');
-  if (!off || !off.edge.drawn || !new RegExp(`^var\\(\\s*${OFF_EDGE}\\s*\\)$`).test(off.edge.colour)) out.push('off-not-off');
+  if (disabledEdgeFindings(byScope).length) out.push('off-not-off');
   return [...new Set(out)];
 };
 
@@ -422,6 +466,16 @@ test('the reading refuses every way the two edges can come back together', () =>
     ['.ui-card .ui-filter-bar .ui-dropdown__trigger { border-color: var(--accent); }', 'frozen'],
     // A state nobody measured, ranked as resting and counted as covered.
     ['.ui-dropdown__trigger:active { border-color: var(--border); }', 'unmeasured-state'],
+    // Each disabled spelling and state can be broken on its own. This includes
+    // the exact reviewer mutation first: native resting disabled used to pass.
+    ['.ui-dropdown__trigger:disabled { border-color: var(--control-edge); }', 'off-not-off'],
+    ['.ui-dropdown__trigger:disabled:hover:not(:focus-visible) { border-color: var(--control-edge); }', 'off-not-off'],
+    ['.ui-dropdown__trigger:disabled:focus-visible { border-color: var(--control-edge); }', 'off-not-off'],
+    ['.ui-dropdown__trigger:disabled:hover:focus-visible { border-color: var(--control-edge); }', 'off-not-off'],
+    ['.ui-dropdown__trigger[aria-disabled="true"] { border-color: var(--control-edge); }', 'off-not-off'],
+    ['.ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible) { border-color: var(--control-edge); }', 'off-not-off'],
+    ['.ui-dropdown__trigger[aria-disabled="true"]:focus-visible { border-color: var(--control-edge); }', 'off-not-off'],
+    ['.ui-dropdown__trigger[aria-disabled="true"]:hover:focus-visible { border-color: var(--control-edge); }', 'off-not-off'],
     // The off edge quietly re-pointed at a live control's ink.
     ['.ui-dropdown__trigger:disabled:hover:not(:focus-visible), .ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible) { border-color: var(--control-edge); }', 'off-not-off'],
     // And taken away altogether, which is what dark shipped before #580.
