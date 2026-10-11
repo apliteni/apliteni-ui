@@ -6,6 +6,21 @@
 
 export const RELEASES = [
   {
+    v: '0.104.0', date: '2026-10-10',
+    changes: [
+      ['added', 'Dashboard and report guidelines ship linked Finance examples with filters and a period control that narrows the ledger rows, and the Money in, Money out and Net result figures follow the filtered and dated rows.'],
+      ['added', 'Report links keep the theme and accent, and a landed row shows its arrival highlight and the focus ring together.'],
+      ['added', 'Figure bands and report controls fit narrow screens.'],
+      ['changed', '`.ui-filter-bar__chip` now paints a surface and a `--control-edge` border, where it was transparent before, and this reaches every filter chip you already ship.', ['FilterBar']],
+      ['changed', 'An unset chip’s name now reads in `--text` at normal weight, where it read in `--muted` before.', ['FilterBar']],
+      ['changed', '`.ui-app__main > h1` with no `.ui-app__sub` now keeps a 32px bottom margin, reaching every title-only app screen you ship.', ['Shell']],
+      ['added', '`.ui-toolbar--split` lays out a control row whose last control sits at the row’s end.'],
+      ['added', '`.ui-table__pair` lays out a cell that stacks a reference and a status.', ['Table']],
+      ['added', '`.is-target` marks the row a reference landed a reader on.', ['Table']],
+      ['added', '`statBand`’s `basisId` points a band at comparison text stated elsewhere.', ['StatBand']],
+    ],
+  },
+  {
     v: '0.100.0', date: '2026-10-10',
     changes: [
       ['added', 'While the React AppShell draws its phone bottom bar \u2014 below 560px, for a section list with somewhere to go \u2014 it publishes `--ui-app-bottom-clearance` on the root, including the safe-area inset. The page\u2019s bottom padding, root scroll padding and the React toast stack read it, each with `0px` as the fallback, and root scroll padding adds the focus ring\u2019s own room on top \u2014 so a changed action scrolled into view lands above the bar with its whole ring on screen. A phone page whose shell draws no bar keeps the ordinary end space the kit gives every phone page. The token is declared nowhere else, so read it as `var(--ui-app-bottom-clearance, 0px)`.'],

@@ -274,8 +274,17 @@ test('good news takes the success ink, bad news the danger ink, and nothing else
 // figures, and docs/components.md carries the table. Each fold is read whole —
 // its range, which figures it matches and the basis it sets — so a width, a
 // basis or an overlap between two ranges moved in one place fails here.
-test('the folds are the ones the reader page records, and their ranges do not overlap', () => {
-  const folds = [...CSS.matchAll(/@container\s*\(([^)]*)\)\s*\{\s*([^{]+)\{([^}]*)\}\s*\}/g)].map(([, cond, sel, body]) => {
+/* Every `@container` block in the sheet, split by what it actually does: a FOLD
+ * changes how many figures sit on a row (`flex-basis`), a STEP changes the rank
+ * the figure is set in (`font-size`). Both are read from the same sweep, so a
+ * new block of either kind has to be accounted for below rather than slipping
+ * past a count that only knew about folds. */
+const CONTAINER_BLOCKS = [...CSS.matchAll(/@container\s*\(([^)]*)\)\s*\{\s*([\s\S]*?)\n\}/g)]
+  .flatMap(([, cond, inner]) => [...inner.matchAll(/([^{}]+)\{([^}]*)\}/g)]
+    .map(([, sel, body]) => ({ cond, sel: sel.trim().replace(/\s+/g, ' '), body })));
+
+test('the folds are the ones the specification records, and their ranges do not overlap', () => {
+  const folds = CONTAINER_BLOCKS.filter((b) => valueOf(b.body, 'flex-basis')).map(({ cond, sel, body }) => {
     const upper = /width\s*<=\s*(\d+)rem/.exec(cond);
     const lower = /(\d+)rem\s*<\s*width/.exec(cond);
     assert.ok(upper, `a fold without an upper width: ${cond}`);
@@ -311,4 +320,65 @@ test('the folds are the ones the reader page records, and their ranges do not ov
   }
   assert.ok(folds.find((f) => f.layout === 'band' && f.kind === 'pairs').excludesOpen,
     'the band\'s pairs fold reaches the open layout, whose figures are wider');
+});
+
+/* The other thing a container width does, added for #505. Stacking runs out
+ * before a phone does: one figure to a row, a value can still be wider than the
+ * box holding it, and it may neither wrap nor truncate. Below the width where
+ * its own figure stops fitting, the value takes the rank under it.
+ *
+ * Read the same way the folds are — from the sheet, against the table in the
+ * specification — because the width is the whole guarantee and a number moved in
+ * one place and not the other is the failure this catches.
+ *
+ * WHAT THIS DOES NOT REACH: whether the stepped rank actually fits. jsdom
+ * resolves no @container and lays nothing out; the widths come from a browser
+ * sweep of every band in the kit's own stories, recorded in the specification. */
+test('the figure steps down at the width the specification records, one rank per layout', () => {
+  const steps = CONTAINER_BLOCKS.filter((b) => valueOf(b.body, 'font-size'));
+  assert.equal(steps.length, 2, `found ${steps.length} type steps, not one per layout`);
+
+  const stepFor = (layout) => {
+    const open = layout === 'open';
+    // `:not(.ui-stats--open)` carries the open class as a substring, so the band's
+    // own step answers a bare `includes` for the open one. Strip the guard first.
+    const block = steps.find((b) => open
+      ? b.sel.replace(':not(.ui-stats--open)', '').includes('.ui-stats--open')
+      : b.sel.includes(':not(.ui-stats--open)'));
+    assert.ok(block, `no step scoped to the ${layout} layout`);
+    const upper = /width\s*<=\s*(\d+)rem/.exec(block.cond);
+    assert.ok(upper, `the ${layout} step has no upper width: ${block.cond}`);
+    return { upper: Number(upper[1]), size: valueOf(block.body, 'font-size'), sel: block.sel };
+  };
+
+  // The fourth column of the same table the folds are read from.
+  const recorded = (name) => {
+    const m = new RegExp(`^\\|\\s*${name}\\s*\\|\\s*\\d+rem\\s*\\|\\s*\\d+rem\\s*\\|\\s*\\d+rem\\s*\\|\\s*(\\d+)rem\\s*\\|`, 'm').exec(COMPONENTS_DOC);
+    assert.ok(m, `the specification records no step width for ${name}`);
+    return Number(m[1]);
+  };
+
+  // The rank each layout rests in, so the step is read as "the one below" rather
+  // than as a literal this test would have to be told twice.
+  const RANKS = ['--text-xs', '--text-sm', '--text-base', '--text-lg', '--text-xl', '--text-2xl', '--text-3xl'];
+  const below = (token) => `var(${RANKS[RANKS.indexOf(token) - 1]})`;
+  const resting = {
+    band: valueOf(ruleFor('.ui-stat__value').body, 'font-size'),
+    open: valueOf(ruleFor('.ui-stats--open .ui-stat__value').body, 'font-size'),
+  };
+
+  for (const [layout, name] of [['band', 'Band and tiles'], ['open', 'Open']]) {
+    const step = stepFor(layout);
+    assert.equal(step.upper, recorded(name),
+      `the ${layout} figure steps at ${step.upper}rem, the specification says ${recorded(name)}rem`);
+    const rest = /var\((--text-[a-z0-9]+)\)/.exec(resting[layout]);
+    assert.ok(rest, `the ${layout} layout's resting size is not a rank token: ${resting[layout]}`);
+    assert.equal(step.size, below(rest[1]),
+      `the ${layout} step sets ${step.size}; one rank under ${resting[layout]} is ${below(rest[1])}`);
+  }
+
+  // A tile pads its figure and an open band does not, so the two stop fitting at
+  // different widths. Equal widths would mean one of them was never measured.
+  assert.notEqual(stepFor('band').upper, stepFor('open').upper,
+    'both layouts step at the same width, which no measurement produced');
 });

@@ -6,6 +6,7 @@ import { wireConfirm } from '../src/components/confirm.js';
 import { wireCommandPalette } from '../src/components/command-palette.js';
 import { initTabs } from '../src/components/tabs.js';
 import { wireTooltip } from '../src/components/tooltip.js';
+import { wireStoryLinks } from '../stories/lib/story-link.js';
 
 // Load both faces once (Storybook manager/preview iframe). The kit names two
 // families — Poppins for --font-display, IBM Plex Sans for --font-sans — and a
@@ -96,7 +97,7 @@ const preview = {
       storySort: {
         order: [
           'Foundations', ['Colors', 'Signal contrast', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Motion', 'Iconography', 'Brand', 'Brand primitives'],
-          'Guidelines', ['Overview', 'The page', 'Destructive actions', 'Colour and theming', 'The full state set', 'Empty states', 'Component choice', 'Microcopy and tone', 'Text length', 'Labels and titles', 'Button labels', 'Iconography', 'Layout and density', 'Density and accents', 'Dense tables', 'Accessibility minimums', 'Pagination', 'Stat bands', 'Drawers', 'File drop', 'Motion', 'The command palette', 'Hover readouts', 'Going back', 'Account and settings'],
+          'Guidelines', ['Overview', 'The page', 'Dashboards and reports', 'Destructive actions', 'Colour and theming', 'The full state set', 'Empty states', 'Component choice', 'Microcopy and tone', 'Text length', 'Labels and titles', 'Button labels', 'Iconography', 'Layout and density', 'Density and accents', 'Dense tables', 'Accessibility minimums', 'Pagination', 'Stat bands', 'Drawers', 'File drop', 'Motion', 'The command palette', 'Hover readouts', 'Going back', 'Account and settings'],
           'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Tooltip', 'Navigation', 'Back link', 'Drawer', 'Confirm', 'Command palette', 'Table', 'Pagination', 'Stat band', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
           'Showcases', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents'],
         ],
@@ -149,6 +150,9 @@ const preview = {
 
   decorators: [
     (story, ctx) => {
+      // Before the first story renders, because what it answers is the arrival this
+      // frame was already asked for. stories/lib/story-link.js wires it once.
+      wireStoryLinks();
       const theme = ctx.globals.theme || 'dark';
       const accent = ctx.globals.accent || 'default';
       applyTheme(theme, document.documentElement);

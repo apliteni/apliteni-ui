@@ -1,6 +1,6 @@
 /* ============================================================================
  * Table — .ui-table  (hairline rows, opaque base surface)
- * Row modifiers: .is-dead (revoked/struck), right-aligned .ui-table__act
+ * Row modifiers: .is-dead (revoked/struck), .is-target (landed on), right-aligned .ui-table__act
  * ========================================================================== */
 
 .ui-table {
@@ -76,7 +76,7 @@
 /* Data-table modifiers, composable: .ui-table--dense --zebra --hover.
  *   --dense  --space-3 across, --space-2 down — one step in from the base table
  *   --zebra  legacy spacing and 2px header rule; the base-surface rule below removes stripes
- * Cell helpers: .ui-table__num (right, tabular), .ui-table__code.
+ * Cell helpers: .ui-table__num (right, tabular), .ui-table__code, .ui-table__pair.
  * why: docs/foundations.md#spacing-and-rhythm
  * held by: stories/table-rhythm.test.js */
 .ui-table--dense th { padding: 0 var(--space-3) var(--space-2); }
@@ -114,6 +114,22 @@
 }
 .ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity):hover {
   color: var(--strong);
+  text-decoration: underline;
+}
+/* One exception, and it is the way through: a reference that opens another screen at
+   this row. The rule above was written to keep a LEDGER's identifiers out of the accent
+   — a whole column of them is an accent with no job (guidelines/density-and-accents.md,
+   give-accents-a-job) — but a dashboard's exceptions are three rows, and there the link
+   is how a reader reaches the row's own report. Left in the row's ink it was the plain
+   cell beside it to the pixel, resolving only on hover, which a phone does not have.
+   .ui-table__pair is the cell that carries a reference and its state, so the exception is
+   as narrow as that cell. The ink is base.css's own `a { color: var(--accent) }`, at
+   7.34:1 in light and 5.53:1 in dark on the table's ground.
+   why: Artur, round r34; guidelines/dashboards-and-reports.md#link-each-reference-to-its-row
+   held by: src/styles/table.test.js */
+.ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }
+.ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity):hover {
+  color: var(--accent);
   text-decoration: underline;
 }
 /* A plain link — one carrying no class — is the link these rules are about. An inline-block
@@ -163,6 +179,15 @@
  * row reads as one row. */
 .ui-table :is(th, td).ui-table__num--strong { color: var(--strong); font-weight: var(--weight-semibold); }
 .ui-table__code { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text); }
+/* Two things in one cell — a row's own name and the state of it — side by side
+ * while the column has room and stacked when it does not. The wrap comes from flex
+ * because a dense cell is nowrap, and the column is then only as wide as the wider
+ * of the two: a status that had a column of its own was the first thing a phone cut
+ * off, and in here it is the last. The class goes on a span inside the cell, never
+ * on the cell, which would leave the table box model. A row carrying a paragraph takes
+ * .ui-table--stack below instead, which drops the head; a pair keeps every head at every
+ * width, which is what a three-value glance row is read by. why: #505 */
+.ui-table__pair { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
 
 /* The empty state (.ui-empty) — shown when a table/list has no rows — now
    lives in styles/empty.css as a standalone component (illustration support). */
@@ -181,6 +206,41 @@
   background: var(--table-bg);
 }
 .ui-table tbody tr:hover { outline: 1px solid var(--border-strong); outline-offset: -1px; }
+
+/* The row a reference landed a reader on. The mark is a GROUND, not a line: an outline
+   says the keyboard is here (Artur, r34), and this one persists — it answers which row the
+   reader came for, so it stays until the next arrival and must not wear the picture focus
+   draws. It took --ring-scroll until #505's review found a landed row still outlined in the
+   accent after focus had moved on, with a second row beside it wearing the same box.
+   The ground and the ring paint together on arrival: `landOnRow()` focuses the row, so a
+   reader must see both at once, not the ring now and the ground only after they tab away.
+
+   The wash is the accent over the table's own ground: the family `tbody tr:hover` already
+   uses for "this row", one step up from its 8% so the two are told apart. 12% is the
+   strongest step that keeps an accent link inside the row above 4.5:1 — 4.60:1 at the worst
+   of the eight accent/theme cells, against 4.45:1 at 14%. It paints cells rather than the
+   row, because the hover and zebra rules paint cells and would otherwise cover it; the two
+   hover selectors are repeated with .is-target so a pointer passing over the row does not
+   take its mark off.
+   why: Artur, round r34; guidelines/dashboards-and-reports.md#link-each-reference-to-its-row
+   held by: stories/dashboard-report-refs.test.js, for landOnRow() marking the right row and
+   only the right row; stories/contrast.test.js, for the wash's contrast, now that
+   stories/components/Table.stories.js:FinanceData renders a row wearing the mark at rest.
+   Neither gate reads paint against focus: the ground and the ring share no selector and no
+   condition, which is why one cannot switch the other off, and that is proved by the PR's
+   browser captures rather than by a gate. PR #552 code review, finding F6. */
+.ui-table tbody tr.is-target > :is(td, th),
+.ui-table--hover tbody tr.is-target:hover > :is(td, th),
+.ui-table--zebra.ui-table--hover tbody tr.is-target:hover > :is(td, th) {
+  background: color-mix(in srgb, var(--accent) 12%, transparent); /* code-bg: inherit — this translucent wash leaves the chip on its opaque ground. */
+}
+
+/* A focused row draws the shared ring inward, like its containing scroll region.
+   why: docs/foundations.md#the-focus-ring */
+.ui-table tbody tr:focus-visible {
+  outline: var(--ring-scroll);
+  outline-offset: var(--ring-scroll-offset);
+}
 
 /* The end-cell inset above gives a row's highlight room; the bleed is what stops the grid
    paying for it. The table hangs out by the same --space-3, into the card's 20-24px

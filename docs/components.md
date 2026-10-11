@@ -137,7 +137,7 @@ documentation page. It does not add `aria-modal`, wiring or Escape handling.
 
 | Name | What it is |
 |------|------------|
-| `statBand({ stats, variant, basis, label, id })`, with `STAT_VARIANTS`, `STAT_TONES` | A row of key figures as a `<dl>`. A figure is `{ label, value, caption, delta, trend }`; `basis` is what every change is measured against, and the kit draws no chart. See [Stat bands](#stat-bands). |
+| `statBand({ stats, variant, basis, basisId, label, id })`, with `STAT_VARIANTS`, `STAT_TONES` | A row of key figures as a `<dl>`. A figure is `{ label, value, caption, delta, trend }`; `basis` is what every change is measured against, and the kit draws no chart. See [Stat bands](#stat-bands). |
 | `numericValue({ value, unit, missing })`, `deltaValue({ value, tone, basisId })` | Inline value and inline change. Colour never supplies the sign. |
 | `rowIdentity({ symbol, name, logo, href })` + `initRowIdentity(root)` | A company identity cell, with a letter fallback. |
 | `formatNumericValue(…)`, `formatDeltaValue(…)` | The same two decisions as plain text, shared with React. |
@@ -446,10 +446,16 @@ the words below it give way instead. A band that is too narrow for its figures f
 wrapping would leave one figure alone on a row. It decides this from **its own width**, not the
 window's. In a flex row or an `auto` grid track, you give it one:
 
-| Layout | Four fold two by two at | An odd count stacks at | One column at |
-|---|---|---|---|
-| Band and tiles | 56rem | 42rem | 28rem |
-| Open | 66rem | 50rem | 32rem |
+| Layout | Four fold two by two at | An odd count stacks at | One column at | Smaller value below |
+|---|---|---|---|---|
+| Band and tiles | 56rem | 42rem | 28rem | 14rem |
+| Open | 66rem | 50rem | 32rem | 15rem |
+
+Below 14rem, band and tile values use the next smaller type rank. Open values step down below 15rem.
+Longer values remain the caller's responsibility.
+
+A band can use `basisId` to reference comparison text before the figures. An explicit `basis` takes precedence.
+When a period control already states the window, omit a caption that repeats it, including for totals without changes.
 
 **A change shows which way it went with an arrow read off the sign you printed**, and colour follows
 your verdict alone. No tone and `neutral` are the same neutral change. **A figure with nothing to
@@ -480,6 +486,10 @@ inside a cell uses the row's ink, gets an underline on hover, and uses the share
 `:focus-visible`**. The ring surrounds the whole link, including a title-cell link that wraps.
 `numericValue` distinguishes missing from zero. `deltaValue` prints your sign and uses your
 explicit judgement. **Colour never supplies the sign.**
+
+A cell can group its reference and status with `.ui-table__pair`. They stack when the cell cannot fit them side by side.
+A landed row's `.is-target` mark shows on pointer arrival as well as keyboard focus, and it outlives focus, so arrival and focus show together and stay distinguishable.
+The caller brings the target row into view and keeps its mark until the next arrival.
 
 **Below the one-column step, a table marked `.ui-table--stack` lays each row out as a block
 instead of scrolling.** The identity and short cells appear on the first line. `.ui-table__long`
@@ -608,6 +618,10 @@ A toolbar above a list opens with a search box, followed by its filters and then
 be squeezed below that size. At `560px`, that basis would become the field's size rather than its
 floor. So at that width the field uses `flex-basis: 100%`. It takes the full line, and the rest
 of the row wraps below it.
+
+A title without an introduction keeps a 32px gap before the page body.
+A control row directly inside the body sits 8px closer to the block it controls.
+Use `.ui-toolbar--split` to place the final control at the row's end. On a phone, it stays in that row beside the control before it, rather than dropping to its own line.
 
 ### Segmented strips that outgrow their column
 

@@ -95,9 +95,18 @@ const PAIR = (collapsed) => appShell({
   collapsed,
 });
 
-function mount(html, { theme = 'dark', accent = 'default', narrow = false, extra = '' } = {}) {
+// `drop` removes one rule from the sheets before the cascade is built, so a gate
+// can show that what it measures is actually held by the declaration it names
+// rather than falling out of some other rule. The replacement is asserted to
+// have changed something: a mutation proof that mutates nothing proves nothing.
+function mount(html, { theme = 'dark', accent = 'default', narrow = false, extra = '', drop = null } = {}) {
   const vars = tokensFor(theme, accent);
   let raw = decomment(SHEETS.map(read).join('\n'));
+  if (drop) {
+    const dropped = raw.replace(drop, '');
+    assert.notEqual(dropped, raw, `no rule in the four sheets matches ${drop}, so dropping it changes nothing`);
+    raw = dropped;
+  }
   if (narrow) {
     const body = unwrap(raw, FOLD);
     assert.ok(body, `layout.css no longer folds at ${FOLD} — this gate is measuring nothing`);
@@ -2029,9 +2038,9 @@ test('the two finance screens draw one nav definition, not two copies of it', as
 // two column widths and each rebuilt the Finance crumb by hand. Same shape as
 // the nav, one layer out. A width is the measurable half: it is written into
 // the <main> style attribute, so the two screens either agree or they do not.
-test('the two finance screens are one composition — one column, one trail root', async () => {
+test('the finance screens are one composition — one column, one trail root', async () => {
   const screens = [];
-  for (const file of ['EmptyStates', 'FinanceReport']) {
+  for (const file of ['EmptyStates', 'FinanceReport', 'FinanceDashboard']) {
     const mod = await import(`./${file}.stories.js`);
     for (const [name, story] of Object.entries(mod)) {
       if (name === 'default' || typeof story?.render !== 'function') continue;
@@ -2041,7 +2050,7 @@ test('the two finance screens are one composition — one column, one trail root
       screens.push({
         at: `${file}.${name}`,
         column: (/--ui-app-main:\s*([^";]+)/.exec(html) || [])[1]?.trim(),
-        root: crumbs[0]?.textContent.trim(),
+        root: crumbs[0]?.textContent.trim() || doc.querySelector('.ui-back__label')?.textContent.trim(),
       });
     }
   }
@@ -2203,4 +2212,134 @@ test('the two widths are one column at two caps, and the caller\'s number replac
       );
     }
   }
+});
+
+// ---- F. the page head's step --------------------------------------------
+//
+// A page may open on its title alone: `guidelines/the-page.md`'s `lede` rule
+// holds an introduction to two sentences and to saying something the title does
+// not, and has never required one — stories/guidelines/the-page.test.js holds
+// that written half. What it leaves to this file is the step under such a head.
+//
+// The h1's 8px is the step INSIDE the title block, the one that makes a title
+// and its subtitle read as one; the 32px under the subtitle is what the head
+// owes the page. With no subtitle there is nothing inside the head, and the 8px
+// was left standing as the whole gap — the Finance report's period strip sat 8px
+// below its own title and read as part of the title block. The step is measured
+// here on the screens the kit actually ships, through the real cascade, and both
+// shapes are counted so a demo set that lost one of them cannot report green.
+// why: Artur's r34 review of #505; the design review of 617b937 measured it
+
+/**
+ * Every appShell() example screen that draws a reading column, as [name, html].
+ * The column is what the test asks for, so it is what the screen is found by:
+ * the topbar check above looks for `class="ui-app"`, which the screens carrying a
+ * second class on that element — the Stock screener, the folded rail, both
+ * topbar layouts — do not match, and its own pinned list is what keeps it honest.
+ */
+const appScreens = async () => {
+  const found = [];
+  for (const file of appShellFiles()) {
+    const mod = await import(`./${file}`);
+    for (const [name, story] of Object.entries(mod)) {
+      if (name === 'default' || typeof story?.render !== 'function') continue;
+      const out = story.render();
+      if (out.includes('<main class="ui-app__main')) found.push([`${file.replace('.stories.js', '')}.${name}`, out]);
+    }
+  }
+  return found;
+};
+
+// The step the kit gives between the last line of a page head and the first
+// block under it. Twenty-one of the kit's app screens carry a lede, and the step
+// from the lede's last line to the first block is this figure on every one.
+const HEAD_STEP = 32;
+// The step inside the title block, between a title and the lede it is read with.
+const INSIDE_STEP = 8;
+
+/**
+ * Each screen's page head, read off one document so the four sheets are parsed
+ * once rather than once per screen: the name it was mounted under, whether it
+ * carries a lede, the step inside the title block and the step under the head.
+ * A screen that draws no title has no head and is reported as such rather than
+ * quietly dropped — a walk that stops finding heads would otherwise pass.
+ */
+const headSteps = (screens, { drop = null } = {}) => {
+  const at = mount(screens.map(([name, html]) => `<div data-screen="${name}">${html}</div>`).join(''), { drop });
+  return [...at.doc.querySelectorAll('[data-screen]')].map((wrap) => {
+    const name = wrap.getAttribute('data-screen');
+    const main = wrap.querySelector('main.ui-app__main');
+    const h1 = main?.querySelector(':scope > h1');
+    if (!h1) return { name, head: false };
+    const sub = main.querySelector(':scope > p.ui-app__sub');
+    return {
+      name,
+      head: true,
+      lede: Boolean(sub),
+      inside: Number.parseFloat(at.of(h1, 'marginBottom')),
+      step: sub ? Number.parseFloat(at.of(sub, 'marginBottom')) : Number.parseFloat(at.of(h1, 'marginBottom')),
+    };
+  });
+};
+
+/** What a set of heads gets wrong about the step it owes the page. */
+const stepProblems = (heads) => {
+  const problems = [];
+  for (const { name, head, lede, inside, step } of heads) {
+    if (!head) continue;
+    if (step !== HEAD_STEP) {
+      problems.push(lede
+        ? `${name}: its lede sits ${step}px off the first block, not ${HEAD_STEP}px`
+        : `${name} opens on its title alone and its title sits ${step}px off the first block; with `
+          + `no lede under it the title carries the head's own ${HEAD_STEP}px step`);
+    }
+    if (lede && inside !== INSIDE_STEP) {
+      problems.push(`${name}: its title sits ${inside}px off its lede, not the ${INSIDE_STEP}px that `
+        + 'makes the two read as one block');
+    }
+  }
+  return problems;
+};
+
+test('a page head is the same step off its first block with a lede and without one', async () => {
+  const heads = headSteps(await appScreens());
+  const drawn = heads.filter((h) => h.head);
+  const alone = drawn.filter((h) => !h.lede);
+
+  // The anti-vacuity guards. Both shapes have to be in the set: the title-only
+  // step is the rule under test, and the lede step is the figure it is taken
+  // from. Three title-only screens ship today — the Finance dashboard and the
+  // Finance report's two states — against twenty that carry a lede.
+  assert.deepEqual(heads.filter((h) => !h.head).map((h) => h.name), [],
+    'an appShell() example screen draws no page title, so its head is not being measured here');
+  assert.ok(drawn.length >= 20,
+    `${drawn.length} appShell() screen(s) draw a page head; 24 do today. The walk stopped finding them.`);
+  assert.ok(alone.length >= 1,
+    'no example screen opens on its title alone, so the step this gate holds is drawn by nothing. '
+    + 'Today the Finance dashboard and both states of the Finance report do.');
+  assert.ok(drawn.length - alone.length >= 10,
+    `${drawn.length - alone.length} screen(s) carry a lede; 21 do today. Below ten the step a lede `
+    + 'carries is barely measured, and it is the figure the title-only step is taken from.');
+
+  assert.deepEqual(stepProblems(heads), [],
+    `a page head does not sit the kit's step off the page:\n  ${stepProblems(heads).join('\n  ')}`);
+});
+
+// The rejection proof. Reading 32px proves nothing unless the declaration named
+// for it is what produces the 32: `.ui-app__main h1` ships 8px, and a title-only
+// head reading 32 from somewhere else would leave this gate green over a rule
+// nobody could edit. With the rule dropped the 8px comes back, and the walk above
+// has to name every screen it reaches and the figure it found.
+test('deleting the title-only step turns the step gate red, naming each screen and its figure', async () => {
+  const screens = await appScreens();
+  const drop = /\.ui-app__main > h1:not\(:has\(\+ \.ui-app__sub\)\) \{[^}]*\}/;
+  const heads = headSteps(screens, { drop });
+  const alone = heads.filter((h) => h.head && !h.lede);
+  assert.ok(alone.length > 0, 'premise: the kit ships a screen that opens on its title alone');
+
+  assert.deepEqual(stepProblems(heads), alone.map((h) => `${h.name} opens on its title alone and its `
+    + `title sits ${INSIDE_STEP}px off the first block; with no lede under it the title carries the `
+    + `head's own ${HEAD_STEP}px step`),
+  'with the title-only rule gone every such head falls back to the 8px step inside a title block, '
+  + 'and this gate has to report each one of them');
 });
