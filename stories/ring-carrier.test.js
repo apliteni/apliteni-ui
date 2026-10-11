@@ -88,9 +88,10 @@ test('every control that takes the ring takes the offset that places it', () => 
   // filling the table cell. The narrow table cell keeps the inward band instead.
   // 50 -> 51: #513 gives an unmarked pinned identity cell the outset band again in a
   // stacked card after the phone rule moves its direct link's focus ring to the cell.
-  // 51 -> measured on the first rebased commit: this rebase keeps main's #513 pinned
-  // identity cell rule. Main had 51, and the full branch had 50 before this rebase.
-  assert.equal(consumers.length, 51, 'ring consumer discovery changed');
+  // 51 -> 52: the rebase keeps main's #513 pinned identity cell rule and the branch's
+  // collapsed toast pile rule. Main had 51, the branch had 50, and the merged tree
+  // measured here has 52.
+  assert.equal(consumers.length, 52, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -225,7 +226,7 @@ const secondBands = (subjects) => subjects.flatMap((rule) => [...rule.body.match
 test('a focus rule draws the band and no second accent edge', () => {
   // Every consumer is read, so this cannot go quiet by losing its subjects: the count
   // is the one the offset gate pins, and the two have to move together.
-  assert.equal(consumers.length, 51, 'ring consumer discovery changed');
+  assert.equal(consumers.length, 52, 'ring consumer discovery changed');
   assert.deepEqual(secondBands(consumers), []);
 });
 
