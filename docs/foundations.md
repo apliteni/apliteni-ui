@@ -304,8 +304,8 @@ override reaches every control. There is no gap colour to hand down.
 
 **`--ring-scroll` is the indicator a box takes when its own edges are a surface's edges.** It uses
 the same 1px gap and 2px band, but draws them inward. A scroll region inside a surface is one such
-box, and a link filling a table cell is another. You need both values, or the band appears outside
-the box.
+box. A link filling a table cell is another, and so is a line of text inside a cell that clips. You
+need both values, or the band appears outside the box.
 
 **Every focusable control the kit ships draws the band**, including a roving row the keyboard
 reaches with an arrow key rather than Tab. None falls back to the browser's own outline, which

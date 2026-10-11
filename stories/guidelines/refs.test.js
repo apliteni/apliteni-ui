@@ -322,7 +322,7 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  assert.equal(count, 130, 'update the rule count when adding or removing a rule');
+  assert.equal(count, 131, 'update the rule count when adding or removing a rule');
 });
 
 // The checkable half of "Show, less tell" (AGENTS.md#the-guidelines-collection). A rule the page
@@ -345,7 +345,11 @@ test('a rule with no specimen pair carries a Why, and every page is in the count
       }
     }
   }
-  assert.equal(pairless.length, 46, 'update the pairless-rule count when a rule gains or loses a specimen pair');
+  // 46 -> 47: #513's `pinned-identity-sub-lines`. It draws nothing because the rule only
+  // bites below 720px, and a specimen cannot set the viewport a media query reads, so both
+  // halves would draw the desktop line and neither would show the spill. Its `Why` names
+  // that, as AGENTS.md#the-guidelines-collection asks of a text-only rule.
+  assert.equal(pairless.length, 47, 'update the pairless-rule count when a rule gains or loses a specimen pair');
   assert.deepStrictEqual(silent, []);
 });
 

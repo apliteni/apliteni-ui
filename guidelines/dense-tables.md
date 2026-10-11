@@ -78,13 +78,13 @@
 
 <!-- rule: pinned-identity-sub-lines -->
 
-**Why:** A sub-line can cut with one ellipsis only when it stays running text.
+**Why:** An ellipsis cannot cut a flex or grid box, so the name spills past the cell. No specimen draws it, because the cut needs a phone viewport.
 
-**Rule:** A sub-line in a pinned identity cell is running text.
+**Rule:** A pinned identity sub-line is running text.
 
-**Do:** It may carry links inside the sentence.
+**Do:** Write it as a sentence, with any link inside.
 
-**Don't:** It is not a row: do not lay a badge, a control or a picture out along it, and do not make it a flex or grid box.
+**Don't:** Lay a badge, a control or a picture along it, or make it a flex or grid box.
 
 ## Keep updates stable
 

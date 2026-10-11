@@ -12,7 +12,7 @@
 
 **Don't:** Give the input a separate muted outline while the button uses `--ring`.
 
-**Except:** A box whose own edges are a surface's — a scroll region, or a link filling a table cell — takes `--ring-scroll` with `--ring-scroll-offset`. A box that is the outermost surface, such as a panel or card, keeps `--ring`. Text-entry controls may match `:focus-visible` on mouse focus. Both bands are declared once at the root and recomposed nowhere, because an outline leaves its offset unpainted. Adjust width and colour there.
+**Except:** A box whose own edges are a surface's — a scroll region, or a box filling a table cell — takes `--ring-scroll` with `--ring-scroll-offset`. A box that is the outermost surface, such as a panel or card, keeps `--ring`. Text-entry controls may match `:focus-visible` on mouse focus. Both bands are declared once at the root and recomposed nowhere, because an outline leaves its offset unpainted. Adjust width and colour there.
 
 ## Busy controls
 

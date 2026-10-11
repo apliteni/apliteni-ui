@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:206",
+        "ref": "src/styles/table.css:231",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ]
@@ -1027,7 +1027,7 @@
         "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
       },
       {
-        "ref": "src/styles/table.css:232",
+        "ref": "src/styles/table.css:262",
         "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
       },
       {

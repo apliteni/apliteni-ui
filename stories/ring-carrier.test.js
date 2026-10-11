@@ -121,12 +121,18 @@ test('the offset gate rejects a control that takes the band and leaves the offse
 });
 
 test('every scroll region that takes the inward band takes its offset too', () => {
-  // Nine: the table card, the table wrapper inside it, the filled table-cell link,
-  // the dropdown's search list,
-  // the drawer's body, the confirm's consequence, the palette's list, React's modal body,
-  // and the date picker's shortcut row in its phone sheet. Artur chose the picture on #531
-  // round r30; the list is the surfaces it is on.
-  assert.equal(scrollRules.length, 9,
+  // Eleven: the table card, the table wrapper inside it, the filled table-cell link,
+  // the focused table row, the pinned identity sub-line, the dropdown's search list,
+  // the drawer's body, the confirm's consequence, the palette's list, React's modal
+  // body, and the date picker's shortcut row in its phone sheet. Artur chose the picture
+  // on #531 round r30; the list is the surfaces it is on.
+  // 10 -> 11: #513 puts the band on a pinned identity sub-line holding a focused link.
+  // Below 720px the cell clips, so a ring on the link has no surface to draw its right
+  // side on, while the sub-line's own inline edges are the cell's. Two of the eleven are not
+  // scroll regions, so this test's name is now narrower than the list it walks: what the
+  // eleven share is that their own edges are a surface's, which is what state-set.md's
+  // Except and the --ring-scroll paragraph in foundations both say.
+  assert.equal(scrollRules.length, 11,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 2,
     'React\'s modal body and the picker\'s shortcut row are not both among them, so the walk '

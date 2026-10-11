@@ -406,11 +406,9 @@ a.ui-identity:hover { text-decoration: underline; }
     overflow-clip-margin: var(--space-1);
     text-overflow: ellipsis;
   }
-  /* A picture has no shorter form, so it keeps its own size and the cell cuts it. A cap
-     changes its width and not its height, which distorts it. #513 */
+  /* A picture has no shorter form, so it keeps its intrinsic size and the cell cuts it.
+     Nothing caps it, so write neither a cap nor a reset of one here. #513 */
   .ui-table--pinned .ui-table__identity :is(svg, img, canvas, video, picture) {
-    max-width: none;
-    min-width: auto;
     overflow: visible;
     text-overflow: clip;
   }

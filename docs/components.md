@@ -517,9 +517,10 @@ composed into a cell.
 `--ui-table-identity-max` and cut with an ellipsis past the cap. The default cap is
 `min(var(--panel-sm), 50vw)`, and that one property is yours to retune. The whole text stays in
 the markup, so the accessible name is unchanged and the company link remains the disclosure. The
-decorative logo is not drawn there. A sub-line is running text. It may carry links inside the
-sentence. It is not a row, so do not lay a badge, a control or a picture out along it, and do not
-make it a flex or grid box.
+decorative logo is not drawn there. A sub-line stays running text, which is a rule in
+[Dense tables](../guidelines/dense-tables.md). **Focusing a link inside a sub-line draws the band
+around the whole line**, because the cell clips and a band around the link alone could not close
+its right side.
 
 **Below the one-column step, a table marked `.ui-table--stack` lays each row out as a block
 instead of scrolling.** The identity and short cells appear on the first line. `.ui-table__long`
