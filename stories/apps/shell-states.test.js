@@ -117,7 +117,8 @@ function mount(html, { theme = 'dark', accent = 'default', narrow = false, phone
   // One rule taken out of the sheet before the cascade runs, so a gate can show
   // what the rule is holding rather than assert that its text is present. Each
   // pattern has to match, or the mutation proves nothing.
-  for (const pattern of drop) {
+  const drops = Array.isArray(drop) ? drop : drop ? [drop] : [];
+  for (const pattern of drops) {
     const cut = raw.replace(pattern, '');
     assert.notEqual(cut, raw, `nothing in the sheet matches ${pattern} — the mutation changes nothing`);
     raw = cut;
