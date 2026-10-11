@@ -1,6 +1,6 @@
-/* Rule: on a phone a pinned identity cell is one line of identity wide — never a
- * wrapped sliver, never wider than its cap, never narrower than a name.
- * why: docs/components.md#dense-financial-tables, #500 */
+/* Rule: on a phone a pinned identity cell is one running text line with a hard
+ * cell edge, never a layout row squeezed to fit.
+ * why: docs/components.md#dense-financial-tables, #500, #513 */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -83,28 +83,24 @@ function mountAt(width, extra = '', css = CSS) {
       <tr><td class="ui-table__identity" id="subclass"><div>Classed region</div><div class="ui-table__code" id="sublineclass"><a class="u-office-link" href="#office">EU-CLASSED-8 district office</a></div></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="btn"><a class="ui-btn ui-btn--sm" href="#company" id="btnlink">Open the registered trading name</a></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="nav"><a class="ui-nav__item" href="#company" id="navlink"><svg class="ui-nav__ic"></svg>Open the registered trading name</a></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="svgmark"><svg id="svgmark-shape" viewBox="0 0 240 24" width="240" height="24"></svg></td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity" id="imgmark"><img id="imgmark-shape" alt="" width="240" height="24" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='24'%3E%3C/svg%3E"></td><td class="ui-table__num">1.00</td></tr>
     </tbody></table>`;
-  const cells = ['#head', '#kit', '#bare', '#plain', '#sub', '#subel', '#sublink', '#submixed', '#subspan', '#substrong', '#subtwo', '#subclass', '#btn', '#nav'];
+  const cells = ['#head', '#kit', '#bare', '#plain', '#sub', '#subel', '#sublink', '#submixed', '#subspan', '#substrong', '#subtwo', '#subclass', '#btn', '#nav', '#svgmark', '#imgmark'];
   const style = (sel) => dom.window.getComputedStyle(typeof sel === 'string' ? document.querySelector(sel) : sel);
   return { document, cells, style, cap };
 }
 
-/** A control: its caret, or its ring, sits past the box the cap leaves it, so a clip
- *  removes the mark rather than shortening the words. A box merely HOLDING one is not
- *  on this list — it cuts, and the cut's 16px margin keeps the ring it holds. A bare
- *  link is not on it either: the fill draws its ring INWARD, so it has nothing standing
- *  past its box, and left on the list it came out cut mid-word over the next column. #513 */
-const MARKS = '.ui-identity, button, input, select, textarea, svg';
+const PICTURES = 'svg, img, canvas, video, picture';
+const CONTROLS = '.ui-btn, .ui-nav__item, .ui-badge, button, input, select, textarea';
 /** What this element is, as far as the outcomes below are concerned. */
 const contextOf = (el, cap) => ({
   cap,
   cell: el.classList.contains('ui-table__identity'),
   decorative: el.classList.contains('ui-identity__logo'),
-  marks: el.matches(MARKS),
-  // An anchor the kit styles keeps its own box in the cell, and it is the focusable
-  // itself: nothing but its own ring stands outside it, and a ring is drawn outside its
-  // own clip. So it needs none of the 16px the boxes around it keep. #513
-  ownBox: el.matches('a[class]:not(.ui-identity)'),
+  picture: el.matches(PICTURES),
+  control: el.matches(CONTROLS),
+  link: el.matches('a'),
 });
 
 /**
@@ -120,6 +116,7 @@ const OUTCOME = {
     const px = lengthPx(v, 390);
     if (cell) return px === cap ? null
       : `the cell is capped at ${v}, which is not the ${cap}px --ui-table-identity-max leaves it`;
+    if (v.trim() === 'none') return null;
     return v.trim() === '100%' || (px !== null && px >= cap) ? null
       : `${v} caps this away from the cell it sits in, so a name loses room the cell has`;
   },
@@ -135,20 +132,15 @@ const OUTCOME = {
     return px <= cap ? null : `a floor of ${v} forces a pinned identity past its ${cap}px cap`;
   },
   'white-space': (v) => (v === 'nowrap' ? null : `${v} wraps, which is the sliver #500 reported`),
-  // The cell itself always cuts — that is the cap. Inside it, a box carrying a mark
-  // must not, because a clip removes the mark rather than shortening it.
-  overflow: (v, { cell, marks }) => (marks && !cell
-    ? (v === 'visible' ? null : `${v} cuts a box carrying a mark, which takes the mark`)
+  // The cell and text boxes cut. Pictures keep their own overflow so they are not distorted.
+  overflow: (v, { cell, picture }) => (picture && !cell
+    ? (v === 'visible' ? null : `${v} cuts a picture instead of letting the cell cut it`)
     : (['clip', 'hidden'].includes(v) ? null : `${v} lets text run past the cap`)),
-  // A kit anchor's own cut is flush with its border. The zero is held to a UNIT, because
-  // Chromium drops a unitless one for this property and leaves the 16px standing: measured
-  // in Chromium for #513, where the declaration read `0` and the box still cut at 16px.
-  'overflow-clip-margin': (v, { ownBox }) => (ownBox
-    ? (v.trim() === '0px' ? null
-      : `a kit anchor cut ${v} from its own border paints its last glyphs over the column beside it`)
-    : (lengthPx(v, 390) >= 12 ? null
-      : `a cut ${v} from the box leaves a focused control no room for its ring`)),
-  'text-overflow': (v, { cell, marks }) => (marks && !cell
+  'overflow-clip-margin': (v, { cell }) => (cell
+    ? `the cell has a clip margin of ${v}, so sticky ink can paint over the next column`
+    : (lengthPx(v, 390) >= 4 ? null
+      : `a cut ${v} from the box leaves a focused line no room for its ring`)),
+  'text-overflow': (v, { cell, picture }) => (picture && !cell
     ? (v === 'clip' ? null : `${v} promises a cut that a box overflowing in the open never draws`)
     : (v === 'ellipsis' ? null : `${v} cuts text without saying so`)),
   // Only the decorative logo is dropped; the column itself has to be drawn.
@@ -160,8 +152,15 @@ const OUTCOME = {
   // reaches. Measured in Chromium: flex cut "…Holdings Inte" with no ellipsis. #513
   'align-content': (v) => (v === 'center' ? null
     : `${v} drops the filled link's line to the top of a row taller than one line`),
-  'align-items': (v) => (v === 'baseline' ? null
-    : `${v} does not keep mixed sub-line text and links on one baseline`),
+  'justify-content': (v) => (v === 'flex-start' ? null
+    : `${v} can cut the front of a capped control label`),
+  'text-align': (v) => (['start', 'left'].includes(v) ? null
+    : `${v} can hide the front of a capped control label`),
+  outline: (v, { link }) => (link
+    ? (v === 'none' ? null : `${v} leaves a second link ring inside the line ring`)
+    : (v === 'var(--ring-scroll)' ? null : `${v} does not draw the clipped-region ring`)),
+  'outline-offset': (v) => (v === 'var(--ring-scroll-offset)' ? null : `${v} is not the inward clipped-region offset`),
+  'border-radius': (v) => (v === 'var(--radius-xs)' ? null : `${v} is not the kit line ring corner`),
   // The two ways #500 hid the name: out of flow, or clipped to nothing.
   position: (v) => (['static', 'relative', 'sticky'].includes(v) ? null
     : `${v} takes this out of the row, which is how the name was hidden before #500`),
@@ -174,7 +173,8 @@ test('at 390 every rule that reaches a pinned identity comes to the outcome it i
   for (const { selector, declarations } of phoneRules()) {
     // Reach, not spelling: everything the rule matches that lives in a pinned
     // identity cell, the cell itself included.
-    const reached = [...document.querySelectorAll(selector)].filter((el) => el.closest('.ui-table__identity'));
+    const reachableSelector = selector.replaceAll(':focus-visible', '');
+    const reached = [...document.querySelectorAll(reachableSelector)].filter((el) => el.closest('.ui-table__identity'));
     if (!reached.length) {
       assert.ok(!selector.includes('identity'),
         `${selector} names the pinned identity and reaches nothing among the shapes mounted here`);
@@ -184,7 +184,8 @@ test('at 390 every rule that reaches a pinned identity comes to the outcome it i
       const outcome = OUTCOME[property];
       assert.ok(outcome, `nothing here judges what ${property} does to a pinned identity`);
       for (const el of reached) {
-        const problem = outcome(style(el).getPropertyValue(property), contextOf(el, cap));
+        const actual = selector.includes(':focus-visible') ? value : style(el).getPropertyValue(property);
+        const problem = outcome(actual, contextOf(el, cap));
         assert.equal(problem, null, `${selector} { ${property}: ${value} } on <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>: ${problem}`);
         judged++;
       }
@@ -275,9 +276,8 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   assert.equal(style('#kit .ui-identity').maxWidth.trim(), '100%', 'the identity link is capped away from the cell it sits in');
   assert.equal(style('#kit .ui-identity__logo').display, 'none', 'the logo is back in the narrow column');
 
-  // A sub-line cuts itself with an ellipsis. When it holds a link, every way of
-  // wrapping that link gets the same cap too. Chrome then draws the ellipsis and
-  // keeps the ring closed.
+  // A sub-line cuts itself with an ellipsis. When it holds a link, it stays
+  // running text rather than a layout row. Chrome then draws the ellipsis.
   for (const subLine of ['#subline', '#sublineel', '#sublinelink']) {
     assert.equal(style(subLine).textOverflow, 'ellipsis', `${subLine} is cut without saying so`);
     assert.ok(['clip', 'hidden'].includes(style(subLine).overflow), `${subLine} runs past the cap`);
@@ -285,17 +285,19 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   const subLinesWithLinks = [...document.querySelectorAll('.ui-table__identity > *')].filter((el) => el.querySelector('a'));
   assert.equal(subLinesWithLinks.length, 6, 'the fixture must cover each sub-line link shape');
   for (const subLine of subLinesWithLinks) {
-    assert.equal(style(subLine).display, 'flex', `#${subLine.id} does not share the line among its link and text`);
+    assert.equal(style(subLine).display, 'block', `#${subLine.id} stopped being running text`);
+    assert.equal(style(subLine).overflowClipMargin, '4px', `#${subLine.id} does not keep the line ring room`);
     for (const link of subLine.querySelectorAll('a')) {
       const linkStyle = style(link);
-      assert.equal(linkStyle.maxWidth.trim(), '100%', `#${subLine.id} link is not held to its line`);
-      assert.equal(linkStyle.textOverflow, 'ellipsis', `#${subLine.id} link cuts without saying so`);
-      assert.ok(['clip', 'hidden'].includes(linkStyle.overflow), `#${subLine.id} link runs past the cap at ${linkStyle.overflow}`);
+      if (!link.className) assert.equal(linkStyle.display, 'inline', `#${subLine.id} bare link is atomic, so the line cannot cut inside it`);
     }
   }
   const sort = style('#sort');
   assert.equal(sort.maxWidth.trim(), '100%', 'a sort button is not held to the cell it sits in');
-  assert.ok(['', 'visible'].includes(sort.overflow), `a sort button is clipped, which takes its caret: ${sort.overflow}`);
+  assert.equal(sort.justifyContent, 'flex-start', 'a capped sort button can lose the front of its label');
+  assert.ok(['hidden', 'clip'].includes(sort.overflow), `a sort button runs past the cap at ${sort.overflow}`);
+  assert.equal(style('#svgmark-shape').maxWidth.trim(), 'none', 'an svg mark is capped and distorted');
+  assert.equal(style('#imgmark-shape').maxWidth.trim(), 'none', 'an img mark is capped and distorted');
 });
 
 const round = (n) => Math.round(n * 100) / 100;
@@ -364,6 +366,7 @@ async function measureSubLineOverflow(page, css, width, rows = SUBLINE_ROWS) {
         id: line.getAttribute('data-subline'),
         linkOverflow: cs.overflow,
         linkTextOverflow: cs.textOverflow,
+        lineTextOverflow: getComputedStyle(line).textOverflow,
         cellRight: cell.right,
         lineRight: lineBox.right,
         linkRight: linkBox.right,
@@ -409,7 +412,7 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
       const rows = await measureSubLineOverflow(page, css, width);
       for (const row of rows) {
         assert.ok(row.paintedOverflowPx <= 0.5, `${row.id} paints ${row.paintedOverflowPx}px past the cell at ${width}`);
-        assert.equal(row.linkTextOverflow, 'ellipsis', `${row.id} does not promise an ellipsis at ${width}`);
+        assert.equal(row.lineTextOverflow, 'ellipsis', `${row.id} does not promise a line ellipsis at ${width}`);
       }
     }
 
@@ -420,7 +423,11 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
     assert.equal(discovered.length, SUBLINE_ROWS.length + 1,
       'a new sub-line link markup must be discovered without being listed in the measuring code');
 
-    const defect = css.replace(/(?<=  \.ui-table--pinned \.ui-table__identity > \* a \{[\s\S]*?)    overflow: clip;\n(?=    text-overflow: ellipsis;\n  \})/, '');
+    const defect = css
+      .replace('  .ui-table--pinned .ui-table__identity {\n    width: 1%;\n    max-width: var(--ui-table-identity-max);\n    white-space: nowrap;\n    overflow: clip;',
+        '  .ui-table--pinned .ui-table__identity {\n    width: 1%;\n    max-width: var(--ui-table-identity-max);\n    white-space: nowrap;\n    overflow: visible;')
+      .replace('  .ui-table--pinned .ui-table__identity > * {\n    overflow: clip;',
+        '  .ui-table--pinned .ui-table__identity > * {\n    overflow: visible;');
     assert.notEqual(defect, css, 'the browser mutation no longer matches table.css, so it proves nothing');
     const failures = [];
     for (const width of PHONE_WIDTHS) {
@@ -470,8 +477,11 @@ const STACKED_OUTCOME = {
   // Inert in a card: the link's height is its own line there, so there is no box to
   // centre a line in. Left written for the column, which has one.
   'align-content': () => null,
-  // Inert in a card: a sub-line can still align its text and link on one baseline.
-  'align-items': () => null,
+  'justify-content': () => null,
+  'text-align': () => null,
+  outline: () => null,
+  'outline-offset': () => null,
+  'border-radius': () => null,
   // The decorative logo stays out of a stacked card too. That is #499's call about the
   // card, not #500's about the column, so this sweep does not reopen it.
   display: () => null,
@@ -616,10 +626,7 @@ const FILL_MUTATIONS = [
   ['the handover deleted, so the cell and the link both draw a padding',
     (css) => css.replace('.ui-table td.ui-table__linked'
       + ':has(> :is(a:not([class]), a.ui-identity):only-child) { padding: 0; height: 1px; }\n', '')],
-  // #513's defect, and the two rules that answer it, each taken away on its own.
-  ['the bare link put back on the carve-out list, so the cap never cuts its words',
-    (css) => css.replace('.ui-table--pinned .ui-table__identity > :is(.ui-identity, button, input, select, textarea, svg) {',
-      '.ui-table--pinned .ui-table__identity > :is(.ui-identity, a, button, input, select, textarea, svg) {')],
+  // #513's filled-link defect, and the two rules that answer it, each taken away on its own.
   ['the filled bare link left a flex box, whose text no ellipsis shortens',
     (css) => css.replace('    display: block;\n    align-content: center;\n', '')],
   ['the block box kept and its line left at the top of the row',
@@ -637,96 +644,6 @@ test('the gate rejects every way the fill reaches a linked identity wrongly', ()
     const mutated = mutate(CSS);
     assert.notEqual(mutated, CSS, `the mutation "${what}" no longer matches table.css, so it proves nothing`);
     if (fillProblems(mutated).length === 0) survived.push(what);
-  }
-  assert.deepStrictEqual(survived, [], 'a mutation passed this gate unnoticed');
-});
-
-/* -- The anchors that keep their own box in the cell ------------------------ */
-
-/**
- * `.ui-btn`, `.ui-nav__item`, a dropdown row and a crumb keep the box their own component
- * sets, and each is a flex box the cell's cut reaches no words of: `text-overflow` is a
- * block container's property. What each has to come to is the cut inside its own border,
- * and the ellipsis where it holds nothing but words. A pure function of the stylesheet, so
- * the mutations below go through exactly this check.
- * Limits: this mount carries table.css alone, so the flex box button.css and nav.css give
- * these anchors is invisible here. Chromium measured both at 390 in a 195px column for
- * #513: `a.ui-btn` cut at both ends, `a.ui-nav__item` cut with no mark, each 16px outside
- * its own border.
- */
-function ownBoxProblems(css) {
-  const { style } = mountAt(390, '', css);
-  const problems = [];
-  // The one fact read from the source rather than from the cascade: whether the zero
-  // carries a unit. JSDOM normalises `0` to `0px` and Chromium does the opposite — it
-  // drops the declaration and leaves the cell's 16px standing, which is what #513 is.
-  const written = /a\[class\]:not\(\.ui-identity\)\s*\{[^}]*overflow-clip-margin:\s*([^;}]+)/
-    .exec(decomment(css));
-  if (!written) problems.push('nothing takes the cell\u2019s 16px off a kit anchor, so its cut reaches past its own border');
-  else if (!/^0(?:px|rem|em)$/.test(written[1].trim())) {
-    problems.push(`the anchor\u2019s cut is written \`${written[1].trim()}\`, and Chromium drops a unitless zero for this property`);
-  }
-  for (const [id, holds] of [['#btnlink', 'words'], ['#navlink', 'artwork']]) {
-    const box = style(id);
-    const margin = box.getPropertyValue('overflow-clip-margin');
-    if (margin.trim() !== '0px') {
-      problems.push(`the anchor holding ${holds} cuts ${margin || 'at the cell\u2019s margin'} outside its own border, which paints its last glyphs over the column beside it`);
-    }
-    if (!['clip', 'hidden'].includes(box.overflow)) {
-      problems.push(`the anchor holding ${holds} overflows in the open at ${box.overflow}, so a long label runs past the cap`);
-    }
-  }
-  // Words alone: a block container, so the ellipsis it is promised is drawn. `inline-block`
-  // rather than `block`, because the width is each component's own — a `.ui-btn` hugs its
-  // label where a nav row declares `width: 100%`, and a block box would stretch the first
-  // one to the cap.
-  const words = style('#btnlink');
-  if (words.display !== 'inline-block') {
-    problems.push(`the anchor holding nothing but words is ${words.display || 'left the flex box its component sets'}, which draws no ellipsis at a width its component chose`);
-  }
-  if (words.textOverflow !== 'ellipsis') {
-    problems.push(`the anchor holding nothing but words is cut at ${words.textOverflow || 'the cell edge'} rather than ellipsised, so its label ends mid-word`);
-  }
-  // Artwork beside them: the flex box stays, because a block box would drop the artwork onto
-  // a line of its own and lose the gap between the two. It cuts inside its border instead.
-  const artwork = style('#navlink');
-  if (artwork.display === 'inline-block' || artwork.display === 'block') {
-    problems.push(`the anchor holding artwork is ${artwork.display}, which stands its artwork on a line of its own`);
-  }
-  return problems;
-}
-
-test('a kit anchor in the capped cell cuts inside its own border, and ellipsises its words', () => {
-  assert.deepStrictEqual(ownBoxProblems(CSS), []);
-});
-
-/** Each way #513's second defect comes back, taken away one at a time. */
-const OWN_BOX_MUTATIONS = [
-  ['the 16px left on the anchor, so its cut paints over the column beside it',
-    (css) => css.replace('.ui-table--pinned .ui-table__identity > a[class]:not(.ui-identity) '
-      + '{ overflow-clip-margin: 0px; }\n', '')],
-  ['the anchor left the flex box its component sets, whose words no ellipsis shortens',
-    (css) => css.replace('.ui-table--pinned .ui-table__identity > a[class]:not(.ui-identity):not(:has(> *)) '
-      + '{ display: inline-block; }\n', '')],
-  ['the anchor made a block box, which stretches a button that sizes itself to its label',
-    (css) => css.replace(':not(:has(> *)) { display: inline-block; }', ':not(:has(> *)) { display: block; }')],
-  ['the box rewritten for every anchor, which puts a nav row\u2019s artwork on a line of its own',
-    (css) => css.replace('a[class]:not(.ui-identity):not(:has(> *)) { display: inline-block; }',
-      'a[class]:not(.ui-identity) { display: inline-block; }')],
-  ['the cut written as a unitless zero, which Chromium drops for this property',
-    (css) => css.replace('a[class]:not(.ui-identity) { overflow-clip-margin: 0px; }',
-      'a[class]:not(.ui-identity) { overflow-clip-margin: 0; }')],
-  ['the anchors taken off the cut entirely, so a long label runs past the cap',
-    (css) => css.replace('  .ui-table--pinned .ui-table__identity > * {',
-      '  .ui-table--pinned .ui-table__identity > :not(a[class]) {')],
-];
-
-test('the gate rejects every way a kit anchor loses its cut or its ellipsis', () => {
-  const survived = [];
-  for (const [what, mutate] of OWN_BOX_MUTATIONS) {
-    const mutated = mutate(CSS);
-    assert.notEqual(mutated, CSS, `the mutation "${what}" no longer matches table.css, so it proves nothing`);
-    if (ownBoxProblems(mutated).length === 0) survived.push(what);
   }
   assert.deepStrictEqual(survived, [], 'a mutation passed this gate unnoticed');
 });

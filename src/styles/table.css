@@ -385,73 +385,67 @@
 .ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
 a.ui-identity:hover { text-decoration: underline; }
 .ui-identity:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
-/* Below the fold a pinned identity is one line wide: nothing wraps, so the floor is a
-   whole line and --ui-table-identity-max is the ceiling a consumer retunes.
-   why: docs/components.md#dense-financial-tables, #500 */
 @media (max-width: 720px) {
+  /* One line wide: nothing wraps, and --ui-table-identity-max is the ceiling a consumer
+     retunes. The cut takes NO margin — the cell is sticky and the next column scrolls
+     under it, so whatever the cut lets out is painted over that column. A child's ring
+     needs 3px and the cell's padding is 12px, so the room comes from the padding.
+     why: docs/components.md#dense-financial-tables, #500, #513 */
   .ui-table--pinned .ui-table__identity {
     width: 1%;
     max-width: var(--ui-table-identity-max);
     white-space: nowrap;
-    /* `clip` with a margin rather than `hidden`: the ellipsis lands on the cell's own
-       edge either way, and the 16px keeps a descendant's focus ring outside the cut. */
     overflow: clip;
-    overflow-clip-margin: var(--space-4);
     text-overflow: ellipsis;
   }
-  /* A sub-line is a block of its own, so the cell's own ellipsis cannot reach it:
-     every child is held to the cap and cuts itself the same way. */
+  /* A sub-line is one line of running text and cuts itself: the cell's ellipsis cannot
+     reach into a child block. 4px is a focused link's ring, inside the cell's padding.
+     Nothing is capped here — block layout already holds a child to the cell. */
   .ui-table--pinned .ui-table__identity > * {
-    max-width: 100%;
-    min-width: 0;
     overflow: clip;
-    overflow-clip-margin: var(--space-4);
+    overflow-clip-margin: var(--space-1);
     text-overflow: ellipsis;
   }
-  /* When a sub-line holds a link, the line becomes the box that shares its space
-     among text and links. Each link can then shrink, draw an ellipsis, and keep
-     its focus ring closed inside the sub-line's cut margin. */
-  .ui-table--pinned .ui-table__identity > *:has(a) {
-    display: flex;
-    align-items: baseline;
-  }
-  .ui-table--pinned .ui-table__identity > *:has(a) > * {
-    min-width: 0;
-    max-width: 100%;
-  }
-  .ui-table--pinned .ui-table__identity > * a {
-    min-width: 0;
-    max-width: 100%;
-    overflow: clip;
-    text-overflow: ellipsis;
-  }
-  /* Except a control, which is a mark a clip removes rather than shortens: its own
-     caret or ring sits past the box the cap leaves it. A box merely HOLDING one is
-     not on this list — it cuts, and the 16px above is what keeps the ring it holds
-     out of the cut. A lone link is off it: its ring is drawn inward. #513 */
-  .ui-table--pinned .ui-table__identity > :is(.ui-identity, button, input, select, textarea, svg) {
+  /* A picture has no shorter form, so it keeps its own size and the cell cuts it. A cap
+     changes its width and not its height, which distorts it. #513 */
+  .ui-table--pinned .ui-table__identity :is(svg, img, canvas, video, picture) {
+    max-width: none;
+    min-width: auto;
     overflow: visible;
     text-overflow: clip;
   }
-  /* And it cuts only as a block box: the fill makes the link a flex box, whose text is
-     an anonymous item `text-overflow` never reaches — it came out cut mid-word over the
-     next column. `align-content` leaves the line where the flex box centred it. #513 */
+  /* A control's label is text, so it yields: held to the cell and cut at its END. A kit
+     control centres its label, and a capped one that centres loses the front of it. #513 */
+  .ui-table--pinned .ui-table__identity :is(.ui-btn, .ui-nav__item, .ui-badge, button, input, select, textarea) {
+    max-width: 100%;
+    min-width: auto;
+    overflow: hidden;
+    justify-content: flex-start;
+    text-align: start;
+  }
+  /* `a:not([class])` above is an inline-block so a WRAPPING title link paints one ring.
+     Nothing wraps here, and an inline-block is atomic: `text-overflow` cannot cut inside
+     one, so the link came out cut mid-glyph. Inline, it draws one fragment and one
+     ring, and the line's ellipsis reaches it. #513 */
+  .ui-table--pinned .ui-table__identity a:not([class]) { display: inline; }
+  /* Except where the fill gave the lone link the cell's box: it cuts as a block box. */
   .ui-table--pinned .ui-table__identity.ui-table__linked > a:not([class]):only-child {
     display: block;
     align-content: center;
   }
-  /* A kit anchor keeping its own box here — a `.ui-btn`, a `.ui-nav__item`, a dropdown
-     row, a crumb — is a flex box, whose words the cut above reaches no more than the
-     fill's: it came out mid-word, 16px past its own border. It gives up those 16px, which
-     only a ring it does not hold ever needed, and cuts as an inline-block box where it
-     holds nothing else — at the width its own component sets. The zero carries a unit
-     because Chromium drops a unitless one here and leaves the 16px standing. #513 */
-  .ui-table--pinned .ui-table__identity > a[class]:not(.ui-identity) { overflow-clip-margin: 0px; }
-  .ui-table--pinned .ui-table__identity > a[class]:not(.ui-identity):not(:has(> *)) { display: inline-block; }
+  /* The ring goes on the LINE: a link longer than the cell runs past the cut, so a ring
+     around the link has no surface to draw its right side on. Inward, like every ring
+     the kit puts in a clipped region. why: docs/foundations.md#the-focus-ring, #513 */
+  .ui-table--pinned .ui-table__identity > *:has(a:focus-visible) {
+    outline: var(--ring-scroll);
+    outline-offset: var(--ring-scroll-offset);
+    border-radius: var(--radius-xs);
+  }
+  .ui-table--pinned .ui-table__identity > * a:focus-visible { outline: none; }
   .ui-table--pinned .ui-identity__logo { display: none; }
+  /* An inline-flex box is the one child block layout does not hold to the cell, so the
+     cap belongs on it. The whole name stays in the DOM; only the drawn line is cut. */
   .ui-table--pinned .ui-identity { max-width: 100%; }
-  /* The whole name stays in the DOM — the accessible name and the link's own
-     disclosure are what they were; only the drawn line is cut. */
   .ui-table--pinned .ui-identity__name { min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 

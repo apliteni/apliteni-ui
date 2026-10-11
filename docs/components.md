@@ -517,10 +517,9 @@ composed into a cell.
 `--ui-table-identity-max` and cut with an ellipsis past the cap. The default cap is
 `min(var(--panel-sm), 50vw)`, and that one property is yours to retune. The whole text stays in
 the markup, so the accessible name is unchanged and the company link remains the disclosure. The
-decorative logo is not drawn there. A sub-line cuts in its own box. Any link in a sub-line cuts
-in that box, draws an ellipsis, and keeps a closed focus ring. A control in the cell keeps its own
-marks and focus ring through the cut. A kit anchor cuts inside its own box rather than over the
-column beside it.
+decorative logo is not drawn there. A sub-line is running text. It may carry links inside the
+sentence. It is not a row, so do not lay a badge, a control or a picture out along it, and do not
+make it a flex or grid box.
 
 **Below the one-column step, a table marked `.ui-table--stack` lays each row out as a block
 instead of scrolling.** The identity and short cells appear on the first line. `.ui-table__long`
