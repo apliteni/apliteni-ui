@@ -139,8 +139,14 @@ it('still calls a caller\'s own onFocus while revealing the link', () => {
   const seen: string[] = [];
   render(<NavTabs items={items} active="summary"
     onFocus={event => seen.push((event.target as HTMLElement).textContent ?? '')} />);
-  screen.getByRole('link', { name: 'Summary' }).focus();
+  const nav = screen.getByRole('navigation');
+  const first = screen.getByRole('link', { name: 'Summary' });
+  Object.defineProperties(nav, { clientWidth: { value: 300 }, scrollWidth: { value: 500 } });
+  nav.getBoundingClientRect = () => ({ left: 40, right: 340 }) as DOMRect;
+  first.getBoundingClientRect = () => ({ left: 360, right: 440 }) as DOMRect;
+  first.focus();
   expect(seen).toEqual(['Summary']);
+  expect(nav.scrollLeft).toBe(100);
 });
 it('drops a null badge the way the vanilla factory does', () => {
   // `counts.pending ?? null` is what a JavaScript caller hands over, and
@@ -190,6 +196,10 @@ it.each(['label', 'badge'] as const)('remeasures changed %s with identical IDs w
   });
   rerender(<NavTabs items={initial} active="two" />);
   expect(nav).toHaveAttribute('data-nav-fit');
+  // Supplied offscreen bounds make unwanted revelation observable when content grows.
+  nav.getBoundingClientRect = () => ({ left: 40, right: 340 }) as DOMRect;
+  screen.getByRole('link', { name: 'Two' }).getBoundingClientRect =
+    () => ({ left: 360, right: 440 }) as DOMRect;
   nav.scrollLeft = 40;
   const changed = initial.map(item => ({ ...item, [field]: 'A much longer destination label or badge' }));
   rerender(<NavTabs items={changed} active="two" />);
@@ -210,11 +220,24 @@ it('observes container size and disconnects after unmount', () => {
   try {
     const { unmount } = render(<NavTabs items={items} active="payouts" />);
     const nav = screen.getByRole('navigation');
+    // Supplied geometry tests scroll arithmetic, not browser layout.
+    nav.getBoundingClientRect = () => ({ left: 40, right: 340 }) as DOMRect;
+    screen.getByRole('link', { name: /Payouts\s*0/ }).getBoundingClientRect =
+      () => ({ left: 360, right: 440 }) as DOMRect;
     let width = 800;
     Object.defineProperties(nav, { clientWidth: { get: () => width }, scrollWidth: { value: 500 } });
     act(resized);
     expect(nav).toHaveAttribute('data-nav-fit');
     expect(observe).toHaveBeenCalledWith(nav);
+    width = 300;
+    nav.scrollLeft = 40;
+    act(() => window.dispatchEvent(new Event('resize')));
+    expect(nav).not.toHaveAttribute('data-nav-fit');
+    expect(nav.scrollLeft).toBe(40);
+    width = 800;
+    act(() => window.dispatchEvent(new Event('resize')));
+    expect(nav).toHaveAttribute('data-nav-fit');
+    expect(nav.scrollLeft).toBe(40);
     width = 300;
     nav.scrollLeft = 40;
     act(resized);
