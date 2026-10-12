@@ -1031,9 +1031,6 @@ test('disabled: the opaque token pair retains its measured contrast in both them
 // The classification those two checks turn on, held so a rule cannot quietly change which
 // of them measures it. A rule saying the state with the line around the box alone is asked
 // about that box; anything painting ink, a fill or a fade is asked about its labels too. #518
-const CHIP = '.ui-filter-bar__chip';
-const CHIP_OFF_BY_ITSELF = `${CHIP}:disabled`;
-const CHIP_OFF_BY_BAR = `.ui-filter-bar:disabled ${CHIP}`;
 test('disabled: a rule is classified by what it paints, not by what it selects', () => {
   const one = (body) => disabledRules(`.ui-x:disabled { ${body} }`)[0];
   assert.equal(one('border-color: var(--disabled-border);').edgeOnly, true);
@@ -1046,10 +1043,12 @@ test('disabled: a rule is classified by what it paints, not by what it selects',
   // its add control, and the checkmark the kit draws out of two borders.
   const edges = disabledRules(sheet()).filter((r) => r.edgeOnly).map((r) => r.selector).sort();
   assert.deepEqual(edges, [
-    '.ui-check input[type="checkbox"]:disabled:checked::after',
-    '.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled',
-    CHIP_OFF_BY_BAR,
-    CHIP_OFF_BY_ITSELF,
+    ".ui-check input[type=\"checkbox\"]:disabled:checked::after",
+    ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled",
+    ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled=\"true\"]",
+    ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled=\"true\"]:hover:not(:focus-visible)",
+    ".ui-filter-bar:disabled .ui-filter-bar__chip",
+    ".ui-filter-bar__chip:disabled",
   ].sort(), 'the kit\'s edge-only disabled rules moved — each one is measured on its own box alone');
 });
 
