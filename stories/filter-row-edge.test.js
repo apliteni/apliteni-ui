@@ -304,13 +304,13 @@ test('every subject, box and state the sheet aims at this row is measured', () =
   // box in a state the add control's box is never in, and the other way round.
   const kit = (box) => [...kitStates(box).keys()].sort();
   assert.deepEqual(kit('.ui-btn'), ['busy', 'hover', 'rest', 'unavailable']);
-  assert.deepEqual(kit('.ui-dropdown__trigger'), ['hover', 'rest']);
+  assert.deepEqual(kit('.ui-dropdown__trigger'), ['hover', 'rest', 'unavailable']);
 });
 
 test('the gate refuses a sheet that brings any of it back', () => {
   const MUTATIONS = [
-    ['the add control\'s resting edge dropped', (css) => css.replace('min-height: var(--ui-filter-row-h); border-color: var(--border-strong); background: transparent;', 'min-height: var(--ui-filter-row-h); background: transparent;')],
-    ['the add control\'s resting edge back to a trigger\'s --border', (css) => css.replace('border-color: var(--border-strong); background: transparent;', 'border-color: var(--border); background: transparent;')],
+    ['the add control\'s resting edge dropped', (css) => css.replace('min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent;', 'min-height: var(--ui-filter-row-h); background: transparent;')],
+    ['the add control\'s resting edge back to a trigger\'s --border', (css) => css.replace('border-color: var(--control-edge); background: transparent;', 'border-color: var(--border); background: transparent;')],
     ['the add control\'s unavailable edge dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*:disabled \{ border-color: var\(--disabled-border\); \}/, '')],
     ['the add control hover response dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*:hover[^{]*\{ border-color: var\(--accent\); \}/, '')],
     ['the add control answering a pointer with its resting edge', (css) => css.replace('.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }', '.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--border-strong); }')],
@@ -332,7 +332,7 @@ test('the gate refuses a sheet that brings any of it back', () => {
     ['the chip keeping its live edge when the row is off', (css) => css.replace(/\n\.ui-filter-bar__chip:disabled,\n\.ui-filter-bar:disabled \.ui-filter-bar__chip \{ border-color: var\(--disabled-border\); \}/, '')],
     ['the chip off only by its own state, which a bar turned off does not set', (css) => css.replace('.ui-filter-bar__chip:disabled,\n.ui-filter-bar:disabled .ui-filter-bar__chip {', '.ui-filter-bar__chip:disabled {')],
     ['the chip off only through the bar, which an own disabled chip does not have', (css) => css.replace('.ui-filter-bar__chip:disabled,\n.ui-filter-bar:disabled .ui-filter-bar__chip {', '.ui-filter-bar:disabled .ui-filter-bar__chip {')],
-    ['the chip faded while it is live', (css) => css.replace('.ui-filter-bar__chip { display: inline-flex; align-items: center; border: 1px solid var(--border-strong);', '.ui-filter-bar__chip { display: inline-flex; align-items: center; border: 1px solid var(--disabled-border);')],
+    ['the chip faded while it is live', (css) => css.replace('border: 1px solid var(--control-edge); border-radius: var(--radius-sm); padding: var(--space-1);', 'border: 1px solid var(--disabled-border); border-radius: var(--radius-sm); padding: var(--space-1);')],
   ];
   for (const [what, mutate] of MUTATIONS) {
     const broken = mutate(SHEET);

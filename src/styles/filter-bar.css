@@ -128,16 +128,16 @@
 .ui-filter-bar { --ui-filter-row-h: calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)); }
 
 /* A chip's neighbour takes the chip's corner, that height, the chip's edge and the chip's want
-   of a fill: a trigger's own --border is --border-strong one rung fainter, and in light it is
-   --disabled-border, while its --surface made the row's least consequential action its loudest
-   box — and off, with its edge down, the one thing still looking pressable. The states are
+   of a fill: the trigger's own edge can differ from the row's, while its --surface made the
+   row's least consequential action its loudest box — and off, with its edge down, the one thing
+   still looking pressable. The states are
    spelled out because this depth outranks the base rules; the fill needs one rule, because the
    kit paints it at rest only. Under a pointer it takes the kit's trigger edge, --accent, which
-   steps aside under the band; held at --border-strong, hover and rest were one paint. #496, #518
+   steps aside under the band; held at its resting edge, hover and rest were one paint. #496, #518
    why: guidelines/colour-and-theming.md#keep-text-off-grey-fills */
 .ui-filter-bar [data-filter-add] { display: flex; align-self: stretch; }
 .ui-filter-bar [data-filter-add] .ui-dropdown { display: flex; }
-.ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-radius: var(--radius-sm); min-height: var(--ui-filter-row-h); border-color: var(--border-strong); background: transparent; }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-radius: var(--radius-sm); min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }
