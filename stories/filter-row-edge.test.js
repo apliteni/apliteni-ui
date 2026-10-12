@@ -221,6 +221,14 @@ function findings(css) {
       if (!classOf(one.state)) out.push(`${name} is given ${one.part}, a state this gate has no ink for — measure it or drop the rule`);
     }
 
+    // Both disabled spellings need coverage. One must not hide the other's missing rule.
+    // The trigger edge gate checks the winning cascade across scopes and combined states.
+    for (const spelling of subject.attr ? [':disabled', '[aria-disabled="true"]'] : [':disabled']) {
+      if (!edges.some((one) => one.state.includes(spelling))) {
+        out.push(`${name} declares no ${spelling} edge`);
+      }
+    }
+
     // Every subject answers every state it can be in, and with the ink the row's guarantee names.
     for (const { what, want: expected } of wanted(subject)) {
       const want = subject.attr === 'data-filter-clear' ? 'transparent' : expected;
@@ -312,6 +320,7 @@ test('the gate refuses a sheet that brings any of it back', () => {
     ['the add control\'s resting edge dropped', (css) => css.replace('min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent;', 'min-height: var(--ui-filter-row-h); background: transparent;')],
     ['the add control\'s resting edge back to a trigger\'s --border', (css) => css.replace('border-color: var(--control-edge); background: transparent;', 'border-color: var(--border); background: transparent;')],
     ['the add control\'s unavailable edge dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*:disabled \{ border-color: var\(--disabled-border\); \}/, '')],
+    ['the add control\'s aria-disabled edge dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*\[aria-disabled="true"\],\n[^\n]*\[data-filter-add\][^\n]*\[aria-disabled="true"\]:hover:not\(:focus-visible\) \{ border-color: var\(--disabled-border\); \}/, '')],
     ['the add control hover response dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*:hover[^{]*\{ border-color: var\(--accent\); \}/, '')],
     ['the add control answering a pointer with its resting edge', (css) => css.replace('.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }', '.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--border-strong); }')],
     ['a state the gate has no ink for', (css) => `${css}\n${BAR} [data-filter-add] .ui-dropdown__trigger:active { border-color: #000; }\n`],

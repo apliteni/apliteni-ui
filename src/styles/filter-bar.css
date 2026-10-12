@@ -141,3 +141,5 @@
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled="true"],
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible) { border-color: var(--disabled-border); }

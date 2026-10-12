@@ -11,7 +11,10 @@
  * one's edge. #580, found by #518's builder.
  *
  * So this gate reads the trigger's edge out of the sheets, per state and per
- * scope, and holds both halves: live is never the off ink, off is always it. The
+ * scope, and holds both halves: live is never the off ink, off is always it.
+ * A borderless chip trigger keeps its edge on the containing chip instead.
+ * Disabled readings combine each discovered scope with its matching suffix scopes.
+ * They model native and aria-disabled states, including hover and focus combinations. The
  * live half is read in EVERY state a reader can still use the control in, not on
  * the resting rule alone: a hover or focus rule that paints the off edge is the
  * same defect one state along, and a correct resting rule does not undo it. It
@@ -238,7 +241,7 @@ function matchesDisabledTarget(rule, target) {
   const selector = rule.selector;
   const wantsNative = hasNativeDisabled(selector);
   const wantsAria = hasAriaDisabled(selector);
-  if (target.spelling === 'native' && wantsAria) return false;
+  if (target.spelling === 'native' && (wantsAria || /:enabled\b/i.test(stripNot(selector)))) return false;
   if (target.spelling === 'aria' && wantsNative) return false;
   if (/:hover\b/i.test(selector) && !target.hover) return false;
   if (hasPositiveFocus(selector) && !target.focus) return false;
@@ -251,17 +254,22 @@ const disabledWinner = (rules, target) => rules
   .reduce((best, r) => (best && outranks(best, r) ? best : r), null);
 
 function disabledEdgeFindings(byScope) {
-  const rules = byScope.get(TRIGGER) ?? [];
-  return DISABLED_TARGETS.flatMap((target) => {
-    const won = disabledWinner(rules, target);
-    const name = `${target.spelling} ${target.state}`;
-    if (!won) return [`${name}: no edge rule reaches the target`];
-    if (!won.edge.drawn) return [`${name}: ${won.selector} removes the edge`];
-    if (!won.edge.colour) return [`${name}: ${won.selector} declares ${won.edge.declared}, which this gate cannot resolve`];
-    if (!new RegExp(`^var\\(\\s*${OFF_EDGE}\\s*\\)$`).test(won.edge.colour)) {
-      return [`${name}: ${won.selector} paints ${won.edge.colour} instead of ${OFF_EDGE}`];
-    }
-    return [];
+  return [...byScope].flatMap(([scope, scopedRules]) => {
+    // A trigger receives its own scope and each enclosing suffix scope.
+    const rules = [...byScope].filter(([ancestor]) => scope.endsWith(ancestor))
+      .flatMap(([, inherited]) => inherited);
+    const borderless = winner(scopedRules, 'rest')?.edge?.drawn === false;
+    return DISABLED_TARGETS.flatMap((target) => {
+      const won = disabledWinner(rules, target);
+      const name = `${scope}: ${target.spelling} ${target.state}`;
+      if (!won) return [`${name}: no edge rule reaches the target`];
+      if (!won.edge.drawn) return borderless ? [] : [`${name}: ${won.selector} removes the edge`];
+      if (!won.edge.colour) return [`${name}: ${won.selector} declares ${won.edge.declared}, which this gate cannot resolve`];
+      if (!new RegExp(`^var\\(\\s*${OFF_EDGE}\\s*\\)$`).test(won.edge.colour)) {
+        return [`${name}: ${won.selector} paints ${won.edge.colour} instead of ${OFF_EDGE}`];
+      }
+      return [];
+    });
   });
 }
 
@@ -300,12 +308,29 @@ test('no live trigger draws the ink an unavailable one draws, in any state or th
     'a trigger a reader can use draws exactly the line the kit paints an unavailable control with');
 });
 
-test('an unavailable trigger draws the kit\'s own off edge, in both themes', () => {
+test('an unavailable trigger keeps its off edge or borderless box in every scope', () => {
+  assert.equal(BY_SCOPE.size, 3, 'review coverage when a trigger scope changes');
+  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 24);
   const findings = disabledEdgeFindings(BY_SCOPE);
   assert.deepEqual(findings, [],
     'a disabled trigger state does not draw the kit\'s off edge');
   for (const theme of THEMES) {
     assert.ok(inkOf(theme, `var(${OFF_EDGE})`), `${OFF_EDGE} resolves to nothing in ${theme}`);
+  }
+});
+
+test('disabled readings reject live paint in every discovered scope and state', () => {
+  for (const scope of BY_SCOPE.keys()) {
+    for (const target of DISABLED_TARGETS) {
+      const off = target.spelling === 'native' ? ':disabled' : '[aria-disabled="true"]';
+      const state = `${target.hover ? ':hover' : ''}${target.focus ? ':focus-visible' : ':not(:focus-visible)'}`;
+      const file = SHEETS.at(-1);
+      const broken = scopes(subjects({
+        [file]: `${read(file)}\n${scope}${off}${state} { border: 1px solid var(--control-edge); }`,
+      }));
+      const name = `${scope}: ${target.spelling} ${target.state}:`;
+      assert.ok(disabledEdgeFindings(broken).some((finding) => finding.startsWith(name)), name);
+    }
   }
 });
 
