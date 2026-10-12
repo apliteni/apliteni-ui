@@ -1,10 +1,9 @@
 /* The approved comparison shares one text inset across its existing kit components. */
 .finance-comparison {
-  --comparison-inset: var(--space-6);
   padding: var(--space-12) var(--space-12) var(--space-16);
 }
 .finance-comparison__head {
-  margin-inline: var(--comparison-inset);
+  margin-inline: var(--space-6);
   margin-bottom: var(--space-8);
 }
 .finance-comparison .ui-app__sub { margin-bottom: 0; }
@@ -20,11 +19,11 @@
 .finance-comparison__data > :first-child { width: 100%; }
 /* The control's border, chip padding and trigger padding share the text inset. */
 .finance-comparison .ui-filter-bar {
-  margin-left: calc(var(--comparison-inset) - var(--space-1) - var(--space-2) - 1px);
+  margin-left: calc(var(--space-6) - var(--space-1) - var(--space-2) - 1px);
   gap: var(--space-4);
 }
 .finance-comparison .ui-seg--underline {
-  margin-inline: calc(var(--comparison-inset) - 1px);
+  margin-inline: calc(var(--space-6) - 1px);
   padding: 0;
   gap: var(--space-6);
   align-self: stretch;
@@ -47,10 +46,16 @@
   padding-inline: 0;
 }
 /* The border belongs inside the shared inset, rather than adding another text edge. */
-.finance-comparison__card .ui-table :is(th, td):first-child { padding-left: calc(var(--comparison-inset) - 1px); }
 .finance-comparison__card .ui-table td.ui-table__linked:first-child { padding: 0; }
-.finance-comparison__card .ui-table td.ui-table__linked:first-child > a { padding-left: calc(var(--comparison-inset) - 1px); }
-.finance-comparison__card .ui-table :is(th, td):last-child { padding-right: calc(var(--comparison-inset) - 1px); }
+.finance-comparison__card .ui-table :is(th, td):first-child,
+.finance-comparison__card .ui-table td.ui-table__linked:first-child > a { padding-left: calc(var(--space-6) - 1px); }
+.finance-comparison__card .ui-table :is(th, td):last-child { padding-right: calc(var(--space-6) - 1px); }
 @media (max-width: 560px) {
-  .finance-comparison { --comparison-inset: var(--space-4); padding: var(--space-8) var(--space-4) var(--space-12); }
+  .finance-comparison { padding: var(--space-8) var(--space-4) var(--space-12); }
+  .finance-comparison__head { margin-inline: var(--space-4); }
+  .finance-comparison .ui-filter-bar { margin-left: calc(var(--space-4) - var(--space-1) - var(--space-2) - 1px); }
+  .finance-comparison .ui-seg--underline { margin-inline: calc(var(--space-4) - 1px); }
+  .finance-comparison__card .ui-table :is(th, td):first-child,
+  .finance-comparison__card .ui-table td.ui-table__linked:first-child > a { padding-left: calc(var(--space-4) - 1px); }
+  .finance-comparison__card .ui-table :is(th, td):last-child { padding-right: calc(var(--space-4) - 1px); }
 }
