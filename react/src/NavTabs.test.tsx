@@ -101,12 +101,10 @@ it('reveals a link Tab lands on, so the ring it draws clears the row', async () 
 });
 /* -- Whether the row is a scroll box at all ---------------------------------- */
 //
-// `overflow-x: auto` makes `overflow-y` compute to auto with it, so a tab row clipped
-// the halo of every ring painted in it — at a desktop width as much as at 390, where
-// nothing scrolls. The sheet cannot ask whether the links fit, so the kit measures the
-// row and writes `data-nav-fit`; the three readings below are that measurement's
-// React half. JSDOM lays nothing out, so the widths are the ones Chromium measured:
-// 513px of links in a 1208px row at 1280, and 521px in a 318px row at 390.
+// A scroll box clips child paint at its padding edge. A fitting row removes
+// that clipping with `data-nav-fit`. The focus band is an outline with an
+// unpainted offset and no glow. These tests measure the fitting marker only.
+// JSDOM receives fixed widths because it does not lay out the row.
 
 it('marks a row with room for its links, and keeps the mark through a re-render', () => {
   // An attribute and not a class, because React owns the class attribute on this row:

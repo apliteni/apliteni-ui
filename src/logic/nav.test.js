@@ -118,12 +118,10 @@ test('a tab belonging to another row leaves this row alone', () => {
 
 /* -- Whether the row is a scroll box at all ---------------------------------- */
 //
-// A scroll box clips its children's PAINT at its padding edge, so a row that scrolls
-// nothing still cut the ring's halo off every link in it — 4px of the roughly 14px it
-// reaches survived, at 1280 as much as at 390. `data-nav-fit` is the row saying it has
-// room, and the sheet takes the overflow back off it. The numbers below are the two
-// states a reader meets: a desktop column with 513px of links in it, and the same row
-// at 390.
+// A scroll box clips child paint at its padding edge. A fitting row removes
+// that clipping with `data-nav-fit`. The focus band is an outline with an
+// unpainted offset and no glow. These tests measure the fitting marker only.
+// JSDOM receives fixed widths because it does not lay out the row.
 
 test('a row with room for its links stops being a scroll box', () => {
   const nav = row({ scrollWidth: 513, clientWidth: 1208, rect: { left: 60, right: 150 } });
@@ -131,7 +129,7 @@ test('a row with room for its links stops being a scroll box', () => {
   assert.equal(
     fits(nav), true,
     'a row whose links fit is still marked as scrolling, so the sheet goes on clipping '
-    + 'the halo of every ring painted in it at a width where nothing scrolls',
+    + 'child paint at a width where nothing scrolls',
   );
 });
 

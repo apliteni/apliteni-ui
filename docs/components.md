@@ -264,14 +264,11 @@ that is wider than the row.
 **An overflowing row with only disabled tabs becomes a keyboard stop.**
 It draws the kit's inward focus band. A fitting row supplies no separate keyboard stop.
 
-### The selected tab spends one accent
+### The current route has an accent label
 
-**A selected pill tab keeps its soft accent fill and takes body ink**, the same ink the underline
-appearance gives it. The underline appearance spends its accent on the 2px bar alone, and the pill
-spends it on the fill alone. **The fill is then the whole visible signal, and it is a step of
-lightness**: against the page it runs from 1.091:1 to 1.342:1 across the themes and accents, under
-the 3:1 that WCAG 1.4.11 asks of a mark identifying a state. Both appearances therefore name the
-state as well, with `aria-current="page"`.
+**A selected pill tab uses an accent label on its soft accent fill.**
+The label distinguishes the current route from a hovered route. The underline appearance keeps
+body ink and its accent bar. Both appearances name the current route with `aria-current="page"`.
 
 **In forced colours, both appearances retain a visible selected mark using the reader's system colours.**
 The pill label and badge remain readable. Ordinary colours are unchanged.

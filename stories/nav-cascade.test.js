@@ -542,17 +542,11 @@ test('the resolver reaches the real cascade', () => {
   );
 });
 
-// ---- 5. one accent signal on the selected tab (#475) ---------------------
+// ---- 5. selected pill accent label --------------------------------------
 
-/* Artur chose this on round r22 of #475: a selected navigation item carries one
- * accent signal, not two. The pill appearance carried accent ink ON an accent
- * fill; it keeps the fill and takes the body ink `.ui-nav__tab.is-active`
- * already gives it, which is what the underline appearance has always used.
- *
- * Resolved rather than grepped, for this file's reason: `color: var(--accent)`
- * coming back on a later rule is exactly the regression this guards, and a rule
- * that is in the file can still lose. Recorded in docs/components.md under
- * The selected tab spends one accent.
+/* The current pill uses accent ink on its quiet fill, as Artur chose for #480.
+ * Resolve the cascade because a declaration can exist but lose to another rule.
+ * JSDOM checks resolved colours, not browser paint or text contrast.
  */
 
 const TAB_ITEMS = [
@@ -584,57 +578,42 @@ const SELECTED_TAB = '.ui-nav__tab.is-active';
 const channels = (v) => String(v).match(/[\d.]+/g).map(Number);
 
 for (const [theme, accent] of THEMES) {
-  test(`the selected pill signals with its fill alone, in body ink — ${theme} / ${accent}`, () => {
+  test(`the selected pill uses accent ink on its quiet fill: ${theme} / ${accent}`, () => {
     const r = tabRow('pill', theme, accent);
-    const strong = colour(r.vars.get('--strong'));
-    const accentInk = colour(r.vars.get('--accent'));
-
-    assert.notEqual(
-      r.css(SELECTED_TAB, 'color'), accentInk,
-      `the selected pill resolves to the accent (${accentInk}) in ${theme}/${accent}, on an `
-      + 'accent fill — two accent signals on one element. Artur chose one on round r22 of '
-      + '#475: keep the fill, leave the ink alone.',
-    );
-    assert.equal(
-      r.css(SELECTED_TAB, 'color'), strong,
-      `the selected pill resolves to ${r.css(SELECTED_TAB, 'color')} rather than --strong `
-      + `(${strong}) in ${theme}/${accent}. Body ink is what .ui-nav__tab.is-active already `
-      + 'gives it and what the underline appearance uses; a third colour makes the two '
-      + 'appearances disagree.',
-    );
+    assertSelectedPillInk(r, theme, accent);
     assert.deepEqual(
       channels(r.css(SELECTED_TAB, 'backgroundColor')),
       channels(substitute('var(--glow-purple)', r.vars)),
-      'the selected pill lost its accent fill. The fill is the one signal left after #475 — '
-      + 'without it the selected tab is distinguished by nothing at all.',
+      'the selected pill must keep its quiet accent fill',
     );
   });
 
-  test(`the selected underline tab takes the same body ink — ${theme} / ${accent}`, () => {
+  test(`the selected underline tab retains body ink — ${theme} / ${accent}`, () => {
     const r = tabRow('underline', theme, accent);
     assert.equal(
       r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--strong')),
       `the selected underline tab is ${r.css(SELECTED_TAB, 'color')} in ${theme}/${accent}. `
-      + 'Its accent signal is the rule under it; the ink is the half both appearances share.',
+      + 'Its accent signal is the rule under it.',
     );
   });
 }
 
-/* -- The mutation that kills the case above ---------------------------------- */
+function assertSelectedPillInk(r, theme, accent) {
+  assert.equal(r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--accent')),
+    `selected pill must use accent ink in ${theme}/${accent}`);
+  assert.notEqual(r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--strong')),
+    `selected pill must not use body ink in ${theme}/${accent}`);
+}
 
 const PILL_INK = /(\.ui-nav--tabs\.is-pill \.ui-nav__tab\.is-active \{)/;
 
-test('the selected-pill gate rejects the accent ink coming back', () => {
+test('the selected-pill gate rejects body ink', () => {
   const sheet = read('src/styles/nav.css');
-  assert.match(
-    sheet, PILL_INK,
-    'the selected pill rule moved or was reworded, so this mutation re-adds the accent ink to '
-    + 'nothing — move the mutation with the rule rather than deleting this test',
-  );
-  const r = tabRow('pill', 'dark', 'default', sheet.replace(PILL_INK, '$1 color: var(--accent);'));
-  assert.equal(
-    r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--accent')),
-    'the accent ink was put back on the selected pill and the resolver still reads --strong, '
-    + 'so the gate above would pass with the regression in place and is measuring nothing',
-  );
+  assert.match(sheet, PILL_INK, 'the mutation must target the selected pill rule');
+  const broken = sheet + '\n.ui-nav--tabs.is-pill .ui-nav__tab.is-active { color: var(--strong); }';
+  const r = tabRow('pill', 'dark', 'default', broken);
+  assert.equal(r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--strong')),
+    'the mutation must resolve to body ink');
+  assert.throws(() => assertSelectedPillInk(r, 'dark', 'default'),
+    /selected pill must use accent ink/, 'the actual assertion must reject body ink');
 });

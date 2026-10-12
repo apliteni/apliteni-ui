@@ -352,10 +352,9 @@
 /* pill variant */
 .ui-nav--tabs.is-pill .ui-nav__tab { border-radius: var(--radius-pill); padding: 8px 15px; }
 .ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface); /* code-bg: inherit — control paint; its focus indicator uses the containing surface. */ }
-/* One accent signal on the selected tab: the soft fill. The label keeps the body
-   ink `.is-active` already gives it, as the underline appearance does — accent ink
-   on an accent wash said it twice. Artur chose it on #475. */
+/* The current route keeps its quiet fill and uses accent ink. */
 .ui-nav--tabs.is-pill .ui-nav__tab.is-active {
+  color: var(--accent);
   background: var(--glow-purple); /* code-bg: inherit — translucent wash retains the opaque containing gap. */
 }
 
@@ -373,8 +372,8 @@
      the pill's wash is repainted Canvas and the underline's accent bar Canvas too, so
      measured on a white ground both appearances left every tab looking alike. The
      system's own selected pair says it instead — the kit picks no shade here, the
-     reader's own theme does, and the pair contrasts by construction. Normal colours
-     keep the treatment Artur chose on #475; this speaks only where it was silent. */
+     reader's own theme does, and the pair contrasts by construction. These rules
+     apply only in forced colours. */
   .ui-nav--tabs.is-pill .ui-nav__tab.is-active {
     /* Chromium plates every run of text with Canvas, so a label left on `auto` is
        painted on white inside the fill and the pair stops being a pair. `none` hands
