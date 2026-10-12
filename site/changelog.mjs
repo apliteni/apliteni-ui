@@ -6,17 +6,6 @@
 
 export const RELEASES = [
   {
-    v: '0.108.0', date: '2026-10-10',
-    changes: [
-      ['fixed', 'Below 720px a pinned identity column keeps each row name on one line instead of hiding it. The name is capped at `min(var(--panel-sm), 50vw)` and cuts with an ellipsis past the cap; the full text stays in the markup, so the accessible name and company link stay unchanged. Resolves #500.', ['Table']],
-      ['added', '`--ui-table-identity-max` retunes that cap on a consumer table without restyling the kit cell.', ['Table']],
-      ['added', 'A table cell marked `ui-table__linked` holds one link and nothing else, and the kit gives that link the whole cell. The focus ring and pointer target become the cell, while the cell hands its padding to the link so the page does not move.', ['Table']],
-      ['added', 'React `DataTable` columns take `linked`. `true` marks that column body cells and never its header, so an ID or identity column opts into the filled cell.', ['Table']],
-      ['fixed', 'A React sortable header in a capped pinned column keeps its sort caret. Its label gives way with an ellipsis before the caret leaves the cell.', ['Table']],
-      ['fixed', 'A table marked `ui-table--stack` wraps its identity name again. The one-line rule is for the narrow pinned column, and a stacked row is a card with the width to wrap. See #499.', ['Table']],
-    ],
-  },
-  {
     v: '0.112.0', date: '2026-10-11',
     changes: [
       ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],
@@ -25,6 +14,17 @@ export const RELEASES = [
       ['fixed', 'Tab rows scroll within narrow containers without widening the page, moving off the page gutter or lifting the active underline off the row rule. A row whose tabs all fit scrolls nothing and clips nothing, so the post-#578 outline focus ring keeps its band at a desktop width. React and vanilla wireNav reveal the current route without moving keyboard focus or discarding where the reader scrolled.', ['Navigation']],
       ['fixed', 'A tab row that does scroll now scrolls to a link the keyboard lands on, so its focus ring clears the scrolling edge instead of being cut off at the end of the row. A row whose tabs are all disabled takes the kit inward band on itself rather than the browser outline, because it holds no link to carry one.', ['Navigation']],
       ['fixed', 'In forced-colours mode the selected tab keeps a visible mark in both appearances. The mode repaints the pill fill and the underline accent bar with the page ground, so the selected tab now takes the system selected colours there. Ordinary colours are unchanged.', ['Navigation']],
+    ],
+  },
+  {
+    v: '0.108.0', date: '2026-10-10',
+    changes: [
+      ['fixed', 'Below 720px a pinned identity column keeps each row name on one line instead of hiding it. The name is capped at `min(var(--panel-sm), 50vw)` and cuts with an ellipsis past the cap; the full text stays in the markup, so the accessible name and company link stay unchanged. Resolves #500.', ['Table']],
+      ['added', '`--ui-table-identity-max` retunes that cap on a consumer table without restyling the kit cell.', ['Table']],
+      ['added', 'A table cell marked `ui-table__linked` holds one link and nothing else, and the kit gives that link the whole cell. The focus ring and pointer target become the cell, while the cell hands its padding to the link so the page does not move.', ['Table']],
+      ['added', 'React `DataTable` columns take `linked`. `true` marks that column body cells and never its header, so an ID or identity column opts into the filled cell.', ['Table']],
+      ['fixed', 'A React sortable header in a capped pinned column keeps its sort caret. Its label gives way with an ellipsis before the caret leaves the cell.', ['Table']],
+      ['fixed', 'A table marked `ui-table--stack` wraps its identity name again. The one-line rule is for the narrow pinned column, and a stacked row is a card with the width to wrap. See #499.', ['Table']],
     ],
   },
   {
