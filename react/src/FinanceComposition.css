@@ -1,0 +1,56 @@
+/* The approved comparison shares one text inset across its existing kit components. */
+.finance-comparison {
+  --comparison-inset: var(--space-6);
+  padding: var(--space-12) var(--space-12) var(--space-16);
+}
+.finance-comparison__head {
+  margin-inline: var(--comparison-inset);
+  margin-bottom: var(--space-8);
+}
+.finance-comparison .ui-app__sub { margin-bottom: 0; }
+.finance-comparison__data {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: var(--space-5);
+  width: fit-content;
+  max-width: 100%;
+}
+.finance-comparison__data > * { min-width: 0; max-width: 100%; }
+.finance-comparison__data > :first-child { width: 100%; }
+/* The control's border, chip padding and trigger padding share the text inset. */
+.finance-comparison .ui-filter-bar {
+  margin-left: calc(var(--comparison-inset) - var(--space-1) - var(--space-2) - 1px);
+  gap: var(--space-4);
+}
+.finance-comparison .ui-seg--underline {
+  margin-inline: calc(var(--comparison-inset) - 1px);
+  padding: 0;
+  gap: var(--space-6);
+  align-self: stretch;
+  contain: inline-size;
+}
+.finance-comparison .ui-seg--underline button { padding-inline: 0; }
+.finance-comparison .ui-seg--underline button::before { left: 0; right: 0; }
+.finance-comparison__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: fit-content;
+  max-width: 100%;
+  padding: var(--space-4) 0;
+}
+.finance-comparison__card .rx-sort { flex-direction: row-reverse; }
+.finance-comparison__card > .ui-table-scroll { padding-inline: 0; margin-inline: 0; }
+.finance-comparison__card .ui-table {
+  max-width: 100%;
+  padding-inline: 0;
+}
+/* The border belongs inside the shared inset, rather than adding another text edge. */
+.finance-comparison__card .ui-table :is(th, td):first-child { padding-left: calc(var(--comparison-inset) - 1px); }
+.finance-comparison__card .ui-table td.ui-table__linked:first-child { padding: 0; }
+.finance-comparison__card .ui-table td.ui-table__linked:first-child > a { padding-left: calc(var(--comparison-inset) - 1px); }
+.finance-comparison__card .ui-table :is(th, td):last-child { padding-right: calc(var(--comparison-inset) - 1px); }
+@media (max-width: 560px) {
+  .finance-comparison { --comparison-inset: var(--space-4); padding: var(--space-8) var(--space-4) var(--space-12); }
+}

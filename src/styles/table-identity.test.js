@@ -113,8 +113,8 @@ const contextOf = (el, cap) => ({
  * outcome as the rule beside it — and a property nothing here judges fails the sweep.
  */
 const OUTCOME = {
-  // The column takes its content, never a share of a table wider than the screen.
-  width: (v) => (/^\d+(?:\.\d+)?%$/.test(v) && parseFloat(v) <= 1 ? null
+  // A percentage stretches short tables. The 1px preference leaves the intrinsic content floor intact.
+  width: (v) => (v === '1px' ? null
     : `a column sized ${v} no longer takes its content`),
   'max-width': (v, { cell, cap }) => {
     const px = lengthPx(v, 390);
@@ -590,8 +590,8 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
       'a new sub-line link markup must be discovered without being listed in the measuring code');
 
     const defect = css
-      .replace('  .ui-table--pinned .ui-table__identity {\n    width: 1%;\n    max-width: var(--ui-table-identity-max);\n    white-space: nowrap;\n    overflow: clip;',
-        '  .ui-table--pinned .ui-table__identity {\n    width: 1%;\n    max-width: var(--ui-table-identity-max);\n    white-space: nowrap;\n    overflow: visible;')
+      .replace('  .ui-table--pinned .ui-table__identity {\n    width: 1px;\n    max-width: var(--ui-table-identity-max);\n    white-space: nowrap;\n    overflow: clip;',
+        '  .ui-table--pinned .ui-table__identity {\n    width: 1px;\n    max-width: var(--ui-table-identity-max);\n    white-space: nowrap;\n    overflow: visible;')
       .replace('  .ui-table--pinned .ui-table__identity > * {\n    overflow: clip;',
         '  .ui-table--pinned .ui-table__identity > * {\n    overflow: visible;');
     assert.notEqual(defect, css, 'the browser mutation no longer matches table.css, so it proves nothing');
@@ -907,4 +907,12 @@ test('the gate rejects every way the identity cap has to be lost', () => {
     if (PHONE_WIDTHS.every((width) => capProblems(mutated, width).length === 0)) survived.push(what);
   }
   assert.deepStrictEqual(survived, [], 'a mutation passed this gate unnoticed');
+});
+
+// The source rule cannot prove layout. The served comparison measures the resulting column widths.
+test('the identity width rejects a percentage or a fixed wide column', () => {
+  assert.equal(OUTCOME.width('1px'), null);
+  for (const width of ['1%', '100%', '240px', '0px']) {
+    assert.notEqual(OUTCOME.width(width), null, `${width} must fail the same width check`);
+  }
 });

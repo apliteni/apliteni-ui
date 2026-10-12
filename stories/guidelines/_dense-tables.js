@@ -42,5 +42,6 @@ export const RULES = withSpecimens(content.rules, [
   { id: 'units' },
   { id: 'content-width', doHtml: () => payouts(), dontHtml: () => payouts(true) },
   { id: 'overflow' },
+  { id: 'pinned-identity-sub-lines' },
   { id: 'states' },
 ]);

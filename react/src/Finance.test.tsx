@@ -5,6 +5,7 @@ import { FilterBar } from './FilterBar';
 import { Segmented } from './Segmented';
 import { DataTable } from './DataTable';
 import { RowIdentity, NumericValue, DeltaValue } from './TableValues';
+import { Comparison } from './Finance.stories';
 describe('finance composition', () => {
   it('keeps short option text while exposing the supplied full accessible name', () => {
     render(<Segmented label="Period" value="apr" onChange={() => {}} options={[
@@ -31,7 +32,7 @@ describe('finance composition', () => {
     render(<Demo />); const remove = screen.getByRole('button', { name: 'Remove Sector filter' }); remove.focus(); fireEvent.click(remove);
     expect(screen.queryByRole('button', { name: 'Remove Sector filter' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Market/ , expanded: false })).toHaveFocus();
-    const clear = screen.getByRole('button', { name: 'Clear filters' }); clear.focus(); fireEvent.click(clear);
+    const clear = screen.getByRole('button', { name: 'Clear all filters' }); clear.focus(); fireEvent.click(clear);
     // The bar is empty and draws no box, so the focus leaves it for the action beside it.
     expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
   });
@@ -42,4 +43,21 @@ describe('finance composition', () => {
     expect(screen.getByRole('button', { name: 'C' })).toHaveAttribute('aria-pressed', 'true');
     expect(container.querySelector('.ui-delta')).not.toHaveClass('ui-delta--danger');
   });
+});
+
+// This checks filtering and recovery. Browser evidence checks column visibility and text alignment.
+it('recovers the twenty-company comparison from an empty sector', () => {
+  const { container } = render(<Comparison.render />);
+  expect(container.querySelectorAll('tbody a')).toHaveLength(20);
+  fireEvent.click(screen.getByRole('button', { name: 'Sector: All sectors' }));
+  fireEvent.click(screen.getByRole('option', { name: 'Technology' }));
+  expect(container.querySelectorAll('tbody a')).toHaveLength(4);
+  fireEvent.click(screen.getByRole('button', { name: 'Sector: Technology' }));
+  fireEvent.click(screen.getByRole('option', { name: 'Utilities' }));
+  expect(screen.getByText('No companies match these filters.')).toBeInTheDocument();
+  const clear = screen.getByRole('button', { name: 'Clear filters' });
+  expect(clear.closest('.ui-table-scroll')).toBeNull();
+  fireEvent.click(clear);
+  expect(container.querySelectorAll('tbody a')).toHaveLength(20);
+  expect(screen.getByRole('button', { name: 'Overview' })).toHaveFocus();
 });

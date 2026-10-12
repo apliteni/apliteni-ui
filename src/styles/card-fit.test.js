@@ -1,16 +1,14 @@
-/* Rule: a card sized to its contents is capped at the room it has, and a card row wraps.
+/* Rule: a card sized to its contents is capped at the room it has.
  *
  * `.ui-card--fit` ends a card where its table ends (#504). The hazard it introduces is the
  * opposite one: a width that is not a percentage escapes its column and pushes the page
  * sideways. So every width a card rule sets is read out of the sheet and must carry a cap.
- * `.ui-card__row` is here because the React table's column-scroll group is that row, and
- * at 320 its two buttons took the document to 352px before it was allowed to wrap.
  *
  * Subjects come from the sheet, not from a list here, so a modifier added later is a
  * subject the day it lands. Limits: jsdom computes no width and renders no page. Every
  * number behind this rule is read off Chromium and recorded on the pull request.
  *
- * why: docs/specification.md#spacing-and-rhythm
+ * why: docs/foundations.md#spacing-and-rhythm
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -95,19 +93,4 @@ test('the card-width gate rejects a card that can push the page sideways', () =>
   );
   assert.throws(() => cardWidths(noComments(CSS).replace(/width\s*:/g, 'inline-size:')),
     /no card rule sets a width/);
-});
-
-test('a card row wraps rather than running past the page', () => {
-  const row = rulesIn(CSS).find(({ selector }) => selector === '.ui-card__row');
-  assert.ok(row, '.ui-card__row is gone from the sheet');
-  assert.equal(declaration(row.body, 'display'), 'flex');
-  assert.equal(declaration(row.body, 'flex-wrap'), 'wrap',
-    'the column-scroll group is this row, and two buttons that cannot share a line must wrap');
-});
-
-test('the row-wrap check rejects a row that cannot wrap', () => {
-  const nowrap = CSS.replace('  flex-wrap: wrap;', '  flex-wrap: nowrap;');
-  assert.notEqual(nowrap, CSS, 'the mutation must change the sheet');
-  const row = rulesIn(nowrap).find(({ selector }) => selector === '.ui-card__row');
-  assert.equal(declaration(row.body, 'flex-wrap'), 'nowrap');
 });

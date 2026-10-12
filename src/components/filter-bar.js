@@ -2,7 +2,7 @@ import { button, esc } from './index.js';
 import { dropdown, wireDropdown } from './dropdown.js';
 import { filterChipText, filterChipName, filterChipUnset, filterChipItems, focusNextStop } from '../logic/filter-bar.js';
 
-export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear filters', disabled = false, busy = false } = {}) {
+export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear all filters', clearVariant = 'secondary', disabled = false, busy = false } = {}) {
   return `<fieldset class="ui-filter-bar" data-filter-bar${disabled || busy ? ' disabled' : ''}${busy ? ' aria-busy="true"' : ''}>`
     + `<legend class="ui-filter-bar__legend">${esc(label)}</legend>`
     + filters.map(filter => `<fieldset class="ui-filter-bar__chip" data-filter-id="${esc(filter.id)}"${filter.disabled ? ' disabled' : ''}>`
@@ -17,11 +17,11 @@ export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear
     // row is the only thing in it, and it reads as a bar that has been turned
     // off rather than one with no filters on it. It is the kit's own `one-page`
     // rule — a control with no action to offer is not shown. It returns with
-    // the first chip, in the link skin rather than the ghost one, because it is
-    // a secondary action inside a named filter group.
+    // the first chip, in the bordered skin rather than the ghost one, because a
+    // live action beside two chips has to read as live.
     // why: docs/components.md#a-filter-row-holds-its-panels
     + (filters.length
-      ? `<span data-filter-clear>${button({ label: clearLabel, variant: 'link', size: 'sm' })}</span>`
+      ? `<span data-filter-clear>${button({ label: clearLabel, variant: clearVariant, size: 'sm' })}</span>`
       : '')
     + '</fieldset>';
 }

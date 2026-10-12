@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.115.0', date: '2026-10-12',
+    changes: [
+      ['changed', 'Tables size to their content, and their pagers wrap within that width. The company comparison aligns its heading, filters, tabs and first column. Its phone view keeps all three columns visible. Resolves #504.', ['Table', 'DataTable', 'Pagination']],
+      ['changed', 'Filter bars accept an optional link clear action. The company comparison uses Clear filters and explains an empty result.', ['FilterBar']],
+    ],
+  },
+  {
     v: '0.108.0', date: '2026-10-10',
     changes: [
       ['fixed', 'Below 720px a pinned identity column keeps each row name on one line instead of hiding it. The name is capped at `min(var(--panel-sm), 50vw)` and cuts with an ellipsis past the cap; the full text stays in the markup, so the accessible name and company link stay unchanged. Resolves #500.', ['Table']],

@@ -76,6 +76,8 @@
   color: var(--accent);
   padding-inline: 0;
 }
+.ui-btn--link .ui-btn__label-slot { overflow: visible; }
+.ui-btn--link .ui-btn__label { text-decoration: underline; text-underline-offset: 0.2em; }
 .ui-btn--link:hover {
   background: transparent;
   border-color: transparent;

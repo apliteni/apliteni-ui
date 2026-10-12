@@ -189,9 +189,9 @@ test('the clear action is offered only once there is something to clear', () => 
   const clear = host.querySelector('[data-filter-clear] button');
   assert.ok(clear, 'the first chip brings the clear action back');
   assert.equal(clear.disabled, false, 'it is live, so it may not be drawn as unavailable');
-  // The link skin, not the ghost one: a live action beside two chips stays quiet.
-  // This asserts the class the sheet paints, not the colour.
-  assert.ok(clear.classList.contains('ui-btn--link'), `clear carries ${clear.className}`);
+  // The bordered skin, not the ghost one: a live action beside two chips has to
+  // read as live. This asserts the class the sheet paints, not the colour.
+  assert.ok(clear.classList.contains('ui-btn--secondary'), `clear carries ${clear.className}`);
   assert.equal(clear.classList.contains('ui-btn--ghost'), false);
   // A disabled or busy bar still offers it — the fieldset turns it off natively,
   // so nothing jumps out of the row while a refresh is in flight.
@@ -338,4 +338,11 @@ test('broken identity logo exposes a fallback without losing the full company na
   assert.equal(host.querySelector('img').hidden, true); assert.match(host.textContent, /Aster Systems/);
   host.querySelector('img').dispatchEvent(new dom.window.Event('load')); assert.equal(host.querySelector('img').hidden, false);
   host.querySelector('img').dispatchEvent(new dom.window.Event('error')); assert.equal(host.querySelector('img').hidden, true); dom.window.close();
+});
+
+test('a filter bar accepts an explicit link clear action', () => {
+  const fragment = JSDOM.fragment(filterBar({ filters: [{ id: 'sector', label: 'Sector', value: 'Energy' }], clearLabel: 'Clear filters', clearVariant: 'link' }));
+  const clear = fragment.querySelector('[data-filter-clear] button');
+  assert.equal(clear.textContent.trim(), 'Clear filters');
+  assert.ok(clear.classList.contains('ui-btn--link'));
 });

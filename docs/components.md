@@ -709,6 +709,18 @@ vanilla sections above.
 
 ### React tables
 
+Tables size to their content. A `.ui-table__title` cell gives a text column the remaining width.
+React `DataTable` has no column flag for that cell class.
+Its pager follows the measured table width and wraps when necessary.
+Without `ResizeObserver`, the pager keeps its container width.
+A pager that renders no controls takes no space.
+
+Use `.ui-card--fit` when a card must end at its content.
+The company comparison story aligns its heading, filters, tabs and first column through one shared inset.
+Its empty result keeps the Clear filters action outside the scroll region.
+Both filter bars accept `clearVariant="link"` with a custom `clearLabel`. Their existing defaults remain available.
+
+
 Column labels accept React content, including a kit Tooltip that explains a header.
 
 **A scrollable table reaches its far columns by scrolling, and offers no button for it.** Give it
