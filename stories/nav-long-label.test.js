@@ -6,9 +6,23 @@ import { decodePNG } from './lib/table-edge-shade.js';
 
 const LONG = 'International transaction reconciliation';
 const RING = 3;
+// The fixed 320px fixture measures a 3px longest gap at rounded, antialiased corners.
+const MAX_CLOSED_OUTLINE_GAP = 4;
 const TEXT_HIDDEN = '.ui-nav__tab[aria-current="page"] .ui-nav__tab-label { '
   + 'color: transparent !important; -webkit-text-fill-color: transparent !important; text-shadow: none !important; }';
 const OUTLINE_HIDDEN = '.ui-nav__tab:focus-visible { outline: none !important; }';
+const CLIPPED_RIGHT_EDGE = `.ui-nav__tab[aria-current="page"] {
+  clip-path: polygon(
+    -5px -5px,
+    calc(100% + 5px) -5px,
+    calc(100% + 5px) 35%,
+    calc(100% - 1px) 35%,
+    calc(100% - 1px) 65%,
+    calc(100% + 5px) 65%,
+    calc(100% + 5px) calc(100% + 5px),
+    -5px calc(100% + 5px)
+  );
+}`;
 
 const items = [
   { id: 'summary', label: LONG },
@@ -52,6 +66,10 @@ function withAdjacentBadgeChange(css) {
   return `${css}\n.ui-nav__tab .ui-nav__badge { background: var(--pink) !important; }`;
 }
 
+function withClippedRightEdge(css) {
+  return `${css}\n${CLIPPED_RIGHT_EDGE}`;
+}
+
 function changedPixels(before, after, rect) {
   let changed = 0;
   const left = Math.max(0, Math.floor(rect.x));
@@ -68,6 +86,53 @@ function changedPixels(before, after, rect) {
     }
   }
   return changed;
+}
+
+function painted(before, after, x, y) {
+  const i = (y * before.width + x) * 4;
+  const delta = Math.abs(before.data[i] - after.data[i])
+    + Math.abs(before.data[i + 1] - after.data[i + 1])
+    + Math.abs(before.data[i + 2] - after.data[i + 2]);
+  return delta > 30;
+}
+
+function longestUnpaintedRun(before, after, rect, side) {
+  let longest = 0;
+  let current = 0;
+  const left = Math.max(0, Math.floor(rect.x));
+  const top = Math.max(0, Math.floor(rect.y));
+  const right = Math.min(before.width, Math.ceil(rect.x + rect.width));
+  const bottom = Math.min(before.height, Math.ceil(rect.y + rect.height));
+  const vertical = side === 'left' || side === 'right';
+  const steps = vertical ? bottom - top : right - left;
+
+  for (let step = 0; step < steps; step++) {
+    let slicePainted = false;
+    if (vertical) {
+      const y = top + step;
+      for (let x = left; x < right; x++) {
+        if (painted(before, after, x, y)) {
+          slicePainted = true;
+          break;
+        }
+      }
+    } else {
+      const x = left + step;
+      for (let y = top; y < bottom; y++) {
+        if (painted(before, after, x, y)) {
+          slicePainted = true;
+          break;
+        }
+      }
+    }
+    if (slicePainted) {
+      longest = Math.max(longest, current);
+      current = 0;
+    } else {
+      current++;
+    }
+  }
+  return Math.max(longest, current);
 }
 
 function ringRects(box) {
@@ -127,12 +192,16 @@ async function measure(page, css) {
   const outlinePixels = Object.fromEntries(
     Object.entries(ringRects(layout.box)).map(([side, rect]) => [side, changedPixels(painted, outlineHidden, rect)]),
   );
+  const outlineRuns = Object.fromEntries(
+    Object.entries(ringRects(layout.box))
+      .map(([side, rect]) => [side, longestUnpaintedRun(painted, outlineHidden, rect, side)]),
+  );
 
   await page.addStyleTag({ content: TEXT_HIDDEN });
   const textHidden = decodePNG(await page.screenshot());
   const textPixels = changedPixels(outlineHidden, textHidden, layout.label);
 
-  return { ...layout, outlinePixels, textPixels };
+  return { ...layout, outlinePixels, outlineRuns, textPixels };
 }
 
 async function measureDisabledRow(page, css) {
@@ -157,7 +226,11 @@ async function measureDisabledRow(page, css) {
   const outlinePixels = Object.fromEntries(
     Object.entries(innerRingRects(layout.box)).map(([side, rect]) => [side, changedPixels(painted, outlineHidden, rect)]),
   );
-  return { ...layout, outlinePixels };
+  const outlineRuns = Object.fromEntries(
+    Object.entries(innerRingRects(layout.box))
+      .map(([side, rect]) => [side, longestUnpaintedRun(painted, outlineHidden, rect, side)]),
+  );
+  return { ...layout, outlinePixels, outlineRuns };
 }
 
 function assertPainted(reading, name) {
@@ -165,6 +238,11 @@ function assertPainted(reading, name) {
     assert.ok(pixels >= 12,
       `${name}: the ${side} side of the outline did not paint enough pixels (${pixels}): `
       + JSON.stringify(reading));
+  }
+  for (const [side, run] of Object.entries(reading.outlineRuns)) {
+    assert.ok(run <= MAX_CLOSED_OUTLINE_GAP,
+      `${name}: the ${side} side of the outline is open for ${run}px, above the `
+      + `${MAX_CLOSED_OUTLINE_GAP}px tolerance: ${JSON.stringify(reading)}`);
   }
   assert.ok(reading.textPixels >= 40,
     `${name}: the current label painted only ${reading.textPixels} text pixels: ${JSON.stringify(reading)}`);
@@ -177,6 +255,20 @@ function assertRowRing(reading, name) {
     assert.ok(pixels >= 12,
       `${name}: the ${side} side of the row outline did not paint enough pixels (${pixels}): `
       + JSON.stringify(reading));
+  }
+  for (const [side, run] of Object.entries(reading.outlineRuns)) {
+    assert.ok(run <= MAX_CLOSED_OUTLINE_GAP,
+      `${name}: the ${side} side of the row outline is open for ${run}px, above the `
+      + `${MAX_CLOSED_OUTLINE_GAP}px tolerance: ${JSON.stringify(reading)}`);
+  }
+}
+
+function paintFailure(reading, name) {
+  try {
+    assertPainted(reading, name);
+    return '';
+  } catch (err) {
+    return err.message;
   }
 }
 
@@ -209,10 +301,24 @@ test('a long current tab keeps its label start and whole focus ring at 320px', a
     const noOutline = await measure(page, withoutTabOutline(css));
     assert.deepEqual(noOutline.outlinePixels, { top: 0, right: 0, bottom: 0, left: 0 },
       `removing the outline still painted a closed ring, so the mutation proves nothing: ${JSON.stringify(noOutline)}`);
+    assert.match(paintFailure(noOutline, 'outline removed'), /outline did not paint enough pixels/,
+      `removing the outline stayed green: ${JSON.stringify(noOutline)}`);
 
     const noText = await measure(page, withTransparentText(css));
     assert.equal(noText.textPixels, 0,
       `transparent text still painted pixels, so the mutation proves nothing: ${JSON.stringify(noText)}`);
+    assert.match(paintFailure(noText, 'transparent text'), /current label painted only 0 text pixels/,
+      `transparent text stayed green: ${JSON.stringify(noText)}`);
+
+    const clipped = await measure(page, withClippedRightEdge(css));
+    assert.equal(clipped.startHidden, 0,
+      `the right-edge clip mutation also hid the label start: ${JSON.stringify(clipped)}`);
+    assert.equal(clipped.clipped, 0,
+      `the right-edge clip mutation also clipped geometry: ${JSON.stringify(clipped)}`);
+    assert.ok(clipped.outlineRuns.right > MAX_CLOSED_OUTLINE_GAP,
+      `the right-edge clip mutation did not open the right outline: ${JSON.stringify(clipped)}`);
+    assert.match(paintFailure(clipped, 'right edge clip'), /right side of the outline is open/,
+      `the right-edge clip mutation stayed green: ${JSON.stringify(clipped)}`);
 
     const adjacent = await measure(page, withAdjacentBadgeChange(css));
     assert.equal(adjacent.startHidden, 0,
@@ -228,8 +334,11 @@ test('a long current tab keeps its label start and whole focus ring at 320px', a
     t.diagnostic(`uncapped ${JSON.stringify(broken)}`);
     t.diagnostic(`no outline ${JSON.stringify(noOutline)}`);
     t.diagnostic(`transparent text ${JSON.stringify(noText)}`);
+    t.diagnostic(`right edge clip ${JSON.stringify(clipped)}`);
     t.diagnostic(`adjacent badge ${JSON.stringify(adjacent)}`);
     t.diagnostic(`all-disabled row ${JSON.stringify(disabledRow)}`);
+    t.diagnostic(`outline closure tolerance ${MAX_CLOSED_OUTLINE_GAP}px, from the fixed case's largest measured gap `
+      + `${Math.max(...Object.values(fixed.outlineRuns))}px plus one antialiasing pixel`);
   } finally {
     await page.close();
     await browser.close();
