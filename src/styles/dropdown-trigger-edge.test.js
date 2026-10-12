@@ -463,7 +463,7 @@ test('the reading refuses every way the two edges can come back together', () =>
       'unreadable-edge'],
     // A scoped resting edge deep enough to freeze the states beside it — the
     // fault the fix itself could have introduced.
-    ['.ui-card .ui-filter-bar .ui-dropdown__trigger { border-color: var(--accent); }', 'frozen'],
+    ['.ui-card .ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-color: var(--accent); }', 'frozen'],
     // A state nobody measured, ranked as resting and counted as covered.
     ['.ui-dropdown__trigger:active { border-color: var(--border); }', 'unmeasured-state'],
     // Each disabled spelling and state can be broken on its own. This includes
@@ -503,6 +503,6 @@ test('the sheet still says what the gate reads, so none of this is checking a gh
     `${TRIGGER} no longer takes the kit's live control edge`);
   assert.match(css, /\.ui-dropdown__trigger:disabled[\s\S]{0,400}?border-color:\s*var\(--disabled-border\)/,
     `${TRIGGER}:disabled no longer takes ${OFF_EDGE}`);
-  assert.match(css, /\.ui-dropdown__trigger:hover:not\(:focus-visible\)\s*\{[^}]*border-color:\s*var\(--accent\)/,
+  assert.match(css, /\.ui-dropdown__trigger:enabled:hover:not\(:focus-visible\)\s*\{[^}]*border-color:\s*var\(--accent\)/,
     'the trigger no longer answers the pointer');
 });

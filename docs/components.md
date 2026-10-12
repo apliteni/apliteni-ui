@@ -388,7 +388,7 @@ under the pointer, the way every trigger in the kit does, and steps that edge as
 holds the focus ring. Clear keeps no edge in any state and answers the pointer with the accent
 wash the kit's buttons hover with. A control that is disabled or busy answers the pointer with
 nothing. Keyboard focus draws the shared `--ring`. A disabled chip or add control takes
-`--disabled-border`. None of the controls carries a resting fill.
+`--disabled-border`. The add and clear controls carry no resting fill.
 
 **An emptied bar hands the focus on rather than keeping it.** When you clear the last filter or
 remove the last chip with the keyboard, the focused control disappears. The bar moves focus to

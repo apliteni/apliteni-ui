@@ -127,8 +127,8 @@
    stands as tall on a line of its own, where there is no chip to stretch to. */
 .ui-filter-bar { --ui-filter-row-h: calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)); }
 
-/* A chip's neighbour takes the chip's corner, that height, the chip's edge and the chip's want
-   of a fill: the trigger's own edge can differ from the row's, while its --surface made the
+/* A chip's neighbour takes the chip's corner, that height and edge, but not its painted fill:
+   the trigger's own edge can differ from the row's, while its --surface made the
    row's least consequential action its loudest box — and off, with its edge down, the one thing
    still looking pressable. The states are
    spelled out because this depth outranks the base rules; the fill needs one rule, because the
