@@ -158,7 +158,7 @@ export async function rowFixtures() {
     row('filter-add', kit.filterBar({
       filters: [{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology' }] }],
     }).replace('<span data-filter-clear>', `<div data-filter-add>${kit.dropdown({
-      id: 'fx-add', variant: 'menu', triggerContent: 'Filter', ariaLabel: 'Filter',
+      id: 'fx-add', variant: 'menu', triggerContent: `${kit.icon('plus')}Filter`, ariaLabel: 'Filter',
       items: [{ label: 'Market' }],
     })}</div><span data-filter-clear>`)),
 

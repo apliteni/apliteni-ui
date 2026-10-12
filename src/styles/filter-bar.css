@@ -138,5 +138,6 @@
 .ui-filter-bar [data-filter-add] { display: flex; align-self: stretch; }
 .ui-filter-bar [data-filter-add] .ui-dropdown { display: flex; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-radius: var(--radius-sm); min-height: var(--ui-filter-row-h); border-color: var(--border-strong); background: transparent; }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }

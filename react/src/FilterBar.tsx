@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Dropdown, type DropdownEntry, type DropdownItem } from './Dropdown';
 import { Button } from './primitives/Button';
+import { Icon } from './primitives/Icon';
 import { useIsoLayoutEffect } from './dialog';
 import { filterChipText, filterChipName, filterChipUnset, filterChipItems, focusNextStop } from '@apliteni/apliteni-ui';
 export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean };
@@ -87,7 +88,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     {/* Its onFocus clears the restore target, so nothing a controlled change does to the
         chips takes focus off this trigger. */}
     {offering && <div data-filter-add="" onFocus={() => { focused.current = null; }}>
-      <Dropdown variant="menu" sections={sections} ariaLabel={addLabel} triggerContent={addLabel}
+      <Dropdown variant="menu" sections={sections} ariaLabel={addLabel} triggerContent={<><Icon name="plus" />{addLabel}</>}
         search={options >= SEARCH_AT && { label: `Search ${label.toLowerCase()}` }}
         open={adding && !blocked} onOpenChange={setAdding}
         onSelect={(value, item) => {

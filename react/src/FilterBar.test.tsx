@@ -287,7 +287,10 @@ it('adds a filter from the bar and lands focus on the new chip', async () => {
   expect([...bar.querySelectorAll('[data-filter-id], [data-filter-add], [data-filter-clear]')]
     .map(el => (el.getAttribute('data-filter-id') ? 'chip' : el.hasAttribute('data-filter-add') ? 'add' : 'clear')))
     .toEqual(['chip', 'add', 'clear']);
-  await userEvent.click(screen.getByRole('button', { name: 'Filter' }));
+  const add = screen.getByRole('button', { name: 'Filter' });
+  expect(add).toHaveTextContent(/^Filter$/);
+  expect(add.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+  await userEvent.click(add);
   expect(screen.getByRole('group', { name: 'Month' })).toBeInTheDocument();
   expect(screen.getByRole('group', { name: 'Unit' })).toBeInTheDocument();
   await userEvent.click(screen.getByRole('menuitem', { name: 'April' }));

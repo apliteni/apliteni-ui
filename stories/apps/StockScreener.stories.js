@@ -1,5 +1,5 @@
 import { appShell, wireShell } from '../../src/components/shell.js';
-import { button, segmented } from '../../src/components/index.js';
+import { button, icon, segmented } from '../../src/components/index.js';
 import { dropdown, wireDropdown } from '../../src/components/dropdown.js';
 import { numericValue, deltaValue, rowIdentity, initRowIdentity } from '../../src/components/table-values.js';
 import { filterBar, initFilterBar } from '../../src/components/filter-bar.js';
@@ -54,7 +54,7 @@ const table = (data, density, view = 'Overview', sort = 'desc', emptyMessage = '
 // height and edge and no fill. A section per condition the row is not carrying, and each
 // row names the filter it would add, because the catalogue is the page's and so is what a
 // pick means. #496 why: docs/components.md#a-filter-row-holds-its-panels
-const addControl = left => `<div data-filter-add>${dropdown({ variant: 'menu', ariaLabel: 'Filter', triggerContent: 'Filter',
+const addControl = left => `<div data-filter-add>${dropdown({ variant: 'menu', ariaLabel: 'Filter', triggerContent: `${icon('plus')}Filter`,
   sections: left.map(f => ({ label: f.label, items: f.items.map(it => ({ ...it, value: `${f.id}:${it.value}` })) })) })}</div>`;
 const notOn = on => filters.filter(f => !on.some(set => set.id === f.id));
 // Chips, then the way to add one, then clear. With chips the clear action is what the

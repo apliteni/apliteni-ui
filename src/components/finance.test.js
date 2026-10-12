@@ -4,7 +4,7 @@ import { JSDOM } from 'jsdom';
 import { filterBar, initFilterBar } from './filter-bar.js';
 import { dropdown } from './dropdown.js';
 import { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop, focusNextStop } from '../logic/filter-bar.js';
-import { segmented } from './index.js';
+import { icon, segmented } from './index.js';
 import { initSegmented } from './segmented.js';
 import { numericValue, deltaValue, rowIdentity, initRowIdentity } from './table-values.js';
 const filters = [{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Energy', value: 'energy' }] }, { id: 'market', label: 'Market', value: 'US', items: [] }];
@@ -368,7 +368,7 @@ test('a pick in the page\'s own catalogue is not reported as a chip\'s change', 
   // filter the bar held. A chip's own menu still reports — the test above measures that. #518
   const catalogue = filterBar({ filters: [filters[0]] })
     .replace('<span data-filter-clear>', `<div data-filter-add>${dropdown({
-      variant: 'menu', ariaLabel: 'Filter', triggerContent: 'Filter',
+      variant: 'menu', ariaLabel: 'Filter', triggerContent: `${icon('plus')}Filter`,
       sections: [{ label: 'Market', items: [{ label: 'US', value: 'market:US' }] }],
     })}</div><span data-filter-clear>`);
   const { dom, host } = setup(catalogue);
