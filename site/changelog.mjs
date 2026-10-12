@@ -6,6 +6,17 @@
 
 export const RELEASES = [
   {
+    v: '0.108.0', date: '2026-10-10',
+    changes: [
+      ['fixed', 'Below 720px a pinned identity column keeps each row name on one line instead of hiding it. The name is capped at `min(var(--panel-sm), 50vw)` and cuts with an ellipsis past the cap; the full text stays in the markup, so the accessible name and company link stay unchanged. Resolves #500.', ['Table']],
+      ['added', '`--ui-table-identity-max` retunes that cap on a consumer table without restyling the kit cell.', ['Table']],
+      ['added', 'A table cell marked `ui-table__linked` holds one link and nothing else, and the kit gives that link the whole cell. The focus ring and pointer target become the cell, while the cell hands its padding to the link so the page does not move.', ['Table']],
+      ['added', 'React `DataTable` columns take `linked`. `true` marks that column body cells and never its header, so an ID or identity column opts into the filled cell.', ['Table']],
+      ['fixed', 'A React sortable header in a capped pinned column keeps its sort caret. Its label gives way with an ellipsis before the caret leaves the cell.', ['Table']],
+      ['fixed', 'A table marked `ui-table--stack` wraps its identity name again. The one-line rule is for the narrow pinned column, and a stacked row is a card with the width to wrap. See #499.', ['Table']],
+    ],
+  },
+  {
     v: '0.107.0', date: '2026-10-11',
     changes: [
       ['fixed', 'Dropdown triggers now keep the live edge and the disabled edge separate. An enabled dropdown trigger no longer shows the disabled edge. A disabled dropdown trigger no longer gets the accent on hover.', ['Dropdown']],

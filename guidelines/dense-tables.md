@@ -74,6 +74,18 @@
 
 **Except:** On a phone, a row whose long column is a paragraph stacks instead of scrolling: the short values on one line, the paragraph under them, and the header kept for screen readers. No column is dropped.
 
+## Keep identity sub-lines as text
+
+<!-- rule: pinned-identity-sub-lines -->
+
+**Why:** An ellipsis cannot cut a flex or grid box, so the name spills past the cell. No specimen draws it, because the cut needs a phone viewport.
+
+**Rule:** A pinned identity sub-line is running text.
+
+**Do:** Write it as a sentence, with any link inside.
+
+**Don't:** Lay a badge, a control or a picture along it, or make it a flex or grid box.
+
 ## Keep updates stable
 
 <!-- rule: states -->

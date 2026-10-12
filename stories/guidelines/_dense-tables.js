@@ -4,5 +4,5 @@ export const TITLE = content.title;
 export const BLURB = content.blurb;
 export const RULES = content.rules.map((rule, index) => index === 0 ? {
   ...rule,
-  kit: [{ ref: 'src/styles/table.css:159', pattern: '.ui-table { background: var(--table-bg);' }],
+  kit: [{ ref: 'src/styles/table.css:206', pattern: '.ui-table { background: var(--table-bg);' }],
 } : rule);

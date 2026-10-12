@@ -106,3 +106,29 @@ export const NoPager: StoryObj = {
     <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} pager={false} />
   ),
 };
+
+// The pinned identity column is capped on a phone (#500), and the first column is
+// the one that can be sortable and long at the same time. The label gives way; the
+// caret does not, because the direction has no other visible signal.
+// The name opens the campaign and is all the cell holds, so the cell is marked and the
+// link fills it — the composition the cap has to cut, which no story carried. #513
+const pinnedColumns: Column<Row>[] = [
+  { key: 'name', label: 'Campaign and registered trading name', sortable: true, linked: true,
+    render: (r) => <a href={`#${encodeURIComponent(r.name)}`}>{r.name}</a> },
+  ...columns.slice(1),
+];
+// The last name is longer than the cap, so the ellipsis is in the frame rather than
+// only in the gate; the rest fit the column at 390 and are left as they are.
+const pinnedRows: Row[] = [
+  ...rows,
+  { name: 'Sweeps — BR pop, seasonal retargeting and lookalikes', status: 'live', clicks: 12408 },
+];
+
+export const PinnedSortable: StoryObj = {
+  render: () => (
+    <div className="ui-card" style={{ maxWidth: 'var(--panel-lg)' }}>
+      <DataTable columns={pinnedColumns} rows={pinnedRows} selectable={false} pager={false}
+        density="compact" stickyHeader pinnedIdentity scrollLabel="Campaigns" />
+    </div>
+  ),
+};
