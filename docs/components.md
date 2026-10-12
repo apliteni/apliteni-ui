@@ -875,10 +875,11 @@ behaviour, and send every destination through the kit's URL boundary.
 the kit's class, destination, current state and children, and a route change need not reload the
 document.
 
-`NavTabs` sizes its row and reveals the current route on mount, on a route change and on window
-resize, moving neither focus nor the page, and reveals a link a focus event lands on. There is
-nothing to wire for it; `wireNav()` is for the vanilla rows. React imports the kit's own `safeUrl`
-and reveal functions rather than a copy bundled into `react/dist`.
+`NavTabs` sizes its row on mount, on a route change and on window resize, preserving the reader's
+scroll position during content and container changes. It reveals the current route after mount and
+route changes, and reveals a link a focus event lands on. There is nothing to wire for it;
+`wireNav()` is for the vanilla rows. React imports the kit's own `safeUrl` and reveal functions
+rather than a copy bundled into `react/dist`.
 
 ### The rest of the React surface
 
