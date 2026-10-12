@@ -7,7 +7,7 @@ export type Filter = { id: string; label: string; /** empty or absent while noth
 export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; disabled?: boolean; busy?: boolean;
   onRemove: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void };
 
-export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all filters', disabled = false, busy = false, onRemove, onClear, onChange }: FilterBarProps) {
+export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear filters', disabled = false, busy = false, onRemove, onClear, onChange }: FilterBarProps) {
   const bar = useRef<HTMLFieldSetElement>(null);
   const focused = useRef<{ id: string | null; index: number } | null>(null);
   const [opened, setOpened] = useState<Record<string, { open: boolean; against: boolean | undefined }>>({});
@@ -50,8 +50,8 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all 
       <button type="button" className="ui-filter-bar__remove" data-filter-remove="" aria-label={`Remove ${filter.label} filter`}
         onClick={() => { if (!blocked && !filter.disabled) onRemove(filter.id); }}>×</button>
     </fieldset>)}
-    {/* Shown only once there is something to clear, in the bordered skin. The
+    {/* Shown only once there is something to clear, in the link skin. The
         vanilla factory carries the reasoning. why: docs/components.md#a-filter-row-holds-its-panels */}
-    {filters.length > 0 && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
+    {filters.length > 0 && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button variant="link" size="sm" onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
   </fieldset></div>;
 }

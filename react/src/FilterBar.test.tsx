@@ -16,19 +16,19 @@ it('requests changes and preserves controlled filters', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Remove Region filter' }));
   expect(props.onRemove).toHaveBeenCalledWith('Region');
   expect(screen.getByRole('button', { name: 'Region: All' })).toBeInTheDocument();
-  await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
   expect(props.onClear).toHaveBeenCalledTimes(1);
 });
 // DOM only: which control is rendered, not how it looks.
 it('offers the clear action only once there is something to clear', () => {
   const props = callbacks();
   const { rerender } = render(<FilterBar filters={[]} {...props} />);
-  expect(screen.queryByRole('button', { name: 'Clear all filters' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument();
   rerender(<FilterBar filters={filters} {...props} />);
-  const clear = screen.getByRole('button', { name: 'Clear all filters' });
+  const clear = screen.getByRole('button', { name: 'Clear filters' });
   expect(clear).toBeEnabled();
   // The bordered skin, as the vanilla factory writes it; the class, not the colour.
-  expect(clear).toHaveClass('ui-btn--secondary');
+  expect(clear).toHaveClass('ui-btn--link');
   expect(clear).not.toHaveClass('ui-btn--ghost');
 });
 // DOM text and names only; these do not measure appearance.
@@ -66,8 +66,8 @@ it('preserves focused controls across updates and moves focus after removal', as
 });
 it('hands the focus to the action beside it when clearing empties the bar', async () => {
   render(<Example />);
-  await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
-  expect(screen.queryByRole('button', { name: 'Clear all filters' })).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+  expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
 });
 // Each of these leaves a tab stop in the document, with a box a browser can still
@@ -88,7 +88,7 @@ const OUT_OF_REACH: Record<string, ReactNode> = {
 };
 it.each(Object.keys(OUT_OF_REACH))('walks past a next control that is %s', async how => {
   render(<Example between={OUT_OF_REACH[how]} />);
-  await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
   expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
 });
 // The belt the list above is the braces for. `focus()` is a request: a control can
@@ -98,7 +98,7 @@ it('passes over a control that is asked for the focus and does not take it', asy
   render(<Example between={<button type="button">Export</button>} />);
   const refuses = screen.getByRole('button', { name: 'Export' });
   Object.defineProperty(refuses, 'focus', { value: () => {} });
-  await userEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
   expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
 });
 // The other end of it: with nothing reachable beside the bar there is nothing to

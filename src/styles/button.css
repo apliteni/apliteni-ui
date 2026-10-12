@@ -1,5 +1,5 @@
 /* ============================================================================
- * Button — .ui-btn  (variants: primary / secondary / ghost / danger)
+ * Button — .ui-btn  (variants: primary / secondary / ghost / danger / link)
  *                   (sizes: xs / sm / md / lg, [icon], [disabled], [aria-busy])
  * ========================================================================== */
 
@@ -70,6 +70,19 @@
   color: var(--strong);
 }
 
+.ui-btn--link {
+  background: transparent;
+  border-color: transparent;
+  color: var(--accent);
+  padding-inline: 0;
+}
+.ui-btn--link:hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--strong);
+  text-decoration: underline;
+}
+
 .ui-btn--danger { color: var(--text); }
 .ui-btn--danger:hover, .ui-btn--danger:focus-visible {
   color: var(--pink);
@@ -111,6 +124,12 @@
   background: transparent;
   border-color: transparent;
   /* muted-ink: state — unavailable control */ color: var(--disabled-ink-bare);
+}
+.ui-btn--link:disabled,
+.ui-btn--link[aria-disabled="true"] {
+  background: transparent;
+  border-color: transparent;
+  /* muted-ink: state — unavailable link action */ color: var(--disabled-ink-bare);
 }
 /* With no box, the ink is read on whatever is behind it, so the ghost takes an ink
    set for the dullest ground: in dark 7.49 / 6.31 / 7.00 / 5.44 on --bg / --surface /
@@ -160,6 +179,13 @@
   background: transparent; /* code-bg: inherit — busy paint retains the button's containing gap. */
   border-color: transparent;
   color: var(--text);
+}
+.ui-btn[aria-busy="true"].ui-btn--link,
+.ui-btn[aria-busy="true"].ui-btn--link:hover,
+.ui-btn[aria-busy="true"].ui-btn--link:active {
+  background: transparent; /* code-bg: inherit — busy paint retains the button's containing gap. */
+  border-color: transparent;
+  color: var(--accent);
 }
 .ui-btn[aria-busy="true"].ui-btn--danger,
 .ui-btn[aria-busy="true"].ui-btn--danger:hover,

@@ -8,7 +8,7 @@ export default {
   render: (a) => button(a),
   argTypes: {
     label: { control: 'text' },
-    variant: { control: 'select', options: ['primary', 'secondary', 'ghost', 'danger'] },
+    variant: { control: 'select', options: ['primary', 'secondary', 'ghost', 'danger', 'link'] },
     size: { control: 'inline-radio', options: ['xs', 'sm', 'md', 'lg'] },
     icon: { control: 'select', options: [undefined, 'bolt', 'plug', 'key', 'arrowRight', 'check'] },
     iconRight: { control: 'select', options: [undefined, 'arrowRight'] },
