@@ -15,7 +15,7 @@ function Example() {
   return <main className="ui-app__main ui-app__main--wide finance-comparison"><header className="finance-comparison__head"><h1>Company comparison</h1><p id="react-finance-basis" className="ui-app__sub">Changes since the previous close.</p></header>
     <div className="finance-comparison__data">
     <FilterBar clearVariant="link" clearLabel="Clear filters" filters={filters} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))} />
-    <div className="ui-card finance-comparison__card"><Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
+    <div className="ui-card ui-card--fit finance-comparison__card"><Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
     <DataTable rows={rows.filter(r => !filters.length || filters[0].value === 'All sectors' || r.sector === filters[0].value)} pageSize={20} empty="No companies match these filters." selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"
       columns={[{ key: 'name', label: 'Company', linked: true, render: r => <a href="#company">{r.name}</a> }, ...(view === 'overview' ? [{ key: 'price' as const, label: 'Price', num: true, sortable: true, render: (r: {price: number}) => <NumericValue value={r.price.toFixed(2)} unit="USD" /> }] : []), { key: 'change', label: 'Daily change', num: true, render: r => <DeltaValue value={`${r.change > 0 ? '+' : r.change < 0 ? '−' : ''}${Math.abs(r.change).toFixed(2)}%`} tone="success" basisId="react-finance-basis" /> }]} /></div>
     </div>
@@ -26,13 +26,13 @@ export const Comparison = { render: () => <Example /> };
 function SelectableExample() {
   const rows = [{ name: 'Aster Systems', price: 228.87, sector: 'Technology' }, { name: 'Birch Energy', price: 84.12, sector: 'Energy' }];
   const [selected, setSelected] = useState(new Set<string>());
-  return <main className="pinned-selection" style={{ maxWidth: '60rem', padding: 'var(--space-6)' }}>
+  return <main className="ui-app__main ui-app__main--wide pinned-selection" style={{ '--ui-app-main': '60rem' } as CSSProperties}>
     <style>{'.pinned-selection .ui-table { min-width: 70rem; }'}</style>
-    <h1>Select companies</h1><p>Fictional data. Scroll to compare values while keeping company selection in view.</p>
+    <h1>Select companies</h1><p className="ui-app__sub">Fictional data. Scroll to compare values while keeping company selection in view.</p>
     <DataTable rows={rows} selected={selected} onToggle={name => setSelected(current => {
       const next = new Set(current); if (next.has(name)) next.delete(name); else next.add(name); return next;
     })} onTogglePage={names => setSelected(current => names.every(name => current.has(name)) ? new Set() : new Set(names))}
-      density="compact" stickyHeader pinnedIdentity scrollLabel="Selectable companies" pager={false}
+      density="compact" stickyHeader pinnedIdentity scrollLabel="Selectable companies, scroll for more columns" pager={false}
       columns={[{ key: 'name', label: 'Company', linked: true, render: r => <RowIdentity symbol={r.name.slice(0, 4).toUpperCase()} name={r.name} href="#company" /> }, { key: 'price', label: 'Price', num: true, render: r => <NumericValue value={r.price} unit="USD" /> }, { key: 'sector', label: 'Sector' }]} />
   </main>;
 }
