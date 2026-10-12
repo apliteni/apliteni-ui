@@ -8,8 +8,10 @@
  *
  * Limits: it resolves the source cascade in JSDOM, so no layout and no real pixels. Ink is
  * measured against the chip's own composited fill and the fill against the ground that
- * composites it. Rendered-pixel measurement of the same pairs stays with
- * stories/contrast.test.js (page) and stories/dropdown-state-contrast.test.js (panel).
+ * composites it. stories/contrast-dark.test.js, stories/contrast-light.test.js and
+ * stories/dropdown-state-contrast.test.js also resolve source colours in JSDOM.
+ * None of these gates measures browser pixels. Separate browser evidence is required.
+ * The 7:1 light-success aim is prose only; this gate enforces the 4.5:1 floor.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -29,7 +31,7 @@ const badgeCss = readSrc('src/styles/badge.css').replace(/\/\*[\s\S]*?\*\//g, ''
 const TONES = [...new Set([...badgeCss.matchAll(/^\.(ui-(?:badge|pill))(--[\w-]+)?\s*\{/gm)]
   .map(([, base, mod]) => `${base}${mod || ''}`))];
 
-/** Discovered from accents.css the way stories/contrast.test.js discovers them, so a
+/** Discovered from accents.css the way stories/contrast-light.test.js discovers them, so a
  *  fifth accent is measured on the commit that adds it. */
 const ACCENTS = ['default', ...new Set([...readSrc('src/tokens/accents.css')
   .matchAll(/\[data-accent="([^"]+)"\]/g)].map(([, a]) => a))];
@@ -54,7 +56,7 @@ const UP = { dark: true, light: false };
  * no longer soft. The floor is per ground: a light glow wash sits close to --bg, so warn
  * and pending measure 1.043 on the light page — pre-existing, and legible because a status
  * chip is told apart by its ink too. The non-status tones this gate exists for measure
- * 1.222 there. Thinnest pairs and their grounds are tabulated in the foundations doc.
+ * 1.222 there. Thinnest pairs and their grounds are recorded in the foundations doc.
  * why: docs/foundations.md#colour-and-contrast */
 const BAND_CEILING = 1.6;
 const bandFloor = (theme, ground) => (theme === 'light' && ground === 'page' ? 1.03 : 1.1);

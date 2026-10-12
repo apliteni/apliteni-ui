@@ -592,3 +592,18 @@
 .ui-callout--warn,
 .ui-callout--danger,
 .ui-success { --code-bg: var(--wash-code-bg); }
+
+/* React badges and pills accept inline code on opaque or translucent status fills. */
+.ui-badge,
+.ui-badge--live,
+.ui-badge--soon,
+.ui-badge--info,
+.ui-badge--warn,
+.ui-badge--danger,
+.ui-badge--archive,
+.ui-badge--success,
+.ui-badge--pending,
+.ui-badge--neutral,
+.ui-pill,
+.ui-pill--live,
+.ui-pill--soon { --code-bg: var(--wash-code-bg); }

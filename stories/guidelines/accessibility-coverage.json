@@ -19,7 +19,7 @@
     {
       "file": "stories/scroll-ring.test.js",
       "name": "Scroll region focus",
-      "does": "Resolves the kit's sheets with the tokens substituted and :focus-visible desugared, then checks each of the six scroll regions #531 rings in the kit: the box draws no band at rest, it draws --ring-scroll while it has focus, that band is --ring-width of ink offset inward by --ring-gap-width + --ring-width read off the tokens, and no box around it changes what it paints. Two themes by two accents. Emulates forced colors by flattening the (forced-colors: active) blocks and dropping every box-shadow, then checks that each focused region still declares an outline the system can repaint and that exactly one box in its ancestry does. Eight mutations: one per region, the outline-offset that draws the band inward, and a region given back a transparent outline.",
+      "does": "Resolves source CSS in JSDOM with forced focus state. Checks six scroll regions in two themes and two accents. Each region draws no resting outline, then takes the shared inward outline and offset. Ancestor paint stays unchanged. Coverage counts and missing-rule, offset and transparent-outline mutations prove rejection.",
       "blind": [
         "JSDOM lays nothing out and paints nothing, so it cannot prove a box scrolls, that the browser makes it a keyboard stop, or that the band survives a scroll under it; Chrome captures at 390px and 1280px in both themes, two of them with the content scrolled, cover those on #531.",
         "contrast.js substitutes each custom property once for the whole sheet, so the per-surface --ring-gap is unmeasured here.",
@@ -40,11 +40,9 @@
     {
       "file": "stories/snippet-focus.test.js",
       "name": "Snippet focus",
-      "does": "Discovers buttons, links, code regions and explicit tab stops in Snippet fixtures; checks shared focus shadows and transparent outlines across two themes and accents, that the code region hands its ring to the rounded card it sits in, and that the card still clips. Emulates forced colors by flattening the (forced-colors: active) block and dropping every box-shadow, then checks that one focused code region leaves exactly one box declaring an outline. Seven mutations, each removing one declaration the result depends on.",
+      "does": "Discovers fourteen focusable targets in Snippet fixtures. In both themes and two accents, checks that the shared outline follows the card for a focused code region and follows other controls themselves. Rejects duplicate outlines and focus shadows. Checks the declared radius, offset and missing-rule mutations.",
       "blind": [
-        "JSDOM forces focus state and cannot prove real Tab reachability, clipping or pixels; Chromium evidence covers vanilla and React at 390px and 1280px, including one forced-colors frame per theme.",
-        "contrast.js substitutes each custom property once for the whole sheet, so the per-surface --ring-gap is unmeasured here.",
-        "JSDOM evaluates no media query and cannot repaint a forced-colors outline, so which colour the system chooses is checked in Chromium, not here."
+        "JSDOM resolves source styles but cannot prove keyboard reachability, browser clipping or system-colour paint. It evaluates no media query. These require separate browser evidence."
       ]
     },
     {
@@ -174,7 +172,7 @@
     {
       "file": "stories/segmented-wrap.test.js",
       "name": "Underline strips fit their column",
-      "does": "Under SEG_WRAP=1, drives a browser over every story that renders an underline segmented strip, plus two fixtures carrying the long labels no story has, and reads each strip against its own box at 320, 390 and 1280. No tab is drawn outside the box, no tab is wider than the box can hold, the page never scrolls sideways, the strip is not a scroll box clipping the focus ring's glow, and on a wrapped strip the chosen tab's rail is read against the ink of its own label and of the next row's, so it cannot sit close enough to both to read as either row's mark. It holds the issue's own case, the Stock screener's three views on two rows at 390 and one row at 1280, and re-runs every check at 320 against four mutations — the sheet put back to one row and a scroll box, the rows closed to the track's own gap, and the tab label put back to `nowrap` and to `break-word` — all of which have to fail.",
+      "does": "Under SEG_WRAP=1, drives a browser over every story that renders an underline segmented strip, plus two fixtures carrying the long labels no story has, and reads each strip against its own box at 320, 390 and 1280. No tab is drawn outside the box, no tab is wider than the box can hold, the page never scrolls sideways, the strip is not a scroll box clipping the focus outline, and on a wrapped strip the chosen tab's rail is read against the ink of its own label and of the next row's, so it cannot sit close enough to both to read as either row's mark. It holds the issue's own case, the Stock screener's three views on two rows at 390 and one row at 1280, and re-runs every check at 320 against four mutations — the sheet put back to one row and a scroll box, the rows closed to the track's own gap, and the tab label put back to `nowrap` and to `break-word` — all of which have to fail.",
       "blind": [
         "The measuring half is off unless SEG_WRAP=1, because Playwright is deliberately not a dependency of this package, so CI runs nothing here and the measurement is reported by hand in the pull request.",
         "One engine and one theme. Firefox and Safari are not measured here, and neither is the ring's rendered contrast, which belongs to the contrast ledger.",
@@ -319,9 +317,9 @@
     {
       "file": "stories/code-chip.test.js",
       "name": "Inline code: the chip's surface",
-      "does": "Discovers every painted ground in the kit's sheets, and every translucent wash that takes caller markup, and measures the step between the chip and its ground — the wash composited over each ground — in both themes and in the one context a ground token is re-pointed in. Holds that the chip paints what it is handed, takes its focus gap from that paint, and draws no edge.",
+      "does": "Discovers opaque grounds, callout washes and all thirteen badge and pill fills from the sheets. Composites each layer over every ground in both themes and each discovered token context. Requires a 1.1:1 code-chip step except for the two named tinted-card cases. Checks coverage counts, readable colours, explicit handoffs, and that the chip paints its inherited surface without an edge or its own focus ring.",
       "blind": [
-        "It composites the sheets rather than driving a browser, so it is checked against rendered pixels (scripts/evidence/code-chip.mjs) rather than trusted; the two agree within 0.012. A step is not a text floor — the ink on the chip is the contrast gate's subject. One ground per selector, the last one declared; one accent; washes outside callout.css are not measured. Two light tinted cards are under the step and carry a written reason."
+        "Source colour composition only, with no browser pixels, layout or nested text contrast. Browser evidence requires a separate run. One ground per selector, the last declared; one accent. Layers outside callout.css and badge.css are not measured. Two light tinted cards remain below the floor with a written reason."
       ]
     },
     {
@@ -409,11 +407,12 @@
     {
       "file": "stories/badge-tones.test.js",
       "name": "Badge tone family",
-      "does": "Discovers every badge and pill tone from the stylesheet and every accent from accents.css, then requires each fill to leave its ground in one direction \u2014 lighter in dark, darker in light \u2014 inside a soft separation band, with no edge and ink above 4.5:1 on its own fill. It measures three grounds (the page, a card and a floating panel) under both themes and all four accents, asserts the case count is the product of those three dimensions, and checks the grounds composite to distinct surfaces rather than silently collapsing to one. It names the thirteen tones it expects. Two mutations prove rejection: re-pointing a tone at the opaque card surface, and putting accent ink back on the neutral fill, which fails on a dark floating panel under three accents of four.",
+      "does": "Discovers every badge and pill tone from the stylesheet and every accent from accents.css, then requires each fill to leave its ground in one direction — lighter in dark, darker in light — inside a soft separation band, with no edge and ink above 4.5:1 on its own fill. It measures three grounds (the page, a card and a floating panel) under both themes and all four accents, asserts the case count is the product of those three dimensions, and checks the grounds composite to distinct surfaces rather than silently collapsing to one. It names the thirteen tones it expects. Two mutations prove rejection: re-pointing a tone at the opaque card surface, and putting accent ink back on the neutral fill, which fails on a dark floating panel under three accents of four.",
       "blind": [
-        "Browser layout, anti-aliasing and consumer overrides. It resolves the source cascade in JSDOM rather than reading rendered pixels; stories/contrast.test.js and stories/dropdown-state-contrast.test.js measure the same pairs in a browser.",
+        "Browser layout, anti-aliasing and consumer overrides. This gate, stories/contrast-dark.test.js, stories/contrast-light.test.js and stories/dropdown-state-contrast.test.js resolve source colours in JSDOM. None measures browser pixels. Browser measurements require separate evidence.",
         "Whether a tone is the right one for a status. It measures the paint, not the meaning.",
-        "The separation floor on the light page is 1.03 rather than 1.1, because the light glow washes sit close to --bg there: warn and pending measure 1.043 today. Tightening it means moving those alphas."
+        "The separation floor on the light page is 1.03 rather than 1.1, because the light glow washes sit close to --bg there: warn and pending measure 1.043 today. Tightening it means moving those alphas.",
+        "The 7:1 light-success aim is a written consumer rule only. This gate enforces 4.5:1 and would accept the previous success pair at 5.29:1."
       ]
     },
     {
@@ -582,8 +581,8 @@
       "name": "Vanilla accent swatch: one accent edge under focus",
       "does": "Measures the bands a selected vanilla swatch draws while it also holds keyboard focus, with the page on a DIFFERENT accent: the kit ring's band has to be there, no band may paint the selected swatch's own accent, exactly one band may paint an accent at all, the bands have to paint outward in source order, every pair that touches — including the outermost band against the ground — has to clear 3:1, and the focused selected edge has to equal the focused unselected one. Rejects both selection-band compositions #472 shipped, a second band laid against the ring in nearly its own colour, and an edge with no ring on it.",
       "blind": [
-        "The 12px halo in var(--ring): it is blurred and translucent, so the pixels it reaches are the band colours mixed by a fraction no source reader can compute. The gate counts the halo, skips it and measures the opaque bands as declared, which makes a pass a ceiling rather than the painted result; browser pixel samples at the band interiors close that gap.",
-        "Browser paint, antialiasing and host overrides; source CSS is resolved in JSDOM, which also resolves no gradient, so the ring's gap band against the swatch fill is recorded as a reading and not asserted — the gap is part of the indicator, and the band it separates is read against the ground on both sides."
+        "JSDOM resolves declared widths, colours and source stacking order. It cannot measure browser pixels, antialiasing, band placement or consumer overrides. The gate requires an outline and zero halo layers.",
+        "The gradient beneath the unpainted outline offset is not sampled. Browser measurements require separate evidence."
       ]
     },
     {
@@ -591,8 +590,8 @@
       "name": "React accent swatch: one accent edge under focus",
       "does": "The same measurement and the same four rejected compositions for the React picker, over the kit's exported accent list.",
       "blind": [
-        "The 12px halo in var(--ring): it is blurred and translucent, so the pixels it reaches are the band colours mixed by a fraction no source reader can compute. The gate counts the halo, skips it and measures the opaque bands as declared; browser pixel samples at the band interiors close that gap.",
-        "Browser paint, antialiasing and host overrides; source CSS is resolved in JSDOM, which also resolves no gradient, so the ring's gap band against the swatch fill is recorded as a reading and not asserted."
+        "JSDOM resolves declared widths, colours and source stacking order. It cannot measure browser pixels, antialiasing, band placement or consumer overrides. The gate requires an outline and zero halo layers.",
+        "The gradient beneath the unpainted outline offset is not sampled. Browser measurements require separate evidence."
       ]
     },
     {
@@ -801,18 +800,18 @@
     {
       "file": "stories/filter-selected-mark.test.js",
       "name": "A chosen filter value is never marked by colour alone",
-      "does": "Sweeps every story that draws a filter bar, opens each chip\u2019s menu and measures the chosen row in both themes: the accent wash is painted and stays a wash rather than becoming a fill, the kit\u2019s check is drawn and clears 3:1 over that wash (WCAG 2.2 SC 1.4.11), and the chosen label holds --strong at AA over it. It then drives hover, the keyboard cursor and focus, and fails a state that takes the wash off the row, loses hover\u2019s edge or the cursor\u2019s bar, or falls back to the browser\u2019s own outline instead of the kit ring. It also reads the slot the cascade gives the check in each of the three geometries a chip\u2019s panel has, and fails a mark allowed to shrink or be clipped while the menu is open or still fading out, or one that stops giving way in the shut panel #467 bounded to a 48px trigger. Eleven mutations, each re-breaking one guarantee, have to be rejected.",
+      "does": "Sweeps every story that draws a filter bar, opens each chip’s menu and measures the chosen row in both themes: the accent wash is painted and stays a wash rather than becoming a fill, the kit’s check is drawn and clears 3:1 over that wash (WCAG 2.2 SC 1.4.11), and the chosen label holds --strong at AA over it. It then drives hover, the keyboard cursor and focus, and fails a state that takes the wash off the row, loses hover’s edge or the cursor’s bar, or falls back to the browser’s own outline instead of the kit ring. It also reads the slot the cascade gives the check in each of the three geometries a chip’s panel has, and fails a mark allowed to shrink or be clipped while the menu is open or still fading out, or one that stops giving way in the shut panel #467 bounded to a 48px trigger. Eleven mutations, each re-breaking one guarantee, have to be rejected.",
       "blind": [
-        "Pixels. JSDOM lays nothing out, so a 16px glyph is measured as a colour on a ground and as the declarations around its slot, never as a drawn mark. What width that slot comes out as, at four viewports in both themes and in the frames a menu is still painted in as it closes, is the browser fixture\u2019s measurement.",
+        "Pixels. JSDOM lays nothing out, so a 16px glyph is measured as a colour on a ground and as the declarations around its slot, never as a drawn mark. What width that slot comes out as, at four viewports in both themes and in the frames a menu is still painted in as it closes, is the browser fixture’s measurement.",
         "Colour-vision simulation. It measures luminance contrast, which is what 1.4.11 is written in. That a dichromat cannot separate the two hues is the reason the check exists, and is not itself computed here.",
-        "The React half. The rule is one kit declaration both faces load; React\u2019s own tests match the class and the mark against its rendered tree, never the paint.",
-        "Accents other than the default. The other five redefine --glow-purple and are walked by the accent arm of the contrast ledger, not here."
+        "The React half. The rule is one kit declaration both faces load; React’s own tests match the class and the mark against its rendered tree, never the paint.",
+        "Accents other than the default. The other accents redefine --glow-purple and are walked by the accent arm of the contrast ledger, not here."
       ]
     },
     {
       "file": "stories/focus-ring.test.js",
       "name": "Focus ring: the keyboard walk",
-      "does": "Walks the keyboard stops of the landing page and of the shell, footer and topbar stories, and fails a stop that draws the browser's own outline, an outline of its own, or a box-shadow that is not the shared ring. It then resolves the cascade for each stop over the sheets in the order a page loads them, and fails a stop whose ring is written but outranked by an always-on rule. It also discovers every box the kit makes scrollable, holds the list of those with and without a ring, and checks that every accent swatch is named and says whether it is on.",
+      "does": "Walks the keyboard stops of the landing page and of the shell, footer and topbar stories, and fails a stop that lacks the shared outline and offset or declares a retired focus shadow. It then resolves the cascade for each stop over the sheets in the order a page loads them, and fails a stop whose ring is written but outranked by an always-on rule. It also discovers every box the kit makes scrollable, holds the list of those with and without a ring, and checks that every accent swatch is named and says whether it is on.",
       "blind": [
         "What a browser computes. The reading is of the CSS source, because JSDOM computes neither box-shadow nor :focus-visible. The cascade is resolved here instead, by specificity and document order, and that resolver does not model !important, an inline style attribute, a media or container query's condition, a state the static DOM is not in such as :hover, or var() expansion.",
         "A ring the kit paints on another box. Where the focus rule targets a child, a sibling or a pseudo-element, the declaration belongs to that element's cascade; the walk still credits the stop, and the count of such rings is held so it cannot grow unseen.",
@@ -860,7 +859,7 @@
       "does": "Walks every gallery under stories/components/ in both themes, composites the ground each field actually sits on, and checks that none of them is the page ground — a field paints --surface, so on the page it has no fill step and only --disabled-border left to be drawn by. Records the disabled text field's ground, fill, border, edge ratio and ink ratio per theme, and asserts its ink clears AA on the field's own paint. One mutation puts a field back on the page ground and the claim reports it.",
       "blind": [
         "JSDOM reads winning declarations, not pixels: a rule inside a media query is unmeasured, and so is anything that depends on layout. The Chromium captures at 1280 and 390 in both themes cover paint.",
-        "At rest only — hover, focus and active grounds belong to stories/contrast.test.js.",
+        "At rest only — hover, focus and active grounds belong to stories/contrast-dark.test.js and stories/contrast-light.test.js.",
         "stories/components/ only: a guideline page's prose and a showcase's toolbar ground are those pages' decisions, not this gate's.",
         "A contrast ratio is not legibility. The recorded edge readings are below the 3:1 non-text floor that WCAG 1.4.11 exempts a disabled control from, so they are recorded for review rather than asserted against a bar."
       ]
@@ -915,7 +914,7 @@
       "name": "Rail ring room",
       "does": "Requires a folded sidebar rail to draw a focused row's ring whole, which takes two things and not the one a menu panel needs. The rail has to leave the ring a way out of its own box — the ring's spread as padding, read from --ring-gap-width and --ring-width at run time, or no clip at its edge — AND every row that draws the ring has to BE the rail's width. A menu panel's rows fill it edge to edge; a folded rail is --ui-nav-strip wide and lays its rows out from --ui-nav-col, so a row that keeps the open column draws its right band five rail-widths off the rail whether the rail clips or not. #575 was both halves at once: the rail clipped across rows that kept the column, and Chrome drew the ring's top and bottom bands across the strip with both ends cut away — the two accent bars #519 had just left on the account menu. Subjects are discovered rather than listed: the kit's sheets are resolved with the tokens substituted and :focus-visible desugared, the ring is read off a reference control on the same page, and every element inside a rendered folded rail that paints that same shadow is measured. The rows the fixture renders are reconciled against the rows that draw the ring, so a row that quietly stopped taking it stops the gate instead of shrinking the reading. Two themes. Proves rejection four times over: by putting #575 back whole, by leaving the rail unclipped with its rows still off its edge, by showing that a rail which pads for the ring and closes its rows to what that padding leaves may clip, by refusing the same padding over rows still cut to the whole strip — a border-box rail spends its padding out of the column, so those rows stand past the clip and Chrome takes 6px of every ring (#588), and by giving a row a percentage width this reading cannot fold into a length.",
       "blind": [
-        "Pixels. JSDOM lays nothing out and paints nothing; what is read is the resolved cascade for a width and a box-shadow. Chrome measured the ring itself for #575, before and after, at 1280 and 390 in both themes.",
+        "Pixels. JSDOM resolves declared row and rail widths, outline and offset. It does not lay out or paint them. Browser measurements require separate evidence.",
         "Whether a row takes the ring at all, which is stories/focus-ring.test.js's question. This gate reads the rows that already draw it, and the row count it reconciles is what stops it passing over rows that lost it.",
         "The column, not the outline. A row is measured against the width the rail lays it out in — its own width less padding and border — and the premise that the kit makes every box a border box is read off base.css and held by a test of its own, because JSDOM does not apply that universal rule.",
         "Ancestors. A rail that clips nothing itself can still stand inside something that clips, and this gate asks the rail.",
@@ -928,7 +927,7 @@
       "name": "A selected item's highlight",
       "does": "Measures the background fill a selected, current or active item paints against the ground its own component paints under it, in both themes, and fails a pair under 1.1:1. Since #578 round r34 a selected item is marked by a fill and never by an edge, so a fill that does not step is an item with no mark on it. Six are read: the chosen pill in a segmented group in all three spellings its factory can emit, the row a menu would pick, the row the command palette would run, and the current plate on the three folded rails the kit draws. Subjects are DISCOVERED rather than listed: every rule in src/**.css and react/src/**.css whose own last compound carries a selected marker and declares a background has to be a measured subject, a rule that takes a fill away, an accent mark, or a named exclusion with the issue that owns it — so a new selected fill cannot ship unmeasured. Each subject is measured against EVERY background its selector is given rather than the first, because a later rule is what a reader sees. Proves rejection three times over: by re-measuring the pair that was invisible before the round, light --surface on --bg-elevated at 1.000:1; by appending a later rule that repaints each subject in its own ground, which is the mutation the #590 review used to walk through the reading this gate replaced; and by requiring every subject and every exclusion to still resolve to a real rule.",
       "blind": [
-        "1.1:1 is not a WCAG number and does not stand in for one: WCAG sets no contrast requirement for a background that carries no information by itself, and the ink ON these items is measured by stories/contrast.test.js instead. The grounds are named here rather than discovered, because which container an item ends up inside is not in the stylesheets; an item whose ground its own component does not fix — the pager, which stands on the page in one showcase and on a card in another — is a named exclusion and says so beside its rule.",
+        "1.1:1 is not a WCAG number and does not stand in for one: WCAG sets no contrast requirement for a background that carries no information by itself, and the ink ON these items is measured by stories/contrast-dark.test.js and stories/contrast-light.test.js instead. The grounds are named here rather than discovered, because which container an item ends up inside is not in the stylesheets; an item whose ground its own component does not fix — the pager, which stands on the page in one showcase and on a card in another — is a named exclusion and says so beside its rule.",
         "Two selected marks are excluded by name rather than measured, and each names its owner: the open rail's current row, whose mark is #475's subject and is reworked to a plate on #593, and the pager's current page, which is the one mark #578 round r34 left as an edge and is open for Artur.",
         "Nothing is laid out or painted: this reads declared values with the tokens substituted. It cannot see a fill covered by a pseudo-element, one a width query makes unreachable, or what any of them looks like on a real screen. A box painted WITHIN a selected item rather than being its mark — a count badge, an icon tile — is not discovered at all, because its marker sits on an ancestor compound."
       ]

@@ -20,13 +20,15 @@
  *  - It reads the SHEETS and composites them, rather than driving a browser: `npm test`
  *    ships no browser. Source-over in sRGB is what Chrome does, and it is checked against
  *    rendered pixels rather than asserted — the producer is scripts/evidence/code-chip.mjs,
- *    which samples the real chip and its real ground and whose numbers are quoted beside
- *    the ladder in docs/foundations.md#elevation. Every computed pair here lands within 0.01 of
- *    the rendered one. The INK on the chip is stories/contrast.test.js's subject, not this.
- *  - The wash subjects are the washes that take CALLER markup: `callout()` and the success
+ *    which samples its fixtures in a browser. This source gate does not establish
+ *    agreement with pixels for every discovered composition. The ink belongs to
+ *    stories/contrast-dark.test.js and stories/contrast-light.test.js.
+ *  - The callout wash subjects take CALLER markup: `callout()` and the success
  *    panel hand their body straight through, so a chip inside one is ordinary product
  *    markup. The composer's own `__done` and `__err` panels are washes too and are not
  *    measured, because their copy is the component's, not a caller's.
+ *    Badge and pill fills also take caller markup in React. All thirteen fills are
+ *    measured as layers, including the fills that become opaque in light.
  *  - A wash is measured over every opaque ground, which over-approximates: the kit does not
  *    draw a callout inside a zebra row. It cannot under-approximate, which is the direction
  *    that matters.
@@ -156,6 +158,9 @@ const painted = sheets.flatMap((rule) => {
   if (!paint || HANDS_NOTHING_ON.test(rule.raw)) return [];
   // The chip is not a ground a chip stands on: it READS the hand-off and never declares one.
   if (rule.selector === '.ui-code') return [];
+  // Badge and pill fills are layers in dark and may be opaque in light.
+  // Measure both forms over every ground in the layer walk below.
+  if (/^\.ui-(?:badge|pill)(?:--[\w-]+)?$/.test(rule.selector)) return [];
   // Only a reading surface is a rung. A translucent one is a wash, measured over every
   // rung below rather than as one.
   if (!isSurface(paint) && !paint.startsWith('color-mix(')) return [];
@@ -219,10 +224,15 @@ const varsFor = (theme, overrides) => new Map([...tokensFor(theme), ...overrides
  * one and not a state. That is callout()'s four tones and the success panel — the two the kit
  * hands a caller's own markup. A sixth tone joins this list by being written, and then has to
  * say which surface it hands a chip or fail below. */
-const washes = rulesIn('src/styles/callout.css')
+const calloutWashes = rulesIn('src/styles/callout.css')
   .filter((rule) => !/__|:/.test(rule.selector))
   .map((rule) => ({ selector: rule.selector, paint: /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(rule.body)?.[1].trim() }))
   .filter(({ paint }) => paint && (colourOf(paint, tokensFor('light'))?.[3] ?? 1) < 1);
+
+const statusLayers = rulesIn('src/styles/badge.css')
+  .filter((rule) => /^\.ui-(?:badge|pill)(?:--[\w-]+)?$/.test(rule.selector))
+  .map((rule) => ({ selector: rule.selector, paint: paintOf(rule.body), raw: rule.raw }));
+const washes = [...calloutWashes, ...statusLayers];
 
 /* Every pair the kit can draw: the chip on each opaque rung, and the chip under each wash
  * composited over each rung. A wash paints behind the chip, so its row reads the WASH's
@@ -294,10 +304,19 @@ test('the chip gate discovers every ground, wash, context and theme', () => {
   const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
   assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');
   assert.match(bodyRule.raw, HANDS_NOTHING_ON, 'the page\'s own rule must carry the note, or it is discovered twice');
-  assert.equal(washes.length, 5, 'wash discovery changed; a wash that takes caller markup must say which surface it hands an inline code chip');
+  assert.equal(statusLayers.length, 13, 'every badge and pill fill is measured, including the two base fills');
+  for (const layer of statusLayers) {
+    assert.ok(!HANDS_NOTHING_ON.test(layer.raw),
+    `${layer.selector} accepts React children and cannot claim to exclude code`);
+  }
+  assert.equal(calloutWashes.length, 5, 'every callout wash is discovered');
+  for (const { selector, paint } of calloutWashes) {
+    assert.ok(colourOf(paint, tokensFor('light'))[3] < 1, `${selector} must remain a translucent wash`);
+  }
+  assert.equal(washes.length, 18, 'wash discovery changed; a wash that takes caller markup must say which surface it hands an inline code chip');
   for (const { selector, paint } of washes) {
     assert.ok(pickFor(selector), `${selector} is a wash a caller can write a chip inside and never hands it a surface`);
-    assert.ok(colourOf(paint, tokensFor('light'))[3] < 1, `${selector} is measured as a wash but paints opaquely`);
+    assert.ok(colourOf(paint, tokensFor('light')), `${selector} has no readable fill`);
   }
   assert.equal(contexts.length, 2, 'a container re-points a ground token; say what a chip inside it takes');
   assert.ok(grounds.some(({ selector }) => selector === ':root'), 'the page is a painted ground and is measured with the rest');
@@ -320,7 +339,13 @@ test('the chip gate discovers every ground, wash, context and theme', () => {
     'every ground, and every wash over every ground, is measured in every context and theme');
 });
 
-test('an inline code chip keeps a step on every ground the kit draws, in both themes', () => {
+test('an inline code chip keeps a step on every ground the kit draws, in both themes', (t) => {
+  const status = steps().filter((row) => /^\.ui-(?:badge|pill)/.test(row.selector));
+  assert.equal(status.length, 13 * grounds.length * contexts.length * THEMES.length);
+  for (const theme of THEMES) {
+    const rows = status.filter((row) => row.theme === theme);
+    t.diagnostic(`${theme}: ${rows.length} status pairs; minimum ${Math.min(...rows.map((row) => row.step)).toFixed(6)}:1`);
+  }
   const findings = steps().filter(({ step }) => step < STEP);
   const unexplained = findings.filter((finding) => !accepts(finding));
   assert.deepEqual(unexplained, [], `a chip disappears on a ground nobody accepted: ${JSON.stringify(unexplained)}`);
