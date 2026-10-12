@@ -300,7 +300,7 @@
      used to be written here twice live with the token. */
   background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
 }
-.ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only surface has no nested chip. */ }
 
 /* Disabled + danger rows */
 .ui-dropdown__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }

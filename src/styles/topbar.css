@@ -226,7 +226,7 @@
   flex: none;
   margin-top: 1px;
 }
-.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* ring-gap: inherit — decorative or text-only surface has no nested focus target. */ }
+.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only surface has no nested chip. */ }
 /* The archived version badge is the archive badge tone in a floating menu, so it takes
    the same neutral chip fill rather than the card surface — which, inside a panel that
    is itself lighter than a card, was darker than the ground it sat on. #453 */
