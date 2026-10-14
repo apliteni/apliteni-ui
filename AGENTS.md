@@ -56,7 +56,6 @@ automatically, and explain the cause and limitation of each accepted failure.
 
 Before opening a PR that changes colours, tokens or theme/accent CSS, run:
 `CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast-light.test.js`
-`CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast-dark.test.js`
 Report the result in the PR.
 
 ## Check the phone tap floor locally
