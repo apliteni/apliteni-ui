@@ -21,6 +21,21 @@ async function run(eventName, payload) {
   return comments;
 }
 
+async function runWithCommentFailure(eventName, payload) {
+  const warnings = [];
+  const github = { rest: { issues: { createComment: async () => {
+    throw new Error('Request failed with status 403');
+  } } } };
+  const core = { warning: message => warnings.push(message) };
+  const context = {
+    eventName,
+    payload,
+    repo: { owner: 'apliteni', repo: 'apliteni-ui' },
+  };
+  await new AsyncFunction('context', 'github', 'core', script)(context, github, core);
+  return warnings;
+}
+
 test('issue comments scan the comment instead of the parent issue body', async () => {
   const comments = await run('issue_comment', {
     issue: { number: 646, body: `Parent body has ${['123e4567', 'e89b', '42d3', 'a456', '426614174000'].join('-')}.` },
@@ -38,6 +53,48 @@ test('warning identifies the matched pattern and its location', async () => {
 
   assert.equal(comments.length, 1);
   assert.match(comments[0].body, /Lessly host at line 1, column 15/);
+});
+
+test('pull request reviews scan the review body', async () => {
+  const comments = await run('pull_request_review', {
+    pull_request: { number: 660, body: 'This pull request body is clean.' },
+    review: { body: `The review mentions ${['api', 'example', 'lessly', 'run'].join('.')}.` },
+  });
+
+  assert.equal(comments.length, 1);
+  assert.equal(comments[0].issue_number, 660);
+});
+
+test('pull request review comments scan the comment body', async () => {
+  const comments = await run('pull_request_review_comment', {
+    pull_request: { number: 660, body: 'This pull request body is clean.' },
+    comment: { body: `The review comment mentions ${['api', 'example', 'lessly', 'run'].join('.')}.` },
+  });
+
+  assert.equal(comments.length, 1);
+  assert.equal(comments[0].issue_number, 660);
+});
+
+test('pattern matching is case insensitive for Lessly hosts and ttl.sh tags', async () => {
+  const lesslyComments = await run('issues', {
+    issue: { number: 660, body: `Use ${['API', 'LESSLY', 'RUN'].join('.')}.` },
+  });
+  const ttlComments = await run('issues', {
+    issue: { number: 660, body: `Use ${['TTL', 'SH'].join('.')}/demo.` },
+  });
+
+  assert.equal(lesslyComments.length, 1);
+  assert.equal(ttlComments.length, 1);
+});
+
+test('comment failures become warnings for review events', async () => {
+  const warnings = await runWithCommentFailure('pull_request_review_comment', {
+    pull_request: { number: 660, body: 'This pull request body is clean.' },
+    comment: { body: `The review comment mentions ${['api', 'example', 'lessly', 'run'].join('.')}.` },
+  });
+
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /read-only GITHUB_TOKEN/);
 });
 
 for (const [name, body] of [
