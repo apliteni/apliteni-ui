@@ -9,6 +9,10 @@ on:
     types: [opened, edited]
   issue_comment:
     types: [created, edited]
+  pull_request_review:
+    types: [submitted, edited]
+  pull_request_review_comment:
+    types: [created, edited]
   # SAFE use of pull_request_target: this job only READS context.payload and never
   # checks out or executes PR code, so it does not reintroduce the fork-PR secret
   # risk hardened in #74. It needs the base-repo token to comment on fork PRs.
@@ -27,14 +31,17 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const body = context.eventName === "issue_comment"
-              ? (context.payload.comment?.body ?? "")
-              : (context.payload.pull_request?.body
-                ?? context.payload.issue?.body ?? "");
+            const body = context.eventName === "pull_request_review"
+              ? (context.payload.review?.body ?? "")
+              : (context.eventName === "issue_comment"
+                || context.eventName === "pull_request_review_comment")
+                ? (context.payload.comment?.body ?? "")
+                : (context.payload.pull_request?.body
+                  ?? context.payload.issue?.body ?? "");
             const patterns = [
               { name: "UUID v4", re: /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b/ },
-              { name: "ttl.sh image tag", re: /ttl\.sh\/[a-z0-9]/ },
-              { name: "Lessly host", re: /[a-z0-9-]+\.lessly\.run\b/ },
+              { name: "ttl.sh image tag", re: /ttl\.sh\/[a-z0-9]/i },
+              { name: "Lessly host", re: /[a-z0-9-]+\.lessly\.run\b/i },
               { name: "deploy-token name", re: /LESSLY_DEPLOY_TOKEN\s*[:=]/ },
               { name: "private IP", re: /\b(?:10|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}\b/ },
             ];
