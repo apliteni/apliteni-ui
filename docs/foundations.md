@@ -160,17 +160,19 @@ show hierarchy by fading descriptions, labels, captions, timestamps, counts, cod
 or enabled actions with `--muted`, `--dim` or opacity. Use size, weight and spacing for that
 hierarchy. Signal colours still report status and errors. Links keep their link ink.
 
-Muted and dim ink have exactly three uses:
+Muted and dim ink have exactly four uses:
 
 - **glyph** — a mark that is not words: an arrow, a chevron, a dismiss icon.
 - **state** — colour reporting off, unset, disabled or archived, rather than rank.
 - **placeholder** — a slot with no value, such as an empty field or cell.
+- **chrome** — a chart's axis, period row or legend, when the same values also
+  appear at full strength in the chart's hover readout or values table.
 
 An empty-state explanation is not an empty slot. A keyboard shortcut is language. A count is
-not a status. Generic badges use body ink. Archive and disabled variants keep their state
-ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral dropdown chip tints
-by mixing muted ink into the panel. This is the one soft fill under words that the kit draws,
-and its text still clears 4.5:1.
+not a status. A field label, caption or timestamp is not chart chrome. Generic badges use body
+ink. Archive and disabled variants keep their state ink. A dropdown badge asks for state ink with
+`tone: 'state'`. A neutral dropdown chip tints by mixing muted ink into the panel. This is the
+one soft fill under words that the kit draws, and its text still clears 4.5:1.
 
 ## Colour and contrast
 

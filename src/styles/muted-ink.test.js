@@ -17,7 +17,7 @@ const root = new URL('../../', import.meta.url);
 const files = ['src', 'react/src'].flatMap(dir => readdirSync(new URL(dir, root), { recursive: true })
   .filter(file => file.endsWith('.css')).map(file => `${dir}/${file}`));
 const sheets = files.map(file => ({ file, css: readFileSync(new URL(file, root), 'utf8') }));
-const classes = new Set(['glyph', 'state', 'placeholder']);
+const classes = new Set(['glyph', 'state', 'placeholder', 'chrome']);
 const blank = text => text.replace(/\/\*[\s\S]*?\*\//g, c => c.replace(/[^\n]/g, ' '));
 const refs = value => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1]);
 
@@ -59,7 +59,7 @@ function inspect(sources) {
     && !(d.property === '-webkit-text-fill-color' && normalize(d.value) === 'transparent' && d.clipped)
     && quiet(d.value));
   const problems = subjects.filter(d => !d.note || !classes.has(d.note[1]) || !d.note[2].trim())
-    .map(d => `${d.file}:${d.line} ${d.selector}: ${d.value} needs a muted-ink glyph/state/placeholder note with a reason`);
+    .map(d => `${d.file}:${d.line} ${d.selector}: ${d.value} needs a muted-ink glyph/state/placeholder/chrome note with a reason`);
   return { subjects, problems };
 }
 
