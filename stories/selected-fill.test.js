@@ -159,13 +159,6 @@ const SUBJECTS = [
     rule: '.ui-app__rail .ui-nav__item.is-active', ground: '--surface',
     paintedBy: '.ui-app__rail, which layout.css paints --surface',
   },
-  // All three spellings segmented() can emit, because each is a rule a consumer sheet
-  // can override on its own and the pill is only marked if every one of them steps.
-  ...['[aria-pressed="true"]', '[aria-selected="true"]', '.is-active'].map((state) => ({
-    name: `the chosen pill in a segmented group (${state})`,
-    rule: `.ui-seg button${state}`, ground: '--surface',
-    paintedBy: '.ui-seg, the strip\'s own track, which segmented.css paints --surface',
-  })),
   {
     name: 'the row a menu would pick',
     rule: '.ui-dropdown__item.is-active', ground: '--bg-elevated',
@@ -345,4 +338,32 @@ test('a later rule that removes a selected fill fails this gate', () => {
       `${subject.name}: the reading ignored a removed selection fill`);
     assert.throws(() => against('none', subject.ground, 'light'), /not a colour/);
   }
+});
+
+// This source check covers every selected spelling and accent. The contrast ledger
+// measures label ink and interaction states; browser evidence covers painted pixels.
+test('segmented pills use an accent mark with at least 3:1 against their track', () => {
+  const accents = ['default', ...new Set([...readFileSync(path.join(root, 'src/tokens/accents.css'), 'utf8')
+    .matchAll(/data-accent="([^"]+)"/g)].map((match) => match[1]))];
+  assert.ok(accents.length >= 4, 'accent discovery lost a shipped accent');
+  const states = ['[aria-pressed="true"]', '[aria-selected="true"]', '.is-active'];
+  let count = 0;
+  for (const state of states) {
+    const selector = `.ui-seg button${state}`;
+    const marks = discovered.filter((found) => found.selector === selector);
+    assert.ok(marks.length > 0, `${selector}: no selected fill found`);
+    assert.ok(!measured.has(selector), `${selector}: an accent mark is still a grey-fill subject`);
+    for (const mark of marks) {
+      assert.ok(accent(mark), `${selector}: the selected mark must enter the accent ledger`);
+      for (const theme of ['light', 'dark']) for (const name of accents) {
+        const vars = tokensFor(theme, name);
+        const fill = parseColour(substitute(mark.fill, vars));
+        const track = parseColour(substitute('var(--surface)', vars));
+        assert.ok(fill && track, `${theme}/${name}: unresolved paint`);
+        assert.ok(ratio(fill, track) >= 3, `${theme}/${name}: selected fill is below 3:1`);
+        count += 1;
+      }
+    }
+  }
+  assert.equal(count, states.length * accents.length * 2);
 });

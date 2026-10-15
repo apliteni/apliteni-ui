@@ -699,6 +699,8 @@ Use `.ui-toolbar--split` to place the final control at the row's end. On a phone
 
 ### Segmented strips that outgrow their column
 
+The selected pill uses an accent fill with contrasting label ink in both themes. Only keyboard focus draws an outline.
+
 A pill strip lays out its choices in one row while they fit. When they do not fit, the choices
 wrap onto further rows. **It never widens past its container:** a twelve-month picker in a phone
 column becomes three rows of pills instead of pushing the page sideways. Below 560px, the

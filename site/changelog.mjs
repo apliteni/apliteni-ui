@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.117.1', date: '2026-10-15',
+    changes: [
+      ['fixed', 'Selected Segmented pills now use the accent fill in vanilla and React. Their labels use contrasting ink in each theme, and outlines remain reserved for keyboard focus. See #614.', ['Segmented']],
+    ],
+  },
+  {
     v: '0.117.0', date: '2026-10-15',
     changes: [
       ['changed', 'Tables inside fit-content cards size to their content, and their pagers wrap within that width. Other tables keep their full width. The company comparison aligns its heading, filters, tabs and first column, and keeps all three columns visible on phones (#504).', ['Table', 'DataTable', 'Pagination']],
