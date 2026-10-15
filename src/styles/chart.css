@@ -31,7 +31,7 @@
 .ui-chart--spark {
   --ui-chart-col: var(--space-6);
   gap: 0;
-  min-width: calc(var(--ui-chart-col) * var(--ui-chart-cols, 1));
+  min-width: 0;
 }
 /* No axis, so the scroller takes the whole frame rather than the auto column
    the axis would have held. */

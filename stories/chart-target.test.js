@@ -427,11 +427,18 @@ test(
               coarse: matchMedia('(pointer: coarse)').matches,
               hover: matchMedia('(hover: hover)').matches,
               width: window.innerWidth,
+              documentWidth: document.documentElement.scrollWidth,
             }));
             assert.deepEqual(
-              media, { coarse: true, hover: false, width },
+              { coarse: media.coarse, hover: media.hover, width: media.width },
+              { coarse: true, hover: false, width },
               `The rig did not report a coarse pointer at ${width}, so the phone floor never `
               + 'applied and the result would be a desktop measurement.',
+            );
+            assert.ok(
+              media.documentWidth <= width,
+              `The sparkline story makes the ${width}px document ${media.documentWidth}px wide `
+              + `in ${theme} mode. Keep the target floor inside the tile's scroll area.`,
             );
 
             const result = await page.evaluate((mutation) => {
@@ -449,6 +456,7 @@ test(
               const round = (n) => Math.round(n * 100) / 100;
               const anchorCount = document.querySelectorAll('[data-anchor]').length;
               const rows = [...document.querySelectorAll('.ui-chart__hit')].map((hit) => {
+                hit.scrollIntoView({ block: 'nearest', inline: 'nearest' });
                 const id = hit.closest('[data-mark]').getAttribute('data-mark');
                 const box = hit.getBoundingClientRect();
                 const y = box.top + box.height / 2;
