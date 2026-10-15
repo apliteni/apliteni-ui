@@ -208,8 +208,8 @@ test('the shared splitter is read by every gate that was reading a selector list
   const callers = tracked.filter((file) => SOURCE.test(file) && !self.includes(file)
     && /splitSelectorList\s*\(/.test(readFileSync(path.join(root, file), 'utf8')));
   assert.equal(
-    callers.length, 33,
+    callers.length, 34,
     'the set of gates reading a selector list changed; current main adds selector-list readers '
-    + 'in React date-picker, tap-zone, table-edge and several style gates',
+    + 'in React date-picker, chart-target, tap-zone, table-edge and several style gates',
   );
 });

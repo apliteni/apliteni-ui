@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.114.0', date: '2026-10-15',
+    changes: [
+      ['added', 'React Chart draws monthly bars with a line, a bridge from a starting total to a result, and a sparkline at text size for a stat band trend slot. A period that is not final keeps its series fill with a dashed edge and is said in words in the readout and the optional table. The chart is one tab stop, and the same numbers are available as a table.', ['React Chart']],
+      ['added', 'The main entry exports chartScale, bridgeWalk and pointTarget, the arithmetic behind those shapes, so a surface that draws them without React asks the kit instead of writing its own scale and its own pointer targets.'],
+    ],
+  },
+  {
     v: '0.113.0', date: '2026-10-12',
     changes: [
       ['changed', 'Nothing the kit renders changes. The kit\'s own gates now split a selector list at its top-level commas only, so a rule written with `:where(td, th)` or `:is(:hover, :focus-visible)` reaches them whole instead of in fragments that match nothing. One consequence worth naming: the collapsed rail\'s hover and focus-visible labels were being measured for contrast in no state at all, and now are. The only published CSS byte is a comment in `layout.css` citing a line that moved. Resolves #521.'],
