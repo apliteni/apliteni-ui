@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.119.0', date: '2026-10-15',
+    changes: [
+      ['fixed', 'DatePicker puts `id` on its trigger button instead of its outer wrapper, so a `Field` label now names and focuses the trigger directly, with no `ariaLabel` needed. The fallback `ariaLabel` on an empty or selected picker no longer overrides a `Field` label. See #635.', ['DatePicker', 'Field']],
+    ],
+  },
+  {
     v: '0.118.0', date: '2026-10-15',
     changes: [
       ['added', 'React Tooltip accepts a label, value and detail, with a preferred top or bottom placement. Existing text tooltips keep working. Part of #429.', ['Tooltip']],
