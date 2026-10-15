@@ -6,6 +6,33 @@ import { Segmented } from './Segmented';
 import { DataTable } from './DataTable';
 import { RowIdentity, NumericValue, DeltaValue } from './TableValues';
 import { Comparison } from './Finance.stories';
+
+// This checks rendered tone classes and signs. Browser evidence checks the paint in both themes.
+it('matches comparison daily-change tones to their signs', () => {
+  const { container } = render(<Comparison.render />);
+  const deltas = [...container.querySelectorAll('.ui-delta')];
+  const positive = deltas.filter(delta => delta.textContent?.startsWith('+'));
+  const negative = deltas.filter(delta => delta.textContent?.startsWith('−'));
+  const zero = deltas.filter(delta => delta.textContent === '0.00%');
+  expect(deltas).toHaveLength(20);
+  expect(positive.length).toBeGreaterThan(0);
+  expect(negative.length).toBeGreaterThan(0);
+  expect(zero.length).toBeGreaterThan(0);
+  expect(positive.length + negative.length + zero.length).toBe(deltas.length);
+  for (const delta of positive) {
+    expect(delta).toHaveClass('ui-delta--success');
+    expect(delta).not.toHaveClass('ui-delta--danger');
+  }
+  for (const delta of negative) {
+    expect(delta).toHaveClass('ui-delta--danger');
+    expect(delta).not.toHaveClass('ui-delta--success');
+  }
+  for (const delta of zero) {
+    expect(delta).not.toHaveClass('ui-delta--success');
+    expect(delta).not.toHaveClass('ui-delta--danger');
+  }
+});
+
 describe('finance composition', () => {
   it('keeps short option text while exposing the supplied full accessible name', () => {
     render(<Segmented label="Period" value="apr" onChange={() => {}} options={[

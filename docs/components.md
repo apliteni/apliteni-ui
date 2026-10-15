@@ -473,6 +473,16 @@ captured. This means a chart that drills down on a bar does not drill down on th
 what the bar says. No value may be reachable only by hovering. See
 [Hover readouts](../guidelines/hover-readouts.md).
 
+### The React tooltip
+
+React `Tooltip` shows a label, a value and an optional detail.
+`text` is still a shorthand for `label`. Empty parts are hidden.
+The focusable trigger provides the readout as its accessible description. Escape keeps focus on the trigger.
+The panel does not change the layout or intercept pointer events. Reduced motion removes the fade.
+
+`placement` selects the preferred top or bottom side. The readout stays within clipping ancestors
+and viewport bounds, and updates its position on scroll and resize.
+
 ### Pagination
 
 The pager renders a page you have already computed. It uses the current page, the page size and,
