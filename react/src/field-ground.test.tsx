@@ -51,7 +51,9 @@ import {
 } from '../../stories/lib/field-ground.js';
 
 const THEMES = ['dark', 'light'] as const;
-const FIELD_COUNT = 57;
+// 57 when #568 wrote this gate, plus the twelve the invoice showcase renders: four fields
+// over its NeedsReview, Editing and Ready stories (#459 r33). Move it with the specimens.
+const FIELD_COUNT = 69;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

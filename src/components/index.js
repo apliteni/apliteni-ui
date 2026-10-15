@@ -48,9 +48,11 @@ export function button({
 }
 
 // ---- Badge / Pill --------------------------------------------------------
+// Neutral is written out rather than left implied: a status column reading its tone off the
+// class list found nothing on two of four rows, and the tone a chip is in is not a default
+// the markup should have to know. The base class carries the same fill either way. #459
 export function badge(label, variant = 'neutral') {
-  const v = variant === 'neutral' ? '' : `ui-badge--${variant}`;
-  return `<span class="${esc(cx('ui-badge', v))}">${esc(label)}</span>`;
+  return `<span class="${esc(cx('ui-badge', `ui-badge--${variant}`))}">${esc(label)}</span>`;
 }
 export function pill(label, variant) {
   return `<span class="${esc(cx('ui-pill', variant && `ui-pill--${variant}`))}">${esc(label)}</span>`;

@@ -15,7 +15,7 @@
   padding: 3px 9px;
   border-radius: var(--radius-pill);
   color: var(--text);
-  background: var(--chip-neutral-fill);
+  /* chip: filled */ background: var(--chip-neutral-fill);
   white-space: nowrap;
 }
 /* Status chips take the --chip-* pairs, so the light app's solid fills live in
@@ -26,18 +26,18 @@
    panel in dark. why: docs/foundations.md#elevation
    Soon takes body ink here, not --accent: accent ink measured 4.04:1 on a dark floating
    panel under three of the four accents, body ink 9.74:1. See docs/foundations.md. */
-.ui-badge--live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
-.ui-badge--soon { color: var(--text); background: var(--chip-neutral-fill); }
-.ui-badge--info { color: var(--chip-info-ink); background: var(--chip-info-fill); }
-.ui-badge--warn { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
-.ui-badge--danger { color: var(--chip-danger-ink); background: var(--chip-danger-fill); }
-.ui-badge--archive { /* muted-ink: state — archived record */ color: var(--muted); background: var(--chip-neutral-fill); }
+.ui-badge--live { color: var(--chip-success-ink); /* chip: filled */ background: var(--chip-success-fill); }
+.ui-badge--soon { color: var(--text); /* chip: filled */ background: var(--chip-neutral-fill); }
+.ui-badge--info { color: var(--chip-info-ink); /* chip: filled */ background: var(--chip-info-fill); }
+.ui-badge--warn { color: var(--chip-warn-ink); /* chip: filled */ background: var(--chip-warn-fill); }
+.ui-badge--danger { color: var(--chip-danger-ink); /* chip: filled */ background: var(--chip-danger-fill); }
+.ui-badge--archive { /* muted-ink: state — archived record */ color: var(--muted); /* chip: filled */ background: var(--chip-neutral-fill); }
 
 /* Semantic status variants — for record/row status in data tables
    (paid / verified / pending / failed …). Same chip, mapped to meaning. */
-.ui-badge--success { color: var(--chip-success-ink); background: var(--chip-success-fill); }
-.ui-badge--pending { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
-.ui-badge--neutral { color: var(--text); background: var(--chip-neutral-fill); }
+.ui-badge--success { color: var(--chip-success-ink); /* chip: filled */ background: var(--chip-success-fill); }
+.ui-badge--pending { color: var(--chip-warn-ink); /* chip: filled */ background: var(--chip-warn-fill); }
+.ui-badge--neutral { color: var(--text); /* chip: filled */ background: var(--chip-neutral-fill); }
 
 /* Pill: same shape, sentence case, a touch larger — a metadata chip */
 .ui-pill {
@@ -47,7 +47,7 @@
   /* rank: chip */
   font-size: var(--text-xs);
   color: var(--text);
-  background: var(--chip-neutral-fill);
+  /* chip: filled */ background: var(--chip-neutral-fill);
   border-radius: var(--radius-pill);
   padding: 4px 11px;
   font-weight: var(--weight-semibold);
@@ -55,8 +55,8 @@
 /* The live pill is the same status paint as the live badge, so it takes the
    same pair. On its own it was --green on --glow-green, which is 3.97:1 over
    white — under AA, while the badge beside it cleared at 4.64:1. See issue #131. */
-.ui-pill--live { color: var(--chip-success-ink); background: var(--chip-success-fill); }
-.ui-pill--soon { color: var(--text); background: var(--chip-neutral-fill); }
+.ui-pill--live { color: var(--chip-success-ink); /* chip: filled */ background: var(--chip-success-fill); }
+.ui-pill--soon { color: var(--text); /* chip: filled */ background: var(--chip-neutral-fill); }
 
 /* Status dot */
 .ui-dot {
