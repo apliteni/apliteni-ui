@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.119.2', date: '2026-10-15',
+    changes: [
+      ['fixed', 'React DataTable shows a partial state on its select-all checkbox when some rows on the current page are selected. Assistive technology receives the same partial state. See #619.', ['DataTable']],
+    ],
+  },
+  {
     v: '0.119.1', date: '2026-10-15',
     changes: [
       ['fixed', 'Both AppShell implementations place the rail brand, navigation and fold control inside a named Sidebar region. Screen readers can reach the whole rail through landmarks, with no visual change. See #648.', ['AppShell']],
