@@ -158,7 +158,10 @@
   scale: var(--toast-card-scale, 1);
   transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease);
 }
-.ui-toast-stack--collapsed:hover, .ui-toast-stack--collapsed:focus-within { height: var(--toast-fan-height, auto); }
+.ui-toast-stack--collapsed:hover, .ui-toast-stack--collapsed:focus-within {
+  height: var(--toast-fan-height, auto);
+  overflow: visible;
+}
 .ui-toast-stack--collapsed:hover > .ui-toast,
 .ui-toast-stack--collapsed:focus-within > .ui-toast {
   translate: 0 var(--toast-card-fan, 0px);
