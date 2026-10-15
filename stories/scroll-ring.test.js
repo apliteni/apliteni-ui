@@ -28,6 +28,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 import { STYLE_FILES, desugar, substitute, tokensFor } from './lib/contrast.js';
 
 import { confirm, drawer, dropdown } from '../src/index.js';
@@ -257,7 +258,7 @@ function checkForcedFocus(css) {
     for (const [, selectors, body] of block.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
       assert.doesNotMatch(body, /box-shadow\s*:/, 'forced colours must not correct a shadow focus ring');
       if (!/outline(?:-offset|-width|-style|-color)?\s*:/.test(body)) continue;
-      for (const selector of selectors.split(',')) {
+      for (const selector of splitSelectorList(selectors)) {
         const subject = selector.trim().split(/\s+|>|\+|~/).at(-1);
         assert.match(subject, /:not\(:focus-visible\)/, 'a forced-colour outline can replace the focus ring');
         assert.match(subject, /\.is-(?:active|current|selected)|\[aria-(?:pressed|selected)="true"\]/,
