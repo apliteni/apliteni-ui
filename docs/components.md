@@ -167,6 +167,7 @@ identity column through classes. See
 | `prefersReducedMotion()`, `staggerDelay`, `initReveal`, `replay`, `playEntrance`, `transitionMs(el)`, `ENTRANCE_FALLBACK_MS` | The motion helpers. `transitionMs(el)` answers how long the stylesheet says an element's transition lasts, so a caller sizing a backstop timer for a fade reads the sheet rather than copying a duration token; a missing or non-element argument answers `0`, which fires at once rather than never. See [Motion](foundations.md#motion). |
 | `esc(s)` | HTML-escape a text value. Every factory already applies it to its own text arguments; you need it for markup you assemble yourself. |
 | `safeUrl(url, fallback?)` | The URL boundary every factory sends an `href` through: a `javascript:`, `data:` or `vbscript:` destination becomes the fallback, `#` unless you name another. You need it for markup you assemble yourself; the React components call this same function. See [Escaping and URL slots](#escaping-and-url-slots). |
+| `observeNavFit(row)` | Observe changes to a tab row and its links without changing its scroll position. Call the returned function to stop observation. |
 | `revealCurrentNav(row)` | Size one `.ui-nav--tabs` row to its links and bring its `aria-current` link inside it, moving neither focus nor the page. `wireNav()` calls it; call it yourself after replacing a row's links. |
 | `revealFocusedNav(row, target)` | The same scroll for the link a focus event landed on, so the ring that link draws clears the row's scrolling edge. `target` is the event's target; a target that is not a tab in `row` is ignored. `wireNav()` wires it, and React's `NavTabs` calls it on focus. |
 
@@ -248,7 +249,7 @@ current section, not the page. When a page should take one:
 
 `navTabs()` lays its links out in one row and never wraps them. **When the links are wider than
 the column, the row scrolls inside itself and the page does not widen.** A breadcrumb trail does
-the opposite, and wraps.
+the opposite, and wraps. A shade marks each edge with more tabs beyond it.
 
 **The row stays aligned with the page gutter, and the active underline stays on the row rule.**
 Call `wireNav()` for vanilla rows. React rows update automatically when their labels, badges,

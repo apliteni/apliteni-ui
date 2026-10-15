@@ -292,6 +292,8 @@
      underline off the rule. */
   --ui-tabs-ring-room: var(--space-1);
   --ui-tabs-rule: 1px;
+  --ui-tabs-ground: var(--bg);
+  --ui-tabs-edge: color-mix(in srgb, var(--sheen) 12%, transparent);
   min-width: 0;
   max-width: calc(100% + 2 * var(--ui-tabs-ring-room));
   overflow-x: auto;
@@ -301,15 +303,30 @@
   display: flex;
   align-items: stretch;
   gap: 4px;
-  background-image: linear-gradient(var(--border), var(--border));
+  /* Local covers hide the table-style shades when their edge is reached.
+     The row rule stays above the covers and keeps its original position. */
+  background-image:
+    linear-gradient(var(--border), var(--border)),
+    linear-gradient(to right, var(--ui-tabs-ground) 50%, transparent),
+    linear-gradient(to left, var(--ui-tabs-ground) 50%, transparent),
+    radial-gradient(farthest-side at 0 50%, var(--ui-tabs-edge), transparent),
+    radial-gradient(farthest-side at 100% 50%, var(--ui-tabs-edge), transparent);
   background-repeat: no-repeat;
-  background-position: center bottom calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule));
-  background-size: calc(100% - 2 * var(--ui-tabs-ring-room)) var(--ui-tabs-rule);
+  background-position:
+    center bottom calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule)),
+    0 0, 100% 0, 0 0, 100% 0;
+  background-size:
+    calc(100% - 2 * var(--ui-tabs-ring-room)) var(--ui-tabs-rule),
+    var(--space-6) 100%, var(--space-6) 100%, var(--space-3) 100%, var(--space-3) 100%;
+  background-attachment: scroll, local, local, scroll, scroll;
 }
 /* Fitting rows keep overflow visible. Measurements retain the same padding and margins,
    so switching containment does not move the links. Unwired rows keep containment. */
 .ui-nav--tabs[data-nav-fit] { overflow: visible; }
-.ui-nav--tabs.is-pill { --ui-tabs-rule: 0px; background-image: none; gap: 6px; }
+.ui-nav--tabs.is-pill { --ui-tabs-rule: 0px; gap: 6px; }
+:root[data-theme="light"] .ui-nav--tabs {
+  --ui-tabs-edge: color-mix(in srgb, var(--shadow-ink) 13%, transparent);
+}
 /* The row is a keyboard stop of its own only while it scrolls AND holds no focusable
    link — every tab disabled — and Chromium answers that stop with its black outline. It
    is a scroll region, so it takes the kit's inward band like the other six: an outset
