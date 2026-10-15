@@ -95,8 +95,9 @@ export const scaleDont = () => stage(card({
 const CURRENCY = { label: 'currency:', ariaLabel: 'Currency', items: currencyItems('EUR'), open: true };
 const room = (html) => stage(`<div style="min-height:400px">${html}</div>`);
 export const searchDo = () => room(dropdown({
-  ...CURRENCY, search: { placeholder: 'Search currencies', query: 'dollar' },
-}));
+  ...CURRENCY, panelClass: 'gl-component-choice__search-panel',
+  search: { placeholder: 'Search currencies', query: 'dollar' },
+}) + '<style>.gl-component-choice__search-panel{min-width:min(280px,calc(100vw - 80px));}</style>');
 export const searchDont = () => room(dropdown({ ...CURRENCY, scroll: true }));
 
 export const RULES = withSpecimens(content.rules, [

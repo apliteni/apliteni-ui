@@ -31,9 +31,9 @@
    accent band is the second band #578 round r34 took off the focus rules, and a
    pointer resting on a focused control would put it back. One indicator, which is
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
-.ui-dropdown__trigger:hover:not(:focus-visible) { border-color: var(--accent); }
+.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-dropdown__trigger:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-/* Off. The off hover-not-focus selectors are (0,4,0), above live hover's (0,3,0).
+/* Off. The off hover-not-focus selectors are (0,4,0), tied with live hover and later.
    A pointer over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
    No fill: --disabled-surface IS this control's --surface, in both themes. The
    activation is refused in ddTriggerOff(), not with pointer-events, which would

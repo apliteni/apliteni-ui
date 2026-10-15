@@ -405,7 +405,9 @@ test('the cache refuses a property it does not hold, rather than answering undef
   const win = boxWindow('.box{background:rgb(10,20,30)}');
   const cs = makeStyleCache(win).of(win.document.getElementById('b'));
   assert.equal(cs.backgroundColor, 'rgb(10, 20, 30)', 'a property it does hold');
-  assert.throws(() => cs.borderTopColor, /style cache does not hold "borderTopColor"/);
+  // Any property outside CAPTURED will do; this one is outside it because nothing in the
+  // walk reads letter spacing. `borderTopColor` used to stand here and now IS captured. #518
+  assert.throws(() => cs.letterSpacing, /style cache does not hold "letterSpacing"/);
   win.close();
 });
 
@@ -563,7 +565,7 @@ test('every state base the kit sheet yields is a selector a browser accepts', ()
       }
     }
   }
-  assert.equal(counted, 264, 'state-base discovery changed: 132 bases per theme, over two themes');
+  assert.equal(counted, 270, 'state-base discovery changed: 135 bases per theme, over two themes');
   assert.deepEqual(offences, [], `a state base no browser would accept:\n  ${offences.join('\n  ')}`);
   dom.window.close();
 });
