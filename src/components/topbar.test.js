@@ -203,3 +203,45 @@ for (const theme of ['dark', 'light']) {
     } finally { view.close(); }
   });
 }
+
+// Chromium checks the shipped stylesheet and factory at phone widths. This does
+// not measure other consumers or custom fonts. CI skips this optional browser run.
+test('phone topbars keep every control inside two rows', { skip: process.env.TOPBAR_ROWS !== '1' }, async () => {
+  const { kitStylesheet, playwright } = await import('../../stories/lib/tap-zone.js');
+  const stories = await import('../../stories/components/Topbar.stories.js');
+  const subjects = Object.entries(stories).filter(([, story]) => typeof story?.render === 'function')
+    .map(([name, story]) => ({ name, html: story.render() }))
+    .filter(({ html }) => JSDOM.fragment(html).querySelector('.topbar'));
+  assert.ok(subjects.length >= 3, 'Full, SignedOut and InShell must be measured');
+  const pw = await playwright();
+  assert.ok(pw, 'TOPBAR_ROWS requires UI_PLAYWRIGHT');
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME || undefined });
+  const css = kitStylesheet();
+  let measured = 0;
+  try {
+    for (const subject of subjects) for (const width of [320, 390]) for (const theme of ['light', 'dark']) {
+      const page = await browser.newPage({ viewport: { width, height: 600 }, hasTouch: true });
+      await page.setContent(`<html data-theme="${theme}"><head><style>${css}</style></head><body>${subject.html}</body></html>`);
+      const measure = () => page.evaluate(() => {
+        const box = (selector) => {
+          const element = document.querySelector(`.topbar ${selector}`);
+          if (!element) return null;
+          const { left, right, top, bottom } = element.getBoundingClientRect();
+          return { left, right, top, bottom };
+        };
+        return { width: innerWidth, scroll: document.documentElement.scrollWidth,
+          first: ['.brand', '.toggle', '.acct'].map(box).filter(Boolean), second: ['.dtsw', '.vsw'].map(box).filter(Boolean) };
+      });
+      const fits = (m) => m.scroll === m.width
+        && [...m.first, ...m.second].every(r => r.left >= 0 && r.right <= m.width)
+        && Math.min(...m.second.map(r => r.top)) >= Math.max(...m.first.map(r => r.bottom));
+      assert.ok(fits(await measure()), `${subject.name} ${width}px ${theme}: both rows must fit`);
+      measured++;
+      // Removing the phone layout must restore the failure this check detects.
+      await page.addStyleTag({ content: '.topbar__in { display: flex !important; flex-wrap: nowrap !important; }' });
+      assert.equal(fits(await measure()), false, 'the one-row mutation must fail');
+      await page.close();
+    }
+    assert.equal(measured, subjects.length * 4, 'every subject, phone width and theme was measured');
+  } finally { await browser.close(); }
+});
