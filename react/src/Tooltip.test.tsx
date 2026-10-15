@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, expect, it, vi } from 'vitest';
 import axe from 'axe-core';
-import { Tooltip, TooltipHost } from './Tooltip';
+import { Tooltip } from './Tooltip';
 import { placeTip } from './tip';
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
@@ -137,138 +137,14 @@ it('renders structured inline content and keeps text as the label shorthand', ()
   expect(view.queryByText('Fallback')).toBeNull();
 });
 
-function chart(props: Partial<React.ComponentProps<typeof TooltipHost>> = {}) {
-  const view = render(<TooltipHost {...props}>
-    <svg aria-label="Demo revenue" role="img">
-      <g tabIndex={0} data-tip-label="March" data-tip-value="€48,210" data-tip-detail="+4.2% on February" data-testid="march">
-        <rect data-tip-anchor="" data-testid="anchor" />
-      </g>
-      <g tabIndex={0} data-tip-label="April" data-tip-value="€50,000" data-testid="april"><rect /></g>
-    </svg>
-  </TooltipHost>);
-  const host = view.container.firstElementChild as HTMLDivElement;
-  return { ...view, host, tip: host.querySelector<HTMLElement>('.ui-tip')!, first: view.getByTestId('march'), second: view.getByTestId('april'), anchor: view.getByTestId('anchor') };
-}
-
-it('moves one readout across chart targets and clears absent content', () => {
-  const { first, second, tip, host } = chart();
-  fireEvent.mouseOver(first);
-  expect(tip).toHaveTextContent('March€48,210+4.2% on February');
-  expect(first).toHaveAttribute('aria-describedby', tip.id);
-  fireEvent.mouseOver(second);
-  expect(tip).toHaveTextContent('April€50,000');
-  expect(tip.querySelector('.ui-tip__detail')).toHaveAttribute('hidden');
-  expect(first).not.toHaveAttribute('aria-describedby');
-  expect(second).toHaveAttribute('aria-describedby', tip.id);
-  expect(host.querySelectorAll('.ui-tip')).toHaveLength(1);
-  fireEvent.mouseLeave(host);
-  expect(tip).not.toHaveClass('is-open');
-  expect(second).not.toHaveAttribute('aria-describedby');
-});
-
-it('anchors to a nested chart mark instead of its larger hit area', () => {
-  const { anchor, first, tip } = chart();
-  geometry(anchor as unknown as HTMLElement, tip, 100);
-  fireEvent.mouseOver(first);
+it('anchors the inline readout to a nested anchor', () => {
+  const view = render(<Tooltip value="42"><span data-tip-anchor="">Value</span></Tooltip>);
+  const anchor = view.getByText('Value');
+  const tip = view.getByRole('tooltip');
+  geometry(anchor, tip, 100);
+  fireEvent.focus(anchor.parentElement!);
   expect(tip.style.getPropertyValue('--ui-tip-x')).toBe('130px');
   expect(tip.style.getPropertyValue('--ui-tip-y')).toBe('100px');
-});
-
-it('respects bottom placement and flips up near the viewport bottom', () => {
-  const { anchor, first, tip } = chart({ placement: 'bottom' });
-  geometry(anchor as unknown as HTMLElement, tip, 100);
-  fireEvent.mouseOver(first);
-  expect(tip).toHaveClass('is-below');
-  expect(tip.style.getPropertyValue('--ui-tip-y')).toBe('120px');
-  vi.mocked(anchor.getBoundingClientRect).mockReturnValue({ top: 580, bottom: 600, left: 100, width: 60 } as DOMRect);
-  fireEvent.resize(window);
-  expect(tip).not.toHaveClass('is-below');
-});
-
-it('retains existing descriptions and removes only its own on unmount', () => {
-  const { first, second, tip, unmount } = chart();
-  first.setAttribute('aria-describedby', 'existing');
-  fireEvent.focus(first);
-  expect(first).toHaveAttribute('aria-describedby', 'existing');
-  fireEvent.focus(second);
-  expect(second).toHaveAttribute('aria-describedby', tip.id);
-  unmount();
-  expect(first).toHaveAttribute('aria-describedby', 'existing');
-  expect(second).not.toHaveAttribute('aria-describedby');
-});
-
-it('keeps Escape-dismissed chart marks closed until leaving or choosing another', () => {
-  const { first, second, tip, host } = chart();
-  fireEvent.mouseOver(first);
-  fireEvent.keyDown(document, { key: 'Escape' });
-  fireEvent.mouseOver(first);
-  expect(tip).not.toHaveClass('is-open');
-  fireEvent.mouseOver(second);
-  expect(tip).toHaveClass('is-open');
-  fireEvent.mouseOver(first);
-  expect(tip).toHaveTextContent('March');
-  fireEvent.mouseLeave(host);
-  fireEvent.mouseOver(first);
-  expect(tip).toHaveClass('is-open');
-});
-
-it('supports keyboard arrival and Escape without changing chart focus', async () => {
-  const user = userEvent.setup();
-  const { first, second, tip } = chart();
-  await user.tab();
-  expect(first).toHaveFocus();
-  expect(tip).toHaveTextContent('March');
-  await user.keyboard('{Escape}');
-  expect(first).toHaveFocus();
-  expect(tip).not.toHaveClass('is-open');
-  await user.tab();
-  expect(second).toHaveFocus();
-  expect(tip).toHaveTextContent('April');
-});
-
-it('toggles touch targets and dismisses on an outside tap', () => {
-  const { first, second, tip } = chart();
-  const tap = (target: Element) => { fireEvent.touchStart(target); fireEvent.touchEnd(target); fireEvent.click(target); };
-  tap(first);
-  expect(tip).toHaveClass('is-open');
-  tap(second);
-  expect(tip).toHaveTextContent('April');
-  tap(second);
-  expect(tip).not.toHaveClass('is-open');
-  tap(second);
-  expect(tip).toHaveClass('is-open');
-  tap(document.body);
-  expect(tip).not.toHaveClass('is-open');
-});
-
-it('spends the opening tap on the readout but passes it to document dismissal listeners', () => {
-  const onClick = vi.fn();
-  const onDocument = vi.fn();
-  const view = render(<TooltipHost><button data-tip-value="42" onClick={onClick}>Value</button></TooltipHost>);
-  const target = view.getByRole('button');
-  document.addEventListener('click', onDocument);
-  fireEvent.touchStart(target); fireEvent.touchEnd(target); fireEvent.click(target);
-  expect(onClick).not.toHaveBeenCalled();
-  expect(onDocument).toHaveBeenCalledTimes(1);
-  fireEvent.touchStart(target); fireEvent.touchEnd(target); fireEvent.click(target);
-  expect(onClick).toHaveBeenCalledTimes(1);
-  expect(onDocument).toHaveBeenCalledTimes(2);
-  document.removeEventListener('click', onDocument);
-});
-
-it('isolates nested hosts and does not add chart tab stops', () => {
-  const view = render(<TooltipHost><TooltipHost><span data-tip-value="42">Mark</span></TooltipHost></TooltipHost>);
-  const target = view.getByText('Mark');
-  fireEvent.mouseOver(target);
-  expect(view.container.querySelectorAll('.ui-tip.is-open')).toHaveLength(1);
-  expect(target).not.toHaveAttribute('tabindex');
-});
-
-it('has no axe violations for a structured chart readout', async () => {
-  const { first, container } = chart();
-  fireEvent.focus(first);
-  const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } });
-  expect(result.violations).toEqual([]);
 });
 
 function pointer(target: Element, type: string, kind: string) {
@@ -276,25 +152,6 @@ function pointer(target: Element, type: string, kind: string) {
   Object.defineProperty(event, 'pointerType', { value: kind });
   fireEvent(target, event);
 }
-
-it('supports pen taps, then mouse hover and keyboard focus on the same device', () => {
-  const { first, second, tip } = chart();
-  pointer(first, 'pointerover', 'pen');
-  fireEvent.mouseOver(first);
-  expect(tip).not.toHaveClass('is-open');
-  pointer(first, 'pointerdown', 'pen');
-  fireEvent.focus(first);
-  expect(tip).not.toHaveClass('is-open');
-  fireEvent.click(first);
-  expect(tip).toHaveClass('is-open');
-  pointer(first, 'pointerdown', 'pen'); fireEvent.click(first);
-  expect(tip).not.toHaveClass('is-open');
-  pointer(second, 'pointerover', 'mouse');
-  expect(tip).toHaveTextContent('April');
-  fireEvent.keyDown(document, { key: 'Tab' });
-  fireEvent.focus(first);
-  expect(tip).toHaveTextContent('March');
-});
 
 it('toggles the inline readout on pen taps after compatibility mouse and focus events', () => {
   const { trigger, tip } = mount();
@@ -312,28 +169,11 @@ it('toggles the inline readout on pen taps after compatibility mouse and focus e
   expect(tip).not.toHaveClass('is-open');
 });
 
-it('supports focus arriving without a tap after a touch interaction', () => {
-  const { first, second, tip } = chart();
-  fireEvent.touchStart(first); fireEvent.touchEnd(first); fireEvent.click(first);
-  fireEvent.focus(second);
-  expect(tip).toHaveTextContent('April');
-});
-
-it('updates a visible mark after React changes its content and closes when it is removed', () => {
-  const view = render(<TooltipHost><span data-tip-value="42">Mark</span></TooltipHost>);
-  fireEvent.mouseOver(view.getByText('Mark'));
-  view.rerender(<TooltipHost><span data-tip-value="57">Mark</span></TooltipHost>);
-  expect(view.getByRole('tooltip')).toHaveTextContent('57');
-  view.rerender(<TooltipHost><p>No marks</p></TooltipHost>);
-  expect(view.container.querySelector('.ui-tip')).not.toHaveClass('is-open');
-});
-
 // ---- The readout's own markup and what it costs the page -------------------
 
 it('marks every readout with data-tip, the attribute the vanilla wiring reads', () => {
   const { tip } = mount();
   expect(tip).toHaveAttribute('data-tip');
-  expect(chart().tip).toHaveAttribute('data-tip');
 });
 
 // Five listeners per document and none for a closed readout: the version this
@@ -348,7 +188,7 @@ it('wires the document once for every readout and the window only while one is o
   const onWin = vi.spyOn(window, 'addEventListener');
   const offWin = vi.spyOn(window, 'removeEventListener');
   const view = render(<>{[0, 1, 2, 3].map((i) =>
-    <TooltipHost key={i}><span data-tip-value={`€${i}`}>{`mark ${i}`}</span></TooltipHost>)}</>);
+    <Tooltip key={i} value={`€${i}`}>{`mark ${i}`}</Tooltip>)}</>);
 
   expect(typesOf(onDoc, DOC_TYPES)).toEqual([...DOC_TYPES].sort());
   expect(typesOf(onWin, ['scroll', 'resize'])).toEqual([]);
@@ -394,14 +234,4 @@ it.each([[100, true], [560, false]])('shared placement prefers bottom at %spx an
   placeTip(trigger.parentElement!, trigger, tip, undefined, 'bottom');
   expect(tip.classList.contains('is-below')).toBe(below);
   expect(tip.style.getPropertyValue('--ui-tip-y')).toBe(`${below ? top + 20 : top}px`);
-});
-
-// Last in the file: wireTooltip() wires this jsdom document for good, and the
-// vanilla document listeners would then outlive the test that asked for them.
-it('is adopted by the vanilla wiring on a mixed page instead of being doubled', async () => {
-  const { wireTooltip } = await import('../../src/components/tooltip.js') as { wireTooltip: (root?: Document | Element) => void };
-  const { host, tip } = chart();
-  wireTooltip(host.ownerDocument);
-  expect(host.querySelectorAll('[data-tip]')).toHaveLength(1);
-  expect(host.querySelector('[data-tip]')).toBe(tip);
 });

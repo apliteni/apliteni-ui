@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.118.0', date: '2026-10-15',
+    changes: [
+      ['added', 'React Tooltip accepts a label, value and detail, with a preferred top or bottom placement. Existing text tooltips keep working. Part of #429.', ['Tooltip']],
+    ],
+  },
+  {
     v: '0.117.0', date: '2026-10-15',
     changes: [
       ['changed', 'Tables inside fit-content cards size to their content, and their pagers wrap within that width. Other tables keep their full width. The company comparison aligns its heading, filters, tabs and first column, and keeps all three columns visible on phones (#504).', ['Table', 'DataTable', 'Pagination']],

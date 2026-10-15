@@ -481,24 +481,10 @@ focusable trigger refers to the tooltip through its ID. Escape keeps focus on th
 panel does not change the layout or intercept pointer events. The shared reduced-motion styles
 remove the fade.
 
-React `TooltipHost` renders one readout for chart marks that you own. Each mark carries
-`data-tip-value`. A mark can also carry `data-tip-label` and `data-tip-detail`. A nested
-`data-tip-anchor` sets the placement. The host adds no tab stops and no chart logic.
-
-Hover and focus move the readout from mark to mark. Taps open, move and close the readout, and an
-outside tap also closes it. The opening tap blocks the mark action, but page click listeners still
-get the click. The closing tap can activate the mark action. Escape keeps focus in its current
-position. The dismissed mark stays closed until another mark opens or until the host is left.
-Existing mark descriptions stay. Host-owned descriptions are removed on dismissal and unmount.
-
-Both Tooltip forms support a preferred top or bottom placement, clipping ancestor and viewport
-bounds, and repositioning on scroll and resize. The readout stays absolutely positioned in its
-host. It carries `data-tip`, as the vanilla readout does. If `wireTooltip()` runs over a page that
-mixes the two, it adopts the React readout instead of inserting a second one.
-
-One set of document listeners serves every React readout in a document. The scroll and resize
-listeners are bound only while a readout is open. A readout that is rendered open is a picture of
-a readout. It is marked `data-tip-picture` and has no wiring to take it down.
+`placement` selects the preferred top or bottom side. The readout stays within clipping ancestors
+and viewport bounds, and updates its position on scroll and resize.
+One set of document listeners serves every React tooltip. Scroll and resize listeners run only
+while a readout is open.
 
 ### Pagination
 
