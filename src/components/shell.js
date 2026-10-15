@@ -311,6 +311,7 @@ export function appShell(options = {}) {
     + `${prism(`appb-${++_shellUid}`, 24)}<span>${esc(word)}</span></a>`;
   // The named region covers the brand and fold as well as the navigation.
   // The primary navigation keeps its own landmark inside the region.
+  // The rail holds primary navigation, so it is not a complementary landmark.
   // A fold needs the toggle that undoes it. `data-rail="auto"` marks a shell whose
   // caller left the choice to the reader; wireShell() applies the stored one there.
   const folded = collapsible && collapsed === true;
