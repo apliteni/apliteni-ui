@@ -6,9 +6,15 @@
 
 export const RELEASES = [
   {
-    v: '0.117.1', date: '2026-10-15',
+    v: '0.118.1', date: '2026-10-15',
     changes: [
-      ['fixed', 'Selected Segmented pills now use the accent fill in vanilla and React. Their labels use contrasting ink in each theme, and outlines remain reserved for keyboard focus. See #614.', ['Segmented']],
+      ['fixed', 'Enabled selected Segmented pills use the accent fill with contrasting ink in vanilla and React. Disabled selections keep a quiet fill and disabled ink. Outlines remain reserved for keyboard focus. See #614.', ['Segmented']],
+    ],
+  },
+  {
+    v: '0.118.0', date: '2026-10-15',
+    changes: [
+      ['added', 'React Tooltip accepts a label, value and detail, with a preferred top or bottom placement. Existing text tooltips keep working. Part of #429.', ['Tooltip']],
     ],
   },
   {
