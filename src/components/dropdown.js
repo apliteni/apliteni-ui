@@ -581,24 +581,39 @@ function ddUnwatchRow(dd) {
  * taken for the middle of an animation, is stated with the rule.
  * why: docs/components.md#the-dropdown-panel */
 
-/**
- * How tall a panel may be: the room between its trigger and the viewport edge,
- * from dropdownAvail() in src/logic/dropdown.js — one calculation, so the
- * vanilla wiring and the React `<Dropdown>` cannot disagree about where a panel
- * ends. Measured from the trigger, not the panel, the way dropdownViewportFit()
- * is measured from the panel and not the trigger: each is the box the number it
- * answers actually depends on. `null` when there is nothing to measure.
+/** Measure the panel's height within its viewport and clipping ancestors.
+ * Inside a scrolling ancestor, also choose upward placement when it gives more room.
+ * Portalled panels keep their viewport placement. Return null without a trigger.
  * why: docs/components.md#the-dropdown-panel
- *
- * @param {Element} dd the `[data-dropdown]` container the trigger lives in
- * @param {Element} panel a `[data-dropdown-panel]`, for its gap/edge/min and its
- *   `is-up` direction
  */
 export function dropdownHeightFit(dd, panel) {
   const trigger = dd?.querySelector?.('[data-dropdown-trigger]');
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !panel) return null;
   const t = trigger.getBoundingClientRect();
   const view = ddViewOf(panel);
+  let top = 0;
+  let bottom = view.innerHeight;
+  let scrolling = false;
+  // Measure the panel's ancestors. A portalled panel has no clipping body here.
+  const ancestor = panel.classList.contains('ui-dropdown__panel--portal') ? null : panel.parentElement;
+  for (let node = ancestor; node; node = node.parentElement) {
+    const overflow = view.getComputedStyle(node).overflowY;
+    if (!/^(auto|scroll|hidden|clip)$/.test(overflow) || !node.clientHeight) continue;
+    const box = node.getBoundingClientRect();
+    const start = box.top + node.clientTop;
+    top = Math.max(top, start);
+    bottom = Math.min(bottom, start + node.clientHeight);
+    scrolling ||= /^(auto|scroll)$/.test(overflow);
+  }
+  if (scrolling) {
+    const below = Math.max(0, bottom - t.bottom - ddGap(panel) - ddEdge(panel));
+    const above = Math.max(0, t.top - top - ddGap(panel) - ddEdge(panel));
+    const height = Math.max(panel.scrollHeight, panel.offsetHeight);
+    const up = panel.classList.contains('is-up') || (height > below && above > below);
+    panel.classList.toggle('is-scroll-up', up);
+    return up ? above : below;
+  }
+  panel.classList.remove('is-scroll-up');
   return dropdownAvail({
     anchorTop: t.top,
     anchorBottom: t.bottom,

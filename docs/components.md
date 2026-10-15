@@ -244,6 +244,10 @@ current section, not the page. When a page should take one:
 
 ### The dropdown panel
 
+Inside a scrolling container, a dropdown opens upward when its content exceeds the space below and more space exists above.
+The panel scrolls within the available height, while the trigger stays in place.
+
+
 `dropdown()` places its panel for you. You do not write a rule to move it. `direction` selects
 where it opens: `'down'`, `'up'`, or `'auto'`. `'auto'` flips only when there is not enough room
 below and there is more room above. The head and foot extend through the panel's padding to the
