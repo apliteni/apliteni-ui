@@ -161,3 +161,14 @@
 }
 .ui-seg button:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }
+
+/* System ink keeps selection visible when the mode replaces background fills.
+   The inset mark fits clipped rows. Keyboard focus keeps its own ring. */
+@media (forced-colors: active) {
+  .ui-seg button.is-active:not(:focus-visible),
+  .ui-seg button[aria-pressed="true"]:not(:focus-visible),
+  .ui-seg button[aria-selected="true"]:not(:focus-visible) {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

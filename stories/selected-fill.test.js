@@ -69,6 +69,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { JSDOM } from 'jsdom';
 import { AA_TEXT, parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
 import { pagination } from '../src/components/pagination.js';
 
@@ -421,5 +422,112 @@ test('a busy numbered pager keeps the quiet fill, semibold weight and readable i
     assert.ok(against('var(--surface-3)', '--surface', theme) >= FILL_FLOOR, `${theme}: fill on a card does not step`);
     assert.ok(against('var(--disabled-ink)', '--surface-3', theme) >= AA_TEXT,
       `${theme}: the busy current page label is under the text floor on its fill`);
+  }
+});
+
+// Forced-colour coverage is limited to these sheets and the fixtures below.
+// Discovery includes state rules without fills and pseudo-elements. Child paint
+// belongs to its selected parent. The source half checks declared outlines.
+// The browser half checks the cascade and measures computed outlines,
+// their contrast and their bounds, not Windows themes or screenshot pixels.
+// Run it with SELECTED_FORCED=1 and UI_PLAYWRIGHT pointing at Playwright.
+const forcedFiles = ['nav', 'layout', 'command-palette', 'segmented'];
+const forcedSource = forcedFiles.map((name) => readFileSync(path.join(root, `src/styles/${name}.css`), 'utf8')).join('\n');
+const readRules = (css) => [...decomment(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .filter(([, selector]) => !selector.trim().startsWith('@'))
+  .flatMap(([, selector, body]) => selectorsOf(selector).map((selector) => ({ selector, body })));
+const forcedSubjects = [...new Set(readRules(dropForcedColours(forcedSource))
+  .map(({ selector }) => selector)
+  .filter((selector) => SELECTED.test(withoutNot(selector)) && !INTERACTION.test(withoutNot(selector)))
+  .map((selector) => {
+    const parts = selector.split(/\s+/);
+    const selected = parts.findLastIndex((part) => SELECTED.test(withoutNot(part)));
+    return parts.slice(0, selected + 1).join(' ');
+  })
+  // Accent swatches keep a border tick, covered by accent-mark.test.js.
+  .filter((selector) => !selector.startsWith('.ui-accent-picker'))
+  .map((selector) => selector.replace(/::(?:before|after)$/, '')))];
+const row = '<a href="#" class="ui-nav__item is-active">Selected</a>';
+const forcedFixtures = [
+  ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].flatMap((state) => ['', 'ui-seg--underline'].map((kind) => [
+    `segmented ${kind} ${state}`, `<div class="ui-seg ${kind}"><button ${state === 'is-active' ? 'class="is-active"' : state}>Selected</button></div>`,
+  ])),
+  ['current group', '<nav class="ui-nav"><button class="ui-nav__item ui-nav__toggle is-current">Selected group</button></nav>'],
+  ['standalone row', `<nav class="ui-nav">${row}</nav>`],
+  ['folded standalone row', `<nav class="ui-nav ui-nav--side is-collapsed">${row}</nav>`],
+  ['shell row', `<div class="ui-app"><nav class="ui-app__rail ui-nav">${row}</nav></div>`],
+  ['folded shell row', `<div class="ui-app is-collapsed"><nav class="ui-app__rail ui-nav">${row}</nav></div>`],
+  ...['', 'is-pill', 'is-underline'].map((kind) => [`tab ${kind}`, `<nav class="ui-nav ui-nav--tabs ${kind}"><a href="#" class="ui-nav__tab is-active">Selected</a></nav>`]),
+  ['current crumb', '<nav class="ui-nav__crumbs"><span class="ui-nav__crumb is-current">Selected</span></nav>'],
+  ...['', 'ui-cmdk--roomy'].flatMap((density) => ['', 'is-danger'].map((danger) => [
+    `palette ${density} ${danger}`,
+    `<div class="ui-cmdk is-open ${density}"><div class="ui-cmdk__panel"><div class="ui-cmdk__list"><div class="ui-cmdk__item is-active ${danger}" role="option"><span class="ui-cmdk__label">Selected</span></div></div></div></div>`,
+  ])),
+];
+const fixtureDocument = new JSDOM(forcedFixtures.map(([, html]) => html).join('')).window.document;
+
+function checkForcedRules(css) {
+  // Removing normal rules leaves only the forced-colour blocks for this check.
+  const normalRules = new Set(readRules(dropForcedColours(css)).map((rule) => JSON.stringify(rule)));
+  const marks = readRules(css).filter((rule) => !normalRules.has(JSON.stringify(rule)))
+    .filter(({ body }) => /outline:\s*2px solid Highlight\s*;/.test(body));
+  assert.ok(forcedSubjects.length >= 9, 'forced-colour discovery lost selected states');
+  for (const selector of forcedSubjects) {
+    const elements = [...fixtureDocument.querySelectorAll(selector)];
+    assert.ok(elements.length, `no forced-colour fixture covers ${selector}`);
+    for (const element of elements) {
+      assert.ok(marks.some((mark) => element.matches(mark.selector)), `${selector} has no forced-colour outline`);
+    }
+  }
+}
+
+test('every selected state has a forced-colour mark and a fixture', () => checkForcedRules(forcedSource));
+test('the forced-colour gate rejects background-only selected states', () => {
+  assert.throws(() => checkForcedRules(dropForcedColours(forcedSource)), /no forced-colour outline/);
+});
+
+test('selected marks survive forced colours in Chromium', { skip: process.env.SELECTED_FORCED !== '1' }, async () => {
+  const { chromium } = await import(process.env.UI_PLAYWRIGHT || 'playwright');
+  const browser = await chromium.launch({ headless: true, ...(process.env.UI_CHROME ? { executablePath: process.env.UI_CHROME } : {}) });
+  try {
+    const css = [...readFileSync(path.join(root, 'src/index.css'), 'utf8').matchAll(/@import "(.+?)";/g)]
+      .map(([, file]) => readFileSync(path.join(root, 'src', file), 'utf8')).join('\n');
+    let measured = 0;
+    for (const scheme of ['light', 'dark']) {
+      const page = await browser.newPage({ forcedColors: 'active', colorScheme: scheme, reducedMotion: 'reduce' });
+      await page.setContent(`<style>${css}</style>`);
+      for (const width of [390, 600, 1280]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const [name, html] of forcedFixtures) {
+          await page.evaluate((markup) => { document.body.innerHTML = markup; }, html);
+          const result = await page.evaluate(() => {
+            const element = document.querySelector('.is-active, .is-current, [aria-pressed="true"], [aria-selected="true"]');
+            const style = getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+            const canvas = document.createElement('span');
+            canvas.style.background = 'Canvas';
+            document.body.append(canvas);
+            return {
+              active: matchMedia('(forced-colors: active)').matches,
+              style: style.outlineStyle, width: parseFloat(style.outlineWidth),
+              offset: parseFloat(style.outlineOffset), ink: style.outlineColor,
+              ground: getComputedStyle(canvas).backgroundColor,
+              rect: { width: rect.width, height: rect.height },
+            };
+          });
+          const label = `${name}, ${width}px, ${scheme}`;
+          assert.ok(result.active, label);
+          assert.equal(result.style, 'solid', label);
+          assert.ok(result.width >= 2 && result.offset <= -result.width, `${label}: outline must fit inside the row`);
+          assert.ok(result.rect.width > 4 && result.rect.height > 4, `${label}: empty mark`);
+          assert.ok(ratio(parseColour(result.ink), parseColour(result.ground)) >= 3, `${label}: outline blends into Canvas`);
+          measured += 1;
+        }
+      }
+      await page.close();
+    }
+    assert.equal(measured, forcedFixtures.length * 6);
+  } finally {
+    await browser.close();
   }
 });
