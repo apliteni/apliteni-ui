@@ -99,8 +99,8 @@ export type { EmptyStateProps, EmptyStateVariant } from './EmptyState';
 
 export { ThemeToggle, THEME_INIT_SCRIPT } from './ThemeToggle';
 export type { ThemeToggleProps } from './ThemeToggle';
-export { Tooltip } from './Tooltip';
-export type { TooltipProps } from './Tooltip';
+export { Tooltip, TooltipHost } from './Tooltip';
+export type { TooltipProps, TooltipHostProps } from './Tooltip';
 export { Success, SuccessPanel, SuccessCheck } from './Success';
 export type { SuccessProps, SuccessPanelProps, SuccessCheckProps, SuccessCountdown } from './Success';
 
