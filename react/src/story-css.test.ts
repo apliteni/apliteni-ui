@@ -229,12 +229,12 @@ describe('story CSS', () => {
   it('reports a story that paints something of its own', () => {
     expect(measured.find((s) => s.file === clean)!.shadows.length).toBe(0);
     const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ color: '#f00' }} />;\n`);
-    expect(problems.join('\n')).toContain('color');
+    expect(problems.join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
   });
 
   it('reports a story that restyles a kit class', () => {
     const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div className="ui-card" style={{ background: '#f00' }} />;\n`);
-    expect(problems.join('\n')).toContain('background');
+    expect(problems.join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*background/);
   });
 
   it('reports a placement onto a kit class with no reason on record', () => {
@@ -244,7 +244,7 @@ describe('story CSS', () => {
 
   it('reports a story that re-declares a kit token', () => {
     const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ '--space-4': '3px' }} />;\n`);
-    expect(problems.join('\n')).toContain('--space-4');
+    expect(problems.join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*--space-4/);
   });
 
   it('reports a story whose layout glue goes over the ceiling', () => {
@@ -297,7 +297,7 @@ describe('story CSS', () => {
       ['scroll-behavior', "scrollBehavior: 'smooth'"],
     ]) {
       const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ ${declaration} }} />;\n`);
-      expect(problems.join('\n'), `${declaration} was not reported as paint`).toContain(property);
+      expect(problems.join('\n'), `${declaration} was not reported as paint`).toMatch(new RegExp(`declaration\\(s\\) paint, type or animate[\\s\\S]*${property}`));
     }
   });
 
@@ -305,14 +305,14 @@ describe('story CSS', () => {
 
   it('reads a style object that carries a comment', () => {
     const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ /* the brand red */ color: '#f00' }} />;\n`);
-    expect(problems.join('\n')).toContain('color');
+    expect(problems.join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
   });
 
   it('reads a style object whose value has brackets of its own', () => {
     // The old reader stopped at the first `}`, so a nested object threw the whole style
     // away and the story measured zero declarations.
     const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ color: ({ light: '#f00', dark: '#0f0' })[theme] }} />;\n`);
-    expect(problems.join('\n')).toContain('color');
+    expect(problems.join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
   });
 
   it('reads the kit class whether it is written before or after the style', () => {
@@ -329,10 +329,10 @@ describe('story CSS', () => {
     // `style={row}` is an ordinary declaration list written a few lines up. Three of
     // this workspace's stories write their layout that way.
     const mutant = "\nconst MUTANT_PAINT = { color: '#f00' };\nconst MUTANT = <div style={MUTANT_PAINT} />;\n";
-    expect(withEdit(clean, (src) => src + mutant).join('\n')).toContain('color');
+    expect(withEdit(clean, (src) => src + mutant).join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
 
     const member = "\nconst MUTANT_SHEET = { head: { color: '#f00' } };\nconst MUTANT = <div style={MUTANT_SHEET.head} />;\n";
-    expect(withEdit(clean, (src) => src + member).join('\n')).toContain('color');
+    expect(withEdit(clean, (src) => src + member).join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
   });
 
   it('reports a style object it cannot read', () => {
@@ -346,15 +346,15 @@ describe('story CSS', () => {
     // A `...spread` used to be skipped, and an object nothing else references is never
     // measured on its own, so `style={{ ...PAINT }}` measured the paint as zero.
     const mutant = "\nconst MUTANT_PAINT = { color: '#f00' };\nconst MUTANT = <div style={{ ...MUTANT_PAINT }} />;\n";
-    expect(withEdit(clean, (src) => src + mutant).join('\n')).toContain('color');
+    expect(withEdit(clean, (src) => src + mutant).join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
 
     // Through a member, through a spread of a spread, and into an object written there.
     const member = "\nconst MUTANT_SHEET = { head: { color: '#f00' } };\nconst MUTANT = <div style={{ ...MUTANT_SHEET.head }} />;\n";
-    expect(withEdit(clean, (src) => src + member).join('\n')).toContain('color');
+    expect(withEdit(clean, (src) => src + member).join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
     const chained = "\nconst MUTANT_A = { color: '#f00' };\nconst MUTANT_B = { ...MUTANT_A };\nconst MUTANT = <div style={{ ...MUTANT_B }} />;\n";
-    expect(withEdit(clean, (src) => src + chained).join('\n')).toContain('color');
+    expect(withEdit(clean, (src) => src + chained).join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
     const inline = "\nconst MUTANT = <div style={{ ...{ color: '#f00' } }} />;\n";
-    expect(withEdit(clean, (src) => src + inline).join('\n')).toContain('color');
+    expect(withEdit(clean, (src) => src + inline).join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
   });
 
   it('reads a spread object the way React reads it: a later key answers an earlier one', () => {
@@ -366,7 +366,7 @@ describe('story CSS', () => {
     const before = measured.find((s) => s.file === clean)!;
     const after = measureStory(clean, read(clean) + mutant, tokens);
     expect(after.total - before.total).toBe(2);
-    expect(withEdit(clean, (src) => src + mutant).join('\n')).toContain('color');
+    expect(withEdit(clean, (src) => src + mutant).join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
 
     // A spread after an explicit key is the one that wins, which is how React reads it.
     const reversed = "\nconst MUTANT_BASE = { color: '#f00' };"
@@ -394,11 +394,56 @@ describe('story CSS', () => {
     expect(withEdit(clean, (src) => src + mutant).join('\n')).toContain('cannot read');
   });
 
+  // These mutations exercise source resolution, not JavaScript execution.
+  it('rejects trailing expressions after named and inline object literals', () => {
+    for (const mutant of [
+      "const MUTANT_ROW = { marginTop: 0 } && { color: 'red' }; const X = <div style={MUTANT_ROW} />;",
+      "const X = <div style={{ marginTop: 0 } && { color: 'red' }} />;",
+    ]) {
+      expect(withEdit(clean, (src) => src + '\n' + mutant).join('\n')).toContain('cannot read');
+    }
+  });
+
+  it('rejects uncertain bindings that shadow a recorded object', () => {
+    for (const declaration of [
+      "function Demo({ MUTANT_ROW = { color: 'red' } })",
+      'function Demo(MUTANT_ROW)',
+      'const Demo = (MUTANT_ROW) =>',
+      'const Demo = MUTANT_ROW =>',
+      'function Demo({ style: MUTANT_ROW })',
+      'function Demo([MUTANT_ROW])',
+      'function Demo(...MUTANT_ROW)',
+      'function Demo({ ...MUTANT_ROW })',
+      'function Demo() { const { x = 0, ...MUTANT_ROW } = paint; } function Other()',
+      "function Demo() { let MUTANT_ROW = paint; } function Other()",
+    ]) {
+      const mutant = '\nconst MUTANT_ROW = { marginTop: 0 };\n' + declaration
+        + ' { return <div style={MUTANT_ROW} />; }';
+      expect(withEdit(clean, (src) => src + mutant).join('\n'), declaration).toContain('cannot read');
+    }
+  });
+
+  it('rejects a member when a spread can override it', () => {
+    const mutant = "\nconst MUTANT_STYLES = { row: { marginTop: 0 }, ...{ row: { color: 'red' } } };"
+      + '\nconst X = <div style={MUTANT_STYLES.row} />;';
+    expect(withEdit(clean, (src) => src + mutant).join('\n')).toContain('cannot read');
+  });
+
+  it('uses the last explicit member and rejects incomplete member values', () => {
+    const mutant = "\nconst MUTANT_STYLES = { row: { marginTop: 0 }, row: { color: 'red' } };"
+      + '\nconst X = <div style={MUTANT_STYLES.row} />;';
+    const result = measureStory(clean, read(clean) + mutant, tokens);
+    expect(result.shadows.map((d: { property: string }) => d.property)).toEqual(['color']);
+    expect(result.unknowns).toEqual([]);
+    const incomplete = mutant.replace("row: { color: 'red' }", "row: {} && { color: 'red' }");
+    expect(withEdit(clean, (src) => src + incomplete).join('\n')).toContain('cannot read');
+  });
+
   it('reads a style object past a comment that holds a brace', () => {
     // `braced()` used to balance the source's braces without skipping comments, so the
     // `}` in `/* } */` closed the object and the paint after it measured as zero.
     const problems = withEdit(clean, (src) => `${src}\nconst MUTANT = <div style={{ /* } */ color: '#f00' }} />;\n`);
-    expect(problems.join('\n')).toContain('color');
+    expect(problems.join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
   });
 
   it('reads a stylesheet the story names, in any of the three quotes', () => {
@@ -408,11 +453,11 @@ describe('story CSS', () => {
       const mutant = `\nconst MUTANT_CSS = ${quote}.mutant { color: #f00 }${quote};`
         + '\nconst MUTANT = <style>{MUTANT_CSS}</style>;\n';
       const problems = withEdit(clean, (src) => src + mutant);
-      expect(problems.join('\n'), `a ${quote}-quoted stylesheet was dropped`).toContain('color');
+      expect(problems.join('\n'), `a ${quote}-quoted stylesheet was dropped`).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
     }
     // And written at the tag, which is how the two showcase stories would write one.
     const inline = '\nconst MUTANT = <style>{`.mutant { color: #f00 }`}</style>;\n';
-    expect(withEdit(clean, (src) => src + inline).join('\n')).toContain('color');
+    expect(withEdit(clean, (src) => src + inline).join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
   });
 
   it('reports a stylesheet it cannot settle rather than measuring it as empty', () => {
@@ -436,7 +481,7 @@ describe('story CSS', () => {
     // another took the outer rule's own declarations out of coverage. Chromium paints
     // both: the run's evidence holds the measurement.
     const nested = '\nconst MUTANT = <style>{`.mutant { color: #f00; & > span { margin: 0 } }`}</style>;\n';
-    expect(withEdit(clean, (src) => src + nested).join('\n')).toContain('color');
+    expect(withEdit(clean, (src) => src + nested).join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*color/);
 
     // And a nested rule is written out against its parent, so it reaches the allow-list.
     const placed = '\nconst MUTANT = <style>{`.ui-tabs { & > span { max-width: 10px } }`}</style>;\n';

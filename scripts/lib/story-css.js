@@ -52,7 +52,11 @@
  *  - A name this file binds twice is resolved to neither of the two. Which one paints is
  *    a question about scope, and a reader that guesses measures the wrong object in
  *    silence, so the style is reported as unreadable instead. So is a spread of a call,
- *    a parameter or a conditional.
+ *    a parameter or a conditional. Named objects used outside direct style references
+ *    and spreads are also uncertain. References inside possible parameter lists are
+ *    rejected.
+ *    A containing object with a spread or computed member is not resolved by member.
+ *    Named object initializers require a semicolon or the end of the source.
  *  - A `<style>` block's text has to be in the source: the text in the tag, a string
  *    literal, or a name bound to one literal in the same file. A concatenation, an
  *    interpolated `${…}` and an unresolved name are reported as unreadable.
@@ -331,10 +335,46 @@ const brief = (text) => {
  */
 function objectBindings(src, mask) {
   const bound = new Map();
+  const declarations = new Set();
   for (const m of mask.matchAll(/(?<![\w$])(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::[^=;{]*)?=\s*\{/g)) {
-    const body = braced(src, mask, m.index + m[0].length - 1);
-    if (bound.has(m[1]) || body == null) bound.set(m[1], { ambiguous: true });
+    const at = m.index + m[0].length - 1;
+    const body = braced(src, mask, at);
+    const tail = body == null ? '' : mask.slice(at + body.length + 2);
+    const end = tail.indexOf(';');
+    const suffix = end < 0 ? tail : tail.slice(0, end);
+    // A newline alone cannot end an expression: an operator can follow it.
+    const settled = body != null && typeAssertionOnly(suffix);
+    declarations.add(m.index + m[0].indexOf(m[1], m[0].indexOf(' ') + 1));
+    if (bound.has(m[1]) || !settled) bound.set(m[1], { ambiguous: true });
     else bound.set(m[1], { body });
+  }
+  // Only direct style references and object spreads are understood uses. Reject
+  // other occurrences, including bindings, instead of guessing their scope.
+  // Parentheses and destructuring declarations can contain rest bindings too.
+  const uncertain = [];
+  const opens = [];
+  for (let i = 0; i < mask.length; i += 1) {
+    if (mask[i] === '(') opens.push(i);
+    if (mask[i] === ')' && opens.length) {
+      const start = opens.pop();
+      if (/^\s*(?:=>|{|:)/.test(mask.slice(i + 1))) uncertain.push([start, i]);
+    }
+  }
+  for (const m of mask.matchAll(/\b(?:const|let|var)\s*[\[{]/g)) {
+    const start = m.index + m[0].length - 1;
+    const end = mask.indexOf(';', start);
+    uncertain.push([start, end < 0 ? mask.length : end]);
+  }
+  for (const m of mask.matchAll(/[A-Za-z_$][\w$]*/g)) {
+    if (!bound.has(m[0]) || declarations.has(m.index)) continue;
+    const before = mask.slice(0, m.index);
+    const after = mask.slice(m.index + m[0].length);
+    const propertyKey = /[{,]\s*$/.test(before) && /^\s*:/.test(after);
+    const reference = /(?:\bstyle\s*=\s*\{\s*|\.\.\.\s*)$/.test(before)
+      && /^\s*[.},]/.test(after);
+    if ((!reference && !propertyKey) || uncertain.some(([start, end]) => start < m.index && m.index < end)) {
+      bound.set(m[0], { ambiguous: true });
+    }
   }
   return bound;
 }
@@ -371,14 +411,29 @@ function stringValue(raw) {
 /** One `key: {…}` member of a bound object, by key, or null. */
 function memberBody(body, key) {
   const { clean, mask } = scan(body, 'js');
+  let selected = null;
   for (const chunk of chunks(clean, mask, ',')) {
+    if (!chunk.trim()) continue;
+    // A spread or computed member can replace any key. Scope is not evaluated.
+    if (chunk.trim().startsWith('...')) return null;
     const at = chunk.indexOf(':');
-    if (at < 0) continue;
     const name = chunk.slice(0, at).trim().replace(/^(['"])([\s\S]*)\1$/, '$2');
-    const value = chunk.slice(at + 1).trim();
-    if (name === key && value.startsWith('{')) return bracedIn(value, 'js', 0);
+    if (at < 0 || !/^[\w$]+$/.test(name)) return null;
+    if (name === key) selected = literalObject(chunk.slice(at + 1).trim());
   }
-  return null;
+  return selected;
+}
+
+/** Only type assertions with simple names and flat type arguments are supported. */
+function typeAssertionOnly(text) {
+  return /^\s*(?:(?:as|satisfies)\s+[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*(?:\s*<[\w$.,\s]+>)?)?\s*$/.test(text);
+}
+
+/** A complete object literal, with no trailing operator or expression. */
+function literalObject(text) {
+  if (!text.startsWith('{')) return null;
+  const body = bracedIn(text, 'js', 0);
+  return body != null && typeAssertionOnly(text.slice(body.length + 2)) ? body : null;
 }
 
 /**
@@ -391,7 +446,7 @@ function memberBody(body, key) {
 function resolveObject(expression, scope, seen) {
   const text = expression.trim();
   if (text.startsWith('{')) {
-    const body = bracedIn(text, 'js', 0);
+    const body = literalObject(text);
     return body == null ? null : { body, names: [] };
   }
   const member = /^([A-Za-z_$][\w$]*)\.([\w$]+)$/.exec(text);

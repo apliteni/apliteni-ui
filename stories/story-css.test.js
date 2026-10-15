@@ -352,13 +352,13 @@ test('the gate reports a story that paints something of its own', () => {
   assert.equal(before.shadows.length, 0, `${clean} was the clean subject this mutation needs and `
     + 'is no longer clean — pick another and say so here.');
   const problems = withEdit(clean, plant('<style>.ct-x { color: #ff0000; }</style>'));
-  assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')),
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('declaration(s) paint, type or animate') && p.includes('color')),
     `a story painting its own ink was not reported:\n${problems.join('\n')}`);
 });
 
 test('the gate reports a story that restyles a kit class', () => {
   const problems = withEdit(clean, plant('<style>.ui-callout { background: #ff0000; }</style>'));
-  assert.ok(problems.some((p) => p.includes(clean) && p.includes('.ui-callout')),
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('declaration(s) paint, type or animate') && p.includes('.ui-callout')),
     `repainting a kit class was not reported:\n${problems.join('\n')}`);
 });
 
@@ -370,7 +370,7 @@ test('the gate reports a placement onto a kit class with no reason on record', (
 
 test('the gate reports a story that re-declares a kit token', () => {
   const problems = withEdit(clean, plant('<style>.ct-x { --space-4: 3px; }</style>'));
-  assert.ok(problems.some((p) => p.includes(clean) && p.includes('--space-4')),
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('declaration(s) paint, type or animate') && p.includes('--space-4')),
     `a re-declared kit token was not reported:\n${problems.join('\n')}`);
 });
 
@@ -425,7 +425,7 @@ test('the gate reports a column rule as paint and smooth scrolling as motion', (
   ]) {
     const problems = withEdit(clean, plant(`<style>.ct-x { ${declaration}; }</style>`));
     const [property] = declaration.split(':');
-    assert.ok(problems.some((p) => p.includes(clean) && p.includes(property)),
+    assert.ok(problems.some((p) => p.includes(clean) && p.includes('declaration(s) paint, type or animate') && p.includes(property)),
       `\`${declaration}\` was not reported as paint:\n${problems.join('\n')}`);
   }
 });
@@ -434,13 +434,13 @@ test('the gate reports a column rule as paint and smooth scrolling as motion', (
 
 test('the gate reads a single-quoted style attribute', () => {
   const problems = withEdit(clean, plant("<div style='color: #ff0000'></div>"));
-  assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')),
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('declaration(s) paint, type or animate') && p.includes('color')),
     `a single-quoted style attribute was dropped:\n${problems.join('\n')}`);
 });
 
 test('the gate reads a style attribute that carries a comment', () => {
   const problems = withEdit(clean, plant('<div style="/* the brand red */ color: #ff0000"></div>'));
-  assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')),
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('declaration(s) paint, type or animate') && p.includes('color')),
     `a commented style attribute was dropped:\n${problems.join('\n')}`);
 });
 
@@ -468,7 +468,7 @@ test('the gate reads the outer rule of a nested one, not only the inner', () => 
   // The reading this replaced matched the innermost `{…}`, so `.x { color: red; & > b {
   // margin: 0 } }` measured the margin and dropped the colour. Chromium paints both.
   const problems = withEdit(clean, plant('<style>.ct-x { color: #ff0000; & > b { margin: 0 } }</style>'));
-  assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')),
+  assert.ok(problems.some((p) => p.includes(clean) && p.includes('declaration(s) paint, type or animate') && p.includes('color')),
     `the outer rule of a nested rule was dropped:\n${problems.join('\n')}`);
 });
 
@@ -517,13 +517,13 @@ test('the gate reads a declaration whose value carries a comment or a bracketed 
     '<style>[data-ct="}"] { color: #ff0000 }</style>',
   ]) {
     const problems = withEdit(clean, plant(markup));
-    assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')
+    assert.ok(problems.some((p) => p.includes(clean) && p.includes('declaration(s) paint, type or animate') && p.includes('color')
       && !p.includes('cannot read')), `\`${markup}\` was misread:\n${problems.join('\n')}`);
   }
 
   for (const declaration of ['color: /* the brand red */ #ff0000', 'color: rgb(255 0 0 / 50%)']) {
     const problems = withEdit(clean, plant(`<style>.ct-x { ${declaration} }</style>`));
-    assert.ok(problems.some((p) => p.includes(clean) && p.includes('color')),
+    assert.ok(problems.some((p) => p.includes(clean) && p.includes('declaration(s) paint, type or animate') && p.includes('color')),
       `\`${declaration}\` was dropped:\n${problems.join('\n')}`);
   }
 });
@@ -541,7 +541,7 @@ test('a stylesheet a story imports is a subject, and its paint fails the gate', 
   const problems = problemsIn(
     [...measured, measureStory(sheet, '.ui-card { background: #ff0000 }', tokens)], against,
   );
-  assert.ok(problems.some((p) => p.includes(sheet) && p.includes('background')),
+  assert.ok(problems.some((p) => p.includes(sheet) && p.includes('declaration(s) paint, type or animate') && p.includes('background')),
     `paint in an imported ${sheet} was not reported:\n${problems.join('\n')}`);
 
   // Resolved against the importing file, so a `../` and a subfolder both land on it.
@@ -586,7 +586,7 @@ test('a story served from a new folder or a new extension becomes a subject, pai
       [...measured, measureStory(file, '<style>.n { color: #ff0000 }</style>', tokens)],
       against,
     );
-    assert.ok(problems.some((p) => p.includes(file) && p.includes('color')),
+    assert.ok(problems.some((p) => p.includes(file) && p.includes('declaration(s) paint, type or animate') && p.includes('color')),
       `paint in a newly served ${file} was not reported:\n${problems.join('\n')}`);
   }
 
