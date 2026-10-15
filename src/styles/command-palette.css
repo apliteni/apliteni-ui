@@ -340,3 +340,12 @@
 @media (prefers-reduced-motion: reduce) {
   .ui-cmdk.is-open * { transition: none !important; }
 }
+
+/* System ink keeps selection visible when the mode replaces background fills.
+   The inset mark fits clipped rows. Keyboard focus keeps its own ring. */
+@media (forced-colors: active) {
+  .ui-cmdk__item.is-active:not(:focus-visible) {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
