@@ -13,7 +13,7 @@
 // an attribute, so JSDOM computes a real outline for a focused box.
 //
 // WHY AN OUTLINE AND NOT A SHADOW, which is the fact every check below rests on. An
-// inset box-shadow is painted under the box's OWN CHILDREN. Six of these seven have
+// inset box-shadow is painted under the box's OWN CHILDREN. Six of these eight have
 // transparent children and would have been fine; the two with a table in them are
 // not, and a card scrolled sideways at scrollLeft 300 came back in Chrome with its
 // left and right sides erased by the table's own background. An outline is painted
@@ -29,8 +29,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { STYLE_FILES, desugar, substitute, tokensFor } from './lib/contrast.js';
-
-import { confirm, drawer, dropdown } from '../src/index.js';
+import { leafRules } from './lib/motion-css.js';
+import { confirm, drawer, dropdown, navTabs } from '../src/index.js';
 import { commandPalette } from '../src/components/command-palette.js';
 
 const source = STYLE_FILES.map((file) => readFileSync(file, 'utf8')).join('\n');
@@ -45,8 +45,10 @@ const tableMarkup = () => '<table class="ui-table"><tbody>'
   + '</tbody></table>';
 
 /**
- * The six scroll regions the kit ships inside a surface, each with the markup that
- * renders it and the reason it draws the band rather than the kit's outset ring.
+ * The seven scroll regions the kit rings, each with the markup that renders it and
+ * the reason it draws the band rather than the kit's outset ring. Six sit inside a
+ * surface; the tab row sits on the page and still takes the band, because what
+ * decides the picture is that the box CLIPS, not what it stands on.
  * Every one of them paints its own: nothing here delegates, which is itself a
  * guarantee the checks below hold.
  *
@@ -94,6 +96,20 @@ const SUBJECTS = [
     why: 'the --space-1 is the band\'s clearance from the glyphs, and the panel insets '
       + 'the paragraph by --space-5 on every side',
     markup: () => confirm({ id: 'c', title: 'Delete it?', body: 'It cannot be undone.' }),
+  },
+  {
+    name: 'a tab row with every tab disabled',
+    box: '.ui-nav--tabs',
+    why: 'a row that scrolls clips at its own padding edge, so an outset ring on it is '
+      + 'cut off by the box that scrolls; its 4px of padding is the room the band draws '
+      + 'in. A row with room for its links scrolls nothing and is no stop either',
+    markup: () => navTabs({
+      ariaLabel: 'Finance views',
+      items: [
+        { id: 'summary', label: 'Summary', disabled: true },
+        { id: 'payouts', label: 'Payouts', disabled: true },
+      ],
+    }),
   },
   {
     name: "the command palette's list",
@@ -188,8 +204,8 @@ function check(css, theme, accent) {
   }
 
   // Anti-vacuity: the subjects are six and the reading above ran on each.
-  assert.equal(SUBJECTS.length, 6,
-    'the kit draws the inward band on six scroll regions; React\'s modal body is the seventh, '
+  assert.equal(SUBJECTS.length, 7,
+    'the kit draws the inward band on seven scroll regions; React\'s modal body is the eighth, '
     + 'in react/src/focus-ring.test.tsx');
   win.close();
 }
@@ -243,23 +259,168 @@ test('nothing is left for forced colours to correct', () => {
   assert.deepEqual(standIns, [],
     'a transparent stand-in outline is back; with the band on the same property it is '
     + 'either silencing the band or waiting to be repainted beside it');
-  // One forced-colors block is left in the kit and it is not about focus: #527's
-  // underline strip restates its CHOSEN TAB's accent bar in `Highlight`, because the
-  // mode repaints an author colour and would otherwise leave that bar in the labels'
-  // own ink. A block that declares `outline` or `box-shadow` would be correcting the
-  // band instead, which is the thing #578 removed the need for.
-  const forced = [...source.replace(/\/\*[\s\S]*?\*\//g, '')
-    .matchAll(/@media\s*\(forced-colors:\s*active\)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)]
-    .map(([, body]) => body);
-  assert.equal(forced.length, 1,
-    'a forced-colors block was added or removed. The band is a real outline now, so a '
-    + 'new block is either a second indicator or a correction for one');
-  assert.doesNotMatch(forced[0], /(?:^|[;{\s])(?:outline|box-shadow)\s*:/,
-    'the kit\'s one forced-colors block has started correcting a focus indicator; the '
-    + 'band is a real outline and the mode repaints it without help');
+
 });
 
-test('rejects a scroll region put back on the retired box-shadow form', () => {
+
+
+/**
+ * The forced-colours blocks that are NOT about a focus indicator, each named by its
+ * exact selector with the declarations it is permitted to carry.
+ *
+ * WHY A TABLE AND NOT A FILTER. The count below reads the blocks that touch an
+ * indicator, because a region that starts delegating one takes a block that drops its
+ * own outline. Excusing every block that merely names no outline and no shadow is the
+ * cheap way to let the rows through, and round r1's review showed what it admits:
+ *
+ *     @media (forced-colors: active) {
+ *       .ui-card:has(.ui-table-scroll:focus-visible) { border: 3px solid Highlight; }
+ *     }
+ *
+ * A card that answers a focused child with a 3px border is a second indicator by any
+ * reading a person would give it, and it names neither property. So a block gets
+ * through by being WRITTEN DOWN here, declaration by declaration; anything else fails
+ * whatever it declares, and a permitted block that grows a declaration fails too.
+ */
+const FORCED = /forced-colors\s*:\s*active/;
+const INDICATOR = /^(outline|box-shadow)/;
+const PERMITTED_FORCED = {
+  '.ui-seg--underline button.is-active::before, .ui-seg--underline button[aria-pressed="true"]::before': {
+    why: 'the underline strip\'s chosen tab restates its accent bar in `Highlight`, because '
+      + 'the mode repaints an author colour and would otherwise leave the bar in the labels\' '
+      + 'own ink (#527). A selection mark on a strip that no longer scrolls at all, so it is '
+      + 'neither a focus indicator nor a scroll region\'s.',
+    props: ['background'],
+  },
+  '.ui-nav--tabs': {
+    why: 'forced colours drop background images, so the row\'s rule comes back as a border '
+      + 'and the last pixel of the bottom padding pays for it. It answers no focus and '
+      + 'belongs to no focused box: the row\'s own band is declared outside this mode and '
+      + 'is a real outline the system repaints. #429',
+    props: ['padding-bottom', 'border-bottom'],
+  },
+  '.ui-nav--tabs.is-pill .ui-nav__tab.is-active': {
+    why: 'what marks the selected tab is a colour, and this mode takes colours away — the '
+      + 'pill\'s wash is repainted Canvas, leaving every tab alike. The system\'s own '
+      + 'selected pair says it instead. A selection mark, not a focus indicator: it is on '
+      + 'the current tab whether or not anything has focus. #429',
+    props: ['forced-color-adjust', 'background-color', 'color'],
+  },
+  '.ui-nav--tabs.is-pill .ui-nav__tab.is-active .ui-nav__badge': {
+    why: 'the badge rides the selected pill\'s fill, so it takes the same system pair '
+      + 'inverted and stays readable on it. Paint on a child of the current tab, reached '
+      + 'by no focus and answering none. #429',
+    props: ['background-color', 'color', 'border-color'],
+  },
+  '.ui-nav--tabs.is-underline .ui-nav__tab.is-active::after': {
+    why: 'the underline appearance loses its mark the same way — an accent bar repainted '
+      + 'Canvas on a Canvas ground — so the bar takes the system\'s selected colour. Again '
+      + 'a selection mark on the current tab, not an answer to focus. #429',
+    props: ['background-color'],
+  },
+};
+
+function emulateForcedColors(css) {
+  const blocks = leafRules(css).filter((rule) => rule.at.some((prelude) => FORCED.test(prelude)));
+  // Every block is flattened in, which is the proof each one is reachable.
+  const flattened = blocks
+    .map((rule) => `${rule.selector} { ${rule.decls.map((d) => `${d.prop}: ${d.value}`).join('; ')} }`);
+  // A real outline needs no forced-colour correction.
+  const indicators = blocks.filter((rule) => rule.decls.some((d) => INDICATOR.test(d.prop)));
+  assert.equal(indicators.length, 0,
+    'a forced-colors block touching a focus indicator was added or removed; a scroll '
+    + 'region that needs one is a scroll region that has started delegating');
+  // And every OTHER block is one this file has triaged, carrying only what it was
+  // triaged for. A new block fails here whatever it declares — which is the half the
+  // indicator count on its own could not say.
+  const others = blocks.filter((rule) => !indicators.includes(rule));
+  const named = (rule) => rule.selector.replace(/\s+/g, ' ').trim();
+  assert.deepEqual(
+    others.map(named).sort(),
+    Object.keys(PERMITTED_FORCED).sort(),
+    'a forced-colors block that is not about a focus indicator was added or removed; '
+    + 'triage it into PERMITTED_FORCED with the declarations it may carry, and say why',
+  );
+  for (const rule of others) {
+    const { why, props } = PERMITTED_FORCED[named(rule)];
+    assert.ok(why.length >= 80, `${rule.selector} needs the reason it is permitted in prose`);
+    assert.deepEqual(rule.decls.map((d) => d.prop).sort(), [...props].sort(),
+      `${named(rule)} no longer declares what it was permitted for; re-triage it`);
+  }
+  return [css.replace(/box-shadow\s*:[^;}]+/g, 'box-shadow: none'), ...flattened].join('\n');
+}
+
+function checkForcedColors(css, theme) {
+  const win = stage(emulateForcedColors(css), theme, 'default');
+  for (const { name, box } of SUBJECTS) {
+    const el = win.document.querySelector(box);
+    el.setAttribute('data-ui-state', 'focus-visible');
+    assert.ok(quiet(win.getComputedStyle(el)),
+      `${name}: forced colors leaves no box-shadow at all, so the outline is the only signal`);
+    assert.ok(!bareOutline(win.getComputedStyle(el)),
+      `${name}: ${box} declares no outline the system can repaint`);
+    // And exactly one box does, counting the region and every box around it.
+    const drawing = [el];
+    for (let host = el.parentElement; host; host = host.parentElement) {
+      if (!bareOutline(win.getComputedStyle(host))) drawing.push(host);
+    }
+    assert.equal(drawing.length, 1, `${name}: one focused region draws one indicator, not two`);
+    el.removeAttribute('data-ui-state');
+  }
+  win.close();
+}
+
+for (const theme of ['light', 'dark']) {
+  test(`a scroll region draws one indicator in forced colors: ${theme}`,
+    () => checkForcedColors(source, theme));
+}
+
+// The narrowed count, proved to still fire: a region that starts delegating takes a
+// forced-colors block that drops its own outline, which is a second indicator-bearing
+// block whether or not any other block exists beside it.
+test('rejects a second forced-colors block that drops a region\'s indicator', () => {
+  const mutated = `${source}\n@media (forced-colors: active) {\n`
+    + '  .ui-drawer__body:focus-visible { outline: none; }\n}\n';
+  assert.throws(() => checkForcedColors(mutated, 'light'),
+    /a forced-colors block touching a focus indicator was added or removed/);
+});
+
+// The escape round r1's review found, now rejected. A card that grows a 3px border
+// while a child is focused is a second indicator, and it names neither `outline` nor
+// `box-shadow` — so the indicator count passes it and only the triage can refuse it.
+test('rejects a forced-colors block nobody triaged', () => {
+  const mutated = `${source}\n@media (forced-colors: active) {\n`
+    + '  .ui-card:has(.ui-table-scroll:focus-visible) { border: 3px solid Highlight; }\n}\n';
+  assert.throws(() => checkForcedColors(mutated, 'light'),
+    /a forced-colors block that is not about a focus indicator was added or removed/);
+});
+
+// The other half of the triage: a permitted block is permitted for its declarations,
+// not for its selector. The row's rule-restoring block growing a paint declaration is
+// a change nobody read, so it fails rather than riding in on the selector.
+test('rejects a permitted forced-colors block that grows a declaration', () => {
+  const mutated = source.replace(
+    '    border-bottom: var(--ui-tabs-rule) solid;',
+    '    border-bottom: var(--ui-tabs-rule) solid;\n    background-color: Canvas;');
+  assert.notEqual(mutated, source, 'the mutation found the declaration');
+  assert.throws(() => checkForcedColors(mutated, 'light'),
+    /no longer declares what it was permitted for/);
+});
+
+// And the anti-vacuity end of it: a table listing a block the sheets no longer carry
+// would quietly stop checking anything, so a deleted block fails too.
+test('rejects a triaged forced-colors block that has gone', () => {
+  const mutated = source.replace(
+    '  .ui-nav--tabs.is-underline .ui-nav__tab.is-active::after { background-color: Highlight; }\n',
+    '');
+  assert.notEqual(mutated, source, 'the mutation found the rule');
+  assert.throws(() => checkForcedColors(mutated, 'light'),
+    /a forced-colors block that is not about a focus indicator was added or removed/);
+});
+
+// The defect that reading exists for, restored: give a region back a transparent
+// outline and forced colors has nothing to repaint.
+test('rejects a scroll region whose band forced colors cannot repaint', () => {
   const mutated = source.replace(
     '.ui-drawer__body:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }',
     '.ui-drawer__body:focus-visible { outline: 2px solid transparent; box-shadow: var(--ring); }');

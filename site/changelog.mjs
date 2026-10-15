@@ -6,6 +6,17 @@
 
 export const RELEASES = [
   {
+    v: '0.112.0', date: '2026-10-11',
+    changes: [
+      ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],
+      ['added', 'NavTabs and Breadcrumbs take renderLink, so a router can own route changes, and the main entry now exports safeUrl, revealCurrentNav and revealFocusedNav for callers that assemble their own navigation markup.', ['Navigation']],
+      ['changed', 'The current pill tab uses an accent label on its existing soft accent fill. The label distinguishes the current route from a hovered route. Vanilla and React share this change.', ['Navigation']],
+      ['fixed', 'Tab rows scroll within narrow containers without widening the page, moving off the page gutter or lifting the active underline off the row rule. A row whose tabs all fit scrolls nothing and clips nothing, so the post-#578 outline focus ring keeps its band at a desktop width. React and vanilla wireNav reveal the current route without moving keyboard focus or discarding where the reader scrolled.', ['Navigation']],
+      ['fixed', 'A tab row that does scroll now scrolls to a link the keyboard lands on, so its focus ring clears the scrolling edge instead of being cut off at the end of the row. A row whose tabs are all disabled takes the kit inward band on itself rather than the browser outline, because it holds no link to carry one.', ['Navigation']],
+      ['fixed', 'In forced-colours mode the selected tab keeps a visible mark in both appearances. The mode repaints the pill fill and the underline accent bar with the page ground, so the selected tab now takes the system selected colours there. Ordinary colours are unchanged.', ['Navigation']],
+    ],
+  },
+  {
     v: '0.108.0', date: '2026-10-10',
     changes: [
       ['fixed', 'Below 720px a pinned identity column keeps each row name on one line instead of hiding it. The name is capped at `min(var(--panel-sm), 50vw)` and cuts with an ellipsis past the cap; the full text stays in the markup, so the accessible name and company link stay unchanged. Resolves #500.', ['Table']],

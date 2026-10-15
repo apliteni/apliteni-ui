@@ -81,6 +81,22 @@
       ]
     },
     {
+      "file": "react/src/NavTabs.test.tsx",
+      "name": "React: NavTabs",
+      "does": "Checks native route-link semantics, current and disabled state, keyboard order, root refs, badge text, safe destinations and axe results. Checks content and container remeasurement without resetting the scroll position.",
+      "blind": [
+        "JSDOM does not measure responsive layout, focus-ring pixels or actual browser navigation. Story contrast and browser captures cover the shared styling."
+      ]
+    },
+    {
+      "file": "react/src/Breadcrumbs.test.tsx",
+      "name": "React: Breadcrumbs",
+      "does": "Checks ordered trail semantics, current-page text, ancestor links, decorative icons, keyboard focus, root refs, safe destinations and axe results.",
+      "blind": [
+        "JSDOM does not measure browser layout, visual separators or spoken screen-reader output. Story contrast and browser captures cover shared styling."
+      ]
+    },
+    {
       "file": "react/src/Tooltip.test.tsx",
       "name": "React: Tooltip",
       "does": "Checks description IDs, keyboard focus, Escape dismissal, touch toggling, placement and axe results.",
@@ -498,6 +514,14 @@
       "blind": [
         "JSDOM ranks author rules faithfully but does not rank by origin. The user-agent boundary is a known exception, documented in the contribution guide’s cascade section.",
         "How large the mark looks to an eye. The step is composited down the ancestor chain and read as a contrast ratio, which is a number and not a perceptual distance — 1.19:1 is ΔL* 8.3 in dark and 1.11:1 is ΔL* 4.2 in light, so the same floor buys less in light. The rail inside the page shell stands on a different ground and is measured in stories/apps/shell-states.test.js; the browser captures on the pull request show both."
+      ]
+    },
+    {
+      "file": "stories/nav-long-label.test.js",
+      "name": "Nav long label",
+      "does": "In a real browser, renders a current tab with a long route label at 320px and measures that its label start and focus ring stay inside the row. It counts painted outline pixels and walks each side for the longest unpainted run, with a 4px closure tolerance measured from the fixed case's 3px antialiasing gap plus one pixel. It also removes the label cap in memory and requires the hidden start and clipped ring to return, removes the outline, makes the text transparent, clips the middle 30% of the right edge and keeps an adjacent badge colour change green.",
+      "blind": [
+        "Runs only when NAV_LONG_LABEL=1 and Playwright is available. It covers one long English label, one direct-gate theme and Chromium; PR evidence renders vanilla and React stories in both themes."
       ]
     },
     {
