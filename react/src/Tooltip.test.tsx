@@ -295,6 +295,22 @@ it('supports pen taps, then mouse hover and keyboard focus on the same device', 
   expect(tip).toHaveTextContent('March');
 });
 
+it('toggles the inline readout on pen taps after compatibility mouse and focus events', () => {
+  const { trigger, tip } = mount();
+  const tap = () => {
+    pointer(trigger, 'pointerover', 'pen');
+    fireEvent.mouseOver(trigger);
+    pointer(trigger, 'pointerdown', 'pen');
+    fireEvent.focus(trigger);
+    pointer(trigger, 'pointerup', 'pen');
+    fireEvent.click(trigger);
+  };
+  tap();
+  expect(tip).toHaveClass('is-open');
+  tap();
+  expect(tip).not.toHaveClass('is-open');
+});
+
 it('supports focus arriving without a tap after a touch interaction', () => {
   const { first, second, tip } = chart();
   fireEvent.touchStart(first); fireEvent.touchEnd(first); fireEvent.click(first);

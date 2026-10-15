@@ -265,7 +265,7 @@ function TooltipSurface({ text, label = text, value, detail, placement = 'top', 
         else if (event.pointerType === 'mouse') { ignoreMouseUntil.current = 0; show(markOf(event.target)); }
       }}
       onClickCapture={event => {
-        if (!chart) return;
+        if (!chart && pointerKind.current !== 'pen') return;
         tapping.current = false;
         const touched = pendingClick.current;
         pendingClick.current = null;
