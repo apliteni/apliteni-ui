@@ -56,7 +56,7 @@
 .ui-seg button.is-active:where(:disabled),
 .ui-seg button[aria-pressed="true"]:where(:disabled),
 .ui-seg button[aria-selected="true"]:where(:disabled) {
-  background: var(--surface-3); /* code-bg: inherit — the selected control's own fill */
+  background: var(--surface-3); /* code-bg: inherit — the selected control's own fill. */
 }
 
 /* Standard pills tighten on phones so six short month names fit one row. */
