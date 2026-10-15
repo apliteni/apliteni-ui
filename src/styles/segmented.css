@@ -52,6 +52,13 @@
   color: var(--signal-contrast);
 }
 
+/* A disabled selection stays readable without the active accent fill. */
+.ui-seg button.is-active:where(:disabled),
+.ui-seg button[aria-pressed="true"]:where(:disabled),
+.ui-seg button[aria-selected="true"]:where(:disabled) {
+  background: var(--surface-3); /* code-bg: inherit — the selected control's own fill */
+}
+
 /* Standard pills tighten on phones so six short month names fit one row. */
 @media (max-width: 560px) {
   .ui-seg:not(.ui-seg--sm):not(.ui-seg--underline) button { padding: var(--space-2) var(--space-3); }

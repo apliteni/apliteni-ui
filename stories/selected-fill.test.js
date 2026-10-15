@@ -149,6 +149,11 @@ const fillsOf = (selector, css = rules) => css
  * because which container an item ends up in is not in the stylesheets.
  */
 const SUBJECTS = [
+  ...['.is-active', '[aria-pressed="true"]', '[aria-selected="true"]'].map((state) => ({
+    name: `the disabled selected segmented pill (${state})`,
+    rule: `.ui-seg button${state}:where(:disabled)`, ground: '--surface',
+    paintedBy: '.ui-seg, which paints --surface',
+  })),
   {
     name: "the standalone rail's current row",
     rule: '.ui-nav__item.is-active', ground: '--bg',
@@ -366,4 +371,15 @@ test('segmented pills use an accent mark with at least 3:1 against their track',
     }
   }
   assert.equal(count, states.length * accents.length * 2);
+});
+
+// Source paint only. Browser evidence must also check the winning disabled ink.
+test('disabled selected pills retain the quiet fill and readable ink in both themes', () => {
+  for (const state of ['.is-active', '[aria-pressed="true"]', '[aria-selected="true"]']) {
+    const fills = fillsOf(`.ui-seg button${state}:where(:disabled)`);
+    assert.deepEqual(fills, ['var(--surface-3)']);
+    for (const theme of ['light', 'dark']) {
+      assert.ok(against('var(--disabled-ink)', '--surface-3', theme) >= 5);
+    }
+  }
 });
