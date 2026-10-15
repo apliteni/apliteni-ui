@@ -15,6 +15,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { SOLID_STROKE, VIEWBOX } from './lib/glyph-stroke.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const read = (rel) => readFileSync(new URL(rel, import.meta.url), 'utf8');
 
@@ -168,7 +169,7 @@ const sourceOf = (file) => {
  *  A rule head is a LIST, so each of its selectors is looked at: two states that
  *  paint alike are one rule with two selectors, and matching the head as one
  *  string reported the second of them as a rule that is not in the sheet. */
-const heads = (sel) => sel.split(',').map((one) => one.trim().replace(/\s+/g, ' '));
+const heads = (sel) => splitSelectorList(sel).map((one) => one.replace(/\s+/g, ' '));
 
 function paintOf({ file, selector }) {
   for (const [, sel, body] of sourceOf(file).matchAll(RULE)) {
@@ -288,7 +289,7 @@ const BARE_SELECTOR = /^:root\[data-accent="([\w-]+)"\]$/;
 function accentCells() {
   const cells = [];
   for (const [, sel, body] of ACCENTS.matchAll(RULE)) {
-    const parts = sel.trim().split(',').map((s) => s.trim().replace(/\s+/g, ' '));
+    const parts = splitSelectorList(sel).map((s) => s.replace(/\s+/g, ' '));
     const stamped = parts.map((s) => CELL_SELECTOR.exec(s)).filter(Boolean);
     const bare = parts.map((s) => BARE_SELECTOR.exec(s)).filter(Boolean);
     assert.equal(
@@ -439,9 +440,6 @@ test('the --glow-purple gate actually measures something', () => {
 
 const CALLOUT = cssOf('../src/styles/callout.css');
 
-/** Selectors of a rule, comma list split out and trimmed. */
-const selectorsOf = (sel) => sel.split(',').map((s) => s.trim());
-
 /** The statuses the toast matrix declares, discovered rather than typed out: a
  *  `.ui-toast--<name>` rule that sets --toast-accent is a status. The style
  *  modifiers — soft, solid, outline — set no accent, so they are not. */
@@ -449,7 +447,7 @@ function toastStatuses() {
   const found = new Map();
   for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
     if (!/--toast-accent\s*:/.test(body)) continue;
-    for (const s of selectorsOf(sel)) {
+    for (const s of splitSelectorList(sel)) {
       const m = /^\.ui-toast--([a-z]+)$/.exec(s);
       if (m) found.set(m[1], body);
     }
@@ -483,7 +481,7 @@ function toastVars(theme, selectors) {
   const vars = new Map(tokensFor(theme));
   const seen = new Set();
   for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
-    const sels = selectorsOf(sel);
+    const sels = splitSelectorList(sel);
     const hit = selectors.filter((s) => sels.includes(s));
     if (!hit.length) continue;
     for (const s of hit) seen.add(s);
@@ -506,7 +504,7 @@ function declOf(selector, props = 'background|color') {
   const want = new RegExp(`(?:^|;)\\s*(${props})\\s*:\\s*([^;]+)`, 'g');
   const out = {};
   for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
-    if (!selectorsOf(sel).includes(selector)) continue;
+    if (!splitSelectorList(sel).includes(selector)) continue;
     for (const [, prop, value] of body.matchAll(want)) out[prop] = value.trim();
   }
   return out;
@@ -631,7 +629,7 @@ function glyphFamilies() {
   const found = new Set();
   for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
     if (!/stroke-width\s*:/.test(body)) continue;
-    for (const s of selectorsOf(sel)) {
+    for (const s of splitSelectorList(sel)) {
       const m = /^(\.[\w-]+__icon) svg$/.exec(s);
       if (m) found.add(m[1]);
     }
@@ -645,7 +643,7 @@ function glyphFamilies() {
 function calloutStatuses() {
   const found = new Set();
   for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
-    for (const s of selectorsOf(sel)) {
+    for (const s of splitSelectorList(sel)) {
       const m = /^\.ui-callout--([a-z]+)$/.exec(s);
       if (m && /(?:^|;)\s*background\s*:/.test(body)) found.add(m[1]);
     }
@@ -761,7 +759,7 @@ for (const theme of ['dark', 'light']) {
 
 /* All legacy styles share the glyph measured above. */
 test('every toast style leaves the status glyph unfilled', () => {
-  const styles = [...CALLOUT.matchAll(RULE)].flatMap(([, sel]) => selectorsOf(sel))
+  const styles = [...CALLOUT.matchAll(RULE)].flatMap(([, sel]) => splitSelectorList(sel))
     .filter(sel => /^\.ui-toast--/.test(sel) && !sel.includes(' ') && !toastStatuses().has(sel.slice(11)) && sel !== '.ui-toast--compact');
   assert.deepStrictEqual([...new Set(styles)].sort(), ['.ui-toast--outline', '.ui-toast--soft', '.ui-toast--solid']);
   for (const style of styles) {
