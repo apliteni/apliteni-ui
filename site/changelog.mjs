@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.119.2', date: '2026-10-15',
+    changes: [
+      ['fixed', 'Dropdown panels inside scrolling Modal and Drawer bodies open upward when needed and scroll within the available height. The trigger stays visible without consumer scroll code. See #627.', ['Dropdown', 'Modal', 'Drawer']],
+    ],
+  },
+  {
     v: '0.119.1', date: '2026-10-15',
     changes: [
       ['fixed', 'Both AppShell implementations place the rail brand, navigation and fold control inside a named Sidebar region. Screen readers can reach the whole rail through landmarks, with no visual change. See #648.', ['AppShell']],

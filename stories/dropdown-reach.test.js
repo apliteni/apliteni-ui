@@ -200,6 +200,62 @@ test('a trigger too close to the edge for the floor writes no avail, rather than
   );
 });
 
+// These geometry doubles test clipping arithmetic, not browser layout.
+test('a scrolling ancestor bounds the panel and opens it above a low trigger', () => {
+  const { window, doc, trigger, panel } = phone(
+    dropdown({ items: TWELVE }), { bottom: 600 },
+  );
+  const body = doc.querySelector('main');
+  body.style.overflowY = 'auto';
+  body.getBoundingClientRect = () => ({ top: 100, bottom: 640 });
+  Object.defineProperty(body, 'clientHeight', { value: 540 });
+  Object.defineProperty(panel, 'scrollHeight', { value: 900 });
+  click(window, trigger);
+  assert.ok(panel.classList.contains('is-scroll-up'));
+  assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), '452px');
+  assert.equal(body.scrollTop, 0, 'opening must not scroll the trigger away');
+  trigger.getBoundingClientRect = () => ({ top: 120, bottom: 151 });
+  window.dispatchEvent(new window.Event('scroll'));
+  assert.ok(!panel.classList.contains('is-scroll-up'));
+  assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), '472px');
+});
+
+test('nested clipping edges bound a scrolling panel even below the usual height floor', () => {
+  const { doc, panel } = phone(dropdown({ items: TWELVE }), { bottom: 600 });
+  const body = doc.querySelector('main');
+  body.style.overflowY = 'auto';
+  body.getBoundingClientRect = () => ({ top: 500 });
+  Object.defineProperty(body, 'clientHeight', { value: 140 });
+  const outer = doc.body;
+  outer.style.overflowY = 'hidden';
+  outer.getBoundingClientRect = () => ({ top: 530 });
+  Object.defineProperty(outer, 'clientHeight', { value: 90 });
+  Object.defineProperty(panel, 'scrollHeight', { value: 900 });
+  assert.equal(dropdownHeightFit(panel.parentElement, panel), 22);
+  assert.ok(panel.classList.contains('is-scroll-up'));
+});
+
+test('a short panel keeps its downward placement when it fits the scrolling body', () => {
+  const { doc, panel } = phone(dropdown({ items: MENU }), { bottom: 300 });
+  const body = doc.querySelector('main');
+  body.style.overflowY = 'auto';
+  body.getBoundingClientRect = () => ({ top: 100 });
+  Object.defineProperty(body, 'clientHeight', { value: 540 });
+  Object.defineProperty(panel, 'scrollHeight', { value: 100 });
+  assert.equal(dropdownHeightFit(panel.parentElement, panel), 323);
+  assert.ok(!panel.classList.contains('is-scroll-up'));
+});
+
+test('a portalled panel keeps its viewport fit when the page body scrolls', () => {
+  const { doc, panel, window, trigger } = phone(dropdown({ items: TWELVE, portal: true }), { bottom: 544 });
+  doc.body.style.overflowY = 'auto';
+  Object.defineProperty(doc.body, 'clientHeight', { value: 600 });
+  Object.defineProperty(panel, 'scrollHeight', { value: 900 });
+  click(window, trigger);
+  assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), '283px');
+  assert.ok(!panel.classList.contains('is-scroll-up'));
+});
+
 /* -- The browser half --------------------------------------------------------- */
 /* The measurement. JSDOM lays nothing out, so where a panel's edge actually lands,
  * and whether a wheel event scrolls the panel or the page underneath it, are both
@@ -357,5 +413,62 @@ test('the last row is reachable near the bottom edge, by the panel scroll at 300
     await browser.close();
     vanilla.proc.kill();
     react.proc.kill();
+  }
+});
+
+// Chromium checks the real clip and hit target. React has separate capture evidence.
+test('a 30-item panel and its trigger stay inside a scrolling Modal body', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_REACH requires Playwright');
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const server = await serve(root, path.join(root, 'stories/lib/dropdown-reach.html'));
+  try {
+    for (const width of [390, 1440]) {
+      const page = await browser.newPage({ viewport: { width, height: 844 }, reducedMotion: 'reduce' });
+      await page.goto(`http://127.0.0.1:${server.port}/__shot`);
+      await page.waitForFunction(() => window.__ready);
+      await page.evaluate(async () => {
+        const { dropdown, wireDropdown } = await import('/src/components/dropdown.js');
+        const sheet = document.createElement('link');
+        sheet.rel = 'stylesheet';
+        sheet.href = '/react/src/Modal.css';
+        const loaded = new Promise(resolve => { sheet.onload = resolve; });
+        document.head.append(sheet);
+        await loaded;
+        document.body.innerHTML = `<div class="rx-scrim is-open"><div class="rx-modal">
+          <div class="rx-modal__head">Project settings</div><div class="rx-modal__body">
+          <div style="height:1200px">Project details</div>${dropdown({
+            placeholder: 'Choose a project',
+            items: Array.from({ length: 30 }, (_, i) => ({ label: `Project ${i + 1}` })),
+          })}<p>Review the settings.</p></div><div class="rx-modal__foot">Save settings</div></div></div>`;
+        wireDropdown(document.body);
+        const body = document.querySelector('.rx-modal__body');
+        const trigger = document.querySelector('[data-dropdown-trigger]');
+        body.scrollTop += trigger.getBoundingClientRect().bottom - body.getBoundingClientRect().bottom + 48;
+      });
+      await page.locator('[data-dropdown-trigger]').click();
+      const measure = () => page.evaluate(() => {
+        const body = document.querySelector('.rx-modal__body').getBoundingClientRect();
+        const trigger = document.querySelector('[data-dropdown-trigger]').getBoundingClientRect();
+        const panel = document.querySelector('[data-dropdown-panel]').getBoundingClientRect();
+        return panel.top >= body.top && panel.bottom <= body.bottom
+          && trigger.top >= body.top && trigger.bottom <= body.bottom;
+      });
+      assert.ok(await measure(), `panel or trigger is clipped at ${width}px`);
+      await page.locator('[data-dropdown-panel]').evaluate(el => { el.scrollTop = el.scrollHeight; });
+      assert.ok(await page.locator('[data-dd-item]').last().evaluate(el => {
+        const r = el.getBoundingClientRect();
+        return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+      }), `last option is not reachable at ${width}px`);
+      // Removing the placement must recreate the reported clipping.
+      await page.addStyleTag({ content: '.ui-dropdown__panel.is-scroll-up { top: calc(100% + 9px); bottom: auto; }' });
+      assert.equal(await measure(), false, 'the fixture must detect lost upward placement');
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+    server.proc.kill();
   }
 });

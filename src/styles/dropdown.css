@@ -204,7 +204,7 @@
    fourteen-pixel panel. The entry travel is mirrored too, so the panel arrives
    from the trigger whichever way it opens.
    why: docs/components.md#the-dropdown-panel */
-.ui-dropdown__panel.is-up {
+.ui-dropdown__panel.is-scroll-up, .ui-dropdown__panel.is-up {
   top: auto;
   bottom: calc(100% + var(--ui-dropdown-gap));
   transform: translateY(6px);
