@@ -709,7 +709,8 @@ vanilla sections above.
 
 ### React tables
 
-Tables size to their content. A `.ui-table__title` cell gives a text column the remaining width.
+Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
+A `.ui-table__title` cell gives a text column the remaining width.
 React `DataTable` has no column flag for that cell class.
 Its pager follows the measured table width and wraps when necessary.
 Without `ResizeObserver`, the pager keeps its container width.

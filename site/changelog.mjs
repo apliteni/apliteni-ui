@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.115.0', date: '2026-10-12',
     changes: [
-      ['changed', 'Tables size to their content, and their pagers wrap within that width. The company comparison aligns its heading, filters, tabs and first column. Its phone view keeps all three columns visible. Resolves #504.', ['Table', 'DataTable', 'Pagination']],
+      ['changed', 'Tables inside fit-content cards size to their content, and their pagers wrap within that width. Other tables keep their full width. The company comparison aligns its heading, filters, tabs and first column, and keeps all three columns visible on phones (#504).', ['Table', 'DataTable', 'Pagination']],
       ['changed', 'Filter bars accept an optional link clear action. The company comparison uses Clear filters and explains an empty result.', ['FilterBar']],
     ],
   },

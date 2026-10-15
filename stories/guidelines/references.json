@@ -2,17 +2,17 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:237",
+        "ref": "src/styles/table.css:236",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ],
     "content-width": [
       {
-        "ref": "src/styles/table.css:12",
+        "ref": "src/styles/table.css:13",
         "pattern": "width: auto;"
       },
       {
-        "ref": "src/styles/table.css:286",
+        "ref": "src/styles/table.css:290",
         "pattern": "max-width: calc(100% + 2 * var(--space-3));"
       }
     ]
@@ -584,7 +584,7 @@
         "pattern": "--space-3: 12px"
       },
       {
-        "ref": "src/styles/table.css:90",
+        "ref": "src/styles/table.css:89",
         "pattern": "padding: var(--space-2) var(--space-3)"
       },
       {
@@ -1029,15 +1029,15 @@
     ],
     "link-to-the-report": [
       {
-        "ref": "src/styles/table.css:117",
+        "ref": "src/styles/table.css:116",
         "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
       },
       {
-        "ref": "src/styles/table.css:136",
+        "ref": "src/styles/table.css:135",
         "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
       },
       {
-        "ref": "src/styles/table.css:268",
+        "ref": "src/styles/table.css:267",
         "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
       },
       {
@@ -1047,7 +1047,7 @@
     ],
     "report-depth": [
       {
-        "ref": "src/styles/table.css:89",
+        "ref": "src/styles/table.css:88",
         "pattern": ".ui-table--dense td"
       }
     ],

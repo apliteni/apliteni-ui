@@ -406,13 +406,29 @@ function tableWidths(css) {
   for (const { selector, body } of rules) {
     for (const [, value] of body.matchAll(/(?:^|;|\s)width\s*:\s*([^;}]+)/g)) {
       const width = value.trim();
-      if (width !== 'auto' && !STACK_LAYOUT.includes(selector)) {
+      const expected = {
+        '.ui-table': '100%',
+        '.ui-card > :where(.ui-table--dense, .ui-table--zebra)': 'calc(100% + 2 * var(--space-3))',
+        ':where(.ui-card--fit) .ui-table': 'auto',
+        '.ui-card--fit > :where(.ui-table--dense, .ui-table--zebra)': 'auto',
+      }[selector];
+      if (width !== expected && !STACK_LAYOUT.includes(selector)) {
         problems.push(`${selector} sizes the table itself: width: ${width}`);
       }
       measured++;
     }
   }
   assert.equal(measured, rules.length, 'every sizing rule must be measured once');
+  for (const selector of [
+    '.ui-table',
+    '.ui-card > :where(.ui-table--dense, .ui-table--zebra)',
+    ':where(.ui-card--fit) .ui-table',
+    '.ui-card--fit > :where(.ui-table--dense, .ui-table--zebra)',
+  ]) {
+    if (!rules.some((rule) => rule.selector === selector)) {
+      problems.push(`${selector} has no sizing rule`);
+    }
+  }
   // An exemption that no longer names a rule in the sheet is a hole with nothing behind it.
   for (const selector of STACK_LAYOUT) {
     if (!rules.some((rule) => rule.selector === selector)) {
@@ -433,15 +449,17 @@ function tableWidths(css) {
   return problems;
 }
 
-test('a table sizes to its content and is capped, never stretched', () => {
+test('tables fill their container unless a fit card requests content sizing', () => {
   assert.deepEqual(tableWidths(CSS), []);
 });
 
 test('the width gate rejects a table stretched back to its container', () => {
   for (const [name, mutation] of [
-    ['the base rule', CSS.replace('  width: auto;', '  width: 100%;')],
+    ['the base rule shrinking every table', CSS.replace('  width: 100%;', '  width: auto;')],
+    ['the fit rules losing their widths', CSS.replaceAll('  width: auto;', '')],
+    ['the fit rule stretching its table', CSS.replace('  width: auto;', '  width: 100%;')],
     ['a modifier', `${CSS}\n.ui-table--dense { width: 100%; }`],
-    ['a composition inside a card', `${CSS}\n.ui-card > .ui-table--zebra { width: calc(100% + 2 * var(--space-3)); }`],
+    ['a composition inside a fit card', `${CSS}\n.ui-card--fit > .ui-table--zebra { width: 100%; }`],
     // The hole #504's first review named: a bare `table` reached through the scroll
     // host stretches every table in the kit and names no `.ui-table` class at all.
     ['a bare table under the scroll host', `${CSS}\n.ui-table-scroll > table { width: 100%; }`],

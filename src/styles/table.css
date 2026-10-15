@@ -3,16 +3,15 @@
  * Row modifiers: .is-dead (revoked/struck), .is-target (landed on), right-aligned .ui-table__act
  * ========================================================================== */
 
-/* A table ends where its values end. Stretching a short one put an amount a
- * screen away from its label (#504). A table with more content than room is
- * unchanged: its cells do not wrap, so their total is its floor. A `__title`
- * cell below still takes the slack when a text column should grow.
- * why: guidelines/dense-tables.md */
 .ui-table {
-  width: auto;
-  max-width: 100%;
+  width: 100%;
   border-collapse: collapse;
   font-size: var(--text-base);
+}
+/* Fit cards keep short tables close to their labels. Other cards keep full-width tables. */
+:where(.ui-card--fit) .ui-table {
+  width: auto;
+  max-width: 100%;
 }
 .ui-table th {
   text-align: left;
@@ -283,8 +282,12 @@
    padding and never past it, so the columns start on the card's own text edge and the
    scroll region stays empty at rest. why: docs/foundations.md#spacing-and-rhythm */
 .ui-card > :where(.ui-table--dense, .ui-table--zebra) {
-  max-width: calc(100% + 2 * var(--space-3));
+  width: calc(100% + 2 * var(--space-3));
   margin-inline: calc(-1 * var(--space-3));
+}
+.ui-card--fit > :where(.ui-table--dense, .ui-table--zebra) {
+  width: auto;
+  max-width: calc(100% + 2 * var(--space-3));
 }
 /* A scroll wrapper owns the bleed for a nested dense table: 4px of focus
    clearance plus the 12px end-cell inset. */
@@ -397,8 +400,10 @@ a.ui-identity:hover { text-decoration: underline; }
      under it, so whatever the cut lets out is painted over that column. A child's ring
      needs 3px and the cell's padding is 12px, so the room comes from the padding.
      why: docs/components.md#dense-financial-tables, #500, #513 */
+  /* A percentage can stretch an intrinsic table beyond its content. */
+  .ui-card--fit .ui-table--pinned .ui-table__identity { width: 1px; }
   .ui-table--pinned .ui-table__identity {
-    width: 1px;
+    width: 1%;
     max-width: var(--ui-table-identity-max);
     white-space: nowrap;
     overflow: clip;
