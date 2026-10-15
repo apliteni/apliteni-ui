@@ -4,9 +4,11 @@
 // first.
 // why: docs/components.md#the-hover-readout
 
+const TIP_GAP = 8;
+
 /**
- * Place `tip` against `mark` inside `host`, above it and centred, flipping below
- * only when the room above is short and the room below is larger. Room is
+ * Place `tip` against `mark` inside `host`, on the preferred side and centred.
+ * Flip only when that side is short and the other side has more room. Room is
  * measured inside the viewport and inside every ancestor whose overflow clips.
  * It then slides along the mark's edge to stay inside that box, no further than
  * it has to.
@@ -16,7 +18,7 @@
  * measurement to one element, for a part that keeps its readout inside itself.
  * why: docs/components.md#the-hover-readout
  */
-export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bound?: Element): void {
+export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bound?: Element, placement: 'top' | 'bottom' = 'top'): void {
   const mrect = mark.getBoundingClientRect();
   const rect = host.getBoundingClientRect();
   const view = host.ownerDocument.documentElement;
@@ -37,10 +39,15 @@ export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bou
     clip.right = Math.min(clip.right, edge.right);
     clip.bottom = Math.min(clip.bottom, edge.bottom);
   }
-  const gap = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap')) || 8;
+  const declared = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap'));
+  const gap = Number.isFinite(declared) ? declared : TIP_GAP;
   const above = mrect.top - clip.top;
   const below = clip.bottom - mrect.bottom;
-  const isBelow = above < tip.offsetHeight + gap && below > above;
+  const prefersBelow = placement === 'bottom';
+  const flip = prefersBelow
+    ? below < tip.offsetHeight + gap && above > below
+    : above < tip.offsetHeight + gap && below > above;
+  const isBelow = prefersBelow !== flip;
   tip.classList.toggle('is-below', isBelow);
   const centre = mrect.left + mrect.width / 2;
   const ideal = centre - tip.offsetWidth / 2;
