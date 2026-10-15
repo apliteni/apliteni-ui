@@ -129,7 +129,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   </a>;
 
   return <div className={`ui-app ui-app--topbar ui-react-app${collapsed ? ' is-collapsed' : ''}`}>
-    {navigable && <div className="ui-app__rail">
+    {navigable && <div className="ui-app__rail" role="region" aria-label="Sidebar">
       <div className="ui-app__head">{lockup}</div>
       {sidebar(sections, 'Sections')}
       <div className="ui-app__foot"><div className="ui-app__fold-row">

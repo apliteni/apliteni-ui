@@ -309,9 +309,8 @@ export function appShell(options = {}) {
   // the product's mark. why: docs/components.md#the-page-shell
   const brand = compat ? '' : `<a class="ui-app__brand" href="${esc(safeUrl(brandHref))}" aria-label="${esc(word)}">`
     + `${prism(`appb-${++_shellUid}`, 24)}<span>${esc(word)}</span></a>`;
-  // A <div>, not an <aside>: <aside> is the `complementary` landmark, and this holds the
-  // page's primary navigation and the signed-in reader. The <nav> inside it is already
-  // the landmark that names the menu.
+  // The named region covers the brand and fold as well as the navigation.
+  // The primary navigation keeps its own landmark inside the region.
   // A fold needs the toggle that undoes it. `data-rail="auto"` marks a shell whose
   // caller left the choice to the reader; wireShell() applies the stored one there.
   const folded = collapsible && collapsed === true;
@@ -342,7 +341,7 @@ export function appShell(options = {}) {
     ? `<div class="ui-app__well">${shellBar(search, account, signOutHref)}${main}</div>`
     : main;
   const grid = `<div class="ui-app${banded ? ' ui-app--topbar' : ''}${folded ? ' is-collapsed' : ''}"${auto}>
-    <div class="ui-app__rail">
+    <div class="ui-app__rail" role="region" aria-label="Sidebar">
       ${head}
       ${rail}
       ${foot}
