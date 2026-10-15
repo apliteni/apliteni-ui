@@ -159,9 +159,9 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
         else if (event.pointerType === 'mouse') { ignoreMouseUntil.current = 0; show(markOf(event.target)); }
       }}
       onClickCapture={event => {
-        if (pointerKind.current !== 'pen') return;
         const touched = pendingClick.current;
         pendingClick.current = null;
+        if (pointerKind.current !== 'pen') return;
         const target = markOf(event.target);
         const opening = touched ? touched === 'open' : !!target && target !== mark;
         if (!opening) { if (!touched) close(); return; }

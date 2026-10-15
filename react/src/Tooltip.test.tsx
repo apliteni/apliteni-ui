@@ -169,6 +169,29 @@ it('toggles the inline readout on pen taps after compatibility mouse and focus e
   expect(tip).not.toHaveClass('is-open');
 });
 
+// These event sequences check input changes, not native browser event synthesis.
+it.each([1, 2])('toggles with a pen after %s touch taps and their compatibility clicks', (touchTaps) => {
+  const { trigger, tip } = mount();
+  for (let tap = 0; tap < touchTaps; tap++) {
+    pointer(trigger, 'pointerover', 'touch');
+    pointer(trigger, 'pointerdown', 'touch');
+    fireEvent.touchStart(trigger);
+    pointer(trigger, 'pointerup', 'touch');
+    fireEvent.touchEnd(trigger);
+    fireEvent.mouseOver(trigger);
+    fireEvent.focus(trigger);
+    fireEvent.click(trigger);
+    expect(tip.classList.contains('is-open')).toBe(tap % 2 === 0);
+  }
+  pointer(trigger, 'pointerover', 'pen');
+  fireEvent.mouseOver(trigger);
+  pointer(trigger, 'pointerdown', 'pen');
+  fireEvent.focus(trigger);
+  pointer(trigger, 'pointerup', 'pen');
+  fireEvent.click(trigger);
+  expect(tip.classList.contains('is-open')).toBe(touchTaps === 2);
+});
+
 // ---- The readout's own markup and what it costs the page -------------------
 
 it('marks every readout with data-tip, the attribute the vanilla wiring reads', () => {

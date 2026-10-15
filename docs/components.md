@@ -475,16 +475,13 @@ what the bar says. No value may be reachable only by hovering. See
 
 ### The React tooltip
 
-React `Tooltip` renders `ui-tip-host`, `ui-tip`, and the label, value and detail spans. It uses
-the existing tooltip CSS. `text` is still a shorthand for `label`. Empty parts are hidden. The
-focusable trigger refers to the tooltip through its ID. Escape keeps focus on the trigger. The
-panel does not change the layout or intercept pointer events. The shared reduced-motion styles
-remove the fade.
+React `Tooltip` shows a label, a value and an optional detail.
+`text` is still a shorthand for `label`. Empty parts are hidden.
+The focusable trigger provides the readout as its accessible description. Escape keeps focus on the trigger.
+The panel does not change the layout or intercept pointer events. Reduced motion removes the fade.
 
 `placement` selects the preferred top or bottom side. The readout stays within clipping ancestors
 and viewport bounds, and updates its position on scroll and resize.
-One set of document listeners serves every React tooltip. Scroll and resize listeners run only
-while a readout is open.
 
 ### Pagination
 
