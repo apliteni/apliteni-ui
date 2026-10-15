@@ -708,3 +708,12 @@
 .ui-section-head { text-align: center; max-width: var(--panel-lg); margin: 0 auto clamp(40px, 6vh, 64px); }
 .ui-section-head h2 { color: var(--strong); font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
 .ui-section-head p { color: var(--text); font-size: calc(var(--text-lg) - 1px); line-height: 1.6; }
+
+/* System ink keeps selection visible when the mode replaces background fills.
+   The inset mark fits clipped rows. Keyboard focus keeps its own ring. */
+@media (forced-colors: active) {
+  .ui-app__rail .ui-nav__item.is-active:not(:focus-visible) {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

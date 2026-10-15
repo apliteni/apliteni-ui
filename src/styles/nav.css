@@ -365,3 +365,15 @@ a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface); /* cod
 a.ui-nav__crumb:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }
 .ui-nav__crumb .ui-nav__ic svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+/* System ink keeps selection visible when the mode replaces background fills.
+   The inset mark fits clipped rows. Keyboard focus keeps its own ring. */
+@media (forced-colors: active) {
+  .ui-nav__item.is-active:not(:focus-visible),
+  .ui-nav__item.is-current:not(:focus-visible),
+  .ui-nav__tab.is-active:not(:focus-visible),
+  .ui-nav__crumb.is-current:not(:focus-visible) {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
