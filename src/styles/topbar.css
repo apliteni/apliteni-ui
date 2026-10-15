@@ -209,7 +209,7 @@
    src/styles/dropdown.css:271 `.ui-dropdown__item:hover`.
    why: docs/foundations.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-/* The row is a keyboard stop: src/components/dropdown.js:1107
+/* The row is a keyboard stop: src/components/dropdown.js:1141
    `items[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
    the arrow keys, and this is one. It takes the ring on its own 10px radius, the
    same way `.amenu a` above does. #482 */
@@ -226,8 +226,11 @@
   flex: none;
   margin-top: 1px;
 }
-.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
-.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
+.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only surface has no nested chip. */ }
+/* The archived version badge is the archive badge tone in a floating menu, so it takes
+   the same neutral chip fill rather than the card surface — which, inside a panel that
+   is itself lighter than a card, was darker than the ground it sat on. #453 */
+.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
 /* The phone step — the same one the rail folds at: docs/foundations.md#breakpoints.
    The switcher keeps its glyph and drops its label.
    The menu hangs the other way here. Anchored by its left edge it opened

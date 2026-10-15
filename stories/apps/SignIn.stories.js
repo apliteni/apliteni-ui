@@ -40,7 +40,7 @@ export const Error = {
   render: () => shell(`
     <h1 class="ui-auth__title">Sign in</h1>
     <p class="ui-auth__sub">Access the Apliteni design system.</p>
-    ${callout({ variant: 'danger', icon: 'alert', body: "That email and password don't match. Try again or use Google." })}
+    ${callout({ variant: 'danger', body: "That email and password don't match. Try again or use Google." })}
     <form style="display:flex;flex-direction:column;gap:18px;margin-top:18px" onsubmit="return false">
       ${field({ label: 'Work email', required: true, control: input({ type: 'email', value: 'ada@apliteni.com', icon: 'mail' }) })}
       ${field({ label: 'Password', required: true, error: 'Incorrect password.', control: input({ type: 'password', value: 'wrong', icon: 'lock', invalid: true }) })}

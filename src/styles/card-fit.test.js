@@ -1,3 +1,4 @@
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 /* Rule: a card sized to its contents is capped at the room it has.
  *
  * `.ui-card--fit` ends a card where its table ends (#504). The hazard it introduces is the
@@ -59,7 +60,7 @@ function cardWidths(css) {
 
   // The modifier the rule above exists for. Named, because a sheet with no card width
   // at all would otherwise satisfy every check in this function.
-  const fit = rules.find(({ selector }) => selector.split(',').some((s) => s.trim() === '.ui-card--fit'));
+  const fit = rules.find(({ selector }) => splitSelectorList(selector).some((s) => s.trim() === '.ui-card--fit'));
   if (!fit) problems.push('.ui-card--fit is gone: a card around one table has nothing to end it');
   else if (declaration(fit.body, 'width') !== 'fit-content') {
     problems.push(`.ui-card--fit must size to its contents, not ${declaration(fit.body, 'width')}`);

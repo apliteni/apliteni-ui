@@ -32,7 +32,7 @@ describe('finance composition', () => {
     render(<Demo />); const remove = screen.getByRole('button', { name: 'Remove Sector filter' }); remove.focus(); fireEvent.click(remove);
     expect(screen.queryByRole('button', { name: 'Remove Sector filter' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Market/ , expanded: false })).toHaveFocus();
-    const clear = screen.getByRole('button', { name: 'Clear all filters' }); clear.focus(); fireEvent.click(clear);
+    const clear = screen.getByRole('button', { name: 'Clear all' }); clear.focus(); fireEvent.click(clear);
     // The bar is empty and draws no box, so the focus leaves it for the action beside it.
     expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
   });
@@ -59,5 +59,25 @@ it('recovers the twenty-company comparison from an empty sector', () => {
   expect(clear.closest('.ui-table-scroll')).toBeNull();
   fireEvent.click(clear);
   expect(container.querySelectorAll('tbody a')).toHaveLength(20);
-  expect(screen.getByRole('button', { name: 'Overview' })).toHaveFocus();
+  expect(screen.getByRole('button', { name: 'Filter' })).toHaveFocus();
+});
+
+// This checks the combined filter state. Browser evidence checks the card's measured width.
+it('adds and unsets a market filter inside the content-width comparison', () => {
+  const { container } = render(<Comparison.render />);
+  expect(container.querySelector('.ui-card--fit .ui-table')).not.toBeNull();
+  expect(container.querySelectorAll('tbody a')).toHaveLength(20);
+  fireEvent.click(screen.getByRole('button', { name: 'Filter' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'New York' }));
+  expect(screen.getByRole('button', { name: 'Market: New York' })).toHaveFocus();
+  expect(container.querySelectorAll('tbody a')).toHaveLength(10);
+  fireEvent.click(screen.getByRole('button', { name: 'Sector: All sectors' }));
+  fireEvent.click(screen.getByRole('option', { name: 'Technology' }));
+  expect(container.querySelectorAll('tbody a')).toHaveLength(2);
+  fireEvent.click(screen.getByRole('button', { name: 'Market: New York' }));
+  fireEvent.click(screen.getByRole('option', { name: 'All markets' }));
+  expect(container.querySelectorAll('tbody a')).toHaveLength(4);
+  fireEvent.click(screen.getByRole('button', { name: 'Sector: Technology' }));
+  fireEvent.click(screen.getByRole('option', { name: 'All sectors' }));
+  expect(container.querySelectorAll('tbody a')).toHaveLength(20);
 });

@@ -4,6 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const css = readFileSync(new URL('./segmented.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
 const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, selector, body]) => ({ selector: selector.trim(), body }));
@@ -38,12 +39,12 @@ const topLevel = (text) => {
 const baseCss = topLevel(css);
 const ruleBody = (text, selector) => {
   const found = [...text.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-    .filter(([, sel]) => sel.split(',').map(part => part.trim()).includes(selector));
+    .filter(([, sel]) => splitSelectorList(sel).includes(selector));
   assert.equal(found.length, 1, `expected one rule for ${selector}`);
   return found[0][2];
 };
 const decl = (body, prop) => new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`).exec(body)?.[1].trim();
-const splitSelectors = (selector) => selector.split(',').map(part => part.trim()).filter(Boolean);
+const splitSelectors = splitSelectorList;
 const specificity = (selector) => [
   [...selector.matchAll(/#[\w-]+/g)].length,
   [...selector.matchAll(/\.[\w-]+|\[[^\]]+\]|:[\w-]+(?:\([^)]*\))?/g)].length,

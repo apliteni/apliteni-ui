@@ -52,7 +52,9 @@ it('keeps body links and action buttons in normal keyboard order', async () => {
 });
 
 it.each<[CalloutVariant, string]>([
-  ['neutral', 'info'], ['info', 'info'], ['success', 'check'], ['warn', 'alert'], ['danger', 'alert'],
+  // The circled glyphs, since #453: a callout reports a state, and the bare check and
+  // alert it used to ship named an action. Neutral and info keep the circled `info`.
+  ['neutral', 'info'], ['info', 'info'], ['success', 'circleCheck'], ['warn', 'circleAlert'], ['danger', 'circleX'],
 ])('uses the %s tone glyph and shares vanilla actions markup', (variant, glyph) => {
   const { container } = render(
     <Callout variant={variant} actions={<button type="button">Review period</button>}>

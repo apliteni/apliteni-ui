@@ -34,7 +34,8 @@
   .rel__date { font-size: 13px; color: var(--muted); }
   .rel__list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
   .rel__list li { display: grid; grid-template-columns: 82px 1fr; gap: 14px; align-items: baseline; color: var(--dim); font-size: 15px; line-height: 1.55; }
-  .rel__list li > .chg { min-width: 0; }
+  .rel__list li > .chg { min-width: 0; overflow-wrap: anywhere; }
+  .rel__list .ui-code { overflow-wrap: anywhere; word-break: break-word; }
 
   /* A change shows its summary; the reasoning after the first sentence is not
      rendered, and the issue refs under a release are where the argument lives.

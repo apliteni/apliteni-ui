@@ -160,19 +160,42 @@ show hierarchy by fading descriptions, labels, captions, timestamps, counts, cod
 or enabled actions with `--muted`, `--dim` or opacity. Use size, weight and spacing for that
 hierarchy. Signal colours still report status and errors. Links keep their link ink.
 
-Muted and dim ink have exactly three uses:
+Muted and dim ink have exactly four uses:
 
 - **glyph** — a mark that is not words: an arrow, a chevron, a dismiss icon.
 - **state** — colour reporting off, unset, disabled or archived, rather than rank.
 - **placeholder** — a slot with no value, such as an empty field or cell.
+- **chrome** — the furniture around a drawing: a chart's value axis, its period row
+  and its legend. Exact data values must remain reachable at full strength through
+  pointer readouts and keyboard announcements. The values table is optional and opens
+  on request. A field's label, a caption and a timestamp keep body ink.
 
 An empty-state explanation is not an empty slot. A keyboard shortcut is language. A count is
 not a status. Generic badges use body ink. Archive and disabled variants keep their state
-ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral dropdown chip tints
-by mixing muted ink into the panel. This is the one soft fill under words that the kit draws,
-and its text still clears 4.5:1.
+ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral chip uses
+`--chip-neutral-fill`, a low-alpha muted wash. Badge, pill, dropdown chip and archived
+version badge all use that token when the tone carries no verdict. The wash leaves its
+ground in the same direction as status chip fills. It is lighter in dark and darker in light.
+Its text still clears 4.5:1. The theme alphas differ because muted ink differs between themes.
+The neutral fill separates from a card by about 1.22:1 in dark and 1.20:1 in light.
 
 ## Colour and contrast
+
+**A status chip's ink and fill form one pair.** Change them together and check the result
+on the page, a card and a floating panel in both themes. Keep text at least 4.5:1.
+Light success has a stronger aim of **7:1** on its fill. It currently measures 7.17:1.
+This stronger aim is a written consumer rule only. The automated badge checks enforce 4.5:1,
+so they would accept the previous success pair at 5.29:1. The other light status pairs
+meet 4.5:1 but do not all meet 7:1. Dark danger measures at least 6.30:1 on these three grounds.
+
+**Archive has little contrast to spare.** Its muted ink measures 4.64:1 on the light page
+and 4.56:1 on a dark floating panel. These are the narrowest Archive pairs.
+Check both before changing muted ink, the neutral fill or a containing surface.
+Do not fade Archive further or assume that a card measurement covers these grounds.
+
+On the light page, warn and pending fills separate by only 1.043:1, and live by 1.047:1.
+Their status ink also identifies them. The neutral fill separates by 1.188:1 on that ground.
+These fill ratios describe separation, not text contrast.
 
 - **The accent is measured against its own wash, not against the surfaces.** Every one of
   the eight theme × accent cells clears 4.5:1. The wash *is* the accent at low alpha, so
@@ -218,8 +241,11 @@ The ladder, from bottom to top:
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
 
 **Text sits on the page, card or floating panel surface, never on a grey inset.** In both
-themes, fields, code blocks, neutral badges, navigation labels and segmented controls use
-those reading surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks.
+themes, fields, code blocks, navigation labels and segmented controls use those reading
+surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks. A status chip
+is the named exception. It uses a soft fill, and neutral chip tones use
+`--chip-neutral-fill`. This avoids the old card-surface badge, which sat darker than a
+floating panel in dark and vanished on a white card in light.
 
 **A selected item is the one exception.** Selection is marked by a background highlight, and the
 only fills that step off a reading surface are the grey ones. A chosen segmented pill fills
@@ -239,6 +265,10 @@ box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--ele
 
 **The focus ring does not touch that list.** The band is an `outline`, so a focused panel keeps
 the edge and the drop it rests on without restating them.
+
+Inside a floating panel, rows keep a reading surface and fields use the same field tokens as
+elsewhere. A chip uses `--chip-neutral-fill` rather than the card surface. The floating panel is
+itself lighter than a card in dark, so the card surface is the darker step there.
 
 `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` are still
 published. All five are the transparent shadow `0 0 #0000` in both themes. They are
@@ -433,3 +463,9 @@ a colour keep the shorthand.
 
 `iconOnlyAllowed` and `iconMeanings` publish the two icon rules as data. They state which
 glyphs may appear without a word and what each glyph means.
+
+**A status glyph is circled.** A circled glyph reports a state. A bare glyph names an action.
+`toast()` and `callout()` use the circled status glyphs for success, danger and warning:
+`circleCheck`, `circleX` and `circleAlert`. Info and neutral callouts use `info`. An explicit
+`icon` still wins. A neutral toast still uses `bolt`, because it reports an event without a
+verdict.

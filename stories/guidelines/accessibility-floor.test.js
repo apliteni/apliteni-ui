@@ -20,6 +20,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { focusBand } from '../../scripts/lib/box-shadow.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import {
   STYLE_FILES, kitCssFor, substitute, desugar, parseColour, composite, ratio,
   effectiveBackground, makeStyleCache, installDomGlobals, storyFiles,
@@ -61,7 +62,7 @@ function ringSelectors(css) {
   const out = [];
   for (const [sel, body] of rules(css)) {
     if (!/(?:^|;)\s*outline\s*:[^;]*var\(--ring\)/.test(body)) continue;
-    for (const s of sel.split(',')) out.push(s.trim());
+    out.push(...splitSelectorList(sel));
   }
   return [...new Set(out)];
 }
@@ -111,12 +112,17 @@ function disabledRules(css) {
   for (const [sel, body] of rules(css)) {
     if (!DISABLED_SEL.test(sel)) continue;
     const m = body.match(/(?:^|;)\s*opacity\s*:\s*([\d.]+)/);
-    for (const s of sel.split(',')) {
-      const selector = s.trim();
+    for (const selector of splitSelectorList(sel)) {
       if (!DISABLED_SEL.test(selector)) continue;
       const opacity = m ? Number(m[1]) : 1;
+      // A rule that says the state with the line around the box and nothing else repaints
+      // that box and not what is inside it: the labels in there are dimmed by whichever
+      // rule paints THEIR ink, which is a subject of its own. So the repaint check below
+      // asks such a rule about its own box only. #518
+      const edgeOnly = /(?:^|;)\s*border(?:-[\w-]+)?\s*:/.test(body)
+        && !/(?:^|;)\s*(color|background|background-color|opacity|filter)\s*:/.test(body);
       const prev = out.get(selector);
-      if (!prev || opacity < prev.opacity) out.set(selector, { selector, opacity });
+      if (!prev || opacity < prev.opacity) out.set(selector, { selector, opacity, edgeOnly });
     }
   }
   return [...out.values()];
@@ -205,8 +211,8 @@ function probeGeometry(css) {
     if (sel.trimStart().startsWith('@')) return whole;
     const extra = [];
     const bases = { before: [], after: [] };
-    for (const part of sel.split(',')) {
-      const m = /^(.*?)::?(before|after)$/.exec(part.trim());
+    for (const part of splitSelectorList(sel)) {
+      const m = /^(.*?)::?(before|after)$/.exec(part);
       if (m && m[1]) bases[m[2]].push(m[1]);
     }
     const retarget = { before: [], after: [] };
@@ -902,7 +908,7 @@ const disabledRun = await (async () => {
     const styles = makeStyleCache(win);
     const found = new Map();
     await walk(win, styles, vars, () => {
-      for (const { selector, opacity } of subjects) {
+      for (const { selector, opacity, edgeOnly } of subjects) {
         const base = selector.replace(/\s*\+\s*\.ui-switch__track/, '');
         const wantsSibling = selector.includes('+ .ui-switch__track');
         let hits;
@@ -933,7 +939,11 @@ const disabledRun = await (async () => {
             const fade = (c) => [c[0], c[1], c[2], (c[3] ?? 1) * alpha];
             const bg = composite(fade(own), ground);
             const fg = composite(fade([ink[0], ink[1], ink[2], ink[3] ?? 1]), bg);
-            return { ratio: ratio(fg, bg), paint: `${fg.join()}|${bg.join()}` };
+            // The edge joins the pair for the repaint comparison alone, never for the
+            // ratio: a state can also be said by the line around the box, and a rule that
+            // says it only that way was reading as no repaint at all. It can only make two
+            // states differ that already read the same, never the other way round. #518
+            return { ratio: ratio(fg, bg), paint: `${fg.join()}|${bg.join()}|${cs.borderTopColor}` };
           };
           const ground = effectiveBackground(dimmed.parentElement || dimmed, win, styles.of);
           if (ground === 'IMAGE') continue;
@@ -945,14 +955,15 @@ const disabledRun = await (async () => {
           // The subject's OWN paint as well as its labels', so a control with no
           // text node in it — an input holds its value in a property, a switch
           // track holds nothing at all — is still held to the repaint rule.
-          const off = [dimmed, ...texts].map((el) => pairOf(el, ground, opacity));
+          const measured = edgeOnly ? [dimmed] : [dimmed, ...texts];
+          const off = measured.map((el) => pairOf(el, ground, opacity));
           let restore;
           styles.mutate(() => { restore = enable(hit); });
           const onGround = effectiveBackground(dimmed.parentElement || dimmed, win, styles.of);
-          const on = [dimmed, ...texts].map((el) => (
+          const on = measured.map((el) => (
             onGround === 'IMAGE' ? null : pairOf(el, onGround, 1)));
           styles.mutate(() => restore());
-          [dimmed, ...texts].forEach((el, i) => {
+          measured.forEach((el, i) => {
             if (!off[i]) return;
             const key = `${selector}|${selectorPath(el)}`;
             if (found.has(key)) return;
@@ -1017,6 +1028,30 @@ test('disabled: the opaque token pair retains its measured contrast in both them
 // cleared the wrong way: a control could pass any legibility floor by simply
 // looking enabled. It cannot pass this too. The comparison is the same element
 // with the disabled state taken off it, so it costs no specimen and no list.
+// The classification those two checks turn on, held so a rule cannot quietly change which
+// of them measures it. A rule saying the state with the line around the box alone is asked
+// about that box; anything painting ink, a fill or a fade is asked about its labels too. #518
+test('disabled: a rule is classified by what it paints, not by what it selects', () => {
+  const one = (body) => disabledRules(`.ui-x:disabled { ${body} }`)[0];
+  assert.equal(one('border-color: var(--disabled-border);').edgeOnly, true);
+  assert.equal(one('border: 1px solid var(--disabled-border);').edgeOnly, true);
+  assert.equal(one('border-color: var(--disabled-border); color: var(--disabled-ink);').edgeOnly, false);
+  assert.equal(one('background: var(--disabled-surface);').edgeOnly, false);
+  assert.equal(one('opacity: 0.5;').edgeOnly, false);
+  assert.equal(one('cursor: not-allowed;').edgeOnly, false);
+  // And the kit's own edge-only rules, named rather than counted: the filter row's chip and
+  // its add control, and the checkmark the kit draws out of two borders.
+  const edges = disabledRules(sheet()).filter((r) => r.edgeOnly).map((r) => r.selector).sort();
+  assert.deepEqual(edges, [
+    ".ui-check input[type=\"checkbox\"]:disabled:checked::after",
+    ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled",
+    ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled=\"true\"]",
+    ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled=\"true\"]:hover:not(:focus-visible)",
+    ".ui-filter-bar:disabled .ui-filter-bar__chip",
+    ".ui-filter-bar__chip:disabled",
+  ].sort(), 'the kit\'s edge-only disabled rules moved — each one is measured on its own box alone');
+});
+
 test('disabled: the state repaints — off never looks the same as on', () => {
   const same = THEMES.flatMap((theme) => disabledRun[theme].found
     .filter((f) => !f.repaints)

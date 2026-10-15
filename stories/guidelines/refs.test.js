@@ -322,7 +322,7 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  assert.equal(count, 132, 'update the rule count when adding or removing a rule');
+  assert.equal(count, 133, 'update the rule count when adding or removing a rule');
 });
 
 // The checkable half of "Show, less tell" (AGENTS.md#the-guidelines-collection). A rule the page

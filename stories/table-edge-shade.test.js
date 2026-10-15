@@ -29,6 +29,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TABLE_CSS_PATH = path.join(root, 'src/styles/table.css');
@@ -66,7 +67,7 @@ function shadeFindings(css) {
   // selector list such as `::before,\n  ::after {` is its own leaf rule shared by
   // both pseudo-elements, so a property declared there answers both at once.
   const leaves = [...block.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-    .map(([, selector, decl]) => ({ selectors: selector.split(',').map((s) => s.trim()), decl }));
+    .map(([, selector, decl]) => ({ selectors: splitSelectorList(selector), decl }));
 
   for (const [pseudo, side] of [['::before', 'left'], ['::after', 'right']]) {
     const own = `.ui-table-scroll${pseudo}`;

@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -45,9 +46,7 @@ test('the specimen measure is the confirm component\'s own declared width', () =
 
 // Strip comments, then read every selector the stylesheet declares.
 const selectorsIn = (css) => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{[^{}]*\}/g)]
-  .flatMap((m) => m[1].split(','))
-  .map((s) => s.trim())
-  .filter(Boolean);
+  .flatMap((m) => splitSelectorList(m[1]));
 
 // The page's own layout lives in the `.gc` namespace; the `.gl` namespace is
 // the specimen furniture, which is allowed inside a stage because containing an

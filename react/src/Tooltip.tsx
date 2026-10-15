@@ -1,5 +1,6 @@
 import '../../src/styles/tooltip.css';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { placeTip } from './tip';
 
 export type TooltipProps = {
   text: string;
@@ -16,34 +17,9 @@ export function Tooltip({ text, children }: TooltipProps) {
   const touchMoved = useRef(false);
   const [open, setOpen] = useState(false);
 
-  function place() {
-    const h = host.current!;
-    const t = tip.current!;
-    const mark = trigger.current!.getBoundingClientRect();
-    const rect = h.getBoundingClientRect();
-    const view = h.ownerDocument.documentElement;
-    const clip = { top: 0, left: 0, right: view.clientWidth, bottom: view.clientHeight };
-    for (let el: HTMLElement | null = h; el && el !== h.ownerDocument.body; el = el.parentElement) {
-      const style = getComputedStyle(el);
-      if (![style.overflow, style.overflowX, style.overflowY].some(v => v && v !== 'visible')) continue;
-      const bounds = el.getBoundingClientRect();
-      clip.top = Math.max(clip.top, bounds.top);
-      clip.left = Math.max(clip.left, bounds.left);
-      clip.right = Math.min(clip.right, bounds.right);
-      clip.bottom = Math.min(clip.bottom, bounds.bottom);
-    }
-    const gap = parseFloat(getComputedStyle(t).getPropertyValue('--ui-tip-gap')) || 8;
-    const above = mark.top - clip.top;
-    const below = clip.bottom - mark.bottom;
-    const isBelow = above < t.offsetHeight + gap && below > above;
-    t.classList.toggle('is-below', isBelow);
-    const centre = mark.left + mark.width / 2;
-    const ideal = centre - t.offsetWidth / 2;
-    const left = Math.max(clip.left, Math.min(ideal, clip.right - t.offsetWidth));
-    t.style.setProperty('--ui-tip-x', `${centre - rect.left - h.clientLeft + h.scrollLeft}px`);
-    t.style.setProperty('--ui-tip-y', `${(isBelow ? mark.bottom : mark.top) - rect.top - h.clientTop + h.scrollTop}px`);
-    t.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
-  }
+  // The placement is the kit's, in one module, because <Chart> opens the same
+  // readout over its own marks.
+  const place = () => placeTip(host.current!, trigger.current!, tip.current!);
 
   useLayoutEffect(() => { if (open) place(); }, [open, text]);
   useEffect(() => {

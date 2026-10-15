@@ -1,22 +1,27 @@
 import { useState, type CSSProperties } from 'react';
 import { DataTable } from './DataTable';
 import { NumericValue, DeltaValue, RowIdentity } from './TableValues';
-import { FilterBar, type Filter } from './FilterBar';
+import { FilterBar, type AddFilter, type Filter } from './FilterBar';
 import { Segmented } from './Segmented';
 import './FinanceComposition.css';
 export default { title: 'Components/Finance composition', parameters: { layout: 'fullscreen' } };
 // Approved comparison for #504. All company data is fabricated.
 const names = ['Aster Systems', 'Birch Semiconductor', 'Cobalt Energy', 'Dovetail Health', 'Elm Networks', 'Fable Robotics', 'Grove Financial', 'Harbor Software', 'Iris Materials', 'Juniper Devices', 'Kestrel Logistics', 'Linden Foods', 'Morrow Industries', 'Northstar Analytics', 'Opal Telecom', 'Pine Mobility', 'Quartz Medical', 'Reed Computing', 'Solstice Power', 'Tern Aerospace', 'Umber Retail', 'Vale Instruments', 'Willow Biotech', 'Xenon Storage', 'Yarrow Payments', 'Zephyr Motors', 'Alder Water', 'Bracken Research', 'Cedar Infrastructure Group', 'Drift Media'];
 const sectors = ['Technology', 'Energy', 'Health care', 'Financials', 'Industrials'];
-const rows = names.slice(0, 20).map((name, i) => ({ name, sector: sectors[i % sectors.length], price: 340 - i * 8.37, change: i === 8 ? 0 : ((i * 17) % 63 - 28) / 10 }));
+const rows = names.slice(0, 20).map((name, i) => ({ name, sector: sectors[i % sectors.length], market: i % 2 ? 'Frankfurt' : 'New York', price: 340 - i * 8.37, change: i === 8 ? 0 : ((i * 17) % 63 - 28) / 10 }));
+const catalogue: AddFilter[] = [
+  { id: 'sector', label: 'Sector', items: ['All sectors', ...sectors, 'Utilities'].map(value => ({ label: value, value })) },
+  { id: 'market', label: 'Market', items: ['All markets', 'New York', 'Frankfurt'].map(value => ({ label: value, value })) },
+];
 function Example() {
   const [view, setView] = useState('overview');
-  const [filters, setFilters] = useState<Filter[]>([{ id: 'sector', label: 'Sector', value: 'All sectors', items: ['All sectors', ...sectors, 'Utilities'].map(value => ({ label: value, value })) }]);
+  const [filters, setFilters] = useState<Filter[]>([{ ...catalogue[0], value: 'All sectors' }]);
   return <main className="ui-app__main ui-app__main--wide finance-comparison"><header className="finance-comparison__head"><h1>Company comparison</h1><p id="react-finance-basis" className="ui-app__sub">Changes since the previous close.</p></header>
     <div className="finance-comparison__data">
-    <FilterBar clearVariant="link" clearLabel="Clear filters" filters={filters} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))} />
+    <FilterBar clearVariant="link" clearLabel="Clear filters" filters={filters} add={catalogue} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))}
+      onAdd={(id, value) => { const entry = catalogue.find(f => f.id === id); if (entry) setFilters(current => [...current, { ...entry, value: value || '' }]); }} />
     <div className="ui-card ui-card--fit finance-comparison__card"><Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
-    <DataTable rows={rows.filter(r => !filters.length || filters[0].value === 'All sectors' || r.sector === filters[0].value)} pageSize={20} empty="No companies match these filters." selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"
+    <DataTable rows={rows.filter(r => filters.every(f => !f.value || f.value === (f.id === 'sector' ? 'All sectors' : 'All markets') || r[f.id as 'sector' | 'market'] === f.value))} pageSize={20} empty="No companies match these filters." selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"
       columns={[{ key: 'name', label: 'Company', linked: true, render: r => <a href="#company">{r.name}</a> }, ...(view === 'overview' ? [{ key: 'price' as const, label: 'Price', num: true, sortable: true, render: (r: {price: number}) => <NumericValue value={r.price.toFixed(2)} unit="USD" /> }] : []), { key: 'change', label: 'Daily change', num: true, render: r => <DeltaValue value={`${r.change > 0 ? '+' : r.change < 0 ? '−' : ''}${Math.abs(r.change).toFixed(2)}%`} tone="success" basisId="react-finance-basis" /> }]} /></div>
     </div>
   </main>;

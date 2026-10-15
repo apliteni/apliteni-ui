@@ -21,6 +21,7 @@ import assert from 'node:assert';
 import { JSDOM } from 'jsdom';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const read = (rel) => readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
 
@@ -87,7 +88,7 @@ const RULES = [...read('src/tokens/accents.css')
 function cellProps(form) {
   const props = new Set();
   for (const [, selector, body] of RULES) {
-    const parts = selector.split(',').map((s) => s.trim().replace(/\s+/g, ' '));
+    const parts = splitSelectorList(selector).map((s) => s.replace(/\s+/g, ' '));
     if (!parts.includes(form)) continue;
     for (const [, name] of body.matchAll(/(--[\w-]+)\s*:/g)) props.add(name);
   }

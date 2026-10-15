@@ -64,15 +64,15 @@
 
 <!-- rule: content-width -->
 
-**Why:** A short table stretched to the page width leaves a gap between a label and its value, and the reader has to cross it to pair them.
+**Why:** Large gaps separate labels from values.
 
-**Rule:** Let a table end where its values end, and keep no column wider than its longest cell plus the cell inset.
+**Rule:** Limit each column to its longest cell plus the cell inset.
 
-**Do:** Let a two-column table size to its content, so each amount sits beside its reference.
+**Do:** Keep amounts beside their references in a two-column table.
 
-**Don't:** Stretch a short table to the width of the page and leave the middle empty.
+**Don't:** Stretch short tables across the page.
 
-**Except:** A table with a text column meant to grow — a name or a title — gives that column the width left over.
+**Except:** A text column intended to grow, such as a name or title, takes the remaining width.
 
 ## Scroll instead of squeezing
 

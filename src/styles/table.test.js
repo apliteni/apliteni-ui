@@ -1,3 +1,4 @@
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { test } from "node:test";
 import { JSDOM } from "jsdom";
 import { substitute, tokensFor } from "../../stories/lib/contrast.js";
@@ -361,7 +362,7 @@ const noComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 // `:where(…)` and `:is(…)` hold their own comma lists, so the wrapper goes before the
 // selector is split on commas — `.ui-card > :where(.ui-table--dense, .ui-table--zebra)`
 // is two selectors, and the second one ended in a bracket the match could not read.
-const compounds = (selector) => selector.replace(/:where\(|:is\(|\)/g, '').split(',')
+const compounds = (selector) => splitSelectorList(selector.replace(/:where\(|:is\(|\)/g, ''))
   .map((part) => part.trim().split(/[\s>+~]+/).filter(Boolean).pop() || '');
 const TABLE_ELEMENT = /^(?:table|\.ui-table(?:--[\w-]+)?)(?:[:.[][^\s]*)?$/;
 const targetsTable = (selector) => compounds(selector).some((last) => TABLE_ELEMENT.test(last));
