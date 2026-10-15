@@ -208,7 +208,7 @@ it.each(['label', 'badge'] as const)('remeasures changed %s with identical IDs w
   rerender(<NavTabs items={initial} active="two" />);
   await waitFor(() => expect(nav).toHaveAttribute('data-nav-fit'));
 });
-it('observes container size and disconnects after unmount', () => {
+it('observes container size and disconnects after unmount', async () => {
   let resized = () => {};
   const observe = vi.fn();
   const disconnect = vi.fn();
@@ -245,5 +245,13 @@ it('observes container size and disconnects after unmount', () => {
     expect(nav.scrollLeft).toBe(40);
     unmount();
     expect(disconnect).toHaveBeenCalledTimes(2);
+    width = 800;
+    act(() => window.dispatchEvent(new Event('resize')));
+    expect(nav).not.toHaveAttribute('data-nav-fit');
+    await act(async () => {
+      nav.classList.add('after-unmount');
+      await Promise.resolve();
+    });
+    expect(nav).not.toHaveAttribute('data-nav-fit');
   } finally { vi.unstubAllGlobals(); }
 });

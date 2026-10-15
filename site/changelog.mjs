@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.112.0', date: '2026-10-11',
+    v: '0.116.0', date: '2026-10-15',
     changes: [
       ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],
       ['added', 'NavTabs and Breadcrumbs take renderLink, so a router can own route changes, and the main entry now exports safeUrl, revealCurrentNav and revealFocusedNav for callers that assemble their own navigation markup.', ['Navigation']],
