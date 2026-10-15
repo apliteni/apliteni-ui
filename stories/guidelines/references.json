@@ -214,7 +214,7 @@
         "pattern": "a question the page stops for"
       },
       {
-        "ref": "src/components/index.js:217",
+        "ref": "src/components/index.js:219",
         "pattern": "export function callout("
       },
       {
@@ -232,17 +232,17 @@
         "pattern": "a floating, dismissible notification"
       },
       {
-        "ref": "src/components/index.js:243",
+        "ref": "src/components/index.js:245",
         "pattern": "class=\"ui-toast__action\""
       }
     ],
     "panels": [
       {
-        "ref": "src/components/index.js:77",
+        "ref": "src/components/index.js:79",
         "pattern": "It is NOT a tablist: it controls no panel"
       },
       {
-        "ref": "src/components/index.js:82",
+        "ref": "src/components/index.js:84",
         "pattern": "that one owns panels and earns the tab announcement"
       },
       {
@@ -260,17 +260,17 @@
         "pattern": ".ui-filter-bar__chip {"
       },
       {
-        "ref": "src/components/index.js:76",
+        "ref": "src/components/index.js:78",
         "pattern": "A strip of mutually exclusive toggle buttons."
       }
     ],
     "scale": [
       {
-        "ref": "src/components/index.js:260",
+        "ref": "src/components/index.js:262",
         "pattern": "Pick by how much of the screen the confirmation owns"
       },
       {
-        "ref": "src/components/index.js:262",
+        "ref": "src/components/index.js:264",
         "pattern": "export function successPanel("
       },
       {
@@ -324,7 +324,7 @@
         "pattern": "role=\"alertdialog\""
       },
       {
-        "ref": "src/components/index.js:243",
+        "ref": "src/components/index.js:245",
         "pattern": "class=\"ui-toast__action\""
       },
       {
@@ -474,7 +474,7 @@
         "pattern": "export const iconMeanings"
       },
       {
-        "ref": "src/components/index.js:229",
+        "ref": "src/components/index.js:231",
         "pattern": "const TOAST_ICON = {"
       }
     ],
@@ -494,7 +494,7 @@
         "pattern": "stroke-width: 2.1;"
       },
       {
-        "ref": "stories/signal-contrast.test.js:590",
+        "ref": "stories/signal-contrast.test.js:591",
         "pattern": "const barFor = (px) =>"
       }
     ]
@@ -538,7 +538,7 @@
     ],
     "title-is-heading": [
       {
-        "ref": "src/components/index.js:67",
+        "ref": "src/components/index.js:69",
         "pattern": "const h = [2, 3, 4, 5, 6]"
       },
       {
@@ -642,7 +642,7 @@
         "pattern": "an empty label falls back to the icon"
       },
       {
-        "ref": "src/components/index.js:85",
+        "ref": "src/components/index.js:87",
         "pattern": "not an accessible name"
       }
     ]
@@ -804,15 +804,15 @@
     ],
     "error-in-markup": [
       {
-        "ref": "src/components/index.js:182",
+        "ref": "src/components/index.js:184",
         "pattern": "`invalid` paints the control red AND says so in aria-invalid"
       },
       {
-        "ref": "src/components/index.js:168",
+        "ref": "src/components/index.js:170",
         "pattern": "'aria-describedby': msgId,"
       },
       {
-        "ref": "src/components/index.js:154",
+        "ref": "src/components/index.js:156",
         "pattern": "markup rather than in the label's wording"
       }
     ],
@@ -826,7 +826,7 @@
         "pattern": "export function setBusy(root,"
       },
       {
-        "ref": "src/components/index.js:249",
+        "ref": "src/components/index.js:251",
         "pattern": "role=\"status\" aria-live=\"polite\""
       }
     ]
@@ -841,7 +841,7 @@
     ],
     "useful-callouts": [
       {
-        "ref": "src/components/index.js:217",
+        "ref": "src/components/index.js:219",
         "pattern": "export function callout("
       }
     ]
@@ -867,7 +867,7 @@
   "_empty-states.js": {
     "next-action": [
       {
-        "ref": "src/components/index.js:272",
+        "ref": "src/components/index.js:274",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
       }
     ]
@@ -969,7 +969,7 @@
     ],
     "in-row": [
       {
-        "ref": "src/components/index.js:210",
+        "ref": "src/components/index.js:212",
         "pattern": "export function switchToggle("
       },
       {

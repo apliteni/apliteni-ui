@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.120.0', date: '2026-10-15',
+    changes: [
+      ['added', 'The React invoice showcase demonstrates upload, review, editing and recovery with sample data. Files and edits stay in the browser tab. Refs #459.'],
+      ['changed', 'Badges now include the neutral variant class when no variant is supplied. Their colours remain unchanged.', ['Badge']],
+    ],
+  },
+  {
     v: '0.119.1', date: '2026-10-15',
     changes: [
       ['fixed', 'Both AppShell implementations place the rail brand, navigation and fold control inside a named Sidebar region. Screen readers can reach the whole rail through landmarks, with no visual change. See #648.', ['AppShell']],
