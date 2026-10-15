@@ -13,6 +13,8 @@
  * why: docs/components.md#a-filter-row-holds-its-panels
  */
 import { test } from 'node:test';
+import { JSDOM } from 'jsdom';
+import { filterBar } from '../components/filter-bar.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -69,10 +71,11 @@ const qualifiers = (compound) => (compound.match(/\[[^\]]+\]|:[\w-]+(?!\()/g) ??
   .filter((q) => !/^\[data-filter-/.test(q)).sort();
 const subset = (small, big) => small.every((q) => big.includes(q));
 
-/* What the factory writes for this control, read from the factory rather than
-   assumed: the variant decides which of the kit's rules can reach it at all. */
-const FACTORY = read('../components/filter-bar.js');
-const CLEAR_VARIANT = /variant: '(\w+)'[^}]*\}\)\}<\/span>/.exec(FACTORY)?.[1];
+/* Read the rendered default action. Explicit consumer variants are outside this check. */
+const clear = JSDOM.fragment(filterBar({ filters: [{ id: 'sector', label: 'Sector' }] }))
+  .querySelector('[data-filter-clear] button');
+assert.ok(clear, 'the factory must render a clear action');
+const CLEAR_VARIANT = [...clear.classList].find(c => /^ui-btn--(?!sm$)/.test(c))?.slice('ui-btn--'.length);
 const CLEAR_SIZE = 'sm';
 
 /* The kit fills that can land on one of the row's boxes: a rule on the kit class itself,

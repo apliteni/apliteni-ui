@@ -7,7 +7,7 @@ import { filterChipText, filterChipName, filterChipUnset, filterChipItems, focus
 export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean };
 /** A filter the bar can put on itself: the chip's name, and the values its menu offers. */
 export type AddFilter = { id: string; label: string; items: DropdownEntry[] };
-export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; disabled?: boolean; busy?: boolean;
+export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; clearVariant?: 'ghost' | 'secondary' | 'link'; disabled?: boolean; busy?: boolean;
   add?: AddFilter[]; addLabel?: string;
   onRemove: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void;
   onAdd?: (id: string, value: string | undefined) => void };
@@ -16,7 +16,7 @@ export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: s
 const SEARCH_AT = 10;
 const isRow = (entry: DropdownEntry): entry is DropdownItem => entry !== '---' && !(entry as { separator?: boolean }).separator;
 
-export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', add, addLabel = 'Filter', disabled = false, busy = false, onRemove, onClear, onChange, onAdd }: FilterBarProps) {
+export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', clearVariant = 'ghost', add, addLabel = 'Filter', disabled = false, busy = false, onRemove, onClear, onChange, onAdd }: FilterBarProps) {
   const bar = useRef<HTMLFieldSetElement>(null);
   const focused = useRef<{ id: string | null; index: number } | null>(null);
   // The filter the add menu just asked for. Consumed by the first layout pass after the
@@ -100,6 +100,6 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     </div>}
     {/* Shown only once there is something to clear, as a quiet text button. The
         vanilla factory carries the reasoning. why: docs/components.md#a-filter-row-holds-its-panels */}
-    {filters.length > 0 && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant="ghost" onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
+    {filters.length > 0 && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant={clearVariant} onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
   </fieldset></div>;
 }

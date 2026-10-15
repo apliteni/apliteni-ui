@@ -8,6 +8,8 @@
  * it cannot see. why: docs/components.md#a-filter-row-holds-its-panels
  */
 import { test } from 'node:test';
+import { JSDOM } from 'jsdom';
+import { filterBar } from '../src/components/filter-bar.js';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -109,10 +111,11 @@ const MEASURED = [
 ];
 const classOf = (state) => MEASURED.find((one) => one.is(state));
 
-/* What the factory writes for the clear action, read from the factory rather than assumed: the
-   variant decides which of the kit's own rules can reach it at all. */
-const FACTORY = read('src/components/filter-bar.js');
-const VARIANTS = [/variant: '(\w+)'[^}]*\}\)\}<\/span>/.exec(FACTORY)?.[1], 'sm'].filter(Boolean).map((v) => `.ui-btn--${v}`);
+/* Read the rendered default action. Explicit consumer variants are outside this check. */
+const clear = JSDOM.fragment(filterBar({ filters: [{ id: 'sector', label: 'Sector' }] }))
+  .querySelector('[data-filter-clear] button');
+assert.ok(clear, 'the factory must render a clear action');
+const VARIANTS = [...clear.classList].filter(c => c.startsWith('ui-btn--')).map(c => `.${c}`);
 
 /** The states the kit itself paints an edge on this box in. Those are the states the row has to
  *  answer, because its own resting rule sits deeper than every one of them. */

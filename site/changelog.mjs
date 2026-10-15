@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.117.0', date: '2026-10-15',
+    changes: [
+      ['changed', 'Tables inside fit-content cards size to their content, and their pagers wrap within that width. Other tables keep their full width. The company comparison aligns its heading, filters, tabs and first column, and keeps all three columns visible on phones (#504).', ['Table', 'DataTable', 'Pagination']],
+      ['changed', 'Filter bars accept an optional link clear action. The company comparison uses Clear filters and explains an empty result.', ['FilterBar']],
+    ],
+  },
+  {
     v: '0.116.0', date: '2026-10-15',
     changes: [
       ['fixed', 'Callout status tones now use the circled glyphs toasts already use: `circleCheck`, `circleX` and `circleAlert`. Info and neutral callouts keep `info`, and an explicit `icon` still wins. If you passed `check` or `alert` to match the old default, drop the override. See #453.', ['Callout']],

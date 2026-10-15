@@ -54,7 +54,7 @@ function phoneRules() {
  * from a drawn box. Chromium measured the boxes for #500 — a 195px cap cut at its edge, a
  * sub-line of two lines at 45.4px, a focused link's ring whole.
  */
-function mountAt(width, extra = '', css = CSS) {
+function mountAt(width, extra = '', css = CSS, includeFit = false) {
   const document = dom.window.document;
   // The cap is the one length here that a viewport evaluates, and JSDOM reports
   // `min(320px, 50vw)` as `320px` at every width. So it is worked out for this width and
@@ -89,6 +89,13 @@ function mountAt(width, extra = '', css = CSS) {
       <tr><td class="ui-table__identity" id="svgmark"><svg id="svgmark-shape" viewBox="0 0 240 24" width="240" height="24"></svg></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="imgmark"><img id="imgmark-shape" alt="" width="240" height="24" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='24'%3E%3C/svg%3E"></td><td class="ui-table__num">1.00</td></tr>
     </tbody></table>`;
+  if (includeFit) {
+    const fit = document.createElement('div');
+    fit.className = 'ui-card ui-card--fit';
+    fit.append(document.querySelector('table').cloneNode(true));
+    for (const element of fit.querySelectorAll('[id]')) element.removeAttribute('id');
+    document.body.append(fit);
+  }
   const cells = ['#head', '#kit', '#bare', '#direct', '#plain', '#sub', '#subel', '#sublink', '#submixed', '#subspan', '#substrong', '#subtwo', '#subclass', '#subsibling', '#subpicture', '#btn', '#nav', '#svgmark', '#imgmark'];
   const style = (sel) => dom.window.getComputedStyle(typeof sel === 'string' ? document.querySelector(sel) : sel);
   return { document, cells, style, cap };
@@ -99,6 +106,7 @@ const CONTROLS = '.ui-btn, .ui-nav__item, .ui-badge, button, input, select, text
 /** What this element is, as far as the outcomes below are concerned. */
 const contextOf = (el, cap) => ({
   cap,
+  fit: Boolean(el.closest('.ui-card--fit')),
   cell: el.classList.contains('ui-table__identity'),
   decorative: el.classList.contains('ui-identity__logo'),
   picture: el.matches(PICTURES),
@@ -114,7 +122,7 @@ const contextOf = (el, cap) => ({
  */
 const OUTCOME = {
   // The column takes its content, never a share of a table wider than the screen.
-  width: (v) => (/^\d+(?:\.\d+)?%$/.test(v) && parseFloat(v) <= 1 ? null
+  width: (v, { fit }) => ((fit ? v === '1px' : v === '1%') ? null
     : `a column sized ${v} no longer takes its content`),
   'max-width': (v, { cell, cap }) => {
     const px = lengthPx(v, 390);
@@ -172,7 +180,7 @@ const OUTCOME = {
 };
 
 test('at 390 every rule that reaches a pinned identity comes to the outcome it is written for', () => {
-  const { document, style, cap } = mountAt(390);
+  const { document, style, cap } = mountAt(390, '', CSS, true);
   let judged = 0;
   for (const { selector, declarations } of phoneRules()) {
     // Reach, not spelling: everything the rule matches that lives in a pinned

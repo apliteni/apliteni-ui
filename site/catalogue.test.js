@@ -25,10 +25,10 @@ const expected = (icons, variants, sizes) => template
 test('all three catalogue counts are populated from nonempty current sources', () => {
   assert.equal((template.match(/\{\{(?:ICON_COUNT|BUTTON_VARIANTS|BUTTON_SIZES)\}\}/g) || []).length, 3);
   assert.ok(iconNames.length > 0);
-  assert.equal(buttonOptions(buttonSource, 'variant').length, 4);
+  assert.equal(buttonOptions(buttonSource, 'variant').length, 5);
   assert.equal(buttonOptions(buttonSource, 'size').length, 4);
   const copy = catalogueCopy(template, input);
-  assert.equal(copy, expected(iconNames.length, 'Four', 'four'));
+  assert.equal(copy, expected(iconNames.length, 'Five', 'four'));
   assert.doesNotMatch(copy, /\{\{(?:ICON_COUNT|BUTTON_VARIANTS|BUTTON_SIZES)\}\}/);
 });
 
@@ -37,7 +37,7 @@ test('added catalogue entries change the rendered counts', () => {
     icons: [...iconNames, 'test-glyph'],
     buttonSource: buttonSource.replace("size?: 'xs'", "size?: 'test-size' | 'xs'"),
   });
-  assert.equal(copy, expected(iconNames.length + 1, 'Four', 'five'));
+  assert.equal(copy, expected(iconNames.length + 1, 'Five', 'five'));
 });
 
 test('stale hardcoded copy, empty sources and unsupported type changes are rejected', () => {

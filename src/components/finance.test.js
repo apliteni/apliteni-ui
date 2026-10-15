@@ -396,3 +396,10 @@ test('broken identity logo exposes a fallback without losing the full company na
   host.querySelector('img').dispatchEvent(new dom.window.Event('load')); assert.equal(host.querySelector('img').hidden, false);
   host.querySelector('img').dispatchEvent(new dom.window.Event('error')); assert.equal(host.querySelector('img').hidden, true); dom.window.close();
 });
+
+test('a filter bar accepts an explicit link clear action', () => {
+  const fragment = JSDOM.fragment(filterBar({ filters: [{ id: 'sector', label: 'Sector', value: 'Energy' }], clearLabel: 'Clear filters', clearVariant: 'link' }));
+  const clear = fragment.querySelector('[data-filter-clear] button');
+  assert.equal(clear.textContent.trim(), 'Clear filters');
+  assert.ok(clear.classList.contains('ui-btn--link'));
+});

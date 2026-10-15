@@ -388,3 +388,9 @@ it('clears the width a searching menu held when it closes inside the row', async
   await userEvent.keyboard('{Escape}');
   expect(panel.style.minWidth).toBe('');
 });
+
+it('allows an explicit link action without changing the default skin', () => {
+  render(<FilterBar filters={[{ id: 'sector', label: 'Sector', value: 'Energy', items: [] }]}
+    clearLabel="Clear filters" clearVariant="link" onRemove={() => {}} onClear={() => {}} onChange={() => {}} />);
+  expect(screen.getByRole('button', { name: 'Clear filters' })).toHaveClass('ui-btn--link');
+});
