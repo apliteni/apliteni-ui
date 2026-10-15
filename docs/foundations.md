@@ -173,7 +173,7 @@ ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral chip us
 version badge all use that token when the tone carries no verdict. The wash leaves its
 ground in the same direction as status chip fills. It is lighter in dark and darker in light.
 Its text still clears 4.5:1. The theme alphas differ because muted ink differs between themes.
-The neutral fill separates from a card by about 1.22:1 in dark and 1.23:1 in light.
+The neutral fill separates from a card by about 1.22:1 in dark and 1.20:1 in light.
 
 ## Colour and contrast
 
@@ -184,13 +184,13 @@ This stronger aim is a written consumer rule only. The automated badge checks en
 so they would accept the previous success pair at 5.29:1. The other light status pairs
 meet 4.5:1 but do not all meet 7:1. Dark danger measures at least 6.30:1 on these three grounds.
 
-**Archive has little contrast to spare.** Its muted ink measures 4.51:1 on the light page
+**Archive has little contrast to spare.** Its muted ink measures 4.64:1 on the light page
 and 4.56:1 on a dark floating panel. These are the narrowest Archive pairs.
 Check both before changing muted ink, the neutral fill or a containing surface.
 Do not fade Archive further or assume that a card measurement covers these grounds.
 
 On the light page, warn and pending fills separate by only 1.043:1, and live by 1.047:1.
-Their status ink also identifies them. The neutral fill separates by 1.222:1 on that ground.
+Their status ink also identifies them. The neutral fill separates by 1.188:1 on that ground.
 These fill ratios describe separation, not text contrast.
 
 - **The accent is measured against its own wash, not against the surfaces.** Every one of

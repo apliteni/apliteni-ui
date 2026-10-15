@@ -56,7 +56,7 @@ const UP = { dark: true, light: false };
  * no longer soft. The floor is per ground: a light glow wash sits close to --bg, so warn
  * and pending measure 1.043 on the light page — pre-existing, and legible because a status
  * chip is told apart by its ink too. The non-status tones this gate exists for measure
- * 1.222 there. Thinnest pairs and their grounds are recorded in the foundations doc.
+ * 1.188 there. Thinnest pairs and their grounds are recorded in the foundations doc.
  * why: docs/foundations.md#colour-and-contrast */
 const BAND_CEILING = 1.6;
 const bandFloor = (theme, ground) => (theme === 'light' && ground === 'page' ? 1.03 : 1.1);

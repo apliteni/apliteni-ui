@@ -435,7 +435,7 @@
   --chip-info-ink: #096a7c;
   --chip-info-fill: #ddeff3;
   /* See the dark block for why the two alphas differ. */
-  --chip-neutral-fill: color-mix(in srgb, var(--muted) 15%, transparent);
+  --chip-neutral-fill: color-mix(in srgb, var(--muted) 13%, transparent);
 
   /* Light runs the same rule the other way. The signals are mid-tone here, so NO ink
      rescues them and the fill is what has to move: it takes the deepened form the chip
