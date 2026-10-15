@@ -741,3 +741,52 @@ export const broken = (list) => list.filter((r) => r.left < -SLACK
 /** A line a reader can act on. */
 export const whereCase = (r) => `${r.half} “${r.case}” ${r.state}`
   + ` → ${r.left}…${r.right} of ${r.view}, width ${r.width} of ${r.bound}, page ${r.scrollWidth}`;
+
+/** Fixed geometry covers the height floor. The story sweep above discovers width cases. */
+export async function portalFloorCase(browser, port, {
+  width = 390, height = 844, theme = 'light', portal = true, screenshot, refuseFlip = false,
+} = {}) {
+  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
+  try {
+    if (refuseFlip) await page.addInitScript(() => {
+      const toggle = DOMTokenList.prototype.toggle;
+      DOMTokenList.prototype.toggle = function (token, ...args) {
+        return token === 'is-up' ? this.contains(token) : toggle.call(this, token, ...args);
+      };
+    });
+    await page.goto(`http://127.0.0.1:${port}/__shot`);
+    await page.waitForFunction(() => window.kit?.wireDropdown);
+    await page.evaluate(({ theme, portal }) => {
+      document.documentElement.dataset.theme = theme;
+      document.body.innerHTML = '<main style="padding:24px"><h1>Menu actions</h1></main>'
+        + `<div id="anchor" style="position:absolute;left:24px;top:0">${window.kit.dropdown({
+          value: 'Actions', variant: 'menu', portal,
+          items: Array.from({ length: 12 }, (_, i) => ({ label: `Action ${i + 1}` })),
+        })}</div>`;
+      const trigger = document.querySelector('[data-dropdown-trigger]');
+      document.querySelector('#anchor').style.top = `${innerHeight - 36 - trigger.offsetHeight}px`;
+      window.kit.wireDropdown(document);
+      trigger.click();
+    }, { theme, portal });
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForTimeout(350);
+    if (screenshot) await page.screenshot({ path: screenshot });
+    return await page.evaluate(() => {
+      const panel = document.querySelector('[data-dropdown-panel]');
+      const last = panel.querySelector('[data-dd-item]:last-child');
+      panel.scrollTop = panel.scrollHeight;
+      if (!panel.hasAttribute('data-dropdown-portal')) window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+      const row = last.getBoundingClientRect();
+      const x = (row.left + row.right) / 2;
+      const hit = (y) => last.contains(document.elementFromPoint(x, y));
+      return {
+        up: panel.classList.contains('is-up'),
+        reachable: row.top >= 0 && row.bottom <= innerHeight && hit(row.top + 1) && hit(row.bottom - 1),
+        documentHeight: document.documentElement.scrollHeight,
+        viewportHeight: innerHeight, rowTop: row.top, rowBottom: row.bottom,
+      };
+    });
+  } finally {
+    await page.close();
+  }
+}

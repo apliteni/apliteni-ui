@@ -302,10 +302,13 @@ smaller wins:
 A trigger near the edge can leave less room than `--ui-dropdown-min` (120px) wants for a usable
 panel. The floor spends the edge inset, down to nothing, to try to reach 120px, but it never spends
 room past the edge, because that room does not exist. Where even the whole inset falls short of
-120px, the guarantee above does not hold: the panel is left at its content height instead of a
-sliver no reader could use, so it may run past the trigger's edge and grow the page, the way an
-unmeasured panel does. A search panel is a column, so this cap lands on the rows and not on the
-field: `.ui-dropdown__list` shrinks to whatever room the capped panel leaves it.
+120px, an ordinary panel keeps its content height and can grow the page so the reader can scroll.
+**A portalled panel flips when its configured side cannot hold the required height and the opposite
+side has more room.** The required height is the floor, or the content height when shorter.
+A smaller consumer cap can reduce that required height. The panel keeps its trigger gap and its resolved side through the close
+animation. It restores the configured side when space returns. If neither side has enough room,
+the roomier side can still extend beyond the viewport. A search panel is a column, so this cap
+lands on the rows and not on the field: `.ui-dropdown__list` shrinks to whatever room the capped panel leaves it.
 
 **A panel keeps its place while the page moves its trigger.** A row that re-lays itself out, an
 ancestor scrolling sideways, a longer run of text beside the trigger, and a transition that slides
