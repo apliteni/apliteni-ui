@@ -28,7 +28,8 @@ it('matches comparison daily-change tones to their signs', () => {
     expect(delta).not.toHaveClass('ui-delta--success');
   }
   for (const delta of zero) {
-    expect(delta).not.toHaveClass('ui-delta--success', 'ui-delta--danger');
+    expect(delta).not.toHaveClass('ui-delta--success');
+    expect(delta).not.toHaveClass('ui-delta--danger');
   }
 });
 
