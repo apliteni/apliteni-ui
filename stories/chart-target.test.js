@@ -21,6 +21,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 import { TAP_MIN, TARGET_MIN } from './guidelines/_accessibility-floor.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -147,7 +148,7 @@ const beats = (a, b) => {
 /** Every selector in `css` whose body sets `height` on an svg in a stat trend. */
 const trendHeightRules = (css) => [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
   .filter((m) => /(^|[;\s])height\s*:/.test(m[2]))
-  .flatMap((m) => m[1].split(',').map((s) => s.trim()))
+  .flatMap((m) => splitSelectorList(m[1]))
   .filter((s) => /\.ui-stat__trend\b/.test(s) && /\bsvg\b/.test(s));
 
 const SPARK_RULE = '.ui-chart--spark .ui-chart__svg';
@@ -155,7 +156,7 @@ const SPARK_RULE = '.ui-chart--spark .ui-chart__svg';
 test('the chart\u2019s own height outranks the one the stat band sizes a trend with', () => {
   const mine = [...sheet.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
     .filter((m) => m[1].includes('.ui-chart__svg') && /height\s*:\s*var\(--ui-chart-box\)/.test(m[2]))
-    .flatMap((m) => m[1].split(',').map((s) => s.trim()));
+    .flatMap((m) => splitSelectorList(m[1]));
   assert.ok(
     mine.includes(SPARK_RULE),
     `${SHEET} does not size ${SPARK_RULE} from --ui-chart-box. Without it the svg's height `
