@@ -16,6 +16,7 @@ import {
 // @ts-expect-error -- untyped JS module, deliberately shared across the gates.
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { DatePicker, type DatePickerRange } from './DatePicker';
+import { Field } from './Field';
 
 const TODAY = '2026-09-15';
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
@@ -28,6 +29,17 @@ const cell = (name: RegExp | string) => within(panel()).getByRole('button', { na
 const trigger = () => document.querySelector<HTMLButtonElement>('.ui-dropdown__trigger')!;
 
 describe('the trigger', () => {
+  it.each([null, '2026-08'])('takes its name and focus from Field with value %s', async (value) => {
+    const user = userEvent.setup();
+    render(<Field label="Due">{({ id }) => (
+      <DatePicker id={id} today={TODAY} defaultValue={value} />
+    )}</Field>);
+    const button = screen.getByRole('button', { name: 'Due' });
+    expect(screen.getByLabelText('Due')).toBe(button);
+    await user.click(screen.getByText('Due'));
+    expect(button).toHaveFocus();
+  });
+
   it('wears the dropdown shell and says what is chosen', () => {
     const { container } = render(<DatePicker today={TODAY} defaultValue="2026-08" />);
     expect(container.firstChild).toHaveClass('ui-dropdown');
