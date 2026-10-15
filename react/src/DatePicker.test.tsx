@@ -13,6 +13,8 @@ import {
   // imported here for the same arithmetic react/src/contrast.test.tsx uses.
   // @ts-expect-error -- untyped JS module, deliberately shared across the gates.
 } from '../../stories/lib/contrast.js';
+// @ts-expect-error -- untyped JS module, deliberately shared across the gates.
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { DatePicker, type DatePickerRange } from './DatePicker';
 
 const TODAY = '2026-09-15';
@@ -818,7 +820,7 @@ describe('the focus ring', () => {
   const ringSelectors = ['../../src/styles/base.css', '../../src/styles/dropdown.css']
     .flatMap(file => [...read(file).replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
       .filter(([, , body]) => /outline\s*:[^;]*var\(--ring\)/.test(body))
-      .flatMap(([, selector]) => selector.split(',')))
+      .flatMap(([, selector]) => splitSelectorList(selector)))
     .map(s => s.trim().replace(/:focus-visible/g, ''))
     .filter(Boolean);
 
@@ -1281,7 +1283,7 @@ describe('the tap zone below the phone step', () => {
     const block = coarseOf(css);
     if (!block) return [];
     const m = new RegExp(`:where\\(([^)]+)\\)\\s*${after}`).exec(block[1]);
-    return (m?.[1] ?? '').split(',').map(x => x.trim()).filter(Boolean);
+    return splitSelectorList(m?.[1] ?? '');
   };
   const listBefore = (after: string) => listIn(sheet, after);
   /** The two containment checks, as a list of what failed. */

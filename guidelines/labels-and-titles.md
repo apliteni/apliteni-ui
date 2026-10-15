@@ -6,9 +6,9 @@
 
 **Rule:** Use body ink for all words; use size, weight and spacing for hierarchy.
 
-**Why:** Muted text can look decorative, especially at small sizes, even when contrast passes.
+**Why:** Muted text can look decorative at small sizes, even when contrast passes.
 
-**Do:** Use body ink at xs, sm and base; let size show hierarchy.
+**Do:** Use body ink at every size; let size show hierarchy.
 
 **Don't:** Use muted ink at different sizes to show rank.
 
@@ -16,15 +16,15 @@
 
 <!-- rule: text-ink-exceptions -->
 
-**Rule:** Use muted or dim ink only for the three named exception classes.
+**Rule:** Use muted or dim ink only for the four named exception classes.
 
-**Why:** A closed list prevents fading from becoming a hierarchy cue.
+**Why:** A closed list keeps fading from becoming hierarchy.
 
-**Do:** Use muted ink for a disabled control or empty field placeholder.
+**Do:** Use muted ink for a placeholder or an axis.
 
 **Don't:** Fade timestamps, counts or enabled actions.
 
-**Except:** Only: (1) non-word glyphs, such as arrows, chevrons or dismiss marks; (2) colour reporting off, unset, disabled or archived state; (3) a valueless slot, such as an empty field or cell placeholder. Unselected options, “No earlier figure” sentences, counts, timestamps, keyboard shortcuts, enabled actions and empty-state instructions are information, not exceptions.
+**Except:** Only: (1) non-word glyphs — arrows, chevrons, dismiss marks; (2) colour reporting off, unset, disabled or archived; (3) a valueless slot, such as an empty field or cell; (4) a drawing’s furniture — a chart’s axis, period row and legend — whose values remain reachable in full. Unselected options, counts, timestamps, shortcuts, enabled actions and empty-state text are information, not exceptions.
 
 ## Use sentence case
 

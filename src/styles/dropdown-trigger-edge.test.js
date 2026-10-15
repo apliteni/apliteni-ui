@@ -42,6 +42,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseColour, ratio, substitute, tokensFor } from '../../stories/lib/contrast.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -160,10 +161,14 @@ function subjects(overrides = {}) {
     const css = decomment(overrides[file] ?? read(file));
     for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
       if (selectors.trimStart().startsWith('@')) continue;
-      for (const selector of selectors.split(',').map((s) => s.trim()).filter(Boolean)) {
+      for (const selector of splitSelectorList(selectors)) {
         order += 1;
         const subject = selector.split(/\s+(?![^(]*\))/).at(-1);
         if (!subject.includes(TRIGGER)) continue;
+        const at = selector.lastIndexOf(TRIGGER);
+        const before = selector.slice(0, at);
+        const depth = [...before].reduce((level, char) => level + (char === '(') - (char === ')'), 0);
+        if (depth !== 0 || subject.includes('::')) continue;
         out.push({
           file,
           order,

@@ -22,6 +22,7 @@ import {
   AA_TEXT, composite, parseColour, ratio, substitute, tokensFor,
 } from './lib/contrast.js';
 import { ACCENT as PANELS, accentVars } from './foundations/SubThemes.stories.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const THEMES = ['dark', 'light'];
@@ -32,7 +33,7 @@ const TOKENS_CSS = readFileSync(path.join(root, 'src/tokens/tokens.css'), 'utf8'
  *  stripped first — several of them quote token names, and a quoted name is not
  *  a declaration. */
 const declaredIn = (css) => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-  .filter(([, selector]) => selector.split(',').some((s) => s.trim().startsWith(':root')))
+  .filter(([, selector]) => splitSelectorList(selector).some((s) => s.startsWith(':root')))
   .flatMap(([, , body]) => [...body.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
 
 /**

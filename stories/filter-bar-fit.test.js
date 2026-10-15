@@ -34,6 +34,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { DD_MENU_FLOOR } from '../src/components/dropdown.js';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STYLES = path.join(root, 'src/styles');
@@ -70,7 +71,7 @@ const declared = (body, prop) => {
 const classes = (one) => (one.match(/\.[A-Za-z_-][\w-]*|\[[^\]]+\]/g) || []).length;
 
 /** A selector list, split on the commas between its selectors. */
-const selectors = (list) => list.split(',').map((one) => one.trim()).filter(Boolean);
+const selectors = splitSelectorList;
 
 /** Every custom property the sheets declare, last declaration winning, over the
  *  kit's own tokens. The sweep rules over `src/styles/` alone, but a length there

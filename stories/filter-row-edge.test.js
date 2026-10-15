@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { tokensFor, substitute, parseColour } from './lib/contrast.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const read = (p) => readFileSync(fileURLToPath(new URL(`../${p}`, import.meta.url)), 'utf8');
 const SHEET = read('src/styles/filter-bar.css');
@@ -48,7 +49,7 @@ function rules(css) {
     .filter((rule) => !rule.selector.startsWith('@'));
 }
 
-const parts = (selector) => selector.split(',').map((one) => one.trim());
+const parts = splitSelectorList;
 
 /** The edge ink a body declares: `border-color`, or the colour out of a `border`
  *  shorthand. The last one wins, as it does in a browser. */
