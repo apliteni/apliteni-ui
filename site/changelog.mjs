@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.118.0', date: '2026-10-15',
+    changes: [
+      ['fixed', 'DatePicker puts `id` on its trigger button instead of its outer wrapper, so a `Field` label now names and focuses the trigger directly, with no `ariaLabel` needed. The fallback `ariaLabel` on an empty or selected picker no longer overrides a `Field` label. See #635.', ['DatePicker', 'Field']],
+    ],
+  },
+  {
     v: '0.117.0', date: '2026-10-15',
     changes: [
       ['changed', 'Tables inside fit-content cards size to their content, and their pagers wrap within that width. Other tables keep their full width. The company comparison aligns its heading, filters, tabs and first column, and keeps all three columns visible on phones (#504).', ['Table', 'DataTable', 'Pagination']],
