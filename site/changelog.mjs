@@ -6,9 +6,15 @@
 
 export const RELEASES = [
   {
-    v: '0.119.1', date: '2026-10-15',
+    v: '0.120.0', date: '2026-10-15',
     changes: [
       ['fixed', 'Enabled selected Segmented pills use the accent fill with contrasting ink in vanilla and React. Disabled selections keep a quiet fill and disabled ink. Outlines remain reserved for keyboard focus. See #614.', ['Segmented']],
+    ],
+  },
+  {
+    v: '0.119.1', date: '2026-10-15',
+    changes: [
+      ['fixed', 'Both AppShell implementations place the rail brand, navigation and fold control inside a named Sidebar region. Screen readers can reach the whole rail through landmarks, with no visual change. See #648.', ['AppShell']],
     ],
   },
   {
