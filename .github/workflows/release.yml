@@ -87,7 +87,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
       - name: Evaluate release policy
@@ -123,7 +123,7 @@ jobs:
         with:
           ref: ${{ needs.policy.outputs.sha }}
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24 # trusted publishing needs npm >= 11.5.1
           cache: npm
@@ -165,7 +165,7 @@ jobs:
       # No checkout: this job needs npm, the tarball and the tag selector. Note there
       # is no `cache: npm` either — without a checkout there is no lockfile to
       # key the cache on, and nothing here installs anything anyway.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24 # trusted publishing needs npm >= 11.5.1
       # Fails the job if the artifact is missing — it does not fall through to a
