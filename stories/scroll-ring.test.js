@@ -243,20 +243,39 @@ test('nothing is left for forced colours to correct', () => {
   assert.deepEqual(standIns, [],
     'a transparent stand-in outline is back; with the band on the same property it is '
     + 'either silencing the band or waiting to be repainted beside it');
-  // One forced-colors block is left in the kit and it is not about focus: #527's
-  // underline strip restates its CHOSEN TAB's accent bar in `Highlight`, because the
-  // mode repaints an author colour and would otherwise leave that bar in the labels'
-  // own ink. A block that declares `outline` or `box-shadow` would be correcting the
-  // band instead, which is the thing #578 removed the need for.
-  const forced = [...source.replace(/\/\*[\s\S]*?\*\//g, '')
+  checkForcedFocus(source);
+});
+
+// Selection can need a mark when the browser replaces fills. Those rules must
+// leave focused elements alone. selected-fill.test.js measures the selection.
+function checkForcedFocus(css) {
+  const forced = [...css.replace(/\/\*[\s\S]*?\*\//g, '')
     .matchAll(/@media\s*\(forced-colors:\s*active\)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)]
     .map(([, body]) => body);
-  assert.equal(forced.length, 1,
-    'a forced-colors block was added or removed. The band is a real outline now, so a '
-    + 'new block is either a second indicator or a correction for one');
-  assert.doesNotMatch(forced[0], /(?:^|[;{\s])(?:outline|box-shadow)\s*:/,
-    'the kit\'s one forced-colors block has started correcting a focus indicator; the '
-    + 'band is a real outline and the mode repaints it without help');
+  assert.ok(forced.length, 'the forced-colour reading found no blocks');
+  for (const block of forced) {
+    for (const [, selectors, body] of block.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      assert.doesNotMatch(body, /box-shadow\s*:/, 'forced colours must not correct a shadow focus ring');
+      if (!/outline(?:-offset|-width|-style|-color)?\s*:/.test(body)) continue;
+      for (const selector of selectors.split(',')) {
+        const subject = selector.trim().split(/\s+|>|\+|~/).at(-1);
+        assert.match(subject, /:not\(:focus-visible\)/, 'a forced-colour outline can replace the focus ring');
+        assert.match(subject, /\.is-(?:active|current|selected)|\[aria-(?:pressed|selected)="true"\]/,
+          'only selection needs a forced-colour outline');
+      }
+    }
+  }
+}
+
+test('forced-colour selection marks cannot replace focus rings', () => {
+  const selectedFocus = source.replaceAll(':not(:focus-visible)', ':focus-visible');
+  assert.notEqual(selectedFocus, source, 'the mutation found no selection guard');
+  assert.throws(() => checkForcedFocus(selectedFocus), /replace the focus ring/);
+  const ancestorGuard = source + `
+    @media (forced-colors: active) {
+      .host:not(:focus-visible) .ui-nav__item.is-active:focus-visible { outline: 2px solid Highlight; }
+    }`;
+  assert.throws(() => checkForcedFocus(ancestorGuard), /replace the focus ring/);
 });
 
 test('rejects a scroll region put back on the retired box-shadow form', () => {
