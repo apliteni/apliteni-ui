@@ -72,10 +72,10 @@ const subjects: string[] = [
   ...files.filter((f) => f.endsWith('.css')).filter(storyOnlySheet),
 ].sort();
 
-// Measured, not guessed: 36 stories and the two showcase sheets, as this gate last
+// Measured, not guessed: 39 stories and three showcase sheets, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows.
-const FOUND = { subjects: 38, declarations: 321, carriers: 29, sheets: 2 };
+const FOUND = { subjects: 42, declarations: 394, carriers: 33, sheets: 3 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -94,6 +94,7 @@ const ALLOWED: Record<string, string> = {
   'react/src/BackLink.stories.tsx|.ui-app__main': 'the specimen column is narrower than the shell',
   'react/src/BadgeStatus.stories.tsx|.ui-card': 'a specimen card is as wide as its specimen',
   'react/src/SwitchCheckbox.stories.tsx|.ui-card': 'a specimen card is as wide as its specimen',
+  'react/src/DataTable.stories.tsx|.ui-card': 'the pinned table needs the panel width to show its column limit',
 
   // A table wider than its scroll region is the only way the region scrolls, and the
   // region's own inset is wrong when the table is inside a card rather than on a page.
@@ -114,6 +115,20 @@ const ALLOWED: Record<string, string> = {
 
   // A field and its menu share one row until the phone step takes the menu to its own.
   'react/src/SearchField.stories.tsx|.invoice-toolbar > .ui-dropdown': 'the toolbar rewraps at the phone step',
+
+  // The comparison aligns kit controls and table cells to one inset. The story
+  // sheet owns these placements because the kit parts also serve other pages.
+  'react/src/FinanceComposition.css|.finance-comparison .ui-app__sub': 'the comparison heading sets its own gap to the subtitle',
+  'react/src/FinanceComposition.css|.finance-comparison .ui-filter-bar': 'the filter aligns its trigger with the comparison text inset',
+  'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline': 'the view tabs align with the comparison text inset',
+  'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline button': 'the tab labels share the comparison text inset',
+  'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline button::before': 'the underline reaches both edges of its tab',
+  'react/src/FinanceComposition.css|.finance-comparison__card > .ui-table-scroll': 'the card supplies the table scroll region its inset',
+  'react/src/FinanceComposition.css|.finance-comparison__card .ui-table': 'the table fits inside the comparison card',
+  'react/src/FinanceComposition.css|.finance-comparison__card .ui-table td.ui-table__linked:first-child': 'the first linked cell uses the shared text inset',
+  'react/src/FinanceComposition.css|.finance-comparison__card .ui-table :is(th, td):first-child,\n.finance-comparison__card .ui-table td.ui-table__linked:first-child > a': 'the first column shares the comparison text inset',
+  'react/src/FinanceComposition.css|.finance-comparison__card .ui-table :is(th, td):last-child': 'the last column shares the comparison text inset',
+  'react/src/FinanceComposition.css|.finance-comparison__card .ui-table :is(th, td):first-child,\n  .finance-comparison__card .ui-table td.ui-table__linked:first-child > a': 'the phone first column shares the smaller text inset',
 };
 
 /* ---- the glue ceiling --------------------------------------------------- */
@@ -167,6 +182,7 @@ describe('story CSS', () => {
     expect(subjects.length).toBeGreaterThanOrEqual(FOUND.subjects);
     expect(subjects.filter((f) => f.endsWith('.css'))).toEqual([
       'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
+      'react/src/FinanceComposition.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.
@@ -200,7 +216,7 @@ describe('story CSS', () => {
       expect(subjects, `${key} names a file that is not a subject`).toContain(key.split('|')[0]);
     }
     const placed = measured.flatMap((s) => s.placements);
-    const painted = placed.filter((d: { property: string }) => !/^(?:--|[a-z-]*(?:width|height|top|right|bottom|left|inset|margin|padding|gap|display|position|order|flex|grid|align|justify|place|overflow|z-index|white-space|text-align|pointer-events|box-sizing|aspect-ratio|columns?)[\w-]*$)/.test(d.property));
+    const painted = placed.filter((d: { property: string }) => !/^(?:--|[a-z-]*(?:width|height|top|right|bottom|left|inset|margin|padding|gap|display|position|order|flex|grid|align|justify|place|overflow|z-index|white-space|text-align|pointer-events|box-sizing|aspect-ratio|contain|columns?)[\w-]*$)/.test(d.property));
     expect(painted.map(show)).toEqual([]);
   });
 

@@ -77,6 +77,8 @@
  *    reading that stops reaching source fails before it passes.
  */
 
+import { splitSelectorList } from './selector-list.js';
+
 /* Placement: where a box sits, how big it is, and how its children are dealt. Nothing
  * here decides how anything looks. `pointer-events` and `touch-action` are in because
  * they place a hit area; `border-collapse` and `border-spacing` are in because they are
@@ -174,7 +176,7 @@ export function classify({ selector, property, value }, kitTokens) {
   if (PAINT.test(property)) return 'shadow';
   if (!GLUE.test(property)) return 'unknown';
   // Each comma-separated subject is its own selector; one naming a kit class is enough.
-  return selector.split(',').some((one) => KIT_CLASS.test(one)) ? 'placement' : 'glue';
+  return splitSelectorList(selector).some((one) => KIT_CLASS.test(one)) ? 'placement' : 'glue';
 }
 
 /* ---- reading the source ------------------------------------------------- */

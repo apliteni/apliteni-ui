@@ -197,8 +197,8 @@ const ALLOWED = {
  * rule pick out the same stories without being told to; the sixth is
  * react/src/SwitchCheckbox.stories.tsx at 26, which is clean, and it is recorded at its
  * figure rather than the line being moved up to it — a ceiling of 26 lets every story in
- * both collections lay out a page. Whether 22 or 26 is right is the open question on
- * #601, which holds the distribution it came from. */
+ * both collections lay out a page. Artur chose 22 with this one recorded exception
+ * on #601, which holds the distribution it came from. */
 export const GLUE_CEILING = 22;
 
 /* ---- what the collection carries today ---------------------------------- */
@@ -213,7 +213,8 @@ export const GLUE_CEILING = 22;
  * until the line goes.
  *
  * Maintained by hand. Never regenerated: a figure that rises because a tool wrote it is
- * not a decision anybody made.
+ * not a decision anybody made. Landing's glue fell from 61 to 59 when its two
+ * `--ring-gap` declarations were removed on main.
  *
  * The follow-ups are listed in #601's audit; the ones that would clear the most at once
  * are a kit page-head part (the `font: 600 22px/1.2 var(--font-display)` repeated across
@@ -225,7 +226,7 @@ const RECORDED = {
   'stories/_gallery.js': { shadow: 2 },
   'stories/apps/Access.stories.js': { shadow: 2 },
   'stories/apps/Consent.stories.js': { shadow: 18, glue: 26 },
-  'stories/apps/Landing.stories.js': { shadow: 24, glue: 61 },
+  'stories/apps/Landing.stories.js': { shadow: 24, glue: 59 },
   'stories/apps/SignIn.stories.js': { shadow: 1 },
   'stories/apps/StockScreener.stories.js': { shadow: 9 },
   'stories/components/BackLink.stories.js': { shadow: 3 },
