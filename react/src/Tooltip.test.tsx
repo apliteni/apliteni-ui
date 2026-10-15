@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, expect, it, vi } from 'vitest';
 import axe from 'axe-core';
 import { Tooltip, TooltipHost } from './Tooltip';
+import { placeTip } from './tip';
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
@@ -382,8 +383,17 @@ it('keeps the fallback gap equal to the number the stylesheet declares', async (
   const { readFile } = await import('node:fs/promises');
   const read = (rel: string) => readFile(new URL(rel, import.meta.url), 'utf8');
   const sheet = parseFloat(/--ui-tip-gap:\s*([\d.]+)px/.exec(await read('../../src/styles/tooltip.css'))![1]);
-  const source = parseFloat(/const TIP_GAP = ([\d.]+)/.exec(await read('./Tooltip.tsx'))![1]);
+  const source = parseFloat(/const TIP_GAP = ([\d.]+)/.exec(await read('./tip.ts'))![1]);
   expect(source, 'TIP_GAP is the fallback for a document without the sheet').toBe(sheet);
+});
+
+// JSDOM supplies geometry but does not paint the readout.
+it.each([[100, true], [560, false]])('shared placement prefers bottom at %spx and flips when needed', (top, below) => {
+  const { trigger, tip } = mount();
+  geometry(trigger, tip, top);
+  placeTip(trigger.parentElement!, trigger, tip, undefined, 'bottom');
+  expect(tip.classList.contains('is-below')).toBe(below);
+  expect(tip.style.getPropertyValue('--ui-tip-y')).toBe(`${below ? top + 20 : top}px`);
 });
 
 // Last in the file: wireTooltip() wires this jsdom document for good, and the

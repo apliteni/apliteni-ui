@@ -500,9 +500,6 @@ One set of document listeners serves every React readout in a document. The scro
 listeners are bound only while a readout is open. A readout that is rendered open is a picture of
 a readout. It is marked `data-tip-picture` and has no wiring to take it down.
 
-`react/src/Tooltip.test.tsx` and `react/src/Tooltip.specimens.test.tsx` cover this behavior. The
-Tooltip readout showcase captures the real layout and the no-reflow evidence.
-
 ### Pagination
 
 The pager renders a page you have already computed. It uses the current page, the page size and,

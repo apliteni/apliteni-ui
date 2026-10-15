@@ -1,4 +1,5 @@
 import '../../src/styles/tooltip.css';
+import { placeTip } from './tip';
 import { forwardRef, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type ForwardedRef, type Ref } from 'react';
 
 export type TooltipProps = {
@@ -20,11 +21,6 @@ export type TooltipHostProps = {
 };
 
 type Parts = { label?: string; value?: string; detail?: string };
-
-// The mark-to-readout distance is --ui-tip-gap in src/styles/tooltip.css. This is
-// the fallback for a document that has not loaded the sheet;
-// react/src/Tooltip.test.tsx pins the two to each other.
-const TIP_GAP = 8;
 
 // ---- The document ---------------------------------------------------------
 
@@ -158,33 +154,8 @@ function TooltipSurface({ text, label = text, value, detail, placement = 'top', 
     const t = tip.current;
     const target = active.current;
     if (!h || !t || !target) return;
-    const anchor = (target.querySelector('[data-tip-anchor]') || target).getBoundingClientRect();
-    const rect = h.getBoundingClientRect();
-    const view = h.ownerDocument.documentElement;
-    const clip = { top: 0, left: 0, right: view.clientWidth, bottom: view.clientHeight };
-    for (let el: HTMLElement | null = h; el && el !== h.ownerDocument.body && el !== view; el = el.parentElement) {
-      const computed = getComputedStyle(el);
-      if (![computed.overflow, computed.overflowX, computed.overflowY].some(v => v && v !== 'visible')) continue;
-      const bounds = el.getBoundingClientRect();
-      clip.top = Math.max(clip.top, bounds.top);
-      clip.left = Math.max(clip.left, bounds.left);
-      clip.right = Math.min(clip.right, bounds.right);
-      clip.bottom = Math.min(clip.bottom, bounds.bottom);
-    }
-    const declared = parseFloat(getComputedStyle(t).getPropertyValue('--ui-tip-gap'));
-    const gap = Number.isFinite(declared) ? declared : TIP_GAP;
-    const above = anchor.top - clip.top;
-    const below = clip.bottom - anchor.bottom;
-    const prefersBelow = placement === 'bottom';
-    const flip = prefersBelow ? below < t.offsetHeight + gap && above > below : above < t.offsetHeight + gap && below > above;
-    const isBelow = prefersBelow !== flip;
-    t.classList.toggle('is-below', isBelow);
-    const centre = anchor.left + anchor.width / 2;
-    const ideal = centre - t.offsetWidth / 2;
-    const left = Math.max(clip.left, Math.min(ideal, clip.right - t.offsetWidth));
-    t.style.setProperty('--ui-tip-x', `${centre - rect.left - h.clientLeft + h.scrollLeft}px`);
-    t.style.setProperty('--ui-tip-y', `${(isBelow ? anchor.bottom : anchor.top) - rect.top - h.clientTop + h.scrollTop}px`);
-    t.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
+    const anchor = target.querySelector('[data-tip-anchor]') || target;
+    placeTip(h, anchor, t, undefined, placement);
   }
 
   // Runs after content changes too: the current readout can change size.
