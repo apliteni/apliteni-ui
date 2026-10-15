@@ -17,6 +17,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -52,7 +53,7 @@ const PARTS = SHEETS.flatMap((rel, i) =>
   [...decomment(STYLES[i]).matchAll(RULE)]
     .filter(([, selector]) => !selector.trim().startsWith('@'))
     .flatMap(([, selector, body]) =>
-      selector.split(',').map((part) => ({ sheet: rel, part: part.trim(), body }))));
+      splitSelectorList(selector).map((part) => ({ sheet: rel, part, body }))));
 
 // ---- subject discovery ---------------------------------------------------
 
@@ -63,7 +64,7 @@ const THEMES = [...new Set([...read('src/tokens/tokens.css')
 /** Selector parts of any stylesheet text, not just the shipped ones. */
 const partsOf = (css) => [...decomment(css).matchAll(RULE)]
   .filter(([, selector]) => !selector.trim().startsWith('@'))
-  .flatMap(([, selector, body]) => selector.split(',').map((part) => ({ part: part.trim(), body })));
+  .flatMap(([, selector, body]) => splitSelectorList(selector).map((part) => ({ part, body })));
 
 /* Every state a sheet puts on `.ui-select`: the pseudo-classes and `.is-*`
  * classes written after it. The empty suffix is the resting control, which the
@@ -146,7 +147,7 @@ function tokensFor(theme) {
   const vars = new Map();
   for (const file of ['src/tokens/brand.generated.css', 'src/tokens/tokens.css', 'src/tokens/accents.css']) {
     for (const [, selector, body] of decomment(read(file)).matchAll(RULE)) {
-      if (!selector.split(',').map((s) => s.trim()).some((s) => wanted.includes(s))) continue;
+      if (!splitSelectorList(selector).some((s) => wanted.includes(s))) continue;
       for (const decl of body.split(';')) {
         const i = decl.indexOf(':');
         if (i < 0) continue;

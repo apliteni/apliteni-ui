@@ -13,6 +13,12 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.113.0', date: '2026-10-12',
+    changes: [
+      ['changed', 'Nothing the kit renders changes. The kit\'s own gates now split a selector list at its top-level commas only, so a rule written with `:where(td, th)` or `:is(:hover, :focus-visible)` reaches them whole instead of in fragments that match nothing. One consequence worth naming: the collapsed rail\'s hover and focus-visible labels were being measured for contrast in no state at all, and now are. The only published CSS byte is a comment in `layout.css` citing a line that moved. Resolves #521.'],
+    ],
+  },
+  {
     v: '0.108.0', date: '2026-10-10',
     changes: [
       ['fixed', 'Below 720px a pinned identity column keeps each row name on one line instead of hiding it. The name is capped at `min(var(--panel-sm), 50vw)` and cuts with an ellipsis past the cap; the full text stays in the markup, so the accessible name and company link stay unchanged. Resolves #500.', ['Table']],

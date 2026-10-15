@@ -37,6 +37,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { sheets, leafRules, inNet } from './lib/motion-css.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 // A DOM has to exist before the kit's wiring runs — wireDropdown() compares its scope
 // against the global `document`.
@@ -200,7 +201,7 @@ function curtains() {
       if (!d) continue;
       // A selector list declaring one curtain is one subject; the ledger keys on the
       // part that names the surface, which is the last one written.
-      const key = rule.selector.split(',').map((s) => s.trim()).at(-1);
+      const key = splitSelectorList(rule.selector).at(-1);
       found.set(key, `${where}:${d.line}`);
     }
   }

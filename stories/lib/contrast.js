@@ -17,6 +17,7 @@ import path from 'node:path';
 import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
 import { JSDOM, VirtualConsole } from 'jsdom';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -67,7 +68,7 @@ export function declarationsFor(theme, accent = 'default') {
   };
   for (const file of TOKEN_FILES) {
     for (const [, selector, body] of decomment(read(file)).matchAll(RULE)) {
-      if (!selector.split(',').map((s) => s.trim()).some((s) => wanted.includes(s))) continue;
+      if (!splitSelectorList(selector).some((s) => wanted.includes(s))) continue;
       for (const decl of body.split(';')) {
         const i = decl.indexOf(':');
         if (i < 0) continue;
@@ -218,8 +219,8 @@ export function specialiseContextual(css) {
       const keep = body.split(';').filter((d) => !d.trim().startsWith('--') && d.includes(`var(${prop})`)).join(';');
       if (!keep) continue;
       for (const [dsel, val] of ds) {
-        const scoped = dsel.split(',').flatMap((d) => sel.split(',')
-          .map((x) => `${d.trim()} ${x.trim()}, ${d.trim()}${x.trim()}`)).join(', ');
+        const scoped = splitSelectorList(dsel).flatMap((d) => splitSelectorList(sel)
+          .map((x) => `${d} ${x}, ${d}${x}`)).join(', ');
         out += `\n${scoped}{${keep.split(`var(${prop})`).join(val)}}`;
       }
     }
@@ -468,6 +469,37 @@ export function kitCssFor(theme, accent = 'default') {
   return { vars, css: expandAnchors(desugar(substitute(specialiseContextual(raw), vars))) };
 }
 
+/** The element a state tag sits on, given the text in front of the tag.
+ *
+ *  `:is()` and `:where()` match any argument, so a tag inside one belongs to the
+ *  compound before it. Cutting at the tag instead left `.ui-nav__item:is(`, which
+ *  querySelectorAll throws on and stateTargets swallows, so the collapsed rail was
+ *  measured in no state at all (#521). A simple `:has()` names the descendant
+ *  before the tag. `:not()` has no host to name here and comes back empty.
+ *
+ *  @param {string} prefix everything before the state tag
+ *  @returns {string} the host selector, or '' when there is none */
+export function stateHost(prefix) {
+  const open = [];
+  for (let i = 0; i < prefix.length; i += 1) {
+    const char = prefix[i];
+    if (char === '\\') { i += 1; continue; }
+    if (char === '(') {
+      const name = /(:{1,2}[\w-]+)$/.exec(prefix.slice(0, i));
+      open.push({ at: name ? i - name[1].length : i, start: i + 1, name: name ? name[1].toLowerCase() : '' });
+    } else if (char === ')') open.pop();
+  }
+  if (open.length === 0) return prefix.trim();
+  const has = open.findLast(({ name }) => name === ':has');
+  if (has && open.every(({ name }) => name === ':is' || name === ':where' || name === ':has')) {
+    const outer = prefix.slice(0, has.at).trim();
+    const inner = prefix.slice(has.start).trim();
+    return outer && inner ? `${outer} ${inner}`.trim() : '';
+  }
+  if (!open.every(({ name }) => name === ':is' || name === ':where')) return '';
+  return prefix.slice(0, open[0].at).trim();
+}
+
 /**
  * Base selectors of state rules that can change a contrast input, so the walk
  * exercises the elements those rules can reach instead of every element × every
@@ -476,19 +508,23 @@ export function kitCssFor(theme, accent = 'default') {
  */
 export function stateBases(css) {
   const out = Object.fromEntries(STATES.map((s) => [s, new Set()]));
-  for (const [, selector, body] of css.matchAll(RULE)) {
+  // Decommented here, not only in the body: a story's own <style> block reaches
+  // this raw, and a comment left in a prelude travels into the base and out to
+  // querySelectorAll, which throws on it. The kit sheet arrives decommented
+  // already, and blanking is idempotent.
+  for (const [, selector, body] of decomment(css).matchAll(RULE)) {
     // These declarations cannot change a captured colour, background, visibility or AA threshold.
     // Custom properties and every property outside this list keep the state.
     const decoration = /^(box-shadow|outline(?:-color|-offset|-style|-width)?|border-radius|text-decoration(?:-color|-line|-style|-thickness)?|text-underline-offset|cursor|transition(?:-delay|-duration|-property|-timing-function)?)$/;
     const declarations = decomment(body).split(';').map(d => d.trim()).filter(Boolean);
     if (declarations.every(d => decoration.test(d.split(':', 1)[0].trim()))) continue;
     if (selector.trimStart().startsWith('@')) continue;
-    for (const sel of selector.split(',')) {
+    for (const sel of splitSelectorList(selector)) {
       for (const s of STATES) {
         const tag = `[data-ui-state~="${s}"]`;
         const i = sel.indexOf(tag);
         if (i < 0) continue;
-        const base = sel.slice(0, i).trim();
+        const base = stateHost(sel.slice(0, i));
         if (base) out[s].add(base);
       }
     }

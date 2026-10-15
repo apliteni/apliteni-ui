@@ -16,6 +16,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(path.join(here, rel), 'utf8');
@@ -28,7 +29,7 @@ const ENTRY = read('../index.css');
 
 const rules = (css) => [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
   .filter((m) => !m[1].trimStart().startsWith('@'))
-  .flatMap((m) => m[1].trim().split(',').map((selector) => ({
+  .flatMap((m) => splitSelectorList(m[1]).map((selector) => ({
     selector: selector.trim().replace(/\s+/g, ' '), body: m[2],
   })));
 /** The last value a body declares for a property, `!important` stripped. */
