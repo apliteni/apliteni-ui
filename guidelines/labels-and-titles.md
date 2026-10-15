@@ -46,7 +46,7 @@
 
 **Rule:** Leave a noun out of a label its frame already names.
 
-**Why:** The second mention adds nothing.
+**Why:** Clutter hides the available action.
 
 **Do:** The chips name the filters; the button says what it does.
 
