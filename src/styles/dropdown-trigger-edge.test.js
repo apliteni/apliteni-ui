@@ -11,7 +11,10 @@
  * one's edge. #580, found by #518's builder.
  *
  * So this gate reads the trigger's edge out of the sheets, per state and per
- * scope, and holds both halves: live is never the off ink, off is always it. The
+ * scope, and holds both halves: live is never the off ink, off is always it.
+ * A borderless chip trigger keeps its edge on the containing chip instead.
+ * Disabled readings combine each discovered scope with its matching suffix scopes.
+ * They model native and aria-disabled states, including hover and focus combinations. The
  * live half is read in EVERY state a reader can still use the control in, not on
  * the resting rule alone: a hover or focus rule that paints the off edge is the
  * same defect one state along, and a correct resting rule does not undo it. It
@@ -39,6 +42,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseColour, ratio, substitute, tokensFor } from '../../stories/lib/contrast.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -157,10 +161,14 @@ function subjects(overrides = {}) {
     const css = decomment(overrides[file] ?? read(file));
     for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
       if (selectors.trimStart().startsWith('@')) continue;
-      for (const selector of selectors.split(',').map((s) => s.trim()).filter(Boolean)) {
+      for (const selector of splitSelectorList(selectors)) {
         order += 1;
         const subject = selector.split(/\s+(?![^(]*\))/).at(-1);
         if (!subject.includes(TRIGGER)) continue;
+        const at = selector.lastIndexOf(TRIGGER);
+        const before = selector.slice(0, at);
+        const depth = [...before].reduce((level, char) => level + (char === '(') - (char === ')'), 0);
+        if (depth !== 0 || subject.includes('::')) continue;
         out.push({
           file,
           order,
@@ -238,7 +246,7 @@ function matchesDisabledTarget(rule, target) {
   const selector = rule.selector;
   const wantsNative = hasNativeDisabled(selector);
   const wantsAria = hasAriaDisabled(selector);
-  if (target.spelling === 'native' && wantsAria) return false;
+  if (target.spelling === 'native' && (wantsAria || /:enabled\b/i.test(stripNot(selector)))) return false;
   if (target.spelling === 'aria' && wantsNative) return false;
   if (/:hover\b/i.test(selector) && !target.hover) return false;
   if (hasPositiveFocus(selector) && !target.focus) return false;
@@ -251,17 +259,22 @@ const disabledWinner = (rules, target) => rules
   .reduce((best, r) => (best && outranks(best, r) ? best : r), null);
 
 function disabledEdgeFindings(byScope) {
-  const rules = byScope.get(TRIGGER) ?? [];
-  return DISABLED_TARGETS.flatMap((target) => {
-    const won = disabledWinner(rules, target);
-    const name = `${target.spelling} ${target.state}`;
-    if (!won) return [`${name}: no edge rule reaches the target`];
-    if (!won.edge.drawn) return [`${name}: ${won.selector} removes the edge`];
-    if (!won.edge.colour) return [`${name}: ${won.selector} declares ${won.edge.declared}, which this gate cannot resolve`];
-    if (!new RegExp(`^var\\(\\s*${OFF_EDGE}\\s*\\)$`).test(won.edge.colour)) {
-      return [`${name}: ${won.selector} paints ${won.edge.colour} instead of ${OFF_EDGE}`];
-    }
-    return [];
+  return [...byScope].flatMap(([scope, scopedRules]) => {
+    // A trigger receives its own scope and each enclosing suffix scope.
+    const rules = [...byScope].filter(([ancestor]) => scope.endsWith(ancestor))
+      .flatMap(([, inherited]) => inherited);
+    const borderless = winner(scopedRules, 'rest')?.edge?.drawn === false;
+    return DISABLED_TARGETS.flatMap((target) => {
+      const won = disabledWinner(rules, target);
+      const name = `${scope}: ${target.spelling} ${target.state}`;
+      if (!won) return [`${name}: no edge rule reaches the target`];
+      if (!won.edge.drawn) return borderless ? [] : [`${name}: ${won.selector} removes the edge`];
+      if (!won.edge.colour) return [`${name}: ${won.selector} declares ${won.edge.declared}, which this gate cannot resolve`];
+      if (!new RegExp(`^var\\(\\s*${OFF_EDGE}\\s*\\)$`).test(won.edge.colour)) {
+        return [`${name}: ${won.selector} paints ${won.edge.colour} instead of ${OFF_EDGE}`];
+      }
+      return [];
+    });
   });
 }
 
@@ -300,12 +313,29 @@ test('no live trigger draws the ink an unavailable one draws, in any state or th
     'a trigger a reader can use draws exactly the line the kit paints an unavailable control with');
 });
 
-test('an unavailable trigger draws the kit\'s own off edge, in both themes', () => {
+test('an unavailable trigger keeps its off edge or borderless box in every scope', () => {
+  assert.equal(BY_SCOPE.size, 3, 'review coverage when a trigger scope changes');
+  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 24);
   const findings = disabledEdgeFindings(BY_SCOPE);
   assert.deepEqual(findings, [],
     'a disabled trigger state does not draw the kit\'s off edge');
   for (const theme of THEMES) {
     assert.ok(inkOf(theme, `var(${OFF_EDGE})`), `${OFF_EDGE} resolves to nothing in ${theme}`);
+  }
+});
+
+test('disabled readings reject live paint in every discovered scope and state', () => {
+  for (const scope of BY_SCOPE.keys()) {
+    for (const target of DISABLED_TARGETS) {
+      const off = target.spelling === 'native' ? ':disabled' : '[aria-disabled="true"]';
+      const state = `${target.hover ? ':hover' : ''}${target.focus ? ':focus-visible' : ':not(:focus-visible)'}`;
+      const file = SHEETS.at(-1);
+      const broken = scopes(subjects({
+        [file]: `${read(file)}\n${scope}${off}${state} { border: 1px solid var(--control-edge); }`,
+      }));
+      const name = `${scope}: ${target.spelling} ${target.state}:`;
+      assert.ok(disabledEdgeFindings(broken).some((finding) => finding.startsWith(name)), name);
+    }
   }
 });
 
@@ -463,7 +493,7 @@ test('the reading refuses every way the two edges can come back together', () =>
       'unreadable-edge'],
     // A scoped resting edge deep enough to freeze the states beside it — the
     // fault the fix itself could have introduced.
-    ['.ui-card .ui-filter-bar .ui-dropdown__trigger { border-color: var(--accent); }', 'frozen'],
+    ['.ui-card .ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-color: var(--accent); }', 'frozen'],
     // A state nobody measured, ranked as resting and counted as covered.
     ['.ui-dropdown__trigger:active { border-color: var(--border); }', 'unmeasured-state'],
     // Each disabled spelling and state can be broken on its own. This includes
@@ -503,6 +533,6 @@ test('the sheet still says what the gate reads, so none of this is checking a gh
     `${TRIGGER} no longer takes the kit's live control edge`);
   assert.match(css, /\.ui-dropdown__trigger:disabled[\s\S]{0,400}?border-color:\s*var\(--disabled-border\)/,
     `${TRIGGER}:disabled no longer takes ${OFF_EDGE}`);
-  assert.match(css, /\.ui-dropdown__trigger:hover:not\(:focus-visible\)\s*\{[^}]*border-color:\s*var\(--accent\)/,
+  assert.match(css, /\.ui-dropdown__trigger:enabled:hover:not\(:focus-visible\)\s*\{[^}]*border-color:\s*var\(--accent\)/,
     'the trigger no longer answers the pointer');
 });
