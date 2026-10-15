@@ -20,7 +20,7 @@
   "_accessibility-floor.js": {
     "target-size": [
       {
-        "ref": "src/styles/button.css:99",
+        "ref": "src/styles/button.css:100",
         "pattern": ".ui-btn--sm"
       },
       {
@@ -60,7 +60,7 @@
     ],
     "disabled-legibility": [
       {
-        "ref": "src/styles/button.css:116",
+        "ref": "src/styles/button.css:117",
         "pattern": ".ui-btn[aria-disabled=\"true\"]"
       },
       {
@@ -296,7 +296,7 @@
   "_destructive-actions.js": {
     "colour": [
       {
-        "ref": "src/styles/button.css:89",
+        "ref": "src/styles/button.css:90",
         "pattern": ".ui-btn--danger:hover"
       },
       {
@@ -794,7 +794,7 @@
         "pattern": "busy \u21d2 disabled"
       },
       {
-        "ref": "src/styles/button.css:153",
+        "ref": "src/styles/button.css:154",
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
