@@ -256,7 +256,8 @@
   .topbar__in > .dtsw { grid-area: 2 / 1; justify-self: start; }
   .topbar__in > .vsw { grid-area: 2 / 2 / 3 / 4; justify-self: end; }
   /* Two 44px rows, an 8px gap, two 4px insets and the bottom border. */
-  .ui-app-page:has(.topbar .dtsw.on, .topbar .vsw) { --ui-app-top: 105px; }
+  .ui-app-page:has(.topbar .dtsw.on),
+  .ui-app-page:has(.topbar .vsw) { --ui-app-top: 105px; }
 }
 
 /* Account — avatar + dropdown. Gated: hidden until the app confirms a session
