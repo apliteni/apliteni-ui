@@ -139,7 +139,8 @@
   position: relative;
   display: block;
   height: var(--toast-pile-height, auto);
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: var(--space-6);
   transition: height var(--dur-med) var(--ease);
 }
 .ui-toast-stack--collapsed:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }

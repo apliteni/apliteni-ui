@@ -100,10 +100,12 @@ test('a collapsed stack pauses every timer line in the pile', () => {
   }
 });
 
-test('a collapsed stack is keyboard focusable and clips tall back cards', () => {
+test('a collapsed stack keeps its shadow clear and clips tall back cards', () => {
   const stack = pileRules.find((rule) => rule.selector === '.ui-toast-stack--collapsed');
-  assert.ok(stack?.body.includes('overflow: hidden'),
+  assert.match(stack?.body ?? '', /overflow:\s*clip\s*;/,
     `${SHEET}: the collapsed stack does not clip a taller back card that would protrude below the front card.`);
+  assert.match(stack?.body ?? '', /overflow-clip-margin:\s*var\(--space-6\)\s*;/,
+    `${SHEET}: the resting stack cuts the front card's drop shadow at its edge.`);
   assert.ok(rules.some((rule) => rule.selector === '.ui-toast-stack--collapsed:focus-visible'),
     `${SHEET}: the keyboard entry point for a collapsed stack has no visible focus style.`);
   assert.ok(script.includes("setAttribute('tabindex', '0')"),
