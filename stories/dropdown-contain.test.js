@@ -843,11 +843,16 @@ test('measured in a browser, both layers, four widths and both themes', {
           ...await vanillaEdgeCases(browser, vanilla.port, { width: 390, theme: 'light', ...how }),
           ...await reactEdgeCases(browser, react.port, { story: edgeStory.id, width: 390, theme: 'light', ...how }),
         ];
-        const out = broken(got).filter((r) => r.case === which);
-        console.log(`${what} taken away: ${out.length} readings outside — ${out.map(whereCase).join('; ') || 'none'}`);
+        // Chromium can keep an unwrapped panel within the viewport while widening
+        // it past its normal 240px floor. Check the width promise above as well.
+        const out = got.filter((r) => r.case === which && (
+          broken([r]).length > 0
+          || (how.mutation === WRAP_OFF && !r.portal && r.width > 240 + SLACK)
+        ));
+        console.log(`${what} taken away: ${out.length} readings rejected — ${out.map(whereCase).join('; ') || 'none'}`);
         assert.ok(
           out.length > 0,
-          `with ${what} taken away, “${which}” stayed inside the view in both layers. Then this `
+          `with ${what} taken away, “${which}” kept its expected bounds in both layers. Then this `
           + 'gate would pass with that half of the fix removed, which is the state the review '
           + 'measured.',
         );
