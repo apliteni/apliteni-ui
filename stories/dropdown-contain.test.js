@@ -362,6 +362,56 @@ const MENU = [{ label: 'Settings' }, { label: 'Billing' }, { label: 'Sign out' }
 const click = (window, el) =>
   el.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
 
+// These tests provide geometry. The browser half checks actual row reachability.
+for (const direction of ['down', 'up']) {
+  test(`a portalled ${direction} panel flips below the floor and restores its preference`, () => {
+    const { window, trigger, panel } = wired(
+      dropdown({ direction, portal: true, items: MENU }), { left: 20 },
+    );
+    let top = direction === 'down' ? 733 : 5;
+    trigger.getBoundingClientRect = () => ({ top, bottom: top + 31, left: 20, right: 116 });
+    click(window, trigger);
+    assert.equal(panel.classList.contains('is-up'), direction === 'down');
+    const closingTop = panel.style.top;
+    const closingBottom = panel.style.bottom;
+    click(window, trigger);
+    top = 350;
+    window.dispatchEvent(new window.Event('resize'));
+    assert.equal(panel.classList.contains('is-up'), direction === 'down', 'close retains the resolved side');
+    assert.equal(panel.style.top, closingTop);
+    assert.equal(panel.style.bottom, closingBottom);
+    click(window, trigger);
+    assert.equal(panel.classList.contains('is-up'), direction === 'up', 'reopen restores the configured side');
+    top = direction === 'down' ? 733 : 5;
+    window.dispatchEvent(new window.Event('resize'));
+    assert.equal(panel.classList.contains('is-up'), direction === 'down');
+    top = 350;
+    window.dispatchEvent(new window.Event('resize'));
+    assert.equal(panel.classList.contains('is-up'), direction === 'up', 'an open panel restores its preference');
+    window.close();
+  });
+}
+
+test('a portalled panel keeps its preferred side when short content or a small cap fits', () => {
+  for (const scroll of [false, 20]) {
+    const { window, trigger, panel } = wired(dropdown({ portal: true, scroll, items: MENU }), { left: 20 });
+    Object.defineProperty(panel, 'offsetHeight', { value: 20, configurable: true });
+    trigger.getBoundingClientRect = () => ({ top: 733, bottom: 764, left: 20, right: 116 });
+    click(window, trigger);
+    assert.equal(panel.classList.contains('is-up'), false);
+    window.close();
+  }
+});
+
+test('an ordinary panel keeps its configured side below the floor', () => {
+  const { window, trigger, panel } = wired(dropdown({ items: MENU }), { left: 20 });
+  trigger.getBoundingClientRect = () => ({ top: 733, bottom: 764, left: 20, right: 116 });
+  click(window, trigger);
+  assert.equal(panel.classList.contains('is-up'), false);
+  assert.equal(panel.classList.contains('is-unbounded'), true);
+  window.close();
+});
+
 test('a shut panel is fitted when it is wired, before anything is clicked', () => {
   const { panel } = wired(
     dropdown({ value: 'Period', variant: 'menu', align: 'end', items: MENU }),
@@ -618,6 +668,22 @@ test('measured in a browser, both layers, four widths and both themes', {
   const react = await serve(reactBuild, VANILLA_PAGE);
 
   try {
+    await t.test('a portalled menu flips below the floor while an ordinary menu grows the page', async () => {
+      const readings = [];
+      for (const [width, height] of [[390, 844], [844, 390]]) {
+        for (const portal of [true, false]) {
+          const got = await lib.portalFloorCase(browser, vanilla.port, { width, height, portal });
+          readings.push(got);
+          assert.equal(got.up, portal, JSON.stringify(got));
+          assert.equal(got.reachable, true, JSON.stringify(got));
+          assert.equal(got.documentHeight > height, !portal, JSON.stringify(got));
+        }
+      }
+      assert.equal(readings.length, 4);
+      const refused = await lib.portalFloorCase(browser, vanilla.port, { refuseFlip: true });
+      assert.equal(refused.reachable, false, 'the measurement must reject a refused flip');
+    });
+
     // The vanilla subjects: every story in the tree, rendered once — the same jsdom
     // sweep the tap-zone gate walks.
     const { subjects, problems } = await lib.storySubjects({ theme: 'dark' });

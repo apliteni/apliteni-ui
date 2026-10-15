@@ -637,7 +637,10 @@ function ddSizeHeight(dd, panel) {
 /** Fit a panel again where it now is, whichever placement it uses. */
 function ddPlace(dd) {
   const panel = dd.__ddPanel || ddPanelOf(dd);
-  if (dd.__ddPanel) positionPortalPanel(dd, dd.__ddPanel);
+  if (dd.__ddPanel) {
+    ddResolveDirection(dd, panel);
+    positionPortalPanel(dd, panel);
+  }
   else ddFitViewport(dd, ddPanelOf(dd));
   ddSizeHeight(dd, panel);
 }
@@ -700,16 +703,24 @@ function ddCancelClose(dd, panel) {
   else panel?.classList?.remove('is-closing');
 }
 
-// `auto` is the only direction the wiring decides; `up` and the default are the
-// panel's own class, set once at render. Flip only when below is too tight AND
-// above is roomier, so a panel that fits nowhere still opens the way it says.
+// Keep the configured side separate from the side resolved for this opening.
 function ddResolveDirection(dd, panel) {
-  if (dd.getAttribute('data-dropdown-direction') !== 'auto') return;
+  const auto = dd.getAttribute('data-dropdown-direction') === 'auto';
+  if (!auto && !dd.__ddPanel) return;
   const trigger = dd.querySelector('[data-dropdown-trigger]');
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function') return;
   const t = trigger.getBoundingClientRect();
   const below = ddViewOf(panel).innerHeight - t.bottom;
-  panel.classList.toggle('is-up', below < panel.offsetHeight + ddGap(panel) && t.top > below);
+  if (auto) {
+    panel.classList.toggle('is-up', below < panel.offsetHeight + ddGap(panel) && t.top > below);
+    return;
+  }
+  const up = dd.__ddPreferredUp;
+  const room = (up ? t.top : below) - ddGap(panel);
+  const opposite = (up ? below : t.top) - ddGap(panel);
+  // Short content or a smaller consumer cap needs less than the usual floor.
+  const needed = Math.min(ddMin(panel), panel.offsetHeight);
+  panel.classList.toggle('is-up', room < needed && opposite > room ? !up : up);
 }
 
 /** The shift a panel is already carrying, the one ddFitViewport() wrote. Taken
@@ -1057,6 +1068,7 @@ export function wireDropdown(root = document) {
       sweepOrphanPanels(host);
       panel.setAttribute('data-dropdown-portal', '');
       panel.__ddOwner = dd;
+      dd.__ddPreferredUp = panel.classList.contains('is-up');
       dd.__ddPanel = panel;
       host.appendChild(panel);
       if (dd.classList.contains('open')) {

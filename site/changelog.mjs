@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.118.1', date: '2026-10-15',
+    changes: [
+      ['fixed', 'Portalled dropdown menus flip when their configured side cannot hold the required height and the opposite side has more room. They restore the configured side when space returns. Ordinary menus still grow the page below the height floor. See #643.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.118.0', date: '2026-10-15',
     changes: [
       ['added', 'React Tooltip accepts a label, value and detail, with a preferred top or bottom placement. Existing text tooltips keep working. Part of #429.', ['Tooltip']],
