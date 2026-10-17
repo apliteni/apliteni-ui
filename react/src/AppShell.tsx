@@ -1,11 +1,12 @@
 import { useEffect, useId, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
-import { applyTheme, paletteHotkey, prism, railCollapsed, themeIcon, themeName } from '@apliteni/apliteni-ui';
+import { paletteHotkey, prism, railCollapsed } from '@apliteni/apliteni-ui';
 import { SidebarNav } from './SidebarNav';
 import { BackLink } from './BackLink';
 import { CommandPalette, type CommandPaletteProps } from './CommandPalette';
 import { Drawer } from './Drawer';
 import { Dropdown } from './Dropdown';
 import { Icon } from './primitives/Icon';
+import { ThemeToggle } from './ThemeToggle';
 import './AppShell.css';
 
 export type AppShellSection = { href: string; label: string; icon: string; count?: number };
@@ -46,7 +47,6 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [search, setSearch] = useState(false);
   const [more, setMore] = useState(false);
-  const [theme, setTheme] = useState('dark');
   const current = path(pathname);
   const active = sections.filter((section) => current === path(section.href)
     || (path(section.href) !== '/' && current.startsWith(`${path(section.href)}/`)))
@@ -54,14 +54,6 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
 
   useEffect(() => { setCollapsed(railCollapsed() ?? defaultCollapsed); }, [defaultCollapsed]);
   useEffect(() => { setMore(false); setSearch(false); }, [pathname]);
-  useEffect(() => {
-    const root = document.documentElement;
-    const sync = () => setTheme(root.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
-    sync();
-    const observer = new MutationObserver(sync);
-    observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-    return () => observer.disconnect();
-  }, []);
   useEffect(() => {
     const hotkey = (event: KeyboardEvent) => {
       if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== 'k') return;
@@ -148,9 +140,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
           <kbd className="ui-cmdk__key">{paletteHotkey()}</kbd>
         </button>
         <span className="ui-app__bar-gap" />{bandControl}
-        <button type="button" className="toggle" aria-label={themeName(theme)} title={themeName(theme)} onClick={() => applyTheme(theme === 'light' ? 'dark' : 'light')}>
-          <span className="ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: themeIcon(theme) }} />
-        </button>
+        <ThemeToggle />
         <div className="ui-app__user ui-app__user--bar"><Dropdown variant="menu" align="end" chevron={false}
           ariaLabel={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
           triggerContent={<span className="ui-app__av" aria-hidden="true">{initials}</span>}
