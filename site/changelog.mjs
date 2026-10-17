@@ -6,9 +6,15 @@
 
 export const RELEASES = [
   {
-    v: '0.122.0', date: '2026-10-17',
+    v: '0.123.0', date: '2026-10-17',
     changes: [
       ['fixed', 'Enabled selected Segmented pills use the accent fill with contrasting ink in vanilla and React. Disabled selections keep a quiet fill and disabled ink. Outlines remain reserved for keyboard focus. See #614.', ['Segmented']],
+    ],
+  },
+  {
+    v: '0.122.0', date: '2026-10-17',
+    changes: [
+      ['added', 'React `Checkbox` takes a `hint` that shows under the label and is linked to the box. The new `CheckList` groups boxes in a fieldset under a legend. See #498.', ['Checkbox']],
     ],
   },
   {

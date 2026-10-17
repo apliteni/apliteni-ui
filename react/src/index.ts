@@ -14,8 +14,8 @@ import '../../src/styles/field-zoom.css';
 import '../../src/styles/tap-zone.css';
 
 export { Icon } from './primitives/Icon';
-export { Checkbox } from './Checkbox';
-export type { CheckboxProps } from './Checkbox';
+export { Checkbox, CheckList } from './Checkbox';
+export type { CheckboxProps, CheckListProps } from './Checkbox';
 export { Switch } from './Switch';
 export type { SwitchProps } from './Switch';
 export { Button } from './primitives/Button';

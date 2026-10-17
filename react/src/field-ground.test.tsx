@@ -51,7 +51,7 @@ import {
 } from '../../stories/lib/field-ground.js';
 
 const THEMES = ['dark', 'light'] as const;
-const FIELD_COUNT = 57;
+const FIELD_COUNT = 61;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
@@ -255,7 +255,7 @@ describe('field ground: React coverage', () => {
   // matching, or a story that stopped rendering its field, would otherwise leave
   // the gate green over nothing. Move the number with the specimens that moved.
   //
-  // Fields 25, Switch & Checkbox 16, Pagination 5, SearchField 4, Modal 3,
+  // Fields 29, Switch & Checkbox 16, Pagination 5, SearchField 4, Modal 3,
   // Drawer 2, DataTable 1, File drop 1.
   it('found the fields the catalogue renders, in both themes', () => {
     for (const theme of THEMES) {
