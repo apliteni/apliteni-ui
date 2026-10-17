@@ -6,9 +6,15 @@
 
 export const RELEASES = [
   {
-    v: '0.119.2', date: '2026-10-17',
+    v: '0.120.1', date: '2026-10-17',
     changes: [
       ['changed', 'Five guideline rules no longer link to the deployed site. They name the page and the rule they point to in plain words. A check now fails when a guideline or docs page links to the site. See #603.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.120.0', date: '2026-10-17',
+    changes: [
+      ['changed', 'The React AppShell band theme switch now offers dark, light and auto, like `themeToggle()` and React `ThemeToggle`, and follows the system live in auto. AppShell now applies the stored theme choice, or follows the system, when it mounts. A page that sets its own `data-theme` must also set `data-theme-choice`, or store the choice, to keep that theme. React `ThemeToggle` now draws the same sun as `themeToggle()`, with a smaller disc and shorter rays. See #596.', ['AppShell', 'ThemeToggle']],
     ],
   },
   {
