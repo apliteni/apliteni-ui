@@ -211,6 +211,32 @@
    holds go quiet with the box beside them. */
 .ui-check:has(input:disabled) { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; }
 
+/* A hint under a box. It sits outside the label, so the label's name stays the label
+   words and the hint is read as a description (aria-describedby), and it takes the
+   field hint's type and ink. The left edge is the label words': the 19px box and the
+   11px gap, a sum that lies between two grid steps for that reason alone. */
+.ui-check-item { display: flex; flex-direction: column; align-items: flex-start; }
+.ui-check__hint {
+  color: var(--text);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin-top: var(--space-1);
+  margin-left: 30px;
+}
+.ui-check-item:has(input:disabled) .ui-check__hint { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); }
+
+/* A group of boxes under a legend, the legend in the field label's type. */
+.ui-check-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 /* Toggle switch */
 .ui-switch {
   --sw-w: 44px;

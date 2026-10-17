@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.122.0', date: '2026-10-17',
+    changes: [
+      ['added', 'React `Checkbox` takes a `hint` that shows under the label and is linked to the box. The new `CheckList` groups boxes in a fieldset under a legend. See #498.', ['Checkbox']],
+    ],
+  },
+  {
     v: '0.121.0', date: '2026-10-17',
     changes: [
       ['fixed', 'The product topbar uses two rows on phones. Brand, theme and account stay above the view and version switches, so the band fits at 320px. A long version label ends in an ellipsis and never covers Deck and Text (#558).', ['Topbar']],

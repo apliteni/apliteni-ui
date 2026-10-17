@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
 import { Field, TextField, TextArea, SelectField, FileField } from './Field';
 import { Card } from './primitives/Card';
+import { Checkbox, CheckList } from './Checkbox';
 
 // Every specimen sits on the card, for the reason the vanilla Inputs gallery gives
 // since #556: a field's own paint IS --surface, so on the page ground an inert one
@@ -23,6 +24,12 @@ export const Email: StoryObj = { render: () => onCard(<TextField label="Email" t
 export const Multiline: StoryObj = { render: () => onCard(<TextArea label="Notes" hint="Add details for your team." />) };
 export const Select: StoryObj = { render: () => onCard(<SelectField label="Currency"><option>EUR</option><option>USD</option></SelectField>) };
 export const File: StoryObj = { render: () => onCard(<FileField label="Attachment" accept=".pdf" hint="PDF, up to 5 MB. The application checks the file before upload." />) };
+export const CheckboxList: StoryObj = { render: () => onCard(<CheckList legend="Notify me about">
+  <Checkbox label="Invoices" hint="A message when an invoice is issued or paid." defaultChecked />
+  <Checkbox label="Weekly summary" hint="Totals for the week, sent on Monday." />
+  <Checkbox label="Product news" />
+  <Checkbox label="Security alerts" hint="Always on for the workspace owner." defaultChecked disabled />
+</CheckList>) };
 export const Invalid: StoryObj = { render: () => onCard(<div style={{ display: 'grid', gap: 20 }}>
   <TextField label="Project name" error="Enter a project name." required />
   <TextArea label="Notes" error="Enter a note." />
