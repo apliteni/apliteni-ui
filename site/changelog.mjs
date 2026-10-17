@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.119.2', date: '2026-10-17',
+    changes: [
+      ['fixed', 'The React AppShell band theme switch now offers dark, light and auto, like `themeToggle()` and React `ThemeToggle`, and follows the system live in auto. It is the same switch as `ThemeToggle`, so the look is unchanged. See #596.', ['AppShell', 'ThemeToggle']],
+    ],
+  },
+  {
     v: '0.119.1', date: '2026-10-15',
     changes: [
       ['fixed', 'Both AppShell implementations place the rail brand, navigation and fold control inside a named Sidebar region. Screen readers can reach the whole rail through landmarks, with no visual change. See #648.', ['AppShell']],
