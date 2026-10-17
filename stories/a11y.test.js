@@ -11,7 +11,7 @@
 // `region` and `color-contrast` stay deliberately quiet — the first flags story
 // content outside a landmark inside the Storybook iframe, the second reads the
 // kit's unresolved var() as no colour at all. stories/contrast.test.js gates
-// contrast instead.
+// contrast instead. The focused shell test below enables `region`.
 
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -176,4 +176,37 @@ test('a11y: every discovered story was actually checked, in every theme', () => 
     `${tally.discovered} stories × ${THEMES.length} themes = ${tally.discovered * THEMES.length} `
     + `checks expected, ran ${tally.checked}`,
   );
+});
+
+// This checks shell landmarks in jsdom, not responsive visibility or layout.
+// Rendered browser audits must also cover desktop and phone viewports.
+test('a11y: the shell rail contains its head, navigation and fold in a named region', async () => {
+  const { appShell } = await import('../src/components/shell.js');
+  let checked = 0;
+  for (const layout of ['rail', 'topbar']) {
+    for (const collapsed of [false, true]) {
+      dom.window.document.body.innerHTML = appShell({
+        layout, collapsed, title: 'Overview', navLabel: 'Sections',
+        nav: [{ id: 'overview', label: 'Overview', href: '/overview', icon: 'home' }],
+        account: { name: 'Demo Reader', email: 'reader@example.com' },
+        body: '<p>Overview content</p>',
+      });
+      const doc = dom.window.document;
+      const rail = doc.querySelector('.ui-app__rail');
+      assert.ok(rail, 'the fixture must render a rail');
+      assert.equal(rail.getAttribute('role'), 'region');
+      assert.equal(rail.getAttribute('aria-label'), 'Sidebar');
+      for (const selector of ['.ui-app__head', 'nav', '.ui-app__fold']) {
+        const part = rail.querySelector(selector);
+        assert.ok(part, `the fixture must include ${selector}`);
+        assert.equal(part.closest('[role="region"]'), rail, `${selector} belongs to Sidebar`);
+      }
+      assert.equal(rail.querySelector('nav').getAttribute('aria-label'), 'Sections');
+      assert.equal(doc.querySelectorAll('header, [role="banner"]').length, layout === 'topbar' ? 1 : 0);
+      const result = await dom.window.axe.run(doc.body, { runOnly: ['region'] });
+      assert.equal(result.violations.length, 0, `${layout}, collapsed=${collapsed}: ${JSON.stringify(result.violations)}`);
+      checked += 1;
+    }
+  }
+  assert.equal(checked, 4, 'both layouts and both fold states were checked');
 });
