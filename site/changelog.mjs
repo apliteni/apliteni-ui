@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.119.2', date: '2026-10-17',
+    changes: [
+      ['changed', 'Five guideline rules no longer link to the deployed site. They name the rule they point to in plain words. A check now fails when a guideline or docs page links to the site. See #603.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.119.1', date: '2026-10-15',
     changes: [
       ['fixed', 'Both AppShell implementations place the rail brand, navigation and fold control inside a named Sidebar region. Screen readers can reach the whole rail through landmarks, with no visual change. See #648.', ['AppShell']],

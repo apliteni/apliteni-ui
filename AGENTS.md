@@ -119,7 +119,7 @@ goes beside the gate, and why a number is what it is goes in the issue. See
 
 [docs/contributing.md](docs/contributing.md) is the one page for a human working on the kit — the
 tour of the parts and the commands. Keep it short, and put a rule that constrains your own work
-here instead. A page under `docs/` never links to the deployed site — link the file in the
+here instead. A page under `docs/` or `guidelines/` never links to the deployed site — link the file in the
 repository, or a Storybook path under it.
 
 ## Annotations the gates read
