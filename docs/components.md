@@ -969,6 +969,9 @@ axis held in place, and the side that still hides columns is faded. Nothing anim
   collapsed.
 - **`Checkbox` and `Switch`** render native inputs inside the existing label classes, and **a
   disabled one uses the same paint as every other disabled control in the kit.**
+- **`Checkbox` takes an optional `hint`,** which sits under the label words and is linked to the box as
+  its description; the label stays the box's name. **`CheckList` groups `Checkbox` children in a
+  fieldset under a legend** set in the field label's type. A disabled box dims its hint with its label.
 - **`Snippet`** displays `code` as plain text, and **copying always writes the original `code`
   string**, whatever `children` displays.
 - **`EmptyState`** uses the vanilla markup and CSS, and **the page supplies its own `h1`.**

@@ -75,9 +75,9 @@
     {
       "file": "react/src/Checkbox.test.tsx",
       "name": "React: Checkbox and radio",
-      "does": "Checks accessible labels, pointer and Space activation, controlled radio selection and arrow navigation, disabled inputs, refs, form values, reset and axe results.",
+      "does": "Checks accessible labels, pointer and Space activation, controlled radio selection and arrow navigation, disabled inputs, refs, form values, reset and axe results. Measures the 24px box target of every box in a checkbox list with hints, on the markup React renders, in both themes, with the floor gate's geometry.",
       "blind": [
-        "JSDOM and user-event simulate keyboard behavior; browser paint, target sizes and screen-reader speech need separate checks."
+        "JSDOM and user-event simulate keyboard behavior; browser paint, hit tests and screen-reader speech need separate checks. The target is read from declared sizes, not laid out."
       ]
     },
     {
