@@ -35,14 +35,14 @@
 // DISCOVERY, so a new selected fill cannot ship unmeasured. Every rule in src/**.css and
 // react/src/**.css whose own last compound carries a selected marker — `.is-active`,
 // `.is-current`, `.is-selected`, `aria-pressed`, `aria-selected` — and which declares a
-// background, has to land in one of five buckets or this gate fails naming it:
+// background, has to land in one of four buckets or this gate fails naming it:
 //
 //  - a SUBJECT, measured below;
 //  - NO FILL, a rule that takes a fill away (`none`, `transparent`) because the mark is
 //    somewhere else — the underline strip's bar, the folded rail's plate;
 //  - an ACCENT mark, whose contrast is the accent ledger's subject and
 //    stories/contrast.test.js's, not a step between two surfaces;
-//  - a named EXCLUSION, each with the issue that owns it.
+//  - a named EXCLUSION, each with the issue that owns it; none stands today.
 //
 // A box painted WITHIN a selected row rather than being the row's own mark — a count
 // badge, an icon tile — is not discovered at all: its marker sits on an ancestor
@@ -55,7 +55,8 @@
 // subject and exclusion below is asserted to still resolve to a real rule, so a renamed
 // selector fails rather than silently measuring nothing. An item whose ground is not
 // fixed by its own component cannot be a subject: the pager stands on the page in one
-// showcase and on a card in another, which is why it is an exclusion and not a row here.
+// showcase and on a card in another, so its accent fill is checked against both grounds
+// in a test of its own.
 // Interaction states (`:hover`, `:focus-visible`) are not discovered — they paint over
 // the mark rather than being it, and stories/focus-ring.test.js owns what focus draws.
 // `@media (forced-colors: active)` is dropped whole: the mode repaints author colours,
@@ -68,7 +69,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
+import { AA_TEXT, parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
+import { pagination } from '../src/components/pagination.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -155,6 +157,11 @@ const SUBJECTS = [
     paintedBy: '.ui-seg, which paints --surface',
   })),
   {
+    name: 'the disabled current page of a busy pager',
+    rule: '.ui-pager__page.is-current[disabled]', ground: '--surface',
+    paintedBy: 'a card; on the bare page the weight and ink carry the mark',
+  },
+  {
     name: "the standalone rail's current row",
     rule: '.ui-nav__item.is-active', ground: '--bg',
     paintedBy: 'the page ground; layout.css overrides this fill inside a shell',
@@ -195,16 +202,7 @@ const SUBJECTS = [
  * A selected fill this gate does NOT measure, and the reason. Each one is asserted to
  * still resolve to a rule below, so an exclusion cannot outlive its selector.
  */
-const EXCLUSIONS = [
-  {
-    rule: '.ui-pager__page.is-current:not([disabled])',
-    why: 'the one selected mark #578 round r34 left as an edge, recorded beside its rule '
-      + 'in src/styles/pagination.css and open for Artur. A pager stands on the page in '
-      + 'one showcase and on a card in another: --surface steps off the page at 1.110:1 '
-      + 'and off a card at 1.000:1, so no fill marks the current page on both grounds, '
-      + 'and this gate has no single ground to measure it against.',
-  },
-];
+const EXCLUSIONS = [];
 
 /** What a declared value paints in one theme. */
 const paint = (value, theme) => {
@@ -242,15 +240,13 @@ const discovered = rules.flatMap((rule) => {
 });
 
 const measured = new Set(SUBJECTS.map((s) => s.rule));
-const excluded = new Set(EXCLUSIONS.map((e) => e.rule));
 const noFill = ({ fill }) => /^(?:none|transparent)$/.test(fill);
 const accent = ({ fill }) => /var\(\s*--(?:accent|glow-|signal-)/.test(fill);
 test('every selected fill in the kit is measured here or answered here', () => {
   const unanswered = [];
-  const buckets = { subject: [], 'no fill': [], accent: [], excluded: [] };
+  const buckets = { subject: [], 'no fill': [], accent: [] };
   for (const found of discovered) {
     if (measured.has(found.selector)) buckets.subject.push(found);
-    else if (excluded.has(found.selector)) buckets.excluded.push(found);
     else if (noFill(found)) buckets['no fill'].push(found);
     else if (accent(found)) buckets.accent.push(found);
     else unanswered.push(found);
@@ -381,5 +377,49 @@ test('disabled selected pills retain the quiet fill and readable ink in both the
     for (const theme of ['light', 'dark']) {
       assert.ok(against('var(--disabled-ink)', '--surface-3', theme) >= 5);
     }
+  }
+});
+
+test('the pager current page uses an accent mark with at least 3:1 against a page and a card', () => {
+  const accents = ['default', ...new Set([...readFileSync(path.join(root, 'src/tokens/accents.css'), 'utf8')
+    .matchAll(/data-accent="([^"]+)"/g)].map((match) => match[1]))];
+  const selector = '.ui-pager__page.is-current:not([disabled])';
+  const marks = discovered.filter((found) => found.selector === selector);
+  assert.ok(marks.length > 0, `${selector}: no selected fill found`);
+  assert.ok(marks.every(accent), `${selector}: the selected mark must enter the accent ledger`);
+  let count = 0;
+  for (const mark of marks) for (const theme of ['light', 'dark']) for (const name of accents) {
+    const vars = tokensFor(theme, name);
+    const fill = parseColour(substitute(mark.fill, vars));
+    for (const ground of ['--bg', '--surface']) {
+      const under = parseColour(substitute(`var(${ground})`, vars));
+      assert.ok(fill && under, `${theme}/${name}: unresolved paint`);
+      assert.ok(ratio(fill, under) >= 3, `${theme}/${name}: current page on ${ground} is below 3:1`);
+      count += 1;
+    }
+  }
+  assert.equal(count, marks.length * accents.length * 2 * 2);
+});
+
+// A busy pager must not look live, and its current page must still be marked: it takes the
+// mark a disabled selected Segmented pill takes. Fails when the rule is missing (the page
+// then has no fill, weight 500 and the bare ghost ink). Source paint only; the React half
+// is in react/src/Pagination.test.tsx.
+test('a busy numbered pager keeps the quiet fill, semibold weight and readable ink on its current page', () => {
+  const html = pagination({ page: 4, pageSize: 10, total: 400, variant: 'numbered', loading: true });
+  assert.match(html, /ui-pager__page is-current"[^>]* disabled aria-disabled="true"[^>]*>4</,
+    'the busy pager no longer emits a disabled current page');
+  const selector = '.ui-pager__page.is-current[disabled]';
+  assert.deepEqual(fillsOf(selector), ['var(--surface-3)']);
+  const body = rules.filter((rule) => selectorsOf(rule.selector).includes(selector)).map((rule) => rule.body).join(';');
+  assert.match(body, /font-weight:\s*var\(--weight-semibold\)/);
+  assert.match(body, /color:\s*var\(--disabled-ink\)/);
+  assert.ok(!/hover/.test(selector));
+  for (const theme of ['light', 'dark']) {
+    // Limit: on the bare page ground in light the same fill is 1.03:1, as it is for the Segmented pill;
+    // the weight and the ink carry the mark there. Only the card ground is held to the fill floor.
+    assert.ok(against('var(--surface-3)', '--surface', theme) >= FILL_FLOOR, `${theme}: fill on a card does not step`);
+    assert.ok(against('var(--disabled-ink)', '--surface-3', theme) >= AA_TEXT,
+      `${theme}: the busy current page label is under the text floor on its fill`);
   }
 });

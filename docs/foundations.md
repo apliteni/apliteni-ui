@@ -356,10 +356,9 @@ recolours its dashed edge while a file is over it: that edge is the drop target,
 
 **An outline means focus; selection is a background highlight.** A selected, current or active
 item is marked by its fill, its ink and its weight, never by an edge drawn around it — an edge on
-a selected row is the band's own shape one pixel further in. Two marks are deliberate exceptions
-and say so beside their rules: the current page in a pager keeps a `--border` hairline, because no
-fill marks it on both the page and a card; and the date picker's current period keeps its accent
-hairline at rest, which stands aside while the cell holds focus.
+a selected row is the band's own shape one pixel further in. One mark is a deliberate exception
+and says so beside its rule: the date picker's current period keeps its accent hairline at rest,
+which stands aside while the cell holds focus.
 
 Controls use native `:focus-visible`, including inputs and invalid fields. An invalid border keeps
 its error colour while focus uses the shared band. **Forced colours needs nothing extra**: the band

@@ -79,7 +79,11 @@ test('the sheet and the two it stands on are all being read', () => {
  */
 const standsOffDisabled = (selector) => /:not\(\s*(?::disabled|\[disabled\])\s*\)/.test(selector);
 
-const currentRules = rules(CSS).filter((r) => r.selector.includes('.is-current'));
+// The one rule that targets a disabled current page on purpose gives it the disabled selected
+// Segmented pill's mark, in the disabled ink. stories/selected-fill.test.js holds its values.
+const OFF_MARK = '.ui-pager__page.is-current[disabled]';
+const allCurrentRules = rules(CSS).filter((r) => r.selector.includes('.is-current'));
+const currentRules = allCurrentRules.filter((r) => r.selector !== OFF_MARK);
 
 test('the current-page paint stands off a control that is disabled', () => {
   assert.ok(currentRules.length > 0, 'no current-page rule found at all — the sweep reads nothing');
@@ -90,6 +94,13 @@ test('the current-page paint stands off a control that is disabled', () => {
       + 'current page as though it were live. Write it :not(:disabled).',
     );
   }
+});
+
+test('the busy current page is marked by exactly one rule, in the disabled ink', () => {
+  const marks = allCurrentRules.filter((r) => r.selector === OFF_MARK);
+  assert.equal(marks.length, 1, 'the disabled current page has no single mark rule');
+  assert.match(marks[0].body, /color:\s*var\(--disabled-ink\)/);
+  assert.doesNotMatch(marks[0].body, /var\(--accent|--signal-contrast/);
 });
 
 test('every colour the current page paints is one the disabled rule paints back', () => {
