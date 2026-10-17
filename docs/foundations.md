@@ -247,11 +247,10 @@ is the named exception. It uses a soft fill, and neutral chip tones use
 `--chip-neutral-fill`. This avoids the old card-surface badge, which sat darker than a
 floating panel in dark and vanished on a white card in light.
 
-**A selected item is the one exception.** Selection is marked by a background highlight, and the
-only fills that step off a reading surface are the grey ones. A chosen segmented pill fills
-`--surface-3` on its track; a chosen menu row and the palette row the keyboard is on fill
-`--surface-2` on their panel. A chosen pill is therefore the one place in the kit where a label
-rests on a quiet grey fill.
+**A selected item is the one exception.** Selection is marked by a background highlight. An
+enabled chosen segmented pill fills `--accent` on its track, with `--accent-contrast` ink in light
+and `--signal-contrast` ink in dark. A disabled chosen pill keeps `--surface-3` and the disabled
+ink.
 
 **What floats depends on the surface's job, not on its rung.** A floating surface has the
 whole purpose of being temporarily above something else. It writes both devices as one
