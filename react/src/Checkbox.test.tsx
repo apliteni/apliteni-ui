@@ -4,7 +4,15 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
 import axe from 'axe-core';
 import { Checkbox, CheckList } from './Checkbox';
-import { CHECK_LIST_SPECIMEN } from '../../stories/lib/check-list-specimen.js';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+// The floor's arithmetic and size, shared from plain JS outside this workspace's tsconfig.
+// @ts-expect-error -- untyped JS module, deliberately shared with the accessibility-floor gate.
+import { STYLE_FILES } from '../../stories/lib/contrast.js';
+// @ts-expect-error -- untyped JS module, deliberately shared with the accessibility-floor gate.
+import { decomment, probeGeometry, boxOf, glyphOf, windowFor } from '../../stories/lib/target-geometry.js';
+// @ts-expect-error -- untyped JS module, deliberately shared with the accessibility-floor gate.
+import { TARGET_MIN } from '../../stories/guidelines/_accessibility-floor.js';
 
 afterEach(cleanup);
 
@@ -141,15 +149,38 @@ it('has no axe violations for a list with hints', async () => {
   expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
 });
 
-it('renders the markup the accessibility-floor gate lays out', () => {
-  const { container } = render(<CheckList legend="Notify me about">
-    <Checkbox label="Invoices" hint="A message when an invoice is paid." defaultChecked />
-    <Checkbox label="Weekly summary" hint="Totals for the week." />
-    <Checkbox label="Product news" />
-    <Checkbox label="Security alerts" hint="Always on." defaultChecked disabled />
-  </CheckList>);
-  // Ids are normalised and the checked and disabled attributes dropped from both sides:
-  // React sets them as properties, and the gate puts the real state on its own markup.
-  const flat = (html: string) => html.replace(/ (id|aria-describedby)="[^"]*"/g, ' $1="h"').replace(/ (checked|disabled)(=""|(?=[ >]))/g, '');
-  expect(flat(container.innerHTML)).toBe(flat(CHECK_LIST_SPECIMEN));
-});
+// Limits: JSDOM resolves no pixels, so this reads the overlay's declared size through the
+// floor gate's probe, and a hint's own height is not part of the target. The vanilla walk
+// in stories/guidelines/accessibility-floor.test.js keeps one control per tag and class list,
+// so a list with hints is measured here, on the markup React renders, in each theme.
+const readLocal = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
+const kitSheet = () => decomment(STYLE_FILES.map((rel: string) => readLocal('../../' + rel)).join('\n'));
+
+for (const theme of ['dark', 'light']) {
+  it(`reaches ${TARGET_MIN}px on every box in a list with hints in ${theme}`, () => {
+    const { container } = render(<CheckList legend="Notify me about">
+      <Checkbox label="Invoices" hint="A message when an invoice is paid." defaultChecked />
+      <Checkbox label="Weekly summary" hint="Totals for the week." />
+      <Checkbox label="Product news" />
+      <Checkbox label="Security alerts" hint="Always on." defaultChecked disabled />
+    </CheckList>);
+    // React sets checked and disabled as properties, so write them as the attributes a page carries.
+    container.querySelectorAll('input').forEach((input) => {
+      if (input.checked) input.setAttribute('checked', '');
+      if (input.disabled) input.setAttribute('disabled', '');
+    });
+    const win = windowFor(theme, probeGeometry(kitSheet()));
+    win.document.body.innerHTML = container.innerHTML;
+    const boxes = [...win.document.body.querySelectorAll('fieldset .ui-check input')] as HTMLInputElement[];
+    expect(boxes.length, 'the list lost a box, so the measurement covers fewer than it claims').toBe(4);
+    expect(win.document.body.querySelectorAll('.ui-check__hint').length).toBeGreaterThanOrEqual(3);
+    for (const el of boxes) {
+      const box = boxOf(el, win.getComputedStyle(el), glyphOf(el, win));
+      const name = el.closest('label')!.textContent;
+      expect(box.unreadable, `${name}: an overlay this gate cannot read`).toEqual([]);
+      expect(box.height, `${name}: ${box.height}px high`).toBeGreaterThanOrEqual(TARGET_MIN);
+      expect(box.width, `${name}: ${box.width}px wide`).toBeGreaterThanOrEqual(TARGET_MIN);
+      expect(box.drawn.height, `${name}: the drawn box already reaches the floor, so the overlay is not what is measured`).toBeLessThan(TARGET_MIN);
+    }
+  });
+}
