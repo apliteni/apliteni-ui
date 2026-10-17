@@ -80,6 +80,14 @@
   color: var(--signal-contrast);
 }
 
+/* #615: a disabled current page keeps the mark a disabled selected Segmented pill keeps: the quiet
+   fill and the semibold weight, in the disabled ink. A busy pager still does not look live. */
+.ui-pager__page.is-current[disabled] {
+  background: var(--surface-3); /* code-bg: inherit — the selected control's own fill. */
+  /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
+  font-weight: var(--weight-semibold);
+}
+
 .ui-pager__gap {
   padding: 0 var(--space-1);
   /* muted-ink: glyph — ellipsis for omitted page controls */ color: var(--muted);

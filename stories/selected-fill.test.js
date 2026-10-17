@@ -69,7 +69,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
+import { AA_TEXT, parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
+import { pagination } from '../src/components/pagination.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -155,6 +156,11 @@ const SUBJECTS = [
     rule: `.ui-seg button${state}:where(:disabled)`, ground: '--surface',
     paintedBy: '.ui-seg, which paints --surface',
   })),
+  {
+    name: 'the disabled current page of a busy pager',
+    rule: '.ui-pager__page.is-current[disabled]', ground: '--surface',
+    paintedBy: 'a card; on the bare page the weight and ink carry the mark',
+  },
   {
     name: "the standalone rail's current row",
     rule: '.ui-nav__item.is-active', ground: '--bg',
@@ -393,4 +399,27 @@ test('the pager current page uses an accent mark with at least 3:1 against a pag
     }
   }
   assert.equal(count, marks.length * accents.length * 2 * 2);
+});
+
+// A busy pager must not look live, and its current page must still be marked: it takes the
+// mark a disabled selected Segmented pill takes. Fails when the rule is missing (the page
+// then has no fill, weight 500 and the bare ghost ink). Source paint only; the React half
+// is in react/src/Pagination.test.tsx.
+test('a busy numbered pager keeps the quiet fill, semibold weight and readable ink on its current page', () => {
+  const html = pagination({ page: 4, pageSize: 10, total: 400, variant: 'numbered', loading: true });
+  assert.match(html, /ui-pager__page is-current"[^>]* disabled aria-disabled="true"[^>]*>4</,
+    'the busy pager no longer emits a disabled current page');
+  const selector = '.ui-pager__page.is-current[disabled]';
+  assert.deepEqual(fillsOf(selector), ['var(--surface-3)']);
+  const body = rules.filter((rule) => selectorsOf(rule.selector).includes(selector)).map((rule) => rule.body).join(';');
+  assert.match(body, /font-weight:\s*var\(--weight-semibold\)/);
+  assert.match(body, /color:\s*var\(--disabled-ink\)/);
+  assert.ok(!/hover/.test(selector));
+  for (const theme of ['light', 'dark']) {
+    // Limit: on the bare page ground in light the same fill is 1.03:1, as it is for the Segmented pill;
+    // the weight and the ink carry the mark there. Only the card ground is held to the fill floor.
+    assert.ok(against('var(--surface-3)', '--surface', theme) >= FILL_FLOOR, `${theme}: fill on a card does not step`);
+    assert.ok(against('var(--disabled-ink)', '--surface-3', theme) >= AA_TEXT,
+      `${theme}: the busy current page label is under the text floor on its fill`);
+  }
 });
