@@ -250,7 +250,7 @@ floating panel in dark and vanished on a white card in light.
 **A selected item is the one exception.** Selection is marked by a background highlight. An
 enabled chosen segmented pill fills `--accent` on its track, with `--accent-contrast` ink in light
 and `--signal-contrast` ink in dark. A disabled chosen pill keeps `--surface-3` and the disabled
-ink. The menu row and the palette row the keyboard is on fill `--surface-2` on their panel. A chosen filter-bar row fills `--glow-purple`.
+ink.
 
 **What floats depends on the surface's job, not on its rung.** A floating surface has the
 whole purpose of being temporarily above something else. It writes both devices as one
