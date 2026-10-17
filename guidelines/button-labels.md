@@ -28,7 +28,7 @@
 
 **Rule:** Drop a button’s words only when its glyph is learned everywhere, its action is on the closed list, and its name reaches assistive technology and a hover title.
 
-**Except:** [Icon-only controls](https://ui.apli.tech/storybook/?path=/story/guidelines-iconography--iconography) is the list. The folded rail shows its names beside the glyphs, so they carry no title.
+**Except:** Icon-only controls on the Iconography page is the list. The folded rail shows its names beside the glyphs, so they carry no title.
 
 **Do:** Overflow is on that list; the funnel is not.
 
