@@ -64,7 +64,7 @@ export const RECORDED = {
   'account-and-settings.md': 360,
   'command-palette.md': 430,
   'component-choice.md': 510,
-  'density-and-accents.md': 412,
+  'density-and-accents.md': 408,
   'drawer.md': 324,
   'empty-states.md': 91,
   'file-drop.md': 558,
