@@ -119,8 +119,10 @@ goes beside the gate, and why a number is what it is goes in the issue. See
 
 [docs/contributing.md](docs/contributing.md) is the one page for a human working on the kit — the
 tour of the parts and the commands. Keep it short, and put a rule that constrains your own work
-here instead. A page under `docs/` or `guidelines/` never links to the deployed site — link the file in the
-repository, or a Storybook path under it.
+here instead. A page under `docs/` or `guidelines/` never links to the deployed site. A page under `docs/` links the
+file in the repository, or a Storybook path under it. A guideline page links no page, because Storybook
+renders only `https` links and the guideline gates reject a source reference. It names the page and the
+rule in plain words, for example "Earn a wordless button on the Button labels page".
 
 ## Annotations the gates read
 

@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.119.2', date: '2026-10-17',
     changes: [
-      ['changed', 'Five guideline rules no longer link to the deployed site. They name the rule they point to in plain words. A check now fails when a guideline or docs page links to the site. See #603.', ['Guidelines']],
+      ['changed', 'Five guideline rules no longer link to the deployed site. They name the page and the rule they point to in plain words. A check now fails when a guideline or docs page links to the site. See #603.', ['Guidelines']],
     ],
   },
   {

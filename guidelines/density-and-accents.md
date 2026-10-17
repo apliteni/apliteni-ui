@@ -50,4 +50,4 @@
 
 **Don't:** Give the source document the leading, wider pane, or let a control inside it hold the only accent on the screen while the saved values hold none.
 
-**Except:** Fade nothing to make a block quieter; a quieter block is smaller, later or uncoloured, never muted. See Limit muted ink.
+**Except:** Fade nothing to make a block quieter; a quieter block is smaller, later or uncoloured, never muted.
