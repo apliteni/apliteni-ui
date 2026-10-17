@@ -251,8 +251,8 @@ floating panel in dark and vanished on a white card in light.
 enabled chosen segmented pill fills `--accent` on its track, with `--accent-contrast` ink in light
 and `--signal-contrast` ink in dark. A disabled chosen pill keeps `--surface-3` and the disabled
 ink. A chosen menu row and the palette row the keyboard is on fill `--surface-2` on their panel.
-The chosen pill is therefore the one place in the kit where a label rests on an accent fill, and
-the only fills that step off a reading surface otherwise are the grey ones.
+The chosen pill is the only selection that fills with the accent. Every other selection fill is
+grey.
 
 **What floats depends on the surface's job, not on its rung.** A floating surface has the
 whole purpose of being temporarily above something else. It writes both devices as one
