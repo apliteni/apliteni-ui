@@ -8,7 +8,7 @@
 
 **Why:** Stacking gives each label and value the full width of the block.
 
-**Do:** Stack Paid and In transit, as [Stat band tiles](https://ui.apli.tech/storybook/?path=/story/components-stat-band--gallery) do in a narrow panel.
+**Do:** Stack Paid and In transit, as Stat band tiles do in a narrow panel.
 
 **Don't:** Force the same figures side by side in that panel.
 
@@ -36,7 +36,7 @@
 
 **Don't:** Make both actions primary or colour every label and value with the accent.
 
-**Except:** Keep [Badge success, pending and danger](https://ui.apli.tech/storybook/?path=/story/components-badge-status--badges) for their named statuses; do not replace those signals with the accent.
+**Except:** Keep Badge success, pending and danger for their named statuses; do not replace those signals with the accent.
 
 ## Follow the consequence
 
@@ -50,4 +50,4 @@
 
 **Don't:** Give the source document the leading, wider pane, or let a control inside it hold the only accent on the screen while the saved values hold none.
 
-**Except:** Fade nothing to make a block quieter; a quieter block is smaller, later or uncoloured, never muted. See [Limit muted ink](https://ui.apli.tech/storybook/?path=/story/guidelines-labels-and-titles--page).
+**Except:** Fade nothing to make a block quieter; a quieter block is smaller, later or uncoloured, never muted.
