@@ -173,6 +173,13 @@ to three short sentences, with no praise, no filler and no test diary. Add detai
 migration step or a behaviour limit. `site/changelog.mjs` stays pure — no git and no filesystem;
 `site/build.mjs` owns the git calls. Keep deploy specifics out of committed files.
 
+## Check the phone topbar rows locally
+
+Before opening a PR that changes `src/styles/topbar.css`'s phone rules or the shell offset
+`--ui-app-top`, measure the rows in a real browser:
+`UI_PLAYWRIGHT=… TOPBAR_ROWS=1 node --test src/components/topbar.test.js`
+Report the result in the PR. CI skips this check because Playwright is not a dependency.
+
 ## Check the phone end space locally
 
 Before opening a PR that changes `--ui-app-bottom-clearance`, the React shell's phone

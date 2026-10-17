@@ -6,9 +6,15 @@
 
 export const RELEASES = [
   {
-    v: '0.121.0', date: '2026-10-17',
+    v: '0.122.0', date: '2026-10-17',
     changes: [
       ['fixed', 'Enabled selected Segmented pills use the accent fill with contrasting ink in vanilla and React. Disabled selections keep a quiet fill and disabled ink. Outlines remain reserved for keyboard focus. See #614.', ['Segmented']],
+    ],
+  },
+  {
+    v: '0.121.0', date: '2026-10-17',
+    changes: [
+      ['fixed', 'The product topbar uses two rows on phones. Brand, theme and account stay above the view and version switches, so the band fits at 320px. A long version label ends in an ellipsis and never covers Deck and Text (#558).', ['Topbar']],
     ],
   },
   {
