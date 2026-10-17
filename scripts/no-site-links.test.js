@@ -3,8 +3,10 @@
  * why: AGENTS.md#documentation
  *
  * A guideline page is also Storybook's own text, and a docs page is read on GitHub.
- * A link to the deployed site goes stale with the deploy, so a page names the
- * repository's file or leaves the link out.
+ * A link to the deployed site goes stale with the deploy. A docs page links the
+ * repository's file. A guideline page links nothing: it names the page and the rule
+ * in plain words, because Storybook shows a repository link as raw text and two other
+ * guideline gates reject it.
  *
  * Subjects are the markdown files git tracks under the two trees, so a new page joins
  * by being written. It lives under scripts/ because `npm test` only walks four trees.
@@ -24,12 +26,17 @@ export const siteLinks = (name, text) => text.split('\n')
   .map((line, i) => (SITE.test(line) ? `${name}:${i + 1}` : null))
   .filter(Boolean);
 
+export const advice = (name) => (name.startsWith('guidelines/')
+  ? 'name the page and the rule in plain words, with no link'
+  : 'link the repository file instead');
+
 const pages = execFileSync('git', ['ls-files', '-z', '--', 'guidelines', 'docs'], { cwd: root, encoding: 'utf8' })
   .split('\0').filter((f) => f.endsWith('.md'));
 
 test('no guideline or doc page links to the deployed site', () => {
-  const found = pages.flatMap((f) => siteLinks(f, readFileSync(path.join(root, f), 'utf8')));
-  assert.deepEqual(found, [], `link the repository's file instead, or drop the link:\n${found.join('\n')}`);
+  const found = pages.flatMap((f) => siteLinks(f, readFileSync(path.join(root, f), 'utf8'))
+    .map((hit) => `${hit}: ${advice(f)}`));
+  assert.deepEqual(found, [], `a page must not link to the deployed site:\n${found.join('\n')}`);
 });
 
 test('the sweep found guideline and doc pages to read', () => {
@@ -41,4 +48,9 @@ test('a planted link is reported with its file and line', () => {
   const planted = 'Intro.\nSee [Rule](https://ui.apli.tech/storybook/?path=/story/x).\n';
   assert.deepEqual(siteLinks('a guideline page', planted), ['a guideline page:2']);
   assert.deepEqual(siteLinks('a docs page', 'See [Rule](https://example.com).\n'), []);
+});
+
+test('the advice fits the folder', () => {
+  assert.match(advice('guidelines/a-page'), /plain words/);
+  assert.match(advice('docs/a-page'), /repository file/);
 });
