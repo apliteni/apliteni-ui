@@ -6,9 +6,9 @@
 
 export const RELEASES = [
   {
-    v: '0.119.2', date: '2026-10-17',
+    v: '0.120.0', date: '2026-10-17',
     changes: [
-      ['fixed', 'The React AppShell band theme switch now offers dark, light and auto, like `themeToggle()` and React `ThemeToggle`, and follows the system live in auto. It is the same switch as `ThemeToggle`, so the look is unchanged. See #596.', ['AppShell', 'ThemeToggle']],
+      ['changed', 'The React AppShell band theme switch now offers dark, light and auto, like `themeToggle()` and React `ThemeToggle`, and follows the system live in auto. AppShell now applies the stored theme choice, or follows the system, when it mounts. A page that sets its own `data-theme` must also set `data-theme-choice`, or store the choice, to keep that theme. React `ThemeToggle` now draws the same sun as `themeToggle()`, with a smaller disc and shorter rays. See #596.', ['AppShell', 'ThemeToggle']],
     ],
   },
   {

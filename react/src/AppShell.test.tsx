@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { paletteHotkey } from '@apliteni/apliteni-ui';
+import { paletteHotkey, themeIcon, themeToggle } from '@apliteni/apliteni-ui';
 import { AppShell } from './AppShell';
+import { ThemeToggle } from './ThemeToggle';
 
 const sections = [
   { href: '/', label: 'Overview', icon: 'home' },
@@ -137,6 +138,21 @@ describe('band theme switch', () => {
     expect(root).toHaveAttribute('data-theme-choice', 'auto');
     fireEvent.click(button());
     expect(root).toHaveAttribute('data-theme-choice', 'dark');
+  });
+
+  it.each(['dark', 'light', 'auto'] as const)('draws one %s glyph in vanilla themeToggle(), ThemeToggle and the band', theme => {
+    localStorage.setItem('apliteni-strategy-theme', theme);
+    const vanilla = document.createElement('div');
+    vanilla.innerHTML = themeToggle(theme);
+    const glyph = (el: ParentNode) => el.querySelector('.ic')!.innerHTML;
+    const band = render(<AppShell {...props} />);
+    const bandButton = band.container.querySelector('.toggle')!;
+    const alone = render(<ThemeToggle />);
+    expect(glyph(alone.container)).toBe(glyph(vanilla));
+    expect(glyph(bandButton)).toBe(glyph(vanilla));
+    const source = document.createElement('span');
+    source.innerHTML = themeIcon(theme);
+    expect(glyph(vanilla)).toBe(source.innerHTML);
   });
 
   it('follows the system live in auto', async () => {
