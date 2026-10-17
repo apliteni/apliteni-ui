@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.121.0', date: '2026-10-17',
+    changes: [
+      ['fixed', 'The product topbar uses two rows on phones. Brand, theme and account stay above the view and version switches, so the band fits at 320px. A long version label ends in an ellipsis and never covers Deck and Text (#558).', ['Topbar']],
+    ],
+  },
+  {
     v: '0.120.1', date: '2026-10-17',
     changes: [
       ['changed', 'Five guideline rules no longer link to the deployed site. They name the page and the rule they point to in plain words. A check now fails when a guideline or docs page links to the site. See #603.', ['Guidelines']],
