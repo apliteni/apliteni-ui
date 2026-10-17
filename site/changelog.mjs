@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.120.0', date: '2026-10-17',
+    changes: [
+      ['added', 'React `Checkbox` takes a `hint` that shows under the label and is linked to the box. The new `CheckList` groups boxes in a fieldset under a legend. See #498.', ['Checkbox']],
+    ],
+  },
+  {
     v: '0.119.1', date: '2026-10-15',
     changes: [
       ['fixed', 'Both AppShell implementations place the rail brand, navigation and fold control inside a named Sidebar region. Screen readers can reach the whole rail through landmarks, with no visual change. See #648.', ['AppShell']],

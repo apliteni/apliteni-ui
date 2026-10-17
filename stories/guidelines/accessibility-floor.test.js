@@ -26,6 +26,7 @@ import {
   effectiveBackground, makeStyleCache, installDomGlobals, storyFiles,
   selectorPath, tokensFor,
 } from '../lib/contrast.js';
+import { CHECK_LIST_SPECIMEN } from '../lib/check-list-specimen.js';
 import {
   TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, TARGET_EXEMPT,
   RULES,
@@ -680,6 +681,30 @@ test('target size: the sm size the kit ships is measured, and is on the record',
     assert.ok(c.height >= TARGET_MIN, `${c.key} is ${c.height}px high, under ${TARGET_MIN}px`);
   }
 });
+
+// The walk above keeps one control per tag and class list, so the `input` of a checkbox
+// list is measured once, wherever a story drew one first. A list with hints is its own
+// layout: this lays the markup React's CheckList renders (react/src/Checkbox.test.tsx holds
+// the two equal) in front of the kit's sheet in each theme and measures every box in it.
+// Limits: JSDOM resolves no pixels, so this reads the overlay's declared size through the
+// probe, and a hint's own height is not part of the target.
+for (const theme of THEMES) {
+  test(`target size: every box in a checkbox list with hints reaches ${TARGET_MIN}px in ${theme}`, () => {
+    const win = windowFor(theme, probeGeometry(sheet()));
+    win.document.body.innerHTML = CHECK_LIST_SPECIMEN;
+    const boxes = [...win.document.body.querySelectorAll('fieldset .ui-check input')];
+    assert.equal(boxes.length, 4, 'the specimen list lost a box, so the measurement covers fewer than it claims');
+    assert.ok(win.document.body.querySelectorAll('.ui-check__hint').length >= 3, 'the specimen draws no hints');
+    for (const el of boxes) {
+      const box = boxOf(el, win.getComputedStyle(el), glyphOf(el, win));
+      const name = el.closest('label').textContent;
+      assert.deepEqual(box.unreadable, [], `${name}: an overlay this gate cannot read`);
+      assert.ok(box.height >= TARGET_MIN, `${name}: ${box.height}px high, under ${TARGET_MIN}px`);
+      assert.ok(box.width >= TARGET_MIN, `${name}: ${box.width}px wide, under ${TARGET_MIN}px`);
+      assert.ok(box.drawn.height < TARGET_MIN, `${name}: the drawn box already reaches the floor, so the overlay is not what is measured`);
+    }
+  });
+}
 
 // ---- 1b. the rail the reader folded (#277) --------------------------------
 //

@@ -3,7 +3,8 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
 import axe from 'axe-core';
-import { Checkbox } from './Checkbox';
+import { Checkbox, CheckList } from './Checkbox';
+import { CHECK_LIST_SPECIMEN } from '../../stories/lib/check-list-specimen.js';
 
 afterEach(cleanup);
 
@@ -91,4 +92,64 @@ it('has no axe violations for checkbox, radio and disabled states', async () => 
     <fieldset><legend>Scope</legend><Checkbox type="radio" name="scope" label="Read only" defaultChecked />
       <Checkbox type="radio" name="scope" label="Full access" /></fieldset></>);
   expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
+});
+
+it('links a hint to its box and keeps the label as the name', () => {
+  render(<Checkbox label="Invoices" hint="A message when an invoice is paid." aria-describedby="extra" />);
+  const input = screen.getByRole('checkbox', { name: 'Invoices' });
+  expect(input).toHaveAccessibleDescription(/A message when an invoice is paid\./);
+  const hint = screen.getByText('A message when an invoice is paid.');
+  expect(hint).toHaveClass('ui-check__hint');
+  expect(input.getAttribute('aria-describedby')).toBe(`extra ${hint.id}`);
+  expect(input.closest('label')).not.toContainElement(hint);
+});
+
+it('adds no wrapper and no description when there is no hint', () => {
+  const { container } = render(<Checkbox label="Read" />);
+  expect(container.firstElementChild).toHaveClass('ui-check');
+  expect(screen.getByRole('checkbox')).not.toHaveAttribute('aria-describedby');
+});
+
+it('groups boxes in a fieldset under a legend and passes disabled to the group', async () => {
+  const change = vi.fn();
+  render(<CheckList legend="Notify me about" disabled>
+    <Checkbox label="Invoices" hint="When one is paid." onChange={change} />
+    <Checkbox label="News" />
+  </CheckList>);
+  const group = screen.getByRole('group', { name: 'Notify me about' });
+  expect(group.tagName).toBe('FIELDSET');
+  expect(group.querySelector('legend')).toHaveClass('ui-field__label');
+  expect(screen.getByLabelText('Invoices')).toBeDisabled();
+  await userEvent.click(screen.getByText('Invoices'));
+  expect(change).not.toHaveBeenCalled();
+});
+
+it('keeps a disabled box and its hint disabled together', () => {
+  render(<Checkbox label="Alerts" hint="Always on." defaultChecked disabled />);
+  const input = screen.getByRole('checkbox', { name: 'Alerts' });
+  expect(input).toBeDisabled();
+  expect(input).toBeChecked();
+  expect(input).toHaveAccessibleDescription('Always on.');
+  expect(input.closest('.ui-check-item')).toContainElement(screen.getByText('Always on.'));
+});
+
+it('has no axe violations for a list with hints', async () => {
+  const { container } = render(<CheckList legend="Notify me about">
+    <Checkbox label="Invoices" hint="When one is paid." defaultChecked />
+    <Checkbox label="Alerts" hint="Always on." disabled />
+  </CheckList>);
+  expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
+});
+
+it('renders the markup the accessibility-floor gate lays out', () => {
+  const { container } = render(<CheckList legend="Notify me about">
+    <Checkbox label="Invoices" hint="A message when an invoice is paid." defaultChecked />
+    <Checkbox label="Weekly summary" hint="Totals for the week." />
+    <Checkbox label="Product news" />
+    <Checkbox label="Security alerts" hint="Always on." defaultChecked disabled />
+  </CheckList>);
+  // Ids are normalised and the checked and disabled attributes dropped from both sides:
+  // React sets them as properties, and the gate puts the real state on its own markup.
+  const flat = (html: string) => html.replace(/ (id|aria-describedby)="[^"]*"/g, ' $1="h"').replace(/ (checked|disabled)(=""|(?=[ >]))/g, '');
+  expect(flat(container.innerHTML)).toBe(flat(CHECK_LIST_SPECIMEN));
 });
