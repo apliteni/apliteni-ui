@@ -246,18 +246,25 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-auto-rows: minmax(44px, auto);
-    gap: var(--space-2);
-    padding: var(--space-1) var(--space-3);
+    gap: var(--space-2) 0;
+    /* 4px above and 3px below, because the band's 1px border is the fourth: one row is
+       then 52px, as on a wide screen, and the shell offset below stays true. */
+    padding: var(--space-1) var(--space-3) 3px;
   }
   .topbar__in > .brand { grid-area: 1 / 1; justify-self: start; }
   .topbar__in > .toggle { grid-area: 1 / 2; justify-self: end; }
-  .topbar__in > .acct { grid-area: 1 / 3; justify-self: end; }
+  /* The 8px beside the account is its own margin, so a hidden account leaves no gap and
+     the theme switch ends on the inset. */
+  .topbar__in > .acct { grid-area: 1 / 3; justify-self: end; margin-left: var(--space-2); }
   .topbar__in > .spacer { display: none; }
   .topbar__in > .dtsw { grid-area: 2 / 1; justify-self: start; }
-  .topbar__in > .vsw { grid-area: 2 / 2 / 3 / 4; justify-self: end; }
-  /* Two 44px rows, an 8px gap, two 4px insets and the bottom border. */
+  /* The version switch spans the flexible first column too, so its width goes to that
+     column and never widens the two auto columns that pin the theme switch and the
+     account to the row's end inset. */
+  .topbar__in > .vsw { grid-area: 2 / 1 / 3 / -1; justify-self: end; }
+  /* Two 44px rows, an 8px gap, the 4px and 3px insets and the bottom border. */
   .ui-app-page:has(.topbar .dtsw.on),
-  .ui-app-page:has(.topbar .vsw) { --ui-app-top: 105px; }
+  .ui-app-page:has(.topbar .vsw) { --ui-app-top: 104px; }
 }
 
 /* Account — avatar + dropdown. Gated: hidden until the app confirms a session

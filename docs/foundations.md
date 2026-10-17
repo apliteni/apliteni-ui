@@ -434,7 +434,9 @@ those drawn sizes.
 
 On a phone, the product topbar uses two rows with a 44px minimum height per row.
 Brand, theme and account occupy the first row. The view and version switches occupy the
-second row. Both rows use the same 12px side inset, with an 8px gap between rows.
+second row. Both rows use the same 12px side inset, with an 8px gap between rows. The theme switch
+and the account end at that inset whatever the version label's width. A band with one row
+stays 52px, as on a wide screen.
 The theme switch stays 34px square and keeps its 44px target.
 
 Both containers declare `--space-3` of clearance. Half of 12px gives each side 6px,
