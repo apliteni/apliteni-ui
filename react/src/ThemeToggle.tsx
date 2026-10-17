@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { icon } from '@apliteni/apliteni-ui';
+import { themeIcon } from '@apliteni/apliteni-ui';
 import './ThemeToggle.css';
 
 const STORAGE_KEY = 'apliteni-strategy-theme';
@@ -63,7 +63,7 @@ export function ThemeToggle({ labelled = false }: ThemeToggleProps) {
     window.dispatchEvent(new Event(CHOICE_EVENT));
   };
   const button = <button type="button" className="toggle" aria-label={name} title={name} onClick={toggle}>
-    <span className="ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon(theme === 'auto' ? 'monitor' : theme === 'light' ? 'sun' : 'moon') }} />
+    <span className="ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: themeIcon(theme) }} />
   </button>;
   return labelled ? <span className="ui-theme-toggle">{button}<span>{label} theme</span></span> : button;
 }

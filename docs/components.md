@@ -959,7 +959,11 @@ axis held in place, and the side that still hides columns is faded. Nothing anim
   stack all keep that clearance,** so scrolling an action into view never parks it behind the
   bar. `searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
   shared stylesheet draws the short one and clips the sentence and the key cap rather than
-  dropping them, so the button keeps one accessible name at every width.
+  dropping them, so the button keeps one accessible name at every width. **When it mounts, the
+  band theme switch applies the stored theme choice, or follows the system when there is none.**
+  A page that sets its own `data-theme` must also set `data-theme-choice`, or store the choice,
+  to keep that theme. For example, `<html data-theme="light">` on a dark system turns dark
+  when the shell mounts.
 - **`SidebarNav`** accepts flat items or captioned sections, nested groups, counts and
   router-link rendering. **Nesting stops one level deep.** Each row keeps its name and count when
   collapsed.

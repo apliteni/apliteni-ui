@@ -6,9 +6,15 @@
 
 export const RELEASES = [
   {
-    v: '0.120.0', date: '2026-10-15',
+    v: '0.121.0', date: '2026-10-17',
     changes: [
       ['fixed', 'Enabled selected Segmented pills use the accent fill with contrasting ink in vanilla and React. Disabled selections keep a quiet fill and disabled ink. Outlines remain reserved for keyboard focus. See #614.', ['Segmented']],
+    ],
+  },
+  {
+    v: '0.120.0', date: '2026-10-17',
+    changes: [
+      ['changed', 'The React AppShell band theme switch now offers dark, light and auto, like `themeToggle()` and React `ThemeToggle`, and follows the system live in auto. AppShell now applies the stored theme choice, or follows the system, when it mounts. A page that sets its own `data-theme` must also set `data-theme-choice`, or store the choice, to keep that theme. React `ThemeToggle` now draws the same sun as `themeToggle()`, with a smaller disc and shorter rays. See #596.', ['AppShell', 'ThemeToggle']],
     ],
   },
   {
