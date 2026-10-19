@@ -20,19 +20,25 @@ function measureChip(chip, win) {
   return separation;
 }
 
-test('Dropdown soft chips match badge dimensions and theme separation', () => {
-  const separation = {};
-  for (const theme of ['light', 'dark']) {
-    const { css, vars } = kitCssFor(theme);
-    const rendered = Object.entries(stories).filter(([, story]) => typeof story.render === 'function');
-    assert.ok(rendered.length > 0, 'Dropdown stories must be discovered');
-    let measured = 0;
-    for (const [name, story] of rendered) {
+const THEMES = ['light', 'dark'];
+const rendered = Object.entries(stories).filter(([, story]) => typeof story.render === 'function');
+const separation = {};
+const measured = { light: 0, dark: 0 };
+
+test('Dropdown stories are discovered', () => {
+  assert.ok(rendered.length > 0, 'Dropdown stories must be discovered');
+});
+
+// One test per story and theme, so a slow theme is many short tests and not one long one.
+for (const theme of THEMES) {
+  for (const [name, story] of rendered) {
+    test(`Dropdown soft chips match badge dimensions and theme separation: ${name}, ${theme}`, () => {
+      const { css, vars } = kitCssFor(theme);
       const win = new JSDOM('<style>' + css + '</style>' + story.render() + badge('Reference')).window;
       const reference = win.getComputedStyle(win.document.querySelector('.ui-badge'));
       for (const chip of win.document.querySelectorAll('.ui-dropdown__badge:not(.is-live)')) {
         separation[theme] = measureChip(chip, win);
-        measured++;
+        measured[theme]++;
       }
       for (const chip of win.document.querySelectorAll('.ui-dropdown__badge')) {
         const style = win.getComputedStyle(chip);
@@ -45,8 +51,14 @@ test('Dropdown soft chips match badge dimensions and theme separation', () => {
         assert.equal(win.getComputedStyle(label).color, bodyInk, name + ': body ink outside status and tick');
       }
       win.close();
-    }
-    assert.ok(measured >= 6, 'Must cover the six existing non-live chips');
+    });
+  }
+}
+
+// Reads what the per-story tests above recorded, so it must stay below them.
+test('Dropdown soft chips cover the six existing non-live chips and match across themes', () => {
+  for (const theme of THEMES) {
+    assert.ok(measured[theme] >= 6, 'Must cover the six existing non-live chips in ' + theme);
   }
   assert.ok(Math.abs(separation.light - separation.dark) < 0.05, 'dark fill separation roughly matches light');
 });

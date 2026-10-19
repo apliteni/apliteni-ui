@@ -176,17 +176,27 @@ test('links: the ring a link asks for is the one that paints', () => {
 // and could be deleted unnoticed. The rule is found by reading it out of the
 // sheet, so renaming the file or reshaping the selector list cannot leave the
 // mutation silently matching nothing.
-test('links: deleting the element-wide rule turns this gate red', () => {
-  const sel = 'a:focus-visible';
-  const carrier = KIT.find(({ css }) => sheetText(css).includes(`${sel},`));
-  assert.ok(carrier, `no kit sheet claims the ring for ${sel}`);
-  const mutate = ({ file, css }) => ({
-    file,
-    css: file === carrier.file ? sheetText(css).split(`${sel},\n`).join('') : css,
+const sel = 'a:focus-visible';
+const carrier = KIT.find(({ css }) => sheetText(css).includes(`${sel},`));
+const mutate = ({ file, css }) => ({
+  file,
+  css: file === carrier?.file ? sheetText(css).split(`${sel},\n`).join('') : css,
+});
+// The stories are dealt over four tests so none judges them all. The last test reads their results.
+const MUTATION_PARTS = 4;
+const after = [];
+for (let part = 0; part < MUTATION_PARTS; part++) {
+  test(`links: deleting the element-wide rule is judged on its share of stories, part ${part + 1} of ${MUTATION_PARTS}`, () => {
+    assert.ok(carrier, `no kit sheet claims the ring for ${sel}`);
+    walked.subjects.forEach(({ id, markup, sheets }, i) => {
+      if (i % MUTATION_PARTS !== part) return;
+      after.push({ id, bad: failures(judgeLinks(markup, sheets.map(mutate)).links) });
+    });
   });
-  const after = walked.subjects.map(({ id, markup, sheets }) => ({
-    id, bad: failures(judgeLinks(markup, sheets.map(mutate)).links),
-  }));
+}
+
+test('links: deleting the element-wide rule turns this gate red', () => {
+  assert.equal(after.length, walked.subjects.length, 'every story must be judged without the rule');
   const silent = after.filter(({ bad }) => !bad.length).map(({ id }) => id);
   const natives = after.flatMap(({ bad }) => bad.filter((f) => f.startsWith('native:')));
   assert.ok(natives.length >= 30, `only ${natives.length} links fall back without the rule`);
