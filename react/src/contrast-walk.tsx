@@ -30,6 +30,7 @@ import { render, cleanup } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { ReactElement } from 'react';
+import { CONTRAST_PARTS } from './contrast-parts';
 import {
   AA_LARGE, AA_TEXT, composite, desugar, effectiveBackground, groupFindings,
   hasOwnText, kitCssFor, parseColour, ratio, selectorPath, stateBases, stateTargets, substitute, tokensFor,
@@ -187,7 +188,7 @@ const allFound = files.flatMap((file) => {
     .filter((s) => typeof s.render === 'function');
 });
 
-export const CONTRAST_PARTS = 8;
+export { CONTRAST_PARTS };
 /** The file the ledger entries below can only match in. */
 const LEDGER_HOME = './Snippet.stories.tsx';
 
@@ -292,8 +293,9 @@ export function runWalkSlice(part: number, parts: number = CONTRAST_PARTS) {
 const hands = dealStories(parts);
 const mine = new Set(hands[part]);
 const found = allFound.filter((s) => mine.has(s.id));
-const homeHere = found.some((s) => s.id.startsWith(`${LEDGER_HOME}:`));
-const homeHits = (entryCount: number) => (homeHere ? entryCount : 0);
+// The ledger's stories are dealt to part 0 whole, so part 0 owes every ledger count whether or not
+// any of them was discovered. A missing home then fails here instead of zeroing the count.
+const homeHits = (entryCount: number) => (part === 0 ? entryCount : 0);
 
 describe('contrast: React stories', () => {
   for (const theme of THEMES) {
@@ -375,6 +377,13 @@ describe('contrast: React coverage', () => {
     expect([...dealt].sort(), 'stories left out of the parts').toEqual(allFound.map((s) => s.id).sort());
     expect(hands.length, 'parts').toBe(parts);
     expect(hands.every((h) => h.length > 0), 'a part with no story').toBe(true);
+  });
+
+  it('discovered every story the ledger names, and dealt them to part 0', () => {
+    const ids = new Set(allFound.map((s) => s.id));
+    expect([...SNIPPET_STORIES].filter((id) => !ids.has(id)), 'ledger stories not discovered').toEqual([]);
+    expect(hands[0].filter((id) => SNIPPET_STORIES.has(id)).length, 'ledger stories in part 0')
+      .toBe(SNIPPET_STORIES.size);
   });
 
   it('measured interaction states from the rendered catalogue', () => {

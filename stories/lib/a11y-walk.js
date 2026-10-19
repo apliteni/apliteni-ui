@@ -94,6 +94,7 @@ export const fmt = (story, theme, v) =>
 
 /** Render every story of one file in both themes and run axe over it. */
 export async function a11yFile(rel) {
+  getDom(); // stories build markup with document.*, so the globals exist before the first import
   const mod = await import(path.join(root, 'stories', rel));
   const def = mod.default || {};
   const problems = [];
