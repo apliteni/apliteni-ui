@@ -798,16 +798,33 @@ export async function portalFloorCase(browser, port, {
 export async function entranceCase(browser, port, { portal = true, keepTransition = false } = {}) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   try {
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
     if (keepTransition) await page.addInitScript(() => {
-      const desc = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'transition');
-      Object.defineProperty(CSSStyleDeclaration.prototype, 'transition', {
-        ...desc,
-        set(v) { if (v !== 'none') desc.set.call(this, v); },
+      // Chromium gives every style object its own `transition` accessor, so the
+      // refusal sits on the `style` getter: a write of `none` is dropped, the rest passes.
+      const get = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'style')?.get
+        || Object.getOwnPropertyDescriptor(Element.prototype, 'style')?.get;
+      if (!get) throw new Error('no style getter to wrap');
+      const owner = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'style') ? HTMLElement.prototype : Element.prototype;
+      const wrapped = new WeakMap();
+      Object.defineProperty(owner, 'style', {
+        configurable: true,
+        get() {
+          const target = get.call(this);
+          if (!wrapped.has(target)) {
+            wrapped.set(target, new Proxy(target, {
+              get(t, k) { const v = Reflect.get(t, k, t); return typeof v === 'function' ? v.bind(t) : v; },
+              set(t, k, v) { if (k === 'transition' && v === 'none') return true; return Reflect.set(t, k, v, t); },
+            }));
+          }
+          return wrapped.get(target);
+        },
       });
     });
     await page.goto(`http://127.0.0.1:${port}/__shot`);
     await page.waitForFunction(() => window.kit?.wireDropdown);
-    return await page.evaluate(async ({ portal }) => {
+    const got = await page.evaluate(async ({ portal }) => {
       document.body.innerHTML = '<main style="padding:24px"><h1>Menu actions</h1></main>'
         + `<div id="anchor" style="position:absolute;left:24px;top:0">${window.kit.dropdown({
           value: 'Actions', variant: 'menu', portal,
@@ -836,12 +853,16 @@ export async function entranceCase(browser, port, { portal = true, keepTransitio
         trigger.click();
         const panel = document.querySelector('[data-dropdown-panel]');
         const up = panel.classList.contains('is-up');
-        out.push({ place, up, ys: await frames() });
+        const ys = await frames();
+        const opened = panel.classList.contains('is-open') || !!trigger.closest('.ui-dropdown')?.classList.contains('open');
+        out.push({ place, up, opened, ys });
         trigger.click();
         await settle();
       }
       return out;
     }, { portal });
+    if (errors.length) throw new Error(`page errors during the entrance probe: ${errors.join('; ')}`);
+    return got;
   } finally {
     await page.close();
   }

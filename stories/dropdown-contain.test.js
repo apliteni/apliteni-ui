@@ -884,6 +884,7 @@ test('measured in a browser, both layers, four widths and both themes', {
         const got = await lib.entranceCase(browser, vanilla.port, { portal });
         assert.equal(got.length, 3);
         for (const r of got) {
+          assert.ok(r.opened, `${portal ? 'portalled' : 'in place'} ${r.place}: the panel did not open, so nothing was sampled`);
           const first = r.ys[0];
           const label = `${portal ? 'portalled' : 'in place'} ${r.place}: ${JSON.stringify(r)}`;
           if (portal) assert.equal(r.up, r.place === 'bottom', label);
@@ -893,6 +894,7 @@ test('measured in a browser, both layers, four widths and both themes', {
         }
       }
       const kept = await lib.entranceCase(browser, vanilla.port, { keepTransition: true });
+      assert.ok(kept.every((r) => r.opened), 'the refusal arm never opened a panel, so it measured nothing');
       assert.ok(
         kept.some((r) => (r.up ? r.ys[0] <= 0 : r.ys[0] >= 0)),
         'with the transition switch-off refused, the entrance still began on the trigger side. '
