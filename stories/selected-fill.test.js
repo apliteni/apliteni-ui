@@ -597,6 +597,9 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
             document.body.append(gray);
             return {
               rowFill: style.backgroundColor, plateFill: plate.backgroundColor,
+              plateReady: plate.content !== 'none' && plate.content !== 'normal'
+                && plate.display !== 'none' && plate.visibility === 'visible'
+                && Number(plate.opacity) > 0 && parseFloat(plate.width) > 0 && parseFloat(plate.height) > 0,
               barBefore: getComputedStyle(element, '::before').display,
               barAfter: getComputedStyle(element, '::after').display,
               grayText: getComputedStyle(gray).backgroundColor,
@@ -618,6 +621,7 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
           const folded = name.startsWith('folded') || (name === 'shell row' && width <= 720);
           if (folded) {
             assert.equal(result.rowFill, 'rgba(0, 0, 0, 0)', `${label}: the folded row is filled, not just its plate`);
+            assert.ok(result.plateReady, `${label}: the folded plate is not generated and visible`);
             assert.notEqual(result.plateFill, 'rgba(0, 0, 0, 0)', `${label}: the folded plate has no fill`);
           }
           if (name === 'tab is-underline') assert.equal(result.barAfter, 'none', `${label}: the underline bar shows inside the fill`);
@@ -651,7 +655,7 @@ const group = (collapsed) => sidebarNav({
   active: 'c', collapsed,
 });
 /** A folded row paints no fill of its own; its plate does. */
-const plateOf = (selector, expected) => [[selector, null, { bg: 'transparent' }], [selector, '::before', { bg: expected }]];
+const plateOf = (selector, expected) => [[selector, null, { bg: 'transparent' }], [selector, '::before', { bg: expected, plate: true }]];
 const childFixtures = [
   ...['neutral', 'accent', 'live', 'danger'].map((tone) => ({
     name: `badge on a selected row (${tone})`, html: rowOf({ badge: toneBadge(tone) }),
@@ -725,9 +729,9 @@ const childFixtures = [
 ];
 
 /** Measure every child fixture in Chromium. Returns the failures, so the mutation test can read them. */
-async function measureChildren(browser, extraCss = '') {
-  const css = [...readFileSync(path.join(root, 'src/index.css'), 'utf8').matchAll(/@import "(.+?)";/g)]
-    .map(([, file]) => readFileSync(path.join(root, 'src', file), 'utf8')).join('\n');
+async function measureChildren(browser, extraCss = '', changeCss = (css) => css) {
+  const css = changeCss([...readFileSync(path.join(root, 'src/index.css'), 'utf8').matchAll(/@import "(.+?)";/g)]
+    .map(([, file]) => readFileSync(path.join(root, 'src', file), 'utf8')).join('\n'));
   const failures = [];
   let measured = 0;
   for (const scheme of ['light', 'dark']) {
@@ -761,8 +765,12 @@ async function measureChildren(browser, extraCss = '') {
             const style = getComputedStyle(element, pseudo || undefined);
             const read = { bg: style.backgroundColor, ink: style.color, stroke: element.matches('svg') ? style.stroke : undefined,
               caret: style.borderRightColor, edge: style.borderTopColor, shadow: style.boxShadow,
-              outline: style.outlineStyle === 'none' ? 'no outline' : style.outlineColor };
+              outline: style.outlineStyle === 'none' ? 'no outline' : style.outlineColor,
+              plate: style.content !== 'none' && style.content !== 'normal'
+                && style.display !== 'none' && style.visibility === 'visible'
+                && Number(style.opacity) > 0 && parseFloat(style.width) > 0 && parseFloat(style.height) > 0 };
             return [selector + (pseudo || ''), Object.entries(expected).map(([key, keyword]) => {
+              if (key === 'plate') return read.plate ? null : 'plate is not generated and visible';
               const want = resolve(keyword);
               return read[key] === want ? null : `${key} is ${read[key]}, expected ${keyword} (${want})`;
             }).filter(Boolean)];
@@ -808,6 +816,28 @@ test('the child gate rejects each defect it was written for', { skip: process.en
     for (const [label, extra, expected] of defects) {
       const { failures } = await measureChildren(browser, extra);
       assert.ok(failures.some((failure) => expected.test(failure)), `${label}: the gate did not fail on it`);
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test('the browser gate rejects a folded plate without generated content', { skip: process.env.SELECTED_FORCED !== '1' }, async () => {
+  const { chromium } = await import(process.env.UI_PLAYWRIGHT || 'playwright');
+  const browser = await chromium.launch({ headless: true, ...(process.env.UI_CHROME ? { executablePath: process.env.UI_CHROME } : {}) });
+  const withoutContent = (pattern, count) => (css) => {
+    assert.equal([...css.matchAll(pattern)].length, count, 'the plate mutation lost its targets');
+    return css.replace(pattern, '$1');
+  };
+  const mutations = [
+    [/(\.ui-nav__item\.is-current:not\(\.is-active\)::before\s*\{\s*)content: "";/g, 3, /nested current group, (?:desktop fold|phone fold)/],
+    [/(\.ui-nav--side\.is-collapsed \.ui-nav__item\.is-active::before\s*\{\s*)content: "";/g, 1, /disabled selected folded standalone row/],
+  ];
+  try {
+    for (const [pattern, count, fixture] of mutations) {
+      const { failures } = await measureChildren(browser, '', withoutContent(pattern, count));
+      assert.ok(failures.some((failure) => fixture.test(failure) && /plate is not generated and visible/.test(failure)),
+        'the browser gate accepted a missing folded plate');
     }
   } finally {
     await browser.close();
