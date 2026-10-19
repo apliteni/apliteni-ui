@@ -70,3 +70,15 @@
 **Except:** The sidebar rail's current row. Its mark may be neither an accent nor an edge — an outline there means focus — and in the page shell the rail is the card surface already. It takes the quiet fill a rung off its rail, label and all. Artur, r34 of [#475](https://github.com/apliteni/apliteni-ui/issues/475).
 
 **Except:** A status chip carries a soft fill. Where its tone reports no verdict it takes a light tint of muted ink that leaves the panel in one direction per theme, so the neutral tones read as the same family as the coloured ones.
+
+## Mark selection in forced colours
+
+<!-- rule: selected-forced-colours -->
+
+**Rule:** In forced colours, fill a selected item with the highlight colour and its label with the matching text colour.
+
+**Why:** The mode replaces author backgrounds. A specimen cannot switch it on, so this rule draws no pair.
+
+**Do:** Ring a focused selected item in the text colour.
+
+**Don't:** Mark selection with an outline.

@@ -716,4 +716,9 @@
 @media (forced-colors: active) {
   .ui-app__rail .ui-nav__item.is-active { forced-color-adjust: none; background: Highlight; color: HighlightText; --ring: var(--ring-width) solid CanvasText; }
   .ui-app__rail .ui-nav__item.is-active::before { background: Highlight; }
+  /* A folded row is only an icon strip: the plate carries the fill, so the row paints none. */
+  .ui-app.is-collapsed .ui-app__rail .ui-nav__item.is-active { background: none; }
+}
+@media (forced-colors: active) and (max-width: 720px) {
+  .ui-app__rail .ui-nav__item.is-active { background: none; }
 }

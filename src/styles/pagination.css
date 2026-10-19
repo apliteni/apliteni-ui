@@ -143,11 +143,16 @@ a.ui-pager__page:hover { color: var(--strong); }
    Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
    own ring, drawn in CanvasText so the fill is never mistaken for it. */
 @media (forced-colors: active) {
-  .ui-pager__page.is-current:not([disabled]),
-  .ui-pager__page.is-current[disabled] {
+  .ui-pager__page.is-current:not([disabled]) {
     forced-color-adjust: none;
     background: Highlight;
     color: HighlightText;
     --ring: var(--ring-width) solid CanvasText;
+  }
+  /* A busy pager must not look live, so its current page takes the disabled system colour. */
+  .ui-pager__page.is-current[disabled] {
+    forced-color-adjust: none;
+    background: GrayText;
+    color: Canvas; /* muted-ink: state — unavailable control */
   }
 }

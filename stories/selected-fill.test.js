@@ -85,7 +85,7 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^
 const dropForcedColours = (css) => {
   let out = css;
   for (;;) {
-    const at = out.search(/@media\s*\(\s*forced-colors\s*:\s*active\s*\)\s*\{/);
+    const at = out.search(/@media\s*\(\s*forced-colors\s*:\s*active\s*\)[^{]*\{/);
     if (at < 0) return out;
     let depth = 0;
     let end = out.indexOf('{', at);
@@ -476,8 +476,10 @@ function checkForcedRules(css) {
   // Removing normal rules leaves only the forced-colour blocks for this check.
   const normalRules = new Set(readRules(dropForcedColours(css)).map((rule) => JSON.stringify(rule)));
   const marks = readRules(css).filter((rule) => !normalRules.has(JSON.stringify(rule)))
-    .filter(({ body }) => /forced-color-adjust:\s*none\s*;/.test(body) && /(?:^|[\s;])background:\s*Highlight\s*;/.test(body)
-      && /(?:^|[\s;])color:\s*HighlightText\s*;/.test(body));
+    // A disabled selection takes GrayText with Canvas ink, so it never looks live.
+    .filter(({ body }) => /forced-color-adjust:\s*none\s*;/.test(body)
+      && /(?:^|[\s;])background:\s*(?:Highlight|GrayText)\s*;/.test(body)
+      && /(?:^|[\s;])color:\s*(?:HighlightText|Canvas)\s*;/.test(body));
   assert.ok(forcedSubjects.length >= 10, 'forced-colour discovery lost selected states');
   for (const selector of forcedSubjects) {
     const elements = [...fixtureDocument.querySelectorAll(selector)];
@@ -491,6 +493,78 @@ function checkForcedRules(css) {
 test('every selected state has a forced-colour mark and a fixture', () => checkForcedRules(forcedSource));
 test('the forced-colour gate rejects background-only selected states', () => {
   assert.throws(() => checkForcedRules(dropForcedColours(forcedSource)), /no forced-colour fill/);
+});
+
+// The designer review's four findings on the fill look, each held by a case that fails
+// without its fix (the mutations below delete exactly that fix). Source half; the
+// Chromium half below measures the cascade that wins.
+const fixtureElement = (name) => {
+  const html = forcedFixtures.find(([label]) => label === name)?.[1];
+  assert.ok(html, `no forced-colour fixture named ${name}`);
+  return new JSDOM(html).window.document.querySelector('.is-active, .is-current, [aria-pressed="true"], [aria-selected="true"]');
+};
+const stripPseudo = (selector) => selector.replace(/::(?:before|after)$/, '');
+const pseudoOf = (selector) => /::(before|after)$/.exec(selector)?.[1];
+/** Forced-colour rules only, with the pseudo-element their selector names. */
+const forcedRulesOf = (css) => {
+  const normal = new Set(readRules(dropForcedColours(css)).map((rule) => JSON.stringify(rule)));
+  return readRules(css).filter((rule) => !normal.has(JSON.stringify(rule)))
+    .map((rule) => ({ ...rule, pseudo: pseudoOf(rule.selector), subject: stripPseudo(rule.selector) }));
+};
+const declares = (body, property, value) => new RegExp(`(?:^|[\\s;])${property}:\\s*${value}\\s*(?:;|$|/)`).test(body);
+
+function checkForcedFixes(css) {
+  const forced = forcedRulesOf(css);
+  const matching = (name, pseudo) => forced.filter((rule) => rule.pseudo === pseudo && fixtureElement(name).matches(rule.subject));
+  // B1: a folded row is an icon strip; the plate carries the fill, so the row paints none.
+  for (const name of ['folded shell row', 'folded standalone row']) {
+    // The desktop fold needs its own rule: the phone rule would match the same row by class alone.
+    assert.ok(matching(name).some((rule) => declares(rule.body, 'background', 'none') && /is-collapsed/.test(rule.subject))
+      || name === 'folded standalone row', `${name}: the folded row is filled; only its plate may be`);
+  }
+  assert.ok(/@media \(forced-colors: active\) and \(max-width: 720px\)\s*\{[^{}]*\{[^{}]*background:\s*none/.test(css),
+    'the phone fold has no forced-colour rule that keeps the row unfilled');
+  // B2 and B4: the underline bar is not drawn, for tabs and for Segmented, so the fill is the one mark.
+  assert.ok(matching('tab is-underline', 'after').some((rule) => declares(rule.body, 'display', 'none')),
+    'the underline tab draws its accent bar inside the fill');
+  for (const state of ['is-active', 'aria-pressed="true"', 'aria-selected="true"']) {
+    assert.ok(matching(`segmented ui-seg--underline ${state}`, 'before').some((rule) => declares(rule.body, 'display', 'none')),
+      `the underline Segmented choice (${state}) draws a bar inside the fill`);
+  }
+  assert.ok(!forced.some((rule) => /ui-seg--underline/.test(rule.selector) && declares(rule.body, 'background', 'Highlight')),
+    'a Highlight bar sits on the Highlight fill of an underline Segmented choice');
+  // B3: a disabled selected control does not take the live pair.
+  for (const name of ['disabled segmented is-active', 'disabled segmented aria-pressed="true"',
+    'disabled segmented aria-selected="true"', 'busy pager current page']) {
+    assert.ok(matching(name).some((rule) => declares(rule.body, 'background', 'GrayText')),
+      `${name} takes no disabled system colour`);
+    // The pager's live rule is guarded; Segmented's is not, so the disabled rule must out-rank it
+    // with :disabled. Source reading cannot run the cascade; the Chromium half below does.
+    const guard = name.startsWith('busy pager') ? /:not\(\[disabled\]\)/ : /:disabled/;
+    const gray = matching(name).filter((rule) => declares(rule.body, 'background', 'GrayText'));
+    const live = matching(name).filter((rule) => declares(rule.body, 'background', 'Highlight'));
+    assert.ok(name.startsWith('busy pager') ? live.every((rule) => guard.test(rule.selector)) : gray.every((rule) => guard.test(rule.selector)),
+      `${name} gets the live Highlight pair with no disabled guard`);
+  }
+}
+
+test('the forced-colour fixes for the fill hold', () => checkForcedFixes(forcedSource));
+test('the forced-colour fix gate rejects each missing fix', () => {
+  const without = (pattern) => forcedSource.replace(pattern, (m) => m.replace(/[^\n]/g, ' '));
+  const mutations = [
+    ['B1 folded row', /\.ui-app\.is-collapsed \.ui-app__rail \.ui-nav__item\.is-active \{ background: none; \}/, /folded row is filled/],
+    ['B1 phone fold', /@media \(forced-colors: active\) and \(max-width: 720px\)\s*\{[^{}]*\{[^{}]*\}\s*\}/, /phone fold/],
+    ['B2 tab bar', /\.ui-nav--tabs\.is-underline \.ui-nav__tab\.is-active::after \{ display: none[^{}]*\}/, /accent bar inside the fill/],
+    ['B3 disabled segmented', /\.ui-seg button\.is-active:disabled,[^{}]*\{[^{}]*\}/, /no disabled system colour/],
+    ['B3 busy pager', /\.ui-pager__page\.is-current\[disabled\] \{\s*forced-color-adjust[^{}]*\}/, /no disabled system colour/],
+  ];
+  for (const [label, pattern, message] of mutations) {
+    assert.ok(pattern.test(forcedSource), `${label}: the mutation no longer finds its target`);
+    assert.throws(() => checkForcedFixes(without(pattern)), message, label);
+  }
+  // B4 is a rule that must stay absent: put the old bar back.
+  assert.throws(() => checkForcedFixes(`${forcedSource}\n@media (forced-colors: active) {\n.ui-seg--underline button.is-active::before { background: Highlight; }\n}`),
+    /Highlight bar sits on the Highlight fill/);
 });
 
 test('selected marks survive forced colours in Chromium', { skip: process.env.SELECTED_FORCED !== '1' }, async () => {
@@ -516,7 +590,14 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
             document.body.append(canvas);
             const plate = getComputedStyle(element, '::before');
             const fill = style.backgroundColor === 'rgba(0, 0, 0, 0)' ? plate.backgroundColor : style.backgroundColor;
+            const gray = document.createElement('span');
+            gray.style.background = 'GrayText';
+            document.body.append(gray);
             return {
+              rowFill: style.backgroundColor, plateFill: plate.backgroundColor,
+              barBefore: getComputedStyle(element, '::before').display,
+              barAfter: getComputedStyle(element, '::after').display,
+              grayText: getComputedStyle(gray).backgroundColor,
               active: matchMedia('(forced-colors: active)').matches,
               adjust: style.forcedColorAdjust, fill, ink: style.color,
               ground: getComputedStyle(canvas).backgroundColor,
@@ -529,6 +610,16 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
           assert.ok(result.rect.width > 4 && result.rect.height > 4, `${label}: empty mark`);
           assert.ok(ratio(parseColour(result.fill), parseColour(result.ground)) >= 3, `${label}: fill blends into Canvas`);
           assert.ok(ratio(parseColour(result.ink), parseColour(result.fill)) >= AA_TEXT, `${label}: label is unreadable on the fill`);
+          const disabled = /^(?:disabled segmented|busy pager)/.test(name);
+          assert.equal(result.fill === result.grayText, disabled,
+            `${label}: ${disabled ? 'a disabled selection must take GrayText' : 'a live selection must not take GrayText'}`);
+          const folded = name.startsWith('folded') || (name === 'shell row' && width <= 720);
+          if (folded) {
+            assert.equal(result.rowFill, 'rgba(0, 0, 0, 0)', `${label}: the folded row is filled, not just its plate`);
+            assert.notEqual(result.plateFill, 'rgba(0, 0, 0, 0)', `${label}: the folded plate has no fill`);
+          }
+          if (name === 'tab is-underline') assert.equal(result.barAfter, 'none', `${label}: the underline bar shows inside the fill`);
+          if (name.startsWith('segmented ui-seg--underline')) assert.equal(result.barBefore, 'none', `${label}: the underline bar shows inside the fill`);
           measured += 1;
         }
       }
