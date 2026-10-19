@@ -119,8 +119,10 @@ goes beside the gate, and why a number is what it is goes in the issue. See
 
 [docs/contributing.md](docs/contributing.md) is the one page for a human working on the kit — the
 tour of the parts and the commands. Keep it short, and put a rule that constrains your own work
-here instead. A page under `docs/` never links to the deployed site — link the file in the
-repository, or a Storybook path under it.
+here instead. A page under `docs/` or `guidelines/` never links to the deployed site. A page under `docs/` links the
+file in the repository, or a Storybook path under it. A guideline page links no page, because Storybook
+renders only `https` links and the guideline gates reject a source reference. It names the page and the
+rule in plain words, for example "Earn a wordless button on the Button labels page".
 
 ## Annotations the gates read
 
@@ -171,6 +173,13 @@ to three short sentences, with no praise, no filler and no test diary. Add detai
 migration step or a behaviour limit. `site/changelog.mjs` stays pure — no git and no filesystem;
 `site/build.mjs` owns the git calls. Keep deploy specifics out of committed files.
 
+## Check the phone topbar rows locally
+
+Before opening a PR that changes `src/styles/topbar.css`'s phone rules or the shell offset
+`--ui-app-top`, measure the rows in a real browser:
+`UI_PLAYWRIGHT=… TOPBAR_ROWS=1 node --test src/components/topbar.test.js`
+Report the result in the PR. CI skips this check because Playwright is not a dependency.
+
 ## Check the phone end space locally
 
 Before opening a PR that changes `--ui-app-bottom-clearance`, the React shell's phone
@@ -196,6 +205,13 @@ existing look.
 Keep explicit Storybook IDs stable. Give every React component a test and a story. Run the slop
 detector on new example pages. When overriding styles, check every existing state. Remove
 obsolete guideline `unmet` markers when closing an issue.
+
+A showcase and a component story use kit classes. Their own CSS — a `<style>` block, a `style=`
+attribute, or a stylesheet only a story imports — may only place kit parts: a glue declaration,
+and a kit class named only with a reason in the allow-list beside the gate.
+Paint, type, motion or a re-declared token is a shadow kit — fix it, or file the part the kit is
+missing. Treat local CSS in a showcase as a defect to justify in review, not a style choice.
+See #601.
 
 Change generated brand tokens and marks in `apliteni/design-system`, then sync them here. Use
 unmodified Lucide paths for glyphs, recording the Lucide source name when it differs from the kit

@@ -32,13 +32,13 @@
 
 **Rule:** Use `--accent-strong` for an accent ground and `--accent` for accent ink.
 
-**Why:** `--accent` is text on the canvas; its darker sibling, `--accent-strong`, lets white clear AA.
+**Why:** `--accent` is text on the canvas; darker `--accent-strong` lets white clear AA.
 
 **Do:** Use `--accent-strong` behind white text.
 
 **Don't:** Use `--accent` as that ground.
 
-**Except:** In Phoenix, Ocean and Emerald, both are one token; the difference matters only in Nebula.
+**Except:** In Phoenix, Ocean and Emerald, both are one token; it matters only in Nebula. The selected segmented pill keeps `--accent` in dark, by Artur's choice on #614.
 
 <!-- rule: accent-strong -->
 

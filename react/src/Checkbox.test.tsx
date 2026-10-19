@@ -3,7 +3,16 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
 import axe from 'axe-core';
-import { Checkbox } from './Checkbox';
+import { Checkbox, CheckList } from './Checkbox';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+// The floor's arithmetic and size, shared from plain JS outside this workspace's tsconfig.
+// @ts-expect-error -- untyped JS module, deliberately shared with the accessibility-floor gate.
+import { STYLE_FILES } from '../../stories/lib/contrast.js';
+// @ts-expect-error -- untyped JS module, deliberately shared with the accessibility-floor gate.
+import { decomment, probeGeometry, boxOf, glyphOf, windowFor } from '../../stories/lib/target-geometry.js';
+// @ts-expect-error -- untyped JS module, deliberately shared with the accessibility-floor gate.
+import { TARGET_MIN } from '../../stories/guidelines/_accessibility-floor.js';
 
 afterEach(cleanup);
 
@@ -92,3 +101,86 @@ it('has no axe violations for checkbox, radio and disabled states', async () => 
       <Checkbox type="radio" name="scope" label="Full access" /></fieldset></>);
   expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
 });
+
+it('links a hint to its box and keeps the label as the name', () => {
+  render(<Checkbox label="Invoices" hint="A message when an invoice is paid." aria-describedby="extra" />);
+  const input = screen.getByRole('checkbox', { name: 'Invoices' });
+  expect(input).toHaveAccessibleDescription(/A message when an invoice is paid\./);
+  const hint = screen.getByText('A message when an invoice is paid.');
+  expect(hint).toHaveClass('ui-check__hint');
+  expect(input.getAttribute('aria-describedby')).toBe(`extra ${hint.id}`);
+  expect(input.closest('label')).not.toContainElement(hint);
+});
+
+it('adds no wrapper and no description when there is no hint', () => {
+  const { container } = render(<Checkbox label="Read" />);
+  expect(container.firstElementChild).toHaveClass('ui-check');
+  expect(screen.getByRole('checkbox')).not.toHaveAttribute('aria-describedby');
+});
+
+it('groups boxes in a fieldset under a legend and passes disabled to the group', async () => {
+  const change = vi.fn();
+  render(<CheckList legend="Notify me about" disabled>
+    <Checkbox label="Invoices" hint="When one is paid." onChange={change} />
+    <Checkbox label="News" />
+  </CheckList>);
+  const group = screen.getByRole('group', { name: 'Notify me about' });
+  expect(group.tagName).toBe('FIELDSET');
+  expect(group.querySelector('legend')).toHaveClass('ui-field__label');
+  expect(screen.getByLabelText('Invoices')).toBeDisabled();
+  await userEvent.click(screen.getByText('Invoices'));
+  expect(change).not.toHaveBeenCalled();
+});
+
+it('keeps a disabled box and its hint disabled together', () => {
+  render(<Checkbox label="Alerts" hint="Always on." defaultChecked disabled />);
+  const input = screen.getByRole('checkbox', { name: 'Alerts' });
+  expect(input).toBeDisabled();
+  expect(input).toBeChecked();
+  expect(input).toHaveAccessibleDescription('Always on.');
+  expect(input.closest('.ui-check-item')).toContainElement(screen.getByText('Always on.'));
+});
+
+it('has no axe violations for a list with hints', async () => {
+  const { container } = render(<CheckList legend="Notify me about">
+    <Checkbox label="Invoices" hint="When one is paid." defaultChecked />
+    <Checkbox label="Alerts" hint="Always on." disabled />
+  </CheckList>);
+  expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
+});
+
+// Limits: JSDOM resolves no pixels, so this reads the overlay's declared size through the
+// floor gate's probe, and a hint's own height is not part of the target. The vanilla walk
+// in stories/guidelines/accessibility-floor.test.js keeps one control per tag and class list,
+// so a list with hints is measured here, on the markup React renders, in each theme.
+const readLocal = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
+const kitSheet = () => decomment(STYLE_FILES.map((rel: string) => readLocal('../../' + rel)).join('\n'));
+
+for (const theme of ['dark', 'light']) {
+  it(`reaches ${TARGET_MIN}px on every box in a list with hints in ${theme}`, () => {
+    const { container } = render(<CheckList legend="Notify me about">
+      <Checkbox label="Invoices" hint="A message when an invoice is paid." defaultChecked />
+      <Checkbox label="Weekly summary" hint="Totals for the week." />
+      <Checkbox label="Product news" />
+      <Checkbox label="Security alerts" hint="Always on." defaultChecked disabled />
+    </CheckList>);
+    // React sets checked and disabled as properties, so write them as the attributes a page carries.
+    container.querySelectorAll('input').forEach((input) => {
+      if (input.checked) input.setAttribute('checked', '');
+      if (input.disabled) input.setAttribute('disabled', '');
+    });
+    const win = windowFor(theme, probeGeometry(kitSheet()));
+    win.document.body.innerHTML = container.innerHTML;
+    const boxes = [...win.document.body.querySelectorAll('fieldset .ui-check input')] as HTMLInputElement[];
+    expect(boxes.length, 'the list lost a box, so the measurement covers fewer than it claims').toBe(4);
+    expect(win.document.body.querySelectorAll('.ui-check__hint').length).toBeGreaterThanOrEqual(3);
+    for (const el of boxes) {
+      const box = boxOf(el, win.getComputedStyle(el), glyphOf(el, win));
+      const name = el.closest('label')!.textContent;
+      expect(box.unreadable, `${name}: an overlay this gate cannot read`).toEqual([]);
+      expect(box.height, `${name}: ${box.height}px high`).toBeGreaterThanOrEqual(TARGET_MIN);
+      expect(box.width, `${name}: ${box.width}px wide`).toBeGreaterThanOrEqual(TARGET_MIN);
+      expect(box.drawn.height, `${name}: the drawn box already reaches the floor, so the overlay is not what is measured`).toBeLessThan(TARGET_MIN);
+    }
+  });
+}

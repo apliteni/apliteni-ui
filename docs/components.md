@@ -712,6 +712,8 @@ Use `.ui-toolbar--split` to place the final control at the row's end. On a phone
 
 ### Segmented strips that outgrow their column
 
+The enabled selected pill uses an accent fill with contrasting label ink in both themes. A disabled selected pill keeps a quiet fill and disabled ink. Only keyboard focus draws an outline.
+
 A pill strip lays out its choices in one row while they fit. When they do not fit, the choices
 wrap onto further rows. **It never widens past its container:** a twelve-month picker in a phone
 column becomes three rows of pills instead of pushing the page sideways. Below 560px, the
@@ -960,12 +962,19 @@ axis held in place, and the side that still hides columns is faded. Nothing anim
   stack all keep that clearance,** so scrolling an action into view never parks it behind the
   bar. `searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
   shared stylesheet draws the short one and clips the sentence and the key cap rather than
-  dropping them, so the button keeps one accessible name at every width.
+  dropping them, so the button keeps one accessible name at every width. **When it mounts, the
+  band theme switch applies the stored theme choice, or follows the system when there is none.**
+  A page that sets its own `data-theme` must also set `data-theme-choice`, or store the choice,
+  to keep that theme. For example, `<html data-theme="light">` on a dark system turns dark
+  when the shell mounts.
 - **`SidebarNav`** accepts flat items or captioned sections, nested groups, counts and
   router-link rendering. **Nesting stops one level deep.** Each row keeps its name and count when
   collapsed.
 - **`Checkbox` and `Switch`** render native inputs inside the existing label classes, and **a
   disabled one uses the same paint as every other disabled control in the kit.**
+- **`Checkbox` takes an optional `hint`,** which sits under the label words and is linked to the box as
+  its description; the label stays the box's name. **`CheckList` groups `Checkbox` children in a
+  fieldset under a legend** set in the field label's type. A disabled box dims its hint with its label.
 - **`Snippet`** displays `code` as plain text, and **copying always writes the original `code`
   string**, whatever `children` displays.
 - **`EmptyState`** uses the vanilla markup and CSS, and **the page supplies its own `h1`.**

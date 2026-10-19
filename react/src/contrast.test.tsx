@@ -275,6 +275,7 @@ describe('contrast: React stories', () => {
       it(`${story.id} [${theme}]`, () => {
         if (document.documentElement.getAttribute('data-theme') !== theme) {
           document.documentElement.setAttribute('data-theme', theme);
+          document.documentElement.setAttribute('data-theme-choice', theme);
           styleEl.textContent = sheetText(theme);
         }
         const { id, args } = story;
