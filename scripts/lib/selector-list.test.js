@@ -147,7 +147,6 @@ const SOURCE = /\.(js|mjs|cjs|ts|tsx)$/;
 const VALUE_SPLITS = [
   ['scripts/evidence/guideline.mjs', 'widths', 'a command-line width list'],
   ['scripts/font-loading.test.js', 'stack', 'a font-family stack'],
-  ['scripts/tag-on-bump.test.js', ')', "the --json flag's field names"],
   ['src/components/toasts.js', 'transform', 'a computed transform matrix'],
   ['src/motion.js', ')', 'a transition duration list'],
   ['src/styles/typeface-roles.test.js', ']', 'a font-family stack'],

@@ -500,10 +500,14 @@ test('the forced-colour gate rejects background-only selected states', () => {
 // The designer review's four findings on the fill look, each held by a case that fails
 // without its fix (the mutations below delete exactly that fix). Source half; the
 // Chromium half below measures the cascade that wins.
+const fixtureElements = new Map();
 const fixtureElement = (name) => {
-  const html = forcedFixtures.find(([label]) => label === name)?.[1];
-  assert.ok(html, `no forced-colour fixture named ${name}`);
-  return new JSDOM(html).window.document.querySelector('.is-active, .is-current, [aria-pressed="true"], [aria-selected="true"]');
+  if (!fixtureElements.has(name)) {
+    const html = forcedFixtures.find(([label]) => label === name)?.[1];
+    assert.ok(html, `no forced-colour fixture named ${name}`);
+    fixtureElements.set(name, new JSDOM(html).window.document.querySelector('.is-active, .is-current, [aria-pressed="true"], [aria-selected="true"]'));
+  }
+  return fixtureElements.get(name);
 };
 const stripPseudo = (selector) => selector.replace(/::(?:before|after)$/, '');
 const pseudoOf = (selector) => /::(before|after)$/.exec(selector)?.[1];

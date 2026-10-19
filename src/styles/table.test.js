@@ -93,14 +93,16 @@ test("the zebra recipe insets its own end cells, without needing --dense", () =>
 // The trailing-inset check below covers the higher-specificity base override.
 // Storybook captures separately check text edges and scrolling in Chromium.
 
-function columnInsets(css) {
+function columnInsets(css, { part = 0, parts = 1, only = () => true } = {}) {
   const modifiers = [...new Set(css.match(/ui-table--[\w-]+/g))];
   assert.ok(modifiers.includes('ui-table--dense') && modifiers.includes('ui-table--compact')
     && modifiers.includes('ui-table--zebra'), 'density subjects must exist');
   const recipes = Array.from({ length: 2 ** modifiers.length }, (_, mask) =>
     modifiers.filter((_, i) => mask & (2 ** i)))
     .filter(classes => classes.some(c => /--(dense|compact|zebra)$/.test(c)));
-  const html = recipes.flatMap(classes => [false, true].map(numeric =>
+  const total = recipes.length;
+  const mine = recipes.filter((classes, i) => i % parts === part && only(classes));
+  const html = mine.flatMap(classes => [false, true].map(numeric =>
     `<table class="ui-table ${classes.join(' ')}"><thead><tr>${[0, 1, 2].map(() =>
       `<th class="${numeric ? 'ui-table__num' : ''}">Heading</th>`).join('')}</tr></thead>`
     + `<tbody><tr>${[0, 1, 2].map(() => `<td class="${numeric ? 'ui-table__num' : ''}">Value</td>`).join('')}</tr></tbody></table>`)).join('');
@@ -121,18 +123,22 @@ function columnInsets(css) {
       measured++;
     });
   }
-  assert.equal(measured, recipes.length * 2 * 3, 'every recipe and column must be measured');
-  assert.ok(measured >= 42, 'all density combinations must be covered');
+  assert.equal(measured, mine.length * 2 * 3, 'every recipe and column must be measured');
+  assert.ok(total * 2 * 3 >= 42, 'all density combinations must be covered');
   win.close();
   return failures;
 }
 
-test('table headers and cells have matching horizontal insets in every density recipe', () => {
-  assert.deepEqual(columnInsets(CSS), []);
-});
+// The recipes are dealt over four tests so no one test walks them all.
+const INSET_PARTS = 4;
+for (let part = 0; part < INSET_PARTS; part++) {
+  test(`table headers and cells have matching horizontal insets in every density recipe, part ${part + 1} of ${INSET_PARTS}`, () => {
+    assert.deepEqual(columnInsets(CSS, { part, parts: INSET_PARTS }), []);
+  });
+}
 
 test('the inset gate rejects a middle-column header regression', () => {
-  assert.ok(columnInsets(`${CSS}\n.ui-table--dense th:nth-child(2) { padding-left: 0; }`).length > 0);
+  assert.ok(columnInsets(`${CSS}\n.ui-table--dense th:nth-child(2) { padding-left: 0; }`, { only: (classes) => classes.includes('ui-table--dense') }).length > 0);
 });
 
 function compactTrailingInset(css) {

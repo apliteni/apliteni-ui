@@ -7,7 +7,7 @@
  * check. See stories/contrast-dark.test.js for why the file is split by theme and for the dark
  * walk and its ledger entries.
  */
-import test, { before } from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -53,7 +53,8 @@ const walk = {
 const entriesHere = LEDGER.filter((e) => (e.story ? true : e.themes.includes(THEME)));
 const countFor = (entry) => (entry.story ? STORY_BUCKET_COUNTS[entry.id] : entry.count);
 
-before(async () => {
+// A walk at module load is charged to the file, not to the first test that happens to run.
+await (async () => {
   const started = Date.now();
   const r = await walkCells({ cells: [{ theme: THEME, accent: ACCENT }], states: true });
   walk.problems.push(...r.problems);
@@ -66,7 +67,7 @@ before(async () => {
   walk.elapsed = Date.now() - started;
   walk.records = r.records;
   walk.findings = groupFindings(r.records);
-});
+})();
 
 // ---- the light walk's own ledger, mirroring contrast-dark.test.js --------
 
