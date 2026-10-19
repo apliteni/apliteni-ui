@@ -341,11 +341,18 @@
   .ui-cmdk.is-open * { transition: none !important; }
 }
 
-/* System ink keeps selection visible when the mode replaces background fills.
-   The inset mark fits clipped rows. Keyboard focus keeps its own ring. */
+/* Forced colours replace every author background, so a selected item takes the system
+   pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
+   Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
+   own ring, drawn in CanvasText so the fill is never mistaken for it. */
 @media (forced-colors: active) {
-  .ui-cmdk__item.is-active:not(:focus-visible) {
-    outline: 2px solid Highlight;
-    outline-offset: -2px;
-  }
+  .ui-cmdk__item.is-active { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .ui-cmdk__item.is-active .ui-cmdk__label,
+  .ui-cmdk__item.is-active .ui-cmdk__ic,
+  .ui-cmdk__item.is-active .ui-cmdk__desc,
+  .ui-cmdk__item.is-danger.is-active .ui-cmdk__label,
+  .ui-cmdk__item.is-danger.is-active .ui-cmdk__ic { color: HighlightText; }
+  .ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: none; }
+  .ui-cmdk__item.is-active .ui-cmdk__badge { background: HighlightText; color: Highlight; }
+  .ui-cmdk__item.is-active:focus-visible { outline-color: CanvasText; }
 }

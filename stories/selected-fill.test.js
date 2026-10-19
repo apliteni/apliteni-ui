@@ -427,9 +427,9 @@ test('a busy numbered pager keeps the quiet fill, semibold weight and readable i
 
 // Forced-colour coverage is limited to these sheets and the fixtures below.
 // Discovery includes state rules without fills and pseudo-elements. Child paint
-// belongs to its selected parent. The source half checks declared outlines.
+// belongs to its selected parent. The source half checks the declared system-colour fill.
 // The browser half checks the cascade and measures computed outlines,
-// their contrast and their bounds, not Windows themes or screenshot pixels.
+// the fill against Canvas and the label against the fill, not Windows themes or screenshot pixels.
 // Run it with SELECTED_FORCED=1 and UI_PLAYWRIGHT pointing at Playwright.
 const forcedFiles = ['nav', 'layout', 'command-palette', 'segmented', 'pagination'];
 const forcedSource = forcedFiles.map((name) => readFileSync(path.join(root, `src/styles/${name}.css`), 'utf8')).join('\n');
@@ -476,20 +476,21 @@ function checkForcedRules(css) {
   // Removing normal rules leaves only the forced-colour blocks for this check.
   const normalRules = new Set(readRules(dropForcedColours(css)).map((rule) => JSON.stringify(rule)));
   const marks = readRules(css).filter((rule) => !normalRules.has(JSON.stringify(rule)))
-    .filter(({ body }) => /outline:\s*2px solid Highlight\s*;/.test(body));
+    .filter(({ body }) => /forced-color-adjust:\s*none\s*;/.test(body) && /(?:^|[\s;])background:\s*Highlight\s*;/.test(body)
+      && /(?:^|[\s;])color:\s*HighlightText\s*;/.test(body));
   assert.ok(forcedSubjects.length >= 10, 'forced-colour discovery lost selected states');
   for (const selector of forcedSubjects) {
     const elements = [...fixtureDocument.querySelectorAll(selector)];
     assert.ok(elements.length, `no forced-colour fixture covers ${selector}`);
     for (const element of elements) {
-      assert.ok(marks.some((mark) => element.matches(mark.selector)), `${selector} has no forced-colour outline`);
+      assert.ok(marks.some((mark) => element.matches(mark.selector)), `${selector} has no forced-colour fill`);
     }
   }
 }
 
 test('every selected state has a forced-colour mark and a fixture', () => checkForcedRules(forcedSource));
 test('the forced-colour gate rejects background-only selected states', () => {
-  assert.throws(() => checkForcedRules(dropForcedColours(forcedSource)), /no forced-colour outline/);
+  assert.throws(() => checkForcedRules(dropForcedColours(forcedSource)), /no forced-colour fill/);
 });
 
 test('selected marks survive forced colours in Chromium', { skip: process.env.SELECTED_FORCED !== '1' }, async () => {
@@ -513,20 +514,21 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
             const canvas = document.createElement('span');
             canvas.style.background = 'Canvas';
             document.body.append(canvas);
+            const plate = getComputedStyle(element, '::before');
+            const fill = style.backgroundColor === 'rgba(0, 0, 0, 0)' ? plate.backgroundColor : style.backgroundColor;
             return {
               active: matchMedia('(forced-colors: active)').matches,
-              style: style.outlineStyle, width: parseFloat(style.outlineWidth),
-              offset: parseFloat(style.outlineOffset), ink: style.outlineColor,
+              adjust: style.forcedColorAdjust, fill, ink: style.color,
               ground: getComputedStyle(canvas).backgroundColor,
               rect: { width: rect.width, height: rect.height },
             };
           });
           const label = `${name}, ${width}px, ${scheme}`;
           assert.ok(result.active, label);
-          assert.equal(result.style, 'solid', label);
-          assert.ok(result.width >= 2 && result.offset <= -result.width, `${label}: outline must fit inside the row`);
+          assert.equal(result.adjust, 'none', `${label}: the pair needs forced-color-adjust: none`);
           assert.ok(result.rect.width > 4 && result.rect.height > 4, `${label}: empty mark`);
-          assert.ok(ratio(parseColour(result.ink), parseColour(result.ground)) >= 3, `${label}: outline blends into Canvas`);
+          assert.ok(ratio(parseColour(result.fill), parseColour(result.ground)) >= 3, `${label}: fill blends into Canvas`);
+          assert.ok(ratio(parseColour(result.ink), parseColour(result.fill)) >= AA_TEXT, `${label}: label is unreadable on the fill`);
           measured += 1;
         }
       }

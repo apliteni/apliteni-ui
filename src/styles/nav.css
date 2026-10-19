@@ -366,14 +366,33 @@ a.ui-nav__crumb:focus-visible { outline: var(--ring); outline-offset: var(--ring
 .ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }
 .ui-nav__crumb .ui-nav__ic svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
 
-/* System ink keeps selection visible when the mode replaces background fills.
-   The inset mark fits clipped rows. Keyboard focus keeps its own ring. */
+/* Forced colours replace every author background, so a selected item takes the system
+   pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
+   Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
+   own ring, drawn in CanvasText so the fill is never mistaken for it. */
 @media (forced-colors: active) {
-  .ui-nav__item.is-active:not(:focus-visible),
-  .ui-nav__item.is-current:not(:focus-visible),
-  .ui-nav__tab.is-active:not(:focus-visible),
-  .ui-nav__crumb.is-current:not(:focus-visible) {
-    outline: 2px solid Highlight;
-    outline-offset: -2px;
+  .ui-nav__item.is-active,
+  .ui-nav__item.is-current,
+  .ui-nav__tab.is-active,
+  .ui-nav--tabs.is-pill .ui-nav__tab.is-active,
+  .ui-nav__crumb.is-current {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
   }
+  .ui-nav__item.is-active .ui-nav__ic svg,
+  .ui-nav__item.is-current .ui-nav__ic svg,
+  .ui-nav__tab.is-active .ui-nav__ic svg,
+  .ui-nav__crumb.is-current .ui-nav__ic svg { stroke: HighlightText; }
+  .ui-nav__item.is-active .ui-nav__badge,
+  .ui-nav__item.is-current .ui-nav__badge,
+  .ui-nav__tab.is-active .ui-nav__badge {
+    background: HighlightText;
+    color: Highlight;
+  }
+  .ui-nav--side.is-collapsed .ui-nav__item.is-active::before { background: Highlight; }
+  .ui-nav__item.is-active:focus-visible,
+  .ui-nav__item.is-current:focus-visible,
+  .ui-nav__tab.is-active:focus-visible,
+  .ui-nav__crumb.is-current:focus-visible { outline-color: CanvasText; }
 }

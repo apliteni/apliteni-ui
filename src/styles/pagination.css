@@ -138,11 +138,16 @@ a.ui-pager__page { color: var(--text); }
 a.ui-pager__step:hover,
 a.ui-pager__page:hover { color: var(--strong); }
 
-/* System ink keeps selection visible when the mode replaces background fills.
-   The inset mark fits the page cell. Keyboard focus keeps its own ring. */
+/* Forced colours replace every author background, so a selected item takes the system
+   pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
+   Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
+   own ring, drawn in CanvasText so the fill is never mistaken for it. */
 @media (forced-colors: active) {
-  .ui-pager__page.is-current:not(:focus-visible) {
-    outline: 2px solid Highlight;
-    outline-offset: -2px;
+  .ui-pager__page.is-current:not([disabled]),
+  .ui-pager__page.is-current[disabled] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
   }
+  .ui-pager__page.is-current:focus-visible { outline-color: CanvasText; }
 }
