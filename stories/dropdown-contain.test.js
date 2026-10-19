@@ -879,6 +879,27 @@ test('measured in a browser, both layers, four widths and both themes', {
       }
     });
 
+    await t.test('the first open after a flip arrives from the trigger, and moves to rest', async () => {
+      for (const portal of [true, false]) {
+        const got = await lib.entranceCase(browser, vanilla.port, { portal });
+        assert.equal(got.length, 3);
+        for (const r of got) {
+          const first = r.ys[0];
+          const label = `${portal ? 'portalled' : 'in place'} ${r.place}: ${JSON.stringify(r)}`;
+          if (portal) assert.equal(r.up, r.place === 'bottom', label);
+          if (r.up) assert.ok(first > 0 && first <= 6.01, `${label} must start below and move up`);
+          else assert.ok(first < 0 && first >= -6.01, `${label} must start above and move down`);
+          assert.ok(Math.abs(r.ys.at(-1)) < Math.abs(first), `${label} must move toward 0`);
+        }
+      }
+      const kept = await lib.entranceCase(browser, vanilla.port, { keepTransition: true });
+      assert.ok(
+        kept.some((r) => (r.up ? r.ys[0] <= 0 : r.ys[0] >= 0)),
+        'with the transition switch-off refused, the entrance still began on the trigger side. '
+        + 'Then this gate would pass with the fix taken out.',
+      );
+    });
+
     await t.test('each case is refused when the declaration that catches it is taken away', async () => {
       /* One refusal per mechanism, not per case: the mutation observer reports the
          reorder, the scroll listener the scroll, the text-change observation the

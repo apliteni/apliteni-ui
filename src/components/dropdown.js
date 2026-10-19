@@ -712,7 +712,7 @@ function ddResolveDirection(dd, panel) {
   const t = trigger.getBoundingClientRect();
   const below = ddViewOf(panel).innerHeight - t.bottom;
   if (auto) {
-    panel.classList.toggle('is-up', below < panel.offsetHeight + ddGap(panel) && t.top > below);
+    ddSetUp(panel, below < panel.offsetHeight + ddGap(panel) && t.top > below);
     return;
   }
   const up = dd.__ddPreferredUp;
@@ -720,7 +720,19 @@ function ddResolveDirection(dd, panel) {
   const opposite = (up ? below : t.top) - ddGap(panel);
   // Short content or a smaller consumer cap needs less than the usual floor.
   const needed = Math.min(ddMin(panel), panel.offsetHeight);
-  panel.classList.toggle('is-up', room < needed && opposite > room ? !up : up);
+  ddSetUp(panel, room < needed && opposite > room ? !up : up);
+}
+
+/* Change the side without a transition: the shut panel's transform would otherwise
+ * be running when `is-open` arrives, and the open would retarget it from the wrong
+ * side. */
+function ddSetUp(panel, up) {
+  if (panel.classList.contains('is-up') === up) return;
+  const held = panel.style.transition;
+  panel.style.transition = 'none';
+  panel.classList.toggle('is-up', up);
+  ddViewOf(panel).getComputedStyle(panel).transform;
+  panel.style.transition = held;
 }
 
 /** The shift a panel is already carrying, the one ddFitViewport() wrote. Taken

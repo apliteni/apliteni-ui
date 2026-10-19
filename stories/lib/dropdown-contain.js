@@ -790,3 +790,59 @@ export async function portalFloorCase(browser, port, {
     await page.close();
   }
 }
+
+/* The first open after the side changes, sampled frame by frame: the panel has to
+ * arrive from its trigger, so its translateY starts on that side (positive when it
+ * opens upward) and ends at 0. `keepTransition` swallows the wiring's switch-off of
+ * the panel's transition, which is the fix taken away. */
+export async function entranceCase(browser, port, { portal = true, keepTransition = false } = {}) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  try {
+    if (keepTransition) await page.addInitScript(() => {
+      const desc = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'transition');
+      Object.defineProperty(CSSStyleDeclaration.prototype, 'transition', {
+        ...desc,
+        set(v) { if (v !== 'none') desc.set.call(this, v); },
+      });
+    });
+    await page.goto(`http://127.0.0.1:${port}/__shot`);
+    await page.waitForFunction(() => window.kit?.wireDropdown);
+    return await page.evaluate(async ({ portal }) => {
+      document.body.innerHTML = '<main style="padding:24px"><h1>Menu actions</h1></main>'
+        + `<div id="anchor" style="position:absolute;left:24px;top:0">${window.kit.dropdown({
+          value: 'Actions', variant: 'menu', portal,
+          items: Array.from({ length: 12 }, (_, i) => ({ label: `Action ${i + 1}` })),
+        })}</div>`;
+      await document.fonts.ready;
+      const trigger = document.querySelector('[data-dropdown-trigger]');
+      const anchor = document.querySelector('#anchor');
+      window.kit.wireDropdown(document);
+      const frames = () => new Promise((done) => {
+        const panel = document.querySelector('[data-dropdown-panel]');
+        const ys = [];
+        const tick = () => {
+          const m = new DOMMatrix(getComputedStyle(panel).transform);
+          ys.push(m.m42);
+          if (ys.length < 6) requestAnimationFrame(tick);
+          else done(ys);
+        };
+        requestAnimationFrame(tick);
+      });
+      const settle = () => new Promise((r) => setTimeout(r, 600));
+      const out = [];
+      for (const place of ['bottom', 'top', 'bottom']) {
+        anchor.style.top = place === 'bottom' ? `${innerHeight - 36 - trigger.offsetHeight}px` : '0px';
+        await settle();
+        trigger.click();
+        const panel = document.querySelector('[data-dropdown-panel]');
+        const up = panel.classList.contains('is-up');
+        out.push({ place, up, ys: await frames() });
+        trigger.click();
+        await settle();
+      }
+      return out;
+    }, { portal });
+  } finally {
+    await page.close();
+  }
+}
