@@ -153,11 +153,31 @@
 }
 .ui-seg--underline button.is-active::before,
 .ui-seg--underline button[aria-pressed="true"]::before { opacity: 1; transform: scaleX(1); }
-/* The mode repaints an author colour, so the bar comes back as the labels' own
-   ink. `Highlight` is kept where it is named: one mark the mode cannot flatten. */
-@media (forced-colors: active) {
-  .ui-seg--underline button.is-active::before,
-  .ui-seg--underline button[aria-pressed="true"]::before { background: Highlight; }
-}
 .ui-seg button:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }
+
+/* Forced colours replace every author background, so a selected item takes the system
+   pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
+   Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
+   own ring, drawn in CanvasText so the fill is never mistaken for it. */
+@media (forced-colors: active) {
+  .ui-seg button.is-active,
+  .ui-seg button[aria-pressed="true"],
+  .ui-seg button[aria-selected="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+    --ring: var(--ring-width) solid CanvasText;
+  }
+  /* The fill is the one mark, so the underline bar, which would paint the accent inside it, is gone. */
+  .ui-seg--underline button.is-active::before,
+  .ui-seg--underline button[aria-pressed="true"]::before,
+  .ui-seg--underline button[aria-selected="true"]::before { display: none; /* motion: still — the bar is not drawn while the fill marks the choice */ }
+  /* A disabled selected choice must not look live, so it takes the disabled system colour. */
+  .ui-seg button.is-active:disabled,
+  .ui-seg button[aria-pressed="true"]:disabled,
+  .ui-seg button[aria-selected="true"]:disabled {
+    background: GrayText;
+    color: Canvas; /* muted-ink: state — unavailable choice */
+  }
+}

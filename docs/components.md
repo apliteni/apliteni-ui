@@ -736,6 +736,10 @@ the row above or below. Every tab reserves the bar, but only the chosen one draw
 therefore grows in place when the choice moves. Hover is an ink step from `--text` to
 `--strong`, the step every kit tab takes. There is no second mark.
 
+### A selected item in forced colours
+
+In forced colours, selected items use Highlight and HighlightText, unavailable selections use GrayText, and focus rings use CanvasText.
+
 ### Escaping and URL slots
 
 Factories return HTML strings. **Text and attribute values are escaped where written:** quotes and

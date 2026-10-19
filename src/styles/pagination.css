@@ -137,3 +137,22 @@ a.ui-pager__step,
 a.ui-pager__page { color: var(--text); }
 a.ui-pager__step:hover,
 a.ui-pager__page:hover { color: var(--strong); }
+
+/* Forced colours replace every author background, so a selected item takes the system
+   pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
+   Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
+   own ring, drawn in CanvasText so the fill is never mistaken for it. */
+@media (forced-colors: active) {
+  .ui-pager__page.is-current:not([disabled]) {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+    --ring: var(--ring-width) solid CanvasText;
+  }
+  /* A busy pager must not look live, so its current page takes the disabled system colour. */
+  .ui-pager__page.is-current[disabled] {
+    forced-color-adjust: none;
+    background: GrayText;
+    color: Canvas; /* muted-ink: state — unavailable control */
+  }
+}

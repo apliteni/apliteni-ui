@@ -113,7 +113,9 @@ function disabledRules(css) {
     if (!DISABLED_SEL.test(sel)) continue;
     const m = body.match(/(?:^|;)\s*opacity\s*:\s*([\d.]+)/);
     for (const selector of splitSelectorList(sel)) {
-      if (!DISABLED_SEL.test(selector)) continue;
+      // A negative disabled condition selects a live control, so it cannot
+      // prove that a disabled control repaints when enabled.
+      if (!DISABLED_SEL.test(selector.replace(/:not\(\.(?:is-disabled)\)/g, ''))) continue;
       const opacity = m ? Number(m[1]) : 1;
       // A rule that says the state with the line around the box and nothing else repaints
       // that box and not what is inside it: the labels in there are dimmed by whichever
@@ -638,6 +640,9 @@ test('ring: the band is declared once, from the widths and the ink that tune it'
     .filter((f) => f.endsWith('.css'))
     .sort()
     .flatMap((f) => [...decomment(readFileSync(path.join(root, 'src', f), 'utf8'))
+      // A filled selected item repaints its ring in CanvasText in forced colours;
+      // stories/ring-carrier.test.js holds that shape.
+      .replace(/@media \(forced-colors: active\)\s*\{(?:[^{}]*\{[^{}]*\})*\s*\}/g, '')
       .matchAll(/(?:^|[;{])\s*--ring\s*:([^;}]*)/g)].map((m) => `src/${f}: ${m[1].trim()}`));
   const canonical = tokensFor('dark').get('--ring');
   assert.equal(declared.length, 1, 'the band is declared at :root and nowhere else');
