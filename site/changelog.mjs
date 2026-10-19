@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.124.2', date: '2026-10-19',
+    changes: [
+      ['fixed', 'Selected navigation items, tabs, the current breadcrumb, Segmented choices, the current Pagination page and command palette rows keep a visible mark in forced colours. Normal rendering is unchanged. See #608.', ['Navigation', 'Segmented', 'Pagination', 'CommandPalette']],
+    ],
+  },
+  {
     v: '0.124.1', date: '2026-10-19',
     changes: [
       ['fixed', 'Portalled dropdown menus open on the opposite side when their configured side has less room than the height floor and the opposite side has more. They return to the configured side when space returns. Ordinary menus still grow the page below the height floor. A menu that changes side now enters from its trigger on the first open, also with the `auto` direction. See #643.', ['Dropdown']],

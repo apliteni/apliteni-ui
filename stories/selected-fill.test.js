@@ -431,7 +431,7 @@ test('a busy numbered pager keeps the quiet fill, semibold weight and readable i
 // The browser half checks the cascade and measures computed outlines,
 // their contrast and their bounds, not Windows themes or screenshot pixels.
 // Run it with SELECTED_FORCED=1 and UI_PLAYWRIGHT pointing at Playwright.
-const forcedFiles = ['nav', 'layout', 'command-palette', 'segmented'];
+const forcedFiles = ['nav', 'layout', 'command-palette', 'segmented', 'pagination'];
 const forcedSource = forcedFiles.map((name) => readFileSync(path.join(root, `src/styles/${name}.css`), 'utf8')).join('\n');
 const readRules = (css) => [...decomment(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
   .filter(([, selector]) => !selector.trim().startsWith('@'))
@@ -439,6 +439,7 @@ const readRules = (css) => [...decomment(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
 const forcedSubjects = [...new Set(readRules(dropForcedColours(forcedSource))
   .map(({ selector }) => selector)
   .filter((selector) => SELECTED.test(withoutNot(selector)) && !INTERACTION.test(withoutNot(selector)))
+  .map((selector) => selector.replace(/^:where\(:root\[[^\]]*\]\)\s*/, ''))
   .map((selector) => {
     const parts = selector.split(/\s+/);
     const selected = parts.findLastIndex((part) => SELECTED.test(withoutNot(part)));
@@ -452,6 +453,9 @@ const forcedFixtures = [
   ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].flatMap((state) => ['', 'ui-seg--underline'].map((kind) => [
     `segmented ${kind} ${state}`, `<div class="ui-seg ${kind}"><button ${state === 'is-active' ? 'class="is-active"' : state}>Selected</button></div>`,
   ])),
+  ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].map((state) => [
+    `disabled segmented ${state}`, `<div class="ui-seg"><button disabled ${state === 'is-active' ? 'class="is-active"' : state}>Selected</button></div>`,
+  ]),
   ['current group', '<nav class="ui-nav"><button class="ui-nav__item ui-nav__toggle is-current">Selected group</button></nav>'],
   ['standalone row', `<nav class="ui-nav">${row}</nav>`],
   ['folded standalone row', `<nav class="ui-nav ui-nav--side is-collapsed">${row}</nav>`],
@@ -459,6 +463,8 @@ const forcedFixtures = [
   ['folded shell row', `<div class="ui-app is-collapsed"><nav class="ui-app__rail ui-nav">${row}</nav></div>`],
   ...['', 'is-pill', 'is-underline'].map((kind) => [`tab ${kind}`, `<nav class="ui-nav ui-nav--tabs ${kind}"><a href="#" class="ui-nav__tab is-active">Selected</a></nav>`]),
   ['current crumb', '<nav class="ui-nav__crumbs"><span class="ui-nav__crumb is-current">Selected</span></nav>'],
+  ['pager current page', '<nav class="ui-pager"><button class="ui-btn ui-pager__page is-current" aria-current="page">4</button></nav>'],
+  ['busy pager current page', '<nav class="ui-pager"><button class="ui-btn ui-pager__page is-current" aria-current="page" disabled aria-disabled="true">4</button></nav>'],
   ...['', 'ui-cmdk--roomy'].flatMap((density) => ['', 'is-danger'].map((danger) => [
     `palette ${density} ${danger}`,
     `<div class="ui-cmdk is-open ${density}"><div class="ui-cmdk__panel"><div class="ui-cmdk__list"><div class="ui-cmdk__item is-active ${danger}" role="option"><span class="ui-cmdk__label">Selected</span></div></div></div></div>`,
@@ -471,7 +477,7 @@ function checkForcedRules(css) {
   const normalRules = new Set(readRules(dropForcedColours(css)).map((rule) => JSON.stringify(rule)));
   const marks = readRules(css).filter((rule) => !normalRules.has(JSON.stringify(rule)))
     .filter(({ body }) => /outline:\s*2px solid Highlight\s*;/.test(body));
-  assert.ok(forcedSubjects.length >= 9, 'forced-colour discovery lost selected states');
+  assert.ok(forcedSubjects.length >= 10, 'forced-colour discovery lost selected states');
   for (const selector of forcedSubjects) {
     const elements = [...fixtureDocument.querySelectorAll(selector)];
     assert.ok(elements.length, `no forced-colour fixture covers ${selector}`);

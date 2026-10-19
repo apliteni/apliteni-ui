@@ -137,3 +137,12 @@ a.ui-pager__step,
 a.ui-pager__page { color: var(--text); }
 a.ui-pager__step:hover,
 a.ui-pager__page:hover { color: var(--strong); }
+
+/* System ink keeps selection visible when the mode replaces background fills.
+   The inset mark fits the page cell. Keyboard focus keeps its own ring. */
+@media (forced-colors: active) {
+  .ui-pager__page.is-current:not(:focus-visible) {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
