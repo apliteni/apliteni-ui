@@ -431,7 +431,9 @@ test('the collapsed rail is the narrow rail, rule for rule', () => {
     .map(([sel, decls]) => [sel
       .replace(/:where\(\.ui-app(?::not\(\.ui-app--topbar\))?\.is-collapsed\)\s*/g, '')
       .replace('.ui-app.is-collapsed', '.ui-app'), decls])
-    .filter(([sel]) => !FOLD_ONLY_RULES.includes(sel)));
+    // A forced-colours rule is not a layout rule: its desktop fold and its 720px twin
+    // sit in two separate forced-colours blocks, and selected-fill.test.js holds both.
+    .filter(([sel]) => !FOLD_ONLY_RULES.includes(sel) && !sel.startsWith('@media (forced-colors')));
   // A floor, not a count: it catches a sweep that has stopped finding the block,
   // and it sits under the real number so adding or removing one rule does not
   // have to be re-typed here. The fold is short on purpose now — it closes a box
