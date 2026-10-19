@@ -23,6 +23,9 @@ const read = (rel) => readFileSync(path.join(here, rel), 'utf8');
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 
 const CSS = decomment(read('pagination.css'));
+// The forced-colours block repaints on purpose, and stories/selected-fill.test.js holds it. The
+// checks below judge the paint a normal render shows, so they read the sheet without that block.
+const NORMAL = CSS.replace(/@media \(forced-colors: active\)\s*\{(?:[^{}]*\{[^{}]*\})*\s*\}/g, '');
 const BUTTON = decomment(read('button.css'));
 const INPUT = decomment(read('input.css'));
 
@@ -82,7 +85,7 @@ const standsOffDisabled = (selector) => /:not\(\s*(?::disabled|\[disabled\])\s*\
 // The one rule that targets a disabled current page on purpose gives it the disabled selected
 // Segmented pill's mark, in the disabled ink. stories/selected-fill.test.js holds its values.
 const OFF_MARK = '.ui-pager__page.is-current[disabled]';
-const allCurrentRules = rules(CSS).filter((r) => r.selector.includes('.is-current'));
+const allCurrentRules = rules(NORMAL).filter((r) => r.selector.includes('.is-current'));
 const currentRules = allCurrentRules.filter((r) => r.selector !== OFF_MARK);
 
 test('the current-page paint stands off a control that is disabled', () => {
