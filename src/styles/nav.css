@@ -369,29 +369,60 @@ a.ui-nav__crumb:focus-visible { outline: var(--ring); outline-offset: var(--ring
 /* Forced colours replace every author background, so a selected item takes the system
    pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
    Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
-   own ring, drawn in CanvasText so the fill is never mistaken for it. */
+   own ring, drawn in CanvasText so the fill is never mistaken for it.
+   The pair is `!important` because it is the reader's palette: a danger wash, a hover
+   or a focus state must never repaint it. A child of the row inherits the adjust, so
+   each child that paints its own colour is repainted here as well. */
 @media (forced-colors: active) {
-  .ui-nav__item.is-active,
-  .ui-nav__item.is-current,
-  .ui-nav__tab.is-active,
-  .ui-nav--tabs.is-pill .ui-nav__tab.is-active,
+  .ui-nav__item.is-active:not(.is-disabled),
+  .ui-nav__item.is-current:not(.is-disabled),
+  .ui-nav__tab.is-active:not(.is-disabled),
+  .ui-nav--tabs.is-pill .ui-nav__tab.is-active:not(.is-disabled),
   .ui-nav__crumb.is-current {
     forced-color-adjust: none;
-    background: Highlight;
-    color: HighlightText;
+    background: Highlight !important;
+    color: HighlightText !important;
     --ring: var(--ring-width) solid CanvasText;
   }
-  .ui-nav__item.is-active .ui-nav__ic svg,
-  .ui-nav__item.is-current .ui-nav__ic svg,
-  .ui-nav__tab.is-active .ui-nav__ic svg,
+  .ui-nav__item.is-active:not(.is-disabled) .ui-nav__ic svg,
+  .ui-nav__item.is-current:not(.is-disabled) .ui-nav__ic svg,
+  .ui-nav__tab.is-active:not(.is-disabled) .ui-nav__ic svg,
   .ui-nav__crumb.is-current .ui-nav__ic svg { stroke: HighlightText; }
-  .ui-nav__item.is-active .ui-nav__badge,
-  .ui-nav__item.is-current .ui-nav__badge,
-  .ui-nav__tab.is-active .ui-nav__badge {
-    background: HighlightText;
-    color: Highlight;
+  .ui-nav__item.is-active .ui-nav__caret,
+  .ui-nav__item.is-current .ui-nav__caret { border-color: currentColor; }
+  .ui-nav__item.is-active:not(.is-disabled) .ui-nav__badge,
+  .ui-nav__item.is-current:not(.is-disabled) .ui-nav__badge,
+  .ui-nav__tab.is-active:not(.is-disabled) .ui-nav__badge {
+    background: HighlightText !important;
+    color: Highlight !important;
   }
-  .ui-nav--side.is-collapsed .ui-nav__item.is-active::before { background: Highlight; }
+  /* A selected item that is unavailable must not look live, so it takes the disabled system pair. */
+  .ui-nav__item.is-active.is-disabled,
+  .ui-nav__item.is-current.is-disabled,
+  .ui-nav__tab.is-active.is-disabled {
+    forced-color-adjust: none;
+    background: GrayText !important;
+    color: Canvas !important; /* muted-ink: state — unavailable control */
+  }
+  .ui-nav__item.is-active.is-disabled .ui-nav__ic svg,
+  .ui-nav__item.is-current.is-disabled .ui-nav__ic svg,
+  .ui-nav__tab.is-active.is-disabled .ui-nav__ic svg { stroke: Canvas; }
+  .ui-nav__item.is-active.is-disabled .ui-nav__badge,
+  .ui-nav__item.is-current.is-disabled .ui-nav__badge,
+  .ui-nav__tab.is-active.is-disabled .ui-nav__badge {
+    background: Canvas !important;
+    color: GrayText !important; /* muted-ink: state — unavailable control */
+  }
+  /* A folded row is only an icon strip: the plate carries the fill, so the row paints none.
+     A current group takes the same plate as the current row it holds. */
+  .ui-nav--side.is-collapsed .ui-nav__item:is(.is-active, .is-current) { isolation: isolate; background: none !important; }
+  .ui-nav--side.is-collapsed .ui-nav__item.is-current:not(.is-active)::before {
+    content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px;
+    transform: translateY(-50%); /* motion: still — a mark on the current group, centred and not travelling */
+    z-index: -1;
+  }
+  .ui-nav--side.is-collapsed .ui-nav__item:is(.is-active, .is-current):not(.is-disabled)::before { background: Highlight; }
+  .ui-nav--side.is-collapsed .ui-nav__item:is(.is-active, .is-current).is-disabled::before { background: GrayText; }
   /* The fill is the one mark, so the underline bar, which would paint the accent inside it, is gone. */
   .ui-nav--tabs.is-underline .ui-nav__tab.is-active::after { display: none; /* motion: still — the bar is not drawn while the fill marks the tab */ }
 }

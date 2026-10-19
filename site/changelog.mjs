@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.124.2', date: '2026-10-19',
     changes: [
-      ['fixed', 'Selected navigation items, tabs, the current breadcrumb, Segmented choices, the current Pagination page and command palette rows take the system highlight fill in forced colours, and an unavailable selection takes GrayText. Normal rendering is unchanged. See #608.', ['Navigation', 'Segmented', 'Pagination', 'CommandPalette']],
+      ['fixed', 'Selected items and their badges, shortcuts and folded-row names use system colours in forced colours. Unavailable selections use GrayText. See #608.', ['Navigation', 'Segmented', 'Pagination', 'CommandPalette']],
     ],
   },
   {

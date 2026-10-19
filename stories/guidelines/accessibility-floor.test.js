@@ -113,7 +113,9 @@ function disabledRules(css) {
     if (!DISABLED_SEL.test(sel)) continue;
     const m = body.match(/(?:^|;)\s*opacity\s*:\s*([\d.]+)/);
     for (const selector of splitSelectorList(sel)) {
-      if (!DISABLED_SEL.test(selector)) continue;
+      // A negative disabled condition selects a live control, so it cannot
+      // prove that a disabled control repaints when enabled.
+      if (!DISABLED_SEL.test(selector.replace(/:not\(\.(?:is-disabled)\)/g, ''))) continue;
       const opacity = m ? Number(m[1]) : 1;
       // A rule that says the state with the line around the box and nothing else repaints
       // that box and not what is inside it: the labels in there are dimmed by whichever

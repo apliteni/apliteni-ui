@@ -72,6 +72,8 @@ import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import { AA_TEXT, parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
 import { pagination } from '../src/components/pagination.js';
+import { sidebarNav } from '../src/components/nav.js';
+import { commandPaletteList } from '../src/components/command-palette.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -478,8 +480,8 @@ function checkForcedRules(css) {
   const marks = readRules(css).filter((rule) => !normalRules.has(JSON.stringify(rule)))
     // A disabled selection takes GrayText with Canvas ink, so it never looks live.
     .filter(({ body }) => /forced-color-adjust:\s*none\s*;/.test(body)
-      && /(?:^|[\s;])background:\s*(?:Highlight|GrayText)\s*;/.test(body)
-      && /(?:^|[\s;])color:\s*(?:HighlightText|Canvas)\s*;/.test(body));
+      && /(?:^|[\s;])background:\s*(?:Highlight|GrayText)\s*(?:!important\s*)?;/.test(body)
+      && /(?:^|[\s;])color:\s*(?:HighlightText|Canvas)\s*(?:!important\s*)?;/.test(body));
   assert.ok(forcedSubjects.length >= 10, 'forced-colour discovery lost selected states');
   for (const selector of forcedSubjects) {
     const elements = [...fixtureDocument.querySelectorAll(selector)];
@@ -511,7 +513,7 @@ const forcedRulesOf = (css) => {
   return readRules(css).filter((rule) => !normal.has(JSON.stringify(rule)))
     .map((rule) => ({ ...rule, pseudo: pseudoOf(rule.selector), subject: stripPseudo(rule.selector) }));
 };
-const declares = (body, property, value) => new RegExp(`(?:^|[\\s;])${property}:\\s*${value}\\s*(?:;|$|/)`).test(body);
+const declares = (body, property, value) => new RegExp(`(?:^|[\\s;])${property}:\\s*${value}\\s*(?:!important\\s*)?(?:;|$|/)`).test(body);
 
 function checkForcedFixes(css) {
   const forced = forcedRulesOf(css);
@@ -552,8 +554,8 @@ test('the forced-colour fixes for the fill hold', () => checkForcedFixes(forcedS
 test('the forced-colour fix gate rejects each missing fix', () => {
   const without = (pattern) => forcedSource.replace(pattern, (m) => m.replace(/[^\n]/g, ' '));
   const mutations = [
-    ['B1 folded row', /\.ui-app\.is-collapsed \.ui-app__rail \.ui-nav__item\.is-active \{ background: none; \}/, /folded row is filled/],
-    ['B1 phone fold', /@media \(forced-colors: active\) and \(max-width: 720px\)\s*\{[^{}]*\{[^{}]*\}\s*\}/, /phone fold/],
+    ['B1 folded row', /\.ui-app\.is-collapsed \.ui-app__rail \.ui-nav__item:is\(\.is-active, \.is-current\) \{[^{}]*\}/, /folded row is filled/],
+    ['B1 phone fold', /@media \(forced-colors: active\) and \(max-width: 720px\)\s*\{(?:[^{}]*\{[^{}]*\})+\s*\}/, /phone fold/],
     ['B2 tab bar', /\.ui-nav--tabs\.is-underline \.ui-nav__tab\.is-active::after \{ display: none[^{}]*\}/, /accent bar inside the fill/],
     ['B3 disabled segmented', /\.ui-seg button\.is-active:disabled,[^{}]*\{[^{}]*\}/, /no disabled system colour/],
     ['B3 busy pager', /\.ui-pager__page\.is-current\[disabled\] \{\s*forced-color-adjust[^{}]*\}/, /no disabled system colour/],
@@ -626,6 +628,187 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
       await page.close();
     }
     assert.equal(measured, forcedFixtures.length * 6);
+  } finally {
+    await browser.close();
+  }
+});
+
+// The children of a selected item. `forced-color-adjust: none` is inherited, so every
+// child that paints its own colour keeps the kit's colour unless it is repainted. The
+// test above reads the selected element only; this one reads each child, and each state
+// the item can be in, and expects an exact system colour. Each case names the keyword
+// it expects, so a kit colour that happens to equal a system colour cannot pass for one.
+// The mutation test below appends the defect each fix removed and expects a failure.
+const toneBadge = (tone) => ({ text: 3, tone });
+const shellOf = (collapsed, inner) => `<div class="ui-app${collapsed ? ' is-collapsed' : ''}"><div class="ui-app__rail">${inner}</div></div>`;
+const rowOf = (item, extra = {}) => sidebarNav({ items: [{ id: 'a', label: 'Inbox', icon: 'home', href: '#', ...item }], active: 'a', ...extra });
+const PAIR = { bg: 'Highlight', ink: 'HighlightText' };
+const OFF = { bg: 'GrayText', ink: 'Canvas' };
+const phone = (width) => width <= 720;
+const palette = (item) => `<div class="ui-cmdk is-open"><div class="ui-cmdk__panel"><div class="ui-cmdk__list">${commandPaletteList([{ items: [{ id: 'p', label: 'Open', description: 'Go there', icon: 'home', badge: 'New', shortcut: ['⌘', 'K'], ...item }] }])}</div></div></div>`;
+const group = (collapsed) => sidebarNav({
+  items: [{ id: 'g', label: 'Settings', icon: 'home', open: true, items: [{ id: 'c', label: 'Profile', href: '#' }] }],
+  active: 'c', collapsed,
+});
+/** A folded row paints no fill of its own; its plate does. */
+const plateOf = (selector, expected) => [[selector, null, { bg: 'transparent' }], [selector, '::before', { bg: expected }]];
+const childFixtures = [
+  ...['neutral', 'accent', 'live', 'danger'].map((tone) => ({
+    name: `badge on a selected row (${tone})`, html: rowOf({ badge: toneBadge(tone) }),
+    checks: () => [['.is-active', null, PAIR], ['.is-active .ui-nav__ic svg', null, { stroke: 'HighlightText' }], ['.ui-nav__badge', null, { bg: 'HighlightText', ink: 'Highlight' }]],
+  })),
+  {
+    name: 'badge on a selected shell row', html: shellOf(false, rowOf({ badge: toneBadge('neutral') })),
+    checks: (width) => (phone(width) ? plateOf('.is-active', 'Highlight')
+      : [['.is-active', null, PAIR], ['.ui-nav__badge', null, { bg: 'HighlightText', ink: 'Highlight' }]]),
+  },
+  {
+    name: 'badge on a selected tab', html: `<nav class="ui-nav ui-nav--tabs"><a href="#" class="ui-nav__tab is-active">Open<span class="ui-nav__badge is-neutral">3</span></a></nav>`,
+    checks: () => [['.is-active', null, PAIR], ['.ui-nav__badge', null, { bg: 'HighlightText', ink: 'Highlight' }]],
+  },
+  ...['', 'is-danger'].map((danger) => ({
+    name: `palette row with a shortcut ${danger}`.trim(), html: palette(danger ? { danger: true, confirm: 'Sure?' } : {}),
+    checks: () => [['.ui-cmdk__item.is-active', null, PAIR], ['.ui-cmdk__label', null, { ink: 'HighlightText' }],
+      ['.ui-cmdk__desc', null, { ink: 'HighlightText' }], ['.ui-cmdk__ic', null, { ink: 'HighlightText' }],
+      ['.ui-cmdk__badge', null, { bg: 'HighlightText', ink: 'Highlight' }],
+      ['.ui-cmdk__key', null, { bg: 'Highlight', ink: 'HighlightText', edge: 'HighlightText' }]],
+  })),
+  ...['hover', 'tab'].flatMap((act) => [
+    {
+      name: `folded shell row with its label (${act})`, html: shellOf(true, rowOf({})), act: act === 'hover' ? 'hover:.ui-nav__item' : 'tab',
+      checks: () => [...plateOf('.is-active', 'Highlight'), ['.ui-nav__label', null, { bg: 'Canvas', ink: 'CanvasText', edge: 'CanvasText', shadow: 'none' }]],
+    },
+    {
+      name: `folded shell current group with its label (${act})`, html: shellOf(true, group(true)), act: act === 'hover' ? 'hover:.ui-nav__toggle' : 'tab',
+      checks: () => [...plateOf('.ui-nav__toggle.is-current', 'Highlight'), ['.ui-nav__toggle > .ui-nav__label', null, { bg: 'Canvas', ink: 'CanvasText', edge: 'CanvasText', shadow: 'none' }]],
+    },
+  ]),
+  ...[[undefined, 'resting'], ['hover:.ui-nav__item', 'hover'], ['tab', 'keyboard focus']].flatMap(([act, state]) => [
+    {
+      name: `selected danger row (${state})`, html: rowOf({ danger: true, label: 'Sign out' }), act,
+      checks: () => [['.is-active', null, { ...PAIR, ...(state === 'keyboard focus' ? { outline: 'CanvasText' } : {}) }]],
+    },
+    {
+      name: `selected danger shell row (${state})`, html: shellOf(false, rowOf({ danger: true, label: 'Sign out' })), act,
+      checks: (width) => (phone(width) ? plateOf('.is-active', 'Highlight')
+        : [['.is-active', null, { ...PAIR, ...(state === 'keyboard focus' ? { outline: 'CanvasText' } : {}) }]]),
+    },
+  ]),
+  {
+    name: 'disabled selected nav item', html: rowOf({ disabled: true, badge: toneBadge('accent') }),
+    checks: () => [['.is-active', null, OFF], ['.is-active .ui-nav__ic svg', null, { stroke: 'Canvas' }], ['.ui-nav__badge', null, { bg: 'Canvas', ink: 'GrayText' }]],
+  },
+  {
+    name: 'disabled selected shell row', html: shellOf(false, rowOf({ disabled: true })),
+    checks: (width) => (phone(width) ? plateOf('.is-active', 'GrayText') : [['.is-active', null, OFF]]),
+  },
+  { name: 'disabled selected folded standalone row', html: rowOf({ disabled: true }, { collapsed: true }), checks: () => plateOf('.is-active', 'GrayText') },
+  { name: 'disabled selected folded shell row', html: shellOf(true, rowOf({ disabled: true })), checks: () => plateOf('.is-active', 'GrayText') },
+  {
+    name: 'nested current group, open', html: shellOf(false, group(false)),
+    checks: (width) => (phone(width) ? [...plateOf('.ui-nav__toggle.is-current', 'Highlight'), ...plateOf('.ui-nav__item--sub.is-active', 'Highlight')]
+      : [['.ui-nav__toggle.is-current', null, PAIR], ['.ui-nav__toggle.is-current .ui-nav__caret', null, { caret: 'HighlightText' }],
+        ['.ui-nav__item--sub.is-active', null, PAIR]]),
+  },
+  {
+    name: 'nested current group, desktop fold (standalone)', html: group(true),
+    checks: () => [...plateOf('.ui-nav__toggle.is-current', 'Highlight'), ...plateOf('.ui-nav__item--sub.is-active', 'Highlight')],
+  },
+  {
+    name: 'nested current group, desktop fold (shell)', html: shellOf(true, group(true)),
+    checks: () => [...plateOf('.ui-nav__toggle.is-current', 'Highlight'), ...plateOf('.ui-nav__item--sub.is-active', 'Highlight')],
+  },
+  {
+    name: 'nested current group, phone fold', html: shellOf(false, group(false)),
+    only: phone, checks: () => [...plateOf('.ui-nav__toggle.is-current', 'Highlight'), ...plateOf('.ui-nav__item--sub.is-active', 'Highlight')],
+  },
+];
+
+/** Measure every child fixture in Chromium. Returns the failures, so the mutation test can read them. */
+async function measureChildren(browser, extraCss = '') {
+  const css = [...readFileSync(path.join(root, 'src/index.css'), 'utf8').matchAll(/@import "(.+?)";/g)]
+    .map(([, file]) => readFileSync(path.join(root, 'src', file), 'utf8')).join('\n');
+  const failures = [];
+  let measured = 0;
+  for (const scheme of ['light', 'dark']) {
+    const page = await browser.newPage({ forcedColors: 'active', colorScheme: scheme, reducedMotion: 'reduce' });
+    await page.setContent(`<style>${css}${extraCss}</style>`);
+    for (const width of [390, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const fixture of childFixtures) {
+        if (fixture.only && !fixture.only(width)) continue;
+        await page.mouse.move(0, 0);
+        await page.evaluate((markup) => { document.body.innerHTML = markup; document.activeElement?.blur?.(); }, fixture.html);
+        if (fixture.act === 'tab') await page.keyboard.press('Tab');
+        if (fixture.act?.startsWith('hover:')) await page.hover(fixture.act.slice(6));
+        // A hover or focus starts a colour transition; reading before it ends reports the old colour.
+        await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {}))));
+        const checks = fixture.checks(width);
+        const results = await page.evaluate((list) => {
+          const resolve = (keyword) => {
+            if (keyword === 'transparent') return 'rgba(0, 0, 0, 0)';
+            if (keyword === 'none') return 'none';
+            const probe = document.createElement('span');
+            probe.style.color = keyword;
+            document.body.append(probe);
+            const value = getComputedStyle(probe).color;
+            probe.remove();
+            return value;
+          };
+          return list.map(([selector, pseudo, expected]) => {
+            const element = document.querySelector(selector);
+            if (!element) return [selector, 'missing element'];
+            const style = getComputedStyle(element, pseudo || undefined);
+            const read = { bg: style.backgroundColor, ink: style.color, stroke: element.matches('svg') ? style.stroke : undefined,
+              caret: style.borderRightColor, edge: style.borderTopColor, shadow: style.boxShadow,
+              outline: style.outlineStyle === 'none' ? 'no outline' : style.outlineColor };
+            return [selector + (pseudo || ''), Object.entries(expected).map(([key, keyword]) => {
+              const want = resolve(keyword);
+              return read[key] === want ? null : `${key} is ${read[key]}, expected ${keyword} (${want})`;
+            }).filter(Boolean)];
+          });
+        }, checks);
+        for (const [selector, problems] of results) {
+          measured += 1;
+          for (const problem of [].concat(problems)) failures.push(`${fixture.name}, ${width}px, ${scheme}: ${selector} ${problem}`);
+        }
+      }
+    }
+    await page.close();
+  }
+  return { failures, measured };
+}
+
+test('children of a selected item keep the system pair in every state', { skip: process.env.SELECTED_FORCED !== '1' }, async () => {
+  const { chromium } = await import(process.env.UI_PLAYWRIGHT || 'playwright');
+  const browser = await chromium.launch({ headless: true, ...(process.env.UI_CHROME ? { executablePath: process.env.UI_CHROME } : {}) });
+  try {
+    const { failures, measured } = await measureChildren(browser);
+    assert.deepEqual(failures, []);
+    assert.ok(measured >= childFixtures.length * 2 * 2, `only ${measured} child measurements were taken`);
+  } finally {
+    await browser.close();
+  }
+});
+
+test('the child gate rejects each defect it was written for', { skip: process.env.SELECTED_FORCED !== '1' }, async () => {
+  const { chromium } = await import(process.env.UI_PLAYWRIGHT || 'playwright');
+  const browser = await chromium.launch({ headless: true, ...(process.env.UI_CHROME ? { executablePath: process.env.UI_CHROME } : {}) });
+  const defects = [
+    ['a badge that keeps its kit colours', '@media (forced-colors: active) { .ui-nav .ui-nav__item.is-active .ui-nav__badge.is-neutral { background: #211e2d !important; color: #fff !important; } }', /badge on a selected row \(neutral\)/],
+    ['a shortcut cap that keeps its kit colours', '@media (forced-colors: active) { .ui-cmdk .ui-cmdk__item.is-active .ui-cmdk__key { background: #fff !important; color: #000 !important; } }', /palette row with a shortcut/],
+    ['a floating label that keeps its kit colours', '@media (forced-colors: active) { .ui-app .ui-app__rail .ui-nav__item.is-active:hover > .ui-nav__label { background: #fff !important; color: #000 !important; box-shadow: 0 0 4px #000 !important; } }', /folded shell row with its label \(hover\)/],
+    ['a danger row that keeps the author wash', '@media (forced-colors: active) { .ui-nav .ui-nav__item.is-active.is-danger:hover { background: #ffd7e0 !important; color: #a30032 !important; } }', /selected danger row \(hover\)/],
+    ['a danger row that keeps the author ink in the shell', '@media (forced-colors: active) { .ui-app .ui-app__rail .ui-nav__item.is-active.is-danger { color: #a30032 !important; } }', /selected danger shell row \(resting\)/],
+    ['a disabled selected row that takes the live pair', '@media (forced-colors: active) { .ui-nav .ui-nav__item.is-active.is-disabled { background: Highlight !important; color: HighlightText !important; } }', /disabled selected nav item/],
+    ['a current group that fills its whole folded row', '@media (forced-colors: active) { .ui-nav--side.is-collapsed .ui-nav .ui-nav__item.is-current, .ui-nav--side.is-collapsed .ui-nav__item.is-current { background: Highlight !important; } }', /nested current group, desktop fold \(standalone\)/],
+    ['a current group that fills its whole phone row', '@media (forced-colors: active) { .ui-app .ui-app__rail .ui-nav__item.is-current { background: Highlight !important; } }', /nested current group, phone fold/],
+  ];
+  try {
+    for (const [label, extra, expected] of defects) {
+      const { failures } = await measureChildren(browser, extra);
+      assert.ok(failures.some((failure) => expected.test(failure)), `${label}: the gate did not fail on it`);
+    }
   } finally {
     await browser.close();
   }
