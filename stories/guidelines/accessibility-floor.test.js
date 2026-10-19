@@ -638,6 +638,9 @@ test('ring: the band is declared once, from the widths and the ink that tune it'
     .filter((f) => f.endsWith('.css'))
     .sort()
     .flatMap((f) => [...decomment(readFileSync(path.join(root, 'src', f), 'utf8'))
+      // A filled selected item repaints its ring in CanvasText in forced colours;
+      // stories/ring-carrier.test.js holds that shape.
+      .replace(/@media \(forced-colors: active\)\s*\{(?:[^{}]*\{[^{}]*\})*\s*\}/g, '')
       .matchAll(/(?:^|[;{])\s*--ring\s*:([^;}]*)/g)].map((m) => `src/${f}: ${m[1].trim()}`));
   const canonical = tokensFor('dark').get('--ring');
   assert.equal(declared.length, 1, 'the band is declared at :root and nowhere else');

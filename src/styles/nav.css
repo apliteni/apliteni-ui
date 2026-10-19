@@ -392,7 +392,4 @@ a.ui-nav__crumb:focus-visible { outline: var(--ring); outline-offset: var(--ring
     color: Highlight;
   }
   .ui-nav--side.is-collapsed .ui-nav__item.is-active::before { background: Highlight; }
-  .ui-nav__item.is-active:focus-visible,
-  .ui-nav__item.is-current:focus-visible,
-  .ui-nav__tab.is-active:focus-visible,
 }

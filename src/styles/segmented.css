@@ -175,6 +175,4 @@
     color: HighlightText;
     --ring: var(--ring-width) solid CanvasText;
   }
-  .ui-seg button.is-active:focus-visible,
-  .ui-seg button[aria-pressed="true"]:focus-visible,
 }
