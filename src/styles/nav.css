@@ -379,6 +379,7 @@ a.ui-nav__crumb:focus-visible { outline: var(--ring); outline-offset: var(--ring
     forced-color-adjust: none;
     background: Highlight;
     color: HighlightText;
+    --ring: var(--ring-width) solid CanvasText;
   }
   .ui-nav__item.is-active .ui-nav__ic svg,
   .ui-nav__item.is-current .ui-nav__ic svg,
@@ -394,5 +395,4 @@ a.ui-nav__crumb:focus-visible { outline: var(--ring); outline-offset: var(--ring
   .ui-nav__item.is-active:focus-visible,
   .ui-nav__item.is-current:focus-visible,
   .ui-nav__tab.is-active:focus-visible,
-  .ui-nav__crumb.is-current:focus-visible { outline-color: CanvasText; }
 }

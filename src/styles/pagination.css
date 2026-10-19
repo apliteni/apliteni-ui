@@ -148,6 +148,6 @@ a.ui-pager__page:hover { color: var(--strong); }
     forced-color-adjust: none;
     background: Highlight;
     color: HighlightText;
+    --ring: var(--ring-width) solid CanvasText;
   }
-  .ui-pager__page.is-current:focus-visible { outline-color: CanvasText; }
 }

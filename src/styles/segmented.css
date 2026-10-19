@@ -173,8 +173,8 @@
     forced-color-adjust: none;
     background: Highlight;
     color: HighlightText;
+    --ring: var(--ring-width) solid CanvasText;
   }
   .ui-seg button.is-active:focus-visible,
   .ui-seg button[aria-pressed="true"]:focus-visible,
-  .ui-seg button[aria-selected="true"]:focus-visible { outline-color: CanvasText; }
 }

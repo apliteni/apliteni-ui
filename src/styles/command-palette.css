@@ -346,7 +346,7 @@
    Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
    own ring, drawn in CanvasText so the fill is never mistaken for it. */
 @media (forced-colors: active) {
-  .ui-cmdk__item.is-active { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .ui-cmdk__item.is-active { forced-color-adjust: none; background: Highlight; color: HighlightText; --ring: var(--ring-width) solid CanvasText; }
   .ui-cmdk__item.is-active .ui-cmdk__label,
   .ui-cmdk__item.is-active .ui-cmdk__ic,
   .ui-cmdk__item.is-active .ui-cmdk__desc,
@@ -354,5 +354,4 @@
   .ui-cmdk__item.is-danger.is-active .ui-cmdk__ic { color: HighlightText; }
   .ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: none; }
   .ui-cmdk__item.is-active .ui-cmdk__badge { background: HighlightText; color: Highlight; }
-  .ui-cmdk__item.is-active:focus-visible { outline-color: CanvasText; }
 }

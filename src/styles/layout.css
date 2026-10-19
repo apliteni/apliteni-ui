@@ -714,7 +714,6 @@
    Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
    own ring, drawn in CanvasText so the fill is never mistaken for it. */
 @media (forced-colors: active) {
-  .ui-app__rail .ui-nav__item.is-active { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .ui-app__rail .ui-nav__item.is-active { forced-color-adjust: none; background: Highlight; color: HighlightText; --ring: var(--ring-width) solid CanvasText; }
   .ui-app__rail .ui-nav__item.is-active::before { background: Highlight; }
-  .ui-app__rail .ui-nav__item.is-active:focus-visible { outline-color: CanvasText; }
 }

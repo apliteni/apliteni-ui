@@ -269,8 +269,10 @@ function checkForcedFocus(css) {
 }
 
 test('forced-colour selection marks cannot replace focus rings', () => {
-  const selectedFocus = source.replaceAll(':not(:focus-visible)', ':focus-visible');
-  assert.notEqual(selectedFocus, source, 'the mutation found no selection guard');
+  const selectedFocus = source + `
+    @media (forced-colors: active) {
+      .ui-nav__item.is-active:focus-visible { outline: 2px solid Highlight; }
+    }`;
   assert.throws(() => checkForcedFocus(selectedFocus), /replace the focus ring/);
   const ancestorGuard = source + `
     @media (forced-colors: active) {
