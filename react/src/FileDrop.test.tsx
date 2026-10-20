@@ -394,9 +394,38 @@ describe('the page drop layer in the sheet', () => {
     expect(rule).toMatch(/pointer-events:\s*none/);
   });
 
-  it('paints its ground in full, so no page text shows across the words', () => {
-    expect(rule).toMatch(/background:\s*var\(--bg\)\s*;/);
-    expect(rule).not.toMatch(/color-mix|rgba|transparent|opacity/);
+  describe('its ground', () => {
+    /* #458: Artur chose a slightly transparent, blurred ground for the table page. The sheet is read for the
+     * three grounds: solid by default, translucent and blurred where the engine can blur, solid again for a
+     * reader who asks for less transparency. JSDOM paints nothing, so the blur itself is measured in a browser,
+     * and the words' contrast over the worst colour behind is stories/file-drop-ground.test.js. */
+    const supports = /@supports\s*\(backdrop-filter:\s*blur\(1px\)\)\s*or\s*\(-webkit-backdrop-filter:\s*blur\(1px\)\)\s*\{\s*\.ui-drop--page\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+    const reduced = /@media\s*\(prefers-reduced-transparency:\s*reduce\)\s*\{\s*\.ui-drop--page\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+
+    it('is solid where nothing else is said, so an engine that cannot blur shows no page text across the words', () => {
+      expect(rule).toMatch(/background:\s*var\(--bg\)\s*;/);
+      expect(rule).not.toMatch(/color-mix|rgba|transparent|opacity|backdrop-filter/);
+    });
+
+    it('is slightly transparent and blurred from kit tokens where the engine can blur, with the prefixed property too', () => {
+      expect(supports, 'the @supports branch is missing').not.toBe('');
+      expect(supports).toMatch(/background:\s*color-mix\(in srgb, var\(--bg\) 80%, transparent\)\s*;/);
+      expect(supports).toMatch(/(?<!-webkit-)backdrop-filter:\s*blur\(var\(--space-2\)\)\s*;/);
+      expect(supports).toMatch(/-webkit-backdrop-filter:\s*blur\(var\(--space-2\)\)\s*;/);
+    });
+
+    it('goes back to the solid ground and no blur when the reader asks for less transparency, after the branch that blurs', () => {
+      expect(reduced, 'the reduced-transparency rule is missing').not.toBe('');
+      expect(reduced).toMatch(/background:\s*var\(--bg\)\s*;/);
+      expect(reduced).toMatch(/(?<!-webkit-)backdrop-filter:\s*none\s*;/);
+      expect(reduced).toMatch(/-webkit-backdrop-filter:\s*none\s*;/);
+      expect(css.indexOf('prefers-reduced-transparency')).toBeGreaterThan(css.indexOf('@supports (backdrop-filter'));
+    });
+
+    it('leaves the blank page\'s area alone: no ground change on the area without the layer modifier', () => {
+      const area = css.split('\n').filter((line) => /^\.ui-drop--area/.test(line)).join('\n');
+      expect(area).not.toMatch(/backdrop-filter|color-mix|background/);
+    });
   });
 
   it('takes its edge and radius from the area it enlarges', () => {

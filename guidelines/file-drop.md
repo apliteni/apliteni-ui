@@ -6,7 +6,7 @@
 
 **Rule:** At rest, a file drop is one row: the button that opens the picker and the accepted types beside it.
 
-**Why:** A tall box holds the page's best space open for a file that arrives once a month.
+**Why:** A tall box holds the page's best space for a file that arrives once a month.
 
 **Do:** Put an Upload button and “PDF or CSV, up to 10 MB” on one line above the list they feed.
 
@@ -26,7 +26,7 @@
 
 **Don't:** Cover the whole window when one panel accepts the file.
 
-**Except:** A page that takes files anywhere may cover the whole page. Artur chose this on #458.
+**Except:** A page that takes files anywhere may cover the whole page, slightly transparent and blurred over a table. Artur chose this on #458.
 
 ## Keep the file in the row it arrived in
 
@@ -34,7 +34,7 @@
 
 **Rule:** After the drop, the file's name, size and progress take the place the button was in, with remove on the name's line.
 
-**Why:** A row that changes in place keeps the page still while the file uploads.
+**Why:** A row that changes in place keeps the page still during the upload.
 
 **Do:** Put remove at the end of the name's line, the size under it, and the progress track below both.
 
@@ -82,7 +82,7 @@
 
 **Rule:** Use a row where the file joins a list on the page, a region when one panel owns the file, and a dialog only when the upload needs answers of its own.
 
-**Why:** A dialog that asks nothing is one more thing to dismiss. The rule chooses between containers, so a drawing would show one, not the choice.
+**Why:** A dialog that asks nothing is one more thing to dismiss. A drawing would show one container, not the choice.
 
 **Do:** Take a statement into the row under the statements it joins.
 

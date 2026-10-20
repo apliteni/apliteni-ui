@@ -92,8 +92,10 @@
 /* The whole page as a target, drawn only while a file is dragged over the page. It is the
    empty page's drop area made large: the same dashed accent edge and radius, holding the upload
    glyph, a line that says to drop the files and the accepted types, laid over the page content below
-   the topbar. Its ground is opaque, so no row of a long list reads across the words. The layer
-   takes no pointer events, so the drop lands on what is under it. */
+   the topbar. Its ground is the page ground, slightly transparent and blurred, so the table shows
+   through softly and no row stays sharp under the words. Where the engine cannot blur the backdrop,
+   or the reader asks for less transparency, the ground is solid. The layer takes no pointer events,
+   so the drop lands on what is under it. */
 .ui-drop--page {
   position: fixed;
   inset: calc(var(--ui-app-band, 0px) + var(--ui-app-top, 0px) + var(--space-4)) var(--space-4) var(--space-4);
@@ -103,4 +105,18 @@
   justify-content: center;
   pointer-events: none;
   background: var(--bg); /* code-bg: inherit — the layer holds no focus target and takes no pointer. */
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .ui-drop--page {
+    background: color-mix(in srgb, var(--bg) 80%, transparent); /* code-bg: inherit — the layer holds no focus target and takes no pointer. */
+    -webkit-backdrop-filter: blur(var(--space-2));
+    backdrop-filter: blur(var(--space-2));
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .ui-drop--page {
+    background: var(--bg); /* code-bg: inherit — the layer holds no focus target and takes no pointer. */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }

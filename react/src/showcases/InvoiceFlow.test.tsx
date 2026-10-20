@@ -134,10 +134,11 @@ describe('invoice flow prototype', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('No files were added');
     expect(screen.queryByRole('link', { name: 'notes.txt' })).not.toBeInTheDocument();
   });
-  it('draws the empty page\'s drop area, enlarged, with an opaque ground so no row of a long list reads across it', () => {
+  it('draws the empty page\'s drop area, enlarged, over a blurred, slightly transparent ground', () => {
     /* #458: Artur chose the empty area's dashed accent edge for the whole-page drop. The layer is that
-     * area's own markup, so its edge, radius, glyph and words are the kit's. Its ground is the page
-     * ground in full: at 90% the rows behind it still showed at 1.2:1 and crossed the glyph. */
+     * area's own markup, so its edge, radius, glyph and words are the kit's. Artur then asked for the
+     * table page: "When table - use slightly transparent and blurred background for drop zone". The
+     * ground is the kit's own page-layer modifier, and the showcase adds no paint to it. */
     const { container } = render(<InvoiceFlow initialState="table" />);
     windowDrag('dragenter');
     const layer = container.querySelector('.ui-drop--page')!;
@@ -147,8 +148,10 @@ describe('invoice flow prototype', () => {
     expect(layer.querySelector('.ui-empty__sub')).toHaveTextContent('PDF, PNG or JPEG.');
     // Words only: the layer takes no pointer, so a button in it could not be pressed.
     expect(layer.querySelector('button, .ui-empty__actions, .ui-card')).toBeNull();
-    const rule = /\.ui-drop--page\s*\{([^}]*)\}/.exec(readFileSync(path.join(process.cwd(), '../src/styles/file-drop.css'), 'utf8'))?.[1] ?? '';
-    expect(rule).toMatch(/background:\s*var\(--bg\)\s*;/);
+    expect(layer).not.toHaveAttribute('style');
+    const sheet = readFileSync(path.join(process.cwd(), '../src/styles/file-drop.css'), 'utf8');
+    expect(/\.ui-drop--page\s*\{([^}]*)\}/.exec(sheet)?.[1] ?? '').toMatch(/background:\s*var\(--bg\)\s*;/);
+    expect(sheet).toMatch(/backdrop-filter:\s*blur\(var\(--space-2\)\)/);
   });
   it('shows no layer for text or a link dragged over the page, and none on a record', async () => {
     const user = userEvent.setup();

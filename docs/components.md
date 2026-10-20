@@ -928,7 +928,7 @@ disabled area accepts nothing.
 markup, `.ui-drop.ui-drop--area.is-dragging`, and it becomes that area made large: a fixed box
 inset from the window and below the topbar, with the same dashed accent edge and radius, holding an
 `EmptyState` with the upload glyph, a line that says to drop the files and the accepted types.
-**Its ground is opaque, so no page text reads across the words.** The layer takes no pointer
+**Its ground is the page ground, slightly transparent and blurred, so the table shows through softly and no row stays sharp under the words.** Where the browser cannot blur what is behind, or the reader asks for less transparency, the ground is solid. The layer takes no pointer
 events, so the page keeps working under it. **Mount it only while a file is dragged over the page.** It has no fade and no rise, so reduced motion needs no
 second path. The page owns the drag logic, and its own Upload button stays the keyboard path.
 React ships no component for the layer.
