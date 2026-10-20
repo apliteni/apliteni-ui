@@ -6,9 +6,16 @@ and the [guidelines](guidelines/overview.md).
 
 ## Design review
 
-A design review of this repository takes its system from this file. The declared system is the kit. It has four parts. These are [foundations](docs/foundations.md), [components](docs/components.md), the [guidelines](guidelines/overview.md) and the token files that the package exports as `./tokens`, `./accents` and `./brand`. Resolve a token to its real value in those files.
+A design review of this repository takes its system from this file. The declared system is the kit.
+It has four parts. These are [foundations](docs/foundations.md), [components](docs/components.md),
+the [guidelines](guidelines/overview.md) and the token files that the package exports as `./tokens`,
+`./accents` and `./brand`. Resolve a token to its real value in those files.
 
-A showcase or a component story may place kit parts with layout glue. Its own CSS for paint, type or motion, a re-declared token, or a restyled kit class is a violation of the declared system. Report it as a defect with the file and the declaration. Name the result of `stories/story-css.test.js` and of `react/src/story-css.test.ts`. A glue entry in a gate's allow-list stands only with its reason. [Changes](#changes) holds the rule itself.
+A showcase or a component story may place kit parts with layout glue. Its own CSS for paint, type or
+motion, a re-declared token, or a restyled kit class is a violation of the declared system. Report
+it as a defect with the file and the declaration. Name the result of `stories/story-css.test.js` and
+of `react/src/story-css.test.ts`. A glue entry in a gate's allow-list stands only with its reason.
+[Changes](#changes) holds the rule itself.
 
 ## Data handling
 
