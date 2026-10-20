@@ -8,6 +8,8 @@ import { Modal } from './Modal';
 // @ts-expect-error -- shared CSS token resolver is JavaScript.
 import { tokensFor, substitute } from '../../stories/lib/contrast.js';
 import { KeyValueList, DrawerSection } from './KeyValueList';
+import { Dropdown } from './Dropdown';
+import { SelectField, TextField } from './Field';
 
 afterEach(() => {
   cleanup();
@@ -109,20 +111,36 @@ it.each(['light', 'dark'])('keeps drawer spacing local in %s', theme => {
   }
 });
 
-// jsdom resolves the declared alignment and weight; the browser captures measure the lines.
-it.each(['light', 'dark'])('aligns a control value with its label only when asked, in %s', theme => {
+// jsdom resolves the declared alignment; the browser captures measure the lines.
+const controlRows = [
+  { label: 'Reference', value: 'INV-1001' },
+  { label: 'Status', value: <Dropdown label="Status" items={[{ label: 'Open', value: 'open' }]} /> },
+  { label: 'Currency', value: <SelectField label="Currency"><option>EUR</option></SelectField> },
+  { label: 'Note', value: <TextField label="Note" defaultValue="Paid by wire" /> },
+];
+const drawerSheet = () => ['../../src/styles/drawer.css', './KeyValueList.css']
+  .map(path => readFileSync(new URL(path, import.meta.url), 'utf8')).join('\n');
+const alignments = (css: string, theme: string) => {
   const style = document.createElement('style');
   style.dataset.kvTest = '';
-  style.textContent = substitute(['../../src/styles/drawer.css', './KeyValueList.css']
-    .map(path => readFileSync(new URL(path, import.meta.url), 'utf8')).join('\n'), tokensFor(theme));
+  style.textContent = substitute(css, tokensFor(theme));
   document.head.appendChild(style);
-  const rows = [{ label: 'Status', value: <button type="button">Open</button> }];
-  const { container } = render(<><KeyValueList rows={rows} /><KeyValueList rows={rows} align="control" /></>);
-  const [plain, aligned] = container.querySelectorAll('dl.ui-kv');
-  expect(plain).not.toHaveClass('ui-kv--control');
-  expect(getComputedStyle(plain).alignItems).not.toBe('baseline');
-  expect(aligned).toHaveClass('ui-kv--control');
-  expect(getComputedStyle(aligned).alignItems).toBe('baseline');
+  const { container } = render(<KeyValueList rows={controlRows} />);
+  return [...container.querySelectorAll('.ui-drawer__row')]
+    .map(row => [...row.querySelectorAll(':scope > dt, :scope > dd')].map(cell => getComputedStyle(cell).alignSelf));
+};
+
+it.each(['light', 'dark'])('aligns a label with a field or dropdown value by itself, and leaves text rows alone, in %s', theme => {
+  const [text, ...controls] = alignments(drawerSheet(), theme);
+  expect(text).not.toContain('baseline');
+  expect(controls).toHaveLength(3);
+  for (const cells of controls) expect(cells).toEqual(['baseline', 'baseline']);
+});
+
+it('the alignment check rejects a sheet without the control row rule', () => {
+  const without = drawerSheet().replace(/\.ui-drawer__row:has\([^{]*\{[^}]*\}/, '');
+  expect(without).not.toBe(drawerSheet());
+  expect(alignments(without, 'light').flat()).not.toContain('baseline');
 });
 
 it.each(['light', 'dark'])('sets the modal title in semibold strong ink in %s', theme => {

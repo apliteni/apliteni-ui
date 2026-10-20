@@ -82,16 +82,14 @@ export function drawer({
  * @param {Array<[string, string | { html: string }]>} [o.rows]  [label, value] pairs. Both are
  *   escaped, since a value is usually data (a bank feed's description); pass the value as
  *   `{ html: '…' }` to write trusted markup as it is
- * @param {'control'} [o.align]  `'control'` lines each label up with the first text line of a
- *   control value (a dropdown, a text field, a select); unset keeps the label at the row's top
  * @param {string} [o.body]   trailing markup after the rows (trusted)
  * @returns {string} html
  */
-export function drawerSection({ title, rows = [], align, body = '' } = {}) {
+export function drawerSection({ title, rows = [], body = '' } = {}) {
   const head = title ? `<h3 class="ui-drawer__section-title">${esc(title)}</h3>` : '';
   const value = (v) => (v !== null && typeof v === 'object' && 'html' in v ? String(v.html) : esc(v));
   const list = rows.length
-    ? `<dl class="ui-drawer__rows${align === 'control' ? ' ui-drawer__rows--control' : ''}">${rows.map(([term, detail]) =>
+    ? `<dl class="ui-drawer__rows">${rows.map(([term, detail]) =>
       `<div class="ui-drawer__row"><dt>${esc(term)}</dt><dd>${value(detail)}</dd></div>`).join('')}</dl>`
     : '';
   return `<section class="ui-drawer__section">${head}${list}${body}</section>`;

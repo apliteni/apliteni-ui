@@ -233,10 +233,12 @@
   overflow-wrap: anywhere;
 }
 /* A control in the value column has its own border and padding, so its first line sits lower
-   than a label's. Baseline alignment lines both first lines up whatever the control is. At 560px
-   and below the label stacks over the value and there is nothing to align. */
-.ui-drawer__rows--control,
-.ui-kv--control { align-items: baseline; }
+   than a label's. A row whose value holds a field or a dropdown lines both first lines up on
+   their baseline, whatever the control is, and a row of text keeps its place. At 560px and
+   below the label stacks over the value and there is nothing to align. A field's own label
+   stays for a screen reader only: the row's label already names the value. */
+.ui-drawer__row:has(> dd :is(.ui-input, .ui-textarea, .ui-select, .ui-dropdown)) > :is(dt, dd) { align-self: baseline; }
+.ui-drawer__row > dd .ui-field__label { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .ui-drawer__row dt { color: var(--text); }
 .ui-drawer__row dd { color: var(--text); font-variant-numeric: tabular-nums; }
 .ui-drawer .ui-drawer__rows + *,

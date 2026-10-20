@@ -126,7 +126,7 @@ what a factory accepts. They do not describe what the factory does.
 
 | Name | What it is |
 |------|------------|
-| `drawer({ side, size, title, body, footer, open, specimen, dismissible })` + `wireDrawer`, `openDrawer`, `closeDrawer`, and `drawerSection({ title, rows, align, body })` for one group of its body | Panel against a screen edge, over a scrim. See [The drawer](#the-drawer). |
+| `drawer({ side, size, title, body, footer, open, specimen, dismissible })` + `wireDrawer`, `openDrawer`, `closeDrawer`, and `drawerSection({ title, rows, body })` for one group of its body | Panel against a screen edge, over a scrim. See [The drawer](#the-drawer). |
 | `confirm({ title, body, confirmLabel, cancelLabel, variant, open, specimen, id })` + `wireConfirm`, `openConfirm`, `closeConfirm` | Modal question over a scrim, for a destructive action the page has to stop for. |
 | `tooltip({ label, value, detail, placement, open, x, y, id })` + `wireTooltip`, `showTooltip`, `hideTooltip` | The readout over a chart mark, on hover or tap. See [The hover readout](#the-hover-readout). |
 
@@ -484,7 +484,7 @@ A drawer is a panel against one edge of the screen. It appears over a scrim. It 
 look at or change one thing without leaving the list that opened it. **It groups by heading, never
 by card:** `drawerSection()` puts a heading above a `<dl>` of label and value pairs. A screen reader
 then hears each label with its value. The value stays beside its label instead of moving to the far
-edge of the panel. When a value is a control, pass `align: 'control'` to `drawerSection()`, or `align="control"` to React `KeyValueList`, and the label sits on the control's first line of text. Nothing inside a drawer draws a card, a row rule or an `<hr>`. Actions stay
+edge of the panel. A row whose value is a field or a dropdown lines its label up with the control's first line of text, with no option to set. Nothing inside a drawer draws a card, a row rule or an `<hr>`. Actions stay
 outside the scrolling body. **It moves on open and on close**, and both movements are instant when
 reduced motion is enabled. For when a flow should use a drawer or a page:
 [Drawer](../guidelines/drawer.md).
