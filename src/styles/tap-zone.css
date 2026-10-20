@@ -171,6 +171,9 @@
 
   /* The selection box is 19px in a 58px row and a 34px header: the layer has room to reach the floor both ways. */
   .ui-table__selection { --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-min); }
+  /* A dense or compact table's rows are 33px to 40px apart and share an edge, so a layer that grows down takes the pixels nearest the next row's box. Those rows keep the 24px floor. */
+  .ui-table--dense .ui-table__selection,
+  .ui-table--compact .ui-table__selection { --tap-clear-y: 0px; }
 
   /* Down only, like the nine rows below: a toast is a full row at this width,
      and opening it across took 24px out of the message for no reach at all —

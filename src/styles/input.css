@@ -231,16 +231,18 @@
 .ui-table__selection input[type="checkbox"]:indeterminate::after {
   content: "";
   position: absolute;
-  left: 3px; top: 7px;
-  width: 10px; height: 0;
+  inset: 0;
+  margin: auto;
+  width: 11px; height: 0; /* odd, so the 17px padding box splits into equal gaps */
   border: solid var(--accent-contrast);
   border-width: 2px 0 0;
   transform: none;
 }
-/* White ink falls below 3:1 on the lighter dark-theme accents, so the tick and the
-   dash take the ink a selected Segmented pill takes there. */
+/* White ink falls below 3:1 on the lighter dark-theme accents, so the tick, the dash and
+   the radio's dot take the ink a selected Segmented pill takes there. */
 :where(:root[data-theme="dark"]) .ui-check input[type="checkbox"]:enabled:is(:checked, :indeterminate)::after,
 :where(:root[data-theme="dark"]) .ui-table__selection input[type="checkbox"]:enabled:is(:checked, :indeterminate)::after { border-color: var(--signal-contrast); }
+:where(:root[data-theme="dark"]) .ui-check input[type="radio"]:enabled:checked::after { background: var(--signal-contrast); }
 .ui-check input[type="checkbox"]:disabled:indeterminate,
 .ui-table__selection input[type="checkbox"]:disabled:indeterminate { background: var(--disabled-ink); border-color: var(--disabled-ink); }
 .ui-check input[type="checkbox"]:disabled:indeterminate::after,
@@ -257,7 +259,7 @@
   .ui-table__selection input[type="checkbox"]:disabled:is(:checked, :indeterminate) { border-color: GrayText; }
   .ui-check input[type="checkbox"]:disabled:is(:checked, :indeterminate)::after,
   .ui-table__selection input[type="checkbox"]:disabled:is(:checked, :indeterminate)::after { border-color: GrayText; }
-  .ui-check input[type="radio"]:checked::after { background: CanvasText; }
+  .ui-check input[type="radio"]:enabled:checked::after { background: CanvasText; }
   .ui-check input[type="radio"]:disabled:checked::after { background: GrayText; }
 }
 /* The label is the click target, so the cursor belongs on it, and the words it

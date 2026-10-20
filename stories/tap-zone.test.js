@@ -553,7 +553,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
   // Plus the rows no story puts on screen, and two a consumer would write.
   const fixtures = await rowFixtures();
   assert.ok(
-    fixtures.length >= 10,
+    fixtures.length >= 13,
     `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
     + 'could not see, and a list that shrank would quietly give that coverage back.',
   );
@@ -642,6 +642,65 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
         + '--tap-clear-y it really gives.',
       );
       t.diagnostic(`colliding pairs: ${was.size} without the sheet, ${now.size} with it`);
+    });
+
+    // The selection boxes of a selectable table in each density, which no story renders in
+    // compact. A box is 19px and its layer reaches 44 down only where the rows are far
+    // enough apart: 58px default, 33px compact, so the dense and compact rows must stay at
+    // the 24px floor down (#619). The limit: only the four centre lines of each control are
+    // walked, and a layer that reaches a neighbour only past a corner is not seen.
+    // Scoped to these fixtures on purpose: other families already hand a neighbour a point
+    // nearer its box (a nav item and the filter chip beside it, two switches in a drawer),
+    // and widening this check to them is a separate decision for each of those sheets.
+    const SELECTABLE = /^fixture:selectable-/;
+    const stolenIn = (rows) => rows.filter((r) => SELECTABLE.test(r.story))
+      .flatMap((r) => r.stolen.map((w) => `${r.story} — ${name(r)} ${w}`));
+
+    await t.test('no selection layer takes a point nearer another row’s box than its own', () => {
+      const was = new Set(stolenIn(A));
+      const added = stolenIn(B).filter((p) => !was.has(p));
+      assert.deepEqual(
+        added, [],
+        `${added.length} control(s) own a point nearer a neighbour's box than their own. Two `
+        + 'layers that overlap hand each other the pixels nearest the other box, so a tap just '
+        + 'below one row’s checkbox selects the next row. Keep the layer inside the room the '
+        + 'rows leave: a table that shares an edge between rows grows no layer down.',
+      );
+    });
+
+    await t.test('every density of a selectable table is measured, header and rows', () => {
+      const boxes = B.filter((b) => SELECTABLE.test(b.story) && b.cls === '' && b.tag === 'input');
+      for (const density of ['default', 'dense', 'compact']) {
+        const mine = boxes.filter((b) => b.story === `fixture:selectable-${density}`);
+        assert.equal(
+          mine.length, 5,
+          `${density}: ${mine.length} selection boxes measured, 5 expected (the header's and four `
+          + 'rows’). A table that was not measured proves nothing about its rows.',
+        );
+        const reach = mine.map((b) => b.reach[1]);
+        t.diagnostic(`${density}: layer reaches ${reach.join(', ')} px tall`);
+        // The floor, not 44: a dense row must not buy its height with a neighbour's pixels.
+        for (const b of mine) assert.ok(b.floorMiss === 0 || density !== 'default', `${density} box short of the floor: ${b.reach.join('x')}`);
+        for (const b of mine) assert.ok(b.reach[1] >= 24 - 0.5, `${density} box reaches ${b.reach[1]}px tall, under the 24px floor.`);
+      }
+    });
+
+    await t.test('a selection layer that grows down in a compact or dense table is rejected', async () => {
+      const broken = withCss.replace(
+        /\.ui-table--dense \.ui-table__selection,\s*\.ui-table--compact \.ui-table__selection \{[^}]*\}/,
+        '',
+      );
+      assert.notEqual(broken, withCss, 'The mutation did not apply, so it proves nothing.');
+      const mutated = flatten((await at(390, true, broken)).rows);
+      const was = new Set(stolenIn(A));
+      const added = stolenIn(mutated).filter((p) => !was.has(p));
+      assert.ok(
+        added.some((p) => /selectable-compact/.test(p)) && added.some((p) => /selectable-dense/.test(p)),
+        'A selection layer reaching 44px down in a dense and a compact table took no point from '
+        + 'the box beside it, so the check above would pass over the defect it was written for. '
+        + `Saw: ${added.slice(0, 4).join('; ') || 'nothing'}`,
+      );
+      t.diagnostic(`a 44px selection layer takes ${added.length} point(s) from a neighbour — the check rejects it`);
     });
 
     await t.test('the floor is reached where the layout has the room', () => {
