@@ -18,6 +18,7 @@ import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
+import { classesIn, pruneSheet } from './prune-sheet.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -418,12 +419,22 @@ export function makeStyleCache(win) {
   // Every DOM write goes through here, so a write cannot be made without the
   // memo being dropped. `finally`, so a write that throws half-done cannot
   // leave a memo describing the document as it was before it.
-  const mutate = (write) => {
+  //
+  // `scope` is an element whose attribute is the only thing written. When no rule can reach
+  // upward (:has) or sideways (+ and ~), only that element and what is below it can change,
+  // so the memo keeps every other node. The caller states that with `scope`; it does not
+  // widen the write.
+  const mutate = (write, scope = null) => {
     try {
       return write();
     } finally {
       seen.routedWrites += watcher.takeRecords().length;
-      memo = new WeakMap();
+      if (scope) {
+        memo.delete(scope);
+        for (const node of scope.querySelectorAll('*')) memo.delete(node);
+      } else {
+        memo = new WeakMap();
+      }
     }
   };
   return { of, mutate, seen };
@@ -662,6 +673,30 @@ export function stateTargets(root, bases) {
   return targets;
 }
 
+/**
+ * True when a rule that reads the state attribute could restyle something outside the subtree of the
+ * element that carries it: the attribute sits inside a :has(), or a + or ~ combinator follows it.
+ * Only a selector that names data-ui-state can be moved by the walk's one write.
+ */
+export function reachesBeyondSubtree(doc) {
+  let css = '';
+  for (const el of doc.querySelectorAll('style')) css += el.textContent;
+  for (const [, prelude] of css.matchAll(/(?:^|[{};])([^{};]*data-ui-state[^{};]*)\{/g)) {
+    for (const hit of prelude.matchAll(/\[data-ui-state/g)) {
+      const before = prelude.slice(0, hit.index);
+      const open = [];
+      for (let k = 0; k < before.length; k += 1) {
+        if (before[k] === '(') open.push(before.slice(Math.max(0, k - 4), k) === ':has');
+        else if (before[k] === ')') open.pop();
+      }
+      if (open.includes(true)) return true;
+      const after = prelude.slice(hit.index).replace(/\[[^\]]*\]/g, '').replace(/"[^"]*"|'[^']*'/g, '');
+      if (/[+~]/.test(after)) return true;
+    }
+  }
+  return false;
+}
+
 export async function walkStories({ theme, accent = 'default', states = true, files = storyFiles } = {}) {
   const { vars, css } = kitCssFor(theme, accent);
   const kitBases = stateBases(css);
@@ -674,6 +709,7 @@ export async function walkStories({ theme, accent = 'default', states = true, fi
     { pretendToBeVisual: true, virtualConsole: quiet },
   );
   const win = dom.window;
+  const sheetEl = win.document.head.querySelector('style');
   // Plenty of stories build their markup with document.createElement (the
   // feedback demo, the icon grid, the motion playground). Give them a real DOM
   // to build in, exactly as stories/a11y.test.js does, or ten stories throw
@@ -717,11 +753,17 @@ export async function walkStories({ theme, accent = 'default', states = true, fi
       // speak var(), and JSDOM does not resolve var(). Skip this and a dozen
       // story-local surfaces resolve to garbage.
       const html = desugar(substitute(raw, vars));
-      styles.mutate(() => { win.document.body.innerHTML = html; });
+      // Only the rules this story's classes can reach are left for JSDOM to test on every read.
+      styles.mutate(() => {
+        win.document.body.innerHTML = html;
+        sheetEl.textContent = pruneSheet(css, classesIn(win.document.documentElement));
+      });
 
       // A story-local :hover rule lives in the story's own <style> block and is
       // invisible to the kit stylesheet's bases. Derive from both.
       const bases = Object.fromEntries(STATES.map((s) => [s, new Set(kitBases[s])]));
+      const reachesOut = reachesBeyondSubtree(win.document);
+
       if (states) {
         for (const styleEl of win.document.body.querySelectorAll('style')) {
           const local = stateBases(styleEl.textContent || '');
@@ -735,7 +777,7 @@ export async function walkStories({ theme, accent = 'default', states = true, fi
 
       const atRest = new Map();
       for (const [el, state] of targets) {
-        if (state) styles.mutate(() => el.setAttribute('data-ui-state', state));
+        if (state) styles.mutate(() => el.setAttribute('data-ui-state', state), reachesOut ? null : el);
         for (const t of (state ? [el, ...el.querySelectorAll('*')] : [el])) {
           if (!hasOwnText(t)) continue;
           if (t.tagName === 'STYLE' || t.tagName === 'SCRIPT') continue;
@@ -808,7 +850,7 @@ export async function walkStories({ theme, accent = 'default', states = true, fi
             fg: cs.color, bg: bgCss, ratio: r, need, unjudgeable: null,
           });
         }
-        if (state) styles.mutate(() => el.removeAttribute('data-ui-state'));
+        if (state) styles.mutate(() => el.removeAttribute('data-ui-state'), reachesOut ? null : el);
       }
     }
   }

@@ -22,6 +22,7 @@ import {
   makeStyleCache,
   mergeWalks,
   parseColour,
+  reachesBeyondSubtree,
   ratio,
   specialiseContextual,
   kitCssFor,
@@ -279,6 +280,48 @@ test('a DOM write through the cache drops the memo, so a state is never read sta
   styles.mutate(() => el.removeAttribute('data-ui-state'));
   assert.equal(styles.of(el).backgroundColor, 'rgb(10, 20, 30)', 'back at rest, not the memoised hover colour');
   win.close();
+});
+
+test('a write scoped to an element drops that element and its descendants and keeps the rest', () => {
+  const win = new JSDOM(
+    '<!doctype html><html><head><style>.out{color:rgb(1,2,3)}.in{color:rgb(4,5,6)}'
+    + '.in[data-ui-state~="hover"]{color:rgb(7,8,9)}</style></head>'
+    + '<body><p class="out" id="o">o</p><div class="in" id="i"><span class="in" id="c">c</span></div></body></html>',
+    { pretendToBeVisual: true },
+  ).window;
+  const styles = makeStyleCache(win);
+  const [outside, inside, child] = ['o', 'i', 'c'].map((id) => win.document.getElementById(id));
+  for (const el of [outside, inside, child]) styles.of(el);
+  const real = win.getComputedStyle.bind(win);
+  const asked = [];
+  win.getComputedStyle = (node) => { asked.push(node.id); return real(node); };
+  styles.mutate(() => inside.setAttribute('data-ui-state', 'hover'), inside);
+  assert.equal(styles.of(inside).color, 'rgb(7, 8, 9)', 'the scoped element is read again');
+  styles.of(child);
+  styles.of(outside);
+  assert.deepEqual(asked, ['i', 'c'], 'a node outside the scope was asked for again');
+  win.close();
+});
+
+test('a write scoped to an element still refuses a write that bypassed mutate', () => {
+  const win = boxWindow('.box{color:red}');
+  const styles = makeStyleCache(win);
+  const el = win.document.getElementById('b');
+  styles.of(el);
+  el.setAttribute('data-ui-state', 'hover');
+  assert.throws(() => styles.of(el), /bypassed the style cache/);
+  win.close();
+});
+
+test('reachesBeyondSubtree is true only for a state rule that goes up or sideways', () => {
+  const reach = (css) => reachesBeyondSubtree(new JSDOM(`<style>${css}</style>`).window.document);
+  assert.equal(reach('.a[data-ui-state~="hover"] .b{color:red}'), false, 'a descendant stays inside');
+  assert.equal(reach('.a:has(> .b)[data-ui-state~="hover"]{color:red}'), false, ':has on the carrier is not outward');
+  assert.equal(reach('.a{margin:calc(1px + 2px)}.a + .b{color:red}'), false, 'a sibling rule that ignores the state');
+  assert.equal(reach('.a:has(b[data-ui-state~="hover"]){color:red}'), true, 'an ancestor reads the state through :has');
+  assert.equal(reach('.a[data-ui-state~="hover"] + .b{color:red}'), true, 'a next sibling');
+  assert.equal(reach('.a[data-ui-state~="hover"] ~ .b{color:red}'), true, 'a later sibling');
+  assert.equal(reach('@media (min-width:1px){.a:has(b[data-ui-state]){color:red}}'), true, 'inside an at-rule');
 });
 
 test('the memo is dropped even when the DOM write throws', () => {
