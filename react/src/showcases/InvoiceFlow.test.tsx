@@ -35,6 +35,11 @@ const rowStatus = (filename: string) => {
   return within(row).getByText(/^(Uploading|Parsing|Needs review|Ready)$/).textContent;
 };
 
+/* The form's own Undo. A save also raises a toast with an Undo of its own, and the toast
+ * outlives the screen it was raised on, so the name alone no longer picks one button. */
+const formUndo = () => within(screen.getByRole('region', { name: 'Invoice data' })).getByRole('button', { name: 'Undo' });
+const toastUndo = () => within(document.querySelector<HTMLElement>('.ui-toast')!).getByRole('button', { name: 'Undo' });
+
 describe('invoice flow prototype', () => {
   it('adds multiple selected files, including repeated filenames, without replacing rows', async () => {
     const user = userEvent.setup();
@@ -110,12 +115,12 @@ describe('invoice flow prototype', () => {
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
     expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Cedar Design Studio');
     await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(screen.getByText('Saved.')).toBeInTheDocument();
+    expect(screen.getByText('Saved')).toBeInTheDocument();
     expect(within(screen.getByRole('article')).getByText('Cedar Studio')).toBeInTheDocument();
     await backToList(user);
     expect(rowStatus('cedar-1042.pdf')).toBe('Ready');
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
-    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await user.click(formUndo());
     expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Cedar Studio');
     await backToList(user);
     expect(rowStatus('cedar-1042.pdf')).toBe('Needs review');
@@ -130,8 +135,8 @@ describe('invoice flow prototype', () => {
     const supplier = screen.getByRole('textbox', { name: 'Supplier' });
     await user.clear(supplier); await user.type(supplier, 'Birch Joinery');
     await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(screen.getByText('Saved.')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+    await user.click(formUndo());
     expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Birch Workshop');
     await backToList(user);
     expect(rowStatus('birch-208.pdf')).toBe('Ready');
@@ -143,7 +148,7 @@ describe('invoice flow prototype', () => {
     await user.type(screen.getByRole('textbox', { name: 'Supplier' }), ' Ltd');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     await user.click(screen.getByRole('button', { name: 'Save' }));
-    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await user.click(formUndo());
     expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Birch Workshop');
     await backToList(user);
     expect(rowStatus('birch-208.pdf')).toBe('Ready');
@@ -173,7 +178,7 @@ describe('invoice flow prototype', () => {
     const total = screen.getByRole('spinbutton', { name: 'Total (EUR)' });
     await user.clear(total); await user.type(total, amount);
     await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(screen.queryByText('Saved.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Saved')).not.toBeInTheDocument();
     expect(total).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByText('Enter an amount of 0.01 or more, written to the cent.')).toBeInTheDocument();
     expect(summaryAlert()).toHaveTextContent('Check the highlighted fields');
@@ -203,26 +208,26 @@ describe('invoice flow prototype', () => {
     const total = screen.getByRole('spinbutton', { name: 'Total (EUR)' });
     await user.clear(total); await user.type(total, amount);
     await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(screen.getByText('Saved.')).toBeInTheDocument();
+    expect(screen.getByText('Saved')).toBeInTheDocument();
     expect(total).not.toHaveAttribute('aria-invalid', 'true');
     await backToList(user);
     expect(rowStatus('cedar-1042.pdf')).toBe('Ready');
     expect(screen.getByText(listed)).toBeInTheDocument();
   });
-  it('withdraws the saved line when the next save is rejected', async () => {
-    /* A save line is the one thing a reviewer trusts; it may not report a save that failed.
-     * With the status badge gone, the standing edits show in the action the row offers:
+  it('raises no toast when the next save is rejected', async () => {
+    /* A rejected save may not report a save that did not happen. With the status badge gone, the standing edits show in the action the row offers:
      * Discard, not Undo. */
     const user = userEvent.setup();
     render(<InvoiceFlow initialState="table" />);
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
     await user.type(screen.getByRole('textbox', { name: 'Supplier' }), ' Ltd');
     await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(screen.getByText('Saved.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Undo' })).toBeEnabled();
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+    expect(formUndo()).toBeEnabled();
     await user.clear(screen.getByRole('textbox', { name: 'Supplier' }));
     await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(screen.queryByText('Saved.')).not.toBeInTheDocument();
+    // The rejected save raised no second toast: the one on screen is the earlier save's.
+    expect(screen.getAllByText('Saved')).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'Discard' })).toBeEnabled();
     expect(summaryAlert()).toHaveTextContent('Check the highlighted fields');
   });
@@ -246,19 +251,18 @@ describe('invoice flow prototype', () => {
     const summary = stepOf(/\.invoice-flow__summary\s*\{[^}]*margin:\s*0 0 var\((--space-\d+)\)/, 'the summary');
     expect(summary, `the summary (${summary}) takes the form's own step (${fields})`).toBe(fields);
   });
-  it('clears the saved line on the next edit, not on the next save', async () => {
-    /* The line says the values on screen are the saved ones. An edit makes that false at
-     * once, and waiting for the next save left "Saved." standing above a
-     * changed form beside Discard. Each of the three transient lines goes the same way. */
+  it('keeps the toast through an edit and clears the other lines on the next edit', async () => {
+    /* The toast says a save happened, which stays true after an edit, so it stays. The
+     * two lines that describe the values on screen go with the next edit. */
     const user = userEvent.setup();
     render(<InvoiceFlow initialState="table" />);
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
     const supplier = screen.getByRole('textbox', { name: 'Supplier' });
     await user.type(supplier, ' Ltd');
     await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(screen.getByText('Saved.')).toBeInTheDocument();
+    expect(screen.getByText('Saved')).toBeInTheDocument();
     await user.type(supplier, ' II');
-    expect(screen.queryByText('Saved.')).not.toBeInTheDocument();
+    expect(screen.getByText('Saved')).toBeInTheDocument();
     // The record is untouched by the edit, so Undo still has the save to undo.
     expect(screen.getByRole('button', { name: 'Discard' })).toBeEnabled();
     await user.click(screen.getByRole('button', { name: 'Discard' }));
@@ -266,7 +270,7 @@ describe('invoice flow prototype', () => {
     await user.type(supplier, '!');
     expect(screen.queryByText('Edits discarded.')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Discard' }));
-    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await user.click(formUndo());
     expect(screen.getByText('Last save undone.')).toBeInTheDocument();
     await user.type(supplier, '?');
     expect(screen.queryByText('Last save undone.')).not.toBeInTheDocument();
@@ -280,7 +284,7 @@ describe('invoice flow prototype', () => {
     expect(screen.queryByText('As parsed')).not.toBeInTheDocument();
     expect(screen.queryByText(/accent bar/i)).not.toBeInTheDocument();
     expect(screen.queryByText('Needs review')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Undo' })).toHaveClass('ui-btn--secondary');
+    expect(formUndo()).toHaveClass('ui-btn--secondary');
     // The kit's hint slot is what carried "As parsed"; no field may reclaim it.
     expect(container.querySelectorAll('.ui-field__hint')).toHaveLength(0);
   });
@@ -342,6 +346,83 @@ describe('invoice flow prototype', () => {
     expect(screen.getByText('Reading invoice…')).toBeInTheDocument();
     expect(within(screen.getByRole('article')).getByText('Cedar Studio')).toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'Supplier' })).not.toBeInTheDocument();
+  });
+  it.each([
+    ['uploading', 'Adding invoice…', 'Adding invoice cedar-1042.pdf.'],
+    ['parsing', 'Reading invoice…', 'Reading invoice cedar-1042.pdf.'],
+  ] as const)('B2: the %s pane states no preset sentence and announces the pending state', (state, title, announced) => {
+    const { container } = render(<InvoiceFlow initialState={state} />);
+    const pane = screen.getByRole('region', { name: 'Invoice data' });
+    expect(within(pane).getByText(title)).toBeInTheDocument();
+    // EmptyState's first-run sentence says new items appear when they need attention, which is not what a file being read means.
+    expect(pane.querySelector('.ui-empty__sub')).toBeNull();
+    expect(screen.queryByText(/New items will appear here/)).not.toBeInTheDocument();
+    const status = container.querySelector('[role="status"]')!;
+    expect(status).toHaveTextContent(announced);
+    // Read, not seen: the line is the kit's clipped text, so it takes no room in the page.
+    expect(status).toHaveClass('ui-sr');
+  });
+  it('B2: the status line follows the parser from uploading to reading', async () => {
+    const { container } = render(<InvoiceFlow initialState="uploading" simulate />);
+    expect(container.querySelector('[role="status"]')).toHaveTextContent('Adding invoice cedar-1042.pdf.');
+    await waitFor(() => expect(container.querySelector('[role="status"]')).toHaveTextContent('Reading invoice cedar-1042.pdf.'), { timeout: 2500 });
+  });
+  it('B3: the Document pane adds no weight of its own to the total or the descriptions', () => {
+    render(<InvoiceFlow initialState="review" />);
+    const paper = screen.getByRole('article');
+    // The saved values and their labels carry the weight; the source document carries none.
+    expect(paper.querySelector('.ui-table__num--strong')).toBeNull();
+    expect(paper.querySelector('.ui-table__title')).toBeNull();
+    expect(within(paper).getByText('\u20ac1,704.00')).toBeInTheDocument();
+    expect(within(paper).getByText('Brand identity refresh')).toBeInTheDocument();
+  });
+  it('B4: Save puts its confirmation in the kit toast, outside the page flow, with Undo', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<InvoiceFlow initialState="table" />);
+    await user.click(screen.getByRole('link', { name: 'birch-208.pdf' }));
+    const siblings = () => Array.from(container.querySelector('.invoice-flow__columns')!.parentElement!.children).map(node => node.className + node.tagName);
+    const layout = siblings();
+    await user.type(screen.getByRole('textbox', { name: 'Supplier' }), ' Ltd');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    const toast = document.querySelector<HTMLElement>('.ui-toast-stack .ui-toast')!;
+    expect(toast).toHaveTextContent('Saved');
+    expect(toast.closest('.ui-toast-stack')!.parentElement).toBe(document.body);
+    expect(container.contains(toast)).toBe(false);
+    // No line was added above the panes, so nothing under the pointer moved.
+    expect(siblings()).toEqual(layout);
+    expect(container.querySelector('[role="status"]')).toBeEmptyDOMElement();
+    await user.click(toastUndo());
+    expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Birch Workshop');
+    await waitFor(() => expect(document.querySelector('.ui-toast')).toBeNull());
+    await backToList(user);
+    expect(rowStatus('birch-208.pdf')).toBe('Ready');
+  });
+  it('B4: the toast Undo returns a Needs review record to Needs review', async () => {
+    const user = userEvent.setup();
+    render(<InvoiceFlow initialState="table" />);
+    await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
+    await user.type(screen.getByRole('textbox', { name: 'Supplier' }), ' Ltd');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await backToList(user);
+    expect(rowStatus('cedar-1042.pdf')).toBe('Ready');
+    // The toast is bound to its record, so it still undoes that save from the list.
+    await user.click(toastUndo());
+    expect(rowStatus('cedar-1042.pdf')).toBe('Needs review');
+    await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
+    expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Cedar Studio');
+  });
+  it('B4: a toast Undo does nothing once a later save has replaced the one it names', async () => {
+    const user = userEvent.setup();
+    render(<InvoiceFlow initialState="table" />);
+    await user.click(screen.getByRole('link', { name: 'birch-208.pdf' }));
+    const supplier = screen.getByRole('textbox', { name: 'Supplier' });
+    await user.type(supplier, ' Ltd');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await user.type(supplier, ' II');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    const first = document.querySelectorAll<HTMLElement>('.ui-toast')[0];
+    await user.click(within(first).getByRole('button', { name: 'Undo' }));
+    expect(supplier).toHaveValue('Birch Workshop Ltd II');
   });
 
   /* The picker uses the kit's drop-row button. Buttons use one or two words.

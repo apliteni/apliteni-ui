@@ -18,9 +18,6 @@
 .invoice-flow__summary { margin: 0 0 var(--space-6); }
 /* No margin: .ui-app__body is a flex column already carrying the page gap. */
 .invoice-flow__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin: 0; }
-/* The save line is a live region, so it exists before it has text and holds no space until then. */
-.invoice-flow__announcement { margin: 0; }
-.invoice-flow__announcement:empty { display: none; }
 
 .invoice-flow__paper { display: grid; gap: var(--space-5); }
 .invoice-flow__paper > * { margin: 0; }

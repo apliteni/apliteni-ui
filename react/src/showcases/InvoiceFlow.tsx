@@ -7,6 +7,7 @@ import { DrawerSection, KeyValueList } from '../KeyValueList';
 import { Badge } from '../primitives/Badge';
 import { Button } from '../primitives/Button';
 import { Callout } from '../primitives/Callout';
+import { Toast, useToast } from '../Toast';
 import './InvoiceFlow.css';
 
 type Status = 'Uploading' | 'Parsing' | 'Needs review' | 'Ready';
@@ -101,7 +102,12 @@ const validTotal = (value: string) => {
 const money = (value: string) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(Number(value));
 
 // Showcase state stays in memory; uploads and extraction never leave the browser.
-export function InvoiceFlow({ initialState = 'empty', simulate = false }: { initialState?: InvoiceState; simulate?: boolean }) {
+export function InvoiceFlow(props: { initialState?: InvoiceState; simulate?: boolean }) {
+  return <Toast><InvoiceScreen {...props} /></Toast>;
+}
+
+function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialState?: InvoiceState; simulate?: boolean }) {
+  const toast = useToast();
   const detail = ['uploading', 'parsing', 'review', 'editing', 'ready'].includes(initialState);
   const [invoices, setInvoices] = useState<Invoice[]>(() => {
     if (initialState === 'empty' || initialState === 'error') return [];
@@ -127,6 +133,12 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
   const dirty = !!invoice && JSON.stringify(draft) !== JSON.stringify(invoice.fields);
   const pending = invoice?.status === 'Uploading' || invoice?.status === 'Parsing';
   const [preview, setPreview] = useState<string>();
+  const latest = useRef(invoices);
+  latest.current = invoices;
+  /* The live region speaks for what is not on screen as text: a pane that is still loading
+     and the effect of an action whose result is already visible. It is read, not seen, so it
+     holds no space and nothing under it moves. */
+  const status = message || (invoice && pending ? `${invoice.status === 'Uploading' ? 'Adding' : 'Reading'} invoice ${invoice.filename}.` : '');
 
   useEffect(() => {
     if (!invoice?.file) { setPreview(undefined); return; }
@@ -172,14 +184,29 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
       // A rejected save saved nothing, so the success line goes with it.
       setInvalid(true); setMessage(''); return;
     }
+    // A save that changes nothing keeps the snapshot the previous one made, so pressing
+    // Save twice does not erase what Undo would restore.
+    const changes = JSON.stringify(draft) !== JSON.stringify(invoice.fields) || invoice.status !== 'Ready';
+    const before = changes ? { fields: invoice.fields, status: invoice.status } : invoice.previous;
+    const saved = { ...draft };
     setInvoices(rows => rows.map(row => {
       if (row.name !== invoice.name) return row;
-      // A save that changes nothing keeps the snapshot the previous one made, so pressing
-      // Save twice does not erase what Undo would restore.
-      const changes = JSON.stringify(draft) !== JSON.stringify(row.fields) || row.status !== 'Ready';
-      return { ...row, previous: changes ? { fields: row.fields, status: row.status } : row.previous, fields: { ...draft }, status: 'Ready' };
+      return { ...row, previous: before, fields: { ...saved }, status: 'Ready' };
     }));
-    setInvalid(false); setMessage('Saved.');
+    setInvalid(false); setMessage('');
+    /* What happened goes in a toast, which floats over the page: a line in the flow moved the
+       form under the pointer that pressed Save. The toast reads its own text aloud. */
+    toast({ title: 'Saved', action: before ? { label: 'Undo', onClick: () => undoSave(invoice.name, before, saved) } : undefined });
+  };
+  /* The toast outlives the screen it was raised on, so its Undo is bound to the record and
+     the values it saved, not to whatever is selected. If the record has changed since, the
+     save it names is no longer the last one and there is nothing of it to undo. */
+  const undoSave = (name: string, before: { fields: Fields; status: Status }, saved: Fields) => {
+    const row = latest.current.find(item => item.name === name);
+    if (!row || JSON.stringify(row.fields) !== JSON.stringify(saved) || row.status !== 'Ready') return;
+    setDrafts(values => ({ ...values, [name]: { ...before.fields } }));
+    setInvoices(rows => rows.map(item => item.name === name ? { ...item, fields: { ...before.fields }, previous: undefined, status: before.status } : item));
+    setInvalid(false); setMessage('Last save undone.');
   };
   const undo = () => {
     if (!invoice) return;
@@ -212,7 +239,7 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
       back={invoice ? { href: '#invoices', label: 'Invoices' } : undefined}
       account={{ name: 'Demo reviewer', email: 'demo@example.com' }} onSignOut={() => {}}
       palette={{ groups: [{ label: 'Invoices', items: invoices.filter(row => row.name !== selected).map(row => ({ id: row.name, label: row.filename })) }], onSelect: item => open(item.id) }}>
-      <p className="invoice-flow__announcement" role="status">{message}</p>
+      <p className="ui-sr" role="status">{status}</p>
       {invoice ? <>
         {/* Both panes wear the kit's card rather than calling <Card>: that component renders a
             plain div, and these two have to stay labelled regions — the data pane also goes
@@ -224,7 +251,9 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
         <div className={`invoice-flow__columns${navigated ? ' m-slide-up' : ''}`}>
           <section className="invoice-flow__data ui-card" aria-labelledby="parsed-title" aria-busy={pending || undefined}>
             <h2 id="parsed-title" className="ui-card__title">Invoice data</h2>
-            {pending ? <EmptyState icon="clock" title={invoice.status === 'Uploading' ? 'Adding invoice…' : 'Reading invoice…'} /> : <form className={simulate ? 'm-slide-up' : undefined} noValidate onSubmit={event => { event.preventDefault(); save(); }}>
+            {/* sub="" because an absent sub falls back to the preset's sentence, which says new
+                items will appear when they need attention — not true of a file being read. */}
+            {pending ? <EmptyState icon="clock" title={invoice.status === 'Uploading' ? 'Adding invoice…' : 'Reading invoice…'} sub="" /> : <form className={simulate ? 'm-slide-up' : undefined} noValidate onSubmit={event => { event.preventDefault(); save(); }}>
               <div className="invoice-flow__fields">
                 <TextField label="Supplier" required value={draft.supplier} error={invalid && !draft.supplier.trim() ? 'Enter the supplier.' : undefined} onChange={edit('supplier')} />
                 <TextField label="Invoice number" required value={draft.reference} error={invalid && !draft.reference.trim() ? 'Enter the invoice number.' : undefined} onChange={edit('reference')} />
@@ -255,14 +284,14 @@ export function InvoiceFlow({ initialState = 'empty', simulate = false }: { init
                 <table className="ui-table ui-table--dense">
                   <thead><tr><th scope="col">Description</th><th scope="col" className="ui-table__num">Qty</th><th scope="col" className="ui-table__num">Amount</th></tr></thead>
                   <tbody>{invoice.paper.lines.map(row => <tr key={row.description}>
-                    <td className="ui-table__title">{row.description}</td>
+                    <td>{row.description}</td>
                     <td className="ui-table__num">{row.quantity}</td>
                     <td className="ui-table__num">{money(row.amount)}</td>
                   </tr>)}</tbody>
                   <tfoot>
                     <tr><th scope="row" colSpan={2}>Subtotal</th><td className="ui-table__num">{money(invoice.paper.subtotal)}</td></tr>
                     <tr><th scope="row" colSpan={2}>VAT (20%)</th><td className="ui-table__num">{money(invoice.paper.vat)}</td></tr>
-                    <tr><th scope="row" colSpan={2}>Total due</th><td className="ui-table__num ui-table__num--strong">{money(invoice.paper.total)}</td></tr>
+                    <tr><th scope="row" colSpan={2}>Total due</th><td className="ui-table__num">{money(invoice.paper.total)}</td></tr>
                   </tfoot>
                 </table>
               </article>
