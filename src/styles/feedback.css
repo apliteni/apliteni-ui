@@ -45,6 +45,7 @@
     opacity var(--dur-fast) var(--ease);
 }
 .ui-fbpill.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -100%) translateY(-9px) scale(1); }
+.ui-fbpill:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-fbpill.show:hover { transform: translate(-50%, -100%) translateY(-12px) scale(1.04); }
 .ui-fbpill:active { transform: translate(-50%, -100%) translateY(-8px) scale(.98); }
 .ui-fbpill svg { width: 16px; height: 16px; stroke-width: 2.4; color: currentColor; }

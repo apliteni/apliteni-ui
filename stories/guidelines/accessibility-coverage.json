@@ -123,7 +123,7 @@
     {
       "file": "react/src/Feedback.test.tsx",
       "name": "React: Feedback",
-      "does": "Checks that the form opens as a dialog with a named note field, that a keyboard open returns focus to a visible container and not the hidden pill, and that the error is announced as an alert.",
+      "does": "Checks that the form opens as a dialog with a named note field, that close returns focus to the prior control or visible pill without changing the container's tabindex, and that the error is announced as an alert.",
       "blind": [
         "JSDOM does not draw the focus ring or measure contrast. Story contrast covers the error line, and browser captures cover the rest."
       ]

@@ -30,6 +30,9 @@ const defaultSection = (h: Element | null): FeedbackSection => {
 };
 
 type Pending = { text: string; anchor: string; label: string; title: string; range: Range };
+const RETURN_CONTROL = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), '
+  + 'textarea:not(:disabled), summary, [role="button"], [role="link"], [role="checkbox"], '
+  + '[role="switch"], [role="tab"], [contenteditable="true"]';
 
 // Same markup and classes as the vanilla feedbackWidget(), with the kit's Button for
 // Cancel, Send and Close. The quoted passage is highlighted in the page while the
@@ -40,6 +43,7 @@ export function Feedback({
 }: FeedbackProps) {
   const [pill, setPill] = useState<{ left: number; top: number } | null>(null);
   const [open, setOpen] = useState(false);
+  const openRef = useRef(false);
   const [note, setNote] = useState('');
   const [state, setState] = useState<'ready' | 'sending' | 'sent'>('ready');
   const [error, setError] = useState('');
@@ -58,6 +62,7 @@ export function Feedback({
   useEffect(() => {
     // The container can mount after this component, so it is read when an event arrives.
     function onSelect() {
+      if (openRef.current) return;
       const el = container.current;
       const sel = window.getSelection();
       if (!el || !sel || sel.isCollapsed || !sel.rangeCount) { setPill(null); return; }
@@ -73,7 +78,7 @@ export function Feedback({
     }
     const later = () => { setTimeout(onSelect, 0); };
     const onKeyUp = (e: KeyboardEvent) => { if (e.shiftKey || e.key === 'Shift') later(); };
-    const hide = () => setPill(null);
+    const hide = () => { if (!openRef.current) setPill(null); };
     document.addEventListener('mouseup', later);
     document.addEventListener('keyup', onKeyUp);
     window.addEventListener('scroll', hide, { passive: true });
@@ -118,6 +123,7 @@ export function Feedback({
 
   const { mounted, shown } = usePresence(open, root, panel);
   function close() {
+    openRef.current = false;
     setOpen(false);
     clearMark();
   }
@@ -126,17 +132,15 @@ export function Feedback({
   function start() {
     const p = pending.current;
     if (!p) return;
-    // A keyboard open leaves focus on the pill, which hides now. Hand it to the container
-    // first, so the dialog gives it back to something the reader can see.
-    if (document.activeElement === pillRef.current) {
-      const el = container.current;
-      if (el) {
-        // tabindex="-1" keeps the container out of the Tab order and lets the dialog return focus to it.
-        if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
-        el.focus({ preventScroll: true });
-      }
+    openRef.current = true;
+    // Keep the pill visible so the dialog can return keyboard focus to it.
+    // A pointer open from plain text has no focused control to return to.
+    const before = document.activeElement;
+    if (!(before instanceof HTMLElement) || before.tabIndex < 0 || !before.matches(RETURN_CONTROL)
+      || before.getAttribute('aria-disabled') === 'true'
+      || (typeof before.checkVisibility === 'function' && !before.checkVisibility({ visibilityProperty: true }))) {
+      pillRef.current?.focus({ preventScroll: true });
     }
-    setPill(null);
     setView({ chip: p.label || 'this page', quote: p.text.length > 200 ? `${p.text.slice(0, 200)}…` : p.text });
     setNote(''); setError(''); setState('ready');
     try {

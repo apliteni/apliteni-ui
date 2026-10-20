@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from 'react';
 import { vi } from 'vitest';
 import { Feedback, type FeedbackProps } from './Feedback';
 
-function Page(props: Partial<FeedbackProps> & { onSend: FeedbackProps['onSend'] }) {
+function Page({ focusableContainer = false, ...props }: Partial<FeedbackProps> & {
+  onSend: FeedbackProps['onSend']; focusableContainer?: boolean;
+}) {
   const ref = useRef<HTMLElement>(null);
   return <>
-    <main ref={ref}>
+    <main ref={ref} tabIndex={focusableContainer ? 0 : undefined}>
       <h2 id="intro">Intro</h2>
       <p id="p">Select this sentence please.</p>
     </main>
@@ -178,9 +180,47 @@ it('hands focus to a visible target when the form opened from the pill by keyboa
   await screen.findByRole('dialog');
   await userEvent.keyboard('{Escape}');
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-  expect(document.activeElement).not.toBe(pill());
-  expect(document.activeElement).toBe(document.querySelector('main'));
+  expect(document.activeElement).toBe(pill());
+  expect(pill()).toHaveClass('show');
+  expect(document.querySelector('main')).not.toHaveAttribute('tabindex');
   expect(document.activeElement!.closest('[aria-hidden="true"]')).toBeNull();
+});
+
+it('returns focus to the control used before a pointer open', async () => {
+  render(<><button type="button">Read more</button><Page onSend={vi.fn()} /></>);
+  await selectText();
+  const before = screen.getByRole('button', { name: 'Read more' });
+  before.focus();
+  await userEvent.click(pill());
+  await screen.findByRole('dialog');
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(document.activeElement).toBe(before);
+  expect(document.querySelector('main')).not.toHaveAttribute('tabindex');
+});
+
+it('returns focus to the visible pill after a pointer open from plain text', async () => {
+  render(<Page onSend={vi.fn()} />);
+  await selectText();
+  await userEvent.click(pill());
+  await screen.findByRole('dialog');
+  await act(async () => { await new Promise(r => setTimeout(r, 5)); });
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(document.activeElement).toBe(pill());
+  expect(pill()).toHaveClass('show');
+});
+
+it('uses the pill when the prior focus was a focusable reading container', async () => {
+  render(<Page onSend={vi.fn()} focusableContainer />);
+  await selectText();
+  document.querySelector('main')!.focus();
+  await userEvent.click(pill());
+  await screen.findByRole('dialog');
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(document.activeElement).toBe(pill());
+  expect(document.querySelector('main')).toHaveAttribute('tabindex', '0');
 });
 
 it('offers the pill for a container that mounts after the component', async () => {

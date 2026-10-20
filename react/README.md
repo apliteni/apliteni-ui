@@ -453,8 +453,8 @@ uses its normal opening focus.
 the element whose text can be selected, and `onSend`. A "Give feedback" pill appears above a
 selection of `minChars` (3) or more. The pill opens a form with a chip for the nearest heading,
 the quoted passage, a note field, Cancel and Send. The quoted passage stays highlighted until the
-form closes. The container may mount after `Feedback`. When the form opens by keyboard, `Feedback`
-sets `tabindex="-1"` on the container, if it has none, and returns focus to it on close.
+form closes. The container may mount after `Feedback`. On close, focus returns to the control
+that had it before opening. If no control had focus, it returns to the visible pill.
 
 ```tsx
 <Feedback container={articleRef}

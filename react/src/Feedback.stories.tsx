@@ -19,11 +19,13 @@ function Page({ onSend }: Pick<FeedbackProps, 'onSend'>) {
   return <>
     <main ref={ref} className="ui-app__main">
       <h1>Select any passage to leave feedback</h1>
-      <p>Highlight a sentence below. A Give feedback pill appears above the selection. Click it to open the form with your quoted passage, write a note, and send.</p>
-      <h2 id="how-it-works">How it works</h2>
-      <p>The kit owns the selection pill and the form. Your app owns the backend. You pass an onSend function that files the note wherever you like, such as an issue, a database row or a webhook.</p>
-      <h2 id="what-you-get">What lands in your handler</h2>
-      <p>Each submission gives you the note, the exact excerpt the reader selected, and the nearest heading it sat under. Select this sentence to see the heading show up as the form's chip.</p>
+      <div className="ui-app__body">
+        <p>Highlight a sentence below. A Give feedback pill appears above the selection. Click it to open the form with your quoted passage, write a note, and send.</p>
+        <h2 id="how-it-works" className="ui-card__title">How it works</h2>
+        <p>The kit owns the selection pill and the form. Your app owns the backend. You pass an onSend function that files the note wherever you like, such as an issue, a database row or a webhook.</p>
+        <h2 id="what-you-get" className="ui-card__title">What lands in your handler</h2>
+        <p>Each submission gives you the note, the exact excerpt the reader selected, and the nearest heading it sat under. Select this sentence to see the heading show up as the form's chip.</p>
+      </div>
     </main>
     <Feedback container={ref} onSend={onSend} />
   </>;
