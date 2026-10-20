@@ -154,7 +154,7 @@ const GATED = [
   // reaches it in is read here rather than left to the hover above it.
   { file: '../src/styles/dropdown.css', selector: '.ui-dropdown__item.is-danger:focus-visible .ui-dropdown__label', on: 'var(--surface)' },
   { file: '../src/styles/topbar.css', selector: '.amenu a.aout:hover', on: 'var(--surface)' },
-  { file: '../src/styles/feedback.css', selector: '.ui-fbc__err', on: 'var(--bg)' },
+  { file: '../src/styles/feedback.css', selector: '.ui-fbc__err', on: 'var(--bg-elevated)' },
   { file: '../site/changelog.html', selector: '.tag--removed', on: 'var(--bg)' },
   { file: '../site/changelog.html', selector: '.ui-badge--breaking', on: 'var(--bg)' },
 ];

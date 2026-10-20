@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { vi } from 'vitest';
 import { Feedback, type FeedbackProps } from './Feedback';
 
@@ -112,4 +112,80 @@ it('ignores a selection shorter than minChars', async () => {
   render(<Page onSend={vi.fn()} minChars={50} />);
   await selectText();
   expect(pill()).not.toHaveClass('show');
+});
+
+function Live({ name, onSend, late = false }: { name: string; onSend: FeedbackProps['onSend']; late?: boolean }) {
+  const ref = useRef<HTMLElement>(null);
+  const [shown, setShown] = useState(!late);
+  useEffect(() => { if (late) setTimeout(() => setShown(true), 0); }, [late]);
+  return <>
+    <Feedback container={ref} onSend={onSend} />
+    {shown && <main ref={ref}><p id="live">Hello there {name} and more words here.</p></main>}
+  </>;
+}
+
+async function selectIn(node: Node, start: number, end: Node = node, endAt = start) {
+  const range = document.createRange();
+  range.setStart(node, start);
+  range.setEnd(end, endAt);
+  range.getBoundingClientRect = () => ({ left: 10, top: 20, width: 50, height: 10, right: 60, bottom: 30, x: 10, y: 20, toJSON() {} });
+  const sel = window.getSelection()!;
+  sel.removeAllRanges();
+  sel.addRange(range);
+  fireEvent.mouseUp(document.querySelector('main')!);
+  await act(async () => { await new Promise(r => setTimeout(r, 5)); });
+}
+
+const live = () => document.getElementById('live')!;
+const textNodes = () => Array.from(live().childNodes);
+
+describe('closing the form leaves the consumer\'s text nodes in place', () => {
+  const cases: [string, () => Promise<void>][] = [
+    ['inside one text node', () => selectIn(textNodes()[0], 6, textNodes()[0], 11)],
+    ['from offset 0', () => selectIn(textNodes()[0], 0, textNodes()[0], 5)],
+    ['across two text nodes', () => selectIn(textNodes()[0], 6, textNodes()[2], 5)],
+  ];
+  for (const [name, select] of cases) {
+    for (const how of ['Cancel', 'send'] as const) {
+      it(`${name}, after ${how}, shows a re-render`, async () => {
+        const onSend = vi.fn().mockResolvedValue({ ok: true });
+        const { rerender } = render(<Live name="Alpha" onSend={onSend} />);
+        const before = textNodes();
+        await select();
+        await userEvent.click(pill());
+        await screen.findByRole('dialog');
+        if (how === 'send') {
+          await userEvent.type(screen.getByLabelText('Your note'), 'x');
+          await userEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+          await screen.findByRole('status');
+        } else {
+          await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        }
+        expect(live().textContent).toBe('Hello there Alpha and more words here.');
+        rerender(<Live name="Beta" onSend={onSend} />);
+        expect(live().textContent).toBe('Hello there Beta and more words here.');
+        expect(textNodes().slice(0, before.length).every((n, i) => n === before[i])).toBe(true);
+      });
+    }
+  }
+});
+
+it('hands focus to a visible target when the form opened from the pill by keyboard', async () => {
+  render(<Page onSend={vi.fn()} />);
+  await selectText();
+  pill().focus();
+  await userEvent.keyboard('{Enter}');
+  await screen.findByRole('dialog');
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(document.activeElement).not.toBe(pill());
+  expect(document.activeElement).toBe(document.querySelector('main'));
+  expect(document.activeElement!.closest('[aria-hidden="true"]')).toBeNull();
+});
+
+it('offers the pill for a container that mounts after the component', async () => {
+  render(<Live name="Alpha" late onSend={vi.fn()} />);
+  await waitFor(() => expect(live()).toBeInTheDocument());
+  await selectIn(textNodes()[0], 6, textNodes()[0], 11);
+  expect(pill()).toHaveClass('show');
 });

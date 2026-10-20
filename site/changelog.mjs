@@ -9,6 +9,7 @@ export const RELEASES = [
     v: '0.127.0', date: '2026-10-20',
     changes: [
       ['added', 'React `Feedback` shows a "Give feedback" pill on a text selection and opens a form with the quoted passage and a note. You pass `onSend`. A sent note shows one line of thanks and a failed send keeps the note with the error in place. Cancel, Send and Close use the kit\'s buttons. See #429.', ['Feedback']],
+      ['fixed', 'The error line in the feedback form now clears WCAG AA contrast in the dark theme. It was 4.37:1 and now uses the danger chip ink. The vanilla and React forms share this change.', ['Feedback']],
     ],
   },
   {
