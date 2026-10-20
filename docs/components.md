@@ -477,7 +477,7 @@ technology**, because the person's name always stands beside it. It has no hover
 of its own: a button that holds it keeps its own. In React it is `<Avatar personKey name src size
 empty />`. A `dropdown()` item takes `avatar: { key, name, src }` and draws it in the leading slot.
 A `select` leads its trigger with the chosen row's mark, and with no value it shows the dashed ring
-and the placeholder. The top bar account button draws the same mark at 32 px.
+and the placeholder. The top bar account button, the menu it opens and the shell's reader block draw the same mark, in the same hue.
 
 ### A dropdown with a search field
 

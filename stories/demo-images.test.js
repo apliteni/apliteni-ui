@@ -216,6 +216,13 @@ export function resolveSrc(src, roots = servedRoots()) {
   return file;
 }
 
+// A failed-photo specimen needs a src that does not load: the Avatar's letters are what
+// must show then. Each such path is named here, with the reason, and must stay absent
+// from every served root, so the entry cannot hide a real image that stopped decoding.
+const MISSING_ON_PURPOSE = {
+  'demo-assets/photo-not-found.png': 'the Avatar failed-photo specimen: a photo that does not load leaves the letters',
+};
+
 // ---- the story files Storybook serves --------------------------------------
 //
 // The sweep walks what Storybook walks, which is the `stories` globs in
@@ -328,6 +335,13 @@ for (const rel of storyFiles) {
       for (const img of dom.window.document.querySelectorAll('img')) {
         images += 1;
         const src = img.getAttribute('src');
+        if (Object.hasOwn(MISSING_ON_PURPOSE, src)) {
+          const at = new URL(src, 'file:///').pathname;
+          const there = servedRoots().some((r) => at.startsWith(r.url) && existsSync(path.join(r.dir, at.slice(r.url.length))));
+          if (there) problems.push(`  ${name} → src="${src}" is listed as missing on purpose but a served file has that name`);
+          else measured.push(`${rel} ${name} → ${src} (missing on purpose)`);
+          continue;
+        }
         try {
           const file = resolveSrc(src);
           const read = decodeImage(readFileSync(file));

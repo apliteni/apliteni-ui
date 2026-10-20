@@ -4,6 +4,7 @@
 // why: docs/components.md#the-page-shell
 import { topbar as productTopbar } from './topbar.js';
 import { esc, icon } from './index.js';
+import { avatar } from './avatar.js';
 import { sidebarNav, breadcrumbs, wireNav } from './nav.js';
 import { dropdown, wireDropdown } from './dropdown.js';
 import { backLink } from './back.js';
@@ -194,7 +195,7 @@ function settle(options) {
 // inside it. why: docs/components.md#the-page-shell
 const readerFace = (name, email, named, markOnly = false) =>
   `<span class="ui-app__av"${named ? ` role="img" aria-label="Signed in as ${esc(named)}"` : ' aria-hidden="true"'}>`
-  + `${esc(initials(name, email))}</span>`
+  + `${avatar({ key: email || name, initials: initials(name, email), size: 32 })}</span>`
   + (markOnly ? '' : `<span class="ui-app__who"${named ? ' aria-hidden="true"' : ''}>`
     + (name ? `<b>${esc(name)}</b>` : '')
     + (email ? `<span>${esc(email)}</span>` : '')

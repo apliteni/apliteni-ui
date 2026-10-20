@@ -376,30 +376,45 @@ export const RowTags = {
   )),
 };
 
+// Jordan has a photo; Mia's photo does not load, so her letters show.
+const PHOTOS = { 'Jordan Okafor': 'demo-assets/demo-person.png', 'Mia Chen': 'demo-assets/photo-not-found.png' };
 const PEOPLE = [
   { label: 'No one', value: '', avatar: { empty: true } },
   ...['Avery Example', 'Jordan Okafor', 'Mia Chen', 'Noor Haddad', 'Sam Rivera', 'Lena Novak'].map((name, i) => ({
-    label: name, value: `user_${i + 1}`, avatar: { key: `user_${i + 1}`, name },
+    label: name, value: `user_${i + 1}`, avatar: { key: `user_${i + 1}`, name, src: PHOTOS[name] },
   })),
 ];
+const column = (html) => `<div style="width:min(100%,420px)">${html}</div>`;
 
 export const PersonPicker = {
   name: 'Person picker (no value)',
   parameters: { layout: 'fullscreen' },
-  render: () => pad(bay(`<div class="ui-card">${field({
+  render: () => pad(column(`<div class="ui-card">${field({
     label: 'Owner',
     control: dropdown({ variant: 'select', items: PEOPLE, placeholder: 'Choose a person', search: { count: 214 } }),
-  })}</div>`, 420)),
+  })}</div>`)),
 };
 
 export const PersonPickerChosen = {
   name: 'Person picker (chosen, open)',
   parameters: { layout: 'fullscreen' },
-  render: () => pad(bay(`<div class="ui-card">${field({
+  render: () => pad(column(`<div class="ui-card">${field({
     label: 'Owner',
     control: dropdown({
       variant: 'select', open: true, search: { count: 214 },
       items: PEOPLE.map((it) => ({ ...it, selected: it.label === 'Jordan Okafor' })),
     }),
-  })}</div>`, 420)),
+  })}</div>`)),
+};
+
+export const PersonPickerFailedPhoto = {
+  name: 'Person picker (photo fails, open)',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(column(`<div class="ui-card">${field({
+    label: 'Owner',
+    control: dropdown({
+      variant: 'select', open: true, search: { count: 214 },
+      items: PEOPLE.map((it) => ({ ...it, selected: it.label === 'Mia Chen' })),
+    }),
+  })}</div>`)),
 };

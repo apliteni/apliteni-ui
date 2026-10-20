@@ -10,6 +10,7 @@ import { JSDOM } from 'jsdom';
 import { avatar, avatarHue, avatarInitials, AVATAR_HUES } from './avatar.js';
 import { dropdown, wireDropdown } from './dropdown.js';
 import { accountMenu } from './topbar.js';
+import { appShell } from './shell.js';
 
 const TOKENS = readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8');
 const doc = (html) => new JSDOM(`<body>${html}</body>`).window.document;
@@ -121,6 +122,30 @@ test('the top bar account button draws the part at 32px, hue from the address', 
   const mark = d.querySelector('button.avatar > .ui-avatar--32');
   assert.equal(mark.textContent, 'AL');
   assert.ok(mark.classList.contains(`ui-avatar--h${avatarHue('ada@example.com')}`));
+});
+
+test('a photo that fails to load removes itself and leaves the letters', () => {
+  const dom = new JSDOM(`<body>${avatar({ key: 'k', name: 'Mia Chen', src: 'https://example.com/a.jpg' })}</body>`, { runScripts: 'dangerously' });
+  const el = dom.window.document.querySelector('.ui-avatar');
+  el.querySelector('img').dispatchEvent(new dom.window.Event('error'));
+  assert.equal(el.querySelector('img'), null);
+  assert.equal(el.textContent, 'MC');
+});
+
+test('one person keeps one hue on the button, the menu head and the rail', () => {
+  const reader = { name: 'Ada Lovelace', email: 'ada@example.com' };
+  const hue = `ui-avatar--h${avatarHue('ada@example.com')}`;
+  const menu = doc(accountMenu(reader));
+  assert.ok(menu.querySelector('button.avatar > .ui-avatar').classList.contains(hue));
+  const head = menu.querySelector('.ahead > .ui-avatar');
+  assert.ok(head, 'the menu head draws the part, not the old .avatar gradient');
+  assert.equal(menu.querySelector('.ahead .avatar'), null);
+  assert.ok(head.classList.contains(hue));
+  assert.equal(head.textContent, 'AL');
+  const rail = doc(appShell({ account: reader })).querySelector('.ui-app__av > .ui-avatar');
+  assert.ok(rail, 'the rail mark draws the part');
+  assert.ok(rail.classList.contains(hue));
+  assert.equal(rail.textContent, 'AL');
 });
 
 // ---- contrast --------------------------------------------------------------

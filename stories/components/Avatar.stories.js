@@ -23,7 +23,12 @@ export const Fallbacks = {
       avatar({ empty: true }),
     )),
     specimen('A photo covers the letters', row(
-      avatar({ key: 'user_3', name: 'Jordan Okafor', src: 'demo-assets/demo-logo.svg' }),
+      avatar({ key: 'user_3', name: 'Jordan Okafor', src: 'demo-assets/demo-person.png' }),
+      avatar({ key: 'user_3', name: 'Jordan Okafor', src: 'demo-assets/demo-person.png', size: 32 }),
+    )),
+    specimen('A photo that does not load leaves the letters', row(
+      avatar({ key: 'user_4', name: 'Mia Chen', src: 'demo-assets/photo-not-found.png' }),
+      avatar({ key: 'user_4', name: 'Mia Chen', src: 'demo-assets/photo-not-found.png', size: 32 }),
     )),
   )),
 };

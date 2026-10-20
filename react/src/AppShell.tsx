@@ -6,6 +6,7 @@ import { CommandPalette, type CommandPaletteProps } from './CommandPalette';
 import { Drawer } from './Drawer';
 import { Dropdown } from './Dropdown';
 import { Icon } from './primitives/Icon';
+import { Avatar } from './primitives/Avatar';
 import { ThemeToggle } from './ThemeToggle';
 import './AppShell.css';
 
@@ -112,7 +113,6 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   const navigable = sections.length > 1 || Boolean(back);
   const visible = sections.length > 4 ? sections.slice(0, 3) : sections;
   const remaining = sections.slice(visible.length);
-  const initials = account.name.trim().split(/\s+/).map((part) => part[0]).slice(0, 2).join('');
   // Written once and placed twice: with no list to head, the rail is a column of
   // brand, so the lockup moves to the band the page already has.
   const lockup = <a className="ui-app__brand" href={brandHref} aria-label={word}>
@@ -143,7 +143,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
         <ThemeToggle />
         <div className="ui-app__user ui-app__user--bar"><Dropdown variant="menu" align="end" chevron={false}
           ariaLabel={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
-          triggerContent={<span className="ui-app__av" aria-hidden="true">{initials}</span>}
+          triggerContent={<span className="ui-app__av" aria-hidden="true"><Avatar personKey={account.email || account.name} name={account.name} size={32} /></span>}
           header={<div className="ui-dropdown__head"><b>{account.name}</b><span>{account.email}</span></div>}
           items={[{ label: 'Sign out', icon: 'logout', danger: true }]} onSelect={onSignOut} />
         </div>

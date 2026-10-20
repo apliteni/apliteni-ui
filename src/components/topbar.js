@@ -79,7 +79,7 @@ export function accountMenu({
   return `<div class="acct on" data-dropdown>` +
     `<button class="avatar" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Account">${avatar({ key: key ?? (email || name), initials: ini, size: 32 })}</button>` +
     `<div class="amenu" data-dropdown-panel role="menu">` +
-    `<div class="ahead"><span class="avatar">${esc(ini)}</span><span class="aw"><span class="anm">${name}</span><span class="aem" title="${trustedAttr(email)}">${email}</span></span></div>` +
+    `<div class="ahead">${avatar({ key: key ?? (email || name), initials: ini, size: 32 })}<span class="aw"><span class="anm">${name}</span><span class="aem" title="${trustedAttr(email)}">${email}</span></span></div>` +
     items.map(it).join('') +
     `<div class="asep"></div><a class="aout" href="#logout" data-dd-item tabindex="-1" role="menuitem">${icon('logout')}Sign out</a>` +
     `</div></div>`;

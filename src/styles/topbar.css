@@ -367,7 +367,6 @@
   border-radius: 14px 14px 0 0;
   display: flex; align-items: center; gap: 11px;
 }
-.amenu .ahead .avatar { cursor: default; }
 .amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu .ahead .aem { color: var(--text); font-size: calc(var(--text-xs) + 0.5px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
