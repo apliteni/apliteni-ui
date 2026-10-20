@@ -23,7 +23,9 @@ const THEMES = ['dark', 'light'];
 // specimen on a guideline page, added or removed moves these, and so does a story
 // that stops rendering one: set them to the count the failure prints once the change
 // is meant.
-const EXPECTED = { subjects: 12, donts: 3 };
+// The shell draws the same drawer in every story that has a shell, so one of them stands
+// for all and the count does not move with each page story.
+const EXPECTED = { subjects: 13, donts: 3 };
 
 const markup = (out) => (typeof out === 'string' ? out : out?.outerHTML ?? null);
 
@@ -75,6 +77,8 @@ const physical = (css) => css.replace(
 
 const CONTROL = 'input, select, textarea, button, a[href], [role="button"], [role="switch"], [role="checkbox"], '
   + '[role="radio"], [role="textbox"], [role="combobox"], [contenteditable]';
+// A popup menu and a caret drawn with two borders are paint of a control, not a box or a rule.
+const POPUP = '.ui-dropdown__panel, .ui-dropdown__chevron';
 const SLOT = '.ui-drawer__header, .ui-drawer__body, .ui-drawer__footer';
 
 /** A group that follows another group: the one element inside the body allowed a line. */
@@ -98,10 +102,10 @@ function measure(win, panel, where) {
       .filter((el) => !['transparent', 'rgba(0, 0, 0, 0)', style(panel).backgroundColor].includes(style(el).backgroundColor))
       .map((el) => selectorPath(el)),
     cards: inside
-      .filter((el) => el.classList.contains('ui-card') || (!hr(el) && !el.closest(CONTROL) && fourSided(style(el))))
+      .filter((el) => el.classList.contains('ui-card') || (!hr(el) && !el.closest(CONTROL) && !el.closest(POPUP) && fourSided(style(el))))
       .map((el) => selectorPath(el)),
     ruledRows: inside
-      .filter((el) => hr(el) || (isRule(style(el)) && !separator(el)))
+      .filter((el) => hr(el) || (isRule(style(el)) && !separator(el) && !el.closest(POPUP)))
       .map((el) => selectorPath(el)),
     strayEdges: [
       ...edge('.ui-drawer__body', 'top', 'a line on the body\'s top edge, under the header\'s own'),
@@ -154,6 +158,7 @@ async function walk(theme) {
   const subjects = [];
   const donts = [];
   const problems = [];
+  let shellSeen = false;
   for (const rel of storyFiles) {
     const mod = await import(path.join(root, 'stories', rel));
     const def = mod.default || {};
@@ -176,6 +181,10 @@ async function walk(theme) {
       }
       mount(raw);
       for (const panel of win.document.querySelectorAll('.ui-drawer__panel')) {
+        if (panel.closest('.ui-app__drawer')) {
+          if (shellSeen) continue;
+          shellSeen = true;
+        }
         const m = measure(win, panel, `${rel}:${name} [${theme}]`);
         (panel.closest('[data-specimen="dont"]') ? donts : subjects).push(m);
       }
