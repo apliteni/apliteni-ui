@@ -297,54 +297,90 @@ const found = allFound.filter((s) => mine.has(s.id));
 // any of them was discovered. A missing home then fails here instead of zeroing the count.
 const homeHits = (entryCount: number) => (part === 0 ? entryCount : 0);
 
+/* A cell that takes over 5 s whole is dealt into tests of its own: one for the pairs at rest and
+ * one per share of its state targets. Each test renders the story again and walks only its
+ * share, so the cell is still walked once, with the same measure() and the same assertion.
+ * The number is the count of state shares. */
+const SPLIT_STATE_SHARES: Record<string, number> = {
+  './Finance.stories.tsx:Comparison': 4,
+};
+
+type Share = { atRest: boolean; of: number; index: number } | null;
+
+function walkCell(story: (typeof allFound)[number], theme: Theme, share: Share) {
+  if (document.documentElement.getAttribute('data-theme') !== theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme-choice', theme);
+    styleEl.textContent = sheetText(theme);
+  }
+  const { id, args } = story;
+  // Stories use hooks, so the render fn has to BE a component.
+  const Story = () => story.render!(args, { globals: { theme, accent: 'default' }, args });
+  const before = stats.walked;
+  const firstRecord = records.length;
+  render(<Story />);
+  let judged = !share || share.atRest ? measure(id, theme) : 0;
+  const started = performance.now();
+  const bases = STATE_BASES[theme];
+  const all = share?.atRest ? [] : [...stateTargets(document.body, bases)];
+  const mine = share
+    ? all.slice(Math.floor((share.index * all.length) / share.of), Math.floor(((share.index + 1) * all.length) / share.of))
+    : all;
+  for (const [element, state] of mine) {
+    const previous = element.getAttribute('data-ui-state');
+    element.setAttribute('data-ui-state', state);
+    try {
+      const count = measure(id, theme, state, [element, ...element.querySelectorAll('*')]);
+      judged += count;
+      stateCounts.judged += count;
+      stateCounts.targets += 1;
+    } finally {
+      if (previous === null) element.removeAttribute('data-ui-state');
+      else element.setAttribute('data-ui-state', previous);
+    }
+  }
+  stateCounts.elapsed += performance.now() - started;
+  const cellId = `${id} [${theme}]`;
+  const cell = cells.find((c) => c.id === cellId);
+  if (cell) {
+    cell.judged += judged;
+    cell.walked += stats.walked - before;
+  } else {
+    cells.push({ id: cellId, judged, walked: stats.walked - before });
+  }
+
+  const failed = records.slice(firstRecord)
+    .filter((r) => r.story === id && r.theme === theme && r.unjudgeable == null);
+  const report = failed.map((r) => `${r.ratio!.toFixed(2)}:1 (needs ${r.need}) `
+    + `${r.fg} on ${r.bg}\n     ${r.path}`);
+  const unledgered = groupFindings(failed)
+    .filter((f: Finding) => !LEDGER.some((e) => e.match(f)))
+    .map((f: Finding) => `${f.ratio.toFixed(2)}:1 (needs ${f.need}) ${f.key}\n     `
+      + [...f.paths].join('\n     '));
+  expect(unledgered, `${cellId}\n${report.join('\n')}`).toEqual([]);
+}
+
+// The first cell of a theme pays for that theme's stylesheet parse: 395ms
+// against 31ms for the second cell, on an idle 10-core laptop. Vitest's
+// default 5s ceiling looks like plenty until the box is contended — the
+// same first cell measured 9.5s with two other suites running, which is
+// what a CI runner looks like. The ceiling is generous on purpose; it is
+// there to catch a walk that stopped terminating, not a slow machine.
+const CELL_TIMEOUT = 30_000;
+
 describe('contrast: React stories', () => {
   for (const theme of THEMES) {
     for (const story of found) {
-      it(`${story.id} [${theme}]`, () => {
-        if (document.documentElement.getAttribute('data-theme') !== theme) {
-          document.documentElement.setAttribute('data-theme', theme);
-          document.documentElement.setAttribute('data-theme-choice', theme);
-          styleEl.textContent = sheetText(theme);
-        }
-        const { id, args } = story;
-        // Stories use hooks, so the render fn has to BE a component.
-        const Story = () => story.render!(args, { globals: { theme, accent: 'default' }, args });
-        const before = stats.walked;
-        render(<Story />);
-        let judged = measure(id, theme);
-        const started = performance.now();
-        const bases = STATE_BASES[theme];
-        for (const [element, state] of stateTargets(document.body, bases)) {
-          const previous = element.getAttribute('data-ui-state');
-          element.setAttribute('data-ui-state', state);
-          try {
-            const count = measure(id, theme, state, [element, ...element.querySelectorAll('*')]);
-            judged += count;
-            stateCounts.judged += count;
-            stateCounts.targets += 1;
-          } finally {
-            if (previous === null) element.removeAttribute('data-ui-state');
-            else element.setAttribute('data-ui-state', previous);
-          }
-        }
-        stateCounts.elapsed += performance.now() - started;
-        cells.push({ id: `${id} [${theme}]`, judged, walked: stats.walked - before });
-
-        const failed = records.filter((r) => r.story === id && r.theme === theme && r.unjudgeable == null);
-        const report = failed.map((r) => `${r.ratio!.toFixed(2)}:1 (needs ${r.need}) `
-          + `${r.fg} on ${r.bg}\n     ${r.path}`);
-        const unledgered = groupFindings(failed)
-          .filter((f: Finding) => !LEDGER.some((e) => e.match(f)))
-          .map((f: Finding) => `${f.ratio.toFixed(2)}:1 (needs ${f.need}) ${f.key}\n     `
-            + [...f.paths].join('\n     '));
-        expect(unledgered, `${id} [${theme}]\n${report.join('\n')}`).toEqual([]);
-      // The first cell of a theme pays for that theme's stylesheet parse: 395ms
-      // against 31ms for the second cell, on an idle 10-core laptop. Vitest's
-      // default 5s ceiling looks like plenty until the box is contended — the
-      // same first cell measured 9.5s with two other suites running, which is
-      // what a CI runner looks like. The ceiling is generous on purpose; it is
-      // there to catch a walk that stopped terminating, not a slow machine.
-      }, 30_000);
+      const shares = SPLIT_STATE_SHARES[story.id];
+      if (!shares) {
+        it(`${story.id} [${theme}]`, () => walkCell(story, theme, null), CELL_TIMEOUT);
+        continue;
+      }
+      it(`${story.id} [${theme}] at rest`, () => walkCell(story, theme, { atRest: true, of: shares, index: -1 }), CELL_TIMEOUT);
+      for (let index = 0; index < shares; index++) {
+        it(`${story.id} [${theme}] states ${index + 1} of ${shares}`,
+          () => walkCell(story, theme, { atRest: false, of: shares, index }), CELL_TIMEOUT);
+      }
     }
   }
 });
