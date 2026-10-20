@@ -181,6 +181,9 @@ const LEDGER = {
   '.ui-tip': {
     noFocus: 'a tooltip is named by aria-describedby and never focused; it holds text and no control',
   },
+  '.ui-drop-page': {
+    noFocus: 'the page drop layer has no control and takes no pointer; the page Upload button stays the keyboard path',
+  },
   ':where(.ui-app:not(.ui-app--topbar).is-collapsed) .ui-app__brand': {
     noFocus: 'the rail hides its wordmark as it collapses. Nothing is focused when it comes back — the '
       + 'reader expanded the rail, they did not open it',

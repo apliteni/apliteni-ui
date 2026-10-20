@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AppShell } from '../AppShell';
 import { DataTable } from '../DataTable';
 import { EmptyState } from '../EmptyState';
+import { FileDropArea, PageDrop } from '../FileDrop';
 import { TextField } from '../Field';
 import { DrawerSection, KeyValueList } from '../KeyValueList';
 import { Badge } from '../primitives/Badge';
@@ -17,9 +18,7 @@ type Line = { description: string; quantity: string; amount: string };
    objects on purpose: a preview built from `fields` can never disagree with the form
    beside it, and disagreeing is the only thing the comparison is for. */
 type Paper = { supplier: string; address: string; reference: string; issued: string; lines: Line[]; subtotal: string; vat: string; total: string };
-/* `previous` is the whole record a save replaced, status included: restoring the fields
-   alone put a Ready invoice back as Needs review. */
-type Invoice = { name: string; filename: string; status: Status; fields: Fields; paper?: Paper; previous?: { fields: Fields; status: Status }; file?: File };
+type Invoice = { name: string; filename: string; status: Status; fields: Fields; paper?: Paper; file?: File };
 export type InvoiceState = 'empty' | 'table' | 'uploading' | 'parsing' | 'review' | 'editing' | 'ready' | 'error';
 
 const line = (description: string, quantity: string, amount: string): Line => ({ description, quantity, amount });
@@ -121,7 +120,6 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
   const [drafts, setDrafts] = useState<Record<string, Fields>>(initialState === 'editing' ? { cedar: { ...sampleFields, supplier: 'Cedar Design Studio' } } : {});
   const [error, setError] = useState(initialState === 'error' ? 'Unsupported file type. No files were added.' : '');
   const [message, setMessage] = useState('');
-  const [dragging, setDragging] = useState(false);
   const [invalid, setInvalid] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const root = useRef<HTMLDivElement>(null);
@@ -162,10 +160,9 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
     return () => clearTimeout(timer);
   }, [invoices, simulate]);
 
-  const pick = () => input.current?.click();
-  /* The control that opens the picker, in both states of the box. stopPropagation keeps the
-     box's own click — a pointer shortcut, as dragging is — from opening the picker twice. */
-  const picker = <Button variant={invoices.length ? 'secondary' : 'primary'} size="sm" icon="upload" onClick={event => { event.stopPropagation(); pick(); }}>Upload</Button>;
+  /* The list page's control that opens the picker. The keyboard path to adding files:
+     a drag over the page is only the pointer's shortcut to the same thing. */
+  const picker = <Button variant="secondary" size="sm" icon="upload" onClick={() => input.current?.click()}>Upload</Button>;
   const addFiles = (files: File[]) => {
     if (!files.length) return;
     if (files.some(file => !/\.(pdf|png|jpe?g)$/i.test(file.name))) {
@@ -182,28 +179,18 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
       // A rejected save saved nothing, so the success line goes with it.
       setInvalid(true); setMessage(''); return;
     }
-    // A save that changes nothing keeps the snapshot the previous one made, so pressing
-    // Save twice does not erase what Undo would restore.
-    const changes = JSON.stringify(draft) !== JSON.stringify(invoice.fields) || invoice.status !== 'Ready';
-    const before = changes ? { fields: invoice.fields, status: invoice.status } : invoice.previous;
     const saved = { ...draft };
-    setInvoices(rows => rows.map(row => {
-      if (row.name !== invoice.name) return row;
-      return { ...row, previous: before, fields: { ...saved }, status: 'Ready' };
-    }));
+    setInvoices(rows => rows.map(row => row.name === invoice.name ? { ...row, fields: saved, status: 'Ready' } : row));
     setInvalid(false); setMessage('');
     /* What happened goes in a toast, which floats over the page: a line in the flow moved the
-       form under the pointer that pressed Save. The toast reads its own text aloud. It offers no
-       Undo of its own, because the form's Undo button already undoes the last save. */
+       form under the pointer that pressed Save. The toast reads its own text aloud. A save is
+       not destructive, so the toast offers no action. */
     toast({ title: 'Saved' });
   };
-  const undo = () => {
+  const discard = () => {
     if (!invoice) return;
-    const restored = dirty ? invoice.fields : invoice.previous?.fields ?? invoice.fields;
-    const status = invoice.previous?.status;
-    setDrafts(values => ({ ...values, [invoice.name]: { ...restored } }));
-    if (!dirty && status) setInvoices(rows => rows.map(row => row.name === invoice.name ? { ...row, fields: { ...restored }, previous: undefined, status } : row));
-    setInvalid(false); setMessage(dirty ? 'Edits discarded.' : 'Last save undone.');
+    setDrafts(values => ({ ...values, [invoice.name]: { ...invoice.fields } }));
+    setInvalid(false); setMessage('Edits discarded.');
   };
   /* The line speaks for the values on screen, so the edit that changes them is what withdraws
      it. Leaving it to the next save left "Saved." standing over a changed
@@ -250,11 +237,11 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
                 <TextField label="Total (EUR)" required type="number" min={MIN_TOTAL} step="0.01" value={draft.total} error={invalid && !validTotal(draft.total) ? `Enter an amount of ${MIN_TOTAL} or more, written to the cent.` : undefined} onChange={edit('total')} />
               </div>
               {invalid && <p role="alert" className="invoice-flow__summary">Check the highlighted fields before saving.</p>}
-              <div className="invoice-flow__actions"><Button variant="primary" type="submit">Save</Button><Button variant="secondary" disabled={!dirty && !invoice.previous} onClick={undo}>{dirty ? 'Discard' : 'Undo'}</Button></div>
+              <div className="invoice-flow__actions"><Button variant="primary" type="submit">Save</Button><Button variant="secondary" disabled={!dirty} onClick={discard}>Discard</Button></div>
             </form>}
           </section>
           <section className="invoice-flow__preview ui-card" aria-labelledby="document-title">
-            <h2 id="document-title" className="ui-card__title">Document</h2>
+            <h2 id="document-title" className="ui-card__title ui-card__title--muted">Document</h2>
             {preview ? invoice.file?.type.startsWith('image/') ? <img src={preview} alt={`Invoice document: ${invoice.filename}`} /> : <iframe src={preview} title={`Invoice document: ${invoice.filename}`} />
               /* The reference, on kit parts: DrawerSection's heading rank, KeyValueList for
                  the header block, and .ui-table--dense for the lines — its <tfoot> draws the
@@ -262,7 +249,7 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
                  fields are checked against; the payment terms and the two rows no field
                  answers went at r37, which is also what stops it outweighing this pane.
                  why: react/src/DocumentReview.stories.tsx, #459 r36 */
-              : invoice.paper ? <article className="invoice-flow__paper" aria-label={`Invoice document: ${invoice.filename}`}>
+              : invoice.paper ? <article className="ui-card-stack" aria-label={`Invoice document: ${invoice.filename}`}>
                 <DrawerSection title={invoice.paper.supplier}>
                   <KeyValueList rows={[
                     { label: 'Address', value: invoice.paper.address },
@@ -288,22 +275,12 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
           </section>
         </div>
       </> : <>
-        <input ref={input} className="ui-sr" tabIndex={-1} type="file" multiple accept=".pdf,.png,.jpg,.jpeg" aria-label="Select invoices" onChange={event => { addFiles(Array.from(event.target.files ?? [])); event.target.value = ''; }} />
-        {/* The box catches the drag and the button inside it opens the picker, which is how the
-            kit's own FileDrop splits the two: a region that claims role="button" has
-            presentational children, so conforming assistive technology drops the role of any
-            button standing in it, and a focusable box beside that button is the same action
-            twice in the tab order. The box keeps its paint, its drop handlers and its pointer
-            click; the keyboard path is the button's.
-            why: react/src/FileDrop.tsx, guidelines/file-drop.md#offer-a-button-not-only-a-drag */}
-        <div className={`ui-drop invoice-flow__drop${dragging ? ' is-dragging' : ''}`}
-          onClick={pick}
-          onDragOver={event => { event.preventDefault(); setDragging(true); }}
-          onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false); }}
-          onDrop={event => { event.preventDefault(); setDragging(false); addFiles(Array.from(event.dataTransfer.files)); }}>
-          {!invoices.length ? <EmptyState icon="upload" title="Add your first invoices" sub="PDF, PNG or JPEG." actions={picker} />
-            : <div className="ui-drop__row">{picker}<p className="ui-drop__note">PDF, PNG or JPEG.</p></div>}
-        </div>
+        {invoices.length ? <>
+          <input ref={input} className="ui-sr" tabIndex={-1} type="file" multiple accept=".pdf,.png,.jpg,.jpeg" aria-label="Select invoices" onChange={event => { addFiles(Array.from(event.target.files ?? [])); event.target.value = ''; }} />
+          <div className="ui-drop"><div className="ui-drop__row">{picker}<p className="ui-drop__note">PDF, PNG or JPEG.</p></div></div>
+          {/* A file dragged anywhere over the list covers the page and a drop adds it. */}
+          <PageDrop onFiles={addFiles} />
+        </> : <FileDropArea title="Add your first invoices" note="PDF, PNG or JPEG." accept=".pdf,.png,.jpg,.jpeg" multiple onFiles={addFiles} />}
         {/* The kit's own inline message, which sets role="alert" for its danger tone and
             carries the glyph and the paint the kit gives a refusal. */}
         {error && <Callout variant="danger">{error}</Callout>}

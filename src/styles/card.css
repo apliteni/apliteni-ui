@@ -90,6 +90,10 @@
   /* Title to description: the step, not the 5px it was. why: docs/foundations.md#spacing-and-rhythm */
   margin: 0 0 var(--space-2);
 }
+/* The title of a card that supports its neighbour, such as a document beside the
+   data read from it. The size, weight and rank stay the card title's.
+   why: docs/foundations.md#text-ink */
+.ui-card__title--muted { /* muted-ink: chrome — a supporting card ranks below its neighbour; the title is also the card's accessible name */ color: var(--muted); }
 .ui-card__sub {
   color: var(--text);
   font-size: var(--text-base);

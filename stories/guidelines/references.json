@@ -905,7 +905,7 @@
         "pattern": ".ui-drop__row {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:108",
+        "ref": "react/src/FileDrop.tsx:109",
         "pattern": "className=\"ui-drop__row\""
       }
     ],
@@ -915,7 +915,7 @@
         "pattern": ".ui-drop__target {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:161",
+        "ref": "react/src/FileDrop.tsx:162",
         "pattern": "className=\"ui-drop__target\""
       }
     ],
@@ -925,7 +925,7 @@
         "pattern": ".ui-drop__file {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:144",
+        "ref": "react/src/FileDrop.tsx:145",
         "pattern": "role=\"progressbar\""
       }
     ],
@@ -941,13 +941,13 @@
     ],
     "button-path": [
       {
-        "ref": "react/src/FileDrop.tsx:151",
+        "ref": "react/src/FileDrop.tsx:152",
         "pattern": "input.current?.click()"
       }
     ],
     "limits-once": [
       {
-        "ref": "react/src/FileDrop.tsx:152",
+        "ref": "react/src/FileDrop.tsx:153",
         "pattern": "className=\"ui-drop__note\""
       }
     ],
@@ -957,7 +957,7 @@
         "pattern": ".ui-drop > * + .ui-drop__row"
       },
       {
-        "ref": "react/src/FileDrop.tsx:107",
+        "ref": "react/src/FileDrop.tsx:108",
         "pattern": "{children}"
       }
     ]
@@ -999,7 +999,7 @@
         "pattern": "export function switchToggle("
       },
       {
-        "ref": "src/styles/card.css:100",
+        "ref": "src/styles/card.css:104",
         "pattern": ".ui-card__row {"
       }
     ],

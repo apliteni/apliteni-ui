@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -35,30 +35,29 @@ const rowStatus = (filename: string) => {
   return within(row).getByText(/^(Uploading|Parsing|Needs review|Ready)$/).textContent;
 };
 
-// The form's own Undo, read from the Invoice data region so the lookup names where the button lives.
-const formUndo = () => within(screen.getByRole('region', { name: 'Invoice data' })).getByRole('button', { name: 'Undo' });
-
 describe('invoice flow prototype', () => {
+  /* The empty page's input sits inside the kit's drop area and carries no label of its own:
+   * the Upload button beside it is what names the action. */
+  const emptyInput = (container: HTMLElement) => container.querySelector<HTMLInputElement>('input[type="file"]')!;
   it('adds multiple selected files, including repeated filenames, without replacing rows', async () => {
     const user = userEvent.setup();
-    render(<InvoiceFlow />);
-    const input = screen.getByLabelText('Select invoices');
-    await user.upload(input, [new File(['a'], 'one.pdf', { type: 'application/pdf' }), new File(['b'], 'two.pdf', { type: 'application/pdf' })]);
+    const { container } = render(<InvoiceFlow />);
+    fireEvent.change(emptyInput(container), { target: { files: [new File(['a'], 'one.pdf', { type: 'application/pdf' }), new File(['b'], 'two.pdf', { type: 'application/pdf' })] } });
     expect(screen.getAllByText('Uploading')).toHaveLength(2);
-    await user.upload(input, new File(['c'], 'one.pdf', { type: 'application/pdf' }));
+    await user.upload(screen.getByLabelText('Select invoices'), new File(['c'], 'one.pdf', { type: 'application/pdf' }));
     expect(screen.getAllByText('Uploading')).toHaveLength(3);
     expect(screen.getAllByRole('link', { name: 'one.pdf' })).toHaveLength(2);
   });
-  it('opens the picker from the button in the box, by pointer, Enter and Space', async () => {
+  it('opens the picker from the button in the drop area, by pointer, Enter and Space', async () => {
     const user = userEvent.setup();
     const { container } = render(<InvoiceFlow />);
-    const input = screen.getByLabelText<HTMLInputElement>('Select invoices');
+    const input = emptyInput(container);
     const opened = vi.spyOn(input, 'click').mockImplementation(() => {});
-    /* The box holds a real button rather than claiming to be one. A region with role="button"
+    /* The area holds a real button rather than claiming to be one. A region with role="button"
      * has presentational children, so conforming assistive technology drops the role of the
      * button standing in it, and a focusable box beside that button is the same action twice
      * in the tab order. why: react/src/FileDrop.tsx, guidelines/file-drop.md#offer-a-button-not-only-a-drag */
-    const box = container.querySelector<HTMLElement>('.invoice-flow__drop')!;
+    const box = container.querySelector<HTMLElement>('.ui-drop--area')!;
     expect(box).not.toHaveAttribute('role');
     expect(box).not.toHaveAttribute('tabindex');
     const button = screen.getByRole('button', { name: 'Upload' });
@@ -76,34 +75,85 @@ describe('invoice flow prototype', () => {
     expect(opened).toHaveBeenCalledTimes(4);
     opened.mockRestore();
   });
-  it('gives the empty box the action, and says only what the button does not', () => {
-    /* The empty state is asked for an action, and the file drop for the kit's own picker —
-     * a small secondary button carrying the upload glyph, which is what `.ui-drop__row` puts
-     * there — rather than a sentence describing the box.
+  it('gives the empty page the kit drop area, and says only what the button does not', () => {
+    /* The empty state is asked for an action, and the area for the kit's own picker button,
+     * rather than a sentence describing the box.
      * why: guidelines/empty-states.md#explain-what-is-missing-and-show-the-next-step,
      * guidelines/file-drop.md#offer-a-button-not-only-a-drag
-     * The sub-line is left with the one fact the button cannot carry: the types. Both states
-     * of the box offer the same button, so the keyboard reaches the picker on either screen. */
+     * The sub-line is left with the one fact the button cannot carry: the types. The list
+     * page offers the same button, so the keyboard reaches the picker on either screen. */
     const { container, unmount } = render(<InvoiceFlow />);
-    const empty = container.querySelector('.ui-empty')!;
+    const empty = container.querySelector('.ui-drop--area .ui-empty')!;
     expect(within(empty as HTMLElement).getByRole('button', { name: 'Upload' })).toBeInTheDocument();
     expect(empty.querySelector('.ui-empty__sub')).toHaveTextContent('PDF, PNG or JPEG.');
     // No sentence hired to explain that the box is clickable or that a file can be dropped.
     expect(screen.queryByText(/click it|click this box|anywhere in this box/i)).not.toBeInTheDocument();
+    // The empty page keeps its dashed area and carries no whole-page layer.
+    expect(container.querySelector('.ui-drop-page')).toBeNull();
     unmount();
     render(<InvoiceFlow initialState="table" />);
     expect(screen.getByRole('button', { name: 'Upload' })).toBeInTheDocument();
   });
-  it('rejects an unsupported drop and recovers with a valid batch', () => {
+  it('rejects an unsupported drop on the area and recovers with a valid batch', () => {
     const { container } = render(<InvoiceFlow />);
-    const zone = container.querySelector('.invoice-flow__drop')!;
-    fireEvent.drop(zone, { dataTransfer: { files: [new File(['bad'], 'notes.txt')] } });
+    const zone = container.querySelector('.ui-drop--area')!;
+    fireEvent.drop(zone, { dataTransfer: { types: ['Files'], files: [new File(['bad'], 'notes.txt')] } });
     expect(screen.getByRole('alert')).toHaveTextContent('No files were added');
-    fireEvent.drop(zone, { dataTransfer: { files: [new File(['a'], 'one.pdf'), new File(['b'], 'two.png')] } });
+    fireEvent.drop(zone, { dataTransfer: { types: ['Files'], files: [new File(['a'], 'one.pdf'), new File(['b'], 'two.png')] } });
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getAllByText('Uploading')).toHaveLength(2);
   });
-  it('opens a record, preserves a draft across the list and saves and undoes it', async () => {
+  /* A file dragged over the list covers the page and a drop anywhere adds it. The events are
+   * dispatched on the window, as the browser sends them for a file from outside the page.
+   * Limit: jsdom lays nothing out, so that the layer covers the page and fades is seen in a
+   * browser. The drag itself is simulated, not a real operating-system drag. */
+  const windowDrag = (type: string, files: File[] = [], types = ['Files']) => {
+    const event = new Event(type, { bubbles: true, cancelable: true });
+    Object.defineProperty(event, 'dataTransfer', { value: { types, files } });
+    Object.defineProperty(event, 'relatedTarget', { value: null });
+    act(() => { window.dispatchEvent(event); });
+    return event;
+  };
+  it('covers the list page while a file is dragged over it and adds what is dropped anywhere', () => {
+    const { container } = render(<InvoiceFlow initialState="table" />);
+    const layer = container.querySelector('.ui-drop-page')!;
+    expect(layer).not.toHaveClass('is-open');
+    windowDrag('dragenter');
+    expect(layer).toHaveClass('is-open');
+    expect(layer).toHaveTextContent('Drop files to upload');
+    windowDrag('drop', [new File(['a'], 'one.pdf'), new File(['b'], 'two.jpg')]);
+    expect(layer).not.toHaveClass('is-open');
+    expect(screen.getAllByText('Uploading').length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByRole('link', { name: 'one.pdf' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'two.jpg' })).toBeInTheDocument();
+  });
+  it('refuses an unsupported file dropped on the list page and adds nothing', () => {
+    render(<InvoiceFlow initialState="table" />);
+    windowDrag('dragenter');
+    windowDrag('drop', [new File(['bad'], 'notes.txt')]);
+    expect(screen.getByRole('alert')).toHaveTextContent('No files were added');
+    expect(screen.queryByRole('link', { name: 'notes.txt' })).not.toBeInTheDocument();
+  });
+  it('shows no layer for text or a link dragged over the page, and none on a record', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<InvoiceFlow initialState="table" />);
+    windowDrag('dragenter', [], ['text/plain']);
+    expect(container.querySelector('.ui-drop-page')).not.toHaveClass('is-open');
+    // Adding files is a list action: a record open for review has no layer to drop on.
+    await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
+    expect(container.querySelector('.ui-drop-page')).toBeNull();
+  });
+  it('keeps the Upload button as the keyboard way to add files to the list', async () => {
+    const user = userEvent.setup();
+    render(<InvoiceFlow initialState="table" />);
+    const input = screen.getByLabelText<HTMLInputElement>('Select invoices');
+    const opened = vi.spyOn(input, 'click').mockImplementation(() => {});
+    screen.getByRole('button', { name: 'Upload' }).focus();
+    await user.keyboard('{Enter}');
+    expect(opened).toHaveBeenCalledTimes(1);
+    opened.mockRestore();
+  });
+  it('opens a record, preserves a draft across the list and saves it', async () => {
     const user = userEvent.setup();
     render(<InvoiceFlow initialState="table" />);
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
@@ -118,40 +168,9 @@ describe('invoice flow prototype', () => {
     await backToList(user);
     expect(rowStatus('cedar-1042.pdf')).toBe('Ready');
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
-    await user.click(formUndo());
-    expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Cedar Studio');
-    await backToList(user);
-    expect(rowStatus('cedar-1042.pdf')).toBe('Needs review');
+    expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Cedar Design Studio');
   });
-  it('undoes a save on a Ready invoice back to Ready, not to Needs review', async () => {
-    // The record birch-208.pdf was Ready before the save, so undoing that save owes the
-    // reader the status it had as well as the values.
-    const user = userEvent.setup();
-    render(<InvoiceFlow initialState="table" />);
-    expect(rowStatus('birch-208.pdf')).toBe('Ready');
-    await user.click(screen.getByRole('link', { name: 'birch-208.pdf' }));
-    const supplier = screen.getByRole('textbox', { name: 'Supplier' });
-    await user.clear(supplier); await user.type(supplier, 'Birch Joinery');
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(screen.getByText('Saved')).toBeInTheDocument();
-    await user.click(formUndo());
-    expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Birch Workshop');
-    await backToList(user);
-    expect(rowStatus('birch-208.pdf')).toBe('Ready');
-  });
-  it('keeps the undo snapshot when a second save changes nothing', async () => {
-    const user = userEvent.setup();
-    render(<InvoiceFlow initialState="table" />);
-    await user.click(screen.getByRole('link', { name: 'birch-208.pdf' }));
-    await user.type(screen.getByRole('textbox', { name: 'Supplier' }), ' Ltd');
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    await user.click(formUndo());
-    expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Birch Workshop');
-    await backToList(user);
-    expect(rowStatus('birch-208.pdf')).toBe('Ready');
-  });
-  it('undoes unsaved edits and validates required fields and positive totals', async () => {
+  it('discards unsaved edits and validates required fields and positive totals', async () => {
     const user = userEvent.setup();
     render(<InvoiceFlow initialState="editing" />);
     await user.click(screen.getByRole('button', { name: 'Discard' }));
@@ -213,15 +232,14 @@ describe('invoice flow prototype', () => {
     expect(screen.getByText(listed)).toBeInTheDocument();
   });
   it('raises no toast when the next save is rejected', async () => {
-    /* A rejected save may not report a save that did not happen. With the status badge gone, the standing edits show in the action the row offers:
-     * Discard, not Undo. */
+    /* A rejected save may not report a save that did not happen. The standing edits show in
+     * the action the row offers: Discard. */
     const user = userEvent.setup();
     render(<InvoiceFlow initialState="table" />);
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
     await user.type(screen.getByRole('textbox', { name: 'Supplier' }), ' Ltd');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(screen.getByText('Saved')).toBeInTheDocument();
-    expect(formUndo()).toBeEnabled();
     await user.clear(screen.getByRole('textbox', { name: 'Supplier' }));
     await user.click(screen.getByRole('button', { name: 'Save' }));
     // The rejected save raised no second toast: the one on screen is the earlier save's.
@@ -245,13 +263,13 @@ describe('invoice flow prototype', () => {
       expect(found, `${what} sets its bottom margin from a --space token`).not.toBeNull();
       return found![1];
     };
-    const fields = stepOf(/\.invoice-flow__fields\s*\{[^}]*margin:\s*0 0 var\((--space-\d+)\)/, 'the field grid');
-    const summary = stepOf(/\.invoice-flow__summary\s*\{[^}]*margin:\s*0 0 var\((--space-\d+)\)/, 'the summary');
+    const fields = stepOf(/\.invoice-flow__fields\s*\{[^}]*margin-bottom:\s*var\((--space-\d+)\)/, 'the field grid');
+    const summary = stepOf(/\.invoice-flow__summary\s*\{[^}]*margin-bottom:\s*var\((--space-\d+)\)/, 'the summary');
     expect(summary, `the summary (${summary}) takes the form's own step (${fields})`).toBe(fields);
   });
   it('keeps the toast through an edit and clears the other lines on the next edit', async () => {
     /* The toast says a save happened, which stays true after an edit, so it stays. The
-     * two lines that describe the values on screen go with the next edit. */
+     * line that describes the values on screen goes with the next edit. */
     const user = userEvent.setup();
     render(<InvoiceFlow initialState="table" />);
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
@@ -261,44 +279,33 @@ describe('invoice flow prototype', () => {
     expect(screen.getByText('Saved')).toBeInTheDocument();
     await user.type(supplier, ' II');
     expect(screen.getByText('Saved')).toBeInTheDocument();
-    // The record is untouched by the edit, so Undo still has the save to undo.
     expect(screen.getByRole('button', { name: 'Discard' })).toBeEnabled();
     await user.click(screen.getByRole('button', { name: 'Discard' }));
     expect(screen.getByText('Edits discarded.')).toBeInTheDocument();
     await user.type(supplier, '!');
     expect(screen.queryByText('Edits discarded.')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Discard' }));
-    await user.click(formUndo());
-    expect(screen.getByText('Last save undone.')).toBeInTheDocument();
-    await user.type(supplier, '?');
-    expect(screen.queryByText('Last save undone.')).not.toBeInTheDocument();
   });
   it('leaves the review screen without a per-field provenance tier or a status badge', () => {
     /* The review screen omits the per-field accent bar, "As parsed" line, bar explanation,
-     * "Needs review" badge and text-link Undo. The list states the record status once. */
+     * "Needs review" badge and every Undo. The list states the record status once. */
     const { container } = render(<InvoiceFlow initialState="review" />);
     expect(container.querySelector('.invoice-flow__field')).toBeNull();
     expect(container.querySelector('[data-parsed]')).toBeNull();
     expect(screen.queryByText('As parsed')).not.toBeInTheDocument();
     expect(screen.queryByText(/accent bar/i)).not.toBeInTheDocument();
     expect(screen.queryByText('Needs review')).not.toBeInTheDocument();
-    expect(formUndo()).toHaveClass('ui-btn--secondary');
+    expect(screen.getByRole('button', { name: 'Discard' })).toHaveClass('ui-btn--secondary');
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument();
     // The kit's hint slot is what carried "As parsed"; no field may reclaim it.
     expect(container.querySelectorAll('.ui-field__hint')).toHaveLength(0);
   });
 
-  it('keeps the data column wider and reserves the accent edge for dragging', () => {
+  it('keeps the data column wider and draws no accent of its own', () => {
     expect(SHEET, 'the showcase ships a sheet beside the story').toContain('.invoice-flow');
-    /* One accent line is allowed, and only one: the drop box while a file is over it. The
-     * kit draws its own drop target the same way — `.ui-drop__target` in
-     * src/styles/file-drop.css and `.ui-file.is-dragging` in Field.css both take a dashed
-     * or solid accent edge — so echoing it is the kit's pattern, not an offence. Naming it
-     * here is what stops a second line hiding behind the exception. */
-    expect(accentLines(SHEET), 'the drag state is the only line drawn from the accent')
-      .toEqual([{ property: 'border-color', value: 'var(--accent)' }]);
-    expect(SHEET).toMatch(/\.invoice-flow__drop\.is-dragging\s*\{\s*border-color:\s*var\(--accent\)/);
-    const withoutDragState = SHEET.replace(/\.invoice-flow__drop\.is-dragging\s*\{[^}]*\}/g, '');
-    expect(accentOffences(withoutDragState, 'InvoiceFlow.css')).toEqual([]);
+    /* The sheet draws no line from the accent: the drop area's accent edge while a file is
+     * over it is the kit's own, in src/styles/file-drop.css. */
+    expect(accentLines(SHEET), 'the sheet draws nothing from the accent').toEqual([]);
+    expect(accentOffences(SHEET, 'InvoiceFlow.css')).toEqual([]);
     // The saved pane leads and is the wider column; the source gets neither, nor the accent.
     expect(SHEET).not.toMatch(/\.invoice-flow__preview[^{]*\{[^}]*var\(--accent/);
     /* The saved values take the wider track. Held as the two numbers rather than as a
@@ -374,7 +381,7 @@ describe('invoice flow prototype', () => {
     expect(within(paper).getByText('\u20ac1,704.00')).toBeInTheDocument();
     expect(within(paper).getByText('Brand identity refresh')).toBeInTheDocument();
   });
-  it('B4: Save puts its confirmation in the kit toast, outside the page flow, and leaves one Undo', async () => {
+  it('B4: Save puts its confirmation in the kit toast, outside the page flow, with no Undo', async () => {
     const user = userEvent.setup();
     const { container } = render(<InvoiceFlow initialState="table" />);
     await user.click(screen.getByRole('link', { name: 'birch-208.pdf' }));
@@ -389,28 +396,19 @@ describe('invoice flow prototype', () => {
     // No line was added above the panes, so nothing under the pointer moved.
     expect(siblings()).toEqual(layout);
     expect(container.querySelector('[role="status"]')).toBeEmptyDOMElement();
-    // The toast only reports the save. The one Undo on screen is the form's, in the Invoice data region.
+    // A save is not destructive, so the toast offers only Dismiss and the form only Save and Discard.
     expect(toast.querySelector('.ui-toast__action')).toBeNull();
     expect(within(toast).getAllByRole('button').map(button => button.getAttribute('aria-label'))).toEqual(['Dismiss']);
-    const undos = screen.getAllByRole('button', { name: 'Undo' });
-    expect(undos).toHaveLength(1);
-    expect(undos[0]).toBe(formUndo());
-    await user.click(undos[0]);
-    expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Birch Workshop');
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument();
+    const form = within(screen.getByRole('region', { name: 'Invoice data' }));
+    expect(form.getAllByRole('button').map(button => button.textContent)).toEqual(['Save', 'Discard']);
     await backToList(user);
     expect(rowStatus('birch-208.pdf')).toBe('Ready');
   });
-  it('B4: the form Undo returns a Needs review record to Needs review', async () => {
-    const user = userEvent.setup();
-    render(<InvoiceFlow initialState="table" />);
-    await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
-    await user.type(screen.getByRole('textbox', { name: 'Supplier' }), ' Ltd');
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    await user.click(formUndo());
-    await backToList(user);
-    expect(rowStatus('cedar-1042.pdf')).toBe('Needs review');
-    await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
-    expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Cedar Studio');
+  it('mutes the title of the Document block through the kit class and leaves the data title alone', () => {
+    render(<InvoiceFlow initialState="review" />);
+    expect(screen.getByRole('heading', { name: 'Document' })).toHaveClass('ui-card__title', 'ui-card__title--muted');
+    expect(screen.getByRole('heading', { name: 'Invoice data' })).not.toHaveClass('ui-card__title--muted');
   });
 
   /* The picker uses the kit's drop-row button. Buttons use one or two words.
@@ -466,8 +464,8 @@ describe('invoice flow prototype', () => {
     const rules = leafRules(SHEET) as { selector: string; decls: { prop: string; value: string }[] }[];
     expect(rules.length, 'the sheet parses into rules').toBeGreaterThan(5);
 
-    // A ground, a rung or a type ramp is the kit's to set, wherever the rule points.
-    const BANNED = /^(background|background-color|box-shadow|font-size|font-family|letter-spacing|line-height|text-shadow)$/;
+    // A ground, an edge, a rung or a type ramp is the kit's to set, wherever the rule points.
+    const BANNED = /^(background|background-color|box-shadow|font-size|font-family|letter-spacing|line-height|text-shadow|border|outline)(-.+)?$/;
     const paints = rules.flatMap(({ selector, decls }) =>
       decls.filter(d => BANNED.test(d.prop)).map(d => `${selector} { ${d.prop} }`));
     expect(paints, 'the sheet paints no ground and sets no type ramp').toEqual([]);

@@ -2,10 +2,10 @@
 // speaks the progress bar or the alert, and the paint — the drop target's cover
 // and the row's one accent are measured by the contrast and ring gates.
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, createEvent } from '@testing-library/react';
+import { render, screen, fireEvent, createEvent, act } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { FileDrop } from './FileDrop';
+import { FileDrop, FileDropArea, PageDrop } from './FileDrop';
 
 const readRepo = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 
@@ -269,4 +269,183 @@ describe('a disabled FileDrop', () => {
 it('merges a caller class with the kit class instead of replacing it', () => {
   render(<FileDrop className="demo" />);
   expect(row()).toHaveClass('ui-drop', 'demo');
+});
+
+const area = () => document.querySelector('.ui-drop--area') as HTMLElement;
+
+describe('FileDropArea on the empty page', () => {
+  it('draws the first-run block with one Upload button as the keyboard path', () => {
+    render(<FileDropArea title="Add your first invoices" note="PDF, PNG or JPEG." />);
+    expect(area()).toHaveClass('ui-drop', 'ui-drop--area');
+    expect(screen.getByText('Add your first invoices')).toBeInTheDocument();
+    expect(screen.getByText('PDF, PNG or JPEG.')).toBeInTheDocument();
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+    expect(area()).not.toHaveClass('is-dragging');
+  });
+
+  it('opens the picker once from the button and once from a click on the box', () => {
+    render(<FileDropArea title="Add" />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const click = vi.spyOn(input, 'click').mockImplementation(() => {});
+    fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
+    expect(click).toHaveBeenCalledTimes(1);
+    fireEvent.click(area());
+    expect(click).toHaveBeenCalledTimes(2);
+  });
+
+  it('takes every chosen file and clears the input', () => {
+    const onFiles = vi.fn();
+    render(<FileDropArea title="Add" multiple onFiles={onFiles} />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(input).toHaveAttribute('multiple');
+    fireEvent.change(input, { target: { files: [file('a.pdf'), file('b.pdf')] } });
+    expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'a.pdf' }), expect.objectContaining({ name: 'b.pdf' })]);
+    expect(input.value).toBe('');
+  });
+
+  it('turns the edge to the accent while a file is over it and back on leave', () => {
+    render(<FileDropArea title="Add" />);
+    fireEvent.dragOver(area(), withFiles());
+    expect(area()).toHaveClass('is-dragging');
+    fireEvent.dragLeave(area(), { relatedTarget: document.body });
+    expect(area()).not.toHaveClass('is-dragging');
+  });
+
+  it('ignores a drag that carries no file', () => {
+    render(<FileDropArea title="Add" />);
+    fireEvent.dragOver(area(), { dataTransfer: { types: ['text/plain'], files: [] } });
+    expect(area()).not.toHaveClass('is-dragging');
+  });
+
+  it('takes the dropped files and tells the browser the drop is handled', () => {
+    const onFiles = vi.fn();
+    render(<FileDropArea title="Add" onFiles={onFiles} />);
+    const event = createEvent.drop(area());
+    Object.defineProperty(event, 'dataTransfer', { value: { types: ['Files'], files: [file('a.pdf')] } });
+    fireEvent(area(), event);
+    expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'a.pdf' })]);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('lets a parent drive the edge', () => {
+    const { rerender } = render(<FileDropArea title="Add" dragging={false} />);
+    fireEvent.dragOver(area(), withFiles());
+    expect(area()).not.toHaveClass('is-dragging');
+    rerender(<FileDropArea title="Add" dragging />);
+    expect(area()).toHaveClass('is-dragging');
+  });
+
+  it('accepts nothing while disabled and never claims to be a drop target', () => {
+    const onFiles = vi.fn();
+    render(<FileDropArea title="Add" disabled onFiles={onFiles} />);
+    expect(dragOver(area(), [file()]).defaultPrevented).toBe(false);
+    fireEvent.drop(area(), withFiles([file()]));
+    expect(onFiles).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Upload' })).toBeDisabled();
+    expect(area()).not.toHaveClass('is-dragging');
+  });
+});
+
+/** A drag on the window itself, as the browser sends one for a file from outside. */
+const windowDrag = (type: string, init: { files?: File[]; types?: string[]; relatedTarget?: EventTarget | null } = {}) => {
+  const event = new Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperty(event, 'dataTransfer', { value: { types: init.types ?? ['Files'], files: init.files ?? [] } });
+  Object.defineProperty(event, 'relatedTarget', { value: init.relatedTarget ?? null });
+  act(() => { window.dispatchEvent(event); });
+  return event;
+};
+const layer = () => document.querySelector('.ui-drop-page') as HTMLElement;
+
+describe('PageDrop over the whole page', () => {
+  it('is hidden until a file is dragged over the page, and says nothing to a screen reader', () => {
+    render(<PageDrop />);
+    expect(layer()).not.toHaveClass('is-open');
+    expect(layer()).toHaveAttribute('aria-hidden', 'true');
+    windowDrag('dragenter');
+    expect(layer()).toHaveClass('is-open');
+    expect(layer()).toHaveTextContent('Drop files to upload');
+  });
+
+  it('stays hidden for selected text or a link', () => {
+    render(<PageDrop />);
+    windowDrag('dragenter', { types: ['text/plain'] });
+    windowDrag('dragover', { types: ['text/uri-list'] });
+    expect(layer()).not.toHaveClass('is-open');
+  });
+
+  it('tells the browser the page is a drop target while it shows', () => {
+    render(<PageDrop />);
+    expect(windowDrag('dragover').defaultPrevented).toBe(true);
+    expect(windowDrag('dragover', { types: ['text/plain'] }).defaultPrevented).toBe(false);
+  });
+
+  it('goes when the pointer leaves the window, and stays while it moves between elements', () => {
+    render(<PageDrop />);
+    windowDrag('dragenter');
+    windowDrag('dragleave', { relatedTarget: document.body });
+    expect(layer()).toHaveClass('is-open');
+    windowDrag('dragleave', { relatedTarget: null });
+    expect(layer()).not.toHaveClass('is-open');
+  });
+
+  it('goes on Escape and when the drag ends', () => {
+    render(<PageDrop />);
+    windowDrag('dragenter');
+    act(() => { fireEvent.keyDown(window, { key: 'Escape' }); });
+    expect(layer()).not.toHaveClass('is-open');
+    windowDrag('dragenter');
+    windowDrag('dragend');
+    expect(layer()).not.toHaveClass('is-open');
+  });
+
+  it('takes the files dropped anywhere and hides at once', () => {
+    const onFiles = vi.fn();
+    render(<PageDrop onFiles={onFiles} />);
+    windowDrag('dragenter');
+    const drop = windowDrag('drop', { files: [file('a.pdf'), file('b.png')] });
+    expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'a.pdf' }), expect.objectContaining({ name: 'b.png' })]);
+    expect(drop.defaultPrevented).toBe(true);
+    expect(layer()).not.toHaveClass('is-open');
+  });
+
+  it('leaves a drop that something under the pointer already took', () => {
+    const onFiles = vi.fn();
+    const onArea = vi.fn();
+    render(<><FileDropArea title="Add" onFiles={onArea} /><PageDrop onFiles={onFiles} /></>);
+    fireEvent.drop(area(), withFiles([file('a.pdf')]));
+    expect(onArea).toHaveBeenCalledTimes(1);
+    expect(onFiles).not.toHaveBeenCalled();
+  });
+
+  it('takes nothing and claims nothing while disabled', () => {
+    const onFiles = vi.fn();
+    render(<PageDrop disabled onFiles={onFiles} />);
+    expect(windowDrag('dragover').defaultPrevented).toBe(false);
+    windowDrag('drop', { files: [file()] });
+    expect(onFiles).not.toHaveBeenCalled();
+    expect(layer()).not.toHaveClass('is-open');
+  });
+
+  it('lets a parent show the layer, and stops listening when it unmounts', () => {
+    const onFiles = vi.fn();
+    const { rerender, unmount } = render(<PageDrop open onFiles={onFiles} />);
+    expect(layer()).toHaveClass('is-open');
+    rerender(<PageDrop open={false} onFiles={onFiles} />);
+    expect(layer()).not.toHaveClass('is-open');
+    unmount();
+    windowDrag('drop', { files: [file()] });
+    expect(onFiles).not.toHaveBeenCalled();
+  });
+
+  // JSDOM lays nothing out, so the sheet is read for what must hold: the layer
+  // takes no pointer, so the page under it keeps working and the drop lands there.
+  // Whether the page shows through the ground, and the fade, are seen in a browser.
+  it('takes no pointer events and fades with the kit motion tokens', () => {
+    const css = readRepo('../../src/styles/file-drop.css');
+    const rule = /\.ui-drop-page\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(rule).toMatch(/pointer-events:\s*none/);
+    expect(rule).toMatch(/position:\s*fixed/);
+    expect(rule).toMatch(/transition:[^;]*var\(--dur-med\)[^;]*var\(--ease\)/);
+    expect(rule).toMatch(/visibility var\(--dur-med\) linear/);
+  });
 });

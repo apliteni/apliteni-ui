@@ -884,6 +884,17 @@ target. A disabled drop never calls `preventDefault` on `dragover`, so it does n
 itself as a target the pointer can aim at. When a page uses a row, a region or a dialog, see
 [File drop](../guidelines/file-drop.md).
 
+`FileDropArea` is the empty page's drop: a dashed box around a first-run block with a title,
+the accepted types and the Upload button. **The button is the keyboard path.** A click on the
+box opens the picker too, and a file dropped anywhere in the box reaches `onFiles`. A file over
+the box turns its edge to the accent. A disabled area accepts nothing.
+
+`PageDrop` makes the whole page a target. **The layer is on screen only while a file is dragged
+over the page.** A link or selected text does not show it. It takes no pointer events, so the
+page keeps working under it, and the screen's own Upload button stays the keyboard path. A file
+dropped anywhere reaches `onFiles` once, unless something under the pointer took the drop first.
+Escape or leaving the window hides the layer. Reduced motion shows and hides it without a fade.
+
 ### React Button links and leading artwork
 
 React `Button` accepts `href` and then renders an anchor with the existing button classes.

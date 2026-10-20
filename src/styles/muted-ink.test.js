@@ -117,10 +117,12 @@ for (const file of new Set(result.subjects.map(subject => subject.file))) {
 test('the chrome class stays on a drawing\'s own furniture', () => {
   // The fourth class was agreed for one shape: the scale and the key a chart
   // prints beside its marks, where every value it names is also given in full
-  // in the readout and in the values table. A class with no bound is a second
+  // in the readout and in the values table. The one other use is a supporting
+  // card's title, which the maintainer allowed on #458. A class with no bound is a second
   // default, so the declarations taking it are listed rather than counted.
   assert.deepEqual(result.subjects.filter(d => d.note?.[1] === 'chrome')
     .map(d => `${d.file} ${d.selector}`).sort(), [
+    'src/styles/card.css .ui-card__title--muted',
     'src/styles/chart.css .ui-chart__axis',
     'src/styles/chart.css .ui-chart__legend',
     'src/styles/chart.css .ui-chart__period',

@@ -81,3 +81,34 @@
 
 .ui-drop.is-disabled .ui-drop__row { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
 .ui-drop.is-disabled .ui-drop__name { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
+
+/* The empty page's drop area: the whole region is the target, drawn as a dashed
+   box around the first-run block. A file over it turns the edge to the accent,
+   the screen's one accent line, the way .ui-drop__target draws its own. */
+.ui-drop--area { border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); padding: var(--space-4); }
+.ui-drop--area.is-dragging { border-color: var(--accent); }
+@media (max-width: 560px) { .ui-drop--area { padding: var(--space-3); } }
+
+/* The whole page as a target. It is on screen only while a file is dragged over
+   the page, it takes no pointer events so the drop lands on what is under it,
+   and the page ground at 90% leaves that page dimly in view. Only the hide is
+   transitioned, as the palette does: the layer stays visible while it fades.
+   `linear` because visibility is discrete. */
+.ui-drop-page {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  background: color-mix(in srgb, var(--bg) 90%, transparent); /* code-bg: inherit — the layer holds no focus target and takes no pointer. */
+  transition: opacity var(--dur-med) var(--ease), visibility var(--dur-med) linear;
+}
+.ui-drop-page.is-open { visibility: visible; opacity: 1; }
+
+/* The block rises into place as the layer fades in. */
+.ui-drop-page .ui-empty { transform: translateY(var(--space-2)); transition: transform var(--dur-med) var(--ease); }
+.ui-drop-page.is-open .ui-empty { transform: none; }

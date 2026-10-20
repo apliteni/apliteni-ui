@@ -168,7 +168,10 @@ Muted and dim ink have exactly four uses:
 - **chrome** — the furniture around a drawing: a chart's value axis, its period row
   and its legend. Exact data values must remain reachable at full strength through
   pointer readouts and keyboard announcements. The values table is optional and opens
-  on request. A field's label, a caption and a timestamp keep body ink.
+  on request. A field's label, a caption and a timestamp keep body ink. The one other use
+  is the title of a supporting card, such as a document beside the data read from it:
+  add `ui-card__title--muted` so it ranks below its neighbour. Its size and weight stay
+  the card title's.
 
 An empty-state explanation is not an empty slot. A keyboard shortcut is language. A count is
 not a status. Generic badges use body ink. Archive and disabled variants keep their state

@@ -12,7 +12,7 @@
 
 **Don't:** Draw a tall dashed box with a glyph, an invitation and a button stacked inside it.
 
-**Except:** A page whose whole purpose is receiving one file may use the field-sized picker, which carries a label of its own.
+**Except:** A page that exists to receive one file may use the field-sized picker, which has its own label. An empty page may show a dashed drop area until the first file arrives. Artur: “For blank state - drop area is ok”.
 
 ## Paint the target only while a file is over it
 
@@ -26,6 +26,8 @@
 
 **Don't:** Cover the whole window when one panel accepts the file.
 
+**Except:** A page that takes files anywhere may cover the whole page. Artur: “show drop area on the whole page when someone tries to drop a file”.
+
 ## Keep the file in the row it arrived in
 
 <!-- rule: in-the-row -->
@@ -34,7 +36,7 @@
 
 **Why:** A row that changes in place keeps the page still while the file uploads.
 
-**Do:** Give the name a line with remove at its end, put the size under it, and run the progress track the full width below both.
+**Do:** Put remove at the end of the name's line, the size under it, and the progress track below both.
 
 **Don't:** Push the list down with a progress card, or open a dialog over the page.
 
@@ -44,7 +46,7 @@
 
 **Rule:** A refused file keeps its place, says what it did wrong under its name, and offers Retry beside Remove.
 
-**Why:** A row that drops the file sends the reader back to choosing one. The reason is the one string here that has to be read in full, so it gets a line rather than a share of one.
+**Why:** A row that drops the file sends the reader back to choosing one.
 
 **Do:** Keep the name on its line and say “Larger than 10 MB” under it, with Retry.
 
@@ -80,8 +82,8 @@
 
 **Rule:** Use a row where the file joins a list on the page, a region when one panel owns the file, and a dialog only when the upload needs answers of its own.
 
-**Why:** A dialog that asks nothing is one more thing to dismiss. The rule picks between three containers, so a drawing would show one of them and not the choice.
+**Why:** A dialog that asks nothing is one more thing to dismiss. The rule chooses between containers, so a drawing would show one, not the choice.
 
-**Do:** Take a statement into the row under the statements it joins, and a replacement logo into the panel that shows it.
+**Do:** Take a statement into the row under the statements it joins.
 
 **Don't:** Open a dialog for one file that the row behind it could have taken.
