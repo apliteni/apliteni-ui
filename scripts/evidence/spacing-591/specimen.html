@@ -1,6 +1,8 @@
 <!doctype html>
 <!-- One specimen page for #591, rendered once per spacing option.
      ?option=today|a|b|c picks the option, ?theme=light|dark the theme.
+     ?layout=stacked|row|row-above places the filters: stacked above the view strip (today),
+     or on the strip's row at its right end, wrapping under the strip or above it.
      Serve the repository root and open /scripts/evidence/spacing-591/specimen.html. -->
 <html lang="en">
 <head>
@@ -38,7 +40,11 @@ const rows = [
   ['INV-1022', 'Aster Systems', '30 Sep 2026', '1,640.80'],
 ];
 const table = `<div class="ui-table-scroll" role="region" aria-label="Invoices" tabindex="0"><table class="ui-table ui-table--compact"><thead><tr><th scope="col">Invoice</th><th scope="col">Customer</th><th scope="col">Due</th><th scope="col" class="ui-table__num">Amount EUR</th></tr></thead><tbody>${rows.map(([n, c, d, a]) => `<tr><td>${n}</td><td>${c}</td><td>${d}</td><td class="ui-table__num">${a}</td></tr>`).join('')}</tbody></table></div>`;
-const list = `<section class="spec-list" aria-label="Invoice list">${filterBar({ filters })}${segmented({ options: ['All', 'Open', 'Overdue', 'Paid', 'Drafts'], active: 1, appearance: 'underline', ariaLabel: 'Invoice view', name: 'view' })}${table}</section>`;
+const strip = segmented({ options: ['All', 'Open', 'Overdue', 'Paid', 'Drafts'], active: 1, appearance: 'underline', ariaLabel: 'Invoice view', name: 'view' });
+const layout = q.get('layout') || 'stacked';
+const controls = layout === 'stacked' ? filterBar({ filters }) + strip
+  : `<div class="spec-row${layout === 'row-above' ? ' spec-row--above' : ''}">${strip}${filterBar({ filters })}</div>`;
+const list = `<section class="spec-list" aria-label="Invoice list">${controls}${table}</section>`;
 const reminders = `<section class="ui-card" aria-labelledby="reminders"><h2 class="ui-card__title" id="reminders">Reminders</h2><p>A reminder goes to the customer 3 days before an invoice falls due, and again on the day.</p></section>`;
 document.getElementById('root').innerHTML = appShell({
   word: 'Finance', title: 'Invoices', sub: 'Amounts in euros. Invoices fall due 30 days after issue.',

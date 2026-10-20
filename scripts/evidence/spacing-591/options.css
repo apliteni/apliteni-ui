@@ -9,6 +9,14 @@
 .spec-list { display: flex; flex-direction: column; min-width: 0; }
 .spec-list > .ui-seg { margin-top: var(--sp-controls, var(--space-2)); }
 .spec-list > .ui-table-scroll { margin-top: var(--sp-filtered, var(--space-3)); }
+/* The follow-up layout: the view strip and the filters share one row, the filters at its
+   right end. A line that wraps starts on the column edge, so space-between, not an auto
+   margin. The row's gaps are the option's inner gap between controls. --above puts the
+   wrapped filters over the strip with the same markup, so its focus order runs bottom line
+   first. */
+.spec-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--sp-controls, var(--space-2)); min-width: 0; }
+.spec-row--above { flex-wrap: wrap-reverse; }
 
 /* -- What an option re-declares -------------------------------------------- */
 /* An option is a change to the kit's own gaps, so it has to reach them. The
