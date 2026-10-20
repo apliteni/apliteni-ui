@@ -138,13 +138,6 @@ const fillsOf = (selector, css = rules) => css
   .filter((rule) => selectorsOf(rule.selector).includes(selector))
   .flatMap((rule) => {
     const fill = backgroundIn(rule.body);
-    // The phone shell removes the row fill and paints its measured plate instead.
-    if (selector === '.ui-app__rail .ui-nav__item.is-active'
-      && fill === 'none' && /^\s*isolation:\s*isolate;\s*background:\s*none;\s*$/.test(rule.body)) {
-      const plate = fillsOf('.ui-app__rail .ui-nav__item.is-active::before', css);
-      assert.ok(plate.length, 'the folded shell row has no replacement plate');
-      return plate;
-    }
     return fill ? [fill] : [];
   });
 
@@ -174,6 +167,12 @@ const SUBJECTS = [
     rule: '.ui-app__rail .ui-nav__item.is-active', ground: '--surface',
     paintedBy: '.ui-app__rail, which layout.css paints --surface',
   },
+  ...['.ui-app__drawer', '.ui-react-app__menu'].map((panel) => ({
+    name: `the phone drawer's current row in light (${panel})`,
+    rule: `:where(:root[data-theme="light"]) ${panel} .ui-nav__item.is-active`, ground: '--bg-elevated',
+    paintedBy: '.ui-drawer__panel, which paints --bg-elevated, equal to --surface in light',
+    themes: ['light'],
+  })),
   {
     name: 'the row a menu would pick',
     rule: '.ui-dropdown__item.is-active', ground: '--bg-elevated',
@@ -192,11 +191,6 @@ const SUBJECTS = [
   {
     name: "the folded shell rail's current plate",
     rule: ':where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before', ground: '--surface',
-    paintedBy: '.ui-app__rail, which layout.css paints --surface',
-  },
-  {
-    name: "the shell rail's current plate below the phone step",
-    rule: '.ui-app__rail .ui-nav__item.is-active::before', ground: '--surface',
     paintedBy: '.ui-app__rail, which layout.css paints --surface',
   },
 ];
@@ -283,6 +277,7 @@ test('every subject and every exclusion still names a rule that exists', () => {
 for (const theme of ['light', 'dark']) {
   test(`a selected item's highlight is visible on its own ground: ${theme}`, () => {
     for (const subject of SUBJECTS) {
+      if (subject.themes && !subject.themes.includes(theme)) continue;
       const fills = fillsOf(subject.rule);
       assert.ok(fills.length > 0, `${subject.rule} is given no background at all`);
       for (const fill of fills) {
@@ -309,6 +304,7 @@ test('the fill gate rejects a highlight that does not step off its ground', () =
   // And the fill each item actually takes clears it in both themes, by more than rounding.
   for (const theme of ['light', 'dark']) {
     for (const subject of SUBJECTS) {
+      if (subject.themes && !subject.themes.includes(theme)) continue;
       for (const fill of fillsOf(subject.rule)) {
         assert.ok(against(fill, subject.ground, theme) > flat,
           `${subject.name} is no better than the flat pair in ${theme}`);
@@ -463,6 +459,8 @@ const forcedFixtures = [
   ['folded standalone row', `<nav class="ui-nav ui-nav--side is-collapsed">${row}</nav>`],
   ['shell row', `<div class="ui-app"><nav class="ui-app__rail ui-nav">${row}</nav></div>`],
   ['folded shell row', `<div class="ui-app is-collapsed"><nav class="ui-app__rail ui-nav">${row}</nav></div>`],
+  ['drawer row', `<div class="ui-app__drawer"><nav class="ui-nav">${row}</nav></div>`],
+  ['React drawer row', `<div class="ui-react-app__menu"><nav class="ui-nav">${row}</nav></div>`],
   ...['', 'is-pill', 'is-underline'].map((kind) => [`tab ${kind}`, `<nav class="ui-nav ui-nav--tabs ${kind}"><a href="#" class="ui-nav__tab is-active">Selected</a></nav>`]),
   ['current crumb', '<nav class="ui-nav__crumbs"><span class="ui-nav__crumb is-current">Selected</span></nav>'],
   ['pager current page', '<nav class="ui-pager"><button class="ui-btn ui-pager__page is-current" aria-current="page">4</button></nav>'],
@@ -528,8 +526,6 @@ function checkForcedFixes(css) {
     assert.ok(matching(name).some((rule) => declares(rule.body, 'background', 'none') && /is-collapsed/.test(rule.subject))
       || name === 'folded standalone row', `${name}: the folded row is filled; only its plate may be`);
   }
-  assert.ok(/@media \(forced-colors: active\) and \(max-width: 720px\)\s*\{[^{}]*\{[^{}]*background:\s*none/.test(css),
-    'the phone fold has no forced-colour rule that keeps the row unfilled');
   // B2 and B4: the underline bar is not drawn, for tabs and for Segmented, so the fill is the one mark.
   assert.ok(matching('tab is-underline', 'after').some((rule) => declares(rule.body, 'display', 'none')),
     'the underline tab draws its accent bar inside the fill');
@@ -559,7 +555,6 @@ test('the forced-colour fix gate rejects each missing fix', () => {
   const without = (pattern) => forcedSource.replace(pattern, (m) => m.replace(/[^\n]/g, ' '));
   const mutations = [
     ['B1 folded row', /\.ui-app\.is-collapsed \.ui-app__rail \.ui-nav__item:is\(\.is-active, \.is-current\) \{[^{}]*\}/, /folded row is filled/],
-    ['B1 phone fold', /@media \(forced-colors: active\) and \(max-width: 720px\)\s*\{(?:[^{}]*\{[^{}]*\})+\s*\}/, /phone fold/],
     ['B2 tab bar', /\.ui-nav--tabs\.is-underline \.ui-nav__tab\.is-active::after \{ display: none[^{}]*\}/, /accent bar inside the fill/],
     ['B3 disabled segmented', /\.ui-seg button\.is-active:disabled,[^{}]*\{[^{}]*\}/, /no disabled system colour/],
     ['B3 busy pager', /\.ui-pager__page\.is-current\[disabled\] \{\s*forced-color-adjust[^{}]*\}/, /no disabled system colour/],
@@ -585,7 +580,12 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
       await page.setContent(`<style>${css}</style>`);
       for (const width of [390, 600, 1280]) {
         await page.setViewportSize({ width, height: 900 });
-        for (const [name, html] of forcedFixtures) {
+        for (const [name, fixtureHtml] of forcedFixtures) {
+          // The shell draws no rail at a phone width: its row is the drawer's, an open row.
+          if (width <= 720 && name === 'folded shell row') continue;
+          const html = width <= 720 && name === 'shell row'
+            ? `<div class="ui-app"><div class="ui-app__drawer"><div class="ui-drawer is-open"><aside class="ui-drawer__panel"><div class="ui-drawer__body"><nav class="ui-nav">${row}</nav></div></aside></div></div></div>`
+            : fixtureHtml;
           await page.evaluate((markup) => { document.body.innerHTML = markup; }, html);
           const result = await page.evaluate(() => {
             const element = document.querySelector('.is-active, .is-current, [aria-pressed="true"], [aria-selected="true"]');
@@ -622,7 +622,7 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
           const disabled = /^(?:disabled segmented|busy pager)/.test(name);
           assert.equal(result.fill === result.grayText, disabled,
             `${label}: ${disabled ? 'a disabled selection must take GrayText' : 'a live selection must not take GrayText'}`);
-          const folded = name.startsWith('folded') || (name === 'shell row' && width <= 720);
+          const folded = name.startsWith('folded');
           if (folded) {
             assert.equal(result.rowFill, 'rgba(0, 0, 0, 0)', `${label}: the folded row is filled, not just its plate`);
             assert.ok(result.plateReady, `${label}: the folded plate is not generated and visible`);
@@ -635,7 +635,7 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
       }
       await page.close();
     }
-    assert.equal(measured, forcedFixtures.length * 6);
+    assert.equal(measured, forcedFixtures.length * 6 - 4);
   } finally {
     await browser.close();
   }
@@ -653,6 +653,14 @@ const rowOf = (item, extra = {}) => sidebarNav({ items: [{ id: 'a', label: 'Inbo
 const PAIR = { bg: 'Highlight', ink: 'HighlightText' };
 const OFF = { bg: 'GrayText', ink: 'Canvas' };
 const phone = (width) => width <= 720;
+/** At a phone width the shell has no rail: its rows are the open drawer's rows, drawn as an
+ *  open row. A folded rail is not drawn there at all, so that fixture has no phone reading. */
+const atWidth = (html, width) => {
+  if (!phone(width) || !html.startsWith('<div class="ui-app')) return html;
+  if (html.startsWith('<div class="ui-app is-collapsed"')) return null;
+  const inner = /<div class="ui-app__rail">([\s\S]*)<\/div><\/div>$/.exec(html)?.[1];
+  return `<div class="ui-app"><div class="ui-app__drawer"><div class="ui-drawer is-open"><aside class="ui-drawer__panel"><div class="ui-drawer__body">${inner}</div></aside></div></div></div>`;
+};
 const palette = (item) => `<div class="ui-cmdk is-open"><div class="ui-cmdk__panel"><div class="ui-cmdk__list">${commandPaletteList([{ items: [{ id: 'p', label: 'Open', description: 'Go there', icon: 'home', badge: 'New', shortcut: ['⌘', 'K'], ...item }] }])}</div></div></div>`;
 const group = (collapsed) => sidebarNav({
   items: [{ id: 'g', label: 'Settings', icon: 'home', open: true, items: [{ id: 'c', label: 'Profile', href: '#' }] }],
@@ -667,8 +675,7 @@ const childFixtures = [
   })),
   {
     name: 'badge on a selected shell row', html: shellOf(false, rowOf({ badge: toneBadge('neutral') })),
-    checks: (width) => (phone(width) ? plateOf('.is-active', 'Highlight')
-      : [['.is-active', null, PAIR], ['.ui-nav__badge', null, { bg: 'HighlightText', ink: 'Highlight' }]]),
+    checks: (width) => [['.is-active', null, PAIR], ['.ui-nav__badge', null, { bg: 'HighlightText', ink: 'Highlight' }]],
   },
   {
     name: 'badge on a selected tab', html: `<nav class="ui-nav ui-nav--tabs"><a href="#" class="ui-nav__tab is-active">Open<span class="ui-nav__badge is-neutral">3</span></a></nav>`,
@@ -698,8 +705,7 @@ const childFixtures = [
     },
     {
       name: `selected danger shell row (${state})`, html: shellOf(false, rowOf({ danger: true, label: 'Sign out' })), act,
-      checks: (width) => (phone(width) ? plateOf('.is-active', 'Highlight')
-        : [['.is-active', null, { ...PAIR, ...(state === 'keyboard focus' ? { outline: 'CanvasText' } : {}) }]]),
+      checks: () => [['.is-active', null, { ...PAIR, ...(state === 'keyboard focus' ? { outline: 'CanvasText' } : {}) }]],
     },
   ]),
   {
@@ -708,15 +714,14 @@ const childFixtures = [
   },
   {
     name: 'disabled selected shell row', html: shellOf(false, rowOf({ disabled: true })),
-    checks: (width) => (phone(width) ? plateOf('.is-active', 'GrayText') : [['.is-active', null, OFF]]),
+    checks: () => [['.is-active', null, OFF]],
   },
   { name: 'disabled selected folded standalone row', html: rowOf({ disabled: true }, { collapsed: true }), checks: () => plateOf('.is-active', 'GrayText') },
   { name: 'disabled selected folded shell row', html: shellOf(true, rowOf({ disabled: true })), checks: () => plateOf('.is-active', 'GrayText') },
   {
     name: 'nested current group, open', html: shellOf(false, group(false)),
-    checks: (width) => (phone(width) ? [...plateOf('.ui-nav__toggle.is-current', 'Highlight'), ...plateOf('.ui-nav__item--sub.is-active', 'Highlight')]
-      : [['.ui-nav__toggle.is-current', null, PAIR], ['.ui-nav__toggle.is-current .ui-nav__caret', null, { caret: 'HighlightText' }],
-        ['.ui-nav__item--sub.is-active', null, PAIR]]),
+    checks: () => [['.ui-nav__toggle.is-current', null, PAIR], ['.ui-nav__toggle.is-current .ui-nav__caret', null, { caret: 'HighlightText' }],
+      ['.ui-nav__item--sub.is-active', null, PAIR]],
   },
   {
     name: 'nested current group, desktop fold (standalone)', html: group(true),
@@ -725,10 +730,6 @@ const childFixtures = [
   {
     name: 'nested current group, desktop fold (shell)', html: shellOf(true, group(true)),
     checks: () => [...plateOf('.ui-nav__toggle.is-current', 'Highlight'), ...plateOf('.ui-nav__item--sub.is-active', 'Highlight')],
-  },
-  {
-    name: 'nested current group, phone fold', html: shellOf(false, group(false)),
-    only: phone, checks: () => [...plateOf('.ui-nav__toggle.is-current', 'Highlight'), ...plateOf('.ui-nav__item--sub.is-active', 'Highlight')],
   },
 ];
 
@@ -745,8 +746,10 @@ async function measureChildren(browser, extraCss = '', changeCss = (css) => css)
       await page.setViewportSize({ width, height: 900 });
       for (const fixture of childFixtures) {
         if (fixture.only && !fixture.only(width)) continue;
+        const html = atWidth(fixture.html, width);
+        if (html === null) continue;
         await page.mouse.move(0, 0);
-        await page.evaluate((markup) => { document.body.innerHTML = markup; document.activeElement?.blur?.(); }, fixture.html);
+        await page.evaluate((markup) => { document.body.innerHTML = markup; document.activeElement?.blur?.(); }, html);
         if (fixture.act === 'tab') await page.keyboard.press('Tab');
         if (fixture.act?.startsWith('hover:')) await page.hover(fixture.act.slice(6));
         // A hover or focus starts a colour transition; reading before it ends reports the old colour.
@@ -814,7 +817,6 @@ test('the child gate rejects each defect it was written for', { skip: process.en
     ['a danger row that keeps the author ink in the shell', '@media (forced-colors: active) { .ui-app .ui-app__rail .ui-nav__item.is-active.is-danger { color: #a30032 !important; } }', /selected danger shell row \(resting\)/],
     ['a disabled selected row that takes the live pair', '@media (forced-colors: active) { .ui-nav .ui-nav__item.is-active.is-disabled { background: Highlight !important; color: HighlightText !important; } }', /disabled selected nav item/],
     ['a current group that fills its whole folded row', '@media (forced-colors: active) { .ui-nav--side.is-collapsed .ui-nav .ui-nav__item.is-current, .ui-nav--side.is-collapsed .ui-nav__item.is-current { background: Highlight !important; } }', /nested current group, desktop fold \(standalone\)/],
-    ['a current group that fills its whole phone row', '@media (forced-colors: active) { .ui-app .ui-app__rail .ui-nav__item.is-current { background: Highlight !important; } }', /nested current group, phone fold/],
   ];
   try {
     for (const [label, extra, expected] of defects) {
@@ -834,7 +836,7 @@ test('the browser gate rejects a folded plate without generated content', { skip
     return css.replace(pattern, '$1');
   };
   const mutations = [
-    [/(\.ui-nav__item\.is-current:not\(\.is-active\)::before\s*\{\s*)content: "";/g, 3, /nested current group, (?:desktop fold|phone fold)/],
+    [/(\.ui-nav__item\.is-current:not\(\.is-active\)::before\s*\{\s*)content: "";/g, 2, /nested current group, desktop fold/],
     [/(\.ui-nav--side\.is-collapsed \.ui-nav__item\.is-active::before\s*\{\s*)content: "";/g, 1, /disabled selected folded standalone row/],
   ];
   try {

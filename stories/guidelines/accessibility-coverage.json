@@ -977,6 +977,14 @@
       ]
     },
     {
+      "file": "stories/phone-shell.test.js",
+      "name": "Phone shell controls",
+      "does": "Measures the React phone band in Chromium at 320 and 390 with fine and coarse pointers. Checks the brand link, full accessible names, visible ellipsis, tap targets, viewport bounds, Dropdown panel hit testing, and native Tab and Shift+Tab in a shadow-root drawer. Checks the brand and reading column across 720 and 721.",
+      "blind": [
+        "The source half reads only declarations and markup. The browser half needs PHONE_SHELL=1, a built Storybook and Playwright, so routine CI does not prove these measurements. Other consumer band controls are not measured."
+      ]
+    },
+    {
       "file": "stories/rail-ring-room.test.js",
       "name": "Rail ring room",
       "does": "Resolves source CSS in JSDOM in both themes. Discovers rail rows whose outline matches a reference control. Checks row coverage, declared widths, and space for the outline through padding or an unclipped rail. Checks the border-box premise. Four failing mutations cover clipping, oversized rows, padding spent inside the rail, and unreadable percentage widths. A padded rail with narrower rows is a passing control.",

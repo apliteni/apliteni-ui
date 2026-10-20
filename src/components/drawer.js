@@ -153,10 +153,13 @@ export function wireDrawer(root = document) {
     doc.__drawerGlobalWired = true;
     // Any [data-drawer-open="ID"] trigger opens the matching drawer.
     doc.addEventListener('click', (e) => {
-      const opener = e.target.closest?.('[data-drawer-open]');
+      // composedPath() and not target: a trigger inside an open shadow root is retargeted
+      // to its host here, and its drawer is found in the tree the trigger is in.
+      const opener = e.composedPath().find((n) => n.nodeType === 1 && n.hasAttribute('data-drawer-open'));
       if (!opener) return;
       e.preventDefault();
-      const target = doc.getElementById(opener.getAttribute('data-drawer-open'));
+      const id = opener.getAttribute('data-drawer-open');
+      const target = (opener.getRootNode().getElementById?.(id)) || doc.getElementById(id);
       if (target) openDrawer(target, opener);
     });
   }
