@@ -545,6 +545,17 @@ class and invalid styling as appropriate:
 The frame supplies a stable ID, required state, and linked hint/error messages.
 An optional `id` lets the caller choose the control ID; it must be unique.
 
+A `Dropdown` is a control too. Spread the attributes onto it and its trigger takes
+`aria-describedby` and `aria-invalid`, so the error and hint are read when it gets focus.
+Its accessible name is the label and then the chosen value. Outside a `Field`,
+`Dropdown` takes `aria-describedby` and `aria-invalid` as props and forwards them to the trigger.
+
+```tsx
+<Field label="Owner" error="That option is no longer available.">
+  {control => <Dropdown {...control} variant="select" items={owners} />}
+</Field>
+```
+
 ### Search
 
 `SearchField` is the toolbar's search box: a search glyph, a native

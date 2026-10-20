@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Field, TextField, TextArea, SelectField, FileField } from './Field';
 import { Card } from './primitives/Card';
 import { Checkbox, CheckList } from './Checkbox';
+import { Dropdown } from './Dropdown';
 
 // Every specimen sits on the card, for the reason the vanilla Inputs gallery gives
 // since #556: a field's own paint IS --surface, so on the page ground an inert one
@@ -71,4 +72,9 @@ export const AdornedStates: StoryObj = { render: () => onCard(<div style={{ disp
   <TextField label="Unavailable search" type="search" icon="search" defaultValue="Buttons" disabled />
   <TextField label="Password" type="password" icon="lock" hint="Use your account password." error="Enter your password." required />
   <TextField label="Weight" type="number" icon="cube" unit="kg" defaultValue={12} />
+</div>) };
+const OWNERS = [{ label: 'Avery Example', value: 'avery' }, { label: 'Jordan Example', value: 'jordan' }];
+export const DropdownControl: StoryObj = { render: () => onCard(<div style={{ display: 'grid', gap: 20 }}>
+  <Field label="Owner" hint="The person who answers for this project.">{control => <Dropdown {...control} variant="select" items={OWNERS} value="Avery Example" />}</Field>
+  <Field label="Reviewer" error="That option is no longer available. Choose another.">{control => <Dropdown {...control} variant="select" items={OWNERS} placeholder="Choose a reviewer" />}</Field>
 </div>) };
