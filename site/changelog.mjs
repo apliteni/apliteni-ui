@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.126.0', date: '2026-10-20',
+    v: '0.127.0', date: '2026-10-20',
     changes: [
       ['added', 'The React invoice showcase demonstrates upload, review, editing and recovery with sample data. Files and edits stay in the browser tab. Refs #459.'],
       ['added', 'React `FileDrop` takes `title` to show a dashed drop area for an empty page. The kit also has `.ui-drop--page`, a layer over the whole page for a file drag, with an opaque card so no page text shows across its line. The Upload button stays the keyboard path in both. Refs #458.', ['FileDrop']],
@@ -14,6 +14,16 @@ export const RELEASES = [
       ['changed', 'The invoice showcase no longer offers Undo after Save. Save shows the Toast "Saved" and the form keeps Save and Discard. Refs #458.'],
       ['changed', 'The story CSS gate in the React workspace now reads every stylesheet in the showcases folder, also when its own module imports it. Refs #458.'],
       ['changed', 'Badges now include the neutral variant class when no variant is supplied. Their colours remain unchanged.', ['Badge']],
+    ],
+  },
+  {
+    v: '0.126.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],
+      ['added', 'NavTabs and Breadcrumbs take renderLink, so a router can own route changes, and the main entry now exports safeUrl, observeNavFit, revealCurrentNav and revealFocusedNav for callers that assemble their own navigation markup.', ['Navigation']],
+      ['changed', 'The current pill tab uses an accent label on its existing soft accent fill. The label distinguishes the current route from a hovered route. Vanilla and React share this change.', ['Navigation']],
+      ['fixed', 'Tab rows scroll within narrow containers without widening the page, moving off the page gutter or lifting the active underline off the row rule. A row whose tabs all fit scrolls nothing and clips nothing, so the post-#578 outline focus ring keeps its band at a desktop width. React and vanilla wireNav reveal the current route without moving keyboard focus or discarding where the reader scrolled.', ['Navigation']],
+      ['fixed', 'A tab row that does scroll now scrolls to a link the keyboard lands on, so its focus ring clears the scrolling edge instead of being cut off at the end of the row. A row whose tabs are all disabled takes the kit inward band on itself rather than the browser outline, because it holds no link to carry one.', ['Navigation']],
     ],
   },
   {

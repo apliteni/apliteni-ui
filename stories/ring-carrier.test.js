@@ -116,17 +116,19 @@ test('the offset gate rejects a control that takes the band and leaves the offse
 });
 
 test('every scroll region that takes the inward band takes its offset too', () => {
-  // Twelve surfaces take the inward band, including six table surfaces and six overlay
-  // or picker surfaces.
+  // Thirteen surfaces take the inward band: the tab row, six table surfaces, and six
+  // overlay or picker surfaces.
   // 10 -> 11: #513 puts the band on a pinned identity sub-line holding a focused link.
   // Below 720px the cell clips, so a ring on the link has no surface to draw its right
-  // side on, while the sub-line's own inline edges are the cell's. Three of the twelve are not
+  // side on, while the sub-line's own inline edges are the cell's. Three of the thirteen are not
   // scroll regions, so this test's name is now narrower than the list it walks: what the
-  // twelve share is that their own edges are a surface's, which is what state-set.md's
+  // thirteen share is that their own edges are a surface's, which is what state-set.md's
   // Except and the --ring-scroll paragraph in foundations both say.
   // 11 -> 12: #513 puts the band on the unmarked pinned identity cell when its direct
   // bare link has focus. The link can be longer than the clipped cell.
-  assert.equal(scrollRules.length, 12,
+  // 12 -> 13: #429 puts the inward band on a contained tab row, so keyboard focus
+  // on an all-disabled row keeps the band inside the clipped scroll surface.
+  assert.equal(scrollRules.length, 13,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 2,
     'React\'s modal body and the picker\'s shortcut row are not both among them, so the walk '
