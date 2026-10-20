@@ -73,7 +73,7 @@
    change of level. why: docs/foundations.md#elevation */
 .ui-card--interactive:hover { transform: translateY(-2px); }
 .ui-card--interactive:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-.ui-card--interactive .ui-card__sub { margin-bottom: 0; }
+.ui-card--interactive .ui-card__sub:last-child { margin-bottom: 0; }
 
 /* card() emits the title as an h2, so the text face is named here rather than
    left to the element. why: docs/foundations.md#labels-and-titles */
@@ -103,10 +103,10 @@
   justify-content: space-between;
   gap: var(--space-5);
   padding: var(--space-4) 2px;
-  /* A choice that does not fit beside its label drops under it whole, never into a column. */
-  flex-wrap: wrap;
 }
-.ui-card__row > :first-child { flex: 1 1 10rem; min-width: 0; }
+/* A choice that does not fit beside its label drops under it whole, never into a column. */
+.ui-card__row:has(> .ui-seg) { flex-wrap: wrap; }
+.ui-card__row:has(> .ui-seg) > :first-child { flex: 1 1 10rem; min-width: 0; }
 .ui-card__row > .ui-seg { flex: none; flex-wrap: nowrap; }
 .ui-card__row > .ui-seg button { white-space: nowrap; }
 .ui-card__row + .ui-card__row { border-top: 1px solid var(--border); }

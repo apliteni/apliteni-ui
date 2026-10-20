@@ -53,9 +53,9 @@ export const LargePadding: StoryObj = {
 export const Interactive: StoryObj = {
   render: () => <div style={page}>
     <div style={interactiveGrid}>
-      <Card href="/deck" icon="layers" title="Deck" sub="The animated strategy deck." />
-      <Card href="/text" icon="compass" title="Text" sub="The readable long-form version." />
-      <Card href="/agents" icon="plug" title="Agents" sub="Connect an agent over MCP." />
+      <Card href="#" icon="layers" title="Deck" sub="The animated strategy deck." />
+      <Card href="#" icon="compass" title="Text" sub="The readable long-form version." />
+      <Card href="#" icon="plug" title="Agents" sub="Connect an agent over MCP." />
     </div>
   </div>,
 };

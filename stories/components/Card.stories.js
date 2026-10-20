@@ -29,9 +29,9 @@ export const SettingRows = {
 };
 
 const navCard = (ic, title, sub, tag = 'a') =>
-  `<${tag} class="ui-card ui-card--interactive"${tag === 'a' ? ' href="#" style="text-decoration:none"' : ''}>
+  `<${tag} class="ui-card ui-card--interactive"${tag === 'a' ? ' href="#"' : ''}>
      <div class="ui-card__title"><span class="ui-card__icon">${icon(ic)}</span>${title}</div>
-     <div class="ui-card__sub" style="margin-bottom:0">${sub}</div>
+     <div class="ui-card__sub">${sub}</div>
    </${tag}>`;
 
 export const Interactive = {
