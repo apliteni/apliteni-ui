@@ -239,6 +239,21 @@ it('uses the pill when the prior control disappears before Escape', async () => 
   expect(pill()).toHaveClass('show');
 });
 
+it('uses the pill when the prior control becomes disabled before Escape', async () => {
+  function WithControl({ disabled }: { disabled: boolean }) {
+    return <><button type="button" disabled={disabled}>Read more</button><Page onSend={vi.fn()} /></>;
+  }
+  const { rerender } = render(<WithControl disabled={false} />);
+  await selectText();
+  screen.getByRole('button', { name: 'Read more' }).focus();
+  await userEvent.click(pill());
+  await screen.findByRole('dialog');
+  rerender(<WithControl disabled />);
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(document.activeElement).toBe(pill());
+});
+
 it('offers the pill for a container that mounts after the component', async () => {
   render(<Live name="Alpha" late onSend={vi.fn()} />);
   await waitFor(() => expect(live()).toBeInTheDocument());

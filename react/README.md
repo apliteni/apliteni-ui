@@ -454,7 +454,7 @@ the element whose text can be selected, and `onSend`. A "Give feedback" pill app
 selection of `minChars` (3) or more. The pill opens a form with a chip for the nearest heading,
 the quoted passage, a note field, Cancel and Send. The quoted passage stays highlighted until the
 form closes. The container may mount after `Feedback`. On close, focus returns to the visible
-control that had it before opening. If that control is gone or hidden, focus returns to the pill.
+control that had it before opening. If that control is gone, hidden, or disabled, focus returns to the pill.
 
 ```tsx
 <Feedback container={articleRef}

@@ -152,6 +152,7 @@ function returnFocus(opener: Element | null, fallback: Element | null) {
   const live = opener && !opener.isConnected && opener.id ? document.getElementById(opener.id) : opener;
   const visible = live?.isConnected && (!fallback || (live instanceof HTMLElement
     && !live.closest('[hidden], [aria-hidden="true"], [inert]')
+    && !live.matches(':disabled, [aria-disabled="true"]')
     && (typeof live.checkVisibility !== 'function' || live.checkVisibility({ visibilityProperty: true }))));
   const target = visible ? live : (fallback?.isConnected ? fallback : null);
   if (target) (target as HTMLElement).focus?.();
