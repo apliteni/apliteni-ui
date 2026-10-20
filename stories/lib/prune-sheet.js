@@ -4,7 +4,9 @@
  * and the kit's sheet has thousands. A story uses a few dozen of its classes. A rule whose selector
  * needs a class that no element in the document carries cannot match, so leaving it out changes no
  * computed style. Nothing else is touched: an at-rule block, a selector with no class outside
- * brackets and parentheses, and a selector that spells a backslash are all kept. The rules inside
+ * brackets and parentheses, and a selector that spells a backslash are all kept. A class name is read
+ * as a whole CSS identifier, so `.ui-reviewé` needs `ui-reviewé`, not `ui-review`. An emptied @layer
+ * block stays, because its first mention fixes the layer's place in the cascade. The rules inside
  * @media, @supports, @container and @layer are pruned the same way; any other at-rule stays whole.
  *
  * Limit: the class set is read once, so it is only valid while no class is added to the document.
@@ -12,7 +14,8 @@
  */
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
-const CLASS = /\.([\w-]+)/g;
+/* A CSS identifier: ASCII letters, digits, hyphen and underscore, or any code point above U+007F. */
+const CLASS = /\.((?:[\w-]|[^\x00-\x7f])+)/g;
 /* At-rules whose block holds style rules, which are pruned inside; any other at-rule stays whole. */
 const NESTS = /^@(media|supports|container|layer)\b/i;
 
@@ -67,7 +70,7 @@ export function pruneSheet(css, present) {
     const head = prelude.trim();
     if (NESTS.test(head)) {
       const inner = pruneSheet(block.slice(prelude.length + 1, -1), present);
-      if (inner.trim()) out.push(`${prelude}{${inner}}`);
+      if (inner.trim() || /^@layer\b/i.test(head)) out.push(`${prelude}{${inner}}`);
     } else if (head.startsWith('@') || splitSelectorList(prelude).some((selector) => couldMatch(selector, present))) {
       out.push(block);
     }

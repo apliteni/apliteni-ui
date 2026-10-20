@@ -7,6 +7,10 @@
  *
  * The gate that consumes this module is stories/contrast.test.js.
  */
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
@@ -322,6 +326,68 @@ test('reachesBeyondSubtree is true only for a state rule that goes up or sideway
   assert.equal(reach('.a[data-ui-state~="hover"] + .b{color:red}'), true, 'a next sibling');
   assert.equal(reach('.a[data-ui-state~="hover"] ~ .b{color:red}'), true, 'a later sibling');
   assert.equal(reach('@media (min-width:1px){.a:has(b[data-ui-state]){color:red}}'), true, 'inside an at-rule');
+});
+
+test('reachesBeyondSubtree answers true for every spelling it cannot read with certainty', () => {
+  const reach = (css) => reachesBeyondSubtree(new JSDOM(`<style>${css}</style>`).window.document);
+  const outward = [
+    ['space inside the brackets', '.a:has(.b[ data-ui-state ]){color:red}'],
+    ['space before the operator', '.a:has(.b[ data-ui-state ~= "hover" ]){color:red}'],
+    ['an upper-case :HAS', '.a:HAS(.b[data-ui-state]){color:red}'],
+    ['a namespace', '.a:has(.b[*|data-ui-state]){color:red}'],
+    ['an upper-case attribute name', '.a:has(.b[DATA-UI-STATE]){color:red}'],
+    ['a semicolon in a string before it', '.a:has(.b[title="x;y"][data-ui-state]){color:red}'],
+    ['a comment inside the brackets', '.a:has(.b[/* c */data-ui-state]){color:red}'],
+    ['an escape in an attribute selector', '.a:has(.b[data\\-ui-state]){color:red}'],
+    ['a nesting ampersand', '.a[data-ui-state]{& + .b{color:red}}'],
+    ['a name outside any brackets', '.data-ui-state:has(.b){color:red}'],
+    ['a sibling after spaced brackets', '.a[ data-ui-state ] + .b{color:red}'],
+    ['a :has inside :is()', ':is(.a:has(.b[data-ui-state])){color:red}'],
+    ['a :has inside @supports', '@supports (color:red){.a:has(.b[data-ui-state]){color:red}}'],
+  ];
+  for (const [what, css] of outward) assert.equal(reach(css), true, what);
+  assert.equal(reach('.a[ data-ui-state ] .b{color:red}'), false, 'a spaced carrier that only reaches down');
+  assert.equal(reach('.a[title="x;y"][data-ui-state~="hover"] .b{color:red}'), false, 'a string with a semicolon');
+  assert.equal(reach('.a:not([data-ui-state]) .b{color:red}'), false, ':not() reads the carrier only');
+});
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+
+/** Walk one fabricated story, written to a temporary file the walk imports like any story file. */
+async function walkFixture(markup, extraCss = '', theme = 'light') {
+  const dir = mkdtempSync(path.join(tmpdir(), 'walk-fixture-'));
+  try {
+    const file = path.join(dir, 'fixture.stories.js');
+    writeFileSync(file, `export default {};\nexport const Case = { render: () => ${JSON.stringify(markup)} };\n`);
+    const rel = path.relative(path.join(here, '..'), file);
+    return await walkCells({ cells: [{ theme, accent: 'default', extraCss }], files: [rel], shards: 1 });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+const failures = (walk) => walk.records.filter((r) => r.ratio !== null && r.ratio < r.need);
+
+test('a walk still fails the hover state of text whose ancestor turns dark through a spaced :has()', async () => {
+  const walk = await walkFixture(
+    '<style>.review-a{background:rgb(255,255,255)}.review-a:has(.review-b[ data-ui-state ]){background:rgb(0,0,0)}'
+    + '.review-b{color:rgb(0,0,0)}.review-b:hover{color:rgb(1,1,1)}</style>'
+    + '<div class="review-a"><p class="review-b">text</p></div>',
+  );
+  const bad = failures(walk);
+  assert.equal(bad.length, 1, `expected one failure, got ${JSON.stringify(bad)}`);
+  assert.equal(bad[0].state, 'hover');
+  near(bad[0].ratio, 1.006, 'the hover ratio');
+});
+
+test('a walk fails text a kit rule with a non-ASCII class name turns white on white', async () => {
+  const walk = await walkFixture(
+    '<p class="ui-reviewé" style="background:rgb(255,255,255)">text</p>',
+    '.ui-reviewé{color:rgb(255,255,255)}',
+  );
+  const bad = failures(walk);
+  assert.equal(bad.length, 1, `expected one failure, got ${JSON.stringify(bad)}`);
+  near(bad[0].ratio, 1, 'white on white');
 });
 
 test('the memo is dropped even when the DOM write throws', () => {

@@ -12,12 +12,19 @@ import {
 import { catalogueIds, storyFiles } from './contrast.js';
 
 const stories = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const real = Object.fromEntries(readdirSync(stories)
-  .filter((f) => /^contrast-(light|dark)(-\d+)?\.test\.js$/.test(f))
+/* Every test file outside lib/, not only the ones named like an entry point, so a wrapper under
+ * any other name that walks a part is seen. */
+const everyTest = Object.fromEntries(readdirSync(stories, { recursive: true }).map(String)
+  .filter((f) => f.endsWith('.test.js') && !f.startsWith('lib/'))
   .map((f) => [f, readFileSync(path.join(stories, f), 'utf8')]));
+const real = Object.fromEntries(Object.entries(everyTest)
+  .filter(([f, text]) => /^contrast-(light|dark)(-\d+)?\.test\.js$/.test(f) || /\bwalkPart\(/.test(text)));
 
 test('every theme has one entry point per part and each runs a distinct part', () => {
   assert.deepEqual(partProblems(real), []);
+  assert.deepEqual(Object.keys(real).sort(), [
+    'contrast-dark-2.test.js', 'contrast-dark-3.test.js', 'contrast-dark.test.js',
+    'contrast-light-2.test.js', 'contrast-light-3.test.js', 'contrast-light.test.js']);
   assert.equal(Object.keys(real).length, 2 * PARTS);
 });
 
@@ -32,6 +39,28 @@ test('a repeated part is rejected', () => {
   assert.deepEqual(partProblems(dup), [
     'light part 1 runs in more than one file: contrast-light-2.test.js, contrast-light-3.test.js',
     'no entry point runs light part 2']);
+});
+
+test('a removal of any one of the six entry points is rejected', () => {
+  for (const file of Object.keys(real)) {
+    const { [file]: _gone, ...rest } = real;
+    const problems = partProblems(rest);
+    assert.ok(problems.includes(`part entry point ${file} is missing`), `${file}: ${problems}`);
+    assert.ok(problems.some((p) => p.startsWith('no entry point runs ')), `${file}: ${problems}`);
+  }
+});
+
+test('an extra wrapper that repeats a part is rejected, under an entry name or any other', () => {
+  for (const file of Object.keys(real)) {
+    for (const extra of ['contrast-light-4.test.js', 'contrast-extra.test.js', 'other/walk-again.test.js']) {
+      const found = partProblems({ ...real, [extra]: real[file] });
+      assert.ok(found.length > 0, `a copy of ${file} named ${extra} went unseen`);
+    }
+  }
+  assert.ok(partProblems({ ...real, 'contrast-extra.test.js': real['contrast-dark.test.js'] })
+    .includes('contrast-extra.test.js walks a part but is not an entry point'));
+  assert.ok(partProblems({ ...real, 'contrast-dark.test.js': "// await walkPart('dark', 0);\n" })
+    .includes('contrast-dark.test.js must call walkPart once, and calls it 0 times'));
 });
 
 test('an entry point that walks the other theme or an unknown part is rejected', () => {

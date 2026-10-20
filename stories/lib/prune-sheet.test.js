@@ -31,6 +31,34 @@ test('an escaped selector is kept because its class name is not read', () => {
   assert.ok(couldMatch('.sm\\:gone', present));
 });
 
+test('a class name is read as a whole identifier, including non-ASCII characters', () => {
+  const here = new Set(['ui-reviewé', 'a_b', '日本']);
+  assert.ok(couldMatch('.ui-reviewé', here));
+  assert.ok(couldMatch('.a_b .日本', here));
+  assert.ok(!couldMatch('.ui-review', here), 'the ASCII prefix alone is a different class');
+  assert.ok(!couldMatch('.ui-reviewéx', here));
+  assert.equal(pruneSheet('.ui-reviewé{color:red}.gone{color:blue}', here), '.ui-reviewé{color:red}');
+});
+
+test('selector forms the reader skips never drop a rule that can match', () => {
+  const css = [
+    ':is(.gone, .b){color:red}', ':where(.gone) .b{top:1px}', '.a:is(.gone,.b){left:1px}',
+    '.a:not(.gone){width:1px}', '.a:has(.gone){height:1px}', '.b:nth-child(2 of .gone){right:1px}',
+    '.a[class~="gone"]{bottom:1px}', '.a{--gone:.gone}', '@supports (display:grid){.gone{top:2px}.a{top:3px}}',
+    '@layer base{.gone{top:4px}}', '@layer base{.a{top:5px}}', '@container (min-width:1px){.gone{top:6px}}',
+  ].join('');
+  const kept = pruneSheet(css, new Set(['a', 'b']));
+  for (const need of [':is(.gone, .b)', ':where(.gone) .b', '.a:is(.gone,.b)', '.a:not(.gone)', '.a:has(.gone)',
+    '.b:nth-child(2 of .gone)', '.a[class~="gone"]', '--gone:.gone', '.a{top:3px}', '@layer base{.a{top:5px}}']) {
+    assert.ok(kept.includes(need), `${need} was dropped`);
+  }
+  assert.ok(!kept.includes('top:2px') && !kept.includes('top:6px'), 'rules that cannot match stay in the sheet');
+});
+
+test('an @layer block emptied of rules stays, because its first mention fixes the layer order', () => {
+  assert.equal(pruneSheet('@layer base{.gone{top:4px}}.a{top:1px}', present), '@layer base{}.a{top:1px}');
+});
+
 test('rules inside @media are pruned and an empty @media goes', () => {
   const css = '@media (min-width:1px){.a{color:red}.gone{color:blue}}@media print{.gone{color:blue}}';
   assert.equal(pruneSheet(css, present), '@media (min-width:1px){.a{color:red}}');

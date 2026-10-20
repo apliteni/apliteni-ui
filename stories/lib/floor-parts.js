@@ -23,20 +23,33 @@ export const ringCellsOf = (theme) => CELLS.filter((c) => c.theme === theme);
 
 const CALL = /\b(targetPart|ringPart|disabledPart)\(\s*(?:'(\w+)'\s*)?\)/g;
 const PART_OF = { targetPart: () => 'target', ringPart: (arg) => `ring ${arg}`, disabledPart: () => 'disabled' };
+const codeOf = (text) => text.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, ' ');
 
-/** Problems with the entry files. `sources` maps an entry path to its text. */
+/** The part calls a file's code makes, as `[helper, argument]` pairs. A commented-out call is not one. */
+export const partCalls = (text) => [...codeOf(text).matchAll(CALL)].map((m) => [m[1], m[2]]);
+
+/**
+ * Problems with the entry files. `sources` maps the path of every file found on disk that runs a
+ * part to its text, so a wrapper that is not in `entries` is seen and rejected, not ignored.
+ */
 export function floorProblems(sources, entries = FLOOR_ENTRIES) {
   const problems = [];
   const ran = new Map();
-  for (const [file, part] of Object.entries(entries)) {
-    if (!(file in sources)) { problems.push(`part entry point ${file} is missing`); continue; }
-    const calls = [...sources[file].matchAll(CALL)];
+  for (const file of Object.keys(entries)) {
+    if (!(file in sources)) problems.push(`part entry point ${file} is missing`);
+  }
+  for (const [file, text] of Object.entries(sources)) {
+    const calls = partCalls(text);
+    if (!(file in entries)) {
+      problems.push(`${file} runs a part but is not an entry point`);
+      continue;
+    }
     if (calls.length !== 1) {
       problems.push(`${file} must run one part, and runs ${calls.length}`);
       continue;
     }
-    const ranPart = PART_OF[calls[0][1]](calls[0][2]);
-    if (ranPart !== part) problems.push(`${file} runs ${ranPart}, not ${part}`);
+    const ranPart = PART_OF[calls[0][0]](calls[0][1]);
+    if (ranPart !== entries[file]) problems.push(`${file} runs ${ranPart}, not ${entries[file]}`);
     ran.set(ranPart, [...(ran.get(ranPart) ?? []), file]);
   }
   for (const part of floorParts()) {

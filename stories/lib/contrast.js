@@ -677,21 +677,30 @@ export function stateTargets(root, bases) {
  * True when a rule that reads the state attribute could restyle something outside the subtree of the
  * element that carries it: the attribute sits inside a :has(), or a + or ~ combinator follows it.
  * Only a selector that names data-ui-state can be moved by the walk's one write.
+ *
+ * The answer is true whenever the reading is not certain, because true only costs speed: a selector
+ * with a nesting `&`, an escape inside an attribute selector, or a name the scan cannot place in
+ * brackets. Comments and strings are blanked first, so a `;` or `{` inside one cannot cut a selector.
  */
 export function reachesBeyondSubtree(doc) {
   let css = '';
   for (const el of doc.querySelectorAll('style')) css += el.textContent;
-  for (const [, prelude] of css.matchAll(/(?:^|[{};])([^{};]*data-ui-state[^{};]*)\{/g)) {
-    for (const hit of prelude.matchAll(/\[data-ui-state/g)) {
-      const before = prelude.slice(0, hit.index);
+  css = css.replace(/\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'/g,
+    (m) => (m[0] === '/' ? ' ' : '""'));
+  if (/\[[^\]]*\\[^\]]*\]/.test(css)) return true;
+  for (const [, prelude] of css.matchAll(/(?<![^{};])([^{};]*)\{/g)) {
+    if (prelude.includes('&')) return true;
+    for (const hit of prelude.matchAll(/data-ui-state/gi)) {
+      const bracket = prelude.lastIndexOf('[', hit.index);
+      if (bracket < 0 || prelude.indexOf(']', bracket) < hit.index) return true;
+      const before = prelude.slice(0, bracket);
       const open = [];
       for (let k = 0; k < before.length; k += 1) {
-        if (before[k] === '(') open.push(before.slice(Math.max(0, k - 4), k) === ':has');
+        if (before[k] === '(') open.push(before.slice(Math.max(0, k - 4), k).toLowerCase() === ':has');
         else if (before[k] === ')') open.pop();
       }
       if (open.includes(true)) return true;
-      const after = prelude.slice(hit.index).replace(/\[[^\]]*\]/g, '').replace(/"[^"]*"|'[^']*'/g, '');
-      if (/[+~]/.test(after)) return true;
+      if (/[+~]/.test(prelude.slice(bracket).replace(/\[[^\]]*\]/g, ''))) return true;
     }
   }
   return false;
@@ -715,10 +724,12 @@ export async function catalogueIds(files = storyFiles) {
 }
 
 export async function walkStories({
-  theme, accent = 'default', states = true, files = storyFiles, stories: only = null,
+  theme, accent = 'default', states = true, files = storyFiles, stories: only = null, extraCss = '',
 } = {}) {
   const wanted = only && new Set(only);
-  const { vars, css } = kitCssFor(theme, accent);
+  const { vars, css: kitCss } = kitCssFor(theme, accent);
+  /* `extraCss` is a test's way to put a rule in the kit's sheet, where the pruning reads it. */
+  const css = kitCss + extraCss;
   const kitBases = stateBases(css);
 
   const quiet = new VirtualConsole();

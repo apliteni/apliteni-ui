@@ -19,10 +19,9 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { tokensFor, parseColour, ratio } from '../lib/contrast.js';
 import { decomment } from '../lib/target-geometry.js';
 import {
-  root, THEMES, sheet, disabledRules, TOUCH_MIN, CELLS,
+  root, THEMES, sheet, disabledRules, TOUCH_MIN,
 } from '../lib/accessibility-walks.js';
 import { targetPart } from '../lib/floor-part.js';
-import { FLOOR_ENTRIES, cellProblems, floorProblems } from '../lib/floor-parts.js';
 import {
   TARGET_MIN, TARGET_EXEMPT,
   RULES,
@@ -32,7 +31,7 @@ const { GATES } = JSON.parse(readFileSync(new URL('./accessibility-coverage.json
 
 // The walks are dealt over four files (stories/lib/floor-parts.js): this one measures the target
 // walk, floor-ring-dark and floor-ring-light the ring cells of each theme, and floor-disabled
-// the disabled cells. The guard tests at the end hold that each part has one entry file.
+// the disabled cells. stories/lib/floor-parts.test.js holds that each part has one entry file.
 const targetRun = await targetPart();
 
 test('target size: every control the stories render is measured, none skipped', () => {
@@ -304,37 +303,4 @@ test('every gate the page names states a blind spot, and states what it checks',
     assert.ok(g.blind.length, `${g.file} claims no blind spot — no gate here has none`);
     for (const b of g.blind) assert.ok(b.length > 20, `${g.file} has a blind spot stated too thinly to use`);
   }
-});
-
-// ---- the deal of the walks ------------------------------------------------
-
-const here = path.join(root, 'stories');
-const entrySources = () => Object.fromEntries(Object.keys(FLOOR_ENTRIES).map((f) => {
-  try { return [f, readFileSync(path.join(here, f), 'utf8')]; } catch { return [f, undefined]; }
-}).filter(([, text]) => text !== undefined));
-
-test('every walk has one owner: each part has one entry file and each cell one ring part', () => {
-  assert.deepEqual(floorProblems(entrySources()), [], 'a part that no file runs is never measured');
-  assert.deepEqual(cellProblems(), []);
-  assert.equal(CELLS.length, 8, 'the cells moved — re-check the deal');
-});
-
-test('a missing, repeated or foreign entry file is rejected', () => {
-  const real = entrySources();
-  const { 'guidelines/floor-disabled.test.js': _gone, ...without } = real;
-  assert.deepEqual(floorProblems(without), [
-    'part entry point guidelines/floor-disabled.test.js is missing', 'no entry point runs disabled']);
-  const twice = { ...real, 'guidelines/floor-ring-light.test.js': real['guidelines/floor-ring-dark.test.js'] };
-  const found = floorProblems(twice);
-  assert.ok(found.includes('guidelines/floor-ring-light.test.js runs ring dark, not ring light'));
-  assert.ok(found.includes('ring dark runs in more than one file: guidelines/floor-ring-dark.test.js, guidelines/floor-ring-light.test.js'));
-  assert.ok(found.includes('no entry point runs ring light'));
-  assert.ok(floorProblems({ ...real, 'guidelines/floor-ring-dark.test.js': '' })
-    .includes('guidelines/floor-ring-dark.test.js must run one part, and runs 0'));
-});
-
-test('a cell no ring part walks, or two walk, is rejected', () => {
-  assert.deepEqual(cellProblems(CELLS, ['dark']).filter((p) => p.endsWith('has no ring part')).length, CELLS.filter((c) => c.theme === 'light').length);
-  assert.ok(cellProblems(CELLS, ['dark', 'dark', 'light']).some((p) => p.includes('is walked 2 times')));
-  assert.deepEqual(cellProblems([...CELLS, CELLS[0]]).filter((p) => p.includes('listed twice')).length, 1);
 });

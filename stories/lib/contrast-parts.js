@@ -67,7 +67,7 @@ const ENTRY = /^contrast-(light|dark)(?:-(\d+))?\.test\.js$/;
 const CALL = /\bwalkPart\(\s*'(light|dark)'\s*,\s*(\d+)\s*\)/g;
 const entryName = (theme, n) => (n === 1 ? `contrast-${theme}.test.js` : `contrast-${theme}-${n}.test.js`);
 
-/** Problems with the part entry points. `sources` maps an entry file name to its text. */
+/** Problems with the part entry points. `sources` maps the name of every test file on disk to its text. */
 export function partProblems(sources, parts = PARTS) {
   const problems = [];
   const ran = new Map();
@@ -78,8 +78,12 @@ export function partProblems(sources, parts = PARTS) {
   }
   for (const [name, text] of Object.entries(sources)) {
     const m = ENTRY.exec(name);
-    if (!m) continue;
-    const calls = [...text.matchAll(CALL)];
+    const code = text.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, ' ');
+    if (!m) {
+      if ([...code.matchAll(CALL)].length) problems.push(`${name} walks a part but is not an entry point`);
+      continue;
+    }
+    const calls = [...code.matchAll(CALL)];
     if (calls.length !== 1) {
       problems.push(`${name} must call walkPart once, and calls it ${calls.length} times`);
       continue;
