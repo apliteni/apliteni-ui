@@ -14,6 +14,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { dropdown, wireDropdown } from './dropdown.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const quiet = new VirtualConsole();
 quiet.on('jsdomError', () => {});
@@ -60,7 +61,7 @@ test('a panel rule that pins `bottom` releases `top` in the same rule', () => {
 });
 
 test('both directions read one gap, so neither can drift from the other', () => {
-  const panel = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
+  const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
   const gap = decl(panel, '--ui-dropdown-gap');
   assert.match(gap, /^\d+(\.\d+)?px$/, '--ui-dropdown-gap is declared on the panel as a length');
 
@@ -102,7 +103,7 @@ const NEG_LEN = /-\s*\d+(?:\.\d+)?(?:px|rem|em|%|ch)/;
 const BLEED = 'calc(var(--ui-dropdown-pad) * -1)';
 
 test('the panel names its padding and pads itself with it', () => {
-  const panel = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
+  const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
   const pad = decl(panel, '--ui-dropdown-pad');
   assert.match(pad, /^\d+(\.\d+)?px$/, '--ui-dropdown-pad is declared on the panel as a length');
   assert.equal(
@@ -142,8 +143,8 @@ test('a block bleeding through the panel reads the padding, never a number of it
 // Both halves of the fix are read here, because either one alone leaves it wrong.
 // why: docs/components.md#the-dropdown-panel
 test('the caret is centred in both states, and shifted in page space', () => {
-  const closed = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__chevron'));
-  const open = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown.open .ui-dropdown__chevron'));
+  const closed = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__chevron'));
+  const open = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown.open .ui-dropdown__chevron'));
   assert.ok(closed && open, 'the sheet draws a caret and flips it');
 
   const off = decl(closed, '--caret-off');
@@ -179,13 +180,13 @@ test('the caret is centred in both states, and shifted in page space', () => {
 
 test('the head and the foot are one pair, bleeding to opposite edges', () => {
   const sel = (cls) => `.ui-dropdown__panel > .${cls}`;
-  const rulesFor = (cls) => RULES.filter((r) => r.selector.split(',').some((s) => s.trim() === sel(cls)));
+  const rulesFor = (cls) => RULES.filter((r) => splitSelectorList(r.selector).includes(sel(cls)));
   // Whatever the cascade ends on, gathered across every rule that names the
   // block — so splitting one rule in two, or adding a third, is still read.
   const of = (cls, prop) => rulesFor(cls).map((r) => decl(r, prop)).filter((v) => v != null).at(-1) ?? null;
 
   const shared = RULES.find((r) => {
-    const list = r.selector.split(',').map((s) => s.trim());
+    const list = splitSelectorList(r.selector);
     return list.includes(sel('ui-dropdown__head')) && list.includes(sel('ui-dropdown__foot'));
   });
   assert.ok(shared && decl(shared, 'padding'), 'the pair takes its inner padding from one rule, not two that can drift');
@@ -211,7 +212,7 @@ test('the head and the foot are one pair, bleeding to opposite edges', () => {
 });
 
 test('the wiring falls back to the number the sheet declares', () => {
-  const panel = RULES.find((r) => r.selector.split(',').some((s) => s.trim() === '.ui-dropdown__panel'));
+  const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
   const css = parseFloat(decl(panel, '--ui-dropdown-gap'));
   const js = parseFloat(/const DD_GAP = ([\d.]+)/.exec(JS)?.[1]);
   assert.equal(js, css, 'DD_GAP in dropdown.js is the fallback for a document without the sheet');
@@ -387,7 +388,7 @@ const enter = (window, el) => { if (press(window, el, 'Enter')) click(window, el
 function offSpellings() {
   const states = [...new Set(RULES
     .filter((r) => decl(r, 'cursor') === 'not-allowed')
-    .flatMap((r) => r.selector.split(','))
+    .flatMap((r) => splitSelectorList(r.selector))
     .map((s) => s.trim())
     .filter((s) => s.startsWith('.ui-dropdown__trigger') && s !== '.ui-dropdown__trigger')
     .map((s) => s.slice('.ui-dropdown__trigger'.length)))];
@@ -1003,6 +1004,112 @@ test('re-opening mid-fade keeps the new fit and drops the hold', async () => {
   assert.deepEqual(row.fit(), ['1054px', '0px', '240px']);
   await new Promise((done) => setTimeout(done, 120));
   assert.deepEqual(row.fit(), ['1054px', '0px', '240px'], 'and the old timer does not fire into it');
+});
+
+/** The add control's menu in the same row (#496). Not a chip's, so what makes it
+ *  a subject is the width it asks for; JSDOM loads no stylesheet, so the ask is
+ *  written on the panel the way src/styles/filter-bar.css writes it. */
+function addRow({ rowWidth = 1200, left = 146, ask = '320px', panelWidth = 320,
+  observer = false } = {}) {
+  const window = mount(
+    '<fieldset class="ui-filter-bar" data-filter-bar>'
+    + '<legend class="ui-filter-bar__legend">Filters</legend>'
+    + '<div data-filter-add>'
+    + dropdown({ label: 'Filter', variant: 'menu', items: SECTORS })
+    + '</div></fieldset>',
+  );
+  const doc = window.document;
+  const bar = doc.querySelector('.ui-filter-bar');
+  const dd = doc.querySelector('.ui-dropdown');
+  const panel = doc.querySelector('[data-dropdown-panel]');
+  panel.style.setProperty('--ui-filter-panel-ask', ask);
+  const at = { rowWidth, left, panelWidth };
+  bar.getBoundingClientRect = () => ({ left: 0, right: at.rowWidth, width: at.rowWidth });
+  dd.getBoundingClientRect = () => ({ left: at.left, right: at.left + 99, width: 99 });
+  Object.defineProperty(panel, 'offsetWidth', { get: () => at.panelWidth, configurable: true });
+  // The same stand-in chipRow() uses, for the same reason: JSDOM has no
+  // ResizeObserver, so without one only the fallback path can be driven.
+  const observers = [];
+  if (observer) {
+    window.ResizeObserver = class {
+      constructor(cb) { this.cb = cb; this.targets = []; observers.push(this); }
+      observe(target) { this.targets.push(target); this.cb([{ target }], this); }
+      disconnect() { this.targets.length = 0; }
+    };
+  }
+  wireDropdown(doc);
+  return {
+    window, dd, panel, bar, observers,
+    trigger: doc.querySelector('[data-dropdown-trigger]'),
+    fit: () => PANEL_PROPS.map((p) => panel.style.getPropertyValue(`--ui-filter-panel-${p}`)),
+    resize: (next) => {
+      Object.assign(at, next);
+      window.dispatchEvent(new window.Event('resize'));
+    },
+    settleRow: (next) => {
+      Object.assign(at, next);
+      for (const ro of observers) for (const target of ro.targets) ro.cb([{ target }], ro);
+    },
+    endFade: () => {
+      const e = new window.Event('transitionend');
+      e.propertyName = 'opacity';
+      panel.dispatchEvent(e);
+    },
+  };
+}
+
+test('an open add menu carries the width it asks for, not a chip\'s floor', () => {
+  // 320, not 240: a catalogue with a field over it reads "Searc" at a chip's floor.
+  const row = addRow();
+  click(row.window, row.trigger);
+  assert.deepEqual(row.fit(), ['1054px', '0px', '320px']);
+});
+
+test('a viewport change re-measures an add menu that is still open', () => {
+  /* The add menu asks for 320px where a chip asks for 240px, so it is the first
+   * menu in the row whose stale fit shows on a phone: 240 fits a 288px row and
+   * 320 does not. Opened in a 1200px row, then the row a 390px view gives it, then
+   * a 320px one — the panel slides back where there is room behind it and takes
+   * the row's own width where there is not. */
+  const row = addRow();
+  click(row.window, row.trigger);
+  assert.deepEqual(row.fit(), ['1054px', '0px', '320px']);
+  row.resize({ rowWidth: 358, left: 250 });
+  assert.deepEqual(row.fit(), ['320px', '212px', '320px'], 'a 358px row still holds the 320px ask');
+  row.resize({ rowWidth: 288, left: 16, panelWidth: 288 });
+  assert.deepEqual(row.fit(), ['288px', '16px', '288px'], 'a 288px row decides instead');
+});
+
+test('the add menu\'s own row is the box that is watched', () => {
+  /* The catalogue is not inside a `.ui-filter-bar__chip`, so a watcher keyed on the
+   * chip would leave this one menu on the `resize` fallback while every chip beside
+   * it took the observer. filterPanelRow() answers for both, so the catalogue is
+   * watched the way a chip's menu is: the row, and every box laid out in it. */
+  const row = addRow({ observer: true });
+  click(row.window, row.trigger);
+  assert.equal(row.observers.length, 1, 'one observer for the add menu too');
+  assert.deepEqual(
+    row.observers[0].targets,
+    [row.bar, ...row.bar.children],
+    'the row and what it lays out, not the wrapper and not the view',
+  );
+  row.settleRow({ rowWidth: 358, left: 250 });
+  assert.deepEqual(row.fit(), ['320px', '212px', '320px'], 'and the ask survives the re-fit');
+});
+
+test('a closing add menu keeps its open geometry until the fade ends', () => {
+  // The hold reaches the catalogue as well: 320px of panel collapsing to a 99px
+  // trigger is the same repaint on the way out, with 221px more of it.
+  const row = addRow();
+  click(row.window, row.trigger);
+  assert.deepEqual(row.fit(), ['1054px', '0px', '320px']);
+  click(row.window, row.trigger);
+  assert.equal(row.dd.classList.contains('open'), false);
+  assert.equal(row.panel.classList.contains('is-closing'), true, 'the hold is on');
+  assert.deepEqual(row.fit(), ['1054px', '0px', '320px'], 'and the geometry with it');
+  row.endFade();
+  assert.equal(row.panel.classList.contains('is-closing'), false);
+  assert.deepEqual(row.fit(), ['', '', ''], 'given back once nothing is painted');
 });
 
 test('a dropdown outside a filter row is given no numbers at all', () => {

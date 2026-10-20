@@ -1,7 +1,8 @@
-import { afterEach, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { paletteHotkey } from '@apliteni/apliteni-ui';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { paletteHotkey, themeIcon, themeToggle } from '@apliteni/apliteni-ui';
 import { AppShell } from './AppShell';
+import { ThemeToggle } from './ThemeToggle';
 
 const sections = [
   { href: '/', label: 'Overview', icon: 'home' },
@@ -105,13 +106,63 @@ it('closes More when the route changes', () => {
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 });
 
-it('leaves shortcuts in editable fields alone and updates the theme', () => {
+it('leaves shortcuts in editable fields alone', () => {
   render(<AppShell {...props}><input aria-label="Notes" /></AppShell>);
   fireEvent.keyDown(screen.getByRole('textbox', { name: 'Notes' }), { key: 'k', ctrlKey: true });
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  const theme = document.documentElement.getAttribute('data-theme');
-  fireEvent.click(screen.getByRole('button', { name: /Theme:/ }));
-  expect(document.documentElement.getAttribute('data-theme')).toBe(theme === 'light' ? 'dark' : 'light');
+});
+
+describe('band theme switch', () => {
+  const root = document.documentElement;
+  let media: EventTarget & { matches: boolean };
+  beforeEach(() => {
+    localStorage.clear();
+    root.removeAttribute('data-theme'); root.removeAttribute('data-theme-choice');
+    media = Object.assign(new EventTarget(), { matches: false });
+    vi.stubGlobal('matchMedia', () => media);
+    localStorage.setItem('apliteni-strategy-theme', 'dark');
+  });
+  afterEach(() => { vi.unstubAllGlobals(); localStorage.clear(); });
+
+  it('cycles dark, light and auto, and writes data-theme-choice', () => {
+    render(<AppShell {...props} />);
+    const button = () => screen.getByRole('button', { name: /^Theme:/ });
+    expect(button()).toHaveAccessibleName('Theme: Dark. Switch to light.');
+    expect(root).toHaveAttribute('data-theme-choice', 'dark');
+    fireEvent.click(button());
+    expect(button()).toHaveAccessibleName('Theme: Light. Switch to auto.');
+    expect(root).toHaveAttribute('data-theme-choice', 'light');
+    expect(root).toHaveAttribute('data-theme', 'light');
+    fireEvent.click(button());
+    expect(button()).toHaveAccessibleName('Theme: Auto. Switch to dark.');
+    expect(root).toHaveAttribute('data-theme-choice', 'auto');
+    fireEvent.click(button());
+    expect(root).toHaveAttribute('data-theme-choice', 'dark');
+  });
+
+  it.each(['dark', 'light', 'auto'] as const)('draws one %s glyph in vanilla themeToggle(), ThemeToggle and the band', theme => {
+    localStorage.setItem('apliteni-strategy-theme', theme);
+    const vanilla = document.createElement('div');
+    vanilla.innerHTML = themeToggle(theme);
+    const glyph = (el: ParentNode) => el.querySelector('.ic')!.innerHTML;
+    const band = render(<AppShell {...props} />);
+    const bandButton = band.container.querySelector('.toggle')!;
+    const alone = render(<ThemeToggle />);
+    expect(glyph(alone.container)).toBe(glyph(vanilla));
+    expect(glyph(bandButton)).toBe(glyph(vanilla));
+    const source = document.createElement('span');
+    source.innerHTML = themeIcon(theme);
+    expect(glyph(vanilla)).toBe(source.innerHTML);
+  });
+
+  it('follows the system live in auto', async () => {
+    localStorage.setItem('apliteni-strategy-theme', 'auto');
+    render(<AppShell {...props} />);
+    expect(root).toHaveAttribute('data-theme', 'dark');
+    act(() => { media.matches = true; media.dispatchEvent(new Event('change')); });
+    await waitFor(() => expect(root).toHaveAttribute('data-theme', 'light'));
+    expect(root).toHaveAttribute('data-theme-choice', 'auto');
+  });
 });
 
 // A list of one destination is a list pointing at the page already on screen. The

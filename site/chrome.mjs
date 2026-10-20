@@ -116,7 +116,8 @@ export const CHROME_CSS = `
     .site-topbar .hide-sm { display: none; }
     /* The bar keeps four items on a phone — brand, two nav links, theme — and
        none of them wraps, so the row's own gap is the last thing left to give. */
-    .site-topbar .topbar__in { gap: 10px; }
+    .site-topbar .topbar__in { gap: 6px; }
+    .site-topbar .lk { font-size: 13px; }
   }
 `;
 

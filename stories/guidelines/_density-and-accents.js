@@ -62,13 +62,17 @@ const preview = (bad = false, colourful = false) => `<div class="ui-card ui-card
 </div>`;
 
 // The vanilla Table/FinanceData recipe and React DataTable share these classes.
-const payouts = () => `<div class="gda-table"><table class="ui-table ui-table--dense ui-table--zebra">
+// The ledger sits in a card, as the preview under it does: a table now ends where its
+// values end (#504), and a bare one left this pair reading as a stub above a wider card.
+// The card ends where the table does (--fit), so the two halves of the pair are compared
+// on their content and neither card carries slack the reader has to read past.
+const payouts = () => `<div class="gda-table"><div class="ui-card ui-card--pad-sm ui-card--fit"><table class="ui-table ui-table--dense ui-table--zebra">
   <caption>Payouts · EUR</caption>
   <thead><tr><th>Reference</th><th class="ui-table__num">Amount</th><th>Status</th></tr></thead>
   <tbody><tr><td>1162</td><td class="ui-table__num">1,240.00</td><td>${badge('In transit', 'pending')}</td></tr>
   <tr><td>1161</td><td class="ui-table__num">860.00</td><td>${badge('Paid', 'success')}</td></tr>
   <tr><td>1160</td><td class="ui-table__num">2,100.00</td><td>${badge('Paid', 'success')}</td></tr></tbody>
-</table></div>`;
+</table></div></div>`;
 const figures = () => statBand({ variant: 'tiles', basis: 'Payouts · September', stats: [
   { label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' },
 ] });

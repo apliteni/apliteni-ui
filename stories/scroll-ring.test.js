@@ -28,6 +28,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 import { STYLE_FILES, desugar, substitute, tokensFor } from './lib/contrast.js';
 import { leafRules } from './lib/motion-css.js';
 import { confirm, drawer, dropdown, navTabs } from '../src/index.js';
@@ -259,7 +260,41 @@ test('nothing is left for forced colours to correct', () => {
   assert.deepEqual(standIns, [],
     'a transparent stand-in outline is back; with the band on the same property it is '
     + 'either silencing the band or waiting to be repainted beside it');
+  checkForcedFocus(source);
+});
 
+// Selection can need a mark when the browser replaces fills. Those rules must
+// leave focused elements alone. selected-fill.test.js measures the selection.
+function checkForcedFocus(css) {
+  const forced = [...css.replace(/\/\*[\s\S]*?\*\//g, '')
+    .matchAll(/@media\s*\(forced-colors:\s*active\)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)]
+    .map(([, body]) => body);
+  assert.ok(forced.length, 'the forced-colour reading found no blocks');
+  for (const block of forced) {
+    for (const [, selectors, body] of block.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      assert.doesNotMatch(body, /box-shadow\s*:/, 'forced colours must not correct a shadow focus ring');
+      if (!/outline(?:-offset|-width|-style|-color)?\s*:/.test(body)) continue;
+      for (const selector of splitSelectorList(selectors)) {
+        const subject = selector.trim().split(/\s+|>|\+|~/).at(-1);
+        assert.match(subject, /:not\(:focus-visible\)/, 'a forced-colour outline can replace the focus ring');
+        assert.match(subject, /\.is-(?:active|current|selected)|\[aria-(?:pressed|selected)="true"\]/,
+          'only selection needs a forced-colour outline');
+      }
+    }
+  }
+}
+
+test('forced-colour selection marks cannot replace focus rings', () => {
+  const selectedFocus = source + `
+    @media (forced-colors: active) {
+      .ui-nav__item.is-active:focus-visible { outline: 2px solid Highlight; }
+    }`;
+  assert.throws(() => checkForcedFocus(selectedFocus), /replace the focus ring/);
+  const ancestorGuard = source + `
+    @media (forced-colors: active) {
+      .host:not(:focus-visible) .ui-nav__item.is-active:focus-visible { outline: 2px solid Highlight; }
+    }`;
+  assert.throws(() => checkForcedFocus(ancestorGuard), /replace the focus ring/);
 });
 
 

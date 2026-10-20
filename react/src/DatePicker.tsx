@@ -678,16 +678,15 @@ export function DatePicker({
     // `open` on the root whichever form the panel takes, so the trigger's
     // chevron flips for the sheet as it does for the popover. The panel rules
     // it also switches on have no panel to find while the sheet is up.
-    <div className={cx('ui-dropdown', 'ui-datepicker', open && 'open')} id={id} ref={root}>
+    <div className={cx('ui-dropdown', 'ui-datepicker', open && 'open')} ref={root}>
       <button
         type="button"
         className="ui-dropdown__trigger ui-datepicker__trigger"
+        id={id}
         aria-haspopup="dialog"
         aria-expanded={open}
-        // Only when the trigger's own text says nothing: with a value the text
-        // IS the value, and an aria-label would replace "17 September 2026"
-        // with "Select a date".
-        aria-label={ariaLabel || (shown ? undefined : name)}
+        // The native label or visible text names the trigger unless explicitly overridden.
+        aria-label={ariaLabel || undefined}
         disabled={disabled}
         ref={trigger}
         onClick={(e: ReactMouseEvent) => { e.stopPropagation(); setOpen(!open); }}

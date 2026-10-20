@@ -55,7 +55,7 @@ automatically, and explain the cause and limitation of each accepted failure.
 ## Check accents locally
 
 Before opening a PR that changes colours, tokens or theme/accent CSS, run:
-`CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast.test.js`
+`CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast-light.test.js`
 Report the result in the PR.
 
 ## Check the phone tap floor locally
@@ -64,6 +64,17 @@ Before opening a PR that changes a control's size, a container's gap, or
 `src/styles/tap-zone.css`, measure the tap zones in a real browser:
 `UI_PLAYWRIGHT=… TAP_ZONES=1 node --test stories/tap-zone.test.js`
 Report the result in the PR. CI runs only this gate's source half, so the measurement is yours.
+
+## Check the chart's point targets locally
+
+Before opening a PR that changes a chart's point target, its plot height or
+`src/styles/chart.css`, measure the targets in a real browser — a hit test is
+something only an engine answers, and a rect's attributes certified a clipped
+target once already:
+`npm run build-storybook -w react`, then
+`UI_PLAYWRIGHT=… CHART_TARGETS=1 node --test stories/chart-target.test.js`
+Report the result in the PR. Playwright is not a dependency and CI runs only this
+gate's source half.
 
 ## Check the disabled field paint locally
 
@@ -108,16 +119,18 @@ goes beside the gate, and why a number is what it is goes in the issue. See
 
 [docs/contributing.md](docs/contributing.md) is the one page for a human working on the kit — the
 tour of the parts and the commands. Keep it short, and put a rule that constrains your own work
-here instead. A page under `docs/` never links to the deployed site — link the file in the
-repository, or a Storybook path under it.
+here instead. A page under `docs/` or `guidelines/` never links to the deployed site. A page under `docs/` links the
+file in the repository, or a Storybook path under it. A guideline page links no page, because Storybook
+renders only `https` links and the guideline gates reject a source reference. It names the page and the
+rule in plain words, for example "Earn a wordless button on the Button labels page".
 
 ## Annotations the gates read
 
 A declaration a gate cannot judge on its own carries its reason beside it, in the shape the gate
 parses. There is no unannotated exception.
 
-- `/* muted-ink: glyph|state|placeholder — reason */` on every `color` or
-  `-webkit-text-fill-color` that can reach muted or dim ink. The three classes are a closed list.
+- `/* muted-ink: glyph|state|placeholder|chrome — reason */` on every `color` or
+  `-webkit-text-fill-color` that can reach muted or dim ink. The four classes are a closed list.
 - `/* motion: still — why */` on a state rule that shows, hides or moves an element without
   moving; `/* motion: ambient — why */` or `/* motion: choreographed — why */` on an animation
   keeping its own number. There is no third kind.
@@ -160,6 +173,13 @@ to three short sentences, with no praise, no filler and no test diary. Add detai
 migration step or a behaviour limit. `site/changelog.mjs` stays pure — no git and no filesystem;
 `site/build.mjs` owns the git calls. Keep deploy specifics out of committed files.
 
+## Check the phone topbar rows locally
+
+Before opening a PR that changes `src/styles/topbar.css`'s phone rules or the shell offset
+`--ui-app-top`, measure the rows in a real browser:
+`UI_PLAYWRIGHT=… TOPBAR_ROWS=1 node --test src/components/topbar.test.js`
+Report the result in the PR. CI skips this check because Playwright is not a dependency.
+
 ## Check the phone end space locally
 
 Before opening a PR that changes `--ui-app-bottom-clearance`, the React shell's phone
@@ -185,6 +205,13 @@ existing look.
 Keep explicit Storybook IDs stable. Give every React component a test and a story. Run the slop
 detector on new example pages. When overriding styles, check every existing state. Remove
 obsolete guideline `unmet` markers when closing an issue.
+
+A showcase and a component story use kit classes. Their own CSS — a `<style>` block, a `style=`
+attribute, or a stylesheet only a story imports — may only place kit parts: a glue declaration,
+and a kit class named only with a reason in the allow-list beside the gate.
+Paint, type, motion or a re-declared token is a shadow kit — fix it, or file the part the kit is
+missing. Treat local CSS in a showcase as a defect to justify in review, not a style choice.
+See #601.
 
 Change generated brand tokens and marks in `apliteni/design-system`, then sync them here. Use
 unmodified Lucide paths for glyphs, recording the Lucide source name when it differs from the kit

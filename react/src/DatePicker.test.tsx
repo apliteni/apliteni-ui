@@ -13,7 +13,10 @@ import {
   // imported here for the same arithmetic react/src/contrast.test.tsx uses.
   // @ts-expect-error -- untyped JS module, deliberately shared across the gates.
 } from '../../stories/lib/contrast.js';
+// @ts-expect-error -- untyped JS module, deliberately shared across the gates.
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { DatePicker, type DatePickerRange } from './DatePicker';
+import { Field } from './Field';
 
 const TODAY = '2026-09-15';
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
@@ -26,6 +29,17 @@ const cell = (name: RegExp | string) => within(panel()).getByRole('button', { na
 const trigger = () => document.querySelector<HTMLButtonElement>('.ui-dropdown__trigger')!;
 
 describe('the trigger', () => {
+  it.each([null, '2026-08'])('takes its name and focus from Field with value %s', async (value) => {
+    const user = userEvent.setup();
+    render(<Field label="Due">{({ id }) => (
+      <DatePicker id={id} today={TODAY} defaultValue={value} />
+    )}</Field>);
+    const button = screen.getByRole('button', { name: 'Due' });
+    expect(screen.getByLabelText('Due')).toBe(button);
+    await user.click(screen.getByText('Due'));
+    expect(button).toHaveFocus();
+  });
+
   it('wears the dropdown shell and says what is chosen', () => {
     const { container } = render(<DatePicker today={TODAY} defaultValue="2026-08" />);
     expect(container.firstChild).toHaveClass('ui-dropdown');
@@ -818,7 +832,7 @@ describe('the focus ring', () => {
   const ringSelectors = ['../../src/styles/base.css', '../../src/styles/dropdown.css']
     .flatMap(file => [...read(file).replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
       .filter(([, , body]) => /outline\s*:[^;]*var\(--ring\)/.test(body))
-      .flatMap(([, selector]) => selector.split(',')))
+      .flatMap(([, selector]) => splitSelectorList(selector)))
     .map(s => s.trim().replace(/:focus-visible/g, ''))
     .filter(Boolean);
 
@@ -1025,32 +1039,30 @@ describe('every cell state is readable', () => {
     return { measure, done };
   }
 
-  it.each(THEMES)('%s: every combination of states clears AA, under every accent', theme => {
+  it.each(THEMES.flatMap(theme => ACCENTS.map(accent => [theme, accent] as const)))(
+    '%s/%s: every combination of states clears AA', (theme, accent) => {
     const failures: string[] = [];
     let judged = 0;
-    for (const accent of ACCENTS) {
-      const { measure, done } = measurer(theme, accent);
-      try {
-        for (const classes of combinations) {
-          for (const hovered of [false, true]) {
-            const { fg, bg } = measure(classes, hovered);
-            const where = `${theme}/${accent} ${classes.join('.') || '(rest)'}${hovered ? ':hover' : ''}`;
-            // A pair that will not resolve is a failure, never a skip: a gate
-            // that shrugs at an unreadable colour reports the same green as one
-            // that measured it.
-            if (!fg || !Array.isArray(bg)) { failures.push(`${where}: unresolved ${String(fg)} on ${String(bg)}`); continue; }
-            judged += 1;
-            const got = ratio(composite(fg, bg), bg);
-            if (got < AA_TEXT) failures.push(`${where}: ${got.toFixed(2)}:1`);
-          }
+    const { measure, done } = measurer(theme, accent);
+    try {
+      for (const classes of combinations) {
+        for (const hovered of [false, true]) {
+          const { fg, bg } = measure(classes, hovered);
+          const where = `${theme}/${accent} ${classes.join('.') || '(rest)'}${hovered ? ':hover' : ''}`;
+          // A pair that will not resolve is a failure, never a skip: a gate
+          // that shrugs at an unreadable colour reports the same green as one
+          // that measured it.
+          if (!fg || !Array.isArray(bg)) { failures.push(`${where}: unresolved ${String(fg)} on ${String(bg)}`); continue; }
+          judged += 1;
+          const got = ratio(composite(fg, bg), bg);
+          if (got < AA_TEXT) failures.push(`${where}: ${got.toFixed(2)}:1`);
         }
-      } finally { done(); }
-    }
-    expect(judged, 'pairs judged').toBe(combinations.length * 2 * ACCENTS.length);
+      }
+    } finally { done(); }
+    expect(judged, 'pairs judged').toBe(combinations.length * 2);
     expect(failures, `cell states below ${AA_TEXT}:1`).toEqual([]);
-  // Four sheet builds and 256 resolved pairs per theme: seconds of real work,
-  // and more of it each time the kit's stylesheet grows. The budget is the
-  // host's, not the gate's — a slow machine must not turn this red.
+  // One sheet build and 32 resolved pairs per theme and accent, so each test
+  // stays far under the suite's 5 s test budget.
   }, 60_000);
 
   /* Prove rejection by taking the fix out: without the rule that sends a
@@ -1281,7 +1293,7 @@ describe('the tap zone below the phone step', () => {
     const block = coarseOf(css);
     if (!block) return [];
     const m = new RegExp(`:where\\(([^)]+)\\)\\s*${after}`).exec(block[1]);
-    return (m?.[1] ?? '').split(',').map(x => x.trim()).filter(Boolean);
+    return splitSelectorList(m?.[1] ?? '');
   };
   const listBefore = (after: string) => listIn(sheet, after);
   /** The two containment checks, as a list of what failed. */

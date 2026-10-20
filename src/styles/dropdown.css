@@ -31,9 +31,9 @@
    accent band is the second band #578 round r34 took off the focus rules, and a
    pointer resting on a focused control would put it back. One indicator, which is
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
-.ui-dropdown__trigger:hover:not(:focus-visible) { border-color: var(--accent); }
+.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-dropdown__trigger:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-/* Off. The off hover-not-focus selectors are (0,4,0), above live hover's (0,3,0).
+/* Off. The off hover-not-focus selectors are (0,4,0), tied with live hover and later.
    A pointer over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
    No fill: --disabled-surface IS this control's --surface, in both themes. The
    activation is refused in ddTriggerOff(), not with pointer-events, which would
@@ -295,12 +295,12 @@
   margin-left: auto;
   flex: none;
   color: var(--text);
-  background: color-mix(in srgb, var(--muted) 12%, transparent); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
+  /* The kit's one neutral chip fill, which #453 moved into a token so the badge, the
+     pill, this chip and the version badge are one family. The per-theme alphas that
+     used to be written here twice live with the token. */
+  background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
 }
-.ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
-:root[data-theme="light"] .ui-dropdown__badge:not(.is-live) {
-  background: color-mix(in srgb, var(--muted) 15%, transparent); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
-}
+.ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only surface has no nested chip. */ }
 
 /* Disabled + danger rows */
 .ui-dropdown__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }

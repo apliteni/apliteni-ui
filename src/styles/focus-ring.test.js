@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 // Every link and button the React shell writes must take the kit ring, so none falls
 // back to the browser's own outline. Subjects are discovered from the markup, so a new
@@ -15,7 +16,9 @@ import { fileURLToPath } from 'node:url';
 // and the count is a floor rather than a census. Controls composed from other
 // components carry their own classes and are covered where those are measured.
 const here = path.dirname(fileURLToPath(import.meta.url));
-const SHELL = readFileSync(path.join(here, '../../react/src/AppShell.tsx'), 'utf8');
+// The band's theme switch is React ThemeToggle, so its source is read with the shell's.
+const SHELL = ['AppShell.tsx', 'ThemeToggle.tsx']
+  .map((file) => readFileSync(path.join(here, '../../react/src', file), 'utf8')).join('\n');
 const SHEETS = ['base.css', 'layout.css', 'topbar.css', 'nav.css', 'button.css']
   .map((file) => readFileSync(path.join(here, file), 'utf8')).join('\n');
 
@@ -26,7 +29,7 @@ const shellControls = () => [...SHELL.matchAll(/<(a|button)\s[^>]*className="([^
 // Rules that paint the kit ring, with the selectors that reach it.
 const ringSelectors = (css) => [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
   .filter(([, , body]) => /outline:\s*var\(--ring\)/.test(body))
-  .flatMap(([, selector]) => selector.split(','))
+  .flatMap(([, selector]) => splitSelectorList(selector))
   .filter((part) => part.includes(':focus-visible'));
 
 // An element is covered when any one of its classes reaches a ring rule.

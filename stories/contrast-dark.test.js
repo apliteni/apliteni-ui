@@ -19,7 +19,7 @@
  * The resolver is stories/lib/contrast.js; its two rewrites are pinned by the self-checks
  * below. Resolve the winning declarations before measuring the result.
  */
-import test, { before } from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   groupFindings, parseColour, ratio, tokensFor, walkCells,
@@ -50,7 +50,8 @@ const countFor = (entry) => (entry.story ? STORY_BUCKET_COUNTS[entry.id] : entry
 //  - anything a script would do: the body is a static string, so no preview.js wiring runs.
 //  - custom properties a story pins INLINE. Every var() is flattened against one theme-wide map,
 //    so every sub-theme panel is measured using the current cell's accent.
-before(async () => {
+// A walk at module load is charged to the file, not to the first test that happens to run.
+await (async () => {
   const started = Date.now();
   const r = await walkCells({ cells: [{ theme: THEME, accent: ACCENT }], states: true });
   walk.problems.push(...r.problems);
@@ -63,7 +64,7 @@ before(async () => {
   walk.elapsed = Date.now() - started;
   walk.records = r.records;
   walk.findings = groupFindings(r.records);
-});
+})();
 
 test(`every story renders in ${THEME} — a story the walk cannot mount is not covered`, () => {
   assert.equal(

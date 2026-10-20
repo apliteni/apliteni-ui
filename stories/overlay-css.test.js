@@ -19,6 +19,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '..');
@@ -42,7 +43,7 @@ function rules(css) {
   return out;
 }
 
-const selects = (rule, sel) => rule.selector.split(',').some((s) => s.trim() === sel);
+const selects = (rule, sel) => splitSelectorList(rule.selector).includes(sel);
 const transitions = (rule) => [...rule.body.matchAll(/transition(?:-property)?\s*:([^;]*)/g)].map((m) => m[1]);
 
 // The two overlays are one behaviour with two skins, so both sheets answer the

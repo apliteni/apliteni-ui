@@ -60,6 +60,20 @@
 
 **Don't:** Hide units in muted text or make readers guess what an abbreviation means.
 
+## Size the table to its content
+
+<!-- rule: content-width -->
+
+**Why:** Large gaps separate labels from values.
+
+**Rule:** Limit each column to its longest cell plus the cell inset.
+
+**Do:** Keep amounts beside their references in a two-column table.
+
+**Don't:** Stretch short tables across the page.
+
+**Except:** A text column intended to grow, such as a name or title, takes the remaining width.
+
 ## Scroll instead of squeezing
 
 <!-- rule: overflow -->

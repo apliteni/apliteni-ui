@@ -4,6 +4,7 @@ export const TITLE = content.title;
 export const BLURB = content.blurb;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import { badge, card } from '../../src/components/index.js';
+import { filterBar } from '../../src/components/filter-bar.js';
 
 const stage = (html) => `<div class="gl-stage">${html}</div>`;
 
@@ -17,6 +18,14 @@ const band = (a, b) => stage(`<div style="display:grid;grid-template-columns:1fr
 
 export const caseDo = () => band(['Income', '+12% on last year'], ['Invoices waiting', '3 overdue']);
 export const caseDont = () => band(['INCOME', '+12% ON LAST YEAR'], ['INVOICES WAITING', '3 OVERDUE']);
+
+// The chips are the frame: a reader looking at the row knows what the button clears.
+const clearRow = (clearLabel) => stage(filterBar({ clearLabel, filters: [
+  { id: 'period', label: 'Period', value: 'This quarter', items: [{ label: 'This quarter', value: 'This quarter', selected: true }] },
+  { id: 'status', label: 'Status', value: 'Paid', items: [{ label: 'Paid', value: 'Paid', selected: true }] }] }));
+
+export const nounDo = () => clearRow('Clear all');
+export const nounDont = () => clearRow('Clear all filters');
 
 // Inside the shell's main column, so the h1 takes the page title's rank.
 const page = (cardHtml) => stage(`<div class="ui-app__main" style="padding:0;--ui-app-main:100%">
@@ -35,6 +44,7 @@ export const RULES = withSpecimens(content.rules, [
 { id: 'text-ink' },
 { id: 'text-ink-exceptions' },
 { id: 'sentence-case', doHtml: caseDo, dontHtml: caseDont },
+{ id: 'no-repeated-noun', doHtml: nounDo, dontHtml: nounDont },
 { id: 'title-rank', doHtml: rankDo, dontHtml: rankDont },
 { id: 'title-is-heading' },
 { id: 'eyebrow-names-the-kind', doHtml: eyebrowDo, dontHtml: eyebrowDont }

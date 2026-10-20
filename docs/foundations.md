@@ -160,19 +160,42 @@ show hierarchy by fading descriptions, labels, captions, timestamps, counts, cod
 or enabled actions with `--muted`, `--dim` or opacity. Use size, weight and spacing for that
 hierarchy. Signal colours still report status and errors. Links keep their link ink.
 
-Muted and dim ink have exactly three uses:
+Muted and dim ink have exactly four uses:
 
 - **glyph** — a mark that is not words: an arrow, a chevron, a dismiss icon.
 - **state** — colour reporting off, unset, disabled or archived, rather than rank.
 - **placeholder** — a slot with no value, such as an empty field or cell.
+- **chrome** — the furniture around a drawing: a chart's value axis, its period row
+  and its legend. Exact data values must remain reachable at full strength through
+  pointer readouts and keyboard announcements. The values table is optional and opens
+  on request. A field's label, a caption and a timestamp keep body ink.
 
 An empty-state explanation is not an empty slot. A keyboard shortcut is language. A count is
 not a status. Generic badges use body ink. Archive and disabled variants keep their state
-ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral dropdown chip tints
-by mixing muted ink into the panel. This is the one soft fill under words that the kit draws,
-and its text still clears 4.5:1.
+ink. A dropdown badge asks for state ink with `tone: 'state'`. A neutral chip uses
+`--chip-neutral-fill`, a low-alpha muted wash. Badge, pill, dropdown chip and archived
+version badge all use that token when the tone carries no verdict. The wash leaves its
+ground in the same direction as status chip fills. It is lighter in dark and darker in light.
+Its text still clears 4.5:1. The theme alphas differ because muted ink differs between themes.
+The neutral fill separates from a card by about 1.22:1 in dark and 1.20:1 in light.
 
 ## Colour and contrast
+
+**A status chip's ink and fill form one pair.** Change them together and check the result
+on the page, a card and a floating panel in both themes. Keep text at least 4.5:1.
+Light success has a stronger aim of **7:1** on its fill. It currently measures 7.17:1.
+This stronger aim is a written consumer rule only. The automated badge checks enforce 4.5:1,
+so they would accept the previous success pair at 5.29:1. The other light status pairs
+meet 4.5:1 but do not all meet 7:1. Dark danger measures at least 6.30:1 on these three grounds.
+
+**Archive has little contrast to spare.** Its muted ink measures 4.64:1 on the light page
+and 4.56:1 on a dark floating panel. These are the narrowest Archive pairs.
+Check both before changing muted ink, the neutral fill or a containing surface.
+Do not fade Archive further or assume that a card measurement covers these grounds.
+
+On the light page, warn and pending fills separate by only 1.043:1, and live by 1.047:1.
+Their status ink also identifies them. The neutral fill separates by 1.188:1 on that ground.
+These fill ratios describe separation, not text contrast.
 
 - **The accent is measured against its own wash, not against the surfaces.** Every one of
   the eight theme × accent cells clears 4.5:1. The wash *is* the accent at low alpha, so
@@ -218,14 +241,16 @@ The ladder, from bottom to top:
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
 
 **Text sits on the page, card or floating panel surface, never on a grey inset.** In both
-themes, fields, code blocks, neutral badges, navigation labels and segmented controls use
-those reading surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks.
+themes, fields, code blocks, navigation labels and segmented controls use those reading
+surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks. A status chip
+is the named exception. It uses a soft fill, and neutral chip tones use
+`--chip-neutral-fill`. This avoids the old card-surface badge, which sat darker than a
+floating panel in dark and vanished on a white card in light.
 
-**A selected item is the one exception.** Selection is marked by a background highlight, and the
-only fills that step off a reading surface are the grey ones. A chosen segmented pill fills
-`--surface-3` on its track; a chosen menu row and the palette row the keyboard is on fill
-`--surface-2` on their panel. A chosen pill is therefore the one place in the kit where a label
-rests on a quiet grey fill.
+**A selected item is the one exception.** Selection is marked by a background highlight. An
+enabled chosen segmented pill fills `--accent` on its track, with `--accent-contrast` ink in light
+and `--signal-contrast` ink in dark. A disabled chosen pill keeps `--surface-3` and the disabled
+ink.
 
 **What floats depends on the surface's job, not on its rung.** A floating surface has the
 whole purpose of being temporarily above something else. It writes both devices as one
@@ -239,6 +264,10 @@ box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--ele
 
 **The focus ring does not touch that list.** The band is an `outline`, so a focused panel keeps
 the edge and the drop it rests on without restating them.
+
+Inside a floating panel, rows keep a reading surface and fields use the same field tokens as
+elsewhere. A chip uses `--chip-neutral-fill` rather than the card surface. The floating panel is
+itself lighter than a card in dark, so the card surface is the darker step there.
 
 `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-seg` and `--shadow-card` are still
 published. All five are the transparent shadow `0 0 #0000` in both themes. They are
@@ -327,10 +356,9 @@ recolours its dashed edge while a file is over it: that edge is the drop target,
 
 **An outline means focus; selection is a background highlight.** A selected, current or active
 item is marked by its fill, its ink and its weight, never by an edge drawn around it — an edge on
-a selected row is the band's own shape one pixel further in. Two marks are deliberate exceptions
-and say so beside their rules: the current page in a pager keeps a `--border` hairline, because no
-fill marks it on both the page and a card; and the date picker's current period keeps its accent
-hairline at rest, which stands aside while the cell holds focus.
+a selected row is the band's own shape one pixel further in. One mark is a deliberate exception
+and says so beside its rule: the date picker's current period keeps its accent hairline at rest,
+which stands aside while the cell holds focus.
 
 Controls use native `:focus-visible`, including inputs and invalid fields. An invalid border keeps
 its error colour while focus uses the shared band. **Forced colours needs nothing extra**: the band
@@ -397,22 +425,23 @@ layer is also a hover surface, and a coarse pointer has no hover. The sheet is i
 component. `--tap-min` is declared in that sheet rather than the token file because the React
 entry imports these nets without `tokens.css`. It is still a token, and you can move it.
 
-**A row that already has the room opens nothing and still says so.** The shell's band and the
-strategy topbar are both 52px rows with a gap of their own, and each holds a control drawn under
-the floor: the band's palette trigger measures 37.05 tall once the phone band swaps its sentence
-for the short word, and the theme switch is 34 square in both. Neither row is opened — the space
-is already between the controls and above and below them — so both declare the clearance they
-give and nothing else. Half of 12px is 6px a side, but the switch's own layer stops at the 44px
-floor first, 5px a side. The topbar's gap is 14px above the 560px step, where this transparent
-tap layer does not exist. Below that step, which is the only width where the layer exists, the
-gap packs to 8px, so the switch has 4px to the midline of its neighbour, not 7px. The layer
-crosses that midline by 1px on each side, but neither neighbour
-carries a layer of its own there, so nothing mis-taps. The row's leftover height is 7.4px above
-and below the trigger against the 3.5 a 44px layer needs. Measured at 390 on a coarse pointer:
-both reach 44x44, both draw the size they drew, and
-the band keeps its height, its gap and its paint. The clearance is `--space-3` rather than
-`--tap-gap` for the reason the clamp exists at all — 20 would claim 10px a side where the trigger
-has 7.4, and a declared number that is not true is what the browser half fails a container for.
+**A row that already has the room opens nothing and still says so.** The shell's band
+remains a 52px row. Its phone palette trigger measures 37.05px tall, and its theme switch
+remains 34px square. The existing space lets their targets reach 44px without changing
+those drawn sizes.
+
+On a phone, the product topbar uses two rows with a 44px minimum height per row.
+Brand, theme and account occupy the first row. The view and version switches occupy the
+second row. Both rows use the same 12px side inset, with an 8px gap between rows. The theme switch
+and the account end at that inset whatever the version label's width. A band with one row
+stays 52px, as on a wide screen.
+The theme switch stays 34px square and keeps its 44px target.
+
+Both containers declare `--space-3` of clearance. Half of 12px gives each side 6px,
+but the theme switch's layer stops at the 44px floor, 5px from its drawn edge.
+The 8px phone gap keeps that layer clear of its neighbour's drawn box. The neighbour
+carries no layer of its own there. Above 560px, the topbar keeps its single 52px row
+and 14px gaps, and the transparent tap layer does not apply.
 
 ## Icons and glyphs
 
@@ -433,3 +462,9 @@ a colour keep the shorthand.
 
 `iconOnlyAllowed` and `iconMeanings` publish the two icon rules as data. They state which
 glyphs may appear without a word and what each glyph means.
+
+**A status glyph is circled.** A circled glyph reports a state. A bare glyph names an action.
+`toast()` and `callout()` use the circled status glyphs for success, danger and warning:
+`circleCheck`, `circleX` and `circleAlert`. Info and neutral callouts use `info`. An explicit
+`icon` still wins. A neutral toast still uses `bolt`, because it reports an event without a
+verdict.

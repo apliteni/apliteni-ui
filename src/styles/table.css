@@ -8,6 +8,11 @@
   border-collapse: collapse;
   font-size: var(--text-base);
 }
+/* Fit cards keep short tables close to their labels. Other cards keep full-width tables. */
+:where(.ui-card--fit) .ui-table {
+  width: auto;
+  max-width: 100%;
+}
 .ui-table th {
   text-align: left;
   /* rank: label */
@@ -280,6 +285,10 @@
   width: calc(100% + 2 * var(--space-3));
   margin-inline: calc(-1 * var(--space-3));
 }
+.ui-card--fit > :where(.ui-table--dense, .ui-table--zebra) {
+  width: auto;
+  max-width: calc(100% + 2 * var(--space-3));
+}
 /* A scroll wrapper owns the bleed for a nested dense table: 4px of focus
    clearance plus the 12px end-cell inset. */
 .ui-card > .ui-table-scroll:has(> .ui-table--dense) {
@@ -391,6 +400,8 @@ a.ui-identity:hover { text-decoration: underline; }
      under it, so whatever the cut lets out is painted over that column. A child's ring
      needs 3px and the cell's padding is 12px, so the room comes from the padding.
      why: docs/components.md#dense-financial-tables, #500, #513 */
+  /* A percentage can stretch an intrinsic table beyond its content. */
+  .ui-card--fit .ui-table--pinned .ui-table__identity { width: 1px; }
   .ui-table--pinned .ui-table__identity {
     width: 1%;
     max-width: var(--ui-table-identity-max);

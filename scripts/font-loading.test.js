@@ -114,7 +114,10 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
 // falls back to, and a name line is exactly as wide as the font drawing it. Its
 // browser half now builds its page with the same link and fails when the families
 // do not arrive, so it belongs on this list like any other page.
-const EXPECTED_LOADERS = 20;
+// The twenty-first is scripts/evidence/tones.html (#453, the badge and callout tone
+// family): the chips are small type on a soft fill, so the faces are part of what
+// the shot is of.
+const EXPECTED_LOADERS = 21;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

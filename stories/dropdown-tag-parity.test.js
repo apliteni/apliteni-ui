@@ -21,6 +21,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -34,7 +35,7 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 const TOKENS = (() => {
   const vars = new Map();
   for (const [, selector, body] of decomment(read('src/tokens/tokens.css')).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    if (selector.split(',').every((sel) => sel.trim() !== ':root')) continue;
+    if (splitSelectorList(selector).every((sel) => sel !== ':root')) continue;
     for (const decl of body.split(';')) {
       const i = decl.indexOf(':');
       if (i > 0 && decl.slice(0, i).trim().startsWith('--')) vars.set(decl.slice(0, i).trim(), decl.slice(i + 1).trim());

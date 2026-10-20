@@ -2,7 +2,17 @@ import { useEffect, useRef } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Tooltip } from './Tooltip';
 
-function Example({ state = 'closed', clipped = false }: { state?: 'closed' | 'hover' | 'focus' | 'dismissed'; clipped?: boolean }) {
+function Example({
+  state = 'closed',
+  clipped = false,
+  structured = false,
+  placement = 'top',
+}: {
+  state?: 'closed' | 'hover' | 'focus' | 'dismissed';
+  clipped?: boolean;
+  structured?: boolean;
+  placement?: 'top' | 'bottom';
+}) {
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const trigger = root.current!.querySelector<HTMLElement>('.ui-focusable')!;
@@ -12,8 +22,15 @@ function Example({ state = 'closed', clipped = false }: { state?: 'closed' | 'ho
   }, [state]);
   return (
     <div ref={root} style={{ padding: clipped ? '4px 48px 64px' : '64px 48px', overflow: clipped ? 'hidden' : undefined }}>
-      <Tooltip text="Updated daily">Balance</Tooltip>
-      <p>Balances are updated daily.</p>
+      {structured
+        ? <>
+          <Tooltip label="March" value="€48,210" detail="+4.2% on February" placement={placement}>March revenue</Tooltip>
+          <p>March revenue €48,210</p>
+        </>
+        : <>
+          <Tooltip text="Updated daily" placement={placement}>Balance</Tooltip>
+          <p>Balances are updated daily.</p>
+        </>}
     </div>
   );
 }
@@ -26,8 +43,13 @@ export const Hover: Story = { render: () => <Example state="hover" /> };
 export const Focus: Story = { render: () => <Example state="focus" /> };
 export const Dismissed: Story = { render: () => <Example state="dismissed" /> };
 export const Below: Story = { render: () => <Example state="hover" clipped /> };
+export const PreferredBottom: Story = { render: () => <Example state="hover" placement="bottom" /> };
 export const Touch: Story = { render: () => <Example /> };
 export const ReducedMotion: Story = {
   parameters: { docs: { description: { story: 'Enable reduced motion in your browser, then hover or focus the label.' } } },
   render: () => <Example />,
+};
+
+export const Structured: Story = {
+  render: () => <Example state="hover" structured />,
 };

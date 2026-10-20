@@ -36,3 +36,4 @@ export { calloutIcons } from './logic/callout.js';
 export { formatNumericValue, formatDeltaValue } from './logic/table-values.js';
 export { accentSwatchStyle } from './logic/accents.js';
 export { observeNavFit, revealCurrentNav, revealFocusedNav } from './logic/nav.js';
+export { CHART_FLOOR, chartScale, bridgeWalk, pointTarget } from './logic/chart.js';

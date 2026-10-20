@@ -209,7 +209,7 @@
    src/styles/dropdown.css:271 `.ui-dropdown__item:hover`.
    why: docs/foundations.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-/* The row is a keyboard stop: src/components/dropdown.js:1107
+/* The row is a keyboard stop: src/components/dropdown.js:1165
    `items[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
    the arrow keys, and this is one. It takes the ring on its own 10px radius, the
    same way `.amenu a` above does. #482 */
@@ -226,51 +226,50 @@
   flex: none;
   margin-top: 1px;
 }
-.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
-.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ }
-/* The phone step — the same one the rail folds at: docs/foundations.md#breakpoints.
-   The switcher keeps its glyph and drops its label.
-   The menu hangs the other way here. Anchored by its left edge it opened
-   rightwards off a band that is as wide as the page, and a CLOSED menu is still
-   laid out, so it scrolled the page sideways with nothing visible to explain it.
-   `.amenu` beside it has always been anchored right. On a 320px viewport the
-   page's scroll width was 527px and is 397px; the band's own controls still want
-   more room than that page has, which is #558.
-   why: guidelines/layout-and-density.md#use-the-three-breakpoints
-   held by: stories/overlay-css.test.js */
+.vbadge.live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only surface has no nested chip. */ }
+/* The archived version badge is the archive badge tone in a floating menu, so it takes
+   the same neutral chip fill rather than the card surface — which, inside a panel that
+   is itself lighter than a card, was darker than the ground it sat on. #453 */
+.vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
+/* The version label drops at the shell breakpoint.
+   Anchor the menu to its right edge so a closed panel cannot widen the page. */
 @media (max-width: 720px) {
   .vsw__btn .lbl { display: none; }
   .vsw__menu { left: auto; right: 0; }
 }
 
-/* One column, and the band is at its tightest. The row is already full at 390,
-   and at the gap above this one the account avatar stood from 365 to 397 and was
-   cut at the screen edge — the one control on this screen that opens the account
-   area. Packed to --space-2 and a flat 14px trailing gutter the band needs 367.53
-   of the 362px it has there, a 5.53px shortfall, because layout.css now pins the
-   theme switch to a full 34px square so it keeps the tap floor it was given.
-   The wordmark, the Deck/Text switch and the version label are each already at
-   the width their own text needs, and the switch must not shrink again, so the
-   account block's trailing gutter is what gives — but a FLAT 14px gutter has no
-   fallback below the width it was sized for: at 375 it has already given every
-   one of its 14px and the row is still 6.53px short, so the avatar was cut and
-   the page gained 7px of horizontal scroll (#486 review round 2), worse again
-   at 320.
-   Both carry a share now, continuously, rather than the gutter alone holding a
-   fixed budget: the gutter still narrows first, from 14px at 390 down to 0 by
-   381.53px of available row width, and once it is spent the inter-control gap
-   takes the rest, from --space-2 down to its own floor of --space-1. 381.53px is
-   this row's own fixed width minus its gutter's full 14px — not a general
-   formula, a number that belongs to this composition's own wordmark, switch and
-   version label. The avatar is whole and the page carries no horizontal scroll
-   down to 375px. 320 still falls 41.53px short with both all the way down,
-   which stays #558; it is 5px better than main's own 46.53px there, not solved.
-   why: docs/foundations.md#breakpoints */
+/* Keep the identity controls above the view controls on a phone.
+   The toolbar pattern uses the same inset for both rows. */
 @media (max-width: 560px) {
+  .topbar { height: auto; min-height: 52px; }
   .topbar__in {
-    gap: clamp(var(--space-1), calc(var(--space-2) - (381.53px - 100vw) / 5), var(--space-2));
-    padding-right: clamp(0px, calc(100vw - 381.53px), 14px);
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) auto auto;
+    grid-auto-rows: minmax(44px, auto);
+    gap: var(--space-2) 0;
+    /* 4px above and 3px below, because the band's 1px border is the fourth: one row is
+       then 52px, as on a wide screen, and the shell offset below stays true. */
+    padding: var(--space-1) var(--space-3) 3px;
   }
+  .topbar__in > .brand { grid-area: 1 / 1 / 2 / 3; justify-self: start; }
+  .topbar__in > .toggle { grid-area: 1 / 3; justify-self: end; }
+  /* The 8px beside the account is its own margin, so a hidden account leaves no gap and
+     the theme switch ends on the inset. */
+  .topbar__in > .acct { grid-area: 1 / 4; justify-self: end; margin-left: var(--space-2); }
+  .topbar__in > .spacer { display: none; }
+  .topbar__in > .dtsw { grid-area: 2 / 1; justify-self: start; }
+  /* The first column is as wide as Deck/Text and no wider, because the brand spans past it.
+     The version switch takes the flexible column and the two auto columns beside it, so its
+     width never widens the columns that pin the theme switch and the account to the row's
+     end inset. A long label gives way to an ellipsis, and 8px always stays between the
+     two controls. */
+  .topbar__in > .vsw { grid-area: 2 / 2 / 3 / -1; justify-self: end; min-width: 0; max-width: calc(100% - var(--space-2)); margin-left: var(--space-2); }
+  .vsw__btn { max-width: 100%; }
+  .vsw__btn .cur { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vsw__btn .car { flex: none; }
+  /* Two 44px rows, an 8px gap, the 4px and 3px insets and the bottom border. */
+  .ui-app-page:has(.topbar .dtsw.on),
+  .ui-app-page:has(.topbar .vsw) { --ui-app-top: 104px; }
 }
 
 /* Account — avatar + dropdown. Gated: hidden until the app confirms a session

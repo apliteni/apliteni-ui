@@ -11,20 +11,17 @@
 // WCAG 2.5.8 measures the target and not the ink (#219).
 //
 // Discover subjects from source and check the coverage count.
-// Fail if a custom property cannot be resolved.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { JSDOM, VirtualConsole } from 'jsdom';
-import { focusBand } from '../../scripts/lib/box-shadow.js';
+import { tokensFor, parseColour, ratio } from '../lib/contrast.js';
+import { decomment } from '../lib/target-geometry.js';
+import { runJobs } from '../lib/job-pool.js';
 import {
-  STYLE_FILES, kitCssFor, substitute, desugar, parseColour, composite, ratio,
-  effectiveBackground, makeStyleCache, installDomGlobals, storyFiles,
-  selectorPath, tokensFor,
-} from '../lib/contrast.js';
+  root, THEMES, sheet, disabledRules, TOUCH_MIN, CELLS,
+} from '../lib/accessibility-walks.js';
 import {
   TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, TARGET_EXEMPT,
   RULES,
@@ -32,561 +29,17 @@ import {
 
 const { GATES } = JSON.parse(readFileSync(new URL('./accessibility-coverage.json', import.meta.url), 'utf8'));
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const THEMES = ['dark', 'light'];
-const RULE = /([^{}]+)\{([^{}]*)\}/g;
-const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
-const sheet = () => decomment(STYLE_FILES.map((f) => readFileSync(path.join(root, f), 'utf8')).join('\n'));
-const serialize = (out) => (typeof out === 'string' ? out : (out && out.outerHTML) || null);
+// The eleven walks are independent, so they run on worker threads at once and this file waits
+// for all of them here, before any test, rather than inside one.
+const WALKS = new URL('../lib/accessibility-walks.js', import.meta.url);
+const [targetRun, ...cellRuns] = await runJobs(WALKS, [
+  { fn: 'targetRun' },
+  ...CELLS.map(({ theme, accent }) => ({ fn: 'ringCell', args: [theme, accent] })),
+  ...THEMES.map((theme) => ({ fn: 'disabledCell', args: [theme] })),
+]);
+const ringRun = Object.fromEntries(cellRuns.slice(0, CELLS.length).map((c) => [`${c.theme}/${c.accent}`, c]));
+const disabledRun = Object.fromEntries(THEMES.map((theme, i) => [theme, cellRuns[CELLS.length + i]]));
 
-/** Every rule in the kit's sheet, as [selector, body] with comments gone. */
-function rules(css) {
-  const out = [];
-  for (const [, sel, body] of css.matchAll(RULE)) {
-    if (sel.trimStart().startsWith('@')) continue;
-    out.push([sel.trim().replace(/\s+/g, ' '), body]);
-  }
-  return out;
-}
-
-// ---- discovery ------------------------------------------------------------
-
-/**
- * Selectors that paint the focus band, taken from the sheet that paints it. It is an
- * `outline` since #578, so the property is part of the reading: `:root` mentions
- * `var(--ring)` too — `--ring-scroll` is built from it — and declaring the band is not
- * drawing it.
- */
-function ringSelectors(css) {
-  const out = [];
-  for (const [sel, body] of rules(css)) {
-    if (!/(?:^|;)\s*outline\s*:[^;]*var\(--ring\)/.test(body)) continue;
-    for (const s of sel.split(',')) out.push(s.trim());
-  }
-  return [...new Set(out)];
-}
-
-/**
- * The three ways this kit's sheet spells "off", written once. Each spelling
- * knows how it appears in a selector, how it appears on an element, and how to
- * take it off — so the regex that finds a disabled rule, the query that finds
- * the element carrying the state, and the undo that turns it back on cannot
- * drift apart. A fourth spelling is one entry here, not three edits.
- */
-const DISABLED_SPELLINGS = [
-  {
-    inSelector: ':disabled',
-    inDom: '[disabled]',
-    off: (el) => { el.removeAttribute('disabled'); return () => el.setAttribute('disabled', ''); },
-  },
-  {
-    inSelector: '[aria-disabled',
-    inDom: '[aria-disabled="true"]',
-    off: (el) => {
-      const was = el.getAttribute('aria-disabled');
-      el.removeAttribute('aria-disabled');
-      return () => el.setAttribute('aria-disabled', was);
-    },
-  },
-  {
-    inSelector: '.is-disabled',
-    inDom: '.is-disabled',
-    off: (el) => { el.classList.remove('is-disabled'); return () => el.classList.add('is-disabled'); },
-  },
-];
-const DISABLED_SEL = new RegExp(
-  DISABLED_SPELLINGS.map((s) => s.inSelector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
-);
-const DISABLED_STATE = DISABLED_SPELLINGS.map((s) => s.inDom).join(', ');
-
-/**
- * Rules that paint a control because it is disabled, with the alpha each one
- * leaves it at. A selector is the subject and `opacity` is only its mechanism —
- * looking for the mechanism was how this list was built until #220, and a gate
- * keyed on one technique goes silent the moment the technique changes. Where a
- * selector appears in more than one rule the worst alpha wins.
- */
-function disabledRules(css) {
-  const out = new Map();
-  for (const [sel, body] of rules(css)) {
-    if (!DISABLED_SEL.test(sel)) continue;
-    const m = body.match(/(?:^|;)\s*opacity\s*:\s*([\d.]+)/);
-    for (const s of sel.split(',')) {
-      const selector = s.trim();
-      if (!DISABLED_SEL.test(selector)) continue;
-      const opacity = m ? Number(m[1]) : 1;
-      const prev = out.get(selector);
-      if (!prev || opacity < prev.opacity) out.set(selector, { selector, opacity });
-    }
-  }
-  return [...out.values()];
-}
-
-/**
- * Turn a rendered control back on, and hand back the undo. The state is not
- * always on the element the rule selects — `.ui-dropdown__item.is-disabled
- * .ui-dropdown__label` paints a label whose ancestor carries the class — so the
- * nearest element actually holding a spelling is the one turned off.
- *
- * It is not always ABOVE the element either. `:has()` paints from a state held by
- * a DESCENDANT: `.ui-check:has(input:disabled)` dims a label because the input
- * inside it is off. Searching only upwards found nothing there, returned a no-op
- * undo, and so measured the same paint twice — which reads as "this control does
- * not repaint" no matter what the rule says. The search goes up, then in. #429
- */
-function enable(el) {
-  const host = el.closest(DISABLED_STATE) || el.querySelector(DISABLED_STATE);
-  if (!host) return () => {};
-  const undo = DISABLED_SPELLINGS.filter((s) => host.matches(s.inDom)).map((s) => s.off(host));
-  return () => undo.forEach((f) => f());
-}
-
-// Interactive BY ROLE, never by kit class — a class list is a list somebody
-// maintains, and this one has to cover a component nobody has written yet.
-// A bare `tabindex` is deliberately NOT here: 2.5.8 is about POINTER targets,
-// and a focusable scroll region or tabpanel is reachable without ever being
-// aimed at. What makes something a subject is that clicking it does something.
-const INTERACTIVE = [
-  'button', 'a[href]', 'input', 'select', 'textarea', 'summary',
-  '[role="button"]', '[role="link"]', '[role="tab"]', '[role="switch"]',
-  '[role="checkbox"]', '[role="radio"]', '[role="menuitem"]', '[role="option"]',
-  '[role="menuitemcheckbox"]', '[role="menuitemradio"]',
-].join(', ');
-
-// ---- geometry -------------------------------------------------------------
-
-// The box properties, split by whether CSS inherits them. A custom property
-// ALWAYS inherits, so a probe for a non-inherited property would leak an
-// ancestor's value down onto a control that declares none — a button inside a
-// card would report the card's height. Every one of these is therefore reset to
-// a sentinel at `*`, which has no specificity and so loses to every real rule.
-// The two CSS does inherit are left to inherit, because there the leak is the
-// right answer.
-const GEOMETRY = [
-  'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
-  'height', 'width', 'min-height', 'min-width', 'border', 'border-width', 'border-style',
-  'border-top-width', 'border-bottom-width', 'border-left-width', 'border-right-width',
-  'box-sizing', 'position',
-];
-const INHERITED = ['font-size', 'line-height'];
-const NONE = '·none·';
-
-// A control's target is not its ink. 2.5.8 measures what a pointer can land on,
-// and a pointer landing on a control's ::before or ::after hits the CONTROL —
-// the pseudo is a box the element generates, not a child that could take the
-// event away. So an overlay inset past the drawn box is a real 24px target with
-// the drawn control left at whatever size the design gave it, and this gate has
-// to see it or a hit-area fix would fail every test and pass none.
-//
-// The two pseudos are probed under SEPARATE names on purpose: .ui-check input
-// carries a tick on ::after and its hit area on ::before, and one namespace
-// would have let the 10px tick overwrite the 24px target.
-const PSEUDOS = ['before', 'after'];
-const PSEUDO_GEOMETRY = [
-  'content', 'position', 'pointer-events',
-  'width', 'height', 'inset', 'top', 'right', 'bottom', 'left',
-];
-
-/**
- * Copy every geometry declaration into a probe custom property beside itself, and every
- * `sel::before { … }` rule onto `sel` under `--tsz-before-*`. Why that reads the cascade
- * JSDOM will not resolve: custom properties retain the values for the probe.
- * The probe approximates pseudo-element specificity.
- */
-function probeGeometry(css) {
-  const reset = `*{${[
-    ...GEOMETRY.map((p) => `--tsz-${p}:${NONE}`),
-    // A custom property inherits, so without this a control would read its
-    // ANCESTOR's pseudo geometry: .ui-toast--soft::before is a 3px marker, and
-    // every button inside the toast would have reported carrying one.
-    ...PSEUDOS.flatMap((ps) => PSEUDO_GEOMETRY.map((p) => `--tsz-${ps}-${p}:${NONE}`)),
-  ].join(';')}}`;
-  return reset + css.replace(RULE, (whole, sel, body) => {
-    if (sel.trimStart().startsWith('@')) return whole;
-    const extra = [];
-    const bases = { before: [], after: [] };
-    for (const part of sel.split(',')) {
-      const m = /^(.*?)::?(before|after)$/.exec(part.trim());
-      if (m && m[1]) bases[m[2]].push(m[1]);
-    }
-    const retarget = { before: [], after: [] };
-    for (const decl of body.split(';')) {
-      const i = decl.indexOf(':');
-      if (i < 0) continue;
-      const prop = decl.slice(0, i).trim().toLowerCase();
-      const value = decl.slice(i + 1).replace(/!important/g, '').trim();
-      if (GEOMETRY.includes(prop) || INHERITED.includes(prop)) extra.push(`--tsz-${prop}:${value}`);
-      if (PSEUDO_GEOMETRY.includes(prop)) {
-        for (const ps of PSEUDOS) if (bases[ps].length) retarget[ps].push(`--tsz-${ps}-${prop}:${value}`);
-      }
-    }
-    const rule = extra.length ? `${sel}{${body};${extra.join(';')}}` : whole;
-    return rule + PSEUDOS
-      .filter((ps) => bases[ps].length && retarget[ps].length)
-      .map((ps) => `${bases[ps].join(',')}{${retarget[ps].join(';')}}`)
-      .join('');
-  });
-}
-
-/** Resolve one probe property for one element, chasing var() through itself. */
-function probe(cs, name) {
-  let v = cs.getPropertyValue(`--tsz-${name}`);
-  if (v === NONE) return '';
-  for (let pass = 0; pass < 8 && v && v.includes('var('); pass++) {
-    const next = v.replace(/var\(\s*(--[\w-]+)\s*(?:,([^()]*))?\)/g, (m, ref, fallback) => {
-      const got = cs.getPropertyValue(ref);
-      return got || (fallback != null ? fallback.trim() : m);
-    });
-    if (next === v) break;
-    v = next;
-  }
-  return (v || '').trim();
-}
-
-/** A single CSS length in px, or null when it is anything else. */
-const px = (v) => {
-  const m = /^(-?[\d.]+)px$/.exec((v || '').trim());
-  return m ? Number(m[1]) : null;
-};
-
-/** The nth value of a shorthand, expanded the way CSS expands padding. */
-function side(v, which) {
-  const parts = (v || '').trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return null;
-  const [t, r = t, b = t, l = r] = parts;
-  return px({ top: t, right: r, bottom: b, left: l }[which]);
-}
-
-/**
- * The box one pseudo-element of a control generates, or null when it makes none.
- *
- * Out of flow only: an in-flow pseudo is content, and the drawn box already
- * counted it. `pointer-events: none` is a box no pointer can land on, so it is
- * not a target either — everything else the element generates is.
- *
- * Size comes from a declared width/height where there is one, and otherwise
- * from the two insets biting into the containing block, which for an absolutely
- * positioned pseudo is the control's PADDING box. That second form is how the
- * radio's dot is written (`inset: 4px` — an 8px dot in a 16px padding box), and
- * it is the form a hit area takes when it is written as a negative inset.
- */
-function pseudoBox(cs, which, paddingBox) {
-  const p = (name) => probe(cs, `${which}-${name}`);
-  const content = p('content');
-  if (!content || content === 'none') return null; // no content, no box
-  if (!/^(absolute|fixed)$/.test(p('position'))) return null;
-  if (p('pointer-events') === 'none') return null;
-  const axis = (declared, near, far, block) => {
-    const own = px(p(declared));
-    if (own != null) return own;
-    const edge = (w) => px(p(w)) ?? side(p('inset'), w);
-    const [a, b] = [edge(near), edge(far)];
-    return a == null || b == null || block == null ? null : block - a - b;
-  };
-  return {
-    height: axis('height', 'top', 'bottom', paddingBox.height),
-    width: axis('width', 'left', 'right', paddingBox.width),
-  };
-}
-
-/**
- * The target size of one control, with `null` on an axis layout decides.
- *
- * The DRAWN box is padding + border + content, where content is the taller of
- * the resolved line-height and any glyph the control holds. Width is only
- * answered when the box declares it, or when the control's content is a glyph
- * and nothing else — a label's width is a line of text, and that is layout's.
- *
- * The TARGET is that box widened by any pseudo-element the control generates,
- * because a pointer landing on one of those hits the control. The two are
- * reported separately: `drawn` is what a reader sees, and height/width are what
- * a reader can hit, which is the pair 2.5.8 is about.
- */
-function boxOf(el, cs, glyph) {
-  const pad = (which) => {
-    const long = px(probe(cs, `padding-${which}`));
-    return long != null ? long : (side(probe(cs, 'padding'), which) ?? 0);
-  };
-  const border = (which) => {
-    const long = px(probe(cs, `border-${which}-width`));
-    if (long != null) return long;
-    const short = side(probe(cs, 'border-width'), which);
-    if (short != null) return short;
-    // `border: 1px solid var(--border)` — the width is the one length in it,
-    // and `border: none` is a width of nothing.
-    const shorthand = probe(cs, 'border');
-    if (/(^|\s)none(\s|$)/.test(shorthand)) return 0;
-    const one = /(-?[\d.]+)px/.exec(shorthand);
-    return one ? Number(one[1]) : 0;
-  };
-  // font-size and line-height are inherited by CSS itself, so the computed
-  // value is right whenever JSDOM could resolve it, and the probe is the
-  // fallback for the var() it could not.
-  const fontSize = px(cs.fontSize) ?? px(probe(cs, 'font-size')) ?? 16;
-  const lhRaw = px(cs.lineHeight) != null ? cs.lineHeight : probe(cs, 'line-height');
-  const lh = px(lhRaw) ?? (Number(lhRaw) ? Number(lhRaw) * fontSize : null);
-
-  const declaredH = px(probe(cs, 'height'));
-  const declaredW = px(probe(cs, 'width'));
-  const minH = px(probe(cs, 'min-height'));
-  const minW = px(probe(cs, 'min-width'));
-
-  // Any text ANYWHERE inside, not just a direct child: the kit wraps a button's
-  // label in a span often enough that asking for a direct text node reported
-  // every wrapped label as a control with no content at all.
-  const hasText = el.textContent.trim() !== '';
-  const contentH = Math.max(glyph.h ?? 0, hasText ? (lh ?? fontSize) : 0);
-  const chrome = (which) => pad(which) + border(which);
-
-  const height = declaredH != null
-    ? declaredH + (probe(cs, 'box-sizing') === 'content-box' ? chrome('top') + chrome('bottom') : 0)
-    : Math.max(minH ?? 0, contentH + chrome('top') + chrome('bottom'));
-
-  let width = declaredW;
-  if (width == null && !hasText && glyph.w != null) width = glyph.w + chrome('left') + chrome('right');
-  if (width != null && minW != null) width = Math.max(width, minW);
-
-  const round = (n) => Math.round(n * 100) / 100;
-  const drawn = { height: round(height), width: width == null ? null : round(width) };
-
-  // What a pointer can land on. The containing block of an absolutely
-  // positioned pseudo is this control's padding box, which is the border box
-  // less its borders — the 1.5px the checkbox draws is the difference between a
-  // 24px overlay and a 21px one, and no comment would have caught that.
-  const paddingBox = {
-    height: drawn.height - border('top') - border('bottom'),
-    width: drawn.width == null ? null : drawn.width - border('left') - border('right'),
-  };
-  let hitH = drawn.height;
-  let hitW = drawn.width;
-  const unreadable = [];
-  for (const which of PSEUDOS) {
-    const box = pseudoBox(cs, which, paddingBox);
-    if (!box) continue;
-    if (box.height == null && box.width == null) { unreadable.push(`::${which}`); continue; }
-    if (box.height != null) hitH = Math.max(hitH, box.height);
-    // A pseudo can only WIDEN a width already known. It cannot supply one: the
-    // target is at least the drawn box, and where that is layout's answer the
-    // union of the two is layout's answer as well. Introducing it read the rail's
-    // own 3px active marker — the accent bar #475 later took off — as a 3px-wide
-    // nav item.
-    if (box.width != null && hitW != null) hitW = Math.max(hitW, box.width);
-  }
-
-  return { height: round(hitH), width: hitW == null ? null : round(hitW), drawn, unreadable };
-}
-
-/** The largest glyph a control holds, in px, or nulls when it holds none. */
-function glyphOf(el, win) {
-  let h = null; let w = null;
-  for (const svg of el.querySelectorAll('svg')) {
-    const cs = win.getComputedStyle(svg);
-    const gh = px(cs.height) ?? px(svg.getAttribute('height'));
-    const gw = px(cs.width) ?? px(svg.getAttribute('width'));
-    if (gh != null) h = Math.max(h ?? 0, gh);
-    if (gw != null) w = Math.max(w ?? 0, gw);
-  }
-  return { h, w };
-}
-
-// ---- the walks ------------------------------------------------------------
-
-/** Mount every story once and hand each one's body to `visit`. */
-async function walk(win, styles, vars, visit) {
-  let stories = 0;
-  const problems = [];
-  for (const rel of storyFiles) {
-    const mod = await import(path.join(root, 'stories', rel));
-    const def = mod.default || {};
-    for (const [name, story] of Object.entries(mod)) {
-      if (name === 'default' || !story || typeof story !== 'object') continue;
-      const render = story.render || def.render;
-      if (typeof render !== 'function') continue;
-      let out;
-      try {
-        out = render({ ...def.args, ...story.args }, { globals: {}, args: {} });
-      } catch (err) {
-        problems.push(`${rel}:${name} → render threw: ${err && err.message}`);
-        continue;
-      }
-      const html = serialize(out);
-      if (html == null) {
-        problems.push(`${rel}:${name} → render returned ${Object.prototype.toString.call(out)}`);
-        continue;
-      }
-      stories += 1;
-      // A story carries its own <style> block, and a control styled only there
-      // would measure as an unstyled box. Same treatment as the kit's sheet:
-      // probe it, or the geometry walk quietly reports zeros.
-      const markup = vars
-        ? desugar(substitute(html, vars))
-        : html.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (m, inner) => `<style>${probeGeometry(decomment(inner))}</style>`);
-      if (styles) styles.mutate(() => { win.document.body.innerHTML = markup; });
-      else win.document.body.innerHTML = markup;
-      // The markup goes with it, so a caller can put the same story in front of
-      // a second sheet — which is how the phone strip is measured below without
-      // walking every story twice.
-      visit(`${rel}:${name}`, markup);
-    }
-  }
-  return { stories, problems };
-}
-
-function windowFor(theme, css) {
-  const quiet = new VirtualConsole();
-  quiet.on('jsdomError', () => {});
-  const dom = new JSDOM(
-    `<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}</style></head><body></body></html>`,
-    { pretendToBeVisual: true, virtualConsole: quiet },
-  );
-  installDomGlobals(dom.window);
-  return dom.window;
-}
-
-// ---- 1. the minimum target size -------------------------------------------
-
-/**
- * WCAG 2.5.5, AAA. Not the bar the kit holds everywhere — TARGET_MIN is — and
- * not a number this file chose: it is the floor the rail's 720px block has
- * carried since before #277, where the strip is the whole of the rail and a
- * finger is the only pointer it has.
- *
- * It is measured here and not merely compared, because the two copies of the
- * fold are held equal to each other by stories/apps/shell-states.test.js and
- * equality cannot see a shared value fall: when the 720px block was rewritten
- * the floor went out with it, both gates stayed green, and a row on a phone
- * went from 44px to 31px.
- */
-const TOUCH_MIN = 44;
-
-/** One at-rule's body, brace-matched. JSDOM resolves no @media, so a rule that
- *  only applies on a phone is lifted out and appended where a browser would
- *  apply it — the same device stories/apps/shell-states.test.js uses. */
-function unwrap(css, query) {
-  const at = css.indexOf(query);
-  if (at < 0) return null;
-  const open = css.indexOf('{', at);
-  let depth = 0;
-  for (let i = open; i < css.length; i += 1) {
-    if (css[i] === '{') depth += 1;
-    else if (css[i] === '}') { depth -= 1; if (depth === 0) return css.slice(open + 1, i); }
-  }
-  return null;
-}
-
-const FOLD = '@media (max-width: 720px)';
-const RAIL_SHEET = 'src/styles/layout.css';
-// Read out of layout.css by name, not out of the joined sheet: footer.css and
-// topbar.css fold at 720px too, and the first block in the concatenation is one
-// of theirs. Lifting the wrong one measured the rail at its desktop height and
-// reported it as the phone's.
-const narrowSheet = () => {
-  const body = unwrap(decomment(readFileSync(path.join(root, RAIL_SHEET), 'utf8')), FOLD);
-  assert.ok(body, `${RAIL_SHEET} no longer folds at ${FOLD}, so nothing here is measuring a phone`);
-  return `${sheet()}\n${body}`;
-};
-
-/** Is every ancestor of `el`, and `el` itself, on screen? */
-const onScreenIn = (el, win) => {
-  for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
-    if (n.hasAttribute('hidden') || win.getComputedStyle(n).display === 'none') return false;
-  }
-  return true;
-};
-
-/**
- * A control's accessible name, near enough for a rail: the `aria-label` it carries,
- * or else the text it DRAWS, with the aria-hidden parts taken out — which is what a
- * screen reader reads off a control that names itself by its own contents. Reading
- * `aria-label` alone reported the rail's account block as nameless, and it is named
- * by the two lines inside it (#286).
- *
- * Walked in the live tree rather than in a clone, because what the name turns on is
- * `display` and `visibility`, and a clone has no cascade: a fold that took a label
- * out with `display: none` still had its text in `textContent`, so the fallback
- * named a row a browser names nothing. That is the one mutation this helper has to
- * stay red for. A space after each element, because textContent runs children
- * together and a browser does not.
- */
-const accessibleName = (el, win) => {
-  const label = el.getAttribute('aria-label');
-  if (label) return label.trim();
-  const parts = [];
-  const walk = (node) => {
-    if (node.nodeType === 3) { parts.push(node.data); return; }
-    if (node.nodeType !== 1) return;
-    if (node.getAttribute('aria-hidden') === 'true' || node.hasAttribute('hidden')) return;
-    const cs = win.getComputedStyle(node);
-    if (cs.display === 'none' || cs.visibility === 'hidden') return;
-    for (const kid of node.childNodes) walk(kid);
-    parts.push(' ');
-  };
-  for (const kid of el.childNodes) walk(kid);
-  return parts.join('').replace(/\s+/g, ' ').trim();
-};
-
-const targetRun = await (async () => {
-  const win = windowFor('dark', probeGeometry(sheet()));
-  // The same stories in front of the same sheet with the 720px fold applied.
-  // Only a story that draws a rail is put in front of it, so the walk stays one
-  // walk and the phone costs what the shell stories cost.
-  const narrowWin = windowFor('dark', probeGeometry(narrowSheet()));
-  const controls = new Map();
-  const folded = [];
-  const strip = [];
-  const { stories, problems } = await walk(win, null, null, (where, markup) => {
-    if (win.document.body.querySelector('.ui-app__rail')) {
-      narrowWin.document.body.innerHTML = markup;
-      for (const el of narrowWin.document.body.querySelectorAll('.ui-app__rail .ui-nav__item')) {
-        const cs = narrowWin.getComputedStyle(el);
-        if (cs.opacity === '0' || probe(cs, 'position') === 'absolute') continue;
-        // The fold toggle is display:none at this width — the strip is the only
-        // layout there and there is nothing for it to choose.
-        if (!onScreenIn(el, narrowWin)) continue;
-        strip.push({
-          where,
-          name: el.getAttribute('aria-label') || '',
-          ...boxOf(el, cs, glyphOf(el, narrowWin)),
-        });
-      }
-    }
-    for (const el of win.document.body.querySelectorAll(INTERACTIVE)) {
-      const cs = win.getComputedStyle(el);
-      // A control the page hides from the pointer is not a target. The kit's
-      // switch and checkbox inputs are 0x0 under their own painted track, and
-      // the track is the target; the input is not.
-      if (cs.opacity === '0' || probe(cs, 'position') === 'absolute') continue;
-      // A rail the reader folded draws the same classes as an open one, so the
-      // de-duplication below would measure whichever a story drew first. Its
-      // controls are kept apart and every one is measured (#277).
-      // The reader's menu is a panel, not a row of the rail (#286): closed, its rows
-      // are behind `visibility: hidden` and reachable from nowhere, and open it is
-      // portalled off the rail entirely. It is measured as the dropdown it is, in the
-      // de-duplicated walk below; here it would be held to every rule a rail row keeps.
-      if (el.closest('.ui-app.is-collapsed .ui-app__rail') && !el.closest('[data-dropdown-panel]')) {
-        // `onScreen`, not `drawn`: boxOf() returns a `drawn` key of its own —
-        // the drawn box — and the spread below lands on top of this key. It used
-        // to be called `drawn`, and every folded control came out of here with a
-        // truthy `{height, width}` where the boolean was meant to be, so the
-        // test that reads it could not fail. Named apart rather than reordered,
-        // because a spread whose order is load-bearing is the same trap again.
-        folded.push({
-          where,
-          name: accessibleName(el, win),
-          label: (el.querySelector('.ui-nav__label')?.textContent || '').trim(),
-          onScreen: onScreenIn(el, win),
-          inClosedGroup: Boolean(el.closest('.ui-nav__sub[hidden]')),
-          ...boxOf(el, cs, glyphOf(el, win)),
-        });
-      }
-      const key = `${el.tagName.toLowerCase()}.${[...el.classList].join('.')}`;
-      if (controls.has(key)) continue;
-      const box = boxOf(el, cs, glyphOf(el, win));
-      controls.set(key, { key, ...box, where, path: selectorPath(el) });
-    }
-  });
-  return { stories, problems, controls: [...controls.values()], folded, strip };
-})();
 
 test('target size: every control the stories render is measured, none skipped', () => {
   assert.deepEqual(targetRun.problems, [], 'a story that will not render is a hole in the measurement');
@@ -741,64 +194,6 @@ test('folded rail: every control a reader can reach is drawn', () => {
   assert.deepEqual(gone, [], 'a folded rail control is display:none, so Tab passes it by');
 });
 
-// ---- 2. the ring's contrast ------------------------------------------------
-
-// Every accent the kit ships, discovered from the file that declares them —
-// #218 found --ring written out eight times, and the two this gate measured
-// were the two that were least wrong. The sub-themes re-point --accent, --ring
-// is var(--accent), so each cell paints a different ring on the same surfaces.
-// A new data-accent block is in the gate the moment it is written.
-const ACCENTS = ['default', ...new Set(
-  [...readFileSync(path.join(root, 'src/tokens/accents.css'), 'utf8')
-    .matchAll(/\[data-accent="([\w-]+)"\]/g)].map((m) => m[1]),
-)];
-const CELLS = THEMES.flatMap((theme) => ACCENTS.map((accent) => ({ theme, accent })));
-
-const ringRun = await (async () => {
-  const selectors = ringSelectors(sheet());
-  const byCell = {};
-  for (const { theme, accent } of CELLS) {
-    const { vars, css } = kitCssFor(theme, accent);
-    const win = windowFor(theme, css);
-    const styles = makeStyleCache(win);
-    // --ring is a var() now, not a literal, so it is resolved through the same
-    // token map the sheet is. Reading the raw declaration would find no colour.
-    const ringValue = substitute(vars.get('--ring') || '', vars);
-    const band = focusBand(ringValue);
-    assert.ok(band, `${theme}/${accent}: the shared ring is no longer a solid outline band`);
-    const ring = parseColour(band[1]);
-    assert.ok(ring, `${theme}/${accent}: the solid band colour did not resolve`);
-    const landings = new Map();
-    const { stories } = await walk(win, styles, vars, () => {
-      for (const sel of selectors) {
-        // The ring's own state pseudo-classes are what the sheet keys on; the
-        // GROUND does not move when the control takes focus, so the base
-        // selector finds the same element without forcing anything.
-        const base = sel.replace(/:focus-visible|:focus/g, '').replace(/\s*\+\s*\.ui-switch__track/, '');
-        const wantsSibling = sel.includes('+ .ui-switch__track');
-        let hits;
-        try { hits = win.document.body.querySelectorAll(base); } catch { continue; }
-        for (const hit of hits) {
-          const el = wantsSibling ? hit.parentElement?.querySelector('.ui-switch__track') : hit;
-          const ground = el && el.parentElement && effectiveBackground(el.parentElement, win, styles.of);
-          if (!ground) continue;
-          const key = `${sel}|${ground === 'IMAGE' ? 'IMAGE' : ground.join(',')}`;
-          if (landings.has(key)) continue;
-          landings.set(key, {
-            selector: sel,
-            ground: ground === 'IMAGE' ? 'IMAGE' : `rgb(${ground.slice(0, 3).map(Math.round).join(', ')})`,
-            ratio: ground === 'IMAGE' ? null : ratio(composite(ring, ground), ground),
-          });
-        }
-      }
-    });
-    byCell[`${theme}/${accent}`] = {
-      theme, accent, ring: ringValue.trim(), stories, landings: [...landings.values()], selectors,
-    };
-  }
-  return byCell;
-})();
-
 const CELL_KEYS = Object.keys(ringRun);
 
 test('ring: every selector the sheet paints a ring on is landed somewhere by a story', () => {
@@ -878,6 +273,9 @@ test('ring: the band is declared once, from the widths and the ink that tune it'
     .filter((f) => f.endsWith('.css'))
     .sort()
     .flatMap((f) => [...decomment(readFileSync(path.join(root, 'src', f), 'utf8'))
+      // A filled selected item repaints its ring in CanvasText in forced colours;
+      // stories/ring-carrier.test.js holds that shape.
+      .replace(/@media \(forced-colors: active\)\s*\{(?:[^{}]*\{[^{}]*\})*\s*\}/g, '')
       .matchAll(/(?:^|[;{])\s*--ring\s*:([^;}]*)/g)].map((m) => `src/${f}: ${m[1].trim()}`));
   const canonical = tokensFor('dark').get('--ring');
   assert.equal(declared.length, 1, 'the band is declared at :root and nowhere else');
@@ -891,87 +289,6 @@ test('ring: the band is declared once, from the widths and the ink that tune it'
     '--ring-offset no longer reads --ring-gap-width, so the gap is not tunable');
 });
 
-// ---- 3. the disabled legibility floor --------------------------------------
-
-const disabledRun = await (async () => {
-  const subjects = disabledRules(sheet());
-  const byTheme = {};
-  for (const theme of THEMES) {
-    const { vars, css } = kitCssFor(theme);
-    const win = windowFor(theme, css);
-    const styles = makeStyleCache(win);
-    const found = new Map();
-    await walk(win, styles, vars, () => {
-      for (const { selector, opacity } of subjects) {
-        const base = selector.replace(/\s*\+\s*\.ui-switch__track/, '');
-        const wantsSibling = selector.includes('+ .ui-switch__track');
-        let hits;
-        try { hits = win.document.body.querySelectorAll(base); } catch { continue; }
-        for (const hit of hits) {
-          // Busy buttons expose aria-disabled to block activation while work is
-          // in flight, but they intentionally retain their resting paint. They
-          // are covered by the busy-state gate, not this disabled repaint gate.
-          if (hit.getAttribute('aria-busy') === 'true') continue;
-          const dimmed = wantsSibling ? hit.parentElement?.querySelector('.ui-switch__track') : hit;
-          if (!dimmed) continue;
-          // Everything inside the dimmed box is dimmed with it: `opacity` is a
-          // group property, so the subtree's text and its own background fade
-          // against the ground TOGETHER, and that composite is the pair a
-          // reader actually sees.
-          // A pair, at the alpha the state leaves the subtree at. `opacity` is a
-          // group property, so at anything under 1 the subtree's text and its
-          // own background fade against the ground TOGETHER, and that composite
-          // is what a reader sees. At 1 — where #220 left every rule with a
-          // label under it — the pair is simply the ink on the surface beside
-          // it, which is the point of a dedicated paint.
-          const pairOf = (el, ground, alpha) => {
-            const cs = styles.of(el);
-            const ink = parseColour(cs.color);
-            if (!ink) return null;
-            const own = effectiveBackground(el, win, styles.of);
-            if (own === 'IMAGE') return null;
-            const fade = (c) => [c[0], c[1], c[2], (c[3] ?? 1) * alpha];
-            const bg = composite(fade(own), ground);
-            const fg = composite(fade([ink[0], ink[1], ink[2], ink[3] ?? 1]), bg);
-            return { ratio: ratio(fg, bg), paint: `${fg.join()}|${bg.join()}` };
-          };
-          const ground = effectiveBackground(dimmed.parentElement || dimmed, win, styles.of);
-          if (ground === 'IMAGE') continue;
-          const labels = (el) => (
-            el.tagName !== 'STYLE' && el.tagName !== 'SCRIPT'
-            && [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())
-          );
-          const texts = [...dimmed.querySelectorAll('*')].filter(labels);
-          // The subject's OWN paint as well as its labels', so a control with no
-          // text node in it — an input holds its value in a property, a switch
-          // track holds nothing at all — is still held to the repaint rule.
-          const off = [dimmed, ...texts].map((el) => pairOf(el, ground, opacity));
-          let restore;
-          styles.mutate(() => { restore = enable(hit); });
-          const onGround = effectiveBackground(dimmed.parentElement || dimmed, win, styles.of);
-          const on = [dimmed, ...texts].map((el) => (
-            onGround === 'IMAGE' ? null : pairOf(el, onGround, 1)));
-          styles.mutate(() => restore());
-          [dimmed, ...texts].forEach((el, i) => {
-            if (!off[i]) return;
-            const key = `${selector}|${selectorPath(el)}`;
-            if (found.has(key)) return;
-            found.set(key, {
-              selector,
-              opacity,
-              ratio: off[i].ratio,
-              repaints: !on[i] || on[i].paint !== off[i].paint,
-              labelled: labels(el),
-              path: selectorPath(el),
-            });
-          });
-        }
-      }
-    });
-    byTheme[theme] = { subjects, found: [...found.values()] };
-  }
-  return byTheme;
-})();
 
 test('disabled: every rule that dims a control is found, and a story renders it', () => {
   const subjects = disabledRun.dark.subjects;
@@ -1017,6 +334,30 @@ test('disabled: the opaque token pair retains its measured contrast in both them
 // cleared the wrong way: a control could pass any legibility floor by simply
 // looking enabled. It cannot pass this too. The comparison is the same element
 // with the disabled state taken off it, so it costs no specimen and no list.
+// The classification those two checks turn on, held so a rule cannot quietly change which
+// of them measures it. A rule saying the state with the line around the box alone is asked
+// about that box; anything painting ink, a fill or a fade is asked about its labels too. #518
+test('disabled: a rule is classified by what it paints, not by what it selects', () => {
+  const one = (body) => disabledRules(`.ui-x:disabled { ${body} }`)[0];
+  assert.equal(one('border-color: var(--disabled-border);').edgeOnly, true);
+  assert.equal(one('border: 1px solid var(--disabled-border);').edgeOnly, true);
+  assert.equal(one('border-color: var(--disabled-border); color: var(--disabled-ink);').edgeOnly, false);
+  assert.equal(one('background: var(--disabled-surface);').edgeOnly, false);
+  assert.equal(one('opacity: 0.5;').edgeOnly, false);
+  assert.equal(one('cursor: not-allowed;').edgeOnly, false);
+  // And the kit's own edge-only rules, named rather than counted: the filter row's chip and
+  // its add control, and the checkmark the kit draws out of two borders.
+  const edges = disabledRules(sheet()).filter((r) => r.edgeOnly).map((r) => r.selector).sort();
+  assert.deepEqual(edges, [
+    ".ui-check input[type=\"checkbox\"]:disabled:checked::after",
+    ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled",
+    ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled=\"true\"]",
+    ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled=\"true\"]:hover:not(:focus-visible)",
+    ".ui-filter-bar:disabled .ui-filter-bar__chip",
+    ".ui-filter-bar__chip:disabled",
+  ].sort(), 'the kit\'s edge-only disabled rules moved — each one is measured on its own box alone');
+});
+
 test('disabled: the state repaints — off never looks the same as on', () => {
   const same = THEMES.flatMap((theme) => disabledRun[theme].found
     .filter((f) => !f.repaints)

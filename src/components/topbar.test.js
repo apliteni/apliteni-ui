@@ -203,3 +203,101 @@ for (const theme of ['dark', 'light']) {
     } finally { view.close(); }
   });
 }
+
+// Chromium checks the shipped stylesheet and factory at phone widths. This does
+// not measure other consumers or custom fonts. CI skips this optional browser run.
+test('phone topbars keep every control inside two rows', { skip: process.env.TOPBAR_ROWS !== '1' }, async () => {
+  const { kitStylesheet, playwright } = await import('../../stories/lib/tap-zone.js');
+  const stories = await import('../../stories/components/Topbar.stories.js');
+  const subjects = Object.entries(stories).filter(([, story]) => typeof story?.render === 'function')
+    .map(([name, story]) => ({ name, html: story.render() }))
+    .filter(({ html }) => JSDOM.fragment(html).querySelector('.topbar'));
+  assert.ok(subjects.length >= 3, 'Full, SignedOut and InShell must be measured');
+  // A consumer's version label can be far longer than the story's 16 characters.
+  const long = 'phoenix.2026.002.release-candidate';
+  const full = subjects.find(({ html }) => html.includes('class="vsw"') && html.includes('phoenix.2026.002'));
+  assert.ok(full, 'a subject with a version switch must be measured');
+  subjects.push({ name: `${full.name} (long label)`, html: full.html.replaceAll('phoenix.2026.002', long), long: true });
+  const pw = await playwright();
+  assert.ok(pw, 'TOPBAR_ROWS requires UI_PLAYWRIGHT');
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME || undefined });
+  const css = kitStylesheet();
+  let measured = 0;
+  let drifted = 0;
+  let longMutated = 0;
+  try {
+    for (const subject of subjects) for (const width of [320, 390]) for (const theme of ['light', 'dark']) {
+      const page = await browser.newPage({ viewport: { width, height: 600 }, hasTouch: true });
+      await page.setContent(`<html data-theme="${theme}"><head><style>${css}</style></head><body>${subject.html}</body></html>`);
+      const measure = () => page.evaluate(() => {
+        const box = (selector) => {
+          const element = document.querySelector(`.topbar ${selector}`);
+          if (!element) return null;
+          const { left, right, top, bottom } = element.getBoundingClientRect();
+          return { name: selector.slice(1), left, right, top, bottom };
+        };
+        const page = document.querySelector('.ui-app-page');
+        const band = document.querySelector('.topbar').getBoundingClientRect();
+        const rail = document.querySelector('.ui-app__rail');
+        return { width: innerWidth, scroll: document.documentElement.scrollWidth,
+          band: band.height, offset: page ? Number.parseFloat(getComputedStyle(page).getPropertyValue('--ui-app-top')) : null,
+          rail: rail ? rail.getBoundingClientRect().top : null,
+          first: ['.brand', '.toggle', '.acct'].map(box).filter(Boolean), second: ['.dtsw', '.vsw'].map(box).filter(Boolean) };
+      });
+      const fits = (m) => m.scroll === m.width
+        && [...m.first, ...m.second].every(r => r.left >= 0 && r.right <= m.width)
+        && Math.min(...m.second.map(r => r.top)) >= Math.max(...m.first.map(r => r.bottom));
+      // Row one ends at the 12px inset: the account (when drawn) is on it, and the theme
+      // switch is 8px before the account, or on the inset when no account is drawn.
+      const grouped = (m) => {
+        const [toggle, account] = ['toggle', 'acct'].map(n => m.first.find(r => r.name === n));
+        if (!toggle) return false;
+        const end = account ? account.right : toggle.right;
+        const gap = account ? account.left - toggle.right : 0;
+        return Math.abs(end - (m.width - 12)) < 0.5 && Math.abs(gap - (account ? 8 : 0)) < 0.5;
+      };
+      // The two switches on row two keep 8px between them, whatever the version label says.
+      const apart = (m) => m.second.length < 2 || m.second[1].left - m.second[0].right >= 8 - 0.5;
+      // A shell that owns the offset draws exactly the band it reserves.
+      const reserved = (m) => m.offset === null || (Math.abs(m.band - m.offset) < 0.5 && Math.abs(m.rail - m.offset) < 0.5);
+      const all = (m) => fits(m) && grouped(m) && apart(m) && reserved(m);
+      assert.ok(all(await measure()), `${subject.name} ${width}px ${theme}: both rows must fit, row one must end at the inset and the offset must be true`);
+      measured++;
+      if (subject.long) {
+        const clipped = await page.evaluate(() => { const c = document.querySelector('.topbar .vsw__btn .cur'); return c.scrollWidth > c.clientWidth; });
+        assert.ok(clipped, 'the long label must end in an ellipsis');
+        // Letting the label keep its full width brings the overlap back.
+        await page.addStyleTag({ content: '.topbar__in > .vsw, .vsw__btn { max-width: none !important; } .vsw__btn .cur { min-width: auto !important; overflow: visible !important; }' });
+        assert.equal(apart(await measure()), false, 'the unshrunk label mutation must fail');
+        longMutated++;
+        await page.reload();
+        await page.setContent(`<html data-theme="${theme}"><head><style>${css}</style></head><body>${subject.html}</body></html>`);
+      }
+      // Removing the phone layout must restore the failure this check detects.
+      await page.addStyleTag({ content: '.topbar__in { display: flex !important; flex-wrap: nowrap !important; }' });
+      assert.equal(fits(await measure()), false, 'the one-row mutation must fail');
+      await page.reload();
+      await page.setContent(`<html data-theme="${theme}"><head><style>${css}</style></head><body>${subject.html}</body></html>`);
+      // Letting the version switch span the two auto columns brings the drift back.
+      await page.addStyleTag({ content: '.topbar__in > .vsw { grid-area: 2 / 3 / 3 / 5 !important; }' });
+      if (!grouped(await measure())) drifted++;
+      await page.close();
+    }
+    // A shell whose band holds one row of controls reserves the same 52px as a wide screen.
+    const shell = subjects.find(({ html }) => html.includes('ui-app-page'));
+    assert.ok(shell, 'a shell subject must be measured');
+    for (const width of [320, 390]) {
+      const page = await browser.newPage({ viewport: { width, height: 600 }, hasTouch: true });
+      await page.setContent(`<html><head><style>${css}</style></head><body>${shell.html}</body></html>`);
+      await page.evaluate(() => document.querySelectorAll('.topbar .dtsw, .topbar .vsw').forEach(e => e.remove()));
+      const one = await page.evaluate(() => ({ band: document.querySelector('.topbar').getBoundingClientRect().height,
+        offset: Number.parseFloat(getComputedStyle(document.querySelector('.ui-app-page')).getPropertyValue('--ui-app-top')),
+        rail: document.querySelector('.ui-app__rail').getBoundingClientRect().top }));
+      assert.deepEqual([one.band, one.offset, one.rail], [52, 52, 52], `one-row band at ${width}px`);
+      await page.close();
+    }
+    assert.equal(longMutated, 4, 'the long label was measured at both widths and themes');
+    assert.ok(drifted >= 2, 'the spanning mutation must break row one in Full and Signed out');
+    assert.equal(measured, subjects.length * 4, 'every subject, phone width and theme was measured');
+  } finally { await browser.close(); }
+});
