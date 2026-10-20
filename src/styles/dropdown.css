@@ -177,6 +177,14 @@
    the room the viewport left either way. #489 */
 .ui-dropdown__panel.is-scroll { --ui-dropdown-cap: 300px; }
 
+/* On a phone the page keeps --space-4 beside its content (.ui-app__main), so a panel
+   that kept the desktop 8px crossed that margin by half of it. The panel keeps the
+   page's own margin from the edge at the shell's fold.
+   why: docs/components.md#the-dropdown-panel */
+@media (max-width: 720px) {
+  .ui-dropdown__panel { --ui-dropdown-edge: var(--space-4); }
+}
+
 /* The wiring adds this where the floor (above) left the panel uncapped: below
    120px even spending the whole edge inset, there is no usable cap, so the
    panel keeps its content height and the page grows to hold it instead —
