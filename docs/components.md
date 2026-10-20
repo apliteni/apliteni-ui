@@ -244,6 +244,11 @@ current section, not the page. When a page should take one:
 
 ### The dropdown panel
 
+Inside a scrolling body, such as a Modal or a Drawer, a dropdown opens below its trigger and scrolls
+the body the least distance that shows the whole panel. The trigger stays in view, and the body jumps
+instead of gliding under `prefers-reduced-motion`. A panel that is the last thing in the body ends flush
+with the body's end, because there is nothing below it to scroll to.
+
 `dropdown()` places its panel for you. You do not write a rule to move it. `direction` selects
 where it opens: `'down'`, `'up'`, or `'auto'`. `'auto'` flips only when there is not enough room
 below and there is more room above. The head and foot extend through the panel's padding to the

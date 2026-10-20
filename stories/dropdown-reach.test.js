@@ -13,7 +13,7 @@ import path from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { JSDOM, VirtualConsole } from 'jsdom';
-import { dropdown, wireDropdown, dropdownAvail, dropdownHeightFit } from '../src/components/dropdown.js';
+import { dropdown, wireDropdown, dropdownAvail, dropdownHeightFit, dropdownReveal } from '../src/components/dropdown.js';
 import { serve, playwright, openStory } from './lib/dropdown-contain.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -198,6 +198,63 @@ test('a trigger too close to the edge for the floor writes no avail, rather than
     panel.style.getPropertyValue('--ui-dropdown-avail'), '',
     'below the floor, the property is removed so the sheet\'s own fallback stands',
   );
+});
+
+/* -- A scrolling body, in JSDOM ------------------------------------------------ */
+/* Mocked rectangles check the arithmetic and the wiring. Where the panel really
+ * lands is the browser half's measurement. */
+
+/** A 540px-tall scrolling body from y=100 to y=640, with a 484px panel in it. */
+function scrollingBody({ bottom, portal = false }) {
+  const t = phone(
+    `<div id="body" style="overflow-y:auto">${dropdown({ value: 'Account', variant: 'menu', items: TWELVE, portal })}</div>`,
+    { bottom },
+  );
+  const body = t.doc.getElementById('body');
+  body.getBoundingClientRect = () => ({ top: 100, bottom: 640, left: 0, right: 390, width: 390, height: 540 });
+  Object.defineProperty(body, 'clientHeight', { value: 540, configurable: true });
+  Object.defineProperty(t.panel, 'offsetHeight', { value: 484, configurable: true });
+  return { ...t, body };
+}
+
+test('a scrolling body gives the panel the whole body less the trigger, not what is under it', () => {
+  const { window, trigger, panel } = scrollingBody({ bottom: 600 });
+  click(window, trigger);
+  assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), `${540 - 2 * 8 - 31 - 9}px`);
+});
+
+test('a panel that runs past the body is scrolled into view by the least distance', () => {
+  const { window, trigger, body } = scrollingBody({ bottom: 600 });
+  click(window, trigger);
+  // panel end = 600 + 9 + 484, plus the 8px inset, less the body's end at 640
+  assert.equal(body.scrollTop, 600 + 9 + 484 + 8 - 640);
+});
+
+test('a panel the body already shows does not move it', () => {
+  const { window, trigger, panel, body } = scrollingBody({ bottom: 150 });
+  Object.defineProperty(panel, 'offsetHeight', { value: 100, configurable: true });
+  click(window, trigger);
+  assert.equal(body.scrollTop, 0);
+});
+
+test('the scroll never takes the trigger out of the body', () => {
+  const { window, trigger, body } = scrollingBody({ bottom: 600 });
+  trigger.getBoundingClientRect = () => ({
+    top: 569, bottom: 600, left: 16, right: 176, width: 160, height: 31, x: 16, y: 569,
+  });
+  Object.defineProperty(body, 'clientHeight', { value: 400, configurable: true });
+  body.getBoundingClientRect = () => ({ top: 500, bottom: 900, left: 0, right: 390, width: 390, height: 400 });
+  click(window, trigger);
+  assert.ok(body.scrollTop <= 569 - 500, 'the trigger stays at or below the body\'s start');
+});
+
+test('a portalled panel and a trigger with no scrolling body leave every body alone', () => {
+  const portalled = scrollingBody({ bottom: 600, portal: true });
+  click(portalled.window, portalled.trigger);
+  assert.equal(portalled.body.scrollTop, 0);
+  const plain = phone(dropdown({ value: 'Account', variant: 'menu', items: TWELVE }), { bottom: 600 });
+  assert.equal(dropdownReveal(plain.doc.querySelector('.ui-dropdown'), plain.panel), 0);
+  assert.equal(dropdownReveal(null, null), 0);
 });
 
 /* -- The browser half --------------------------------------------------------- */

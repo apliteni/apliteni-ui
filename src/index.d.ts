@@ -79,6 +79,13 @@ export declare function dropdownHeightFit(
   dd: Element | null | undefined,
   panel: Element | null | undefined,
 ): number | null;
+/** Scroll the body an open panel sits in the least distance that shows the whole
+ *  panel, with the edge inset kept below it. Returns the distance scrolled, 0 when
+ *  nothing moved. why: docs/components.md#the-dropdown-panel */
+export declare function dropdownReveal(
+  dd: Element | null | undefined,
+  panel: Element | null | undefined,
+): number;
 export declare function backLink(opts?: Record<string, unknown>): string;
 export declare function statBand(opts?: Record<string, unknown>): string;
 export declare function commandPalette(opts?: Record<string, unknown>): string;

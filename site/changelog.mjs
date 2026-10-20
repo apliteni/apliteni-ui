@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.124.3', date: '2026-10-20',
+    changes: [
+      ['fixed', 'A dropdown panel inside a scrolling Modal or Drawer body now scrolls the body just enough to show the whole panel, and the trigger stays in view. See #627.', ['Dropdown', 'Modal', 'Drawer']],
+    ],
+  },
+  {
     v: '0.124.2', date: '2026-10-19',
     changes: [
       ['fixed', 'Selected items and their badges, shortcuts and folded-row names use system colours in forced colours. Unavailable selections use GrayText. See #608.', ['Navigation', 'Segmented', 'Pagination', 'CommandPalette']],

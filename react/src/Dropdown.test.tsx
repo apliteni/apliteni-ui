@@ -1709,6 +1709,23 @@ it('an open panel is capped at the room between its trigger and the viewport edg
   expect(availOf(container)).toBe(`${844 - 544 - 9 - 8}px`);
 });
 
+// Mocked rectangles verify effect wiring. Browser evidence verifies the layout.
+it('scrolls a long panel into view inside a scrolling body and keeps the trigger', async () => {
+  phone(600);
+  const { container } = render(<div style={{ overflowY: 'auto' }}>
+    <Dropdown items={Array.from({ length: 30 }, (_, i) => ({ label: `Project ${i + 1}` }))} />
+  </div>);
+  const body = container.firstElementChild as HTMLElement;
+  body.getBoundingClientRect = () => ({ top: 100, bottom: 640 } as DOMRect);
+  Object.defineProperty(body, 'clientHeight', { value: 540 });
+  const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
+  Object.defineProperty(panel, 'offsetHeight', { value: 484 });
+  await userEvent.setup().click(within(container).getByRole('button'));
+  expect(availOf(container)).toBe(`${540 - 16 - 31 - 9}px`);
+  expect(body.scrollTop).toBe(600 + 9 + 484 + 8 - 640);
+  expect(panel.classList.contains('is-up')).toBe(false);
+});
+
 it('a trigger with no room left is left uncapped, not pinned to a nought-pixel sliver', () => {
   phone(844 - 5); // the gap alone already reaches the edge
   const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
