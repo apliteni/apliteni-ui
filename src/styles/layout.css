@@ -119,7 +119,7 @@
    resting step. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1483 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1535 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 
 /* A destructive row of the rail is a navigation row and rests like one; the danger
@@ -510,6 +510,12 @@
 .ui-btn.ui-app__menu { display: none; }
 .ui-app__brand--band { display: none; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; /* a finger's box around a 24px mark */ }
 .ui-app__drawer { display: none; }
+/* The drawer panel is --bg-elevated, which --surface matches exactly in light, so nav.css's
+   plate measures 1.00:1 there. The current row and the hover wash take the rung the rail
+   takes (--surface-3), and the count keeps its --surface pill on that plate. Dark already
+   has a step and keeps it. why: docs/components.md#the-page-shell */
+:where(:root[data-theme="light"]) .ui-app__drawer .ui-nav__item:not(.is-danger):not(.is-active):hover { background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
+:where(:root[data-theme="light"]) .ui-app__drawer .ui-nav__item.is-active { background: var(--surface-3); /* code-bg: inherit — The control keeps the containing ground. */ }
 @media (max-width: 720px) {
   /* A column, not a grid: the band sticks to the top of the shell, and a sticky grid
      item sticks only inside its own row. */

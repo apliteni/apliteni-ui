@@ -350,6 +350,58 @@ test('the drawer carries the rail whole, and the foot of the banded layout is no
 });
 
 
+/* The drawer's panel is --bg-elevated, which --surface matches exactly in light, so the
+ * plate nav.css gives the current row measured 1.00:1 there while dark showed a step.
+ * The rail takes the plate to --surface-3 for the same reason; the drawer must show the
+ * same step. Limits: a JSDOM cascade with the two tokens substituted, so it reads the
+ * sheet's rules and not a browser's paint; the default accent only, since no accent
+ * moves these three tokens. */
+const DRAWER_ACTIVE = '.ui-app__drawer .ui-nav__item.is-active';
+const DRAWER_REST = '.ui-app__drawer .ui-nav__item:not(.is-active):not(.is-danger)';
+const DRAWER_STEP_MIN = 1.05;
+
+test('the drawer\'s current row, its hover and its count stand off the panel in both themes', () => {
+  for (const theme of ['dark', 'light']) {
+    const at = mount(PAIR(false), { theme, phone: true, open: true });
+    const panel = at.bg('.ui-drawer__panel');
+    const plate = ratio(at.bg(DRAWER_ACTIVE), panel);
+    assert.ok(
+      plate >= DRAWER_STEP_MIN,
+      `${theme}: the current row's plate is ${r2(plate)}:1 against the drawer's panel, under ${DRAWER_STEP_MIN}:1. `
+      + 'In light the panel is --bg-elevated, which --surface matches exactly, so only its weight marks the row.',
+    );
+    const hover = ratio(at.fill(DRAWER_REST, 'hover'), panel);
+    assert.ok(
+      hover >= 1.02,
+      `${theme}: a hovered row is ${r2(hover)}:1 against the drawer's panel, so the pointer leaves no mark.`,
+    );
+    if (theme !== 'light') continue; // dark's count is the rail's own, and carries no pill step
+    const badge = ratio(at.fill(`${DRAWER_ACTIVE} .ui-nav__badge`), at.bg(DRAWER_ACTIVE));
+    assert.ok(
+      badge >= 1.02,
+      `${theme}: the count on the current row is ${r2(badge)}:1 against its plate, so its pill is not drawn.`,
+    );
+  }
+});
+
+test('the drawer\'s light plate is the rail\'s own rung, and removing its rule is what fails the gate above', () => {
+  const light = mount(PAIR(false), { theme: 'light', phone: true, open: true });
+  const rail = ratio(light.bg('.ui-app__rail .ui-nav__item.is-active'), light.bg('.ui-app__rail'));
+  assert.ok(
+    Math.abs(ratio(light.bg(DRAWER_ACTIVE), light.bg('.ui-drawer__panel')) - rail) <= 0.005,
+    'the drawer\'s current row takes another step in light than the rail does',
+  );
+  const cut = mount(PAIR(false), {
+    theme: 'light', phone: true, open: true,
+    drop: [/:where\(:root\[data-theme="light"\]\) \.ui-app__drawer \.ui-nav__item\.is-active \{[^}]*\}/],
+  });
+  assert.ok(
+    ratio(cut.bg(DRAWER_ACTIVE), cut.bg('.ui-drawer__panel')) < DRAWER_STEP_MIN,
+    'with the rule removed the plate still stands off the panel, so the gate above cannot fail',
+  );
+});
+
+
 // ---- A1c. selector helpers for the fold's rules ----------------------------
 
 /** Split a selector list on its top-level commas. `:is(:hover, :focus-visible)`

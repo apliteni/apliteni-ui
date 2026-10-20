@@ -208,7 +208,7 @@ const readerFace = (name, email, named, markOnly = false) =>
 //
 // One block, two places: only the direction it opens is the layout's answer.
 // `portal: true` either way — the rail and the band are both sticky.
-function readerBlock({ name, email }, signOutHref, { band = false } = {}) {
+function readerBlock({ name, email }, signOutHref, { band = false, portal = true } = {}) {
   if (!name && !email) return '';
   const cls = `ui-app__user${band ? ' ui-app__user--bar' : ''}`;
   const who = [name, email].filter(Boolean).join(', ');
@@ -226,7 +226,7 @@ function readerBlock({ name, email }, signOutHref, { band = false } = {}) {
     + `</div>`;
   return `<div class="${cls}">${dropdown({
     variant: 'menu',
-    portal: true,
+    portal,
     direction: band ? 'down' : 'up',
     align: band ? 'end' : 'start',
     chevron: !band,
@@ -363,7 +363,9 @@ export function appShell(options = {}) {
       activeIs: up ? 'section' : 'page',
       ariaLabel: navLabel,
     }),
-    footer: banded ? '' : readerBlock(account, signOutHref),
+    // Not portalled: a panel lifted to the page would sit outside the open drawer, inert
+    // and under it, so Sign out could not be reached.
+    footer: banded ? '' : readerBlock(account, signOutHref, { portal: false }),
   })}</div>`;
   const main = `<main class="ui-app__main${width === 'wide' ? ' ui-app__main--wide' : ''}"${maxWidth ? ` style="--ui-app-main: ${maxWidth}"` : ''}>
       ${up || (crumbs.length ? breadcrumbs({ items: crumbs }) : '')}
@@ -395,6 +397,9 @@ export function appShell(options = {}) {
 // keeps every shell under root out of the cookie, shells drawn there later
 // included; only `persist: true` on that root turns it back on.
 const _wiredDocs = new WeakSet();
+// The roots wireShell() was handed, per document: a resize has to find a drawer open
+// inside a shadow root, which the document's own querySelectorAll does not enter.
+const _wiredRoots = new WeakMap();
 const _unpersisted = new WeakSet();
 
 // The toggle, addressed from the rail that owns it: a fold row of a shell's own rail
@@ -435,9 +440,11 @@ function listen(doc) {
   const view = doc.defaultView;
   if (view) {
     view.addEventListener('resize', () => {
-      doc.querySelectorAll('.ui-app__drawer .ui-drawer.is-open').forEach((d) => {
-        if (view.getComputedStyle(d.parentElement).display === 'none') closeDrawer(d);
-      });
+      for (const r of _wiredRoots.get(doc) || []) {
+        r.querySelectorAll('.ui-app__drawer .ui-drawer.is-open').forEach((d) => {
+          if (view.getComputedStyle(d.parentElement).display === 'none') closeDrawer(d);
+        });
+      }
     });
   }
   doc.addEventListener('click', (e) => {
@@ -483,6 +490,10 @@ export function wireShell(root = document, { persist } = {}) {
   for (const kbd of root.querySelectorAll('[data-palette-hotkey]')) kbd.textContent = key;
   const doc = root.nodeType === 9 ? root : root.ownerDocument;
   listen(doc);
+  if (!_wiredRoots.has(doc)) _wiredRoots.set(doc, new Set());
+  const roots = _wiredRoots.get(doc);
+  for (const r of roots) if (r !== doc && !(r.host || r).isConnected) roots.delete(r);
+  roots.add(root);
   if (persist === false) _unpersisted.add(root);
   else if (persist === true) _unpersisted.delete(root);
   const saved = railCollapsed(cookieOf(doc));

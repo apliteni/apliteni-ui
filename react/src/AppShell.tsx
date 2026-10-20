@@ -143,7 +143,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
           <span className="ui-app__search-short" aria-hidden="true">{searchShortLabel}</span>
           <kbd className="ui-cmdk__key">{paletteHotkey()}</kbd>
         </button>
-        <span className="ui-app__bar-gap" />{bandControl}
+        <span className="ui-app__bar-gap" />{bandControl && <span className="ui-react-app__band-control">{bandControl}</span>}
         <ThemeToggle />
         <div className="ui-app__user ui-app__user--bar"><Dropdown variant="menu" align="end" chevron={false}
           ariaLabel={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"

@@ -105,3 +105,46 @@ test('a page with the compatibility topbar gets the menu control inside that bar
   assert.equal(doc.querySelector('.ui-app__bar--phone'), null, 'a second band stands over the page');
   assert.equal(doc.querySelectorAll('.ui-app__menu').length, 1);
 });
+
+test('the account menu opened from the drawer stays inside it, and its Sign out is neither inert nor hidden', () => {
+  const win = mount(SHELL());
+  const doc = win.document;
+  const menu = doc.querySelector('.ui-app__menu');
+  const drawer = doc.getElementById(menu.getAttribute('data-drawer-open'));
+  menu.click();
+  const trigger = drawer.querySelector('.ui-app__user-trigger');
+  trigger.click();
+  assert.equal(trigger.getAttribute('aria-expanded'), 'true', 'the account trigger in the drawer is dead');
+  const signOut = [...doc.querySelectorAll('a')].find((a) => a.textContent.includes('Sign out')
+    && drawer.contains(a));
+  assert.ok(signOut, 'the account menu was moved out of the drawer, so the drawer marks it inert and holds it under its scrim');
+  assert.equal(signOut.closest('[inert]'), null, 'Sign out sits under an inert ancestor');
+  assert.equal(signOut.closest('[aria-hidden="true"]'), null, 'Sign out is hidden from assistive technology');
+  signOut.focus();
+  assert.equal(doc.activeElement, signOut, 'Sign out cannot take focus');
+});
+
+test('a shell inside an open shadow root opens its drawer, closes it and closes it on a resize', () => {
+  const win = mount('<div id="host"></div>');
+  const doc = win.document;
+  const shadow = doc.getElementById('host').attachShadow({ mode: 'open' });
+  shadow.innerHTML = SHELL();
+  wireShell(shadow, { persist: false });
+  const menu = shadow.querySelector('.ui-app__menu');
+  const drawer = shadow.getElementById(menu.getAttribute('data-drawer-open'));
+  assert.ok(drawer, 'premise: the drawer is in the shadow root');
+  menu.click();
+  assert.ok(drawer.classList.contains('is-open'), 'Menu does nothing inside a shadow root: the drawer was looked up on the document');
+  doc.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert.ok(!drawer.classList.contains('is-open'), 'Escape left a shadow root\'s drawer open');
+  menu.click();
+  assert.ok(drawer.classList.contains('is-open'));
+  drawer.parentElement.style.display = 'none';
+  win.dispatchEvent(new win.Event('resize'));
+  assert.ok(!drawer.classList.contains('is-open'), 'a resize left a shadow root\'s drawer open while it is not drawn');
+  menu.click();
+  const link = drawer.querySelector('a.ui-nav__item[href="#dashboard"]');
+  link.addEventListener('click', (e) => e.preventDefault());
+  link.click();
+  assert.ok(!drawer.classList.contains('is-open'), 'a press on a page in a shadow root\'s drawer left it open');
+});

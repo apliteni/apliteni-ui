@@ -167,6 +167,12 @@ const SUBJECTS = [
     rule: '.ui-app__rail .ui-nav__item.is-active', ground: '--surface',
     paintedBy: '.ui-app__rail, which layout.css paints --surface',
   },
+  ...['.ui-app__drawer', '.ui-react-app__menu'].map((panel) => ({
+    name: `the phone drawer's current row in light (${panel})`,
+    rule: `:where(:root[data-theme="light"]) ${panel} .ui-nav__item.is-active`, ground: '--bg-elevated',
+    paintedBy: '.ui-drawer__panel, which paints --bg-elevated, equal to --surface in light',
+    themes: ['light'],
+  })),
   {
     name: 'the row a menu would pick',
     rule: '.ui-dropdown__item.is-active', ground: '--bg-elevated',
@@ -271,6 +277,7 @@ test('every subject and every exclusion still names a rule that exists', () => {
 for (const theme of ['light', 'dark']) {
   test(`a selected item's highlight is visible on its own ground: ${theme}`, () => {
     for (const subject of SUBJECTS) {
+      if (subject.themes && !subject.themes.includes(theme)) continue;
       const fills = fillsOf(subject.rule);
       assert.ok(fills.length > 0, `${subject.rule} is given no background at all`);
       for (const fill of fills) {
@@ -297,6 +304,7 @@ test('the fill gate rejects a highlight that does not step off its ground', () =
   // And the fill each item actually takes clears it in both themes, by more than rounding.
   for (const theme of ['light', 'dark']) {
     for (const subject of SUBJECTS) {
+      if (subject.themes && !subject.themes.includes(theme)) continue;
       for (const fill of fillsOf(subject.rule)) {
         assert.ok(against(fill, subject.ground, theme) > flat,
           `${subject.name} is no better than the flat pair in ${theme}`);
@@ -451,6 +459,8 @@ const forcedFixtures = [
   ['folded standalone row', `<nav class="ui-nav ui-nav--side is-collapsed">${row}</nav>`],
   ['shell row', `<div class="ui-app"><nav class="ui-app__rail ui-nav">${row}</nav></div>`],
   ['folded shell row', `<div class="ui-app is-collapsed"><nav class="ui-app__rail ui-nav">${row}</nav></div>`],
+  ['drawer row', `<div class="ui-app__drawer"><nav class="ui-nav">${row}</nav></div>`],
+  ['React drawer row', `<div class="ui-react-app__menu"><nav class="ui-nav">${row}</nav></div>`],
   ...['', 'is-pill', 'is-underline'].map((kind) => [`tab ${kind}`, `<nav class="ui-nav ui-nav--tabs ${kind}"><a href="#" class="ui-nav__tab is-active">Selected</a></nav>`]),
   ['current crumb', '<nav class="ui-nav__crumbs"><span class="ui-nav__crumb is-current">Selected</span></nav>'],
   ['pager current page', '<nav class="ui-pager"><button class="ui-btn ui-pager__page is-current" aria-current="page">4</button></nav>'],

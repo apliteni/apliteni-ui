@@ -10,7 +10,22 @@
 .ui-react-app__menu .ui-nav--side,
 .ui-react-app__menu .ui-nav--side > * { width: 100%; }
 .ui-react-app__menu .ui-nav__item { min-height: 44px; }
+/* The drawer panel is --bg-elevated, which --surface matches exactly in light: the current
+   row and the hover wash take the rail's rung there, as layout.css does for the vanilla drawer. */
+:where(:root[data-theme="light"]) .ui-react-app__menu .ui-nav__item:not(.is-danger):not(.is-active):hover { background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
+:where(:root[data-theme="light"]) .ui-react-app__menu .ui-nav__item.is-active { background: var(--surface-3); /* code-bg: inherit — The control keeps the containing ground. */ }
+/* The wrapper takes no box above the phone band, so the control sits on the band as it did without it. */
+.ui-react-app__band-control { display: contents; }
 @media (max-width: 560px) {
+  /* A control the page puts on the band keeps its words while the band has room, then stops at
+     the width left once the menu control, the search short form, the switch and the reader's
+     mark are drawn (264px), and never under 56px: it ellipsises rather than push the reader's
+     mark off a narrow page, and leaves the search trigger more than a sliver. */
+  .ui-react-app__band-control { display: flex; flex: none; max-width: max(56px, calc(100vw - 264px)); }
+  .ui-react-app__band-control > * { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* With a control on the band there is no room for the mark as well: the menu control
+     stays, and the drawer's title names the product. */
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__band-control) > .ui-app__brand--band { display: none; }
   /* The phone's end space is the ordinary one the kit gives every page. */
   .ui-react-app .ui-app__bar { padding-inline: var(--space-4); }
   /* No rule here for the band search at this width: layout.css's own 560px block
