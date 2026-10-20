@@ -565,7 +565,7 @@ test('every state base the kit sheet yields is a selector a browser accepts', ()
       }
     }
   }
-  assert.equal(counted, 284, 'state-base discovery changed: 142 bases per theme, including three link-button states, over two themes');
+  assert.equal(counted, 240, 'state-base discovery changed: 120 bases per theme, including three link-button states, over two themes. The phone icon strip and its hover-name rules went in #592, which took 22 bases per theme with them');
   assert.deepEqual(offences, [], `a state base no browser would accept:\n  ${offences.join('\n  ')}`);
   dom.window.close();
 });

@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.127.0', date: '2026-10-20',
+    changes: [
+      ['changed', 'At 720px and below, `appShell()` replaces the icon strip with a top band that holds a menu button and the brand mark. The button opens the full rail in the left drawer, and the page content now uses the full width. Widths above 720px do not change.', ['Shell']],
+    ],
+  },
+  {
     v: '0.126.0', date: '2026-10-20',
     changes: [
       ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],

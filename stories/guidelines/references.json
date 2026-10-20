@@ -418,7 +418,7 @@
     ],
     "one-or-the-other": [
       {
-        "ref": "src/components/shell.js:335",
+        "ref": "src/components/shell.js:369",
         "pattern": "${up || (crumbs.length"
       }
     ],
@@ -496,7 +496,7 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:217",
+        "ref": "src/assets/icons.js:222",
         "pattern": "export const iconMeanings"
       },
       {
@@ -554,7 +554,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:433",
+        "ref": "src/styles/layout.css:431",
         "pattern": "rank: page-title"
       },
       {
@@ -596,7 +596,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:326",
+        "ref": "src/styles/layout.css:324",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -630,7 +630,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:511",
+        "ref": "src/styles/layout.css:513",
         "pattern": "@media (max-width: 720px)"
       },
       {

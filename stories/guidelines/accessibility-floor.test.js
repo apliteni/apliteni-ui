@@ -147,25 +147,33 @@ test('folded rail: every control keeps a name with its label gone, and the name 
   assert.deepEqual(bad, [], 'a folded row has no name of its own, or one a speech user cannot say from the tag');
 });
 
-// The phone strip, measured rather than compared. shell-states.test.js holds the
-// reader's fold and the 720px fold equal to each other, rule for rule and
-// property for property — and that is exactly why neither could notice when the
-// floor they share went down: equality is silent about a value that falls on
-// both sides at once. This reads the box a finger lands on at 375px.
-test(`phone strip: no rail row is shorter than ${TOUCH_MIN}px below 720px`, () => {
+// The phone shell, measured. Below 720px the rail's rows are the drawer's rows, and the
+// menu control and the band's mark are the targets a finger reaches first. This reads the
+// box of each at 375px with the drawer held open. A shell test that compares two rule sets
+// cannot see a floor fall on both sides at once, so the box is measured.
+test(`phone shell: no drawer row or mark is shorter than ${TOUCH_MIN}px, nor the menu control than ${TARGET_MIN}px`, () => {
   assert.ok(
     targetRun.strip.length >= 5,
-    `only ${targetRun.strip.length} rail rows measured below 720px — no story draws a shell rail any `
-    + 'more, or the fold stopped being lifted, and this gate is measuring nothing',
+    `only ${targetRun.strip.length} phone shell targets measured below 720px — no story draws a shell `
+    + 'any more, or the 720px block stopped being lifted, and this gate is measuring nothing',
   );
+  for (const part of ['menu', 'mark', 'row']) {
+    assert.ok(
+      targetRun.strip.some((c) => c.part === part),
+      `no ${part} target was measured, so a floor lost there would pass`,
+    );
+  }
+  // The menu control is a kit button, and the tap zone raises it to 44px on a coarse pointer
+  // at 560px and below (stories/tap-zone.test.js measures that in a browser). It draws at
+  // the button's own height, which this gate holds to the shared floor.
   const short = targetRun.strip
-    .filter((c) => c.height < TOUCH_MIN)
+    .filter((c) => c.height < (c.part === 'menu' ? TARGET_MIN : TOUCH_MIN))
     .map((c) => `${c.name || '(unnamed)'} — ${c.height}px high (${c.where})`);
   assert.deepEqual(
     short, [],
-    `a rail row on a phone is under the ${TOUCH_MIN}px touch floor. At this width the strip is the `
-    + 'whole of the rail and a finger is the only pointer it has, so the row is the target. The floor '
-    + 'is the 720px block\'s own `min-height` in src/styles/layout.css.',
+    `a phone shell target is under the ${TOUCH_MIN}px touch floor. At this width a finger is the `
+    + 'only pointer, so the row, the control and the mark are the targets. The floor is the '
+    + '720px block\'s own `min-height` in src/styles/layout.css.',
   );
 });
 

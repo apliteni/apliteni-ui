@@ -3,9 +3,10 @@
 // wireShell() once after mounting wires the fold, the nav's groups and the reader's menu.
 // why: docs/components.md#the-page-shell
 import { topbar as productTopbar } from './topbar.js';
-import { esc, icon } from './index.js';
+import { esc, icon, button } from './index.js';
 import { sidebarNav, breadcrumbs, wireNav } from './nav.js';
 import { dropdown, wireDropdown } from './dropdown.js';
+import { drawer, wireDrawer, closeDrawer } from './drawer.js';
 import { backLink } from './back.js';
 import { prism } from '../assets/brand.js';
 import { ACCOUNT_NAV, toMenuTuple, initials } from './account-nav.js';
@@ -253,12 +254,25 @@ const searchField = ({ palette, placeholder, shortLabel }) =>
 
 // The band: search at its start, the reader at its end, beside the rail rather than
 // across the top of both. why: docs/components.md#the-page-shell
-const shellBar = (search, account, signOutHref) =>
+const shellBar = (search, account, signOutHref, lead = '') =>
   `<header class="ui-app__bar">`
+  + lead
   + (search ? searchField(search) : '')
   + `<span class="ui-app__bar-gap"></span>`
   + readerBlock(account, signOutHref, { band: true })
   + `</header>`;
+
+// Below 720px the rail is not drawn. A band holds the menu control and the brand's mark,
+// and the control opens the same rail in the kit's left drawer. Each part carries
+// `ui-app__phone`, so layout.css draws it at that width only.
+// why: docs/components.md#the-page-shell
+const menuControl = (id) => button({ label: 'Menu', variant: 'ghost', icon: 'menu', iconOnly: true })
+  .replace('<button ', `<button data-drawer-open="${id}" aria-haspopup="dialog" `)
+  .replace('class="', 'class="ui-app__menu ');
+
+const bandBrand = (word, href, uid) =>
+  `<a class="ui-app__brand ui-app__brand--band" href="${esc(safeUrl(href))}" aria-label="${esc(word)}">`
+  + `${prism(`appb-${uid}`, 24)}</a>`;
 
 // Unique-per-render suffix for the brand mark's clip id — the same reason
 // nav.js keeps a module counter. Two shells on one page must not collide.
@@ -291,6 +305,7 @@ export function appShell(options = {}) {
   // The layout's one branch, read once. Everything below asks this and not the string.
   const banded = layout === 'topbar';
   const up = back ? backLink(back) : '';
+  const menuId = `ui-app-menu-${++_shellUid}`;
   // No footer slot: the nav is places to go, and the one thing that was in it —
   // sign out — is in the reader's menu at the rail's foot.
   const rail = sidebarNav({
@@ -331,6 +346,25 @@ export function appShell(options = {}) {
   const foot = banded
     ? (fold ? `<div class="ui-app__foot">${fold}</div>` : '')
     : readerBlock(account, signOutHref);
+  // The phone's way to the same rail: the menu control, and the drawer it opens. The
+  // drawer holds a second copy of the nav and the reader, because a drawer is a dialog
+  // and the rail is a landmark; layout.css draws one or the other. The banded layout
+  // keeps its reader on the band, so its drawer has no foot.
+  const menu = menuControl(menuId);
+  const mark = bandBrand(word, brandHref, ++_shellUid);
+  const phone = `<div class="ui-app__drawer">${drawer({
+    side: 'left',
+    size: 'sm',
+    title: word,
+    id: menuId,
+    body: sidebarNav({
+      sections: [{ label: navLabel, items: nav }],
+      active,
+      activeIs: up ? 'section' : 'page',
+      ariaLabel: navLabel,
+    }),
+    footer: banded ? '' : readerBlock(account, signOutHref),
+  })}</div>`;
   const main = `<main class="ui-app__main${width === 'wide' ? ' ui-app__main--wide' : ''}"${maxWidth ? ` style="--ui-app-main: ${maxWidth}"` : ''}>
       ${up || (crumbs.length ? breadcrumbs({ items: crumbs }) : '')}
       ${title ? `<h1>${title}</h1>` : ''}
@@ -339,8 +373,8 @@ export function appShell(options = {}) {
     </main>`;
   // The second column is a box of its own: the band and the page are two rows of it.
   const well = banded
-    ? `<div class="ui-app__well">${shellBar(search, account, signOutHref)}${main}</div>`
-    : main;
+    ? `<div class="ui-app__well">${shellBar(search, account, signOutHref, menu + mark)}${main}</div>`
+    : `${compat ? '' : `<header class="ui-app__bar ui-app__bar--phone">${menu}${mark}</header>`}${main}`;
   const grid = `<div class="ui-app${banded ? ' ui-app--topbar' : ''}${folded ? ' is-collapsed' : ''}"${auto}>
     <div class="ui-app__rail" role="region" aria-label="Sidebar">
       ${head}
@@ -348,8 +382,11 @@ export function appShell(options = {}) {
       ${foot}
     </div>
     ${well}
+    ${phone}
   </div>`;
-  return compat ? `<div class="ui-app-page">${productTopbar(compat)}${grid}</div>` : grid;
+  return compat
+    ? `<div class="ui-app-page">${productTopbar(compat).replace('<div class="topbar__in">', `<div class="topbar__in">${menu}`)}${grid}</div>`
+    : grid;
 }
 
 // ---- Behaviour -----------------------------------------------------------
@@ -368,6 +405,8 @@ const _unpersisted = new WeakSet();
 // why: docs/components.md#the-page-shell
 const FOLD_PATH = '.ui-app__fold-row > [data-rail-toggle]';
 const RAIL_FOLD = `.ui-app__rail ${FOLD_PATH}`;
+
+const DRAWER_LINK = '.ui-app__drawer a.ui-nav__item[href]';
 
 // Under an opted-out root? Steps out of a shadow root through its host.
 const optedOut = (node) => {
@@ -390,13 +429,29 @@ function setRail(app, collapsed) {
 function listen(doc) {
   if (_wiredDocs.has(doc)) return;
   _wiredDocs.add(doc);
+  // A drawer left open while the window grows past the phone width would be hidden and
+  // still hold the page inert, so it closes there. Its wrapper is not drawn above that
+  // width, which is how the stylesheet's breakpoint is read without a second copy of it.
+  const view = doc.defaultView;
+  if (view) {
+    view.addEventListener('resize', () => {
+      doc.querySelectorAll('.ui-app__drawer .ui-drawer.is-open').forEach((d) => {
+        if (view.getComputedStyle(d.parentElement).display === 'none') closeDrawer(d);
+      });
+    });
+  }
   doc.addEventListener('click', (e) => {
     // A shell's own toggle only, in the head of its own rail: a stray
     // [data-rail-toggle] in the page body folds nothing. composedPath() rather
     // than target, so a shell inside an open shadow root is found. closest()
     // rather than a chain of parents, which the head band made one link longer
     // and which said nothing about what it was walking through.
-    const btn = e.composedPath().find((n) => n.nodeType === 1 && n.matches(RAIL_FOLD));
+    const path = e.composedPath();
+    // A press on a place in the phone drawer closes it. A group's toggle is a button
+    // and goes nowhere, so only a link does. why: docs/components.md#the-page-shell
+    const row = path.find((n) => n.nodeType === 1 && n.matches(DRAWER_LINK));
+    if (row) closeDrawer(row.closest('.ui-drawer'));
+    const btn = path.find((n) => n.nodeType === 1 && n.matches(RAIL_FOLD));
     const app = btn && btn.closest('.ui-app');
     if (!app) return;
     const next = !app.classList.contains('is-collapsed');
@@ -408,7 +463,6 @@ function listen(doc) {
       } catch (err) { /* a sandboxed frame: the fold works, nothing is kept */ }
     }
     // A document with no window (DOMParser, createHTMLDocument) has no CustomEvent to send.
-    const view = doc.defaultView;
     if (view) {
       app.dispatchEvent(new view.CustomEvent('ui-rail', { bubbles: true, composed: true, detail: { collapsed: next } }));
     }
@@ -420,6 +474,7 @@ export function wireShell(root = document, { persist } = {}) {
   // The reader's menu is a dropdown() like any other, so it is wired like any
   // other. Idempotent, and a shell with no account draws none to find.
   wireDropdown(root);
+  wireDrawer(root);
   // A server cannot know which key the reader holds, so the browser corrects it here —
   // off the ROOT's window, not the global one. why: docs/components.md#the-page-shell
   const here = root.nodeType === 9 ? root : root.ownerDocument;

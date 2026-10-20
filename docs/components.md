@@ -188,9 +188,15 @@ otherwise need to discover. Each rule's test contains its detail. React's own no
 goes inside. It always draws **one `<main>` landmark** and gives every navigation landmark a
 unique name. **The page title keeps the same step above your content whether or not you pass a
 `sub`.** It does not invent a breadcrumb that you did not pass. It does not render a topbar
-unless you pass one. **The rail folds** below 720px through CSS alone and through a `<button>`
-that the reader presses. That button writes the `apliteni-ui-rail` cookie, so a server can first
-paint the folded width with `railCollapsed()`. A folded row keeps its name and count for keyboard
+unless you pass one. **The rail folds** above 720px through a `<button>` that the reader
+presses. That button writes the `apliteni-ui-rail` cookie, so a server can first paint the folded
+width with `railCollapsed()`. **At 720px and below the rail is a drawer.** The icon strip goes
+away. A 52px band at the top holds a menu button at its start and the brand mark beside it. The
+button opens the full rail in the left drawer, with its labels, its groups, its counts and the
+reader's block at the foot. Pressing a row, pressing Escape or widening the page closes the
+drawer, and focus returns to the menu button. A page in the topbar layout has a band already, so
+the menu button joins that band and the page never has two. The reading column takes the full
+width of the page. A folded row keeps its name and count for keyboard
 and pointer users. Every control in it clears the 24px floor and shows the ring. **The current
 row is one plate, at either width.** It is a quiet fill behind the row, a measured step off
 whatever the rail stands on, and nothing closes it: no accent bar, no hairline and no outline,

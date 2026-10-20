@@ -320,13 +320,6 @@ test('forced-colour selection marks cannot replace focus rings', () => {
 const FORCED = /forced-colors\s*:\s*active/;
 const INDICATOR = /^(outline|box-shadow)/;
 const PERMITTED_FORCED = {
-  '.ui-app .ui-app__rail .ui-nav__item:is(.is-active, .is-current):is(:hover, :focus-visible) > .ui-nav__label': {
-    why: 'the rail\'s floating name for a selected row on hover or focus. It is the rail\'s own '
-      + 'label, painted Canvas and CanvasText so it reads over the page. It carries no '
-      + 'outline or shadow and replaces no ring, which the row keeps. Neither block touches '
-      + 'a tab row or a scroll region.',
-    props: ['forced-color-adjust', 'background', 'color', 'border-color'],
-  },
   '.ui-app.is-collapsed .ui-app__rail .ui-nav__item:is(.is-active, .is-current):is(:hover, :focus-visible) > .ui-nav__label': {
     why: 'the rail\'s floating name for a selected row on hover or focus. It is the rail\'s own '
       + 'label, painted Canvas and CanvasText so it reads over the page. It carries no '
