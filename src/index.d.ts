@@ -102,6 +102,15 @@ export declare function dropdownReveal(
   dd: Element | null | undefined,
   panel: Element | null | undefined,
 ): number;
+/** Give an open panel its box, and take the box away from a shut one once its fade is
+ *  over, so a shut panel adds no scroll room. Returns a function that cancels a
+ *  collapse still waiting. why: docs/components.md#the-dropdown-panel */
+export declare function dropdownRest(
+  dd: Element | null | undefined,
+  panel: Element | null | undefined,
+  open: boolean,
+  wait?: number,
+): () => void;
 export declare function backLink(opts?: Record<string, unknown>): string;
 export declare function statBand(opts?: Record<string, unknown>): string;
 export declare function commandPalette(opts?: Record<string, unknown>): string;

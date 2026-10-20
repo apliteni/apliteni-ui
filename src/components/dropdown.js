@@ -685,6 +685,78 @@ function ddReserveEnd(dd, panel) {
   if (dd.style.getPropertyValue('--ui-dropdown-reach') !== next) dd.style.setProperty('--ui-dropdown-reach', next);
 }
 
+/* A shut panel is still laid out, and a box that is laid out counts towards the scroll
+ * of what holds it: the end of a Modal or Drawer body, or of a page, scrolled to blank
+ * space as tall as the panel. So a shut panel is collapsed, once its fade is over, and
+ * its room under it goes with it. The body cannot scroll past where it ends, so
+ * collapsing under a reader who is looking at that room would slide the field down by
+ * the whole of it: the box stays until the reader has scrolled out of the room, and the
+ * field never moves. The panel is given its box back before anything measures it.
+ * why: docs/components.md#the-dropdown-panel */
+function ddScrollerOf(dd, panel) {
+  return ddScrollBox(dd, panel)?.el ?? dd.ownerDocument.scrollingElement;
+}
+
+function ddCollapse(dd, panel) {
+  const scroller = ddScrollerOf(dd, panel);
+  const before = scroller?.scrollTop ?? 0;
+  const reach = dd.style?.getPropertyValue('--ui-dropdown-reach') ?? '';
+  panel.setAttribute('data-dd-shut', '');
+  dd.style?.removeProperty('--ui-dropdown-reach');
+  if (!scroller || scroller.scrollTop === before) return true;
+  panel.removeAttribute('data-dd-shut');
+  if (reach) dd.style.setProperty('--ui-dropdown-reach', reach);
+  if (typeof scroller.scrollTo === 'function') scroller.scrollTo({ top: before, behavior: 'instant' });
+  else scroller.scrollTop = before;
+  return false;
+}
+
+/**
+ * Give a panel its box while it is open, and take the box away once it has shut and
+ * its fade is over. Returns a function that cancels a collapse still waiting.
+ * Does nothing for a portalled panel, which is `position: fixed` and adds no scroll,
+ * and for a panel in a filter row, which its row already bounds.
+ * why: docs/components.md#the-dropdown-panel
+ *
+ * @param {Element} dd the `[data-dropdown]` container
+ * @param {Element} panel its `[data-dropdown-panel]`
+ * @param {boolean} open whether the panel is opening (`true`) or has shut (`false`)
+ * @param {number} [wait] ms to wait before collapsing; the panel's own fade by default
+ */
+export function dropdownRest(dd, panel, open, wait) {
+  if (!dd || !panel?.style || dd.__ddPanel || ddInFilterRow(panel)) return () => {};
+  dd.__ddRest?.();
+  if (open) {
+    panel.removeAttribute('data-dd-shut');
+    return () => {};
+  }
+  let timer = null;
+  let off = null;
+  const cancel = () => {
+    clearTimeout(timer);
+    off?.();
+    dd.__ddRest = null;
+  };
+  const attempt = () => {
+    const done = !dd.isConnected || dd.classList.contains('open') || ddCollapse(dd, panel);
+    if (done) cancel();
+    return done;
+  };
+  const start = () => {
+    timer = null;
+    if (attempt()) return;
+    const scroller = ddScrollerOf(dd, panel);
+    const target = scroller === dd.ownerDocument.scrollingElement ? ddViewOf(panel) : scroller;
+    target.addEventListener('scroll', attempt, { passive: true });
+    off = () => target.removeEventListener('scroll', attempt);
+  };
+  dd.__ddRest = cancel;
+  const ms = wait ?? transitionMs(panel) + DD_EXIT_SLACK_MS;
+  if (ms > 0) timer = setTimeout(start, ms);
+  else start();
+  return cancel;
+}
+
 function ddRevealOnce(dd, panel) {
   const trigger = dd?.querySelector?.('[data-dropdown-trigger]');
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !panel) return 0;
@@ -718,11 +790,9 @@ function ddSizeHeight(dd, panel) {
   // viewport less the edge inset, not a trigger-sized sliver — takes over. why:
   // dropdownAvail(), src/logic/dropdown.js
   //
-  // `.is-unbounded` is only added where that leaves NO cap at all: a consumer's
-  // own `--ui-dropdown-cap` (`.is-scroll` or a numeric `scroll`) still clamps the
-  // panel, and that clamp is still real room to scroll. why: src/styles/dropdown.css
-  const cap = ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-cap').trim();
-  panel.classList.toggle('is-unbounded', !Number.isFinite(avail) && !cap);
+  // `.is-unbounded` marks a panel the room cannot hold. It keeps its cap, and the
+  // page, not the panel, is the way to the rows past the fold. why: src/styles/dropdown.css
+  panel.classList.toggle('is-unbounded', !Number.isFinite(avail));
   // A number that has not changed is not written again, the way the width fit's
   // own write is guarded: a mutation inside the row that moved nothing vertically
   // would otherwise answer its own write, over and over, through the document
@@ -990,6 +1060,7 @@ function closeDropdown(dd) {
      on the way out, so a panel left behind at 237.6…477.6 does not keep the page
      478px wide with nothing open. why: ddPlace() */
   if (panel) ddFitViewport(dd, panel);
+  if (panel) dropdownRest(dd, panel, false);
 }
 
 /** Every wired dropdown still in a tree, the ones in frames and shadow roots
@@ -1017,6 +1088,7 @@ function openDropdown(dd, focusIdx) {
   if (panel) {
     // An earlier close may still be holding its geometry; this open owns it now.
     ddCancelClose(dd, panel);
+    dropdownRest(dd, panel, true);
     ddResolveDirection(dd, panel);
     if (dd.__ddPanel) { positionPortalPanel(dd, panel); panel.classList.add('is-open'); }
     /* Both fits, because each one answers for the panels the other declines:
@@ -1208,6 +1280,7 @@ export function wireDropdown(root = document) {
       ddWatchRow(dd, panel);
     }
     if (panel && dd.classList.contains('open')) ddSizeHeight(dd, panel);
+    else if (panel) dropdownRest(dd, panel, false, 0);
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();

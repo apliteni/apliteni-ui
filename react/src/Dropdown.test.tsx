@@ -1745,10 +1745,35 @@ it('a room too small for the floor even after spending the inset writes no avail
   // The trigger's bottom at 808 on a 390x844 phone, as the review measured: 27px
   // of room past the gap, short of the 120px floor even spending the whole inset.
   // Capping here drew a 27px sliver hiding 446px of rows — danger 1 in #641's
-  // review — so the property is removed and the panel keeps its content height.
+  // review — so the property is removed and the panel keeps its cap.
   phone(808);
   const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
   expect(availOf(container)).toBe('');
+});
+
+it('a panel the room cannot hold is marked unbounded, and keeps its cap', () => {
+  phone(808);
+  const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
+  expect(container.querySelector('.ui-dropdown__panel')!.classList.contains('is-unbounded')).toBe(true);
+});
+
+it('a shut panel gives back its box once the fade is over, and an open panel has it', () => {
+  vi.useFakeTimers();
+  try {
+    const { container } = render(<Dropdown items={MENU} value="Account" variant="menu" />);
+    const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
+    const trigger = within(container).getByRole('button');
+    vi.advanceTimersByTime(1000);
+    expect(panel.hasAttribute('data-dd-shut')).toBe(true);
+    fireEvent.click(trigger);
+    expect(panel.hasAttribute('data-dd-shut')).toBe(false);
+    fireEvent.click(trigger);
+    expect(panel.hasAttribute('data-dd-shut')).toBe(false);
+    vi.advanceTimersByTime(1000);
+    expect(panel.hasAttribute('data-dd-shut')).toBe(true);
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 it('the room is re-measured when the page scrolls under an open panel', () => {

@@ -103,6 +103,16 @@ test('every panel has a standard cap of 300px, which `scroll: <n>` replaces', ()
   );
 });
 
+test('a panel below the floor keeps its cap, and only lets the wheel reach the page', () => {
+  const rule = css.split(/\.ui-dropdown__panel\.is-unbounded\s*\{/)[1]?.split('}')[0] ?? '';
+  assert.doesNotMatch(
+    rule, /max-height/,
+    `${SHEET}'s .is-unbounded sets max-height, which lifts the 300px cap where the room is below the floor. A panel is never taller than the cap.`,
+  );
+  assert.doesNotMatch(rule, /overflow-y:\s*visible/, 'an uncapped overflow shows the rows past the cap');
+  assert.match(rule, /overscroll-behavior:\s*auto/, 'the wheel has to reach the page once the panel is at its own end');
+});
+
 test('`.is-scroll` asks for the standard cap through the cap property, not through max-height directly', () => {
   assert.doesNotMatch(
     css, /\.is-scroll\s*\{[^}]*max-height/,
@@ -252,14 +262,76 @@ test('an open panel in a scrolling body reserves the inset below itself, so the 
   assert.match(spot, /pointer-events:\s*none/);
 });
 
-test('the reserved inset stays when the panel shuts, so closing does not move the field', () => {
-  const { window, trigger, body } = scrollingBody({ bottom: 600 });
+const later = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const escape = (window, el) => el.dispatchEvent(
+  // A plain Event with a key: this gate measures scroll distance, so it is not a key gate.
+  Object.assign(new window.Event('keydown', { bubbles: true, cancelable: true }), { key: 'Escape' }),
+);
+
+test('the reserved inset stays through the fade, so closing does not move the field', async () => {
+  const { window, trigger, body, panel } = scrollingBody({ bottom: 600 });
   const dd = body.querySelector('.ui-dropdown');
   click(window, trigger);
-  // A plain Event with a key: this gate measures scroll distance, so it is not a key gate.
-  trigger.dispatchEvent(Object.assign(new window.Event('keydown', { bubbles: true, cancelable: true }), { key: 'Escape' }));
+  escape(window, trigger);
   assert.equal(dd.classList.contains('open'), false);
   assert.equal(dd.style.getPropertyValue('--ui-dropdown-reach'), `${9 + 484 + 8 - 1}px`);
+  assert.equal(panel.hasAttribute('data-dd-shut'), false, 'the panel is still laid out for its fade');
+});
+
+test('a shut panel adds no scroll room: it is collapsed when wired and again once its fade is over', async () => {
+  const { window, trigger, body, panel } = scrollingBody({ bottom: 600 });
+  const dd = body.querySelector('.ui-dropdown');
+  assert.equal(panel.hasAttribute('data-dd-shut'), true, 'a panel nobody has opened is collapsed from the start');
+  click(window, trigger);
+  assert.equal(panel.hasAttribute('data-dd-shut'), false, 'an open panel has its box, so it can be measured');
+  body.scrollTop = 0;
+  escape(window, trigger);
+  assert.equal(panel.hasAttribute('data-dd-shut'), false);
+  await later(120);
+  assert.equal(panel.hasAttribute('data-dd-shut'), true, 'the fade is over, so the box goes');
+  assert.equal(dd.style.getPropertyValue('--ui-dropdown-reach'), '', 'and so does the room reserved below it');
+  click(window, trigger);
+  assert.equal(panel.hasAttribute('data-dd-shut'), false, 'opening again gives the box back');
+  assert.equal(dd.style.getPropertyValue('--ui-dropdown-reach'), `${9 + 484 + 8 - 1}px`);
+});
+
+test('a body scrolled into the room under the panel keeps that room until the reader scrolls out of it', async () => {
+  const { window, trigger, body, panel } = scrollingBody({ bottom: 600 });
+  // A body whose end moves with the panel's box, and which clamps its scroll the way a browser does.
+  let top = 0;
+  Object.defineProperty(body, 'scrollHeight', { get: () => (panel.hasAttribute('data-dd-shut') ? 700 : 1200), configurable: true });
+  Object.defineProperty(body, 'scrollTop', {
+    get: () => Math.min(top, Math.max(0, body.scrollHeight - 540)),
+    set: (v) => { top = v; },
+    configurable: true,
+  });
+  click(window, trigger);
+  body.scrollTop = 400;
+  escape(window, trigger);
+  await later(120);
+  assert.equal(panel.hasAttribute('data-dd-shut'), false, 'collapsing now would slide the field down 240px, so the room stays');
+  assert.equal(body.scrollTop, 400, 'and the field has not moved');
+  body.scrollTop = 100;
+  body.dispatchEvent(new window.Event('scroll'));
+  assert.equal(panel.hasAttribute('data-dd-shut'), true, 'the reader is out of the room, so it goes');
+  assert.equal(body.scrollTop, 100);
+});
+
+test('a panel in a page that nothing scrolls inside is collapsed too, and a portalled panel is left alone', () => {
+  const plain = phone(dropdown({ value: 'Account', variant: 'menu', items: TWELVE }), { bottom: 600 });
+  assert.equal(plain.panel.hasAttribute('data-dd-shut'), true);
+  const portalled = phone(dropdown({ value: 'Account', variant: 'menu', items: TWELVE, portal: true }), { bottom: 600 });
+  assert.equal(portalled.panel.hasAttribute('data-dd-shut'), false, 'a fixed panel adds no scroll room, and the portal measures it shut');
+});
+
+test('a trigger too close to the edge for the floor marks its panel unbounded, with or without a consumer cap', () => {
+  for (const scroll of [false, true]) {
+    const { window, trigger, panel } = phone(
+      dropdown({ value: 'Account', variant: 'menu', items: TWELVE, scroll }), { bottom: 844 - 36 },
+    );
+    click(window, trigger);
+    assert.equal(panel.classList.contains('is-unbounded'), true, `scroll: ${scroll}`);
+  }
 });
 
 test('a trigger with no scrolling body reserves nothing', () => {
@@ -329,9 +401,9 @@ test('the last row is reachable near the bottom edge, by the panel scroll at 300
 
   // At 300px the panel caps and scrolls inside itself; the wheel stays on the
   // panel and the page never moves. At 36px — below the floor, #641's danger 1
-  // — the panel is left at its content height, so there is nothing for the
-  // panel itself to scroll: the wheel reaches the page instead, the way it did
-  // on the merge base, and that growth is what makes every row reachable.
+  // — the panel keeps its 300px cap and the wheel carries on to the page once
+  // the panel is at its own end, and that growth is what makes every row
+  // reachable.
   const measure = async (page, { capped }) => {
     const panel = page.locator('[data-dropdown-panel]');
     const lastRow = page.locator('[data-dropdown-panel] [data-dd-item]').last();
@@ -426,8 +498,8 @@ test('the last row is reachable near the bottom edge, by the panel scroll at 300
       'the wheel over a capped panel scrolled the page instead of the panel',
     );
 
-    // Below the floor, in document flow, the panel is content-height and the
-    // document is expected to grow past the viewport — that growth is the fix.
+    // Below the floor, in document flow, the document is expected to grow past
+    // the viewport — that growth is the fix.
     const stillCapped = grows.filter((c) => c.docHeight <= VIEWPORT.height + 0.5);
     assert.deepEqual(stillCapped.map((c) => c.label), [], 'below the floor, the document never grew past the viewport');
 
@@ -502,6 +574,92 @@ test('in a scrolling body the panel ends the 8px inset above the body\'s end wit
       );
       await ctx.close();
     }
+  } finally {
+    await browser.close();
+    vanilla.proc.kill();
+  }
+});
+
+test('a shut panel adds no scroll room at the end of a body or a page, and closing does not move the field', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_REACH=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const vanilla = await serve(root, path.join(root, 'stories/lib/dropdown-reach.html'));
+  try {
+    for (const where of ['body=1', 'bottomGap=36']) {
+      const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+      const page = await ctx.newPage();
+      await page.goto(`http://127.0.0.1:${vanilla.port}/__shot?${where}`, { waitUntil: 'load' });
+      await page.waitForFunction(() => window.__ready === true);
+      // The scroller is the body in a dialog and the page otherwise; `scrollHeight` of the root is the page's.
+      const height = () => page.evaluate(() => {
+        const el = document.getElementById('body') || document.documentElement;
+        return el.scrollHeight;
+      });
+      // The same page with the panel taken out is the content without it.
+      const without = await page.evaluate(() => {
+        const el = document.getElementById('body') || document.documentElement;
+        const panel = document.querySelector('[data-dropdown-panel]');
+        const parent = panel.parentNode;
+        const next = panel.nextSibling;
+        panel.remove();
+        const h = el.scrollHeight;
+        parent.insertBefore(panel, next);
+        return h;
+      });
+      assert.equal(await height(), without, `${where}: a panel nobody opened adds scroll room`);
+
+      const trigger = page.locator('[data-dropdown-trigger]');
+      await trigger.click();
+      await page.waitForTimeout(600);
+      assert.ok(await height() > without, `${where}: an open panel is in the scroll, or the case measures nothing`);
+      const at = await trigger.boundingBox();
+      await trigger.press('Escape');
+      await page.waitForTimeout(40);
+      const during = await trigger.boundingBox();
+      assert.equal(during.y, at.y, `${where}: the field moved when the panel closed`);
+      await page.waitForTimeout(600);
+      const after = await trigger.boundingBox();
+      assert.equal(after.y, at.y, `${where}: the field moved when the fade ended`);
+      // At the room's far end the field stays and the room stays; once the reader leaves it, the room goes.
+      await page.evaluate(() => {
+        const el = document.getElementById('body') || document.documentElement;
+        el.scrollTo({ top: 0, behavior: 'instant' });
+      });
+      await page.waitForTimeout(200);
+      assert.equal(await height(), without, `${where}: the room stayed after the reader left it`);
+      await ctx.close();
+    }
+  } finally {
+    await browser.close();
+    vanilla.proc.kill();
+  }
+});
+
+test('a panel is never taller than 300px, near the end of a page too', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_REACH=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const vanilla = await serve(root, path.join(root, 'stories/lib/dropdown-reach.html'));
+  try {
+    const seen = [];
+    for (const bottomGap of [300, 120, 100, 36]) {
+      const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 });
+      const page = await ctx.newPage();
+      await page.goto(`http://127.0.0.1:${vanilla.port}/__shot?bottomGap=${bottomGap}`, { waitUntil: 'load' });
+      await page.waitForFunction(() => window.__ready === true);
+      await page.locator('[data-dropdown-trigger]').click();
+      await page.waitForTimeout(500);
+      const box = await page.locator('[data-dropdown-panel]').boundingBox();
+      seen.push(`${bottomGap}: ${box.height}`);
+      assert.ok(box.height <= 300 + 0.5, `${bottomGap}px above the end of the page the panel is ${box.height}px tall`);
+      await ctx.close();
+    }
+    assert.equal(seen.length, 4);
   } finally {
     await browser.close();
     vanilla.proc.kill();

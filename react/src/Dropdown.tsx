@@ -5,7 +5,7 @@ import {
 } from 'react';
 import {
   icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs, dropdownViewportFit,
-  dropdownHeightFit, dropdownReveal, filterPanelRow,
+  dropdownHeightFit, dropdownReveal, dropdownRest, filterPanelRow,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 import { Avatar } from './primitives/Avatar';
@@ -472,6 +472,15 @@ export function Dropdown({
     };
   }, [open]);
 
+  /* An open panel has its box; a shut one gives it back once its fade is over, so it
+   * adds no scroll room. Ordered before the sizing below, which measures the box.
+   * why: docs/components.md#the-dropdown-panel */
+  useIsoLayoutEffect(() => {
+    const el = panel.current;
+    if (!el || !root.current) return undefined;
+    return dropdownRest(root.current, el, open);
+  }, [open]);
+
   /* The room the panel may take, written as the custom property the shared sheet
    * caps itself with — the same number src/components/dropdown.js writes, from
    * the same dropdownHeightFit(), so a panel opened low on a phone ends inside
@@ -497,11 +506,9 @@ export function Dropdown({
       // takes over. why: dropdownAvail(), src/logic/dropdown.js
       if (Number.isFinite(avail)) el.style.setProperty('--ui-dropdown-avail', `${avail}px`);
       else el.style.removeProperty('--ui-dropdown-avail');
-      // `.is-unbounded` only where that leaves no cap at all — a `scroll` prop
-      // still clamps the panel through --ui-dropdown-cap, and that clamp is still
-      // real room to scroll. why: src/styles/dropdown.css
-      const cap = el.ownerDocument.defaultView?.getComputedStyle(el).getPropertyValue('--ui-dropdown-cap').trim();
-      el.classList.toggle('is-unbounded', !Number.isFinite(avail) && !cap);
+      // A panel the room cannot hold keeps its cap, and the page is the way to the
+      // rows past the fold. why: src/styles/dropdown.css
+      el.classList.toggle('is-unbounded', !Number.isFinite(avail));
     };
     size();
     // The scrolling body the panel sits in is moved to show it; the focus effect below must not undo that.
