@@ -9,7 +9,8 @@
  *   UI_PLAYWRIGHT=.../index.mjs PHONE_SHELL=1 node --test stories/phone-shell.test.js
  *
  * Limits: the browser half measures the Workspace button at 320 and 390, a Dropdown
- * panel at 390, the brand at 720 and 721, and the vanilla centred rail at 390.
+ * panel at 390, the brand at 720 and 721, the vanilla centred rail at 390,
+ * and native Tab in a shadow-root drawer at 390.
  * Other band controls are not measured. The source half reads text.
  */
 import test from 'node:test';
@@ -183,5 +184,39 @@ test('the brand link and reading column hold at the 720px boundary',
         assert.ok(result.scroll <= width, `${width}px: the page scrolls sideways`);
         await ctx.close();
       }
+    } finally { await browser.close(); served.proc.kill(); }
+  });
+
+test('a shadow-root drawer advances Tab, wraps Shift+Tab, and isolates the page',
+  { skip: !RUN && 'set PHONE_SHELL=1' }, async () => {
+    const pw = await import(process.env.UI_PLAYWRIGHT || 'playwright');
+    const served = await new Promise((resolve, reject) => {
+      const proc = spawn(process.execPath, [path.join(root, 'scripts/evidence/serve.mjs'), root,
+        path.join(root, 'stories/phone-shadow.fixture.html')]);
+      proc.stdout.once('data', (d) => resolve({ port: Number(String(d).trim()), proc }));
+      proc.once('error', reject);
+    });
+    const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+    try {
+      const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+      await page.goto(`http://127.0.0.1:${served.port}/__shot`);
+      const menu = page.locator('#host .ui-app__menu');
+      await menu.click();
+      const state = () => page.evaluate(() => {
+        const shadow = document.querySelector('#host').shadowRoot;
+        return { active: shadow.activeElement?.getAttribute('aria-label') || shadow.activeElement?.textContent.trim(),
+          outsideInert: document.querySelector('#outside').inert };
+      });
+      assert.deepEqual(await state(), { active: 'Close', outsideInert: true });
+      await page.keyboard.press('Tab');
+      assert.equal((await state()).active, 'Overview', 'forward Tab stayed on Close');
+      await page.keyboard.press('Shift+Tab');
+      assert.equal((await state()).active, 'Close', 'reverse Tab left the drawer');
+      await page.keyboard.press('Shift+Tab');
+      assert.equal((await state()).active, 'Reports', 'reverse Tab did not wrap to the last link');
+      await page.keyboard.press('Tab');
+      assert.equal((await state()).active, 'Close', 'forward Tab did not wrap to Close');
+      await page.keyboard.press('Escape');
+      assert.equal((await state()).outsideInert, false, 'closing left the page inert');
     } finally { await browser.close(); served.proc.kill(); }
   });
