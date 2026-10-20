@@ -838,6 +838,9 @@ held in a collapsed pile, then resume with the remaining time. Notices with an a
 the reader selects or dismisses it. Ordinary notices are polite. Danger notices are assertive.
 Adding a notice does not move focus.
 
+Pass `collapse` to `<Toast>` to draw the stack as a pile, as described under [Toast stacks](#toast-stacks).
+The pile fans out on hover and on focus within it, and the stack stays a plain column on a device without hover.
+
 ## Toast stacks
 
 A stack of notices can collapse into a pile. `.ui-toast-stack--collapsed` draws its notices on top

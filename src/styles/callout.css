@@ -131,7 +131,7 @@
 /* ----------------------------------------------------------------------------
  * Collapsed stack — several notices rest as one pile and fan out on hover or
  * focus, newest in front. Both positions are measured and published per card by
- * applyToastPile() in components/toasts.js; the switch between them is this
+ * applyToastPile() in logic/toast-stack.js; the switch between them is this
  * sheet's, so a hover never waits on a script and reduced motion reaches it
  * through the net like any other transition.
  * -------------------------------------------------------------------------- */
@@ -139,8 +139,6 @@
   position: relative;
   display: block;
   height: var(--toast-pile-height, auto);
-  overflow: clip;
-  overflow-clip-margin: var(--space-6);
   transition: height var(--dur-med) var(--ease);
 }
 .ui-toast-stack--collapsed:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
@@ -157,16 +155,24 @@
      overwrite a pile offset written here. These two compose with it instead. */
   translate: 0 var(--toast-card-lift, 0px);
   scale: var(--toast-card-scale, 1);
-  transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease);
+  /* The pile is not clipped, so the front notice's shadow paints in full. A notice
+     behind it is cut instead: the script publishes how far its bottom edge lies
+     past the front notice's, and its sides are cut at its own edge, so a taller
+     back notice never shows below the front one and its shadow leaves no ledge.
+     The front notice publishes nothing and keeps an open box. A clip-path works
+     in Chromium and WebKit; overflow-clip-margin does not in WebKit. */
+  clip-path: inset(-100vmax min(0px, var(--toast-card-clip, -100vmax)) var(--toast-card-clip, -100vmax));
+  transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease),
+    clip-path var(--dur-med) var(--ease);
 }
 .ui-toast-stack--collapsed:hover, .ui-toast-stack--collapsed:focus-within {
   height: var(--toast-fan-height, auto);
-  overflow: visible;
 }
 .ui-toast-stack--collapsed:hover > .ui-toast,
 .ui-toast-stack--collapsed:focus-within > .ui-toast {
   translate: 0 var(--toast-card-fan, 0px);
   scale: 1;
+  clip-path: inset(-100vmax);
 }
 
 /* Half of what opens a pile is hover. Where the reader has none, the plain
@@ -184,7 +190,7 @@
   .ui-toast-stack--collapsed.ui-toast-stack--newest-first { flex-direction: column-reverse; }
   .ui-toast-stack--collapsed > .ui-toast,
   .ui-toast-stack--collapsed:hover > .ui-toast,
-  .ui-toast-stack--collapsed:focus-within > .ui-toast { position: static; translate: none; scale: 1; }
+  .ui-toast-stack--collapsed:focus-within > .ui-toast { position: static; translate: none; scale: 1; clip-path: none; }
 }
 
 /* Success panel — centered confirmation, used after form submit */

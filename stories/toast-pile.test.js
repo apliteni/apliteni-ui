@@ -25,9 +25,11 @@ import { splitSelectorList } from '../scripts/lib/selector-list.js';
 import { CollapsedStack } from './components/CalloutToast.stories.js';
 
 const SHEET = 'src/styles/callout.css';
-const SCRIPT = 'src/components/toasts.js';
+const SCRIPT = 'src/logic/toast-stack.js';
 const css = readFileSync(SHEET, 'utf8');
 const script = readFileSync(SCRIPT, 'utf8');
+const VANILLA = 'src/components/toasts.js';
+const vanilla = readFileSync(VANILLA, 'utf8');
 
 /* -- The seam: the script publishes exactly what the sheet reads -------------- */
 
@@ -101,16 +103,26 @@ test('a collapsed stack pauses every timer line in the pile', () => {
   }
 });
 
-test('a collapsed stack keeps its shadow clear and clips tall back cards', () => {
+test('a collapsed stack clips each back card, never the pile', () => {
+  // overflow-clip-margin is not in WebKit, and with it a taller back card showed
+  // below the front one. The pile stays unclipped so the front card's shadow
+  // paints; each back card is clipped at the front card's bottom edge instead.
   const stack = pileRules.find((rule) => rule.selector === '.ui-toast-stack--collapsed');
-  assert.match(stack?.body ?? '', /overflow:\s*clip\s*;/,
-    `${SHEET}: the collapsed stack does not clip a taller back card that would protrude below the front card.`);
-  assert.match(stack?.body ?? '', /overflow-clip-margin:\s*var\(--space-6\)\s*;/,
-    `${SHEET}: the resting stack cuts the front card's drop shadow at its edge.`);
+  assert.ok(stack, `${SHEET} has no plain \`.ui-toast-stack--collapsed\` rule.`);
+  assert.doesNotMatch(stack.body, /overflow/,
+    `${SHEET}: the collapsed stack clips itself, which cuts the front card's drop shadow square at its edge.`);
+  assert.ok(!rules.some((rule) => /overflow-clip-margin/.test(rule.body)),
+    `${SHEET} uses overflow-clip-margin, which WebKit does not support.`);
+  const card = pileRules.find((rule) => /^\.ui-toast-stack--collapsed\s*>\s*\.ui-toast$/.test(rule.selector));
+  assert.match(card?.body ?? '', /clip-path:\s*inset\([^;]*var\(--toast-card-clip,/,
+    `${SHEET}: a resting card behind the front one is not clipped at the front card's bottom edge.`);
+  const fanned = pileRules.filter((rule) => rule.selector.includes(':hover') && /\btranslate:/.test(rule.body));
+  assert.ok(fanned.length > 0 && fanned.every((rule) => /clip-path:/.test(rule.body)),
+    `${SHEET}: a fanned card keeps the clip that only belongs to the resting pile.`);
   assert.ok(rules.some((rule) => rule.selector === '.ui-toast-stack--collapsed:focus-visible'),
     `${SHEET}: the keyboard entry point for a collapsed stack has no visible focus style.`);
-  assert.ok(script.includes("setAttribute('tabindex', '0')"),
-    `${SCRIPT}: a collapsed stack with no action or close button has no keyboard entry point.`);
+  assert.ok(vanilla.includes("setAttribute('tabindex', '0')"),
+    `${VANILLA}: a collapsed stack with no action or close button has no keyboard entry point.`);
 });
 
 test('a resting card is placed with translate and scale, never transform', () => {
@@ -189,8 +201,8 @@ test('the pile carries no count chip', () => {
   assert.ok(!css.includes('ui-toast-stack__count'),
     `${SHEET} draws a \`.ui-toast-stack__count\` chip again. The pile says how much is waiting by `
     + 'showing the cards behind the front one; a counted chip above it was rejected on #479.');
-  assert.ok(!script.includes('ui-toast-stack__count'),
-    `${SCRIPT} builds a \`.ui-toast-stack__count\` chip again; see #479.`);
+  assert.ok(!script.includes('ui-toast-stack__count') && !vanilla.includes('ui-toast-stack__count'),
+    `${SCRIPT} or ${VANILLA} builds a \`.ui-toast-stack__count\` chip again; see #479.`);
 });
 
 test('every control inside a notice wears the kit ring, never the browser outline', () => {
@@ -198,7 +210,7 @@ test('every control inside a notice wears the kit ring, never the browser outlin
   // still measured. Artur rejected the native outline on #457; these two are
   // bare buttons, outside `.ui-btn` and `.ui-focusable`, so the sheet has to
   // name them itself or the browser draws its own.
-  const faces = [script, readFileSync('react/src/Toast.tsx', 'utf8')];
+  const faces = [vanilla, readFileSync('react/src/Toast.tsx', 'utf8')];
   const controls = new Set(faces
     .flatMap((source) => [...source.matchAll(/["'`](ui-toast__(?:action|close))["'`]/g)].map((m) => m[1])));
   assert.equal(controls.size, 2,
@@ -250,9 +262,9 @@ Object.defineProperty(dom.window.HTMLElement.prototype, 'offsetHeight', {
   get() { return Number(this.dataset.height || 0); },
 });
 
-const { applyToastPile, clearToastPile, collapseToastStack, wireToastStack } = await import('../src/components/toasts.js');
+const { collapseToastStack, wireToastStack } = await import('../src/components/toasts.js');
 const { toast } = await import('../src/components/index.js');
-const { TOAST_PEEK, TOAST_PILE_MIN } = await import('../src/logic/toast-stack.js');
+const { applyToastPile, clearToastPile, TOAST_PEEK, TOAST_PILE_MIN } = await import('../src/logic/toast-stack.js');
 
 /** A stack of notices, oldest first, at the given heights. */
 function stackOf(...heights) {
@@ -311,6 +323,33 @@ test('a stack fed by pushToast keeps the same reading order without hover', () =
   pile.stop();
   assert.ok(!stack.classList.contains('ui-toast-stack--newest-first'));
   stack.remove();
+});
+
+test('a back card is clipped where the front card ends, and the front card is not', () => {
+  // A back card taller than the front one reaches below it. The clip is that
+  // overshoot in the card's own pixels: scaling is about the bottom edge, so
+  // the lift is divided by the scale.
+  for (const newestFirst of [false, true]) {
+    const stack = newestFirst ? stackOf(70, 90, 130) : stackOf(130, 90, 70);
+    applyToastPile(stack, { newestFirst });
+    const cards = cardsOf(stack);
+    const [front, ...back] = newestFirst ? cards : [...cards].reverse();
+    assert.equal(front.style.getPropertyValue('--toast-card-clip'), '',
+      `newestFirst: ${newestFirst} — the front card is clipped, which cuts its shadow`);
+    for (const card of back) {
+      const scale = parseFloat(card.style.getPropertyValue('--toast-card-scale'));
+      const clip = parseFloat(card.style.getPropertyValue('--toast-card-clip'));
+      const bottom = Math.max(0, parseFloat(lift(card))) - clip * scale;
+      assert.ok(Math.abs(bottom) < 1e-6,
+        `newestFirst: ${newestFirst} — a ${card.dataset.height}px card is clipped ${clip}px from its bottom, `
+        + `which leaves its bottom edge ${bottom}px from the front card's.`);
+    }
+    assert.ok(parseFloat(back.at(-1).style.getPropertyValue('--toast-card-clip')) > 0,
+      'the 130px card behind a 70px front card reaches below it, so some of it has to be cut');
+    clearToastPile(stack);
+    assert.equal(back[0].style.getPropertyValue('--toast-card-clip'), '', 'clearing a pile leaves a clip behind');
+    stack.remove();
+  }
 });
 
 test('fanning out leaves the front card where it already was', () => {

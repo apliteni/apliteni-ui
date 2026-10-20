@@ -140,27 +140,20 @@ export const CollapsedStack = {
   },
 };
 
-// A pile already fanned by focus, drawn from the offsets the script publishes.
+// A resting pile of three notices that never dismiss, for the keyboard: Tab
+// into it and it fans out inside its focus ring. The kit measures it, as it
+// does the live stack above.
 const PILE = [
-  [{ variant: 'success', title: 'Saved', body: 'Your changes are live.' }, [0, 1, 0, 3]],
-  [{ variant: 'info', title: 'Note deleted', body: '“Q3 plan” was removed.' }, [8, 0.96, 90, 2]],
-  [{ variant: 'danger', title: 'Upload failed', body: 'The file was larger than 25 MB.' }, [16, 0.92, 180, 1]],
+  { variant: 'danger', title: 'Upload failed', body: 'The file was larger than 25 MB.' },
+  { variant: 'info', title: 'Note deleted', body: '“Q3 plan” was removed.' },
+  { variant: 'success', title: 'Saved', body: 'Your changes are live.' },
 ];
 export const CollapsedStackFocus = {
   render: () => {
     const root = document.createElement('div');
-    root.innerHTML = pad(`<div class="ui-toast-stack ui-toast-stack--collapsed" tabindex="0">${
-      PILE.map(([o]) => toast({ ...o, style: 'soft', timer: 5 })).join('')}</div>`);
-    const pile = root.firstElementChild.firstElementChild;
-    pile.style.setProperty('--toast-pile-height', '106px');
-    pile.style.setProperty('--toast-fan-height', '262px');
-    [...pile.children].forEach((card, n) => {
-      const [lift, scale, fan, depth] = PILE[n][1];
-      card.style.setProperty('--toast-card-lift', `${lift}px`);
-      card.style.setProperty('--toast-card-scale', String(scale));
-      card.style.setProperty('--toast-card-fan', `${fan}px`);
-      card.style.setProperty('--toast-card-depth', String(depth));
-    });
+    root.innerHTML = pad(`<div class="ui-toast-stack ui-toast-stack--collapsed">${
+      PILE.map((o) => toast({ ...o, style: 'soft', timer: 5 })).join('')}</div>`);
+    requestAnimationFrame(() => collapseToastStack(root.querySelector('.ui-toast-stack')));
     return root;
   },
 };

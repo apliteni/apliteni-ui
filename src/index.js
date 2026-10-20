@@ -33,7 +33,7 @@ export { segmentedNextIndex } from './logic/segmented.js';
 export { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop, focusNextStop } from './logic/filter-bar.js';
 export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from './logic/pagination.js';
 export { calloutIcons } from './logic/callout.js';
-export { toastPileGeometry, TOAST_PEEK, TOAST_SCALE_STEP, TOAST_TIERS, TOAST_PILE_MIN, TOAST_GAP } from './logic/toast-stack.js';
+export { toastPileGeometry, applyToastPile, clearToastPile, watchToastPile, TOAST_PEEK, TOAST_SCALE_STEP, TOAST_TIERS, TOAST_PILE_MIN, TOAST_GAP } from './logic/toast-stack.js';
 export { formatNumericValue, formatDeltaValue } from './logic/table-values.js';
 export { accentSwatchStyle } from './logic/accents.js';
 export { CHART_FLOOR, chartScale, bridgeWalk, pointTarget } from './logic/chart.js';
