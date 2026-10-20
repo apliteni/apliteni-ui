@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.125.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React `Dropdown` takes `aria-describedby` and `aria-invalid` and puts them on its trigger. Spread a `Field`\'s attributes onto it and a screen reader gets the error and hint on the trigger. The trigger\'s name is now the field label and then the chosen value, the list takes the label as its name, and the `id` stays on the outer element. See #637.', ['Dropdown', 'Field']],
+      ['fixed', '`field()` around a `dropdown()` now names the trigger with the label and then the value, describes it with the error or hint, and marks it invalid while the error shows. Before, a search dropdown received these on its search field and the others received none. See #637.', ['Dropdown', 'Field']],
+    ],
+  },
+  {
     v: '0.124.2', date: '2026-10-19',
     changes: [
       ['fixed', 'Selected items and their badges, shortcuts and folded-row names use system colours in forced colours. Unavailable selections use GrayText. See #608.', ['Navigation', 'Segmented', 'Pagination', 'CommandPalette']],

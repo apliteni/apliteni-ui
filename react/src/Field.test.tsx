@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
 import axe from 'axe-core';
 import { field, input, textarea, select } from '@apliteni/apliteni-ui';
+import { Dropdown } from './Dropdown';
 import { Field, TextField, TextArea, SelectField, FileField, type FieldControlProps } from './Field';
 
 // Vite rewrites a literal new URL(..., import.meta.url) into an asset URL, so the
@@ -255,4 +256,85 @@ it('declares the published control type without naming the internal helper', () 
   // wiring stays private, so its signature has to name the published type rather
   // than have one inferred and re-exported through FieldControlProps.
   expect(source).toMatch(/function wiring\([^)]*\): Omit<FieldControlProps, 'required'>/);
+});
+
+// A Dropdown is not a form element: its id sits on an outer div, and Field's label
+// points there. These read the trigger, which is the control a reader lands on.
+const OWNERS = [{ label: 'Avery Example', value: 'avery' }, { label: 'Jordan Example', value: 'jordan' }];
+const owner = (props: { hint?: string; error?: string }) => render(
+  <Field label="Owner" {...props}>{control => <Dropdown {...control} variant="select" items={OWNERS} value="Avery Example" />}</Field>);
+
+it('links a Dropdown trigger to the field error and marks it invalid', () => {
+  const { container } = owner({ error: 'That option is no longer available.' });
+  const trigger = screen.getByRole('button', { name: /Owner/ });
+  const error = container.querySelector('.ui-field__error')!;
+  expect(trigger.getAttribute('aria-describedby')).toBe(error.id);
+  expect(trigger).toHaveAttribute('aria-invalid', 'true');
+  expect(trigger).toHaveAccessibleDescription('That option is no longer available.');
+});
+
+it('describes a Dropdown trigger by the error and then the hint, as Field orders them', () => {
+  const { container } = owner({ error: 'Choose another.', hint: 'Who answers for this.' });
+  const trigger = screen.getByRole('button', { name: /Owner/ });
+  expect(trigger.getAttribute('aria-describedby')).toBe(
+    `${container.querySelector('.ui-field__error')!.id} ${container.querySelector('.ui-field__hint')!.id}`);
+  expect(trigger).toHaveAccessibleDescription('Choose another. Who answers for this.');
+});
+
+it('describes a Dropdown trigger by the hint alone and leaves aria-invalid off without an error', () => {
+  owner({ hint: 'Who answers for this.' });
+  const trigger = screen.getByRole('button', { name: /Owner/ });
+  expect(trigger).toHaveAccessibleDescription('Who answers for this.');
+  expect(trigger).not.toHaveAttribute('aria-invalid');
+  cleanup();
+  owner({});
+  expect(screen.getByRole('button', { name: /Owner/ })).not.toHaveAttribute('aria-describedby');
+  expect(screen.getByRole('button', { name: /Owner/ })).not.toHaveAttribute('aria-invalid');
+});
+
+it('names a Dropdown trigger by the field label and then its value, and keeps the trigger\'s own aria', () => {
+  const { container } = owner({});
+  const trigger = screen.getByRole('button');
+  expect(trigger).toHaveAccessibleName('Owner Avery Example');
+  expect(trigger).toHaveAttribute('aria-haspopup', 'listbox');
+  expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  // The id the consumer passed stays on the outer div, where it was.
+  expect(container.querySelector('.ui-dropdown')!.id).toBe(container.querySelector('label')!.htmlFor);
+});
+
+it('names the panel of a Dropdown in a Field by the label unless it has its own ariaLabel', () => {
+  const { container } = owner({});
+  const panel = container.querySelector('[data-dropdown-panel]')!;
+  expect(panel.getAttribute('aria-labelledby')).toBe(container.querySelector('label')!.id);
+  expect(panel).not.toHaveAttribute('aria-label');
+  cleanup();
+  const own = render(<Field label="Owner">{control => <Dropdown {...control} variant="select" items={OWNERS} ariaLabel="Owners" />}</Field>);
+  const named = own.container.querySelector('[data-dropdown-panel]')!;
+  expect(named).toHaveAttribute('aria-label', 'Owners');
+  expect(named).not.toHaveAttribute('aria-labelledby');
+});
+
+it('leaves a Dropdown outside a Field, or with another id, named by its own value', () => {
+  render(<>
+    <Dropdown variant="select" items={OWNERS} value="Avery Example" id="solo" />
+    <Field label="Owner">{() => <Dropdown variant="select" items={OWNERS} value="Jordan Example" />}</Field>
+  </>);
+  for (const name of ['Avery Example', 'Jordan Example']) {
+    const trigger = screen.getByRole('button', { name });
+    expect(trigger).not.toHaveAttribute('aria-labelledby');
+    expect(trigger).not.toHaveAttribute('aria-describedby');
+    expect(trigger).not.toHaveAttribute('aria-invalid');
+  }
+});
+
+it('forwards aria-describedby and aria-invalid on a Dropdown that sits in no Field', () => {
+  render(<><p id="why">Because.</p><Dropdown variant="select" items={OWNERS} value="Avery Example" aria-describedby="why" aria-invalid="true" /></>);
+  const trigger = screen.getByRole('button');
+  expect(trigger).toHaveAccessibleDescription('Because.');
+  expect(trigger).toHaveAttribute('aria-invalid', 'true');
+});
+
+it('keeps an explicit ariaLabel on an icon-only Dropdown inside a Field', () => {
+  render(<Field label="Owner">{control => <Dropdown {...control} triggerContent={<span aria-hidden="true">+</span>} ariaLabel="Pick an owner" items={OWNERS} />}</Field>);
+  expect(screen.getByRole('button')).toHaveAccessibleName('Pick an owner');
 });
