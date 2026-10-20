@@ -1309,3 +1309,34 @@ test('a panel opened in a tall Drawer and kept open while the viewport shortens 
     assert.deepEqual(failed, []);
   });
 });
+
+test('a resize at the end of a page measures the panel again once, and a scroll after it keeps that height, in both kits', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  await withPlacement(async (browser, ports) => {
+    const failed = [];
+    for (const kit of ['vanilla', 'react']) {
+      const { ctx, page, look } = await openPlacement(browser, {
+        ...ports, kit, args: { stage: 'page', long: true, gap: 200, rows: 30 }, view: { width: 667, height: 844 },
+      });
+      try {
+        await page.locator('[data-dropdown-trigger]').click();
+        await page.waitForTimeout(700);
+        await page.setViewportSize({ width: 668, height: 844 });
+        await page.waitForTimeout(600);
+        const resized = await look();
+        await page.evaluate(() => window.scrollBy({ top: -150, behavior: 'instant' }));
+        await page.waitForTimeout(600);
+        const scrolled = await look();
+        assert.ok(scrolled.open, `${kit}: the panel shut`);
+        assert.ok(resized.trigger.top - scrolled.trigger.top < -149, `${kit}: the page did not scroll 150px, so the case measures nothing`);
+        if (Math.abs(scrolled.panel.height - resized.panel.height) > 0.5) {
+          failed.push(`${kit}: the panel was ${resized.panel.height.toFixed(1)}px after the resize and ${scrolled.panel.height.toFixed(1)}px after the scroll`);
+        }
+      } finally {
+        await ctx.close();
+      }
+    }
+    assert.deepEqual(failed, []);
+  });
+});

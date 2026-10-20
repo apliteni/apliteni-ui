@@ -1490,6 +1490,8 @@ function ddListen(doc) {
       const panel = ddPanelOf(dd);
       if (panel && !dd.__ddPanel && !ddInFilterRow(panel)) dropdownLift(dd, panel);
       ddPlace(dd);
+      // Held again at the new height while the page scrolls, as after an open.
+      dd.__ddSized = true;
       if (panel) dropdownReveal(dd, panel);
     }
   };
