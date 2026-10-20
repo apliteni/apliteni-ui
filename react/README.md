@@ -34,6 +34,8 @@ reset and none of the kit's control CSS, so it cannot stand in for the first imp
 
 Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Chart`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Segmented`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
+`Card` accepts `title`, `sub`, children, `level`, `variant`, `pad`, `icon`, `href`, and `className`. `variant` is `accent` or `live`; omit it for the default surface. `pad` is `sm` or `lg`. A title is a heading unless `href` makes the whole card a link. Compose setting rows with `ui-card__row` and kit controls.
+
 `Segmented` is a controlled choice toolbar: pass `options`, `value`, `onChange`,
 and a `label` for its accessible name. `size="sm"` compacts it, `block` makes it
 fill its container, and `appearance="underline"` draws the underline strip instead

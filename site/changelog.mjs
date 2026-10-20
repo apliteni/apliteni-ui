@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.126.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React Card now offers the vanilla card variants, icon chip, padding, setting rows, and whole-card links. Setting choices stay on one line, and accent cards keep their tint without a coloured edge in vanilla and React. See #429.', ['Card']],
+    ],
+  },
+  {
     v: '0.125.1', date: '2026-10-20',
     changes: [
       ['changed', 'The Colour and theming guideline limits selected navigation to one accent signal. The NavTabs pill keeps its accent ink on a soft accent fill, because the fill alone is too faint to mark the current route. See #475.', ['Guidelines', 'Navigation']],

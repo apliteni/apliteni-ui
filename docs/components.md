@@ -108,6 +108,8 @@ what a factory accepts. They do not describe what the factory does.
 | `iconOnlyAllowed`, `iconOnlyNames`, `iconMeanings` | The icon rulings as data. `iconOnlyNames` gives each wordless glyph the words its button’s name may open with, so `copy` cannot be borrowed for Duplicate. See [Icons and glyphs](foundations.md#icons-and-glyphs). |
 | `seedling`, `prism`, `brand` | The brand mark. |
 
+`card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. If the choice cannot fit beside its label, it moves below the label. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link.
+
 ### Controls and input
 
 | Name | What it is |
