@@ -67,8 +67,11 @@
   --caret-ink: 1.6px;
   --caret-off: calc((var(--caret) - var(--caret-ink)) / 2.8284);  /* 2√2 — the 45° turn's projection */
   width: var(--caret); height: var(--caret);
-  border-right: var(--caret-ink) solid var(--muted);
-  border-bottom: var(--caret-ink) solid var(--muted);
+  /* Two gradient strips, not borders: Chromium rounds a border to whole device pixels,
+     so a 1.6px border painted 1.03px of ink, where the select's SVG stroke paints 1.58px. */
+  background:
+    linear-gradient(var(--muted), var(--muted)) right / var(--caret-ink) 100% no-repeat,
+    linear-gradient(var(--muted), var(--muted)) bottom / 100% var(--caret-ink) no-repeat;
   /* Shift BEFORE rotate, so it lands in page space rather than on the turned axis. */
   transform: translateY(calc(var(--caret-off) * -1)) rotate(45deg);
   transition: transform var(--dur-fast) var(--ease);
