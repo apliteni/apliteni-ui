@@ -1340,3 +1340,57 @@ test('a resize at the end of a page measures the panel again once, and a scroll 
     assert.deepEqual(failed, []);
   });
 });
+
+/* Every scroll listener on the page, live, by the target and the function. */
+const SCROLL_LISTENERS = `(() => {
+  const live = new Set();
+  window.__scrollListeners = live;
+  const add = EventTarget.prototype.addEventListener;
+  const remove = EventTarget.prototype.removeEventListener;
+  const key = (target, fn, opts) => [target, fn, typeof opts === 'boolean' ? opts : !!opts?.capture];
+  const find = (k) => [...live].find((e) => e[0] === k[0] && e[1] === k[1] && e[2] === k[2]);
+  EventTarget.prototype.addEventListener = function (type, fn, opts) {
+    if (type === 'scroll' && fn && !find(key(this, fn, opts))) live.add(key(this, fn, opts));
+    return add.call(this, type, fn, opts);
+  };
+  EventTarget.prototype.removeEventListener = function (type, fn, opts) {
+    if (type === 'scroll') { const e = find(key(this, fn, opts)); if (e) live.delete(e); }
+    return remove.call(this, type, fn, opts);
+  };
+})()`;
+
+test('a closed dropdown removed from the page while its collapse waits for a scroll leaves no scroll listener behind', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  await withPlacement(async (browser, ports) => {
+    const { ctx, page } = await openPlacement(browser, {
+      ...ports, kit: 'vanilla', args: { stage: 'page', long: true, gap: 60, rows: 30 }, view: PHONE, init: SCROLL_LISTENERS,
+    });
+    try {
+      await page.locator('[data-dropdown-trigger]').click();
+      await page.waitForTimeout(700);
+      await page.keyboard.press('End');
+      await page.waitForTimeout(500);
+      await page.evaluate(() => { window.__before = new Set(window.__scrollListeners); });
+      await page.keyboard.press('Escape');
+      // Past the close's fade, so the collapse has found the page would move and waits.
+      await page.waitForTimeout(1000);
+      const waiting = await page.evaluate(() => [...window.__scrollListeners].filter((e) => !window.__before.has(e)).length);
+      assert.equal(waiting, 1, 'no scroll listener was waiting after Escape at the end of the page, so the case measures nothing');
+      const height = await page.evaluate(() => {
+        window.__waiting = [...window.__scrollListeners].find((e) => !window.__before.has(e));
+        const before = document.scrollingElement.scrollHeight;
+        // The page keeps its height, as when its content is replaced.
+        document.body.style.minHeight = `${before}px`;
+        document.querySelector('.ui-dropdown').closest('.ui-field').remove();
+        return { before, after: document.scrollingElement.scrollHeight };
+      });
+      assert.equal(height.after, height.before, 'removing the field changed the page height');
+      await page.waitForTimeout(300);
+      const kept = await page.evaluate(() => window.__scrollListeners.has(window.__waiting));
+      assert.equal(kept, false, 'the removed dropdown\'s collapse still listens for a scroll');
+    } finally {
+      await ctx.close();
+    }
+  });
+});

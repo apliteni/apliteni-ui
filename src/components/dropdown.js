@@ -1343,12 +1343,16 @@ function closeDropdown(dd) {
 }
 
 /** Every wired dropdown still in a tree, the ones in frames and shadow roots
- *  included. Disconnected containers are dropped as they are passed. */
+ *  included. Disconnected containers are dropped as they are passed, with a collapse
+ *  still waiting for a scroll, which would otherwise hold them until the next one. */
 function ddLive() {
   const out = [];
   for (const dd of _ddAll) {
     if (dd.isConnected) out.push(dd);
-    else _ddAll.delete(dd);
+    else {
+      dd.__ddRest?.();
+      _ddAll.delete(dd);
+    }
   }
   return out;
 }
