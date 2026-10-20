@@ -643,6 +643,42 @@
       }
     ]
   },
+  "_spacing.js": {
+    "two-gaps": [
+      {
+        "ref": "src/tokens/tokens.css:28",
+        "pattern": "--space-2: 8px"
+      },
+      {
+        "ref": "src/tokens/tokens.css:33",
+        "pattern": "--space-8: 32px"
+      }
+    ],
+    "two-gaps-phone": [
+      {
+        "ref": "src/styles/tap-zone.css:28",
+        "pattern": "--tap-gap: var(--space-5"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:143",
+        "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:127",
+        "pattern": ".ui-seg--underline { row-gap: var(--space-1"
+      }
+    ],
+    "text-edge": [
+      {
+        "ref": "src/styles/segmented.css:114",
+        "pattern": "padding: var(--space-1)"
+      },
+      {
+        "ref": "src/styles/segmented.css:123",
+        "pattern": "padding: var(--space-3)"
+      }
+    ]
+  },
   "_microcopy.js": {
     "state-not-destination": [
       {
