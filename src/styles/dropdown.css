@@ -277,6 +277,11 @@
    comes later — which is one indicator rather than two.
    why: docs/foundations.md#elevation */
 .ui-dropdown__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+/* Light only: the panel is --bg-elevated, which --surface matches exactly there, so the
+   hover fill above changed nothing. --surface-3 is the quiet fill the drawer's close mark
+   takes on hover, one step under the --surface-2 that .is-active takes below.
+   why: docs/foundations.md#elevation */
+:where(:root[data-theme="light"]) .ui-dropdown__item:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-dropdown__item:focus-visible { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ui-dropdown__label { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
