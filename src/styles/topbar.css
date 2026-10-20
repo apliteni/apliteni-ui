@@ -69,7 +69,11 @@
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .dtsw a:hover { color: var(--strong); }
-.dtsw a.cur { color: var(--strong); background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.dtsw a.cur { color: var(--accent-contrast); background: var(--accent); }
+:where(:root[data-theme="dark"]) .dtsw a.cur { color: var(--signal-contrast); }
+@media (forced-colors: active) {
+  .dtsw a.cur { forced-color-adjust: none; background: Highlight; color: HighlightText; --ring: var(--ring-width) solid CanvasText; }
+}
 .dtsw a:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* Theme toggle — a single icon-only switch (no label). */
@@ -117,7 +121,6 @@
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
 .vsw__btn:hover:not(:focus-visible) { border-color: var(--accent); }
 .vsw__btn:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-.vsw__btn .lbl { color: var(--text); }
 .vsw__btn .cur { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vsw__btn .car {
   width: 8px; height: 8px;
@@ -214,6 +217,11 @@
    the arrow keys, and this is one. It takes the ring on its own 10px radius, the
    same way `.amenu a` above does. #482 */
 .vopt:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+/* The selected version carries the kit's menu tick, as `.ui-dropdown__tick` does for
+   every other menu; the badge keeps its own place beside it. */
+.vopt .vtick { margin-left: 8px; flex: none; display: none; color: var(--accent); margin-top: 1px; }
+.vopt .vtick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+.vopt[aria-selected="true"] .vtick { display: inline-flex; }
 .vopt .vname { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vopt .vmeta { font-size: var(--text-xs); color: var(--text); margin-top: 2px; }
 .vopt .vbadge {
@@ -231,10 +239,8 @@
    the same neutral chip fill rather than the card surface — which, inside a panel that
    is itself lighter than a card, was darker than the ground it sat on. #453 */
 .vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
-/* The version label drops at the shell breakpoint.
-   Anchor the menu to its right edge so a closed panel cannot widen the page. */
+/* Anchor the menu to its right edge so a closed panel cannot widen the page. */
 @media (max-width: 720px) {
-  .vsw__btn .lbl { display: none; }
   .vsw__menu { left: auto; right: 0; }
 }
 
@@ -295,6 +301,8 @@
    accent band is the second band #578 round r34 took off the focus rules, and a
    pointer resting on a focused control would put it back. One indicator, which is
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
+/* The React menu puts the dropdown trigger's pill padding and flex row on the avatar. */
+.acct .avatar { display: grid; padding: 0; }
 .acct .avatar:hover:not(:focus-visible) { border-color: var(--accent); }
 .avatar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .amenu {
@@ -363,6 +371,10 @@
   border-radius: 14px 14px 0 0;
   display: flex; align-items: center; gap: 11px;
 }
+/* The React menu's plain dropdown head: name above address, as the shell's user menu does. */
+.acct-panel .ui-dropdown__head { display: flex; flex-direction: column; gap: 2px; }
+.acct-panel .ui-dropdown__head b { display: block; color: var(--strong); font-size: calc(var(--text-sm) - 0.5px); font-weight: var(--weight-semibold); }
+.acct-panel .ui-dropdown__head span { display: block; color: var(--text); font-size: var(--text-xs); overflow-wrap: anywhere; }
 .amenu .ahead .avatar { cursor: default; }
 .amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

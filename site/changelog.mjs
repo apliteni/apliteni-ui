@@ -14,6 +14,14 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.128.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React TopBar, ViewSwitch, VersionSwitcher and AccountMenu build the strategy top bar from slots, with the existing look and the two phone rows. Part of #429.', ['Topbar']],
+      ['changed', 'The current view in the Deck and Text switch now has the accent fill of a chosen Segmented option, and the open version menu ticks the chosen version like every other menu. Vanilla and React share both.', ['Topbar']],
+      ['changed', 'The version button shows only the chosen version name. The "version:" prefix is gone.', ['Topbar']],
+    ],
+  },
+  {
     v: '0.126.0', date: '2026-10-20',
     changes: [
       ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],

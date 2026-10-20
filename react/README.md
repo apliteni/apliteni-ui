@@ -911,6 +911,28 @@ instead of 32, with the same line drawn in the middle of it.
   ]} />
 ```
 
+## TopBar
+
+`TopBar` is the band: the brand first, then your slots after the spacer. Fill `view`, `version`,
+`theme` and `account` with `ViewSwitch`, `VersionSwitcher`, `ThemeToggle` and `AccountMenu`, or
+leave one out. Leave out `account` for the signed-out bar. The brand is the Apliteni mark and
+`word`, or pass your own `brand`. Put it above `AppShell` or on its own.
+
+```tsx
+<TopBar
+  view={<ViewSwitch items={[{ id: 'deck', label: 'Deck' }, { id: 'text', label: 'Text' }]} active="deck" />}
+  version={<VersionSwitcher versions={versions} value={version} onChange={setVersion} />}
+  theme={<ThemeToggle />}
+  account={<AccountMenu name="Ada Lovelace" email="ada@apliteni.com" onSignOut={signOut} />} />
+```
+
+`ViewSwitch` is a group of links, so it takes `renderLink` like `NavTabs`. The current view is
+filled with the same accent fill as a `Segmented` choice and has `aria-current="page"`.
+`VersionSwitcher` takes `{ value, label, meta, badge }` versions. The button shows only the chosen
+name. The open list ticks the chosen version, as every `Dropdown` does. `AccountMenu` shows the
+avatar mark, the reader's name and address, the rows in `items` and Sign out. Both menus are the
+kit's `Dropdown`, so they share its keyboard and placement.
+
 ## NavTabs and Breadcrumbs
 
 `NavTabs` renders route links with the kit’s underline or pill presentation. Pass
