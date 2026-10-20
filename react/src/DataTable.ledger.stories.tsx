@@ -3,12 +3,14 @@ import { DataTable, type Column } from './DataTable';
 import { Badge } from './primitives/Badge';
 import { Button } from './primitives/Button';
 import { Card } from './primitives/Card';
+import { Icon } from './primitives/Icon';
 import { EmptyState } from './EmptyState';
 import { NumericValue, RowIdentity } from './TableValues';
 
 export default { title: 'React/DataTable ledgers' };
 
-const page = (children: ReactNode) => <>{children}</>;
+const page = (children: ReactNode, width: number | string = 720) => <div style={{ maxWidth: width }}>{children}</div>;
+const titled = (name: string, text: string) => <><span className="ui-card__icon"><Icon name={name} /></span> {text}</>;
 
 type Payout = { name: string; id: string; arrival: string; gross: string; fees: string; net: string; tone: string; status: string };
 const PAYOUTS: Payout[] = [
@@ -20,24 +22,24 @@ const PAYOUTS: Payout[] = [
   ['43', 'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
 ].map(([name, id, arrival, gross, fees, net, tone, status]) => ({ name, id, arrival, gross, fees, net, tone, status }));
 
-// Each stacked phone row keeps every figure, and the unit on a figure says what it counts,
-// because the stacked row clips the column heads.
+// A stacked phone row clips the column heads, so each amount column names itself in front of
+// its figure, and the net head carries the currency once.
 const payoutColumns: Column<Payout>[] = [
   { key: 'name', label: 'ID', linked: true, render: (r) => <a href="#payout">{r.name}</a> },
   { key: 'id', label: 'Payout ID', cell: 'code' },
   { key: 'arrival', label: 'Arrival' },
-  { key: 'gross', label: 'Gross', num: true, render: (r) => <NumericValue value={r.gross} unit="EUR" /> },
-  { key: 'fees', label: 'Fees', num: true, render: (r) => <NumericValue value={r.fees} unit="EUR" /> },
-  { key: 'net', label: 'Net (EUR)', num: true, cell: 'strong', render: (r) => <NumericValue value={r.net} unit="EUR" /> },
+  { key: 'gross', label: 'Gross', num: true, render: (r) => <NumericValue value={r.gross} /> },
+  { key: 'fees', label: 'Fees', num: true, render: (r) => <NumericValue value={r.fees} /> },
+  { key: 'net', label: 'Net (EUR)', num: true, cell: 'strong', render: (r) => <NumericValue value={r.net} /> },
   { key: 'status', label: 'Status', render: (r) => <Badge variant={r.tone}>{r.status}</Badge> },
 ];
 
 export const FinanceData = {
   render: () => page(
-    <Card title="Payouts">
+    <Card title={titled('key', 'Payouts')}>
       <DataTable columns={payoutColumns} rows={PAYOUTS} selectable={false} pager={false}
         density="dense" zebra stack rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
-    </Card>,
+    </Card>, 1040,
   ),
 };
 
@@ -58,7 +60,7 @@ const agentColumns: Column<Agent>[] = [
 
 export const AgentTokens = {
   render: () => page(
-    <Card title="Access & agents">
+    <Card title={titled('key', 'Access & agents')}>
       <DataTable columns={agentColumns} rows={AGENTS} selectable={false} pager={false}
         rowState={(r) => (r.dead ? 'dead' : undefined)} />
     </Card>,
@@ -67,7 +69,7 @@ export const AgentTokens = {
 
 export const Empty = {
   render: () => page(
-    <Card title="Access & agents">
+    <Card title={titled('key', 'Access & agents')}>
       <EmptyState title="No agents connected yet" icon="plug"
         sub="Create a token and paste the MCP connect command into your agent to get started."
         actions={<Button variant="primary" icon="key">Create token</Button>} />
@@ -99,7 +101,7 @@ export const CompactRowHeaders = {
       <DataTable caption="Service hours with row headers" selectable={false} pager={false} density="compact"
         rows={[{ name: 'Interface design', hours: 6 }, { name: 'Prototype review', hours: 4 }] as Hours[]}
         columns={[{ key: 'name', label: 'Service', rowHeader: true }, { key: 'hours', label: 'Hours', num: true }]} />
-    </Card>,
+    </Card>, 'var(--panel-lg)',
   ),
 };
 
@@ -111,7 +113,7 @@ const AUDIT: Entry[] = [
 ];
 export const StackedLog = {
   render: () => page(
-    <Card title="Audit log">
+    <Card title={titled('clock', 'Audit log')}>
       <DataTable selectable={false} pager={false} density="dense" stack rows={AUDIT}
         columns={[{ key: 'name', label: 'Who', cell: 'code' }, { key: 'area', label: 'Area' }, { key: 'time', label: 'Time' }, { key: 'change', label: 'Change', cell: 'long' }]} />
     </Card>,
@@ -126,7 +128,7 @@ const DESKS: Desk[] = [
 ];
 export const StackedPinned = {
   render: () => page(
-    <Card title="Desk notes">
+    <Card title={titled('table', 'Desk notes')}>
       <DataTable selectable={false} pager={false} density="dense" stack stickyHeader pinnedIdentity
         scrollLabel="Desk notes, scroll for more rows" rows={DESKS}
         columns={[
@@ -135,6 +137,6 @@ export const StackedPinned = {
           { key: 'lots', label: 'Size', num: true, render: (r) => <NumericValue value={r.lots} unit="lots" /> },
           { key: 'note', label: 'Note', cell: 'long' },
         ]} />
-    </Card>,
+    </Card>, 860,
   ),
 };

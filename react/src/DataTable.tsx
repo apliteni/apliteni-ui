@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ElementType, type ReactNode } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { Pagination, sizeOf } from './Pagination';
 import './DataTable.css';
@@ -184,6 +184,8 @@ export function DataTable<T extends { name: string }>({
       </>}
     </svg>
   );
+  // A table that does not scroll is the card's own child, so the card's bleed reaches it.
+  const Wrap: ElementType = scrollable ? 'div' : Fragment;
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
 
   return (
@@ -191,8 +193,7 @@ export function DataTable<T extends { name: string }>({
       {/* The rows stay on screen while the next page is fetched, and the table
           says so. A reader who cannot see it otherwise meets a table that is
           silently either current or stale, with no way to tell which. */}
-      <div className={scrollable ? 'ui-table-scroll' : undefined} role={scrollable ? 'region' : undefined}
-        aria-label={scrollable ? scrollLabel : undefined} tabIndex={scrollable ? 0 : undefined}>
+      <Wrap {...(scrollable ? { className: 'ui-table-scroll', role: 'region', 'aria-label': scrollLabel, tabIndex: 0 } : {})}>
       <table ref={table} className={['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', stack && 'ui-table--stack', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined} role={stack ? 'table' : undefined}>
         {caption ? <caption className="ui-sr">{caption}</caption> : null}
@@ -240,7 +241,8 @@ export function DataTable<T extends { name: string }>({
               {columns.map((c, columnIndex) => {
                 const Cell = c.rowHeader ? 'th' : 'td';
                 return (
-                  <Cell key={c.key} scope={c.rowHeader ? 'row' : undefined} role={stack ? 'cell' : undefined}
+                  <Cell key={c.key} scope={c.rowHeader ? 'row' : undefined} role={stack ? (c.rowHeader ? 'rowheader' : 'cell') : undefined}
+                    data-label={stack && c.num && typeof c.label === 'string' ? c.label : undefined}
                     className={[c.num && 'ui-table__num', c.cell && CELL_CLASS[c.cell], pinnedIdentity && columnIndex === 0 && 'ui-table__identity', c.linked && 'ui-table__linked'].filter(Boolean).join(' ') || undefined}>
                     {c.render ? c.render(r) : String(r[c.key])}
                   </Cell>
@@ -249,9 +251,9 @@ export function DataTable<T extends { name: string }>({
             </tr>
           ))}
         </tbody>
-        {footer ? <tfoot>{footer}</tfoot> : null}
+        {footer ? <tfoot role={stack ? 'rowgroup' : undefined}>{footer}</tfoot> : null}
       </table>
-      </div>
+      </Wrap>
       {/* One page and no size to choose renders nothing at all — the pager's own
           rule, not a second copy of it here. */}
       {pager ? (

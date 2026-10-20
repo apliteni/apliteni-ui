@@ -612,7 +612,7 @@ and the one-line cap and the filled cell both come off. The header row is clippe
 removed, so a cell still reads with its column's name. **A clipped header is read but not operated**, so put a sort or filter control
 on the row above the table and name the table in `aria-controls`. The markup includes the table
 roles at every width because a stylesheet cannot add them. A value whose meaning comes from its
-heading must carry that meaning itself. This is a rule in [Dense tables](../guidelines/dense-tables.md).
+heading must carry that meaning itself: give an amount cell `data-label` with its column's name, and a stacked row shows it before the figure. This is a rule in [Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
 change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
@@ -810,7 +810,7 @@ A `.ui-table__title` cell gives a text column the remaining width. A column take
 `stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
 and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
 with no strike line. `stack` writes the table roles that the block layout drops. Below the phone step each row
-shows every cell, so no amount scrolls out of reach.
+shows every cell, so no amount scrolls out of reach, and an amount column (`num`) shows its label before each figure. A table that does not scroll is the card's own child, so a dense or stacked table reaches the card's text edge.
 Its pager follows the measured table width and wraps when necessary.
 Without `ResizeObserver`, the pager keeps its container width.
 A pager that renders no controls takes no space.

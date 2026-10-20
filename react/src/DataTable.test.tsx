@@ -912,6 +912,21 @@ describe('the vanilla table hooks', () => {
     expect(container.querySelector('[role]')).toBeNull();
   });
 
+  it('keeps the row header and footer roles of a stacked table, and labels its amounts', () => {
+    const { container } = render(<DataTable selectable={false} pager={false} stack rows={rows}
+      columns={[{ key: 'name', label: 'Name', rowHeader: true }, { key: 'clicks', label: 'Clicks', num: true }]}
+      footer={<tr><th scope="row">Total</th><td className="ui-table__num">60</td></tr>} />);
+    expect(container.querySelector('tbody th[scope="row"]')).toHaveAttribute('role', 'rowheader');
+    expect(container.querySelector('tfoot')).toHaveAttribute('role', 'rowgroup');
+    expect(container.querySelector('tbody td.ui-table__num')).toHaveAttribute('data-label', 'Clicks');
+    expect(container.querySelector('tbody td:not(.ui-table__num)')).toBeNull();
+  });
+
+  it('puts a table that does not scroll directly in its parent, so a card can bleed it', () => {
+    const { container } = render(<div className="ui-card"><DataTable columns={columns} rows={rows} selectable={false} pager={false} density="dense" /></div>);
+    expect(container.querySelector('.ui-card > table.ui-table--dense')).not.toBeNull();
+  });
+
   it('marks target and dead rows', () => {
     const { container } = render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
       rowState={(r) => (r.name === 'A' ? 'target' : r.name === 'B' ? 'dead' : undefined)} />);

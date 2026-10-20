@@ -505,6 +505,17 @@ a.ui-identity:hover { text-decoration: underline; }
     padding: 0; border-bottom: 0; white-space: normal; overflow-wrap: break-word;
   }
   .ui-table.ui-table--stack > tbody > tr > td.ui-table__long { flex: 0 0 100%; text-align: left; }
+  /* The head is gone, so an amount that names its column in `data-label` says it in front of
+     the figure, in the unit's size and body ink. */
+  .ui-table.ui-table--stack > tbody > tr > td[data-label]::before {
+    content: attr(data-label); margin-right: var(--space-1); font-size: var(--text-xs);
+  }
+  /* The cells of a stacked row are separate boxes with gaps between them, so a tint on each
+     would paint patches. The row paints one tint and the cells let it through. */
+  .ui-table.ui-table--stack tbody tr.is-target:is(*, :hover) {
+    background: color-mix(in srgb, var(--accent) 12%, transparent); /* code-bg: inherit — this translucent wash leaves the chip on its opaque ground. */
+  }
+  .ui-table.ui-table--stack tbody tr.is-target:is(*, :hover) > :is(td, th) { background: transparent; }
   /* A stacked row has no columns left to pin, stick or inset, and the identity's name is
      what the row is about — the fold hides it only because a pinned column is narrow. */
   .ui-table.ui-table--stack.ui-table--pinned > :where(thead, tbody) > tr > :where(.ui-table__identity, .ui-table__selection) {

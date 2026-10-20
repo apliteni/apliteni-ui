@@ -7,7 +7,7 @@ export default {
   parameters: { layout: 'fullscreen' },
 };
 
-// Financial ledger — dense + zebra + hover, mono ids (no chip), tabular
+// Financial ledger — dense + zebra + hover, plain ids (no chip), tabular
 // numerics, semantic status badges. The shared data-table recipe.
 const PAYOUTS = [
   ['1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '11,871.49', 'success', 'Paid'],
@@ -38,9 +38,9 @@ export const FinanceData = {
             <td role="cell" class="ui-table__linked"><a href="#">${id}</a></td>
             <td role="cell" class="ui-table__code">${pid}</td>
             <td role="cell">${arr}</td>
-            <td role="cell" class="ui-table__num">${numericValue({ value: gross, unit: 'EUR' })}</td>
-            <td role="cell" class="ui-table__num">${numericValue({ value: fees, unit: 'EUR' })}</td>
-            <td role="cell" class="ui-table__num ui-table__num--strong">${numericValue({ value: net, unit: 'EUR' })}</td>
+            <td role="cell" class="ui-table__num" data-label="Gross">${numericValue({ value: gross })}</td>
+            <td role="cell" class="ui-table__num" data-label="Fees">${numericValue({ value: fees })}</td>
+            <td role="cell" class="ui-table__num ui-table__num--strong" data-label="Net (EUR)">${numericValue({ value: net })}</td>
             <td role="cell">${badge(label, variant)}</td>
           </tr>`).join('')}
       </tbody>
@@ -163,9 +163,9 @@ export const StackedLog = {
 // inset all come off, and the pinned identity shows its whole name rather than the symbol the
 // 720px fold leaves it.
 //
-// The clipped header is why the lot count carries its unit and the caption expands the
-// basis point: a stacked row reads as one line of facts, and a bare number in it has no
-// column heading left to say what it counts.
+// The clipped header is why the weight and the lot count carry their unit: a stacked row
+// reads as one line of facts, and a bare number in it has no column heading left to say
+// what it counts.
 const DESKS = [
   ['NORT', 'Northstar Analytics', '128.40', '3', 'Rebalanced into short-duration paper after the June print; the committee asked for the note to be kept on the position until September.'],
   ['HARB', 'Harbor Software', '96.12', '12', 'Holding. The renewal cohort is the whole thesis and it does not settle until the next quarter closes.'],
