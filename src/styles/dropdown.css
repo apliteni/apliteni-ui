@@ -154,6 +154,9 @@
     var(--ui-dropdown-avail, calc(100dvh - 2 * var(--ui-dropdown-edge)))
   );
   overflow-y: auto;
+  /* A focused row scrolls into view flush with the box's edge, which leaves the ring's
+     3px outside the box and clipped. The scroll keeps that room. */
+  scroll-padding-block: calc(var(--ring-gap-width) + var(--ring-width));
   /* The wheel stops at the panel's own end instead of carrying on down the page
      underneath it — the second half of #489. */
   overscroll-behavior: contain;
@@ -409,7 +412,7 @@
 
 /* The rows' own cap, read from the same property the panel reads: the `scroll`
    option lands on the list when there is a field above it. #489 */
-.ui-dropdown__list { max-height: var(--ui-dropdown-cap, 300px); overflow-y: auto; overscroll-behavior: contain; }
+.ui-dropdown__list { max-height: var(--ui-dropdown-cap, 300px); overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: calc(var(--ring-gap-width) + var(--ring-width)); }
 /* Rows are `role="option" tabindex="-1"`, so the LIST takes the keyboard stop and
    answered with the native outline. The band is drawn INWARD, on the list: an outset
    one 6px inside a --radius-lg corner leaves the panel, and the panel is not the box
