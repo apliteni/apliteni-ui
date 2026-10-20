@@ -66,6 +66,15 @@ test('the React Phone story does not scroll sideways at 320 and keeps every band
               brandHref: document.querySelector('.ui-app__bar .ui-app__brand--band')?.getAttribute('href'),
               workspace: (() => { const label = document.querySelector('.ui-react-app__band-control .ui-btn__label'); return { name: label?.textContent, overflow: label?.scrollWidth > label?.clientWidth, ellipsis: label && getComputedStyle(label).textOverflow }; })(),
               short: document.querySelector('.ui-app__search-short')?.getBoundingClientRect().width,
+              tap: ['.ui-app__menu', '.ui-app__brand--band', '.ui-app__search',
+                '.ui-react-app__band-control .ui-btn', '.ui-app__bar .toggle', '.ui-app__user-trigger']
+                .map((selector) => {
+                  const el = document.querySelector(selector);
+                  const rect = el.getBoundingClientRect();
+                  const pseudo = getComputedStyle(el, '::after');
+                  return { selector, width: Math.max(rect.width, parseFloat(pseudo.width) || 0),
+                    height: Math.max(rect.height, parseFloat(pseudo.height) || 0) };
+                }),
             };
           });
           const where = `${width}px, ${touch ? 'coarse' : 'fine'}`;
@@ -79,6 +88,10 @@ test('the React Phone story does not scroll sideways at 320 and keeps every band
           }
           assert.ok(m.scroll <= m.client, `${where}: the page scrolls sideways (${m.scroll} over ${m.client})`);
           assert.equal(m.off, 0, `${where}: ${m.off} band controls sit off screen`);
+          if (touch) for (const target of m.tap) {
+            assert.ok(target.width >= 44 && target.height >= 44,
+              `${where}: ${target.selector} has only ${target.width} by ${target.height}px to tap`);
+          }
           assert.ok(m.control >= 56, `${where}: the Workspace control is ${m.control}px wide, a sliver`);
           await ctx.close();
         }
