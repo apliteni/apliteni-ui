@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.127.0', date: '2026-10-20',
+    v: '0.128.0', date: '2026-10-20',
     changes: [
       ['added', 'The React invoice showcase demonstrates upload, review, editing and recovery with sample data. Files and edits stay in the browser tab. Refs #459.'],
       ['added', 'React `FileDrop` takes `title` to show a dashed drop area for an empty page. The kit also has `.ui-drop--page`, which enlarges that area into a layer over the whole page for a file drag. Its ground is opaque, so no page text shows across its words. It starts below the topbar. The Upload button stays the keyboard path in both. Refs #458.', ['FileDrop']],
@@ -14,6 +14,14 @@ export const RELEASES = [
       ['changed', 'The invoice showcase no longer offers Undo after Save. Save shows the Toast "Saved" and the form keeps Save and Discard. Refs #458.'],
       ['changed', 'The story CSS gate in the React workspace now reads every stylesheet in the showcases folder, also when its own module imports it. Refs #458.'],
       ['changed', 'Badges now include the neutral variant class when no variant is supplied. Their colours remain unchanged.', ['Badge']],
+    ],
+  },
+  {
+    v: '0.127.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A checkbox with `indeterminate` set shows the checked fill with a short dash. React `DataTable` selection boxes now use this kit box, 19px instead of 13px, and the header box shows the dash when only some rows on the page are selected. The selection column takes the width of its box in every selectable table. In a dense or compact table, the box keeps a 24px tall tap area on a phone, so it never reaches the next row. See #619.', ['DataTable', 'Checkbox']],
+      ['changed', 'In the dark theme, the tick, the dash and the radio dot of a selected box use the ink that a selected Segmented pill uses there, so they keep their contrast on the lighter accents.', ['Checkbox']],
+      ['fixed', 'In forced colours, an unavailable checkbox, radio or selection box and its mark use GrayText, and the radio dot stays visible.', ['Checkbox']],
     ],
   },
   {

@@ -123,7 +123,9 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c6270' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
 }
 
-/* Checkbox / radio — custom, token-driven */
+/* Checkbox / radio — custom, token-driven. DataTable's selection boxes are bare
+   inputs in a cell with no label, and take the same box so a partial page reads in
+   the kit's paint rather than the browser's. #619 */
 .ui-check {
   display: inline-flex;
   align-items: flex-start;
@@ -133,7 +135,8 @@
   color: var(--text);
   line-height: 1.5;
 }
-.ui-check input {
+.ui-check input,
+.ui-table__selection input[type="checkbox"] {
   appearance: none;
   width: 19px;
   height: 19px;
@@ -146,6 +149,9 @@
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
   position: relative;
 }
+/* In a cell there is no label line to sit beside, so the box centres on the row's
+   text instead of dropping 1px to meet a label's first line. */
+.ui-table__selection input[type="checkbox"] { margin-top: 0; vertical-align: middle; }
 /* The target, not the ink. The box above is drawn at 19x19 because that is what
    sits beside a 15px label without shouting; WCAG 2.5.8 wants 24 CSS px of
    pointer target, which is a different question. This overlay answers it and
@@ -155,7 +161,8 @@
    inside the same <label> (which toggles the same input, so an overlap there
    would cost nothing) and 14px between stacked rows in the specimen. Measured
    in stories/guidelines/accessibility-floor.test.js. #219 */
-.ui-check input::before {
+.ui-check input::before,
+.ui-table__selection input[type="checkbox"]::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -171,9 +178,12 @@
    accent band is the second band #578 round r34 took off the focus rules, and a
    pointer resting on a focused control would put it back. One indicator, which is
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
-.ui-check input:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
-.ui-check input:checked { background: var(--accent); border-color: var(--accent); }
-.ui-check input[type="checkbox"]:checked::after {
+.ui-check input:enabled:hover:not(:focus-visible),
+.ui-table__selection input[type="checkbox"]:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
+.ui-check input:checked,
+.ui-table__selection input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+.ui-check input[type="checkbox"]:checked::after,
+.ui-table__selection input[type="checkbox"]:checked::after {
   content: "";
   position: absolute;
   left: 5px; top: 1.5px;
@@ -199,14 +209,59 @@
    ground together. A checked box drops the accent for the reason a disabled primary
    button does: the accent IS the "press me". Its mark inverts to --disabled-surface,
    so the tick and the dot keep the measured --disabled-ink pair in both themes. */
-.ui-check input:disabled {
+.ui-check input:disabled,
+.ui-table__selection input[type="checkbox"]:disabled {
   background: var(--disabled-surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border-color: var(--disabled-border);
   cursor: not-allowed;
 }
-.ui-check input:disabled:checked { background: var(--disabled-ink); border-color: var(--disabled-ink); }
-.ui-check input[type="checkbox"]:disabled:checked::after { border-color: var(--disabled-surface); }
+.ui-check input:disabled:checked,
+.ui-table__selection input[type="checkbox"]:disabled:checked { background: var(--disabled-ink); border-color: var(--disabled-ink); }
+.ui-check input[type="checkbox"]:disabled:checked::after,
+.ui-table__selection input[type="checkbox"]:disabled:checked::after { border-color: var(--disabled-surface); }
 .ui-check input[type="radio"]:disabled:checked::after { background: var(--disabled-surface); /* code-bg: inherit — the mark inside the box; the box carries the focus indicator. */ }
+/* Partial: some of a group is on, not all. The checked box's fill with a level
+   dash where the tick would be, so the box still reads as "on" from across a table
+   and the dash alone says "not all". It wins over a tick when both are set, as the
+   browser's own box does. Drawn with a border, not a background, so forced colours
+   keeps the dash. #619 */
+.ui-check input[type="checkbox"]:indeterminate,
+.ui-table__selection input[type="checkbox"]:indeterminate { background: var(--accent); border-color: var(--accent); }
+.ui-check input[type="checkbox"]:indeterminate::after,
+.ui-table__selection input[type="checkbox"]:indeterminate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 11px; height: 0; /* odd, so the 17px padding box splits into equal gaps */
+  border: solid var(--accent-contrast);
+  border-width: 2px 0 0;
+  transform: none;
+}
+/* White ink falls below 3:1 on the lighter dark-theme accents, so the tick, the dash and
+   the radio's dot take the ink a selected Segmented pill takes there. */
+:where(:root[data-theme="dark"]) .ui-check input[type="checkbox"]:enabled:is(:checked, :indeterminate)::after,
+:where(:root[data-theme="dark"]) .ui-table__selection input[type="checkbox"]:enabled:is(:checked, :indeterminate)::after { border-color: var(--signal-contrast); }
+:where(:root[data-theme="dark"]) .ui-check input[type="radio"]:enabled:checked::after { background: var(--signal-contrast); }
+.ui-check input[type="checkbox"]:disabled:indeterminate,
+.ui-table__selection input[type="checkbox"]:disabled:indeterminate { background: var(--disabled-ink); border-color: var(--disabled-ink); }
+.ui-check input[type="checkbox"]:disabled:indeterminate::after,
+.ui-table__selection input[type="checkbox"]:disabled:indeterminate::after { border-color: var(--disabled-surface); }
+/* Forced colours replace every fill, so a disabled box that painted only a fill and
+   a --disabled-* edge drew the same edge and mark as an enabled one, and a radio's dot
+   vanished. GrayText is the system colour for an unavailable control. The tick and the
+   dash are borders, so they keep it; the dot is a fill, so it names a system colour. */
+@media (forced-colors: active) {
+  .ui-check input:disabled,
+  .ui-check input:disabled:is(:checked, :indeterminate),
+  .ui-check input[type="checkbox"]:disabled:is(:checked, :indeterminate),
+  .ui-table__selection input[type="checkbox"]:disabled,
+  .ui-table__selection input[type="checkbox"]:disabled:is(:checked, :indeterminate) { border-color: GrayText; }
+  .ui-check input[type="checkbox"]:disabled:is(:checked, :indeterminate)::after,
+  .ui-table__selection input[type="checkbox"]:disabled:is(:checked, :indeterminate)::after { border-color: GrayText; }
+  .ui-check input[type="radio"]:enabled:checked::after { background: CanvasText; }
+  .ui-check input[type="radio"]:disabled:checked::after { background: GrayText; }
+}
 /* The label is the click target, so the cursor belongs on it, and the words it
    holds go quiet with the box beside them. */
 .ui-check:has(input:disabled) { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; }
