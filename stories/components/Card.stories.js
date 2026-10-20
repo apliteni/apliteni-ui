@@ -19,7 +19,7 @@ export const SettingRows = {
   render: () => pad(`<div style="max-width:560px">${card({
     title: 'Appearance',
     body: `
-      <div class="ui-card__row"><div><div class="lab">Theme</div><div class="hint">Match the deck's dark palette or a light workspace.</div></div>
+      <div class="ui-card__row ui-card__row--tight-choice"><div><div class="lab">Theme</div><div class="hint">Match the deck's dark palette or a light workspace.</div></div>
         ${segmented({ name: 'theme', options: ['Dark', 'Light', 'System'], active: 0, ariaLabel: 'Theme' })}</div>
       <div class="ui-card__row"><div><div class="lab">Language</div><div class="hint">Interface language for the portal.</div></div>
         ${segmented({ name: 'lang', options: ['EN', 'RU'], active: 0, ariaLabel: 'Language' })}</div>

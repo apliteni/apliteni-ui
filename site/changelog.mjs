@@ -6,10 +6,16 @@
 
 export const RELEASES = [
   {
+    v: '0.129.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React Card offers the vanilla card variants, icon chip, padding, setting rows and whole-card links. The Theme choice stays on one line, and accent cards keep their tint without a coloured edge. Part of #429.', ['Card']],
+      ['changed', 'A whole-card link whose last child is its description no longer leaves a gap below it. Set the gap on the card if the design needs it.', ['Card']],
+    ],
+  },
+  {
     v: '0.128.0', date: '2026-10-20',
     changes: [
-      ['added', 'React Card now offers the vanilla card variants, icon chip, padding, setting rows, and whole-card links. Setting choices stay on one line, and their buttons tighten below 360px so that they fit, and accent cards keep their tint without a coloured edge in vanilla and React. See #429.', ['Card']],
-      ['changed', 'A whole-card link whose last child is its description no longer leaves the 20px gap under the description. Set the gap on the card if a design needs it.', ['Card']],
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
     ],
   },
   {

@@ -66,7 +66,7 @@ export const SettingRows: StoryObj = {
     const [motion, setMotion] = useState(false);
     return <div style={page}><div style={{ maxWidth: 560 }}>
       <Card title="Appearance">
-        <div className="ui-card__row">
+        <div className="ui-card__row ui-card__row--tight-choice">
           <div><div className="lab">Theme</div><div className="hint">Match the deck's dark palette or a light workspace.</div></div>
           <Segmented label="Theme" value={theme} onChange={setTheme} options={[{ label: 'Dark', value: 'dark' }, { label: 'Light', value: 'light' }, { label: 'System', value: 'system' }]} />
         </div>
