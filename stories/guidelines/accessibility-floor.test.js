@@ -18,28 +18,22 @@ import path from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 import { tokensFor, parseColour, ratio } from '../lib/contrast.js';
 import { decomment } from '../lib/target-geometry.js';
-import { runJobs } from '../lib/job-pool.js';
 import {
   root, THEMES, sheet, disabledRules, TOUCH_MIN, CELLS,
 } from '../lib/accessibility-walks.js';
+import { targetPart } from '../lib/floor-part.js';
+import { FLOOR_ENTRIES, cellProblems, floorProblems } from '../lib/floor-parts.js';
 import {
-  TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, TARGET_EXEMPT,
+  TARGET_MIN, TARGET_EXEMPT,
   RULES,
 } from './_accessibility-floor.js';
 
 const { GATES } = JSON.parse(readFileSync(new URL('./accessibility-coverage.json', import.meta.url), 'utf8'));
 
-// The eleven walks are independent, so they run on worker threads at once and this file waits
-// for all of them here, before any test, rather than inside one.
-const WALKS = new URL('../lib/accessibility-walks.js', import.meta.url);
-const [targetRun, ...cellRuns] = await runJobs(WALKS, [
-  { fn: 'targetRun' },
-  ...CELLS.map(({ theme, accent }) => ({ fn: 'ringCell', args: [theme, accent] })),
-  ...THEMES.map((theme) => ({ fn: 'disabledCell', args: [theme] })),
-]);
-const ringRun = Object.fromEntries(cellRuns.slice(0, CELLS.length).map((c) => [`${c.theme}/${c.accent}`, c]));
-const disabledRun = Object.fromEntries(THEMES.map((theme, i) => [theme, cellRuns[CELLS.length + i]]));
-
+// The walks are dealt over four files (stories/lib/floor-parts.js): this one measures the target
+// walk, floor-ring-dark and floor-ring-light the ring cells of each theme, and floor-disabled
+// the disabled cells. The guard tests at the end hold that each part has one entry file.
+const targetRun = await targetPart();
 
 test('target size: every control the stories render is measured, none skipped', () => {
   assert.deepEqual(targetRun.problems, [], 'a story that will not render is a hole in the measurement');
@@ -194,63 +188,6 @@ test('folded rail: every control a reader can reach is drawn', () => {
   assert.deepEqual(gone, [], 'a folded rail control is display:none, so Tab passes it by');
 });
 
-const CELL_KEYS = Object.keys(ringRun);
-
-test('ring: every selector the sheet paints a ring on is landed somewhere by a story', () => {
-  for (const key of CELL_KEYS) {
-    const run = ringRun[key];
-    assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
-    const landed = new Set(run.landings.map((l) => l.selector));
-    // `.ui-focusable` is the kit's opt-in focus class
-    // (src/styles/base.css:151 `.ui-focusable:focus-visible,`). No vanilla component
-    // wears it and no vanilla story renders one, so it has no ground to be measured
-    // against — a fact about the class, not a hole here. React's Tooltip trigger wears
-    // it and is swept elsewhere. It is named rather than filtered so it cannot quietly
-    // become two.
-    //
-    // The Finance dashboard's head link wore it until round 38 removed that link.
-    // A later commit on this PR claimed coverage back by string-pasting the class
-    // onto a primary Button, which measures the ring against the button's own
-    // fill — already covered by `.ui-btn:focus-visible` — rather than against a
-    // real surface. PR #552 code review, finding F5: the exception is restored
-    // rather than that false carrier kept.
-    //
-    // A reader looking for the gap this leaves: the subjects are the selectors the
-    // sheet ALREADY rings, so a control given no focus rule at all is invisible here
-    // however many stories draw it. stories/focus-ring.test.js walks the controls
-    // instead, on the landing page and the shell, footer and topbar stories; a control
-    // with no ring rule drawn only on a guideline page is caught by neither.
-    const orphans = run.selectors.filter((s) => !landed.has(s));
-    assert.deepEqual(orphans, ['.ui-focusable:focus-visible'], `${key}: a ring selector no story renders is a ring nobody measured`);
-  }
-});
-
-// Every accent is swept, not just the two themes: the ring is var(--accent) and
-// each sub-theme re-points it, so `phoenix` is a different ring on the same
-// surfaces. #201 measured the default accent only and reported 1.50 as the
-// worst the kit had; light emerald was 1.35 the whole time.
-test(`ring: ${RING_MIN}:1 against every ground it lands on, in every theme x accent cell`, () => {
-  const failing = CELL_KEYS.flatMap((key) => ringRun[key].landings
-    .filter((l) => l.ratio != null && l.ratio < RING_MIN)
-    .map((l) => `${key}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`));
-  assert.deepEqual(
-    failing, [],
-    `${failing.length} ring landings under the ${RING_MIN}:1 of WCAG 1.4.11:\n  ${failing.join('\n  ')}`,
-  );
-});
-
-// The bar above is what WCAG asks; this is what the kit actually reaches. They
-// are the same shape and different numbers on purpose — the ratchet catches a
-// token moving the ring DOWN long before it reaches the bar, which is the only
-// warning anyone gets. It is the measured worst, so it moves only by being
-// re-measured (the measured-pin rule).
-test(`ring: nothing has drifted below ${RING_FLOOR}:1, the worst the kit measures today`, () => {
-  const worse = CELL_KEYS.flatMap((key) => ringRun[key].landings
-    .filter((l) => l.ratio != null && Math.round(l.ratio * 100) / 100 < RING_FLOOR)
-    .map((l) => `${key}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`));
-  assert.deepEqual(worse, [], 'a token moved a ring landing below the worst #218 measured');
-});
-
 // #218 retired the ledger this gate used to carry. The ring clears the bar in
 // all eight cells now, so there is no gap to hold open — and the Accessibility minimums page
 // must not still badge one.
@@ -289,30 +226,6 @@ test('ring: the band is declared once, from the widths and the ink that tune it'
     '--ring-offset no longer reads --ring-gap-width, so the gap is not tunable');
 });
 
-
-test('disabled: every rule that dims a control is found, and a story renders it', () => {
-  const subjects = disabledRun.dark.subjects;
-  assert.ok(subjects.length >= 5, `only ${subjects.length} disabled rules found in the sheet`);
-  for (const theme of THEMES) {
-    assert.ok(disabledRun[theme].found.length > 0, `${theme}: no disabled text measured at all`);
-  }
-});
-
-test(`disabled: every label a disabled control shows clears ${DISABLED_MIN}:1, in both themes`, () => {
-  const under = THEMES.flatMap((theme) => disabledRun[theme].found
-    .filter((f) => f.labelled && f.ratio < DISABLED_MIN)
-    .map((f) => `${theme} ${f.path} at opacity ${f.opacity} — ${f.ratio.toFixed(2)}:1`));
-  assert.deepEqual(under, [], `disabled labels under the ${DISABLED_MIN}:1 floor #220 settled`);
-});
-
-test(`disabled: nothing has drifted below ${DISABLED_FLOOR}:1, the worst the kit measures today`, () => {
-  for (const theme of THEMES) {
-    const worse = disabledRun[theme].found
-      .filter((f) => f.labelled && Math.round(f.ratio * 100) / 100 < DISABLED_FLOOR)
-      .map((f) => `${f.path} at opacity ${f.opacity} — ${f.ratio.toFixed(2)}:1`);
-    assert.deepEqual(worse, [], `${theme}: a token moved a disabled pair below the ratchet`);
-  }
-});
 
 // Keep measured ratios in the test, not in reader-facing guideline history.
 test('disabled: the opaque token pair retains its measured contrast in both themes', () => {
@@ -358,26 +271,6 @@ test('disabled: a rule is classified by what it paints, not by what it selects',
   ].sort(), 'the kit\'s edge-only disabled rules moved — each one is measured on its own box alone');
 });
 
-test('disabled: the state repaints — off never looks the same as on', () => {
-  const same = THEMES.flatMap((theme) => disabledRun[theme].found
-    .filter((f) => !f.repaints)
-    .map((f) => `${theme} ${f.path} — ${f.selector} paints exactly what the enabled control paints`));
-  assert.deepEqual(same, [], 'a disabled control that is indistinguishable from an enabled one');
-});
-
-// The mechanism, held rather than argued. `opacity` under a disabled selector
-// drags a label and its box toward the ground together, and the pair a reader
-// is left with is wherever the composite lands — 1.48:1, for the primary button
-// #220 was opened about. The rule the kit settled on is that a control with a
-// LABEL under it takes a paint, not a fade. The switch track is what is left:
-// it fades, and there is nothing written inside it to fade.
-test('disabled: a rule that fades with opacity has no label under it', () => {
-  const faded = THEMES.flatMap((theme) => disabledRun[theme].found
-    .filter((f) => f.opacity < 1 && f.labelled)
-    .map((f) => `${theme} ${f.path} — ${f.selector} at opacity ${f.opacity}`));
-  assert.deepEqual(faded, [], 'a disabled label faded by opacity instead of painted');
-});
-
 // ---- the collection -------------------------------------------------------
 //
 // The page names every gate and what it admits. This holds the two in step the
@@ -413,4 +306,35 @@ test('every gate the page names states a blind spot, and states what it checks',
   }
 });
 
-export { targetRun, ringRun, disabledRun };
+// ---- the deal of the walks ------------------------------------------------
+
+const here = path.join(root, 'stories');
+const entrySources = () => Object.fromEntries(Object.keys(FLOOR_ENTRIES).map((f) => {
+  try { return [f, readFileSync(path.join(here, f), 'utf8')]; } catch { return [f, undefined]; }
+}).filter(([, text]) => text !== undefined));
+
+test('every walk has one owner: each part has one entry file and each cell one ring part', () => {
+  assert.deepEqual(floorProblems(entrySources()), [], 'a part that no file runs is never measured');
+  assert.deepEqual(cellProblems(), []);
+  assert.equal(CELLS.length, 8, 'the cells moved — re-check the deal');
+});
+
+test('a missing, repeated or foreign entry file is rejected', () => {
+  const real = entrySources();
+  const { 'guidelines/floor-disabled.test.js': _gone, ...without } = real;
+  assert.deepEqual(floorProblems(without), [
+    'part entry point guidelines/floor-disabled.test.js is missing', 'no entry point runs disabled']);
+  const twice = { ...real, 'guidelines/floor-ring-light.test.js': real['guidelines/floor-ring-dark.test.js'] };
+  const found = floorProblems(twice);
+  assert.ok(found.includes('guidelines/floor-ring-light.test.js runs ring dark, not ring light'));
+  assert.ok(found.includes('ring dark runs in more than one file: guidelines/floor-ring-dark.test.js, guidelines/floor-ring-light.test.js'));
+  assert.ok(found.includes('no entry point runs ring light'));
+  assert.ok(floorProblems({ ...real, 'guidelines/floor-ring-dark.test.js': '' })
+    .includes('guidelines/floor-ring-dark.test.js must run one part, and runs 0'));
+});
+
+test('a cell no ring part walks, or two walk, is rejected', () => {
+  assert.deepEqual(cellProblems(CELLS, ['dark']).filter((p) => p.endsWith('has no ring part')).length, CELLS.filter((c) => c.theme === 'light').length);
+  assert.ok(cellProblems(CELLS, ['dark', 'dark', 'light']).some((p) => p.includes('is walked 2 times')));
+  assert.deepEqual(cellProblems([...CELLS, CELLS[0]]).filter((p) => p.includes('listed twice')).length, 1);
+});
