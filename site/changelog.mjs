@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.125.1', date: '2026-10-20',
+    changes: [
+      ['changed', 'The Colour and theming guideline limits selected navigation to one accent signal. The NavTabs pill keeps its accent label on a soft accent fill to distinguish the current route from hover. See #475.', ['Guidelines', 'Navigation']],
+    ],
+  },
+  {
     v: '0.125.0', date: '2026-10-20',
     changes: [
       ['added', 'React `Dropdown` takes `aria-describedby` and `aria-invalid` and puts them on its trigger. Spread a `Field`\'s attributes onto it and a screen reader gets the error and hint on the trigger. The trigger\'s name is now the field label and then the chosen value, the list takes the label as its name, and the `id` stays on the outer element. See #637.', ['Dropdown', 'Field']],

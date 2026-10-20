@@ -42,6 +42,20 @@
 
 <!-- rule: accent-strong -->
 
+## Limit selection accents
+
+<!-- rule: selection-accent -->
+
+**Rule:** Limit selected navigation to one accent signal: Segmented fill or NavTabs underline.
+
+**Why:** Extra marks compete. A failure specimen breaks this rule.
+
+**Do:** Use contrasting ink on Segmented and body ink on underline NavTabs. For SidebarNav, see Keep text off grey fills.
+
+**Don't:** Accent both the ink and bar.
+
+**Except:** NavTabs pill keeps accent ink over its soft fill to distinguish selection from hover.
+
 ## Theme checks
 
 **Rule:** Check dark and light themes and at least two accents before opening a PR.
@@ -67,9 +81,7 @@
 
 **Don't:** Put text on grey fields, chips, headers or footers.
 
-**Except:** The sidebar rail's current row. Its mark may be neither an accent nor an edge — an outline there means focus — and in the page shell the rail is the card surface already. It takes the quiet fill a rung off its rail, label and all. Artur, r34 of [#475](https://github.com/apliteni/apliteni-ui/issues/475).
-
-**Except:** A status chip carries a soft fill. Where its tone reports no verdict it takes a light tint of muted ink that leaves the panel in one direction per theme, so the neutral tones read as the same family as the coloured ones.
+**Except:** SidebarNav's current row takes a quiet plate without accent or edge. The rail is a card surface. An outline means focus. A neutral status chip has a soft tint of muted ink. Its tint separates from the panel in each theme, like coloured chips.
 
 ## Mark selection in forced colours
 

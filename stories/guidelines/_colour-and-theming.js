@@ -36,6 +36,7 @@ export const RULES = withSpecimens(content.rules, [
 { id: 'tokens', doHtml: tokensDo, dontHtml: tokensDont },
 { id: 'signals', doHtml: signalsDo, dontHtml: signalsDont },
 { id: 'accent-strong' },
+{ id: 'selection-accent' },
 { id: 'both-themes' },
 { id: 'text-surface' },
 { id: 'selected-forced-colours' }

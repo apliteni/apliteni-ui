@@ -322,7 +322,7 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  assert.equal(count, 134, 'update the rule count when adding or removing a rule');
+  assert.equal(count, 135, 'update the rule count when adding or removing a rule');
 });
 
 // The checkable half of "Show, less tell" (AGENTS.md#the-guidelines-collection). A rule the page
@@ -351,7 +351,7 @@ test('a rule with no specimen pair carries a Why, and every page is in the count
   // that, as AGENTS.md#the-guidelines-collection asks of a text-only rule.
   // 47 -> 48: #608's `selected-forced-colours`. A specimen cannot switch forced colours on,
   // and its `Why` says so.
-  assert.equal(pairless.length, 48, 'update the pairless-rule count when a rule gains or loses a specimen pair');
+  assert.equal(pairless.length, 49, 'update the pairless-rule count when a rule gains or loses a specimen pair');
   assert.deepStrictEqual(silent, []);
 });
 
