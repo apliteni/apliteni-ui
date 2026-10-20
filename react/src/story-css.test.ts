@@ -160,8 +160,8 @@ const GLUE_CEILING = 22;
 // from the object it spreads. The follow-ups and the reasons are on #601.
 //
 // The invoice showcase's sheet is recorded at 24 glue declarations, two over the ceiling.
-// Artur approved the record form's two columns down to the phone step (#458), which takes
-// a grid declaration for the fields and one for their phone rule. It paints nothing.
+// The record form keeps its two columns down to the phone step (#458), which takes a grid
+// declaration for the fields and one for their phone rule. It paints nothing.
 const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/AccentPicker.stories.tsx': { shadow: 3 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
