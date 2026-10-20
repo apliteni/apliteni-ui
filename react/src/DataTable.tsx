@@ -171,6 +171,7 @@ export function DataTable<T extends { name: string }>({
     </svg>
   );
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
+  const pageSomeOn = selectable && !pageAllOn && slice.some((r) => selected.has(r.name));
 
   return (
     <>
@@ -186,6 +187,7 @@ export function DataTable<T extends { name: string }>({
             {selectable ? <th scope="col" className="ui-table__selection">
               {/* No visible text: aria-label is this checkbox's whole name. */}
               <input type="checkbox" checked={pageAllOn} aria-label="Select all rows on this page"
+                ref={(input) => { if (input) input.indeterminate = pageSomeOn; }}
                 onChange={() => onTogglePage(slice.map((r) => r.name))} />
             </th> : null}
             {columns.map((c, columnIndex) => (

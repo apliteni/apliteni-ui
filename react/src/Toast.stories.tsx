@@ -70,7 +70,7 @@ export const PresentationsGallery: StoryObj = {
 function Progress({ timer = true }: { timer?: boolean }) {
   const push = useToast();
   return <Button onClick={() => push({
-    tone: 'info', title: 'Uploading report.csv', text: 'This dismisses on its own.', timer,
+    tone: 'info', title: 'Report saved', timer,
   })}>Show notice</Button>;
 }
 export const ElapsingTime: StoryObj = {

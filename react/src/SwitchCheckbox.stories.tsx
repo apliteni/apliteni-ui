@@ -50,6 +50,9 @@ function SwitchExamples() {
   </div>;
 }
 
+// `indeterminate` is a DOM property, not an attribute, so a ref sets it.
+const partial = (input: HTMLInputElement | null) => { if (input) input.indeterminate = true; };
+
 function CheckboxExamples() {
   const [scope, setScope] = useState('read');
   return <div style={stack}>
@@ -57,6 +60,7 @@ function CheckboxExamples() {
       <div style={choices}>
         <Checkbox label="Read the strategy deck" defaultChecked />
         <Checkbox label="Connect an agent over MCP" />
+        <Checkbox label="Grant some of the scopes" ref={partial} />
         <Checkbox label="Grant read-only scope" defaultChecked />
       </div>
     </Card>
@@ -76,6 +80,7 @@ export const Checkboxes: StoryObj = { render: () => <CheckboxExamples /> };
 export const Disabled: StoryObj = { render: () => <Card title="Unavailable"><div style={stack}>
   <Checkbox label="Read only, unavailable" disabled />
   <Checkbox label="Read only, selected and unavailable" defaultChecked disabled />
+  <Checkbox label="Some scopes, unavailable" ref={partial} disabled />
   <Checkbox label="Read access, unavailable" type="radio" name="disabled-scope" disabled />
   <Checkbox label="Full access, selected and unavailable" type="radio" name="disabled-scope" defaultChecked disabled />
 </div></Card> };
