@@ -751,6 +751,8 @@ test('the collapsed rail is the narrow rail, element for element', () => {
         for (const p of new Set([...Array.from(cx), ...Array.from(cy)])) {
           // The phone strip's touch floors — see PHONE_ONLY. Held apart there.
           if (PHONE_ONLY.some((e) => p === e.prop && x.matches(e.selector.split(' ').pop()))) continue;
+          // The search panel's gap to the viewport edge is a phone measure of the page, not of the rail (#629).
+          if (p === '--ui-dropdown-edge') continue;
           // The product's lockup — see FOLD_ONLY_RULES. Held apart there.
           if (FOLD_ONLY.some((e) => e.props.includes(p) && x.matches(e.selector))) continue;
           const vx = cx.getPropertyValue(p);

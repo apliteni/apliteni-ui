@@ -5,6 +5,7 @@ import { KeyValueList, DrawerSection } from './KeyValueList';
 import { Drawer } from './Drawer';
 import { Modal } from './Modal';
 import { Badge } from './primitives/Badge';
+import { Card } from './primitives/Card';
 
 const meta: Meta<typeof KeyValueList> = { title: 'React/KeyValueList', component: KeyValueList };
 export default meta;
@@ -41,8 +42,8 @@ const controlRows = [
 ];
 export const ControlValues: StoryObj = {
   render: () => <div style={{ maxWidth: 480 }}>
-    <DrawerSection title="Default"><KeyValueList rows={controlRows} /></DrawerSection>
-    <DrawerSection title="Aligned to the control"><KeyValueList rows={controlRows} align="control" /></DrawerSection>
+    <Card title="Default"><KeyValueList rows={controlRows} /></Card>
+    <Card title="Aligned to the control"><KeyValueList rows={controlRows} align="control" /></Card>
   </div>,
 };
 export const Sections: StoryObj = {

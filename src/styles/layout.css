@@ -286,11 +286,9 @@
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */ background: var(--surface-3); /* code-bg: inherit — The plate contains no focus target. */ z-index: -1; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: none; }
 /* A row closes to the glyph column, so the rail's clip does not cut the right side of its
-   focus ring. The width waits out the rail's own travel and then snaps, so the fold is
-   pixel-identical to before; the way out has no delay and the open column is back at once.
-   why: docs/components.md#the-page-shell */
+   focus ring. why: docs/components.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item,
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger { width: var(--ui-nav-strip); transition: width 0s var(--ease) var(--dur-med); }
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger { width: var(--ui-nav-strip); }
 /* The label IS the chip. `fixed` is the fallback placement, out of the rail's own
    clip; the @supports branch below pins it to the row and is the only one that
    survives a scroll. The toggle's selector is unscoped, because it is wordless at
@@ -547,16 +545,12 @@
   .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
   .ui-app__rail .ui-nav__item.is-active::before { content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */ background: var(--surface-3); /* code-bg: inherit — The plate contains no focus target. */ z-index: -1; }
   .ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: none; }
-  /* The same close as the folded rail above: the row is the strip, so its ring has room.
-     why: docs/components.md#the-page-shell */
-  .ui-app__rail .ui-nav__item,
-  .ui-app__rail .ui-app__user-trigger { width: var(--ui-nav-strip); }
   /* The one line of this block that is deliberately NOT the reader's fold: a finger
      is the only pointer this width has, so a row and the account block are held to
      44px. Neither floor can spread to the press, where growing the box is the one
      thing the travel promises nothing does. why: docs/components.md#the-page-shell */
   .ui-app__rail .ui-nav__item,
-  .ui-app__rail .ui-app__user-trigger { min-height: 44px; }
+  .ui-app__rail .ui-app__user-trigger { min-height: 44px; width: var(--ui-nav-strip); /* the folded rail's close, above: the row is the strip, so its ring has room */ }
   .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
   .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--float-edge); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ color: var(--strong); opacity: 1; pointer-events: none; }
   @supports (anchor-name: --a) and (anchor-scope: --a) {

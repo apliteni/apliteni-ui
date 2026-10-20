@@ -15,6 +15,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { tokensFor } from './lib/contrast.js';
 
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 const css = readFileSync('src/styles/dropdown.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
 const rules = (text) => [...text.matchAll(/([^{}]+)\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g)];
 
@@ -22,7 +23,7 @@ const rules = (text) => [...text.matchAll(/([^{}]+)\{([^{}]*(?:\{[^{}]*\}[^{}]*)
 const hoverFill = (text, theme) => {
   let fill = null;
   for (const [, head, body] of rules(text)) {
-    const heads = head.split(',').map((h) => h.trim());
+    const heads = splitSelectorList(head).map((h) => h.trim());
     for (const h of heads) {
       if (!/\.ui-dropdown__item:hover$/.test(h)) continue;
       if (h.includes('data-theme') && !h.includes(`"${theme}"`)) continue;
@@ -58,7 +59,7 @@ test('the hover gate fails when the light fill goes back to --surface', () => {
 
 const room = /scroll-padding-block:\s*calc\(var\(--ring-gap-width\)\s*\+\s*var\(--ring-width\)\)/;
 const keepsRoom = (text, selector) => rules(text).some(([, head, body]) =>
-  head.split(',').some((h) => h.trim() === selector) && room.test(body));
+  splitSelectorList(head).some((h) => h.trim() === selector) && room.test(body));
 
 test('the panel and its list keep the ring\'s room when a row scrolls into view', () => {
   for (const selector of ['.ui-dropdown__panel', '.ui-dropdown__list']) {
