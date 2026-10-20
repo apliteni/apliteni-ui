@@ -1233,3 +1233,79 @@ test('the placement matrix rejects each fault it was written for', {
   }
   assert.deepEqual(passed, [], 'the matrix passed a case with its fault put back');
 });
+
+/* -- An open panel through a resize and a removal (#627) -------------------------
+ * The matrix opens each case at one size. These three take an open panel through what
+ * happens to it afterwards: the viewport changes size under it, and the page it sits in
+ * replaces its content. Their limits: one engine, Chromium through whichever Playwright
+ * the host supplies; the React half needs react/storybook-static built first; a resize
+ * is Playwright's viewport change, not a rotated phone; and the removal is read through
+ * the scroll listeners the page's own window and elements hold, counted by wrapping
+ * addEventListener before the kit wires anything. */
+async function openPlacement(browser, { kit, args, view, vanillaPort, reactPort, init }) {
+  const ctx = await browser.newContext({ viewport: view, deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
+  if (init) await page.addInitScript(init);
+  if (kit === 'vanilla') {
+    await page.goto(`http://127.0.0.1:${vanillaPort}/__shot?${placementQuery(args, 'light')}`, { waitUntil: 'load' });
+    await page.waitForFunction(() => window.__ready === true);
+  } else {
+    await page.goto(`http://127.0.0.1:${reactPort}/iframe.html?id=react-dropdown-placement--in-a-form&viewMode=story`
+      + `&globals=theme:light&args=${storyArgs(args)}`);
+    await page.waitForFunction(() => {
+      const r = window.__STORYBOOK_PREVIEW__ && window.__STORYBOOK_PREVIEW__.currentRender;
+      return !!r && r.phase === 'finished' && !!document.querySelector('.ui-dropdown');
+    }, null, { timeout: STORY_WAIT_MS });
+  }
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(500);
+  if (args.long) await page.evaluate(() => window.scrollTo({ top: document.scrollingElement.scrollHeight, behavior: 'instant' }));
+  return { ctx, page, look: () => page.evaluate(`(${PLACEMENT_LOOK.toString()})()`) };
+}
+
+async function withPlacement(run) {
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_REACH=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const reactBuild = path.join(root, 'react/storybook-static');
+  assert.ok(existsSync(path.join(reactBuild, 'index.json')), `no Storybook build at ${reactBuild} — run: npm run build-storybook -w react.`);
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const vanilla = await serve(root, VANILLA_PLACEMENT);
+  const react = await serve(reactBuild, VANILLA_PLACEMENT);
+  try {
+    await run(browser, { vanillaPort: vanilla.port, reactPort: react.port });
+  } finally {
+    await browser.close();
+    vanilla.proc.kill();
+    react.proc.kill();
+  }
+}
+
+test('a panel opened in a tall Drawer and kept open while the viewport shortens is lifted and shown whole, in both kits', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  await withPlacement(async (browser, ports) => {
+    const failed = [];
+    for (const kit of ['vanilla', 'react']) {
+      const { ctx, page, look } = await openPlacement(browser, {
+        ...ports, kit, args: { stage: 'drawer', before: 1, rows: 30 }, view: { width: 667, height: 844 },
+      });
+      try {
+        await page.locator('[data-dropdown-trigger]').click();
+        await page.waitForTimeout(700);
+        const tall = await look();
+        assert.ok(tall.open && !tall.fixed, `${kit}: at 667 by 844 the panel should open in its body, so the case measures a lift the resize makes`);
+        await page.setViewportSize({ width: 667, height: 320 });
+        await page.waitForTimeout(900);
+        const short = await look();
+        const at = `${kit}: panel ${Math.round(short.panel.top)}…${Math.round(short.panel.bottom)} in a region ${Math.round(short.region.top)}…${Math.round(short.region.bottom)}`;
+        if (!short.open) failed.push(`${kit}: the resize closed the panel`);
+        else if (!short.fixed) failed.push(`${at}, not lifted`);
+        else if (!short.seen) failed.push(`${at}, lifted but not shown whole`);
+        else if (!short.triggerSeen || !short.labelSeen) failed.push(`${at}, the field is out of view or covered`);
+      } finally {
+        await ctx.close();
+      }
+    }
+    assert.deepEqual(failed, []);
+  });
+});

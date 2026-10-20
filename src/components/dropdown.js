@@ -1479,8 +1479,21 @@ function ddListen(doc) {
      cannot reach. React's half has always answered both; this is that answer.
      why: docs/components.md#the-dropdown-panel */
   view.addEventListener('scroll', follow, true);
-  view.addEventListener('resize', () => { for (const dd of ddLive()) dd.__ddSized = false; });
-  view.addEventListener('resize', reposition);
+  /* A resize decides the placement again, a panel that was not lifted included: a
+     Drawer that held the panel at 844 tall cannot at 320. Lifted first, because the
+     height is measured from the placement, and the body is then scrolled to show what
+     the new placement needs, as it is on an open. why: openDropdown() */
+  const replace = () => {
+    for (const dd of ddLive()) {
+      dd.__ddSized = false;
+      if (!dd.classList.contains('open')) continue;
+      const panel = ddPanelOf(dd);
+      if (panel && !dd.__ddPanel && !ddInFilterRow(panel)) dropdownLift(dd, panel);
+      ddPlace(dd);
+      if (panel) dropdownReveal(dd, panel);
+    }
+  };
+  view.addEventListener('resize', replace);
   view.addEventListener('resize', refit);
   view.addEventListener('resize', refitInPlace);
   /* Where motion leaves a trigger, read once it has stopped. The style write that

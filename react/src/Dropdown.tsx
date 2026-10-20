@@ -519,7 +519,8 @@ export function Dropdown({
      * not change height under the reader. A lifted panel follows its trigger at that
      * height, and a resize decides again. why: ddSizeHeight(), src/components/dropdown.js */
     const follow = () => { if (el.hasAttribute('data-dd-lifted')) dropdownLift(dd, el); };
-    const resize = () => { dropdownLift(dd, el); size(); };
+    // The body is scrolled again where the new placement needs it, as on the open.
+    const resize = () => { dropdownLift(dd, el); size(); dropdownReveal(dd, el); };
     const view = el.ownerDocument?.defaultView ?? window;
     view.addEventListener('scroll', follow, true);
     view.addEventListener('resize', resize);
