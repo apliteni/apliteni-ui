@@ -9,7 +9,7 @@ export const BLURB = content.blurb;
 
 // Layout glue only: each specimen places kit parts at the gap its rule names.
 // The inner gap is --space-2, the group gap --space-8 and the phone gap --tap-gap. A
-// don't uses a step the rule does not allow. The view strip hangs its 16px of
+// don't adds a 20px step the rule does not allow, or floats a heading at the group gap. The view strip hangs its 16px of
 // padding into the margin, so its first label sits on the column's text edge.
 export const SPEC_CSS = `
   <style>
@@ -19,14 +19,16 @@ export const SPEC_CSS = `
     .gl-sp__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
       gap: var(--space-2); min-width: 0; }
     .gl-sp__row > .ui-seg--underline { margin-inline-start: calc(-1 * var(--space-4)); }
-    .gl-sp--third > .ui-table-scroll { margin-top: var(--space-3); }
-    .gl-sp--third > .gl-sp__next { margin-top: var(--space-5); }
+    .gl-sp--third .gl-sp__next + .gl-sp__next { margin-top: var(--space-5); }
     .gl-sp--phone .gl-sp__row { row-gap: var(--tap-gap); }
     .gl-sp--phone .ui-filter-bar { row-gap: var(--tap-gap); }
     .gl-sp--phone > * + * { margin-top: var(--tap-gap); }
     .gl-sp--phone-dont > * + * { margin-top: var(--space-2); }
-    .gl-sp--float .gl-sp__far { margin-top: var(--space-8); }
     .gl-sp__indent { margin-inline-start: var(--space-4); }
+    @media (max-width: 560px) and (pointer: coarse) {
+      .gl-sp__row { row-gap: var(--tap-gap); }
+      .gl-sp__row + .ui-table-scroll { margin-top: var(--tap-gap); }
+    }
   </style>`;
 
 const chips = (n = 2) => filterBar({ filters: [
@@ -40,18 +42,19 @@ const row = (n = 1) => `<div class="gl-sp__row">${strip()}${chips(n)}</div>`;
 const reminders = `<div class="gl-sp__next">${card({ title: 'Reminders', body: '<p>A reminder goes out 3 days before an invoice falls due.</p>' })}</div>`;
 const stage = (mod, html) => `<div class="gl-stage"><div class="gl-sp ${mod}">${html}</div></div>`;
 
-const two = (far = '') => [
-  card({ title: 'Reminders', body: `<p${far}>A reminder goes out 3 days before an invoice falls due.</p>` }),
-  `<div class="gl-sp__next">${card({ title: 'Late fees', body: '<p>A late fee of 2% applies after 14 days.</p>' })}</div>`,
-].join('');
+const lateFees = `<div class="gl-sp__next">${card({ title: 'Late fees', body: '<p>A late fee of 2% applies after 14 days.</p>' })}</div>`;
+const two = () => card({ title: 'Reminders', body: '<p>A reminder goes out 3 days before an invoice falls due.</p>' }) + lateFees;
+const floated = () => card({ title: 'Reminders', body: '<p>A reminder goes out 3 days before an invoice falls due.</p>' })
+  + '<div class="gl-sp__next"><h3>Late fees</h3></div>'
+  + `<div class="gl-sp__next">${card({ body: '<p>A late fee of 2% applies after 14 days.</p>' })}</div>`;
 
 export const RULES = withSpecimens(content.rules, [
   { id: 'two-gaps', doHtml: () => stage('', row() + table() + reminders),
-    dontHtml: () => stage('gl-sp--third', row() + table() + reminders) },
+    dontHtml: () => stage('gl-sp--third', row() + table() + reminders + lateFees) },
   { id: 'two-gaps-phone', doHtml: () => stage('gl-sp--phone', chips(3) + table()),
     dontHtml: () => stage('gl-sp--phone gl-sp--phone-dont', chips(3) + table()) },
   { id: 'title', doHtml: () => stage('', two()),
-    dontHtml: () => stage('gl-sp--float', two(' class="gl-sp__far"')) },
+    dontHtml: () => stage('', floated()) },
   { id: 'text-edge', doHtml: () => stage('', '<h3>Invoices</h3>' + row() + table()),
     dontHtml: () => stage('', '<h3>Invoices</h3><div class="gl-sp__indent">' + row() + table() + '</div>') },
 ]);

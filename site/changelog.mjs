@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.128.0', date: '2026-10-20',
     changes: [
-      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups. On a touch phone the inner gap of small controls is 20px. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
     ],
   },
   {
