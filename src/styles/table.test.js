@@ -296,6 +296,8 @@ function checkLastColumnEdge(css) {
       const header = getComputedStyle(document.querySelector('thead th:last-child'));
       for (const cell of document.querySelectorAll('tbody td:last-child, tfoot td:last-child')) {
         assert.equal(getComputedStyle(cell).paddingRight, header.paddingRight, `${modifier}: last body cell ends with its header`);
+        // A hovered row's band is the last cell, so it needs room past the figures.
+        if (modifier === 'ui-table--hover') assert.notEqual(getComputedStyle(cell).paddingRight, '0px', 'hover: the band keeps room past the last figure');
         measured++;
       }
     } finally { dom.window.close(); }
@@ -305,6 +307,12 @@ function checkLastColumnEdge(css) {
 
 test('a right-aligned last column shares its header\'s right edge across table modifiers', () => {
   checkLastColumnEdge(CSS);
+});
+
+test('the last-column check rejects a hover table whose band ends at the figures', () => {
+  const without = CSS.replace(/:where\(\.ui-table--hover:not\(\.ui-table--zebra\)\) :is\(th, td\):not\(\.ui-table__act\):last-child \{[^}]*\}/, '');
+  assert.notEqual(without, CSS, 'the mutation edits the sheet');
+  assert.throws(() => checkLastColumnEdge(without));
 });
 
 test('the last-column check rejects a sheet that leaves the body cell gap', () => {

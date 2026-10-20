@@ -81,6 +81,12 @@
   border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:last-child {
   border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
+/* The hover band is the last cell, which ends where the figures end, so a hovered row's fill
+   stopped at the last glyph. The last column of a hover table keeps one cell gap of room
+   inside the band, header and body alike, so the figures and their header still share one
+   right edge. The dense and compact variants state their own end padding below, and an
+   action cell keeps none. */
+:where(.ui-table--hover:not(.ui-table--zebra)) :is(th, td):not(.ui-table__act):last-child { padding-right: var(--space-4); }
 
 /* Data-table modifiers, composable: .ui-table--dense --zebra --hover.
  *   --dense  --space-3 across, --space-2 down — one step in from the base table
