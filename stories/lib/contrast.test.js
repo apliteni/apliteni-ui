@@ -558,6 +558,11 @@ test('every state base the kit sheet yields is a selector a browser accepts', ()
   let counted = 0;
   for (const theme of ['dark', 'light']) {
     const bases = stateBases(kitCssFor(theme).css);
+    // DataTable's selection box takes the kit's checkbox hover paint, and the walk must
+    // reach it as it reaches the kit's own box.
+    for (const host of ['.ui-check input:enabled', '.ui-table__selection input[type="checkbox"]:enabled']) {
+      assert.ok(bases.hover.has(host), `${theme}: no hover base for ${host}`);
+    }
     for (const state of STATES) {
       for (const base of bases[state]) {
         counted += 1;
@@ -565,7 +570,7 @@ test('every state base the kit sheet yields is a selector a browser accepts', ()
       }
     }
   }
-  assert.equal(counted, 240, 'state-base discovery changed: 120 bases per theme, including three link-button states, over two themes. The phone icon strip and its hover-name rules went in #592, which took 22 bases per theme with them');
+  assert.equal(counted, 242, 'state-base discovery changed: 121 bases per theme, including three link-button states, over two themes. The phone icon strip and its hover-name rules went in #592, which took 22 bases per theme with them');
   assert.deepEqual(offences, [], `a state base no browser would accept:\n  ${offences.join('\n  ')}`);
   dom.window.close();
 });

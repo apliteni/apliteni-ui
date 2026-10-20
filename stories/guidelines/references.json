@@ -24,7 +24,7 @@
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:158",
+        "ref": "src/styles/input.css:164",
         "pattern": ".ui-check input::before"
       },
       {
@@ -48,7 +48,7 @@
         "pattern": "--tap-gap: var(--space-5, 20px);"
       },
       {
-        "ref": "src/styles/tap-zone.css:184",
+        "ref": "src/styles/tap-zone.css:191",
         "pattern": ".ui-confirm__acts,"
       }
     ],

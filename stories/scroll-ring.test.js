@@ -327,6 +327,30 @@ const PERMITTED_FORCED = {
       + 'a tab row or a scroll region.',
     props: ['forced-color-adjust', 'background', 'color', 'border-color'],
   },
+  '.ui-check input:disabled, .ui-check input:disabled:is(:checked, :indeterminate), .ui-check input[type="checkbox"]:disabled:is(:checked, :indeterminate), .ui-table__selection input[type="checkbox"]:disabled, .ui-table__selection input[type="checkbox"]:disabled:is(:checked, :indeterminate)': {
+    why: 'forced colours replace every fill, so an unavailable box keeps its edge only by naming '
+      + 'GrayText. It is a border on a disabled box, takes no focus, and draws no outline or '
+      + 'shadow. It touches no tab row or scroll region. #619',
+    props: ['border-color'],
+  },
+  '.ui-check input[type="checkbox"]:disabled:is(:checked, :indeterminate)::after, .ui-table__selection input[type="checkbox"]:disabled:is(:checked, :indeterminate)::after': {
+    why: 'the tick and the dash of an unavailable box are borders, so they take GrayText to match '
+      + 'the box edge. It is a border on a disabled box, takes no focus, and draws no outline or '
+      + 'shadow. It touches no tab row or scroll region. #619',
+    props: ['border-color'],
+  },
+  '.ui-check input[type="radio"]:disabled:checked::after': {
+    why: 'forced colours drop the radio dot, which is a fill, so an unavailable radio names '
+      + 'GrayText for it. It is a fill on a disabled control, takes no focus, and draws no '
+      + 'outline or shadow. It touches no tab row or scroll region. #619',
+    props: ['background'],
+  },
+  '.ui-check input[type="radio"]:enabled:checked::after': {
+    why: 'forced colours drop the radio dot, which is a fill, so an available radio names '
+      + 'CanvasText for it. It is a fill inside the box, replaces no ring, and draws no '
+      + 'outline or shadow. It touches no tab row or scroll region. #619',
+    props: ['background'],
+  },
   '.ui-nav--tabs': {
     why: 'forced colours drop background images, so the row\'s rule comes back as a border '
       + 'and the last pixel of the bottom padding pays for it, with a border image that leaves '

@@ -6,9 +6,17 @@
 
 export const RELEASES = [
   {
-    v: '0.127.0', date: '2026-10-20',
+    v: '0.128.0', date: '2026-10-20',
     changes: [
       ['changed', 'At 720px and below, `appShell()` replaces the icon strip with a top band that holds a menu button and the brand mark. The button opens the full rail in the left drawer, and the page content now uses the full width. Widths above 720px do not change.', ['Shell']],
+    ],
+  },
+  {
+    v: '0.127.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A checkbox with `indeterminate` set shows the checked fill with a short dash. React `DataTable` selection boxes now use this kit box, 19px instead of 13px, and the header box shows the dash when only some rows on the page are selected. The selection column takes the width of its box in every selectable table. In a dense or compact table, the box keeps a 24px tall tap area on a phone, so it never reaches the next row. See #619.', ['DataTable', 'Checkbox']],
+      ['changed', 'In the dark theme, the tick, the dash and the radio dot of a selected box use the ink that a selected Segmented pill uses there, so they keep their contrast on the lighter accents.', ['Checkbox']],
+      ['fixed', 'In forced colours, an unavailable checkbox, radio or selection box and its mark use GrayText, and the radio dot stays visible.', ['Checkbox']],
     ],
   },
   {

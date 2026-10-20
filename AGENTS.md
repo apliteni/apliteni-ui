@@ -113,6 +113,20 @@ It needs `npm run build-storybook -w react` first — React's fit is an effect, 
 where React is running. Report the result in the PR. Keep this check out of routine CI to save
 Actions minutes.
 
+## Check the table selection column locally
+
+Before opening a PR that changes the `.ui-table__selection` width rules in `src/styles/table.css`, measure
+the column in a real browser — the source half reads declarations, not layout:
+`SELECTION_WIDTH=1 UI_PLAYWRIGHT=… node --test src/styles/table-selection-width.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
+## Check the partial dash locally
+
+Before opening a PR that changes the `:indeterminate::after` rule in `src/styles/input.css`, measure the dash
+in a real browser:
+`DASH_CENTRE=1 UI_PLAYWRIGHT=… node --test src/styles/check-partial.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
 ## Check the table edge shade locally
 
 Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` edge-shade rules,
