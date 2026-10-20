@@ -82,7 +82,7 @@ const LINES: Line[] = [{ name: 'Interface design', amount: '450.00' }, { name: '
 export const WithTotals = {
   render: () => page(
     <Card title="Sample invoice">
-      <DataTable caption="Sample services and totals in EUR" selectable={false} pager={false} density="dense"
+      <DataTable caption="Sample services and totals in EUR" selectable={false} pager={false} density="dense" hover={false}
         rows={LINES}
         columns={[{ key: 'name', label: 'Service', cell: 'title' }, { key: 'amount', label: 'Amount (EUR)', num: true }]}
         footer={<>
@@ -98,7 +98,7 @@ type Hours = { name: string; hours: number };
 export const CompactRowHeaders = {
   render: () => page(
     <Card title="Sample services">
-      <DataTable caption="Service hours with row headers" selectable={false} pager={false} density="compact"
+      <DataTable caption="Service hours with row headers" selectable={false} pager={false} density="compact" hover={false}
         rows={[{ name: 'Interface design', hours: 6 }, { name: 'Prototype review', hours: 4 }] as Hours[]}
         columns={[{ key: 'name', label: 'Service', rowHeader: true }, { key: 'hours', label: 'Hours', num: true }]} />
     </Card>, 'var(--panel-lg)',
@@ -125,6 +125,7 @@ const DESKS: Desk[] = [
   { symbol: 'NORT', name: 'Northstar Analytics', weight: '128.40', lots: '3', note: 'Rebalanced into short-duration paper after the June print; the committee asked for the note to be kept on the position until September.' },
   { symbol: 'HARB', name: 'Harbor Software', weight: '96.12', lots: '12', note: 'Holding. The renewal cohort is the whole thesis and it does not settle until the next quarter closes.' },
   { symbol: 'CEDA', name: 'Cedar Infrastructure', weight: '71.85', lots: '2', note: 'Trimmed on the roll. Fabricated position, kept here because the note runs longer than the row.' },
+  { symbol: '', name: 'Cedar Infrastructure Holdings International', weight: '18.40', lots: '4', note: 'Watchlist line. It keeps the direct link shape that consumers can write without marking the cell.' },
 ];
 export const StackedPinned = {
   render: () => page(
@@ -132,9 +133,9 @@ export const StackedPinned = {
       <DataTable selectable={false} pager={false} density="dense" stack stickyHeader pinnedIdentity
         scrollLabel="Desk notes, scroll for more rows" rows={DESKS}
         columns={[
-          { key: 'name', label: 'Company', linked: true, render: (r) => <RowIdentity symbol={r.symbol} name={r.name} href="#position" /> },
-          { key: 'weight', label: 'Weight', num: true, render: (r) => <NumericValue value={r.weight} unit="bp" /> },
-          { key: 'lots', label: 'Size', num: true, render: (r) => <NumericValue value={r.lots} unit="lots" /> },
+          { key: 'name', label: 'Company', linked: true, render: (r) => r.symbol ? <RowIdentity symbol={r.symbol} name={r.name} href="#position" /> : r.name },
+          { key: 'weight', label: <>Weight</>, num: true, render: (r) => <NumericValue value={r.weight} unit="bp" /> },
+          { key: 'lots', label: <>Size</>, num: true, render: (r) => <NumericValue value={r.lots} unit="lots" /> },
           { key: 'note', label: 'Note', cell: 'long' },
         ]} />
     </Card>, 860,

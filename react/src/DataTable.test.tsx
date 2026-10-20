@@ -63,6 +63,45 @@ it('toggles select-all for the visible page', async () => {
   expect(boxes[2]).not.toBeChecked();
 });
 
+// jsdom checks the native state. Browser captures check its paint and accessible state.
+it('marks only a partially selected visible page as indeterminate', async () => {
+  render(<Harness />);
+  const header = screen.getByRole('checkbox', { name: 'Select all rows on this page' });
+  expect(header).not.toBePartiallyChecked();
+  await userEvent.click(screen.getAllByRole('checkbox')[1]);
+  expect(header).toBePartiallyChecked();
+  expect(header).not.toBeChecked();
+
+  await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+  expect(header).not.toBePartiallyChecked();
+  expect(header).not.toBeChecked();
+  await userEvent.click(screen.getByRole('button', { name: 'Prev' }));
+  expect(header).toBePartiallyChecked();
+
+  await userEvent.click(header);
+  expect(header).toBeChecked();
+  expect(header).not.toBePartiallyChecked();
+  await userEvent.click(screen.getAllByRole('checkbox')[1]);
+  expect(header).toBePartiallyChecked();
+  await userEvent.click(screen.getAllByRole('checkbox')[2]);
+  expect(header).not.toBeChecked();
+  expect(header).not.toBePartiallyChecked();
+});
+
+it('updates partial selection when a controlled page changes or becomes empty', () => {
+  const props = { columns, selected: new Set(['A', 'B']), onToggle: () => {},
+    onTogglePage: () => {}, page: 1, total: 4, onPageChange: () => {} };
+  const { rerender } = render(<DataTable {...props} rows={[rows[0], rows[2]]} />);
+  const header = screen.getByRole('checkbox', { name: 'Select all rows on this page' });
+  expect(header).toBePartiallyChecked();
+  rerender(<DataTable {...props} page={2} rows={[rows[0], rows[1]]} />);
+  expect(header).toBeChecked();
+  expect(header).not.toBePartiallyChecked();
+  rerender(<DataTable {...props} rows={[]} />);
+  expect(header).not.toBeChecked();
+  expect(header).not.toBePartiallyChecked();
+});
+
 
 it('omits selection controls when the consumer has no selection action', () => {
   render(<DataTable columns={columns} rows={rows} selectable={false} />);

@@ -258,15 +258,24 @@ test('disabled: a rule is classified by what it paints, not by what it selects',
   assert.equal(one('opacity: 0.5;').edgeOnly, false);
   assert.equal(one('cursor: not-allowed;').edgeOnly, false);
   // And the kit's own edge-only rules, named rather than counted: the filter row's chip and
-  // its add control, and the checkmark the kit draws out of two borders.
+  // its add control, and the tick and the partial dash the kit draws out of borders — for a
+  // checkbox and for DataTable's selection box, and again in forced colours.
   const edges = disabledRules(sheet()).filter((r) => r.edgeOnly).map((r) => r.selector).sort();
   assert.deepEqual(edges, [
+    ".ui-check input:disabled:is(:checked, :indeterminate)",
     ".ui-check input[type=\"checkbox\"]:disabled:checked::after",
+    ".ui-check input[type=\"checkbox\"]:disabled:is(:checked, :indeterminate)",
+    ".ui-check input[type=\"checkbox\"]:disabled:indeterminate::after",
+    ".ui-check input[type=\"checkbox\"]:disabled:is(:checked, :indeterminate)::after",
     ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled",
     ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled=\"true\"]",
     ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled=\"true\"]:hover:not(:focus-visible)",
     ".ui-filter-bar:disabled .ui-filter-bar__chip",
     ".ui-filter-bar__chip:disabled",
+    ".ui-table__selection input[type=\"checkbox\"]:disabled:checked::after",
+    ".ui-table__selection input[type=\"checkbox\"]:disabled:is(:checked, :indeterminate)",
+    ".ui-table__selection input[type=\"checkbox\"]:disabled:indeterminate::after",
+    ".ui-table__selection input[type=\"checkbox\"]:disabled:is(:checked, :indeterminate)::after",
   ].sort(), 'the kit\'s edge-only disabled rules moved — each one is measured on its own box alone');
 });
 

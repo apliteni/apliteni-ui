@@ -6,11 +6,25 @@
 
 export const RELEASES = [
   {
-    v: '0.127.0', date: '2026-10-20',
+    v: '0.131.0', date: '2026-10-20',
     changes: [
       ['added', 'React `DataTable` takes `zebra`, `hover`, `stack`, `rowState`, `footer` and `caption`, and a column takes `rowHeader` and `cell`. Each maps to a vanilla table style, so the React table can match every Table story.', ['DataTable']],
       ['changed', 'A revoked table row now shows only the word, with no strike line. Handles in `.ui-table__code` and `.ui-identity__symbol` use the normal font. The Table stories drop the sub-line under each title, and the payout table stacks on a phone so each row keeps its amounts.', ['Table']],
       ['added', 'In a stacked table, a cell with `data-label` shows that label before its figure, and a stacked `.is-target` row paints one tint. React `DataTable` sets the label on every `num` column of a stacked table, and a table that does not scroll is now a direct child of its card, so a dense or stacked table reaches the card edge.', ['Table', 'DataTable']],
+    ],
+  },
+  {
+    v: '0.128.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.127.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A checkbox with `indeterminate` set shows the checked fill with a short dash. React `DataTable` selection boxes now use this kit box, 19px instead of 13px, and the header box shows the dash when only some rows on the page are selected. The selection column takes the width of its box in every selectable table. In a dense or compact table, the box keeps a 24px tall tap area on a phone, so it never reaches the next row. See #619.', ['DataTable', 'Checkbox']],
+      ['changed', 'In the dark theme, the tick, the dash and the radio dot of a selected box use the ink that a selected Segmented pill uses there, so they keep their contrast on the lighter accents.', ['Checkbox']],
+      ['fixed', 'In forced colours, an unavailable checkbox, radio or selection box and its mark use GrayText, and the radio dot stays visible.', ['Checkbox']],
     ],
   },
   {

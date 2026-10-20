@@ -40,8 +40,16 @@ const rules = (css) => [...blank(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
 const ENABLED_ONLY = /:enabled\b|:not\(\s*:disabled\s*\)/;
 function hoverLeaks(css) {
   return rules(css).flatMap(({ selector }) => splitSelectorList(selector)
-    .filter((part) => part.includes('.ui-check') && part.includes(':hover') && !ENABLED_ONLY.test(part)));
+    .filter((part) => /\.ui-check|\.ui-table__selection/.test(part) && part.includes(':hover') && !ENABLED_ONLY.test(part)));
 }
+
+/* A rule may list the kit's box and DataTable's selection box together, so a
+ * selector is found as one member of a list, not as the whole prelude. */
+const declaredIn = (selector) => {
+  const rule = rules(INPUT_CSS).find((r) => splitSelectorList(r.selector).includes(selector));
+  assert.ok(rule, `${selector} is not declared in input.css`);
+  return rule.body;
+};
 
 const themeVars = (theme) => {
   const at = TOKENS.indexOf(`:root[data-theme="${theme}"]`);
@@ -78,6 +86,7 @@ test('the hover scan rejects every way of writing the leak, and nothing else', (
     '.ui-check input:focus-visible, .ui-check input:hover { border-color: var(--accent); }',
     ':where(.ui-check) input:hover { border-color: var(--accent); }',
     '.ui-check input:not(:checked):hover { border-color: var(--accent); }',
+    '.ui-table__selection input[type="checkbox"]:hover { border-color: var(--accent); }',
   ].filter((rule) => !caught(rule));
   assert.deepEqual(missed, [], 'these light a disabled control and the scan lets them through');
 
@@ -86,6 +95,7 @@ test('the hover scan rejects every way of writing the leak, and nothing else', (
     '.ui-check input:hover:enabled { border-color: var(--accent); }',
     '.ui-check input:not(:disabled):hover { border-color: var(--accent); }',
     '.ui-check input:enabled:hover, .ui-check input:enabled:focus-visible { border-color: var(--accent); }',
+    '.ui-table__selection input[type="checkbox"]:enabled:hover:not(:focus-visible) { border-color: var(--accent); }',
     // Not a .ui-check rule, and not a hover rule.
     '.ui-input:hover { border-color: var(--field-edge-hover); }',
     '.ui-check input:disabled { cursor: not-allowed; }',
@@ -100,11 +110,7 @@ test('the hover scan rejects every way of writing the leak, and nothing else', (
  * because a full-strength accent fill IS the kit's "on and available" — the same
  * reason a disabled primary button gives its accent up (#220). */
 test('the disabled box repaints, empty and marked', () => {
-  const declared = (selector) => {
-    const rule = rules(INPUT_CSS).find((r) => r.selector === selector);
-    assert.ok(rule, `${selector} is not declared in input.css`);
-    return rule.body;
-  };
+  const declared = (selector) => declaredIn(selector);
   const empty = declared('.ui-check input:disabled');
   assert.match(empty, /background:\s*var\(--disabled-surface\)/, 'the empty box keeps the live surface');
   assert.match(empty, /border-color:\s*var\(--disabled-border\)/, 'the empty box keeps the live edge');
@@ -128,11 +134,12 @@ test('the disabled box repaints, empty and marked', () => {
  * their pair is measured here. Inverting the token pair keeps the mark's contrast
  * on the off fill equal to the ink-on-surface pair the rest of the kit measures. */
 test('the mark inside a marked disabled box stays legible on it, in both themes', () => {
-  const tick = rules(INPUT_CSS).find((r) => r.selector === '.ui-check input[type="checkbox"]:disabled:checked::after');
-  const dot = rules(INPUT_CSS).find((r) => r.selector === '.ui-check input[type="radio"]:disabled:checked::after');
-  assert.ok(tick && dot, 'the disabled tick and dot are not declared');
-  assert.match(tick.body, /border-color:\s*var\(--disabled-surface\)/, 'the disabled tick keeps --accent-contrast');
-  assert.match(dot.body, /background:\s*var\(--disabled-surface\)/, 'the disabled dot keeps --accent-contrast');
+  const tick = declaredIn('.ui-check input[type="checkbox"]:disabled:checked::after');
+  const dot = declaredIn('.ui-check input[type="radio"]:disabled:checked::after');
+  const dash = declaredIn('.ui-check input[type="checkbox"]:disabled:indeterminate::after');
+  assert.match(tick, /border-color:\s*var\(--disabled-surface\)/, 'the disabled tick keeps --accent-contrast');
+  assert.match(dot, /background:\s*var\(--disabled-surface\)/, 'the disabled dot keeps --accent-contrast');
+  assert.match(dash, /border-color:\s*var\(--disabled-surface\)/, 'the disabled dash keeps --accent-contrast');
 
   const expected = { dark: '6.24', light: '6.11' };
   for (const theme of THEMES) {
