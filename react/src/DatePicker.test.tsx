@@ -1039,32 +1039,30 @@ describe('every cell state is readable', () => {
     return { measure, done };
   }
 
-  it.each(THEMES)('%s: every combination of states clears AA, under every accent', theme => {
+  it.each(THEMES.flatMap(theme => ACCENTS.map(accent => [theme, accent] as const)))(
+    '%s/%s: every combination of states clears AA', (theme, accent) => {
     const failures: string[] = [];
     let judged = 0;
-    for (const accent of ACCENTS) {
-      const { measure, done } = measurer(theme, accent);
-      try {
-        for (const classes of combinations) {
-          for (const hovered of [false, true]) {
-            const { fg, bg } = measure(classes, hovered);
-            const where = `${theme}/${accent} ${classes.join('.') || '(rest)'}${hovered ? ':hover' : ''}`;
-            // A pair that will not resolve is a failure, never a skip: a gate
-            // that shrugs at an unreadable colour reports the same green as one
-            // that measured it.
-            if (!fg || !Array.isArray(bg)) { failures.push(`${where}: unresolved ${String(fg)} on ${String(bg)}`); continue; }
-            judged += 1;
-            const got = ratio(composite(fg, bg), bg);
-            if (got < AA_TEXT) failures.push(`${where}: ${got.toFixed(2)}:1`);
-          }
+    const { measure, done } = measurer(theme, accent);
+    try {
+      for (const classes of combinations) {
+        for (const hovered of [false, true]) {
+          const { fg, bg } = measure(classes, hovered);
+          const where = `${theme}/${accent} ${classes.join('.') || '(rest)'}${hovered ? ':hover' : ''}`;
+          // A pair that will not resolve is a failure, never a skip: a gate
+          // that shrugs at an unreadable colour reports the same green as one
+          // that measured it.
+          if (!fg || !Array.isArray(bg)) { failures.push(`${where}: unresolved ${String(fg)} on ${String(bg)}`); continue; }
+          judged += 1;
+          const got = ratio(composite(fg, bg), bg);
+          if (got < AA_TEXT) failures.push(`${where}: ${got.toFixed(2)}:1`);
         }
-      } finally { done(); }
-    }
-    expect(judged, 'pairs judged').toBe(combinations.length * 2 * ACCENTS.length);
+      }
+    } finally { done(); }
+    expect(judged, 'pairs judged').toBe(combinations.length * 2);
     expect(failures, `cell states below ${AA_TEXT}:1`).toEqual([]);
-  // Four sheet builds and 256 resolved pairs per theme: seconds of real work,
-  // and more of it each time the kit's stylesheet grows. The budget is the
-  // host's, not the gate's — a slow machine must not turn this red.
+  // One sheet build and 32 resolved pairs per theme and accent, so each test
+  // stays far under the suite's 5 s test budget.
   }, 60_000);
 
   /* Prove rejection by taking the fix out: without the rule that sends a
