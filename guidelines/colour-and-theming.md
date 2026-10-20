@@ -2,43 +2,43 @@
 
 ## Semantic tokens
 
-**Rule:** Add and use a semantic colour token before writing a literal.
+**Rule:** Use semantic colour tokens instead of literals.
 
-**Why:** Literals cannot follow the theme or accent.
+**Why:** Literals cannot follow themes or accents.
 
-**Do:** Use tokens for ground and ink.
+**Do:** Tokenize ground and ink.
 
-**Don't:** Freeze colours at dark-theme values.
+**Don't:** Freeze dark-theme colours.
 
-**Except:** Token definitions set the colours; `#000` inside a mask controls alpha, not colour.
+**Except:** Token definitions set colours; `#000` in masks controls alpha.
 
 <!-- rule: tokens -->
 
 ## Stable signals
 
-**Rule:** Let the accent change with a sub-theme, but keep `--pink` and `--green` unchanged.
+**Rule:** Let accents follow sub-themes; keep `--pink` and `--green` fixed.
 
-**Why:** If danger followed the accent, revoke and go would look identical.
+**Why:** If danger followed the accent, revoke and go would match.
 
-**Do:** Keep error as `--pink` under every accent.
+**Do:** Keep errors `--pink` under every accent.
 
 **Don't:** Point `--pink` at the accent.
 
-**Except:** Across `data-theme`, signals change: light deepens `--pink` from `#e97ca5` to `#b63361` so it reads as ink on white.
+**Except:** Across `data-theme`, light deepens `--pink` from `#e97ca5` to `#b63361` for legibility on white.
 
 <!-- rule: signals -->
 
 ## Accent contrast
 
-**Rule:** Use `--accent-strong` for an accent ground and `--accent` for accent ink.
+**Rule:** `--accent-strong` is accent ground; `--accent` is accent ink.
 
-**Why:** `--accent` is text on the canvas; darker `--accent-strong` lets white clear AA.
+**Why:** `--accent` is canvas ink; darker `--accent-strong` lets white clear AA.
 
-**Do:** Use `--accent-strong` behind white text.
+**Do:** Set white text on `--accent-strong`.
 
-**Don't:** Use `--accent` as that ground.
+**Don't:** Use `--accent` as ground.
 
-**Except:** In Phoenix, Ocean and Emerald, both are one token; it matters only in Nebula. The selected segmented pill keeps `--accent` in dark, by Artur's choice on #614.
+**Except:** Phoenix, Ocean and Emerald use one token for both; only Nebula differs. The selected segmented pill keeps `--accent` in dark, by Artur's choice on #614.
 
 <!-- rule: accent-strong -->
 
@@ -46,25 +46,25 @@
 
 <!-- rule: selection-accent -->
 
-**Rule:** Limit selected navigation to one accent signal: Segmented fill or NavTabs underline.
+**Rule:** Limit selected navigation to one accent signal: the fill of a Segmented pill, or the bar under an underline tab.
 
-**Why:** Extra marks compete. A failure specimen breaks this rule.
+**Why:** Two accent marks on one item read as two states.
 
-**Do:** Use contrasting ink on Segmented and body ink on underline NavTabs. For SidebarNav, see Keep text off grey fills.
+**Do:** Use contrasting ink on a Segmented pill and strong ink above an underline bar. For SidebarNav, see Keep text off grey fills.
 
-**Don't:** Accent both the ink and bar.
+**Don't:** Add a second accent mark, such as an accent counter, to a selected tab.
 
-**Except:** NavTabs pill keeps accent ink over its soft fill to distinguish selection from hover.
+**Except:** The NavTabs pill keeps accent ink on its soft fill, because the fill alone does not tell the current route from a hovered one, by Artur's choice on #429.
 
 ## Theme checks
 
-**Rule:** Check dark and light themes and at least two accents before opening a PR.
+**Rule:** Before opening a PR, check both themes and two accents.
 
-**Why:** A pair that clears AA in dark can fail in light over a card’s wash.
+**Why:** Dark AA can fail over a light card wash.
 
 **Do:** Test both themes and two accents.
 
-**Don't:** Check only dark mode and one accent.
+**Don't:** Check only dark and one accent.
 
 
 <!-- rule: both-themes -->
@@ -73,24 +73,24 @@
 
 <!-- rule: text-surface -->
 
-**Rule:** Put text on the page or card surface, never on a grey fill.
+**Rule:** Keep text on page or card surfaces, off grey fills.
 
-**Why:** Grey blocks make reading areas look disabled.
+**Why:** Grey reading areas look disabled.
 
-**Do:** Draw inputs with an edge. Keep grey fills for non-text states, such as disabled tracks and dividers.
+**Do:** Give inputs an edge. Use grey fills for non-text states: disabled tracks and dividers.
 
 **Don't:** Put text on grey fields, chips, headers or footers.
 
-**Except:** SidebarNav's current row takes a quiet plate without accent or edge. The rail is a card surface. An outline means focus. A neutral status chip has a soft tint of muted ink. Its tint separates from the panel in each theme, like coloured chips.
+**Except:** In the page shell the rail is the card surface. There, SidebarNav's current row, label and all, takes the quiet fill one rung off the rail, with no accent or edge, because an outline there means focus, by Artur's choice, r34 on #475. A neutral status chip takes a light tint of muted ink that leaves the panel in one direction per theme, so it reads as one family with the coloured chips.
 
 ## Mark selection in forced colours
 
 <!-- rule: selected-forced-colours -->
 
-**Rule:** In forced colours, fill a selected item with the highlight colour and its label with the highlight text colour.
+**Rule:** In forced colours, fill selection with highlight and its label with highlight text.
 
-**Why:** The mode replaces author backgrounds. A specimen cannot switch it on, so this rule draws no pair.
+**Why:** Forced colours replace author backgrounds. A static specimen cannot show this mode.
 
-**Do:** Ring a focused selected item in the page text colour.
+**Do:** Ring focused selection in the page text colour.
 
 **Don't:** Mark selection with an outline.

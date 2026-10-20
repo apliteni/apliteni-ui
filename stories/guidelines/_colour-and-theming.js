@@ -4,6 +4,7 @@ export const TITLE = content.title;
 export const BLURB = content.blurb;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import { callout, field, input } from '../../src/components/index.js';
+import { navTabs } from '../../src/components/nav.js';
 
 // The frozen hexes below are the specimen's subject, not a slip: `.gl-literal`
 // writes out what the dark theme composites, so the pair is one picture in dark
@@ -32,11 +33,23 @@ const bouncedEmail = () => field({
 export const signalsDo = () => stage(bouncedEmail());
 export const signalsDont = () => stage(bouncedEmail(), 'gl-drift');
 
+const selectionTabs = (badge) => stage(navTabs({
+  ariaLabel: 'Example views',
+  items: [
+    { id: 'overview', label: 'Overview' },
+    { id: 'activity', label: 'Activity', badge },
+  ],
+  active: 'activity',
+}));
+
+export const selectionDo = () => selectionTabs(null);
+export const selectionDont = () => selectionTabs({ text: '3', tone: 'accent' });
+
 export const RULES = withSpecimens(content.rules, [
 { id: 'tokens', doHtml: tokensDo, dontHtml: tokensDont },
 { id: 'signals', doHtml: signalsDo, dontHtml: signalsDont },
 { id: 'accent-strong' },
-{ id: 'selection-accent' },
+{ id: 'selection-accent', doHtml: selectionDo, dontHtml: selectionDont },
 { id: 'both-themes' },
 { id: 'text-surface' },
 { id: 'selected-forced-colours' }
