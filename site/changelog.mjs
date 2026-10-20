@@ -6,19 +6,19 @@
 
 export const RELEASES = [
   {
-    v: '0.127.0', date: '2026-10-20',
-    changes: [
-      ['added', 'A checkbox with `indeterminate` set shows the checked fill with a short dash. React `DataTable` selection boxes now use this kit box, 19px instead of 13px, and the header box shows the dash when only some rows on the page are selected. The selection column takes the width of its box in every selectable table. In a dense or compact table, the box keeps a 24px tall tap area on a phone, so it never reaches the next row. See #619.', ['DataTable', 'Checkbox']],
-      ['changed', 'In the dark theme, the tick, the dash and the radio dot of a selected box use the ink that a selected Segmented pill uses there, so they keep their contrast on the lighter accents.', ['Checkbox']],
-      ['fixed', 'In forced colours, an unavailable checkbox, radio or selection box and its mark use GrayText, and the radio dot stays visible.', ['Checkbox']],
-    ],
-  },
-  {
     v: '0.128.0', date: '2026-10-20',
     changes: [
       ['added', 'React TopBar, ViewSwitch, VersionSwitcher and AccountMenu build the strategy top bar from slots, with the existing look and the two phone rows. Part of #429.', ['Topbar']],
       ['changed', 'The current view in the Deck and Text switch now has the accent fill of a chosen Segmented option, and the open version menu ticks the chosen version like every other menu. Vanilla and React share both.', ['Topbar']],
       ['changed', 'The version button shows only the chosen version name. The "version:" prefix is gone.', ['Topbar']],
+    ],
+  },
+  {
+    v: '0.127.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A checkbox with `indeterminate` set shows the checked fill with a short dash. React `DataTable` selection boxes now use this kit box, 19px instead of 13px, and the header box shows the dash when only some rows on the page are selected. The selection column takes the width of its box in every selectable table. In a dense or compact table, the box keeps a 24px tall tap area on a phone, so it never reaches the next row. See #619.', ['DataTable', 'Checkbox']],
+      ['changed', 'In the dark theme, the tick, the dash and the radio dot of a selected box use the ink that a selected Segmented pill uses there, so they keep their contrast on the lighter accents.', ['Checkbox']],
+      ['fixed', 'In forced colours, an unavailable checkbox, radio or selection box and its mark use GrayText, and the radio dot stays visible.', ['Checkbox']],
     ],
   },
   {
