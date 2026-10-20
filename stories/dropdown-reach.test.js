@@ -81,7 +81,7 @@ test('the floor a capped panel keeps is one named number', () => {
 test('every panel caps its height at the smaller of what was asked and what is left', () => {
   const panel = css.split(/\.ui-dropdown__panel\s*\{/)[1]?.split('}')[0] ?? '';
   assert.match(
-    panel, /max-height:\s*min\(\s*var\(--ui-dropdown-cap,\s*var\(--ui-dropdown-fit,\s*var\(--ui-dropdown-max\)\)\)/,
+    panel, /max-height:\s*min\(\s*var\(--ui-dropdown-cap,\s*var\(--ui-dropdown-max\)\),\s*var\(--ui-dropdown-fit,\s*100dvh\),\s*var\(--ui-dropdown-avail,/,
     `${SHEET}'s .ui-dropdown__panel no longer caps itself at min(cap, avail). Unset, a panel took `
     + 'its content\'s height until it ran off the screen — #489.',
   );
@@ -121,7 +121,7 @@ test('`.is-scroll` asks for the standard cap through the cap property, not throu
     + 'back past the viewport edge whenever the measured room is smaller than 300px.',
   );
   const rule = css.split(/\.ui-dropdown__panel\.is-scroll\s*\{/)[1]?.split('}')[0] ?? '';
-  assert.match(rule, /--ui-dropdown-cap:\s*var\(--ui-dropdown-fit,\s*var\(--ui-dropdown-max\)\)/);
+  assert.match(rule, /--ui-dropdown-cap:\s*var\(--ui-dropdown-max\)/);
 });
 
 test('the search list reads the same cap property, so a field above it does not widen the room', () => {
@@ -147,13 +147,22 @@ test('the cap stops in the middle of a row, whatever the row height', () => {
   }
 });
 
+test('a stop limited by the room may spend the room under it for the next half row, and only that much', () => {
+  const rows = Array.from({ length: 30 }, (_, i) => ({ top: 4 + i * 37.375, height: 37.375 }));
+  const at = { rows, below: 4, content: 4 + 30 * 37.375 + 4 };
+  // 136.5px of room, the next half row at 138px and 40px under the panel to spend.
+  assert.equal(dropdownStop({ ...at, ceiling: 136.5 }), 101, 'without reach the stop falls a whole row short');
+  assert.equal(dropdownStop({ ...at, ceiling: 136.5, reach: 176.5 }), 138, 'the least of the reach that reaches a half row');
+  assert.equal(dropdownStop({ ...at, ceiling: 136.5, reach: 137 }), 101, 'a reach that reaches no half row changes nothing');
+});
+
 test('a list that fits under the ceiling has nothing to cut', () => {
   const rows = [{ top: 6, height: 38 }, { top: 44, height: 38 }];
   assert.equal(dropdownStop({ rows, below: 6, content: 94, ceiling: 300 }), null);
 });
 
 test('both kits stop the cap at a half row before they size the panel', () => {
-  for (const [file, call] of [['src/components/dropdown.js', 'dropdownSnap(dd, panel)'], ['react/src/Dropdown.tsx', 'dropdownSnap(root.current, el)']]) {
+  for (const [file, call] of [['src/components/dropdown.js', 'dropdownSnap(dd, panel)'], ['react/src/Dropdown.tsx', 'dropdownSnap(dd, el)']]) {
     const src = decomment(read(file));
     assert.ok(src.includes(call), `${file} no longer calls ${call}, so its panel is cut wherever 300px falls.`);
   }
@@ -206,7 +215,9 @@ test('a portalled panel is measured the same way as an in-place one', () => {
   assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), `${844 - 544 - 9 - 8}px`);
 });
 
-test('the room is re-measured on scroll, because the trigger moves and the viewport edge does not', () => {
+test('the room is measured when the panel opens and held while the page scrolls, and a resize measures again', () => {
+  // The panel does not grow or shrink under a reader who scrolls: #627's design review
+  // measured a page-end panel going 183px, 223px and 183px again on two 40px wheels.
   const { window, trigger, panel } = phone(
     dropdown({ value: 'Account', variant: 'menu', items: TWELVE }), { bottom: 200 },
   );
@@ -216,7 +227,9 @@ test('the room is re-measured on scroll, because the trigger moves and the viewp
     top: 569, bottom: 600, left: 16, right: 176, width: 160, height: 31, x: 16, y: 569,
   });
   window.dispatchEvent(new window.Event('scroll'));
-  assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), `${844 - 600 - 9 - 8}px`);
+  assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), `${844 - 200 - 9 - 8}px`, 'a scroll changed the height');
+  window.dispatchEvent(new window.Event('resize'));
+  assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), `${844 - 600 - 9 - 8}px`, 'a resize did not measure again');
 });
 
 test('dropdownHeightFit answers nothing when there is nothing to measure', () => {
@@ -917,4 +930,300 @@ test('closing a panel with Escape at the end of a page does not move the field, 
     vanilla.proc.kill();
     react.proc.kill();
   }
+});
+
+/* -- The placement matrix (#627) ------------------------------------------------
+ * One select in a form, in each place a form sits, opened and read through the steps a
+ * reader takes: open, End, Escape, and on a page a 40px wheel each way. Each case runs
+ * in each kit that has the part: React's story Dropdown placement / In a form, by id with the case as args,
+ * and stories/lib/dropdown-placement.html for the vanilla kit, which has no Modal.
+ *
+ * What every opened case must show: the whole panel, measured by a hit test 3px inside
+ * its top and bottom edges, so a body's clip and a footer painted over it both fail; the
+ * field's label and the trigger inside the region the field is seen through; a panel
+ * left in its body ending at least the 8px edge above the body's end, and 48px where
+ * the body is tall; and a capped list cut through the middle of a row's label, 20 to
+ * 80% of it. A consumer's own cap is held to its number instead.
+ *
+ * Its limits: one engine, Chromium through whichever Playwright the host supplies; the
+ * React half needs react/storybook-static built first; axe checks only the open
+ * listbox's name, in the React half; and the wheel is dispatched beside the field, not
+ * by touch.
+ */
+const VANILLA_PLACEMENT = path.join(root, 'stories/lib/dropdown-placement.html');
+const PHONE = { width: 390, height: 844 };
+/* The matrix. `args` is the same for both kits; `kits` names the kits that have the part;
+ * `view` is the viewport. `shade` asks for the 48px room under a panel left in its body,
+ * `still` for a page that does not scroll before the open and must not after it, `wheel`
+ * for the page-end height checks, and `cap` for a consumer's own cap. `fold` is a page
+ * whose room is below the floor even spending the edge: the panel keeps its cap past the
+ * fold, as the reach checks above require, and End has to bring its last row into view
+ * by the page's own scroll. */
+export const PLACEMENT_CASES = [
+  { id: 'short-modal-5', kits: ['react'], view: PHONE, args: { stage: 'modal', before: 1, rows: 5 } },
+  { id: 'short-modal-30', kits: ['react'], view: PHONE, args: { stage: 'modal', before: 1, rows: 30 } },
+  { id: 'tall-modal-30', kits: ['react'], view: PHONE, shade: true, args: { stage: 'modal', before: 10, rows: 30 } },
+  { id: 'drawer-30', kits: ['react', 'vanilla'], view: PHONE, shade: true, args: { stage: 'drawer', before: 6, rows: 30 } },
+  { id: 'page-end-60', kits: ['react', 'vanilla'], view: PHONE, wheel: true, fold: true, args: { stage: 'page', long: true, gap: 60, rows: 30 } },
+  { id: 'page-end-200', kits: ['react', 'vanilla'], view: PHONE, wheel: true, args: { stage: 'page', long: true, gap: 200, rows: 30 } },
+  { id: 'page-still-200', kits: ['react', 'vanilla'], view: PHONE, still: true, args: { stage: 'page', long: false, gap: 200, rows: 30 } },
+  { id: 'drawer-landscape', kits: ['react', 'vanilla'], view: { width: 844, height: 390 }, args: { stage: 'drawer', before: 1, rows: 30 } },
+  { id: 'short-drawer', kits: ['react', 'vanilla'], view: { width: 667, height: 320 }, args: { stage: 'drawer', before: 1, rows: 30 } },
+  { id: 'page-room', kits: ['react', 'vanilla'], view: PHONE, still: true, args: { stage: 'page', long: false, gap: 280, rows: 30 } },
+  { id: 'nested-wrapper', kits: ['react', 'vanilla'], view: PHONE, shade: true, args: { stage: 'nested', before: 10, after: 6, rows: 30 } },
+  { id: 'cap-420', kits: ['react', 'vanilla'], view: PHONE, cap: 420, args: { stage: 'page', long: false, gap: 700, rows: 30, limit: 420 } },
+  { id: 'cap-420-search', kits: ['react', 'vanilla'], view: PHONE, cap: 420, args: { stage: 'page', long: false, gap: 700, rows: 30, limit: 420, find: true } },
+];
+
+/* Runs in the page. Everything is read off the one dropdown on it. */
+const PLACEMENT_LOOK = () => {
+  const dd = document.querySelector('.ui-dropdown');
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  const panel = dd.__ddPanel || dd.querySelector('[data-dropdown-panel]');
+  const label = dd.closest('.ui-field').querySelector('.ui-field__label');
+  const box = (el) => {
+    const r = el.getBoundingClientRect();
+    return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height };
+  };
+  // The region the field is seen through: the viewport, less every ancestor that clips.
+  let region = { top: 0, bottom: innerHeight };
+  for (let el = dd.parentElement; el && el !== document.body; el = el.parentElement) {
+    if (getComputedStyle(el).overflowY === 'visible') continue;
+    const top = el.getBoundingClientRect().top + el.clientTop;
+    region = { top: Math.max(region.top, top), bottom: Math.min(region.bottom, top + el.clientHeight) };
+  }
+  const p = box(panel);
+  const at = (el, y) => {
+    const r = el.getBoundingClientRect();
+    const hit = document.elementFromPoint((r.left + r.right) / 2, y);
+    return !!hit && el.contains(hit);
+  };
+  const list = panel.querySelector('.ui-dropdown__list') || panel;
+  const lr = list.getBoundingClientRect();
+  const clip = lr.top + list.clientTop + list.clientHeight;
+  const capped = list.scrollHeight > list.clientHeight + 1;
+  // How much of the label of the row the list's end runs through: 1 is a whole label.
+  let cut = capped ? 1 : null;
+  for (const row of panel.querySelectorAll('[data-dd-item]')) {
+    const r = row.getBoundingClientRect();
+    if (!(r.top < clip && r.bottom > clip)) continue;
+    const l = row.querySelector('.ui-dropdown__label').getBoundingClientRect();
+    cut = Math.min(Math.max((clip - l.top) / l.height, 0), 1);
+  }
+  const t = box(trigger);
+  return {
+    open: dd.classList.contains('open'),
+    fixed: getComputedStyle(panel).position === 'fixed',
+    trigger: t,
+    label: box(label),
+    panel: p,
+    region,
+    seen: p.height > 0 && at(panel, p.top + 3) && at(panel, p.bottom - 3) && p.top >= 0 && p.bottom <= innerHeight,
+    triggerSeen: at(trigger, (t.top + t.bottom) / 2),
+    lastSeen: (() => {
+      const rows = panel.querySelectorAll('[data-dd-item]');
+      const last = rows[rows.length - 1];
+      if (!last) return false;
+      const r = last.getBoundingClientRect();
+      return r.top >= 0 && r.bottom <= innerHeight && at(last, (r.top + r.bottom) / 2);
+    })(),
+    capped,
+    cut,
+    list: lr.height,
+    scrollMax: document.scrollingElement.scrollHeight - innerHeight,
+  };
+};
+
+const placementQuery = (args, theme) => Object.entries({ ...args, theme })
+  .map(([k, v]) => `${k}=${v === true ? 1 : v === false ? 0 : v}`).join('&');
+const storyArgs = (args) => Object.entries(args)
+  .map(([k, v]) => `${k}:${typeof v === 'boolean' ? `!${v}` : v}`).join(';');
+
+/** Open one case in one kit, walk it, and answer what each step measured. */
+export async function placementCase(browser, { vanillaPort, reactPort, kit, c, theme = 'light', axe = null, mutation = null }) {
+  const ctx = await browser.newContext({ viewport: c.view, deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
+  try {
+    if (kit === 'vanilla') {
+      await page.goto(`http://127.0.0.1:${vanillaPort}/__shot?${placementQuery(c.args, theme)}`, { waitUntil: 'load' });
+      await page.waitForFunction(() => window.__ready === true);
+    } else {
+      await page.goto(`http://127.0.0.1:${reactPort}/iframe.html?id=react-dropdown-placement--in-a-form&viewMode=story`
+        + `&globals=theme:${theme}&args=${storyArgs(c.args)}`);
+      await page.waitForFunction(() => {
+        const r = window.__STORYBOOK_PREVIEW__ && window.__STORYBOOK_PREVIEW__.currentRender;
+        return !!r && r.phase === 'finished' && !!document.querySelector('.ui-dropdown');
+      }, null, { timeout: STORY_WAIT_MS });
+    }
+    await page.evaluate(() => document.fonts.ready);
+    // The Modal and the Drawer rise in; the field is read once they have.
+    await page.waitForTimeout(500);
+    if (mutation?.css) await page.addStyleTag({ content: mutation.css });
+    if (mutation?.script) await page.evaluate(mutation.script);
+    const look = () => page.evaluate(`(${PLACEMENT_LOOK.toString()})()`);
+    if (c.args.long) await page.evaluate(() => window.scrollTo({ top: document.scrollingElement.scrollHeight, behavior: 'instant' }));
+    const shut = await look();
+    await page.locator('[data-dropdown-trigger]').click();
+    await page.waitForTimeout(700);
+    const open = await look();
+    const steps = { shut, open };
+    if (axe) {
+      await page.addScriptTag({ path: axe });
+      steps.axe = await page.evaluate(async () => {
+        const got = await window.axe.run(document, { runOnly: ['aria-input-field-name'] });
+        return {
+          passed: got.passes.reduce((n, p) => n + p.nodes.length, 0),
+          failed: got.violations.flatMap((v) => v.nodes.map((n) => n.target.join(' '))),
+        };
+      });
+    }
+    if (c.wheel) {
+      // Beside the field, so the page scrolls and not the panel.
+      const y = (open.trigger.top + open.trigger.bottom) / 2;
+      await page.mouse.move(c.view.width - 4, y);
+      await page.mouse.wheel(0, 40);
+      await page.waitForTimeout(500);
+      steps.down = await look();
+      await page.mouse.wheel(0, -40);
+      await page.waitForTimeout(500);
+      steps.up = await look();
+    }
+    await page.keyboard.press('End');
+    await page.waitForTimeout(500);
+    steps.end = await look();
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(600);
+    steps.escape = await look();
+    return steps;
+  } finally {
+    await ctx.close();
+  }
+}
+
+const STORY_WAIT_MS = 20000;
+
+/** Every way one walked case can fail, as sentences. Empty when it passes. */
+export function placementProblems(c, s) {
+  const out = [];
+  const o = s.open;
+  if (!o.open) return ['the panel did not open'];
+  if (c.fold) {
+    if (!s.end.lastSeen) out.push('End did not bring the last row into view');
+  } else if (!o.seen) out.push(`the whole panel is not in view: ${Math.round(o.panel.top)}…${Math.round(o.panel.bottom)} in a region ${Math.round(o.region.top)}…${Math.round(o.region.bottom)}`);
+  const inView = (m) => m.label.top >= m.region.top - 0.5 && m.trigger.bottom <= m.region.bottom + 0.5 && m.triggerSeen;
+  if (!inView(o)) out.push(`open: the label or the trigger is out of view (label top ${Math.round(o.label.top)}, trigger bottom ${Math.round(o.trigger.bottom)}, region ${Math.round(o.region.top)}…${Math.round(o.region.bottom)})`);
+  if (!o.fixed && !c.fold) {
+    const room = o.region.bottom - o.panel.bottom;
+    if (room < 7.5) out.push(`the panel ends ${room.toFixed(1)}px above the end of its region, under the 8px edge`);
+    if (c.shade && room < 47.5) out.push(`the panel ends ${room.toFixed(1)}px above its body's end, under the 48px shadow room`);
+  }
+  if (c.cap) {
+    const want = c.args.find ? o.list : o.panel.height;
+    if (Math.abs(want - c.cap) > 2.5) out.push(`the ${c.args.find ? 'list' : 'panel'} is ${want.toFixed(1)}px, not the ${c.cap}px cap`);
+  } else if (o.capped && !(o.cut >= 0.2 && o.cut <= 0.8)) {
+    out.push(`the list ends through ${Math.round(o.cut * 100)}% of a row's label, not through its middle`);
+  }
+  // A search panel's rows are named through its search field, which axe reads under a
+  // different rule, so only the plain select has to give this rule a subject.
+  if (s.axe && !s.axe.passed && !c.args.find) out.push('axe found no open listbox to check for a name');
+  if (s.axe?.failed.length) out.push(`axe aria-input-field-name: ${s.axe.failed.join(', ')}`);
+  if (c.still && Math.abs(o.scrollMax - s.shut.scrollMax) > 0.5) out.push(`opening added ${(o.scrollMax - s.shut.scrollMax).toFixed(1)}px of page scroll`);
+  for (const step of ['down', 'up', 'end']) {
+    if (!s[step] || !c.wheel) continue;
+    if (Math.abs(s[step].panel.height - o.panel.height) > 1) out.push(`${step}: the panel is ${s[step].panel.height.toFixed(1)}px, it opened ${o.panel.height.toFixed(1)}px`);
+  }
+  if (!inView(s.end)) out.push(`End: the label or the trigger left the view (label top ${Math.round(s.end.label.top)}, trigger bottom ${Math.round(s.end.trigger.bottom)}, region ${Math.round(s.end.region.top)}…${Math.round(s.end.region.bottom)})`);
+  if (s.escape.open) out.push('Escape did not close the panel');
+  const moved = s.escape.trigger.top - s.end.trigger.top;
+  if (Math.abs(moved) > 1) out.push(`Escape moved the field ${moved.toFixed(1)}px`);
+  return out;
+}
+
+test('the placement matrix: every case shows the whole panel with its field, in both kits', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_REACH=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const reactBuild = path.join(root, 'react/storybook-static');
+  assert.ok(existsSync(path.join(reactBuild, 'index.json')), `no Storybook build at ${reactBuild} — run: npm run build-storybook -w react.`);
+  const all = JSON.parse(readFileSync(path.join(reactBuild, 'index.json'), 'utf8')).entries;
+  assert.ok(Object.values(all).some((e) => e.id === 'react-dropdown-placement--in-a-form'), 'no built React story react-dropdown-placement--in-a-form');
+  const axe = path.join(root, 'node_modules/axe-core/axe.min.js');
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const vanilla = await serve(root, VANILLA_PLACEMENT);
+  const react = await serve(reactBuild, VANILLA_PLACEMENT);
+  const results = [];
+  try {
+    for (const c of PLACEMENT_CASES) {
+      for (const kit of c.kits) {
+        const steps = await placementCase(browser, {
+          vanillaPort: vanilla.port, reactPort: react.port, kit, c, axe: kit === 'react' ? axe : null,
+        });
+        results.push({ row: `${kit} ${c.id}`, problems: placementProblems(c, steps), steps });
+      }
+    }
+  } finally {
+    await browser.close();
+    vanilla.proc.kill();
+    react.proc.kill();
+  }
+  console.log(results.map((r) => `${r.problems.length ? 'FAIL' : 'pass'} ${r.row}`
+    + `: panel ${r.steps.open.panel.height.toFixed(1)}px${r.steps.open.fixed ? ' lifted' : ''}`
+    + (r.steps.open.cut != null ? `, cut ${Math.round(r.steps.open.cut * 100)}%` : '')
+    + (r.problems.length ? `\n    ${r.problems.join('\n    ')}` : '')).join('\n'));
+  // Coverage: every case was measured in every kit it names.
+  const expected = PLACEMENT_CASES.reduce((n, c) => n + c.kits.length, 0);
+  assert.equal(results.length, expected, 'a case was not measured');
+  assert.equal(expected, 23, 'the matrix changed size: update this count with the case');
+  assert.deepEqual(results.filter((r) => r.problems.length).map((r) => r.row), [], 'placement cases failed');
+});
+
+/* The faults the matrix exists for, put back one at a time: a lifted panel left in the
+ * body that clips it, a height that ignores the half-row stop, and a page-end panel that
+ * is measured again on a scroll. Each has to fail its case. */
+const PLACEMENT_MUTATIONS = [
+  { kit: 'react', id: 'short-modal-30', name: 'no lift', css: '.ui-dropdown__panel[data-dd-lifted] { position: absolute !important; }' },
+  {
+    kit: 'vanilla', id: 'page-room', name: 'no half-row stop',
+    script: `(() => {
+      const set = CSSStyleDeclaration.prototype.setProperty;
+      CSSStyleDeclaration.prototype.setProperty = function (name, ...rest) {
+        if (name !== '--ui-dropdown-fit') set.call(this, name, ...rest);
+      };
+    })()`,
+  },
+  {
+    kit: 'vanilla', id: 'page-end-200', name: 'measured again on a scroll',
+    script: `addEventListener('scroll', () => {
+      const panel = document.querySelector('[data-dropdown-panel]');
+      panel.style.removeProperty('--ui-dropdown-fit');
+      panel.style.setProperty('--ui-dropdown-avail', '240px');
+    }, true)`,
+  },
+];
+
+test('the placement matrix rejects each fault it was written for', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_REACH=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const reactBuild = path.join(root, 'react/storybook-static');
+  assert.ok(existsSync(path.join(reactBuild, 'index.json')), `no Storybook build at ${reactBuild} — run: npm run build-storybook -w react.`);
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const vanilla = await serve(root, VANILLA_PLACEMENT);
+  const react = await serve(reactBuild, VANILLA_PLACEMENT);
+  const passed = [];
+  try {
+    for (const m of PLACEMENT_MUTATIONS) {
+      const c = PLACEMENT_CASES.find((x) => x.id === m.id);
+      assert.ok(c?.kits.includes(m.kit), `the mutation "${m.name}" names a case the matrix does not hold`);
+      const steps = await placementCase(browser, { vanillaPort: vanilla.port, reactPort: react.port, kit: m.kit, c, mutation: m });
+      if (!placementProblems(c, steps).length) passed.push(`${m.name} (${m.kit} ${m.id})`);
+    }
+  } finally {
+    await browser.close();
+    vanilla.proc.kill();
+    react.proc.kill();
+  }
+  assert.deepEqual(passed, [], 'the matrix passed a case with its fault put back');
 });

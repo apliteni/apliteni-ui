@@ -174,13 +174,16 @@
      it and the smaller wins — --ui-dropdown-cap is what the consumer asked for
      (the `scroll` option writes it, and --ui-dropdown-max stands in when it is
      unset), --ui-dropdown-avail is the room between the trigger and the viewport
-     edge, which the wiring measures on every open and every scroll. An unset avail
+     edge, or the body's, which the wiring measures when the panel opens. Between
+     them --ui-dropdown-fit is the height the wiring stops the smaller at, in the
+     middle of a row. An unset avail
      means nothing has measured yet, which is a server-rendered page before
      hydration — so the fallback promises the same thing at a coarser grain, the
      viewport less the edge inset at each end.
      why: docs/components.md#the-dropdown-panel */
   max-height: min(
-    var(--ui-dropdown-cap, var(--ui-dropdown-fit, var(--ui-dropdown-max))),
+    var(--ui-dropdown-cap, var(--ui-dropdown-max)),
+    var(--ui-dropdown-fit, 100dvh),
     var(--ui-dropdown-avail, calc(100dvh - 2 * var(--ui-dropdown-edge)))
   );
   overflow-y: auto;
@@ -205,7 +208,7 @@
 .ui-dropdown__panel.is-end { left: auto; right: 0; }
 /* `.is-scroll` asks for the standard cap by name; the panel above caps every panel
    at the room the viewport left either way. #489 */
-.ui-dropdown__panel.is-scroll { --ui-dropdown-cap: var(--ui-dropdown-fit, var(--ui-dropdown-max)); }
+.ui-dropdown__panel.is-scroll { --ui-dropdown-cap: var(--ui-dropdown-max); }
 
 /* The wiring adds this where the room is below the floor: even spending the whole
    edge inset, there is no usable height. The panel keeps its cap — it is never
@@ -214,6 +217,18 @@
    would stop the wheel at the panel's own end instead of passing it on. `auto`
    lets it through. why: dropdownAvail(), src/logic/dropdown.js */
 .ui-dropdown__panel.is-unbounded { overscroll-behavior: auto; }
+
+/* The wiring lifts a panel out of a Modal or Drawer body too short to hold the field's
+   label and trigger, the floor and the 8px edge under it. Fixed, it opens over the
+   body the way a portalled panel does, and the wiring writes its edges from the
+   trigger's. The value is the side it opens on. why: docs/components.md#the-dropdown-panel */
+.ui-dropdown__panel[data-dd-lifted] { position: fixed; }
+.ui-dropdown__panel[data-dd-lifted="up"] { transform: translateY(6px); }
+
+/* A search list that carries the consumer's own cap keeps it, and the panel is that cap
+   and the search field over it. The wiring writes the sum as --ui-dropdown-fit; this
+   lifts the standard cap out of its way. why: docs/components.md#the-dropdown-panel */
+.ui-dropdown__panel--search:has(> .ui-dropdown__list[style*="--ui-dropdown-cap"]) { --ui-dropdown-max: 100dvh; }
 
 /* A shut panel is still laid out, and a box that is laid out counts towards the
    scroll of the body or page it sits in. The wiring collapses it once its fade is

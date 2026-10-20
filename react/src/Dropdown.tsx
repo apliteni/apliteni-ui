@@ -5,7 +5,7 @@ import {
 } from 'react';
 import {
   icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs, dropdownViewportFit,
-  dropdownHeightFit, dropdownReveal, dropdownRest, dropdownSnap, filterPanelRow,
+  dropdownHeightFit, dropdownLift, dropdownReveal, dropdownRest, dropdownSnap, filterPanelRow,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 import { Avatar } from './primitives/Avatar';
@@ -484,9 +484,8 @@ export function Dropdown({
   /* The room the panel may take, written as the custom property the shared sheet
    * caps itself with — the same number src/components/dropdown.js writes, from
    * the same dropdownHeightFit(), so a panel opened low on a phone ends inside
-   * the viewport in React exactly as it does in vanilla. Re-measured on scroll
-   * and resize, because the page moves under the trigger and the viewport edge
-   * does not.
+   * the viewport in React exactly as it does in vanilla. Measured when the panel
+   * opens and again on a resize.
    *
    * Ordered BEFORE the focus effect below, and not after it (#502 review): with
    * a field-less menu, focusing a row before the cap is applied can scroll the
@@ -495,17 +494,12 @@ export function Dropdown({
    * cap is measured from. why: docs/components.md#the-dropdown-panel
    */
   useIsoLayoutEffect(() => {
-    if (!open) return;
+    const dd = root.current;
     const el = panel.current;
-    if (!el) return;
-    // Decided at the first look and kept while the page scrolls under the panel; a resize
-    // decides again. why: ddSizeHeight(), src/components/dropdown.js
-    let hold = false;
+    if (!open || !el || !dd) return;
     const size = () => {
-      let avail = dropdownHeightFit(root.current, el);
+      const avail = dropdownHeightFit(dd, el);
       if (avail == null) return;
-      if (!Number.isFinite(avail)) hold = true;
-      else if (hold) avail = Infinity;
       // Infinity: the floor could not be met even by spending the whole inset, so
       // the property is removed rather than written, and the sheet's own fallback
       // takes over. why: dropdownAvail(), src/logic/dropdown.js
@@ -514,17 +508,23 @@ export function Dropdown({
       // A panel the room cannot hold keeps its cap, and the page is the way to the
       // rows past the fold. why: src/styles/dropdown.css
       el.classList.toggle('is-unbounded', !Number.isFinite(avail));
+      dropdownSnap(dd, el);
     };
-    dropdownSnap(root.current, el);
+    // A body too short for the panel lifts it out, before anything is sized.
+    dropdownLift(dd, el);
     size();
     // The scrolling body the panel sits in is moved to show it; the focus effect below must not undo that.
-    revealed.current = dropdownReveal(root.current, el) !== 0;
+    revealed.current = dropdownReveal(dd, el) !== 0;
+    /* Decided at the open and kept while the page or the body scrolls, so the panel does
+     * not change height under the reader. A lifted panel follows its trigger instead, and
+     * a resize decides again. why: ddSizeHeight(), src/components/dropdown.js */
+    const follow = () => { if (el.hasAttribute('data-dd-lifted')) { dropdownLift(dd, el); size(); } };
+    const resize = () => { dropdownLift(dd, el); size(); };
     const view = el.ownerDocument?.defaultView ?? window;
-    view.addEventListener('scroll', size, true);
-    const resize = () => { hold = false; size(); };
+    view.addEventListener('scroll', follow, true);
     view.addEventListener('resize', resize);
     return () => {
-      view.removeEventListener('scroll', size, true);
+      view.removeEventListener('scroll', follow, true);
       view.removeEventListener('resize', resize);
     };
   }, [open, direction]);
@@ -602,6 +602,8 @@ export function Dropdown({
        sentence on the other half. why: docs/components.md#a-filter-row-holds-its-panels */
     if (!el || el.closest('.ui-filter-bar')) return;
     const fit = () => {
+      // A lifted panel is placed by dropdownLift(), from its trigger.
+      if (el.hasAttribute('data-dd-lifted')) return;
       let got = dropdownViewportFit(el);
       if (!got) return;
       /* The ceiling before the shift: a row holding one long unbroken token — a
