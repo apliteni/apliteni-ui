@@ -140,9 +140,9 @@ export const CollapsedStack = {
   },
 };
 
-// A resting pile of three notices that never dismiss, for the keyboard: Tab
-// into it and it fans out inside its focus ring. The kit measures it, as it
-// does the live stack above.
+// A resting pile of three notices that never dismiss on their own, for the
+// keyboard: Tab into it and it fans out inside its focus ring. Their close
+// buttons work. The kit measures it, as it does the live stack above.
 const PILE = [
   { variant: 'danger', title: 'Upload failed', body: 'The file was larger than 25 MB.' },
   { variant: 'info', title: 'Note deleted', body: '“Q3 plan” was removed.' },
@@ -152,8 +152,12 @@ export const CollapsedStackFocus = {
   render: () => {
     const root = document.createElement('div');
     root.innerHTML = pad(`<div class="ui-toast-stack ui-toast-stack--collapsed">${
-      PILE.map((o) => toast({ ...o, style: 'soft', timer: 5 })).join('')}</div>`);
-    requestAnimationFrame(() => collapseToastStack(root.querySelector('.ui-toast-stack')));
+      PILE.map((o) => toast({ ...o, style: 'soft', timer: false })).join('')}</div>`);
+    requestAnimationFrame(() => {
+      const s = root.querySelector('.ui-toast-stack');
+      wireToastStack(s);
+      collapseToastStack(s);
+    });
     return root;
   },
 };

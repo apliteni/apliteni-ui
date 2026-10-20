@@ -116,9 +116,9 @@ test('a collapsed stack clips each back card, never the pile', () => {
   const card = pileRules.find((rule) => /^\.ui-toast-stack--collapsed\s*>\s*\.ui-toast$/.test(rule.selector));
   assert.match(card?.body ?? '', /clip-path:\s*inset\([^;]*var\(--toast-card-clip,/,
     `${SHEET}: a resting card behind the front one is not clipped at the front card's bottom edge.`);
-  const fanned = pileRules.filter((rule) => rule.selector.includes(':hover') && /\btranslate:/.test(rule.body));
-  assert.ok(fanned.length > 0 && fanned.every((rule) => /clip-path:/.test(rule.body)),
-    `${SHEET}: a fanned card keeps the clip that only belongs to the resting pile.`);
+  const fanned = pileRules.filter((rule) => rule.selector.includes(':hover') && /\btranslate:\s*0 var\(--toast-card-fan/.test(rule.body));
+  assert.ok(fanned.length > 0 && fanned.every((rule) => /clip-path:\s*inset\([^;]*var\(--toast-card-fan-clip,/.test(rule.body)),
+    `${SHEET}: a fanned card has no bottom inset of its own, so its clip is open under the front card while the pile moves.`);
   assert.ok(rules.some((rule) => rule.selector === '.ui-toast-stack--collapsed:focus-visible'),
     `${SHEET}: the keyboard entry point for a collapsed stack has no visible focus style.`);
   assert.ok(vanilla.includes("setAttribute('tabindex', '0')"),
@@ -336,6 +336,8 @@ test('a back card is clipped where the front card ends, and the front card is no
     const [front, ...back] = newestFirst ? cards : [...cards].reverse();
     assert.equal(front.style.getPropertyValue('--toast-card-clip'), '',
       `newestFirst: ${newestFirst} — the front card is clipped, which cuts its shadow`);
+    assert.equal(front.style.getPropertyValue('--toast-card-fan-clip'), '',
+      `newestFirst: ${newestFirst} — the front card is clipped when fanned, which cuts its shadow`);
     for (const card of back) {
       const scale = parseFloat(card.style.getPropertyValue('--toast-card-scale'));
       const clip = parseFloat(card.style.getPropertyValue('--toast-card-clip'));
@@ -343,11 +345,19 @@ test('a back card is clipped where the front card ends, and the front card is no
       assert.ok(Math.abs(bottom) < 1e-6,
         `newestFirst: ${newestFirst} — a ${card.dataset.height}px card is clipped ${clip}px from its bottom, `
         + `which leaves its bottom edge ${bottom}px from the front card's.`);
+      // Fanned, the card sits `fan` above its resting box and is unscaled. The cut hangs the
+      // same distance below it, so it stays on the front card's bottom edge as the pile moves.
+      const fan = parseFloat(card.style.getPropertyValue('--toast-card-fan'));
+      const fanClip = parseFloat(card.style.getPropertyValue('--toast-card-fan-clip'));
+      assert.ok(fan < 0 && Math.abs(fan - fanClip) < 1e-6,
+        `newestFirst: ${newestFirst} — a ${card.dataset.height}px card fanned ${fan}px has a fanned clip of `
+        + `${fanClip}px, which leaves the cut off the front card's bottom edge while the pile moves.`);
     }
     assert.ok(parseFloat(back.at(-1).style.getPropertyValue('--toast-card-clip')) > 0,
       'the 130px card behind a 70px front card reaches below it, so some of it has to be cut');
     clearToastPile(stack);
     assert.equal(back[0].style.getPropertyValue('--toast-card-clip'), '', 'clearing a pile leaves a clip behind');
+    assert.equal(back[0].style.getPropertyValue('--toast-card-fan-clip'), '', 'clearing a pile leaves a fanned clip behind');
     stack.remove();
   }
 });

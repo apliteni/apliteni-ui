@@ -160,7 +160,10 @@
      past the front notice's, and its sides are cut at its own edge, so a taller
      back notice never shows below the front one and its shadow leaves no ledge.
      The front notice publishes nothing and keeps an open box. A clip-path works
-     in Chromium and WebKit; overflow-clip-margin does not in WebKit. */
+     in Chromium and WebKit; overflow-clip-margin does not in WebKit.
+     The fanned rule below gives the same edge its own bottom inset, so the cut
+     stays on the front notice's bottom edge for the whole move and never opens
+     under it while the pile collapses or fans out. */
   clip-path: inset(-100vmax min(0px, var(--toast-card-clip, -100vmax)) var(--toast-card-clip, -100vmax));
   transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease),
     clip-path var(--dur-med) var(--ease);
@@ -172,7 +175,7 @@
 .ui-toast-stack--collapsed:focus-within > .ui-toast {
   translate: 0 var(--toast-card-fan, 0px);
   scale: 1;
-  clip-path: inset(-100vmax);
+  clip-path: inset(-100vmax -100vmax var(--toast-card-fan-clip, -100vmax));
 }
 
 /* Half of what opens a pile is hover. Where the reader has none, the plain

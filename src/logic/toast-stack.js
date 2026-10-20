@@ -82,8 +82,16 @@ export function applyToastPile(stack, { newestFirst = false, gap = TOAST_GAP } =
     // in the card's own pixels: scaling is about that edge, so the lift divides
     // by the scale. A card that ends above it needs no cut. The front card has
     // none to publish and keeps its shadow.
-    if (depth > 0) card.style.setProperty('--toast-card-clip', `${Math.max(0, lift / scale)}px`);
-    else card.style.removeProperty('--toast-card-clip');
+    // Fanned, the same edge sits `fan` below the card's own bottom: the card has
+    // moved up by that much and unscaled, so the cut stays on the front card's
+    // bottom edge while the pile moves, not only before and after.
+    if (depth > 0) {
+      card.style.setProperty('--toast-card-clip', `${Math.max(0, lift / scale)}px`);
+      card.style.setProperty('--toast-card-fan-clip', `${fan}px`);
+    } else {
+      card.style.removeProperty('--toast-card-clip');
+      card.style.removeProperty('--toast-card-fan-clip');
+    }
   });
   return geometry;
 }
@@ -99,6 +107,7 @@ export function clearToastPile(stack) {
     card.style.removeProperty('--toast-card-fan');
     card.style.removeProperty('--toast-card-depth');
     card.style.removeProperty('--toast-card-clip');
+    card.style.removeProperty('--toast-card-fan-clip');
   }
 }
 
