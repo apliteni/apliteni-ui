@@ -1724,6 +1724,15 @@ it('scrolls a long panel into view inside a scrolling body and keeps the trigger
   expect(availOf(container)).toBe(`${540 - 16 - 31 - 9}px`);
   expect(body.scrollTop).toBe(600 + 9 + 484 + 8 - 640);
   expect(panel.classList.contains('is-up')).toBe(false);
+  // The body ends where the open panel ends, so the inset below it needs a spot to scroll to.
+  const root = container.querySelector('.ui-dropdown') as HTMLElement;
+  expect(root.style.getPropertyValue('--ui-dropdown-reach')).toBe(`${9 + 484 + 8 - 1}px`);
+});
+
+it('reserves nothing below an open panel that has no scrolling body', () => {
+  phone(600);
+  const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
+  expect((container.querySelector('.ui-dropdown') as HTMLElement).style.getPropertyValue('--ui-dropdown-reach')).toBe('');
 });
 
 it('a trigger with no room left is left uncapped, not pinned to a nought-pixel sliver', () => {

@@ -675,11 +675,22 @@ export function dropdownReveal(dd, panel) {
   return by;
 }
 
+/* A body cannot scroll past the end of what it holds, and a panel is the last thing
+ * in it: the panel's own bottom is the end. Without more below it, the inset the
+ * reveal keeps cannot be reached at the end of the body. The sheet draws a 1px spot
+ * at the distance written here, below the trigger. why: src/styles/dropdown.css */
+function ddReserveEnd(dd, panel) {
+  if (!dd.style || panel.classList.contains('is-up')) return;
+  const next = `${ddGap(panel) + panel.offsetHeight + ddEdge(panel) - 1}px`;
+  if (dd.style.getPropertyValue('--ui-dropdown-reach') !== next) dd.style.setProperty('--ui-dropdown-reach', next);
+}
+
 function ddRevealOnce(dd, panel) {
   const trigger = dd?.querySelector?.('[data-dropdown-trigger]');
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !panel) return 0;
   const box = ddScrollBox(dd, panel);
   if (!box) return 0;
+  ddReserveEnd(dd, panel);
   const t = trigger.getBoundingClientRect();
   const edge = ddEdge(panel);
   const h = panel.offsetHeight;
@@ -701,6 +712,7 @@ function ddSizeHeight(dd, panel) {
   if (!panel?.style) return;
   const avail = dropdownHeightFit(dd, panel);
   if (avail == null) return;
+  if (dd.style?.getPropertyValue('--ui-dropdown-reach')) ddReserveEnd(dd, panel);
   // Infinity means the floor could not be met even by spending the whole inset:
   // the property is removed rather than written, so the sheet's own fallback — the
   // viewport less the edge inset, not a trigger-sized sliver — takes over. why:
