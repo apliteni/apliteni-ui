@@ -133,8 +133,6 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
   const dirty = !!invoice && JSON.stringify(draft) !== JSON.stringify(invoice.fields);
   const pending = invoice?.status === 'Uploading' || invoice?.status === 'Parsing';
   const [preview, setPreview] = useState<string>();
-  const latest = useRef(invoices);
-  latest.current = invoices;
   /* The live region speaks for what is not on screen as text: a pane that is still loading
      and the effect of an action whose result is already visible. It is read, not seen, so it
      holds no space and nothing under it moves. */
@@ -195,18 +193,9 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
     }));
     setInvalid(false); setMessage('');
     /* What happened goes in a toast, which floats over the page: a line in the flow moved the
-       form under the pointer that pressed Save. The toast reads its own text aloud. */
-    toast({ title: 'Saved', action: before ? { label: 'Undo', onClick: () => undoSave(invoice.name, before, saved) } : undefined });
-  };
-  /* The toast outlives the screen it was raised on, so its Undo is bound to the record and
-     the values it saved, not to whatever is selected. If the record has changed since, the
-     save it names is no longer the last one and there is nothing of it to undo. */
-  const undoSave = (name: string, before: { fields: Fields; status: Status }, saved: Fields) => {
-    const row = latest.current.find(item => item.name === name);
-    if (!row || JSON.stringify(row.fields) !== JSON.stringify(saved) || row.status !== 'Ready') return;
-    setDrafts(values => ({ ...values, [name]: { ...before.fields } }));
-    setInvoices(rows => rows.map(item => item.name === name ? { ...item, fields: { ...before.fields }, previous: undefined, status: before.status } : item));
-    setInvalid(false); setMessage('Last save undone.');
+       form under the pointer that pressed Save. The toast reads its own text aloud. It offers no
+       Undo of its own, because the form's Undo button already undoes the last save. */
+    toast({ title: 'Saved' });
   };
   const undo = () => {
     if (!invoice) return;

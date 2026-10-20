@@ -35,10 +35,8 @@ const rowStatus = (filename: string) => {
   return within(row).getByText(/^(Uploading|Parsing|Needs review|Ready)$/).textContent;
 };
 
-/* The form's own Undo. A save also raises a toast with an Undo of its own, and the toast
- * outlives the screen it was raised on, so the name alone no longer picks one button. */
+// The form's own Undo, read from the Invoice data region so the lookup names where the button lives.
 const formUndo = () => within(screen.getByRole('region', { name: 'Invoice data' })).getByRole('button', { name: 'Undo' });
-const toastUndo = () => within(document.querySelector<HTMLElement>('.ui-toast')!).getByRole('button', { name: 'Undo' });
 
 describe('invoice flow prototype', () => {
   it('adds multiple selected files, including repeated filenames, without replacing rows', async () => {
@@ -376,7 +374,7 @@ describe('invoice flow prototype', () => {
     expect(within(paper).getByText('\u20ac1,704.00')).toBeInTheDocument();
     expect(within(paper).getByText('Brand identity refresh')).toBeInTheDocument();
   });
-  it('B4: Save puts its confirmation in the kit toast, outside the page flow, with Undo', async () => {
+  it('B4: Save puts its confirmation in the kit toast, outside the page flow, and leaves one Undo', async () => {
     const user = userEvent.setup();
     const { container } = render(<InvoiceFlow initialState="table" />);
     await user.click(screen.getByRole('link', { name: 'birch-208.pdf' }));
@@ -391,38 +389,28 @@ describe('invoice flow prototype', () => {
     // No line was added above the panes, so nothing under the pointer moved.
     expect(siblings()).toEqual(layout);
     expect(container.querySelector('[role="status"]')).toBeEmptyDOMElement();
-    await user.click(toastUndo());
+    // The toast only reports the save. The one Undo on screen is the form's, in the Invoice data region.
+    expect(toast.querySelector('.ui-toast__action')).toBeNull();
+    expect(within(toast).getAllByRole('button').map(button => button.getAttribute('aria-label'))).toEqual(['Dismiss']);
+    const undos = screen.getAllByRole('button', { name: 'Undo' });
+    expect(undos).toHaveLength(1);
+    expect(undos[0]).toBe(formUndo());
+    await user.click(undos[0]);
     expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Birch Workshop');
-    await waitFor(() => expect(document.querySelector('.ui-toast')).toBeNull());
     await backToList(user);
     expect(rowStatus('birch-208.pdf')).toBe('Ready');
   });
-  it('B4: the toast Undo returns a Needs review record to Needs review', async () => {
+  it('B4: the form Undo returns a Needs review record to Needs review', async () => {
     const user = userEvent.setup();
     render(<InvoiceFlow initialState="table" />);
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
     await user.type(screen.getByRole('textbox', { name: 'Supplier' }), ' Ltd');
     await user.click(screen.getByRole('button', { name: 'Save' }));
+    await user.click(formUndo());
     await backToList(user);
-    expect(rowStatus('cedar-1042.pdf')).toBe('Ready');
-    // The toast is bound to its record, so it still undoes that save from the list.
-    await user.click(toastUndo());
     expect(rowStatus('cedar-1042.pdf')).toBe('Needs review');
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
     expect(screen.getByRole('textbox', { name: 'Supplier' })).toHaveValue('Cedar Studio');
-  });
-  it('B4: a toast Undo does nothing once a later save has replaced the one it names', async () => {
-    const user = userEvent.setup();
-    render(<InvoiceFlow initialState="table" />);
-    await user.click(screen.getByRole('link', { name: 'birch-208.pdf' }));
-    const supplier = screen.getByRole('textbox', { name: 'Supplier' });
-    await user.type(supplier, ' Ltd');
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    await user.type(supplier, ' II');
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    const first = document.querySelectorAll<HTMLElement>('.ui-toast')[0];
-    await user.click(within(first).getByRole('button', { name: 'Undo' }));
-    expect(supplier).toHaveValue('Birch Workshop Ltd II');
   });
 
   /* The picker uses the kit's drop-row button. Buttons use one or two words.
