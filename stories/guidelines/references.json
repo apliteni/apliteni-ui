@@ -130,6 +130,32 @@
         "pattern": "--accent-strong: var(--accent);"
       }
     ],
+    "selection-accent": [
+      {
+        "ref": "src/styles/segmented.css:45",
+        "pattern": "color: var(--accent-contrast);"
+      },
+      {
+        "ref": "src/styles/segmented.css:46",
+        "pattern": "background: var(--accent);"
+      },
+      {
+        "ref": "src/styles/nav.css:323",
+        "pattern": ".ui-nav--tabs.is-underline .ui-nav__tab.is-active::after"
+      },
+      {
+        "ref": "src/styles/nav.css:329",
+        "pattern": "background: var(--glow-purple);"
+      },
+      {
+        "ref": "src/styles/nav.css:330",
+        "pattern": "color: var(--accent);"
+      },
+      {
+        "ref": "src/styles/layout.css:71",
+        "pattern": ".ui-app__rail .ui-nav__item.is-active"
+      }
+    ],
     "both-themes": [
       {
         "ref": "stories/accent-contrast.test.js:1",
@@ -798,7 +824,7 @@
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
-        "ref": "stories/contrast-dark.test.js:48",
+        "ref": "stories/contrast-dark.test.js:34",
         "pattern": "inactive components and their whole subtree"
       }
     ],
