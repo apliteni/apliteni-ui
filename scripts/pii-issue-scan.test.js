@@ -161,3 +161,21 @@ test('a full 40-character commit hash gives no warning', async () => {
 
   assert.equal(comments.length, 0);
 });
+
+test('a Lessly host whose first label follows the attachment prefix still warns', async () => {
+  const host = ['example', 'lessly', 'run'].join('.');
+  const comments = await run('issues', {
+    issue: { number: 617, body: `${attachmentUrl}.${host}/path` },
+  });
+
+  assert.equal(comments.length, 1);
+  assert.match(comments[0].body, /UUID v4 at line 1, column 44/);
+});
+
+test('an attachment URL at the end of a sentence gives no warning', async () => {
+  const comments = await run('issues', {
+    issue: { number: 617, body: `Please see ${attachmentUrl}.` },
+  });
+
+  assert.equal(comments.length, 0);
+});

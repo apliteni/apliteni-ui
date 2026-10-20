@@ -42,7 +42,7 @@ jobs:
                   ?? context.payload.issue?.body ?? "");
             // GitHub attachment URLs carry a public UUID. Blank them with spaces of the
             // same length so line and column numbers stay correct.
-            const attachmentUrl = /(?<![\w.\-\/?=&%@])https:\/\/github\.com\/user-attachments\/assets\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
+            const attachmentUrl = /(?<![\w.\-\/?=&%@])https:\/\/github\.com\/user-attachments\/assets\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?![\w-]|\.[\w-])/gi;
             const scanned = body.replace(attachmentUrl, (url) => " ".repeat(url.length));
             const patterns = [
               { name: "UUID v4", re: /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b/ },
