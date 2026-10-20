@@ -532,7 +532,7 @@
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:83",
+        "ref": "src/styles/card.css:86",
         "pattern": "rank: card-title"
       }
     ],
@@ -973,7 +973,7 @@
         "pattern": "export function switchToggle("
       },
       {
-        "ref": "src/styles/card.css:100",
+        "ref": "src/styles/card.css:103",
         "pattern": ".ui-card__row {"
       }
     ],

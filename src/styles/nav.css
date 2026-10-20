@@ -324,7 +324,7 @@
    so switching containment does not move the links. Unwired rows keep containment. */
 .ui-nav--tabs[data-nav-fit] { overflow: visible; }
 .ui-nav--tabs.is-pill { --ui-tabs-rule: 0px; gap: 6px; }
-.ui-card .ui-nav--tabs { --ui-tabs-ground: var(--surface); }
+.ui-card .ui-nav--tabs { --ui-tabs-ground: var(--ui-card-ground); }
 :root[data-theme="light"] .ui-nav--tabs {
   --ui-tabs-edge: color-mix(in srgb, var(--shadow-ink) 13%, transparent);
 }
