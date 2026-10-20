@@ -320,38 +320,12 @@ test('forced-colour selection marks cannot replace focus rings', () => {
 const FORCED = /forced-colors\s*:\s*active/;
 const INDICATOR = /^(outline|box-shadow)/;
 const PERMITTED_FORCED = {
-  '.ui-seg--underline button.is-active::before, .ui-seg--underline button[aria-pressed="true"]::before': {
-    why: 'the underline strip\'s chosen tab restates its accent bar in `Highlight`, because '
-      + 'the mode repaints an author colour and would otherwise leave the bar in the labels\' '
-      + 'own ink (#527). A selection mark on a strip that no longer scrolls at all, so it is '
-      + 'neither a focus indicator nor a scroll region\'s.',
-    props: ['background'],
-  },
   '.ui-nav--tabs': {
     why: 'forced colours drop background images, so the row\'s rule comes back as a border '
       + 'and the last pixel of the bottom padding pays for it. It answers no focus and '
       + 'belongs to no focused box: the row\'s own band is declared outside this mode and '
       + 'is a real outline the system repaints. #429',
     props: ['padding-bottom', 'border-bottom'],
-  },
-  '.ui-nav--tabs.is-pill .ui-nav__tab.is-active': {
-    why: 'what marks the selected tab is a colour, and this mode takes colours away — the '
-      + 'pill\'s wash is repainted Canvas, leaving every tab alike. The system\'s own '
-      + 'selected pair says it instead. A selection mark, not a focus indicator: it is on '
-      + 'the current tab whether or not anything has focus. #429',
-    props: ['forced-color-adjust', 'background-color', 'color'],
-  },
-  '.ui-nav--tabs.is-pill .ui-nav__tab.is-active .ui-nav__badge': {
-    why: 'the badge rides the selected pill\'s fill, so it takes the same system pair '
-      + 'inverted and stays readable on it. Paint on a child of the current tab, reached '
-      + 'by no focus and answering none. #429',
-    props: ['background-color', 'color', 'border-color'],
-  },
-  '.ui-nav--tabs.is-underline .ui-nav__tab.is-active::after': {
-    why: 'the underline appearance loses its mark the same way — an accent bar repainted '
-      + 'Canvas on a Canvas ground — so the bar takes the system\'s selected colour. Again '
-      + 'a selection mark on the current tab, not an answer to focus. #429',
-    props: ['background-color'],
   },
 };
 
@@ -368,7 +342,10 @@ function emulateForcedColors(css) {
   // And every OTHER block is one this file has triaged, carrying only what it was
   // triaged for. A new block fails here whatever it declares — which is the half the
   // indicator count on its own could not say.
-  const others = blocks.filter((rule) => !indicators.includes(rule));
+  // A selection mark is policed by checkForcedFocus, which allows it only on a selected,
+  // unfocused element, so the table lists the blocks that are neither.
+  const selection = /\.is-(?:active|current|selected)|\[aria-(?:pressed|selected)="true"\]/;
+  const others = blocks.filter((rule) => !indicators.includes(rule) && !selection.test(rule.selector));
   const named = (rule) => rule.selector.replace(/\s+/g, ' ').trim();
   assert.deepEqual(
     others.map(named).sort(),
@@ -446,8 +423,8 @@ test('rejects a permitted forced-colors block that grows a declaration', () => {
 // would quietly stop checking anything, so a deleted block fails too.
 test('rejects a triaged forced-colors block that has gone', () => {
   const mutated = source.replace(
-    '  .ui-nav--tabs.is-underline .ui-nav__tab.is-active::after { background-color: Highlight; }\n',
-    '');
+    '  .ui-nav--tabs {\n    padding-bottom: calc(',
+    '  .ui-nav--tabs-gone {\n    padding-bottom: calc(');
   assert.notEqual(mutated, source, 'the mutation found the rule');
   assert.throws(() => checkForcedColors(mutated, 'light'),
     /a forced-colors block that is not about a focus indicator was added or removed/);

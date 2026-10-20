@@ -375,9 +375,7 @@
   background: var(--glow-purple); /* code-bg: inherit — translucent wash retains the opaque containing gap. */
 }
 
-/* Forced colours, after the two appearances have had their say: this block declares
-   `background-color`, and the pill's `background` shorthand above would reset it from
-   the same specificity if it came first. */
+/* Forced colours: the selected-tab marks are in the block above. */
 @media (forced-colors: active) {
   /* Forced colours drop background images, so the row's rule comes back as a border.
      The last pixel of the bottom padding pays for it and the row keeps its size. */
@@ -385,26 +383,6 @@
     padding-bottom: calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule));
     border-bottom: var(--ui-tabs-rule) solid;
   }
-  /* What marks the selected tab is a colour, and forced colours take colours away:
-     the pill's wash is repainted Canvas and the underline's accent bar Canvas too, so
-     measured on a white ground both appearances left every tab looking alike. The
-     system's own selected pair says it instead — the kit picks no shade here, the
-     reader's own theme does, and the pair contrasts by construction. These rules
-     apply only in forced colours. */
-  .ui-nav--tabs.is-pill .ui-nav__tab.is-active {
-    /* Chromium plates every run of text with Canvas, so a label left on `auto` is
-       painted on white inside the fill and the pair stops being a pair. `none` hands
-       this one capsule back to the declarations below — which name no shade of our
-       own: Highlight and HighlightText come from the reader's theme and contrast by
-       construction, and the badge rides the same pair inverted. */
-    forced-color-adjust: none;
-    background-color: Highlight;
-    color: HighlightText;
-  }
-  .ui-nav--tabs.is-pill .ui-nav__tab.is-active .ui-nav__badge {
-    background-color: HighlightText; color: Highlight; border-color: HighlightText;
-  }
-  .ui-nav--tabs.is-underline .ui-nav__tab.is-active::after { background-color: Highlight; }
 }
 
 .ui-nav__tab.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; }
