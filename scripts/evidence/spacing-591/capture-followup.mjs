@@ -8,6 +8,7 @@
 // Needs agent-browser and Node 22. The 390 specimen frames hold touch emulation on over CDP, so
 // (pointer: coarse) matches and the tap floor applies. Every specimen frame is saved with a strip
 // beside it that brackets each vertical gap measured in the render; the grid frames draw one guide
+// (and a tick to each text edge within 60px of it)
 // on the column's text edge instead. Limits: one Chromium build; 834 is a fine pointer.
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -139,7 +140,7 @@ function annotated(f) {
     const mk = f.grid ? '' : `<path d="M8 ${it.top} H18 V${it.bottom} H8" fill="none" stroke="${mark}"/>`;
     return `${mk}<text x="${f.grid ? 10 : 24}" y="${y}" font-size="12" font-family="IBM Plex Sans, sans-serif" fill="${ink}">${it.text}</text>`; }).join('');
   const head = f.grid || m.side === null ? '' : `<text x="10" y="16" font-size="12" font-family="IBM Plex Sans, sans-serif" fill="${ink}">${m.side}px strip to filters, across</text>`;
-  const guide = f.grid ? `<svg width="${width}" height="${m.bottom}" style="position:absolute;left:0;top:0"><line x1="${m.col}" x2="${m.col}" y1="0" y2="${m.bottom}" stroke="${mark}"/>${m.edges.map(e => `<line x1="${m.col}" x2="${m.col + e.x}" y1="${e.y}" y2="${e.y}" stroke="${mark}" stroke-dasharray="0"/>`).join('')}</svg>` : '';
+  const guide = f.grid ? `<svg width="${width}" height="${m.bottom}" style="position:absolute;left:0;top:0"><line x1="${m.col}" x2="${m.col}" y1="0" y2="${m.bottom}" stroke="${mark}"/>${m.edges.filter(e => e.x > 0 && e.x < 60).map(e => `<line x1="${m.col}" x2="${m.col + e.x}" y1="${e.y}" y2="${e.y}" stroke="${mark}" stroke-dasharray="0"/>`).join('')}</svg>` : '';
   return `<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400&display=swap">
 <body style="margin:0;background:${theme === 'dark' ? '#16161c' : '#fff'};display:flex"><div style="position:relative"><img src="file://${f.png}" style="display:block;width:${width}px;height:${m.bottom}px">${guide}</div>
 <svg width="${strip}" height="${m.bottom}" style="display:block;border-left:1px solid ${theme === 'dark' ? '#333' : '#ddd'}">${head}${svg}</svg></body>`;
