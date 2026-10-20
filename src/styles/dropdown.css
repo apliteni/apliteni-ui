@@ -157,9 +157,6 @@
     var(--ui-dropdown-avail, calc(100dvh - 2 * var(--ui-dropdown-edge)))
   );
   overflow-y: auto;
-  /* A focused row scrolls into view flush with the box's edge, which leaves the ring's
-     3px outside the box and clipped. The scroll keeps that room. */
-  scroll-padding-block: calc(var(--ring-gap-width) + var(--ring-width));
   /* The wheel stops at the panel's own end instead of carrying on down the page
      underneath it — the second half of #489. */
   overscroll-behavior: contain;
@@ -278,17 +275,19 @@
   color: var(--text);
   transition: background var(--dur-fast) var(--ease);
 }
-/* Rows keep a reading surface; hover adds an edge. A row that is hovered AND focused
-   draws the ring and not the hover edge — both are outlines now, and the focus rule
-   comes later — which is one indicator rather than two.
+/* Hover is a fill and an outline means focus, so a hovered row draws no edge. A row that is
+   hovered AND focused draws the ring over the fill.
    why: docs/foundations.md#elevation */
-.ui-dropdown__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-dropdown__item:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 /* Light only: the panel is --bg-elevated, which --surface matches exactly there, so the
    hover fill above changed nothing. --surface-3 is the quiet fill the drawer's close mark
    takes on hover, one step under the --surface-2 that .is-active takes below.
    why: docs/foundations.md#elevation */
 :where(:root[data-theme="light"]) .ui-dropdown__item:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-.ui-dropdown__item:focus-visible { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ outline: var(--ring); outline-offset: var(--ring-offset); }
+/* The row draws its ring inward, so a row scrolled flush with the list's edge cannot have it
+   clipped and the list scrolls as it did.
+   why: docs/foundations.md#the-focus-ring */
+.ui-dropdown__item:focus-visible { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ui-dropdown__label { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .ui-dropdown__desc { font-size: var(--text-xs); color: var(--text); line-height: 1.35; }
@@ -415,7 +414,7 @@
 
 /* The rows' own cap, read from the same property the panel reads: the `scroll`
    option lands on the list when there is a field above it. #489 */
-.ui-dropdown__list { max-height: var(--ui-dropdown-cap, 300px); overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: calc(var(--ring-gap-width) + var(--ring-width)); }
+.ui-dropdown__list { max-height: var(--ui-dropdown-cap, 300px); overflow-y: auto; overscroll-behavior: contain; }
 /* Rows are `role="option" tabindex="-1"`, so the LIST takes the keyboard stop and
    answered with the native outline. The band is drawn INWARD, on the list: an outset
    one 6px inside a --radius-lg corner leaves the panel, and the panel is not the box

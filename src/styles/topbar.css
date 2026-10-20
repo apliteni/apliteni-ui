@@ -205,8 +205,7 @@
   font: inherit;
   transition: background var(--dur-fast) var(--ease);
 }
-/* Menu rows use the reading surface and an edge on hover — see
-   src/styles/dropdown.css:271 `.ui-dropdown__item:hover`.
+/* Menu rows use the reading surface and an edge on hover.
    why: docs/foundations.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 /* The row is a keyboard stop: src/components/dropdown.js:1165

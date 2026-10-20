@@ -1,5 +1,5 @@
-// Rule: a dropdown row shows a hover step in both themes (#595), and a scrolled panel
-// keeps room for the focus ring of the row at its edge (#649).
+// Rule: a dropdown row shows a hover step in both themes with no outline (#595), and the
+// row draws its focus ring inward so a scrolled row's ring is never clipped (#649).
 //
 // Coverage limits:
 // - Source only. It reads the sheet and the token values, and paints nothing. The hover
@@ -57,19 +57,35 @@ test('the hover gate fails when the light fill goes back to --surface', () => {
   assert.equal(tokens.get(hoverFill(weakened, 'light')).toLowerCase(), tokens.get('--bg-elevated').toLowerCase());
 });
 
-const room = /scroll-padding-block:\s*calc\(var\(--ring-gap-width\)\s*\+\s*var\(--ring-width\)\)/;
-const keepsRoom = (text, selector) => rules(text).some(([, head, body]) =>
-  splitSelectorList(head).some((h) => h.trim() === selector) && room.test(body));
+const inward = (text) => rules(text).filter(([, head]) =>
+  splitSelectorList(head).some((h) => h.trim() === '.ui-dropdown__item:focus-visible'))
+  .map(([, , body]) => body)
+  .some((body) => /outline:\s*var\(--ring-scroll\)/.test(body)
+    && /outline-offset:\s*var\(--ring-scroll-offset\)/.test(body));
 
-test('the panel and its list keep the ring\'s room when a row scrolls into view', () => {
-  for (const selector of ['.ui-dropdown__panel', '.ui-dropdown__list']) {
-    assert.ok(keepsRoom(css, selector), `${selector} no longer keeps scroll-padding for the ring`);
-  }
+test('a focused dropdown row draws its ring inward, so a scrolled row cannot clip it', () => {
+  assert.ok(inward(css), 'the row draws an outset ring, which the list or panel clips at its edge');
 });
 
-test('the scroll-padding gate fails when the declaration is removed', () => {
-  const weakened = css.replaceAll(/scroll-padding-block:[^;]+;/g, '');
-  for (const selector of ['.ui-dropdown__panel', '.ui-dropdown__list']) {
-    assert.equal(keepsRoom(weakened, selector), false);
-  }
+test('the inward-ring gate fails when the row goes back to the outset ring', () => {
+  const weakened = css.replace(/outline:\s*var\(--ring-scroll\);\s*outline-offset:\s*var\(--ring-scroll-offset\)/,
+    'outline: var(--ring); outline-offset: var(--ring-offset)');
+  assert.notEqual(weakened, css, 'the mutation found nothing to change');
+  assert.equal(inward(weakened), false);
+});
+
+test('a hovered dropdown row draws no outline, because an outline means focus', () => {
+  const edged = rules(css).filter(([, head]) =>
+    splitSelectorList(head).some((h) => /\.ui-dropdown__item:hover$/.test(h.trim())))
+    .some(([, , body]) => /outline/.test(body));
+  assert.equal(edged, false, 'a hover rule paints an outline');
+});
+
+test('the hover-outline gate fails when a hover rule paints an outline', () => {
+  const weakened = css.replace(/(\.ui-dropdown__item:hover \{ )background/, '$1outline: 1px solid var(--control-edge); background');
+  assert.notEqual(weakened, css, 'the mutation found nothing to change');
+  const edged = rules(weakened).filter(([, head]) =>
+    splitSelectorList(head).some((h) => /\.ui-dropdown__item:hover$/.test(h.trim())))
+    .some(([, , body]) => /outline/.test(body));
+  assert.equal(edged, true);
 });
