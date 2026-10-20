@@ -113,3 +113,69 @@ for (const [name, body] of [
     assert.match(comments[0].body, new RegExp(`${name} at line 1, column \\d+`));
   });
 }
+
+const attachmentUuid = ['0a1b2c3d', '4e5f', '4a6b', '8c7d', '9e0f1a2b3c4d'].join('-');
+const attachmentUrl = `https://github.com/user-attachments/assets/${attachmentUuid}`;
+
+test('a GitHub attachment URL alone gives no warning', async () => {
+  const comments = await run('issues', {
+    issue: { number: 617, body: `Screenshot:\n${attachmentUrl}\n` },
+  });
+
+  assert.equal(comments.length, 0);
+});
+
+test('a bare UUID next to an attachment URL still warns at its own line and column', async () => {
+  const bare = ['123e4567', 'e89b', '42d3', 'a456', '426614174000'].join('-');
+  const comments = await run('issues', {
+    issue: { number: 617, body: `Shot ${attachmentUrl}\nid: ${bare}` },
+  });
+
+  assert.equal(comments.length, 1);
+  assert.match(comments[0].body, /UUID v4 at line 2, column 5/);
+});
+
+test('a UUID in another URL still warns', async () => {
+  const comments = await run('issues', {
+    issue: { number: 617, body: `See https://example.com/assets/${attachmentUuid}` },
+  });
+
+  assert.equal(comments.length, 1);
+  assert.match(comments[0].body, /UUID v4/);
+});
+
+test('an attachment URL pasted inside another URL still warns', async () => {
+  const comments = await run('issues', {
+    issue: { number: 617, body: `See https://example.com/?u=${attachmentUrl}` },
+  });
+
+  assert.equal(comments.length, 1);
+});
+
+test('a full 40-character commit hash gives no warning', async () => {
+  const hash = 'bb52b750994b13968f0b0f05f5f29a4320ae8518';
+  const comments = await run('issue_comment', {
+    issue: { number: 617, body: 'clean' },
+    comment: { body: `[tests] head ${hash}: pass` },
+  });
+
+  assert.equal(comments.length, 0);
+});
+
+test('a Lessly host whose first label follows the attachment prefix still warns', async () => {
+  const host = ['example', 'lessly', 'run'].join('.');
+  const comments = await run('issues', {
+    issue: { number: 617, body: `${attachmentUrl}.${host}/path` },
+  });
+
+  assert.equal(comments.length, 1);
+  assert.match(comments[0].body, /UUID v4 at line 1, column 44/);
+});
+
+test('an attachment URL at the end of a sentence gives no warning', async () => {
+  const comments = await run('issues', {
+    issue: { number: 617, body: `Please see ${attachmentUrl}.` },
+  });
+
+  assert.equal(comments.length, 0);
+});
