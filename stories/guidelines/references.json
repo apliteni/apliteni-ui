@@ -214,7 +214,7 @@
         "pattern": "a question the page stops for"
       },
       {
-        "ref": "src/components/index.js:217",
+        "ref": "src/components/index.js:256",
         "pattern": "export function callout("
       },
       {
@@ -232,7 +232,7 @@
         "pattern": "a floating, dismissible notification"
       },
       {
-        "ref": "src/components/index.js:243",
+        "ref": "src/components/index.js:282",
         "pattern": "class=\"ui-toast__action\""
       }
     ],
@@ -266,11 +266,11 @@
     ],
     "scale": [
       {
-        "ref": "src/components/index.js:260",
+        "ref": "src/components/index.js:299",
         "pattern": "Pick by how much of the screen the confirmation owns"
       },
       {
-        "ref": "src/components/index.js:262",
+        "ref": "src/components/index.js:301",
         "pattern": "export function successPanel("
       },
       {
@@ -324,7 +324,7 @@
         "pattern": "role=\"alertdialog\""
       },
       {
-        "ref": "src/components/index.js:243",
+        "ref": "src/components/index.js:282",
         "pattern": "class=\"ui-toast__action\""
       },
       {
@@ -474,7 +474,7 @@
         "pattern": "export const iconMeanings"
       },
       {
-        "ref": "src/components/index.js:229",
+        "ref": "src/components/index.js:268",
         "pattern": "const TOAST_ICON = {"
       }
     ],
@@ -804,15 +804,15 @@
     ],
     "error-in-markup": [
       {
-        "ref": "src/components/index.js:182",
+        "ref": "src/components/index.js:221",
         "pattern": "`invalid` paints the control red AND says so in aria-invalid"
       },
       {
-        "ref": "src/components/index.js:168",
+        "ref": "src/components/index.js:207",
         "pattern": "'aria-describedby': msgId,"
       },
       {
-        "ref": "src/components/index.js:154",
+        "ref": "src/components/index.js:186",
         "pattern": "markup rather than in the label's wording"
       }
     ],
@@ -826,7 +826,7 @@
         "pattern": "export function setBusy(root,"
       },
       {
-        "ref": "src/components/index.js:249",
+        "ref": "src/components/index.js:288",
         "pattern": "role=\"status\" aria-live=\"polite\""
       }
     ]
@@ -841,7 +841,7 @@
     ],
     "useful-callouts": [
       {
-        "ref": "src/components/index.js:217",
+        "ref": "src/components/index.js:256",
         "pattern": "export function callout("
       }
     ]
@@ -867,7 +867,7 @@
   "_empty-states.js": {
     "next-action": [
       {
-        "ref": "src/components/index.js:272",
+        "ref": "src/components/index.js:311",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
       }
     ]
@@ -969,7 +969,7 @@
     ],
     "in-row": [
       {
-        "ref": "src/components/index.js:210",
+        "ref": "src/components/index.js:249",
         "pattern": "export function switchToggle("
       },
       {

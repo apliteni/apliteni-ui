@@ -849,7 +849,7 @@ before the hint rather than in its place**. This keeps a hint with consent, safe
 on screen while the reader decides whether to retry. The error also uses `role="alert"`, so a new
 error is announced without moving focus. Required markers are decorative. Native controls carry
 `required`. `Field` exposes the frame for a control that you render yourself. Its child function
-receives a stable ID, `required`, `aria-invalid` and `aria-describedby`. `FileField` accepts one
+receives a stable ID, `required`, `aria-invalid` and `aria-describedby`. Spread them on a `Dropdown` and the label and then the value name its trigger. `FileField` accepts one
 file from the picker or by drop. `accept` only filters the system picker, so you validate before
 upload.
 
@@ -1109,8 +1109,11 @@ find them by class. These attributes make the row work:
 `field()` provides wiring that a control cannot provide for itself. It sets the label's `for=`,
 adds an id to the hint or error and points to it with `aria-describedby`, adds `aria-invalid`
 to a field with an `error`, and adds the native `required` attribute under the decorative
-asterisk. A control outside a `field()` needs its own `ariaLabel`. A placeholder is not a name.
-Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
+asterisk. **A `dropdown()` inside `field()` is wired through its trigger button**, because the
+dropdown's `id` sits on a wrapper that a label cannot name. The label and then the chosen value name
+the trigger, the error or hint describes it, and an error marks it invalid. The list is named by the
+label unless you give it an `ariaLabel`. A control outside a `field()` needs its own `ariaLabel`. A
+placeholder is not a name. Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See
 [Colour and contrast](foundations.md#colour-and-contrast).
 

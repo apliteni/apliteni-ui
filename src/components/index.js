@@ -132,16 +132,48 @@ function withControlId(html) {
 // aria-describedby, aria-invalid, required. Anything the control already spells
 // out for itself wins — a caller who passed `invalid` to input() keeps their own
 // aria-invalid. `true` renders a bare boolean attribute.
-function withControlAttrs(html, attrs) {
+function withAttrsOn(html, openTag, attrs) {
   const pairs = Object.entries(attrs).filter(([, v]) => v != null && v !== false);
   if (!pairs.length) return html;
-  return html.replace(/<(input|textarea|select)\b([^>]*?)(\s*\/?)>/, (m, tag, rest, tail) => {
+  return html.replace(openTag, (m, tag, rest, tail) => {
     const add = pairs
       .filter(([k]) => !new RegExp(`\\s${k}(?=[\\s=>/]|$)`).test(rest))
       .map(([k, v]) => (v === true ? ` ${k}` : ` ${k}="${esc(v)}"`))
       .join('');
     return `<${tag}${rest}${add}${tail}>`;
   });
+}
+const withControlAttrs = (html, attrs) => withAttrsOn(html, /<(input|textarea|select)\b([^>]*?)(\s*\/?)>/, attrs);
+
+// A dropdown() is not a form element: its id sits on the outer div, which a
+// <label for> cannot name, and its one input (the search field) is inside the
+// panel. So field() wires the trigger button instead: the label and the value
+// name it, and the hint or error describes it. why: docs/components.md#forms
+const DD_ROOT = /<(div)\b((?=[^>]*\bdata-dropdown(?=[\s>]))[^>]*?)(\s*\/?)>/;
+const DD_TRIGGER = /<(button)\b((?=[^>]*\bdata-dropdown-trigger\b)[^>]*?)(\s*\/?)>/;
+const DD_PANEL = /<(div)\b((?=[^>]*\bdata-dropdown-panel\b)[^>]*?)(\s*\/?)>/;
+const attrId = (tag) => tag?.match(/\sid="([^"]+)"/)?.[1] || null;
+function withDropdownId(html, id) {
+  const root = html.match(DD_ROOT)[0];
+  const existing = attrId(root);
+  if (existing) return { html, id: existing };
+  const own = id || nextId('field');
+  return { html: html.replace(DD_ROOT, (m) => m.replace('<div', `<div id="${esc(own)}"`)), id: own };
+}
+function withDropdownAttrs(html, { rootId, labelId, describedby, invalid }) {
+  const trigger = html.match(DD_TRIGGER)?.[0] || '';
+  const triggerId = attrId(trigger) || `${rootId}-trigger`;
+  // A trigger that carries its own aria-label keeps it: the caller named it.
+  const named = labelId && !/\saria-label(?:ledby)?=/.test(trigger);
+  let out = withAttrsOn(html, DD_TRIGGER, {
+    id: named ? triggerId : null,
+    'aria-labelledby': named ? `${labelId} ${triggerId}` : null,
+    'aria-describedby': describedby,
+    'aria-invalid': invalid,
+  });
+  const panel = html.match(DD_PANEL)?.[0] || '';
+  if (labelId && !/\saria-label(?:ledby)?=/.test(panel)) out = withAttrsOn(out, DD_PANEL, { 'aria-labelledby': labelId });
+  return out;
 }
 
 // A labelled control with, optionally, a hint or an error under it.
@@ -156,21 +188,28 @@ function withControlAttrs(html, attrs) {
 export function field({ label, hint, error, control = '', id, required = false } = {}) {
   let ctl = control;
   let forId = id;
+  const dd = DD_ROOT.test(control);
+  let ddId = null;
   if (label && control) {
-    const r = withControlId(control);
+    const r = dd ? withDropdownId(control, id) : withControlId(control);
     ctl = r.html;
     forId = id || r.id;
+    if (dd) ddId = r.id;
   }
   // Error wins over hint — only one message shows, so only one id is minted.
   const msg = error || hint;
   const msgId = msg && control ? nextId(error ? 'field-err' : 'field-hint') : null;
-  ctl = withControlAttrs(ctl, {
-    'aria-describedby': msgId,
-    'aria-invalid': error ? 'true' : null,
-    required: required || null,
-  });
+  ctl = dd
+    ? withDropdownAttrs(ctl, {
+      rootId: ddId, labelId: ddId && `${ddId}-label`, describedby: msgId, invalid: error ? 'true' : null,
+    })
+    : withControlAttrs(ctl, {
+      'aria-describedby': msgId,
+      'aria-invalid': error ? 'true' : null,
+      required: required || null,
+    });
   const lab = label
-    ? `<label class="ui-field__label"${forId ? ` for="${id ? esc(id) : forId}"` : ''}>${esc(label)}`
+    ? `<label class="ui-field__label"${ddId ? ` id="${esc(ddId)}-label"` : ''}${forId ? ` for="${id ? esc(id) : forId}"` : ''}>${esc(label)}`
       + `${required ? '<span class="ui-field__req" aria-hidden="true">*</span>' : ''}</label>`
     : '';
   const foot = error
