@@ -36,7 +36,9 @@ function Switcher({ toggle = true }: { toggle?: boolean }) {
 const meta: Meta<typeof Footer> = {
   title: 'React/Footer',
   component: Footer,
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', viewport: { options: {
+    phone: { name: 'Phone', styles: { width: '390px', height: '844px' }, type: 'mobile' },
+  } } },
 };
 export default meta;
 type Story = StoryObj<typeof Footer>;
@@ -61,7 +63,7 @@ export const App: Story = {
 
 export const MobileStacked: Story = {
   name: 'Full — mobile stacked',
-  parameters: { viewport: { defaultViewport: 'mobile1' } },
-  render: () => <Footer variant="full" tagline="Columns collapse to a single stacked list on narrow screens."
-    columns={COLUMNS} social={SOCIAL} legal="© 2026 Apliteni" legalLinks={LEGAL_LINKS} switcher={<Switcher toggle={false} />} />,
+  globals: { viewport: { value: 'phone', isRotated: false } },
+  render: () => <div style={{ width: 390, maxWidth: '100%', margin: '0 auto' }}><Footer variant="full" tagline="Columns collapse to a single stacked list on narrow screens."
+    columns={COLUMNS} social={SOCIAL} legal="© 2026 Apliteni" legalLinks={LEGAL_LINKS} switcher={<Switcher toggle={false} />} /></div>,
 };

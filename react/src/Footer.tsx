@@ -1,5 +1,5 @@
 import { useId, type HTMLAttributes, type ReactNode } from 'react';
-import { prism } from '@apliteni/apliteni-ui';
+import { prism, safeUrl } from '@apliteni/apliteni-ui';
 
 export type FooterLink = { label: string; href?: string; target?: string };
 export type FooterColumn = { title?: string; links: FooterLink[] };
@@ -33,18 +33,13 @@ const SOCIAL_GLYPHS: Record<NonNullable<FooterSocial['icon']>, string> = {
   mail: '<rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m3 7 9 6 9-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
 };
 
-const href = (value?: string) => {
-  const scheme = (value ?? '').replace(/[\t\n\r]/g, '').replace(/^[\u0000-\u0020]+/, '');
-  return value && !/^(?:javascript|data|vbscript):/i.test(scheme) ? value : '#';
-};
-
 const escapeText = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 function Legal({ legal, legalLinks, switcher }: Pick<FooterProps, 'legal' | 'legalLinks' | 'switcher'>) {
   return <div className="ui-footer__bar">
     <span className="ui-footer__legal">{legal}</span>
     {legalLinks && legalLinks.length > 0 && <nav className="ui-footer__legal-links" aria-label="Legal">
-      {legalLinks.map(({ label, href: to }) => <a key={label} href={href(to)}>{label}</a>)}
+      {legalLinks.map(({ label, href: to }) => <a key={label} href={safeUrl(to ?? '#')}>{label}</a>)}
     </nav>}
     {switcher ? <div className="ui-footer__switcher">{switcher}</div> : null}
   </div>;
@@ -61,7 +56,7 @@ export function Footer({
     return <footer {...rest} className={cls} role="contentinfo"><div className="ui-footer__in">{bar}</div></footer>;
   }
   const mark = prism(uid.replace(/:/g, ''), 22);
-  const lockup = brand ?? <a className="brand" href={href(brandHref)} aria-label={`Apliteni ${word}`}
+  const lockup = brand ?? <a className="brand" href={safeUrl(brandHref)} aria-label={`Apliteni ${word}`}
     dangerouslySetInnerHTML={{ __html: `${mark}<span>${escapeText(word)}</span>` }} />;
   return <footer {...rest} className={cls} role="contentinfo"><div className="ui-footer__in">
     <div className="ui-footer__top">
@@ -72,7 +67,7 @@ export function Footer({
           {social.map(({ label, href: to, icon = 'github' }) => {
             const markup = SOCIAL_GLYPHS[icon];
             const fill = icon === 'github' || icon === 'x' ? 'currentColor' : 'none';
-            return <a key={label} className="ui-footer__social" href={href(to)} aria-label={label}>
+            return <a key={label} className="ui-footer__social" href={safeUrl(to ?? '#')} aria-label={label}>
               <svg viewBox="0 0 24 24" fill={fill} aria-hidden="true" dangerouslySetInnerHTML={{ __html: markup }} />
             </a>;
           })}
@@ -83,7 +78,7 @@ export function Footer({
           {title && <h2 className="ui-footer__col-title">{title}</h2>}
           <ul className="ui-footer__links">
             {columnLinks.map(({ label, href: to, target }) => <li key={label}>
-              <a href={href(to)} target={target} rel={target ? 'noreferrer' : undefined}>{label}</a>
+              <a href={safeUrl(to ?? '#')} target={target} rel={target ? 'noreferrer' : undefined}>{label}</a>
             </li>)}
           </ul>
         </div>)}
