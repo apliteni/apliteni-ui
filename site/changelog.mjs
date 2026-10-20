@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.126.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React `Feedback` shows a "Give feedback" pill on a text selection and opens a form with the quoted passage and a note. You pass `onSend`. A sent note shows one line of thanks and a failed send keeps the note with the error in place. Cancel, Send and Close use the kit\'s buttons. See #429.', ['Feedback']],
+    ],
+  },
+  {
     v: '0.125.1', date: '2026-10-20',
     changes: [
       ['changed', 'The Colour and theming guideline limits selected navigation to one accent signal. The NavTabs pill keeps its accent ink on a soft accent fill, because the fill alone is too faint to mark the current route. See #475.', ['Guidelines', 'Navigation']],

@@ -32,7 +32,7 @@ import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 Both stylesheets. The React one adds what React's own components need — it carries no tokens, no
 reset and none of the kit's control CSS, so it cannot stand in for the first import.
 
-Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Chart`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Segmented`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Chart`, `Modal`, `Confirm`, `Feedback`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Segmented`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Segmented` is a controlled choice toolbar: pass `options`, `value`, `onChange`,
 and a `label` for its accessible name. `size="sm"` compacts it, `block` makes it
@@ -446,6 +446,29 @@ opens, focus goes to the safe action. It renders an `alertdialog`, named by its 
 and described by its body. Modal also accepts
 `initialFocusRef` for a mounted, focusable element inside its panel. Without it, Modal
 uses its normal opening focus.
+
+## Feedback
+
+`Feedback` lets a reader select a passage and send a note about it. Pass `container`, a ref to
+the element whose text can be selected, and `onSend`. A "Give feedback" pill appears above a
+selection of `minChars` (3) or more. The pill opens a form with a chip for the nearest heading,
+the quoted passage, a note field, Cancel and Send. The quoted passage stays highlighted until the
+form closes, so do not re-render the container's content while the form is open.
+
+```tsx
+<Feedback container={articleRef}
+  onSend={async ({ note, excerpt, anchor }) => ({ ok: await file(note, excerpt, anchor) })} />
+```
+
+`onSend` receives `note`, `excerpt`, `anchor`, `sectionLabel` and `sectionTitle`. Resolve
+`{ ok: true }` when the note is filed. Resolve `{ ok: false, error }`, or throw, to keep the form
+open with the note intact and the error shown in place. `section` reshapes the chip and the
+payload from the heading. Send stays off until the note has text and shows progress while the
+request runs.
+
+A sent note shows one line, `sentMessage`, and a Close button. Cancel, Escape, the close button
+and the scrim dismiss the form without sending. `Feedback` uses the shared dialog stack and the
+kit's buttons.
 
 ## Timeline
 

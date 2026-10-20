@@ -32,6 +32,8 @@ export { StatBand } from './primitives/StatBand';
 export type { StatBandProps, StatFigure, StatDelta, StatTone, StatVariant } from './primitives/StatBand';
 export { Confirm } from './Confirm';
 export type { ConfirmProps } from './Confirm';
+export { Feedback } from './Feedback';
+export type { FeedbackProps, FeedbackPayload, FeedbackResult, FeedbackSection } from './Feedback';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 export { Drawer } from './Drawer';
