@@ -293,6 +293,12 @@ const ownText = (el) => {
   const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('').trim();
   return own || el.textContent.trim();
 };
+const MESSAGE = '\nWrite the label in sentence case. A key is not a label — write the word for it, the way '
+  + 'versionSwitcher() writes "Live" for `live`.\n'
+  + 'docs/foundations.md#labels-and-titles\n';
+const assertNoneBadSince = (start) => {
+  assert.deepEqual(sweep.bad.slice(start), [], MESSAGE);
+};
 const check = (doc, where, html) => {
   doc.body.innerHTML = html;
   for (const { selector, rank, where: ruled } of selectors) {
@@ -315,6 +321,7 @@ test('the ranks the sweep reads are in the sheets', () => {
 for (const rel of storyFiles) {
   test(`every label and chip in stories/${rel} starts with a capital`, async () => {
     const doc = await sweepDoc();
+    const start = sweep.bad.length;
     const mod = await import(path.join(root, 'stories', rel));
     const def = mod.default || {};
     for (const [name, story] of Object.entries(mod)) {
@@ -338,18 +345,23 @@ for (const rel of storyFiles) {
         check(doc, `stories/${rel}:${name} [${theme}]`, html);
       }
     }
+    assertNoneBadSince(start);
   });
 }
 
 test('every label and chip a site page renders starts with a capital', async () => {
   const doc = await sweepDoc();
+  const start = sweep.bad.length;
+  const pages = readdirSync(path.join(root, 'site')).filter((f) => f.endsWith('.html')).sort();
+  assert.ok(pages.length > 0, 'no HTML page found under site/ — the page list is empty, so no page was read');
   const { changelogMain } = await import(path.join(root, 'site/changelog.mjs'));
   check(doc, 'site/changelog.mjs:changelogMain()', changelogMain());
   sweep.pages += 1;
-  for (const page of readdirSync(path.join(root, 'site')).filter((f) => f.endsWith('.html')).sort()) {
+  for (const page of pages) {
     check(doc, `site/${page}`, readFileSync(path.join(root, 'site', page), 'utf8'));
     sweep.pages += 1;
   }
+  assertNoneBadSince(start);
 });
 
 test('the sweep read the labels and found none lower case', (t) => {
@@ -360,8 +372,5 @@ test('the sweep read the labels and found none lower case', (t) => {
     + `in ${storyFiles.length} story files, ${sweep.stories} stories (${sweep.renders} renders) and ${sweep.pages} site pages`);
   assert.ok(sweep.read > 200,
     `read ${sweep.read} labels and chips across the stories and the site; the walk stopped finding them`);
-  assert.deepEqual(sweep.bad, [],
-    '\nWrite the label in sentence case. A key is not a label — write the word for it, the way '
-    + 'versionSwitcher() writes "Live" for `live`.\n'
-    + 'docs/foundations.md#labels-and-titles\n');
+  assert.deepEqual(sweep.bad, [], MESSAGE);
 });
