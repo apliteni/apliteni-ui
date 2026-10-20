@@ -51,7 +51,11 @@ export const InAForm: StoryObj<PlacementArgs> = {
     const close = () => setOpen(false);
     const save = <Button variant="primary" onClick={close}>Save</Button>;
     if (args.stage === 'drawer') {
-      return <Drawer open={open} title="Edit campaign" onClose={close} footer={save}><PlacementForm {...args} /></Drawer>;
+      return (
+        <Drawer open={open} title="Edit campaign" onClose={close} footer={save}>
+          <div style={{ display: 'grid', gap: 'var(--space-4)' }}><PlacementForm {...args} /></div>
+        </Drawer>
+      );
     }
     if (args.stage === 'page') {
       return (

@@ -472,6 +472,15 @@
       ]
     },
     {
+      "file": "stories/dropdown-reach.test.js",
+      "name": "Dropdown reach",
+      "does": "Opens a select in a Modal, a Drawer, a page and a wrapper inside a body, in both kits, and checks that the whole panel, the field's label and the trigger stay in view through End and Escape. In the React half it runs axe's aria-input-field-name rule on the open listbox.",
+      "blind": [
+        "Every other axe rule. It asks only whether the open listbox has a name.",
+        "Touch, a real phone, Safari and Firefox. The browser half runs only on request, in Chromium."
+      ]
+    },
+    {
       "file": "stories/field-zoom.test.js",
       "name": "Field zoom",
       "does": "Mounts stories without styles and checks whether the touch-zoom selector matches their fields. Reads declarations for the 16px important net. Rejects larger field sizes that the net would shrink, competing important font sizes, and other coarse-pointer field-size rules.",

@@ -51,7 +51,8 @@ import {
 } from '../../stories/lib/field-ground.js';
 
 const THEMES = ['dark', 'light'] as const;
-const FIELD_COUNT = 63;
+// 64 since the Dropdown placement story added its Name field. #627
+const FIELD_COUNT = 64;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

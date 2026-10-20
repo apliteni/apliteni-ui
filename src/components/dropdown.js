@@ -633,9 +633,11 @@ export function dropdownHeightFit(dd, panel) {
   // trigger now. A lifted panel is measured against the viewport, as a portalled one is.
   const fit = ddLifted(panel) ? null : ddBodyFit(dd, panel);
   if (fit && !fit.lift) return fit.room;
+  // A lifted panel is measured from where the body is about to bring its trigger.
+  const by = ddLifted(panel) && !ddUp(panel) ? dd.__ddLiftBy || 0 : 0;
   return dropdownAvail({
-    anchorTop: t.top,
-    anchorBottom: t.bottom,
+    anchorTop: t.top - by,
+    anchorBottom: t.bottom - by,
     viewport: view.innerHeight,
     gap: ddGap(panel),
     inset: ddEdge(panel),
@@ -744,10 +746,36 @@ export function dropdownLift(dd, panel) {
     }
     return false;
   }
-  // A fixed panel adds nothing to the body's scroll, so it reserves nothing there.
-  dd.style?.removeProperty('--ui-dropdown-reach');
+  dd.__ddLiftBy = ddLiftPlan(dd, panel);
   ddPlaceLifted(dd, panel);
   return true;
+}
+
+/* How far the body scrolls to give a lifted panel that opens down the viewport's room
+ * under its trigger: no further than the field's label reaching the body's top, and no
+ * further than the panel needs. 0 for a panel that opens up. The label stays in view,
+ * where a panel lifted over it would cover it. */
+function ddLiftPlan(dd, panel) {
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  const box = ddScrollBox(dd, panel);
+  if (!trigger || !box || panel.classList.contains('is-up')) return 0;
+  const t = trigger.getBoundingClientRect();
+  const edge = ddEdge(panel);
+  const rise = Math.max(0, ddAnchorTop(dd, t) - edge - box.top);
+  const want = Math.min(ddContentHeight(panel), ddCeilingOf(panel));
+  const over = t.bottom + ddGap(panel) + want + edge - ddViewOf(panel).innerHeight;
+  return Math.max(0, Math.min(rise, Math.ceil(over)));
+}
+
+/* The tallest a panel may be before the room has a say: the cap a consumer asked for,
+ * which under a search field is the list's and the field over it, or the standard cap. */
+function ddCeilingOf(panel) {
+  const view = ddViewOf(panel);
+  const list = panel.querySelector?.('.ui-dropdown__list');
+  const own = parseFloat((list || panel).style?.getPropertyValue('--ui-dropdown-cap'));
+  if (Number.isFinite(own)) return own + (list ? panel.offsetHeight - list.offsetHeight : 0);
+  const max = parseFloat(view.getComputedStyle(panel).getPropertyValue('--ui-dropdown-max'));
+  return Number.isFinite(max) ? max : Infinity;
 }
 
 function ddPlaceLifted(dd, panel) {
@@ -756,7 +784,8 @@ function ddPlaceLifted(dd, panel) {
   const view = ddViewOf(panel);
   const t = trigger.getBoundingClientRect();
   const gap = ddGap(panel);
-  const below = view.innerHeight - t.bottom - gap;
+  // Below is counted after the body has scrolled the field up (ddLiftPlan()).
+  const below = view.innerHeight - t.bottom - gap + (dd.__ddLiftBy || 0);
   const above = t.top - gap;
   // The configured side, unless it cannot hold the floor and the other side has more.
   const configured = panel.classList.contains('is-up');
@@ -902,7 +931,7 @@ export function dropdownRest(dd, panel, open, wait) {
 function ddRevealOnce(dd, panel) {
   const trigger = dd?.querySelector?.('[data-dropdown-trigger]');
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !panel) return 0;
-  if (ddLifted(panel)) return 0;
+  if (ddLifted(panel)) return ddRevealLifted(dd, panel, trigger);
   const fit = ddBodyFit(dd, panel);
   if (!fit) {
     // A page is held the same way: the shut panel lifts 6px, which would end the page 6px
@@ -943,6 +972,20 @@ function ddRevealOnce(dd, panel) {
   return by;
 }
 
+/* The scroll ddLiftPlan() asked for. The body may hold too little to scroll that far, so
+ * the reserved spot is written to where the body's end then has to be. */
+function ddRevealLifted(dd, panel, trigger) {
+  const by = dd.__ddLiftBy || 0;
+  const box = by && !ddUp(panel) ? ddScrollBox(dd, panel) : null;
+  if (!box) return 0;
+  const t = trigger.getBoundingClientRect();
+  dd.style?.setProperty('--ui-dropdown-reach', `${Math.max(0, box.bottom + by - t.bottom - 1)}px`);
+  const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+  if (typeof box.el.scrollBy === 'function') box.el.scrollBy({ top: by, behavior });
+  else box.el.scrollTop += by;
+  return by;
+}
+
 /**
  * Stop an open panel's height where it cuts a row through the middle. A height that
  * falls between two rows, or in a row's padding, shows a complete last label and the
@@ -974,8 +1017,7 @@ export function dropdownSnap(dd, panel) {
   // panel is that cap and the field over it.
   const own = parseFloat((clip === panel ? panel : clip).style.getPropertyValue('--ui-dropdown-cap'));
   const chrome = clip === panel ? 0 : panel.offsetHeight - clip.offsetHeight;
-  const ceiling = Number.isFinite(own) ? own + chrome
-    : parseFloat(view.getComputedStyle(panel).getPropertyValue('--ui-dropdown-max'));
+  const ceiling = ddCeilingOf(panel);
   const room = parseFloat(panel.style.getPropertyValue('--ui-dropdown-avail'));
   /* In a body, the room under the panel may be spent down to the 8px edge to reach the
    * next half row up, rather than stop a whole row short of the room. */
@@ -1013,10 +1055,10 @@ function ddSizeHeight(dd, panel) {
   if (!panel?.style) return;
   /* Decided when the panel opens and kept while the page or the body scrolls under it,
    * so the panel does not grow or shrink under the reader. A resize, or the next open,
-   * decides again. A panel that is `position: fixed` follows its trigger instead, so
-   * it is measured again where the trigger now is. why: docs/components.md#the-dropdown-panel */
-  const fixed = !!dd.__ddPanel || ddLifted(panel);
-  if (dd.__ddSized && !fixed) return;
+   * decides again. A portalled panel follows its trigger instead, so it is measured
+   * again where the trigger now is. A lifted one follows its trigger at the height it
+   * opened at. why: docs/components.md#the-dropdown-panel */
+  if (dd.__ddSized && !dd.__ddPanel) return;
   const avail = dropdownHeightFit(dd, panel);
   if (avail == null) return;
   // Infinity means the floor could not be met even by spending the whole inset:
@@ -1046,7 +1088,7 @@ function ddPlace(dd) {
     ddResolveDirection(dd, panel);
     positionPortalPanel(dd, panel);
   }
-  else if (ddLifted(panel)) { if (dd.classList.contains('open')) ddPlaceLifted(dd, panel); }
+  else if (ddLifted(panel)) { if (dd.classList.contains('open')) dropdownLift(dd, panel); }
   else ddFitViewport(dd, ddPanelOf(dd));
   ddSizeHeight(dd, panel);
 }

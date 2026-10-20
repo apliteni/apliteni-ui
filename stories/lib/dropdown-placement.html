@@ -42,9 +42,8 @@ if (stage === 'page') {
     + `gap:var(--space-4);padding:0 var(--space-4) ${gap}px;min-height:${params.get('long') === '1' ? 200 : 100}dvh`;
   host.innerHTML = form;
 } else {
-  const body = stage === 'nested'
-    ? `<div style="overflow:auto;display:grid;gap:var(--space-4)">${form}</div>`
-    : form;
+  // A Drawer body does not space what it holds, so the form is a grid with the field gap.
+  const body = `<div style="${stage === 'nested' ? 'overflow:auto;' : ''}display:grid;gap:var(--space-4)">${form}</div>`;
   host.innerHTML = drawer({ title: 'Edit campaign', body, footer: button({ label: 'Save', variant: 'primary' }), open: true });
 }
 document.body.appendChild(host);

@@ -516,9 +516,9 @@ export function Dropdown({
     // The scrolling body the panel sits in is moved to show it; the focus effect below must not undo that.
     revealed.current = dropdownReveal(dd, el) !== 0;
     /* Decided at the open and kept while the page or the body scrolls, so the panel does
-     * not change height under the reader. A lifted panel follows its trigger instead, and
-     * a resize decides again. why: ddSizeHeight(), src/components/dropdown.js */
-    const follow = () => { if (el.hasAttribute('data-dd-lifted')) { dropdownLift(dd, el); size(); } };
+     * not change height under the reader. A lifted panel follows its trigger at that
+     * height, and a resize decides again. why: ddSizeHeight(), src/components/dropdown.js */
+    const follow = () => { if (el.hasAttribute('data-dd-lifted')) dropdownLift(dd, el); };
     const resize = () => { dropdownLift(dd, el); size(); };
     const view = el.ownerDocument?.defaultView ?? window;
     view.addEventListener('scroll', follow, true);

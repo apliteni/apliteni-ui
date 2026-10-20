@@ -940,9 +940,9 @@ test('closing a panel with Escape at the end of a page does not move the field, 
  *
  * What every opened case must show: the whole panel, measured by a hit test 3px inside
  * its top and bottom edges, so a body's clip and a footer painted over it both fail; the
- * field's label and the trigger inside the region the field is seen through; a panel
- * left in its body ending at least the 8px edge above the body's end, and 48px where
- * the body is tall; and a capped list cut through the middle of a row's label, 20 to
+ * field's label and the trigger inside the region the field is seen through, and not
+ * under the panel; a panel left in its body ending at least the 8px edge above the
+ * body's end, and 48px where the body is tall; and a capped list cut through the middle of a row's label, 20 to
  * 80% of it. A consumer's own cap is held to its number instead.
  *
  * Its limits: one engine, Chromium through whichever Playwright the host supplies; the
@@ -1020,6 +1020,11 @@ const PLACEMENT_LOOK = () => {
     region,
     seen: p.height > 0 && at(panel, p.top + 3) && at(panel, p.bottom - 3) && p.top >= 0 && p.bottom <= innerHeight,
     triggerSeen: at(trigger, (t.top + t.bottom) / 2),
+    labelSeen: (() => {
+      const r = label.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + 4, (r.top + r.bottom) / 2);
+      return !!hit && label.contains(hit);
+    })(),
     lastSeen: (() => {
       const rows = panel.querySelectorAll('[data-dd-item]');
       const last = rows[rows.length - 1];
@@ -1111,6 +1116,7 @@ export function placementProblems(c, s) {
     if (!s.end.lastSeen) out.push('End did not bring the last row into view');
   } else if (!o.seen) out.push(`the whole panel is not in view: ${Math.round(o.panel.top)}…${Math.round(o.panel.bottom)} in a region ${Math.round(o.region.top)}…${Math.round(o.region.bottom)}`);
   const inView = (m) => m.label.top >= m.region.top - 0.5 && m.trigger.bottom <= m.region.bottom + 0.5 && m.triggerSeen;
+  if (!o.labelSeen) out.push('open: the panel covers the field\'s label');
   if (!inView(o)) out.push(`open: the label or the trigger is out of view (label top ${Math.round(o.label.top)}, trigger bottom ${Math.round(o.trigger.bottom)}, region ${Math.round(o.region.top)}…${Math.round(o.region.bottom)})`);
   if (!o.fixed && !c.fold) {
     const room = o.region.bottom - o.panel.bottom;
