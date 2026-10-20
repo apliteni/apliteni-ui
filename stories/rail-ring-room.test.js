@@ -239,8 +239,8 @@ test('the ring\'s spread is still the three pixels every check below is written 
   assert.equal(spread, 3, 'the ring\'s spread changed; the rail\'s room has to be re-read against it');
 });
 
-test('every row a folded rail renders is a row this gate measures', () => {
-  for (const theme of ['light', 'dark']) {
+for (const theme of ['light', 'dark']) {
+  test(`every row a folded rail renders is a row this gate measures (${theme})`, () => {
     const { doc, rows } = readRail(theme);
     // What the rail renders, against what draws the ring. The two have to agree:
     // a row that quietly stopped taking the ring would leave this gate measuring
@@ -254,8 +254,8 @@ test('every row a folded rail renders is a row this gate measures', () => {
     assert.deepEqual(missing, [],
       `${theme}: ${missing.length} row(s) of the folded rail draw no ring, so nothing here measures them: `
       + `${missing.join(', ')}. stories/focus-ring.test.js is the gate that asks a stop for a ring.`);
-  }
-});
+  });
+}
 
 test('no folded rail cuts its rows\' focus ring off', () => {
   for (const theme of ['light', 'dark']) {

@@ -32,7 +32,7 @@ const dom = new JSDOM('<!doctype html><html lang="en"><head></head><body></body>
 for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLElement', 'Event']) {
   Object.defineProperty(globalThis, key, { value: dom.window[key] ?? dom.window, configurable: true, writable: true });
 }
-const { sidebarNav } = await import('../src/components/nav.js');
+const { sidebarNav, navTabs } = await import('../src/components/nav.js');
 
 // ---- token resolution ----------------------------------------------------
 
@@ -541,4 +541,80 @@ test('the resolver reaches the real cascade', () => {
     r.css('.ui-nav__item.is-disabled', 'pointerEvents'), 'none',
     'the disabled row is still interactive',
   );
+});
+
+// ---- 5. selected pill accent label --------------------------------------
+
+/* The current pill uses accent ink on its quiet fill, as Artur chose for #480.
+ * Resolve the cascade because a declaration can exist but lose to another rule.
+ * JSDOM checks resolved colours, not browser paint or text contrast.
+ */
+
+const TAB_ITEMS = [
+  { id: 'summary', label: 'Summary' },
+  { id: 'payouts', label: 'Payouts', badge: 3 },
+  { id: 'exports', label: 'Exports', disabled: true },
+];
+
+/** Mount one tab row under a theme/accent and hand back a resolver. */
+function tabRow(variant, theme = 'dark', accent = 'default', sheet = read('src/styles/nav.css')) {
+  const vars = tokensFor(theme, accent);
+  const css = desugar(substitute(decomment(read('src/styles/base.css') + '\n' + sheet), vars));
+  const w = new JSDOM(
+    `<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}</style></head>`
+    + `<body>${navTabs({ items: TAB_ITEMS, active: 'payouts', variant })}</body></html>`,
+    { pretendToBeVisual: true },
+  ).window;
+  const q = (sel) => {
+    const el = w.document.querySelector(sel);
+    assert.ok(el, `the ${variant} row has no ${sel} — the fixture stopped exercising the rule under test`);
+    return el;
+  };
+  return { vars, css: (sel, prop) => w.getComputedStyle(q(sel))[prop] };
+}
+
+const SELECTED_TAB = '.ui-nav__tab.is-active';
+
+// The token file writes the wash as rgba(…, 0.10); JSDOM hands it back as 0.1.
+const channels = (v) => String(v).match(/[\d.]+/g).map(Number);
+
+for (const [theme, accent] of THEMES) {
+  test(`the selected pill uses accent ink on its quiet fill: ${theme} / ${accent}`, () => {
+    const r = tabRow('pill', theme, accent);
+    assertSelectedPillInk(r, theme, accent);
+    assert.deepEqual(
+      channels(r.css(SELECTED_TAB, 'backgroundColor')),
+      channels(substitute('var(--glow-purple)', r.vars)),
+      'the selected pill must keep its quiet accent fill',
+    );
+  });
+
+  test(`the selected underline tab retains body ink — ${theme} / ${accent}`, () => {
+    const r = tabRow('underline', theme, accent);
+    assert.equal(
+      r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--strong')),
+      `the selected underline tab is ${r.css(SELECTED_TAB, 'color')} in ${theme}/${accent}. `
+      + 'Its accent signal is the rule under it.',
+    );
+  });
+}
+
+function assertSelectedPillInk(r, theme, accent) {
+  assert.equal(r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--accent')),
+    `selected pill must use accent ink in ${theme}/${accent}`);
+  assert.notEqual(r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--strong')),
+    `selected pill must not use body ink in ${theme}/${accent}`);
+}
+
+const PILL_INK = /(\.ui-nav--tabs\.is-pill \.ui-nav__tab\.is-active \{)/;
+
+test('the selected-pill gate rejects body ink', () => {
+  const sheet = read('src/styles/nav.css');
+  assert.match(sheet, PILL_INK, 'the mutation must target the selected pill rule');
+  const broken = sheet + '\n.ui-nav--tabs.is-pill .ui-nav__tab.is-active { color: var(--strong); }';
+  const r = tabRow('pill', 'dark', 'default', broken);
+  assert.equal(r.css(SELECTED_TAB, 'color'), colour(r.vars.get('--strong')),
+    'the mutation must resolve to body ink');
+  assert.throws(() => assertSelectedPillInk(r, 'dark', 'default'),
+    /selected pill must use accent ink/, 'the actual assertion must reject body ink');
 });
