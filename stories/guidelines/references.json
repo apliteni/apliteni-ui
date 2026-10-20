@@ -204,7 +204,7 @@
         "pattern": "function onKeydown"
       },
       {
-        "ref": "src/components/overlay.js:97",
+        "ref": "src/components/overlay.js:101",
         "pattern": "function ownKeys"
       }
     ],
@@ -218,7 +218,7 @@
         "pattern": "function announce"
       },
       {
-        "ref": "src/components/overlay.js:236",
+        "ref": "src/components/overlay.js:240",
         "pattern": "export function returnFocus"
       }
     ],
