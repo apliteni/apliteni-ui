@@ -117,9 +117,9 @@ test('every parenthesised selector the kit writes survives the shared splitter',
   // move an exact one, and the subject set this gate measures is the next line.
   assert.ok(PRELUDES.length > 500, `only ${PRELUDES.length} rules discovered — the sweep lost its sheets`);
   assert.equal(
-    PARENTHESISED.length, 35,
+    PARENTHESISED.length, 44,
     'the kit\'s parenthesised selector lists changed; the current set is one field-zoom rule, '
-    + 'four layout rail rules, one nav rule, twenty-one table rules, four finance composition rules, two invoice showcase rules and two tap-zone rules',
+    + 'ten layout rail rules, four nav rules, twenty-one table rules, four finance composition rules, two invoice showcase rules and two tap-zone rules',
   );
   const bad = PARENTHESISED.flatMap(({ file, selector }) => offences(selector, splitSelectorList).map((o) => `${file}  ${o}`));
   assert.deepEqual(bad, [], `the shared splitter tore a selector apart:\n  ${bad.join('\n  ')}`);
@@ -147,7 +147,6 @@ const SOURCE = /\.(js|mjs|cjs|ts|tsx)$/;
 const VALUE_SPLITS = [
   ['scripts/evidence/guideline.mjs', 'widths', 'a command-line width list'],
   ['scripts/font-loading.test.js', 'stack', 'a font-family stack'],
-  ['scripts/tag-on-bump.test.js', ')', "the --json flag's field names"],
   ['src/components/toasts.js', 'transform', 'a computed transform matrix'],
   ['src/motion.js', ')', 'a transition duration list'],
   ['src/styles/typeface-roles.test.js', ']', 'a font-family stack'],
@@ -208,8 +207,8 @@ test('the shared splitter is read by every gate that was reading a selector list
   const callers = tracked.filter((file) => SOURCE.test(file) && !self.includes(file)
     && /splitSelectorList\s*\(/.test(readFileSync(path.join(root, file), 'utf8')));
   assert.equal(
-    callers.length, 37,
-    'the set of gates reading a selector list changed; the story CSS gate now shares this splitter '
+    callers.length, 39,
+    'the set of gates reading a selector list changed; the scroll-ring and story CSS gates share this splitter '
     + 'with the React date-picker, chart-target, tap-zone, table-edge, card-fit, table and other style gates',
   );
 });

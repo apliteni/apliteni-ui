@@ -302,10 +302,13 @@ smaller wins:
 A trigger near the edge can leave less room than `--ui-dropdown-min` (120px) wants for a usable
 panel. The floor spends the edge inset, down to nothing, to try to reach 120px, but it never spends
 room past the edge, because that room does not exist. Where even the whole inset falls short of
-120px, the guarantee above does not hold: the panel is left at its content height instead of a
-sliver no reader could use, so it may run past the trigger's edge and grow the page, the way an
-unmeasured panel does. A search panel is a column, so this cap lands on the rows and not on the
-field: `.ui-dropdown__list` shrinks to whatever room the capped panel leaves it.
+120px, an ordinary panel keeps its content height and can grow the page so the reader can scroll.
+**A portalled panel flips when its configured side cannot hold the required height and the opposite
+side has more room.** The required height is the floor, or the content height when shorter.
+A smaller consumer cap can reduce that required height. The panel keeps its trigger gap and its resolved side through the close
+animation. It restores the configured side when space returns. If neither side has enough room,
+the roomier side can still extend beyond the viewport. A search panel is a column, so this cap
+lands on the rows and not on the field: `.ui-dropdown__list` shrinks to whatever room the capped panel leaves it.
 
 **A panel keeps its place while the page moves its trigger.** A row that re-lays itself out, an
 ancestor scrolling sideways, a longer run of text beside the trigger, and a transition that slides
@@ -709,6 +712,8 @@ Use `.ui-toolbar--split` to place the final control at the row's end. On a phone
 
 ### Segmented strips that outgrow their column
 
+The enabled selected pill uses an accent fill with contrasting label ink in both themes. A disabled selected pill keeps a quiet fill and disabled ink. Only keyboard focus draws an outline.
+
 A pill strip lays out its choices in one row while they fit. When they do not fit, the choices
 wrap onto further rows. **It never widens past its container:** a twelve-month picker in a phone
 column becomes three rows of pills instead of pushing the page sideways. Below 560px, the
@@ -730,6 +735,10 @@ strip wrap. A tab on a further row carries its whole highlight with it and is ne
 the row above or below. Every tab reserves the bar, but only the chosen one draws it. The mark
 therefore grows in place when the choice moves. Hover is an ink step from `--text` to
 `--strong`, the step every kit tab takes. There is no second mark.
+
+### A selected item in forced colours
+
+In forced colours, selected items use Highlight and HighlightText, unavailable selections use GrayText, and focus rings use CanvasText.
 
 ### Escaping and URL slots
 
@@ -807,7 +816,7 @@ before the hint rather than in its place**. This keeps a hint with consent, safe
 on screen while the reader decides whether to retry. The error also uses `role="alert"`, so a new
 error is announced without moving focus. Required markers are decorative. Native controls carry
 `required`. `Field` exposes the frame for a control that you render yourself. Its child function
-receives a stable ID, `required`, `aria-invalid` and `aria-describedby`. `FileField` accepts one
+receives a stable ID, `required`, `aria-invalid` and `aria-describedby`. Spread them on a `Dropdown` and the label and then the value name its trigger. `FileField` accepts one
 file from the picker or by drop. `accept` only filters the system picker, so you validate before
 upload.
 
@@ -957,12 +966,19 @@ axis held in place, and the side that still hides columns is faded. Nothing anim
   stack all keep that clearance,** so scrolling an action into view never parks it behind the
   bar. `searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
   shared stylesheet draws the short one and clips the sentence and the key cap rather than
-  dropping them, so the button keeps one accessible name at every width.
+  dropping them, so the button keeps one accessible name at every width. **When it mounts, the
+  band theme switch applies the stored theme choice, or follows the system when there is none.**
+  A page that sets its own `data-theme` must also set `data-theme-choice`, or store the choice,
+  to keep that theme. For example, `<html data-theme="light">` on a dark system turns dark
+  when the shell mounts.
 - **`SidebarNav`** accepts flat items or captioned sections, nested groups, counts and
   router-link rendering. **Nesting stops one level deep.** Each row keeps its name and count when
   collapsed.
 - **`Checkbox` and `Switch`** render native inputs inside the existing label classes, and **a
   disabled one uses the same paint as every other disabled control in the kit.**
+- **`Checkbox` takes an optional `hint`,** which sits under the label words and is linked to the box as
+  its description; the label stays the box's name. **`CheckList` groups `Checkbox` children in a
+  fieldset under a legend** set in the field label's type. A disabled box dims its hint with its label.
 - **`Snippet`** displays `code` as plain text, and **copying always writes the original `code`
   string**, whatever `children` displays.
 - **`EmptyState`** uses the vanilla markup and CSS, and **the page supplies its own `h1`.**
@@ -1035,8 +1051,11 @@ find them by class. These attributes make the row work:
 `field()` provides wiring that a control cannot provide for itself. It sets the label's `for=`,
 adds an id to the hint or error and points to it with `aria-describedby`, adds `aria-invalid`
 to a field with an `error`, and adds the native `required` attribute under the decorative
-asterisk. A control outside a `field()` needs its own `ariaLabel`. A placeholder is not a name.
-Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
+asterisk. **A `dropdown()` inside `field()` is wired through its trigger button**, because the
+dropdown's `id` sits on a wrapper that a label cannot name. The label and then the chosen value name
+the trigger, the error or hint describes it, and an error marks it invalid. The list is named by the
+label unless you give it an `ariaLabel`. A control outside a `field()` needs its own `ariaLabel`. A
+placeholder is not a name. Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See
 [Colour and contrast](foundations.md#colour-and-contrast).
 

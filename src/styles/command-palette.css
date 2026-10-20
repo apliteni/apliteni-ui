@@ -340,3 +340,20 @@
 @media (prefers-reduced-motion: reduce) {
   .ui-cmdk.is-open * { transition: none !important; }
 }
+
+/* Forced colours replace every author background, so a selected item takes the system
+   pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
+   Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
+   own ring, drawn in CanvasText so the fill is never mistaken for it. */
+@media (forced-colors: active) {
+  .ui-cmdk__item.is-active { forced-color-adjust: none; background: Highlight !important; color: HighlightText !important; --ring: var(--ring-width) solid CanvasText; }
+  .ui-cmdk__item.is-active .ui-cmdk__label,
+  .ui-cmdk__item.is-active .ui-cmdk__ic,
+  .ui-cmdk__item.is-active .ui-cmdk__desc,
+  .ui-cmdk__item.is-danger.is-active .ui-cmdk__label,
+  .ui-cmdk__item.is-danger.is-active .ui-cmdk__ic { color: HighlightText; }
+  .ui-cmdk--roomy .ui-cmdk__item.is-active .ui-cmdk__ic { background: none; }
+  .ui-cmdk__item.is-active .ui-cmdk__badge { background: HighlightText; color: Highlight; }
+  /* Shortcut caps inherit the adjust, so they take the pair too: the item's ink on its fill, with an ink edge. */
+  .ui-cmdk__item.is-active .ui-cmdk__key { background: Highlight; color: HighlightText; border-color: HighlightText; }
+}

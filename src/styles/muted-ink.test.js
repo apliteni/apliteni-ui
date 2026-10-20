@@ -103,13 +103,16 @@ test('each documented class works locally, and unrelated paint needs no exceptio
   }]).subjects, []);
 });
 
-test('removing any real exception note is detected', () => {
-  for (const subject of result.subjects) {
-    const modified = sheets.map(s => s.file === subject.file
-      ? { ...s, css: s.css.slice(0, subject.noteStart) + s.css.slice(subject.noteStart + subject.note[0].length) } : s);
-    assert(inspect(modified).problems.length > 0, `${subject.file}: ${subject.selector}`);
-  }
-});
+// One test per sheet, so no one test re-reads the whole kit once for every note.
+for (const file of new Set(result.subjects.map(subject => subject.file))) {
+  test(`removing any real exception note is detected in ${file}`, () => {
+    for (const subject of result.subjects.filter(subject => subject.file === file)) {
+      const modified = sheets.map(s => s.file === subject.file
+        ? { ...s, css: s.css.slice(0, subject.noteStart) + s.css.slice(subject.noteStart + subject.note[0].length) } : s);
+      assert(inspect(modified).problems.length > 0, `${subject.file}: ${subject.selector}`);
+    }
+  });
+}
 
 test('the chrome class stays on a drawing\'s own furniture', () => {
   // The fourth class was agreed for one shape: the scale and the key a chart

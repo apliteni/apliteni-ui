@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
 import { Field, TextField, TextArea, SelectField, FileField } from './Field';
 import { Card } from './primitives/Card';
+import { Checkbox, CheckList } from './Checkbox';
+import { Dropdown } from './Dropdown';
 
 // Every specimen sits on the card, for the reason the vanilla Inputs gallery gives
 // since #556: a field's own paint IS --surface, so on the page ground an inert one
@@ -23,6 +25,12 @@ export const Email: StoryObj = { render: () => onCard(<TextField label="Email" t
 export const Multiline: StoryObj = { render: () => onCard(<TextArea label="Notes" hint="Add details for your team." />) };
 export const Select: StoryObj = { render: () => onCard(<SelectField label="Currency"><option>EUR</option><option>USD</option></SelectField>) };
 export const File: StoryObj = { render: () => onCard(<FileField label="Attachment" accept=".pdf" hint="PDF, up to 5 MB. The application checks the file before upload." />) };
+export const CheckboxList: StoryObj = { render: () => onCard(<CheckList legend="Notify me about">
+  <Checkbox label="Invoices" hint="A message when an invoice is issued or paid." defaultChecked />
+  <Checkbox label="Weekly summary" hint="Totals for the week, sent on Monday." />
+  <Checkbox label="Product news" />
+  <Checkbox label="Security alerts" hint="Always on for the workspace owner." defaultChecked disabled />
+</CheckList>) };
 export const Invalid: StoryObj = { render: () => onCard(<div style={{ display: 'grid', gap: 20 }}>
   <TextField label="Project name" error="Enter a project name." required />
   <TextArea label="Notes" error="Enter a note." />
@@ -64,4 +72,9 @@ export const AdornedStates: StoryObj = { render: () => onCard(<div style={{ disp
   <TextField label="Unavailable search" type="search" icon="search" defaultValue="Buttons" disabled />
   <TextField label="Password" type="password" icon="lock" hint="Use your account password." error="Enter your password." required />
   <TextField label="Weight" type="number" icon="cube" unit="kg" defaultValue={12} />
+</div>) };
+const OWNERS = [{ label: 'Avery Example', value: 'avery' }, { label: 'Jordan Example', value: 'jordan' }];
+export const DropdownControl: StoryObj = { render: () => onCard(<div style={{ display: 'grid', gap: 20 }}>
+  <Field label="Owner" hint="The person who answers for this project.">{control => <Dropdown {...control} variant="select" items={OWNERS} value="Avery Example" />}</Field>
+  <Field label="Reviewer" error="That option is no longer available. Choose another.">{control => <Dropdown {...control} variant="select" items={OWNERS} placeholder="Choose a reviewer" />}</Field>
 </div>) };

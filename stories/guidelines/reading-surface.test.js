@@ -174,9 +174,17 @@ async function walk(theme, edit = (html) => html) {
   return { rows, problems, storyIds, ground };
 }
 
-const walked = Object.fromEntries(await Promise.all(
-  THEMES.map(async (theme) => [theme, await walk(theme)]),
-));
+// The unpainted walk is a third window beside the two theme walks, so the file pays for it and no test does.
+let edits = 0;
+const unpaint = (html) => html.replace(/(\.gl-page\s*\{\s*background:\s*)[^;]+;/, (m, head) => {
+  edits += 1;
+  return `${head}transparent;`;
+});
+const [themeWalks, unpainted] = await Promise.all([
+  Promise.all(THEMES.map((theme) => walk(theme))),
+  walk('light', unpaint),
+]);
+const walked = Object.fromEntries(THEMES.map((theme, i) => [theme, themeWalks[i]]));
 
 // ---- the subjects --------------------------------------------------------
 
@@ -240,13 +248,8 @@ for (const theme of THEMES) {
 
 // ---- anti-vacuity: the check rejects the page this change replaced -------
 
-test('the check reports the prose the moment the reading surface stops painting', async () => {
-  let edits = 0;
-  const unpaint = (html) => html.replace(/(\.gl-page\s*\{\s*background:\s*)[^;]+;/, (m, head) => {
-    edits += 1;
-    return `${head}transparent;`;
-  });
-  const { rows } = await walk('light', unpaint);
+test('the check reports the prose the moment the reading surface stops painting', () => {
+  const { rows } = unpainted;
   assert.ok(edits > 0, 'the mutation found no .gl-page background to take away, so this test '
     + 'proved nothing. The layout renamed the page ground or stopped painting it.');
   const stranded = rows.filter((r) => r.onGround);

@@ -606,173 +606,115 @@ echo $((n + ${'${1%%.*}'})) > "$CLOCK_FILE"
  * wrong is wrong here too. Every invocation is logged, so "did it dispatch"
  * and "which run did it follow" are answerable.
  */
-const GH_STUB = `#!/usr/bin/env node
-'use strict';
-const fs = require('fs');
-const { spawnSync } = require('child_process');
-
-const statePath = process.env.GH_STUB_STATE;
-const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-const save = () => fs.writeFileSync(statePath, JSON.stringify(state));
-const clock = () => Number(fs.readFileSync(process.env.CLOCK_FILE, 'utf8').trim());
-const argv = process.argv.slice(2);
-fs.appendFileSync(process.env.GH_STUB_LOG, JSON.stringify(argv) + '\\n');
-
-const flag = (name) => { const i = argv.indexOf(name); return i === -1 ? null : argv[i + 1]; };
-const BASE = Date.parse(${JSON.stringify(CLOCK_EPOCH)});
-const iso = (sec) => new Date(BASE + sec * 1000).toISOString().replace(/\\.\\d+Z$/, 'Z');
-
-// Anything can be told to fail, for a set number of calls or for ever, and to
-// start doing it only after a few calls have gone through. \`after\` is what
-// picks one \`gh run list\` out of the several the publish step makes: the
-// in-flight search, the watermark read and the appear loop are the same command
-// with different arguments, and only their order tells them apart.
-function maybeFail(key) {
-  const f = (state.failures || {})[key];
-  if (!f) return;
-  if (f.after) {
-    f.after -= 1;
-    save();
-    return;
-  }
-  if (f.times !== undefined) {
-    if (f.times <= 0) return;
-    f.times -= 1;
-    save();
-  }
-  process.stderr.write(f.stderr === undefined ? 'gh: something went wrong\\n' : f.stderr);
-  process.exit(f.exit === undefined ? 1 : f.exit);
-}
-
-// …and anything can be told to be chatty on stderr while succeeding. A version
-// notice is the ordinary one.
-function chatter(key) {
-  const w = (state.warnings || {})[key];
-  if (w) process.stderr.write(w);
-}
-
-function statusOf(run) {
-  const t = clock();
-  let entry = run.timeline[0];
-  for (const e of run.timeline) if (e.at <= t) entry = e;
-  return entry;
-}
-
-function render(value, jq) {
-  const json = JSON.stringify(value);
-  if (!jq) { process.stdout.write(json + '\\n'); return; }
-  const res = spawnSync('jq', ['-r', jq], { input: json, encoding: 'utf8' });
-  if (res.status !== 0) { process.stderr.write(res.stderr || 'jq failed\\n'); process.exit(1); }
-  process.stdout.write(res.stdout);
-}
-
-const pick = (obj, fields) => Object.fromEntries(fields.map((f) => [f, obj[f]]));
-const fieldsAsked = () => (flag('--json') || '').split(',').filter(Boolean);
-
-const [cmd, sub] = argv;
-
-if (cmd === 'run' && sub === 'list') {
-  maybeFail('runList');
-  chatter('runList');
-  const t = clock();
-  const event = flag('--event');
-  const rows = state.runs
-    .filter((r) => r.visibleAt <= t)
-    .filter((r) => !event || r.event === event)
-    .map((r) => {
-      const s = statusOf(r);
-      return {
-        databaseId: r.id,
-        createdAt: iso(r.createdAt),
-        headBranch: r.ref || r.tag,
-        displayTitle: r.title || ('Release ' + r.tag),
-        status: s.status,
-        conclusion: s.conclusion === undefined ? null : s.conclusion,
-        event: r.event,
-        url: 'https://github.test/runs/' + r.id,
-      };
-    })
-    .sort((a, b) => b.databaseId - a.databaseId);
-  render(rows.map((r) => pick(r, fieldsAsked())), flag('--jq'));
-  process.exit(0);
-}
-
-if (cmd === 'run' && sub === 'view') {
-  maybeFail('runView');
-  // The step reads a run three ways — its status, its url, its conclusion —
-  // and \`runView\` above fails all of them alike. \`runViewConclusion\` picks out
-  // the last one, so a test about the conclusion read does not have to count
-  // how many times the follow loop happened to poll first.
-  if (fieldsAsked().join(',') === 'conclusion') maybeFail('runViewConclusion');
-  chatter('runView');
-  const run = state.runs.find((r) => String(r.id) === String(argv[2]));
-  if (!run) {
-    process.stderr.write('could not find any workflow run with ID ' + argv[2] + '\\n');
-    process.exit(1);
-  }
-  const s = statusOf(run);
-  const full = {
-    databaseId: run.id,
-    status: s.status,
-    conclusion: s.conclusion === undefined ? null : s.conclusion,
-    url: 'https://github.test/runs/' + run.id,
-  };
-  render(pick(full, fieldsAsked()), flag('--jq'));
-  process.exit(0);
-}
-
-if (cmd === 'workflow' && sub === 'run') {
-  maybeFail('workflowRun');
-  const t = clock();
-  const spec = state.dispatch || {};
-  if (spec.creates !== false) {
-    const id = state.runs.reduce((max, r) => Math.max(max, r.id), 0) + 1;
-    state.runs.push({
-      id,
-      ref: flag('--ref'),
-      tag: (flag('--field') || '').replace(/^tag=/, ''),
-      event: 'workflow_dispatch',
-      createdAt: t,
-      visibleAt: t + (spec.appearAfter || 0),
-      timeline: (spec.timeline || [{ at: 0, status: 'completed', conclusion: 'success' }])
-        .map((e) => ({ ...e, at: t + e.at })),
-    });
-    save();
-  }
-  process.exit(0);
-}
-
-if (cmd === 'release' && sub === 'view') {
-  maybeFail('releaseView');
-  if (state.release) process.exit(0);
-  process.stderr.write('release not found\\n');
-  process.exit(1);
-}
-
-if (cmd === 'release' && sub === 'create') {
-  maybeFail('releaseCreate');
-  if (state.release) {
-    process.stderr.write('HTTP 422: Validation Failed (already_exists)\\n');
-    process.exit(1);
-  }
-  state.release = true;
-  save();
-  process.exit(0);
-}
-
-if (cmd === 'release' && sub === 'delete') {
-  maybeFail('releaseDelete');
-  if (!state.release) {
-    process.stderr.write('release not found\\n');
-    process.exit(1);
-  }
-  state.release = false;
-  save();
-  process.exit(0);
-}
-
-process.stderr.write('gh stub: unknown command ' + argv.join(' ') + '\\n');
-process.exit(64);
+const GH_STUB = `#!/bin/sh
+# One jq call reads the scenario and decides everything; the shell only applies the answer.
+# A Node stub paid for a process start on each of the hundreds of calls a polling loop makes.
+now=0
+[ -n "$CLOCK_FILE" ] && now=$(cat "$CLOCK_FILE")
+answer=$(jq -r --argjson t "$now" --argjson base ${Date.parse(CLOCK_EPOCH) / 1000} '
+def flag($n): (index($n)) as $i | if $i == null then null else .[$i + 1] end;
+def iso($sec): ($base + $sec) | floor | todate;
+def statusOf($t): . as $r | ($r.timeline | map(select(.at <= $t)) | last) // $r.timeline[0];
+def say($s): .stderr += $s;
+def fail($s; $code): (if .exit == null then .stderr += $s | .exit = $code else . end);
+def maybeFail($key):
+  if .exit != null then .
+  else
+    (.state.failures[$key]) as $f
+    | if $f == null then .
+      elif ($f.after // 0) > 0 then .state.failures[$key].after -= 1
+      elif $f.times != null and $f.times <= 0 then .
+      else
+        (if $f.times != null then .state.failures[$key].times -= 1 else . end)
+        | fail($f.stderr // "gh: something went wrong\\n"; $f.exit // 1)
+      end
+  end;
+def chatter($key): if .exit == null and .state.warnings[$key] then say(.state.warnings[$key]) else . end;
+def pick($fields): . as $o | reduce $fields[] as $f ({}; if $o | has($f) then .[$f] = $o[$f] else . end);
+def show($value): .out = ($value | tojson);
+. as $state
+| $ARGS.positional as $argv
+| ($argv | flag("--json") // "" | split(",") | map(select(. != ""))) as $fields
+| {state: $state, stderr: "", exit: null, out: null, jq: ($argv | flag("--jq"))}
+| if ($argv[0] == "run" and $argv[1] == "list") then
+    maybeFail("runList") | chatter("runList")
+    | if .exit != null then . else
+        ($argv | flag("--event")) as $event
+        | show([.state.runs[]
+            | select(.visibleAt <= $t)
+            | select($event == null or .event == $event)
+            | . as $r | statusOf($t) as $s
+            | {databaseId: $r.id, createdAt: iso($r.createdAt), headBranch: ($r.ref // $r.tag),
+               displayTitle: ($r.title // ("Release " + $r.tag)), status: $s.status,
+               conclusion: ($s.conclusion // null), event: $r.event,
+               url: ("https://github.test/runs/" + ($r.id | tostring))}]
+            | sort_by(-.databaseId) | map(pick($fields)))
+      end
+  elif ($argv[0] == "run" and $argv[1] == "view") then
+    maybeFail("runView")
+    | (if ($fields | join(",")) == "conclusion" then maybeFail("runViewConclusion") else . end)
+    | chatter("runView")
+    | if .exit != null then . else
+        (.state.runs | map(select((.id | tostring) == $argv[2])) | first) as $run
+        | if $run == null then fail("could not find any workflow run with ID " + $argv[2] + "\\n"; 1)
+          else ($run | statusOf($t)) as $s
+            | show({databaseId: $run.id, status: $s.status, conclusion: ($s.conclusion // null),
+                    url: ("https://github.test/runs/" + ($run.id | tostring))} | pick($fields))
+          end
+      end
+  elif ($argv[0] == "workflow" and $argv[1] == "run") then
+    maybeFail("workflowRun")
+    | if .exit != null then . else
+        (.state.dispatch // {}) as $spec
+        | if $spec.creates == false then . else
+            .state.runs += [{
+              id: ((.state.runs | map(.id) | max // 0) + 1),
+              ref: ($argv | flag("--ref")),
+              tag: (($argv | flag("--field")) // "" | sub("^tag="; "")),
+              event: "workflow_dispatch",
+              createdAt: $t,
+              visibleAt: ($t + ($spec.appearAfter // 0)),
+              timeline: (($spec.timeline // [{at: 0, status: "completed", conclusion: "success"}])
+                | map(.at += $t))}]
+          end
+      end
+  elif ($argv[0] == "release" and $argv[1] == "view") then
+    maybeFail("releaseView")
+    | if .exit != null then . elif .state.release then . else fail("release not found\\n"; 1) end
+  elif ($argv[0] == "release" and $argv[1] == "create") then
+    maybeFail("releaseCreate")
+    | if .exit != null then .
+      elif .state.release then fail("HTTP 422: Validation Failed (already_exists)\\n"; 1)
+      else .state.release = true end
+  elif ($argv[0] == "release" and $argv[1] == "delete") then
+    maybeFail("releaseDelete")
+    | if .exit != null then .
+      elif .state.release then .state.release = false
+      else fail("release not found\\n"; 1) end
+  else fail("gh stub: unknown command " + ($argv | join(" ")) + "\\n"; 64)
+  end
+| if .exit == null then .exit = 0 else . end
+| "log=" + ([$argv | tojson] | @sh) + "\\n"
+  + "state=" + ([.state | tojson] | @sh) + "\\n"
+  + "err=" + ([.stderr] | @sh) + "\\n"
+  + "code=" + (.exit | tostring) + "\\n"
+  + "out=" + ([.out // ""] | @sh) + "\\n"
+  + "has_out=" + (if .out == null then "0" else "1" end) + "\\n"
+  + "prog=" + ([.jq // ""] | @sh) + "\\n"
+  + "has_prog=" + (if .jq == null then "0" else "1" end) + "\\n"
+' "$GH_STUB_STATE" --args -- "$@")
+eval "$answer"
+printf '%s\\n' "$log" >> "$GH_STUB_LOG"
+printf '%s' "$state" > "$GH_STUB_STATE"
+[ -n "$err" ] && printf '%s' "$err" >&2
+if [ "$has_out" = 1 ]; then
+  if [ "$has_prog" = 1 ]; then
+    printf '%s' "$out" | jq -r "$prog" || exit 1
+  else
+    printf '%s\\n' "$out"
+  fi
+fi
+exit "$code"
 `;
 
 /** A `git` that records what it was asked to do and does none of it. */
@@ -1337,6 +1279,22 @@ test('the timeout registry-status.mjs gives npm is read out of it, not written d
   );
 });
 
+const worstWaits = {};
+// Each worst-case run is its own test, so none of the three adds its time to the others.
+test('the appear loop is run at its worst, for the ceiling check', needsJq, () => {
+  worstWaits.appear = runPublishStep({ dispatch: { creates: false } });
+});
+test('the follow loop is run at its worst, for the ceiling check', needsJq, () => {
+  worstWaits.follow = runPublishStep({ runs: [{ id: 100, timeline: [{ at: 0, status: 'in_progress' }] }] });
+});
+test('the tail is run at its worst, for the ceiling check', needsJq, () => {
+  worstWaits.tail = runPublishStep({
+    dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
+    failures: { runViewConclusion: { times: 2, exit: 1, stderr: 'HTTP 502: bad gateway\n' } },
+    registryAnswers: ['unreachable'],
+  });
+});
+
 test('every wait is well inside the job’s own ceiling', needsJq, () => {
   // `timeout-minutes` has to be the backstop for a `gh` or an `npm` that hangs,
   // not the thing that stops an ordinary run: a job the runner kills prints
@@ -1351,13 +1309,8 @@ test('every wait is well inside the job’s own ceiling', needsJq, () => {
   // budget written down nowhere, and 30 → 5 left it green.
   //
   // Every wait in the step, each measured at its own worst:
-  const appear = runPublishStep({ dispatch: { creates: false } });
-  const follow = runPublishStep({ runs: [{ id: 100, timeline: [{ at: 0, status: 'in_progress' }] }] });
-  const tail = runPublishStep({
-    dispatch: { timeline: [{ at: 0, status: 'completed', conclusion: 'success' }] },
-    failures: { runViewConclusion: { times: 2, exit: 1, stderr: 'HTTP 502: bad gateway\n' } },
-    registryAnswers: ['unreachable'],
-  });
+  const { appear, follow, tail } = worstWaits;
+  assert.ok(appear && follow && tail, 'the three worst-case runs above this test must have run first');
   assert.equal(appear.status, 1, appear.log);
   assert.equal(follow.status, 1, follow.log);
   assert.equal(tail.status, 0, tail.log);

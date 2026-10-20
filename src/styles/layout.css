@@ -119,7 +119,7 @@
    resting step. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1706 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1708 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 
 /* A destructive row of the rail is a navigation row and rests like one; the danger
@@ -708,3 +708,41 @@
 .ui-section-head { text-align: center; max-width: var(--panel-lg); margin: 0 auto clamp(40px, 6vh, 64px); }
 .ui-section-head h2 { color: var(--strong); font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
 .ui-section-head p { color: var(--text); font-size: calc(var(--text-lg) - 1px); line-height: 1.6; }
+
+/* Forced colours replace every author background, so a selected item takes the system
+   pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
+   Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
+   own ring, drawn in CanvasText so the fill is never mistaken for it. The pair is
+   `!important` so the shell's danger ink and every hover or focus state yield to it. */
+@media (forced-colors: active) {
+  .ui-app__rail .ui-nav__item:is(.is-active, .is-current):not(.is-disabled) { forced-color-adjust: none; background: Highlight !important; color: HighlightText !important; --ring: var(--ring-width) solid CanvasText; }
+  .ui-app__rail .ui-nav__item:is(.is-active, .is-current).is-disabled { forced-color-adjust: none; background: GrayText !important; color: Canvas !important; /* muted-ink: state — unavailable control */ }
+  .ui-app__rail .ui-nav__item.is-active:not(.is-disabled)::before { background: Highlight; }
+  .ui-app__rail .ui-nav__item.is-active.is-disabled::before { background: GrayText; }
+  /* A folded row is only an icon strip: the plate carries the fill, so the row paints none. */
+  .ui-app.is-collapsed .ui-app__rail .ui-nav__item:is(.is-active, .is-current) { isolation: isolate; background: none !important; }
+  .ui-app.is-collapsed .ui-app__rail .ui-nav__item.is-current:not(.is-active)::before {
+    content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px;
+    transform: translateY(-50%); /* motion: still — a mark on the current group, centred and not travelling */
+    z-index: -1;
+  }
+  .ui-app.is-collapsed .ui-app__rail .ui-nav__item.is-current:not(.is-active):not(.is-disabled)::before { background: Highlight; }
+  .ui-app.is-collapsed .ui-app__rail .ui-nav__item.is-current.is-disabled:not(.is-active)::before { background: GrayText; }
+  /* The floating name of a selected folded row inherits the row's adjust, so it is painted in system colours. */
+  .ui-app.is-collapsed .ui-app__rail .ui-nav__item:is(.is-active, .is-current):is(:hover, :focus-visible) > .ui-nav__label {
+    forced-color-adjust: auto; background: Canvas; color: CanvasText; border-color: CanvasText;
+  }
+}
+@media (forced-colors: active) and (max-width: 720px) {
+  .ui-app .ui-app__rail .ui-nav__item:is(.is-active, .is-current) { isolation: isolate; background: none !important; }
+  .ui-app .ui-app__rail .ui-nav__item.is-current:not(.is-active)::before {
+    content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px;
+    transform: translateY(-50%);
+    z-index: -1;
+  }
+  .ui-app .ui-app__rail .ui-nav__item.is-current:not(.is-active):not(.is-disabled)::before { background: Highlight; }
+  .ui-app .ui-app__rail .ui-nav__item.is-current.is-disabled:not(.is-active)::before { background: GrayText; }
+  .ui-app .ui-app__rail .ui-nav__item:is(.is-active, .is-current):is(:hover, :focus-visible) > .ui-nav__label {
+    forced-color-adjust: auto; background: Canvas; color: CanvasText; border-color: CanvasText;
+  }
+}

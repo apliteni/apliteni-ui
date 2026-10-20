@@ -71,7 +71,7 @@ const STORY_FLOOR = 3;
  *  inherits, so every mark inside one reads as not drawn whatever it declares —
  *  and a mark nobody can see is not what this gate is about. Opening it is the
  *  one state in which the question has an answer. */
-async function subjects(theme) {
+async function sweepSubjects(theme) {
   const { vars, css } = kitCssFor(theme);
   const probe = new JSDOM('<!doctype html><html><body></body></html>', { pretendToBeVisual: true });
   installDomGlobals(probe.window);
@@ -100,6 +100,12 @@ async function subjects(theme) {
   probe.window.close();
   return { found };
 }
+
+// One sweep per theme. Tests that mutate a row restore it before they end, and tests run in turn.
+// They run at load, in turn, because each sweep installs DOM globals. The file pays for them and no test does.
+const sweeps = new Map();
+for (const theme of THEMES) sweeps.set(theme, await sweepSubjects(theme));
+const subjects = async (theme) => sweeps.get(theme);
 
 /** What one chosen row paints, read off the resolved cascade. */
 function readRow({ row, win, vars }) {
