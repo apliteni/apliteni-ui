@@ -6,6 +6,21 @@
 
 export const RELEASES = [
   {
+    v: '0.128.0', date: '2026-10-20',
+    changes: [
+      ['added', '`drawerSection()` and React `KeyValueList` take `align: \'control\'`. A label then sits on the first text line of a control value, such as a select or an input. A list without it is unchanged.', ['Drawer']],
+      ['changed', 'The modal title is now semibold in the strong ink.', ['Modal']],
+      ['changed', 'The select chevron is now the size of the Dropdown chevron.', ['Select']],
+      ['changed', 'At 720px and below, a dropdown panel keeps the 16px page margin from the edge of the view instead of 8px.', ['Dropdown']],
+      ['fixed', 'In the light theme, a hovered dropdown row now shows a fill. It matched the panel before.', ['Dropdown']],
+      ['fixed', 'A dropdown row that scrolls into view keeps room for its focus ring, so the ring is not clipped at the panel edge.', ['Dropdown']],
+      ['fixed', 'A filter chip with no value no longer shows a remove mark, and `Clear all` appears only when a chip has a value. This applies to `filterBar` and React `FilterBar`.', ['FilterBar']],
+      ['fixed', 'A focused scrolling table with a sticky header or a pinned column shows its focus ring on all four sides.', ['Table']],
+      ['fixed', 'A focused row in the folded rail shows its focus ring on all four sides, also at phone width.', ['AppShell']],
+      ['fixed', 'The last column of a table, its header and the table edge now share one right edge, so a right-aligned amount lines up with its header. A table that sets its own end padding on the last cell keeps it.', ['Table']],
+    ],
+  },
+  {
     v: '0.127.0', date: '2026-10-20',
     changes: [
       ['added', 'A checkbox with `indeterminate` set shows the checked fill with a short dash. React `DataTable` selection boxes now use this kit box, 19px instead of 13px, and the header box shows the dash when only some rows on the page are selected. The selection column takes the width of its box in every selectable table. In a dense or compact table, the box keeps a 24px tall tap area on a phone, so it never reaches the next row. See #619.', ['DataTable', 'Checkbox']],
