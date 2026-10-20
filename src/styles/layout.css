@@ -337,7 +337,7 @@
    the three heights below are for. Level, not one continuous stroke: the rail insets
    its own rule, and in light that half is 1.009:1 on the rail's ground.
    why: docs/components.md#the-second-layout */
-.ui-app { --ui-app-band: 52px; }
+.ui-app--topbar { --ui-app-band: 52px; }
 .ui-app__well { display: flex; flex-direction: column; min-width: 0; }
 .ui-app__bar {
   display: flex;

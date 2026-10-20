@@ -173,19 +173,70 @@ describe('invoice flow prototype', () => {
     expect(windowDrag('drop', [], ['text/plain']).defaultPrevented).toBe(false);
     expect(windowDrag('drop', [], ['text/uri-list']).defaultPrevented).toBe(false);
   });
-  it('keeps the layer open while the drag moves between page elements and ends it when the drag leaves the window', () => {
-    /* Crossing from one element to the next sends a dragleave whose relatedTarget is the element
-     * entered. Only a dragleave with no target means the drag left the window. */
+  it('keeps the layer open while the drag moves between page elements, also when the dragleave has no relatedTarget', () => {
+    /* Safari can leave relatedTarget empty on the dragleave between two elements. The browser sends the
+     * dragenter of the element entered first, so the layer follows the count and not that field. */
+    const { container } = render(<InvoiceFlow initialState="table" />);
+    const layer = () => container.querySelector('.ui-drop--page');
+    const table = container.querySelector('table')!;
+    windowDrag('dragenter', [], ['Files'], null);
+    windowDrag('dragenter', [], ['Files'], null);
+    windowDrag('dragleave', [], ['Files'], null);
+    expect(layer(), 'one element left, one entered, relatedTarget null').not.toBeNull();
+    windowDrag('dragenter', [], ['Files'], document.body);
+    windowDrag('dragleave', [], ['Files'], table);
+    expect(layer(), 'the same move with relatedTarget set').not.toBeNull();
+    windowDrag('dragenter');
+    windowDrag('dragleave');
+    windowDrag('dragenter');
+    windowDrag('dragleave');
+    expect(layer(), 'two more moves').not.toBeNull();
+  });
+  it('closes the layer when the drag leaves the window, after any number of moves between elements', () => {
     const { container } = render(<InvoiceFlow initialState="table" />);
     const layer = () => container.querySelector('.ui-drop--page');
     windowDrag('dragenter');
-    windowDrag('dragleave', [], ['Files'], container.querySelector('table')!);
+    windowDrag('dragenter');
+    windowDrag('dragleave');
+    windowDrag('dragenter');
+    windowDrag('dragleave');
     expect(layer()).not.toBeNull();
-    windowDrag('dragenter', [], ['Files'], container.querySelector('table'));
-    windowDrag('dragleave', [], ['Files'], document.body);
+    windowDrag('dragleave');
+    expect(layer(), 'the last element was left').toBeNull();
+    // A dragleave with no matching dragenter does not leave a negative count behind.
+    windowDrag('dragleave');
+    windowDrag('dragenter');
     expect(layer()).not.toBeNull();
     windowDrag('dragleave');
     expect(layer()).toBeNull();
+  });
+  it('counts only a file drag, so a text drag moving across the page does not close a file layer', () => {
+    const { container } = render(<InvoiceFlow initialState="table" />);
+    windowDrag('dragenter');
+    windowDrag('dragleave', [], ['text/plain']);
+    expect(container.querySelector('.ui-drop--page')).not.toBeNull();
+  });
+  it('starts the count again after a drop, Escape or dragend', () => {
+    /* Each end leaves the count at zero. Without that, the next drag would need one dragleave for
+     * the elements the last drag never left, and the layer would stay on the page. */
+    const { container } = render(<InvoiceFlow initialState="table" />);
+    const layer = () => container.querySelector('.ui-drop--page');
+    const ends: Array<[string, () => void]> = [
+      ['a drop', () => windowDrag('drop', [new File(['a'], 'one.pdf')])],
+      ['Escape', () => { act(() => { fireEvent.keyDown(window, { key: 'Escape' }); }); }],
+      ['dragend', () => windowDrag('dragend')],
+    ];
+    for (const [name, end] of ends) {
+      windowDrag('dragenter');
+      windowDrag('dragenter');
+      windowDrag('dragenter');
+      end();
+      expect(layer(), `${name} ends the layer`).toBeNull();
+      windowDrag('dragenter');
+      expect(layer(), `a drag after ${name} opens it`).not.toBeNull();
+      windowDrag('dragleave');
+      expect(layer(), `a drag after ${name} leaves in one dragleave`).toBeNull();
+    }
   });
   it('removes every window listener when the list gives way to a record and when the showcase unmounts', async () => {
     const user = userEvent.setup();

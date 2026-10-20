@@ -926,10 +926,10 @@ disabled area accepts nothing.
 
 `.ui-drop--page` is the kit's layer for a page that takes a file anywhere. Put it on the area's own
 markup, `.ui-drop.ui-drop--area.is-dragging`, and it becomes that area made large: a fixed box
-inset from the window and below the topbar, with the same dashed accent edge and radius, holding an `EmptyState` with
-the upload glyph and the first-run words. **Its ground is opaque, so no page text reads across the
-words.** The layer takes no pointer events, so the page keeps working under it. **Mount it only
-while a file is dragged over the page.** It has no fade and no rise, so reduced motion needs no
+inset from the window and below the topbar, with the same dashed accent edge and radius, holding an
+`EmptyState` with the upload glyph, a line that says to drop the files and the accepted types.
+**Its ground is opaque, so no page text reads across the words.** The layer takes no pointer
+events, so the page keeps working under it. **Mount it only while a file is dragged over the page.** It has no fade and no rise, so reduced motion needs no
 second path. The page owns the drag logic, and its own Upload button stays the keyboard path.
 React ships no component for the layer.
 

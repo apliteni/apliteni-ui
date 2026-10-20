@@ -390,7 +390,7 @@ describe('the page drop layer in the sheet', () => {
 
   it('covers the page below the topbar and takes no pointer, so the drop lands on what is under it', () => {
     expect(rule).toMatch(/position:\s*fixed/);
-    expect(rule).toMatch(/inset:\s*calc\(var\(--ui-app-band, 0px\) \+ var\(--space-4\)\) var\(--space-4\) var\(--space-4\)/);
+    expect(rule).toMatch(/inset:\s*calc\(var\(--ui-app-band, 0px\) \+ var\(--ui-app-top, 0px\) \+ var\(--space-4\)\) var\(--space-4\) var\(--space-4\)/);
     expect(rule).toMatch(/pointer-events:\s*none/);
   });
 
@@ -407,5 +407,44 @@ describe('the page drop layer in the sheet', () => {
   it('moves nothing in: no rise, no fade, no hidden state to leave behind', () => {
     const layer = css.slice(css.indexOf('.ui-drop--page'));
     expect(layer).not.toMatch(/transform|transition|visibility|opacity/);
+  });
+
+  describe('where the layer starts', () => {
+    /* The real sheets go into the JSDOM document and the cascade hands the layer its band and topbar
+     * offsets; the top inset is then summed from the values it got. JSDOM lays nothing out, so that the
+     * browser paints the layer there is measured in a browser. */
+    const sheets = ['../../src/tokens/tokens.css', '../../src/styles/layout.css', '../../src/styles/file-drop.css'].map(readRepo).join('\n');
+    const top = (shell: string, sheet = sheets) => {
+      const style = document.createElement('style');
+      style.textContent = sheet;
+      document.head.append(style);
+      const host = document.createElement('div');
+      host.className = shell;
+      host.innerHTML = '<div class="ui-drop ui-drop--area ui-drop--page is-dragging"></div>';
+      document.body.append(host);
+      const cs = getComputedStyle(host.firstElementChild!);
+      const block = /\.ui-drop--page\s*\{([^}]*)\}/.exec(sheet)?.[1] ?? '';
+      const inset = /inset:\s*calc\((.*?)\)\s+var\(--space-4\)/.exec(block)?.[1] ?? '';
+      expect(inset, 'the layer\'s top inset is no longer a sum of tokens').not.toBe('');
+      const sum = inset.split('+').map((term) => {
+        const [, name, fallback] = /var\((--[\w-]+)(?:,\s*([^)]+))?\)/.exec(term) ?? [];
+        return Number.parseFloat(cs.getPropertyValue(name) || fallback || '0');
+      }).reduce((a, b) => a + b, 0);
+      host.remove();
+      style.remove();
+      return sum;
+    };
+
+    it('starts below the band in the topbar shell', () => {
+      expect(top('ui-app ui-app--topbar')).toBe(52 + 16);
+    });
+
+    it('starts at the top, 16px in, in the rail-only shell, where no band is drawn', () => {
+      expect(top('ui-app')).toBe(16);
+    });
+
+    it('starts below the topbar of a page that carries one', () => {
+      expect(top('ui-app-page')).toBe(52 + 16);
+    });
   });
 });

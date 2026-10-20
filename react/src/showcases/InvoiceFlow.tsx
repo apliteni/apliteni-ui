@@ -101,14 +101,17 @@ const validTotal = (value: string) => {
 /* The drag logic of the list page's drop layer. A file dragged over the window shows the layer,
    and a file dropped anywhere is added. Behaviour only: the layer's paint is the kit's
    `ui-drop--page`. Text and links carry no file, so they show nothing. `enabled` is false on a
-   record, where there is nothing to add to. Escape ends it too, because the browser sends the
-   page no event when a drag is cancelled that way. */
+   record, where there is nothing to add to. The layer closes when every dragenter has met its
+   dragleave, because Safari can send a dragleave with no `relatedTarget` between two elements. A drop,
+   Escape and dragend end it at once; Escape is listed because the browser sends the page no event
+   when a drag is cancelled that way. */
 function useWindowFileDrag(enabled: boolean, onFiles: (files: File[]) => void) {
   const [over, setOver] = useState(false);
   const take = useRef(onFiles);
   take.current = onFiles;
   useEffect(() => {
     if (!enabled) { setOver(false); return; }
+    let depth = 0;
     const carriesFiles = (event: DragEvent) => !!event.dataTransfer && Array.from(event.dataTransfer.types).includes('Files');
     const aim = (event: DragEvent) => {
       if (!carriesFiles(event)) return;
@@ -116,29 +119,35 @@ function useWindowFileDrag(enabled: boolean, onFiles: (files: File[]) => void) {
       event.preventDefault();
       setOver(true);
     };
-    // Leaving the window reports no element entered; moving between elements does.
-    const leave = (event: DragEvent) => { if (event.relatedTarget === null) setOver(false); };
+    // The browser sends the dragenter of the element entered before the dragleave of the one left,
+    // so the count reaches zero only when the drag leaves the window.
+    const enter = (event: DragEvent) => { if (carriesFiles(event)) depth += 1; aim(event); };
+    const leave = (event: DragEvent) => {
+      if (!carriesFiles(event)) return;
+      depth = Math.max(0, depth - 1);
+      if (depth === 0) setOver(false);
+    };
+    const reset = () => { depth = 0; setOver(false); };
     const drop = (event: DragEvent) => {
-      setOver(false);
+      reset();
       if (event.defaultPrevented || !carriesFiles(event)) return;
       event.preventDefault();
       const files = Array.from(event.dataTransfer!.files);
       if (files.length) take.current(files);
     };
-    const end = () => setOver(false);
-    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOver(false); };
-    window.addEventListener('dragenter', aim);
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') reset(); };
+    window.addEventListener('dragenter', enter);
     window.addEventListener('dragover', aim);
     window.addEventListener('dragleave', leave);
     window.addEventListener('drop', drop);
-    window.addEventListener('dragend', end);
+    window.addEventListener('dragend', reset);
     window.addEventListener('keydown', escape);
     return () => {
-      window.removeEventListener('dragenter', aim);
+      window.removeEventListener('dragenter', enter);
       window.removeEventListener('dragover', aim);
       window.removeEventListener('dragleave', leave);
       window.removeEventListener('drop', drop);
-      window.removeEventListener('dragend', end);
+      window.removeEventListener('dragend', reset);
       window.removeEventListener('keydown', escape);
     };
   }, [enabled]);

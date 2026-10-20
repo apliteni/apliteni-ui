@@ -90,12 +90,13 @@
 @media (max-width: 560px) { .ui-drop--area { padding: var(--space-3); } }
 
 /* The whole page as a target, drawn only while a file is dragged over the page. It is the
-   empty page's drop area made large: the same dashed accent edge, radius and first-run words,
-   laid over the page content below the topbar. Its ground is opaque, so no row of a long list reads across
-   the words. The layer takes no pointer events, so the drop lands on what is under it. */
+   empty page's drop area made large: the same dashed accent edge and radius, holding the upload
+   glyph, a line that says to drop the files and the accepted types, laid over the page content below
+   the topbar. Its ground is opaque, so no row of a long list reads across the words. The layer
+   takes no pointer events, so the drop lands on what is under it. */
 .ui-drop--page {
   position: fixed;
-  inset: calc(var(--ui-app-band, 0px) + var(--space-4)) var(--space-4) var(--space-4);
+  inset: calc(var(--ui-app-band, 0px) + var(--ui-app-top, 0px) + var(--space-4)) var(--space-4) var(--space-4);
   z-index: var(--z-overlay);
   display: flex;
   align-items: center;
