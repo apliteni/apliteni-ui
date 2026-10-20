@@ -8,6 +8,7 @@ import {
   dropdownHeightFit, filterPanelRow,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
+import { Avatar } from './primitives/Avatar';
 import { FieldContext } from './fieldContext';
 
 // A few frames past the stylesheet's own end, so the backstop timer never cuts the last
@@ -41,6 +42,8 @@ const inPanel = (node: Node | null) => {
 
 export type DropdownBadge = string | { text: string; tone?: string };
 
+export type DropdownAvatar = { key?: string | number; name?: string | null; src?: string; empty?: boolean };
+
 export type DropdownItem = {
   label: string;
   /** The pick, as `onSelect` reports it and as `data-value` carries it. */
@@ -48,6 +51,9 @@ export type DropdownItem = {
   description?: string;
   /** A kit glyph name, drawn in the row's leading slot. */
   icon?: string;
+  /** A person's mark in the leading slot, in place of `icon`. `key` picks the hue, `name` the
+   *  letters, `src` a photo. `{ empty: true }` is the dashed ring of a "No one" row. */
+  avatar?: DropdownAvatar;
   badge?: DropdownBadge;
   selected?: boolean;
   disabled?: boolean;
@@ -73,6 +79,11 @@ export type DropdownSearch = {
   hint?: string;
   /** What the field holds before it is opened; every open starts from the whole list. */
   query?: string;
+  /** The size of the whole set, for "Search 214 people" in the placeholder and the field's
+   *  name. `true` counts the rows, less a "No one" row. */
+  count?: number | true;
+  /** What the set is called in that line. Defaults to "people". */
+  noun?: string;
 };
 
 /**
@@ -183,6 +194,12 @@ const openNow = new Set<() => void>();
 // While an input method is composing, its keys commit or steer the text rather than
 // driving the list. Safari's committing Enter carries keyCode 229, not isComposing.
 const composing = (e: { isComposing?: boolean; keyCode?: number }) => e.isComposing || e.keyCode === 229;
+
+const countOf = (count: number | true | undefined, rows: DropdownItem[]) => {
+  if (count == null) return null;
+  const n = count === true ? rows.filter((it) => !it.avatar?.empty).length : Number(count);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+};
 
 const SEARCH_DEFAULTS = {
   placeholder: 'Search',
@@ -365,11 +382,18 @@ export function Dropdown({
     };
   }, [open]);
 
-  const sx = search ? { ...SEARCH_DEFAULTS, ...strip(search === true ? {} : search) } : null;
   const entries: DropdownEntry[] = sections?.length
     ? sections.flatMap((s) => s.items || [])
     : (items || []);
   const rows = entries.filter(isRow);
+  const given_ = search ? strip(search === true ? {} : search) : null;
+  const n = given_ ? countOf(given_.count, rows) : null;
+  const counted = n == null ? undefined : `Search ${n} ${given_?.noun || 'people'}`;
+  const sx = given_ ? {
+    ...SEARCH_DEFAULTS, ...given_,
+    placeholder: given_.placeholder || counted || SEARCH_DEFAULTS.placeholder,
+    label: given_.label || counted,
+  } : null;
   const isSelect = variant === 'select'
     || (variant == null && rows.some((it) => it.selected || it.value != null));
   const listRole = isSelect ? 'listbox' : 'menu';
@@ -394,6 +418,12 @@ export function Dropdown({
   const picked = pickedKey != null ? rows.find((it) => keyOf(it) === pickedKey) : undefined;
   const shown = value != null ? value
     : (isSelect ? (picked?.label ?? given?.label) : null);
+  // A picker of people leads the trigger with the chosen row's mark, and with no value a
+  // dashed ring beside the placeholder. why: docs/components.md#avatar
+  const marked = isSelect && rows.some((it) => it.avatar);
+  const chosen = marked
+    ? (value != null ? rows.find((it) => it.label === value) : (picked ?? given))
+    : undefined;
   // After a pick the tick follows it, the way selectOption() rewrites the panel —
   // and like it, a disabled row keeps the state it was rendered with.
   const selectedOf = (it: DropdownItem) => (pickedKey != null
@@ -756,7 +786,9 @@ export function Dropdown({
       onClick: (e: ReactMouseEvent) => choose(entry, e),
       children: (
         <>
-          {entry.icon && <Glyph name={entry.icon} className="ui-dropdown__ic" />}
+          {entry.avatar
+            ? <Avatar personKey={entry.avatar.key} name={entry.avatar.name} src={entry.avatar.src} empty={entry.avatar.empty} />
+            : entry.icon && <Glyph name={entry.icon} className="ui-dropdown__ic" />}
           <span className="ui-dropdown__main">
             <span className="ui-dropdown__label">{entry.label}</span>
             {entry.description && <span className="ui-dropdown__desc">{entry.description}</span>}
@@ -823,8 +855,11 @@ export function Dropdown({
       >
         {triggerContent != null ? triggerContent : (
           <>
+            {marked && (chosen?.avatar
+              ? <Avatar personKey={chosen.avatar.key} name={chosen.avatar.name} src={chosen.avatar.src} empty={chosen.avatar.empty} />
+              : <Avatar empty />)}
             {label && <span className="ui-dropdown__pre">{label}</span>}
-            <span className="ui-dropdown__value">{shown != null ? shown : placeholder}</span>
+            <span className={cx('ui-dropdown__value', marked && !chosen && 'is-placeholder')}>{shown != null ? shown : placeholder}</span>
           </>
         )}
         {chevron && <span className="ui-dropdown__chevron" aria-hidden="true" />}

@@ -1,6 +1,7 @@
 // apliteni-ui — public entry.
 // Styles ship separately: `import 'apliteni-ui/css'`.
 export * from './components/index.js';
+export * from './components/avatar.js';
 export * from './components/dropdown.js';
 export * from './components/tooltip.js';
 export * from './components/tabs.js';

@@ -31,6 +31,14 @@ export declare function icon(name: string, className?: string): string;
 export declare function snippet(opts?: Record<string, unknown>): string;
 export declare function button(opts?: Record<string, unknown>): string;
 export declare function badge(label: string, variant?: string): string;
+export declare const AVATAR_HUES: 8;
+/** Which of the eight person hues a key gets: FNV-1a 32 bit over its UTF-8 bytes, modulo 8. */
+export declare function avatarHue(key: unknown): number;
+/** The first letter of the first word and of the last word, upper-cased; '' for no name. */
+export declare function avatarInitials(name: unknown): string;
+export declare function avatar(opts?: {
+  key?: string | number; name?: string | null; src?: string; size?: 24 | 32; empty?: boolean;
+}): string;
 export declare const calloutIcons: Record<'neutral' | 'info' | 'success' | 'warn' | 'danger', string>;
 export declare function callout(opts?: Record<string, unknown>): string;
 export declare function card(opts?: Record<string, unknown>): string;

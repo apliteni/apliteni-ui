@@ -21,6 +21,8 @@ export type { SwitchProps } from './Switch';
 export { Button } from './primitives/Button';
 export type { ButtonProps, NativeButtonProps, ButtonLinkProps } from './primitives/Button';
 export { Badge } from './primitives/Badge';
+export { Avatar } from './primitives/Avatar';
+export type { AvatarProps } from './primitives/Avatar';
 export { Pill } from './primitives/Pill';
 export type { PillProps } from './primitives/Pill';
 export { StatusDot } from './primitives/StatusDot';
@@ -66,7 +68,7 @@ export type {
 export { Dropdown } from './Dropdown';
 export type {
   DropdownProps, DropdownItem, DropdownEntry, DropdownSection, DropdownSeparator,
-  DropdownBadge, DropdownRowProps, DropdownSearch,
+  DropdownBadge, DropdownRowProps, DropdownSearch, DropdownAvatar,
 } from './Dropdown';
 export { BackLink } from './BackLink';
 export type { BackLinkProps, BackLinkOwnProps } from './BackLink';

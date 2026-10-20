@@ -5,6 +5,7 @@
 // the published name docs/components.md documents.
 // why: docs/components.md#the-page-shell
 import { esc } from './index.js';
+import { avatarInitials } from '../logic/avatar.js';
 
 // nav.js item objects. Labels are raw text — every nav primitive escapes, so a
 // pre-escaped `&amp;` would come out as `&amp;amp;`. `key` means credentials;
@@ -42,6 +43,5 @@ export const accountMenuNav = () => ACCOUNT_NAV.map(toMenuTuple);
 // fallback. `?` is what nobody at all comes out as.
 export const initials = (name, email) => {
   const from = String(name ?? '').trim() || String(email ?? '').split('@')[0] || '';
-  const parts = from.split(/[\s._-]+/).filter(Boolean).map((w) => w[0]);
-  return (parts.slice(0, 2).join('') || '?').toUpperCase();
+  return avatarInitials(from.replace(/[._-]+/g, ' ')) || '?';
 };

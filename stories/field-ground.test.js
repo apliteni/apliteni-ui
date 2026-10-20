@@ -121,9 +121,9 @@ const readings = Object.fromEntries(await Promise.all(
 ));
 
 test('the walk reaches every gallery and finds the fields in them', () => {
-  // 27 galleries under stories/components/. A file added there is measured by
+  // 28 galleries under stories/components/. A file added there is measured by
   // being there; this number is what says the walk did not stop reading them.
-  assert.equal(GALLERIES.length, 27, 'gallery discovery changed; update the count with the file that moved');
+  assert.equal(GALLERIES.length, 28, 'gallery discovery changed; update the count with the file that moved');
   for (const theme of THEMES) {
     const { fields, stories } = readings[theme];
     assert.ok(stories.length >= 110, `${theme}: only ${stories.length} gallery stories rendered`);

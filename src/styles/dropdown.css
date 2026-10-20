@@ -425,3 +425,21 @@
   /* muted-ink: state — off, unset, disabled or archived badge */
   color: var(--muted);
 }
+
+/* A picker of people. A mark leads the trigger and each row; with no value the trigger
+   shows the dashed ring beside the placeholder in the placeholder ink. The mark's own
+   margins give back the room it takes, so the trigger keeps its height.
+   why: docs/components.md#avatar */
+.ui-dropdown__trigger > .ui-avatar {
+  --ui-avatar-pull: 3px;
+  --ui-avatar-pull-start: 10px;
+  margin-block: calc(var(--ui-avatar-pull) * -1);
+  margin-inline-start: calc(var(--ui-avatar-pull-start) * -1);
+}
+.ui-dropdown__value.is-placeholder { /* muted-ink: placeholder — no person chosen */ color: var(--muted); font-weight: var(--weight-medium); }
+
+/* A dropdown that is a form control takes its field's width, and its panel the
+   trigger's. why: docs/components.md#avatar */
+.ui-field > .ui-dropdown { display: grid; }
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { margin-left: auto; }
+.ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }

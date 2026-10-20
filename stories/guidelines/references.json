@@ -544,7 +544,7 @@
         "pattern": "in sentence case like every"
       },
       {
-        "ref": "src/components/topbar.js:32",
+        "ref": "src/components/topbar.js:33",
         "pattern": "the kit writes the word for it"
       },
       {
@@ -646,11 +646,11 @@
   "_microcopy.js": {
     "state-not-destination": [
       {
-        "ref": "src/components/topbar.js:11",
+        "ref": "src/components/topbar.js:12",
         "pattern": "show the saved choice"
       },
       {
-        "ref": "src/components/topbar.js:113",
+        "ref": "src/components/topbar.js:114",
         "pattern": "btn.setAttribute('aria-label', name)"
       },
       {
@@ -810,7 +810,7 @@
         "pattern": "outline: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:284",
+        "ref": "src/tokens/tokens.css:297",
         "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
       }
     ],
@@ -979,17 +979,17 @@
         "pattern": "export function sidebarNav("
       },
       {
-        "ref": "src/components/account-nav.js:14",
+        "ref": "src/components/account-nav.js:15",
         "pattern": "export const ACCOUNT_NAV = ["
       }
     ],
     "menu": [
       {
-        "ref": "src/components/topbar.js:57",
+        "ref": "src/components/topbar.js:58",
         "pattern": "export function accountMenu("
       },
       {
-        "ref": "src/components/topbar.js:83",
+        "ref": "src/components/topbar.js:84",
         "pattern": "Sign out"
       }
     ],

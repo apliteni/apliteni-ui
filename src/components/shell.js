@@ -66,7 +66,7 @@ const toReader = (a) => (isRecord(a) ? { name: str(a.name), email: str(a.email) 
 const toMenuReader = (a) => {
   const { name, email } = toReader(a);
   const rest = isRecord(a) && !Array.isArray(a) ? a : {};
-  const out = { ...rest, name: esc(name), email: esc(email), initials: esc(initials(name, email)) };
+  const out = { ...rest, name: esc(name), email: esc(email), initials: initials(name, email), key: email || name };
   if (out.nav != null) out.nav = toItems(out.nav).map(toMenuTuple);
   return out;
 };

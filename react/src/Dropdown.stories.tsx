@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Dropdown, type DropdownEntry } from './Dropdown';
+import { Field } from './Field';
+import { Card } from './primitives/Card';
 
 const meta: Meta<typeof Dropdown> = { title: 'React/Dropdown', component: Dropdown };
 export default meta;
@@ -267,5 +269,34 @@ export const NearBottomEdge: StoryObj<typeof Dropdown> = {
     <EdgeStage bottomGap={36}>
       <Dropdown items={TWELVE} ariaLabel="Account" triggerContent="Account" defaultOpen />
     </EdgeStage>
+  ),
+};
+
+const PEOPLE: DropdownEntry[] = [
+  { label: 'No one', value: '', avatar: { empty: true } },
+  ...['Avery Example', 'Jordan Okafor', 'Mia Chen', 'Noor Haddad', 'Sam Rivera', 'Lena Novak'].map((name, i) => ({
+    label: name, value: `user_${i + 1}`, avatar: { key: `user_${i + 1}`, name },
+  })),
+];
+
+// A picker of people: each row and the trigger lead with the person's mark, the empty
+// trigger shows the dashed ring, and the search field names the size of the set.
+export const PersonPicker: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Stage><Card>
+      <Field label="Owner">{(control) => (
+        <Dropdown {...control} variant="select" items={PEOPLE} placeholder="Choose a person" search={{ count: 214 }} />
+      )}</Field>
+    </Card></Stage>
+  ),
+};
+
+export const PersonPickerChosen: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Stage><Card>
+      <Field label="Owner">{(control) => (
+        <Dropdown {...control} variant="select" items={PEOPLE} value="Jordan Okafor" search={{ count: 214 }} defaultOpen />
+      )}</Field>
+    </Card></Stage>
   ),
 };

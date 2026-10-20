@@ -1,5 +1,5 @@
 import { dropdown } from '../../src/components/dropdown.js';
-import { button } from '../../src/components/index.js';
+import { button, field } from '../../src/components/index.js';
 import { pad, row, specimen } from '../_gallery.js';
 import { currencyItems } from '../_currencies.js';
 
@@ -374,4 +374,32 @@ export const RowTags = {
     specimen('&lt;button&gt; — a page writing its own row',
       flat(`<button class="ui-dropdown__item is-selected" type="button" role="option" aria-selected="true" tabindex="-1">${GUTS}</button>`)),
   )),
+};
+
+const PEOPLE = [
+  { label: 'No one', value: '', avatar: { empty: true } },
+  ...['Avery Example', 'Jordan Okafor', 'Mia Chen', 'Noor Haddad', 'Sam Rivera', 'Lena Novak'].map((name, i) => ({
+    label: name, value: `user_${i + 1}`, avatar: { key: `user_${i + 1}`, name },
+  })),
+];
+
+export const PersonPicker = {
+  name: 'Person picker (no value)',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(`<div class="ui-card">${field({
+    label: 'Owner',
+    control: dropdown({ variant: 'select', items: PEOPLE, placeholder: 'Choose a person', search: { count: 214 } }),
+  })}</div>`, 420)),
+};
+
+export const PersonPickerChosen = {
+  name: 'Person picker (chosen, open)',
+  parameters: { layout: 'fullscreen' },
+  render: () => pad(bay(`<div class="ui-card">${field({
+    label: 'Owner',
+    control: dropdown({
+      variant: 'select', open: true, search: { count: 214 },
+      items: PEOPLE.map((it) => ({ ...it, selected: it.label === 'Jordan Okafor' })),
+    }),
+  })}</div>`, 420)),
 };
