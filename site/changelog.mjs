@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.126.1', date: '2026-10-20',
+    changes: [
+      ['added', 'A checkbox with `indeterminate` set shows the checked fill with a short dash. React `DataTable` selection boxes now use the kit box, and the header box shows the dash when only some rows on the page are selected. The empty box has the kit edge and a 44px tap area on a phone, the dark tick has more contrast, and forced colours show the radio dot and mark an unavailable box with GrayText. See #619.', ['DataTable', 'Checkbox']],
+    ],
+  },
+  {
     v: '0.126.0', date: '2026-10-20',
     changes: [
       ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],

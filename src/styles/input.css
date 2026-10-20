@@ -245,6 +245,21 @@
 .ui-table__selection input[type="checkbox"]:disabled:indeterminate { background: var(--disabled-ink); border-color: var(--disabled-ink); }
 .ui-check input[type="checkbox"]:disabled:indeterminate::after,
 .ui-table__selection input[type="checkbox"]:disabled:indeterminate::after { border-color: var(--disabled-surface); }
+/* Forced colours replace every fill, so a disabled box that painted only a fill and
+   a --disabled-* edge drew the same edge and mark as an enabled one, and a radio's dot
+   vanished. GrayText is the system colour for an unavailable control. The tick and the
+   dash are borders, so they keep it; the dot is a fill, so it names a system colour. */
+@media (forced-colors: active) {
+  .ui-check input:disabled,
+  .ui-check input:disabled:is(:checked, :indeterminate),
+  .ui-check input[type="checkbox"]:disabled:is(:checked, :indeterminate),
+  .ui-table__selection input[type="checkbox"]:disabled,
+  .ui-table__selection input[type="checkbox"]:disabled:is(:checked, :indeterminate) { border-color: GrayText; }
+  .ui-check input[type="checkbox"]:disabled:is(:checked, :indeterminate)::after,
+  .ui-table__selection input[type="checkbox"]:disabled:is(:checked, :indeterminate)::after { border-color: GrayText; }
+  .ui-check input[type="radio"]:checked::after { background: CanvasText; }
+  .ui-check input[type="radio"]:disabled:checked::after { background: GrayText; }
+}
 /* The label is the click target, so the cursor belongs on it, and the words it
    holds go quiet with the box beside them. */
 .ui-check:has(input:disabled) { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; }

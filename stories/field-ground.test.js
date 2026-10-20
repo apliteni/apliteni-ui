@@ -127,8 +127,8 @@ test('the walk reaches every gallery and finds the fields in them', () => {
   for (const theme of THEMES) {
     const { fields, stories } = readings[theme];
     assert.ok(stories.length >= 110, `${theme}: only ${stories.length} gallery stories rendered`);
-    // Switch & Checkbox 16, Inputs 9, Pagination 7, Drawer 4, Card 1, Tabs 1.
-    assert.equal(fields.length, 38, `${theme}: field discovery changed; update the count with the specimens that moved`);
+    // Switch & Checkbox 22, Inputs 9, Pagination 7, Drawer 4, Card 1, Tabs 1.
+    assert.equal(fields.length, 44, `${theme}: field discovery changed; update the count with the specimens that moved`);
     assert.ok(fields.some((f) => f.disabled), `${theme}: no disabled field reached the walk`);
   }
 });

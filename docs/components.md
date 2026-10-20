@@ -1034,6 +1034,9 @@ rather than a copy bundled into `react/dist`.
   collapsed.
 - **`Checkbox` and `Switch`** render native inputs inside the existing label classes, and **a
   disabled one uses the same paint as every other disabled control in the kit.**
+- **A checkbox whose `indeterminate` property is true shows the checked fill with a short dash**
+  in place of the tick. **`DataTable`'s selection boxes use the kit box and show the dash when some,
+  but not all, rows on the page are selected.**
 - **`Checkbox` takes an optional `hint`,** which sits under the label words and is linked to the box as
   its description; the label stays the box's name. **`CheckList` groups `Checkbox` children in a
   fieldset under a legend** set in the field label's type. A disabled box dims its hint with its label.
