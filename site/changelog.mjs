@@ -34,7 +34,6 @@ export const RELEASES = [
       ['fixed', 'Tab rows scroll within narrow containers without widening the page, moving off the page gutter or lifting the active underline off the row rule. A row whose tabs all fit scrolls nothing and clips nothing, so the post-#578 outline focus ring keeps its band at a desktop width. React and vanilla wireNav reveal the current route without moving keyboard focus or discarding where the reader scrolled.', ['Navigation']],
       ['fixed', 'A tab row that does scroll now scrolls to a link the keyboard lands on, so its focus ring clears the scrolling edge instead of being cut off at the end of the row. A row whose tabs are all disabled takes the kit inward band on itself rather than the browser outline, because it holds no link to carry one.', ['Navigation']],
     ],
-    ],
   },
   {
     v: '0.125.1', date: '2026-10-20',
