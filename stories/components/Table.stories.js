@@ -76,6 +76,22 @@ export const AgentTokens = {
   </div>`),
 };
 
+// The base table with a right-aligned amount as its last column: the header, the figures
+// and the table's own edge end on one line.
+export const Amounts = {
+  render: () => pad(`<div class="ui-card" style="max-width:720px">
+    <h2 class="ui-card__title">Open invoices</h2>
+    <table class="ui-table ui-table--hover">
+      <thead><tr><th>Client</th><th>Due</th><th class="ui-table__num">Amount (EUR)</th></tr></thead>
+      <tbody>
+        <tr><td class="ui-table__title">Northwind Studio</td><td>12 Nov</td><td class="ui-table__num">1,240.00</td></tr>
+        <tr><td class="ui-table__title">Fabrikam Design</td><td>20 Nov</td><td class="ui-table__num">860.50</td></tr>
+        <tr><td class="ui-table__title">Contoso Labs</td><td>3 Dec</td><td class="ui-table__num">2,015.75</td></tr>
+      </tbody>
+    </table>
+  </div>`),
+};
+
 export const Empty = {
   render: () => pad(`<div class="ui-card" style="max-width:720px">
     <h2 class="ui-card__title"><span class="ui-card__icon">${icon('key')}</span> Access &amp; agents</h2>

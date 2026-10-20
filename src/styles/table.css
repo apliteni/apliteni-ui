@@ -50,6 +50,10 @@
 .ui-table tfoot th { text-align: right; }
 .ui-table td.ui-table__title { color: var(--strong); font-weight: var(--weight-medium); width: 99%; white-space: normal; }
 .ui-table th:last-child { padding-right: 0; }
+/* The last body cell ends where its header and the table end. A right-aligned amount in the
+   last column stood 16px in from both, because only the header and the action cell dropped
+   the cell gap. The variants below state their own end padding. why: docs/foundations.md#spacing-and-rhythm */
+.ui-table td:last-child { padding-right: 0; }
 .ui-table td.ui-table__act { padding-right: 0; text-align: right; }
 .ui-table tr.is-dead td { /* muted-ink: state — revoked row */ color: var(--muted); }
 .ui-table tr.is-dead td.ui-table__title { text-decoration: line-through; }
@@ -189,6 +193,8 @@
   padding: var(--space-4) var(--space-4) var(--space-4) 0;
   border-radius: var(--radius-xs);
 }
+/* The last cell gave up its end gap above, so the link it holds gives up the same. */
+.ui-table td.ui-table__linked:where(:last-child) > :is(a:not([class]), a.ui-identity):only-child { padding-right: 0; }
 .ui-table--dense td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-2) var(--space-3); }
 .ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-1) var(--space-3); }
 /* Zebra insets the row's END cells only, so the fill does too: a marked identity behind a

@@ -284,6 +284,33 @@ test('the numeric-header check rejects a sheet that lets them wrap', () => {
   assert.throws(() => checkNumericHeaderWrap(`${CSS}\n.ui-table th.ui-table__num { white-space: normal; }`));
 });
 
+// A right-aligned last column ends where its header ends. The base table dropped the cell gap
+// on the header only, so the figures stood 16px in from the header and the table edge. Limit:
+// JSDOM computes padding, not layout, so this holds the inset the edge is made of.
+function checkLastColumnEdge(css) {
+  let measured = 0;
+  for (const modifier of tableModifiers(css)) {
+    const dom = footerTable(css, modifier);
+    try {
+      const { document, getComputedStyle } = dom.window;
+      const header = getComputedStyle(document.querySelector('thead th:last-child'));
+      for (const cell of document.querySelectorAll('tbody td:last-child, tfoot td:last-child')) {
+        assert.equal(getComputedStyle(cell).paddingRight, header.paddingRight, `${modifier}: last body cell ends with its header`);
+        measured++;
+      }
+    } finally { dom.window.close(); }
+  }
+  assert.ok(measured >= 14, `every modifier's last column must be measured, got ${measured}`);
+}
+
+test('a right-aligned last column shares its header\'s right edge across table modifiers', () => {
+  checkLastColumnEdge(CSS);
+});
+
+test('the last-column check rejects a sheet that leaves the body cell gap', () => {
+  assert.throws(() => checkLastColumnEdge(CSS.replace('.ui-table td:last-child { padding-right: 0; }', '')));
+});
+
 /**
  * The pin's divider is the edge a column keeps while the rest moves under it, so it may
  * only be painted where the region can actually move horizontally. The sheet says this in two halves:
