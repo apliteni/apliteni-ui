@@ -108,3 +108,35 @@ it.each(['light', 'dark'])('keeps drawer spacing local in %s', theme => {
     expect(getComputedStyle(list).columnGap).toBe('16px');
   }
 });
+
+// jsdom resolves the declared alignment and weight; the browser captures measure the lines.
+it.each(['light', 'dark'])('aligns a control value with its label only when asked, in %s', theme => {
+  const style = document.createElement('style');
+  style.dataset.kvTest = '';
+  style.textContent = substitute(['../../src/styles/drawer.css', './KeyValueList.css']
+    .map(path => readFileSync(new URL(path, import.meta.url), 'utf8')).join('\n'), tokensFor(theme));
+  document.head.appendChild(style);
+  const rows = [{ label: 'Status', value: <button type="button">Open</button> }];
+  const { container } = render(<><KeyValueList rows={rows} /><KeyValueList rows={rows} align="control" /></>);
+  const [plain, aligned] = container.querySelectorAll('dl.ui-kv');
+  expect(plain).not.toHaveClass('ui-kv--control');
+  expect(getComputedStyle(plain).alignItems).not.toBe('baseline');
+  expect(aligned).toHaveClass('ui-kv--control');
+  expect(getComputedStyle(aligned).alignItems).toBe('baseline');
+});
+
+it.each(['light', 'dark'])('sets the modal title in semibold strong ink in %s', theme => {
+  const style = document.createElement('style');
+  style.dataset.kvTest = '';
+  const tokens = tokensFor(theme);
+  style.textContent = substitute(['./Modal.css'].map(path => readFileSync(new URL(path, import.meta.url), 'utf8')).join('\n'), tokens);
+  document.head.appendChild(style);
+  render(<Modal open title="Invoice details" onClose={() => {}}>body</Modal>);
+  const title = document.querySelector('.rx-modal__title')!;
+  expect(getComputedStyle(title).fontWeight).toBe('600');
+  const probe = document.createElement('i');
+  probe.style.color = substitute('var(--strong)', tokens);
+  document.body.appendChild(probe);
+  expect(getComputedStyle(title).color).toBe(getComputedStyle(probe).color);
+  expect(getComputedStyle(title).color).not.toBe('');
+});

@@ -11,6 +11,8 @@ export type KeyValueRow = {
 export type KeyValueListProps = Omit<ComponentPropsWithoutRef<'dl'>, 'children'> & {
   rows: readonly KeyValueRow[];
   columns?: 1 | 2;
+  /** `'control'` lines each label up with the first text line of a control value (a Dropdown, TextField or SelectField). */
+  align?: 'control';
 };
 
 function detail({ value, redacted }: KeyValueRow) {
@@ -19,9 +21,9 @@ function detail({ value, redacted }: KeyValueRow) {
   return typeof value === 'boolean' ? String(value) : value;
 }
 
-export function KeyValueList({ rows, columns = 1, className, ...rest }: KeyValueListProps) {
+export function KeyValueList({ rows, columns = 1, align, className, ...rest }: KeyValueListProps) {
   return (
-    <dl {...rest} className={['ui-kv', columns === 2 && 'ui-kv--two-columns', className].filter(Boolean).join(' ')}>
+    <dl {...rest} className={['ui-kv', columns === 2 && 'ui-kv--two-columns', align === 'control' && 'ui-kv--control', className].filter(Boolean).join(' ')}>
       {rows.map((row, index) => (
         <div className="ui-drawer__row" key={index}>
           <dt>{row.label}</dt>

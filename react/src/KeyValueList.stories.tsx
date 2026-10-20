@@ -34,6 +34,17 @@ export const LongValue: StoryObj = {
     { label: 'Reference', value: 'INV-1001-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
   ]} /></div>,
 };
+const controlRows = [
+  { label: 'Reference', value: 'INV-1001' },
+  { label: 'Currency', value: <select className="ui-select" aria-label="Currency"><option>EUR</option><option>USD</option></select> },
+  { label: 'Note', value: <input className="ui-input" aria-label="Note" defaultValue="Paid by wire" /> },
+];
+export const ControlValues: StoryObj = {
+  render: () => <div style={{ maxWidth: 480 }}>
+    <DrawerSection title="Default"><KeyValueList rows={controlRows} /></DrawerSection>
+    <DrawerSection title="Aligned to the control"><KeyValueList rows={controlRows} align="control" /></DrawerSection>
+  </div>,
+};
 export const Sections: StoryObj = {
   render: () => <div style={{ maxWidth: 480 }}>
     <DrawerSection title="Transaction"><KeyValueList rows={rows} /></DrawerSection>
