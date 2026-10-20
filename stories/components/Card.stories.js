@@ -1,4 +1,4 @@
-import { card, button, badge, pill, icon, segmented } from '../../src/components/index.js';
+import { card, button, pill, icon, segmented } from '../../src/components/index.js';
 import { pad, grid } from '../_gallery.js';
 
 export default {
@@ -10,7 +10,7 @@ export const Variants = {
   render: () => pad(grid(2,
     card({ title: 'Default card', sub: 'A filled surface with a generous radius. Dark draws an edge, and light casts a soft shadow.', body: button({ label: 'Action', variant: 'secondary', size: 'sm' }) }),
     card({ variant: 'accent', title: 'Accent card', icon: 'sparkle', sub: 'Tinted with the purple accent, for the highlighted plan or upsell.', body: button({ label: 'Upgrade', variant: 'primary', size: 'sm' }) }),
-    card({ variant: 'live', title: `Live surface ${badge('Live', 'live')}`, sub: 'Green-tinted, for an active/confirmed state such as a connected agent.', body: pill('Connected', 'live') }),
+    card({ variant: 'live', title: 'Live surface', sub: 'Green-tinted, for an active/confirmed state such as a connected agent.', body: pill('Connected', 'live') }),
     card({ title: 'With icon chip', icon: 'shield', sub: 'A leading icon chip anchors the header for feature and settings cards.' }),
   )),
 };

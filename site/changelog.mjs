@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.128.0', date: '2026-10-20',
     changes: [
-      ['added', 'React Card now offers the vanilla card variants, icon chip, padding, setting rows, and whole-card links. Setting choices stay on one line, and accent cards keep their tint without a coloured edge in vanilla and React. See #429.', ['Card']],
+      ['added', 'React Card now offers the vanilla card variants, icon chip, padding, setting rows, and whole-card links. Setting choices stay on one line, and their buttons tighten below 360px so that they fit, and accent cards keep their tint without a coloured edge in vanilla and React. See #429.', ['Card']],
       ['changed', 'A whole-card link whose last child is its description no longer leaves the 20px gap under the description. Set the gap on the card if a design needs it.', ['Card']],
     ],
   },

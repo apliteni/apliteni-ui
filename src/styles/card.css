@@ -112,6 +112,15 @@
 .ui-card__row:has(> .ui-seg) > :first-child { flex: 1 1 10rem; min-width: 0; }
 .ui-card__row > .ui-seg { flex: none; flex-wrap: nowrap; }
 .ui-card__row > .ui-seg button { white-space: nowrap; }
+/* A three-word choice needs 195px and the narrowest settings row gives it 160, so below the
+   one-column step its pills give up inline padding as the viewport narrows: the full step at
+   360px and wider, four pixels at 333px and narrower. The slope was measured in the app
+   shell, where the row loses most of every pixel the viewport loses. */
+@media (max-width: 560px) {
+  .ui-card__row > .ui-seg:not(.ui-seg--sm):not(.ui-seg--underline) button {
+    padding-inline: clamp(var(--space-1), calc(var(--space-3) - (360px - 100vw) * 0.3), var(--space-3));
+  }
+}
 .ui-card__row + .ui-card__row { border-top: 1px solid var(--border); }
 .ui-card__row .lab { color: var(--strong); font-size: var(--text-md); font-weight: var(--weight-medium); }
 .ui-card__row .hint { color: var(--text); font-size: calc(var(--text-sm) + 0.5px); margin-top: 3px; }
