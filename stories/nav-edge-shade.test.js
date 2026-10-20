@@ -1,7 +1,7 @@
 /* Browser paint regression for both tab appearances and themes at 390px.
  * Run with NAV_EDGE_SHADE=1 and UI_PLAYWRIGHT (and optionally UI_CHROME).
  * Discovers tab rows from Navigation stories. Checks start, middle, end and fit.
- * Limits: Chromium, page ground, default accent. React shares this stylesheet;
+ * Limits: Chromium, the page ground and a plain card, default accent. React shares this stylesheet;
  * its mounted stories still need visual inspection. CI does not measure paint.
  */
 import test from 'node:test';
@@ -56,6 +56,36 @@ test('tab row shades mark only edges with hidden tabs', {
           }
         }
       }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test('on a card the reached edge shows the card, not the page ground', {
+  skip: process.env.NAV_EDGE_SHADE !== '1' && 'set NAV_EDGE_SHADE=1',
+}, async () => {
+  const { kitStylesheet, playwright } = await import('./lib/tap-zone.js');
+  const { decodePNG, pixelAt } = await import('./lib/table-edge-shade.js');
+  const pw = await playwright();
+  assert.ok(pw, 'NAV_EDGE_SHADE requires UI_PLAYWRIGHT');
+  const browser = await pw.chromium.launch({
+    executablePath: process.env.UI_CHROME || undefined, args: ['--no-sandbox'],
+  });
+  try {
+    const page = await browser.newPage({ viewport: { width: 390, height: 240 } });
+    for (const theme of ['light', 'dark']) for (const { name, html } of subjects) {
+      await page.setContent(`<html data-theme="${theme}"><style>${kitStylesheet()}</style><body><div class="ui-card">${html}</div></body></html>`);
+      const geo = await page.locator('.ui-nav--tabs').evaluate((row) => {
+        row.scrollLeft = 0;
+        const { x, y, height } = row.getBoundingClientRect();
+        return { x, y, height, max: row.scrollWidth - row.clientWidth };
+      });
+      assert.ok(geo.max > 0, `${name}: the row scrolls on a card`);
+      const shot = decodePNG(await page.screenshot());
+      const card = pixelAt(shot, Math.ceil(geo.x + 1), Math.round(geo.y) - 6);
+      const edge = pixelAt(shot, Math.ceil(geo.x + 1), Math.round(geo.y + geo.height / 2));
+      assert.deepEqual(edge, card, `${theme} ${name}: the left edge at the start is the card's ground`);
     }
   } finally {
     await browser.close();

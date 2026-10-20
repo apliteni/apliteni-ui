@@ -250,7 +250,7 @@ current section, not the page. When a page should take one:
 
 `navTabs()` lays its links out in one row and never wraps them. **When the links are wider than
 the column, the row scrolls inside itself and the page does not widen.** A breadcrumb trail does
-the opposite, and wraps. A shade marks each edge with more tabs beyond it.
+the opposite, and wraps. A shade marks each edge with more tabs beyond it, on the page or on a card.
 
 **The row stays aligned with the page gutter, and the active underline stays on the row rule.**
 Call `wireNav()` for vanilla rows. React rows update automatically when their labels, badges,

@@ -324,6 +324,7 @@
    so switching containment does not move the links. Unwired rows keep containment. */
 .ui-nav--tabs[data-nav-fit] { overflow: visible; }
 .ui-nav--tabs.is-pill { --ui-tabs-rule: 0px; gap: 6px; }
+.ui-card .ui-nav--tabs { --ui-tabs-ground: var(--surface); }
 :root[data-theme="light"] .ui-nav--tabs {
   --ui-tabs-edge: color-mix(in srgb, var(--shadow-ink) 13%, transparent);
 }
@@ -375,13 +376,18 @@
   background: var(--glow-purple); /* code-bg: inherit — translucent wash retains the opaque containing gap. */
 }
 
-/* Forced colours: the selected-tab marks are in the block above. */
+/* Forced colours: the selected-tab marks are in the block below. */
 @media (forced-colors: active) {
   /* Forced colours drop background images, so the row's rule comes back as a border.
-     The last pixel of the bottom padding pays for it and the row keeps its size. */
+     The last pixel of the bottom padding pays for it and the row keeps its size. The
+     border image leaves the ring room at both ends bare, so the rule ends on the gutter
+     as the background line does. */
   .ui-nav--tabs {
     padding-bottom: calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule));
     border-bottom: var(--ui-tabs-rule) solid;
+    border-image: linear-gradient(to right, transparent var(--ui-tabs-ring-room),
+      CanvasText var(--ui-tabs-ring-room) calc(100% - var(--ui-tabs-ring-room)),
+      transparent calc(100% - var(--ui-tabs-ring-room))) 0 0 1 0;
   }
 }
 

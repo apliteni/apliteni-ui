@@ -320,12 +320,27 @@ test('forced-colour selection marks cannot replace focus rings', () => {
 const FORCED = /forced-colors\s*:\s*active/;
 const INDICATOR = /^(outline|box-shadow)/;
 const PERMITTED_FORCED = {
+  '.ui-app .ui-app__rail .ui-nav__item:is(.is-active, .is-current):is(:hover, :focus-visible) > .ui-nav__label': {
+    why: 'the rail\'s floating name for a selected row on hover or focus. It is the rail\'s own '
+      + 'label, painted Canvas and CanvasText so it reads over the page. It carries no '
+      + 'outline or shadow and replaces no ring, which the row keeps. Neither block touches '
+      + 'a tab row or a scroll region.',
+    props: ['forced-color-adjust', 'background', 'color', 'border-color'],
+  },
+  '.ui-app.is-collapsed .ui-app__rail .ui-nav__item:is(.is-active, .is-current):is(:hover, :focus-visible) > .ui-nav__label': {
+    why: 'the rail\'s floating name for a selected row on hover or focus. It is the rail\'s own '
+      + 'label, painted Canvas and CanvasText so it reads over the page. It carries no '
+      + 'outline or shadow and replaces no ring, which the row keeps. Neither block touches '
+      + 'a tab row or a scroll region.',
+    props: ['forced-color-adjust', 'background', 'color', 'border-color'],
+  },
   '.ui-nav--tabs': {
     why: 'forced colours drop background images, so the row\'s rule comes back as a border '
-      + 'and the last pixel of the bottom padding pays for it. It answers no focus and '
+      + 'and the last pixel of the bottom padding pays for it, with a border image that leaves '
+      + 'the ring room bare at both ends. It answers no focus and '
       + 'belongs to no focused box: the row\'s own band is declared outside this mode and '
       + 'is a real outline the system repaints. #429',
-    props: ['padding-bottom', 'border-bottom'],
+    props: ['padding-bottom', 'border-bottom', 'border-image'],
   },
 };
 
@@ -342,10 +357,13 @@ function emulateForcedColors(css) {
   // And every OTHER block is one this file has triaged, carrying only what it was
   // triaged for. A new block fails here whatever it declares — which is the half the
   // indicator count on its own could not say.
-  // A selection mark is policed by checkForcedFocus, which allows it only on a selected,
-  // unfocused element, so the table lists the blocks that are neither.
+  // A selection mark with no :focus in its selector is on a selected element whether or
+  // not anything has focus. The table lists every other block, a selected-and-focused one
+  // included. checkForcedFocus reads only outline and box-shadow, so it does not police
+  // these blocks: a border on a selected focused tab would pass it.
   const selection = /\.is-(?:active|current|selected)|\[aria-(?:pressed|selected)="true"\]/;
-  const others = blocks.filter((rule) => !indicators.includes(rule) && !selection.test(rule.selector));
+  const others = blocks.filter((rule) => !indicators.includes(rule)
+    && !(selection.test(rule.selector) && !/:focus/.test(rule.selector)));
   const named = (rule) => rule.selector.replace(/\s+/g, ' ').trim();
   assert.deepEqual(
     others.map(named).sort(),
