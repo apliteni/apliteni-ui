@@ -13,6 +13,7 @@ import path from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { JSDOM, VirtualConsole } from 'jsdom';
+import { dropdownStop } from '../src/logic/dropdown.js';
 import { dropdown, wireDropdown, dropdownAvail, dropdownHeightFit, dropdownReveal } from '../src/components/dropdown.js';
 import { serve, playwright, openStory } from './lib/dropdown-contain.js';
 
@@ -80,7 +81,7 @@ test('the floor a capped panel keeps is one named number', () => {
 test('every panel caps its height at the smaller of what was asked and what is left', () => {
   const panel = css.split(/\.ui-dropdown__panel\s*\{/)[1]?.split('}')[0] ?? '';
   assert.match(
-    panel, /max-height:\s*min\(\s*var\(--ui-dropdown-cap,\s*var\(--ui-dropdown-max\)\)/,
+    panel, /max-height:\s*min\(\s*var\(--ui-dropdown-cap,\s*var\(--ui-dropdown-fit,\s*var\(--ui-dropdown-max\)\)\)/,
     `${SHEET}'s .ui-dropdown__panel no longer caps itself at min(cap, avail). Unset, a panel took `
     + 'its content\'s height until it ran off the screen — #489.',
   );
@@ -120,12 +121,12 @@ test('`.is-scroll` asks for the standard cap through the cap property, not throu
     + 'back past the viewport edge whenever the measured room is smaller than 300px.',
   );
   const rule = css.split(/\.ui-dropdown__panel\.is-scroll\s*\{/)[1]?.split('}')[0] ?? '';
-  assert.match(rule, /--ui-dropdown-cap:\s*var\(--ui-dropdown-max\)/);
+  assert.match(rule, /--ui-dropdown-cap:\s*var\(--ui-dropdown-fit,\s*var\(--ui-dropdown-max\)\)/);
 });
 
 test('the search list reads the same cap property, so a field above it does not widen the room', () => {
   const list = css.split(/\n\.ui-dropdown__list\s*\{/)[1]?.split('}')[0] ?? '';
-  assert.match(list, /max-height:\s*var\(--ui-dropdown-cap,\s*var\(--ui-dropdown-max,\s*300px\)\)/);
+  assert.match(list, /max-height:\s*var\(--ui-dropdown-cap,\s*var\(--ui-dropdown-fit,\s*var\(--ui-dropdown-max,\s*300px\)\)\)/);
   assert.match(list, /overscroll-behavior:\s*contain/);
 });
 
@@ -134,6 +135,28 @@ test('a search panel is a column, so the cap lands on the rows and not on the fi
   assert.match(rule, /display:\s*flex/);
   assert.match(rule, /flex-direction:\s*column/);
   assert.match(css, /\.ui-dropdown__panel--search\s*>\s*\.ui-dropdown__list\s*\{[^}]*flex:\s*1/);
+});
+
+test('the cap stops in the middle of a row, whatever the row height', () => {
+  for (const height of [38.25, 55.09375]) {
+    const rows = Array.from({ length: 30 }, (_, i) => ({ top: 6 + i * height, height }));
+    const stop = dropdownStop({ rows, below: 6, content: 6 + 30 * height + 6, ceiling: 300 });
+    const shown = (stop - 6 - 6) / height;
+    assert.ok(stop <= 300, `${height}px rows: the stop is ${stop}px, past the 300px ceiling`);
+    assert.ok(Math.abs((shown % 1) - 0.5) < 0.05, `${height}px rows: the stop leaves ${shown} rows, not a whole number and a half`);
+  }
+});
+
+test('a list that fits under the ceiling has nothing to cut', () => {
+  const rows = [{ top: 6, height: 38 }, { top: 44, height: 38 }];
+  assert.equal(dropdownStop({ rows, below: 6, content: 94, ceiling: 300 }), null);
+});
+
+test('both kits stop the cap at a half row before they size the panel', () => {
+  for (const [file, call] of [['src/components/dropdown.js', 'dropdownSnap(dd, panel)'], ['react/src/Dropdown.tsx', 'dropdownSnap(root.current, el)']]) {
+    const src = decomment(read(file));
+    assert.ok(src.includes(call), `${file} no longer calls ${call}, so its panel is cut wherever 300px falls.`);
+  }
 });
 
 /* -- The wiring, in JSDOM ----------------------------------------------------- */
@@ -225,7 +248,7 @@ test('a trigger too close to the edge for the floor writes no avail, rather than
 /* Mocked rectangles check the arithmetic and the wiring. Where the panel really
  * lands is the browser half's measurement. */
 
-/** A 540px-tall scrolling body from y=100 to y=640, with a 484px panel in it. */
+/** A 540px-tall scrolling body from y=100 to y=640, with a 400px panel in it. */
 function scrollingBody({ bottom, portal = false }) {
   const t = phone(
     `<div id="body" style="overflow-y:auto">${dropdown({ value: 'Account', variant: 'menu', items: TWELVE, portal })}</div>`,
@@ -234,28 +257,28 @@ function scrollingBody({ bottom, portal = false }) {
   const body = t.doc.getElementById('body');
   body.getBoundingClientRect = () => ({ top: 100, bottom: 640, left: 0, right: 390, width: 390, height: 540 });
   Object.defineProperty(body, 'clientHeight', { value: 540, configurable: true });
-  Object.defineProperty(t.panel, 'offsetHeight', { value: 484, configurable: true });
+  Object.defineProperty(t.panel, 'offsetHeight', { value: 400, configurable: true });
   return { ...t, body };
 }
 
 test('a scrolling body gives the panel the whole body less the trigger, not what is under it', () => {
   const { window, trigger, panel } = scrollingBody({ bottom: 600 });
   click(window, trigger);
-  assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), `${540 - 2 * 8 - 31 - 9}px`);
+  assert.equal(panel.style.getPropertyValue('--ui-dropdown-avail'), `${540 - 8 - 48 - 31 - 9}px`);
 });
 
 test('a panel that runs past the body is scrolled into view by the least distance', () => {
   const { window, trigger, body } = scrollingBody({ bottom: 600 });
   click(window, trigger);
-  // panel end = 600 + 9 + 484, plus the 8px inset, less the body's end at 640
-  assert.equal(body.scrollTop, 600 + 9 + 484 + 8 - 640);
+  // panel end = 600 + 9 + 400, plus the 48px the shadow needs, less the body's end at 640
+  assert.equal(body.scrollTop, 600 + 9 + 400 + 48 - 640);
 });
 
 test('an open panel in a scrolling body reserves the inset below itself, so the body can scroll to it', () => {
   const { window, trigger, body } = scrollingBody({ bottom: 600 });
   const dd = body.querySelector('.ui-dropdown');
   click(window, trigger);
-  assert.equal(dd.style.getPropertyValue('--ui-dropdown-reach'), `${9 + 484 + 8 - 1}px`);
+  assert.equal(dd.style.getPropertyValue('--ui-dropdown-reach'), `${9 + 400 + 48 - 1}px`);
   const spot = css.match(/\.ui-dropdown\[style\*="--ui-dropdown-reach"\]::after\s*\{([^}]*)\}/)?.[1] ?? '';
   assert.match(spot, /margin-top:\s*var\(--ui-dropdown-reach\)/, `${SHEET} no longer draws the spot that lets the body scroll the inset below an open panel.`);
   assert.match(spot, /position:\s*absolute/);
@@ -274,7 +297,7 @@ test('the reserved inset stays through the fade, so closing does not move the fi
   click(window, trigger);
   escape(window, trigger);
   assert.equal(dd.classList.contains('open'), false);
-  assert.equal(dd.style.getPropertyValue('--ui-dropdown-reach'), `${9 + 484 + 8 - 1}px`);
+  assert.equal(dd.style.getPropertyValue('--ui-dropdown-reach'), `${9 + 400 + 48 - 1}px`);
   assert.equal(panel.hasAttribute('data-dd-shut'), false, 'the panel is still laid out for its fade');
 });
 
@@ -292,7 +315,7 @@ test('a shut panel adds no scroll room: it is collapsed when wired and again onc
   assert.equal(dd.style.getPropertyValue('--ui-dropdown-reach'), '', 'and so does the room reserved below it');
   click(window, trigger);
   assert.equal(panel.hasAttribute('data-dd-shut'), false, 'opening again gives the box back');
-  assert.equal(dd.style.getPropertyValue('--ui-dropdown-reach'), `${9 + 484 + 8 - 1}px`);
+  assert.equal(dd.style.getPropertyValue('--ui-dropdown-reach'), `${9 + 400 + 48 - 1}px`);
 });
 
 test('a body scrolled into the room under the panel keeps that room until the reader scrolls out of it', async () => {
@@ -334,10 +357,13 @@ test('a trigger too close to the edge for the floor marks its panel unbounded, w
   }
 });
 
-test('a trigger with no scrolling body reserves nothing', () => {
+test('a trigger in a page reserves the end room too, and a portalled panel reserves nothing', () => {
   const plain = phone(dropdown({ value: 'Account', variant: 'menu', items: TWELVE }), { bottom: 600 });
   click(plain.window, plain.trigger);
-  assert.equal(plain.doc.querySelector('.ui-dropdown').style.getPropertyValue('--ui-dropdown-reach'), '');
+  assert.match(plain.doc.querySelector('.ui-dropdown').style.getPropertyValue('--ui-dropdown-reach'), /^\d+(\.\d+)?px$/);
+  const fixed = phone(dropdown({ value: 'Account', variant: 'menu', items: TWELVE, portal: true }), { bottom: 600 });
+  click(fixed.window, fixed.trigger);
+  assert.equal(fixed.doc.querySelector('.ui-dropdown').style.getPropertyValue('--ui-dropdown-reach'), '');
 });
 
 test('a panel the body already shows does not move it', () => {
@@ -527,7 +553,7 @@ test('the last row is reachable near the bottom edge, by the panel scroll at 300
   }
 });
 
-test('in a scrolling body the panel ends the 8px inset above the body\'s end with the trigger in view, and is instant under reduced motion', {
+test('in a scrolling body the panel ends 48px above the body\'s end with the trigger in view, and is instant under reduced motion', {
   skip: !RUN && 'set DROPDOWN_REACH=1',
 }, async () => {
   const pw = await playwright();
@@ -565,9 +591,9 @@ test('in a scrolling body the panel ends the 8px inset above the body\'s end wit
       // Reduced motion jumps: the body is at its final place on the first look, before any re-check.
       if (first) assert.equal(first.scrollTop, got.scrollTop, 'reduced motion: the body was still short of its final place on the first look');
       const label = reduced ? 'reduced motion' : 'motion';
-      assert.equal(got.panelHeight, 300, `${label}: the panel is at most 300px`);
+      assert.ok(got.panelHeight <= 300 && got.panelHeight > 250, `${label}: the panel is ${got.panelHeight}px, not between 250 and 300px`);
       const inset = got.bodyBottom - got.panelBottom;
-      assert.ok(inset >= 8 - 0.5 && inset <= 8 + 1, `${label}: the panel ends ${inset}px above the body's end, not 8px`);
+      assert.ok(inset >= 48 - 0.5 && inset <= 48 + 1, `${label}: the panel ends ${inset}px above the body's end, not 48px`);
       assert.ok(
         got.triggerTop >= got.bodyTop && got.triggerBottom <= got.bodyBottom,
         `${label}: the trigger left the body`,
@@ -663,5 +689,232 @@ test('a panel is never taller than 300px, near the end of a page too', {
   } finally {
     await browser.close();
     vanilla.proc.kill();
+  }
+});
+
+test('at the end of a page an open panel keeps one height while the reader wheels or presses End, in both kits', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_REACH=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const reactBuild = path.join(root, 'react/storybook-static');
+  assert.ok(existsSync(path.join(reactBuild, 'index.json')), `no Storybook build at ${reactBuild} — run: npm run build-storybook -w react.`);
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const vanilla = await serve(root, path.join(root, 'stories/lib/dropdown-reach.html'));
+  const react = await serve(reactBuild, path.join(root, 'stories/lib/dropdown-reach.html'));
+  try {
+    const all = JSON.parse(readFileSync(path.join(reactBuild, 'index.json'), 'utf8')).entries;
+    const story = Object.values(all).find((e) => e.id === 'react-dropdown--near-bottom-edge');
+    assert.ok(story, 'no built React story with the id react-dropdown--near-bottom-edge');
+    const cases = [];
+    for (const bottomGap of [36, 100]) {
+      cases.push({ label: `vanilla ${bottomGap}px above the end`, open: async (page) => {
+        await page.goto(`http://127.0.0.1:${vanilla.port}/__shot?bottomGap=${bottomGap}`, { waitUntil: 'load' });
+        await page.waitForFunction(() => window.__ready === true);
+        await page.locator('[data-dropdown-trigger]').click();
+      } });
+    }
+    // The story renders the dropdown already open, so there is no click to make.
+    cases.push({ label: 'react near the bottom edge', open: async (page) => {
+      const opened = await openStory(page, story, { port: react.port, theme: 'dark' });
+      assert.equal(opened.phase, 'finished');
+    } });
+    for (const c of cases) {
+      const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+      const page = await ctx.newPage();
+      await c.open(page);
+      await page.waitForTimeout(500);
+      const panel = page.locator('[data-dropdown-panel]');
+      const height = async () => (await panel.boundingBox()).height;
+      const first = await height();
+      assert.ok(first > 120 + 0.5, `${c.label}: the panel opened at ${first}px, which is the floor and not a case that can shrink`);
+      // The wheel over the page beside the panel, which is what a reader scrolling the page does.
+      const seen = [first];
+      for (let i = 0; i < 4; i += 1) {
+        await page.mouse.move(VIEWPORT.width - 2, 10);
+        await page.mouse.wheel(0, 40);
+        await page.waitForTimeout(250);
+        seen.push(await height());
+      }
+      assert.ok(await page.evaluate(() => window.scrollY) > 0, `${c.label}: the wheel did not scroll the page, so the case measures nothing`);
+      await page.press('html', 'End');
+      await page.waitForTimeout(400);
+      seen.push(await height());
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(300);
+      await page.evaluate(() => { document.activeElement?.blur(); });
+      await page.press('html', 'End');
+      await page.waitForTimeout(400);
+      seen.push(await height());
+      for (const h of seen) {
+        assert.ok(Math.abs(h - first) <= 0.5, `${c.label}: the open panel changed height while the page scrolled: ${seen.join(', ')}`);
+      }
+      await ctx.close();
+    }
+  } finally {
+    await browser.close();
+    vanilla.proc.kill();
+    react.proc.kill();
+  }
+});
+
+test('in a scrolling body the panel\'s shadow has faded to nothing visible where the body clips it, in light and dark', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_REACH=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const vanilla = await serve(root, path.join(root, 'stories/lib/dropdown-reach.html'));
+  try {
+    for (const theme of ['light', 'dark']) {
+      const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+      const page = await ctx.newPage();
+      await page.goto(`http://127.0.0.1:${vanilla.port}/__shot?body=1&theme=${theme}`, { waitUntil: 'load' });
+      await page.waitForFunction(() => window.__ready === true);
+      await page.locator('[data-dropdown-trigger]').click();
+      await page.waitForTimeout(600);
+      const at = await page.evaluate(() => {
+        const body = document.getElementById('body').getBoundingClientRect();
+        const box = document.querySelector('[data-dropdown-panel]').getBoundingClientRect();
+        return { x: Math.round(box.left + box.width / 2), panelBottom: Math.round(box.bottom), bodyBottom: Math.round(body.bottom) };
+      });
+      const png = (await page.screenshot()).toString('base64');
+      // The levels, out of 255, between the page ground and the pixel just inside the body's end,
+      // and between the ground and the pixel at the panel's own end as a proof the shadow is there.
+      const levels = await page.evaluate(async ({ b64, x, panelBottom, bodyBottom, height }) => {
+        const img = new Image();
+        img.src = `data:image/png;base64,${b64}`;
+        await img.decode();
+        const c = document.createElement('canvas');
+        c.width = img.width; c.height = img.height;
+        const g = c.getContext('2d');
+        g.drawImage(img, 0, 0);
+        const ground = g.getImageData(x, height - 4, 1, 1).data;
+        const diff = (y) => {
+          const p = g.getImageData(x, y, 1, 1).data;
+          return Math.max(...[0, 1, 2].map((i) => Math.abs(p[i] - ground[i])));
+        };
+        return { edge: diff(panelBottom + 1), end: diff(bodyBottom - 1) };
+      }, { b64: png, ...at, height: VIEWPORT.height });
+      assert.ok(levels.edge >= 4, `${theme}: only ${levels.edge} levels of shadow under the panel, so the case measures no shadow`);
+      assert.ok(levels.end <= 1, `${theme}: the shadow is still ${levels.end} levels strong where the body clips it`);
+      await ctx.close();
+    }
+  } finally {
+    await browser.close();
+    vanilla.proc.kill();
+  }
+});
+
+test('a capped panel ends in the middle of a row for every row height, in a page and in a Modal body', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_REACH=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const reactBuild = path.join(root, 'react/storybook-static');
+  assert.ok(existsSync(path.join(reactBuild, 'index.json')), `no Storybook build at ${reactBuild} — run: npm run build-storybook -w react.`);
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const vanilla = await serve(root, path.join(root, 'stories/lib/dropdown-reach.html'));
+  const react = await serve(reactBuild, path.join(root, 'stories/lib/dropdown-reach.html'));
+  // The rows whole inside the list's clip, and how much of the next one shows.
+  const look = () => {
+    const panel = document.querySelector('[data-dropdown-panel]');
+    const clip = panel.querySelector('.ui-dropdown__list') || panel;
+    const c = clip.getBoundingClientRect();
+    const rows = [...panel.querySelectorAll('[data-dd-item]')].map((r) => r.getBoundingClientRect());
+    const whole = rows.filter((r) => r.top >= c.top - 0.5 && r.bottom <= c.bottom + 0.5).length;
+    return { height: panel.getBoundingClientRect().height, whole, part: (c.bottom - rows[whole].top) / rows[whole].height };
+  };
+  const want = { plain: 7, desc: 4, search: 5 };
+  try {
+    const seen = [];
+    for (const rows of ['plain', 'desc', 'search']) {
+      for (const where of ['page', 'body']) {
+        const ctx = await browser.newContext({ viewport: { width: 390, height: 1400 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+        const page = await ctx.newPage();
+        const query = `${where === 'body' ? 'body=1&' : 'bottomGap=900&'}${rows === 'plain' ? 'rows=plain' : `rows=${rows}`}`;
+        await page.goto(`http://127.0.0.1:${vanilla.port}/__shot?${query}`, { waitUntil: 'load' });
+        await page.waitForFunction(() => window.__ready === true);
+        await page.locator('[data-dropdown-trigger]').click();
+        await page.waitForTimeout(700);
+        const got = await page.evaluate(`(${look.toString()})()`);
+        seen.push(`${rows} in a ${where}: ${got.whole} rows and ${got.part.toFixed(2)} of the next, ${got.height}px`);
+        assert.ok(got.height <= 300 + 0.5, `${rows} in a ${where}: the panel is ${got.height}px, past 300px`);
+        assert.equal(got.whole, want[rows], `${rows} in a ${where}: shows ${got.whole} whole rows, not ${want[rows]}`);
+        assert.ok(got.part > 0.4 && got.part < 0.6, `${rows} in a ${where}: the next row shows ${got.part.toFixed(2)} of itself, not about half`);
+        await ctx.close();
+      }
+    }
+    // React's own panel, from the story that holds thirty rows with the room to spare.
+    const all = JSON.parse(readFileSync(path.join(reactBuild, 'index.json'), 'utf8')).entries;
+    const story = Object.values(all).find((e) => e.id === 'react-dropdown--long-list');
+    assert.ok(story, 'no built React story with the id react-dropdown--long-list — react/src/Dropdown.stories.tsx may have moved it.');
+    const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+    const page = await ctx.newPage();
+    assert.equal((await openStory(page, story, { port: react.port, theme: 'dark' })).phase, 'finished');
+    await page.waitForTimeout(500);
+    const got = await page.evaluate(`(${look.toString()})()`);
+    seen.push(`react: ${got.whole} rows and ${got.part.toFixed(2)} of the next, ${got.height}px`);
+    assert.equal(got.whole, want.plain, `react: shows ${got.whole} whole rows, not ${want.plain}`);
+    assert.ok(got.part > 0.4 && got.part < 0.6, `react: the next row shows ${got.part.toFixed(2)} of itself, not about half`);
+    await ctx.close();
+    console.log(seen.join('\n'));
+  } finally {
+    await browser.close();
+    vanilla.proc.kill();
+    react.proc.kill();
+  }
+});
+
+test('closing a panel with Escape at the end of a page does not move the field, in both kits', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_REACH=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const reactBuild = path.join(root, 'react/storybook-static');
+  assert.ok(existsSync(path.join(reactBuild, 'index.json')), `no Storybook build at ${reactBuild} — run: npm run build-storybook -w react.`);
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const vanilla = await serve(root, path.join(root, 'stories/lib/dropdown-reach.html'));
+  const react = await serve(reactBuild, path.join(root, 'stories/lib/dropdown-reach.html'));
+  try {
+    const all = JSON.parse(readFileSync(path.join(reactBuild, 'index.json'), 'utf8')).entries;
+    const story = Object.values(all).find((e) => e.id === 'react-dropdown--near-bottom-edge');
+    assert.ok(story, 'no built React story with the id react-dropdown--near-bottom-edge');
+    for (const reduced of [false, true]) {
+      for (const kit of ['vanilla', 'react']) {
+        const ctx = await browser.newContext({
+          viewport: VIEWPORT, deviceScaleFactor: 1, reducedMotion: reduced ? 'reduce' : 'no-preference',
+        });
+        const page = await ctx.newPage();
+        if (kit === 'vanilla') {
+          await page.goto(`http://127.0.0.1:${vanilla.port}/__shot?bottomGap=36`, { waitUntil: 'load' });
+          await page.waitForFunction(() => window.__ready === true);
+          await page.locator('[data-dropdown-trigger]').click();
+        } else {
+          assert.equal((await openStory(page, story, { port: react.port, theme: 'dark' })).phase, 'finished');
+        }
+        await page.waitForTimeout(600);
+        await page.press('html', 'End');
+        await page.waitForTimeout(600);
+        const top = () => page.evaluate(() => document.querySelector('[data-dropdown-trigger]').getBoundingClientRect().top);
+        const before = await top();
+        assert.ok(await page.evaluate(() => window.scrollY) > 0, `${kit}: End did not scroll the page, so the case measures nothing`);
+        await page.press('html', 'Escape');
+        const seen = [];
+        for (let t = 0; t < 1200; t += 100) {
+          seen.push(await top());
+          await page.waitForTimeout(100);
+        }
+        assert.ok(await page.evaluate(() => !document.querySelector('.ui-dropdown').classList.contains('open')), `${kit}: Escape did not close the panel`);
+        for (const y of seen) {
+          assert.ok(Math.abs(y - before) <= 0.5, `${kit}${reduced ? ' (reduced motion)' : ''}: the field moved from ${before}px to ${y}px while the panel closed`);
+        }
+        await ctx.close();
+      }
+    }
+  } finally {
+    await browser.close();
+    vanilla.proc.kill();
+    react.proc.kill();
   }
 });

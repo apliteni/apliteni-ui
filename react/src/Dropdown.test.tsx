@@ -5,7 +5,7 @@
 // container's class list plus the shape read off each DOM. The one thing not
 // compared is `data-dropdown` on the container, which is deliberate — see the test
 // that asserts its absence, at the foot of the parity block.
-import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, within, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
@@ -1721,24 +1721,70 @@ it('scrolls a long panel into view inside a scrolling body and keeps the trigger
   const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
   Object.defineProperty(panel, 'offsetHeight', { value: 484 });
   await userEvent.setup().click(within(container).getByRole('button'));
-  expect(availOf(container)).toBe(`${540 - 16 - 31 - 9}px`);
-  expect(body.scrollTop).toBe(600 + 9 + 484 + 8 - 640);
+  // The body keeps 8px at the top and a 48px shade below, so the shadow fades before the body clips it.
+  expect(availOf(container)).toBe(`${540 - 8 - 48 - 31 - 9}px`);
+  // The shade asks for 501px, and the trigger stays: it may rise to the body's top edge and no higher.
+  expect(body.scrollTop).toBe(600 - 31 - 100);
   expect(panel.classList.contains('is-up')).toBe(false);
   // The body ends where the open panel ends, so the inset below it needs a spot to scroll to.
   const root = container.querySelector('.ui-dropdown') as HTMLElement;
-  expect(root.style.getPropertyValue('--ui-dropdown-reach')).toBe(`${9 + 484 + 8 - 1}px`);
+  expect(root.style.getPropertyValue('--ui-dropdown-reach')).toBe(`${9 + 484 + 48 - 1}px`);
 });
 
-it('reserves nothing below an open panel that has no scrolling body', () => {
+it('a trigger in a page reserves the end room for the open panel so closing moves nothing', () => {
   phone(600);
   const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
-  expect((container.querySelector('.ui-dropdown') as HTMLElement).style.getPropertyValue('--ui-dropdown-reach')).toBe('');
+  expect((container.querySelector('.ui-dropdown') as HTMLElement).style.getPropertyValue('--ui-dropdown-reach')).toBe(`${9 + 0 + 48 - 1}px`);
 });
 
 it('a trigger with no room left is left uncapped, not pinned to a nought-pixel sliver', () => {
   phone(844 - 5); // the gap alone already reaches the edge
   const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
   expect(availOf(container)).toBe('');
+});
+
+it('a panel opened with too little room keeps one height while the page scrolls, and a resize decides again', () => {
+  phone(844 - 5);
+  const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
+  const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
+  expect(availOf(container)).toBe('');
+  // The reader wheels the page and the trigger rises: more room, but the panel stays as it opened.
+  phone(300);
+  act(() => { window.dispatchEvent(new Event('scroll')); });
+  expect(availOf(container)).toBe('');
+  expect(panel.classList.contains('is-unbounded')).toBe(true);
+  act(() => { window.dispatchEvent(new Event('resize')); });
+  expect(availOf(container)).toBe(`${844 - 300 - 9 - 8}px`);
+  expect(panel.classList.contains('is-unbounded')).toBe(false);
+});
+
+it('a long list is cut at a whole row and a half, and a list that fits is left alone', () => {
+  // JSDOM lays nothing out, so the rectangles are staged: rows 40px tall, the list n rows long.
+  const sheet = document.createElement('style');
+  sheet.textContent = '.ui-dropdown__panel { --ui-dropdown-max: 300px; }';
+  document.head.append(sheet);
+  const open = (n: number) => {
+    vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([{}] as unknown as DOMRectList);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      const rows = Array.from(document.querySelectorAll('[data-dd-item]'));
+      const at = rows.indexOf(this) * 40;
+      const height = rows.includes(this) ? 40 : this.classList.contains('ui-dropdown__panel') ? Math.min(n * 40, 300) : 0;
+      return { top: at, bottom: at + height, left: 0, right: 100, width: 100, height, x: 0, y: at, toJSON: () => ({}) } as DOMRect;
+    });
+    Object.defineProperty(HTMLElement.prototype, 'scrollHeight', { configurable: true, get: () => n * 40 });
+    const items = Array.from({ length: n }, (_, i) => ({ label: `Row ${i + 1}` }));
+    const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={items} />);
+    return container.querySelector('.ui-dropdown__panel') as HTMLElement;
+  };
+  try {
+    // Seven rows and a half is 300px, so the cut is the last half row at or under the ceiling.
+    expect(open(30).style.getPropertyValue('--ui-dropdown-fit')).toBe('300px');
+    cleanup();
+    expect(open(5).style.getPropertyValue('--ui-dropdown-fit')).toBe('');
+  } finally {
+    sheet.remove();
+    delete (HTMLElement.prototype as { scrollHeight?: number }).scrollHeight;
+  }
 });
 
 it('a room too small for the floor even after spending the inset writes no avail (#641 review)', () => {

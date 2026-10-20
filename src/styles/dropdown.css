@@ -104,16 +104,24 @@
      the screen's edge sets it to 0.
      why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-edge: 8px;
+  /* What a panel that opens down inside a Modal or Drawer body keeps between its end
+     and the body's end. The drop shadow fades out over 43px in light and 15px in dark,
+     measured from pixels; the body clips whatever is left of it. 48px is the 8px
+     step above the light figure. why: docs/components.md#the-dropdown-panel */
+  --ui-dropdown-shade: 48px;
   /* The least height a capped panel keeps before it would rather spend the edge
      inset above than shrink further — three rows or so. Below it the panel
      still ends at or before the edge; it never spends room past the edge to
      reach this floor, because that room does not exist. #489
      why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-min: 120px;
-  /* The tallest a panel grows before it scrolls inside itself: about eight rows,
-     and a half row of the ninth shows that the list goes on. It is the figure the
+  /* The tallest a panel grows before it scrolls inside itself. It is the figure the
      reference systems settle on, 256 to 300px, and the one `scroll` and the search
-     list already used. A consumer asks for another with `scroll: <n>`.
+     list already used. The wiring stops the cap short of it, in the middle of a row
+     (--ui-dropdown-fit), so the last row is cut and the list is seen to go on. That
+     shows 7 whole rows and half of the eighth in a plain list, 4 and a half with a
+     description line, 5 and a half under a search field and 3 and a half with both.
+     A consumer asks for another cap with `scroll: <n>`.
      why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-max: 300px;
   /* Named for the same reason the offset is: a block pinned to an edge has to
@@ -172,7 +180,7 @@
      viewport less the edge inset at each end.
      why: docs/components.md#the-dropdown-panel */
   max-height: min(
-    var(--ui-dropdown-cap, var(--ui-dropdown-max)),
+    var(--ui-dropdown-cap, var(--ui-dropdown-fit, var(--ui-dropdown-max))),
     var(--ui-dropdown-avail, calc(100dvh - 2 * var(--ui-dropdown-edge)))
   );
   overflow-y: auto;
@@ -197,7 +205,7 @@
 .ui-dropdown__panel.is-end { left: auto; right: 0; }
 /* `.is-scroll` asks for the standard cap by name; the panel above caps every panel
    at the room the viewport left either way. #489 */
-.ui-dropdown__panel.is-scroll { --ui-dropdown-cap: var(--ui-dropdown-max); }
+.ui-dropdown__panel.is-scroll { --ui-dropdown-cap: var(--ui-dropdown-fit, var(--ui-dropdown-max)); }
 
 /* The wiring adds this where the room is below the floor: even spending the whole
    edge inset, there is no usable height. The panel keeps its cap — it is never
@@ -425,7 +433,7 @@
 
 /* The rows' own cap, read from the same property the panel reads: the `scroll`
    option lands on the list when there is a field above it. #489 */
-.ui-dropdown__list { max-height: var(--ui-dropdown-cap, var(--ui-dropdown-max, 300px)); overflow-y: auto; overscroll-behavior: contain; }
+.ui-dropdown__list { max-height: var(--ui-dropdown-cap, var(--ui-dropdown-fit, var(--ui-dropdown-max, 300px))); overflow-y: auto; overscroll-behavior: contain; }
 /* Rows are `role="option" tabindex="-1"`, so the LIST takes the keyboard stop and
    answered with the native outline. The band is drawn INWARD, on the list: an outset
    one 6px inside a --radius-lg corner leaves the panel, and the panel is not the box

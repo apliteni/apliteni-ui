@@ -260,6 +260,18 @@ export const BottomEdge: StoryObj<typeof Dropdown> = {
   ),
 };
 
+// Thirty rows and no `scroll`, with the room to spare: the panel stops at 300px, in the
+// middle of a row, so the cut row shows that the list goes on.
+// stories/dropdown-reach.test.js opens this story by id and counts the rows it shows.
+const THIRTY: DropdownEntry[] = Array.from({ length: 30 }, (_, i) => ({ label: `Row ${i + 1}`, value: String(i + 1) }));
+export const LongList: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <div style={{ minHeight: 400 }}>
+      <Dropdown items={THIRTY} ariaLabel="Account" triggerContent="Account" defaultOpen />
+    </div>
+  ),
+};
+
 // The floor's own case: a trigger with almost no room left, below even the
 // 120px floor once the whole edge inset is spent. The panel is left at its
 // content height instead, so the page grows and scrolls to reach every row.

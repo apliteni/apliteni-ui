@@ -1,4 +1,4 @@
-import { dropdownMatch, dropdownFiltering, dropdownAvail } from '../logic/dropdown.js';
+import { dropdownMatch, dropdownFiltering, dropdownAvail, dropdownStop } from '../logic/dropdown.js';
 export { dropdownMatch, dropdownFiltering, dropdownAvail } from '../logic/dropdown.js';
 // Dropdown — the kit's one popover-list primitive. A trigger opens a panel of
 // item rows; two flavours share the same panel and the same open/close JS:
@@ -319,6 +319,16 @@ function ddEdge(panel) {
   return Number.isFinite(declared) ? declared : DD_EDGE;
 }
 
+// The room a panel that opens down keeps between its end and the end of the Modal
+// or Drawer body that holds it, so its shadow fades before the body clips it. The
+// number is --ui-dropdown-shade in src/styles/dropdown.css.
+const DD_SHADE = 48;
+
+function ddShade(panel) {
+  const declared = parseFloat(ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-shade'));
+  return Number.isFinite(declared) ? declared : DD_SHADE;
+}
+
 // The least height a capped panel keeps, below which it would rather spend the
 // edge inset than shrink further. The number is --ui-dropdown-min in
 // src/styles/dropdown.css. #489
@@ -623,7 +633,8 @@ export function dropdownHeightFit(dd, panel) {
   // what is left under the trigger now.
   const box = ddScrollBox(dd, panel);
   if (box) {
-    const room = box.bottom - box.top - 2 * ddEdge(panel) - t.height - ddGap(panel);
+    const end = panel.classList.contains('is-up') ? ddEdge(panel) : ddShade(panel);
+    const room = box.bottom - box.top - ddEdge(panel) - end - t.height - ddGap(panel);
     if (room >= ddMin(panel)) return room;
   }
   return dropdownAvail({
@@ -681,7 +692,7 @@ export function dropdownReveal(dd, panel) {
  * at the distance written here, below the trigger. why: src/styles/dropdown.css */
 function ddReserveEnd(dd, panel) {
   if (!dd.style || panel.classList.contains('is-up')) return;
-  const next = `${ddGap(panel) + panel.offsetHeight + ddEdge(panel) - 1}px`;
+  const next = `${ddGap(panel) + panel.offsetHeight + ddShade(panel) - 1}px`;
   if (dd.style.getPropertyValue('--ui-dropdown-reach') !== next) dd.style.setProperty('--ui-dropdown-reach', next);
 }
 
@@ -761,7 +772,12 @@ function ddRevealOnce(dd, panel) {
   const trigger = dd?.querySelector?.('[data-dropdown-trigger]');
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !panel) return 0;
   const box = ddScrollBox(dd, panel);
-  if (!box) return 0;
+  if (!box) {
+    // A page is held the same way: the shut panel lifts 6px, which would end the page 6px
+    // sooner under a reader at its end.
+    if (!dd.__ddPanel && !ddInFilterRow(panel)) ddReserveEnd(dd, panel);
+    return 0;
+  }
   ddReserveEnd(dd, panel);
   const t = trigger.getBoundingClientRect();
   const edge = ddEdge(panel);
@@ -770,7 +786,8 @@ function ddRevealOnce(dd, panel) {
   const top = up ? t.top - ddGap(panel) - h : t.top;
   const bottom = up ? t.bottom : t.bottom + ddGap(panel) + h;
   let by = 0;
-  if (bottom + edge > box.bottom) by = Math.min(bottom + edge - box.bottom, t.top - box.top);
+  const end = up ? edge : ddShade(panel);
+  if (bottom + end > box.bottom) by = Math.min(bottom + end - box.bottom, t.top - box.top);
   else if (top - edge < box.top) by = Math.max(top - edge - box.top, t.bottom - box.bottom);
   by = Math.round(by);
   if (!by) return 0;
@@ -780,10 +797,64 @@ function ddRevealOnce(dd, panel) {
   return by;
 }
 
+/**
+ * Stop a panel's default cap where it cuts a row through the middle. A cap that falls
+ * between two rows, or in a row's padding, shows a complete last label and the list
+ * looks whole; a half row says it goes on. The rows are measured as they are drawn,
+ * so every row height the kit has, with a description or without and under a search
+ * field or not, stops at its own half row. A cap a consumer asked for (`scroll: <n>`)
+ * is theirs, and a panel that fits under the ceiling has nothing to cut. Call it
+ * with the panel laid out and before it is sized. why: docs/components.md#the-dropdown-panel
+ */
+export function dropdownSnap(dd, panel) {
+  if (!panel?.style) return;
+  const view = ddViewOf(panel);
+  const set = (v) => {
+    if (v == null) panel.style.removeProperty('--ui-dropdown-fit');
+    else panel.style.setProperty('--ui-dropdown-fit', `${v}px`);
+  };
+  set(null);
+  const rows = Array.from(panel.querySelectorAll('[data-dd-item]')).filter((el) => el.getClientRects().length);
+  const ceiling = parseFloat(view.getComputedStyle(panel).getPropertyValue('--ui-dropdown-max'));
+  if (!rows.length || !Number.isFinite(ceiling)) return;
+  if (panel.style.getPropertyValue('--ui-dropdown-cap')) return;
+  let clip = panel;
+  for (let el = rows[0].parentElement; el && el !== panel; el = el.parentElement) {
+    const overflow = view.getComputedStyle(el).overflowY;
+    if (overflow === 'auto' || overflow === 'scroll') { clip = el; break; }
+  }
+  const box = panel.getBoundingClientRect();
+  const clipBox = clip.getBoundingClientRect();
+  if (!(box.height > 0)) return;
+  let scrolled = 0;
+  for (let el = rows[0].parentElement; el; el = el.parentElement) {
+    scrolled += el.scrollTop;
+    if (el === panel) break;
+  }
+  const edge = clip === panel ? panel.offsetHeight - panel.clientHeight - panel.clientTop : box.bottom - clipBox.bottom;
+  const lead = clip === panel ? panel.clientTop : clipBox.top - box.top;
+  const stop = dropdownStop({
+    rows: rows.map((el) => {
+      const r = el.getBoundingClientRect();
+      return { top: r.top - box.top + scrolled, height: r.height };
+    }),
+    below: edge,
+    content: lead + clip.scrollHeight + edge,
+    ceiling,
+  });
+  set(stop);
+}
+
 function ddSizeHeight(dd, panel) {
   if (!panel?.style) return;
-  const avail = dropdownHeightFit(dd, panel);
+  let avail = dropdownHeightFit(dd, panel);
   if (avail == null) return;
+  /* Decided at the first look and kept: a panel that opened where the room was below the
+   * floor holds its cap while the page scrolls under it, instead of shrinking to the
+   * room the scroll has just made. A resize, or the next open, decides again.
+   * why: docs/components.md#the-dropdown-panel */
+  if (!Number.isFinite(avail)) dd.__ddHold = true;
+  else if (dd.__ddHold) avail = Infinity;
   if (dd.style?.getPropertyValue('--ui-dropdown-reach')) ddReserveEnd(dd, panel);
   // Infinity means the floor could not be met even by spending the whole inset:
   // the property is removed rather than written, so the sheet's own fallback — the
@@ -1096,6 +1167,8 @@ function openDropdown(dd, focusIdx) {
        is null inside a filter row, whose own row already bounds its panels.
        why: docs/components.md#a-filter-row-holds-its-panels */
     else { ddFitFilterPanel(dd, panel); ddWatchRow(dd, panel); ddFitViewport(dd, panel); }
+    dd.__ddHold = false;
+    dropdownSnap(dd, panel);
     ddSizeHeight(dd, panel);
   }
   // The body was scrolled to show the panel: a row taking focus must not scroll it
@@ -1197,6 +1270,7 @@ function ddListen(doc) {
      cannot reach. React's half has always answered both; this is that answer.
      why: docs/components.md#the-dropdown-panel */
   view.addEventListener('scroll', follow, true);
+  view.addEventListener('resize', () => { for (const dd of ddLive()) dd.__ddHold = false; });
   view.addEventListener('resize', reposition);
   view.addEventListener('resize', refit);
   view.addEventListener('resize', refitInPlace);
@@ -1279,7 +1353,7 @@ export function wireDropdown(root = document) {
       ddFitFilterPanel(dd, panel);
       ddWatchRow(dd, panel);
     }
-    if (panel && dd.classList.contains('open')) ddSizeHeight(dd, panel);
+    if (panel && dd.classList.contains('open')) { dropdownSnap(dd, panel); ddSizeHeight(dd, panel); }
     else if (panel) dropdownRest(dd, panel, false, 0);
 
     trigger.addEventListener('click', (e) => {

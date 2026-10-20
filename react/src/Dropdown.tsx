@@ -5,7 +5,7 @@ import {
 } from 'react';
 import {
   icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs, dropdownViewportFit,
-  dropdownHeightFit, dropdownReveal, dropdownRest, filterPanelRow,
+  dropdownHeightFit, dropdownReveal, dropdownRest, dropdownSnap, filterPanelRow,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 import { Avatar } from './primitives/Avatar';
@@ -498,9 +498,14 @@ export function Dropdown({
     if (!open) return;
     const el = panel.current;
     if (!el) return;
+    // Decided at the first look and kept while the page scrolls under the panel; a resize
+    // decides again. why: ddSizeHeight(), src/components/dropdown.js
+    let hold = false;
     const size = () => {
-      const avail = dropdownHeightFit(root.current, el);
+      let avail = dropdownHeightFit(root.current, el);
       if (avail == null) return;
+      if (!Number.isFinite(avail)) hold = true;
+      else if (hold) avail = Infinity;
       // Infinity: the floor could not be met even by spending the whole inset, so
       // the property is removed rather than written, and the sheet's own fallback
       // takes over. why: dropdownAvail(), src/logic/dropdown.js
@@ -510,15 +515,17 @@ export function Dropdown({
       // rows past the fold. why: src/styles/dropdown.css
       el.classList.toggle('is-unbounded', !Number.isFinite(avail));
     };
+    dropdownSnap(root.current, el);
     size();
     // The scrolling body the panel sits in is moved to show it; the focus effect below must not undo that.
     revealed.current = dropdownReveal(root.current, el) !== 0;
     const view = el.ownerDocument?.defaultView ?? window;
     view.addEventListener('scroll', size, true);
-    view.addEventListener('resize', size);
+    const resize = () => { hold = false; size(); };
+    view.addEventListener('resize', resize);
     return () => {
       view.removeEventListener('scroll', size, true);
-      view.removeEventListener('resize', size);
+      view.removeEventListener('resize', resize);
     };
   }, [open, direction]);
 

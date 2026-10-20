@@ -18,7 +18,13 @@ document.documentElement.dataset.theme = params.get('theme') || 'dark';
 const portal = params.get('portal') === '1';
 // Distance from the trigger's own bottom edge to the viewport's bottom edge.
 const bottomGap = Number(params.get('bottomGap') || '300');
-const items = Array.from({ length: 12 }, (_, i) => ({ label: `Row ${i + 1}` }));
+// `rows=desc` gives every row a description line and `rows=search` puts a search field over
+// the list: the two other row heights the kit has. They are thirty rows long, so each is capped.
+const rows = params.get('rows');
+const items = Array.from({ length: rows ? 30 : 12 }, (_, i) => ({
+  label: `Row ${i + 1}`,
+  ...(rows === 'desc' ? { description: 'A short line of detail' } : {}),
+}));
 
 // `body=1` puts the dropdown in a scrolling body the way a Modal or Drawer holds it:
 // thirty rows, a body from 60px under the top to 60px above the bottom, and the
@@ -31,7 +37,7 @@ if (inBody) {
   const scroller = document.createElement('div');
   scroller.id = 'body';
   scroller.style.cssText = 'position:fixed;inset:60px 0;overflow-y:auto;padding:16px';
-  host.innerHTML = dropdown({ value: 'Account', variant: 'menu', items: items30, align: 'start' });
+  host.innerHTML = dropdown({ value: 'Account', variant: 'menu', items: rows ? items : items30, align: 'start', search: rows === 'search' });
   spacer.style.height = '500px';
   const tail = document.createElement('div');
   tail.style.height = '100px';
@@ -39,7 +45,7 @@ if (inBody) {
   document.body.appendChild(scroller);
 } else {
   document.body.appendChild(spacer);
-  host.innerHTML = dropdown({ value: 'Account', variant: 'menu', items, portal, align: 'start' });
+  host.innerHTML = dropdown({ value: 'Account', variant: 'menu', items, portal, align: 'start', search: rows === 'search' });
   document.body.appendChild(host);
 }
 wireDropdown(document.body);
