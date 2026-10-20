@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { FileDrop, type FileDropFile } from './FileDrop';
 import { Card } from './primitives/Card';
+import { EmptyState } from './EmptyState';
 import { Checkbox } from './Checkbox';
 
 // The card is in each render rather than in a decorator, as #568 put the other
@@ -95,4 +96,14 @@ export const Area: StoryObj = {
 
 export const AreaDragging: StoryObj = {
   render: () => <Card><FileDrop title="Add your first invoices" note="PDF, PNG or JPEG." dragging /></Card>,
+};
+
+/** The layer for a page that takes a file anywhere: the empty page's area, enlarged over the content. A page mounts it only while a file is over the window. */
+export const PageDragging: StoryObj = {
+  render: () => <>
+    <Card><Received /></Card>
+    <div className="ui-drop ui-drop--area ui-drop--page is-dragging" aria-hidden="true">
+      <EmptyState icon="upload" title="Drop files to upload" sub="PDF, PNG or JPEG." />
+    </div>
+  </>,
 };

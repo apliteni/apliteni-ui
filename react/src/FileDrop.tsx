@@ -30,7 +30,7 @@ export type FileDropProps = {
    *  the note and the button. The block stands in for the row and `children`, and the page
    *  leaves the area when the first file arrives, so it never shows a file in hand. */
   title?: string;
-  /** Lets the picker take several files and reports them together to `onFiles`. */
+  /** Lets the picker take several files. */
   multiple?: boolean;
   /** Filters the system picker only; the consumer still validates the file. */
   accept?: string;
@@ -44,8 +44,9 @@ export type FileDropProps = {
   /** Drives the target from a parent that owns the drag region. */
   dragging?: boolean;
   disabled?: boolean;
+  /** The first file chosen or dropped. */
   onFile?: (file: File) => void;
-  /** Every file chosen or dropped, when `multiple`. Without `multiple`, `onFile` takes the first. */
+  /** Every file chosen or dropped, together. A consumer may pass both props. */
   onFiles?: (files: File[]) => void;
   onRemove?: () => void;
   onRetry?: () => void;
@@ -96,7 +97,8 @@ export function FileDrop({
 
   const take = (chosen: File[]) => {
     if (!chosen.length || disabled) return;
-    if (multiple) onFiles?.(chosen); else onFile?.(chosen[0]);
+    onFile?.(chosen[0]);
+    onFiles?.(chosen);
   };
   const pick = () => { if (!disabled) input.current?.click(); };
   // Hidden rather than laid over the button: a one-row control has no field

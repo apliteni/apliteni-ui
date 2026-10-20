@@ -9,7 +9,7 @@ export const RELEASES = [
     v: '0.127.0', date: '2026-10-20',
     changes: [
       ['added', 'The React invoice showcase demonstrates upload, review, editing and recovery with sample data. Files and edits stay in the browser tab. Refs #459.'],
-      ['added', 'React `FileDrop` takes `title` to show a dashed drop area for an empty page. The kit also has `.ui-drop--page`, a layer over the whole page for a file drag, with an opaque card so no page text shows across its line. The Upload button stays the keyboard path in both. Refs #458.', ['FileDrop']],
+      ['added', 'React `FileDrop` takes `title` to show a dashed drop area for an empty page. The kit also has `.ui-drop--page`, which enlarges that area into a layer over the whole page for a file drag. Its ground is opaque, so no page text shows across its words. It starts below the topbar. The Upload button stays the keyboard path in both. Refs #458.', ['FileDrop']],
       ['added', '`.ui-card__title--muted` ranks a supporting card\'s title below its neighbour. It is a new use of muted ink, listed in the text ink rules. Refs #458.', ['Card']],
       ['changed', 'The invoice showcase no longer offers Undo after Save. Save shows the Toast "Saved" and the form keeps Save and Discard. Refs #458.'],
       ['changed', 'The story CSS gate in the React workspace now reads every stylesheet in the showcases folder, also when its own module imports it. Refs #458.'],

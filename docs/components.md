@@ -919,17 +919,19 @@ itself as a target the pointer can aim at. When a page uses a row, a region or a
 
 React `FileDrop` takes `title` to become the empty page's drop. It then draws a dashed box around
 a first-run block with the title, the accepted types and the Upload button. **The button is the
-keyboard path.** A click on the box opens the picker too. With `multiple`, a file dropped anywhere
-in the box reaches `onFiles`. A file over the box turns its edge to the accent. A disabled area
-accepts nothing.
+keyboard path.** A click on the box opens the picker too. A file dropped anywhere in the box
+reaches `onFiles` with every file and `onFile` with the first; pass either or both, and add
+`multiple` to let the picker take several. A file over the box turns its edge to the accent. A
+disabled area accepts nothing.
 
-`.ui-drop--page` is the kit's layer for a page that takes a file anywhere. It is a fixed layer in
-the page ground at 90%, with an opaque `.ui-card.ui-card--fit` in the centre that holds an
-`EmptyState` with the upload glyph and one line. **The card hides the page under it, so no page
-text reads across the glyph or the line.** The layer takes no pointer events, so the page keeps
-working under it. **Mount it only while a file is dragged over the page.** It has no fade and no
-rise, so reduced motion needs no second path. The page owns the drag logic, and its own Upload
-button stays the keyboard path. React ships no component for the layer.
+`.ui-drop--page` is the kit's layer for a page that takes a file anywhere. Put it on the area's own
+markup, `.ui-drop.ui-drop--area.is-dragging`, and it becomes that area made large: a fixed box
+inset from the window and below the topbar, with the same dashed accent edge and radius, holding an `EmptyState` with
+the upload glyph and the first-run words. **Its ground is opaque, so no page text reads across the
+words.** The layer takes no pointer events, so the page keeps working under it. **Mount it only
+while a file is dragged over the page.** It has no fade and no rise, so reduced motion needs no
+second path. The page owns the drag logic, and its own Upload button stays the keyboard path.
+React ships no component for the layer.
 
 ### React Button links and leading artwork
 

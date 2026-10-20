@@ -103,14 +103,14 @@ describe('invoice flow prototype', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getAllByText('Uploading')).toHaveLength(2);
   });
-  /* A file dragged over the list dims the page under a card and a drop anywhere adds it. The events are
+  /* A file dragged over the list covers the content with the drop area and a drop anywhere adds it. The events are
    * dispatched on the window, as the browser sends them for a file from outside the page.
    * Limit: jsdom lays nothing out, so that the layer covers the page and that no row reads
-   * across the card are measured in a browser. The drag itself is simulated, not a real operating-system drag. */
-  const windowDrag = (type: string, files: File[] = [], types = ['Files']) => {
+   * across the words are measured in a browser. The drag itself is simulated, not a real operating-system drag. */
+  const windowDrag = (type: string, files: File[] = [], types = ['Files'], relatedTarget: EventTarget | null = null) => {
     const event = new Event(type, { bubbles: true, cancelable: true });
     Object.defineProperty(event, 'dataTransfer', { value: { types, files } });
-    Object.defineProperty(event, 'relatedTarget', { value: null });
+    Object.defineProperty(event, 'relatedTarget', { value: relatedTarget });
     act(() => { window.dispatchEvent(event); });
     return event;
   };
@@ -134,19 +134,21 @@ describe('invoice flow prototype', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('No files were added');
     expect(screen.queryByRole('link', { name: 'notes.txt' })).not.toBeInTheDocument();
   });
-  it('holds the message on an opaque card, so no row of a long list reads across it', () => {
-    /* D1 of the #459 designer review: at the page ground's 90% the rows behind the layer still
-     * showed at 1.2:1 and crossed the glyph and the line. The card is the kit's own and takes
-     * the surface in full, so the message sits on paint whatever the list behind it holds. */
+  it('draws the empty page\'s drop area, enlarged, with an opaque ground so no row of a long list reads across it', () => {
+    /* #458: Artur chose the empty area's dashed accent edge for the whole-page drop. The layer is that
+     * area's own markup, so its edge, radius, glyph and words are the kit's. Its ground is the page
+     * ground in full: at 90% the rows behind it still showed at 1.2:1 and crossed the glyph. */
     const { container } = render(<InvoiceFlow initialState="table" />);
     windowDrag('dragenter');
-    const card = container.querySelector('.ui-drop--page > .ui-card')!;
-    expect(card.querySelector('.ui-empty__icon svg')).not.toBeNull();
-    expect(card.querySelector('.ui-empty__title')).toHaveTextContent('Drop files to upload');
-    // One glyph and one line: no button, no second line.
-    expect(card.querySelector('.ui-empty__sub, .ui-empty__actions')).toBeNull();
-    const rule = /\.ui-card\s*\{([^}]*)\}/.exec(readFileSync(path.join(process.cwd(), '../src/styles/card.css'), 'utf8'))?.[1] ?? '';
-    expect(rule).toMatch(/background:\s*var\(--surface\)\s*;/);
+    const layer = container.querySelector('.ui-drop--page')!;
+    expect(layer).toHaveClass('ui-drop', 'ui-drop--area', 'is-dragging');
+    expect(layer.querySelector('.ui-empty__icon svg')).not.toBeNull();
+    expect(layer.querySelector('.ui-empty__title')).toHaveTextContent('Drop files to upload');
+    expect(layer.querySelector('.ui-empty__sub')).toHaveTextContent('PDF, PNG or JPEG.');
+    // Words only: the layer takes no pointer, so a button in it could not be pressed.
+    expect(layer.querySelector('button, .ui-empty__actions, .ui-card')).toBeNull();
+    const rule = /\.ui-drop--page\s*\{([^}]*)\}/.exec(readFileSync(path.join(process.cwd(), '../src/styles/file-drop.css'), 'utf8'))?.[1] ?? '';
+    expect(rule).toMatch(/background:\s*var\(--bg\)\s*;/);
   });
   it('shows no layer for text or a link dragged over the page, and none on a record', async () => {
     const user = userEvent.setup();
@@ -157,6 +159,65 @@ describe('invoice flow prototype', () => {
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
     windowDrag('dragenter');
     expect(container.querySelector('.ui-drop--page')).toBeNull();
+  });
+  it('cancels a file dragover and drop so the browser offers the drop, and cancels no text or link drag', () => {
+    /* Without preventDefault() on dragover the browser shows a no-drop cursor and, on a drop, opens the
+     * file in the tab. A text selection and a link carry no file, so the page leaves them alone. */
+    render(<InvoiceFlow initialState="table" />);
+    for (const type of ['dragenter', 'dragover']) {
+      expect(windowDrag(type).defaultPrevented, `a file ${type} is canceled`).toBe(true);
+      expect(windowDrag(type, [], ['text/plain']).defaultPrevented, `a text ${type} is not`).toBe(false);
+      expect(windowDrag(type, [], ['text/uri-list']).defaultPrevented, `a link ${type} is not`).toBe(false);
+    }
+    expect(windowDrag('drop', [new File(['a'], 'one.pdf')]).defaultPrevented).toBe(true);
+    expect(windowDrag('drop', [], ['text/plain']).defaultPrevented).toBe(false);
+    expect(windowDrag('drop', [], ['text/uri-list']).defaultPrevented).toBe(false);
+  });
+  it('keeps the layer open while the drag moves between page elements and ends it when the drag leaves the window', () => {
+    /* Crossing from one element to the next sends a dragleave whose relatedTarget is the element
+     * entered. Only a dragleave with no target means the drag left the window. */
+    const { container } = render(<InvoiceFlow initialState="table" />);
+    const layer = () => container.querySelector('.ui-drop--page');
+    windowDrag('dragenter');
+    windowDrag('dragleave', [], ['Files'], container.querySelector('table')!);
+    expect(layer()).not.toBeNull();
+    windowDrag('dragenter', [], ['Files'], container.querySelector('table'));
+    windowDrag('dragleave', [], ['Files'], document.body);
+    expect(layer()).not.toBeNull();
+    windowDrag('dragleave');
+    expect(layer()).toBeNull();
+  });
+  it('removes every window listener when the list gives way to a record and when the showcase unmounts', async () => {
+    const user = userEvent.setup();
+    const added = vi.spyOn(window, 'addEventListener');
+    const removed = vi.spyOn(window, 'removeEventListener');
+    const DRAG = ['dragenter', 'dragover', 'dragleave', 'drop', 'dragend'];
+    // Live listeners per type: every add not yet matched by a remove of the same handler.
+    const live = (type: string) => {
+      const open = added.mock.calls.filter(([t]) => t === type).map(([, fn]) => fn);
+      for (const [t, fn] of removed.mock.calls) {
+        if (t !== type) continue;
+        const at = open.indexOf(fn);
+        if (at >= 0) open.splice(at, 1);
+      }
+      return open.length;
+    };
+    const base = Object.fromEntries([...DRAG, 'keydown'].map(type => [type, live(type)]));
+    const { unmount } = render(<InvoiceFlow initialState="table" />);
+    for (const type of DRAG) expect(live(type), `${type} on the list`).toBe(base[type] + 1);
+    const listKeydown = live('keydown');
+    expect(listKeydown).toBeGreaterThan(base.keydown);
+    await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
+    for (const type of DRAG) expect(live(type), `${type} on a record`).toBe(base[type]);
+    expect(live('keydown'), 'the Escape listener on a record').toBe(listKeydown - 1);
+    expect(windowDrag('dragover').defaultPrevented, 'a record cancels no file drag').toBe(false);
+    await user.click(screen.getByRole('link', { name: 'Back to Invoices' }));
+    for (const type of DRAG) expect(live(type), `${type} on the list again`).toBe(base[type] + 1);
+    unmount();
+    for (const type of [...DRAG, 'keydown']) expect(live(type), `${type} after unmount`).toBe(base[type]);
+    expect(windowDrag('dragover').defaultPrevented, 'an unmounted showcase cancels no file drag').toBe(false);
+    added.mockRestore();
+    removed.mockRestore();
   });
   it('ends the layer when the pointer leaves the window, on Escape and when the drag ends', () => {
     const { container } = render(<InvoiceFlow initialState="table" />);

@@ -89,20 +89,17 @@
 .ui-drop--area.is-dragging { border-color: var(--accent); }
 @media (max-width: 560px) { .ui-drop--area { padding: var(--space-3); } }
 
-/* The whole page as a target, drawn only while a file is dragged over the page.
-   The layer dims the page under it and takes no pointer events, so the drop lands on
-   what is under it. The message sits on a card, which is opaque: a longer list behind
-   the layer never reads across the glyph or the line. The ground at 90% leaves the
-   page dimly in view around the card, as the products this follows do. */
+/* The whole page as a target, drawn only while a file is dragged over the page. It is the
+   empty page's drop area made large: the same dashed accent edge, radius and first-run words,
+   laid over the page content below the topbar. Its ground is opaque, so no row of a long list reads across
+   the words. The layer takes no pointer events, so the drop lands on what is under it. */
 .ui-drop--page {
   position: fixed;
-  inset: 0;
+  inset: calc(var(--ui-app-band, 0px) + var(--space-4)) var(--space-4) var(--space-4);
   z-index: var(--z-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-4);
   pointer-events: none;
-  background: color-mix(in srgb, var(--bg) 90%, transparent); /* code-bg: inherit — the layer holds no focus target and takes no pointer. */
+  background: var(--bg); /* code-bg: inherit — the layer holds no focus target and takes no pointer. */
 }
-.ui-drop--page .ui-empty { padding: 0; }

@@ -127,11 +127,10 @@ const GATED = [
   { file: '../src/styles/badge.css', selector: '.ui-pill--live', on: 'var(--bg)' },
   { file: '../src/styles/badge.css', selector: '.ui-badge--live', on: 'var(--bg)' },
   { file: '../src/styles/nav.css', selector: '.ui-nav__badge.is-live', on: 'var(--bg)' },
-  // Both menus paint the floating surface.
-  // The sunken surface would understate the contrast needed in dark mode.
-  // Read the ground the panel actually paints.
-  { file: '../src/styles/dropdown.css', selector: '.ui-dropdown__badge.is-live', on: 'var(--bg-elevated)' },
-  { file: '../src/styles/topbar.css', selector: '.vbadge.live', on: 'var(--bg-elevated)' },
+  // both menus draw their panel on --surface-2, which is the harsher of the two
+  // grounds a badge inside them can land on.
+  { file: '../src/styles/dropdown.css', selector: '.ui-dropdown__badge.is-live', on: 'var(--surface-2)' },
+  { file: '../src/styles/topbar.css', selector: '.vbadge.live', on: 'var(--surface-2)' },
   { file: '../site/changelog.html', selector: '.tag--added', on: 'var(--bg)' },
 
   /* info */

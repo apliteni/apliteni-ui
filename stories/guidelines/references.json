@@ -520,7 +520,7 @@
         "pattern": "stroke-width: 2.1;"
       },
       {
-        "ref": "stories/signal-contrast.test.js:591",
+        "ref": "stories/signal-contrast.test.js:590",
         "pattern": "const barFor = (px) =>"
       }
     ]
@@ -905,7 +905,7 @@
         "pattern": ".ui-drop__row {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:141",
+        "ref": "react/src/FileDrop.tsx:143",
         "pattern": "className=\"ui-drop__row\""
       }
     ],
@@ -915,7 +915,7 @@
         "pattern": ".ui-drop__target {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:189",
+        "ref": "react/src/FileDrop.tsx:191",
         "pattern": "className=\"ui-drop__target\""
       }
     ],
@@ -925,7 +925,7 @@
         "pattern": ".ui-drop__file {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:177",
+        "ref": "react/src/FileDrop.tsx:179",
         "pattern": "role=\"progressbar\""
       }
     ],
@@ -935,19 +935,19 @@
         "pattern": ".ui-drop__error"
       },
       {
-        "ref": "react/src/FileDrop.tsx:151",
+        "ref": "react/src/FileDrop.tsx:152",
         "pattern": "status === 'error' && onRetry"
       }
     ],
     "button-path": [
       {
-        "ref": "react/src/FileDrop.tsx:101",
+        "ref": "react/src/FileDrop.tsx:103",
         "pattern": "input.current?.click()"
       }
     ],
     "limits-once": [
       {
-        "ref": "react/src/FileDrop.tsx:185",
+        "ref": "react/src/FileDrop.tsx:187",
         "pattern": "className=\"ui-drop__note\""
       }
     ],
@@ -957,7 +957,7 @@
         "pattern": ".ui-drop > * + .ui-drop__row"
       },
       {
-        "ref": "react/src/FileDrop.tsx:140",
+        "ref": "react/src/FileDrop.tsx:142",
         "pattern": "{children}"
       }
     ]

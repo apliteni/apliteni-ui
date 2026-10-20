@@ -326,10 +326,10 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
         {invoices.length ? <>
           <input ref={input} className="ui-sr" tabIndex={-1} type="file" multiple accept=".pdf,.png,.jpg,.jpeg" aria-label="Select invoices" onChange={event => { addFiles(Array.from(event.target.files ?? [])); event.target.value = ''; }} />
           <div className="ui-drop"><div className="ui-drop__row">{picker}<p className="ui-drop__note">PDF, PNG or JPEG.</p></div></div>
-          {/* A file dragged anywhere over the list dims the page under a card holding the message.
-              The card is opaque, so no row reads across the glyph or the line. */}
-          {dropping && <div className="ui-drop ui-drop--page" aria-hidden="true">
-            <div className="ui-card ui-card--fit"><EmptyState icon="upload" title="Drop files to upload" sub="" /></div>
+          {/* A file dragged anywhere over the list covers the page content with the empty page's drop
+              area, enlarged. Its ground is opaque, so no row reads across the words. */}
+          {dropping && <div className="ui-drop ui-drop--area ui-drop--page is-dragging" aria-hidden="true">
+            <EmptyState icon="upload" title="Drop files to upload" sub="PDF, PNG or JPEG." />
           </div>}
         </> : <FileDrop title="Add your first invoices" note="PDF, PNG or JPEG." accept=".pdf,.png,.jpg,.jpeg" multiple onFiles={addFiles} />}
         {/* The kit's own inline message, which sets role="alert" for its danger tone and

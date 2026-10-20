@@ -345,13 +345,30 @@ describe('FileDrop as the empty page\'s area', () => {
     expect(area()).not.toHaveClass('is-dragging');
   });
 
-  it('takes the first file only, through onFile, until the drop is multiple', () => {
-    const onFile = vi.fn();
+  it('calls each of onFile and onFiles when given, whether or not the drop is multiple', () => {
+    for (const multiple of [false, true]) {
+      const onFile = vi.fn();
+      const onFiles = vi.fn();
+      const { unmount } = render(<FileDrop title="Add" multiple={multiple} onFile={onFile} onFiles={onFiles} />);
+      fireEvent.drop(area(), withFiles([file('a.pdf'), file('b.pdf')]));
+      expect(onFile).toHaveBeenCalledTimes(1);
+      expect(onFile).toHaveBeenCalledWith(expect.objectContaining({ name: 'a.pdf' }));
+      expect(onFiles).toHaveBeenCalledTimes(1);
+      expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'a.pdf' }), expect.objectContaining({ name: 'b.pdf' })]);
+      unmount();
+    }
+  });
+
+  it('takes a file through onFiles alone and through onFile alone', () => {
     const onFiles = vi.fn();
-    render(<FileDrop title="Add" onFile={onFile} onFiles={onFiles} />);
-    fireEvent.drop(area(), withFiles([file('a.pdf'), file('b.pdf')]));
-    expect(onFile).toHaveBeenCalledWith(expect.objectContaining({ name: 'a.pdf' }));
-    expect(onFiles).not.toHaveBeenCalled();
+    const first = render(<FileDrop title="Add" onFiles={onFiles} />);
+    fireEvent.drop(area(), withFiles([file('a.pdf')]));
+    expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'a.pdf' })]);
+    first.unmount();
+    const onFile = vi.fn();
+    render(<FileDrop title="Add" multiple onFile={onFile} />);
+    fireEvent.drop(area(), withFiles([file('b.pdf')]));
+    expect(onFile).toHaveBeenCalledWith(expect.objectContaining({ name: 'b.pdf' }));
   });
 
   it('stands in for the row and the children, so no second button or target shows', () => {
@@ -367,20 +384,24 @@ describe('FileDrop as the empty page\'s area', () => {
 describe('the page drop layer in the sheet', () => {
   // JSDOM lays nothing out, so the sheet is read for what must hold. The layer's drag logic
   // belongs to the page that uses it, and the page's own test drives that. That the layer
-  // dims the page and that no row reads across the card is measured in a browser.
+  // covers the content and that no row reads across the words is measured in a browser.
   const css = readRepo('../../src/styles/file-drop.css');
   const rule = /\.ui-drop--page\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
 
-  it('covers the window and takes no pointer, so the drop lands on what is under it', () => {
+  it('covers the page below the topbar and takes no pointer, so the drop lands on what is under it', () => {
     expect(rule).toMatch(/position:\s*fixed/);
-    expect(rule).toMatch(/inset:\s*0/);
+    expect(rule).toMatch(/inset:\s*calc\(var\(--ui-app-band, 0px\) \+ var\(--space-4\)\) var\(--space-4\) var\(--space-4\)/);
     expect(rule).toMatch(/pointer-events:\s*none/);
   });
 
-  it('lets the page show dimly through the ground, and never fully', () => {
-    const percent = Number(/var\(--bg\)\s+(\d+)%/.exec(rule)?.[1]);
-    expect(percent).toBeGreaterThanOrEqual(75);
-    expect(percent).toBeLessThan(100);
+  it('paints its ground in full, so no page text shows across the words', () => {
+    expect(rule).toMatch(/background:\s*var\(--bg\)\s*;/);
+    expect(rule).not.toMatch(/color-mix|rgba|transparent|opacity/);
+  });
+
+  it('takes its edge and radius from the area it enlarges', () => {
+    expect(rule).not.toMatch(/border|radius/);
+    expect(css).toMatch(/\.ui-drop--area\.is-dragging\s*\{\s*border-color:\s*var\(--accent\)/);
   });
 
   it('moves nothing in: no rise, no fade, no hidden state to leave behind', () => {
@@ -388,4 +409,3 @@ describe('the page drop layer in the sheet', () => {
     expect(layer).not.toMatch(/transform|transition|visibility|opacity/);
   });
 });
-
