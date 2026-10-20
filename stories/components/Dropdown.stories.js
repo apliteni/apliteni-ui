@@ -39,6 +39,10 @@ const LONG = Array.from({ length: 22 }, (_, i) => ({
   selected: i === 2,
 }));
 
+const REGIONS = ['Amsterdam', 'Auckland', 'Berlin', 'Cape Town', 'Chicago', 'Dublin', 'Frankfurt', 'Helsinki',
+  'Lisbon', 'London', 'Madrid', 'Milan', 'Mumbai', 'Oslo', 'Paris', 'Seoul', 'Singapore', 'Stockholm',
+  'Sydney', 'Tokyo', 'Toronto', 'Warsaw'].map((label) => ({ label, value: label.toLowerCase(), selected: label === 'Berlin' }));
+
 // Interactive stories return HTML strings; the preview decorator wires them via
 // wireTopbar() -> wireDropdown(). Open-state specimens pass `open: true`.
 export default {
@@ -161,7 +165,7 @@ export const SearchOpen = {
   name: 'Search (open)',
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
-    'The field is pinned; the 29 rows scroll under it',
+    'The search field stays pinned while the rows scroll',
     dropdown({ ...CURRENCY, items: currencyItems('EUR'), open: true }),
   ), 440)),
 };
@@ -300,18 +304,18 @@ export const NearTheScreenEdges = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(full(
     specimen(
-      'align: "end" at the start of the row, "start" at its end — open one and narrow the preview',
+      'A menu at each end of the row',
       ends(
         dropdown({ value: 'Period', variant: 'menu', ariaLabel: 'Period', align: 'end', items: ACTIONS }),
         dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Row actions', items: ACTIONS }),
       ),
     ),
     specimen(
-      'The same two edges, portalled and with a search field',
+      'A menu and a search list at the same two ends',
       ends(
         dropdown({ value: 'Account', variant: 'menu', ariaLabel: 'Account', align: 'end', portal: true, items: ACCOUNT }),
         dropdown({
-          label: 'region:', ariaLabel: 'Region', items: LONG, scroll: true,
+          label: 'region:', ariaLabel: 'Region', items: REGIONS, scroll: true,
           search: { placeholder: 'Find a region' },
         }),
       ),
