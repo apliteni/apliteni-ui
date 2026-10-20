@@ -2,35 +2,35 @@
 
 ## Semantic tokens
 
-**Rule:** Use semantic colour tokens instead of literals.
+**Rule:** Add and use a semantic colour token before writing a literal.
 
 **Why:** Literals cannot follow themes or accents.
 
-**Do:** Tokenize ground and ink.
+**Do:** Use tokens for ground and ink.
 
 **Don't:** Freeze dark-theme colours.
 
-**Except:** Token definitions set colours; `#000` in masks controls alpha.
+**Except:** Token definitions set colours. Mask `#000` controls alpha, not colour.
 
 <!-- rule: tokens -->
 
 ## Stable signals
 
-**Rule:** Let accents follow sub-themes; keep `--pink` and `--green` fixed.
+**Rule:** Accents can follow sub-themes, but `--pink` and `--green` stay fixed.
 
-**Why:** If danger followed the accent, revoke and go would match.
+**Why:** If danger followed accents, revoke and go would look identical.
 
 **Do:** Keep errors `--pink` under every accent.
 
 **Don't:** Point `--pink` at the accent.
 
-**Except:** Across `data-theme`, light deepens `--pink` from `#e97ca5` to `#b63361` for legibility on white.
+**Except:** Across `data-theme`, signals change: light deepens `--pink` from `#e97ca5` to `#b63361` for legibility on white.
 
 <!-- rule: signals -->
 
 ## Accent contrast
 
-**Rule:** `--accent-strong` is accent ground; `--accent` is accent ink.
+**Rule:** Use `--accent-strong` for accent ground and `--accent` for accent ink.
 
 **Why:** `--accent` is canvas ink; darker `--accent-strong` lets white clear AA.
 
@@ -38,7 +38,7 @@
 
 **Don't:** Use `--accent` as ground.
 
-**Except:** Phoenix, Ocean and Emerald use one token for both; only Nebula differs. The selected segmented pill keeps `--accent` in dark, by Artur's choice on #614.
+**Except:** Phoenix, Ocean and Emerald share one token, while Nebula differs. Artur chose `--accent` for dark selected Segmented pills on #614.
 
 <!-- rule: accent-strong -->
 
@@ -46,21 +46,21 @@
 
 <!-- rule: selection-accent -->
 
-**Rule:** Limit selected navigation to one accent signal: the fill of a Segmented pill, or the bar under an underline tab.
+**Rule:** Limit selected navigation to one accent signal: a Segmented pill's fill or an underline tab's bar.
 
-**Why:** Two accent marks on one item read as two states.
+**Why:** Two accent marks on one item imply two states.
 
-**Do:** Use contrasting ink on a Segmented pill and strong ink above an underline bar. For SidebarNav, see Keep text off grey fills.
+**Do:** Use contrasting ink on Segmented pills and strong ink above underline bars. See Keep text off grey fills for SidebarNav.
 
 **Don't:** Add a second accent mark, such as an accent counter, to a selected tab.
 
-**Except:** The NavTabs pill keeps accent ink on its soft fill, because the fill alone does not tell the current route from a hovered one, by Artur's choice on #429.
+**Except:** NavTabs pills keep accent ink on soft fill. Fill alone is too faint to mark the route. Artur chose this on #429.
 
 ## Theme checks
 
-**Rule:** Before opening a PR, check both themes and two accents.
+**Rule:** Check both themes and two accents before a PR.
 
-**Why:** Dark AA can fail over a light card wash.
+**Why:** A pair passing AA in dark can fail in light over a card wash.
 
 **Do:** Test both themes and two accents.
 
@@ -73,24 +73,24 @@
 
 <!-- rule: text-surface -->
 
-**Rule:** Keep text on page or card surfaces, off grey fills.
+**Rule:** Keep text on page or card surfaces, never grey fills.
 
-**Why:** Grey reading areas look disabled.
+**Why:** Grey reading areas appear disabled.
 
-**Do:** Give inputs an edge. Use grey fills for non-text states: disabled tracks and dividers.
+**Do:** Give inputs edges. Reserve grey fills for non-text states: disabled tracks and dividers.
 
 **Don't:** Put text on grey fields, chips, headers or footers.
 
-**Except:** In the page shell the rail is the card surface. There, SidebarNav's current row, label and all, takes the quiet fill one rung off the rail, with no accent or edge, because an outline there means focus, by Artur's choice, r34 on #475. A neutral status chip takes a light tint of muted ink that leaves the panel in one direction per theme, so it reads as one family with the coloured chips.
+**Except:** The page shell's SidebarNav rail is the card surface. Its current row and label take a quiet fill one rung off the rail, without accent or edge. An outline means focus. Artur chose this in r34 of #475. Neutral status chips use a light muted ink tint that leaves the panel in one direction per theme. They read as one family with coloured chips.
 
 ## Mark selection in forced colours
 
 <!-- rule: selected-forced-colours -->
 
-**Rule:** In forced colours, fill selection with highlight and its label with highlight text.
+**Rule:** In forced colours, fill a selected item with the highlight colour and its label with the highlight text colour.
 
-**Why:** Forced colours replace author backgrounds. A static specimen cannot show this mode.
+**Why:** The mode replaces author backgrounds. A specimen cannot switch it on, so this rule draws no pair.
 
-**Do:** Ring focused selection in the page text colour.
+**Do:** Ring a focused selected item in the page text colour.
 
 **Don't:** Mark selection with an outline.
