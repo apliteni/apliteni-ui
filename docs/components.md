@@ -1018,7 +1018,8 @@ rather than a copy bundled into `react/dist`.
   are yours.
 - **`Feedback`** offers a "Give feedback" pill on a text selection and opens a form with the
   quoted passage and a note. `onSend` files the note. A failed send keeps the note and shows the
-  error in place. A sent note shows one line of thanks.
+  error in place. A sent note shows one line of thanks. Escape returns focus to the prior visible
+  control, or to the pill if that control is gone.
 - **`Timeline`** renders your events from oldest to newest. **Only the last event's marker is
   filled.** A new ID in a non-empty history plays an entrance. Editing existing IDs does not.
 - **`AppShell`** shares the vanilla fold cookie and 720px fold. The longest matching section
