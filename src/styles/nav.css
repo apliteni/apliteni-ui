@@ -285,14 +285,58 @@
 
 /* -- Horizontal tabs ----------------------------------------------------- */
 .ui-nav--tabs {
+  /* A scroll box clips at its padding edge, so the ring needs padding, not bare
+     paint room. Equal negative margins give the row back its place on the gutter
+     and in the flow, and the rule is painted as a background line one pixel above
+     the padding — a border-bottom would sit below it and lift the active
+     underline off the rule. */
+  --ui-tabs-ring-room: var(--space-1);
+  --ui-tabs-rule: 1px;
+  --ui-tabs-ground: var(--bg);
+  --ui-tabs-edge: color-mix(in srgb, var(--sheen) 12%, transparent);
+  min-width: 0;
+  max-width: calc(100% + 2 * var(--ui-tabs-ring-room));
+  overflow-x: auto;
+  padding: var(--ui-tabs-ring-room);
+  margin: calc(-1 * var(--ui-tabs-ring-room)) calc(-1 * var(--ui-tabs-ring-room))
+    calc(var(--ui-tabs-rule) - var(--ui-tabs-ring-room));
   display: flex;
   align-items: stretch;
   gap: 4px;
-  border-bottom: 1px solid var(--border);
+  /* Local covers hide the table-style shades when their edge is reached.
+     The row rule stays above the covers and keeps its original position. */
+  background-image:
+    linear-gradient(var(--border), var(--border)),
+    linear-gradient(to right, var(--ui-tabs-ground) 50%, transparent),
+    linear-gradient(to left, var(--ui-tabs-ground) 50%, transparent),
+    radial-gradient(farthest-side at 0 50%, var(--ui-tabs-edge), transparent),
+    radial-gradient(farthest-side at 100% 50%, var(--ui-tabs-edge), transparent);
+  background-repeat: no-repeat;
+  background-position:
+    center bottom calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule)),
+    0 0, 100% 0, 0 0, 100% 0;
+  background-size:
+    calc(100% - 2 * var(--ui-tabs-ring-room)) var(--ui-tabs-rule),
+    var(--space-6) 100%, var(--space-6) 100%, var(--space-3) 100%, var(--space-3) 100%;
+  background-attachment: scroll, local, local, scroll, scroll;
 }
-.ui-nav--tabs.is-pill { border-bottom: 0; gap: 6px; }
+/* Fitting rows keep overflow visible. Measurements retain the same padding and margins,
+   so switching containment does not move the links. Unwired rows keep containment. */
+.ui-nav--tabs[data-nav-fit] { overflow: visible; }
+.ui-nav--tabs.is-pill { --ui-tabs-rule: 0px; gap: 6px; }
+.ui-card .ui-nav--tabs { --ui-tabs-ground: var(--ui-card-ground); }
+:root[data-theme="light"] .ui-nav--tabs {
+  --ui-tabs-edge: color-mix(in srgb, var(--shadow-ink) 13%, transparent);
+}
+/* The row is a keyboard stop of its own only while it scrolls AND holds no focusable
+   link — every tab disabled — and Chromium answers that stop with its black outline. It
+   is a scroll region, so it takes the kit's inward band like the other six: an outset
+   ring would be clipped by the very box that scrolls. #531's reading, on #429's row. */
+.ui-nav--tabs:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-nav__tab {
+  flex: none;
   position: relative;
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -307,6 +351,7 @@
 .ui-nav__tab:hover { color: var(--strong); }
 .ui-nav__tab:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: 8px; }
 .ui-nav__tab.is-active { color: var(--strong); }
+.ui-nav__tab-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* underline variant */
 .ui-nav--tabs.is-underline .ui-nav__tab::after {
@@ -324,10 +369,26 @@
 
 /* pill variant */
 .ui-nav--tabs.is-pill .ui-nav__tab { border-radius: var(--radius-pill); padding: 8px 15px; }
-.ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-nav--tabs.is-pill .ui-nav__tab:hover { background: var(--surface); /* code-bg: inherit — control paint; its focus indicator uses the containing surface. */ }
+/* The current route keeps its quiet fill and uses accent ink. */
 .ui-nav--tabs.is-pill .ui-nav__tab.is-active {
-  background: var(--glow-purple); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */
   color: var(--accent);
+  background: var(--glow-purple); /* code-bg: inherit — translucent wash retains the opaque containing gap. */
+}
+
+/* Forced colours: the selected-tab marks are in the block below. */
+@media (forced-colors: active) {
+  /* Forced colours drop background images, so the row's rule comes back as a border.
+     The last pixel of the bottom padding pays for it and the row keeps its size. The
+     border image leaves the ring room at both ends bare, so the rule ends on the gutter
+     as the background line does. */
+  .ui-nav--tabs {
+    padding-bottom: calc(var(--ui-tabs-ring-room) - var(--ui-tabs-rule));
+    border-bottom: var(--ui-tabs-rule) solid;
+    border-image: linear-gradient(to right, transparent var(--ui-tabs-ring-room),
+      CanvasText var(--ui-tabs-ring-room) calc(100% - var(--ui-tabs-ring-room)),
+      transparent calc(100% - var(--ui-tabs-ring-room))) 0 0 1 0;
+  }
 }
 
 .ui-nav__tab.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; }

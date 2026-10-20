@@ -6,9 +6,19 @@
 
 export const RELEASES = [
   {
-    v: '0.126.0', date: '2026-10-20',
+    v: '0.127.0', date: '2026-10-20',
     changes: [
       ['added', 'React `Feedback` shows a "Give feedback" pill on a text selection and opens a form with the quoted passage and a note. You pass `onSend`. A sent note shows one line of thanks and a failed send keeps the note with the error in place. Cancel, Send and Close use the kit\'s buttons. See #429.', ['Feedback']],
+    ],
+  },
+  {
+    v: '0.126.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],
+      ['added', 'NavTabs and Breadcrumbs take renderLink, so a router can own route changes, and the main entry now exports safeUrl, observeNavFit, revealCurrentNav and revealFocusedNav for callers that assemble their own navigation markup.', ['Navigation']],
+      ['changed', 'The current pill tab uses an accent label on its existing soft accent fill. The label distinguishes the current route from a hovered route. Vanilla and React share this change.', ['Navigation']],
+      ['fixed', 'Tab rows scroll within narrow containers without widening the page, moving off the page gutter or lifting the active underline off the row rule. A row whose tabs all fit scrolls nothing and clips nothing, so the post-#578 outline focus ring keeps its band at a desktop width. React and vanilla wireNav reveal the current route without moving keyboard focus or discarding where the reader scrolled.', ['Navigation']],
+      ['fixed', 'A tab row that does scroll now scrolls to a link the keyboard lands on, so its focus ring clears the scrolling edge instead of being cut off at the end of the row. A row whose tabs are all disabled takes the kit inward band on itself rather than the browser outline, because it holds no link to carry one.', ['Navigation']],
     ],
   },
   {

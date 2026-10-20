@@ -266,42 +266,43 @@ test('every select draws one chevron, anchored right, in every theme and state',
 /* A gate that cannot fail proves nothing, and this one reads a computed value
  * rather than a string — so each mutation below is a real way to break the
  * chevron, re-resolved through the same cascade. The first is #511 itself. */
-test('the gate rejects every way of resetting the chevron', () => {
-  const MUTATIONS = [
-    {
-      why: '#511: the disabled paint written as the `background` shorthand again',
-      apply: (css) => css.replace(
-        /background-color:(\s*var\(--disabled-surface\))/,
-        'background:$1',
-      ),
-    },
-    {
-      why: 'the chevron left to tile',
-      apply: (css) => css.replace(/background-repeat:\s*no-repeat;/, 'background-repeat: repeat;'),
-    },
-    {
-      why: 'the chevron left at the origin',
-      apply: (css) => css.replace(/background-position:\s*right 15px center;/, 'background-position: 0% 0%;'),
-    },
-    {
-      // The React half of the package: react/dist/index.css loads ON TOP of the kit's.
-      why: 'a `background` shorthand added to a select from the React sheets',
-      apply: (css) => `${css}\n.ui-select:disabled { background: #123456; }\n`,
-    },
-    {
-      // Reaches the select through an ancestor, which a bare specimen never matches.
-      why: 'a contextual rule repainting a select inside a container',
-      apply: (css) => `${css}\n.ui-filter-bar .ui-select { background: #123456; }\n`,
-    },
-  ];
+const MUTATIONS = [
+  {
+    why: '#511: the disabled paint written as the `background` shorthand again',
+    apply: (css) => css.replace(
+      /background-color:(\s*var\(--disabled-surface\))/,
+      'background:$1',
+    ),
+  },
+  {
+    why: 'the chevron left to tile',
+    apply: (css) => css.replace(/background-repeat:\s*no-repeat;/, 'background-repeat: repeat;'),
+  },
+  {
+    why: 'the chevron left at the origin',
+    apply: (css) => css.replace(/background-position:\s*right 15px center;/, 'background-position: 0% 0%;'),
+  },
+  {
+    // The React half of the package: react/dist/index.css loads ON TOP of the kit's.
+    why: 'a `background` shorthand added to a select from the React sheets',
+    apply: (css) => `${css}\n.ui-select:disabled { background: #123456; }\n`,
+  },
+  {
+    // Reaches the select through an ancestor, which a bare specimen never matches.
+    why: 'a contextual rule repainting a select inside a container',
+    apply: (css) => `${css}\n.ui-filter-bar .ui-select { background: #123456; }\n`,
+  },
+];
 
-  for (const { why, apply } of MUTATIONS) {
+// One test per way of breaking the chevron, so each is measured, timed and failed on its own.
+for (const { why, apply } of MUTATIONS) {
+  test(`the gate rejects a sheet that breaks the chevron: ${why}`, () => {
     const mutated = apply(SHEET_CSS);
     assert.notEqual(mutated, SHEET_CSS, `the mutation "${why}" no longer edits anything — rewrite it against the current sheet`);
     const broken = measure(mutated).filter((m) => faultsIn(m).length > 0);
     assert.ok(broken.length > 0, `the gate passed a sheet mutated to break the chevron: ${why}`);
-  }
-});
+  });
+}
 
 /* #511 showed up in one theme as a tiled chevron and in the other as no chevron at
  * all, which is why a single-theme check would have shipped it. Pinned separately
