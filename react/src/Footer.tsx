@@ -11,7 +11,7 @@ export type FooterProps = Omit<HTMLAttributes<HTMLElement>, 'children'> & {
   /** Product word beside the mark. Default `Strategy`. */
   word?: string;
   brandHref?: string;
-  /** Replaces the lockup. `false` hides the brand block's lockup. Full variant only. */
+  /** Replaces the lockup. `false` hides the whole brand block: lockup, tagline and social links. Full variant only. */
   brand?: ReactNode | false;
   /** Short line under the brand. Full variant only. */
   tagline?: string;
