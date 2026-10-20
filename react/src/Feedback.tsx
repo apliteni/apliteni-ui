@@ -127,7 +127,7 @@ export function Feedback({
     setOpen(false);
     clearMark();
   }
-  useDialog(shown, { root, panel, body, initialFocus: noteRef }, close);
+  useDialog(shown, { root, panel, body, initialFocus: noteRef, fallbackFocus: pillRef }, close);
 
   function start() {
     const p = pending.current;

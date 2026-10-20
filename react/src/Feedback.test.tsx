@@ -223,6 +223,22 @@ it('uses the pill when the prior focus was a focusable reading container', async
   expect(document.querySelector('main')).toHaveAttribute('tabindex', '0');
 });
 
+it('uses the pill when the prior control disappears before Escape', async () => {
+  function WithControl({ show }: { show: boolean }) {
+    return <>{show && <button type="button">Read more</button>}<Page onSend={vi.fn()} /></>;
+  }
+  const { rerender } = render(<WithControl show />);
+  await selectText();
+  screen.getByRole('button', { name: 'Read more' }).focus();
+  await userEvent.click(pill());
+  await screen.findByRole('dialog');
+  rerender(<WithControl show={false} />);
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(document.activeElement).toBe(pill());
+  expect(pill()).toHaveClass('show');
+});
+
 it('offers the pill for a container that mounts after the component', async () => {
   render(<Live name="Alpha" late onSend={vi.fn()} />);
   await waitFor(() => expect(live()).toBeInTheDocument());
