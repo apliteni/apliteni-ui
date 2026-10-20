@@ -1019,16 +1019,14 @@ rather than a copy bundled into `react/dist`.
 - **`Timeline`** renders your events from oldest to newest. **Only the last event's marker is
   filled.** A new ID in a non-empty history plays an entrance. Editing existing IDs does not.
 - **`AppShell`** shares the vanilla fold cookie and 720px fold. The longest matching section
-  path wins. **Below 560px, a bottom bar replaces the rail:** it shows up to four sections, or
-  three sections plus More. **A shell whose list has nowhere to go — one section and no back
-  link — draws no rail, no fold control and no bottom bar;** the brand lockup moves to the band
+  path wins. **At 720px and below, a menu button and the brand mark on the band replace the
+  rail:** the button opens the full section list in the left drawer, and the page takes the full
+  width. A press on a section, Escape or a wider window closes the drawer, and focus returns to
+  the button. **A shell whose list has nowhere to go — one section and no back
+  link — draws no rail, no fold control and no menu button;** the brand lockup moves to the band
   and the section stays in the command palette. One section under a child page is a destination,
-  the page's parent, so that list is drawn and the row takes `aria-current="true"`. It publishes
-  `--ui-app-bottom-clearance`, the height of that bar plus the device's safe-area inset. **A phone page whose shell draws no bar
-  keeps the ordinary end space the kit gives every phone page:** the reservation disappears
-  without taking that space with it. **Page bottom padding, root scroll padding and the toast
-  stack all keep that clearance,** so scrolling an action into view never parks it behind the
-  bar. `searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
+  the page's parent, so that list is drawn and the row takes `aria-current="true"`.
+  `searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
   shared stylesheet draws the short one and clips the sentence and the key cap rather than
   dropping them, so the button keeps one accessible name at every width. **When it mounts, the
   band theme switch applies the stored theme choice, or follows the system when there is none.**

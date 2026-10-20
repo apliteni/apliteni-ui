@@ -1,10 +1,11 @@
-import { useEffect, useId, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import { paletteHotkey, prism, railCollapsed } from '@apliteni/apliteni-ui';
 import { SidebarNav } from './SidebarNav';
 import { BackLink } from './BackLink';
 import { CommandPalette, type CommandPaletteProps } from './CommandPalette';
 import { Drawer } from './Drawer';
 import { Dropdown } from './Dropdown';
+import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
 import { ThemeToggle } from './ThemeToggle';
 import './AppShell.css';
@@ -46,14 +47,27 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   const uid = useId();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [search, setSearch] = useState(false);
-  const [more, setMore] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const current = path(pathname);
   const active = sections.filter((section) => current === path(section.href)
     || (path(section.href) !== '/' && current.startsWith(`${path(section.href)}/`)))
     .sort((a, b) => path(b.href).length - path(a.href).length)[0];
 
   useEffect(() => { setCollapsed(railCollapsed() ?? defaultCollapsed); }, [defaultCollapsed]);
-  useEffect(() => { setMore(false); setSearch(false); }, [pathname]);
+  useEffect(() => { setMenu(false); setSearch(false); }, [pathname]);
+  // A drawer left open while the window grows past the phone width would be hidden and
+  // still hold the page inert, so it closes there. The menu button is not drawn above
+  // that width, which is how the stylesheet's breakpoint is read without a second copy.
+  useEffect(() => {
+    if (!menu) return;
+    const grown = () => {
+      const button = menuButton.current;
+      if (button && getComputedStyle(button).display === 'none') setMenu(false);
+    };
+    window.addEventListener('resize', grown);
+    return () => window.removeEventListener('resize', grown);
+  }, [menu]);
   useEffect(() => {
     const hotkey = (event: KeyboardEvent) => {
       if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== 'k') return;
@@ -75,28 +89,13 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   // aria-current="true": "page" would announce the list as the page the reader is on.
   // shell.js does the same through sidebarNav()'s `activeIs`.
   // why: guidelines/going-back.md#keep-the-section-active
-  const links = (items: AppShellSection[]) => items.map((section) => {
-    const linkProps: ComponentPropsWithoutRef<'a'> = {
-      href: section.href,
-      className: `ui-nav__item${section === active ? ' is-active' : ''}`,
-      // guidelines/going-back.md, section-lit: the same row, so the same reading as
-      // the rail's. "page" here would announce the list as the page the reader is on.
-      'aria-current': section === active ? (back ? 'true' : 'page') : undefined,
-      'aria-label': `${section.label}${section.count == null ? '' : ` ${section.count}`}`,
-      onClick: (event) => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) setMore(false); },
-      children: <><span className="ui-nav__ic"><Icon name={section.icon} /></span>
-        <span className="ui-nav__label">{section.label}</span>
-        {section.count != null && <span className="ui-nav__badge is-neutral">{section.count}</span>}</>,
-    };
-    return <li key={section.href}>{renderLink ? renderLink(section, linkProps) : <a {...linkProps} />}</li>;
-  });
-  const sidebar = (items: AppShellSection[], label: string) => <SidebarNav aria-label={label}
-    items={items.map(section => ({ ...section, id: section.href, badge: section.count }))} active={active?.href}
+  const sidebar = (label: string) => <SidebarNav aria-label={label}
+    items={sections.map(section => ({ ...section, id: section.href, badge: section.count }))} active={active?.href}
     activeIs={back ? 'section' : 'page'}
     renderLink={(item, props) => {
-      const section = items.find(section => section.href === item.id)!;
+      const section = sections.find(section => section.href === item.id)!;
       const linkProps = { ...props, onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
-        if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) setMore(false);
+        if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) setMenu(false);
       } };
       return renderLink ? renderLink(section, linkProps) : <a {...linkProps} />;
     }} />;
@@ -110,8 +109,6 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   // reader can actually go, and it takes aria-current="true" rather than "page"
   // through activeIs above. why: guidelines/going-back.md#keep-the-section-active
   const navigable = sections.length > 1 || Boolean(back);
-  const visible = sections.length > 4 ? sections.slice(0, 3) : sections;
-  const remaining = sections.slice(visible.length);
   const initials = account.name.trim().split(/\s+/).map((part) => part[0]).slice(0, 2).join('');
   // Written once and placed twice: with no list to head, the rail is a column of
   // brand, so the lockup moves to the band the page already has.
@@ -123,7 +120,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   return <div className={`ui-app ui-app--topbar ui-react-app${collapsed ? ' is-collapsed' : ''}`}>
     {navigable && <div className="ui-app__rail" role="region" aria-label="Sidebar">
       <div className="ui-app__head">{lockup}</div>
-      {sidebar(sections, 'Sections')}
+      {sidebar('Sections')}
       <div className="ui-app__foot"><div className="ui-app__fold-row">
         <button type="button" className="ui-nav__item ui-app__fold" aria-expanded={!collapsed} aria-label={foldLabel} onClick={fold}>
           <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /><path className="ui-app__fold-arrow" d="m16 15-3-3 3-3" /></svg></span><span className="ui-nav__label">{foldLabel}</span>
@@ -132,6 +129,13 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     </div>}
     <div className="ui-app__well">
       <header className="ui-app__bar">
+        {navigable && <>
+          <Button ref={menuButton} variant="ghost" icon="menu" iconOnly aria-label="Menu" className="ui-app__menu"
+            aria-haspopup="dialog" aria-expanded={menu} onClick={() => setMenu(true)} />
+          <a className="ui-app__brand ui-app__brand--band" href={brandHref} aria-label={word}>
+            {brand ?? <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`${uid}-band`, 24) }} />}
+          </a>
+        </>}
         {!navigable && lockup}
         <button type="button" className="ui-app__search" aria-haspopup="dialog" onClick={() => setSearch(true)}>
           <span className="ui-app__search-ic"><Icon name="search" /></span>
@@ -155,14 +159,9 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
         <div className="ui-app__body">{children}</div>
       </main>
     </div>
-    {/* The same rule on the phone, where the bar would also keep 96px for that row. */}
-    {navigable && <nav className="ui-nav ui-react-app__bottom" aria-label="Sections on mobile"><ul className="ui-nav__list">
-      {links(visible)}{remaining.length > 0 && <li><button type="button" className={`ui-nav__item${active && remaining.includes(active) ? ' is-active' : ''}`}
-        aria-haspopup="dialog" aria-expanded={more} onClick={() => setMore(true)}><span className="ui-nav__ic"><Icon name="moreHorizontal" /></span><span className="ui-nav__label">More</span></button></li>}
-    </ul></nav>}
-    <Drawer open={more} onClose={() => setMore(false)} title="More sections" side="bottom">
-      {sidebar(remaining, 'More sections')}
-    </Drawer>
+    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm">
+      <div className="ui-react-app__menu">{sidebar('Menu sections')}</div>
+    </Drawer>}
     <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} open={search} onClose={() => setSearch(false)} />
   </div>;
 }
