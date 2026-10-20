@@ -5,7 +5,7 @@ import {
 } from 'react';
 import {
   icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs, dropdownViewportFit,
-  dropdownHeightFit, filterPanelRow,
+  dropdownHeightFit, dropdownReveal, filterPanelRow,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 import { Avatar } from './primitives/Avatar';
@@ -237,6 +237,7 @@ export function Dropdown({
   // selected row. Read in a layout effect, because the rows have to be styled open
   // before one of them can take focus. why: docs/components.md#the-dropdown-panel
   const landOn = useRef<number | 'selected' | null>(null);
+  const revealed = useRef(false);
   // The pointer's last position. A move event carrying the one it already had is the
   // browser's own after a scroll, not the reader's, and it would take the active row
   // away from the arrows.
@@ -503,6 +504,8 @@ export function Dropdown({
       el.classList.toggle('is-unbounded', !Number.isFinite(avail) && !cap);
     };
     size();
+    // The scrolling body the panel sits in is moved to show it; the focus effect below must not undo that.
+    revealed.current = dropdownReveal(root.current, el) !== 0;
     const view = el.ownerDocument?.defaultView ?? window;
     view.addEventListener('scroll', size, true);
     view.addEventListener('resize', size);
@@ -544,7 +547,7 @@ export function Dropdown({
         panel.current.style.minWidth = '';
         if (panel.current.offsetWidth) panel.current.style.minWidth = `${panel.current.offsetWidth}px`;
       }
-      field.current?.focus();
+      field.current?.focus(revealed.current ? { preventScroll: true } : undefined);
       return;
     }
     if (want == null) return;
@@ -552,7 +555,7 @@ export function Dropdown({
     if (!els.length) return;
     const sel = els.findIndex((el) => el.getAttribute('aria-selected') === 'true');
     const to = want === 'selected' ? (sel >= 0 ? sel : 0) : want;
-    (els[to] || els[0]).focus();
+    (els[to] || els[0]).focus(revealed.current ? { preventScroll: true } : undefined);
   }, [open]);
 
   // Keep the active row inside the list's own scroll box, without scrolling the page

@@ -18,7 +18,7 @@ import { esc, icon } from './index.js';
 import { safeUrl } from '../html.js';
 import { avatar } from './avatar.js';
 // The fade's own length, read off the stylesheet rather than copied. why: src/motion.js
-import { transitionMs } from '../motion.js';
+import { transitionMs, prefersReducedMotion } from '../motion.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 
 // A trailing status badge. `badge` is the text shown, in the case it is written
@@ -618,6 +618,14 @@ export function dropdownHeightFit(dd, panel) {
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !panel) return null;
   const t = trigger.getBoundingClientRect();
   const view = ddViewOf(panel);
+  // Inside a scrolling body the panel may take the whole body less the trigger:
+  // dropdownReveal() scrolls the body to show it, so the room is the body's, not
+  // what is left under the trigger now.
+  const box = ddScrollBox(dd, panel);
+  if (box) {
+    const room = box.bottom - box.top - 2 * ddEdge(panel) - t.height - ddGap(panel);
+    if (room >= ddMin(panel)) return room;
+  }
   return dropdownAvail({
     anchorTop: t.top,
     anchorBottom: t.bottom,
@@ -627,6 +635,66 @@ export function dropdownHeightFit(dd, panel) {
     min: ddMin(panel),
     up: panel.classList.contains('is-up'),
   });
+}
+
+/** The nearest ancestor that scrolls the block axis — a Modal or Drawer body —
+ *  with the part of it a reader can see: its padding box clipped to the viewport.
+ *  `null` for a portalled panel (it is not inside the ancestor), a filter row (its
+ *  row already bounds its panels) and a trigger with no such ancestor. */
+function ddScrollBox(dd, panel) {
+  if (dd.__ddPanel || ddInFilterRow(panel)) return null;
+  const view = ddViewOf(panel);
+  for (let el = dd.parentElement; el && el !== el.ownerDocument.body; el = el.parentElement) {
+    const overflow = view.getComputedStyle(el).overflowY;
+    if (overflow !== 'auto' && overflow !== 'scroll') continue;
+    const r = el.getBoundingClientRect();
+    const top = Math.max(r.top + el.clientTop, 0);
+    const bottom = Math.min(r.top + el.clientTop + el.clientHeight, view.innerHeight);
+    return bottom > top ? { el, top, bottom } : null;
+  }
+  return null;
+}
+
+/**
+ * Scroll the body an open panel sits in the least distance that shows the whole
+ * panel, with the edge inset kept between the panel and the body's end. The
+ * trigger stays in view: the panel is no taller than the body less the trigger
+ * (dropdownHeightFit()). A body that already shows the panel does not move.
+ * Instant under `prefers-reduced-motion`. Returns the distance scrolled.
+ * why: docs/components.md#the-dropdown-panel
+ */
+export function dropdownReveal(dd, panel) {
+  const by = ddRevealOnce(dd, panel);
+  /* A shut panel is held 6px off its place and the body cannot scroll past where
+   * it ends, so the first scroll falls up to 6px short. One more look once the
+   * panel has settled. */
+  if (by && panel.style) {
+    setTimeout(() => { if (dd.classList.contains('open')) ddRevealOnce(dd, panel); },
+      transitionMs(panel) + DD_EXIT_SLACK_MS);
+  }
+  return by;
+}
+
+function ddRevealOnce(dd, panel) {
+  const trigger = dd?.querySelector?.('[data-dropdown-trigger]');
+  if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !panel) return 0;
+  const box = ddScrollBox(dd, panel);
+  if (!box) return 0;
+  const t = trigger.getBoundingClientRect();
+  const edge = ddEdge(panel);
+  const h = panel.offsetHeight;
+  const up = panel.classList.contains('is-up');
+  const top = up ? t.top - ddGap(panel) - h : t.top;
+  const bottom = up ? t.bottom : t.bottom + ddGap(panel) + h;
+  let by = 0;
+  if (bottom + edge > box.bottom) by = Math.min(bottom + edge - box.bottom, t.top - box.top);
+  else if (top - edge < box.top) by = Math.max(top - edge - box.top, t.bottom - box.bottom);
+  by = Math.round(by);
+  if (!by) return 0;
+  const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+  if (typeof box.el.scrollBy === 'function') box.el.scrollBy({ top: by, behavior });
+  else box.el.scrollTop += by;
+  return by;
 }
 
 function ddSizeHeight(dd, panel) {
@@ -946,6 +1014,9 @@ function openDropdown(dd, focusIdx) {
     else { ddFitFilterPanel(dd, panel); ddWatchRow(dd, panel); ddFitViewport(dd, panel); }
     ddSizeHeight(dd, panel);
   }
+  // The body was scrolled to show the panel: a row taking focus must not scroll it
+  // again to the row alone.
+  const keep = panel && dropdownReveal(dd, panel) ? { preventScroll: true } : undefined;
   dd.classList.add('open');
   /* After `open`, and after the fit: ddResetSearch() pins the width it reads off
    * the panel, and the rule that widens a filter menu only applies once the
@@ -960,13 +1031,13 @@ function openDropdown(dd, focusIdx) {
   if (search) {
     const items = ddItemsOf(dd);
     ddSetActive(dd, items.find((el) => el.getAttribute('aria-selected') === 'true') || items[0] || null);
-    search.focus();
+    search.focus(keep);
     return;
   }
   if (focusIdx != null) {
     const items = ddItemsOf(dd);
     const sel = items.findIndex((el) => el.getAttribute('aria-selected') === 'true');
-    (items[focusIdx === 'selected' && sel >= 0 ? sel : (focusIdx === 'selected' ? 0 : focusIdx)] || items[0])?.focus();
+    (items[focusIdx === 'selected' && sel >= 0 ? sel : (focusIdx === 'selected' ? 0 : focusIdx)] || items[0])?.focus(keep);
   }
 }
 
