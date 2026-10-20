@@ -39,7 +39,7 @@ export const LongValue: StoryObj = {
 };
 const controlRows = [
   { label: 'Reference', value: 'INV-1001' },
-  { label: 'Status', value: <Dropdown value="Open" items={[{ label: 'Open', value: 'open' }, { label: 'Paid', value: 'paid' }]} /> },
+  { label: 'Status', value: <Dropdown ariaLabel="Status" value="Open" items={[{ label: 'Open', value: 'open' }, { label: 'Paid', value: 'paid' }]} /> },
   { label: 'Currency', value: <SelectField label="Currency"><option>EUR</option><option>USD</option></SelectField> },
   { label: 'Note', value: <TextField label="Note" defaultValue="Paid by wire" /> },
 ];
