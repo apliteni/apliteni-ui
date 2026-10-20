@@ -905,7 +905,7 @@
         "pattern": ".ui-drop__row {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:109",
+        "ref": "react/src/FileDrop.tsx:141",
         "pattern": "className=\"ui-drop__row\""
       }
     ],
@@ -915,7 +915,7 @@
         "pattern": ".ui-drop__target {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:162",
+        "ref": "react/src/FileDrop.tsx:189",
         "pattern": "className=\"ui-drop__target\""
       }
     ],
@@ -925,7 +925,7 @@
         "pattern": ".ui-drop__file {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:145",
+        "ref": "react/src/FileDrop.tsx:177",
         "pattern": "role=\"progressbar\""
       }
     ],
@@ -935,19 +935,19 @@
         "pattern": ".ui-drop__error"
       },
       {
-        "ref": "react/src/FileDrop.tsx:118",
+        "ref": "react/src/FileDrop.tsx:151",
         "pattern": "status === 'error' && onRetry"
       }
     ],
     "button-path": [
       {
-        "ref": "react/src/FileDrop.tsx:152",
+        "ref": "react/src/FileDrop.tsx:101",
         "pattern": "input.current?.click()"
       }
     ],
     "limits-once": [
       {
-        "ref": "react/src/FileDrop.tsx:153",
+        "ref": "react/src/FileDrop.tsx:185",
         "pattern": "className=\"ui-drop__note\""
       }
     ],
@@ -957,7 +957,7 @@
         "pattern": ".ui-drop > * + .ui-drop__row"
       },
       {
-        "ref": "react/src/FileDrop.tsx:108",
+        "ref": "react/src/FileDrop.tsx:140",
         "pattern": "{children}"
       }
     ]

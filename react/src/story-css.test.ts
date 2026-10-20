@@ -158,6 +158,10 @@ const GLUE_CEILING = 22;
 // FeedbackShowcase's shadow, 1 to 2, for a `transition` inherited through a spread; and
 // SwitchCheckbox's glue, newly 26, for the three properties each of two rows inherits
 // from the object it spreads. The follow-ups and the reasons are on #601.
+//
+// The invoice showcase's sheet is recorded at 24 glue declarations, two over the ceiling.
+// Artur approved the record form's two columns down to the phone step (#458), which takes
+// a grid declaration for the fields and one for their phone rule. It paints nothing.
 const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/AccentPicker.stories.tsx': { shadow: 3 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
@@ -171,6 +175,7 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
   'react/src/SwitchCheckbox.stories.tsx': { glue: 26 },
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
+  'react/src/showcases/InvoiceFlow.css': { glue: 24 },
 };
 
 const against = { allowed: ALLOWED, recorded: RECORDED, ceiling: GLUE_CEILING, where: 'this gate' };

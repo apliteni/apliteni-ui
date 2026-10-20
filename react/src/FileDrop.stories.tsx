@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { FileDrop, FileDropArea, PageDrop, type FileDropFile } from './FileDrop';
+import { FileDrop, type FileDropFile } from './FileDrop';
 import { Card } from './primitives/Card';
 import { Checkbox } from './Checkbox';
 
@@ -90,27 +90,9 @@ export const Live: StoryObj = {
 
 /** The empty page: nothing is held yet, so the whole first-run block is the target. */
 export const Area: StoryObj = {
-  render: () => <Card><FileDropArea title="Add your first invoices" note="PDF, PNG or JPEG." accept=".pdf,.png,.jpg,.jpeg" multiple /></Card>,
+  render: () => <Card><FileDrop title="Add your first invoices" note="PDF, PNG or JPEG." accept=".pdf,.png,.jpg,.jpeg" multiple /></Card>,
 };
 
 export const AreaDragging: StoryObj = {
-  render: () => <Card><FileDropArea title="Add your first invoices" note="PDF, PNG or JPEG." dragging /></Card>,
-};
-
-/** A page that already holds files. Drag a file over it, or read the layer shown here. */
-export const Page: StoryObj = {
-  render: () => <>
-    <Card><FileDrop note={NOTE} accept=".pdf,.csv"><Received /></FileDrop></Card>
-    <PageDrop open />
-  </>,
-};
-
-export const PageLive: StoryObj = {
-  render: function PageLiveStory() {
-    const [names, setNames] = useState<string[]>([]);
-    return <>
-      <Card><FileDrop note={NOTE} accept=".pdf,.csv"><Received />{names.map(name => <p key={name}>{name}</p>)}</FileDrop></Card>
-      <PageDrop onFiles={files => setNames(rows => [...rows, ...files.map(file => file.name)])} />
-    </>;
-  },
+  render: () => <Card><FileDrop title="Add your first invoices" note="PDF, PNG or JPEG." dragging /></Card>,
 };

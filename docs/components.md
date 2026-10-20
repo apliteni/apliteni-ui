@@ -884,16 +884,19 @@ target. A disabled drop never calls `preventDefault` on `dragover`, so it does n
 itself as a target the pointer can aim at. When a page uses a row, a region or a dialog, see
 [File drop](../guidelines/file-drop.md).
 
-`FileDropArea` is the empty page's drop: a dashed box around a first-run block with a title,
-the accepted types and the Upload button. **The button is the keyboard path.** A click on the
-box opens the picker too, and a file dropped anywhere in the box reaches `onFiles`. A file over
-the box turns its edge to the accent. A disabled area accepts nothing.
+React `FileDrop` takes `title` to become the empty page's drop. It then draws a dashed box around
+a first-run block with the title, the accepted types and the Upload button. **The button is the
+keyboard path.** A click on the box opens the picker too. With `multiple`, a file dropped anywhere
+in the box reaches `onFiles`. A file over the box turns its edge to the accent. A disabled area
+accepts nothing.
 
-`PageDrop` makes the whole page a target. **The layer is on screen only while a file is dragged
-over the page.** A link or selected text does not show it. It takes no pointer events, so the
-page keeps working under it, and the screen's own Upload button stays the keyboard path. A file
-dropped anywhere reaches `onFiles` once, unless something under the pointer took the drop first.
-Escape or leaving the window hides the layer. Reduced motion shows and hides it without a fade.
+`.ui-drop--page` is the kit's layer for a page that takes a file anywhere. It is a fixed layer in
+the page ground at 90%, with an opaque `.ui-card.ui-card--fit` in the centre that holds an
+`EmptyState` with the upload glyph and one line. **The card hides the page under it, so no page
+text reads across the glyph or the line.** The layer takes no pointer events, so the page keeps
+working under it. **Mount it only while a file is dragged over the page.** It has no fade and no
+rise, so reduced motion needs no second path. The page owns the drag logic, and its own Upload
+button stays the keyboard path. React ships no component for the layer.
 
 ### React Button links and leading artwork
 

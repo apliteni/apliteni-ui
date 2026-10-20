@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
+import { useRef, useState, type DragEvent, type ReactNode } from 'react';
 import '../../src/styles/file-drop.css';
 import { Button } from './primitives/Button';
 import { EmptyState } from './EmptyState';
@@ -26,6 +26,12 @@ export type FileDropProps = {
   label?: string;
   /** The accepted types and the size limit, stated once beside the button. */
   note?: string;
+  /** Makes the drop an empty page's area: a dashed box around a first-run block with this title,
+   *  the note and the button. The block stands in for the row and `children`, and the page
+   *  leaves the area when the first file arrives, so it never shows a file in hand. */
+  title?: string;
+  /** Lets the picker take several files and reports them together to `onFiles`. */
+  multiple?: boolean;
   /** Filters the system picker only; the consumer still validates the file. */
   accept?: string;
   /** The words on the drop target. */
@@ -39,6 +45,8 @@ export type FileDropProps = {
   dragging?: boolean;
   disabled?: boolean;
   onFile?: (file: File) => void;
+  /** Every file chosen or dropped, when `multiple`. Without `multiple`, `onFile` takes the first. */
+  onFiles?: (files: File[]) => void;
   onRemove?: () => void;
   onRetry?: () => void;
   /** What the region accepts the file for; the target covers it while dragging. */
@@ -70,9 +78,9 @@ const carriesFiles = (event: DragEvent) => Array.from(event.dataTransfer.types).
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
 export function FileDrop({
-  label = 'Upload', note, accept, dropLabel = 'Drop to upload',
+  label = 'Upload', note, title, multiple, accept, dropLabel = 'Drop to upload',
   removeLabel = 'Remove', retryLabel = 'Retry',
-  file, dragging, disabled, onFile, onRemove, onRetry, children, className,
+  file, dragging, disabled, onFile, onFiles, onRemove, onRetry, children, className,
 }: FileDropProps) {
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
@@ -86,25 +94,49 @@ export function FileDrop({
   // An explicit `dragging` wins, so a parent that owns the drag region decides.
   const showTarget = (dragging ?? over) && !disabled;
 
-  const take = (chosen: File | null | undefined) => { if (chosen && !disabled) onFile?.(chosen); };
+  const take = (chosen: File[]) => {
+    if (!chosen.length || disabled) return;
+    if (multiple) onFiles?.(chosen); else onFile?.(chosen[0]);
+  };
+  const pick = () => { if (!disabled) input.current?.click(); };
+  // Hidden rather than laid over the button: a one-row control has no field
+  // label to name an overlaid input, and the button keeps the kit's own
+  // ring. Never a keyboard stop, so it takes no focus rule. Cleared after
+  // each choice so re-picking the same file reports.
+  const picker = <input ref={input} type="file" accept={accept} multiple={multiple} disabled={disabled} hidden tabIndex={-1}
+    onClick={event => event.stopPropagation()}
+    onChange={event => { take(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />;
 
-  return <div className={cx('ui-drop', disabled && 'is-disabled', className)}
-    onDragOver={event => {
+  const drag = {
+    onDragOver: (event: DragEvent) => {
       // preventDefault() is how an element says "drop here", so a disabled drop
       // must not call it: the cursor would promise what onDrop then refuses.
       if (disabled || !carriesFiles(event)) return;
       event.preventDefault();
       setOver(true);
-    }}
-    onDragLeave={event => {
+    },
+    onDragLeave: (event: DragEvent) => {
       if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOver(false);
-    }}
-    onDrop={event => {
+    },
+    onDrop: (event: DragEvent) => {
       if (disabled || !carriesFiles(event)) return;
       event.preventDefault();
       setOver(false);
-      take(event.dataTransfer.files[0]);
-    }}>
+      take(Array.from(event.dataTransfer.files));
+    },
+  };
+
+  // The button is the keyboard path. A click on the box is only a pointer shortcut for it,
+  // so the button stops its own click from reaching the box and opening the picker twice.
+  if (title !== undefined) return <div className={cx('ui-drop', 'ui-drop--area', showTarget && 'is-dragging', disabled && 'is-disabled', className)}
+    onClick={pick} {...drag}>
+    <EmptyState icon="upload" title={title} sub={note ?? ''}
+      actions={<Button variant="primary" size="sm" icon="upload" disabled={disabled}
+        onClick={event => { event.stopPropagation(); pick(); }}>{label}</Button>} />
+    {picker}
+  </div>;
+
+  return <div className={cx('ui-drop', disabled && 'is-disabled', className)} {...drag}>
     {children}
     <div className="ui-drop__row">
       {file
@@ -149,123 +181,11 @@ export function FileDrop({
         </div>
         : <>
           <Button size="sm" icon="upload" disabled={disabled}
-            onClick={() => input.current?.click()}>{label}</Button>
+            onClick={pick}>{label}</Button>
           {note && <p className="ui-drop__note">{note}</p>}
         </>}
-      {/* Hidden rather than laid over the button: a one-row control has no field
-          label to name an overlaid input, and the button keeps the kit's own
-          ring. Never a keyboard stop, so it takes no focus rule. Cleared after
-          each choice so re-picking the same file reports. */}
-      <input ref={input} type="file" accept={accept} disabled={disabled} hidden tabIndex={-1}
-        onChange={event => { take(event.currentTarget.files?.[0]); event.currentTarget.value = ''; }} />
+      {picker}
     </div>
     {showTarget && <div className="ui-drop__target" aria-hidden="true">{dropLabel}</div>}
-  </div>;
-}
-
-export type FileDropAreaProps = {
-  /** What the area is for, in the first-run block's title. */
-  title: string;
-  /** The accepted types and the size limit, under the title. */
-  note?: string;
-  /** The button that opens the picker. */
-  label?: string;
-  accept?: string;
-  multiple?: boolean;
-  /** Drives the accent edge from a parent that owns the drag. */
-  dragging?: boolean;
-  disabled?: boolean;
-  onFiles?: (files: File[]) => void;
-  className?: string;
-};
-
-/** The empty page's drop: a dashed box around the first-run block. The button is
- *  the keyboard path and opens the picker; a click on the box is only a pointer
- *  shortcut for it, and a file dropped anywhere in the box is taken. */
-export function FileDropArea({
-  title, note, label = 'Upload', accept, multiple, dragging, disabled, onFiles, className,
-}: FileDropAreaProps) {
-  const input = useRef<HTMLInputElement>(null);
-  const [over, setOver] = useState(false);
-  const pick = () => { if (!disabled) input.current?.click(); };
-  const take = (files: File[]) => { if (files.length && !disabled) onFiles?.(files); };
-  return <div className={cx('ui-drop', 'ui-drop--area', (dragging ?? over) && !disabled && 'is-dragging', disabled && 'is-disabled', className)}
-    onClick={pick}
-    onDragOver={event => {
-      if (disabled || !carriesFiles(event)) return;
-      event.preventDefault();
-      setOver(true);
-    }}
-    onDragLeave={event => {
-      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOver(false);
-    }}
-    onDrop={event => {
-      if (disabled || !carriesFiles(event)) return;
-      event.preventDefault();
-      setOver(false);
-      take(Array.from(event.dataTransfer.files));
-    }}>
-    <EmptyState icon="upload" title={title} sub={note ?? ''}
-      actions={<Button variant="primary" size="sm" icon="upload" disabled={disabled}
-        onClick={event => { event.stopPropagation(); pick(); }}>{label}</Button>} />
-    <input ref={input} type="file" accept={accept} multiple={multiple} disabled={disabled} hidden tabIndex={-1}
-      onClick={event => event.stopPropagation()}
-      onChange={event => { take(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
-  </div>;
-}
-
-export type PageDropProps = {
-  /** The words on the layer. */
-  label?: string;
-  /** Shows the layer from a parent, for a story or a capture. Left out, a file dragged over the page shows it. */
-  open?: boolean;
-  disabled?: boolean;
-  /** Every file dropped anywhere on the page, unless something under the pointer already took the drop. */
-  onFiles?: (files: File[]) => void;
-};
-
-/** The whole page as a drop target. The layer is on screen only while a file is
- *  dragged over the page. It never takes the pointer, so the page keeps working
- *  under it, and the screen's own upload button stays the keyboard path. */
-export function PageDrop({ label = 'Drop files to upload', open, disabled, onFiles }: PageDropProps) {
-  const [over, setOver] = useState(false);
-  const take = useRef(onFiles);
-  take.current = onFiles;
-  useEffect(() => {
-    if (disabled) { setOver(false); return; }
-    const aim = (event: globalThis.DragEvent) => {
-      if (!event.dataTransfer || !Array.from(event.dataTransfer.types).includes('Files')) return;
-      // preventDefault() is how the page says "drop here"; without it the browser opens the file.
-      event.preventDefault();
-      setOver(true);
-    };
-    // Leaving the window reports no element entered; moving between elements does.
-    const leave = (event: globalThis.DragEvent) => { if (event.relatedTarget === null) setOver(false); };
-    const drop = (event: globalThis.DragEvent) => {
-      setOver(false);
-      if (event.defaultPrevented || !event.dataTransfer || !Array.from(event.dataTransfer.types).includes('Files')) return;
-      event.preventDefault();
-      const files = Array.from(event.dataTransfer.files);
-      if (files.length) take.current?.(files);
-    };
-    const end = () => setOver(false);
-    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOver(false); };
-    window.addEventListener('dragenter', aim);
-    window.addEventListener('dragover', aim);
-    window.addEventListener('dragleave', leave);
-    window.addEventListener('drop', drop);
-    window.addEventListener('dragend', end);
-    window.addEventListener('keydown', escape);
-    return () => {
-      window.removeEventListener('dragenter', aim);
-      window.removeEventListener('dragover', aim);
-      window.removeEventListener('dragleave', leave);
-      window.removeEventListener('drop', drop);
-      window.removeEventListener('dragend', end);
-      window.removeEventListener('keydown', escape);
-    };
-  }, [disabled]);
-  return <div className={cx('ui-drop-page', (open ?? over) && !disabled && 'is-open')} aria-hidden="true">
-    <EmptyState icon="upload" title={label} sub="" />
   </div>;
 }

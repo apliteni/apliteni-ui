@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AppShell } from '../AppShell';
 import { DataTable } from '../DataTable';
 import { EmptyState } from '../EmptyState';
-import { FileDropArea, PageDrop } from '../FileDrop';
+import { FileDrop } from '../FileDrop';
 import { TextField } from '../Field';
 import { DrawerSection, KeyValueList } from '../KeyValueList';
 import { Badge } from '../primitives/Badge';
@@ -98,6 +98,53 @@ const validTotal = (value: string) => {
   const cents = centsOf(value);
   return cents !== null && cents >= MIN_CENTS;
 };
+/* The drag logic of the list page's drop layer. A file dragged over the window shows the layer,
+   and a file dropped anywhere is added. Behaviour only: the layer's paint is the kit's
+   `ui-drop--page`. Text and links carry no file, so they show nothing. `enabled` is false on a
+   record, where there is nothing to add to. Escape ends it too, because the browser sends the
+   page no event when a drag is cancelled that way. */
+function useWindowFileDrag(enabled: boolean, onFiles: (files: File[]) => void) {
+  const [over, setOver] = useState(false);
+  const take = useRef(onFiles);
+  take.current = onFiles;
+  useEffect(() => {
+    if (!enabled) { setOver(false); return; }
+    const carriesFiles = (event: DragEvent) => !!event.dataTransfer && Array.from(event.dataTransfer.types).includes('Files');
+    const aim = (event: DragEvent) => {
+      if (!carriesFiles(event)) return;
+      // preventDefault() is how the page says "drop here"; without it the browser opens the file.
+      event.preventDefault();
+      setOver(true);
+    };
+    // Leaving the window reports no element entered; moving between elements does.
+    const leave = (event: DragEvent) => { if (event.relatedTarget === null) setOver(false); };
+    const drop = (event: DragEvent) => {
+      setOver(false);
+      if (event.defaultPrevented || !carriesFiles(event)) return;
+      event.preventDefault();
+      const files = Array.from(event.dataTransfer!.files);
+      if (files.length) take.current(files);
+    };
+    const end = () => setOver(false);
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOver(false); };
+    window.addEventListener('dragenter', aim);
+    window.addEventListener('dragover', aim);
+    window.addEventListener('dragleave', leave);
+    window.addEventListener('drop', drop);
+    window.addEventListener('dragend', end);
+    window.addEventListener('keydown', escape);
+    return () => {
+      window.removeEventListener('dragenter', aim);
+      window.removeEventListener('dragover', aim);
+      window.removeEventListener('dragleave', leave);
+      window.removeEventListener('drop', drop);
+      window.removeEventListener('dragend', end);
+      window.removeEventListener('keydown', escape);
+    };
+  }, [enabled]);
+  return enabled && over;
+}
+
 const money = (value: string) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(Number(value));
 
 // Showcase state stays in memory; uploads and extraction never leave the browser.
@@ -131,6 +178,7 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
   const dirty = !!invoice && JSON.stringify(draft) !== JSON.stringify(invoice.fields);
   const pending = invoice?.status === 'Uploading' || invoice?.status === 'Parsing';
   const [preview, setPreview] = useState<string>();
+  const dropping = useWindowFileDrag(!invoice && invoices.length > 0, files => addFiles(files));
   /* The live region speaks for what is not on screen as text: a pane that is still loading
      and the effect of an action whose result is already visible. It is read, not seen, so it
      holds no space and nothing under it moves. */
@@ -278,9 +326,12 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
         {invoices.length ? <>
           <input ref={input} className="ui-sr" tabIndex={-1} type="file" multiple accept=".pdf,.png,.jpg,.jpeg" aria-label="Select invoices" onChange={event => { addFiles(Array.from(event.target.files ?? [])); event.target.value = ''; }} />
           <div className="ui-drop"><div className="ui-drop__row">{picker}<p className="ui-drop__note">PDF, PNG or JPEG.</p></div></div>
-          {/* A file dragged anywhere over the list covers the page and a drop adds it. */}
-          <PageDrop onFiles={addFiles} />
-        </> : <FileDropArea title="Add your first invoices" note="PDF, PNG or JPEG." accept=".pdf,.png,.jpg,.jpeg" multiple onFiles={addFiles} />}
+          {/* A file dragged anywhere over the list dims the page under a card holding the message.
+              The card is opaque, so no row reads across the glyph or the line. */}
+          {dropping && <div className="ui-drop ui-drop--page" aria-hidden="true">
+            <div className="ui-card ui-card--fit"><EmptyState icon="upload" title="Drop files to upload" sub="" /></div>
+          </div>}
+        </> : <FileDrop title="Add your first invoices" note="PDF, PNG or JPEG." accept=".pdf,.png,.jpg,.jpeg" multiple onFiles={addFiles} />}
         {/* The kit's own inline message, which sets role="alert" for its danger tone and
             carries the glyph and the paint the kit gives a refusal. */}
         {error && <Callout variant="danger">{error}</Callout>}

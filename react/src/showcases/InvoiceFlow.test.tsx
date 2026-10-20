@@ -89,7 +89,7 @@ describe('invoice flow prototype', () => {
     // No sentence hired to explain that the box is clickable or that a file can be dropped.
     expect(screen.queryByText(/click it|click this box|anywhere in this box/i)).not.toBeInTheDocument();
     // The empty page keeps its dashed area and carries no whole-page layer.
-    expect(container.querySelector('.ui-drop-page')).toBeNull();
+    expect(container.querySelector('.ui-drop--page')).toBeNull();
     unmount();
     render(<InvoiceFlow initialState="table" />);
     expect(screen.getByRole('button', { name: 'Upload' })).toBeInTheDocument();
@@ -103,10 +103,10 @@ describe('invoice flow prototype', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getAllByText('Uploading')).toHaveLength(2);
   });
-  /* A file dragged over the list covers the page and a drop anywhere adds it. The events are
+  /* A file dragged over the list dims the page under a card and a drop anywhere adds it. The events are
    * dispatched on the window, as the browser sends them for a file from outside the page.
-   * Limit: jsdom lays nothing out, so that the layer covers the page and fades is seen in a
-   * browser. The drag itself is simulated, not a real operating-system drag. */
+   * Limit: jsdom lays nothing out, so that the layer covers the page and that no row reads
+   * across the card are measured in a browser. The drag itself is simulated, not a real operating-system drag. */
   const windowDrag = (type: string, files: File[] = [], types = ['Files']) => {
     const event = new Event(type, { bubbles: true, cancelable: true });
     Object.defineProperty(event, 'dataTransfer', { value: { types, files } });
@@ -116,13 +116,13 @@ describe('invoice flow prototype', () => {
   };
   it('covers the list page while a file is dragged over it and adds what is dropped anywhere', () => {
     const { container } = render(<InvoiceFlow initialState="table" />);
-    const layer = container.querySelector('.ui-drop-page')!;
-    expect(layer).not.toHaveClass('is-open');
+    expect(container.querySelector('.ui-drop--page')).toBeNull();
     windowDrag('dragenter');
-    expect(layer).toHaveClass('is-open');
+    const layer = container.querySelector('.ui-drop--page')!;
     expect(layer).toHaveTextContent('Drop files to upload');
+    expect(layer).toHaveAttribute('aria-hidden', 'true');
     windowDrag('drop', [new File(['a'], 'one.pdf'), new File(['b'], 'two.jpg')]);
-    expect(layer).not.toHaveClass('is-open');
+    expect(container.querySelector('.ui-drop--page')).toBeNull();
     expect(screen.getAllByText('Uploading').length).toBeGreaterThanOrEqual(3);
     expect(screen.getByRole('link', { name: 'one.pdf' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'two.jpg' })).toBeInTheDocument();
@@ -134,14 +134,47 @@ describe('invoice flow prototype', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('No files were added');
     expect(screen.queryByRole('link', { name: 'notes.txt' })).not.toBeInTheDocument();
   });
+  it('holds the message on an opaque card, so no row of a long list reads across it', () => {
+    /* D1 of the #459 designer review: at the page ground's 90% the rows behind the layer still
+     * showed at 1.2:1 and crossed the glyph and the line. The card is the kit's own and takes
+     * the surface in full, so the message sits on paint whatever the list behind it holds. */
+    const { container } = render(<InvoiceFlow initialState="table" />);
+    windowDrag('dragenter');
+    const card = container.querySelector('.ui-drop--page > .ui-card')!;
+    expect(card.querySelector('.ui-empty__icon svg')).not.toBeNull();
+    expect(card.querySelector('.ui-empty__title')).toHaveTextContent('Drop files to upload');
+    // One glyph and one line: no button, no second line.
+    expect(card.querySelector('.ui-empty__sub, .ui-empty__actions')).toBeNull();
+    const rule = /\.ui-card\s*\{([^}]*)\}/.exec(readFileSync(path.join(process.cwd(), '../src/styles/card.css'), 'utf8'))?.[1] ?? '';
+    expect(rule).toMatch(/background:\s*var\(--surface\)\s*;/);
+  });
   it('shows no layer for text or a link dragged over the page, and none on a record', async () => {
     const user = userEvent.setup();
     const { container } = render(<InvoiceFlow initialState="table" />);
     windowDrag('dragenter', [], ['text/plain']);
-    expect(container.querySelector('.ui-drop-page')).not.toHaveClass('is-open');
+    expect(container.querySelector('.ui-drop--page')).toBeNull();
     // Adding files is a list action: a record open for review has no layer to drop on.
     await user.click(screen.getByRole('link', { name: 'cedar-1042.pdf' }));
-    expect(container.querySelector('.ui-drop-page')).toBeNull();
+    windowDrag('dragenter');
+    expect(container.querySelector('.ui-drop--page')).toBeNull();
+  });
+  it('ends the layer when the pointer leaves the window, on Escape and when the drag ends', () => {
+    const { container } = render(<InvoiceFlow initialState="table" />);
+    const layer = () => container.querySelector('.ui-drop--page');
+    windowDrag('dragenter');
+    windowDrag('dragleave');
+    expect(layer()).toBeNull();
+    windowDrag('dragenter');
+    act(() => { fireEvent.keyDown(window, { key: 'Escape' }); });
+    expect(layer()).toBeNull();
+    windowDrag('dragenter');
+    windowDrag('dragend');
+    expect(layer()).toBeNull();
+  });
+  it('adds a file dropped on the empty page\'s area once, with no layer to add it again', () => {
+    const { container } = render(<InvoiceFlow />);
+    fireEvent.drop(container.querySelector('.ui-drop--area')!, { dataTransfer: { types: ['Files'], files: [new File(['a'], 'one.pdf')] } });
+    expect(screen.getAllByText('Uploading')).toHaveLength(1);
   });
   it('keeps the Upload button as the keyboard way to add files to the list', async () => {
     const user = userEvent.setup();
@@ -263,8 +296,8 @@ describe('invoice flow prototype', () => {
       expect(found, `${what} sets its bottom margin from a --space token`).not.toBeNull();
       return found![1];
     };
-    const fields = stepOf(/\.invoice-flow__fields\s*\{[^}]*margin-bottom:\s*var\((--space-\d+)\)/, 'the field grid');
-    const summary = stepOf(/\.invoice-flow__summary\s*\{[^}]*margin-bottom:\s*var\((--space-\d+)\)/, 'the summary');
+    const fields = stepOf(/\.invoice-flow__fields\s*\{[^}]*margin:\s*0 0 var\((--space-\d+)\)/, 'the field grid');
+    const summary = stepOf(/\.invoice-flow__summary\s*\{[^}]*margin:\s*0 0 var\((--space-\d+)\)/, 'the summary');
     expect(summary, `the summary (${summary}) takes the form's own step (${fields})`).toBe(fields);
   });
   it('keeps the toast through an edit and clears the other lines on the next edit', async () => {
@@ -314,6 +347,20 @@ describe('invoice flow prototype', () => {
     const tracks = /\.invoice-flow__columns\s*\{[^}]*grid-template-columns:\s*minmax\(0, (\d+)fr\) minmax\(0, (\d+)fr\)/.exec(SHEET);
     expect(tracks, 'the pane pair sets two fr tracks').not.toBeNull();
     expect(Number(tracks![1]), 'the saved pane takes the wider track').toBeGreaterThan(Number(tracks![2]));
+  });
+  it('keeps the record form in two columns down to the phone, as Artur approved', () => {
+    /* D2 of the #459 designer review. A fluid track, repeat(auto-fit, minmax(15rem, 1fr)),
+     * fits one 15rem column in the 468 px card at 834 px and 444 px at 600 px, so the form
+     * went to one column at iPad width and Save moved 201 px down. The approved layout is two
+     * equal columns above the phone breakpoint, held here as the declarations rather than as a
+     * measurement because jsdom lays nothing out; the browser measurement is in the PR. */
+    const fields = /\.invoice-flow__fields\s*\{([^}]*)\}/.exec(SHEET)?.[1] ?? '';
+    expect(fields).toMatch(/grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+    expect(fields).not.toMatch(/auto-fit|auto-fill/);
+    const phone = /@media \(max-width: 560px\)\s*\{([^@]*)\}/.exec(SHEET)?.[1] ?? '';
+    expect(phone).toMatch(/\.invoice-flow__fields\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\)/);
+    // No other rule narrows the form between the phone and the desktop.
+    expect(SHEET.match(/\.invoice-flow__fields/g)).toHaveLength(2);
   });
   it('shows a document that can disagree with the parsed data', () => {
     // The whole point of the two columns: the preview is the document, not the form again.

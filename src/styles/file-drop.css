@@ -89,26 +89,20 @@
 .ui-drop--area.is-dragging { border-color: var(--accent); }
 @media (max-width: 560px) { .ui-drop--area { padding: var(--space-3); } }
 
-/* The whole page as a target. It is on screen only while a file is dragged over
-   the page, it takes no pointer events so the drop lands on what is under it,
-   and the page ground at 90% leaves that page dimly in view. Only the hide is
-   transitioned, as the palette does: the layer stays visible while it fades.
-   `linear` because visibility is discrete. */
-.ui-drop-page {
+/* The whole page as a target, drawn only while a file is dragged over the page.
+   The layer dims the page under it and takes no pointer events, so the drop lands on
+   what is under it. The message sits on a card, which is opaque: a longer list behind
+   the layer never reads across the glyph or the line. The ground at 90% leaves the
+   page dimly in view around the card, as the products this follows do. */
+.ui-drop--page {
   position: fixed;
   inset: 0;
   z-index: var(--z-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--space-4);
   pointer-events: none;
-  visibility: hidden;
-  opacity: 0;
   background: color-mix(in srgb, var(--bg) 90%, transparent); /* code-bg: inherit — the layer holds no focus target and takes no pointer. */
-  transition: opacity var(--dur-med) var(--ease), visibility var(--dur-med) linear;
 }
-.ui-drop-page.is-open { visibility: visible; opacity: 1; }
-
-/* The block rises into place as the layer fades in. */
-.ui-drop-page .ui-empty { transform: translateY(var(--space-2)); transition: transform var(--dur-med) var(--ease); }
-.ui-drop-page.is-open .ui-empty { transform: none; }
+.ui-drop--page .ui-empty { padding: 0; }

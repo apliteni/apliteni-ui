@@ -12,7 +12,7 @@
 
 **Don't:** Draw a tall dashed box with a glyph, an invitation and a button stacked inside it.
 
-**Except:** A page that exists to receive one file may use the field-sized picker, which has its own label. An empty page may show a dashed drop area until the first file arrives. Artur: “For blank state - drop area is ok”.
+**Except:** A page that exists to receive one file may use the field-sized picker, which has its own label. An empty page may show a dashed drop area until the first file arrives. Artur chose this on #458.
 
 ## Paint the target only while a file is over it
 
@@ -26,7 +26,7 @@
 
 **Don't:** Cover the whole window when one panel accepts the file.
 
-**Except:** A page that takes files anywhere may cover the whole page. Artur: “show drop area on the whole page when someone tries to drop a file”.
+**Except:** A page that takes files anywhere may cover the whole page. Artur chose this on #458.
 
 ## Keep the file in the row it arrived in
 
