@@ -467,6 +467,9 @@ a.ui-identity:hover { text-decoration: underline; }
   .ui-table--pinned .ui-identity__name { min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 
+/* Automatic layout hands every column a share of the free width, and a box is not worth one: the selection column takes the width of its box and the gap after it. The pinned table below fixes it instead. */
+.ui-table .ui-table__selection { width: 1%; }
+
 /* One width reserves the selection track and offsets the adjacent identity. */
 .ui-table--pinned { --ui-table-selection-width: var(--space-12); --ui-table-identity-max: min(var(--panel-sm), 50vw); }
 .ui-table--pinned .ui-table__selection { box-sizing: border-box; width: var(--ui-table-selection-width); min-width: var(--ui-table-selection-width); max-width: var(--ui-table-selection-width); padding-inline: 0; text-align: center; }

@@ -8,6 +8,7 @@
    instead — a 22px penumbra off a 10px offset, the width Artur's reference uses on a
    card. Chosen by him on #490 round t3. why: docs/foundations.md#elevation */
 .ui-card {
+  --ui-card-ground: var(--surface); /* the ground a scrolling row inside covers its edge with; a tint repeats it below */
   background: var(--surface);
   border: 1px solid var(--card-edge);
   box-shadow: var(--elev-rest);
@@ -51,9 +52,11 @@
    works in dark sinks a light card below the page. The accent card keeps the plain
    edge. why: docs/foundations.md#elevation */
 .ui-card--accent {
+  --ui-card-ground: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
   background: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
 }
 .ui-card--live {
+  --ui-card-ground: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
   background: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
   border-color: color-mix(in srgb, var(--green) 22%, transparent);
 }

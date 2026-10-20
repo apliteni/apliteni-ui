@@ -24,7 +24,7 @@
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:158",
+        "ref": "src/styles/input.css:164",
         "pattern": ".ui-check input::before"
       },
       {
@@ -48,7 +48,7 @@
         "pattern": "--tap-gap: var(--space-5, 20px);"
       },
       {
-        "ref": "src/styles/tap-zone.css:184",
+        "ref": "src/styles/tap-zone.css:191",
         "pattern": ".ui-confirm__acts,"
       }
     ],
@@ -140,15 +140,15 @@
         "pattern": "background: var(--accent);"
       },
       {
-        "ref": "src/styles/nav.css:323",
+        "ref": "src/styles/nav.css:368",
         "pattern": ".ui-nav--tabs.is-underline .ui-nav__tab.is-active::after"
       },
       {
-        "ref": "src/styles/nav.css:329",
+        "ref": "src/styles/nav.css:376",
         "pattern": "background: var(--glow-purple);"
       },
       {
-        "ref": "src/styles/nav.css:330",
+        "ref": "src/styles/nav.css:375",
         "pattern": "color: var(--accent);"
       },
       {
@@ -424,7 +424,7 @@
     ],
     "section-lit": [
       {
-        "ref": "src/components/nav.js:109",
+        "ref": "src/components/nav.js:110",
         "pattern": "const current = activeIs === 'section'"
       }
     ],
@@ -558,7 +558,7 @@
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:83",
+        "ref": "src/styles/card.css:86",
         "pattern": "rank: card-title"
       }
     ],
@@ -975,7 +975,7 @@
     ],
     "nav": [
       {
-        "ref": "src/components/nav.js:106",
+        "ref": "src/components/nav.js:107",
         "pattern": "export function sidebarNav("
       },
       {
@@ -999,7 +999,7 @@
         "pattern": "export function switchToggle("
       },
       {
-        "ref": "src/styles/card.css:100",
+        "ref": "src/styles/card.css:103",
         "pattern": ".ui-card__row {"
       }
     ],

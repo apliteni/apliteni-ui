@@ -52,7 +52,7 @@ import {
 
 const THEMES = ['dark', 'light'] as const;
 // Card's SettingRows story adds one Switch to the measured catalogue.
-const FIELD_COUNT = 62;
+const FIELD_COUNT = 64;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
