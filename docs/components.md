@@ -810,7 +810,7 @@ A `.ui-table__title` cell gives a text column the remaining width. A column take
 `stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
 and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
 with no strike line. `stack` writes the table roles that the block layout drops. Below the phone step each row
-shows every cell, so no amount scrolls out of reach, and an amount column (`num`) shows its label before each figure. A table that does not scroll is the card's own child, so a dense or stacked table reaches the card's text edge.
+shows every cell, so no amount scrolls out of reach. An amount column (`num`) with a text label shows that label before each figure. A table that does not scroll is the card's own child, so a dense or stacked table reaches the card's text edge.
 Its pager follows the measured table width and wraps when necessary.
 Without `ResizeObserver`, the pager keeps its container width.
 A pager that renders no controls takes no space.
