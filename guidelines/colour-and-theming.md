@@ -38,7 +38,7 @@
 
 **Don't:** Use `--accent` as ground.
 
-**Except:** Phoenix, Ocean and Emerald share one token, while Nebula differs. Artur chose `--accent` for dark selected Segmented pills on #614.
+**Except:** Only Nebula gives the two tokens different values. Artur chose `--accent` for dark selected Segmented pills on #614.
 
 <!-- rule: accent-strong -->
 
@@ -77,7 +77,7 @@
 
 **Why:** Grey reading areas appear disabled.
 
-**Do:** Give inputs edges. Reserve grey fills for non-text states: disabled tracks and dividers.
+**Do:** Give inputs edges. Reserve grey fills for non-text states, such as disabled tracks and dividers.
 
 **Don't:** Put text on grey fields, chips, headers or footers.
 

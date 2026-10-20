@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.125.1', date: '2026-10-20',
     changes: [
-      ['changed', 'The Colour and theming guideline limits selected navigation to one accent signal. The NavTabs pill keeps its accent label on a soft accent fill to distinguish the current route from hover. See #475.', ['Guidelines', 'Navigation']],
+      ['changed', 'The Colour and theming guideline limits selected navigation to one accent signal. The NavTabs pill keeps its accent label on a soft accent fill, because the fill alone is too faint to mark the current route. See #475.', ['Guidelines', 'Navigation']],
     ],
   },
   {
