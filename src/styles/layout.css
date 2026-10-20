@@ -119,7 +119,7 @@
    resting step. */
 /* Re-tuned at #295, which took the light rail down a step with the page. Below 720px
    the glyph is the whole row, so it is held at text grade rather than at 1.4.11's bar —
-   stories/apps/shell-states.test.js:1708 `a resting glyph is dimmer but still legible`. */
+   stories/apps/shell-states.test.js:1535 `a resting glyph is dimmer but still legible`. */
 .ui-app__rail .ui-nav__ic svg { opacity: 0.66; }
 
 /* A destructive row of the rail is a navigation row and rests like one; the danger
@@ -139,6 +139,8 @@
   padding-top: var(--space-5);
   border-top: 1px solid var(--border);
 }
+/* A drawer's footer carries no rule above it, so the block keeps the rail's rule out. */
+.ui-app__drawer .ui-app__user { padding-top: 0; border-top: 0; }
 /* The other thing that can close a rail: where the reader's block is in the band,
    the fold's control takes its place under the same rule.
    why: docs/components.md#the-page-shell */
@@ -254,8 +256,7 @@
 .ui-app.is-collapsed .ui-app__fold .ui-app__fold-arrow { transform: scaleX(-1); }
 
 /* -- The collapsed rail --------------------------------------------------- */
-/* Each rule here has its twin in the 720px block below; nothing lays a row out
-   again. why: docs/components.md#the-page-shell */
+/* The reader's own fold, at the widths that have a rail. why: docs/components.md#the-page-shell */
 .ui-app.is-collapsed { --ui-rail-w: calc(var(--ui-nav-strip) + 2 * var(--space-4) + var(--ui-rail-rule)); }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__cap,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__label,
@@ -263,20 +264,17 @@
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__caret,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-app__who,
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-dropdown__chevron,
-:where(.ui-app.is-collapsed) .ui-app__brand span { opacity: 0; pointer-events: none; }
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-app__brand span { opacity: 0; pointer-events: none; }
 /* The toggle rides onto the glyph column — the two widths' own difference — and the
-   lockup goes whole, since that column is where its mark stood. The mark may only go
-   where the control arrives: below 720px the toggle is not drawn, so the 720px block
-   gives the lockup back rather than leaving an empty band with a hairline under it.
-   why: docs/components.md#the-page-shell */
+   lockup goes whole, since that column is where its mark stood. Below 720px there is
+   no rail, so none of this is drawn. why: docs/components.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__head > .ui-app__fold-row { inset-inline-start: calc(var(--ui-nav-strip) - var(--ui-nav-col)); }
 /* …and only in the layout where something arrives on the mark's column. In the
    topbar layout the toggle is at the rail's foot, nothing lands where the mark
    stands, and a lockup faded out there leaves a band with nothing in it and its
-   hairline still under it — the defect the 720px block below exists to avoid. So
-   that layout keeps the mark and lets the shared rule above fold away its words.
+   hairline still under it. So that layout keeps the mark and lets the shared rule above fold away its words.
    why: docs/components.md#the-page-shell */
-:where(.ui-app:not(.ui-app--topbar).is-collapsed) .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
+:where(.ui-app:not(.ui-app--topbar).is-collapsed) .ui-app__rail .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
 /* The current row's plate on the glyph column, and beside it the one thing a bare rail
@@ -502,61 +500,48 @@
   .ui-toolbar--split > :last-child { margin-inline-start: 0; align-self: start; }
 }
 
-/* -- The narrow rail ------------------------------------------------------ */
-/* Below this width the rail folds to the icon strip instead of disappearing, and
-   it is the fold the reader's own press makes — every rule here has its twin
-   above. Scoped to the shell's own rail; a sidebarNav() elsewhere keeps its
-   labels. Nothing here resizes a glyph: an icon-sizing rule inside a media query
-   is one src/styles/icon-size.test.js cannot measure, and it says so. */
+/* -- The phone shell ------------------------------------------------------ */
+/* Below this width there is no rail and no strip. A band at the top holds the menu
+   control and the brand's mark, the control opens the same rail in the kit's left
+   drawer, and the reading column takes the whole width. The band, the control and the
+   drawer exist at every width and are not drawn above it, so the rail's rows above
+   720px are the rows they were. why: docs/components.md#the-page-shell */
+.ui-app__bar--phone { display: none; }
+.ui-btn.ui-app__menu { display: none; }
+.ui-app__brand--band { display: none; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; /* a finger's box around a 24px mark */ }
+.ui-app__drawer { display: none; }
+/* The drawer panel is --bg-elevated, which --surface matches exactly in light, so nav.css's
+   plate measures 1.00:1 there. The current row and the hover wash take the rung the rail
+   takes (--surface-3), and the count keeps its --surface pill on that plate. Dark already
+   has a step and keeps it. why: docs/components.md#the-page-shell */
+:where(:root[data-theme="light"]) .ui-app__drawer .ui-nav__item:not(.is-danger):not(.is-active):hover { background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
+:where(:root[data-theme="light"]) .ui-app__drawer .ui-nav__item.is-active { background: var(--surface-3); /* code-bg: inherit — The control keeps the containing ground. */ }
 @media (max-width: 720px) {
-  .ui-app { --ui-rail-w: calc(var(--ui-nav-strip) + 2 * var(--space-4) + var(--ui-rail-rule)); }
-  /* The strip is the only layout this width has, so there is nothing to fold. */
-  .ui-app__rail .ui-app__fold-row { display: none; }
-  /* …and the foot goes with it, for the reason the head band does below: in the
-     topbar layout that box holds the toggle and nothing else, so at this width it is
-     padding and a hairline drawn over nothing. Scoped to the shell's own rail, like
-     every other rule in this block. why: docs/components.md#the-page-shell */
-  .ui-app__rail .ui-app__foot { display: none; }
-  /* …and with it the band, when the band has nothing else in it: a head with no
-     wordmark is the toggle alone, so at this width it is padding and a hairline
-     drawn over nothing. The reader's fold cannot take this rule — there the toggle
-     IS drawn. why: docs/components.md#the-page-shell */
-  .ui-app__head:not(:has(> .ui-app__brand)) { display: none; }
-  /* And where the band does hold the mark, the mark stays — at this width the press
-     that folded the rail on a desktop still reads out of the cookie, and the control
-     that would undo it is the one above. A head band faded to nothing here is an empty
-     41px box over a rule, with no way home. The reader's fold cannot take this rule —
-     there the toggle lands on the column the mark gives up.
-     why: docs/components.md#the-page-shell */
-  .ui-app__brand { opacity: 1; visibility: visible; pointer-events: auto; }
-  .ui-app__rail .ui-nav__cap,
-  .ui-app__rail .ui-nav__label,
-  .ui-app__rail .ui-nav__badge,
-  .ui-app__rail .ui-nav__caret,
-  .ui-app__rail .ui-app__who,
-  .ui-app__rail .ui-dropdown__chevron,
-  .ui-app__brand span { opacity: 0; pointer-events: none; }
-  .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
-  .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
-  .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
-  .ui-app__rail .ui-nav__item.is-active::before { content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */ background: var(--surface-3); /* code-bg: inherit — The plate contains no focus target. */ z-index: -1; }
-  .ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: none; }
-  /* The one line of this block that is deliberately NOT the reader's fold: a finger
-     is the only pointer this width has, so a row and the account block are held to
-     44px. Neither floor can spread to the press, where growing the box is the one
-     thing the travel promises nothing does. why: docs/components.md#the-page-shell */
-  .ui-app__rail .ui-nav__item,
-  .ui-app__rail .ui-app__user-trigger { min-height: 44px; }
-  .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
-  .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position: fixed; left: calc(var(--ui-rail-w) + var(--space-2)); z-index: var(--z-dropdown); width: max-content; max-width: 15rem; margin-block: -7px; padding: 6px 10px; border: 1px solid var(--float-edge); box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop); border-radius: var(--radius-xs); background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ color: var(--strong); opacity: 1; pointer-events: none; }
-  @supports (anchor-name: --a) and (anchor-scope: --a) {
-    .ui-app { anchor-scope: --ui-rail; }
-    .ui-app__rail { anchor-name: --ui-rail; }
-    .ui-app__rail .ui-nav__item,
-    .ui-app__rail .ui-app__user-trigger { anchor-name: --ui-rail-row; anchor-scope: --ui-rail-row; }
-    .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label,
-    .ui-app__rail .ui-app__user-trigger:is(:hover, :focus-visible) > .ui-app__who { position-anchor: --ui-rail-row; left: calc(anchor(--ui-rail right) + var(--space-2)); top: anchor(top); bottom: anchor(bottom); align-self: center; margin-block: 0; }
-  }
+  /* A column, not a grid: the band sticks to the top of the shell, and a sticky grid
+     item sticks only inside its own row. */
+  .ui-app { display: flex; flex-direction: column; }
+  .ui-app > .ui-app__rail { display: none; }
+  .ui-app__well { flex: 1 1 auto; }
+  .ui-app > .ui-app__main { flex: 1 1 auto; }
+  .ui-app > .ui-app__bar--phone { display: flex; }
+  .ui-btn.ui-app__menu { display: inline-flex; }
+  .ui-app__brand--band { display: flex; }
+  /* The menu control stands at the band's start with the band's inset beside it. */
+  .ui-app__bar { padding-inline: var(--space-2) var(--space-4); }
+  /* The drawer paints itself and sits out of the flow, so its wrapper takes no height. */
+  .ui-app__drawer { display: block; }
+  /* The rail's rows are the drawer's rows: the column fills the panel, and the foot
+     starts at the panel's edge like the rows above it. */
+  .ui-app__drawer .ui-nav--side,
+  .ui-app__drawer .ui-nav--side > * { width: 100%; }
+  /* The panel's title names the list, so the section's own caption stays out. */
+  .ui-app__drawer .ui-nav__cap { display: none; }
+  .ui-app__drawer .ui-drawer__footer { justify-content: flex-start; }
+  .ui-app__drawer .ui-app__user { width: 100%; }
+  /* A finger is the only pointer this width has, so a row and the account block are
+     held to 44px. why: docs/components.md#the-page-shell */
+  .ui-app__drawer .ui-nav__item,
+  .ui-app__drawer .ui-app__user-trigger { min-height: 44px; }
   .ui-app__main { padding: 28px var(--space-4) 56px; }
   .ui-app__main h1 { font-size: calc(var(--text-xl) + 3px); }
   /* A settings row is label-beside-control, and below this step any control that does
@@ -730,19 +715,6 @@
   .ui-app.is-collapsed .ui-app__rail .ui-nav__item.is-current.is-disabled:not(.is-active)::before { background: GrayText; }
   /* The floating name of a selected folded row inherits the row's adjust, so it is painted in system colours. */
   .ui-app.is-collapsed .ui-app__rail .ui-nav__item:is(.is-active, .is-current):is(:hover, :focus-visible) > .ui-nav__label {
-    forced-color-adjust: auto; background: Canvas; color: CanvasText; border-color: CanvasText;
-  }
-}
-@media (forced-colors: active) and (max-width: 720px) {
-  .ui-app .ui-app__rail .ui-nav__item:is(.is-active, .is-current) { isolation: isolate; background: none !important; }
-  .ui-app .ui-app__rail .ui-nav__item.is-current:not(.is-active)::before {
-    content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px;
-    transform: translateY(-50%);
-    z-index: -1;
-  }
-  .ui-app .ui-app__rail .ui-nav__item.is-current:not(.is-active):not(.is-disabled)::before { background: Highlight; }
-  .ui-app .ui-app__rail .ui-nav__item.is-current.is-disabled:not(.is-active)::before { background: GrayText; }
-  .ui-app .ui-app__rail .ui-nav__item:is(.is-active, .is-current):is(:hover, :focus-visible) > .ui-nav__label {
     forced-color-adjust: auto; background: Canvas; color: CanvasText; border-color: CanvasText;
   }
 }

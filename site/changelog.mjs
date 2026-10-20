@@ -6,10 +6,17 @@
 
 export const RELEASES = [
   {
+    v: '0.130.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React Card offers the vanilla card variants, icon chip, padding, setting rows and whole-card links. The Theme choice stays on one line with `ui-card__row--tight-choice`, and accent cards keep their tint without a coloured edge. Part of #429.', ['Card']],
+      ['changed', 'A whole-card link whose last child is its description no longer leaves a gap below it. Set the gap on the card if the design needs it.', ['Card']],
+    ],
+  },
+  {
     v: '0.129.0', date: '2026-10-20',
     changes: [
-      ['added', 'React Card offers the vanilla card variants, icon chip, padding, setting rows and whole-card links. The Theme choice stays on one line, and accent cards keep their tint without a coloured edge. Part of #429.', ['Card']],
-      ['changed', 'A whole-card link whose last child is its description no longer leaves a gap below it. Set the gap on the card if the design needs it.', ['Card']],
+      ['changed', 'At 720px and below, both shells replace the icon strip with a top band, a menu button, and the brand mark. The button opens the full rail in a left drawer, content uses the full width, and widths above 720px stay unchanged. React `AppShell` also removes its phone bottom bar, More drawer, and `--ui-app-bottom-clearance`.', ['Shell']],
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
     ],
   },
   {
