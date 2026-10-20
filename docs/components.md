@@ -417,6 +417,7 @@ value that the bar is not applying. The kit never writes to your own array or ob
 **The clear action is offered only when there is something to clear.** `filterBar` and React
 `FilterBar` render it after a filter is applied. It uses the kit's ghost button without a fill
 or border. A consumer reading `[data-filter-clear]` finds nothing when no filter is set.
+**The remove mark is drawn only on a chip with a value.** A chip with no value has nothing to remove.
 Both faces label it `Clear all`; `clearLabel` takes any wording.
 
 **Filter labels use secondary-control ink and weight.** The remove mark uses glyph ink.

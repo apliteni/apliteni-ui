@@ -112,7 +112,7 @@ const MEASURED = [
 const classOf = (state) => MEASURED.find((one) => one.is(state));
 
 /* Read the rendered default action. Explicit consumer variants are outside this check. */
-const clear = JSDOM.fragment(filterBar({ filters: [{ id: 'sector', label: 'Sector' }] }))
+const clear = JSDOM.fragment(filterBar({ filters: [{ id: 'sector', label: 'Sector', value: 'Technology' }] }))
   .querySelector('[data-filter-clear] button');
 assert.ok(clear, 'the factory must render a clear action');
 const VARIANTS = [...clear.classList].filter(c => c.startsWith('ui-btn--')).map(c => `.${c}`);

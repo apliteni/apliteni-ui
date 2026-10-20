@@ -72,7 +72,7 @@ const qualifiers = (compound) => (compound.match(/\[[^\]]+\]|:[\w-]+(?!\()/g) ??
 const subset = (small, big) => small.every((q) => big.includes(q));
 
 /* Read the rendered default action. Explicit consumer variants are outside this check. */
-const clear = JSDOM.fragment(filterBar({ filters: [{ id: 'sector', label: 'Sector' }] }))
+const clear = JSDOM.fragment(filterBar({ filters: [{ id: 'sector', label: 'Sector', value: 'Technology' }] }))
   .querySelector('[data-filter-clear] button');
 assert.ok(clear, 'the factory must render a clear action');
 const CLEAR_VARIANT = [...clear.classList].find(c => /^ui-btn--(?!sm$)/.test(c))?.slice('ui-btn--'.length);
@@ -253,3 +253,20 @@ function restated(rest, state) {
   const group = rules(BAR).find((r) => r.selector === `${rest}${state}`);
   return group ? valueOf(group.body, 'border-color') : null;
 }
+
+// The remove mark and the clear action name something to clear, so a chip with no value draws
+// neither. This reads the markup the factory returns; whether the row still looks right
+// is a browser question.
+test('a chip draws a remove mark, and the bar a clear action, only once a value is set', () => {
+  const doc = (filters) => new JSDOM(filterBar({ filters })).window.document;
+  const unset = doc([{ id: 'region', label: 'Region', value: '', items: [{ label: 'North', value: 'north' }] }]);
+  assert.equal(unset.querySelectorAll('[data-filter-remove]').length, 0, 'unset chip has no remove mark');
+  assert.equal(unset.querySelectorAll('[data-filter-clear]').length, 0, 'unset bar has no clear action');
+  const mixed = doc([
+    { id: 'region', label: 'Region', value: '', items: [{ label: 'North', value: 'north' }] },
+    { id: 'status', label: 'Status', value: 'Paid', items: [{ label: 'Paid', value: 'paid' }] },
+  ]);
+  assert.equal(mixed.querySelectorAll('[data-filter-remove]').length, 1, 'only the chip with a value has a remove mark');
+  assert.equal(mixed.querySelector('[data-filter-id="region"] [data-filter-remove]'), null);
+  assert.equal(mixed.querySelectorAll('[data-filter-clear]').length, 1, 'one value is enough for a clear action');
+});

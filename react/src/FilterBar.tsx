@@ -51,7 +51,17 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
       if (trigger) { focused.current = null; trigger.focus(); return; }
     }
     const prior = focused.current;
-    if (!prior || (prior.id === null && filters.length > 0) || filters.some(f => f.id === prior.id)) return;
+    if (!prior || (prior.id === null && filters.some(f => !filterChipUnset(f)))) return;
+    // A chip that lost its remove mark (its value was cleared) keeps its place: the
+    // focus the mark held moves to the chip's own trigger rather than to the page.
+    const kept = filters.some(f => f.id === prior.id);
+    if (kept) {
+      const held = chips.find(c => c.dataset.filterId === prior.id && !c.disabled);
+      const lost = !blocked && held && bar.current && bar.current.ownerDocument.activeElement === bar.current.ownerDocument.body
+        && held.querySelector<HTMLButtonElement>('[data-dropdown-trigger]');
+      if (lost) lost.focus();
+      return;
+    }
     const next = chips.slice(prior.index).find(chip => !chip.disabled)
       || chips.slice(0, prior.index).reverse().find(chip => !chip.disabled);
     const target = !blocked && next?.querySelector<HTMLButtonElement>('[data-dropdown-trigger]');
@@ -82,8 +92,8 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
         open={!blocked && !filter.disabled && (opened[filter.id] && opened[filter.id].against === filter.open ? opened[filter.id].open : !!filter.open)}
         onOpenChange={open => setOpened(previous => ({ ...previous, [filter.id]: { open, against: filter.open } }))}
         onSelect={value => { if (!blocked && !filter.disabled) onChange(filter.id, value == null ? undefined : String(value)); }} />
-      <button type="button" className="ui-filter-bar__remove" data-filter-remove="" aria-label={`Remove ${filter.label} filter`}
-        onClick={() => { if (!blocked && !filter.disabled) onRemove(filter.id); }}>×</button>
+      {!filterChipUnset(filter) && <button type="button" className="ui-filter-bar__remove" data-filter-remove="" aria-label={`Remove ${filter.label} filter`}
+        onClick={() => { if (!blocked && !filter.disabled) onRemove(filter.id); }}>×</button>}
     </fieldset>)}
     {/* Its onFocus clears the restore target, so nothing a controlled change does to the
         chips takes focus off this trigger. */}
@@ -100,6 +110,6 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     </div>}
     {/* Shown only once there is something to clear, as a quiet text button. The
         vanilla factory carries the reasoning. why: docs/components.md#a-filter-row-holds-its-panels */}
-    {filters.length > 0 && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant={clearVariant} onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
+    {filters.some(filter => !filterChipUnset(filter)) && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant={clearVariant} onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
   </fieldset></div>;
 }
