@@ -5,6 +5,7 @@ import { Card } from './primitives/Card';
 import { KeyValueList } from './KeyValueList';
 import { Badge } from './primitives/Badge';
 import { Button } from './primitives/Button';
+import { Dropdown } from './Dropdown';
 
 const sections = [
   { href: '/overview', label: 'Overview', icon: 'home' },
@@ -66,3 +67,7 @@ export const Tablet: Story = { render, globals: { viewport: { value: 'tablet', i
 // edits in a row corrupted. (#486)
 export const Phone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { bandControl: <Button variant="ghost" size="sm">Workspace</Button> } };
+
+export const PhoneDropdown: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  args: { bandControl: <Dropdown variant="menu" ariaLabel="Workspace" triggerContent="Workspace"
+    items={[{ label: 'Demo workspace', value: 'demo' }, { label: 'Sample workspace', value: 'sample' }]} /> } };

@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { appShell, wireShell } from './shell.js';
+import { focusablesIn } from './overlay.js';
 
 const quiet = new VirtualConsole();
 quiet.on('jsdomError', () => {});
@@ -147,4 +148,35 @@ test('a shell inside an open shadow root opens its drawer, closes it and closes 
   link.addEventListener('click', (e) => e.preventDefault());
   link.click();
   assert.ok(!drawer.classList.contains('is-open'), 'a press on a page in a shadow root\'s drawer left it open');
+});
+
+
+test('a shadow-root drawer traps both Tab directions and makes the page inert', () => {
+  const win = mount('<button id="outside">Outside</button><div id="host"></div>');
+  const doc = win.document;
+  const shadow = doc.getElementById('host').attachShadow({ mode: 'open' });
+  shadow.innerHTML = SHELL();
+  wireShell(shadow, { persist: false });
+  shadow.querySelector('.ui-app__menu').click();
+  const drawer = shadow.querySelector('.ui-app__drawer');
+  const close = drawer.querySelector('[data-drawer-close]');
+  const last = focusablesIn(drawer.querySelector('[data-drawer-panel]')).at(-1);
+  assert.ok(doc.getElementById('outside').inert, 'the page outside the shadow host stays interactive');
+  assert.equal(shadow.activeElement, close);
+  const tab = (shiftKey = false) => (shadow.activeElement || doc.activeElement).dispatchEvent(
+    new win.KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true, composed: true, cancelable: true }));
+  tab();
+  // JSDOM does not perform native Tab, so the trap must leave the first stop alone.
+  assert.equal(shadow.activeElement, close);
+  last.focus();
+  tab();
+  assert.equal(shadow.activeElement, close, 'forward Tab did not wrap inside the drawer');
+  close.focus();
+  tab(true);
+  assert.equal(shadow.activeElement, last, 'reverse Tab did not wrap inside the drawer');
+  doc.getElementById('outside').focus();
+  tab();
+  assert.equal(shadow.activeElement, close, 'Tab from outside did not return to the drawer');
+  drawer.querySelector('[data-drawer-close]').click();
+  assert.ok(!doc.getElementById('outside').inert, 'closing left the page inert');
 });

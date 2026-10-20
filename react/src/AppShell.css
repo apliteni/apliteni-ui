@@ -17,19 +17,14 @@
 /* The wrapper takes no box above the phone band, so the control sits on the band as it did without it. */
 .ui-react-app__band-control { display: contents; }
 @media (max-width: 560px) {
-  /* A control the page puts on the band keeps its words while the band has room, then stops at
-     the width left once the menu control, the search short form, the switch and the reader's
-     mark are drawn (264px), and never under 56px: it ellipsises rather than push the reader's
-     mark off a narrow page, and leaves the search trigger more than a sliver. */
-  .ui-react-app__band-control { display: flex; flex: none; max-width: max(56px, calc(100vw - 264px)); }
-  .ui-react-app__band-control > * { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  /* With a control on the band there is no room for the mark as well: the menu control
-     stays, and the drawer's title names the product. */
-  .ui-react-app .ui-app__bar:has(> .ui-react-app__band-control) > .ui-app__brand--band { display: none; }
-  /* The phone's end space is the ordinary one the kit gives every page. */
-  .ui-react-app .ui-app__bar { padding-inline: var(--space-4); }
-  /* No rule here for the band search at this width: layout.css's own 560px block
-     owns it, so React's band and the vanilla one shorten the same way. */
-  /* A one-section shell has no menu to stand beside, so its lockup gives the band's room to search. */
+  /* The menu, mark, search word, switch and account keep their boxes at 320px.
+     The band control gives the last eight pixels to the search word there. */
+  .ui-react-app .ui-app__bar { gap: var(--space-1); padding-inline: var(--space-2); }
+  .ui-react-app .ui-app__bar-gap { display: none; }
+  .ui-react-app .ui-app__search-ic { display: none; }
+  .ui-react-app .ui-app__search { flex: 1 1 auto; min-width: 56px; padding-inline: var(--space-2); }
+  .ui-react-app__band-control { display: flex; flex: 0 1 auto; min-width: 56px; max-width: min(90px, calc(100vw - 244px)); }
+  .ui-react-app__band-control > .ui-btn { min-width: 0; max-width: 100%; }
+  .ui-react-app__band-control > .ui-btn .ui-btn__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ui-react-app .ui-app__bar > .ui-app__brand:not(.ui-app__brand--band) { display: none; }
 }

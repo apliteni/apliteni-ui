@@ -8,9 +8,9 @@
  *   npm run build-storybook && npm run build-storybook -w react
  *   UI_PLAYWRIGHT=.../index.mjs PHONE_SHELL=1 node --test stories/phone-shell.test.js
  *
- * Limits: the browser half measures the Workspace band control of the React Phone story
- * and the vanilla centred rail, at 320 and 390, on a fine and a coarse pointer. Another
- * control a consumer puts in the band is not measured. The source half reads text.
+ * Limits: the browser half measures the Workspace button at 320 and 390, a Dropdown
+ * panel at 390, the brand at 720 and 721, and the vanilla centred rail at 390.
+ * Other band controls are not measured. The source half reads text.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -24,7 +24,7 @@ const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 
 test('the band control is capped on a phone, and the drawer’s account menu is not portalled', () => {
   const css = read('react/src/AppShell.css');
-  assert.match(css, /\.ui-react-app__band-control\s*\{[^}]*max-width:\s*max\(/, 'the band control has no width cap on a phone');
+  assert.match(css, /\.ui-react-app__band-control\s*\{[^}]*max-width:/, 'the band control has no width cap on a phone');
   assert.match(read('react/src/AppShell.tsx'), /ui-react-app__band-control/, 'AppShell does not wrap bandControl');
   assert.match(read('src/components/shell.js'), /portal:\s*false/, 'the drawer’s account block is portalled onto <body>, under the drawer');
 });
@@ -56,16 +56,27 @@ test('the React Phone story does not scroll sideways at 320 and keeps every band
           await page.goto(`http://127.0.0.1:${served.port}/iframe.html?id=react-appshell--phone&viewMode=story`);
           await page.waitForSelector('.ui-react-app__band-control', { state: 'visible' });
           const m = await page.evaluate(() => {
-            const sel = ['.ui-react-app__band-control', '.ui-app__bar button, .ui-app__bar [role="button"], .ui-app__bar .ui-app__user-trigger'];
+            const sel = ['.ui-react-app__band-control', '.ui-app__bar button, .ui-app__bar [role="button"], .ui-app__bar .ui-app__user-trigger, .ui-app__bar .ui-app__brand--band'];
             const boxes = [...document.querySelectorAll(sel[1])].filter((e) => e.checkVisibility()).map((e) => e.getBoundingClientRect());
             return {
               scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth,
               control: document.querySelector(sel[0]).getBoundingClientRect().width,
               off: boxes.filter((b) => b.right > innerWidth + 0.5 || b.left < -0.5).length, n: boxes.length,
+              brand: !!document.querySelector('.ui-app__bar .ui-app__brand--band')?.checkVisibility(),
+              brandHref: document.querySelector('.ui-app__bar .ui-app__brand--band')?.getAttribute('href'),
+              workspace: (() => { const label = document.querySelector('.ui-react-app__band-control .ui-btn__label'); return { name: label?.textContent, overflow: label?.scrollWidth > label?.clientWidth, ellipsis: label && getComputedStyle(label).textOverflow }; })(),
+              short: document.querySelector('.ui-app__search-short')?.getBoundingClientRect().width,
             };
           });
           const where = `${width}px, ${touch ? 'coarse' : 'fine'}`;
           assert.ok(m.n >= 3, `${where}: only ${m.n} band controls were measured`);
+          assert.ok(m.brand && m.brandHref, `${where}: the brand link is hidden`);
+          assert.ok(m.short >= 39, `${where}: Search is clipped (${m.short}px, band ${m.control}px, scroll ${m.scroll}px)`);
+          assert.equal(m.workspace.name, 'Workspace', `${where}: the control lost its full name`);
+          if (width === 320) {
+            assert.ok(m.workspace.overflow, `${where}: Workspace should shorten visibly`);
+            assert.equal(m.workspace.ellipsis, 'ellipsis', `${where}: Workspace has no ellipsis`);
+          }
           assert.ok(m.scroll <= m.client, `${where}: the page scrolls sideways (${m.scroll} over ${m.client})`);
           assert.equal(m.off, 0, `${where}: ${m.off} band controls sit off screen`);
           assert.ok(m.control >= 56, `${where}: the Workspace control is ${m.control}px wide, a sliver`);
@@ -107,6 +118,56 @@ test('the account menu opened in the drawer is not inert, and Sign out answers a
           }
           assert.ok(await page.evaluate(() => /Sign out/.test(document.activeElement?.textContent || '')), 'keys: arrow keys do not reach Sign out');
         }
+        await ctx.close();
+      }
+    } finally { await browser.close(); served.proc.kill(); }
+  });
+
+test('a Dropdown band control opens a panel that receives the pointer',
+  { skip: !RUN && 'set PHONE_SHELL=1' }, async () => {
+    const { served, browser } = await rig('react/storybook-static');
+    try {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+      const page = await ctx.newPage();
+      await page.goto(`http://127.0.0.1:${served.port}/iframe.html?id=react-appshell--phone-dropdown&viewMode=story`);
+      await page.locator('.ui-react-app__band-control .ui-dropdown__trigger').click();
+      const row = page.locator('.ui-react-app__band-control [data-dd-item]').first();
+      await row.waitFor({ state: 'visible' });
+      const hit = await row.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        const target = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return el === target || el.contains(target);
+      });
+      assert.ok(hit, 'the band clipped the open Dropdown panel');
+      await row.click();
+      assert.equal(await page.locator('.ui-react-app__band-control .ui-dropdown__trigger').getAttribute('aria-expanded'), 'false');
+      await ctx.close();
+    } finally { await browser.close(); served.proc.kill(); }
+  });
+
+test('the brand link and reading column hold at the 720px boundary',
+  { skip: !RUN && 'set PHONE_SHELL=1' }, async () => {
+    const { served, browser } = await rig('react/storybook-static');
+    try {
+      for (const width of [720, 721]) {
+        const ctx = await browser.newContext({ viewport: { width, height: 800 }, reducedMotion: 'reduce' });
+        const page = await ctx.newPage();
+        await page.goto(`http://127.0.0.1:${served.port}/iframe.html?id=react-appshell--phone&viewMode=story`);
+        await page.waitForSelector('.ui-react-app .ui-app__main');
+        const result = await page.evaluate(() => {
+          const bar = document.querySelector('.ui-app__bar .ui-app__brand--band');
+          const rail = document.querySelector('.ui-app__rail .ui-app__brand');
+          const main = document.querySelector('.ui-app__main').getBoundingClientRect();
+          return { bar: bar?.checkVisibility(), rail: rail?.checkVisibility(),
+            href: (bar?.checkVisibility() ? bar : rail)?.getAttribute('href'),
+            mainLeft: main.left, mainRight: main.right,
+            scroll: document.documentElement.scrollWidth };
+        });
+        assert.equal(result.bar, width === 720, `${width}px: wrong band brand state`);
+        assert.equal(result.rail, width === 721, `${width}px: wrong rail brand state`);
+        assert.ok(result.href, `${width}px: the home link is gone`);
+        assert.ok(result.mainLeft >= 0 && result.mainRight <= width + 0.5, `${width}px: the reading column leaves the viewport`);
+        assert.ok(result.scroll <= width, `${width}px: the page scrolls sideways`);
         await ctx.close();
       }
     } finally { await browser.close(); served.proc.kill(); }

@@ -51,20 +51,24 @@ export function focusablesIn(panel) {
   return Array.from(panel.querySelectorAll(FOCUSABLE)).filter(reachable);
 }
 
-// Hide everything *outside* `root` from AT + the tab order: walk root→body and mark each
+// Hide everything *outside* `root` from AT + the tab order: walk through a shadow
+// host when present, then to body, and mark each
 // ancestor's other children. Scrim and panel live inside the root so they stay
 // interactive; a drawer under an aria-modal alertdialog is outside it and must not be.
 function mark(page, doc, root) {
   let node = root;
-  while (node && node.parentElement && node !== doc.body) {
-    for (const sib of node.parentElement.children) {
+  while (node && node !== doc.body) {
+    const tree = node.getRootNode();
+    const parent = node.parentElement || (tree.host ? tree : null);
+    if (!parent) break;
+    for (const sib of parent.children) {
       if (sib === node) continue;
       page.marked.push([sib, sib.getAttribute('aria-hidden'), sib.hasAttribute('inert')]);
       sib.setAttribute('aria-hidden', 'true');
       sib.setAttribute('inert', '');
       sib.inert = true;
     }
-    node = node.parentElement;
+    node = parent.host || parent;
   }
 }
 
@@ -248,7 +252,7 @@ export function trapTab(panel, e) {
   if (!items.length) { e.preventDefault(); panel.focus(); return; }
   const first = items[0];
   const last = items[items.length - 1];
-  const active = (panel.ownerDocument || document).activeElement;
+  const active = panel.getRootNode().activeElement || panel.ownerDocument.activeElement;
   if (!panel.contains(active)) {
     e.preventDefault(); (e.shiftKey ? last : first).focus();
   } else if (e.shiftKey && (active === first || active === panel)) {
