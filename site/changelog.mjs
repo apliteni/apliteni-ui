@@ -8,16 +8,17 @@ export const RELEASES = [
   {
     v: '0.128.0', date: '2026-10-20',
     changes: [
-      ['added', '`drawerSection()` and React `KeyValueList` take `align: \'control\'`. A label then sits on the first text line of a control value, such as a select or an input. A list without it is unchanged.', ['Drawer']],
+      ['changed', 'In `drawerSection()` and React `KeyValueList`, a row whose value is a select, an input or a dropdown now aligns its label with the control by itself. Rows with text values are unchanged.', ['Drawer']],
       ['changed', 'The modal title is now semibold in the strong ink.', ['Modal']],
-      ['changed', 'The select chevron is now the size of the Dropdown chevron.', ['Select']],
+      ['changed', 'The select chevron and the Dropdown chevron now draw the same 1.6px stroke. The Dropdown chevron looked thinner in Chromium before.', ['Select', 'Dropdown']],
       ['changed', 'At 720px and below, a dropdown panel keeps the 16px page margin from the edge of the view instead of 8px.', ['Dropdown']],
-      ['fixed', 'In the light theme, a hovered dropdown row now shows a fill. It matched the panel before.', ['Dropdown']],
-      ['fixed', 'A dropdown row that scrolls into view keeps room for its focus ring, so the ring is not clipped at the panel edge.', ['Dropdown']],
+      ['fixed', 'In the light theme, a hovered dropdown row now shows a quiet fill. It matched the panel before. The hovered row has no outline in either theme.', ['Dropdown']],
+      ['fixed', 'The focus ring of a dropdown row that scrolls into view draws inside the row, so the panel edge does not clip it.', ['Dropdown']],
+      ['fixed', 'An unset filter chip is as tall as a chip with a value.', ['FilterBar']],
       ['fixed', 'A filter chip with no value no longer shows a remove mark, and `Clear all` appears only when a chip has a value. This applies to `filterBar` and React `FilterBar`.', ['FilterBar']],
       ['fixed', 'A focused scrolling table with a sticky header or a pinned column shows its focus ring on all four sides.', ['Table']],
       ['fixed', 'A focused row in the folded rail shows its focus ring on all four sides, also at phone width.', ['AppShell']],
-      ['fixed', 'The last column of a table, its header and the table edge now share one right edge, so a right-aligned amount lines up with its header. A table that sets its own end padding on the last cell keeps it.', ['Table']],
+      ['fixed', 'The last column of a table, its header and the table edge now share one right edge, so a right-aligned amount lines up with its header. A hover table keeps 16px between its last value and that edge. A table that sets its own end padding on the last cell keeps it.', ['Table']],
     ],
   },
   {

@@ -265,7 +265,7 @@ box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--ele
 **The focus ring does not touch that list.** The band is an `outline`, so a focused panel keeps
 the edge and the drop it rests on without restating them.
 
-Inside a floating panel, rows keep a reading surface and fields use the same field tokens as
+Inside a floating panel, rows keep a reading surface, and a hovered row takes a fill as a selected row does, with no outline. Fields use the same field tokens as
 elsewhere. A chip uses `--chip-neutral-fill` rather than the card surface. The floating panel is
 itself lighter than a card in dark, so the card surface is the darker step there.
 
