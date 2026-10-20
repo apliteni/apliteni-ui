@@ -363,6 +363,9 @@
    height, and the list — the child that can overflow — gives up the room they
    take. #489 */
 .ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }
+/* On a phone the search panel drops its 280px floor, so it stays inside the page margin
+   beside its trigger instead of crossing it. why: docs/components.md#the-dropdown-panel */
+@media (max-width: 720px) { .ui-dropdown__panel--search { min-width: 0; } }
 .ui-dropdown__panel--search > * { flex: none; }
 .ui-dropdown__panel--search > .ui-dropdown__list { flex: 1 1 auto; min-height: 0; }
 
