@@ -73,8 +73,12 @@ test('the React Phone story does not scroll sideways at 320 and keeps every band
                   const el = document.querySelector(selector);
                   const rect = el.getBoundingClientRect();
                   const pseudo = getComputedStyle(el, '::after');
+                  const hit = (x, y) => { const target = document.elementFromPoint(x, y); return target === el || el.contains(target); };
+                  const x = rect.left + rect.width / 2;
+                  const y = rect.top + rect.height / 2;
                   return { selector, width: Math.max(rect.width, parseFloat(pseudo.width) || 0),
-                    height: Math.max(rect.height, parseFloat(pseudo.height) || 0) };
+                    height: Math.max(rect.height, parseFloat(pseudo.height) || 0),
+                    edges: [hit(x - 21.5, y), hit(x + 21.5, y), hit(x, y - 21.5), hit(x, y + 21.5)] };
                 }),
             };
           });
@@ -92,6 +96,7 @@ test('the React Phone story does not scroll sideways at 320 and keeps every band
           if (touch) for (const target of m.tap) {
             assert.ok(target.width >= 44 && target.height >= 44,
               `${where}: ${target.selector} has only ${target.width} by ${target.height}px to tap`);
+            assert.ok(target.edges.every(Boolean), `${where}: ${target.selector} loses a tap at its 44px edge`);
           }
           assert.ok(m.control >= 56, `${where}: the Workspace control is ${m.control}px wide, a sliver`);
           await ctx.close();
