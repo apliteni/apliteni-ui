@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- One specimen page for #591, rendered once per spacing option.
+     ?option=today|a|b|c picks the option, ?theme=light|dark the theme.
+     Serve the repository root and open /scripts/evidence/spacing-591/specimen.html. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spacing specimen</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../../src/index.css">
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+<div id="root"></div>
+<script type="module">
+import { appShell, wireShell } from '../../../src/components/shell.js';
+import { segmented } from '../../../src/components/index.js';
+import { filterBar } from '../../../src/components/filter-bar.js';
+import { applyTheme } from '../../../src/components/topbar.js';
+
+const q = new URLSearchParams(location.search);
+document.documentElement.dataset.option = q.get('option') || 'today';
+applyTheme(q.get('theme') || 'light', document.documentElement);
+
+const filters = [
+  { id: 'status', label: 'Status', value: 'Open', items: ['Open', 'Paid', 'Void'].map(label => ({ label, value: label })) },
+  { id: 'customer', label: 'Customer', value: 'Aster Systems', items: ['Aster Systems', 'Birch Labs'].map(label => ({ label, value: label })) },
+  { id: 'currency', label: 'Currency', value: 'EUR', items: ['EUR', 'USD'].map(label => ({ label, value: label })) },
+];
+const rows = [
+  ['INV-1042', 'Aster Systems', '3 Nov 2026', '4,180.00'],
+  ['INV-1039', 'Aster Systems', '28 Oct 2026', '960.50'],
+  ['INV-1035', 'Aster Systems', '21 Oct 2026', '12,400.00'],
+  ['INV-1031', 'Aster Systems', '14 Oct 2026', '2,075.25'],
+  ['INV-1027', 'Aster Systems', '7 Oct 2026', '310.00'],
+  ['INV-1022', 'Aster Systems', '30 Sep 2026', '1,640.80'],
+];
+const table = `<div class="ui-table-scroll" role="region" aria-label="Invoices" tabindex="0"><table class="ui-table ui-table--compact"><thead><tr><th scope="col">Invoice</th><th scope="col">Customer</th><th scope="col">Due</th><th scope="col" class="ui-table__num">Amount EUR</th></tr></thead><tbody>${rows.map(([n, c, d, a]) => `<tr><td>${n}</td><td>${c}</td><td>${d}</td><td class="ui-table__num">${a}</td></tr>`).join('')}</tbody></table></div>`;
+const list = `<section class="spec-list" aria-label="Invoice list">${filterBar({ filters })}${segmented({ options: ['All', 'Open', 'Overdue', 'Paid', 'Drafts'], active: 1, appearance: 'underline', ariaLabel: 'Invoice view', name: 'view' })}${table}</section>`;
+const reminders = `<section class="ui-card" aria-labelledby="reminders"><h2 class="ui-card__title" id="reminders">Reminders</h2><p>A reminder goes to the customer 3 days before an invoice falls due, and again on the day.</p></section>`;
+document.getElementById('root').innerHTML = appShell({
+  word: 'Finance', title: 'Invoices', sub: 'Amounts in euros. Invoices fall due 30 days after issue.',
+  nav: [{ id: 'invoices', icon: 'doc', label: 'Invoices', href: '#invoices' }, { id: 'reports', icon: 'chart', label: 'Reports', href: '#reports' }],
+  active: 'invoices', width: 'wide', collapsible: true, collapsed: true, body: list + reminders,
+});
+wireShell(document.getElementById('root'));
+document.documentElement.dataset.ready = '1';
+</script>
+</body>
+</html>

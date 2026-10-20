@@ -1,0 +1,77 @@
+/* The spacing options for #591, as gaps only.
+   "today" changes nothing in the kit. The section's own glue copies the stock
+   screener's: 8px from the filter row to the view strip, 12px from the strip to
+   the table. Every option sets the same seven values, so the diff between two
+   options is the diff between two blocks below. Placement only: no paint, type
+   or motion. */
+
+/* -- Glue every frame uses ------------------------------------------------- */
+.spec-list { display: flex; flex-direction: column; min-width: 0; }
+.spec-list > .ui-seg { margin-top: var(--sp-controls, var(--space-2)); }
+.spec-list > .ui-table-scroll { margin-top: var(--sp-filtered, var(--space-3)); }
+
+/* -- What an option re-declares -------------------------------------------- */
+/* An option is a change to the kit's own gaps, so it has to reach them. The
+   two row gaps need !important because tap-zone.css sets them with it. */
+:root:not([data-option="today"]) .ui-app__main h1 { margin-bottom: var(--sp-title); }
+:root:not([data-option="today"]) .ui-app__sub { margin-bottom: var(--sp-head); }
+:root:not([data-option="today"]) .ui-app__body { gap: var(--sp-section); }
+:root:not([data-option="today"]) .ui-filter-bar { row-gap: var(--sp-rows) !important; }
+:root:not([data-option="today"]) .ui-seg--underline { row-gap: var(--sp-strip-rows) !important; margin-inline-start: var(--sp-strip-start, 0px); }
+
+/* -- A: a ladder, one scale step per level --------------------------------- */
+[data-option="a"] {
+  --sp-rows: var(--space-2);
+  --sp-strip-rows: var(--space-1);
+  --sp-controls: var(--space-2);
+  --sp-filtered: var(--space-3);
+  --sp-section: var(--space-4);
+  --sp-title: var(--space-2);
+  --sp-head: var(--space-5);
+}
+
+/* -- B: two gaps, and one text edge ---------------------------------------- */
+[data-option="b"] {
+  --sp-rows: var(--space-2);
+  --sp-strip-rows: var(--space-1);
+  --sp-controls: var(--space-2);
+  --sp-filtered: var(--space-2);
+  --sp-section: var(--space-8);
+  --sp-title: var(--space-2);
+  --sp-head: var(--space-8);
+  /* The strip draws no box, so its first label moves onto the title's edge:
+     the strip's own padding plus a tab's. */
+  --sp-strip-start: calc(-1 * (var(--space-1) + var(--space-3)));
+}
+
+/* -- C: today's majority, written down ------------------------------------- */
+[data-option="c"] {
+  --sp-rows: var(--space-2);
+  --sp-strip-rows: var(--space-1);
+  --sp-controls: var(--space-2);
+  --sp-filtered: var(--space-3);
+  --sp-section: var(--space-5);
+  --sp-title: var(--space-2);
+  --sp-head: var(--space-8);
+}
+
+/* -- On a touch phone ------------------------------------------------------ */
+/* The tap floor opens a wrapped row of small controls to --tap-gap (20px), and
+   no option takes that back. What changes is everything around it. The view
+   strip keeps 4px at every width in every option: its tabs already carry 12px
+   of padding above and below each label, so its label lines sit 28px apart. */
+@media (max-width: 560px) and (pointer: coarse) {
+  [data-option="a"] {
+    --sp-rows: var(--tap-gap);
+    --sp-controls: var(--tap-gap);
+    --sp-filtered: var(--space-6);
+    --sp-section: var(--space-8);
+    --sp-head: var(--space-10);
+  }
+  [data-option="b"] {
+    --sp-rows: var(--tap-gap);
+    --sp-controls: var(--tap-gap);
+    --sp-filtered: var(--tap-gap);
+  }
+  [data-option="c"] { --sp-rows: var(--tap-gap); }
+}
