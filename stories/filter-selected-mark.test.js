@@ -171,10 +171,9 @@ function washGround(subject) {
  *  drawn on.
  *
  *  Not the kit's own step, because the kit's hover fill is `--surface` and in light
- *  that IS the panel: every other row in the panel steps 1.11:1 in dark and not at
- *  all in light, leaning on its 1px `--control-edge`. On the wash that edge is
- *  1.06:1 (dark) and 1.31:1 (light), which is the whole of #550's round-two defect,
- *  so the floor has to be one the edge alone fails. The deepened wash clears it in
+ *  the chosen row's wash is the thing it must step off, which was the whole of
+ *  #550's round-two defect. Since #595 hover draws no outline, so the step is the
+ *  only signal and the floor has to hold alone. The deepened wash clears it in
  *  both themes and all six accents — 1.135:1 is the quietest of them, measured in
  *  the walk `CONTRAST_ACCENTS=1` runs. */
 const HOVER_STEP = 1.1;
@@ -232,18 +231,17 @@ function measureStates(subject) {
  *  cues measured at rest are re-measured on that deeper ground, because deepening
  *  it is what could put the check under 1.4.11's 3:1.
  *
- *  The kit's 1px edge has to still be drawn, read as its parsed parts: `cs.outline`
- *  is the truthy string `none` when nothing draws one. Its ratio over the ground is
- *  reported, not floored — the step is what makes hover readable, not the edge. */
+ *  Hover draws no outline since #595: an outline belongs to focus, and the step is
+ *  what makes hover readable. The outline is read as its parsed parts, because
+ *  `cs.outline` is the truthy string `none` when nothing draws one. */
 function measureHover(subject, { rest, panel, edge, cs }) {
   const { row, win } = subject;
   const ground = effectiveBackground(row, win);
   assert.notEqual(ground, 'IMAGE', `${subject.id}: hover's ground must be measurable`);
   const step = ratio(ground, rest);
-  const edgeRatio = edge.ink && edge.ink[3] > 0 ? ratio(composite(edge.ink, ground), ground) : null;
   assert.ok(step >= HOVER_STEP,
     `${subject.id}: hover steps ${step.toFixed(3)}:1 off the wash, under ${HOVER_STEP}:1`
-    + ` — all it leaves the pointer is the 1px edge at ${edgeRatio == null ? 'no edge at all' : `${edgeRatio.toFixed(3)}:1`}`);
+    + ' — hover draws no outline, so the step is all the pointer has');
   const deeper = ratio(ground, panel);
   assert.ok(deeper > ratio(rest, panel),
     `${subject.id}: hover steps ${step.toFixed(3)}:1 the wrong way — ${deeper.toFixed(3)}:1 over the panel, under the resting wash's ${ratio(rest, panel).toFixed(3)}:1`);
@@ -252,9 +250,9 @@ function measureHover(subject, { rest, panel, edge, cs }) {
   assert.ok(tick >= AA_LARGE, `${subject.id}: hovered, the check is ${tick.toFixed(2)}:1 over the deeper wash, under 1.4.11's 3:1`);
   const label = ratio(parseColour(win.getComputedStyle(row.querySelector('.ui-dropdown__label')).color), ground);
   assert.ok(label >= AA_TEXT, `${subject.id}: hovered, the chosen label is ${label.toFixed(2)}:1 over the deeper wash`);
-  assert.ok(edge.width > 0 && edge.style !== 'none' && edge.ink && edge.ink[3] > 0,
-    `${subject.id}: hover loses the kit's 1px edge (${cs.outline || 'none'})`);
-  return { step, edge: edgeRatio, overPanel: deeper, tick, label };
+  assert.ok(!(edge.width > 0 && edge.style !== 'none' && edge.ink && edge.ink[3] > 0),
+    `${subject.id}: hover draws an outline (${cs.outline})`);
+  return { step, overPanel: deeper, tick, label };
 }
 
 /* The three geometries a chip's panel has, and what each one may do to the mark.
@@ -387,7 +385,6 @@ const MUTATIONS = [
 
 const STATE_MUTATIONS = [
   ['the chosen row repainted off the wash', (row) => { row.setAttribute('style', 'background: rgb(255, 255, 255)'); }, /the chosen row is not the wash/],
-  ['focus given a native outline', (row) => { row.style.outline = '2px solid rgb(0, 0, 0)'; row.style.boxShadow = 'none'; }, /native outline|draws no kit ring/],
 ];
 
 /* Hover is driven by the attribute `desugar()` rewrites `:hover` to, so an inline
@@ -396,20 +393,18 @@ const STATE_MUTATIONS = [
  * own rule carries and after it, and is taken off again.
  *
  * The first is the defect this gate was written blind to: hover restated as the
- * resting wash, which leaves the pointer the kit's 1px edge and nothing else. The
- * last takes that edge away instead, which is the mutation `cs.outline` read as a
- * string could not reject: removed, the shorthand resolves to `none`, and `none`
- * is truthy. #550 */
+ * resting wash, which leaves the pointer nothing. The last puts an outline back on
+ * hover, which #595 removed; it is read as parsed parts because `cs.outline` as a
+ * string is truthy even when it resolves to `none`. #550, #595 */
 const HOVER_MUTATIONS = [
-  ['the wash restated for hover', (ctx) => `background: ${asOpaque(ctx.ground)}`, /hover steps 1\.00\d:1 off the wash, under 1\.1:1 — all it leaves the pointer is the 1px edge at 1\.\d+:1/],
+  ['the wash restated for hover', (ctx) => `background: ${asOpaque(ctx.ground)}`, /hover steps 1\.00\d:1 off the wash, under 1\.1:1 — hover draws no outline/],
   ['hover painting the panel instead of deepening the wash', (ctx) => `background: ${asOpaque(ctx.panel)}`, /hover steps [\d.]+:1 the wrong way/],
   ['hover deepened into a hard fill', (ctx) => `background: ${HARD_FILL[ctx.theme]}`, /hover deepens the wash into a hard fill/],
-  ['the kit\'s 1px edge taken off the hovered row', () => 'outline: none', /hover loses the kit's 1px edge \(none\)/],
+  ['an outline put back on the hovered row', () => 'outline: 1px solid rgb(120, 120, 120)', /hover draws an outline/],
 ];
 
 /* Focus's own. Since #578 the band is an `outline`, which an inline style cannot take
- * off for focus alone — it would take hover's 1px edge with it and be rejected on
- * that instead. Written as a rule, the rejection is the one being proved. */
+ * off for focus alone — it would be rejected for hover too if hover drew one. Written as a rule, the rejection is the one being proved. */
 const FOCUS_MUTATIONS = [
   ['the band taken off the focused chosen row', () => 'outline: none', /draws no kit ring \(none\)/],
   ['the band recoloured to the browser\'s own ink', () => 'outline: 2px solid rgb(0, 0, 0)', /falls back to a native outline/],
