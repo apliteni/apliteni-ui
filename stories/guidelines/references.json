@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:236",
+        "ref": "src/styles/table.css:248",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ],
@@ -12,7 +12,7 @@
         "pattern": "width: auto;"
       },
       {
-        "ref": "src/styles/table.css:290",
+        "ref": "src/styles/table.css:302",
         "pattern": "max-width: calc(100% + 2 * var(--space-3));"
       }
     ]
@@ -24,7 +24,7 @@
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:164",
+        "ref": "src/styles/input.css:167",
         "pattern": ".ui-check input::before"
       },
       {
@@ -310,11 +310,11 @@
         "pattern": "export const dropdownMatch"
       },
       {
-        "ref": "src/styles/dropdown.css:357",
+        "ref": "src/styles/dropdown.css:375",
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:419",
+        "ref": "src/styles/dropdown.css:437",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -326,7 +326,7 @@
         "pattern": ".ui-btn--danger:hover"
       },
       {
-        "ref": "src/styles/dropdown.css:313",
+        "ref": "src/styles/dropdown.css:331",
         "pattern": ".ui-dropdown__item.is-danger:hover"
       },
       {
@@ -398,7 +398,7 @@
         "pattern": "<dl class=\"ui-drawer__rows\">"
       },
       {
-        "ref": "src/styles/drawer.css:235",
+        "ref": "src/styles/drawer.css:242",
         "pattern": ".ui-drawer__row dt { color: var(--text); }"
       }
     ]
@@ -554,7 +554,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:433",
+        "ref": "src/styles/layout.css:437",
         "pattern": "rank: page-title"
       },
       {
@@ -596,7 +596,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:326",
+        "ref": "src/styles/layout.css:330",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -610,7 +610,7 @@
         "pattern": "--space-3: 12px"
       },
       {
-        "ref": "src/styles/table.css:89",
+        "ref": "src/styles/table.css:99",
         "pattern": "padding: var(--space-2) var(--space-3)"
       },
       {
@@ -630,7 +630,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:511",
+        "ref": "src/styles/layout.css:515",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -726,7 +726,7 @@
         "pattern": "transition-duration: 0.01ms !important;"
       },
       {
-        "ref": "src/styles/drawer.css:248",
+        "ref": "src/styles/drawer.css:255",
         "pattern": ".ui-drawer.is-open * { transition: none !important; }"
       }
     ]
@@ -1055,15 +1055,15 @@
     ],
     "link-to-the-report": [
       {
-        "ref": "src/styles/table.css:116",
+        "ref": "src/styles/table.css:126",
         "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
       },
       {
-        "ref": "src/styles/table.css:135",
+        "ref": "src/styles/table.css:145",
         "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
       },
       {
-        "ref": "src/styles/table.css:267",
+        "ref": "src/styles/table.css:279",
         "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
       },
       {
@@ -1073,7 +1073,7 @@
     ],
     "report-depth": [
       {
-        "ref": "src/styles/table.css:88",
+        "ref": "src/styles/table.css:98",
         "pattern": ".ui-table--dense td"
       }
     ],

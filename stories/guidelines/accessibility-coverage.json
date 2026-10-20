@@ -1002,6 +1002,23 @@
         "Contrast. It checks which token is drawn, not what that edge measures against the fill behind it; the contrast walk and the accessibility floor own those numbers.",
         "Whether :focus-visible matches on a real keystroke, and whether the ring is visible once it does. The focus-ring gates and the browser captures own both."
       ]
+    },
+    {
+      "file": "stories/dropdown-row-states.test.js",
+      "name": "Dropdown row states",
+      "does": "Reads the dropdown sheet and the token values in both themes. Checks that a hovered row takes a fill that differs from the panel ground, and that the hover rule draws no outline. Checks that the focused row draws the shared inward ring with its offset. Mutations that remove the fill, restore the outline or move the ring outward prove rejection.",
+      "blind": [
+        "Source only. The hover step and the ring on all four sides are measured in a real browser and reported on the pull request.",
+        "The step is judged as colour distance between two token values, not as a contrast ratio, because the fill is a non-text mark."
+      ]
+    },
+    {
+      "file": "stories/shell-rail-ring.test.js",
+      "name": "Shell rail focus ring",
+      "does": "Reads the layout sheet and checks that the folded rail and the phone rail close their rows and the account trigger to the strip width, so the rail clip leaves the focus ring on all four sides. A mutation that removes the width rule proves rejection.",
+      "blind": [
+        "Source only. It reads the rule's selectors and its width, not the cascade around them, and it paints nothing. The ring itself is measured in a browser and reported on the pull request."
+      ]
     }
   ],
   "UNGATED": [
