@@ -1,23 +1,29 @@
 import { useState, type CSSProperties } from 'react';
 import { DataTable } from './DataTable';
 import { NumericValue, DeltaValue, RowIdentity } from './TableValues';
-import { FilterBar, type Filter } from './FilterBar';
+import { FilterBar, type AddFilter, type Filter } from './FilterBar';
 import { Segmented } from './Segmented';
+import './FinanceComposition.css';
 export default { title: 'Components/Finance composition', parameters: { layout: 'fullscreen' } };
-// Both compositions sit in the kit's own page column, `.ui-app__main--wide`, with
-// the introduction on `.ui-app__sub`. The page title's rank, its narrow step and
-// both of the head's gaps are declared there, so neither story carries a copy of a
-// size or a gap, and a hand-rolled h1 cannot drift off the rank the shell draws.
-// Wide, not centred, because both hold a table — guidelines/the-page.md, width.
-// why: #581.
+// Approved comparison for #504. All company data is fabricated.
+const names = ['Aster Systems', 'Birch Semiconductor', 'Cobalt Energy', 'Dovetail Health', 'Elm Networks', 'Fable Robotics', 'Grove Financial', 'Harbor Software', 'Iris Materials', 'Juniper Devices', 'Kestrel Logistics', 'Linden Foods', 'Morrow Industries', 'Northstar Analytics', 'Opal Telecom', 'Pine Mobility', 'Quartz Medical', 'Reed Computing', 'Solstice Power', 'Tern Aerospace', 'Umber Retail', 'Vale Instruments', 'Willow Biotech', 'Xenon Storage', 'Yarrow Payments', 'Zephyr Motors', 'Alder Water', 'Bracken Research', 'Cedar Infrastructure Group', 'Drift Media'];
+const sectors = ['Technology', 'Energy', 'Health care', 'Financials', 'Industrials'];
+const rows = names.slice(0, 20).map((name, i) => ({ name, sector: sectors[i % sectors.length], market: i % 2 ? 'Frankfurt' : 'New York', price: 340 - i * 8.37, change: i === 8 ? 0 : ((i * 17) % 63 - 28) / 10 }));
+const catalogue: AddFilter[] = [
+  { id: 'sector', label: 'Sector', items: ['All sectors', ...sectors, 'Utilities'].map(value => ({ label: value, value })) },
+  { id: 'market', label: 'Market', items: ['All markets', 'New York', 'Frankfurt'].map(value => ({ label: value, value })) },
+];
 function Example() {
   const [view, setView] = useState('overview');
-  const [filters, setFilters] = useState<Filter[]>([{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology', value: 'Technology' }, { label: 'Energy', value: 'Energy' }] }]);
-  return <main className="ui-app__main ui-app__main--wide"><h1>Company comparison</h1><p id="react-finance-basis" className="ui-app__sub">Fictional data. Changes versus previous close.</p>
-    <FilterBar filters={filters} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))} />
-    <Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
-    <DataTable rows={[{ name: 'Aster Systems', sector: 'Technology', price: 228.87, change: '+0.66%' }, { name: 'Birch Energy', sector: 'Energy', price: 0, change: '0.00%' }].filter(r => !filters.length || r.sector === filters[0].value)} selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"
-      columns={[{ key: 'name', label: 'Company', linked: true, render: r => <RowIdentity symbol={r.name.slice(0, 4).toUpperCase()} name={r.name} href="#company" /> }, ...(view === 'overview' ? [{ key: 'price' as const, label: 'Price', num: true, sortable: true, render: (r: {price: number}) => <NumericValue value={r.price.toFixed(2)} unit="USD" /> }] : []), { key: 'change', label: 'Change', num: true, render: r => <DeltaValue value={r.change} tone="success" basisId="react-finance-basis" /> }]} />
+  const [filters, setFilters] = useState<Filter[]>([{ ...catalogue[0], value: 'All sectors' }]);
+  return <main className="ui-app__main ui-app__main--wide finance-comparison"><header className="finance-comparison__head"><h1>Company comparison</h1><p id="react-finance-basis" className="ui-app__sub">Changes since the previous close.</p></header>
+    <div className="finance-comparison__data">
+    <FilterBar clearVariant="link" clearLabel="Clear filters" filters={filters} add={catalogue} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))}
+      onAdd={(id, value) => { const entry = catalogue.find(f => f.id === id); if (entry) setFilters(current => [...current, { ...entry, value: value || '' }]); }} />
+    <div className="ui-card ui-card--fit finance-comparison__card"><Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
+    <DataTable rows={rows.filter(r => filters.every(f => !f.value || f.value === (f.id === 'sector' ? 'All sectors' : 'All markets') || r[f.id as 'sector' | 'market'] === f.value))} pageSize={20} empty="No companies match these filters." selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"
+      columns={[{ key: 'name', label: 'Company', linked: true, render: r => <a href="#company">{r.name}</a> }, ...(view === 'overview' ? [{ key: 'price' as const, label: 'Price', num: true, sortable: true, render: (r: {price: number}) => <NumericValue value={r.price.toFixed(2)} unit="USD" /> }] : []), { key: 'change', label: 'Daily change', num: true, render: r => <DeltaValue value={`${r.change > 0 ? '+' : r.change < 0 ? '−' : ''}${Math.abs(r.change).toFixed(2)}%`} tone={r.change > 0 ? 'success' : r.change < 0 ? 'danger' : undefined} basisId="react-finance-basis" /> }]} /></div>
+    </div>
   </main>;
 }
 export const Comparison = { render: () => <Example /> };
@@ -25,9 +31,6 @@ export const Comparison = { render: () => <Example /> };
 function SelectableExample() {
   const rows = [{ name: 'Aster Systems', price: 228.87, sector: 'Technology' }, { name: 'Birch Energy', price: 84.12, sector: 'Energy' }];
   const [selected, setSelected] = useState(new Set<string>());
-  // The cap the shell writes for a `maxWidth` page, here so the 70rem table below
-  // overflows a column a reader would actually meet. `--ui-app-main` is the seam
-  // the shell uses for the same number.
   return <main className="ui-app__main ui-app__main--wide pinned-selection" style={{ '--ui-app-main': '60rem' } as CSSProperties}>
     <style>{'.pinned-selection .ui-table { min-width: 70rem; }'}</style>
     <h1>Select companies</h1><p className="ui-app__sub">Fictional data. Scroll to compare values while keeping company selection in view.</p>

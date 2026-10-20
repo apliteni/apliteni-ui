@@ -6,11 +6,120 @@
 
 export const RELEASES = [
   {
-    v: '0.109.0', date: '2026-10-11',
+    v: '0.126.0', date: '2026-10-20',
     changes: [
       ['added', 'React Toast notices accept compact and dismissible options. Compact notices omit body text; hiding the close button preserves the timer and action behavior. Part of #429.', ['Toast']],
       ['added', 'A toast stack can collapse into a pile: notices rest behind the newest one, and the pile fans out on hover or when focus reaches the stack. Use collapseToastStack(stack) in vanilla or <Toast collapse> in React. Part of #429.', ['Toast']],
       ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it, so a keyboard reader gets the same reprieve. Set timer: false on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn: it could not move, so it read as time not yet spent. Part of #429.', ['Toast']],
+    ],
+  },
+  {
+    v: '0.124.2', date: '2026-10-19',
+    changes: [
+      ['fixed', 'Selected items and their badges, shortcuts and folded-row names use system colours in forced colours. Unavailable selections use GrayText. See #608.', ['Navigation', 'Segmented', 'Pagination', 'CommandPalette']],
+    ],
+  },
+  {
+    v: '0.124.1', date: '2026-10-19',
+    changes: [
+      ['fixed', 'Portalled dropdown menus open on the opposite side when their configured side has less room than the height floor and the opposite side has more. They return to the configured side when space returns. Ordinary menus still grow the page below the height floor. A menu that changes side now enters from its trigger on the first open, also with the `auto` direction. See #643.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.124.0', date: '2026-10-17',
+    changes: [
+      ['fixed', 'The current page in Pagination uses the same accent fill and contrasting ink as a selected Segmented pill, in vanilla and React. The hairline that marked it is gone. In a busy or disabled pager the current page keeps a quiet fill, disabled ink and semibold weight, like a disabled selected Segmented pill. See #615.', ['Pagination']],
+    ],
+  },
+  {
+    v: '0.123.0', date: '2026-10-17',
+    changes: [
+      ['fixed', 'Enabled selected Segmented pills use the accent fill with contrasting ink in vanilla and React. Disabled selections keep a quiet fill and disabled ink. Outlines remain reserved for keyboard focus. See #614.', ['Segmented']],
+    ],
+  },
+  {
+    v: '0.122.0', date: '2026-10-17',
+    changes: [
+      ['added', 'React `Checkbox` takes a `hint` that shows under the label and is linked to the box. The new `CheckList` groups boxes in a fieldset under a legend. See #498.', ['Checkbox']],
+    ],
+  },
+  {
+    v: '0.121.0', date: '2026-10-17',
+    changes: [
+      ['fixed', 'The product topbar uses two rows on phones. Brand, theme and account stay above the view and version switches, so the band fits at 320px. A long version label ends in an ellipsis and never covers Deck and Text (#558).', ['Topbar']],
+    ],
+  },
+  {
+    v: '0.120.1', date: '2026-10-17',
+    changes: [
+      ['changed', 'Five guideline rules no longer link to the deployed site. They name the page and the rule they point to in plain words. A check now fails when a guideline or docs page links to the site. See #603.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.120.0', date: '2026-10-17',
+    changes: [
+      ['changed', 'The React AppShell band theme switch now offers dark, light and auto, like `themeToggle()` and React `ThemeToggle`, and follows the system live in auto. AppShell now applies the stored theme choice, or follows the system, when it mounts. A page that sets its own `data-theme` must also set `data-theme-choice`, or store the choice, to keep that theme. React `ThemeToggle` now draws the same sun as `themeToggle()`, with a smaller disc and shorter rays. See #596.', ['AppShell', 'ThemeToggle']],
+    ],
+  },
+  {
+    v: '0.119.1', date: '2026-10-15',
+    changes: [
+      ['fixed', 'Both AppShell implementations place the rail brand, navigation and fold control inside a named Sidebar region. Screen readers can reach the whole rail through landmarks, with no visual change. See #648.', ['AppShell']],
+    ],
+  },
+  {
+    v: '0.119.0', date: '2026-10-15',
+    changes: [
+      ['fixed', 'DatePicker puts `id` on its trigger button instead of its outer wrapper, so a `Field` label now names and focuses the trigger directly, with no `ariaLabel` needed. The fallback `ariaLabel` on an empty or selected picker no longer overrides a `Field` label. See #635.', ['DatePicker', 'Field']],
+    ],
+  },
+  {
+    v: '0.118.0', date: '2026-10-15',
+    changes: [
+      ['added', 'React Tooltip accepts a label, value and detail, with a preferred top or bottom placement. Existing text tooltips keep working. Part of #429.', ['Tooltip']],
+    ],
+  },
+  {
+    v: '0.117.0', date: '2026-10-15',
+    changes: [
+      ['changed', 'Tables inside fit-content cards size to their content, and their pagers wrap within that width. Other tables keep their full width. The company comparison aligns its heading, filters, tabs and first column, and keeps all three columns visible on phones (#504).', ['Table', 'DataTable', 'Pagination']],
+      ['changed', 'Filter bars accept an optional link clear action. The company comparison uses Clear filters and explains an empty result.', ['FilterBar']],
+    ],
+  },
+  {
+    v: '0.116.0', date: '2026-10-15',
+    changes: [
+      ['fixed', 'Callout status tones now use the circled glyphs toasts already use: `circleCheck`, `circleX` and `circleAlert`. Info and neutral callouts keep `info`, and an explicit `icon` still wins. If you passed `check` or `alert` to match the old default, drop the override. See #453.', ['Callout']],
+      ['fixed', 'Badge and pill tones that report no status — Soon, Archive, Neutral, and the plain badge and pill — take a soft fill instead of the card surface, so every badge tone now separates from its panel in the same direction: lighter in dark, darker in light. The archived version badge in the topbar follows. Landing’s accent card carries a neutral eyebrow, because the card already carries the accent. See #453.', ['Badge', 'Topbar']],
+      ['added', 'Use `--chip-neutral-fill` for a chip whose tone reports no verdict. It is the fill dropdown state chips already used, now published and shared by the badge, the pill and the version badge.'],
+      ['fixed', 'The light success chip ink is deeper, reading 7.17:1 on its own fill instead of 5.29:1. Success and Paid badges, live pills, success callout icons, toast actions and the solid success surface all follow `--chip-success-ink`; dark is unchanged. See #453.', ['Badge', 'Callout', 'Toast']],
+      ['fixed', 'The Soon badge and pill take body ink instead of accent ink. On the soft fill they now share with the other tones that report no status, accent ink measured 4.04:1 on a floating panel in dark under three of the four accents. Soon and Neutral now paint identically; if you need them to differ, say so on #453. See #453.', ['Badge']],
+      ['fixed', 'The dark danger chip ink is lighter, reading 6.30:1 on its own fill over a floating panel instead of 4.23:1. Danger badges, table and stat deltas, danger callout icons and toast actions follow `--chip-danger-ink`. The `--pink` signal and the solid danger toast are unchanged; light is unchanged. See #453.', ['Badge', 'Callout', 'Toast', 'Table']],
+    ],
+  },
+  {
+    v: '0.115.0', date: '2026-10-15',
+    changes: [
+      ['changed', 'The filter bar’s clear button is labelled `Clear all`, not `Clear all filters`, and the React bar’s add control `Filter`, not `Add filter`. A row of filter chips already names what each control acts on, so neither label repeats the plural noun. Pass `clearLabel` or `addLabel` to keep your own wording. The label is also the accessible name, so a test finding either control by name moves with it. See #496.', ['FilterBar', 'React FilterBar']],
+      ['added', 'A labels guideline: say the noun once. A label leaves out a noun its own frame already names. The clear button in a filter bar is the drawn pair. See #496.'],
+      ['fixed', 'Filter chips and the add control use the weight of secondary controls, and the remove mark uses glyph ink. Clear all is a text button without a box, and under the pointer it takes the accent wash the kit’s buttons hover with. The add control keeps its quiet edge at rest and while open, and moves that edge to the accent under the pointer; the shared ring stays reserved for keyboard focus. See #496.', ['React FilterBar', 'FilterBar']],
+      ['fixed', 'The add-filter control puts its words on the page, not on a grey block. It had inherited the kit trigger’s --surface fill; it is transparent in every state now, which is what the clear button was given in 0.88.0. See #496.', ['React FilterBar']],
+      ['fixed', 'Clearing a React filter bar no longer loses the focus. With the add control drawn, clearing the row — or removing its last chip — left the focus on the page body; it now lands on that control where the row still draws one, and leaves the bar for the first control outside it only where it does not. nextFocusStop() and focusNextStop() answer from one list, so the control a consumer reads is the one the bar moves to, on a vanilla page drawing its own control from data-filter-add as well. See #496.', ['React FilterBar', 'FilterBar']],
+      ['added', 'React FilterBar draws the way to add a filter: `add` and `onAdd` put a catalogue menu on the chips’ line, after the chips, with one section per filter the bar is not already carrying and a search field once those sections hold ten values between them. A pick asks the consumer for that filter and leaves focus on the chip it appends; Escape closes the menu without adding. The control takes the chip’s corner and the row’s height, and its menu is a panel wide rather than the narrower floor a chip’s values take. A pick inside that control is the page’s own to act on: a vanilla bar reports `ui-filter-change` for a chip’s menu and for nothing else. Limit: the vanilla factory is unchanged, so a vanilla page still draws its own control from `data-filter-add` on a wrapper inside the bar, and keeps that wrapper in the DOM across `update()`; the Stock screener showcase draws one. See #496.', ['React FilterBar']],
+      ['added', 'filterPanelRow(dd) is published. It answers which `.ui-filter-bar` a menu’s fit is measured inside — a chip’s menu, or a menu asking for a width with `--ui-filter-panel-ask` — so both halves decide which menus they re-fit and hold from one calculation instead of each carrying its own selector. See #496.', ['Dropdown', 'FilterBar']],
+    ],
+  },
+  {
+    v: '0.114.0', date: '2026-10-15',
+    changes: [
+      ['added', 'React Chart draws monthly bars with a line, a bridge from a starting total to a result, and a sparkline at text size for a stat band trend slot. A period that is not final keeps its series fill with a dashed edge and is said in words in the readout and the optional table. The chart is one tab stop, and the same numbers are available as a table.', ['React Chart']],
+      ['added', 'The main entry exports chartScale, bridgeWalk and pointTarget, the arithmetic behind those shapes, so a surface that draws them without React asks the kit instead of writing its own scale and its own pointer targets.'],
+    ],
+  },
+  {
+    v: '0.113.0', date: '2026-10-12',
+    changes: [
+      ['changed', 'Nothing the kit renders changes. The kit\'s own gates now split a selector list at its top-level commas only, so a rule written with `:where(td, th)` or `:is(:hover, :focus-visible)` reaches them whole instead of in fragments that match nothing. One consequence worth naming: the collapsed rail\'s hover and focus-visible labels were being measured for contrast in no state at all, and now are. The only published CSS byte is a comment in `layout.css` citing a line that moved. Resolves #521.'],
     ],
   },
   {
@@ -73,7 +182,7 @@ export const RELEASES = [
   {
     v: '0.98.0', date: '2026-10-10',
     changes: [
-      ['fixed', 'Floating dropdown panels — the vanilla kit, React’s `<Dropdown>`, and the topbar’s version switcher and account menus — now cap their height to the room their trigger leaves before the viewport edge they open toward, less `--ui-dropdown-edge` at that edge, and scroll inside that cap: the wheel over one stops at the panel’s own end instead of carrying on down the page underneath. `<Tooltip>` keeps no height cap, and `<CommandPalette>` keeps its own separate limit; neither changed here. Before this a panel took its content’s full height: a twelve-row menu opened 300px above the bottom of a 390×844 phone ended past the fold with its last rows unreachable, and the wheel scrolled the page instead. Two custom properties decide the cap and the smaller wins — `--ui-dropdown-cap` is what the consumer asked for, so the fixed-height modifier still works the same way: `scroll: true` still writes 300px and `scroll: <n>` still writes n pixels. `--ui-dropdown-avail` is the measured room, re-written on every open, scroll and resize from one calculation the vanilla kit and React’s `<Dropdown>` share, so neither can disagree about where a panel ends. A trigger with less than `--ui-dropdown-min` (120px) of room spends the edge inset first, down to nothing; where even that is not enough, ordinary and `portal: true` panels keep their content height instead of a sliver. An ordinary panel then grows the page so a reader can reach every row by page scroll, and when scroll gives the trigger 120px of room again, the panel re-caps to that floor and scrolls inside itself with all rows still reachable. A `portal: true` panel stays fixed in the viewport and does not grow the page; #643 tracks that portalled limit. A search panel lays its field and list in a column, so the cap lands on the rows and the field keeps its own height. Resolves #489.', ['Dropdown']],
+      ['fixed', 'Floating dropdown panels — the vanilla kit, React’s `<Dropdown>`, and the topbar’s version switcher and account menus — now cap their height to the room their trigger leaves before the viewport edge they open toward, less `--ui-dropdown-edge` at that edge, and scroll inside that cap: the wheel over one stops at the panel’s own end instead of carrying on down the page underneath. `<Tooltip>` keeps no height cap, and `<CommandPalette>` keeps its own separate limit; neither changed here. Before this a panel took its content’s full height: a twelve-row menu opened 300px above the bottom of a 390×844 phone ended past the fold with its last rows unreachable, and the wheel scrolled the page instead. Two custom properties decide the cap and the smaller wins — `--ui-dropdown-cap` is what the consumer asked for, so the fixed-height modifier still works the same way: `scroll: true` still writes 300px and `scroll: <n>` still writes n pixels. `--ui-dropdown-avail` is the measured room, re-written on every open, scroll and resize from one calculation the vanilla kit and React’s `<Dropdown>` share, so neither can disagree about where a panel ends. A trigger with less than `--ui-dropdown-min` (120px) of room spends the edge inset first, down to nothing; where even that is not enough, ordinary and `portal: true` panels keep their content height instead of a sliver. An ordinary panel then grows the page so a reader can reach every row by page scroll, and when scroll gives the trigger 120px of room again, the panel re-caps to that floor and scrolls inside itself with all rows still reachable. A `portal: true` panel stays fixed in the viewport and does not grow the page. Where its configured side has less than that floor and the other side has more room, it opens on the other side, against its trigger (see #643). A search panel lays its field and list in a column, so the cap lands on the rows and the field keeps its own height. Resolves #489.', ['Dropdown']],
       ['fixed', 'The topbar’s version switcher menu and account menu draw the kit’s focus ring on their own scroll region now, since the same cap makes both scroll by default rather than on request. The account menu keeps `6px` of padding so a row’s ring is not clipped at rest, and `3px` of scroll padding on the panel plus `3px` of scroll margin on each row so it is not clipped at either scrolled end either — #519’s “clips nothing” choice is gone now that the panel scrolls, and padding is the ring’s other way out. See #489.', ['Topbar']],
     ],
   },
@@ -1263,6 +1372,7 @@ const COMPONENTS = {
   Callout:   'components-callout-toast--callouts',
   Confirm:   'components-confirm--playground',
   'React Confirm': 'react-confirm--danger',
+  'React FilterBar': 'react-filterbar--adding',
   CommandPalette: 'components-command-palette--playground',
   Drawer:    'components-drawer--playground',
   Inputs:    'components-inputs--text-fields',

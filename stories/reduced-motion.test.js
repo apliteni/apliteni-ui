@@ -10,6 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { read, ms, sheets, scripts, decommentJs, leafRules, inNet } from './lib/motion-css.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const NET = 'src/styles/reduced-motion.css';
 
@@ -29,7 +30,7 @@ test('the net still shortens every animation and transition, and outranks every 
   assert.ok(block.length > 0, `${NET} has no @media (prefers-reduced-motion: reduce) block left`);
 
   const everything = block.find((r) => {
-    const parts = r.selector.split(',').map((s) => s.trim()).sort();
+    const parts = splitSelectorList(r.selector).sort();
     return parts.join(' ') === ['*', '::after', '::before'].sort().join(' ');
   });
   assert.ok(

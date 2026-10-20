@@ -56,7 +56,13 @@ const sheets = files.map((file) => {
   const raw = readFileSync(file, 'utf8');
   return { file, raw, css: raw.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' ')) };
 });
-const declarations = sheets.flatMap(({ file, css }) => customPropertiesIn(css).map((d) => ({ file, ...d })));
+// The forced-colours block repaints a filled selected item's ring in CanvasText on purpose:
+// the system pair fills it, so the accent band would meet its own ground. Those declarations
+// are counted apart below, and only in that one shape.
+const FORCED = /@media \(forced-colors: active\)\s*\{(?:[^{}]*\{[^{}]*\})*\s*\}/g;
+const declarations = sheets.flatMap(({ file, css }) => customPropertiesIn(css.replace(FORCED, (m) => m.replace(/[^\n]/g, ' '))).map((d) => ({ file, ...d })));
+const forcedRings = sheets.flatMap(({ file, css }) => [...css.matchAll(FORCED)]
+  .flatMap(([block]) => customPropertiesIn(block).map((d) => ({ file, ...d }))).filter((d) => d.name === '--ring'));
 const references = (value) => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]);
 /** Whether a value resolves, through the kit's own custom properties, to a surface colour. */
 const surface = (value, seen = new Set()) => references(value).some((name) => {
@@ -146,6 +152,11 @@ test('the ring is declared once, and the two bands differ only in where they lan
     assert.equal(at[0].file, 'src/tokens/tokens.css', `${name} is declared outside the token sheet`);
   }
   const value = (name) => declarations.find((d) => d.name === name).value.trim();
+  assert.ok(forcedRings.length > 0, 'no forced-colours ring was found; the filled selected item lost its ring recomposition');
+  for (const d of forcedRings) {
+    assert.equal(d.value.trim(), 'var(--ring-width) solid CanvasText',
+      `${d.file}: a forced-colours --ring other than the width in CanvasText is drift`);
+  }
   assert.equal(value('--ring'), 'var(--ring-width) solid var(--ring-color)',
     'the band is no longer --ring-width of solid --ring-color — tune it at the widths, not here');
   assert.equal(value('--ring-offset'), 'var(--ring-gap-width)',

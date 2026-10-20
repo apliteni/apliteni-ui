@@ -37,19 +37,26 @@
 .ui-seg button:hover { color: var(--strong); }
 /* aria-pressed is what segmented() emits now; aria-selected is kept so markup
    copied from an older release keeps painting its active pill. */
-/* The chosen pill is its fill and its ink. The accent outline it also drew was an
-   outline used for selection, which is the property and the shape the focus band
-   takes — on a chosen pill the two sat one pixel apart. Artur separated them on #578
-   round r34, and the fill left behind has to be the mark: the track is --surface, and
-   --surface on --surface is 1.000:1, so the pill read as its ink alone. --surface-3 is
-   the kit's quiet non-text fill and steps off the track in both themes — 1.140:1 light,
-   1.160:1 dark — which stories/selected-fill.test.js measures.
+/* Selection uses the accent fill. The outline marks keyboard focus only.
    why: docs/foundations.md#the-focus-ring */
 .ui-seg button.is-active,
 .ui-seg button[aria-pressed="true"],
 .ui-seg button[aria-selected="true"] {
-  color: var(--strong);
-  background: var(--surface-3); /* code-bg: inherit — a control's own selected fill; nothing nested reads a ground from it. */
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+/* White ink falls below the text floor on the lighter dark-theme accents. */
+:where(:root[data-theme="dark"]) .ui-seg button.is-active,
+:where(:root[data-theme="dark"]) .ui-seg button[aria-pressed="true"],
+:where(:root[data-theme="dark"]) .ui-seg button[aria-selected="true"] {
+  color: var(--signal-contrast);
+}
+
+/* A disabled selection stays readable without the active accent fill. */
+.ui-seg button.is-active:where(:disabled),
+.ui-seg button[aria-pressed="true"]:where(:disabled),
+.ui-seg button[aria-selected="true"]:where(:disabled) {
+  background: var(--surface-3); /* code-bg: inherit — the selected control's own fill. */
 }
 
 /* Standard pills tighten on phones so six short month names fit one row. */
@@ -146,11 +153,31 @@
 }
 .ui-seg--underline button.is-active::before,
 .ui-seg--underline button[aria-pressed="true"]::before { opacity: 1; transform: scaleX(1); }
-/* The mode repaints an author colour, so the bar comes back as the labels' own
-   ink. `Highlight` is kept where it is named: one mark the mode cannot flatten. */
-@media (forced-colors: active) {
-  .ui-seg--underline button.is-active::before,
-  .ui-seg--underline button[aria-pressed="true"]::before { background: Highlight; }
-}
 .ui-seg button:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-seg button:disabled { /* muted-ink: state — unavailable choice */ color: var(--disabled-ink); cursor: not-allowed; }
+
+/* Forced colours replace every author background, so a selected item takes the system
+   pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
+   Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
+   own ring, drawn in CanvasText so the fill is never mistaken for it. */
+@media (forced-colors: active) {
+  .ui-seg button.is-active,
+  .ui-seg button[aria-pressed="true"],
+  .ui-seg button[aria-selected="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+    --ring: var(--ring-width) solid CanvasText;
+  }
+  /* The fill is the one mark, so the underline bar, which would paint the accent inside it, is gone. */
+  .ui-seg--underline button.is-active::before,
+  .ui-seg--underline button[aria-pressed="true"]::before,
+  .ui-seg--underline button[aria-selected="true"]::before { display: none; /* motion: still — the bar is not drawn while the fill marks the choice */ }
+  /* A disabled selected choice must not look live, so it takes the disabled system colour. */
+  .ui-seg button.is-active:disabled,
+  .ui-seg button[aria-pressed="true"]:disabled,
+  .ui-seg button[aria-selected="true"]:disabled {
+    background: GrayText;
+    color: Canvas; /* muted-ink: state — unavailable choice */
+  }
+}

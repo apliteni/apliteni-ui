@@ -14,8 +14,8 @@ import '../../src/styles/field-zoom.css';
 import '../../src/styles/tap-zone.css';
 
 export { Icon } from './primitives/Icon';
-export { Checkbox } from './Checkbox';
-export type { CheckboxProps } from './Checkbox';
+export { Checkbox, CheckList } from './Checkbox';
+export type { CheckboxProps, CheckListProps } from './Checkbox';
 export { Switch } from './Switch';
 export type { SwitchProps } from './Switch';
 export { Button } from './primitives/Button';
@@ -103,6 +103,11 @@ export { Tooltip } from './Tooltip';
 export type { TooltipProps } from './Tooltip';
 export { Success, SuccessPanel, SuccessCheck } from './Success';
 export type { SuccessProps, SuccessPanelProps, SuccessCheckProps, SuccessCountdown } from './Success';
+
+export { Chart } from './Chart';
+export type {
+  ChartProps, ChartTone, ChartPeriod, ChartSeries, ChartBridgeStep, ChartBridgeTones,
+} from './Chart';
 
 export { SidebarNav } from './SidebarNav';
 export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';

@@ -43,12 +43,18 @@ export declare function dropdownAvail(opts: {
 }): number;
 /** The kit's menu floor, the width `.ui-dropdown__panel` writes. */
 export declare const DD_MENU_FLOOR: number;
-/** Where a filter chip's open menu can sit: the room from the edge it is
- *  anchored at to the far side of its row once slid, how far it had to slide,
- *  the width it reached for, and whether it is anchored at its inline end.
- *  `null` unless the dropdown is inside a `.ui-filter-bar__chip`: the slide is a
- *  chip's offset along its row, so a panel anchored to the row itself is not this
- *  function's subject and sizes itself. why: docs/components.md */
+/** The `.ui-filter-bar` an anchored menu's fit is measured inside, or `null`.
+ *  A chip's menu, and a menu that asks for a width with `--ui-filter-panel-ask` on
+ *  its own panel: the slide is that trigger's offset along the row, so those two
+ *  are the subjects and a panel anchored to the row itself sizes itself.
+ *  why: docs/components.md */
+export declare function filterPanelRow(dd: Element | null | undefined): Element | null;
+/** Where an anchored filter menu can sit: the room from the edge it is anchored
+ *  at to the far side of its row once slid, how far it had to slide, the width it
+ *  reached for, and whether it is anchored at its inline end. `null` for a
+ *  dropdown `filterPanelRow()` does not answer for. The width reached for is
+ *  `floor`, else the panel's own `--ui-filter-panel-ask`, else `DD_MENU_FLOOR`.
+ *  why: docs/components.md */
 export declare function filterPanelFit(
   dd: Element | null | undefined,
   floor?: number,
@@ -86,6 +92,24 @@ export type NumericValueOptions = { value?: string | number | null; unit?: strin
 export type DeltaValueOptions = { value?: string | null; tone?: 'success' | 'danger' | 'neutral'; basisId?: string; missing?: string };
 export declare function formatNumericValue(options?: NumericValueOptions): { text: string; unit: string; missing: string | undefined };
 export declare function formatDeltaValue(options?: DeltaValueOptions): { text: string; className: string; basisId: string | undefined };
+
+/** The smallest band a series is drawn in, as a share of its own reach. */
+export declare const CHART_FLOOR: number;
+export type ChartScaleOptions = { ticks?: number; zero?: boolean; floor?: number; nice?: boolean };
+export type ChartScale = { min: number; max: number; step: number; ticks: number[] };
+export declare function chartScale(values: Iterable<number>, options?: ChartScaleOptions): ChartScale;
+export type BridgeStepInput = { label: string; value?: number; kind?: 'total' | 'change' };
+export type BridgeBar<S> = S & { kind: 'total' | 'change'; value: number; from: number; to: number };
+export declare function bridgeWalk<S extends BridgeStepInput>(steps: Iterable<S>): BridgeBar<S>[];
+export type ChartBox = { left: number; right: number; top: number; bottom: number };
+export type PointTargetLimits = {
+  floor: number; min?: number; box: ChartBox;
+  column: [number, number]; apart?: Iterable<number>;
+};
+export type ChartTarget = { x: number; y: number; w: number; h: number };
+export declare function pointTarget(
+  point: { x: number; y: number }, limits: PointTargetLimits,
+): ChartTarget;
 export declare const SCORE: Record<'exact' | 'prefix' | 'wordStart' | 'contains' | 'keyword' | 'description' | 'subsequence', number>;
 export declare const iconNames: string[];
 export declare const iconCategories: { name: string; names: string[] }[];

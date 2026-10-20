@@ -117,8 +117,8 @@ what a factory accepts. They do not describe what the factory does.
 | `input`, `textarea`, `select`, `checkbox`, `switchToggle` | The controls `field` wraps; each also renders on its own. |
 | `segmented({ options, active, size, block, name, ariaLabel })` + `segmentedNextIndex(key, index, length)`, `initSegmented(root)` | Toolbar of toggle buttons. See [Segmented or tabs?](#segmented-or-tabs) and [Segmented strips that outgrow their column](#segmented-strips-that-outgrow-their-column). |
 | `tabs({ items, active, name, ariaLabel })` + `initTabs(root)` | Tablist and its panels, one per item. |
-| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search, disabled })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `disabled: true` turns the trigger off: no keyboard stop, no panel, and the kit's unavailable paint. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit, and `filterPanelFit(dd, floor)` with `DD_MENU_FLOOR` is the same for a filter chip's menu: inside `.ui-filter-bar` an **open** menu takes the kit's 240px floor rather than its trigger's width, and a shut one keeps the trigger's. Both halves ask the kit and write the three `--ui-filter-panel-*` properties the stylesheet reads, measure again whenever the row's width or the chip's place in it changes, and hold the open geometry until the menu's fade has finished. `dropdownViewportFit(panel)` is the third, and answers for a panel outside a filter row: how wide it may be and how far it has to move to stay inside the view it is laid out in. `--ui-dropdown-edge` is the gap it keeps from the view's edge. `dropdownHeightFit(dd, panel)` is the fourth: how tall an **open** panel may be, the room between its trigger and the viewport edge it opens towards. It answers nothing for a closed panel. See [The dropdown panel](#the-dropdown-panel), [A dropdown with a search field](#a-dropdown-with-a-search-field) and [A filter row holds its panels](#a-filter-row-holds-its-panels). |
-| `filterBar(options)` + `initFilterBar(host, options)`, with `filterChipText`, `filterChipName`, `filterChipUnset`, `filterChipItems`, `nextFocusStop`, `focusNextStop` | The controlled filter row above a table. The consumer owns the filters and calls `update()`. `filterChipItems(filter)` marks the chip's own value in the items it hands its menu, so the line the chip prints and the row the menu marks cannot disagree; a chip that is unset, or whose value is in no row, marks nothing, and a `selected` the consumer set does not stand in for it. `nextFocusStop(host)` names the control a reader's next <kbd>Tab</kbd> would reach, which is where an emptied bar sends the focus; `focusNextStop(host)` puts it there, skipping anything the reader cannot reach, and answers with the element it ended on. See [A filter row holds its panels](#a-filter-row-holds-its-panels). |
+| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search, disabled })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `disabled: true` turns the trigger off: no keyboard stop, no panel, and the kit's unavailable paint. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit. `filterPanelFit(dd, floor)` with `DD_MENU_FLOOR` is the same for an anchored filter menu: inside `.ui-filter-bar` an **open** menu takes the kit's 240px floor rather than its trigger's width, and a shut one keeps the trigger's. `filterPanelRow(dd)` answers which row such a menu is measured inside: a chip's, or one asking for a width with `--ui-filter-panel-ask`. `dropdownViewportFit(panel)` answers for a panel outside a filter row: how wide it may be and how far it has to move to stay inside the view it is laid out in. `--ui-dropdown-edge` is the gap it keeps from the view's edge. `dropdownHeightFit(dd, panel)` answers how tall an **open** panel may be, which is the room between its trigger and the viewport edge it opens towards. It answers nothing for a closed panel. See [The dropdown panel](#the-dropdown-panel), [A dropdown with a search field](#a-dropdown-with-a-search-field) and [A filter row holds its panels](#a-filter-row-holds-its-panels). |
+| `filterBar(options)` + `initFilterBar(host, options)`, with `filterChipText`, `filterChipName`, `filterChipUnset`, `filterChipItems`, `nextFocusStop`, `focusNextStop` | The controlled filter row above a table. The consumer owns the filters and calls `update()`. `filterChipItems(filter)` marks the chip's own value in the items it hands its menu, so the line the chip prints and the row the menu marks cannot disagree; a chip that is unset, or whose value is in no row, marks nothing, and a `selected` the consumer set does not stand in for it. `nextFocusStop(host)` names where an emptied bar sends the focus — the way to add a filter still on the row, drawn from `data-filter-add`, else the control a reader's next <kbd>Tab</kbd> would reach; `focusNextStop(host)` puts it there, skipping anything the reader cannot reach, and answers with the element it ended on. See [A filter row holds its panels](#a-filter-row-holds-its-panels). |
 | `pagination({ page, pageSize, total, hasMore, pageSizes, variant, label, loading, href, id })` + `wirePagination(root, …)`, `setPagerStatus(root, text)`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE` | The strip under a table or list; it renders a page the caller already computed. See [Pagination](#pagination). |
 | `commandPalette({ groups, items, label, placeholder, query, empty, density, hint, rank, hotkey, open, specimen, id })` + `wireCommandPalette`, `openCommandPalette`, `closeCommandPalette`, `commandPaletteList`, `setPaletteResults`, `rankCommands`, `rankGroups`, `scoreCommand`, `SCORE`, `paletteHotkey()` | The ⌘K overlay and the ranking behind it; `SCORE` is the ladder itself, for a server that sorts the same way. See [The command palette](#the-command-palette). |
 | `feedbackWidget()` + `wireFeedback(…)`, `nearestSection(node, root)` | Select a passage, give feedback. |
@@ -142,6 +142,7 @@ documentation page. It does not add `aria-modal`, wiring or Escape handling.
 | `numericValue({ value, unit, missing })`, `deltaValue({ value, tone, basisId })` | Inline value and inline change. Colour never supplies the sign. |
 | `rowIdentity({ symbol, name, logo, href })` + `initRowIdentity(root)` | A company identity cell, with a letter fallback. |
 | `formatNumericValue(…)`, `formatDeltaValue(…)` | The same two decisions as plain text, shared with React. |
+| `chartScale(values, options)`, `bridgeWalk(steps)`, `pointTarget(point, options)`, `CHART_FLOOR` | The arithmetic a chart needs, with no DOM and no pixels: the band a series is drawn in with its whole-unit ticks, each bridge column's own amount and the two ends of the bar that draws it, and where a pointer target sits over a drawn point. The kit draws no chart of its own; React `Chart` is the one here that uses them. See [React charts](#react-charts). |
 
 The table is markup, not a factory. The page adds the scroll region, sticky header and pinned
 identity column through classes. See
@@ -302,10 +303,13 @@ smaller wins:
 A trigger near the edge can leave less room than `--ui-dropdown-min` (120px) wants for a usable
 panel. The floor spends the edge inset, down to nothing, to try to reach 120px, but it never spends
 room past the edge, because that room does not exist. Where even the whole inset falls short of
-120px, the guarantee above does not hold: the panel is left at its content height instead of a
-sliver no reader could use, so it may run past the trigger's edge and grow the page, the way an
-unmeasured panel does. A search panel is a column, so this cap lands on the rows and not on the
-field: `.ui-dropdown__list` shrinks to whatever room the capped panel leaves it.
+120px, an ordinary panel keeps its content height and can grow the page so the reader can scroll.
+**A portalled panel flips when its configured side cannot hold the required height and the opposite
+side has more room.** The required height is the floor, or the content height when shorter.
+A smaller consumer cap can reduce that required height. The panel keeps its trigger gap and its resolved side through the close
+animation. It restores the configured side when space returns. If neither side has enough room,
+the roomier side can still extend beyond the viewport. A search panel is a column, so this cap
+lands on the rows and not on the field: `.ui-dropdown__list` shrinks to whatever room the capped panel leaves it.
 
 **A panel keeps its place while the page moves its trigger.** A row that re-lays itself out, an
 ancestor scrolling sideways, a longer run of text beside the trigger, and a transition that slides
@@ -353,6 +357,15 @@ A dropdown composed against the row, rather than against a chip, owns its width.
 bounds it. The kit leaves it unchanged. This dropdown must not read the
 `--ui-filter-panel-*` properties.
 
+**A menu may ask for a wider floor than a chip's.** A chip's menu holds one chip's values; a
+catalogue menu with a search field over it needs more room than the 240px floor leaves. Such a
+panel declares `--ui-filter-panel-ask` in the stylesheet, which is also what makes a menu outside
+a chip a subject of the fit: it is then `--panel-sm` wide where its row has the room and its row's
+width where it does not. `filterPanelRow(dropdown)` is published. It answers which
+`.ui-filter-bar` a menu's fit is measured inside — a chip's menu, or a menu that asks for a
+width — and `null` for anything else, so both faces decide which menus they re-fit and hold
+from one calculation.
+
 **The menu marks the value the chip is showing.** The active row receives a soft accent wash and
 keeps the kit's 16px check. The wash is a tint. Its contrast is 1.16:1 over the panel in light
 mode and 1.20:1 in dark mode. The check identifies the chosen row: its contrast is 6.35:1 over
@@ -370,17 +383,44 @@ or with a value that matches no row, marks nothing. A `selected` value you set d
 value that the bar is not applying. The kit never writes to your own array or objects.
 
 **The clear action is offered only when there is something to clear.** `filterBar` and React
-`FilterBar` render it after a filter is applied. It uses the kit's bordered skin without its fill.
-There is no grey block under the words in any state. A disabled or busy bar keeps the border and
-uses the box-less unavailable ink. A consumer reading `[data-filter-clear]` finds nothing when no
-filter is set.
+`FilterBar` render it after a filter is applied. It uses the kit's ghost button without a fill
+or border. A consumer reading `[data-filter-clear]` finds nothing when no filter is set.
+Both faces label it `Clear all`; `clearLabel` takes any wording.
+
+**Filter labels use secondary-control ink and weight.** The remove mark uses glyph ink.
+A chip keeps its quiet edge when hovered or open. The add control moves its edge to the accent
+under the pointer, the way every trigger in the kit does, and steps that edge aside while it
+holds the focus ring. Clear keeps no edge in any state and answers the pointer with the accent
+wash the kit's buttons hover with. A control that is disabled or busy answers the pointer with
+nothing. Keyboard focus draws the shared `--ring`. A disabled chip or add control takes
+`--disabled-border`. The add and clear controls carry no resting fill.
 
 **An emptied bar hands the focus on rather than keeping it.** When you clear the last filter or
 remove the last chip with the keyboard, the focused control disappears. The bar moves focus to
-the control that a reader would reach with the next <kbd>Tab</kbd>. It skips controls the reader
-cannot reach. If nothing beside the bar can take focus, the focus stays where it is.
+the way to add a filter where the row still draws one — that control outlives the chips, so an
+emptied row is not an empty row — then to the control that a reader would reach with the next
+<kbd>Tab</kbd>. It skips controls the reader cannot reach: being reachable is not the same as
+taking the focus, so each candidate is asked and then checked. If nothing beside the bar can take
+focus, the focus stays where it is.
 `nextFocusStop(host)` identifies that control. `focusNextStop(host)` moves focus there and returns
 the element that received it. A consumer that wants to move focus itself can read the same result.
+
+**A React bar given `add` and `onAdd` draws its own way to add one.** The control sits on the
+chips' line, after them and before the clear action, so <kbd>Tab</kbd> reaches it where it is
+drawn. Its menu holds one section per filter the bar is not already carrying, so no pick can put
+a second chip under one id, and takes a search field at ten values. A pick asks you for that
+filter and nothing else; answer it in the same update and focus lands on the new chip, answer it
+later and you own where focus goes. <kbd>Esc</kbd> closes the menu and adds nothing. The control
+is drawn only while something is left to add, and it stands at a chip's height and corner. It is
+labelled `Filter`, for the reason the clear action is labelled `Clear all`; `addLabel` takes any
+wording. The vanilla `filterBar()` has no `add`, so a vanilla page draws its own control and the
+kit answers it through markup: put your own `dropdown()` inside the bar, wrapped in an element
+carrying `data-filter-add`. That attribute is the whole contract — it declares the ask, carries
+the open rule's room, slide and closing hold, gives the trigger the chip's corner, height and
+edge, and is what the focus answer looks for. A pick inside it is yours to act on: the bar
+reports a change for a chip's menu and for nothing else. `initFilterBar()`'s `update()`
+rebuilds the bar from `filterBar()`, which draws no such control, so keep your wrapper in the
+DOM yourself. The Stock screener showcase draws one.
 
 ### A dropdown row is a div, a link or a button
 
@@ -436,6 +476,16 @@ the kit is showing**. **Under a coarse pointer the tap is the switch**, and the 
 captured. This means a chart that drills down on a bar does not drill down on the tap that asked
 what the bar says. No value may be reachable only by hovering. See
 [Hover readouts](../guidelines/hover-readouts.md).
+
+### The React tooltip
+
+React `Tooltip` shows a label, a value and an optional detail.
+`text` is still a shorthand for `label`. Empty parts are hidden.
+The focusable trigger provides the readout as its accessible description. Escape keeps focus on the trigger.
+The panel does not change the layout or intercept pointer events. Reduced motion removes the fade.
+
+`placement` selects the preferred top or bottom side. The readout stays within clipping ancestors
+and viewport bounds, and updates its position on scroll and resize.
 
 ### Pagination
 
@@ -533,7 +583,8 @@ roles at every width because a stylesheet cannot add them. A value whose meaning
 heading must carry that meaning itself. This is a rule in [Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
-change the filters you supplied. **A chip shows only the chosen value**, while the field's name
+change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
+[A filter row holds its panels](#a-filter-row-holds-its-panels). **A chip shows only the chosen value**, while the field's name
 appears only when nothing is chosen. Next to a value, the name reaches the reader through the
 trigger's accessible name and a hidden legend.
 
@@ -581,6 +632,10 @@ are unmodified Lucide paths in a 24 box. Neither has a filled disc or a burst ri
 is the mark that rule requires. `line` is the default because it carries the moment at page
 size. An action that is not a kit `Button` — a router link or a plain `<a>` — is ringed already and
 needs no class; `.ui-focusable` is for a focusable that is neither a link nor a kit control.
+
+`callout()` uses the same status split as toasts. Success, danger and warning use
+`circleCheck`, `circleX` and `circleAlert`. Info and neutral callouts use `info`. A caller can
+still pass `icon` when the tone does not say enough.
 
 ### Pending and denied states
 
@@ -658,6 +713,8 @@ Use `.ui-toolbar--split` to place the final control at the row's end. On a phone
 
 ### Segmented strips that outgrow their column
 
+The enabled selected pill uses an accent fill with contrasting label ink in both themes. A disabled selected pill keeps a quiet fill and disabled ink. Only keyboard focus draws an outline.
+
 A pill strip lays out its choices in one row while they fit. When they do not fit, the choices
 wrap onto further rows. **It never widens past its container:** a twelve-month picker in a phone
 column becomes three rows of pills instead of pushing the page sideways. Below 560px, the
@@ -679,6 +736,10 @@ strip wrap. A tab on a further row carries its whole highlight with it and is ne
 the row above or below. Every tab reserves the bar, but only the chosen one draws it. The mark
 therefore grows in place when the choice moves. Hover is an ink step from `--text` to
 `--strong`, the step every kit tab takes. There is no second mark.
+
+### A selected item in forced colours
+
+In forced colours, selected items use Highlight and HighlightText, unavailable selections use GrayText, and focus rings use CanvasText.
 
 ### Escaping and URL slots
 
@@ -709,6 +770,19 @@ The React wrapper publishes components over the same CSS. Its own notes are in
 vanilla sections above.
 
 ### React tables
+
+Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
+A `.ui-table__title` cell gives a text column the remaining width.
+React `DataTable` has no column flag for that cell class.
+Its pager follows the measured table width and wraps when necessary.
+Without `ResizeObserver`, the pager keeps its container width.
+A pager that renders no controls takes no space.
+
+Use `.ui-card--fit` when a card must end at its content.
+The company comparison story aligns its heading, filters, tabs and first column through one shared inset.
+Its empty result keeps the Clear filters action outside the scroll region.
+Both filter bars accept `clearVariant="link"` with a custom `clearLabel`. Their existing defaults remain available.
+
 
 Column labels accept React content, including a kit Tooltip that explains a header.
 
@@ -857,6 +931,48 @@ control removes. This prevents a caller from leaving a busy or disabled control 
 **Space is blocked on button roots only**, because it never activates an anchor. A busy link
 that swallowed Space would also prevent the reader from scrolling the page.
 
+### React charts
+
+`Chart` draws three shapes: `months`, a column per period with bars and a line across them;
+`bridge`, one period walked from a starting total to a result; and `spark`, one series at text
+size with no axis, for a stat band's `trend` slot. The numbers, the wording and the formatting
+are yours — `format` prints exact values in the readout, the live region and the table, and
+`formatAxis` prints the ticks, which are whole units.
+
+**A mark is capped, whatever its column is worth.** A bar never passes a mark's width, so a chart
+that grows with the card gains ground between its columns rather than twelve wider blocks. Two bar
+series on the same side of the zero line stand side by side with ground between them; a
+`bars-below` series takes positive magnitudes and hangs under the line instead. A bar is flat,
+rounded only at the end away from zero, and its foot stands square on the rule it is measured
+from. A bridge carries each step's running total across to the step beside it.
+
+**An unfinished period keeps its series fill with a dashed edge.** The legend names the estimated state.
+The readout and the optional table show the state and its `note`.
+
+**The value axis, the period row and the legend are quiet, and nothing is only there.** Every
+data value is reachable at full strength through pointer readouts and keyboard announcements.
+The optional values table opens on a control that reaches the phone tap floor.
+
+**Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
+paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark
+changes colour, so the accent stays with the series it names. The chart is one tab stop: Left,
+Right, Home and End step columns and announce each one politely, Enter picks one when `selectable`
+is set, and `title` names the plot and the table under it without being drawn, because the card
+around a chart already carries its title.
+
+**On a touch screen a tap opens the readout and a second tap on the same mark closes it. The tap
+that opens a readout does not call `onSelect`** — it is the reader asking what a mark is worth.
+The tap that closes one, and an ordinary mouse click, do, and the click itself is never swallowed,
+so your own listener around the chart still hears every tap. Below 560px, to a coarse pointer, a
+line's point grows to the room its column gives. It never crosses into a neighbour's column. A
+narrow sparkline can therefore own less than 44px across, but it still owns at least 24px
+across and the full 44px down. A sparkline's slot grows with that vertical target, so a
+`trend` slot is 44px tall there instead of 32.
+
+The table the reader opens carries its columns sideways in a named scroller, so your card and your
+page keep their width whatever series you pass. At phone widths the plot scrolls with the value
+axis held in place, and the side that still hides columns is faded. Nothing animates.
+
 ### The rest of the React surface
 
 - **`Tabs`** unmounts inactive panel content. Arrow keys, Home and End move between tabs and
@@ -883,12 +999,19 @@ that swallowed Space would also prevent the reader from scrolling the page.
   stack all keep that clearance,** so scrolling an action into view never parks it behind the
   bar. `searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
   shared stylesheet draws the short one and clips the sentence and the key cap rather than
-  dropping them, so the button keeps one accessible name at every width.
+  dropping them, so the button keeps one accessible name at every width. **When it mounts, the
+  band theme switch applies the stored theme choice, or follows the system when there is none.**
+  A page that sets its own `data-theme` must also set `data-theme-choice`, or store the choice,
+  to keep that theme. For example, `<html data-theme="light">` on a dark system turns dark
+  when the shell mounts.
 - **`SidebarNav`** accepts flat items or captioned sections, nested groups, counts and
   router-link rendering. **Nesting stops one level deep.** Each row keeps its name and count when
   collapsed.
 - **`Checkbox` and `Switch`** render native inputs inside the existing label classes, and **a
   disabled one uses the same paint as every other disabled control in the kit.**
+- **`Checkbox` takes an optional `hint`,** which sits under the label words and is linked to the box as
+  its description; the label stays the box's name. **`CheckList` groups `Checkbox` children in a
+  fieldset under a legend** set in the field label's type. A disabled box dims its hint with its label.
 - **`Snippet`** displays `code` as plain text, and **copying always writes the original `code`
   string**, whatever `children` displays.
 - **`EmptyState`** uses the vanilla markup and CSS, and **the page supplies its own `h1`.**
@@ -901,8 +1024,9 @@ that swallowed Space would also prevent the reader from scrolling the page.
   status text belongs beside the dot.
 - **`SuccessPanel`** is the inline confirmation. **`SuccessCheck`** is the bare shared mark.
 - **Shared logic.** `dropdownMatch`, `dropdownFiltering`, `rankGroups`, `rankCommands`,
-  `scoreCommand`, `paletteHotkey`, `segmentedNextIndex`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE` and
-  `calloutIcons` come from the main entry. So do `formatNumericValue` and
+  `scoreCommand`, `paletteHotkey`, `segmentedNextIndex`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE`,
+  `calloutIcons`, `chartScale`, `bridgeWalk`, `pointTarget` and `CHART_FLOOR` come from the main
+  entry. So do `formatNumericValue` and
   `formatDeltaValue`. They return plain text and classes for React to render and never HTML.
 
 ## What the kit does not do

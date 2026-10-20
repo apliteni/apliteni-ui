@@ -10,6 +10,7 @@
 .ui-pager {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: var(--space-3) var(--space-4);
   font-size: var(--text-sm);
@@ -68,15 +69,22 @@
    selector for the markup this component emits, and the spelling that keeps a
    rule about an ENABLED control out of the disabled-rule sweep in
    stories/guidelines/accessibility-floor.test.js, which reads selector text. */
-/* The one selected mark #578 round r34 LEFT as an edge, and why. A pager stands on
-   the page in one showcase and on a card in another; --surface steps off the page at
-   1.110:1 and off a card at 1.000:1, so a fill that marks the current page on one
-   ground marks nothing on the other. The hairline is what survives both. Open for
-   Artur on #578. */
+/* #615: an accent fill stands off page and card alike, as the Segmented pill does. */
 .ui-pager__page.is-current:not([disabled]) {
-  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
-  border-color: var(--border);
-  color: var(--strong);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: var(--weight-semibold);
+}
+/* White ink falls below the text floor on the lighter dark-theme accents. */
+:where(:root[data-theme="dark"]) .ui-pager__page.is-current:not([disabled]) {
+  color: var(--signal-contrast);
+}
+
+/* #615: a disabled current page keeps the mark a disabled selected Segmented pill keeps: the quiet
+   fill and the semibold weight, in the disabled ink. A busy pager still does not look live. */
+.ui-pager__page.is-current[disabled] {
+  background: var(--surface-3); /* code-bg: inherit — the selected control's own fill. */
+  /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
   font-weight: var(--weight-semibold);
 }
 
@@ -113,7 +121,8 @@
    `margin-top: 16px` for this, which is --space-4; the number moves to the scale
    with it rather than travelling as a literal.
    why: docs/foundations.md#spacing-and-rhythm */
-.ui-table + .ui-pager { margin-top: var(--space-4); }
+.ui-table + .ui-pager,
+.ui-table-scroll + .ui-pager { margin-top: var(--space-4); }
 
 /* A step given an `href` is an anchor, and a host stylesheet's `a:link` is
    (0,1,1) — which outranks `.ui-btn--ghost` at (0,1,0) and paints the enabled
@@ -128,3 +137,22 @@ a.ui-pager__step,
 a.ui-pager__page { color: var(--text); }
 a.ui-pager__step:hover,
 a.ui-pager__page:hover { color: var(--strong); }
+
+/* Forced colours replace every author background, so a selected item takes the system
+   pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
+   Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
+   own ring, drawn in CanvasText so the fill is never mistaken for it. */
+@media (forced-colors: active) {
+  .ui-pager__page.is-current:not([disabled]) {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+    --ring: var(--ring-width) solid CanvasText;
+  }
+  /* A busy pager must not look live, so its current page takes the disabled system colour. */
+  .ui-pager__page.is-current[disabled] {
+    forced-color-adjust: none;
+    background: GrayText;
+    color: Canvas; /* muted-ink: state — unavailable control */
+  }
+}

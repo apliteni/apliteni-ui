@@ -36,7 +36,6 @@ export const interruptDont = () => stage(callout({
 
 export const transientDo = () => stage(callout({
   variant: 'warn',
-  icon: 'alert',
   body: 'This token is shown once. Copy it now — you won’t see it again.',
 }));
 // No `action` here on purpose: a warn toast carrying one paints --amber ink
@@ -95,8 +94,9 @@ export const scaleDont = () => stage(card({
 const CURRENCY = { label: 'currency:', ariaLabel: 'Currency', items: currencyItems('EUR'), open: true };
 const room = (html) => stage(`<div style="min-height:400px">${html}</div>`);
 export const searchDo = () => room(dropdown({
-  ...CURRENCY, search: { placeholder: 'Search currencies', query: 'dollar' },
-}));
+  ...CURRENCY, panelClass: 'gl-component-choice__search-panel',
+  search: { placeholder: 'Search currencies', query: 'dollar' },
+}) + '<style>.gl-component-choice__search-panel{min-width:min(280px,calc(100vw - 80px));}</style>');
 export const searchDont = () => room(dropdown({ ...CURRENCY, scroll: true }));
 
 export const RULES = withSpecimens(content.rules, [

@@ -2,7 +2,7 @@ import { button, esc } from './index.js';
 import { dropdown, wireDropdown } from './dropdown.js';
 import { filterChipText, filterChipName, filterChipUnset, filterChipItems, focusNextStop } from '../logic/filter-bar.js';
 
-export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear all filters', disabled = false, busy = false } = {}) {
+export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear all', clearVariant = 'ghost', disabled = false, busy = false } = {}) {
   return `<fieldset class="ui-filter-bar" data-filter-bar${disabled || busy ? ' disabled' : ''}${busy ? ' aria-busy="true"' : ''}>`
     + `<legend class="ui-filter-bar__legend">${esc(label)}</legend>`
     + filters.map(filter => `<fieldset class="ui-filter-bar__chip" data-filter-id="${esc(filter.id)}"${filter.disabled ? ' disabled' : ''}>`
@@ -17,11 +17,10 @@ export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear
     // row is the only thing in it, and it reads as a bar that has been turned
     // off rather than one with no filters on it. It is the kit's own `one-page`
     // rule — a control with no action to offer is not shown. It returns with
-    // the first chip, in the bordered skin rather than the ghost one, because a
-    // live action beside two chips has to read as live.
+    // the first chip, as a quiet text action.
     // why: docs/components.md#a-filter-row-holds-its-panels
     + (filters.length
-      ? `<span data-filter-clear>${button({ label: clearLabel, size: 'sm' })}</span>`
+      ? `<span data-filter-clear>${button({ label: clearLabel, size: 'sm', variant: clearVariant })}</span>`
       : '')
     + '</fieldset>';
 }
@@ -58,7 +57,10 @@ export function initFilterBar(host, options = {}) {
     const chip = e.target.closest('[data-filter-id]');
     if (e.target.closest('[data-filter-remove]')) emit('ui-filter-remove', { id: chip.dataset.filterId });
     else if (e.target.closest('[data-filter-clear] button')) emit('ui-filter-clear', {});
-    else if (e.target.closest('[data-dd-item]')) {
+    // A chip's menu only. The catalogue a vanilla page draws under `data-filter-add` is the
+    // page's own, and a pick in it names no chip: reported as a change, it had a consumer
+    // mapping over its filters and writing the catalogue's value into every one of them. #518
+    else if (e.target.closest('[data-dd-item]') && !e.target.closest('[data-filter-add]')) {
       const item = e.target.closest('[data-dd-item]');
       if (item.getAttribute('aria-disabled') !== 'true') {
         const id = chip?.dataset.filterId, value = item.dataset.value;

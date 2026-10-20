@@ -268,51 +268,67 @@ test('a label knows a word from a figure, a sign and a name', () => {
 // The rendered sweep. One window for every story and every site page: only text
 // is read, so no stylesheet is loaded and no theme changes an answer — but a
 // story may branch on the theme to pick its words, so both are rendered.
-test('every label and chip a story or a site page renders starts with a capital', async (t) => {
-  const { JSDOM, VirtualConsole } = await import('jsdom');
-  const selectors = rankedSelectors(path.join(root, 'src'));
-  assert.ok(selectors.length > 0,
-    'no rule claims rank: label or rank: chip — the ranks left the sheets, or the note changed spelling');
+// Each story file and the site pages are their own test, so one slow file shows
+// as itself and no single test carries the whole walk. Tests run in order, so
+// the last one totals what the others read.
+const selectors = rankedSelectors(path.join(root, 'src'));
+const sweep = { dom: null, doc: null, bad: [], read: 0, pages: 0, stories: 0, renders: 0 };
 
+const sweepDoc = async () => {
+  if (sweep.doc) return sweep.doc;
+  const { JSDOM, VirtualConsole } = await import('jsdom');
   const quiet = new VirtualConsole();
   quiet.on('jsdomError', () => {});
-  const dom = new JSDOM('<!doctype html><html lang="en"><body></body></html>',
+  sweep.dom = new JSDOM('<!doctype html><html lang="en"><body></body></html>',
     { pretendToBeVisual: true, virtualConsole: quiet });
-  t.after(() => dom.window.close());
-  installDomGlobals(dom.window);
+  installDomGlobals(sweep.dom.window);
+  sweep.doc = sweep.dom.window.document;
+  return sweep.doc;
+};
 
-  const { document: doc } = dom.window;
-  const bad = [];
-  let read = 0;
-
-  // A label's own words, not the words of anything nested in it: `.ui-table th`
-  // can hold a sort button, and the button's name is that control's, not this
-  // label's. With no text of its own, the whole subtree is the label.
-  const ownText = (el) => {
-    const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('').trim();
-    return own || el.textContent.trim();
-  };
-  const check = (where, html) => {
-    doc.body.innerHTML = html;
-    for (const { selector, rank, where: ruled } of selectors) {
-      for (const el of doc.querySelectorAll(selector)) {
-        const text = ownText(el);
-        if (!text) continue;
-        read += 1;
-        if (labelCase(text) === 'bad') {
-          bad.push(`${where} — ${selector} (${rank}, ${ruled}) renders ${JSON.stringify(text)}`);
-        }
+// A label's own words, not the words of anything nested in it: `.ui-table th`
+// can hold a sort button, and the button's name is that control's, not this
+// label's. With no text of its own, the whole subtree is the label.
+const ownText = (el) => {
+  const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('').trim();
+  return own || el.textContent.trim();
+};
+const MESSAGE = '\nWrite the label in sentence case. A key is not a label — write the word for it, the way '
+  + 'versionSwitcher() writes "Live" for `live`.\n'
+  + 'docs/foundations.md#labels-and-titles\n';
+const assertNoneBadSince = (start) => {
+  assert.deepEqual(sweep.bad.slice(start), [], MESSAGE);
+};
+const check = (doc, where, html) => {
+  doc.body.innerHTML = html;
+  for (const { selector, rank, where: ruled } of selectors) {
+    for (const el of doc.querySelectorAll(selector)) {
+      const text = ownText(el);
+      if (!text) continue;
+      sweep.read += 1;
+      if (labelCase(text) === 'bad') {
+        sweep.bad.push(`${where} — ${selector} (${rank}, ${ruled}) renders ${JSON.stringify(text)}`);
       }
     }
-  };
+  }
+};
 
-  for (const rel of storyFiles) {
+test('the ranks the sweep reads are in the sheets', () => {
+  assert.ok(selectors.length > 0,
+    'no rule claims rank: label or rank: chip — the ranks left the sheets, or the note changed spelling');
+});
+
+for (const rel of storyFiles) {
+  test(`every label and chip in stories/${rel} starts with a capital`, async () => {
+    const doc = await sweepDoc();
+    const start = sweep.bad.length;
     const mod = await import(path.join(root, 'stories', rel));
     const def = mod.default || {};
     for (const [name, story] of Object.entries(mod)) {
       if (name === 'default' || !story || typeof story !== 'object') continue;
       const render = story.render || def.render;
       if (typeof render !== 'function') continue;
+      sweep.stories += 1;
       const args = { ...def.args, ...story.args };
       // Most stories word themselves the same in both themes, and reading the same
       // markup twice is the expensive half of this gate. Render both, check the
@@ -325,24 +341,36 @@ test('every label and chip a story or a site page renders starts with a capital'
         try { html = serialize(render(args, { globals: { theme, accent: 'default' }, args })); } catch { continue; }
         if (!html || seen.has(html)) continue;
         seen.add(html);
-        check(`stories/${rel}:${name} [${theme}]`, html);
+        sweep.renders += 1;
+        check(doc, `stories/${rel}:${name} [${theme}]`, html);
       }
     }
-  }
+    assertNoneBadSince(start);
+  });
+}
 
+test('every label and chip a site page renders starts with a capital', async () => {
+  const doc = await sweepDoc();
+  const start = sweep.bad.length;
+  const pages = readdirSync(path.join(root, 'site')).filter((f) => f.endsWith('.html')).sort();
+  assert.ok(pages.length > 0, 'no HTML page found under site/ — the page list is empty, so no page was read');
   const { changelogMain } = await import(path.join(root, 'site/changelog.mjs'));
-  check('site/changelog.mjs:changelogMain()', changelogMain());
-  for (const page of readdirSync(path.join(root, 'site')).filter((f) => f.endsWith('.html')).sort()) {
-    check(`site/${page}`, readFileSync(path.join(root, 'site', page), 'utf8'));
+  check(doc, 'site/changelog.mjs:changelogMain()', changelogMain());
+  sweep.pages += 1;
+  for (const page of pages) {
+    check(doc, `site/${page}`, readFileSync(path.join(root, 'site', page), 'utf8'));
+    sweep.pages += 1;
   }
+  assertNoneBadSince(start);
+});
 
+test('the sweep read the labels and found none lower case', (t) => {
+  t.after(() => sweep.dom?.window.close());
   // Logged rather than asserted: the absolute count is a fact about the catalogue
   // and moves whenever a story is added. The floor is the anti-vacuity guard.
-  t.diagnostic(`read ${read} labels and chips under ${selectors.length} ranked rules`);
-  assert.ok(read > 200,
-    `read ${read} labels and chips across the stories and the site; the walk stopped finding them`);
-  assert.deepEqual(bad, [],
-    '\nWrite the label in sentence case. A key is not a label — write the word for it, the way '
-    + 'versionSwitcher() writes "Live" for `live`.\n'
-    + 'docs/foundations.md#labels-and-titles\n');
+  t.diagnostic(`read ${sweep.read} labels and chips under ${selectors.length} ranked rules `
+    + `in ${storyFiles.length} story files, ${sweep.stories} stories (${sweep.renders} renders) and ${sweep.pages} site pages`);
+  assert.ok(sweep.read > 200,
+    `read ${sweep.read} labels and chips across the stories and the site; the walk stopped finding them`);
+  assert.deepEqual(sweep.bad, [], MESSAGE);
 });

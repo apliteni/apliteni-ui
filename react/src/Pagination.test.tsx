@@ -465,3 +465,13 @@ it('leaves focus where the reader took it while the page was loading', async () 
   await act(async () => { named('Arrived').click(); });
   expect(document.activeElement).toBe(named('Parent jumps to the end'));
 });
+
+it('a busy numbered pager disables its current page and keeps the mark class the quiet fill needs', () => {
+  const { container } = render(
+    <Pagination page={4} pageSize={10} total={400} variant="numbered" loading />);
+  const current = container.querySelector('.ui-pager__page.is-current') as HTMLButtonElement;
+  expect(current.textContent).toBe('4');
+  expect(current.disabled).toBe(true);
+  expect(current.getAttribute('aria-disabled')).toBe('true');
+  expect(current.getAttribute('aria-current')).toBe('page');
+});

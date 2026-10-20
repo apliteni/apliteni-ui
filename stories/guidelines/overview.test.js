@@ -156,7 +156,7 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   assert.deepEqual(LINKS.map(link => link.title), PAGES.map(page => page.title));
   assert.deepEqual(LINKS.map(link => link.href), PAGES.map(page => page.href));
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
-  assert.equal(rules, 131);
+  assert.equal(rules, 134);
   assert.equal(INTRO, '');
   // Two, and both are named. Dashboards and reports asks every report for an export
   // and the Stock screener has none (#555). Account and settings prescribes a modal

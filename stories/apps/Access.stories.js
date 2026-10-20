@@ -76,7 +76,7 @@ export const Empty = {
   render: () => screen({
     sub: 'Connect agents to read over MCP.',
     body: `
-      ${callout({ variant: 'info', icon: 'info', body: 'No agents yet. Create a token, then paste the connect command into your agent.' })}
+      ${callout({ variant: 'info', body: 'No agents yet. Create a token, then paste the connect command into your agent.' })}
       ${card({ body: `
         <div class="ui-empty">
           <div class="ui-empty__icon">${icon('plug')}</div>

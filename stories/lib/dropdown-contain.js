@@ -741,3 +741,129 @@ export const broken = (list) => list.filter((r) => r.left < -SLACK
 /** A line a reader can act on. */
 export const whereCase = (r) => `${r.half} “${r.case}” ${r.state}`
   + ` → ${r.left}…${r.right} of ${r.view}, width ${r.width} of ${r.bound}, page ${r.scrollWidth}`;
+
+/** Fixed geometry covers the height floor. The story sweep above discovers width cases. */
+export async function portalFloorCase(browser, port, {
+  width = 390, height = 844, theme = 'light', portal = true, screenshot, refuseFlip = false,
+} = {}) {
+  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
+  try {
+    if (refuseFlip) await page.addInitScript(() => {
+      const toggle = DOMTokenList.prototype.toggle;
+      DOMTokenList.prototype.toggle = function (token, ...args) {
+        return token === 'is-up' ? this.contains(token) : toggle.call(this, token, ...args);
+      };
+    });
+    await page.goto(`http://127.0.0.1:${port}/__shot`);
+    await page.waitForFunction(() => window.kit?.wireDropdown);
+    await page.evaluate(({ theme, portal }) => {
+      document.documentElement.dataset.theme = theme;
+      document.body.innerHTML = '<main style="padding:24px"><h1>Menu actions</h1></main>'
+        + `<div id="anchor" style="position:absolute;left:24px;top:0">${window.kit.dropdown({
+          value: 'Actions', variant: 'menu', portal,
+          items: Array.from({ length: 12 }, (_, i) => ({ label: `Action ${i + 1}` })),
+        })}</div>`;
+      const trigger = document.querySelector('[data-dropdown-trigger]');
+      document.querySelector('#anchor').style.top = `${innerHeight - 36 - trigger.offsetHeight}px`;
+      window.kit.wireDropdown(document);
+      trigger.click();
+    }, { theme, portal });
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForTimeout(350);
+    if (screenshot) await page.screenshot({ path: screenshot });
+    return await page.evaluate(() => {
+      const panel = document.querySelector('[data-dropdown-panel]');
+      const last = panel.querySelector('[data-dd-item]:last-child');
+      panel.scrollTop = panel.scrollHeight;
+      if (!panel.hasAttribute('data-dropdown-portal')) window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+      const row = last.getBoundingClientRect();
+      const x = (row.left + row.right) / 2;
+      const hit = (y) => last.contains(document.elementFromPoint(x, y));
+      return {
+        up: panel.classList.contains('is-up'),
+        reachable: row.top >= 0 && row.bottom <= innerHeight && hit(row.top + 1) && hit(row.bottom - 1),
+        documentHeight: document.documentElement.scrollHeight,
+        viewportHeight: innerHeight, rowTop: row.top, rowBottom: row.bottom,
+      };
+    });
+  } finally {
+    await page.close();
+  }
+}
+
+/* The first open after the side changes, sampled frame by frame: the panel has to
+ * arrive from its trigger, so its translateY starts on that side (positive when it
+ * opens upward) and ends at 0. `keepTransition` swallows the wiring's switch-off of
+ * the panel's transition, which is the fix taken away. */
+export async function entranceCase(browser, port, { portal = true, keepTransition = false } = {}) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  try {
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+    if (keepTransition) await page.addInitScript(() => {
+      // Chromium gives every style object its own `transition` accessor, so the
+      // refusal sits on the `style` getter: a write of `none` is dropped, the rest passes.
+      const get = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'style')?.get
+        || Object.getOwnPropertyDescriptor(Element.prototype, 'style')?.get;
+      if (!get) throw new Error('no style getter to wrap');
+      const owner = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'style') ? HTMLElement.prototype : Element.prototype;
+      const wrapped = new WeakMap();
+      Object.defineProperty(owner, 'style', {
+        configurable: true,
+        get() {
+          const target = get.call(this);
+          if (!wrapped.has(target)) {
+            wrapped.set(target, new Proxy(target, {
+              get(t, k) { const v = Reflect.get(t, k, t); return typeof v === 'function' ? v.bind(t) : v; },
+              set(t, k, v) { if (k === 'transition' && v === 'none') return true; return Reflect.set(t, k, v, t); },
+            }));
+          }
+          return wrapped.get(target);
+        },
+      });
+    });
+    await page.goto(`http://127.0.0.1:${port}/__shot`);
+    await page.waitForFunction(() => window.kit?.wireDropdown);
+    const got = await page.evaluate(async ({ portal }) => {
+      document.body.innerHTML = '<main style="padding:24px"><h1>Menu actions</h1></main>'
+        + `<div id="anchor" style="position:absolute;left:24px;top:0">${window.kit.dropdown({
+          value: 'Actions', variant: 'menu', portal,
+          items: Array.from({ length: 12 }, (_, i) => ({ label: `Action ${i + 1}` })),
+        })}</div>`;
+      await document.fonts.ready;
+      const trigger = document.querySelector('[data-dropdown-trigger]');
+      const anchor = document.querySelector('#anchor');
+      window.kit.wireDropdown(document);
+      const frames = () => new Promise((done) => {
+        const panel = document.querySelector('[data-dropdown-panel]');
+        const ys = [];
+        const tick = () => {
+          const m = new DOMMatrix(getComputedStyle(panel).transform);
+          ys.push(m.m42);
+          if (ys.length < 6) requestAnimationFrame(tick);
+          else done(ys);
+        };
+        requestAnimationFrame(tick);
+      });
+      const settle = () => new Promise((r) => setTimeout(r, 600));
+      const out = [];
+      for (const place of ['bottom', 'top', 'bottom']) {
+        anchor.style.top = place === 'bottom' ? `${innerHeight - 36 - trigger.offsetHeight}px` : '0px';
+        await settle();
+        trigger.click();
+        const panel = document.querySelector('[data-dropdown-panel]');
+        const up = panel.classList.contains('is-up');
+        const ys = await frames();
+        const opened = panel.classList.contains('is-open') || !!trigger.closest('.ui-dropdown')?.classList.contains('open');
+        out.push({ place, up, opened, ys });
+        trigger.click();
+        await settle();
+      }
+      return out;
+    }, { portal });
+    if (errors.length) throw new Error(`page errors during the entrance probe: ${errors.join('; ')}`);
+    return got;
+  } finally {
+    await page.close();
+  }
+}

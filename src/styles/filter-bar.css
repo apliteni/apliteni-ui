@@ -13,15 +13,19 @@
   background: var(--surface);
 }
 .ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); }
-.ui-filter-bar__remove { border: 0; background: transparent; color: var(--text); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-xs); cursor: pointer; }
+/* The chip is the edge the row's other boxes are measured against, so it fades with them:
+   off, the chips stayed at full strength and only their ink said so. Two carriers, because
+   a bar turned off disables the controls in a nested fieldset and not the fieldset. #518
+   why: guidelines/accessibility-floor.md#disabled-control-legibility */
+.ui-filter-bar__chip:disabled,
+.ui-filter-bar:disabled .ui-filter-bar__chip { border-color: var(--disabled-border); }
+.ui-filter-bar__remove { border: 0; background: transparent; /* muted-ink: glyph — filter remove mark */ color: var(--muted); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-xs); cursor: pointer; }
 .ui-filter-bar__remove:focus-visible,
 .ui-filter-bar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
+.ui-filter-bar .ui-filter-bar__remove:disabled { /* muted-ink: state — unavailable remove mark on the page */ color: var(--disabled-ink-bare); }
 
-/* The chip's value takes its button's own ink, so a disabled chip keeps the
-   disabled ink it inherits instead of the value ink the enabled rules set. */
-.ui-filter-bar .ui-dropdown__value { color: inherit; }
-.ui-filter-bar button:enabled .ui-dropdown__value { color: var(--strong); }
+.ui-filter-bar .ui-dropdown__value { color: inherit; font-weight: inherit; letter-spacing: normal; }
 /* A chip with nothing chosen prints the field's name in the slot the value will
    take — in the page's reading ink, not --muted. --disabled-ink IS --muted, so a
    muted name on an offered filter said "switched off" in the one ink the kit
@@ -34,11 +38,8 @@
    dropdown gets: it is laid out while hidden, so a wider one widened the page
    (#467). why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; overflow-wrap: anywhere; }
-/* The clear action takes the kit's bordered skin minus its fill: words belong on
-   the page, not on a grey block, in any state — Artur, round r28. Rest stays at
-   (0,1,1) so `.ui-btn:hover`'s accent wash still outranks it; the rules under it
-   answer each state that paints a NEUTRAL fill, one step above the kit rule
-   writing it. Held by filter-bar.test.js. why: docs/components.md#a-filter-row-holds-its-panels */
+/* Clear is a quiet text button: no edge in any state, and no fill but the pointer's wash below.
+   why: docs/components.md#a-filter-row-holds-its-panels */
 [data-filter-clear] button { background: transparent; }
 .ui-filter-bar [data-filter-clear] button:disabled,
 .ui-filter-bar [data-filter-clear] button[aria-disabled="true"],
@@ -46,23 +47,40 @@
 .ui-filter-bar [data-filter-clear] button[aria-busy="true"]:hover,
 .ui-filter-bar [data-filter-clear] button[aria-busy="true"]:active,
 .ui-filter-bar [data-filter-clear] button[aria-busy="true"][data-btn-disabled] { background: transparent; }
-/* No fill, so the label is read on the page: the ink button-disabled.test.js
-   measures on every ground. The edge stays the kit's --disabled-border. */
+/* The ink button-disabled.test.js measures on every ground, since there is no fill. */
 .ui-filter-bar [data-filter-clear] button:disabled,
 .ui-filter-bar [data-filter-clear] button[aria-disabled="true"] { /* muted-ink: state — the clear action is off and its words sit on the page */ color: var(--disabled-ink-bare); }
+.ui-filter-bar [data-filter-clear] button { border-color: transparent; }
+.ui-filter-bar [data-filter-clear] button[aria-busy="true"],
+.ui-filter-bar [data-filter-clear] button[aria-busy="true"]:hover,
+.ui-filter-bar [data-filter-clear] button[aria-busy="true"]:active { border-color: transparent; }
+/* The kit's own pointer answer, `.ui-btn:hover`: --accent at 14% and --strong ink, over the page
+   ground rather than --surface, which would be a grey block under words. Busy restated after. */
+.ui-filter-bar [data-filter-clear] button:enabled:hover { border-color: transparent; background: color-mix(in srgb, var(--accent) 14%, transparent); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
+.ui-filter-bar [data-filter-clear] button[aria-busy="true"]:hover { background: transparent; }
+.ui-filter-bar [data-filter-clear] button:disabled,
+.ui-filter-bar [data-filter-clear] button[aria-disabled="true"],
+.ui-filter-bar [data-filter-clear] button[aria-busy="true"][data-btn-disabled] { border-color: transparent; }
 
-/* Open, a chip's menu takes the kit's menu floor, measured and slid by
-   filterPanelFit(); `is-closing` holds that geometry through the fade. #549
+/* Open, a filter menu anchored at its own trigger takes a floor measured and slid by
+   filterPanelFit(); `is-closing` holds that geometry through the fade. A chip's menu
+   reaches for the kit's menu floor; the add control's catalogue asks for a panel's
+   width instead, because a search field over it reads "Searc" at 240. #549, #496
    why: docs/components.md#a-filter-row-holds-its-panels */
+.ui-filter-bar [data-filter-add] .ui-dropdown__panel { --ui-filter-panel-ask: var(--panel-sm); }
 .ui-filter-bar__chip .ui-dropdown.open .ui-dropdown__panel,
-.ui-filter-bar__chip .ui-dropdown__panel.is-closing {
+.ui-filter-bar__chip .ui-dropdown__panel.is-closing,
+.ui-filter-bar [data-filter-add] .ui-dropdown.open .ui-dropdown__panel,
+.ui-filter-bar [data-filter-add] .ui-dropdown__panel.is-closing {
   min-width: min(var(--ui-filter-panel-floor, 240px), var(--ui-filter-panel-room, 100%));
   max-width: var(--ui-filter-panel-room, 100%);
   margin-inline-start: calc(-1 * var(--ui-filter-panel-shift, 0px));
 }
 /* An end-aligned panel is pinned by its right edge, so the slide pushes it. */
 .ui-filter-bar__chip .ui-dropdown.open .ui-dropdown__panel.is-end,
-.ui-filter-bar__chip .ui-dropdown__panel.is-end.is-closing {
+.ui-filter-bar__chip .ui-dropdown__panel.is-end.is-closing,
+.ui-filter-bar [data-filter-add] .ui-dropdown.open .ui-dropdown__panel.is-end,
+.ui-filter-bar [data-filter-add] .ui-dropdown__panel.is-end.is-closing {
   margin-inline-start: 0;
   margin-inline-end: calc(-1 * var(--ui-filter-panel-shift, 0px));
 }
@@ -104,3 +122,24 @@
    field and filterBar() builds none, so an arrow key moves real focus instead. #578
    why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__item.is-selected:hover { background: color-mix(in srgb, var(--glow-purple), var(--accent) 9%); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
+
+/* A chip's height — its remove mark's line box, padding and border — named so the control
+   stands as tall on a line of its own, where there is no chip to stretch to. */
+.ui-filter-bar { --ui-filter-row-h: calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)); }
+
+/* A chip's neighbour takes the chip's corner, that height and edge, but not its painted fill:
+   the trigger's own edge can differ from the row's, while its --surface made the
+   row's least consequential action its loudest box — and off, with its edge down, the one thing
+   still looking pressable. The states are
+   spelled out because this depth outranks the base rules; the fill needs one rule, because the
+   kit paints it at rest only. Under a pointer it takes the kit's trigger edge, --accent, which
+   steps aside under the band; held at its resting edge, hover and rest were one paint. #496, #518
+   why: guidelines/colour-and-theming.md#keep-text-off-grey-fills */
+.ui-filter-bar [data-filter-add] { display: flex; align-self: stretch; }
+.ui-filter-bar [data-filter-add] .ui-dropdown { display: flex; }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-radius: var(--radius-sm); min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent; }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled="true"],
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible) { border-color: var(--disabled-border); }
