@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.126.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React `DataTable` takes `zebra`, `hover`, `stack`, `rowState`, `footer` and `caption`, and a column takes `rowHeader` and `cell`. Each maps to a vanilla table style, so the React table can match every Table story.', ['DataTable']],
+      ['changed', 'A revoked table row now shows only the word, with no strike line. Handles in `.ui-table__code` and `.ui-identity__symbol` use the normal font. The Table stories drop the sub-line under each title, and the payout table stacks on a phone so each row keeps its amounts.', ['Table']],
+    ],
+  },
+  {
     v: '0.125.1', date: '2026-10-20',
     changes: [
       ['changed', 'The Colour and theming guideline limits selected navigation to one accent signal. The NavTabs pill keeps its accent ink on a soft accent fill, because the fill alone is too faint to mark the current route. See #475.', ['Guidelines', 'Navigation']],

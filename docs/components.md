@@ -771,8 +771,13 @@ vanilla sections above.
 ### React tables
 
 Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
-A `.ui-table__title` cell gives a text column the remaining width.
-React `DataTable` has no column flag for that cell class.
+A `.ui-table__title` cell gives a text column the remaining width. A column takes `cell` for it:
+`title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
+`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `stack`, `density`,
+`stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
+and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
+with no strike line. `stack` writes the table roles that the block layout drops. Below the phone step each row
+shows every cell, so no amount scrolls out of reach.
 Its pager follows the measured table width and wraps when necessary.
 Without `ResizeObserver`, the pager keeps its container width.
 A pager that renders no controls takes no space.

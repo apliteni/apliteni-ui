@@ -240,7 +240,6 @@ const RECORDED = {
   'stories/components/Feedback.stories.js': { shadow: 11 },
   'stories/components/Pagination.stories.js': { shadow: 4 },
   'stories/components/Stat.stories.js': { shadow: 4 },
-  'stories/components/Table.stories.js': { shadow: 2 },
   'stories/components/Tabs.stories.js': { shadow: 7 },
   'stories/components/Tooltip.stories.js': { shadow: 7 },
 };

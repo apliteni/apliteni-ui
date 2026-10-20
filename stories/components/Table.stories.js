@@ -26,23 +26,22 @@ const PAYOUTS = [
 export const FinanceData = {
   render: () => pad(`<div class="ui-card" style="max-width:1040px">
     <h2 class="ui-card__title"><span class="ui-card__icon">${icon('key')}</span> Payouts</h2>
-    <div class="ui-card__sub">Stripe payouts reconciled to bank transactions.</div>
-    <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover">
-      <thead><tr>
-        <th>ID</th><th>Payout ID</th><th>Arrival</th>
-        <th class="ui-table__num">Gross</th><th class="ui-table__num">Fees</th>
-        <th class="ui-table__num">Net (EUR)</th><th>Status</th>
+    <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover ui-table--stack" role="table">
+      <thead role="rowgroup"><tr role="row">
+        <th scope="col" role="columnheader">ID</th><th scope="col" role="columnheader">Payout ID</th><th scope="col" role="columnheader">Arrival</th>
+        <th scope="col" role="columnheader" class="ui-table__num">Gross</th><th scope="col" role="columnheader" class="ui-table__num">Fees</th>
+        <th scope="col" role="columnheader" class="ui-table__num">Net (EUR)</th><th scope="col" role="columnheader">Status</th>
       </tr></thead>
-      <tbody>
+      <tbody role="rowgroup">
         ${PAYOUTS.map(([id, pid, arr, gross, fees, net, variant, label]) => `
-          <tr class="${id === '1164' ? 'is-target' : ''}">
-            <td class="ui-table__linked"><a href="#">${id}</a></td>
-            <td class="ui-table__code">${pid}</td>
-            <td>${arr}</td>
-            <td class="ui-table__num">${gross}</td>
-            <td class="ui-table__num">${fees}</td>
-            <td class="ui-table__num ui-table__num--strong">${net}</td>
-            <td>${badge(label, variant)}</td>
+          <tr role="row" class="${id === '1164' ? 'is-target' : ''}">
+            <td role="cell" class="ui-table__linked"><a href="#">${id}</a></td>
+            <td role="cell" class="ui-table__code">${pid}</td>
+            <td role="cell">${arr}</td>
+            <td role="cell" class="ui-table__num">${numericValue({ value: gross, unit: 'EUR' })}</td>
+            <td role="cell" class="ui-table__num">${numericValue({ value: fees, unit: 'EUR' })}</td>
+            <td role="cell" class="ui-table__num ui-table__num--strong">${numericValue({ value: net, unit: 'EUR' })}</td>
+            <td role="cell">${badge(label, variant)}</td>
           </tr>`).join('')}
       </tbody>
     </table>
@@ -58,7 +57,6 @@ const AGENTS = [
 export const AgentTokens = {
   render: () => pad(`<div class="ui-card" style="max-width:720px">
     <h2 class="ui-card__title"><span class="ui-card__icon">${icon('key')}</span> Access &amp; agents</h2>
-    <div class="ui-card__sub">Personal tokens agents use to read the strategy over MCP.</div>
     <table class="ui-table ui-table--hover">
       <thead><tr><th>Agent</th><th>Scope</th><th>Last used</th><th></th></tr></thead>
       <tbody>
@@ -68,7 +66,7 @@ export const AgentTokens = {
             <td>${scope}</td>
             <td>${used}</td>
             <td class="ui-table__act">${state === 'dead'
-              ? '<span style="color:var(--muted);font-size:13px">Revoked</span>'
+              ? 'Revoked'
               : button({ label: 'Revoke', variant: 'danger', size: 'sm' })}</td>
           </tr>`).join('')}
       </tbody>
@@ -139,7 +137,6 @@ const AUDIT = [
 export const StackedLog = {
   render: () => pad(`<div class="ui-card" style="max-width:720px">
     <h2 class="ui-card__title"><span class="ui-card__icon">${icon('clock')}</span> Audit log</h2>
-    <div class="ui-card__sub">Fabricated entries from one morning, newest first.</div>
     <table class="ui-table ui-table--dense ui-table--hover ui-table--stack" role="table">
       <thead role="rowgroup"><tr role="row">
         <th scope="col" role="columnheader">Who</th>
@@ -178,7 +175,6 @@ const DESKS = [
 export const StackedPinned = {
   render: () => pad(`<div class="ui-card" style="max-width:860px">
     <h2 class="ui-card__title"><span class="ui-card__icon">${icon('table')}</span> Desk notes</h2>
-    <div class="ui-card__sub">Fabricated positions, heaviest first; weight is in basis points of the fund and a lot is 100 shares.</div>
     <div class="ui-table-scroll" role="region" aria-label="Desk notes, scroll for more rows" tabindex="0">
       <table class="ui-table ui-table--dense ui-table--sticky ui-table--pinned ui-table--hover ui-table--stack"
         id="desk-notes" role="table">

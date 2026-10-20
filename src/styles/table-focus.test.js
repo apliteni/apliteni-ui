@@ -371,6 +371,7 @@ test("every composition the reader pages name takes the ring and keeps the box i
 const RING_RULES = {
   outset: /a:focus-visible,\n/,
   inward: /\.ui-table td\.ui-table__linked > :is\(a:not\(\[class\]\), a\.ui-identity\):only-child:focus-visible \{[^}]*\}/,
+  stackedLinked: /\.ui-table\.ui-table--stack > tbody > tr > td\.ui-table__linked > a:only-child:focus-visible \{[^}]*\}/,
   stackedDirect: /\.ui-table\.ui-table--stack\.ui-table--pinned \.ui-table__identity:not\(\.ui-table__linked\) > a:focus-visible \{[^}]*\}/,
 };
 
@@ -478,38 +479,6 @@ test("the check rejects a cell link left in the inline flow", () => {
       "a second rule is setting the display and this gate is measuring the wrong one",
   );
   assert.equal(square.length, subjects.length, "and every one must lose the kit's corner with it");
-});
-
-// The one state the kit gives a cell of its own: a revoked row strikes its title. The strike is
-// painted by the cell, and `display: inline-block` makes the link a box an ancestor's decoration
-// does not cross, so the link carries it itself — at rest, and on hover, where the cell-link
-// hover rule is a whole `text-decoration` that would otherwise replace it.
-const DEAD = shape({
-  what: "a linked name in a revoked row",
-  rowOpen: '<tr class="is-dead">',
-  cells: ['<td class="ui-table__title"><a href="#token">Old integration</a></td>'],
-});
-const strike = (css, on) => declared(css, "text-decoration-line", element(DEAD), on, ["text-decoration"]);
-
-test("a linked name in a revoked row stays struck, at rest and on hover", () => {
-  assert.match(strike(SHEETS, []) ?? "", /line-through/, "at rest the linked name must be struck");
-  assert.match(strike(SHEETS, [":hover"]) ?? "", /line-through/, "and hovering it must not take the strike off");
-  assert.match(strike(SHEETS, [":hover"]) ?? "", /underline/, "while still underlining, as any cell link does");
-});
-
-test("the check rejects the strike dropped from a revoked row's link", () => {
-  const rules = [...SHEETS.matchAll(/\n\.ui-table tr\.is-dead td\.ui-table__title a(?::hover)? \{[^}]*\}/g)]
-    .map((match) => match[0]);
-  assert.equal(rules.length, 2, "the rest rule and the hover rule must both exist to be taken out");
-
-  for (const rule of rules) {
-    const stripped = SHEETS.replace(rule, "");
-    const states = [[], [":hover"]].filter((on) => /line-through/.test(strike(stripped, on) ?? ""));
-    assert.ok(
-      states.length < 2,
-      `with this rule gone the strike must be missing in at least one state:\n${rule.trim()}`,
-    );
-  }
 });
 
 test("a table whose class list is built at runtime is refused, not guessed at", () => {

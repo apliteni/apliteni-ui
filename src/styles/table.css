@@ -1,6 +1,6 @@
 /* ============================================================================
  * Table — .ui-table  (hairline rows, opaque base surface)
- * Row modifiers: .is-dead (revoked/struck), .is-target (landed on), right-aligned .ui-table__act
+ * Row modifiers: .is-dead (revoked, shown by its muted ink and a word), .is-target (landed on), right-aligned .ui-table__act
  * ========================================================================== */
 
 .ui-table {
@@ -52,14 +52,6 @@
 .ui-table th:last-child { padding-right: 0; }
 .ui-table td.ui-table__act { padding-right: 0; text-align: right; }
 .ui-table tr.is-dead td { /* muted-ink: state — revoked row */ color: var(--muted); }
-.ui-table tr.is-dead td.ui-table__title { text-decoration: line-through; }
-/* The strike is painted by the cell across its in-flow inline descendants, and an atomic
-   inline-level box is not one — so a linked name in a revoked row needs it struck itself.
-   On hover it carries both lines: the cell-link hover rule below is a whole `text-decoration`,
-   which would otherwise replace the strike with the underline.
-   held by: src/styles/table-focus.test.js */
-.ui-table tr.is-dead td.ui-table__title a { text-decoration: line-through; }
-.ui-table tr.is-dead td.ui-table__title a:hover { text-decoration-line: underline line-through; }
 .ui-table tbody tr { transition: background var(--dur-fast) var(--ease); }
 
 /* Row hover: an inset, rounded fill so the highlight never sits flush against a
@@ -213,7 +205,7 @@
  * bold only in the figure. Scoped to the table, the helper wins on either cell and the
  * row reads as one row. */
 .ui-table :is(th, td).ui-table__num--strong { color: var(--strong); font-weight: var(--weight-semibold); }
-.ui-table__code { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text); }
+.ui-table__code { font-size: var(--text-sm); color: var(--text); }
 /* Two things in one cell — a row's own name and the state of it — side by side
  * while the column has room and stacked when it does not. The wrap comes from flex
  * because a dense cell is nowrap, and the column is then only as wide as the wider
@@ -387,7 +379,7 @@
 .ui-delta--success { color: var(--chip-success-ink); }
 .ui-delta--danger { color: var(--chip-danger-ink); }
 .ui-identity { min-height: 24px; display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text); text-decoration: none; }
-.ui-identity__symbol { font-family: var(--font-mono); font-weight: var(--weight-semibold); }
+.ui-identity__symbol { font-weight: var(--weight-semibold); }
 .ui-identity__name { white-space: normal; max-width: var(--panel-sm); }
 .ui-identity__logo { width: 24px; height: 24px; flex: 0 0 24px; position: relative; display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius-xs); font-size: var(--text-xs); }
 .ui-identity__logo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
