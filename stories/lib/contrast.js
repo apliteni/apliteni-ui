@@ -662,7 +662,27 @@ export function stateTargets(root, bases) {
   return targets;
 }
 
-export async function walkStories({ theme, accent = 'default', states = true, files = storyFiles } = {}) {
+/** The renderable stories a module exports, in export order. The walk and the catalogue share this rule. */
+export function renderableStories(mod) {
+  const def = mod.default || {};
+  return Object.entries(mod).filter(([name, story]) => name !== 'default' && story
+    && typeof story === 'object' && typeof (story.render || def.render) === 'function');
+}
+
+/** Every story id (`file:Export`) the catalogue ships, in the order the walk meets them. */
+export async function catalogueIds(files = storyFiles) {
+  const ids = [];
+  for (const rel of files) {
+    const mod = await import(path.join(root, 'stories', rel));
+    for (const [name] of renderableStories(mod)) ids.push(`${rel}:${name}`);
+  }
+  return ids;
+}
+
+export async function walkStories({
+  theme, accent = 'default', states = true, files = storyFiles, stories: only = null,
+} = {}) {
+  const wanted = only && new Set(only);
   const { vars, css } = kitCssFor(theme, accent);
   const kitBases = stateBases(css);
 
@@ -694,10 +714,9 @@ export async function walkStories({ theme, accent = 'default', states = true, fi
   for (const rel of files) {
     const mod = await import(path.join(root, 'stories', rel));
     const def = mod.default || {};
-    for (const [name, story] of Object.entries(mod)) {
-      if (name === 'default' || !story || typeof story !== 'object') continue;
+    for (const [name, story] of renderableStories(mod)) {
+      if (wanted && !wanted.has(`${rel}:${name}`)) continue;
       const render = story.render || def.render;
-      if (typeof render !== 'function') continue;
       const args = { ...def.args, ...story.args };
       let out;
       try {
@@ -922,11 +941,19 @@ function shardWalk(workerData) {
  * is paid once a thread instead of once a cell. It also leaves one ramp up and one ramp
  * down rather than one of each per cell.
  */
-export async function walkCells({ cells, states = true, files = storyFiles, shards } = {}) {
-  const n = shards === undefined ? walkShards(files) : Math.max(1, Math.min(shards, files.length));
+export async function walkCells({
+  cells, states = true, files = storyFiles, shards, stories = null,
+} = {}) {
+  /* `stories` is a list of story ids, and then the unit dealt to a thread is a story, not a file:
+   * one file can hold most of a walk's cost. The files are the ones those ids live in. */
+  const units = stories ?? files;
+  const filesOf = (ids) => [...new Set(ids.map((id) => id.slice(0, id.indexOf(':'))))];
+  const n = shards === undefined ? walkShards(units) : Math.max(1, Math.min(shards, units.length));
   if (n === 1) {
     const parts = [];
-    for (const cell of cells) parts.push(await walkStories({ ...cell, states, files }));
+    for (const cell of cells) {
+      parts.push(await walkStories({ ...cell, states, files: stories ? filesOf(stories) : files, stories }));
+    }
     return mergeWalks(parts);
   }
   /* Dealt round-robin rather than sliced: the catalogue is sorted by path, so files next to
@@ -935,8 +962,10 @@ export async function walkCells({ cells, states = true, files = storyFiles, shar
    * quarter of the wall clock is threads that have already finished. A shared cursor, where a
    * thread pulls the next file instead of being dealt a hand, would close that. */
   const hands = Array.from({ length: n }, () => []);
-  files.forEach((rel, i) => hands[i % n].push(rel));
-  const dealt = hands.map((hand) => shardWalk({ cells, states, files: hand }));
+  units.forEach((unit, i) => hands[i % n].push(unit));
+  const dealt = hands.map((hand) => shardWalk(stories
+    ? { cells, states, files: filesOf(hand), stories: hand }
+    : { cells, states, files: hand }));
   try {
     return mergeWalks(await Promise.all(dealt.map((d) => d.walk)));
   } catch (error) {
