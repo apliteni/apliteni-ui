@@ -40,6 +40,10 @@ jobs:
                 ? (context.payload.comment?.body ?? "")
                 : (context.payload.pull_request?.body
                   ?? context.payload.issue?.body ?? "");
+            // GitHub attachment URLs carry a public UUID. Blank them with spaces of the
+            // same length so line and column numbers stay correct.
+            const attachmentUrl = /(?<![\w.\-\/?=&%@])https:\/\/github\.com\/user-attachments\/assets\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
+            const scanned = body.replace(attachmentUrl, (url) => " ".repeat(url.length));
             const patterns = [
               { name: "UUID v4", re: /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b/ },
               { name: "ttl.sh image tag", re: /ttl\.sh\/[a-z0-9]/i },
@@ -47,15 +51,15 @@ jobs:
               { name: "deploy-token name", re: /LESSLY_DEPLOY_TOKEN\s*[:=]/ },
               { name: "private IP", re: /\b(?:10|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}\b/ },
             ];
-            const match = patterns.map((pattern) => ({ pattern, result: body.match(pattern.re) }))
+            const match = patterns.map((pattern) => ({ pattern, result: scanned.match(pattern.re) }))
               .find(({ result }) => result);
             if (!match) return;
             const n = context.payload.issue?.number
               || context.payload.pull_request?.number;
             if (!n) return;
             const offset = match.result.index;
-            const line = body.slice(0, offset).split("\n").length;
-            const lineStart = body.lastIndexOf("\n", offset - 1) + 1;
+            const line = scanned.slice(0, offset).split("\n").length;
+            const lineStart = scanned.lastIndexOf("\n", offset - 1) + 1;
             const column = offset - lineStart + 1;
             try {
               await github.rest.issues.createComment({
