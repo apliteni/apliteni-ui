@@ -796,3 +796,25 @@ test("a focused scroll region's last pinned cells leave the ring's bottom band u
   assert.notEqual(without, SHEETS, "the mutation edits the sheet");
   assert.doesNotMatch(without, /ui-table--pinned > :last-child/);
 });
+
+// #597: a sticky or pinned cell paints over an outline drawn on any padding the scrollport holds, so
+// the region's side inset is a transparent border, which no cell reaches, and never padding.
+// Limit: this reads the declaration; the browser capture counts the ring's pixels on all four sides.
+test("the scroll region's side inset is a border, so the ring's side bands stay uncovered", () => {
+  const rules = [...decomment(SHEETS).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, selector]) => selector.trim() === ".ui-table-scroll")
+    .map(([, , body]) => body);
+  const region = rules.find((body) => /overflow:\s*auto/.test(body));
+  assert.ok(region, "the scroll region has its rule");
+  assert.match(region, /border-inline-width:\s*var\(--space-1\)/, "the inset is a border");
+  assert.match(region, /border:\s*0\s+solid\s+transparent/, "the border is transparent");
+  assert.doesNotMatch(region, /(?:^|[;\s])padding(?:-inline|-left|-right)?\s*:/, "no side padding for a cell to paint over the ring on");
+});
+
+test("the side-inset check rejects the inset written back as padding", () => {
+  const mutated = SHEETS.replace("border: 0 solid transparent; border-inline-width: var(--space-1);", "padding: 0 var(--space-1);");
+  assert.notEqual(mutated, SHEETS, "the mutation edits the sheet");
+  const body = [...decomment(mutated).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, selector]) => selector.trim() === ".ui-table-scroll").map(([, , b]) => b).find((b) => /overflow:\s*auto/.test(b));
+  assert.match(body, /padding/, "the mutated sheet carries side padding, which the check above refuses");
+});
