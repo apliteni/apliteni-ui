@@ -159,6 +159,7 @@ identity column through classes. See
 | `accentPicker({ active, options })`, with `ACCENTS` and `accentSwatchStyle(accent)` | The accent swatches, wired by `wireTopbar()`. `ACCENTS` is the list the kit ships; `accentSwatchStyle(accent)` is the one custom property a swatch button carries, `--swatch`, the gradient its circle wears. Both pickers read them, so a page building its own strip paints the same thing — and the kit's stylesheet draws the selected swatch's tick, so the strip needs no selection paint of its own. An accent with no paints gets `--swatch: transparent`, an empty circle you can still press. |
 | `ACCOUNT_NAV` | The account navigation the kit ships, as `sidebarNav()` items; the account menu falls back to it and your own entries replace it. |
 | `footer({ variant, brand, tagline, columns, social, legal, legalLinks, switcher })` | Site or app footer: `full`, `slim` or `app`. |
+| React `Footer` | The same three footer variants. The full footer puts link columns side by side above the phone width and stacks them on a phone. Pass React content for the brand, links, legal row and switcher. |
 | `.ui-toolbar` (class, no factory) | A row of controls above a list. See [A toolbar at one column](#a-toolbar-at-one-column). |
 
 ### Motion and escaping

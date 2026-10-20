@@ -73,7 +73,8 @@
 /* Link columns */
 .ui-footer__nav {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, max-content));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(140px, max-content);
   gap: 30px 56px;
 }
 .ui-footer__col-title {
@@ -129,7 +130,7 @@
    fourth value of the footer's own: docs/foundations.md#breakpoints. */
 @media (max-width: 720px) {
   .ui-footer__top { flex-direction: column; gap: 30px; }
-  .ui-footer__nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 30px; }
+  .ui-footer__nav { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 30px; }
   .ui-footer__brand { max-width: none; }
 }
 @media (max-width: 560px) {

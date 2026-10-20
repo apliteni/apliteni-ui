@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.126.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React Footer provides full, slim and app layouts with brand, links, legal and switcher parts. Footer link columns now sit side by side on iPad and desktop and stack on a phone in both React and vanilla. Part of #429.', ['Footer']],
+    ],
+  },
+  {
     v: '0.125.1', date: '2026-10-20',
     changes: [
       ['changed', 'The Colour and theming guideline limits selected navigation to one accent signal. The NavTabs pill keeps its accent ink on a soft accent fill, because the fill alone is too faint to mark the current route. See #475.', ['Guidelines', 'Navigation']],
