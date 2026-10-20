@@ -108,42 +108,34 @@ export const SidebarCollapsed = {
 
 export const Tabs = {
   name: 'Horizontal tabs — underline',
-  render: () => pad(specimen(
-    'Top-level page tabs with an active underline; counters and a disabled tab',
+  render: () => pad(
     navTabs({ ariaLabel: 'Finance views', items: TABS, active: 'payouts' }),
-  )),
+  ),
 };
 
 export const TabsPill = {
   name: 'Horizontal tabs — pill',
-  render: () => pad(specimen(
-    'The same tabs with a pill active affordance instead of an underline',
+  render: () => pad(
     navTabs({ ariaLabel: 'Finance views', items: TABS, active: 'payouts', variant: 'pill' }),
-  )),
+  ),
 };
 
 export const Breadcrumbs = {
   name: 'Breadcrumbs',
   render: () => pad(stack(
-    specimen(
-      'The Finance / Payouts trail — the last crumb is the current page',
-      breadcrumbs({
-        items: [
-          { label: 'Finance', href: '#finance' },
-          { label: 'Payouts', href: '#payouts' },
-          { label: 'PY-4821' },
-        ],
-      }),
-    ),
-    specimen(
-      'With a leading home icon',
-      breadcrumbs({
+    breadcrumbs({
+      items: [
+        { label: 'Finance', href: '#finance' },
+        { label: 'Payouts', href: '#payouts' },
+        { label: 'PY-4821' },
+      ],
+    }),
+    breadcrumbs({
         items: [
           { label: 'Home', href: '#home', icon: 'compass' },
           { label: 'Workspace', href: '#workspace' },
           { label: 'API keys' },
         ],
-      }),
-    ),
+    }),
   )),
 };
