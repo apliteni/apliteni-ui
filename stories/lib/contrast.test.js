@@ -565,7 +565,7 @@ test('every state base the kit sheet yields is a selector a browser accepts', ()
       }
     }
   }
-  assert.equal(counted, 284, 'state-base discovery changed: 142 bases per theme, including three link-button states, over two themes');
+  assert.equal(counted, 292, 'state-base discovery changed: 146 bases per theme, including three link-button states, over two themes');
   assert.deepEqual(offences, [], `a state base no browser would accept:\n  ${offences.join('\n  ')}`);
   dom.window.close();
 });

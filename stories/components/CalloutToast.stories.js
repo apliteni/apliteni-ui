@@ -1,6 +1,6 @@
 import { callout, toast, successPanel, button } from '../../src/components/index.js';
 import { wireToastStack, pushToast, collapseToastStack } from '../../src/components/toasts.js';
-import { pad, specimen, stack, grid } from '../_gallery.js';
+import { pad, specimen, stack, grid, row } from '../_gallery.js';
 
 export default {
   title: 'Components/Callout & Toast',
@@ -58,7 +58,6 @@ export const StatusAndStyle = {
 const ACTIONS = { success: 'Undo', info: 'Reload', warn: 'Rotate', danger: 'Retry', neutral: 'Open' };
 const actionColumnFor = (style) => col(...STATUSES.map(([variant, title, body]) =>
   toast({ variant, style, title, body, action: ACTIONS[variant] })));
-const piledToast = (opts, style) => toast(opts).replace('class="ui-toast ', `style="${style}" class="ui-toast `);
 
 // Affordances: action buttons, a compact single-line form, and the auto-dismiss
 // timer bar (shown here static; it animates in the Stack story).
@@ -116,13 +115,13 @@ export const CollapsedStack = {
   parameters: { docs: { description: { story: 'Hover the pile, or press Tab into it, to fan it out. It collapses again when you leave. "Fan out" is the same move without a pointer.' } } },
   render: () => {
     const root = document.createElement('div');
-    root.innerHTML = pad(`<div style="display:flex;flex-direction:column;gap:20px;align-items:flex-start">
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        ${button({ label: 'Add a notice', variant: 'primary', size: 'sm' })}
-        ${button({ label: 'Fan out', variant: 'ghost', size: 'sm' })}
-      </div>
-      <div class="ui-toast-stack" data-stack></div>
-    </div>`);
+    root.innerHTML = pad(stack(
+      row(
+        button({ label: 'Add a notice', variant: 'primary', size: 'sm' }),
+        button({ label: 'Fan out', variant: 'ghost', size: 'sm' }),
+      ),
+      '<div class="ui-toast-stack" data-stack></div>',
+    ));
     requestAnimationFrame(() => {
       const s = root.querySelector('[data-stack]');
       wireToastStack(s);
@@ -141,12 +140,29 @@ export const CollapsedStack = {
   },
 };
 
+// A pile already fanned by focus, drawn from the offsets the script publishes.
+const PILE = [
+  [{ variant: 'success', title: 'Saved', body: 'Your changes are live.' }, [0, 1, 0, 3]],
+  [{ variant: 'info', title: 'Note deleted', body: '“Q3 plan” was removed.' }, [8, 0.96, 90, 2]],
+  [{ variant: 'danger', title: 'Upload failed', body: 'The file was larger than 25 MB.' }, [16, 0.92, 180, 1]],
+];
 export const CollapsedStackFocus = {
-  render: () => pad(`<div class="ui-toast-stack ui-toast-stack--collapsed" tabindex="0" style="--toast-pile-height:106px;--toast-fan-height:262px">
-    ${piledToast({ variant: 'success', style: 'soft', title: 'Saved', body: 'Your changes are live.', timer: 5 }, '--toast-card-lift:0px;--toast-card-scale:1;--toast-card-fan:0px;--toast-card-depth:3')}
-    ${piledToast({ variant: 'info', style: 'soft', title: 'Note deleted', body: '“Q3 plan” was removed.', timer: 5 }, '--toast-card-lift:8px;--toast-card-scale:.96;--toast-card-fan:90px;--toast-card-depth:2')}
-    ${piledToast({ variant: 'danger', style: 'soft', title: 'Upload failed', body: 'The file was larger than 25 MB.', timer: 5 }, '--toast-card-lift:16px;--toast-card-scale:.92;--toast-card-fan:180px;--toast-card-depth:1')}
-  </div>`),
+  render: () => {
+    const root = document.createElement('div');
+    root.innerHTML = pad(`<div class="ui-toast-stack ui-toast-stack--collapsed" tabindex="0">${
+      PILE.map(([o]) => toast({ ...o, style: 'soft', timer: 5 })).join('')}</div>`);
+    const pile = root.firstElementChild.firstElementChild;
+    pile.style.setProperty('--toast-pile-height', '106px');
+    pile.style.setProperty('--toast-fan-height', '262px');
+    [...pile.children].forEach((card, n) => {
+      const [lift, scale, fan, depth] = PILE[n][1];
+      card.style.setProperty('--toast-card-lift', `${lift}px`);
+      card.style.setProperty('--toast-card-scale', String(scale));
+      card.style.setProperty('--toast-card-fan', `${fan}px`);
+      card.style.setProperty('--toast-card-depth', String(depth));
+    });
+    return root;
+  },
 };
 
 export const Success = {

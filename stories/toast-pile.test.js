@@ -21,6 +21,7 @@ import { mock, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 import { CollapsedStack } from './components/CalloutToast.stories.js';
 
 const SHEET = 'src/styles/callout.css';
@@ -205,7 +206,7 @@ test('every control inside a notice wears the kit ring, never the browser outlin
     + 'control inside a notice needs the ring too — add it here and to the sheet.');
 
   for (const control of controls) {
-    const rule = rules.find((r) => r.selector.split(',').some((s) => s.trim() === `.${control}:focus-visible`));
+    const rule = rules.find((r) => splitSelectorList(r.selector).some((s) => s.trim() === `.${control}:focus-visible`));
     assert.ok(rule, `${SHEET}: \`.${control}\` has no \`:focus-visible\` rule, so it falls back to the `
       + "browser's own outline. The kit uses `--ring` (#457).");
     assert.match(rule.body, /outline:\s*var\(--ring\)/,
