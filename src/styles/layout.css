@@ -285,6 +285,12 @@
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item.is-active::before { content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */ background: var(--surface-3); /* code-bg: inherit — The plate contains no focus target. */ z-index: -1; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: none; }
+/* A row closes to the glyph column, so the rail's clip does not cut the right side of its
+   focus ring. The width waits out the rail's own travel and then snaps, so the fold is
+   pixel-identical to before; the way out has no delay and the open column is back at once.
+   why: docs/components.md#the-page-shell */
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item,
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-app__user-trigger { width: var(--ui-nav-strip); transition: width 0s var(--ease) var(--dur-med); }
 /* The label IS the chip. `fixed` is the fallback placement, out of the rail's own
    clip; the @supports branch below pins it to the row and is the only one that
    survives a scroll. The toggle's selector is unscoped, because it is wordless at
@@ -541,6 +547,10 @@
   .ui-app__rail .ui-nav__item.is-active { isolation: isolate; background: none; }
   .ui-app__rail .ui-nav__item.is-active::before { content: ""; position: absolute; left: 0; top: 50%; width: var(--ui-nav-strip); height: 100%; border-radius: 10px; transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */ background: var(--surface-3); /* code-bg: inherit — The plate contains no focus target. */ z-index: -1; }
   .ui-app__rail .ui-nav__item:not(.is-danger):not(.is-active):hover { background: none; }
+  /* The same close as the folded rail above: the row is the strip, so its ring has room.
+     why: docs/components.md#the-page-shell */
+  .ui-app__rail .ui-nav__item,
+  .ui-app__rail .ui-app__user-trigger { width: var(--ui-nav-strip); }
   /* The one line of this block that is deliberately NOT the reader's fold: a finger
      is the only pointer this width has, so a row and the account block are held to
      44px. Neither floor can spread to the press, where growing the box is the one
