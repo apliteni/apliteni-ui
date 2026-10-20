@@ -859,6 +859,11 @@ publishes `--toast-card-lift`, `--toast-card-scale`, `--toast-card-fan` and
 `--toast-fan-height`. `toastPileGeometry()` is the calculation both faces share. A pile re-measures
 when notices arrive or leave and when one changes height.
 
+A notice behind the front one that is taller than the front one rests cut short, so no part of it
+shows below the front notice, even while the browser is busy. It opens to its own height when the
+pile fans out. A script that renders its own stack publishes `--toast-card-box` and
+`--toast-card-natural` for such a notice, and `applyToastPile()` does it for you.
+
 Under `(hover: none)` the stack stays the plain column. Half of what opens a pile is hover, and
 the notices behind the front card are not focusable. A pile there would be one nobody could open.
 

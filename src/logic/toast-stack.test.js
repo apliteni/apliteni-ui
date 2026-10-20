@@ -42,11 +42,36 @@ test('each tier shows exactly TOAST_PEEK more of itself, whatever it measures', 
   const heights = [140, 96, 52];
   const { cards } = toastPileGeometry(heights);
   // Top edge of a card, with the stack's shared bottom edge at y = 0 and y
-  // growing upwards: its scaled height plus the lift it was given.
-  const top = (index) => heights[index] * cards[index].scale - cards[index].lift - heights.at(-1);
+  // growing upwards: its scaled box plus the lift it was given.
+  const top = (index) => cards[index].box * cards[index].scale - cards[index].lift - heights.at(-1);
   assert.equal(Math.round(top(2)), 0, 'the front card sets the line the others rise from');
   assert.equal(Math.round(top(1)), TOAST_PEEK);
   assert.equal(Math.round(top(0)), 2 * TOAST_PEEK);
+});
+
+test('a back card never reaches below the front card, at any height', () => {
+  // The bottom edge of a card is the bottom of its box lifted by `lift`, and scaling
+  // about that edge does not move it. A lift at or above zero is what keeps a notice
+  // hidden while the main thread is late and only the compositor's animations run.
+  for (const heights of [[300, 300, 40], [140, 96, 52], [52, 52, 52], [20, 20, 90], [400, 60, 60, 60, 30]]) {
+    const { cards } = toastPileGeometry(heights);
+    for (const card of cards) assert.ok(card.lift <= 0, `lift ${card.lift} puts a card below the front card`);
+  }
+});
+
+test('a back card taller than its reach rests in a shorter box and keeps its own height', () => {
+  const heights = [140, 96, 52];
+  const { cards } = toastPileGeometry(heights);
+  assert.ok(cards[0].box < heights[0]);
+  assert.ok(cards[1].box < heights[1]);
+  for (const [index, card] of cards.entries()) assert.equal(card.natural, heights[index]);
+  assert.equal(cards[0].box, (52 + 2 * TOAST_PEEK) / (1 - 2 * TOAST_SCALE_STEP));
+  assert.equal(cards[2].box, 52, 'the front card is never held short');
+});
+
+test('a back card that already fits is not held in a box', () => {
+  const { cards } = toastPileGeometry([60, 60, 60]);
+  for (const card of cards) assert.equal(card.box, card.natural);
 });
 
 test('a pile no deeper than its tiers keeps every card apart', () => {

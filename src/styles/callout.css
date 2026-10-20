@@ -155,19 +155,22 @@
      overwrite a pile offset written here. These two compose with it instead. */
   translate: 0 var(--toast-card-lift, 0px);
   scale: var(--toast-card-scale, 1);
-  /* The pile is not clipped, so the front notice's shadow paints in full. A notice
-     behind it is cut instead: the script publishes how far its bottom edge lies
-     past the front notice's, and its sides are cut at its own edge, so a taller
-     back notice never shows below the front one and its shadow leaves no ledge.
-     The front notice publishes nothing and keeps an open box. A clip-path works
-     in Chromium and WebKit; overflow-clip-margin does not in WebKit.
-     The fanned rule below gives the same edge its own bottom inset, so the cut
-     stays on the front notice's bottom edge for the whole move and never opens
-     under it while the pile collapses or fans out. */
-  clip-path: inset(-100vmax min(0px, var(--toast-card-clip, -100vmax)) var(--toast-card-clip, -100vmax));
-  transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease),
-    clip-path var(--dur-med) var(--ease);
+  /* A back notice's box ends at or above the front notice's bottom edge.
+     The box changes at the start of a move. Only translate and scale move;
+     their endpoints both keep that edge above the front notice. The clip
+     trims paint, but never has to keep pace with the move. */
+  max-height: var(--toast-card-box, none);
+  clip-path: inset(-100vmax var(--toast-card-clip, -100vmax) var(--toast-card-clip, -100vmax));
+  transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease);
 }
+/* A box shorter than the notice cuts it at the bottom, so the content stays on
+   the top edge instead of centring on a card that overflows. Auto margins
+   centre a notice that fits and start-align one that does not. */
+.ui-toast-stack--collapsed > .ui-toast > .ui-toast__icon,
+.ui-toast-stack--collapsed > .ui-toast > .ui-toast__body,
+.ui-toast-stack--collapsed > .ui-toast > .ui-toast__action { margin-block: auto; }
+.ui-toast-stack--collapsed:hover > .ui-toast > *,
+.ui-toast-stack--collapsed:focus-within > .ui-toast > * { margin-block: 0; }
 .ui-toast-stack--collapsed:hover, .ui-toast-stack--collapsed:focus-within {
   height: var(--toast-fan-height, auto);
 }
@@ -175,7 +178,9 @@
 .ui-toast-stack--collapsed:focus-within > .ui-toast {
   translate: 0 var(--toast-card-fan, 0px);
   scale: 1;
+  max-height: var(--toast-card-natural, none);
   clip-path: inset(-100vmax -100vmax var(--toast-card-fan-clip, -100vmax));
+  transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease);
 }
 
 /* Half of what opens a pile is hover. Where the reader has none, the plain
@@ -193,7 +198,7 @@
   .ui-toast-stack--collapsed.ui-toast-stack--newest-first { flex-direction: column-reverse; }
   .ui-toast-stack--collapsed > .ui-toast,
   .ui-toast-stack--collapsed:hover > .ui-toast,
-  .ui-toast-stack--collapsed:focus-within > .ui-toast { position: static; translate: none; scale: 1; clip-path: none; }
+  .ui-toast-stack--collapsed:focus-within > .ui-toast { position: static; translate: none; scale: 1; max-height: none; clip-path: none; }
 }
 
 /* Success panel — centered confirmation, used after form submit */

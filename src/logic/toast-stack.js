@@ -10,12 +10,16 @@ export const TOAST_GAP = 12;          // the fanned column's gap, held to .ui-to
 
 /**
  * @param {number[]} heights Layout heights in DOM order, oldest first. Use
- *   `offsetHeight`: a bounding box would feed the previous frame's scale back in.
+ *   layout heights: a bounding box would feed the previous frame's scale back in.
  * @param {number} [gap] The fanned column's gap.
  * @returns {{cards: {depth: number, tier: number, scale: number, lift: number,
- *   fan: number}[], collapsedHeight: number, fannedHeight: number}}
+ *   fan: number, box: number, natural: number}[], collapsedHeight: number,
+ *   fannedHeight: number}}
  *   `lift` and `fan` are translateY in px, negative upwards: the stack is
  *   anchored to the bottom of its corner and grows away from it.
+ *   `natural` is the card's own height and `box` is the height it keeps while it
+ *   rests. A card too tall to fit between its peek and the front card's bottom
+ *   edge rests in a shorter box, so its bottom edge is never below the front's.
  */
 export function toastPileGeometry(heights, gap = TOAST_GAP) {
   const count = heights.length;
@@ -26,12 +30,18 @@ export function toastPileGeometry(heights, gap = TOAST_GAP) {
     const depth = count - 1 - index;
     const tier = Math.min(depth, TOAST_TIERS);
     const scale = 1 - tier * TOAST_SCALE_STEP;
+    // The card rests in a box that ends on the front card's bottom edge at the
+    // lowest. Its top is then `tier` peeks above the front card's top, whatever
+    // the card's own height is, and a taller card shows less of itself.
+    const reach = (front + tier * TOAST_PEEK) / scale;
+    const box = depth > 0 ? Math.min(height, reach) : height;
     // Scaling about the bottom edge shortens the card, so the lift owes that back.
-    const lift = height * scale - front - tier * TOAST_PEEK;
+    // The box is never taller than `reach`, so the lift is never below the front.
+    const lift = box * scale - front - tier * TOAST_PEEK;
     let fan = 0; // fanned, a card clears everything newer: their heights and gaps
 
     for (let after = index + 1; after < count; after += 1) fan -= heights[after] + gap;
-    return { depth, tier, scale, lift, fan };
+    return { depth, tier, scale, lift, fan, box, natural: height };
   });
 
   return {
@@ -55,6 +65,21 @@ export function toastPileGeometry(heights, gap = TOAST_GAP) {
 export const pileCards = (stack) => [...stack.children].filter((el) => el.classList.contains('ui-toast'));
 
 /**
+ * How tall a notice is when nothing holds it short. A resting back card is held
+ * to a box, so its own height is read from where its content ends instead of from
+ * the box. The timer line is left out: it sits on the box's bottom edge.
+ */
+const naturalHeight = (card) => {
+  const style = card.ownerDocument.defaultView.getComputedStyle(card);
+  const frame = (parseFloat(style.paddingBottom) || 0) + (parseFloat(style.borderTopWidth) || 0)
+    + (parseFloat(style.borderBottomWidth) || 0);
+  const content = [...card.children]
+    .filter((el) => !el.classList.contains('ui-toast__timer'))
+    .reduce((end, el) => Math.max(end, el.offsetTop + el.offsetHeight), 0);
+  return Math.max(card.offsetHeight, content + frame);
+};
+
+/**
  * Measure `stack` and write the geometry its sheet reads. Safe to call again.
  *
  * `newestFirst` is not cosmetic: pushToast() PREPENDS, so a live vanilla stack
@@ -66,31 +91,38 @@ export function applyToastPile(stack, { newestFirst = false, gap = TOAST_GAP } =
   if (!stack) return null;
   const cards = pileCards(stack);
   const order = newestFirst ? [...cards].reverse() : cards;
-  // offsetHeight, not a bounding box: the box would already carry the scale this
+  // Layout heights, not bounding boxes: a box would already carry the scale this
   // call is about to rewrite, and each pass would shrink the pile a little more.
-  const geometry = toastPileGeometry(order.map((card) => card.offsetHeight), gap);
+  const geometry = toastPileGeometry(order.map(naturalHeight), gap);
   stack.style.setProperty('--toast-pile-height', `${geometry.collapsedHeight}px`);
   stack.style.setProperty('--toast-fan-height', `${geometry.fannedHeight}px`);
   order.forEach((card, index) => {
-    const { lift, scale, fan, depth } = geometry.cards[index];
+    const { lift, scale, fan, depth, box, natural } = geometry.cards[index];
     card.style.setProperty('--toast-card-lift', `${lift}px`);
     card.style.setProperty('--toast-card-scale', String(scale));
     card.style.setProperty('--toast-card-fan', `${fan}px`);
     // Paint order follows the DOM, which the newest notice is not always last in.
     card.style.setProperty('--toast-card-depth', String(order.length - depth));
-    // How far the card's own bottom edge lies below the front card's bottom edge,
-    // in the card's own pixels: scaling is about that edge, so the lift divides
-    // by the scale. A card that ends above it needs no cut. The front card has
-    // none to publish and keeps its shadow.
-    // Fanned, the same edge sits `fan` below the card's own bottom: the card has
-    // moved up by that much and unscaled, so the cut stays on the front card's
-    // bottom edge while the pile moves, not only before and after.
+    // A card behind the front one is cut on its own sides and bottom edge, which is
+    // the front card's bottom edge or above it, and the front card keeps its
+    // shadow. Fanned, the front card's bottom edge lies `fan` below the card's own
+    // bottom, so the cut hangs that far below it.
+    // A card taller than its box rests in that box and opens to its own height
+    // when the pile fans, so nothing of it is ever below the front card's bottom
+    // edge. The move needs no clip to keep that true.
     if (depth > 0) {
-      card.style.setProperty('--toast-card-clip', `${Math.max(0, lift / scale)}px`);
+      card.style.setProperty('--toast-card-clip', '0px');
       card.style.setProperty('--toast-card-fan-clip', `${fan}px`);
     } else {
       card.style.removeProperty('--toast-card-clip');
       card.style.removeProperty('--toast-card-fan-clip');
+    }
+    if (box < natural) {
+      card.style.setProperty('--toast-card-box', `${box}px`);
+      card.style.setProperty('--toast-card-natural', `${natural}px`);
+    } else {
+      card.style.removeProperty('--toast-card-box');
+      card.style.removeProperty('--toast-card-natural');
     }
   });
   return geometry;
@@ -108,6 +140,8 @@ export function clearToastPile(stack) {
     card.style.removeProperty('--toast-card-depth');
     card.style.removeProperty('--toast-card-clip');
     card.style.removeProperty('--toast-card-fan-clip');
+    card.style.removeProperty('--toast-card-box');
+    card.style.removeProperty('--toast-card-natural');
   }
 }
 
@@ -122,14 +156,17 @@ export function watchToastPile(stack, { onSync, ...options } = {}) {
   const view = stack.ownerDocument.defaultView;
   // Cards are observed once each and never un-observed: re-observing in the
   // callback that observing triggers is how a ResizeObserver loop starts.
+  // A card held to a box cannot grow, so its content is observed too.
   const watched = new WeakSet();
   let observer = null;
   const sync = () => {
     applyToastPile(stack, options);
     for (const card of pileCards(stack)) {
-      if (watched.has(card)) continue;
-      watched.add(card);
-      observer?.observe(card);
+      for (const el of [card, ...card.children]) {
+        if (watched.has(el)) continue;
+        watched.add(el);
+        observer?.observe(el);
+      }
     }
     onSync?.(stack);
   };

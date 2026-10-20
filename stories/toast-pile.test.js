@@ -104,9 +104,8 @@ test('a collapsed stack pauses every timer line in the pile', () => {
 });
 
 test('a collapsed stack clips each back card, never the pile', () => {
-  // overflow-clip-margin is not in WebKit, and with it a taller back card showed
-  // below the front one. The pile stays unclipped so the front card's shadow
-  // paints; each back card is clipped at the front card's bottom edge instead.
+  // overflow-clip-margin is not in WebKit. The pile stays unclipped so the front
+  // card's shadow paints; each back card is cut on its sides and bottom edge instead.
   const stack = pileRules.find((rule) => rule.selector === '.ui-toast-stack--collapsed');
   assert.ok(stack, `${SHEET} has no plain \`.ui-toast-stack--collapsed\` rule.`);
   assert.doesNotMatch(stack.body, /overflow/,
@@ -123,6 +122,35 @@ test('a collapsed stack clips each back card, never the pile', () => {
     `${SHEET}: the keyboard entry point for a collapsed stack has no visible focus style.`);
   assert.ok(vanilla.includes("setAttribute('tabindex', '0')"),
     `${VANILLA}: a collapsed stack with no action or close button has no keyboard entry point.`);
+});
+
+test('a back card is held in a box, so nothing that waits for the main thread keeps it above the front card', () => {
+  // Under main-thread load Chromium runs `translate` and `scale` on the compositor while a
+  // clip-path or max-height waits. A tall back card is therefore held in a box whose bottom
+  // edge cannot be lower than the front card's at any translate the move passes through, and
+  // the cut is paint only. These read the sheet as text. The measurement is in a browser.
+  const card = pileRules.find((rule) => /^\.ui-toast-stack--collapsed\s*>\s*\.ui-toast$/.test(rule.selector));
+  assert.ok(card, `${SHEET} no longer has a plain \`.ui-toast-stack--collapsed > .ui-toast\` rule.`);
+  assert.match(card.body, /(?:^|[;\s])max-height:\s*var\(--toast-card-box,\s*none\)/,
+    `${SHEET}: a resting back card is not held to the box ${SCRIPT} publishes, so a tall one reaches below the front card.`);
+  const rest = /transition:([^;]*);/.exec(card.body)?.[1] ?? '';
+  assert.match(rest, /\btranslate\b/, `${SHEET}: the resting card does not move with its translate.`);
+  assert.doesNotMatch(rest, /\bmax-height\b|\bclip-path\b/,
+    `${SHEET}: the box or cut eases with the move. A late main-thread paint can show a back card below the front one.`);
+  assert.doesNotMatch(rest, /clip-path/,
+    `${SHEET}: the resting card eases its clip-path. A collapsing pile must cut on its first frame, `
+    + 'because an eased cut waits for the main thread and a back card shows below the front one meanwhile.');
+  const fanned = pileRules.filter((rule) => rule.selector.includes(':hover') && /\btranslate:\s*0 var\(--toast-card-fan/.test(rule.body));
+  assert.ok(fanned.length > 0 && fanned.every((rule) => /(?:^|[;\s])max-height:\s*var\(--toast-card-natural,\s*none\)/.test(rule.body)),
+    `${SHEET}: a fanned card is not opened to its own height, so a held card stays short in the column.`);
+  assert.ok(fanned.every((rule) => !/transition:[^;]*\b(?:max-height|clip-path)\b/.test(rule.body)),
+    `${SHEET}: the box or cut eases with the move. Neither may lag behind compositor motion.`);
+  assert.ok(pileRules.some((rule) => ['.ui-toast__icon', '.ui-toast__body', '.ui-toast__action']
+    .every((name) => rule.selector.includes(`> ${name}`)) && /margin-block:\s*auto/.test(rule.body)),
+  `${SHEET}: a card held short still centres its content, which then overflows at the top as well as the bottom.`);
+  const flat = /@media\s*\(hover:\s*none\)\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+  assert.match(flat, /max-height:\s*none/,
+    `${SHEET}: a hoverless card keeps its box, so a plain column shows a tall notice cut short.`);
 });
 
 test('a resting card is placed with translate and scale, never transform', () => {
@@ -325,41 +353,76 @@ test('a stack fed by pushToast keeps the same reading order without hover', () =
   stack.remove();
 });
 
-test('a back card is clipped where the front card ends, and the front card is not', () => {
-  // A back card taller than the front one reaches below it. The clip is that
-  // overshoot in the card's own pixels: scaling is about the bottom edge, so
-  // the lift is divided by the scale.
+test('a back card is cut at the front card, held in a box, and the front card is neither', () => {
+  // A back card taller than the front one rests in a box that ends on the front card's
+  // bottom edge at the lowest, and a back card that fits has no box. The cut is on the card's
+  // own sides and bottom edge. The front card keeps an open box and its shadow.
   for (const newestFirst of [false, true]) {
     const stack = newestFirst ? stackOf(70, 90, 130) : stackOf(130, 90, 70);
     applyToastPile(stack, { newestFirst });
     const cards = cardsOf(stack);
     const [front, ...back] = newestFirst ? cards : [...cards].reverse();
-    assert.equal(front.style.getPropertyValue('--toast-card-clip'), '',
-      `newestFirst: ${newestFirst} — the front card is clipped, which cuts its shadow`);
-    assert.equal(front.style.getPropertyValue('--toast-card-fan-clip'), '',
-      `newestFirst: ${newestFirst} — the front card is clipped when fanned, which cuts its shadow`);
+    for (const name of ['--toast-card-clip', '--toast-card-fan-clip', '--toast-card-box', '--toast-card-natural']) {
+      assert.equal(front.style.getPropertyValue(name), '',
+        `newestFirst: ${newestFirst} — the front card publishes ${name}, which cuts its shadow or its height`);
+    }
     for (const card of back) {
+      const height = Number(card.dataset.height);
       const scale = parseFloat(card.style.getPropertyValue('--toast-card-scale'));
-      const clip = parseFloat(card.style.getPropertyValue('--toast-card-clip'));
-      const bottom = Math.max(0, parseFloat(lift(card))) - clip * scale;
-      assert.ok(Math.abs(bottom) < 1e-6,
-        `newestFirst: ${newestFirst} — a ${card.dataset.height}px card is clipped ${clip}px from its bottom, `
-        + `which leaves its bottom edge ${bottom}px from the front card's.`);
+      const box = parseFloat(card.style.getPropertyValue('--toast-card-box'));
+      assert.equal(parseFloat(card.style.getPropertyValue('--toast-card-natural')), height,
+        `newestFirst: ${newestFirst} — a ${height}px card does not publish its own height to open to`);
+      assert.ok(box < height, `newestFirst: ${newestFirst} — a ${height}px card behind a 70px card keeps its full height`);
+      // The bottom of the box lifted by `lift` is the card's bottom edge: scaling is about it.
+      assert.ok(parseFloat(lift(card)) <= 0,
+        `newestFirst: ${newestFirst} — a ${height}px card is lifted ${lift(card)}, which puts its bottom below the front card's`);
+      assert.ok(box * scale - parseFloat(lift(card)) - 70 > 0,
+        `newestFirst: ${newestFirst} — a ${height}px card shows nothing above the front card`);
+      assert.equal(card.style.getPropertyValue('--toast-card-clip'), '0px');
       // Fanned, the card sits `fan` above its resting box and is unscaled. The cut hangs the
       // same distance below it, so it stays on the front card's bottom edge as the pile moves.
       const fan = parseFloat(card.style.getPropertyValue('--toast-card-fan'));
       const fanClip = parseFloat(card.style.getPropertyValue('--toast-card-fan-clip'));
       assert.ok(fan < 0 && Math.abs(fan - fanClip) < 1e-6,
-        `newestFirst: ${newestFirst} — a ${card.dataset.height}px card fanned ${fan}px has a fanned clip of `
+        `newestFirst: ${newestFirst} — a ${height}px card fanned ${fan}px has a fanned clip of `
         + `${fanClip}px, which leaves the cut off the front card's bottom edge while the pile moves.`);
     }
-    assert.ok(parseFloat(back.at(-1).style.getPropertyValue('--toast-card-clip')) > 0,
-      'the 130px card behind a 70px front card reaches below it, so some of it has to be cut');
     clearToastPile(stack);
-    assert.equal(back[0].style.getPropertyValue('--toast-card-clip'), '', 'clearing a pile leaves a clip behind');
-    assert.equal(back[0].style.getPropertyValue('--toast-card-fan-clip'), '', 'clearing a pile leaves a fanned clip behind');
+    for (const name of ['--toast-card-clip', '--toast-card-fan-clip', '--toast-card-box', '--toast-card-natural']) {
+      assert.equal(back[0].style.getPropertyValue(name), '', `clearing a pile leaves ${name} behind`);
+    }
     stack.remove();
   }
+});
+
+test('a back card that fits behind the front card is not held in a box', () => {
+  const stack = stackOf(50, 50, 70);
+  applyToastPile(stack);
+  for (const card of cardsOf(stack)) {
+    assert.equal(card.style.getPropertyValue('--toast-card-box'), '', 'a card that fits was given a box');
+    assert.equal(card.style.getPropertyValue('--toast-card-natural'), '');
+  }
+  stack.remove();
+});
+
+test('a card held in a box reports its own height from its content, not from the box', () => {
+  // A held card's offsetHeight is the box, so reading it back would make the box the card's
+  // height and the pile would shrink on every pass. The content's end is the height.
+  const stack = stackOf(130, 90, 70);
+  const [held] = cardsOf(stack);
+  const body = document.createElement('div');
+  const timer = document.createElement('div');
+  timer.className = 'ui-toast__timer';
+  for (const [el, top, height] of [[body, 10, 110], [timer, 125, 4]]) {
+    el.dataset.height = String(height);
+    Object.defineProperty(el, 'offsetTop', { configurable: true, get: () => top });
+    held.append(el);
+  }
+  held.dataset.height = '60'; // the box it was held to on the last pass
+  applyToastPile(stack);
+  assert.equal(parseFloat(held.style.getPropertyValue('--toast-card-natural')), 120,
+    'the card read back its box, or counted its timer line, instead of where its content ends');
+  stack.remove();
 });
 
 test('fanning out leaves the front card where it already was', () => {
