@@ -341,6 +341,15 @@
 .ui-table-scroll:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-table--sticky { border-collapse: separate; border-spacing: 0; }
 .ui-table--sticky thead th { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--table-bg); padding-top: var(--space-2); }
+/* The header sticks at the region's top edge, which is where the inward band draws, and a
+   positioned cell paints over an outline. While the region holds the ring, the header
+   gives up the band's own 3px, so the ring is whole on the top side as it is on the other
+   three. The region's inline padding already keeps the header off the side bands.
+   why: docs/foundations.md#the-focus-ring */
+.ui-table-scroll:focus-visible .ui-table--sticky thead th { clip-path: inset(calc(var(--ring-gap-width) + var(--ring-width)) 0 0 0); }
+/* A pinned cell of the last row sits on the region's bottom edge and covers the band there, so
+   it gives up the same depth from the bottom. why: docs/foundations.md#the-focus-ring */
+.ui-table-scroll:focus-visible .ui-table--pinned > :last-child > tr:last-child > :is(.ui-table__identity, .ui-table__selection) { clip-path: inset(0 0 calc(var(--ring-gap-width) + var(--ring-width)) 0); }
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); border-right: 1px solid var(--border); }
 .ui-table--pinned thead .ui-table__identity, .ui-table--pinned thead .ui-table__selection { z-index: calc(var(--z-sticky) + 1); }
 /* The divider is the pin's edge: it says the column stayed while the rest moved under it.

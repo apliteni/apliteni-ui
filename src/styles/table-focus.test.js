@@ -755,3 +755,44 @@ test("the check rejects a fill that moves the text", () => {
     "the handover check must read the rule it is given, not a copy of the real one",
   );
 });
+
+// #597: a sticky header is a positioned cell and paints over an outline, so on the region's
+// top side the inward ring was covered by the header sitting on that edge. While the region
+// holds the ring, the header gives up the band's own depth. Limit: this reads the declaration
+// and the ring's size tokens; the browser capture decodes the ring's pixels on all four sides.
+const stickyRingClip = (css) => {
+  const rule = [...decomment(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .find(([, selector]) => /\.ui-table-scroll:focus-visible\s+\.ui-table--sticky\s+thead\s+th/.test(selector));
+  assert.ok(rule, "the focused region has a rule for its sticky header");
+  assert.match(rule[1], /^[^,]+$/, "the rule is one selector");
+  return rule[2];
+};
+
+test("a focused scroll region's sticky header leaves the ring's top band uncovered", () => {
+  const clip = stickyRingClip(SHEETS);
+  const inset = /clip-path:\s*inset\(\s*calc\(var\(--ring-gap-width\)\s*\+\s*var\(--ring-width\)\)\s+0\s+0\s+0\s*\)/;
+  assert.match(clip, inset, "the header is cut by the band's gap plus its width, from the top only");
+});
+
+test("the sticky-header ring check rejects a sheet without the clip", () => {
+  const without = SHEETS.replace(/\.ui-table-scroll:focus-visible \.ui-table--sticky thead th \{[^}]*\}/, "");
+  assert.notEqual(without, SHEETS, "the mutation edits the sheet");
+  assert.throws(() => stickyRingClip(without));
+});
+
+// #597: a pinned cell of the last row is positioned too, and covered the bottom band across the
+// pinned column. Limit: this reads the declaration; the browser capture counts the ring's pixels
+// along the whole bottom side.
+test("a focused scroll region's last pinned cells leave the ring's bottom band uncovered", () => {
+  const rule = [...decomment(SHEETS).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .find(([, selector]) => /\.ui-table-scroll:focus-visible\s+\.ui-table--pinned[^{]*tr:last-child/.test(selector));
+  assert.ok(rule, "the focused region has a rule for its last pinned row");
+  assert.match(
+    rule[2],
+    /clip-path:\s*inset\(\s*0\s+0\s+calc\(var\(--ring-gap-width\)\s*\+\s*var\(--ring-width\)\)\s+0\s*\)/,
+    "the cell is cut by the band's gap plus its width, from the bottom only",
+  );
+  const without = SHEETS.replace(/\.ui-table-scroll:focus-visible \.ui-table--pinned > :last-child[^}]*\}/, "");
+  assert.notEqual(without, SHEETS, "the mutation edits the sheet");
+  assert.doesNotMatch(without, /ui-table--pinned > :last-child/);
+});
