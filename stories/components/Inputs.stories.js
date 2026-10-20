@@ -1,4 +1,5 @@
 import { field, input, textarea, button, select, card } from '../../src/components/index.js';
+import { dropdown } from '../../src/components/dropdown.js';
 import { pad, stack } from '../_gallery.js';
 
 // Every specimen sits on the card, because that is where a form lives: a field's
@@ -18,6 +19,18 @@ export const TextFields = {
     ${field({ label: 'Password', required: true, control: input({ type: 'password', value: 'hunter2', icon: 'lock' }) })}
     ${field({ label: 'API token', error: 'This token has already been revoked.', control: input({ value: 'sk-live-9f2c…', invalid: true }) })}
     ${field({ label: 'Disabled', control: input({ placeholder: 'Read only', disabled: true }) })}
+  </div>` })}</div>`),
+};
+
+const OWNERS = [{ label: 'Avery Example', value: 'avery' }, { label: 'Jordan Example', value: 'jordan' }];
+
+// A dropdown is not a form element, so field() wires its trigger: the label and the value
+// name it, and the hint or the error describes it.
+export const DropdownFields = {
+  render: () => pad(`<div style="max-width:calc(var(--panel-md) + var(--space-6) * 2)">${card({ body: `<div style="display:flex;flex-direction:column;gap:22px">
+    ${field({ label: 'Owner', hint: 'The person who answers for this project.', control: dropdown({ variant: 'select', items: OWNERS, value: 'Avery Example' }) })}
+    ${field({ label: 'Reviewer', error: 'That option is no longer available. Choose another.', control: dropdown({ variant: 'select', items: OWNERS, placeholder: 'Choose a reviewer' }) })}
+    ${field({ label: 'Backup owner', control: dropdown({ variant: 'select', items: OWNERS, search: true, value: 'Jordan Example' }) })}
   </div>` })}</div>`),
 };
 

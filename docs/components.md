@@ -98,7 +98,6 @@ what a factory accepts. They do not describe what the factory does.
 | `card({ title, sub, body, variant, pad, icon, level })` | Surface container. `title` and `sub` are trusted markup; keep the title to inline content. |
 | `callout`, `toast`, `successPanel` | Inline feedback inside the page the reader is on; `calloutIcons` is the default glyph per tone. |
 | `pushToast(container, opts)`, `dismissToast(el)`, `wireToastStack(container)` | The runtime toast stack. |
-| `collapseToastStack(container, { newestFirst })` + `applyToastPile(stack, opts)`, `clearToastPile(stack)`, `watchToastPile(stack, opts)`, `toastPileGeometry(heights, gap)`, with `TOAST_PEEK`, `TOAST_SCALE_STEP`, `TOAST_TIERS`, `TOAST_PILE_MIN` and `TOAST_GAP` | Collapses a stack of notices into a pile that fans out on hover or focus, newest in front. `collapseToastStack` is the whole thing; pass `newestFirst: true` for a stack `pushToast()` prepends to. The lower functions place the pile in a face that renders the stack itself, and `toastPileGeometry` is the arithmetic alone. See [Toast stacks](#toast-stacks). |
 | `success({ layout, check, level, title, body, actions, confetti, countdown })` + `wireSuccess(root)` | Page-sized confirmation; `successCheck()` is its mark alone. See [Success confirmations](#success-confirmations) and [successPanel or success?](#successpanel-or-success). |
 | `emptyState({ art, icon, title, sub, actions })` | Placeholder for an empty list, table or page; `art` is an `illo()` name or raw SVG. |
 | `deniedState({ title, sub, need, actions, icon })` | The 403, in the same layout language. See [Pending and denied states](#pending-and-denied-states). |
@@ -154,7 +153,7 @@ identity column through classes. See
 |------|------------|
 | `appShell({ word, brandHref, nav, active, navLabel, crumbs, back, title, sub, body, account, signOutHref, layout, width, search, topbar, maxWidth, collapsible, collapsed })` | The kit's one page shell, and the one to call for new work. See [The page shell](#the-page-shell) and [The second layout](#the-second-layout). |
 | `wireShell(root, { persist })` + `railCollapsed(cookieHeader?)`, `RAIL_COOKIE` | Wires the rail's fold, the reader's menu and the nav's groups; the cookie lets a server paint the right width first. |
-| `nav({ variant })`, dispatching to `sidebarNav`, `navTabs` or `breadcrumbs`, + `wireNav(root)` | Wayfinding. Each shape is also exported on its own. |
+| `nav({ variant })`, dispatching to `sidebarNav`, `navTabs` or `breadcrumbs`, + `wireNav(root)` | Wayfinding. Each shape is also exported on its own. `wireNav` opens the sidebar's groups, sizes a tab row to its links on load and on resize, scrolls the row to its current link, and scrolls it to a link the keyboard lands on. See [A tab row scrolls inside its column](#a-tab-row-scrolls-inside-its-column). |
 | `backLink({ href, label })` | The way up to the page this one sits under — an `<a href>`, never a history step. See [The back link](#the-back-link). |
 | `topbar(…)` + `wireTopbar(root)` | The product topbar. `themeToggle(theme)`, `accountMenu({ name, email, active, nav, initials })`, `versionSwitcher(versions, activeIdx)` and `deckTextSwitch(active)` are its parts, usable alone; `themeIcon(t)` and `themeName(t)` label your own toggle. |
 | `accentPicker({ active, options })`, with `ACCENTS` and `accentSwatchStyle(accent)` | The accent swatches, wired by `wireTopbar()`. `ACCENTS` is the list the kit ships; `accentSwatchStyle(accent)` is the one custom property a swatch button carries, `--swatch`, the gradient its circle wears. Both pickers read them, so a page building its own strip paints the same thing — and the kit's stylesheet draws the selected swatch's tick, so the strip needs no selection paint of its own. An accent with no paints gets `--swatch: transparent`, an empty circle you can still press. |
@@ -168,6 +167,10 @@ identity column through classes. See
 |------|------------|
 | `prefersReducedMotion()`, `staggerDelay`, `initReveal`, `replay`, `playEntrance`, `transitionMs(el)`, `ENTRANCE_FALLBACK_MS` | The motion helpers. `transitionMs(el)` answers how long the stylesheet says an element's transition lasts, so a caller sizing a backstop timer for a fade reads the sheet rather than copying a duration token; a missing or non-element argument answers `0`, which fires at once rather than never. See [Motion](foundations.md#motion). |
 | `esc(s)` | HTML-escape a text value. Every factory already applies it to its own text arguments; you need it for markup you assemble yourself. |
+| `safeUrl(url, fallback?)` | The URL boundary every factory sends an `href` through: a `javascript:`, `data:` or `vbscript:` destination becomes the fallback, `#` unless you name another. You need it for markup you assemble yourself; the React components call this same function. See [Escaping and URL slots](#escaping-and-url-slots). |
+| `observeNavFit(row)` | Observe changes to a tab row and its links without changing its scroll position. Call the returned function to stop observation. |
+| `revealCurrentNav(row)` | Size one `.ui-nav--tabs` row to its links and bring its `aria-current` link inside it, moving neither focus nor the page. `wireNav()` calls it; call it yourself after replacing a row's links. |
+| `revealFocusedNav(row, target)` | The same scroll for the link a focus event landed on, so the ring that link draws clears the row's scrolling edge. `target` is the event's target; a target that is not a tab in `row` is ignored. `wireNav()` wires it, and React's `NavTabs` calls it on focus. |
 
 The public JS surface is the set of exports from the package entry. A module that the entry does
 not name still ships in the tarball. You still cannot import it, because the package declares no
@@ -242,6 +245,35 @@ clips instead of wrapping. **It takes the trail's place, above the title**. A pa
 other. The shell keeps the row you marked `active` lit as `aria-current="true"`. This marks the
 current section, not the page. When a page should take one:
 [Going back](../guidelines/going-back.md).
+
+### A tab row scrolls inside its column
+
+`navTabs()` lays its links out in one row and never wraps them. **When the links are wider than
+the column, the row scrolls inside itself and the page does not widen.** A breadcrumb trail does
+the opposite, and wraps. A shade marks each edge with more tabs beyond it, on the page or on a card.
+
+**The row stays aligned with the page gutter, and the active underline stays on the row rule.**
+Call `wireNav()` for vanilla rows. React rows update automatically when their labels, badges,
+or available width change.
+Use `observeNavFit()` for custom rows, and call its returned function when removing the row.
+Server-rendered or unwired rows keep their scroll containment.
+
+**Keyboard navigation reveals each focused link with its complete focus band.**
+The row scrolls without moving focus or scrolling the page. Content and container changes preserve the reader's scroll position where space permits.
+When a link already fits in the row, it keeps its content width. The cap only limits one link
+that is wider than the row.
+
+**An overflowing row with only disabled tabs becomes a keyboard stop.**
+It draws the kit's inward focus band. A fitting row supplies no separate keyboard stop.
+
+### The current route has an accent label
+
+**A selected pill tab uses an accent label on its soft accent fill.**
+The label distinguishes the current route from a hovered route. The underline appearance keeps
+body ink and its accent bar. Both appearances name the current route with `aria-current="page"`.
+
+**In forced colours, both appearances retain a visible selected mark using the reader's system colours.**
+The pill label and badge remain readable. Ordinary colours are unchanged.
 
 ### The dropdown panel
 
@@ -817,7 +849,7 @@ before the hint rather than in its place**. This keeps a hint with consent, safe
 on screen while the reader decides whether to retry. The error also uses `role="alert"`, so a new
 error is announced without moving focus. Required markers are decorative. Native controls carry
 `required`. `Field` exposes the frame for a control that you render yourself. Its child function
-receives a stable ID, `required`, `aria-invalid` and `aria-describedby`. `FileField` accepts one
+receives a stable ID, `required`, `aria-invalid` and `aria-describedby`. Spread them on a `Dropdown` and the label and then the value name its trigger. `FileField` accepts one
 file from the picker or by drop. `accept` only filters the system picker, so you validate before
 upload.
 
@@ -833,44 +865,10 @@ at the bottom. The stack is anchored to the bottom-right corner. **The provider 
 the stack reaches up the viewport** as `--rx-toast-stack` on the document root. It is `0px` while
 the stack is empty. A fixed page action can use this value to stay clear of any number of notices.
 Use **one** provider per document, because that property is a document-root global. Notices without
-actions dismiss after five seconds. Their countdown and timer bar pause while hovered, focused or
-held in a collapsed pile, then resume with the remaining time. Notices with an action stay until
+actions dismiss after five seconds. Their countdown and timer bar pause while hovered or
+focused, then resume with the remaining time. Notices with an action stay until
 the reader selects or dismisses it. Ordinary notices are polite. Danger notices are assertive.
 Adding a notice does not move focus.
-
-Pass `collapse` to `<Toast>` to draw the stack as a pile, as described under [Toast stacks](#toast-stacks).
-The pile fans out on hover and on focus within it, and the stack stays a plain column on a device without hover.
-
-## Toast stacks
-
-A stack of notices can collapse into a pile. `.ui-toast-stack--collapsed` draws its notices on top
-of one another, bottom-aligned, with the newest in front. Notices past `TOAST_TIERS` rest on the
-last tier, so a ninth notice makes the pile no taller than a third one. The cards peeking behind
-the front one are what say more is waiting. The pile carries no counted chip above it.
-
-The pile fans out into the ordinary column on `:hover` and on `:focus-within`. Thus a keyboard
-reader opens it by tabbing into it, and it collapses again when both states end. Nothing listens
-for either state. The stylesheet switches between two sets of published values, which lets the
-reduced-motion net cap the travel like any other transition.
-
-The values are measured, because notices are not the same height. For each notice, a script
-publishes `--toast-card-lift`, `--toast-card-scale`, `--toast-card-fan` and
-`--toast-card-depth`. For the stack, it publishes `--toast-pile-height` and
-`--toast-fan-height`. `toastPileGeometry()` is the calculation both faces share. A pile re-measures
-when notices arrive or leave and when one changes height.
-
-A notice behind the front one that is taller than the front one rests cut short, so no part of it
-shows below the front notice, even while the browser is busy. It opens to its own height when the
-pile fans out. A script that renders its own stack publishes `--toast-card-box` and
-`--toast-card-natural` for such a notice, and `applyToastPile()` does it for you.
-
-Under `(hover: none)` the stack stays the plain column. Half of what opens a pile is hover, and
-the notices behind the front card are not focusable. A pile there would be one nobody could open.
-
-`.ui-toast__timer` spends the notice's own dismiss timer. It pauses on the notice's `:hover`,
-`:focus-within`, and on a held pile, so the line and the countdown stop together. Under reduced
-motion the line is not drawn at all, because its animation is capped to nothing. The countdown
-still pauses while the notice or the pile is held.
 
 ### React search field
 
@@ -980,6 +978,31 @@ across and the full 44px down. A sparkline's slot grows with that vertical targe
 The table the reader opens carries its columns sideways in a named scroller, so your card and your
 page keep their width whatever series you pass. At phone widths the plot scrolls with the value
 axis held in place, and the side that still hides columns is faded. Nothing animates.
+
+### React route navigation
+
+`NavTabs` and `Breadcrumbs` use the same presentation as the vanilla factories, so every
+guarantee above holds for them too. `NavTabs` takes unique item IDs, a controlled active ID, the
+underline or pill presentation, and optional badges. It uses native links and
+`aria-current="page"`, with no tablist or panel roles. **A disabled item is non-focusable text**
+marked `aria-disabled`, and cannot be the current link. An item with no destination uses its ID as
+a fragment. A badge of zero stays visible; a null or empty badge is dropped, the way the vanilla
+factory drops it.
+
+`Breadcrumbs` renders a named navigation landmark and an ordered list. **The last item is
+current-page text even when it has a destination**, and an earlier item without one stays text.
+Icons are decorative. Both components forward root attributes and refs, keep native link keyboard
+behaviour, and send every destination through the kit's URL boundary.
+
+**Both take `renderLink` with the signature `AppShell` uses**, so a router renders each link from
+the kit's class, destination, current state and children, and a route change need not reload the
+document.
+
+`NavTabs` sizes its row on mount, on a route change and on window resize, preserving the reader's
+scroll position during content and container changes. It reveals the current route after mount and
+route changes, and reveals a link a focus event lands on. There is nothing to wire for it;
+`wireNav()` is for the vanilla rows. React imports the kit's own `safeUrl` and reveal functions
+rather than a copy bundled into `react/dist`.
 
 ### The rest of the React surface
 
@@ -1092,8 +1115,11 @@ find them by class. These attributes make the row work:
 `field()` provides wiring that a control cannot provide for itself. It sets the label's `for=`,
 adds an id to the hint or error and points to it with `aria-describedby`, adds `aria-invalid`
 to a field with an `error`, and adds the native `required` attribute under the decorative
-asterisk. A control outside a `field()` needs its own `ariaLabel`. A placeholder is not a name.
-Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
+asterisk. **A `dropdown()` inside `field()` is wired through its trigger button**, because the
+dropdown's `id` sits on a wrapper that a label cannot name. The label and then the chosen value name
+the trigger, the error or hint describes it, and an error marks it invalid. The list is named by the
+label unless you give it an `ariaLabel`. A control outside a `field()` needs its own `ariaLabel`. A
+placeholder is not a name. Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See
 [Colour and contrast](foundations.md#colour-and-contrast).
 

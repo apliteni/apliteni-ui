@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useId, useRef, useState, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react';
 import { esc, icon } from '@apliteni/apliteni-ui';
 import { Icon } from './primitives/Icon';
+import { FieldContext } from './fieldContext';
 import './Field.css';
 
 type FieldMessage = { label: string; hint?: string; error?: string };
@@ -15,9 +16,9 @@ function messages(id: string, hint?: string, error?: string) {
   return [error && `${id}-error`, hint && `${id}-hint`].filter(Boolean).join(' ') || undefined;
 }
 
-function Frame({ id, label, hint, error, required, children }: FieldMessage & { id: string; required?: boolean; children: ReactNode }) {
+function Frame({ id, labelId, label, hint, error, required, children }: FieldMessage & { id: string; labelId?: string; required?: boolean; children: ReactNode }) {
   return <div className="ui-field">
-    <label className="ui-field__label" htmlFor={id}>{label}{required && <span className="ui-field__req" aria-hidden="true">*</span>}</label>
+    <label className="ui-field__label" id={labelId} htmlFor={id}>{label}{required && <span className="ui-field__req" aria-hidden="true">*</span>}</label>
     {children}
     {error && <div id={`${id}-error`} className="ui-field__error" role="alert"
       dangerouslySetInnerHTML={{ __html: icon('alert') + esc(error) }} />}
@@ -50,8 +51,11 @@ export type FieldProps = FieldMessage & {
 export function Field({ id: suppliedId, label, hint, error, required, children }: FieldProps) {
   const generatedId = useId();
   const id = suppliedId ?? generatedId;
-  return <Frame {...{ id, label, hint, error, required }}>
-    {children({ ...wiring(id, hint, error), required })}
+  const labelId = `${id}-label`;
+  return <Frame {...{ id, labelId, label, hint, error, required }}>
+    <FieldContext.Provider value={{ id, labelId }}>
+      {children({ ...wiring(id, hint, error), required })}
+    </FieldContext.Provider>
   </Frame>;
 }
 

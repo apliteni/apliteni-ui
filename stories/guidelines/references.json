@@ -130,6 +130,32 @@
         "pattern": "--accent-strong: var(--accent);"
       }
     ],
+    "selection-accent": [
+      {
+        "ref": "src/styles/segmented.css:45",
+        "pattern": "color: var(--accent-contrast);"
+      },
+      {
+        "ref": "src/styles/segmented.css:46",
+        "pattern": "background: var(--accent);"
+      },
+      {
+        "ref": "src/styles/nav.css:368",
+        "pattern": ".ui-nav--tabs.is-underline .ui-nav__tab.is-active::after"
+      },
+      {
+        "ref": "src/styles/nav.css:376",
+        "pattern": "background: var(--glow-purple);"
+      },
+      {
+        "ref": "src/styles/nav.css:375",
+        "pattern": "color: var(--accent);"
+      },
+      {
+        "ref": "src/styles/layout.css:71",
+        "pattern": ".ui-app__rail .ui-nav__item.is-active"
+      }
+    ],
     "both-themes": [
       {
         "ref": "stories/accent-contrast.test.js:1",
@@ -214,7 +240,7 @@
         "pattern": "a question the page stops for"
       },
       {
-        "ref": "src/components/index.js:217",
+        "ref": "src/components/index.js:256",
         "pattern": "export function callout("
       },
       {
@@ -232,7 +258,7 @@
         "pattern": "a floating, dismissible notification"
       },
       {
-        "ref": "src/components/index.js:243",
+        "ref": "src/components/index.js:282",
         "pattern": "class=\"ui-toast__action\""
       }
     ],
@@ -266,11 +292,11 @@
     ],
     "scale": [
       {
-        "ref": "src/components/index.js:260",
+        "ref": "src/components/index.js:299",
         "pattern": "Pick by how much of the screen the confirmation owns"
       },
       {
-        "ref": "src/components/index.js:262",
+        "ref": "src/components/index.js:301",
         "pattern": "export function successPanel("
       },
       {
@@ -324,7 +350,7 @@
         "pattern": "role=\"alertdialog\""
       },
       {
-        "ref": "src/components/index.js:243",
+        "ref": "src/components/index.js:282",
         "pattern": "class=\"ui-toast__action\""
       },
       {
@@ -398,7 +424,7 @@
     ],
     "section-lit": [
       {
-        "ref": "src/components/nav.js:109",
+        "ref": "src/components/nav.js:110",
         "pattern": "const current = activeIs === 'section'"
       }
     ],
@@ -474,7 +500,7 @@
         "pattern": "export const iconMeanings"
       },
       {
-        "ref": "src/components/index.js:229",
+        "ref": "src/components/index.js:268",
         "pattern": "const TOAST_ICON = {"
       }
     ],
@@ -532,7 +558,7 @@
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:83",
+        "ref": "src/styles/card.css:86",
         "pattern": "rank: card-title"
       }
     ],
@@ -798,21 +824,21 @@
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
-        "ref": "stories/contrast-dark.test.js:48",
+        "ref": "stories/contrast-dark.test.js:34",
         "pattern": "inactive components and their whole subtree"
       }
     ],
     "error-in-markup": [
       {
-        "ref": "src/components/index.js:182",
+        "ref": "src/components/index.js:221",
         "pattern": "`invalid` paints the control red AND says so in aria-invalid"
       },
       {
-        "ref": "src/components/index.js:168",
+        "ref": "src/components/index.js:207",
         "pattern": "'aria-describedby': msgId,"
       },
       {
-        "ref": "src/components/index.js:154",
+        "ref": "src/components/index.js:186",
         "pattern": "markup rather than in the label's wording"
       }
     ],
@@ -826,7 +852,7 @@
         "pattern": "export function setBusy(root,"
       },
       {
-        "ref": "src/components/index.js:249",
+        "ref": "src/components/index.js:288",
         "pattern": "role=\"status\" aria-live=\"polite\""
       }
     ]
@@ -841,7 +867,7 @@
     ],
     "useful-callouts": [
       {
-        "ref": "src/components/index.js:217",
+        "ref": "src/components/index.js:256",
         "pattern": "export function callout("
       }
     ]
@@ -867,7 +893,7 @@
   "_empty-states.js": {
     "next-action": [
       {
-        "ref": "src/components/index.js:272",
+        "ref": "src/components/index.js:311",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
       }
     ]
@@ -949,7 +975,7 @@
     ],
     "nav": [
       {
-        "ref": "src/components/nav.js:106",
+        "ref": "src/components/nav.js:107",
         "pattern": "export function sidebarNav("
       },
       {
@@ -969,11 +995,11 @@
     ],
     "in-row": [
       {
-        "ref": "src/components/index.js:210",
+        "ref": "src/components/index.js:249",
         "pattern": "export function switchToggle("
       },
       {
-        "ref": "src/styles/card.css:100",
+        "ref": "src/styles/card.css:103",
         "pattern": ".ui-card__row {"
       }
     ],

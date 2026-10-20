@@ -1,5 +1,5 @@
 import {
-  Fragment, useCallback, useEffect, useId, useRef, useState,
+  Fragment, useCallback, useContext, useEffect, useId, useRef, useState,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode,
 } from 'react';
@@ -8,6 +8,7 @@ import {
   dropdownHeightFit, filterPanelRow,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
+import { FieldContext } from './fieldContext';
 
 // A few frames past the stylesheet's own end, so the backstop timer never cuts the last
 // frame the fade paints. The number a dialog's exit waits by. why: react/src/dialog.ts
@@ -124,6 +125,10 @@ export type DropdownProps = {
   /** A field above the rows that filters them as the reader types. */
   search?: boolean | DropdownSearch;
   ariaLabel?: string;
+  /** Names the elements that describe the trigger, e.g. a field's error and hint. */
+  'aria-describedby'?: string;
+  /** Marks the trigger invalid. `Field` supplies it while its error shows. */
+  'aria-invalid'?: boolean | 'true' | 'false';
   id?: string;
   panelClass?: string;
   /** Controlled: the host owns the open state and answers `onOpenChange`. */
@@ -190,6 +195,7 @@ export function Dropdown({
   header, footer, triggerContent, triggerClass = '', disabled = false, chevron = true,
   align = 'start', direction = 'down', scroll = false, search = false,
   ariaLabel, id, panelClass = '',
+  'aria-describedby': describedBy, 'aria-invalid': invalid,
   open: openProp, defaultOpen = false, onOpenChange, onSelect, row,
 }: DropdownProps) {
   const [selfOpen, setSelfOpen] = useState(defaultOpen);
@@ -220,6 +226,12 @@ export function Dropdown({
   const at = useRef('');
   const auto = useId().replace(/:/g, '');
   const uid = id ?? auto;
+  // Given the id of the Field around it, the trigger is that field's control: its name is
+  // the label and then its own value, as a native select reads. `for` cannot do it, since
+  // the id stays on the outer div and a label on a button would drop the value.
+  const inField = useContext(FieldContext);
+  const fieldName = inField && id === inField.id && !(ariaLabel && triggerContent != null)
+    ? { id: `${uid}-trigger`, labelId: inField.labelId, labelledBy: `${inField.labelId} ${uid}-trigger` } : null;
 
   const setOpen = useCallback((next: boolean) => {
     if (openProp === undefined) setSelfOpen(next);
@@ -801,7 +813,11 @@ export function Dropdown({
         disabled={disabled || undefined}
         aria-haspopup={sx ? 'dialog' : listRole}
         aria-expanded={open}
+        id={fieldName?.id}
         aria-label={ariaLabel && triggerContent != null ? ariaLabel : undefined}
+        aria-labelledby={fieldName?.labelledBy}
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
         ref={trigger}
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
       >
@@ -819,6 +835,7 @@ export function Dropdown({
         data-dropdown-panel=""
         role={sx ? 'dialog' : listRole}
         aria-label={sx ? name : ariaLabel}
+        aria-labelledby={!sx && !ariaLabel ? fieldName?.labelId : undefined}
         style={sx ? undefined : cap}
         ref={panel}
         onClick={(e) => e.stopPropagation()}

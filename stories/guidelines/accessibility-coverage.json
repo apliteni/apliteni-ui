@@ -97,6 +97,22 @@
       ]
     },
     {
+      "file": "react/src/NavTabs.test.tsx",
+      "name": "React: NavTabs",
+      "does": "Checks native route-link semantics, current and disabled state, keyboard order, root refs, badge text, safe destinations and axe results. Checks content and container remeasurement without resetting the scroll position.",
+      "blind": [
+        "JSDOM does not measure responsive layout, focus-ring pixels or actual browser navigation. Story contrast and browser captures cover the shared styling."
+      ]
+    },
+    {
+      "file": "react/src/Breadcrumbs.test.tsx",
+      "name": "React: Breadcrumbs",
+      "does": "Checks ordered trail semantics, current-page text, ancestor links, decorative icons, keyboard focus, root refs, safe destinations and axe results.",
+      "blind": [
+        "JSDOM does not measure browser layout, visual separators or spoken screen-reader output. Story contrast and browser captures cover shared styling."
+      ]
+    },
+    {
       "file": "react/src/Tooltip.test.tsx",
       "name": "React: Tooltip",
       "does": "Checks description IDs, keyboard focus, Escape dismissal, touch toggling, placement and axe results.",
@@ -535,6 +551,14 @@
       ]
     },
     {
+      "file": "stories/nav-long-label.test.js",
+      "name": "Nav long label",
+      "does": "In a real browser, renders a current tab with a long route label at 320px and measures that its label start and focus ring stay inside the row. It counts painted outline pixels and walks each side for the longest unpainted run, with a 4px closure tolerance measured from the fixed case's 3px antialiasing gap plus one pixel. It also removes the label cap in memory and requires the hidden start and clipped ring to return, removes the outline, makes the text transparent, clips the middle 30% of the right edge and keeps an adjacent badge colour change green.",
+      "blind": [
+        "Runs only when NAV_LONG_LABEL=1 and Playwright is available. It covers one long English label, one direct-gate theme and Chromium; PR evidence renders vanilla and React stories in both themes."
+      ]
+    },
+    {
       "file": "stories/button-chrome.test.js",
       "name": "Button chrome",
       "does": "Mounts every clickable class the kit ships where a story renders it, once with browser button chrome and once without. It requires equal background, border, font-family, font-size, line-height, text-align and width. The three font facets are separate because Chrome writes them as one shorthand, `font: 400 13.3333px Arial`; a font-family longhand restores the face but leaves size and leading. Width also requires rejecting `width: auto` and `width: fit-content`, even when readings match. Four failing classes and three excluded classes are pinned by name, so the derived count remains stable.",
@@ -965,15 +989,6 @@
         "1.1:1 is not a WCAG number and does not stand in for one: WCAG sets no contrast requirement for a background that carries no information by itself, and the ink ON these items is measured by stories/contrast-dark.test.js and stories/contrast-light.test.js instead. The grounds are named here rather than discovered, because which container an item ends up inside is not in the stylesheets; an item whose ground its own component does not fix — the pager, which stands on the page in one showcase and on a card in another — is a named exclusion and says so beside its rule.",
         "The pager current-page mark is the only named exclusion. Its containing ground varies. Accent fills and rules that remove a fill are classified separately.",
         "Nothing is laid out or painted: this reads declared values with the tokens substituted. It cannot see a fill covered by a pseudo-element, one a width query makes unreachable, or what any of them looks like on a real screen. A box painted WITHIN a selected item rather than being its mark — a count badge, an icon tile — is not discovered at all, because its marker sits on an ancestor compound."
-      ]
-    },
-    {
-      "file": "stories/toast-pile.test.js",
-      "name": "Toast pile",
-      "does": "Checks that a collapsed toast stack fans out on focus as well as hover, that the newest notice is the one in front, that a reader with no hover is left the plain column, and that the auto-dismiss line and its countdown both stop while a notice holds focus.",
-      "blind": [
-        "JSDOM lays nothing out, so every notice height is stubbed and the published offsets are read as numbers, never as paint.",
-        "JSDOM evaluates no media query and no :hover, so the stylesheet's fan-out, its coarse-pointer fallback and its reduced-motion rule are read as text and never applied."
       ]
     },
     {

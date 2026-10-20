@@ -11,11 +11,11 @@
 import { parentPort, workerData } from 'node:worker_threads';
 import { walkStories, mergeWalks } from './contrast.js';
 
-const { cells, states, files } = workerData;
+const { cells, states, files, stories } = workerData;
 
 try {
   const parts = [];
-  for (const cell of cells) parts.push(await walkStories({ ...cell, states, files }));
+  for (const cell of cells) parts.push(await walkStories({ ...cell, states, files, stories }));
   parentPort.postMessage({ walk: mergeWalks(parts) });
 } catch (error) {
   parentPort.postMessage({ error: String((error && error.stack) || error) });

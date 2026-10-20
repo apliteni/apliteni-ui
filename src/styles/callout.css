@@ -102,9 +102,7 @@
    countdown from drifting apart, and gives a keyboard reader the same reprieve
    a pointer reader gets. */
 .ui-toast:hover > .ui-toast__timer.is-running,
-.ui-toast:focus-within > .ui-toast__timer.is-running,
-.ui-toast-stack--collapsed:hover > .ui-toast > .ui-toast__timer.is-running,
-.ui-toast-stack--collapsed:focus-within > .ui-toast > .ui-toast__timer.is-running { animation-play-state: paused; }
+.ui-toast:focus-within > .ui-toast__timer.is-running { animation-play-state: paused; }
 
 /* Legacy style classes share the neutral card. */
 .ui-toast--soft, .ui-toast--solid, .ui-toast--outline { background: var(--surface); color: var(--text); }
@@ -127,79 +125,6 @@
 
 /* stack container for queued toasts */
 .ui-toast-stack { display: flex; flex-direction: column; gap: 12px; width: var(--panel-md); max-width: 100%; }
-
-/* ----------------------------------------------------------------------------
- * Collapsed stack — several notices rest as one pile and fan out on hover or
- * focus, newest in front. Both positions are measured and published per card by
- * applyToastPile() in logic/toast-stack.js; the switch between them is this
- * sheet's, so a hover never waits on a script and reduced motion reaches it
- * through the net like any other transition.
- * -------------------------------------------------------------------------- */
-.ui-toast-stack--collapsed {
-  position: relative;
-  display: block;
-  height: var(--toast-pile-height, auto);
-  transition: height var(--dur-med) var(--ease);
-}
-.ui-toast-stack--collapsed:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-.ui-toast-stack--collapsed > .ui-toast {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  /* Paint order follows the DOM, and the newest notice is not always last in it:
-     the vanilla stack prepends. The front card is named, not assumed. */
-  z-index: var(--toast-card-depth, auto);
-  transform-origin: bottom center;
-  /* `translate` and `scale`, not `transform`: the entrance keyframes own
-     transform and `both` holds their last value after they finish, which would
-     overwrite a pile offset written here. These two compose with it instead. */
-  translate: 0 var(--toast-card-lift, 0px);
-  scale: var(--toast-card-scale, 1);
-  /* A back notice's box ends at or above the front notice's bottom edge.
-     The box changes at the start of a move. Only translate and scale move;
-     their endpoints both keep that edge above the front notice. The clip
-     trims paint, but never has to keep pace with the move. */
-  max-height: var(--toast-card-box, none);
-  clip-path: inset(-100vmax var(--toast-card-clip, -100vmax) var(--toast-card-clip, -100vmax));
-  transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease);
-}
-/* A box shorter than the notice cuts it at the bottom, so the content stays on
-   the top edge instead of centring on a card that overflows. Auto margins
-   centre a notice that fits and start-align one that does not. */
-.ui-toast-stack--collapsed > .ui-toast > .ui-toast__icon,
-.ui-toast-stack--collapsed > .ui-toast > .ui-toast__body,
-.ui-toast-stack--collapsed > .ui-toast > .ui-toast__action { margin-block: auto; }
-.ui-toast-stack--collapsed:hover > .ui-toast > *,
-.ui-toast-stack--collapsed:focus-within > .ui-toast > * { margin-block: 0; }
-.ui-toast-stack--collapsed:hover, .ui-toast-stack--collapsed:focus-within {
-  height: var(--toast-fan-height, auto);
-}
-.ui-toast-stack--collapsed:hover > .ui-toast,
-.ui-toast-stack--collapsed:focus-within > .ui-toast {
-  translate: 0 var(--toast-card-fan, 0px);
-  scale: 1;
-  max-height: var(--toast-card-natural, none);
-  clip-path: inset(-100vmax -100vmax var(--toast-card-fan-clip, -100vmax));
-  transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease);
-}
-
-/* Half of what opens a pile is hover. Where the reader has none, the plain
-   column keeps every notice visible without one more stop on the page.
-   The question is hover, not precision: `(pointer: coarse)` is the kit's field
-   sizing net and answers a different one (stories/field-zoom.test.js).
-   Each fanned state is named again rather than left to the shorter selector:
-   a tap can still land focus inside the stack, and `:focus-within` above would
-   otherwise hand a static card the offset it only has while absolute. This
-   block therefore has to stay BELOW the rules it answers for. */
-@media (hover: none) {
-  .ui-toast-stack--collapsed,
-  .ui-toast-stack--collapsed:hover,
-  .ui-toast-stack--collapsed:focus-within { display: flex; height: auto; }
-  .ui-toast-stack--collapsed.ui-toast-stack--newest-first { flex-direction: column-reverse; }
-  .ui-toast-stack--collapsed > .ui-toast,
-  .ui-toast-stack--collapsed:hover > .ui-toast,
-  .ui-toast-stack--collapsed:focus-within > .ui-toast { position: static; translate: none; scale: 1; max-height: none; clip-path: none; }
-}
 
 /* Success panel — centered confirmation, used after form submit */
 .ui-success {

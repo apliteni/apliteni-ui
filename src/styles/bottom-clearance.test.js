@@ -161,7 +161,7 @@ const CONTRACT = [
   {
     what: 'the toast stack adds the clearance to its offset',
     file: 'react/src/Toast.css', media: '',
-    selector: '.ui-toast-stack.rx-toast-stack',
+    selector: '.rx-toast-stack',
     prop: 'bottom', value: 'calc(var(--space-4) + var(--ui-app-bottom-clearance, 0px))',
   },
 ];

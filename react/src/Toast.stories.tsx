@@ -64,20 +64,6 @@ export const PresentationsGallery: StoryObj = {
   render: args => <Toast key={JSON.stringify(args)}><Presentations {...args} /></Toast>,
 };
 
-// The pile: several self-dismissing notices rest as one, newest in front, and
-// fan out under the pointer or once focus reaches the stack.
-function Pile() {
-  const push = useToast();
-  const add = (notice: typeof statuses[number]) => push({ ...notice });
-  const show = () => statuses.forEach(add);
-  useEffect(() => { statuses.slice(0, 3).forEach(add); }, [push]);
-  return <Button onClick={show}>Add five more</Button>;
-}
-export const CollapsedStack: StoryObj = {
-  parameters: { docs: { description: { story: 'Hover the pile, or press Tab into it, to fan it out. It collapses again when you leave. One notice is never collapsed: there would be nothing behind it.' } } },
-  render: () => <Toast collapse><Pile /></Toast>,
-};
-
 // The elapsing-time line. It spends the notice's own five seconds, stops while
 // the notice is hovered or holds focus, and is left out under reduced motion —
 // a line that cannot move would read as time not yet spent.

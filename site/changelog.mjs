@@ -6,11 +6,33 @@
 
 export const RELEASES = [
   {
+    v: '0.127.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React Toast notices accept `compact`, `dismissible` and `timer`. A compact notice omits its body text. Hiding the close button keeps the timer and the action behaviour. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it. Set `timer: false` on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn, because it could not move and read as time not yet spent. Part of #429.', ['Toast']],
+    ],
+  },
+  {
     v: '0.126.0', date: '2026-10-20',
     changes: [
-      ['added', 'React Toast notices accept compact and dismissible options. Compact notices omit body text; hiding the close button preserves the timer and action behavior. Part of #429.', ['Toast']],
-      ['added', 'A toast stack can collapse into a pile: notices rest behind the newest one, and the pile fans out on hover or when focus reaches the stack. Pass `collapse` to the React `<Toast>` provider to turn it on. Part of #429.', ['Toast']],
-      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it, so a keyboard reader gets the same reprieve. Set timer: false on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn: it could not move, so it read as time not yet spent. Part of #429.', ['Toast']],
+      ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],
+      ['added', 'NavTabs and Breadcrumbs take renderLink, so a router can own route changes, and the main entry now exports safeUrl, observeNavFit, revealCurrentNav and revealFocusedNav for callers that assemble their own navigation markup.', ['Navigation']],
+      ['changed', 'The current pill tab uses an accent label on its existing soft accent fill. The label distinguishes the current route from a hovered route. Vanilla and React share this change.', ['Navigation']],
+      ['fixed', 'Tab rows scroll within narrow containers without widening the page, moving off the page gutter or lifting the active underline off the row rule. A row whose tabs all fit scrolls nothing and clips nothing, so the post-#578 outline focus ring keeps its band at a desktop width. React and vanilla wireNav reveal the current route without moving keyboard focus or discarding where the reader scrolled.', ['Navigation']],
+      ['fixed', 'A tab row that does scroll now scrolls to a link the keyboard lands on, so its focus ring clears the scrolling edge instead of being cut off at the end of the row. A row whose tabs are all disabled takes the kit inward band on itself rather than the browser outline, because it holds no link to carry one.', ['Navigation']],
+    ],
+  },
+  {
+    v: '0.125.1', date: '2026-10-20',
+    changes: [
+      ['changed', 'The Colour and theming guideline limits selected navigation to one accent signal. The NavTabs pill keeps its accent ink on a soft accent fill, because the fill alone is too faint to mark the current route. See #475.', ['Guidelines', 'Navigation']],
+    ],
+  },
+  {
+    v: '0.125.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React `Dropdown` takes `aria-describedby` and `aria-invalid` and puts them on its trigger. Spread a `Field`\'s attributes onto it and a screen reader gets the error and hint on the trigger. The trigger\'s name is now the field label and then the chosen value, the list takes the label as its name, and the `id` stays on the outer element. See #637.', ['Dropdown', 'Field']],
+      ['fixed', '`field()` around a `dropdown()` now names the trigger with the label and then the value, describes it with the error or hint, and marks it invalid while the error shows. Before, a search dropdown received these on its search field and the others received none. See #637.', ['Dropdown', 'Field']],
     ],
   },
   {
