@@ -6,10 +6,17 @@
 
 export const RELEASES = [
   {
-    v: '0.130.0', date: '2026-10-20',
+    v: '0.131.0', date: '2026-10-21',
     changes: [
       ['added', 'React Card offers the vanilla card variants, icon chip, padding, setting rows and whole-card links. The Theme choice stays on one line with `ui-card__row--tight-choice`, and accent cards keep their tint without a coloured edge. Part of #429.', ['Card']],
       ['changed', 'A whole-card link whose last child is its description no longer leaves a gap below it. Set the gap on the card if the design needs it.', ['Card']],
+    ],
+  },
+  {
+    v: '0.130.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Toast notices accept `compact`, `dismissible` and `timer`. A compact notice omits its body text. Hiding the close button keeps the timer and the action behaviour. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it. Set `timer: false` on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn, because it could not move and read as time not yet spent. Part of #429.', ['Toast']],
     ],
   },
   {

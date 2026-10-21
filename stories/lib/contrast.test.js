@@ -570,7 +570,7 @@ test('every state base the kit sheet yields is a selector a browser accepts', ()
       }
     }
   }
-  assert.equal(counted, 244, 'state-base discovery changed: 122 bases per theme, including three link-button states, over two themes. The two light drawer rows (current, hover) added 1 per theme; the phone icon strip and its hover-name rules went in #592, which took 22 bases per theme with them');
+  assert.equal(counted, 248, 'state-base discovery changed: 124 bases per theme, including three link-button states, over two themes. The two light drawer rows (current, hover) added 1 per theme; the phone icon strip and its hover-name rules went in #592, which took 22 bases per theme with them; React Toast adds 2 bases per theme');
   assert.deepEqual(offences, [], `a state base no browser would accept:\n  ${offences.join('\n  ')}`);
   dom.window.close();
 });

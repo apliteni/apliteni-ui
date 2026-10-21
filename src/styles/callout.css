@@ -93,9 +93,16 @@
 .ui-toast__close:hover { color: var(--text); }
 .ui-toast__close:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 
-/* auto-dismiss progress bar — .is-running is added by wireToastStack() */
+/* auto-dismiss progress line — .is-running is added by wireToastStack() */
 .ui-toast__timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--toast-accent); opacity: 0.85; transform-origin: left; }
-.ui-toast__timer.is-running { animation: ui-toast-timer var(--toast-dur, 5s) linear forwards; /* motion: ambient — the bar spends the toast's dismiss timer, which the caller sets */ }
+.ui-toast__timer.is-running { animation: ui-toast-timer var(--toast-dur, 5s) linear forwards; /* motion: ambient — the line spends the toast's dismiss timer, which the caller sets */ }
+/* The line spends the notice's own timer, so it stops exactly when the timer
+   does: under the pointer, and while focus is anywhere inside. Holding both
+   pauses here rather than in each face's event wiring keeps the line and the
+   countdown from drifting apart, and gives a keyboard reader the same reprieve
+   a pointer reader gets. */
+.ui-toast:hover > .ui-toast__timer.is-running,
+.ui-toast:focus-within > .ui-toast__timer.is-running { animation-play-state: paused; }
 
 /* Legacy style classes share the neutral card. */
 .ui-toast--soft, .ui-toast--solid, .ui-toast--outline { background: var(--surface); color: var(--text); }
@@ -110,7 +117,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ui-toast, .ui-toast.is-leaving { animation: none; }
-  .ui-toast__timer.is-running { animation: none; }
+  /* A line that cannot move sits full for the whole five seconds and reads as
+     "no time spent yet" — the opposite of what it is there to say. The notice
+     still expires on time; only the false readout goes. */
+  .ui-toast__timer { display: none; }
 }
 
 /* stack container for queued toasts */
