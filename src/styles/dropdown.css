@@ -78,6 +78,9 @@
   flex: none;
 }
 .ui-dropdown.open .ui-dropdown__chevron { transform: translateY(var(--caret-off)) rotate(-135deg); }
+@media (forced-colors: active) {
+  .ui-dropdown__chevron { background: none; border-right: var(--caret-ink) solid ButtonText; border-bottom: var(--caret-ink) solid ButtonText; }
+}
 
 /* Panel — the popover surface */
 .ui-dropdown__panel {
@@ -284,6 +287,9 @@
    takes on hover, one step under the --surface-2 that .is-active takes below.
    why: docs/foundations.md#elevation */
 :where(:root[data-theme="light"]) .ui-dropdown__item:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+@media (forced-colors: active) {
+  .ui-dropdown__item:hover { border: 1px solid Highlight; padding: 8px 11px; }
+}
 /* The row draws its ring inward, so a row scrolled flush with the list's edge cannot have it
    clipped and the list scrolls as it did.
    why: docs/foundations.md#the-focus-ring */

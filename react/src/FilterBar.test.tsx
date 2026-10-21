@@ -179,6 +179,17 @@ it('restores focus after consecutive externally controlled removals', () => {
   rerender(beside([]));
   expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
 });
+it('leaves focus outside after an unrelated render', () => {
+  const props = callbacks();
+  const view = (items: Filter[]) => <><FilterBar filters={items} {...props} /><div>Outside</div></>;
+  const { rerender } = render(view(filters));
+  const trigger = screen.getByRole('button', { name: 'Region: All' });
+  trigger.focus();
+  trigger.blur();
+  expect(document.body).toHaveFocus();
+  rerender(view([...filters]));
+  expect(document.body).toHaveFocus();
+});
 // An empty bar is not a fallback: the ring would sit on a line with no height.
 // With nothing beside it to take the focus, the focus goes nowhere instead.
 it('does not park the ring on an empty bar when nothing stands beside it', () => {

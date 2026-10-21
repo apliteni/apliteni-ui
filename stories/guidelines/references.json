@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:248",
+        "ref": "src/styles/table.css:249",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ],
@@ -12,7 +12,7 @@
         "pattern": "width: auto;"
       },
       {
-        "ref": "src/styles/table.css:302",
+        "ref": "src/styles/table.css:303",
         "pattern": "max-width: calc(100% + 2 * var(--space-3));"
       }
     ]
@@ -310,11 +310,11 @@
         "pattern": "export const dropdownMatch"
       },
       {
-        "ref": "src/styles/dropdown.css:375",
+        "ref": "src/styles/dropdown.css:381",
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:437",
+        "ref": "src/styles/dropdown.css:443",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -326,7 +326,7 @@
         "pattern": ".ui-btn--danger:hover"
       },
       {
-        "ref": "src/styles/dropdown.css:331",
+        "ref": "src/styles/dropdown.css:337",
         "pattern": ".ui-dropdown__item.is-danger:hover"
       },
       {
@@ -1099,7 +1099,7 @@
         "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
       },
       {
-        "ref": "src/styles/table.css:279",
+        "ref": "src/styles/table.css:280",
         "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
       },
       {

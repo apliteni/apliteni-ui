@@ -319,6 +319,32 @@ test('the last-column check rejects a sheet that leaves the body cell gap', () =
   assert.throws(() => checkLastColumnEdge(CSS.replace('.ui-table td:last-child { padding-right: 0; }', '')));
 });
 
+// JSDOM checks the linked cell's cascade. The browser gate checks paint.
+function checkLinkedHoverInset(css) {
+  let measured = 0;
+  for (const modifier of ['ui-table--hover', 'ui-table--hover ui-table--dense', 'ui-table--hover ui-table--compact', 'ui-table--hover ui-table--zebra']) {
+    const dom = new JSDOM(`<style>${substitute(css, tokensFor('light', 'default'))}</style>
+      <table class="ui-table ${modifier}"><thead><tr><th>Invoice</th></tr></thead>
+      <tbody><tr><td class="ui-table__linked"><a href="#invoice">Invoice</a></td></tr></tbody></table>`);
+    try {
+      const { document, getComputedStyle } = dom.window;
+      const header = getComputedStyle(document.querySelector('th'));
+      const link = getComputedStyle(document.querySelector('td a'));
+      assert.equal(link.paddingRight, header.paddingRight, `${modifier}: linked last cell keeps the header inset`);
+      assert.notEqual(link.paddingRight, '0px');
+      measured++;
+    } finally { dom.window.close(); }
+  }
+  assert.equal(measured, 4);
+}
+
+test('a linked last cell keeps the hover table inset', () => checkLinkedHoverInset(CSS));
+test('the linked last-cell check rejects a missing inset', () => {
+  const without = CSS.replace(/:where\(\.ui-table--hover:not\(\.ui-table--zebra\)\) td\.ui-table__linked:last-child > :is\([^{}]+\{[^}]+\}/, '');
+  assert.notEqual(without, CSS);
+  assert.throws(() => checkLinkedHoverInset(without));
+});
+
 /**
  * The pin's divider is the edge a column keeps while the rest moves under it, so it may
  * only be painted where the region can actually move horizontally. The sheet says this in two halves:

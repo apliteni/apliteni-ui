@@ -1027,6 +1027,14 @@
       "blind": [
         "Source only. It reads the rule's selectors and its width, not the cascade around them, and it paints nothing. The ring itself is measured in a browser and reported on the pull request."
       ]
+    },
+    {
+      "file": "stories/forced-colors-regression.test.js",
+      "name": "Forced-colour controls and table band",
+      "does": "Uses Chromium forced colours in both themes. Checks that the Dropdown chevron keeps border arms, Dropdown and version rows keep a hover border, and the table scroller keeps a Canvas border and a distinct focus outline. A missing-chevron mutation proves rejection.",
+      "blind": [
+        "The fixture covers one Dropdown, one version row and one table scroller. It does not measure every consumer composition or a screen reader's announcement."
+      ]
     }
   ],
   "UNGATED": [
