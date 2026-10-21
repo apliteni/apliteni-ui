@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { paletteHotkey, themeIcon, themeToggle } from '@apliteni/apliteni-ui';
+import { appShell, avatarHue, paletteHotkey, themeIcon, themeToggle } from '@apliteni/apliteni-ui';
 import { AppShell } from './AppShell';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -24,6 +24,34 @@ it('uses the longest matching route, keeps counts in link names, and forwards ro
   expect(rail.getByRole('link', { name: 'Reports 3' })).not.toHaveAttribute('aria-current');
   rerender(<AppShell {...props} pathname="/reports-other" />);
   expect(document.querySelector('[aria-current]')).toBeNull();
+});
+
+it('draws the rail mark as the Avatar part with the first and last initials, like the vanilla rail', () => {
+  const account = { name: 'Mary Ann Lee', email: 'mary@example.com' };
+  render(<AppShell {...props} account={account} />);
+  const mark = document.querySelector('.ui-app__av > .ui-avatar') as HTMLElement;
+  expect(mark.textContent).toBe('ML');
+  expect(mark.classList.contains(`ui-avatar--h${avatarHue('mary@example.com')}`)).toBe(true);
+  const vanilla = new DOMParser().parseFromString(appShell({ account }), 'text/html').querySelector('.ui-app__av > .ui-avatar') as HTMLElement;
+  expect(vanilla.textContent).toBe(mark.textContent);
+  expect(vanilla.className).toBe(mark.className);
+});
+
+it('uses the same initials and missing-name rule as the vanilla shell', () => {
+  for (const [name, expected] of [['Anne-Marie', 'A'], ['Mary Ann Lee', 'ML'], ['', '']]) {
+    const account = { name, email: 'guest@example.com' };
+    const { unmount } = render(<AppShell {...props} account={account} />);
+    const mark = document.querySelector('.ui-app__av > .ui-avatar') as HTMLElement;
+    const vanilla = new DOMParser().parseFromString(appShell({ account }), 'text/html').querySelector('.ui-app__av > .ui-avatar') as HTMLElement;
+    if (expected) {
+      expect(mark.textContent).toBe(expected);
+      expect(vanilla.textContent).toBe(expected);
+    } else {
+      expect(mark.classList.contains('ui-avatar--anon')).toBe(true);
+      expect(vanilla.classList.contains('ui-avatar--anon')).toBe(true);
+    }
+    unmount();
+  }
 });
 
 it('keeps the section active under a back link and inks both counts alike', () => {

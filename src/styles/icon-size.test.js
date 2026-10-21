@@ -52,8 +52,9 @@ const src = path.resolve(here, '..');
 // glyph adds a width and a height); 74 (#507: `.ui-drop__state svg` sizes the
 // circled mark beside an upload's word, a width and a height in one rule); 78
 // (#496: the filter bar's add trigger sizes its plus glyph, a width and a
-// height in one rule).
-const EXPECTED_SUBJECTS = 78;
+// height in one rule); 80 (#628: the avatar's `.ui-avatar svg` sizes the user glyph, a
+// width and a height in one rule).
+const EXPECTED_SUBJECTS = 80;
 
 const SHEETS = kitSheetNames(src);
 

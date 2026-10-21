@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.131.0', date: '2026-10-21',
+    v: '0.132.0', date: '2026-10-21',
     changes: [
       ['changed', 'In `drawerSection()` and React `KeyValueList`, a row whose value is a select, an input or a dropdown now aligns its label with the control by itself. Rows with text values are unchanged.', ['Drawer']],
       ['changed', 'The modal title is now semibold in the strong ink.', ['Modal']],
@@ -20,6 +20,14 @@ export const RELEASES = [
       ['fixed', 'A focused scrolling table with a sticky header or a pinned column shows its focus ring on all four sides.', ['Table']],
       ['fixed', 'A focused row in the folded rail shows its focus ring on all four sides.', ['AppShell']],
       ['fixed', 'The last column of a table, its header and the table edge now share one right edge, so a right-aligned amount lines up with its header. A hover table keeps 16px between its last value and that edge. A table that sets its own end padding on the last cell keeps it.', ['Table']],
+    ],
+  },
+  {
+    v: '0.131.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A person mark: `avatar()` and React `Avatar` draw first and last initials on one of eight fixed hues chosen from the person\'s key, at 24 or 32 px. An empty name draws the `user` glyph, `empty` draws a dashed ring and a photo that fails to load shows the letters. Part of #628.', ['Avatar']],
+      ['added', 'Dropdown items take `avatar: { key, name, src }`, and a `select` leads its trigger with the chosen mark or a dashed ring with the placeholder. `search.count` puts the size of the set in the placeholder and in the field\'s accessible name. A `select` inside a `field()` takes the field\'s width. Part of #628.', ['Dropdown']],
+      ['changed', 'The top bar account button draws the avatar part at 32 px, with its hue from the account email. The account menu head and the shell\'s reader block draw the same mark, in the same hue, in vanilla and React. The rail and the top bar now show the first and last initials of a name, where the rail showed the first two.', ['Topbar', 'Shell']],
     ],
   },
   {
@@ -1427,6 +1435,7 @@ export const RELEASES = [
 const COMPONENTS = {
   Table:     'components-table--finance-data',
   Badge:     'components-badge-status--badges',
+  Avatar:    'react-avatar--hues',
   Button:    'components-button--playground',
   Card:      'components-card--variants',
   Callout:   'components-callout-toast--callouts',
