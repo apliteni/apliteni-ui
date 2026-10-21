@@ -743,6 +743,7 @@ export function dropdownLift(dd, panel) {
     if (ddLifted(panel)) {
       panel.removeAttribute('data-dd-lifted');
       for (const side of ['top', 'bottom', 'left', 'right']) panel.style.removeProperty(side);
+      panel.style.removeProperty('inline-size');
     }
     return false;
   }
@@ -802,6 +803,7 @@ function ddPlaceLifted(dd, panel) {
     s.transition = held;
   }
   ddWriteCeiling(panel);
+  if (dd.parentElement?.classList.contains('ui-field')) s.inlineSize = `${t.width}px`;
   const width = panel.getBoundingClientRect().width;
   const end = panel.classList.contains('is-end');
   const shift = dropdownViewportFit(panel, { left: end ? t.right - width : t.left, width })?.shift || 0;

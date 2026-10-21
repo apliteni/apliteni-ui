@@ -985,7 +985,7 @@ const PLACEMENT_LOOK = () => {
   const label = dd.closest('.ui-field').querySelector('.ui-field__label');
   const box = (el) => {
     const r = el.getBoundingClientRect();
-    return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height };
+    return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width, height: r.height };
   };
   // The region the field is seen through: the viewport, less every ancestor that clips.
   let region = { top: 0, bottom: innerHeight };
@@ -1296,6 +1296,56 @@ async function withPlacement(run) {
     react.proc.kill();
   }
 }
+
+test('a lifted form panel keeps its trigger width and left edge through scroll and resize, in both kits', {
+  skip: !RUN && 'set DROPDOWN_REACH=1',
+}, async () => {
+  await withPlacement(async (browser, ports) => {
+    const failed = [];
+    for (const [kit, stage] of [['vanilla', 'drawer'], ['react', 'drawer'], ['react', 'modal']]) {
+      const name = `${kit} ${stage}`;
+      const { ctx, page, look } = await openPlacement(browser, {
+        ...ports, kit, args: { stage, before: 1, after: 6, rows: 30, avatar: true }, view: { width: 667, height: 320 },
+      });
+      const check = async (step, lifted) => {
+        const got = await look();
+        if (!got.open || got.fixed !== lifted) failed.push(`${name} ${step}: wrong panel state`);
+        if (Math.abs(got.panel.width - got.trigger.width) > 1) {
+          failed.push(`${name} ${step}: panel width ${got.panel.width.toFixed(1)}px, trigger width ${got.trigger.width.toFixed(1)}px`);
+        }
+        if (Math.abs(got.panel.left - got.trigger.left) > 1) {
+          failed.push(`${name} ${step}: panel left ${got.panel.left.toFixed(1)}px, trigger left ${got.trigger.left.toFixed(1)}px`);
+        }
+      };
+      try {
+        await page.locator('[data-dropdown-trigger]').click();
+        await page.waitForTimeout(700);
+        await check('open', true);
+        const moved = await page.evaluate(() => {
+          const trigger = document.querySelector('[data-dropdown-trigger]');
+          let body = trigger.parentElement;
+          while (body && !['auto', 'scroll'].includes(getComputedStyle(body).overflowY)) body = body.parentElement;
+          if (!body) return 0;
+          const before = body.scrollTop;
+          body.scrollTop += before > 0 ? -20 : 20;
+          return body.scrollTop - before;
+        });
+        assert.ok(Math.abs(moved) > 0, `${name}: the body did not scroll, so the scroll check measures nothing`);
+        await page.waitForTimeout(300);
+        await check('scroll', true);
+        await page.setViewportSize({ width: 668, height: 320 });
+        await page.waitForTimeout(500);
+        await check('resize', true);
+        await page.setViewportSize({ width: 667, height: 844 });
+        await page.waitForTimeout(500);
+        await check('returned to body', false);
+      } finally {
+        await ctx.close();
+      }
+    }
+    assert.deepEqual(failed, []);
+  });
+});
 
 test('a panel opened in a tall Drawer and kept open while the viewport shortens is lifted and shown whole, in both kits', {
   skip: !RUN && 'set DROPDOWN_REACH=1',
