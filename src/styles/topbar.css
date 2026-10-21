@@ -100,6 +100,7 @@
 
 /* Version switcher */
 .vsw { position: relative; }
+.vsw > .ui-dropdown { max-width: 100%; min-width: 0; }
 .vsw__btn {
   display: inline-flex;
   align-items: center;
@@ -129,7 +130,8 @@
   transform: rotate(45deg) translateY(-1px);
   transition: transform var(--dur-fast) var(--ease);
 }
-.vsw.open .vsw__btn .car { transform: rotate(-135deg) translateY(2px); }
+.vsw.open .vsw__btn .car,
+.vsw .ui-dropdown.open .vsw__btn .car { transform: rotate(-135deg) translateY(2px); }
 .vsw__menu {
   position: absolute;
   top: calc(100% + 9px);
@@ -270,7 +272,7 @@
      end inset. A long label gives way to an ellipsis, and 8px always stays between the
      two controls. */
   .topbar__in > .vsw { grid-area: 2 / 2 / 3 / -1; justify-self: end; min-width: 0; max-width: calc(100% - var(--space-2)); margin-left: var(--space-2); }
-  .vsw__btn { max-width: 100%; }
+  .vsw__btn { max-width: 100%; min-width: 0; }
   .vsw__btn .cur { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .vsw__btn .car { flex: none; }
   /* Two 44px rows, an 8px gap, the 4px and 3px insets and the bottom border. */
@@ -371,10 +373,7 @@
   border-radius: 14px 14px 0 0;
   display: flex; align-items: center; gap: 11px;
 }
-/* The React menu's plain dropdown head: name above address, as the shell's user menu does. */
-.acct-panel .ui-dropdown__head { display: flex; flex-direction: column; gap: 2px; }
-.acct-panel .ui-dropdown__head b { display: block; color: var(--strong); font-size: calc(var(--text-sm) - 0.5px); font-weight: var(--weight-semibold); }
-.acct-panel .ui-dropdown__head span { display: block; color: var(--text); font-size: var(--text-xs); overflow-wrap: anywhere; }
+.amenu .ui-dropdown__sep { margin: 5px 0; }
 .amenu .ahead .avatar { cursor: default; }
 .amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -1,5 +1,5 @@
 import { Fragment, type ComponentPropsWithoutRef, type ReactNode } from 'react';
-import { prism, safeUrl, ACCOUNT_NAV } from '@apliteni/apliteni-ui';
+import { prism, safeUrl, icon, ACCOUNT_NAV } from '@apliteni/apliteni-ui';
 import { Dropdown, type DropdownEntry } from './Dropdown';
 
 export type TopBarProps = Omit<ComponentPropsWithoutRef<'header'>, 'children'> & {
@@ -93,13 +93,19 @@ export function VersionSwitcher({ versions, value, onChange, label = 'Version', 
   const current = versions.find((v) => v.value === value);
   return (
     <div className="vsw">
-      <Dropdown variant="select" align="end" triggerClass="vsw__btn" defaultOpen={defaultOpen}
+      <Dropdown variant="select" align="start" triggerClass="vsw__btn" panelClass="vsw__menu"
+        selectedValue={value} chevron={false} defaultOpen={defaultOpen}
         ariaLabel={`${label} — ${current?.label ?? ''}`}
-        triggerContent={<span className="cur">{current?.label}</span>}
+        triggerContent={<><span className="cur">{current?.label}</span><span className="car" aria-hidden="true" /></>}
         items={versions.map((v) => ({
           label: v.label, value: v.value, description: v.meta,
           badge: BADGE[v.badge ?? 'archive'], selected: v.value === value,
         }))}
+        row={(item, props) => <div {...props} className={`${props.className} vopt`}>
+          <span><div className="vname">{item.label}</div><div className="vmeta">{item.description}</div></span>
+          <span className={`vbadge ${item.badge === 'Live' ? 'live' : 'arch'}`}>{String(item.badge)}</span>
+          <span className="vtick" aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon('check') }} />
+        </div>}
         onSelect={(picked) => { if (picked != null) onChange?.(String(picked)); }} />
     </div>
   );
@@ -110,6 +116,8 @@ export type AccountMenuProps = {
   email: string;
   /** The rows above Sign out. Left out, the kit's account pages. */
   items?: DropdownEntry[];
+  /** The current account page. One menu row takes the accent ink. */
+  current?: string;
   signOutHref?: string;
   onSignOut?: () => void;
   onSelect?: (value: string | number | undefined) => void;
@@ -127,15 +135,21 @@ const ACCOUNT_ITEMS: DropdownEntry[] = ACCOUNT_NAV.map((item: { id: string; icon
 
 /** The avatar and its menu. */
 export function AccountMenu({
-  name, email, items = ACCOUNT_ITEMS, signOutHref, onSignOut, onSelect, defaultOpen,
+  name, email, items = ACCOUNT_ITEMS, current = 'prefs', signOutHref, onSignOut, onSelect, defaultOpen,
 }: AccountMenuProps) {
+  const mark = initialsOf(name, email);
   return (
     <div className="acct on">
-      <Dropdown variant="menu" align="end" chevron={false} triggerClass="avatar" panelClass="acct-panel" defaultOpen={defaultOpen}
+      <Dropdown variant="menu" align="end" chevron={false} triggerClass="avatar" panelClass="amenu" defaultOpen={defaultOpen}
         ariaLabel="Account"
-        triggerContent={<>{initialsOf(name, email)}</>}
-        header={<div className="ui-dropdown__head"><b>{name}</b><span>{email}</span></div>}
+        triggerContent={mark}
+        header={<div className="ahead"><span className="avatar">{mark}</span><span className="aw"><span className="anm">{name}</span><span className="aem" title={email}>{email}</span></span></div>}
         items={[...items, '---', { label: 'Sign out', icon: 'logout', value: 'sign-out', href: signOutHref }]}
+        row={(item, props) => <a {...props} href={safeUrl(item.href || (item.value === 'sign-out' ? '#logout' : `#${item.value}`))}
+          className={[props.className, item.value === current && 'cur', item.value === 'sign-out' && 'aout'].filter(Boolean).join(' ')}>
+          {item.icon && <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon(item.icon) }} />}
+          {item.label}
+        </a>}
         onSelect={(value, item) => {
           if (item.value === 'sign-out') onSignOut?.();
           else onSelect?.(value);

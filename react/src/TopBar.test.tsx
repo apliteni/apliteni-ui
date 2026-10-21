@@ -63,13 +63,35 @@ it('ticks the selected version in the open menu and moves the tick on a pick', a
   const list = screen.getByRole('listbox');
   const rows = within(list).getAllByRole('option');
   expect(rows[0]).toHaveAttribute('aria-selected', 'true');
-  expect(rows[0].querySelector('.ui-dropdown__tick')).not.toBeNull();
+  expect(rows[0].querySelector('.vtick')).not.toBeNull();
   expect(rows[0]).toHaveClass('is-selected');
   expect(rows[1]).not.toHaveClass('is-selected');
   expect(rows[0]).toHaveTextContent('Live');
   expect(rows[1]).toHaveTextContent('Archive');
   await user.click(rows[1]);
   expect(screen.getByRole('button', { name: 'Version — phoenix.2026.001' })).toBeInTheDocument();
+});
+
+it('keeps the version tick on the controlled value when the parent rejects a pick', async () => {
+  const user = userEvent.setup();
+  const picks: string[] = [];
+  render(<VersionSwitcher versions={VERSIONS} value="a2" onChange={(value) => picks.push(value)} />);
+  await user.click(screen.getByRole('button', { name: 'Version — phoenix.2026.002' }));
+  await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: /phoenix.2026.001/ }));
+  expect(picks).toEqual(['a1']);
+  expect(screen.getByRole('button', { name: 'Version — phoenix.2026.002' })).toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'Version — phoenix.2026.002' }));
+  const rows = within(screen.getByRole('listbox')).getAllByRole('option');
+  expect(rows[0]).toHaveAttribute('aria-selected', 'true');
+  expect(rows[1]).toHaveAttribute('aria-selected', 'false');
+});
+
+it('keeps the vanilla version panel and row structure', () => {
+  const { container } = render(<VersionSwitcher versions={VERSIONS} value="a2" defaultOpen />);
+  expect(container.querySelector('.vsw__menu')).toBeInTheDocument();
+  expect(container.querySelector('.vsw__menu .vopt .vname')).toHaveTextContent('phoenix.2026.002');
+  expect(container.querySelector('.vsw__menu .vopt .vmeta')).toHaveTextContent('Product units');
+  expect(container.querySelector('.vsw__menu .vopt .vtick')).toBeInTheDocument();
 });
 
 it('opens the account menu from the avatar, with the reader, the pages and Sign out', async () => {
@@ -85,6 +107,16 @@ it('opens the account menu from the avatar, with the reader, the pages and Sign 
   expect(within(menu).getByRole('menuitem', { name: 'Preferences' })).toHaveAttribute('href', '#prefs');
   await user.click(within(menu).getByRole('menuitem', { name: 'Sign out' }));
   expect(out).toHaveBeenCalledTimes(1);
+});
+
+it('keeps the vanilla account head and one current-page mark', () => {
+  const { container } = render(<AccountMenu name="Ada Lovelace" email="ada@apliteni.com" current="access" defaultOpen />);
+  const panel = container.querySelector('.amenu')!;
+  expect(panel.querySelector('.ahead .avatar')).toHaveTextContent('AL');
+  expect(panel.querySelector('.ahead .anm')).toHaveTextContent('Ada Lovelace');
+  expect(panel.querySelector('.ahead .aem')).toHaveTextContent('ada@apliteni.com');
+  expect(panel.querySelectorAll('a.cur')).toHaveLength(1);
+  expect(within(panel as HTMLElement).getByRole('menuitem', { name: 'Access & agents' })).toHaveClass('cur');
 });
 it('falls back to the address for the avatar mark and closes on Escape', async () => {
   const user = userEvent.setup();

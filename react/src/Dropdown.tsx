@@ -102,6 +102,8 @@ export type DropdownProps = {
   label?: string;
   /** What the trigger shows. Given one, the trigger is yours to update. */
   value?: string;
+  /** When given, the caller owns the selected row, including after a pick. */
+  selectedValue?: string | number;
   placeholder?: string;
   /** Inferred from the items when it is left out, exactly as the factory infers it. */
   variant?: 'select' | 'menu';
@@ -191,7 +193,7 @@ const SEARCH_DEFAULTS = {
 };
 
 export function Dropdown({
-  label, value, placeholder = 'Select…', variant, items, sections,
+  label, value, selectedValue, placeholder = 'Select…', variant, items, sections,
   header, footer, triggerContent, triggerClass = '', disabled = false, chevron = true,
   align = 'start', direction = 'down', scroll = false, search = false,
   ariaLabel, id, panelClass = '',
@@ -383,7 +385,7 @@ export function Dropdown({
   // made and an unrelated render cannot restore one they did not.
   const given = rows.find((it) => it.selected);
   const givenKey = given ? keyOf(given) : null;
-  const pickedKey = pick && pick.against === givenKey ? pick.key : null;
+  const pickedKey = selectedValue === undefined && pick && pick.against === givenKey ? pick.key : null;
   // And taken back for good. The line above answers the frame the caller's move lands
   // in; this drops the pick, because a caller whose selection goes a → b → a has
   // refetched or undone something and not handed a pick made three renders ago its
@@ -396,7 +398,9 @@ export function Dropdown({
     : (isSelect ? (picked?.label ?? given?.label) : null);
   // After a pick the tick follows it, the way selectOption() rewrites the panel —
   // and like it, a disabled row keeps the state it was rendered with.
-  const selectedOf = (it: DropdownItem) => (pickedKey != null
+  const selectedOf = (it: DropdownItem) => (selectedValue !== undefined
+    ? it.value === selectedValue
+    : pickedKey != null
     ? (it.disabled ? !!it.selected : keyOf(it) === pickedKey)
     : !!it.selected);
 
@@ -650,7 +654,7 @@ export function Dropdown({
 
   const choose = (item: DropdownItem, e: ReactMouseEvent) => {
     if (item.disabled) { e.preventDefault(); return; }
-    if (isSelect) setPick({ key: keyOf(item), against: givenKey });
+    if (isSelect && selectedValue === undefined) setPick({ key: keyOf(item), against: givenKey });
     onSelect?.(item.value, item);
     setOpen(false);
     trigger.current?.focus();
