@@ -169,10 +169,10 @@ const CSS = `
   @media (max-width: 560px) {
     /* The document is taller than the phone, so the step's action would sit a screen
        and a half down. The row rides the bottom of the viewport on the page's own
-       ground, clear of the shell's bottom nav — a 48px row inside space-2 padding. */
+       ground, above the home indicator. */
     .doc-flow__actions {
       position: sticky;
-      bottom: calc(var(--space-16) + env(safe-area-inset-bottom));
+      bottom: env(safe-area-inset-bottom);
       margin-inline: calc(-1 * var(--space-4));
       padding: var(--space-3) var(--space-4);
       background: var(--bg);

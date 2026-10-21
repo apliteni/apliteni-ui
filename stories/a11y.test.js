@@ -99,7 +99,10 @@ test('a11y: the shell rail contains its head, navigation and fold in a named reg
         assert.equal(part.closest('[role="region"]'), rail, `${selector} belongs to Sidebar`);
       }
       assert.equal(rail.querySelector('nav').getAttribute('aria-label'), 'Sections');
-      assert.equal(doc.querySelectorAll('header, [role="banner"]').length, layout === 'topbar' ? 1 : 0);
+      // The phone band is drawn only below 720px and the drawer's own head is inside a dialog.
+      const banners = [...doc.querySelectorAll('header, [role="banner"]')].filter((h) => !h.closest('[role="dialog"]'));
+      assert.equal(banners.filter((h) => !h.matches('.ui-app__bar--phone')).length, layout === 'topbar' ? 1 : 0);
+      assert.equal(banners.filter((h) => h.matches('.ui-app__bar--phone')).length, layout === 'topbar' ? 0 : 1);
       const result = await dom.window.axe.run(doc.body, { runOnly: ['region'] });
       assert.equal(result.violations.length, 0, `${layout}, collapsed=${collapsed}: ${JSON.stringify(result.violations)}`);
       checked += 1;

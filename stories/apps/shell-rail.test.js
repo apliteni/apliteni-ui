@@ -349,7 +349,9 @@ const press = (el, key) =>
   el.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
 // wireDropdown() lifts the panel onto <body>, out of the rail's clip and its
 // stacking context, so it is no longer inside the shell that drew it.
-const menuPanel = () => doc.querySelector('.ui-app__user-panel');
+// The drawer's own account block keeps its panel inside the drawer (shell-drawer.test.js), so this
+// takes only the one lifted onto <body>: the rail's.
+const menuPanel = () => doc.querySelector('body > .ui-app__user-panel');
 const signOutRow = () => menuPanel().querySelector('.ui-dropdown__item.is-danger');
 
 test('the account block is a menu trigger, and sign out is a row of it', () => {

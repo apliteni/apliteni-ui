@@ -6,11 +6,31 @@
 
 export const RELEASES = [
   {
-    v: '0.128.0', date: '2026-10-20',
+    v: '0.131.0', date: '2026-10-20',
     changes: [
       ['added', 'A person mark: `avatar()` and React `Avatar` draw first and last initials on one of eight fixed hues chosen from the person\'s key, at 24 or 32 px. An empty name draws the `user` glyph, `empty` draws a dashed ring and a photo that fails to load shows the letters. Part of #628.', ['Avatar']],
       ['added', 'Dropdown items take `avatar: { key, name, src }`, and a `select` leads its trigger with the chosen mark or a dashed ring with the placeholder. `search.count` puts the size of the set in the placeholder and in the field\'s accessible name. A `select` inside a `field()` takes the field\'s width. Part of #628.', ['Dropdown']],
       ['changed', 'The top bar account button draws the avatar part at 32 px, with its hue from the account email. The account menu head and the shell\'s reader block draw the same mark, in the same hue, in vanilla and React. The rail and the top bar now show the first and last initials of a name, where the rail showed the first two.', ['Topbar', 'Shell']],
+    ],
+  },
+  {
+    v: '0.130.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Toast notices accept `compact`, `dismissible` and `timer`. A compact notice omits its body text. Hiding the close button keeps the timer and the action behaviour. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it. Set `timer: false` on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn, because it could not move and read as time not yet spent. Part of #429.', ['Toast']],
+    ],
+  },
+  {
+    v: '0.129.0', date: '2026-10-20',
+    changes: [
+      ['changed', 'At 720px and below, both shells replace the icon strip with a top band, a menu button, and the brand mark. The button opens the full rail in a left drawer, content uses the full width, and widths above 720px stay unchanged. React `AppShell` also removes its phone bottom bar, More drawer, and `--ui-app-bottom-clearance`.', ['Shell']],
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.128.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
     ],
   },
   {

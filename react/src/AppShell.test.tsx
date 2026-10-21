@@ -40,14 +40,14 @@ it('draws the rail mark as the Avatar part with the first and last initials, lik
 it('keeps the section active under a back link and inks both counts alike', () => {
   const { rerender } = render(<AppShell {...props} back={{ href: '/reports', label: 'Back to Reports' }} />);
   const rail = within(screen.getByRole('navigation', { name: 'Sections' }));
-  const bar = within(screen.getByRole('navigation', { name: 'Sections on mobile' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+  const bar = within(screen.getByRole('navigation', { name: 'Menu sections' }));
   for (const nav of [rail, bar]) {
     const row = nav.getByRole('link', { name: 'Reports 3' });
     // guidelines/going-back.md, section-lit: the weekly report sits under the list,
     // so the list's row stays active without claiming to be the page on screen.
     expect(row).toHaveAttribute('aria-current', 'true');
-    // Both navs hand the count the same classes, so `.is-active .is-neutral` re-inks
-    // it once. Without is-neutral the bar's count kept --text against the rail's --strong.
+    // Both navs hand the count the same classes, so `.is-active .is-neutral` re-inks it once.
     expect(within(row).getByText('3')).toHaveClass('ui-nav__badge', 'is-neutral');
   }
   // And the back link is what decides it: without one the same row is the page.
@@ -108,13 +108,33 @@ it('opens the account menu and signs out', () => {
   expect(props.onSignOut).toHaveBeenCalledOnce();
 });
 
-it('closes More when the route changes', () => {
+it('opens every section in a left drawer from the menu button', () => {
   const { rerender } = render(<AppShell {...props} />);
-  fireEvent.click(screen.getByRole('button', { name: 'More' }));
-  expect(screen.getByRole('dialog', { name: 'More sections' })).toBeInTheDocument();
-  expect(within(screen.getByRole('dialog')).getByRole('link', { name: 'Help' })).toBeInTheDocument();
+  const button = screen.getByRole('button', { name: 'Menu' });
+  expect(button).toHaveAttribute('aria-expanded', 'false');
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  fireEvent.click(button);
+  const drawer = within(screen.getByRole('dialog'));
+  expect(button).toHaveAttribute('aria-expanded', 'true');
+  for (const item of sections) {
+    expect(drawer.getByRole('link', { name: new RegExp(`^${item.label}`) })).toBeInTheDocument();
+  }
+  expect(drawer.getByRole('link', { name: 'Reports 3' })).toHaveAttribute('aria-current', 'page');
   rerender(<AppShell {...props} pathname="/help" />);
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+});
+
+it('closes the drawer on a row press and on Escape, and returns focus to the button', async () => {
+  render(<AppShell {...props} renderLink={(item, link) => <a {...link} onClick={(e) => { e.preventDefault(); link.onClick?.(e); }} />} />);
+  const button = screen.getByRole('button', { name: 'Menu' });
+  fireEvent.click(button);
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('link', { name: 'Help' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  button.focus();
+  fireEvent.click(button);
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  await waitFor(() => expect(button).toHaveFocus());
 });
 
 it('leaves shortcuts in editable fields alone', () => {
@@ -177,15 +197,12 @@ describe('band theme switch', () => {
 });
 
 // A list of one destination is a list pointing at the page already on screen. The
-// rule holds at every width: no rail list, no fold to close it, and no bottom bar
-// — whose 96px of a phone the clearance is keyed on in AppShell.css.
+// rule holds at every width: no rail list, no fold to close it, and no menu button.
 it('draws no section navigation for a single section, at any width', () => {
   const one = [{ href: '/changes', label: 'Changes', icon: 'doc' }];
   const { rerender } = render(<AppShell {...props} sections={one} pathname="/changes" />);
-  for (const name of ['Sections', 'Sections on mobile']) {
-    expect(screen.queryByRole('navigation', { name })).toBeNull();
-  }
-  expect(document.querySelector('.ui-react-app__bottom')).toBeNull();
+  expect(screen.queryByRole('navigation', { name: 'Sections' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Menu' })).toBeNull();
   expect(screen.queryByRole('link', { name: 'Changes' })).toBeNull();
   expect(document.querySelector('[aria-current]')).toBeNull();
   expect(screen.queryByRole('button', { name: /sidebar$/i })).toBeNull();
@@ -196,10 +213,9 @@ it('draws no section navigation for a single section, at any width', () => {
 
   // Two destinations are a choice, and every part comes back.
   rerender(<AppShell {...props} sections={[...one, { href: '/costs', label: 'Costs', icon: 'chart' }]} pathname="/changes" />);
-  for (const name of ['Sections', 'Sections on mobile']) {
-    expect(within(screen.getByRole('navigation', { name })).getByRole('link', { name: 'Changes' }))
-      .toHaveAttribute('aria-current', 'page');
-  }
+  expect(within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('link', { name: 'Changes' }))
+    .toHaveAttribute('aria-current', 'page');
+  expect(screen.getByRole('button', { name: 'Menu' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
 });
 
@@ -209,9 +225,7 @@ it('draws no section navigation for a single section, at any width', () => {
 it('keeps a single section when it is the parent of the page on screen', () => {
   const one = [{ href: '/invoices', label: 'Invoices', icon: 'doc' }];
   render(<AppShell {...props} sections={one} pathname="/invoices" back={{ href: '/invoices', label: 'Invoices' }} />);
-  for (const name of ['Sections', 'Sections on mobile']) {
-    expect(within(screen.getByRole('navigation', { name })).getByRole('link', { name: 'Invoices' }))
-      .toHaveAttribute('aria-current', 'true');
-  }
+  expect(within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('link', { name: 'Invoices' }))
+    .toHaveAttribute('aria-current', 'true');
   expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
 });

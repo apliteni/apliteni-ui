@@ -163,7 +163,7 @@
       },
       {
         "ref": "stories/accent-contrast.test.js:2",
-        "pattern": "theme \u00d7 accent cells"
+        "pattern": "theme × accent cells"
       },
       {
         "ref": "react/src/a11y.test.tsx:23",
@@ -204,7 +204,7 @@
         "pattern": "function onKeydown"
       },
       {
-        "ref": "src/components/overlay.js:97",
+        "ref": "src/components/overlay.js:101",
         "pattern": "function ownKeys"
       }
     ],
@@ -218,7 +218,7 @@
         "pattern": "function announce"
       },
       {
-        "ref": "src/components/overlay.js:236",
+        "ref": "src/components/overlay.js:240",
         "pattern": "export function returnFocus"
       }
     ],
@@ -418,7 +418,7 @@
     ],
     "one-or-the-other": [
       {
-        "ref": "src/components/shell.js:336",
+        "ref": "src/components/shell.js:372",
         "pattern": "${up || (crumbs.length"
       }
     ],
@@ -496,7 +496,7 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:217",
+        "ref": "src/assets/icons.js:222",
         "pattern": "export const iconMeanings"
       },
       {
@@ -554,7 +554,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:430",
+        "ref": "src/styles/layout.css:428",
         "pattern": "rank: page-title"
       },
       {
@@ -596,7 +596,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:323",
+        "ref": "src/styles/layout.css:321",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -630,7 +630,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:508",
+        "ref": "src/styles/layout.css:516",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -640,6 +640,42 @@
       {
         "ref": "stories/breakpoints.test.js:139",
         "pattern": "every documented step is a step something queries"
+      }
+    ]
+  },
+  "_spacing.js": {
+    "two-gaps": [
+      {
+        "ref": "src/tokens/tokens.css:28",
+        "pattern": "--space-2: 8px"
+      },
+      {
+        "ref": "src/tokens/tokens.css:33",
+        "pattern": "--space-8: 32px"
+      }
+    ],
+    "two-gaps-phone": [
+      {
+        "ref": "src/styles/tap-zone.css:28",
+        "pattern": "--tap-gap: var(--space-5"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:143",
+        "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:127",
+        "pattern": ".ui-seg--underline { row-gap: var(--space-1"
+      }
+    ],
+    "text-edge": [
+      {
+        "ref": "src/styles/segmented.css:114",
+        "pattern": "padding: var(--space-1)"
+      },
+      {
+        "ref": "src/styles/segmented.css:123",
+        "pattern": "padding: var(--space-3)"
       }
     ]
   },
@@ -817,7 +853,7 @@
     "busy": [
       {
         "ref": "src/components/index.js:40",
-        "pattern": "busy \u21d2 disabled"
+        "pattern": "busy ⇒ disabled"
       },
       {
         "ref": "src/styles/button.css:154",

@@ -232,16 +232,16 @@ test('focus walk: the surfaces and stops this gate covers', () => {
     'site/index.html': 37,
     // 12 before #487's re-review added `option` to ROVING_ROLES; the three the
     // palette holds are rows it never focuses, exempted by name below.
-    'stories/apps/ShellLayouts.stories.js:TopbarWide': 15,
-    'stories/apps/ShellLayouts.stories.js:TopbarCentered': 15,
+    'stories/apps/ShellLayouts.stories.js:TopbarWide': 23,
+    'stories/apps/ShellLayouts.stories.js:TopbarCentered': 23,
     // Same markup as TopbarCentered: the phone story differs by its viewport global,
     // and JSDOM resolves no media query, so this surface repeats that one's stops
     // rather than adding ground. It is walked because the walk takes every story
     // these files export, and a story excluded by name is one a later change can
     // quietly take out of the gate. (#486)
-    'stories/apps/ShellLayouts.stories.js:TopbarPhone': 15,
-    'stories/apps/ShellLayouts.stories.js:RailWide': 10,
-    'stories/apps/ShellLayouts.stories.js:RailCentered': 10,
+    'stories/apps/ShellLayouts.stories.js:TopbarPhone': 23,
+    'stories/apps/ShellLayouts.stories.js:RailWide': 20,
+    'stories/apps/ShellLayouts.stories.js:RailCentered': 20,
     'stories/components/Footer.stories.js:Full': 22,
     'stories/components/Footer.stories.js:Slim': 7,
     'stories/components/Footer.stories.js:App': 3,
@@ -254,7 +254,7 @@ test('focus walk: the surfaces and stops this gate covers', () => {
     'stories/components/Topbar.stories.js:Pieces': 10,
     // The stops the preset's own screen had: InShell draws the same topbar over
     // the same shell.
-    'stories/components/Topbar.stories.js:InShell': 18,
+    'stories/components/Topbar.stories.js:InShell': 26,
   }, 'the walk covers different ground than it did; count the new surface by hand');
   const exempted = walked.flatMap(({ stops }) => stops.filter(exempt));
   assert.equal(exempted.length, 12, 'the three topbar-layout shell screens hold one palette input '
@@ -345,7 +345,9 @@ test('focus walk: the cascade resolver accounts for every stop it walks', () => 
   // topbar's four stories joined it, and they carry more chrome between them.
   // 177 -> 188 in #486, which added the band's phone story — the same chrome as
   // TopbarCentered, minus the four palette stops counted as exempt below.
-  assert.equal(buckets.self, 188, 'the number of stops whose own cascade was resolved moved');
+  // 188 -> 240 in #592: the shell draws a menu control and its drawer's rows, which the
+  // walk reaches because JSDOM resolves no media query. Five shell stories and InShell.
+  assert.equal(buckets.self, 240, 'the number of stops whose own cascade was resolved moved');
   assert.deepEqual([...new Set(buckets.delegated)], [
     '.ui-switch input:focus-visible + .ui-switch__track',
   ], 'a ring painted on another box is not cascade-resolved — add it here with its reason');
