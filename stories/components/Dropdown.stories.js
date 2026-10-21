@@ -303,22 +303,16 @@ export const NearTheScreenEdges = {
   name: 'Near the screen edges',
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(full(
-    specimen(
-      'A menu at each end of the row',
-      ends(
-        dropdown({ value: 'Period', variant: 'menu', ariaLabel: 'Period', align: 'end', items: ACTIONS }),
-        dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Row actions', items: ACTIONS }),
-      ),
+    ends(
+      dropdown({ value: 'Period', variant: 'menu', ariaLabel: 'Period', align: 'end', items: ACTIONS }),
+      dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Row actions', items: ACTIONS }),
     ),
-    specimen(
-      'A menu and a search list at the same two ends',
-      ends(
-        dropdown({ value: 'Account', variant: 'menu', ariaLabel: 'Account', align: 'end', portal: true, items: ACCOUNT }),
-        dropdown({
-          label: 'region:', ariaLabel: 'Region', items: REGIONS, scroll: true,
-          search: { placeholder: 'Find a region' },
-        }),
-      ),
+    ends(
+      dropdown({ value: 'Account', variant: 'menu', ariaLabel: 'Account', align: 'end', portal: true, items: ACCOUNT }),
+      dropdown({
+        label: 'region:', ariaLabel: 'Region', items: REGIONS, scroll: true,
+        search: { placeholder: 'Find a region' },
+      }),
     ),
   ), 420)),
 };
