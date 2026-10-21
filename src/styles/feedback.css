@@ -79,14 +79,14 @@
 .ui-fbcomposer.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
 
 .ui-fbc__head { display: flex; align-items: center; gap: 12px; padding: 17px 20px 0; }
-.ui-fbc__chip { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-size: var(--text-sm); font-weight: var(--weight-semibold); letter-spacing: .01em; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ui-fbc__chip { display: inline-flex; align-items: center; gap: 8px; color: var(--strong); font-size: var(--text-sm); font-weight: var(--weight-semibold); letter-spacing: .01em; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ui-fbc__chip svg { width: 14px; height: 14px; flex: none; opacity: .85; stroke-width: 2.7; }
 .ui-fbc__x { margin-left: auto; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ /* muted-ink: glyph — dismiss icon */ color: var(--dim); border: 0; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; flex: none; font: inherit; }
 .ui-fbc__x:hover { color: var(--strong); }
 .ui-fbc__x:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-fbc__x svg { width: 14px; height: 14px; stroke-width: 2.7; }
 .ui-fbc__quote { margin: 14px 20px 0; background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ border-radius: 12px; padding: 12px 15px; display: flex; gap: 11px; }
-.ui-fbc__qm { color: var(--accent); font-size: var(--text-xl); font-weight: var(--weight-bold); line-height: .9; flex: none; opacity: .55; }
+.ui-fbc__qm { color: var(--text); font-size: var(--text-xl); font-weight: var(--weight-bold); line-height: .9; flex: none; opacity: .55; }
 .ui-fbc__quote q { quotes: none; color: var(--text); font-style: italic; font-size: calc(var(--text-sm) + 0.5px); line-height: 1.55; }
 .ui-fbc__body { padding: 14px 20px 0; }
 .ui-fbcomposer textarea {
