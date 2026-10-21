@@ -15,8 +15,8 @@ const NAV = [{ id: 'overview', icon: 'chart', label: 'Overview' }, ...ACCOUNT_NA
 // says "pressed", and each one carries its own name.
 const seg = (name, ariaLabel, opts, active) => segmented({ name, ariaLabel, options: opts, active });
 
-const settingRow = (lab, hint, control) =>
-  `<div class="ui-card__row"><div><div class="lab">${lab}</div><div class="hint">${hint}</div></div>${control}</div>`;
+const settingRow = (lab, hint, control, tightChoice = false) =>
+  `<div class="ui-card__row${tightChoice ? ' ui-card__row--tight-choice' : ''}"><div><div class="lab">${lab}</div><div class="hint">${hint}</div></div>${control}</div>`;
 
 export const Default = {
   render: () => appShell({
@@ -29,7 +29,7 @@ export const Default = {
     sub: 'How the kit looks and speaks to you. Saved to this browser.',
     body: `
       ${card({ title: 'Appearance', body:
-        settingRow('Theme', 'Match the dark palette or a light workspace.', seg('theme', 'Theme', ['Dark', 'Light', 'System'], 0)) +
+        settingRow('Theme', 'Match the dark palette or a light workspace.', seg('theme', 'Theme', ['Dark', 'Light', 'System'], 0), true) +
         settingRow('Accent', 'Pick a sub-theme — four ship with the kit.', accentPicker({ active: 'default' })) +
         settingRow('Language', 'Interface language for the portal.', seg('lang', 'Language', ['English', 'Русский'], 0)) +
         settingRow('Reduce motion', 'Turn off animated transitions.', switchToggle({ checked: false, label: 'Reduce motion' })),

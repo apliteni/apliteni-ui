@@ -41,3 +41,41 @@ it('merges a caller className with the kit class instead of replacing it', () =>
   expect(card).toHaveClass('ui-card');
   expect(card).toHaveClass('doc-flow__saved-pane');
 });
+
+it('adds the variant and padding classes and leaves a plain card with only ui-card', () => {
+  const { container, rerender } = render(<Card variant="accent" pad="lg" />);
+  expect(container.firstElementChild?.className).toBe('ui-card ui-card--accent ui-card--pad-lg');
+  rerender(<Card variant="live" pad="sm" />);
+  expect(container.firstElementChild?.className).toBe('ui-card ui-card--live ui-card--pad-sm');
+});
+
+it('leads the title with a hidden icon chip', () => {
+  const { getByRole } = render(<Card title="Shield" icon="shield" />);
+  const chip = getByRole('heading', { name: 'Shield' }).querySelector('.ui-card__icon');
+  expect(chip?.getAttribute('aria-hidden')).toBe('true');
+  expect(chip?.querySelector('svg')).not.toBeNull();
+});
+
+it('renders a link card with a block title instead of a heading', () => {
+  const { container, queryByRole, getByText } = render(<Card href="/deck" title="Deck" sub="The deck." icon="layers" />);
+  const link = container.querySelector('a');
+  expect(link).toHaveClass('ui-card', 'ui-card--interactive');
+  expect(link).toHaveAttribute('href', '/deck');
+  expect(queryByRole('heading')).toBeNull();
+  expect(getByText('Deck').tagName).toBe('DIV');
+  expect(getByText('Deck')).toHaveClass('ui-card__title');
+});
+
+it.each(['javascript:alert(1)', 'data:text/plain,example', 'vbscript:example'])(
+  'replaces a rejected card destination with # (%s)', href => {
+    const { getByRole } = render(<Card href={href} title="Deck" />);
+    expect(getByRole('link', { name: 'Deck' })).toHaveAttribute('href', '#');
+  },
+);
+
+it.each(['/deck', 'https://example.com/deck'])(
+  'preserves an ordinary card destination (%s)', href => {
+    const { getByRole } = render(<Card href={href} title="Deck" />);
+    expect(getByRole('link', { name: 'Deck' })).toHaveAttribute('href', href);
+  },
+);

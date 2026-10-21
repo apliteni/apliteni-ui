@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.136.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Card offers the vanilla card variants, icon chip, padding, setting rows and whole-card links. The Theme choice stays on one line with `ui-card__row--tight-choice`, and accent cards keep their tint without a coloured edge. Part of #429.', ['Card']],
+      ['changed', 'A whole-card link whose last child is its description no longer leaves a gap below it. Set the gap on the card if the design needs it.', ['Card']],
+      ['fixed', 'Button labels show the full height of each letter, including descenders. React Card examples use one column on phones, and the settings example gives labels and controls more room at wider widths. See #697.', ['Button', 'Card']],
+    ],
+  },
+  {
     v: '0.135.0', date: '2026-10-21',
     changes: [
       ['added', 'React `Feedback` shows a "Give feedback" pill on a text selection and opens a form with the quoted passage and a note. You pass `onSend`. A sent note shows one line of thanks and a failed send keeps the note with the error in place. Cancel, Send and Close use the kit\'s buttons. See #429.', ['Feedback']],
