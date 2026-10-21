@@ -332,7 +332,7 @@
    the three heights below are for. Level, not one continuous stroke: the rail insets
    its own rule, and in light that half is 1.009:1 on the rail's ground.
    why: docs/components.md#the-second-layout */
-.ui-app { --ui-app-band: 52px; }
+.ui-app--topbar { --ui-app-band: 52px; }
 .ui-app__well { display: flex; flex-direction: column; min-width: 0; }
 .ui-app__bar {
   display: flex;
@@ -516,15 +516,17 @@
 @media (max-width: 720px) {
   /* A column, not a grid: the band sticks to the top of the shell, and a sticky grid
      item sticks only inside its own row. */
-  .ui-app { display: flex; flex-direction: column; }
+  .ui-app { display: flex; flex-direction: column; --ui-app-band: 52px; }
   .ui-app > .ui-app__rail { display: none; }
   .ui-app__well { flex: 1 1 auto; }
   .ui-app > .ui-app__main { flex: 1 1 auto; }
   .ui-app > .ui-app__bar--phone { display: flex; }
   .ui-btn.ui-app__menu { display: inline-flex; }
   .ui-app__brand--band { display: flex; }
-  /* The menu control stands at the band's start with the band's inset beside it. */
-  .ui-app__bar { padding-inline: var(--space-2) var(--space-4); }
+  /* The first visible item lines up with the page. A leading menu uses the smaller
+     inset to keep its phone position in both shells. */
+  .ui-app__bar { padding-inline: var(--space-4); }
+  .ui-app__bar:has(> .ui-app__menu:first-child) { padding-inline-start: var(--space-2); }
   /* The drawer paints itself and sits out of the flow, so its wrapper takes no height. */
   .ui-app__drawer { display: block; }
   /* The rail's rows are the drawer's rows: the column fills the panel, and the foot

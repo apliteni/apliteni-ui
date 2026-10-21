@@ -5,7 +5,9 @@
 // (scripts/lib/story-css.js). Each workspace keeps its own subjects, allow-list and
 // recorded figures, which is what AGENTS.md#verification asks for.
 //
-// This workspace's subjects are its stories and the stylesheets only a story imports.
+// This workspace's subjects are its stories, the stylesheets only a story imports, and
+// every stylesheet in react/src/showcases/ whoever imports it. A showcase is a page
+// composed from kit parts, so its sheet is read even when its own module imports it.
 // A sheet a shipped component imports is that component's own CSS and is not read here:
 // the React components are the kit in this workspace, and their paint is theirs to
 // write. DocumentReview and FeedbackShowcase are showcases with no component behind
@@ -67,15 +69,18 @@ const storyOnlySheet = (sheet: string) => !files.filter(isModule).some((f) => im
 /** The subjects among a list of paths, so a mutation can hand this one it invented. */
 export const subjectsAmong = (paths: string[]) => paths.filter((p) => SERVED.test(p)).sort();
 
-const subjects: string[] = [
-  ...subjectsAmong(files),
-  ...files.filter((f) => f.endsWith('.css')).filter(storyOnlySheet),
-].sort();
+/** A stylesheet in the showcases folder: read for any importer, a module included. */
+export const isShowcaseSheet = (file: string) => /^react\/src\/showcases\/(?:.+\/)?[^/]+\.css$/.test(file);
 
-// Measured, not guessed: 39 stories and three showcase sheets, as this gate last
+const subjects: string[] = [...new Set([
+  ...subjectsAmong(files),
+  ...files.filter((f) => f.endsWith('.css')).filter((f) => isShowcaseSheet(f) || storyOnlySheet(f)),
+])].sort();
+
+// Measured, not guessed: 39 stories and four showcase sheets, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows.
-const FOUND = { subjects: 42, declarations: 394, carriers: 33, sheets: 3 };
+const FOUND = { subjects: 42, declarations: 394, carriers: 33, sheets: 4 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -153,6 +158,10 @@ const GLUE_CEILING = 22;
 // FeedbackShowcase's shadow, 1 to 2, for a `transition` inherited through a spread; and
 // SwitchCheckbox's glue, newly 26, for the three properties each of two rows inherits
 // from the object it spreads. The follow-ups and the reasons are on #601.
+//
+// The invoice showcase's sheet is recorded at 24 glue declarations, two over the ceiling.
+// The record form keeps its two columns down to the phone step (#458), which takes a grid
+// declaration for the fields and one for their phone rule. It paints nothing.
 const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/AccentPicker.stories.tsx': { shadow: 3 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
@@ -166,6 +175,7 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
   'react/src/SwitchCheckbox.stories.tsx': { glue: 26 },
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
+  'react/src/showcases/InvoiceFlow.css': { glue: 24 },
 };
 
 const against = { allowed: ALLOWED, recorded: RECORDED, ceiling: GLUE_CEILING, where: 'this gate' };
@@ -182,12 +192,29 @@ describe('story CSS', () => {
     expect(subjects.length).toBeGreaterThanOrEqual(FOUND.subjects);
     expect(subjects.filter((f) => f.endsWith('.css'))).toEqual([
       'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
-      'react/src/FinanceComposition.css',
+      'react/src/FinanceComposition.css', 'react/src/showcases/InvoiceFlow.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.
     expect(subjects).not.toContain('react/src/DataTable.css');
     expect(tokens.size).toBeGreaterThan(100);
+  });
+
+  it('reads a showcase sheet its own module imports', () => {
+    // InvoiceFlow.tsx imports InvoiceFlow.css, so the story-only rule alone skips it. The
+    // showcases folder is read whoever imports it, or a showcase could paint in its sheet.
+    const sheet = 'react/src/showcases/InvoiceFlow.css';
+    expect(storyOnlySheet(sheet), 'the sheet should be imported by its module').toBe(false);
+    expect(subjects).toContain(sheet);
+    expect(isShowcaseSheet('react/src/showcases/New.css')).toBe(true);
+    expect(isShowcaseSheet('react/src/DataTable.css')).toBe(false);
+  });
+
+  it('reports a showcase sheet that paints something of its own', () => {
+    const sheet = 'react/src/showcases/InvoiceFlow.css';
+    expect(measured.find((s) => s.file === sheet)!.shadows.length).toBe(0);
+    const problems = withEdit(sheet, (src) => `${src}\n.invoice-flow__paper { background: #f00; }\n`);
+    expect(problems.join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*background/);
   });
 
   it('sweeps every folder under src, so a nested story cannot hide', () => {

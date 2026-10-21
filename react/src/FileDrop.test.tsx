@@ -270,3 +270,216 @@ it('merges a caller class with the kit class instead of replacing it', () => {
   render(<FileDrop className="demo" />);
   expect(row()).toHaveClass('ui-drop', 'demo');
 });
+
+const area = () => document.querySelector('.ui-drop--area') as HTMLElement;
+
+describe('FileDrop as the empty page\'s area', () => {
+  it('draws the first-run block with one Upload button as the keyboard path', () => {
+    render(<FileDrop title="Add your first invoices" note="PDF, PNG or JPEG." />);
+    expect(area()).toHaveClass('ui-drop', 'ui-drop--area');
+    expect(screen.getByText('Add your first invoices')).toBeInTheDocument();
+    expect(screen.getByText('PDF, PNG or JPEG.')).toBeInTheDocument();
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+    expect(area()).not.toHaveClass('is-dragging');
+  });
+
+  it('opens the picker once from the button and once from a click on the box', () => {
+    render(<FileDrop title="Add" />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const click = vi.spyOn(input, 'click').mockImplementation(() => {});
+    fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
+    expect(click).toHaveBeenCalledTimes(1);
+    fireEvent.click(area());
+    expect(click).toHaveBeenCalledTimes(2);
+  });
+
+  it('takes every chosen file and clears the input', () => {
+    const onFiles = vi.fn();
+    render(<FileDrop title="Add" multiple onFiles={onFiles} />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(input).toHaveAttribute('multiple');
+    fireEvent.change(input, { target: { files: [file('a.pdf'), file('b.pdf')] } });
+    expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'a.pdf' }), expect.objectContaining({ name: 'b.pdf' })]);
+    expect(input.value).toBe('');
+  });
+
+  it('turns the edge to the accent while a file is over it and back on leave', () => {
+    render(<FileDrop title="Add" />);
+    fireEvent.dragOver(area(), withFiles());
+    expect(area()).toHaveClass('is-dragging');
+    fireEvent.dragLeave(area(), { relatedTarget: document.body });
+    expect(area()).not.toHaveClass('is-dragging');
+  });
+
+  it('ignores a drag that carries no file', () => {
+    render(<FileDrop title="Add" />);
+    fireEvent.dragOver(area(), { dataTransfer: { types: ['text/plain'], files: [] } });
+    expect(area()).not.toHaveClass('is-dragging');
+  });
+
+  it('takes the dropped files and tells the browser the drop is handled', () => {
+    const onFiles = vi.fn();
+    render(<FileDrop title="Add" multiple onFiles={onFiles} />);
+    const event = createEvent.drop(area());
+    Object.defineProperty(event, 'dataTransfer', { value: { types: ['Files'], files: [file('a.pdf')] } });
+    fireEvent(area(), event);
+    expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'a.pdf' })]);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('lets a parent drive the edge', () => {
+    const { rerender } = render(<FileDrop title="Add" dragging={false} />);
+    fireEvent.dragOver(area(), withFiles());
+    expect(area()).not.toHaveClass('is-dragging');
+    rerender(<FileDrop title="Add" dragging />);
+    expect(area()).toHaveClass('is-dragging');
+  });
+
+  it('accepts nothing while disabled and never claims to be a drop target', () => {
+    const onFiles = vi.fn();
+    render(<FileDrop title="Add" multiple disabled onFiles={onFiles} />);
+    expect(dragOver(area(), [file()]).defaultPrevented).toBe(false);
+    fireEvent.drop(area(), withFiles([file()]));
+    expect(onFiles).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Upload' })).toBeDisabled();
+    expect(area()).not.toHaveClass('is-dragging');
+  });
+
+  it('calls each of onFile and onFiles when given, whether or not the drop is multiple', () => {
+    for (const multiple of [false, true]) {
+      const onFile = vi.fn();
+      const onFiles = vi.fn();
+      const { unmount } = render(<FileDrop title="Add" multiple={multiple} onFile={onFile} onFiles={onFiles} />);
+      fireEvent.drop(area(), withFiles([file('a.pdf'), file('b.pdf')]));
+      expect(onFile).toHaveBeenCalledTimes(1);
+      expect(onFile).toHaveBeenCalledWith(expect.objectContaining({ name: 'a.pdf' }));
+      expect(onFiles).toHaveBeenCalledTimes(1);
+      expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'a.pdf' }), expect.objectContaining({ name: 'b.pdf' })]);
+      unmount();
+    }
+  });
+
+  it('takes a file through onFiles alone and through onFile alone', () => {
+    const onFiles = vi.fn();
+    const first = render(<FileDrop title="Add" onFiles={onFiles} />);
+    fireEvent.drop(area(), withFiles([file('a.pdf')]));
+    expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'a.pdf' })]);
+    first.unmount();
+    const onFile = vi.fn();
+    render(<FileDrop title="Add" multiple onFile={onFile} />);
+    fireEvent.drop(area(), withFiles([file('b.pdf')]));
+    expect(onFile).toHaveBeenCalledWith(expect.objectContaining({ name: 'b.pdf' }));
+  });
+
+  it('stands in for the row and the children, so no second button or target shows', () => {
+    render(<FileDrop title="Add" note="PDF." file={{ name: 'held.pdf' }}><p>Behind</p></FileDrop>);
+    expect(document.querySelector('.ui-drop__row')).toBeNull();
+    expect(screen.queryByText('Behind')).not.toBeInTheDocument();
+    expect(screen.queryByText('held.pdf')).not.toBeInTheDocument();
+    fireEvent.dragOver(area(), withFiles());
+    expect(target()).toBeNull();
+  });
+});
+
+describe('the page drop layer in the sheet', () => {
+  // JSDOM lays nothing out, so the sheet is read for what must hold. The layer's drag logic
+  // belongs to the page that uses it, and the page's own test drives that. That the layer
+  // covers the content and that no row reads across the words is measured in a browser.
+  const css = readRepo('../../src/styles/file-drop.css');
+  const rule = /\.ui-drop--page\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+
+  it('covers the page below the topbar and takes no pointer, so the drop lands on what is under it', () => {
+    expect(rule).toMatch(/position:\s*fixed/);
+    expect(rule).toMatch(/inset:\s*calc\(var\(--ui-app-band, 0px\) \+ var\(--ui-app-top, 0px\) \+ var\(--space-4\)\) var\(--space-4\) var\(--space-4\)/);
+    expect(rule).toMatch(/pointer-events:\s*none/);
+  });
+
+  describe('its ground', () => {
+    /* #458 records a slightly transparent, blurred ground for the table page. The sheet is read for the
+     * three grounds: solid by default, translucent and blurred where the engine can blur, solid again for a
+     * reader who asks for less transparency. JSDOM paints nothing, so the blur itself is measured in a browser,
+     * and the words' contrast over the worst colour behind is stories/file-drop-ground.test.js. */
+    const supports = /@supports\s*\(backdrop-filter:\s*blur\(1px\)\)\s*or\s*\(-webkit-backdrop-filter:\s*blur\(1px\)\)\s*\{\s*\.ui-drop--page\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+    const reduced = /@media\s*\(prefers-reduced-transparency:\s*reduce\)\s*\{\s*\.ui-drop--page\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+
+    it('is solid where nothing else is said, so an engine that cannot blur shows no page text across the words', () => {
+      expect(rule).toMatch(/background:\s*var\(--bg\)\s*;/);
+      expect(rule).not.toMatch(/color-mix|rgba|transparent|opacity|backdrop-filter/);
+    });
+
+    it('is slightly transparent and blurred from kit tokens where the engine can blur, with the prefixed property too', () => {
+      expect(supports, 'the @supports branch is missing').not.toBe('');
+      expect(supports).toMatch(/background:\s*color-mix\(in srgb, var\(--bg\) 80%, transparent\)\s*;/);
+      expect(supports).toMatch(/(?<!-webkit-)backdrop-filter:\s*blur\(var\(--space-2\)\)\s*;/);
+      expect(supports).toMatch(/-webkit-backdrop-filter:\s*blur\(var\(--space-2\)\)\s*;/);
+    });
+
+    it('goes back to the solid ground and no blur when the reader asks for less transparency, after the branch that blurs', () => {
+      expect(reduced, 'the reduced-transparency rule is missing').not.toBe('');
+      expect(reduced).toMatch(/background:\s*var\(--bg\)\s*;/);
+      expect(reduced).toMatch(/(?<!-webkit-)backdrop-filter:\s*none\s*;/);
+      expect(reduced).toMatch(/-webkit-backdrop-filter:\s*none\s*;/);
+      expect(css.indexOf('prefers-reduced-transparency')).toBeGreaterThan(css.indexOf('@supports (backdrop-filter'));
+    });
+
+    it('leaves the blank page\'s area alone: no ground change on the area without the layer modifier', () => {
+      const area = css.split('\n').filter((line) => /^\.ui-drop--area/.test(line)).join('\n');
+      expect(area).not.toMatch(/backdrop-filter|color-mix|background/);
+    });
+  });
+
+  it('takes its edge and radius from the area it enlarges', () => {
+    expect(rule).not.toMatch(/border|radius/);
+    expect(css).toMatch(/\.ui-drop--area\.is-dragging\s*\{\s*border-color:\s*var\(--accent\)/);
+  });
+
+  it('moves nothing in: no rise, no fade, no hidden state to leave behind', () => {
+    const layer = css.slice(css.indexOf('.ui-drop--page'));
+    expect(layer).not.toMatch(/transform|transition|visibility|opacity/);
+  });
+
+  describe('where the layer starts', () => {
+    /* The real sheets go into the JSDOM document and the cascade hands the layer its band and topbar
+     * offsets; the top inset is then summed from the values it got. JSDOM lays nothing out, so that the
+     * browser paints the layer there is measured in a browser. */
+    const sheets = ['../../src/tokens/tokens.css', '../../src/styles/layout.css', '../../src/styles/file-drop.css'].map(readRepo).join('\n');
+    const top = (shell: string, sheet = sheets) => {
+      const style = document.createElement('style');
+      style.textContent = sheet;
+      document.head.append(style);
+      const host = document.createElement('div');
+      host.className = shell;
+      host.innerHTML = '<div class="ui-drop ui-drop--area ui-drop--page is-dragging"></div>';
+      document.body.append(host);
+      const cs = getComputedStyle(host.firstElementChild!);
+      const block = /\.ui-drop--page\s*\{([^}]*)\}/.exec(sheet)?.[1] ?? '';
+      const inset = /inset:\s*calc\((.*?)\)\s+var\(--space-4\)/.exec(block)?.[1] ?? '';
+      expect(inset, 'the layer\'s top inset is no longer a sum of tokens').not.toBe('');
+      const sum = inset.split('+').map((term) => {
+        const [, name, fallback] = /var\((--[\w-]+)(?:,\s*([^)]+))?\)/.exec(term) ?? [];
+        return Number.parseFloat(cs.getPropertyValue(name) || fallback || '0');
+      }).reduce((a, b) => a + b, 0);
+      host.remove();
+      style.remove();
+      return sum;
+    };
+
+    it('starts below the band in the topbar shell', () => {
+      expect(top('ui-app ui-app--topbar')).toBe(52 + 16);
+    });
+
+    it('starts at the top, 16px in, in the rail-only shell, where no band is drawn', () => {
+      expect(top('ui-app')).toBe(16);
+    });
+
+    it('gives the rail shell a 52px band when its phone bar is visible', () => {
+      const layout = readRepo('../../src/styles/layout.css');
+      const phone = /@media\s*\(max-width:\s*720px\)\s*\{([\s\S]*?)\n\}/.exec(layout)?.[1] ?? '';
+      expect(phone).toMatch(/\.ui-app\s*\{[^}]*--ui-app-band:\s*52px\s*;/);
+    });
+
+    it('starts below the topbar of a page that carries one', () => {
+      expect(top('ui-app-page')).toBe(52 + 16);
+    });
+  });
+});

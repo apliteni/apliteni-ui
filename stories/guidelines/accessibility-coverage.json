@@ -164,9 +164,9 @@
     {
       "file": "react/src/FileDrop.test.tsx",
       "name": "React: File drop",
-      "does": "Checks the resting row, the picker opened from the button, chosen and dropped files, a drag that carries no file, the target a parent drives, the progress bar's name and value, the uploaded and failed states with their retry and remove actions, and a disabled drop that accepts nothing.",
+      "does": "Checks the resting row, the picker opened from the button, chosen and dropped files, a drag that carries no file, the target a parent drives, the progress bar's name and value, the uploaded and failed states with their retry and remove actions, and a disabled drop that accepts nothing, the empty page's area with its single Upload button and its edge while a file is over it, each of onFile and onFiles called when given, and the page drop layer's sheet rule, read as text for its fixed position, its opaque ground and its lack of motion.",
       "blind": [
-        "JSDOM does not open the system picker, so the choice is simulated. It does not measure the drop target's cover, the focus ring or contrast, and it reads live-region markup rather than spoken screen-reader output; the kit does not announce the change from uploading to uploaded."
+        "JSDOM does not open the system picker, so the choice is simulated. It does not measure the drop target's cover, the page layer's coverage of the content, the focus ring or contrast, and it reads live-region markup rather than spoken screen-reader output; the kit does not announce the change from uploading to uploaded."
       ]
     },
     {
@@ -1009,6 +1009,14 @@
       ]
     },
     {
+      "file": "stories/file-drop-ground.test.js",
+      "name": "Page file drop ground",
+      "does": "Resolves the page drop layer's text ink and translucent ground in both themes. Measures the lowest text contrast over every opaque colour token behind that ground against 4.5:1. Checks that the solid fallback reads at least as well, and proves that a thinner ground fails.",
+      "blind": [
+        "The gate calculates token colours over solid backdrops. It does not measure browser pixels, blur, rows behind the layer or a consumer's own colours. No test renders the layer, so the blur and rows behind it stay unmeasured at each head. The upload glyph is not judged because its muted ink at 60% opacity is below 3:1 on the plain light ground."
+      ]
+    },
+    {
       "file": "stories/filter-row-edge.test.js",
       "name": "Filter row: quiet edges and a text button",
       "does": "Discovers the chip and every data-filter wrapper, then reads each declared edge state and the states its primitive can paint. Chips and Add retain the chip edge at rest and on hover. Clear requires transparent edges in every state. Disabled chips and Add use the disabled edge, while keyboard focus uses the accent. Missing subjects, missing states, unknown states and weaker overrides fail. Eighteen mutations prove rejection.",
@@ -1018,6 +1026,20 @@
         "Which of two carriers of one state matches a real element. A bar turned off does not set :disabled on a nested fieldset, so the chip is required to take its unavailable edge both from its own state and from the bar's, rather than measured as doing so; the browser captures show which one paints.",
         "Contrast. It checks which token is drawn, not what that edge measures against the fill behind it; the contrast walk and the accessibility floor own those numbers.",
         "Whether :focus-visible matches on a real keystroke, and whether the ring is visible once it does. The focus-ring gates and the browser captures own both."
+      ]
+    },
+    {
+      "file": "react/src/showcases/InvoiceFlow.test.tsx",
+      "name": "React: Invoice flow prototype",
+      "does": "Checks that the button inside the drop box opens the file picker by pointer, Enter and Space while the box claims no role of its own and takes several files, that the empty state carries that button rather than a sentence describing the box, that the busy region and the field errors stay truthful after a rejected save, that the review screen carries no per-field provenance mark and no status badge, that the empty screen uses primary Upload and the list uses the kit's small secondary Upload, that no button on any of the eight states spends more than two words without being on a named list, and that a file dragover and drop are canceled while text and link drags are not, that moving between page elements keeps the page drop layer open and leaving the window ends it, that the six window listeners are removed on a record and on unmount, and that the showcase's own sheet paints no ground, casts no rung, sets no type ramp, writes no keyframe and never overrides a kit class.",
+      "blind": [
+        "JSDOM does not measure the focus ring, layout or contrast, and no real file picker opens — only that the hidden input's click is reached.",
+        "The gap the rejected-save summary holds off the button row is read from the sheet as text, not measured: vitest applies no imported CSS, so the rendered step is checked in a browser by hand.",
+        "Drag and drop is driven by synthetic events dispatched on the window, so pointer-device and operating-system drag behaviour, and whether a real browser offers the drop after a canceled dragover, are unmeasured.",
+        "The picker's shape is asserted as classes, not as paint; which size and fill those classes draw is the kit's own gates' business.",
+        "The button walk reaches buttons only. A link's words — the back link, the skip link, the list's identity links — are outside it.",
+        "The sheet check reads this one stylesheet. A declaration written inline in the component, or a kit class used for a job it was not drawn for, passes it; the kit-wide version is #601.",
+        "The sheet check's banned list is grounds, rungs and type ramps — background, box-shadow and the five type properties. A border is not on it, so the drop box's own dashed edge and its dragging accent are declared and unmeasured here; they paint no reading surface."
       ]
     }
   ],

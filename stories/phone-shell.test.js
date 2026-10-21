@@ -11,7 +11,10 @@
  * Limits: the browser half measures the Workspace button at 320 and 390, a Dropdown
  * panel at 390, the brand at 720 and 721, the vanilla centred rail at 390,
  * and native Tab in a shadow-root drawer at 390.
- * Other band controls are not measured. The source half reads text.
+ * Other band controls are not measured. The source half checks declarations and markup.
+ * The PHONE_BAND browser half measures the first visible band item in the invoice
+ * list and both menu shells at 390 and 720. It needs two served Storybooks.
+ * It does not measure a vanilla shell without a menu; that factory has no such state.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,6 +22,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { JSDOM } from 'jsdom';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
@@ -224,4 +228,74 @@ test('a shadow-root drawer advances Tab, wraps Shift+Tab, and isolates the page'
       await page.keyboard.press('Escape');
       assert.equal((await state()).outsideInert, false, 'closing left the page inert');
     } finally { await browser.close(); served.proc.kill(); }
+  });
+
+const layoutCss = read('src/styles/layout.css');
+const phoneCss = layoutCss.slice(layoutCss.indexOf('@media (max-width: 720px)'));
+const menuSelector = '.ui-app__bar:has(> .ui-app__menu:first-child)';
+
+test('a phone band without a leading menu keeps the page column inset', () => {
+  assert.ok(/\.ui-app__bar\s*\{\s*padding-inline:\s*var\(--space-4\);\s*\}/.test(phoneCss), 'the default phone band lost its 16px start inset');
+  assert.ok(/\.ui-react-app \.ui-app__bar:not\(:has\(> \.ui-app__menu:first-child\)\)\s*\{\s*padding-inline-start:\s*var\(--space-4\);\s*\}/.test(read('react/src/AppShell.css')), 'the narrow React band restores 16px without a menu');
+  const doc = new JSDOM('<header class="ui-app__bar"><a class="ui-app__brand"></a><button class="ui-app__search"></button></header>').window.document;
+  assert.ok(!doc.querySelector('.ui-app__bar').matches(menuSelector));
+});
+
+test('a phone band with a leading menu keeps the menu inset', () => {
+  assert.ok(/\.ui-app__bar:has\(> \.ui-app__menu:first-child\)\s*\{\s*padding-inline-start:\s*var\(--space-2\);\s*\}/.test(phoneCss), 'the menu band lost its 8px start inset');
+  const doc = new JSDOM('<header class="ui-app__bar"><button class="ui-app__menu"></button><a class="ui-app__brand"></a></header>').window.document;
+  assert.ok(doc.querySelector('.ui-app__bar').matches(menuSelector));
+});
+
+const BAND_RUN = process.env.PHONE_BAND === '1';
+async function bandMeasure(browser, base, story, width) {
+  const context = await browser.newContext({ viewport: { width, height: 844 }, deviceScaleFactor: 2 });
+  try {
+    const page = await context.newPage();
+    await page.goto(`${base}/iframe.html?id=${story}&viewMode=story`);
+    await page.waitForSelector('.ui-app__bar', { state: 'visible' });
+    return await page.evaluate(() => {
+      const bar = document.querySelector('.ui-app__bar');
+      const first = [...bar.children].find((el) => el.checkVisibility());
+      const main = document.querySelector('.ui-app__main');
+      return {
+        menu: first.classList.contains('ui-app__menu'),
+        firstX: first.getBoundingClientRect().x,
+        columnX: main.getBoundingClientRect().x + parseFloat(getComputedStyle(main).paddingLeft),
+      };
+    });
+  } finally { await context.close(); }
+}
+
+test('the invoice list starts at the page column at both phone widths',
+  { skip: !BAND_RUN && 'set PHONE_BAND=1' }, async () => {
+    const pw = await import(process.env.UI_PLAYWRIGHT || 'playwright');
+    const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+    try {
+      for (const width of [390, 720]) {
+        const m = await bandMeasure(browser, process.env.PHONE_BAND_REACT_URL, 'apps-invoice-flow-prototype--invoice-table', width);
+        assert.equal(m.menu, false, `${width}px: the invoice list unexpectedly has a menu`);
+        assert.equal(m.columnX, 16, `${width}px: the page column moved`);
+        assert.equal(m.firstX, m.columnX, `${width}px: the first visible band item misses the page column`);
+      }
+    } finally { await browser.close(); }
+  });
+
+test('React and vanilla menu bands keep the 8px start inset',
+  { skip: !BAND_RUN && 'set PHONE_BAND=1' }, async () => {
+    const pw = await import(process.env.UI_PLAYWRIGHT || 'playwright');
+    const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+    try {
+      for (const width of [390, 720]) {
+        for (const [base, story] of [
+          [process.env.PHONE_BAND_REACT_URL, 'react-appshell--centered'],
+          [process.env.PHONE_BAND_VANILLA_URL, 'apps-shell-layouts--topbar-centered'],
+        ]) {
+          const m = await bandMeasure(browser, base, story, width);
+          assert.equal(m.menu, true, `${story} at ${width}px: the menu is missing`);
+          assert.equal(m.columnX, 16, `${story} at ${width}px: the page column moved`);
+          assert.equal(m.firstX, 8, `${story} at ${width}px: the menu lost its start inset`);
+        }
+      }
+    } finally { await browser.close(); }
   });

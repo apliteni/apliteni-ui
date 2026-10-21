@@ -980,6 +980,22 @@ target. A disabled drop never calls `preventDefault` on `dragover`, so it does n
 itself as a target the pointer can aim at. When a page uses a row, a region or a dialog, see
 [File drop](../guidelines/file-drop.md).
 
+React `FileDrop` takes `title` to become the empty page's drop. It then draws a dashed box around
+a first-run block with the title, the accepted types and the Upload button. **The button is the
+keyboard path.** A click on the box opens the picker too. A file dropped anywhere in the box
+reaches `onFiles` with every file and `onFile` with the first; pass either or both, and add
+`multiple` to let the picker take several. A file over the box turns its edge to the accent. A
+disabled area accepts nothing.
+
+`.ui-drop--page` is the kit's layer for a page that takes a file anywhere. Put it on the area's own
+markup, `.ui-drop.ui-drop--area.is-dragging`, and it becomes that area made large: a fixed box
+inset from the window and below the topbar, with the same dashed accent edge and radius, holding an
+`EmptyState` with the upload glyph, a line that says to drop the files and the accepted types.
+**Its ground is the page ground, slightly transparent and blurred, so the table shows through softly and no row stays sharp under the words.** Where the browser cannot blur what is behind, or the reader asks for less transparency, the ground is solid. The layer takes no pointer
+events, so the page keeps working under it. **Mount it only while a file is dragged over the page.** It has no fade and no rise, so reduced motion needs no
+second path. The page owns the drag logic, and its own Upload button stays the keyboard path.
+React ships no component for the layer.
+
 ### React Button links and leading artwork
 
 React `Button` accepts `href` and then renders an anchor with the existing button classes.

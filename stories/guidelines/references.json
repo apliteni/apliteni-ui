@@ -240,7 +240,7 @@
         "pattern": "a question the page stops for"
       },
       {
-        "ref": "src/components/index.js:256",
+        "ref": "src/components/index.js:258",
         "pattern": "export function callout("
       },
       {
@@ -258,17 +258,17 @@
         "pattern": "a floating, dismissible notification"
       },
       {
-        "ref": "src/components/index.js:282",
+        "ref": "src/components/index.js:284",
         "pattern": "class=\"ui-toast__action\""
       }
     ],
     "panels": [
       {
-        "ref": "src/components/index.js:77",
+        "ref": "src/components/index.js:79",
         "pattern": "It is NOT a tablist: it controls no panel"
       },
       {
-        "ref": "src/components/index.js:82",
+        "ref": "src/components/index.js:84",
         "pattern": "that one owns panels and earns the tab announcement"
       },
       {
@@ -286,17 +286,17 @@
         "pattern": ".ui-filter-bar__chip {"
       },
       {
-        "ref": "src/components/index.js:76",
+        "ref": "src/components/index.js:78",
         "pattern": "A strip of mutually exclusive toggle buttons."
       }
     ],
     "scale": [
       {
-        "ref": "src/components/index.js:299",
+        "ref": "src/components/index.js:301",
         "pattern": "Pick by how much of the screen the confirmation owns"
       },
       {
-        "ref": "src/components/index.js:301",
+        "ref": "src/components/index.js:303",
         "pattern": "export function successPanel("
       },
       {
@@ -350,7 +350,7 @@
         "pattern": "role=\"alertdialog\""
       },
       {
-        "ref": "src/components/index.js:282",
+        "ref": "src/components/index.js:284",
         "pattern": "class=\"ui-toast__action\""
       },
       {
@@ -500,7 +500,7 @@
         "pattern": "export const iconMeanings"
       },
       {
-        "ref": "src/components/index.js:268",
+        "ref": "src/components/index.js:270",
         "pattern": "const TOAST_ICON = {"
       }
     ],
@@ -564,7 +564,7 @@
     ],
     "title-is-heading": [
       {
-        "ref": "src/components/index.js:67",
+        "ref": "src/components/index.js:69",
         "pattern": "const h = [2, 3, 4, 5, 6]"
       },
       {
@@ -704,7 +704,7 @@
         "pattern": "an empty label falls back to the icon"
       },
       {
-        "ref": "src/components/index.js:85",
+        "ref": "src/components/index.js:87",
         "pattern": "not an accessible name"
       }
     ]
@@ -866,15 +866,15 @@
     ],
     "error-in-markup": [
       {
-        "ref": "src/components/index.js:221",
+        "ref": "src/components/index.js:223",
         "pattern": "`invalid` paints the control red AND says so in aria-invalid"
       },
       {
-        "ref": "src/components/index.js:207",
+        "ref": "src/components/index.js:209",
         "pattern": "'aria-describedby': msgId,"
       },
       {
-        "ref": "src/components/index.js:186",
+        "ref": "src/components/index.js:188",
         "pattern": "markup rather than in the label's wording"
       }
     ],
@@ -888,7 +888,7 @@
         "pattern": "export function setBusy(root,"
       },
       {
-        "ref": "src/components/index.js:288",
+        "ref": "src/components/index.js:290",
         "pattern": "role=\"status\" aria-live=\"polite\""
       }
     ]
@@ -903,7 +903,7 @@
     ],
     "useful-callouts": [
       {
-        "ref": "src/components/index.js:256",
+        "ref": "src/components/index.js:258",
         "pattern": "export function callout("
       }
     ]
@@ -929,7 +929,7 @@
   "_empty-states.js": {
     "next-action": [
       {
-        "ref": "src/components/index.js:311",
+        "ref": "src/components/index.js:313",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
       }
     ]
@@ -941,7 +941,7 @@
         "pattern": ".ui-drop__row {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:108",
+        "ref": "react/src/FileDrop.tsx:143",
         "pattern": "className=\"ui-drop__row\""
       }
     ],
@@ -951,7 +951,7 @@
         "pattern": ".ui-drop__target {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:161",
+        "ref": "react/src/FileDrop.tsx:191",
         "pattern": "className=\"ui-drop__target\""
       }
     ],
@@ -961,7 +961,7 @@
         "pattern": ".ui-drop__file {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:144",
+        "ref": "react/src/FileDrop.tsx:179",
         "pattern": "role=\"progressbar\""
       }
     ],
@@ -971,19 +971,19 @@
         "pattern": ".ui-drop__error"
       },
       {
-        "ref": "react/src/FileDrop.tsx:118",
+        "ref": "react/src/FileDrop.tsx:152",
         "pattern": "status === 'error' && onRetry"
       }
     ],
     "button-path": [
       {
-        "ref": "react/src/FileDrop.tsx:151",
+        "ref": "react/src/FileDrop.tsx:103",
         "pattern": "input.current?.click()"
       }
     ],
     "limits-once": [
       {
-        "ref": "react/src/FileDrop.tsx:152",
+        "ref": "react/src/FileDrop.tsx:187",
         "pattern": "className=\"ui-drop__note\""
       }
     ],
@@ -993,7 +993,7 @@
         "pattern": ".ui-drop > * + .ui-drop__row"
       },
       {
-        "ref": "react/src/FileDrop.tsx:107",
+        "ref": "react/src/FileDrop.tsx:142",
         "pattern": "{children}"
       }
     ]
@@ -1031,11 +1031,11 @@
     ],
     "in-row": [
       {
-        "ref": "src/components/index.js:249",
+        "ref": "src/components/index.js:251",
         "pattern": "export function switchToggle("
       },
       {
-        "ref": "src/styles/card.css:103",
+        "ref": "src/styles/card.css:107",
         "pattern": ".ui-card__row {"
       }
     ],

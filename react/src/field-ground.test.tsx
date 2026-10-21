@@ -51,8 +51,9 @@ import {
 } from '../../stories/lib/field-ground.js';
 
 const THEMES = ['dark', 'light'] as const;
-// 64 since the Dropdown placement story added its Name field. #627
-const FIELD_COUNT = 64;
+// 64 on main, plus the twelve the invoice showcase renders: four fields
+// over its NeedsReview, Editing and Ready stories (#459 r33). Move it with the specimens.
+const FIELD_COUNT = 76;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
@@ -190,6 +191,7 @@ const bodyPaint: Record<string, string> = {};
  * inlined in the walk so the mutation at the foot of this file runs the gate's
  * own mounting instead of a second spelling of it.
  */
+let installedSheet: Theme | null = null;
 function measure(story: Discovered, theme: Theme): Reading[] {
   // The walk's afterEach would do this, but measure() is also called twice in one
   // test below, and FIELD is read off document.body — so the previous mount has to
@@ -197,8 +199,11 @@ function measure(story: Discovered, theme: Theme): Reading[] {
   cleanup();
   // Theme-major: swapping <style> makes JSDOM re-parse the whole sheet and
   // drop its cascade cache, so it is swapped once per theme, not per cell.
-  if (document.documentElement.getAttribute('data-theme') !== theme) {
-    document.documentElement.setAttribute('data-theme', theme);
+  // A story can write data-theme itself (AppShell applies the stored choice), so
+  // the attribute cannot say which sheet is installed; the sheet is tracked here.
+  document.documentElement.setAttribute('data-theme', theme);
+  if (installedSheet !== theme) {
+    installedSheet = theme;
     styleEl.textContent = SHEETS[theme].text;
   }
   const { id, args } = story;
@@ -256,7 +261,7 @@ describe('field ground: React coverage', () => {
   // matching, or a story that stopped rendering its field, would otherwise leave
   // the gate green over nothing. Move the number with the specimens that moved.
   //
-  // Fields 29, Switch & Checkbox 16, Pagination 5, SearchField 4, Modal 3,
+  // Fields 41, Switch & Checkbox 16, Pagination 5, SearchField 4, Modal 3,
   // Drawer 2, DataTable 1, File drop 1.
   it('found the fields the catalogue renders, in both themes', () => {
     for (const theme of THEMES) {

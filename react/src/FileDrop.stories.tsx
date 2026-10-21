@@ -2,7 +2,9 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { FileDrop, type FileDropFile } from './FileDrop';
 import { Card } from './primitives/Card';
+import { EmptyState } from './EmptyState';
 import { Checkbox } from './Checkbox';
+import { DataTable, type Column } from './DataTable';
 
 // The card is in each render rather than in a decorator, as #568 put the other
 // galleries' cards: react/src/field-ground.test.tsx calls renders, so a surface left
@@ -86,4 +88,39 @@ export const Live: StoryObj = {
       onFile={chosen => setFile({ name: chosen.name, size: `${Math.round(chosen.size / 1024)} KB`, status: 'done' })}
       onRemove={() => setFile(null)} /></Card>;
   },
+};
+
+/** The empty page: nothing is held yet, so the whole first-run block is the target. */
+export const Area: StoryObj = {
+  render: () => <Card><FileDrop title="Add your first invoices" note="PDF, PNG or JPEG." accept=".pdf,.png,.jpg,.jpeg" multiple /></Card>,
+};
+
+export const AreaDragging: StoryObj = {
+  render: () => <Card><FileDrop title="Add your first invoices" note="PDF, PNG or JPEG." dragging /></Card>,
+};
+
+// The table page the layer lies over: fabricated statements, so the blurred rows behind the words are a table's.
+type Statement = { name: string; received: string; size: string };
+const statements: Statement[] = [
+  { name: 'statement-2026-08.pdf', received: '2026-08-31', size: '248 KB' },
+  { name: 'statement-2026-07.pdf', received: '2026-07-31', size: '241 KB' },
+  { name: 'statement-2026-06.pdf', received: '2026-06-30', size: '236 KB' },
+  { name: 'statement-2026-05.pdf', received: '2026-05-31', size: '239 KB' },
+  { name: 'statement-2026-04.pdf', received: '2026-04-30', size: '232 KB' },
+  { name: 'statement-2026-03.pdf', received: '2026-03-31', size: '244 KB' },
+];
+const statementColumns: Column<Statement>[] = [
+  { key: 'name', label: 'Statement' },
+  { key: 'received', label: 'Received' },
+  { key: 'size', label: 'Size', num: true },
+];
+
+/** The layer for a page that takes a file anywhere: the empty page's area, enlarged over a table page. Its ground is slightly transparent and blurred, so the table shows through softly. It is solid where the engine cannot blur or the reader asks for less transparency. A page mounts it only while a file is over the window. */
+export const PageDragging: StoryObj = {
+  render: () => <>
+    <DataTable columns={statementColumns} rows={statements} selectable={false} pager={false} />
+    <div className="ui-drop ui-drop--area ui-drop--page is-dragging" aria-hidden="true">
+      <EmptyState icon="upload" title="Drop files to upload" sub="PDF, PNG or JPEG." />
+    </div>
+  </>,
 };
