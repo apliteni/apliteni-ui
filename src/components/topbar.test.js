@@ -241,7 +241,7 @@ test('phone topbars keep every control inside two rows', { skip: process.env.TOP
         const rail = document.querySelector('.ui-app__rail');
         return { width: innerWidth, scroll: document.documentElement.scrollWidth,
           band: band.height, offset: page ? Number.parseFloat(getComputedStyle(page).getPropertyValue('--ui-app-top')) : null,
-          rail: rail ? rail.getBoundingClientRect().top : null,
+          rail: rail && rail.getClientRects().length ? rail.getBoundingClientRect().top : null,
           first: ['.brand', '.toggle', '.acct'].map(box).filter(Boolean), second: ['.dtsw', '.vsw'].map(box).filter(Boolean) };
       });
       const fits = (m) => m.scroll === m.width
@@ -258,8 +258,8 @@ test('phone topbars keep every control inside two rows', { skip: process.env.TOP
       };
       // The two switches on row two keep 8px between them, whatever the version label says.
       const apart = (m) => m.second.length < 2 || m.second[1].left - m.second[0].right >= 8 - 0.5;
-      // A shell that owns the offset draws exactly the band it reserves.
-      const reserved = (m) => m.offset === null || (Math.abs(m.band - m.offset) < 0.5 && Math.abs(m.rail - m.offset) < 0.5);
+      // A shell that owns the offset draws exactly the band it reserves. Below 720px its rail is a drawer, undrawn until opened.
+      const reserved = (m) => m.offset === null || (Math.abs(m.band - m.offset) < 0.5 && (m.rail === null || Math.abs(m.rail - m.offset) < 0.5));
       const all = (m) => fits(m) && grouped(m) && apart(m) && reserved(m);
       assert.ok(all(await measure()), `${subject.name} ${width}px ${theme}: both rows must fit, row one must end at the inset and the offset must be true`);
       measured++;
@@ -292,7 +292,7 @@ test('phone topbars keep every control inside two rows', { skip: process.env.TOP
       await page.evaluate(() => document.querySelectorAll('.topbar .dtsw, .topbar .vsw').forEach(e => e.remove()));
       const one = await page.evaluate(() => ({ band: document.querySelector('.topbar').getBoundingClientRect().height,
         offset: Number.parseFloat(getComputedStyle(document.querySelector('.ui-app-page')).getPropertyValue('--ui-app-top')),
-        rail: document.querySelector('.ui-app__rail').getBoundingClientRect().top }));
+        rail: document.querySelector('.ui-app__rail').getClientRects().length ? document.querySelector('.ui-app__rail').getBoundingClientRect().top : 52 }));
       assert.deepEqual([one.band, one.offset, one.rail], [52, 52, 52], `one-row band at ${width}px`);
       await page.close();
     }
