@@ -105,6 +105,7 @@ it('opens the account menu from the avatar, with the reader, the pages and Sign 
   expect(within(menu).getByText('Ada Lovelace')).toBeInTheDocument();
   expect(within(menu).getByText('ada@apliteni.com')).toBeInTheDocument();
   expect(within(menu).getByRole('menuitem', { name: 'Preferences' })).toHaveAttribute('href', '#prefs');
+  expect(within(menu).getByRole('menuitem', { name: 'Sign out' })).not.toHaveAttribute('href');
   await user.click(within(menu).getByRole('menuitem', { name: 'Sign out' }));
   expect(out).toHaveBeenCalledTimes(1);
 });

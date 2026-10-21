@@ -145,7 +145,8 @@ export function AccountMenu({
         triggerContent={mark}
         header={<div className="ahead"><span className="avatar">{mark}</span><span className="aw"><span className="anm">{name}</span><span className="aem" title={email}>{email}</span></span></div>}
         items={[...items, '---', { label: 'Sign out', icon: 'logout', value: 'sign-out', href: signOutHref }]}
-        row={(item, props) => <a {...props} href={safeUrl(item.href || (item.value === 'sign-out' ? '#logout' : `#${item.value}`))}
+        row={(item, props) => <a {...props} href={item.href ? safeUrl(item.href)
+          : item.value === 'sign-out' && onSignOut ? undefined : safeUrl(item.value === 'sign-out' ? '#logout' : `#${item.value}`)}
           className={[props.className, item.value === current && 'cur', item.value === 'sign-out' && 'aout'].filter(Boolean).join(' ')}>
           {item.icon && <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon(item.icon) }} />}
           {item.label}
