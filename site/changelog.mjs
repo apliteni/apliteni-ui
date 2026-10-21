@@ -6,11 +6,24 @@
 
 export const RELEASES = [
   {
-    v: '0.128.0', date: '2026-10-20',
+    v: '0.130.0', date: '2026-10-21',
     changes: [
       ['added', 'React TopBar, ViewSwitch, VersionSwitcher and AccountMenu build the strategy top bar from slots, with the existing look and the two phone rows. Part of #429.', ['Topbar']],
-      ['changed', 'The current view in the Deck and Text switch now has the accent fill of a chosen Segmented option, and the open version menu ticks the chosen version like every other menu. Vanilla and React share both.', ['Topbar']],
+      ['changed', 'The current view in the Deck and Text switch has the accent fill of a chosen Segmented option. The open version menu ticks the chosen version.', ['Topbar']],
       ['changed', 'The version button shows only the chosen version name. The "version:" prefix is gone.', ['Topbar']],
+    ],
+  },
+  {
+    v: '0.129.0', date: '2026-10-20',
+    changes: [
+      ['changed', 'At 720px and below, both shells replace the icon strip with a top band, a menu button, and the brand mark. The button opens the full rail in a left drawer, content uses the full width, and widths above 720px stay unchanged. React `AppShell` also removes its phone bottom bar, More drawer, and `--ui-app-bottom-clearance`.', ['Shell']],
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.128.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
     ],
   },
   {

@@ -39,7 +39,8 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 // equal weight, and dropdown.css before both because the reader's menu is the
 // kit's own dropdown() and the rail only reskins its trigger (#286).
 const SHEETS = [
-  'src/styles/base.css', 'src/styles/dropdown.css', 'src/styles/nav.css', 'src/styles/layout.css',
+  'src/styles/base.css', 'src/styles/dropdown.css', 'src/styles/nav.css', 'src/styles/drawer.css',
+  'src/styles/layout.css',
 ];
 const FOLD = '@media (max-width: 720px)';
 const PHONE = '@media (max-width: 560px)';
@@ -112,7 +113,7 @@ const PAIR = (collapsed) => appShell({
   collapsed,
 });
 
-function mount(html, { theme = 'dark', accent = 'default', narrow = false, phone = false, drop = [], extra = '' } = {}) {
+function mount(html, { theme = 'dark', accent = 'default', narrow = false, phone = false, open = false, drop = [], extra = '' } = {}) {
   const vars = tokensFor(theme, accent);
   let raw = decomment(SHEETS.map(read).join('\n'));
   // One rule taken out of the sheet before the cascade runs, so a gate can show
@@ -142,6 +143,7 @@ function mount(html, { theme = 'dark', accent = 'default', narrow = false, phone
     { pretendToBeVisual: true },
   ).window;
   const doc = win.document;
+  if (open) doc.querySelectorAll('.ui-app__drawer .ui-drawer').forEach((d) => d.classList.add('is-open'));
   const q = (sel) => {
     const el = doc.querySelector(sel);
     assert.ok(el, `the shell has no ${sel} — the fixture stopped exercising the rule under test`);
@@ -207,36 +209,30 @@ const r2 = (n) => Math.round(n * 100) / 100;
 // there and the row carrying aria-current="page" — the page the reader is
 // standing on — could be neither seen nor focused.
 
-test('every entry in the rail is on screen in the folded rail', () => {
-  const at = mount(GROUPED, { narrow: true });
-  // The nav's own rows. The fold toggle is a rail row's skin on a control that
-  // is not a place to go, and the strip is the only layout at this width, so it
-  // is drawn nowhere here — see the 720px block.
-  const rows = [...at.doc.querySelectorAll('.ui-app__rail .ui-nav__item:not(.ui-app__fold)')];
+const DRAWER_ROWS = '.ui-app__drawer .ui-nav__item';
+
+test('every entry of the rail is in the drawer, and on screen once it is open', () => {
+  const at = mount(GROUPED, { narrow: true, open: true });
+  const rows = [...at.doc.querySelectorAll(DRAWER_ROWS)];
   assert.ok(rows.length >= 3, 'the fixture stopped carrying a group, a leaf and the group\'s child');
-  const missing = rows.filter((row) => !at.shown(row)).map((row) => row.getAttribute('aria-label'));
+  const missing = rows.filter((row) => !at.shown(row)).map((row) => row.getAttribute('aria-label') ?? row.textContent.trim());
   assert.deepEqual(
     missing, [],
-    `${missing.length} of ${rows.length} navigation rows are display:none below 720px, so a `
-    + 'reader on a phone cannot see or focus them. The rail folds the label out of view; it '
-    + 'must not fold a whole entry out of existence.',
+    `${missing.length} of ${rows.length} navigation rows in the phone drawer are not drawn once it is `
+    + 'open, so a reader on a phone cannot see or focus them.',
   );
 });
 
 test('the row the reader is standing on is one of them', () => {
-  const at = mount(GROUPED, { narrow: true });
-  const current = at.doc.querySelector('[aria-current="page"]');
-  assert.ok(current, 'the fixture stopped marking a current page');
-  assert.equal(
-    at.shown(current), true,
-    'the current page\'s own rail row is hidden at 375px — the one row a reader most needs '
-    + 'to see is the one the fold removes',
-  );
+  const at = mount(GROUPED, { narrow: true, open: true });
+  const current = at.doc.querySelector('.ui-app__drawer [aria-current="page"]');
+  assert.ok(current, 'the drawer stopped marking a current page');
+  assert.equal(at.shown(current), true, 'the current page\'s own drawer row is hidden once the drawer is open');
 });
 
 test('an open group is not announced open over a list that is not drawn', () => {
-  const at = mount(GROUPED, { narrow: true });
-  const toggle = at.q('.ui-nav__toggle');
+  const at = mount(GROUPED, { narrow: true, open: true });
+  const toggle = at.q('.ui-app__drawer .ui-nav__toggle');
   const list = at.doc.getElementById(toggle.getAttribute('aria-controls'));
   assert.ok(list, 'the toggle points at no list');
   assert.equal(
@@ -247,16 +243,21 @@ test('an open group is not announced open over a list that is not drawn', () => 
   );
 });
 
-test('the group still opens and closes at that width — the attribute is what decides', () => {
-  const at = mount(GROUPED, { narrow: true });
-  const list = at.q('.ui-nav__sub');
+test('the group in the drawer opens and closes — the attribute is what decides', () => {
+  const at = mount(GROUPED, { narrow: true, open: true });
+  const list = at.q('.ui-app__drawer .ui-nav__sub');
   assert.equal(at.shown(list), true);
   list.setAttribute('hidden', '');
   assert.equal(
     at.shown(list), false,
     'the nested list ignores its own `hidden` attribute, so wireNav()\'s toggle does nothing '
-    + 'at this width in the other direction either',
+    + 'in the drawer in the other direction either',
   );
+});
+
+test('a closed drawer draws none of its rows', () => {
+  const at = mount(GROUPED, { narrow: true });
+  assert.equal(at.shown(at.q(DRAWER_ROWS)), false, 'the drawer is drawn before the menu control opens it');
 });
 
 test('the labels-visible rail is unchanged', () => {
@@ -265,14 +266,143 @@ test('the labels-visible rail is unchanged', () => {
   assert.equal(at.css('.ui-nav__label', 'display'), 'inline', 'a wide rail lost its labels');
 });
 
-// ---- A1c. the reader's fold is the narrow fold (#277) ---------------------
+// ---- A1d. the phone shell: a band, a drawer, and the whole width ----------
 //
-// The reader folds the rail to the strip the viewport folds it to below 720px.
-// A media query cannot share a block with a class, so the fold is written twice
-// in layout.css, and two copies drift. Two gates stop them: the blocks compared
-// rule for rule as text, which sees pseudo-elements, and every element of the
-// rail resolved both ways, at rest and focused, which sees the cascade. The
-// toggle is left out — it is meant to differ, drawn in one and gone in the other.
+// Below 720px there is no strip. The rail stays in the markup and is not drawn, a band
+// at the top holds the menu control and the product's mark, and the same rows open in
+// the kit's left drawer. Above 720px none of those parts is drawn and the shell is the
+// grid it was. JSDOM lays nothing out, so the width of the column is read as the
+// padding that is all that stands between it and the viewport's edge.
+
+const PHONE_PARTS = ['.ui-app__bar--phone', '.ui-app__menu', '.ui-app__brand--band', '.ui-app__drawer'];
+
+test('below 720px the rail is not drawn, and the band, the menu and the mark are', () => {
+  const at = mount(PAIR(false), { narrow: true });
+  assert.equal(at.shown(at.q('.ui-app__rail')), false, 'a phone still draws the rail, or a strip of it');
+  for (const sel of ['.ui-app__bar--phone', '.ui-app__menu', '.ui-app__brand--band']) {
+    assert.equal(at.shown(at.q(sel)), true, `${sel} is not drawn below 720px, so a phone has no way to the pages`);
+  }
+  assert.equal(at.css('.ui-app', 'display'), 'flex', 'the shell is not a column below 720px, so the band cannot stick');
+  assert.equal(at.css('.ui-app', 'flexDirection'), 'column');
+});
+
+test('below 720px the reading column has the full width but for the page inset', () => {
+  const at = mount(PAIR(false), { narrow: true });
+  const inset = at.vars.get('--space-4');
+  for (const side of ['paddingLeft', 'paddingRight']) {
+    assert.equal(at.css('.ui-app__main', side), inset, `the column keeps ${at.css('.ui-app__main', side)} of ${side}, not the page inset`);
+  }
+});
+
+test('above 720px none of the phone parts is drawn and the shell is the grid it was', () => {
+  for (const [name, html] of [['default', PAIR(false)], ['collapsed', PAIR(true)], ['banded', BANDED(false)]]) {
+    const at = mount(html);
+    const parts = PHONE_PARTS.map((sel) => at.doc.querySelector(sel)).filter(Boolean);
+    assert.ok(parts.length >= 3, `the ${name} fixture stopped carrying the phone parts`);
+    for (const el of parts) {
+      assert.equal(at.shown(el), false, `${el.className} is drawn on the ${name} shell above 720px`);
+    }
+    assert.equal(at.css('.ui-app', 'display'), 'grid', `the ${name} shell is not a grid above 720px`);
+    assert.equal(at.shown(at.q('.ui-app__rail')), true, `the ${name} rail is gone above 720px`);
+  }
+});
+
+test('the rule that keeps the phone parts out of a wide page is the one holding them', () => {
+  for (const [sel, drop] of [
+    ['.ui-app__bar--phone', /\.ui-app__bar--phone \{ display: none; \}/],
+    ['.ui-app__menu', /\.ui-btn\.ui-app__menu \{ display: none; \}/],
+    ['.ui-app__brand--band', /\.ui-app__brand--band \{ display: none;/],
+    ['.ui-app__drawer', /\.ui-app__drawer \{ display: none; \}/],
+  ]) {
+    const without = mount(PAIR(false), { drop });
+    assert.equal(
+      without.css(sel, 'display') !== 'none', true,
+      `taking the base rule out left ${sel} hidden anyway, so the check above reads a default`,
+    );
+  }
+});
+
+test('a row of the drawer and the account block keep the 44px touch floor, and the wide rail does not gain it', () => {
+  const phone = mount(PAIR(false), { narrow: true, open: true });
+  for (const sel of ['.ui-app__drawer .ui-nav__item', '.ui-app__drawer .ui-app__user-trigger']) {
+    assert.ok(
+      Number.parseFloat(phone.css(sel, 'minHeight')) >= 44,
+      `${sel} resolves to ${phone.css(sel, 'minHeight')} below 720px, under the 44px a finger needs`,
+    );
+  }
+  const wide = mount(PAIR(false));
+  for (const sel of ['.ui-app__rail .ui-nav__item', '.ui-app__rail .ui-app__user-trigger']) {
+    assert.ok(
+      (Number.parseFloat(wide.css(sel, 'minHeight')) || 0) < 44,
+      `${sel} is held to 44px above 720px, which grows every row of the rail`,
+    );
+  }
+});
+
+test('the drawer carries the rail whole, and the foot of the banded layout is not repeated', () => {
+  const at = mount(PAIR(false), { narrow: true, open: true });
+  assert.equal(at.shown(at.q('.ui-app__drawer .ui-app__user')), true, 'the account block is not in the drawer');
+  assert.equal(at.shown(at.q('.ui-app__drawer .ui-nav__item.is-active')), true, 'the current page is not in the drawer');
+  assert.equal(
+    at.of(at.q('.ui-app__drawer .ui-nav__item.is-active'), 'backgroundImage'), 'none',
+    'the current row in the drawer draws more than its plate',
+  );
+});
+
+
+/* The drawer's panel is --bg-elevated, which --surface matches exactly in light, so the
+ * plate nav.css gives the current row measured 1.00:1 there while dark showed a step.
+ * The rail takes the plate to --surface-3 for the same reason; the drawer must show the
+ * same step. Limits: a JSDOM cascade with the two tokens substituted, so it reads the
+ * sheet's rules and not a browser's paint; the default accent only, since no accent
+ * moves these three tokens. */
+const DRAWER_ACTIVE = '.ui-app__drawer .ui-nav__item.is-active';
+const DRAWER_REST = '.ui-app__drawer .ui-nav__item:not(.is-active):not(.is-danger)';
+const DRAWER_STEP_MIN = 1.05;
+
+test('the drawer\'s current row, its hover and its count stand off the panel in both themes', () => {
+  for (const theme of ['dark', 'light']) {
+    const at = mount(PAIR(false), { theme, phone: true, open: true });
+    const panel = at.bg('.ui-drawer__panel');
+    const plate = ratio(at.bg(DRAWER_ACTIVE), panel);
+    assert.ok(
+      plate >= DRAWER_STEP_MIN,
+      `${theme}: the current row's plate is ${r2(plate)}:1 against the drawer's panel, under ${DRAWER_STEP_MIN}:1. `
+      + 'In light the panel is --bg-elevated, which --surface matches exactly, so only its weight marks the row.',
+    );
+    const hover = ratio(at.fill(DRAWER_REST, 'hover'), panel);
+    assert.ok(
+      hover >= 1.02,
+      `${theme}: a hovered row is ${r2(hover)}:1 against the drawer's panel, so the pointer leaves no mark.`,
+    );
+    if (theme !== 'light') continue; // dark's count is the rail's own, and carries no pill step
+    const badge = ratio(at.fill(`${DRAWER_ACTIVE} .ui-nav__badge`), at.bg(DRAWER_ACTIVE));
+    assert.ok(
+      badge >= 1.02,
+      `${theme}: the count on the current row is ${r2(badge)}:1 against its plate, so its pill is not drawn.`,
+    );
+  }
+});
+
+test('the drawer\'s light plate is the rail\'s own rung, and removing its rule is what fails the gate above', () => {
+  const light = mount(PAIR(false), { theme: 'light', phone: true, open: true });
+  const rail = ratio(light.bg('.ui-app__rail .ui-nav__item.is-active'), light.bg('.ui-app__rail'));
+  assert.ok(
+    Math.abs(ratio(light.bg(DRAWER_ACTIVE), light.bg('.ui-drawer__panel')) - rail) <= 0.005,
+    'the drawer\'s current row takes another step in light than the rail does',
+  );
+  const cut = mount(PAIR(false), {
+    theme: 'light', phone: true, open: true,
+    drop: [/:where\(:root\[data-theme="light"\]\) \.ui-app__drawer \.ui-nav__item\.is-active \{[^}]*\}/],
+  });
+  assert.ok(
+    ratio(cut.bg(DRAWER_ACTIVE), cut.bg('.ui-drawer__panel')) < DRAWER_STEP_MIN,
+    'with the rule removed the plate still stands off the panel, so the gate above cannot fail',
+  );
+});
+
+
+// ---- A1c. selector helpers for the fold's rules ----------------------------
 
 /** Split a selector list on its top-level commas. `:is(:hover, :focus-visible)`
  *  carries one of its own, and splitting on it made two selectors out of one and
@@ -313,80 +443,6 @@ function leafRules(css) {
   return out;
 }
 
-/** selector → its declarations, one entry per selector of a list, whitespace
- *  folded. A selector is keyed by the at-rules around it as well, so the same
- *  one may be written once outside @supports and once inside. A selector written
- *  twice in one context is reported rather than overwritten, since the second
- *  copy is exactly where a drift would hide. */
-function ruleMap(css, keep) {
-  const out = new Map();
-  const twice = [];
-  for (const rule of leafRules(css)) {
-    const decls = rule.decls.split(';').map((d) => d.trim().replace(/\s+/g, ' ')).filter(Boolean).sort().join('; ');
-    for (const one of selectors(rule.head)) {
-      if (!keep(one)) continue;
-      const key = rule.at ? `${rule.at} { ${one}` : one;
-      if (out.has(key)) twice.push(key);
-      out.set(key, decls);
-    }
-  }
-  assert.deepEqual(twice, [], 'a fold writes one selector twice, so comparing the last copy says nothing about the first');
-  return out;
-}
-
-/**
- * The declarations the two folds are meant NOT to share, named here rather than
- * left to look like drift. Below 720px a finger is the only pointer the strip has,
- * so a control there is held to 44px — WCAG 2.5.5 (AAA). The reader's fold cannot
- * take the same floor: a row is 35.4px open and the account block 38px, and growing
- * either on the press would move a box the travel promises holds still. Two gates
- * under this one hold both halves: the line is really in the narrow block, and the
- * press really does not raise the box in the other.
- *
- * An exclusion on its own would be a hole. This is the same shape as the fold
- * toggle, which is left out of both gates because it is drawn in one fold and
- * gone in the other — except that a value, unlike a control, can fall silently,
- * so each floor named here is measured rather than trusted.
- */
-const PHONE_ONLY = [
-  { selector: '.ui-app__rail .ui-nav__item', prop: 'min-height', floor: 44, what: 'a rail row' },
-  { selector: '.ui-app__rail .ui-app__user-trigger', prop: 'min-height', floor: 44, what: 'the account block' },
-];
-
-/**
- * The rules the 720px fold writes and the reader's fold must not, for the same
- * reason the toggle itself is left out of both gates: they are about a control
- * that is drawn in one fold and gone in the other. Below 720px the toggle is not
- * drawn, so a head band holding nothing else is padding and a hairline over
- * nothing; on the reader's fold that band holds the only control that opens the
- * rail. The rail's foot in the topbar layout is the same rule read at the other end —
- * it holds the toggle and nothing else. Each is measured both ways under this constant
- * rather than merely excluded.
- */
-const PHONE_ONLY_RULES = ['.ui-app__head:not(:has(> .ui-app__brand))', '.ui-app__brand', '.ui-app__rail .ui-app__foot'];
-
-/**
- * And the one rule the reader's fold writes that the 720px block must not, which is
- * the same exception read the other way. The toggle stands at the end of the brand
- * row and rides the closing edge back onto the glyph column, so the column it lands
- * on is the column the product's mark stands on and the lockup goes whole.
- *
- * This is the one entry that is an exception in BOTH lists, because the two blocks
- * write it in opposite directions rather than one of them writing it alone. Below
- * 720px the toggle is not drawn, so nothing arrives on the column the mark gives up
- * — and `.is-collapsed` is reachable at that width, out of the same cookie a desktop
- * press wrote or out of a documented `collapsed: true`. The 720px block therefore
- * gives the lockup back, and a rail folded on a phone keeps the product and the link
- * home. Both directions are measured under FOLD_ONLY rather than merely excluded.
- */
-const FOLD_ONLY_RULES = ['.ui-app__brand'];
-
-/** The same exception, by element and property, for the sweep that resolves the
- *  cascade rather than reading the sheet. */
-const FOLD_ONLY = [
-  { selector: '.ui-app__brand, .ui-app__brand *', props: ['opacity', 'visibility', 'pointer-events'] },
-];
-
 test('a folded rail keeps the product\'s mark in the layout where nothing takes its column', () => {
   const gone = mount(PAIR(true));
   assert.equal(
@@ -405,79 +461,6 @@ test('a folded rail keeps the product\'s mark in the layout where nothing takes 
     Number.parseFloat(kept.of(kept.q('.ui-app__brand span'), 'opacity')), 0,
     'the folded rail keeps the product\'s word as well as its mark, in a rail one glyph wide',
   );
-});
-
-/** `map` without the phone strip's own declarations, and without a rule left empty by one. */
-function withoutPhoneFloor(map) {
-  for (const { selector, prop } of PHONE_ONLY) {
-    const decls = map.get(selector);
-    if (decls == null) continue;
-    const kept = decls.split('; ').filter((d) => !d.startsWith(`${prop}:`));
-    if (kept.length) map.set(selector, kept.join('; '));
-    else map.delete(selector);
-  }
-  return map;
-}
-
-test('the collapsed rail is the narrow rail, rule for rule', () => {
-  const css = decomment(read('src/styles/layout.css'));
-  const narrow = withoutPhoneFloor(ruleMap(unwrap(css, FOLD), (sel) => !sel.startsWith('.ui-app__main')
-    && !sel.includes('.ui-app__fold') && !PHONE_ONLY_RULES.includes(sel)));
-  const collapsed = new Map([...ruleMap(css, (sel) => sel.includes('.is-collapsed') && !sel.includes('.ui-app__fold'))]
-    // The layout qualifier comes off with the fold's own: since #308 one rule is
-    // written `:where(.ui-app:not(.ui-app--topbar).is-collapsed)`, because the
-    // lockup only goes in the layout where the toggle arrives on its column. It is
-    // the same rule under the same exception, so it normalises to the same key.
-    .map(([sel, decls]) => [sel
-      .replace(/:where\(\.ui-app(?::not\(\.ui-app--topbar\))?\.is-collapsed\)\s*/g, '')
-      .replace('.ui-app.is-collapsed', '.ui-app'), decls])
-    // A forced-colours rule is not a layout rule: its desktop fold and its 720px twin
-    // sit in two separate forced-colours blocks, and selected-fill.test.js holds both.
-    .filter(([sel]) => !FOLD_ONLY_RULES.includes(sel) && !sel.startsWith('@media (forced-colors')));
-  // A floor, not a count: it catches a sweep that has stopped finding the block,
-  // and it sits under the real number so adding or removing one rule does not
-  // have to be re-typed here. The fold is short on purpose now — it closes a box
-  // over a column instead of laying every row out a second way.
-  assert.ok(narrow.size >= 12, `only ${narrow.size} rules read out of the 720px fold — this gate compares nothing`);
-  assert.deepEqual(
-    Object.fromEntries(collapsed), Object.fromEntries(narrow),
-    'the reader\'s fold and the narrow fold have drifted apart. Each rule under '
-    + ':where(.ui-app.is-collapsed) in layout.css has a twin in the 720px block — change both.',
-  );
-});
-
-test('the phone strip holds its controls to the touch floor, and the reader\'s fold does not', () => {
-  for (const { selector, prop, floor, what } of PHONE_ONLY) {
-    const box = (at) => Number.parseFloat(at.css(selector, prop)) || 0;
-
-    const narrow = box(mount(PAIR(false), { narrow: true }));
-    assert.ok(
-      narrow >= floor,
-      `${what} resolves to ${prop}: ${narrow}px below 720px, under the ${floor}px touch floor. The `
-      + 'strip is the whole of the rail at that width and a finger is the only pointer it has, so a '
-      + `control is ${floor}px there (WCAG 2.5.5). Restore it in the 720px block of layout.css.`,
-    );
-
-    // Two halves, and both are needed. "Did the press change it" catches a floor
-    // added to the `.is-collapsed` copy; "is it under the floor at all" catches one
-    // added OUTSIDE the media query, which raises both sides at once and leaves the
-    // first half green — the same blindness the equality gates have, one level down.
-    const open = box(mount(PAIR(false)));
-    const folded = box(mount(PAIR(true)));
-    assert.equal(
-      folded, open,
-      `the reader's fold takes ${what} from ${prop}: ${open}px to ${folded}px. A row is 35.4px open `
-      + 'and the account block 38px, so a floor that applies on the press grows the box and moves '
-      + 'what is under it — the one thing the travel promises not to do. The floor belongs to the '
-      + '720px block alone.',
-    );
-    assert.ok(
-      open < floor,
-      `${what} resolves to ${prop}: ${open}px on a desktop, already at the ${floor}px the phone `
-      + 'strip sets. A floor written outside the media query raises both folds together, so the '
-      + 'test above cannot see it — and every row of every rail grows by it.',
-    );
-  }
 });
 
 // A shell whose product word is in the topbar, so the rail's head band holds the
@@ -588,117 +571,6 @@ test('the band\'s theme switch keeps its square; the trigger is what gives way',
   );
 });
 
-test('the phone strip drops the rail\'s foot with nothing left in it, and the reader\'s fold keeps it', () => {
-  const narrow = mount(BANDED(false), { narrow: true });
-  assert.equal(
-    narrow.shown(narrow.q('.ui-app__foot')), false,
-    'below 720px the toggle is not drawn, so the foot that holds it in the topbar layout is 20px of '
-    + 'padding and a hairline over nothing at the bottom of the rail — the head band\'s rule, read '
-    + 'at the other end of the rail',
-  );
-
-  const folded = mount(BANDED(true));
-  assert.equal(
-    folded.shown(folded.q('.ui-app__foot')), true,
-    'the reader\'s fold took the rail\'s foot with it, and the toggle inside it is the only way back '
-    + 'to an open rail. This rule belongs to the 720px block alone.',
-  );
-  assert.equal(folded.shown(folded.q('.ui-app__fold')), true, 'the folded rail cannot be opened again');
-});
-
-test('the phone strip drops a head band with nothing left to draw, and the reader\'s fold keeps it', () => {
-  const narrow = mount(TOPPED(false), { narrow: true });
-  assert.equal(
-    narrow.shown(narrow.q('.ui-app__head')), false,
-    'below 720px the toggle is not drawn, so a head band holding only the toggle is 12px of padding '
-    + 'and a hairline over nothing at the top of the rail. Every shell with a topbar has one.',
-  );
-
-  const folded = mount(TOPPED(true));
-  assert.equal(
-    folded.shown(folded.q('.ui-app__head')), true,
-    'the reader\'s fold took the head band with it, and the toggle inside it is the only way back to '
-    + 'an open rail. This rule belongs to the 720px block alone.',
-  );
-  assert.equal(folded.shown(folded.q('.ui-app__fold')), true, 'the folded rail cannot be opened again');
-
-  // And the band a wordmark is in stays at both, which is what keeps the rule
-  // about an empty band rather than about the band.
-  const branded = mount(PAIR(false), { narrow: true });
-  assert.equal(
-    branded.shown(branded.q('.ui-app__head')), true,
-    'the rule reaches a head band that still has the product\'s mark in it, so a phone rail lost '
-    + 'the brand as well as the control',
-  );
-});
-
-test('the reader\'s fold takes the product\'s lockup whole, and the phone strip takes only its words', () => {
-  const open = mount(PAIR(false));
-  const folded = mount(PAIR(true));
-  const narrow = mount(PAIR(false), { narrow: true });
-
-  assert.equal(open.css('.ui-app__brand', 'opacity'), '1', 'the open rail fades out the mark that names the product');
-  assert.equal(
-    folded.css('.ui-app__brand', 'opacity'), '0',
-    'the folded rail keeps the lockup on the glyph column the toggle rides onto, so the product\'s mark '
-    + 'and the control that opens the rail are drawn one on top of the other. A folded rail is one '
-    + 'column wide: the control takes it, and the lockup goes with the words it carries.',
-  );
-  assert.equal(
-    folded.css('.ui-app__brand', 'visibility'), 'hidden',
-    'the folded lockup is faded to nothing but still in the tab order, so the first Tab into the rail '
-    + 'lands on an invisible link under the control that replaced it. `visibility` is what takes a box '
-    + 'out of the tab order without taking its space — and the head band needs that space, or it loses '
-    + 'the height it had on the open rail and every row below it steps up.',
-  );
-  assert.equal(folded.shown(folded.q('.ui-app__brand')), false, 'the folded lockup is still drawn');
-  assert.equal(
-    folded.css('.ui-app__brand', 'pointerEvents'), 'none',
-    'the folded lockup still takes the pointer, over the control standing on the same column',
-  );
-
-  assert.equal(
-    narrow.css('.ui-app__brand', 'opacity'), '1',
-    'below 720px the toggle is not drawn, so nothing arrives on the mark\'s column — and this fade '
-    + 'leaves the phone rail\'s head band empty. It belongs to the reader\'s fold alone.',
-  );
-  assert.equal(narrow.css('.ui-app__brand', 'visibility'), 'visible', '…and the phone strip takes the mark out of its own tab order too');
-  assert.equal(
-    narrow.css('.ui-app__brand span', 'opacity'), '0',
-    'the phone strip keeps the product\'s word beside the mark, in a rail 74px wide',
-  );
-
-  // The state the rule above is really about, and the one an exclusion on its own
-  // would hide: a rail that is BOTH below 720px and carrying `.is-collapsed`. Every
-  // default shell is `data-rail="auto"` and takes the stored choice, so a reader who
-  // folds on a desktop and opens the same site on a phone lands here, as does any
-  // caller passing the documented `collapsed: true`. The toggle is display:none at
-  // this width, so if the fade reached the mark there would be nothing in the band
-  // and nothing to press.
-  const narrowFolded = mount(PAIR(true), { narrow: true });
-  assert.equal(
-    narrowFolded.css('.ui-app__brand', 'opacity'), '1',
-    'a rail folded on a phone fades the product\'s mark off a column nothing arrives on — the toggle '
-    + 'is not drawn below 720px, so the head band is 41px of nothing over its own hairline. The fade '
-    + 'belongs to the widths where the control replaces the mark it takes.',
-  );
-  assert.equal(
-    narrowFolded.css('.ui-app__brand', 'visibility'), 'visible',
-    'a rail folded on a phone takes the lockup out of the tab order, and with the toggle not drawn at '
-    + 'this width that is the link home gone as well — the Tab walk into the rail starts at the first '
-    + 'nav row and there is no way back to an open rail at all',
-  );
-  assert.equal(
-    narrowFolded.css('.ui-app__brand', 'pointerEvents'), 'auto',
-    'a rail folded on a phone keeps the mark drawn but refuses the tap on it',
-  );
-  assert.equal(narrowFolded.shown(narrowFolded.q('.ui-app__brand')), true, 'the phone rail\'s lockup is not drawn once it is folded');
-  assert.equal(
-    narrowFolded.css('.ui-app__brand span', 'opacity'), '0',
-    'the folded phone rail keeps the product\'s word in a rail 74px wide',
-  );
-});
-
 test('the lockup leaves on the words\' clock, and its visibility rides with the fade', () => {
   const travel = travelOf({ file: 'src/styles/layout.css', selector: '.ui-app__brand' });
   assert.ok(
@@ -728,50 +600,6 @@ test('the lockup leaves on the words\' clock, and its visibility rides with the 
     'the lockup writes its transition !important, which outranks the reduced-motion net — the mark '
     + 'would fade for 150ms in front of a reader who asked for none',
   );
-});
-
-const nameOf = (el) => `${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`
-  + (el.getAttribute('aria-label') ? ` "${el.getAttribute('aria-label')}"` : '');
-const railOf = (at) => [at.q('.ui-app'), ...at.doc.querySelectorAll('.ui-app__rail, .ui-app__rail *')]
-  .filter((el) => !el.closest('.ui-app__fold-row'));
-
-test('the collapsed rail is the narrow rail, element for element', () => {
-  const diffs = [];
-  for (const theme of ['dark', 'light']) {
-    const narrow = mount(PAIR(false), { theme, narrow: true });
-    const folded = mount(PAIR(true), { theme });
-    const a = railOf(narrow);
-    const b = railOf(folded);
-    assert.equal(a.length, b.length, 'the two fixtures stopped drawing the same rail');
-    assert.ok(a.length > 20, `only ${a.length} rail elements compared — the fixture lost its blocks`);
-    const compare = (pairs, state) => {
-      for (const [x, y] of pairs) {
-        const cx = narrow.doc.defaultView.getComputedStyle(x);
-        const cy = folded.doc.defaultView.getComputedStyle(y);
-        for (const p of new Set([...Array.from(cx), ...Array.from(cy)])) {
-          // The phone strip's touch floors — see PHONE_ONLY. Held apart there.
-          if (PHONE_ONLY.some((e) => p === e.prop && x.matches(e.selector.split(' ').pop()))) continue;
-          // The product's lockup — see FOLD_ONLY_RULES. Held apart there.
-          if (FOLD_ONLY.some((e) => e.props.includes(p) && x.matches(e.selector))) continue;
-          const vx = cx.getPropertyValue(p);
-          const vy = cy.getPropertyValue(p);
-          if (vx !== vy) diffs.push(`${theme}${state} ${nameOf(x)} ${p}: narrow "${vx}", collapsed "${vy}"`);
-        }
-      }
-    };
-    compare(a.map((x, i) => [x, b[i]]), '');
-    a.forEach((row, i) => {
-      if (!row.matches('.ui-nav__item')) return;
-      row.setAttribute('data-ui-state', 'focus-visible');
-      b[i].setAttribute('data-ui-state', 'focus-visible');
-      const inside = [row, ...row.querySelectorAll('*')];
-      const twin = [b[i], ...b[i].querySelectorAll('*')];
-      compare(inside.map((x, j) => [x, twin[j]]), ` focused ${nameOf(row)} →`);
-      row.removeAttribute('data-ui-state');
-      b[i].removeAttribute('data-ui-state');
-    });
-  }
-  assert.deepEqual(diffs, [], 'the two folds resolve differently, although their rules read alike');
 });
 
 test('every entry in the collapsed rail is drawn, the current page among them', () => {
@@ -848,7 +676,7 @@ const CHIP_STATES = [['hover', 'a pointer resting on the glyph'], ['focus-visibl
 
 for (const [state, who] of CHIP_STATES) {
   test(`a folded row gives its name back to ${who}`, () => {
-    for (const at of [mount(PAIR(true)), mount(PAIR(false), { narrow: true })]) {
+    for (const at of [mount(PAIR(true))]) {
       const row = at.doc.querySelector('.ui-app__rail .ui-nav__item[aria-label]');
       row.setAttribute('data-ui-state', state);
       const label = row.querySelector('.ui-nav__label');
@@ -887,10 +715,7 @@ function chipRules(css) {
 
 test('a folded row\'s chip is placed twice: from the rail\'s width, and from the row itself', () => {
   const css = decomment(read('src/styles/layout.css'));
-  const folds = {
-    'the reader\'s fold': chipRules(css.replace(unwrap(css, FOLD), '')),
-    'the 720px fold': chipRules(unwrap(css, FOLD)),
-  };
+  const folds = { 'the reader\'s fold': chipRules(css) };
   for (const [which, { plain, anchored }] of Object.entries(folds)) {
     assert.ok(plain, `${which} draws no chip at all — a folded row has nothing but its glyph`);
     assert.equal(plain.position, 'fixed',
@@ -1345,12 +1170,14 @@ const ICONLESS = appShell({
   signOutHref: '#logout',
 });
 
-/** Every selector in the fold that draws an ::after, with the pseudo dropped. */
+/** Every selector of the reader's fold that draws an ::after, with the pseudo dropped. */
 function foldMarkSelectors() {
-  const body = unwrap(decomment(read('src/styles/layout.css')), FOLD);
-  assert.ok(body, `layout.css no longer folds at ${FOLD}`);
-  return [...body.matchAll(/([^{}]+)::after\s*\{/g)]
-    .flatMap(([, sel]) => splitSelectorList(sel));
+  const css = decomment(read('src/styles/layout.css'));
+  const marks = [...css.matchAll(/([^{}]*\.is-collapsed[^{}]*)::after\s*\{/g)]
+    .flatMap(([, sel]) => splitSelectorList(sel))
+    .map((sel) => sel.replace(/^\s*:where\(\.ui-app\.is-collapsed\)\s*/, ''));
+  assert.ok(marks.length, 'layout.css no longer draws a mark on a folded rail');
+  return marks;
 }
 
 const railRows = (html) => {
@@ -1436,8 +1263,8 @@ test('the rail\'s scroll box has room for the solid focus band at every edge', (
   const offset = substitute(vars.get('--ring-offset'), vars);
   const need = Number.parseFloat(band[0]) + Number.parseFloat(offset);
   assert.ok(Number.isFinite(need) && need > 0, 'the solid footprint did not resolve');
-  for (const [mode, html, narrow] of [['wide', SHELL, false], ['folded', SHELL, true], ['collapsed', PAIR(true), false]]) {
-    const at = mount(html, { narrow });
+  for (const [mode, html] of [['wide', SHELL], ['collapsed', PAIR(true)]]) {
+    const at = mount(html);
     for (const side of ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft']) {
       const got = Number.parseFloat(at.css('.ui-app__rail', side));
       assert.ok(
@@ -2219,16 +2046,15 @@ test('the shell offsets its rail by exactly the height the topbar actually is', 
 // ---- C7. the reader block agrees with itself -----------------------------
 
 test('the reader block is announced once, and by the words that are on screen', () => {
-  const at = mount(SHELL, { narrow: true });
-  const trigger = at.q('.ui-app__user-trigger');
-  const av = at.q('.ui-app__av');
-  const who = at.q('.ui-app__who');
-  assert.equal(at.shown(av), true, 'premise: the initials are what stays on screen at 375px');
+  const at = mount(SHELL, { narrow: true, open: true });
+  const trigger = at.q('.ui-app__drawer .ui-app__user-trigger');
+  const av = at.q('.ui-app__drawer .ui-app__av');
+  const who = at.q('.ui-app__drawer .ui-app__who');
+  assert.equal(at.shown(av), true, 'premise: the initials are drawn in the drawer');
   assert.equal(
     at.shown(who), true,
-    'the fold takes .ui-app__who out of the accessibility tree as well as off the screen, and it '
-    + 'is what names the control — the trigger would be a button with nothing in it. The fold is '
-    + 'an opacity, which a screen reader still reads.',
+    'the drawer takes .ui-app__who out of the accessibility tree as well as off the screen, and it '
+    + 'is what names the control — the trigger would be a button with nothing in it',
   );
   // The trigger is named by its own contents, so there is nothing to keep in step:
   // an aria-label here would be a second copy of the two lines under it, and the

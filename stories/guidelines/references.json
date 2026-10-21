@@ -204,7 +204,7 @@
         "pattern": "function onKeydown"
       },
       {
-        "ref": "src/components/overlay.js:97",
+        "ref": "src/components/overlay.js:101",
         "pattern": "function ownKeys"
       }
     ],
@@ -218,7 +218,7 @@
         "pattern": "function announce"
       },
       {
-        "ref": "src/components/overlay.js:236",
+        "ref": "src/components/overlay.js:240",
         "pattern": "export function returnFocus"
       }
     ],
@@ -418,7 +418,7 @@
     ],
     "one-or-the-other": [
       {
-        "ref": "src/components/shell.js:335",
+        "ref": "src/components/shell.js:371",
         "pattern": "${up || (crumbs.length"
       }
     ],
@@ -496,7 +496,7 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:217",
+        "ref": "src/assets/icons.js:222",
         "pattern": "export const iconMeanings"
       },
       {
@@ -554,7 +554,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:433",
+        "ref": "src/styles/layout.css:431",
         "pattern": "rank: page-title"
       },
       {
@@ -596,7 +596,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:326",
+        "ref": "src/styles/layout.css:324",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -630,7 +630,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:511",
+        "ref": "src/styles/layout.css:519",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -640,6 +640,42 @@
       {
         "ref": "stories/breakpoints.test.js:139",
         "pattern": "every documented step is a step something queries"
+      }
+    ]
+  },
+  "_spacing.js": {
+    "two-gaps": [
+      {
+        "ref": "src/tokens/tokens.css:28",
+        "pattern": "--space-2: 8px"
+      },
+      {
+        "ref": "src/tokens/tokens.css:33",
+        "pattern": "--space-8: 32px"
+      }
+    ],
+    "two-gaps-phone": [
+      {
+        "ref": "src/styles/tap-zone.css:28",
+        "pattern": "--tap-gap: var(--space-5"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:143",
+        "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:127",
+        "pattern": ".ui-seg--underline { row-gap: var(--space-1"
+      }
+    ],
+    "text-edge": [
+      {
+        "ref": "src/styles/segmented.css:114",
+        "pattern": "padding: var(--space-1)"
+      },
+      {
+        "ref": "src/styles/segmented.css:123",
+        "pattern": "padding: var(--space-3)"
       }
     ]
   },

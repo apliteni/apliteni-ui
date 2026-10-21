@@ -93,7 +93,9 @@ const CHECKS = {
   layout(s) {
     if (s.kind !== 'app') return [];
     const problems = [];
-    const readers = s.doc.querySelectorAll('.ui-app__user');
+    // The phone shell's drawer holds the rail's rows and its reader block; it is an overlay,
+    // drawn instead of the rail below 720px and never beside it.
+    const readers = [...s.doc.querySelectorAll('.ui-app__user')].filter((el) => !inOverlay(el));
     if (readers.length > 1) {
       problems.push(`${s.where} names the signed-in reader ${readers.length} times. The block moves `
         + 'between the two layouts; it is not drawn in both places at once, and a page with two of '

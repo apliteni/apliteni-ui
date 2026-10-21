@@ -180,6 +180,10 @@ export const iconOnlyAllowed = {
   // is the glyph a reader has already met doing this everywhere else. The entry
   // is the decision — review did not infer it from the glyph looking obvious.
   download: 'export or download the rows',
+  // The phone shell's menu control, decided in #592: below 720px the icon strip goes away
+  // and one button opens the full navigation in a drawer. The three-bar glyph is the
+  // reader's own mark for this action.
+  menu: 'open the navigation drawer',
 };
 
 // The word a wordless control's name may open with. The list above says which
@@ -200,6 +204,7 @@ export const iconOnlyNames = {
   // depicts it, so a consumer naming it that way is not borrowing the tray for
   // something else.
   download: ['export', 'download'],
+  menu: ['menu'],
 };
 
 // What a glyph means when a component picks it for the reader rather than a
