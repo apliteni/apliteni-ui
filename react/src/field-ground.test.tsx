@@ -51,9 +51,9 @@ import {
 } from '../../stories/lib/field-ground.js';
 
 const THEMES = ['dark', 'light'] as const;
-// 63 on main, plus the twelve the invoice showcase renders: four fields
+// 64 on main, plus the twelve the invoice showcase renders: four fields
 // over its NeedsReview, Editing and Ready stories (#459 r33). Move it with the specimens.
-const FIELD_COUNT = 75;
+const FIELD_COUNT = 76;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

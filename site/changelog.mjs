@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.132.0', date: '2026-10-21',
+    v: '0.133.0', date: '2026-10-21',
     changes: [
       ['added', 'The React invoice showcase demonstrates upload, review, editing and recovery with sample data. Files and edits stay in the browser tab. Refs #459.'],
       ['added', 'React `FileDrop` takes `title` to show a dashed drop area for an empty page. The kit also has `.ui-drop--page`, which enlarges that area into a layer over the whole page for a file drag. Its ground is slightly transparent and blurred, so the table shows through softly. It is solid where the browser cannot blur or the reader asks for less transparency. It starts below the topbar, or at the top of the window where the page has none. The Upload button stays the keyboard path in both. Refs #458.', ['FileDrop']],
@@ -15,6 +15,12 @@ export const RELEASES = [
       ['changed', 'The story CSS gate in the React workspace now reads every stylesheet in the showcases folder, also when its own module imports it. Refs #458.'],
       ['changed', 'Badges now include the neutral variant class when no variant is supplied. Their colours remain unchanged.', ['Badge']],
       ['fixed', 'At 720px and below, a shell band without a menu starts 16px from the left, level with the page column. Bands with a menu keep their 8px start inset. Refs #458.', ['Shell']],
+    ],
+  },
+  {
+    v: '0.132.0', date: '2026-10-21',
+    changes: [
+      ['changed', 'A dropdown in a Modal or Drawer body scrolls the body to show the whole panel with its field\'s label, and a body too short to hold it opens the panel over the body instead. A long list stops through the middle of a row, at 300px or at the room the panel has, and a `scroll: <n>` cap keeps its number, with search too. An open panel keeps one height while the reader scrolls, and opening one on a page that does not scroll adds no scroll. See #627.', ['Dropdown', 'Modal', 'Drawer']],
     ],
   },
   {
