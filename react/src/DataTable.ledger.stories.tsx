@@ -125,7 +125,7 @@ const DESKS: Desk[] = [
   { symbol: 'NORT', name: 'Northstar Analytics', weight: '128.40', lots: '3', note: 'Rebalanced into short-duration paper after the June print; the committee asked for the note to be kept on the position until September.' },
   { symbol: 'HARB', name: 'Harbor Software', weight: '96.12', lots: '12', note: 'Holding. The renewal cohort is the whole thesis and it does not settle until the next quarter closes.' },
   { symbol: 'CEDA', name: 'Cedar Infrastructure', weight: '71.85', lots: '2', note: 'Trimmed on the roll. Fabricated position, kept here because the note runs longer than the row.' },
-  { symbol: '', name: 'Cedar Infrastructure Holdings International', weight: '18.40', lots: '4', note: 'Watchlist line. It keeps the direct link shape that consumers can write without marking the cell.' },
+  { symbol: '', name: 'Cedar Infrastructure Holdings International', weight: '18.40', lots: '4', note: 'On the watchlist until the next sample review.' },
 ];
 export const StackedPinned = {
   render: () => page(
