@@ -928,3 +928,61 @@ it('renders the scroll region where the card bleed can reach it', () => {
     </div>);
   expect(container.querySelector('.ui-card > .ui-table-scroll:has(> .ui-table--dense)')).not.toBeNull();
 });
+
+describe('the vanilla table hooks', () => {
+  it('maps zebra, stack and hover onto the kit modifiers, with hover on by default', () => {
+    const { container, rerender } = render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} />);
+    const table = container.querySelector('table')!;
+    expect(table).toHaveClass('ui-table--hover');
+    expect(table).not.toHaveClass('ui-table--zebra');
+    expect(table).not.toHaveClass('ui-table--stack');
+    rerender(<DataTable columns={columns} rows={rows} selectable={false} pager={false} zebra stack hover={false} />);
+    expect(container.querySelector('table')).toHaveClass('ui-table--zebra', 'ui-table--stack');
+    expect(container.querySelector('table')).not.toHaveClass('ui-table--hover');
+  });
+
+  it('writes the roles a stacked table loses, and none otherwise', () => {
+    const { container, rerender } = render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} stack />);
+    expect(container.querySelector('table')).toHaveAttribute('role', 'table');
+    expect(container.querySelectorAll('thead th[role="columnheader"]')).toHaveLength(2);
+    expect(container.querySelectorAll('tbody tr[role="row"]')).toHaveLength(3);
+    expect(container.querySelectorAll('tbody td[role="cell"]')).toHaveLength(6);
+    rerender(<DataTable columns={columns} rows={rows} selectable={false} pager={false} />);
+    expect(container.querySelector('[role]')).toBeNull();
+  });
+
+  it('keeps the row header and footer roles of a stacked table, and labels its amounts', () => {
+    const { container } = render(<DataTable selectable={false} pager={false} stack rows={rows}
+      columns={[{ key: 'name', label: 'Name', rowHeader: true }, { key: 'clicks', label: 'Clicks', num: true }]}
+      footer={<tr><th scope="row">Total</th><td className="ui-table__num">60</td></tr>} />);
+    expect(container.querySelector('tbody th[scope="row"]')).toHaveAttribute('role', 'rowheader');
+    expect(container.querySelector('tfoot')).toHaveAttribute('role', 'rowgroup');
+    expect(container.querySelector('tbody td.ui-table__num')).toHaveAttribute('data-label', 'Clicks');
+    expect(container.querySelector('tbody td:not(.ui-table__num)')).toBeNull();
+  });
+
+  it('puts a table that does not scroll directly in its parent, so a card can bleed it', () => {
+    const { container } = render(<div className="ui-card"><DataTable columns={columns} rows={rows} selectable={false} pager={false} density="dense" /></div>);
+    expect(container.querySelector('.ui-card > table.ui-table--dense')).not.toBeNull();
+  });
+
+  it('marks target and dead rows', () => {
+    const { container } = render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+      rowState={(r) => (r.name === 'A' ? 'target' : r.name === 'B' ? 'dead' : undefined)} />);
+    const row = (name: string) => screen.getByText(name).closest('tr')!;
+    expect(row('A')).toHaveClass('is-target');
+    expect(row('B')).toHaveClass('is-dead');
+    expect(row('C')).not.toHaveAttribute('class');
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(3);
+  });
+
+  it('renders cell classes, row headers, a caption and a footer', () => {
+    const { container } = render(<DataTable selectable={false} pager={false} caption="Totals" rows={rows}
+      columns={[{ key: 'name', label: 'Name', rowHeader: true, cell: 'title' }, { key: 'clicks', label: 'Clicks', num: true, cell: 'strong' }]}
+      footer={<tr><th scope="row">Total</th><td className="ui-table__num">60</td></tr>} />);
+    expect(container.querySelector('caption')).toHaveClass('ui-sr');
+    expect(container.querySelector('tbody th[scope="row"]')).toHaveClass('ui-table__title');
+    expect(container.querySelector('tbody td')).toHaveClass('ui-table__num', 'ui-table__num--strong');
+    expect(container.querySelector('tfoot th[scope="row"]')).toHaveTextContent('Total');
+  });
+});
