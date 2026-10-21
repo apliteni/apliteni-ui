@@ -8,6 +8,8 @@ import { Modal } from './Modal';
 // @ts-expect-error -- shared CSS token resolver is JavaScript.
 import { tokensFor, substitute } from '../../stories/lib/contrast.js';
 import { KeyValueList, DrawerSection } from './KeyValueList';
+import { Dropdown } from './Dropdown';
+import { SelectField, TextField } from './Field';
 
 afterEach(() => {
   cleanup();
@@ -107,4 +109,66 @@ it.each(['light', 'dark'])('keeps drawer spacing local in %s', theme => {
     expect(getComputedStyle(list).marginTop).toBe('0px');
     expect(getComputedStyle(list).columnGap).toBe('16px');
   }
+});
+
+// jsdom resolves the declared alignment; the browser captures measure the lines.
+const controlRows = [
+  { label: 'Reference', value: 'INV-1001' },
+  { label: 'Status', value: <Dropdown label="Status" items={[{ label: 'Open', value: 'open' }]} /> },
+  { label: 'Currency', value: <SelectField label="Currency"><option>EUR</option></SelectField> },
+  { label: 'Note', value: <TextField label="Note" defaultValue="Paid by wire" /> },
+];
+const drawerSheet = () => ['../../src/styles/drawer.css', './KeyValueList.css']
+  .map(path => readFileSync(new URL(path, import.meta.url), 'utf8')).join('\n');
+const alignments = (css: string, theme: string) => {
+  const style = document.createElement('style');
+  style.dataset.kvTest = '';
+  style.textContent = substitute(css, tokensFor(theme));
+  document.head.appendChild(style);
+  const { container } = render(<KeyValueList rows={controlRows} />);
+  return [...container.querySelectorAll('.ui-drawer__row')]
+    .map(row => [...row.querySelectorAll(':scope > dt, :scope > dd')].map(cell => getComputedStyle(cell).alignSelf));
+};
+
+it.each(['light', 'dark'])('aligns a label with a field or dropdown value by itself, and leaves text rows alone, in %s', theme => {
+  const [text, ...controls] = alignments(drawerSheet(), theme);
+  expect(text).not.toContain('baseline');
+  expect(controls).toHaveLength(3);
+  for (const cells of controls) expect(cells).toEqual(['baseline', 'baseline']);
+});
+
+it('the alignment check rejects a sheet without the control row rule', () => {
+  const without = drawerSheet().replace(/\.ui-drawer__row:has\([^{]*\{[^}]*\}/, '');
+  expect(without).not.toBe(drawerSheet());
+  expect(alignments(without, 'light').flat()).not.toContain('baseline');
+});
+
+it.each(['light', 'dark'])('keeps each field label visible when a drawer value holds two fields in %s', theme => {
+  const style = document.createElement('style');
+  style.dataset.kvTest = '';
+  style.textContent = substitute(drawerSheet(), tokensFor(theme));
+  document.head.appendChild(style);
+  const { container } = render(<KeyValueList rows={[
+    { label: 'Date range', value: <><TextField label="From" /><TextField label="To" /></> },
+    { label: 'Note', value: <TextField label="Note" /> },
+  ]} />);
+  const labels = [...container.querySelectorAll('.ui-field__label')];
+  expect(labels.map(label => label.textContent)).toEqual(['From', 'To', 'Note']);
+  expect(labels.map(label => getComputedStyle(label).position)).toEqual(['static', 'static', 'absolute']);
+});
+
+it.each(['light', 'dark'])('sets the modal title in semibold strong ink in %s', theme => {
+  const style = document.createElement('style');
+  style.dataset.kvTest = '';
+  const tokens = tokensFor(theme);
+  style.textContent = substitute(['./Modal.css'].map(path => readFileSync(new URL(path, import.meta.url), 'utf8')).join('\n'), tokens);
+  document.head.appendChild(style);
+  render(<Modal open title="Invoice details" onClose={() => {}}>body</Modal>);
+  const title = document.querySelector('.rx-modal__title')!;
+  expect(getComputedStyle(title).fontWeight).toBe('600');
+  const probe = document.createElement('i');
+  probe.style.color = substitute('var(--strong)', tokens);
+  document.body.appendChild(probe);
+  expect(getComputedStyle(title).color).toBe(getComputedStyle(probe).color);
+  expect(getComputedStyle(title).color).not.toBe('');
 });

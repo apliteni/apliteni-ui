@@ -246,7 +246,7 @@ test('the accent gate actually measures something', () => {
   // decision, so it is deliberately not automatic.
   // 8 since #451 added --field-bg: a field's ground, which is an ALIAS — --surface-2 in
   // dark, --bg in light, both of them already on this list. It is left measured rather
-  // than excused because the accent IS read on a field: the focus border and the caret
+  // than excused because the accent IS read on a field: the focus ring and the caret
   // take --accent on exactly this ground, and an alias that is re-pointed one theme at a
   // time is the kind that should be measured rather than trusted to its target.
   // 11 since #537 added --code-bg, the surface an inline code chip paints, and the two

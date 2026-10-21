@@ -12,14 +12,16 @@ export function filterBar({ filters = [], label = 'Filters', clearLabel = 'Clear
         // trigger's name and the chip's own legend. why: docs/components.md#dense-financial-tables
         triggerContent: `<span class="${filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}">${esc(filterChipText(filter))}</span>`,
         ariaLabel: filterChipName(filter), open: !!filter.open && !disabled && !busy && !filter.disabled })
-      + `<button type="button" class="ui-filter-bar__remove" data-filter-remove aria-label="${esc(`Remove ${filter.label} filter`)}">×</button></fieldset>`).join('')
+      + (filterChipUnset(filter) ? ''
+        : `<button type="button" class="ui-filter-bar__remove" data-filter-remove aria-label="${esc(`Remove ${filter.label} filter`)}">×</button>`)
+      + '</fieldset>').join('')
     // Nothing to clear, no control: an unavailable action standing in an empty
     // row is the only thing in it, and it reads as a bar that has been turned
     // off rather than one with no filters on it. It is the kit's own `one-page`
     // rule — a control with no action to offer is not shown. It returns with
-    // the first chip, as a quiet text action.
+    // the first chip with a value, as a quiet text action.
     // why: docs/components.md#a-filter-row-holds-its-panels
-    + (filters.length
+    + (filters.some(filter => !filterChipUnset(filter))
       ? `<span data-filter-clear>${button({ label: clearLabel, size: 'sm', variant: clearVariant })}</span>`
       : '')
     + '</fieldset>';
@@ -44,7 +46,8 @@ export function initFilterBar(host, options = {}) {
     const chips = [...host.querySelectorAll('[data-filter-id]')].filter(c => !c.disabled);
     const same = chips.find(c => c.dataset.filterId === focus.id);
     const target = same || chips[Math.min(Math.max(focus.index, 0), chips.length - 1)];
-    const control = target?.querySelector(same && focus.remove ? '[data-filter-remove]' : '[data-dropdown-trigger]')
+    const control = (same && focus.remove ? target?.querySelector('[data-filter-remove]') : null)
+      || target?.querySelector('[data-dropdown-trigger]')
       || host.querySelector('[data-filter-clear] button');
     if (control && !control.disabled && !control.closest('fieldset:disabled')) control.focus();
     // No control of its own left to hold it: the shared pair decides where the

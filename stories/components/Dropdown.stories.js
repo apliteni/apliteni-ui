@@ -39,6 +39,10 @@ const LONG = Array.from({ length: 22 }, (_, i) => ({
   selected: i === 2,
 }));
 
+const REGIONS = ['Amsterdam', 'Auckland', 'Berlin', 'Cape Town', 'Chicago', 'Dublin', 'Frankfurt', 'Helsinki',
+  'Lisbon', 'London', 'Madrid', 'Milan', 'Mumbai', 'Oslo', 'Paris', 'Seoul', 'Singapore', 'Stockholm',
+  'Sydney', 'Tokyo', 'Toronto', 'Warsaw'].map((label) => ({ label, value: label.toLowerCase(), selected: label === 'Berlin' }));
+
 // Interactive stories return HTML strings; the preview decorator wires them via
 // wireTopbar() -> wireDropdown(). Open-state specimens pass `open: true`.
 export default {
@@ -53,7 +57,7 @@ export const Playground = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
     'Single-select — click to open, arrow keys to move, Esc to close',
-    dropdown({ label: 'version:', ariaLabel: 'Version', items: VERSIONS }),
+    dropdown({ ariaLabel: 'Version', items: VERSIONS }),
   ))),
 };
 
@@ -62,7 +66,7 @@ export const SingleSelect = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
     'Value shown in the trigger, selected row ticked',
-    dropdown({ label: 'version:', ariaLabel: 'Version', items: VERSIONS, open: true }),
+    dropdown({ ariaLabel: 'Version', items: VERSIONS, open: true }),
   ))),
 };
 
@@ -80,7 +84,7 @@ export const DescriptionsAndBadges = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
     "Set badge tone: 'state' for off, unset, disabled or archived labels in any language. English state words are a fallback only when tone is omitted.",
-    dropdown({ label: 'notify:', value: 'In-app', ariaLabel: 'Notification channel', items: CHANNELS, open: true }),
+    dropdown({ value: 'In-app', ariaLabel: 'Notification channel', items: CHANNELS, open: true }),
   ))),
 };
 
@@ -140,13 +144,13 @@ export const Scrollable = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
     'Capped height with an internal scroll for long option lists',
-    dropdown({ label: 'region:', ariaLabel: 'Region', items: LONG, scroll: true, open: true }),
+    dropdown({ ariaLabel: 'Region', items: LONG, scroll: true, open: true }),
   ), 360)),
 };
 
 // Search — a field above the rows that filters them as the reader types.
 // why: docs/components.md#a-dropdown-with-a-search-field
-const CURRENCY = { label: 'currency:', ariaLabel: 'Currency', search: { placeholder: 'Search currencies' } };
+const CURRENCY = { ariaLabel: 'Currency', search: { placeholder: 'Search currencies' } };
 
 export const Search = {
   name: 'Search — type to filter',
@@ -161,7 +165,7 @@ export const SearchOpen = {
   name: 'Search (open)',
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
-    'The field is pinned; the 29 rows scroll under it',
+    'The search field stays pinned while the rows scroll',
     dropdown({ ...CURRENCY, items: currencyItems('EUR'), open: true }),
   ), 440)),
 };
@@ -299,22 +303,16 @@ export const NearTheScreenEdges = {
   name: 'Near the screen edges',
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(full(
-    specimen(
-      'align: "end" at the start of the row, "start" at its end — open one and narrow the preview',
-      ends(
-        dropdown({ value: 'Period', variant: 'menu', ariaLabel: 'Period', align: 'end', items: ACTIONS }),
-        dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Row actions', items: ACTIONS }),
-      ),
+    ends(
+      dropdown({ value: 'Period', variant: 'menu', ariaLabel: 'Period', align: 'end', items: ACTIONS }),
+      dropdown({ value: 'Actions', variant: 'menu', ariaLabel: 'Row actions', items: ACTIONS }),
     ),
-    specimen(
-      'The same two edges, portalled and with a search field',
-      ends(
-        dropdown({ value: 'Account', variant: 'menu', ariaLabel: 'Account', align: 'end', portal: true, items: ACCOUNT }),
-        dropdown({
-          label: 'region:', ariaLabel: 'Region', items: LONG, scroll: true,
-          search: { placeholder: 'Find a region' },
-        }),
-      ),
+    ends(
+      dropdown({ value: 'Account', variant: 'menu', ariaLabel: 'Account', align: 'end', portal: true, items: ACCOUNT }),
+      dropdown({
+        ariaLabel: 'Region', items: REGIONS, scroll: true,
+        search: { placeholder: 'Search' },
+      }),
     ),
   ), 420)),
 };
@@ -335,7 +333,7 @@ export const InAppRail = {
   parameters: { layout: 'fullscreen' },
   render: () => rail(
     dropdown({
-      label: 'workspace:', ariaLabel: 'Workspace', portal: true, open: true,
+      label: 'Workspace', ariaLabel: 'Workspace', portal: true, open: true,
       items: [
         { label: 'Phoenix production', description: 'phoenix.apliteni.example', badge: 'Live', selected: true },
         { label: 'Aurora staging', description: 'aurora.apliteni.example' },

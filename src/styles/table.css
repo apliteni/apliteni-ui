@@ -50,6 +50,10 @@
 .ui-table tfoot th { text-align: right; }
 .ui-table td.ui-table__title { color: var(--strong); font-weight: var(--weight-medium); width: 99%; white-space: normal; }
 .ui-table th:last-child { padding-right: 0; }
+/* The last body cell ends where its header and the table end. A right-aligned amount in the
+   last column stood 16px in from both, because only the header and the action cell dropped
+   the cell gap. The variants below state their own end padding. why: docs/foundations.md#spacing-and-rhythm */
+.ui-table td:last-child { padding-right: 0; }
 .ui-table td.ui-table__act { padding-right: 0; text-align: right; }
 .ui-table tr.is-dead td { /* muted-ink: state — revoked row */ color: var(--muted); }
 .ui-table tr.is-dead td.ui-table__title { text-decoration: line-through; }
@@ -77,6 +81,12 @@
   border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:last-child {
   border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
+/* The hover band is the last cell, which ends where the figures end, so a hovered row's fill
+   stopped at the last glyph. The last column of a hover table keeps one cell gap of room
+   inside the band, header and body alike, so the figures and their header still share one
+   right edge. The dense and compact variants state their own end padding below, and an
+   action cell keeps none. */
+:where(.ui-table--hover:not(.ui-table--zebra)) :is(th, td):not(.ui-table__act):last-child { padding-right: var(--space-4); }
 
 /* Data-table modifiers, composable: .ui-table--dense --zebra --hover.
  *   --dense  --space-3 across, --space-2 down — one step in from the base table
@@ -189,6 +199,9 @@
   padding: var(--space-4) var(--space-4) var(--space-4) 0;
   border-radius: var(--radius-xs);
 }
+/* The last cell gave up its end gap above, so the link it holds gives up the same. */
+.ui-table td.ui-table__linked:where(:last-child) > :is(a:not([class]), a.ui-identity):only-child { padding-right: 0; }
+:where(.ui-table--hover:not(.ui-table--zebra)) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-4); }
 .ui-table--dense td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-2) var(--space-3); }
 .ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-1) var(--space-3); }
 /* Zebra insets the row's END cells only, so the fill does too: a marked identity behind a
@@ -309,7 +322,11 @@
    half, so at 24px it hides a 12px shade outright — which is why the two sizes are
    not one. why: guidelines/dense-tables.md */
 .ui-table-scroll {
-  overflow: auto; max-height: var(--ui-table-height, 70vh); padding: 0 var(--space-1);
+  overflow: auto; max-height: var(--ui-table-height, 70vh);
+  /* A transparent border, not padding: positioned cells cover an outline on the scrollport's
+     padding. The side and bottom bands draw in the border at the visible edge at every scroll
+     position. why: docs/foundations.md#the-focus-ring */
+  border: 0 solid transparent; border-inline-width: var(--space-1); border-bottom-width: var(--space-1); background-origin: border-box;
   background-color: var(--table-bg);
   background-image:
     linear-gradient(to right, var(--table-bg) 50%, transparent),
@@ -334,13 +351,22 @@
 .ui-table-scroll > .ui-table tbody td:not(.ui-table__identity, .ui-table__selection) { background-color: transparent; }
 /* The kit's first ringed scroller, and a scroll region inside a card like the rest, so
    it draws the band inward too rather than spending a halo across the card around it.
-   It had no room of its own to draw in — the padding above is horizontal — which is the
+   It had no room of its own to draw in — the border above is horizontal — which is the
    second reason the band is an outline: it is painted over the rows, in the cell padding
    of the first and last, rather than under them. #531
    why: docs/foundations.md#the-focus-ring */
 .ui-table-scroll:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+@media (forced-colors: active) {
+  .ui-table-scroll { border-color: Canvas; }
+}
 .ui-table--sticky { border-collapse: separate; border-spacing: 0; }
 .ui-table--sticky thead th { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--table-bg); padding-top: var(--space-2); }
+/* The header sticks at the region's top edge, which is where the inward band draws, and a
+   positioned cell paints over an outline. While the region holds the ring, the header
+   gives up the band's own 3px, so the ring is whole on the top side. The side bands lie in
+   the region's border, which no cell reaches.
+   why: docs/foundations.md#the-focus-ring */
+.ui-table-scroll:focus-visible .ui-table--sticky thead th { clip-path: inset(calc(var(--ring-gap-width) + var(--ring-width)) 0 0 0); }
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); border-right: 1px solid var(--border); }
 .ui-table--pinned thead .ui-table__identity, .ui-table--pinned thead .ui-table__selection { z-index: calc(var(--z-sticky) + 1); }
 /* The divider is the pin's edge: it says the column stayed while the rest moved under it.

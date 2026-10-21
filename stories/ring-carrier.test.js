@@ -94,7 +94,8 @@ test('every control that takes the ring takes the offset that places it', () => 
   // filling the table cell. The narrow table cell keeps the inward band instead.
   // 50 -> 51: #513 gives an unmarked pinned identity cell the outset band again in a
   // stacked card after the phone rule moves its direct link's focus ring to the cell.
-  assert.equal(consumers.length, 51, 'ring consumer discovery changed');
+  // 51 -> 50: #649 moves the dropdown row from the outset band to the inward scroll band.
+  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -128,7 +129,9 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // bare link has focus. The link can be longer than the clipped cell.
   // 12 -> 13: #429 puts the inward band on a contained tab row, so keyboard focus
   // on an all-disabled row keeps the band inside the clipped scroll surface.
-  assert.equal(scrollRules.length, 13,
+  // 13 -> 14: #649 draws the focused dropdown row with the inward band, so a scrolled
+  // row's ring is never clipped by the list.
+  assert.equal(scrollRules.length, 14,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 2,
     'React\'s modal body and the picker\'s shortcut row are not both among them, so the walk '
@@ -236,7 +239,7 @@ const secondBands = (subjects) => subjects.flatMap((rule) => [...rule.body.match
 test('a focus rule draws the band and no second accent edge', () => {
   // Every consumer is read, so this cannot go quiet by losing its subjects: the count
   // is the one the offset gate pins, and the two have to move together.
-  assert.equal(consumers.length, 51, 'ring consumer discovery changed');
+  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   assert.deepEqual(secondBands(consumers), []);
 });
 
