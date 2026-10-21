@@ -13,12 +13,12 @@ const meta: Meta = {
 };
 export default meta;
 
-const page = { padding: 40 } as const;
-const interactiveGrid = { display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 22 } as const;
+const page = { padding: 'var(--space-6)' } as const;
+const cardGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, var(--panel-sm)), 1fr))', gap: 'var(--space-5)' } as const;
 
 export const Variants: StoryObj = {
   render: () => <div style={page}>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 22 }}>
+    <div style={cardGrid}>
       <Card title="Default card" sub="A filled surface with a generous radius. Dark draws an edge, and light casts a soft shadow.">
         <Button variant="secondary" size="sm">Action</Button>
       </Card>
@@ -35,7 +35,7 @@ export const Variants: StoryObj = {
 
 export const Padding: StoryObj = {
   render: () => <div style={page}>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 560 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', maxWidth: 'var(--panel-lg)' }}>
       <Card pad="sm" title="Small padding" sub="Trims the vertical padding and keeps the text edge." />
       <Card title="Default padding" sub="The padding every card has without a modifier." />
     </div>
@@ -44,7 +44,7 @@ export const Padding: StoryObj = {
 
 export const LargePadding: StoryObj = {
   render: () => <div style={page}>
-    <div style={{ maxWidth: 560, margin: '0 auto' }}>
+    <div style={{ maxWidth: 'var(--panel-lg)', margin: '0 auto' }}>
       <Card pad="lg" title="Large padding" sub="The centred landing card." />
     </div>
   </div>,
@@ -52,7 +52,7 @@ export const LargePadding: StoryObj = {
 
 export const Interactive: StoryObj = {
   render: () => <div style={page}>
-    <div style={interactiveGrid}>
+    <div style={cardGrid}>
       <Card href="#" icon="layers" title="Deck" sub="The animated strategy deck." />
       <Card href="#" icon="compass" title="Text" sub="The readable long-form version." />
       <Card href="#" icon="plug" title="Agents" sub="Connect an agent over MCP." />
@@ -65,7 +65,7 @@ export const SettingRows: StoryObj = {
     const [theme, setTheme] = useState('dark');
     const [lang, setLang] = useState('en');
     const [motion, setMotion] = useState(false);
-    return <div style={page}><div style={{ maxWidth: 560 }}>
+    return <div style={page}><div style={{ maxWidth: 'var(--measure)' }}>
       <Card title="Appearance">
         <div className="ui-card__row ui-card__row--tight-choice">
           <div><div className="lab">Theme</div><div className="hint">Match the deck's dark palette or a light workspace.</div></div>

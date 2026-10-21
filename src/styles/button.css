@@ -15,7 +15,7 @@
   font-family: var(--font-sans);
   font-size: var(--btn-font);
   font-weight: var(--weight-medium);
-  line-height: 1;
+  line-height: var(--leading-tight);
   border-radius: var(--radius-sm);
   padding: var(--btn-pad-y) var(--btn-pad-x);
   cursor: pointer;
