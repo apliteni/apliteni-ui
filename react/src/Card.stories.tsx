@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Card } from './primitives/Card';
 import { Button } from './primitives/Button';
+import { Badge } from './primitives/Badge';
 import { Pill } from './primitives/Pill';
 import { Segmented } from './Segmented';
 import { Switch } from './Switch';
@@ -24,7 +25,7 @@ export const Variants: StoryObj = {
       <Card variant="accent" title="Accent card" icon="sparkle" sub="Tinted with the purple accent, for the highlighted plan or upsell.">
         <Button variant="primary" size="sm">Upgrade</Button>
       </Card>
-      <Card variant="live" title="Live surface" sub="Green-tinted, for an active/confirmed state such as a connected agent.">
+      <Card variant="live" title={<>Live surface <Badge variant="live">Live</Badge></>} sub="Green-tinted, for an active/confirmed state such as a connected agent.">
         <Pill variant="live">Connected</Pill>
       </Card>
       <Card title="With icon chip" icon="shield" sub="A leading icon chip anchors the header for feature and settings cards." />
