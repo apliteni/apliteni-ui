@@ -36,3 +36,32 @@ it('falls back to the letters when the photo fails, and tries again for a new ph
   rerender(<Avatar personKey="k" name="Mia Chen" src="https://example.com/b.jpg" />);
   expect(container.querySelector('img')).not.toBeNull();
 });
+
+it('shows a photo that completed before the ref mounted', () => {
+  const complete = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'complete');
+  const naturalWidth = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'naturalWidth');
+  Object.defineProperty(HTMLImageElement.prototype, 'complete', { configurable: true, get: () => true });
+  Object.defineProperty(HTMLImageElement.prototype, 'naturalWidth', { configurable: true, get: () => 96 });
+  try {
+    const { container } = render(<Avatar name="Mia Chen" src="/cached.png" />);
+    expect(container.querySelector('img')?.classList.contains('is-loaded')).toBe(true);
+  } finally {
+    if (complete) Object.defineProperty(HTMLImageElement.prototype, 'complete', complete);
+    if (naturalWidth) Object.defineProperty(HTMLImageElement.prototype, 'naturalWidth', naturalWidth);
+  }
+});
+
+it('removes a photo that failed before the ref mounted', () => {
+  const complete = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'complete');
+  const naturalWidth = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'naturalWidth');
+  Object.defineProperty(HTMLImageElement.prototype, 'complete', { configurable: true, get: () => true });
+  Object.defineProperty(HTMLImageElement.prototype, 'naturalWidth', { configurable: true, get: () => 0 });
+  try {
+    const { container } = render(<Avatar name="Mia Chen" src="/missing.png" />);
+    expect(container.querySelector('img')).toBeNull();
+    expect(mark(container).textContent).toBe('MC');
+  } finally {
+    if (complete) Object.defineProperty(HTMLImageElement.prototype, 'complete', complete);
+    if (naturalWidth) Object.defineProperty(HTMLImageElement.prototype, 'naturalWidth', naturalWidth);
+  }
+});

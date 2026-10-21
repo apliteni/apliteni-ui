@@ -16,6 +16,11 @@ const wiredDocs = new WeakSet();
 function wireAvatarPhotos(doc) {
   if (!doc || wiredDocs.has(doc)) return;
   wiredDocs.add(doc);
+  doc.querySelectorAll('.ui-avatar > img[data-avatar-photo]').forEach((img) => {
+    if (!img.complete) return;
+    if (img.naturalWidth > 0) img.classList.add('is-loaded');
+    else img.remove();
+  });
   doc.addEventListener('load', (event) => {
     if (event.target?.matches?.('.ui-avatar > img[data-avatar-photo]')) event.target.classList.add('is-loaded');
   }, true);
@@ -23,6 +28,8 @@ function wireAvatarPhotos(doc) {
     if (event.target?.matches?.('.ui-avatar > img[data-avatar-photo]')) event.target.remove();
   }, true);
 }
+
+if (typeof document !== 'undefined') wireAvatarPhotos(document);
 
 /**
  * @param {object} [o]

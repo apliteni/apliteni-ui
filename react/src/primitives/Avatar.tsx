@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { icon, avatarHue, avatarInitials } from '@apliteni/apliteni-ui';
 
 export type AvatarProps = {
@@ -19,6 +19,11 @@ export type AvatarProps = {
 export function Avatar({ personKey, name, src, size = 24, empty = false }: AvatarProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
+  const inspectPhoto = useCallback((img: HTMLImageElement | null) => {
+    if (!img || !src || !img.complete) return;
+    if (img.naturalWidth > 0) setLoadedSrc(src);
+    else setFailedSrc(src);
+  }, [src]);
   const base = ['ui-avatar', size === 32 && 'ui-avatar--32'];
   const cls = (...more: (string | false)[]) => [...base, ...more].filter(Boolean).join(' ');
   if (empty) return <span className={cls('ui-avatar--empty')} aria-hidden="true" />;
@@ -29,7 +34,7 @@ export function Avatar({ personKey, name, src, size = 24, empty = false }: Avata
   return (
     <span className={cls(`ui-avatar--h${avatarHue(personKey ?? name)}`)} data-initials={letters.length} aria-hidden="true">
       {letters}
-      {src && src !== failedSrc && <img src={src} alt="" loading="lazy" className={loadedSrc === src ? 'is-loaded' : undefined} onLoad={() => setLoadedSrc(src)} onError={() => setFailedSrc(src)} />}
+      {src && src !== failedSrc && <img ref={inspectPhoto} src={src} alt="" loading="lazy" className={loadedSrc === src ? 'is-loaded' : undefined} onLoad={() => setLoadedSrc(src)} onError={() => setFailedSrc(src)} />}
     </span>
   );
 }

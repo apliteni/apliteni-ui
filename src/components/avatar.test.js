@@ -162,6 +162,27 @@ test('the kit script removes a failed photo without an inline handler', () => {
   assert.equal(el.textContent, 'MC');
 });
 
+test('module startup finds photos that completed before the kit script ran', async () => {
+  const markup = avatar({ name: 'Mia Chen', src: '/cached.png' })
+    + avatar({ name: 'Mia Chen', src: '/missing.png' });
+  const dom = new JSDOM(`<body>${markup}</body>`);
+  const [loaded, failed] = dom.window.document.querySelectorAll('.ui-avatar img');
+  for (const [img, width] of [[loaded, 96], [failed, 0]]) {
+    Object.defineProperty(img, 'complete', { value: true });
+    Object.defineProperty(img, 'naturalWidth', { value: width });
+  }
+  const previous = globalThis.document;
+  Object.defineProperty(globalThis, 'document', { value: dom.window.document, configurable: true, writable: true });
+  try {
+    await import('./avatar.js?preloaded');
+    assert.ok(loaded.classList.contains('is-loaded'));
+    assert.equal(dom.window.document.querySelectorAll('.ui-avatar img').length, 1);
+    assert.equal(loaded.parentElement.textContent, 'MC');
+  } finally {
+    Object.defineProperty(globalThis, 'document', { value: previous, configurable: true, writable: true });
+  }
+});
+
 test('Chromium shows letters without a broken image under a strict CSP', {
   skip: !process.env.AVATAR_CSP && 'set AVATAR_CSP=1 and UI_PLAYWRIGHT to run the browser check',
 }, async () => {
