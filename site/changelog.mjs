@@ -6,11 +6,18 @@
 
 export const RELEASES = [
   {
-    v: '0.130.0', date: '2026-10-21',
+    v: '0.131.0', date: '2026-10-21',
     changes: [
       ['added', 'React TopBar, ViewSwitch, VersionSwitcher and AccountMenu build the strategy top bar from slots, with the existing look and the two phone rows. Part of #429.', ['Topbar']],
       ['changed', 'The current view in the Deck and Text switch has the accent fill of a chosen Segmented option. The open version menu ticks the chosen version.', ['Topbar']],
       ['changed', 'The version button shows only the chosen version name. The "version:" prefix is gone.', ['Topbar']],
+    ],
+  },
+  {
+    v: '0.130.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Toast notices accept `compact`, `dismissible` and `timer`. A compact notice omits its body text. Hiding the close button keeps the timer and the action behaviour. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it. Set `timer: false` on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn, because it could not move and read as time not yet spent. Part of #429.', ['Toast']],
     ],
   },
   {
