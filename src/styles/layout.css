@@ -526,8 +526,10 @@
   .ui-app > .ui-app__bar--phone { display: flex; }
   .ui-btn.ui-app__menu { display: inline-flex; }
   .ui-app__brand--band { display: flex; }
-  /* The menu control stands at the band's start with the band's inset beside it. */
-  .ui-app__bar { padding-inline: var(--space-2) var(--space-4); }
+  /* The first visible item lines up with the page. A leading menu uses the smaller
+     inset to keep its phone position in both shells. */
+  .ui-app__bar { padding-inline: var(--space-4); }
+  .ui-app__bar:has(> .ui-app__menu:first-child) { padding-inline-start: var(--space-2); }
   /* The drawer paints itself and sits out of the flow, so its wrapper takes no height. */
   .ui-app__drawer { display: block; }
   /* The rail's rows are the drawer's rows: the column fills the panel, and the foot

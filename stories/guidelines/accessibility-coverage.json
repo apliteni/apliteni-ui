@@ -1004,7 +1004,7 @@
       "name": "Page file drop ground",
       "does": "Resolves the page drop layer's text ink and translucent ground in both themes. Measures the lowest text contrast over every opaque colour token behind that ground against 4.5:1. Checks that the solid fallback reads at least as well, and proves that a thinner ground fails.",
       "blind": [
-        "The gate calculates token colours over solid backdrops. It does not measure browser pixels, blur, the rows behind the layer or a consumer's own colours. Browser captures cover the rendered layer."
+        "The gate calculates token colours over solid backdrops. It does not measure browser pixels, blur, rows behind the layer or a consumer's own colours. No test renders the layer, so the blur and rows behind it stay unmeasured at each head. The upload glyph is not judged because its muted ink at 60% opacity is below 3:1 on the plain light ground."
       ]
     },
     {
