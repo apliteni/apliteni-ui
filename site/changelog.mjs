@@ -11,6 +11,7 @@ export const RELEASES = [
       ['added', 'React `DataTable` takes `zebra`, `hover`, `stack`, `rowState`, `footer` and `caption`, and a column takes `rowHeader` and `cell`. Each maps to a vanilla table style, so the React table can match every Table story.', ['DataTable']],
       ['changed', 'A revoked table row now shows only the word, with no strike line. Handles in `.ui-table__code` and `.ui-identity__symbol` use the normal font. The Table stories drop the sub-line under each title, and the payout table stacks on a phone so each row keeps its amounts.', ['Table']],
       ['added', 'In a stacked table, a cell with `data-label` shows that label before its figure, and a stacked `.is-target` row paints one tint. React `DataTable` sets the label on `num` columns whose label is text, and a table that does not scroll is now a direct child of its card, so a dense or stacked table reaches the card edge.', ['Table', 'DataTable']],
+      ['changed', 'Table row hover now uses a quiet neutral fill in vanilla and React. Keyboard focus and a landed row keep their own marks.', ['Table', 'DataTable']],
     ],
   },
   {

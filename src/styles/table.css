@@ -64,7 +64,6 @@
   border-spacing: 0;
   padding: 0 var(--space-2);
 }
-.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td { background: var(--surface-2); }
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:first-child {
   border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:last-child {
@@ -98,8 +97,6 @@
 .ui-table--zebra td:first-child { padding-left: var(--space-3); }
 .ui-table--zebra th:last-child,
 .ui-table--zebra td:last-child { padding-right: var(--space-3); }
-.ui-table--zebra.ui-table--hover tbody tr:hover td,
-.ui-table--zebra tbody tr:hover td { background: color-mix(in srgb, var(--accent) 8%, transparent); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ }
 
 /* A link in a cell is a value that happens to open something: the row's ink, underlined
    on hover — what .ui-identity below has always done. Without it, base.css's bare
@@ -226,13 +223,13 @@
 
 /* White in light, base canvas in dark; never a grey or tinted data surface. */
 .ui-table { background: var(--table-bg); }
-.ui-table--zebra tbody tr:nth-child(even) td,
-.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,
-.ui-table--zebra tbody tr:hover td,
-.ui-table--zebra.ui-table--hover tbody tr:hover td {
-  background: var(--table-bg);
+.ui-table--zebra tbody tr:nth-child(even) td { background: var(--table-bg); }
+/* A row hover is a quiet neutral step. The row paints under transparent cells in a
+   scroll region, while ordinary cells cover the row without breaking its fill. */
+.ui-table--hover tbody tr:hover:not(.is-target),
+.ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th) {
+  background: var(--surface-2);
 }
-.ui-table tbody tr:hover { outline: 1px solid var(--border-strong); outline-offset: -1px; }
 
 /* The row a reference landed a reader on. The mark is a GROUND, not a line: an outline
    says the keyboard is here (Artur, r34), and this one persists — it answers which row the
@@ -324,6 +321,9 @@
    beneath them. */
 .ui-table-scroll > .ui-table,
 .ui-table-scroll > .ui-table tbody td:not(.ui-table__identity, .ui-table__selection) { background-color: transparent; }
+.ui-table-scroll > .ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th) {
+  background: var(--surface-2);
+}
 /* The kit's first ringed scroller, and a scroll region inside a card like the rest, so
    it draws the band inward too rather than spending a halo across the card around it.
    It had no room of its own to draw in — the padding above is horizontal — which is the
@@ -492,10 +492,8 @@ a.ui-identity:hover { text-decoration: underline; }
   .ui-table.ui-table--stack > tbody > tr {
     display: flex; flex-wrap: wrap; align-items: baseline;
     column-gap: var(--space-3); row-gap: var(--space-1);
-    /* The inset is on the row, not the table: the hover outline draws at the row's own
-       edge, so a pad on the table would put the outline back against the text (#71). It is
-       the step a dense cell already pays sideways, so the outline and the row separator keep
-       the clearance they had at the width above this one. */
+    /* The inset is on the row, not the table, so its hover fill and separator keep
+       their clearance at the width above this one. */
     padding: var(--space-3); border-bottom: 1px solid var(--border);
   }
   .ui-table.ui-table--stack > tbody > tr:last-child { border-bottom: 0; }
@@ -506,6 +504,9 @@ a.ui-identity:hover { text-decoration: underline; }
   .ui-table.ui-table--stack > tbody > tr > td {
     display: block; width: auto; min-width: 0; max-width: 100%; height: auto;
     padding: 0; border-bottom: 0; white-space: normal; overflow-wrap: break-word;
+  }
+  .ui-table.ui-table--stack.ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th) {
+    background: transparent;
   }
   .ui-table.ui-table--stack > tbody > tr > td.ui-table__long { flex: 0 0 100%; text-align: left; }
   /* The head is gone, so an amount that names its column in `data-label` says it in front of
