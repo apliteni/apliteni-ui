@@ -27,7 +27,10 @@ const rows = Number(params.get('rows') || '30');
 const gap = Number(params.get('gap') || '200');
 // `limit` is a consumer's own cap, the factory's `scroll: <n>`, and `find` its `search`.
 const scroll = params.get('limit') ? Number(params.get('limit')) : false;
-const items = Array.from({ length: rows }, (_, i) => ({ label: `Account ${i + 1}`, value: String(i + 1) }));
+const items = Array.from({ length: rows }, (_, i) => ({
+  label: `Account ${i + 1}`, value: String(i + 1),
+  ...(params.get('avatar') === '1' ? { avatar: { key: `account-${i + 1}`, name: `Account ${i + 1}` } } : {}),
+}));
 
 const form = Array.from({ length: before }, (_, i) => field({ label: i ? `Note ${i}` : 'Name', control: input({}) })).join('')
   + field({

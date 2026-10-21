@@ -971,6 +971,7 @@ export const PLACEMENT_CASES = [
   { id: 'drawer-landscape', kits: ['react', 'vanilla'], view: { width: 844, height: 390 }, args: { stage: 'drawer', before: 1, rows: 30 } },
   { id: 'short-drawer', kits: ['react', 'vanilla'], view: { width: 667, height: 320 }, args: { stage: 'drawer', before: 1, rows: 30 } },
   { id: 'page-room', kits: ['react', 'vanilla'], view: PHONE, still: true, args: { stage: 'page', long: false, gap: 280, rows: 30 } },
+  { id: 'avatar-page-room', kits: ['react', 'vanilla'], view: PHONE, still: true, args: { stage: 'page', long: false, gap: 280, rows: 30, avatar: true } },
   { id: 'nested-wrapper', kits: ['react', 'vanilla'], view: PHONE, shade: true, args: { stage: 'nested', before: 10, after: 6, rows: 30 } },
   { id: 'cap-420', kits: ['react', 'vanilla'], view: PHONE, cap: 420, args: { stage: 'page', long: false, gap: 700, rows: 30, limit: 420 } },
   { id: 'cap-420-search', kits: ['react', 'vanilla'], view: PHONE, cap: 420, args: { stage: 'page', long: false, gap: 700, rows: 30, limit: 420, find: true } },
@@ -1196,7 +1197,7 @@ test('the placement matrix: every case shows the whole panel with its field, in 
   // Coverage: every case was measured in every kit it names.
   const expected = PLACEMENT_CASES.reduce((n, c) => n + c.kits.length, 0);
   assert.equal(results.length, expected, 'a case was not measured');
-  assert.equal(expected, 23, 'the matrix changed size: update this count with the case');
+  assert.equal(expected, 25, 'the matrix changed size: update this count with the case');
   assert.deepEqual(results.filter((r) => r.problems.length).map((r) => r.row), [], 'placement cases failed');
 });
 

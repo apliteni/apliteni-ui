@@ -28,15 +28,19 @@ type PlacementArgs = {
   // props, whose own controls would refuse these values in a URL.
   find: boolean;
   limit: number;
+  avatar: boolean;
 };
-const ACCOUNTS = (n: number): DropdownEntry[] => Array.from({ length: n }, (_, i) => ({ label: `Account ${i + 1}`, value: String(i + 1) }));
+const ACCOUNTS = (n: number, withAvatar: boolean): DropdownEntry[] => Array.from({ length: n }, (_, i) => ({
+  label: `Account ${i + 1}`, value: String(i + 1),
+  ...(withAvatar ? { avatar: { key: `account-${i + 1}`, name: `Account ${i + 1}` } } : {}),
+}));
 // URL args arrive as text, so each number is read as one.
-function PlacementForm({ before, after, rows, find, limit }: PlacementArgs) {
+function PlacementForm({ before, after, rows, find, limit, avatar }: PlacementArgs) {
   return (
     <>
       {Array.from({ length: Number(before) }, (_, i) => <TextField key={i} label={i ? `Note ${i}` : 'Name'} />)}
       <Field label="Account">{(control) => (
-        <Dropdown {...control} variant="select" items={ACCOUNTS(Number(rows))} placeholder="Choose an account"
+        <Dropdown {...control} variant="select" items={ACCOUNTS(Number(rows), avatar)} placeholder="Choose an account"
           search={find || undefined} scroll={Number(limit) || undefined} />
       )}</Field>
       {Array.from({ length: Number(after) }, (_, i) => <TextField key={i} label={`Detail ${i + 1}`} />)}
@@ -44,7 +48,7 @@ function PlacementForm({ before, after, rows, find, limit }: PlacementArgs) {
   );
 }
 export const InAForm: StoryObj<PlacementArgs> = {
-  args: { stage: 'modal', before: 1, after: 0, rows: 30, gap: 200, long: false, find: false, limit: 0 },
+  args: { stage: 'modal', before: 1, after: 0, rows: 30, gap: 200, long: false, find: false, limit: 0, avatar: false },
   parameters: { layout: 'fullscreen' },
   render: (args) => {
     const [open, setOpen] = useState(true);

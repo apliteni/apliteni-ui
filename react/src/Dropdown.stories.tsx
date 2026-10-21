@@ -202,7 +202,7 @@ export const Closed: StoryObj<typeof Dropdown> = {
  * why: docs/components.md#the-dropdown-panel */
 const Ends = ({ children }: { children: React.ReactNode }) => (
   <div style={{
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)', width: '100%',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)',
   }}
   >
     {children}
