@@ -5,6 +5,9 @@ import './Toast.css';
 
 export type ToastNotice = {
   tone?: 'success' | 'danger' | 'warn' | 'info' | 'neutral';
+  compact?: boolean;
+  dismissible?: boolean;
+  timer?: boolean | number;
   title: string;
   text?: string;
   action?: { label: string; onClick: () => void };
@@ -23,11 +26,13 @@ function Notice({ notice, remove }: { notice: ToastNotice; remove: () => void })
   const root = useRef<HTMLDivElement>(null);
   const [leaving, setLeaving] = useState(false);
   const dismissed = useRef(false);
-  const remaining = useRef(5000);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const paused = hovered || focused;
   const tone = notice.tone ?? 'success';
+  const timed = !notice.action && notice.timer !== false && notice.timer !== 0;
+  const duration = typeof notice.timer === 'number' ? notice.timer * 1000 : 5000;
+  const remaining = useRef(duration);
   const dismiss = useCallback(() => {
     if (dismissed.current) return;
     dismissed.current = true;
@@ -46,17 +51,17 @@ function Notice({ notice, remove }: { notice: ToastNotice; remove: () => void })
   }, [leaving, remove]);
 
   useEffect(() => {
-    if (leaving || notice.action || paused) return;
+    if (leaving || !timed || paused) return;
     const started = Date.now();
     const timer = setTimeout(dismiss, remaining.current);
     return () => {
       clearTimeout(timer);
       remaining.current = Math.max(0, remaining.current - (Date.now() - started));
     };
-  }, [dismiss, leaving, notice.action, paused]);
+  }, [dismiss, leaving, paused, timed]);
 
   return (
-    <div ref={root} className={`ui-toast ui-toast--${tone} ui-toast--soft${leaving ? ' is-leaving' : ''}`}
+    <div ref={root} className={`ui-toast ui-toast--${tone} ui-toast--soft${notice.compact ? ' ui-toast--compact' : ''}${leaving ? ' is-leaving' : ''}`}
       role={tone === 'danger' ? 'alert' : 'status'} aria-live={tone === 'danger' ? 'assertive' : 'polite'}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}
@@ -64,17 +69,17 @@ function Notice({ notice, remove }: { notice: ToastNotice; remove: () => void })
       <span className="ui-toast__icon"><Icon name={glyphs[tone]} /></span>
       <div className="ui-toast__body">
         <div className="ui-toast__title">{notice.title}</div>
-        {notice.text && <div className="ui-toast__text">{notice.text}</div>}
+        {!notice.compact && notice.text && <div className="ui-toast__text">{notice.text}</div>}
       </div>
       {notice.action && <button type="button" className="ui-toast__action" disabled={leaving}
         onClick={() => { if (!dismissed.current) { dismiss(); notice.action!.onClick(); } }}>
         {notice.action.label}
       </button>}
-      <button type="button" className="ui-toast__close" aria-label="Dismiss" disabled={leaving} onClick={dismiss}>
+      {notice.dismissible !== false && <button type="button" className="ui-toast__close" aria-label="Dismiss" disabled={leaving} onClick={dismiss}>
         <Icon name="x" />
-      </button>
-      {!notice.action && <span className="ui-toast__timer is-running" aria-hidden="true"
-        style={{ animationPlayState: paused ? 'paused' : 'running' }} />}
+      </button>}
+      {timed && <span className="ui-toast__timer is-running" aria-hidden="true"
+        style={{ animationDuration: `${duration}ms`, animationPlayState: paused ? 'paused' : 'running' }} />}
     </div>
   );
 }

@@ -6,10 +6,18 @@
 
 export const RELEASES = [
   {
-    v: '0.132.0', date: '2026-10-20',
+    v: '0.131.0', date: '2026-10-21',
     changes: [
       ['added', 'React `Feedback` shows a "Give feedback" pill on a text selection and opens a form with the quoted passage and a note. You pass `onSend`. A sent note shows one line of thanks and a failed send keeps the note with the error in place. Cancel, Send and Close use the kit\'s buttons. See #429.', ['Feedback']],
       ['fixed', 'The error line in the feedback form now clears WCAG AA contrast in the dark theme. It was 4.37:1 and now uses the danger chip ink. The vanilla and React forms share this change.', ['Feedback']],
+      ['changed', 'The feedback form uses neutral ink for its section title, icon and quote mark. Its primary action keeps the accent. Vanilla and React share this change. See #699.', ['Feedback']],
+    ],
+  },
+  {
+    v: '0.130.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Toast notices accept `compact`, `dismissible` and `timer`. A compact notice omits its body text. Hiding the close button keeps the timer and the action behaviour. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it. Set `timer: false` on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn, because it could not move and read as time not yet spent. Part of #429.', ['Toast']],
     ],
   },
   {

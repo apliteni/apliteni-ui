@@ -861,14 +861,20 @@ upload.
 
 ### React toasts
 
+React notices accept `compact`, `dismissible` and `timer`. `compact` omits body text.
+`dismissible={false}` hides the close button without changing timing or action behavior.
+`timer={false}` keeps the notice until the reader dismisses it. A numeric `timer` sets the
+auto-dismiss seconds.
+
 `Toast` and `useToast()` render the vanilla toast classes in a fixed stack. The newest notice is
 at the bottom. The stack is anchored to the bottom-right corner. **The provider publishes how far
 the stack reaches up the viewport** as `--rx-toast-stack` on the document root. It is `0px` while
 the stack is empty. A fixed page action can use this value to stay clear of any number of notices.
 Use **one** provider per document, because that property is a document-root global. Notices without
-actions dismiss after five seconds. They pause while hovered or focused. Notices with an action
-stay until the reader selects or dismisses it. Ordinary notices are polite. Danger notices are
-assertive. Adding a notice does not move focus.
+actions dismiss after five seconds. Their countdown and timer bar pause while hovered or
+focused, then resume with the remaining time. Notices with an action stay until
+the reader selects or dismisses it. Ordinary notices are polite. Danger notices are assertive.
+Adding a notice does not move focus.
 
 ### React search field
 
