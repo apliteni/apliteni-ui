@@ -16,6 +16,9 @@ import { toast } from './index.js';
 const reduceMotion = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+const resolve = (container) =>
+  (typeof container === 'string' ? document.querySelector(container) : container) || null;
+
 // Slide-and-fade a toast out, then remove it. Idempotent.
 export function dismissToast(el) {
   if (!el || el.dataset.leaving) return;
@@ -36,20 +39,41 @@ function wireToast(el) {
   el.querySelector('.ui-toast__close')?.addEventListener('click', () => dismissToast(el));
 
   const bar = el.querySelector('[data-toast-timer]');
-  if (bar && !reduceMotion()) {
+  if (bar) {
     bar.classList.add('is-running');
     const dur = parseFloat(getComputedStyle(el).getPropertyValue('--toast-dur')) || 5;
-    let timer = setTimeout(() => dismissToast(el), dur * 1000);
-    el.addEventListener('mouseenter', () => { clearTimeout(timer); bar.style.animationPlayState = 'paused'; });
-    el.addEventListener('mouseleave', () => {
-      bar.style.animationPlayState = 'running';
-      const left = (parseFloat(getComputedStyle(bar).transform.split(',')[0].slice(7)) || 1);
-      timer = setTimeout(() => dismissToast(el), dur * 1000 * left);
-    });
-  } else if (bar && reduceMotion()) {
-    // No animated bar under reduced motion, but still auto-dismiss on time.
-    const dur = parseFloat(getComputedStyle(el).getPropertyValue('--toast-dur')) || 5;
-    setTimeout(() => dismissToast(el), dur * 1000);
+    let remaining = dur * 1000;
+    let started = Date.now();
+    let timer = setTimeout(() => dismissToast(el), remaining);
+    // The line's own pause lives in the sheet, on :hover and :focus-within, so
+    // it covers a keyboard reader too. What is left here is the countdown that
+    // has to stop with it. This runs even under reduced motion, where the line
+    // is hidden but the reader still gets the same hold.
+    let held = false;
+    const hold = () => {
+      if (held) return;
+      held = true;
+      clearTimeout(timer);
+      const visualLeft = !reduceMotion()
+        ? parseFloat(getComputedStyle(bar).transform.split(',')[0].slice(7))
+        : NaN;
+      remaining = Number.isFinite(visualLeft)
+        ? dur * 1000 * visualLeft
+        : Math.max(0, remaining - (Date.now() - started));
+    };
+    const release = () => {
+      if (!held || el.matches(':hover, :focus-within')) return;
+      held = false;
+      started = Date.now();
+      timer = setTimeout(() => dismissToast(el), remaining);
+    };
+    el.addEventListener('mouseenter', hold);
+    el.addEventListener('mouseleave', release);
+    el.addEventListener('focusin', hold);
+    // At focusout the old target has already blurred and the new one has not
+    // focused yet, so :focus-within reads false even for a move from the close
+    // button to the action. relatedTarget is the only thing that knows.
+    el.addEventListener('focusout', (e) => { if (!el.contains(e.relatedTarget)) release(); });
   }
 
   // Swipe-to-dismiss (ignore drags that start on a button).
@@ -77,7 +101,7 @@ function wireToast(el) {
 
 // Wire every toast currently inside a container (string selector or element).
 export function wireToastStack(container) {
-  const root = typeof container === 'string' ? document.querySelector(container) : container;
+  const root = resolve(container);
   if (!root) return null;
   root.querySelectorAll('.ui-toast').forEach(wireToast);
   return root;
@@ -85,7 +109,7 @@ export function wireToastStack(container) {
 
 // Build a toast from opts, prepend it to a live stack (newest on top), wire it.
 export function pushToast(container, opts = {}) {
-  const root = typeof container === 'string' ? document.querySelector(container) : container;
+  const root = resolve(container);
   if (!root) return null;
   root.insertAdjacentHTML('afterbegin', toast(opts));
   const el = root.firstElementChild;

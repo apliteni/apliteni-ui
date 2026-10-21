@@ -61,6 +61,13 @@ its purpose decided the direction: a dense table rounds down, and clearance roun
 different padding can stack in one column while their text lines up. It also lets a dense or
 zebra table inside a card start its first column at the card's own text edge.
 
+**Two gaps space a page.** The inner gap, `--space-2` (8px), separates the parts of one group:
+a title and what it names, a control row and the table it filters, wrapped rows of controls. The
+group gap, `--space-8` (32px), separates groups: the page head and its first block, one section
+and the next. On a touch phone the inner gap of a group of small controls is `--tap-gap` (20px),
+and the view strip wraps its rows `--space-1` (4px) apart. A control that draws no box starts its
+first label on the page title's edge.
+
 ## Typefaces
 
 The kit uses two families, and the split is based on role:

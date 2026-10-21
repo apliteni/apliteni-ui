@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.128.0', date: '2026-10-20',
+    v: '0.131.0', date: '2026-10-21',
     changes: [
       ['added', 'The React invoice showcase demonstrates upload, review, editing and recovery with sample data. Files and edits stay in the browser tab. Refs #459.'],
       ['added', 'React `FileDrop` takes `title` to show a dashed drop area for an empty page. The kit also has `.ui-drop--page`, which enlarges that area into a layer over the whole page for a file drag. Its ground is slightly transparent and blurred, so the table shows through softly. It is solid where the browser cannot blur or the reader asks for less transparency. It starts below the topbar, or at the top of the window where the page has none. The Upload button stays the keyboard path in both. Refs #458.', ['FileDrop']],
@@ -14,6 +14,26 @@ export const RELEASES = [
       ['changed', 'The invoice showcase no longer offers Undo after Save. Save shows the Toast "Saved" and the form keeps Save and Discard. Refs #458.'],
       ['changed', 'The story CSS gate in the React workspace now reads every stylesheet in the showcases folder, also when its own module imports it. Refs #458.'],
       ['changed', 'Badges now include the neutral variant class when no variant is supplied. Their colours remain unchanged.', ['Badge']],
+    ],
+  },
+  {
+    v: '0.130.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Toast notices accept `compact`, `dismissible` and `timer`. A compact notice omits its body text. Hiding the close button keeps the timer and the action behaviour. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it. Set `timer: false` on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn, because it could not move and read as time not yet spent. Part of #429.', ['Toast']],
+    ],
+  },
+  {
+    v: '0.129.0', date: '2026-10-20',
+    changes: [
+      ['changed', 'At 720px and below, both shells replace the icon strip with a top band, a menu button, and the brand mark. The button opens the full rail in a left drawer, content uses the full width, and widths above 720px stay unchanged. React `AppShell` also removes its phone bottom bar, More drawer, and `--ui-app-bottom-clearance`.', ['Shell']],
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.128.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
     ],
   },
   {

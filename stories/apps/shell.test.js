@@ -650,8 +650,8 @@ test('the rail claims no DOM id, so two shells on one page do not collide', () =
 test('two shells on one page do not share the brand mark\'s clip id', () => {
   const doc = dom(appShell({ word: 'A' }) + appShell({ word: 'B' }));
   const ids = [...doc.querySelectorAll('.ui-app__brand [id]')].map((n) => n.id);
-  assert.equal(ids.length, 2, 'the rail head stopped emitting a clip id — this gate measures nothing now');
-  assert.notEqual(ids[0], ids[1], 'both rail heads clip through the same DOM id');
+  assert.equal(ids.length, 4, 'a rail head and a band mark stopped emitting a clip id each — this gate measures nothing now');
+  assert.equal(new Set(ids).size, ids.length, 'two marks clip through the same DOM id');
 });
 
 // The narrow rail folds `.ui-app__brand span` out of view and prism() is
@@ -1127,7 +1127,7 @@ const WIDTHS = ['centered', 'wide'];
 
 test('the topbar layout draws a band, and the layout the kit has always drawn draws none', () => {
   assert.equal(
-    dom(LAID({ layout: 'rail' })).querySelector('.ui-app__bar'), null,
+    dom(LAID({ layout: 'rail' })).querySelector('.ui-app__bar:not(.ui-app__bar--phone)'), null,
     'the default layout grew a band of its own, so every page already on appShell() has one it '
     + 'never asked for',
   );
@@ -1164,13 +1164,17 @@ test('the band stands beside the rail, in the shell\'s own second column', () =>
 test('one reader block, and the layout says where it stands', () => {
   for (const layout of LAYOUTS) {
     const doc = dom(LAID({ layout }));
-    const blocks = doc.querySelectorAll('.ui-app__user');
+    const blocks = doc.querySelectorAll('.ui-app__user:not(.ui-app__drawer *)');
     assert.equal(
       blocks.length, 1,
       `${layout} draws ${blocks.length} reader blocks. The block moves between the layouts; a page `
       + 'with two of them asks a reader which one ends their session.',
     );
     const inBand = !!blocks[0].closest('.ui-app__bar');
+    assert.equal(
+      doc.querySelectorAll('.ui-app__drawer .ui-app__user').length, layout === 'topbar' ? 0 : 1,
+      `the phone drawer on the ${layout} layout does not carry the reader exactly where the page does not`,
+    );
     assert.equal(
       inBand, layout === 'topbar',
       `on the ${layout} layout the reader stands ${inBand ? 'on the band' : 'at the rail\'s foot'}, `
@@ -1230,7 +1234,7 @@ test('the banded layout keeps the product\'s mark in the rail\'s head', () => {
     'the head band still holds the toggle in the banded layout, so the rail has a control at each end',
   );
   assert.equal(
-    doc.querySelector('.ui-app__bar .ui-app__brand'), null,
+    doc.querySelector('.ui-app__bar .ui-app__brand:not(.ui-app__brand--band)'), null,
     'the band says the product word as well as the rail, so the page names the product twice on one line',
   );
 });
@@ -1352,7 +1356,7 @@ test('the number under the width is the caller\'s, and it survives either name',
 test('a layout or a width the kit does not know is the one it has always drawn', () => {
   for (const bad of ['Topbar', 'banner', '', null, 0, ['topbar']]) {
     assert.doesNotMatch(
-      LAID({ layout: bad }), /ui-app__bar/,
+      LAID({ layout: bad }), /ui-app__well/,
       `layout: ${JSON.stringify(bad)} drew half a second layout. A name the kit knows is a layout; `
       + 'anything else is the default, because a typo must not draw a page with no reader on it.',
     );
@@ -1368,7 +1372,7 @@ test('a layout or a width the kit does not know is the one it has always drawn',
 test('one band over a page, never two', () => {
   const html = LAID({ layout: 'topbar', topbar: { word: 'Finance' } });
   assert.equal(
-    (html.match(/<header/g) || []).length, 1,
+    (html.match(/<header class="ui-app__bar/g) || []).length, 1,
     'a caller who passed both the banded layout and the compatibility topbar bag got two headers '
     + 'stacked on one page. The layout they asked for is the one they get.',
   );

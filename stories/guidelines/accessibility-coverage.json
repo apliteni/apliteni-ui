@@ -969,6 +969,14 @@
       ]
     },
     {
+      "file": "stories/phone-shell.test.js",
+      "name": "Phone shell controls",
+      "does": "Measures the React phone band in Chromium at 320 and 390 with fine and coarse pointers. Checks the brand link, full accessible names, visible ellipsis, tap targets, viewport bounds, Dropdown panel hit testing, and native Tab and Shift+Tab in a shadow-root drawer. Checks the brand and reading column across 720 and 721.",
+      "blind": [
+        "The source half reads only declarations and markup. The browser half needs PHONE_SHELL=1, a built Storybook and Playwright, so routine CI does not prove these measurements. Other consumer band controls are not measured."
+      ]
+    },
+    {
       "file": "stories/rail-ring-room.test.js",
       "name": "Rail ring room",
       "does": "Resolves source CSS in JSDOM in both themes. Discovers rail rows whose outline matches a reference control. Checks row coverage, declared widths, and space for the outline through padding or an unclipped rail. Checks the border-box premise. Four failing mutations cover clipping, oversized rows, padding spent inside the rail, and unreadable percentage widths. A padded rail with narrower rows is a passing control.",
@@ -989,6 +997,14 @@
         "1.1:1 is not a WCAG number and does not stand in for one: WCAG sets no contrast requirement for a background that carries no information by itself, and the ink ON these items is measured by stories/contrast-dark.test.js and stories/contrast-light.test.js instead. The grounds are named here rather than discovered, because which container an item ends up inside is not in the stylesheets; an item whose ground its own component does not fix — the pager, which stands on the page in one showcase and on a card in another — is a named exclusion and says so beside its rule.",
         "The pager current-page mark is the only named exclusion. Its containing ground varies. Accent fills and rules that remove a fill are classified separately.",
         "Nothing is laid out or painted: this reads declared values with the tokens substituted. It cannot see a fill covered by a pseudo-element, one a width query makes unreachable, or what any of them looks like on a real screen. A box painted WITHIN a selected item rather than being its mark — a count badge, an icon tile — is not discovered at all, because its marker sits on an ancestor compound."
+      ]
+    },
+    {
+      "file": "stories/file-drop-ground.test.js",
+      "name": "Page file drop ground",
+      "does": "Resolves the page drop layer's text ink and translucent ground in both themes. Measures the lowest text contrast over every opaque colour token behind that ground against 4.5:1. Checks that the solid fallback reads at least as well, and proves that a thinner ground fails.",
+      "blind": [
+        "The gate calculates token colours over solid backdrops. It does not measure browser pixels, blur, the rows behind the layer or a consumer's own colours. Browser captures cover the rendered layer."
       ]
     },
     {

@@ -117,9 +117,9 @@ test('every parenthesised selector the kit writes survives the shared splitter',
   // move an exact one, and the subject set this gate measures is the next line.
   assert.ok(PRELUDES.length > 500, `only ${PRELUDES.length} rules discovered — the sweep lost its sheets`);
   assert.equal(
-    PARENTHESISED.length, 47,
+    PARENTHESISED.length, 43,
     'the kit\'s parenthesised selector lists changed; the current set is one field-zoom rule, '
-    + 'ten layout rail rules, four nav rules, twenty-one table rules, four finance composition rules, two invoice showcase rules, two tap-zone rules and three checkbox mark rules',
+    + 'six layout rail rules, four nav rules, twenty-one table rules, four finance composition rules, two invoice showcase rules, two tap-zone rules and three checkbox mark rules',
   );
   const bad = PARENTHESISED.flatMap(({ file, selector }) => offences(selector, splitSelectorList).map((o) => `${file}  ${o}`));
   assert.deepEqual(bad, [], `the shared splitter tore a selector apart:\n  ${bad.join('\n  ')}`);

@@ -13,6 +13,7 @@ import * as labelsContent from './_labels-and-titles.js';
 import * as buttonLabelsContent from './_button-labels.js';
 import * as iconographyContent from './_iconography.js';
 import * as layoutContent from './_layout-and-density.js';
+import * as spacingContent from './_spacing.js';
 import * as denseContent from './_dense-tables.js';
 import * as floorContent from './_accessibility-floor.js';
 import * as paginationContent from './_pagination.js';
@@ -39,6 +40,7 @@ import * as labelsStory from './LabelsAndTitles.stories.js';
 import * as buttonLabelsStory from './ButtonLabels.stories.js';
 import * as iconographyStory from './Iconography.stories.js';
 import * as layoutStory from './LayoutAndDensity.stories.js';
+import * as spacingStory from './Spacing.stories.js';
 import * as denseStory from './DenseTables.stories.js';
 import * as floorStory from './AccessibilityFloor.stories.js';
 import * as paginationStory from './Pagination.stories.js';
@@ -70,6 +72,7 @@ const ENTRIES = [
   [buttonLabelsContent, buttonLabelsStory],
   [iconographyContent, iconographyStory],
   [layoutContent, layoutStory],
+  [spacingContent, spacingStory],
   [densityAccentContent, densityAccentStory],
   [denseContent, denseStory],
   [floorContent, floorStory],
