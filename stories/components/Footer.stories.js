@@ -4,7 +4,9 @@ import { themeToggle } from '../../src/components/topbar.js';
 
 export default {
   title: 'Components/Footer',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', viewport: { options: {
+    phone: { name: 'Phone', styles: { width: '390px', height: '844px' }, type: 'mobile' },
+  } } },
 };
 
 const COLUMNS = [
@@ -70,8 +72,8 @@ export const App = {
 
 export const MobileStacked = {
   name: 'Full — mobile stacked',
-  parameters: { viewport: { defaultViewport: 'mobile1' } },
-  render: () => `<div style="max-width:430px;margin:0 auto">${footer({
+  globals: { viewport: { value: 'phone', isRotated: false } },
+  render: () => `<div style="width:390px;max-width:100%;margin:0 auto">${footer({
     variant: 'full',
     brand: { word: 'Strategy' },
     tagline: 'Columns collapse to a single stacked list on narrow screens.',

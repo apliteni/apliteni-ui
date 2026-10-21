@@ -817,6 +817,24 @@ the trigger's trailing edge. Without `ariaLabel` the trigger's own text is its a
 name, so a control reading "17 September 2026" is heard as that rather than as its
 placeholder. The popover stays mounted while closed, and is `inert` while it is.
 
+## Footer
+
+`Footer` draws the kit's `full`, `slim` and `app` versions. The full version takes
+brand text, a tagline, social links and link columns. The columns sit side by side
+on an iPad or desktop and stack on a phone. Supply legal text and links for every
+version. Pass `AccentPicker` and `ThemeToggle` through `switcher` when needed.
+
+```tsx
+<Footer variant="full" tagline="A short product line"
+  columns={[{ title: 'Product', links: [{ label: 'Overview', href: '/overview' }] }]}
+  legal="© 2026 Example" switcher={<ThemeToggle />} />
+```
+
+Use `brand` to replace the lockup with React content. Set `brand={false}` to hide
+the brand block. Use `links` for React link columns in place of `columns`.
+Use `legal` for text or React content. The component uses the kit's footer classes
+and stylesheet.
+
 ## AccentPicker
 
 `AccentPicker` is a controlled group of the kit’s four accent swatches. Pass `value`

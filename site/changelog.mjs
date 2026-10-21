@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.134.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Footer provides full, slim and app layouts with brand, links, legal and switcher parts. Footer link columns sit side by side on iPad and desktop and stack on a phone in React and vanilla. Part of #429.', ['Footer']],
+      ['fixed', 'The LinkedIn social mark now has a visible solid shape in React and vanilla footers. Before, only the small letters appeared.', ['Footer']],
+    ],
+  },
+  {
     v: '0.133.0', date: '2026-10-21',
     changes: [
       ['added', 'The React invoice showcase demonstrates upload, review, editing and recovery with sample data. Files and edits stay in the browser tab. Refs #459.'],
