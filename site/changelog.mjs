@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.132.0', date: '2026-10-21',
+    changes: [
+      ['changed', 'A dropdown in a Modal or Drawer body scrolls the body to show the whole panel with its field\'s label, and a body too short to hold it opens the panel over the body instead. A long list stops through the middle of a row, at 300px or at the room the panel has, and a `scroll: <n>` cap keeps its number, with search too. An open panel keeps one height while the reader scrolls, and opening one on a page that does not scroll adds no scroll. See #627.', ['Dropdown', 'Modal', 'Drawer']],
+    ],
+  },
+  {
     v: '0.131.0', date: '2026-10-20',
     changes: [
       ['added', 'A person mark: `avatar()` and React `Avatar` draw first and last initials on one of eight fixed hues chosen from the person\'s key, at 24 or 32 px. An empty name draws the `user` glyph, `empty` draws a dashed ring and a photo that fails to load shows the letters. Part of #628.', ['Avatar']],

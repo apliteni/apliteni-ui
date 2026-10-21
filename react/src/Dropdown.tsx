@@ -5,7 +5,7 @@ import {
 } from 'react';
 import {
   icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs, dropdownViewportFit,
-  dropdownHeightFit, filterPanelRow,
+  dropdownHeightFit, dropdownLift, dropdownReveal, dropdownRest, dropdownSnap, filterPanelRow,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 import { Avatar } from './primitives/Avatar';
@@ -237,6 +237,7 @@ export function Dropdown({
   // selected row. Read in a layout effect, because the rows have to be styled open
   // before one of them can take focus. why: docs/components.md#the-dropdown-panel
   const landOn = useRef<number | 'selected' | null>(null);
+  const revealed = useRef(false);
   // The pointer's last position. A move event carrying the one it already had is the
   // browser's own after a scroll, not the reader's, and it would take the active row
   // away from the arrows.
@@ -471,12 +472,20 @@ export function Dropdown({
     };
   }, [open]);
 
+  /* An open panel has its box; a shut one gives it back once its fade is over, so it
+   * adds no scroll room. Ordered before the sizing below, which measures the box.
+   * why: docs/components.md#the-dropdown-panel */
+  useIsoLayoutEffect(() => {
+    const el = panel.current;
+    if (!el || !root.current) return undefined;
+    return dropdownRest(root.current, el, open);
+  }, [open]);
+
   /* The room the panel may take, written as the custom property the shared sheet
    * caps itself with — the same number src/components/dropdown.js writes, from
    * the same dropdownHeightFit(), so a panel opened low on a phone ends inside
-   * the viewport in React exactly as it does in vanilla. Re-measured on scroll
-   * and resize, because the page moves under the trigger and the viewport edge
-   * does not.
+   * the viewport in React exactly as it does in vanilla. Measured when the panel
+   * opens and again on a resize.
    *
    * Ordered BEFORE the focus effect below, and not after it (#502 review): with
    * a field-less menu, focusing a row before the cap is applied can scroll the
@@ -485,30 +494,39 @@ export function Dropdown({
    * cap is measured from. why: docs/components.md#the-dropdown-panel
    */
   useIsoLayoutEffect(() => {
-    if (!open) return;
+    const dd = root.current;
     const el = panel.current;
-    if (!el) return;
+    if (!open || !el || !dd) return;
     const size = () => {
-      const avail = dropdownHeightFit(root.current, el);
+      const avail = dropdownHeightFit(dd, el);
       if (avail == null) return;
       // Infinity: the floor could not be met even by spending the whole inset, so
       // the property is removed rather than written, and the sheet's own fallback
       // takes over. why: dropdownAvail(), src/logic/dropdown.js
       if (Number.isFinite(avail)) el.style.setProperty('--ui-dropdown-avail', `${avail}px`);
       else el.style.removeProperty('--ui-dropdown-avail');
-      // `.is-unbounded` only where that leaves no cap at all — a `scroll` prop
-      // still clamps the panel through --ui-dropdown-cap, and that clamp is still
-      // real room to scroll. why: src/styles/dropdown.css
-      const cap = el.ownerDocument.defaultView?.getComputedStyle(el).getPropertyValue('--ui-dropdown-cap').trim();
-      el.classList.toggle('is-unbounded', !Number.isFinite(avail) && !cap);
+      // A panel the room cannot hold keeps its cap, and the page is the way to the
+      // rows past the fold. why: src/styles/dropdown.css
+      el.classList.toggle('is-unbounded', !Number.isFinite(avail));
+      dropdownSnap(dd, el);
     };
+    // A body too short for the panel lifts it out, before anything is sized.
+    dropdownLift(dd, el);
     size();
+    // The scrolling body the panel sits in is moved to show it; the focus effect below must not undo that.
+    revealed.current = dropdownReveal(dd, el) !== 0;
+    /* Decided at the open and kept while the page or the body scrolls, so the panel does
+     * not change height under the reader. A lifted panel follows its trigger at that
+     * height, and a resize decides again. why: ddSizeHeight(), src/components/dropdown.js */
+    const follow = () => { if (el.hasAttribute('data-dd-lifted')) dropdownLift(dd, el); };
+    // The body is scrolled again where the new placement needs it, as on the open.
+    const resize = () => { dropdownLift(dd, el); size(); dropdownReveal(dd, el); };
     const view = el.ownerDocument?.defaultView ?? window;
-    view.addEventListener('scroll', size, true);
-    view.addEventListener('resize', size);
+    view.addEventListener('scroll', follow, true);
+    view.addEventListener('resize', resize);
     return () => {
-      view.removeEventListener('scroll', size, true);
-      view.removeEventListener('resize', size);
+      view.removeEventListener('scroll', follow, true);
+      view.removeEventListener('resize', resize);
     };
   }, [open, direction]);
 
@@ -544,7 +562,7 @@ export function Dropdown({
         panel.current.style.minWidth = '';
         if (panel.current.offsetWidth) panel.current.style.minWidth = `${panel.current.offsetWidth}px`;
       }
-      field.current?.focus();
+      field.current?.focus(revealed.current ? { preventScroll: true } : undefined);
       return;
     }
     if (want == null) return;
@@ -552,7 +570,7 @@ export function Dropdown({
     if (!els.length) return;
     const sel = els.findIndex((el) => el.getAttribute('aria-selected') === 'true');
     const to = want === 'selected' ? (sel >= 0 ? sel : 0) : want;
-    (els[to] || els[0]).focus();
+    (els[to] || els[0]).focus(revealed.current ? { preventScroll: true } : undefined);
   }, [open]);
 
   // Keep the active row inside the list's own scroll box, without scrolling the page
@@ -585,6 +603,8 @@ export function Dropdown({
        sentence on the other half. why: docs/components.md#a-filter-row-holds-its-panels */
     if (!el || el.closest('.ui-filter-bar')) return;
     const fit = () => {
+      // A lifted panel is placed by dropdownLift(), from its trigger.
+      if (el.hasAttribute('data-dd-lifted')) return;
       let got = dropdownViewportFit(el);
       if (!got) return;
       /* The ceiling before the shift: a row holding one long unbroken token — a
@@ -738,6 +758,7 @@ export function Dropdown({
       e.preventDefault();
       const els = itemsIn(panel.current);
       els[els.length - 1]?.focus();
+      dropdownReveal(root.current, panel.current);
     } else if ((e.key === 'Enter' || e.key === ' ') && open
       && (e.target as HTMLElement).matches?.('[data-dd-item]')) {
       e.preventDefault();
