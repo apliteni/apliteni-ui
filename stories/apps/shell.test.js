@@ -701,15 +701,11 @@ test('the rail and the topbar say the same initials about the same reader', () =
   assert.equal(rail, 'AL', 'a display name is what a reader recognises, so it is what wins');
 });
 
-// Read off both surfaces, because "together" is the whole claim. The earlier
-// version of this test asked the topbar alone and passed on the wrong reader:
-// the shell dropped the absent `name` key, accountMenu() filled it with its own
-// demo default, and "AL" came out of "Ada Lovelace" rather than out of the
-// address the caller passed.
-test('with no display name both surfaces fall back to the address, together', () => {
+// An address supplies the hue but never the letters of a missing name.
+test('with no display name both surfaces use the user glyph', () => {
   const doc = dom(topShell({ account: { email: 'ada.lovelace@apliteni.com' } }));
-  assert.equal(doc.querySelector('.acct .avatar').textContent.trim(), 'AL');
-  assert.equal(doc.querySelector('.ui-app__av').textContent.trim(), 'AL');
+  assert.ok(doc.querySelector('.acct .avatar .ui-avatar--anon svg'));
+  assert.ok(doc.querySelector('.ui-app__av .ui-avatar--anon svg'));
 });
 
 // ---- one reader, or none, on both surfaces -------------------------------

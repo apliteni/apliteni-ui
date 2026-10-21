@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Dropdown, type DropdownEntry } from './Dropdown';
+import { Field } from './Field';
+import { Card } from './primitives/Card';
+import person from '../../stories/assets/demo-person.png';
 
 const meta: Meta<typeof Dropdown> = { title: 'React/Dropdown', component: Dropdown };
 export default meta;
@@ -267,5 +270,49 @@ export const NearBottomEdge: StoryObj<typeof Dropdown> = {
     <EdgeStage bottomGap={36}>
       <Dropdown items={TWELVE} ariaLabel="Account" triggerContent="Account" defaultOpen />
     </EdgeStage>
+  ),
+};
+
+// Jordan has a photo; Mia's photo does not load, so her letters show.
+const PHOTOS: Record<string, string> = { 'Jordan Okafor': person, 'Mia Chen': 'photo-not-found.png' };
+const Column = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ width: 'min(100%, 420px)' }}>{children}</div>
+);
+const PEOPLE: DropdownEntry[] = [
+  { label: 'No one', value: '', avatar: { empty: true } },
+  ...['Avery Example', 'Jordan Okafor', 'Mia Chen', 'Noor Haddad', 'Sam Rivera', 'Lena Novak'].map((name, i) => ({
+    label: name, value: `user_${i + 1}`, avatar: { key: `user_${i + 1}`, name, src: PHOTOS[name] },
+  })),
+];
+
+// A picker of people: each row and the trigger lead with the person's mark, the empty
+// trigger shows the dashed ring, and the search field names the size of the set.
+export const PersonPicker: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Column><Card>
+      <Field label="Owner">{(control) => (
+        <Dropdown {...control} variant="select" items={PEOPLE} placeholder="Choose a person" search={{ count: 214 }} />
+      )}</Field>
+    </Card></Column>
+  ),
+};
+
+export const PersonPickerChosen: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Column><Card>
+      <Field label="Owner">{(control) => (
+        <Dropdown {...control} variant="select" items={PEOPLE.map((it) => ({ ...it, selected: it.label === 'Jordan Okafor' }))} value="Jordan Okafor" search={{ count: 214 }} defaultOpen />
+      )}</Field>
+    </Card></Column>
+  ),
+};
+
+export const PersonPickerFailedPhoto: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Column><Card>
+      <Field label="Owner">{(control) => (
+        <Dropdown {...control} variant="select" items={PEOPLE.map((it) => ({ ...it, selected: it.label === 'Mia Chen' }))} value="Mia Chen" search={{ count: 214 }} defaultOpen />
+      )}</Field>
+    </Card></Column>
   ),
 };

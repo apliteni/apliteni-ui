@@ -161,13 +161,10 @@
 .ui-app__av {
   width: var(--ui-app-av); height: var(--ui-app-av); flex: none;
   margin-inline-start: calc((var(--ui-nav-strip) - var(--ui-app-av)) / 2);
-  border-radius: var(--radius-pill);
-  background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */
-  color: var(--strong);
-  display: grid; place-items: center;
-  font-size: calc(var(--text-xs) + 1px);
-  font-weight: var(--weight-semibold);
+  display: grid;
 }
+/* The mark is the Avatar part in the reader's hue, filling this box like the top bar's. */
+.ui-app__av > .ui-avatar { --ui-avatar-size: 100%; }
 .ui-app__who { font-size: calc(var(--text-sm) - 0.5px); line-height: 1.3; min-width: 0; }
 .ui-app__who b { display: block; color: var(--strong); font-weight: var(--weight-semibold); }
 /* nowrap is what makes the ellipsis fire — without it the address wraps, and

@@ -257,6 +257,19 @@
   --signal-solid-info: var(--cyan);
   --signal-solid-neutral: var(--muted);
 
+  /* Person hues: the eight fills an Avatar takes from a hash of the person's key. Fixed
+     values and not accent tints, so a person keeps one hue under every accent and in
+     every app. Each is an existing kit value for this theme, and --signal-solid-ink
+     holds 4.5:1 on all eight. why: docs/components.md#avatar */
+  --person-0: #bd8cff;
+  --person-1: #5ab0ff;
+  --person-2: #20dcf5;
+  --person-3: #3ad9a0;
+  --person-4: #98ff8f;
+  --person-5: #ffcf6a;
+  --person-6: #ff8a5c;
+  --person-7: #f5aec6;
+
   /* DEPRECATED since #295: no surface below the floating step casts, and the floating
      step reads --elev-drop rather than any of these. Published still, so a consumer
      reading one gets nothing rather than an unresolved var(), and a consumer who wants a
@@ -446,6 +459,16 @@
   --signal-solid-danger: var(--chip-danger-ink);
   --signal-solid-warn: var(--chip-warn-ink);
   --signal-solid-info: var(--chip-info-ink);
+
+  /* Person hues, light: the deepened forms, so white holds on every one. */
+  --person-0: #6a2dcc;
+  --person-1: #005ab4;
+  --person-2: #096a7c;
+  --person-3: #076c48;
+  --person-4: #145a26;
+  --person-5: #825900;
+  --person-6: #a8370c;
+  --person-7: #b7295f;
   --signal-solid-neutral: var(--muted);
 
   /* Deprecated and unread — see the dark block. */

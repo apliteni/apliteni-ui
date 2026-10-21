@@ -16,6 +16,7 @@ export { dropdownMatch, dropdownFiltering, dropdownAvail } from '../logic/dropdo
 //   wireDropdown(container);   // or let wireTopbar() do it
 import { esc, icon } from './index.js';
 import { safeUrl } from '../html.js';
+import { avatar } from './avatar.js';
 // The fade's own length, read off the stylesheet rather than copied. why: src/motion.js
 import { transitionMs } from '../motion.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
@@ -39,7 +40,7 @@ function ddItem(it, listbox, ext) {
   const role = listbox ? 'option' : 'menuitem';
   const asLink = !!it.href && !disabled && !listbox;
   const tag = asLink ? 'a' : 'div';
-  const lead = it.icon ? `<span class="ui-dropdown__ic">${icon(it.icon)}</span>` : '';
+  const lead = it.avatar ? avatar(it.avatar) : it.icon ? `<span class="ui-dropdown__ic">${icon(it.icon)}</span>` : '';
   const desc = it.description ? `<span class="ui-dropdown__desc">${esc(it.description)}</span>` : '';
   const main = `<span class="ui-dropdown__main"><span class="ui-dropdown__label">${esc(it.label)}</span>${desc}</span>`;
   const badge = ddBadge(it.badge);
@@ -87,14 +88,25 @@ const ddIsRow = (it) => it && it !== '---' && !it.separator;
 
 let _ddSeq = 0;
 
-function ddSearchContext(search, id) {
+// "Search 214 people": the size of the whole set, in the placeholder and in the field's
+// name. `count: true` counts the rows, less a "No one" row, which is not a person.
+// why: docs/components.md#a-dropdown-with-a-search-field
+function ddCount(count, rows) {
+  if (count == null || count === false) return null;
+  const n = count === true ? rows.filter((it) => ddIsRow(it) && !it.avatar?.empty).length : Number(count);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+function ddSearchContext(search, id, rows) {
   const o = search === true ? {} : search;
+  const n = ddCount(o.count, rows);
+  const counted = n == null ? null : `Search ${n} ${o.noun || 'people'}`;
   return {
     base: id || `ui-dd-${++_ddSeq}`,
     n: 0,
     q: o.query || '',
-    label: o.label,
-    placeholder: o.placeholder || 'Search',
+    label: o.label || counted,
+    placeholder: o.placeholder || counted || 'Search',
     empty: o.empty || 'No match for “{q}”',
     hint: o.hint || 'Check the spelling, or try fewer letters.',
   };
@@ -146,7 +158,7 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
  * @param {string} [o.value]       current value shown in the trigger
  * @param {string} [o.placeholder] shown when there is no value
  * @param {string} [o.variant]     'select' (listbox) | 'menu' (inferred from items)
- * @param {Array}  [o.items]       [{ label, value?, description?, icon?, badge?, selected?, disabled?, href?, danger? }]
+ * @param {Array}  [o.items]       [{ label, value?, description?, icon?, avatar?, badge?, selected?, disabled?, href?, danger? }]
  * @param {Array}  [o.sections]    [{ label, items }] — grouped alternative to items
  * @param {string} [o.foot]        content for a pinned block at the panel's bottom edge,
  *   drawn as `.ui-dropdown__foot` — raw HTML, so escape your own text
@@ -160,8 +172,10 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
  * @param {boolean} [o.disabled]   the trigger is off: no stop, no panel, the kit's
  *   unavailable paint. #580
  * @param {string} [o.ariaLabel]   accessible name for the panel and trigger
- * @param {boolean|object} [o.search] true, or { placeholder, label, empty, hint, query } —
- *   a field above the rows that filters them; `empty` may carry {q}
+ * @param {boolean|object} [o.search] true, or { placeholder, label, empty, hint, query, count, noun } —
+ *   a field above the rows that filters them; `empty` may carry {q}; `count` (a number, or
+ *   true to count the rows) puts the size of the set in the placeholder and the field's
+ *   name, "Search 214 people", and `noun` replaces "people"
  * @returns {string} html
  */
 export function dropdown({
@@ -174,13 +188,18 @@ export function dropdown({
   const isSelect = variant === 'select' || (variant == null && flat.some((it) => it && (it.selected || it.value != null)));
   const listRole = isSelect ? 'listbox' : 'menu';
   const cur = value != null ? value : (isSelect ? (flat.find((it) => it && it.selected)?.label) : null);
-  const sx = search ? ddSearchContext(search, id) : null;
+  const sx = search ? ddSearchContext(search, id, flat) : null;
   const name = ariaLabel || (label ? String(label).replace(/:\s*$/, '') : '') || 'Options';
 
+  // A picker of people: the trigger leads with the chosen row's mark, and with no value
+  // a dashed ring beside the placeholder. why: docs/components.md#avatar
+  const marked = isSelect && flat.some((it) => it && it.avatar);
+  const chosen = marked && cur != null ? flat.find((it) => it && it.label === cur) : null;
+  const lead = marked && (chosen?.avatar || cur == null) ? avatar(chosen?.avatar ?? { empty: true }) : '';
   const trig = triggerContent != null
     ? triggerContent
-    : `${label ? `<span class="ui-dropdown__pre">${esc(label)}</span>` : ''}` +
-      `<span class="ui-dropdown__value">${esc(cur != null ? cur : placeholder)}</span>`;
+    : `${lead}${label ? `<span class="ui-dropdown__pre">${esc(label)}</span>` : ''}` +
+      `<span class="${esc(cx('ui-dropdown__value', marked && cur == null && 'is-placeholder'))}">${esc(cur != null ? cur : placeholder)}</span>`;
   const triggerAttrs = [
     `class="${esc(cx('ui-dropdown__trigger', triggerClass))}"`,
     'type="button"',
@@ -962,6 +981,13 @@ function selectOption(dd, item) {
   const valueEl = dd.querySelector('[data-dropdown-trigger] .ui-dropdown__value');
   const label = item.querySelector('.ui-dropdown__label');
   if (valueEl && label) valueEl.textContent = label.textContent;
+  // A picker of people carries the row's mark up into the trigger.
+  const mark = item.querySelector(':scope > .ui-avatar');
+  const lead = dd.querySelector('[data-dropdown-trigger] > .ui-avatar');
+  if (mark && lead) lead.replaceWith(mark.cloneNode(true));
+  else if (mark) dd.querySelector('[data-dropdown-trigger]')?.prepend(mark.cloneNode(true));
+  else lead?.remove();
+  valueEl?.classList.remove('is-placeholder');
 }
 
 // Click-outside, Escape and the repositioning sweep, registered once per document

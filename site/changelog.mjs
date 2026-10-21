@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.131.0', date: '2026-10-21',
+    v: '0.132.0', date: '2026-10-21',
     changes: [
       ['added', 'The React invoice showcase demonstrates upload, review, editing and recovery with sample data. Files and edits stay in the browser tab. Refs #459.'],
       ['added', 'React `FileDrop` takes `title` to show a dashed drop area for an empty page. The kit also has `.ui-drop--page`, which enlarges that area into a layer over the whole page for a file drag. Its ground is slightly transparent and blurred, so the table shows through softly. It is solid where the browser cannot blur or the reader asks for less transparency. It starts below the topbar, or at the top of the window where the page has none. The Upload button stays the keyboard path in both. Refs #458.', ['FileDrop']],
@@ -14,6 +14,15 @@ export const RELEASES = [
       ['changed', 'The invoice showcase no longer offers Undo after Save. Save shows the Toast "Saved" and the form keeps Save and Discard. Refs #458.'],
       ['changed', 'The story CSS gate in the React workspace now reads every stylesheet in the showcases folder, also when its own module imports it. Refs #458.'],
       ['changed', 'Badges now include the neutral variant class when no variant is supplied. Their colours remain unchanged.', ['Badge']],
+      ['fixed', 'At 720px and below, a shell band without a menu starts 16px from the left, level with the page column. Bands with a menu keep their 8px start inset. Refs #458.', ['Shell']],
+    ],
+  },
+  {
+    v: '0.131.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A person mark: `avatar()` and React `Avatar` draw first and last initials on one of eight fixed hues chosen from the person\'s key, at 24 or 32 px. An empty name draws the `user` glyph, `empty` draws a dashed ring and a photo that fails to load shows the letters. Part of #628.', ['Avatar']],
+      ['added', 'Dropdown items take `avatar: { key, name, src }`, and a `select` leads its trigger with the chosen mark or a dashed ring with the placeholder. `search.count` puts the size of the set in the placeholder and in the field\'s accessible name. A `select` inside a `field()` takes the field\'s width. Part of #628.', ['Dropdown']],
+      ['changed', 'The top bar account button draws the avatar part at 32 px, with its hue from the account email. The account menu head and the shell\'s reader block draw the same mark, in the same hue, in vanilla and React. The rail and the top bar now show the first and last initials of a name, where the rail showed the first two.', ['Topbar', 'Shell']],
     ],
   },
   {
@@ -1421,6 +1430,7 @@ export const RELEASES = [
 const COMPONENTS = {
   Table:     'components-table--finance-data',
   Badge:     'components-badge-status--badges',
+  Avatar:    'react-avatar--hues',
   Button:    'components-button--playground',
   Card:      'components-card--variants',
   Callout:   'components-callout-toast--callouts',

@@ -1774,3 +1774,31 @@ it('a keyboard open sizes the panel before focusing a row (#502 review)', async 
   expect(document.activeElement).toBe(rowsOf(dd)[11]);
   expect(availAtFocus).toBe(`${844 - 544 - 9 - 8}px`);
 });
+
+describe('a person mark in the rows and the trigger', () => {
+  const people: DropdownEntry[] = [
+    { label: 'No one', value: '', avatar: { key: '', empty: true } },
+    { label: 'Avery Example', value: 'user_1', avatar: { key: 'user_1', name: 'Avery Example' } },
+    { label: 'Jordan Okafor', value: 'user_2', avatar: { key: 'user_2', name: 'Jordan Okafor' } },
+  ];
+
+  it('shows the chosen row\'s mark in the trigger', () => {
+    const { container } = render(<Dropdown variant="select" items={people} value="Jordan Okafor" />);
+    expect(container.querySelector('.ui-dropdown__trigger > .ui-avatar')!.textContent).toBe('JO');
+  });
+
+  it('shows the dashed ring and the placeholder ink with no value', () => {
+    const { container } = render(<Dropdown variant="select" items={people} placeholder="Choose a person" />);
+    expect(container.querySelector('.ui-dropdown__trigger > .ui-avatar--empty')).not.toBeNull();
+    expect(container.querySelector('.ui-dropdown__value')!.classList.contains('is-placeholder')).toBe(true);
+  });
+
+  it('puts the set size in the placeholder and the field\'s name', () => {
+    const { container } = render(
+      <Dropdown variant="select" items={people} search={{ count: 214 }} />,
+    );
+    const field = container.querySelector('[data-dd-search]')!;
+    expect(field.getAttribute('placeholder')).toBe('Search 214 people');
+    expect(field.getAttribute('aria-label')).toBe('Search 214 people');
+  });
+});
