@@ -59,6 +59,7 @@ import {
 import { topbar, footer, CHROME_CSS } from '../site/chrome.mjs';
 import { catalogueCopy } from '../site/catalogue.mjs';
 import { iconNames } from '../src/assets/icons.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 // #531's no-stop half is a fact about the markup these two emit, not about a sheet.
 import { segmented } from '../src/components/index.js';
 import { navTabs } from '../src/components/nav.js';
@@ -79,7 +80,7 @@ const FIELD_FOCUS = [
 const fieldFocusBody = (sheet, selector) => {
   const css = sheet.replace(/\/\*[\s\S]*?\*\//g, '');
   const matches = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-    .filter(([, head]) => head.split(',').some(part => part.trim() === selector));
+    .filter(([, head]) => splitSelectorList(head).includes(selector));
   assert.equal(matches.length, 1, `${selector} needs one field focus rule`);
   return matches[0][2];
 };

@@ -570,7 +570,7 @@ test('every state base the kit sheet yields is a selector a browser accepts', ()
       }
     }
   }
-  assert.equal(counted, 254, 'state-base discovery changed: 127 bases per theme, including the shell drawer and polish states');
+  assert.equal(counted, 262, 'state-base discovery changed: 131 bases per theme, including focused fields');
   assert.deepEqual(offences, [], `a state base no browser would accept:\n  ${offences.join('\n  ')}`);
   dom.window.close();
 });
