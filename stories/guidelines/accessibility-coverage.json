@@ -121,6 +121,14 @@
       ]
     },
     {
+      "file": "react/src/Feedback.test.tsx",
+      "name": "React: Feedback",
+      "does": "Checks that the form opens as a dialog with a named note field, that close returns focus to the prior control or visible pill without changing the container's tabindex, and that the error is announced as an alert.",
+      "blind": [
+        "JSDOM does not draw the focus ring or measure contrast. Story contrast covers the error line, and browser captures cover the rest."
+      ]
+    },
+    {
       "file": "react/src/FeedbackShowcase.test.tsx",
       "name": "React: Feedback showcase",
       "does": "Checks blank-note prevention, sending and success, cancellation, and the failed note's invalid state, alert and linked error message beside the surviving consent hint, without a false completion announcement.",

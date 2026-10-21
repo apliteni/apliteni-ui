@@ -100,7 +100,7 @@ export function wireFeedback(opts = {}) {
   const minChars = opts.minChars == null ? 3 : opts.minChars;
   const sectionFn = typeof opts.section === 'function' ? opts.section : defaultSection;
   const onSend = typeof opts.onSend === 'function' ? opts.onSend : async () => ({ ok: false, error: 'No submit handler configured.' });
-  let pending = null, markSpan = null;
+  let pending = null, markSpan = null, opening = 0;
 
   function showPill(range) {
     const r = range.getBoundingClientRect();
@@ -141,6 +141,7 @@ export function wireFeedback(opts = {}) {
 
   function open() {
     if (!pending) return;
+    opening++;
     hidePill();
     quoteEl.textContent = pending.text.length > 200 ? pending.text.slice(0, 200) + '…' : pending.text;
     chip.textContent = pending.label || 'this page';
@@ -154,7 +155,7 @@ export function wireFeedback(opts = {}) {
   pill.addEventListener('mousedown', (e) => e.preventDefault());
   pill.addEventListener('click', open);
 
-  function close() { composer.classList.remove('show'); scrim.classList.remove('show'); clearHighlight(); pending = null; }
+  function close() { opening++; composer.classList.remove('show'); scrim.classList.remove('show'); clearHighlight(); pending = null; }
   q('[data-fb-close]').addEventListener('click', close);
   q('[data-fb-cancel]').addEventListener('click', close);
   q('[data-fb-done-close]').addEventListener('click', close);
@@ -168,12 +169,14 @@ export function wireFeedback(opts = {}) {
   }
   sendBtn.addEventListener('click', async () => {
     if (sendBtn.disabled || !pending) return;
+    const sentOpening = opening;
     errEl.classList.remove('show'); sendBtn.disabled = true; sendLb.innerHTML = '<span class="ui-fbspin"></span>Sending';
     const payload = { note: note.value.trim(), excerpt: pending.text, anchor: pending.anchor, sectionLabel: pending.label, sectionTitle: pending.title };
     try {
       const res = await onSend(payload);
+      if (opening !== sentOpening) return;
       if (!res || !res.ok) { fail(res && res.error); return; }
       form.style.display = 'none'; done.style.display = ''; clearHighlight();
-    } catch (e) { fail(); }
+    } catch (e) { if (opening === sentOpening) fail(); }
   });
 }
