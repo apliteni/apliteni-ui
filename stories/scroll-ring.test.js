@@ -351,6 +351,13 @@ const PERMITTED_FORCED = {
       + 'outline or shadow. It touches no tab row or scroll region. #619',
     props: ['background'],
   },
+  '.dtsw a.cur': {
+    why: 'the top bar\'s view switch marks its current view with the Segmented raised fill, so '
+      + 'forced colours repaint that fill as Highlight and HighlightText, the way the Segmented '
+      + 'control\'s own block does. It carries no outline or shadow and belongs to no scroll '
+      + 'region. #429',
+    props: ['forced-color-adjust', 'background', 'color', '--ring'],
+  },
   '.ui-nav--tabs': {
     why: 'forced colours drop background images, so the row\'s rule comes back as a border '
       + 'and the last pixel of the bottom padding pays for it, with a border image that leaves '

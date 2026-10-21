@@ -431,6 +431,21 @@ it('a pick writes itself into the trigger and moves the tick, the way selectOpti
   expect(rows.map((el) => el.classList.contains('is-selected'))).toEqual([false, true, false]);
 });
 
+it('selectedValue controls both the trigger and the tick when a parent retains it', async () => {
+  const user = userEvent.setup();
+  const picks: unknown[] = [];
+  const { container } = render(<Dropdown variant="select" ariaLabel="Version" selectedValue="1.1.0"
+    items={SELECT} onSelect={(value) => picks.push(value)} />);
+  const dd = container.querySelector('.ui-dropdown')!;
+  expect(dd.querySelector('.ui-dropdown__value')).toHaveTextContent('v1.1.0');
+  expect(rowsOf(dd).map((row) => row.getAttribute('aria-selected'))).toEqual(['false', 'true', 'false']);
+  await user.click(within(dd as HTMLElement).getByRole('button'));
+  await user.click(screen.getByText('v1.2.0'));
+  expect(picks).toEqual(['1.2.0']);
+  expect(dd.querySelector('.ui-dropdown__value')).toHaveTextContent('v1.1.0');
+  expect(rowsOf(dd).map((row) => row.getAttribute('aria-selected'))).toEqual(['false', 'true', 'false']);
+});
+
 it('a pick survives a caller that rebuilds its items on every render', async () => {
   const user = userEvent.setup();
   // The ordinary call site: `items` is a fresh array of fresh objects each render, so
@@ -1904,6 +1919,27 @@ describe('a person mark in the rows and the trigger', () => {
   it('shows the chosen row\'s mark in the trigger', () => {
     const { container } = render(<Dropdown variant="select" items={people} value="Jordan Okafor" />);
     expect(container.querySelector('.ui-dropdown__trigger > .ui-avatar')!.textContent).toBe('JO');
+  });
+
+  it('keeps the controlled row and its mark together until the caller changes them', async () => {
+    const user = userEvent.setup();
+    const picks: unknown[] = [];
+    const { container, rerender } = render(<Dropdown variant="select" items={people}
+      selectedValue="user_1" onSelect={(value) => picks.push(value)} />);
+    const dd = container.querySelector('.ui-dropdown')!;
+    const trigger = within(dd as HTMLElement).getByRole('button');
+    expect(trigger.querySelector('.ui-avatar')).toHaveTextContent('AE');
+    expect(dd.querySelector('.ui-dropdown__value')).toHaveTextContent('Avery Example');
+    await user.click(trigger);
+    await user.click(screen.getByText('Jordan Okafor'));
+    expect(picks).toEqual(['user_2']);
+    expect(trigger.querySelector('.ui-avatar')).toHaveTextContent('AE');
+    expect(dd.querySelector('.ui-dropdown__value')).toHaveTextContent('Avery Example');
+    expect(rowsOf(dd).map((row) => row.getAttribute('aria-selected'))).toEqual(['false', 'true', 'false']);
+    rerender(<Dropdown variant="select" items={people} selectedValue="user_2" />);
+    expect(trigger.querySelector('.ui-avatar')).toHaveTextContent('JO');
+    expect(dd.querySelector('.ui-dropdown__value')).toHaveTextContent('Jordan Okafor');
+    expect(rowsOf(dd).map((row) => row.getAttribute('aria-selected'))).toEqual(['false', 'false', 'true']);
   });
 
   it('shows the dashed ring and the placeholder ink with no value', () => {

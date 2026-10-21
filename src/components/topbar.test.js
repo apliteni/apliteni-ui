@@ -135,6 +135,17 @@ test('a version badge shows the word for its tone, not the key', () => {
   ]);
 });
 
+test('a version row shows its name, badge and tick without a description line', () => {
+  const html = versionSwitcher([{ label: 'v3', meta: 'Old description', badge: 'live' }]);
+  mount(html, 'light');
+  const row = doc.querySelector('.vopt');
+  assert.equal(row.querySelector('.vname').textContent, 'v3');
+  assert.equal(row.querySelector('.vbadge').textContent, 'Live');
+  assert.ok(row.querySelector('.vtick'));
+  assert.equal(row.querySelector('.vmeta'), null);
+  assert.ok(!row.textContent.includes('Old description'));
+});
+
 // Synthetic OS events verify state and persistence, not native OS settings UI.
 test('auto stays saved while OS changes and the vanilla button cycles all choices', () => {
   const view = dom.window;

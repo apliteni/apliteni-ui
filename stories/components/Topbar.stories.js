@@ -5,8 +5,8 @@ import { statBand } from '../../src/components/stat.js';
 import { specimen } from '../_gallery.js';
 
 const VERSIONS = [
-  { label: 'phoenix.2026.002', meta: 'Product units, animated deck', badge: 'live' },
-  { label: 'phoenix.2026.001', meta: 'Phoenix, 2026-05-17', badge: 'archive' },
+  { label: 'phoenix.2026.002', badge: 'live' },
+  { label: 'phoenix.2026.001', badge: 'archive' },
 ];
 
 export default {
@@ -47,8 +47,8 @@ export const Pieces = {
 // screen carried `v3` / `v2` for the same reason. The band still wants more width
 // than a 320px page has — that is #558, not the label's doing.
 const SHELL_VERSIONS = [
-  { label: 'v3', meta: 'August 2026', badge: 'live' },
-  { label: 'v2', meta: 'March 2026', badge: 'archive' },
+  { label: 'v3', badge: 'live' },
+  { label: 'v2', badge: 'archive' },
 ];
 
 // The topbar over a shell, which is the only place its composition is visible: a

@@ -69,7 +69,11 @@
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .dtsw a:hover { color: var(--strong); }
-.dtsw a.cur { color: var(--strong); background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.dtsw a.cur { color: var(--accent-contrast); background: var(--accent); }
+:where(:root[data-theme="dark"]) .dtsw a.cur { color: var(--signal-contrast); }
+@media (forced-colors: active) {
+  .dtsw a.cur { forced-color-adjust: none; background: Highlight; color: HighlightText; --ring: var(--ring-width) solid CanvasText; }
+}
 .dtsw a:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* Theme toggle — a single icon-only switch (no label). */
@@ -96,6 +100,7 @@
 
 /* Version switcher */
 .vsw { position: relative; }
+.vsw > .ui-dropdown { max-width: 100%; min-width: 0; }
 .vsw__btn {
   display: inline-flex;
   align-items: center;
@@ -117,16 +122,16 @@
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
 .vsw__btn:hover:not(:focus-visible) { border-color: var(--accent); }
 .vsw__btn:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-.vsw__btn .lbl { color: var(--text); }
 .vsw__btn .cur { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vsw__btn .car {
   width: 8px; height: 8px;
   border-right: 1.6px solid var(--muted);
   border-bottom: 1.6px solid var(--muted);
-  transform: rotate(45deg) translateY(-1px);
+  transform: translateY(-2px) rotate(45deg);
   transition: transform var(--dur-fast) var(--ease);
 }
-.vsw.open .vsw__btn .car { transform: rotate(-135deg) translateY(2px); }
+.vsw.open .vsw__btn .car,
+.vsw .ui-dropdown.open .vsw__btn .car { transform: translateY(2px) rotate(-135deg); }
 .vsw__menu {
   position: absolute;
   top: calc(100% + 9px);
@@ -214,8 +219,12 @@
    the arrow keys, and this is one. It takes the ring on its own 10px radius, the
    same way `.amenu a` above does. #482 */
 .vopt:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+/* The selected version carries the kit's menu tick, as `.ui-dropdown__tick` does for
+   every other menu; the badge keeps its own place beside it. */
+.vopt .vtick { margin-left: 8px; flex: none; display: none; color: var(--accent); margin-top: 1px; }
+.vopt .vtick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+.vopt[aria-selected="true"] .vtick { display: inline-flex; }
 .vopt .vname { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
-.vopt .vmeta { font-size: var(--text-xs); color: var(--text); margin-top: 2px; }
 .vopt .vbadge {
   /* rank: chip */
   font-size: var(--text-xs);
@@ -231,10 +240,8 @@
    the same neutral chip fill rather than the card surface — which, inside a panel that
    is itself lighter than a card, was darker than the ground it sat on. #453 */
 .vbadge.arch { /* muted-ink: state — archived version */ color: var(--muted); background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */ }
-/* The version label drops at the shell breakpoint.
-   Anchor the menu to its right edge so a closed panel cannot widen the page. */
+/* Anchor the menu to its right edge so a closed panel cannot widen the page. */
 @media (max-width: 720px) {
-  .vsw__btn .lbl { display: none; }
   .vsw__menu { left: auto; right: 0; }
 }
 
@@ -273,7 +280,7 @@
      end inset. A long label gives way to an ellipsis, and 8px always stays between the
      two controls. */
   .topbar__in > .vsw { grid-area: 2 / 2 / 3 / -1; justify-self: end; min-width: 0; max-width: calc(100% - var(--space-2)); margin-left: var(--space-2); }
-  .vsw__btn { max-width: 100%; }
+  .vsw__btn { max-width: 100%; min-width: 0; }
   .vsw__btn .cur { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .vsw__btn .car { flex: none; }
   /* Two 44px rows, an 8px gap, the 4px and 3px insets and the bottom border. */
@@ -304,6 +311,8 @@
    accent band is the second band #578 round r34 took off the focus rules, and a
    pointer resting on a focused control would put it back. One indicator, which is
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
+/* The React menu puts the dropdown trigger's pill padding and flex row on the avatar. */
+.acct .avatar { display: grid; padding: 0; }
 .acct .avatar:hover:not(:focus-visible) { border-color: var(--accent); }
 .avatar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 /* The account button holding an Avatar: the part paints the circle in the reader's hue and
@@ -376,6 +385,8 @@
   border-radius: 14px 14px 0 0;
   display: flex; align-items: center; gap: 11px;
 }
+.amenu .ui-dropdown__sep { margin: 5px 0; }
+.amenu .ahead .avatar { cursor: default; }
 .amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu .ahead .aem { color: var(--text); font-size: calc(var(--text-xs) + 0.5px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -388,6 +399,10 @@
 .amenu a:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .amenu a:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .amenu a.cur { color: var(--accent); }
+/* A custom account row keeps the Dropdown's disabled state without its row shape. */
+.amenu a.is-disabled { /* muted-ink: state — unavailable account page */ color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }
+/* The SVG takes the row's height; its React wrapper adds no line box. */
+.amenu a > span[aria-hidden="true"] { display: contents; }
 .amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.85; }
 .amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }
 .amenu a.aout { color: var(--text); }

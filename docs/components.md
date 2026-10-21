@@ -1086,6 +1086,15 @@ route changes, and reveals a link a focus event lands on. There is nothing to wi
 `wireNav()` is for the vanilla rows. React imports the kit's own `safeUrl` and reveal functions
 rather than a copy bundled into `react/dist`.
 
+### React top bar
+
+`TopBar` composes `ViewSwitch`, `VersionSwitcher`, `ThemeToggle` and `AccountMenu` into the vanilla
+`topbar()` band, with the same classes and the same two rows on a phone. Each slot is optional, and
+no account is the signed-out bar. **The current view in the Deck and Text switch is filled with the
+accent fill of a chosen Segmented option**, in the vanilla switch as well as React's. **The version
+button shows only the chosen name**. **The open version menu shows each name and badge and ticks the chosen version**.
+The button and tick follow `value` until the caller updates it. `AccountMenu` marks the page named by `current` in accent ink.
+
 ### The rest of the React surface
 
 - **`Tabs`** unmounts inactive panel content. Arrow keys, Home and End move between tabs and
