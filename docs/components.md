@@ -508,7 +508,9 @@ A drawer is a panel against one edge of the screen. It appears over a scrim. It 
 look at or change one thing without leaving the list that opened it. **It groups by heading, never
 by card:** `drawerSection()` puts a heading above a `<dl>` of label and value pairs. A screen reader
 then hears each label with its value. The value stays beside its label instead of moving to the far
-edge of the panel. A row whose value is a field or a dropdown lines its label up with the control's first line of text, with no option to set. Nothing inside a drawer draws a card, a row rule or an `<hr>`. Actions stay
+edge of the panel. A row whose value is a field or a dropdown lines its label up with the control's first line of text.
+This alignment happens by itself. There is no setting for it.
+Nothing inside a drawer draws a card, a row rule or an `<hr>`. Actions stay
 outside the scrolling body. **It moves on open and on close**, and both movements are instant when
 reduced motion is enabled. For when a flow should use a drawer or a page:
 [Drawer](../guidelines/drawer.md).

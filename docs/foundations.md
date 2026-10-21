@@ -272,7 +272,7 @@ box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--ele
 **The focus ring does not touch that list.** The band is an `outline`, so a focused panel keeps
 the edge and the drop it rests on without restating them.
 
-Inside a floating panel, rows keep a reading surface, and a hovered row takes a fill as a selected row does, with no outline. Fields use the same field tokens as
+Inside a floating panel, rows keep a reading surface. A hovered row takes its own background fill, distinct from a selected row's fill, and no outline. Fields use the same field tokens as
 elsewhere. A chip uses `--chip-neutral-fill` rather than the card surface. The floating panel is
 itself lighter than a card in dark, so the card surface is the darker step there.
 
@@ -355,12 +355,12 @@ corner it already drew. **A control of your own wears `.ui-focusable`**, the kit
 for a focusable that is neither a link nor a kit control — a `div` or `span` you gave a
 `tabindex`.
 
-**A focused control draws the band and nothing beside it.** A boxed text field, text area, select or
-search field keeps its 1px border width but makes the border transparent while focus is visible.
-This applies to vanilla and React fields, including the Dropdown search field. The ring keeps its
-2px width, accent ink and 1px clear gap. Other edges keep their resting ink. Where a hover rule
-would outrank focus, it stands aside with `:not(:focus-visible)`. A drop zone still recolours its
-dashed edge while a file is over it: that edge is the drop target, not a focus mark.
+**A focused control draws the band and nothing beside it.** A boxed text field keeps its 1px border width during visible focus.
+The same rule applies to a text area, select and search field. Their border becomes transparent during visible focus.
+This applies to vanilla and React fields, including the Dropdown search field. The ring keeps its 2px width and accent ink.
+It also keeps a 1px clear gap. Other edges keep their resting ink.
+If a hover rule would outrank focus, it stands aside with `:not(:focus-visible)`.
+A drop zone still recolours its dashed edge while a file is over it. That edge marks the drop target, not focus.
 
 **An outline means focus; selection is a background highlight.** A selected, current or active
 item is marked by its fill, its ink and its weight, never by an edge drawn around it — an edge on
