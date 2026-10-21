@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ElementType, type ReactNode } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { Pagination, sizeOf } from './Pagination';
 import './DataTable.css';
@@ -15,6 +15,10 @@ export type Column<T> = {
    * why: docs/components.md#dense-financial-tables
    */
   linked?: boolean;
+  /** Renders this column's body cells as row headers (`th scope="row"`), as the kit's compact table does. */
+  rowHeader?: boolean;
+  /** `title` gives the column the remaining width, `code` sets a handle or id in the table's small text, `long` is running text that gets its own line in a stacked row, `strong` bolds a figure, `act` right-aligns a row action. */
+  cell?: 'title' | 'code' | 'long' | 'strong' | 'act';
 };
 export type TableSort<T> = { key: (keyof T & string) | undefined; dir: 1 | -1 };
 type SelectionProps =
@@ -36,6 +40,14 @@ type PagerProps =
   | { page: number; onPageChange: (page: number) => void; total: null; hasMore: boolean };
 export type DataTableProps<T> = {
   columns: Column<T>[]; rows: T[];
+  /** The kit's `--zebra`, `--hover` (on unless `false`) and `--stack` hooks. A stacked table lays each row out as a block below the phone step, so no column scrolls out of reach. */
+  zebra?: boolean; hover?: boolean; stack?: boolean;
+  /** Marks a row the reader landed on (`target`) or a revoked one (`dead`). A dead row is muted, so put the word that names its state in one of its cells. */
+  rowState?: (row: T) => 'target' | 'dead' | undefined;
+  /** Table footer rows, such as totals: `<tr>` elements with a `th scope="row"` label. */
+  footer?: ReactNode;
+  /** A caption read by assistive technology only. */
+  caption?: string;
   dense?: boolean; density?: 'default' | 'dense' | 'compact'; stickyHeader?: boolean; pinnedIdentity?: boolean; scrollLabel?: string; empty?: ReactNode;
   pageSize?: number; pageSizes?: readonly number[] | null; onPageSizeChange?: (size: number) => void;
   /** `false` renders no pager at all — for a surface that supplies its own. */
@@ -53,6 +65,8 @@ export type DataTableProps<T> = {
   | { sort: TableSort<T>; onSortChange: (sort: TableSort<T>) => void }
 );
 
+const CELL_CLASS = { title: 'ui-table__title', code: 'ui-table__code', long: 'ui-table__long', strong: 'ui-table__num--strong', act: 'ui-table__act' } as const;
+
 // The absence of a sort, as a value: the order is whatever the rows arrived in.
 const NO_SORT = { key: undefined, dir: -1 } as const;
 
@@ -65,7 +79,7 @@ export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
 }
 
 export function DataTable<T extends { name: string }>({
-  columns, rows, dense = false, density, stickyHeader = false, pinnedIdentity = false, scrollLabel = 'Table', empty = 'No rows', pageSize, pageSizes = null, onPageSizeChange, pager = true,
+  columns, rows, zebra = false, hover = true, stack = false, rowState, footer, caption, dense = false, density, stickyHeader = false, pinnedIdentity = false, scrollLabel = 'Table', empty = 'No rows', pageSize, pageSizes = null, onPageSizeChange, pager = true,
   pagerLabel, loading = false,
   selectable = true, selected = new Set<string>(),
   onToggle = () => {}, onTogglePage = () => {}, sort: controlledSort, onSortChange,
@@ -170,6 +184,8 @@ export function DataTable<T extends { name: string }>({
       </>}
     </svg>
   );
+  // A table that does not scroll is the card's own child, so the card's bleed reaches it.
+  const Wrap: ElementType = scrollable ? 'div' : Fragment;
   const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
   const pageSomeOn = selectable && !pageAllOn && slice.some((r) => selected.has(r.name));
 
@@ -178,13 +194,13 @@ export function DataTable<T extends { name: string }>({
       {/* The rows stay on screen while the next page is fetched, and the table
           says so. A reader who cannot see it otherwise meets a table that is
           silently either current or stale, with no way to tell which. */}
-      <div className={scrollable ? 'ui-table-scroll' : undefined} role={scrollable ? 'region' : undefined}
-        aria-label={scrollable ? scrollLabel : undefined} tabIndex={scrollable ? 0 : undefined}>
-      <table ref={table} className={['ui-table ui-table--hover', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
-        aria-busy={loading || undefined}>
-        <thead>
-          <tr>
-            {selectable ? <th scope="col" className="ui-table__selection">
+      <Wrap {...(scrollable ? { className: 'ui-table-scroll', role: 'region', 'aria-label': scrollLabel, tabIndex: 0 } : {})}>
+      <table ref={table} className={['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', stack && 'ui-table--stack', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
+        aria-busy={loading || undefined} role={stack ? 'table' : undefined}>
+        {caption ? <caption className="ui-sr">{caption}</caption> : null}
+        <thead role={stack ? 'rowgroup' : undefined}>
+          <tr role={stack ? 'row' : undefined}>
+            {selectable ? <th scope="col" role={stack ? 'columnheader' : undefined} className="ui-table__selection">
               {/* No visible text: aria-label is this checkbox's whole name. */}
               <input type="checkbox" checked={pageAllOn} aria-label="Select all rows on this page"
                 ref={(input) => { if (input) input.indeterminate = pageSomeOn; }}
@@ -194,7 +210,7 @@ export function DataTable<T extends { name: string }>({
               // The sort control is a real <button> inside the header cell. It used to be
               // role="button" ON the <th>, which threw away the columnheader role and put
               // aria-sort on a role that forbids it.
-              <th key={c.key} scope="col"
+              <th key={c.key} scope="col" role={stack ? 'columnheader' : undefined}
                 className={[pinnedIdentity && columnIndex === 0 && 'ui-table__identity', c.num && 'ui-table__num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
                 // External sorting can select a column without an interactive header.
                 // A table whose page is controlled and whose sort is not knows
@@ -217,22 +233,29 @@ export function DataTable<T extends { name: string }>({
             ))}
           </tr>
         </thead>
-        <tbody>
-          {!slice.length && <tr><td colSpan={columns.length + (selectable ? 1 : 0)}>{loading ? 'Loading rows…' : empty}</td></tr>}
+        <tbody role={stack ? 'rowgroup' : undefined}>
+          {!slice.length && <tr role={stack ? 'row' : undefined}><td role={stack ? 'cell' : undefined} colSpan={columns.length + (selectable ? 1 : 0)}>{loading ? 'Loading rows…' : empty}</td></tr>}
           {slice.map((r) => (
-            <tr key={r.name}>
-              {selectable ? <td className="ui-table__selection"><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
+            <tr key={r.name} role={stack ? 'row' : undefined}
+              className={rowState?.(r) ? `is-${rowState(r)}` : undefined}>
+              {selectable ? <td role={stack ? 'cell' : undefined} className="ui-table__selection"><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
                 onChange={() => onToggle(r.name)} /></td> : null}
-              {columns.map((c, columnIndex) => (
-                <td key={c.key} className={[c.num && 'ui-table__num', pinnedIdentity && columnIndex === 0 && 'ui-table__identity', c.linked && 'ui-table__linked'].filter(Boolean).join(' ')}>
-                  {c.render ? c.render(r) : String(r[c.key])}
-                </td>
-              ))}
+              {columns.map((c, columnIndex) => {
+                const Cell = c.rowHeader ? 'th' : 'td';
+                return (
+                  <Cell key={c.key} scope={c.rowHeader ? 'row' : undefined} role={stack ? (c.rowHeader ? 'rowheader' : 'cell') : undefined}
+                    data-label={stack && c.num && typeof c.label === 'string' ? c.label : undefined}
+                    className={[c.num && 'ui-table__num', c.cell && CELL_CLASS[c.cell], pinnedIdentity && columnIndex === 0 && 'ui-table__identity', c.linked && 'ui-table__linked'].filter(Boolean).join(' ') || undefined}>
+                    {c.render ? c.render(r) : String(r[c.key])}
+                  </Cell>
+                );
+              })}
             </tr>
           ))}
         </tbody>
+        {footer ? <tfoot role={stack ? 'rowgroup' : undefined}>{footer}</tfoot> : null}
       </table>
-      </div>
+      </Wrap>
       {/* One page and no size to choose renders nothing at all — the pager's own
           rule, not a second copy of it here. */}
       {pager ? (

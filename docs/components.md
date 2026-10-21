@@ -628,8 +628,8 @@ larger.
 ### Dense financial tables
 
 The table is markup. A named scroll region contains a native `<table>`, and you apply the
-recipes as classes. Zebra adds no grey stripes. Hover marks the row edge without tinting the
-data surface. `compact` sets a 33px minimum row, but larger or wrapped content makes the row
+recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill.
+Keyboard focus keeps its ring, and a landed row keeps its own mark. `compact` sets a 33px minimum row, but larger or wrapped content makes the row
 taller. **Columns scroll rather than disappear**, while sticky headers and pinned identity cells
 keep opaque backgrounds, the shared focus composition, and their full accessible names. **A
 pinned column draws its divider only where the region can actually scroll:** at a width where
@@ -673,7 +673,7 @@ and the one-line cap and the filled cell both come off. The header row is clippe
 removed, so a cell still reads with its column's name. **A clipped header is read but not operated**, so put a sort or filter control
 on the row above the table and name the table in `aria-controls`. The markup includes the table
 roles at every width because a stylesheet cannot add them. A value whose meaning comes from its
-heading must carry that meaning itself. This is a rule in [Dense tables](../guidelines/dense-tables.md).
+heading must carry that meaning itself: give an amount cell `data-label` with its column's name, and a stacked row shows it before the figure. This is a rule in [Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
 change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
@@ -865,8 +865,13 @@ vanilla sections above.
 ### React tables
 
 Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
-A `.ui-table__title` cell gives a text column the remaining width.
-React `DataTable` has no column flag for that cell class.
+A `.ui-table__title` cell gives a text column the remaining width. A column takes `cell` for it:
+`title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
+`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `stack`, `density`,
+`stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
+and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
+with no strike line. `stack` writes the table roles that the block layout drops. Below the phone step each row
+shows every cell, so no amount scrolls out of reach. An amount column (`num`) with a text label shows that label before each figure. A table that does not scroll is the card's own child, so a dense or stacked table reaches the card's text edge.
 Its pager follows the measured table width and wraps when necessary.
 Without `ResizeObserver`, the pager keeps its container width.
 A pager that renders no controls takes no space.

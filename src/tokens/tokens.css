@@ -574,10 +574,7 @@
 .ui-table-scroll,
 .ui-table--sticky thead th,
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection,
-.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,
 .ui-table--zebra tbody tr:nth-child(even) td,
-.ui-table--zebra tbody tr:hover td,
-.ui-table--zebra.ui-table--hover tbody tr:hover td,
 .ui-toast,
 .ui-toast--soft,
 .ui-toast--outline,
@@ -598,10 +595,14 @@
 .ui-table-scroll,
 .ui-table--sticky thead th,
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection,
-.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td,
-.ui-table--zebra tbody tr:nth-child(even) td,
-.ui-table--zebra tbody tr:hover td,
-.ui-table--zebra.ui-table--hover tbody tr:hover td { --code-bg: var(--table-code-bg); }
+.ui-table--zebra tbody tr:nth-child(even) td { --code-bg: var(--table-code-bg); }
+/* A neutral hovered row gives an inline code chip the card surface. The step from
+ * --surface-2 clears 1.1:1 in both themes, even when the table follows a card. */
+.ui-table--hover tbody tr:hover:not(.is-target),
+.ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th),
+.ui-table-scroll > .ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th) {
+  --code-bg: var(--surface);
+}
 .ui-card--accent,
 .ui-card--live,
 .ui-snippet--reveal { --code-bg: var(--surface); }

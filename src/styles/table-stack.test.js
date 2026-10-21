@@ -33,7 +33,7 @@ const step = (token) => {
 };
 
 /* What a stacked row's gaps owe. The row pays sideways what a dense cell pays, so the hover
- * outline and the row separator keep the clearance they had at the width above the step; it
+ * fill and the row separator keep the clearance they had at the width above the step; it
  * pays one step more down the page, because a row is now several lines and the gap between
  * two rows has to beat the gaps inside one. The values sit a dense column gap apart, and the
  * paragraph takes the smallest step there is, because it belongs to the row above it.
@@ -265,10 +265,10 @@ const MUTATIONS = [
       '.ui-table.ui-table--stack > thead {\n    display: none; position: absolute;')],
   ['the long cell left to share the first line',
     (css) => css.replace('td.ui-table__long { flex: 0 0 100%;', 'td.ui-table__long { flex: 0 1 auto;')],
-  ['the row inset put back on the table, where the hover outline cannot use it',
+  ['the row inset put back on the table, where the hover fill cannot use it',
     (css) => css.replace('padding: var(--space-3); border-bottom:',
       'padding: var(--space-3) 0; border-bottom:')],
-  ['the row inset taken a step in, so the outline loses the clearance it had above the fold',
+  ['the row inset taken a step in, so the fill loses the clearance it had above the fold',
     (css) => css.replace('padding: var(--space-3); border-bottom:',
       'padding: var(--space-3) var(--space-2); border-bottom:')],
   ['the gaps written as numbers off the scale',

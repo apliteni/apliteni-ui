@@ -7,7 +7,7 @@ export default {
   parameters: { layout: 'fullscreen' },
 };
 
-// Financial ledger — dense + zebra + hover, mono ids (no chip), tabular
+// Financial ledger — dense + zebra + hover, plain ids (no chip), tabular
 // numerics, semantic status badges. The shared data-table recipe.
 const PAYOUTS = [
   ['1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '11,871.49', 'success', 'Paid'],
@@ -26,23 +26,22 @@ const PAYOUTS = [
 export const FinanceData = {
   render: () => pad(`<div class="ui-card" style="max-width:1040px">
     <h2 class="ui-card__title"><span class="ui-card__icon">${icon('key')}</span> Payouts</h2>
-    <div class="ui-card__sub">Stripe payouts reconciled to bank transactions.</div>
-    <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover">
-      <thead><tr>
-        <th>ID</th><th>Payout ID</th><th>Arrival</th>
-        <th class="ui-table__num">Gross</th><th class="ui-table__num">Fees</th>
-        <th class="ui-table__num">Net (EUR)</th><th>Status</th>
+    <table class="ui-table ui-table--dense ui-table--zebra ui-table--hover ui-table--stack" role="table">
+      <thead role="rowgroup"><tr role="row">
+        <th scope="col" role="columnheader">ID</th><th scope="col" role="columnheader">Payout ID</th><th scope="col" role="columnheader">Arrival</th>
+        <th scope="col" role="columnheader" class="ui-table__num">Gross</th><th scope="col" role="columnheader" class="ui-table__num">Fees</th>
+        <th scope="col" role="columnheader" class="ui-table__num">Net (EUR)</th><th scope="col" role="columnheader">Status</th>
       </tr></thead>
-      <tbody>
+      <tbody role="rowgroup">
         ${PAYOUTS.map(([id, pid, arr, gross, fees, net, variant, label]) => `
-          <tr class="${id === '1164' ? 'is-target' : ''}">
-            <td class="ui-table__linked"><a href="#">${id}</a></td>
-            <td class="ui-table__code">${pid}</td>
-            <td>${arr}</td>
-            <td class="ui-table__num">${gross}</td>
-            <td class="ui-table__num">${fees}</td>
-            <td class="ui-table__num ui-table__num--strong">${net}</td>
-            <td>${badge(label, variant)}</td>
+          <tr role="row" class="${id === '1164' ? 'is-target' : ''}">
+            <td role="cell" class="ui-table__linked"><a href="#">${id}</a></td>
+            <td role="cell" class="ui-table__code">${pid}</td>
+            <td role="cell">${arr}</td>
+            <td role="cell" class="ui-table__num" data-label="Gross">${numericValue({ value: gross })}</td>
+            <td role="cell" class="ui-table__num" data-label="Fees">${numericValue({ value: fees })}</td>
+            <td role="cell" class="ui-table__num ui-table__num--strong" data-label="Net (EUR)">${numericValue({ value: net })}</td>
+            <td role="cell">${badge(label, variant)}</td>
           </tr>`).join('')}
       </tbody>
     </table>
@@ -58,7 +57,6 @@ const AGENTS = [
 export const AgentTokens = {
   render: () => pad(`<div class="ui-card" style="max-width:720px">
     <h2 class="ui-card__title"><span class="ui-card__icon">${icon('key')}</span> Access &amp; agents</h2>
-    <div class="ui-card__sub">Personal tokens agents use to read the strategy over MCP.</div>
     <table class="ui-table ui-table--hover">
       <thead><tr><th>Agent</th><th>Scope</th><th>Last used</th><th></th></tr></thead>
       <tbody>
@@ -68,7 +66,7 @@ export const AgentTokens = {
             <td>${scope}</td>
             <td>${used}</td>
             <td class="ui-table__act">${state === 'dead'
-              ? '<span style="color:var(--muted);font-size:13px">Revoked</span>'
+              ? 'Revoked'
               : button({ label: 'Revoke', variant: 'danger', size: 'sm' })}</td>
           </tr>`).join('')}
       </tbody>
@@ -139,7 +137,6 @@ const AUDIT = [
 export const StackedLog = {
   render: () => pad(`<div class="ui-card" style="max-width:720px">
     <h2 class="ui-card__title"><span class="ui-card__icon">${icon('clock')}</span> Audit log</h2>
-    <div class="ui-card__sub">Fabricated entries from one morning, newest first.</div>
     <table class="ui-table ui-table--dense ui-table--hover ui-table--stack" role="table">
       <thead role="rowgroup"><tr role="row">
         <th scope="col" role="columnheader">Who</th>
@@ -166,9 +163,9 @@ export const StackedLog = {
 // inset all come off, and the pinned identity shows its whole name rather than the symbol the
 // 720px fold leaves it.
 //
-// The clipped header is why the lot count carries its unit and the caption expands the
-// basis point: a stacked row reads as one line of facts, and a bare number in it has no
-// column heading left to say what it counts.
+// The clipped header is why the weight and the lot count carry their unit: a stacked row
+// reads as one line of facts, and a bare number in it has no column heading left to say
+// what it counts.
 const DESKS = [
   ['NORT', 'Northstar Analytics', '128.40', '3', 'Rebalanced into short-duration paper after the June print; the committee asked for the note to be kept on the position until September.'],
   ['HARB', 'Harbor Software', '96.12', '12', 'Holding. The renewal cohort is the whole thesis and it does not settle until the next quarter closes.'],
@@ -178,7 +175,6 @@ const DESKS = [
 export const StackedPinned = {
   render: () => pad(`<div class="ui-card" style="max-width:860px">
     <h2 class="ui-card__title"><span class="ui-card__icon">${icon('table')}</span> Desk notes</h2>
-    <div class="ui-card__sub">Fabricated positions, heaviest first; weight is in basis points of the fund and a lot is 100 shares.</div>
     <div class="ui-table-scroll" role="region" aria-label="Desk notes, scroll for more rows" tabindex="0">
       <table class="ui-table ui-table--dense ui-table--sticky ui-table--pinned ui-table--hover ui-table--stack"
         id="desk-notes" role="table">
@@ -200,7 +196,7 @@ export const StackedPinned = {
             <td role="cell" class="ui-table__identity"><a href="#position">Cedar Infrastructure Holdings International</a></td>
             <td role="cell" class="ui-table__num">${numericValue({ value: '18.40', unit: 'bp' })}</td>
             <td role="cell" class="ui-table__num">${numericValue({ value: '4', unit: 'lots' })}</td>
-            <td role="cell" class="ui-table__long">Watchlist line. It keeps the direct link shape that consumers can write without marking the cell.</td>
+            <td role="cell" class="ui-table__long">On the watchlist until the next sample review.</td>
           </tr>
         </tbody>
       </table>

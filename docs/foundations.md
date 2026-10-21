@@ -75,7 +75,7 @@ The kit uses two families, and the split is based on role:
 ```css
 --font-display: 'Poppins', …;        /* headings, brand lockups, large readouts */
 --font-sans:    'IBM Plex Sans', …;  /* text, tables, fields, chat — most of an app */
---font-mono:    ui-monospace, …;     /* code, identifiers, tabular figures */
+--font-mono:    ui-monospace, …;     /* code */
 ```
 
 - **The element decides, never the size.** `h1`–`h6` use the display face. Everything else uses
