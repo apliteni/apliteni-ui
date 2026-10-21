@@ -112,6 +112,11 @@
 .ui-card__row:has(> .ui-seg) > :first-child { flex: 1 1 10rem; min-width: 0; }
 .ui-card__row > .ui-seg { flex: none; flex-wrap: nowrap; }
 .ui-card__row > .ui-seg button { white-space: nowrap; }
+@media (max-width: 560px) {
+  .ui-card__row { flex-direction: column; align-items: flex-start; }
+  .ui-card__row > :first-child { width: 100%; }
+  .ui-card__row:has(> .ui-seg) > :first-child { flex: none; }
+}
 /* The Theme choice needs 195px and the narrowest settings row gives it 160. Its pills
    give up inline padding as the viewport narrows. Other choices keep their tap width. */
 @media (max-width: 560px) {
