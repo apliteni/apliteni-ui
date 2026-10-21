@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.128.0', date: '2026-10-20',
+    v: '0.131.0', date: '2026-10-21',
     changes: [
       ['changed', 'In `drawerSection()` and React `KeyValueList`, a row whose value is a select, an input or a dropdown now aligns its label with the control by itself. Rows with text values are unchanged.', ['Drawer']],
       ['changed', 'The modal title is now semibold in the strong ink.', ['Modal']],
@@ -17,8 +17,28 @@ export const RELEASES = [
       ['fixed', 'An unset filter chip is as tall as a chip with a value.', ['FilterBar']],
       ['fixed', 'A filter chip with no value no longer shows a remove mark, and `Clear all` appears only when a chip has a value. This applies to `filterBar` and React `FilterBar`.', ['FilterBar']],
       ['fixed', 'A focused scrolling table with a sticky header or a pinned column shows its focus ring on all four sides.', ['Table']],
-      ['fixed', 'A focused row in the folded rail shows its focus ring on all four sides, also at phone width.', ['AppShell']],
+      ['fixed', 'A focused row in the folded rail shows its focus ring on all four sides.', ['AppShell']],
       ['fixed', 'The last column of a table, its header and the table edge now share one right edge, so a right-aligned amount lines up with its header. A hover table keeps 16px between its last value and that edge. A table that sets its own end padding on the last cell keeps it.', ['Table']],
+    ],
+  },
+  {
+    v: '0.130.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Toast notices accept `compact`, `dismissible` and `timer`. A compact notice omits its body text. Hiding the close button keeps the timer and the action behaviour. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it. Set `timer: false` on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn, because it could not move and read as time not yet spent. Part of #429.', ['Toast']],
+    ],
+  },
+  {
+    v: '0.129.0', date: '2026-10-20',
+    changes: [
+      ['changed', 'At 720px and below, both shells replace the icon strip with a top band, a menu button, and the brand mark. The button opens the full rail in a left drawer, content uses the full width, and widths above 720px stay unchanged. React `AppShell` also removes its phone bottom bar, More drawer, and `--ui-app-bottom-clearance`.', ['Shell']],
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.128.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
     ],
   },
   {

@@ -251,6 +251,15 @@
     padding: var(--space-1) var(--space-3) 3px;
   }
   .topbar__in > .brand { grid-area: 1 / 1 / 2 / 3; justify-self: start; }
+  /* With the shell's menu control on the band it takes the first column and the brand
+     the next, so the switch row below spans both. */
+  .topbar__in:has(> .ui-app__menu) { grid-template-columns: max-content max-content minmax(0, 1fr) auto auto; }
+  .topbar__in > .ui-app__menu { grid-area: 1 / 1; margin-inline-end: var(--space-2); }
+  .topbar__in:has(> .ui-app__menu) > .brand { grid-area: 1 / 2 / 2 / 4; }
+  .topbar__in:has(> .ui-app__menu) > .toggle { grid-area: 1 / 4; }
+  .topbar__in:has(> .ui-app__menu) > .acct { grid-area: 1 / 5; }
+  .topbar__in:has(> .ui-app__menu) > .dtsw { grid-area: 2 / 1 / 3 / 3; }
+  .topbar__in:has(> .ui-app__menu) > .vsw { grid-area: 2 / 3 / 3 / -1; }
   .topbar__in > .toggle { grid-area: 1 / 3; justify-self: end; }
   /* The 8px beside the account is its own margin, so a hidden account leaves no gap and
      the theme switch ends on the inset. */
