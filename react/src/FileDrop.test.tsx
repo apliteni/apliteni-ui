@@ -395,7 +395,7 @@ describe('the page drop layer in the sheet', () => {
   });
 
   describe('its ground', () => {
-    /* #458: Artur chose a slightly transparent, blurred ground for the table page. The sheet is read for the
+    /* #458 records a slightly transparent, blurred ground for the table page. The sheet is read for the
      * three grounds: solid by default, translucent and blurred where the engine can blur, solid again for a
      * reader who asks for less transparency. JSDOM paints nothing, so the blur itself is measured in a browser,
      * and the words' contrast over the worst colour behind is stories/file-drop-ground.test.js. */

@@ -1,5 +1,5 @@
 /* Rule: the words of the page drop layer stay at 4.5:1 over whatever the translucent ground lets
- * through, in both themes. Artur chose a slightly transparent, blurred ground on #458: "When
+ * through, in both themes. The r4 answer on 2026-10-20 is recorded in #458: "When
  * table - use slightly transparent and blurred background for drop zone".
  *
  * The worst spot behind the words is taken as a solid patch of any opaque colour token the kit

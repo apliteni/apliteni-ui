@@ -118,7 +118,7 @@ test('the chrome class stays on a drawing\'s own furniture', () => {
   // The fourth class was agreed for one shape: the scale and the key a chart
   // prints beside its marks, where every value it names is also given in full
   // in the readout and in the values table. The one other use is a supporting
-  // card's title, which the maintainer allowed on #458. A class with no bound is a second
+  // card's title, as recorded in #458. A class with no bound is a second
   // default, so the declarations taking it are listed rather than counted.
   assert.deepEqual(result.subjects.filter(d => d.note?.[1] === 'chrome')
     .map(d => `${d.file} ${d.selector}`).sort(), [

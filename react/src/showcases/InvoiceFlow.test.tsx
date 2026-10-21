@@ -135,9 +135,9 @@ describe('invoice flow prototype', () => {
     expect(screen.queryByRole('link', { name: 'notes.txt' })).not.toBeInTheDocument();
   });
   it('draws the empty page\'s drop area, enlarged, over a blurred, slightly transparent ground', () => {
-    /* #458: Artur chose the empty area's dashed accent edge for the whole-page drop. The layer is that
-     * area's own markup, so its edge, radius, glyph and words are the kit's. Artur then asked for the
-     * table page: "When table - use slightly transparent and blurred background for drop zone". The
+    /* #458 records the empty area's dashed accent edge for the whole-page drop. The layer uses that
+     * area's own markup, so its edge, radius, glyph and words are the kit's. For the table page,
+     * #458 records: "When table - use slightly transparent and blurred background for drop zone". The
      * ground is the kit's own page-layer modifier, and the showcase adds no paint to it. */
     const { container } = render(<InvoiceFlow initialState="table" />);
     windowDrag('dragenter');
@@ -463,10 +463,10 @@ describe('invoice flow prototype', () => {
     expect(tracks, 'the pane pair sets two fr tracks').not.toBeNull();
     expect(Number(tracks![1]), 'the saved pane takes the wider track').toBeGreaterThan(Number(tracks![2]));
   });
-  it('keeps the record form in two columns down to the phone, as Artur approved', () => {
+  it('keeps the record form in two columns above the phone breakpoint', () => {
     /* D2 of the #459 designer review. A fluid track, repeat(auto-fit, minmax(15rem, 1fr)),
      * fits one 15rem column in the 468 px card at 834 px and 444 px at 600 px, so the form
-     * went to one column at iPad width and Save moved 201 px down. The approved layout is two
+     * went to one column at iPad width and Save moved 201 px down. The intended layout is two
      * equal columns above the phone breakpoint, held here as the declarations rather than as a
      * measurement because jsdom lays nothing out; the browser measurement is in the PR. */
     const fields = /\.invoice-flow__fields\s*\{([^}]*)\}/.exec(SHEET)?.[1] ?? '';
