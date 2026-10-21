@@ -6,6 +6,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createServer } from 'node:http';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { avatar, avatarHue, avatarInitials, AVATAR_HUES } from './avatar.js';
 import { dropdown, wireDropdown } from './dropdown.js';
@@ -13,6 +16,7 @@ import { accountMenu } from './topbar.js';
 import { appShell } from './shell.js';
 
 const TOKENS = readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const doc = (html) => new JSDOM(`<body>${html}</body>`).window.document;
 
 test('the hash is stable: FNV-1a 32 bit over UTF-8, modulo 8', () => {
@@ -30,6 +34,11 @@ test('letters: first and last word, one for a one-word name, none for no name', 
   assert.equal(avatarInitials('mia chen'), 'MC');
   assert.equal(avatarInitials('Alexandra Maria Dos Santos Ferreira'), 'AF');
   assert.equal(avatarInitials('  Noor   Haddad '), 'NH');
+  assert.equal(avatarInitials('Anne-Marie'), 'A');
+  assert.equal(avatarInitials('Mary Ann Lee'), 'ML');
+  assert.equal(avatarInitials('E\u0301lodie Dupont'), 'ÉD');
+  assert.equal(avatarInitials('👩‍💻 Example'), '👩‍💻E');
+  assert.equal(avatarInitials('🇺🇸 Example'), '🇺🇸E');
   assert.equal(avatarInitials(''), '');
   assert.equal(avatarInitials(null), '');
 });
@@ -106,6 +115,24 @@ test('picking a row carries its mark into the trigger', () => {
   assert.ok(d.querySelector('.ui-dropdown__trigger > .ui-avatar--empty'));
 });
 
+test('explicit value wins and selecting a row without a mark clears the trigger', () => {
+  const items = [
+    { label: 'Ada Lovelace', value: 'ada', selected: true, avatar: { name: 'Ada Lovelace' } },
+    { label: 'Bex Example', value: 'bex', avatar: { name: 'Bex Example' } },
+    { label: 'Unassigned', value: 'none' },
+  ];
+  const d = doc(dropdown({ variant: 'select', value: 'Bex Example', items }));
+  assert.equal(d.querySelector('.ui-dropdown__trigger > .ui-avatar').textContent, 'BE');
+  const win = new JSDOM(`<body>${dropdown({ variant: 'select', items })}</body>`, { pretendToBeVisual: true }).window;
+  for (const key of ['window', 'document', 'HTMLElement', 'Element', 'Node', 'getComputedStyle']) {
+    Object.defineProperty(globalThis, key, { value: win[key] ?? win, configurable: true, writable: true });
+  }
+  wireDropdown(win.document);
+  win.document.querySelector('[data-value="none"]').click();
+  assert.equal(win.document.querySelector('.ui-dropdown__trigger > .ui-avatar'), null);
+  assert.equal(win.document.querySelector('.ui-dropdown__value').textContent, 'Unassigned');
+});
+
 test('search count names the set in the placeholder and the field, less a No one row', () => {
   const field = (search) => doc(dropdown({ variant: 'select', items: people(null), search })).querySelector('[data-dd-search]');
   const counted = field({ count: true });
@@ -124,12 +151,55 @@ test('the top bar account button draws the part at 32px, hue from the address', 
   assert.ok(mark.classList.contains(`ui-avatar--h${avatarHue('ada@example.com')}`));
 });
 
-test('a photo that fails to load removes itself and leaves the letters', () => {
-  const dom = new JSDOM(`<body>${avatar({ key: 'k', name: 'Mia Chen', src: 'https://example.com/a.jpg' })}</body>`, { runScripts: 'dangerously' });
+test('the kit script removes a failed photo without an inline handler', () => {
+  const dom = new JSDOM('<body></body>');
+  Object.defineProperty(globalThis, 'document', { value: dom.window.document, configurable: true, writable: true });
+  dom.window.document.body.innerHTML = avatar({ key: 'k', name: 'Mia Chen', src: 'https://example.com/a.jpg' });
   const el = dom.window.document.querySelector('.ui-avatar');
+  assert.equal(el.querySelector('img').getAttribute('onerror'), null);
   el.querySelector('img').dispatchEvent(new dom.window.Event('error'));
   assert.equal(el.querySelector('img'), null);
   assert.equal(el.textContent, 'MC');
+});
+
+test('Chromium shows letters without a broken image under a strict CSP', {
+  skip: !process.env.AVATAR_CSP && 'set AVATAR_CSP=1 and UI_PLAYWRIGHT to run the browser check',
+}, async () => {
+  const pw = await import(process.env.UI_PLAYWRIGHT || 'playwright');
+  const browser = await (pw.chromium ?? pw.default.chromium).launch({ executablePath: process.env.UI_CHROME || undefined });
+  const server = createServer((req, res) => {
+    if (req.url === '/missing.png') { res.writeHead(404).end(); return; }
+    if (req.url === '/') {
+      if (req.headers['x-strict-csp'] === '1') res.setHeader('Content-Security-Policy', "script-src 'self'; script-src-attr 'none'; style-src 'self'");
+      res.setHeader('Content-Type', 'text/html');
+      res.end('<link rel="stylesheet" href="/src/index.css"><div id="root"></div><script type="module" src="/test-avatar.js"></script>');
+      return;
+    }
+    if (req.url === '/test-avatar.js') {
+      res.setHeader('Content-Type', 'text/javascript');
+      res.end("import { dropdown } from '/src/components/dropdown.js'; import { avatar } from '/src/components/avatar.js'; document.querySelector('#root').innerHTML = dropdown({ variant: 'select', value: 'Mia Chen', items: [{ label: 'Mia Chen', value: 'mia', avatar: { name: 'Mia Chen', src: '/missing.png' } }] }) + avatar({ name: 'Mia Chen', src: '/missing.png' });");
+      return;
+    }
+    const file = path.resolve(root, `.${req.url}`);
+    if (!file.startsWith(`${root}/`)) { res.writeHead(403).end(); return; }
+    try {
+      res.setHeader('Content-Type', file.endsWith('.css') ? 'text/css' : 'text/javascript');
+      res.end(readFileSync(file));
+    } catch { res.writeHead(404).end(); }
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    for (const strict of [false, true]) {
+      const page = await browser.newPage({ extraHTTPHeaders: strict ? { 'x-strict-csp': '1' } : {} });
+      await page.goto(`http://127.0.0.1:${server.address().port}/`);
+      await page.waitForFunction(() => document.querySelectorAll('.ui-avatar').length === 3 && document.querySelectorAll('.ui-avatar img').length === 0);
+      assert.deepEqual(await page.locator('.ui-avatar').allTextContents(), ['MC', 'MC', 'MC']);
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+    await new Promise((resolve) => server.close(resolve));
+  }
 });
 
 test('one person keeps one hue on the button, the menu head and the rail', () => {
@@ -146,6 +216,17 @@ test('one person keeps one hue on the button, the menu head and the rail', () =>
   assert.ok(rail, 'the rail mark draws the part');
   assert.ok(rail.classList.contains(hue));
   assert.equal(rail.textContent, 'AL');
+});
+
+test('the vanilla rail and top bar use the shown name and the same missing-name glyph', () => {
+  for (const [name, expected] of [['Anne-Marie', 'A'], ['Mary Ann Lee', 'ML'], ['', '']]) {
+    const reader = { name, email: 'guest@example.com' };
+    const shell = doc(appShell({ account: reader, topbar: { account: reader } }));
+    for (const mark of shell.querySelectorAll('.ui-app__av > .ui-avatar, button.avatar > .ui-avatar')) {
+      if (expected) assert.equal(mark.textContent, expected);
+      else assert.ok(mark.classList.contains('ui-avatar--anon'));
+    }
+  }
 });
 
 // ---- contrast --------------------------------------------------------------

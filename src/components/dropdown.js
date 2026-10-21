@@ -194,12 +194,12 @@ export function dropdown({
   // A picker of people: the trigger leads with the chosen row's mark, and with no value
   // a dashed ring beside the placeholder. why: docs/components.md#avatar
   const marked = isSelect && flat.some((it) => it && it.avatar);
-  const chosen = marked ? flat.find((it) => it && it.selected) || flat.find((it) => it && it.label === cur) : null;
-  const lead = marked ? avatar(chosen?.avatar ?? { empty: true }) : '';
+  const chosen = marked && cur != null ? flat.find((it) => it && it.label === cur) : null;
+  const lead = marked && (chosen?.avatar || cur == null) ? avatar(chosen?.avatar ?? { empty: true }) : '';
   const trig = triggerContent != null
     ? triggerContent
     : `${lead}${label ? `<span class="ui-dropdown__pre">${esc(label)}</span>` : ''}` +
-      `<span class="${esc(cx('ui-dropdown__value', marked && !chosen && 'is-placeholder'))}">${esc(cur != null ? cur : placeholder)}</span>`;
+      `<span class="${esc(cx('ui-dropdown__value', marked && cur == null && 'is-placeholder'))}">${esc(cur != null ? cur : placeholder)}</span>`;
   const triggerAttrs = [
     `class="${esc(cx('ui-dropdown__trigger', triggerClass))}"`,
     'type="button"',
@@ -985,6 +985,8 @@ function selectOption(dd, item) {
   const mark = item.querySelector(':scope > .ui-avatar');
   const lead = dd.querySelector('[data-dropdown-trigger] > .ui-avatar');
   if (mark && lead) lead.replaceWith(mark.cloneNode(true));
+  else if (mark) dd.querySelector('[data-dropdown-trigger]')?.prepend(mark.cloneNode(true));
+  else lead?.remove();
   valueEl?.classList.remove('is-placeholder');
 }
 

@@ -19,9 +19,10 @@ export function avatarHue(key) {
  * one-word name gives one letter. Empty when there is no name to read.
  */
 export function avatarInitials(name) {
-  const words = String(name ?? '').trim().split(/\s+/).filter(Boolean);
+  const words = String(name ?? '').normalize('NFC').trim().split(/\s+/).filter(Boolean);
   if (!words.length) return '';
-  const first = (w) => Array.from(w)[0];
+  const segmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
+  const first = (w) => segmenter ? segmenter.segment(w)[Symbol.iterator]().next().value.segment : Array.from(w)[0];
   const letters = words.length === 1 ? [first(words[0])] : [first(words[0]), first(words[words.length - 1])];
   return letters.join('').toLocaleUpperCase();
 }

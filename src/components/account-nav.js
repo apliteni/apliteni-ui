@@ -39,9 +39,6 @@ export const accountMenuNav = () => ACCOUNT_NAV.map(toMenuTuple);
 // beside ACCOUNT_NAV for the same reason ACCOUNT_NAV lives here: both files
 // need it and shell.js already imports topbar.js.
 //
-// The display name is what a reader recognises, so it wins; the address is the
-// fallback. `?` is what nobody at all comes out as.
-export const initials = (name, email) => {
-  const from = String(name ?? '').trim() || String(email ?? '').split('@')[0] || '';
-  return avatarInitials(from.replace(/[._-]+/g, ' ')) || '?';
-};
+// The displayed name alone supplies the letters. The part draws its user glyph
+// when no name is shown.
+export const initials = (name) => avatarInitials(name);

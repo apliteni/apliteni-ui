@@ -37,7 +37,7 @@ export declare function avatarHue(key: unknown): number;
 /** The first letter of the first word and of the last word, upper-cased; '' for no name. */
 export declare function avatarInitials(name: unknown): string;
 export declare function avatar(opts?: {
-  key?: string | number; name?: string | null; src?: string; size?: 24 | 32; empty?: boolean;
+  key?: string | number; name?: string | null; initials?: string; src?: string; size?: 24 | 32; empty?: boolean;
 }): string;
 export declare const calloutIcons: Record<'neutral' | 'info' | 'success' | 'warn' | 'danger', string>;
 export declare function callout(opts?: Record<string, unknown>): string;

@@ -32,7 +32,8 @@
 .ui-avatar--h7 { --ui-avatar-hue: var(--person-7); }
 
 /* The photo covers the letters, so one that fails leaves them showing. */
-.ui-avatar img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; }
+.ui-avatar img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; opacity: 0; }
+.ui-avatar img.is-loaded { opacity: 1; }
 .ui-avatar svg { inline-size: 62%; block-size: 62%; stroke: currentColor; fill: none; stroke-width: 2.5; }
 
 /* No name: the user glyph on the kit's quiet fill. */

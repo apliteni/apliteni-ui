@@ -11,6 +11,18 @@ export { avatarHue, avatarInitials, AVATAR_HUES } from '../logic/avatar.js';
 // technology, and it has no cursor, hover or focus of its own.
 // why: docs/components.md#avatar
 const cx = (...a) => a.filter(Boolean).join(' ');
+const wiredDocs = new WeakSet();
+
+function wireAvatarPhotos(doc) {
+  if (!doc || wiredDocs.has(doc)) return;
+  wiredDocs.add(doc);
+  doc.addEventListener('load', (event) => {
+    if (event.target?.matches?.('.ui-avatar > img[data-avatar-photo]')) event.target.classList.add('is-loaded');
+  }, true);
+  doc.addEventListener('error', (event) => {
+    if (event.target?.matches?.('.ui-avatar > img[data-avatar-photo]')) event.target.remove();
+  }, true);
+}
 
 /**
  * @param {object} [o]
@@ -23,11 +35,12 @@ const cx = (...a) => a.filter(Boolean).join(' ');
  * @returns {string} html
  */
 export function avatar({ key, name, initials, src, size = 24, empty = false } = {}) {
+  if (typeof document !== 'undefined') wireAvatarPhotos(document);
   const base = ['ui-avatar', size === 32 && 'ui-avatar--32'];
   if (empty) return `<span class="${esc(cx(...base, 'ui-avatar--empty'))}" aria-hidden="true"></span>`;
   const letters = initials || avatarInitials(name);
   if (!letters) return `<span class="${esc(cx(...base, 'ui-avatar--anon'))}" aria-hidden="true">${icon('user')}</span>`;
   const hue = avatarHue(key ?? name ?? letters);
-  const img = src ? `<img src="${esc(safeUrl(src))}" alt="" loading="lazy" onerror="this.remove()">` : '';
+  const img = src ? `<img data-avatar-photo src="${esc(safeUrl(src))}" alt="" loading="lazy">` : '';
   return `<span class="${esc(cx(...base, `ui-avatar--h${hue}`))}" data-initials="${letters.length}" aria-hidden="true">${esc(letters)}${img}</span>`;
 }

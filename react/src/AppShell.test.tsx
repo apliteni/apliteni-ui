@@ -37,6 +37,23 @@ it('draws the rail mark as the Avatar part with the first and last initials, lik
   expect(vanilla.className).toBe(mark.className);
 });
 
+it('uses the same initials and missing-name rule as the vanilla shell', () => {
+  for (const [name, expected] of [['Anne-Marie', 'A'], ['Mary Ann Lee', 'ML'], ['', '']]) {
+    const account = { name, email: 'guest@example.com' };
+    const { unmount } = render(<AppShell {...props} account={account} />);
+    const mark = document.querySelector('.ui-app__av > .ui-avatar') as HTMLElement;
+    const vanilla = new DOMParser().parseFromString(appShell({ account }), 'text/html').querySelector('.ui-app__av > .ui-avatar') as HTMLElement;
+    if (expected) {
+      expect(mark.textContent).toBe(expected);
+      expect(vanilla.textContent).toBe(expected);
+    } else {
+      expect(mark.classList.contains('ui-avatar--anon')).toBe(true);
+      expect(vanilla.classList.contains('ui-avatar--anon')).toBe(true);
+    }
+    unmount();
+  }
+});
+
 it('keeps the section active under a back link and inks both counts alike', () => {
   const { rerender } = render(<AppShell {...props} back={{ href: '/reports', label: 'Back to Reports' }} />);
   const rail = within(screen.getByRole('navigation', { name: 'Sections' }));
