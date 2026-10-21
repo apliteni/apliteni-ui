@@ -519,7 +519,7 @@
 @media (max-width: 720px) {
   /* A column, not a grid: the band sticks to the top of the shell, and a sticky grid
      item sticks only inside its own row. */
-  .ui-app { display: flex; flex-direction: column; }
+  .ui-app { display: flex; flex-direction: column; --ui-app-band: 52px; }
   .ui-app > .ui-app__rail { display: none; }
   .ui-app__well { flex: 1 1 auto; }
   .ui-app > .ui-app__main { flex: 1 1 auto; }

@@ -472,6 +472,12 @@ describe('the page drop layer in the sheet', () => {
       expect(top('ui-app')).toBe(16);
     });
 
+    it('gives the rail shell a 52px band when its phone bar is visible', () => {
+      const layout = readRepo('../../src/styles/layout.css');
+      const phone = /@media\s*\(max-width:\s*720px\)\s*\{([\s\S]*?)\n\}/.exec(layout)?.[1] ?? '';
+      expect(phone).toMatch(/\.ui-app\s*\{[^}]*--ui-app-band:\s*52px\s*;/);
+    });
+
     it('starts below the topbar of a page that carries one', () => {
       expect(top('ui-app-page')).toBe(52 + 16);
     });
