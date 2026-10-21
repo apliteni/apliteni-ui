@@ -301,7 +301,7 @@ export const PersonPickerChosen: StoryObj<typeof Dropdown> = {
   render: () => (
     <Column><Card>
       <Field label="Owner">{(control) => (
-        <Dropdown {...control} variant="select" items={PEOPLE} value="Jordan Okafor" search={{ count: 214 }} defaultOpen />
+        <Dropdown {...control} variant="select" items={PEOPLE.map((it) => ({ ...it, selected: it.label === 'Jordan Okafor' }))} value="Jordan Okafor" search={{ count: 214 }} defaultOpen />
       )}</Field>
     </Card></Column>
   ),
@@ -311,7 +311,7 @@ export const PersonPickerFailedPhoto: StoryObj<typeof Dropdown> = {
   render: () => (
     <Column><Card>
       <Field label="Owner">{(control) => (
-        <Dropdown {...control} variant="select" items={PEOPLE} value="Mia Chen" search={{ count: 214 }} defaultOpen />
+        <Dropdown {...control} variant="select" items={PEOPLE.map((it) => ({ ...it, selected: it.label === 'Mia Chen' }))} value="Mia Chen" search={{ count: 214 }} defaultOpen />
       )}</Field>
     </Card></Column>
   ),

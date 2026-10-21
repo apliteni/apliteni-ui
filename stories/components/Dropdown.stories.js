@@ -385,11 +385,12 @@ const PEOPLE = [
   })),
 ];
 const column = (html) => `<div style="width:min(100%,420px)">${html}</div>`;
+const pickerStage = (html) => `<main class="ui-app__main">${html}</main>`;
 
 export const PersonPicker = {
   name: 'Person picker (no value)',
   parameters: { layout: 'fullscreen' },
-  render: () => pad(column(`<div class="ui-card">${field({
+  render: () => pickerStage(column(`<div class="ui-card">${field({
     label: 'Owner',
     control: dropdown({ variant: 'select', items: PEOPLE, placeholder: 'Choose a person', search: { count: 214 } }),
   })}</div>`)),
@@ -398,7 +399,7 @@ export const PersonPicker = {
 export const PersonPickerChosen = {
   name: 'Person picker (chosen, open)',
   parameters: { layout: 'fullscreen' },
-  render: () => pad(column(`<div class="ui-card">${field({
+  render: () => pickerStage(column(`<div class="ui-card">${field({
     label: 'Owner',
     control: dropdown({
       variant: 'select', open: true, search: { count: 214 },
@@ -410,7 +411,7 @@ export const PersonPickerChosen = {
 export const PersonPickerFailedPhoto = {
   name: 'Person picker (photo fails, open)',
   parameters: { layout: 'fullscreen' },
-  render: () => pad(column(`<div class="ui-card">${field({
+  render: () => pickerStage(column(`<div class="ui-card">${field({
     label: 'Owner',
     control: dropdown({
       variant: 'select', open: true, search: { count: 214 },
