@@ -311,7 +311,7 @@ export const NearTheScreenEdges = {
       dropdown({ value: 'Account', variant: 'menu', ariaLabel: 'Account', align: 'end', portal: true, items: ACCOUNT }),
       dropdown({
         label: 'region:', ariaLabel: 'Region', items: REGIONS, scroll: true,
-        search: { placeholder: 'Find a region' },
+        search: { placeholder: 'Search' },
       }),
     ),
   ), 420)),
