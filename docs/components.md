@@ -95,6 +95,7 @@ what a factory accepts. They do not describe what the factory does.
 | `button({ label, variant, size, icon, iconRight, block, disabled, busy, href, iconOnly })` | `<button>`, or `<a>` with `href`. See [Extra-small buttons](#extra-small-buttons). |
 | `setButtonBusy(element, { busy })` | Flips a mounted button to its busy state and back. See [Busy button labels](#busy-button-labels). |
 | `badge(label, variant)`, `pill(label, variant)`, `statusDot(live)` | Status chip, rounded chip, live dot. |
+| `avatar({ key, name, initials, src, size, empty })`, `avatarHue(key)`, `avatarInitials(name)`, `AVATAR_HUES` | A person's mark. See [Avatar](#avatar). |
 | `card({ title, sub, body, variant, pad, icon, level })` | Surface container. `title` and `sub` are trusted markup; keep the title to inline content. |
 | `callout`, `toast`, `successPanel` | Inline feedback inside the page the reader is on; `calloutIcons` is the default glyph per tone. |
 | `pushToast(container, opts)`, `dismissToast(el)`, `wireToastStack(container)` | The runtime toast stack. |
@@ -470,6 +471,20 @@ item has `href`. It never emits a `<button>`. A row that must be a real button i
 [one you write yourself](#a-dropdown-row-you-write-yourself). **A destructive row stays quiet
 and turns `--pink` on the way to being pressed**, in both hover and focus.
 
+### Avatar
+
+`avatar()` draws a person as a filled circle with their first and last initials. It is 24 px, or
+32 px with `size: 32`. **The hue comes from `key`**, the app's stable id for the person, so one person
+keeps one hue on every screen. A hash of the key picks one of eight fixed hues, and the letter ink
+is chosen to read on each one in both themes and under every accent. A name with no letters draws
+the `user` glyph. `empty: true` draws a dashed ring for "no one". **A `src` photo covers the
+letters**, and the letters show when the photo does not load. **The mark is hidden from assistive
+technology**, because the person's name always stands beside it. It has no hover, focus or cursor
+of its own: a button that holds it keeps its own. In React it is `<Avatar personKey name src size
+empty />`. A `dropdown()` item takes `avatar: { key, name, src }` and draws it in the leading slot.
+A `select` leads its trigger with the chosen row's mark, and with no value it shows the dashed ring
+and the placeholder. The top bar account button, the menu it opens and the shell's reader block draw the same mark, in the same hue.
+
 ### A dropdown with a search field
 
 `search: true` adds a text field above a dropdown's rows. It filters the rows as the reader types.
@@ -478,6 +493,9 @@ field**, which has `role="combobox"` over the list. `aria-activedescendant` name
 Enter would pick. The field carries the focus ring. The active row is marked by the hover fill
 alone — an edge around a row would be the focus band's own shape. **The match is anywhere in the label**, with case and accents ignored. Rows keep their
 original order. Descriptions are not searched, so put the words a reader will type in the label.
+**`count` names the size of the set** in the placeholder and in the field's accessible name, for
+example "Search 214 people", and `noun` changes the word. A placeholder or label you write wins. A
+`select` dropdown inside a `field()` takes the field's width, and its panel takes the trigger's.
 **Every open starts from the whole list**, and a query with no matches says so instead of showing
 an empty panel. **The panel is a dialog**, because a listbox may own only options. When a dropdown
 must have a search field is a rule rather than a recommendation:

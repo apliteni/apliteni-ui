@@ -163,7 +163,7 @@
       },
       {
         "ref": "stories/accent-contrast.test.js:2",
-        "pattern": "theme \u00d7 accent cells"
+        "pattern": "theme × accent cells"
       },
       {
         "ref": "react/src/a11y.test.tsx:23",
@@ -418,7 +418,7 @@
     ],
     "one-or-the-other": [
       {
-        "ref": "src/components/shell.js:371",
+        "ref": "src/components/shell.js:372",
         "pattern": "${up || (crumbs.length"
       }
     ],
@@ -544,7 +544,7 @@
         "pattern": "in sentence case like every"
       },
       {
-        "ref": "src/components/topbar.js:32",
+        "ref": "src/components/topbar.js:33",
         "pattern": "the kit writes the word for it"
       },
       {
@@ -554,7 +554,7 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:431",
+        "ref": "src/styles/layout.css:428",
         "pattern": "rank: page-title"
       },
       {
@@ -596,7 +596,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:324",
+        "ref": "src/styles/layout.css:321",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -630,7 +630,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:519",
+        "ref": "src/styles/layout.css:516",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -682,11 +682,11 @@
   "_microcopy.js": {
     "state-not-destination": [
       {
-        "ref": "src/components/topbar.js:11",
+        "ref": "src/components/topbar.js:12",
         "pattern": "show the saved choice"
       },
       {
-        "ref": "src/components/topbar.js:113",
+        "ref": "src/components/topbar.js:114",
         "pattern": "btn.setAttribute('aria-label', name)"
       },
       {
@@ -846,14 +846,14 @@
         "pattern": "outline: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:284",
+        "ref": "src/tokens/tokens.css:297",
         "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
       }
     ],
     "busy": [
       {
         "ref": "src/components/index.js:40",
-        "pattern": "busy \u21d2 disabled"
+        "pattern": "busy ⇒ disabled"
       },
       {
         "ref": "src/styles/button.css:154",
@@ -1015,17 +1015,17 @@
         "pattern": "export function sidebarNav("
       },
       {
-        "ref": "src/components/account-nav.js:14",
+        "ref": "src/components/account-nav.js:15",
         "pattern": "export const ACCOUNT_NAV = ["
       }
     ],
     "menu": [
       {
-        "ref": "src/components/topbar.js:57",
+        "ref": "src/components/topbar.js:58",
         "pattern": "export function accountMenu("
       },
       {
-        "ref": "src/components/topbar.js:83",
+        "ref": "src/components/topbar.js:84",
         "pattern": "Sign out"
       }
     ],

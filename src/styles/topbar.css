@@ -209,7 +209,7 @@
    src/styles/dropdown.css:271 `.ui-dropdown__item:hover`.
    why: docs/foundations.md#elevation */
 .vopt:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-/* The row is a keyboard stop: src/components/dropdown.js:1165
+/* The row is a keyboard stop: src/components/dropdown.js:1191
    `items[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
    the arrow keys, and this is one. It takes the ring on its own 10px radius, the
    same way `.amenu a` above does. #482 */
@@ -306,6 +306,10 @@
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
 .acct .avatar:hover:not(:focus-visible) { border-color: var(--accent); }
 .avatar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+/* The account button holding an Avatar: the part paints the circle in the reader's hue and
+   the button keeps its edge, cursor, hover and ring. why: docs/components.md#avatar */
+.avatar:has(> .ui-avatar) { background: none; padding: 0; overflow: hidden; }
+.avatar > .ui-avatar { --ui-avatar-size: 100%; }
 .amenu {
   position: absolute;
   right: 0; top: 44px;
@@ -372,7 +376,6 @@
   border-radius: 14px 14px 0 0;
   display: flex; align-items: center; gap: 11px;
 }
-.amenu .ahead .avatar { cursor: default; }
 .amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amenu .ahead .aem { color: var(--text); font-size: calc(var(--text-xs) + 0.5px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

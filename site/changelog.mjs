@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.131.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A person mark: `avatar()` and React `Avatar` draw first and last initials on one of eight fixed hues chosen from the person\'s key, at 24 or 32 px. An empty name draws the `user` glyph, `empty` draws a dashed ring and a photo that fails to load shows the letters. Part of #628.', ['Avatar']],
+      ['added', 'Dropdown items take `avatar: { key, name, src }`, and a `select` leads its trigger with the chosen mark or a dashed ring with the placeholder. `search.count` puts the size of the set in the placeholder and in the field\'s accessible name. A `select` inside a `field()` takes the field\'s width. Part of #628.', ['Dropdown']],
+      ['changed', 'The top bar account button draws the avatar part at 32 px, with its hue from the account email. The account menu head and the shell\'s reader block draw the same mark, in the same hue, in vanilla and React. The rail and the top bar now show the first and last initials of a name, where the rail showed the first two.', ['Topbar', 'Shell']],
+    ],
+  },
+  {
     v: '0.130.0', date: '2026-10-21',
     changes: [
       ['added', 'React Toast notices accept `compact`, `dismissible` and `timer`. A compact notice omits its body text. Hiding the close button keeps the timer and the action behaviour. Part of #429.', ['Toast']],
@@ -1410,6 +1418,7 @@ export const RELEASES = [
 const COMPONENTS = {
   Table:     'components-table--finance-data',
   Badge:     'components-badge-status--badges',
+  Avatar:    'react-avatar--hues',
   Button:    'components-button--playground',
   Card:      'components-card--variants',
   Callout:   'components-callout-toast--callouts',

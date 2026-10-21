@@ -4,6 +4,7 @@
 // why: docs/components.md#the-page-shell
 import { topbar as productTopbar } from './topbar.js';
 import { esc, icon, button } from './index.js';
+import { avatar } from './avatar.js';
 import { sidebarNav, breadcrumbs, wireNav } from './nav.js';
 import { dropdown, wireDropdown } from './dropdown.js';
 import { drawer, wireDrawer, closeDrawer } from './drawer.js';
@@ -67,7 +68,7 @@ const toReader = (a) => (isRecord(a) ? { name: str(a.name), email: str(a.email) 
 const toMenuReader = (a) => {
   const { name, email } = toReader(a);
   const rest = isRecord(a) && !Array.isArray(a) ? a : {};
-  const out = { ...rest, name: esc(name), email: esc(email), initials: esc(initials(name, email)) };
+  const out = { ...rest, name: esc(name), email: esc(email), initials: initials(name, email), key: email || name };
   if (out.nav != null) out.nav = toItems(out.nav).map(toMenuTuple);
   return out;
 };
@@ -195,7 +196,7 @@ function settle(options) {
 // inside it. why: docs/components.md#the-page-shell
 const readerFace = (name, email, named, markOnly = false) =>
   `<span class="ui-app__av"${named ? ` role="img" aria-label="Signed in as ${esc(named)}"` : ' aria-hidden="true"'}>`
-  + `${esc(initials(name, email))}</span>`
+  + `${avatar({ key: email || name, initials: initials(name, email), size: 32 })}</span>`
   + (markOnly ? '' : `<span class="ui-app__who"${named ? ' aria-hidden="true"' : ''}>`
     + (name ? `<b>${esc(name)}</b>` : '')
     + (email ? `<span>${esc(email)}</span>` : '')
