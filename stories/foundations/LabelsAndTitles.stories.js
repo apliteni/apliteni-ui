@@ -86,8 +86,8 @@ const MENU = dropdown({
 });
 
 const VERSIONS = versionSwitcher([
-  { label: 'phoenix.2026.002', meta: 'Product units, animated deck', badge: 'live' },
-  { label: 'phoenix.2026.001', meta: 'Phoenix, 2026-05-17', badge: 'archive' },
+  { label: 'phoenix.2026.002', badge: 'live' },
+  { label: 'phoenix.2026.001', badge: 'archive' },
 ], 0).replace('class="vsw"', 'class="vsw open"');
 
 const everyLabel = () => `

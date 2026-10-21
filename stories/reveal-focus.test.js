@@ -146,8 +146,8 @@ const LEDGER = {
   '.vsw__menu': {
     open: () => {
       const surface = openedByKey(versionSwitcher([
-        { label: 'v1', meta: 'retired', badge: 'archive' },
-        { label: 'v2', meta: 'current', badge: 'live' },
+        { label: 'v1', badge: 'archive' },
+        { label: 'v2', badge: 'live' },
       ], 1), '.vsw__menu');
       assertOpen(surface, '.vsw.open');
       return surface;

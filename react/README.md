@@ -232,6 +232,8 @@ finds its rows by `data-dd-item`, which is in the props you spread.
 leave `open` out and the component keeps its own, starting from `defaultOpen`. `onSelect`
 reports the item's `value` and the item. Pass `ariaLabel` to a `select` dropdown: a listbox
 needs a name, and axe says so — the same reason every vanilla dropdown story passes one.
+Pass `selectedValue` when the caller owns the selected row. Its tick stays on that value after
+`onSelect` until the caller changes it.
 
 **`search` puts a field over the rows**, the same one the factory draws, and Guidelines /
 Component choice makes it a rule at ten options or any list fed by data:
@@ -975,6 +977,29 @@ instead of 32, with the same line drawn in the middle of it.
     { label: 'Closing', kind: 'total' },
   ]} />
 ```
+
+## TopBar
+
+`TopBar` is the band: the brand first, then your slots after the spacer. Fill `view`, `version`,
+`theme` and `account` with `ViewSwitch`, `VersionSwitcher`, `ThemeToggle` and `AccountMenu`, or
+leave one out. Leave out `account` for the signed-out bar. The brand is the Apliteni mark and
+`word`, or pass your own `brand`. Put it above `AppShell` or on its own.
+
+```tsx
+<TopBar
+  view={<ViewSwitch items={[{ id: 'deck', label: 'Deck' }, { id: 'text', label: 'Text' }]} active="deck" />}
+  version={<VersionSwitcher versions={versions} value={version} onChange={setVersion} />}
+  theme={<ThemeToggle />}
+  account={<AccountMenu name="Ada Lovelace" email="ada@apliteni.com" current="prefs" onSignOut={signOut} />} />
+```
+
+`ViewSwitch` is a group of links, so it takes `renderLink` like `NavTabs`. The current view is
+filled with the same accent fill as a `Segmented` choice and has `aria-current="page"`.
+`VersionSwitcher` takes `{ value, label, badge }` versions. The button shows only the chosen
+name. Each row shows a name, a badge and the selected tick. `AccountMenu` shows the
+avatar mark, the reader's name and address, the rows in `items` and Sign out. Both menus are the
+kit's `Dropdown`, so they share its keyboard and placement. `current` marks one account page in
+accent ink and defaults to `prefs`.
 
 ## NavTabs and Breadcrumbs
 

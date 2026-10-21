@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.138.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React TopBar, ViewSwitch, VersionSwitcher and AccountMenu build the strategy top bar from slots, with the existing look and the two phone rows. Part of #429.', ['Topbar']],
+      ['changed', 'The current view in the Deck and Text switch has the accent fill of a chosen Segmented option. The open version menu ticks the chosen version.', ['Topbar']],
+      ['changed', 'The version button shows only the chosen version name. The "version:" prefix is gone.', ['Topbar']],
+      ['changed', 'The version button chevron is centred on its text. Version menus in vanilla and React show each name and badge without a description line.', ['Topbar']],
+    ],
+  },
+  {
     v: '0.137.0', date: '2026-10-21',
     changes: [
       ['added', 'React `DataTable` takes `zebra`, `hover`, `stack`, `rowState`, `footer` and `caption`, and a column takes `rowHeader` and `cell`. Each maps to a vanilla table style, so the React table can match every Table story.', ['DataTable']],

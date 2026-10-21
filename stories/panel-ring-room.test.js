@@ -301,7 +301,7 @@ const items = [{ label: 'Germany', value: 'de', selected: true }, { label: 'Fran
 const markup = [
   dropdown({ label: 'country:', variant: 'select', items }),
   dropdown({ label: 'country:', variant: 'select', search: { placeholder: 'Search' }, items }),
-  versionSwitcher([{ label: 'v1', meta: 'old' }, { label: 'v2', meta: 'now' }], 1),
+  versionSwitcher([{ label: 'v1' }, { label: 'v2' }], 1),
   accountMenu({ name: 'Ada Lovelace', email: 'ada@apliteni.com' }),
 ].join('');
 
