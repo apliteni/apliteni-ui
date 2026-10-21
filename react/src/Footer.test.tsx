@@ -38,6 +38,13 @@ it('renders the brand, social links and three link columns in the full variant',
   expect(container.querySelectorAll('.ui-footer__col')).toHaveLength(3);
 });
 
+it('paints the LinkedIn mark with the same solid weight as the other brand marks', () => {
+  const { container } = render(<Footer social={SOCIAL} legal="x" />);
+  const github = container.querySelector<SVGElement>('[aria-label="GitHub"] svg')!;
+  const linkedin = container.querySelector<SVGElement>('[aria-label="LinkedIn"] svg')!;
+  expect(linkedin.getAttribute('fill')).toBe(github.getAttribute('fill'));
+});
+
 it('draws no switcher box when the slot is empty', () => {
   const { container } = render(<Footer variant="slim" legal="x" />);
   expect(container.querySelector('.ui-footer__switcher')).toBeNull();
