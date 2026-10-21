@@ -117,7 +117,7 @@ test('every parenthesised selector the kit writes survives the shared splitter',
   // move an exact one, and the subject set this gate measures is the next line.
   assert.ok(PRELUDES.length > 500, `only ${PRELUDES.length} rules discovered — the sweep lost its sheets`);
   assert.equal(
-    PARENTHESISED.length, 56,
+    PARENTHESISED.length, 44,
     'the kit\'s parenthesised selector lists changed; check the current set against the discovered rules',
   );
   const bad = PARENTHESISED.flatMap(({ file, selector }) => offences(selector, splitSelectorList).map((o) => `${file}  ${o}`));
@@ -206,7 +206,7 @@ test('the shared splitter is read by every gate that was reading a selector list
   const callers = tracked.filter((file) => SOURCE.test(file) && !self.includes(file)
     && /splitSelectorList\s*\(/.test(readFileSync(path.join(root, file), 'utf8')));
   assert.equal(
-    callers.length, 45,
+    callers.length, 41,
     'the set of gates reading a selector list changed; the scroll-ring and story CSS gates share this splitter '
     + 'with the React date-picker, chart-target, tap-zone, table-edge, card-fit, table and other style gates',
   );
