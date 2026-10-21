@@ -112,10 +112,10 @@ it('scrolls its columns in the kit region, with no pager and no navigation to on
     expect(screen.queryByRole('button', { name })).toBeNull();
   }
   expect(screen.queryByRole('group', { name: 'Cost changes columns' })).toBeNull();
-  for (const name of ['Sections', 'Sections on mobile']) {
+  for (const name of ['Sections', 'Menu sections']) {
     expect(screen.queryByRole('navigation', { name })).toBeNull();
   }
-  expect(container.querySelector('.ui-react-app__bottom')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Menu' })).toBeNull();
   expect(region.closest('.ui-card')).not.toBeNull();
   expect(container.querySelectorAll('thead th')).toHaveLength(5);
   expect(container.querySelector('thead [aria-hidden]')).toBeNull();

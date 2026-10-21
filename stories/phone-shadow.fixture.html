@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/src/index.css"></head><body>
+<button id="outside">Outside</button><div id="host"></div>
+<script type="module">
+import { appShell, wireShell } from '/src/components/shell.js';
+const shadow = document.querySelector('#host').attachShadow({ mode: 'open' });
+const sheet = document.createElement('link');
+sheet.rel = 'stylesheet';
+sheet.href = '/src/index.css';
+shadow.append(sheet);
+const shell = document.createElement('div');
+shell.innerHTML = appShell({ word: 'Demo', nav: [
+  { id: 'overview', icon: 'home', label: 'Overview', href: '#overview' },
+  { id: 'reports', icon: 'chart', label: 'Reports', href: '#reports' },
+], active: 'reports', account: { name: 'Demo User', email: 'demo@example.com' } });
+shadow.append(shell);
+wireShell(shadow, { persist: false });
+</script></body></html>

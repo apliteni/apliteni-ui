@@ -98,11 +98,11 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // scrolled sideways under one erases the band. Six of the seven never had a shadow
 // rule; the scrolling table wrapper did, and that is the one this number lost.
 // The focus ring uses an outline. The rail uses a selection fill without a shadow.
-// These changes leave 22 shadow declarations for elevation and decoration. #587 moved the
+// These changes leave 21 shadow declarations for elevation and decoration. #587 moved the
 // `a` element onto the shared ring rule and removed table.css's own copy, but both already
 // wrote an outline rather than a box-shadow after #578, so this sweep is unaffected.
-  assert.equal(sweep.length, 22,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 22. `
+  assert.equal(sweep.length, 21,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 21. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -159,7 +159,7 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
   assert.deepStrictEqual(got, {
     'var(--elev-rest)': 1,   // .ui-card
     'var(--elev-rail)': 1,   // .ui-app__rail
-    'var(--elev-drop)': 13,  // the floating surfaces, each saying it once
+    'var(--elev-drop)': 12,  // the floating surfaces, each saying it once
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '
     + 'was added, move the number and check it against docs/foundations.md#elevation.');
 });

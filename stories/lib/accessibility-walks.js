@@ -284,15 +284,19 @@ export async function targetRun() {
   const { stories, problems } = await walk(win, null, null, (where, markup) => {
     if (win.document.body.querySelector('.ui-app__rail')) {
       narrowWin.document.body.innerHTML = markup;
-      for (const el of narrowWin.document.body.querySelectorAll('.ui-app__rail .ui-nav__item')) {
+      // Below 720px the rail's rows are the drawer's, so the drawer is held open and the
+      // rows, the account trigger, the menu control and the band's mark are the targets.
+      for (const d of narrowWin.document.body.querySelectorAll('.ui-app__drawer .ui-drawer')) d.classList.add('is-open');
+      const targets = '.ui-app__drawer .ui-nav__item, .ui-app__drawer .ui-app__user-trigger, '
+        + '.ui-btn.ui-app__menu, .ui-app__brand--band';
+      for (const el of narrowWin.document.body.querySelectorAll(targets)) {
         const cs = narrowWin.getComputedStyle(el);
         if (cs.opacity === '0' || probe(cs, 'position') === 'absolute') continue;
-        // The fold toggle is display:none at this width — the strip is the only
-        // layout there and there is nothing for it to choose.
         if (!onScreenIn(el, narrowWin)) continue;
         strip.push({
           where,
-          name: el.getAttribute('aria-label') || '',
+          part: el.matches('.ui-app__menu') ? 'menu' : el.matches('.ui-app__brand--band') ? 'mark' : 'row',
+          name: el.getAttribute('aria-label') || (el.textContent || '').trim(),
           ...boxOf(el, cs, glyphOf(el, narrowWin)),
         });
       }
