@@ -109,7 +109,7 @@ what a factory accepts. They do not describe what the factory does.
 | `seedling`, `prism`, `brand` | The brand mark. |
 
 `card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. If the choice cannot fit beside its label, it moves below the label. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link.
-Three-option setting rows use `ui-card__row--tight-choice` to narrow pills below 560 px and stay on one line, while other rows keep full tap width.
+Three-option setting rows use `ui-card__row--tight-choice` to narrow pills below 360 px and stay on one line, while other rows keep full tap width.
 
 ### Controls and input
 
