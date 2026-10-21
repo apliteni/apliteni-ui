@@ -394,8 +394,9 @@ export function Dropdown({
     if (pick && pick.against !== givenKey) setPick(null);
   }, [givenKey, pick]);
   const picked = pickedKey != null ? rows.find((it) => keyOf(it) === pickedKey) : undefined;
+  const controlled = selectedValue !== undefined ? rows.find((it) => it.value === selectedValue) : undefined;
   const shown = value != null ? value
-    : (isSelect ? (picked?.label ?? given?.label) : null);
+    : (isSelect ? (selectedValue !== undefined ? controlled?.label : picked?.label ?? given?.label) : null);
   // After a pick the tick follows it, the way selectOption() rewrites the panel —
   // and like it, a disabled row keeps the state it was rendered with.
   const selectedOf = (it: DropdownItem) => (selectedValue !== undefined

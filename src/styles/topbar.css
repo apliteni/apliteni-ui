@@ -396,6 +396,8 @@
 .amenu a:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .amenu a:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .amenu a.cur { color: var(--accent); }
+/* The SVG takes the row's height; its React wrapper adds no line box. */
+.amenu a > span[aria-hidden="true"] { display: contents; }
 .amenu a svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.85; }
 .amenu .asep { height: 1px; background: var(--border); margin: 5px 0; }
 .amenu a.aout { color: var(--text); }

@@ -431,6 +431,21 @@ it('a pick writes itself into the trigger and moves the tick, the way selectOpti
   expect(rows.map((el) => el.classList.contains('is-selected'))).toEqual([false, true, false]);
 });
 
+it('selectedValue controls both the trigger and the tick when a parent retains it', async () => {
+  const user = userEvent.setup();
+  const picks: unknown[] = [];
+  const { container } = render(<Dropdown variant="select" ariaLabel="Version" selectedValue="1.1.0"
+    items={SELECT} onSelect={(value) => picks.push(value)} />);
+  const dd = container.querySelector('.ui-dropdown')!;
+  expect(dd.querySelector('.ui-dropdown__value')).toHaveTextContent('v1.1.0');
+  expect(rowsOf(dd).map((row) => row.getAttribute('aria-selected'))).toEqual(['false', 'true', 'false']);
+  await user.click(within(dd as HTMLElement).getByRole('button'));
+  await user.click(screen.getByText('v1.2.0'));
+  expect(picks).toEqual(['1.2.0']);
+  expect(dd.querySelector('.ui-dropdown__value')).toHaveTextContent('v1.1.0');
+  expect(rowsOf(dd).map((row) => row.getAttribute('aria-selected'))).toEqual(['false', 'true', 'false']);
+});
+
 it('a pick survives a caller that rebuilds its items on every render', async () => {
   const user = userEvent.setup();
   // The ordinary call site: `items` is a fresh array of fresh objects each render, so
