@@ -6,11 +6,18 @@
 
 export const RELEASES = [
   {
-    v: '0.131.0', date: '2026-10-20',
+    v: '0.131.0', date: '2026-10-21',
     changes: [
       ['added', 'React `DataTable` takes `zebra`, `hover`, `stack`, `rowState`, `footer` and `caption`, and a column takes `rowHeader` and `cell`. Each maps to a vanilla table style, so the React table can match every Table story.', ['DataTable']],
       ['changed', 'A revoked table row now shows only the word, with no strike line. Handles in `.ui-table__code` and `.ui-identity__symbol` use the normal font. The Table stories drop the sub-line under each title, and the payout table stacks on a phone so each row keeps its amounts.', ['Table']],
       ['added', 'In a stacked table, a cell with `data-label` shows that label before its figure, and a stacked `.is-target` row paints one tint. React `DataTable` sets the label on `num` columns whose label is text, and a table that does not scroll is now a direct child of its card, so a dense or stacked table reaches the card edge.', ['Table', 'DataTable']],
+    ],
+  },
+  {
+    v: '0.130.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Toast notices accept `compact`, `dismissible` and `timer`. A compact notice omits its body text. Hiding the close button keeps the timer and the action behaviour. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it. Set `timer: false` on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn, because it could not move and read as time not yet spent. Part of #429.', ['Toast']],
     ],
   },
   {
