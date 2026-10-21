@@ -667,6 +667,7 @@ and Escape closes the top overlay. Tab is trapped in the panel. Home and End sta
 caret, which is what the ARIA combobox pattern gives them for, and Ctrl+K inside another text
 box is left alone, because it is kill-to-end-of-line there — Cmd+K still opens from one.
 **Focus opens in the text box and never leaves it while the palette is open**, over an inert page.
+The borderless search box draws no ring while typing. The caret and the panel edge identify the typing area.
 **It opens empty**, and **it paints one step above the drawer and one below the confirm**. A
 confirm opened by a row appears over both and answers the first Escape.
 

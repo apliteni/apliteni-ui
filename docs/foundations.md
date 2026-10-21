@@ -355,7 +355,7 @@ corner it already drew. **A control of your own wears `.ui-focusable`**, the kit
 for a focusable that is neither a link nor a kit control — a `div` or `span` you gave a
 `tabindex`.
 
-**A focused control draws the band and nothing beside it.** A text field, text area, select or
+**A focused control draws the band and nothing beside it.** A boxed text field, text area, select or
 search field keeps its 1px border width but makes the border transparent while focus is visible.
 This applies to vanilla and React fields, including the Dropdown search field. The ring keeps its
 2px width, accent ink and 1px clear gap. Other edges keep their resting ink. Where a hover rule
