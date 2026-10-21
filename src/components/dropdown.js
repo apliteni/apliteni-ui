@@ -937,6 +937,14 @@ function ddRevealOnce(dd, panel) {
     // A page is held the same way: the shut panel lifts 6px, which would end the page 6px
     // sooner under a reader at its end.
     if (!dd.__ddPanel && !ddInFilterRow(panel)) ddReserveEnd(dd, panel, ddEdge(panel));
+    // Focusing End can scroll only far enough to show the row. Finish the page
+    // scroll so the open panel keeps its edge and the row's outline has room.
+    if (!dd.__ddPanel && !ddLifted(panel) && !ddInFilterRow(panel)
+      && panel.contains(dd.ownerDocument.activeElement?.closest?.('[data-dd-item]'))) {
+      const view = ddViewOf(panel);
+      const by = Math.ceil(panel.getBoundingClientRect().bottom + ddEdge(panel) - view.innerHeight);
+      if (by > 0) { view.scrollBy({ top: by, behavior: 'instant' }); return by; }
+    }
     return 0;
   }
   if (fit.lift) return 0;
@@ -1655,6 +1663,7 @@ export function wireDropdown(root = document) {
         e.preventDefault(); ddItemsOf(dd)[0]?.focus();
       } else if (e.key === 'End' && open) {
         e.preventDefault(); const it = ddItemsOf(dd); it[it.length - 1]?.focus();
+        dropdownReveal(dd, ddPanelOf(dd));
       } else if ((e.key === 'Enter' || e.key === ' ') && open && e.target.matches('[data-dd-item]')) {
         e.preventDefault(); e.target.click();
       } else if (e.key === 'Escape' && open) {

@@ -758,6 +758,7 @@ export function Dropdown({
       e.preventDefault();
       const els = itemsIn(panel.current);
       els[els.length - 1]?.focus();
+      dropdownReveal(root.current, panel.current);
     } else if ((e.key === 'Enter' || e.key === ' ') && open
       && (e.target as HTMLElement).matches?.('[data-dd-item]')) {
       e.preventDefault();

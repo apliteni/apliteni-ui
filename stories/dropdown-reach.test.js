@@ -944,6 +944,7 @@ test('closing a panel with Escape at the end of a page does not move the field, 
  * under the panel; a panel left in its body ending at least the 8px edge above the
  * body's end, and 48px where the body is tall; and a capped list cut through the middle of a row's label, 20 to
  * 80% of it. A consumer's own cap is held to its number instead.
+ * On a page end, End must leave the panel and the focused row's whole ring above the 8px edge.
  *
  * Its limits: one engine, Chromium through whichever Playwright the host supplies; the
  * React half needs react/storybook-static built first; axe checks only the open
@@ -1031,6 +1032,12 @@ const PLACEMENT_LOOK = () => {
       if (!last) return false;
       const r = last.getBoundingClientRect();
       return r.top >= 0 && r.bottom <= innerHeight && at(last, (r.top + r.bottom) / 2);
+    })(),
+    focusRingBottom: (() => {
+      const row = panel.querySelector('[data-dd-item]:focus');
+      if (!row) return null;
+      const style = getComputedStyle(row);
+      return row.getBoundingClientRect().bottom + parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
     })(),
     capped,
     cut,
@@ -1137,6 +1144,15 @@ export function placementProblems(c, s) {
   for (const step of ['down', 'up', 'end']) {
     if (!s[step] || !c.wheel) continue;
     if (Math.abs(s[step].panel.height - o.panel.height) > 1) out.push(`${step}: the panel is ${s[step].panel.height.toFixed(1)}px, it opened ${o.panel.height.toFixed(1)}px`);
+  }
+  if (c.id === 'page-end-200') {
+    if (s.end.panel.bottom > c.view.height - 8 + 0.5) {
+      out.push(`End: the panel ends at ${s.end.panel.bottom.toFixed(1)}px, below the 8px viewport edge`);
+    }
+    if (s.end.focusRingBottom == null) out.push('End did not focus an option');
+    else if (s.end.focusRingBottom > c.view.height - 8 + 0.5) {
+      out.push(`End: the focused option ring ends at ${s.end.focusRingBottom.toFixed(1)}px, below the 8px viewport edge`);
+    }
   }
   if (!inView(s.end)) out.push(`End: the label or the trigger left the view (label top ${Math.round(s.end.label.top)}, trigger bottom ${Math.round(s.end.trigger.bottom)}, region ${Math.round(s.end.region.top)}…${Math.round(s.end.region.bottom)})`);
   if (s.escape.open) out.push('Escape did not close the panel');
