@@ -73,8 +73,6 @@ export function ViewSwitch({ items, active, label = 'View', renderLink }: ViewSw
 export type Version = {
   value: string;
   label: string;
-  /** The line under the name, such as a date. */
-  meta?: string;
   badge?: 'live' | 'archive';
 };
 export type VersionSwitcherProps = {
@@ -98,11 +96,11 @@ export function VersionSwitcher({ versions, value, onChange, label = 'Version', 
         ariaLabel={`${label} — ${current?.label ?? ''}`}
         triggerContent={<><span className="cur">{current?.label}</span><span className="car" aria-hidden="true" /></>}
         items={versions.map((v) => ({
-          label: v.label, value: v.value, description: v.meta,
+          label: v.label, value: v.value,
           badge: BADGE[v.badge ?? 'archive'], selected: v.value === value,
         }))}
         row={(item, props) => <div {...props} className={`${props.className} vopt`}>
-          <span><div className="vname">{item.label}</div><div className="vmeta">{item.description}</div></span>
+          <span className="vname">{item.label}</span>
           <span className={`vbadge ${item.badge === 'Live' ? 'live' : 'arch'}`}>{String(item.badge)}</span>
           <span className="vtick" aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon('check') }} />
         </div>}

@@ -5,8 +5,8 @@ import userEvent from '@testing-library/user-event';
 import { TopBar, ViewSwitch, VersionSwitcher, AccountMenu, type Version } from './TopBar';
 
 const VERSIONS: Version[] = [
-  { value: 'a2', label: 'phoenix.2026.002', meta: 'Product units', badge: 'live' },
-  { value: 'a1', label: 'phoenix.2026.001', meta: 'Phoenix, 2026-05-17', badge: 'archive' },
+  { value: 'a2', label: 'phoenix.2026.002', badge: 'live' },
+  { value: 'a1', label: 'phoenix.2026.001', badge: 'archive' },
 ];
 const VIEWS = [{ id: 'deck', label: 'Deck' }, { id: 'text', label: 'Text' }];
 
@@ -90,7 +90,8 @@ it('keeps the vanilla version panel and row structure', () => {
   const { container } = render(<VersionSwitcher versions={VERSIONS} value="a2" defaultOpen />);
   expect(container.querySelector('.vsw__menu')).toBeInTheDocument();
   expect(container.querySelector('.vsw__menu .vopt .vname')).toHaveTextContent('phoenix.2026.002');
-  expect(container.querySelector('.vsw__menu .vopt .vmeta')).toHaveTextContent('Product units');
+  expect(container.querySelector('.vsw__menu .vopt .vmeta')).toBeNull();
+  expect(container.querySelectorAll('.vsw__menu .vopt')).toHaveLength(2);
   expect(container.querySelector('.vsw__menu .vopt .vtick')).toBeInTheDocument();
 });
 

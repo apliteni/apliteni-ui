@@ -1016,9 +1016,8 @@ rather than a copy bundled into `react/dist`.
 `topbar()` band, with the same classes and the same two rows on a phone. Each slot is optional, and
 no account is the signed-out bar. **The current view in the Deck and Text switch is filled with the
 accent fill of a chosen Segmented option**, in the vanilla switch as well as React's. **The version
-button shows only the chosen name**, and **the open version menu ticks the chosen version**, as
-every other menu does. The button and tick follow `value` until the caller updates it.
-The tick and the Live or Archive badge sit side by side. `AccountMenu` marks the page named by `current` in accent ink.
+button shows only the chosen name**. **The open version menu shows each name and badge and ticks the chosen version**.
+The button and tick follow `value` until the caller updates it. `AccountMenu` marks the page named by `current` in accent ink.
 
 ### The rest of the React surface
 

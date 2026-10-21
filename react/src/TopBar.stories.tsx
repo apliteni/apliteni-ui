@@ -4,8 +4,8 @@ import { TopBar, ViewSwitch, VersionSwitcher, AccountMenu, type Version } from '
 import { ThemeToggle } from './ThemeToggle';
 
 const VERSIONS: Version[] = [
-  { value: 'phoenix.2026.002', label: 'phoenix.2026.002', meta: 'Product units, animated deck', badge: 'live' },
-  { value: 'phoenix.2026.001', label: 'phoenix.2026.001', meta: 'Phoenix, 2026-05-17', badge: 'archive' },
+  { value: 'phoenix.2026.002', label: 'phoenix.2026.002', badge: 'live' },
+  { value: 'phoenix.2026.001', label: 'phoenix.2026.001', badge: 'archive' },
 ];
 const VIEWS = [{ id: 'deck', label: 'Deck' }, { id: 'text', label: 'Text' }];
 

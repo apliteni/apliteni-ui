@@ -937,8 +937,8 @@ leave one out. Leave out `account` for the signed-out bar. The brand is the Apli
 
 `ViewSwitch` is a group of links, so it takes `renderLink` like `NavTabs`. The current view is
 filled with the same accent fill as a `Segmented` choice and has `aria-current="page"`.
-`VersionSwitcher` takes `{ value, label, meta, badge }` versions. The button shows only the chosen
-name. The open list ticks the chosen version, as every `Dropdown` does. `AccountMenu` shows the
+`VersionSwitcher` takes `{ value, label, badge }` versions. The button shows only the chosen
+name. Each row shows a name, a badge and the selected tick. `AccountMenu` shows the
 avatar mark, the reader's name and address, the rows in `items` and Sign out. Both menus are the
 kit's `Dropdown`, so they share its keyboard and placement. `current` marks one account page in
 accent ink and defaults to `prefs`.
