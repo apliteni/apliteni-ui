@@ -143,6 +143,20 @@ it('the alignment check rejects a sheet without the control row rule', () => {
   expect(alignments(without, 'light').flat()).not.toContain('baseline');
 });
 
+it.each(['light', 'dark'])('keeps each field label visible when a drawer value holds two fields in %s', theme => {
+  const style = document.createElement('style');
+  style.dataset.kvTest = '';
+  style.textContent = substitute(drawerSheet(), tokensFor(theme));
+  document.head.appendChild(style);
+  const { container } = render(<KeyValueList rows={[
+    { label: 'Date range', value: <><TextField label="From" /><TextField label="To" /></> },
+    { label: 'Note', value: <TextField label="Note" /> },
+  ]} />);
+  const labels = [...container.querySelectorAll('.ui-field__label')];
+  expect(labels.map(label => label.textContent)).toEqual(['From', 'To', 'Note']);
+  expect(labels.map(label => getComputedStyle(label).position)).toEqual(['static', 'static', 'absolute']);
+});
+
 it.each(['light', 'dark'])('sets the modal title in semibold strong ink in %s', theme => {
   const style = document.createElement('style');
   style.dataset.kvTest = '';

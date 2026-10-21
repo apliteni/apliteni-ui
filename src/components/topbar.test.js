@@ -29,6 +29,21 @@ after(() => dom.window.close());
 
 const { document: doc, axe } = dom.window;
 
+test('version row hover uses the dropdown fill and leaves the outline for focus', () => {
+  const topbar = readFileSync(new URL('../styles/topbar.css', import.meta.url), 'utf8');
+  const dropdown = readFileSync(new URL('../styles/dropdown.css', import.meta.url), 'utf8');
+  for (const [sheet, selector] of [[topbar, '.vopt:hover'], [dropdown, '.ui-dropdown__item:hover']]) {
+    const base = sheet.split(`${selector} {`)[1]?.split('}')[0];
+    assert.ok(base, `${selector} has a hover rule`);
+    assert.match(base, /background: var\(--surface\)/);
+    assert.doesNotMatch(base, /outline/);
+    const light = sheet.split(`:where(:root[data-theme="light"]) ${selector} {`)[1]?.split('}')[0];
+    assert.ok(light, `${selector} has a light hover rule`);
+    assert.match(light, /background: var\(--surface-3\)/);
+    assert.doesNotMatch(light, /outline/);
+  }
+});
+
 /** The name a screen reader announces for `el`, per the accname spec. */
 const nameOf = (el) => {
   axe.setup(el.ownerDocument.documentElement);

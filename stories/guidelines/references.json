@@ -398,7 +398,7 @@
         "pattern": "<dl class=\"ui-drawer__rows\">"
       },
       {
-        "ref": "src/styles/drawer.css:242",
+        "ref": "src/styles/drawer.css:243",
         "pattern": ".ui-drawer__row dt { color: var(--text); }"
       }
     ]
@@ -690,7 +690,7 @@
         "pattern": "btn.setAttribute('aria-label', name)"
       },
       {
-        "ref": "src/components/topbar.test.js:59",
+        "ref": "src/components/topbar.test.js:74",
         "pattern": "announces the theme it is in"
       }
     ],
@@ -762,7 +762,7 @@
         "pattern": "transition-duration: 0.01ms !important;"
       },
       {
-        "ref": "src/styles/drawer.css:255",
+        "ref": "src/styles/drawer.css:256",
         "pattern": ".ui-drawer.is-open * { transition: none !important; }"
       }
     ]
