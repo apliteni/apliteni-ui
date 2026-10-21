@@ -57,7 +57,7 @@ export const Playground = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
     'Single-select — click to open, arrow keys to move, Esc to close',
-    dropdown({ label: 'version:', ariaLabel: 'Version', items: VERSIONS }),
+    dropdown({ ariaLabel: 'Version', items: VERSIONS }),
   ))),
 };
 
@@ -66,7 +66,7 @@ export const SingleSelect = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
     'Value shown in the trigger, selected row ticked',
-    dropdown({ label: 'version:', ariaLabel: 'Version', items: VERSIONS, open: true }),
+    dropdown({ ariaLabel: 'Version', items: VERSIONS, open: true }),
   ))),
 };
 
@@ -144,13 +144,13 @@ export const Scrollable = {
   parameters: { layout: 'fullscreen' },
   render: () => pad(bay(specimen(
     'Capped height with an internal scroll for long option lists',
-    dropdown({ label: 'region:', ariaLabel: 'Region', items: LONG, scroll: true, open: true }),
+    dropdown({ ariaLabel: 'Region', items: LONG, scroll: true, open: true }),
   ), 360)),
 };
 
 // Search — a field above the rows that filters them as the reader types.
 // why: docs/components.md#a-dropdown-with-a-search-field
-const CURRENCY = { label: 'currency:', ariaLabel: 'Currency', search: { placeholder: 'Search currencies' } };
+const CURRENCY = { ariaLabel: 'Currency', search: { placeholder: 'Search currencies' } };
 
 export const Search = {
   name: 'Search — type to filter',
@@ -310,7 +310,7 @@ export const NearTheScreenEdges = {
     ends(
       dropdown({ value: 'Account', variant: 'menu', ariaLabel: 'Account', align: 'end', portal: true, items: ACCOUNT }),
       dropdown({
-        label: 'region:', ariaLabel: 'Region', items: REGIONS, scroll: true,
+        ariaLabel: 'Region', items: REGIONS, scroll: true,
         search: { placeholder: 'Search' },
       }),
     ),

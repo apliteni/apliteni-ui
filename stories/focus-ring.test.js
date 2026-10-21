@@ -67,6 +67,42 @@ import { appShell } from '../src/components/shell.js';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 
+// Source check for the four field classes that draw their own border. The browser
+// captures check the painted line; this check holds the declarations and rejects
+// a border brought back under the shared ring.
+const FIELD_FOCUS = [
+  ['src/styles/input.css', '.ui-input:focus-visible'],
+  ['src/styles/input.css', '.ui-textarea:focus-visible'],
+  ['src/styles/input.css', '.ui-select:focus-visible'],
+  ['src/styles/dropdown.css', '.ui-dropdown__search-input:focus-visible'],
+];
+const fieldFocusBody = (sheet, selector) => {
+  const css = sheet.replace(/\/\*[\s\S]*?\*\//g, '');
+  const matches = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, head]) => head.split(',').some(part => part.trim() === selector));
+  assert.equal(matches.length, 1, `${selector} needs one field focus rule`);
+  return matches[0][2];
+};
+const checkFieldFocus = (sheets) => {
+  assert.equal(FIELD_FOCUS.length, 4, 'text, textarea, select and Dropdown search are measured');
+  for (const [file, selector] of FIELD_FOCUS) {
+    const body = fieldFocusBody(sheets[file], selector);
+    assert.match(body, /border-color:\s*transparent\s*;/, `${selector} hides its own border ink`);
+    assert.match(body, /outline:\s*var\(--ring\)/, `${selector} keeps the kit ring`);
+    assert.match(body, /outline-offset:\s*var\(--ring-offset\)/, `${selector} keeps the gap`);
+  }
+};
+
+test('focused fields keep one ring with a transparent border', () => {
+  const sheets = Object.fromEntries([...new Set(FIELD_FOCUS.map(([file]) => file))]
+    .map(file => [file, read(file)]));
+  checkFieldFocus(sheets);
+  for (const file of Object.keys(sheets)) {
+    const changed = { ...sheets, [file]: sheets[file].replace('border-color: transparent;', 'border-color: var(--field-edge);') };
+    assert.throws(() => checkFieldFocus(changed), /hides its own border ink/);
+  }
+});
+
 /**
  * Stops that may keep their own answer, each with the reason the source states.
  * Every entry is asserted to be REACHED, so an exemption that outlives the

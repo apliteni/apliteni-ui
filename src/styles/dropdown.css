@@ -410,7 +410,7 @@
 
 .ui-dropdown__search-input::placeholder { /* muted-ink: placeholder — empty search field */ color: var(--muted); }
 .ui-dropdown__search-input:hover { border-color: var(--field-edge-hover); }
-.ui-dropdown__search-input:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-dropdown__search-input:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* The rows' own cap, read from the same property the panel reads: the `scroll`
    option lands on the list when there is a field above it. #489 */

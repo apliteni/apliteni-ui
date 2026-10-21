@@ -355,11 +355,12 @@ corner it already drew. **A control of your own wears `.ui-focusable`**, the kit
 for a focusable that is neither a link nor a kit control — a `div` or `span` you gave a
 `tabindex`.
 
-**A focused control draws the band and nothing beside it.** Every other edge keeps its resting
-ink. Where a resting or hover rule would outrank the focus rule, it stands aside with
-`:not(:focus-visible)` rather than painting a second accent edge one pixel inside the first. A
-control that is hovered and focused at once therefore draws the band alone. A drop zone still
-recolours its dashed edge while a file is over it: that edge is the drop target, not a focus mark.
+**A focused control draws the band and nothing beside it.** A text field, text area, select or
+search field keeps its 1px border width but makes the border transparent while focus is visible.
+This applies to vanilla and React fields, including the Dropdown search field. The ring keeps its
+2px width, accent ink and 1px clear gap. Other edges keep their resting ink. Where a hover rule
+would outrank focus, it stands aside with `:not(:focus-visible)`. A drop zone still recolours its
+dashed edge while a file is over it: that edge is the drop target, not a focus mark.
 
 **An outline means focus; selection is a background highlight.** A selected, current or active
 item is marked by its fill, its ink and its weight, never by an edge drawn around it — an edge on
@@ -367,8 +368,8 @@ a selected row is the band's own shape one pixel further in. One mark is a delib
 and says so beside its rule: the date picker's current period keeps its accent hairline at rest,
 which stands aside while the cell holds focus.
 
-Controls use native `:focus-visible`, including inputs and invalid fields. An invalid border keeps
-its error colour while focus uses the shared band. **Forced colours needs nothing extra**: the band
+Controls use native `:focus-visible`, including inputs and invalid fields. An invalid field keeps
+its error message while its focused border becomes transparent. **Forced colours needs nothing extra**: the band
 is a real outline, which is what the system repaints, so no consumer carries a transparent stand-in
 outline. The ring uses no layout space, so an ancestor's overflow boundary can clip its 3px
 footprint.

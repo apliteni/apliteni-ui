@@ -38,18 +38,6 @@
 .ui-textarea:hover,
 .ui-select:hover { border-color: var(--field-edge-hover); }
 
-/* The band and nothing beside it. Recolouring the field's own 1px edge to the
-   accent drew a SECOND accent band one pixel inside the first, and the unpainted
-   pixel between them read as a halo on the light ground — which is the glow Artur
-   rejected on #578 round r34. The edge keeps its resting ink.
-   why: docs/foundations.md#the-focus-ring */
-.ui-input:focus-visible,
-.ui-textarea:focus-visible,
-.ui-select:focus-visible {
-  outline: var(--ring);
-  outline-offset: var(--ring-offset);
-}
-
 .ui-input::placeholder,
 .ui-textarea::placeholder { /* muted-ink: placeholder — empty form field */ color: var(--muted); opacity: 0.9; }
 
@@ -75,7 +63,15 @@
 
 .ui-input.is-invalid, .ui-select.is-invalid,
 .ui-textarea.is-invalid { border-color: var(--pink); }
-/* Invalid fields keep the shared focus indicator; their border carries the error. */
+/* Keep the border's width, but make its ink transparent while the ring shows.
+   This also outranks the invalid and hover edges, so focus has one line. */
+.ui-input:focus-visible,
+.ui-textarea:focus-visible,
+.ui-select:focus-visible {
+  border-color: transparent;
+  outline: var(--ring);
+  outline-offset: var(--ring-offset);
+}
 
 /* A search field with a value gets the browser's own clear button, and the
    browser paints it — near-black on the light field, white on the dark one,

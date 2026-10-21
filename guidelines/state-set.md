@@ -4,13 +4,13 @@
 
 <!-- rule: focus-visible -->
 
-**Rule:** Give every focusable control the same `--ring`, and show it only on `:focus-visible`.
+**Rule:** Show one ring when focus is visible, and make a focused field's border transparent.
 
 **Why:** One solid band keeps focus consistent while the browser decides when to show it.
 
-**Do:** Apply `--ring`, with `--ring-offset`, to both the button and input on keyboard focus.
+**Do:** Give buttons and fields the same ring, with one clear gap around each control.
 
-**Don't:** Give the input a separate muted outline while the button uses `--ring`.
+**Don't:** Leave a field border visible inside its focus ring.
 
 **Except:** A box whose own edges are a surface's — a scroll region, or a box filling a table cell — takes `--ring-scroll` with `--ring-scroll-offset`. A box that is the outermost surface, such as a panel or card, keeps `--ring`. Text-entry controls may match `:focus-visible` on mouse focus. Both bands are declared once at the root and recomposed nowhere, because an outline leaves its offset unpainted. Adjust width and colour there.
 

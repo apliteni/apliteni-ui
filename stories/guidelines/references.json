@@ -24,7 +24,7 @@
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:167",
+        "ref": "src/styles/input.css:163",
         "pattern": ".ui-check input::before"
       },
       {
@@ -72,7 +72,7 @@
         "pattern": "--disabled-border: var(--surface-3);"
       },
       {
-        "ref": "src/styles/input.css:72",
+        "ref": "src/styles/input.css:60",
         "pattern": "opacity: 1;"
       }
     ],

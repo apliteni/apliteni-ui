@@ -14,6 +14,7 @@ export const RELEASES = [
       ['changed', 'At 720px and below, a dropdown panel keeps the 16px page margin from the edge of the view instead of 8px.', ['Dropdown']],
       ['fixed', 'In the light theme, a hovered dropdown row now shows a quiet fill. It matched the panel before. The hovered row has no outline in either theme.', ['Dropdown']],
       ['fixed', 'The focus ring of a dropdown row that scrolls into view draws inside the row, so the panel edge does not clip it.', ['Dropdown']],
+      ['fixed', 'A focused text field, text area, select or Dropdown search field now shows one ring. The field border becomes transparent while the ring shows.', ['Input', 'Select', 'Dropdown']],
       ['fixed', 'An unset filter chip is as tall as a chip with a value.', ['FilterBar']],
       ['fixed', 'A filter chip with no value no longer shows a remove mark, and `Clear all` appears only when a chip has a value. This applies to `filterBar` and React `FilterBar`.', ['FilterBar']],
       ['fixed', 'A focused scrolling table with a sticky header or a pinned column shows its focus ring on all four sides.', ['Table']],
