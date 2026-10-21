@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.135.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React `Feedback` shows a "Give feedback" pill on a text selection and opens a form with the quoted passage and a note. You pass `onSend`. A sent note shows one line of thanks and a failed send keeps the note with the error in place. Cancel, Send and Close use the kit\'s buttons. See #429.', ['Feedback']],
+      ['fixed', 'The error line in the feedback form now clears WCAG AA contrast in the dark theme. It was 4.37:1 and now uses the danger chip ink. The vanilla and React forms share this change.', ['Feedback']],
+      ['changed', 'The feedback form uses neutral ink for its section title, icon and quote mark. Its primary action keeps the accent. Vanilla and React share this change. See #699.', ['Feedback']],
+    ],
+  },
+  {
     v: '0.134.0', date: '2026-10-21',
     changes: [
       ['added', 'React Footer provides full, slim and app layouts with brand, links, legal and switcher parts. Footer link columns sit side by side on iPad and desktop and stack on a phone in React and vanilla. Part of #429.', ['Footer']],
