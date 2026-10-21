@@ -118,6 +118,7 @@ it('keeps the vanilla account head and one current-page mark', () => {
   expect(panel.querySelector('.ahead .aem')).toHaveTextContent('ada@apliteni.com');
   expect(panel.querySelectorAll('a.cur')).toHaveLength(1);
   expect(within(panel as HTMLElement).getByRole('menuitem', { name: 'Access & agents' })).toHaveClass('cur');
+  expect(panel.querySelectorAll('a.ui-dropdown__item')).toHaveLength(0);
 });
 it('falls back to the address for the avatar mark and closes on Escape', async () => {
   const user = userEvent.setup();

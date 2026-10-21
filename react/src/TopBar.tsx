@@ -147,7 +147,7 @@ export function AccountMenu({
         items={[...items, '---', { label: 'Sign out', icon: 'logout', value: 'sign-out', href: signOutHref }]}
         row={(item, props) => <a {...props} href={item.href ? safeUrl(item.href)
           : item.value === 'sign-out' && onSignOut ? undefined : safeUrl(item.value === 'sign-out' ? '#logout' : `#${item.value}`)}
-          className={[props.className, item.value === current && 'cur', item.value === 'sign-out' && 'aout'].filter(Boolean).join(' ')}>
+          className={[props.className.replace(/\bui-dropdown__item\b/, '').trim(), item.value === current && 'cur', item.value === 'sign-out' && 'aout'].filter(Boolean).join(' ')}>
           {item.icon && <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon(item.icon) }} />}
           {item.label}
         </a>}
