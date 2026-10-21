@@ -543,10 +543,10 @@
   .ui-app__drawer .ui-app__user-trigger { min-height: 44px; }
   .ui-app__main { padding: 28px var(--space-4) 56px; }
   .ui-app__main h1 { font-size: calc(var(--text-xl) + 3px); }
-  /* A settings row is label-beside-control down to the width where the control
-     no longer fits beside anything; below that it stacks. Scoped to the shell
-     rather than written into card.css, because a card row outside a shell is
-     somebody else's container to size — see the report. */
+  /* A settings row is label-beside-control, and below this step any control that does
+     not fit beside its label drops under it. A row that holds a choice wraps this way at
+     every width, in card.css. Scoped to the shell, because a card row outside a shell
+     is somebody else's container to size. */
   .ui-app__main .ui-card__row { flex-wrap: wrap; gap: var(--space-3); }
 }
 

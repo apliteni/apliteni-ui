@@ -155,7 +155,6 @@ const ALLOWED = {
   'stories/apps/EmptyStates.stories.js|.ui-toolbar': 'the page stacks the toolbar by hand',
   'stories/apps/Landing.stories.js|.ui-section-head': 'the page stacks the section head by hand',
   'stories/components/Feedback.stories.js|.ui-eyebrow': 'the page stacks the eyebrow by hand',
-  'stories/components/Card.stories.js|.ui-card__sub': 'the sub is the card\'s last line here',
 
   // The success panel is inside the auth card rather than on a page of its own, so the
   // page gives it the inset the card would have given it. Its `background: transparent`
@@ -232,7 +231,6 @@ const RECORDED = {
   'stories/components/BackLink.stories.js': { shadow: 3 },
   'stories/components/BadgeStatus.stories.js': { shadow: 2 },
   'stories/components/Button.stories.js': { shadow: 1 },
-  'stories/components/Card.stories.js': { shadow: 1 },
   'stories/components/CommandPalette.stories.js': { shadow: 10 },
   'stories/components/Confirm.stories.js': { shadow: 6 },
   'stories/components/Drawer.stories.js': { shadow: 7 },
