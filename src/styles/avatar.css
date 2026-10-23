@@ -1,0 +1,42 @@
+/* Avatar — a person's round mark. Solid fill in the person's hue, the letters in the
+   solid-signal ink. Only the part's own paint is here: a control that holds one keeps
+   its own cursor, hover and ring. why: docs/components.md#avatar */
+.ui-avatar {
+  --ui-avatar-size: 24px;
+  --ui-avatar-hue: var(--person-0);
+  inline-size: var(--ui-avatar-size);
+  block-size: var(--ui-avatar-size);
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  vertical-align: middle;
+  background: var(--ui-avatar-hue); /* code-bg: inherit — an opaque fill with its own ink. */
+  color: var(--signal-solid-ink);
+}
+.ui-avatar--32 { --ui-avatar-size: 32px; font-size: var(--text-base); }
+/* Two letters in 24px leave the type at the kit's smallest step; in 32px one step down. */
+.ui-avatar--32[data-initials="2"] { font-size: var(--text-sm); }
+.ui-avatar--h0 { --ui-avatar-hue: var(--person-0); }
+.ui-avatar--h1 { --ui-avatar-hue: var(--person-1); }
+.ui-avatar--h2 { --ui-avatar-hue: var(--person-2); }
+.ui-avatar--h3 { --ui-avatar-hue: var(--person-3); }
+.ui-avatar--h4 { --ui-avatar-hue: var(--person-4); }
+.ui-avatar--h5 { --ui-avatar-hue: var(--person-5); }
+.ui-avatar--h6 { --ui-avatar-hue: var(--person-6); }
+.ui-avatar--h7 { --ui-avatar-hue: var(--person-7); }
+
+/* The photo covers the letters, so one that fails leaves them showing. */
+.ui-avatar img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; opacity: 0; }
+.ui-avatar img.is-loaded { opacity: 1; }
+.ui-avatar svg { inline-size: 62%; block-size: 62%; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+/* No name: the user glyph on the kit's quiet fill. */
+.ui-avatar--anon { background: var(--surface-3); /* code-bg: inherit — a glyph, no text on it. */ /* muted-ink: glyph — a person with no name */ color: var(--muted); }
+/* No one: a dashed ring of the same size. */
+.ui-avatar--empty { background: none; border: 1px dashed var(--muted); /* muted-ink: glyph — the ring is a mark, not text */ color: var(--muted); }

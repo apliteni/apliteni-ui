@@ -37,3 +37,25 @@ export const dropdownAvail = ({ anchorTop, anchorBottom, viewport, gap, inset, m
   const room = Math.max(up ? anchorTop - gap : viewport - anchorBottom - gap, 0);
   return room < min ? Infinity : Math.max(room - inset, min);
 };
+
+/**
+ * Where a capped panel stops so that its last row is cut through the middle: the
+ * list then reads as going on, and a half row is the least that says so. `rows` are
+ * the rows' tops and heights from the panel's top edge, scrolled to its start;
+ * `below` is the panel's box under the part that scrolls; `content` is the panel's
+ * full height; `ceiling` is the tallest it may be. `reach`, past the ceiling, is room
+ * that may be spent to stop at the next half row instead of a whole row short: the
+ * least of it that does so is taken. Returns the height, or `null` where the panel fits
+ * whole under the ceiling or no row's middle fits under it.
+ */
+export const dropdownStop = ({ rows, below, content, ceiling, reach = ceiling }) => {
+  if (!(content > ceiling)) return null;
+  let stop = null;
+  let over = null;
+  for (const { top, height } of rows) {
+    const cut = Math.floor(top + height / 2 + below);
+    if (cut <= ceiling && (stop === null || cut > stop)) stop = cut;
+    else if (cut > ceiling && cut <= reach && (over === null || cut < over)) over = cut;
+  }
+  return over ?? stop;
+};

@@ -61,6 +61,7 @@ import { catalogueCopy } from '../site/catalogue.mjs';
 import { iconNames } from '../src/assets/icons.js';
 // #531's no-stop half is a fact about the markup these two emit, not about a sheet.
 import { segmented } from '../src/components/index.js';
+import { navTabs } from '../src/components/nav.js';
 import { appShell } from '../src/components/shell.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -231,16 +232,16 @@ test('focus walk: the surfaces and stops this gate covers', () => {
     'site/index.html': 37,
     // 12 before #487's re-review added `option` to ROVING_ROLES; the three the
     // palette holds are rows it never focuses, exempted by name below.
-    'stories/apps/ShellLayouts.stories.js:TopbarWide': 15,
-    'stories/apps/ShellLayouts.stories.js:TopbarCentered': 15,
+    'stories/apps/ShellLayouts.stories.js:TopbarWide': 23,
+    'stories/apps/ShellLayouts.stories.js:TopbarCentered': 23,
     // Same markup as TopbarCentered: the phone story differs by its viewport global,
     // and JSDOM resolves no media query, so this surface repeats that one's stops
     // rather than adding ground. It is walked because the walk takes every story
     // these files export, and a story excluded by name is one a later change can
     // quietly take out of the gate. (#486)
-    'stories/apps/ShellLayouts.stories.js:TopbarPhone': 15,
-    'stories/apps/ShellLayouts.stories.js:RailWide': 10,
-    'stories/apps/ShellLayouts.stories.js:RailCentered': 10,
+    'stories/apps/ShellLayouts.stories.js:TopbarPhone': 23,
+    'stories/apps/ShellLayouts.stories.js:RailWide': 20,
+    'stories/apps/ShellLayouts.stories.js:RailCentered': 20,
     'stories/components/Footer.stories.js:Full': 22,
     'stories/components/Footer.stories.js:Slim': 7,
     'stories/components/Footer.stories.js:App': 3,
@@ -253,7 +254,7 @@ test('focus walk: the surfaces and stops this gate covers', () => {
     'stories/components/Topbar.stories.js:Pieces': 10,
     // The stops the preset's own screen had: InShell draws the same topbar over
     // the same shell.
-    'stories/components/Topbar.stories.js:InShell': 18,
+    'stories/components/Topbar.stories.js:InShell': 26,
   }, 'the walk covers different ground than it did; count the new surface by hand');
   const exempted = walked.flatMap(({ stops }) => stops.filter(exempt));
   assert.equal(exempted.length, 12, 'the three topbar-layout shell screens hold one palette input '
@@ -344,7 +345,9 @@ test('focus walk: the cascade resolver accounts for every stop it walks', () => 
   // topbar's four stories joined it, and they carry more chrome between them.
   // 177 -> 188 in #486, which added the band's phone story — the same chrome as
   // TopbarCentered, minus the four palette stops counted as exempt below.
-  assert.equal(buckets.self, 188, 'the number of stops whose own cascade was resolved moved');
+  // 188 -> 240 in #592: the shell draws a menu control and its drawer's rows, which the
+  // walk reaches because JSDOM resolves no media query. Five shell stories and InShell.
+  assert.equal(buckets.self, 240, 'the number of stops whose own cascade was resolved moved');
   assert.deepEqual([...new Set(buckets.delegated)], [
     '.ui-switch input:focus-visible + .ui-switch__track',
   ], 'a ring painted on another box is not cascade-resolved — add it here with its reason');
@@ -476,6 +479,12 @@ const SCROLL_RINGED = {
     + 'tabindex="-1", so the list takes the stop — measured at 390 and 1280 with the '
     + 'browser\'s outline. It sits 6px inside a 16px corner, where an outset ring leaves '
     + 'the panel and lights a box that is not the one that scrolls. #531',
+  '.ui-nav--tabs': 'the inward band, on the row. A tab row clips at its own padding '
+    + 'edge, so an outset ring on it is cut off by the very box that scrolls. The row is '
+    + 'a stop only while it scrolls AND every tab is disabled, because a disabled tab is '
+    + 'a <span> and the row is then left holding no link of its own — measured at 390 '
+    + 'with the browser\'s black outline on it, which is what #429 round r1 found. A row '
+    + 'with room for its links is no scroll box and no stop at all. #429',
   '.ui-drawer__body': 'the inward band, on the body. A text-only body scrolls and Tab '
     + 'reaches it between the close button and the footer\'s actions. The body is flush '
     + 'with a panel that is itself flush with a screen edge, so an outset ring — on either '
@@ -645,6 +654,36 @@ test('focus walk: every box excused as no stop holds keyboard-focusable rows of 
       `${selector} is excused because it holds its own stops, and holds none`);
     page.window.close();
   }
+});
+
+// Why the tab row is in the ringed half while the strip and the rail are excused.
+// Both of those hold rows the keyboard reaches by construction; `navTabs` does not —
+// every item may be disabled, and a disabled tab is a <span>. The row is then an
+// overflowing box with no stop inside it, so Chrome makes IT the stop and answered
+// that with its own black outline until #429 round r1 gave the row the band. This
+// reads the markup; the browser half is scripts/evidence/navigation-scroll.mjs.
+test('focus walk: a tab row loses its last stop when every tab is disabled', () => {
+  const render = (disabled) => navTabs({
+    ariaLabel: 'Finance views',
+    items: ['Summary', 'Payouts', 'Transactions'].map((label) => ({
+      id: label.toLowerCase(), label, disabled,
+    })),
+  });
+  const read = (markup) => {
+    const page = new JSDOM(`<!doctype html><html lang="en"><body>${markup}</body></html>`,
+      { virtualConsole: quiet });
+    const row = page.window.document.querySelector('.ui-nav--tabs');
+    assert.ok(row, 'navTabs rendered no row');
+    const stops = tabbableIn(row).length;
+    page.window.close();
+    return stops;
+  };
+  assert.ok(read(render(false)) >= 1, 'a row of enabled tabs holds the stops its links are');
+  assert.equal(read(render(true)), 0,
+    'an all-disabled row holds no stop, which is why the row carries a ring of its own');
+  // And the sheets answer that row's focus, which is the half this file reads.
+  assert.ok(ringRulesFor('.ui-nav--tabs', kitRules).length,
+    'nothing in the kit answers an all-disabled tab row\'s own focus');
 });
 
 // Prove that check rejects: the same reading over a scroller with nothing focusable

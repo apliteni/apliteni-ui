@@ -8,8 +8,8 @@ export default {
 
 export const Variants = {
   render: () => pad(grid(2,
-    card({ title: 'Default card', sub: 'Flat: a filled surface, a hairline and a generous radius. Nothing casts — the surface says it is a step above the page, and the line draws its edge.', body: button({ label: 'Action', variant: 'secondary', size: 'sm' }) }),
-    card({ variant: 'accent', title: 'Accent card', icon: 'sparkle', sub: 'Tinted with the purple accent and a hairline ring — for the highlighted plan or upsell.', body: button({ label: 'Upgrade', variant: 'primary', size: 'sm' }) }),
+    card({ title: 'Default card', sub: 'A filled surface with a generous radius. Dark draws an edge, and light casts a soft shadow.', body: button({ label: 'Action', variant: 'secondary', size: 'sm' }) }),
+    card({ variant: 'accent', title: 'Accent card', icon: 'sparkle', sub: 'Tinted with the purple accent, for the highlighted plan or upsell.', body: button({ label: 'Upgrade', variant: 'primary', size: 'sm' }) }),
     card({ variant: 'live', title: `Live surface ${badge('Live', 'live')}`, sub: 'Green-tinted, for an active/confirmed state such as a connected agent.', body: pill('Connected', 'live') }),
     card({ title: 'With icon chip', icon: 'shield', sub: 'A leading icon chip anchors the header for feature and settings cards.' }),
   )),
@@ -19,7 +19,7 @@ export const SettingRows = {
   render: () => pad(`<div style="max-width:560px">${card({
     title: 'Appearance',
     body: `
-      <div class="ui-card__row"><div><div class="lab">Theme</div><div class="hint">Match the deck's dark palette or a light workspace.</div></div>
+      <div class="ui-card__row ui-card__row--tight-choice"><div><div class="lab">Theme</div><div class="hint">Match the deck's dark palette or a light workspace.</div></div>
         ${segmented({ name: 'theme', options: ['Dark', 'Light', 'System'], active: 0, ariaLabel: 'Theme' })}</div>
       <div class="ui-card__row"><div><div class="lab">Language</div><div class="hint">Interface language for the portal.</div></div>
         ${segmented({ name: 'lang', options: ['EN', 'RU'], active: 0, ariaLabel: 'Language' })}</div>
@@ -29,9 +29,9 @@ export const SettingRows = {
 };
 
 const navCard = (ic, title, sub, tag = 'a') =>
-  `<${tag} class="ui-card ui-card--interactive"${tag === 'a' ? ' href="#" style="text-decoration:none"' : ''}>
+  `<${tag} class="ui-card ui-card--interactive"${tag === 'a' ? ' href="#"' : ''}>
      <div class="ui-card__title"><span class="ui-card__icon">${icon(ic)}</span>${title}</div>
-     <div class="ui-card__sub" style="margin-bottom:0">${sub}</div>
+     <div class="ui-card__sub">${sub}</div>
    </${tag}>`;
 
 export const Interactive = {

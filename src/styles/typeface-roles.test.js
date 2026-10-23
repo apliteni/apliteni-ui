@@ -74,8 +74,9 @@ const familyDecls = () => {
   return found;
 };
 
-// Update the family declaration count with a reason for each change.
-const EXPECTED_SUBJECTS = 54;
+// Update the family declaration count with a reason for each change. 54 to 52: the monospace
+// face left `.ui-table__code` and `.ui-identity__symbol`.
+const EXPECTED_SUBJECTS = 52;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

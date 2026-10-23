@@ -5,10 +5,11 @@
 //
 // These are NAVIGATION controls, not tab panels — so tabs render as
 // <nav> + <a aria-current="page">, not role="tablist" (that is what segmented()
-// is for). Only the collapsible sidebar groups need JS; wire with wireNav().
+// is for). wireNav() opens sidebar groups and reveals the current route link.
 import { esc, icon } from './index.js';
 import { playEntrance } from '../motion.js';
 import { safeUrl } from '../html.js';
+import { observeNavFit, revealCurrentNav, revealFocusedNav } from '../logic/nav.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 
 // Unique-per-render ids so a section heading can label its own list. Module
@@ -177,9 +178,9 @@ export function nav({ variant = 'sidebar', ...opts } = {}) {
 }
 
 // ---- Behaviour -----------------------------------------------------------
-// Only the collapsible sidebar groups need JS: toggle a group's `.is-open` +
-// its button's aria-expanded, and show/hide the nested list. Idempotent and
-// event-delegated, so it's safe to call repeatedly (Storybook re-renders).
+// Toggle a sidebar group's `.is-open` and its button's aria-expanded, and
+// show/hide the nested list. Idempotent and event-delegated, so it's safe to
+// call repeatedly (Storybook re-renders).
 let _navGlobalWired = false;
 
 function toggleGroup(btn) {
@@ -194,10 +195,24 @@ function toggleGroup(btn) {
   }
 }
 
+const fitObservers = new Map();
 export function wireNav(root = document) {
+  for (const [nav, stop] of fitObservers) {
+    if (!nav.isConnected) { stop(); fitObservers.delete(nav); }
+  }
+  root.querySelectorAll('.ui-nav--tabs').forEach((nav) => {
+    if (!fitObservers.has(nav)) fitObservers.set(nav, observeNavFit(nav));
+    revealCurrentNav(nav);
+  });
   // Per-collapsed-rail behaviour would go here; groups use one delegated handler.
   if (_navGlobalWired) return;
   _navGlobalWired = true;
+  // A tab row scrolls its own focused link clear of its edge, so the ring the link
+  // draws is not cut off by the scroll box. Delegated, because the links come and go.
+  document.addEventListener('focusin', (e) => {
+    const row = e.target.closest && e.target.closest('.ui-nav--tabs');
+    if (row) revealFocusedNav(row, e.target);
+  });
   document.addEventListener('click', (e) => {
     const btn = e.target.closest && e.target.closest('[data-nav-toggle]');
     if (btn) { e.preventDefault(); toggleGroup(btn); }

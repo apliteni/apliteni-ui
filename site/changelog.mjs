@@ -6,11 +6,121 @@
 
 export const RELEASES = [
   {
+    v: '0.138.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React TopBar, ViewSwitch, VersionSwitcher and AccountMenu build the strategy top bar from slots, with the existing look and the two phone rows. Part of #429.', ['Topbar']],
+      ['changed', 'The current view in the Deck and Text switch has the accent fill of a chosen Segmented option. The open version menu ticks the chosen version.', ['Topbar']],
+      ['changed', 'The version button shows only the chosen version name. The "version:" prefix is gone.', ['Topbar']],
+      ['changed', 'The version button chevron is centred on its text. Version menus in vanilla and React show each name and badge without a description line.', ['Topbar']],
+    ],
+  },
+  {
+    v: '0.137.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React `DataTable` takes `zebra`, `hover`, `stack`, `rowState`, `footer` and `caption`, and a column takes `rowHeader` and `cell`. Each maps to a vanilla table style, so the React table can match every Table story.', ['DataTable']],
+      ['changed', 'A revoked table row now shows only the word, with no strike line. Handles in `.ui-table__code` and `.ui-identity__symbol` use the normal font. The Table stories drop the sub-line under each title, and the payout table stacks on a phone so each row keeps its amounts.', ['Table']],
+      ['added', 'In a stacked table, a cell with `data-label` shows that label before its figure, and a stacked `.is-target` row paints one tint. React `DataTable` sets the label on `num` columns whose label is text, and a table that does not scroll is now a direct child of its card, so a dense or stacked table reaches the card edge.', ['Table', 'DataTable']],
+      ['changed', 'Table row hover now uses a quiet neutral fill in vanilla and React. Keyboard focus and a landed row keep their own marks.', ['Table', 'DataTable']],
+    ],
+  },
+  {
+    v: '0.136.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Card offers the vanilla card variants, icon chip, padding, setting rows and whole-card links. The Theme choice stays on one line with `ui-card__row--tight-choice`, and accent cards keep their tint without a coloured edge. Part of #429.', ['Card']],
+      ['changed', 'A whole-card link whose last child is its description no longer leaves a gap below it. Set the gap on the card if the design needs it.', ['Card']],
+      ['fixed', 'Button labels show the full height of each letter, including descenders. React Card examples use one column on phones, and the settings example gives labels and controls more room at wider widths. See #697.', ['Button', 'Card']],
+    ],
+  },
+  {
+    v: '0.135.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React `Feedback` shows a "Give feedback" pill on a text selection and opens a form with the quoted passage and a note. You pass `onSend`. A sent note shows one line of thanks and a failed send keeps the note with the error in place. Cancel, Send and Close use the kit\'s buttons. See #429.', ['Feedback']],
+      ['fixed', 'The error line in the feedback form now clears WCAG AA contrast in the dark theme. It was 4.37:1 and now uses the danger chip ink. The vanilla and React forms share this change.', ['Feedback']],
+      ['changed', 'The feedback form uses neutral ink for its section title, icon and quote mark. Its primary action keeps the accent. Vanilla and React share this change. See #699.', ['Feedback']],
+    ],
+  },
+  {
+    v: '0.134.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Footer provides full, slim and app layouts with brand, links, legal and switcher parts. Footer link columns sit side by side on iPad and desktop and stack on a phone in React and vanilla. Part of #429.', ['Footer']],
+      ['fixed', 'The LinkedIn social mark now has a visible solid shape in React and vanilla footers. Before, only the small letters appeared.', ['Footer']],
+    ],
+  },
+  {
+    v: '0.133.0', date: '2026-10-21',
+    changes: [
+      ['added', 'The React invoice showcase demonstrates upload, review, editing and recovery with sample data. Files and edits stay in the browser tab. Refs #459.'],
+      ['added', 'React `FileDrop` takes `title` to show a dashed drop area for an empty page. The kit also has `.ui-drop--page`, which enlarges that area into a layer over the whole page for a file drag. Its ground is slightly transparent and blurred, so the table shows through softly. It is solid where the browser cannot blur or the reader asks for less transparency. It starts below the topbar, or at the top of the window where the page has none. The Upload button stays the keyboard path in both. Refs #458.', ['FileDrop']],
+      ['added', '`.ui-card__title--muted` ranks a supporting card\'s title below its neighbour. It is a new use of muted ink, listed in the text ink rules. Refs #458.', ['Card']],
+      ['changed', 'The invoice showcase no longer offers Undo after Save. Save shows the Toast "Saved" and the form keeps Save and Discard. Refs #458.'],
+      ['changed', 'The story CSS gate in the React workspace now reads every stylesheet in the showcases folder, also when its own module imports it. Refs #458.'],
+      ['changed', 'Badges now include the neutral variant class when no variant is supplied. Their colours remain unchanged.', ['Badge']],
+      ['fixed', 'At 720px and below, a shell band without a menu starts 16px from the left, level with the page column. Bands with a menu keep their 8px start inset. Refs #458.', ['Shell']],
+    ],
+  },
+  {
+    v: '0.132.0', date: '2026-10-21',
+    changes: [
+      ['changed', 'A dropdown in a Modal or Drawer body scrolls the body to show the whole panel with its field\'s label, and a body too short to hold it opens the panel over the body instead. A long list stops through the middle of a row, at 300px or at the room the panel has, and a `scroll: <n>` cap keeps its number, with search too. An open panel keeps one height while the reader scrolls, and opening one on a page that does not scroll adds no scroll. See #627.', ['Dropdown', 'Modal', 'Drawer']],
+    ],
+  },
+  {
+    v: '0.131.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A person mark: `avatar()` and React `Avatar` draw first and last initials on one of eight fixed hues chosen from the person\'s key, at 24 or 32 px. An empty name draws the `user` glyph, `empty` draws a dashed ring and a photo that fails to load shows the letters. Part of #628.', ['Avatar']],
+      ['added', 'Dropdown items take `avatar: { key, name, src }`, and a `select` leads its trigger with the chosen mark or a dashed ring with the placeholder. `search.count` puts the size of the set in the placeholder and in the field\'s accessible name. A `select` inside a `field()` takes the field\'s width. Part of #628.', ['Dropdown']],
+      ['changed', 'The top bar account button draws the avatar part at 32 px, with its hue from the account email. The account menu head and the shell\'s reader block draw the same mark, in the same hue, in vanilla and React. The rail and the top bar now show the first and last initials of a name, where the rail showed the first two.', ['Topbar', 'Shell']],
+    ],
+  },
+  {
+    v: '0.130.0', date: '2026-10-21',
+    changes: [
+      ['added', 'React Toast notices accept `compact`, `dismissible` and `timer`. A compact notice omits its body text. Hiding the close button keeps the timer and the action behaviour. Part of #429.', ['Toast']],
+      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it. Set `timer: false` on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn, because it could not move and read as time not yet spent. Part of #429.', ['Toast']],
+    ],
+  },
+  {
+    v: '0.129.0', date: '2026-10-20',
+    changes: [
+      ['changed', 'At 720px and below, both shells replace the icon strip with a top band, a menu button, and the brand mark. The button opens the full rail in a left drawer, content uses the full width, and widths above 720px stay unchanged. React `AppShell` also removes its phone bottom bar, More drawer, and `--ui-app-bottom-clearance`.', ['Shell']],
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.128.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A Spacing guideline sets two gaps for a page: 8px inside a group and 32px between groups, with 20px inner gaps for small controls on a touch phone. A control with no box starts its first label on the page title\'s edge. See #591.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.127.0', date: '2026-10-20',
+    changes: [
+      ['added', 'A checkbox with `indeterminate` set shows the checked fill with a short dash. React `DataTable` selection boxes now use this kit box, 19px instead of 13px, and the header box shows the dash when only some rows on the page are selected. The selection column takes the width of its box in every selectable table. In a dense or compact table, the box keeps a 24px tall tap area on a phone, so it never reaches the next row. See #619.', ['DataTable', 'Checkbox']],
+      ['changed', 'In the dark theme, the tick, the dash and the radio dot of a selected box use the ink that a selected Segmented pill uses there, so they keep their contrast on the lighter accents.', ['Checkbox']],
+      ['fixed', 'In forced colours, an unavailable checkbox, radio or selection box and its mark use GrayText, and the radio dot stays visible.', ['Checkbox']],
+    ],
+  },
+  {
     v: '0.126.0', date: '2026-10-20',
     changes: [
-      ['added', 'React Toast notices accept compact and dismissible options. Compact notices omit body text; hiding the close button preserves the timer and action behavior. Part of #429.', ['Toast']],
-      ['added', 'A toast stack can collapse into a pile: notices rest behind the newest one, and the pile fans out on hover or when focus reaches the stack. Pass `collapse` to the React `<Toast>` provider to turn it on. Part of #429.', ['Toast']],
-      ['changed', 'The auto-dismiss timer line now stops while a notice holds focus, not only while the pointer is over it, so a keyboard reader gets the same reprieve. Set timer: false on a React notice to stop auto-dismiss and the line. Under reduced motion the line is no longer drawn: it could not move, so it read as time not yet spent. Part of #429.', ['Toast']],
+      ['added', 'React NavTabs and Breadcrumbs provide route navigation with the existing underline, pill, and breadcrumb styles. Links retain native keyboard behavior, disabled navigation items remain text, and the current page is announced. Part of #429.', ['Navigation']],
+      ['added', 'NavTabs and Breadcrumbs take renderLink, so a router can own route changes, and the main entry now exports safeUrl, observeNavFit, revealCurrentNav and revealFocusedNav for callers that assemble their own navigation markup.', ['Navigation']],
+      ['changed', 'The current pill tab uses an accent label on its existing soft accent fill. The label distinguishes the current route from a hovered route. Vanilla and React share this change.', ['Navigation']],
+      ['fixed', 'Tab rows scroll within narrow containers without widening the page, moving off the page gutter or lifting the active underline off the row rule. A row whose tabs all fit scrolls nothing and clips nothing, so the post-#578 outline focus ring keeps its band at a desktop width. React and vanilla wireNav reveal the current route without moving keyboard focus or discarding where the reader scrolled.', ['Navigation']],
+      ['fixed', 'A tab row that does scroll now scrolls to a link the keyboard lands on, so its focus ring clears the scrolling edge instead of being cut off at the end of the row. A row whose tabs are all disabled takes the kit inward band on itself rather than the browser outline, because it holds no link to carry one.', ['Navigation']],
+    ],
+  },
+  {
+    v: '0.125.1', date: '2026-10-20',
+    changes: [
+      ['changed', 'The Colour and theming guideline limits selected navigation to one accent signal. The NavTabs pill keeps its accent ink on a soft accent fill, because the fill alone is too faint to mark the current route. See #475.', ['Guidelines', 'Navigation']],
+    ],
+  },
+  {
+    v: '0.125.0', date: '2026-10-20',
+    changes: [
+      ['added', 'React `Dropdown` takes `aria-describedby` and `aria-invalid` and puts them on its trigger. Spread a `Field`\'s attributes onto it and a screen reader gets the error and hint on the trigger. The trigger\'s name is now the field label and then the chosen value, the list takes the label as its name, and the `id` stays on the outer element. See #637.', ['Dropdown', 'Field']],
+      ['fixed', '`field()` around a `dropdown()` now names the trigger with the label and then the value, describes it with the error or hint, and marks it invalid while the error shows. Before, a search dropdown received these on its search field and the others received none. See #637.', ['Dropdown', 'Field']],
     ],
   },
   {
@@ -1367,6 +1477,7 @@ export const RELEASES = [
 const COMPONENTS = {
   Table:     'components-table--finance-data',
   Badge:     'components-badge-status--badges',
+  Avatar:    'react-avatar--hues',
   Button:    'components-button--playground',
   Card:      'components-card--variants',
   Callout:   'components-callout-toast--callouts',

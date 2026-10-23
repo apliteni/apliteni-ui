@@ -150,6 +150,20 @@ export async function rowFixtures() {
         + `</td></tr>`).join('')
       + `</tbody></table>`),
 
+    // A selectable table in each density (#619). The box is 19px and its layer reaches the
+    // floor on a phone, so what decides whether one row's tap lands on its neighbour is the row
+    // pitch: 58px default, 33px compact. No story renders a compact selectable table, which is
+    // how a layer reaching 44px tall shipped over a story's boxes 33px apart.
+    ...['', ' ui-table--dense', ' ui-table--compact'].map((density) => row(
+      `selectable${density.replace(' ui-table--', '-') || '-default'}`,
+      `<table class="ui-table ui-table--hover${density}"><thead><tr>`
+      + `<th scope="col" class="ui-table__selection"><input type="checkbox" aria-label="Select all"></th>`
+      + `<th scope="col">Name</th><th scope="col" class="ui-table__num">Amount</th></tr></thead><tbody>`
+      + ['Aster Systems', 'Birch Energy', 'Cedar Foods', 'Dune Retail'].map((n, i) => `<tr>`
+        + `<td class="ui-table__selection"><input type="checkbox" aria-label="Select ${n}"></td>`
+        + `<td>${n}</td><td class="ui-table__num">${(i + 1) * 120}</td></tr>`).join('')
+      + `</tbody></table>`)),
+
     // The React filter bar's add control (#496), which no vanilla story draws:
     // a trigger of the kit's own, in the row beside the chips rather than inside
     // a chip, so the row's clearance is what its zone may grow into. The markup
@@ -359,6 +373,30 @@ export const PROBE = ({ html, size, interior, families, within }) => {
       for (let x = x0; x <= x1; x += interior) ask(x, y);
     }
 
+    // -- stolen: a point nearer this control than the one that took it ---------
+    // The drawn pixels above ask whether a control kept its own box. This asks the other
+    // half of "an overlay must not reach its neighbours": walking out from each edge along
+    // the centre lines, a point closer to this control's box than to the box of the control
+    // that owns it was this control's to keep. Two layers that overlap each give the other
+    // the pixels nearest its box, and a tap there runs the wrong row. A point on a box
+    // drawn against this one is distance zero from it, so abutting rows never read here.
+    const gapTo = (r, x, y) => Math.hypot(
+      Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom));
+    const stolen = [];
+    for (const side of ['top', 'bottom', 'left', 'right']) {
+      for (let n = 0.5; n < size; n += 1) {
+        const x = side === 'left' ? b.x - n : side === 'right' ? b.right + n : cx;
+        const y = side === 'top' ? b.y - n : side === 'bottom' ? b.bottom + n : cy;
+        if (x < 0 || y < 0 || x >= window.innerWidth) break;
+        const o = owner(x, y);
+        if (o === i || o === -1 || related(i, o) || overlapping.has(o)) continue;
+        if (n < gapTo(boxes[o], x, y) - 0.5) {
+          stolen.push(`${side} ${n}px: ${describe(o)}`);
+          break;
+        }
+      }
+    }
+
     out.push({
       tag: el.tagName.toLowerCase(),
       cls: typeof el.className === 'string' ? el.className : '',
@@ -377,6 +415,7 @@ export const PROBE = ({ html, size, interior, families, within }) => {
       box: [Math.round(b.x), Math.round(b.y)],
       lost,
       lostTo,
+      stolen,
     });
   }
   return out;

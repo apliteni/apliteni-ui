@@ -1,13 +1,15 @@
 import {
-  Fragment, useCallback, useEffect, useId, useRef, useState,
+  Fragment, useCallback, useContext, useEffect, useId, useRef, useState,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode,
 } from 'react';
 import {
   icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs, dropdownViewportFit,
-  dropdownHeightFit, filterPanelRow,
+  dropdownHeightFit, dropdownLift, dropdownReveal, dropdownRest, dropdownSnap, filterPanelRow,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
+import { Avatar } from './primitives/Avatar';
+import { FieldContext } from './fieldContext';
 
 // A few frames past the stylesheet's own end, so the backstop timer never cuts the last
 // frame the fade paints. The number a dialog's exit waits by. why: react/src/dialog.ts
@@ -40,6 +42,8 @@ const inPanel = (node: Node | null) => {
 
 export type DropdownBadge = string | { text: string; tone?: string };
 
+export type DropdownAvatar = { key?: string | number; name?: string | null; src?: string; empty?: boolean };
+
 export type DropdownItem = {
   label: string;
   /** The pick, as `onSelect` reports it and as `data-value` carries it. */
@@ -47,6 +51,9 @@ export type DropdownItem = {
   description?: string;
   /** A kit glyph name, drawn in the row's leading slot. */
   icon?: string;
+  /** A person's mark in the leading slot, in place of `icon`. `key` picks the hue, `name` the
+   *  letters, `src` a photo. `{ empty: true }` is the dashed ring of a "No one" row. */
+  avatar?: DropdownAvatar;
   badge?: DropdownBadge;
   selected?: boolean;
   disabled?: boolean;
@@ -72,6 +79,11 @@ export type DropdownSearch = {
   hint?: string;
   /** What the field holds before it is opened; every open starts from the whole list. */
   query?: string;
+  /** The size of the whole set, for "Search 214 people" in the placeholder and the field's
+   *  name. `true` counts the rows, less a "No one" row. */
+  count?: number | true;
+  /** What the set is called in that line. Defaults to "people". */
+  noun?: string;
 };
 
 /**
@@ -101,6 +113,8 @@ export type DropdownProps = {
   label?: string;
   /** What the trigger shows. Given one, the trigger is yours to update. */
   value?: string;
+  /** When given, the caller owns the selected row, including after a pick. */
+  selectedValue?: string | number;
   placeholder?: string;
   /** Inferred from the items when it is left out, exactly as the factory infers it. */
   variant?: 'select' | 'menu';
@@ -124,6 +138,10 @@ export type DropdownProps = {
   /** A field above the rows that filters them as the reader types. */
   search?: boolean | DropdownSearch;
   ariaLabel?: string;
+  /** Names the elements that describe the trigger, e.g. a field's error and hint. */
+  'aria-describedby'?: string;
+  /** Marks the trigger invalid. `Field` supplies it while its error shows. */
+  'aria-invalid'?: boolean | 'true' | 'false';
   id?: string;
   panelClass?: string;
   /** Controlled: the host owns the open state and answers `onOpenChange`. */
@@ -179,6 +197,12 @@ const openNow = new Set<() => void>();
 // driving the list. Safari's committing Enter carries keyCode 229, not isComposing.
 const composing = (e: { isComposing?: boolean; keyCode?: number }) => e.isComposing || e.keyCode === 229;
 
+const countOf = (count: number | true | undefined, rows: DropdownItem[]) => {
+  if (count == null) return null;
+  const n = count === true ? rows.filter((it) => !it.avatar?.empty).length : Number(count);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+};
+
 const SEARCH_DEFAULTS = {
   placeholder: 'Search',
   empty: 'No match for “{q}”',
@@ -186,10 +210,11 @@ const SEARCH_DEFAULTS = {
 };
 
 export function Dropdown({
-  label, value, placeholder = 'Select…', variant, items, sections,
+  label, value, selectedValue, placeholder = 'Select…', variant, items, sections,
   header, footer, triggerContent, triggerClass = '', disabled = false, chevron = true,
   align = 'start', direction = 'down', scroll = false, search = false,
   ariaLabel, id, panelClass = '',
+  'aria-describedby': describedBy, 'aria-invalid': invalid,
   open: openProp, defaultOpen = false, onOpenChange, onSelect, row,
 }: DropdownProps) {
   const [selfOpen, setSelfOpen] = useState(defaultOpen);
@@ -214,12 +239,19 @@ export function Dropdown({
   // selected row. Read in a layout effect, because the rows have to be styled open
   // before one of them can take focus. why: docs/components.md#the-dropdown-panel
   const landOn = useRef<number | 'selected' | null>(null);
+  const revealed = useRef(false);
   // The pointer's last position. A move event carrying the one it already had is the
   // browser's own after a scroll, not the reader's, and it would take the active row
   // away from the arrows.
   const at = useRef('');
   const auto = useId().replace(/:/g, '');
   const uid = id ?? auto;
+  // Given the id of the Field around it, the trigger is that field's control: its name is
+  // the label and then its own value, as a native select reads. `for` cannot do it, since
+  // the id stays on the outer div and a label on a button would drop the value.
+  const inField = useContext(FieldContext);
+  const fieldName = inField && id === inField.id && !(ariaLabel && triggerContent != null)
+    ? { id: `${uid}-trigger`, labelId: inField.labelId, labelledBy: `${inField.labelId} ${uid}-trigger` } : null;
 
   const setOpen = useCallback((next: boolean) => {
     if (openProp === undefined) setSelfOpen(next);
@@ -353,11 +385,18 @@ export function Dropdown({
     };
   }, [open]);
 
-  const sx = search ? { ...SEARCH_DEFAULTS, ...strip(search === true ? {} : search) } : null;
   const entries: DropdownEntry[] = sections?.length
     ? sections.flatMap((s) => s.items || [])
     : (items || []);
   const rows = entries.filter(isRow);
+  const given_ = search ? strip(search === true ? {} : search) : null;
+  const n = given_ ? countOf(given_.count, rows) : null;
+  const counted = n == null ? undefined : `Search ${n} ${given_?.noun || 'people'}`;
+  const sx = given_ ? {
+    ...SEARCH_DEFAULTS, ...given_,
+    placeholder: given_.placeholder || counted || SEARCH_DEFAULTS.placeholder,
+    label: given_.label || counted,
+  } : null;
   const isSelect = variant === 'select'
     || (variant == null && rows.some((it) => it.selected || it.value != null));
   const listRole = isSelect ? 'listbox' : 'menu';
@@ -371,7 +410,7 @@ export function Dropdown({
   // made and an unrelated render cannot restore one they did not.
   const given = rows.find((it) => it.selected);
   const givenKey = given ? keyOf(given) : null;
-  const pickedKey = pick && pick.against === givenKey ? pick.key : null;
+  const pickedKey = selectedValue === undefined && pick && pick.against === givenKey ? pick.key : null;
   // And taken back for good. The line above answers the frame the caller's move lands
   // in; this drops the pick, because a caller whose selection goes a → b → a has
   // refetched or undone something and not handed a pick made three renders ago its
@@ -380,11 +419,20 @@ export function Dropdown({
     if (pick && pick.against !== givenKey) setPick(null);
   }, [givenKey, pick]);
   const picked = pickedKey != null ? rows.find((it) => keyOf(it) === pickedKey) : undefined;
+  const controlled = selectedValue !== undefined ? rows.find((it) => it.value === selectedValue) : undefined;
   const shown = value != null ? value
-    : (isSelect ? (picked?.label ?? given?.label) : null);
+    : (isSelect ? (selectedValue !== undefined ? controlled?.label : picked?.label ?? given?.label) : null);
+  // A picker of people leads the trigger with the chosen row's mark, and with no value a
+  // dashed ring beside the placeholder. why: docs/components.md#avatar
+  const marked = isSelect && rows.some((it) => it.avatar);
+  const chosen = marked
+    ? (value != null ? rows.find((it) => it.label === value) : (selectedValue !== undefined ? controlled : picked ?? given))
+    : undefined;
   // After a pick the tick follows it, the way selectOption() rewrites the panel —
   // and like it, a disabled row keeps the state it was rendered with.
-  const selectedOf = (it: DropdownItem) => (pickedKey != null
+  const selectedOf = (it: DropdownItem) => (selectedValue !== undefined
+    ? it.value === selectedValue
+    : pickedKey != null
     ? (it.disabled ? !!it.selected : keyOf(it) === pickedKey)
     : !!it.selected);
 
@@ -429,12 +477,20 @@ export function Dropdown({
     };
   }, [open]);
 
+  /* An open panel has its box; a shut one gives it back once its fade is over, so it
+   * adds no scroll room. Ordered before the sizing below, which measures the box.
+   * why: docs/components.md#the-dropdown-panel */
+  useIsoLayoutEffect(() => {
+    const el = panel.current;
+    if (!el || !root.current) return undefined;
+    return dropdownRest(root.current, el, open);
+  }, [open]);
+
   /* The room the panel may take, written as the custom property the shared sheet
    * caps itself with — the same number src/components/dropdown.js writes, from
    * the same dropdownHeightFit(), so a panel opened low on a phone ends inside
-   * the viewport in React exactly as it does in vanilla. Re-measured on scroll
-   * and resize, because the page moves under the trigger and the viewport edge
-   * does not.
+   * the viewport in React exactly as it does in vanilla. Measured when the panel
+   * opens and again on a resize.
    *
    * Ordered BEFORE the focus effect below, and not after it (#502 review): with
    * a field-less menu, focusing a row before the cap is applied can scroll the
@@ -443,30 +499,39 @@ export function Dropdown({
    * cap is measured from. why: docs/components.md#the-dropdown-panel
    */
   useIsoLayoutEffect(() => {
-    if (!open) return;
+    const dd = root.current;
     const el = panel.current;
-    if (!el) return;
+    if (!open || !el || !dd) return;
     const size = () => {
-      const avail = dropdownHeightFit(root.current, el);
+      const avail = dropdownHeightFit(dd, el);
       if (avail == null) return;
       // Infinity: the floor could not be met even by spending the whole inset, so
       // the property is removed rather than written, and the sheet's own fallback
       // takes over. why: dropdownAvail(), src/logic/dropdown.js
       if (Number.isFinite(avail)) el.style.setProperty('--ui-dropdown-avail', `${avail}px`);
       else el.style.removeProperty('--ui-dropdown-avail');
-      // `.is-unbounded` only where that leaves no cap at all — a `scroll` prop
-      // still clamps the panel through --ui-dropdown-cap, and that clamp is still
-      // real room to scroll. why: src/styles/dropdown.css
-      const cap = el.ownerDocument.defaultView?.getComputedStyle(el).getPropertyValue('--ui-dropdown-cap').trim();
-      el.classList.toggle('is-unbounded', !Number.isFinite(avail) && !cap);
+      // A panel the room cannot hold keeps its cap, and the page is the way to the
+      // rows past the fold. why: src/styles/dropdown.css
+      el.classList.toggle('is-unbounded', !Number.isFinite(avail));
+      dropdownSnap(dd, el);
     };
+    // A body too short for the panel lifts it out, before anything is sized.
+    dropdownLift(dd, el);
     size();
+    // The scrolling body the panel sits in is moved to show it; the focus effect below must not undo that.
+    revealed.current = dropdownReveal(dd, el) !== 0;
+    /* Decided at the open and kept while the page or the body scrolls, so the panel does
+     * not change height under the reader. A lifted panel follows its trigger at that
+     * height, and a resize decides again. why: ddSizeHeight(), src/components/dropdown.js */
+    const follow = () => { if (el.hasAttribute('data-dd-lifted')) dropdownLift(dd, el); };
+    // The body is scrolled again where the new placement needs it, as on the open.
+    const resize = () => { dropdownLift(dd, el); size(); dropdownReveal(dd, el); };
     const view = el.ownerDocument?.defaultView ?? window;
-    view.addEventListener('scroll', size, true);
-    view.addEventListener('resize', size);
+    view.addEventListener('scroll', follow, true);
+    view.addEventListener('resize', resize);
     return () => {
-      view.removeEventListener('scroll', size, true);
-      view.removeEventListener('resize', size);
+      view.removeEventListener('scroll', follow, true);
+      view.removeEventListener('resize', resize);
     };
   }, [open, direction]);
 
@@ -502,7 +567,7 @@ export function Dropdown({
         panel.current.style.minWidth = '';
         if (panel.current.offsetWidth) panel.current.style.minWidth = `${panel.current.offsetWidth}px`;
       }
-      field.current?.focus();
+      field.current?.focus(revealed.current ? { preventScroll: true } : undefined);
       return;
     }
     if (want == null) return;
@@ -510,7 +575,7 @@ export function Dropdown({
     if (!els.length) return;
     const sel = els.findIndex((el) => el.getAttribute('aria-selected') === 'true');
     const to = want === 'selected' ? (sel >= 0 ? sel : 0) : want;
-    (els[to] || els[0]).focus();
+    (els[to] || els[0]).focus(revealed.current ? { preventScroll: true } : undefined);
   }, [open]);
 
   // Keep the active row inside the list's own scroll box, without scrolling the page
@@ -543,6 +608,8 @@ export function Dropdown({
        sentence on the other half. why: docs/components.md#a-filter-row-holds-its-panels */
     if (!el || el.closest('.ui-filter-bar')) return;
     const fit = () => {
+      // A lifted panel is placed by dropdownLift(), from its trigger.
+      if (el.hasAttribute('data-dd-lifted')) return;
       let got = dropdownViewportFit(el);
       if (!got) return;
       /* The ceiling before the shift: a row holding one long unbroken token — a
@@ -638,7 +705,7 @@ export function Dropdown({
 
   const choose = (item: DropdownItem, e: ReactMouseEvent) => {
     if (item.disabled) { e.preventDefault(); return; }
-    if (isSelect) setPick({ key: keyOf(item), against: givenKey });
+    if (isSelect && selectedValue === undefined) setPick({ key: keyOf(item), against: givenKey });
     onSelect?.(item.value, item);
     setOpen(false);
     trigger.current?.focus();
@@ -696,6 +763,7 @@ export function Dropdown({
       e.preventDefault();
       const els = itemsIn(panel.current);
       els[els.length - 1]?.focus();
+      dropdownReveal(root.current, panel.current);
     } else if ((e.key === 'Enter' || e.key === ' ') && open
       && (e.target as HTMLElement).matches?.('[data-dd-item]')) {
       e.preventDefault();
@@ -744,7 +812,9 @@ export function Dropdown({
       onClick: (e: ReactMouseEvent) => choose(entry, e),
       children: (
         <>
-          {entry.icon && <Glyph name={entry.icon} className="ui-dropdown__ic" />}
+          {entry.avatar
+            ? <Avatar personKey={entry.avatar.key} name={entry.avatar.name} src={entry.avatar.src} empty={entry.avatar.empty} />
+            : entry.icon && <Glyph name={entry.icon} className="ui-dropdown__ic" />}
           <span className="ui-dropdown__main">
             <span className="ui-dropdown__label">{entry.label}</span>
             {entry.description && <span className="ui-dropdown__desc">{entry.description}</span>}
@@ -801,14 +871,21 @@ export function Dropdown({
         disabled={disabled || undefined}
         aria-haspopup={sx ? 'dialog' : listRole}
         aria-expanded={open}
+        id={fieldName?.id}
         aria-label={ariaLabel && triggerContent != null ? ariaLabel : undefined}
+        aria-labelledby={fieldName?.labelledBy}
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
         ref={trigger}
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
       >
         {triggerContent != null ? triggerContent : (
           <>
+            {marked && (chosen?.avatar
+              ? <Avatar personKey={chosen.avatar.key} name={chosen.avatar.name} src={chosen.avatar.src} empty={chosen.avatar.empty} />
+              : <Avatar empty />)}
             {label && <span className="ui-dropdown__pre">{label}</span>}
-            <span className="ui-dropdown__value">{shown != null ? shown : placeholder}</span>
+            <span className={cx('ui-dropdown__value', marked && !chosen && 'is-placeholder')}>{shown != null ? shown : placeholder}</span>
           </>
         )}
         {chevron && <span className="ui-dropdown__chevron" aria-hidden="true" />}
@@ -819,6 +896,7 @@ export function Dropdown({
         data-dropdown-panel=""
         role={sx ? 'dialog' : listRole}
         aria-label={sx ? name : ariaLabel}
+        aria-labelledby={!sx && !ariaLabel ? fieldName?.labelId : undefined}
         style={sx ? undefined : cap}
         ref={panel}
         onClick={(e) => e.stopPropagation()}

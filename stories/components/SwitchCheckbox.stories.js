@@ -43,3 +43,22 @@ export const Checkboxes = {
     </div>` }),
   )),
 };
+
+// A consumer sets `indeterminate` on the node; markup cannot. The story does the same
+// to the boxes named `partial`, so no factory grows an option for it.
+export const Partial = {
+  render: () => {
+    const wrap = document.createElement('div');
+    const row = (disabled) => `<div style="display:flex;gap:26px;flex-wrap:wrap">
+      ${checkbox({ label: disabled ? 'None, unavailable' : 'None', disabled })}
+      ${checkbox({ label: disabled ? 'Some, unavailable' : 'Some', name: 'partial', disabled })}
+      ${checkbox({ label: disabled ? 'All, unavailable' : 'All', checked: true, disabled })}
+    </div>`;
+    wrap.innerHTML = pad(stack(
+      card({ title: 'Some of a group', body: row(false) }),
+      card({ title: 'Unavailable', body: row(true) }),
+    ));
+    wrap.querySelectorAll('input[name="partial"]').forEach((input) => { input.indeterminate = true; });
+    return wrap;
+  },
+};

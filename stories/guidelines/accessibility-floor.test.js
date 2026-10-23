@@ -18,28 +18,21 @@ import path from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 import { tokensFor, parseColour, ratio } from '../lib/contrast.js';
 import { decomment } from '../lib/target-geometry.js';
-import { runJobs } from '../lib/job-pool.js';
 import {
-  root, THEMES, sheet, disabledRules, TOUCH_MIN, CELLS,
+  root, THEMES, sheet, disabledRules, TOUCH_MIN,
 } from '../lib/accessibility-walks.js';
+import { targetPart } from '../lib/floor-part.js';
 import {
-  TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, TARGET_EXEMPT,
+  TARGET_MIN, TARGET_EXEMPT,
   RULES,
 } from './_accessibility-floor.js';
 
 const { GATES } = JSON.parse(readFileSync(new URL('./accessibility-coverage.json', import.meta.url), 'utf8'));
 
-// The eleven walks are independent, so they run on worker threads at once and this file waits
-// for all of them here, before any test, rather than inside one.
-const WALKS = new URL('../lib/accessibility-walks.js', import.meta.url);
-const [targetRun, ...cellRuns] = await runJobs(WALKS, [
-  { fn: 'targetRun' },
-  ...CELLS.map(({ theme, accent }) => ({ fn: 'ringCell', args: [theme, accent] })),
-  ...THEMES.map((theme) => ({ fn: 'disabledCell', args: [theme] })),
-]);
-const ringRun = Object.fromEntries(cellRuns.slice(0, CELLS.length).map((c) => [`${c.theme}/${c.accent}`, c]));
-const disabledRun = Object.fromEntries(THEMES.map((theme, i) => [theme, cellRuns[CELLS.length + i]]));
-
+// The walks are dealt over four files (stories/lib/floor-parts.js): this one measures the target
+// walk, floor-ring-dark and floor-ring-light the ring cells of each theme, and floor-disabled
+// the disabled cells. stories/lib/floor-parts.test.js holds that each part has one entry file.
+const targetRun = await targetPart();
 
 test('target size: every control the stories render is measured, none skipped', () => {
   assert.deepEqual(targetRun.problems, [], 'a story that will not render is a hole in the measurement');
@@ -154,25 +147,33 @@ test('folded rail: every control keeps a name with its label gone, and the name 
   assert.deepEqual(bad, [], 'a folded row has no name of its own, or one a speech user cannot say from the tag');
 });
 
-// The phone strip, measured rather than compared. shell-states.test.js holds the
-// reader's fold and the 720px fold equal to each other, rule for rule and
-// property for property — and that is exactly why neither could notice when the
-// floor they share went down: equality is silent about a value that falls on
-// both sides at once. This reads the box a finger lands on at 375px.
-test(`phone strip: no rail row is shorter than ${TOUCH_MIN}px below 720px`, () => {
+// The phone shell, measured. Below 720px the rail's rows are the drawer's rows, and the
+// menu control and the band's mark are the targets a finger reaches first. This reads the
+// box of each at 375px with the drawer held open. A shell test that compares two rule sets
+// cannot see a floor fall on both sides at once, so the box is measured.
+test(`phone shell: no drawer row or mark is shorter than ${TOUCH_MIN}px, nor the menu control than ${TARGET_MIN}px`, () => {
   assert.ok(
     targetRun.strip.length >= 5,
-    `only ${targetRun.strip.length} rail rows measured below 720px — no story draws a shell rail any `
-    + 'more, or the fold stopped being lifted, and this gate is measuring nothing',
+    `only ${targetRun.strip.length} phone shell targets measured below 720px — no story draws a shell `
+    + 'any more, or the 720px block stopped being lifted, and this gate is measuring nothing',
   );
+  for (const part of ['menu', 'mark', 'row']) {
+    assert.ok(
+      targetRun.strip.some((c) => c.part === part),
+      `no ${part} target was measured, so a floor lost there would pass`,
+    );
+  }
+  // The menu control is a kit button, and the tap zone raises it to 44px on a coarse pointer
+  // at 560px and below (stories/tap-zone.test.js measures that in a browser). It draws at
+  // the button's own height, which this gate holds to the shared floor.
   const short = targetRun.strip
-    .filter((c) => c.height < TOUCH_MIN)
+    .filter((c) => c.height < (c.part === 'menu' ? TARGET_MIN : TOUCH_MIN))
     .map((c) => `${c.name || '(unnamed)'} — ${c.height}px high (${c.where})`);
   assert.deepEqual(
     short, [],
-    `a rail row on a phone is under the ${TOUCH_MIN}px touch floor. At this width the strip is the `
-    + 'whole of the rail and a finger is the only pointer it has, so the row is the target. The floor '
-    + 'is the 720px block\'s own `min-height` in src/styles/layout.css.',
+    `a phone shell target is under the ${TOUCH_MIN}px touch floor. At this width a finger is the `
+    + 'only pointer, so the row, the control and the mark are the targets. The floor is the '
+    + '720px block\'s own `min-height` in src/styles/layout.css.',
   );
 });
 
@@ -192,63 +193,6 @@ test('folded rail: every control a reader can reach is drawn', () => {
     .filter((c) => !c.onScreen && !c.inClosedGroup)
     .map((c) => `${c.name} (${c.where})`);
   assert.deepEqual(gone, [], 'a folded rail control is display:none, so Tab passes it by');
-});
-
-const CELL_KEYS = Object.keys(ringRun);
-
-test('ring: every selector the sheet paints a ring on is landed somewhere by a story', () => {
-  for (const key of CELL_KEYS) {
-    const run = ringRun[key];
-    assert.ok(run.selectors.length >= 15, `${key}: only ${run.selectors.length} ring selectors found in the sheet`);
-    const landed = new Set(run.landings.map((l) => l.selector));
-    // `.ui-focusable` is the kit's opt-in focus class
-    // (src/styles/base.css:151 `.ui-focusable:focus-visible,`). No vanilla component
-    // wears it and no vanilla story renders one, so it has no ground to be measured
-    // against — a fact about the class, not a hole here. React's Tooltip trigger wears
-    // it and is swept elsewhere. It is named rather than filtered so it cannot quietly
-    // become two.
-    //
-    // The Finance dashboard's head link wore it until round 38 removed that link.
-    // A later commit on this PR claimed coverage back by string-pasting the class
-    // onto a primary Button, which measures the ring against the button's own
-    // fill — already covered by `.ui-btn:focus-visible` — rather than against a
-    // real surface. PR #552 code review, finding F5: the exception is restored
-    // rather than that false carrier kept.
-    //
-    // A reader looking for the gap this leaves: the subjects are the selectors the
-    // sheet ALREADY rings, so a control given no focus rule at all is invisible here
-    // however many stories draw it. stories/focus-ring.test.js walks the controls
-    // instead, on the landing page and the shell, footer and topbar stories; a control
-    // with no ring rule drawn only on a guideline page is caught by neither.
-    const orphans = run.selectors.filter((s) => !landed.has(s));
-    assert.deepEqual(orphans, ['.ui-focusable:focus-visible'], `${key}: a ring selector no story renders is a ring nobody measured`);
-  }
-});
-
-// Every accent is swept, not just the two themes: the ring is var(--accent) and
-// each sub-theme re-points it, so `phoenix` is a different ring on the same
-// surfaces. #201 measured the default accent only and reported 1.50 as the
-// worst the kit had; light emerald was 1.35 the whole time.
-test(`ring: ${RING_MIN}:1 against every ground it lands on, in every theme x accent cell`, () => {
-  const failing = CELL_KEYS.flatMap((key) => ringRun[key].landings
-    .filter((l) => l.ratio != null && l.ratio < RING_MIN)
-    .map((l) => `${key}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`));
-  assert.deepEqual(
-    failing, [],
-    `${failing.length} ring landings under the ${RING_MIN}:1 of WCAG 1.4.11:\n  ${failing.join('\n  ')}`,
-  );
-});
-
-// The bar above is what WCAG asks; this is what the kit actually reaches. They
-// are the same shape and different numbers on purpose — the ratchet catches a
-// token moving the ring DOWN long before it reaches the bar, which is the only
-// warning anyone gets. It is the measured worst, so it moves only by being
-// re-measured (the measured-pin rule).
-test(`ring: nothing has drifted below ${RING_FLOOR}:1, the worst the kit measures today`, () => {
-  const worse = CELL_KEYS.flatMap((key) => ringRun[key].landings
-    .filter((l) => l.ratio != null && Math.round(l.ratio * 100) / 100 < RING_FLOOR)
-    .map((l) => `${key}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`));
-  assert.deepEqual(worse, [], 'a token moved a ring landing below the worst #218 measured');
 });
 
 // #218 retired the ledger this gate used to carry. The ring clears the bar in
@@ -290,30 +234,6 @@ test('ring: the band is declared once, from the widths and the ink that tune it'
 });
 
 
-test('disabled: every rule that dims a control is found, and a story renders it', () => {
-  const subjects = disabledRun.dark.subjects;
-  assert.ok(subjects.length >= 5, `only ${subjects.length} disabled rules found in the sheet`);
-  for (const theme of THEMES) {
-    assert.ok(disabledRun[theme].found.length > 0, `${theme}: no disabled text measured at all`);
-  }
-});
-
-test(`disabled: every label a disabled control shows clears ${DISABLED_MIN}:1, in both themes`, () => {
-  const under = THEMES.flatMap((theme) => disabledRun[theme].found
-    .filter((f) => f.labelled && f.ratio < DISABLED_MIN)
-    .map((f) => `${theme} ${f.path} at opacity ${f.opacity} — ${f.ratio.toFixed(2)}:1`));
-  assert.deepEqual(under, [], `disabled labels under the ${DISABLED_MIN}:1 floor #220 settled`);
-});
-
-test(`disabled: nothing has drifted below ${DISABLED_FLOOR}:1, the worst the kit measures today`, () => {
-  for (const theme of THEMES) {
-    const worse = disabledRun[theme].found
-      .filter((f) => f.labelled && Math.round(f.ratio * 100) / 100 < DISABLED_FLOOR)
-      .map((f) => `${f.path} at opacity ${f.opacity} — ${f.ratio.toFixed(2)}:1`);
-    assert.deepEqual(worse, [], `${theme}: a token moved a disabled pair below the ratchet`);
-  }
-});
-
 // Keep measured ratios in the test, not in reader-facing guideline history.
 test('disabled: the opaque token pair retains its measured contrast in both themes', () => {
   const expected = { dark: '6.24', light: '6.11' };
@@ -346,36 +266,25 @@ test('disabled: a rule is classified by what it paints, not by what it selects',
   assert.equal(one('opacity: 0.5;').edgeOnly, false);
   assert.equal(one('cursor: not-allowed;').edgeOnly, false);
   // And the kit's own edge-only rules, named rather than counted: the filter row's chip and
-  // its add control, and the checkmark the kit draws out of two borders.
+  // its add control, and the tick and the partial dash the kit draws out of borders — for a
+  // checkbox and for DataTable's selection box, and again in forced colours.
   const edges = disabledRules(sheet()).filter((r) => r.edgeOnly).map((r) => r.selector).sort();
   assert.deepEqual(edges, [
+    ".ui-check input:disabled:is(:checked, :indeterminate)",
     ".ui-check input[type=\"checkbox\"]:disabled:checked::after",
+    ".ui-check input[type=\"checkbox\"]:disabled:is(:checked, :indeterminate)",
+    ".ui-check input[type=\"checkbox\"]:disabled:indeterminate::after",
+    ".ui-check input[type=\"checkbox\"]:disabled:is(:checked, :indeterminate)::after",
     ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled",
     ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled=\"true\"]",
     ".ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled=\"true\"]:hover:not(:focus-visible)",
     ".ui-filter-bar:disabled .ui-filter-bar__chip",
     ".ui-filter-bar__chip:disabled",
+    ".ui-table__selection input[type=\"checkbox\"]:disabled:checked::after",
+    ".ui-table__selection input[type=\"checkbox\"]:disabled:is(:checked, :indeterminate)",
+    ".ui-table__selection input[type=\"checkbox\"]:disabled:indeterminate::after",
+    ".ui-table__selection input[type=\"checkbox\"]:disabled:is(:checked, :indeterminate)::after",
   ].sort(), 'the kit\'s edge-only disabled rules moved — each one is measured on its own box alone');
-});
-
-test('disabled: the state repaints — off never looks the same as on', () => {
-  const same = THEMES.flatMap((theme) => disabledRun[theme].found
-    .filter((f) => !f.repaints)
-    .map((f) => `${theme} ${f.path} — ${f.selector} paints exactly what the enabled control paints`));
-  assert.deepEqual(same, [], 'a disabled control that is indistinguishable from an enabled one');
-});
-
-// The mechanism, held rather than argued. `opacity` under a disabled selector
-// drags a label and its box toward the ground together, and the pair a reader
-// is left with is wherever the composite lands — 1.48:1, for the primary button
-// #220 was opened about. The rule the kit settled on is that a control with a
-// LABEL under it takes a paint, not a fade. The switch track is what is left:
-// it fades, and there is nothing written inside it to fade.
-test('disabled: a rule that fades with opacity has no label under it', () => {
-  const faded = THEMES.flatMap((theme) => disabledRun[theme].found
-    .filter((f) => f.opacity < 1 && f.labelled)
-    .map((f) => `${theme} ${f.path} — ${f.selector} at opacity ${f.opacity}`));
-  assert.deepEqual(faded, [], 'a disabled label faded by opacity instead of painted');
 });
 
 // ---- the collection -------------------------------------------------------
@@ -412,5 +321,3 @@ test('every gate the page names states a blind spot, and states what it checks',
     for (const b of g.blind) assert.ok(b.length > 20, `${g.file} has a blind spot stated too thinly to use`);
   }
 });
-
-export { targetRun, ringRun, disabledRun };

@@ -1,4 +1,4 @@
-import { dropdownMatch, dropdownFiltering, dropdownAvail } from '../logic/dropdown.js';
+import { dropdownMatch, dropdownFiltering, dropdownAvail, dropdownStop } from '../logic/dropdown.js';
 export { dropdownMatch, dropdownFiltering, dropdownAvail } from '../logic/dropdown.js';
 // Dropdown — the kit's one popover-list primitive. A trigger opens a panel of
 // item rows; two flavours share the same panel and the same open/close JS:
@@ -16,8 +16,9 @@ export { dropdownMatch, dropdownFiltering, dropdownAvail } from '../logic/dropdo
 //   wireDropdown(container);   // or let wireTopbar() do it
 import { esc, icon } from './index.js';
 import { safeUrl } from '../html.js';
+import { avatar } from './avatar.js';
 // The fade's own length, read off the stylesheet rather than copied. why: src/motion.js
-import { transitionMs } from '../motion.js';
+import { transitionMs, prefersReducedMotion } from '../motion.js';
 const cx = (...a) => a.filter(Boolean).join(' ');
 
 // A trailing status badge. `badge` is the text shown, in the case it is written
@@ -39,7 +40,7 @@ function ddItem(it, listbox, ext) {
   const role = listbox ? 'option' : 'menuitem';
   const asLink = !!it.href && !disabled && !listbox;
   const tag = asLink ? 'a' : 'div';
-  const lead = it.icon ? `<span class="ui-dropdown__ic">${icon(it.icon)}</span>` : '';
+  const lead = it.avatar ? avatar(it.avatar) : it.icon ? `<span class="ui-dropdown__ic">${icon(it.icon)}</span>` : '';
   const desc = it.description ? `<span class="ui-dropdown__desc">${esc(it.description)}</span>` : '';
   const main = `<span class="ui-dropdown__main"><span class="ui-dropdown__label">${esc(it.label)}</span>${desc}</span>`;
   const badge = ddBadge(it.badge);
@@ -87,14 +88,25 @@ const ddIsRow = (it) => it && it !== '---' && !it.separator;
 
 let _ddSeq = 0;
 
-function ddSearchContext(search, id) {
+// "Search 214 people": the size of the whole set, in the placeholder and in the field's
+// name. `count: true` counts the rows, less a "No one" row, which is not a person.
+// why: docs/components.md#a-dropdown-with-a-search-field
+function ddCount(count, rows) {
+  if (count == null || count === false) return null;
+  const n = count === true ? rows.filter((it) => ddIsRow(it) && !it.avatar?.empty).length : Number(count);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+function ddSearchContext(search, id, rows) {
   const o = search === true ? {} : search;
+  const n = ddCount(o.count, rows);
+  const counted = n == null ? null : `Search ${n} ${o.noun || 'people'}`;
   return {
     base: id || `ui-dd-${++_ddSeq}`,
     n: 0,
     q: o.query || '',
-    label: o.label,
-    placeholder: o.placeholder || 'Search',
+    label: o.label || counted,
+    placeholder: o.placeholder || counted || 'Search',
     empty: o.empty || 'No match for “{q}”',
     hint: o.hint || 'Check the spelling, or try fewer letters.',
   };
@@ -146,7 +158,7 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
  * @param {string} [o.value]       current value shown in the trigger
  * @param {string} [o.placeholder] shown when there is no value
  * @param {string} [o.variant]     'select' (listbox) | 'menu' (inferred from items)
- * @param {Array}  [o.items]       [{ label, value?, description?, icon?, badge?, selected?, disabled?, href?, danger? }]
+ * @param {Array}  [o.items]       [{ label, value?, description?, icon?, avatar?, badge?, selected?, disabled?, href?, danger? }]
  * @param {Array}  [o.sections]    [{ label, items }] — grouped alternative to items
  * @param {string} [o.foot]        content for a pinned block at the panel's bottom edge,
  *   drawn as `.ui-dropdown__foot` — raw HTML, so escape your own text
@@ -160,8 +172,10 @@ function ddSearchBody({ items, sections }, sx, name, scroll) {
  * @param {boolean} [o.disabled]   the trigger is off: no stop, no panel, the kit's
  *   unavailable paint. #580
  * @param {string} [o.ariaLabel]   accessible name for the panel and trigger
- * @param {boolean|object} [o.search] true, or { placeholder, label, empty, hint, query } —
- *   a field above the rows that filters them; `empty` may carry {q}
+ * @param {boolean|object} [o.search] true, or { placeholder, label, empty, hint, query, count, noun } —
+ *   a field above the rows that filters them; `empty` may carry {q}; `count` (a number, or
+ *   true to count the rows) puts the size of the set in the placeholder and the field's
+ *   name, "Search 214 people", and `noun` replaces "people"
  * @returns {string} html
  */
 export function dropdown({
@@ -174,13 +188,18 @@ export function dropdown({
   const isSelect = variant === 'select' || (variant == null && flat.some((it) => it && (it.selected || it.value != null)));
   const listRole = isSelect ? 'listbox' : 'menu';
   const cur = value != null ? value : (isSelect ? (flat.find((it) => it && it.selected)?.label) : null);
-  const sx = search ? ddSearchContext(search, id) : null;
+  const sx = search ? ddSearchContext(search, id, flat) : null;
   const name = ariaLabel || (label ? String(label).replace(/:\s*$/, '') : '') || 'Options';
 
+  // A picker of people: the trigger leads with the chosen row's mark, and with no value
+  // a dashed ring beside the placeholder. why: docs/components.md#avatar
+  const marked = isSelect && flat.some((it) => it && it.avatar);
+  const chosen = marked && cur != null ? flat.find((it) => it && it.label === cur) : null;
+  const lead = marked && (chosen?.avatar || cur == null) ? avatar(chosen?.avatar ?? { empty: true }) : '';
   const trig = triggerContent != null
     ? triggerContent
-    : `${label ? `<span class="ui-dropdown__pre">${esc(label)}</span>` : ''}` +
-      `<span class="ui-dropdown__value">${esc(cur != null ? cur : placeholder)}</span>`;
+    : `${lead}${label ? `<span class="ui-dropdown__pre">${esc(label)}</span>` : ''}` +
+      `<span class="${esc(cx('ui-dropdown__value', marked && cur == null && 'is-placeholder'))}">${esc(cur != null ? cur : placeholder)}</span>`;
   const triggerAttrs = [
     `class="${esc(cx('ui-dropdown__trigger', triggerClass))}"`,
     'type="button"',
@@ -298,6 +317,16 @@ const DD_EDGE = 8;
 function ddEdge(panel) {
   const declared = parseFloat(ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-edge'));
   return Number.isFinite(declared) ? declared : DD_EDGE;
+}
+
+// The room a panel that opens down keeps between its end and the end of the Modal
+// or Drawer body that holds it, so its shadow fades before the body clips it. The
+// number is --ui-dropdown-shade in src/styles/dropdown.css.
+const DD_SHADE = 48;
+
+function ddShade(panel) {
+  const declared = parseFloat(ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-shade'));
+  return Number.isFinite(declared) ? declared : DD_SHADE;
 }
 
 // The least height a capped panel keeps, below which it would rather spend the
@@ -599,19 +628,447 @@ export function dropdownHeightFit(dd, panel) {
   if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !panel) return null;
   const t = trigger.getBoundingClientRect();
   const view = ddViewOf(panel);
+  // Inside a scrolling body the panel may take the body less its field: dropdownReveal()
+  // scrolls the body to show it, so the room is the body's, not what is left under the
+  // trigger now. A lifted panel is measured against the viewport, as a portalled one is.
+  const fit = ddLifted(panel) ? null : ddBodyFit(dd, panel);
+  if (fit && !fit.lift) return fit.room;
+  // A lifted panel is measured from where the body is about to bring its trigger.
+  const by = ddLifted(panel) && !ddUp(panel) ? dd.__ddLiftBy || 0 : 0;
   return dropdownAvail({
-    anchorTop: t.top,
-    anchorBottom: t.bottom,
+    anchorTop: t.top - by,
+    anchorBottom: t.bottom - by,
     viewport: view.innerHeight,
     gap: ddGap(panel),
     inset: ddEdge(panel),
     min: ddMin(panel),
-    up: panel.classList.contains('is-up'),
+    up: ddUp(panel),
   });
+}
+
+/* A panel the wiring lifted out of a body too short to hold it: `position: fixed`, so
+ * it opens over the body the way a portalled panel does. The value is the side it
+ * opens on. why: docs/components.md#the-dropdown-panel */
+const ddLifted = (panel) => typeof panel?.hasAttribute === 'function' && panel.hasAttribute('data-dd-lifted');
+const ddUp = (panel) => (ddLifted(panel)
+  ? panel.getAttribute('data-dd-lifted') === 'up'
+  : !!panel?.classList?.contains('is-up'));
+
+/** Every ancestor that scrolls the block axis, from a wrapper to the Modal or Drawer
+ *  body round it, with the part of them a reader can see: their padding boxes clipped
+ *  to each other and to the viewport. `el` is the one whose end is that part's end,
+ *  which is the one that has to scroll. `height` is the least any of them shows, which
+ *  is the room a panel has whatever they are scrolled to. `null` for a portalled panel
+ *  (it is not inside them), a filter row (its row already bounds its panels) and a
+ *  trigger with none. */
+function ddScrollBox(dd, panel) {
+  if (dd.__ddPanel || ddInFilterRow(panel)) return null;
+  const view = ddViewOf(panel);
+  const els = [];
+  let top = 0;
+  let bottom = view.innerHeight;
+  let height = view.innerHeight;
+  let el = null;
+  for (let at = dd.parentElement; at && at !== at.ownerDocument.body; at = at.parentElement) {
+    const overflow = view.getComputedStyle(at).overflowY;
+    if (overflow !== 'auto' && overflow !== 'scroll') continue;
+    const start = at.getBoundingClientRect().top + at.clientTop;
+    const end = start + at.clientHeight;
+    els.push(at);
+    top = Math.max(top, start);
+    if (end <= bottom) { bottom = end; el = at; }
+    height = Math.min(height, at.clientHeight);
+  }
+  if (!els.length || !(bottom > top)) return null;
+  return { el: el || els[0], els, top, bottom, height };
+}
+
+/* The top of what has to stay in view over the panel: the field's label when the
+ * trigger has one above it, so the reader still sees what the list is for. */
+function ddAnchorTop(dd, t) {
+  const label = dd.closest?.('.ui-field')?.querySelector(':scope > .ui-field__label');
+  const top = label?.getBoundingClientRect?.().top;
+  return Number.isFinite(top) && top < t.top ? top : t.top;
+}
+
+/* The height a panel's rows ask for, uncapped: its own box plus whatever it and its
+ * list hold past their ends. */
+function ddContentHeight(panel) {
+  let h = panel.offsetHeight + panel.scrollHeight - panel.clientHeight;
+  const list = panel.querySelector?.('.ui-dropdown__list');
+  if (list) h += list.scrollHeight - list.clientHeight;
+  return h;
+}
+
+/**
+ * How a panel fits the body it opens in. The body has to hold the field's label and
+ * trigger, the gap, the panel and the room under it. That room is 48px where the body
+ * can spare it, so the shadow fades before the body clips it, and it is spent down to
+ * the 8px edge where the body cannot. Where even then the body cannot hold the floor
+ * (or the whole list, when that is shorter), the panel is lifted out of the body.
+ * Measured from the heights alone, so the answer is the same however far the body is
+ * scrolled. `null` with no scrolling body.
+ */
+function ddBodyFit(dd, panel) {
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  const box = ddScrollBox(dd, panel);
+  if (!box || !trigger) return null;
+  const t = trigger.getBoundingClientRect();
+  const edge = ddEdge(panel);
+  const gap = ddGap(panel);
+  const need = Math.min(ddMin(panel), ddContentHeight(panel));
+  if (ddUp(panel)) {
+    const room = box.height - 2 * edge - t.height - gap;
+    return room >= need ? { box, end: edge, room, anchor: t.top } : { box, lift: true };
+  }
+  const anchor = ddAnchorTop(dd, t);
+  const spare = box.height - edge - (t.bottom - anchor) - gap - need;
+  const end = Math.max(edge, Math.min(ddShade(panel), spare));
+  const room = box.height - edge - (t.bottom - anchor) - gap - end;
+  return room >= need ? { box, end, room, anchor } : { box, lift: true };
+}
+
+/**
+ * Lift an open panel out of a body too short to hold it, or put a lifted one back.
+ * A lifted panel is `position: fixed` against the viewport and opens over the body,
+ * below its trigger or, where the viewport has more room above, over it, the way a
+ * portalled panel opens. It follows its trigger while the body scrolls. Call it with
+ * the panel open and laid out, before sizing it. Returns whether the panel is lifted.
+ * why: docs/components.md#the-dropdown-panel
+ */
+export function dropdownLift(dd, panel) {
+  if (!dd || !panel?.style || dd.__ddPanel) return false;
+  const lift = !!ddBodyFit(dd, panel)?.lift;
+  if (!lift) {
+    if (ddLifted(panel)) {
+      panel.removeAttribute('data-dd-lifted');
+      for (const side of ['top', 'bottom', 'left', 'right']) panel.style.removeProperty(side);
+      panel.style.removeProperty('inline-size');
+    }
+    return false;
+  }
+  dd.__ddLiftBy = ddLiftPlan(dd, panel);
+  ddPlaceLifted(dd, panel);
+  return true;
+}
+
+/* How far the body scrolls to give a lifted panel that opens down the viewport's room
+ * under its trigger: no further than the field's label reaching the body's top, and no
+ * further than the panel needs. 0 for a panel that opens up. The label stays in view,
+ * where a panel lifted over it would cover it. */
+function ddLiftPlan(dd, panel) {
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  const box = ddScrollBox(dd, panel);
+  if (!trigger || !box || panel.classList.contains('is-up')) return 0;
+  const t = trigger.getBoundingClientRect();
+  const edge = ddEdge(panel);
+  const rise = Math.max(0, ddAnchorTop(dd, t) - edge - box.top);
+  const want = Math.min(ddContentHeight(panel), ddCeilingOf(panel));
+  const over = t.bottom + ddGap(panel) + want + edge - ddViewOf(panel).innerHeight;
+  return Math.max(0, Math.min(rise, Math.ceil(over)));
+}
+
+/* The tallest a panel may be before the room has a say: the cap a consumer asked for,
+ * which under a search field is the list's and the field over it, or the standard cap. */
+function ddCeilingOf(panel) {
+  const view = ddViewOf(panel);
+  const list = panel.querySelector?.('.ui-dropdown__list');
+  const own = parseFloat((list || panel).style?.getPropertyValue('--ui-dropdown-cap'));
+  if (Number.isFinite(own)) return own + (list ? panel.offsetHeight - list.offsetHeight : 0);
+  const max = parseFloat(view.getComputedStyle(panel).getPropertyValue('--ui-dropdown-max'));
+  return Number.isFinite(max) ? max : Infinity;
+}
+
+function ddPlaceLifted(dd, panel) {
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  if (!trigger) return;
+  const view = ddViewOf(panel);
+  const t = trigger.getBoundingClientRect();
+  const gap = ddGap(panel);
+  // Below is counted after the body has scrolled the field up (ddLiftPlan()).
+  const below = view.innerHeight - t.bottom - gap + (dd.__ddLiftBy || 0);
+  const above = t.top - gap;
+  // The configured side, unless it cannot hold the floor and the other side has more.
+  const configured = panel.classList.contains('is-up');
+  const mine = configured ? above : below;
+  const other = configured ? below : above;
+  const up = mine < Math.min(ddMin(panel), ddContentHeight(panel)) && other > mine ? !configured : configured;
+  const s = panel.style;
+  s.translate = '';
+  if (panel.getAttribute('data-dd-lifted') !== (up ? 'up' : 'down')) {
+    const held = s.transition;
+    s.transition = 'none';
+    panel.setAttribute('data-dd-lifted', up ? 'up' : 'down');
+    view.getComputedStyle(panel).transform;
+    s.transition = held;
+  }
+  ddWriteCeiling(panel);
+  if (dd.parentElement?.classList.contains('ui-field')) s.inlineSize = `${t.width}px`;
+  const width = panel.getBoundingClientRect().width;
+  const end = panel.classList.contains('is-end');
+  const shift = dropdownViewportFit(panel, { left: end ? t.right - width : t.left, width })?.shift || 0;
+  const left = (end ? t.right - width : t.left) + shift;
+  s.right = 'auto';
+  s.left = `${left}px`;
+  if (up) { s.top = 'auto'; s.bottom = `${view.innerHeight - t.top + gap}px`; }
+  else { s.bottom = 'auto'; s.top = `${t.bottom + gap}px`; }
+  /* An ancestor with a transform holds a fixed box too, and then the numbers above are
+   * read from its corner. Measured and taken back, so the panel lands where they say. */
+  const r = panel.getBoundingClientRect();
+  if (!(r.width > 0)) return;
+  const dx = r.left - left;
+  const dy = up ? r.bottom - (t.top - gap) : r.top - (t.bottom + gap);
+  if (Math.abs(dx) > 0.5) s.left = `${left - dx}px`;
+  if (Math.abs(dy) > 0.5) {
+    if (up) s.bottom = `${view.innerHeight - t.top + gap + dy}px`;
+    else s.top = `${t.bottom + gap - dy}px`;
+  }
+}
+
+/**
+ * Scroll the body an open panel sits in the least distance that shows the whole
+ * panel, the room under it and the field's label over it (dropdownHeightFit() makes
+ * the panel no taller than that). A body that already shows them does not move. A
+ * wrapper inside the body that does not scroll is passed over: the ancestor whose end
+ * is the end of what the reader sees is the one scrolled. Instant under
+ * `prefers-reduced-motion`. Returns the distance scrolled.
+ * why: docs/components.md#the-dropdown-panel
+ */
+export function dropdownReveal(dd, panel) {
+  const by = ddRevealOnce(dd, panel);
+  /* A shut panel is held 6px off its place and the body cannot scroll past where
+   * it ends, so the first scroll falls up to 6px short. One more look once the
+   * panel has settled. */
+  if (by && panel.style) {
+    setTimeout(() => { if (dd.classList.contains('open')) ddRevealOnce(dd, panel); },
+      transitionMs(panel) + DD_EXIT_SLACK_MS);
+  }
+  return by;
+}
+
+/* A body cannot scroll past the end of what it holds, and a panel is the last thing
+ * in it: the panel's own bottom is the end. Without more below it, the room the
+ * reveal keeps cannot be reached at the end of the body. The sheet draws a 1px spot
+ * at the distance written here, below the trigger. `end` is that room: the body's,
+ * or on a page the 8px edge, which the page's own fit keeps, so opening a panel on a
+ * page that does not scroll makes it scroll by nothing. why: src/styles/dropdown.css */
+function ddReserveEnd(dd, panel, end) {
+  if (!dd.style || ddUp(panel) || ddLifted(panel)) return;
+  const next = `${ddGap(panel) + panel.offsetHeight + end - 1}px`;
+  if (dd.style.getPropertyValue('--ui-dropdown-reach') !== next) dd.style.setProperty('--ui-dropdown-reach', next);
+}
+
+/* A shut panel is still laid out, and a box that is laid out counts towards the scroll
+ * of what holds it: the end of a Modal or Drawer body, or of a page, scrolled to blank
+ * space as tall as the panel. So a shut panel is collapsed, once its fade is over, and
+ * its room under it goes with it. The body cannot scroll past where it ends, so
+ * collapsing under a reader who is looking at that room would slide the field down by
+ * the whole of it: the box stays until the reader has scrolled out of the room, and the
+ * field never moves. The panel is given its box back before anything measures it.
+ * why: docs/components.md#the-dropdown-panel */
+function ddScrollerOf(dd, panel) {
+  return ddScrollBox(dd, panel)?.el ?? dd.ownerDocument.scrollingElement;
+}
+
+function ddCollapse(dd, panel) {
+  const scroller = ddScrollerOf(dd, panel);
+  const before = scroller?.scrollTop ?? 0;
+  const reach = dd.style?.getPropertyValue('--ui-dropdown-reach') ?? '';
+  panel.setAttribute('data-dd-shut', '');
+  dd.style?.removeProperty('--ui-dropdown-reach');
+  if (!scroller || scroller.scrollTop === before) return true;
+  panel.removeAttribute('data-dd-shut');
+  if (reach) dd.style.setProperty('--ui-dropdown-reach', reach);
+  if (typeof scroller.scrollTo === 'function') scroller.scrollTo({ top: before, behavior: 'instant' });
+  else scroller.scrollTop = before;
+  return false;
+}
+
+/**
+ * Give a panel its box while it is open, and take the box away once it has shut and
+ * its fade is over. Returns a function that cancels a collapse still waiting.
+ * Does nothing for a portalled panel, which is `position: fixed` and adds no scroll,
+ * and for a panel in a filter row, which its row already bounds.
+ * why: docs/components.md#the-dropdown-panel
+ *
+ * @param {Element} dd the `[data-dropdown]` container
+ * @param {Element} panel its `[data-dropdown-panel]`
+ * @param {boolean} open whether the panel is opening (`true`) or has shut (`false`)
+ * @param {number} [wait] ms to wait before collapsing; the panel's own fade by default
+ */
+export function dropdownRest(dd, panel, open, wait) {
+  if (!dd || !panel?.style || dd.__ddPanel || ddInFilterRow(panel)) return () => {};
+  dd.__ddRest?.();
+  if (open) {
+    panel.removeAttribute('data-dd-shut');
+    return () => {};
+  }
+  let timer = null;
+  let off = null;
+  const cancel = () => {
+    clearTimeout(timer);
+    off?.();
+    dd.__ddRest = null;
+  };
+  const attempt = () => {
+    const done = !dd.isConnected || dd.classList.contains('open') || ddCollapse(dd, panel);
+    if (done) cancel();
+    return done;
+  };
+  const start = () => {
+    timer = null;
+    if (attempt()) return;
+    const scroller = ddScrollerOf(dd, panel);
+    const target = scroller === dd.ownerDocument.scrollingElement ? ddViewOf(panel) : scroller;
+    target.addEventListener('scroll', attempt, { passive: true });
+    off = () => target.removeEventListener('scroll', attempt);
+  };
+  dd.__ddRest = cancel;
+  const ms = wait ?? transitionMs(panel) + DD_EXIT_SLACK_MS;
+  if (ms > 0) timer = setTimeout(start, ms);
+  else start();
+  return cancel;
+}
+
+function ddRevealOnce(dd, panel) {
+  const trigger = dd?.querySelector?.('[data-dropdown-trigger]');
+  if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !panel) return 0;
+  if (ddLifted(panel)) return ddRevealLifted(dd, panel, trigger);
+  const fit = ddBodyFit(dd, panel);
+  if (!fit) {
+    // A page is held the same way: the shut panel lifts 6px, which would end the page 6px
+    // sooner under a reader at its end.
+    if (!dd.__ddPanel && !ddInFilterRow(panel)) ddReserveEnd(dd, panel, ddEdge(panel));
+    // Focusing End can scroll only far enough to show the row. Finish the page
+    // scroll so the open panel keeps its edge and the row's outline has room.
+    if (!dd.__ddPanel && !ddLifted(panel) && !ddInFilterRow(panel)
+      && panel.contains(dd.ownerDocument.activeElement?.closest?.('[data-dd-item]'))) {
+      const view = ddViewOf(panel);
+      const by = Math.ceil(panel.getBoundingClientRect().bottom + ddEdge(panel) - view.innerHeight);
+      if (by > 0) { view.scrollBy({ top: by, behavior: 'instant' }); return by; }
+    }
+    return 0;
+  }
+  if (fit.lift) return 0;
+  const { box, end } = fit;
+  ddReserveEnd(dd, panel, end);
+  const t = trigger.getBoundingClientRect();
+  const edge = ddEdge(panel);
+  const h = panel.offsetHeight;
+  const up = ddUp(panel);
+  const top = up ? t.top - ddGap(panel) - h - edge : ddAnchorTop(dd, t) - edge;
+  const bottom = (up ? t.bottom : t.bottom + ddGap(panel) + h) + end;
+  let by = 0;
+  if (bottom > box.bottom) by = Math.min(bottom - box.bottom, top - box.top);
+  else if (top < box.top) by = top - box.top;
+  by = Math.round(by);
+  if (!by) return 0;
+  const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+  /* The ancestor whose end the reader sees takes the scroll. What it has no room to
+   * take goes to the others, nearest first, each up to the room it has. */
+  const move = (el, d) => {
+    if (typeof el.scrollBy === 'function') el.scrollBy({ top: d, behavior });
+    else el.scrollTop += d;
+  };
+  const room = (el, d) => (d > 0 ? el.scrollHeight - el.clientHeight - el.scrollTop : -el.scrollTop);
+  const first = room(box.el, by);
+  move(box.el, by);
+  let left = by > 0 ? by - Math.max(0, Math.min(by, first)) : by - Math.min(0, Math.max(by, first));
+  for (const el of box.els) {
+    if (el === box.el || !left) continue;
+    const can = left > 0 ? Math.max(0, Math.min(left, room(el, left))) : Math.min(0, Math.max(left, room(el, left)));
+    if (can) { move(el, can); left -= can; }
+  }
+  return by;
+}
+
+/* The scroll ddLiftPlan() asked for. The body may hold too little to scroll that far, so
+ * the reserved spot is written to where the body's end then has to be. */
+function ddRevealLifted(dd, panel, trigger) {
+  const by = dd.__ddLiftBy || 0;
+  const box = by && !ddUp(panel) ? ddScrollBox(dd, panel) : null;
+  if (!box) return 0;
+  const t = trigger.getBoundingClientRect();
+  dd.style?.setProperty('--ui-dropdown-reach', `${Math.max(0, box.bottom + by - t.bottom - 1)}px`);
+  const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+  if (typeof box.el.scrollBy === 'function') box.el.scrollBy({ top: by, behavior });
+  else box.el.scrollTop += by;
+  return by;
+}
+
+/**
+ * Stop an open panel's height where it cuts a row through the middle. A height that
+ * falls between two rows, or in a row's padding, shows a complete last label and the
+ * list looks whole; a half row says it goes on. The height is the one the panel gets:
+ * the smaller of its cap and the room the wiring measured, so a panel the room limits
+ * is cut the same way as one the cap limits. The rows are measured as they are drawn,
+ * so every row height the kit has, with a description or without and under a search
+ * field or not, stops at its own half row. A cap a consumer asked for (`scroll: <n>`)
+ * is kept to its number where it is the smaller, and a panel that fits has nothing to
+ * cut. Call it with the panel laid out and its room written.
+ * why: docs/components.md#the-dropdown-panel
+ */
+export function dropdownSnap(dd, panel) {
+  if (!panel?.style) return;
+  const view = ddViewOf(panel);
+  const set = (v) => {
+    const next = v == null ? '' : `${v}px`;
+    if (panel.style.getPropertyValue('--ui-dropdown-fit') === next) return;
+    if (next) panel.style.setProperty('--ui-dropdown-fit', next);
+    else panel.style.removeProperty('--ui-dropdown-fit');
+  };
+  const rows = Array.from(panel.querySelectorAll('[data-dd-item]')).filter((el) => el.getClientRects().length);
+  let clip = panel;
+  for (let el = rows[0]?.parentElement; el && el !== panel; el = el.parentElement) {
+    const overflow = view.getComputedStyle(el).overflowY;
+    if (overflow === 'auto' || overflow === 'scroll') { clip = el; break; }
+  }
+  // The consumer's cap is on the panel, or on the list under a search field, where the
+  // panel is that cap and the field over it.
+  const own = parseFloat((clip === panel ? panel : clip).style.getPropertyValue('--ui-dropdown-cap'));
+  const chrome = clip === panel ? 0 : panel.offsetHeight - clip.offsetHeight;
+  const ceiling = ddCeilingOf(panel);
+  const room = parseFloat(panel.style.getPropertyValue('--ui-dropdown-avail'));
+  /* In a body, the room under the panel may be spent down to the 8px edge to reach the
+   * next half row up, rather than stop a whole row short of the room. */
+  const fit = room < ceiling && !ddLifted(panel) ? ddBodyFit(dd, panel) : null;
+  const spare = fit && !fit.lift ? fit.end - ddEdge(panel) : 0;
+  const height = Number.isFinite(room) ? Math.min(ceiling, room) : ceiling;
+  if (!rows.length || !Number.isFinite(height)) { set(null); return; }
+  // Kept to the consumer's number where it is the one that binds.
+  if (Number.isFinite(own) && !(room < ceiling)) { set(chrome ? ceiling : null); return; }
+  const box = panel.getBoundingClientRect();
+  const clipBox = clip.getBoundingClientRect();
+  if (!(box.height > 0)) return;
+  let scrolled = 0;
+  for (let el = rows[0].parentElement; el; el = el.parentElement) {
+    scrolled += el.scrollTop;
+    if (el === panel) break;
+  }
+  const edge = clip === panel ? panel.offsetHeight - panel.clientHeight - panel.clientTop : box.bottom - clipBox.bottom;
+  const lead = clip === panel ? panel.clientTop : clipBox.top - box.top;
+  const stop = dropdownStop({
+    rows: rows.map((el) => {
+      const r = el.getBoundingClientRect();
+      return { top: r.top - box.top + scrolled, height: r.height };
+    }),
+    below: edge,
+    content: lead + clip.scrollHeight + edge,
+    ceiling: height,
+    reach: Math.min(ceiling, height + spare),
+  });
+  set(stop ?? (chrome && Number.isFinite(own) ? ceiling : null));
+  if (stop > room) panel.style.setProperty('--ui-dropdown-avail', `${stop}px`);
 }
 
 function ddSizeHeight(dd, panel) {
   if (!panel?.style) return;
+  /* Decided when the panel opens and kept while the page or the body scrolls under it,
+   * so the panel does not grow or shrink under the reader. A resize, or the next open,
+   * decides again. A portalled panel follows its trigger instead, so it is measured
+   * again where the trigger now is. A lifted one follows its trigger at the height it
+   * opened at. why: docs/components.md#the-dropdown-panel */
+  if (dd.__ddSized && !dd.__ddPanel) return;
   const avail = dropdownHeightFit(dd, panel);
   if (avail == null) return;
   // Infinity means the floor could not be met even by spending the whole inset:
@@ -619,19 +1076,19 @@ function ddSizeHeight(dd, panel) {
   // viewport less the edge inset, not a trigger-sized sliver — takes over. why:
   // dropdownAvail(), src/logic/dropdown.js
   //
-  // `.is-unbounded` is only added where that leaves NO cap at all: a consumer's
-  // own `--ui-dropdown-cap` (`.is-scroll` or a numeric `scroll`) still clamps the
-  // panel, and that clamp is still real room to scroll. why: src/styles/dropdown.css
-  const cap = ddViewOf(panel).getComputedStyle(panel).getPropertyValue('--ui-dropdown-cap').trim();
-  panel.classList.toggle('is-unbounded', !Number.isFinite(avail) && !cap);
+  // `.is-unbounded` marks a panel the room cannot hold. It keeps its cap, and the
+  // page, not the panel, is the way to the rows past the fold. why: src/styles/dropdown.css
+  panel.classList.toggle('is-unbounded', !Number.isFinite(avail));
   // A number that has not changed is not written again, the way the width fit's
   // own write is guarded: a mutation inside the row that moved nothing vertically
   // would otherwise answer its own write, over and over, through the document
   // observer below. why: dropdownViewportFit()'s own "moved" guard, same file
   const next = Number.isFinite(avail) ? `${avail}px` : '';
-  if (panel.style.getPropertyValue('--ui-dropdown-avail') === next) return;
-  if (next) panel.style.setProperty('--ui-dropdown-avail', next);
-  else panel.style.removeProperty('--ui-dropdown-avail');
+  if (panel.style.getPropertyValue('--ui-dropdown-avail') !== next) {
+    if (next) panel.style.setProperty('--ui-dropdown-avail', next);
+    else panel.style.removeProperty('--ui-dropdown-avail');
+  }
+  dropdownSnap(dd, panel);
 }
 
 /** Fit a panel again where it now is, whichever placement it uses. */
@@ -641,6 +1098,7 @@ function ddPlace(dd) {
     ddResolveDirection(dd, panel);
     positionPortalPanel(dd, panel);
   }
+  else if (ddLifted(panel)) { if (dd.classList.contains('open')) dropdownLift(dd, panel); }
   else ddFitViewport(dd, ddPanelOf(dd));
   ddSizeHeight(dd, panel);
 }
@@ -822,7 +1280,7 @@ export function dropdownViewportFit(panel, at) {
  * why: docs/components.md#the-dropdown-panel
  */
 function ddFitViewport(dd, panel) {
-  if (!panel?.style || dd?.__ddPanel === panel || ddInFilterRow(panel)) return;
+  if (!panel?.style || dd?.__ddPanel === panel || ddInFilterRow(panel) || ddLifted(panel)) return;
   ddWriteCeiling(panel);
   const fit = dropdownViewportFit(panel);
   if (!fit) return;
@@ -891,15 +1349,20 @@ function closeDropdown(dd) {
      on the way out, so a panel left behind at 237.6…477.6 does not keep the page
      478px wide with nothing open. why: ddPlace() */
   if (panel) ddFitViewport(dd, panel);
+  if (panel) dropdownRest(dd, panel, false);
 }
 
 /** Every wired dropdown still in a tree, the ones in frames and shadow roots
- *  included. Disconnected containers are dropped as they are passed. */
+ *  included. Disconnected containers are dropped as they are passed, with a collapse
+ *  still waiting for a scroll, which would otherwise hold them until the next one. */
 function ddLive() {
   const out = [];
   for (const dd of _ddAll) {
     if (dd.isConnected) out.push(dd);
-    else _ddAll.delete(dd);
+    else {
+      dd.__ddRest?.();
+      _ddAll.delete(dd);
+    }
   }
   return out;
 }
@@ -918,6 +1381,7 @@ function openDropdown(dd, focusIdx) {
   if (panel) {
     // An earlier close may still be holding its geometry; this open owns it now.
     ddCancelClose(dd, panel);
+    dropdownRest(dd, panel, true);
     ddResolveDirection(dd, panel);
     if (dd.__ddPanel) { positionPortalPanel(dd, panel); panel.classList.add('is-open'); }
     /* Both fits, because each one answers for the panels the other declines:
@@ -925,8 +1389,14 @@ function openDropdown(dd, focusIdx) {
        is null inside a filter row, whose own row already bounds its panels.
        why: docs/components.md#a-filter-row-holds-its-panels */
     else { ddFitFilterPanel(dd, panel); ddWatchRow(dd, panel); ddFitViewport(dd, panel); }
+    if (!dd.__ddPanel && !ddInFilterRow(panel)) dropdownLift(dd, panel);
+    dd.__ddSized = false;
     ddSizeHeight(dd, panel);
+    dd.__ddSized = true;
   }
+  // The body was scrolled to show the panel: a row taking focus must not scroll it
+  // again to the row alone.
+  const keep = panel && dropdownReveal(dd, panel) ? { preventScroll: true } : undefined;
   dd.classList.add('open');
   /* After `open`, and after the fit: ddResetSearch() pins the width it reads off
    * the panel, and the rule that widens a filter menu only applies once the
@@ -941,13 +1411,13 @@ function openDropdown(dd, focusIdx) {
   if (search) {
     const items = ddItemsOf(dd);
     ddSetActive(dd, items.find((el) => el.getAttribute('aria-selected') === 'true') || items[0] || null);
-    search.focus();
+    search.focus(keep);
     return;
   }
   if (focusIdx != null) {
     const items = ddItemsOf(dd);
     const sel = items.findIndex((el) => el.getAttribute('aria-selected') === 'true');
-    (items[focusIdx === 'selected' && sel >= 0 ? sel : (focusIdx === 'selected' ? 0 : focusIdx)] || items[0])?.focus();
+    (items[focusIdx === 'selected' && sel >= 0 ? sel : (focusIdx === 'selected' ? 0 : focusIdx)] || items[0])?.focus(keep);
   }
 }
 
@@ -962,6 +1432,13 @@ function selectOption(dd, item) {
   const valueEl = dd.querySelector('[data-dropdown-trigger] .ui-dropdown__value');
   const label = item.querySelector('.ui-dropdown__label');
   if (valueEl && label) valueEl.textContent = label.textContent;
+  // A picker of people carries the row's mark up into the trigger.
+  const mark = item.querySelector(':scope > .ui-avatar');
+  const lead = dd.querySelector('[data-dropdown-trigger] > .ui-avatar');
+  if (mark && lead) lead.replaceWith(mark.cloneNode(true));
+  else if (mark) dd.querySelector('[data-dropdown-trigger]')?.prepend(mark.cloneNode(true));
+  else lead?.remove();
+  valueEl?.classList.remove('is-placeholder');
 }
 
 // Click-outside, Escape and the repositioning sweep, registered once per document
@@ -1016,7 +1493,23 @@ function ddListen(doc) {
      cannot reach. React's half has always answered both; this is that answer.
      why: docs/components.md#the-dropdown-panel */
   view.addEventListener('scroll', follow, true);
-  view.addEventListener('resize', reposition);
+  /* A resize decides the placement again, a panel that was not lifted included: a
+     Drawer that held the panel at 844 tall cannot at 320. Lifted first, because the
+     height is measured from the placement, and the body is then scrolled to show what
+     the new placement needs, as it is on an open. why: openDropdown() */
+  const replace = () => {
+    for (const dd of ddLive()) {
+      dd.__ddSized = false;
+      if (!dd.classList.contains('open')) continue;
+      const panel = ddPanelOf(dd);
+      if (panel && !dd.__ddPanel && !ddInFilterRow(panel)) dropdownLift(dd, panel);
+      ddPlace(dd);
+      // Held again at the new height while the page scrolls, as after an open.
+      dd.__ddSized = true;
+      if (panel) dropdownReveal(dd, panel);
+    }
+  };
+  view.addEventListener('resize', replace);
   view.addEventListener('resize', refit);
   view.addEventListener('resize', refitInPlace);
   /* Where motion leaves a trigger, read once it has stopped. The style write that
@@ -1098,7 +1591,12 @@ export function wireDropdown(root = document) {
       ddFitFilterPanel(dd, panel);
       ddWatchRow(dd, panel);
     }
-    if (panel && dd.classList.contains('open')) ddSizeHeight(dd, panel);
+    if (panel && dd.classList.contains('open')) {
+      if (!dd.__ddPanel && !ddInFilterRow(panel)) dropdownLift(dd, panel);
+      ddSizeHeight(dd, panel);
+      dd.__ddSized = true;
+    }
+    else if (panel) dropdownRest(dd, panel, false, 0);
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1167,6 +1665,7 @@ export function wireDropdown(root = document) {
         e.preventDefault(); ddItemsOf(dd)[0]?.focus();
       } else if (e.key === 'End' && open) {
         e.preventDefault(); const it = ddItemsOf(dd); it[it.length - 1]?.focus();
+        dropdownReveal(dd, ddPanelOf(dd));
       } else if ((e.key === 'Enter' || e.key === ' ') && open && e.target.matches('[data-dd-item]')) {
         e.preventDefault(); e.target.click();
       } else if (e.key === 'Escape' && open) {

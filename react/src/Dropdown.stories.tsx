@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Dropdown, type DropdownEntry } from './Dropdown';
+import { Field } from './Field';
+import { Card } from './primitives/Card';
+import person from '../../stories/assets/demo-person.png';
 
 const meta: Meta<typeof Dropdown> = { title: 'React/Dropdown', component: Dropdown };
 export default meta;
@@ -199,7 +202,7 @@ export const Closed: StoryObj<typeof Dropdown> = {
  * why: docs/components.md#the-dropdown-panel */
 const Ends = ({ children }: { children: React.ReactNode }) => (
   <div style={{
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)', width: '100%',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)',
   }}
   >
     {children}
@@ -257,6 +260,18 @@ export const BottomEdge: StoryObj<typeof Dropdown> = {
   ),
 };
 
+// Thirty rows and no `scroll`, with the room to spare: the panel stops at 300px, in the
+// middle of a row, so the cut row shows that the list goes on.
+// stories/dropdown-reach.test.js opens this story by id and counts the rows it shows.
+const THIRTY: DropdownEntry[] = Array.from({ length: 30 }, (_, i) => ({ label: `Row ${i + 1}`, value: String(i + 1) }));
+export const LongList: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <div style={{ minHeight: 400 }}>
+      <Dropdown items={THIRTY} ariaLabel="Account" triggerContent="Account" defaultOpen />
+    </div>
+  ),
+};
+
 // The floor's own case: a trigger with almost no room left, below even the
 // 120px floor once the whole edge inset is spent. The panel is left at its
 // content height instead, so the page grows and scrolls to reach every row.
@@ -267,5 +282,49 @@ export const NearBottomEdge: StoryObj<typeof Dropdown> = {
     <EdgeStage bottomGap={36}>
       <Dropdown items={TWELVE} ariaLabel="Account" triggerContent="Account" defaultOpen />
     </EdgeStage>
+  ),
+};
+
+// Jordan has a photo; Mia's photo does not load, so her letters show.
+const PHOTOS: Record<string, string> = { 'Jordan Okafor': person, 'Mia Chen': 'photo-not-found.png' };
+const Column = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ width: 'min(100%, 420px)' }}>{children}</div>
+);
+const PEOPLE: DropdownEntry[] = [
+  { label: 'No one', value: '', avatar: { empty: true } },
+  ...['Avery Example', 'Jordan Okafor', 'Mia Chen', 'Noor Haddad', 'Sam Rivera', 'Lena Novak'].map((name, i) => ({
+    label: name, value: `user_${i + 1}`, avatar: { key: `user_${i + 1}`, name, src: PHOTOS[name] },
+  })),
+];
+
+// A picker of people: each row and the trigger lead with the person's mark, the empty
+// trigger shows the dashed ring, and the search field names the size of the set.
+export const PersonPicker: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Column><Card>
+      <Field label="Owner">{(control) => (
+        <Dropdown {...control} variant="select" items={PEOPLE} placeholder="Choose a person" search={{ count: 214 }} />
+      )}</Field>
+    </Card></Column>
+  ),
+};
+
+export const PersonPickerChosen: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Column><Card>
+      <Field label="Owner">{(control) => (
+        <Dropdown {...control} variant="select" items={PEOPLE.map((it) => ({ ...it, selected: it.label === 'Jordan Okafor' }))} value="Jordan Okafor" search={{ count: 214 }} defaultOpen />
+      )}</Field>
+    </Card></Column>
+  ),
+};
+
+export const PersonPickerFailedPhoto: StoryObj<typeof Dropdown> = {
+  render: () => (
+    <Column><Card>
+      <Field label="Owner">{(control) => (
+        <Dropdown {...control} variant="select" items={PEOPLE.map((it) => ({ ...it, selected: it.label === 'Mia Chen' }))} value="Mia Chen" search={{ count: 214 }} defaultOpen />
+      )}</Field>
+    </Card></Column>
   ),
 };

@@ -21,6 +21,8 @@ export type { SwitchProps } from './Switch';
 export { Button } from './primitives/Button';
 export type { ButtonProps, NativeButtonProps, ButtonLinkProps } from './primitives/Button';
 export { Badge } from './primitives/Badge';
+export { Avatar } from './primitives/Avatar';
+export type { AvatarProps } from './primitives/Avatar';
 export { Pill } from './primitives/Pill';
 export type { PillProps } from './primitives/Pill';
 export { StatusDot } from './primitives/StatusDot';
@@ -32,6 +34,8 @@ export { StatBand } from './primitives/StatBand';
 export type { StatBandProps, StatFigure, StatDelta, StatTone, StatVariant } from './primitives/StatBand';
 export { Confirm } from './Confirm';
 export type { ConfirmProps } from './Confirm';
+export { Feedback } from './Feedback';
+export type { FeedbackProps, FeedbackPayload, FeedbackResult, FeedbackSection } from './Feedback';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 export { Drawer } from './Drawer';
@@ -66,7 +70,7 @@ export type {
 export { Dropdown } from './Dropdown';
 export type {
   DropdownProps, DropdownItem, DropdownEntry, DropdownSection, DropdownSeparator,
-  DropdownBadge, DropdownRowProps, DropdownSearch,
+  DropdownBadge, DropdownRowProps, DropdownSearch, DropdownAvatar,
 } from './Dropdown';
 export { BackLink } from './BackLink';
 export type { BackLinkProps, BackLinkOwnProps } from './BackLink';
@@ -94,6 +98,8 @@ export type { ToastNotice, ToastProps } from './Toast';
 
 export { AppShell } from './AppShell';
 export type { AppShellProps, AppShellSection } from './AppShell';
+export { Footer } from './Footer';
+export type { FooterProps, FooterLink, FooterColumn, FooterSocial } from './Footer';
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps, EmptyStateVariant } from './EmptyState';
 
@@ -113,3 +119,9 @@ export { SidebarNav } from './SidebarNav';
 export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';
 export { AccentPicker } from './AccentPicker';
 export type { Accent, AccentPickerProps } from './AccentPicker';
+export { TopBar, ViewSwitch, VersionSwitcher, AccountMenu } from './TopBar';
+export type { TopBarProps, ViewSwitchProps, ViewSwitchItem, VersionSwitcherProps, Version, AccountMenuProps } from './TopBar';
+export { NavTabs } from './NavTabs';
+export type { NavTabsProps, NavTabItem, NavTabBadge } from './NavTabs';
+export { Breadcrumbs } from './Breadcrumbs';
+export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';

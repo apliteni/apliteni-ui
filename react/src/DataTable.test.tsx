@@ -63,6 +63,45 @@ it('toggles select-all for the visible page', async () => {
   expect(boxes[2]).not.toBeChecked();
 });
 
+// jsdom checks the native state. Browser captures check its paint and accessible state.
+it('marks only a partially selected visible page as indeterminate', async () => {
+  render(<Harness />);
+  const header = screen.getByRole('checkbox', { name: 'Select all rows on this page' });
+  expect(header).not.toBePartiallyChecked();
+  await userEvent.click(screen.getAllByRole('checkbox')[1]);
+  expect(header).toBePartiallyChecked();
+  expect(header).not.toBeChecked();
+
+  await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+  expect(header).not.toBePartiallyChecked();
+  expect(header).not.toBeChecked();
+  await userEvent.click(screen.getByRole('button', { name: 'Prev' }));
+  expect(header).toBePartiallyChecked();
+
+  await userEvent.click(header);
+  expect(header).toBeChecked();
+  expect(header).not.toBePartiallyChecked();
+  await userEvent.click(screen.getAllByRole('checkbox')[1]);
+  expect(header).toBePartiallyChecked();
+  await userEvent.click(screen.getAllByRole('checkbox')[2]);
+  expect(header).not.toBeChecked();
+  expect(header).not.toBePartiallyChecked();
+});
+
+it('updates partial selection when a controlled page changes or becomes empty', () => {
+  const props = { columns, selected: new Set(['A', 'B']), onToggle: () => {},
+    onTogglePage: () => {}, page: 1, total: 4, onPageChange: () => {} };
+  const { rerender } = render(<DataTable {...props} rows={[rows[0], rows[2]]} />);
+  const header = screen.getByRole('checkbox', { name: 'Select all rows on this page' });
+  expect(header).toBePartiallyChecked();
+  rerender(<DataTable {...props} page={2} rows={[rows[0], rows[1]]} />);
+  expect(header).toBeChecked();
+  expect(header).not.toBePartiallyChecked();
+  rerender(<DataTable {...props} rows={[]} />);
+  expect(header).not.toBeChecked();
+  expect(header).not.toBePartiallyChecked();
+});
+
 
 it('omits selection controls when the consumer has no selection action', () => {
   render(<DataTable columns={columns} rows={rows} selectable={false} />);
@@ -386,80 +425,111 @@ it('coerces a page size exactly as the pager does, so the two can never disagree
 // What it does NOT reach: only the pager arms are typed here, and only through
 // this file's own diagnostics. The declarations tsup emits are a separate
 // question, asked in Pagination.test.tsx.
-it('accepts a controlled table that says what its pager can say, and rejects one that does not', async () => {
-  const ts = (await import('typescript')).default;
-  const path = (await import('node:path')).default;
-  const { existsSync } = await import('node:fs');
-  // From this file's own path. Not import.meta.url — under the jsdom environment
-  // that is an http:// URL — and not cwd, which is the directory vitest was
-  // started in rather than the one the sources are in.
-  const src = path.dirname(expect.getState().testPath!);
-  const probe = path.join(src, 'page-arms.probe.tsx');   // virtual, never written
-  const declarations = path.join(src, '../../src/index.d.ts');
-  const config = path.join(src, '..', 'tsconfig.json');
-  // A path that has moved would type an empty program and report no errors at
-  // all, which is the answer two of the four cases are watching for.
-  for (const real of [path.join(src, 'DataTable.tsx'), declarations, config]) {
-    expect(existsSync(real), `${real} is not on disk`).toBe(true);
-  }
+const PAGER_CASES: [string, boolean, string][] = [
+  ['a page and a row count', false,
+    '<DataTable columns={columns} rows={rows} selectable={false} page={2} total={300} onPageChange={f} />'],
+  ['a page, no count, and whether more follows', false,
+    '<DataTable columns={columns} rows={rows} selectable={false} page={2} total={null} hasMore onPageChange={f} />'],
+  ['a page and nothing about the result', true,
+    '<DataTable columns={columns} rows={rows} selectable={false} page={2} onPageChange={f} />'],
+  ['a page, no count, and no word on whether more follows', true,
+    '<DataTable columns={columns} rows={rows} selectable={false} page={2} total={null} onPageChange={f} />'],
+  // The published scale is readonly, and the README passes it straight in.
+  ['the published page sizes, handed to the table', false,
+    '<DataTable columns={columns} rows={rows} selectable={false} pageSizes={PAGE_SIZES} />'],
+  ['the published page sizes, handed to the pager', false,
+    '<Pagination total={400} pageSizes={PAGE_SIZES} />'],
+];
+const PAGER_PREAMBLE = [
+  "import { DataTable, Pagination, PAGE_SIZES, type Column } from './index';",
+  "type Row = { name: string };",
+  "const columns: Column<Row>[] = [{ key: 'name', label: 'Name' }];",
+  "const rows: Row[] = [{ name: 'A' }];",
+  "const f = (_page: number) => {};",
+];
 
-  const cases: [string, boolean, string][] = [
-    ['a page and a row count', false,
-      '<DataTable columns={columns} rows={rows} selectable={false} page={2} total={300} onPageChange={f} />'],
-    ['a page, no count, and whether more follows', false,
-      '<DataTable columns={columns} rows={rows} selectable={false} page={2} total={null} hasMore onPageChange={f} />'],
-    ['a page and nothing about the result', true,
-      '<DataTable columns={columns} rows={rows} selectable={false} page={2} onPageChange={f} />'],
-    ['a page, no count, and no word on whether more follows', true,
-      '<DataTable columns={columns} rows={rows} selectable={false} page={2} total={null} onPageChange={f} />'],
-    // The published scale is readonly, and the README passes it straight in.
-    ['the published page sizes, handed to the table', false,
-      '<DataTable columns={columns} rows={rows} selectable={false} pageSizes={PAGE_SIZES} />'],
-    ['the published page sizes, handed to the pager', false,
-      '<Pagination total={400} pageSizes={PAGE_SIZES} />'],
-  ];
-  const preamble = [
-    "import { DataTable, Pagination, PAGE_SIZES, type Column } from './index';",
-    "type Row = { name: string };",
-    "const columns: Column<Row>[] = [{ key: 'name', label: 'Name' }];",
-    "const rows: Row[] = [{ name: 'A' }];",
-    "const f = (_page: number) => {};",
-  ];
-  const source = [...preamble, ...cases.map(([, , jsx], i) => `export const case${i} = ${jsx};`)].join('\n');
+// One program for the cases below, built by whichever test asks first. The first two tests pay
+// for it in two steps, so no one test carries the compiler's whole start-up.
+let pagerProgram: Promise<{ ts: typeof import('typescript'); probe: string; program: import('typescript').Program }> | undefined;
+function pagerProbeProgram() {
+  pagerProgram ??= (async () => {
+    const ts = (await import('typescript')).default;
+    const path = (await import('node:path')).default;
+    const { existsSync } = await import('node:fs');
+    // From this file's own path. Not import.meta.url — under the jsdom environment
+    // that is an http:// URL — and not cwd, which is the directory vitest was
+    // started in rather than the one the sources are in.
+    const src = path.dirname(expect.getState().testPath!);
+    const probe = path.join(src, 'page-arms.probe.tsx');   // virtual, never written
+    const declarations = path.join(src, '../../src/index.d.ts');
+    const config = path.join(src, '..', 'tsconfig.json');
+    // A path that has moved would type an empty program and report no errors at
+    // all, which is the answer two of the four cases are watching for.
+    for (const real of [path.join(src, 'DataTable.tsx'), declarations, config]) {
+      expect(existsSync(real), `${real} is not on disk`).toBe(true);
+    }
+    const source = [...PAGER_PREAMBLE, ...PAGER_CASES.map(([, , jsx], i) => `export const case${i} = ${jsx};`)].join('\n');
 
-  const read = ts.readConfigFile(config, ts.sys.readFile);
-  const parsed = ts.parseJsonConfigFileContent(read.config, ts.sys, path.join(src, '..'));
-  // `types` names vitest's globals, which this virtual file does not use and
-  // whose absence would be an error of its own.
-  const options = { ...parsed.options, noEmit: true, types: [] };
-  const host = ts.createCompilerHost(options, true);
-  const inherited = host.getSourceFile.bind(host);
-  host.getSourceFile = (name, ...rest) => (name === probe
-    ? ts.createSourceFile(name, source, ts.ScriptTarget.ES2020, true, ts.ScriptKind.TSX)
-    : inherited(name, ...rest));
-  host.fileExists = (name) => name === probe || ts.sys.fileExists(name);
-  host.readFile = (name) => (name === probe ? source : ts.sys.readFile(name));
+    const read = ts.readConfigFile(config, ts.sys.readFile);
+    const parsed = ts.parseJsonConfigFileContent(read.config, ts.sys, path.join(src, '..'));
+    // `types` names vitest's globals, which this virtual file does not use and
+    // whose absence would be an error of its own.
+    const options = { ...parsed.options, noEmit: true, types: [] };
+    const host = ts.createCompilerHost(options, true);
+    const inherited = host.getSourceFile.bind(host);
+    host.getSourceFile = (name, ...rest) => (name === probe
+      ? ts.createSourceFile(name, source, ts.ScriptTarget.ES2020, true, ts.ScriptKind.TSX)
+      : inherited(name, ...rest));
+    host.fileExists = (name) => name === probe || ts.sys.fileExists(name);
+    host.readFile = (name) => (name === probe ? source : ts.sys.readFile(name));
 
-  const program = ts.createProgram([probe, declarations], options, host);
-  const lines = ts.getPreEmitDiagnostics(program)
-    .filter((d) => d.file?.fileName === probe && d.start !== undefined)
-    .map((d) => ({
-      line: d.file!.getLineAndCharacterOfPosition(d.start!).line,
-      text: ts.flattenDiagnosticMessageText(d.messageText, ' '),
-    }));
+    return { ts, probe, program: ts.createProgram([probe, declarations], options, host) };
+  })();
+  return pagerProgram;
+}
 
-  const verdict = cases.map(([name], i) => {
-    const here = lines.filter((d) => d.line === preamble.length + i);
-    return `${name}: ${here.length ? here[0].text.slice(0, 90) : 'compiles'}`;
+// What the compiler says about the probe file. The diagnostics of every other file in the program
+// were always dropped, so they are not asked for.
+let pagerLines: Promise<{ line: number; text: string }[]> | undefined;
+function pagerProbeLines() {
+  pagerLines ??= pagerProbeProgram().then(({ ts, probe, program }) => {
+    const file = program.getSourceFile(probe)!;
+    return [
+      ...program.getSyntacticDiagnostics(file),
+      ...program.getSemanticDiagnostics(file),
+      ...program.getDeclarationDiagnostics(file),
+    ]
+      .filter((d) => d.file?.fileName === probe && d.start !== undefined)
+      .map((d) => ({
+        line: d.file!.getLineAndCharacterOfPosition(d.start!).line,
+        text: ts.flattenDiagnosticMessageText(d.messageText, ' '),
+      }));
   });
-  // The verdicts ride along as the message, so a failure names the case and the
-  // compiler's own words rather than a row of booleans.
-  expect(verdict.map((v, i) => v.startsWith(`${cases[i][0]}: compiles`)), verdict.join('\n'))
-    .toEqual(cases.map(([, bad]) => !bad));
+  return pagerLines;
+}
+
+describe('a controlled table typed against the real DataTable.tsx', () => {
+  it('finds the files it types and builds the program', async () => {
+    await pagerProbeProgram();
+  }, 30_000);
+
   // Nothing may go wrong in the preamble: an error there would fail every case
   // for a reason that has nothing to do with the pager.
-  expect(lines.filter((d) => d.line < preamble.length)).toEqual([]);
-}, 30_000);
+  it('has no error in its preamble', async () => {
+    const lines = await pagerProbeLines();
+    expect(lines.filter((d) => d.line < PAGER_PREAMBLE.length)).toEqual([]);
+  }, 30_000);
+
+  // The compiler's own words ride along as the message, so a failure names the case and what
+  // was said rather than a bare boolean.
+  for (const [i, [name, bad]] of PAGER_CASES.entries()) {
+    it(`${bad ? 'rejects' : 'accepts'} ${name}`, async () => {
+      const here = (await pagerProbeLines()).filter((d) => d.line === PAGER_PREAMBLE.length + i);
+      const verdict = `${name}: ${here.length ? here[0].text.slice(0, 90) : 'compiles'}`;
+      expect(verdict.startsWith(`${name}: compiles`), verdict).toBe(!bad);
+    }, 30_000);
+  }
+});
 
 it('turns the shipped ServerPaged story to the size the reader picked, and leaves it there', async () => {
   // The story, not a copy of it: this is the surface the kit publishes as the
@@ -857,4 +927,62 @@ it('renders the scroll region where the card bleed can reach it', () => {
         stickyHeader pinnedIdentity />
     </div>);
   expect(container.querySelector('.ui-card > .ui-table-scroll:has(> .ui-table--dense)')).not.toBeNull();
+});
+
+describe('the vanilla table hooks', () => {
+  it('maps zebra, stack and hover onto the kit modifiers, with hover on by default', () => {
+    const { container, rerender } = render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} />);
+    const table = container.querySelector('table')!;
+    expect(table).toHaveClass('ui-table--hover');
+    expect(table).not.toHaveClass('ui-table--zebra');
+    expect(table).not.toHaveClass('ui-table--stack');
+    rerender(<DataTable columns={columns} rows={rows} selectable={false} pager={false} zebra stack hover={false} />);
+    expect(container.querySelector('table')).toHaveClass('ui-table--zebra', 'ui-table--stack');
+    expect(container.querySelector('table')).not.toHaveClass('ui-table--hover');
+  });
+
+  it('writes the roles a stacked table loses, and none otherwise', () => {
+    const { container, rerender } = render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} stack />);
+    expect(container.querySelector('table')).toHaveAttribute('role', 'table');
+    expect(container.querySelectorAll('thead th[role="columnheader"]')).toHaveLength(2);
+    expect(container.querySelectorAll('tbody tr[role="row"]')).toHaveLength(3);
+    expect(container.querySelectorAll('tbody td[role="cell"]')).toHaveLength(6);
+    rerender(<DataTable columns={columns} rows={rows} selectable={false} pager={false} />);
+    expect(container.querySelector('[role]')).toBeNull();
+  });
+
+  it('keeps the row header and footer roles of a stacked table, and labels its amounts', () => {
+    const { container } = render(<DataTable selectable={false} pager={false} stack rows={rows}
+      columns={[{ key: 'name', label: 'Name', rowHeader: true }, { key: 'clicks', label: 'Clicks', num: true }]}
+      footer={<tr><th scope="row">Total</th><td className="ui-table__num">60</td></tr>} />);
+    expect(container.querySelector('tbody th[scope="row"]')).toHaveAttribute('role', 'rowheader');
+    expect(container.querySelector('tfoot')).toHaveAttribute('role', 'rowgroup');
+    expect(container.querySelector('tbody td.ui-table__num')).toHaveAttribute('data-label', 'Clicks');
+    expect(container.querySelector('tbody td:not(.ui-table__num)')).toBeNull();
+  });
+
+  it('puts a table that does not scroll directly in its parent, so a card can bleed it', () => {
+    const { container } = render(<div className="ui-card"><DataTable columns={columns} rows={rows} selectable={false} pager={false} density="dense" /></div>);
+    expect(container.querySelector('.ui-card > table.ui-table--dense')).not.toBeNull();
+  });
+
+  it('marks target and dead rows', () => {
+    const { container } = render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+      rowState={(r) => (r.name === 'A' ? 'target' : r.name === 'B' ? 'dead' : undefined)} />);
+    const row = (name: string) => screen.getByText(name).closest('tr')!;
+    expect(row('A')).toHaveClass('is-target');
+    expect(row('B')).toHaveClass('is-dead');
+    expect(row('C')).not.toHaveAttribute('class');
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(3);
+  });
+
+  it('renders cell classes, row headers, a caption and a footer', () => {
+    const { container } = render(<DataTable selectable={false} pager={false} caption="Totals" rows={rows}
+      columns={[{ key: 'name', label: 'Name', rowHeader: true, cell: 'title' }, { key: 'clicks', label: 'Clicks', num: true, cell: 'strong' }]}
+      footer={<tr><th scope="row">Total</th><td className="ui-table__num">60</td></tr>} />);
+    expect(container.querySelector('caption')).toHaveClass('ui-sr');
+    expect(container.querySelector('tbody th[scope="row"]')).toHaveClass('ui-table__title');
+    expect(container.querySelector('tbody td')).toHaveClass('ui-table__num', 'ui-table__num--strong');
+    expect(container.querySelector('tfoot th[scope="row"]')).toHaveTextContent('Total');
+  });
 });

@@ -76,3 +76,41 @@ test('a failed send fades its error line in; the widget mounts with none enterin
     delete globalThis.document;
   }
 });
+
+test('an old send result does not replace a reopened note', async () => {
+  const { window } = new JSDOM('<!doctype html><body><main><h2 id="s">Section</h2><p id="p">A passage worth a note</p></main></body>');
+  Object.assign(globalThis, { window, document: window.document });
+  try {
+    document.body.insertAdjacentHTML('beforeend', feedbackWidget());
+    window.Range.prototype.getBoundingClientRect = () => ({ left: 0, top: 0, width: 40, height: 10 });
+    let finish;
+    wireFeedback({ container: 'main', onSend: () => new Promise(resolve => { finish = resolve; }) });
+    const select = async () => {
+      const range = document.createRange();
+      range.setStart(document.getElementById('p').firstChild, 0);
+      range.setEnd(document.getElementById('p').firstChild, 9);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      document.querySelector('main').dispatchEvent(new window.MouseEvent('mouseup', { bubbles: true }));
+      await new Promise(resolve => setTimeout(resolve, 0));
+      document.querySelector('[data-fb-pill]').click();
+    };
+    await select();
+    const note = document.querySelector('[data-fb-note]');
+    note.value = 'First note';
+    note.dispatchEvent(new window.Event('input'));
+    document.querySelector('[data-fb-send]').click();
+    document.querySelector('[data-fb-cancel]').click();
+    await select();
+    note.value = 'Second note';
+    note.dispatchEvent(new window.Event('input'));
+    finish({ ok: true });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(note.value, 'Second note');
+    assert.equal(document.querySelector('[data-fb-form]').style.display, '');
+    assert.equal(document.querySelector('[data-fb-done]').style.display, 'none');
+  } finally {
+    delete globalThis.window;
+    delete globalThis.document;
+  }
+});

@@ -32,7 +32,10 @@ import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 Both stylesheets. The React one adds what React's own components need — it carries no tokens, no
 reset and none of the kit's control CSS, so it cannot stand in for the first import.
 
-Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Chart`, `Modal`, `Confirm`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Segmented`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Chart`, `Modal`, `Confirm`, `Feedback`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Segmented`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+
+`Card` accepts `title`, `sub`, children, `level`, `variant`, `pad`, `icon`, `href`, and `className`. `variant` is `accent` or `live`; omit it for the default surface. `pad` is `sm` or `lg`. A title is a heading unless `href` makes the whole card a link. Compose setting rows with `ui-card__row` and kit controls.
+Three-option setting rows use `ui-card__row--tight-choice` to narrow pills below 360 px and stay on one line, while other rows keep full tap width.
 
 `Segmented` is a controlled choice toolbar: pass `options`, `value`, `onChange`,
 and a `label` for its accessible name. `size="sm"` compacts it, `block` makes it
@@ -229,6 +232,8 @@ finds its rows by `data-dd-item`, which is in the props you spread.
 leave `open` out and the component keeps its own, starting from `defaultOpen`. `onSelect`
 reports the item's `value` and the item. Pass `ariaLabel` to a `select` dropdown: a listbox
 needs a name, and axe says so — the same reason every vanilla dropdown story passes one.
+Pass `selectedValue` when the caller owns the selected row. Its tick stays on that value after
+`onSelect` until the caller changes it.
 
 **`search` puts a field over the rows**, the same one the factory draws, and Guidelines /
 Component choice makes it a rule at ten options or any list fed by data:
@@ -303,6 +308,19 @@ The bare `@apliteni/apliteni-ui` specifier in this source resolves to the kit it
 once installed. In the repo there is no copy to resolve to, so `kit-alias.ts` points
 vitest and Storybook straight at `../src/` — which is why the class-name parity tests
 now compare against the working tree rather than the last published release.
+
+### Table appearance
+
+`DataTable` takes the vanilla table hooks as props. `zebra`, `hover` (on unless `false`), `stack`,
+`density`, `stickyHeader` and `pinnedIdentity` set the table modifiers. `rowState={(row) => 'target' | 'dead' | undefined}`
+marks a row, `footer` takes totals rows, and `caption` names the table for assistive technology. A column takes
+`rowHeader` and `cell` (`'title' | 'code' | 'long' | 'strong' | 'act'`). A `dead` row is muted, so put the word
+that names its state in one of its cells.
+
+```tsx
+<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+  density="dense" zebra stack rowState={(r) => (r.id === landedOn ? 'target' : undefined)} />
+```
 
 ### Tables with another presentation of the same rows
 
@@ -447,6 +465,30 @@ and described by its body. Modal also accepts
 `initialFocusRef` for a mounted, focusable element inside its panel. Without it, Modal
 uses its normal opening focus.
 
+## Feedback
+
+`Feedback` lets a reader select a passage and send a note about it. Pass `container`, a ref to
+the element whose text can be selected, and `onSend`. A "Give feedback" pill appears above a
+selection of `minChars` (3) or more. The pill opens a form with a chip for the nearest heading,
+the quoted passage, a note field, Cancel and Send. The quoted passage stays highlighted until the
+form closes. The container may mount after `Feedback`. On close, focus returns to the visible
+control that had it before opening. If that control is gone, hidden, or disabled, focus returns to the pill.
+
+```tsx
+<Feedback container={articleRef}
+  onSend={async ({ note, excerpt, anchor }) => ({ ok: await file(note, excerpt, anchor) })} />
+```
+
+`onSend` receives `note`, `excerpt`, `anchor`, `sectionLabel` and `sectionTitle`. Resolve
+`{ ok: true }` when the note is filed. Resolve `{ ok: false, error }`, or throw, to keep the form
+open with the note intact and the error shown in place. `section` reshapes the chip and the
+payload from the heading. Send stays off until the note has text and shows progress while the
+request runs.
+
+A sent note shows one line, `sentMessage`, and a Close button. Cancel, Escape, the close button
+and the scrim dismiss the form without sending. `Feedback` uses the shared dialog stack and the
+kit's buttons.
+
 ## Timeline
 
 `Timeline` displays a record’s events in the order provided. Pass events from oldest
@@ -545,6 +587,17 @@ class and invalid styling as appropriate:
 The frame supplies a stable ID, required state, and linked hint/error messages.
 An optional `id` lets the caller choose the control ID; it must be unique.
 
+A `Dropdown` is a control too. Spread the attributes onto it and its trigger takes
+`aria-describedby` and `aria-invalid`, so the error and hint are read when it gets focus.
+Its accessible name is the label and then the chosen value. Outside a `Field`,
+`Dropdown` takes `aria-describedby` and `aria-invalid` as props and forwards them to the trigger.
+
+```tsx
+<Field label="Owner" error="That option is no longer available.">
+  {control => <Dropdown {...control} variant="select" items={owners} />}
+</Field>
+```
+
 ### Search
 
 `SearchField` is the toolbar's search box: a search glyph, a native
@@ -578,7 +631,8 @@ Pass `compact: true` to show only the title, or `dismissible: false` to hide the
 close button. Hiding the close button keeps the five-second timer for notices
 without actions; notices with actions remain until their action is selected, so a
 notice with an action and no close button has no other dismissal affordance.
-Pass `timer: false` to keep a notice until it is dismissed.
+Pass `timer: 12` to dismiss a notice after that many seconds. Pass `timer: false` or `timer: 0`
+to keep a notice until it is dismissed.
 
 Pass `collapse` to `Toast` to rest the notices as a pile with the newest in front. The pile fans out
 when the reader hovers it or tabs into it. On a device without hover it stays a plain column.
@@ -808,6 +862,24 @@ the trigger's trailing edge. Without `ariaLabel` the trigger's own text is its a
 name, so a control reading "17 September 2026" is heard as that rather than as its
 placeholder. The popover stays mounted while closed, and is `inert` while it is.
 
+## Footer
+
+`Footer` draws the kit's `full`, `slim` and `app` versions. The full version takes
+brand text, a tagline, social links and link columns. The columns sit side by side
+on an iPad or desktop and stack on a phone. Supply legal text and links for every
+version. Pass `AccentPicker` and `ThemeToggle` through `switcher` when needed.
+
+```tsx
+<Footer variant="full" tagline="A short product line"
+  columns={[{ title: 'Product', links: [{ label: 'Overview', href: '/overview' }] }]}
+  legal="© 2026 Example" switcher={<ThemeToggle />} />
+```
+
+Use `brand` to replace the lockup with React content. Set `brand={false}` to hide
+the brand block. Use `links` for React link columns in place of `columns`.
+Use `legal` for text or React content. The component uses the kit's footer classes
+and stylesheet.
+
 ## AccentPicker
 
 `AccentPicker` is a controlled group of the kit’s four accent swatches. Pass `value`
@@ -908,3 +980,86 @@ instead of 32, with the same line drawn in the middle of it.
     { label: 'Closing', kind: 'total' },
   ]} />
 ```
+
+## TopBar
+
+`TopBar` is the band: the brand first, then your slots after the spacer. Fill `view`, `version`,
+`theme` and `account` with `ViewSwitch`, `VersionSwitcher`, `ThemeToggle` and `AccountMenu`, or
+leave one out. Leave out `account` for the signed-out bar. The brand is the Apliteni mark and
+`word`, or pass your own `brand`. Put it above `AppShell` or on its own.
+
+```tsx
+<TopBar
+  view={<ViewSwitch items={[{ id: 'deck', label: 'Deck' }, { id: 'text', label: 'Text' }]} active="deck" />}
+  version={<VersionSwitcher versions={versions} value={version} onChange={setVersion} />}
+  theme={<ThemeToggle />}
+  account={<AccountMenu name="Ada Lovelace" email="ada@apliteni.com" current="prefs" onSignOut={signOut} />} />
+```
+
+`ViewSwitch` is a group of links, so it takes `renderLink` like `NavTabs`. The current view is
+filled with the same accent fill as a `Segmented` choice and has `aria-current="page"`.
+`VersionSwitcher` takes `{ value, label, badge }` versions. The button shows only the chosen
+name. Each row shows a name, a badge and the selected tick. `AccountMenu` shows the
+avatar mark, the reader's name and address, the rows in `items` and Sign out. Both menus are the
+kit's `Dropdown`, so they share its keyboard and placement. `current` marks one account page in
+accent ink and defaults to `prefs`.
+
+## NavTabs and Breadcrumbs
+
+`NavTabs` renders route links with the kit’s underline or pill presentation. Pass
+unique item IDs and set `active` to the current route’s ID. The current link has
+`aria-current="page"`; disabled items are text outside the Tab order. Optional
+badges accept text, numbers (including zero), or `{ text, tone }`.
+
+```tsx
+<NavTabs aria-label="Finance views" active="payouts" items={[
+  { id: 'summary', label: 'Summary', href: '/finance' },
+  { id: 'payouts', label: 'Payouts', href: '/payouts', badge: 3 },
+  { id: 'exports', label: 'Exports', disabled: true },
+]} />
+<Breadcrumbs items={[
+  { label: 'Finance', href: '/finance' },
+  { label: 'Payouts', href: '/payouts' },
+  { label: 'PY-4821' },
+]} />
+```
+
+Use `Tabs` for panels within a page. `NavTabs` keeps normal link keyboard behavior.
+An omitted `href` falls back to `#` plus the item ID. `variant="pill"` selects the
+existing pill styles. A badge of `null` renders no badge, so a count that is not in
+yet costs nothing to pass.
+
+Both components take `renderLink`, the prop `AppShell` already uses, so a router
+handles the navigation instead of the browser reloading the document:
+
+```tsx
+<NavTabs active="payouts" items={items}
+  renderLink={(item, { href, children, ...props }) => (
+    <Link {...props} to={href!}>{children}</Link>
+  )} />
+```
+
+Without it both render a plain `<a>`. The kit's class, destination, current state
+and children all arrive in `linkProps`, so pass them through rather than rebuilding
+them.
+
+`Breadcrumbs` renders an ordered trail. Earlier items link only when they have an
+`href`; the final item is always current-page text. Items accept a decorative kit
+`icon` name. Both components accept native navigation attributes and a forwarded
+root ref. Use `aria-label` to distinguish navigation landmarks. Link items accept
+`target`. Script, data, and VBScript destinations fall back to `#`.
+
+Tab rows scroll within their container when the links do not fit; a breadcrumb
+trail wraps instead. A row whose links do fit scrolls nothing and clips nothing, so
+a focus ring in it keeps its complete band. The current route is revealed after
+mounting and route changes. Content and container changes update the fit state
+without revealing the route again, so they preserve the reader's scroll position
+where space permits. Keyboard focus stays put throughout.
+When a link already fits in the row, it keeps its content width. The cap only
+limits one link that is wider than the row.
+
+A row also scrolls to a link that takes focus, far enough that the ring the link
+draws clears the scrolling edge rather than being cut off by it. `NavTabs` does
+that from `onFocus`, and still calls an `onFocus` you pass. A row whose links are
+all disabled holds no Tab stop, so the browser makes the row itself one; it draws
+the kit's inward ring there, never the browser's own outline.

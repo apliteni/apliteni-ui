@@ -95,6 +95,7 @@ what a factory accepts. They do not describe what the factory does.
 | `button({ label, variant, size, icon, iconRight, block, disabled, busy, href, iconOnly })` | `<button>`, or `<a>` with `href`. See [Extra-small buttons](#extra-small-buttons). |
 | `setButtonBusy(element, { busy })` | Flips a mounted button to its busy state and back. See [Busy button labels](#busy-button-labels). |
 | `badge(label, variant)`, `pill(label, variant)`, `statusDot(live)` | Status chip, rounded chip, live dot. |
+| `avatar({ key, name, initials, src, size, empty })`, `avatarHue(key)`, `avatarInitials(name)`, `AVATAR_HUES` | A person's mark. See [Avatar](#avatar). |
 | `card({ title, sub, body, variant, pad, icon, level })` | Surface container. `title` and `sub` are trusted markup; keep the title to inline content. |
 | `callout`, `toast`, `successPanel` | Inline feedback inside the page the reader is on; `calloutIcons` is the default glyph per tone. |
 | `pushToast(container, opts)`, `dismissToast(el)`, `wireToastStack(container)` | The runtime toast stack. |
@@ -109,6 +110,9 @@ what a factory accepts. They do not describe what the factory does.
 | `iconOnlyAllowed`, `iconOnlyNames`, `iconMeanings` | The icon rulings as data. `iconOnlyNames` gives each wordless glyph the words its button’s name may open with, so `copy` cannot be borrowed for Duplicate. See [Icons and glyphs](foundations.md#icons-and-glyphs). |
 | `seedling`, `prism`, `brand` | The brand mark. |
 
+`card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. On phones, its control sits below its label and hint. At wider widths, a choice that cannot fit beside its label moves below it. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link.
+Three-option setting rows use `ui-card__row--tight-choice` to narrow pills below 360 px and stay on one line, while other rows keep full tap width.
+
 ### Controls and input
 
 | Name | What it is |
@@ -117,7 +121,7 @@ what a factory accepts. They do not describe what the factory does.
 | `input`, `textarea`, `select`, `checkbox`, `switchToggle` | The controls `field` wraps; each also renders on its own. |
 | `segmented({ options, active, size, block, name, ariaLabel })` + `segmentedNextIndex(key, index, length)`, `initSegmented(root)` | Toolbar of toggle buttons. See [Segmented or tabs?](#segmented-or-tabs) and [Segmented strips that outgrow their column](#segmented-strips-that-outgrow-their-column). |
 | `tabs({ items, active, name, ariaLabel })` + `initTabs(root)` | Tablist and its panels, one per item. |
-| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search, disabled })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `disabled: true` turns the trigger off: no keyboard stop, no panel, and the kit's unavailable paint. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit. `filterPanelFit(dd, floor)` with `DD_MENU_FLOOR` is the same for an anchored filter menu: inside `.ui-filter-bar` an **open** menu takes the kit's 240px floor rather than its trigger's width, and a shut one keeps the trigger's. `filterPanelRow(dd)` answers which row such a menu is measured inside: a chip's, or one asking for a width with `--ui-filter-panel-ask`. `dropdownViewportFit(panel)` answers for a panel outside a filter row: how wide it may be and how far it has to move to stay inside the view it is laid out in. `--ui-dropdown-edge` is the gap it keeps from the view's edge. `dropdownHeightFit(dd, panel)` answers how tall an **open** panel may be, which is the room between its trigger and the viewport edge it opens towards. It answers nothing for a closed panel. See [The dropdown panel](#the-dropdown-panel), [A dropdown with a search field](#a-dropdown-with-a-search-field) and [A filter row holds its panels](#a-filter-row-holds-its-panels). |
+| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search, disabled })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `disabled: true` turns the trigger off: no keyboard stop, no panel, and the kit's unavailable paint. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit. `filterPanelFit(dd, floor)` with `DD_MENU_FLOOR` is the same for an anchored filter menu: inside `.ui-filter-bar` an **open** menu takes the kit's 240px floor rather than its trigger's width, and a shut one keeps the trigger's. `filterPanelRow(dd)` answers which row such a menu is measured inside: a chip's, or one asking for a width with `--ui-filter-panel-ask`. `dropdownViewportFit(panel)` answers for a panel outside a filter row: how wide it may be and how far it has to move to stay inside the view it is laid out in. `--ui-dropdown-edge` is the gap it keeps from the view's edge. `dropdownHeightFit(dd, panel)` answers how tall an **open** panel may be, which is the room between its trigger and the viewport edge it opens towards. It answers nothing for a closed panel. `dropdownReveal(dd, panel)` scrolls a Modal or Drawer body the least distance that shows an open panel, and answers how far it scrolled; the dropdown wiring calls it for you. `dropdownSnap(dd, panel)` stops an open panel's height in the middle of a row, for any row height and against the measured room; the wiring calls it too, and it keeps a cap the consumer asked for to its number. `dropdownRest(dd, panel, open)` gives an open panel its box and collapses a shut one after its fade, so a shut panel adds no scroll room; the wiring calls it too. `dropdownLift(dd, panel)` lifts an open panel out of a body too short to hold it, and answers whether it did; the wiring calls it too. See [The dropdown panel](#the-dropdown-panel), [A dropdown with a search field](#a-dropdown-with-a-search-field) and [A filter row holds its panels](#a-filter-row-holds-its-panels). |
 | `filterBar(options)` + `initFilterBar(host, options)`, with `filterChipText`, `filterChipName`, `filterChipUnset`, `filterChipItems`, `nextFocusStop`, `focusNextStop` | The controlled filter row above a table. The consumer owns the filters and calls `update()`. `filterChipItems(filter)` marks the chip's own value in the items it hands its menu, so the line the chip prints and the row the menu marks cannot disagree; a chip that is unset, or whose value is in no row, marks nothing, and a `selected` the consumer set does not stand in for it. `nextFocusStop(host)` names where an emptied bar sends the focus — the way to add a filter still on the row, drawn from `data-filter-add`, else the control a reader's next <kbd>Tab</kbd> would reach; `focusNextStop(host)` puts it there, skipping anything the reader cannot reach, and answers with the element it ended on. See [A filter row holds its panels](#a-filter-row-holds-its-panels). |
 | `pagination({ page, pageSize, total, hasMore, pageSizes, variant, label, loading, href, id })` + `wirePagination(root, …)`, `setPagerStatus(root, text)`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE` | The strip under a table or list; it renders a page the caller already computed. See [Pagination](#pagination). |
 | `commandPalette({ groups, items, label, placeholder, query, empty, density, hint, rank, hotkey, open, specimen, id })` + `wireCommandPalette`, `openCommandPalette`, `closeCommandPalette`, `commandPaletteList`, `setPaletteResults`, `rankCommands`, `rankGroups`, `scoreCommand`, `SCORE`, `paletteHotkey()` | The ⌘K overlay and the ranking behind it; `SCORE` is the ladder itself, for a server that sorts the same way. See [The command palette](#the-command-palette). |
@@ -154,12 +158,13 @@ identity column through classes. See
 |------|------------|
 | `appShell({ word, brandHref, nav, active, navLabel, crumbs, back, title, sub, body, account, signOutHref, layout, width, search, topbar, maxWidth, collapsible, collapsed })` | The kit's one page shell, and the one to call for new work. See [The page shell](#the-page-shell) and [The second layout](#the-second-layout). |
 | `wireShell(root, { persist })` + `railCollapsed(cookieHeader?)`, `RAIL_COOKIE` | Wires the rail's fold, the reader's menu and the nav's groups; the cookie lets a server paint the right width first. |
-| `nav({ variant })`, dispatching to `sidebarNav`, `navTabs` or `breadcrumbs`, + `wireNav(root)` | Wayfinding. Each shape is also exported on its own. |
+| `nav({ variant })`, dispatching to `sidebarNav`, `navTabs` or `breadcrumbs`, + `wireNav(root)` | Wayfinding. Each shape is also exported on its own. `wireNav` opens the sidebar's groups, sizes a tab row to its links on load and on resize, scrolls the row to its current link, and scrolls it to a link the keyboard lands on. See [A tab row scrolls inside its column](#a-tab-row-scrolls-inside-its-column). |
 | `backLink({ href, label })` | The way up to the page this one sits under — an `<a href>`, never a history step. See [The back link](#the-back-link). |
 | `topbar(…)` + `wireTopbar(root)` | The product topbar. `themeToggle(theme)`, `accountMenu({ name, email, active, nav, initials })`, `versionSwitcher(versions, activeIdx)` and `deckTextSwitch(active)` are its parts, usable alone; `themeIcon(t)` and `themeName(t)` label your own toggle. |
 | `accentPicker({ active, options })`, with `ACCENTS` and `accentSwatchStyle(accent)` | The accent swatches, wired by `wireTopbar()`. `ACCENTS` is the list the kit ships; `accentSwatchStyle(accent)` is the one custom property a swatch button carries, `--swatch`, the gradient its circle wears. Both pickers read them, so a page building its own strip paints the same thing — and the kit's stylesheet draws the selected swatch's tick, so the strip needs no selection paint of its own. An accent with no paints gets `--swatch: transparent`, an empty circle you can still press. |
 | `ACCOUNT_NAV` | The account navigation the kit ships, as `sidebarNav()` items; the account menu falls back to it and your own entries replace it. |
 | `footer({ variant, brand, tagline, columns, social, legal, legalLinks, switcher })` | Site or app footer: `full`, `slim` or `app`. |
+| React `Footer` | The same three footer variants. The full footer puts link columns side by side above the phone width and stacks them on a phone. Pass React content for the brand, links, legal row and switcher. |
 | `.ui-toolbar` (class, no factory) | A row of controls above a list. See [A toolbar at one column](#a-toolbar-at-one-column). |
 
 ### Motion and escaping
@@ -168,6 +173,10 @@ identity column through classes. See
 |------|------------|
 | `prefersReducedMotion()`, `staggerDelay`, `initReveal`, `replay`, `playEntrance`, `transitionMs(el)`, `ENTRANCE_FALLBACK_MS` | The motion helpers. `transitionMs(el)` answers how long the stylesheet says an element's transition lasts, so a caller sizing a backstop timer for a fade reads the sheet rather than copying a duration token; a missing or non-element argument answers `0`, which fires at once rather than never. See [Motion](foundations.md#motion). |
 | `esc(s)` | HTML-escape a text value. Every factory already applies it to its own text arguments; you need it for markup you assemble yourself. |
+| `safeUrl(url, fallback?)` | The URL boundary every factory sends an `href` through: a `javascript:`, `data:` or `vbscript:` destination becomes the fallback, `#` unless you name another. You need it for markup you assemble yourself; the React components call this same function. See [Escaping and URL slots](#escaping-and-url-slots). |
+| `observeNavFit(row)` | Observe changes to a tab row and its links without changing its scroll position. Call the returned function to stop observation. |
+| `revealCurrentNav(row)` | Size one `.ui-nav--tabs` row to its links and bring its `aria-current` link inside it, moving neither focus nor the page. `wireNav()` calls it; call it yourself after replacing a row's links. |
+| `revealFocusedNav(row, target)` | The same scroll for the link a focus event landed on, so the ring that link draws clears the row's scrolling edge. `target` is the event's target; a target that is not a tab in `row` is ignored. `wireNav()` wires it, and React's `NavTabs` calls it on focus. |
 
 The public JS surface is the set of exports from the package entry. A module that the entry does
 not name still ships in the tarball. You still cannot import it, because the package declares no
@@ -185,9 +194,15 @@ otherwise need to discover. Each rule's test contains its detail. React's own no
 goes inside. It always draws **one `<main>` landmark** and gives every navigation landmark a
 unique name. **The page title keeps the same step above your content whether or not you pass a
 `sub`.** It does not invent a breadcrumb that you did not pass. It does not render a topbar
-unless you pass one. **The rail folds** below 720px through CSS alone and through a `<button>`
-that the reader presses. That button writes the `apliteni-ui-rail` cookie, so a server can first
-paint the folded width with `railCollapsed()`. A folded row keeps its name and count for keyboard
+unless you pass one. **The rail folds** above 720px through a `<button>` that the reader
+presses. That button writes the `apliteni-ui-rail` cookie, so a server can first paint the folded
+width with `railCollapsed()`. **At 720px and below the rail is a drawer.** The icon strip goes
+away. A 52px band at the top holds a menu button at its start and the brand mark beside it. The
+button opens the full rail in the left drawer, with its labels, its groups, its counts and the
+reader's block at the foot. Pressing a row, pressing Escape or widening the page closes the
+drawer, and focus returns to the menu button. A page in the topbar layout has a band already, so
+the menu button joins that band and the page never has two. The reading column takes the full
+width of the page. A folded row keeps its name and count for keyboard
 and pointer users. Every control in it clears the 24px floor and shows the ring. **The current
 row is one plate, at either width.** It is a quiet fill behind the row, a measured step off
 whatever the rail stands on, and nothing closes it: no accent bar, no hairline and no outline,
@@ -243,7 +258,52 @@ other. The shell keeps the row you marked `active` lit as `aria-current="true"`.
 current section, not the page. When a page should take one:
 [Going back](../guidelines/going-back.md).
 
+### A tab row scrolls inside its column
+
+`navTabs()` lays its links out in one row and never wraps them. **When the links are wider than
+the column, the row scrolls inside itself and the page does not widen.** A breadcrumb trail does
+the opposite, and wraps. A shade marks each edge with more tabs beyond it, on the page or on a card.
+
+**The row stays aligned with the page gutter, and the active underline stays on the row rule.**
+Call `wireNav()` for vanilla rows. React rows update automatically when their labels, badges,
+or available width change.
+Use `observeNavFit()` for custom rows, and call its returned function when removing the row.
+Server-rendered or unwired rows keep their scroll containment.
+
+**Keyboard navigation reveals each focused link with its complete focus band.**
+The row scrolls without moving focus or scrolling the page. Content and container changes preserve the reader's scroll position where space permits.
+When a link already fits in the row, it keeps its content width. The cap only limits one link
+that is wider than the row.
+
+**An overflowing row with only disabled tabs becomes a keyboard stop.**
+It draws the kit's inward focus band. A fitting row supplies no separate keyboard stop.
+
+### The current route has an accent label
+
+**A selected pill tab uses an accent label on its soft accent fill.**
+The label distinguishes the current route from a hovered route. The underline appearance keeps
+body ink and its accent bar. Both appearances name the current route with `aria-current="page"`.
+
+**In forced colours, both appearances retain a visible selected mark using the reader's system colours.**
+The pill label and badge remain readable. Ordinary colours are unchanged.
+
 ### The dropdown panel
+
+Inside a scrolling body, such as a Modal or a Drawer, a dropdown opens below its trigger and scrolls
+the body the least distance that shows the whole panel, with the field's label and the trigger above
+it. The body jumps instead of gliding under `prefers-reduced-motion`. Where the body is tall enough,
+the panel ends `--ui-dropdown-shade`, which is 48px, above the body's end. The drop shadow fades out
+by then, in light and in dark, so the body never clips it and the panel never touches the Modal
+footer. A shorter body spends that room down to the 8px edge. A body that cannot hold the label, the
+trigger, the 120px floor and the 8px edge lifts the panel out of the body. Examples are a Modal with
+a short form and a Drawer on a phone held sideways. A lifted panel opens over the body and its
+footer the way a portalled panel does: below its trigger, or above it where the viewport has more
+room. It follows the trigger while the body scrolls. The ancestor that scrolls is the one whose end
+the reader sees, so a wrapper with `overflow: auto` that does not scroll is passed over, and the
+panel is no taller than the smallest of them shows. A shut panel adds no scroll room at the end of a body or a page. While the reader is
+still scrolled into the room that the open panel needed, that room stays, so closing the panel does
+not move the field. It goes when the reader scrolls out of it. This holds for a page as well as a
+body: at the end of a page, closing a panel with Escape leaves the field where it was.
 
 `dropdown()` places its panel for you. You do not write a rule to move it. `direction` selects
 where it opens: `'down'`, `'up'`, or `'auto'`. `'auto'` flips only when there is not enough room
@@ -287,12 +347,21 @@ rows could not be reached, and the wheel over it scrolled the page instead. Capp
 ends inside the viewport and scrolls on its own. Two custom properties decide the height and the
 smaller wins:
 
-- `--ui-dropdown-cap` is what the consumer asked for. `scroll: true` is `.is-scroll`, which sets it
-  to 300px; `scroll: <n>` writes it inline, as the property and not `max-height`, because an inline
-  height would outrank the panel's own `min()` and put it back past the edge.
+- `--ui-dropdown-cap` is what the consumer asked for. Unset, a panel is capped at
+  `--ui-dropdown-max`, which is 300px, and the panel stops there in the middle of a row. A plain list
+  shows 7 rows and half of the eighth. A list with a description line under each label shows 4 and a
+  half. A search panel shows 5 and a half, and 3 and a half with descriptions. The cut row tells the
+  reader that the list goes on, where a cap that ended on a whole label would look complete. The stop
+  is taken against the height the panel gets, which is the smaller of the cap and the room, so a
+  panel that the room limits is cut through a row too. In a body, the stop can spend some of the
+  room under the panel to reach the next half row instead of stopping a whole row short.
+  `scroll: true` is `.is-scroll`, which asks for that standard cap by name; `scroll: <n>` writes it
+  inline, as the property and not `max-height`, because an inline height would outrank the panel's
+  own `min()` and put it back past the edge. A cap you ask for is kept to its number and is not cut.
+  With `search`, it is the list's height, and the panel is the list and the search field over it.
 - `--ui-dropdown-avail` is the measured room. The wiring writes it when a panel opens, or is already
-  open when the wiring attaches, and re-writes it on every scroll and resize while the panel stays
-  open, from `dropdownAvail()` in `src/logic/dropdown.js` — one calculation, so the vanilla wiring
+  open when the wiring attaches, and again on a resize. A portalled or lifted panel follows its
+  trigger, so it is measured again on a scroll too. The room comes from `dropdownAvail()` in `src/logic/dropdown.js` — one calculation, so the vanilla wiring
   and the React `<Dropdown>` cannot disagree about where an open panel ends. `dropdownHeightFit(dd,
   panel)` is that calculation, published so a second implementation can read it instead of measuring
   its own. A closed panel carries no measured room: `--ui-dropdown-avail` stays unwritten, and the
@@ -300,10 +369,18 @@ smaller wins:
   trigger-to-edge room this section promises. A closed panel's height is outside this guarantee;
   sizing one is [#501](https://github.com/apliteni/apliteni-ui/issues/501).
 
+A panel with fewer rows than the cap keeps its content height. A panel is never taller than the cap,
+also where the room is below the floor, as the next paragraph says. An open panel keeps the height
+it opened at while the reader scrolls the page or the body, until the page is resized or the panel
+opens again, so it does not grow or shrink under the reader. On a page, the room the panel keeps
+under itself is the 8px edge, so opening a panel on a page that does not scroll adds no scroll.
+
 A trigger near the edge can leave less room than `--ui-dropdown-min` (120px) wants for a usable
 panel. The floor spends the edge inset, down to nothing, to try to reach 120px, but it never spends
 room past the edge, because that room does not exist. Where even the whole inset falls short of
-120px, an ordinary panel keeps its content height and can grow the page so the reader can scroll.
+120px, an ordinary panel keeps its configured side and its cap, and can grow the page so the reader
+can scroll to the rows past the fold. The wheel over such a panel carries on to the page once the
+panel has reached its own end.
 **A portalled panel flips when its configured side cannot hold the required height and the opposite
 side has more room.** The required height is the floor, or the content height when shorter.
 A smaller consumer cap can reduce that required height. The panel keeps its trigger gap and its resolved side through the close
@@ -432,6 +509,20 @@ item has `href`. It never emits a `<button>`. A row that must be a real button i
 [one you write yourself](#a-dropdown-row-you-write-yourself). **A destructive row stays quiet
 and turns `--pink` on the way to being pressed**, in both hover and focus.
 
+### Avatar
+
+`avatar()` draws a person as a filled circle with their first and last initials. It is 24 px, or
+32 px with `size: 32`. **The hue comes from `key`**, the app's stable id for the person, so one person
+keeps one hue on every screen. A hash of the key picks one of eight fixed hues, and the letter ink
+is chosen to read on each one in both themes and under every accent. A name with no letters draws
+the `user` glyph. `empty: true` draws a dashed ring for "no one". **A `src` photo covers the
+letters**, and the letters show when the photo does not load. **The mark is hidden from assistive
+technology**, because the person's name always stands beside it. It has no hover, focus or cursor
+of its own: a button that holds it keeps its own. In React it is `<Avatar personKey name src size
+empty />`. A `dropdown()` item takes `avatar: { key, name, src }` and draws it in the leading slot.
+A `select` leads its trigger with the chosen row's mark, and with no value it shows the dashed ring
+and the placeholder. The top bar account button, the menu it opens and the shell's reader block draw the same mark, in the same hue.
+
 ### A dropdown with a search field
 
 `search: true` adds a text field above a dropdown's rows. It filters the rows as the reader types.
@@ -440,6 +531,9 @@ field**, which has `role="combobox"` over the list. `aria-activedescendant` name
 Enter would pick. The field carries the focus ring. The active row is marked by the hover fill
 alone — an edge around a row would be the focus band's own shape. **The match is anywhere in the label**, with case and accents ignored. Rows keep their
 original order. Descriptions are not searched, so put the words a reader will type in the label.
+**`count` names the size of the set** in the placeholder and in the field's accessible name, for
+example "Search 214 people", and `noun` changes the word. A placeholder or label you write wins. A
+`select` dropdown inside a `field()` takes the field's width, and its panel takes the trigger's.
 **Every open starts from the whole list**, and a query with no matches says so instead of showing
 an empty panel. **The panel is a dialog**, because a listbox may own only options. When a dropdown
 must have a search field is a rule rather than a recommendation:
@@ -535,8 +629,8 @@ larger.
 ### Dense financial tables
 
 The table is markup. A named scroll region contains a native `<table>`, and you apply the
-recipes as classes. Zebra adds no grey stripes. Hover marks the row edge without tinting the
-data surface. `compact` sets a 33px minimum row, but larger or wrapped content makes the row
+recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill.
+Keyboard focus keeps its ring, and a landed row keeps its own mark. `compact` sets a 33px minimum row, but larger or wrapped content makes the row
 taller. **Columns scroll rather than disappear**, while sticky headers and pinned identity cells
 keep opaque backgrounds, the shared focus composition, and their full accessible names. **A
 pinned column draws its divider only where the region can actually scroll:** at a width where
@@ -580,7 +674,7 @@ and the one-line cap and the filled cell both come off. The header row is clippe
 removed, so a cell still reads with its column's name. **A clipped header is read but not operated**, so put a sort or filter control
 on the row above the table and name the table in `aria-controls`. The markup includes the table
 roles at every width because a stylesheet cannot add them. A value whose meaning comes from its
-heading must carry that meaning itself. This is a rule in [Dense tables](../guidelines/dense-tables.md).
+heading must carry that meaning itself: give an amount cell `data-label` with its column's name, and a stacked row shows it before the figure. This is a rule in [Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
 change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
@@ -772,8 +866,13 @@ vanilla sections above.
 ### React tables
 
 Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
-A `.ui-table__title` cell gives a text column the remaining width.
-React `DataTable` has no column flag for that cell class.
+A `.ui-table__title` cell gives a text column the remaining width. A column takes `cell` for it:
+`title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
+`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `stack`, `density`,
+`stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
+and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
+with no strike line. `stack` writes the table roles that the block layout drops. Below the phone step each row
+shows every cell, so no amount scrolls out of reach. An amount column (`num`) with a text label shows that label before each figure. A table that does not scroll is the card's own child, so a dense or stacked table reaches the card's text edge.
 Its pager follows the measured table width and wraps when necessary.
 Without `ResizeObserver`, the pager keeps its container width.
 A pager that renders no controls takes no space.
@@ -817,7 +916,7 @@ before the hint rather than in its place**. This keeps a hint with consent, safe
 on screen while the reader decides whether to retry. The error also uses `role="alert"`, so a new
 error is announced without moving focus. Required markers are decorative. Native controls carry
 `required`. `Field` exposes the frame for a control that you render yourself. Its child function
-receives a stable ID, `required`, `aria-invalid` and `aria-describedby`. `FileField` accepts one
+receives a stable ID, `required`, `aria-invalid` and `aria-describedby`. Spread them on a `Dropdown` and the label and then the value name its trigger. `FileField` accepts one
 file from the picker or by drop. `accept` only filters the system picker, so you validate before
 upload.
 
@@ -925,6 +1024,22 @@ target. A disabled drop never calls `preventDefault` on `dragover`, so it does n
 itself as a target the pointer can aim at. When a page uses a row, a region or a dialog, see
 [File drop](../guidelines/file-drop.md).
 
+React `FileDrop` takes `title` to become the empty page's drop. It then draws a dashed box around
+a first-run block with the title, the accepted types and the Upload button. **The button is the
+keyboard path.** A click on the box opens the picker too. A file dropped anywhere in the box
+reaches `onFiles` with every file and `onFile` with the first; pass either or both, and add
+`multiple` to let the picker take several. A file over the box turns its edge to the accent. A
+disabled area accepts nothing.
+
+`.ui-drop--page` is the kit's layer for a page that takes a file anywhere. Put it on the area's own
+markup, `.ui-drop.ui-drop--area.is-dragging`, and it becomes that area made large: a fixed box
+inset from the window and below the topbar, with the same dashed accent edge and radius, holding an
+`EmptyState` with the upload glyph, a line that says to drop the files and the accepted types.
+**Its ground is the page ground, slightly transparent and blurred, so the table shows through softly and no row stays sharp under the words.** Where the browser cannot blur what is behind, or the reader asks for less transparency, the ground is solid. The layer takes no pointer
+events, so the page keeps working under it. **Mount it only while a file is dragged over the page.** It has no fade and no rise, so reduced motion needs no
+second path. The page owns the drag logic, and its own Upload button stays the keyboard path.
+React ships no component for the layer.
+
 ### React Button links and leading artwork
 
 React `Button` accepts `href` and then renders an anchor with the existing button classes.
@@ -981,6 +1096,40 @@ The table the reader opens carries its columns sideways in a named scroller, so 
 page keep their width whatever series you pass. At phone widths the plot scrolls with the value
 axis held in place, and the side that still hides columns is faded. Nothing animates.
 
+### React route navigation
+
+`NavTabs` and `Breadcrumbs` use the same presentation as the vanilla factories, so every
+guarantee above holds for them too. `NavTabs` takes unique item IDs, a controlled active ID, the
+underline or pill presentation, and optional badges. It uses native links and
+`aria-current="page"`, with no tablist or panel roles. **A disabled item is non-focusable text**
+marked `aria-disabled`, and cannot be the current link. An item with no destination uses its ID as
+a fragment. A badge of zero stays visible; a null or empty badge is dropped, the way the vanilla
+factory drops it.
+
+`Breadcrumbs` renders a named navigation landmark and an ordered list. **The last item is
+current-page text even when it has a destination**, and an earlier item without one stays text.
+Icons are decorative. Both components forward root attributes and refs, keep native link keyboard
+behaviour, and send every destination through the kit's URL boundary.
+
+**Both take `renderLink` with the signature `AppShell` uses**, so a router renders each link from
+the kit's class, destination, current state and children, and a route change need not reload the
+document.
+
+`NavTabs` sizes its row on mount, on a route change and on window resize, preserving the reader's
+scroll position during content and container changes. It reveals the current route after mount and
+route changes, and reveals a link a focus event lands on. There is nothing to wire for it;
+`wireNav()` is for the vanilla rows. React imports the kit's own `safeUrl` and reveal functions
+rather than a copy bundled into `react/dist`.
+
+### React top bar
+
+`TopBar` composes `ViewSwitch`, `VersionSwitcher`, `ThemeToggle` and `AccountMenu` into the vanilla
+`topbar()` band, with the same classes and the same two rows on a phone. Each slot is optional, and
+no account is the signed-out bar. **The current view in the Deck and Text switch is filled with the
+accent fill of a chosen Segmented option**, in the vanilla switch as well as React's. **The version
+button shows only the chosen name**. **The open version menu shows each name and badge and ticks the chosen version**.
+The button and tick follow `value` until the caller updates it. `AccountMenu` marks the page named by `current` in accent ink.
+
 ### The rest of the React surface
 
 - **`Tabs`** unmounts inactive panel content. Arrow keys, Home and End move between tabs and
@@ -993,19 +1142,21 @@ axis held in place, and the side that still hides columns is faded. Nothing anim
 - **`Confirm`** builds on `Modal` as an `alertdialog`. It focuses the safe action and draws it
   before the committing action. `onConfirm` only reports the press. Saving, errors and closing
   are yours.
+- **`Feedback`** offers a "Give feedback" pill on a text selection and opens a form with the
+  quoted passage and a note. `onSend` files the note. A failed send keeps the note and shows the
+  error in place. A sent note shows one line of thanks. Escape returns focus to the prior visible
+  control, or to the pill if that control is unavailable.
 - **`Timeline`** renders your events from oldest to newest. **Only the last event's marker is
   filled.** A new ID in a non-empty history plays an entrance. Editing existing IDs does not.
 - **`AppShell`** shares the vanilla fold cookie and 720px fold. The longest matching section
-  path wins. **Below 560px, a bottom bar replaces the rail:** it shows up to four sections, or
-  three sections plus More. **A shell whose list has nowhere to go — one section and no back
-  link — draws no rail, no fold control and no bottom bar;** the brand lockup moves to the band
+  path wins. **At 720px and below, a menu button and the brand mark on the band replace the
+  rail:** the button opens the full section list in the left drawer, and the page takes the full
+  width. A press on a section, Escape or a wider window closes the drawer, and focus returns to
+  the button. **A shell whose list has nowhere to go — one section and no back
+  link — draws no rail, no fold control and no menu button;** the brand lockup moves to the band
   and the section stays in the command palette. One section under a child page is a destination,
-  the page's parent, so that list is drawn and the row takes `aria-current="true"`. It publishes
-  `--ui-app-bottom-clearance`, the height of that bar plus the device's safe-area inset. **A phone page whose shell draws no bar
-  keeps the ordinary end space the kit gives every phone page:** the reservation disappears
-  without taking that space with it. **Page bottom padding, root scroll padding and the toast
-  stack all keep that clearance,** so scrolling an action into view never parks it behind the
-  bar. `searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
+  the page's parent, so that list is drawn and the row takes `aria-current="true"`.
+  `searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
   shared stylesheet draws the short one and clips the sentence and the key cap rather than
   dropping them, so the button keeps one accessible name at every width. **When it mounts, the
   band theme switch applies the stored theme choice, or follows the system when there is none.**
@@ -1017,6 +1168,11 @@ axis held in place, and the side that still hides columns is faded. Nothing anim
   collapsed.
 - **`Checkbox` and `Switch`** render native inputs inside the existing label classes, and **a
   disabled one uses the same paint as every other disabled control in the kit.**
+- **A checkbox whose `indeterminate` property is true shows the checked fill with a short dash**
+  in place of the tick. **`DataTable`'s selection boxes use the kit box and show the dash when some,
+  but not all, rows on the page are selected.** **A selection column takes the width of its box in
+  every selectable table, and in a dense or compact table the box's phone tap area stays 24px tall so
+  it never reaches the next row.**
 - **`Checkbox` takes an optional `hint`,** which sits under the label words and is linked to the box as
   its description; the label stays the box's name. **`CheckList` groups `Checkbox` children in a
   fieldset under a legend** set in the field label's type. A disabled box dims its hint with its label.
@@ -1092,8 +1248,11 @@ find them by class. These attributes make the row work:
 `field()` provides wiring that a control cannot provide for itself. It sets the label's `for=`,
 adds an id to the hint or error and points to it with `aria-describedby`, adds `aria-invalid`
 to a field with an `error`, and adds the native `required` attribute under the decorative
-asterisk. A control outside a `field()` needs its own `ariaLabel`. A placeholder is not a name.
-Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
+asterisk. **A `dropdown()` inside `field()` is wired through its trigger button**, because the
+dropdown's `id` sits on a wrapper that a label cannot name. The label and then the chosen value name
+the trigger, the error or hint describes it, and an error marks it invalid. The list is named by the
+label unless you give it an `ariaLabel`. A control outside a `field()` needs its own `ariaLabel`. A
+placeholder is not a name. Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See
 [Colour and contrast](foundations.md#colour-and-contrast).
 

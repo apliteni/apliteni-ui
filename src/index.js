@@ -1,6 +1,7 @@
 // apliteni-ui — public entry.
 // Styles ship separately: `import 'apliteni-ui/css'`.
 export * from './components/index.js';
+export * from './components/avatar.js';
 export * from './components/dropdown.js';
 export * from './components/tooltip.js';
 export * from './components/tabs.js';
@@ -36,4 +37,5 @@ export { calloutIcons } from './logic/callout.js';
 export { toastPileGeometry, applyToastPile, clearToastPile, watchToastPile, TOAST_PEEK, TOAST_SCALE_STEP, TOAST_TIERS, TOAST_PILE_MIN, TOAST_GAP } from './logic/toast-stack.js';
 export { formatNumericValue, formatDeltaValue } from './logic/table-values.js';
 export { accentSwatchStyle } from './logic/accents.js';
+export { observeNavFit, revealCurrentNav, revealFocusedNav } from './logic/nav.js';
 export { CHART_FLOOR, chartScale, bridgeWalk, pointTarget } from './logic/chart.js';

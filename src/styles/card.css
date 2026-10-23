@@ -8,6 +8,7 @@
    instead — a 22px penumbra off a 10px offset, the width Artur's reference uses on a
    card. Chosen by him on #490 round t3. why: docs/foundations.md#elevation */
 .ui-card {
+  --ui-card-ground: var(--surface); /* the ground a scrolling row inside covers its edge with; a tint repeats it below */
   background: var(--surface);
   border: 1px solid var(--card-edge);
   box-shadow: var(--elev-rest);
@@ -45,16 +46,17 @@
    why: docs/foundations.md#spacing-and-rhythm */
 .ui-card--fit { width: fit-content; max-width: 100%; }
 
-/* An accent-tinted card, e.g. a highlighted plan / success surface. The accent edge is
-   the card's own hairline re-coloured: an inset ring over it would draw two. #295
+/* An accent-tinted card, e.g. a highlighted plan / success surface. It draws no accent
+   ring: the tint carries the signal and the edge is the plain card edge. #295
    The strength is --card-tint, per theme: light mixes down from white, so a tint that
-   works in dark sinks a light card below the page. Each variant edges itself in its own
-   colour. why: docs/foundations.md#elevation */
+   works in dark sinks a light card below the page. The accent card keeps the plain
+   edge. why: docs/foundations.md#elevation */
 .ui-card--accent {
+  --ui-card-ground: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
   background: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
-  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .ui-card--live {
+  --ui-card-ground: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
   background: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
   border-color: color-mix(in srgb, var(--green) 22%, transparent);
 }
@@ -74,6 +76,7 @@
    change of level. why: docs/foundations.md#elevation */
 .ui-card--interactive:hover { transform: translateY(-2px); }
 .ui-card--interactive:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-card--interactive .ui-card__sub:last-child { margin-bottom: 0; }
 
 /* card() emits the title as an h2, so the text face is named here rather than
    left to the element. why: docs/foundations.md#labels-and-titles */
@@ -90,6 +93,10 @@
   /* Title to description: the step, not the 5px it was. why: docs/foundations.md#spacing-and-rhythm */
   margin: 0 0 var(--space-2);
 }
+/* The title of a card that supports its neighbour, such as a document beside the
+   data read from it. The size, weight and rank stay the card title's.
+   why: docs/foundations.md#text-ink */
+.ui-card__title--muted { /* muted-ink: chrome — a supporting card ranks below its neighbour; the title is also the card's accessible name */ color: var(--muted); }
 .ui-card__sub {
   color: var(--text);
   font-size: var(--text-base);
@@ -103,6 +110,23 @@
   justify-content: space-between;
   gap: var(--space-5);
   padding: var(--space-4) 2px;
+}
+/* A choice that does not fit beside its label drops under it whole, never into a column. */
+.ui-card__row:has(> .ui-seg) { flex-wrap: wrap; }
+.ui-card__row:has(> .ui-seg) > :first-child { flex: 1 1 10rem; min-width: 0; }
+.ui-card__row > .ui-seg { flex: none; flex-wrap: nowrap; }
+.ui-card__row > .ui-seg button { white-space: nowrap; }
+@media (max-width: 560px) {
+  .ui-card__row { flex-direction: column; align-items: flex-start; }
+  .ui-card__row > :first-child { width: 100%; }
+  .ui-card__row:has(> .ui-seg) > :first-child { flex: none; }
+}
+/* The Theme choice needs 195px and the narrowest settings row gives it 160. Its pills
+   give up inline padding as the viewport narrows. Other choices keep their tap width. */
+@media (max-width: 560px) {
+  .ui-card__row--tight-choice > .ui-seg:not(.ui-seg--sm):not(.ui-seg--underline) button {
+    padding-inline: clamp(var(--space-1), calc(var(--space-3) - (360px - 100vw) * 0.3), var(--space-3));
+  }
 }
 .ui-card__row + .ui-card__row { border-top: 1px solid var(--border); }
 .ui-card__row .lab { color: var(--strong); font-size: var(--text-md); font-weight: var(--weight-medium); }

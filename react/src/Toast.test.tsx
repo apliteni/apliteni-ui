@@ -319,3 +319,12 @@ it('has no axe violations with a collapsed pile on screen', async () => {
     expect(result.violations).toEqual([]);
   } finally { restore(); }
 });
+it('keeps a notice when its timer is zero seconds', () => {
+  vi.useFakeTimers();
+  setup({ title: 'Saved', timer: 0 });
+  fireEvent.click(screen.getByText('Notify'));
+  const notice = screen.getByRole('status');
+  act(() => vi.advanceTimersByTime(60000));
+  expect(notice).toBeInTheDocument();
+  expect(notice.querySelector('.ui-toast__timer')).toBeNull();
+});

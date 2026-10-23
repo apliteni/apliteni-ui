@@ -4,6 +4,19 @@ Human setup is described in [README.md](README.md#contribute). Before changing
 components, read [foundations](docs/foundations.md), [components](docs/components.md)
 and the [guidelines](guidelines/overview.md).
 
+## Design review
+
+A design review of this repository takes its system from this file. The declared system is the kit.
+It has four parts. These are [foundations](docs/foundations.md), [components](docs/components.md),
+the [guidelines](guidelines/overview.md) and the token files that the package exports as `./tokens`,
+`./accents` and `./brand`. Resolve a token to its real value in those files.
+
+A showcase or a component story may place kit parts with layout glue. Its own CSS for paint, type or
+motion, a re-declared token, or a restyled kit class is a violation of the declared system. Report
+it as a defect with the file and the declaration. Name the result of `stories/story-css.test.js` and
+of `react/src/story-css.test.ts`. A glue entry in a gate's allow-list stands only with its reason.
+[Changes](#changes) holds the rule itself.
+
 ## Data handling
 
 This repository is public, so use fabricated demo data. Never include real customer or financial
@@ -100,6 +113,20 @@ It needs `npm run build-storybook -w react` first — React's fit is an effect, 
 where React is running. Report the result in the PR. Keep this check out of routine CI to save
 Actions minutes.
 
+## Check the table selection column locally
+
+Before opening a PR that changes the `.ui-table__selection` width rules in `src/styles/table.css`, measure
+the column in a real browser — the source half reads declarations, not layout:
+`SELECTION_WIDTH=1 UI_PLAYWRIGHT=… node --test src/styles/table-selection-width.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
+## Check the partial dash locally
+
+Before opening a PR that changes the `:indeterminate::after` rule in `src/styles/input.css`, measure the dash
+in a real browser:
+`DASH_CENTRE=1 UI_PLAYWRIGHT=… node --test src/styles/check-partial.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
 ## Check the table edge shade locally
 
 Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` edge-shade rules,
@@ -179,15 +206,6 @@ Before opening a PR that changes `src/styles/topbar.css`'s phone rules or the sh
 `--ui-app-top`, measure the rows in a real browser:
 `UI_PLAYWRIGHT=… TOPBAR_ROWS=1 node --test src/components/topbar.test.js`
 Report the result in the PR. CI skips this check because Playwright is not a dependency.
-
-## Check the phone end space locally
-
-Before opening a PR that changes `--ui-app-bottom-clearance`, the React shell's phone
-padding or `.ui-app__main`'s own, measure the end of a phone page in a real browser:
-`npm run build-storybook -w react`, then
-`UI_PLAYWRIGHT=… UI_CHROME=… BOTTOM_CLEARANCE=1 node --test src/styles/bottom-clearance.test.js`
-Report the result in the PR. Playwright is not a dependency and CI runs only this gate's
-source half, which reads sheets and lays nothing out.
 
 ## Changes
 

@@ -64,11 +64,10 @@ export const PresentationsGallery: StoryObj = {
   render: args => <Toast key={JSON.stringify(args)}><Presentations {...args} /></Toast>,
 };
 
-// The pile: several self-dismissing notices rest as one, newest in front, and
-// fan out under the pointer or once focus reaches the stack.
+// Keep this pile on screen so its resting and open states can be inspected.
 function Pile() {
   const push = useToast();
-  const add = (notice: typeof statuses[number]) => push({ ...notice });
+  const add = (notice: typeof statuses[number]) => push({ ...notice, timer: false });
   const show = () => statuses.forEach(add);
   useEffect(() => { statuses.slice(0, 3).forEach(add); }, [push]);
   return <Button onClick={show}>Add five more</Button>;
@@ -76,6 +75,31 @@ function Pile() {
 export const CollapsedStack: StoryObj = {
   parameters: { docs: { description: { story: 'Hover the pile, or press Tab into it, to fan it out. It collapses again when you leave. One notice is never collapsed: there would be nothing behind it.' } } },
   render: () => <Toast collapse><Pile /></Toast>,
+};
+
+const pileNotices = [
+  { tone: 'danger', title: 'Upload failed', text: 'The file was larger than 25 MB.' },
+  { tone: 'info', title: 'Note deleted', text: 'The long note about the next review was removed from the draft.' },
+  { tone: 'success', title: 'Saved', text: 'Your changes are live.' },
+] as const;
+
+function FocusPile() {
+  const push = useToast();
+  useEffect(() => { pileNotices.forEach(notice => push({ ...notice, timer: false, dismissible: false })); }, [push]);
+  return null;
+}
+export const CollapsedStackFocus: StoryObj = {
+  parameters: { docs: { description: { story: 'Press Tab to focus the pile. Every notice stays available without a close button or action.' } } },
+  render: () => <Toast collapse><FocusPile /></Toast>,
+};
+
+function TimedPile() {
+  const push = useToast();
+  return <Button onClick={() => pileNotices.forEach(notice => push(notice))}>Show timed pile</Button>;
+}
+export const CollapsedStackTimed: StoryObj = {
+  parameters: { docs: { description: { story: 'Show three notices that dismiss after five seconds. Hover or focus the pile to hold all three.' } } },
+  render: () => <Toast collapse><TimedPile /></Toast>,
 };
 
 // The elapsing-time line. It spends the notice's own five seconds, stops while

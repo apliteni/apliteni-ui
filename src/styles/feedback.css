@@ -45,6 +45,7 @@
     opacity var(--dur-fast) var(--ease);
 }
 .ui-fbpill.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -100%) translateY(-9px) scale(1); }
+.ui-fbpill:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-fbpill.show:hover { transform: translate(-50%, -100%) translateY(-12px) scale(1.04); }
 .ui-fbpill:active { transform: translate(-50%, -100%) translateY(-8px) scale(.98); }
 .ui-fbpill svg { width: 16px; height: 16px; stroke-width: 2.4; color: currentColor; }
@@ -78,14 +79,14 @@
 .ui-fbcomposer.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
 
 .ui-fbc__head { display: flex; align-items: center; gap: 12px; padding: 17px 20px 0; }
-.ui-fbc__chip { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-size: var(--text-sm); font-weight: var(--weight-semibold); letter-spacing: .01em; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ui-fbc__chip { display: inline-flex; align-items: center; gap: 8px; color: var(--strong); font-size: var(--text-sm); font-weight: var(--weight-semibold); letter-spacing: .01em; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ui-fbc__chip svg { width: 14px; height: 14px; flex: none; opacity: .85; stroke-width: 2.7; }
 .ui-fbc__x { margin-left: auto; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ /* muted-ink: glyph — dismiss icon */ color: var(--dim); border: 0; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; flex: none; font: inherit; }
 .ui-fbc__x:hover { color: var(--strong); }
 .ui-fbc__x:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-fbc__x svg { width: 14px; height: 14px; stroke-width: 2.7; }
 .ui-fbc__quote { margin: 14px 20px 0; background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ border-radius: 12px; padding: 12px 15px; display: flex; gap: 11px; }
-.ui-fbc__qm { color: var(--accent); font-size: var(--text-xl); font-weight: var(--weight-bold); line-height: .9; flex: none; opacity: .55; }
+.ui-fbc__qm { color: var(--text); font-size: var(--text-xl); font-weight: var(--weight-bold); line-height: .9; flex: none; opacity: .55; }
 .ui-fbc__quote q { quotes: none; color: var(--text); font-style: italic; font-size: calc(var(--text-sm) + 0.5px); line-height: 1.55; }
 .ui-fbc__body { padding: 14px 20px 0; }
 .ui-fbcomposer textarea {
@@ -129,7 +130,7 @@
 @keyframes uiFbCkSpring { 0% { transform: scale(1.32); } 62% { transform: scale(.965); } 82% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
 /* Error banner */
-.ui-fbc__err { margin: 14px 20px 0; background: color-mix(in srgb, var(--pink) 14%, transparent); /* code-bg: inherit — text-only validation message has no nested focus target. */ color: var(--pink); font-size: var(--text-sm); padding: 11px 15px; border-radius: 11px; display: none; }
+.ui-fbc__err { margin: 14px 20px 0; background: color-mix(in srgb, var(--pink) 14%, transparent); /* code-bg: inherit — text-only validation message has no nested focus target. */ color: var(--chip-danger-ink); font-size: var(--text-sm); padding: 11px 15px; border-radius: 11px; display: none; }
 .ui-fbc__err.show { display: block; }
 /* A failed send's line fades in; wireFeedback() adds the class as it shows it. */
 .ui-fbc__err.is-entering { animation: m-fade var(--dur-fast) var(--ease-out) both; }

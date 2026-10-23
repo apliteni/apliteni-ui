@@ -33,7 +33,7 @@ function Notice({ notice, remove }: { notice: ToastNotice; remove: () => void })
   const pileHeld = useContext(PileHoldContext);
   const paused = hovered || focused || pileHeld;
   const tone = notice.tone ?? 'success';
-  const timed = !notice.action && notice.timer !== false;
+  const timed = !notice.action && notice.timer !== false && notice.timer !== 0;
   const duration = typeof notice.timer === 'number' ? notice.timer * 1000 : 5000;
   const remaining = useRef(duration);
   const dismiss = useCallback(() => {

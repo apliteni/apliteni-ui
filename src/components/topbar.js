@@ -4,6 +4,7 @@ import { brand } from '../assets/brand.js';
 import { icon, sun, moon } from '../assets/icons.js';
 import { esc } from './index.js';
 import { wireDropdown } from './dropdown.js';
+import { avatar } from './avatar.js';
 import { accountMenuNav, initials, toMenuTuple } from './account-nav.js';
 import { trustedAttr, trustedUrl } from '../html.js';
 const THEME_KEY = 'apliteni-strategy-theme';
@@ -37,11 +38,11 @@ export function versionSwitcher(versions = [], activeIdx = 0) {
   const opts = versions.map((v, i) => {
     const key = String(v.badge || 'archive').toLowerCase();
     return `<div class="vopt" role="option" data-dd-item tabindex="-1" aria-selected="${i === activeIdx}" data-active="${i === activeIdx ? '1' : '0'}">` +
-      `<span><div class="vname">${v.label}</div><div class="vmeta">${v.meta || ''}</div></span>` +
-      `<span class="vbadge ${key === 'live' ? 'live' : 'arch'}">${Object.hasOwn(VBADGE, key) ? VBADGE[key] : v.badge}</span></div>`;
+      `<span class="vname">${v.label}</span>` +
+      `<span class="vbadge ${key === 'live' ? 'live' : 'arch'}">${Object.hasOwn(VBADGE, key) ? VBADGE[key] : v.badge}</span><span class="vtick" aria-hidden="true">${icon('check')}</span></div>`;
   }).join('');
   return `<div class="vsw" data-dropdown><button type="button" class="vsw__btn" data-dropdown-trigger aria-haspopup="listbox" aria-expanded="false" aria-label="Version — ${esc(cur)}">` +
-    `<span class="lbl">version:</span><span class="cur">${cur}</span><span class="car"></span></button>` +
+    `<span class="cur">${cur}</span><span class="car"></span></button>` +
     `<div class="vsw__menu" data-dropdown-panel role="listbox" aria-label="Version">${opts}</div></div>`;
 }
 
@@ -55,7 +56,7 @@ export function versionSwitcher(versions = [], activeIdx = 0) {
 // shell.js computes the mark from the caller's own strings and passes it down
 // beside them. Left out, it is computed here from `name` and `email`.
 export function accountMenu({
-  name = 'Ada Lovelace', email = 'ada@apliteni.com', active = 'prefs', nav, initials: mark,
+  name = 'Ada Lovelace', email = 'ada@apliteni.com', active = 'prefs', nav, initials: mark, key,
 } = {}) {
   // initials() is shared with the rail's avatar — the two are the same reader
   // on the /account preset, and they used to disagree about who that was.
@@ -76,9 +77,9 @@ export function accountMenu({
   // `on` so the menu is visible in Storybook / standalone use (no /auth/me gate).
   // Consumes the shared dropdown wiring via the generic [data-dropdown] hooks.
   return `<div class="acct on" data-dropdown>` +
-    `<button class="avatar" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Account">${ini}</button>` +
+    `<button class="avatar" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Account">${avatar({ key: key ?? (email || name), initials: ini, size: 32 })}</button>` +
     `<div class="amenu" data-dropdown-panel role="menu">` +
-    `<div class="ahead"><span class="avatar">${ini}</span><span class="aw"><span class="anm">${name}</span><span class="aem" title="${trustedAttr(email)}">${email}</span></span></div>` +
+    `<div class="ahead">${avatar({ key: key ?? (email || name), initials: ini, size: 32 })}<span class="aw"><span class="anm">${name}</span><span class="aem" title="${trustedAttr(email)}">${email}</span></span></div>` +
     items.map(it).join('') +
     `<div class="asep"></div><a class="aout" href="#logout" data-dd-item tabindex="-1" role="menuitem">${icon('logout')}Sign out</a>` +
     `</div></div>`;

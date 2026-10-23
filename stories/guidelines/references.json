@@ -2,7 +2,7 @@
   "_dense-tables.js": {
     "surface": [
       {
-        "ref": "src/styles/table.css:236",
+        "ref": "src/styles/table.css:225",
         "pattern": ".ui-table { background: var(--table-bg);"
       }
     ],
@@ -12,7 +12,7 @@
         "pattern": "width: auto;"
       },
       {
-        "ref": "src/styles/table.css:290",
+        "ref": "src/styles/table.css:279",
         "pattern": "max-width: calc(100% + 2 * var(--space-3));"
       }
     ]
@@ -24,7 +24,7 @@
         "pattern": ".ui-btn--sm"
       },
       {
-        "ref": "src/styles/input.css:158",
+        "ref": "src/styles/input.css:164",
         "pattern": ".ui-check input::before"
       },
       {
@@ -48,7 +48,7 @@
         "pattern": "--tap-gap: var(--space-5, 20px);"
       },
       {
-        "ref": "src/styles/tap-zone.css:184",
+        "ref": "src/styles/tap-zone.css:191",
         "pattern": ".ui-confirm__acts,"
       }
     ],
@@ -130,6 +130,32 @@
         "pattern": "--accent-strong: var(--accent);"
       }
     ],
+    "selection-accent": [
+      {
+        "ref": "src/styles/segmented.css:45",
+        "pattern": "color: var(--accent-contrast);"
+      },
+      {
+        "ref": "src/styles/segmented.css:46",
+        "pattern": "background: var(--accent);"
+      },
+      {
+        "ref": "src/styles/nav.css:368",
+        "pattern": ".ui-nav--tabs.is-underline .ui-nav__tab.is-active::after"
+      },
+      {
+        "ref": "src/styles/nav.css:376",
+        "pattern": "background: var(--glow-purple);"
+      },
+      {
+        "ref": "src/styles/nav.css:375",
+        "pattern": "color: var(--accent);"
+      },
+      {
+        "ref": "src/styles/layout.css:71",
+        "pattern": ".ui-app__rail .ui-nav__item.is-active"
+      }
+    ],
     "both-themes": [
       {
         "ref": "stories/accent-contrast.test.js:1",
@@ -137,7 +163,7 @@
       },
       {
         "ref": "stories/accent-contrast.test.js:2",
-        "pattern": "theme \u00d7 accent cells"
+        "pattern": "theme × accent cells"
       },
       {
         "ref": "react/src/a11y.test.tsx:23",
@@ -178,7 +204,7 @@
         "pattern": "function onKeydown"
       },
       {
-        "ref": "src/components/overlay.js:97",
+        "ref": "src/components/overlay.js:101",
         "pattern": "function ownKeys"
       }
     ],
@@ -192,7 +218,7 @@
         "pattern": "function announce"
       },
       {
-        "ref": "src/components/overlay.js:236",
+        "ref": "src/components/overlay.js:240",
         "pattern": "export function returnFocus"
       }
     ],
@@ -214,7 +240,7 @@
         "pattern": "a question the page stops for"
       },
       {
-        "ref": "src/components/index.js:217",
+        "ref": "src/components/index.js:258",
         "pattern": "export function callout("
       },
       {
@@ -232,17 +258,17 @@
         "pattern": "a floating, dismissible notification"
       },
       {
-        "ref": "src/components/index.js:243",
+        "ref": "src/components/index.js:284",
         "pattern": "class=\"ui-toast__action\""
       }
     ],
     "panels": [
       {
-        "ref": "src/components/index.js:77",
+        "ref": "src/components/index.js:79",
         "pattern": "It is NOT a tablist: it controls no panel"
       },
       {
-        "ref": "src/components/index.js:82",
+        "ref": "src/components/index.js:84",
         "pattern": "that one owns panels and earns the tab announcement"
       },
       {
@@ -260,17 +286,17 @@
         "pattern": ".ui-filter-bar__chip {"
       },
       {
-        "ref": "src/components/index.js:76",
+        "ref": "src/components/index.js:78",
         "pattern": "A strip of mutually exclusive toggle buttons."
       }
     ],
     "scale": [
       {
-        "ref": "src/components/index.js:260",
+        "ref": "src/components/index.js:301",
         "pattern": "Pick by how much of the screen the confirmation owns"
       },
       {
-        "ref": "src/components/index.js:262",
+        "ref": "src/components/index.js:303",
         "pattern": "export function successPanel("
       },
       {
@@ -284,11 +310,11 @@
         "pattern": "export const dropdownMatch"
       },
       {
-        "ref": "src/styles/dropdown.css:357",
+        "ref": "src/styles/dropdown.css:231",
         "pattern": ".ui-dropdown__panel--search"
       },
       {
-        "ref": "src/styles/dropdown.css:419",
+        "ref": "src/styles/dropdown.css:471",
         "pattern": ".ui-dropdown__none {"
       }
     ]
@@ -300,7 +326,7 @@
         "pattern": ".ui-btn--danger:hover"
       },
       {
-        "ref": "src/styles/dropdown.css:313",
+        "ref": "src/styles/dropdown.css:365",
         "pattern": ".ui-dropdown__item.is-danger:hover"
       },
       {
@@ -324,7 +350,7 @@
         "pattern": "role=\"alertdialog\""
       },
       {
-        "ref": "src/components/index.js:243",
+        "ref": "src/components/index.js:284",
         "pattern": "class=\"ui-toast__action\""
       },
       {
@@ -392,13 +418,13 @@
     ],
     "one-or-the-other": [
       {
-        "ref": "src/components/shell.js:335",
+        "ref": "src/components/shell.js:372",
         "pattern": "${up || (crumbs.length"
       }
     ],
     "section-lit": [
       {
-        "ref": "src/components/nav.js:109",
+        "ref": "src/components/nav.js:110",
         "pattern": "const current = activeIs === 'section'"
       }
     ],
@@ -470,11 +496,11 @@
     ],
     "meaning": [
       {
-        "ref": "src/assets/icons.js:217",
+        "ref": "src/assets/icons.js:222",
         "pattern": "export const iconMeanings"
       },
       {
-        "ref": "src/components/index.js:229",
+        "ref": "src/components/index.js:270",
         "pattern": "const TOAST_ICON = {"
       }
     ],
@@ -518,7 +544,7 @@
         "pattern": "in sentence case like every"
       },
       {
-        "ref": "src/components/topbar.js:32",
+        "ref": "src/components/topbar.js:33",
         "pattern": "the kit writes the word for it"
       },
       {
@@ -528,21 +554,21 @@
     ],
     "title-rank": [
       {
-        "ref": "src/styles/layout.css:433",
+        "ref": "src/styles/layout.css:428",
         "pattern": "rank: page-title"
       },
       {
-        "ref": "src/styles/card.css:83",
+        "ref": "src/styles/card.css:86",
         "pattern": "rank: card-title"
       }
     ],
     "title-is-heading": [
       {
-        "ref": "src/components/index.js:67",
+        "ref": "src/components/index.js:69",
         "pattern": "const h = [2, 3, 4, 5, 6]"
       },
       {
-        "ref": "react/src/primitives/Card.tsx:11",
+        "ref": "react/src/primitives/Card.tsx:28",
         "pattern": "const Heading"
       }
     ],
@@ -570,7 +596,7 @@
     ],
     "measure": [
       {
-        "ref": "src/styles/layout.css:326",
+        "ref": "src/styles/layout.css:321",
         "pattern": "var(--ui-app-main, var(--measure))"
       },
       {
@@ -584,7 +610,7 @@
         "pattern": "--space-3: 12px"
       },
       {
-        "ref": "src/styles/table.css:89",
+        "ref": "src/styles/table.css:80",
         "pattern": "padding: var(--space-2) var(--space-3)"
       },
       {
@@ -604,7 +630,7 @@
     ],
     "breakpoints": [
       {
-        "ref": "src/styles/layout.css:511",
+        "ref": "src/styles/layout.css:516",
         "pattern": "@media (max-width: 720px)"
       },
       {
@@ -617,14 +643,50 @@
       }
     ]
   },
+  "_spacing.js": {
+    "two-gaps": [
+      {
+        "ref": "src/tokens/tokens.css:28",
+        "pattern": "--space-2: 8px"
+      },
+      {
+        "ref": "src/tokens/tokens.css:33",
+        "pattern": "--space-8: 32px"
+      }
+    ],
+    "two-gaps-phone": [
+      {
+        "ref": "src/styles/tap-zone.css:28",
+        "pattern": "--tap-gap: var(--space-5"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:143",
+        "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
+      },
+      {
+        "ref": "src/styles/tap-zone.css:127",
+        "pattern": ".ui-seg--underline { row-gap: var(--space-1"
+      }
+    ],
+    "text-edge": [
+      {
+        "ref": "src/styles/segmented.css:114",
+        "pattern": "padding: var(--space-1)"
+      },
+      {
+        "ref": "src/styles/segmented.css:123",
+        "pattern": "padding: var(--space-3)"
+      }
+    ]
+  },
   "_microcopy.js": {
     "state-not-destination": [
       {
-        "ref": "src/components/topbar.js:11",
+        "ref": "src/components/topbar.js:12",
         "pattern": "show the saved choice"
       },
       {
-        "ref": "src/components/topbar.js:113",
+        "ref": "src/components/topbar.js:114",
         "pattern": "btn.setAttribute('aria-label', name)"
       },
       {
@@ -642,7 +704,7 @@
         "pattern": "an empty label falls back to the icon"
       },
       {
-        "ref": "src/components/index.js:85",
+        "ref": "src/components/index.js:87",
         "pattern": "not an accessible name"
       }
     ]
@@ -784,35 +846,35 @@
         "pattern": "outline: var(--ring);"
       },
       {
-        "ref": "src/tokens/tokens.css:284",
+        "ref": "src/tokens/tokens.css:297",
         "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
       }
     ],
     "busy": [
       {
         "ref": "src/components/index.js:40",
-        "pattern": "busy \u21d2 disabled"
+        "pattern": "busy ⇒ disabled"
       },
       {
         "ref": "src/styles/button.css:154",
         "pattern": ".ui-btn[aria-busy=\"true\"] {"
       },
       {
-        "ref": "stories/contrast-dark.test.js:48",
+        "ref": "stories/contrast-dark.test.js:34",
         "pattern": "inactive components and their whole subtree"
       }
     ],
     "error-in-markup": [
       {
-        "ref": "src/components/index.js:182",
+        "ref": "src/components/index.js:223",
         "pattern": "`invalid` paints the control red AND says so in aria-invalid"
       },
       {
-        "ref": "src/components/index.js:168",
+        "ref": "src/components/index.js:209",
         "pattern": "'aria-describedby': msgId,"
       },
       {
-        "ref": "src/components/index.js:154",
+        "ref": "src/components/index.js:188",
         "pattern": "markup rather than in the label's wording"
       }
     ],
@@ -826,7 +888,7 @@
         "pattern": "export function setBusy(root,"
       },
       {
-        "ref": "src/components/index.js:249",
+        "ref": "src/components/index.js:290",
         "pattern": "role=\"status\" aria-live=\"polite\""
       }
     ]
@@ -841,7 +903,7 @@
     ],
     "useful-callouts": [
       {
-        "ref": "src/components/index.js:217",
+        "ref": "src/components/index.js:258",
         "pattern": "export function callout("
       }
     ]
@@ -867,7 +929,7 @@
   "_empty-states.js": {
     "next-action": [
       {
-        "ref": "src/components/index.js:272",
+        "ref": "src/components/index.js:313",
         "pattern": "export function emptyState({ art, icon: ic, title, sub, actions } = {}) {"
       }
     ]
@@ -879,7 +941,7 @@
         "pattern": ".ui-drop__row {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:108",
+        "ref": "react/src/FileDrop.tsx:143",
         "pattern": "className=\"ui-drop__row\""
       }
     ],
@@ -889,7 +951,7 @@
         "pattern": ".ui-drop__target {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:161",
+        "ref": "react/src/FileDrop.tsx:191",
         "pattern": "className=\"ui-drop__target\""
       }
     ],
@@ -899,7 +961,7 @@
         "pattern": ".ui-drop__file {"
       },
       {
-        "ref": "react/src/FileDrop.tsx:144",
+        "ref": "react/src/FileDrop.tsx:179",
         "pattern": "role=\"progressbar\""
       }
     ],
@@ -909,19 +971,19 @@
         "pattern": ".ui-drop__error"
       },
       {
-        "ref": "react/src/FileDrop.tsx:118",
+        "ref": "react/src/FileDrop.tsx:152",
         "pattern": "status === 'error' && onRetry"
       }
     ],
     "button-path": [
       {
-        "ref": "react/src/FileDrop.tsx:151",
+        "ref": "react/src/FileDrop.tsx:103",
         "pattern": "input.current?.click()"
       }
     ],
     "limits-once": [
       {
-        "ref": "react/src/FileDrop.tsx:152",
+        "ref": "react/src/FileDrop.tsx:187",
         "pattern": "className=\"ui-drop__note\""
       }
     ],
@@ -931,7 +993,7 @@
         "pattern": ".ui-drop > * + .ui-drop__row"
       },
       {
-        "ref": "react/src/FileDrop.tsx:107",
+        "ref": "react/src/FileDrop.tsx:142",
         "pattern": "{children}"
       }
     ]
@@ -949,31 +1011,31 @@
     ],
     "nav": [
       {
-        "ref": "src/components/nav.js:106",
+        "ref": "src/components/nav.js:107",
         "pattern": "export function sidebarNav("
       },
       {
-        "ref": "src/components/account-nav.js:14",
+        "ref": "src/components/account-nav.js:15",
         "pattern": "export const ACCOUNT_NAV = ["
       }
     ],
     "menu": [
       {
-        "ref": "src/components/topbar.js:57",
+        "ref": "src/components/topbar.js:58",
         "pattern": "export function accountMenu("
       },
       {
-        "ref": "src/components/topbar.js:83",
+        "ref": "src/components/topbar.js:84",
         "pattern": "Sign out"
       }
     ],
     "in-row": [
       {
-        "ref": "src/components/index.js:210",
+        "ref": "src/components/index.js:251",
         "pattern": "export function switchToggle("
       },
       {
-        "ref": "src/styles/card.css:100",
+        "ref": "src/styles/card.css:107",
         "pattern": ".ui-card__row {"
       }
     ],
@@ -1029,15 +1091,15 @@
     ],
     "link-to-the-report": [
       {
-        "ref": "src/styles/table.css:116",
+        "ref": "src/styles/table.css:105",
         "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
       },
       {
-        "ref": "src/styles/table.css:135",
+        "ref": "src/styles/table.css:124",
         "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
       },
       {
-        "ref": "src/styles/table.css:267",
+        "ref": "src/styles/table.css:256",
         "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
       },
       {
@@ -1047,7 +1109,7 @@
     ],
     "report-depth": [
       {
-        "ref": "src/styles/table.css:88",
+        "ref": "src/styles/table.css:79",
         "pattern": ".ui-table--dense td"
       }
     ],

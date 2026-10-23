@@ -87,6 +87,7 @@ type Entry = {
   initialFocus: HTMLElement | null;
   close: () => void;
   opener: Element | null; // had focus when this one opened, and gets it back when it closes
+  fallback: Element | null; // receives focus when the opener is no longer visible
   resume: Element | null; // had focus in this one when another opened over it
 };
 
@@ -144,14 +145,18 @@ function sync() {
   }
 }
 
-// Mirrors the vanilla overlay's returnFocus (src/components/overlay.js): the opener if it
-// is still on the page, else whatever took its id in a re-render, else the page itself.
-// overlay.js reaches the page with body.focus(), a no-op on a body with no tabindex, so
-// blur() is used instead: it lands on <body> and leaves nothing focused in the dialog.
-function returnFocus(opener: Element | null) {
+// The opener can be replaced by an element with the same id. Feedback also supplies
+// its pill when the opener disappears or becomes hidden. Other dialogs still blur to
+// the page when they have no opener.
+function returnFocus(opener: Element | null, fallback: Element | null) {
   const live = opener && !opener.isConnected && opener.id ? document.getElementById(opener.id) : opener;
-  if (live?.isConnected) (live as HTMLElement).focus?.();
-  if (document.activeElement !== live) (document.activeElement as HTMLElement | null)?.blur?.();
+  const visible = live?.isConnected && (!fallback || (live instanceof HTMLElement
+    && !live.closest('[hidden], [aria-hidden="true"], [inert]')
+    && !live.matches(':disabled, [aria-disabled="true"]')
+    && (typeof live.checkVisibility !== 'function' || live.checkVisibility({ visibilityProperty: true }))));
+  const target = visible ? live : (fallback?.isConnected ? fallback : null);
+  if (target) (target as HTMLElement).focus?.();
+  if (document.activeElement !== target) (document.activeElement as HTMLElement | null)?.blur?.();
 }
 
 function enter(entry: Entry) {
@@ -186,7 +191,7 @@ function exit(entry: Entry) {
   sync();
   if (above) return;
   const next = stack[stack.length - 1];
-  if (!next) { returnFocus(entry.opener); return; }
+  if (!next) { returnFocus(entry.opener, entry.fallback); return; }
   // The next one down is live again: focus goes back where it was in it.
   const back = [entry.opener, next.resume].find((el) => el?.isConnected && next.panel.contains(el));
   ((back as HTMLElement | undefined) ?? firstIn(next)).focus();
@@ -269,7 +274,7 @@ export function usePresence(open: boolean, root: Ref, panel: Ref) {
  * reach unless the caller supplies initialFocus. On close, `exit` returns focus.
  * Returns the dialog's scope, which Modal and Drawer provide to what they render.
  */
-export function useDialog(active: boolean, { root, panel, body, initialFocus }: { root: Ref; panel: Ref; body: Ref; initialFocus?: Ref },
+export function useDialog(active: boolean, { root, panel, body, initialFocus, fallbackFocus }: { root: Ref; panel: Ref; body: Ref; initialFocus?: Ref; fallbackFocus?: Ref },
   onClose: () => void): Scope {
   const parent = useContext(DialogScope);
   const [scope] = useState<Scope>(() => ({ parent }));
@@ -284,7 +289,7 @@ export function useDialog(active: boolean, { root, panel, body, initialFocus }: 
     const entry: Entry = {
       scope, root: root.current, panel: panel.current, body: body.current,
       initialFocus: initialFocus?.current ?? null,
-      close: () => close.current(), opener: document.activeElement, resume: null,
+      close: () => close.current(), opener: document.activeElement, fallback: fallbackFocus?.current ?? null, resume: null,
     };
     enter(entry);
     return () => exit(entry);
