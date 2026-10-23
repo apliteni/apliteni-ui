@@ -260,7 +260,3 @@
 }
 
 @keyframes ui-spin { to { transform: rotate(360deg); } }
-
-/* A host's a:link can outrank the variant on a link. The disabled link keeps
-   the shared disabled ink above. */
-a.ui-btn.ui-btn--primary:not([aria-disabled="true"]) { color: var(--accent-contrast); }

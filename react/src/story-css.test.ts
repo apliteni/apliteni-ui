@@ -164,6 +164,8 @@ const GLUE_CEILING = 22;
 // The record form keeps its two columns down to the phone step (#458), which takes a grid
 // declaration for the fields and one for their phone rule. It paints nothing.
 const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
+  // The landing story keeps the vanilla bento order and the six demos at the card feet.
+  'react/src/Landing.stories.tsx': { glue: 28 },
   'react/src/AccentPicker.stories.tsx': { shadow: 3 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
   'react/src/Button.stories.tsx': { shadow: 1 },
