@@ -109,6 +109,7 @@ const ALLOWED: Record<string, string> = {
   // Space between two kit parts belongs to whatever stacks them, and these stack by hand.
   'react/src/DocumentReview.stories.tsx|.doc-flow__sheet .ui-skel + .ui-skel': 'the preview stacks its skeleton bars by hand',
   'react/src/PeriodPicker.stories.tsx|.ui-card__title': 'the title is the first line of this card',
+  'react/src/Landing.stories.tsx|.ui-section-head': 'the accent card closes its heading with the card padding',
 
   // One column of one table reads left because it holds text. The kit right-aligns a
   // footer label on the assumption it spans to sit against its figure; here it owns a
