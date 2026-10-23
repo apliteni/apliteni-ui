@@ -20,7 +20,7 @@
    Declared for the shell as well as the nav, because the shell's rail is this
    nav with an inset around it, and two copies of 41 is the drift itself. */
 .ui-nav--side,
-.ui-app { --ui-nav-col: 216px; --ui-nav-strip: 41px; }
+.ui-app, .ui-app__drawer { --ui-nav-col: 216px; --ui-nav-strip: 41px; }
 .ui-nav--side {
   display: flex;
   flex-direction: column;

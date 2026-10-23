@@ -17,7 +17,6 @@ const sections = [
 function Example(args: Partial<AppShellProps>) {
   const [pathname, setPathname] = useState('/reports');
   return <AppShell sections={sections} pathname={pathname} title="Reports" word="Demo"
-    lede="Review the latest reports for the demo workspace."
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}
     renderLink={(section, props) => <a {...props} onClick={(event) => {
       props.onClick?.(event);
@@ -25,7 +24,6 @@ function Example(args: Partial<AppShellProps>) {
       event.preventDefault(); setPathname(section.href);
     }} />}
     {...args}>
-    <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
       <Card title="Weekly activity">
         <KeyValueList rows={[
           { label: 'Period', value: '21–27 September 2026' },
@@ -41,7 +39,6 @@ function Example(args: Partial<AppShellProps>) {
           { label: 'Includes', value: 'Files and activity' },
         ]} />
       </Card>
-    </div>
   </AppShell>;
 }
 const render = (args: AppShellProps) => <Example {...args} />;
@@ -71,3 +68,9 @@ export const Phone: Story = { render, globals: { viewport: { value: 'phone', isR
 export const PhoneDropdown: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { bandControl: <Dropdown variant="menu" ariaLabel="Workspace" triggerContent="Workspace"
     items={[{ label: 'Demo workspace', value: 'demo' }, { label: 'Sample workspace', value: 'sample' }]} /> } };
+
+export const RailCentered: Story = { render, args: { layout: 'rail' } };
+export const RailWide: Story = { render, args: { layout: 'rail', width: 'wide' } };
+export const RailFolded: Story = { render, args: { layout: 'rail', defaultCollapsed: true } };
+export const RailPhone: Story = { render, args: { layout: 'rail' },
+  globals: { viewport: { value: 'phone', isRotated: false } } };

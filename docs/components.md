@@ -1113,7 +1113,9 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   control, or to the pill if that control is unavailable.
 - **`Timeline`** renders your events from oldest to newest. **Only the last event's marker is
   filled.** A new ID in a non-empty history plays an entrance. Editing existing IDs does not.
-- **`AppShell`** shares the vanilla fold cookie and 720px fold. The longest matching section
+- **`AppShell`** shares the vanilla fold cookie and 720px fold. `layout="rail"` places the
+  account at the rail foot and leaves only Sign out in its menu. It shows no section counts.
+  The existing band layout stays the default. The longest matching section
   path wins. **At 720px and below, a menu button and the brand mark on the band replace the
   rail:** the button opens the full section list in the left drawer, and the page takes the full
   width. A press on a section, Escape or a wider window closes the drawer, and focus returns to

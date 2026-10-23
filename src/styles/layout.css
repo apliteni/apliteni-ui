@@ -157,8 +157,8 @@
    glyph column and itself is the inset that centres it on the line every glyph above
    it stands on. The arithmetic and not the 5.5 it comes to: both numbers are declared
    elsewhere. why: docs/components.md#the-page-shell */
-.ui-app { --ui-app-av: 30px; }
 .ui-app__av {
+  --ui-app-av: 30px;
   width: var(--ui-app-av); height: var(--ui-app-av); flex: none;
   margin-inline-start: calc((var(--ui-nav-strip) - var(--ui-app-av)) / 2);
   display: grid;
@@ -176,7 +176,7 @@
    rather than the dropdown's pill — in place it is the last row of the rail. The
    dropdown's own ring is left standing. why: docs/components.md#the-page-shell */
 .ui-app__user .ui-dropdown { width: 100%; }
-.ui-app .ui-app__user-trigger {
+.ui-app .ui-app__user-trigger, .ui-app__drawer .ui-app__user-trigger {
   width: 100%;
   gap: var(--space-2);
   /* As tall as the mark inside it plus its own padding — 30 + 4 + 4, written out
@@ -193,7 +193,7 @@
   font-weight: inherit;
   letter-spacing: normal;
 }
-.ui-app .ui-app__user-trigger:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-app .ui-app__user-trigger:hover, .ui-app__drawer .ui-app__user-trigger:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-app__user-trigger .ui-app__who { flex: 1 1 auto; text-align: left; }
 /* The panel is portalled onto <body>, so nothing here may hang off .ui-app: by the
    time it is open it is no longer inside the rail that drew it.
@@ -537,6 +537,7 @@
   .ui-app__drawer .ui-nav__cap { display: none; }
   .ui-app__drawer .ui-drawer__footer { justify-content: flex-start; }
   .ui-app__drawer .ui-app__user { width: 100%; }
+  .ui-drawer__footer > .ui-app__drawer { width: 100%; }
   /* A finger is the only pointer this width has, so a row and the account block are
      held to 44px. why: docs/components.md#the-page-shell */
   .ui-app__drawer .ui-nav__item,
