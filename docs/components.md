@@ -1115,6 +1115,7 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   filled.** A new ID in a non-empty history plays an entrance. Editing existing IDs does not.
 - **`AppShell`** shares the vanilla fold cookie and 720px fold. `layout="rail"` places the
   account at the rail foot and leaves only Sign out in its menu. It shows no section counts.
+  Pass `crumbs` to show a breadcrumb before the page title when there is no `back` link.
   The existing band layout stays the default. The longest matching section
   path wins. **At 720px and below, a menu button and the brand mark on the band replace the
   rail:** the button opens the full section list in the left drawer, and the page takes the full

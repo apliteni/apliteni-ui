@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type ComponentPropsWithoutRef, type
 import { paletteHotkey, prism, railCollapsed } from '@apliteni/apliteni-ui';
 import { SidebarNav } from './SidebarNav';
 import { BackLink } from './BackLink';
+import { Breadcrumbs, type BreadcrumbItem } from './Breadcrumbs';
 import { CommandPalette, type CommandPaletteProps } from './CommandPalette';
 import { Drawer } from './Drawer';
 import { Dropdown } from './Dropdown';
@@ -25,6 +26,7 @@ export type AppShellProps = {
   brandHref?: string;
   width?: 'centered' | 'wide';
   back?: { href: string; label: string };
+  crumbs?: readonly BreadcrumbItem[];
   lede?: string;
   actions?: ReactNode;
   bandControl?: ReactNode;
@@ -44,7 +46,7 @@ export type AppShellProps = {
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
 export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar',
-  brandHref = '/', width = 'centered', back, lede, actions, bandControl, account, onSignOut,
+  brandHref = '/', width = 'centered', back, crumbs, lede, actions, bandControl, account, onSignOut,
   searchLabel = 'Search or run a command…', searchShortLabel = 'Search',
   defaultCollapsed = false, palette, renderLink }: AppShellProps) {
   const uid = useId();
@@ -135,7 +137,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     <span className="ui-nav__label">{foldLabel}</span>
   </button></div>;
   const page = <main className={`ui-app__main${width === 'wide' ? ' ui-app__main--wide' : ''}`}>
-    {back && <BackLink {...back} />}<h1>{title}</h1>
+    {back ? <BackLink {...back} /> : crumbs?.length ? <Breadcrumbs items={crumbs} /> : null}<h1>{title}</h1>
     {lede && <p className="ui-app__sub">{lede}</p>}
     {actions && <div className="ui-react-app__actions">{actions}</div>}
     <div className="ui-app__body">{children}</div>

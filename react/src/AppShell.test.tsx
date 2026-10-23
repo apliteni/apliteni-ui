@@ -14,6 +14,14 @@ const sections = [
 const props = { sections, pathname: '/reports/weekly', title: 'Weekly report', account: { name: 'Demo User', email: 'demo@example.com' }, onSignOut: vi.fn() };
 afterEach(() => { cleanup(); document.cookie = 'apliteni-ui-rail=; Max-Age=0; path=/'; });
 
+it('places breadcrumbs before the page title', () => {
+  render(<AppShell {...props} layout="rail" crumbs={[{ label: 'Finance', href: '/' }, { label: 'Payouts' }]} />);
+  const main = screen.getByRole('main');
+  expect(main.firstElementChild).toBe(screen.getByRole('navigation', { name: 'Breadcrumb' }));
+  expect(within(main).getByRole('link', { name: 'Finance' })).toHaveAttribute('href', '/');
+  expect(within(main).getByText('Payouts').closest('.ui-nav__crumb')).toHaveAttribute('aria-current', 'page');
+});
+
 it('uses the longest matching route, keeps counts in link names, and forwards router props', () => {
   const { rerender } = render(<AppShell {...props} renderLink={(item, link) => <a {...link} data-router={item.href} />} />);
   const rail = within(screen.getByRole('navigation', { name: 'Sections' }));

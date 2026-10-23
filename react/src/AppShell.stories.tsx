@@ -2,42 +2,51 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { AppShell, type AppShellProps } from './AppShell';
 import { Card } from './primitives/Card';
-import { KeyValueList } from './KeyValueList';
 import { Badge } from './primitives/Badge';
+import { DataTable } from './DataTable';
 import { Button } from './primitives/Button';
 import { Dropdown } from './Dropdown';
 
 const sections = [
-  { href: '/overview', label: 'Overview', icon: 'home' },
-  { href: '/reports', label: 'Reports', icon: 'chart', count: 3 },
-  { href: '/files', label: 'Files', icon: 'folder' },
-  { href: '/settings', label: 'Settings', icon: 'gear' },
-  { href: '/support', label: 'Support', icon: 'mail' },
+  { href: '/overview', label: 'Overview', icon: 'chart' },
+  { href: '/campaigns', label: 'Campaigns', icon: 'card' },
+  { href: '/reports', label: 'Reports', icon: 'table' },
+  { href: '/agents', label: 'Access & agents', icon: 'user' },
+  { href: '/prefs', label: 'Preferences', icon: 'gear' },
 ];
+
+const rows = [
+  { name: 'Northwind Traders', day: '2026-09-11', net: '4,200.00', status: 'Paid' },
+  { name: 'Globex', day: '2026-09-10', net: '860.00', status: 'Pending' },
+  { name: 'Initech', day: '2026-09-09', net: '1,975.50', status: 'Pending' },
+  { name: 'Umbrella', day: '2026-09-08', net: '312.40', status: 'Paid' },
+];
+const columns = [
+  { key: 'name', label: 'Client' },
+  { key: 'day', label: 'Arrival' },
+  { key: 'net', label: 'Net (EUR)', num: true },
+  { key: 'status', label: 'Status', render: (row: typeof rows[number]) =>
+    <Badge variant={row.status === 'Paid' ? 'success' : 'warning'}>{row.status}</Badge> },
+] satisfies import('./DataTable').Column<typeof rows[number]>[];
+
 function Example(args: Partial<AppShellProps>) {
   const [pathname, setPathname] = useState('/reports');
-  return <AppShell sections={sections} pathname={pathname} title="Reports" word="Demo"
-    account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}
+  const width = args.width === 'wide' ? 'wide' : 'centered';
+  return <AppShell sections={sections} pathname={pathname} title="Payouts" word="Finance"
+    crumbs={[{ label: 'Finance', href: '#' }, { label: 'Payouts' }]}
+    lede="Two of the four that arrived this week are waiting for a second approval."
+    account={{ name: 'Ada Lovelace', email: 'ada@apliteni.com' }} onSignOut={() => {}}
     renderLink={(section, props) => <a {...props} onClick={(event) => {
       props.onClick?.(event);
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault(); setPathname(section.href);
     }} />}
     {...args}>
-      <Card title="Weekly activity">
-        <KeyValueList rows={[
-          { label: 'Period', value: '21–27 September 2026' },
-          { label: 'Status', value: <Badge variant="success">Ready</Badge> },
-          { label: 'Files', value: '12 added' },
-          { label: 'Updated', value: '26 September 2026' },
-        ]} />
+      <Card title="Payouts this week">
+        <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense zebra hover={false} />
       </Card>
-      <Card title="Report schedule">
-        <KeyValueList rows={[
-          { label: 'Frequency', value: 'Every Monday' },
-          { label: 'Format', value: 'CSV' },
-          { label: 'Includes', value: 'Files and activity' },
-        ]} />
+      <Card title="What the width does">
+        <p>This screen is the <b>{width}</b> column. The wide column fills the well; the centred one is capped and sits in the middle of it.</p>
       </Card>
   </AppShell>;
 }

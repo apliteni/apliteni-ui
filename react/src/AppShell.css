@@ -20,6 +20,8 @@
   /* The menu, mark, search word, switch and account keep their boxes at 320px.
      The band control gives the last eight pixels to the search word there. */
   .ui-react-app .ui-app__bar { gap: var(--space-1); padding-inline: var(--space-2); }
+  /* The rail band keeps the vanilla gap between Menu and the brand mark. */
+  .ui-react-app .ui-app__bar--phone { gap: var(--space-3); }
   /* A band without the menu starts on the page column; menu bands keep their compact inset. */
   .ui-react-app .ui-app__bar:not(:has(> .ui-app__menu:first-child)) { padding-inline-start: var(--space-4); }
   .ui-react-app .ui-app__bar-gap { display: none; }
