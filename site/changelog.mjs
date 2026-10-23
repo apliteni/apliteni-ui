@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.139.0', date: '2026-10-23',
+    changes: [
+      ['added', 'React `AuthShell` places the brand and one sign-in or consent task in a centered card. Static sign-in, consent, and access-granted stories use the kit’s vanilla auth layout. Part of #429.', ['AuthShell']],
+    ],
+  },
+  {
     v: '0.138.0', date: '2026-10-21',
     changes: [
       ['added', 'React TopBar, ViewSwitch, VersionSwitcher and AccountMenu build the strategy top bar from slots, with the existing look and the two phone rows. Part of #429.', ['Topbar']],

@@ -907,6 +907,10 @@ keeps its direction visible on a phone.
 label or a sort control of its own. It is how a React table opts a column of ID or identity links
 into the filled cell described under Dense financial tables.
 
+### React auth shell
+
+`AuthShell` centers one auth card and places the brand above its content. Pass the brand and the task content as React elements. The shell adds no background glow.
+
 ### React fields
 
 `TextField`, `TextArea`, `SelectField` and `FileField` generate IDs for their controls and
