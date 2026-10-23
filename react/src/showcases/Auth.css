@@ -1,5 +1,6 @@
 .auth-form { display: flex; flex-direction: column; gap: 18px; }
 .auth-actions { display: flex; gap: 10px; }
-.auth-grant-note { margin: 14px 0 22px; }
-.auth-granted { margin: 16px 0 6px; padding: 16px 0 6px; text-align: center; }
+.auth-google-foot { margin-top: 22px; }
+.auth-granted { padding: 16px 0 6px; text-align: center; }
+.auth-granted-sub { max-width: 34ch; margin: 0 auto; }
 .auth-granted-action { margin-top: 22px; }

@@ -44,10 +44,8 @@ const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 
 // DataTable, Field, KeyValueList and Timeline size glyphs on both axes.
 // Change the count with the sizing rules and explain removals.
-// Was 12 while the invoice showcase sized its own status and error glyphs. #459 r37 gave
-// those two jobs to the kit — a <Badge> for the record's state and a <Callout> for the
-// refusal — so the showcase sizes no glyph of its own and the count returns to 8.
-const EXPECTED_SUBJECTS = 8;
+// AuthShell adds four measured sizes for the consent arrow and revocation lock.
+const EXPECTED_SUBJECTS = 12;
 
 /* Every directory under react/src the walk refused to enter. SKIP_DIRS prunes by
  * NAME wherever the name turns up, which is what build output needs and what

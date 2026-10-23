@@ -1,4 +1,5 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+import './AuthShell.css';
 
 export type AuthShellProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
   brand: ReactNode;
