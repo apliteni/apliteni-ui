@@ -77,10 +77,10 @@ const subjects: string[] = [...new Set([
   ...files.filter((f) => f.endsWith('.css')).filter((f) => isShowcaseSheet(f) || storyOnlySheet(f)),
 ])].sort();
 
-// Measured, not guessed: 39 stories and four showcase sheets, as this gate last
+// Measured, not guessed: the story and stylesheet floors, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows.
-const FOUND = { subjects: 42, declarations: 394, carriers: 33, sheets: 4 };
+const FOUND = { subjects: 44, declarations: 399, carriers: 33, sheets: 5 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -192,7 +192,8 @@ describe('story CSS', () => {
     expect(subjects.length).toBeGreaterThanOrEqual(FOUND.subjects);
     expect(subjects.filter((f) => f.endsWith('.css'))).toEqual([
       'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
-      'react/src/FinanceComposition.css', 'react/src/showcases/InvoiceFlow.css',
+      'react/src/FinanceComposition.css', 'react/src/showcases/Auth.css',
+      'react/src/showcases/InvoiceFlow.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.

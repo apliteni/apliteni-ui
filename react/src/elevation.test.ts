@@ -69,7 +69,7 @@ function walk(sheets: Sheet[], theme: string) {
 
 describe('elevation', () => {
   it('sweeps every stylesheet this workspace ships', () => {
-    expect(SHEETS).toEqual(['./AppShell.css', './DataTable.css', './DatePicker.css', './DocumentReview.css', './FeedbackShowcase.css', './Field.css', './FinanceComposition.css', './KeyValueList.css', './Modal.css', './ThemeToggle.css', './Timeline.css', './Toast.css', './showcases/InvoiceFlow.css']);
+    expect(SHEETS).toEqual(['./AppShell.css', './DataTable.css', './DatePicker.css', './DocumentReview.css', './FeedbackShowcase.css', './Field.css', './FinanceComposition.css', './KeyValueList.css', './Modal.css', './ThemeToggle.css', './Timeline.css', './Toast.css', './showcases/Auth.css', './showcases/InvoiceFlow.css']);
   });
 
   it('casts nothing but a rung of the ladder', () => {

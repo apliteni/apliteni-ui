@@ -53,7 +53,7 @@ import {
 const THEMES = ['dark', 'light'] as const;
 // 64 base fields, twelve invoice fields, and one Card setting row Switch.
 // Move this count with the specimens.
-const FIELD_COUNT = 77;
+const FIELD_COUNT = 81;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

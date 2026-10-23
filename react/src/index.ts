@@ -98,6 +98,8 @@ export type { ToastNotice, ToastProps } from './Toast';
 
 export { AppShell } from './AppShell';
 export type { AppShellProps, AppShellSection } from './AppShell';
+export { AuthShell } from './AuthShell';
+export type { AuthShellProps } from './AuthShell';
 export { Footer } from './Footer';
 export type { FooterProps, FooterLink, FooterColumn, FooterSocial } from './Footer';
 export { EmptyState } from './EmptyState';
