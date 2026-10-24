@@ -486,7 +486,7 @@
         "pattern": "export const iconOnlyAllowed"
       },
       {
-        "ref": "stories/guidelines/iconography.test.js:249",
+        "ref": "stories/guidelines/iconography.test.js:256",
         "pattern": "every icon-only control is one the closed list allows"
       },
       {
@@ -1077,7 +1077,7 @@
         "pattern": "const named = iconOnly"
       },
       {
-        "ref": "stories/guidelines/iconography.test.js:249",
+        "ref": "stories/guidelines/iconography.test.js:256",
         "pattern": "every icon-only control is one the closed list allows"
       }
     ]

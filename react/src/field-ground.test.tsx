@@ -10,7 +10,10 @@
 // Share the calculation but check each workspace separately.
 //
 // Limits, read before trusting a green run:
-//  - Every *.stories.tsx under react/src, which is the whole published catalogue.
+//  - Every *.stories.tsx under react/src, which is the whole published catalogue,
+//    and the foundation pages under stories/. Not stories/guidelines/: as on the
+//    vanilla side, a guideline page's specimens stand on its own stage, drawn by the
+//    page's own sheet, and that ground is the page's decision rather than this one's.
 //    A vanilla gallery is the other gate's subject and is not reached from here.
 //  - Winning declarations in JSDOM, not pixels: a rule inside a media query is
 //    unmeasured, and so is anything that depends on layout.
@@ -111,9 +114,10 @@ type Discovered = {
   args: Record<string, unknown>;
 };
 
-// The same glob a11y.test.tsx and react/.storybook/main.ts use, so a new story
-// file is in the gate the moment it exists. Subjects are discovered, not listed.
-const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx'], { eager: true });
+// The glob a11y.test.tsx and react/.storybook/main.ts use, less the guideline pages
+// (see the limits above), so a new story file is in the gate the moment it exists.
+// Subjects are discovered, not listed.
+const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx', '!../../stories/guidelines/**'], { eager: true });
 const files = Object.keys(modules).sort();
 
 /**

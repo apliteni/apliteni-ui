@@ -21,7 +21,7 @@ export const mono = (text) => String(text).split(/(`[^`]+`|\[[^\]]+\]\(https:\/\
 // --measure does NOT replace it — this grid sizes to its widest SPECIMEN, not
 // to a page.
 // why: docs/foundations.md#boxes-below-the-page
-const SPEC_CSS = `
+export const SPEC_CSS = `
   <style>
     .gl { --gl-specimen: var(--panel-md);
           --gl-cell: calc(var(--gl-specimen) + var(--space-5) * 2);
@@ -65,7 +65,7 @@ export const GROUND_CSS = `
   </style>`;
 export const ground = (html) => `<div class="gl-page">${html}</div>`;
 
-const PAGE_CSS = `
+export const PAGE_CSS = `
   <style>
     .gc { max-width: var(--gl-page); }
     .gc > h1 { font: 700 27px/1.2 var(--font-display); letter-spacing: -.02em; color: var(--strong); margin-bottom: var(--space-6); }
