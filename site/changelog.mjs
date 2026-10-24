@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.140.0', date: '2026-10-24',
+    changes: [
+      ['added', 'The React landing page story shows the strategy page with kit cards, controls and a phone stack that starts with Agent-ready. Part of #429.', ['Landing Page']],
+    ],
+  },
+  {
     v: '0.139.0', date: '2026-10-23',
     changes: [
       ['added', 'React `AuthShell` centers a sign-in card and places the brand above its content. Consumers supply the sign-in content as React elements. Part of #429.', ['AuthShell']],
