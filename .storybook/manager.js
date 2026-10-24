@@ -3,6 +3,12 @@ import { create } from 'storybook/theming';
 import { SET_GLOBALS, GLOBALS_UPDATED } from 'storybook/internal/core-events';
 import { INSPECTOR_TOOL_ID, INSPECTOR_TOOL_TITLE, renderInspectorToggle } from './inspector-toggle.jsx';
 import { THEME_TOOL_ID, THEME_TOOL_TITLE, renderThemeToggle } from './theme-toggle.jsx';
+import { redirectedSearch } from './redirects.js';
+
+// An old component link lands on its React story. This runs as the manager's entry
+// loads, before its router reads the address, so the reader never sees "not found".
+const moved = redirectedSearch(window.location.search);
+if (moved) window.history.replaceState(null, '', `${window.location.pathname}${moved}${window.location.hash}`);
 
 // The prism mark + wordmark as the sidebar logo (kit tokens). The wordmark is a
 // brand mark, so it keeps the display face (Poppins) while the chrome around it

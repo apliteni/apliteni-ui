@@ -11,9 +11,11 @@
 //
 // Limits, read before trusting a green run:
 //  - Every *.stories.tsx under react/src, which is the whole published catalogue,
-//    and the foundation pages under stories/. Not stories/guidelines/: as on the
-//    vanilla side, a guideline page's specimens stand on its own stage, drawn by the
-//    page's own sheet, and that ground is the page's decision rather than this one's.
+//    and the foundation and showcase pages under stories/. Not stories/guidelines/: as
+//    on the vanilla side, a guideline page's specimens stand on its own stage, and that
+//    ground is the page's decision rather than this one's. Nor the Empty states
+//    showcase, whose search toolbar stands on the finance page's own ground, which the
+//    vanilla walk also leaves to that page.
 //    A vanilla gallery is the other gate's subject and is not reached from here.
 //  - Winning declarations in JSDOM, not pixels: a rule inside a media query is
 //    unmeasured, and so is anything that depends on layout.
@@ -56,9 +58,11 @@ import {
 const THEMES = ['dark', 'light'] as const;
 // 64 base fields, twelve invoice fields, one Card setting row Switch and the four
 // sign-in TextFields, then five from the foundation pages (#429 PR 4): one Switch on
-// each of the four Sub-themes panels and the Signal contrast field.
+// each of the four Sub-themes panels and the Signal contrast field. Then six from the
+// showcases (#429 PR 4): the agent name field on two Access screens and the four
+// Preferences switches. The sign-in fields moved to the showcases with their stories.
 // Move this count with the specimens.
-const FIELD_COUNT = 86;
+const FIELD_COUNT = 92;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
@@ -114,10 +118,10 @@ type Discovered = {
   args: Record<string, unknown>;
 };
 
-// The glob a11y.test.tsx and react/.storybook/main.ts use, less the guideline pages
+// The glob a11y.test.tsx and react/.storybook/main.ts use, less the guideline pages and one showcase
 // (see the limits above), so a new story file is in the gate the moment it exists.
 // Subjects are discovered, not listed.
-const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx', '!../../stories/guidelines/**'], { eager: true });
+const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx', '!../../stories/guidelines/**', '!../../stories/apps/EmptyStates.stories.tsx'], { eager: true });
 const files = Object.keys(modules).sort();
 
 /**

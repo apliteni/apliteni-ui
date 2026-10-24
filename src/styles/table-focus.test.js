@@ -227,6 +227,8 @@ test("every link in a table cell takes the kit ring", () => {
   // 6 -> 7: #513 renders the unmarked direct-link shape in the stacked pinned story.
   // 7 -> 8: #429 draws the Dashboards and reports page in React too, so its exceptions
   // specimen links a payout reference from the TSX page as well as from the vanilla one.
+  // 8 -> 10: #429 draws the Finance dashboard and report in React too, so each of their
+  // cell links has a TSX twin until the vanilla files are removed.
   // 4 -> 5: #505's Finance dashboard and the exceptions specimen on the
   // Dashboards and reports page each link a payout reference out of a cell, and
   // the Finance report and the guideline's ledger stopped: a reference on the
@@ -234,7 +236,7 @@ test("every link in a table cell takes the kit ring", () => {
   // left to go and is the row's own text now.
   assert.equal(
     subjects.length,
-    8,
+    10,
     "every link the kit writes in a cell must be measured; update this count with the " +
       `subjects, which are now:\n${subjects.map((s) => `${s.file}: ${s.link}`).join("\n")}`,
   );
