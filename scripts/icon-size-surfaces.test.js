@@ -5,7 +5,7 @@
  * why: docs/foundations.md#icons-and-glyphs */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
@@ -56,14 +56,17 @@ const rel = (p) => path.relative(root, p);
 // across five before #127, and 12 before #217. #507's File drop page added two,
 // drawing the tall box a product writes for itself and sizing its glyph, and
 // #463's landing rebuild took two out: the bento grid went with `.bIcon svg` and
-// `.bico svg`, and the decisions row brought `.glyphs svg` back.
-const EXPECTED_SUBJECTS = 16;
+// `.bico svg`, and the decisions row brought `.glyphs svg` back. #429 PR 4 added two:
+// the React Iconography page carries the same `.ic-glyph svg` rule as the vanilla one,
+// and both are rendered until the vanilla delete takes the vanilla file and its two.
+const EXPECTED_SUBJECTS = 18;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes
  * a shared module like _finance-nav.js a surface without being named as one. */
 function storyFiles() {
-  const roots = walk(storiesDir).filter((p) => /\.stories\.(js|mjs)$/.test(p));
+  // .tsx since #429 PR 4: the React Storybook serves stories/**/*.stories.tsx as well.
+  const roots = walk(storiesDir).filter((p) => /\.stories\.(js|mjs|tsx)$/.test(p));
   assert.ok(roots.length > 0, 'found no *.stories.js under stories/ — the sweep is broken, not the kit.');
   const seen = new Set();
   const queue = [...roots];
@@ -72,7 +75,9 @@ function storyFiles() {
     if (seen.has(file)) continue;
     seen.add(file);
     for (const m of readFileSync(file, 'utf8').matchAll(/\bfrom\s+['"](\.[^'"]+)['"]/g)) {
-      const target = path.resolve(path.dirname(file), m[1]);
+      const bare = path.resolve(path.dirname(file), m[1]);
+      // A .tsx story imports without an extension, the way a bundler resolves it.
+      const target = [bare, `${bare}.tsx`, `${bare}.ts`, `${bare}.js`].find((p) => existsSync(p) && statSync(p).isFile()) ?? bare;
       // src/ is the other gate's territory, and it has no <style> blocks anyway.
       if (target.startsWith(storiesDir)) queue.push(target);
     }

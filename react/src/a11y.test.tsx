@@ -29,7 +29,7 @@ type StoryModule = { default?: { render?: Story['render']; args?: Story['args'] 
 
 // Same glob Storybook uses (react/.storybook/main.ts), so a new story file is in
 // the gate the moment it exists — nobody has to remember to register it here.
-const modules = import.meta.glob<StoryModule>('./**/*.stories.tsx', { eager: true });
+const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx'], { eager: true });
 const files = Object.keys(modules).sort();
 
 afterEach(cleanup);

@@ -42,10 +42,13 @@ function filesUnder(rel: string, acc: string[] = []): string[] {
   return acc;
 }
 
-// What react/.storybook/main.ts serves: `../src/**/*.stories.@(tsx|ts)`. Recursive, and
-// two extensions — so this sweep is too. A sweep narrower than the glob gates less than
-// Storybook ships, and the gap is silent: the aggregate counts below stay green while a
-// story in a new folder paints whatever it likes.
+// What react/.storybook/main.ts serves from this workspace: `../src/**/*.stories.@(tsx|ts)`.
+// Recursive, and two extensions — so this sweep is too. A sweep narrower than the glob gates
+// less than Storybook ships, and the gap is silent: the aggregate counts below stay green
+// while a story in a new folder paints whatever it likes. The same config also serves
+// `../../stories/**`, the foundation and guideline pages moved over in #429 PR 4. Those
+// pages are deliberately not subjects, for the reason stories/story-css.test.js gives:
+// their own gates measure them.
 const SERVED = /\.stories\.tsx?$/;
 
 const files = filesUnder('react/src');

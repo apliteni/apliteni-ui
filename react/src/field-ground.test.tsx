@@ -51,9 +51,11 @@ import {
 } from '../../stories/lib/field-ground.js';
 
 const THEMES = ['dark', 'light'] as const;
-// 64 base fields, twelve invoice fields, and one Card setting row Switch.
+// 64 base fields, twelve invoice fields, one Card setting row Switch and the four
+// sign-in TextFields, then five from the foundation pages (#429 PR 4): one Switch on
+// each of the four Sub-themes panels and the Signal contrast field.
 // Move this count with the specimens.
-const FIELD_COUNT = 81;
+const FIELD_COUNT = 86;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
@@ -111,7 +113,7 @@ type Discovered = {
 
 // The same glob a11y.test.tsx and react/.storybook/main.ts use, so a new story
 // file is in the gate the moment it exists. Subjects are discovered, not listed.
-const modules = import.meta.glob<StoryModule>('./**/*.stories.tsx', { eager: true });
+const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx'], { eager: true });
 const files = Object.keys(modules).sort();
 
 /**

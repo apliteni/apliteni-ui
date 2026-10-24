@@ -21,7 +21,7 @@ import path from 'node:path';
 import {
   AA_TEXT, composite, parseColour, ratio, substitute, tokensFor,
 } from './lib/contrast.js';
-import { ACCENT as PANELS, accentVars } from './foundations/SubThemes.stories.js';
+import { ACCENT as PANELS, accentVars } from './foundations/sub-themes.js';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -415,7 +415,7 @@ test('the sub-theme story paints the accent tokens it claims to mirror', () => {
   assert.deepEqual(
     drift,
     [],
-    `\n${drift.join('\n')}\n\nstories/foundations/SubThemes.stories.js hand-copies the accent `
+    `\n${drift.join('\n')}\n\nstories/foundations/sub-themes.js hand-copies the accent `
     + 'family so each preview panel is self-contained, and a hand-copied value goes stale the next '
     + 'time a token moves. The page\'s whole subject is what each accent\'s tokens are, so a stale '
     + 'literal is the page stating something the kit does not ship. Fix the table, not this test.',

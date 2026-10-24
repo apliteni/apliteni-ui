@@ -28,7 +28,7 @@ type StoryModule = { default?: { render?: Story['render']; args?: Story['args'] 
 
 // The same glob a11y.test.tsx and react/.storybook/main.ts use, so a new story
 // file is in the gate the moment it exists.
-const modules = import.meta.glob<StoryModule>('./**/*.stories.tsx', { eager: true });
+const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx'], { eager: true });
 const files = Object.keys(modules).sort();
 
 // KEYS only, the way contrast.test.tsx discovers them: this workspace's own
