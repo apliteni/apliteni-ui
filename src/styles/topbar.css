@@ -208,10 +208,7 @@
 /* Hover fills the row. Only keyboard focus draws its outline. */
 .vopt:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 :where(:root[data-theme="light"]) .vopt:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-@media (forced-colors: active) {
-  .vopt:hover { border: 1px solid Highlight; padding: 9px 12px; }
-}
-/* The row is a keyboard stop: src/components/dropdown.js:1663
+/* The row is a keyboard stop: src/components/dropdown.js:1191
    `items[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
    the arrow keys, and this is one. It takes the ring on its own 10px radius, the
    same way `.amenu a` above does. #482 */

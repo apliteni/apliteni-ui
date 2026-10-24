@@ -201,7 +201,6 @@
 }
 /* The last cell gave up its end gap above, so the link it holds gives up the same. */
 .ui-table td.ui-table__linked:where(:last-child) > :is(a:not([class]), a.ui-identity):only-child { padding-right: 0; }
-:where(.ui-table--hover:not(.ui-table--zebra)) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-4); }
 .ui-table--dense td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-2) var(--space-3); }
 .ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-1) var(--space-3); }
 /* Zebra insets the row's END cells only, so the fill does too: a marked identity behind a
@@ -323,10 +322,10 @@
    not one. why: guidelines/dense-tables.md */
 .ui-table-scroll {
   overflow: auto; max-height: var(--ui-table-height, 70vh);
-  /* A transparent border, not padding: positioned cells cover an outline on the scrollport's
-     padding. The side and bottom bands draw in the border at the visible edge at every scroll
-     position. why: docs/foundations.md#the-focus-ring */
-  border: 0 solid transparent; border-inline-width: var(--space-1); border-bottom-width: var(--space-1); background-origin: border-box;
+  /* A transparent border, not padding: a sticky cell is positioned and paints over an outline on
+     any padding the scrollport holds, so the ring's side bands sat under the header. Cells clip
+     at the content edge, and the ring draws in the border. why: docs/foundations.md#the-focus-ring */
+  border: 0 solid transparent; border-inline-width: var(--space-1); background-origin: border-box;
   background-color: var(--table-bg);
   background-image:
     linear-gradient(to right, var(--table-bg) 50%, transparent),
@@ -356,9 +355,6 @@
    of the first and last, rather than under them. #531
    why: docs/foundations.md#the-focus-ring */
 .ui-table-scroll:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
-@media (forced-colors: active) {
-  .ui-table-scroll { border-color: Canvas; }
-}
 .ui-table--sticky { border-collapse: separate; border-spacing: 0; }
 .ui-table--sticky thead th { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--table-bg); padding-top: var(--space-2); }
 /* The header sticks at the region's top edge, which is where the inward band draws, and a
@@ -367,6 +363,9 @@
    the region's border, which no cell reaches.
    why: docs/foundations.md#the-focus-ring */
 .ui-table-scroll:focus-visible .ui-table--sticky thead th { clip-path: inset(calc(var(--ring-gap-width) + var(--ring-width)) 0 0 0); }
+/* A pinned cell of the last row sits on the region's bottom edge and covers the band there, so
+   it gives up the same depth from the bottom. why: docs/foundations.md#the-focus-ring */
+.ui-table-scroll:focus-visible .ui-table--pinned > :last-child > tr:last-child > :is(.ui-table__identity, .ui-table__selection) { clip-path: inset(0 0 calc(var(--ring-gap-width) + var(--ring-width)) 0); }
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); border-right: 1px solid var(--border); }
 .ui-table--pinned thead .ui-table__identity, .ui-table--pinned thead .ui-table__selection { z-index: calc(var(--z-sticky) + 1); }
 /* The divider is the pin's edge: it says the column stayed while the rest moved under it.

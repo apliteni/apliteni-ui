@@ -60,7 +60,6 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^
 /** `(max-width: 560px)` and its conjunctions. Anything else is a case this cannot judge. */
 const mediaApplies = (condition, width) =>
   condition.split(/\s+and\s+/).map((p) => p.trim()).every((part) => {
-    if (part === '(forced-colors: active)') return false;
     const m = /^\((max|min)-width:\s*(\d+(?:\.\d+)?)px\)$/.exec(part);
     assert.ok(m, `table.css asks a media condition this gate cannot evaluate: ${part}`);
     return m[1] === 'max' ? width <= Number(m[2]) : width >= Number(m[2]);

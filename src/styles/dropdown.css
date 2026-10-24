@@ -6,22 +6,6 @@
  * ========================================================================== */
 
 .ui-dropdown { position: relative; display: inline-flex; }
-/* Inside a scrolling body the wiring writes --ui-dropdown-reach when it opens the
-   panel: the distance from the trigger to one edge inset past the panel. The panel is
-   the last thing the body holds, so the body ends where the panel ends; this 1px spot
-   lets it scroll that far. It stays through the fade and until the reader has scrolled
-   out of it, so closing does not move the field, and it paints nothing.
-   why: docs/components.md#the-dropdown-panel */
-.ui-dropdown[style*="--ui-dropdown-reach"]::after {
-  content: "";
-  position: absolute;
-  inset-inline-start: 0;
-  top: 100%;
-  width: 1px;
-  height: 1px;
-  margin-top: var(--ui-dropdown-reach);
-  pointer-events: none;
-}
 
 /* Trigger — pill button: [pre] [value] [chevron] */
 .ui-dropdown__trigger {
@@ -94,9 +78,6 @@
   flex: none;
 }
 .ui-dropdown.open .ui-dropdown__chevron { transform: translateY(var(--caret-off)) rotate(-135deg); }
-@media (forced-colors: active) {
-  .ui-dropdown__chevron { background: none; border-right: var(--caret-ink) solid ButtonText; border-bottom: var(--caret-ink) solid ButtonText; }
-}
 
 /* Panel — the popover surface */
 .ui-dropdown__panel {
@@ -110,26 +91,12 @@
      the screen's edge sets it to 0.
      why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-edge: 8px;
-  /* What a panel that opens down inside a Modal or Drawer body keeps between its end
-     and the body's end. The drop shadow fades out over 43px in light and 15px in dark,
-     measured from pixels; the body clips whatever is left of it. 48px is the 8px
-     step above the light figure. why: docs/components.md#the-dropdown-panel */
-  --ui-dropdown-shade: 48px;
   /* The least height a capped panel keeps before it would rather spend the edge
      inset above than shrink further — three rows or so. Below it the panel
      still ends at or before the edge; it never spends room past the edge to
      reach this floor, because that room does not exist. #489
      why: docs/components.md#the-dropdown-panel */
   --ui-dropdown-min: 120px;
-  /* The tallest a panel grows before it scrolls inside itself. It is the figure the
-     reference systems settle on, 256 to 300px, and the one `scroll` and the search
-     list already used. The wiring stops the cap short of it, in the middle of a row
-     (--ui-dropdown-fit), so the last row is cut and the list is seen to go on. That
-     shows 7 whole rows and half of the eighth in a plain list, 4 and a half with a
-     description line, 5 and a half under a search field and 3 and a half with both.
-     A consumer asks for another cap with `scroll: <n>`.
-     why: docs/components.md#the-dropdown-panel */
-  --ui-dropdown-max: 300px;
   /* Named for the same reason the offset is: a block pinned to an edge has to
      bleed back through it, and #306 is a page copying the number by hand.
      why: docs/components.md#the-dropdown-panel */
@@ -178,18 +145,15 @@
   /* The cap, and the whole of #489: a panel took its content's height until that
      height ran off the screen, and then it took what was left. Two numbers decide
      it and the smaller wins — --ui-dropdown-cap is what the consumer asked for
-     (the `scroll` option writes it, and --ui-dropdown-max stands in when it is
-     unset), --ui-dropdown-avail is the room between the trigger and the viewport
-     edge, or the body's, which the wiring measures when the panel opens. Between
-     them --ui-dropdown-fit is the height the wiring stops the smaller at, in the
-     middle of a row. An unset avail
-     means nothing has measured yet, which is a server-rendered page before
-     hydration — so the fallback promises the same thing at a coarser grain, the
-     viewport less the edge inset at each end.
+     (the `scroll` option writes it), --ui-dropdown-avail is the room between the
+     trigger and the viewport edge, which the wiring measures on every open and
+     every scroll. Neither is declared here: an unset cap means the consumer wants
+     the whole list, and an unset avail means nothing has measured yet, which is a
+     server-rendered page before hydration — so the fallback promises the same
+     thing at a coarser grain, the viewport less the edge inset at each end.
      why: docs/components.md#the-dropdown-panel */
   max-height: min(
-    var(--ui-dropdown-cap, var(--ui-dropdown-max)),
-    var(--ui-dropdown-fit, 100dvh),
+    var(--ui-dropdown-cap, 100dvh),
     var(--ui-dropdown-avail, calc(100dvh - 2 * var(--ui-dropdown-edge)))
   );
   overflow-y: auto;
@@ -212,46 +176,29 @@
   z-index: var(--z-dropdown);
 }
 .ui-dropdown__panel.is-end { left: auto; right: 0; }
-/* `.is-scroll` asks for the standard cap by name; the panel above caps every panel
-   at the room the viewport left either way. #489 */
-.ui-dropdown__panel.is-scroll { --ui-dropdown-cap: var(--ui-dropdown-max); }
+/* `.is-scroll` asks for 300px specifically; the panel above caps every panel at
+   the room the viewport left either way. #489 */
+.ui-dropdown__panel.is-scroll { --ui-dropdown-cap: 300px; }
 
-/* On a phone, the panel keeps the page's 16px margin at the shell fold.
+/* On a phone the page keeps --space-4 beside its content (.ui-app__main), so a panel
+   that kept the desktop 8px crossed that margin by half of it. The panel keeps the
+   page's own margin from the edge at the shell's fold.
    why: docs/components.md#the-dropdown-panel */
 @media (max-width: 720px) {
   .ui-dropdown__panel { --ui-dropdown-edge: var(--space-4); }
 }
 
-/* The wiring adds this where the room is below the floor: even spending the whole
-   edge inset, there is no usable height. The panel keeps its cap — it is never
-   taller than 300px — and scrolls inside it. Its room runs past the fold, so the
-   page is the way to the rows below it, and `overscroll-behavior: contain` above
-   would stop the wheel at the panel's own end instead of passing it on. `auto`
-   lets it through. why: dropdownAvail(), src/logic/dropdown.js */
-.ui-dropdown__panel.is-unbounded { overscroll-behavior: auto; }
-
-/* The wiring lifts a panel out of a Modal or Drawer body too short to hold the field's
-   label and trigger, the floor and the 8px edge under it. Fixed, it opens over the
-   body the way a portalled panel does, and the wiring writes its edges from the
-   trigger's. The value is the side it opens on. why: docs/components.md#the-dropdown-panel */
-.ui-dropdown__panel[data-dd-lifted] { position: fixed; }
-.ui-dropdown__panel[data-dd-lifted="up"] { transform: translateY(6px); }
-
-/* A search list that carries the consumer's own cap keeps it, and the panel is that cap
-   and the search field over it. The wiring writes the sum as --ui-dropdown-fit; this
-   lifts the standard cap out of its way. why: docs/components.md#the-dropdown-panel */
-.ui-dropdown__panel--search:has(> .ui-dropdown__list[style*="--ui-dropdown-cap"]) { --ui-dropdown-max: 100dvh; }
-
-/* A shut panel is still laid out, and a box that is laid out counts towards the
-   scroll of the body or page it sits in. The wiring collapses it once its fade is
-   over and gives the box back before the next open measures it. The width stays, so
-   the horizontal fit reads the same number. why: docs/components.md#the-dropdown-panel */
-.ui-dropdown__panel[data-dd-shut] {
-  max-height: 0;
-  padding-block: 0;
-  border-block-width: 0;
-  overflow: hidden;
-}
+/* The wiring adds this where the floor (above) left the panel uncapped: below
+   120px even spending the whole edge inset, there is no usable cap, so the
+   panel keeps its content height and the page grows to hold it instead —
+   #641's danger 1. That panel has nothing of its own to scroll, so the
+   `overflow-y: auto` above still claims a wheel over it for nothing, and
+   `overscroll-behavior: contain` then stops the gesture from reaching the
+   page that is now the only way to the rows below the fold. `visible` lets it
+   through. A panel that also carries `.is-scroll` or a numeric cap keeps
+   `auto`: that cap is still real room to scroll inside. why: dropdownAvail(),
+   src/logic/dropdown.js */
+.ui-dropdown__panel.is-unbounded { overflow-y: visible; }
 
 /* Chrome makes a scroll container a keyboard stop on its own — no tabindex, no
    author rule — so `.is-scroll` took the browser's outline, black in light mode.
@@ -337,9 +284,6 @@
    takes on hover, one step under the --surface-2 that .is-active takes below.
    why: docs/foundations.md#elevation */
 :where(:root[data-theme="light"]) .ui-dropdown__item:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-@media (forced-colors: active) {
-  .ui-dropdown__item:hover { border: 1px solid Highlight; padding: 8px 11px; }
-}
 /* The row draws its ring inward, so a row scrolled flush with the list's edge cannot have it
    clipped and the list scrolls as it did.
    why: docs/foundations.md#the-focus-ring */
@@ -470,7 +414,7 @@
 
 /* The rows' own cap, read from the same property the panel reads: the `scroll`
    option lands on the list when there is a field above it. #489 */
-.ui-dropdown__list { max-height: var(--ui-dropdown-cap, var(--ui-dropdown-fit, var(--ui-dropdown-max, 300px))); overflow-y: auto; overscroll-behavior: contain; }
+.ui-dropdown__list { max-height: var(--ui-dropdown-cap, 300px); overflow-y: auto; overscroll-behavior: contain; }
 /* Rows are `role="option" tabindex="-1"`, so the LIST takes the keyboard stop and
    answered with the native outline. The band is drawn INWARD, on the list: an outset
    one 6px inside a --radius-lg corner leaves the panel, and the panel is not the box

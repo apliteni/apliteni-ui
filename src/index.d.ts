@@ -95,38 +95,6 @@ export declare function dropdownHeightFit(
   dd: Element | null | undefined,
   panel: Element | null | undefined,
 ): number | null;
-/** Stop an open panel's height where it cuts a row through the middle, so the list
- *  reads as going on: the smaller of its cap and its measured room. Call it with the
- *  panel laid out and its room written.
- *  why: docs/components.md#the-dropdown-panel */
-export declare function dropdownSnap(
-  dd: Element | null | undefined,
-  panel: Element | null | undefined,
-): void;
-/** Lift an open panel out of a Modal or Drawer body too short to hold its field and
- *  the panel's floor, so it opens over the body the way a portalled panel does, or put a
- *  lifted one back. Returns whether the panel is lifted.
- *  why: docs/components.md#the-dropdown-panel */
-export declare function dropdownLift(
-  dd: Element | null | undefined,
-  panel: Element | null | undefined,
-): boolean;
-/** Scroll the body an open panel sits in the least distance that shows the whole
- *  panel and its field's label, with the room under the panel kept. Returns the distance scrolled, 0 when
- *  nothing moved. why: docs/components.md#the-dropdown-panel */
-export declare function dropdownReveal(
-  dd: Element | null | undefined,
-  panel: Element | null | undefined,
-): number;
-/** Give an open panel its box, and take the box away from a shut one once its fade is
- *  over, so a shut panel adds no scroll room. Returns a function that cancels a
- *  collapse still waiting. why: docs/components.md#the-dropdown-panel */
-export declare function dropdownRest(
-  dd: Element | null | undefined,
-  panel: Element | null | undefined,
-  open: boolean,
-  wait?: number,
-): () => void;
 export declare function backLink(opts?: Record<string, unknown>): string;
 export declare function statBand(opts?: Record<string, unknown>): string;
 export declare function commandPalette(opts?: Record<string, unknown>): string;

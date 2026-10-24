@@ -202,7 +202,7 @@ export const Closed: StoryObj<typeof Dropdown> = {
  * why: docs/components.md#the-dropdown-panel */
 const Ends = ({ children }: { children: React.ReactNode }) => (
   <div style={{
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)', width: '100%',
   }}
   >
     {children}
@@ -257,18 +257,6 @@ export const BottomEdge: StoryObj<typeof Dropdown> = {
     <EdgeStage bottomGap={300}>
       <Dropdown items={TWELVE} ariaLabel="Account" triggerContent="Account" defaultOpen />
     </EdgeStage>
-  ),
-};
-
-// Thirty rows and no `scroll`, with the room to spare: the panel stops at 300px, in the
-// middle of a row, so the cut row shows that the list goes on.
-// stories/dropdown-reach.test.js opens this story by id and counts the rows it shows.
-const THIRTY: DropdownEntry[] = Array.from({ length: 30 }, (_, i) => ({ label: `Row ${i + 1}`, value: String(i + 1) }));
-export const LongList: StoryObj<typeof Dropdown> = {
-  render: () => (
-    <div style={{ minHeight: 400 }}>
-      <Dropdown items={THIRTY} ariaLabel="Account" triggerContent="Account" defaultOpen />
-    </div>
   ),
 };
 
