@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.139.0', date: '2026-10-23',
+    changes: [
+      ['added', 'React `AuthShell` centers a sign-in card and places the brand above its content. Consumers supply the sign-in content as React elements. Part of #429.', ['AuthShell']],
+    ],
+  },
+  {
     v: '0.138.0', date: '2026-10-21',
     changes: [
       ['added', 'React TopBar, ViewSwitch, VersionSwitcher and AccountMenu build the strategy top bar from slots, with the existing look and the two phone rows. Part of #429.', ['Topbar']],
