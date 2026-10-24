@@ -35,17 +35,20 @@ tokens.
 
 ## Storybook
 
-`@storybook/html-vite` renders the kit's strings: a story calls a factory and puts the
-returned string on the canvas.
+`@storybook/react-vite` renders React stories: the component stories in `react/src/` and the
+foundation, guideline and showcase pages in `stories/`, all as `.stories.tsx`.
 
-```js
-export default { title: 'Components/Button' };
-export const Playground = { render: () => button({ label: 'Save', variant: 'primary' }) };
+```tsx
+const meta: Meta = { title: 'React/Button' };
+export default meta;
+export const Primary: StoryObj = { render: () => <Button variant="primary">Save</Button> };
 ```
 
-A decorator applies the toolbar's globals to `<html>`, paints the canvas with the theme's
-`--bg` and calls `wireTopbar()`, so every story is viewable in two themes and four accents
-with no code of its own. Do not wire theming or `wireTopbar` yourself.
+A decorator applies the toolbar's globals to `<html>` and paints the canvas with the theme's
+`--bg`, so every story is viewable in two themes and four accents with no code of its own. Do
+not wire theming yourself. The vanilla `.stories.js` files stay on disk for the Node gates
+until the vanilla kit is removed, but Storybook does not build them. An old component link
+redirects to its React story; `.storybook/redirects.js` holds the table.
 
 The toolbar has a **Theme** toggle that shows the theme you are in and flips it in one
 click, plus **Inspect** and **Accent** dropdowns. The config is in `.storybook/`:
@@ -54,8 +57,8 @@ and the section order, and `manager.js` with `manager-head.html` for the Storybo
 own brand.
 
 Stories are grouped by `title` into four sections: **Foundations**, **Guidelines**,
-**Components** (one kit factory each) and **Showcases** (whole pages that use the components,
-with shared scaffolding in `stories/apps/_*.js`).
+**React** (one component each) and **Showcases** (whole pages that use the components, with
+shared scaffolding in `stories/apps/_*.tsx`).
 
 ```bash
 npm run storybook          # dev, on port 6006

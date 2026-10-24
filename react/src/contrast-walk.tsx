@@ -77,6 +77,7 @@ type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string 
 // change and nobody deciding — which is the opposite of what this list is for.
 // Adding a story that paints these classes should turn the gate red and make
 // somebody look.
+const ACCESS_STORY = '../../stories/apps/Access.stories.tsx:Default';
 const SNIPPET_STORIES = new Set([
   './Snippet.stories.tsx:Shell',
   './Snippet.stories.tsx:Json',
@@ -86,6 +87,9 @@ const SNIPPET_STORIES = new Set([
   './Snippet.stories.tsx:CopyHover',
   './Snippet.stories.tsx:Copied',
   './Snippet.stories.tsx:KeyboardFocus',
+  // The Access showcase's connect command (#429, PR 4): the vanilla ledger's E and C
+  // count this pair across every story, that showcase's snippet included.
+  ACCESS_STORY,
 ]);
 // At rest, and only at rest. The walk re-measures a container's descendants in a state
 // when a state rule on that container can change a captured colour; `.ui-snippet:has(pre
@@ -106,7 +110,7 @@ const SIGNAL_STORY = '../../stories/foundations/SignalContrast.stories.tsx:Diagn
 const MOTION_PLAYGROUND = '../../stories/foundations/Motion.stories.tsx:Playground';
 const onlyIn = (f: Finding, story: string) => [...f.stories].every(s => s === story);
 /** Whole stories the ledger counts, dealt to part 0 with the snippet file. */
-const LEDGER_STORIES = new Set([PALETTE_STORY, SIGNAL_STORY, MOTION_PLAYGROUND]);
+const LEDGER_STORIES = new Set([PALETTE_STORY, SIGNAL_STORY, MOTION_PLAYGROUND, ACCESS_STORY]);
 const LEDGER: LedgerEntry[] = [
   {
     match: f => snippetDebt(f) && f.fg === 'rgb(12, 143, 168)'

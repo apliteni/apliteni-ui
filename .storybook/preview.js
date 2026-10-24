@@ -1,13 +1,14 @@
-import '../src/index.css';
-import { wireTopbar, applyTheme } from '../src/components/topbar.js';
-import { wireNav } from '../src/components/nav.js';
-import { wireShell } from '../src/components/shell.js';
-import { wireDrawer } from '../src/components/drawer.js';
-import { wireConfirm } from '../src/components/confirm.js';
-import { wireCommandPalette } from '../src/components/command-palette.js';
-import { initTabs } from '../src/components/tabs.js';
-import { wireTooltip } from '../src/components/tooltip.js';
+// The one Storybook's preview (#429, PR 4): every story is React now, so the
+// decorator renders the story and sets the theme and accent on the document root,
+// and the vanilla kit's behaviour wiring is gone with the vanilla stories.
+import { createElement, useEffect } from 'react';
+import '@apliteni/apliteni-ui/css';
 import { wireStoryLinks } from '../stories/lib/story-link.js';
+import { redirectedSearch } from './redirects.js';
+
+// A bare preview opened on an old component id (iframe.html?id=…) renders its React story.
+const moved = redirectedSearch(window.location.search);
+if (moved) window.history.replaceState(null, '', `${window.location.pathname}${moved}${window.location.hash}`);
 
 // Load both faces once (Storybook manager/preview iframe). The kit names two
 // families — Poppins for --font-display, IBM Plex Sans for --font-sans — and a
@@ -89,7 +90,16 @@ function paintInspector(on) {
   };
 }
 
-/** @type { import('@storybook/html').Preview } */
+// Paints the inspector over the story once it has laid out, and clears it when off.
+function Inspector({ mode, children }) {
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => paintInspector(mode));
+    return () => cancelAnimationFrame(frame);
+  });
+  return children;
+}
+
+/** @type { import('@storybook/react').Preview } */
 const preview = {
   parameters: {
     layout: 'centered',
@@ -150,31 +160,24 @@ const preview = {
   },
 
   decorators: [
-    (story, ctx) => {
+    (Story, ctx) => {
       // Before the first story renders, because what it answers is the arrival this
       // frame was already asked for. stories/lib/story-link.js wires it once.
       wireStoryLinks();
-      const theme = ctx.globals.theme || 'dark';
+      const theme = ctx.globals.theme === 'light' ? 'light' : 'dark';
       const accent = ctx.globals.accent || 'default';
-      applyTheme(theme, document.documentElement);
-      if (accent === 'default') document.documentElement.removeAttribute('data-accent');
-      else document.documentElement.setAttribute('data-accent', accent);
+      const root = document.documentElement;
+      // The choice first, so the React ThemeToggle reads it rather than a stored one.
+      root.setAttribute('data-theme-choice', theme);
+      root.setAttribute('data-theme', theme);
+      window.dispatchEvent(new Event('apliteni-theme-choice'));
+      if (accent === 'default') root.removeAttribute('data-accent');
+      else root.setAttribute('data-accent', accent);
       // Paint the whole canvas with the theme bg so centered/padded stories read true.
-      const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
-      const root = document.getElementById('storybook-root') || document.body;
-      root.style.background = bg;
+      const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
+      (document.getElementById('storybook-root') || document.body).style.background = bg;
       document.body.style.background = bg;
-
-      const wrap = document.createElement('div');
-      const out = story();
-      if (typeof out === 'string') wrap.innerHTML = out; else wrap.append(out);
-      // Wire interactive behaviours after render.
-      requestAnimationFrame(() => {
-        wireTopbar(wrap); wireShell(wrap); wireNav(wrap); wireDrawer(wrap); wireConfirm(wrap); wireCommandPalette(wrap); initTabs(wrap); wireTooltip(wrap);
-        // Repaint the inspector overlay after layout settles (or clear it when off).
-        requestAnimationFrame(() => paintInspector(ctx.globals.inspect));
-      });
-      return wrap;
+      return createElement(Inspector, { mode: ctx.globals.inspect }, createElement(Story));
     },
   ],
 };
