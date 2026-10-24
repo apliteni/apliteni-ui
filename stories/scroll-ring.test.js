@@ -320,22 +320,6 @@ test('forced-colour selection marks cannot replace focus rings', () => {
 const FORCED = /forced-colors\s*:\s*active/;
 const INDICATOR = /^(outline|box-shadow)/;
 const PERMITTED_FORCED = {
-  '.ui-dropdown__chevron': {
-    why: 'forced colours remove gradient images, so the chevron needs two system-colour borders. The mark is decorative and carries no focus indicator.',
-    props: ['background', 'border-right', 'border-bottom'],
-  },
-  '.ui-dropdown__item:hover': {
-    why: 'forced colours remove the quiet hover fill. A Highlight border restores pointer feedback, while reduced padding keeps the row and text in place.',
-    props: ['border', 'padding'],
-  },
-  '.vopt:hover': {
-    why: 'forced colours remove the quiet hover fill. A Highlight border restores pointer feedback, while reduced padding keeps the row and text in place.',
-    props: ['border', 'padding'],
-  },
-  '.ui-table-scroll': {
-    why: 'forced colours repaint transparent borders black. Canvas keeps reserved ring space light so the inward focus band remains distinct.',
-    props: ['border-color'],
-  },
   '.ui-app.is-collapsed .ui-app__rail .ui-nav__item:is(.is-active, .is-current):is(:hover, :focus-visible) > .ui-nav__label': {
     why: 'the rail\'s floating name for a selected row on hover or focus. It is the rail\'s own '
       + 'label, painted Canvas and CanvasText so it reads over the page. It carries no '

@@ -472,15 +472,6 @@
       ]
     },
     {
-      "file": "stories/dropdown-reach.test.js",
-      "name": "Dropdown reach",
-      "does": "Opens a select in a Modal, a Drawer, a page and a wrapper inside a body, in both kits, and checks that the whole panel, the field's label and the trigger stay in view through End and Escape. In the React half it runs axe's aria-input-field-name rule on the open listbox.",
-      "blind": [
-        "Every other axe rule. It asks only whether the open listbox has a name.",
-        "Touch, a real phone, Safari and Firefox. The browser half runs only on request, in Chromium."
-      ]
-    },
-    {
       "file": "stories/field-zoom.test.js",
       "name": "Field zoom",
       "does": "Mounts stories without styles and checks whether the touch-zoom selector matches their fields. Reads declarations for the 16px important net. Rejects larger field sizes that the net would shrink, competing important font sizes, and other coarse-pointer field-size rules.",
@@ -1035,14 +1026,6 @@
       "does": "Reads the layout sheet and checks that the folded rail and the phone rail close their rows and the account trigger to the strip width, so the rail clip leaves the focus ring on all four sides. A mutation that removes the width rule proves rejection.",
       "blind": [
         "Source only. It reads the rule's selectors and its width, not the cascade around them, and it paints nothing. The ring itself is measured in a browser and reported on the pull request."
-      ]
-    },
-    {
-      "file": "stories/forced-colors-regression.test.js",
-      "name": "Forced-colour controls and table band",
-      "does": "Uses Chromium forced colours in both themes. Checks that the Dropdown chevron keeps border arms, Dropdown and version rows keep a hover border, and the table scroller keeps a Canvas border and a distinct focus outline. A missing-chevron mutation proves rejection.",
-      "blind": [
-        "The fixture covers one Dropdown, one version row and one table scroller. It does not measure every consumer composition or a screen reader's announcement."
       ]
     }
   ],

@@ -117,7 +117,7 @@ what a factory accepts. They do not describe what the factory does.
 | `input`, `textarea`, `select`, `checkbox`, `switchToggle` | The controls `field` wraps; each also renders on its own. |
 | `segmented({ options, active, size, block, name, ariaLabel })` + `segmentedNextIndex(key, index, length)`, `initSegmented(root)` | Toolbar of toggle buttons. See [Segmented or tabs?](#segmented-or-tabs) and [Segmented strips that outgrow their column](#segmented-strips-that-outgrow-their-column). |
 | `tabs({ items, active, name, ariaLabel })` + `initTabs(root)` | Tablist and its panels, one per item. |
-| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search, disabled })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `disabled: true` turns the trigger off: no keyboard stop, no panel, and the kit's unavailable paint. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit. `filterPanelFit(dd, floor)` with `DD_MENU_FLOOR` is the same for an anchored filter menu: inside `.ui-filter-bar` an **open** menu takes the kit's 240px floor rather than its trigger's width, and a shut one keeps the trigger's. `filterPanelRow(dd)` answers which row such a menu is measured inside: a chip's, or one asking for a width with `--ui-filter-panel-ask`. `dropdownViewportFit(panel)` answers for a panel outside a filter row: how wide it may be and how far it has to move to stay inside the view it is laid out in. `--ui-dropdown-edge` is the gap it keeps from the view's edge. `dropdownHeightFit(dd, panel)` answers how tall an **open** panel may be, which is the room between its trigger and the viewport edge it opens towards. It answers nothing for a closed panel. `dropdownReveal(dd, panel)` scrolls a Modal or Drawer body the least distance that shows an open panel, and answers how far it scrolled; the dropdown wiring calls it for you. `dropdownSnap(dd, panel)` stops an open panel's height in the middle of a row, for any row height and against the measured room; the wiring calls it too, and it keeps a cap the consumer asked for to its number. `dropdownRest(dd, panel, open)` gives an open panel its box and collapses a shut one after its fade, so a shut panel adds no scroll room; the wiring calls it too. `dropdownLift(dd, panel)` lifts an open panel out of a body too short to hold it, and answers whether it did; the wiring calls it too. See [The dropdown panel](#the-dropdown-panel), [A dropdown with a search field](#a-dropdown-with-a-search-field) and [A filter row holds its panels](#a-filter-row-holds-its-panels). |
+| `dropdown({ label, value, variant, items, sections, foot, header, footer, align, direction, portal, scroll, search, disabled })` + `wireDropdown(root)` | Popover list, as a listbox or an action menu. `disabled: true` turns the trigger off: no keyboard stop, no panel, and the kit's unavailable paint. `portal: true` is the answer for a dropdown inside the shell's rail. `dropdownMatch(label, query)` and `dropdownFiltering(query)` are its filter, published so a second implementation asks the kit. `filterPanelFit(dd, floor)` with `DD_MENU_FLOOR` is the same for an anchored filter menu: inside `.ui-filter-bar` an **open** menu takes the kit's 240px floor rather than its trigger's width, and a shut one keeps the trigger's. `filterPanelRow(dd)` answers which row such a menu is measured inside: a chip's, or one asking for a width with `--ui-filter-panel-ask`. `dropdownViewportFit(panel)` answers for a panel outside a filter row: how wide it may be and how far it has to move to stay inside the view it is laid out in. `--ui-dropdown-edge` is the gap it keeps from the view's edge. `dropdownHeightFit(dd, panel)` answers how tall an **open** panel may be, which is the room between its trigger and the viewport edge it opens towards. It answers nothing for a closed panel. See [The dropdown panel](#the-dropdown-panel), [A dropdown with a search field](#a-dropdown-with-a-search-field) and [A filter row holds its panels](#a-filter-row-holds-its-panels). |
 | `filterBar(options)` + `initFilterBar(host, options)`, with `filterChipText`, `filterChipName`, `filterChipUnset`, `filterChipItems`, `nextFocusStop`, `focusNextStop` | The controlled filter row above a table. The consumer owns the filters and calls `update()`. `filterChipItems(filter)` marks the chip's own value in the items it hands its menu, so the line the chip prints and the row the menu marks cannot disagree; a chip that is unset, or whose value is in no row, marks nothing, and a `selected` the consumer set does not stand in for it. `nextFocusStop(host)` names where an emptied bar sends the focus — the way to add a filter still on the row, drawn from `data-filter-add`, else the control a reader's next <kbd>Tab</kbd> would reach; `focusNextStop(host)` puts it there, skipping anything the reader cannot reach, and answers with the element it ended on. See [A filter row holds its panels](#a-filter-row-holds-its-panels). |
 | `pagination({ page, pageSize, total, hasMore, pageSizes, variant, label, loading, href, id })` + `wirePagination(root, …)`, `setPagerStatus(root, text)`, `PAGE_SIZES`, `DEFAULT_PAGE_SIZE` | The strip under a table or list; it renders a page the caller already computed. See [Pagination](#pagination). |
 | `commandPalette({ groups, items, label, placeholder, query, empty, density, hint, rank, hotkey, open, specimen, id })` + `wireCommandPalette`, `openCommandPalette`, `closeCommandPalette`, `commandPaletteList`, `setPaletteResults`, `rankCommands`, `rankGroups`, `scoreCommand`, `SCORE`, `paletteHotkey()` | The ⌘K overlay and the ranking behind it; `SCORE` is the ladder itself, for a server that sorts the same way. See [The command palette](#the-command-palette). |
@@ -284,22 +284,6 @@ The pill label and badge remain readable. Ordinary colours are unchanged.
 
 ### The dropdown panel
 
-Inside a scrolling body, such as a Modal or a Drawer, a dropdown opens below its trigger and scrolls
-the body the least distance that shows the whole panel, with the field's label and the trigger above
-it. The body jumps instead of gliding under `prefers-reduced-motion`. Where the body is tall enough,
-the panel ends `--ui-dropdown-shade`, which is 48px, above the body's end. The drop shadow fades out
-by then, in light and in dark, so the body never clips it and the panel never touches the Modal
-footer. A shorter body spends that room down to the 8px edge. A body that cannot hold the label, the
-trigger, the 120px floor and the 8px edge lifts the panel out of the body. Examples are a Modal with
-a short form and a Drawer on a phone held sideways. A lifted panel opens over the body and its
-footer the way a portalled panel does: below its trigger, or above it where the viewport has more
-room. It follows the trigger while the body scrolls. The ancestor that scrolls is the one whose end
-the reader sees, so a wrapper with `overflow: auto` that does not scroll is passed over, and the
-panel is no taller than the smallest of them shows. A shut panel adds no scroll room at the end of a body or a page. While the reader is
-still scrolled into the room that the open panel needed, that room stays, so closing the panel does
-not move the field. It goes when the reader scrolls out of it. This holds for a page as well as a
-body: at the end of a page, closing a panel with Escape leaves the field where it was.
-
 `dropdown()` places its panel for you. You do not write a rule to move it. `direction` selects
 where it opens: `'down'`, `'up'`, or `'auto'`. `'auto'` flips only when there is not enough room
 below and there is more room above. The head and foot extend through the panel's padding to the
@@ -342,21 +326,12 @@ rows could not be reached, and the wheel over it scrolled the page instead. Capp
 ends inside the viewport and scrolls on its own. Two custom properties decide the height and the
 smaller wins:
 
-- `--ui-dropdown-cap` is what the consumer asked for. Unset, a panel is capped at
-  `--ui-dropdown-max`, which is 300px, and the panel stops there in the middle of a row. A plain list
-  shows 7 rows and half of the eighth. A list with a description line under each label shows 4 and a
-  half. A search panel shows 5 and a half, and 3 and a half with descriptions. The cut row tells the
-  reader that the list goes on, where a cap that ended on a whole label would look complete. The stop
-  is taken against the height the panel gets, which is the smaller of the cap and the room, so a
-  panel that the room limits is cut through a row too. In a body, the stop can spend some of the
-  room under the panel to reach the next half row instead of stopping a whole row short.
-  `scroll: true` is `.is-scroll`, which asks for that standard cap by name; `scroll: <n>` writes it
-  inline, as the property and not `max-height`, because an inline height would outrank the panel's
-  own `min()` and put it back past the edge. A cap you ask for is kept to its number and is not cut.
-  With `search`, it is the list's height, and the panel is the list and the search field over it.
+- `--ui-dropdown-cap` is what the consumer asked for. `scroll: true` is `.is-scroll`, which sets it
+  to 300px; `scroll: <n>` writes it inline, as the property and not `max-height`, because an inline
+  height would outrank the panel's own `min()` and put it back past the edge.
 - `--ui-dropdown-avail` is the measured room. The wiring writes it when a panel opens, or is already
-  open when the wiring attaches, and again on a resize. A portalled or lifted panel follows its
-  trigger, so it is measured again on a scroll too. The room comes from `dropdownAvail()` in `src/logic/dropdown.js` — one calculation, so the vanilla wiring
+  open when the wiring attaches, and re-writes it on every scroll and resize while the panel stays
+  open, from `dropdownAvail()` in `src/logic/dropdown.js` — one calculation, so the vanilla wiring
   and the React `<Dropdown>` cannot disagree about where an open panel ends. `dropdownHeightFit(dd,
   panel)` is that calculation, published so a second implementation can read it instead of measuring
   its own. A closed panel carries no measured room: `--ui-dropdown-avail` stays unwritten, and the
@@ -364,18 +339,10 @@ smaller wins:
   trigger-to-edge room this section promises. A closed panel's height is outside this guarantee;
   sizing one is [#501](https://github.com/apliteni/apliteni-ui/issues/501).
 
-A panel with fewer rows than the cap keeps its content height. A panel is never taller than the cap,
-also where the room is below the floor, as the next paragraph says. An open panel keeps the height
-it opened at while the reader scrolls the page or the body, until the page is resized or the panel
-opens again, so it does not grow or shrink under the reader. On a page, the room the panel keeps
-under itself is the 8px edge, so opening a panel on a page that does not scroll adds no scroll.
-
 A trigger near the edge can leave less room than `--ui-dropdown-min` (120px) wants for a usable
 panel. The floor spends the edge inset, down to nothing, to try to reach 120px, but it never spends
 room past the edge, because that room does not exist. Where even the whole inset falls short of
-120px, an ordinary panel keeps its configured side and its cap, and can grow the page so the reader
-can scroll to the rows past the fold. The wheel over such a panel carries on to the page once the
-panel has reached its own end.
+120px, an ordinary panel keeps its content height and can grow the page so the reader can scroll.
 **A portalled panel flips when its configured side cannot hold the required height and the opposite
 side has more room.** The required height is the floor, or the content height when shorter.
 A smaller consumer cap can reduce that required height. The panel keeps its trigger gap and its resolved side through the close

@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.133.0', date: '2026-10-21',
+    v: '0.132.0', date: '2026-10-21',
     changes: [
       ['changed', 'In `drawerSection()` and React `KeyValueList`, a row whose value is a select, an input or a dropdown now aligns its label with the control by itself. Rows with text values are unchanged.', ['Drawer']],
       ['changed', 'The modal title is now semibold in the strong ink.', ['Modal']],
@@ -20,14 +20,6 @@ export const RELEASES = [
       ['fixed', 'A focused scrolling table with a sticky header or a pinned column shows its focus ring on all four sides.', ['Table']],
       ['fixed', 'A focused row in the folded rail shows its focus ring on all four sides.', ['AppShell']],
       ['fixed', 'The last column of a table, its header and the table edge now share one right edge, so a right-aligned amount lines up with its header. A hover table keeps 16px between its last value and that edge. A table that sets its own end padding on the last cell keeps it.', ['Table']],
-      ['fixed', 'In forced colours, Dropdown chevrons remain visible, hovered Dropdown and version rows keep feedback, and scrolling tables keep a distinct focus band.', ['Dropdown', 'Topbar', 'Table']],
-      ['fixed', 'A linked last table cell keeps its hover inset. React FilterBar leaves focus outside after an unrelated render.', ['Table', 'FilterBar']],
-    ],
-  },
-  {
-    v: '0.132.0', date: '2026-10-21',
-    changes: [
-      ['changed', 'A dropdown in a Modal or Drawer body scrolls the body to show the whole panel with its field\'s label, and a body too short to hold it opens the panel over the body instead. A long list stops through the middle of a row, at 300px or at the room the panel has, and a `scroll: <n>` cap keeps its number, with search too. An open panel keeps one height while the reader scrolls, and opening one on a page that does not scroll adds no scroll. See #627.', ['Dropdown', 'Modal', 'Drawer']],
     ],
   },
   {

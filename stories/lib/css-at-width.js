@@ -18,7 +18,6 @@ export const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, ' ');
  *  is a case a caller cannot judge, so it stops rather than passing over it. */
 export function mediaApplies(condition, width) {
   return condition.split(/\s+and\s+/).map((part) => part.trim()).every((part) => {
-    if (part === '(forced-colors: active)') return false;
     const m = /^\((max|min)-width:\s*(\d+(?:\.\d+)?)px\)$/.exec(part);
     assert.ok(m, `a media condition this gate cannot evaluate: ${part}`);
     return m[1] === 'max' ? width <= Number(m[2]) : width >= Number(m[2]);
