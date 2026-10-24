@@ -1,0 +1,2 @@
+/* The React auth shell aligns the brand inside the kit card. */
+.ui-auth__brand > span { display: flex; }
