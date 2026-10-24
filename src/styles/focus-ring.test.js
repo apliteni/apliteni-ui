@@ -38,7 +38,8 @@ const covered = (selectors, control) => control.classes
 
 test('every link and button the shell writes takes the kit ring', () => {
   const controls = shellControls();
-  assert.equal(controls.length, 5, 'every shell control with a literal class list must be measured');
+  // 5 -> 6: the React rail layout adds the brand link on the phone band.
+  assert.equal(controls.length, 6, 'every shell control with a literal class list must be measured');
   const bare = controls.filter((control) => !covered(ringSelectors(SHEETS), control))
     .map((control) => control.classes.join(' '));
   assert.deepEqual(bare, [], `these shell controls fall back to the native outline: ${bare}`);
