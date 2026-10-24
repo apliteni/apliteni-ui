@@ -14,12 +14,34 @@
    row and the hover wash take the rail's rung there, as layout.css does for the vanilla drawer. */
 :where(:root[data-theme="light"]) .ui-react-app__menu .ui-nav__item:not(.is-danger):not(.is-active):hover { background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
 :where(:root[data-theme="light"]) .ui-react-app__menu .ui-nav__item.is-active { background: var(--surface-3); /* code-bg: inherit — The control keeps the containing ground. */ }
+/* The rail layout's drawer is portalled to the page, outside .ui-app, so it carries the
+   shell's measures and the account trigger's rail look itself. why: docs/components.md#the-page-shell */
+.ui-app__drawer { --ui-nav-col: 216px; --ui-nav-strip: 41px; --ui-app-av: 30px; }
+.ui-app__drawer .ui-app__user-trigger {
+  width: 100%;
+  gap: var(--space-2);
+  min-height: 38px;
+  padding: var(--space-1) 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: normal;
+}
+.ui-app__drawer .ui-app__user-trigger:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+@media (max-width: 720px) {
+  .ui-drawer__footer > .ui-app__drawer { width: 100%; }
+}
 /* The wrapper takes no box above the phone band, so the control sits on the band as it did without it. */
 .ui-react-app__band-control { display: contents; }
 @media (max-width: 560px) {
   /* The menu, mark, search word, switch and account keep their boxes at 320px.
      The band control gives the last eight pixels to the search word there. */
   .ui-react-app .ui-app__bar { gap: var(--space-1); padding-inline: var(--space-2); }
+  /* The rail band keeps the vanilla gap between Menu and the brand mark. */
+  .ui-react-app .ui-app__bar--phone { gap: var(--space-3); }
   /* A band without the menu starts on the page column; menu bands keep their compact inset. */
   .ui-react-app .ui-app__bar:not(:has(> .ui-app__menu:first-child)) { padding-inline-start: var(--space-4); }
   .ui-react-app .ui-app__bar-gap { display: none; }

@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.142.0', date: '2026-10-24',
+    changes: [
+      ['added', 'React `AppShell` takes `layout="rail"` for the side rail, with the account at the rail foot and only Sign out in its menu. The top bar stays the default. `crumbs` shows a breadcrumb before the page title when there is no back link. Part of #429.', ['AppShell']],
+    ],
+  },
+  {
     v: '0.141.0', date: '2026-10-24',
     changes: [
       ['added', 'React `Toast` takes `collapse`. Two or more notices then rest as one pile with the newest in front, and hover or keyboard focus fans them out and holds their timers. Without hover the stack stays a plain column. Part of #429.', ['Toast']],
