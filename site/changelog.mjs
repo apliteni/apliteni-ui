@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.141.0', date: '2026-10-24',
+    changes: [
+      ['added', 'React `Toast` takes `collapse`. Two or more notices then rest as one pile with the newest in front, and hover or keyboard focus fans them out and holds their timers. Without hover the stack stays a plain column. Part of #429.', ['Toast']],
+    ],
+  },
+  {
     v: '0.140.0', date: '2026-10-24',
     changes: [
       ['added', 'The React landing page story shows the strategy page with kit cards, controls and a phone stack that starts with Agent-ready. Part of #429.', ['Landing Page']],

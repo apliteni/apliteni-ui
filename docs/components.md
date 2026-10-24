@@ -935,10 +935,43 @@ at the bottom. The stack is anchored to the bottom-right corner. **The provider 
 the stack reaches up the viewport** as `--rx-toast-stack` on the document root. It is `0px` while
 the stack is empty. A fixed page action can use this value to stay clear of any number of notices.
 Use **one** provider per document, because that property is a document-root global. Notices without
-actions dismiss after five seconds. Their countdown and timer bar pause while hovered or
-focused, then resume with the remaining time. Notices with an action stay until
+actions dismiss after five seconds. Their countdown and timer bar pause while hovered, focused or
+held in a collapsed pile, then resume with the remaining time. Notices with an action stay until
 the reader selects or dismisses it. Ordinary notices are polite. Danger notices are assertive.
 Adding a notice does not move focus.
+
+Pass `collapse` to `<Toast>` to draw the stack as a pile, as described under [Toast stacks](#toast-stacks).
+The pile fans out on hover and on focus within it, and the stack stays a plain column on a device without hover.
+
+## Toast stacks
+
+A stack of notices can collapse into a pile. `.ui-toast-stack--collapsed` draws its notices on top
+of one another, bottom-aligned, with the newest in front. Notices past `TOAST_TIERS` rest on the
+last tier, so a ninth notice makes the pile no taller than a third one. The cards peeking behind
+the front one are what say more is waiting. The pile carries no counted chip above it.
+
+The pile fans out into the ordinary column on `:hover` and on `:focus-within`. Thus a keyboard
+reader opens it by tabbing into it, and it collapses again when both states end. Nothing listens
+for either state. The stylesheet switches between two sets of published values, which lets the
+reduced-motion net cap the travel like any other transition.
+
+The values are measured, because notices are not the same height. For each notice, a script
+publishes `--toast-card-lift`, `--toast-card-scale`, `--toast-card-fan` and
+`--toast-card-depth`. For the stack, it publishes `--toast-pile-height` and
+`--toast-fan-height`. The React `Toast` measures and publishes them itself. A pile re-measures
+when notices arrive or leave and when one changes height.
+
+A notice behind the front one that is taller than the front one rests cut short, so no part of it
+shows below the front notice, even while the browser is busy. It opens to its own height when the
+pile fans out. The pile publishes `--toast-card-box` and `--toast-card-natural` for such a notice.
+
+Under `(hover: none)` the stack stays the plain column. Half of what opens a pile is hover, and
+the notices behind the front card are not focusable. A pile there would be one nobody could open.
+
+`.ui-toast__timer` spends the notice's own dismiss timer. It pauses on the notice's `:hover`,
+`:focus-within`, and on a held pile, so the line and the countdown stop together. Under reduced
+motion the line is not drawn at all, because its animation is capped to nothing. The countdown
+still pauses while the notice or the pile is held.
 
 ### React search field
 

@@ -634,6 +634,9 @@ notice with an action and no close button has no other dismissal affordance.
 Pass `timer: 12` to dismiss a notice after that many seconds. Pass `timer: false` or `timer: 0`
 to keep a notice until it is dismissed.
 
+Pass `collapse` to `Toast` to rest the notices as a pile with the newest in front. The pile fans out
+when the reader hovers it or tabs into it. On a device without hover it stays a plain column.
+
 ```tsx
 function SaveButton() {
   const push = useToast();
