@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.139.0', date: '2026-10-23',
     changes: [
-      ['added', 'React `AuthShell` places the brand and one sign-in or consent task in a centered card. Static sign-in, consent, and access-granted stories use the kit’s vanilla auth layout. Part of #429.', ['AuthShell']],
+      ['added', 'React `AuthShell` centers a sign-in card and places the brand above its content. Consumers supply the sign-in content as React elements. Part of #429.', ['AuthShell']],
     ],
   },
   {

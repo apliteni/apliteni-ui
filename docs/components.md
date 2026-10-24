@@ -909,7 +909,7 @@ into the filled cell described under Dense financial tables.
 
 ### React auth shell
 
-`AuthShell` centers one auth card and places the brand above its content. Pass the brand and the task content as React elements. The shell adds no background glow.
+`AuthShell` centers one sign-in card and places the brand above its content. Pass the brand and the task content as React elements. The shell adds no background glow.
 
 ### React fields
 
