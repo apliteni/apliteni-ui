@@ -55,9 +55,9 @@ const scope = (glyph: string, title: string, detail: string) => <div className="
 
 export const Consent: Story = { name: 'Grant access', render: () => shell(<>
   <div className="auth-actors">
-    <div className="auth-actor"><Avatar personKey="research-bot" name="Research bot" size={32} /><span>Research bot</span></div>
+    <Avatar personKey="research-bot" name="Research bot" size={32} />
     <Icon name="arrowRight" />
-    <div className="auth-actor"><Avatar personKey="ada-example" name="Ada Example" size={32} /><span>Ada</span></div>
+    <Avatar personKey="ada-example" name="Ada Example" size={32} />
   </div>
   <h1 className="ui-auth__title">Research bot wants to read your account</h1>
   <p className="ui-auth__sub">Signed in as <b>ada@apliteni.com</b>. This agent is asking to:</p>
