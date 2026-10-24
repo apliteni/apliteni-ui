@@ -109,6 +109,7 @@ const ALLOWED: Record<string, string> = {
   // Space between two kit parts belongs to whatever stacks them, and these stack by hand.
   'react/src/DocumentReview.stories.tsx|.doc-flow__sheet .ui-skel + .ui-skel': 'the preview stacks its skeleton bars by hand',
   'react/src/PeriodPicker.stories.tsx|.ui-card__title': 'the title is the first line of this card',
+  'react/src/Landing.stories.tsx|.ui-section-head': 'the accent card closes its heading with the card padding',
 
   // One column of one table reads left because it holds text. The kit right-aligns a
   // footer label on the assumption it spans to sit against its figure; here it owns a
@@ -163,6 +164,9 @@ const GLUE_CEILING = 22;
 // The record form keeps its two columns down to the phone step (#458), which takes a grid
 // declaration for the fields and one for their phone rule. It paints nothing.
 const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
+  // The bento grid and phone stack place six kit cards with demos at their feet.
+  // The closing card has a page width of its own.
+  'react/src/Landing.stories.tsx': { glue: 23 },
   'react/src/AccentPicker.stories.tsx': { shadow: 3 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
   'react/src/Button.stories.tsx': { shadow: 1 },
