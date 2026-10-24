@@ -14,6 +14,14 @@ const sections = [
 const props = { sections, pathname: '/reports/weekly', title: 'Weekly report', account: { name: 'Demo User', email: 'demo@example.com' }, onSignOut: vi.fn() };
 afterEach(() => { cleanup(); document.cookie = 'apliteni-ui-rail=; Max-Age=0; path=/'; });
 
+it('places breadcrumbs before the page title', () => {
+  render(<AppShell {...props} layout="rail" crumbs={[{ label: 'Finance', href: '/' }, { label: 'Payouts' }]} />);
+  const main = screen.getByRole('main');
+  expect(main.firstElementChild).toBe(screen.getByRole('navigation', { name: 'Breadcrumb' }));
+  expect(within(main).getByRole('link', { name: 'Finance' })).toHaveAttribute('href', '/');
+  expect(within(main).getByText('Payouts').closest('.ui-nav__crumb')).toHaveAttribute('aria-current', 'page');
+});
+
 it('uses the longest matching route, keeps counts in link names, and forwards router props', () => {
   const { rerender } = render(<AppShell {...props} renderLink={(item, link) => <a {...link} data-router={item.href} />} />);
   const rail = within(screen.getByRole('navigation', { name: 'Sections' }));
@@ -123,6 +131,24 @@ it('opens the account menu and signs out', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));
   fireEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }));
   expect(props.onSignOut).toHaveBeenCalledOnce();
+});
+
+it('keeps the rail account at its foot and removes repeated menu identity and rail counts', () => {
+  const onSignOut = vi.fn();
+  render(<AppShell {...props} onSignOut={onSignOut} layout="rail" word="Demo" />);
+  const rail = within(screen.getByRole('region', { name: 'Sidebar' }));
+  expect(rail.getByRole('link', { name: 'Demo' })).toBeInTheDocument();
+  expect(rail.getByRole('link', { name: 'Reports' })).toHaveAttribute('aria-current', 'page');
+  expect(rail.queryByText('3')).toBeNull();
+  expect(document.querySelector('.ui-app__bar:not(.ui-app__bar--phone)')).toBeNull();
+  expect(rail.getByText('Demo User')).toBeInTheDocument();
+  expect(rail.getByText('demo@example.com')).toBeInTheDocument();
+  fireEvent.click(rail.getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));
+  const menu = screen.getByRole('menu');
+  expect(within(menu).queryByText('Demo User')).toBeNull();
+  expect(within(menu).queryByText('demo@example.com')).toBeNull();
+  fireEvent.click(within(menu).getByRole('menuitem', { name: 'Sign out' }));
+  expect(onSignOut).toHaveBeenCalledOnce();
 });
 
 it('opens every section in a left drawer from the menu button', () => {
