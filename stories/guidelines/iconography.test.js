@@ -61,9 +61,10 @@ const isTest = (f) => /\.test\.(js|mjs|jsx|tsx)$/.test(f);
 // A guideline page draws the violation on purpose — that is what a don't
 // specimen IS, and a gate that reads it makes the rule unillustratable. The
 // convention those pages already use is the marker: the export that renders the
-// wrong half is named `<rule>Dont`. Recognised as a naming convention, not as a
-// list of files, and counted below so it cannot quietly swallow a real one.
-const DONT = /\b(?:export\s+)?const\s+\w*Dont\s*=/g;
+// wrong half is named `<rule>Dont`, and a React page's specimen list names it
+// `dont: () =>`. Recognised as a naming convention, not as a list of files, and
+// counted below so it cannot quietly swallow a real one.
+const DONT = /\b(?:export\s+)?const\s+\w*Dont\s*=|\bdont:\s*\(\)\s*=>/g;
 const dontSpans = (text) => [...text.matchAll(DONT)].map((m) => [m.index, m.index + 400]);
 const insideDont = (spans, at) => spans.some(([a, b]) => at >= a && at <= b);
 
@@ -120,12 +121,18 @@ const callAt = (text, at) => {
   return { body: text.slice(start, end), from: start };
 };
 
-/** The `label`/`aria-label` nearest `at` within the call it belongs to. */
+/** The `label`/`aria-label` nearest `at` within the call it belongs to. React's
+ *  Button also takes its name from plain text children, which it mirrors into
+ *  aria-label (react/src/primitives/Button.tsx), so `<Button iconOnly>Name</Button>`
+ *  is read as that spelling of `label` when the tag names no label of its own. */
 const nameNear = (text, at) => {
   const { body, from } = callAt(text, at);
-  return [...body.matchAll(NAME)]
+  const near = [...body.matchAll(NAME)]
     .map((m) => ({ raw: m[1], distance: Math.abs(from + m.index - at) }))
     .sort((a, b) => a.distance - b.distance)[0]?.raw;
+  if (near !== undefined || text[from - 1] !== '<' || !/^Button\b/.test(body)) return near;
+  const children = /^>([^<{}]*)<\/Button>/.exec(text.slice(from + body.length));
+  return children && children[1].trim() ? `'${children[1].trim()}'` : undefined;
 };
 
 const callSites = [];
