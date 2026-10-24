@@ -91,7 +91,7 @@ type StoryModule = { default?: Story } & Record<string, unknown>;
 
 // The same glob a11y.test.tsx, contrast.test.tsx and react/.storybook/main.ts
 // use, so a new story file is in the gate the moment it exists.
-const modules = import.meta.glob<StoryModule>('./**/*.stories.tsx', { eager: true });
+const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx'], { eager: true });
 const found = Object.keys(modules).sort().flatMap((file) => {
   const mod = modules[file];
   const def = mod.default || {};
@@ -117,7 +117,12 @@ describe('focus ring: React stories', () => {
       // Stories use hooks, so the render fn has to BE a component.
       const Story = () => story.render!(story.args, { globals: { theme: 'dark', accent: 'default' }, args: story.args });
       render(<Story />);
-      const { stops, unmatchable } = judgeStops(document.body, rules);
+      // A foundation or showcase page writes its own controls' focus rule in its own
+      // <style> block, as the vanilla pages did. Read it with the sheets, or those
+      // controls look ringless when they are not.
+      const ownRules = [...document.body.querySelectorAll('style')]
+        .flatMap((block) => focusRules(block.textContent || '', `${story.id} <style>`) as Rule[]);
+      const { stops, unmatchable } = judgeStops(document.body, ownRules.length ? [...rules, ...ownRules] : rules);
       expect(unmatchable, 'a selector this walk cannot match is a control it never judged').toEqual([]);
       counts.stories += 1;
       counts.stops += stops.length;

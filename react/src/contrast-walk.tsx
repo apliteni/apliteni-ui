@@ -98,6 +98,15 @@ const snippetDebt = (f: Finding) => f.theme === 'light' && f.accent === 'default
   && f.state === null && f.bg === 'rgb(255,255,255)'
   && [...f.stories].every(story => SNIPPET_STORIES.has(story))
   && [...f.paths].every(path => /div\.ui-snippet > pre > span\.[fsu]$/.test(path));
+// #429 PR 4 brought the foundation pages over from the vanilla Storybook. Three of their
+// vanilla ledger buckets come with them, unchanged in cause: B, P and S in
+// stories/lib/contrast-ledger.js. Each is named by story, for the reason above.
+const PALETTE_STORY = '../../stories/foundations/BrandPrimitives.stories.tsx:Palette';
+const SIGNAL_STORY = '../../stories/foundations/SignalContrast.stories.tsx:Diagnosis';
+const MOTION_PLAYGROUND = '../../stories/foundations/Motion.stories.tsx:Playground';
+const onlyIn = (f: Finding, story: string) => [...f.stories].every(s => s === story);
+/** Whole stories the ledger counts, dealt to part 0 with the snippet file. */
+const LEDGER_STORIES = new Set([PALETTE_STORY, SIGNAL_STORY, MOTION_PLAYGROUND]);
 const LEDGER: LedgerEntry[] = [
   {
     match: f => snippetDebt(f) && f.fg === 'rgb(12, 143, 168)'
@@ -123,6 +132,31 @@ const LEDGER: LedgerEntry[] = [
       + 'the cyan entry: a JSON string value carries its own meaning rather than '
       + 'repeating one. Accepted for the same reason and with the same limit — it '
       + 'is 0.05 under the 4.5:1 floor, and closing it is a palette decision.',
+  },
+  {
+    match: f => onlyIn(f, PALETTE_STORY),
+    count: 130,
+    why: 'Vanilla P: the brand primitives page prints each raw ramp swatch\'s step on top of '
+      + 'the swatch itself, in a fixed low-alpha black, while the swatch runs from near-black to '
+      + 'white. The label is documentation of a colour, placed on the colour it names. Making '
+      + 'each one legible would mean flipping its ink partway down the ramp, which is a different page.',
+  },
+  {
+    match: f => onlyIn(f, SIGNAL_STORY),
+    count: 42,
+    why: 'Vanilla S: the signal-contrast page records why the signal tokens hold their values by '
+      + 'painting the values they used to hold beside the ones they hold now. Its failing pairs '
+      + 'are the exhibits, kept so the comparison is visible. A gate that demanded this page pass '
+      + 'would delete the evidence.',
+  },
+  {
+    match: f => f.theme === 'dark' && onlyIn(f, MOTION_PLAYGROUND)
+      && [...f.paths].every(path => path.endsWith('button.mz-replay')),
+    count: 1,
+    why: 'Vanilla B: the Replay control on the motion playground mixes its hover ground from the '
+      + 'accent it is inked in, so in dark the ground rises with the ink and the pair stays under '
+      + 'AA. The accent that closes it is past the point where it is still this violet, and #96 '
+      + 'and #157 chose the hue before the ratio.',
   },
 ];
 
@@ -171,7 +205,7 @@ type StoryModule = { default?: { render?: Story['render']; args?: Story['args'] 
 
 // The same glob a11y.test.tsx and react/.storybook/main.ts use, so a new story
 // file is in the gate the moment it exists.
-const modules = import.meta.glob<StoryModule>('./**/*.stories.tsx', { eager: true });
+const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx'], { eager: true });
 const files = Object.keys(modules).sort();
 
 /** Every renderable story, flattened, in file order. */
@@ -197,7 +231,7 @@ function dealStories(parts: number): string[][] {
   const hands: string[][] = Array.from({ length: parts }, () => []);
   let turn = 0;
   for (const story of allFound) {
-    if (story.id.startsWith(`${LEDGER_HOME}:`)) hands[0].push(story.id);
+    if (story.id.startsWith(`${LEDGER_HOME}:`) || LEDGER_STORIES.has(story.id)) hands[0].push(story.id);
     else hands[turn++ % parts].push(story.id);
   }
   return hands;
@@ -305,6 +339,25 @@ const SPLIT_STATE_SHARES: Record<string, number> = {
   './Finance.stories.tsx:Comparison': 4,
 };
 
+/* A foundation, guideline or showcase story carries its own <style> block and inline
+ * style= attributes that speak var(), as the vanilla pages did, and JSDOM does not
+ * resolve var(). Rewrite both the way stories/lib/contrast.js rewrites a vanilla
+ * story's markup, or those story-local surfaces resolve to nothing. A story-local
+ * :hover rule lives in that <style> block, so its state bases are returned too. */
+function localize(theme: Theme) {
+  const vars = tokensFor(theme);
+  for (const el of document.body.querySelectorAll<HTMLElement>('[style*="var("]')) {
+    el.setAttribute('style', substitute(el.getAttribute('style') || '', vars));
+  }
+  const blocks = [...document.body.querySelectorAll('style')];
+  for (const block of blocks) block.textContent = desugar(substitute(block.textContent || '', vars));
+  return blocks.length ? stateBases(blocks.map((b) => b.textContent).join('\n')) : null;
+}
+
+function mergeBases<T extends Record<string, Iterable<string>>>(kit: T, local: T): T {
+  return Object.fromEntries(Object.keys(kit).map((k) => [k, new Set([...kit[k], ...(local[k] || [])])])) as unknown as T;
+}
+
 type Share = { atRest: boolean; of: number; index: number } | null;
 
 function walkCell(story: (typeof allFound)[number], theme: Theme, share: Share) {
@@ -319,9 +372,10 @@ function walkCell(story: (typeof allFound)[number], theme: Theme, share: Share) 
   const before = stats.walked;
   const firstRecord = records.length;
   render(<Story />);
+  const local = localize(theme);
   let judged = !share || share.atRest ? measure(id, theme) : 0;
   const started = performance.now();
-  const bases = STATE_BASES[theme];
+  const bases = local ? mergeBases(STATE_BASES[theme], local) : STATE_BASES[theme];
   const all = share?.atRest ? [] : [...stateTargets(document.body, bases)];
   const mine = share
     ? all.slice(Math.floor((share.index * all.length) / share.of), Math.floor(((share.index + 1) * all.length) / share.of))
@@ -420,6 +474,8 @@ describe('contrast: React coverage', () => {
     expect([...SNIPPET_STORIES].filter((id) => !ids.has(id)), 'ledger stories not discovered').toEqual([]);
     expect(hands[0].filter((id) => SNIPPET_STORIES.has(id)).length, 'ledger stories in part 0')
       .toBe(SNIPPET_STORIES.size);
+    expect([...LEDGER_STORIES].filter((id) => !ids.has(id)), 'foundation ledger stories not discovered').toEqual([]);
+    expect([...LEDGER_STORIES].filter((id) => !hands[0].includes(id)), 'foundation ledger stories outside part 0').toEqual([]);
   });
 
   it('measured interaction states from the rendered catalogue', () => {
