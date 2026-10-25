@@ -544,7 +544,7 @@
         "pattern": "in sentence case like every"
       },
       {
-        "ref": "src/components/topbar.js:33",
+        "ref": "src/components/topbar.js:34",
         "pattern": "the kit writes the word for it"
       },
       {
@@ -682,11 +682,11 @@
   "_microcopy.js": {
     "state-not-destination": [
       {
-        "ref": "src/components/topbar.js:12",
+        "ref": "src/components/topbar.js:13",
         "pattern": "show the saved choice"
       },
       {
-        "ref": "src/components/topbar.js:114",
+        "ref": "src/components/topbar.js:115",
         "pattern": "btn.setAttribute('aria-label', name)"
       },
       {
@@ -1015,17 +1015,17 @@
         "pattern": "export function sidebarNav("
       },
       {
-        "ref": "src/components/account-nav.js:15",
+        "ref": "src/logic/account-nav.js:6",
         "pattern": "export const ACCOUNT_NAV = ["
       }
     ],
     "menu": [
       {
-        "ref": "src/components/topbar.js:58",
+        "ref": "src/components/topbar.js:59",
         "pattern": "export function accountMenu("
       },
       {
-        "ref": "src/components/topbar.js:84",
+        "ref": "src/components/topbar.js:85",
         "pattern": "Sign out"
       }
     ],

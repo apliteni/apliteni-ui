@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.142.1', date: '2026-10-25',
+    changes: [
+      ['changed', 'The helpers that the React components take from the vanilla files move to `src/logic/`: the dropdown placement, the code tokenizer, `nearestSection`, `themeIcon` and `ACCOUNT_NAV`. The root entry exports the same names, and no behaviour changes. The gates that read vanilla markup now read the React components. This prepares the removal of the vanilla kit. Part of #429.'],
+    ],
+  },
+  {
     v: '0.142.0', date: '2026-10-24',
     changes: [
       ['added', 'React `AppShell` takes `layout="rail"` for the side rail, with the account at the rail foot and only Sign out in its menu. The top bar stays the default. `crumbs` shows a breadcrumb before the page title when there is no back link. Part of #429.', ['AppShell']],

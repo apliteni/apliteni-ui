@@ -6,16 +6,9 @@
 // why: docs/components.md#the-page-shell
 import { esc } from './index.js';
 import { avatarInitials } from '../logic/avatar.js';
+import { ACCOUNT_NAV } from '../logic/account-nav.js';
 
-// nav.js item objects. Labels are raw text — every nav primitive escapes, so a
-// pre-escaped `&amp;` would come out as `&amp;amp;`. `key` means credentials;
-// `plug` means integration. These two are the kit's default, so each is a live
-// link on a consumer's /account page — a screen the kit does not ship belongs
-// in the caller's own nav, not here.
-export const ACCOUNT_NAV = [
-  { id: 'prefs', icon: 'gear', label: 'Preferences' },
-  { id: 'access', icon: 'key', label: 'Access & agents' },
-];
+export { ACCOUNT_NAV };
 
 // topbar()'s account menu speaks [id, icon, label, href?, target?] tuples, and
 // it interpolates every field raw — the label, the href and the target alike.

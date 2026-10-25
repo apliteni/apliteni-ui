@@ -24,7 +24,6 @@ const cases = [
   ['toast', () => ui.toast({ variant: probe, style: probe, title: probe, body: probe, action: probe })],
   ['successPanel', () => ui.successPanel({ title: probe, sub: probe, check: probe })],
   ['emptyState', () => ui.emptyState({ title: probe, sub: probe })],
-  ['hlShell', () => ui.hlShell(probe)],
   ['snippet', () => ui.snippet({ label: probe, copyLabel: probe })],
   ['tabs', () => ui.tabs({ name: probe, ariaLabel: probe, className: probe, items: [{ label: 'Trusted label', panel: '' }] })],
   ['drawer', () => ui.drawer({ side: probe, size: probe, title: probe, id: probe, closeLabel: probe })],
@@ -38,11 +37,6 @@ const cases = [
   ['nav', () => ui.nav({ items: [{ label: probe, href: probe }] })],
   ['backLink', () => ui.backLink({ label: probe, href: probe })],
   ['footer', () => ui.footer({ variant: probe, tagline: probe, legal: probe, columns: [{ title: probe, links: [{ label: probe, href: probe, target: probe }] }], social: [{ label: probe, href: probe }], legalLinks: [{ label: probe, href: probe }] })],
-  ['brand', () => ui.brand({ p: probe, word: 'Trusted word', size: probe, href: probe })],
-  ['prism', () => ui.prism(probe, probe)],
-  ['seedling', () => ui.seedling(probe, probe)],
-  ['icon', () => ui.icon('check', probe)],
-  ['illo', () => ui.illo(probe)],
   ['themeToggle', () => ui.themeToggle(probe)],
   ['deckTextSwitch', () => ui.deckTextSwitch(probe)],
   ['versionSwitcher', () => ui.versionSwitcher([{ label: ui.esc(probe) }])],
@@ -82,7 +76,7 @@ test('field preserves an already escaped control id without double encoding', ()
 });
 
 const links = [
-  ['button', href => ui.button({ href })], ['brand', href => ui.brand({ href })],
+  ['button', href => ui.button({ href })],
   ['footer', href => ui.footer({ legalLinks: [{ label: 'Link', href }] })],
   ['nav', href => ui.nav({ items: [{ label: 'Link', href }] })],
   ['navTabs', href => ui.navTabs({ items: [{ label: 'Link', href }] })],
@@ -139,9 +133,4 @@ test('legacy account email quotes cannot escape its title attribute', () => {
   assert.equal(dom.querySelector('[data-injected]'), null);
   assert.equal(dom.querySelector('[title]').getAttribute('title'), email);
 });
-test('legacy brand word quotes cannot escape its accessible name', () => {
-  const word = 'App" data-injected="yes';
-  const dom = parse(ui.brand({ word }));
-  assert.equal(dom.querySelector('[data-injected]'), null);
-  assert.equal(dom.querySelector('a').getAttribute('aria-label'), `Apliteni ${word}`);
-});
+

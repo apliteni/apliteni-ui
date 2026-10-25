@@ -1,0 +1,285 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`keeps the complete field structure and native attributes the vanilla field agreed on: a field with a glyph 1`] = `
+{
+  "attrs": {
+    "class": "ui-field",
+  },
+  "children": [
+    {
+      "attrs": {
+        "class": "ui-field__label",
+        "for": "control",
+      },
+      "children": [
+        "Work email",
+        {
+          "attrs": {
+            "aria-hidden": "true",
+            "class": "ui-field__req",
+          },
+          "children": [
+            "*",
+          ],
+          "tag": "SPAN",
+        },
+      ],
+      "tag": "LABEL",
+    },
+    {
+      "attrs": {
+        "class": "ui-input-group",
+      },
+      "children": [
+        {
+          "attrs": {
+            "class": "ui-input-group__icon",
+          },
+          "children": [
+            {
+              "attrs": {
+                "aria-hidden": "true",
+                "fill": "none",
+                "focusable": "false",
+                "stroke": "currentColor",
+                "stroke-linecap": "round",
+                "stroke-linejoin": "round",
+                "stroke-width": "1.7",
+                "viewBox": "0 0 24 24",
+              },
+              "children": [
+                {
+                  "attrs": {
+                    "d": "M4 4h16c1.1 0 2 .9 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2z",
+                  },
+                  "children": [],
+                  "tag": "path",
+                },
+                {
+                  "attrs": {
+                    "d": "M22 6l-10 7L2 6",
+                  },
+                  "children": [],
+                  "tag": "path",
+                },
+              ],
+              "tag": "svg",
+            },
+          ],
+          "tag": "SPAN",
+        },
+        {
+          "attrs": {
+            "aria-describedby": "message",
+            "class": "ui-input",
+            "id": "control",
+            "name": "email",
+            "placeholder": "you@example.com",
+            "required": "",
+            "type": "email",
+            "value": "name@example.com",
+          },
+          "children": [],
+          "tag": "INPUT",
+        },
+      ],
+      "tag": "DIV",
+    },
+    {
+      "attrs": {
+        "class": "ui-field__hint",
+        "id": "message",
+      },
+      "children": [
+        "Help",
+      ],
+      "tag": "DIV",
+    },
+  ],
+  "tag": "DIV",
+}
+`;
+
+exports[`keeps the complete field structure and native attributes the vanilla field agreed on: a select 1`] = `
+{
+  "attrs": {
+    "class": "ui-field",
+  },
+  "children": [
+    {
+      "attrs": {
+        "class": "ui-field__label",
+        "for": "control",
+      },
+      "children": [
+        "Currency",
+        {
+          "attrs": {
+            "aria-hidden": "true",
+            "class": "ui-field__req",
+          },
+          "children": [
+            "*",
+          ],
+          "tag": "SPAN",
+        },
+      ],
+      "tag": "LABEL",
+    },
+    {
+      "attrs": {
+        "aria-describedby": "message",
+        "class": "ui-select",
+        "id": "control",
+        "name": "currency",
+        "required": "",
+      },
+      "children": [
+        {
+          "attrs": {
+            "value": "EUR",
+          },
+          "children": [
+            "EUR",
+          ],
+          "selected": false,
+          "tag": "OPTION",
+        },
+        {
+          "attrs": {
+            "value": "USD",
+          },
+          "children": [
+            "USD",
+          ],
+          "selected": true,
+          "tag": "OPTION",
+        },
+      ],
+      "tag": "SELECT",
+    },
+    {
+      "attrs": {
+        "class": "ui-field__hint",
+        "id": "message",
+      },
+      "children": [
+        "Help",
+      ],
+      "tag": "DIV",
+    },
+  ],
+  "tag": "DIV",
+}
+`;
+
+exports[`keeps the complete field structure and native attributes the vanilla field agreed on: a text area 1`] = `
+{
+  "attrs": {
+    "class": "ui-field",
+  },
+  "children": [
+    {
+      "attrs": {
+        "class": "ui-field__label",
+        "for": "control",
+      },
+      "children": [
+        "Notes",
+        {
+          "attrs": {
+            "aria-hidden": "true",
+            "class": "ui-field__req",
+          },
+          "children": [
+            "*",
+          ],
+          "tag": "SPAN",
+        },
+      ],
+      "tag": "LABEL",
+    },
+    {
+      "attrs": {
+        "aria-describedby": "message",
+        "class": "ui-textarea",
+        "id": "control",
+        "name": "notes",
+        "placeholder": "Notes",
+        "required": "",
+        "rows": "4",
+      },
+      "children": [
+        "Draft",
+      ],
+      "tag": "TEXTAREA",
+    },
+    {
+      "attrs": {
+        "class": "ui-field__hint",
+        "id": "message",
+      },
+      "children": [
+        "Help",
+      ],
+      "tag": "DIV",
+    },
+  ],
+  "tag": "DIV",
+}
+`;
+
+exports[`keeps the complete field structure and native attributes the vanilla field agreed on: a text field 1`] = `
+{
+  "attrs": {
+    "class": "ui-field",
+  },
+  "children": [
+    {
+      "attrs": {
+        "class": "ui-field__label",
+        "for": "control",
+      },
+      "children": [
+        "Name",
+        {
+          "attrs": {
+            "aria-hidden": "true",
+            "class": "ui-field__req",
+          },
+          "children": [
+            "*",
+          ],
+          "tag": "SPAN",
+        },
+      ],
+      "tag": "LABEL",
+    },
+    {
+      "attrs": {
+        "aria-describedby": "message",
+        "class": "ui-input",
+        "id": "control",
+        "name": "name",
+        "placeholder": "Name",
+        "required": "",
+        "type": "text",
+        "value": "Demo",
+      },
+      "children": [],
+      "tag": "INPUT",
+    },
+    {
+      "attrs": {
+        "class": "ui-field__hint",
+        "id": "message",
+      },
+      "children": [
+        "Help",
+      ],
+      "tag": "DIV",
+    },
+  ],
+  "tag": "DIV",
+}
+`;

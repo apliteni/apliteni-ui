@@ -3,7 +3,7 @@
  *
  * Every defect gated here was a rule that looked right in the stylesheet and
  * never applied, so this file resolves the cascade instead of reading it:
- * base.css + nav.css with their var() references substituted, real sidebarNav()
+ * base.css + nav.css with their var() references substituted, the React SidebarNav's
  * markup mounted in a JSDOM, getComputedStyle read back. Gate 2 then composites
  * what it reads down the ancestor chain, because the last defect here was the
  * right token on the wrong ground — a name no assertion on the name could catch.
@@ -20,19 +20,20 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import { effectiveBackground, ratio } from './lib/contrast.js';
+import { markup } from './lib/react-markup.js';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const read = (p) => readFileSync(path.join(root, p), 'utf8');
 
-// A DOM has to exist before the kit's factories are imported — the same
-// arrangement stories/keyboard.test.js uses.
-const dom = new JSDOM('<!doctype html><html lang="en"><head></head><body></body></html>', { pretendToBeVisual: true });
-for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLElement', 'Event']) {
-  Object.defineProperty(globalThis, key, { value: dom.window[key] ?? dom.window, configurable: true, writable: true });
-}
-const { sidebarNav, navTabs } = await import('../src/components/nav.js');
+// The rail and the tab row are the React SidebarNav and NavTabs, rendered to static
+// markup (stories/lib/react-markup.js); the rules under test are the kit's CSS.
+const sidebarNav = ({ sections, active, footer, collapsed }) => markup(({ h, kit }) => h(kit.SidebarNav, {
+  'aria-label': 'Primary', sections, active, collapsed,
+  footer: footer && h('a', { className: 'ui-nav__item is-danger', href: '#logout' }, h('span', { className: 'ui-nav__label' }, 'Sign out')),
+}));
+const navTabs = ({ items, active, variant }) => markup(({ h, kit }) => h(kit.NavTabs, { items, active, variant }));
 
 // ---- token resolution ----------------------------------------------------
 
@@ -99,7 +100,7 @@ const ITEMS = {
     items: [
       { id: 'revenue', icon: 'chart', label: 'Revenue' },
       {
-        icon: 'card', label: 'Payouts', open: true,
+        id: 'payouts', icon: 'card', label: 'Payouts', defaultOpen: true,
         items: [
           { id: 'payouts-pending', label: 'Pending', badge: 3 },
           { id: 'payouts-history', label: 'History' },
@@ -109,12 +110,12 @@ const ITEMS = {
     ],
   }],
   active: 'payouts-pending',
-  footer: '<a class="ui-nav__item is-danger" href="#logout"><span class="ui-nav__label">Sign out</span></a>',
+  footer: true,
 };
-const MARKUP = sidebarNav(ITEMS);
-const MARKUP_FOLDED = sidebarNav({ ...ITEMS, collapsed: true });
+const MARKUP = await sidebarNav(ITEMS);
+const MARKUP_FOLDED = await sidebarNav({ ...ITEMS, collapsed: true });
 // `active` names one row, so the top-level current row is its own mount.
-const MARKUP_TOP = sidebarNav({ ...ITEMS, active: 'revenue' });
+const MARKUP_TOP = await sidebarNav({ ...ITEMS, active: 'revenue' });
 
 /** Mount the rail under one theme/accent and hand back a resolver.
  *  `extra` is appended last, which is how the mutation at the foot of gate 2
@@ -556,13 +557,16 @@ const TAB_ITEMS = [
   { id: 'exports', label: 'Exports', disabled: true },
 ];
 
+const TAB_MARKUP = Object.fromEntries(await Promise.all(['underline', 'pill']
+  .map(async (variant) => [variant, await navTabs({ items: TAB_ITEMS, active: 'payouts', variant })])));
+
 /** Mount one tab row under a theme/accent and hand back a resolver. */
 function tabRow(variant, theme = 'dark', accent = 'default', sheet = read('src/styles/nav.css')) {
   const vars = tokensFor(theme, accent);
   const css = desugar(substitute(decomment(read('src/styles/base.css') + '\n' + sheet), vars));
   const w = new JSDOM(
     `<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}</style></head>`
-    + `<body>${navTabs({ items: TAB_ITEMS, active: 'payouts', variant })}</body></html>`,
+    + `<body>${TAB_MARKUP[variant]}</body></html>`,
     { pretendToBeVisual: true },
   ).window;
   const q = (sel) => {

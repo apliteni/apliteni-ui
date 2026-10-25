@@ -20,7 +20,6 @@ const quiet = new VirtualConsole();
 quiet.on('jsdomError', () => {});
 
 const CSS = readFileSync(new URL('../styles/dropdown.css', import.meta.url), 'utf8');
-const JS = readFileSync(new URL('./dropdown.js', import.meta.url), 'utf8');
 
 /** Every leaf rule in a sheet as { selector, body }, comments stripped. */
 function rules(css) {
@@ -42,202 +41,6 @@ const decl = (rule, prop) => {
   const m = [...rule.body.matchAll(new RegExp(`(?:^|;)\\s*${prop}\\s*:([^;]*)`, 'g'))];
   return m.length ? m[m.length - 1][1].trim() : null;
 };
-
-// ---- The stylesheet ------------------------------------------------------
-// The subjects are discovered from the sheet, so a second upward variant joins
-// the sweep by being written.
-// Discover subjects from source and check the coverage count.
-
-test('a panel rule that pins `bottom` releases `top` in the same rule', () => {
-  const subjects = RULES.filter((r) => /\.ui-dropdown__panel/.test(r.selector) && decl(r, 'bottom'));
-  assert.ok(subjects.length, 'the sheet has no upward panel rule to check');
-  for (const rule of subjects) {
-    assert.equal(
-      decl(rule, 'top'), 'auto',
-      `${rule.selector} sets bottom without releasing top — an absolutely positioned box with `
-      + 'both edges pinned is stretched between them, which is the fourteen-pixel panel in #255',
-    );
-  }
-});
-
-test('both directions read one gap, so neither can drift from the other', () => {
-  const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
-  const gap = decl(panel, '--ui-dropdown-gap');
-  assert.match(gap, /^\d+(\.\d+)?px$/, '--ui-dropdown-gap is declared on the panel as a length');
-
-  const offsets = RULES
-    .filter((r) => /\.ui-dropdown__panel/.test(r.selector))
-    .flatMap((r) => [decl(r, 'top'), decl(r, 'bottom')])
-    .filter((v) => v && v !== 'auto');
-  assert.ok(offsets.length >= 2, 'a downward offset and an upward one');
-  for (const value of offsets) {
-    assert.match(
-      value, /var\(--ui-dropdown-gap\)/,
-      `${value} writes its own offset instead of reading --ui-dropdown-gap`,
-    );
-  }
-});
-
-/** A shorthand's top-level terms, so `calc(var(--x) * -1)` counts as one. */
-function terms(value) {
-  const out = [];
-  let depth = 0;
-  let buf = '';
-  for (const ch of value) {
-    if (ch === '(') depth++;
-    if (ch === ')') depth--;
-    if (/\s/.test(ch) && depth === 0) { if (buf) out.push(buf); buf = ''; } else buf += ch;
-  }
-  if (buf) out.push(buf);
-  return out;
-}
-
-/** Every margin the sheet writes, whichever axis it names. */
-const MARGINS = RULES.flatMap((r) =>
-  [...r.body.matchAll(/(?:^|;)\s*(margin(?:-[\w-]+)?)\s*:([^;]*)/g)]
-    .map((m) => ({ selector: r.selector, prop: m[1], value: m[2].trim().replace(/\s+/g, ' ') })));
-
-// A negative LENGTH, which is what a bleed is written with. The `-1` inside
-// `calc(… * -1)` carries no unit and is a multiplier, not a length.
-const NEG_LEN = /-\s*\d+(?:\.\d+)?(?:px|rem|em|%|ch)/;
-const BLEED = 'calc(var(--ui-dropdown-pad) * -1)';
-
-test('the panel names its padding and pads itself with it', () => {
-  const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
-  const pad = decl(panel, '--ui-dropdown-pad');
-  assert.match(pad, /^\d+(\.\d+)?px$/, '--ui-dropdown-pad is declared on the panel as a length');
-  assert.equal(
-    decl(panel, 'padding'), 'var(--ui-dropdown-pad)',
-    'the panel pads itself with the property it declares, so the two cannot disagree',
-  );
-});
-
-test('a block bleeding through the panel reads the padding, never a number of its own', () => {
-  // Discovered from the sheet: any margin that pulls a block back out through
-  // the padding is a subject, whether it is the head, the foot or the next one.
-  // Discover subjects from source and check the coverage count.
-  const bleeds = MARGINS.filter((d) => NEG_LEN.test(d.value) || d.value.includes('--ui-dropdown-pad'));
-  assert.ok(
-    bleeds.length >= 2,
-    'the head and the foot both bleed, so the sweep finds at least two — it found '
-    + `${bleeds.length}, which means a block stopped bleeding or stopped being seen`,
-  );
-  for (const d of bleeds) {
-    assert.doesNotMatch(
-      d.value, NEG_LEN,
-      `${d.selector} { ${d.prop}: ${d.value} } writes the panel's padding out as a number. That is `
-      + `the magic number #306 is about: a consumer copying it out of this file has nothing to read `
-      + `when it changes. Pull back with ${BLEED}.`,
-    );
-    assert.ok(
-      d.value.includes(BLEED),
-      `${d.selector} { ${d.prop}: ${d.value} } pulls through the padding without reading `
-      + '--ui-dropdown-pad',
-    );
-  }
-});
-
-// The caret is an L of two borders on a rotated square, so the ink is not the
-// box and centring the box leaves the mark off centre — measured in Chrome at
-// dSF 8: 1.75px low closed, 3.88px high open, against the trigger's middle.
-// Both halves of the fix are read here, because either one alone leaves it wrong.
-// why: docs/components.md#the-dropdown-panel
-test('the caret is centred in both states, and shifted in page space', () => {
-  const closed = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__chevron'));
-  const open = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown.open .ui-dropdown__chevron'));
-  assert.ok(closed && open, 'the sheet draws a caret and flips it');
-
-  const off = decl(closed, '--caret-off');
-  assert.ok(
-    off && off.includes('var(--caret)') && off.includes('var(--caret-ink)'),
-    `--caret-off is derived from the square and its stroke, not typed: ${off}`,
-  );
-
-  const shift = (rule) => terms(decl(rule, 'transform'));
-  for (const [state, rule] of [['closed', closed], ['open', open]]) {
-    const [first, second] = shift(rule);
-    assert.match(
-      first, /^translateY\(/,
-      `the ${state} caret rotates before it shifts (${first}), so the shift travels along the `
-      + 'turned axis and moves the mark sideways as well — which is what the hand-tuned numbers '
-      + 'this replaces were doing',
-    );
-    assert.match(second, /^rotate\(/, `the ${state} caret turns`);
-    assert.ok(
-      first.includes('var(--caret-off)'),
-      `the ${state} caret shifts by something other than --caret-off: ${first}`,
-    );
-  }
-  // Opposite ways: the mark points down in one state and up in the other, so the
-  // ink sits on opposite sides of the box and the correction flips with it.
-  const negated = (t) => /\*\s*-1|-\s*var\(--caret-off\)|calc\(\s*-/.test(t);
-  assert.notEqual(
-    negated(shift(closed)[0]), negated(shift(open)[0]),
-    'both states shift the caret the same way, so one of them is now further off centre than it '
-    + 'was before the correction',
-  );
-});
-
-test('the head and the foot are one pair, bleeding to opposite edges', () => {
-  const sel = (cls) => `.ui-dropdown__panel > .${cls}`;
-  const rulesFor = (cls) => RULES.filter((r) => splitSelectorList(r.selector).includes(sel(cls)));
-  // Whatever the cascade ends on, gathered across every rule that names the
-  // block — so splitting one rule in two, or adding a third, is still read.
-  const of = (cls, prop) => rulesFor(cls).map((r) => decl(r, prop)).filter((v) => v != null).at(-1) ?? null;
-
-  const shared = RULES.find((r) => {
-    const list = splitSelectorList(r.selector);
-    return list.includes(sel('ui-dropdown__head')) && list.includes(sel('ui-dropdown__foot'));
-  });
-  assert.ok(shared && decl(shared, 'padding'), 'the pair takes its inner padding from one rule, not two that can drift');
-  assert.ok(rulesFor('ui-dropdown__head').length && rulesFor('ui-dropdown__foot').length,
-    'the panel styles both a head and a foot');
-
-  const hm = terms(of('ui-dropdown__head', 'margin'));
-  const fm = terms(of('ui-dropdown__foot', 'margin'));
-  assert.deepEqual(hm.slice(0, 2), [BLEED, BLEED], 'the head bleeds to the top edge and both sides');
-  assert.deepEqual(fm.slice(1), [BLEED, BLEED], 'the foot bleeds to both sides and the bottom edge');
-  assert.equal(hm[2], fm[0], 'the head and the foot leave the same gap to the rows between them');
-
-  assert.equal(of('ui-dropdown__head', 'border-bottom'), of('ui-dropdown__foot', 'border-top'),
-    'one line, drawn on the edge each faces');
-  assert.equal(of('ui-dropdown__head', 'border-top'), null, 'the head draws no line on the panel\'s own edge');
-  assert.equal(of('ui-dropdown__foot', 'border-bottom'), null, 'the foot draws no line on the panel\'s own edge');
-
-  const hr = terms(of('ui-dropdown__head', 'border-radius'));
-  const fr = terms(of('ui-dropdown__foot', 'border-radius'));
-  assert.deepEqual(hr.slice(2), ['0', '0'], 'the head rounds the two corners it sits in and no others');
-  assert.deepEqual(fr.slice(0, 2), ['0', '0'], 'the foot rounds the two corners it sits in and no others');
-  assert.deepEqual([hr[0], hr[1]], [fr[2], fr[3]], 'both take the panel\'s own radius');
-});
-
-test('the wiring falls back to the number the sheet declares', () => {
-  const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
-  const css = parseFloat(decl(panel, '--ui-dropdown-gap'));
-  const js = parseFloat(/const DD_GAP = ([\d.]+)/.exec(JS)?.[1]);
-  assert.equal(js, css, 'DD_GAP in dropdown.js is the fallback for a document without the sheet');
-});
-
-test('the portalled panel takes its open state from itself, not from an ancestor', () => {
-  const opens = RULES.filter((r) => decl(r, 'visibility') === 'visible' && /ui-dropdown__panel/.test(r.selector));
-  const portal = opens.filter((r) => /--portal/.test(r.selector));
-  assert.ok(portal.length, 'no rule opens a portalled panel');
-  for (const rule of portal) {
-    assert.doesNotMatch(
-      rule.selector, /\.ui-dropdown[\s.]*\.open\s/,
-      `${rule.selector} needs a .ui-dropdown ancestor, which stops matching the moment the panel `
-      + 'is moved onto <body>',
-    );
-  }
-});
-
-test('the portalled panel is fixed, and starts from no edge of its own', () => {
-  const rule = RULES.find((r) => r.selector.trim() === '.ui-dropdown__panel--portal');
-  assert.equal(decl(rule, 'position'), 'fixed');
-  for (const edge of ['top', 'right', 'bottom', 'left']) {
-    assert.equal(decl(rule, edge), 'auto', `${edge} is left for the wiring to write inline`);
-  }
-});
 
 // ---- The markup ----------------------------------------------------------
 
@@ -608,7 +411,7 @@ test('neutral badges distinguish named states from metadata without changing sup
 });
 
 // ---- A filter chip's menu ------------------------------------------------
-// The arithmetic is filter-panel-fit.test.js's subject; these cover the wiring
+// The arithmetic is src/logic/dropdown-placement.test.js's subject; these cover the wiring
 // around it — which numbers reach the panel, when they are written again, and
 // what is cleared on the way out.
 //

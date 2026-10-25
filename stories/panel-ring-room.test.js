@@ -61,6 +61,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import { reactKit } from './lib/react-markup.js';
 
 // The kit's factories want a document in scope before they are imported.
 const dom = new JSDOM('<!doctype html><html lang="en"><body></body></html>', { pretendToBeVisual: true });
@@ -68,8 +69,9 @@ for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLEl
   Object.defineProperty(globalThis, key, { value: dom.window[key] ?? dom.window, configurable: true, writable: true });
 }
 
-const { dropdown } = await import('../src/components/dropdown.js');
-const { versionSwitcher, accountMenu } = await import('../src/components/topbar.js');
+// The panels are the React Dropdown, VersionSwitcher and AccountMenu, rendered to static
+// markup; the rules under test are the kit's CSS.
+const { h, render, kit } = await reactKit();
 
 /* -- the subjects, read out of the kit's sources --------------------------------- */
 
@@ -298,12 +300,13 @@ const declared = (() => {
 /* -- the subjects, rendered here -------------------------------------------------- */
 
 const items = [{ label: 'Germany', value: 'de', selected: true }, { label: 'France', value: 'fr' }];
+const VERSIONS = [{ value: 'v1', label: 'v1' }, { value: 'v2', label: 'v2' }];
 const markup = [
-  dropdown({ label: 'country:', variant: 'select', items }),
-  dropdown({ label: 'country:', variant: 'select', search: { placeholder: 'Search' }, items }),
-  versionSwitcher([{ label: 'v1' }, { label: 'v2' }], 1),
-  accountMenu({ name: 'Ada Lovelace', email: 'ada@apliteni.com' }),
-].join('');
+  h(kit.Dropdown, { label: 'country:', variant: 'select', items }),
+  h(kit.Dropdown, { label: 'country:', variant: 'select', search: { placeholder: 'Search' }, items }),
+  h(kit.VersionSwitcher, { versions: VERSIONS, value: 'v2', onChange() {} }),
+  h(kit.AccountMenu, { name: 'Ada Lovelace', email: 'ada@apliteni.com' }),
+].map((element) => render(element)).join('');
 
 /** Every panel the wiring opens here, named by the class its own sheet styles it under. */
 const rendered = (() => {
@@ -313,6 +316,9 @@ const rendered = (() => {
   for (const el of host.querySelectorAll('[data-dropdown-panel]')) {
     // The first class is the element's own; `is-scroll` and the portal flag are states.
     found.add(el.classList[0]);
+    // The React version and account menus are Dropdown panels that also carry the class
+    // their own sheet styles them under, so a class the source declares as a panel counts.
+    for (const cls of el.classList) if (declared.has(cls)) found.add(cls);
   }
   return [...found].sort();
 })();

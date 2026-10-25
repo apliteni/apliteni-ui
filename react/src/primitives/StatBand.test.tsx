@@ -1,14 +1,14 @@
-// Parity gate for <StatBand>: the vanilla statBand() is the source of truth.
-// React components must match the vanilla class names.
+// Shape gate for <StatBand>. Every case below was compared with the vanilla statBand()
+// until #429 removed it. The shape both agreed on is stored as a snapshot, written in the
+// commit where the comparison last passed, so a change to any of it fails here.
 import { render, cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
-import { statBand } from '@apliteni/apliteni-ui';
 import { StatBand, type StatBandProps } from './StatBand';
 import { classesOfEl } from '../test/classlist';
 
 afterEach(cleanup);
 
-/** What both implementations have to agree on, read off a rendered band. */
+/** The shape the band is held to, read off a rendered band. */
 function shape(root: Element) {
   const doc = root.ownerDocument;
   return {
@@ -17,7 +17,7 @@ function shape(root: Element) {
     label: root.getAttribute('aria-label'),
     list: root.querySelector(':scope > dl')?.className,
     basis: root.querySelector('.ui-stats__basis')?.textContent ?? null,
-    // The caption leads the band in both implementations, or neither.
+    // Whether the caption leads the band.
     captionLeads: root.firstElementChild?.className === 'ui-stats__basis',
     figures: [...root.querySelectorAll('.ui-stat')].map((f) => {
       const d = f.querySelector('.ui-stat__delta');
@@ -30,8 +30,7 @@ function shape(root: Element) {
         caption: f.querySelector('.ui-stat__caption')?.textContent ?? null,
         delta: d && d.textContent?.replace(/\s+/g, ' ').trim(),
         // The order of the words inside the row, so a caption that moved past the
-        // change — or a basis drawn beside one — is a difference between the two
-        // sides. The glyph is left out: React wraps it and the factory does not.
+        // change, or a basis drawn beside one, is a change to the shape.
         rowParts: [...(d?.querySelectorAll('.ui-stat__caption, .ui-stat__change, .ui-stat__basis') ?? [])]
           .map((c) => c.className),
         glyph: d?.querySelector('svg')?.innerHTML ?? null,
@@ -42,22 +41,9 @@ function shape(root: Element) {
   };
 }
 
-// Read in the document, so its caption id resolves, then taken out again: left
-// in, the React band's `aria-describedby` would resolve to the vanilla caption
-// and a wrong id on the React side would pass.
-function vanillaShape(props: StatBandProps) {
-  const host = document.createElement('div');
-  host.innerHTML = statBand({ ...props, stats: props.stats.map((s) => ({ ...s, trend: s.trend ? SVG : '' })) });
-  document.body.append(host);
-  const out = shape(host.firstElementChild as Element);
-  host.remove();
-  return out;
-}
-
-const SVG = '<svg width="200" height="32" aria-hidden="true"></svg>';
 const TREND = <svg width="200" height="32" aria-hidden="true" />;
 // The four verdicts a caller can give — good, bad, undeclared, good on a fall —
-// so parity covers each of them rather than only the ones that paint green.
+// so the cases cover each of them rather than only the ones that paint green.
 const FOUR: StatBandProps['stats'] = [
   { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' }, trend: TREND },
   { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: 'bad' } },
@@ -89,7 +75,7 @@ const CASES: [string, StatBandProps][] = [
   }],
   // A band with no caption of its own: the branch where the kit has nothing to
   // point a change at, which is where a caption used to cost the caller their
-  // basis. Both sides must print it.
+  // basis. The band must print it.
   ['a captioned figure in a band with no caption of its own', {
     id: 'n',
     stats: [
@@ -113,12 +99,11 @@ const CASES: [string, StatBandProps][] = [
   }],
 ];
 
-describe('StatBand renders what statBand() renders', () => {
+describe('StatBand keeps the shape the vanilla statBand() agreed on', () => {
   for (const [name, props] of CASES) {
     it(name, () => {
-      const expected = vanillaShape(props);
       const { container } = render(<StatBand {...props} />);
-      expect(shape(container.firstElementChild as Element)).toEqual(expected);
+      expect(shape(container.firstElementChild as Element)).toMatchSnapshot();
     });
   }
 });

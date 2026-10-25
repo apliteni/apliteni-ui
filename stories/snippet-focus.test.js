@@ -19,8 +19,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { snippet } from '../src/components/index.js';
+import { markup } from './lib/react-markup.js';
 import { desugar, substitute, tokensFor } from './lib/contrast.js';
+
+// The React Snippet in all four shapes, each holding a composed link and a composed
+// keyboard stop in its code region.
+const SNIPPETS = (await Promise.all([false, true].flatMap(reveal => [true, false].map(copy =>
+  markup(({ h, kit }) => h(kit.Snippet, { reveal, copy, code: 'Example flag' },
+    h('a', { href: '#example' }, 'Example'), h('span', { tabIndex: 0 }, 'flag'))))))).join('');
 
 const source = ['base', 'code'].map(name => readFileSync(new URL(`../src/styles/${name}.css`, import.meta.url), 'utf8')).join('\n');
 /** Nothing a reader can see on this property. JSDOM leaves an undeclared shorthand empty. */
@@ -33,7 +39,7 @@ function check(css, theme, accent) {
   // :focus-visible` selector still uniquely reaches since #587 gave the link its own
   // element rule. It is the one fixture subject that loses its band if that selector
   // is cut, which is what keeps this file's mutation able to go red.
-  const win = new JSDOM(`<style>${resolved}</style>${[false, true].flatMap(reveal => [true, false].map(copy => snippet({ reveal, copy, code: '<a href="#example">Example</a><span tabindex="0">flag</span>' }))).join('')}<button class="ui-focusable">Reference</button>`).window;
+  const win = new JSDOM(`<style>${resolved}</style>${SNIPPETS}<button class="ui-focusable">Reference</button>`).window;
   const reference = win.document.querySelector('.ui-focusable');
   reference.setAttribute('data-ui-state', 'focus-visible');
   const expected = win.getComputedStyle(reference);

@@ -1,0 +1,200 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the shape the vanilla factory agreed on > keeps a destructive row that asks, and one that cannot 1`] = `
+[
+  {
+    "classes": [
+      "is-active",
+      "is-danger",
+      "ui-cmdk__item",
+    ],
+    "desc": "Nebula · 42 API keys",
+    "disabled": null,
+    "haspopup": "dialog",
+    "keys": [],
+    "label": "Delete workspace…",
+    "role": "option",
+    "tabindex": "-1",
+  },
+  {
+    "classes": [
+      "is-disabled",
+      "ui-cmdk__item",
+    ],
+    "desc": "They stop working at once",
+    "disabled": "true",
+    "haspopup": null,
+    "keys": [],
+    "label": "Revoke every API key",
+    "role": "option",
+    "tabindex": "-1",
+  },
+]
+`;
+
+exports[`the shape the vanilla factory agreed on > keeps the roomy density and a palette with no key legend 1`] = `
+{
+  "autocomplete": "list",
+  "classes": [
+    "is-open",
+    "ui-cmdk",
+    "ui-cmdk--roomy",
+  ],
+  "controlsList": true,
+  "empty": "No matches",
+  "expanded": "true",
+  "foot": false,
+  "groups": [
+    {
+      "head": "Actions",
+      "named": true,
+      "role": "group",
+    },
+    {
+      "head": "Go to",
+      "named": true,
+      "role": "group",
+    },
+  ],
+  "inputRole": "combobox",
+  "listRole": "listbox",
+  "modal": "true",
+  "panelRole": "dialog",
+  "rows": [
+    {
+      "classes": [
+        "is-active",
+        "ui-cmdk__item",
+      ],
+      "desc": "Draft one for a client",
+      "disabled": null,
+      "haspopup": null,
+      "keys": [
+        "n",
+      ],
+      "label": "New invoice",
+      "role": "option",
+      "tabindex": "-1",
+    },
+    {
+      "classes": [
+        "ui-cmdk__item",
+      ],
+      "desc": "They get a read-only seat",
+      "disabled": null,
+      "haspopup": null,
+      "keys": [],
+      "label": "Invite a teammate",
+      "role": "option",
+      "tabindex": "-1",
+    },
+    {
+      "classes": [
+        "ui-cmdk__item",
+      ],
+      "desc": "Revenue, payouts and fees",
+      "disabled": null,
+      "haspopup": null,
+      "keys": [],
+      "label": "Reports",
+      "role": "option",
+      "tabindex": "-1",
+    },
+    {
+      "classes": [
+        "ui-cmdk__item",
+      ],
+      "desc": "Billing, members, API keys",
+      "disabled": null,
+      "haspopup": null,
+      "keys": [],
+      "label": "Settings",
+      "role": "option",
+      "tabindex": "-1",
+    },
+  ],
+}
+`;
+
+exports[`the shape the vanilla factory agreed on > renders the palette, group for group and row for row 1`] = `
+{
+  "autocomplete": "list",
+  "classes": [
+    "is-open",
+    "ui-cmdk",
+  ],
+  "controlsList": true,
+  "empty": "No matches",
+  "expanded": "true",
+  "foot": true,
+  "groups": [
+    {
+      "head": "Actions",
+      "named": true,
+      "role": "group",
+    },
+    {
+      "head": "Go to",
+      "named": true,
+      "role": "group",
+    },
+  ],
+  "inputRole": "combobox",
+  "listRole": "listbox",
+  "modal": "true",
+  "panelRole": "dialog",
+  "rows": [
+    {
+      "classes": [
+        "is-active",
+        "ui-cmdk__item",
+      ],
+      "desc": "Draft one for a client",
+      "disabled": null,
+      "haspopup": null,
+      "keys": [
+        "n",
+      ],
+      "label": "New invoice",
+      "role": "option",
+      "tabindex": "-1",
+    },
+    {
+      "classes": [
+        "ui-cmdk__item",
+      ],
+      "desc": "They get a read-only seat",
+      "disabled": null,
+      "haspopup": null,
+      "keys": [],
+      "label": "Invite a teammate",
+      "role": "option",
+      "tabindex": "-1",
+    },
+    {
+      "classes": [
+        "ui-cmdk__item",
+      ],
+      "desc": "Revenue, payouts and fees",
+      "disabled": null,
+      "haspopup": null,
+      "keys": [],
+      "label": "Reports",
+      "role": "option",
+      "tabindex": "-1",
+    },
+    {
+      "classes": [
+        "ui-cmdk__item",
+      ],
+      "desc": "Billing, members, API keys",
+      "disabled": null,
+      "haspopup": null,
+      "keys": [],
+      "label": "Settings",
+      "role": "option",
+      "tabindex": "-1",
+    },
+  ],
+}
+`;

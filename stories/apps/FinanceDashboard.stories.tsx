@@ -31,7 +31,7 @@ const Dashboard = () => {
   return <FinanceShell active="dashboard" title="Dashboard">
     <div className="ui-toolbar">
       <Segmented label="Period" options={(PERIODS as string[]).map(p => ({ label: p, value: p }))} value={period} onChange={setPeriod} />
-      <p className="ui-sr" id={PERIOD_BASIS}>{periodBasis(period)}</p>
+      <p className="ui-sr" id={PERIOD_BASIS} data-period-basis="">{periodBasis(period)}</p>
     </div>
     <StatBand id="fd-cashflow" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />

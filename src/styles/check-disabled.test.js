@@ -155,10 +155,10 @@ test('the mark inside a marked disabled box stays legible on it, in both themes'
  * the new rules in the sheet and measures none of them, and this whole state goes
  * back to being unrendered. */
 test('a story renders a disabled checkbox and a disabled radio', () => {
-  const story = readFileSync(path.join(here, '../../stories/components/SwitchCheckbox.stories.js'), 'utf8');
-  const calls = [...story.matchAll(/checkbox\(\{([^}]*)\}\)/g)].map((m) => m[1]);
-  const off = calls.filter((args) => /\bdisabled:\s*true\b/.test(args));
-  assert.ok(off.some((args) => !/type:/.test(args)), 'no disabled checkbox in the specimen');
-  assert.ok(off.some((args) => /type:\s*'radio'/.test(args)), 'no disabled radio in the specimen');
-  assert.ok(off.some((args) => /checked:\s*true/.test(args)), 'no marked-and-disabled control in the specimen');
+  const story = readFileSync(path.join(here, '../../react/src/SwitchCheckbox.stories.tsx'), 'utf8');
+  const calls = [...story.matchAll(/<Checkbox\b([^>]*)\/>/g)].map((m) => m[1]);
+  const off = calls.filter((props) => /\bdisabled\b/.test(props));
+  assert.ok(off.some((props) => !/type=/.test(props)), 'no disabled checkbox in the specimen');
+  assert.ok(off.some((props) => /type="radio"/.test(props)), 'no disabled radio in the specimen');
+  assert.ok(off.some((props) => /\b(?:defaultChecked|checked)\b/.test(props)), 'no marked-and-disabled control in the specimen');
 });

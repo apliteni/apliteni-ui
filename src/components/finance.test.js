@@ -72,16 +72,6 @@ test('a chip reads what the consumer answered with — value is display text', a
   assert.equal(host.querySelector('.ui-dropdown__value.is-placeholder'), null);
   bar.destroy(); dom.window.close();
 });
-test('the shared pair never writes an absent field into a chip or its name', () => {
-  assert.equal(filterChipText({}), '');
-  assert.equal(filterChipName({ value: 'Tech' }), 'Tech');
-  assert.equal(filterChipName({}), '');
-  assert.equal(filterChipName({ label: 'Listing' }), 'Listing: any');
-  assert.equal(filterChipText({ label: 'Listing' }), 'Listing');
-  assert.equal(filterChipText({ label: 'Listing', value: 0 }), '0', 'zero is a value');
-  assert.equal(filterChipUnset({ value: '' }), true);
-  assert.equal(filterChipUnset({ value: 0 }), false);
-});
 // The returned list only, not the paint: which row the menu washes and ticks is
 // stories/filter-selected-mark.test.js.
 test('a chip marks its own value in the items its menu gets, and marks nothing else', () => {

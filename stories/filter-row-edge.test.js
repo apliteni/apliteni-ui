@@ -9,7 +9,7 @@
  */
 import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
-import { filterBar } from '../src/components/filter-bar.js';
+import { markup } from './lib/react-markup.js';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -111,10 +111,13 @@ const MEASURED = [
 ];
 const classOf = (state) => MEASURED.find((one) => one.is(state));
 
-/* Read the rendered default action. Explicit consumer variants are outside this check. */
-const clear = JSDOM.fragment(filterBar({ filters: [{ id: 'sector', label: 'Sector' }] }))
-  .querySelector('[data-filter-clear] button');
-assert.ok(clear, 'the factory must render a clear action');
+/* Read the rendered default action, from the React FilterBar, which offers it once a
+ * filter holds a value. Explicit consumer variants are outside this check. */
+const clear = JSDOM.fragment(await markup(({ h, kit }) => h(kit.FilterBar, {
+  filters: [{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology', value: 'Technology' }] }],
+  onRemove() {}, onClear() {}, onChange() {},
+}))).querySelector('[data-filter-clear] button');
+assert.ok(clear, 'the FilterBar must render a clear action');
 const VARIANTS = [...clear.classList].filter(c => c.startsWith('ui-btn--')).map(c => `.${c}`);
 
 /** The states the kit itself paints an edge on this box in. Those are the states the row has to

@@ -1,21 +1,19 @@
-// Class-name parity and behaviour gate for <CommandPalette>.
-// React components must match the vanilla class names.
+// Shape and behaviour gate for <CommandPalette>.
 //
-// The vanilla commandPalette() is the source of truth. The first half below
-// renders both and compares the shape read off each DOM — the panel's classes,
-// every row's classes, the roles and the ids the combobox points at. The second
-// half presses keys, which the vanilla gate does next door in
-// stories/palette-keyboard.test.js: focus opens in the text box and goes back to
-// the opener, the arrows move the active row while the caret stays put, and a
-// destructive row with nothing to ask cannot be run.
+// The first half holds the shape read off the DOM: the panel's classes, every row's
+// classes, the roles and the ids the combobox points at. Each case was compared with
+// the vanilla commandPalette() until #429 removed it; the shape both agreed on is
+// stored as a snapshot, written in the commit where the comparison last passed. The
+// second half presses keys: focus opens in the text box and goes back to the opener,
+// the arrows move the active row while the caret stays put, and a destructive row
+// with nothing to ask cannot be run.
 //
-// What this does NOT compare: the id seeds. React's come from useId(), so two
-// palettes on one page cannot collide the way a fixed prefix would.
+// What this does NOT hold: the id seeds. React's come from useId(), so two palettes
+// on one page cannot collide the way a fixed prefix would.
 import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, describe, it, expect, vi } from 'vitest';
-import { commandPalette } from '@apliteni/apliteni-ui';
 import { CommandPalette, type CommandGroup } from './CommandPalette';
 import { Modal } from './Modal';
 import { classesOfEl } from './test/classlist';
@@ -39,14 +37,7 @@ const GROUPS: CommandGroup[] = [
   },
 ];
 
-/** The vanilla factory's output as a DOM root. */
-function vanilla(opts: Record<string, unknown>): Element {
-  const host = document.createElement('div');
-  host.innerHTML = commandPalette({ groups: GROUPS, open: true, ...opts });
-  return host.firstElementChild as Element;
-}
-
-/** What both implementations have to agree on, read off a rendered palette. */
+/** The shape the palette is held to, read off a rendered palette. */
 function shape(root: Element) {
   const input = root.querySelector('.ui-cmdk__input') as HTMLInputElement;
   const list = root.querySelector('.ui-cmdk__list') as Element;
@@ -57,7 +48,7 @@ function shape(root: Element) {
     inputRole: input.getAttribute('role'),
     autocomplete: input.getAttribute('aria-autocomplete'),
     expanded: input.getAttribute('aria-expanded'),
-    // The id itself differs by construction; that it POINTS at the list does not.
+    // The id itself is React's own; that it POINTS at the list is held.
     controlsList: input.getAttribute('aria-controls') === list.id,
     listRole: list.getAttribute('role'),
     groups: [...list.querySelectorAll('.ui-cmdk__group')].map((g) => ({
@@ -82,18 +73,18 @@ function shape(root: Element) {
 
 const mounted = () => document.querySelector('.ui-cmdk') as Element;
 
-describe('parity with the vanilla factory', () => {
-  it('renders the same palette, group for group and row for row', () => {
+describe('the shape the vanilla factory agreed on', () => {
+  it('renders the palette, group for group and row for row', () => {
     render(<CommandPalette open groups={GROUPS} onClose={() => {}} />);
-    expect(shape(mounted())).toEqual(shape(vanilla({})));
+    expect(shape(mounted())).toMatchSnapshot();
   });
 
-  it('agrees on the roomy density and on a palette with no key legend', () => {
+  it('keeps the roomy density and a palette with no key legend', () => {
     render(<CommandPalette open density="roomy" hint={false} groups={GROUPS} onClose={() => {}} />);
-    expect(shape(mounted())).toEqual(shape(vanilla({ density: 'roomy', hint: false })));
+    expect(shape(mounted())).toMatchSnapshot();
   });
 
-  it('agrees on a destructive row that asks, and one that cannot', () => {
+  it('keeps a destructive row that asks, and one that cannot', () => {
     const items = [
       { id: 'del', label: 'Delete workspace…', description: 'Nebula · 42 API keys', icon: 'trash', danger: true },
       { id: 'revoke', label: 'Revoke every API key', description: 'They stop working at once', icon: 'key', danger: true },
@@ -105,22 +96,14 @@ describe('parity with the vanilla factory', () => {
         onClose={() => {}}
       />,
     );
-    const react = shape(mounted()).rows;
-    const kit = shape(vanilla({
-      groups: [{ label: 'Danger zone', items: [{ ...items[0], confirm: 'x' }, items[1]] }],
-    })).rows;
-    expect(react).toEqual(kit);
+    expect(shape(mounted()).rows).toMatchSnapshot();
   });
 
   it('ranks with the kit, so a server render and a keystroke agree', async () => {
     const user = userEvent.setup();
     render(<CommandPalette open groups={GROUPS} onClose={() => {}} />);
     await user.type(screen.getByRole('combobox'), 'set');
-
     const rows = [...mounted().querySelectorAll('.ui-cmdk__label')].map((l) => l.textContent);
-    const kitRows = [...vanilla({ query: 'set' }).querySelectorAll('.ui-cmdk__label')]
-      .map((l) => l.textContent);
-    expect(rows).toEqual(kitRows);
     expect(rows).toEqual(['Settings']);
   });
 });

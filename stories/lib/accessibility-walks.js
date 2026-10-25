@@ -147,9 +147,9 @@ const INTERACTIVE = [
 
 // ---- the walks ------------------------------------------------------------
 
-/** Mount every story once and hand each one's body to `visit`. */
-async function walk(win, styles, vars, visit) {
-  let stories = 0;
+/** Every vanilla story, rendered to markup, as `{ where, html }` or a problem. */
+async function vanillaSubjects() {
+  const subjects = [];
   const problems = [];
   for (const rel of storyFiles) {
     const mod = await import(path.join(root, 'stories', rel));
@@ -170,6 +170,19 @@ async function walk(win, styles, vars, visit) {
         problems.push(`${rel}:${name} → render returned ${Object.prototype.toString.call(out)}`);
         continue;
       }
+      subjects.push({ where: `${rel}:${name}`, html });
+    }
+  }
+  return { subjects, problems };
+}
+
+/** Mount every story once and hand each one's body to `visit`. `given` is a list of
+ *  `{ where, html }` a caller rendered itself, such as the React stories; without it the
+ *  vanilla stories are rendered here. */
+async function walk(win, styles, vars, given, visit) {
+  const { subjects, problems } = given ? { subjects: given, problems: [] } : await vanillaSubjects();
+  let stories = 0;
+  for (const { where, html } of subjects) {
       stories += 1;
       // A story carries its own <style> block, and a control styled only there
       // would measure as an unstyled box. Same treatment as the kit's sheet:
@@ -182,8 +195,7 @@ async function walk(win, styles, vars, visit) {
       // The markup goes with it, so a caller can put the same story in front of
       // a second sheet — which is how the phone strip is measured below without
       // walking every story twice.
-      visit(`${rel}:${name}`, markup);
-    }
+      visit(where, markup);
   }
   return { stories, problems };
 }
@@ -272,16 +284,16 @@ const accessibleName = (el, win) => {
 };
 
 /** The target-size, folded-rail and phone-strip measurements, in one walk. */
-export async function targetRun() {
-  const win = windowFor('dark', probeGeometry(sheet()));
+export async function targetRun({ subjects, extraCss = '' } = {}) {
+  const win = windowFor('dark', probeGeometry(`${sheet()}\n${extraCss}`));
   // The same stories in front of the same sheet with the 720px fold applied.
   // Only a story that draws a rail is put in front of it, so the walk stays one
   // walk and the phone costs what the shell stories cost.
-  const narrowWin = windowFor('dark', probeGeometry(narrowSheet()));
+  const narrowWin = windowFor('dark', probeGeometry(`${narrowSheet()}\n${extraCss}`));
   const controls = new Map();
   const folded = [];
   const strip = [];
-  const { stories, problems } = await walk(win, null, null, (where, markup) => {
+  const { stories, problems } = await walk(win, null, null, subjects, (where, markup) => {
     if (win.document.body.querySelector('.ui-app__rail')) {
       narrowWin.document.body.innerHTML = markup;
       // Below 720px the rail's rows are the drawer's, so the drawer is held open and the
@@ -353,10 +365,10 @@ export const ACCENTS = ['default', ...new Set(
 export const CELLS = THEMES.flatMap((theme) => ACCENTS.map((accent) => ({ theme, accent })));
 
 /** One theme x accent cell of the ring walk. */
-export async function ringCell(theme, accent) {
+export async function ringCell(theme, accent, { subjects, extraCss = '' } = {}) {
   const selectors = ringSelectors(sheet());
   const { vars, css } = kitCssFor(theme, accent);
-  const win = windowFor(theme, css);
+  const win = windowFor(theme, `${css}\n${desugar(substitute(extraCss, vars))}`);
   const styles = makeStyleCache(win);
   // --ring is a var() now, not a literal, so it is resolved through the same
   // token map the sheet is. Reading the raw declaration would find no colour.
@@ -366,7 +378,7 @@ export async function ringCell(theme, accent) {
   const ring = parseColour(band[1]);
   assert.ok(ring, `${theme}/${accent}: the solid band colour did not resolve`);
   const landings = new Map();
-  const { stories } = await walk(win, styles, vars, () => {
+  const { stories } = await walk(win, styles, vars, subjects, () => {
     for (const sel of selectors) {
       // The ring's own state pseudo-classes are what the sheet keys on; the
       // GROUND does not move when the control takes focus, so the base
@@ -395,13 +407,13 @@ export async function ringCell(theme, accent) {
 }
 
 /** The disabled walk for one theme. */
-export async function disabledCell(theme) {
+export async function disabledCell(theme, { subjects: given, extraCss = '' } = {}) {
   const subjects = disabledRules(sheet());
   const { vars, css } = kitCssFor(theme);
-  const win = windowFor(theme, css);
+  const win = windowFor(theme, `${css}\n${desugar(substitute(extraCss, vars))}`);
   const styles = makeStyleCache(win);
   const found = new Map();
-  await walk(win, styles, vars, () => {
+  await walk(win, styles, vars, given, () => {
     for (const { selector, opacity, edgeOnly } of subjects) {
       const base = selector.replace(/\s*\+\s*\.ui-switch__track/, '');
       const wantsSibling = selector.includes('+ .ui-switch__track');

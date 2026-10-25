@@ -47,10 +47,22 @@ for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLEl
 }
 
 const { dropdown, wireDropdown } = await import('../src/components/dropdown.js');
-const { versionSwitcher, accountMenu } = await import('../src/components/topbar.js');
-const { drawer } = await import('../src/components/drawer.js');
 const { confirm } = await import('../src/components/confirm.js');
-const { commandPalette } = await import('../src/components/command-palette.js');
+const { markup, liveMarkup } = await import('./lib/react-markup.js');
+
+// The React components, opened the way each one opens: a dropdown, the version menu and
+// the account menu render open; a drawer and the palette portal, so they are mounted and
+// read from the whole document. The vanilla confirm and the vanilla portalled panel stay
+// until the owner decides what happens to CSS only the vanilla kit drew.
+const reactMarkup = async () => ({
+  dropdown: await markup(({ h, kit }) => h(kit.Dropdown, { label: 'country:', variant: 'select', search: true, items: ITEMS, defaultOpen: true })),
+  version: await markup(({ h, kit }) => h(kit.VersionSwitcher, {
+    versions: [{ value: 'v1', label: 'v1', badge: 'archive' }, { value: 'v2', label: 'v2', badge: 'live' }], value: 'v2', onChange() {}, defaultOpen: true,
+  })),
+  account: await markup(({ h, kit }) => h(kit.AccountMenu, { name: 'Ada Lovelace', email: 'ada@apliteni.com', defaultOpen: true })),
+  drawer: await liveMarkup(({ h, kit }) => h(kit.Drawer, { open: true, title: 'Filters', onClose() {} }, h('input', { 'aria-label': 'Name' }))),
+  palette: await liveMarkup(({ h, kit }) => h(kit.CommandPalette, { open: true, onClose() {}, groups: [{ items: [{ id: 'n', label: 'New campaign' }, { id: 's', label: 'Open settings' }] }] })),
+});
 
 /* -- what counts as cover ------------------------------------------------------ */
 
@@ -84,6 +96,7 @@ const ITEMS = [
   { label: 'France', value: 'fr' },
   { label: 'Spain', value: 'es' },
 ];
+const REACT = await reactMarkup();
 
 /** Mount markup, hand back the host. */
 function mount(html) {
@@ -125,7 +138,7 @@ const assertOpen = (surface, open) => assert.ok(
 const LEDGER = {
   '.ui-dropdown__panel': {
     open: () => {
-      const surface = openedByKey(dropdown({ label: 'country:', variant: 'select', search: true, items: ITEMS }), '.ui-dropdown__panel');
+      const surface = mount(REACT.dropdown).querySelector('.ui-dropdown__panel');
       assertOpen(surface, '.ui-dropdown.open');
       return surface;
     },
@@ -145,19 +158,16 @@ const LEDGER = {
   },
   '.vsw__menu': {
     open: () => {
-      const surface = openedByKey(versionSwitcher([
-        { label: 'v1', badge: 'archive' },
-        { label: 'v2', badge: 'live' },
-      ], 1), '.vsw__menu');
-      assertOpen(surface, '.vsw.open');
+      const surface = mount(REACT.version).querySelector('.vsw__menu');
+      assertOpen(surface, '.vsw .ui-dropdown.open');
       return surface;
     },
-    focuses: 'a version row — the topbar opens on the dropdown wiring',
+    focuses: 'a version row — the React VersionSwitcher opens as a Dropdown',
   },
   '.amenu': {
     open: () => {
-      const surface = openedByKey(accountMenu({ name: 'Ada Lovelace', email: 'ada@apliteni.com' }), '.amenu');
-      assertOpen(surface, '.acct.open');
+      const surface = mount(REACT.account).querySelector('.amenu');
+      assertOpen(surface, '.acct .ui-dropdown.open');
       return surface;
     },
     focuses: 'the first menu row, through its wrapper — found with #519',
@@ -167,7 +177,7 @@ const LEDGER = {
   // overlay stack those push onto. That the class is the open one is held next door,
   // by stories/overlay-css.test.js.
   '.ui-drawer': {
-    open: () => mount(drawer({ title: 'Filters', body: '<input aria-label="Name">', open: true })).querySelector('.ui-drawer'),
+    open: () => mount(REACT.drawer).querySelector('.ui-drawer'),
     focuses: 'the first control in the panel',
   },
   '.ui-confirm': {
@@ -175,7 +185,7 @@ const LEDGER = {
     focuses: 'the safe answer',
   },
   '.ui-cmdk': {
-    open: () => mount(commandPalette({ items: [{ label: 'New campaign' }, { label: 'Open settings' }], open: true })).querySelector('.ui-cmdk'),
+    open: () => mount(REACT.palette).querySelector('.ui-cmdk'),
     focuses: 'the text box',
   },
   '.ui-tip': {

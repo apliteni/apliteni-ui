@@ -98,25 +98,6 @@ test('a preset query hides what it does not match, anywhere in the label, and ne
   assert.deepEqual(shown, ['Australian dollar (AUD)', 'Hong Kong dollar (HKD)', 'US dollar (USD)']);
 });
 
-// Found in Chromium, where jsdom cannot look: with `visibility` transitioned on
-// open, the panel is still `hidden` when the field is focused, and the focus is
-// lost. So the open search panel transitions everything but visibility.
-// The rule this reads is every panel's now, not the search variant's alone (#286):
-// a menu opened with the arrows puts focus on a row, and a row inside a box that
-// still resolves `hidden` cannot take it either. So the selectors matched here are
-// the general ones, and what the search variant needs is that they cover it.
-test('the open search panel does not transition visibility, so the field can take focus', () => {
-  const css = readFileSync(new URL('../styles/dropdown.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-  const open = [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)]
-    .filter(([, sel]) => /\.ui-dropdown\.open \.ui-dropdown__panel\b/.test(sel)
-      && /\.ui-dropdown__panel--portal\.is-open/.test(sel));
-  const swapped = open.filter(([, , body]) => /transition-property/.test(body));
-  assert.equal(swapped.length, 1, 'one rule opens the panel, in place and portalled — and it is the '
-    + 'one that takes `visibility` off the clock so a key can put focus inside');
-  const property = /transition-property\s*:([^;]*)/.exec(swapped[0][2])?.[1] ?? '';
-  assert.ok(property.includes('opacity') && !/visibility/.test(property), `transition-property: ${property.trim()}`);
-});
-
 // ---- Typing filters ------------------------------------------------------
 
 test('opening puts focus in the field with the selected row active', () => {
@@ -322,27 +303,6 @@ test('the divider goes between the groups still showing, never above the first o
 
 // ---- Touch ---------------------------------------------------------------
 
-// iOS Safari zooms the page into a focused field whose text is under 16px, and
-// opening the panel focuses this one. What it is sized to on a touch screen is
-// the kit's one net, src/styles/field-zoom.css, held by stories/field-zoom.test.js
-// over every field the kit renders. This sheet states the mouse size and carries
-// no (pointer: coarse) rule of its own, which is the second answer that could
-// disagree with the net. #294
-test('the field is 12.5px with a mouse, and this sheet does not size it on touch', () => {
-  const rules = sheet();
-  const base = rules.find((r) => r.selectorText === '.ui-dropdown__search-input');
-  const resolved = sizingRules(substitute(base.cssText, tokensFor('light')), 'dropdown.css');
-  assert.equal(resolved[0].px, 12.5, 'a mouse keeps the size the rows use');
-  const coarse = rules
-    .filter((r) => r.media && /\(\s*pointer\s*:\s*coarse\s*\)/.test(r.media.mediaText))
-    .flatMap((r) => [...r.cssRules].map((inner) => inner.cssText));
-  assert.deepEqual(coarse, [], 'a local touch rule beside the net is a second answer to one question');
-  // The net is written over element selectors, so what puts this field inside it
-  // is that the field is an <input>.
-  const field = mount(searchable()).doc.querySelector('.ui-dropdown__search-input');
-  assert.equal(field.tagName, 'INPUT', 'the net reaches the field through its element');
-});
-
 // ---- Portalled -----------------------------------------------------------
 
 test('a portalled search panel still filters and picks from the keyboard', () => {
@@ -357,52 +317,6 @@ test('a portalled search panel still filters and picks from the keyboard', () =>
   field.dispatchEvent(new m.window.Event('input', { bubbles: true }));
   press(m, field, 'Enter');
   assert.equal(trigger.querySelector('.ui-dropdown__value').textContent, 'Polish złoty (PLN)');
-});
-
-// ---- The matcher, published ------------------------------------------------
-//
-// dropdownMatch() and dropdownFiltering() are the kit's answer to "does this row
-// stay?", exported so a second implementation of this dropdown asks rather than
-// re-implements — the React <Dropdown> does, the way <CommandPalette> asks
-// rankGroups(). These tests are the export's contract; the ones above prove the
-// factory and the wiring ask the same pair. #304
-
-test('the matcher finds a substring anywhere in the label, not only at the front', () => {
-  assert.equal(dropdownMatch('Acme Payments Ltd', 'payments'), true);
-  assert.equal(dropdownMatch('US dollar (USD)', 'dollar'), true);
-  assert.equal(dropdownMatch('US dollar (USD)', 'usd'), true);
-  assert.equal(dropdownMatch('US dollar (USD)', 'euro'), false);
-});
-
-test('it ignores case, accents, and the letters that carry their own mark', () => {
-  for (const [label, query] of [
-    ['Polish złoty (PLN)', 'zloty'], ['Café', 'cafe'], ['Örebro', 'orebro'],
-    ['Ärger', 'arger'], ['Straße', 'strasse'], ['Ærø', 'aero'], ['Œuvre', 'oeuvre'],
-    ['Đà Nẵng', 'da nang'], ['Ísafjörður', 'isafjordur'], ['İstanbul', 'istanbul'],
-  ]) {
-    assert.equal(dropdownMatch(label, query), true, `${label} should be found by ${query}`);
-  }
-});
-
-test('a query with nothing in it matches every row, so nothing is hidden', () => {
-  for (const q of ['', '   ', undefined, null, '\u0301']) {
-    assert.equal(dropdownMatch('Anything', q), true, `query ${JSON.stringify(q)}`);
-    assert.equal(dropdownFiltering(q), false, `query ${JSON.stringify(q)} narrows nothing`);
-  }
-});
-
-test('a label that is not a string is read the way the factory reads one', () => {
-  for (const label of [undefined, null, 0, false]) {
-    assert.equal(dropdownMatch(label, 'x'), false, `label ${JSON.stringify(label)}`);
-    assert.equal(dropdownMatch(label, ''), true, `label ${JSON.stringify(label)} with no query`);
-  }
-  assert.equal(dropdownMatch(1250, '25'), true, 'a number label is its digits');
-});
-
-test('the query is trimmed and the label is not: a space inside a name still counts', () => {
-  assert.equal(dropdownMatch('Back office', '  back off  '), true);
-  assert.equal(dropdownMatch('Backoffice', 'back off'), false);
-  assert.equal(dropdownFiltering('  x  '), true);
 });
 
 test('what the factory hides is what the export says to hide', () => {

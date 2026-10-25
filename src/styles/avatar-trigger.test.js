@@ -10,16 +10,15 @@
  * measure in the PR carries the real face. The source half reads the pull and does the arithmetic against the 16px value
  * line a browser measured; it does not lay anything out. The browser half
  * (AVATAR_TRIGGER=1 with UI_PLAYWRIGHT, optionally UI_CHROME) measures the trigger in
- * Chromium, with the dashed ring and with a chosen person, in both themes. The React
- * Dropdown writes the same classes, so the same sheet answers for it.
+ * Chromium, with the dashed ring and with a chosen person, in both themes, on the React
+ * Dropdown's markup (stories/lib/react-markup.js).
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { dropdown } from './dropdown.js';
-import { field } from './index.js';
+import { markup } from '../../stories/lib/react-markup.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (p) => readFileSync(path.join(root, p), 'utf8');
@@ -42,11 +41,11 @@ test('a pull of 3px is rejected by the sweep', () => {
 
 const PEOPLE = [{ label: 'No one', value: '', avatar: { empty: true } },
   { label: 'Jordan Okafor', value: 'u1', avatar: { key: 'u1', name: 'Jordan Okafor' } }];
-const picker = (chosen) => field({ label: 'Owner', control: dropdown({
-  variant: 'select', placeholder: 'Choose a person',
-  items: PEOPLE.map((it) => ({ ...it, selected: chosen && it.value === 'u1' })),
-}) });
-const plain = field({ label: 'Owner', control: dropdown({ variant: 'select', placeholder: 'Choose', items: [{ label: 'Jordan Okafor', value: 'u1' }] }) });
+const picker = (chosen) => markup(({ h, kit }) => h(kit.Field, { label: 'Owner' }, (control) => h(kit.Dropdown, {
+  ...control, variant: 'select', placeholder: 'Choose a person', value: chosen ? 'u1' : undefined, items: PEOPLE,
+})));
+const plain = () => markup(({ h, kit }) => h(kit.Field, { label: 'Owner' },
+  (control) => h(kit.Dropdown, { ...control, variant: 'select', placeholder: 'Choose', items: [{ label: 'Jordan Okafor', value: 'u1' }] })));
 
 async function measure(css, theme) {
   const pw = await import(process.env.UI_PLAYWRIGHT || 'playwright');
@@ -55,7 +54,7 @@ async function measure(css, theme) {
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.setContent(`<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}\n.ui-dropdown__trigger { line-height: ${VALUE_LINE}px; }</style></head><body>`
-      + `<div style="max-width:420px">${plain}</div><div style="max-width:420px">${picker(false)}</div><div style="max-width:420px">${picker(true)}</div></body></html>`, { waitUntil: 'load' });
+      + `<div style="max-width:420px">${await plain()}</div><div style="max-width:420px">${await picker(false)}</div><div style="max-width:420px">${await picker(true)}</div></body></html>`, { waitUntil: 'load' });
     return await page.evaluate(() => [...document.querySelectorAll('.ui-dropdown__trigger')].map((t) => t.getBoundingClientRect().height));
   } finally {
     await browser.close();

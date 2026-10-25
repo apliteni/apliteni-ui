@@ -31,7 +31,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { DD_MENU_FLOOR } from '../src/components/dropdown.js';
+import { DD_MENU_FLOOR } from '../src/logic/dropdown-placement.js';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';

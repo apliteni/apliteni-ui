@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`keeps the agreed markup for custom copy and omits empty text 1`] = `"<div class="ui-empty"><div class="ui-empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div><div class="ui-empty__title">Nothing here</div><div class="ui-empty__sub">Add a row.</div></div>"`;
+
+exports[`keeps the agreed markup for custom copy and omits empty text 2`] = `"<div class="ui-empty"></div>"`;
+
+exports[`keeps the agreed markup for named artwork: inbox 1`] = `
+"<div class="ui-empty"><div class="ui-empty__art"><svg class="ui-illo" width="132" height="110" viewBox="0 0 132 110" fill="none" aria-hidden="true">
+    <path class="ui-illo__fill" d="M30 52h72l-9 28a7 7 0 0 1-6.6 5H45.6a7 7 0 0 1-6.6-5z"></path>
+    <path class="ui-illo__stroke" d="M30 52l9-24a7 7 0 0 1 6.6-4.5h40.8A7 7 0 0 1 93 28l9 24"></path>
+    <path class="ui-illo__stroke" d="M30 52h20l4 11h24l4-11h20"></path>
+    <path class="ui-illo__spark" transform="translate(108 20)" d="M0 0c.6 4 2.6 6 6.5 7-3.9.6-5.9 2.6-6.5 6.5-.6-3.9-2.6-5.9-6.5-6.5 3.9-.8 5.9-2.6 6.5-7z"></path></svg></div><div class="ui-empty__title">Nothing here</div><div class="ui-empty__sub">Add an item.</div></div>"
+`;
+
+exports[`keeps the agreed markup for named artwork: invoices 1`] = `
+"<div class="ui-empty"><div class="ui-empty__art"><svg class="ui-illo" width="132" height="110" viewBox="0 0 132 110" fill="none" aria-hidden="true">
+    <rect class="ui-illo__fill" x="28" y="26" width="58" height="70" rx="7"></rect>
+    <rect class="ui-illo__stroke" x="40" y="16" width="58" height="70" rx="7"></rect>
+    <path class="ui-illo__stroke" d="M52 34h34M52 48h34M52 62h22"></path>
+    <circle class="ui-illo__stroke" cx="92" cy="76" r="14"></circle>
+    <path class="ui-illo__stroke" d="M102 86l11 11"></path>
+    <path class="ui-illo__spark" transform="translate(112 18)" d="M0 0c.6 4 2.6 6 6.5 7-3.9.6-5.9 2.6-6.5 6.5-.6-3.9-2.6-5.9-6.5-6.5 3.9-.8 5.9-2.6 6.5-7z"></path></svg></div><div class="ui-empty__title">Nothing here</div><div class="ui-empty__sub">Add an item.</div></div>"
+`;
+
+exports[`keeps the agreed markup for named artwork: people 1`] = `
+"<div class="ui-empty"><div class="ui-empty__art"><svg class="ui-illo" width="132" height="110" viewBox="0 0 132 110" fill="none" aria-hidden="true">
+    <rect class="ui-illo__fill" x="22" y="34" width="70" height="56" rx="9"></rect>
+    <rect class="ui-illo__stroke" x="34" y="24" width="70" height="56" rx="9"></rect>
+    <circle class="ui-illo__stroke" cx="69" cy="45" r="9"></circle>
+    <path class="ui-illo__stroke" d="M53 70c0-9 7-13 16-13s16 4 16 13"></path>
+    <path class="ui-illo__spark" transform="translate(104 20)" d="M0 0c.6 4 2.6 6 6.5 7-3.9.6-5.9 2.6-6.5 6.5-.6-3.9-2.6-5.9-6.5-6.5 3.9-.8 5.9-2.6 6.5-7z"></path></svg></div><div class="ui-empty__title">Nothing here</div><div class="ui-empty__sub">Add an item.</div></div>"
+`;
+
+exports[`keeps the agreed markup for trusted SVG artwork 1`] = `"<div class="ui-empty"><div class="ui-empty__art"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4"></circle></svg></div><div class="ui-empty__title">Nothing here</div></div>"`;
+
+exports[`keeps the markup the vanilla empty state agreed on: first-run 1`] = `"<div class="ui-empty"><div class="ui-empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg></div><div class="ui-empty__title">Nothing needs you yet</div><div class="ui-empty__sub">New items will appear here when they need your attention.</div></div>"`;
+
+exports[`keeps the markup the vanilla empty state agreed on: no-matches 1`] = `"<div class="ui-empty"><div class="ui-empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke-linecap="round"></path></svg></div><div class="ui-empty__title">No results in this view</div><div class="ui-empty__sub">Try another search or clear your filters.</div></div>"`;
+
+exports[`keeps the markup the vanilla empty state agreed on: not-found 1`] = `"<div class="ui-empty"><div class="ui-empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div><div class="ui-empty__title">We can't find that page</div><div class="ui-empty__sub">Check the address or return to the home page.</div></div>"`;
+
+exports[`keeps the markup the vanilla empty state agreed on: not-yet-built 1`] = `"<div class="ui-empty"><div class="ui-empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg></div><div class="ui-empty__title">This ships later</div><div class="ui-empty__sub">This screen is not available yet. Check back later.</div></div>"`;

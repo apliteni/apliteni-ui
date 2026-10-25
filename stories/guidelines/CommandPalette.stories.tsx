@@ -38,6 +38,7 @@ const Palette = ({ groups, query = '', rank = true }: { groups: { label?: string
           {group.items.map(item => {
             const off = refused(item);
             return <div key={item.id} role="option" aria-selected={item === active} aria-disabled={off || undefined}
+              aria-haspopup={item.danger && item.confirm && !off ? 'dialog' : undefined}
               className={['ui-cmdk__item', item.danger && !off && 'is-danger', off && 'is-disabled', item === active && 'is-active'].filter(Boolean).join(' ')}>
               {item.icon && <Glyph name={item.icon} className="ui-cmdk__ic" />}
               <span className="ui-cmdk__main">

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { navTabs } from '../src/index.js';
+import { markup } from './lib/react-markup.js';
 import { kitStylesheet, playwright } from './lib/tap-zone.js';
 import { decodePNG } from './lib/table-edge-shade.js';
 
@@ -39,13 +39,10 @@ const disabledItems = [
   { id: 'disputes', label: 'Disputes', badge: { text: 2, tone: 'danger' }, disabled: true },
 ];
 
-function html(css, navItems = items) {
+async function html(css, navItems = items) {
+  const tabs = await markup(({ h, kit }) => h(kit.NavTabs, { 'aria-label': 'Finance views', items: navItems, active: 'summary' }));
   return `<!doctype html><html data-theme="dark"><head><style>${css}</style></head>`
-    + `<body style="margin:0;padding:40px">${navTabs({
-      ariaLabel: 'Finance views',
-      items: navItems,
-      active: 'summary',
-    })}</body></html>`;
+    + `<body style="margin:0;padding:40px">${tabs}</body></html>`;
 }
 
 function uncapTabs(css) {
@@ -159,7 +156,7 @@ function innerRingRects(box) {
 
 async function measure(page, css) {
   await page.setViewportSize({ width: 320, height: 260 });
-  await page.setContent(html(css), { waitUntil: 'load' });
+  await page.setContent(await html(css), { waitUntil: 'load' });
   await page.evaluate(() => document.fonts.ready);
   const layout = await page.evaluate((ring) => {
     const nav = document.querySelector('.ui-nav--tabs');
@@ -206,7 +203,7 @@ async function measure(page, css) {
 
 async function measureDisabledRow(page, css) {
   await page.setViewportSize({ width: 320, height: 220 });
-  await page.setContent(html(css, disabledItems), { waitUntil: 'load' });
+  await page.setContent(await html(css, disabledItems), { waitUntil: 'load' });
   await page.evaluate(() => document.fonts.ready);
   const layout = await page.evaluate(() => {
     const nav = document.querySelector('.ui-nav--tabs');
