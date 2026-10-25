@@ -1,36 +1,27 @@
-// Class-name parity gate for <Pagination>.
-// React components must match the vanilla class names.
+// Shape gate for <Pagination>.
 //
-// The vanilla pagination() is the source of truth. Every case below renders both
-// and compares the nav's class list plus the
-// shape read back off each DOM: the status sentence, every control's classes,
-// target page, label and disabled state, the size options and the jump box. A
-// React rule that disagrees with the factory fails here, and the fix is this
-// component rather than the factory.
+// Every case below was compared with the vanilla pagination() until #429 removed it:
+// the nav's class list and the shape read back off the DOM, which is the status
+// sentence, every control's classes, target page, label and disabled state, the size
+// options and the jump box. The shape both agreed on is stored as a snapshot, written
+// in the commit where the comparison last passed, so a change to any of it fails here.
 //
-// What this does NOT compare: the `id` seeds. React's default comes from useId(),
-// so two pagers on one page cannot collide the way a fixed 'pager' would; the id
-// a caller GIVES is compared, below.
+// What this does NOT hold: the `id` seeds React makes itself. Its default comes from
+// useId(), so two pagers on one page cannot collide; the id a caller GIVES is held below.
 import { act, render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach } from 'vitest';
-import { button, pagination, PAGE_SIZES, DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
+import { PAGE_SIZES, DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { Pagination, type PaginationProps } from './Pagination';
-import { classesOf, classesOfEl } from './test/classlist';
+import { Button } from './primitives/Button';
+import { classesOfEl } from './test/classlist';
 
 afterEach(cleanup);
 
-/** The vanilla factory's output as a DOM nav, or null where it renders nothing. */
-function vanillaNav(opts: PaginationProps): Element | null {
-  const host = document.createElement('div');
-  host.innerHTML = pagination(opts as Record<string, unknown>);
-  return host.firstElementChild;
-}
-
 const CONTROLS = '.ui-pager__step, .ui-pager__page, .ui-pager__gap';
 
-/** What both implementations have to agree on, read off a rendered nav. */
+/** The shape the pager is held to, read off a rendered nav. */
 function shape(nav: Element) {
   const jump = nav.querySelector('.ui-pager__jump-input') as HTMLInputElement | null;
   return {
@@ -44,9 +35,9 @@ function shape(nav: Element) {
     jump: jump && { value: jump.value, min: jump.min, max: jump.max, disabled: jump.disabled },
     jumpOf: nav.querySelector('.ui-pager__jump-of')?.textContent ?? null,
     controls: [...nav.querySelectorAll(CONTROLS)].map((el) => ({
-      // The tag and the href are compared, not assumed: the factory renders an
-      // <a> for an enabled control when it is given an `href`, and a shape that
-      // read neither would call that markup identical to a strip of <button>s.
+      // The tag and the href are held, not assumed: an enabled control given an
+      // `href` is an <a>, and a shape that read neither would call that markup
+      // identical to a strip of <button>s.
       tag: el.tagName,
       href: el.getAttribute('href'),
       cls: classesOfEl(el).join(' '),
@@ -60,21 +51,12 @@ function shape(nav: Element) {
   };
 }
 
-/** Render both and compare. Returns the React nav for a case that renders one. */
-function parity(name: string, opts: PaginationProps): Element | null {
-  const vanilla = vanillaNav(opts);
+/** Render one case and hold its shape. Returns the nav for a case that renders one. */
+function held(opts: PaginationProps): Element | null {
   const { container } = render(<Pagination {...opts} />);
-  const react = container.querySelector('nav');
-  if (vanilla === null) {
-    expect(react, `${name}: the factory renders nothing, so the component must render null`).toBeNull();
-    expect(container.innerHTML).toBe('');
-    return null;
-  }
-  expect(react, `${name}: the factory rendered a nav and the component did not`).not.toBeNull();
-  // Check class parity separately so failures name the mismatch.
-  expect(classesOfEl(react!), `${name}: nav class list`).toEqual(classesOf(pagination(opts as Record<string, unknown>)));
-  expect(shape(react!), `${name}: rendered shape`).toEqual(shape(vanilla));
-  return react;
+  const nav = container.querySelector('nav');
+  expect(nav ? shape(nav) : { empty: container.innerHTML === '' }).toMatchSnapshot();
+  return nav;
 }
 
 const CASES: [string, PaginationProps][] = [
@@ -109,7 +91,7 @@ const CASES: [string, PaginationProps][] = [
   ['the defaults', {}],
   ['the default page size', { page: 1, total: DEFAULT_PAGE_SIZE * 3 }],
   ['a label of its own', { page: 2, pageSize: 10, total: 400, label: 'Payout pages' }],
-  // What a URL or an untyped JSON body hands a caller: the factory's int()
+  // What a URL or an untyped JSON body hands a caller: the vanilla factory's int()
   // refuses each of these rather than reading it as 0, so this component has to.
   // Cast, because PaginationProps would reject them — a caller typed `any` would not.
   ['a page size of zero is no size at all', { page: 1, pageSize: 0, total: 4812 }],
@@ -123,15 +105,16 @@ const CASES: [string, PaginationProps][] = [
 ];
 
 for (const [name, opts] of CASES) {
-  it(`matches the vanilla pager: ${name}`, () => {
-    parity(name, opts);
+  it(`keeps the shape the vanilla pager agreed on: ${name}`, () => {
+    held(opts);
   });
 }
 
-it('carries exactly the classes button({ ghost, sm }) emits on every control', () => {
+it('carries exactly the classes the ghost small Button carries on every control', () => {
   // The kit has one ghost/sm button and this component may not become a second
-  // one. Read off button(), so a change there fails here.
-  const ghostSm = classesOf(button({ variant: 'ghost', size: 'sm' })).join(' ');
+  // one. Read off <Button>, so a change there fails here.
+  const ghostSm = classesOfEl(render(<Button variant="ghost" size="sm">x</Button>).container.querySelector('button')!).join(' ');
+  cleanup();
   expect(ghostSm).toBe('ui-btn ui-btn--ghost ui-btn--sm');
   const { container } = render(
     <Pagination page={4} pageSize={10} total={400} variant="numbered" />);
@@ -146,18 +129,16 @@ it('carries exactly the classes button({ ghost, sm }) emits on every control', (
   for (const cls of classes) expect(allowed).toContain(cls);
 });
 
-it('seeds both label/control pairs from the id it is given, as the factory does', () => {
+it('seeds both label/control pairs from the id it is given, as the factory did', () => {
   const opts = {
     page: 2, pageSize: 10, total: 400, variant: 'jump' as const, pageSizes: PAGE_SIZES, id: 'payouts',
   };
-  const html = pagination(opts);
   const { container } = render(<Pagination {...opts} />);
-  for (const sel of ['.ui-pager__size-label', '.ui-pager__size-select', '.ui-pager__jump-input']) {
-    const attr = sel.endsWith('label') ? 'for' : 'id';
-    expect(container.querySelector(sel)!.getAttribute(attr)).toBe(
-      vanillaNav(opts)!.querySelector(sel)!.getAttribute(attr));
+  // The seeds the vanilla pagination() wrote for this id.
+  for (const [sel, attr, value] of [['.ui-pager__size-label', 'for', 'payouts-size'],
+    ['.ui-pager__size-select', 'id', 'payouts-size'], ['.ui-pager__jump-input', 'id', 'payouts-jump']]) {
+    expect(container.querySelector(sel)!.getAttribute(attr)).toBe(value);
   }
-  expect(html).toContain('payouts-size');
   // The pairs work, which is what the ids are for.
   expect(screen.getByLabelText('Rows')).toBe(container.querySelector('.ui-pager__size-select'));
   expect(screen.getByLabelText('Page')).toBe(container.querySelector('.ui-pager__jump-input'));
@@ -236,31 +217,13 @@ it("takes the kit's page sizes rather than numbers of its own", () => {
   expect(PAGE_SIZES).toContain(DEFAULT_PAGE_SIZE);
 });
 
-it('renders a button where the factory would render a link — the one divergence', () => {
-  // `PaginationProps` has no `href` and the factory has one, so this is the
-  // single shape the two do not share. It is asserted rather than left out:
-  // a parity gate silent about the one known divergence is a gate a reader
-  // cannot tell from one that never looked.
-  const opts: PaginationProps = { page: 4, pageSize: 10, total: 400 };
-  parity('steps, middle page, as links', opts);   // no href: identical, tags included
-
-  const linked = document.createElement('div');
-  linked.innerHTML = pagination({ ...opts, href: (p: number) => `/rows?page=${p}` });
-  const { container } = render(<Pagination {...opts} />);
-  const controls = (root: Element) => shape(root).controls;
-  const vanilla = controls(linked.firstElementChild!);
-  const react = controls(container.querySelector('nav')!);
-
-  expect(vanilla.map((c) => [c.tag, c.href])).toEqual([
-    ['A', '/rows?page=1'], ['A', '/rows?page=3'], ['A', '/rows?page=5'], ['A', '/rows?page=40'],
-  ]);
-  expect(react.map((c) => [c.tag, c.href])).toEqual([
+it('draws buttons and never links: a page is reported through onPageChange', () => {
+  // The vanilla pagination() took an `href` and drew links; PaginationProps has no
+  // `href`, so every control is a <button> and the caller hears the page instead.
+  const { container } = render(<Pagination page={4} pageSize={10} total={400} />);
+  expect(shape(container.querySelector('nav')!).controls.map((c) => [c.tag, c.href])).toEqual([
     ['BUTTON', null], ['BUTTON', null], ['BUTTON', null], ['BUTTON', null],
   ]);
-  // And nothing else diverges: same classes, same targets, same labels, same
-  // disabled states. React reports through onPageChange; that is the whole of it.
-  const rest = (cs: ReturnType<typeof controls>) => cs.map(({ tag, href, ...c }) => c);
-  expect(rest(react)).toEqual(rest(vanilla));
 });
 
 // ---- the jump box: what the reader typed, and what they did instead --------

@@ -1,7 +1,7 @@
 // The finance portal's shell in React: the React twin of financeShell() in
 // _finance-nav.js, which keeps the nav, the reader and the story links, so the two
 // shells cannot drift apart while both exist.
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { AppShell } from '../../react/src/AppShell';
 // @ts-expect-error -- plain JS story module
 import { DASHBOARD_STORY, FINANCE_NAV, FINANCE_READER } from './_finance-nav.js';
@@ -20,7 +20,7 @@ export const FinanceShell = ({ active, crumb, title, sub, back, children }: {
 }) =>
   // The portal's column is 960px, set the way the vanilla shell sets it: through the
   // shell's own --ui-app-main, which the main column reads.
-  <div style={{ ['--ui-app-main' as string]: '960px' }}>
+  <div style={{ '--ui-app-main': '960px' } as CSSProperties}>
     <AppShell layout="rail" word="Finance" sections={sections} pathname={`/${active}`} title={title} lede={sub}
       back={back}
       crumbs={active === 'dashboard' ? [{ label: 'Finance' }] : [{ label: 'Finance', href: previewHref(DASHBOARD_STORY) }, { label: crumb || title }]}

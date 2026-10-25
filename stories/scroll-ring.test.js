@@ -31,8 +31,25 @@ import { JSDOM } from 'jsdom';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
 import { STYLE_FILES, desugar, substitute, tokensFor } from './lib/contrast.js';
 import { leafRules } from './lib/motion-css.js';
-import { confirm, drawer, dropdown, navTabs } from '../src/index.js';
-import { commandPalette } from '../src/components/command-palette.js';
+import { confirm } from '../src/index.js';
+import { liveMarkup, markup } from './lib/react-markup.js';
+
+// The React components draw every subject but one, the vanilla confirm's body, whose CSS
+// stays with the vanilla confirm until the owner decides what happens to vanilla-only CSS.
+// A dropdown and a tab row render on a server; a drawer and the palette portal, so they
+// are mounted and read from the whole document.
+const DROPDOWN = await markup(({ h, kit }) => h(kit.Dropdown, {
+  label: 'Account', search: true, defaultOpen: true,
+  items: [{ label: 'Nebula', value: 'nebula' }, { label: 'Vela', value: 'vela' }],
+}));
+const DRAWER = await liveMarkup(({ h, kit }) => h(kit.Drawer, { open: true, title: 'Record', onClose() {} }, h('p', null, 'A line of prose.')));
+const TABS = await markup(({ h, kit }) => h(kit.NavTabs, {
+  'aria-label': 'Finance views',
+  items: [{ id: 'summary', label: 'Summary', disabled: true }, { id: 'payouts', label: 'Payouts', disabled: true }],
+}));
+const PALETTE = await liveMarkup(({ h, kit }) => h(kit.CommandPalette, {
+  open: true, onClose() {}, groups: [{ label: 'Go', items: [{ id: 'a', label: 'Overview' }] }],
+}));
 
 const source = STYLE_FILES.map((file) => readFileSync(file, 'utf8')).join('\n');
 /** No shadow at all — the reading for a box that carries none at rest. */
@@ -79,17 +96,14 @@ const SUBJECTS = [
     box: '.ui-dropdown__list',
     why: 'the list sits 6px inside a 16px corner, where an outset ring leaves the panel '
       + 'and lights a box that is not the one that scrolls',
-    markup: () => dropdown({
-      label: 'Account', search: true, open: true,
-      items: [{ label: 'Nebula', value: 'nebula' }, { label: 'Vela', value: 'vela' }],
-    }),
+    markup: () => DROPDOWN,
   },
   {
     name: "a drawer's body",
     box: '.ui-drawer__body',
     why: 'the body is flush with a panel that is flush with a screen edge, so an outset '
       + 'ring on either box is painted off-screen; the 20px padding is the room for it',
-    markup: () => drawer({ id: 'd', title: 'Record', body: '<p>A line of prose.</p>' }),
+    markup: () => DRAWER,
   },
   {
     name: "a confirm's consequence",
@@ -104,21 +118,13 @@ const SUBJECTS = [
     why: 'a row that scrolls clips at its own padding edge, so an outset ring on it is '
       + 'cut off by the box that scrolls; its 4px of padding is the room the band draws '
       + 'in. A row with room for its links scrolls nothing and is no stop either',
-    markup: () => navTabs({
-      ariaLabel: 'Finance views',
-      items: [
-        { id: 'summary', label: 'Summary', disabled: true },
-        { id: 'payouts', label: 'Payouts', disabled: true },
-      ],
-    }),
+    markup: () => TABS,
   },
   {
     name: "the command palette's list",
     box: '.ui-cmdk__list',
     why: 'the panel clips with overflow: hidden, so an outset ring on the list is cut off',
-    markup: () => commandPalette({
-      id: 'p', groups: [{ label: 'Go', items: [{ id: 'a', label: 'Overview' }] }],
-    }),
+    markup: () => PALETTE,
   },
 ];
 

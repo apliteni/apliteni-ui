@@ -16,7 +16,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { JSDOM, VirtualConsole } from 'jsdom';
-import { dropdown } from '../src/components/dropdown.js';
+import { markup } from './lib/react-markup.js';
 
 const require = createRequire(import.meta.url);
 const axeSrc = readFileSync(path.join(path.dirname(require.resolve('axe-core')), 'axe.min.js'), 'utf8');
@@ -39,15 +39,23 @@ const AXE_OPTS = {
 
 const ROWS = [{ label: 'Unpaid' }, { label: 'Paid this month' }];
 const PICKS = [{ label: 'Unpaid', value: 'unpaid', selected: true }, { label: 'Paid', value: 'paid' }];
-const CONTROLS = '<button class="ui-btn ui-btn--sm">Cancel</button>'
-  + '<button class="ui-btn ui-btn--sm ui-btn--primary">Save</button>';
-const TEXT = '<span class="ui-dropdown__desc">Counts refresh every 5 minutes.</span>';
+// A foot is the pinned block at the panel's bottom edge, `.ui-dropdown__foot`; the
+// React Dropdown takes it whole through `footer`.
+const foot = (h, ...children) => h('div', { className: 'ui-dropdown__foot' }, ...children);
+const CONTROLS = (h) => foot(h, h('button', { className: 'ui-btn ui-btn--sm' }, 'Cancel'),
+  h('button', { className: 'ui-btn ui-btn--sm ui-btn--primary' }, 'Save'));
+const TEXT = (h) => foot(h, h('span', { className: 'ui-dropdown__desc' }, 'Counts refresh every 5 minutes.'));
+const HEAD = (h) => h('div', { className: 'ui-dropdown__head' }, h('b', null, 'Filter payouts'));
 
-/** The three panels the factory can emit, each named by the role it writes. */
+/** The three panels the React Dropdown can draw, each named by the role it writes. Slots
+ *  are built with the renderer's own createElement. */
+const panel = (props) => ({ header, footer } = {}) => markup(({ h, kit }) => h(kit.Dropdown, {
+  ariaLabel: 'Filter', defaultOpen: true, ...props, header: header?.(h), footer: footer?.(h),
+}));
 const PANELS = {
-  menu: (slots) => dropdown({ value: 'Filter', variant: 'menu', ariaLabel: 'Filter', open: true, items: ROWS, ...slots }),
-  listbox: (slots) => dropdown({ variant: 'select', ariaLabel: 'Filter', open: true, items: PICKS, ...slots }),
-  dialog: (slots) => dropdown({ value: 'Filter', ariaLabel: 'Filter', open: true, items: ROWS, search: { placeholder: 'Search' }, ...slots }),
+  menu: panel({ value: 'Filter', variant: 'menu', items: ROWS }),
+  listbox: panel({ variant: 'select', items: PICKS }),
+  dialog: panel({ value: 'Filter', items: ROWS, search: { placeholder: 'Search' } }),
 };
 
 async function violations(html) {
@@ -59,22 +67,21 @@ async function violations(html) {
   return Array.from(res.violations, (v) => v.id);
 }
 
-test('the factory writes the role each panel is named for here', () => {
+test('the component writes the role each panel is named for here', async () => {
   for (const [role, make] of Object.entries(PANELS)) {
     assert.match(
-      make({}), new RegExp(`data-dropdown-panel role="${role}"`),
+      await make({}), new RegExp(`data-dropdown-panel="" role="${role}"`),
       `the ${role} panel stopped writing role="${role}", so every case below is measuring something else`,
     );
   }
 });
 
-test('a head and a foot of text sit in any panel the factory emits', async () => {
+test('a head and a foot of text sit in any panel the component draws', async () => {
   // The head arrives as the page's own markup through the unwrapped slot, which
-  // is how every head in this kit is written; the foot is the factory's block.
-  const HEAD = '<div class="ui-dropdown__head"><b>Filter payouts</b></div>';
+  // is how every head in this kit is written; the foot is the pinned block.
   for (const [role, make] of Object.entries(PANELS)) {
     assert.deepEqual(
-      await violations(make({ header: HEAD, foot: TEXT })), [],
+      await violations(await make({ header: HEAD, footer: TEXT })), [],
       `a text head and foot are refused in the ${role} panel`,
     );
   }
@@ -83,7 +90,7 @@ test('a head and a foot of text sit in any panel the factory emits', async () =>
 test('a foot of controls belongs in the dialog panel, and axe refuses the other two', async () => {
   const refused = [];
   for (const [role, make] of Object.entries(PANELS)) {
-    const ids = await violations(make({ foot: CONTROLS }));
+    const ids = await violations(await make({ footer: CONTROLS }));
     if (ids.length) refused.push([role, ids]);
   }
   assert.deepEqual(

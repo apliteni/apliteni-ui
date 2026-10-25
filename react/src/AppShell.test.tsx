@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { appShell, avatarHue, paletteHotkey, themeIcon, themeToggle } from '@apliteni/apliteni-ui';
+import { avatarHue, paletteHotkey, themeIcon } from '@apliteni/apliteni-ui';
 import { AppShell } from './AppShell';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -34,30 +34,25 @@ it('uses the longest matching route, keeps counts in link names, and forwards ro
   expect(document.querySelector('[aria-current]')).toBeNull();
 });
 
-it('draws the rail mark as the Avatar part with the first and last initials, like the vanilla rail', () => {
+const VANILLA_RAIL_MARK = 'ui-avatar ui-avatar--32 ui-avatar--h7';
+
+it('draws the rail mark as the Avatar part with the first and last initials, as the vanilla rail did', () => {
   const account = { name: 'Mary Ann Lee', email: 'mary@example.com' };
   render(<AppShell {...props} account={account} />);
   const mark = document.querySelector('.ui-app__av > .ui-avatar') as HTMLElement;
   expect(mark.textContent).toBe('ML');
   expect(mark.classList.contains(`ui-avatar--h${avatarHue('mary@example.com')}`)).toBe(true);
-  const vanilla = new DOMParser().parseFromString(appShell({ account }), 'text/html').querySelector('.ui-app__av > .ui-avatar') as HTMLElement;
-  expect(vanilla.textContent).toBe(mark.textContent);
-  expect(vanilla.className).toBe(mark.className);
+  // The class the vanilla rail wrote for this person, held after #429 removed it.
+  expect(mark.className).toBe(VANILLA_RAIL_MARK);
 });
 
-it('uses the same initials and missing-name rule as the vanilla shell', () => {
+it('uses the initials and missing-name rule the vanilla shell used', () => {
   for (const [name, expected] of [['Anne-Marie', 'A'], ['Mary Ann Lee', 'ML'], ['', '']]) {
     const account = { name, email: 'guest@example.com' };
     const { unmount } = render(<AppShell {...props} account={account} />);
     const mark = document.querySelector('.ui-app__av > .ui-avatar') as HTMLElement;
-    const vanilla = new DOMParser().parseFromString(appShell({ account }), 'text/html').querySelector('.ui-app__av > .ui-avatar') as HTMLElement;
-    if (expected) {
-      expect(mark.textContent).toBe(expected);
-      expect(vanilla.textContent).toBe(expected);
-    } else {
-      expect(mark.classList.contains('ui-avatar--anon')).toBe(true);
-      expect(vanilla.classList.contains('ui-avatar--anon')).toBe(true);
-    }
+    if (expected) expect(mark.textContent).toBe(expected);
+    else expect(mark.classList.contains('ui-avatar--anon')).toBe(true);
     unmount();
   }
 });
@@ -214,19 +209,16 @@ describe('band theme switch', () => {
     expect(root).toHaveAttribute('data-theme-choice', 'dark');
   });
 
-  it.each(['dark', 'light', 'auto'] as const)('draws one %s glyph in vanilla themeToggle(), ThemeToggle and the band', theme => {
+  it.each(['dark', 'light', 'auto'] as const)('draws one %s glyph in ThemeToggle and the band, the shared themeIcon', theme => {
     localStorage.setItem('apliteni-strategy-theme', theme);
-    const vanilla = document.createElement('div');
-    vanilla.innerHTML = themeToggle(theme);
     const glyph = (el: ParentNode) => el.querySelector('.ic')!.innerHTML;
     const band = render(<AppShell {...props} />);
     const bandButton = band.container.querySelector('.toggle')!;
     const alone = render(<ThemeToggle />);
-    expect(glyph(alone.container)).toBe(glyph(vanilla));
-    expect(glyph(bandButton)).toBe(glyph(vanilla));
     const source = document.createElement('span');
     source.innerHTML = themeIcon(theme);
-    expect(glyph(vanilla)).toBe(source.innerHTML);
+    expect(glyph(alone.container)).toBe(source.innerHTML);
+    expect(glyph(bandButton)).toBe(source.innerHTML);
   });
 
   it('follows the system live in auto', async () => {

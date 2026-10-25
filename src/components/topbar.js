@@ -7,10 +7,11 @@ import { wireDropdown } from './dropdown.js';
 import { avatar } from './avatar.js';
 import { accountMenuNav, initials, toMenuTuple } from './account-nav.js';
 import { trustedAttr, trustedUrl } from '../html.js';
+import { themeIcon } from '../logic/theme.js';
 const THEME_KEY = 'apliteni-strategy-theme';
 
 // The icon and name show the saved choice, including automatic mode.
-export const themeIcon = (t) => t === 'auto' ? icon('monitor') : t === 'light' ? sun : moon;
+export { themeIcon };
 export const themeName = (t) => t === 'auto' ? 'Theme: Auto. Switch to dark.' :
   t === 'light' ? 'Theme: Light. Switch to auto.' : 'Theme: Dark. Switch to light.';
 

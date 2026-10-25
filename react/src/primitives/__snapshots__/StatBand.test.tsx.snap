@@ -1,0 +1,687 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`StatBand keeps the shape the vanilla statBand() agreed on > a captioned figure in a band with no caption of its own 1`] = `
+{
+  "basis": null,
+  "captionLeads": false,
+  "classes": [
+    "ui-stats",
+    "ui-stats--tiles",
+  ],
+  "figures": [
+    {
+      "caption": "of revenue",
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--good",
+      "delta": "of revenue +1.2 pts against the 40% target",
+      "describedBy": null,
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Operating margin",
+      "rowParts": [
+        "ui-stat__caption",
+        "ui-stat__change",
+        "ui-stat__basis",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "12.4%",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--bad",
+      "delta": "−3.9 pts against the 40% target",
+      "describedBy": null,
+      "glyph": "<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>",
+      "label": "Net margin",
+      "rowParts": [
+        "ui-stat__change",
+        "ui-stat__basis",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "8.0%",
+    },
+  ],
+  "label": null,
+  "list": "ui-stats__list",
+  "role": null,
+}
+`;
+
+exports[`StatBand keeps the shape the vanilla statBand() agreed on > a mixed band: captions, changes, and both at once 1`] = `
+{
+  "basis": "Against last year",
+  "captionLeads": true,
+  "classes": [
+    "ui-stats",
+    "ui-stats--tiles",
+  ],
+  "figures": [
+    {
+      "caption": "of revenue",
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": null,
+      "describedBy": null,
+      "glyph": null,
+      "label": "Gross margin",
+      "rowParts": [],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__caption",
+      ],
+      "trend": false,
+      "value": "36.1%",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--good",
+      "delta": "+47.1%",
+      "describedBy": "Against last year",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Income",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+        "DD.ui-stat__trend",
+      ],
+      "trend": true,
+      "value": "€ 6,459,401",
+    },
+    {
+      "caption": "of revenue",
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--good",
+      "delta": "of revenue +1.2 pts",
+      "describedBy": "Against last year",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Operating margin",
+      "rowParts": [
+        "ui-stat__caption",
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "12.4%",
+    },
+    {
+      "caption": "of revenue",
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--bad",
+      "delta": "of revenue −3.9 pts against the 40% target",
+      "describedBy": null,
+      "glyph": "<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>",
+      "label": "Net margin",
+      "rowParts": [
+        "ui-stat__caption",
+        "ui-stat__change",
+        "ui-stat__basis",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "8.0%",
+    },
+    {
+      "caption": "of revenue",
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": null,
+      "describedBy": null,
+      "glyph": null,
+      "label": "Refunds",
+      "rowParts": [],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__caption",
+      ],
+      "trend": false,
+      "value": "€ 0",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": null,
+      "describedBy": null,
+      "glyph": null,
+      "label": "Fees",
+      "rowParts": [],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+      ],
+      "trend": false,
+      "value": "€ 0",
+    },
+  ],
+  "label": null,
+  "list": "ui-stats__list",
+  "role": null,
+}
+`;
+
+exports[`StatBand keeps the shape the vanilla statBand() agreed on > band 1`] = `
+{
+  "basis": "x",
+  "captionLeads": true,
+  "classes": [
+    "ui-card",
+    "ui-stats",
+    "ui-stats--band",
+  ],
+  "figures": [
+    {
+      "caption": null,
+      "classes": "ui-stat ui-stat--good",
+      "delta": "+47.1%",
+      "describedBy": "x",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Income",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+        "DD.ui-stat__trend",
+      ],
+      "trend": true,
+      "value": "€ 6,459,401",
+    },
+    {
+      "caption": null,
+      "classes": "ui-stat ui-stat--bad",
+      "delta": "+12.4%",
+      "describedBy": "x",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Cost",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 4,127,880",
+    },
+    {
+      "caption": null,
+      "classes": "ui-stat",
+      "delta": "+168.0%",
+      "describedBy": "x",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Net cashflow",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+        "DD.ui-stat__trend",
+      ],
+      "trend": true,
+      "value": "+€ 2,331,521",
+    },
+    {
+      "caption": null,
+      "classes": "ui-stat ui-stat--good",
+      "delta": "−61.8%",
+      "describedBy": "x",
+      "glyph": "<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>",
+      "label": "Unclassified",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 84,210",
+    },
+  ],
+  "label": null,
+  "list": "ui-stats__list",
+  "role": null,
+}
+`;
+
+exports[`StatBand keeps the shape the vanilla statBand() agreed on > every kind of change 1`] = `
+{
+  "basis": "Against last year",
+  "captionLeads": true,
+  "classes": [
+    "ui-stats",
+    "ui-stats--tiles",
+  ],
+  "figures": [
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--bad",
+      "delta": "−3.9 pts against the 40% target",
+      "describedBy": null,
+      "glyph": "<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>",
+      "label": "Margin",
+      "rowParts": [
+        "ui-stat__change",
+        "ui-stat__basis",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "36%",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": null,
+      "describedBy": null,
+      "glyph": null,
+      "label": "New",
+      "rowParts": [],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+      ],
+      "trend": false,
+      "value": "€ 1",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": null,
+      "describedBy": null,
+      "glyph": null,
+      "label": "Toned, but nothing to compare",
+      "rowParts": [],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+      ],
+      "trend": false,
+      "value": "€ 1",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": null,
+      "describedBy": null,
+      "glyph": null,
+      "label": "Empty",
+      "rowParts": [],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+      ],
+      "trend": false,
+      "value": "€ 1",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": "0.0%",
+      "describedBy": "Against last year",
+      "glyph": "<path d="M5 12h14" stroke-linecap="round"></path>",
+      "label": "Flat",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 1",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": "4%",
+      "describedBy": "Against last year",
+      "glyph": "<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>",
+      "label": "Forced",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 1",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": "-4%",
+      "describedBy": "Against last year",
+      "glyph": "<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>",
+      "label": "Hyphen",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 1",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": null,
+      "describedBy": null,
+      "glyph": null,
+      "label": "Bare",
+      "rowParts": [],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+      ],
+      "trend": false,
+      "value": "€ 1",
+    },
+  ],
+  "label": null,
+  "list": "ui-stats__list",
+  "role": null,
+}
+`;
+
+exports[`StatBand keeps the shape the vanilla statBand() agreed on > open, named 1`] = `
+{
+  "basis": null,
+  "captionLeads": false,
+  "classes": [
+    "ui-stats",
+    "ui-stats--open",
+  ],
+  "figures": [
+    {
+      "caption": null,
+      "classes": "ui-stat ui-stat--good",
+      "delta": "+47.1%",
+      "describedBy": null,
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Income",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+        "DD.ui-stat__trend",
+      ],
+      "trend": true,
+      "value": "€ 6,459,401",
+    },
+    {
+      "caption": null,
+      "classes": "ui-stat ui-stat--bad",
+      "delta": "+12.4%",
+      "describedBy": null,
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Cost",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 4,127,880",
+    },
+    {
+      "caption": null,
+      "classes": "ui-stat",
+      "delta": "+168.0%",
+      "describedBy": null,
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Net cashflow",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+        "DD.ui-stat__trend",
+      ],
+      "trend": true,
+      "value": "+€ 2,331,521",
+    },
+    {
+      "caption": null,
+      "classes": "ui-stat ui-stat--good",
+      "delta": "−61.8%",
+      "describedBy": null,
+      "glyph": "<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>",
+      "label": "Unclassified",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 84,210",
+    },
+  ],
+  "label": "Cashflow",
+  "list": "ui-stats__list",
+  "role": "group",
+}
+`;
+
+exports[`StatBand keeps the shape the vanilla statBand() agreed on > the default layout, with a shared basis 1`] = `
+{
+  "basis": "Change against the previous 12 months",
+  "captionLeads": true,
+  "classes": [
+    "ui-stats",
+    "ui-stats--tiles",
+  ],
+  "figures": [
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--good",
+      "delta": "+47.1%",
+      "describedBy": "Change against the previous 12 months",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Income",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+        "DD.ui-stat__trend",
+      ],
+      "trend": true,
+      "value": "€ 6,459,401",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--bad",
+      "delta": "+12.4%",
+      "describedBy": "Change against the previous 12 months",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Cost",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 4,127,880",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": "+168.0%",
+      "describedBy": "Change against the previous 12 months",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Net cashflow",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+        "DD.ui-stat__trend",
+      ],
+      "trend": true,
+      "value": "+€ 2,331,521",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--good",
+      "delta": "−61.8%",
+      "describedBy": "Change against the previous 12 months",
+      "glyph": "<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>",
+      "label": "Unclassified",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 84,210",
+    },
+  ],
+  "label": null,
+  "list": "ui-stats__list",
+  "role": null,
+}
+`;
+
+exports[`StatBand keeps the shape the vanilla statBand() agreed on > tiles 1`] = `
+{
+  "basis": "x",
+  "captionLeads": true,
+  "classes": [
+    "ui-stats",
+    "ui-stats--tiles",
+  ],
+  "figures": [
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--good",
+      "delta": "+47.1%",
+      "describedBy": "x",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Income",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+        "DD.ui-stat__trend",
+      ],
+      "trend": true,
+      "value": "€ 6,459,401",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--bad",
+      "delta": "+12.4%",
+      "describedBy": "x",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Cost",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 4,127,880",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat",
+      "delta": "+168.0%",
+      "describedBy": "x",
+      "glyph": "<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>",
+      "label": "Net cashflow",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+        "DD.ui-stat__trend",
+      ],
+      "trend": true,
+      "value": "+€ 2,331,521",
+    },
+    {
+      "caption": null,
+      "classes": "ui-card ui-card--pad-sm ui-stat ui-stat--good",
+      "delta": "−61.8%",
+      "describedBy": "x",
+      "glyph": "<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>",
+      "label": "Unclassified",
+      "rowParts": [
+        "ui-stat__change",
+      ],
+      "tags": [
+        "DT.ui-stat__label",
+        "DD.ui-stat__value",
+        "DD.ui-stat__delta",
+      ],
+      "trend": false,
+      "value": "€ 84,210",
+    },
+  ],
+  "label": null,
+  "list": "ui-stats__list",
+  "role": null,
+}
+`;

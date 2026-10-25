@@ -1,18 +1,18 @@
 import { render, fireEvent } from '@testing-library/react';
-import { avatar } from '@apliteni/apliteni-ui';
 import { Avatar } from './Avatar';
-import { classesOf, classesOfEl } from '../test/classlist';
+import { classesOfEl } from '../test/classlist';
 
 const mark = (c: HTMLElement) => c.firstElementChild!;
 
+// The class lists the vanilla avatar() wrote for the same person, held after #429 removed it.
 it.each([
-  ['a named mark', { personKey: 'user_1042', name: 'Avery Example' }, { key: 'user_1042', name: 'Avery Example' }],
-  ['a 32 px mark', { personKey: 'user_7', name: 'Mia', size: 32 as const }, { key: 'user_7', name: 'Mia', size: 32 as const }],
-  ['no name', { personKey: 'user_9', name: '' }, { key: 'user_9', name: '' }],
-  ['the dashed ring', { empty: true }, { empty: true }],
-])('matches the vanilla avatar class list: %s', (_n, props, vanilla) => {
+  ['a named mark', { personKey: 'user_1042', name: 'Avery Example' }, ['ui-avatar', 'ui-avatar--h4']],
+  ['a 32 px mark', { personKey: 'user_7', name: 'Mia', size: 32 as const }, ['ui-avatar', 'ui-avatar--32', 'ui-avatar--h0']],
+  ['no name', { personKey: 'user_9', name: '' }, ['ui-avatar', 'ui-avatar--anon']],
+  ['the dashed ring', { empty: true }, ['ui-avatar', 'ui-avatar--empty']],
+])('writes the avatar class list: %s', (_n, props, expected) => {
   const { container } = render(<Avatar {...props} />);
-  expect(classesOfEl(mark(container))).toEqual(classesOf(avatar(vanilla)));
+  expect(classesOfEl(mark(container))).toEqual(expected);
 });
 
 it('draws the same letters and hides from assistive technology', () => {

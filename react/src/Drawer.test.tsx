@@ -1,14 +1,14 @@
-// <Drawer>: class-name parity with the vanilla drawer(), and the dialog behaviour it
-// shares with Modal through ./dialog.
-// React components must match the vanilla class names.
+// <Drawer>: the class names and structure the vanilla drawer() agreed on, and the
+// dialog behaviour it shares with Modal through ./dialog. Each shape case was compared
+// with drawer() until #429 removed it; the shape both agreed on is stored as a snapshot,
+// written in the commit where the comparison last passed.
 import { act, cleanup, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
-import { drawer } from '@apliteni/apliteni-ui';
 import { Drawer, type DrawerProps } from './Drawer';
 import { Modal } from './Modal';
-import { classesOf, classesOfEl } from './test/classlist';
+import { classesOfEl } from './test/classlist';
 
 afterEach(() => {
   cleanup();
@@ -29,14 +29,7 @@ const root = () => document.querySelector('.ui-drawer');
 const panel = () => document.querySelector('.ui-drawer__panel')!;
 const noop = () => {};
 
-// ---- parity ----------------------------------------------------------------
-
-/** The vanilla factory's output as a DOM root. */
-function vanillaRoot(opts: Record<string, unknown>): Element {
-  const host = document.createElement('div');
-  host.innerHTML = drawer(opts);
-  return host.firstElementChild!;
-}
+// ---- shape -----------------------------------------------------------------
 
 /** Every drawer element, in order, with what makes it that element. */
 function shape(el: Element) {
@@ -49,17 +42,17 @@ function shape(el: Element) {
     tabindex: n.getAttribute('tabindex'),
     label: n.getAttribute('aria-label'),
     text: n === title ? n.textContent : null,
-    // The ids differ (a module counter there, useId here); what has to agree is that
-    // the dialog is named by its title.
+    // The id is React's own; what is held is that the dialog is named by its title.
     namedByTitle: n.hasAttribute('aria-labelledby')
       ? n.getAttribute('aria-labelledby') === title?.id : null,
   }));
 }
 
 const SIDES = ['right', 'left', 'top', 'bottom'] as const;
+const CLOSED_LEFT_LG = ['ui-drawer', 'ui-drawer--left', 'ui-drawer--lg'];
 const SIZES = ['sm', 'md', 'lg'] as const;
 
-describe('class-name parity with the vanilla drawer()', () => {
+describe('the shape the vanilla drawer() agreed on', () => {
   for (const side of SIDES) {
     for (const size of SIZES) {
       for (const withFooter of [false, true]) {
@@ -71,9 +64,7 @@ describe('class-name parity with the vanilla drawer()', () => {
               body
             </Drawer>,
           );
-          const opts = { ...props, open: true, footer: withFooter ? '<button type="button">Apply</button>' : '' };
-          expect(classesOfEl(root()!), 'root class list').toEqual(classesOf(drawer(opts)));
-          expect(shape(root()!)).toEqual(shape(vanillaRoot(opts)));
+          expect(shape(root()!)).toMatchSnapshot();
         });
       }
     }
@@ -81,16 +72,15 @@ describe('class-name parity with the vanilla drawer()', () => {
 
   it('the defaults are the factory\'s: right, md, "Close"', () => {
     render(<Drawer open title="Filters" onClose={noop}>body</Drawer>);
-    const opts = { title: 'Filters', open: true };
-    expect(classesOfEl(root()!)).toEqual(classesOf(drawer(opts)));
-    expect(shape(root()!)).toEqual(shape(vanillaRoot(opts)));
+    expect(shape(root()!)).toMatchSnapshot();
   });
 
   it('while it leaves, the root is the factory\'s closed drawer', () => {
     panelTiming('transition-duration: 10s;');
     const { rerender } = render(<Drawer open side="left" size="lg" title="Filters" onClose={noop} />);
     rerender(<Drawer open={false} side="left" size="lg" title="Filters" onClose={noop} />);
-    expect(classesOfEl(root()!)).toEqual(classesOf(drawer({ side: 'left', size: 'lg', title: 'Filters' })));
+    // The class list the vanilla drawer() wrote for a closed drawer.
+    expect(classesOfEl(root()!)).toEqual(CLOSED_LEFT_LG);
   });
 });
 

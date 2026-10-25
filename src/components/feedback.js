@@ -10,6 +10,10 @@
 // ship in styles/feedback.css (part of the kit stylesheet). Accent-aware.
 import { esc } from './index.js';
 import { playEntrance } from '../motion.js';
+import { nearestSection } from '../logic/feedback.js';
+
+export { nearestSection };
+
 
 // Decorative, like every glyph in the kit — the pill and the buttons carry their
 // own text or aria-label, so the SVGs stay out of the accessibility tree.
@@ -55,21 +59,6 @@ export function feedbackWidget({
     <div class="row"><button type="button" class="ui-fbbtn ghost" data-fb-done-close>Close</button></div>
   </div>
 </div>`;
-}
-
-// Pure: the closest ancestor-or-preceding h2|h3 that carries an id, else the
-// first such heading in `root`. Exported for testing.
-export function nearestSection(node, root) {
-  let el = node && node.nodeType === 3 ? node.parentNode : node;
-  while (el && el !== root) {
-    let p = el;
-    while (p) {
-      if (p.tagName && /^H[23]$/.test(p.tagName) && p.id) return p;
-      p = p.previousElementSibling;
-    }
-    el = el.parentElement;
-  }
-  return root ? root.querySelector('h2[id],h3[id]') : null;
 }
 
 const defaultSection = (h) => {

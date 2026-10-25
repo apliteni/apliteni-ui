@@ -71,9 +71,27 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import { AA_TEXT, parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
-import { pagination } from '../src/components/pagination.js';
-import { sidebarNav } from '../src/components/nav.js';
-import { commandPaletteList } from '../src/components/command-palette.js';
+import { icon } from '../src/assets/icons.js';
+import { reactKit } from './lib/react-markup.js';
+
+// The subjects are the React SidebarNav and Pagination, rendered to static markup, and a
+// palette row written the way the React CommandPalette writes one; the rules under test
+// are the kit's CSS.
+const { h, render, kit } = await reactKit();
+const pagination = (props) => render(h(kit.Pagination, props));
+const sidebarNav = ({ items, active, collapsed }) => render(h(kit.SidebarNav, { items, active, collapsed }));
+/** One palette row as <CommandPalette> draws the first, active row of its list. */
+const commandPaletteRow = ({ label, description, icon: glyph, badge, shortcut = [], danger, confirm }) =>
+  render(h('div', {
+    className: ['ui-cmdk__item', danger && 'is-danger', 'is-active'].filter(Boolean).join(' '),
+    role: 'option', tabIndex: -1, 'aria-selected': true, 'aria-haspopup': danger && confirm ? 'dialog' : undefined,
+  },
+  glyph && h('span', { className: 'ui-cmdk__ic', 'aria-hidden': 'true', dangerouslySetInnerHTML: { __html: icon(glyph) } }),
+  h('span', { className: 'ui-cmdk__main' }, h('span', { className: 'ui-cmdk__label' }, label),
+    description && h('span', { className: 'ui-cmdk__desc' }, description)),
+  badge && h('span', { className: 'ui-cmdk__badge' }, badge),
+  shortcut.length > 0 && h('span', { className: 'ui-cmdk__keys', 'aria-hidden': 'true' },
+    ...shortcut.map((k) => h('kbd', { key: k, className: 'ui-cmdk__key' }, k)))));
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -406,7 +424,7 @@ test('the pager current page uses an accent mark with at least 3:1 against a pag
 // is in react/src/Pagination.test.tsx.
 test('a busy numbered pager keeps the quiet fill, semibold weight and readable ink on its current page', () => {
   const html = pagination({ page: 4, pageSize: 10, total: 400, variant: 'numbered', loading: true });
-  assert.match(html, /ui-pager__page is-current"[^>]* disabled aria-disabled="true"[^>]*>4</,
+  assert.match(html, /ui-pager__page is-current"[^>]* disabled(?:="")? aria-disabled="true"[^>]*>4</,
     'the busy pager no longer emits a disabled current page');
   const selector = '.ui-pager__page.is-current[disabled]';
   assert.deepEqual(fillsOf(selector), ['var(--surface-3)']);
@@ -661,9 +679,9 @@ const atWidth = (html, width) => {
   const inner = /<div class="ui-app__rail">([\s\S]*)<\/div><\/div>$/.exec(html)?.[1];
   return `<div class="ui-app"><div class="ui-app__drawer"><div class="ui-drawer is-open"><aside class="ui-drawer__panel"><div class="ui-drawer__body">${inner}</div></aside></div></div></div>`;
 };
-const palette = (item) => `<div class="ui-cmdk is-open"><div class="ui-cmdk__panel"><div class="ui-cmdk__list">${commandPaletteList([{ items: [{ id: 'p', label: 'Open', description: 'Go there', icon: 'home', badge: 'New', shortcut: ['⌘', 'K'], ...item }] }])}</div></div></div>`;
+const palette = (item) => `<div class="ui-cmdk is-open"><div class="ui-cmdk__panel"><div class="ui-cmdk__list">${commandPaletteRow({ label: 'Open', description: 'Go there', icon: 'home', badge: 'New', shortcut: ['⌘', 'K'], ...item })}</div></div></div>`;
 const group = (collapsed) => sidebarNav({
-  items: [{ id: 'g', label: 'Settings', icon: 'home', open: true, items: [{ id: 'c', label: 'Profile', href: '#' }] }],
+  items: [{ id: 'g', label: 'Settings', icon: 'home', defaultOpen: true, items: [{ id: 'c', label: 'Profile', href: '#' }] }],
   active: 'c', collapsed,
 });
 /** A folded row paints no fill of its own; its plate does. */

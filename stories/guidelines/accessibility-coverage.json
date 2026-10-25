@@ -1049,6 +1049,78 @@
         "The sheet check reads this one stylesheet. A declaration written inline in the component, or a kit class used for a job it was not drawn for, passes it; the kit-wide version is #601.",
         "The sheet check's banned list is grounds, rungs and type ramps — background, box-shadow and the five type properties. A border is not on it, so the drop box's own dashed edge and its dragging accent are declared and unmeasured here; they paint no reading surface."
       ]
+    },
+    {
+      "file": "react/src/Dropdown.badges.test.tsx",
+      "name": "React: Dropdown status chips",
+      "does": "Mounts every React Dropdown story and a fixture holding every tone, and measures each non-live status chip through the source cascade: its text clears 4.5:1 on its own fill, it draws no edge, its soft fill stays told apart from the panel, and it keeps the badge's own size. A missing fill and a strong edge written on purpose are both caught.",
+      "blind": [
+        "JSDOM computes no layout and no anti-aliased pixel, so the chip's rendered size and the edge a browser would blend are read from the cascade, not measured on screen.",
+        "Browser pseudo-classes are not applied, so a hover or a focus state that repaints a chip is not read."
+      ]
+    },
+    {
+      "file": "react/src/command-palette-guideline.test.tsx",
+      "name": "React: the command palette guideline",
+      "does": "Holds the keyboard contract the command palette page lists against the keys the React palette, its dialog and the shell band answer, and walks every palette row a React story renders: each row is named, and a destructive row either asks in a dialog or is disabled.",
+      "blind": [
+        "A key is found by reading the source for comparisons against an event's key, so a key handled another way is not seen.",
+        "Whether a row goes somewhere or runs something lives in its props, not its markup, so this walk cannot tell a dead row from a live one."
+      ]
+    },
+    {
+      "file": "react/src/dashboard-report-refs.test.tsx",
+      "name": "React: dashboard and report references",
+      "does": "Reads the TSX Finance dashboard, report and guideline screens and checks that every reference the dashboard shows is a row of the report with the same figures and status, that each link lands the reader on that row with the keyboard following and the row brought to the middle of the view, and that the report's filters and the dashboard's period change what they show.",
+      "blind": [
+        "The landing is read from what a click asks for in a simulated frame; JSDOM scrolls nothing, so where the row ends up on screen is left to browser captures.",
+        "Only the screens named here are read; a consumer's own report is outside it."
+      ]
+    },
+    {
+      "file": "react/src/inline-link-ring.test.tsx",
+      "name": "React: the ring on a bare link",
+      "does": "Mounts every React story, judges every link it draws against the kit's focus rules, and fails a link that falls back to the browser's outline or draws one of its own. Taking the element-wide link rule out of the sheet has to turn the gate red.",
+      "blind": [
+        "The source resolver models specificity and source order, not !important, inline styles or other interaction states.",
+        "It paints nothing: the ring's contrast and its shape on screen are the accessibility floor's numbers."
+      ]
+    },
+    {
+      "file": "react/src/reading-surface.test.tsx",
+      "name": "React: the guideline reading surface",
+      "does": "Mounts every TSX guideline page and, in both themes, asks every element that writes prose what stands behind it, failing prose that stands on the page ground. Unpainting the reading surface has to bring the prose back onto the ground.",
+      "blind": [
+        "The colour behind the text is composited from the cascade; a gradient or an image behind it is reported as such and not measured.",
+        "Text a specimen draws is not prose and is not read."
+      ]
+    },
+    {
+      "file": "react/src/table-stack.test.tsx",
+      "name": "React: stacked table roles",
+      "does": "Mounts every React story and checks that every table with the stacked modifier carries its own table, row group, row, header and cell roles, keeps its clipped header free of focus stops, and announces no sort order without a control outside the table that names it.",
+      "blind": [
+        "It reads markup: it proves the roles are present, not that a screen reader announces the table.",
+        "Only the stacked modifier is read; a table a consumer stacks another way is outside it."
+      ]
+    },
+    {
+      "file": "react/src/accessibility-floor.test.tsx",
+      "name": "React: the Accessibility minimums walks",
+      "does": "Runs the vanilla floor walks over every React story, mounted with its portals and with the React components' own sheets beside the kit's: every control reaches the 24px target unless it is exempt, the ring clears 3:1 on every ground it lands on in every accent, and a disabled label clears 3:1, repaints, and is never faded with opacity.",
+      "blind": [
+        "JSDOM lays nothing out, so a target's size is read through the geometry probes the vanilla walk uses, and a size a browser computes from content is not seen.",
+        "Colours are composited from the source cascade; a ring drawn over an image or a gradient is reported as such and not measured."
+      ]
+    },
+    {
+      "file": "react/src/filter-selected-mark.test.tsx",
+      "name": "React: the chosen filter-menu row",
+      "does": "Opens every filter menu a React story draws and measures each chosen row in both themes: a soft wash under 3:1 that is still painted, a check that clears 3:1 over it, the label in --strong at 4.5:1, and a hover or focus that the reader can find on the chosen row. Faults written on purpose are each caught.",
+      "blind": [
+        "Colours are composited from the source cascade in JSDOM, not read from pixels.",
+        "Only the chosen row of a filter menu is measured; a chosen row in another kind of menu is outside it."
+      ]
     }
   ],
   "UNGATED": [

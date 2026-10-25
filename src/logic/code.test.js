@@ -11,7 +11,8 @@
 // or how the spans lay out (browser captures).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hlShell, hlCode, codeTokens, codeLanguages, esc } from './index.js';
+import { hlShell, hlCode, codeTokens, codeLanguages } from './code.js';
+import { esc } from '../html.js';
 
 // The implementation hlShell had before #474 moved the pattern into the shared
 // tokenizer. Kept verbatim so the refactor is compared against the behaviour it

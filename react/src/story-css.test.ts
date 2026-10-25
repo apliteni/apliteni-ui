@@ -75,15 +75,25 @@ export const subjectsAmong = (paths: string[]) => paths.filter((p) => SERVED.tes
 /** A stylesheet in the showcases folder: read for any importer, a module included. */
 export const isShowcaseSheet = (file: string) => /^react\/src\/showcases\/(?:.+\/)?[^/]+\.css$/.test(file);
 
+// The showcases under stories/apps/ and the `_name.tsx` modules they build with, which
+// the root Storybook serves beside this workspace's stories (#429 moved them from the
+// vanilla collection, whose gate read them until then). Foundations and guideline pages
+// stay out, for the reason given above.
+// The two page frames at the root of stories/ draw those pages, so they stay out with them.
+const ROOT_SHOWCASES = filesUnder('stories')
+  .filter((f) => !/^stories\/(?:foundations|guidelines)\//.test(f) && !/^stories\/_(?:guideline|page)\.tsx$/.test(f))
+  .filter((f) => SERVED.test(f) || /(?:^|\/)_[\w-]+\.tsx$/.test(f));
+
 const subjects: string[] = [...new Set([
   ...subjectsAmong(files),
+  ...ROOT_SHOWCASES,
   ...files.filter((f) => f.endsWith('.css')).filter((f) => isShowcaseSheet(f) || storyOnlySheet(f)),
 ])].sort();
 
 // Measured, not guessed: the story and stylesheet floors, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows.
-const FOUND = { subjects: 44, declarations: 410, carriers: 33, sheets: 5 };
+const FOUND = { subjects: 68, declarations: 539, carriers: 49, sheets: 5 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -113,6 +123,12 @@ const ALLOWED: Record<string, string> = {
   'react/src/DocumentReview.stories.tsx|.doc-flow__sheet .ui-skel + .ui-skel': 'the preview stacks its skeleton bars by hand',
   'react/src/PeriodPicker.stories.tsx|.ui-card__title': 'the title is the first line of this card',
   'react/src/Landing.stories.tsx|.ui-section-head': 'the accent card closes its heading with the card padding',
+  'stories/apps/EmptyStates.stories.tsx|.ui-toolbar': 'the page stacks the toolbar by hand',
+  'stories/apps/StockScreener.stories.tsx|.screener .ui-table-scroll': 'the page stacks the scroll region by hand',
+
+  // Fifteen columns cannot fit a viewport, and a company name must not wrap mid-row.
+  'stories/apps/StockScreener.stories.tsx|.screener .ui-table': 'fifteen columns are wider than the viewport',
+  'stories/apps/StockScreener.stories.tsx|.screener .ui-identity__name': 'a company name does not wrap mid-row',
 
   // One column of one table reads left because it holds text. The kit right-aligns a
   // footer label on the assumption it spans to sit against its figure; here it owns a
@@ -183,6 +199,9 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/SwitchCheckbox.stories.tsx': { glue: 26 },
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
   'react/src/showcases/InvoiceFlow.css': { glue: 24 },
+  // The showcases' figures as the vanilla gate recorded them for the same screens.
+  'stories/apps/Access.stories.tsx': { shadow: 2 },
+  'stories/apps/StockScreener.stories.tsx': { shadow: 9 },
 };
 
 const against = { allowed: ALLOWED, recorded: RECORDED, ceiling: GLUE_CEILING, where: 'this gate' };

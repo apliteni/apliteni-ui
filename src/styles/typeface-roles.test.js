@@ -19,6 +19,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { markup } from '../../stories/lib/react-markup.js';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { blankStrings, kitSheetNames, kitStyleHtml } from '../../scripts/lib/icon-cascade.js';
 
@@ -267,57 +268,40 @@ test('b and strong are the semibold step, not the browser\'s bold', () => {
  *
  * Measured on this branch before the fix — the same dropdown inside a subtree
  * set in the display face resolved to var(--font-display) in place and
- * var(--font-sans) once wireDropdown() moved it. Both placements rendered, both
+ * var(--font-sans) once the vanilla wiring moved it onto <body>. Both placements rendered, both
  * looked deliberate, and `portal` is a positioning flag that has no business
  * changing a typeface. So the panel states its role and the two agree.
  *
  * The mutation is the placement itself rather than a rule cut out of a sheet:
- * the same document is read twice, once with the panel where the factory put it
- * and once after the move, and the assertion is that they are the same answer.
+ * the same document is read twice, once with the panel where the React Dropdown
+ * renders it and once after a move onto <body>, and the assertion is that they are the same answer.
  * A panel that inherited would give two.
  *
  * why: docs/foundations.md#typefaces */
-test('a dropdown panel keeps its role when the portal moves it onto <body>', async () => {
+test('a dropdown panel keeps its role wherever it is mounted', async () => {
   const quiet = new VirtualConsole();
   quiet.on('jsdomError', () => {});
-
+  const panel = await markup(({ h, kit }) => h(kit.Dropdown, {
+    label: 'env:', value: 'p', items: [{ label: 'Production', description: 'the description inherits', value: 'p' }],
+  }));
   const dom = new JSDOM(
     `<!doctype html><html><head>${kitStyleHtml(src, SHEETS)}</head>`
     /* A host in the DISPLAY face, so an inherited answer and a stated one differ.
        Nothing in the kit puts a dropdown inside one — that is the point: the
        probe has to disagree with <body> for the move to be visible at all. */
-    + '<body><main id="host" style="font-family: var(--font-display)"></main></body></html>',
+    + `<body><main id="host" style="font-family: var(--font-display)">${panel}</main></body></html>`,
     { pretendToBeVisual: true, virtualConsole: quiet },
   );
-  const { window } = dom;
-  for (const key of ['window', 'document', 'HTMLElement', 'Element', 'Node', 'getComputedStyle']) {
-    Object.defineProperty(globalThis, key, {
-      value: window[key] ?? window, configurable: true, writable: true,
-    });
-  }
-
-  const { dropdown, wireDropdown } = await import('../components/dropdown.js');
-  const { document, getComputedStyle } = window;
-
-  document.getElementById('host').innerHTML = dropdown({
-    label: 'env:',
-    value: 'production',
-    portal: true,
-    items: [{ label: 'Production', description: 'the description inherits', value: 'p' }],
-  });
+  const { document, getComputedStyle } = dom.window;
 
   /* The description, not the label: .ui-dropdown__label states its own family,
      so it would answer the same wherever it was mounted and prove nothing. */
   const face = () => getComputedStyle(document.querySelector('.ui-dropdown__desc')).fontFamily;
   const inPlace = face();
-
-  wireDropdown(document);
-  assert.equal(
-    document.querySelector('[data-dropdown-panel]').parentElement, document.body,
-    'the panel was not portalled, so this test measured the same placement twice and its '
-    + 'agreement below means nothing. wireDropdown() moves a panel carrying data-dropdown-portal.',
-  );
-  const portalled = face();
+  document.body.append(document.querySelector('.ui-dropdown__panel'));
+  assert.equal(document.querySelector('.ui-dropdown__panel').parentElement, document.body,
+    'the panel did not move, so this test measured the same placement twice');
+  const moved = face();
 
   assert.equal(
     inPlace, 'var(--font-sans)',
@@ -326,9 +310,9 @@ test('a dropdown panel keeps its role when the portal moves it onto <body>', asy
     + 'buys over inheriting one.',
   );
   assert.equal(
-    portalled, inPlace,
-    `the same panel is set in ${inPlace} in place and ${portalled} once the portal moved it onto `
-    + '<body>. `portal` positions a panel; it must not change what the panel is set in. State the '
-    + 'role on .ui-dropdown__panel rather than letting it inherit one from wherever it landed.',
+    moved, inPlace,
+    `the same panel is set in ${inPlace} in place and ${moved} once moved onto <body>. Where a `
+    + 'panel is mounted must not change what it is set in. State the role on .ui-dropdown__panel '
+    + 'rather than letting it inherit one from wherever it landed.',
   );
 });

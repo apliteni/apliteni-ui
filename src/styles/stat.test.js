@@ -12,7 +12,10 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
-import { statBand } from '../components/stat.js';
+import { markup } from '../../stories/lib/react-markup.js';
+
+/** The React band's markup, as a page gets it from a server. */
+const statBand = (opts) => markup(({ h, kit }) => h(kit.StatBand, opts));
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -43,8 +46,8 @@ test('a figure never breaks across lines, and its digits sit on one grid', () =>
 
 // A rule on the figure's <dd>s outranked the value's, change's and trend's own
 // margins once, and every screenshot showed a value flush under its label.
-test('each part of a figure keeps the spacing its own rule gives it', () => {
-  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+test('each part of a figure keeps the spacing its own rule gives it', async () => {
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${await statBand({
     stats: [
       { label: 'Income', value: '€ 1', delta: { value: '+1%' }, trend: '<svg width="1" height="1"></svg>' },
       { label: 'Gross margin', value: '36.1%', caption: 'of income' },
@@ -56,7 +59,7 @@ test('each part of a figure keeps the spacing its own rule gives it', () => {
   }
 });
 
-// The markup order — caption, then figures — is held in src/components/stat.test.js.
+// The markup order — caption, then figures — is held in react/src/primitives/StatBand.test.tsx.
 // This is the other half of it: a leading caption's air belongs under it, or the
 // gap it used to open between itself and the figures moves outside the band.
 test('the caption carries its space below it, because it leads the row', () => {
@@ -99,8 +102,8 @@ test("a figure's caption is body ink at the caption rank, on no fill", () => {
  * that box: the step down to the row and the two things that set its line box.
  * It does not measure the rendered tops, which is why the band is also drawn
  * mixed in the showcase. */
-test('a caption alone and a change take the same row box, so a mixed band keeps one line', () => {
-  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+test('a caption alone and a change take the same row box, so a mixed band keeps one line', async () => {
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${await statBand({
     basis: 'Against last year',
     id: 'mixed',
     stats: [
@@ -116,7 +119,7 @@ test('a caption alone and a change take the same row box, so a mixed band keeps 
   assert.ok(cap.marginTop && cap.fontSize && cap.lineHeight, 'the cascade resolved nothing, so this compared two blanks');
 });
 
-/* The one-row guarantee in src/components/stat.test.js is a markup guarantee: it
+/* The one-row guarantee in react/src/primitives/StatBand.test.tsx is a markup guarantee: it
  * counts <dd>s, and a row that wrapped would still be one. This is the other
  * half — the row is one LINE. A change that wrapped put its arrow at the end of
  * one line and its number at the start of the next, and a caption long enough to
@@ -127,8 +130,8 @@ test('a caption alone and a change take the same row box, so a mixed band keeps 
  * line unbreakable: the row does not wrap, the arrow and the number cannot give
  * way, and the words can. It does not measure a rendered width — the showcase
  * draws a caption past the tile's width for that. */
-test('a change is one line: the arrow keeps its number, and the words clip instead', () => {
-  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+test('a change is one line: the arrow keeps its number, and the words clip instead', async () => {
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${await statBand({
     stats: [{ label: 'Operating margin', value: '12.4%', caption: 'of income before tax and refunds', delta: { value: '+1.2 pts', basis: 'against the 40% target' } }],
   })}</body></html>`).window;
   const style = (sel) => doc.getComputedStyle(doc.document.querySelector(sel));
@@ -159,7 +162,7 @@ test('a change is one line: the arrow keeps its number, and the words clip inste
     assert.equal(got.flexGrow, '1', `${sel} never reaches its own text, because nothing grows it`);
   }
   // The lone caption is a block, not a flex item, so it is bounded the other way.
-  const alone = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+  const alone = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${await statBand({
     stats: [{ label: 'Gross margin', value: '36.1%', caption: 'March revenue in EUR, excluding refunds' }],
   })}</body></html>`).window;
   assert.equal(alone.getComputedStyle(alone.document.querySelector('dd.ui-stat__caption')).contain, 'inline-size',
@@ -176,11 +179,11 @@ test('a change is one line: the arrow keeps its number, and the words clip inste
  * that read the row's `flex-wrap` passed while the caption inside it could not
  * break. jsdom lays nothing out, so what this holds is which rules reach which
  * element; the showcase draws a caption past the width in both rows for the rest. */
-test('a caption standing alone keeps every word, and the change row clips', () => {
-  const win = (stats) => new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({ stats })}</body></html>`).window;
+test('a caption standing alone keeps every word, and the change row clips', async () => {
+  const win = async (stats) => new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${await statBand({ stats })}</body></html>`).window;
   const LONG = 'March revenue in EUR, excluding refunds';
-  const alone = win([{ label: 'Gross margin', value: '36.1%', caption: LONG }]);
-  const clipped = win([{ label: 'Net margin', value: '8.0%', caption: LONG, delta: { value: '+0.4 pts' } }]);
+  const alone = await win([{ label: 'Gross margin', value: '36.1%', caption: LONG }]);
+  const clipped = await win([{ label: 'Net margin', value: '8.0%', caption: LONG, delta: { value: '+0.4 pts' } }]);
   const styleOf = (w, sel) => w.getComputedStyle(w.document.querySelector(sel));
 
   const standing = styleOf(alone, 'dd.ui-stat__caption');
@@ -213,13 +216,13 @@ test("the band's caption is never set under a caption inside one figure", () => 
 
 // The two tests above hold which parts a tone paints. This holds that the
 // caption is not one of them: it reports no change, so there is no news to colour.
-test('no tone reaches a figure\'s caption', () => {
+test('no tone reaches a figure\'s caption', async () => {
   const painted = rules.filter((r) => r.selector.includes('.ui-stat__caption') && /color/.test(r.body));
   assert.deepEqual(painted.map((r) => r.selector), ['.ui-stat__caption'],
     'a second rule colours the caption, and the only colour it takes is body ink');
   // Leading a change, the caption sits inside the element a tone paints, so the
   // rule above is not enough on its own: this is the cascade resolved.
-  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${statBand({
+  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${await statBand({
     variant: 'band',
     stats: [{ label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } }],
   })}</body></html>`).window;

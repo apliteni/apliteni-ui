@@ -1,25 +1,17 @@
-// Shape parity gate for <BackLink>.
-// React components must match the vanilla class names.
+// Shape gate for <BackLink>.
 //
-// backLink() is the source of truth, over the cases src/components/back.test.js
-// pins. One difference is deliberate and is asserted by name at the foot of this
-// file: the chevron goes through <Icon>, which wraps the svg in a span.
+// Every case below was compared with the vanilla backLink() until #429 removed it. The
+// shape both agreed on is stored as a snapshot, written in the commit where the
+// comparison last passed. One difference was deliberate and is asserted by name at the
+// foot of this file: the chevron goes through <Icon>, which wraps the svg in a span.
 import { render, cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
-import { backLink } from '@apliteni/apliteni-ui';
 import { BackLink, type BackLinkProps } from './BackLink';
-import { classesOf, classesOfEl } from './test/classlist';
+import { classesOfEl } from './test/classlist';
 
 afterEach(cleanup);
 
-/** The vanilla factory's output as a DOM anchor, or null where it renders nothing. */
-function vanilla(opts: BackLinkProps): Element | null {
-  const host = document.createElement('div');
-  host.innerHTML = backLink(opts as Record<string, unknown>);
-  return host.firstElementChild;
-}
-
-/** What both implementations have to agree on, read off a rendered link. */
+/** The shape the link is held to, read off a rendered link. */
 function shape(a: Element) {
   const svg = a.querySelector('svg');
   return {
@@ -36,19 +28,11 @@ function shape(a: Element) {
   };
 }
 
-function parity(name: string, opts: BackLinkProps) {
-  const factory = vanilla(opts);
+/** Render one case and hold its shape; a case with nowhere to go renders nothing. */
+function held(opts: BackLinkProps) {
   const { container } = render(<BackLink {...opts} />);
-  const react = container.querySelector('a');
-  if (factory === null) {
-    expect(react, `${name}: the factory renders nothing, so the component must render null`).toBeNull();
-    expect(container.innerHTML).toBe('');
-    return;
-  }
-  expect(react, `${name}: the factory rendered a link and the component did not`).not.toBeNull();
-  expect(classesOfEl(react!), `${name}: anchor class list`)
-    .toEqual(classesOf(backLink(opts as Record<string, unknown>)));
-  expect(shape(react!), `${name}: rendered shape`).toEqual(shape(factory));
+  const a = container.querySelector('a');
+  expect(a ? shape(a) : { empty: container.innerHTML === '' }).toMatchSnapshot();
 }
 
 const CASES: [string, BackLinkProps][] = [
@@ -70,7 +54,7 @@ const CASES: [string, BackLinkProps][] = [
   ['a destination called Back office', { href: '/x', label: 'Back office' }],
   ['a destination called Back toys', { href: '/x', label: 'Back toys' }],
   ['a long name', { href: '/reconciliation', label: 'Reconciliation & settlement reports' }],
-  // Nowhere to go: the factory renders nothing, so the component renders null.
+  // Nowhere to go: the component renders null.
   ['no address', { label: 'Invoices' }],
   ['an empty address', { href: '', label: 'Invoices' }],
   ['an address of spaces', { href: '   ', label: 'Invoices' }],
@@ -82,13 +66,13 @@ const CASES: [string, BackLinkProps][] = [
 ];
 
 for (const [name, opts] of CASES) {
-  it(`matches the vanilla back link: ${name}`, () => {
-    parity(name, opts);
+  it(`keeps the shape the vanilla back link agreed on: ${name}`, () => {
+    held(opts);
   });
 }
 
 // Each one is read as javascript: by the URL parser the browser uses, so none is a
-// straw man — the same list src/components/back.test.js walks.
+// straw man.
 const SCRIPTS = [
   'javascript:history.back()', 'JavaScript:history.go(-1)', '  javascript:void 0',
   '\tjavascript:history.back()', '\u0001javascript:history.back()',
@@ -99,7 +83,7 @@ const SCRIPTS = [
 for (const href of SCRIPTS) {
   it(`a script is not a destination, however it is spelt: ${JSON.stringify(href)}`, () => {
     expect(new URL(href, 'https://kit.test/').protocol).toBe('javascript:');
-    parity(`script ${JSON.stringify(href)}`, { href, label: 'Invoices' });
+    held({ href, label: 'Invoices' });
   });
 }
 
@@ -133,16 +117,15 @@ it('draws the anchor a caller names, and passes that element its own props', () 
     <BackLink as={Link} to="/invoices" href="/invoices" label="Invoices" />);
   const a = container.querySelector('a')!;
   expect(a.getAttribute('data-to')).toBe('/invoices');
-  expect(shape(a)).toEqual(shape(vanilla({ href: '/invoices', label: 'Invoices' })!));
+  const plain = render(<BackLink href="/invoices" label="Invoices" />).container.querySelector('a')!;
+  expect(shape(a)).toEqual(shape(plain));
 });
 
-it('the chevron is <Icon>, which is one wrapper span more than the factory writes', () => {
+it('the chevron is <Icon>, which is one wrapper span more than the vanilla factory wrote', () => {
   const { container } = render(<BackLink href="/x" label="Invoices" />);
   const a = container.querySelector('a')!;
   const wrapper = a.querySelector('svg')!.parentElement!;
   expect(wrapper.tagName).toBe('SPAN');
   expect(wrapper.getAttribute('aria-hidden')).toBe('true');
   expect(wrapper.className, 'it carries no class, so it matches no rule in back.css').toBe('');
-  // The factory's own svg is a direct child of the anchor.
-  expect(vanilla({ href: '/x', label: 'Invoices' })!.firstElementChild!.tagName).toBe('svg');
 });

@@ -84,16 +84,18 @@ const VARIANTS = [...new Set(PARTS
   .flatMap(({ part }) => [...part.matchAll(/\.([\w-]*select)(?![\w-])/g)].map((m) => m[1])))]
   .filter((cls) => cls !== 'ui-select');
 
-/* The class list a variant really ships with, read out of the factories rather
+/* The class list a variant really ships with, read out of the React components rather
  * than assumed — `.ui-pager__size-select` alone would resolve a cascade no page
  * has, since the markup pairs it with `ui-select`. */
-const FACTORIES = ['src/components/index.js', 'src/components/pagination.js'].map(read).join('\n');
+const COMPONENTS = readdirSync(path.join(root, 'react/src'), { recursive: true })
+  .filter((f) => /\.tsx$/.test(f) && !/\.(test|stories)\.tsx$/.test(f))
+  .map((f) => read(path.join('react/src', f))).join('\n');
 function classListFor(cls) {
   if (cls === null) return 'ui-select';
-  const found = [...FACTORIES.matchAll(/class="([^"{}]*)"/g)]
+  const found = [...COMPONENTS.matchAll(/className="([^"{}]*)"/g)]
     .map((m) => m[1].trim())
     .find((list) => list.split(/\s+/).includes(cls));
-  assert.ok(found, `no factory emits class="…${cls}…" — the variant sweep reads markup that is gone`);
+  assert.ok(found, `no component writes className="…${cls}…" — the variant sweep reads markup that is gone`);
   return found;
 }
 

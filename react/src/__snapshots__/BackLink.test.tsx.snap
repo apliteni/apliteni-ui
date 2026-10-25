@@ -1,0 +1,361 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`a script is not a destination, however it is spelt: "  javascript:void 0" 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`a script is not a destination, however it is spelt: "\\tjavascript:history.back()" 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`a script is not a destination, however it is spelt: "\\u0001javascript:history.back()" 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`a script is not a destination, however it is spelt: "JavaScript:history.go(-1)" 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`a script is not a destination, however it is spelt: "j\\r\\nava\\tscript:history.back()" 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`a script is not a destination, however it is spelt: "java\\nscript:history.back()" 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`a script is not a destination, however it is spelt: "java\\tscript:history.back()" 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`a script is not a destination, however it is spelt: "javascript:history.back()" 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`a script is not a destination, however it is spelt: "javascript\\r:history.back()" 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a destination and a name 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/invoices",
+  "name": "Back to Invoices",
+  "tag": "A",
+  "text": "Invoices",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a destination called Back office 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/x",
+  "name": "Back to Back office",
+  "tag": "A",
+  "text": "Back office",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a destination called Back toys 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/x",
+  "name": "Back to Back toys",
+  "tag": "A",
+  "text": "Back toys",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a destination whose own name starts with Back 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/x",
+  "name": "Back to Backups",
+  "tag": "A",
+  "text": "Backups",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a long name 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/reconciliation",
+  "name": "Back to Reconciliation & settlement reports",
+  "tag": "A",
+  "text": "Reconciliation & settlement reports",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a name of spaces 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/x",
+  "name": null,
+  "tag": "A",
+  "text": "Back",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a name that already says Back to 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/invoices",
+  "name": "Back to Invoices",
+  "tag": "A",
+  "text": "Invoices",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a name that is Back to Back 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/x",
+  "name": null,
+  "tag": "A",
+  "text": "Back",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a name that is only Back to 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/x",
+  "name": null,
+  "tag": "A",
+  "text": "Back",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a name that says BACK TO with its own spacing 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/invoices",
+  "name": "Back to Invoices",
+  "tag": "A",
+  "text": "Invoices",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a name that says Back to across a tab 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/invoices",
+  "name": "Back to Invoices",
+  "tag": "A",
+  "text": "Invoices",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a name that says back to, lowercase 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/invoices",
+  "name": "Back to Invoices",
+  "tag": "A",
+  "text": "Invoices",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: a query in the address 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/invoices?status=open&page=3",
+  "name": "Back to Invoices",
+  "tag": "A",
+  "text": "Invoices",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: an address of spaces 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: an address that is a list 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: an address that is an object 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: an ampersand in the name 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/access",
+  "name": "Back to Access & agents",
+  "tag": "A",
+  "text": "Access & agents",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: an empty address 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: an empty name 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/x",
+  "name": null,
+  "tag": "A",
+  "text": "Back",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: no address 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: no name at all 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/x",
+  "name": null,
+  "tag": "A",
+  "text": "Back",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: nothing at all 1`] = `
+{
+  "empty": true,
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: the word Back 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/x",
+  "name": null,
+  "tag": "A",
+  "text": "Back",
+}
+`;
+
+exports[`keeps the shape the vanilla back link agreed on: the word back, lowercase 1`] = `
+{
+  "classes": [
+    "ui-back",
+  ],
+  "glyphHidden": "true",
+  "glyphs": 1,
+  "handlers": false,
+  "href": "/x",
+  "name": null,
+  "tag": "A",
+  "text": "Back",
+}
+`;

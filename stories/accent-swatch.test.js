@@ -30,7 +30,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { luminance, parseColour, substitute, tokensFor } from './lib/contrast.js';
-import { accentPicker } from '../src/components/index.js';
+import { markup } from './lib/react-markup.js';
 import { ACCENTS as SHIPPED, accentSwatchStyle } from '../src/logic/accents.js';
 import { footer } from '../site/chrome.mjs';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
@@ -177,7 +177,7 @@ function derive(accent) {
  * Every accent swatch a picker paints, as accent → the gradient text itself.
  *
  * One parser for all three copies, and it reads BUTTONS, not a window in a file.
- * The kit's picker writes the gradient into a --swatch custom property on the
+ * The React picker writes the gradient into a --swatch custom property on the
  * button and the site's two write it into `background` (the playground's on a
  * child <span>), so the gradient is looked for anywhere inside the button
  * element — but never outside it. Bounding on the element is what keeps the
@@ -189,6 +189,9 @@ function derive(accent) {
  */
 const BUTTON = /<button\b([^>]*)>([\s\S]*?)<\/button>/g;
 const ACCENT_ATTR = /data-acc(?:ent-pick)?="([\w-]+)"/;
+// The React picker writes no data attribute, so no other wiring can adopt it. Its
+// swatch is named "<Accent> accent", and the name is what this reads there.
+const ACCENT_NAME = /aria-label="([\w-]+) accent"/;
 
 /** The balanced `linear-gradient(…)` in `text`, or null. Balanced, so a stop
  *  written as color(srgb …) does not truncate the gradient at its paren. */
@@ -272,9 +275,9 @@ function stopColour(text) {
 function swatchesIn(file, html) {
   const found = new Map();
   for (const [, attrs, inner] of html.matchAll(BUTTON)) {
-    const tag = ACCENT_ATTR.exec(attrs);
+    const tag = ACCENT_ATTR.exec(attrs) ?? ACCENT_NAME.exec(attrs);
     if (!tag) continue;
-    const accent = tag[1];
+    const accent = tag[1].toLowerCase();
     assert.ok(
       !found.has(accent),
       `${file} has two picker buttons for the accent "${accent}". Only one of them is what the `
@@ -291,16 +294,15 @@ function swatchesIn(file, html) {
     assert.ok(
       gradient,
       `${file} offers the accent "${accent}" but paints no gradient inside that button, so the `
-      + 'strip shows an empty square you can still press. In src/components/index.js that is '
-      + 'ACCENT_SWATCH having no entry for an accent that IS in `options` — the swatch falls back '
-      + 'to `transparent`. The accent is not missing; its colour is.',
+      + 'strip shows an empty square you can still press: an accent the picker offers with no '
+      + 'swatch in src/logic/accents.js. The accent is not missing; its colour is.',
     );
   }
   return found;
 }
 
 const SOURCES = {
-  'src/components/index.js': accentPicker(),
+  'react/src/AccentPicker.tsx': await markup(({ h, kit }) => h(kit.AccentPicker, { value: 'default', onChange() {} })),
   'site/chrome.mjs': footer(),
   'site/index.html': read('site/index.html'),
 };
@@ -315,10 +317,10 @@ test('every accent swatch is the gradient its own tokens make', () => {
     + 'pickers and the Storybook toolbar, so the floor keeps saying what the kit actually ships.',
   );
 
-  const kit = swatchesIn('src/components/index.js', SOURCES['src/components/index.js']);
+  const kit = swatchesIn('react/src/AccentPicker.tsx', SOURCES['react/src/AccentPicker.tsx']);
   assert.deepEqual(
     [...kit.keys()].sort(), [...ACCENTS].sort(),
-    'accentPicker() does not offer the accents the token files declare. An accent it leaves out is '
+    'The React AccentPicker does not offer the accents the token files declare. An accent it leaves out is '
     + 'one nobody can pick; one it invents selects a sub-theme that does not exist. (An accent it '
     + 'offers with no swatch is a third thing, and fails above by name.)',
   );
@@ -390,7 +392,7 @@ test('all three copies of the accent picker paint the same swatches', () => {
     assert.deepEqual(
       Object.fromEntries(swatchesIn(file, SOURCES[file])), Object.fromEntries(want),
       `${file} does not paint the swatches ${canonical} declares. The kit's picker, the site `
-      + 'footer\'s and the landing playground\'s are three hand-kept copies of one control, and a '
+      + 'footer\'s and the landing playground\'s are three copies of one control, and a '
       + 'swatch that depends on where you met the picker is worse than one that is merely wrong — '
       + 'the page now disagrees with itself. Change all three together: what is compared is the '
       + 'gradient text per accent, so the three may differ in how they deliver it (--swatch here, '

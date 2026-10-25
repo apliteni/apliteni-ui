@@ -1,17 +1,17 @@
-// Shape parity gate for <Dropdown>, and the keyboard model under real key presses.
-// React components must match the vanilla class names.
+// Shape gate for <Dropdown>, and the keyboard model under real key presses.
 //
-// dropdown() is the source of truth: every case renders both and compares the
-// container's class list plus the shape read off each DOM. The one thing not
-// compared is `data-dropdown` on the container, which is deliberate — see the test
-// that asserts its absence, at the foot of the parity block.
+// Every shape case was compared with the vanilla dropdown() until #429 removed it: the
+// container's class list plus the shape read off the DOM. The shape both agreed on is
+// stored as a snapshot, written in the commit where the comparison last passed. The one
+// thing never compared is `data-dropdown` on the container, which is deliberate — see
+// the test that asserts its absence, at the foot of the shape block.
 import { render, screen, cleanup, within, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
-import { dropdown, wireDropdown, dropdownMatch, filterPanelFit } from '@apliteni/apliteni-ui';
+import { dropdownMatch, filterPanelFit } from '@apliteni/apliteni-ui';
 import { Dropdown, type DropdownProps, type DropdownEntry } from './Dropdown';
-import { classesOf, classesOfEl } from './test/classlist';
+import { classesOfEl } from './test/classlist';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import {
@@ -48,13 +48,6 @@ class FakeObserver {
   disconnect() { this.targets.length = 0; }
 
   static live: FakeObserver[] = [];
-}
-
-/** The vanilla factory's output as a DOM container. */
-function vanilla(opts: DropdownProps): Element {
-  const host = document.createElement('div');
-  host.innerHTML = dropdown(opts as Record<string, unknown>);
-  return host.firstElementChild!;
 }
 
 const ROWS = '.ui-dropdown__item, .ui-dropdown__sep';
@@ -135,7 +128,7 @@ function searchShape(dd: Element) {
       off: field.getAttribute('autocomplete'),
       spellcheck: field.getAttribute('spellcheck'),
       hook: field.hasAttribute('data-dd-search'),
-      // The ids differ by seed, so what is compared is what they point AT.
+      // The ids are React's own, so what is held is what they point AT.
       controlsTheList: field.getAttribute('aria-controls') === list?.id,
       namesTheActiveRow: (field.getAttribute('aria-activedescendant') ?? null) === (active?.id ?? null),
     },
@@ -164,16 +157,12 @@ function searchShape(dd: Element) {
   };
 }
 
-function parity(name: string, opts: DropdownProps) {
-  const factory = vanilla(opts);
+/** Render one case and hold its classes and shape. Returns the container. */
+function held(opts: DropdownProps) {
   const { container } = render(<Dropdown {...opts} />);
-  const react = container.querySelector('.ui-dropdown')!;
-  // Check class parity separately so failures name the mismatch.
-  expect(classesOfEl(react), `${name}: container class list`)
-    .toEqual(classesOf(dropdown(opts as Record<string, unknown>)));
-  expect(shape(react), `${name}: rendered shape`).toEqual(shape(factory));
-  expect(searchShape(react), `${name}: the search parts`).toEqual(searchShape(factory));
-  return react;
+  const dd = container.querySelector('.ui-dropdown')!;
+  expect({ classes: classesOfEl(dd), shape: shape(dd), search: searchShape(dd) }).toMatchSnapshot();
+  return dd;
 }
 
 const MENU: DropdownEntry[] = [
@@ -255,8 +244,8 @@ const CASES: [string, DropdownProps][] = [
 ];
 
 for (const [name, opts] of CASES) {
-  it(`matches the vanilla dropdown: ${name}`, () => {
-    parity(name, opts);
+  it(`keeps the shape the vanilla dropdown agreed on: ${name}`, () => {
+    held(opts);
   });
 }
 
@@ -312,8 +301,7 @@ it('renders open when it is told to, the way `open: true` does', () => {
   const opts: DropdownProps = { items: MENU, ariaLabel: 'Row actions' };
   const { container } = render(<Dropdown {...opts} defaultOpen />);
   const react = container.querySelector('.ui-dropdown')!;
-  expect(classesOfEl(react)).toEqual(classesOf(dropdown({ ...opts, open: true })));
-  expect(shape(react)).toEqual(shape(vanilla({ ...opts, open: true } as DropdownProps)));
+  expect({ classes: classesOfEl(react), shape: shape(react) }).toMatchSnapshot();
 });
 
 it('leaves the container hook wireDropdown() looks for off, and keeps the row contract', () => {
@@ -657,9 +645,9 @@ it('a row drawn by the caller keeps the row’s classes, role, tab stop and keyb
   const rows = rowsOf(dd);
   expect(rows.map((el) => el.tagName)).toEqual(['A', 'A']);
   expect(rows.map((el) => el.getAttribute('data-to'))).toEqual(['/settings', '/members']);
-  // The same shape the factory's own rows carry.
-  expect(shape(dd).rows).toEqual(shape(vanilla({ items } as DropdownProps)).rows
-    .map((r) => ({ ...r })));
+  // The same shape its own rows carry without a router link.
+  const plain = render(<Dropdown items={items} />).container.querySelectorAll('.ui-dropdown')[0];
+  expect(shape(dd).rows).toEqual(shape(plain).rows);
   within(dd as HTMLElement).getByRole('button').focus();
   await user.keyboard('{ArrowDown}');
   expect(document.activeElement).toBe(rows[0]);
@@ -669,29 +657,14 @@ it('a row drawn by the caller keeps the row’s classes, role, tab stop and keyb
   expect(picks).toEqual(['Members']);
 });
 
-// ---- search: the factory plus its wiring, against the component ---------------
+// ---- search: typed into the component --------------------------------------------
 //
-// The strongest form of the parity rule this file exists for: the same items and the
-// same query, typed into each with real key presses, must leave the same rows showing
-// and the same row picked. The kit's own wireDropdown() drives one side; nothing here
-// re-implements the match, because both sides call dropdownMatch().
+// The same items and the same query, typed with real key presses, leave the rows and
+// the picked row stored below. Each case was compared with the vanilla factory and its
+// wiring until #429 removed them; the panel both agreed on is the snapshot. Nothing here
+// re-implements the match: the component calls dropdownMatch(), held next.
 
-/** Mount the factory's html, wire it, open it, type — then read the panel back. */
-async function wired(opts: DropdownProps, query: string) {
-  const user = userEvent.setup();
-  const host = document.createElement('div');
-  host.innerHTML = dropdown(opts as Record<string, unknown>);
-  document.body.appendChild(host);
-  wireDropdown(document);
-  const dd = host.firstElementChild!;
-  await user.click(dd.querySelector('.ui-dropdown__trigger')!);
-  if (query) await user.type(dd.querySelector('.ui-dropdown__search-input')!, query);
-  const read = searchShape(dd);
-  host.remove();
-  return read;
-}
-
-/** The same, through the component. */
+/** Open the component, type, then read the panel back. */
 async function typed(opts: DropdownProps, query: string) {
   const user = userEvent.setup();
   const { container, unmount } = render(<Dropdown {...opts} />);
@@ -723,18 +696,14 @@ const QUERIES: [string, string, DropdownProps][] = [
 ];
 
 for (const [name, query, opts] of QUERIES) {
-  it(`hides what the kit's own wiring hides: ${name}`, async () => {
-    const theirs = await wired(opts, query);
-    cleanup();
-    const mine = await typed(opts, query);
-    expect(mine.showing, `${name}: the rows left showing`).toEqual(theirs.showing);
-    expect(mine, `${name}: the panel after typing`).toEqual(theirs);
+  it(`hides what the vanilla wiring hid: ${name}`, async () => {
+    expect(await typed(opts, query)).toMatchSnapshot();
   });
 }
 
 it('the rows it leaves showing are the ones the published matcher keeps', async () => {
-  // The gate above compares two implementations; this one compares the result against
-  // the rule itself, so both agreeing on the wrong thing still fails.
+  // The gate above holds stored panels; this one compares the result against the rule
+  // itself, so a stored panel that was wrong all along still fails.
   const mine = await typed(SEARCHABLE, 'dollar');
   const byRule = CURRENCIES.filter((it) => typeof it !== 'string' && !('separator' in it))
     .filter((it) => dropdownMatch((it as { label: string }).label, 'dollar'))
@@ -887,7 +856,7 @@ test('state badge ink and generic metadata match the factory classification', ()
 // ---- A filter chip's menu -----------------------------------------------------
 // Inside `.ui-filter-bar__chip` an open menu takes the kit's menu floor and slides
 // back along the row. The arithmetic is the kit's, held by
-// src/components/filter-panel-fit.test.js; what this half owns is writing the
+// src/logic/dropdown-placement.test.js; what this half owns is writing the
 // numbers the stylesheet reads, writing them again when the viewport moves, and
 // giving a search panel's inline pin back on close. Each of the three was a defect
 // this component shipped while the vanilla wiring did not.

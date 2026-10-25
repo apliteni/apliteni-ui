@@ -204,7 +204,7 @@ export function serialize(out) {
  * emit it and watch this come back non-empty. Both documents come out of one pipeline
  * and differ in exactly one thing: whether the re-emitted copies are in the second half.
  */
-export async function sweepTheme(bundle, theme) {
+export async function sweepTheme(bundle, theme, given) {
   const reemitted = new Set(bundle.filter((rel) => KIT.has(rel)));
   const rules = rankableRules([...reemitted]);
   const watched = [...watchedProperties(rules)];
@@ -221,58 +221,67 @@ export async function sweepTheme(bundle, theme) {
   );
   installDomGlobals(asShipped);
 
-  for (const rel of storyFiles) {
-    const mod = await import(at(path.join('stories', rel)));
-    const def = mod.default || {};
-    for (const [name, story] of Object.entries(mod)) {
-      if (name === 'default' || !story || typeof story !== 'object') continue;
-      const render = story.render || def.render;
-      if (typeof render !== 'function') continue;
-      const args = { ...def.args, ...story.args };
-      let raw;
-      try {
-        raw = serialize(render(args, { globals: { theme }, args }));
-      } catch (err) {
-        problems.push(`${rel}:${name} [${theme}] → render threw: ${err && err.message}`);
-        continue;
-      }
-      if (raw == null) {
-        problems.push(`${rel}:${name} [${theme}] → render returned nothing to mount`);
-        continue;
-      }
-      // A story's own markup speaks var() in style= attributes, and JSDOM resolves
-      // none. Both documents get the identical substituted string.
-      const html = desugar(substitute(raw, vars));
-      stories.push(`${rel}:${name}`);
-      asShipped.document.body.innerHTML = html;
-      withoutCopies.document.body.innerHTML = html;
-
-      const shipped = [...asShipped.document.body.querySelectorAll('*')];
-      const clean = [...withoutCopies.document.body.querySelectorAll('*')];
-      assert.equal(shipped.length, clean.length,
-        `${rel}:${name} mounted a different tree into the two documents — the comparison `
-        + 'pairs elements by position and this pair cannot be made');
-
-      for (let i = 0; i < shipped.length; i++) {
-        const el = shipped[i];
-        if (el.tagName === 'STYLE' || el.tagName === 'SCRIPT') continue;
-        const hits = reach.filter(({ sel }) => {
-          try { return el.matches(sel); } catch { return false; }
-        });
-        if (!hits.length) continue;
-        for (const { sheet } of hits) reached.set(sheet, reached.get(sheet) + 1);
-        compared += 1;
-        const a = asShipped.getComputedStyle(el);
-        const b = withoutCopies.getComputedStyle(clean[i]);
-        for (const prop of watched) {
-          const got = a.getPropertyValue(prop);
-          const want = b.getPropertyValue(prop);
-          if (got === want) continue;
-          findings.push(
-            `${selectorPath(el)}  ${prop}: ${want || '(unset)'} → ${got || '(unset)'}`
-            + `  [${theme}, ${rel}:${name}]`,
-          );
+  // `given` is a list of `{ where, html }` a caller rendered itself, such as the React
+  // stories; without it the vanilla stories are rendered here.
+  const subjects = [];
+  if (given) subjects.push(...given);
+  else {
+    for (const rel of storyFiles) {
+      const mod = await import(at(path.join('stories', rel)));
+      const def = mod.default || {};
+      for (const [name, story] of Object.entries(mod)) {
+        if (name === 'default' || !story || typeof story !== 'object') continue;
+        const render = story.render || def.render;
+        if (typeof render !== 'function') continue;
+        const args = { ...def.args, ...story.args };
+        let raw;
+        try {
+          raw = serialize(render(args, { globals: { theme }, args }));
+        } catch (err) {
+          problems.push(`${rel}:${name} [${theme}] → render threw: ${err && err.message}`);
+          continue;
         }
+        if (raw == null) {
+          problems.push(`${rel}:${name} [${theme}] → render returned nothing to mount`);
+          continue;
+        }
+        subjects.push({ where: `${rel}:${name}`, html: raw });
+      }
+    }
+  }
+  for (const { where, html: raw } of subjects) {
+    // A story's own markup speaks var() in style= attributes, and JSDOM resolves
+    // none. Both documents get the identical substituted string.
+    const html = desugar(substitute(raw, vars));
+    stories.push(where);
+    asShipped.document.body.innerHTML = html;
+    withoutCopies.document.body.innerHTML = html;
+
+    const shipped = [...asShipped.document.body.querySelectorAll('*')];
+    const clean = [...withoutCopies.document.body.querySelectorAll('*')];
+    assert.equal(shipped.length, clean.length,
+      `${where} mounted a different tree into the two documents — the comparison `
+      + 'pairs elements by position and this pair cannot be made');
+
+    for (let i = 0; i < shipped.length; i++) {
+      const el = shipped[i];
+      if (el.tagName === 'STYLE' || el.tagName === 'SCRIPT') continue;
+      const hits = reach.filter(({ sel }) => {
+        try { return el.matches(sel); } catch { return false; }
+      });
+      if (!hits.length) continue;
+      for (const { sheet } of hits) reached.set(sheet, reached.get(sheet) + 1);
+      compared += 1;
+      const a = asShipped.getComputedStyle(el);
+      const b = withoutCopies.getComputedStyle(clean[i]);
+      for (const prop of watched) {
+        const got = a.getPropertyValue(prop);
+        const want = b.getPropertyValue(prop);
+        if (got === want) continue;
+        findings.push(
+          `${selectorPath(el)}  ${prop}: ${want || '(unset)'} → ${got || '(unset)'}`
+          + `  [${theme}, ${where}]`,
+        );
       }
     }
   }
@@ -280,7 +289,7 @@ export async function sweepTheme(bundle, theme) {
 }
 
 /** The themes' sweeps, run on threads and added up in theme order. */
-export async function sweep(bundle) {
+export async function sweep(bundle, given) {
   const reemitted = new Set(bundle.filter((rel) => KIT.has(rel)));
   const rules = rankableRules([...reemitted]);
   const watched = [...watchedProperties(rules)];
@@ -298,7 +307,7 @@ export async function sweep(bundle) {
   // Nothing a cascade ranks, so nothing to mount: every element would come back
   // identical because the two documents differ only in rules JSDOM never applies.
   if (!rules.length) return { findings, problems, stories, stats };
-  const parts = await runJobs(import.meta.url, THEMES.map((theme) => ({ fn: 'sweepTheme', args: [bundle, theme] })));
+  const parts = await runJobs(import.meta.url, THEMES.map((theme) => ({ fn: 'sweepTheme', args: [bundle, theme, given] })));
   for (const part of parts) {
     findings.push(...part.findings);
     problems.push(...part.problems);

@@ -1,14 +1,17 @@
 import { createRef } from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
-import { button } from '@apliteni/apliteni-ui';
 import { Button } from './Button';
-import { classesOf, classesOfEl } from '../test/classlist';
+import { classesOfEl } from '../test/classlist';
 
-it.each(['xs', 'sm', 'md', 'lg'] as const)('matches the vanilla button class list (primary, %s)', (size) => {
+// The class lists the vanilla button() wrote, held after #429 removed it.
+it.each([
+  ['xs', ['ui-btn', 'ui-btn--primary', 'ui-btn--xs']],
+  ['sm', ['ui-btn', 'ui-btn--primary', 'ui-btn--sm']],
+  ['md', ['ui-btn', 'ui-btn--primary']],
+  ['lg', ['ui-btn', 'ui-btn--lg', 'ui-btn--primary']],
+] as const)('writes the button class list (primary, %s)', (size, expected) => {
   const { getByRole } = render(<Button variant="primary" size={size}>Save</Button>);
-  const react = classesOfEl(getByRole('button'));
-  const vanilla = classesOf(button({ label: 'Save', variant: 'primary', size }));
-  expect(react).toEqual(vanilla);
+  expect(classesOfEl(getByRole('button'))).toEqual(expected);
 });
 
 it('fires onClick', async () => {

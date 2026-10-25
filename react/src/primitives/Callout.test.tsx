@@ -1,9 +1,10 @@
 import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { callout, icon } from '@apliteni/apliteni-ui';
+import VANILLA from './callout.vanilla.json';
 import { Callout, type CalloutVariant } from './Callout';
 import { Button } from './Button';
 
+// The vanilla callout() and icon() markup for each case, frozen when #429 removed them.
 function expectSameSubtree(root: Element, html: string, variant?: CalloutVariant) {
   const template = document.createElement('template');
   template.innerHTML = html;
@@ -17,10 +18,10 @@ function expectSameSubtree(root: Element, html: string, variant?: CalloutVariant
   expect(root.isEqualNode(template.content.firstElementChild)).toBe(true);
 }
 
-it.each<CalloutVariant>(['neutral', 'info', 'success', 'warn', 'danger'])('matches the whole vanilla subtree for %s and announces only danger', variant => {
+it.each<CalloutVariant>(['neutral', 'info', 'success', 'warn', 'danger'])('matches the whole agreed vanilla subtree for %s and announces only danger', variant => {
   const { container } = render(<Callout variant={variant}><b>Incomplete.</b> Check the period.</Callout>);
   const root = container.firstElementChild!;
-  expectSameSubtree(root, callout({ variant, body: '<b>Incomplete.</b> Check the period.' }), variant);
+  expectSameSubtree(root, VANILLA.body[variant], variant);
   expect(root.getAttribute('role')).toBe(variant === 'danger' ? 'alert' : null);
   expect(root.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
   expect(root.querySelector('b')).toHaveTextContent('Incomplete.');
@@ -28,11 +29,11 @@ it.each<CalloutVariant>(['neutral', 'info', 'success', 'warn', 'danger'])('match
 
 it('matches the unmodified vanilla default and permits an icon override', () => {
   const { container, rerender } = render(<Callout>Saved.</Callout>);
-  expectSameSubtree(container.firstElementChild!, callout({ body: 'Saved.' }));
+  expectSameSubtree(container.firstElementChild!, VANILLA.default);
   const defaultGlyph = container.querySelector('svg')!.innerHTML;
   rerender(<Callout icon="check">Saved.</Callout>);
   expect(container.querySelector('svg')!.innerHTML).not.toBe(defaultGlyph);
-  expectSameSubtree(container.firstElementChild!, callout({ icon: 'check', body: 'Saved.' }));
+  expectSameSubtree(container.firstElementChild!, VANILLA.check);
 });
 
 it('keeps body links and action buttons in normal keyboard order', async () => {
@@ -61,12 +62,8 @@ it.each<[CalloutVariant, string]>([
       Read the <a href="#period">period notes</a>.
     </Callout>,
   );
-  expectSameSubtree(container.firstElementChild!, callout({
-    variant,
-    body: 'Read the <a href="#period">period notes</a>.',
-    actions: '<button type="button">Review period</button>',
-  }), variant);
-  expectSameSubtree(container.querySelector('svg')!, icon(glyph));
+  expectSameSubtree(container.firstElementChild!, VANILLA.actions[variant], variant);
+  expectSameSubtree(container.querySelector('svg')!, VANILLA.glyph[glyph as keyof typeof VANILLA.glyph]);
 });
 
 it.each([
@@ -80,5 +77,5 @@ it.each([
   const element = container.querySelector(selector)!;
   if (value === null) element.removeAttribute(attribute);
   else element.setAttribute(attribute, value);
-  expect(() => expectSameSubtree(container.firstElementChild!, callout({ variant, body: 'Saved.' }), variant)).toThrow();
+  expect(() => expectSameSubtree(container.firstElementChild!, VANILLA.saved[variant], variant)).toThrow();
 });

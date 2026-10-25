@@ -47,7 +47,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { STYLE_FILES, desugar, substitute, tokensFor } from './lib/contrast.js';
-import { sidebarNav } from '../src/components/nav.js';
+import { reactKit } from './lib/react-markup.js';
+
+// The rail is the React SidebarNav, rendered to static markup; the rules are the kit's CSS.
+const { h, render, kit } = await reactKit();
 
 const source = STYLE_FILES.map((file) => readFileSync(file, 'utf8')).join('\n');
 
@@ -64,6 +67,7 @@ const SECTIONS = [
     label: 'Finance',
     items: [
       {
+        id: 'payouts',
         icon: 'card',
         label: 'Payouts',
         items: [{ id: 'pending', label: 'Pending', badge: 3 }, { id: 'history', label: 'History' }],
@@ -71,12 +75,12 @@ const SECTIONS = [
     ],
   },
 ];
-const SIGN_OUT = '<a class="ui-nav__item is-danger" href="#logout">'
-  + '<span class="ui-nav__label">Sign out</span></a>';
+const SIGN_OUT = () => h('a', { className: 'ui-nav__item is-danger', href: '#logout' },
+  h('span', { className: 'ui-nav__label' }, 'Sign out'));
 
-const railMarkup = (collapsed) => sidebarNav({
-  ariaLabel: 'Primary', sections: SECTIONS, active: 'pending', collapsed, footer: SIGN_OUT,
-});
+const railMarkup = (collapsed) => render(h(kit.SidebarNav, {
+  'aria-label': 'Primary', sections: SECTIONS, active: 'pending', collapsed, footer: SIGN_OUT(),
+}));
 
 /**
  * Both rails staged in JSDOM with the sheets resolved.
@@ -173,7 +177,7 @@ function readRail(theme, extra = '') {
   const win = stage(theme, extra);
   const doc = win.document;
   const rail = doc.querySelector('#folded .ui-nav--side.is-collapsed');
-  assert.ok(rail, 'sidebarNav({ collapsed: true }) no longer renders a folded rail');
+  assert.ok(rail, 'SidebarNav collapsed no longer renders a folded rail');
   const strip = px(win.getComputedStyle(rail).width);
   assert.ok(strip !== null,
     `${theme}: the folded rail's own width reads ${win.getComputedStyle(rail).width}, `
@@ -432,7 +436,7 @@ function offTheRailsClock(win, railPairs, clock, side) {
 function readFold(theme, extra = '') {
   const { win, rail } = readRail(theme, extra);
   const open = win.document.querySelector('#open .ui-nav--side');
-  assert.ok(open, 'sidebarNav({ collapsed: false }) no longer renders an open rail');
+  assert.ok(open, 'SidebarNav no longer renders an open rail');
   return { win, railPairs: pairs(win, rail, open), clock: railClock(win, rail) };
 }
 

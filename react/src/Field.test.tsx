@@ -4,7 +4,6 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
 import axe from 'axe-core';
-import { field, input, textarea, select } from '@apliteni/apliteni-ui';
 import { Dropdown } from './Dropdown';
 import { Field, TextField, TextArea, SelectField, FileField, type FieldControlProps } from './Field';
 
@@ -14,7 +13,7 @@ const readRepo = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
-// IDs differ by renderer; option selection is a DOM property in React.
+// IDs are read as their role, not their value; option selection is a DOM property in React.
 function structure(root: Element) {
   const control = root.querySelector('input, textarea, select')!;
   const ids = new Map([[control.id, 'control'], [control.getAttribute('aria-describedby'), 'message']]);
@@ -31,23 +30,18 @@ function structure(root: Element) {
   return node(root.firstElementChild!);
 }
 
-it('matches the complete vanilla field structure and native attributes', () => {
-  for (const [react, vanilla] of [
-    [<TextField label="Name" hint="Help" required name="name" placeholder="Name" defaultValue="Demo" />,
-      field({ label: 'Name', hint: 'Help', required: true, control: input({ name: 'name', placeholder: 'Name', value: 'Demo' }) })],
-    [<TextArea label="Notes" hint="Help" required name="notes" placeholder="Notes" defaultValue="Draft" />,
-      field({ label: 'Notes', hint: 'Help', required: true, control: textarea({ name: 'notes', placeholder: 'Notes', value: 'Draft' }) })],
-    [<SelectField label="Currency" hint="Help" required name="currency" defaultValue="USD"><option value="EUR">EUR</option><option value="USD">USD</option></SelectField>,
-      field({ label: 'Currency', hint: 'Help', required: true, control: select({ name: 'currency', options: ['EUR', 'USD'], value: 'USD' }) })],
-    // A glyph name, not a node: the group is vanilla's, down to the single span.
-    [<TextField label="Work email" type="email" hint="Help" required name="email" placeholder="you@example.com" defaultValue="name@example.com" icon="mail" />,
-      field({ label: 'Work email', hint: 'Help', required: true, control: input({ type: 'email', name: 'email', placeholder: 'you@example.com', value: 'name@example.com', icon: 'mail' }) })],
-  ] as const) {
-    const { container, unmount } = render(react);
-    const reference = document.createElement('div'); reference.innerHTML = vanilla;
-    expect(structure(container)).toEqual(structure(reference));
-    unmount();
-  }
+// Each field below was compared with the vanilla field() until #429 removed it. The
+// structure both agreed on, down to every native attribute, is stored as a snapshot,
+// written in the commit where the comparison last passed.
+it.each([
+  ['a text field', <TextField label="Name" hint="Help" required name="name" placeholder="Name" defaultValue="Demo" />],
+  ['a text area', <TextArea label="Notes" hint="Help" required name="notes" placeholder="Notes" defaultValue="Draft" />],
+  ['a select', <SelectField label="Currency" hint="Help" required name="currency" defaultValue="USD"><option value="EUR">EUR</option><option value="USD">USD</option></SelectField>],
+  // A glyph name, not a node: the group is the kit's, down to the single span.
+  ['a field with a glyph', <TextField label="Work email" type="email" hint="Help" required name="email" placeholder="you@example.com" defaultValue="name@example.com" icon="mail" />],
+] as const)('keeps the complete field structure and native attributes the vanilla field agreed on: %s', (_name, field) => {
+  const { container } = render(field);
+  expect(structure(container)).toMatchSnapshot();
 });
 
 // An error joins the hint rather than replacing it: a hint often carries the
