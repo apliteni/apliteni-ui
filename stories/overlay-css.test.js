@@ -1,4 +1,8 @@
-// What the overlay stylesheets have to say, for both the drawer and the confirm.
+// What the overlay stylesheets have to say, for the drawer, the command palette
+// and the React Modal. The vanilla factories and their overlay stack are gone
+// (#429), but the React Drawer and CommandPalette still draw the same class names
+// into the same sheets, and the React Confirm is the Modal — so these CSS rules
+// still answer for them.
 //
 // These are the rules JSDOM cannot check — it has no CSS and no transitions — and they
 // are the ones that broke in a real browser, so the stylesheets are read as text.
@@ -9,8 +13,7 @@
 //
 // The third is the window between "closed" and "gone": both roots stay visible for
 // --dur-med after the close call stops trapping focus, so a panel still hit-testable while
-// it fades takes one more click — which on a confirm runs the caller's destructive handler
-// a second time.
+// it fades takes one more click.
 //
 // why: docs/foundations.md#motion
 
@@ -46,29 +49,22 @@ function rules(css) {
 const selects = (rule, sel) => splitSelectorList(rule.selector).includes(sel);
 const transitions = (rule) => [...rule.body.matchAll(/transition(?:-property)?\s*:([^;]*)/g)].map((m) => m[1]);
 
-// The two overlays are one behaviour with two skins, so both sheets answer the
-// same questions.
-// `close` names the call that stops trapping; `cost` finishes the sentence "a
-// second click in that window …", because what a stray click costs is the whole
-// reason the gate is there and it is not the same cost twice.
+// The two live overlays are one behaviour with two skins, so both sheets answer the
+// same questions. `close` names the React layer's call that stops trapping; `cost`
+// finishes the sentence "a second click in that window …", because what a stray
+// click costs is the whole reason the gate is there and it is not the same cost twice.
 const SHEETS = [
   {
     file: 'src/styles/drawer.css',
     block: 'ui-drawer',
-    close: 'closeDrawer()',
+    close: 'react/src/dialog.ts stops trapping',
     cost: 'reaches a control in the panel — the footer\'s actions, the close button — and re-runs '
       + 'the caller\'s handler while the panel is already sliding away',
   },
   {
-    file: 'src/styles/confirm.css',
-    block: 'ui-confirm',
-    close: 'closeConfirm()',
-    cost: 'reaches the accept button and fires the caller\'s destructive handler twice',
-  },
-  {
     file: 'src/styles/command-palette.css',
     block: 'ui-cmdk',
-    close: 'closeCommandPalette()',
+    close: 'react/src/dialog.ts stops trapping',
     cost: 'lands on a result row and runs the caller\'s command a second time',
   },
 ];
@@ -119,9 +115,8 @@ for (const { file, block, close, cost } of SHEETS) {
   });
 
   // The reduced-motion net gives every element a 0.01ms transition, and a child
-  // then inherits `visible` one tick after the root. Measured in Chrome with
-  // reduced motion forced: focus landed on the drawer's panel and fell to <body>
-  // from the confirm. Opening has to cancel the children's transitions as well.
+  // then inherits `visible` one tick after the root. Opening has to cancel the
+  // children's transitions as well.
   test(`${file}: under reduced motion, opening cancels every transition inside it`, () => {
     const inNet = new RegExp(
       `@media(?![^{]*\\bnot\\b)[^{]*prefers-reduced-motion\\s*:\\s*reduce\\b[^{]*\\{[^{}]*\\.${block}\\.is-open \\*\\s*\\{[^}]*`
@@ -156,7 +151,7 @@ for (const { file, block, close, cost } of SHEETS) {
       const ungated = all.filter((r) => selects(r, sel) && live.test(r.body));
       assert.deepEqual(
         ungated.map((r) => r.selector), [],
-        `${sel} is hit-testable whether or not the overlay is open. ${close} stops trapping `
+        `${sel} is hit-testable whether or not the overlay is open. ${close} `
         + 'immediately but the root stays visible for --dur-med, so a second click in that window '
         + cost,
       );
@@ -187,12 +182,6 @@ function stackingLevel(rule, tokens) {
   return base + (sign === '-' ? -Number(offset) : Number(offset ?? 0));
 }
 
-// The sheets are the only place these numbers are real; the module keeps a copy so
-// the keyboard can be given to whichever overlay is painted on top. Reading them
-// needs no DOM — overlay.js touches `document` only in a default parameter — so the
-// copy is checked here, next to the rules it copies.
-const { OVERLAY_LAYER } = await import('../src/components/overlay.js');
-
 const zTokens = () => {
   const tokens = new Map(
     [...read('src/tokens/tokens.css').matchAll(/(--z-[\w-]+)\s*:\s*(\d+)\s*;/g)]
@@ -208,26 +197,6 @@ const rootOf = (file, block) => {
   return root;
 };
 
-test("the stack's layers are the ones the sheets resolve to", () => {
-  const tokens = zTokens();
-  const pairs = [
-    ['confirm', 'src/styles/confirm.css', 'ui-confirm'],
-    ['drawer', 'src/styles/drawer.css', 'ui-drawer'],
-    ['palette', 'src/styles/command-palette.css', 'ui-cmdk'],
-  ];
-
-  for (const [name, file, block] of pairs) {
-    const level = stackingLevel(rootOf(file, block), tokens);
-    assert.equal(
-      OVERLAY_LAYER[name], level,
-      `${file} paints .${block} at z-index ${level}, but OVERLAY_LAYER.${name} in `
-      + `src/components/overlay.js still says ${OVERLAY_LAYER[name]}. The sheet moved and the `
-      + "stack's idea of which overlay is on top did not follow, so Escape and the Tab trap go to "
-      + 'the layer underneath the one the reader can see',
-    );
-  }
-});
-
 // The React Modal is the other thing a drawer opens: a question about the record in
 // it. At z-index 50 it was painted underneath the drawer while taking its keys.
 test('a React modal paints above a drawer', () => {
@@ -241,73 +210,17 @@ test('a React modal paints above a drawer', () => {
   );
 });
 
-test('a confirm paints above a drawer, whatever order they are mounted in', () => {
-  const tokens = zTokens();
-
-  const confirmZ = stackingLevel(rootOf('src/styles/confirm.css', 'ui-confirm'), tokens);
-  const drawerZ = stackingLevel(rootOf('src/styles/drawer.css', 'ui-drawer'), tokens);
-
-  assert.ok(
-    confirmZ > drawerZ,
-    `a confirm resolves to z-index ${confirmZ} and a drawer to ${drawerZ}. At equal levels paint `
-    + 'order falls back to document order, so a confirm whose markup comes first — a normal way to '
-    + 'mount dialogs — is painted BEHIND the drawer it is asking about: its buttons are clipped by '
-    + 'the drawer panel, and at narrow widths the dialog is hidden outright',
-  );
-});
-
-test('a confirm paints above a command palette, which is where a palette row sends it', () => {
-  const tokens = zTokens();
-
-  const confirmZ = stackingLevel(rootOf('src/styles/confirm.css', 'ui-confirm'), tokens);
-  const paletteZ = stackingLevel(rootOf('src/styles/command-palette.css', 'ui-cmdk'), tokens);
-
-  assert.ok(
-    confirmZ > paletteZ,
-    `a confirm resolves to z-index ${confirmZ} and a palette to ${paletteZ}. A destructive row in `
-    + 'the palette opens the confirm and leaves the palette standing under it, so a confirm that '
-    + 'paints below is a question the reader cannot read or answer',
-  );
-});
-
-test('src/styles/confirm.css: a consequence too long for the viewport scrolls', () => {
-  const all = rules(read('src/styles/confirm.css'));
-
-  const panel = all.find((r) => selects(r, '.ui-confirm__panel'));
-  assert.ok(panel, 'the panel rule was found');
-  assert.match(
-    panel.body, /max-height\s*:/,
-    'the panel is absolutely centred in a fixed root, so without a max-height it grows past both '
-    + 'edges of the viewport and scrollIntoView cannot move it: at 320x480, or at 400% zoom, the '
-    + 'answers sit below the fold permanently (WCAG 1.4.10, 2.4.11)',
-  );
-
-  const bodySlot = all.find((r) => selects(r, '.ui-confirm__body'));
-  assert.ok(bodySlot, 'the body rule was found');
-  assert.match(
-    bodySlot.body, /overflow-y\s*:\s*auto/,
-    'the consequence has to scroll inside the panel, the way the drawer body does',
-  );
-
-  const acts = all.find((r) => selects(r, '.ui-confirm__acts'));
-  assert.ok(acts, 'the actions rule was found');
-  assert.match(
-    acts.body, /flex\s*:\s*none/,
-    'the answers must not be the thing that shrinks — they are what the dialog is for',
-  );
-});
-
 // ---- the menus, and the frame a key opens one in ----------------------------
 //
-// The fourth overlay, and the one with the same `visibility` problem the three
+// The fourth overlay, and the one with the same `visibility` problem the two
 // above have, from the other end: a panel still `hidden` in the frame its open
 // class lands is one a browser will not move focus into, and every row in it
 // carries `tabindex="-1"`. JSDOM focuses inside a hidden box happily, so the
 // gates that press the keys go on passing with the rule deleted; this file is
 // the one that does not.
 //
-// Every menu the kit ships, not just `dropdown()`'s own panel: the fixes key on
-// `.ui-dropdown__panel` and two of the four menus are written in another sheet.
+// Every menu the kit ships, not just the dropdown's own panel: the fixes key on
+// `.ui-dropdown__panel` and two of the three menus are written in another sheet.
 // why: docs/components.md#the-dropdown-panel
 const MENUS = [
   {
@@ -376,7 +289,7 @@ for (const m of MENUS) {
     );
   });
 
-  // And the other end of that window, which the three overlays above already
+  // And the other end of that window, which the two overlays above already
   // gate: a menu drawn while it fades is a menu that is hit. Its rows are <a>
   // and <button> elements — a menu is actions — so a stray click in the 250ms
   // after a close activates one of them invisibly.

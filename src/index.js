@@ -1,40 +1,27 @@
 // apliteni-ui — public entry.
 // Styles ship separately: `import 'apliteni-ui/css'`.
-export * from './components/index.js';
-export * from './components/avatar.js';
-export * from './components/dropdown.js';
-export * from './components/tooltip.js';
-export * from './components/tabs.js';
-export * from './components/nav.js';
-export * from './components/back.js';
-export * from './components/drawer.js';
-export * from './components/confirm.js';
-export * from './components/command-palette.js';
-export * from './components/topbar.js';
-export * from './components/shell.js';
-export * from './components/footer.js';
-export * from './components/feedback.js';
-export * from './components/toasts.js';
-export * from './components/success.js';
-export * from './components/loading.js';
-export * from './components/pagination.js';
-export * from './components/stat.js';
 export * from './assets/icons.js';
 export * from './assets/brand.js';
+export * from './assets/illustrations.js';
 export * from './motion.js';
-export { setButtonBusy } from './components/button-busy.js';
+export { esc, safeUrl } from './html.js';
 
-export * from './components/table-values.js';
-export * from './components/segmented.js';
-export * from './components/filter-bar.js';
-
-export { dropdownMatch, dropdownFiltering, dropdownAvail } from './logic/dropdown.js';
-export { SCORE, rankGroups, rankCommands, scoreCommand, paletteHotkey } from './logic/command-palette.js';
-export { segmentedNextIndex } from './logic/segmented.js';
-export { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop, focusNextStop } from './logic/filter-bar.js';
-export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from './logic/pagination.js';
+export { ACCENTS, accentSwatchStyle } from './logic/accents.js';
+export { ACCOUNT_NAV } from './logic/account-nav.js';
+export { AVATAR_HUES, avatarHue, avatarInitials } from './logic/avatar.js';
 export { calloutIcons } from './logic/callout.js';
-export { formatNumericValue, formatDeltaValue } from './logic/table-values.js';
-export { accentSwatchStyle } from './logic/accents.js';
-export { observeNavFit, revealCurrentNav, revealFocusedNav } from './logic/nav.js';
 export { CHART_FLOOR, chartScale, bridgeWalk, pointTarget } from './logic/chart.js';
+export { codeLanguages, codeTokens, hlCode, hlShell } from './logic/code.js';
+export { SCORE, rankGroups, rankCommands, scoreCommand, paletteHotkey } from './logic/command-palette.js';
+export { dropdownMatch, dropdownFiltering, dropdownAvail } from './logic/dropdown.js';
+export {
+  DD_MENU_FLOOR, filterPanelRow, filterPanelFit, dropdownHeightFit, dropdownLift,
+  dropdownReveal, dropdownRest, dropdownSnap, dropdownViewportFit,
+} from './logic/dropdown-placement.js';
+export { nearestSection } from './logic/feedback.js';
+export { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop, focusNextStop } from './logic/filter-bar.js';
+export { observeNavFit, revealCurrentNav, revealFocusedNav } from './logic/nav.js';
+export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from './logic/pagination.js';
+export { segmentedNextIndex } from './logic/segmented.js';
+export { formatNumericValue, formatDeltaValue } from './logic/table-values.js';
+export { themeIcon } from './logic/theme.js';

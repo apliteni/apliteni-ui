@@ -20,11 +20,12 @@ const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stor
 const FOUND_FLOOR = 3, FILES_FLOOR = 1;
 
 describe('stacked tables: React stories', () => {
-  it('every stacked table in a story names its own roles', () => {
-    const problems: string[] = [];
-    const drawers = new Set<string>();
-    let found = 0;
-    for (const file of Object.keys(modules).sort()) {
+  // One `it` per story file, so a slow file shows as itself and no single test
+  // carries the whole walk past the 5 s budget.
+  const sweep = { found: 0, drawers: new Set<string>(), problems: [] as string[] };
+
+  for (const file of Object.keys(modules).sort()) {
+    it(`every stacked table in ${file} names its own roles`, () => {
       const mod = modules[file];
       const def = mod.default || {};
       for (const [name, story] of Object.entries(mod)) {
@@ -38,24 +39,26 @@ describe('stacked tables: React stories', () => {
         try {
           act(() => root.render(<StoryRender />));
         } catch (err) {
-          problems.push(`${file} → ${name}: render threw: ${(err as Error)?.message}`);
+          sweep.problems.push(`${file} → ${name}: render threw: ${(err as Error)?.message}`);
           act(() => root.unmount()); host.remove();
           continue;
         }
         const result = stackedTables(document.body.innerHTML, `${file} → ${name}`);
-        if (result.tables) drawers.add(file);
-        found += result.tables;
-        problems.push(...result.problems);
+        if (result.tables) sweep.drawers.add(file);
+        sweep.found += result.tables;
+        sweep.problems.push(...result.problems);
         act(() => root.unmount());
         host.remove();
       }
-    }
-    expect(problems).toEqual([]);
+    });
+  }
+
+  it('the walk found the stacked tables and every one names its roles', () => {
+    expect(sweep.problems).toEqual([]);
     // The stories that show the modifier today; a drop means one stopped drawing it.
-    expect(found, `stacked tables found in what the stories rendered (${MODIFIER})`).toBeGreaterThanOrEqual(FOUND_FLOOR);
-    expect(drawers.size, 'story files that draw a stacked table').toBeGreaterThanOrEqual(FILES_FLOOR);
-    // It mounts every story: 3.6s alone, past vitest's 5s default on a loaded host.
-  }, 30_000);
+    expect(sweep.found, `stacked tables found in what the stories rendered (${MODIFIER})`).toBeGreaterThanOrEqual(FOUND_FLOOR);
+    expect(sweep.drawers.size, 'story files that draw a stacked table').toBeGreaterThanOrEqual(FILES_FLOOR);
+  });
 
   it('the reading rejects a stacked table that leans on the implicit roles', () => {
     const bare = '<table class="ui-table ui-table--stack"><thead><tr><th>Who</th></tr></thead><tbody><tr><td>t.quill</td></tr></tbody></table>';

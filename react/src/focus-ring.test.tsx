@@ -83,7 +83,7 @@ const exempt = (stop: Stop) => EXEMPT.some(({ selector }) => stop.el.matches(sel
 type Story = { render?: (args: unknown, ctx: unknown) => ReactElement; args?: Record<string, unknown> };
 type StoryModule = { default?: Story } & Record<string, unknown>;
 
-// The same glob a11y.test.tsx, contrast.test.tsx and react/.storybook/main.ts
+// The same glob a11y.test.tsx, contrast.test.tsx and .storybook/main.js
 // use, so a new story file is in the gate the moment it exists.
 const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx'], { eager: true });
 const found = Object.keys(modules).sort().flatMap((file) => {

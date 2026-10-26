@@ -138,11 +138,11 @@ async function shoot([checkout, outDir, side, only]) {
   mkdirSync(outDir, { recursive: true });
   const root = path.resolve(checkout);
   const tree = await serve(root, path.join(HERE, 'scroll.html'));
-  const built = path.join(root, 'react/storybook-static');
+  const built = path.join(root, 'storybook-static');
   const reactUp = existsSync(path.join(built, 'iframe.html'));
   const rx = reactUp ? await serve(built, path.join(HERE, 'scroll.html')) : null;
   if (!reactUp) {
-    console.log('no React Storybook build on this checkout — run: npm run build-storybook -w react');
+    console.log('no React Storybook build on this checkout — run: npm run build-storybook');
   }
   const browser = await chromium.launch({
     executablePath: process.env.UI_CHROME,

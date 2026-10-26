@@ -109,7 +109,7 @@ consumer ships against is yours to measure, because Playwright is not a dependen
 Before opening a PR that changes `src/styles/dropdown.css`, the dropdown wiring's placement or
 React `<Dropdown>`, measure the panels in a real browser:
 `UI_PLAYWRIGHT=… DROPDOWN_EDGES=1 node --test stories/dropdown-contain.test.js`
-It needs `npm run build-storybook -w react` first — React's fit is an effect, so it only exists
+It needs `npm run build-storybook` first — React's fit is an effect, so it only exists
 where React is running. Report the result in the PR. Keep this check out of routine CI to save
 Actions minutes.
 

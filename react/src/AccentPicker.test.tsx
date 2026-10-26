@@ -3,7 +3,6 @@ import { createRef, useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderToString } from 'react-dom/server';
-import { wireTopbar } from '@apliteni/apliteni-ui';
 import { AccentPicker, type Accent } from './AccentPicker';
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
@@ -81,27 +80,10 @@ it('leaves page accent and persistence to the host', () => {
   expect(write).not.toHaveBeenCalled();
 });
 
-// The measured bug this component is shaped against: wireTopbar(root = document)
-// binds its own handler to every [data-accent-pick] in the document, applies the
-// accent and persists it. A half-migrated page must call it to wire its vanilla
-// footer, and React never repairs the DOM it owns afterwards because `value`
-// never changed. Dropdown and Drawer omit their hooks for the same reason.
-it('is not adopted by wireTopbar on a half-migrated page', () => {
-  const before = document.documentElement.getAttribute('data-accent');
-  const write = vi.spyOn(Storage.prototype, 'setItem');
-  const onChange = vi.fn();
-  render(<AccentPicker value="ocean" onChange={onChange} />);
-  wireTopbar(document);
-  fireEvent.click(screen.getByRole('button', { name: 'Emerald accent' }));
-  expect(onChange).toHaveBeenCalledExactlyOnceWith('emerald');
-  expect(document.documentElement.getAttribute('data-accent')).toBe(before);
-  expect(write).not.toHaveBeenCalled();
-  // The host ignored onChange, so the pressed swatch must still be the one the
-  // `value` prop names — not whichever one a vanilla handler last clicked.
-  expect(screen.getByRole('button', { pressed: true })).toHaveAccessibleName('Ocean accent');
-  expect(screen.getByRole('button', { name: 'Emerald accent' })).not.toHaveClass('is-active');
-});
-
+// The measured bug the component's hooks are shaped against: React never
+// repairs the DOM it owns afterwards because `value` never changed. Dropdown
+// and Drawer omit their vanilla hooks for the same reason, and the vanilla
+// wiring is gone with #429 PR 5b.
 it('renders on the server', () => {
   expect(renderToString(<AccentPicker value="ocean" onChange={() => {}} />)).toContain('Ocean accent');
 });

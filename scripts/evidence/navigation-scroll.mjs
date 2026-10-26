@@ -86,11 +86,10 @@ const walks = [];
 const rows = [];
 const fits = [];
 try {
-  for (const [workspace, prefix] of [['vanilla', 'storybook-static'], ['react', 'react/storybook-static']]) {
+  for (const [workspace, prefix] of [['react', 'storybook-static']]) {
     const index = await (await fetch(`${base}/${prefix}/index.json`)).json();
     const subjects = Object.values(index.entries).filter(entry => entry.type === 'story' &&
-      (workspace === 'react' ? entry.title === 'React/NavTabs' :
-        entry.title === 'Components/Navigation' && /^Tabs(?:Pill)?$/.test(entry.exportName)));
+      entry.title === 'React/NavTabs');
     assert.equal(subjects.length, 2, `${workspace}: discover underline and pill stories`);
     for (const subject of subjects) for (const theme of ['light', 'dark']) {
       const open = (args = '', width = 390) => {

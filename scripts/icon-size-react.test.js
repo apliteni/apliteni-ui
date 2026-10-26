@@ -39,7 +39,7 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src = path.join(root, 'src');
 const reactSrc = path.join(root, 'react', 'src');
-const previewPath = path.join(root, 'react', '.storybook', 'preview.ts');
+const previewPath = path.join(root, '.storybook', 'preview.js');
 const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 
 // DataTable, Field, KeyValueList and Timeline size glyphs on both axes.
@@ -205,7 +205,7 @@ test('the React workspace still renders against the kit stylesheets', () => {
    * handles the block spelling, including one wrapped around whole lines. */
   const preview = stripComments(readFileSync(previewPath, 'utf8'));
   assert.match(preview, /^\s*import\s+['"]@apliteni\/apliteni-ui\/css['"]/m,
-    'react/.storybook/preview.ts no longer imports the kit CSS, so the React workspace no longer '
+    '.storybook/preview.js no longer imports the kit CSS, so the one Storybook no longer '
     + 'renders against the icon reset this gate measures every React rule against. Either restore '
     + 'the import or retire this gate — do not leave it green over a contest nobody is in.');
 });
@@ -236,8 +236,8 @@ test('the kit reset reaches an icon in this document', () => {
 test('the sweep still recognises a class put directly on an svg', () => {
   // If this derivation returns nothing, every class-on-svg rule leaves coverage
   // in silence — which is how .ui-fbck was missed in the kit the first time.
-  assert.ok(SVG_CLASSES.has('ui-fbck'),
-    'the scanner no longer finds `ui-fbck`, the class src/components/feedback.js writes onto its '
+  assert.ok(SVG_CLASSES.has('ui-icon'),
+    'the scanner no longer finds `ui-icon`, the class the React Icon writes onto its '
     + `check svg; it found: ${[...SVG_CLASSES].join(', ') || '(nothing)'}`);
 });
 

@@ -81,16 +81,9 @@ const files = (dir, keep) => readdirSync(path.join(root, dir), { withFileTypes: 
     ? files(`${dir}/${e.name}`, keep)
     : (keep(e.name) ? [`${dir}/${e.name}`] : [])));
 
-/* The two workspaces: the source a consumer's markup comes out of, and the CSS
- * that ships with it. One gate each, because a shared count cancels.
- * Share the calculation but check each workspace separately. */
+/* The one workspace: the React source a consumer's markup comes out of, and the
+ * CSS that ships with it. Share the calculation but check each sheet set separately. */
 const WORKSPACES = [
-  {
-    name: 'the kit',
-    source: files('src/components', (f) => f.endsWith('.js') && !f.endsWith('.test.js')),
-    sheets: kitSheetNames(src).map((rel) => `src/${rel}`),
-    floor: 7,
-  },
   {
     name: 'React',
     source: files('react/src', (f) => /\.tsx?$/.test(f) && !/\.(test|stories)\.tsx?$/.test(f)),

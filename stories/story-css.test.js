@@ -55,25 +55,26 @@ function filesUnder(rel, acc = []) {
   return acc;
 }
 
-/* What .storybook/main.js serves: `../stories/**\/*.stories.@(js|mjs)`. Recursive, and
+/* What .storybook/main.js serves: the tsx/ts stories under stories/. Recursive, and
  * two extensions — so this sweep is too. A sweep narrower than the glob gates less than
  * Storybook ships, and the gap is silent: the aggregate counts below stay green while a
  * story in a new folder paints whatever it likes. */
-const SERVED = /\.stories\.m?js$/;
+const SERVED = /\.stories\.tsx?$/;
 
-/* The `_name.js` support modules the stories build with. They are subjects because they
+/* The `_name.*` support modules the stories build with. They are subjects because they
  * are where this collection's worst habit lives: `_gallery.js` writes the specimen
  * label's type for twenty-four stories at once, so a gate that read only the stories
  * would call every one of them clean. */
-const SUPPORT = /(?:^|\/)_[\w-]+\.m?js$/;
+const SUPPORT = /(?:^|\/)_[\w-]+\.(?:m?js|tsx)$/;
 
 /* Foundations and guideline pages are deliberately NOT subjects. A foundations page's
  * job is to draw the token — a swatch of `--surface-3` is the specimen, and painting it
  * is the page working — and a guideline page is one shipped reading layout whose own
- * gates measure it (stories/guidelines/reading-surface.test.js). #601 measured them
- * anyway, for the record: 1812 declarations across the two collections, 783 of them
- * paint. Gating them would demand an allow-list longer than the pages. */
-const EXCLUDED = /^stories\/(?:foundations|guidelines)\//;
+ * gates measure it (stories/guidelines/reading-surface.test.js). Their furniture lives in
+ * `stories/_page.tsx` and `stories/_guideline.tsx`, which are excluded with them. #601
+ * measured them anyway, for the record: 1812 declarations across the two collections,
+ * 783 of them paint. Gating them would demand an allow-list longer than the pages. */
+const EXCLUDED = /^stories\/(?:foundations|guidelines)\/|^stories\/_(?:page|guideline)\.tsx$/;
 
 /* The stylesheets the stories own. A served story can reach paint through its own module
  * graph — `import './review.css'` puts a sheet on the page with nothing left in the story
@@ -116,8 +117,9 @@ const sourceAmong = (invented = {}) => (file) => invented[file]
 
 /* Measured, not guessed: the figures as this gate last audited them. Every one is a
  * lower bound, so the gate fails when the reading stops reaching something rather than
- * when the collection grows. */
-const FOUND = { subjects: 41, served: 37, declarations: 520, carriers: 35, sheets: 0 };
+ * when the collection grows. #429 PR 5b re-audited: the vanilla stories left, and the
+ * React showcases are the subjects. */
+const FOUND = { subjects: 17, served: 49, declarations: 67, carriers: 8, sheets: 0 };
 
 const tokens = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -132,58 +134,16 @@ const tokens = kitTokenNames(
  * no other way. Nothing here may paint — a paint declaration onto a kit class is a
  * shadow and has no allow-list. */
 const ALLOWED = {
-  // src/styles/base.css ships the glow as a shape with no place: "scale/position with
-  // inline styles". Four of these entries are the kit's own instruction being followed.
-  'stories/apps/Consent.stories.js|.ui-glow.ui-glow--purple': 'the kit ships the glow unplaced',
-  'stories/apps/Consent.stories.js|.ui-glow.ui-glow--green': 'the kit ships the glow unplaced',
-  'stories/apps/Landing.stories.js|.ui-glow.ui-glow--purple': 'the kit ships the glow unplaced',
-  'stories/apps/Landing.stories.js|.ui-glow.ui-glow--cyan': 'the kit ships the glow unplaced',
-  'stories/apps/SignIn.stories.js|.ui-glow.ui-glow--purple': 'the kit ships the glow unplaced',
-  'stories/apps/SignIn.stories.js|.ui-glow.ui-glow--cyan': 'the kit ships the glow unplaced',
-
   // A card's width is the page's decision, not the card's: the kit gives .ui-card a
   // ground, a frame and padding, and lets the column it sits in say how wide it is.
-  'stories/apps/Consent.stories.js|.ui-auth__card': 'the auth card takes its width from the screen',
-  'stories/components/BadgeStatus.stories.js|.ui-card': 'a specimen card is as wide as its specimen',
-  'stories/components/SwitchCheckbox.stories.js|.ui-card': 'a specimen card is as wide as its specimen',
-  'stories/components/Table.stories.js|.ui-card': 'a specimen card is as wide as its specimen',
-
-  // Space between two kit parts belongs to whatever stacks them, and these pages stack
-  // by hand. #601's follow-up is the one fix for all four: stack them in a kit layout.
-  'stories/apps/Consent.stories.js|.ui-auth__foot': 'the page stacks the foot by hand',
-  'stories/apps/SignIn.stories.js|.ui-auth__foot': 'the page stacks the foot by hand',
-  'stories/apps/EmptyStates.stories.js|.ui-toolbar': 'the page stacks the toolbar by hand',
-  'stories/apps/Landing.stories.js|.ui-section-head': 'the page stacks the section head by hand',
-  'stories/components/Feedback.stories.js|.ui-eyebrow': 'the page stacks the eyebrow by hand',
-
-  // The success panel is inside the auth card rather than on a page of its own, so the
-  // page gives it the inset the card would have given it. Its `background: transparent`
-  // on the same tag is paint, and is recorded as a shadow below.
-  'stories/apps/Consent.stories.js|.ui-success': 'the panel sits inside the auth card',
-  'stories/apps/Consent.stories.js|.ui-success__sub': 'the sub takes a measure and a centre',
+  'stories/apps/EmptyStates.stories.tsx|.ui-toolbar': 'the page stacks the toolbar by hand',
 
   // A fifteen-column table has to be wider than its scroll region or nothing scrolls,
   // and the region has to say how tall it is. Both are the page answering a question the
   // kit asks: src/styles/table.css reads --ui-table-height with a fallback.
-  'stories/apps/StockScreener.stories.js|.screener .ui-table': 'fifteen columns are wider than the viewport',
-  'stories/apps/StockScreener.stories.js|.screener .ui-table-scroll': 'the page stacks the scroll region by hand',
-  'stories/apps/StockScreener.stories.js|.screener .ui-identity__name': 'a company name does not wrap mid-row',
-  'stories/apps/Landing.stories.js|.ui-card.ui-card--accent.ui-card--pad-lg': 'one centred card on the landing page',
-  'stories/components/Tooltip.stories.js|.ui-tip-host': 'the host hugs the part the readout points at',
-
-  // Staging an overlay flat on the canvas. An open command palette and an open dropdown
-  // panel are positioned against a viewport and a trigger; a static specimen has
-  // neither, so the story takes the positioning off. The kit has no specimen mode for an
-  // overlay — #601's clearest gap, because the three paint declarations each of these
-  // also needs (opacity, visibility, transform) are recorded as shadows below.
-  'stories/components/CommandPalette.stories.js|.cp-stage .ui-cmdk': 'an overlay has no specimen mode',
-  'stories/components/CommandPalette.stories.js|.cp-stage .ui-cmdk__scrim': 'an overlay has no specimen mode',
-  'stories/components/CommandPalette.stories.js|.cp-stage .ui-cmdk.is-open .ui-cmdk__panel': 'an overlay has no specimen mode',
-  'stories/components/CommandPalette.stories.js|.cp-stage .ui-cmdk__list': 'an overlay has no specimen mode',
-  'stories/components/Dropdown.stories.js|.ui-dropdown__panel': 'an overlay has no specimen mode',
-  'stories/components/Dropdown.stories.js|.ui-card': 'an overlay has no specimen mode',
-  'stories/components/Dropdown.stories.js|.ui-app': 'the shell is cut down to the width this specimen needs',
-  'stories/components/Dropdown.stories.js|.ui-app__rail': 'the shell is cut down to the width this specimen needs',
+  'stories/apps/StockScreener.stories.tsx|.screener .ui-table': 'fifteen columns are wider than the viewport',
+  'stories/apps/StockScreener.stories.tsx|.screener .ui-table-scroll': 'the page stacks the scroll region by hand',
+  'stories/apps/StockScreener.stories.tsx|.screener .ui-identity__name': 'a company name does not wrap mid-row',
 };
 
 /* ---- the glue ceiling --------------------------------------------------- */
@@ -223,23 +183,8 @@ export const GLUE_CEILING = 22;
 const RECORDED = {
   'stories/_chart.js': { shadow: 15 },
   'stories/_gallery.js': { shadow: 2 },
-  'stories/apps/Access.stories.js': { shadow: 2 },
-  'stories/apps/Consent.stories.js': { shadow: 18, glue: 26 },
-  'stories/apps/Landing.stories.js': { shadow: 24, glue: 59 },
-  'stories/apps/SignIn.stories.js': { shadow: 1 },
-  'stories/apps/StockScreener.stories.js': { shadow: 9 },
-  'stories/components/BackLink.stories.js': { shadow: 3 },
-  'stories/components/BadgeStatus.stories.js': { shadow: 2 },
-  'stories/components/Button.stories.js': { shadow: 1 },
-  'stories/components/CommandPalette.stories.js': { shadow: 10 },
-  'stories/components/Confirm.stories.js': { shadow: 6 },
-  'stories/components/Drawer.stories.js': { shadow: 7 },
-  'stories/components/Dropdown.stories.js': { shadow: 3 },
-  'stories/components/Feedback.stories.js': { shadow: 11 },
-  'stories/components/Pagination.stories.js': { shadow: 4 },
-  'stories/components/Stat.stories.js': { shadow: 4 },
-  'stories/components/Tabs.stories.js': { shadow: 7 },
-  'stories/components/Tooltip.stories.js': { shadow: 7 },
+  'stories/apps/Access.stories.tsx': { shadow: 2 },
+  'stories/apps/StockScreener.stories.tsx': { shadow: 9 },
 };
 
 const against = { allowed: ALLOWED, recorded: RECORDED, ceiling: GLUE_CEILING, where: 'this gate' };
@@ -334,10 +279,11 @@ const withEdit = (file, edit) => problemsIn(
   against,
 );
 
-/* CalloutToast writes no shadow CSS, so paint added to it has nowhere to hide; Footer
- * writes two glue declarations, so glue added to it does not also trip the ceiling. */
-const clean = 'stories/components/CalloutToast.stories.js';
-const spare = 'stories/components/Footer.stories.js';
+/* FinanceDashboard writes no shadow CSS, so paint added to it has nowhere to hide;
+ * FinanceReport writes one glue declaration, so glue added to it does not also trip
+ * the ceiling. */
+const clean = 'stories/apps/FinanceDashboard.stories.tsx';
+const spare = 'stories/apps/FinanceReport.stories.tsx';
 
 /** Put one more declaration list into a story, ahead of its first export. */
 const plant = (markup) => (src) => src.replace(
@@ -379,21 +325,21 @@ test('the gate reports a story whose layout glue goes over the ceiling', () => {
 });
 
 test('the gate reports a recorded story that grows, shrinks, or comes clean', () => {
-  const file = 'stories/components/BackLink.stories.js';
-  assert.equal(measured.find((s) => s.file === file).shadows.length, 3, `${file} was the `
-    + 'three-shadow subject these mutations need — pick another and say so here.');
+  const file = 'stories/apps/Access.stories.tsx';
+  assert.equal(measured.find((s) => s.file === file).shadows.length, 2, `${file} was the `
+    + 'two-shadow subject these mutations need — pick another and say so here.');
 
   const grown = withEdit(file, (src) => src.replace(
-    'export default', '/* */ const MUTANT = `<style>.bl-x { color: #ff0000; }</style>`;\nexport default',
+    'export const', '/* */ const MUTANT = `<style>.bl-x { color: #ff0000; }</style>`;\nexport const',
   ));
-  assert.ok(grown.some((p) => p.includes(file) && p.includes('more than the 3 recorded')),
+  assert.ok(grown.some((p) => p.includes(file) && p.includes('more than the 2 recorded')),
     `a recorded story that grew was not reported:\n${grown.join('\n')}`);
 
-  const shrunk = withEdit(file, (src) => src.replace('color: var(--muted)', 'margin-top: 0'));
-  assert.ok(shrunk.some((p) => p.includes(file) && p.includes('down from the 3 recorded')),
+  const shrunk = withEdit(file, (src) => src.replace("color: 'var(--muted)'", 'marginTop: 0'));
+  assert.ok(shrunk.some((p) => p.includes(file) && p.includes('down from the 2 recorded')),
     `a recorded story that came under its figure was not reported:\n${shrunk.join('\n')}`);
 
-  const clear = withEdit(file, (src) => src.replace(/font-size: var\(--text-sm\);|color: var\(--(?:muted|text)\);/g, ''));
+  const clear = withEdit(file, (src) => src.replace("color: 'var(--muted)', fontSize: 13", 'marginTop: 0'));
   assert.ok(clear.some((p) => p.includes(file) && p.includes('writes no paint')),
     `a story that has nothing left to record was not reported:\n${clear.join('\n')}`);
 });
@@ -529,7 +475,7 @@ test('a stylesheet a story imports is a subject, and its paint fails the gate', 
   // The last way into this collection without writing a line of CSS in a story: put the
   // paint in a sheet and import it. Storybook serves it through the story's own module
   // graph, so the sheet is the story's CSS.
-  const story = 'stories/components/Review.stories.mjs';
+  const story = 'stories/components/Review.stories.tsx';
   const sheet = 'stories/components/review.css';
   const imports = { [story]: "import './review.css';\nexport default { title: 'Review' };\n" };
   assert.ok(subjectsAmong([...files, story, sheet], sourceAmong(imports)).includes(sheet),
@@ -542,7 +488,7 @@ test('a stylesheet a story imports is a subject, and its paint fails the gate', 
     `paint in an imported ${sheet} was not reported:\n${problems.join('\n')}`);
 
   // Resolved against the importing file, so a `../` and a subfolder both land on it.
-  const deep = 'stories/apps/nested/Deep.stories.js';
+  const deep = 'stories/apps/nested/Deep.stories.tsx';
   assert.ok(subjectsAmong([...files, deep, sheet],
     sourceAmong({ [deep]: "import '../../components/review.css';" })).includes(sheet),
   `an import with a \`../\` in it did not resolve to ${sheet}`);
@@ -552,7 +498,7 @@ test('a stylesheet a story imports is a subject, and its paint fails the gate', 
   assert.ok(!subjectsAmong([...files, story, sheet],
     sourceAmong({ [story]: "import './other.css';" })).includes(sheet),
   `${sheet} became a subject without being imported`);
-  const page = 'stories/guidelines/deep/Page.stories.js';
+  const page = 'stories/guidelines/deep/Page.stories.tsx';
   const pageSheet = 'stories/guidelines/deep/page.css';
   assert.ok(!subjectsAmong([...files, page, pageSheet],
     sourceAmong({ [page]: "import './page.css';" })).includes(pageSheet),
@@ -572,10 +518,10 @@ test('the gate reports a dead allow-list entry', () => {
 
 test('a story served from a new folder or a new extension becomes a subject, paint and all', () => {
   for (const file of [
-    'stories/components/New.stories.mjs',
-    'stories/components/nested/New.stories.js',
-    'stories/apps/nested/deeper/New.stories.mjs',
-    'stories/nested/_support.js',
+    'stories/components/New.stories.tsx',
+    'stories/components/nested/New.stories.ts',
+    'stories/apps/nested/deeper/New.stories.tsx',
+    'stories/nested/_support.tsx',
   ]) {
     assert.ok(subjectsAmong([...files, file], sourceAmong()).includes(file),
       `Storybook would serve ${file} and this gate would not read it`);
@@ -588,7 +534,7 @@ test('a story served from a new folder or a new extension becomes a subject, pai
   }
 
   // The two exclusions are still exclusions, at any depth.
-  for (const file of ['stories/foundations/New.stories.js', 'stories/guidelines/deep/New.stories.mjs']) {
+  for (const file of ['stories/foundations/New.stories.tsx', 'stories/guidelines/deep/New.stories.tsx']) {
     assert.ok(!subjectsAmong([...files, file], sourceAmong()).includes(file),
       `${file} is a foundations or guideline page and must stay out of this gate`);
   }

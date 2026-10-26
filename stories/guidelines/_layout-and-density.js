@@ -1,9 +1,9 @@
-import { loadGuideline, withSpecimens } from './_markdown.js';
+import { loadGuideline } from './_markdown.js';
 const content = await loadGuideline('layout-and-density.md', new URL('../../guidelines/layout-and-density.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
+export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { card } from '../../src/components/index.js';
 
 // The specimens here are rows in a card, because density is a rhythm and a
 // rhythm needs more than one row to be visible. `.gl-rows` is the do — every
@@ -39,49 +39,3 @@ export const SPEC_CSS = `
     .gl-bar__fill--tok { background: var(--glow-purple); box-shadow: inset 0 0 0 1px var(--accent); }
     .gl-bar__t { font: 500 11px/1 var(--font-mono); color: var(--text); white-space: nowrap; }
   </style>`;
-
-const ROWS = [
-  ['Requests', '1,284,902'],
-  ['Unique visitors', '96,417'],
-  ['Conversion', '3.42%'],
-  ['Revenue', '$18,204.60'],
-];
-
-const rows = (mod = '') => `<div class="gl-rows ${mod}">${ROWS.map(
-  ([k, v]) => `<div class="gl-row"><span class="gl-row__k">${k}</span>`
-    + `<span class="gl-row__v">${v}</span></div>`,
-).join('')}</div>`;
-
-const stage = (html) => `<div class="gl-stage">${html}</div>`;
-
-export const densityDo = () => stage(card({ title: 'Last 7 days', body: rows() }));
-export const densityDont = () => stage(card({ title: 'Last 7 days', body: rows('gl-rows--hand') }));
-
-// Drawn to scale against the same reference so the two bars are comparable:
-// --container is the full cell, --measure is 860/1120 of it.
-const bar = (label, pct, tok) =>
-  `<div class="gl-bar"><span class="gl-bar__fill${tok ? ' gl-bar__fill--tok' : ''}" `
-  + `style="width: ${pct}%"></span><span class="gl-bar__t">${label}</span></div>`;
-
-export const measureDo = () => stage(
-  `<div class="gl-scale">
-     ${bar('--container', 100, true)}
-     ${bar('--measure', 76.8, true)}
-   </div>`,
-);
-export const measureDont = () => stage(
-  `<div class="gl-scale">
-     ${bar('1180px', 100, false)}
-     ${bar('1120px', 94.9, false)}
-     ${bar('1080px', 91.5, false)}
-     ${bar('860px', 72.9, false)}
-   </div>`,
-);
-
-export const RULES = withSpecimens(content.rules, [
-{ id: 'container', doHtml: measureDo, dontHtml: measureDont },
-{ id: 'measure' },
-{ id: 'density', doHtml: densityDo, dontHtml: densityDont },
-{ id: 'below-the-page' },
-{ id: 'breakpoints' }
-]);

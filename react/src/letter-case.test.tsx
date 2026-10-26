@@ -75,8 +75,9 @@ for (const file of Object.keys(modules).sort()) {
   }
 }
 
-// Measured when this gate was written: 1458 labels and chips in 353 stories.
-const READ_FLOOR = 1458;
+// Measured when this gate was written: 1458 labels and chips in 353 stories; the
+// AccentPicker Comparison story left with #429 PR 5b, taking six of them.
+const READ_FLOOR = 1452;
 
 describe('letter case: React stories', () => {
   it('the ranks the sweep reads are in the sheets', () => {

@@ -1,9 +1,9 @@
 /* The React components' evidence, shot off the React Storybook's own build.
  *
  * Same rig as shoot.mjs — one static server over one checkout, one Chrome, one
- * viewport — pointed at `react/storybook-static` instead of a hand-written page,
+ * viewport — pointed at `storybook-static` instead of a hand-written page,
  * because a React component needs a bundler and the shot page has none. Build it
- * first: `npm run build-storybook -w react`.
+ * first: `npm run build-storybook`.
  *
  * argv: <checkout> <outDir> [only]
  */
@@ -19,9 +19,9 @@ const { chromium } = await import(process.env.UI_PLAYWRIGHT || 'playwright');
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const CHROME = process.env.UI_CHROME;
 const [checkout, outDir, only] = process.argv.slice(2);
-const built = path.join(path.resolve(checkout), 'react/storybook-static');
+const built = path.join(path.resolve(checkout), 'storybook-static');
 if (!existsSync(path.join(built, 'iframe.html'))) {
-  throw new Error(`no React Storybook build at ${built} — run: npm run build-storybook -w react`);
+  throw new Error(`no React Storybook build at ${built} — run: npm run build-storybook`);
 }
 mkdirSync(outDir, { recursive: true });
 

@@ -1,11 +1,9 @@
-import { loadGuideline, withSpecimens } from './_markdown.js';
+import { loadGuideline } from './_markdown.js';
 const content = await loadGuideline('drawer.md', new URL('../../guidelines/drawer.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
+export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { button, card, checkbox, switchToggle } from '../../src/components/index.js';
-import { drawer, drawerSection } from '../../src/components/drawer.js';
-import { backLink } from '../../src/components/back.js';
 
 // A drawer is position: fixed, so each specimen is held inside a frame of its
 // own. The panel is narrowed so a strip of scrim shows beside it: a drawer with
@@ -69,53 +67,3 @@ export const SPEC_CSS = `
     .gd-ruled__row:last-child { border-bottom: 0; }
     .gd-ruled__row > :first-child { color: var(--strong); }
   </style>`;
-
-// One fabricated record, so a pair differs only in what its rule is about.
-const PAYMENT = [['Amount', '€ 12,480.50'], ['Date', '31 Aug 2026'], ['Counterparty', 'Northwind Payments']];
-const DETAIL = [...PAYMENT, ['Description', 'Card payout · batch 2291'], ['Source', 'Bank feed']];
-const GROUPS = [
-  { rows: PAYMENT },
-  { title: 'How it is classified', rows: [['Category', '—'], ['Unit', 'Ledger']] },
-  { title: 'Where it came from', rows: [['Statement', '#4102'], ['Reference', 'po_example_1047']] },
-];
-
-const frame = (body, title = 'Northwind Payments', footer = '') => `<div class="gd-frame">${drawer({ title, specimen: true, body, footer })}</div>`;
-const ruled = (rows) => rows.map(([k, v]) => `<div class="gd-ruled__row"><span>${k}</span><span>${v}</span></div>`).join('');
-
-// One member's access, the work the drawer-or-page rule is about: the same roles and the
-// same switch per unit, once on a page and once in a drawer.
-const ROLES = [['Viewer', true], ['Operator', true], ['Billing admin', false]];
-const UNITS = [['Ledger', true], ['Payouts', true], ['Agents', false], ['Keys', false], ['Reports', false]];
-
-const roles = () => `<div class="gd-stack">${ROLES.map(([label, checked]) => checkbox({ label, checked, name: 'gd-role' })).join('')}</div>`;
-const unitBoard = () => `<div class="gd-stack">${UNITS.map(([label, on]) =>
-  `<div class="gd-unit"><span>${label}</span>${switchToggle({ checked: on, label: `${label} access` })}</div>`).join('')}</div>`;
-const unitRows = () => UNITS.map(([label, on]) => [label, { html: switchToggle({ checked: on, label: `${label} access` }) }]);
-
-const group = (title, body) => `<section><h3 class="gd-group__title">${title}</h3>${body}</section>`;
-
-const pageDo = () => `<div class="gd-frame gd-page">${card({ body: `
-  <div class="gd-page__head">
-    ${backLink({ href: '#', label: 'Members' })}
-    <h2 class="gd-page__title">Member access</h2>
-    <p class="gd-page__intro">Roles apply to every unit, and per-unit access narrows them.</p>
-  </div>
-  <div class="gd-page__cols">
-    ${group('Roles', roles())}
-    ${group('Access per unit', unitBoard())}
-  </div>
-  <div class="gd-page__act">${button({ label: 'Save access', variant: 'primary' })}</div>` })}</div>`;
-
-const pageDont = () => frame(
-  drawerSection({ title: 'Roles', body: roles() }) + drawerSection({ title: 'Access per unit', rows: unitRows() }),
-  'Member access',
-  button({ label: 'Save access', variant: 'primary' }),
-);
-
-export const RULES = withSpecimens(content.rules, [
-{ id: 'one-record' },
-{ id: 'drawer-or-page', doHtml: pageDo, dontHtml: pageDont },
-{ id: 'no-cards', doHtml: () => frame(GROUPS.map((g) => drawerSection(g)).join('')), dontHtml: () => frame(GROUPS.map((g) => card({ body: drawerSection(g) })).join('')) },
-{ id: 'three-lines' },
-{ id: 'rows', doHtml: () => frame(drawerSection({ rows: DETAIL })), dontHtml: () => frame(ruled(DETAIL)) }
-]);

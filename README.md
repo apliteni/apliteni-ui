@@ -4,14 +4,15 @@
 [![license: MIT](https://img.shields.io/npm/l/@apliteni/apliteni-ui?color=3b9dff)](./LICENSE)
 [![live: ui.apli.tech](https://img.shields.io/badge/live-ui.apli.tech-9b5dff)](https://ui.apli.tech)
 
-The Apliteni design system and UI kit provides shared design tokens, components, themes and
-UI rules for the strategy deck, the text portal, `/account` and future product surfaces.
+The Apliteni design system and UI kit provides shared design tokens, React components,
+themes and UI rules for the strategy deck, the text portal, `/account` and future product
+surfaces.
 
-One package carries two layers. **HTML + CSS** includes token CSS, component CSS and
-HTML-string factories. Use this layer for server-rendered pages that do not use a component
-framework. **React components** support surfaces with client-side state, such as tables,
-filters, forms and modals. Both layers use the same `.ui-*` classes and tokens, so a page
-can use both. Choose React when the surface needs state.
+The kit ships tokens, component CSS and React components together. Server-rendered pages
+that do not use a component framework can still take the CSS, tokens and the inline
+strings, or write the kit's `.ui-*` classes by hand. The helpers the root entry publishes —
+`icon`, `prism`, `sun`, `moon`, `brand`, `esc`, `safeUrl` and the shared logic — serve
+both.
 
 Every component is in Storybook at **[ui.apli.tech](https://ui.apli.tech)**.
 
@@ -27,8 +28,7 @@ npm install @apliteni/apliteni-ui react react-dom
 Install React and React DOM yourself, using version 18 or newer. The kit does not declare
 either package as a regular or peer dependency. npm therefore does not install them or warn
 when they are missing. If they are missing, importing `@apliteni/apliteni-ui/react` fails
-at build time or runtime with a module-not-found error. A plain HTML consumer installs only
-the kit and is unaffected because React is not added to its dependency tree.
+at build time or runtime with a module-not-found error.
 
 The React components are a subpath of this package, not a separate package. You get one
 install, one version and one version pin.
@@ -36,7 +36,7 @@ install, one version and one version pin.
 | Import | What it is |
 | --- | --- |
 | `@apliteni/apliteni-ui/css` | Tokens and every component stylesheet. Import once at the app root. |
-| `@apliteni/apliteni-ui` | The HTML-string factories: `button()`, `card()`, `topbar()`, `appShell()` and the rest. |
+| `@apliteni/apliteni-ui` | The helpers and shared logic: `icon`, `prism`, `sun`, `moon`, `brand`, `esc`, `safeUrl`, motion and the dropdown, chart, pagination and filter helpers. |
 | `@apliteni/apliteni-ui/react` | The React components, TypeScript types included. |
 | `@apliteni/apliteni-ui/react/css` | Their shell styles. |
 | `@apliteni/apliteni-ui/inline` | The same CSS as strings, for a server that inlines it. |
@@ -44,24 +44,16 @@ install, one version and one version pin.
 
 ## Use it
 
-```js
-import '@apliteni/apliteni-ui/css';
-import { topbar, card, button, wireTopbar } from '@apliteni/apliteni-ui';
-
-el.innerHTML = topbar({ word: 'Strategy', account: { name, email } })
-             + card({ title: 'Appearance', body: button({ label: 'Save', variant: 'primary' }) });
-wireTopbar(document);   // theme toggle, menus, segmented controls, copy buttons
-```
-
 ```tsx
 import '@apliteni/apliteni-ui/css';
 import '@apliteni/apliteni-ui/react/css';
-import { DataTable, Modal } from '@apliteni/apliteni-ui/react';
+import { AppShell, DataTable, Modal } from '@apliteni/apliteni-ui/react';
+import { icon } from '@apliteni/apliteni-ui';
 ```
 
-The `appShell()` factory provides the complete product layout: the sticky rail, the page body
-and a topbar over it when you ask for one, so no product rebuilds it. The
-[component catalog](docs/components.md#component-catalog) lists this factory and every other one.
+The `AppShell` component provides the complete product layout: the rail, the page body and
+a topbar over it when you ask for one, so no product rebuilds it. The
+[component catalog](docs/components.md#component-catalog) lists it and every other component.
 Account and personal settings belong in a modal over the product rather than on a page of
 their own — see [Guidelines / Account and settings](guidelines/account-and-settings.md).
 
@@ -102,14 +94,10 @@ rule. If the host wants to follow the operating system preference, its JavaScrip
 choose the theme and add the attribute. See
 [an absent attribute means dark](docs/components.md#an-absent-attribute-means-dark).
 
-You can change the settings at runtime with `applyTheme('light')` and
-`applyAccent('phoenix')`. These functions save the choices to `localStorage`. You can also
-use `accentPicker()`, which `wireTopbar()` connects.
-
 ## The rules
 
 The **Guidelines** explain what a page may contain, which component to choose, which states
-it must support, and how to handle colour and wording. Both kit layers follow these rules.
+it must support, and how to handle colour and wording. The kit follows these rules.
 The guidelines ship as Markdown in the package and are also available as a Storybook
 section.
 
@@ -123,7 +111,7 @@ section.
 | --- | --- |
 | [foundations.md](docs/foundations.md) | The tokens and the floors: widths, breakpoints, spacing, type, colour, elevation, the focus ring, the tap floor. |
 | [components.md](docs/components.md) | The package: what to import, theming, the component catalog, and what each component guarantees. |
-| [react/README.md](react/README.md) | The React components, their props, and the Storybook on port 6007. |
+| [react/README.md](react/README.md) | The React components and their props. |
 | [contributing.md](docs/contributing.md) | Working on the kit: the repository's layout, Storybook, the guidelines collection, the site, the changelog and releases. |
 
 ## Contribute
@@ -132,7 +120,7 @@ Use Node 20 or newer. Install [jq](https://jqlang.github.io/jq/), then run:
 
 ```bash
 npm ci
-npm run storybook              # the kit; add -w react for the React workspace
+npm run storybook
 npm test && npm test -w react && npm run build-storybook && node site/build.mjs
 ```
 
@@ -142,14 +130,14 @@ Add a general, composable kit component only when all three conditions are true:
 names at least two products that use it or have requested it; existing components cannot
 provide it without copying markup or logic; and it contains no domain-specific data or
 rules. If any condition is missing, compose the UI from existing components and add a
-Storybook showcase. Preserve the vanilla kit's existing look.
+Storybook showcase.
 
 To add a component, put its token-based CSS in `src/styles/`. Include that CSS in
-`src/index.css` and in both the `styles` map and `cssText` in `src/inline.js`. Put the HTML
-factory in `src/components/` and export it from `src/index.js`. Add a playground and state
-examples in `stories/components/`. Put React components in `react/src/`; each one needs a
-test and a story that use the shared classes and tokens. The
-[guidelines](guidelines/overview.md) define the design rules.
+`src/index.css` and in both the `styles` map and `cssText` in `src/inline.js`. Put the
+React component in `react/src/`; each one needs a test and a story that use the shared
+classes and tokens. Shared logic the React components take from the root entry lives in
+`src/logic/` and is exported from `src/index.js`. The [guidelines](guidelines/overview.md)
+define the design rules.
 
 Open an issue, create a branch from `main`, and link the issue in your PR. If you change a
 published file, including this README, bump the version in `package.json` and

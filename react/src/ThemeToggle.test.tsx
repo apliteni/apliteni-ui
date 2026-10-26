@@ -117,30 +117,6 @@ it.each([false, true])('saved auto follows OS and live changes (%s)', light => {
   expect(localStorage.getItem(key)).toBe('auto');
 });
 
-it('keeps vanilla and React choices synchronized in both directions', async () => {
-  const { themeToggle, wireTopbar } = await import('../../src/components/topbar.js');
-  const vanilla = document.createElement('div');
-  vanilla.innerHTML = themeToggle('auto');
-  document.body.append(vanilla);
-  wireTopbar(vanilla);
-  const { container, unmount } = render(<ThemeToggle />);
-  try {
-    const reactButton = container.querySelector('button')!;
-    const vanillaButton = vanilla.querySelector('button')!;
-    fireEvent.click(reactButton);
-    await waitFor(() => expect(vanillaButton).toHaveAccessibleName('Theme: Dark. Switch to light.'));
-    fireEvent.click(vanillaButton);
-    await waitFor(() => expect(reactButton).toHaveAccessibleName('Theme: Light. Switch to auto.'));
-    localStorage.setItem(key, 'auto');
-    act(() => window.dispatchEvent(new StorageEvent('storage', { key })));
-    await waitFor(() => expect(vanillaButton).toHaveAccessibleName('Theme: Auto. Switch to dark.'));
-    expect(reactButton).toHaveAccessibleName('Theme: Auto. Switch to dark.');
-    act(() => { media.matches = true; media.dispatchEvent(new Event('change')); });
-    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
-    expect(localStorage.getItem(key)).toBe('auto');
-  } finally { unmount(); vanilla.remove(); }
-});
-
 it('retains auto across mounts and OS changes when only storage writes fail', async () => {
   localStorage.setItem(key, 'light');
   vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });

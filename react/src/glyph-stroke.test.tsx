@@ -149,7 +149,6 @@ const KNOWN_THIN: Record<string, string> = {
 const KNOWN_UNRENDERED: Record<string, string> = {
   'styles/feedback.css  .ui-fbc__chip svg': 'the React Feedback draws the chip only in the open composer, which no story opens',
   'styles/feedback.css  .ui-fbc__x svg': 'the vanilla composer close glyph; the shipped CSS keeps it',
-  'styles/feedback.css  .ui-fbck': 'the vanilla sent check; the shipped CSS keeps it',
 };
 
 /* ---- the corpus: every React story ---------------------------------------- */

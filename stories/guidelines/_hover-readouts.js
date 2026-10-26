@@ -1,11 +1,10 @@
-import { loadGuideline, withSpecimens } from './_markdown.js';
+import { loadGuideline } from './_markdown.js';
 const content = await loadGuideline('hover-readouts.md', new URL('../../guidelines/hover-readouts.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
+export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { card } from '../../src/components/index.js';
-import { tooltip } from '../../src/components/tooltip.js';
-import { CHART_CSS, EXPENSES, REVENUE, bars, eur, pointOf, sparkline } from '../_chart.js';
+import { CHART_CSS } from '../_chart.js';
 
 // Every readout below is rendered open, at the anchor the wiring would have
 // measured, so the gates can read it. The charts are fixed-size for the same
@@ -27,66 +26,3 @@ export const SPEC_CSS = `${CHART_CSS}
     .gh-clip { overflow: hidden; border-radius: var(--radius-sm);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-8) var(--space-3) 0; }
   </style>`;
-
-const HOT = 10;
-const host = (inner) => `<div class="ui-tip-host" style="width: max-content">${inner}</div>`;
-
-// The KPI card from the finance portal's overview, and the card under it — the
-// one that moves when a readout is written into the first.
-const kpiCard = (chart) => card({
-  title: 'Revenue',
-  sub: 'Last 12 months',
-  body: `<p class="gh-figure">${eur(REVENUE[REVENUE.length - 1])}</p>${chart}`,
-});
-const nextCard = () => card({
-  title: 'Expenses',
-  sub: 'Last 12 months',
-  body: `<p class="gh-figure">${eur(EXPENSES[EXPENSES.length - 1])}</p>`,
-});
-
-const overlayDo = () => {
-  const s = sparkline({ hot: HOT });
-  const p = s.at(HOT);
-  return `<div class="gh-stack">${kpiCard(host(
-    s.svg + tooltip({ ...pointOf(REVENUE, HOT), open: true, x: p.x, y: p.top }),
-  ))}${nextCard()}</div>`;
-};
-
-const overlayDont = () => {
-  const { label, value, detail } = pointOf(REVENUE, HOT);
-  return `<div class="gh-stack">${kpiCard(
-    `${sparkline({ hot: HOT }).svg}<p class="gh-inline">${label}: ${value}, ${detail}</p>`,
-  )}${nextCard()}</div>`;
-};
-
-const barsOpen = (placement, { values = REVENUE, text = pointOf(REVENUE, HOT), room = 'gh-room' } = {}) => {
-  const b = bars({ values, hot: HOT });
-  const p = b.at(HOT);
-  return `<div class="${room}">${host(b.svg + tooltip({
-    ...text, open: true, placement, x: p.x, y: placement === 'bottom' ? p.bottom : p.top,
-  }))}</div>`;
-};
-
-const clipped = (placement) => {
-  const b = bars({ hot: HOT });
-  const p = b.at(HOT);
-  return `<div class="gh-clip">${host(b.svg + tooltip({
-    ...pointOf(REVENUE, HOT), open: true, placement, x: p.x, y: p.top,
-  }))}</div>`;
-};
-
-export const RULES = withSpecimens(content.rules, [
-{ id: 'overlay', doHtml: overlayDo, dontHtml: overlayDont },
-{ id: 'above-the-mark', doHtml: () => clipped('bottom'), dontHtml: () => clipped('top') },
-{ id: 'contents', doHtml: () => barsOpen('top', { room: 'gh-room gh-room--tall' }), dontHtml: () => barsOpen('top', {
-      room: 'gh-room gh-room--tall',
-      text: {
-        label: 'Revenue, all entities, EUR, including pending settlements, October 2025',
-        value: '€49,300',
-        detail: '+5.3% on September and +12.1% on October 2024, with 3 invoices pending. '
-          + 'Click the bar to open the transactions.',
-      },
-    }) },
-{ id: 'on-touch' },
-{ id: 'not-only-hover' }
-]);

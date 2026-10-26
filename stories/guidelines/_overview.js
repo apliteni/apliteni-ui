@@ -27,84 +27,60 @@ import * as backContent from './_going-back.js';
 import * as pageContent from './_the-page.js';
 import * as accountContent from './_account-and-settings.js';
 import * as kindContent from './_dashboards-and-reports.js';
-
-// Imported for their EXPORT NAMES, which is where a story's URL id comes from.
-import * as destructiveStory from './DestructiveActions.stories.js';
-import * as colourStory from './ColourAndTheming.stories.js';
-import * as emptyStory from './EmptyStates.stories.js';
-import * as stateStory from './StateSet.stories.js';
-import * as componentStory from './ComponentChoice.stories.js';
-import * as textStory from './TextLength.stories.js';
-import * as microcopyStory from './Microcopy.stories.js';
-import * as labelsStory from './LabelsAndTitles.stories.js';
-import * as buttonLabelsStory from './ButtonLabels.stories.js';
-import * as iconographyStory from './Iconography.stories.js';
-import * as layoutStory from './LayoutAndDensity.stories.js';
-import * as spacingStory from './Spacing.stories.js';
-import * as denseStory from './DenseTables.stories.js';
-import * as floorStory from './AccessibilityFloor.stories.js';
-import * as paginationStory from './Pagination.stories.js';
-import * as statStory from './StatBands.stories.js';
-import * as drawerStory from './Drawers.stories.js';
-import * as fileDropStory from './FileDrop.stories.js';
-import * as motionStory from './Motion.stories.js';
-import * as paletteStory from './CommandPalette.stories.js';
-import * as hoverStory from './HoverReadouts.stories.js';
-import * as backStory from './GoingBack.stories.js';
-import * as pageStory from './ThePage.stories.js';
-import * as accountStory from './AccountAndSettings.stories.js';
-import * as kindStory from './DashboardsAndReports.stories.js';
-
 import * as densityAccentContent from './_density-and-accents.js';
-import * as densityAccentStory from './DensityAndAccents.stories.js';
 
+// One row per guideline page, in the sidebar order. `title` and `name` are the
+// React story's own — `name` is the story EXPORT name, which Storybook turns
+// into the id half after the `--`. react/src/guidelines.test.tsx holds the ids
+// built from these names against the ids Storybook's rule produces from the
+// .stories.tsx modules, so a rename or a missing row fails there.
 const ENTRIES = [
-  [pageContent, pageStory],
-  [kindContent, kindStory],
-  [destructiveContent, destructiveStory],
-  [colourContent, colourStory],
-  [stateContent, stateStory],
-  [emptyContent, emptyStory],
-  [componentContent, componentStory],
-  [microcopyContent, microcopyStory],
-  [textContent, textStory],
-  [labelsContent, labelsStory],
-  [buttonLabelsContent, buttonLabelsStory],
-  [iconographyContent, iconographyStory],
-  [layoutContent, layoutStory],
-  [spacingContent, spacingStory],
-  [densityAccentContent, densityAccentStory],
-  [denseContent, denseStory],
-  [floorContent, floorStory],
-  [paginationContent, paginationStory],
-  [statContent, statStory],
-  [drawerContent, drawerStory],
-  [fileDropContent, fileDropStory],
-  [motionContent, motionStory],
-  [paletteContent, paletteStory],
-  [hoverContent, hoverStory],
-  [backContent, backStory],
-  [accountContent, accountStory],
+  [pageContent, 'Guidelines/The page', 'ThePage'],
+  [kindContent, 'Guidelines/Dashboards and reports', 'DashboardsAndReports'],
+  [destructiveContent, 'Guidelines/Destructive actions', 'DestructiveActions'],
+  [colourContent, 'Guidelines/Colour and theming', 'ColourAndTheming'],
+  [stateContent, 'Guidelines/The full state set', 'StateSet'],
+  [emptyContent, 'Guidelines/Empty states', 'EmptyStates'],
+  [componentContent, 'Guidelines/Component choice', 'ComponentChoice'],
+  [microcopyContent, 'Guidelines/Microcopy and tone', 'Microcopy'],
+  [textContent, 'Guidelines/Text length', 'TextLength'],
+  [labelsContent, 'Guidelines/Labels and titles', 'LabelsAndTitles'],
+  [buttonLabelsContent, 'Guidelines/Button labels', 'ButtonLabels'],
+  [iconographyContent, 'Guidelines/Iconography', 'Iconography'],
+  [layoutContent, 'Guidelines/Layout and density', 'LayoutAndDensity'],
+  [spacingContent, 'Guidelines/Spacing', 'Spacing'],
+  [densityAccentContent, 'Guidelines/Density and accents', 'DensityAndAccents'],
+  [denseContent, 'Guidelines/Dense tables', 'DenseTables'],
+  // The accessibility page kept its pre-#429 explicit id, so it is written out
+  // rather than derived from the title.
+  [floorContent, 'Guidelines/Accessibility minimums', 'AccessibilityFloor', 'guidelines-the-accessibility-floor'],
+  [paginationContent, 'Guidelines/Pagination', 'Pagination'],
+  [statContent, 'Guidelines/Stat bands', 'StatBands'],
+  [drawerContent, 'Guidelines/Drawers', 'Drawers'],
+  [fileDropContent, 'Guidelines/File drop', 'FileDrop'],
+  [motionContent, 'Guidelines/Motion', 'Motion'],
+  [paletteContent, 'Guidelines/The command palette', 'CommandPalette'],
+  [hoverContent, 'Guidelines/Hover readouts', 'HoverReadouts'],
+  [backContent, 'Guidelines/Going back', 'GoingBack'],
+  [accountContent, 'Guidelines/Account and settings', 'AccountAndSettings'],
 ];
 
 // Storybook's two-step id rule, reproduced rather than imported so the page
-// bundles no Storybook internals; overview.test.js holds the two in step.
+// bundles no Storybook internals; react/src/guidelines.test.tsx holds the two in step.
 const sanitize = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const words = (key) => (String(key).match(/[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+/g) || []).join('-');
-export const storyId = (mod) => {
-  const key = Object.keys(mod).find((k) => k !== 'default');
-  return `${sanitize(mod.default.id || mod.default.title)}--${sanitize(words(key))}`;
-};
+export const storyId = ({ title, name, id }) =>
+  `${sanitize(id ?? title)}--${sanitize(words(name))}`;
 
 // `./` resolves against /iframe.html, so this is the manager URL in dev and in
 // a static build alike. Whoever renders it needs target="_top".
-export const storyHref = (mod) => `./?path=/story/${storyId(mod)}`;
+export const storyHref = (entry) => `./?path=/story/${storyId(entry)}`;
 
-export const PAGES = ENTRIES.map(([content, story]) => ({
+export const PAGES = ENTRIES.map(([content, title, name, id]) => ({
   title: content.TITLE,
   blurb: content.BLURB,
-  id: storyId(story),
-  href: storyHref(story),
+  id: storyId({ title, name, id }),
+  href: storyHref({ title, name, id }),
   rules: content.RULES,
   gaps: content.RULES.filter((r) => r.unmet),
 }));
