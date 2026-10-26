@@ -83,14 +83,20 @@
   --caret-ink: 1.6px;
   --caret-off: calc((var(--caret) - var(--caret-ink)) / 2.8284);  /* 2√2 — the 45° turn's projection */
   width: var(--caret); height: var(--caret);
-  border-right: var(--caret-ink) solid var(--muted);
-  border-bottom: var(--caret-ink) solid var(--muted);
+  /* Two gradient strips, not borders: Chromium rounds a border to whole device pixels,
+     so a 1.6px border painted 1.03px of ink, where the select's SVG stroke paints 1.58px. */
+  background:
+    linear-gradient(var(--muted), var(--muted)) right / var(--caret-ink) 100% no-repeat,
+    linear-gradient(var(--muted), var(--muted)) bottom / 100% var(--caret-ink) no-repeat;
   /* Shift BEFORE rotate, so it lands in page space rather than on the turned axis. */
   transform: translateY(calc(var(--caret-off) * -1)) rotate(45deg);
   transition: transform var(--dur-fast) var(--ease);
   flex: none;
 }
 .ui-dropdown.open .ui-dropdown__chevron { transform: translateY(var(--caret-off)) rotate(-135deg); }
+@media (forced-colors: active) {
+  .ui-dropdown__chevron { background: none; border-right: var(--caret-ink) solid ButtonText; border-bottom: var(--caret-ink) solid ButtonText; }
+}
 
 /* Panel — the popover surface */
 .ui-dropdown__panel {
@@ -210,6 +216,12 @@
    at the room the viewport left either way. #489 */
 .ui-dropdown__panel.is-scroll { --ui-dropdown-cap: var(--ui-dropdown-max); }
 
+/* On a phone, the panel keeps the page's 16px margin at the shell fold.
+   why: docs/components.md#the-dropdown-panel */
+@media (max-width: 720px) {
+  .ui-dropdown__panel { --ui-dropdown-edge: var(--space-4); }
+}
+
 /* The wiring adds this where the room is below the floor: even spending the whole
    edge inset, there is no usable height. The panel keeps its cap — it is never
    taller than 300px — and scrolls inside it. Its room runs past the fold, so the
@@ -316,12 +328,22 @@
   color: var(--text);
   transition: background var(--dur-fast) var(--ease);
 }
-/* Rows keep a reading surface; hover adds an edge. A row that is hovered AND focused
-   draws the ring and not the hover edge — both are outlines now, and the focus rule
-   comes later — which is one indicator rather than two.
+/* Hover is a fill and an outline means focus, so a hovered row draws no edge. A row that is
+   hovered AND focused draws the ring over the fill.
    why: docs/foundations.md#elevation */
-.ui-dropdown__item:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-.ui-dropdown__item:focus-visible { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-dropdown__item:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+/* Light only: the panel is --bg-elevated, which --surface matches exactly there, so the
+   hover fill above changed nothing. --surface-3 is the quiet fill the drawer's close mark
+   takes on hover, one step under the --surface-2 that .is-active takes below.
+   why: docs/foundations.md#elevation */
+:where(:root[data-theme="light"]) .ui-dropdown__item:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+@media (forced-colors: active) {
+  .ui-dropdown__item:hover { border: 1px solid Highlight; padding: 8px 11px; }
+}
+/* The row draws its ring inward, so a row scrolled flush with the list's edge cannot have it
+   clipped and the list scrolls as it did.
+   why: docs/foundations.md#the-focus-ring */
+.ui-dropdown__item:focus-visible { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ui-dropdown__label { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .ui-dropdown__desc { font-size: var(--text-xs); color: var(--text); line-height: 1.35; }
@@ -444,7 +466,7 @@
 
 .ui-dropdown__search-input::placeholder { /* muted-ink: placeholder — empty search field */ color: var(--muted); }
 .ui-dropdown__search-input:hover { border-color: var(--field-edge-hover); }
-.ui-dropdown__search-input:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-dropdown__search-input:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* The rows' own cap, read from the same property the panel reads: the `scroll`
    option lands on the list when there is a field above it. #489 */

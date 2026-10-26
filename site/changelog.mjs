@@ -6,6 +6,22 @@
 
 export const RELEASES = [
   {
+    v: '0.142.2', date: '2026-10-26',
+    changes: [
+      ['changed', 'A drawer row or React `KeyValueList` row whose value is a select, a text field or a dropdown now lines its label up with the control by itself. Rows with text values are unchanged.', ['Drawer']],
+      ['changed', 'The modal title is now semibold in the strong ink, the same as the drawer title.', ['Modal']],
+      ['changed', 'The select chevron now draws the same shape and 1.6px stroke as the Dropdown chevron.', ['Select', 'Dropdown']],
+      ['changed', 'At 720px and below, a dropdown panel keeps the 16px page margin from the edge of the view instead of 8px.', ['Dropdown']],
+      ['fixed', 'In the light theme, a hovered dropdown or version row now shows a quiet fill. It matched the panel before. A hovered row has no outline in either theme.', ['Dropdown', 'Topbar']],
+      ['fixed', 'The focus ring of a dropdown row draws inside the row, so the edge of a scrolling panel does not clip it.', ['Dropdown']],
+      ['fixed', 'A focused text field, text area, select or Dropdown search field now shows only the accent ring. Its border is transparent while the ring shows.', ['Input', 'Select', 'Dropdown']],
+      ['fixed', 'React `FilterBar` shows a chip\'s remove mark, and `Clear all`, only when a chip has a value. An unset chip is as tall as a chip with a value.', ['FilterBar']],
+      ['fixed', 'A focused scrolling table with a sticky header or a pinned column shows its focus ring on all four sides. A focused row in the folded rail does too.', ['Table', 'AppShell']],
+      ['fixed', 'The last column of a table, its header and the table edge now share one right edge. A hover table keeps 16px between its last value and that edge.', ['Table']],
+      ['fixed', 'In forced colours, the Dropdown chevron stays visible, a hovered dropdown or version row shows a border, and a scrolling table keeps a distinct focus band.', ['Dropdown', 'Topbar', 'Table']],
+    ],
+  },
+  {
     v: '0.142.1', date: '2026-10-25',
     changes: [
       ['changed', 'The helpers that the React components take from the vanilla files move to `src/logic/`: the dropdown placement, the code tokenizer, `nearestSection`, `themeIcon` and `ACCOUNT_NAV`. The root entry exports the same names, and no behaviour changes. The gates that read vanilla markup now read the React components. This prepares the removal of the vanilla kit. Part of #429.'],

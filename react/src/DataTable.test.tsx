@@ -840,7 +840,7 @@ it('caps a pager that mounts after the table, and re-measures a later one', asyn
 });
 
 /**
- * `.ui-table-scroll` carries `padding: 0 var(--space-1)`, so a sticky or pinned table
+ * `.ui-table-scroll` carries a transparent `border-inline` of `var(--space-1)`, so a sticky or pinned table
  * starts 4px inside its region. A cap that copied the width but not the position left the
  * strip 4px left of the rows at both ends — in the one measurement #504 exists to get right.
  */

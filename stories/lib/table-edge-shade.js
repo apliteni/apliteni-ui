@@ -124,21 +124,21 @@ export function fixtureHTML(theme, css) {
 export const CENTER_SCROLL = () => {
   const el = document.querySelector('.ui-table-scroll');
   el.scrollLeft = Math.round((el.scrollWidth - el.clientWidth) / 2);
-  return { clientWidth: el.clientWidth, scrollLeft: el.scrollLeft, scrollWidth: el.scrollWidth };
+  return { clientWidth: el.offsetWidth, scrollLeft: el.scrollLeft, scrollWidth: el.scrollWidth };
 };
 
 /** Pixel coordinates of the four readings the gate takes, given the fixture's own
  *  40px margin and the scroller's measured width. 6px in from either edge sits
  *  inside the 12px (--space-3) shade band and outside the scroller's own 4px
- *  (--space-1) content padding. 14px and 70px down land on the header row and a
- *  body row respectively, for the `max-height:140px` fixture above. */
+ *  (--space-1) side border. 14px and 50px down land on the header row and the top
+ *  padding of a body row, clear of any glyph, respectively, for the `max-height:140px` fixture above. */
 export function readingPoints(clientWidth) {
   const left = 40 + 6;
   const right = 40 + clientWidth - 6;
   return {
     'header left': [left, 40 + 14],
     'header right': [right, 40 + 14],
-    'body left': [left, 40 + 70],
-    'body right': [right, 40 + 70],
+    'body left': [left, 40 + 50],
+    'body right': [right, 40 + 50],
   };
 }

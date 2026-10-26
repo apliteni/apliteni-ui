@@ -6,6 +6,7 @@ test('mediaApplies accepts only the width queries the gates use', () => {
   assert.equal(mediaApplies('(max-width: 720px)', 390), true);
   assert.equal(mediaApplies('(max-width: 720px)', 721), false);
   assert.equal(mediaApplies('(min-width: 561px) and (max-width: 720px)', 600), true);
+  assert.equal(mediaApplies('(forced-colors: active)', 390), false);
   assert.throws(() => mediaApplies('(orientation: portrait)', 390), /cannot evaluate/);
 });
 

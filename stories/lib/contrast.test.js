@@ -570,7 +570,7 @@ test('every state base the kit sheet yields is a selector a browser accepts', ()
       }
     }
   }
-  assert.equal(counted, 252, 'state-base discovery changed: 126 bases per theme, including three link-button states, over two themes. The two light drawer rows (current, hover) added 1 per theme; the phone icon strip and its hover-name rules went in #592, which took 22 bases per theme with them; the stacked table target and neutral hover add 1 base each per theme, and React Toast adds 2 bases per theme');
+  assert.equal(counted, 266, 'state-base discovery changed: 133 bases per theme, including three link-button states, over two themes. The two light drawer rows (current, hover) added 1 per theme; the phone icon strip and its hover-name rules went in #592, which took 22 bases per theme with them; the stacked table target and neutral hover add 1 base each per theme, and React Toast adds 2 bases per theme; #661 adds 7 per theme: the four field focus rules with a transparent border, the table scroll region focus, and the light hover rows of the dropdown and version menus');
   assert.deepEqual(offences, [], `a state base no browser would accept:\n  ${offences.join('\n  ')}`);
   dom.window.close();
 });
