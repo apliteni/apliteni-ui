@@ -124,6 +124,17 @@ export function focusSubject(selector) {
   let last = -1;
   parts.forEach((part, index) => { if (focusesHere(part.compound)) last = index; });
   if (last < 0) return null;
+  // `.host:has(x:focus-visible)` paints the host while `x` holds focus, so the stop
+  // is `x` inside the host, and the band lands on another box. #661
+  const held = /:has\(\s*([^()]*?)\s*:focus(?:-visible)?\s*\)/.exec(parts[last].compound);
+  if (held && !/^[+~]/.test(held[1])) {
+    const host = compoundsOf(selector).slice(0, last + 1).map(({ compound, combinator }, index) => {
+      const bare = index === last ? compound.replace(held[0], '') : compound;
+      return `${index === 0 ? '' : (combinator === ' ' ? ' ' : ` ${combinator} `)}${bare}`;
+    }).join('');
+    const inner = held[1].startsWith('>') ? `> ${held[1].slice(1).trim()}` : held[1];
+    return { subject: `${host.trim() || '*'} ${inner}`, within: false, self: false };
+  }
   const within = dropFunctional(parts[last].compound, ['not']).includes(WITHIN);
   // A pseudo-element is its own box, so a ring painted on `::before` is as
   // delegated as one painted on a sibling.

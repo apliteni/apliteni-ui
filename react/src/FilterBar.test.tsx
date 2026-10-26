@@ -179,6 +179,17 @@ it('restores focus after consecutive externally controlled removals', () => {
   rerender(beside([]));
   expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
 });
+it('leaves focus outside after an unrelated render', () => {
+  const props = callbacks();
+  const view = (items: Filter[]) => <><FilterBar filters={items} {...props} /><div>Outside</div></>;
+  const { rerender } = render(view(filters));
+  const trigger = screen.getByRole('button', { name: 'Region: All' });
+  trigger.focus();
+  trigger.blur();
+  expect(document.body).toHaveFocus();
+  rerender(view([...filters]));
+  expect(document.body).toHaveFocus();
+});
 // An empty bar is not a fallback: the ring would sit on a line with no height.
 // With nothing beside it to take the focus, the focus goes nowhere instead.
 it('does not park the ring on an empty bar when nothing stands beside it', () => {
@@ -393,4 +404,27 @@ it('allows an explicit link action without changing the default skin', () => {
   render(<FilterBar filters={[{ id: 'sector', label: 'Sector', value: 'Energy', items: [] }]}
     clearLabel="Clear filters" clearVariant="link" onRemove={() => {}} onClear={() => {}} onChange={() => {}} />);
   expect(screen.getByRole('button', { name: 'Clear filters' })).toHaveClass('ui-btn--link');
+});
+
+// DOM only: which controls are drawn for a chip with no value.
+it('draws a remove mark only on a chip with a value, and Clear all only when one has', async () => {
+  const props = callbacks();
+  const unset: Filter = { id: 'Region', label: 'Region', value: '', items: [{ label: 'North', value: 'north' }] };
+  const { rerender } = render(<FilterBar filters={[unset]} {...props} />);
+  expect(screen.queryByRole('button', { name: 'Remove Region filter' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Clear all' })).not.toBeInTheDocument();
+  rerender(<FilterBar filters={[unset, filters[1]]} {...props} />);
+  expect(screen.queryByRole('button', { name: 'Remove Region filter' })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Remove Status filter' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Clear all' })).toBeInTheDocument();
+});
+
+it('keeps focus on the chip when its value is cleared and its remove mark goes', async () => {
+  const props = callbacks();
+  const { rerender } = render(<FilterBar filters={[filters[0]]} {...props} />);
+  const remove = screen.getByRole('button', { name: 'Remove Region filter' });
+  remove.focus();
+  rerender(<FilterBar filters={[{ ...filters[0], value: '' }]} {...props} />);
+  expect(screen.queryByRole('button', { name: 'Remove Region filter' })).not.toBeInTheDocument();
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: /Region/ }));
 });

@@ -29,14 +29,18 @@ const js = decomment(read(WIRING));
 /* -- The stylesheet --------------------------------------------------------- */
 
 test('the gap a panel keeps from the view\'s edge is one named number', () => {
+  // One declaration on the panel, and one phone override inside the 720px query: the page
+  // margin, which is the step the shell's own gutter takes at that width.
   const declared = [...css.matchAll(/--ui-dropdown-edge:\s*([^;]+);/g)].map((m) => m[1].trim());
   assert.deepEqual(
-    declared, ['8px'],
+    declared, ['8px', 'var(--space-4)'],
     `${SHEET} declares --ui-dropdown-edge ${declared.length} times (${declared.join(', ') || 'never'}). `
     + 'The wiring reads this property off the panel and the width bound reads it too, so a second '
     + 'declaration is two different gaps for one panel — and none at all leaves the wiring on its '
     + 'own fallback constant, which is the drift DD_GAP already had to be pinned against.',
   );
+  const phone = /@media \(max-width: 720px\) \{[^{}]*\{[^{}]*--ui-dropdown-edge:\s*var\(--space-4\);/.exec(decomment(css));
+  assert.ok(phone, 'the second declaration is the phone override, inside the 720px query');
 });
 
 test('the panel keeps the floor that makes a menu readable', () => {

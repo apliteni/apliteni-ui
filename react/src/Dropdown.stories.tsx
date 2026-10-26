@@ -57,7 +57,6 @@ export const Select: StoryObj<typeof Dropdown> = {
     return (
       <Stage>
         <Dropdown
-          label="version:"
           ariaLabel="Version"
           variant="select"
           items={VERSIONS.map((it) => (typeof it === 'string' || 'separator' in it ? it
@@ -105,7 +104,6 @@ export const Scrolling: StoryObj<typeof Dropdown> = {
     <Stage>
       <Dropdown
         variant="select"
-        label="region:"
         ariaLabel="Region"
         scroll={220}
         items={[
@@ -135,7 +133,6 @@ export const Search: StoryObj<typeof Dropdown> = {
     return (
       <Stage>
         <Dropdown
-          label="currency:"
           ariaLabel="Currency"
           variant="select"
           search={{ placeholder: 'Search currencies' }}
@@ -220,7 +217,6 @@ export const NearTheScreenEdges: StoryObj<typeof Dropdown> = {
         <Ends>
           <Dropdown items={ACTIONS} ariaLabel="Account" triggerContent="Account" align="end" />
           <Dropdown
-            label="currency:"
             items={CURRENCIES}
             ariaLabel="Currency"
             search={{ placeholder: 'Find a currency' }}

@@ -72,7 +72,7 @@ export const RECORDED = {
   'hover-readouts.md': 333,
   'iconography.md': 291,
   'layout-and-density.md': 318,
-  'state-set.md': 317,
+  'state-set.md': 299,
   'stat-bands.md': 224,
 };
 

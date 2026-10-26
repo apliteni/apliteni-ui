@@ -124,12 +124,16 @@
   color: var(--text);
   background: none;
   border: 0;
-  /* The one control in the kit that removes the indicator and puts no
-     outline: var(--ring) back, against base.css. It is the only tab stop in
-     the dialog and it holds focus from the frame it opens, so a ring would be
-     painted the whole time the palette is up and would mark nothing; the panel
-     already carries one, and the caret says where the typing goes. */
+  /* The ring goes on the search row, which is this field's box. */
   outline: none;
+}
+/* The shared field ring, drawn inward because the panel clips. The divider goes
+   transparent under it, as a field's border does, so focus has one line.
+   why: docs/foundations.md#the-focus-ring */
+.ui-cmdk__search:has(.ui-cmdk__input:focus-visible) {
+  border-bottom-color: transparent;
+  outline: var(--ring-scroll);
+  outline-offset: var(--ring-scroll-offset);
 }
 .ui-cmdk__input::placeholder { /* muted-ink: placeholder — empty command search */ color: var(--muted); }
 

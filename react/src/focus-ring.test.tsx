@@ -67,12 +67,6 @@ const rules = [...kitRules, ...localRules];
  */
 const EXEMPT = [
   {
-    selector: '.ui-cmdk__input',
-    why: 'the palette\'s only tab stop holds focus for as long as the dialog is up, so a ring '
-      + 'would be painted the whole time and mark nothing. Stated on the declaration in '
-      + 'src/styles/command-palette.css.',
-  },
-  {
     selector: '.ui-cmdk__item',
     why: 'the palette never focuses a row. CommandPalette.tsx has no focus() call at all; '
       + 'focus stays in the input, and the row the reader is on is announced by '
@@ -139,7 +133,7 @@ describe('focus ring: React stories', () => {
     expect(counts.stops).toBeGreaterThanOrEqual(250);
     expect(kitRules.length).toBeGreaterThanOrEqual(30);
     expect(localRules.length).toBeGreaterThanOrEqual(3);
-    expect(counts.exempted, 'the command palette stories still hold their input').toBeGreaterThan(0);
+    expect(counts.exempted, 'the command palette stories still hold their rows').toBeGreaterThan(0);
   });
 
   it('every exemption still names a control this workspace renders', () => {
