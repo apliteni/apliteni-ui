@@ -184,7 +184,7 @@
         "pattern": "export function commandPaletteList"
       },
       {
-        "ref": "src/styles/command-palette.css:154",
+        "ref": "src/styles/command-palette.css:161",
         "pattern": ".ui-cmdk__group-head"
       }
     ],
@@ -228,7 +228,7 @@
         "pattern": "const isRefused = (it) =>"
       },
       {
-        "ref": "src/styles/command-palette.css:249",
+        "ref": "src/styles/command-palette.css:253",
         "pattern": ".ui-cmdk__item.is-danger"
       }
     ]

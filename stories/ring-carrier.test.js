@@ -133,7 +133,9 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // on an all-disabled row keeps the band inside the clipped scroll surface.
   // 13 -> 14: #649 draws the focused dropdown row with the inward band, so a scrolled
   // row's ring is never clipped by the list.
-  assert.equal(scrollRules.length, 14,
+  // 14 -> 15: #661 rings the CommandPalette search row inward, because the panel clips
+  // an outward band.
+  assert.equal(scrollRules.length, 15,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 2,
     'React\'s modal body and the picker\'s shortcut row are not both among them, so the walk '
