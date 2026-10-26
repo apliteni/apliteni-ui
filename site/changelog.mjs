@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.142.3', date: '2026-10-26',
+    changes: [
+      ['fixed', 'On a phone with touch, the React `AppShell` theme switch no longer takes a tap on the edge of Search or the band control next to it. Nothing moves at 1440px. Part of #429.', ['AppShell']],
+      ['fixed', 'On a phone with touch, the stacked shortcuts of a `DatePicker` popover now sit 22px apart, so a tap on one never reaches the next. The sheet row is unchanged. Part of #429.', ['DatePicker']],
+    ],
+  },
+  {
     v: '0.142.2', date: '2026-10-26',
     changes: [
       ['changed', 'A drawer row or React `KeyValueList` row whose value is a select, a text field or a dropdown now lines its label up with the control by itself. Rows with text values are unchanged.', ['Drawer']],

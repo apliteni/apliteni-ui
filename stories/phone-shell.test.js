@@ -10,7 +10,8 @@
  *
  * Limits: the browser half measures the Workspace button at 320 and 390, a Dropdown
  * panel at 390, the brand at 720 and 721, the vanilla centred rail at 390,
- * and native Tab in a shadow-root drawer at 390.
+ * and native Tab in a shadow-root drawer at 390. It tests a band control's own
+ * drawn edges only where its centre lines cross them.
  * Other band controls are not measured. The source half checks declarations and markup.
  * The PHONE_BAND browser half measures the first visible band item in the invoice
  * list and both menu shells at 390 and 720. It needs two served Storybooks.
@@ -82,7 +83,8 @@ test('the React Phone story does not scroll sideways at 320 and keeps every band
                   const y = rect.top + rect.height / 2;
                   return { selector, width: Math.max(rect.width, parseFloat(pseudo.width) || 0),
                     height: Math.max(rect.height, parseFloat(pseudo.height) || 0),
-                    edges: [hit(x - 21.5, y), hit(x + 21.5, y), hit(x, y - 21.5), hit(x, y + 21.5)] };
+                    edges: [hit(x - 21.5, y), hit(x + 21.5, y), hit(x, y - 21.5), hit(x, y + 21.5)],
+                    own: [hit(rect.left + 0.5, y), hit(rect.right - 0.5, y), hit(x, rect.top + 0.5), hit(x, rect.bottom - 0.5)] };
                 }),
             };
           });
@@ -101,6 +103,7 @@ test('the React Phone story does not scroll sideways at 320 and keeps every band
             assert.ok(target.width >= 44 && target.height >= 44,
               `${where}: ${target.selector} has only ${target.width} by ${target.height}px to tap`);
             assert.ok(target.edges.every(Boolean), `${where}: ${target.selector} loses a tap at its 44px edge`);
+            assert.ok(target.own.every(Boolean), `${where}: a neighbour's layer takes a tap on the drawn edge of ${target.selector}`);
           }
           assert.ok(m.control >= 56, `${where}: the Workspace control is ${m.control}px wide, a sliver`);
           await ctx.close();

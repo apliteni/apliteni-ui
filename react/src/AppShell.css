@@ -47,10 +47,11 @@
   .ui-react-app .ui-app__bar-gap { display: none; }
   .ui-react-app .ui-app__search-ic { display: none; }
   .ui-react-app .ui-app__search { flex: 1 1 auto; min-width: 56px; padding-inline: var(--space-2); }
-  .ui-react-app__band-control { display: flex; flex: 0 1 auto; min-width: 56px; max-width: min(90px, calc(100vw - 261px)); }
+  .ui-react-app__band-control { display: flex; flex: 0 1 auto; min-width: 56px; max-width: min(90px, calc(100vw - 262px)); }
   .ui-react-app__band-control > .ui-btn { min-width: 0; min-height: 34px; max-width: 100%; }
-  /* These small gaps keep the switch’s virtual tap edge off its neighbours. */
-  .ui-react-app .ui-app__bar .toggle { margin-inline-start: 1px; }
+  /* These small gaps keep the switch’s 44px layer, 5px past each side, a pixel
+     short of its neighbours. At 1px before it the layer met Search’s edge. */
+  .ui-react-app .ui-app__bar .toggle { margin-inline-start: 2px; }
   .ui-react-app .ui-app__user--bar { margin-inline-start: 2px; }
   .ui-react-app .ui-app__user-trigger { min-width: 44px; }
   .ui-react-app__band-control > .ui-btn .ui-btn__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
