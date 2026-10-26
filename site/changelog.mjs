@@ -15,6 +15,7 @@ export const RELEASES = [
       ['fixed', 'In the light theme, a hovered dropdown or version row now shows a quiet fill. It matched the panel before. A hovered row has no outline in either theme.', ['Dropdown', 'Topbar']],
       ['fixed', 'The focus ring of a dropdown row draws inside the row, so the edge of a scrolling panel does not clip it.', ['Dropdown']],
       ['fixed', 'A focused text field, text area, select or Dropdown search field now shows only the accent ring. Its border is transparent while the ring shows.', ['Input', 'Select', 'Dropdown']],
+      ['fixed', 'The CommandPalette search field now shows the accent ring inside its row while it has keyboard focus. The divider under the row is hidden while the ring shows.', ['CommandPalette']],
       ['fixed', 'React `FilterBar` shows a chip\'s remove mark, and `Clear all`, only when a chip has a value. An unset chip is as tall as a chip with a value.', ['FilterBar']],
       ['fixed', 'A focused scrolling table with a sticky header or a pinned column shows its focus ring on all four sides. A focused row in the folded rail does too.', ['Table', 'AppShell']],
       ['fixed', 'The last column of a table, its header and the table edge now share one right edge. A hover table keeps 16px between its last value and that edge.', ['Table']],

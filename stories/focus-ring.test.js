@@ -111,12 +111,6 @@ test('focused fields keep one ring with a transparent border', () => {
  */
 const EXEMPT = [
   {
-    selector: '.ui-cmdk__input',
-    why: 'the palette\'s only tab stop holds focus for as long as the dialog is up, so a '
-      + 'ring would be painted the whole time and mark nothing. Decided in src/styles/'
-      + 'command-palette.css, which states it on the declaration.',
-  },
-  {
     selector: '.ui-cmdk__item',
     why: 'the palette never focuses a row. Focus stays in the input — '
       + 'src/components/command-palette.js:349 `input.focus()` is the only call that moves '
@@ -294,8 +288,7 @@ test('focus walk: the surfaces and stops this gate covers', () => {
     'stories/components/Topbar.stories.js:InShell': 26,
   }, 'the walk covers different ground than it did; count the new surface by hand');
   const exempted = walked.flatMap(({ stops }) => stops.filter(exempt));
-  assert.equal(exempted.length, 12, 'the three topbar-layout shell screens hold one palette input '
-    + 'and three palette rows each');
+  assert.equal(exempted.length, 9, 'the three topbar-layout shell screens hold three palette rows each');
 });
 
 // Prove the gate rejects, rule by rule, rather than agreeing with the tree.
@@ -381,18 +374,20 @@ test('focus walk: the cascade resolver accounts for every stop it walks', () => 
   // 158 -> 177 in #509: the /account preset's two screens left the walk and the
   // topbar's four stories joined it, and they carry more chrome between them.
   // 177 -> 188 in #486, which added the band's phone story — the same chrome as
-  // TopbarCentered, minus the four palette stops counted as exempt below.
+  // TopbarCentered, minus the four palette stops counted as delegated or exempt below.
   // 188 -> 240 in #592: the shell draws a menu control and its drawer's rows, which the
   // walk reaches because JSDOM resolves no media query. Five shell stories and InShell.
   assert.equal(buckets.self, 240, 'the number of stops whose own cascade was resolved moved');
   assert.deepEqual([...new Set(buckets.delegated)], [
     '.ui-switch input:focus-visible + .ui-switch__track',
+    // The palette's search row is its field's box, and the panel clips an outward band. #661
+    '.ui-cmdk__search:has(.ui-cmdk__input:focus-visible)',
   ], 'a ring painted on another box is not cascade-resolved — add it here with its reason');
-  assert.equal(buckets.delegated.length, 1, 'one switch input on the landing page since #463 '
-    + 'replaced its bento with a settings card. The four more came from the /account '
-    + 'preset\'s two screens, retired in #509');
-  assert.equal(buckets.exempt, 12, 'the three topbar-layout shell screens hold one palette input '
-    + 'and three palette rows each');
+  assert.equal(buckets.delegated.length, 4, 'one switch input on the landing page since #463 '
+    + 'replaced its bento with a settings card, and one palette input on each of the three '
+    + 'topbar-layout shell screens. The four more came from the /account preset\'s two '
+    + 'screens, retired in #509');
+  assert.equal(buckets.exempt, 9, 'the three topbar-layout shell screens hold three palette rows each');
 });
 
 // Specificity is where a cascade reading lives or dies, so it is asserted

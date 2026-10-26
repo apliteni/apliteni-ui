@@ -42,6 +42,18 @@ test('a ring painted on a sibling still belongs to the element that takes focus'
     { subject: '.ui-switch input', within: false, self: false });
 });
 
+test('a ring a :has() host paints for a focused child belongs to the child', () => {
+  // The stop is the child inside the host, and the paint lands on the host. #661
+  assert.deepEqual(subject('.ui-cmdk__search:has(.ui-cmdk__input:focus-visible)'),
+    { subject: '.ui-cmdk__search .ui-cmdk__input', within: false, self: false });
+  assert.deepEqual(subject('.a > .b:has(> a:focus-visible)'),
+    { subject: '.a > .b > a', within: false, self: false });
+  // A host that is not an ancestor does not credit a lookalike outside it.
+  const body = new JSDOM('<div class="h"><input class="i"></div><input class="i">').window.document.body;
+  const { stops } = judgeStops(body, focusRules('.h:has(.i:focus-visible){outline:var(--ring)}', 'fixture'));
+  assert.deepEqual(stops.map((stop) => stop.status), ['ring', 'native']);
+});
+
 test('a state inside :is() goes out whole, so the base is a selector the DOM matches', () => {
   assert.deepEqual(
     subject(':where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:is(:hover, :focus-visible) > .ui-nav__label'),

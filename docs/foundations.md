@@ -348,8 +348,7 @@ need both values, or the band appears outside the box.
 
 **Every focusable control the kit ships draws the band**, including a roving row the keyboard
 reaches with an arrow key rather than Tab. None falls back to the browser's own outline, which
-ignores the accent and is black in both themes. The command palette's input is the one exception,
-and its own rule says why: it keeps focus while the dialog is open. **Every link draws it too,
+ignores the accent and is black in both themes. **Every link draws it too,
 including one of your own with no class on it.** The ring is claimed for the `a` element, so a
 link in running text, a router link and a plain `<a>` used as an action all answer the keyboard
 with the band and take nothing to opt into. A component that rings its own anchor — a table

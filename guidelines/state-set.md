@@ -12,7 +12,7 @@
 
 **Don't:** Leave a field border visible inside its focus ring.
 
-**Except:** A scroll region or a box that fills a table cell uses `--ring-scroll` with its offset. A panel or card uses `--ring`. The borderless CommandPalette search field has no ring; its panel edge and caret show the typing area. A text field can match `:focus-visible` on mouse focus. Both rings are defined once at the root because an outline leaves its offset unpainted. Adjust width and colour there.
+**Except:** A scroll region or a box that fills a table cell uses `--ring-scroll` with its offset. A panel or card uses `--ring`. A text field can match `:focus-visible` on mouse focus. Both rings are defined once at the root because an outline leaves its offset unpainted. Adjust width and colour there.
 
 ## Busy controls
 
