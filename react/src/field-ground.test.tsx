@@ -61,8 +61,9 @@ const THEMES = ['dark', 'light'] as const;
 // each of the four Sub-themes panels and the Signal contrast field. Then six from the
 // showcases (#429 PR 4): the agent name field on two Access screens and the four
 // Preferences switches. The sign-in fields moved to the showcases with their stories.
+// Then two from the KeyValueList control-values story (#631): its select and text field.
 // Move this count with the specimens.
-const FIELD_COUNT = 92;
+const FIELD_COUNT = 94;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

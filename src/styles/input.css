@@ -38,18 +38,6 @@
 .ui-textarea:hover,
 .ui-select:hover { border-color: var(--field-edge-hover); }
 
-/* The band and nothing beside it. Recolouring the field's own 1px edge to the
-   accent drew a SECOND accent band one pixel inside the first, and the unpainted
-   pixel between them read as a halo on the light ground — which is the glow Artur
-   rejected on #578 round r34. The edge keeps its resting ink.
-   why: docs/foundations.md#the-focus-ring */
-.ui-input:focus-visible,
-.ui-textarea:focus-visible,
-.ui-select:focus-visible {
-  outline: var(--ring);
-  outline-offset: var(--ring-offset);
-}
-
 .ui-input::placeholder,
 .ui-textarea::placeholder { /* muted-ink: placeholder — empty form field */ color: var(--muted); opacity: 0.9; }
 
@@ -75,7 +63,15 @@
 
 .ui-input.is-invalid, .ui-select.is-invalid,
 .ui-textarea.is-invalid { border-color: var(--pink); }
-/* Invalid fields keep the shared focus indicator; their border carries the error. */
+/* Keep the border's width, but make its ink transparent while the ring shows.
+   This also outranks the invalid and hover edges, so focus has one line. */
+.ui-input:focus-visible,
+.ui-textarea:focus-visible,
+.ui-select:focus-visible {
+  border-color: transparent;
+  outline: var(--ring);
+  outline-offset: var(--ring-offset);
+}
 
 /* A search field with a value gets the browser's own clear button, and the
    browser paints it — near-black on the light field, white on the dark one,
@@ -110,17 +106,20 @@
    which is the colour every other quiet glyph on a field takes. It was one frozen
    hex until #295, dark --muted's old value, which the ladder's re-pick left behind
    at 2.49:1 on the light field. Held by stories/colour-tokens.test.js.
+   The mark is .ui-dropdown__chevron drawn as a path: its 8px border caret turned 45
+   degrees, at its 1.6px stroke and lifted by --caret-off, so both controls show one
+   chevron. It is a plain stroke with butt ends and a mitred point, 11.3px wide.
    why: docs/foundations.md#colour-and-contrast */
 .ui-select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a29db6' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='-6 -6 12 12' fill='none' stroke='%23a29db6' stroke-width='1.6'%3E%3Cpath d='M-5.09 -2.83L0 2.26l5.09-5.09'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 15px center;
   padding-right: 40px;
   cursor: pointer;
 }
 :root[data-theme="light"] .ui-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c6270' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='-6 -6 12 12' fill='none' stroke='%235c6270' stroke-width='1.6'%3E%3Cpath d='M-5.09 -2.83L0 2.26l5.09-5.09'/%3E%3C/svg%3E");
 }
 
 /* Checkbox / radio — custom, token-driven. DataTable's selection boxes are bare

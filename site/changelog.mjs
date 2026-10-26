@@ -6,10 +6,27 @@
 
 export const RELEASES = [
   {
-    v: '0.143.0', date: '2026-10-26',
+    v: '0.142.3', date: '2026-10-26',
     changes: [
       ['breaking', 'The vanilla HTML factories, their initializers and the vanilla overlay stack are removed: `button`, `badge`, `pill`, `statusDot`, `card`, `segmented`, `accentPicker`, `field`, `input`, `textarea`, `select`, `checkbox`, `switchToggle`, `callout`, `toast`, `successPanel`, `emptyState`, `snippet`, `avatar`, `dropdown`, `tooltip`, `tabs`, `nav`, `sidebarNav`, `navTabs`, `breadcrumbs`, `backLink`, `drawer`, `drawerSection`, `confirm`, `commandPalette`, `commandPaletteList`, `topbar`, `themeToggle`, `deckTextSwitch`, `versionSwitcher`, `accountMenu`, `appShell`, `footer`, `feedbackWidget`, `success`, `successCheck`, `skeleton`, `skeletonTable`, `busyRegion`, `deniedState`, `pagination`, `statBand`, `numericValue`, `deltaValue`, `rowIdentity` and `filterBar`, together with the `wire*`, `init*`, `set*`, `open*`, `close*`, `show*`, `hide*`, `push*`, `dismiss*` and `apply*` helpers and `railCollapsed`. Replace each factory with its React component from `@apliteni/apliteni-ui/react`, for example `backLink` with `BackLink`, `button` with `Button`, `dropdown` with `Dropdown`, `topbar` with `TopBar` and `appShell` with `AppShell`; the helpers have no replacement because the React components own that state through props. The root entry now exports the React-consumed surface: `icon`, `prism`, `sun`, `moon`, `brand`, `esc`, `safeUrl`, the motion helpers and the shared logic in `src/logic/`. The CSS, tokens and inline strings stay unchanged.', ['Button', 'Card', 'Segmented', 'Dropdown', 'Drawer', 'Confirm', 'Command palette', 'Table', 'Pagination', 'Stat band', 'Tabs', 'Navigation', 'Tooltip', 'Topbar', 'Toast']],
       ['changed', 'The React components are the only kit: every story, gate and the Storybook runs on them. The vanilla story files and the `@storybook/html-vite` dependency are removed. Part of #429.'],
+    ],
+  },
+  {
+    v: '0.142.2', date: '2026-10-26',
+    changes: [
+      ['changed', 'A drawer row or React `KeyValueList` row whose value is a select, a text field or a dropdown now lines its label up with the control by itself. Rows with text values are unchanged.', ['Drawer']],
+      ['changed', 'The modal title is now semibold in the strong ink, the same as the drawer title.', ['Modal']],
+      ['changed', 'The select chevron now draws the same shape and 1.6px stroke as the Dropdown chevron.', ['Select', 'Dropdown']],
+      ['changed', 'At 720px and below, a dropdown panel keeps the 16px page margin from the edge of the view instead of 8px.', ['Dropdown']],
+      ['fixed', 'In the light theme, a hovered dropdown or version row now shows a quiet fill. It matched the panel before. A hovered row has no outline in either theme.', ['Dropdown', 'Topbar']],
+      ['fixed', 'The focus ring of a dropdown row draws inside the row, so the edge of a scrolling panel does not clip it.', ['Dropdown']],
+      ['fixed', 'A focused text field, text area, select or Dropdown search field now shows only the accent ring. Its border is transparent while the ring shows.', ['Input', 'Select', 'Dropdown']],
+      ['fixed', 'The CommandPalette search field now shows the accent ring inside its row while it has keyboard focus. The divider under the row is hidden while the ring shows.', ['CommandPalette']],
+      ['fixed', 'React `FilterBar` shows a chip\'s remove mark, and `Clear all`, only when a chip has a value. An unset chip is as tall as a chip with a value.', ['FilterBar']],
+      ['fixed', 'A focused scrolling table with a sticky header or a pinned column shows its focus ring on all four sides. A focused row in the folded rail does too.', ['Table', 'AppShell']],
+      ['fixed', 'The last column of a table, its header and the table edge now share one right edge. A hover table keeps 16px between its last value and that edge.', ['Table']],
+      ['fixed', 'In forced colours, the Dropdown chevron stays visible, a hovered dropdown or version row shows a border, and a scrolling table keeps a distinct focus band.', ['Dropdown', 'Topbar', 'Table']],
     ],
   },
   {

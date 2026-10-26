@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { decodePNG, pixelAt } from "../../stories/lib/table-edge-shade.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
@@ -725,3 +726,109 @@ test("the check rejects a fill that moves the text", () => {
     "the handover check must read the rule it is given, not a copy of the real one",
   );
 });
+
+// #597: a sticky header is a positioned cell and paints over an outline, so on the region's
+// top side the inward ring was covered by the header sitting on that edge. While the region
+// holds the ring, the header gives up the band's own depth. Limit: this reads the declaration
+// and the ring's size tokens; the browser capture decodes the ring's pixels on all four sides.
+const stickyRingClip = (css) => {
+  const rule = [...decomment(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .find(([, selector]) => /\.ui-table-scroll:focus-visible\s+\.ui-table--sticky\s+thead\s+th/.test(selector));
+  assert.ok(rule, "the focused region has a rule for its sticky header");
+  assert.match(rule[1], /^[^,]+$/, "the rule is one selector");
+  return rule[2];
+};
+
+test("a focused scroll region's sticky header leaves the ring's top band uncovered", () => {
+  const clip = stickyRingClip(SHEETS);
+  const inset = /clip-path:\s*inset\(\s*calc\(var\(--ring-gap-width\)\s*\+\s*var\(--ring-width\)\)\s+0\s+0\s+0\s*\)/;
+  assert.match(clip, inset, "the header is cut by the band's gap plus its width, from the top only");
+});
+
+test("the sticky-header ring check rejects a sheet without the clip", () => {
+  const without = SHEETS.replace(/\.ui-table-scroll:focus-visible \.ui-table--sticky thead th \{[^}]*\}/, "");
+  assert.notEqual(without, SHEETS, "the mutation edits the sheet");
+  assert.throws(() => stickyRingClip(without));
+});
+
+// #597: the scrollport border holds the bottom band at the visible edge while rows move.
+// Limit: this reads the declaration; the browser gate measures its pixels during scrolling.
+test("a focused scroll region keeps its bottom band clear at every scroll position", () => {
+  const region = [...decomment(SHEETS).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, selector]) => selector.trim() === ".ui-table-scroll")
+    .map(([, , body]) => body).find((body) => /overflow:\s*auto/.test(body));
+  assert.ok(region, "the scroll region has its rule");
+  assert.match(region, /border-bottom-width:\s*var\(--space-1\)/, "the bottom band has fixed border space");
+  const without = region.replace(/border-bottom-width:\s*var\(--space-1\);?/, "");
+  assert.doesNotMatch(without, /border-bottom-width/, "the check rejects a removed bottom border");
+});
+
+// #597: a sticky or pinned cell paints over an outline drawn on any padding the scrollport holds, so
+// the region's side inset is a transparent border, which no cell reaches, and never padding.
+// Limit: this reads the declaration; the browser capture counts the ring's pixels on all four sides.
+test("the scroll region's side inset is a border, so the ring's side bands stay uncovered", () => {
+  const rules = [...decomment(SHEETS).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, selector]) => selector.trim() === ".ui-table-scroll")
+    .map(([, , body]) => body);
+  const region = rules.find((body) => /overflow:\s*auto/.test(body));
+  assert.ok(region, "the scroll region has its rule");
+  assert.match(region, /border-inline-width:\s*var\(--space-1\)/, "the inset is a border");
+  assert.match(region, /border:\s*0\s+solid\s+transparent/, "the border is transparent");
+  assert.doesNotMatch(region, /(?:^|[;\s])padding(?:-inline|-left|-right)?\s*:/, "no side padding for a cell to paint over the ring on");
+});
+
+test("the side-inset check rejects the inset written back as padding", () => {
+  const mutated = SHEETS.replace("border: 0 solid transparent; border-inline-width: var(--space-1);", "padding: 0 var(--space-1);");
+  assert.notEqual(mutated, SHEETS, "the mutation edits the sheet");
+  const body = [...decomment(mutated).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, selector]) => selector.trim() === ".ui-table-scroll").map(([, , b]) => b).find((b) => /overflow:\s*auto/.test(b));
+  assert.match(body, /padding/, "the mutated sheet carries side padding, which the check above refuses");
+});
+
+// Browser half: TABLE_FOCUS_PAINT=1 measures the ring at three vertical scroll positions.
+// Limits: the fixture uses the kit CSS and a pinned table, not React effects.
+const kitCSS = [...readFileSync(path.join(root, "src/index.css"), "utf8").matchAll(/@import\s+["']\.\/([^"']+)["']/g)]
+  .map((match) => readFileSync(path.join(root, "src", match[1]), "utf8")).join("\n");
+test('the bottom focus band stays painted across pinned cells while scrolling',
+  { skip: process.env.TABLE_FOCUS_PAINT !== '1' && 'set TABLE_FOCUS_PAINT=1' }, async (t) => {
+    const playwright = await import(process.env.UI_PLAYWRIGHT || 'playwright');
+    const browser = await playwright.chromium.launch({ executablePath: process.env.UI_CHROME || undefined, args: ['--no-sandbox'] });
+    try {
+      for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
+        await t.test(`${theme} ${width}px`, async () => {
+          const context = await browser.newContext({ viewport: { width, height: 500 }, deviceScaleFactor: 1 });
+          try {
+            const page = await context.newPage();
+            const rows = Array.from({ length: 8 }, (_, i) => `<tr><td class="ui-table__identity">Aster ${i + 1}</td><td>${i + 1}</td><td>Example</td></tr>`).join('');
+            await page.setContent(`<!doctype html><html data-theme="${theme}"><head><style>${kitCSS}\nbody{margin:0}.ui-table-scroll{height:300px;max-height:300px}.ui-table{min-width:1500px}.ui-table__identity{width:${width === 390 ? 195 : 341}px}</style></head><body><div class="ui-table-scroll" role="region" aria-label="Example table" tabindex="0"><table class="ui-table ui-table--sticky ui-table--pinned"><thead><tr><th class="ui-table__identity">Name</th><th>Count</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></body></html>`);
+            const region = page.locator('.ui-table-scroll');
+            await region.focus();
+            assert.equal(await region.evaluate((el) => el.matches(':focus-visible')), true);
+            const end = await region.evaluate((el) => el.scrollHeight - el.clientHeight);
+            assert.ok(end >= 20, `vertical scroll range ${end}px must include a middle position`);
+            for (const [position, amount] of [['start', 0], ['middle', Math.floor(end / 2)], ['end', end]]) {
+              await region.evaluate((el, top) => { el.scrollTop = top; }, amount);
+              const actual = await region.evaluate((el) => el.scrollTop);
+              assert.equal(actual, amount);
+              const shot = await region.screenshot();
+              const img = decodePNG(shot);
+              const ink = await region.evaluate((el) => getComputedStyle(el).outlineColor.match(/\d+/g).slice(0, 3).map(Number));
+              const y = img.height - 2;
+              let covered = 0;
+              for (let x = 4; x < img.width - 4; x++) {
+                const pixel = pixelAt(img, x, y);
+                if (pixel.every((channel, i) => Math.abs(channel - ink[i]) <= 6)) covered++;
+              }
+              const total = img.width - 8;
+              t.diagnostic(`${theme} ${width}px ${position} scrollTop ${actual}/${end}: ${covered}/${total} CSS px`);
+              assert.ok(covered >= total - 2, `bottom band covers ${covered}/${total} CSS px at ${position}`);
+              if (process.env.TABLE_FOCUS_EVIDENCE) {
+                mkdirSync(process.env.TABLE_FOCUS_EVIDENCE, { recursive: true });
+                writeFileSync(path.join(process.env.TABLE_FOCUS_EVIDENCE, `pinned-${theme}-${width}-${position}.png`), shot);
+              }
+            }
+          } finally { await context.close(); }
+        });
+      }
+    } finally { await browser.close(); }
+  });

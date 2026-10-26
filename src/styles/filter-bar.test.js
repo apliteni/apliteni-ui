@@ -72,7 +72,7 @@ const qualifiers = (compound) => (compound.match(/\[[^\]]+\]|:[\w-]+(?!\()/g) ??
 const subset = (small, big) => small.every((q) => big.includes(q));
 
 /* Read the rendered default action. Explicit consumer variants are outside this check. */
-const clear = JSDOM.fragment(await markup(({ h, kit }) => h(kit.FilterBar, { filters: [{ id: 'sector', label: 'Sector' }] })))
+const clear = JSDOM.fragment(await markup(({ h, kit }) => h(kit.FilterBar, { filters: [{ id: 'sector', label: 'Sector', value: 'Retail' }] })))
   .querySelector('[data-filter-clear] button');
 assert.ok(clear, 'the React FilterBar must render a clear action');
 const CLEAR_VARIANT = [...clear.classList].find(c => /^ui-btn--(?!sm$)/.test(c))?.slice('ui-btn--'.length);

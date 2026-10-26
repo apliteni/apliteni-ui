@@ -392,6 +392,9 @@ export const READ = `() => {
   const r = (n) => Math.round(n * 10) / 10;
   return {
     left: r(box.left), right: r(box.right), width: r(box.width),
+    /* The panel can stay inside the view while its scroll box cuts a long label.
+       Its horizontal scroll extent exposes that loss when the wrap is removed. */
+    clippedLabel: p.scrollWidth > p.clientWidth + 1,
     view: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
     /* The bound the SHEET declares, computed from the view and the keep-out rather
@@ -736,11 +739,12 @@ export async function reactEdgeCases(browser, port, {
 export const broken = (list) => list.filter((r) => r.left < -SLACK
   || r.right > r.view + SLACK
   || r.width > r.bound + SLACK
-  || r.scrollWidth > r.view + SLACK);
+  || r.scrollWidth > r.view + SLACK
+  || r.clippedLabel);
 
 /** A line a reader can act on. */
 export const whereCase = (r) => `${r.half} “${r.case}” ${r.state}`
-  + ` → ${r.left}…${r.right} of ${r.view}, width ${r.width} of ${r.bound}, page ${r.scrollWidth}`;
+  + ` → ${r.left}…${r.right} of ${r.view}, width ${r.width} of ${r.bound}, page ${r.scrollWidth}, label clipped ${r.clippedLabel}`;
 
 /** Fixed geometry covers the height floor. The story sweep above discovers width cases. */
 export async function portalFloorCase(browser, port, {

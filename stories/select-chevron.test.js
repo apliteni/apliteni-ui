@@ -324,3 +324,29 @@ test('the #511 mutation breaks the disabled select in both themes, differently',
   assert.ok(tiled.length > 0, 'no theme tiled the chevron — the shape of #511 in light');
   assert.ok(lost.length > 0, 'no theme lost the chevron — the shape of #511 in dark');
 });
+
+// #625: the select's arrow is the Dropdown's chevron, so two controls in one form show one
+// mark. Each arm of the data-URI path is the Dropdown caret's border at its width and
+// angle, and the ink spans the same corner-to-corner width and apex height. Limit: this
+// reads the declared geometry; the browser capture measures the painted pixels.
+test('the select arrow draws the Dropdown chevron: same stroke, span and apex height', () => {
+  const dropdown = decomment(read('src/styles/dropdown.css'));
+  const caret = Number(/--caret:\s*([\d.]+)px/.exec(dropdown)?.[1]);
+  const ink = Number(/--caret-ink:\s*([\d.]+)px/.exec(dropdown)?.[1]);
+  assert.ok(caret > 0 && ink > 0, 'read the Dropdown caret size and stroke');
+  const lift = (caret - ink) / (2 * Math.SQRT2);
+  const sheet = decomment(read('src/styles/input.css'));
+  const uris = [...sheet.matchAll(/url\("data:image\/svg\+xml,([^"]+)"\)/g)].map((m) => decodeURIComponent(m[1]));
+  assert.equal(uris.length, 2, 'one arrow per theme');
+  for (const uri of uris) {
+    const stroke = Number(/stroke-width='([\d.]+)'/.exec(uri)?.[1]);
+    const [x0, , apexX, apexY] = /d='M(-?[\d.]+) (-?[\d.]+)L(-?[\d.]+) (-?[\d.]+)/.exec(uri).slice(1).map(Number);
+    assert.equal(stroke, ink, 'the arrow strokes at the chevron\'s width');
+    assert.equal(apexX, 0, 'the apex is on the glyph\'s centre line');
+    const span = 2 * Math.abs(x0) + stroke * Math.SQRT1_2;
+    assert.ok(Math.abs(span - caret * Math.SQRT2) < 0.05, `span ${span.toFixed(2)} is the chevron's ${(caret * Math.SQRT2).toFixed(2)}`);
+    const apex = apexY + stroke * Math.SQRT1_2;
+    const expected = caret * Math.SQRT1_2 - lift;
+    assert.ok(Math.abs(apex - expected) < 0.05, `apex ${apex.toFixed(2)} is the chevron's ${expected.toFixed(2)}`);
+  }
+});

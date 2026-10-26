@@ -5,6 +5,9 @@ import { KeyValueList, DrawerSection } from './KeyValueList';
 import { Drawer } from './Drawer';
 import { Modal } from './Modal';
 import { Badge } from './primitives/Badge';
+import { Card } from './primitives/Card';
+import { Dropdown } from './Dropdown';
+import { SelectField, TextField } from './Field';
 
 const meta: Meta<typeof KeyValueList> = { title: 'React/KeyValueList', component: KeyValueList };
 export default meta;
@@ -33,6 +36,15 @@ export const LongValue: StoryObj = {
     { label: 'Description', value: 'Annual subscription, including additional storage and support for the operations team.' },
     { label: 'Reference', value: 'INV-1001-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
   ]} /></div>,
+};
+const controlRows = [
+  { label: 'Reference', value: 'INV-1001' },
+  { label: 'Status', value: <Dropdown ariaLabel="Status" value="Open" items={[{ label: 'Open', value: 'open' }, { label: 'Paid', value: 'paid' }]} /> },
+  { label: 'Currency', value: <SelectField label="Currency"><option>EUR</option><option>USD</option></SelectField> },
+  { label: 'Note', value: <TextField label="Note" defaultValue="Paid by wire" /> },
+];
+export const ControlValues: StoryObj = {
+  render: () => <div style={{ maxWidth: 480 }}><Card><KeyValueList rows={controlRows} /></Card></div>,
 };
 export const Sections: StoryObj = {
   render: () => <div style={{ maxWidth: 480 }}>

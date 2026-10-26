@@ -324,7 +324,7 @@ panel is placed by the same rule: it is hidden and still laid out, so it would o
 page before anything is clicked. A panel adds nothing to the page's scrollable width at any width.
 `--ui-dropdown-edge` is the gap a panel keeps from the edge of the view. Set it to 0 for a panel
 flush with the edge, or wider for more room. A view that cannot afford the gap on both sides halves
-it.
+it. At 720px and below the gap is the page margin, 16px, so a panel lines up with the page's text.
 
 **A panel has a floor and a ceiling.** The floor is the kit's 240px, which is what makes a list of
 rows readable. The ceiling is the view less that gap at each side. The floor wins where the two
@@ -456,10 +456,12 @@ same value, and you receive the mark without setting it yourself. A chip with no
 or with a value that matches no row, marks nothing. A `selected` value you set does not replace a
 value that the bar is not applying. The kit never writes to your own array or objects.
 
-**The clear action is offered only when there is something to clear.** `filterBar` and React
-`FilterBar` render it after a filter is applied. It uses the kit's ghost button without a fill
-or border. A consumer reading `[data-filter-clear]` finds nothing when no filter is set.
+**The clear action is offered only when there is something to clear.** React `FilterBar`
+renders it after a filter has a value. It uses the kit's ghost button without a fill
+or border. A consumer reading `[data-filter-clear]` finds nothing when no filter has a value.
 Both faces label it `Clear all`; `clearLabel` takes any wording.
+**React `FilterBar` draws the remove mark only on a chip with a value.** A chip with no value has
+nothing to remove. If the mark has focus when it goes, focus moves to that chip's trigger.
 
 **Filter labels use secondary-control ink and weight.** The remove mark uses glyph ink.
 A chip keeps its quiet edge when hovered or open. The add control moves its edge to the accent
@@ -542,7 +544,9 @@ A drawer is a panel against one edge of the screen. It appears over a scrim. It 
 look at or change one thing without leaving the list that opened it. **It groups by heading, never
 by card:** `drawerSection()` puts a heading above a `<dl>` of label and value pairs. A screen reader
 then hears each label with its value. The value stays beside its label instead of moving to the far
-edge of the panel. Nothing inside a drawer draws a card, a row rule or an `<hr>`. Actions stay
+edge of the panel. A row whose value is a field or a dropdown lines its label up with the control's first line of text.
+This alignment happens by itself. There is no setting for it.
+Nothing inside a drawer draws a card, a row rule or an `<hr>`. Actions stay
 outside the scrolling body. **It moves on open and on close**, and both movements are instant when
 reduced motion is enabled. For when a flow should use a drawer or a page:
 [Drawer](../guidelines/drawer.md).
@@ -701,6 +705,7 @@ and Escape closes the top overlay. Tab is trapped in the panel. Home and End sta
 caret, which is what the ARIA combobox pattern gives them for, and Ctrl+K inside another text
 box is left alone, because it is kill-to-end-of-line there — Cmd+K still opens from one.
 **Focus opens in the text box and never leaves it while the palette is open**, over an inert page.
+The search row shows the accent ring inside its edges while the text box has keyboard focus, and its divider hides under the ring.
 **It opens empty**, and **it paints one step above the drawer and one below the confirm**. A
 confirm opened by a row appears over both and answers the first Escape.
 
