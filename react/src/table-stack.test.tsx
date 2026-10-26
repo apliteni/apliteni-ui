@@ -54,7 +54,8 @@ describe('stacked tables: React stories', () => {
     // The stories that show the modifier today; a drop means one stopped drawing it.
     expect(found, `stacked tables found in what the stories rendered (${MODIFIER})`).toBeGreaterThanOrEqual(FOUND_FLOOR);
     expect(drawers.size, 'story files that draw a stacked table').toBeGreaterThanOrEqual(FILES_FLOOR);
-  });
+    // It mounts every story: 3.6s alone, past vitest's 5s default on a loaded host.
+  }, 30_000);
 
   it('the reading rejects a stacked table that leans on the implicit roles', () => {
     const bare = '<table class="ui-table ui-table--stack"><thead><tr><th>Who</th></tr></thead><tbody><tr><td>t.quill</td></tr></tbody></table>';
