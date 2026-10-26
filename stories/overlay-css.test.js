@@ -1,0 +1,426 @@
+// What the overlay stylesheets have to say, for the drawer, the command palette
+// and the React Modal. The vanilla factories and their overlay stack are gone
+// (#429), but the React Drawer and CommandPalette still draw the same class names
+// into the same sheets, and the React Confirm is the Modal — so these CSS rules
+// still answer for them.
+//
+// These are the rules JSDOM cannot check — it has no CSS and no transitions — and they
+// are the ones that broke in a real browser, so the stylesheets are read as text.
+//
+// Two are about `visibility`, a discrete property a transition holds at the OLD value for
+// the whole duration: transitioned on the way in, the panel is still `hidden` in the frame
+// the class lands; eased with a curve that leaves [0, 1], it flips mid-fade.
+//
+// The third is the window between "closed" and "gone": both roots stay visible for
+// --dur-med after the close call stops trapping focus, so a panel still hit-testable while
+// it fades takes one more click.
+//
+// why: docs/foundations.md#motion
+
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const repo = path.resolve(here, '..');
+
+const read = (rel) => readFileSync(path.join(repo, rel), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+
+// Every leaf rule in the sheet as { selector, body }, including the ones nested
+// inside @media — a rule that only breaks under `prefers-reduced-motion` breaks
+// for the readers most likely to be using the keyboard.
+function rules(css) {
+  const out = [];
+  const open = [];
+  let buf = '';
+  for (const ch of css) {
+    if (ch === '{') { open.push(buf.trim()); buf = ''; } else if (ch === '}') {
+      const selector = open.pop() ?? '';
+      if (buf.trim()) out.push({ selector, body: buf.trim() });
+      buf = '';
+    } else buf += ch;
+  }
+  return out;
+}
+
+const selects = (rule, sel) => splitSelectorList(rule.selector).includes(sel);
+const transitions = (rule) => [...rule.body.matchAll(/transition(?:-property)?\s*:([^;]*)/g)].map((m) => m[1]);
+
+// The two live overlays are one behaviour with two skins, so both sheets answer the
+// same questions. `close` names the React layer's call that stops trapping; `cost`
+// finishes the sentence "a second click in that window …", because what a stray
+// click costs is the whole reason the gate is there and it is not the same cost twice.
+const SHEETS = [
+  {
+    file: 'src/styles/drawer.css',
+    block: 'ui-drawer',
+    close: 'react/src/dialog.ts stops trapping',
+    cost: 'reaches a control in the panel — the footer\'s actions, the close button — and re-runs '
+      + 'the caller\'s handler while the panel is already sliding away',
+  },
+  {
+    file: 'src/styles/command-palette.css',
+    block: 'ui-cmdk',
+    close: 'react/src/dialog.ts stops trapping',
+    cost: 'lands on a result row and runs the caller\'s command a second time',
+  },
+];
+
+for (const { file, block, close, cost } of SHEETS) {
+  const css = read(file);
+  const all = rules(css);
+
+  test(`${file}: nothing transitions \`all\` — \`all\` is a spelling of \`visibility\``, () => {
+    for (const rule of all) {
+      for (const value of transitions(rule)) {
+        assert.doesNotMatch(
+          value, /(^|[\s,])all([\s,]|$)/,
+          `${rule.selector} transitions \`all\`, which includes visibility and hides the panel `
+          + 'in the frame focus() runs',
+        );
+      }
+    }
+  });
+
+  test(`${file}: the panel never transitions \`visibility\``, () => {
+    const panels = all.filter((r) => r.selector.includes(`.${block}__panel`));
+    assert.ok(panels.length > 0, 'the panel rules were found — did the class name change?');
+    for (const rule of panels) {
+      for (const value of transitions(rule)) {
+        assert.doesNotMatch(
+          value, /\bvisibility\b/,
+          `${rule.selector} transitions visibility, which delays the switch past the click`,
+        );
+      }
+    }
+  });
+
+  test(`${file}: opening cancels the root's visibility transition, so the show is instant`, () => {
+    const root = all.filter((r) => selects(r, `.${block}`));
+    assert.ok(
+      root.some((r) => transitions(r).some((v) => /\bvisibility\b/.test(v))),
+      `.${block} no longer owns the visibility switch — the panel rules must not take it back`,
+    );
+
+    const openRule = all.find((r) => selects(r, `.${block}.is-open`));
+    assert.ok(openRule, `.${block}.is-open is missing — nothing turns the panel visible`);
+    assert.match(
+      openRule.body, /transition\s*:\s*none/,
+      `.${block}.is-open does not cancel the transition, so the root stays hidden for its whole `
+      + 'duration and focus() on open lands nowhere',
+    );
+  });
+
+  // The reduced-motion net gives every element a 0.01ms transition, and a child
+  // then inherits `visible` one tick after the root. Opening has to cancel the
+  // children's transitions as well.
+  test(`${file}: under reduced motion, opening cancels every transition inside it`, () => {
+    const inNet = new RegExp(
+      `@media(?![^{]*\\bnot\\b)[^{]*prefers-reduced-motion\\s*:\\s*reduce\\b[^{]*\\{[^{}]*\\.${block}\\.is-open \\*\\s*\\{[^}]*`
+      + 'transition\\s*:\\s*none\\s*!important',
+    );
+    assert.match(
+      css, inNet,
+      `${file} has no \`@media (prefers-reduced-motion: reduce) { .${block}.is-open * { transition: `
+      + 'none !important; } }`. Without it the control focused on open is still hidden in that '
+      + 'frame for a reader who asked for less motion',
+    );
+  });
+
+  test(`${file}: a visibility transition is timed \`linear\``, () => {
+    for (const rule of all) {
+      for (const value of transitions(rule)) {
+        if (!/\bvisibility\b/.test(value)) continue;
+        assert.match(
+          value, /\blinear\b/,
+          `${rule.selector} eases a discrete property. Easing buys nothing here, and a curve whose `
+          + 'output leaves [0, 1] flips visibility in the middle of the fade',
+        );
+      }
+    }
+  });
+
+  // The window between "closed" and "gone" belongs to both of them.
+  test(`${file}: a closing overlay stops being clickable at once`, () => {
+    const live = /pointer-events\s*:\s*auto/;
+
+    for (const sel of [`.${block}__panel`, `.${block}__scrim`]) {
+      const ungated = all.filter((r) => selects(r, sel) && live.test(r.body));
+      assert.deepEqual(
+        ungated.map((r) => r.selector), [],
+        `${sel} is hit-testable whether or not the overlay is open. ${close} `
+        + 'immediately but the root stays visible for --dur-med, so a second click in that window '
+        + cost,
+      );
+    }
+
+    assert.ok(
+      all.some((r) => r.selector.includes(`.${block}.is-open`) && live.test(r.body)),
+      `nothing turns .${block} on while it IS open — the overlay would not be clickable at all`,
+    );
+  });
+}
+
+// ---- Which of the two paints on top --------------------------------------
+
+// The z-index each root resolves to, with var() substituted from the token file
+// and a trailing `+ n` / `- n` applied. Only the forms the sheets actually use.
+function stackingLevel(rule, tokens) {
+  const decl = /(?:^|;)\s*z-index\s*:([^;]*)/.exec(rule.body);
+  assert.ok(decl, `${rule.selector} declares no z-index — it would stack in document order`);
+
+  const value = decl[1].trim();
+  const parsed = /^(?:calc\(\s*)?var\(\s*(--[\w-]+)\s*\)\s*(?:([+-])\s*(\d+)\s*\)?)?$/.exec(value);
+  assert.ok(parsed, `${rule.selector}'s z-index is \`${value}\` — expected a token, or a token ± n`);
+
+  const [, token, sign, offset] = parsed;
+  const base = tokens.get(token);
+  assert.ok(base !== undefined, `${token} is not defined in the token file`);
+  return base + (sign === '-' ? -Number(offset) : Number(offset ?? 0));
+}
+
+const zTokens = () => {
+  const tokens = new Map(
+    [...read('src/tokens/tokens.css').matchAll(/(--z-[\w-]+)\s*:\s*(\d+)\s*;/g)]
+      .map(([, name, value]) => [name, Number(value)]),
+  );
+  assert.ok(tokens.size > 0, 'the z tokens were found — did the token file move?');
+  return tokens;
+};
+
+const rootOf = (file, block) => {
+  const root = rules(read(file)).find((r) => selects(r, `.${block}`));
+  assert.ok(root, `.${block} is missing from ${file}`);
+  return root;
+};
+
+// The React Modal is the other thing a drawer opens: a question about the record in
+// it. At z-index 50 it was painted underneath the drawer while taking its keys.
+test('a React modal paints above a drawer', () => {
+  const tokens = zTokens();
+  const modalZ = stackingLevel(rootOf('react/src/Modal.css', 'rx-scrim'), tokens);
+  const drawerZ = stackingLevel(rootOf('src/styles/drawer.css', 'ui-drawer'), tokens);
+  assert.ok(
+    modalZ > drawerZ,
+    `a React modal resolves to z-index ${modalZ} and a drawer to ${drawerZ}, so a modal opened from `
+    + 'a drawer sits under it on screen while the dialog stack gives it the keyboard',
+  );
+});
+
+// ---- the menus, and the frame a key opens one in ----------------------------
+//
+// The fourth overlay, and the one with the same `visibility` problem the two
+// above have, from the other end: a panel still `hidden` in the frame its open
+// class lands is one a browser will not move focus into, and every row in it
+// carries `tabindex="-1"`. JSDOM focuses inside a hidden box happily, so the
+// gates that press the keys go on passing with the rule deleted; this file is
+// the one that does not.
+//
+// Every menu the kit ships, not just the dropdown's own panel: the fixes key on
+// `.ui-dropdown__panel` and two of the three menus are written in another sheet.
+// why: docs/components.md#the-dropdown-panel
+const MENUS = [
+  {
+    file: 'src/styles/dropdown.css',
+    panel: '.ui-dropdown__panel',
+    // Each named on its own below: the portalled panel is not a descendant of an
+    // open container, so one rule cannot answer for both placements.
+    open: ['.ui-dropdown.open .ui-dropdown__panel', '.ui-dropdown__panel--portal.is-open'],
+    what: 'the kit\'s own dropdown, in place and portalled',
+    cost: 'one of its rows signs the reader out, since #286',
+  },
+  {
+    file: 'src/styles/topbar.css',
+    panel: '.vsw__menu',
+    open: ['.vsw.open .vsw__menu'],
+    what: 'the topbar version switcher',
+    cost: 'its rows change the version the page is reading',
+  },
+  {
+    file: 'src/styles/topbar.css',
+    panel: '.amenu',
+    open: ['.acct.open .amenu'],
+    what: 'the topbar account menu',
+    cost: '`.aout` ends the reader\'s session',
+  },
+];
+
+// The rules a menu's open state is written in, one selector at a time. Exact
+// selector parts, so a rule naming two of them answers for both and a rule
+// naming neither answers for nothing.
+const openRules = (all, sel) => all.filter((r) => selects(r, sel));
+
+for (const m of MENUS) {
+  test(`${m.file}: ${m.panel} is visible in the frame it opens, not the next one`, () => {
+    const all = rules(read(m.file));
+    for (const sel of m.open) {
+      const open = openRules(all, sel);
+      assert.ok(open.length, `no rule keys on \`${sel}\` — this gate is measuring nothing`);
+
+      const lists = open.flatMap((r) => transitions(r).map((t) => t.trim()));
+      assert.ok(
+        lists.length,
+        `\`${sel}\` no longer swaps its transition list, so \`visibility\` is still on the clock `
+        + `while ${m.what} opens: the frame the class lands resolves \`hidden\`, a browser refuses `
+        + 'to focus a row inside it, and the arrows open a menu the keyboard cannot enter. One rule '
+        + '— `transition-property: opacity, transform` on the open menu — is the whole fix.',
+      );
+      for (const list of lists) {
+        assert.ok(
+          !/\bvisibility\b|\ball\b/.test(list),
+          `\`${sel}\` transitions \`${list}\`, which still puts \`visibility\` on a clock — and `
+          + '`all` is a spelling of visibility. The row the arrows aim at is unfocusable for the '
+          + 'first frame, which is the frame the focus call happens in.',
+        );
+      }
+    }
+
+    // The close is not touched: it is what keeps the menu drawn while it fades,
+    // and the rules above only stand while it is open.
+    const base = all.find((r) => selects(r, m.panel));
+    assert.ok(base, `the \`${m.panel}\` rule was found`);
+    assert.ok(
+      transitions(base).some((t) => /\bvisibility\b/.test(t)),
+      `\`${m.panel}\` stopped transitioning \`visibility\` at all, so it is gone in the frame it is `
+      + 'told to close and the fade plays on a box nobody can see',
+    );
+  });
+
+  // And the other end of that window, which the two overlays above already
+  // gate: a menu drawn while it fades is a menu that is hit. Its rows are <a>
+  // and <button> elements — a menu is actions — so a stray click in the 250ms
+  // after a close activates one of them invisibly.
+  test(`${m.file}: ${m.panel} stops being clickable at once`, () => {
+    const all = rules(read(m.file));
+    const live = /pointer-events\s*:\s*auto/;
+
+    const closed = all.find((r) => selects(r, m.panel));
+    assert.ok(closed, `the \`${m.panel}\` rule was found`);
+    assert.match(
+      closed.body, /pointer-events\s*:\s*none/,
+      `a closed ${m.what} is hit-testable. \`visibility\` is held at \`visible\` for the whole fade `
+      + 'out, so for --dur-med after the menu closes its rows are still there to be clicked — and '
+      + `${m.cost}. \`pointer-events: none\` here, taken back on the open rules, is the same answer `
+      + '.ui-drawer and .ui-cmdk give.',
+    );
+
+    const ungated = all.filter((r) => selects(r, m.panel) && live.test(r.body));
+    assert.deepEqual(
+      ungated.map((r) => r.selector), [],
+      `${m.what} is turned back on by a rule that does not ask whether it is open`,
+    );
+    // Each named open rule on its own, not `some` of them: with one assertion for
+    // the set, deleting either of the dropdown's two left the whole suite green
+    // and the rail's Sign out drawn, opaque and unclickable.
+    for (const sel of m.open) {
+      assert.ok(
+        openRules(all, sel).some((r) => live.test(r.body)),
+        `nothing turns \`${sel}\` on while it IS open — that menu is drawn, opaque and unclickable, `
+        + 'and the hit-test at a row\'s centre returns whatever is behind it',
+      );
+    }
+  });
+}
+
+// Source guard only: browser captures check viewport geometry and actual scrolling.
+function checkModalScroll(css) {
+  const all = rules(css);
+  const bodyOf = (selector) => {
+    const found = all.filter((r) => r.selector === selector);
+    assert.equal(found.length, 1, `one ${selector} rule is measured`);
+    return found[0].body;
+  };
+  assert.match(bodyOf('.rx-modal'), /max-height:\s*96dvh/);
+  assert.match(bodyOf('.rx-modal'), /flex-direction:\s*column/);
+  assert.match(bodyOf('.rx-modal__body'), /min-height:\s*0/);
+  assert.match(bodyOf('.rx-modal__body'), /overflow:\s*auto/);
+  for (const slot of ['head', 'foot']) assert.match(bodyOf(`.rx-modal__${slot}`), /flex:\s*none/);
+}
+
+test('Modal keeps its header and actions outside a capped scrolling body', () => {
+  checkModalScroll(read('react/src/Modal.css'));
+});
+
+test('Modal scroll guard rejects a missing cap, scrolling body or fixed slots', () => {
+  const css = read('react/src/Modal.css');
+  for (const declaration of ['max-height: 96dvh;', 'overflow: auto;', 'min-height: 0;', 'flex: none;']) {
+    assert.ok(css.includes(declaration));
+    assert.throws(() => checkModalScroll(css.replaceAll(declaration, '')));
+  }
+});
+
+// ---- which way a topbar menu hangs ---------------------------------------
+//
+// Both topbar menus hang off a trigger at the right end of a band that is as
+// wide as the page. `.amenu` has always been anchored by its RIGHT edge, so it
+// opens leftwards and stays on the page; `.vsw__menu` was anchored by its left,
+// so it opened rightwards off the edge — and a CLOSED menu is still laid out,
+// so it scrolled the page sideways with nothing on screen to explain it.
+// Measured on the built Storybook at 320px: the closed version menu reached
+// 527px of a 320px page, and anchoring it right brought the page back to 397.
+//
+// Limit: this reads the sheet. It cannot measure a box — JSDOM has no layout —
+// so it checks the anchor each menu declares and that the two agree below the
+// phone step. The widths above come from a real Chrome, run by hand the way
+// stories/tap-zone.test.js splits the same job; CI runs this source half.
+const PHONE_STEP = '(max-width: 720px)';
+
+/** The bodies of every `@media (max-width: 720px)` block in a sheet. */
+function phoneBlocks(css) {
+  const out = [];
+  const needle = `@media ${PHONE_STEP}`;
+  for (let at = css.indexOf(needle); at >= 0; at = css.indexOf(needle, at + 1)) {
+    const start = css.indexOf('{', at);
+    if (start < 0) continue;
+    let depth = 0;
+    for (let i = start; i < css.length; i++) {
+      if (css[i] === '{') depth += 1;
+      else if (css[i] === '}' && (depth -= 1) === 0) { out.push(css.slice(start + 1, i)); break; }
+    }
+  }
+  return out;
+}
+
+/** The edge a rule for `sel` anchors to in `css`, as the declarations it writes. */
+const anchorOf = (css, sel) => rules(css)
+  .filter((r) => selects(r, sel))
+  .map((r) => r.body)
+  .join(';');
+
+const hangsLeftwards = (body) => /\bright\s*:\s*0/.test(body) && !/\bleft\s*:\s*0/.test(body);
+
+test('src/styles/topbar.css: neither topbar menu opens off the right of a phone', () => {
+  const css = read('src/styles/topbar.css');
+
+  // The account menu is the one that always did this, and is what the version
+  // menu is being held to. If it stops, this gate is comparing against nothing.
+  assert.ok(
+    hangsLeftwards(anchorOf(css, '.amenu')),
+    '.amenu no longer anchors itself by its right edge, so there is no menu in this sheet '
+    + 'still demonstrating the placement .vsw__menu is held to here',
+  );
+
+  const phone = phoneBlocks(css);
+  assert.ok(phone.length, `topbar.css declares no \`@media ${PHONE_STEP}\` step at all`);
+  const onPhone = phone.map((b) => anchorOf(b, '.vsw__menu')).join(';');
+  assert.ok(
+    hangsLeftwards(onPhone),
+    'below the phone step .vsw__menu still opens rightwards from its trigger. The band is as '
+    + 'wide as the page there, so the menu runs off it — and because a closed menu is still '
+    + 'laid out, the page scrolls sideways with nothing visible to explain it. `left: auto; '
+    + 'right: 0`, which is what .amenu beside it declares, is the whole fix.',
+  );
+});
+
+// The mutation: the gate has to reject the sheet it was written against, not
+// agree with whatever is there.
+test('src/styles/topbar.css: taking the phone anchor back out turns that gate red', () => {
+  const css = read('src/styles/topbar.css');
+  const without = css.replace(/\.vsw__menu\s*\{\s*left:\s*auto;\s*right:\s*0;\s*\}/, '');
+  assert.notEqual(without, css, 'the phone anchor is not written the way this mutation removes it');
+  const onPhone = phoneBlocks(without).map((b) => anchorOf(b, '.vsw__menu')).join(';');
+  assert.equal(hangsLeftwards(onPhone), false, 'the gate above passes a sheet with no phone anchor in it');
+});
