@@ -23,13 +23,23 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 export function kitStylesheet({ without = [] } = {}) {
   const index = readFileSync(path.join(root, 'src/index.css'), 'utf8');
   const parts = [...index.matchAll(/@import\s+["']\.\/([^"']+)["']/g)].map((m) => m[1]);
-  return parts
+  const kit = parts
     .filter((rel) => !without.includes(rel))
     .map((rel) => readFileSync(path.join(root, 'src', rel), 'utf8'))
     .join('\n');
+  // The React bundle's own component sheets (Modal, DatePicker, …) — the rx-*
+  // geometry the kit's index.css never had. Its re-emitted copies of the kit's
+  // src/styles sheets are dropped: the kit read each already, and a second copy
+  // would defeat the `without` strip and the mutation tests that edit one copy.
+  const react = readFileSync(path.join(root, 'react/dist/index.css'), 'utf8');
+  const kept = react
+    .split(/^(?=\/\* (?:\.\.\/src\/styles|src)\/[^/]+\.css \*\/$)/m)
+    .filter((part) => /^\/\* src\/[^/]+\.css \*\/$/.test(part.trimStart().split('\n')[0]))
+    .join('');
+  return `${kit}\n${kept}`;
 }
 
-export async function storySubjects() {
+export async function storySubjects({ theme = 'dark' } = {}) {
   const built = path.join(root, 'storybook-static');
   const iframe = path.join(built, 'iframe.html');
   const problems = [];
@@ -43,8 +53,12 @@ export async function storySubjects() {
     return { subjects: [], problems };
   }
   const index = JSON.parse(readFileSync(path.join(built, 'index.json'), 'utf8'));
+  // Every served story. The Foundations and Guidelines reading pages draw kit
+  // parts too — and the Drawers and Accessibility minimums pages hold the tap-zone
+  // specimens the gate must measure — so they are subjects, not documentation to
+  // skip. The React components, the Components pages and the apps-* showcases are
+  // the rest of it.
   const ids = Object.entries(index.entries)
-    .filter(([, e]) => /^(stories-apps|react)-/.test(e.id) && !/foundations|guidelines/.test(e.title))
     .map(([id]) => id)
     .sort();
 
@@ -62,9 +76,39 @@ export async function storySubjects() {
     for (const id of ids) {
       const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
       try {
-        await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${id}&viewMode=story`, { waitUntil: 'networkidle' });
-        const html = await page.evaluate(() => document.getElementById('storybook-root')?.innerHTML ?? '');
-        if (html) subjects.push({ id, html });
+        await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${id}&viewMode=story&globals=theme:${theme}`, { waitUntil: 'load' });
+        // A story draws into #storybook-root, or — a Toast, a Modal, a Drawer — a
+        // portal lands in <body> and the root stays empty. Wait for either, so a
+        // portal story is not read as one that rendered nothing. Storybook's own
+        // chrome carries `sb-` classes or a `storybook*` id and is never the story.
+        await page.waitForFunction(() => {
+          const chrome = (el) => (el.id || '').startsWith('storybook')
+            || /(^|\s)sb-/.test(typeof el.className === 'string' ? el.className : '');
+          const root = document.getElementById('storybook-root');
+          if (root && root.childElementCount > 0) return true;
+          for (const el of document.body.children) {
+            if (el === root || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') continue;
+            if (!chrome(el)) return true;
+          }
+          return false;
+        }, { timeout: 10000 });
+        // Effects that push content into a portal run after the first paint; wait one
+        // frame so the capture holds what the reader sees, not the pre-effect DOM.
+        await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+        const html = await page.evaluate(() => {
+          const chrome = (el) => (el.id || '').startsWith('storybook')
+            || /(^|\s)sb-/.test(typeof el.className === 'string' ? el.className : '');
+          const root = document.getElementById('storybook-root');
+          const parts = [root ? root.innerHTML : ''];
+          for (const el of document.body.children) {
+            if (el === root || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') continue;
+            if (chrome(el)) continue;
+            parts.push(el.outerHTML);
+          }
+          return parts.join('');
+        });
+        if (html.trim()) subjects.push({ id, html });
+        else problems.push(`${id} → rendered nothing`);
       } catch (err) {
         problems.push(`${id} → render threw: ${err && err.message}`);
       }
@@ -105,9 +149,10 @@ export async function rowFixtures() {
   }));
   const empty = await markup(({ h, kit }) => h(kit.EmptyState, {
     title: 'Nothing here yet',
-    actions: h(kit.Fragment, null,
-      h(kit.Button, { variant: 'secondary', size: 'sm', children: 'Import a file' }),
-      h(kit.Button, { variant: 'primary', size: 'sm', children: 'Add the first one' })),
+    actions: [
+      h(kit.Button, { key: 'import', variant: 'secondary', size: 'sm', children: 'Import a file' }),
+      h(kit.Button, { key: 'add', variant: 'primary', size: 'sm', children: 'Add the first one' }),
+    ],
   }));
   const toolbar = await markup(({ h, kit }) => h('div', { className: 'ui-toolbar' },
     h(kit.Button, { variant: 'secondary', size: 'sm', children: 'Filter' }),
@@ -116,9 +161,10 @@ export async function rowFixtures() {
     h(kit.Dropdown, { pre: 'Period', value: 'Last 30 days', items: [{ label: 'Last 30 days' }, { label: 'This quarter' }] })));
   const snippet = await markup(({ h, kit }) => h(kit.Snippet, { code: 'npm i @apliteni/apliteni-ui', label: 'Install' }));
   const drawer = await liveMarkup(({ h, kit }) => h(kit.Drawer, { open: true, title: 'Edit the record', onClose() {},
-    footer: h(kit.Fragment, null,
-      h(kit.Button, { variant: 'secondary', size: 'sm', children: 'Discard' }),
-      h(kit.Button, { variant: 'primary', size: 'sm', children: 'Save the record' })),
+    footer: [
+      h(kit.Button, { key: 'discard', variant: 'secondary', size: 'sm', children: 'Discard' }),
+      h(kit.Button, { key: 'save', variant: 'primary', size: 'sm', children: 'Save the record' }),
+    ],
   }, h('p', null, 'One record.')));
   const cardRow = await markup(({ h, kit }) => h('div', { className: 'ui-card' },
     h('div', { className: 'ui-card__row' },
