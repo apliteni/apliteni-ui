@@ -1,11 +1,9 @@
-import { loadGuideline, withSpecimens } from './_markdown.js';
+import { loadGuideline } from './_markdown.js';
 const content = await loadGuideline('destructive-actions.md', new URL('../../guidelines/destructive-actions.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
+export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { toast } from '../../src/components/index.js';
-import { dropdown } from '../../src/components/dropdown.js';
-import { confirm } from '../../src/components/confirm.js';
 
 // `.gl-hovering` pins the dropdown's danger row into its hover appearance,
 // because hover cannot be screenshotted.
@@ -19,57 +17,3 @@ export const SPEC_CSS = `
     .gl-hovering--accent .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--accent); }
     .gl-hovering--pink   .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--pink); }
   </style>`;
-
-const MENU_ITEMS = [
-  { label: 'Rename token', icon: 'edit' },
-  { label: 'Duplicate', icon: 'copy' },
-  '---',
-  { label: 'Revoke access', icon: 'trash', danger: true },
-];
-
-const menu = (mod) => `
-  <div class="gl-stage gl-stage--menu gl-hovering gl-hovering--${mod}">
-    ${dropdown({ value: 'Token actions', variant: 'menu', ariaLabel: 'Token actions', items: MENU_ITEMS, open: true })}
-    <div class="gl-cursor">Pointer resting on “Revoke access”</div>
-  </div>`;
-
-export const menuDo = () => menu('pink');
-export const menuDont = () => menu('accent');
-
-// `specimen: true` keeps the dialog open and inert — no aria-modal, no hook. A
-// page of live confirms claims three modals own it and traps a keyboard reader.
-const confirmSpec = (opts) => `
-  <div class="gl-stage gl-stage--confirm">
-    ${confirm({ ...opts, specimen: true })}
-  </div>`;
-
-export const wordingDo = () => confirmSpec({
-  title: 'Revoke access for Research bot?',
-  cancelLabel: 'Keep access',
-  confirmLabel: 'Revoke access',
-});
-export const wordingDont = () => confirmSpec({
-  title: 'Are you sure?',
-  cancelLabel: 'Cancel',
-  confirmLabel: 'OK',
-});
-
-export const undoDo = () => confirmSpec({
-  title: 'Delete workspace “Acme”?',
-  body: 'Its boards, tokens and history go with it.',
-  cancelLabel: 'Keep workspace',
-  confirmLabel: 'Delete workspace',
-});
-export const undoDont = () => `
-  <div class="gl-stage">
-    ${toast({
-    variant: 'neutral', style: 'soft', title: 'Workspace “Acme” deleted',
-    body: 'Its boards, tokens and history went with it.', action: 'Undo',
-  })}
-  </div>`;
-
-export const RULES = withSpecimens(content.rules, [
-{ id: 'colour', doHtml: menuDo, dontHtml: menuDont },
-{ id: 'wording', doHtml: wordingDo, dontHtml: wordingDont },
-{ id: 'undo', doHtml: undoDo, dontHtml: undoDont }
-]);

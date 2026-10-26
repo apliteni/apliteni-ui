@@ -26,7 +26,7 @@
  *     stories/glyph-stroke.test.js splitting an SVG `viewBox` — and it reads a
  *     value, not a selector list. No selector list is split any of these ways.
  *   - A file outside the five swept paths — `react/test/`, `.storybook/`,
- *     `react/.storybook/`. None of them holds a comma split of any spelling
+ *     `.storybook/`. None of them holds a comma split of any spelling
  *     today, so nothing is hiding there; they are simply not swept.
  *   - The CSS subjects come from the stylesheets this repository tracks, so a
  *     parenthesised comma a consumer writes in its own sheet is covered by the
@@ -147,11 +147,8 @@ const SOURCE = /\.(js|mjs|cjs|ts|tsx)$/;
 const VALUE_SPLITS = [
   ['scripts/evidence/guideline.mjs', 'widths', 'a command-line width list'],
   ['scripts/font-loading.test.js', 'stack', 'a font-family stack'],
-  ['src/components/toasts.js', 'transform', 'a computed transform matrix'],
   ['src/motion.js', ')', 'a transition duration list'],
   ['src/styles/typeface-roles.test.js', ']', 'a font-family stack'],
-  ['stories/apps/shell-states.test.js', 'travel.value', 'a transition value, twice'],
-  ['stories/apps/shell-states.test.js', 'decl.value', 'a transition value'],
   ['stories/lib/accent-mark.js', ']', 'a gradient stop list'],
   ['stories/lib/accent-paint.js', ']', 'a gradient stop list'],
   ['stories/lib/css-at-width.js', ')', 'a media-query condition list'],
@@ -207,7 +204,7 @@ test('the shared splitter is read by every gate that was reading a selector list
   const callers = tracked.filter((file) => SOURCE.test(file) && !self.includes(file)
     && /splitSelectorList\s*\(/.test(readFileSync(path.join(root, file), 'utf8')));
   assert.equal(
-    callers.length, 42,
+    callers.length, 36,
     'the set of gates reading a selector list changed; the scroll-ring and story CSS gates share this splitter '
     + 'with the React date-picker, chart-target, tap-zone, table-edge, card-fit, table, guideline page, dropdown panel, tooltip and other style gates',
   );

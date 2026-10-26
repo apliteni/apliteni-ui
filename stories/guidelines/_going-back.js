@@ -1,11 +1,9 @@
-import { loadGuideline, withSpecimens } from './_markdown.js';
+import { loadGuideline } from './_markdown.js';
 const content = await loadGuideline('going-back.md', new URL('../../guidelines/going-back.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
+export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { button } from '../../src/components/index.js';
-import { backLink } from '../../src/components/back.js';
-import { breadcrumbs, sidebarNav } from '../../src/components/nav.js';
 
 // The specimens are the top of a page — the link, and the title under it — so
 // the stage draws a title in the page's own face at a size that fits the
@@ -19,38 +17,3 @@ export const SPEC_CSS = `
     .gb-titlerow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
     .gb-page { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-5); align-items: start; }
   </style>`;
-
-const stage = (html) => `<div class="gl-stage">${html}</div>`;
-const head = (above, title, action = '') => stage(`<div class="gb-head">${above}`
-  + `<div class="gb-titlerow"><p class="gb-title">${title}</p>${action}</div></div>`);
-const back = (label) => backLink({ href: '#', label });
-
-// A rail folded to its icons, so a specimen can show which row is lit beside the
-// page it belongs to at the width of one panel.
-const RAIL = [
-  { id: 'dashboard', icon: 'chart', label: 'Dashboard', href: '#' },
-  { id: 'invoices', icon: 'doc', label: 'Invoices', href: '#' },
-  { id: 'payouts', icon: 'card', label: 'Payouts', href: '#' },
-];
-const withRail = (id, active, above) => stage(`<div class="gb-page">`
-  + sidebarNav({ items: RAIL, active, activeIs: 'section', collapsed: true, ariaLabel: `${id} sidebar` })
-  + `<div class="gb-head">${above}<p class="gb-title">INV-1001</p></div></div>`);
-
-export const RULES = withSpecimens(content.rules, [
-{ id: 'below-a-list', doHtml: () => head(back('Invoices'), 'Invoice INV-1001'), dontHtml: () => head(back('Dashboard'), 'Invoices') },
-{ id: 'name-it', doHtml: () => head(back('Invoices'), 'Invoice INV-1001'), dontHtml: () => head(back('Back'), 'Invoice INV-1001') },
-{ id: 'address-not-history' },
-{ id: 'one-or-the-other', doHtml: () => head(back('Invoices'), 'Invoice INV-1001'), dontHtml: () => head(
-      breadcrumbs({
-        items: [{ label: 'Finance', href: '#' }, { label: 'Invoices', href: '#' }, { label: 'INV-1001' }],
-        ariaLabel: 'Trail beside a back link',
-      }) + back('Invoices'),
-      'Invoice INV-1001',
-    ) },
-{ id: 'section-lit', doHtml: () => withRail('lit', 'invoices', back('Invoices')), dontHtml: () => withRail('unlit', null, back('Invoice list')) },
-{ id: 'quiet', doHtml: () => head(back('Invoices'), 'Invoice INV-1001', button({ label: 'Send', variant: 'primary', size: 'sm' })), dontHtml: () => head(
-      button({ label: 'Back to invoices', variant: 'primary', size: 'sm', icon: 'arrowLeft' }),
-      'Invoice INV-1001',
-      button({ label: 'Send', variant: 'primary', size: 'sm' }),
-    ) }
-]);

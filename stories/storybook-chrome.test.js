@@ -100,10 +100,10 @@ const repoRoot = path.resolve(configDir, '..');
 const storybookScript = (workspaceDir) =>
   JSON.parse(fs.readFileSync(path.join(repoRoot, workspaceDir, 'package.json'), 'utf8')).scripts.storybook;
 
-// Neither script may pin its port. --exact-port makes Storybook exit 255 rather than
-// start when the port is taken, and on a developer's machine ports 6006/6007 are
+// The one script may not pin its port. --exact-port makes Storybook exit 255 rather than
+// start when the port is taken, and on a developer's machine port 6006 is
 // routinely held by another project's Storybook.
-for (const [label, dir] of [['root', '.'], ['React workspace', 'react']]) {
+for (const [label, dir] of [['root', '.']]) {
   test(`the ${label} storybook script lets Storybook find a free port`, () => {
     assert.doesNotMatch(
       storybookScript(dir),

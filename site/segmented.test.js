@@ -118,7 +118,7 @@ function site() {
 // The kit's strip: segmented() for the markup, wireTopbar() for the behaviour —
 // the same two calls .storybook/preview.js makes after every render. Mounted
 // into the one kit DOM the globals above point at, the way
-// stories/keyboard.test.js:35-42 `wireTopbar(host);` does it.
+// react/src/Segmented.test.tsx:28 `keeps controlled selection, keyboard focus and disabled skipping` does it.
 let mounted = null;
 function kit() {
   const { h, act, createRoot, kit: ui, react } = live;

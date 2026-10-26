@@ -187,14 +187,12 @@ const KNOWN_GAPS: Record<string, string> = {
 };
 
 describe('stat basis: React stories', () => {
-  it('every change in every story says what it is measured against, and no figure says it twice over', () => {
-    let subjects = 0;
-    let captions = 0;
-    let figures = 0;
-    let fromControl = 0;
-    const failures: string[] = [];
-    const known = new Set<string>();
-    for (const file of Object.keys(modules).sort()) {
+  // One `it` per story file, so a slow file shows as itself and no single test
+  // carries the whole walk past the 5 s budget.
+  const sweep = { subjects: 0, captions: 0, figures: 0, fromControl: 0, failures: [] as string[], known: new Set<string>() };
+
+  for (const file of Object.keys(modules).sort()) {
+    it(`every change in ${file} says what it is measured against`, () => {
       const mod = modules[file];
       const def = mod.default || {};
       for (const [name, story] of Object.entries(mod)) {
@@ -207,35 +205,38 @@ describe('stat basis: React stories', () => {
         try {
           box = mountElement(<StoryRender />);
         } catch (err) {
-          failures.push(`${file}:${name} did not render — ${(err as Error).message}`);
+          sweep.failures.push(`${file}:${name} did not render — ${(err as Error).message}`);
           continue;
         }
-        subjects += box.querySelectorAll('.ui-stat__delta').length;
-        captions += box.querySelectorAll('.ui-stats__basis').length;
-        figures += box.querySelectorAll('.ui-stat').length;
+        sweep.subjects += box.querySelectorAll('.ui-stat__delta').length;
+        sweep.captions += box.querySelectorAll('.ui-stats__basis').length;
+        sweep.figures += box.querySelectorAll('.ui-stat').length;
         const control = [...allowedBases(box)].filter(([, what]) => what === "the period control's basis").map(([id]) => id);
-        fromControl += [...box.querySelectorAll('.ui-stat__delta[aria-describedby]')]
+        sweep.fromControl += [...box.querySelectorAll('.ui-stat__delta[aria-describedby]')]
           .filter((d) => control.includes(d.getAttribute('aria-describedby'))).length;
         const id = `${file}:${name}`;
-        const before = failures.length;
+        const before = sweep.failures.length;
         for (const d of unexplained(box) as Element[]) {
-          failures.push(`${file}:${name} — "${d.textContent!.trim()}" under "${d.parentElement!.querySelector('dt')?.textContent}"`);
+          sweep.failures.push(`${file}:${name} — "${d.textContent!.trim()}" under "${d.parentElement!.querySelector('dt')?.textContent}"`);
         }
-        for (const p of misplaced(box) as Element[]) failures.push(`${file}:${name} — the caption "${p.textContent!.trim()}" does not lead its figures`);
-        for (const f of overloaded(box) as Element[]) failures.push(`${file}:${name} — "${f.querySelector('dt')?.textContent}" stacks two rows under its value`);
+        for (const p of misplaced(box) as Element[]) sweep.failures.push(`${file}:${name} — the caption "${p.textContent!.trim()}" does not lead its figures`);
+        for (const f of overloaded(box) as Element[]) sweep.failures.push(`${file}:${name} — "${f.querySelector('dt')?.textContent}" stacks two rows under its value`);
         if (KNOWN_GAPS[id]) {
-          if (failures.length > before) known.add(id);
-          failures.length = before;
+          if (sweep.failures.length > before) sweep.known.add(id);
+          sweep.failures.length = before;
         }
         box.remove();
       }
-    }
-    assert.ok(subjects >= SUBJECTS_FLOOR, `walked ${subjects} changes — the walk stopped finding the bands`);
-    assert.ok(captions >= CAPTIONS_FLOOR, `walked ${captions} captions — the walk stopped finding the bands' captions`);
-    assert.ok(figures >= FIGURES_FLOOR, `walked ${figures} figures — the walk stopped finding them`);
+    });
+  }
+
+  it('the walk found the bands and every story is clean', () => {
+    assert.ok(sweep.subjects >= SUBJECTS_FLOOR, `walked ${sweep.subjects} changes — the walk stopped finding the bands`);
+    assert.ok(sweep.captions >= CAPTIONS_FLOOR, `walked ${sweep.captions} captions — the walk stopped finding the bands' captions`);
+    assert.ok(sweep.figures >= FIGURES_FLOOR, `walked ${sweep.figures} figures — the walk stopped finding them`);
     // The third shape has one screen today, the Finance dashboard's three figures. #505
-    assert.ok(fromControl >= 3, `${fromControl} change(s) take their basis from a period control; the Finance dashboard draws three`);
-    assert.deepEqual(failures, []);
-    assert.deepEqual(Object.keys(KNOWN_GAPS).filter((id) => !known.has(id)), [], 'it comes clean now: take it off the list');
+    assert.ok(sweep.fromControl >= 3, `${sweep.fromControl} change(s) take their basis from a period control; the Finance dashboard draws three`);
+    assert.deepEqual(sweep.failures, []);
+    assert.deepEqual(Object.keys(KNOWN_GAPS).filter((id) => !sweep.known.has(id)), [], 'it comes clean now: take it off the list');
   });
 });

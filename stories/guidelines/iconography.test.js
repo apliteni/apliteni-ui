@@ -233,7 +233,7 @@ test('the walk reaches the call sites it is meant to review', () => {
 // above would still pass on the controls that remain.
 test('the second spelling reaches both Snippet copy buttons', () => {
   const found = callSites.filter((c) => c.how === 'wordless').map((c) => `${c.file} ${c.glyph}`);
-  for (const control of ['src/components/index.js copy', 'react/src/Snippet.tsx copy']) {
+  for (const control of ['react/src/Drawer.tsx x', 'react/src/Snippet.tsx copy']) {
     assert.ok(found.includes(control),
       `${control} is wordless and is not in the walk — found: ${found.join(', ') || 'nothing'}`);
   }

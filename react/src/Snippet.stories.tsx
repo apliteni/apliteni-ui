@@ -1,5 +1,4 @@
-import { useEffect, useRef } from 'react';
-import { snippet, hlCode, hlShell, codeTokens, wireTopbar } from '@apliteni/apliteni-ui';
+import { codeTokens } from '@apliteni/apliteni-ui';
 import type { Meta, StoryObj } from '@storybook/react';
 import { expect, userEvent, within } from 'storybook/test';
 import { Snippet, type SnippetProps } from './Snippet';
@@ -14,9 +13,9 @@ const tsCode = '// Build the children from the string you copy.\n'
   + 'const retries = 3;';
 const commentedShell = '# read the current version\n' + shellCode;
 
-// codeTokens is the vanilla highlighters' own tokenizer, so the spans and the
-// copied string come from one source. Hand-written spans beside a `code` string
-// are two copies of the same text, and nothing keeps them in step.
+// The highlighted children come from the kit's own tokenizer, so the spans and
+// the copied string come from one source. Hand-written spans beside a `code`
+// string are two copies of the same text, and nothing keeps them in step.
 const tokens = (code: string, lang: Language = 'shell') =>
   codeTokens(code, lang).map(({ cls, text }, at) => (cls ? <span key={at} className={cls}>{text}</span> : text));
 
@@ -84,20 +83,6 @@ export const Copied: Story = {
   },
 };
 
-// snippet() returns markup; wireTopbar() attaches the copy behaviour. Without it
-// the vanilla Copy button is inert and a reader comparing the columns side by
-// side reads that as a React regression. #474
-function Vanilla({ html }: { html: string }) {
-  const host = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const node = host.current;
-    if (!node) return;
-    node.innerHTML = html;
-    wireTopbar(node);
-  }, [html]);
-  return <div ref={host} style={{ display: 'grid', gap: 'var(--space-6)' }} />;
-}
-
 export const Variants: Story = {
   render: () => <div style={{ display: 'grid', gap: 'var(--space-6)', maxWidth: 'var(--panel-lg)' }}>
     <Snippet label="mcp.json" code={configCode} copy={false}>{tokens(configCode, 'json')}</Snippet>
@@ -107,43 +92,17 @@ export const Variants: Story = {
 };
 
 export const Comparison: Story = {
-  render: () => <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 'var(--space-6)' }}>
-    <section aria-label="Vanilla" style={{ minWidth: 0 }}>
-      <h2>Vanilla</h2>
-      <Vanilla html={
-        snippet({ label: 'Terminal', code: hlShell(shellCode), copyLabel: 'Copy command' }) +
-        snippet({ label: 'mcp.json', code: hlCode(configCode, 'json'), copy: false }) +
-        snippet({ label: 'snippet.ts', code: hlCode(tsCode, 'ts'), copyLabel: 'Copy example' })
-      } />
-    </section>
-    <section aria-label="React" style={{ minWidth: 0 }}>
-      <h2>React</h2>
-      <div style={{ display: 'grid', gap: 'var(--space-6)' }}>
-        <Snippet label="Terminal" code={shellCode} copyLabel="Copy command">{tokens(shellCode)}</Snippet>
-        <Snippet label="mcp.json" code={configCode} copy={false}>{tokens(configCode, 'json')}</Snippet>
-        <Snippet label="snippet.ts" code={tsCode} copyLabel="Copy example">{tokens(tsCode, 'ts')}</Snippet>
-      </div>
-    </section>
+  render: () => <div style={{ display: 'grid', gap: 'var(--space-6)', maxWidth: 'var(--panel-lg)' }}>
+    <Snippet label="Terminal" code={shellCode} copyLabel="Copy command">{tokens(shellCode)}</Snippet>
+    <Snippet label="mcp.json" code={configCode} copy={false}>{tokens(configCode, 'json')}</Snippet>
+    <Snippet label="snippet.ts" code={tsCode} copyLabel="Copy example">{tokens(tsCode, 'ts')}</Snippet>
   </div>,
 };
 
 export const KeyboardFocus: Story = {
-  render: () => <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 'var(--space-6)' }}>
-    <section aria-label="Vanilla" style={{ minWidth: 0 }}>
-      <h2>Vanilla</h2>
-      <Vanilla html={
-        snippet({ label: 'Terminal', code: hlShell(shellCode), copyLabel: 'Copy command' }) +
-        snippet({ label: 'Example token', code: 'example-only-token-value', reveal: true, copyLabel: 'Copy secret' }) +
-        snippet({ label: 'Read only', code: hlShell(shellCode), copy: false })
-      } />
-    </section>
-    <section aria-label="React" style={{ minWidth: 0 }}>
-      <h2>React</h2>
-      <div style={{ display: 'grid', gap: 'var(--space-6)' }}>
-        <Snippet label="Terminal" code={shellCode} copyLabel="Copy command">{tokens(shellCode)}</Snippet>
-        <Snippet label="Example token" code="example-only-token-value" reveal copyLabel="Copy secret" />
-        <Snippet label="Read only" code={shellCode} copy={false}>{tokens(shellCode)}</Snippet>
-      </div>
-    </section>
+  render: () => <div style={{ display: 'grid', gap: 'var(--space-6)', maxWidth: 'var(--panel-lg)' }}>
+    <Snippet label="Terminal" code={shellCode} copyLabel="Copy command">{tokens(shellCode)}</Snippet>
+    <Snippet label="Example token" code="example-only-token-value" reveal copyLabel="Copy secret" />
+    <Snippet label="Read only" code={shellCode} copy={false}>{tokens(shellCode)}</Snippet>
   </div>,
 };

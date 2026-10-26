@@ -545,7 +545,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
     'Stories that would not render are not skipped here: an unmeasured subject is a failure.',
   );
   assert.ok(
-    stories.length >= 150,
+    stories.length >= 40,
     `${stories.length} stories rendered. The sweep is the coverage, and a sweep that collapsed `
     + 'to a handful would pass while measuring almost nothing.',
   );
@@ -553,7 +553,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
   // Plus the rows no story puts on screen, and two a consumer would write.
   const fixtures = await rowFixtures();
   assert.ok(
-    fixtures.length >= 13,
+    fixtures.length >= 11,
     `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
     + 'could not see, and a list that shrank would quietly give that coverage back.',
   );

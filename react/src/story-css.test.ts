@@ -42,7 +42,7 @@ function filesUnder(rel: string, acc: string[] = []): string[] {
   return acc;
 }
 
-// What react/.storybook/main.ts serves from this workspace: `../src/**/*.stories.@(tsx|ts)`.
+// What .storybook/main.js serves from this workspace: `../src/**/*.stories.@(tsx|ts)`.
 // Recursive, and two extensions — so this sweep is too. A sweep narrower than the glob gates
 // less than Storybook ships, and the gap is silent: the aggregate counts below stay green
 // while a story in a new folder paints whatever it likes. The same config also serves
@@ -93,7 +93,7 @@ const subjects: string[] = [...new Set([
 // Measured, not guessed: the story and stylesheet floors, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows.
-const FOUND = { subjects: 68, declarations: 539, carriers: 49, sheets: 5 };
+const FOUND = { subjects: 68, declarations: 523, carriers: 49, sheets: 5 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -186,7 +186,7 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   // The bento grid and phone stack place six kit cards with demos at their feet.
   // The closing card has a page width of its own.
   'react/src/Landing.stories.tsx': { glue: 23 },
-  'react/src/AccentPicker.stories.tsx': { shadow: 3 },
+  'react/src/AccentPicker.stories.tsx': { shadow: 2 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
   'react/src/Button.stories.tsx': { shadow: 1 },
   'react/src/CommandPalette.stories.tsx': { shadow: 2 },
@@ -317,13 +317,13 @@ describe('story CSS', () => {
 
   it('reports a recorded story that grows, shrinks, or comes clean', () => {
     const file = 'react/src/AccentPicker.stories.tsx';
-    expect(measured.find((s) => s.file === file)!.shadows.length).toBe(3);
+    expect(measured.find((s) => s.file === file)!.shadows.length).toBe(2);
 
     const grown = withEdit(file, (src) => `${src}\nconst MUTANT = <div style={{ color: '#f00' }} />;\n`);
-    expect(grown.join('\n')).toContain('more than the 3 recorded');
+    expect(grown.join('\n')).toContain('more than the 2 recorded');
 
     const shrunk = withEdit(file, (src) => src.replace("background: 'var(--surface)'", 'marginTop: 0'));
-    expect(shrunk.join('\n')).toContain('down from the 3 recorded');
+    expect(shrunk.join('\n')).toContain('down from the 2 recorded');
 
     const cleared = withEdit(file, (src) => src.replaceAll("background: 'var(--surface)'", 'marginTop: 0'));
     expect(cleared.join('\n')).toContain('writes no paint');

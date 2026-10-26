@@ -324,11 +324,11 @@ test('measured at 1280, 390, 360 and 320, in a plain row and in a panel', { skip
 
   const { subjects: storyHtml, problems } = await storySubjects({ theme: 'light' });
   assert.deepEqual(problems, [], 'a story would not render, so its rows were never measured');
-  const vanilla = storyHtml.filter((s) => s.html.includes('ui-drop__row'));
-  assert.ok(vanilla.length > 0, 'no vanilla story renders a file drop row — this gate is checking nothing');
+  const fileDrop = storyHtml.filter((s) => s.html.includes('ui-drop__row'));
+  assert.ok(fileDrop.length > 0, 'no story renders a file drop row — this gate is checking nothing');
 
   const react = await reactSubjects();
-  const subjects = [...vanilla, ...react];
+  const subjects = [...fileDrop, ...react];
   const sheet = kitStylesheet() + '\n' + readFileSync(path.join(root, 'react/dist/index.css'), 'utf8');
   const browser = await pw.chromium.launch();
   const found = [];

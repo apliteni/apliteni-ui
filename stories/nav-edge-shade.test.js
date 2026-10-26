@@ -6,12 +6,22 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as stories from './components/Navigation.stories.js';
+import { markup } from './lib/react-markup.js';
 
-const subjects = Object.entries(stories)
-  .filter(([, story]) => typeof story?.render === 'function')
-  .map(([name, story]) => ({ name, html: story.render() }))
-  .filter(({ html }) => html.includes('ui-nav--tabs'));
+const TABS = {
+  'aria-label': 'Finance views', active: 'payouts',
+  items: [
+    { id: 'summary', label: 'Summary' },
+    { id: 'payouts', label: 'Payouts', badge: 3 },
+    { id: 'transactions', label: 'Transactions' },
+    { id: 'disputes', label: 'Disputes', badge: { text: 2, tone: 'danger' } },
+    { id: 'exports', label: 'Exports', disabled: true },
+  ],
+};
+const subjects = [
+  { name: 'Underline', html: await markup(({ h, kit }) => h(kit.NavTabs, TABS)) },
+  { name: 'Pill', html: await markup(({ h, kit }) => h(kit.NavTabs, { ...TABS, variant: 'pill' })) },
+].filter(({ html }) => html.includes('ui-nav--tabs'));
 
 test('tab row shades mark only edges with hidden tabs', {
   skip: process.env.NAV_EDGE_SHADE !== '1' && 'set NAV_EDGE_SHADE=1',

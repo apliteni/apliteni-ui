@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.143.0', date: '2026-10-26',
+    changes: [
+      ['breaking', 'The vanilla HTML factories, their initializers and the vanilla overlay stack are removed: `button`, `input`, `select`, `card`, `segmented`, `filterBar`, `pagination`, `dropdown`, `drawer`, `confirm`, `commandPalette`, `tabs`, `nav`, `topbar`, `shell`, `footer`, `toast`, `success`, `tooltip`, `snippet`, `statBand`, `emptyState`, `field`, `avatar` and the `wire*`, `init*` and `set*` helpers. The root entry now exports the React-consumed surface: `icon`, `prism`, `sun`, `moon`, `brand`, `esc`, `safeUrl`, the motion helpers and the shared logic in `src/logic/`. The CSS, tokens and inline strings stay unchanged.', ['Button', 'Card', 'Segmented', 'Dropdown', 'Drawer', 'Confirm', 'Command palette', 'Table', 'Pagination', 'Stat band', 'Tabs', 'Navigation', 'Tooltip', 'Topbar', 'Toast']],
+      ['changed', 'The React components are the only kit: every story, gate and the Storybook runs on them. The vanilla story files and the `@storybook/html-vite` dependency are removed. Part of #429.'],
+    ],
+  },
+  {
     v: '0.142.1', date: '2026-10-25',
     changes: [
       ['changed', 'The helpers that the React components take from the vanilla files move to `src/logic/`: the dropdown placement, the code tokenizer, `nearestSection`, `themeIcon` and `ACCOUNT_NAV`. The root entry exports the same names, and no behaviour changes. The gates that read vanilla markup now read the React components. This prepares the removal of the vanilla kit. Part of #429.'],

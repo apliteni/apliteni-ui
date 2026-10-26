@@ -59,7 +59,9 @@ const rel = (p) => path.relative(root, p);
 // `.bico svg`, and the decisions row brought `.glyphs svg` back. #429 PR 4 added two:
 // the React Iconography page carries the same `.ic-glyph svg` rule as the vanilla one,
 // and both are rendered until the vanilla delete takes the vanilla file and its two.
-const EXPECTED_SUBJECTS = 18;
+// 18 -> 10: #429 PR 5b removes the vanilla stories, whose own `<style>` blocks held
+// the other eight declarations.
+const EXPECTED_SUBJECTS = 10;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes

@@ -214,12 +214,6 @@ test('putting the badge’s capitals back is caught at its line', () => {
  * why: docs/foundations.md#labels-and-titles
  * Discover subjects from source and check the coverage count.
  */
-// Storybook's HTML renderer hands back a string or a node; stories/a11y.test.js
-// reads the same two shapes and is the gate that fails on anything else.
-const serialize = (out) => (typeof out === 'string' ? out
-  : (out && typeof out.outerHTML === 'string') ? out.outerHTML
-  : (out && out.nodeType === 11) ? [...out.childNodes].map((n) => n.outerHTML ?? n.textContent).join('')
-  : null);
 
 test('a label knows a word from a figure, a sign and a name', () => {
   const cases = [
@@ -288,37 +282,6 @@ test('the ranks the sweep reads are in the sheets', () => {
     'no rule claims rank: label or rank: chip — the ranks left the sheets, or the note changed spelling');
 });
 
-for (const rel of storyFiles) {
-  test(`every label and chip in stories/${rel} starts with a capital`, async () => {
-    const doc = await sweepDoc();
-    const start = sweep.bad.length;
-    const mod = await import(path.join(root, 'stories', rel));
-    const def = mod.default || {};
-    for (const [name, story] of Object.entries(mod)) {
-      if (name === 'default' || !story || typeof story !== 'object') continue;
-      const render = story.render || def.render;
-      if (typeof render !== 'function') continue;
-      sweep.stories += 1;
-      const args = { ...def.args, ...story.args };
-      // Most stories word themselves the same in both themes, and reading the same
-      // markup twice is the expensive half of this gate. Render both, check the
-      // second only when it differs.
-      const seen = new Set();
-      for (const theme of ['dark', 'light']) {
-        // A story that will not render is a failure of stories/a11y.test.js, which
-        // renders the same set and says so. Here it is simply not a subject.
-        let html;
-        try { html = serialize(render(args, { globals: { theme, accent: 'default' }, args })); } catch { continue; }
-        if (!html || seen.has(html)) continue;
-        seen.add(html);
-        sweep.renders += 1;
-        check(doc, `stories/${rel}:${name} [${theme}]`, html);
-      }
-    }
-    assertNoneBadSince(start);
-  });
-}
-
 test('every label and chip a site page renders starts with a capital', async () => {
   const doc = await sweepDoc();
   const start = sweep.bad.length;
@@ -336,11 +299,10 @@ test('every label and chip a site page renders starts with a capital', async () 
 
 test('the sweep read the labels and found none lower case', (t) => {
   t.after(() => sweep.dom?.window.close());
-  // Logged rather than asserted: the absolute count is a fact about the catalogue
-  // and moves whenever a story is added. The floor is the anti-vacuity guard.
-  t.diagnostic(`read ${sweep.read} labels and chips under ${selectors.length} ranked rules `
-    + `in ${storyFiles.length} story files, ${sweep.stories} stories (${sweep.renders} renders) and ${sweep.pages} site pages`);
-  assert.ok(sweep.read > 200,
-    `read ${sweep.read} labels and chips across the stories and the site; the walk stopped finding them`);
+  // Logged rather than asserted: the absolute count is a fact about the site
+  // and moves whenever a page is added. The floor is the anti-vacuity guard.
+  t.diagnostic(`read ${sweep.read} labels and chips under ${selectors.length} ranked rules in ${sweep.pages} site pages`);
+  assert.ok(sweep.read > 10,
+    `read ${sweep.read} labels and chips across the site pages; the walk stopped finding them`);
   assert.deepEqual(sweep.bad, [], MESSAGE);
 });

@@ -283,6 +283,13 @@ const panelsIn = (text, file = 'a source') => {
     assert.ok(name, `${where}: this gate cannot read the marked element's class`);
     found.push(name[1]);
   }
+  // React declares the version and account menu panel classes as Dropdown props,
+  // which the marker in Dropdown.tsx cannot name: `panelClass="vsw__menu"` in
+  // TopBar.tsx. AppShell's user panel was a `panelClass` prop in the vanilla shell
+  // too, so it is not a marked panel here either.
+  if (file.includes('TopBar.tsx')) {
+    for (const m of src.matchAll(/panelClass\s*=\s*['"]([a-z][\w-]*)['"]/g)) found.push(m[1]);
+  }
   return [...new Set(found)].sort();
 };
 

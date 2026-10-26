@@ -1,10 +1,9 @@
-import { loadGuideline, withSpecimens } from './_markdown.js';
+import { loadGuideline } from './_markdown.js';
 const content = await loadGuideline('state-set.md', new URL('../../guidelines/state-set.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
+export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { button, callout, field, input, card } from '../../src/components/index.js';
-import { busyRegion, skeletonTable } from '../../src/components/loading.js';
 
 // `.gl-ring` pins what :focus-visible paints (src/styles/base.css), because a
 // focus band exists only under a live keyboard and cannot be screenshotted.
@@ -18,58 +17,3 @@ export const SPEC_CSS = `
     .gl-ring .ui-btn, .gl-ring .ui-input { outline: var(--ring); outline-offset: var(--ring-offset); }
     .gl-ring--adhoc .ui-input { outline: 2px solid var(--muted); outline-offset: 2px; }
   </style>`;
-
-const stage = (html, mod = '') => `<div class="gl-stage ${mod}">${html}</div>`;
-
-const ringed = (mod) => `
-  <div class="gl-stage gl-ring ${mod}">
-    <div class="gl-row">
-      ${button({ label: 'Save changes', variant: 'primary' })}
-      ${input({ value: 'acme.io/hooks', ariaLabel: 'Webhook URL' })}
-    </div>
-    <div class="gl-cursor">Both reached by Tab</div>
-  </div>`;
-
-export const focusDo = () => ringed('');
-export const focusDont = () => ringed('gl-ring--adhoc');
-
-const saving = (busy) => stage(button({ label: 'Saving…', variant: 'primary', busy }));
-
-export const busyDo = () => saving(true);
-export const busyDont = () => saving(false);
-
-const WHY_INVALID = 'Must start with https://';
-const urlControl = () => input({ value: 'acme.io/hooks', invalid: true });
-
-export const errorDo = () => stage(field({
-  label: 'Webhook URL', error: WHY_INVALID, control: urlControl(),
-}));
-export const errorDont = () => `
-  <div class="gl-stage gl-stack">
-    ${field({ label: 'Webhook URL', control: urlControl() })}
-    ${callout({ variant: 'danger', body: WHY_INVALID })}
-  </div>`;
-
-// The pending pair. Same screen, same in-flight moment, twice: on the left the
-// region draws the shape that is coming and says so through the live region;
-// on the right the button is the only thing that knows, and everything around
-// it looks finished. Neither picture can show the announcement — the do side
-// carries a real role="status", so a screen reader on this page hears it.
-const pendingScreen = (body) => card({ title: 'Payouts', body });
-
-export const pendingDo = () => stage(pendingScreen(
-  busyRegion({ label: 'Loading 3 payouts…', body: skeletonTable({ rows: 3, cols: 3 }) })
-  + `<div class="gl-row" style="margin-top:var(--space-3)">${button({ label: 'Refresh', busy: true })}</div>`,
-));
-
-export const pendingDont = () => stage(pendingScreen(
-  '<p style="color: var(--text);margin:0">Nothing here.</p>'
-  + `<div class="gl-row" style="margin-top:var(--space-3)">${button({ label: 'Refresh', busy: true })}</div>`,
-));
-
-export const RULES = withSpecimens(content.rules, [
-{ id: 'focus-visible', doHtml: focusDo, dontHtml: focusDont },
-{ id: 'busy', doHtml: busyDo, dontHtml: busyDont },
-{ id: 'error-in-markup', doHtml: errorDo, dontHtml: errorDont },
-{ id: 'loading', doHtml: pendingDo, dontHtml: pendingDont }
-]);

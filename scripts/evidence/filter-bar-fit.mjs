@@ -30,7 +30,7 @@ const checkout = path.resolve(checkoutArg || '.');
 // build is half the subject set missing, not a smaller run.
 const BUILDS = [
   { half: 'root', dir: path.join(checkout, 'storybook-static'), make: 'npm run build-storybook' },
-  { half: 'react', dir: path.join(checkout, 'react/storybook-static'), make: 'npm run build-storybook -w react' },
+  { half: 'react', dir: path.join(checkout, 'storybook-static'), make: 'npm run build-storybook' },
 ];
 for (const build of BUILDS) {
   if (!existsSync(path.join(build.dir, 'index.json'))) {

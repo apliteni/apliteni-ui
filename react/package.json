@@ -7,9 +7,7 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "storybook": "storybook dev -p 6007 --no-open",
-    "build-storybook": "storybook build -o storybook-static"
+    "test:watch": "vitest"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -17,7 +15,6 @@
   },
   "devDependencies": {
     "@storybook/addon-a11y": "^10.5.5",
-    "@storybook/react-vite": "^10.6.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",

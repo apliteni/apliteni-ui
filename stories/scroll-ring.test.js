@@ -31,7 +31,6 @@ import { JSDOM } from 'jsdom';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
 import { STYLE_FILES, desugar, substitute, tokensFor } from './lib/contrast.js';
 import { leafRules } from './lib/motion-css.js';
-import { confirm } from '../src/index.js';
 import { liveMarkup, markup } from './lib/react-markup.js';
 
 // The React components draw every subject but one, the vanilla confirm's body, whose CSS
@@ -104,13 +103,6 @@ const SUBJECTS = [
     why: 'the body is flush with a panel that is flush with a screen edge, so an outset '
       + 'ring on either box is painted off-screen; the 20px padding is the room for it',
     markup: () => DRAWER,
-  },
-  {
-    name: "a confirm's consequence",
-    box: '.ui-confirm__body',
-    why: 'the --space-1 is the band\'s clearance from the glyphs, and the panel insets '
-      + 'the paragraph by --space-5 on every side',
-    markup: () => confirm({ id: 'c', title: 'Delete it?', body: 'It cannot be undone.' }),
   },
   {
     name: 'a tab row with every tab disabled',
@@ -211,8 +203,8 @@ function check(css, theme, accent) {
   }
 
   // Anti-vacuity: the subjects are six and the reading above ran on each.
-  assert.equal(SUBJECTS.length, 7,
-    'the kit draws the inward band on seven scroll regions; React\'s modal body is the eighth, '
+  assert.equal(SUBJECTS.length, 6,
+    'the kit draws the inward band on six scroll regions; React\'s modal body is the seventh, '
     + 'in react/src/focus-ring.test.tsx');
   win.close();
 }

@@ -118,7 +118,7 @@ type Discovered = {
   args: Record<string, unknown>;
 };
 
-// The glob a11y.test.tsx and react/.storybook/main.ts use, less the guideline pages and one showcase
+// The glob a11y.test.tsx and .storybook/main.js use, less the guideline pages and one showcase
 // (see the limits above), so a new story file is in the gate the moment it exists.
 // Subjects are discovered, not listed.
 const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx', '!../../stories/guidelines/**', '!../../stories/apps/EmptyStates.stories.tsx'], { eager: true });

@@ -1,21 +1,17 @@
-import { loadGuideline, withSpecimens } from './_markdown.js';
+import { loadGuideline } from './_markdown.js';
 const content = await loadGuideline('the-page.md', new URL('../../guidelines/the-page.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
+export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { card, button, badge } from '../../src/components/index.js';
 
 export const REFERENCE_POLICY = 'code-free';
 
 // The four limits the rules are stated in. They are here rather than in the
-// prose because stories/guidelines/the-page.test.js measures the kit's own
+// prose because react/src/the-page.test.tsx measures the kit's own
 // screens against these names — a number edited in the sentence and not in the
 // gate is the drift this whole collection exists to stop.
 export const LIMITS = { cards: 6, outline: 3, primary: 1, lede: 2 };
-
-// A limit is a number to the gate and a word to the reader. Spelling it here
-// rather than typing the word into the sentence is what keeps the two the same.
-const said = (n) => ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'][n] ?? String(n);
 
 // The outline uses labels for heading levels; the stack uses one block per card.
 export const SPEC_CSS = `
@@ -103,118 +99,11 @@ export const SPEC_CSS = `
       line-height: inherit; color: var(--text); }
   </style>`;
 
-const stage = (html) => `<div class="gl-stage">${html}</div>`;
-
-// ---- the outline, written out -------------------------------------------
-
-const outRow = (rank, text, bad) =>
-  `<div class="tp-out__row tp-out__row--${rank}${bad ? ' tp-out__row--bad' : ''}">`
-  + `<span class="ui-badge tp-out__rank">h${rank}</span><span>${text}</span></div>`;
-
-export const outlineDo = () => stage(`<div class="tp-out">
-  ${outRow(1, 'Payouts')}
-  ${outRow(2, 'Last 7 days')}
-  ${outRow(2, 'Payouts')}
-  ${outRow(3, 'Failed this week')}
-</div>`);
-
-export const outlineDont = () => stage(`<div class="tp-out">
-  ${outRow(1, 'Payouts')}
-  ${outRow(1, 'Last 7 days', true)}
-  ${outRow(3, 'Payouts', true)}
-  ${outRow(4, 'Failed this week', true)}
-</div>`);
-
-// ---- the one primary action ---------------------------------------------
-
-const actions = (right) => `<div class="tp-acts">${right}</div>`;
-
-export const primaryDo = () => stage(card({
-  title: 'Your agents',
-  sub: 'Three connected, one revoked.',
-  body: actions(button({ label: 'Create token', variant: 'primary', icon: 'key' })
-    + button({ label: 'Import agents', variant: 'secondary' })
-    + button({ label: 'Export', variant: 'ghost' })),
-}));
-
-export const primaryDont = () => stage(card({
-  title: 'Your agents',
-  sub: 'Three connected, one revoked.',
-  body: actions(button({ label: 'Create token', variant: 'primary', icon: 'key' })
-    + button({ label: 'Import agents', variant: 'primary' })
-    + button({ label: 'Export', variant: 'primary' })),
-}));
-
-// ---- how much may stack --------------------------------------------------
-
-const stack = (n, over) => `<div class="tp-stack${over ? ' tp-stack--over' : ''}">${
-  Array.from({ length: n }, () => '<div class="tp-card"></div>').join('')
-}</div>`;
-
-export const stackDo = () => stage(stack(LIMITS.cards));
-export const stackDont = () => stage(stack(12, true));
-
-// ---- one density per page ------------------------------------------------
-
-const ROWS = [
-  ['1162', '2026-06-30', '14,942.27', 'Paid'],
-];
-
-const miniTable = (dense) => `
-  <table class="ui-table ui-table--zebra${dense ? ' ui-table--dense' : ''}">
-    <thead><tr><th>ID</th><th>Arrival</th><th class="ui-table__num">Net</th><th>Status</th></tr></thead>
-    <tbody>${ROWS.map(([id, arr, net, st]) => `<tr><td>${id}</td><td>${arr}</td>`
-      + `<td class="ui-table__num">${net}</td><td>${badge(st, 'success')}</td></tr>`).join('')}</tbody>
-  </table>`;
-
-export const densityDo = () => stage(`<div class="tp-rows">
-  ${card({ title: 'Payouts', body: miniTable(true) })}
-  ${card({ title: 'Invoices', body: miniTable(true) })}
-</div>`);
-
-export const densityDont = () => stage(`<div class="tp-rows">
-  ${card({ title: 'Payouts', body: miniTable(true) })}
-  ${card({ title: 'Invoices', body: miniTable(false) })}
-</div>`);
-
-// ---- which column the page takes ----------------------------------------
-
-const lines = (n, over) => Array.from({ length: n }, () =>
-  `<div class="tp-lay__ln${over ? ' tp-lay__ln--over' : ''}"></div>`).join('');
-
-const frame = (centered, over) => stage(`<div class="tp-lay">
-  <div class="tp-lay__rail"></div>
-  <div class="tp-lay__well">
-    <div class="tp-lay__bar"></div>
-    <div class="tp-lay__col${centered ? ' tp-lay__col--centered' : ''} tp-lay__col--clip">${lines(7, over)}</div>
-  </div>
-</div>`);
-
-export const widthDo = () => frame(false, false);
-export const widthDont = () => frame(true, true);
-
-// The rules a designer decides, in the order a page is read. Each is one
-// sentence, a picture where a picture says it better, and one line of why.
-// Which line of the kit holds each of them is the RULE_TO_CODE table in
-// stories/guidelines/the-page.test.js.
-export const RULES = withSpecimens(content.rules, [
-{ id: 'layout' },
-{ id: 'width', doHtml: widthDo, dontHtml: widthDont },
-{ id: 'head' },
-{ id: 'one-h1' },
-{ id: 'outline', doHtml: outlineDo, dontHtml: outlineDont },
-{ id: 'one-primary', doHtml: primaryDo, dontHtml: primaryDont },
-{ id: 'stacking', doHtml: stackDo, dontHtml: stackDont },
-{ id: 'at-rest' },
-{ id: 'density', doHtml: densityDo, dontHtml: densityDont },
-{ id: 'lede' }
-]);
-
 // Two limits the same gate walks that this page does not draw. They are not
 // decisions anybody takes per screen — the kit has already taken them, and a
 // designer looking at a mock cannot break either one — so what they guarantee
 // is stated in docs/components.md#the-page-shell, and the ids stay here because
-// stories/guidelines/the-page.test.js keys one check to each.
+// react/src/the-page.test.tsx keys one check to each.
 export const GATED_ELSEWHERE = [
   { id: 'shell', states: 'An application page is the shell’s, and it draws one main region.' },
   { id: 'navs', states: 'Every navigation landmark is named, and no two on a page share a name.' },

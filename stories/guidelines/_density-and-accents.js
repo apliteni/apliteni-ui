@@ -1,11 +1,8 @@
-import { loadGuideline, withSpecimens } from './_markdown.js';
-import { badge, button } from '../../src/components/index.js';
-import { statBand } from '../../src/components/stat.js';
-import { drawerSection } from '../../src/components/drawer.js';
-
+import { loadGuideline } from './_markdown.js';
 const content = await loadGuideline('density-and-accents.md', new URL('../../guidelines/density-and-accents.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
+export const RULES = content.rules;
 
 export const SPEC_CSS = `<style>
   .gda-stage { min-width: 0; padding: var(--space-4); background: var(--bg); border-radius: var(--radius-lg); }
@@ -48,62 +45,3 @@ export const SPEC_CSS = `<style>
   .gda-pane--accent .ui-card__title { color: var(--accent); }
   .gda-page .gc-except { box-shadow: none; padding-left: 0; }
 </style>`;
-
-const stage = (html, cls = '') => `<div class="gda-stage ${cls}">${html}</div>`;
-const actions = (bad = false) => `<div class="gda-actions">${button({ label: 'Open payout', variant: 'primary', size: 'sm' })}${button({ label: 'Copy reference', variant: bad ? 'primary' : 'secondary', size: 'sm' })}</div>`;
-const facts = [['Amount', '€ 1,240.00'], ['Arrival', '30 Sep 2026'], ['Source', 'Bank feed']];
-const preview = (bad = false, colourful = false) => `<div class="ui-card ui-card--pad-sm ${colourful ? 'gda-coloured' : ''}">
-  <h3 class="ui-card__title">Payout 1162</h3>
-  ${badge('In transit', 'pending')}
-  ${drawerSection({ rows: facts })}
-  ${bad ? drawerSection({ title: 'Payout details', rows: [['Payout reference', 'Payout 1162'], ['Payout status', 'In transit'], ['Payout amount', '€ 1,240.00']] })
-    + drawerSection({ title: 'History', rows: [['28 Sep, 09:00', 'Created'], ['28 Sep, 09:02', 'Approved'], ['29 Sep, 08:00', 'Sent to bank']] }) : ''}
-  ${actions(colourful)}
-</div>`;
-
-// The vanilla Table/FinanceData recipe and React DataTable share these classes.
-// The ledger sits in a card, as the preview under it does: a table now ends where its
-// values end (#504), and a bare one left this pair reading as a stub above a wider card.
-// The card ends where the table does (--fit), so the two halves of the pair are compared
-// on their content and neither card carries slack the reader has to read past.
-const payouts = () => `<div class="gda-table"><div class="ui-card ui-card--pad-sm ui-card--fit"><table class="ui-table ui-table--dense ui-table--zebra">
-  <caption>Payouts · EUR</caption>
-  <thead><tr><th>Reference</th><th class="ui-table__num">Amount</th><th>Status</th></tr></thead>
-  <tbody><tr><td>1162</td><td class="ui-table__num">1,240.00</td><td>${badge('In transit', 'pending')}</td></tr>
-  <tr><td>1161</td><td class="ui-table__num">860.00</td><td>${badge('Paid', 'success')}</td></tr>
-  <tr><td>1160</td><td class="ui-table__num">2,100.00</td><td>${badge('Paid', 'success')}</td></tr></tbody>
-</table></div></div>`;
-const figures = () => statBand({ variant: 'tiles', basis: 'Payouts · September', stats: [
-  { label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' },
-] });
-
-// A source document beside the fields a parser read from it. The fields are what an
-// approval writes to the record. Both panels print the same two cards, so what a reader
-// compares is the width, the value weight and which card's name carries the accent. Below
-// 560 the pair stacks and the emphasised pane leads, so position carries the comparison
-// where width cannot. Three of the rule's four levers at a time, never none.
-const savedPane = (lead) => `<div class="ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}">
-  <h3 class="ui-card__title">Extracted fields</h3>
-  <p class="gda-pane__label">Supplier</p>
-  <p class="gda-pane__value${lead ? ' gda-pane__value--strong' : ''}">Sample Studio</p>
-  <p class="gda-pane__label">Total</p>
-  <p class="gda-pane__value${lead ? ' gda-pane__value--strong' : ''}">1,440.00</p>
-</div>`;
-const sourcePane = (lead) => `<div class="ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}">
-  <h3 class="ui-card__title">Source document</h3>
-  <p class="gda-pane__line">Invoice</p>
-  <p class="gda-pane__line">DEMO-1042</p>
-  <p class="gda-pane__line">Total</p>
-  <p class="gda-pane__line">1,440.00</p>
-</div>`;
-const consequence = (savedLeads) => stage(
-  `<div class="gda-panes gda-panes--${savedLeads ? 'saved' : 'source'}-wide">`
-  + savedPane(savedLeads) + sourcePane(!savedLeads)
-  + '</div>');
-
-export const RULES = withSpecimens(content.rules, [
-  { id: 'check-density', doHtml: () => stage(figures(), 'gda-band'), dontHtml: () => stage(figures(), 'gda-band gda-forced') },
-  { id: 'reduce-density', doHtml: () => stage(payouts() + preview()), dontHtml: () => stage(payouts() + preview(true)) },
-  { id: 'purposeful-accent', doHtml: () => stage(preview()), dontHtml: () => stage(preview(false, true)) },
-  { id: 'follow-the-consequence', doHtml: () => consequence(true), dontHtml: () => consequence(false) },
-]);

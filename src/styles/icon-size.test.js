@@ -55,7 +55,9 @@ const src = path.resolve(here, '..');
 // height in one rule); 80 (#628: the avatar's `.ui-avatar svg` sizes the user glyph, a
 // width and a height in one rule); 82 (the version menu's tick sizes its check
 // glyph, a width and a height in one rule, as `.ui-dropdown__tick svg` does).
-const EXPECTED_SUBJECTS = 82;
+// 70 under #429 PR 5b: the vanilla components are gone, so the twelve
+// declarations keyed on svg classes only they wrote leave this walk.
+const EXPECTED_SUBJECTS = 70;
 
 const SHEETS = kitSheetNames(src);
 

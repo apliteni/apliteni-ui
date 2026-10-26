@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { success } from '@apliteni/apliteni-ui';
 import { AppShell } from './AppShell';
 import { Card } from './primitives/Card';
 import { Button } from './primitives/Button';
@@ -10,6 +9,7 @@ import { Segmented } from './Segmented';
 import { BusyRegion, Skeleton, SkeletonTable } from './Loading';
 import { EmptyState } from './EmptyState';
 import { KeyValueList } from './KeyValueList';
+import { Success } from './Success';
 import './DocumentReview.css';
 
 // Three screens, in order: read the document, commit to the approval, see what was
@@ -431,19 +431,18 @@ export const Default: StoryObj<Args> = {
     // what is left to do instead of titling the same event a second time.
     // why: guidelines/component-choice.md#match-confirmation-scale, guidelines/the-page.md#order-page-headings
     const approved = (
-      <div className="doc-flow doc-flow--measure" dangerouslySetInnerHTML={{
-        __html: success({
-          layout: 'hero',
-          level: 2,
-          backdrop: 'flat',
-          title: 'Nothing else is needed',
-          body: `No payment was sent. Approved on ${APPROVED_AT} by ${APPROVER}.`,
-          actions: [
-            { label: 'Return to invoices', variant: 'primary', href: '#invoices' },
-            { label: `Open ${DOCUMENT.number}`, href: '#document-review' },
-          ],
-        }),
-      }} />
+      <div className="doc-flow doc-flow--measure">
+        <Success
+          layout="hero"
+          level={2}
+          title="Nothing else is needed"
+          body={`No payment was sent. Approved on ${APPROVED_AT} by ${APPROVER}.`}
+          actions={<>
+            <Button variant="primary" href="#invoices">Return to invoices</Button>
+            <Button href="#document-review">{`Open ${DOCUMENT.number}`}</Button>
+          </>}
+        />
+      </div>
     );
 
     const head = {

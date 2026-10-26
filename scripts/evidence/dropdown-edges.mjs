@@ -24,7 +24,7 @@ mkdirSync(outDir, { recursive: true });
 
 const HALVES = [
   { half: 'vanilla', dir: path.join(checkout, 'storybook-static'), id: 'components-dropdown--near-the-screen-edges', make: 'npm run build-storybook' },
-  { half: 'react', dir: path.join(checkout, 'react/storybook-static'), id: 'react-dropdown--near-the-screen-edges', make: 'npm run build-storybook -w react' },
+  { half: 'react', dir: path.join(checkout, 'storybook-static'), id: 'react-dropdown--near-the-screen-edges', make: 'npm run build-storybook' },
 ];
 for (const h of HALVES) {
   if (!existsSync(path.join(h.dir, 'index.json'))) throw new Error(`no Storybook build at ${h.dir} — run: ${h.make}`);
