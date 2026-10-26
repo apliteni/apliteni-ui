@@ -311,7 +311,7 @@ for (const theme of THEMES) {
     assert.ok(found.length >= ROW_FLOOR,
       `swept ${found.length} chosen filter-menu rows, floor ${ROW_FLOOR}: a story stopped drawing one`);
     for (const subject of found) measureSlot(subject);
-  });
+  }, 30_000); // It mounts a filter menu per theme: 3s alone, past the 5s default on a loaded host.
 }
 
 /* Each mutation re-breaks one half of that: the clip reaching a painted menu,
@@ -359,7 +359,7 @@ for (const theme of THEMES) {
     }
     assert.ok(seen.size >= STORY_FLOOR,
       `the sweep reached ${seen.size} stories, floor ${STORY_FLOOR}: every filter-bar story must be measured`);
-  });
+  }, 30_000);
 }
 
 /* Each mutation re-breaks exactly one guarantee, and the gate has to reject it.

@@ -10,7 +10,7 @@ import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 // shell control joins by existing. why: #457
 //
 // Limits. It reads the cascade, not paint: ring visibility against the surface behind
-// it is stories/focus-ring.test.js and the contrast ledger, and whether
+// it is the contrast ledger, and whether
 // :focus-visible matches is the browser's, measured in the captures. Discovery reads
 // literal class strings, so a className built as a template literal is invisible here
 // and the count is a floor rather than a census. Controls composed from other
@@ -64,5 +64,41 @@ test('the check rejects a shell control dropped from the ring', () => {
     }
     assert.ok(shellControls().some((control) => !covered(ringSelectors(stripped), control)),
       `removing ${lines.map((line) => line.trim()).join(' and ')} must be rejected`);
+  }
+});
+
+// A focused field keeps one accent ring. The four classes that draw their own border hide
+// its ink while the ring shows. The browser captures check the painted line; this check holds
+// the declarations and rejects a border brought back under the ring. why: #661
+const FIELD_FOCUS = [
+  ['input.css', '.ui-input:focus-visible'],
+  ['input.css', '.ui-textarea:focus-visible'],
+  ['input.css', '.ui-select:focus-visible'],
+  ['dropdown.css', '.ui-dropdown__search-input:focus-visible'],
+];
+const fieldFocusBody = (sheet, selector) => {
+  const css = sheet.replace(/\/\*[\s\S]*?\*\//g, '');
+  const matches = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, head]) => splitSelectorList(head).includes(selector));
+  assert.equal(matches.length, 1, `${selector} needs one field focus rule`);
+  return matches[0][2];
+};
+const checkFieldFocus = (sheets) => {
+  assert.equal(FIELD_FOCUS.length, 4, 'text, textarea, select and Dropdown search are measured');
+  for (const [file, selector] of FIELD_FOCUS) {
+    const body = fieldFocusBody(sheets[file], selector);
+    assert.match(body, /border-color:\s*transparent\s*;/, `${selector} hides its own border ink`);
+    assert.match(body, /outline:\s*var\(--ring\)/, `${selector} keeps the kit ring`);
+    assert.match(body, /outline-offset:\s*var\(--ring-offset\)/, `${selector} keeps the gap`);
+  }
+};
+
+test('focused fields keep one ring with a transparent border', () => {
+  const sheets = Object.fromEntries([...new Set(FIELD_FOCUS.map(([file]) => file))]
+    .map((file) => [file, readFileSync(path.join(here, file), 'utf8')]));
+  checkFieldFocus(sheets);
+  for (const file of Object.keys(sheets)) {
+    const changed = { ...sheets, [file]: sheets[file].replace('border-color: transparent;', 'border-color: var(--field-edge);') };
+    assert.throws(() => checkFieldFocus(changed), /hides its own border ink/);
   }
 });

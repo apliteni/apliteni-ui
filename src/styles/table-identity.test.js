@@ -19,7 +19,8 @@ const dom = new JSDOM('<!doctype html><html lang="en"><head></head><body></body>
 for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLElement', 'Event']) {
   Object.defineProperty(globalThis, key, { value: dom.window[key] ?? dom.window, configurable: true, writable: true });
 }
-const { rowIdentity } = await import('../components/table-values.js');
+const { markup } = await import('../../stories/lib/react-markup.js');
+const rowIdentityHtml = await markup(({ h, kit }) => h(kit.RowIdentity, { symbol: 'NORT', name: 'Northstar Analytics Incorporated', href: '#company' }));
 
 const CSS = read('src/styles/table.css');
 const BROWSER_CSS = [
@@ -70,7 +71,7 @@ function mountAt(width, extra = '', css = CSS, includeFit = false) {
       <tr><th class="ui-table__identity" id="head" scope="col"><button type="button" class="rx-sort" id="sort">Company and registered trading name<svg class="rx-caret" id="caret"></svg></button></th><th class="ui-table__num">Price</th></tr>
     </thead>
     <tbody>
-      <tr><td class="ui-table__identity ui-table__linked" id="kit">${rowIdentity({ symbol: 'NORT', name: 'Northstar Analytics Incorporated', href: '#company' })}</td><td class="ui-table__num">1.00</td></tr>
+      <tr><td class="ui-table__identity ui-table__linked" id="kit">${rowIdentityHtml}</td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity ui-table__linked" id="bare"><a href="#company">Cedar Infrastructure Holdings International</a></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="direct"><a href="#company">Cedar Infrastructure Holdings International</a></td><td class="ui-table__num">1.00</td></tr>
       <tr><td class="ui-table__identity" id="plain">North region</td><td class="ui-table__num">1.00</td></tr>

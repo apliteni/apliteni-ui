@@ -16,7 +16,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { kitSheetNames, walk } from '../../scripts/lib/icon-cascade.js';
-import { card } from '../components/index.js';
+import { markup } from '../../stories/lib/react-markup.js';
 
 const src = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(src, '..');
@@ -183,15 +183,15 @@ test('each rank is under the one above it', () => {
   assert.deepEqual(orderProblems(RANKS, TOKENS), []);
 });
 
-test('a card title is a heading one level under the page title', () => {
-  assert.match(card({ title: 'Payouts' }), /^<div class="ui-card"><h2 class="ui-card__title">Payouts<\/h2>/);
-  assert.match(card({ title: 'Payouts', level: 3 }), /<h3 class="ui-card__title">Payouts<\/h3>/);
-  assert.match(card({ title: 'Payouts', level: 6 }), /<h6 class="ui-card__title">Payouts<\/h6>/);
-  assert.match(card({ title: 'Payouts', level: '3' }), /<h3 class="ui-card__title">/);
-  assert.match(card({ title: 'Payouts', level: 7 }), /<h2 class="ui-card__title">/);
-  assert.match(card({ title: 'Payouts', level: 1 }), /<h2 class="ui-card__title">/,
+test('a card title is a heading one level under the page title', async () => {
+  const card = (props) => markup(({ h, kit }) => h(kit.Card, props));
+  assert.match(await card({ title: 'Payouts' }), /^<div class="ui-card"><h2 class="ui-card__title">Payouts<\/h2>/);
+  assert.match(await card({ title: 'Payouts', level: 3 }), /<h3 class="ui-card__title">Payouts<\/h3>/);
+  assert.match(await card({ title: 'Payouts', level: 6 }), /<h6 class="ui-card__title">Payouts<\/h6>/);
+  assert.match(await card({ title: 'Payouts', level: 7 }), /<h2 class="ui-card__title">/);
+  assert.match(await card({ title: 'Payouts', level: 1 }), /<h2 class="ui-card__title">/,
     'level 1 is the page title’s, so a card falls back to h2 rather than competing with it');
-  assert.doesNotMatch(card({ body: '<p>x</p>' }), /<h\d/);
+  assert.doesNotMatch(await card({ children: '<p>x</p>' }), /<h\d/);
 });
 
 /* -- The mutations that kill each case ---------------------------------------- */

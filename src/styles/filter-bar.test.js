@@ -14,12 +14,12 @@
  */
 import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
-import { filterBar } from '../components/filter-bar.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
+import { markup } from '../../stories/lib/react-markup.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(path.join(here, rel), 'utf8');
@@ -72,9 +72,9 @@ const qualifiers = (compound) => (compound.match(/\[[^\]]+\]|:[\w-]+(?!\()/g) ??
 const subset = (small, big) => small.every((q) => big.includes(q));
 
 /* Read the rendered default action. Explicit consumer variants are outside this check. */
-const clear = JSDOM.fragment(filterBar({ filters: [{ id: 'sector', label: 'Sector' }] }))
+const clear = JSDOM.fragment(await markup(({ h, kit }) => h(kit.FilterBar, { filters: [{ id: 'sector', label: 'Sector', value: 'Retail' }] })))
   .querySelector('[data-filter-clear] button');
-assert.ok(clear, 'the factory must render a clear action');
+assert.ok(clear, 'the React FilterBar must render a clear action');
 const CLEAR_VARIANT = [...clear.classList].find(c => /^ui-btn--(?!sm$)/.test(c))?.slice('ui-btn--'.length);
 const CLEAR_SIZE = 'sm';
 

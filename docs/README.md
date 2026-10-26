@@ -4,7 +4,7 @@ The top-level [`README.md`](../README.md) is the quick start (install, use, publ
 deploy). These pages explain how each part works.
 
 ```
-@apliteni/apliteni-ui        the kit — tokens + component CSS + HTML-string factories   (src/)
+@apliteni/apliteni-ui        the kit — tokens + component CSS + shared helpers        (src/)
       ├── Storybook          the workbench where components are built and reviewed      (stories/, .storybook/)
       └── the public site    landing page + hosted Storybook + changelog                (site/)
 ```

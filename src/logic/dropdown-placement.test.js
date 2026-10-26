@@ -13,6 +13,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { filterPanelFit, DD_MENU_FLOOR, dropdownViewportFit } from './dropdown-placement.js';
 import { WIDTHS, SLACK } from '../../stories/lib/dropdown-contain.js';
 
@@ -387,3 +388,24 @@ test('this gate rejects a panel hung from its trigger and never measured', () =>
   assert.ok(outside.some((c) => c.left + c.width > c.view), 'no case clips at the view’s end');
 });
 
+
+/* -- The stylesheet half (moved from stories/dropdown-contain.test.js, #429) -- */
+const SHEET = readFileSync(new URL('../styles/dropdown.css', import.meta.url), 'utf8')
+  .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+
+test('the gap a panel keeps from the view\'s edge is one named number', () => {
+  // One declaration on the panel, and one phone override inside the 720px query: the page
+  // margin, which is the step the shell's own gutter takes at that width.
+  const declared = [...SHEET.matchAll(/--ui-dropdown-edge:\s*([^;]+);/g)].map((m) => m[1].trim());
+  assert.deepEqual(declared, ['8px', 'var(--space-4)'],
+    `dropdown.css declares --ui-dropdown-edge ${declared.length} times (${declared.join(', ') || 'never'}); `
+    + 'the fit and the width bound both read it, so a second gap is two different gaps for one panel');
+  assert.ok(/@media \(max-width: 720px\) \{[^{}]*\{[^{}]*--ui-dropdown-edge:\s*var\(--space-4\);/.exec(SHEET),
+    'the second declaration is the phone override, inside the 720px query');
+});
+
+test('the panel keeps the floor that makes a menu readable', () => {
+  const panel = SHEET.split(/\.ui-dropdown__panel\s*\{/)[1]?.split('}')[0] ?? '';
+  assert.match(panel, /min-width:\s*240px/,
+    'dropdown.css no longer floors .ui-dropdown__panel at 240px; the panel is moved, not narrowed (#549)');
+});

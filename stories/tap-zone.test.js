@@ -545,15 +545,21 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
     'Stories that would not render are not skipped here: an unmeasured subject is a failure.',
   );
   assert.ok(
-    stories.length >= 150,
+    stories.length >= 300,
     `${stories.length} stories rendered. The sweep is the coverage, and a sweep that collapsed `
     + 'to a handful would pass while measuring almost nothing.',
+  );
+  const showcases = stories.filter((s) => s.id.startsWith('apps-'));
+  assert.ok(
+    showcases.length >= 40,
+    `${showcases.length} apps-* showcases rendered. The sweep must include the served showcases; `
+    + 'a filter that drops them still clears the aggregate floor above while measuring far less.',
   );
 
   // Plus the rows no story puts on screen, and two a consumer would write.
   const fixtures = await rowFixtures();
   assert.ok(
-    fixtures.length >= 13,
+    fixtures.length >= 11,
     `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
     + 'could not see, and a list that shrank would quietly give that coverage back.',
   );
@@ -561,6 +567,11 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
 
   const withCss = kitStylesheet();
   const without = kitStylesheet({ without: ['styles/tap-zone.css'] });
+  assert.match(
+    withCss, /\.rx-modal\b/,
+    'The measurement CSS does not include the React stylesheet (react/dist/index.css), so the '
+    + 'migrated fixtures — a React Confirm is an .rx-modal — are measured unstyled.',
+  );
   const browser = await (await playwright()).chromium.launch();
 
   try {

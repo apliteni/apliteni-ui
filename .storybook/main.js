@@ -3,9 +3,7 @@ import { kitAlias } from '../react/kit-alias.ts';
 
 // The one Storybook (#429, PR 4): the React component catalogue and the foundation,
 // guideline and showcase pages, built with React and deployed to ui.apli.tech/storybook.
-// The vanilla story files stay on disk for the Node gates until the vanilla kit is
-// removed, but they are not in this build. The localhost ref to a second, React-only
-// Storybook is gone with the second Storybook's reason to exist.
+// The vanilla story files were removed with the vanilla kit in PR 5b.
 
 /** @type { import('@storybook/react-vite').StorybookConfig } */
 const config = {

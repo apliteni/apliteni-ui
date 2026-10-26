@@ -10,7 +10,7 @@
  * That is this gate's largest limit; the others are stated beside the tests
  * they belong to.
  *
- *   npm run build-storybook -w react
+ *   npm run build-storybook
  *   UI_PLAYWRIGHT=... CHART_TARGETS=1 node --test stories/chart-target.test.js
  *
  * why: docs/components.md#react-charts
@@ -201,7 +201,7 @@ test('this gate rejects a chart rule scoped too weakly to win', () => {
  * nowhere here. */
 const RUN = process.env.CHART_TARGETS === '1';
 const TARGET_MUTATION = process.env.CHART_TARGET_MUTATION || '';
-const BUILT = path.join(root, 'react/storybook-static');
+const BUILT = path.join(root, 'storybook-static');
 
 test(
   `every point of a sparkline answers a tap over its whole box at 390, coarse`,
@@ -218,7 +218,7 @@ test(
     );
     assert.ok(
       existsSync(path.join(BUILT, 'iframe.html')),
-      `${BUILT} holds no built Storybook. Run "npm run build-storybook -w react" first; a `
+      `${BUILT} holds no built Storybook. Run "npm run build-storybook" first; a `
       + 'measurement with nothing to measure is not a pass.',
     );
 
@@ -388,7 +388,7 @@ test(
     );
     assert.ok(
       existsSync(path.join(BUILT, 'iframe.html')),
-      `${BUILT} holds no built Storybook. Run "npm run build-storybook -w react" first; a `
+      `${BUILT} holds no built Storybook. Run "npm run build-storybook" first; a `
       + 'measurement with nothing to measure is not a pass.',
     );
 

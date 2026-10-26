@@ -127,7 +127,9 @@ const playsClass = (code, cls) => {
     const named = args.length > 1 ? (/^['"`]([\w-]+)['"`]$/.exec(args[1]) || [])[1] : ENTRANCE;
     if (named === cls) return true;
   }
-  return new RegExp(`classList\\.(?:add|toggle)\\([^)]*['"\`]${escRe(cls)}['"\`]`).test(code);
+  return new RegExp(`classList\\.(?:add|toggle)\\([^)]*['"\`]${escRe(cls)}['"\`]`).test(code)
+    // React writes a conditional class from state: `${entering ? ' is-entering' : ''}`.
+    || new RegExp(`\\$\\{[A-Za-z_$][\\w$]*\\s*\\?\\s*['"\`][^'"\`]*${escRe(cls)}`).test(code);
 };
 /** The element's own component scripts: the ones that name one of its classes. */
 const ownersOf = (part) => {

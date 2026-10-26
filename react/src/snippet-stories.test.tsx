@@ -74,22 +74,6 @@ describe('React Snippet stories copy what they display', () => {
     expect(measured).toHaveLength(13);
     expect(new Set(measured).size).toBe(10);
   });
-
-  // Comparison is the only story that renders both implementations, and
-  // copy={false} snippets have no button to click. Pairing the columns' code
-  // text covers those: the vanilla side is highlighted by hlShell from the
-  // source string, so matching text proves the React side shows that source.
-  it('shows the same code text in both Comparison columns', () => {
-    const story = modules['./Snippet.stories.tsx'].Comparison as Story;
-    const { container } = renderStory(story, modules['./Snippet.stories.tsx'].default);
-    const column = (label: string) => Array.from(
-      container.querySelectorAll(`section[aria-label="${label}"] .ui-snippet pre`),
-      pre => pre.textContent,
-    );
-    const vanilla = column('Vanilla');
-    expect(vanilla).toHaveLength(3);
-    expect(column('React')).toEqual(vanilla);
-  });
 });
 
 // Proof the comparison above rejects the failure it exists for: a caller whose

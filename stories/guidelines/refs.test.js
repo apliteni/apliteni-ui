@@ -5,8 +5,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
-import { guidelinePage } from './_layout.js';
-import { ThePage } from './ThePage.stories.js';
+import { mono } from './_layout.js';
 import * as thePage from './_the-page.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -44,22 +43,6 @@ const shapeProblems = (page, rule) => {
     problems.push(said('`except` is present but empty — leave it out instead'));
   }
 
-  if (rule.doHtml || rule.dontHtml) {
-    for (const [html, caption] of [['doHtml', 'doCaption'], ['dontHtml', 'dontCaption']]) {
-      if (!rule[html]) {
-        problems.push(said(`has a ${html === 'doHtml' ? "don't" : 'do'} but no \`${html}\``
-          + ' — a specimen pair is both halves or neither'));
-      } else if (!filled(rule[caption])) {
-        problems.push(said(`\`${caption}\` is what the picture cannot say — it cannot be empty`));
-      }
-    }
-    if (rule.why !== undefined && !filled(rule.why)) {
-      problems.push(said('`why` is present but empty — leave it out instead'));
-    }
-  } else if (!filled(rule.why) && !filled(rule.instruction)) {
-    problems.push(said('has no specimen pair, so it needs a `why` to stand on or an instruction'));
-  }
-
   return problems;
 };
 
@@ -86,9 +69,24 @@ const unmetProblems = (page, rule) => {
   return problems;
 };
 
+// A page rendered from its rule text alone, the way a reader reads it: the title
+// and every rule field through mono(), so the same markup the prose becomes.
+const renderRules = (title, rules, css = '') => {
+  const ruleHtml = (rule) => `<section class="gc-rule">`
+    + `<h2 class="gc-imperative">${mono(rule.imperative)}</h2>`
+    + (rule.instruction ? `<p class="gc-why">${mono(rule.instruction)}</p>` : '')
+    + (rule.why ? `<p class="gc-why">${mono(rule.why)}</p>` : '')
+    + (rule.doCaption ? `<div class="gc-cell__cap">${mono(rule.doCaption)}</div>` : '')
+    + (rule.dontCaption ? `<div class="gc-cell__cap">${mono(rule.dontCaption)}</div>` : '')
+    + (rule.unmet ? `<p class="gc-unmet"><span class="gc-except__label">Gap #${rule.unmet.issue}</span>${mono(rule.unmet.note)}</p>` : '')
+    + (rule.except ? `<p class="gc-except"><span class="gc-except__label">Except</span>${mono(rule.except)}</p>` : '')
+    + `</section>`;
+  return `<style>${css}</style><div class="gl gc"><h1>${mono(title)}</h1>${rules.map(ruleHtml).join('')}</div>`;
+};
+
 // The page guideline keeps its rule-to-code mapping beside its gate. Check what a
 // reader sees as well as the data, so moving a citation into prose still fails.
-const codeFreeProblems = (mod, html = guidelinePage({ title: mod.TITLE, rules: mod.RULES, css: mod.SPEC_CSS })) => {
+const codeFreeProblems = (mod, html = renderRules(mod.TITLE, mod.RULES, mod.SPEC_CSS)) => {
   const problems = [];
   if (mod.RULES.some((rule) => rule.kit !== undefined)) problems.push('a rule declares `kit`');
   const doc = JSDOM.fragment(html);
@@ -184,7 +182,7 @@ test('only The page declares code-free references', () => {
 });
 
 test('The page story renders no code references', () => {
-  assert.deepEqual(codeFreeProblems(thePage, ThePage.render()), []);
+  assert.deepEqual(codeFreeProblems(thePage), []);
 });
 
 test('a code-free page rejects citations moved into visible text', () => {
@@ -201,11 +199,9 @@ test('a code-free page rejects citations moved into visible text', () => {
     { imperative: 'Use card().' },
     { why: 'Use ui-app__sub.' },
     { why: 'Read the the-page gate.' },
-    { doHtml: () => '<div>Example</div>', dontHtml: () => '<div>Example</div>',
-      doCaption: 'Use appShell().', dontCaption: 'Avoid extra content.' },
+    { doCaption: 'Use appShell().', dontCaption: 'Avoid extra content.' },
     { why: 'Read docs/foundations.md.' },
-    { doHtml: () => '<div>Example</div>', dontHtml: () => '<div>Example</div>',
-      doCaption: 'Use --space-2.', dontCaption: 'Avoid custom spacing.' },
+    { doCaption: 'Use --space-2.', dontCaption: 'Avoid custom spacing.' },
   ]) {
     assert.ok(codeFreeProblems({ ...mod, RULES: [{ ...mod.RULES[0], ...extra }] }).length,
       `accepted code references: ${JSON.stringify(extra)}`);
@@ -241,35 +237,19 @@ test('a malformed `unmet` fails with a line a reader can act on', () => {
   assert.match(only({ issue: 128, note: '' }), /^Page\.js → rule "r" → unmet\n {5}/);
 });
 
-// Same reason as above: the pages are well formed, so the shape rules are
-// exercised here against rules that are not.
 test('a rule missing what the page renders fails with a line a reader can act on', () => {
   const of = (rule) => shapeProblems('Page.js', { id: 'r', ...rule });
-  const pair = { doHtml: () => '', dontHtml: () => '', doCaption: 'a', dontCaption: 'b' };
 
-  assert.deepStrictEqual(of({ imperative: 'Do the thing', why: 'because' }), [],
-    'an imperative and a why is a whole rule');
-  assert.deepStrictEqual(of({ imperative: 'Do the thing', instruction: 'Use one sentence.' }), [],
-    'an instruction can stand without a repeated explanation');
-  assert.match(of({ imperative: 'i', instruction: ' ' })[0], /needs a `why` to stand on/);
-  assert.deepStrictEqual(of({ imperative: 'Do the thing', ...pair }), [],
-    'an imperative and a pair is a whole rule');
-  assert.deepStrictEqual(of({ imperative: 'Do the thing', why: 'because', except: 'here' }), [],
+  assert.deepStrictEqual(of({ imperative: 'Do the thing' }), [],
+    'an imperative is a whole rule');
+  assert.deepStrictEqual(of({ imperative: 'Do the thing', except: 'here' }), [],
     'a boundary is allowed, not required');
 
   assert.match(of({ why: 'because' })[0], /`imperative` is the rule/);
-  assert.match(of({ imperative: 'i' })[0], /needs a `why` to stand on/);
-  assert.match(of({ imperative: 'i', why: '  ' })[0], /needs a `why` to stand on/);
-  assert.match(of({ imperative: 'i', why: 'w', except: '  ' })[0],
+  assert.match(of({ imperative: 'i', except: '  ' })[0],
     /`except` is present but empty — leave it out instead/);
-  assert.match(of({ imperative: 'i', ...pair, doCaption: '' })[0],
-    /`doCaption` is what the picture cannot say/);
-  assert.match(of({ imperative: 'i', dontHtml: () => '', dontCaption: 'b' })[0],
-    /has a don't but no `doHtml`/);
-  assert.match(of({ imperative: 'i', doHtml: () => '', doCaption: 'a' })[0],
-    /has a do but no `dontHtml`/);
 
-  assert.match(of({ imperative: 'i' })[0], /^Page\.js → rule "r" → /);
+  assert.match(of({ why: 'because' })[0], /^Page\.js → rule "r" → /);
 });
 
 // A page whose references all resolve is only meaningful if there were some.
@@ -284,7 +264,6 @@ test('the guidelines pages cite at least one line of kit code', async () => {
 
 // The shipping documents and rendered prose must stay together as the catalogue grows.
 import { parseGuideline, withSpecimens } from './_markdown.js';
-import { mono } from './_layout.js';
 const markdownDir = path.join(root, 'guidelines');
 const sourceReference = /(?:\b(?:src|stories|react|docs)\/|\b[\w-]+\.(?:css|[cm]?js|tsx?|md)(?::\d+)?\b)/;
 const plain = (text) => JSDOM.fragment(mono(text)).textContent;
@@ -303,7 +282,7 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     const parsed = parseGuideline(document);
     assert.equal(mod.TITLE, parsed.title);
     assert.equal(mod.BLURB, parsed.blurb);
-    const fragment = JSDOM.fragment(guidelinePage({ title: mod.TITLE, rules: mod.RULES }));
+    const fragment = JSDOM.fragment(renderRules(mod.TITLE, mod.RULES));
     const rendered = [...fragment.querySelectorAll('.gc-rule')];
     assert.equal(rendered.length, parsed.rules.length);
     parsed.rules.forEach((rule, index) => {
@@ -325,84 +304,15 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   assert.equal(count, 139, 'update the rule count when adding or removing a rule');
 });
 
-// The checkable half of "Show, less tell" (AGENTS.md#the-guidelines-collection). A rule the page
-// does not draw has only its words, so it must at least say why the rule exists;
-// the clause about a `Why` earning its place is a reviewer's call and is not here.
-//
-// The count is asserted so a page cannot leave the walk unnoticed — the gate that
-// found nothing is the gate that passes everything.
-test('a rule with no specimen pair carries a Why, and every page is in the count', async () => {
-  const content = pages.filter(file => file.startsWith('_') && !['_layout.js', '_markdown.js', '_overview.js'].includes(file));
-  const pairless = [];
-  const silent = [];
-  for (const file of content) {
-    const mod = await import(path.join(here, file));
-    for (const rule of mod.RULES) {
-      if (rule.doHtml || rule.dontHtml) continue;
-      pairless.push(`${file}:${rule.id}`);
-      if (typeof rule.why !== 'string' || rule.why.trim() === '') {
-        silent.push(`${file} → ${rule.id} draws nothing and says no why — give the reader the reason`);
-      }
-    }
-  }
-  // 46 -> 47: #513's `pinned-identity-sub-lines`. It draws nothing because the rule only
-  // bites below 720px, and a specimen cannot set the viewport a media query reads, so both
-  // halves would draw the desktop line and neither would show the spill. Its `Why` names
-  // that, as AGENTS.md#the-guidelines-collection asks of a text-only rule.
-  // 47 -> 48: #608's `selected-forced-colours`. A specimen cannot switch forced colours on,
-  // and its `Why` says so.
-  assert.equal(pairless.length, 48, 'update the pairless-rule count when a rule gains or loses a specimen pair');
-  assert.deepStrictEqual(silent, []);
-});
-
-test('the pairless-Why check rejects a rule that draws nothing and explains nothing', () => {
-  const judge = (rules) => rules
-    .filter((rule) => !(rule.doHtml || rule.dontHtml))
-    .filter((rule) => typeof rule.why !== 'string' || rule.why.trim() === '')
-    .map((rule) => rule.id);
-  assert.deepStrictEqual(judge([{ id: 'bare' }]), ['bare']);
-  assert.deepStrictEqual(judge([{ id: 'blank', why: '   ' }]), ['blank']);
-  assert.deepStrictEqual(judge([{ id: 'said', why: 'because' }]), []);
-  assert.deepStrictEqual(judge([{ id: 'drawn', doHtml: () => '', dontHtml: () => '' }]), []);
-});
-
-test('all Storybook guideline prose is free of source references, including appendices', async () => {
-  for (const file of pages.filter(file => file.endsWith('.stories.js'))) {
-    const mod = await import(path.join(here, file));
-    for (const [name, story] of Object.entries(mod)) {
-      if (name === 'default') continue;
-      const fragment = JSDOM.fragment(story.render());
-      fragment.querySelectorAll('style').forEach(el => el.remove());
-      assert.doesNotMatch(fragment.textContent, sourceReference, file);
-    }
-  }
-});
-
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {
   const source = '# Example\n\nA summary.\n\n## Keep <words> readable.\n\n<!-- rule: text -->\n\n**Why:** Use `--text`.\n';
-  const render = source => guidelinePage({ title: 'Example', rules: withSpecimens(parseGuideline(source).rules, [{ id: 'text' }]) });
+  const render = source => renderRules('Example', withSpecimens(parseGuideline(source).rules, [{ id: 'text' }]));
   assert.ok(JSDOM.fragment(render(source)).textContent.includes('Keep <words> readable.'));
   assert.ok(JSDOM.fragment(render(source.replace('readable', 'clear'))).textContent.includes('Keep <words> clear.'));
   assert.throws(() => withSpecimens(parseGuideline(source).rules, [{ id: 'other' }]), /ids must match/);
   assert.throws(() => parseGuideline(source + '\n**Typo:** Missing field\n'), /Unsupported/);
   for (const bad of ['Read src/example.js:12.', 'See example.css.', 'Open ' + ['docs', 'example.md'].join('/') + '.']) assert.match(bad, sourceReference);
 });
-
-test('Storybook renders each Markdown page title', async () => {
-  for (const file of pages.filter(file => file.endsWith('.stories.js') && file !== 'Overview.stories.js')) {
-    const mod = await import(path.join(here, file));
-    const story = Object.entries(mod).find(([name]) => name !== 'default')[1];
-    const fragment = JSDOM.fragment(story.render());
-    const title = fragment.querySelector('h1').textContent;
-    const document = readdirSync(markdownDir).filter(file => file.endsWith('.md'))
-      .map(file => parseGuideline(readFileSync(path.join(markdownDir, file), 'utf8')))
-      .find(document => document.title === title);
-    assert.ok(document, `no Markdown for ${title}`);
-
-
-  }
-});
-
 
 test('packaged guideline subpaths resolve and contain the shared document', () => {
   for (const file of readdirSync(markdownDir).filter(file => file.endsWith('.md'))) {

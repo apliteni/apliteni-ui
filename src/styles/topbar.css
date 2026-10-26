@@ -216,8 +216,8 @@
 @media (forced-colors: active) {
   .vopt:hover { border: 1px solid Highlight; padding: 9px 12px; }
 }
-/* The row is a keyboard stop: src/components/dropdown.js:1005
-   `items[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
+/* The row is a keyboard stop: react/src/Dropdown.tsx:758
+   `els[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
    the arrow keys, and this is one. It takes the ring on its own 10px radius, the
    same way `.amenu a` above does. #482 */
 .vopt:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }

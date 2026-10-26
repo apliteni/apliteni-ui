@@ -61,7 +61,7 @@ const SWEEP: Any = await sweepAll(BUNDLE);
 const MUTATED: Any = await sweepAll(MUTATED_BUNDLE);
 
 // Measured when this gate was written: every React story mounts.
-const STORIES_FLOOR = 353;
+const STORIES_FLOOR = 352;
 
 describe('the React bundle over the kit: React stories', () => {
   it('every re-emitted kit sheet a cascade can rank is exercised by the walk', () => {

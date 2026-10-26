@@ -1,16 +1,14 @@
 # Components (`@apliteni/apliteni-ui`)
 
-A framework-agnostic **HTML + CSS** design system. It provides design tokens, one stylesheet per
-component, and factory functions that return HTML strings.
+A design system of tokens, one stylesheet per component, and React components. The root entry
+publishes the helpers the React components share — `icon`, `prism`, `sun`, `moon`, `brand`,
+`esc`, `safeUrl`, the motion helpers and the shared logic.
 
 ```js
-import { button } from '@apliteni/apliteni-ui';
-button({ label: 'Save', variant: 'primary' });
-// → '<button type="button" class="ui-btn ui-btn--primary"><span>Save</span></button>'
+import { icon } from '@apliteni/apliteni-ui';
+icon('check');
+// → '<svg viewBox="0 0 24 24" …>'
 ```
-
-The factories return strings, not components. A server that renders HTML can use the kit without
-a rewrite. Storybook renders the same strings for review.
 
 This page describes what ships, what to import, every published name, and what each component
 promises. [foundations.md](foundations.md) covers the other half: the tokens and the floors.
@@ -21,7 +19,7 @@ are in [react/README.md](../react/README.md).
 
 | Import | Use |
 |--------|-----|
-| `@apliteni/apliteni-ui` | The factories (`button`, `card`, `topbar`, …), with TypeScript declarations. |
+| `@apliteni/apliteni-ui` | The helpers and shared logic (`icon`, `prism`, `brand`, `esc`, `safeUrl`, …), with TypeScript declarations. |
 | `…/css` | The whole stylesheet, for bundler/browser builds. |
 | `…/inline` | CSS as **strings**, for server-render inlining (`tokensCss`, `topbarCss`, `cssText`, …). |
 | `…/tokens`, `…/accents` | Just the tokens / accent sub-themes. |
@@ -858,9 +856,6 @@ checkbox `label`; a snippet's code; a stat's `trend`; a brand `word`; a version 
 meta and custom badge; and `appShell()`'s `title`, `sub` and `body` plus the nested topbar slots.
 A nested option inherits the contract of the factory it invokes.
 
-The vanilla factories are **removal-bound** — see
-[What the kit does not do](#what-the-kit-does-not-do).
-
 ## React components
 
 The React wrapper publishes components over the same CSS. Its own notes are in
@@ -1207,8 +1202,6 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
 
 This is stated so nobody has to discover it by trying:
 
-- **No JavaScript framework.** The factories return HTML strings. Anything stateful is yours.
-  The React subpath wraps the same CSS rather than providing a second kit.
 - **No build step**, whose consequence is
   [breakpoints as literals](foundations.md#breakpoints).
 - **No density system.** `.ui-table--dense`, `.ui-table--compact` and `.ui-cmdk--roomy` are the
@@ -1220,9 +1213,6 @@ This is stated so nobody has to discover it by trying:
   a role and a tabindex, or an `<a>`, which you must rewrite as a `<button>` when it needs to
   work from the keyboard. Those class names are a supported surface.
 - **No support for a vertical writing mode.**
-- **The vanilla factories and initializers are removal-bound.** React components and their shared
-  logic, all CSS and tokens, the inline strings, the motion helpers, `esc`, `icon` and its name
-  tables, the brand marks and the Markdown guidelines all stay supported.
 
 ## Recipes
 

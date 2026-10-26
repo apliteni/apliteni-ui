@@ -1,5 +1,5 @@
-/* The rig behind stories/dropdown-contain.test.js: every dropdown the kit draws,
- * put in front of a real browser at four widths and both themes, and asked where
+/* The rig behind stories/dropdown-contain.test.js: every React story that draws a
+ * dropdown, put in front of a real browser at four widths and both themes, and asked where
  * its panel's two inline edges land — shut, and again with each trigger open.
  * Nothing is asserted here; the gate next door does the asserting.
  * why: docs/components.md#the-dropdown-panel
@@ -8,11 +8,9 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-// The same discovery the tap-zone and contrast walks use, asked rather than
-// copied: a component that gains a story is measured here the day it does.
-import { storySubjects, playwright } from './tap-zone.js';
+import { playwright } from './tap-zone.js';
 
-export { storySubjects, playwright };
+export { playwright };
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -26,13 +24,8 @@ export const THEMES = ['dark', 'light'];
  *  fractional CSS pixels, and a rect's own rounding is below this. */
 export const SLACK = 0.5;
 
-/* The page the vanilla subjects are injected into, served out of the checkout so
- * `/src/index.js` resolves to the working tree. Storybook's own build is not needed
- * for this half: a vanilla story IS its markup. */
-export const VANILLA_PAGE = path.join(root, 'stories/lib/dropdown-contain.html');
-
-/** A static server over one root, with our page at /__shot. Mirrors the evidence
- *  scripts' own helper. */
+/** A static server over one root. `page` is the server's own /__shot page, which
+ *  this rig never asks for: the stories are served as the build's iframe.html. */
 export const serve = (serveRoot, page) => new Promise((resolve, reject) => {
   const proc = spawn(process.execPath, [path.join(root, 'scripts/evidence/serve.mjs'), serveRoot, page]);
   proc.stdout.once('data', (d) => resolve({ port: Number(String(d).trim()), proc }));
@@ -44,29 +37,6 @@ export const serve = (serveRoot, page) => new Promise((resolve, reject) => {
  * where the in-place fit writes its answer, so refusing it is the state #572
  * reported: `left: 0` and `.is-end`'s `right: 0`, mirrored and unmeasured. */
 export const TRANSLATE_OFF = '[data-dropdown-panel] { translate: none !important; }';
-/* And the portal's half, which is arithmetic rather than a rule: the panel is
- * placed in viewport coordinates by positionPortalPanel(). This puts the
- * unclamped placement back — the trigger's own edge, mirrored for `.is-end` —
- * after every open, which is exactly what the branch replaced. */
-export const PORTAL_MIRROR = `(() => {
-  const mirror = () => {
-    for (const p of document.querySelectorAll('[data-dropdown-panel][data-dropdown-portal]')) {
-      const dd = p.__ddOwner;
-      const t = dd && dd.querySelector('[data-dropdown-trigger]');
-      if (!t || !dd.classList.contains('open')) continue;
-      const box = t.getBoundingClientRect();
-      if (p.classList.contains('is-end')) {
-        p.style.left = 'auto';
-        p.style.right = (window.innerWidth - box.right) + 'px';
-      } else {
-        p.style.right = 'auto';
-        p.style.left = box.left + 'px';
-      }
-    }
-  };
-  window.__ddMirror = mirror;
-})()`;
-
 /**
  * The measurement, as it runs in the page: one call per subject, with the opens
  * driven from inside it rather than from the test, which would cost a round trip
@@ -126,7 +96,6 @@ export const MEASURE = `async (subject) => {
     if (dd && dd.classList.contains('open')) { t.click(); await frame(); }
     t.click();
     await frame();
-    if (window.__ddMirror) window.__ddMirror();
     const open = sweep().map(read).filter((p) => p.open);
     /* Whether THIS trigger's panel opened, not how many are open: opening one
        closes every other, so counting them would read a swap as a silence. A
@@ -142,54 +111,6 @@ export const MEASURE = `async (subject) => {
   }
   return out;
 }`;
-
-/** The kit's own stylesheet list, for the page to load one <link> per sheet. */
-export const sheets = () => {
-  const index = readFileSync(path.join(root, 'src/index.css'), 'utf8');
-  return [...index.matchAll(/@import\s+["']\.\/([^"']+)["']/g)].map((m) => m[1]);
-};
-
-/** Every vanilla story's markup, measured in one live page per width and theme: the
- *  markup is injected and the kit's own `wireDropdown()` is called on it, which is
- *  where an in-place panel is fitted. Returns `{ rows, problems }`, the shape the
- *  React half returns: a subject whose markup holds a panel and whose measurement
- *  finds none is named rather than dropped, so a pass that comes back a row short
- *  says which story it was. */
-export async function vanillaPass(browser, port, { width, theme, subjects, mutation = null, script = null }) {
-  const ctx = await browser.newContext({ viewport: { width, height: 760 } });
-  const page = await ctx.newPage();
-  if (script) await page.addInitScript(script);
-  await page.goto(`http://127.0.0.1:${port}/__shot`);
-  await page.waitForFunction('window.kit && window.kit.wireDropdown');
-  await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
-  if (mutation) await page.addStyleTag({ content: mutation });
-  const rows = [];
-  const problems = [];
-  for (const s of subjects) {
-    const has = await page.evaluate((html) => {
-      // A fresh page per subject, portalled leftovers included: a panel moved onto
-      // the body outlives the markup that owned it.
-      document.body.innerHTML = '';
-      document.querySelectorAll('body > [data-dropdown-panel]').forEach((p) => p.remove());
-      const host = document.createElement('div');
-      host.innerHTML = html;
-      document.body.appendChild(host);
-      return !!document.querySelector('[data-dropdown-panel]:not(.ui-filter-bar *)');
-    }, s.html);
-    if (!has) continue;
-    await page.evaluate(() => {
-      window.kit.wireDropdown(document);
-      // The topbar's switcher and account menu are the same wiring in bespoke
-      // clothes, and they carry the same hooks. why: docs/components.md#the-dropdown-panel
-      if (window.kit.wireTopbar) document.querySelectorAll('.ui-topbar').forEach((el) => window.kit.wireTopbar(el));
-    });
-    const row = await page.evaluate(`(${MEASURE})(${JSON.stringify(s.id)})`);
-    if (row.shut.length) rows.push({ ...row, half: 'vanilla', width, theme });
-    else problems.push(`${s.id} at ${width}/${theme} → a panel in the markup and none to measure`);
-  }
-  await ctx.close();
-  return { rows, problems };
-}
 
 /** Every story in a built Storybook index, as { id, label }. */
 export const indexed = (dir) => Object.values(
@@ -318,16 +239,13 @@ export const where = (p) => `${p.half} ${p.width}/${p.theme} ${p.state} “${p.s
  * why: docs/components.md#the-dropdown-panel */
 
 /** A fabricated filename, long enough that no placement can hold the panel its row
- *  asks for: 508px in the vanilla layer and 548px in React, on a 390px screen. */
+ *  asks for: 548px in React, on a 390px screen. */
 export const LONG_LABEL = 'Invoice_2026_September_Consolidated_International_Operations_Export.csv';
 
-/* The width bound's two declarations, refused separately: each answers for one
- * placement and neither covers the other. The bound holds a portalled panel, whose
- * room is the whole view; the wrap holds an in-place one, whose room is its
- * trigger's block, and keeps the token inside the panel's own box. Refused, the
- * first takes the full 390px of a 390px screen and the second widens the page to
- * 497px. why: docs/components.md#the-dropdown-panel */
-export const CEILING_OFF = '[data-dropdown-panel] { max-width: none !important; }';
+/* The wrap keeps a long token inside an in-place panel's own box, whose room is its
+ * trigger's block. Refused, it widens the page to 497px. The width bound answers
+ * for a portalled panel, which the fixture story does not render, so no arm here
+ * refuses it. why: docs/components.md#the-dropdown-panel */
 export const WRAP_OFF = '[data-dropdown-panel] { overflow-wrap: normal !important; }';
 
 /** The mutation observer taken away: then nothing reports a move that resizes
@@ -414,10 +332,10 @@ const settle = (page) => page.evaluate(() => new Promise((done) => {
  *  copy of it here: a transition starting anywhere in the page arms it, and a fired
  *  one re-fits every panel. */
 export const settleMs = () => {
-  const src = readFileSync(path.join(root, 'src/components/dropdown.js'), 'utf8');
-  const found = src.match(/DD_SETTLE_MS\s*=\s*(\d+)/);
+  const src = readFileSync(path.join(root, 'react/src/Dropdown.tsx'), 'utf8');
+  const found = src.match(/SETTLE_MS\s*=\s*(\d+)/);
   if (!found) {
-    throw new Error('no DD_SETTLE_MS in src/components/dropdown.js. The fixtures below wait that '
+    throw new Error('no SETTLE_MS in react/src/Dropdown.tsx. The fixtures below wait that '
       + 'timer out before they move anything, and a wait taken from a stale copy of the number '
       + 'would put the race back.');
   }
@@ -455,145 +373,6 @@ const quiet = async (page) => {
   await page.waitForTimeout(motionWait(settleMs()));
 };
 
-/** The five cases in the vanilla layer, each injected into /__shot and wired by
- *  the kit itself. Returns one row per reading. */
-export async function vanillaEdgeCases(browser, port, {
-  width = 390, theme = 'light', mutation = null, script = null, motionMs = MOTION_MS,
-} = {}) {
-  const ctx = await browser.newContext({ viewport: { width, height: 600 } });
-  const page = await ctx.newPage();
-  if (script) await page.addInitScript(script);
-  await page.goto(`http://127.0.0.1:${port}/__shot`);
-  await page.waitForFunction('window.kit && window.kit.wireDropdown');
-  await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
-  if (mutation) await page.addStyleTag({ content: mutation });
-  const rows = [];
-  const reading = async (name, state) => {
-    rows.push({ case: name, state, half: 'vanilla', ...await page.evaluate(`(${READ})()`) });
-  };
-
-  // 1. A row that reorders itself under an open panel, and is left that way.
-  await page.evaluate((long) => {
-    document.body.innerHTML = `<div id="row" style="display:flex;justify-content:flex-start;`
-      + `align-items:center;width:100%">${window.kit.dropdown({
-        value: 'Period', variant: 'menu', ariaLabel: 'Period', align: 'end',
-        items: [{ label: 'Settings' }, { label: 'Billing' }],
-      })}</div>`;
-    window.kit.wireDropdown(document);
-    window.__long = long;
-  }, LONG_LABEL);
-  await openTrigger(page);
-  await settle(page);
-  await quiet(page);
-  await reading('a row that reorders', 'open');
-  await page.evaluate(() => { document.querySelector('#row').style.justifyContent = 'flex-end'; });
-  await settle(page);
-  await reading('a row that reorders', 'open, moved');
-  await page.keyboard.press('Escape');
-  await settle(page);
-  await reading('a row that reorders', 'shut after the move');
-
-  // 2. An ancestor scrolled sideways, carrying the trigger with it.
-  await page.evaluate(() => {
-    document.body.innerHTML = `<div id="scroller" style="width:100%;height:300px;overflow:auto">`
-      + `<div style="width:800px;padding-left:260px">${window.kit.dropdown({
-        value: 'Period', variant: 'menu', ariaLabel: 'Period',
-        items: [{ label: 'Settings' }, { label: 'Billing' }],
-      })}</div></div>`;
-    window.kit.wireDropdown(document);
-  });
-  await openTrigger(page);
-  await settle(page);
-  await quiet(page);
-  await reading('an ancestor scrolled sideways', 'open');
-  await page.evaluate(() => { document.querySelector('#scroller').scrollLeft = 250; });
-  await settle(page);
-  await reading('an ancestor scrolled sideways', 'open, scrolled');
-  /* And shut, with the scroll put back where it started. The close fitted the
-     panel where the trigger then was, and scrolling back moves it again with
-     nothing open: a shut panel is laid out, so that is the page's width. The
-     vanilla half answered only the open panel on a scroll and left this one at
-     258…498 of 390; React has always answered both. */
-  await page.keyboard.press('Escape');
-  await settle(page);
-  await quiet(page);
-  await page.evaluate(() => { document.querySelector('#scroller').scrollLeft = 0; });
-  await settle(page);
-  await reading('an ancestor scrolled sideways', 'shut, scrolled back');
-
-  /* 3. A row whose own label is longer than the screen, in both placements: an
-        in-place panel is bounded by the room beside its offsets and a portalled one
-        has the whole view for that, so the two are bounded by different halves of
-        the rule and each needs measuring. */
-  for (const portal of [false, true]) {
-    await page.evaluate((isPortal) => {
-      document.querySelectorAll('body > [data-dropdown-panel]').forEach((p) => p.remove());
-      document.body.innerHTML = window.kit.dropdown({
-        value: 'Export', variant: 'menu', ariaLabel: 'Export', portal: isPortal,
-        items: [{ label: window.__long }, { label: 'Billing' }],
-      });
-      window.kit.wireDropdown(document);
-    }, portal);
-    await settle(page);
-    const where = portal ? 'portalled' : 'in place';
-    await reading('a label longer than the screen', `${where}, shut`);
-    await openTrigger(page);
-    await settle(page);
-    await reading('a label longer than the screen', `${where}, open`);
-  }
-
-  /* 4. A sibling TEXT NODE that grows under an open panel. Nothing the fit reads
-        changes size — not the trigger, not the panel — and no child list and no
-        attribute changes either: the row re-lays itself out around a longer text
-        run, and the only record of it is the text node's own. */
-  await page.evaluate(() => {
-    document.querySelectorAll('body > [data-dropdown-panel]').forEach((p) => p.remove());
-    document.body.innerHTML = '<div id="row" style="display:flex;align-items:center;width:100%">'
-      + '<span id="grow" style="white-space:pre;font-family:monospace;font-size:10px">a</span>'
-      + window.kit.dropdown({
-        value: 'Period', variant: 'menu', ariaLabel: 'Period',
-        items: [{ label: 'Settings' }, { label: 'Billing' }],
-      })
-      + '</div>';
-    window.kit.wireDropdown(document);
-  });
-  await openTrigger(page);
-  await settle(page);
-  await quiet(page);
-  await reading('a sibling text node that grows', 'open');
-  await page.evaluate((n) => { document.querySelector('#grow').firstChild.data = 'a'.repeat(n); }, GROWN_TEXT);
-  await settle(page);
-  await reading('a sibling text node that grows', 'open, text grown');
-
-  /* 5. A trigger slid by a transition, read where the motion STOPS. The style
-        write that starts it is a mutation measured in the frame it lands, when the
-        trigger has not moved yet, so the first reading is already correct and the
-        second is the one that can be stale — for good, not for the length of the
-        transition. */
-  await page.evaluate((ms) => {
-    document.body.innerHTML = '<div id="row" style="display:block;width:100%">'
-      + window.kit.dropdown({
-        value: 'Period', variant: 'menu', ariaLabel: 'Period',
-        items: [{ label: 'Settings' }, { label: 'Billing' }],
-      })
-      + '</div>';
-    window.kit.wireDropdown(document);
-    document.querySelector('.ui-dropdown').style.transition = `transform ${ms}ms linear`;
-  }, motionMs);
-  await openTrigger(page);
-  await settle(page);
-  await quiet(page);
-  await reading('a trigger slid by a transition', 'open');
-  await page.evaluate(() => {
-    document.querySelector('.ui-dropdown').style.transform = 'translateX(220px)';
-  });
-  await page.waitForTimeout(motionWait(motionMs));
-  await reading('a trigger slid by a transition', 'open, motion settled');
-
-  await ctx.close();
-  return rows;
-}
-
 /** The same five in React, against a shipped story. The row is the story's own
  *  `Ends`; the scroller is wrapped around the Storybook root, which React does not
  *  own; the long label replaces the text of a rendered row, which is how the review
@@ -626,8 +405,15 @@ export async function reactEdgeCases(browser, port, {
     await settle(page);
   };
 
+  /* Storybook centres the story and wraps it to its content, so a row fills only
+     itself and a move along it is a few pixels. Full width makes the move real. */
+  const fill = () => page.evaluate(() => {
+    document.querySelector('#storybook-root').style.width = '100%';
+  });
+
   // 1. The story's own flex row, told to hold its children at the other end.
   await open();
+  await fill();
   await openTrigger(page);
   await settle(page);
   await quiet(page);
@@ -710,6 +496,7 @@ export async function reactEdgeCases(browser, port, {
         left over from any earlier reading walks it off the end of the view, where
         an end-aligned panel would have walked back towards the middle. */
   await open();
+  await fill();
   await page.evaluate((ms) => {
     const menus = document.querySelectorAll('.ui-dropdown');
     const dd = menus[1] || menus[0];
@@ -745,129 +532,3 @@ export const broken = (list) => list.filter((r) => r.left < -SLACK
 /** A line a reader can act on. */
 export const whereCase = (r) => `${r.half} “${r.case}” ${r.state}`
   + ` → ${r.left}…${r.right} of ${r.view}, width ${r.width} of ${r.bound}, page ${r.scrollWidth}, label clipped ${r.clippedLabel}`;
-
-/** Fixed geometry covers the height floor. The story sweep above discovers width cases. */
-export async function portalFloorCase(browser, port, {
-  width = 390, height = 844, theme = 'light', portal = true, screenshot, refuseFlip = false,
-} = {}) {
-  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
-  try {
-    if (refuseFlip) await page.addInitScript(() => {
-      const toggle = DOMTokenList.prototype.toggle;
-      DOMTokenList.prototype.toggle = function (token, ...args) {
-        return token === 'is-up' ? this.contains(token) : toggle.call(this, token, ...args);
-      };
-    });
-    await page.goto(`http://127.0.0.1:${port}/__shot`);
-    await page.waitForFunction(() => window.kit?.wireDropdown);
-    await page.evaluate(({ theme, portal }) => {
-      document.documentElement.dataset.theme = theme;
-      document.body.innerHTML = '<main style="padding:24px"><h1>Menu actions</h1></main>'
-        + `<div id="anchor" style="position:absolute;left:24px;top:0">${window.kit.dropdown({
-          value: 'Actions', variant: 'menu', portal,
-          items: Array.from({ length: 12 }, (_, i) => ({ label: `Action ${i + 1}` })),
-        })}</div>`;
-      const trigger = document.querySelector('[data-dropdown-trigger]');
-      document.querySelector('#anchor').style.top = `${innerHeight - 36 - trigger.offsetHeight}px`;
-      window.kit.wireDropdown(document);
-      trigger.click();
-    }, { theme, portal });
-    await page.evaluate(() => document.fonts.ready);
-    await page.waitForTimeout(350);
-    if (screenshot) await page.screenshot({ path: screenshot });
-    return await page.evaluate(() => {
-      const panel = document.querySelector('[data-dropdown-panel]');
-      const last = panel.querySelector('[data-dd-item]:last-child');
-      panel.scrollTop = panel.scrollHeight;
-      if (!panel.hasAttribute('data-dropdown-portal')) window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
-      const row = last.getBoundingClientRect();
-      const x = (row.left + row.right) / 2;
-      const hit = (y) => last.contains(document.elementFromPoint(x, y));
-      return {
-        up: panel.classList.contains('is-up'),
-        reachable: row.top >= 0 && row.bottom <= innerHeight && hit(row.top + 1) && hit(row.bottom - 1),
-        documentHeight: document.documentElement.scrollHeight,
-        viewportHeight: innerHeight, rowTop: row.top, rowBottom: row.bottom,
-      };
-    });
-  } finally {
-    await page.close();
-  }
-}
-
-/* The first open after the side changes, sampled frame by frame: the panel has to
- * arrive from its trigger, so its translateY starts on that side (positive when it
- * opens upward) and ends at 0. `keepTransition` swallows the wiring's switch-off of
- * the panel's transition, which is the fix taken away. */
-export async function entranceCase(browser, port, { portal = true, keepTransition = false } = {}) {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
-  try {
-    const errors = [];
-    page.on('pageerror', (e) => errors.push(String(e)));
-    if (keepTransition) await page.addInitScript(() => {
-      // Chromium gives every style object its own `transition` accessor, so the
-      // refusal sits on the `style` getter: a write of `none` is dropped, the rest passes.
-      const get = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'style')?.get
-        || Object.getOwnPropertyDescriptor(Element.prototype, 'style')?.get;
-      if (!get) throw new Error('no style getter to wrap');
-      const owner = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'style') ? HTMLElement.prototype : Element.prototype;
-      const wrapped = new WeakMap();
-      Object.defineProperty(owner, 'style', {
-        configurable: true,
-        get() {
-          const target = get.call(this);
-          if (!wrapped.has(target)) {
-            wrapped.set(target, new Proxy(target, {
-              get(t, k) { const v = Reflect.get(t, k, t); return typeof v === 'function' ? v.bind(t) : v; },
-              set(t, k, v) { if (k === 'transition' && v === 'none') return true; return Reflect.set(t, k, v, t); },
-            }));
-          }
-          return wrapped.get(target);
-        },
-      });
-    });
-    await page.goto(`http://127.0.0.1:${port}/__shot`);
-    await page.waitForFunction(() => window.kit?.wireDropdown);
-    const got = await page.evaluate(async ({ portal }) => {
-      document.body.innerHTML = '<main style="padding:24px"><h1>Menu actions</h1></main>'
-        + `<div id="anchor" style="position:absolute;left:24px;top:0">${window.kit.dropdown({
-          value: 'Actions', variant: 'menu', portal,
-          items: Array.from({ length: 12 }, (_, i) => ({ label: `Action ${i + 1}` })),
-        })}</div>`;
-      await document.fonts.ready;
-      const trigger = document.querySelector('[data-dropdown-trigger]');
-      const anchor = document.querySelector('#anchor');
-      window.kit.wireDropdown(document);
-      const frames = () => new Promise((done) => {
-        const panel = document.querySelector('[data-dropdown-panel]');
-        const ys = [];
-        const tick = () => {
-          const m = new DOMMatrix(getComputedStyle(panel).transform);
-          ys.push(m.m42);
-          if (ys.length < 6) requestAnimationFrame(tick);
-          else done(ys);
-        };
-        requestAnimationFrame(tick);
-      });
-      const settle = () => new Promise((r) => setTimeout(r, 600));
-      const out = [];
-      for (const place of ['bottom', 'top', 'bottom']) {
-        anchor.style.top = place === 'bottom' ? `${innerHeight - 36 - trigger.offsetHeight}px` : '0px';
-        await settle();
-        trigger.click();
-        const panel = document.querySelector('[data-dropdown-panel]');
-        const up = panel.classList.contains('is-up');
-        const ys = await frames();
-        const opened = panel.classList.contains('is-open') || !!trigger.closest('.ui-dropdown')?.classList.contains('open');
-        out.push({ place, up, opened, ys });
-        trigger.click();
-        await settle();
-      }
-      return out;
-    }, { portal });
-    if (errors.length) throw new Error(`page errors during the entrance probe: ${errors.join('; ')}`);
-    return got;
-  } finally {
-    await page.close();
-  }
-}

@@ -94,8 +94,9 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
  * that installed the package, and it was the one nothing watched. The count is
  * asserted because a loader that stops being found stops being checked, and an
  * empty sweep passes as loudly as a full one. */
-// The React preview now loads the same faces as the vanilla preview. The
-// fourteenth is scripts/evidence/focus.html (#482, the keyboard focus rig): a ring
+// The React preview now loads the same faces as the vanilla preview, so it was
+// not a separate loader; with one Storybook (#429 PR 5b) the react preview is gone.
+// The fourteenth is scripts/evidence/focus.html (#482, the keyboard focus rig): a ring
 // is shot around real type, and in the fallback faces it would be a ring around a
 // different control. It returns to 13 if that rig is ever deleted.
 // The fifteenth is scripts/evidence/levels.html, the #490 producer's shot page.
@@ -117,7 +118,7 @@ const familiesIn = (query) => [...query.matchAll(/family=([^&:]+)(?::wght@([^&]*
 // The twenty-first is scripts/evidence/tones.html (#453, the badge and callout tone
 // family): the chips are small type on a soft fill, so the faces are part of what
 // the shot is of.
-const EXPECTED_LOADERS = 21;
+const EXPECTED_LOADERS = 20;
 
 test('every page that loads a font loads every family the tokens name', () => {
   const want = webfonts();

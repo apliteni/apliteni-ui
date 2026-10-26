@@ -1,5 +1,4 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { badge } from '../../src/components/index.js';
 
 // Render inline code and token names without interpreting prose as HTML.
 const escape = (text) => String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
@@ -53,7 +52,7 @@ export const SPEC_CSS = `
  * thing guidelines/the-page.md says never to do.
  *
  * Exported because the Overview is a guideline page too and is not drawn by
- * guidelinePage(). It is the ground, not a layout: what stands on it is the
+ * GuidelinePage(). It is the ground, not a layout: what stands on it is the
  * caller's.
  *
  * Held by stories/guidelines/reading-surface.test.js.
@@ -95,59 +94,3 @@ export const PAGE_CSS = `
     .gc-unmet { margin: var(--space-2) 0 0; font: 400 12.5px/1.65 var(--font-sans); color: var(--text);
       max-width: var(--prose-dense); }
   </style>`;
-
-const doBadge = () => badge('Do', 'live');
-const dontBadge = () => badge('Don’t', 'danger');
-
-// data-specimen names which half a cell is, so a gate that measures specimens
-// can leave the don'ts out: stories/drawer-rules.test.js reads it.
-const cell = (kind, badgeHtml, caption, html) => `
-  <div class="gc-cell" data-specimen="${kind}">
-    <div>${badgeHtml}</div>
-    ${html}
-    <div class="gc-cell__cap">${mono(caption)}</div>
-  </div>`;
-
-// A rule's `why` renders whether or not it has a specimen pair. It used not to:
-// the pair and the why were alternatives, so a rule that set both showed only
-// the pair and its reasoning reached nobody. Twenty of them were in that state,
-// written and reviewed and invisible — found in #219, whose own why would have
-// been the twenty-first.
-const whyLine = (rule) => (rule.why ? `
-  <p class="gc-why">${mono(rule.why)}</p>` : '');
-
-const figure = (rule) => (rule.doCaption ? `
-  <div class="gc-pair">
-    ${cell('do', doBadge(), rule.doCaption, rule.doHtml?.() || '')}
-    ${cell('dont', dontBadge(), rule.dontCaption, rule.dontHtml?.() || '')}
-  </div>
-  ` : '');
-
-// Guarded because an unguarded version rendered "Except undefined", and two
-// page authors met that and invented a boundary to get rid of it.
-const exceptLine = (rule) => (rule.except ? `
-  <p class="gc-except"><span class="gc-except__label">Except</span>${mono(rule.except)}</p>` : '');
-
-// Labelled like the boundary beside it: the two paragraphs are the same type at the
-// same size, so an unlabelled one reads as a trailing sentence of the rule with a
-// stray number on the end. The issue goes in the label, where the field is named.
-const unmetLine = (rule) => (rule.unmet ? `
-  <p class="gc-unmet"><span class="gc-except__label">Gap #${rule.unmet.issue}</span>${mono(rule.unmet.note)}</p>` : '');
-
-const ruleBlock = (rule) => `
-  <section class="gc-rule">
-    <h2 class="gc-imperative">${mono(rule.imperative)}</h2>
-    ${rule.instruction ? `<p class="gc-why">${mono(rule.instruction)}</p>` : ''}
-    ${whyLine(rule)}
-    ${figure(rule)}
-    ${unmetLine(rule)}
-    ${exceptLine(rule)}
-  </section>`;
-
-// Every rule page is drawn here, so putting the collection on the reading surface
-// is this one call and no page's business.
-export const guidelinePage = ({ title, blurb, rules, css = '' }) => `${SPEC_CSS}${GROUND_CSS}${PAGE_CSS}${css}${ground(`
-  <div class="gl gc">
-    <h1>${mono(title)}</h1>
-    ${rules.map(ruleBlock).join('')}
-  </div>`)}`;

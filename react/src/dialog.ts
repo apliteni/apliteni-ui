@@ -20,9 +20,9 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
 // reader on <body>, outside it. Tab is the stricter of the two questions and it is the one
 // asked here, because the same list decides where the dialog opens and where the trap
 // wraps: opening on a control Tab cannot reach strands the reader at the first keystroke.
-// The vanilla overlay asks a narrower version of the same question —
-// src/components/overlay.js:37 `function reachable(el)` — and the React layer could not
-// reuse it in any case: it is internal to the kit and no export reaches it.
+// The vanilla overlay asked a narrower version of the same question, and the
+// React layer could not reuse it in any case: it was internal to the kit and no
+// export reached it.
 function tabbable(el: HTMLElement) {
   // A negative tabindex is focusable to a script and skipped by Tab, whatever the element,
   // and `disabled` on an ancestor fieldset disables a control without the attribute ever

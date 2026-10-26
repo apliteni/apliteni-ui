@@ -46,8 +46,6 @@ for (const key of ['window', 'document', 'navigator', 'Node', 'Element', 'HTMLEl
   Object.defineProperty(globalThis, key, { value: dom.window[key] ?? dom.window, configurable: true, writable: true });
 }
 
-const { dropdown, wireDropdown } = await import('../src/components/dropdown.js');
-const { confirm } = await import('../src/components/confirm.js');
 const { markup, liveMarkup } = await import('./lib/react-markup.js');
 
 // The React components, opened the way each one opens: a dropdown, the version menu and
@@ -107,23 +105,8 @@ function mount(html) {
 }
 
 /**
- * Opened by the kit's own wiring, with the key that opens it — so what is checked is
- * the state openDropdown() leaves behind and not a class this file wrote. The three
- * panels below are one implementation: `[data-dropdown] > [data-dropdown-trigger] +
- * [data-dropdown-panel]`, `.open` on the container.
+ * `.open` written by the wiring, asserted rather than assumed.
  */
-function openedByKey(html, panel) {
-  const host = mount(html);
-  wireDropdown(host);
-  const trigger = host.querySelector('[data-dropdown-trigger]');
-  trigger.focus();
-  trigger.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
-  const surface = (panel === '[data-dropdown-panel]' ? dom.window.document : host).querySelector(panel);
-  assert.ok(surface, `${panel} is not in the tree after ArrowDown`);
-  return surface;
-}
-
-/** `.open` written by the wiring, asserted rather than assumed. */
 const assertOpen = (surface, open) => assert.ok(
   surface.closest(open) || surface.matches(open),
   `nothing matching ${open} holds the panel after ArrowDown — the open state has moved`,
@@ -144,12 +127,15 @@ const LEDGER = {
     },
     focuses: 'the search field, through the wrapper that held it hidden — #519',
   },
-  // The same panel after wireDropdown() moves it onto <body>: the descendant selector
-  // its open state normally comes from stops matching there, so the panel carries
-  // `is-open` instead and the net has to name that too.
+  // The portalled panel the kit's sheet still ships for a CSS-only consumer:
+  // it carries `is-open` instead of a descendant `.open`.
   '.ui-dropdown__panel--portal': {
     open: () => {
-      const surface = openedByKey(dropdown({ label: 'country:', variant: 'select', search: true, portal: true, items: ITEMS }), '[data-dropdown-panel]');
+      const surface = mount(`<div class="ui-dropdown__panel--portal is-open" data-dropdown-panel>
+        <div class="ui-dropdown__search"><input aria-label="Search countries"></div>
+        <div class="ui-dropdown__list"><div class="ui-dropdown__item" role="option">Any</div>
+        <div class="ui-dropdown__item" role="option">USD</div></div></div>`)
+        .querySelector('.ui-dropdown__panel--portal');
       assertOpen(surface, '.ui-dropdown__panel--portal.is-open');
       return surface;
     },
@@ -181,7 +167,17 @@ const LEDGER = {
     focuses: 'the first control in the panel',
   },
   '.ui-confirm': {
-    open: () => mount(confirm({ title: 'Delete campaign?', body: 'This cannot be undone.', open: true })).querySelector('.ui-confirm'),
+    open: () => mount(`<div class="ui-confirm is-open">
+      <div class="ui-confirm__scrim"></div>
+      <div class="ui-confirm__panel" role="alertdialog" aria-labelledby="c-title" aria-describedby="c-body" tabindex="-1" data-confirm-panel>
+        <h2 class="ui-confirm__title" id="c-title">Delete campaign?</h2>
+        <p class="ui-confirm__body" id="c-body">This cannot be undone.</p>
+        <div class="ui-confirm__acts">
+          <button type="button" class="ui-btn ui-btn--ghost" data-confirm-cancel>Keep</button>
+          <button type="button" class="ui-btn ui-btn--danger" data-confirm-accept>Delete</button>
+        </div>
+      </div>
+    </div>`).querySelector('.ui-confirm'),
     focuses: 'the safe answer',
   },
   '.ui-cmdk': {

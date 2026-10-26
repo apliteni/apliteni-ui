@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { accentPicker, ACCENTS } from '@apliteni/apliteni-ui';
+import { ACCENTS } from '@apliteni/apliteni-ui';
 import type { Meta, StoryObj } from '@storybook/react';
 import { expect, userEvent, within } from 'storybook/test';
 import { AccentPicker, type Accent } from './AccentPicker';
@@ -43,20 +43,3 @@ export const Keyboard: Story = {
     await expect(phoenix).toHaveFocus();
   },
 };
-
-// Temporary migration reference; removed with the vanilla stories in #429 PR 5.
-export const Comparison: Story = {
-  render: () => <ComparisonPreview />,
-};
-
-function ComparisonPreview() {
-  const [value, setValue] = useState<Accent>('default');
-  return <div style={{ background: 'var(--surface)', padding: 'var(--space-4)', display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 'var(--space-6)', maxWidth: 'var(--measure)' }}>
-    <div><p>Vanilla</p><div dangerouslySetInnerHTML={{ __html: accentPicker({ active: value }) }}
-      onClick={event => {
-        const picked = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-accent-pick]');
-        if (picked) setValue(picked.dataset.accentPick as Accent);
-      }} /></div>
-    <div><p>React</p><AccentPicker value={value} onChange={setValue} /></div>
-  </div>;
-}

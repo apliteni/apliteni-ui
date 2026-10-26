@@ -12,10 +12,10 @@
  * why: docs/foundations.md#a-tap-reaches-the-floor-below-the-phone-step
  */
 import path from 'node:path';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { JSDOM, VirtualConsole } from 'jsdom';
-import { installDomGlobals, storyFiles } from './contrast.js';
+import { markup, liveMarkup } from './react-markup.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -23,67 +23,103 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 export function kitStylesheet({ without = [] } = {}) {
   const index = readFileSync(path.join(root, 'src/index.css'), 'utf8');
   const parts = [...index.matchAll(/@import\s+["']\.\/([^"']+)["']/g)].map((m) => m[1]);
-  return parts
+  const kit = parts
     .filter((rel) => !without.includes(rel))
     .map((rel) => readFileSync(path.join(root, 'src', rel), 'utf8'))
     .join('\n');
+  // The React bundle's own component sheets (Modal, DatePicker, …) — the rx-*
+  // geometry the kit's index.css never had. Its re-emitted copies of the kit's
+  // src/styles sheets are dropped: the kit read each already, and a second copy
+  // would defeat the `without` strip and the mutation tests that edit one copy.
+  const react = readFileSync(path.join(root, 'react/dist/index.css'), 'utf8');
+  const kept = react
+    .split(/^(?=\/\* (?:\.\.\/src\/styles|src)\/[^/]+\.css \*\/$)/m)
+    .filter((part) => /^\/\* src\/[^/]+\.css \*\/$/.test(part.trimStart().split('\n')[0]))
+    .join('');
+  return `${kit}\n${kept}`;
 }
 
-/**
- * Every story in the tree, rendered to markup.
- *
- * Subjects are discovered, never listed: the same sweep stories/contrast.test.js
- * walks, so a component that gains a story is measured here the day it does. A
- * story that will not render is returned as a problem rather than dropped, which
- * is the rule the a11y and contrast walks already hold — an unmeasured subject is
- * a failure, not a silence.
- */
 export async function storySubjects({ theme = 'dark' } = {}) {
-  const quiet = new VirtualConsole();
-  quiet.on('jsdomError', () => {});
-  const dom = new JSDOM(
-    `<!doctype html><html lang="en" data-theme="${theme}"><head></head><body></body></html>`,
-    { pretendToBeVisual: true, virtualConsole: quiet },
-  );
-  // Several stories build their markup with document.createElement rather than
-  // returning a string, so they need a DOM to build in. Same device as the
-  // contrast walk.
-  installDomGlobals(dom.window);
-
-  const subjects = [];
+  const built = path.join(root, 'storybook-static');
+  const iframe = path.join(built, 'iframe.html');
   const problems = [];
-  for (const rel of storyFiles) {
-    let mod;
-    try {
-      mod = await import(path.join(root, 'stories', rel));
-    } catch (err) {
-      problems.push(`${rel} → import threw: ${err && err.message}`);
-      continue;
-    }
-    const def = mod.default || {};
-    for (const [name, story] of Object.entries(mod)) {
-      if (name === 'default' || !story || typeof story !== 'object') continue;
-      const render = story.render || def.render;
-      if (typeof render !== 'function') continue;
-      const args = { ...def.args, ...story.args };
-      let out;
+  if (!existsSync(iframe)) {
+    problems.push('storybook-static/iframe.html is not built: run `npm run build-storybook` first');
+    return { subjects: [], problems };
+  }
+  const pw = await playwright();
+  if (!pw) {
+    problems.push('no Playwright could be resolved — point UI_PLAYWRIGHT at one');
+    return { subjects: [], problems };
+  }
+  const index = JSON.parse(readFileSync(path.join(built, 'index.json'), 'utf8'));
+  // Every served story. The Foundations and Guidelines reading pages draw kit
+  // parts too — and the Drawers and Accessibility minimums pages hold the tap-zone
+  // specimens the gate must measure — so they are subjects, not documentation to
+  // skip. The React components, the Components pages and the apps-* showcases are
+  // the rest of it.
+  const ids = Object.entries(index.entries)
+    .map(([id]) => id)
+    .sort();
+
+  const serve = spawn(process.execPath, [
+    path.join(root, 'scripts/evidence/serve.mjs'), built, iframe,
+  ], { stdio: ['ignore', 'pipe', 'inherit'] });
+  const port = await new Promise((resolve, reject) => {
+    serve.stdout.once('data', (d) => resolve(Number(String(d).trim())));
+    serve.once('error', reject);
+  });
+
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const subjects = [];
+  try {
+    for (const id of ids) {
+      const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
       try {
-        out = render(args, { globals: { theme, accent: 'default' }, args });
+        await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${id}&viewMode=story&globals=theme:${theme}`, { waitUntil: 'load' });
+        // A story draws into #storybook-root, or — a Toast, a Modal, a Drawer — a
+        // portal lands in <body> and the root stays empty. Wait for either, so a
+        // portal story is not read as one that rendered nothing. Storybook's own
+        // chrome carries `sb-` classes or a `storybook*` id and is never the story.
+        await page.waitForFunction(() => {
+          const chrome = (el) => (el.id || '').startsWith('storybook')
+            || /(^|\s)sb-/.test(typeof el.className === 'string' ? el.className : '');
+          const root = document.getElementById('storybook-root');
+          if (root && root.childElementCount > 0) return true;
+          for (const el of document.body.children) {
+            if (el === root || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') continue;
+            if (!chrome(el)) return true;
+          }
+          return false;
+        }, { timeout: 10000 });
+        // Effects that push content into a portal run after the first paint; wait one
+        // frame so the capture holds what the reader sees, not the pre-effect DOM.
+        await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+        const html = await page.evaluate(() => {
+          const chrome = (el) => (el.id || '').startsWith('storybook')
+            || /(^|\s)sb-/.test(typeof el.className === 'string' ? el.className : '');
+          const root = document.getElementById('storybook-root');
+          const parts = [root ? root.innerHTML : ''];
+          for (const el of document.body.children) {
+            if (el === root || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') continue;
+            if (chrome(el)) continue;
+            parts.push(el.outerHTML);
+          }
+          return parts.join('');
+        });
+        if (html.trim()) subjects.push({ id, html });
+        else problems.push(`${id} → rendered nothing`);
       } catch (err) {
-        problems.push(`${rel}:${name} → render threw: ${err && err.message}`);
-        continue;
+        problems.push(`${id} → render threw: ${err && err.message}`);
       }
-      const html = typeof out === 'string' ? out : (out && out.outerHTML) || null;
-      if (html == null) {
-        problems.push(`${rel}:${name} → render returned ${Object.prototype.toString.call(out)}`);
-        continue;
-      }
-      subjects.push({ id: `${rel}:${name}`, html });
+      await page.close();
     }
+  } finally {
+    await browser.close();
+    serve.kill();
   }
   return { subjects, problems };
 }
-
 
 /**
  * Rows of controls the kit ships that NO story renders on screen — a confirm's
@@ -100,60 +136,60 @@ export async function storySubjects({ theme = 'dark' } = {}) {
  * where an optimistic default clearance does its damage.
  */
 export async function rowFixtures() {
-  const kit = await import(path.join(root, 'src/index.js'));
-  const { button, confirm, emptyState, snippet, switchToggle, drawer } = kit;
-  const row = (id, inner, style = '') =>
-    ({ id: `fixture:${id}`, html: `<div style="padding:16px;${style}">${inner}</div>` });
-  const two = (a, b) => button({ label: a, variant: 'secondary', size: 'sm' })
-    + button({ label: b, variant: 'primary', size: 'sm' });
+  const row = (id, html, style = '') =>
+    ({ id: `fixture:${id}`, html: `<div style="padding:16px;${style}">${html}</div>` });
+  const btn = (label, variant, size, more = {}) =>
+    `<button type="button" class="ui-btn ui-btn--${variant} ui-btn--${size}"${more.iconOnly ? ' aria-label="' + label + '"' : ''}>${more.iconOnly ? '' : '<span class="ui-btn__label-slot"><span class="ui-btn__label">' + label + '</span></span>'}</button>`;
+
+  // The kit's own rows, each one opened by this sheet at the phone step. The
+  // React components render them, mounted where a portal lands in <body>.
+  const confirm = await liveMarkup(({ h, kit }) => h(kit.Confirm, {
+    open: true, title: 'Delete this workspace?', body: 'Everything in it goes with it, and nothing comes back.',
+    confirmLabel: 'Delete it permanently', cancelLabel: 'Keep the workspace', onConfirm() {}, onCancel() {},
+  }));
+  const empty = await markup(({ h, kit }) => h(kit.EmptyState, {
+    title: 'Nothing here yet',
+    actions: [
+      h(kit.Button, { key: 'import', variant: 'secondary', size: 'sm', children: 'Import a file' }),
+      h(kit.Button, { key: 'add', variant: 'primary', size: 'sm', children: 'Add the first one' }),
+    ],
+  }));
+  const toolbar = await markup(({ h, kit }) => h('div', { className: 'ui-toolbar' },
+    h(kit.Button, { variant: 'secondary', size: 'sm', children: 'Filter' }),
+    h(kit.Button, { variant: 'primary', size: 'sm', children: 'New report' }),
+    h(kit.Button, { variant: 'secondary', size: 'sm', children: 'Export' }),
+    h(kit.Dropdown, { pre: 'Period', value: 'Last 30 days', items: [{ label: 'Last 30 days' }, { label: 'This quarter' }] })));
+  const snippet = await markup(({ h, kit }) => h(kit.Snippet, { code: 'npm i @apliteni/apliteni-ui', label: 'Install' }));
+  const drawer = await liveMarkup(({ h, kit }) => h(kit.Drawer, { open: true, title: 'Edit the record', onClose() {},
+    footer: [
+      h(kit.Button, { key: 'discard', variant: 'secondary', size: 'sm', children: 'Discard' }),
+      h(kit.Button, { key: 'save', variant: 'primary', size: 'sm', children: 'Save the record' }),
+    ],
+  }, h('p', null, 'One record.')));
+  const cardRow = await markup(({ h, kit }) => h('div', { className: 'ui-card' },
+    h('div', { className: 'ui-card__row' },
+      h('span', null, 'Notify on first use'),
+      h(kit.Switch, { checked: true, label: 'Notify' }))));
 
   return [
-    // The kit's own rows, each one opened by this sheet at the phone step.
-    // Labels long enough that the two answers wrap onto separate lines at 390,
-    // which is the state the review of #488 measured colliding. A confirm with
-    // two short answers fits on one line and never showed it.
-    row('confirm', confirm({
-      id: 'fx-confirm',
-      title: 'Delete this workspace?',
-      body: 'Everything in it goes with it, and nothing comes back.',
-      confirmLabel: 'Delete it permanently',
-      cancelLabel: 'Keep the workspace',
-      open: true,
-    })),
-    row('empty-actions', emptyState({
-      art: 'inbox',
-      title: 'Nothing here yet',
-      actions: two('Import a file', 'Add the first one'),
-    })),
-    row('toolbar', `<div class="ui-toolbar">${two('Filter', 'New report')}`
-      + `${button({ label: 'Export', variant: 'secondary', size: 'sm' })}`
-      + `${kit.dropdown({ id: 'fx-dd', pre: 'Period', value: 'Last 30 days', items: [{ label: 'Last 30 days' }, { label: 'This quarter' }] })}</div>`),
-    row('snippet', snippet({ code: 'npm i @apliteni/apliteni-ui', label: 'Install' })),
-    row('drawer', drawer({
-      id: 'fx-drawer',
-      title: 'Edit the record',
-      body: '<p>One record.</p>',
-      footer: two('Discard', 'Save the record'),
-      open: true,
-    })),
-    row('card-row', `<div class="ui-card"><div class="ui-card__row">`
-      + `<span>Notify on first use</span>${switchToggle({ checked: true, label: 'Notify' })}</div></div>`),
+    row('confirm', confirm),
+    row('empty-actions', empty),
+    row('toolbar', toolbar),
+    row('snippet', snippet),
+    row('drawer', drawer),
+    row('card-row', cardRow),
 
     // The pair #488 names: a dense table's row actions, a labelled button
-    // against an icon-only one in the same cell. Every story in the tree
-    // renders a single action, so the cell that the issue is actually about
-    // was in no subject the gate measured.
+    // against an icon-only one in the same cell. Written out, because no story
+    // puts both in one cell.
     row('table-actions', `<table class="ui-table"><tbody>`
       + [1, 2].map((n) => `<tr><td>Row ${n}</td><td class="ui-table__act">`
-        + `${button({ label: 'Revoke', variant: 'danger', size: 'sm' })}`
-        + `${button({ label: 'More actions', icon: 'moreHorizontal', iconOnly: true, variant: 'ghost', size: 'xs' })}`
+        + `${btn('Revoke', 'danger', 'sm')}`
+        + `${btn('More actions', 'ghost', 'xs', { iconOnly: true })}`
         + `</td></tr>`).join('')
       + `</tbody></table>`),
 
-    // A selectable table in each density (#619). The box is 19px and its layer reaches the
-    // floor on a phone, so what decides whether one row's tap lands on its neighbour is the row
-    // pitch: 58px default, 33px compact. No story renders a compact selectable table, which is
-    // how a layer reaching 44px tall shipped over a story's boxes 33px apart.
+    // A selectable table in each density (#619).
     ...['', ' ui-table--dense', ' ui-table--compact'].map((density) => row(
       `selectable${density.replace(' ui-table--', '-') || '-default'}`,
       `<table class="ui-table ui-table--hover${density}"><thead><tr>`
@@ -164,22 +200,11 @@ export async function rowFixtures() {
         + `<td>${n}</td><td class="ui-table__num">${(i + 1) * 120}</td></tr>`).join('')
       + `</tbody></table>`)),
 
-    // The React filter bar's add control (#496), which no vanilla story draws:
-    // a trigger of the kit's own, in the row beside the chips rather than inside
-    // a chip, so the row's clearance is what its zone may grow into. The markup
-    // is the one React renders — the factory’s row with that block spliced in
-    // before the clear button.
-    row('filter-add', kit.filterBar({
-      filters: [{ id: 'sector', label: 'Sector', value: 'Technology', items: [{ label: 'Technology' }] }],
-    }).replace('<span data-filter-clear>', `<div data-filter-add>${kit.dropdown({
-      id: 'fx-add', variant: 'menu', triggerContent: `${kit.icon('plus')}Filter`, ariaLabel: 'Filter',
-      items: [{ label: 'Market' }],
-    })}</div><span data-filter-clear>`)),
-
-    // And two a consumer would write. Nothing opens these, so nothing may grow
+    // Two a consumer would write. Nothing opens these, so nothing may grow
     // into them: the zones have to stay inside the drawn boxes.
-    row('packed-row', two('Cancel', 'Continue'), 'display:flex;gap:8px;flex-wrap:wrap'),
-    row('packed-stack', two('Cancel', 'Continue'),
+    row('packed-row', `${btn('Cancel', 'secondary', 'sm')}${btn('Continue', 'primary', 'sm')}`,
+      'display:flex;gap:8px;flex-wrap:wrap'),
+    row('packed-stack', `${btn('Cancel', 'secondary', 'sm')}${btn('Continue', 'primary', 'sm')}`,
       'display:flex;flex-direction:column;align-items:flex-start;gap:8px'),
   ];
 }

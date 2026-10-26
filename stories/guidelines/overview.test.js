@@ -5,6 +5,10 @@
  * have seen the collection. So this gate never enumerates the pages: it
  * discovers them, the way the discovery rule asks a gate to.
  *
+ * The ids the index links are held against the React stories by
+ * react/src/guidelines.test.tsx, which reads the .stories.tsx modules and
+ * Storybook's own id rule. This node gate holds the content half.
+ *
  * Discover subjects from source and check the coverage count.
  */
 import { test } from 'node:test';
@@ -12,9 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { toId, storyNameFromExport } from 'storybook/internal/csf';
 
-import { PAGES, LINKS, storyId } from './_overview.js';
+import { PAGES, LINKS } from './_overview.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -26,18 +29,6 @@ for (const file of files) {
   const mod = await import(path.join(here, file));
   if (Array.isArray(mod.RULES)) contentPages.push({ file, mod });
 }
-
-/** Every story module beside this test that publishes a story under Guidelines/. */
-const storyPages = [];
-for (const file of files.filter((f) => f.endsWith('.stories.js'))) {
-  const mod = await import(path.join(here, file));
-  if (!String(mod.default?.title || '').startsWith('Guidelines/')) continue;
-  const exportName = Object.keys(mod).find((k) => k !== 'default');
-  storyPages.push({ file, mod, exportName, id: toId(mod.default.id || mod.default.title, storyNameFromExport(exportName)) });
-}
-
-// The index does not list itself, and nothing else in this directory is exempt.
-const INDEX_ID = storyPages.find((p) => p.file === 'Overview.stories.js')?.id;
 
 test('the pages discovered on disk are the pages the Overview lists', () => {
   assert.ok(contentPages.length > 0, 'no content module publishes RULES — this gate is checking nothing');
@@ -55,7 +46,6 @@ test('the pages discovered on disk are the pages the Overview lists', () => {
       continue;
     }
     listed.delete(mod.TITLE);
-
   }
 
   for (const title of listed.keys()) {
@@ -66,69 +56,18 @@ test('the pages discovered on disk are the pages the Overview lists', () => {
   assert.deepStrictEqual(problems, [], `the Overview index and the pages on disk disagree:\n  ${problems.join('\n  ')}`);
 });
 
-test("the index links carry the ids Storybook's own id rule produces", () => {
-  const expected = storyPages.filter((p) => p.id !== INDEX_ID);
-  assert.ok(expected.length > 0, 'no guideline story was discovered — this gate is checking nothing');
-
-  const problems = [];
-
-  for (const page of PAGES) {
-    const match = expected.find((s) => s.id === page.id);
-    if (!match) {
-      problems.push(`the Overview links "${page.title}" to story ${page.id}, and no story module `
-        + 'in stories/guidelines/ carries that id — Storybook names a story after its EXPORT '
-        + "name, not its title, so the link is a 404. See storyId() in _overview.js.");
-      continue;
-    }
-    assert.equal(page.href, `./?path=/story/${page.id}`, `${page.title}: href and id disagree`);
-  }
-
-  for (const story of expected) {
-    if (!PAGES.some((p) => p.id === story.id)) {
-      problems.push(`stories/guidelines/${story.file} publishes story ${story.id}, and no row in `
-        + 'the Overview links to it.');
-    }
-  }
-
-  assert.deepStrictEqual(problems, [], `the index links and the stories disagree:\n  ${problems.join('\n  ')}`);
-});
-
-// The reproduction is only worth keeping if it agrees with the original on the
-// awkward names, which is what put it here: `StateSet` is "State Set" before it
-// is `state-set`, and a naive sanitize of the export name gives `stateset`.
-test('the id rule the page reproduces is the id rule Storybook applies', () => {
-  for (const { file, mod, exportName, id } of storyPages) {
-    assert.equal(storyId(mod), id,
-      `stories/guidelines/${file}: storyId() in _overview.js derives a different id from `
-      + `Storybook's toId(${JSON.stringify(mod.default.title)}, `
-      + `storyNameFromExport(${JSON.stringify(exportName)}))`);
-  }
-});
-
-// The files that link the Overview or a rule page by id — a story id is the kind
-// of string that is right when it is written and wrong a rename later. The
-// shipped documents reach Storybook through its public path; a story citing a
-// guideline links the manager relative to the preview iframe, so both spellings
-// are read here.
-test('the pointers into the collection name a story that exists', () => {
-  const ids = new Set(storyPages.map((p) => p.id));
-  const problems = [];
-  let found = 0;
-
-  for (const file of ['README.md', 'docs/README.md', 'site/index.html',
-    'stories/components/Topbar.stories.js']) {
+// The files that link the Overview by id — a story id is the kind of string that
+// is right when it is written and wrong a rename later. The Overview's own id is
+// `guidelines-overview--overview`, which the React Overview story publishes.
+test('the pointers into the collection name the Overview story', () => {
+  const found = [];
+  for (const file of ['README.md', 'docs/README.md', 'site/index.html']) {
     const text = readFileSync(path.join(root, file), 'utf8');
-    for (const m of text.matchAll(/(?:\/storybook|\.)\/\?path=\/story\/(guidelines-[a-z0-9-]+)/g)) {
-      found += 1;
-      if (!ids.has(m[1])) {
-        problems.push(`${file} links story ${m[1]}, and no story module in stories/guidelines/ `
-          + `carries that id. Known ids: ${[...ids].join(', ')}`);
-      }
+    for (const m of text.matchAll(/\/\?path=\/story\/(guidelines-overview--overview)/g)) {
+      found.push(`${file} → ${m[1]}`);
     }
   }
-
-  assert.ok(found > 0, 'nothing outside Storybook links the guidelines — the collection is unreachable');
-  assert.deepStrictEqual(problems, [], `a pointer at the guidelines is a 404:\n  ${problems.join('\n  ')}`);
+  assert.ok(found.length > 0, 'nothing outside Storybook links the guidelines — the collection is unreachable');
 });
 
 // The ids the last static build actually published. Gitignored, so absent in a
