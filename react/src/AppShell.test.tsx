@@ -125,6 +125,9 @@ it('draws the phone band\'s controls as bare 40px glyphs and drops the mark unde
   const phone = css.match(/@media \(max-width: 560px\) \{([^]*?)\n\}/)?.[1] ?? '';
   expect(phone).toMatch(/\.ui-app__search,[^{]*\{[^}]*width: 40px;[^}]*height: 40px;[^}]*border: 0; border-radius: var\(--radius-md\); background: transparent;/);
   expect(phone).toMatch(/\.ui-app__search-ic \{ display: flex; \}/);
+  // No gap, so no room across: tap-zone.css's coarse-pointer layer stays on its own 40px
+  // control. Measured with elementFromPoint at 300 and 390 on #729; jsdom has no layout.
+  expect(phone).toMatch(/\.ui-react-app \.ui-app__bar \{ --tap-clear-x: 0px; \}/);
   expect(phone).toMatch(/\.ui-react-app \.ui-app__bar \{ container-type: inline-size; \}/);
   const fold = css.match(/@container \(max-width: 373px\) \{([^]*?)\n\}/)?.[1] ?? '';
   expect(fold).toMatch(/\.ui-app__brand--band \{ display: none; \}/);

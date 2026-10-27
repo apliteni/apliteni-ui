@@ -41,8 +41,11 @@
      the band control's other controls, the theme switch and the account. Each control is a
      40px square with no border and no box, so the row fits 300px and the label shows whole. */
   .ui-react-app .ui-app__bar { gap: 0; padding-inline: var(--space-2); }
+  /* With no gap there is no room across, so a coarse pointer's tap layer stays on its own
+     40px control and never covers the next one. Down, the band's 12px stays. tap-zone.css */
+  .ui-react-app .ui-app__bar { --tap-clear-x: 0px; }
   /* The rail layout's band keeps the vanilla gap between Menu and the brand mark. */
-  .ui-react-app .ui-app__bar--phone { gap: var(--space-3); }
+  .ui-react-app .ui-app__bar--phone { gap: var(--space-3); --tap-clear-x: var(--space-3); }
   /* A band without the menu starts on the page column; menu bands keep their compact inset. */
   .ui-react-app .ui-app__bar:not(:has(> .ui-app__menu:first-child)) { padding-inline-start: var(--space-4); }
   .ui-react-app .ui-app__bar-gap { display: none; }
