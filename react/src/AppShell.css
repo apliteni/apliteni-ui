@@ -47,7 +47,12 @@
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-theme-toggle > span { opacity: 0; pointer-events: none; }
 /* The drawer stacks the band control above the rows, and the theme switch above the account. */
 .ui-react-app__menu > .ui-react-app__control { margin-bottom: var(--space-3); }
-.ui-app__drawer > .ui-react-app__theme { margin-bottom: var(--space-3); }
+.ui-app__drawer > .ui-react-app__theme { margin-bottom: var(--space-3); padding-inline-start: calc((var(--ui-nav-strip) - 40px) / 2); }
+/* A finger works the drawer, so its controls are 40px tap targets, as they were on the phone band. */
+.ui-react-app__menu > .ui-react-app__control .toggle,
+.ui-app__drawer > .ui-react-app__theme .toggle { width: 40px; height: 40px; }
+.ui-react-app__menu > .ui-react-app__control .ui-btn,
+.ui-react-app__menu > .ui-react-app__control .ui-dropdown__trigger { min-height: 40px; }
 /* The wrapper takes no box on a band, so the control sits on the band as it did without it. */
 .ui-react-app__band-control { display: contents; }
 /* The page title is the phone band's words, and the h1 below keeps the page's name. */

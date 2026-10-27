@@ -134,7 +134,7 @@ it('draws the phone band\'s controls as bare 40px glyphs and the title on one li
 
 // The band holds the mark, the page title, search and Menu, and nothing else. The
 // account, the theme switch and the band control stand in the sidebar and the drawer.
-it('moves the account, theme switch and band control from the band to the sidebar (#732)', () => {
+it('moves the account, theme switch and band control from the band to the sidebar (#732)', async () => {
   const control = <button type="button">Apliteni OÜ</button>;
   render(<AppShell {...props} bandControl={control} />);
   const bar = document.querySelector('.ui-app__bar')!;
@@ -162,6 +162,14 @@ it('moves the account, theme switch and band control from the band to the sideba
   expect(within(drawer).getByRole('button', { name: 'Apliteni OÜ' })).toBeInTheDocument();
   const foot = drawer.querySelector('.ui-app__drawer')!;
   expect([...foot.children].map(el => el.className)).toEqual(['ui-react-app__theme', 'ui-app__user']);
+  // The drawer opens on its first row, not on the band control above the rows.
+  await waitFor(() => expect(within(drawer).getByRole('link', { name: 'Overview' })).toHaveFocus());
+
+  // A finger works the drawer: its controls are 40px tap targets, as on the phone band.
+  // A source read, because jsdom applies no stylesheet; measured at 390 in Chromium.
+  const css = read('./AppShell.css');
+  expect(css).toMatch(/\.ui-react-app__menu > \.ui-react-app__control \.toggle,\s*\.ui-app__drawer > \.ui-react-app__theme \.toggle \{ width: 40px; height: 40px; \}/);
+  expect(css).toMatch(/\.ui-react-app__menu > \.ui-react-app__control \.ui-dropdown__trigger \{ min-height: 40px; \}/);
 });
 
 it('opens the account menu and signs out', () => {

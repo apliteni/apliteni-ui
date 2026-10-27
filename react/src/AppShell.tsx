@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import { prism } from '@apliteni/apliteni-ui';
 import { paletteHotkey } from './lib/palette-hotkey';
 import { railCollapsed, storeRailCollapsed } from './lib/rail';
@@ -57,6 +57,9 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   const [search, setSearch] = useState(false);
   const [menu, setMenu] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
+  // The drawer opens on its first row, not on the band control above the rows (#732).
+  const menuBody = useRef<HTMLDivElement>(null);
+  const firstRow = useMemo(() => ({ get current() { return menuBody.current?.querySelector<HTMLElement>('.ui-nav__item') ?? null; } }), []);
   const current = path(pathname);
   const active = sections.filter((section) => current === path(section.href)
     || (path(section.href) !== '/' && current.startsWith(`${path(section.href)}/`)))
@@ -207,9 +210,9 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
       </header>
       {page}
     </div>
-    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm"
+    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm" initialFocusRef={firstRow}
       footer={<div className="ui-app__drawer">{theme}{accountBlock()}</div>}>
-      <div className="ui-react-app__menu">{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
+      <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}
     <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} open={search} onClose={() => setSearch(false)} />
   </div>;
