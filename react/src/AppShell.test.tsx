@@ -133,7 +133,8 @@ it('draws the phone band\'s controls as bare 40px glyphs and the title on one li
 });
 
 // The band holds the mark, the page title, search and Menu, and nothing else. The
-// account, the theme switch and the band control stand in the sidebar and the drawer.
+// account and the band control stand in the sidebar and the drawer, and the theme switch
+// is a row of the account menu.
 it('moves the account, theme switch and band control from the band to the sidebar (#732)', async () => {
   const control = <button type="button">Apliteni OÜ</button>;
   render(<AppShell {...props} bandControl={control} />);
@@ -145,14 +146,18 @@ it('moves the account, theme switch and band control from the band to the sideba
 
   const rail = screen.getByRole('region', { name: 'Sidebar' });
   const parts = [...rail.children].map(el => el.className);
-  expect(parts).toEqual(['ui-app__head', 'ui-react-app__control', expect.stringContaining('ui-nav'), 'ui-react-app__theme', 'ui-app__user']);
+  expect(parts).toEqual(['ui-app__head', 'ui-react-app__control', expect.stringContaining('ui-nav'), 'ui-app__user']);
   expect(within(rail.querySelector('.ui-app__head') as HTMLElement).getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
   expect(within(rail).getByRole('button', { name: 'Apliteni OÜ' })).toBeInTheDocument();
-  expect(within(rail).getByRole('button', { name: /^Theme:/ })).toBeInTheDocument();
-  expect(within(rail).getByRole('button', { name: 'Signed in as Demo User, demo@example.com' })).toBeInTheDocument();
+  expect(within(rail).queryByRole('button', { name: /^Theme:/ })).toBeNull();
+  const account = within(rail).getByRole('button', { name: 'Signed in as Demo User, demo@example.com' });
+  fireEvent.click(account);
+  expect(within(within(rail).getByRole('menu')).getAllByRole('menuitem').map(row => row.getAttribute('aria-label') ?? row.textContent))
+    .toEqual([expect.stringMatching(/^(Dark|Light|Auto) theme\. Switch to (dark|light|auto)\.$/), 'Sign out']);
+  fireEvent.click(account);
 
-  // A folded rail keeps the switch and the account on the glyph column. The band control
-  // has no glyph to keep, so it leaves the tab order with the rail's labels.
+  // A folded rail keeps the account on the glyph column. The band control has no glyph
+  // to keep, so it leaves the tab order with the rail's labels.
   expect(rail.querySelector('.ui-react-app__control')).not.toHaveAttribute('inert');
   fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
   expect(rail.querySelector('.ui-react-app__control')).toHaveAttribute('inert');
@@ -161,14 +166,21 @@ it('moves the account, theme switch and band control from the band to the sideba
   const drawer = screen.getByRole('dialog');
   expect(within(drawer).getByRole('button', { name: 'Apliteni OÜ' })).toBeInTheDocument();
   const foot = drawer.querySelector('.ui-app__drawer')!;
-  expect([...foot.children].map(el => el.className)).toEqual(['ui-react-app__theme', 'ui-app__user']);
+  expect([...foot.children].map(el => el.className)).toEqual(['ui-app__user']);
   // The drawer opens on its first row, not on the band control above the rows.
   await waitFor(() => expect(within(drawer).getByRole('link', { name: 'Overview' })).toHaveFocus());
 
+  fireEvent.click(within(foot as HTMLElement).getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));
+  expect(within(foot as HTMLElement).getByRole('menuitem', { name: /theme\. Switch to/ })).toBeInTheDocument();
+
   // A finger works the drawer: its controls are 40px tap targets, as on the phone band.
-  // A source read, because jsdom applies no stylesheet; measured at 390 in Chromium.
+  // Above the phone width, search stands in the band's centre. Source reads, because
+  // jsdom applies no stylesheet; measured at 390 and 1280 in Chromium.
   const css = read('./AppShell.css');
-  expect(css).toMatch(/\.ui-react-app__menu > \.ui-react-app__control \.toggle,\s*\.ui-app__drawer > \.ui-react-app__theme \.toggle \{ width: 40px; height: 40px; \}/);
+  expect(css).toMatch(/\.ui-react-app__menu > \.ui-react-app__control \.toggle \{ width: 40px; height: 40px; \}/);
+  expect(css).toMatch(/\.ui-app__drawer \.ui-app__user-panel \.ui-dropdown__item \{ min-height: 40px; \}/);
+  const wide = css.match(/@media \(min-width: 721px\) \{([^]*?)\n\}/)![1];
+  expect(wide).toMatch(/\.ui-app__bar:has\(> \.ui-react-app__title\) \.ui-app__search \{ margin-inline: auto; \}/);
 });
 
 it('opens the account menu and signs out', () => {
@@ -231,7 +243,7 @@ it('leaves shortcuts in editable fields alone', () => {
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 });
 
-describe('sidebar theme switch', () => {
+describe('account menu theme switch', () => {
   const root = document.documentElement;
   let media: EventTarget & { matches: boolean };
   beforeEach(() => {
@@ -243,32 +255,35 @@ describe('sidebar theme switch', () => {
   });
   afterEach(() => { vi.unstubAllGlobals(); localStorage.clear(); });
 
+  // The row switches in place: the menu stays open, and the row's name follows the theme.
   it('cycles dark, light and auto, and writes data-theme-choice', () => {
     render(<AppShell {...props} />);
-    const button = () => screen.getByRole('button', { name: /^Theme:/ });
-    expect(button()).toHaveAccessibleName('Theme: Dark. Switch to light.');
+    fireEvent.click(screen.getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));
+    const button = () => within(screen.getByRole('menu')).getByRole('menuitem', { name: /theme\. Switch to/ });
+    expect(button()).toHaveAccessibleName('Dark theme. Switch to light.');
     expect(root).toHaveAttribute('data-theme-choice', 'dark');
     fireEvent.click(button());
-    expect(button()).toHaveAccessibleName('Theme: Light. Switch to auto.');
+    expect(button()).toHaveAccessibleName('Light theme. Switch to auto.');
     expect(root).toHaveAttribute('data-theme-choice', 'light');
     expect(root).toHaveAttribute('data-theme', 'light');
     fireEvent.click(button());
-    expect(button()).toHaveAccessibleName('Theme: Auto. Switch to dark.');
+    expect(button()).toHaveAccessibleName('Auto theme. Switch to dark.');
     expect(root).toHaveAttribute('data-theme-choice', 'auto');
     fireEvent.click(button());
     expect(root).toHaveAttribute('data-theme-choice', 'dark');
+    expect(props.onSignOut).not.toHaveBeenCalled();
   });
 
-  it.each(['dark', 'light', 'auto'] as const)('draws one %s glyph in ThemeToggle and the sidebar, the shared themeIcon', theme => {
+  it.each(['dark', 'light', 'auto'] as const)('draws one %s glyph in ThemeToggle and the account menu, the shared themeIcon', theme => {
     localStorage.setItem('apliteni-strategy-theme', theme);
-    const glyph = (el: ParentNode) => el.querySelector('.ic')!.innerHTML;
     const shell = render(<AppShell {...props} />);
-    const shellButton = shell.container.querySelector('.toggle')!;
+    fireEvent.click(within(shell.container).getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));
+    const row = within(shell.container).getByRole('menuitem', { name: /theme\. Switch to/ });
     const alone = render(<ThemeToggle />);
     const source = document.createElement('span');
     source.innerHTML = themeIcon(theme);
-    expect(glyph(alone.container)).toBe(source.innerHTML);
-    expect(glyph(shellButton)).toBe(source.innerHTML);
+    expect(alone.container.querySelector('.ic')!.innerHTML).toBe(source.innerHTML);
+    expect(row.querySelector('.ui-dropdown__ic')!.innerHTML).toBe(source.innerHTML);
   });
 
   it('follows the system live in auto', async () => {

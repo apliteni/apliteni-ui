@@ -51,7 +51,9 @@ export type ThemeToggleProps = {
   labelled?: boolean;
 };
 
-export function ThemeToggle({ labelled = false }: ThemeToggleProps) {
+/** The saved theme, its words, and the switch to the next one. ThemeToggle and the
+ *  AppShell account menu's theme row share it (#732). */
+export function useThemeChoice() {
   const theme = useSyncExternalStore(subscribe, snapshot, () => 'auto' as const);
   const next = theme === 'dark' ? 'light' : theme === 'light' ? 'auto' : 'dark';
   const label = theme === 'auto' ? 'Auto' : theme === 'light' ? 'Light' : 'Dark';
@@ -62,6 +64,11 @@ export function ThemeToggle({ labelled = false }: ThemeToggleProps) {
     try { localStorage.setItem(STORAGE_KEY, next); } catch { /* Keep the choice for this page. */ }
     window.dispatchEvent(new Event(CHOICE_EVENT));
   };
+  return { theme, next, label, name, toggle };
+}
+
+export function ThemeToggle({ labelled = false }: ThemeToggleProps) {
+  const { theme, label, name, toggle } = useThemeChoice();
   const button = <button type="button" className="toggle" aria-label={name} title={name} onClick={toggle}>
     <span className="ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: themeIcon(theme) }} />
   </button>;

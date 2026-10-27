@@ -35,26 +35,27 @@
   .ui-drawer__footer > .ui-app__drawer { width: 100%; }
 }
 /* The sidebar's own controls (#732). The band control stands under the head, and the
-   theme switch stands above the account, on the rail's column. A folded rail keeps the
-   switch's glyph on the glyph column, and the band control fades out of the way, inert. */
-.ui-app__rail > .ui-react-app__control,
-.ui-app__rail > .ui-react-app__theme { width: var(--ui-nav-col); flex: none; transition: opacity var(--dur-fast) var(--ease); }
+   theme switch is a row of the account menu at the foot. A folded rail fades the band
+   control out of the way, inert. */
+.ui-app__rail > .ui-react-app__control { width: var(--ui-nav-col); flex: none; transition: opacity var(--dur-fast) var(--ease); }
 .ui-react-app__control { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
 .ui-react-app__control > :first-child { flex: 1 1 auto; min-width: 0; justify-content: flex-start; }
-.ui-react-app__theme { padding-inline-start: calc((var(--ui-nav-strip) - 34px) / 2); /* .toggle is 34px in topbar.css */ }
-.ui-react-app__theme .ui-theme-toggle > span { transition: opacity var(--dur-fast) var(--ease); }
-:where(.ui-app.is-collapsed) .ui-app__rail > .ui-react-app__control,
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-theme-toggle > span { opacity: 0; pointer-events: none; }
-/* The drawer stacks the band control above the rows, and the theme switch above the account. */
+:where(.ui-app.is-collapsed) .ui-app__rail > .ui-react-app__control { opacity: 0; pointer-events: none; }
+/* The drawer stacks the band control above the rows. */
 .ui-react-app__menu > .ui-react-app__control { margin-bottom: var(--space-3); }
-.ui-app__drawer > .ui-react-app__theme { margin-bottom: var(--space-3); padding-inline-start: calc((var(--ui-nav-strip) - 40px) / 2); }
 /* A finger works the drawer, so its controls are 40px tap targets, as they were on the phone band. */
-.ui-react-app__menu > .ui-react-app__control .toggle,
-.ui-app__drawer > .ui-react-app__theme .toggle { width: 40px; height: 40px; }
+.ui-react-app__menu > .ui-react-app__control .toggle { width: 40px; height: 40px; }
+.ui-app__drawer .ui-app__user-panel .ui-dropdown__item { min-height: 40px; }
 /* The wrapper takes no box on a band, so the control sits on the band as it did without it. */
 .ui-react-app__band-control { display: contents; }
 /* The page title is the phone band's words, and the h1 below keeps the page's name. */
 .ui-react-app__title { display: none; }
+/* With a sidebar, search is the band's only control above the phone width, and it stands
+   in the band's centre (#732). */
+@media (min-width: 721px) {
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title) .ui-app__search { margin-inline: auto; }
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title) .ui-app__bar-gap { display: none; }
+}
 @media (max-width: 720px) {
   /* Mark, title, search and Menu (#732). The mark's box and Menu stand 8px from the edges,
      so the mark's glyph lines up with the page column. */

@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
-import { prism } from '@apliteni/apliteni-ui';
+import { prism, themeIcon } from '@apliteni/apliteni-ui';
 import { paletteHotkey } from './lib/palette-hotkey';
 import { railCollapsed, storeRailCollapsed } from './lib/rail';
 import { SidebarNav } from './SidebarNav';
@@ -11,7 +11,7 @@ import { Dropdown } from './Dropdown';
 import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
 import { Avatar } from './primitives/Avatar';
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeToggle, useThemeChoice } from './ThemeToggle';
 import './AppShell.css';
 
 export type AppShellSection = { href: string; label: string; icon: string; count?: number };
@@ -53,6 +53,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, renderLink }: AppShellProps) {
   const uid = useId();
+  const theme = useThemeChoice();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [search, setSearch] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -128,14 +129,23 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     <span>{word}</span>
   </a>;
 
-  const accountBlock = () => <div className="ui-app__user"><Dropdown variant="menu"
+  // The topbar layout's account menu holds the theme switch (#732). Its row switches the
+  // theme in place: it never calls the menu's pick, so the menu stays open with focus on
+  // the row, and the row's words follow the new theme. Its name starts with those words. The rail layout keeps the vanilla menu.
+  const accountBlock = (withTheme = false) => <div className="ui-app__user"><Dropdown variant="menu"
     direction="up" align="start" chevron
     ariaLabel={`Signed in as ${account.name}, ${account.email}`}
     triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
     triggerContent={<><span className="ui-app__av" aria-hidden="true">
       <Avatar personKey={account.email || account.name} name={account.name} size={32} />
     </span><span className="ui-app__who"><b>{account.name}</b><span>{account.email}</span></span></>}
-    items={[{ label: 'Sign out', icon: 'logout', danger: true }]} onSelect={onSignOut} />
+    items={[...(withTheme ? [{ label: `${theme.label} theme`, value: 'theme' }] : []), { label: 'Sign out', value: 'sign-out', icon: 'logout', danger: true }]}
+    row={(item, props) => item.value === 'theme' ? <div {...props}
+      aria-label={`${item.label}. Switch to ${theme.next}.`} onClick={theme.toggle}>
+      <span className="ui-dropdown__ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: themeIcon(theme.theme) }} />
+      <span className="ui-dropdown__main"><span className="ui-dropdown__label">{item.label}</span></span>
+    </div> : <div {...props} />}
+    onSelect={value => { if (value === 'sign-out') onSignOut(); }} />
   </div>;
   const foldControl = <div className="ui-app__fold-row"><button type="button"
     className="ui-nav__item ui-app__fold" aria-expanded={!collapsed} aria-label={foldLabel} onClick={fold}>
@@ -170,17 +180,16 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   </div>;
 
   // The sidebar holds the shell's own controls (#732): the band control under the head,
-  // then the theme switch and the account at its foot. The phone band keeps the mark,
-  // the page title, search and Menu. With no sidebar, the band keeps them all.
+  // and the account at its foot, with the theme switch in the account menu. The band keeps
+  // search in its centre, and on a phone the mark, the page title, search and Menu. With
+  // no sidebar, the band keeps them all.
   const control = bandControl && <div className="ui-react-app__control" inert={collapsed}>{bandControl}</div>;
-  const theme = <div className="ui-react-app__theme"><ThemeToggle labelled /></div>;
   return <div className={`ui-app ui-app--topbar ui-react-app${collapsed ? ' is-collapsed' : ''}`}>
     {navigable && <div className="ui-app__rail" role="region" aria-label="Sidebar">
       <div className="ui-app__head">{lockup}{foldControl}</div>
       {control}
       {sidebar('Sections')}
-      {theme}
-      {accountBlock()}
+      {accountBlock(true)}
     </div>}
     <div className="ui-app__well">
       <header className="ui-app__bar">
@@ -211,7 +220,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
       {page}
     </div>
     {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm" initialFocusRef={firstRow}
-      footer={<div className="ui-app__drawer">{theme}{accountBlock()}</div>}>
+      footer={<div className="ui-app__drawer">{accountBlock(true)}</div>}>
       <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}
     <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} open={search} onClose={() => setSearch(false)} />
