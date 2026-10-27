@@ -246,10 +246,12 @@ because its edge says "type here". A step of lightness on its own has a contrast
 | page | none | none | none | none |
 | card | `--level-line` | `--elev-rest` | `--border` | none |
 | rail | `--level-line`, right side | `--elev-rail` | `--border` | none |
-| menu, popover, drawer, modal, toast | `--level-line`, one line | `--elev-drop` | `--border-strong` outside, `--border` inside | `--elev-drop` |
+| menu, popover, drawer, toast | `--level-line`, one line | `--elev-drop` | `--border-strong` outside, `--border` inside | `--elev-drop` |
+| modal | `--level-line`, one line | `--elev-drop` | none, the deep scrim separates it | `--elev-drop` |
 
 Each level reads its line from one token in both themes: `--card-edge`, `--rail-edge`,
-`--float-edge` and `--float-edge-inner` (`src/tokens/tokens.css`).
+`--float-edge`, `--float-edge-inner` and `--modal-edge` (`src/tokens/tokens.css`). The React
+modal draws `--modal-edge` as an inset line (`react/src/Modal.css`).
 
 The ladder, from bottom to top:
 

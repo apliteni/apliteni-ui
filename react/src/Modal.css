@@ -13,11 +13,12 @@
   display: grid; place-items: center; z-index: calc(var(--z-overlay) + 1);
   opacity: 0; transition: opacity var(--dur-med) var(--ease); }
 .rx-scrim.is-open { opacity: 1; }
-/* The deep scrim separates the dialog; the shared drop needs no edge here. */
+/* In dark the deep scrim separates the dialog, so --modal-edge is transparent there.
+ * Light draws the level line of every raised level. why: docs/foundations.md#elevation */
 .rx-modal { width: min(calc(var(--panel-lg) - var(--space-10) * 2), 96vw);
   max-height: 96vh; max-height: 96dvh; display: flex; flex-direction: column;
   background: var(--bg-elevated); border: 0;
-  box-shadow: var(--elev-drop);
+  box-shadow: inset 0 0 0 1px var(--modal-edge), var(--elev-drop);
   border-radius: var(--radius-md); overflow: hidden;
   transform: translateY(var(--space-2)); transition: transform var(--dur-med) var(--ease); }
 .rx-scrim.is-open .rx-modal { transform: none; }

@@ -168,6 +168,7 @@
   --rail-edge: var(--border);          /* the shell's rail */
   --float-edge: var(--border-strong);  /* a floating surface, outer line */
   --float-edge-inner: var(--border);   /* a floating surface, inner line */
+  --modal-edge: transparent;           /* the modal: the deep scrim is its edge */
 
   /* Fields use the card surface and an edge in both themes. why: docs/foundations.md#elevation */
   --field-bg: var(--surface);
@@ -385,6 +386,7 @@
   --rail-edge: var(--level-line);
   --float-edge: var(--level-line);
   --float-edge-inner: transparent;
+  --modal-edge: var(--float-edge);
 
   /* Light draws a field with its EDGE, because since #448 it has no well left to draw it
      with: a card and a panel are both white, the sunken step falls two rungs under either,

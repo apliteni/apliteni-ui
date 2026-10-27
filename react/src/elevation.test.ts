@@ -90,6 +90,24 @@ describe('elevation', () => {
     expect(floating).toBe(2);
   });
 
+  /* #730 round 1, finding 1. Light draws every raised level with its line, and the
+   * modal drew only its drop. Dark keeps the deep scrim as the modal's edge, so its
+   * line stays invisible there. The line is read from the sheet on disk. */
+  it('#730 draws the light modal line and keeps the dark modal without one', () => {
+    const css = read('./Modal.css');
+    const lineOf = (theme: string) => {
+      const { vars } = cascadeFor(theme, [{ name: './Modal.css', css }]);
+      const modal = boxShadowsIn(css).find((d: { selector: string }) => d.selector === '.rx-modal');
+      const inset = (modal ? layersOf(modal.value) : [])
+        .map((raw: string) => substitute(raw, vars).trim())
+        .find((v: string) => v.startsWith('inset 0 0 0 1px '));
+      return { line: inset?.slice('inset 0 0 0 1px '.length), edge: substitute('var(--float-edge)', vars).trim() };
+    };
+    const light = lineOf('light');
+    expect(light.line).toBe(light.edge);
+    expect(lineOf('dark').line).toBe('transparent');
+  });
+
   /* Round 1's finding 4, on this side: a genuine drop parked in a custom property
    * this workspace declares, read by a declaration that looks like the treatment.
    * The gate passed this before the cascade above reached `react/src/*.css` —

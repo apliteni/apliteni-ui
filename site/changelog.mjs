@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.142.7', date: '2026-10-27',
     changes: [
-      ['changed', 'In light, a card, the `AppShell` rail and each floating surface (menu, popover, tooltip, drawer, modal, toast) draw one line, `--level-line`, and a faint short shadow. The shadows are lighter than before. Dark does not change. Resolves #730.', ['Card', 'Shell', 'Dropdown', 'Tooltip', 'Drawer', 'Modal', 'Toast']],
+      ['changed', 'In light, a card, the `AppShell` rail and each floating surface (menu, popover, tooltip, drawer, modal, toast) draw one line, `--level-line`, and a faint short shadow. The shadows are lighter than before. The new token `--modal-edge` draws the React modal line. It is transparent in dark, so dark does not change. Resolves #730.', ['Card', 'Shell', 'Dropdown', 'Tooltip', 'Drawer', 'Modal', 'Toast']],
     ],
   },
   {
