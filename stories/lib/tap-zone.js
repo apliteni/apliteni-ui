@@ -295,18 +295,23 @@ export const PROBE = ({ html, size, interior, families, within }) => {
     // How far the control actually wins outside its own edge, on the two centre
     // lines. Not the pass/fail number — `floorMiss` above is — but the one a
     // reader of the report wants beside a miss.
+    // A side the viewport edge stopped is marked: its reach is a lower bound,
+    // and the shrink check reads it as one.
+    const edges = [];
     const walk = (dx, dy) => {
       let n = 0;
       for (; n < size; n++) {
         const x = dx === 0 ? cx : (dx < 0 ? b.x - 0.5 - n : b.right - 0.5 + n);
         const y = dy === 0 ? cy : (dy < 0 ? b.y - 0.5 - n : b.bottom - 0.5 + n);
-        if (x < 0 || y < 0 || x >= window.innerWidth) break;
+        if (x < 0 || y < 0 || x >= window.innerWidth) { edges.push(true); return n; }
         if (owner(x, y) !== i) break;
       }
+      edges.push(false);
       return n;
     };
-    reachX = b.width + walk(-1, 0) + walk(1, 0);
-    reachY = b.height + walk(0, -1) + walk(0, 1);
+    const sides = [walk(-1, 0), walk(1, 0), walk(0, -1), walk(0, 1)];
+    reachX = b.width + sides[0] + sides[1];
+    reachY = b.height + sides[2] + sides[3];
 
     // -- lost: somebody else on this control's own drawn pixels ---------------
     // Targets whose own drawn box already overlaps this one. Two controls drawn
@@ -435,6 +440,8 @@ export const PROBE = ({ html, size, interior, families, within }) => {
       text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 32),
       drawn: [Math.round(b.width * 100) / 100, Math.round(b.height * 100) / 100],
       reach: [Math.round(reachX * 100) / 100, Math.round(reachY * 100) / 100],
+      sides,
+      edges,
       floorMiss: missing.length,
       blockers: [...blockers].sort((a, b2) => b2[1] - a[1]).slice(0, 4),
       box: [Math.round(b.x), Math.round(b.y)],
@@ -510,6 +517,19 @@ export async function playwright() {
 /** Every target in a pass, flattened, with the story it came from. */
 export const flatten = (rows) =>
   rows.flatMap((r) => r.targets.map((t) => ({ ...t, story: r.story })));
+
+/**
+ * Whether target `b` reaches less than `a`, the same target without the sheet,
+ * with half a pixel of slack. An edge-stopped side measures a lower bound. So
+ * where the viewport edge stopped `b`, that side loses nothing to `a`. Where it
+ * stopped only `a`, `b` must still reach what `a` measured. Limit: a loss past
+ * the edge of `a` is not seen.
+ */
+export const shrinks = (b, a, size) => {
+  const side = (k) => (b.edges[k] ? Math.max(b.sides[k], a.sides[k]) : b.sides[k]);
+  const axis = (k) => b.drawn[k / 2] + side(k) + side(k + 1) - (a.drawn[k / 2] + a.sides[k] + a.sides[k + 1]);
+  return [0, 2].some((k) => axis(k) < -0.5);
+};
 
 /** A one-line name for a target, for a failure message somebody has to act on. */
 export const name = (t) =>

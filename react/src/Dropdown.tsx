@@ -879,7 +879,7 @@ export function Dropdown({
         ref={trigger}
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
       >
-        {triggerContent != null ? triggerContent : (
+        {triggerContent != null ? (typeof triggerContent === 'string' ? <span className="ui-dropdown__text">{triggerContent}</span> : triggerContent) : (
           <>
             {marked && (chosen?.avatar
               ? <Avatar personKey={chosen.avatar.key} name={chosen.avatar.name} src={chosen.avatar.src} empty={chosen.avatar.empty} />

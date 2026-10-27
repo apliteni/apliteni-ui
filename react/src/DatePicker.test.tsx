@@ -864,6 +864,26 @@ describe('the focus ring', () => {
   });
 });
 
+/* The popover hung from its trigger off a phone screen's right edge. This half
+ * owns that the kit's fit is asked when the panel opens and that its answer lands
+ * on the panel; the arithmetic is the kit's own, and where a real panel lands is
+ * measured in a browser. JSDOM lays nothing out, so the boxes are supplied. */
+it('an open popover over the edge of the view is brought back inside it', () => {
+  const spy = vi.spyOn(Element.prototype, 'getBoundingClientRect');
+  Object.defineProperty(document.documentElement, 'clientWidth', { value: 390, configurable: true });
+  spy.mockImplementation(function box(this: Element) {
+    const own = this.classList.contains('ui-datepicker__panel');
+    const left = own ? 87 + (parseFloat((this as HTMLElement).style.translate) || 0) : 0;
+    const width = own ? 359 : 96;
+    return { left, right: left + width, width, top: 0, bottom: 31, height: 31, x: left, y: 0,
+      toJSON: () => ({}) } as DOMRect;
+  });
+  render(<DatePicker today={TODAY} defaultOpen />);
+  expect(panel().style.translate).toBe('-64px');
+  expect(panel().getBoundingClientRect().right).toBe(382);
+  spy.mockRestore();
+});
+
 describe('the sheet', () => {
   const sheet = () => document.querySelector<HTMLElement>('.ui-drawer');
 

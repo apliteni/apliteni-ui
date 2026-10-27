@@ -183,6 +183,8 @@ const RX_SCROLL_RINGED: Record<string, string> = {
     + 'browser\'s outline. It takes --ring-scroll like every other scroll region inside a '
     + 'surface, in the row\'s own --space-1 of inline padding. Applying Artur\'s #531 r30 '
     + 'choice, merged as #557.',
+  '.ui-datepicker__panel .ui-datepicker__presets': 'the same inward band, on the shortcut row '
+    + 'of a popover below 560px. The row scrolls across there as in the sheet (#429).',
   '.rx-modal__body': 'the inward band, on the body itself. A scroll region inside a surface '
     + 'takes --ring-scroll — the kit\'s own band drawn inward — because --ring is drawn '
     + 'for a 32px control and, while it still carried a halo, around a dialog-sized region its '

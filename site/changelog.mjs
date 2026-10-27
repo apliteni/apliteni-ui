@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.142.5', date: '2026-10-27',
+    changes: [
+      ['fixed', 'On a screen narrower than 560px, a `DatePicker` popover stays inside the screen. It spans the screen less 8px a side, puts the shortcuts in a row above the calendar and keeps each day number on one line. On a phone with touch it also shows every week without a scroll, because the 300px height cap of the menu no longer applies to it. The drawer that a phone shows by default does not change. Part of #429.', ['DatePicker']],
+      ['fixed', 'On phones, a menu `Dropdown` in the `AppShell` band no longer draws over the theme switch. At 390px the band control can take 108px, so the search field is 18px narrower. On narrower phones a text trigger label ends in an ellipsis. Part of #429.', ['AppShell', 'Dropdown']],
+      ['changed', 'On a phone narrower than 390px, the `AppShell` band hides its brand mark and shows search as a 34px icon button, so a band control of up to 108px keeps its full label. The search button keeps its full accessible name. From 390px nothing changes. Part of #429.', ['AppShell']],
+    ],
+  },
+  {
     v: '0.142.4', date: '2026-10-26',
     changes: [
       ['fixed', 'On a phone with touch, a tap on the edge of an `AppShell` band control or a stacked `DatePicker` shortcut no longer reaches the control next to it: the top bar opens a 1 to 2px gap and each popover shortcut gets a 46px row. Nothing moves at 1440px. Part of #429.', ['AppShell', 'DatePicker']],
