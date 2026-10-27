@@ -378,7 +378,7 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:205",
+    "ref": "src/styles/drawer.css:207",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
@@ -388,7 +388,7 @@
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:205",
+    "ref": "src/styles/drawer.css:207",
     "pattern": ".ui-drawer__section + .ui-drawer__section {"
    }
   ],
@@ -398,7 +398,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:243",
+    "ref": "src/styles/drawer.css:245",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -762,7 +762,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:256",
+    "ref": "src/styles/drawer.css:258",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
