@@ -314,8 +314,8 @@ test('no live trigger draws the ink an unavailable one draws, in any state or th
 });
 
 test('an unavailable trigger keeps its off edge or borderless box in every scope', () => {
-  assert.equal(BY_SCOPE.size, 3, 'review coverage when a trigger scope changes');
-  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 24);
+  assert.equal(BY_SCOPE.size, 4, 'review coverage when a trigger scope changes');
+  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 32);
   const findings = disabledEdgeFindings(BY_SCOPE);
   assert.deepEqual(findings, [],
     'a disabled trigger state does not draw the kit\'s off edge');
