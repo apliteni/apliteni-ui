@@ -169,7 +169,6 @@ it('moves the account, theme switch and band control from the band to the sideba
   // A source read, because jsdom applies no stylesheet; measured at 390 in Chromium.
   const css = read('./AppShell.css');
   expect(css).toMatch(/\.ui-react-app__menu > \.ui-react-app__control \.toggle,\s*\.ui-app__drawer > \.ui-react-app__theme \.toggle \{ width: 40px; height: 40px; \}/);
-  expect(css).toMatch(/\.ui-react-app__menu > \.ui-react-app__control \.ui-dropdown__trigger \{ min-height: 40px; \}/);
 });
 
 it('opens the account menu and signs out', () => {

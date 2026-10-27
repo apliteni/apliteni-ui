@@ -228,7 +228,7 @@ of both. **The rail holds the shell's own controls:** the fold's control in its 
 mark, the theme switch above the reader's block, and the reader's block at its foot. The band
 control stands under the head (#732, `react/src/AppShell.tsx:175` `ui-react-app__control`). **The band carries the search
 field and nothing else** above 720px. At 720px and below it carries the mark, the page title on one
-line, the search trigger and the menu button (`react/src/AppShell.css:60` `@media (max-width: 720px)`). It is a `<header>`
+line, the search trigger and the menu button (`react/src/AppShell.css:58` `@media (max-width: 720px)`). It is a `<header>`
 outside the navigation landmark. The field is the palette's own trigger, drawn as a field, with
 the key cap inside its accessible name. If no palette is named, there is no field. **One band over
 a page, never two:** `layout: 'topbar'` and the compatibility `topbar` bag are not composed. An
@@ -1167,10 +1167,10 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   then the sections, the theme switch and the account at its foot. A folded rail keeps the theme
   glyph and the account mark, and makes `bandControl` inert. The drawer puts `bandControl` above
   the sections, and the theme switch above the account in its footer (`react/src/AppShell.tsx:214` `{theme}{accountBlock()}`).
-  In the drawer the controls in `bandControl` and the theme switch are 40px tap targets, and focus starts on the first row.
+  In the drawer a `.toggle` in `bandControl` and the theme switch are 40px tap targets, and focus starts on the first row.
   **At 720px and below the band holds the mark, the page title on one line, search and Menu at
   the end, and nothing else.** The title ends in an ellipsis when it is long, and is hidden from
-  screen readers, because the page's `h1` keeps its name (`react/src/AppShell.css:64` `.ui-react-app__title {`). **Below
+  screen readers, because the page's `h1` keeps its name (`react/src/AppShell.css:62` `.ui-react-app__title {`). **Below
   560px each band control is a bare 40px glyph with no border and no box**, so the band fits
   300px. The search trigger shows only its glyph there, an exception in
   `guidelines/iconography.md` (#729). The shared stylesheet clips the sentence and the key cap
