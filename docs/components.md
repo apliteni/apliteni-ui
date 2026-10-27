@@ -1170,7 +1170,7 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   The theme row switches the theme in place: the menu stays open, and the row's words name the
   current theme (`react/src/AppShell.tsx:135` `accountBlock`). In the drawer a `.toggle` in
   `bandControl` and each account menu row are 40px tap targets, and focus starts on the first row.
-  **Above 720px the band's search field stands in its centre** (`react/src/AppShell.css:55`).
+  **Above 720px the band's search field stands in its centre** (`react/src/AppShell.css:55` `@media (min-width: 721px)`).
   **At 720px and below the band holds the mark, the page title on one line, search and Menu at
   the end, and nothing else.** The title ends in an ellipsis when it is long, and is hidden from
   screen readers, because the page's `h1` keeps its name (`react/src/AppShell.css:63` `.ui-react-app__title {`). **Below

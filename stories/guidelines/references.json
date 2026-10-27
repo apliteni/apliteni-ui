@@ -544,7 +544,7 @@
     "pattern": "in sentence case like every"
    },
    {
-    "ref": "react/src/ThemeToggle.tsx:58",
+    "ref": "react/src/ThemeToggle.tsx:60",
     "pattern": "const name = `Theme:"
    },
    {
@@ -682,11 +682,11 @@
  "_microcopy.js": {
   "state-not-destination": [
    {
-    "ref": "react/src/ThemeToggle.tsx:58",
+    "ref": "react/src/ThemeToggle.tsx:60",
     "pattern": "const name = `Theme:"
    },
    {
-    "ref": "react/src/ThemeToggle.tsx:65",
+    "ref": "react/src/ThemeToggle.tsx:72",
     "pattern": "aria-label={name}"
    },
    {
