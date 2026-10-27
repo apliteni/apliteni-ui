@@ -215,10 +215,15 @@
      own. The bordered step, because both controls are bordered at --tap-aa. */
   .ui-datepicker__head { --tap-clear-x: var(--tap-gap-bordered); --tap-clear-y: var(--tap-gap-bordered); }
 
-  /* The row scrolls, so its own block padding is the clearance — anything
-     past the chip is clipped rather than hit. The chips are already wider
-     than the floor, so the gap across stays the kit's. */
-  .ui-datepicker__presets { --tap-clear-x: var(--space-1, 4px); --tap-clear-y: var(--tap-gap-bordered); }
+  /* In the sheet the row scrolls, so its own block padding is the clearance —
+     anything past the chip is clipped rather than hit. The chips are already
+     wider than the floor, so the gap across stays the kit's. A popover keeps
+     the column, where the row gap opens to the clearance it declares. */
+  .ui-datepicker__presets {
+    row-gap: var(--tap-gap-bordered) !important;
+    --tap-clear-x: var(--space-1, 4px);
+    --tap-clear-y: var(--tap-gap-bordered);
+  }
 
   /* Both ways: fixed squares cannot overflow the way labels can, and a drawer
      header spends its column gap on the title. Not the accent picker — its

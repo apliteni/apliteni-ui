@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.142.4', date: '2026-10-26',
+    changes: [
+      ['fixed', 'On a phone with touch, a tap on the edge of an `AppShell` band control or a stacked `DatePicker` shortcut no longer reaches the control next to it: the top bar opens a 1 to 2px gap and each popover shortcut gets a 46px row. Nothing moves at 1440px. Part of #429.', ['AppShell', 'DatePicker']],
+    ],
+  },
+  {
     v: '0.142.3', date: '2026-10-26',
     changes: [
       ['breaking', 'The vanilla HTML factories, their initializers and the vanilla overlay stack are removed: `button`, `badge`, `pill`, `statusDot`, `card`, `segmented`, `accentPicker`, `field`, `input`, `textarea`, `select`, `checkbox`, `switchToggle`, `callout`, `toast`, `successPanel`, `emptyState`, `snippet`, `avatar`, `dropdown`, `tooltip`, `tabs`, `nav`, `sidebarNav`, `navTabs`, `breadcrumbs`, `backLink`, `drawer`, `drawerSection`, `confirm`, `commandPalette`, `commandPaletteList`, `topbar`, `themeToggle`, `deckTextSwitch`, `versionSwitcher`, `accountMenu`, `appShell`, `footer`, `feedbackWidget`, `success`, `successCheck`, `skeleton`, `skeletonTable`, `busyRegion`, `deniedState`, `pagination`, `statBand`, `numericValue`, `deltaValue`, `rowIdentity` and `filterBar`, together with the `wire*`, `init*`, `set*`, `open*`, `close*`, `show*`, `hide*`, `push*`, `dismiss*` and `apply*` helpers and `railCollapsed`. Replace each factory with its React component from `@apliteni/apliteni-ui/react`, for example `backLink` with `BackLink`, `button` with `Button`, `dropdown` with `Dropdown`, `topbar` with `TopBar` and `appShell` with `AppShell`; the helpers have no replacement because the React components own that state through props. The root entry now exports the React-consumed surface: `icon`, `prism`, `sun`, `moon`, `brand`, `esc`, `safeUrl`, the motion helpers and the shared logic in `src/logic/`. The CSS, tokens and inline strings stay unchanged.', ['Button', 'Card', 'Segmented', 'Dropdown', 'Drawer', 'Confirm', 'Command palette', 'Table', 'Pagination', 'Stat band', 'Tabs', 'Navigation', 'Tooltip', 'Topbar', 'Toast']],

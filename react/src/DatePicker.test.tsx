@@ -1334,6 +1334,13 @@ describe('the tap zone below the phone step', () => {
       expect(rule![1]).toMatch(/--tap-clear-x:/);
     });
 
+  /* A popover below the phone step stacks the shortcuts, and the 4px gap let
+   * each 44px layer reach into the next chip: the column opens to its clearance. */
+  it('opens the stacked shortcuts to the clearance they declare', () => {
+    const rule = /\.ui-datepicker__presets \{([^}]*)\}/.exec(coarseOf(sheet)![1]);
+    expect(rule![1]).toMatch(/row-gap:\s*var\(--tap-gap-bordered\)\s*!important/);
+  });
+
   /* The shortcut row scrolls, so a layer reaching past the chip is clipped
    * rather than hit: its block padding has to cover half the clearance. */
   it('pads the scrolling shortcut row by at least half that clearance', () => {
