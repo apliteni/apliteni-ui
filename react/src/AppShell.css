@@ -48,11 +48,13 @@
 .ui-app__drawer .ui-app__user-panel .ui-dropdown__item { min-height: 40px; }
 /* The head control (#732): one glyph before the fold, drawn as the fold is. The fold is a
    nav row, 9px of padding over a 1lh glyph box at --text-base and line-height 1.2, on the
-   --ui-nav-strip column (src/styles/nav.css:64, src/styles/layout.css:210). So the control
-   has no border and no fill at rest, and takes the rail's hover wash and the fold's ink. */
+   --ui-nav-strip column: src/styles/nav.css:64 `padding: 9px 12px;` and
+   src/styles/layout.css:210 `.ui-app__fold { width: var(--ui-nav-strip); gap: 0; }`. So the
+   control has no border and no fill at rest, and takes the rail's hover wash and the fold's ink. */
 .ui-react-app .ui-app__fold-row:has(> .ui-react-app__head-control) { display: flex; align-items: center; gap: var(--space-1); }
 .ui-react-app__head-control { display: flex; align-items: center; flex: none; }
-.ui-react-app__head-control > :is(button, a),
+.ui-react-app__head-control > button,
+.ui-react-app__head-control > a,
 .ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger {
   display: inline-grid;
   place-items: center;
@@ -65,12 +67,14 @@
   color: var(--text);
   transform: none;
 }
-.ui-react-app__head-control > :is(button, a):hover,
+.ui-react-app__head-control > button:hover,
+.ui-react-app__head-control > a:hover,
 .ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger:hover { transform: none; color: var(--strong); background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
-.ui-react-app__head-control > :is(button, a):focus-visible,
+.ui-react-app__head-control > button:focus-visible,
+.ui-react-app__head-control > a:focus-visible,
 .ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger:focus-visible { color: var(--strong); }
-.ui-react-app__head-control :is(.ic, svg) { width: 17px; height: 17px; color: inherit; }
-.ui-react-app__head-control svg { display: block; opacity: 0.66; stroke-width: 2.2; }
+/* The glyph is the nav glyph's size and weight: src/styles/nav.css:93 `.ui-nav__ic svg {`. */
+.ui-react-app__head-control svg { display: block; width: 17px; height: 17px; opacity: 0.66; stroke-width: 2.2; }
 /* A folded rail is one glyph column wide, and the fold takes it in the head. So the control
    leaves the row and stands on the same column one rail gap under the head's rule, and the
    head keeps room for it. The fold row is centred in the band-high head (layout.css:343).
