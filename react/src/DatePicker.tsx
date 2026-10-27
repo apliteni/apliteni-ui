@@ -2,6 +2,7 @@ import {
   useCallback, useEffect, useMemo, useRef, useState,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent,
 } from 'react';
+import { dropdownViewportFit } from '@apliteni/apliteni-ui';
 import { Icon } from './primitives/Icon';
 import { Drawer } from './Drawer';
 import { useIsoLayoutEffect } from './dialog';
@@ -236,6 +237,7 @@ export function DatePicker({
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const grid = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
 
   const [selfOpen, setSelfOpen] = useState(defaultOpen);
   const open = openProp ?? selfOpen;
@@ -309,6 +311,32 @@ export function DatePicker({
   useEffect(() => {
     if (open) setCursor(clamp(anchor, lo, hi));
   }, [open]);
+
+  // The popover hangs from its trigger, so on a phone it ran off the screen's
+  // edge. The kit's own fit moves it back inside the view, as <Dropdown> does.
+  // Asked on open, on resize and when either box resizes; a trigger that moves
+  // while the panel is up and resizes nothing is not followed.
+  useIsoLayoutEffect(() => {
+    const el = panel.current;
+    const view = el?.ownerDocument?.defaultView;
+    if (!el || !view || !open) return;
+    const fit = () => {
+      let got = dropdownViewportFit(el);
+      if (!got) return;
+      el.style.setProperty('--ui-dropdown-ceiling', got.max > 0 ? `${got.max}px` : '');
+      if (got.width > got.max) got = dropdownViewportFit(el) ?? got;
+      el.style.translate = got.shift ? `${got.shift}px` : '';
+    };
+    fit();
+    const ro = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(fit) : null;
+    if (trigger.current) ro?.observe(trigger.current);
+    ro?.observe(el);
+    view.addEventListener('resize', fit);
+    return () => {
+      ro?.disconnect();
+      view.removeEventListener('resize', fit);
+    };
+  }, [open, asSheet]);
 
   // Click-outside and Escape, while it is open as a popover. A sheet gets both
   // from <Drawer>, along with the scrim that makes the outside click visible.
@@ -710,6 +738,7 @@ export function DatePicker({
       ) : (
         <div
           className={cx('ui-dropdown__panel', 'ui-datepicker__panel', align === 'end' && 'is-end')}
+          ref={panel}
           role="dialog"
           aria-label={name}
           // Mounted while closed so the panel can fade out the way every other

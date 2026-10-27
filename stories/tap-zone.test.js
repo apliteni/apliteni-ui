@@ -523,12 +523,35 @@ test('this gate rejects a sheet that drops the pointer clause', () => {
   );
 });
 
+test('the shrink check reads an edge-stopped side as a lower bound', async () => {
+  // The mutation half of the edge rule: the same 1px loss fails on a side another
+  // control stops, and passes only where the viewport edge stops the pass with the sheet.
+  const { shrinks } = await import('./lib/tap-zone.js');
+  const t = (sides, edges) => ({ drawn: [40, 30], sides, edges });
+  const free = [false, false, false, false];
+  const atLeft = [true, false, false, false];
+  const A = t([3, 2, 4, 4], free);
+  assert.equal(shrinks(t([2, 2, 4, 4], atLeft), A, TAP_MIN), false,
+    'A box that wrapped to the viewport edge lost reach only to the edge, and was failed for it.');
+  assert.equal(shrinks(t([3, 1, 4, 4], atLeft), A, TAP_MIN), true,
+    'A side another control stops lost a pixel beside an edge-stopped side, and passed.');
+  assert.equal(shrinks(t([3, 2, 4, 3], atLeft), A, TAP_MIN), true,
+    'An edge on one axis hid a loss on the other axis.');
+  assert.equal(shrinks(t([2, 2, 4, 4], free), A, TAP_MIN), true,
+    'A loss on a side another control stops passed.');
+  // A 60px button at x=10 reaches 10px to the viewport edge. A control laid over
+  // those 10px takes them, and the edge no longer stops that side.
+  assert.equal(shrinks({ drawn: [60, 30], sides: [0, 11, 7, 7], edges: free },
+    { drawn: [60, 30], sides: [10, 11, 7, 7], edges: atLeft }, TAP_MIN), true,
+    'An edge in the pass without the sheet hid the reach a control took in the pass with it.');
+});
+
 /* -- The browser half ------------------------------------------------------- */
 
 const RUN = process.env.TAP_ZONES === '1';
 
 test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' }, async (t) => {
-  const { storySubjects, rowFixtures, kitStylesheet, pass, playwright, flatten, name } =
+  const { storySubjects, rowFixtures, kitStylesheet, pass, playwright, flatten, name, shrinks } =
     await import('./lib/tap-zone.js');
 
   const pw = await playwright();
@@ -764,13 +787,13 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       // — under the kit's own 2.5.8 minimum — and the count still rose, because
       // the checkbox is not on the per-family list and nothing printed its
       // number. A per-target floor catches that whoever is looking.
+      // Half a pixel of slack: a reach is sampled on the integer grid, so a box
+      // whose edge moves within one pixel can read one either way. A side the
+      // viewport edge stops is not counted: a gap that wraps a control to x=0
+      // takes no reach from it there.
       const shrunk = [];
       for (let i = 0; i < B.length; i++) {
-        const dx = B[i].reach[0] - A[i].reach[0];
-        const dy = B[i].reach[1] - A[i].reach[1];
-        // Half a pixel of slack: a reach is sampled on the integer grid, so a
-        // box whose edge moves within one pixel can read one either way.
-        if (dx < -0.5 || dy < -0.5) {
+        if (shrinks(B[i], A[i], TAP_MIN)) {
           shrunk.push(`${B[i].story} — ${name(B[i])} ${A[i].reach.join('x')} → ${B[i].reach.join('x')}`);
         }
       }
@@ -794,8 +817,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       ).replace(/max\(var\(--tap-aa\), (min\(max\(100%, var\(--tap-min\)\), calc\(100% \+ var\(--tap-clear-[xy]\)\)\))\)/g, '$1');
       assert.notEqual(broken, withCss, 'The mutation did not apply, so it proves nothing.');
       const mutated = flatten((await at(390, true, broken)).rows);
-      const shrunk = mutated.filter((m, i) =>
-        m.reach[0] - A[i].reach[0] < -0.5 || m.reach[1] - A[i].reach[1] < -0.5);
+      const shrunk = mutated.filter((m, i) => shrinks(m, A[i], TAP_MIN));
       assert.ok(
         shrunk.length > 0,
         'Taking the --tap-aa floor off the two raised layers shrank nothing, so the check above '

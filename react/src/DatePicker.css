@@ -68,6 +68,9 @@
   font-weight: var(--weight-medium);
   /* One width per digit, so 1 and 11 share a column centre. */
   font-variant-numeric: tabular-nums;
+  /* The panel breaks long words anywhere, which split 11 over two lines in a
+     narrow cell. A number or a month name stays whole. */
+  white-space: nowrap;
   color: var(--text);
   background: transparent;
   border: 1px solid transparent;
@@ -215,8 +218,32 @@
    its own, which is when Chrome makes the scrollport the stop — answered, until this
    rule, with the browser's outline. It takes the kit's band drawn inward, like every
    other scroll region inside a surface, in the --space-1 of inline padding it carries.
+   The phone popover's row scrolls too. Its desktop column never scrolls, so never takes focus.
    why: docs/foundations.md#the-focus-ring */
-.ui-datepicker__body.is-sheet .ui-datepicker__presets:focus-visible {
+.ui-datepicker__body.is-sheet .ui-datepicker__presets:focus-visible,
+.ui-datepicker__panel .ui-datepicker__presets:focus-visible {
   outline: var(--ring-scroll);
   outline-offset: var(--ring-scroll-offset);
+}
+
+/* -- In a phone popover ---------------------------------------------------- */
+/* The grid and the shortcut column beside it outgrew a 390px screen. The popover
+   takes the screen less 8px a side and puts the shortcuts in a row, as the sheet
+   does. Not in the tap sheet, which may not change a drawn size. */
+@media (max-width: 560px) {
+  .ui-dropdown__panel.ui-datepicker__panel {
+    --ui-dropdown-edge: 8px;
+    width: var(--ui-dropdown-ceiling, calc(100vw - 16px));
+    max-width: none;
+  }
+  .ui-datepicker__panel .ui-datepicker__body { flex-direction: column; align-items: stretch; }
+  .ui-datepicker__panel .ui-datepicker__presets {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    scroll-padding-inline: var(--space-1);
+    padding: var(--space-3) var(--space-1);
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--border);
+  }
 }
