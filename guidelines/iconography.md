@@ -8,7 +8,7 @@
 
 **Why:** Without a legend, readers need labels for unfamiliar glyphs.
 
-**Except:** New entries require a decision and pass Earn a wordless button on Button labels. Allowed: close, copy, overflow, expand, collapse and export. Theme toggles, sidebar toggles and collapsed-rail links have separate approval.
+**Except:** New entries require a decision and pass Earn a wordless button on Button labels. Allowed: close, copy, overflow, expand, collapse and export. Theme toggles, sidebar toggles and collapsed-rail links have separate approval. The React AppShell search trigger shows only its glyph below 560px. Its sentence stays its accessible name, and a phone has no hover title. The owner chose this on [#729](https://github.com/apliteni/apliteni-ui/issues/729) for one light row of icons.
 
 **Do:** Show an overflow menu without words; keep the Settings label.
 

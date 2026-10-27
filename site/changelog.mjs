@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.142.6', date: '2026-10-27',
+    changes: [
+      ['changed', 'On a phone narrower than 560px, the `AppShell` band is one row of bare 40px icons with no border and no box: Menu, the brand mark, the band control, search, the theme switch and the account. Search shows only its icon and keeps its full accessible name. The band control\'s label shows in full at 300px. Resolves #729.', ['Shell']],
+      ['deprecated', 'React `AppShell` no longer draws `searchShortLabel`, because the phone search trigger shows only its icon. The prop is still accepted. Part of #729.', ['Shell']],
+    ],
+  },
+  {
     v: '0.142.5', date: '2026-10-27',
     changes: [
       ['fixed', 'On a screen narrower than 560px, a `DatePicker` popover stays inside the screen. It spans the screen less 8px a side, puts the shortcuts in a row above the calendar and keeps each day number on one line. On a phone with touch it also shows every week without a scroll, because the 300px height cap of the menu no longer applies to it. The drawer that a phone shows by default does not change. Part of #429.', ['DatePicker']],

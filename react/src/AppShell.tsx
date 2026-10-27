@@ -32,9 +32,10 @@ export type AppShellProps = {
   lede?: string;
   actions?: ReactNode;
   bandControl?: ReactNode;
-  /** The band trigger's words. Below 560px the shell draws `searchShortLabel` instead;
-   *  both stay the button's name, which does not change with the viewport. */
+  /** The band trigger's words and its name at every width. Below 560px the trigger shows
+   *  only its glyph (#729), and the words stay its accessible name. */
   searchLabel?: string;
+  /** @deprecated Not drawn since #729: the phone trigger shows only its glyph. */
   searchShortLabel?: string;
   account: { name: string; email: string };
   onSignOut: () => void;
@@ -49,7 +50,7 @@ const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/
 
 export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar',
   brandHref = '/', width = 'centered', back, crumbs, lede, actions, bandControl, account, onSignOut,
-  searchLabel = 'Search or run a command…', searchShortLabel = 'Search',
+  searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, renderLink }: AppShellProps) {
   const uid = useId();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
@@ -184,7 +185,6 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
         <button type="button" className="ui-app__search" aria-haspopup="dialog" onClick={() => setSearch(true)}>
           <span className="ui-app__search-ic"><Icon name="search" /></span>
           <span className="ui-app__search-txt">{searchLabel}</span>
-          <span className="ui-app__search-short" aria-hidden="true">{searchShortLabel}</span>
           <kbd className="ui-cmdk__key">{paletteHotkey()}</kbd>
         </button>
         <span className="ui-app__bar-gap" />{bandControl && <span className="ui-react-app__band-control">{bandControl}</span>}
