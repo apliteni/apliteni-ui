@@ -100,13 +100,11 @@ it('opens search with its button and shortcut, dismisses with Escape', () => {
   expect(screen.getByRole('combobox')).toHaveFocus();
 });
 
-it('draws a short word for the phone band without changing the trigger\'s name', () => {
+it('keeps the trigger\'s name when the phone band shows only its glyph', () => {
   render(<AppShell {...props} />);
   const trigger = screen.getByRole('button', { name: /Search or run/ });
-  // aria-hidden, so the short word is not part of the name the assertion above read.
-  const short = trigger.querySelector('.ui-app__search-short');
-  expect(short).toHaveTextContent('Search');
-  expect(short).toHaveAttribute('aria-hidden', 'true');
+  // No short word is drawn (#729); layout.css clips the sentence and the key cap below 560px.
+  expect(trigger.querySelector('.ui-app__search-short')).toBeNull();
   expect(trigger.querySelector('.ui-app__search-txt')).toHaveTextContent('Search or run a command…');
   // The whole name, anchored: the label, the kit's hotkey for this platform, nothing
   // else. The separator is the engine's, so it is matched and not written — jsdom joins
@@ -114,24 +112,24 @@ it('draws a short word for the phone band without changing the trigger\'s name',
   // blockified flex item. Measured in Chromium on #486, the same at 1280px and 390px.
   expect(trigger).toHaveAccessibleName(
     expect.stringMatching(new RegExp(`^Search or run a command… ?${paletteHotkey()}$`)));
-  // Which word is drawn is layout.css's 560px block; JSDOM resolves no @media, so
-  // stories/apps/shell-states.test.js reads that swap through the real cascade.
   cleanup();
 
-  render(<AppShell {...props} searchLabel="Find anything" searchShortLabel="Find" />);
-  const named = screen.getByRole('button', { name: /Find anything/ });
-  expect(named.querySelector('.ui-app__search-short')).toHaveTextContent('Find');
-  expect(named).toHaveAccessibleName(expect.stringContaining('Find anything'));
+  render(<AppShell {...props} searchLabel="Find anything" />);
+  expect(screen.getByRole('button', { name: /Find anything/ })).toHaveAccessibleName(expect.stringContaining('Find anything'));
 });
 
-it('folds the phone band\'s search to a square and drops the mark under 390px', () => {
-  // A source read: jsdom resolves no @container, so the widths are measured in Chromium
-  // on #429 (320 to 375 show "Workspace" whole, 390 and 414 are unchanged), not here.
+it('draws the phone band\'s controls as bare 40px glyphs and drops the mark under 390px', () => {
+  // A source read: jsdom resolves no @media or @container, so the widths are measured in
+  // Chromium on #729 (300 and 390 fit with no sideways scroll, the label shows whole).
   const css = read('./AppShell.css');
-  expect(css).toMatch(/\.ui-react-app \.ui-app__bar \{ container-type: inline-size; \}/);
+  const phone = css.match(/@media \(max-width: 560px\) \{([^]*?)\n\}/)?.[1] ?? '';
+  expect(phone).toMatch(/\.ui-app__search,[^{]*\{[^}]*width: 40px;[^}]*height: 40px;[^}]*border: 0; border-radius: var\(--radius-md\); background: transparent;/);
+  expect(phone).toMatch(/\.ui-app__search-ic \{ display: flex; \}/);
+  // No gap, so no room across: tap-zone.css's coarse-pointer layer stays on its own 40px
+  // control. Measured with elementFromPoint at 300 and 390 on #729; jsdom has no layout.
+  expect(phone).toMatch(/\.ui-react-app \.ui-app__bar \{ --tap-clear-x: 0px; \}/);
+  expect(phone).toMatch(/\.ui-react-app \.ui-app__bar \{ container-type: inline-size; \}/);
   const fold = css.match(/@container \(max-width: 373px\) \{([^]*?)\n\}/)?.[1] ?? '';
-  expect(fold).toMatch(/\.ui-app__search \{[^}]*width: 34px; height: 34px;/);
-  expect(fold).toMatch(/\.ui-app__search-short \{ display: none; \}/);
   expect(fold).toMatch(/\.ui-app__brand--band \{ display: none; \}/);
 });
 

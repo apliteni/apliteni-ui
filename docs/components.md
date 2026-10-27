@@ -232,17 +232,15 @@ a page, never two:** `layout: 'topbar'` and the compatibility `topbar` bag are n
 unknown `layout` or `width` is read as the layout the kit has always drawn. React's own shell is
 [React AppShell](#the-rest-of-the-react-surface).
 
-**Below 560px the trigger reads one word, and is still called the same thing.** At one column
-the band holds the trigger, the reader's mark and whatever else the product puts between them,
-so the sentence had a few characters to stand in and broke mid-word — "Search or run a co…".
-`search: { palette, placeholder, shortLabel }` names that word, and with nothing named it is
-`Search`. The short word is `aria-hidden`, and the sentence and the key cap are **clipped rather
-than dropped** at that width, so the button's accessible name is the same string at 1280px and at
-390px: a control that says something shorter to a screen reader on a phone is a second control.
-The swap is one block in `layout.css`, so the React `AppShell` — `searchLabel` and
-`searchShortLabel` — gets it from the same rules rather than a second copy of them. The palette's
-own placeholder is not this text and does not shorten.
-Decided in [#486](https://github.com/apliteni/apliteni-ui/issues/486).
+**Below 560px the trigger shows only its search glyph, and is still called the same thing.** At
+one column the band holds the trigger, the reader's mark and whatever else the product puts
+between them, so the sentence had a few characters to stand in and broke mid-word — "Search or
+run a co…". The sentence and the key cap are **clipped rather than dropped** at that width, so the
+button's accessible name is the same string at 1280px and at 390px: a control that says something
+shorter to a screen reader on a phone is a second control. The clip is one block in `layout.css`.
+The palette's own placeholder is not this text and does not shorten.
+Decided in [#486](https://github.com/apliteni/apliteni-ui/issues/486). The short word that #486
+drew there gave way to the glyph on [#729](https://github.com/apliteni/apliteni-ui/issues/729).
 
 ### The back link
 
@@ -1161,9 +1159,13 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   link — draws no rail, no fold control and no menu button;** the brand lockup moves to the band
   and the section stays in the command palette. One section under a child page is a destination,
   the page's parent, so that list is drawn and the row takes `aria-current="true"`.
-  `searchLabel` and `searchShortLabel` name the band trigger's words; below 560px the
-  shared stylesheet draws the short one and clips the sentence and the key cap rather than
-  dropping them, so the button keeps one accessible name at every width. **When it mounts, the
+  `searchLabel` names the band trigger's words. `searchShortLabel` is deprecated and not drawn. **Below 560px the band is
+  one row of bare 40px glyphs with no border and no box:** Menu, the mark, the band control's
+  label, search, the band control's other controls, the theme switch and the account. The
+  search trigger shows only its glyph there, an exception in `guidelines/iconography.md`
+  (#729). The shared stylesheet clips the sentence and the key cap rather than dropping them,
+  so the button keeps one accessible name at every width. Under 390px the mark goes, so the
+  band control's label shows whole (`react/src/AppShell.css`). **When it mounts, the
   band theme switch applies the stored theme choice, or follows the system when there is none.**
   A page that sets its own `data-theme` must also set `data-theme-choice`, or store the choice,
   to keep that theme. For example, `<html data-theme="light">` on a dark system turns dark
