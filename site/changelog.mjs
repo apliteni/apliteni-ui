@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.142.5', date: '2026-10-27',
+    changes: [
+      ['fixed', 'On a phone with touch, a `DatePicker` popover shows every week without a scroll. Its taller tap rows had pushed the last week under the 300px height cap of the menu, which no longer applies to it. The drawer that a phone shows by default does not change. Part of #429.', ['DatePicker']],
+    ],
+  },
+  {
     v: '0.142.4', date: '2026-10-26',
     changes: [
       ['fixed', 'On a phone with touch, a tap on the edge of an `AppShell` band control or a stacked `DatePicker` shortcut no longer reaches the control next to it: the top bar opens a 1 to 2px gap and each popover shortcut gets a 46px row. Nothing moves at 1440px. Part of #429.', ['AppShell', 'DatePicker']],

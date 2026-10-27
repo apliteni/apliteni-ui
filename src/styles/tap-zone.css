@@ -209,6 +209,9 @@
     --tap-clear-x: var(--space-1, 4px);
     --tap-clear-y: var(--tap-gap);
   }
+  /* The opened rows outgrow the menu's 300px cap, whose scroll edge cut the last
+     week's tap layers in a phone popover. The panel keeps the viewport and edge limits. */
+  .ui-datepicker__panel { --ui-dropdown-max: 100dvh; }
 
   /* Neither axis is opened: the room is already there, a hundred pixels to the
      caption and twelve to the grid, which is how `.ui-tabs__list` declares its
