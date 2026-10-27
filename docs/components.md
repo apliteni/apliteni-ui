@@ -223,9 +223,12 @@ losing both ends to a clip. There is one limit: a folded rail flush with a page'
 #### The second layout
 
 `appShell({ layout: 'topbar' })` is the same shell with its three parts in different places.
-Every guarantee above still applies. The reader's block leaves the rail's foot and becomes a band
-beside the rail. It does not span the top of both. The fold's control takes the reader block's
-place. **The band carries a search field and the reader, and nothing else**. It is a `<header>`
+Every guarantee above still applies. The band stands beside the rail. It does not span the top
+of both. **The rail holds the shell's own controls:** the fold's control in its head, beside the
+mark, the theme switch above the reader's block, and the reader's block at its foot. The band
+control stands under the head (#732, `react/src/AppShell.tsx:191` `ui-react-app__control`). **The band carries the search
+field and nothing else** above 720px. At 720px and below it carries the mark, the page title on one
+line, the search trigger and the menu button (`react/src/AppShell.css:94` `@media (max-width: 720px)`). It is a `<header>`
 outside the navigation landmark. The field is the palette's own trigger, drawn as a field, with
 the key cap inside its accessible name. If no palette is named, there is no field. **One band over
 a page, never two:** `layout: 'topbar'` and the compatibility `topbar` bag are not composed. An
@@ -233,8 +236,7 @@ unknown `layout` or `width` is read as the layout the kit has always drawn. Reac
 [React AppShell](#the-rest-of-the-react-surface).
 
 **Below 560px the trigger shows only its search glyph, and is still called the same thing.** At
-one column the band holds the trigger, the reader's mark and whatever else the product puts
-between them, so the sentence had a few characters to stand in and broke mid-word — "Search or
+one column the band holds the trigger beside the mark, the page title and the menu button, so the sentence had a few characters to stand in and broke mid-word — "Search or
 run a co…". The sentence and the key cap are **clipped rather than dropped** at that width, so the
 button's accessible name is the same string at 1280px and at 390px: a control that says something
 shorter to a screen reader on a phone is a second control. The clip is one block in `layout.css`.
@@ -1159,14 +1161,34 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   link — draws no rail, no fold control and no menu button;** the brand lockup moves to the band
   and the section stays in the command palette. One section under a child page is a destination,
   the page's parent, so that list is drawn and the row takes `aria-current="true"`.
-  `searchLabel` names the band trigger's words. `searchShortLabel` is deprecated and not drawn. **Below 560px the band is
-  one row of bare 40px glyphs with no border and no box:** Menu, the mark, the band control's
-  label, search, the band control's other controls, the theme switch and the account. The
-  search trigger shows only its glyph there, an exception in `guidelines/iconography.md`
-  (#729). The shared stylesheet clips the sentence and the key cap rather than dropping them,
-  so the button keeps one accessible name at every width. Under 390px the mark goes, so the
-  band control's label shows whole (`react/src/AppShell.css`). **When it mounts, the
-  band theme switch applies the stored theme choice, or follows the system when there is none.**
+  `searchLabel` names the band trigger's words. `searchShortLabel` is deprecated and not drawn.
+  **With a sidebar, the account and `bandControl` stand in the sidebar, not on the band, and the
+  theme switch is the first row of the account menu** (#732). The rail keeps the fold's control
+  in its head, `bandControl` under the head, then the sections and the account at its foot. A
+  folded rail keeps the account mark, and makes `bandControl` inert. The drawer puts
+  `bandControl` above the sections, and the account in its footer (`react/src/AppShell.tsx:229` `{accountBlock(true)}`).
+  **`headControl` is one glyph control in the sidebar head, before the fold button** (#732). It
+  is drawn as the fold is: a plain glyph with no border and no fill, the fold's size, ink and
+  hover (`react/src/AppShell.css:55` `.ui-react-app__head-control > :is(button, a)`). A folded
+  rail moves it out of the head row onto the glyph column, one rail gap under the head, and it
+  stays usable. The drawer puts it in the panel's head, before the close button, as a 40px tap
+  target (`react/src/AppShell.tsx:229` `headerActions={headSlot}`). `Drawer` takes
+  `headerActions` for controls between its title and its close button. A shell with no sidebar
+  puts `headControl` on the band after `bandControl`.
+  The theme row switches the theme in place: the menu stays open, and the row's words name the
+  current theme (`react/src/AppShell.tsx:138` `accountBlock`). In the drawer a `.toggle` in
+  `bandControl` and each account menu row are 40px tap targets, and focus starts on the first row.
+  **Above 720px the band's search field stands in its centre** (`react/src/AppShell.css:90` `@media (min-width: 721px)`).
+  **At 720px and below the band holds the mark, the page title on one line, search and Menu at
+  the end, and nothing else.** The title ends in an ellipsis when it is long, and is hidden from
+  screen readers, because the page's `h1` keeps its name (`react/src/AppShell.css:98` `.ui-react-app__title {`). **Below
+  560px each band control is a bare 40px glyph with no border and no box**, so the band fits
+  300px. The search trigger shows only its glyph there, an exception in
+  `guidelines/iconography.md` (#729). The shared stylesheet clips the sentence and the key cap
+  rather than dropping them, so the button keeps one accessible name at every width. A shell
+  without a sidebar keeps `bandControl`, the theme switch and the account on its band.
+  **When it mounts, the theme switch applies the stored theme choice, or follows the system when
+  there is none.**
   A page that sets its own `data-theme` must also set `data-theme-choice`, or store the choice,
   to keep that theme. For example, `<html data-theme="light">` on a dark system turns dark
   when the shell mounts.

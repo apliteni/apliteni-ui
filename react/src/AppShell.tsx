@@ -1,5 +1,5 @@
-import { useEffect, useId, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
-import { prism } from '@apliteni/apliteni-ui';
+import { useEffect, useId, useMemo, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
+import { prism, themeIcon } from '@apliteni/apliteni-ui';
 import { paletteHotkey } from './lib/palette-hotkey';
 import { railCollapsed, storeRailCollapsed } from './lib/rail';
 import { SidebarNav } from './SidebarNav';
@@ -11,7 +11,7 @@ import { Dropdown } from './Dropdown';
 import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
 import { Avatar } from './primitives/Avatar';
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeToggle, useThemeChoice } from './ThemeToggle';
 import './AppShell.css';
 
 export type AppShellSection = { href: string; label: string; icon: string; count?: number };
@@ -32,6 +32,9 @@ export type AppShellProps = {
   lede?: string;
   actions?: ReactNode;
   bandControl?: ReactNode;
+  /** One glyph control in the sidebar head, before the fold button, drawn as the fold is.
+   *  On a phone it stands in the menu panel's head. Topbar layout only (#732). */
+  headControl?: ReactNode;
   /** The band trigger's words and its name at every width. Below 560px the trigger shows
    *  only its glyph (#729), and the words stay its accessible name. */
   searchLabel?: string;
@@ -49,14 +52,18 @@ export type AppShellProps = {
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
 export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar',
-  brandHref = '/', width = 'centered', back, crumbs, lede, actions, bandControl, account, onSignOut,
+  brandHref = '/', width = 'centered', back, crumbs, lede, actions, bandControl, headControl, account, onSignOut,
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, renderLink }: AppShellProps) {
   const uid = useId();
+  const theme = useThemeChoice();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [search, setSearch] = useState(false);
   const [menu, setMenu] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
+  // The drawer opens on its first row, not on the band control above the rows (#732).
+  const menuBody = useRef<HTMLDivElement>(null);
+  const firstRow = useMemo(() => ({ get current() { return menuBody.current?.querySelector<HTMLElement>('.ui-nav__item') ?? null; } }), []);
   const current = path(pathname);
   const active = sections.filter((section) => current === path(section.href)
     || (path(section.href) !== '/' && current.startsWith(`${path(section.href)}/`)))
@@ -125,16 +132,26 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     <span>{word}</span>
   </a>;
 
-  const accountBlock = () => <div className="ui-app__user"><Dropdown variant="menu"
+  // The topbar layout's account menu holds the theme switch (#732). Its row switches the
+  // theme in place: it never calls the menu's pick, so the menu stays open with focus on
+  // the row, and the row's words follow the new theme. Its name starts with those words. The rail layout keeps the vanilla menu.
+  const accountBlock = (withTheme = false) => <div className="ui-app__user"><Dropdown variant="menu"
     direction="up" align="start" chevron
     ariaLabel={`Signed in as ${account.name}, ${account.email}`}
     triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
     triggerContent={<><span className="ui-app__av" aria-hidden="true">
       <Avatar personKey={account.email || account.name} name={account.name} size={32} />
     </span><span className="ui-app__who"><b>{account.name}</b><span>{account.email}</span></span></>}
-    items={[{ label: 'Sign out', icon: 'logout', danger: true }]} onSelect={onSignOut} />
+    items={[...(withTheme ? [{ label: `${theme.label} theme`, value: 'theme' }] : []), { label: 'Sign out', value: 'sign-out', icon: 'logout', danger: true }]}
+    row={(item, props) => item.value === 'theme' ? <div {...props}
+      aria-label={`${item.label}. Switch to ${theme.next}.`} onClick={theme.toggle}>
+      <span className="ui-dropdown__ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: themeIcon(theme.theme) }} />
+      <span className="ui-dropdown__main"><span className="ui-dropdown__label">{item.label}</span></span>
+    </div> : <div {...props} />}
+    onSelect={value => { if (value === 'sign-out') onSignOut(); }} />
   </div>;
-  const foldControl = <div className="ui-app__fold-row"><button type="button"
+  const headSlot = layout === 'topbar' && headControl && <div className="ui-react-app__head-control">{headControl}</div>;
+  const foldControl = <div className="ui-app__fold-row">{headSlot}<button type="button"
     className="ui-nav__item ui-app__fold" aria-expanded={!collapsed} aria-label={foldLabel} onClick={fold}>
     <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /><path className="ui-app__fold-arrow" d="m16 15-3-3 3-3" /></svg></span>
     <span className="ui-nav__label">{foldLabel}</span>
@@ -166,40 +183,51 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     </Drawer>
   </div>;
 
+  // The sidebar holds the shell's own controls (#732): the head control before the fold,
+  // the band control under the head, and the account at its foot, with the theme switch
+  // in the account menu. The band keeps search in its centre, and on a phone the mark, the
+  // page title, search and Menu. The menu panel puts the head control in its own head.
+  // With no sidebar, the band keeps them all.
+  const control = bandControl && <div className="ui-react-app__control" inert={collapsed}>{bandControl}</div>;
   return <div className={`ui-app ui-app--topbar ui-react-app${collapsed ? ' is-collapsed' : ''}`}>
     {navigable && <div className="ui-app__rail" role="region" aria-label="Sidebar">
-      <div className="ui-app__head">{lockup}</div>
+      <div className="ui-app__head">{lockup}{foldControl}</div>
+      {control}
       {sidebar('Sections')}
-      <div className="ui-app__foot">{foldControl}</div>
+      {accountBlock(true)}
     </div>}
     <div className="ui-app__well">
       <header className="ui-app__bar">
-        {navigable && <>
-          <Button ref={menuButton} variant="ghost" icon="menu" iconOnly aria-label="Menu" className="ui-app__menu"
-            aria-haspopup="dialog" aria-expanded={menu} onClick={() => setMenu(true)} />
+        {navigable ? <>
           <a className="ui-app__brand ui-app__brand--band" href={brandHref} aria-label={word}>
             {brand ?? <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`${uid}-band`, 24) }} />}
           </a>
-        </>}
-        {!navigable && lockup}
+          <span className="ui-react-app__title" aria-hidden="true">{title}</span>
+        </> : lockup}
         <button type="button" className="ui-app__search" aria-haspopup="dialog" onClick={() => setSearch(true)}>
           <span className="ui-app__search-ic"><Icon name="search" /></span>
           <span className="ui-app__search-txt">{searchLabel}</span>
           <kbd className="ui-cmdk__key">{paletteHotkey()}</kbd>
         </button>
-        <span className="ui-app__bar-gap" />{bandControl && <span className="ui-react-app__band-control">{bandControl}</span>}
-        <ThemeToggle />
-        <div className="ui-app__user ui-app__user--bar"><Dropdown variant="menu" align="end" chevron={false}
-          ariaLabel={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
-          triggerContent={<span className="ui-app__av" aria-hidden="true"><Avatar personKey={account.email || account.name} name={account.name} size={32} /></span>}
-          header={<div className="ui-dropdown__head"><b>{account.name}</b><span>{account.email}</span></div>}
-          items={[{ label: 'Sign out', icon: 'logout', danger: true }]} onSelect={onSignOut} />
-        </div>
+        <span className="ui-app__bar-gap" />
+        {navigable ? <Button ref={menuButton} variant="ghost" icon="menu" iconOnly aria-label="Menu" className="ui-app__menu"
+          aria-haspopup="dialog" aria-expanded={menu} onClick={() => setMenu(true)} /> : <>
+          {bandControl && <span className="ui-react-app__band-control">{bandControl}</span>}
+          {headControl && <span className="ui-react-app__band-control">{headControl}</span>}
+          <ThemeToggle />
+          <div className="ui-app__user ui-app__user--bar"><Dropdown variant="menu" align="end" chevron={false}
+            ariaLabel={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
+            triggerContent={<span className="ui-app__av" aria-hidden="true"><Avatar personKey={account.email || account.name} name={account.name} size={32} /></span>}
+            header={<div className="ui-dropdown__head"><b>{account.name}</b><span>{account.email}</span></div>}
+            items={[{ label: 'Sign out', icon: 'logout', danger: true }]} onSelect={onSignOut} />
+          </div>
+        </>}
       </header>
       {page}
     </div>
-    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm">
-      <div className="ui-react-app__menu">{sidebar('Menu sections')}</div>
+    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm" initialFocusRef={firstRow}
+      headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true)}</div>}>
+      <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}
     <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} open={search} onClose={() => setSearch(false)} />
   </div>;

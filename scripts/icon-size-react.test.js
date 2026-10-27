@@ -42,10 +42,10 @@ const reactSrc = path.join(root, 'react', 'src');
 const previewPath = path.join(root, '.storybook', 'preview.js');
 const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 
-// DataTable, Field, KeyValueList and Timeline size glyphs on both axes.
+// AppShell, DataTable, Field, KeyValueList and Timeline size glyphs on both axes.
 // Change the count with the sizing rules and explain removals.
-// The shell has no consent icon rules; the remaining React components own eight sizes.
-const EXPECTED_SUBJECTS = 8;
+// The shell sizes its head control's glyph (#732); the five components own ten sizes.
+const EXPECTED_SUBJECTS = 10;
 
 /* Every directory under react/src the walk refused to enter. SKIP_DIRS prunes by
  * NAME wherever the name turns up, which is what build output needs and what

@@ -152,7 +152,7 @@
     "pattern": "color: var(--accent);"
    },
    {
-    "ref": "src/styles/layout.css:71",
+    "ref": "src/styles/layout.css:70",
     "pattern": ".ui-app__rail .ui-nav__item.is-active"
    }
   ],
@@ -378,7 +378,7 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:205",
+    "ref": "src/styles/drawer.css:207",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
@@ -388,7 +388,7 @@
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:205",
+    "ref": "src/styles/drawer.css:207",
     "pattern": ".ui-drawer__section + .ui-drawer__section {"
    }
   ],
@@ -398,7 +398,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:243",
+    "ref": "src/styles/drawer.css:245",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -544,7 +544,7 @@
     "pattern": "in sentence case like every"
    },
    {
-    "ref": "react/src/ThemeToggle.tsx:58",
+    "ref": "react/src/ThemeToggle.tsx:60",
     "pattern": "const name = `Theme:"
    },
    {
@@ -554,7 +554,7 @@
   ],
   "title-rank": [
    {
-    "ref": "src/styles/layout.css:426",
+    "ref": "src/styles/layout.css:409",
     "pattern": "rank: page-title"
    },
    {
@@ -596,7 +596,7 @@
   ],
   "measure": [
    {
-    "ref": "src/styles/layout.css:324",
+    "ref": "src/styles/layout.css:308",
     "pattern": "var(--ui-app-main, var(--measure))"
    },
    {
@@ -630,7 +630,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:514",
+    "ref": "src/styles/layout.css:497",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -682,11 +682,11 @@
  "_microcopy.js": {
   "state-not-destination": [
    {
-    "ref": "react/src/ThemeToggle.tsx:58",
+    "ref": "react/src/ThemeToggle.tsx:60",
     "pattern": "const name = `Theme:"
    },
    {
-    "ref": "react/src/ThemeToggle.tsx:65",
+    "ref": "react/src/ThemeToggle.tsx:72",
     "pattern": "aria-label={name}"
    },
    {
@@ -762,7 +762,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:256",
+    "ref": "src/styles/drawer.css:258",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
