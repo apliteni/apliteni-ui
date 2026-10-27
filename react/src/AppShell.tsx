@@ -166,40 +166,50 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     </Drawer>
   </div>;
 
+  // The sidebar holds the shell's own controls (#732): the band control under the head,
+  // then the theme switch and the account at its foot. The phone band keeps the mark,
+  // the page title, search and Menu. With no sidebar, the band keeps them all.
+  const control = bandControl && <div className="ui-react-app__control" inert={collapsed}>{bandControl}</div>;
+  const theme = <div className="ui-react-app__theme"><ThemeToggle labelled /></div>;
   return <div className={`ui-app ui-app--topbar ui-react-app${collapsed ? ' is-collapsed' : ''}`}>
     {navigable && <div className="ui-app__rail" role="region" aria-label="Sidebar">
-      <div className="ui-app__head">{lockup}</div>
+      <div className="ui-app__head">{lockup}{foldControl}</div>
+      {control}
       {sidebar('Sections')}
-      <div className="ui-app__foot">{foldControl}</div>
+      {theme}
+      {accountBlock()}
     </div>}
     <div className="ui-app__well">
       <header className="ui-app__bar">
-        {navigable && <>
-          <Button ref={menuButton} variant="ghost" icon="menu" iconOnly aria-label="Menu" className="ui-app__menu"
-            aria-haspopup="dialog" aria-expanded={menu} onClick={() => setMenu(true)} />
+        {navigable ? <>
           <a className="ui-app__brand ui-app__brand--band" href={brandHref} aria-label={word}>
             {brand ?? <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`${uid}-band`, 24) }} />}
           </a>
-        </>}
-        {!navigable && lockup}
+          <span className="ui-react-app__title" aria-hidden="true">{title}</span>
+        </> : lockup}
         <button type="button" className="ui-app__search" aria-haspopup="dialog" onClick={() => setSearch(true)}>
           <span className="ui-app__search-ic"><Icon name="search" /></span>
           <span className="ui-app__search-txt">{searchLabel}</span>
           <kbd className="ui-cmdk__key">{paletteHotkey()}</kbd>
         </button>
-        <span className="ui-app__bar-gap" />{bandControl && <span className="ui-react-app__band-control">{bandControl}</span>}
-        <ThemeToggle />
-        <div className="ui-app__user ui-app__user--bar"><Dropdown variant="menu" align="end" chevron={false}
-          ariaLabel={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
-          triggerContent={<span className="ui-app__av" aria-hidden="true"><Avatar personKey={account.email || account.name} name={account.name} size={32} /></span>}
-          header={<div className="ui-dropdown__head"><b>{account.name}</b><span>{account.email}</span></div>}
-          items={[{ label: 'Sign out', icon: 'logout', danger: true }]} onSelect={onSignOut} />
-        </div>
+        <span className="ui-app__bar-gap" />
+        {navigable ? <Button ref={menuButton} variant="ghost" icon="menu" iconOnly aria-label="Menu" className="ui-app__menu"
+          aria-haspopup="dialog" aria-expanded={menu} onClick={() => setMenu(true)} /> : <>
+          {bandControl && <span className="ui-react-app__band-control">{bandControl}</span>}
+          <ThemeToggle />
+          <div className="ui-app__user ui-app__user--bar"><Dropdown variant="menu" align="end" chevron={false}
+            ariaLabel={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
+            triggerContent={<span className="ui-app__av" aria-hidden="true"><Avatar personKey={account.email || account.name} name={account.name} size={32} /></span>}
+            header={<div className="ui-dropdown__head"><b>{account.name}</b><span>{account.email}</span></div>}
+            items={[{ label: 'Sign out', icon: 'logout', danger: true }]} onSelect={onSignOut} />
+          </div>
+        </>}
       </header>
       {page}
     </div>
-    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm">
-      <div className="ui-react-app__menu">{sidebar('Menu sections')}</div>
+    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm"
+      footer={<div className="ui-app__drawer">{theme}{accountBlock()}</div>}>
+      <div className="ui-react-app__menu">{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}
     <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} open={search} onClose={() => setSearch(false)} />
   </div>;

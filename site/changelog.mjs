@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.142.8', date: '2026-10-27',
+    changes: [
+      ['changed', 'At 720px and below, the `AppShell` band holds the brand mark, the page title on one line, search and Menu, and nothing else. The sidebar and the phone drawer now hold `bandControl` under the head, then the sections, the theme switch and the account at the foot. The fold control moves to the sidebar head. A shell with no sidebar keeps these controls on the band. Resolves #732.', ['Shell']],
+    ],
+  },
+  {
     v: '0.142.7', date: '2026-10-27',
     changes: [
       ['changed', 'In light, a card, the `AppShell` rail and each floating surface (menu, popover, tooltip, drawer, modal, toast) draw one line, `--level-line`, and a faint short shadow. The shadows are lighter than before. The new token `--modal-edge` draws the React modal line. It is transparent in dark, so dark does not change. Resolves #730.', ['Card', 'Shell', 'Dropdown', 'Tooltip', 'Drawer', 'Modal', 'Toast']],

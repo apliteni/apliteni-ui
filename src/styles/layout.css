@@ -55,13 +55,12 @@
   transition: width var(--dur-med) var(--ease);
 }
 /* Each block of the rail keeps the open column while the box closes over it. The
-   nav declares its own; these are the three that are not the nav. Scoped to the rail,
+   nav declares its own; these are the two that are not the nav. Scoped to the rail,
    because the topbar layout draws the reader's block in its band instead and a column
    the rail's width is no measurement for a box on a 52px line.
    why: docs/components.md#the-page-shell */
 .ui-app__rail > .ui-app__head,
-.ui-app__rail > .ui-app__user,
-.ui-app__rail > .ui-app__foot { width: var(--ui-nav-col); flex: none; }
+.ui-app__rail > .ui-app__user { width: var(--ui-nav-col); flex: none; }
 /* The rail is itself --surface, so nav.css's plate has no step here: 1.000:1, with a
    hairline as the whole resting mark. Both marks go a rung further — the current row
    to the --surface-3 the folded rail already paints, a hovered row to half of it, so
@@ -140,18 +139,6 @@
 }
 /* A drawer's footer carries no rule above it, so the block keeps the rail's rule out. */
 .ui-app__drawer .ui-app__user { padding-top: 0; border-top: 0; }
-/* The other thing that can close a rail: where the reader's block is in the band,
-   the fold's control takes its place under the same rule.
-   why: docs/components.md#the-page-shell */
-.ui-app__foot {
-  display: flex;
-  align-items: center;
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--border);
-}
-/* On the glyph column from the first frame, so the fold moves it nowhere — the ride
-   along the closing edge belongs to the head band, where the mark holds that column. */
-.ui-app__foot > .ui-app__fold-row { margin-inline-start: 0; }
 /* The avatar is the reader block's own glyph, so half the difference between the
    glyph column and itself is the inset that centres it on the line every glyph above
    it stands on. The arithmetic and not the 5.5 it comes to: both numbers are declared
@@ -265,12 +252,9 @@
    lockup goes whole, since that column is where its mark stood. Below 720px there is
    no rail, so none of this is drawn. why: docs/components.md#the-page-shell */
 :where(.ui-app.is-collapsed) .ui-app__head > .ui-app__fold-row { inset-inline-start: calc(var(--ui-nav-strip) - var(--ui-nav-col)); }
-/* …and only in the layout where something arrives on the mark's column. In the
-   topbar layout the toggle is at the rail's foot, nothing lands where the mark
-   stands, and a lockup faded out there leaves a band with nothing in it and its
-   hairline still under it. So that layout keeps the mark and lets the shared rule above fold away its words.
+/* Both layouts put the toggle in the head (#732), so it lands where the mark stood.
    why: docs/components.md#the-page-shell */
-:where(.ui-app:not(.ui-app--topbar).is-collapsed) .ui-app__rail .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-app__brand { opacity: 0; visibility: hidden; pointer-events: none; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__sub { margin-inline-start: 0; padding-inline-start: 0; border-inline-start-width: 0; }
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { opacity: 0.62; }
 /* The current row's plate on the glyph column, and beside it the one thing a bare rail
@@ -353,11 +337,10 @@
   z-index: var(--z-sticky);
 }
 .ui-app__bar-gap { flex: 1 1 auto; }
-/* The rail's two bands take the band's height, so the rule under the head lands on
+/* The rail's head takes the band's height, so the rule under the head lands on
    the line the band's own rule lands on. The rail gives up its top inset to buy it. */
 .ui-app--topbar > .ui-app__rail { padding-top: 0; }
 .ui-app--topbar > .ui-app__rail > .ui-app__head { height: var(--ui-app-band); padding-bottom: 0; }
-.ui-app--topbar > .ui-app__rail > .ui-app__foot { height: var(--ui-app-band); padding-top: 0; }
 
 /* Drawn as a field, behaving as a button. The hairline and the radius are the
    field's — src/styles/input.css:20 `.ui-input,` sets both — because what it looks

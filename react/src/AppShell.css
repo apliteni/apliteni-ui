@@ -34,21 +34,46 @@
 @media (max-width: 720px) {
   .ui-drawer__footer > .ui-app__drawer { width: 100%; }
 }
-/* The wrapper takes no box above the phone band, so the control sits on the band as it did without it. */
+/* The sidebar's own controls (#732). The band control stands under the head, and the
+   theme switch stands above the account, on the rail's column. A folded rail keeps the
+   switch's glyph on the glyph column, and the band control fades out of the way, inert. */
+.ui-app__rail > .ui-react-app__control,
+.ui-app__rail > .ui-react-app__theme { width: var(--ui-nav-col); flex: none; transition: opacity var(--dur-fast) var(--ease); }
+.ui-react-app__control { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
+.ui-react-app__control > :first-child { flex: 1 1 auto; min-width: 0; justify-content: flex-start; }
+.ui-react-app__theme { padding-inline-start: calc((var(--ui-nav-strip) - 34px) / 2); /* .toggle is 34px in topbar.css */ }
+.ui-react-app__theme .ui-theme-toggle > span { transition: opacity var(--dur-fast) var(--ease); }
+:where(.ui-app.is-collapsed) .ui-app__rail > .ui-react-app__control,
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-theme-toggle > span { opacity: 0; pointer-events: none; }
+/* The drawer stacks the band control above the rows, and the theme switch above the account. */
+.ui-react-app__menu > .ui-react-app__control { margin-bottom: var(--space-3); }
+.ui-app__drawer > .ui-react-app__theme { margin-bottom: var(--space-3); }
+/* The wrapper takes no box on a band, so the control sits on the band as it did without it. */
 .ui-react-app__band-control { display: contents; }
+/* The page title is the phone band's words, and the h1 below keeps the page's name. */
+.ui-react-app__title { display: none; }
+@media (max-width: 720px) {
+  /* Mark, title, search and Menu (#732). The mark's box and Menu stand 8px from the edges,
+     so the mark's glyph lines up with the page column. */
+  .ui-react-app .ui-app__bar:has(> .ui-app__menu:last-child) { padding-inline: var(--space-2); }
+  .ui-react-app__title {
+    display: block; flex: 1 1 auto; min-width: 0; margin-inline: var(--space-1);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--strong); font-weight: var(--weight-semibold);
+  }
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title) .ui-app__bar-gap { display: none; }
+}
 @media (max-width: 560px) {
-  /* One row of bare glyphs (#729): Menu, the mark, the band control's label, then search,
-     the band control's other controls, the theme switch and the account. Each control is a
-     40px square with no border and no box, so the row fits 300px and the label shows whole. */
+  /* One row of bare glyphs (#729): the mark, the title, search and Menu. Each control is a
+     40px square with no border and no box, so the row fits 300px with the title in it. */
   .ui-react-app .ui-app__bar { gap: 0; padding-inline: var(--space-2); }
   /* With no gap there is no room across, so a coarse pointer's tap layer stays on its own
      40px control and never covers the next one. Down, the band's 12px stays. tap-zone.css */
   .ui-react-app .ui-app__bar { --tap-clear-x: 0px; }
   /* The rail layout's band keeps the vanilla gap between Menu and the brand mark. */
   .ui-react-app .ui-app__bar--phone { gap: var(--space-3); --tap-clear-x: var(--space-3); }
-  /* A band without the menu starts on the page column; menu bands keep their compact inset. */
-  .ui-react-app .ui-app__bar:not(:has(> .ui-app__menu:first-child)) { padding-inline-start: var(--space-4); }
-  .ui-react-app .ui-app__bar-gap { display: none; }
+  /* A band without the menu starts on the page column. */
+  .ui-react-app .ui-app__bar:not(:has(> .ui-app__menu)) { padding-inline-start: var(--space-4); }
   .ui-react-app .ui-app__bar .ui-app__menu,
   .ui-react-app .ui-app__bar .ui-app__search,
   .ui-react-app .ui-app__bar .toggle,
@@ -59,19 +84,16 @@
   .ui-react-app .ui-app__bar .ui-app__search:hover,
   .ui-react-app .ui-app__bar .toggle:hover,
   .ui-react-app .ui-app__bar .ui-app__user-trigger:hover { transform: none; background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
-  .ui-react-app .ui-app__bar > .ui-app__brand--band { min-width: 40px; min-height: 40px; margin-inline-start: var(--space-1); }
+  .ui-react-app .ui-app__bar > .ui-app__brand--band { min-width: 40px; min-height: 40px; }
   .ui-react-app .ui-app__user--bar { margin: 0; }
   /* Search shows only its glyph, an exception in guidelines/iconography.md. The sentence
      and the key cap stay clipped by layout.css, so the button keeps its accessible name. */
-  .ui-react-app .ui-app__search { order: 2; }
   .ui-react-app .ui-app__search-ic { display: flex; }
-  /* The band control's first child is its label and takes the free room; its other children
-     follow search. Without a band control, search takes the free room itself. */
-  .ui-react-app__band-control > :first-child { order: 1; min-width: 0; margin-inline: var(--space-1) auto; }
-  .ui-react-app__band-control > :not(:first-child) { order: 3; }
-  .ui-react-app .ui-app__bar:not(:has(.ui-react-app__band-control)) .ui-app__search { margin-inline-start: auto; }
-  .ui-react-app .ui-app__bar .toggle { order: 4; }
-  .ui-react-app .ui-app__user--bar { order: 5; }
+  /* Without a sidebar the band keeps its controls, and search takes the free room. */
+  .ui-react-app .ui-app__bar:not(:has(> .ui-app__menu)) .ui-app__bar-gap { display: none; }
+  .ui-react-app .ui-app__bar:not(:has(> .ui-app__menu)) .ui-app__search { margin-inline-start: auto; }
+  .ui-react-app .ui-app__bar > .ui-app__brand:not(.ui-app__brand--band) { display: none; }
+  .ui-react-app__band-control > :first-child { min-width: 0; }
   .ui-react-app__band-control > .ui-btn,
   .ui-react-app__band-control > .ui-dropdown > .ui-dropdown__trigger { min-height: 40px; }
   .ui-react-app__band-control > .ui-dropdown > .ui-dropdown__trigger { max-width: 100%; border-color: transparent; background: transparent; }
@@ -79,12 +101,4 @@
   /* The label ends in an ellipsis only when the band has no room left for it. */
   .ui-react-app__band-control > .ui-btn .ui-btn__label,
   .ui-react-app__band-control .ui-dropdown__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ui-react-app .ui-app__bar > .ui-app__brand:not(.ui-app__brand--band) { display: none; }
-  /* The band measures itself, so the mark can go when the band has no room for it. */
-  .ui-react-app .ui-app__bar { container-type: inline-size; }
-}
-/* Under 390px the mark costs the band control its label, so the mark goes. 374px is a
-   menu band's content box at 390, inside its 8px padding a side. */
-@container (max-width: 373px) {
-  .ui-react-app .ui-app__bar > .ui-app__brand--band { display: none; }
 }
