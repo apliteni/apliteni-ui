@@ -6,7 +6,7 @@ import { Badge } from './primitives/Badge';
 import { DataTable } from './DataTable';
 import { Button } from './primitives/Button';
 import { Dropdown } from './Dropdown';
-import { Icon } from './primitives/Icon';
+import { icon } from '@apliteni/apliteni-ui';
 
 const sections = [
   { href: '/overview', label: 'Overview', icon: 'chart' },
@@ -86,8 +86,8 @@ export const RailPhone: Story = { render, args: { layout: 'rail' },
   globals: { viewport: { value: 'phone', isRotated: false } } };
 
 // A product band: the company name and a notifications bell, as one band control. (#729)
-const company = <><span style={{ whiteSpace: 'nowrap', fontSize: 'var(--text-sm)' }}>Apliteni OÜ</span>
+const company = <><span style={{ whiteSpace: 'nowrap' }}>Apliteni OÜ</span>
   <Dropdown variant="menu" ariaLabel="Notifications" triggerClass="toggle" chevron={false}
-    triggerContent={<Icon name="bell" />} items={[{ label: 'No new notifications', value: 'none' }]} /></>;
+    triggerContent={<span className="ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon('bell') }} />} items={[{ label: 'No new notifications', value: 'none' }]} /></>;
 export const PhoneCompany: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { bandControl: company } };
