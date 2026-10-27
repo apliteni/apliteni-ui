@@ -54,7 +54,7 @@ export const Default: StoryObj = {
     <p style={{ color: 'var(--dim)', maxWidth: '60ch' }}>Every backdrop in the kit — the surface ladder, the signature ambient glow, and drop-in backdrop treatments. All read the accent tokens, so they re-theme with the sub-theme and hold up in dark and light.</p>
 
     <H3>The elevation ladder</H3>
-    <p style={{ color: 'var(--dim)', maxWidth: '60ch', marginBottom: 20 }}>Bottom to top. A surface says how high it is with its step, and with a mark whose device depends on the theme: dark draws the kit hairline around it, light casts a soft drop and draws no neutral line. A surface that floats — one whose job is to be temporarily above something else — takes the strongest of those drops, and the hover readout on the top step is one of them. The thin ring on each swatch below is this page&apos;s own, so a colour is visible on its own ground. See Foundations → Elevation.</p>
+    <p style={{ color: 'var(--dim)', maxWidth: '60ch', marginBottom: 20 }}>Bottom to top. A surface says how high it is with its step and a line. Light adds a faint short shadow. Dark draws the line only. A surface that floats — one whose job is to be temporarily above something else — takes the strongest drop, and the hover readout on the top step is one of them. The thin ring on each swatch below is this page&apos;s own, so a colour is visible on its own ground. See Foundations → Elevation.</p>
     <Tiles min="180px">{SURFACES.map(([token, name, use]) => <Swatch key={token} token={token} name={name} use={use} />)}</Tiles>
 
     <H3>Ambient glow</H3>

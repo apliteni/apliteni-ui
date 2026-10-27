@@ -2,12 +2,12 @@
  * may cast are the three rungs of the ladder — `--elev-rest` under a card,
  * `--elev-rail` sideways off the rail, `--elev-drop` under a floating surface.
  * Dark climbs only the last and holds the other two at the transparent shadow, so
- * dark still casts nothing below the floating step. Light climbs all three and
- * draws no neutral line at any of them. A line that divides two regions of ONE
- * surface — a card's rows, a table's rules, the rail's head band, the topbar — is
- * not a level and stays a line in both themes.
- * Decided by Artur on #490 round t3. The ledger of what this does not reach is
- * below the imports.
+ * dark still casts nothing below the floating step. Light climbs all three, each
+ * faint and short, and draws one line at each level. A line that divides two regions
+ * of ONE surface — a card's rows, a table's rules, the rail's head band, the topbar —
+ * is not a level and stays a line in both themes.
+ * Decided on #490 round t3, and the light line on #730. The ledger of what this does
+ * not reach is below the imports.
  *
  * Subjects are discovered: every `box-shadow` in every sheet `src/index.css`
  * imports. Each is read per theme with the token files substituted in, because
@@ -22,7 +22,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, winnersOf, substitute, parseColour, composite, ratio } from './lib/contrast.js';
+import { STYLE_FILES, TOKEN_FILES, tokensFor, declarationsFor, winnersOf, substitute, parseColour, colourOf, composite, ratio } from './lib/contrast.js';
 import { boxShadowsIn, customPropertiesIn, layersOf, isCast, geometryOf, inkOf, resolutionsOf, dropOffences, dropShapeOffence, reachesTrailingSide, TREATMENT_DROP, LADDER, LADDER_LAYERS, FLAT } from '../scripts/lib/box-shadow.js';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
@@ -274,18 +274,19 @@ test('a level carried by its rung alone marks every side it exposes', () => {
         + 'That edge gets nothing. Widen the blur, or bring the offset and the spread down.');
     }
   }
-  assert.equal(measured, 2,
-    `${measured} levels are carried by a rung alone, not the 2 light has (a card and a `
-    + 'floating surface). If a theme moved between the two, this case has to be re-read.');
+  assert.equal(measured, 0,
+    `${measured} levels are carried by a rung alone, not the 0 the kit has: since #730 every `
+    + 'level draws a line in both themes. If a theme dropped a line, this case has to be re-read.');
 });
 
 test('a rung clipped inside its own surface is refused', () => {
-  // The value this issue's first pass shipped, and the value it ships now.
+  // The value #490's first pass shipped, and the value #490 shipped after its review.
   assert.equal(reachesTrailingSide('0 10px 22px -14px color-mix(in srgb, #1e1e32 16%, transparent), '
     + '0 1px 3px -1px color-mix(in srgb, #1e1e32 7%, transparent)', 'y'), false,
     'the mutation does not reproduce the bare top edge the case above is against');
-  assert.equal(reachesTrailingSide(tokensFor('light').get('--elev-rest'), 'y'), true,
-    'light\'s card rung does not reach its top edge — the pair above has no positive half');
+  assert.equal(reachesTrailingSide('0 2px 26px -3px color-mix(in srgb, #1e1e32 9%, transparent), '
+    + '0 1px 3px -1px color-mix(in srgb, #1e1e32 7%, transparent)', 'y'), true,
+    'a rung that clears its top edge is refused — the pair above has no positive half');
 });
 
 test('a level that loses both its line and its drop is refused', () => {
@@ -505,8 +506,8 @@ test('every surface painted on the floating step carries the floating treatment'
     .map((d) => `${d.file}  ${d.selector}`);
   assert.deepStrictEqual(offences, [],
     'a surface on the floating step that does not cast the floating rung. --bg-elevated is '
-    + 'the step a surface takes BECAUSE it floats, and in light the drop is the only thing '
-    + 'that says so — the hairline beside it resolves to transparent:\n  '
+    + 'the step a surface takes BECAUSE it floats, and in light a white panel on a white card '
+    + 'needs its line and its drop to say so:\n  '
     + offences.join('\n  '));
 });
 
@@ -524,19 +525,18 @@ test('a surface put on the floating step without the rung is refused', () => {
 });
 
 /* dark's two numbers are the "a + b" row of docs/reviews/295-popover-variants.html,
- * which is what the decision on #309 was taken against. light has no lines left to
- * score, and its drop floor is RAISED instead — 1.50 against the 1.43 that page
- * measured — because the drop there sat behind two lines and now carries the whole
- * separation on its own. The gate holds the floor, not the value: a treatment that
- * measures better is fine. */
+ * which is what the decision on #309 was taken against. light's are what the level
+ * line and the drop of the pictures approved on #730 measure: one line, no inner line,
+ * and a faint drop. The gate holds the floor, not the value: a treatment that measures
+ * better is fine. */
 const FLOOR = {
   dark: { edge: 1.64, inner: 1.30, drop: 1.20 },
-  light: { edge: null, inner: null, drop: 1.50 },
+  light: { edge: 1.37, inner: null, drop: 1.38 },
 };
 
 test('the floating treatment reads at least what the review page measured', () => {
-  let lined = 0;
-  let dropOnly = 0;
+  let twoLines = 0;
+  let oneLine = 0;
   for (const theme of THEMES) {
     const vars = tokensFor(theme);
     const v = (name) => parseColour(substitute(`var(${name})`, vars));
@@ -544,26 +544,27 @@ test('the floating treatment reads at least what the review page measured', () =
     const panel = v('--bg-elevated');
 
     /* Scored on the tokens the floating call sites actually paint, not on a neutral
-     * the theme may have stopped reading. A theme whose two lines are invisible is
-     * carried by the drop alone and is held to the raised floor instead. */
+     * the theme may have stopped reading. Every theme draws the outer line; the inner
+     * line is dark's alone. */
     const outer = substitute('var(--float-edge)', vars).trim();
     const innerLine = substitute('var(--float-edge-inner)', vars).trim();
-    const draws = !INVISIBLE.has(outer) && !INVISIBLE.has(innerLine);
-    assert.equal(draws, FLOOR[theme].edge !== null,
-      `${theme}: the floating edge is ${draws ? 'drawn' : 'invisible'} and the floor table says `
+    assert.ok(!INVISIBLE.has(outer), `${theme}: the floating surface draws no outer line`);
+    const edge = ratio(colourOf(outer, vars), card);
+    assert.ok(edge >= FLOOR[theme].edge - 0.005,
+      `${theme}: the outer line reads ${edge.toFixed(2)} on the card, under the ${FLOOR[theme].edge} `
+      + 'the review measured');
+    const drawsInner = !INVISIBLE.has(innerLine);
+    assert.equal(drawsInner, FLOOR[theme].inner !== null,
+      `${theme}: the inner line is ${drawsInner ? 'drawn' : 'invisible'} and the floor table says `
       + 'otherwise. Moving a theme between the two is the decision this gate exists to notice.');
-    if (draws) {
-      lined += 1;
-      const edge = ratio(parseColour(outer), card);
-      assert.ok(edge >= FLOOR[theme].edge - 0.005,
-        `${theme}: the outer line reads ${edge.toFixed(2)} on the card, under the ${FLOOR[theme].edge} `
-        + 'the review page measured for the two-step edge');
-      const inner = ratio(parseColour(outer), parseColour(innerLine));
+    if (drawsInner) {
+      twoLines += 1;
+      const inner = ratio(colourOf(outer, vars), colourOf(innerLine, vars));
       assert.ok(inner >= FLOOR[theme].inner - 0.005,
         `${theme}: the two lines read ${inner.toFixed(2)} against each other, under ${FLOOR[theme].inner} — `
         + 'a two-step edge whose steps agree is one line drawn twice');
     } else {
-      dropOnly += 1;
+      oneLine += 1;
     }
 
     // The drop's core: the first drop's ink, composited over the card at its own
@@ -590,6 +591,6 @@ test('the floating treatment reads at least what the review page measured', () =
     }
   }
   // Both halves of the rule are exercised, so neither branch can rot unread.
-  assert.equal(lined, 1, 'exactly one theme draws the two-step edge — dark');
-  assert.equal(dropOnly, 1, 'exactly one theme is carried by the drop alone — light');
+  assert.equal(twoLines, 1, 'exactly one theme draws the two-step edge — dark');
+  assert.equal(oneLine, 1, 'exactly one theme draws one line — light');
 });

@@ -28,8 +28,8 @@
 .ui-app-page .topbar { position: sticky; top: 0; z-index: var(--z-sticky); }
 
 /* The rail uses the card surface so its labels stay on a reading ground.
-   Dark keeps its edge (--rail-edge); light casts --elev-rail, sideways, because the rail
-   is flush to a screen edge. Reopens the light half of #454.
+   Both themes draw its edge (--rail-edge); light also casts a faint --elev-rail, sideways,
+   because the rail is flush to a screen edge. Decided on #730.
    why: docs/foundations.md#elevation
    overflow-y, because the box is pinned at the viewport's height for the whole
    scroll of .ui-app — without it a row past that height paints below the fold
@@ -585,7 +585,7 @@
   width: 100%;
   max-width: var(--panel-md);
   /* Floats over a spotlit page, so it takes the floating step and the floating
-     treatment: the two-step edge in dark, the drop alone in light.
+     treatment: the two-step edge in dark, one line and the drop in light.
      why: docs/foundations.md#elevation */
   background: var(--bg-elevated);
   border: 1px solid var(--float-edge);

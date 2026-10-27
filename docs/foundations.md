@@ -231,14 +231,25 @@ These fill ratios describe separation, not text contrast.
 
 ## Elevation
 
-**A surface casts a shadow only to show that it is higher, and each theme expresses this in
-its own way.** A level keeps its step on a ladder of lightness in both themes. **Dark draws
-the kit's hairline. Light casts a soft drop and draws no neutral line at all.** A line that
-divides two regions of one surface is not a level. It stays a line in both themes. Examples
-include a card's row dividers, a table's row rules, the rail's head band and the topbar's
-bottom rule. A field is not a level either because its edge says "type here". **A level draws
-a line or casts a drop, and never neither**. A step of lightness on its own has a contrast of
-about 1.1.
+**A surface casts a shadow only to show that it is higher.** A level keeps its step on a
+ladder of lightness in both themes. **Each raised level draws a line. Light adds a faint short
+shadow. Dark draws the line only.** In light, the line is `--level-line`, half way between
+`--border` and `--border-strong`. A floating surface in dark draws the outer line and an
+inner line, and it keeps `--elev-drop`. A line that divides two regions of one surface is not
+a level. It stays a line in both themes. Examples include a card's row dividers, a table's
+row rules, the rail's head band and the topbar's bottom rule. A field is not a level either
+because its edge says "type here". A step of lightness on its own has a contrast of about
+1.1, so a level never has only its step.
+
+| Level | Light line | Light shadow | Dark line | Dark shadow |
+| --- | --- | --- | --- | --- |
+| page | none | none | none | none |
+| card | `--level-line` | `--elev-rest` | `--border` | none |
+| rail | `--level-line`, right side | `--elev-rail` | `--border` | none |
+| menu, popover, drawer, modal, toast | `--level-line`, one line | `--elev-drop` | `--border-strong` outside, `--border` inside | `--elev-drop` |
+
+Each level reads its line from one token in both themes: `--card-edge`, `--rail-edge`,
+`--float-edge` and `--float-edge-inner` (`src/tokens/tokens.css`).
 
 The ladder, from bottom to top:
 

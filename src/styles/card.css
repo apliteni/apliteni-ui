@@ -1,12 +1,12 @@
 /* ============================================================================
- * Card — .ui-card  (a filled surface one step off the page: edged in dark, dropped in light)
+ * Card — .ui-card  (a filled surface one step off the page: edged in both themes)
  * Rows: .ui-card__row  /  headers: .ui-card__title / .ui-card__sub
  * ========================================================================== */
 
-/* The surface is the step; what makes it legible depends on the theme. Dark edges the
-   card with the hairline (--card-edge). Light draws no line at all and casts --elev-rest
-   instead — a 22px penumbra off a 10px offset, the width Artur's reference uses on a
-   card. Chosen by him on #490 round t3. why: docs/foundations.md#elevation */
+/* The surface is the step; the line makes it legible. Both themes edge the card with
+   --card-edge: the hairline in dark, --level-line in light. Light also casts --elev-rest,
+   a faint short shadow. Dark casts nothing. Decided on #730.
+   why: docs/foundations.md#elevation */
 .ui-card {
   --ui-card-ground: var(--surface); /* the ground a scrolling row inside covers its edge with; a tint repeats it below */
   background: var(--surface);

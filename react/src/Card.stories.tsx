@@ -19,7 +19,7 @@ const cardGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minma
 export const Variants: StoryObj = {
   render: () => <div style={page}>
     <div style={cardGrid}>
-      <Card title="Default card" sub="A filled surface with a generous radius. Dark draws an edge, and light casts a soft shadow.">
+      <Card title="Default card" sub="A filled surface with a generous radius. Each theme draws a line. Light adds a faint shadow.">
         <Button variant="secondary" size="sm">Action</Button>
       </Card>
       <Card variant="accent" title="Accent card" icon="sparkle" sub="Tinted with the purple accent, for the highlighted plan or upsell.">
