@@ -62,4 +62,19 @@
   .ui-react-app__band-control > .ui-btn .ui-btn__label,
   .ui-react-app__band-control .ui-dropdown__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ui-react-app .ui-app__bar > .ui-app__brand:not(.ui-app__brand--band) { display: none; }
+  /* The band measures itself, so the search can fold by the room it has. */
+  .ui-react-app .ui-app__bar { container-type: inline-size; }
+}
+/* Under 390px the search word and the mark cost the band control its label:
+   "Workspace" read "W." at 320 and "Works..." at 360. The search folds to the theme
+   switch's square, which keeps its full name, and the mark goes. 374px is a menu
+   band's content box at 390, inside its 8px padding a side. */
+@container (max-width: 373px) {
+  .ui-react-app .ui-app__search { flex: none; justify-content: center; width: 34px; height: 34px; min-width: 0; padding: 0; border-radius: 10px; }
+  .ui-react-app .ui-app__search-ic { display: flex; }
+  .ui-react-app .ui-app__search-short { display: none; }
+  .ui-react-app .ui-app__bar > .ui-app__brand--band { display: none; }
+  .ui-react-app__band-control { max-width: 108px; }
+  /* The theme switch and the account keep the band's end, as at 390. */
+  .ui-react-app .ui-app__bar .toggle { margin-inline-start: auto; }
 }

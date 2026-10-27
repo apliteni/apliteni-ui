@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { avatarHue, paletteHotkey, themeIcon } from '@apliteni/apliteni-ui';
@@ -12,6 +14,7 @@ const sections = [
   { href: '/help', label: 'Help', icon: 'mail' },
 ];
 const props = { sections, pathname: '/reports/weekly', title: 'Weekly report', account: { name: 'Demo User', email: 'demo@example.com' }, onSignOut: vi.fn() };
+const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 afterEach(() => { cleanup(); document.cookie = 'apliteni-ui-rail=; Max-Age=0; path=/'; });
 
 it('places breadcrumbs before the page title', () => {
@@ -119,6 +122,17 @@ it('draws a short word for the phone band without changing the trigger\'s name',
   const named = screen.getByRole('button', { name: /Find anything/ });
   expect(named.querySelector('.ui-app__search-short')).toHaveTextContent('Find');
   expect(named).toHaveAccessibleName(expect.stringContaining('Find anything'));
+});
+
+it('folds the phone band\'s search to a square and drops the mark under 390px', () => {
+  // A source read: jsdom resolves no @container, so the widths are measured in Chromium
+  // on #429 (320 to 375 show "Workspace" whole, 390 and 414 are unchanged), not here.
+  const css = read('./AppShell.css');
+  expect(css).toMatch(/\.ui-react-app \.ui-app__bar \{ container-type: inline-size; \}/);
+  const fold = css.match(/@container \(max-width: 373px\) \{([^]*?)\n\}/)?.[1] ?? '';
+  expect(fold).toMatch(/\.ui-app__search \{[^}]*width: 34px; height: 34px;/);
+  expect(fold).toMatch(/\.ui-app__search-short \{ display: none; \}/);
+  expect(fold).toMatch(/\.ui-app__brand--band \{ display: none; \}/);
 });
 
 it('opens the account menu and signs out', () => {
