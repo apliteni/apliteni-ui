@@ -85,9 +85,10 @@ export const RailFolded: Story = { render, args: { layout: 'rail', defaultCollap
 export const RailPhone: Story = { render, args: { layout: 'rail' },
   globals: { viewport: { value: 'phone', isRotated: false } } };
 
-// A product band: the company name and a notifications bell, as one band control. (#729)
-const company = <><span style={{ whiteSpace: 'nowrap' }}>Apliteni OÜ</span>
-  <Dropdown variant="menu" ariaLabel="Notifications" triggerClass="toggle" chevron={false}
-    triggerContent={<span className="ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon('bell') }} />} items={[{ label: 'No new notifications', value: 'none' }]} /></>;
+// A product band: the company name under the sidebar head, and a notifications bell in
+// the head, before the fold. On a phone the bell stands in the menu panel's head. (#729, #732)
+const company = <span style={{ whiteSpace: 'nowrap' }}>Apliteni OÜ</span>;
+const bell = <Dropdown variant="menu" ariaLabel="Notifications" chevron={false}
+  triggerContent={<span className="ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon('bell') }} />} items={[{ label: 'No new notifications', value: 'none' }]} />;
 export const PhoneCompany: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
-  args: { bandControl: company } };
+  args: { bandControl: company, headControl: bell } };

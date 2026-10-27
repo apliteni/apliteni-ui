@@ -10,6 +10,8 @@ export type DrawerProps = {
   side?: 'right' | 'left' | 'top' | 'bottom';
   size?: 'sm' | 'md' | 'lg';
   footer?: ReactNode;
+  /** Controls in the header, between the title and the close button. */
+  headerActions?: ReactNode;
   children?: ReactNode;
   closeLabel?: string;
   initialFocusRef?: RefObject<HTMLElement | null>;
@@ -22,7 +24,7 @@ export type DrawerProps = {
 // dialogs and the enter/exit wait are ./dialog's, shared with Modal; the scope tells a
 // dialog rendered inside this one that it sits above it.
 export function Drawer({
-  open, title, onClose, side = 'right', size = 'md', footer, children, closeLabel = 'Close', initialFocusRef,
+  open, title, onClose, side = 'right', size = 'md', footer, headerActions, children, closeLabel = 'Close', initialFocusRef,
 }: DrawerProps) {
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
@@ -42,6 +44,7 @@ export function Drawer({
           tabIndex={-1} ref={panel}>
           <header className="ui-drawer__header">
             <h2 className="ui-drawer__title" id={titleId}>{title}</h2>
+            {headerActions && <div className="ui-drawer__actions">{headerActions}</div>}
             <button type="button" className="ui-drawer__close" aria-label={closeLabel} onClick={onClose}>
               <Icon name="x" />
             </button>

@@ -137,7 +137,8 @@ it('draws the phone band\'s controls as bare 40px glyphs and the title on one li
 // is a row of the account menu.
 it('moves the account, theme switch and band control from the band to the sidebar (#732)', async () => {
   const control = <button type="button">Apliteni OÜ</button>;
-  render(<AppShell {...props} bandControl={control} />);
+  const bell = <button type="button">Notifications</button>;
+  render(<AppShell {...props} bandControl={control} headControl={bell} />);
   const bar = document.querySelector('.ui-app__bar')!;
   expect([...bar.children].map(el => el.className.split(' ').find(c => c.startsWith('ui-')))).toEqual(
     ['ui-app__brand', 'ui-react-app__title', 'ui-app__search', 'ui-app__bar-gap', 'ui-btn']);
@@ -147,7 +148,10 @@ it('moves the account, theme switch and band control from the band to the sideba
   const rail = screen.getByRole('region', { name: 'Sidebar' });
   const parts = [...rail.children].map(el => el.className);
   expect(parts).toEqual(['ui-app__head', 'ui-react-app__control', expect.stringContaining('ui-nav'), 'ui-app__user']);
-  expect(within(rail.querySelector('.ui-app__head') as HTMLElement).getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
+  // The head control stands in the head's fold row, before the fold (#732).
+  const foldRow = rail.querySelector('.ui-app__head .ui-app__fold-row') as HTMLElement;
+  expect(within(foldRow).getAllByRole('button').map(b => b.textContent || b.getAttribute('aria-label')))
+    .toEqual(['Notifications', 'Collapse sidebar']);
   expect(within(rail).getByRole('button', { name: 'Apliteni OÜ' })).toBeInTheDocument();
   expect(within(rail).queryByRole('button', { name: /^Theme:/ })).toBeNull();
   const account = within(rail).getByRole('button', { name: 'Signed in as Demo User, demo@example.com' });
@@ -165,6 +169,10 @@ it('moves the account, theme switch and band control from the band to the sideba
   fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
   const drawer = screen.getByRole('dialog');
   expect(within(drawer).getByRole('button', { name: 'Apliteni OÜ' })).toBeInTheDocument();
+  // The menu panel's head holds the head control, before its close button.
+  const head = drawer.querySelector('.ui-drawer__header') as HTMLElement;
+  expect(within(head).getAllByRole('button').map(b => b.textContent || b.getAttribute('aria-label')))
+    .toEqual(['Notifications', expect.stringMatching(/close/i)]);
   const foot = drawer.querySelector('.ui-app__drawer')!;
   expect([...foot.children].map(el => el.className)).toEqual(['ui-app__user']);
   // The drawer opens on its first row, not on the band control above the rows.

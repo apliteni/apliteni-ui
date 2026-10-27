@@ -46,6 +46,41 @@
 /* A finger works the drawer, so its controls are 40px tap targets, as they were on the phone band. */
 .ui-react-app__menu > .ui-react-app__control .toggle { width: 40px; height: 40px; }
 .ui-app__drawer .ui-app__user-panel .ui-dropdown__item { min-height: 40px; }
+/* The head control (#732): one glyph before the fold, drawn as the fold is. The fold is a
+   nav row, 9px of padding over a 1lh glyph box at --text-base and line-height 1.2, on the
+   --ui-nav-strip column (src/styles/nav.css:64, src/styles/layout.css:210). So the control
+   has no border and no fill at rest, and takes the rail's hover wash and the fold's ink. */
+.ui-react-app .ui-app__fold-row:has(> .ui-react-app__head-control) { display: flex; align-items: center; gap: var(--space-1); }
+.ui-react-app__head-control { display: flex; align-items: center; flex: none; }
+.ui-react-app__head-control > :is(button, a),
+.ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger {
+  display: inline-grid;
+  place-items: center;
+  width: var(--ui-nav-strip, 40px);
+  height: calc(18px + 1.2 * var(--text-base));
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--text);
+  transform: none;
+}
+.ui-react-app__head-control > :is(button, a):hover,
+.ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger:hover { transform: none; color: var(--strong); background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
+.ui-react-app__head-control > :is(button, a):focus-visible,
+.ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger:focus-visible { color: var(--strong); }
+.ui-react-app__head-control :is(.ic, svg) { width: 17px; height: 17px; color: inherit; }
+.ui-react-app__head-control svg { display: block; opacity: 0.66; stroke-width: 2.2; }
+/* A folded rail is one glyph column wide, and the fold takes it in the head. So the control
+   leaves the row and stands on the same column one rail gap under the head's rule, and the
+   head keeps room for it. The fold row is centred in the band-high head (layout.css:343).
+   A band control's faded box under the head is that room. Without one, the head makes it. */
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-react-app__head-control { position: absolute; inset-inline-start: 0; top: calc(50% + var(--ui-app-band) / 2 + var(--space-5)); }
+:where(.ui-app.is-collapsed) .ui-app__rail > .ui-app__head:has(.ui-react-app__head-control):not(:has(+ .ui-react-app__control)) { margin-bottom: calc(18px + 1.2 * var(--text-base) + var(--space-5)); }
+:where(.ui-app.is-collapsed) .ui-app__rail:has(.ui-react-app__head-control) > .ui-react-app__control { min-height: calc(18px + 1.2 * var(--text-base)); }
+/* In the menu panel's head a finger works it, so it is a 40px tap target. */
+.ui-drawer__actions .ui-react-app__head-control > :is(button, a),
+.ui-drawer__actions .ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger { width: 40px; height: 40px; }
 /* The wrapper takes no box on a band, so the control sits on the band as it did without it. */
 .ui-react-app__band-control { display: contents; }
 /* The page title is the phone band's words, and the h1 below keeps the page's name. */

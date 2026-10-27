@@ -32,6 +32,9 @@ export type AppShellProps = {
   lede?: string;
   actions?: ReactNode;
   bandControl?: ReactNode;
+  /** One glyph control in the sidebar head, before the fold button, drawn as the fold is.
+   *  On a phone it stands in the menu panel's head. Topbar layout only (#732). */
+  headControl?: ReactNode;
   /** The band trigger's words and its name at every width. Below 560px the trigger shows
    *  only its glyph (#729), and the words stay its accessible name. */
   searchLabel?: string;
@@ -49,7 +52,7 @@ export type AppShellProps = {
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
 export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar',
-  brandHref = '/', width = 'centered', back, crumbs, lede, actions, bandControl, account, onSignOut,
+  brandHref = '/', width = 'centered', back, crumbs, lede, actions, bandControl, headControl, account, onSignOut,
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, renderLink }: AppShellProps) {
   const uid = useId();
@@ -147,7 +150,8 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     </div> : <div {...props} />}
     onSelect={value => { if (value === 'sign-out') onSignOut(); }} />
   </div>;
-  const foldControl = <div className="ui-app__fold-row"><button type="button"
+  const headSlot = layout === 'topbar' && headControl && <div className="ui-react-app__head-control">{headControl}</div>;
+  const foldControl = <div className="ui-app__fold-row">{headSlot}<button type="button"
     className="ui-nav__item ui-app__fold" aria-expanded={!collapsed} aria-label={foldLabel} onClick={fold}>
     <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /><path className="ui-app__fold-arrow" d="m16 15-3-3 3-3" /></svg></span>
     <span className="ui-nav__label">{foldLabel}</span>
@@ -179,10 +183,11 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     </Drawer>
   </div>;
 
-  // The sidebar holds the shell's own controls (#732): the band control under the head,
-  // and the account at its foot, with the theme switch in the account menu. The band keeps
-  // search in its centre, and on a phone the mark, the page title, search and Menu. With
-  // no sidebar, the band keeps them all.
+  // The sidebar holds the shell's own controls (#732): the head control before the fold,
+  // the band control under the head, and the account at its foot, with the theme switch
+  // in the account menu. The band keeps search in its centre, and on a phone the mark, the
+  // page title, search and Menu. The menu panel puts the head control in its own head.
+  // With no sidebar, the band keeps them all.
   const control = bandControl && <div className="ui-react-app__control" inert={collapsed}>{bandControl}</div>;
   return <div className={`ui-app ui-app--topbar ui-react-app${collapsed ? ' is-collapsed' : ''}`}>
     {navigable && <div className="ui-app__rail" role="region" aria-label="Sidebar">
@@ -208,6 +213,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
         {navigable ? <Button ref={menuButton} variant="ghost" icon="menu" iconOnly aria-label="Menu" className="ui-app__menu"
           aria-haspopup="dialog" aria-expanded={menu} onClick={() => setMenu(true)} /> : <>
           {bandControl && <span className="ui-react-app__band-control">{bandControl}</span>}
+          {headControl && <span className="ui-react-app__band-control">{headControl}</span>}
           <ThemeToggle />
           <div className="ui-app__user ui-app__user--bar"><Dropdown variant="menu" align="end" chevron={false}
             ariaLabel={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
@@ -220,7 +226,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
       {page}
     </div>
     {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm" initialFocusRef={firstRow}
-      footer={<div className="ui-app__drawer">{accountBlock(true)}</div>}>
+      headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true)}</div>}>
       <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}
     <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} open={search} onClose={() => setSearch(false)} />
