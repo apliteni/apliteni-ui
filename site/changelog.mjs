@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.142.7', date: '2026-10-27',
+    changes: [
+      ['changed', 'In light, a card, the `AppShell` rail and each floating surface (menu, popover, tooltip, drawer, modal, toast) draw one line, `--level-line`, and a faint short shadow. The shadows are lighter than before. The new token `--modal-edge` draws the React modal line. It is transparent in dark, so dark does not change. Resolves #730.', ['Card', 'Shell', 'Dropdown', 'Tooltip', 'Drawer', 'Modal', 'Toast']],
+    ],
+  },
+  {
     v: '0.142.6', date: '2026-10-27',
     changes: [
       ['changed', 'On a phone narrower than 560px, the `AppShell` band is one row of bare 40px icons with no border and no box: Menu, the brand mark, the band control, search, the theme switch and the account. Search shows only its icon and keeps its full accessible name. The band control\'s label shows in full at 300px. Resolves #729.', ['Shell']],

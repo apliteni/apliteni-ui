@@ -162,12 +162,13 @@
 
   /* WHICH EDGE EACH LEVEL DRAWS. One name per level, so a sheet never has to ask
      which theme it is in. Dark answers all four with the hairline, because a drop
-     on a near-black page reaches 1.20 at its core and has nowhere else to go —
-     light answers them with the drop instead. why: docs/foundations.md#elevation */
+     on a near-black page reaches 1.20 at its core and has nowhere else to go.
+     Light draws one line and adds a faint short drop. why: docs/foundations.md#elevation */
   --card-edge: var(--border);          /* a card */
   --rail-edge: var(--border);          /* the shell's rail */
   --float-edge: var(--border-strong);  /* a floating surface, outer line */
   --float-edge-inner: var(--border);   /* a floating surface, inner line */
+  --modal-edge: transparent;           /* the modal: the deep scrim is its edge */
 
   /* Fields use the card surface and an edge in both themes. why: docs/foundations.md#elevation */
   --field-bg: var(--surface);
@@ -377,16 +378,15 @@
   --border: #e4e7ee;
   --border-strong: #cdd2dc;
 
-  /* Light draws a LEVEL with a drop and no line at all. Decided by Artur on the
-     #490 triage round t3: "It's better" — the soft shadow over the hairline, against
-     the reference he supplied. A line divides two regions of ONE surface (a card's
-     rows, a table's rules, the rail's head band, the topbar); a drop says a surface
-     is HIGHER, and only a higher surface may cast one.
+  /* Light draws each LEVEL with one line and a faint short shadow. The line is half
+     way between --border and --border-strong. Decided on #730.
      why: docs/foundations.md#elevation */
-  --card-edge: transparent;
-  --rail-edge: transparent;
-  --float-edge: transparent;
+  --level-line: color-mix(in srgb, var(--border) 50%, var(--border-strong));
+  --card-edge: var(--level-line);
+  --rail-edge: var(--level-line);
+  --float-edge: var(--level-line);
   --float-edge-inner: transparent;
+  --modal-edge: var(--float-edge);
 
   /* Light draws a field with its EDGE, because since #448 it has no well left to draw it
      with: a card and a panel are both white, the sunken step falls two rungs under either,
@@ -485,18 +485,18 @@
   /* THE LIGHT LADDER. Three rungs, each two layers: a wide faint one and a short one.
      Each layer is offset on one axis, blurred at least twice as wide as it is offset,
      and held in by a negative spread. None is a glow — a glow is a zero-offset layer of
-     the signal's own colour. A level with no line casts a rung that reaches on every
-     side it exposes, which is why the wide layer's offset stays under half its blur.
+     the signal's own colour. Each rung is short and faint, because the level's line
+     marks the edge and the rung only adds lift. Decided on #730.
      why: docs/foundations.md#elevation */
   --elev-rest:
-    0 2px 26px -3px color-mix(in srgb, var(--shadow-ink) 9%, transparent),
-    0 1px 3px -1px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
+    0 2px 6px -1px color-mix(in srgb, var(--shadow-ink) 6%, transparent),
+    0 1px 3px -1px color-mix(in srgb, var(--shadow-ink) 4%, transparent);
   --elev-rail:
-    10px 0 24px -14px color-mix(in srgb, var(--shadow-ink) 16%, transparent),
-    1px 0 3px -1px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
+    3px 0 8px -3px color-mix(in srgb, var(--shadow-ink) 6%, transparent),
+    1px 0 3px -1px color-mix(in srgb, var(--shadow-ink) 4%, transparent);
   --elev-drop:
-    0 20px 46px -16px color-mix(in srgb, var(--shadow-ink) 22%, transparent),
-    0 1px 14px -4px color-mix(in srgb, var(--shadow-ink) 12%, transparent);
+    0 12px 32px -12px color-mix(in srgb, var(--shadow-ink) 16%, transparent),
+    0 1px 8px -3px color-mix(in srgb, var(--shadow-ink) 9%, transparent);
 
   --scrim: rgba(20, 22, 40, 0.38);
 
