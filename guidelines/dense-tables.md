@@ -111,3 +111,15 @@
 **Do:** Retain rows while refreshing, report busy state, distinguish no data from no matches and errors, and preserve focus when filters change.
 
 **Don't:** Replace the table with a blank state or move focus without telling the reader why.
+
+## Give every table its filter bar
+
+<!-- rule: filter-bar -->
+
+**Why:** A reader narrows the rows before reading them, and looks for the bar where every other table puts it.
+
+**Rule:** Put a filter bar directly above every table, with a search field and the filters that fit its columns.
+
+**Do:** Search, then a status filter, on the row above the table.
+
+**Don't:** Leave a table with no way to narrow its rows.

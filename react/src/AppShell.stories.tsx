@@ -6,6 +6,8 @@ import { Badge } from './primitives/Badge';
 import { DataTable } from './DataTable';
 import { Button } from './primitives/Button';
 import { Dropdown } from './Dropdown';
+import { FilterBar } from './FilterBar';
+import { SearchField } from './SearchField';
 import { icon } from '@apliteni/apliteni-ui';
 import { expect, userEvent, within } from 'storybook/test';
 
@@ -30,10 +32,16 @@ const columns = [
   { key: 'status', label: 'Status', render: (row: typeof rows[number]) =>
     <Badge variant={row.status === 'Paid' ? 'success' : 'warning'}>{row.status}</Badge> },
 ] satisfies import('./DataTable').Column<typeof rows[number]>[];
+// The status chip starts unset, so the table opens on every payout.
+const status = { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'Pending', value: 'Pending' }] };
 
 function Example(args: Partial<AppShellProps>) {
   const [pathname, setPathname] = useState('/reports');
   const width = args.width === 'wide' ? 'wide' : 'centered';
+  const [query, setQuery] = useState('');
+  const [state, setState] = useState('');
+  const term = query.trim().toLowerCase();
+  const shown = rows.filter(row => (!state || row.status === state) && row.name.toLowerCase().includes(term));
   return <AppShell sections={sections} pathname={pathname} title="Payouts" word="Finance"
     lede="Two of the four that arrived this week are waiting for a second approval."
     account={{ name: 'Ada Lovelace', email: 'ada@apliteni.com' }} onSignOut={() => {}}
@@ -43,8 +51,15 @@ function Example(args: Partial<AppShellProps>) {
       event.preventDefault(); setPathname(section.href);
     }} />}
     {...args}>
+      {/* Every table has its filter bar directly above it, on a card because a field
+          never stands on the page ground. why: guidelines/dense-tables.md */}
+      <Card><div className="ui-toolbar">
+        <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
+        <FilterBar filters={[{ ...status, value: state }]} label="Payout filters"
+          onChange={(_, value) => setState(value ?? '')} onRemove={() => setState('')} onClear={() => setState('')} />
+      </div></Card>
       <Card title="Payouts this week">
-        <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense zebra hover={false} />
+        <DataTable columns={columns} rows={shown} selectable={false} pager={false} dense zebra hover={false} />
       </Card>
       <Card title="What the width does">
         <p>This screen is the <b>{width}</b> column. The wide column fills the well; the centred one is capped and sits in the middle of it.</p>
