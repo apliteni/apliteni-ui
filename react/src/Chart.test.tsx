@@ -448,14 +448,19 @@ it('paints each bar with a ramp from its base on zero to its data end', () => {
   expect(css).toMatch(/\.ui-chart__fade-end\s*\{\s*stop-color: var\(--ui-chart-tone\);/);
 });
 
-it('keeps a bridge flat, so a rise, a fall and a total read as solid steps', () => {
+// A bridge bar fades from the previous running total to the new one, so the full
+// end marks the new total: up for a total and a rise, down for a fall.
+it('fades a bridge bar from the previous running total to the new one', () => {
   const { container } = render(<Chart variant="bridge" title="Cash" format={eur}
     steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 },
       { label: 'Costs', value: -300 }, { label: 'Closing', kind: 'total' }]} />);
-  expect(container.querySelectorAll('linearGradient'), 'no ramp is declared').toHaveLength(0);
-  for (const bar of container.querySelectorAll('path.ui-chart__bar')) {
-    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint')).toBe('');
-  }
+  const runs = [...container.querySelectorAll('path.ui-chart__bar')].map((bar) => {
+    const id = /^url\(#(.+)\)$/.exec((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'))?.[1];
+    const g = id ? container.querySelector(`linearGradient[id="${id}"]`) : null;
+    return g && [toneOf(bar), g.getAttribute('y1'), g.getAttribute('y2')];
+  });
+  expect(runs, 'Opening, Sales, Costs, Closing').toEqual([
+    ['neutral', '1', '0'], ['good', '1', '0'], ['bad', '0', '1'], ['neutral', '1', '0']]);
 });
 
 // Material's rule, and the reason a bar is a path: the top of a bar has to

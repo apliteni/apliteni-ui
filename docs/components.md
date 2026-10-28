@@ -1076,8 +1076,9 @@ tones are `accent`, `accent-soft`, `good`, `bad`, `warn`, `info` and `neutral`, 
 dark step for each theme. A bar fades from a light tint of its tone at its base on the zero line
 to the full tone at its data end, and a bar under zero fades the other way. The fill is opaque.
 The full tone clears 3:1 on the card and on the page in both themes. The tint is below 3:1 by
-design, because the data end, the zero line and the base carry the value. Lines, points, legend
-keys and every bridge step stay solid in the full tone.
+design, because the data end, the zero line and the base carry the value. A bridge bar fades from
+the previous running total to the full tone at the new one, so a fall fades downwards. Lines,
+points and legend keys stay solid in the full tone.
 
 **An unfinished period keeps its series fill with a dashed edge.** The legend names the estimated state.
 The readout and the optional table show the state and its `note`.

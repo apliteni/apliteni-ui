@@ -173,8 +173,8 @@
   /* A bar fades from a tint of its tone at the base to the full tone at the data
      end. The fade is allowed because it carries no value: the strong data end, the
      zero line and the base hold the bar's length, and the data end alone clears
-     3:1. The component names the ramp per bar as --ui-chart-paint; a bar with no
-     base on zero, such as a bridge step, keeps the flat tone. */
+     3:1. The component names the ramp per bar as --ui-chart-paint. A bridge bar
+     fades from the previous running total to the new one. */
   fill: var(--ui-chart-paint, var(--ui-chart-tone));
   stroke: none;
 }

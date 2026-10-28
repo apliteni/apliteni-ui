@@ -194,12 +194,14 @@ const MISSING = '—';
 
 /**
  * The ramp a bar is painted with, or none. A bar fades from its base on the zero
- * line to its data end, so a bar under zero runs the other way. A bridge step
- * and a hairline have no base on zero and keep the flat tone.
+ * line to its data end, so a bar under zero runs the other way. A bridge bar
+ * fades from the previous running total to the new one, so a fall runs down.
+ * Off a bridge, a hairline has no base on zero and keeps the flat tone.
  */
-function fadeOf(uid: string, m: { tone: ChartTone; foot: 'top' | 'bottom' | null }, bridge: boolean) {
-  if (bridge || !m.foot) return null;
-  return { id: `${uid}-fade-${m.tone}-${m.foot === 'bottom' ? 'up' : 'down'}`, tone: m.tone, up: m.foot === 'bottom' };
+function fadeOf(uid: string, m: { tone: ChartTone; foot: 'top' | 'bottom' | null; value: number }, bridge: boolean) {
+  if (!bridge && !m.foot) return null;
+  const up = bridge ? m.value >= 0 : m.foot === 'bottom';
+  return { id: `${uid}-fade-${m.tone}-${up ? 'up' : 'down'}`, tone: m.tone, up };
 }
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
