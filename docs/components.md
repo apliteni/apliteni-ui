@@ -190,7 +190,9 @@ otherwise need to discover. Each rule's test contains its detail. React's own no
 `appShell()` is the kit's one way to compose a page. It draws the chrome, and you decide what
 goes inside. It always draws **one `<main>` landmark** and gives every navigation landmark a
 unique name. **The page title keeps the same step above your content whether or not you pass a
-`sub`.** It does not invent a breadcrumb that you did not pass. It does not render a topbar
+`sub`.** **Small tools for the whole page end the title row:** put the `h1` and a `.ui-app__tools`
+group in a `.ui-app__title-row`, and the `.ui-app__sub` lede after the row. It does not invent a
+breadcrumb that you did not pass. It does not render a topbar
 unless you pass one. **The rail folds** above 720px through a `<button>` that the reader
 presses. That button writes the `apliteni-ui-rail` cookie, so a server can first paint the folded
 width with `railCollapsed()`. **At 720px and below the rail is a drawer.** The icon strip goes
@@ -228,7 +230,7 @@ of both. **The rail holds the shell's own controls:** the fold's control in its 
 mark, the theme switch above the reader's block, and the reader's block at its foot. The band
 control stands under the head (#732, `react/src/AppShell.tsx:191` `ui-react-app__control`). **The band carries the search
 field and nothing else** above 720px. At 720px and below it carries the mark, the page title on one
-line, the search trigger and the menu button (`react/src/AppShell.css:104` `@media (max-width: 720px)`). It is a `<header>`
+line, the search trigger and the menu button (`react/src/AppShell.css:97` `@media (max-width: 720px)`). It is a `<header>`
 outside the navigation landmark. The field is the palette's own trigger, drawn as a field, with
 the key cap inside its accessible name. If no palette is named, there is no field. **One band over
 a page, never two:** `layout: 'topbar'` and the compatibility `topbar` bag are not composed. An
@@ -1199,7 +1201,7 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   `bandControl` above the sections, and the account in its footer (`react/src/AppShell.tsx:229` `{accountBlock(true, true)}`).
   **`headControl` is one glyph control in the sidebar head, before the fold button** (#732). It
   is drawn as the fold is: a plain glyph with no border and no fill, the fold's size, ink and
-  hover (`react/src/AppShell.css:63` `.ui-react-app__head-control > :is(button, a)`). A folded
+  hover (`react/src/AppShell.css:56` `.ui-react-app__head-control > :is(button, a)`). A folded
   rail moves it out of the head row onto the glyph column, one rail gap under the head, and it
   stays usable. The drawer puts it in the panel's head, before the close button, as a 40px tap
   target (`react/src/AppShell.tsx:229` `headerActions={headSlot}`). `Drawer` takes
@@ -1212,10 +1214,10 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   drawer it replaces the menu's rows, under a Theme back row
   (`react/src/AccountMenu.tsx:18` `function AccountMenu`). A separator stands before Sign out. In the drawer a `.toggle` in
   `bandControl` and each account menu row are 40px tap targets, and focus starts on the first row.
-  **Above 720px the band's search field stands in its centre** (`react/src/AppShell.css:100` `@media (min-width: 721px)`).
+  **Above 720px the band's search field stands in its centre** (`react/src/AppShell.css:93` `@media (min-width: 721px)`).
   **At 720px and below the band holds the mark, the page title on one line, search and Menu at
   the end, and nothing else.** The title ends in an ellipsis when it is long, and is hidden from
-  screen readers, because the page's `h1` keeps its name (`react/src/AppShell.css:108` `.ui-react-app__title {`). **Below
+  screen readers, because the page's `h1` keeps its name (`react/src/AppShell.css:101` `.ui-react-app__title {`). **Below
   560px each band control is a bare 40px glyph with no border and no box**, so the band fits
   300px. The search trigger shows only its glyph there, an exception in
   `guidelines/iconography.md` (#729). The shared stylesheet clips the sentence and the key cap

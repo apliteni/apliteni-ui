@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { icon, themeIcon, transitionMs } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
@@ -15,12 +15,14 @@ const glyph = (svg: string, className: string) => <span className={className} ar
    row, in the phone drawer. The flyout goes onto <body>, clear of the rail's overflow
    clip. Right and Enter open it; Left and Escape close it onto the Theme row. A choice
    applies at once and the menu stays open. */
-export function AccountMenu({ account, items, onSelect, withTheme, inPlace }: {
+export function AccountMenu({ account, items, onSelect, withTheme, inPlace, away }: {
   account: AppShellProps['account']; items: DropdownItem[]; onSelect: (value: string | number | undefined) => void;
-  withTheme: boolean; inPlace: boolean;
+  withTheme: boolean; inPlace: boolean; away?: RefObject<HTMLElement | null>;
 }) {
   const theme = useThemeChoice();
+  const [open, setOpen] = useState(false);
   const [sub, setSub] = useState(false);
+  const block = useRef<HTMLDivElement>(null);
   const themeRow = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const flyout = useRef<HTMLDivElement>(null);
@@ -54,6 +56,21 @@ export function AccountMenu({ account, items, onSelect, withTheme, inPlace }: {
     const landed = panel ? setTimeout(place, transitionMs(panel)) : undefined;
     return () => { window.removeEventListener('resize', place); panel?.removeEventListener('transitionend', place); clearTimeout(landed); };
   }, [sub, inPlace]);
+  // A view that crosses to the phone breakpoint hides the sidebar, and the menu with it.
+  // The menu and its submenu close, and focus goes to `away`, the band's Menu button (#736).
+  useEffect(() => {
+    if (!open || !away) return;
+    const gone = () => {
+      if (block.current?.getClientRects().length) return;
+      const el = document.activeElement;
+      const held = !el || el === document.body || block.current?.contains(el) || flyout.current?.contains(el);
+      setSub(false);
+      setOpen(false);
+      if (held) away.current?.focus();
+    };
+    window.addEventListener('resize', gone);
+    return () => window.removeEventListener('resize', gone);
+  }, [open, away]);
   useEffect(() => {
     if (sub) list.current?.querySelector<HTMLElement>('[role="menuitemradio"]')?.focus();
     else if (refocus.current) { refocus.current = false; themeRow.current?.focus(); }
@@ -88,11 +105,11 @@ export function AccountMenu({ account, items, onSelect, withTheme, inPlace }: {
     </div>)}
   </div>;
 
-  return <div className="ui-app__user"><Dropdown variant="menu"
-    direction="up" align="start" chevron
+  return <div ref={block} className="ui-app__user"><Dropdown variant="menu"
+    direction="up" align="start" chevron open={open}
     ariaLabel={`Signed in as ${account.name}, ${account.email}`}
     triggerClass="ui-app__user-trigger" panelClass={`ui-app__user-panel${sub && inPlace ? ' is-sub' : ''}`}
-    onOpenChange={(open) => { if (!open) setSub(false); }}
+    onOpenChange={(next) => { setOpen(next); if (!next) setSub(false); }}
     triggerContent={<><span className="ui-app__av" aria-hidden="true">
       <Avatar personKey={account.email || account.name} name={account.name} size={32} />
     </span><span className="ui-app__who"><b>{account.name}</b><span>{account.email}</span></span></>}

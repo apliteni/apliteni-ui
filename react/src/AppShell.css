@@ -1,11 +1,4 @@
 .ui-react-app__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-5); }
-/* Page tools stand at the end of the title row, and the lede goes under the whole row (#736).
-   The row takes the h1's steps: 8px to a lede, 32px when the page opens on its title alone.
-   16px keeps the tools off a long title. The tools keep the 12px that .ui-react-app__actions uses. */
-.ui-react-app__head-row { display: flex; align-items: center; gap: var(--space-4); margin-bottom: 8px; }
-.ui-react-app__head-row:not(:has(+ .ui-app__sub)) { margin-bottom: var(--space-8); }
-.ui-app__main .ui-react-app__head-row > h1 { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
-.ui-react-app__tools { display: flex; flex: none; align-items: center; gap: var(--space-3); }
 .ui-react-app .ui-app__brand .ui-react-app__mark { display: inline-flex; opacity: 1; }
 /* No rail to sit beside: the well takes the whole grid, and the lockup the rail
    was holding stands first on the band instead, on the band's own line. */

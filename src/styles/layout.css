@@ -416,6 +416,13 @@
 .ui-app__sub { color: var(--text); font-size: calc(var(--text-base) + 0.5px); line-height: 1.6; max-width: var(--prose-body); margin-bottom: var(--space-8); }
 /* A page may open on its title alone; then the title carries the head's step. */
 .ui-app__main > h1:not(:has(+ .ui-app__sub)) { margin-bottom: var(--space-8); }
+/* Page tools stand at the end of the title row, and the lede goes under the whole row.
+   The row takes the h1's steps: 8px to a lede, 32px when the page opens on its title alone.
+   16px keeps the tools off a long title, and the tools stand 12px apart. */
+.ui-app__title-row { display: flex; align-items: center; gap: var(--space-4); margin-bottom: 8px; }
+.ui-app__title-row:not(:has(+ .ui-app__sub)) { margin-bottom: var(--space-8); }
+.ui-app__main .ui-app__title-row > h1 { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
+.ui-app__tools { display: flex; flex: none; align-items: center; gap: var(--space-3); }
 .ui-app__body { display: flex; flex-direction: column; gap: var(--space-5); }
 /* A flex child's min-width is its content by default, so one wide block — a
    ledger, a code sample — pushes the whole page sideways instead of scrolling

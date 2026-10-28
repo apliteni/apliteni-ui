@@ -148,7 +148,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   };
   // The topbar layout's account menu holds the Theme submenu (#732, #736). The rail layout keeps the vanilla menu.
   const accountBlock = (withTheme = false, inPlace = false) => <AccountMenu account={account} items={ownItems}
-    onSelect={pick} withTheme={withTheme} inPlace={inPlace} />;
+    onSelect={pick} withTheme={withTheme} inPlace={inPlace} away={menuButton} />;
   const headSlot = layout === 'topbar' && headControl && <div className="ui-react-app__head-control">{headControl}</div>;
   const foldControl = <div className="ui-app__fold-row">{headSlot}<button type="button"
     className="ui-nav__item ui-app__fold" aria-expanded={!collapsed} aria-label={foldLabel} onClick={fold}>
@@ -157,7 +157,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   </button></div>;
   const page = <main className={`ui-app__main${width === 'wide' ? ' ui-app__main--wide' : ''}`}>
     {back ? <BackLink {...back} /> : crumbs?.length ? <Breadcrumbs items={crumbs} /> : null}
-    {tools ? <div className="ui-react-app__head-row"><h1>{title}</h1><div className="ui-react-app__tools">{tools}</div></div> : <h1>{title}</h1>}
+    {tools ? <div className="ui-app__title-row"><h1>{title}</h1><div className="ui-app__tools">{tools}</div></div> : <h1>{title}</h1>}
     {lede && <p className="ui-app__sub">{lede}</p>}
     {actions && <div className="ui-react-app__actions">{actions}</div>}
     <div className="ui-app__body">{children}</div>

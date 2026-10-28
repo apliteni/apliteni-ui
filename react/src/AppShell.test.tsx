@@ -23,7 +23,7 @@ it('places breadcrumbs before the page title', () => {
   expect(main.firstElementChild).toBe(screen.getByRole('navigation', { name: 'Breadcrumb' }));
   expect(within(main).getByRole('link', { name: 'Finance' })).toHaveAttribute('href', '/');
   expect(within(main).getByText('Payouts').closest('.ui-nav__crumb')).toHaveAttribute('aria-current', 'page');
-  expect(main.querySelector('.ui-react-app__head-row')).toBeNull();
+  expect(main.querySelector('.ui-app__title-row')).toBeNull();
 });
 
 // Page tools end the title row, and the lede stands under the whole row (#736). jsdom lays
@@ -32,13 +32,15 @@ it('places breadcrumbs before the page title', () => {
 it('puts page tools at the end of the title row and the lede under it', () => {
   render(<AppShell {...props} lede="Four reports." tools={<button type="button">Customize</button>} />);
   const main = screen.getByRole('main');
-  const row = main.querySelector('.ui-react-app__head-row')!;
-  expect([...row.children].map(el => el.tagName === 'H1' ? el.textContent : el.className)).toEqual(['Weekly report', 'ui-react-app__tools']);
+  const row = main.querySelector('.ui-app__title-row')!;
+  expect([...row.children].map(el => el.tagName === 'H1' ? el.textContent : el.className)).toEqual(['Weekly report', 'ui-app__tools']);
   expect(within(row as HTMLElement).getByRole('button', { name: 'Customize' })).toBeInTheDocument();
   expect(row.nextElementSibling).toHaveClass('ui-app__sub');
-  const css = read('./AppShell.css');
-  expect(css).toMatch(/\.ui-react-app__head-row \{ display: flex; align-items: center;/);
-  expect(css).toMatch(/\.ui-react-app__tools \{ display: flex; flex: none;/);
+  // The vanilla sheet holds the row, so /css consumers have it too, and the React sheet does not repeat it.
+  const css = read('../../src/styles/layout.css');
+  expect(css).toMatch(/\.ui-app__title-row \{ display: flex; align-items: center;/);
+  expect(css).toMatch(/\.ui-app__tools \{ display: flex; flex: none;/);
+  expect(read('./AppShell.css')).not.toMatch(/ui-app__title-row|ui-app__tools/);
 });
 
 it('uses the longest matching route, keeps counts in link names, and forwards router props', () => {
