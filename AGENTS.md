@@ -202,6 +202,14 @@ to three short sentences, with no praise, no filler and no test diary. Add detai
 migration step or a behaviour limit. `site/changelog.mjs` stays pure — no git and no filesystem;
 `site/build.mjs` owns the git calls. Keep deploy specifics out of committed files.
 
+## Check the account menu at the phone breakpoint locally
+
+Before opening a PR that changes React `<AccountMenu>` or how it leaves with the sidebar,
+cross the breakpoint in a real browser:
+`npm run build-storybook`, then
+`UI_PLAYWRIGHT=… THEME_SUBMENU=1 node --test stories/theme-submenu-breakpoint.test.js`
+Report the result in the PR. CI skips this check because Playwright is not a dependency.
+
 ## Check the phone topbar rows locally
 
 Before opening a PR that changes `src/styles/topbar.css`'s phone rules or the shell offset
