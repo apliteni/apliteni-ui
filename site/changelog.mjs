@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.143.0', date: '2026-10-28',
+    changes: [
+      ['changed', 'On a phone, a table no longer turns its rows into cards. A table marked `.ui-table--stack` now scrolls sideways inside its frame like any other table, and the page does not scroll. Remove `.ui-table--stack` and its table roles from your markup. Part of #736.', ['Table']],
+      ['changed', 'While a table with a pinned identity column scrolls sideways, a soft shade falls to the right of that column. At the left edge there is no shade. The column keeps the table surface, so it follows light and dark. Part of #736.', ['Table']],
+      ['deprecated', 'React `DataTable` ignores `stack`. A phone table scrolls sideways. The prop is still accepted. Part of #736.', ['DataTable']],
+    ],
+  },
+  {
     v: '0.142.8', date: '2026-10-27',
     changes: [
       ['changed', 'At 720px and below, the `AppShell` band holds the brand mark, the page title on one line, search and Menu, and nothing else. The sidebar and the phone drawer now hold `bandControl` under the head, then the sections and the account at the foot. The theme switch is the first row of the account menu, and it switches the theme with the menu still open. Above 720px the search field stands in the centre of the band. The fold control moves to the sidebar head. A shell with no sidebar keeps these controls on the band. In the drawer a `.toggle` in `bandControl` and each account menu row are 40px tap targets, and focus starts on the first row. Resolves #732.', ['Shell']],

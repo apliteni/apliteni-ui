@@ -5,7 +5,7 @@ import { Button } from './primitives/Button';
 import { Card } from './primitives/Card';
 import { Icon } from './primitives/Icon';
 import { EmptyState } from './EmptyState';
-import { NumericValue, RowIdentity } from './TableValues';
+import { NumericValue } from './TableValues';
 
 export default { title: 'React/DataTable ledgers' };
 
@@ -22,8 +22,7 @@ const PAYOUTS: Payout[] = [
   ['43', 'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
 ].map(([name, id, arrival, gross, fees, net, tone, status]) => ({ name, id, arrival, gross, fees, net, tone, status }));
 
-// A stacked phone row clips the column heads, so each amount column names itself in front of
-// its figure, and the net head carries the currency once.
+// The net head carries the currency once.
 const payoutColumns: Column<Payout>[] = [
   { key: 'name', label: 'ID', linked: true, render: (r) => <a href="#payout">{r.name}</a> },
   { key: 'id', label: 'Payout ID', cell: 'code' },
@@ -38,7 +37,7 @@ export const FinanceData = {
   render: () => page(
     <Card title={titled('key', 'Payouts')}>
       <DataTable columns={payoutColumns} rows={PAYOUTS} selectable={false} pager={false}
-        density="dense" zebra stack rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
+        density="dense" zebra rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
     </Card>, 1040,
   ),
 };
@@ -105,39 +104,27 @@ export const CompactRowHeaders = {
   ),
 };
 
-type Entry = { name: string; area: string; time: string; change: string };
-const AUDIT: Entry[] = [
-  { name: 't.quill', area: 'Billing', time: '09:12', change: 'Raised the monthly spend cap on the Harbor Software workspace from 2,000 to 5,000 EUR, after the June reconciliation closed short.' },
-  { name: 'm.arbor', area: 'Access', time: '08:40', change: 'Revoked the Old integration token. Read-only scope, unused for three weeks.' },
-  { name: 'Review bot', area: 'Content', time: '08:02', change: 'Flagged four pages for a second read: the pricing table and the trial terms disagree on how long the trial runs.' },
+type Payment = { name: string; date: string; amount: string; note: string };
+const PAYMENTS: Payment[] = [
+  { name: 'Northwind Studio', date: '2 Oct', amount: '€4,800.00', note: 'Retainer for the brand refresh, first half paid after the kickoff in October. The second half is due after the review call, so hold the invoice until then.' },
+  { name: 'Blue Fern Hosting', date: '4 Oct', amount: '−€612.40', note: 'Hosting for the three regions. The price rose by 4% this quarter, and the new rate holds until March.' },
+  { name: 'Kestrel Print Co.', date: '7 Oct', amount: '−€1,240.00', note: 'Brochures for the autumn fair. Split the cost between the two product lines when you close the month.' },
+  { name: 'Orchard Lane Café', date: '9 Oct', amount: '€960.00', note: 'Catering refund after the cancelled workshop. The client asked for a credit note instead of cash.' },
+  { name: 'Harbor Freight Lines', date: '12 Oct', amount: '−€2,305.75', note: 'Two pallets to the north warehouse. One arrived late, and the carrier offered a 10% discount.' },
 ];
-export const StackedLog = {
+// On a phone the table keeps its columns and scrolls sideways in its frame. The pinned
+// counterparty stays in view, and the note wraps at its floor width.
+export const PinnedScroll = {
   render: () => page(
-    <Card title={titled('clock', 'Audit log')}>
-      <DataTable selectable={false} pager={false} density="dense" stack rows={AUDIT}
-        columns={[{ key: 'name', label: 'Who', cell: 'code' }, { key: 'area', label: 'Area' }, { key: 'time', label: 'Time' }, { key: 'change', label: 'Change', cell: 'long' }]} />
-    </Card>,
-  ),
-};
-
-type Desk = { name: string; symbol: string; weight: string; lots: string; note: string };
-const DESKS: Desk[] = [
-  { symbol: 'NORT', name: 'Northstar Analytics', weight: '128.40', lots: '3', note: 'Rebalanced into short-duration paper after the June print; the committee asked for the note to be kept on the position until September.' },
-  { symbol: 'HARB', name: 'Harbor Software', weight: '96.12', lots: '12', note: 'Holding. The renewal cohort is the whole thesis and it does not settle until the next quarter closes.' },
-  { symbol: 'CEDA', name: 'Cedar Infrastructure', weight: '71.85', lots: '2', note: 'Trimmed on the roll. Fabricated position, kept here because the note runs longer than the row.' },
-  { symbol: '', name: 'Cedar Infrastructure Holdings International', weight: '18.40', lots: '4', note: 'On the watchlist until the next sample review.' },
-];
-export const StackedPinned = {
-  render: () => page(
-    <Card title={titled('table', 'Desk notes')}>
-      <DataTable selectable={false} pager={false} density="dense" stack stickyHeader pinnedIdentity
-        scrollLabel="Desk notes, scroll for more rows" rows={DESKS}
+    <Card title="October payments">
+      <DataTable selectable={false} pager={false} pinnedIdentity
+        scrollLabel="October payments, scroll for more columns" rows={PAYMENTS}
         columns={[
-          { key: 'name', label: 'Company', linked: true, render: (r) => r.symbol ? <RowIdentity symbol={r.symbol} name={r.name} href="#position" /> : r.name },
-          { key: 'weight', label: <>Weight</>, num: true, render: (r) => <NumericValue value={r.weight} unit="bp" /> },
-          { key: 'lots', label: <>Size</>, num: true, render: (r) => <NumericValue value={r.lots} unit="lots" /> },
-          { key: 'note', label: 'Note', cell: 'long' },
+          { key: 'name', label: 'Counterparty', rowHeader: true },
+          { key: 'date', label: 'Date' },
+          { key: 'amount', label: 'Amount', num: true },
+          { key: 'note', label: 'Notes', cell: 'long' },
         ]} />
-    </Card>, 860,
+    </Card>, 1040,
   ),
 };
