@@ -16,11 +16,14 @@ describe('the ledger stories', () => {
     expect(dead).toHaveTextContent('Revoked');
   });
 
-  it('lets the payout table reach the card, with no stacked rows', () => {
+  it('keeps the payouts a pinned table in its scroll frame, with no stacked rows', () => {
     const { container } = render(all.FinanceData.render());
-    const table = container.querySelector('table')!;
+    const frame = container.querySelector('.ui-table-scroll')!;
+    expect(frame).toHaveAttribute('aria-label', 'Payouts, scroll for more columns');
+    const table = frame.querySelector('table')!;
+    expect(table).toHaveClass('ui-table--pinned');
     expect(table).not.toHaveClass('ui-table--stack');
-    expect(table.parentElement).toHaveClass('ui-card');
+    expect([...table.querySelectorAll('tbody tr')].every((row) => row.cells[0].classList.contains('ui-table__identity'))).toBe(true);
     expect(container.querySelector('[data-label]')).toBeNull();
   });
 

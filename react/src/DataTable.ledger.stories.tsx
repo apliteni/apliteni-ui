@@ -22,7 +22,8 @@ const PAYOUTS: Payout[] = [
   ['43', 'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
 ].map(([name, id, arrival, gross, fees, net, tone, status]) => ({ name, id, arrival, gross, fees, net, tone, status }));
 
-// The net head carries the currency once.
+// The net head carries the currency once. On a phone the table scrolls in its frame,
+// with the payout ID pinned.
 const payoutColumns: Column<Payout>[] = [
   { key: 'name', label: 'ID', linked: true, render: (r) => <a href="#payout">{r.name}</a> },
   { key: 'id', label: 'Payout ID', cell: 'code' },
@@ -37,7 +38,7 @@ export const FinanceData = {
   render: () => page(
     <Card title={titled('key', 'Payouts')}>
       <DataTable columns={payoutColumns} rows={PAYOUTS} selectable={false} pager={false}
-        density="dense" zebra rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
+        density="dense" zebra pinnedIdentity scrollLabel="Payouts, scroll for more columns" rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
     </Card>, 1040,
   ),
 };
