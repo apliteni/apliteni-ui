@@ -25,7 +25,8 @@ const periods: ChartPeriod[] = MONTHS.map((label, i) => (i === MONTHS.length - 1
    bad would have said which of the two is the better news, which no month
    decides.
    Round 27 of #543 picked these two hues; the drawing around them was redrawn
-   against eight references on round 37, and the hues were kept. */
+   against eight references on round 37, and the hues were kept. #740 made them
+   the chart's own fixed steps, so they no longer follow the product accent. */
 const series: ChartSeries[] = [
   { id: 'income', name: 'Income', values: INCOME, shape: 'bars', tone: 'accent' },
   { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars-below', tone: 'accent-soft' },
@@ -76,6 +77,29 @@ export const SideBySide: StoryObj = {
           { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars', tone: 'accent-soft' },
           { id: 'net', name: 'Net', values: NET, shape: 'line', tone: 'info' },
         ]} />
+    </Card>
+  ),
+};
+
+/** Every tone the chart offers, one series each, in the order ChartTone lists
+ *  them. Each bar fades from a tint at its base on zero to the full tone at its
+ *  data end, and a bar under zero fades the other way. The legend keys stay
+ *  solid in the full tone. Made-up seat changes for a made-up company. */
+export const Palette: StoryObj = {
+  render: () => (
+    <Card title="Seats gained and lost" sub="By plan, 2025">
+      <Chart title="Seats gained and lost by plan, each quarter of 2025"
+        periods={['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'].map((label) => ({ label }))}
+        format={(n) => `${n < 0 ? '−' : '+'}${Math.abs(n)}`}
+        series={([
+          ['starter', 'Starter', 'accent', [42, 38, 51, 47]],
+          ['team', 'Team', 'accent-soft', [31, 36, 29, 40]],
+          ['business', 'Business', 'good', [24, 27, 33, 30]],
+          ['legacy', 'Legacy', 'bad', [-18, -22, -15, -26]],
+          ['trial', 'Trial', 'warn', [16, -9, 21, 12]],
+          ['partner', 'Partner', 'info', [11, 14, -6, 18]],
+          ['education', 'Education', 'neutral', [8, 10, 9, -4]],
+        ] as const).map(([id, name, tone, values]) => ({ id, name, tone, values, shape: 'bars' }))} />
     </Card>
   ),
 };

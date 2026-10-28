@@ -43,8 +43,9 @@ export type ChartSeries = {
   shape?: 'bars' | 'bars-below' | 'line';
   /**
    * Bars take a tone. A line is `neutral` unless the caller says otherwise.
-   * `accent` and `accent-soft` are one hue at two weights, which is how two
-   * series read apart without spending a second colour on them.
+   * The tones are the chart's own fixed palette and do not follow the product
+   * accent. `accent` and `accent-soft` are one hue at two weights, which is how
+   * two series read apart without spending a second colour on them.
    */
   tone?: ChartTone;
 };
@@ -196,6 +197,16 @@ const BAR_RADIUS = 4;
 /** What the table prints where the caller gave no value, as the kit's numeric
  *  value formatter does. */
 const MISSING = '—';
+
+/**
+ * The ramp a bar is painted with, or none. A bar fades from its base on the zero
+ * line to its data end, so a bar under zero runs the other way. A bridge step
+ * and a hairline have no base on zero and keep the flat tone.
+ */
+function fadeOf(uid: string, m: { tone: ChartTone; foot: 'top' | 'bottom' | null }, bridge: boolean) {
+  if (bridge || !m.foot) return null;
+  return { id: `${uid}-fade-${m.tone}-${m.foot === 'bottom' ? 'up' : 'down'}`, tone: m.tone, up: m.foot === 'bottom' };
+}
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 const px = (n: number) => Math.round(n * 10) / 10;
@@ -501,6 +512,9 @@ export function Chart(props: ChartProps) {
   }, [frame, lines, keys, columns, centre, barWidth, groupWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
 
   const byId = useMemo(() => new Map(marks.map((m) => [m.id, m])), [marks]);
+  const fades = useMemo(() => new Map(marks.filter((m) => m.kind === 'bar')
+    .map((m) => fadeOf(uid, m, variant === 'bridge'))
+    .filter((f) => f !== null).map((f) => [f.id, f])), [marks, uid, variant]);
   /** The mark a keystroke opens for a column: its first, in drawing order. */
   const lead = useCallback((column: number) => marks.find((m) => m.column === column), [marks]);
   const open = openId ? byId.get(openId) : undefined;
@@ -805,14 +819,32 @@ export function Chart(props: ChartProps) {
                   x1="0" x2={px(plotWidth)} y1={px(y(0))} y2={px(y(0))} />
               )}
 
-              {marks.filter((m) => m.kind === 'bar').map((mark) => (
-                <path
-                  key={`bar-${mark.id}`}
-                  className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
-                    mark.estimated && 'is-estimated')}
-                  d={barPath(mark)}
-                />
-              ))}
+              {/* One ramp per tone and direction that a bar uses. The id carries the
+                  chart's own prefix, so two charts on one page never share a ramp. */}
+              {fades.size > 0 && (
+                <defs>
+                  {[...fades.values()].map((fade) => (
+                    <linearGradient key={fade.id} id={fade.id}
+                      className={`ui-chart__tone--${fade.tone}`}
+                      x1="0" x2="0" y1={fade.up ? '1' : '0'} y2={fade.up ? '0' : '1'}>
+                      <stop className="ui-chart__fade-base" offset="0" />
+                      <stop className="ui-chart__fade-end" offset="1" />
+                    </linearGradient>
+                  ))}
+                </defs>
+              )}
+              {marks.filter((m) => m.kind === 'bar').map((mark) => {
+                const fade = fadeOf(uid, mark, variant === 'bridge');
+                return (
+                  <path
+                    key={`bar-${mark.id}`}
+                    className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
+                      mark.estimated && 'is-estimated')}
+                    style={fade ? { '--ui-chart-paint': `url(#${fade.id})` } as CSSProperties : undefined}
+                    d={barPath(mark)}
+                  />
+                );
+              })}
 
               {/* Every casing before any stroke. A casing is wider than the stroke
                   it carries, so one drawn per segment in step with its stroke would

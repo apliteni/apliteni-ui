@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.145.0', date: '2026-10-28',
+    changes: [
+      ['changed', 'React `Chart` series use a fixed palette of seven tones in each theme, and the product accent no longer changes them. Each bar fades from a light tint of its tone at the zero line to the full tone at its data end. Lines, legend keys and bridge steps stay solid. Resolves #740.', ['Chart']],
+      ['added', 'New tokens `--chart-accent`, `--chart-accent-soft`, `--chart-good`, `--chart-bad`, `--chart-warn`, `--chart-info` and `--chart-neutral` hold the chart tones, each with a `-fade` token for the bar base. Part of #740.', ['Chart']],
+    ],
+  },
+  {
     v: '0.142.8', date: '2026-10-27',
     changes: [
       ['changed', 'At 720px and below, the `AppShell` band holds the brand mark, the page title on one line, search and Menu, and nothing else. The sidebar and the phone drawer now hold `bandControl` under the head, then the sections and the account at the foot. The theme switch is the first row of the account menu, and it switches the theme with the menu still open. Above 720px the search field stands in the centre of the band. The fold control moves to the sidebar head. A shell with no sidebar keeps these controls on the band. In the drawer a `.toggle` in `bandControl` and each account menu row are 40px tap targets, and focus starts on the first row. Resolves #732.', ['Shell']],
