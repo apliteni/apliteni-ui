@@ -36,7 +36,12 @@ const linkedColumns: Column<Row>[] = [
   ...columns.slice(1),
 ];
 
+// A centred canvas sizes the story to its widest row, so a bar and its table
+// would push a phone page sideways. Padded gives them the view's width.
+const FULL_WIDTH = { layout: 'padded' };
+
 export const Playground: StoryObj = {
+  parameters: FULL_WIDTH,
   render: () => {
     const [sel, setSel] = useState<Set<string>>(new Set());
     const { bar, shown } = useCampaignFilters(rows);
@@ -54,6 +59,7 @@ export const Playground: StoryObj = {
 
 
 export const SharedOrder: StoryObj = {
+  parameters: FULL_WIDTH,
   render: function Render() {
     const [sort, setSort] = useState<TableSort<Row>>({ key: 'clicks', dir: -1 });
     const { bar, shown } = useCampaignFilters(rows);
@@ -72,6 +78,7 @@ export const SharedOrder: StoryObj = {
 };
 
 export const ServerPaged: StoryObj = {
+  parameters: FULL_WIDTH,
   render: function Render() {
     // Stands in for a server: the page is the owner's, the table renders the
     // rows it is handed and states the range from `total`.
@@ -113,6 +120,7 @@ export const ServerPaged: StoryObj = {
 };
 
 export const NoPager: StoryObj = {
+  parameters: FULL_WIDTH,
   render: function Render() {
     const { bar, shown } = useCampaignFilters(rows);
     // A surface that pages elsewhere on the screen asks for no pager at all.

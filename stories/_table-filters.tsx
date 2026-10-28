@@ -18,7 +18,6 @@ export function useTableFilters<Row>(rows: Row[], { search, placeholder, label, 
   const shown = rows.filter((row) => text(row).toLowerCase().includes(term)
     && facets.every((facet) => !values[facet.id] || facet.of(row) === values[facet.id]));
   const set = (id: string, value?: string) => setValues((previous) => ({ ...previous, [id]: value ?? '' }));
-  const clear = () => { setQuery(''); setValues({}); };
   const bar = <div className="ui-toolbar">
     <SearchField ariaLabel={search} placeholder={placeholder} value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
     {facets.length > 0 && <FilterBar label={label} onChange={set} onRemove={(id) => set(id)} onClear={() => setValues({})}
@@ -27,7 +26,7 @@ export function useTableFilters<Row>(rows: Row[], { search, placeholder, label, 
         items: [{ label: facet.any, value: '' }, ...[...new Set(rows.map(facet.of))].map((value) => ({ label: value, value }))],
       }))} />}
   </div>;
-  return { bar, shown, clear };
+  return { bar, shown };
 }
 
 const noop = () => {};

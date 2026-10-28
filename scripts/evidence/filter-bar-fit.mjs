@@ -323,6 +323,14 @@ const probe = () => {
  * is not a verdict on the story — a loaded host holds a transition past it — and
  * the only question being asked is whether a filter bar is on the page. A
  * navigation that throws is still reported. */
+/* A story's play function still runs after its bar mounts. PinnedSelection's
+ * switches the theme and clicks rows, so a measure taken then reads a panel
+ * that its play is moving. Wait for the render's own end, as dropdown-contain does. */
+const played = (page) => page.waitForFunction(() => {
+  const r = window.__STORYBOOK_PREVIEW__ && window.__STORYBOOK_PREVIEW__.currentRender;
+  return !!r && ['finished', 'errored', 'aborted'].includes(r.phase);
+}, null, { timeout: 30000 });
+
 const settled = async (page) => {
   try { await settle(page); } catch { /* asked anyway; the bar is either there or not */ }
 };
@@ -381,6 +389,7 @@ async function measure({ url, width, theme, mutate, deaf }) {
    * without this a loaded host silently reports a case as carrying no panel —
    * which the mutation pass then contradicts. */
   await page.waitForSelector('.ui-filter-bar', { state: 'attached', timeout: 30000 });
+  await played(page);
   if (mutate) await page.addStyleTag({ content: mutate });
   // Asked of the document rather than of a clock. why: scripts/evidence/README.md
   await settle(page);
@@ -548,6 +557,7 @@ async function closeFrames({ url, width, theme, mutate }) {
   try {
     await page.goto(url, { waitUntil: 'load' });
     await page.waitForSelector('.ui-filter-bar', { state: 'attached', timeout: 30000 });
+  await played(page);
     if (mutate) await page.addStyleTag({ content: mutate });
     /* The lenient wait: with motion on, a story carrying a spinner never settles,
      * and the question asked below is about a panel's own box relative to its row,

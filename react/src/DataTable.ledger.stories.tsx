@@ -68,6 +68,8 @@ const agentColumns: Column<Agent>[] = [
 ];
 
 export const AgentTokens = {
+  // A centred canvas sizes the story to its widest row. Padded gives the bar and table the view's width.
+  parameters: { layout: 'padded' },
   render: function Render() {
     const { bar, shown } = useTableFilters(AGENTS, {
       search: 'Search agents', placeholder: 'Agent', label: 'Agent filters', text: (r) => r.name,
