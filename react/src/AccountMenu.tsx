@@ -30,17 +30,14 @@ export function AccountMenu({ account, items, onSelect, withTheme, inPlace, away
   const close = () => { refocus.current = true; setSub(false); };
 
   // The flyout's first row sits level with the Theme row, one panel pad clear of the
-  // panel's right edge, or of the edge that clips the panel.
+  // panel's right edge. The kit lifts the panel out of the rail's clip, so that edge shows.
   useIsoLayoutEffect(() => {
     if (!sub || inPlace) return;
     const place = () => {
       const row = themeRow.current; const fly = flyout.current;
       const panel = row?.closest('.ui-dropdown__panel');
       if (!row || !fly || !panel) return;
-      let right = panel.getBoundingClientRect().right;
-      for (let el = panel.parentElement; el; el = el.parentElement) {
-        if (getComputedStyle(el).overflowX !== 'visible') { right = Math.min(right, el.getBoundingClientRect().right); break; }
-      }
+      const right = panel.getBoundingClientRect().right;
       const style = getComputedStyle(fly);
       const pad = parseFloat(style.paddingTop) + parseFloat(style.borderTopWidth);
       const top = Math.min(row.getBoundingClientRect().top - pad, window.innerHeight - fly.offsetHeight - parseFloat(style.paddingTop));

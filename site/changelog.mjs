@@ -11,6 +11,7 @@ export const RELEASES = [
       ['added', '`AppShell` takes `tools`, small tools for the whole page, such as a version badge or a small button, at the end of the title row. The lede stands under the whole row. A page that uses only the stylesheet gets the same row from `.ui-app__title-row` and `.ui-app__tools`. `actions` does not change. Part of #736.', ['Shell']],
       ['added', '`AppShell` takes `accountItems`, a product\'s own rows at the top of every account menu, above the theme row and Sign out. A row takes `href` or `onSelect`. Part of #736.', ['Shell']],
       ['changed', 'In the `AppShell` account menu, the Theme row opens a submenu with Auto, Light and Dark, and a check marks the current choice. Right or Enter opens it, and Left or Escape closes it onto the Theme row. In the sidebar it opens beside the menu. In the phone drawer it replaces the menu rows under a Theme back row. A separator now stands before Sign out. When the view narrows to the phone layout, the sidebar menu closes and focus moves to the Menu button. Part of #736.', ['Shell', 'Dropdown']],
+      ['fixed', 'A dropdown panel that is wider than a body that clips across, such as the shell\'s rail, now opens over the page and shows in full. Before, the rail cut the account menu at its right edge. Part of #736.', ['Shell', 'Dropdown']],
     ],
   },
   {

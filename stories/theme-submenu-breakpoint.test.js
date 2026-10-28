@@ -9,9 +9,12 @@
  *   npm run build-storybook
  *   UI_PLAYWRIGHT=… THEME_SUBMENU=1 node --test stories/theme-submenu-breakpoint.test.js
  *
+ * At 1280 it also checks that the account menu and the Theme submenu show their right
+ * edges, which the rail's clip cut before the panel was lifted out of it.
+ *
  * Its limits: one engine, one story (React/AppShell > Theme submenu), one crossing,
- * 1280 to 390, in light. The drawer's submenu, which does not leave with the view, is
- * not measured here.
+ * 1280 to 390, in light. The edge check probes one point on each right edge. The
+ * drawer's submenu, which does not leave with the view, is not measured here.
  * why: docs/components.md#the-rest-of-the-react-surface
  */
 import test from 'node:test';
@@ -45,6 +48,13 @@ test('the sidebar account menu closes at the phone breakpoint and focus stays vi
         shown: Boolean(el && el !== document.body && el.checkVisibility()) });
     }))));
     assert.equal((await state()).sub, true, 'the story opens the Theme submenu at 1280');
+    // The account menu and the submenu show in full: the topmost element 2px inside each
+    // right edge is the box itself. Before the fix the rail's clip cut the menu's right edge.
+    const edges = await page.evaluate(() => ['.ui-app__user-panel', '.ui-dropdown__panel--sub'].map((sel) => {
+      const box = document.querySelector(sel).getBoundingClientRect();
+      return [sel, box.top + box.height / 2, box.right - 2];
+    }).filter(([sel, y, x]) => !document.querySelector(sel).contains(document.elementFromPoint(x, y))).map(([sel]) => sel));
+    assert.deepEqual(edges, [], 'at 1280 the right edge of these is hidden');
     await page.setViewportSize({ width: 390, height: 800 });
     const crossed = await state();
     assert.equal(crossed.sub, false, 'at 390 the Theme submenu still stands over the page');
