@@ -1,9 +1,10 @@
 // The links the vanilla Storybook published, kept working in the one React Storybook
 // (#429, PR 4; the owner chose to keep the old links). Frozen here because the vanilla
-// story files that produced them are removed with the vanilla kit.
+// story files that produced them are removed with the vanilla kit. The removed React
+// Breadcrumbs stories land on the back link that replaces them (#736).
 // stories/storybook-redirects.test.js holds both lists to the stories on disk.
 
-/** Old component story id → the React story that shows the same part. */
+/** Old component story id or removed React story id → the React story that shows the same part. */
 export const REDIRECTS = {
   'components-avatar--fallbacks': 'react-avatar--fallbacks',
   'components-avatar--hues': 'react-avatar--hues',
@@ -134,6 +135,8 @@ export const REDIRECTS = {
   'components-topbar--in-shell': 'react-appshell--centered',
   'components-topbar--pieces': 'react-topbar--full',
   'components-topbar--signed-out': 'react-topbar--signed-out',
+  'react-breadcrumbs--trail': 'react-backlink--short',
+  'react-breadcrumbs--with-icon': 'react-backlink--short',
 };
 
 /** Old ids the one Storybook still publishes as they were: foundations, guidelines,

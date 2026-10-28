@@ -39,7 +39,9 @@ test('every id the one Storybook keeps is still published', () => {
 });
 
 test('every old component link lands on a story that exists', () => {
-  assert.equal(Object.keys(REDIRECTS).length, 129, 'the 130 vanilla component ids, less the feature grid that is kept');
+  assert.equal(Object.keys(REDIRECTS).length, 131, 'the 130 vanilla component ids, less the feature grid that is kept, and the 2 removed React Breadcrumbs ids');
+  assert.deepEqual(['react-breadcrumbs--trail', 'react-breadcrumbs--with-icon'].map(id => REDIRECTS[id]),
+    ['react-backlink--short', 'react-backlink--short'], 'the React Breadcrumbs stories went with the component (#736)');
   assert.deepEqual(missingTargets(REDIRECTS, published), []);
 });
 
