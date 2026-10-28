@@ -1067,9 +1067,18 @@ are yours — `format` prints exact values in the readout, the live region and t
 **A mark is capped, whatever its column is worth.** A bar never passes a mark's width, so a chart
 that grows with the card gains ground between its columns rather than twelve wider blocks. Two bar
 series on the same side of the zero line stand side by side with ground between them; a
-`bars-below` series takes positive magnitudes and hangs under the line instead. A bar is flat,
+`bars-below` series takes positive magnitudes and hangs under the line instead. A bar is
 rounded only at the end away from zero, and its foot stands square on the rule it is measured
 from. A bridge carries each step's running total across to the step beside it.
+
+**A series takes one of seven fixed tones, and the product accent does not change them.** The
+tones are `accent`, `accent-soft`, `good`, `bad`, `warn`, `info` and `neutral`, with a light and a
+dark step for each theme. A bar fades from a light tint of its tone at its base on the zero line
+to the full tone at its data end, and a bar under zero fades the other way. The fill is opaque.
+The full tone clears 3:1 on the card and on the page in both themes. The tint is below 3:1 by
+design, because the data end, the zero line and the base carry the value. A bridge bar fades from
+the previous running total to the full tone at the new one, so a fall fades downwards. Lines,
+points and legend keys stay solid in the full tone.
 
 **An unfinished period keeps its series fill with a dashed edge.** The legend names the estimated state.
 The readout and the optional table show the state and its `note`.
@@ -1080,7 +1089,7 @@ The optional values table opens on a control that reaches the phone tap floor.
 
 **Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
 paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark
-changes colour, so the accent stays with the series it names. The chart is one tab stop: Left,
+changes colour, so each tone stays with the series it names. The chart is one tab stop: Left,
 Right, Home and End step columns and announce each one politely, Enter picks one when `selectable`
 is set, and `title` names the plot and the table under it without being drawn, because the card
 around a chart already carries its title.

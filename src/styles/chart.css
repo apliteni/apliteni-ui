@@ -170,16 +170,20 @@
 .ui-chart__band { fill: var(--surface-3); }
 
 .ui-chart__bar {
-  /* One flat tone, the whole bar. A ramp down the bar was the one thing in the
-     drawing that carried no number: it let the middle go while both edges held,
-     so a reader comparing two months compared two shaded cylinders. */
-  fill: var(--ui-chart-tone);
+  /* A bar fades from a tint of its tone at the base to the full tone at the data
+     end. The fade is allowed because it carries no value: the strong data end, the
+     zero line and the base hold the bar's length, and the data end alone clears
+     3:1. The component names the ramp per bar as --ui-chart-paint. A bridge bar
+     fades from the previous running total to the new one. */
+  fill: var(--ui-chart-paint, var(--ui-chart-tone));
   stroke: none;
 }
-/* Keep each series' fill weight. Ground-coloured dashes mark unfinished data
+/* The ramp's two stops. Each reads the tone of the gradient that holds it. */
+.ui-chart__fade-base { stop-color: var(--ui-chart-fade); }
+.ui-chart__fade-end { stop-color: var(--ui-chart-tone); }
+/* Keep each series' fill. Ground-coloured dashes mark unfinished data
    without joining the mirrored bars across the zero channel. */
 .ui-chart__bar.is-estimated {
-  fill: var(--ui-chart-tone);
   stroke: var(--ui-chart-ground);
   stroke-width: 1;
   stroke-dasharray: 3 2;
@@ -231,25 +235,17 @@
    chrome to measure. */
 .ui-chart--pick [data-mark] { cursor: pointer; }
 
-/* The tones. A series names one; the token behind it is the kit's, and the same
-   in both themes' terms. The neutral one is --muted, which is what
-   --signal-solid-neutral already is: a mid grey in both themes, where --dim
-   would paint a bridge's totals near-black in light and near-white in dark. */
-.ui-chart__tone--accent { --ui-chart-tone: var(--accent); }
-/* The accent's second weight: the same hue, let down towards the ground rather
-   than given an opacity, so a mark painted with it is opaque and a reader
-   measures one colour. The mix crosses 3:1 at 67% against the card AND against
-   the page, in both themes, under all four accents, so 70% ships with room over
-   the bar rather than sitting on it — the 40% the restyle's mock drew measures
-   1.99:1 and 2.03:1 and does not ship. */
-.ui-chart__tone--accent-soft {
-  --ui-chart-tone: color-mix(in srgb, var(--accent) 70%, var(--ui-chart-ground));
-}
-.ui-chart__tone--good { --ui-chart-tone: var(--green); }
-.ui-chart__tone--bad { --ui-chart-tone: var(--pink); }
-.ui-chart__tone--warn { --ui-chart-tone: var(--amber); }
-.ui-chart__tone--info { --ui-chart-tone: var(--cyan); }
-.ui-chart__tone--neutral { --ui-chart-tone: var(--muted); }
+/* The tones. A series names one, and each is the kit's own pair of tokens: the
+   tone, which is the data end and every line, legend key and dot, and its fade,
+   which is a bar's base. Both are fixed steps in each theme, so a chart does not
+   follow the product accent and accent-soft is not a mix towards the ground. */
+.ui-chart__tone--accent { --ui-chart-tone: var(--chart-accent); --ui-chart-fade: var(--chart-accent-fade); }
+.ui-chart__tone--accent-soft { --ui-chart-tone: var(--chart-accent-soft); --ui-chart-fade: var(--chart-accent-soft-fade); }
+.ui-chart__tone--good { --ui-chart-tone: var(--chart-good); --ui-chart-fade: var(--chart-good-fade); }
+.ui-chart__tone--bad { --ui-chart-tone: var(--chart-bad); --ui-chart-fade: var(--chart-bad-fade); }
+.ui-chart__tone--warn { --ui-chart-tone: var(--chart-warn); --ui-chart-fade: var(--chart-warn-fade); }
+.ui-chart__tone--info { --ui-chart-tone: var(--chart-info); --ui-chart-fade: var(--chart-info-fade); }
+.ui-chart__tone--neutral { --ui-chart-tone: var(--chart-neutral); --ui-chart-fade: var(--chart-neutral-fade); }
 
 /* -- the table ------------------------------------------------------------- */
 

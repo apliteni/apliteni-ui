@@ -43,8 +43,9 @@ export type ChartSeries = {
   shape?: 'bars' | 'bars-below' | 'line';
   /**
    * Bars take a tone. A line is `neutral` unless the caller says otherwise.
-   * `accent` and `accent-soft` are one hue at two weights, which is how two
-   * series read apart without spending a second colour on them.
+   * The tones are the chart's own fixed palette and do not follow the product
+   * accent. Each tone has its own hue: `accent` is blue and `accent-soft` is
+   * cyan, so two series read apart by hue.
    */
   tone?: ChartTone;
 };
@@ -176,26 +177,32 @@ const FALLBACK_COL = 48;
  * proportion every reference keeps, however wide the chart is drawn.
  */
 const BAR_SHARE = 0.5;
-const BAR_MAX = 24;
+const BAR_MAX = 12;
 /**
  * The same cap for a bridge, whose columns are not a month's. A bridge draws
  * one column per step and each carries its own name, so a column is three or
  * four times as wide; a mark capped at a month's width would be a sliver in it,
  * and the carry joining two steps would be longer than the steps it joins.
  */
-const BAR_MAX_BRIDGE = 40;
+const BAR_MAX_BRIDGE = 22;
 /** The ground between two bars that share a column. */
 const LANE_GAP = 2;
-/**
- * The corner radius a bar spends on the end the reader measures from. The other
- * end stands on the zero line and stays square: a rounded foot lifts the bar off
- * the one rule the chart draws, and the top of a bar has to measure its length.
- */
-const BAR_RADIUS = 4;
 
 /** What the table prints where the caller gave no value, as the kit's numeric
  *  value formatter does. */
 const MISSING = '—';
+
+/**
+ * The ramp a bar is painted with, or none. A bar fades from its base on the zero
+ * line to its data end, so a bar under zero runs the other way. A bridge bar
+ * fades from the previous running total to the new one, so a fall runs down.
+ * Off a bridge, a hairline has no base on zero and keeps the flat tone.
+ */
+function fadeOf(uid: string, m: { tone: ChartTone; foot: 'top' | 'bottom' | null; value: number }, bridge: boolean) {
+  if (!bridge && !m.foot) return null;
+  const up = bridge ? m.value >= 0 : m.foot === 'bottom';
+  return { id: `${uid}-fade-${m.tone}-${up ? 'up' : 'down'}`, tone: m.tone, up };
+}
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 const px = (n: number) => Math.round(n * 10) / 10;
@@ -212,13 +219,15 @@ function onPrevious(value: number, previous: number | undefined, when: string) {
 
 /**
  * A bar, drawn as a path so the end that stands on the zero line can be left
- * square while the end the reader measures from is rounded. SVG gives a `rect`
+ * square while the end the reader measures from is fully round: its radius is
+ * half the bar's width. A rounded foot would lift the bar off the one rule the
+ * chart draws, and the top of a bar has to measure its length. SVG gives a `rect`
  * one radius for all four corners, and a foot on the zero line needs none.
  * `foot` names the edge that stands on zero; a bridge step floats between two
  * running totals and stands on nothing, so it is rounded at both ends.
  */
 function barPath(m: { x: number; y: number; w: number; h: number; foot: 'top' | 'bottom' | null }): string {
-  const r = Math.min(BAR_RADIUS, m.w / 2, m.h / (m.foot ? 1 : 4));
+  const r = Math.min(m.w / 2, m.h / (m.foot ? 1 : 4));
   const { x, y: top, w, h } = m;
   const bottom = top + h;
   const arc = (dx: number, dy: number, sweep: 0 | 1) =>
@@ -501,6 +510,9 @@ export function Chart(props: ChartProps) {
   }, [frame, lines, keys, columns, centre, barWidth, groupWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
 
   const byId = useMemo(() => new Map(marks.map((m) => [m.id, m])), [marks]);
+  const fades = useMemo(() => new Map(marks.filter((m) => m.kind === 'bar')
+    .map((m) => fadeOf(uid, m, variant === 'bridge'))
+    .filter((f) => f !== null).map((f) => [f.id, f])), [marks, uid, variant]);
   /** The mark a keystroke opens for a column: its first, in drawing order. */
   const lead = useCallback((column: number) => marks.find((m) => m.column === column), [marks]);
   const open = openId ? byId.get(openId) : undefined;
@@ -649,9 +661,9 @@ export function Chart(props: ChartProps) {
                 </svg>
               ) : (
                 <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                  <rect
-                    className="ui-chart__key-swatch" x="1" width="10" height="5" rx="1"
-                    y={key.shape === 'bars-below' ? 6 : 1}
+                  <path
+                    className="ui-chart__key-swatch"
+                    d={barPath({ x: 3.5, y: 1, w: 5, h: 10, foot: key.shape === 'bars-below' ? 'top' : 'bottom' })}
                   />
                 </svg>
               )}
@@ -661,7 +673,7 @@ export function Chart(props: ChartProps) {
           {estimated.length > 0 && (
             <li className={cx('ui-chart__key', `ui-chart__tone--${estimatedTone}`)}>
               <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                <rect className="ui-chart__key-estimated" x="1.5" y="1.5" width="9" height="9" rx="1" />
+                <rect className="ui-chart__key-estimated" x="1.5" y="1.5" width="9" height="9" rx="2.5" />
               </svg>
               Estimated
             </li>
@@ -805,14 +817,32 @@ export function Chart(props: ChartProps) {
                   x1="0" x2={px(plotWidth)} y1={px(y(0))} y2={px(y(0))} />
               )}
 
-              {marks.filter((m) => m.kind === 'bar').map((mark) => (
-                <path
-                  key={`bar-${mark.id}`}
-                  className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
-                    mark.estimated && 'is-estimated')}
-                  d={barPath(mark)}
-                />
-              ))}
+              {/* One ramp per tone and direction that a bar uses. The id carries the
+                  chart's own prefix, so two charts on one page never share a ramp. */}
+              {fades.size > 0 && (
+                <defs>
+                  {[...fades.values()].map((fade) => (
+                    <linearGradient key={fade.id} id={fade.id}
+                      className={`ui-chart__tone--${fade.tone}`}
+                      x1="0" x2="0" y1={fade.up ? '1' : '0'} y2={fade.up ? '0' : '1'}>
+                      <stop className="ui-chart__fade-base" offset="0" />
+                      <stop className="ui-chart__fade-end" offset="1" />
+                    </linearGradient>
+                  ))}
+                </defs>
+              )}
+              {marks.filter((m) => m.kind === 'bar').map((mark) => {
+                const fade = fadeOf(uid, mark, variant === 'bridge');
+                return (
+                  <path
+                    key={`bar-${mark.id}`}
+                    className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
+                      mark.estimated && 'is-estimated')}
+                    style={fade ? { '--ui-chart-paint': `url(#${fade.id})` } as CSSProperties : undefined}
+                    d={barPath(mark)}
+                  />
+                );
+              })}
 
               {/* Every casing before any stroke. A casing is wider than the stroke
                   it carries, so one drawn per segment in step with its stroke would

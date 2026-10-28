@@ -1,13 +1,14 @@
-// Contrast gate for the chart's series colours. Restyle 01 put two series in one
-// hue at two weights, the lighter a mix towards the ground; a weight chosen by
-// eye can land anywhere, so this holds the floor. Tones are discovered from the
-// stylesheet and their names from the component's own union, so a tone added to
-// one and not the other fails before it can ship a colour nobody measured.
-// why: #543, docs/components.md#react-charts
+// Contrast gate for the chart's series colours. Each tone is a fixed pair of
+// tokens: the strong data end, which every mark ends in, and the fade at a bar's
+// base. The strong end holds the 3:1 floor; the fade does not and is not meant to.
+// Tones are discovered from the stylesheet and their names from the component's
+// own union, so a tone added to one and not the other fails before it can ship a
+// colour nobody measured.
+// why: #740, docs/components.md#react-charts
 //
 // Limits: the ratios are the stylesheet's values, not painted pixels, so
-// antialiasing, host overrides and a consumer's own --ui-chart-ground are out;
-// the browser captures on the PR carry the paint. The zero
+// antialiasing, the ramp between the two ends, host overrides and a consumer's
+// own --ui-chart-ground are out; the browser captures on the PR carry the paint. The zero
 // rule, the isolated point's rim and the line's casing are not series and are not measured
 // here. Nor is one series against another — two series are told apart by the side
 // of zero they stand on and by the legend, never by hue alone.
@@ -30,10 +31,12 @@ const CHART_TSX = read('./Chart.tsx');
 
 type Rgba = [number, number, number, number];
 
-/** Every tone the stylesheet declares, as `.ui-chart__tone--NAME { --ui-chart-tone: VALUE }`. */
-const TONES = new Map<string, string>(
-  [...CHART_CSS.matchAll(/\.ui-chart__tone--([\w-]+)\s*\{\s*--ui-chart-tone:\s*([^;}]+)[;\s]*\}/g)]
-    .map(([, name, value]) => [name, value.trim()]),
+/** Every tone the stylesheet declares, as
+ *  `.ui-chart__tone--NAME { --ui-chart-tone: STRONG; --ui-chart-fade: FADE; }`. */
+const TONES = new Map<string, { strong: string; fade: string }>(
+  [...CHART_CSS.matchAll(
+    /\.ui-chart__tone--([\w-]+)\s*\{\s*--ui-chart-tone:\s*([^;}]+);\s*--ui-chart-fade:\s*([^;}]+)[;\s]*\}/g,
+  )].map(([, name, strong, fade]) => [name, { strong: strong.trim(), fade: fade.trim() }]),
 );
 
 /** The same names as the component's own union, which is what a caller may pass. */
@@ -79,30 +82,38 @@ describe('the chart\'s tones', () => {
     for (const name of TONES.keys()) expect(DECLARED.has(name as ChartTone)).toBe(true);
   });
 
-  it('finds every accent the kit ships, so no accent goes unmeasured', () => {
+  it('paints every tone the same under every accent the kit ships', () => {
     expect(ACCENTS.length, 'only the default accent was derived from src/tokens/accents.css. A '
-      + 'renamed attribute would silently shrink the matrix').toBeGreaterThanOrEqual(4);
+      + 'renamed attribute would silently shrink the check').toBeGreaterThanOrEqual(4);
+    for (const theme of THEMES) {
+      for (const [name, { strong, fade }] of TONES) {
+        const at = (accent: string) => [strong, fade]
+          .map((value) => measure(theme, accent, 'card', value).tone);
+        for (const accent of ACCENTS) {
+          expect(at(accent), `${name} in ${theme} moved with the ${accent} accent. A chart's `
+            + 'palette is fixed, so a product accent never repaints a series').toEqual(at('default'));
+        }
+      }
+    }
   });
 
-  it('clears 3:1 for every tone, on both grounds, in both themes, under every accent', () => {
+  it('clears 3:1 for every strong end, on both grounds, in both themes', () => {
     const rows: { where: string; value: number }[] = [];
     for (const theme of THEMES) {
-      for (const accent of ACCENTS) {
-        for (const ground of Object.keys(GROUNDS) as (keyof typeof GROUNDS)[]) {
-          for (const [name, value] of TONES) {
-            const { tone, behind } = measure(theme, accent, ground, value);
-            const where = `${name} on the ${ground}, ${theme}, ${accent} accent`;
-            expect(tone, `${where}: the tone does not resolve to a colour`).not.toBeNull();
-            expect(behind, `${where}: the ground does not resolve to a colour`).not.toBeNull();
-            expect(tone![3], `${where}: a mark is opaque, so a reader measures one colour`).toBe(1);
-            rows.push({ where, value: ratio(tone, behind) });
-          }
+      for (const ground of Object.keys(GROUNDS) as (keyof typeof GROUNDS)[]) {
+        for (const [name, { strong }] of TONES) {
+          const { tone, behind } = measure(theme, 'default', ground, strong);
+          const where = `${name} on the ${ground}, ${theme}`;
+          expect(tone, `${where}: the tone does not resolve to a colour`).not.toBeNull();
+          expect(behind, `${where}: the ground does not resolve to a colour`).not.toBeNull();
+          expect(tone![3], `${where}: a mark is opaque, so a reader measures one colour`).toBe(1);
+          rows.push({ where, value: ratio(tone, behind) });
         }
       }
     }
 
-    expect(rows, 'every tone × ground × theme × accent is measured')
-      .toHaveLength(TONES.size * 2 * THEMES.length * ACCENTS.length);
+    expect(rows, 'every tone × ground × theme is measured')
+      .toHaveLength(TONES.size * 2 * THEMES.length);
     const tightest = rows.reduce((a, b) => (b.value < a.value ? b : a));
     for (const row of rows) {
       expect(row.value, `${row.where} measures ${row.value.toFixed(2)}:1 against the ${AA_LARGE}:1 `
@@ -111,44 +122,23 @@ describe('the chart\'s tones', () => {
     }
   });
 
-  /* Rejection, twice: once for the number this gate exists to hold, and once for
-   * a value it cannot read. A gate that passes whatever it is handed measures
-   * nothing, so both mutations are run here rather than asserted about. */
-  it('rejects the lighter weight drawn at the share the restyle\'s mock used', () => {
-    const SOFT = /\.ui-chart__tone--accent-soft\s*\{\s*--ui-chart-tone:\s*([^;}]+)[;\s]*\}/;
-    const shipped = SOFT.exec(CHART_CSS)?.[1];
-    expect(shipped, 'the lighter weight of the accent is a color-mix this gate can re-weight')
-      .toMatch(/color-mix\(in srgb, var\(--accent\) (\d+)%, var\(--ui-chart-ground\)\)/);
-
-    // The mock drew the second series at 40%. Both of the ratios the
-    // specification names for it are reproduced here, so the number in the
-    // document and the number this gate measures cannot drift apart.
-    const mock = shipped!.replace(/\d+%/, '40%');
-    const failures = THEMES.flatMap((theme) => ACCENTS.flatMap((accent) =>
-      (Object.keys(GROUNDS) as (keyof typeof GROUNDS)[]).map((ground) => {
-        const { tone, behind } = measure(theme, accent, ground, mock);
-        return { theme, accent, ground, value: ratio(tone, behind) };
-      })))
-      .filter((row) => row.value < AA_LARGE);
-    expect(failures, 'the mock\'s 40% fails on every ground, in both themes, under every accent')
-      .toHaveLength(2 * THEMES.length * ACCENTS.length);
-    const named = (theme: string, ground: keyof typeof GROUNDS) => {
-      const { tone, behind } = measure(theme, 'default', ground, mock);
-      return Number(ratio(tone, behind).toFixed(2));
-    };
-    expect(named('dark', 'card'), 'the dark card ratio the specification prints').toBe(1.99);
-    expect(named('light', 'card'), 'the light card ratio the specification prints').toBe(2.03);
-
-    // And the shipped weight has room above the bar rather than sitting on it:
-    // the mix crosses 3:1 at 67%, and 70% is what ships.
-    const atShare = (share: number) => Math.min(...THEMES.flatMap((theme) =>
-      ACCENTS.flatMap((accent) => (Object.keys(GROUNDS) as (keyof typeof GROUNDS)[]).map((ground) => {
-        const { tone, behind } = measure(theme, accent, ground, shipped!.replace(/\d+%/, `${share}%`));
-        return ratio(tone, behind) as number;
-      }))));
-    expect(atShare(66), 'a point below the floor still fails, so the floor is real')
-      .toBeLessThan(AA_LARGE);
-    expect(atShare(67), 'and the floor itself clears').toBeGreaterThanOrEqual(AA_LARGE);
+  /* Rejection, twice: once for a colour under the bar, and once for a value the
+   * gate cannot read. A gate that passes whatever it is handed measures nothing.
+   * The fades are the colours under the bar: on the card, where the kit draws a
+   * chart, each fails 3:1 by design, and the same measurement that passes the
+   * strong ends rejects every one of them. On the page the dark neutral fade
+   * measures 3.39:1, which harms nothing, so the page is not asserted here. */
+  it('rejects every fade end on the card, where a bar\'s base carries no value', () => {
+    const rows = THEMES.flatMap((theme) => [...TONES].map(([name, { fade }]) => {
+      const { tone, behind } = measure(theme, 'default', 'card', fade);
+      expect(tone, `${name} fade, ${theme}: the fade does not resolve to a colour`).not.toBeNull();
+      expect(tone![3], `${name} fade, ${theme}: the base is opaque too`).toBe(1);
+      return { where: `${name} fade on the card, ${theme}`, value: ratio(tone, behind) as number };
+    }));
+    expect(rows).toHaveLength(TONES.size * THEMES.length);
+    expect(rows.filter((row) => row.value >= AA_LARGE),
+      'a fade clears 3:1 on the card, so it is a second strong colour and no longer a base')
+      .toEqual([]);
   });
 
   it('rejects a tone whose value stops resolving instead of scoring it', () => {

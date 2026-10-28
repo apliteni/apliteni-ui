@@ -67,9 +67,11 @@ automatically, and explain the cause and limitation of each accepted failure.
 
 ## Check accents locally
 
-Before opening a PR that changes colours, tokens or theme/accent CSS, run:
-`CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast-light.test.js`
-Report the result in the PR.
+The vanilla accent matrix went with the vanilla factories in #724, so no gate walks every story
+under every accent. The contrast walk in `react/src/contrast-walk.tsx` uses the default accent.
+Before opening a PR that changes colours, tokens or theme/accent CSS, say in the PR which
+accent each changed colour was measured under. `react/src/Chart.contrast.test.tsx` measures
+the chart tones under every accent.
 
 ## Check the phone tap floor locally
 

@@ -398,7 +398,11 @@ it('keeps the series fill on unfinished periods with a dashed ground edge', () =
   const april = bars.filter((b) => b.classList.contains('is-estimated'));
   expect(april, 'one estimated bar per bar series in the unfinished column').toHaveLength(2);
   const rule = /\.ui-chart__bar\.is-estimated\s*\{([^}]*)\}/.exec(readRepo('../../src/styles/chart.css'))![1];
-  expect(rule).toContain('fill: var(--ui-chart-tone)');
+  expect(rule, 'an unfinished bar keeps the ramp every other bar is painted with')
+    .not.toContain('fill');
+  for (const bar of april) {
+    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint')).toMatch(/^url\(#/);
+  }
   expect(rule).toContain('stroke: var(--ui-chart-ground)');
   expect(rule, 'the dash is the cue a reader who cannot see the tone still gets')
     .toContain('stroke-dasharray: 3 2');
@@ -409,19 +413,54 @@ it('keeps the series fill on unfinished periods with a dashed ground edge', () =
     'the segment into the unfinished month is dashed').toHaveLength(1);
 });
 
-// Round 32 (#543): the ramp down each bar was the one shape in the drawing that
-// carried no number. It let the middle of a bar go while both edges held, so two
-// months were compared as two shaded cylinders.
-it('paints every bar in one flat tone, with no ramp and no second paint', () => {
-  const { container } = months();
-  expect(container.querySelectorAll('linearGradient'), 'no ramp is declared').toHaveLength(0);
-  for (const bar of container.querySelectorAll('path.ui-chart__bar')) {
-    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'),
-      'a bar names no paint of its own').toBe('');
+// #740: a bar fades from a tint of its tone at the base on zero to the full tone
+// at the data end. The data end, the zero line and the base carry the value.
+it('paints each bar with a ramp from its base on zero to its data end', () => {
+  const { container } = render(<>
+    <Chart title="One" periods={periods} series={series} format={eur} />
+    <Chart title="Two" periods={periods} series={series} format={eur} />
+  </>);
+  const [one, two] = [...container.querySelectorAll('svg.ui-chart__svg')];
+  const ramps = (svg: Element) => [...svg.querySelectorAll('linearGradient')];
+  expect(ramps(one).map((g) => g.id.replace(/^.*-fade-/, '')).sort(),
+    'one ramp per tone and direction a bar uses').toEqual(['bad-down', 'good-up']);
+  expect(ramps(one).map((g) => g.id), 'each chart prefixes its own ramps')
+    .not.toEqual(expect.arrayContaining(ramps(two).map((g) => g.id)));
+
+  const ramp = (id: string) => one.querySelector(`linearGradient[id="${id}"]`)!;
+  const paintOf = (bar: Element) => /^url\(#(.+)\)$/
+    .exec((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'))?.[1] ?? '';
+  for (const bar of one.querySelectorAll('path.ui-chart__bar')) {
+    const g = ramp(paintOf(bar));
+    expect(g, 'every bar on zero names a ramp of its own chart').not.toBeNull();
+    expect(classOf(g), 'the ramp reads the bar\'s own tone').toContain(`ui-chart__tone--${toneOf(bar)}`);
+    // The base stop sits where the bar meets zero: the bottom of a bar above it,
+    // the top of a bar hung under it.
+    const up = toneOf(bar) === 'good';
+    expect([g.getAttribute('y1'), g.getAttribute('y2')]).toEqual(up ? ['1', '0'] : ['0', '1']);
+    expect([...g.querySelectorAll('stop')].map((stop) => [classOf(stop), stop.getAttribute('offset')]))
+      .toEqual([['ui-chart__fade-base', '0'], ['ui-chart__fade-end', '1']]);
   }
   const css = readRepo('../../src/styles/chart.css');
-  expect(/\.ui-chart__bar\s*\{([^}]*)\}/.exec(css)![1]).toContain('fill: var(--ui-chart-tone)');
-  expect(css, 'and nothing is left to style a ramp with').not.toMatch(/ui-chart__fade|ui-chart-paint/);
+  expect(/\.ui-chart__bar\s*\{([^}]*)\}/.exec(css)![1])
+    .toContain('fill: var(--ui-chart-paint, var(--ui-chart-tone))');
+  expect(css).toMatch(/\.ui-chart__fade-base\s*\{\s*stop-color: var\(--ui-chart-fade\);/);
+  expect(css).toMatch(/\.ui-chart__fade-end\s*\{\s*stop-color: var\(--ui-chart-tone\);/);
+});
+
+// A bridge bar fades from the previous running total to the new one, so the full
+// end marks the new total: up for a total and a rise, down for a fall.
+it('fades a bridge bar from the previous running total to the new one', () => {
+  const { container } = render(<Chart variant="bridge" title="Cash" format={eur}
+    steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 },
+      { label: 'Costs', value: -300 }, { label: 'Closing', kind: 'total' }]} />);
+  const runs = [...container.querySelectorAll('path.ui-chart__bar')].map((bar) => {
+    const id = /^url\(#(.+)\)$/.exec((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'))?.[1];
+    const g = id ? container.querySelector(`linearGradient[id="${id}"]`) : null;
+    return g && [toneOf(bar), g.getAttribute('y1'), g.getAttribute('y2')];
+  });
+  expect(runs, 'Opening, Sales, Costs, Closing').toEqual([
+    ['neutral', '1', '0'], ['good', '1', '0'], ['bad', '0', '1'], ['neutral', '1', '0']]);
 });
 
 // Material's rule, and the reason a bar is a path: the top of a bar has to
@@ -431,13 +470,16 @@ it('spends a bar\'s corner radius on the end away from zero, and none on the foo
   const { container } = months();
   const svg = container.querySelector('.ui-chart__svg')!;
   const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
-  // The tolerance is the radius itself, read from the component: an arc leaves
-  // the edge it rounds exactly that far, so hard-coding it here would fail the
-  // next time the radius moves and would say nothing about where the arc is.
-  const radius = Number(/const BAR_RADIUS = (\d+)/.exec(readRepo('./Chart.tsx'))![1]);
   for (const bar of svg.querySelectorAll('path.ui-chart__bar')) {
     const box = boxOf(bar);
     const arcs = arcsOf(bar);
+    // The data end is fully round: the radius is half the bar's width, unless
+    // the bar is too short to spend it. An arc leaves the edge it rounds exactly
+    // that far, so the radius is also the tolerance for where the arc sits.
+    const radius = Math.min(box.width / 2, box.height);
+    for (const [, r] of (bar.getAttribute('d') ?? '').matchAll(/a(-?\d*\.?\d+)/g)) {
+      expect(Math.abs(Number(r) - radius), `${classOf(bar)} is round at its data end`).toBeLessThanOrEqual(0.1);
+    }
     expect(arcs, `${classOf(bar)} rounds exactly one end`).toHaveLength(2);
     const onZero = Math.abs(box.y - zeroY) < Math.abs(box.y + box.height - zeroY) ? 'top' : 'bottom';
     const far = onZero === 'top' ? box.y + box.height : box.y;
