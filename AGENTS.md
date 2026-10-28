@@ -130,7 +130,8 @@ Report the result in the PR. CI runs only this gate's source half.
 ## Check the table edge shade locally
 
 Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` edge-shade rules,
-measure both edges in a real browser — the source half only reads selectors, not paint:
+measure both edges in a real browser — the source half only reads selectors, not paint.
+Run `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_CHROME=… EDGE_SHADE=1 node --test stories/table-edge-shade.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 
