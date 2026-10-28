@@ -698,6 +698,12 @@ export function Chart(props: ChartProps) {
     el.classList.toggle('is-more-before', el.scrollLeft > 1);
     el.classList.toggle('is-more-after', el.scrollLeft < last - 1);
   }, []);
+  // A labels look opens on its latest period, where its labels are.
+  const opensAtEnd = variant === 'line' && lookName === 'labels';
+  useLayoutEffect(() => {
+    const el = scroller.current;
+    if (opensAtEnd && el) el.scrollLeft = el.scrollWidth - el.clientWidth;
+  }, [opensAtEnd, plotWidth, count]);
   useEffect(syncEdges, [syncEdges, plotWidth, count]);
 
   /* -- the readout --------------------------------------------------------- */

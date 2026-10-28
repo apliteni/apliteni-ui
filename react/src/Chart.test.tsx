@@ -678,6 +678,21 @@ it('scrolls the plot and marks the side that still hides columns', () => {
   fireEvent.scroll(scroll);
   expect(scroll.className).toContain('is-more-before');
   expect(scroll.className).not.toContain('is-more-after');
+  cleanup();
+
+  // A labels look opens on its latest period, where its labels are; the others
+  // open on the first. The widths are set before the render, so the opening
+  // scroll reads them.
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(576);
+  const opening = (look: string) => {
+    const left = (lookChart('line', look).container.querySelector('.ui-chart__scroll') as HTMLDivElement).scrollLeft;
+    cleanup();
+    return left;
+  };
+  expect(opening('labels'), 'the labels look opens at the end').toBe(376);
+  expect(opening('thin'), 'the thin look opens at the start').toBe(0);
+  expect(opening('points'), 'the points look opens at the start').toBe(0);
 });
 
 it('keeps the value axis out of the scroller, so it stays put', () => {

@@ -294,7 +294,9 @@
 .ui-chart--donut .ui-chart__frame { grid-template-columns: minmax(0, 1fr); }
 .ui-chart--stacked-rows .ui-chart__plot,
 .ui-chart--donut .ui-chart__plot { min-width: 0; }
+/* The table look's ring too, so it stays centred over a list that drops under it. */
 .ui-chart--donut-thin .ui-chart__svg,
+.ui-chart--donut-table .ui-chart__svg,
 .ui-chart--donut-labels .ui-chart__svg { margin-inline: auto; }
 .ui-chart--donut-thin .ui-chart__legend { justify-content: center; }
 .ui-chart--donut-table .ui-chart__plot {
@@ -328,7 +330,8 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-.ui-chart__shares-total > span { padding-top: var(--space-2); border-top: 1px solid var(--border); }
+/* The rule starts at the name, so the swatch column under the keys stays empty. */
+.ui-chart__shares-total > span + span { padding-top: var(--space-2); border-top: 1px solid var(--border); }
 
 /* -- the table ------------------------------------------------------------- */
 

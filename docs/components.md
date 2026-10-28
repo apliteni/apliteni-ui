@@ -1070,7 +1070,7 @@ drawings of the same numbers:
 
 | `variant` | `look` values | Default |
 | --- | --- | --- |
-| `line` | `thin`, `points` (a point on each value), `labels` (the last value at the line's end) | `thin` |
+| `line` | `thin`, `points` (a point on each value), `labels` (the last value at the line's end, and a chart that scrolls opens on its latest period) | `thin` |
 | `area` | `flat` (each series from zero), `stacked`, `share` (each column is 100%) | `stacked` |
 | `stacked` | `columns`, `share` (each column is 100%), `rows` (a bar for each period) | `columns` |
 | `donut` | `thin` (the total in the centre), `table` (a list of the shares beside the ring), `labels` (the name, value and share at each slice) | `table` |
