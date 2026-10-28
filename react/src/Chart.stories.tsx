@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Chart, type ChartPeriod, type ChartSeries } from './Chart';
+import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
+import type { ChartSlice } from './chart-looks';
 import { Card } from './primitives/Card';
 import { StatBand } from './primitives/StatBand';
 
@@ -175,4 +176,91 @@ export const Sparkline: StoryObj = {
         format={eur} />,
     }]} />
   ),
+};
+
+/* Spend split four ways, for the line, area, stacked and donut looks. Office is
+   what the other three leave, so the four add up to SPEND in every month. */
+const PAYROLL = [17200, 17200, 17600, 17600, 18100, 18100, 18400, 18400, 18400, 18900, 18900, 12100];
+const HOSTING = [5420, 5560, 5710, 5830, 6020, 6110, 6240, 6380, 6450, 6610, 6720, 4290];
+const MARKETING = [4890, 5190, 5370, 4980, 5420, 4920, 5640, 5980, 5310, 5770, 5810, 3740];
+const OFFICE = SPEND.map((value, i) => value - PAYROLL[i] - HOSTING[i] - MARKETING[i]);
+const costs: ChartLookSeries[] = [
+  { id: 'payroll', name: 'Payroll', values: PAYROLL, tone: 'accent' },
+  { id: 'hosting', name: 'Hosting', values: HOSTING, tone: 'accent-soft' },
+  { id: 'marketing', name: 'Marketing', values: MARKETING, tone: 'info' },
+  { id: 'office', name: 'Office', values: OFFICE, tone: 'warn' },
+];
+/** October, the last closed month, as one whole. */
+const october: ChartSlice[] = costs.map(({ id, name, tone, values }) => ({ id, name, tone, value: values[10] }));
+
+/* The two measured series as plain lines, and their sum as one flat area. */
+const flows: ChartLookSeries[] = [
+  { id: 'income', name: 'Income', values: INCOME, tone: 'accent' },
+  { id: 'spend', name: 'Spend', values: SPEND, tone: 'accent-soft' },
+];
+const spend: ChartLookSeries[] = [{ id: 'spend', name: 'Spend', values: SPEND, tone: 'accent' }];
+
+const lookCard = (title: string, sub: string, chart: ReactNode) => (
+  <Card title={title} sub={sub}>{chart}</Card>
+);
+
+export const LineThin: StoryObj = {
+  render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="thin"
+    title="Income and spend by month, last 12 months" periods={periods} series={flows}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const LinePoints: StoryObj = {
+  render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="points"
+    title="Income and spend by month, last 12 months" periods={periods} series={flows}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const LineLabels: StoryObj = {
+  render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="labels"
+    title="Income and spend by month, last 12 months" periods={periods} series={flows}
+    format={eur} formatAxis={eurAxis} />),
+};
+
+export const AreaFlat: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="flat"
+    title="Spend by month, last 12 months" periods={periods} series={spend}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const AreaStacked: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="stacked"
+    title="Spend by category and month, last 12 months" periods={periods} series={costs}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const AreaShare: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="share"
+    title="Share of spend by category and month, last 12 months" periods={periods} series={costs}
+    format={eur} formatAxis={eurAxis} />),
+};
+
+export const StackedColumns: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="columns"
+    title="Spend by category and month, last 12 months" periods={periods} series={costs}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const StackedShare: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="share"
+    title="Share of spend by category and month, last 12 months" periods={periods} series={costs}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const StackedRows: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="rows"
+    title="Spend by category and month, last 12 months" periods={periods} series={costs}
+    format={eur} formatAxis={eurAxis} />),
+};
+
+export const DonutThin: StoryObj = {
+  render: () => lookCard('Spend by category', 'October 2025', <Chart variant="donut" look="thin"
+    title="Spend by category, October 2025" slices={october} totalLabel="Total spend" format={eur} />),
+};
+export const DonutTable: StoryObj = {
+  render: () => lookCard('Spend by category', 'October 2025', <Chart variant="donut" look="table"
+    title="Spend by category, October 2025" slices={october} format={eur} />),
+};
+export const DonutLabels: StoryObj = {
+  render: () => lookCard('Spend by category', 'October 2025', <Chart variant="donut" look="labels"
+    title="Spend by category, October 2025" slices={october} format={eur} />),
 };

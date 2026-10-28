@@ -1058,11 +1058,30 @@ that swallowed Space would also prevent the reader from scrolling the page.
 
 ### React charts
 
-`Chart` draws three shapes: `months`, a column per period with bars and a line across them;
-`bridge`, one period walked from a starting total to a result; and `spark`, one series at text
-size with no axis, for a stat band's `trend` slot. The numbers, the wording and the formatting
+`Chart` draws seven shapes: `months`, a column per period with bars and a line across them;
+`bridge`, one period walked from a starting total to a result; `spark`, one series at text
+size with no axis, for a stat band's `trend` slot; and `line`, `area`, `stacked` and `donut`. The numbers, the wording and the formatting
 are yours — `format` prints exact values in the readout, the live region and the table, and
 `formatAxis` prints the ticks, which are whole units.
+
+**`line`, `area` and `stacked` take `periods` and `series`, and `donut` takes `slices`.** A series
+or a slice has no `shape`. Each of the four variants takes `look`, which picks one of three
+drawings of the same numbers:
+
+| `variant` | `look` values | Default |
+| --- | --- | --- |
+| `line` | `thin`, `points` (a point on each value), `labels` (the last value at the line's end) | `thin` |
+| `area` | `flat` (each series from zero), `stacked`, `share` (each column is 100%) | `stacked` |
+| `stacked` | `columns`, `share` (each column is 100%), `rows` (a bar for each period) | `columns` |
+| `donut` | `thin` (the total in the centre), `table` (a list of the shares beside the ring), `labels` (the name, value and share at each slice) | `table` |
+
+A series or a slice without a `tone` takes the next tone of `accent`, `accent-soft`, `info`,
+`warn`, `good`, `bad` and `neutral`. A stacked look reads a missing value as zero. The readout of
+a stacked or a share look lists each series of the column and the total, and the table adds a
+`Total` column. A share look gives the parts as percentages, and its table keeps your values.
+The arrow keys step through the periods, the rows or the slices. A donut slice says its value
+and its share of the whole. `totalLabel` names the whole, and it defaults to `Total`. A donut has
+no `selectable`.
 
 **A mark is capped, whatever its column is worth.** A bar never passes a mark's width, so a chart
 that grows with the card gains ground between its columns rather than twelve wider blocks. Two bar

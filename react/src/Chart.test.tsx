@@ -18,7 +18,8 @@ import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { Chart, type ChartPeriod, type ChartSeries } from './Chart';
+import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
+import type { ChartSlice } from './chart-looks';
 import { placeTip } from './tip';
 // Plain JS outside this workspace's tsconfig, imported for its arithmetic the
 // way react/src/contrast.test.tsx imports it.
@@ -88,6 +89,25 @@ const arcsOf = (el: Element) => {
   return out;
 };
 const toneOf = (el: Element) => /ui-chart__tone--(\w+)/.exec(classOf(el))?.[1];
+
+/* Spend split two ways, for the line, area, stacked and donut looks. */
+const costs: ChartLookSeries[] = [
+  { id: 'payroll', name: 'Payroll', values: [600, 600, 650, 400], tone: 'accent' },
+  { id: 'hosting', name: 'Hosting', values: [200, 300, 200, 100], tone: 'info' },
+];
+const slices: ChartSlice[] = [
+  { id: 'payroll', name: 'Payroll', value: 600, tone: 'accent' },
+  { id: 'hosting', name: 'Hosting', value: 200, tone: 'info' },
+];
+const LOOKS = [
+  ['line', 'thin'], ['line', 'points'], ['line', 'labels'],
+  ['area', 'flat'], ['area', 'stacked'], ['area', 'share'],
+  ['stacked', 'columns'], ['stacked', 'share'], ['stacked', 'rows'],
+  ['donut', 'thin'], ['donut', 'table'], ['donut', 'labels'],
+] as const;
+const lookChart = (variant: 'line' | 'area' | 'stacked', look?: string) => render(
+  <Chart variant={variant} look={look as 'thin'} title="Spend by cost" periods={periods} series={costs} format={eur} />,
+);
 
 /* -- the name, and the data without a pointer ------------------------------ */
 
@@ -680,11 +700,15 @@ it('draws an empty series without throwing, and says there is nothing to step', 
 /* -- axe ------------------------------------------------------------------- */
 
 describe.each(['dark', 'light'])('axe [%s]', (theme) => {
-  it('finds no violation in either variant', async () => {
+  it('finds no violation in any variant or look', async () => {
     document.documentElement.setAttribute('data-theme', theme);
     months();
     render(<Chart variant="bridge" title="Cash from opening to closing" format={eur}
       steps={[{ label: 'Opening', value: 10 }, { label: 'Sales', value: 5 }, { label: 'Closing', kind: 'total' }]} />);
+    for (const [variant, look] of LOOKS) {
+      if (variant === 'donut') render(<Chart variant="donut" look={look as 'thin'} title={`Spend ${look}`} slices={slices} format={eur} />);
+      else render(<Chart variant={variant} look={look as 'thin'} title={`Spend ${variant} ${look}`} periods={periods} series={costs} format={eur} />);
+    }
     const result = await axe.run(document.body, {
       runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
       resultTypes: ['violations'],
@@ -1138,4 +1162,93 @@ it('keeps short floating bridge steps rectangular', () => {
   const height = boxOf(bar).height;
   const radius = Number(/a([\d.]+)/.exec(bar.getAttribute('d')!)![1]);
   expect(radius).toBeLessThanOrEqual(height / 4 + 0.1);
+});
+
+/* -- the line, area, stacked and donut looks -------------------------------- */
+
+it('gives each variant its default look when the caller names none', () => {
+  const want = { line: 'thin', area: 'stacked', stacked: 'columns' } as const;
+  for (const variant of ['line', 'area', 'stacked'] as const) {
+    const { container } = lookChart(variant);
+    expect(container.firstElementChild).toHaveClass(`ui-chart--${variant}`, `ui-chart--${variant}-${want[variant]}`);
+    cleanup();
+  }
+  const { container } = render(<Chart variant="donut" title="Spend by cost" slices={slices} format={eur} />);
+  expect(container.firstElementChild).toHaveClass('ui-chart--donut-table');
+});
+
+it('draws a line look as lines only, with points or end labels where the look asks', () => {
+  const marks = (look: string) => {
+    const { container } = lookChart('line', look);
+    const got = {
+      bars: container.querySelectorAll('.ui-chart__bar, .ui-chart__segment').length,
+      /* A line is drawn a segment a column step, so the estimated step can dash alone. */
+      lines: container.querySelectorAll('line.ui-chart__line').length,
+      dots: container.querySelectorAll('.ui-chart__dot').length,
+    };
+    cleanup();
+    return got;
+  };
+  expect(marks('thin')).toEqual({ bars: 0, lines: 6, dots: 0 });
+  expect(marks('points'), 'a point on every value').toEqual({ bars: 0, lines: 6, dots: 8 });
+  expect(marks('labels'), 'one end point a line').toEqual({ bars: 0, lines: 6, dots: 2 });
+});
+
+it('tables a stack with its total, and reads every layer of a column with that total', async () => {
+  const user = userEvent.setup();
+  lookChart('stacked');
+  const table = screen.getByRole('table', { name: 'Spend by cost' });
+  expect(within(table).getAllByRole('columnheader').map((c) => c.textContent))
+    .toEqual(['Period', 'Payroll', 'Hosting', 'Total']);
+  expect(within(within(table).getByRole('row', { name: /Feb 2026/ })).getAllByRole('cell').map((c) => c.textContent))
+    .toEqual(['€600', '€300', '€900']);
+  await user.tab();
+  expect(frame()).toHaveFocus();
+  await user.keyboard('{ArrowRight}');
+  expect(screen.getByRole('status')).toHaveTextContent('Feb 2026. Hosting €300. Payroll €600. Total €900.');
+  hover('column-1');
+  expect(screen.getByRole('tooltip')).toHaveTextContent('Feb 2026Hosting€300Payroll€600Total€900');
+});
+
+it('reads a share look in parts of the column, and keeps the money in the table', () => {
+  lookChart('area', 'share');
+  hover('column-1');
+  expect(screen.getByRole('tooltip')).toHaveTextContent('Hosting33%Payroll67%Total€900');
+  const table = screen.getByRole('table', { name: 'Spend by cost' });
+  expect(within(within(table).getByRole('row', { name: /Feb 2026/ })).getAllByRole('cell').map((c) => c.textContent))
+    .toEqual(['€600', '€300', '€900']);
+  expect([...document.querySelectorAll('.ui-chart__axis .ui-chart__tick')].map((t) => t.textContent), 'an axis of shares')
+    .toEqual(['100%', '75%', '50%', '25%', '0%']);
+});
+
+it('steps the rows of a rows look, and calls them rows', () => {
+  lookChart('stacked', 'rows');
+  expect(frame()).toHaveAccessibleName('Spend by cost. Arrow keys step through the 4 rows.');
+  expect(plot().querySelectorAll('[data-mark^="row-"]')).toHaveLength(4);
+});
+
+it('steps a donut by slice, says each slice\'s share of the whole, and tables the shares', async () => {
+  const user = userEvent.setup();
+  render(<Chart variant="donut" title="Spend by cost" slices={slices} totalLabel="Spend" format={eur} />);
+  expect(frame()).toHaveAccessibleName('Spend by cost. Arrow keys step through the 2 slices.');
+  await user.tab();
+  await user.keyboard('{ArrowRight}');
+  expect(screen.getByRole('status')).toHaveTextContent('Hosting. €200, 25% of €800');
+  const table = screen.getByRole('table', { name: 'Spend by cost' });
+  expect(within(table).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Slice', 'Value', 'Share']);
+  expect(document.querySelector('.ui-chart__shares'), 'the table look lists the shares beside the ring')
+    .toHaveTextContent('Payroll€60075%Hosting€20025%Spend€800100%');
+  expect(document.querySelector('.ui-chart__legend'), 'the list is the key').toBeNull();
+});
+
+it('prints a donut\'s whole in its centre only on the thin look', () => {
+  const centre = (look: 'thin' | 'table' | 'labels') => {
+    const { container } = render(<Chart variant="donut" look={look} title="Spend by cost" slices={slices} totalLabel="Spend" format={eur} />);
+    const got = [...container.querySelectorAll('.ui-chart__total')].map((t) => t.textContent);
+    cleanup();
+    return got;
+  };
+  expect(centre('thin')).toEqual(['€800']);
+  expect(centre('table'), 'the list beside the ring carries the whole').toEqual([]);
+  expect(centre('labels'), 'the labels say the parts').toEqual([]);
 });

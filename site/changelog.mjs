@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.146.0', date: '2026-10-28',
+    changes: [
+      ['added', 'React `Chart` adds the variants `line`, `area`, `stacked` and `donut`. Each takes `look` to pick one of three drawings, and keeps the readout, the keyboard steps, the live region and the values table. A donut takes `slices` and an optional `totalLabel`. Part of #742.', ['Chart']],
+    ],
+  },
+  {
     v: '0.145.0', date: '2026-10-28',
     changes: [
       ['changed', 'React `Chart` series use a fixed palette of seven tones in each theme, and the product accent no longer changes them. Each bar fades from a light tint of its tone at the zero line to the full tone at its data end. A bridge step fades from the previous running total to the new one. Lines and legend keys stay solid. Resolves #740.', ['Chart']],

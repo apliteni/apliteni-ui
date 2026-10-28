@@ -247,6 +247,89 @@
 .ui-chart__tone--info { --ui-chart-tone: var(--chart-info); --ui-chart-fade: var(--chart-info-fade); }
 .ui-chart__tone--neutral { --ui-chart-tone: var(--chart-neutral); --ui-chart-fade: var(--chart-neutral-fade); }
 
+/* -- the looks of a line, an area, a stack and a ring ----------------------- */
+
+/* The rule under the column the reader is on. It is the zero rule's weight: a
+   line read across, not a mark. */
+.ui-chart__cross { stroke: var(--border-strong); stroke-width: 1; }
+/* A point, cut out of the ground like an unfinished bar, so two lines that
+   meet still show both points. */
+.ui-chart__dot { fill: var(--ui-chart-tone); stroke: var(--ui-chart-ground); stroke-width: 2; }
+.ui-chart--line-thin .ui-chart__line { stroke-width: 1.5; }
+.ui-chart--line-points .ui-chart__line { stroke-width: 2.5; }
+/* An area is the fade of its tone. The edge line on top of it holds the value. */
+.ui-chart__area { fill: var(--ui-chart-fade); stroke: none; }
+/* A stacked part, a share band and a ring slice. The ground between two parts
+   keeps them apart where two tones of one hue meet. */
+.ui-chart__segment {
+  fill: var(--ui-chart-tone);
+  stroke: var(--ui-chart-ground);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.ui-chart__segment.is-estimated { stroke-dasharray: 3 2; }
+/* Words drawn in the plot: a value at a line's end, a row's total, a slice's
+   name. They are the chart's own figures, so they take the body ink. */
+.ui-chart__text { fill: var(--text); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.ui-chart__text--strong { fill: var(--strong); font-weight: var(--weight-semibold); }
+.ui-chart__total {
+  fill: var(--strong);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.ui-chart__caption {
+  /* muted-ink: chrome — a row's period, an axis step or the ring's caption names what the figures are */
+  color: var(--muted);
+  fill: currentColor;
+  font-size: var(--text-xs);
+}
+/* One series in a column's readout: its key and name, then its figure. */
+.ui-chart__row { display: flex; justify-content: space-between; gap: var(--space-3); }
+.ui-chart__row .ui-chart__key { color: var(--text); font-weight: var(--weight-normal); }
+
+/* The rows look and the ring draw their own scale, so the scroller takes the
+   whole frame and the plot needs no column floor. */
+.ui-chart--stacked-rows .ui-chart__frame,
+.ui-chart--donut .ui-chart__frame { grid-template-columns: minmax(0, 1fr); }
+.ui-chart--stacked-rows .ui-chart__plot,
+.ui-chart--donut .ui-chart__plot { min-width: 0; }
+.ui-chart--donut-thin .ui-chart__svg,
+.ui-chart--donut-labels .ui-chart__svg { margin-inline: auto; }
+.ui-chart--donut-thin .ui-chart__legend { justify-content: center; }
+.ui-chart--donut-table .ui-chart__plot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+/* The table look's list beside the ring: key, name, value and share. */
+.ui-chart__shares {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  /* The list takes the room the ring leaves, and drops under it below a caption's width. */
+  flex: 1 1 0;
+  min-width: min(100%, var(--prose-caption));
+  max-width: var(--prose-caption);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+.ui-chart__shares > li { display: contents; }
+.ui-chart__shares-value { color: var(--strong); font-weight: var(--weight-semibold); text-align: right; font-variant-numeric: tabular-nums; }
+.ui-chart__shares-pct {
+  /* muted-ink: chrome — the share restates the value beside it as a part of the whole */
+  color: var(--muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ui-chart__shares-total > span { padding-top: var(--space-2); border-top: 1px solid var(--border); }
+
 /* -- the table ------------------------------------------------------------- */
 
 .ui-chart__data > summary {
