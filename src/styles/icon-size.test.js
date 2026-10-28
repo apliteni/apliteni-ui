@@ -57,7 +57,9 @@ const src = path.resolve(here, '..');
 // glyph, a width and a height in one rule, as `.ui-dropdown__tick svg` does).
 // 70 under #429 PR 5b: the vanilla components are gone, so the twelve
 // declarations keyed on svg classes only they wrote leave this walk.
-const EXPECTED_SUBJECTS = 72;
+// 70 under #736: the breadcrumb styles are removed, with the crumb glyph's width
+// and height.
+const EXPECTED_SUBJECTS = 70;
 
 const SHEETS = kitSheetNames(src);
 

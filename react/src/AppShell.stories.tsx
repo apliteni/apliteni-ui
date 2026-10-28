@@ -35,7 +35,6 @@ function Example(args: Partial<AppShellProps>) {
   const [pathname, setPathname] = useState('/reports');
   const width = args.width === 'wide' ? 'wide' : 'centered';
   return <AppShell sections={sections} pathname={pathname} title="Payouts" word="Finance"
-    crumbs={[{ label: 'Finance', href: '#' }, { label: 'Payouts' }]}
     lede="Two of the four that arrived this week are waiting for a second approval."
     account={{ name: 'Ada Lovelace', email: 'ada@apliteni.com' }} onSignOut={() => {}}
     renderLink={(section, props) => <a {...props} onClick={(event) => {

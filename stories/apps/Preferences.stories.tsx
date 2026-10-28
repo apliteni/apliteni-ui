@@ -29,7 +29,6 @@ export const Default: StoryObj = {
   render: () => <AppShell layout="rail" sections={sections} pathname="/prefs" title="Preferences"
     renderLink={(_, props) => <a {...props} href="#" />}
     lede="How the kit looks and speaks to you. Saved to this browser."
-    crumbs={[{ label: 'Account', href: '#' }, { label: 'Preferences' }]}
     account={{ name: 'Ada Lovelace', email: 'ada@apliteni.com' }} onSignOut={noop}>
     <Card title="Appearance">
       <Row lab="Theme" hint="Match the dark palette or a light workspace." tight><Seg label="Theme" options={['Dark', 'Light', 'System']} /></Row>

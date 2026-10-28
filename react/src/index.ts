@@ -125,5 +125,3 @@ export { TopBar, ViewSwitch, VersionSwitcher, AccountMenu } from './TopBar';
 export type { TopBarProps, ViewSwitchProps, ViewSwitchItem, VersionSwitcherProps, Version, AccountMenuProps } from './TopBar';
 export { NavTabs } from './NavTabs';
 export type { NavTabsProps, NavTabItem, NavTabBadge } from './NavTabs';
-export { Breadcrumbs } from './Breadcrumbs';
-export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';

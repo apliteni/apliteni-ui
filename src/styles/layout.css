@@ -401,9 +401,6 @@
    why: docs/components.md#the-page-shell */
 .ui-app__bar .toggle, .topbar__in .toggle { flex: none; }
 .ui-app__user--bar .ui-app__av { margin-inline-start: 0; }
-/* Crumb, then the title block. At --space-2 the crumb sat 8px off the h1 and
-   the h1 8px off its subtitle, so all three ranks read as one. */
-.ui-app__main .ui-nav--crumbs { margin-bottom: var(--space-5); }
 .ui-app__main h1 {
   color: var(--strong);
   /* rank: page-title */

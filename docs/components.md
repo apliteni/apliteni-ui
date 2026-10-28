@@ -153,9 +153,9 @@ identity column through classes. See
 
 | Name | What it is |
 |------|------------|
-| `appShell({ word, brandHref, nav, active, navLabel, crumbs, back, title, sub, body, account, signOutHref, layout, width, search, topbar, maxWidth, collapsible, collapsed })` | The kit's one page shell, and the one to call for new work. See [The page shell](#the-page-shell) and [The second layout](#the-second-layout). |
+| `appShell({ word, brandHref, nav, active, navLabel, back, title, sub, body, account, signOutHref, layout, width, search, topbar, maxWidth, collapsible, collapsed })` | The kit's one page shell, and the one to call for new work. See [The page shell](#the-page-shell) and [The second layout](#the-second-layout). |
 | `wireShell(root, { persist })` + `railCollapsed(cookieHeader?)`, `RAIL_COOKIE` | Wires the rail's fold, the reader's menu and the nav's groups; the cookie lets a server paint the right width first. |
-| `nav({ variant })`, dispatching to `sidebarNav`, `navTabs` or `breadcrumbs`, + `wireNav(root)` | Wayfinding. Each shape is also exported on its own. `wireNav` opens the sidebar's groups, sizes a tab row to its links on load and on resize, scrolls the row to its current link, and scrolls it to a link the keyboard lands on. See [A tab row scrolls inside its column](#a-tab-row-scrolls-inside-its-column). |
+| `nav({ variant })`, dispatching to `sidebarNav` or `navTabs`, + `wireNav(root)` | Wayfinding. Each shape is also exported on its own. `wireNav` opens the sidebar's groups, sizes a tab row to its links on load and on resize, scrolls the row to its current link, and scrolls it to a link the keyboard lands on. See [A tab row scrolls inside its column](#a-tab-row-scrolls-inside-its-column). |
 | `backLink({ href, label })` | The way up to the page this one sits under — an `<a href>`, never a history step. See [The back link](#the-back-link). |
 | `topbar(…)` + `wireTopbar(root)` | The product topbar. `themeToggle(theme)`, `accountMenu({ name, email, active, nav, initials })`, `versionSwitcher(versions, activeIdx)` and `deckTextSwitch(active)` are its parts, usable alone; `themeIcon(t)` and `themeName(t)` label your own toggle. |
 | `accentPicker({ active, options })`, with `ACCENTS` and `accentSwatchStyle(accent)` | The accent swatches, wired by `wireTopbar()`. `ACCENTS` is the list the kit ships; `accentSwatchStyle(accent)` is the one custom property a swatch button carries, `--swatch`, the gradient its circle wears. Both pickers read them, so a page building its own strip paints the same thing — and the kit's stylesheet draws the selected swatch's tick, so the strip needs no selection paint of its own. An accent with no paints gets `--swatch: transparent`, an empty circle you can still press. |
@@ -191,8 +191,7 @@ otherwise need to discover. Each rule's test contains its detail. React's own no
 goes inside. It always draws **one `<main>` landmark** and gives every navigation landmark a
 unique name. **The page title keeps the same step above your content whether or not you pass a
 `sub`.** **Small tools for the whole page end the title row:** put the `h1` and a `.ui-app__tools`
-group in a `.ui-app__title-row`, and the `.ui-app__sub` lede after the row. It does not invent a
-breadcrumb that you did not pass. It does not render a topbar
+group in a `.ui-app__title-row`, and the `.ui-app__sub` lede after the row. It does not render a topbar
 unless you pass one. **The rail folds** above 720px through a `<button>` that the reader
 presses. That button writes the `apliteni-ui-rail` cookie, so a server can first paint the folded
 width with `railCollapsed()`. **At 720px and below the rail is a drawer.** The icon strip goes
@@ -260,8 +259,7 @@ current section, not the page. When a page should take one:
 ### A tab row scrolls inside its column
 
 `navTabs()` lays its links out in one row and never wraps them. **When the links are wider than
-the column, the row scrolls inside itself and the page does not widen.** A breadcrumb trail does
-the opposite, and wraps. A shade marks each edge with more tabs beyond it, on the page or on a card.
+the column, the row scrolls inside itself and the page does not widen.** A shade marks each edge with more tabs beyond it, on the page or on a card.
 
 **The row stays aligned with the page gutter, and the active underline stays on the row rule.**
 Call `wireNav()` for vanilla rows. React rows update automatically when their labels, badges,
@@ -674,7 +672,7 @@ nothing on the page moves and no row changes height. Mark the cell yourself: a c
 `Invoice 1162` with the number linked looks the same to a stylesheet, and filling that one would
 put the number on a line of its own. A marked cell holding anything else keeps the plain link box.
 **Every other anchor the kit styles keeps the box, the corner and the paint its own component
-sets**, marked cell or not: `.ui-btn`, and a `.ui-dropdown__item`, `.ui-nav__item` or crumb
+sets**, marked cell or not: `.ui-btn`, and a `.ui-dropdown__item`, or `.ui-nav__item`
 composed into a cell.
 
 **Below 720px a pinned identity cell keeps its content on one line**, capped at
@@ -1127,20 +1125,18 @@ axis held in place, and the side that still hides columns is faded. Nothing anim
 
 ### React route navigation
 
-`NavTabs` and `Breadcrumbs` use the same presentation as the vanilla factories, so every
-guarantee above holds for them too. `NavTabs` takes unique item IDs, a controlled active ID, the
+`NavTabs` uses the same presentation as the vanilla factory, so every
+guarantee above holds for it too. `NavTabs` takes unique item IDs, a controlled active ID, the
 underline or pill presentation, and optional badges. It uses native links and
 `aria-current="page"`, with no tablist or panel roles. **A disabled item is non-focusable text**
 marked `aria-disabled`, and cannot be the current link. An item with no destination uses its ID as
 a fragment. A badge of zero stays visible; a null or empty badge is dropped, the way the vanilla
 factory drops it.
 
-`Breadcrumbs` renders a named navigation landmark and an ordered list. **The last item is
-current-page text even when it has a destination**, and an earlier item without one stays text.
-Icons are decorative. Both components forward root attributes and refs, keep native link keyboard
-behaviour, and send every destination through the kit's URL boundary.
+It forwards root attributes and refs, keeps native link keyboard behaviour, and sends every
+destination through the kit's URL boundary.
 
-**Both take `renderLink` with the signature `AppShell` uses**, so a router renders each link from
+**It takes `renderLink` with the signature `AppShell` uses**, so a router renders each link from
 the kit's class, destination, current state and children, and a route change need not reload the
 document.
 
@@ -1179,7 +1175,7 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   filled.** A new ID in a non-empty history plays an entrance. Editing existing IDs does not.
 - **`AppShell`** shares the vanilla fold cookie and 720px fold. `layout="rail"` places the
   account at the rail foot and leaves only Sign out in its menu. It shows no section counts.
-  Pass `crumbs` to show a breadcrumb before the page title when there is no `back` link.
+  Pass `back` to show the way up from a subpage, above the page title.
   **`tools` puts small tools for the whole page at the end of the title row** (#736), such as
   a version badge or a `size="sm"` button. The lede stands under the whole row. The tools do
   not wrap, so keep them to what fits beside a short title on a 390px phone. `actions` keeps

@@ -105,14 +105,6 @@
       ]
     },
     {
-      "file": "react/src/Breadcrumbs.test.tsx",
-      "name": "React: Breadcrumbs",
-      "does": "Checks ordered trail semantics, current-page text, ancestor links, decorative icons, keyboard focus, root refs, safe destinations and axe results.",
-      "blind": [
-        "JSDOM does not measure browser layout, visual separators or spoken screen-reader output. Story contrast and browser captures cover shared styling."
-      ]
-    },
-    {
       "file": "react/src/Tooltip.test.tsx",
       "name": "React: Tooltip",
       "does": "Checks description IDs, keyboard focus, Escape dismissal, touch toggling, placement and axe results.",
@@ -594,7 +586,7 @@
     {
       "file": "stories/apps/shell.test.js",
       "name": "Shell",
-      "does": "Checks one main landmark, named navigation, row names, caller-owned breadcrumbs and the fold toggle. The toggle appears by default unless disabled. It must be a named native button outside the navigation landmark.",
+      "does": "Checks one main landmark, named navigation, row names and the fold toggle. The toggle appears by default unless disabled. It must be a named native button outside the navigation landmark.",
       "blind": [
         "How markup looks after meeting the stylesheet; the shell states gate checks that."
       ]

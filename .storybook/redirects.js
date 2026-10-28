@@ -96,7 +96,7 @@ export const REDIRECTS = {
   'components-loading-denied--denied-no-action': 'react-loading-denied--permission-denied',
   'components-loading-denied--shapes': 'react-loading-denied--shapes',
   'components-loading-denied--transitions': 'react-loading-denied--transition',
-  'components-navigation--breadcrumbs': 'react-breadcrumbs--trail',
+  'components-navigation--breadcrumbs': 'react-backlink--short',
   'components-navigation--sidebar': 'react-sidebarnav--sidebar',
   'components-navigation--sidebar-collapsed': 'react-sidebarnav--sidebar-collapsed',
   'components-navigation--tabs': 'react-navtabs--underline',

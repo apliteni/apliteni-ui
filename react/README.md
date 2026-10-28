@@ -1004,7 +1004,7 @@ avatar mark, the reader's name and address, the rows in `items` and Sign out. Bo
 kit's `Dropdown`, so they share its keyboard and placement. `current` marks one account page in
 accent ink and defaults to `prefs`.
 
-## NavTabs and Breadcrumbs
+## NavTabs
 
 `NavTabs` renders route links with the kit’s underline or pill presentation. Pass
 unique item IDs and set `active` to the current route’s ID. The current link has
@@ -1017,11 +1017,6 @@ badges accept text, numbers (including zero), or `{ text, tone }`.
   { id: 'payouts', label: 'Payouts', href: '/payouts', badge: 3 },
   { id: 'exports', label: 'Exports', disabled: true },
 ]} />
-<Breadcrumbs items={[
-  { label: 'Finance', href: '/finance' },
-  { label: 'Payouts', href: '/payouts' },
-  { label: 'PY-4821' },
-]} />
 ```
 
 Use `Tabs` for panels within a page. `NavTabs` keeps normal link keyboard behavior.
@@ -1029,7 +1024,7 @@ An omitted `href` falls back to `#` plus the item ID. `variant="pill"` selects t
 existing pill styles. A badge of `null` renders no badge, so a count that is not in
 yet costs nothing to pass.
 
-Both components take `renderLink`, the prop `AppShell` already uses, so a router
+`NavTabs` takes `renderLink`, the prop `AppShell` already uses, so a router
 handles the navigation instead of the browser reloading the document:
 
 ```tsx
@@ -1039,18 +1034,14 @@ handles the navigation instead of the browser reloading the document:
   )} />
 ```
 
-Without it both render a plain `<a>`. The kit's class, destination, current state
+Without it, it renders a plain `<a>`. The kit's class, destination, current state
 and children all arrive in `linkProps`, so pass them through rather than rebuilding
 them.
 
-`Breadcrumbs` renders an ordered trail. Earlier items link only when they have an
-`href`; the final item is always current-page text. Items accept a decorative kit
-`icon` name. Both components accept native navigation attributes and a forwarded
-root ref. Use `aria-label` to distinguish navigation landmarks. Link items accept
+`NavTabs` accepts native navigation attributes and a forwarded root ref. Use `aria-label` to distinguish navigation landmarks. Link items accept
 `target`. Script, data, and VBScript destinations fall back to `#`.
 
-Tab rows scroll within their container when the links do not fit; a breadcrumb
-trail wraps instead. A row whose links do fit scrolls nothing and clips nothing, so
+Tab rows scroll within their container when the links do not fit. A row whose links do fit scrolls nothing and clips nothing, so
 a focus ring in it keeps its complete band. The current route is revealed after
 mounting and route changes. Content and container changes update the fit state
 without revealing the route again, so they preserve the reader's scroll position

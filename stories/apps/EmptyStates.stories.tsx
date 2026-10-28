@@ -14,7 +14,7 @@ const noop = () => {};
 
 // A filtered list with an action to clear the filters. #517
 export const FilteredList: StoryObj = {
-  render: () => <FinanceShell active="invoices" crumb="Invoices" title="Invoices" sub="Everything you have uploaded or received by email.">
+  render: () => <FinanceShell active="invoices" title="Invoices" sub="Everything you have uploaded or received by email.">
     <div className="ui-toolbar" style={{ marginBottom: 16 }}>
       <SearchField ariaLabel="Search invoices by vendor" placeholder="Vendor" />
       <Segmented label="Status filter" options={['Any', 'Verified', 'Pending'].map(label => ({ label, value: label }))} value="Pending" onChange={noop} />
@@ -27,7 +27,7 @@ export const FilteredList: StoryObj = {
 
 // A first-run page with no rows yet: illustration, guidance and a clear action.
 export const FirstRun: StoryObj = {
-  render: () => <FinanceShell active="prefs" crumb="People" title="People" sub="Contractors and staff, for cost attribution.">
+  render: () => <FinanceShell active="prefs" title="People" sub="Contractors and staff, for cost attribution.">
     <Card><EmptyState art="people" title="No people yet" sub="Contractors and staff you add show up here for attribution."
       actions={<Button variant="primary">+ Add person</Button>} /></Card>
   </FinanceShell>,

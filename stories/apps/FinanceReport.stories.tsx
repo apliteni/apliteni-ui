@@ -91,7 +91,7 @@ const Report = () => {
   const filters = FILTERS.map(filter => ({ ...filter, value: values[filter.id] ?? '' }));
   const rows = filterPayouts(period, values);
   const clear = () => setValues({});
-  return <FinanceShell active="payouts" crumb="Payouts" title="Payouts">
+  return <FinanceShell active="payouts" title="Payouts">
     <Controls period={period} onPeriod={setPeriod} filters={filters}
       onChange={(id, value) => setValues(v => ({ ...v, [id]: value }))} onRemove={id => setValues(v => ({ ...v, [id]: '' }))} onClear={clear} />
     {/* No caption over the figures: they are totals, not changes. why: Artur, round r32 */}
@@ -108,7 +108,7 @@ export const Default: StoryObj = { render: () => <Report /> };
 // and the rows arrive from different queries. The skeleton sits in the band's own
 // classes, so it folds as the figures will. The period control stays live.
 export const Loading: StoryObj = {
-  render: () => <FinanceShell active="payouts" crumb="Payouts" title="Payouts">
+  render: () => <FinanceShell active="payouts" title="Payouts">
     <Controls period={INITIAL_PERIOD} onPeriod={noop} filters={FILTERS.map(f => ({ ...f, value: '' }))} onChange={noop} onRemove={noop} onClear={noop} />
     <div className="ui-stats ui-stats--tiles">
       <BusyRegion busy label="Loading cashflow for the last year…" placeholder={<div className="ui-stats__list">{[0, 1, 2].map(i =>

@@ -30,8 +30,8 @@ test('the subject is the compound that carries the state, with the state removed
     { subject: '.ui-btn', within: false, self: true });
   assert.deepEqual(subject('.ui-nav__item.is-active:focus-visible'),
     { subject: '.ui-nav__item.is-active', within: false, self: true });
-  assert.deepEqual(subject('a.ui-nav__crumb:focus-visible'),
-    { subject: 'a.ui-nav__crumb', within: false, self: true });
+  assert.deepEqual(subject('a.ui-nav__tab:focus-visible'),
+    { subject: 'a.ui-nav__tab', within: false, self: true });
 });
 
 test('a ring painted on a sibling still belongs to the element that takes focus', () => {

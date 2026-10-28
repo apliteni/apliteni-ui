@@ -480,7 +480,6 @@ const forcedFixtures = [
   ['drawer row', `<div class="ui-app__drawer"><nav class="ui-nav">${row}</nav></div>`],
   ['React drawer row', `<div class="ui-react-app__menu"><nav class="ui-nav">${row}</nav></div>`],
   ...['', 'is-pill', 'is-underline'].map((kind) => [`tab ${kind}`, `<nav class="ui-nav ui-nav--tabs ${kind}"><a href="#" class="ui-nav__tab is-active">Selected</a></nav>`]),
-  ['current crumb', '<nav class="ui-nav__crumbs"><span class="ui-nav__crumb is-current">Selected</span></nav>'],
   ['pager current page', '<nav class="ui-pager"><button class="ui-btn ui-pager__page is-current" aria-current="page">4</button></nav>'],
   ['busy pager current page', '<nav class="ui-pager"><button class="ui-btn ui-pager__page is-current" aria-current="page" disabled aria-disabled="true">4</button></nav>'],
   ...['', 'ui-cmdk--roomy'].flatMap((density) => ['', 'is-danger'].map((danger) => [

@@ -340,7 +340,7 @@
     "pattern": "'Revoke demo token?'"
    },
    {
-    "ref": "stories/apps/Access.stories.tsx:35",
+    "ref": "stories/apps/Access.stories.tsx:34",
     "pattern": "Revoke access"
    }
   ],
@@ -418,8 +418,8 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:7",
-    "pattern": "crumbs"
+    "ref": "react/src/AppShell.tsx:157",
+    "pattern": "back && <BackLink"
    }
   ],
   "section-lit": [
@@ -554,7 +554,7 @@
   ],
   "title-rank": [
    {
-    "ref": "src/styles/layout.css:409",
+    "ref": "src/styles/layout.css:406",
     "pattern": "rank: page-title"
    },
    {
@@ -630,7 +630,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:504",
+    "ref": "src/styles/layout.css:501",
     "pattern": "@media (max-width: 720px)"
    },
    {

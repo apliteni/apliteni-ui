@@ -17,15 +17,6 @@ const props = { sections, pathname: '/reports/weekly', title: 'Weekly report', a
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 afterEach(() => { cleanup(); document.cookie = 'apliteni-ui-rail=; Max-Age=0; path=/'; });
 
-it('places breadcrumbs before the page title', () => {
-  render(<AppShell {...props} layout="rail" crumbs={[{ label: 'Finance', href: '/' }, { label: 'Payouts' }]} />);
-  const main = screen.getByRole('main');
-  expect(main.firstElementChild).toBe(screen.getByRole('navigation', { name: 'Breadcrumb' }));
-  expect(within(main).getByRole('link', { name: 'Finance' })).toHaveAttribute('href', '/');
-  expect(within(main).getByText('Payouts').closest('.ui-nav__crumb')).toHaveAttribute('aria-current', 'page');
-  expect(main.querySelector('.ui-app__title-row')).toBeNull();
-});
-
 // Page tools end the title row, and the lede stands under the whole row (#736). jsdom lays
 // nothing out, so the row is read from the markup and the stylesheet; measured at 390 and
 // 1280 in Chromium.

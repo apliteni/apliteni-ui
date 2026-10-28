@@ -93,7 +93,7 @@ const subjects: string[] = [...new Set([
 // Measured, not guessed: the story and stylesheet floors, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows.
-const FOUND = { subjects: 68, declarations: 523, carriers: 49, sheets: 5 };
+const FOUND = { subjects: 67, declarations: 521, carriers: 49, sheets: 5 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),

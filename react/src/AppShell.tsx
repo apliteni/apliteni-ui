@@ -4,7 +4,6 @@ import { paletteHotkey } from './lib/palette-hotkey';
 import { railCollapsed, storeRailCollapsed } from './lib/rail';
 import { SidebarNav } from './SidebarNav';
 import { BackLink } from './BackLink';
-import { Breadcrumbs, type BreadcrumbItem } from './Breadcrumbs';
 import { CommandPalette, type CommandPaletteProps } from './CommandPalette';
 import { Drawer } from './Drawer';
 import { AccountMenu } from './AccountMenu';
@@ -31,7 +30,6 @@ export type AppShellProps = {
   brandHref?: string;
   width?: 'centered' | 'wide';
   back?: { href: string; label: string };
-  crumbs?: readonly BreadcrumbItem[];
   lede?: string;
   actions?: ReactNode;
   /** Small tools for the whole page, at the end of the title row: a version badge, a
@@ -60,7 +58,7 @@ export type AppShellProps = {
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
 export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar',
-  brandHref = '/', width = 'centered', back, crumbs, lede, actions, tools, bandControl, headControl, account, accountItems = [], onSignOut,
+  brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, account, accountItems = [], onSignOut,
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, renderLink }: AppShellProps) {
   const uid = useId();
@@ -156,7 +154,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     <span className="ui-nav__label">{foldLabel}</span>
   </button></div>;
   const page = <main className={`ui-app__main${width === 'wide' ? ' ui-app__main--wide' : ''}`}>
-    {back ? <BackLink {...back} /> : crumbs?.length ? <Breadcrumbs items={crumbs} /> : null}
+    {back && <BackLink {...back} />}
     {tools ? <div className="ui-app__title-row"><h1>{title}</h1><div className="ui-app__tools">{tools}</div></div> : <h1>{title}</h1>}
     {lede && <p className="ui-app__sub">{lede}</p>}
     {actions && <div className="ui-react-app__actions">{actions}</div>}

@@ -42,7 +42,7 @@ const ROWS = [
 const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 'centered' }) =>
   <DemoShell word="Finance" layout={layout} width={width} nav={NAV} active="reports" title="Payouts"
     lede="Two of the four that arrived this week are waiting for a second approval."
-    crumbs={[{ label: 'Finance', href: '#' }, { label: 'Payouts' }]} palette={layout === 'topbar' ? PALETTE : undefined}>
+    palette={layout === 'topbar' ? PALETTE : undefined}>
     {/* The table stays a direct child of the card, as the finance screens' does. */}
     <Card title="Payouts this week">
       <table className="ui-table ui-table--dense ui-table--zebra">

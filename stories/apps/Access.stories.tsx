@@ -18,8 +18,7 @@ export default meta;
 // page that took ACCOUNT_NAV whole would get a link to nothing.
 const NAV: DemoNavItem[] = [{ id: 'overview', icon: 'chart', label: 'Overview' }, ...(ACCOUNT_NAV as DemoNavItem[])];
 const Screen = ({ sub, children }: { sub: string; children: ReactNode }) =>
-  <DemoShell layout="rail" nav={NAV} active="access" title="Access & agents" lede={sub}
-    crumbs={[{ label: 'Account', href: '#' }, { label: 'Access & agents' }]}>{children}</DemoShell>;
+  <DemoShell layout="rail" nav={NAV} active="access" title="Access & agents" lede={sub}>{children}</DemoShell>;
 
 const AGENTS = [
   ['Research bot', 'Read only', '2 hours ago', 'live'],

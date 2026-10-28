@@ -24,7 +24,7 @@ const Row = ({ lab, hint, children }: { lab: string; hint: string; children: Rea
 
 const Screen = ({ collapsed }: { collapsed: boolean }) =>
   <DemoShell layout="rail" nav={NAV} active="pending" defaultCollapsed={collapsed} title="Pending payouts"
-    lede="Three payouts are waiting for a second approval." crumbs={[{ label: 'Payouts', href: '#' }, { label: 'Pending' }]}>
+    lede="Three payouts are waiting for a second approval.">
     <Card title="Waiting for approval">
       <Row lab="Northwind Traders" hint="Requested by Ada Lovelace"><span>€4,200.00</span></Row>
       <Row lab="Globex" hint="Requested by Ada Lovelace"><span>€860.00</span></Row>
