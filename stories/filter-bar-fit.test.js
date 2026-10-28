@@ -456,7 +456,7 @@ test('the kit still floors a panel somewhere, so this gate has a subject', () =>
   );
   // The count is asserted, not printed: a floor that quietly stops being swept
   // is the failure this sweep exists to catch.
-  assert.equal(found.length, 2, `panel width floors found: ${found.map((f) => `${f.selector} ${f.prop}: ${f.value}`).join('; ')}`);
+  assert.equal(found.length, 3, `panel width floors found: ${found.map((f) => `${f.selector} ${f.prop}: ${f.value}`).join('; ')}`);
 });
 
 test('a filter row bounds every panel floor, and outranks it', () => {

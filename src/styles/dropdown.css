@@ -331,14 +331,14 @@
 /* Hover is a fill and an outline means focus, so a hovered row draws no edge. A row that is
    hovered AND focused draws the ring over the fill.
    why: docs/foundations.md#elevation */
-.ui-dropdown__item:hover,
-.ui-dropdown__item[aria-expanded="true"] { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-dropdown__item[aria-expanded="true"],
+.ui-dropdown__item:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 /* Light only: the panel is --bg-elevated, which --surface matches exactly there, so the
    hover fill above changed nothing. --surface-3 is the quiet fill the drawer's close mark
    takes on hover, one step under the --surface-2 that .is-active takes below.
    why: docs/foundations.md#elevation */
-:where(:root[data-theme="light"]) .ui-dropdown__item:hover,
-:where(:root[data-theme="light"]) .ui-dropdown__item[aria-expanded="true"] { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+:where(:root[data-theme="light"]) .ui-dropdown__item[aria-expanded="true"],
+:where(:root[data-theme="light"]) .ui-dropdown__item:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 @media (forced-colors: active) {
   .ui-dropdown__item:hover { border: 1px solid Highlight; padding: 8px 11px; }
 }
@@ -366,7 +366,7 @@
 .ui-dropdown__more { margin-left: auto; display: inline-flex; flex: none; /* muted-ink: glyph — submenu chevron */ color: var(--muted); }
 .ui-dropdown__aside + .ui-dropdown__more { margin-left: 0; }
 .ui-dropdown__more svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.25; }
-.ui-dropdown__panel.is-sub > :not(.ui-dropdown__sub) { display: none; } /* motion: still — the rows swap in one step, inside a panel that is already open */
+.ui-dropdown__panel.is-sub > :not(.ui-dropdown__sub) { display: none; } /* The rows swap in one step, inside a panel that is already open. */
 /* Three short choices: the width of a choice and its tick, not the 240px a menu of labels needs. */
 .ui-dropdown__panel--sub { min-width: 180px; }
 

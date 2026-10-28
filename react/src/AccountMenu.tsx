@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { icon, themeIcon } from '@apliteni/apliteni-ui';
+import { icon, themeIcon, transitionMs } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 import { Dropdown, type DropdownItem } from './Dropdown';
 import { Avatar } from './primitives/Avatar';
@@ -46,11 +46,13 @@ export function AccountMenu({ account, items, onSelect, withTheme, inPlace }: {
       fly.style.top = `${Math.max(0, top)}px`;
     };
     // A panel still settling its entrance moves the row, so place again when it lands.
-    const panel = themeRow.current?.closest('.ui-dropdown__panel');
+    // The timer stands in for an end event that never comes, as in a cancelled transition.
+    const panel = themeRow.current?.closest<HTMLElement>('.ui-dropdown__panel');
     place();
     window.addEventListener('resize', place);
     panel?.addEventListener('transitionend', place);
-    return () => { window.removeEventListener('resize', place); panel?.removeEventListener('transitionend', place); };
+    const landed = panel ? setTimeout(place, transitionMs(panel)) : undefined;
+    return () => { window.removeEventListener('resize', place); panel?.removeEventListener('transitionend', place); clearTimeout(landed); };
   }, [sub, inPlace]);
   useEffect(() => {
     if (sub) list.current?.querySelector<HTMLElement>('[role="menuitemradio"]')?.focus();
