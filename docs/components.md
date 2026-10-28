@@ -558,6 +558,19 @@ title, close control and footer stay visible. It is a borderless raised surface.
 alone, `--radius-md`, a `--text-base` title and a deep scrim without blur. It names itself with an
 `h2`. The HTML entry point ships no general modal. Its separate `confirm()` is unchanged.
 
+### The account window
+
+The React `AccountWindow` is the account and settings window. The product gives it the reader
+and the sections, each with its id, label, icon and content. The window draws the rest: the
+dimmed page, the close, the section title and the rail. It is 1024px wide and 76% of the
+viewport high, with a 216px rail. It narrows to 96% of a smaller screen, and it keeps 32px
+above and below it on a short one. The rail is the page ground, with the reader's avatar, name
+and email at its top. Only the open section's row carries the accent. Each row is a button with
+`aria-current`, because a section is a place in the window and not a route. The pane remounts
+when the section changes, so a half-filled form does not follow the reader. At 560px and below
+the window fills the screen, and the sections become tabs under the reader. Pass `section` and
+`onSectionChange` to control the open section, or `defaultSection` to leave it to the window.
+
 ### The hover readout
 
 `tooltip()` is the readout that a surface shows while a pointer rests on one of its marks. It is an

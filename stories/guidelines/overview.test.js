@@ -97,11 +97,9 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
   assert.equal(rules, 139);
   assert.equal(INTRO, '');
-  // Two, and both are named. Dashboards and reports asks every report for an export
-  // and the Stock screener has none (#555). Account and settings prescribes a modal
-  // carrying its own navigation, which the vanilla kit cannot draw at all and React's
-  // Modal cannot carry (#553). This list empties as each lands.
+  // One, and it is named. Dashboards and reports asks every report for an export
+  // and the Stock screener has none (#555). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);
-  assert.deepEqual(gaps.map(rule => `${rule.id} #${rule.unmet.issue}`), ['report-offers #555', 'modal #553'],
+  assert.deepEqual(gaps.map(rule => `${rule.id} #${rule.unmet.issue}`), ['report-offers #555'],
     'update the Overview when a rule becomes unmet or its gap closes');
 });

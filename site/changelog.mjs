@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.144.0', date: '2026-10-28',
+    changes: [
+      ['added', 'React `AccountWindow` is the account and settings window. The product gives it the reader and the sections, and it draws the dimmed page, the close, the section title and a 216px rail with the reader at its top. At 560px and below it fills the screen and the sections become tabs under the reader. Part of #736.', ['Modal']],
+    ],
+  },
+  {
     v: '0.142.8', date: '2026-10-27',
     changes: [
       ['changed', 'At 720px and below, the `AppShell` band holds the brand mark, the page title on one line, search and Menu, and nothing else. The sidebar and the phone drawer now hold `bandControl` under the head, then the sections and the account at the foot. The theme switch is the first row of the account menu, and it switches the theme with the menu still open. Above 720px the search field stands in the centre of the band. The fold control moves to the sidebar head. A shell with no sidebar keeps these controls on the band. In the drawer a `.toggle` in `bandControl` and each account menu row are 40px tap targets, and focus starts on the first row. Resolves #732.', ['Shell']],

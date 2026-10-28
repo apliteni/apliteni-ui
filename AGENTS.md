@@ -68,8 +68,10 @@ automatically, and explain the cause and limitation of each accepted failure.
 ## Check accents locally
 
 Before opening a PR that changes colours, tokens or theme/accent CSS, run:
-`CONTRAST_ACCENTS=1 node --test --test-name-pattern='contrast ledger:' stories/contrast-light.test.js`
-Report the result in the PR.
+`node --test stories/accent-contrast.test.js`
+Report the result in the PR. It measures the accent tokens in all eight theme and accent cells.
+The React walk renders the default accent only. The render walk of the other accents was removed
+with the vanilla stories in #724.
 
 ## Check the phone tap floor locally
 
