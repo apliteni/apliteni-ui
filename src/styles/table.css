@@ -274,6 +274,12 @@
 .ui-table--zebra.ui-table--hover tbody tr.is-target:hover > :is(td, th) {
   background: color-mix(in srgb, var(--accent) 12%, transparent); /* code-bg: inherit — this translucent wash leaves the chip on its opaque ground. */
 }
+/* A pinned cell lays the wash over its own ground, or the columns that scroll under it
+   show through. #736 */
+.ui-table--pinned tbody tr.is-target > :is(.ui-table__identity, .ui-table__selection),
+.ui-table--pinned.ui-table--hover tbody tr.is-target:hover > :is(.ui-table__identity, .ui-table__selection) {
+  background: linear-gradient(color-mix(in srgb, var(--accent) 12%, transparent)) var(--table-bg);
+}
 
 /* A focused row draws the shared ring inward, like its containing scroll region.
    why: docs/foundations.md#the-focus-ring */
@@ -343,9 +349,9 @@
 /* The surface belongs to the box that scrolls, so the shades land under the cells
    rather than behind them; the row fills repeat that same surface and step aside.
    The sticky header and pinned column keep their paint: they hide what scrolls
-   beneath them. */
+   beneath them. A target row keeps its wash. */
 .ui-table-scroll > .ui-table,
-.ui-table-scroll > .ui-table tbody td:not(.ui-table__identity, .ui-table__selection) { background-color: transparent; }
+.ui-table-scroll > .ui-table tbody :where(tr:not(.is-target)) > td:not(.ui-table__identity, .ui-table__selection) { background-color: transparent; }
 .ui-table-scroll > .ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th) {
   background: var(--surface-2);
 }

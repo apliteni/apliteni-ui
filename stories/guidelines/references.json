@@ -12,7 +12,7 @@
     "pattern": "width: auto;"
    },
    {
-    "ref": "src/styles/table.css:295",
+    "ref": "src/styles/table.css:301",
     "pattern": "max-width: calc(100% + 2 * var(--space-3));"
    }
   ]

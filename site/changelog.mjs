@@ -11,6 +11,7 @@ export const RELEASES = [
       ['changed', 'On a phone, a table no longer turns its rows into cards. A table marked `.ui-table--stack` now scrolls sideways inside its frame like any other table, and the page does not scroll. Remove `.ui-table--stack` and its table roles from your markup. Part of #736.', ['Table']],
       ['changed', 'While a table with a pinned identity column scrolls sideways, a soft shade falls to the right of that column. At the left edge there is no shade. The column keeps the table surface, so it follows light and dark. Part of #736.', ['Table']],
       ['changed', 'In a card, a hover table that is not dense now reaches out to the card\'s text edge, so its first column lines up with the card title. Part of #736.', ['Table']],
+      ['fixed', 'A target row in a pinned table keeps its wash in the pinned column and inside the scroll frame. Scrolled columns no longer show through the pinned cell. Part of #736.', ['Table']],
       ['deprecated', 'React `DataTable` ignores `stack`. A phone table scrolls sideways. The prop is still accepted. Part of #736.', ['DataTable']],
     ],
   },
