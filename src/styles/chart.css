@@ -311,9 +311,9 @@
   align-items: center;
   column-gap: var(--space-3);
   row-gap: var(--space-2);
-  /* The list takes the room the ring leaves, and drops under it below a caption's width. */
-  flex: 1 1 0;
-  min-width: min(100%, var(--prose-caption));
+  /* The list sits beside the ring when its widest row fits, and drops under it when not. */
+  flex: 1 1 auto;
+  min-width: 0;
   max-width: var(--prose-caption);
   margin: 0;
   padding: 0;

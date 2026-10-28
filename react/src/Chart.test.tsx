@@ -1252,3 +1252,21 @@ it('prints a donut\'s whole in its centre only on the thin look', () => {
   expect(centre('table'), 'the list beside the ring carries the whole').toEqual([]);
   expect(centre('labels'), 'the labels say the parts').toEqual([]);
 });
+
+it('shrinks the labels ring\'s box with its ring on a narrow plot', () => {
+  const box = (width: number) => {
+    measuredAt(width);
+    const { container } = render(<Chart variant="donut" look="labels" title="Spend by cost" slices={slices} format={eur} />);
+    const svg = container.querySelector('.ui-chart__svg')!;
+    // The first slice's outer arc carries the ring's radius.
+    const arc = container.querySelector('.ui-chart__segment')!.getAttribute('d')!.match(/A(\d+(?:\.\d+)?)/)!;
+    const got = { h: Number(svg.getAttribute('height')), r: Number(arc[1]) };
+    cleanup();
+    vi.restoreAllMocks();
+    return got;
+  };
+  const wide = box(600);
+  const narrow = box(300);
+  expect(narrow.h, 'the narrow box is shorter').toBeLessThan(wide.h);
+  expect(wide.h - narrow.h, 'by what the ring lost across').toBeCloseTo(2 * (wide.r - narrow.r), 0);
+});

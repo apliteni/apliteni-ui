@@ -126,19 +126,22 @@ export function lookBox(g: LookGeometry) {
   }
   if (look.layout === 'ring') {
     const ring = RING[look.look as ChartDonutLook];
-    const w = 'width' in ring ? Math.min(plotWidth, ring.width) : ring.size;
-    return { w, h: ring.size, row: 0 };
+    if (!('width' in ring)) return { w: ring.size, h: ring.size, row: 0 };
+    // A narrow plot shrinks the labels ring, and the box keeps only its label room above and below.
+    const w = Math.min(plotWidth, ring.width);
+    return { w, h: ring.size - 2 * (ring.radius - labelsRadius(w)), row: 0 };
   }
   return null;
 }
+
+const labelsRadius = (w: number) =>
+  Math.max(RING.labels.thick * 2, Math.min(RING.labels.radius, w / 2 - RING.labels.room));
 
 function ringOf(g: LookGeometry) {
   const look = g.look.look as ChartDonutLook;
   const box = lookBox(g)!;
   const spec = RING[look];
-  const r = 'radius' in spec
-    ? Math.max(spec.thick * 2, Math.min(spec.radius, box.w / 2 - spec.room))
-    : spec.size / 2 - g.pad;
+  const r = 'radius' in spec ? labelsRadius(box.w) : spec.size / 2 - g.pad;
   return { x: box.w / 2, y: box.h / 2, r, thick: spec.thick };
 }
 

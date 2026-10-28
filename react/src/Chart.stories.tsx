@@ -178,12 +178,17 @@ export const Sparkline: StoryObj = {
   ),
 };
 
+/* The looks draw a closed year, as the #742 pictures do: November has ended. */
+const year: ChartPeriod[] = MONTHS.map((label) => ({ label }));
+const YEAR_INCOME = [...INCOME.slice(0, 11), 50120];
+const YEAR_SPEND = [...SPEND.slice(0, 11), 34880];
+
 /* Spend split four ways, for the line, area, stacked and donut looks. Office is
-   what the other three leave, so the four add up to SPEND in every month. */
-const PAYROLL = [17200, 17200, 17600, 17600, 18100, 18100, 18400, 18400, 18400, 18900, 18900, 12100];
-const HOSTING = [5420, 5560, 5710, 5830, 6020, 6110, 6240, 6380, 6450, 6610, 6720, 4290];
-const MARKETING = [4890, 5190, 5370, 4980, 5420, 4920, 5640, 5980, 5310, 5770, 5810, 3740];
-const OFFICE = SPEND.map((value, i) => value - PAYROLL[i] - HOSTING[i] - MARKETING[i]);
+   what the other three leave, so the four add up to YEAR_SPEND in every month. */
+const PAYROLL = [17200, 17200, 17600, 17600, 18100, 18100, 18400, 18400, 18400, 18900, 18900, 19400];
+const HOSTING = [5420, 5560, 5710, 5830, 6020, 6110, 6240, 6380, 6450, 6610, 6720, 6880];
+const MARKETING = [4890, 5190, 5370, 4980, 5420, 4920, 5640, 5980, 5310, 5770, 5810, 5900];
+const OFFICE = YEAR_SPEND.map((value, i) => value - PAYROLL[i] - HOSTING[i] - MARKETING[i]);
 const costs: ChartLookSeries[] = [
   { id: 'payroll', name: 'Payroll', values: PAYROLL, tone: 'accent' },
   { id: 'hosting', name: 'Hosting', values: HOSTING, tone: 'accent-soft' },
@@ -195,60 +200,65 @@ const october: ChartSlice[] = costs.map(({ id, name, tone, values }) => ({ id, n
 
 /* The two measured series as plain lines, and their sum as one flat area. */
 const flows: ChartLookSeries[] = [
-  { id: 'income', name: 'Income', values: INCOME, tone: 'accent' },
-  { id: 'spend', name: 'Spend', values: SPEND, tone: 'accent-soft' },
+  { id: 'income', name: 'Income', values: YEAR_INCOME, tone: 'accent' },
+  { id: 'spend', name: 'Spend', values: YEAR_SPEND, tone: 'accent-soft' },
 ];
-const spend: ChartLookSeries[] = [{ id: 'spend', name: 'Spend', values: SPEND, tone: 'accent' }];
+const spend: ChartLookSeries[] = [{ id: 'spend', name: 'Spend', values: YEAR_SPEND, tone: 'accent' }];
 
+/* Each look sits in one card width, so the looks compare side by side. The
+   centred canvas has no width to take a percentage of, so a phone clamps to the
+   viewport less the canvas's 1rem on each side. */
 const lookCard = (title: string, sub: string, chart: ReactNode) => (
-  <Card title={title} sub={sub}>{chart}</Card>
+  <div style={{ width: 'min(var(--panel-lg), calc(100vw - 2rem))' }}>
+    <Card title={title} sub={sub}>{chart}</Card>
+  </div>
 );
 
 export const LineThin: StoryObj = {
   render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="thin"
-    title="Income and spend by month, last 12 months" periods={periods} series={flows}
+    title="Income and spend by month, last 12 months" periods={year} series={flows}
     format={eur} formatAxis={eurAxis} />),
 };
 export const LinePoints: StoryObj = {
   render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="points"
-    title="Income and spend by month, last 12 months" periods={periods} series={flows}
+    title="Income and spend by month, last 12 months" periods={year} series={flows}
     format={eur} formatAxis={eurAxis} />),
 };
 export const LineLabels: StoryObj = {
   render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="labels"
-    title="Income and spend by month, last 12 months" periods={periods} series={flows}
+    title="Income and spend by month, last 12 months" periods={year} series={flows}
     format={eur} formatAxis={eurAxis} />),
 };
 
 export const AreaFlat: StoryObj = {
   render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="flat"
-    title="Spend by month, last 12 months" periods={periods} series={spend}
+    title="Spend by month, last 12 months" periods={year} series={spend}
     format={eur} formatAxis={eurAxis} />),
 };
 export const AreaStacked: StoryObj = {
   render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="stacked"
-    title="Spend by category and month, last 12 months" periods={periods} series={costs}
+    title="Spend by category and month, last 12 months" periods={year} series={costs}
     format={eur} formatAxis={eurAxis} />),
 };
 export const AreaShare: StoryObj = {
   render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="share"
-    title="Share of spend by category and month, last 12 months" periods={periods} series={costs}
+    title="Share of spend by category and month, last 12 months" periods={year} series={costs}
     format={eur} formatAxis={eurAxis} />),
 };
 
 export const StackedColumns: StoryObj = {
   render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="columns"
-    title="Spend by category and month, last 12 months" periods={periods} series={costs}
+    title="Spend by category and month, last 12 months" periods={year} series={costs}
     format={eur} formatAxis={eurAxis} />),
 };
 export const StackedShare: StoryObj = {
   render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="share"
-    title="Share of spend by category and month, last 12 months" periods={periods} series={costs}
+    title="Share of spend by category and month, last 12 months" periods={year} series={costs}
     format={eur} formatAxis={eurAxis} />),
 };
 export const StackedRows: StoryObj = {
   render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="rows"
-    title="Spend by category and month, last 12 months" periods={periods} series={costs}
+    title="Spend by category and month, last 12 months" periods={year} series={costs}
     format={eur} formatAxis={eurAxis} />),
 };
 
