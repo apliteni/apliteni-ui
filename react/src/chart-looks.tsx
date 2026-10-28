@@ -74,12 +74,23 @@ const RING = {
   table: { size: 200, thick: 44 },
   labels: { size: 264, thick: 24, width: 470, radius: 104, room: 90 },
 };
+/** A line's end label: the baseline 10px over its point, the 12px type's 10px
+    ascent, the baseline under the point when there is no room over it, and a 4px
+    gap between the label and the line. */
+const END_LABEL = { rise: 10, ascent: 10, drop: 20, gap: 4 };
 /** The bar width of the columns looks: slim for an amount, wide for a share. */
 const STACK_BAR = { columns: 12, share: 20 };
 
 /** An annulus slice from angle `a0` to `a1`, clockwise from twelve o'clock. */
 function arc(x: number, y: number, r0: number, r1: number, a0: number, a1: number) {
   const p = (r: number, a: number) => `${px(x + r * Math.cos(a))} ${px(y + r * Math.sin(a))}`;
+  // An arc whose ends meet draws nothing, so a whole ring is two halves.
+  if (a1 - a0 >= Math.PI * 2 - 1e-9) {
+    const h = a0 + Math.PI;
+    const circle = (r: number, sweep: number) =>
+      `M${p(r, a0)} A${px(r)} ${px(r)} 0 0 ${sweep} ${p(r, h)} A${px(r)} ${px(r)} 0 0 ${sweep} ${p(r, a0)} Z`;
+    return r0 > 0 ? `${circle(r1, 1)} ${circle(r0, 0)}` : circle(r1, 1);
+  }
   const large = a1 - a0 > Math.PI ? 1 : 0;
   return `M${p(r1, a0)} A${px(r1)} ${px(r1)} 0 ${large} 1 ${p(r1, a1)}`
     + ` L${p(r0, a1)} A${px(r0)} ${px(r0)} 0 ${large} 0 ${p(r0, a0)} Z`;
@@ -259,12 +270,30 @@ function linesDrawing(g: LookGeometry, open: number | null) {
   const ends = look.variant === 'line' && look.look === 'labels' && look.layers.map((layer) => {
     const last = [...Array(n).keys()].reverse().find((i) => finite(layer, i));
     if (last === undefined) return null;
+    const at = y(layer.values[last]);
+    const { rise, ascent, drop, gap } = END_LABEL;
+    let x = centre(last) + 4;
+    let base = at - rise;
+    if (base - ascent < 0) {
+      // No room above the point: keep the label inside the plot and off the line
+      // that comes in from the previous point.
+      const prev = finite(layer, last - 1) ? last - 1 : last;
+      const fall = Math.max(0, y(layer.values[prev]) - at);
+      if (fall >= ascent + gap) {
+        // A steep line: beside the point, left of where the line is a full label lower.
+        base = at + ascent;
+        x = centre(last) - Math.max(8, (ascent + gap) * (centre(last) - centre(prev)) / fall);
+      } else {
+        // A flat line: under the lowest point of the incoming segment.
+        base = at + Math.max(drop, fall + gap + ascent);
+      }
+    }
     return (
       <g key={`end-${layer.id}`}>
         <circle className={cx('ui-chart__dot', tone(layer.tone))}
-          cx={px(centre(last))} cy={px(y(layer.values[last]))} r="4" />
+          cx={px(centre(last))} cy={px(at)} r="4" />
         <text className="ui-chart__text ui-chart__text--strong" textAnchor="end"
-          x={px(centre(last) + 4)} y={px(y(layer.values[last]) - 10)}>{format(layer.values[last])}</text>
+          x={px(x)} y={px(base)}>{format(layer.values[last])}</text>
       </g>
     );
   });

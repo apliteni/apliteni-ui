@@ -1076,7 +1076,7 @@ drawings of the same numbers:
 | `donut` | `thin` (the total in the centre), `table` (a list of the shares beside the ring), `labels` (the name, value and share at each slice) | `table` |
 
 A series or a slice without a `tone` takes the next tone of `accent`, `accent-soft`, `info`,
-`warn`, `good`, `bad` and `neutral`. A stacked look reads a missing value as zero. The readout of
+`warn`, `good`, `bad` and `neutral`. `area`, `stacked` and `donut` take only values of 0 or more, and a negative value throws a `RangeError` before anything is drawn. A stacked look reads a missing value as zero. The readout of
 a stacked or a share look lists each series of the column and the total, and the table adds a
 `Total` column. A share look gives the parts as percentages, and its table keeps your values.
 The arrow keys step through the periods, the rows or the slices. A donut slice says its value

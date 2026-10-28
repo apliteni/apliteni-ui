@@ -397,12 +397,20 @@ function bridgeFrame(
   };
 }
 
+/** A part of a whole is never under zero: one would draw a part outside the
+ *  whole and clip the scale. Throws before anything is drawn. */
+function noNegative(variant: string, values: readonly { name: string; value: number }[]) {
+  const bad = values.find((v) => v.value < 0);
+  if (bad) throw new RangeError(`Chart: a ${variant} chart takes values of 0 or more; ${bad.name} is ${bad.value}`);
+}
+
 /** The frame of a line, an area or a stacked chart. A stack counts a missing
  *  value as nothing; the table and the readout still print it as missing. */
 function lookFrame(
   variant: 'line' | 'area' | 'stacked', look: string,
   periods: readonly ChartPeriod[], series: readonly ChartLookSeries[], format: (n: number) => string,
 ): Frame {
+  if (variant !== 'line') noNegative(variant, series.flatMap((s) => s.values.map((value) => ({ name: s.name, value }))));
   const columns = periods.map((p) => columnOf(p, p.label.split(' ')[0]));
   const stacked = variant === 'stacked' || look !== 'flat' && variant === 'area';
   const share = look === 'share';
@@ -446,12 +454,12 @@ function lookFrame(
   };
 }
 
-/** The frame of a donut: one whole, and each slice's share of it. A negative
- *  slice has no arc to draw and counts as nothing. */
+/** The frame of a donut: one whole, and each slice's share of it. */
 function donutFrame(
   look: ChartDonutLook, slices: readonly ChartSlice[], totalLabel: string, format: (n: number) => string,
 ): Frame {
-  const parts = slices.map((s) => (Number.isFinite(s.value) ? Math.max(0, s.value) : 0));
+  noNegative('donut', slices);
+  const parts = slices.map((s) => (Number.isFinite(s.value) ? s.value : 0));
   const total = parts.reduce((a, b) => a + b, 0);
   let at = 0;
   const layers: Layer[] = slices.map((s, k) => {

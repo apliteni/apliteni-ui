@@ -1221,6 +1221,37 @@ it('reads a share look in parts of the column, and keeps the money in the table'
     .toEqual(['100%', '75%', '50%', '25%', '0%']);
 });
 
+it('keeps a line\'s end label inside the plot when its value is the scale\'s top', () => {
+  const { container } = render(<Chart variant="line" look="labels" title="Spend" periods={periods.slice(0, 2)}
+    series={[{ id: 'payroll', name: 'Payroll', values: [50, 100] }]} format={eur} />);
+  const label = container.querySelector('.ui-chart__text--strong')!;
+  const height = Number(container.querySelector('.ui-chart__svg')!.getAttribute('height'));
+  const baseline = Number(label.getAttribute('y'));
+  // 10px is the ascent of the 12px label type over its baseline.
+  expect(baseline - 10, 'the label\'s top is inside the plot').toBeGreaterThanOrEqual(0);
+  expect(baseline, 'and its baseline too').toBeLessThanOrEqual(height);
+  // The label ends left of its point, where the rising line is under the baseline.
+  const edge = container.querySelector('line.ui-chart__line')!;
+  const [x1, y1, x2, y2] = ['x1', 'y1', 'x2', 'y2'].map((a) => Number(edge.getAttribute(a)));
+  const right = Number(label.getAttribute('x'));
+  expect(right, 'the label ends left of the point').toBeLessThan(x2);
+  expect(y2 + (x2 - right) * (y1 - y2) / (x2 - x1), 'the line passes under the label').toBeGreaterThan(baseline);
+});
+
+it('throws on a negative value in an area, a stacked or a donut chart, before drawing', () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  const signed = [{ id: 'net', name: 'Net', values: [100, -90] }];
+  for (const variant of ['area', 'stacked'] as const) {
+    expect(() => render(<Chart variant={variant} title="Net" periods={periods.slice(0, 2)} series={signed} format={eur} />))
+      .toThrow(RangeError);
+  }
+  expect(() => render(<Chart variant="donut" title="Net" format={eur}
+    slices={[{ id: 'a', name: 'A', value: 100 }, { id: 'b', name: 'B', value: -90 }]} />)).toThrow(RangeError);
+  cleanup();
+  expect(() => render(<Chart variant="line" title="Net" periods={periods.slice(0, 2)} series={signed} format={eur} />),
+    'a line is not a part of a whole').not.toThrow();
+});
+
 it('steps the rows of a rows look, and calls them rows', () => {
   lookChart('stacked', 'rows');
   expect(frame()).toHaveAccessibleName('Spend by cost. Arrow keys step through the 4 rows.');
@@ -1239,6 +1270,23 @@ it('steps a donut by slice, says each slice\'s share of the whole, and tables th
   expect(document.querySelector('.ui-chart__shares'), 'the table look lists the shares beside the ring')
     .toHaveTextContent('Payroll€60075%Hosting€20025%Spend€800100%');
   expect(document.querySelector('.ui-chart__legend'), 'the list is the key').toBeNull();
+});
+
+it('draws one positive slice beside zero slices as the whole ring', () => {
+  const { container } = render(<Chart variant="donut" look="thin" title="Spend" format={eur}
+    slices={[{ id: 'a', name: 'A', value: 0 }, { id: 'b', name: 'B', value: 500 }, { id: 'c', name: 'C', value: 0 }]} />);
+  const paths = [...container.querySelectorAll('path.ui-chart__segment, path.ui-chart__hit')];
+  expect(paths, 'the slice and its pointer target, and nothing for the zero slices').toHaveLength(2);
+  for (const path of paths) {
+    // An arc that ends where it starts draws nothing, so every arc must move.
+    let at = '';
+    for (const [, cmd, args] of path.getAttribute('d')!.matchAll(/([MA])([^A-Za-z]*)/g)) {
+      const n = args.trim().split(/[\s,]+/);
+      const end = n.slice(-2).join(' ');
+      if (cmd === 'A') expect(end, 'an arc with two different ends').not.toBe(at);
+      at = end;
+    }
+  }
 });
 
 it('prints a donut\'s whole in its centre only on the thin look', () => {
