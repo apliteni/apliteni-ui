@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.146.0', date: '2026-10-28',
+    changes: [
+      ['added', '`AppShell` takes `tools`, small tools for the whole page, such as a version badge or a small button, at the end of the title row. The lede stands under the whole row. `actions` does not change. Part of #736.', ['Shell']],
+      ['added', '`AppShell` takes `accountItems`, a product\'s own rows at the top of every account menu, above the theme row and Sign out. A row takes `href` or `onSelect`. Part of #736.', ['Shell']],
+    ],
+  },
+  {
     v: '0.145.0', date: '2026-10-28',
     changes: [
       ['changed', 'React `Chart` series use a fixed palette of seven tones in each theme, and the product accent no longer changes them. Each bar fades from a light tint of its tone at the zero line to the full tone at its data end. A bridge step fades from the previous running total to the new one. Lines and legend keys stay solid. Resolves #740.', ['Chart']],

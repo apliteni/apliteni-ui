@@ -92,3 +92,11 @@ const bell = <Dropdown variant="menu" ariaLabel="Notifications" chevron={false}
   triggerContent={<span className="ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon('bell') }} />} items={[{ label: 'No new notifications', value: 'none' }]} />;
 export const PhoneCompany: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { bandControl: company, headControl: bell } };
+
+// Small page tools at the end of the title row, and the product's own rows in the account
+// menu, above the theme row and Sign out. The page opens on its title alone. (#736)
+const tools = <><Badge>v3</Badge><Button size="sm" icon="layout">Customize</Button></>;
+const accountItems = [{ label: 'Account settings', icon: 'gear' }, { label: 'Support', icon: 'chat', href: '#support' }];
+export const PageTools: Story = { render, args: { lede: undefined, tools, accountItems } };
+export const PageToolsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  args: { lede: undefined, tools, accountItems } };

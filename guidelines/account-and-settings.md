@@ -34,11 +34,11 @@
 
 <!-- rule: menu -->
 
-**Rule:** Keep the account menu to the reader, the row that opens the modal, and Sign out.
+**Rule:** Keep the account menu to the reader, a few ways in, the theme row and Sign out.
 
 **Why:** A setting answered inside a menu has no address to link, search or come back to.
 
-**Do:** Name the reader, then the way in and the way out.
+**Do:** Name the reader, then Account settings and Support.
 
 **Don't:** Answer the settings in the menu, a row per setting.
 

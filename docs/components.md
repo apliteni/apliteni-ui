@@ -226,9 +226,9 @@ losing both ends to a clip. There is one limit: a folded rail flush with a page'
 Every guarantee above still applies. The band stands beside the rail. It does not span the top
 of both. **The rail holds the shell's own controls:** the fold's control in its head, beside the
 mark, the theme switch above the reader's block, and the reader's block at its foot. The band
-control stands under the head (#732, `react/src/AppShell.tsx:191` `ui-react-app__control`). **The band carries the search
+control stands under the head (#732, `react/src/AppShell.tsx:206` `ui-react-app__control`). **The band carries the search
 field and nothing else** above 720px. At 720px and below it carries the mark, the page title on one
-line, the search trigger and the menu button (`react/src/AppShell.css:94` `@media (max-width: 720px)`). It is a `<header>`
+line, the search trigger and the menu button (`react/src/AppShell.css:104` `@media (max-width: 720px)`). It is a `<header>`
 outside the navigation landmark. The field is the palette's own trigger, drawn as a field, with
 the key cap inside its accessible name. If no palette is named, there is no field. **One band over
 a page, never two:** `layout: 'topbar'` and the compatibility `topbar` bag are not composed. An
@@ -1162,6 +1162,13 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
 - **`AppShell`** shares the vanilla fold cookie and 720px fold. `layout="rail"` places the
   account at the rail foot and leaves only Sign out in its menu. It shows no section counts.
   Pass `crumbs` to show a breadcrumb before the page title when there is no `back` link.
+  **`tools` puts small tools for the whole page at the end of the title row** (#736), such as
+  a version badge or a `size="sm"` button. The lede stands under the whole row. The tools do
+  not wrap, so keep them to what fits beside a short title on a 390px phone. `actions` keeps
+  the page's buttons in their own row under the title.
+  **`accountItems` adds a product's rows, such as Account settings and Support, at the top of
+  every account menu,** above the theme row and Sign out. A row takes `href` to go somewhere,
+  or `onSelect` to open something in place.
   The existing band layout stays the default. The longest matching section
   path wins. **At 720px and below, a menu button and the brand mark on the band replace the
   rail:** the button opens the full section list in the left drawer, and the page takes the full
@@ -1175,22 +1182,22 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   theme switch is the first row of the account menu** (#732). The rail keeps the fold's control
   in its head, `bandControl` under the head, then the sections and the account at its foot. A
   folded rail keeps the account mark, and makes `bandControl` inert. The drawer puts
-  `bandControl` above the sections, and the account in its footer (`react/src/AppShell.tsx:229` `{accountBlock(true)}`).
+  `bandControl` above the sections, and the account in its footer (`react/src/AppShell.tsx:244` `{accountBlock(true)}`).
   **`headControl` is one glyph control in the sidebar head, before the fold button** (#732). It
   is drawn as the fold is: a plain glyph with no border and no fill, the fold's size, ink and
-  hover (`react/src/AppShell.css:55` `.ui-react-app__head-control > :is(button, a)`). A folded
+  hover (`react/src/AppShell.css:63` `.ui-react-app__head-control > :is(button, a)`). A folded
   rail moves it out of the head row onto the glyph column, one rail gap under the head, and it
   stays usable. The drawer puts it in the panel's head, before the close button, as a 40px tap
-  target (`react/src/AppShell.tsx:229` `headerActions={headSlot}`). `Drawer` takes
+  target (`react/src/AppShell.tsx:244` `headerActions={headSlot}`). `Drawer` takes
   `headerActions` for controls between its title and its close button. A shell with no sidebar
   puts `headControl` on the band after `bandControl`.
   The theme row switches the theme in place: the menu stays open, and the row's words name the
-  current theme (`react/src/AppShell.tsx:138` `accountBlock`). In the drawer a `.toggle` in
+  current theme (`react/src/AppShell.tsx:152` `accountBlock`). In the drawer a `.toggle` in
   `bandControl` and each account menu row are 40px tap targets, and focus starts on the first row.
-  **Above 720px the band's search field stands in its centre** (`react/src/AppShell.css:90` `@media (min-width: 721px)`).
+  **Above 720px the band's search field stands in its centre** (`react/src/AppShell.css:100` `@media (min-width: 721px)`).
   **At 720px and below the band holds the mark, the page title on one line, search and Menu at
   the end, and nothing else.** The title ends in an ellipsis when it is long, and is hidden from
-  screen readers, because the page's `h1` keeps its name (`react/src/AppShell.css:98` `.ui-react-app__title {`). **Below
+  screen readers, because the page's `h1` keeps its name (`react/src/AppShell.css:108` `.ui-react-app__title {`). **Below
   560px each band control is a bare 40px glyph with no border and no box**, so the band fits
   300px. The search trigger shows only its glyph there, an exception in
   `guidelines/iconography.md` (#729). The shared stylesheet clips the sentence and the key cap

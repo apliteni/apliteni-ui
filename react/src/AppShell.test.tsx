@@ -23,6 +23,22 @@ it('places breadcrumbs before the page title', () => {
   expect(main.firstElementChild).toBe(screen.getByRole('navigation', { name: 'Breadcrumb' }));
   expect(within(main).getByRole('link', { name: 'Finance' })).toHaveAttribute('href', '/');
   expect(within(main).getByText('Payouts').closest('.ui-nav__crumb')).toHaveAttribute('aria-current', 'page');
+  expect(main.querySelector('.ui-react-app__head-row')).toBeNull();
+});
+
+// Page tools end the title row, and the lede stands under the whole row (#736). jsdom lays
+// nothing out, so the row is read from the markup and the stylesheet; measured at 390 and
+// 1280 in Chromium.
+it('puts page tools at the end of the title row and the lede under it', () => {
+  render(<AppShell {...props} lede="Four reports." tools={<button type="button">Customize</button>} />);
+  const main = screen.getByRole('main');
+  const row = main.querySelector('.ui-react-app__head-row')!;
+  expect([...row.children].map(el => el.tagName === 'H1' ? el.textContent : el.className)).toEqual(['Weekly report', 'ui-react-app__tools']);
+  expect(within(row as HTMLElement).getByRole('button', { name: 'Customize' })).toBeInTheDocument();
+  expect(row.nextElementSibling).toHaveClass('ui-app__sub');
+  const css = read('./AppShell.css');
+  expect(css).toMatch(/\.ui-react-app__head-row \{ display: flex; align-items: center;/);
+  expect(css).toMatch(/\.ui-react-app__tools \{ display: flex; flex: none;/);
 });
 
 it('uses the longest matching route, keeps counts in link names, and forwards router props', () => {
@@ -191,9 +207,21 @@ it('moves the account, theme switch and band control from the band to the sideba
   expect(wide).toMatch(/\.ui-app__bar:has\(> \.ui-react-app__title\) \.ui-app__search \{ margin-inline: auto; \}/);
 });
 
-it('opens the account menu and signs out', () => {
-  render(<AppShell {...props} />);
-  fireEvent.click(screen.getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));
+// A product's rows stand above the theme row and Sign out (#736).
+it('opens the account menu with the product rows first, and signs out', () => {
+  const onSettings = vi.fn();
+  render(<AppShell {...props} accountItems={[{ label: 'Account settings', icon: 'gear', onSelect: onSettings },
+    { label: 'Support', icon: 'chat', href: '/support' }]} />);
+  const account = screen.getByRole('button', { name: 'Signed in as Demo User, demo@example.com' });
+  fireEvent.click(account);
+  const rows = within(screen.getByRole('menu')).getAllByRole('menuitem');
+  expect(rows.map(row => row.getAttribute('aria-label') ?? row.textContent))
+    .toEqual(['Account settings', 'Support', expect.stringMatching(/ theme\. Switch to /), 'Sign out']);
+  expect(rows[1]).toHaveAttribute('href', '/support');
+  fireEvent.click(rows[0]);
+  expect(onSettings).toHaveBeenCalledOnce();
+  expect(props.onSignOut).not.toHaveBeenCalled();
+  fireEvent.click(account);
   fireEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }));
   expect(props.onSignOut).toHaveBeenCalledOnce();
 });
