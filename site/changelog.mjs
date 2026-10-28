@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.145.0', date: '2026-10-28',
     changes: [
-      ['changed', 'React `Chart` series use a fixed palette of seven tones in each theme, and the product accent no longer changes them. Each bar fades from a light tint of its tone at the zero line to the full tone at its data end. Lines, legend keys and bridge steps stay solid. Resolves #740.', ['Chart']],
+      ['changed', 'React `Chart` series use a fixed palette of seven tones in each theme, and the product accent no longer changes them. Each bar fades from a light tint of its tone at the zero line to the full tone at its data end. A bridge step fades from the previous running total to the new one. Lines and legend keys stay solid. Resolves #740.', ['Chart']],
       ['added', 'New tokens `--chart-accent`, `--chart-accent-soft`, `--chart-good`, `--chart-bad`, `--chart-warn`, `--chart-info` and `--chart-neutral` hold the chart tones, each with a `-fade` token for the bar base. Part of #740.', ['Chart']],
     ],
   },

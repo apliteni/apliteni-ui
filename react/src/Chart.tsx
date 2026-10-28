@@ -44,8 +44,8 @@ export type ChartSeries = {
   /**
    * Bars take a tone. A line is `neutral` unless the caller says otherwise.
    * The tones are the chart's own fixed palette and do not follow the product
-   * accent. `accent` and `accent-soft` are one hue at two weights, which is how
-   * two series read apart without spending a second colour on them.
+   * accent. Each tone has its own hue: `accent` is blue and `accent-soft` is
+   * cyan, so two series read apart by hue.
    */
   tone?: ChartTone;
 };
