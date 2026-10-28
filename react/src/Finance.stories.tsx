@@ -3,6 +3,8 @@ import { DataTable } from './DataTable';
 import { NumericValue, DeltaValue, RowIdentity } from './TableValues';
 import { FilterBar, type AddFilter, type Filter } from './FilterBar';
 import { Segmented } from './Segmented';
+import { Card } from './primitives/Card';
+import { useTableFilters } from '../../stories/_table-filters';
 import './FinanceComposition.css';
 export default { title: 'Components/Finance composition', parameters: { layout: 'fullscreen' } };
 // Approved comparison for #504. All company data is fabricated.
@@ -31,14 +33,21 @@ export const Comparison = { render: () => <Example /> };
 function SelectableExample() {
   const rows = [{ name: 'Aster Systems', price: 228.87, sector: 'Technology' }, { name: 'Birch Energy', price: 84.12, sector: 'Energy' }];
   const [selected, setSelected] = useState(new Set<string>());
+  const { bar, shown } = useTableFilters(rows, {
+    search: 'Search companies', placeholder: 'Company', label: 'Company filters', text: r => r.name,
+    facets: [{ id: 'sector', label: 'Sector', any: 'Any sector', of: r => r.sector }],
+  });
   return <main className="ui-app__main ui-app__main--wide pinned-selection" style={{ '--ui-app-main': '60rem' } as CSSProperties}>
     <style>{'.pinned-selection .ui-table { min-width: 70rem; }'}</style>
     <h1>Select companies</h1><p className="ui-app__sub">Fictional data. Scroll to compare values while keeping company selection in view.</p>
-    <DataTable rows={rows} selected={selected} onToggle={name => setSelected(current => {
+    <div className="ui-card-stack">
+    <Card>{bar}</Card>
+    <DataTable rows={shown} selected={selected} empty="No companies match" onToggle={name => setSelected(current => {
       const next = new Set(current); if (next.has(name)) next.delete(name); else next.add(name); return next;
     })} onTogglePage={names => setSelected(current => names.every(name => current.has(name)) ? new Set() : new Set(names))}
       density="compact" stickyHeader pinnedIdentity scrollLabel="Selectable companies, scroll for more columns" pager={false}
       columns={[{ key: 'name', label: 'Company', linked: true, render: r => <RowIdentity symbol={r.name.slice(0, 4).toUpperCase()} name={r.name} href="#company" /> }, { key: 'price', label: 'Price', num: true, render: r => <NumericValue value={r.price} unit="USD" /> }, { key: 'sector', label: 'Sector' }]} />
+    </div>
   </main>;
 }
 

@@ -6,6 +6,7 @@ import { Segmented } from '../../react/src/Segmented';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
+import { useTableFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story module
 import { cashflowStats, PERIODS, periodBasis } from './_finance-data.js';
 // @ts-expect-error -- plain JS story module
@@ -28,6 +29,10 @@ const EXCEPTIONS: [string, string, 'danger' | 'pending', string, string][] = [
 
 const Dashboard = () => {
   const [period, setPeriod] = useState('1Y');
+  const { bar, shown } = useTableFilters(EXCEPTIONS, {
+    search: 'Search exceptions', placeholder: 'Reference', label: 'Exception filters', text: ([ref]) => ref,
+    facets: [{ id: 'status', label: 'Status', any: 'Any status', of: ([, , , label]) => label }],
+  });
   return <FinanceShell active="dashboard" title="Dashboard">
     <div className="ui-toolbar">
       <Segmented label="Period" options={(PERIODS as string[]).map(p => ({ label: p, value: p }))} value={period} onChange={setPeriod} />
@@ -35,15 +40,18 @@ const Dashboard = () => {
     </div>
     <StatBand id="fd-cashflow" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
+    {/* Every table has its filter bar directly above it. why: guidelines/dense-tables.md */}
+    <Card>{bar}</Card>
     {/* Each reference opens its payout row in the report. */}
     <Card title="Needs a decision">
       <table className="ui-table ui-table--dense ui-table--hover">
         <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Arrival</th></tr></thead>
-        <tbody>{EXCEPTIONS.map(([ref, net, tone, label, arrival]) => <tr key={ref}>
+        <tbody>{shown.map(([ref, net, tone, label, arrival]) => <tr key={ref}>
           <td><span className="ui-table__pair"><a href={payoutHref(ref)}>{ref}</a><Badge variant={tone}>{label}</Badge></span></td>
           <td className="ui-table__num ui-table__num--strong">{net}</td>
           <td>{arrival}</td>
-        </tr>)}</tbody>
+        </tr>)}
+        {!shown.length && <tr><td colSpan={3}>No exceptions match</td></tr>}</tbody>
       </table>
     </Card>
   </FinanceShell>;

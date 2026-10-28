@@ -403,7 +403,9 @@ async function measure({ url, ready, width, theme, mutate, attrTheme, deaf }) {
    * only while shut is what let a chip rule reach it unseen. */
   const triggers = await page.$$('.ui-filter-bar [data-dropdown-trigger]');
   for (const [at, trigger] of triggers.entries()) {
-    if (!await trigger.isEnabled()) continue;
+    /* A modal drawer open over the page holds the bar inert: no reader can open
+     * that menu, so there is no panel of it to measure. */
+    if (!await trigger.isEnabled() || await trigger.evaluate((el) => !!el.closest('[inert]'))) continue;
     await trigger.click();
     await settle(page);
     opens.push({ chip: at + 1, ...await page.evaluate(probe) });
@@ -562,7 +564,7 @@ async function closeFrames({ url, ready, width, theme, attrTheme, mutate }) {
     const triggers = await page.$$('.ui-filter-bar__chip [data-dropdown-trigger], '
       + '.ui-filter-bar [data-filter-add] [data-dropdown-trigger]');
     for (const [at, trigger] of triggers.entries()) {
-      if (!await trigger.isEnabled()) continue;
+      if (!await trigger.isEnabled() || await trigger.evaluate((el) => !!el.closest('[inert]'))) continue;
       const add = await trigger.evaluate((el) => !!el.closest('[data-filter-add]'));
       await trigger.click();
       await reached(page, OPEN_PAINTED);

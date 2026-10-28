@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { SearchField } from './SearchField';
-import { Dropdown } from './Dropdown';
+import { FilterBar } from './FilterBar';
 import { Segmented } from './Segmented';
 import { DataTable, type Column } from './DataTable';
 import { NumericValue } from './TableValues';
@@ -50,24 +50,23 @@ const columns: Column<Invoice>[] = [
 
 // A filter chip carries its value and nothing else: a "Status:" prefix repeats
 // the column it filters. So every value has to read on its own — "Any status",
-// not "Any".
-const STATUS = ['Any status', 'Verified', 'Pending'];
-const PERIOD: [string, number][] = [['Last 30 days', 30], ['Last 90 days', 90], ['This year', 365]];
+// not "Any". The chips start unset, so the table opens on every invoice.
+const STATUS = { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Verified', value: 'Verified' }, { label: 'Pending', value: 'Pending' }] };
+const PERIOD = { id: 'period', label: 'Period', items: [{ label: 'Any time', value: '' }, { label: 'Last 30 days', value: '30' }, { label: 'Last 90 days', value: '90' }, { label: 'This year', value: '365' }] };
 
 export const Toolbar: StoryObj = {
   name: 'Toolbar: search, filters, views',
   render: function Render() {
     const [query, setQuery] = useState('');
-    const [status, setStatus] = useState(STATUS[0]);
-    const [period, setPeriod] = useState(PERIOD[0][0]);
+    const [chosen, setChosen] = useState<Record<string, string>>({});
     const [view, setView] = useState('table');
 
-    const within = PERIOD.find(([label]) => label === period)![1];
     const term = query.trim().toLowerCase();
     const rows = INVOICES.filter((row) =>
-      (status === STATUS[0] || row.status === status)
-      && row.days <= within
+      (!chosen.status || row.status === chosen.status)
+      && (!chosen.period || row.days <= Number(chosen.period))
       && (term === '' || `${row.name} ${row.number}`.toLowerCase().includes(term)));
+    const set = (id: string, value?: string) => setChosen((previous) => ({ ...previous, [id]: value ?? '' }));
 
     // .ui-app__body is the kit's own column: the page gap, and min-width:0 on
     // each child, which is what lets the table scroll inside its column on a phone.
@@ -78,26 +77,11 @@ export const Toolbar: StoryObj = {
     // goes around the toolbar, not inside it.
     // react/src/field-ground.test.tsx holds the numbers.
     return <div className="ui-app__body">
-      {/* A panel's floor is 240px and the kit hangs it off its trigger with no
-          measuring of its own — #572 — so `align` chooses which screen edge a
-          narrow row's panel crosses, not whether it crosses one. Containment is
-          this composition's: under 720px each chip takes the whole row, so its
-          panel opens from the card's inner edge — 41–281 at 375, whichever
-          values are chosen — and above it the row holds on one line and the
-          chips sit left of the slack. 720 is the smallest of the kit's three
-          breakpoints that holds: at 560 the clipping runs on to 578, where
-          THESE labels stop fitting on one line. Measured at 375, 390 and 1280
-          in both themes, all nine value pairs, open and closed, and at every
-          width from 320 to 1440.
-          why: guidelines/layout-and-density.md#use-the-three-breakpoints */}
-      <style>{'@media (max-width: 720px) { .invoice-toolbar > .ui-dropdown { flex: 0 0 100%; } }'}</style>
-      <Card><div className="ui-toolbar invoice-toolbar">
+      <Card><div className="ui-toolbar">
         <SearchField ariaLabel="Search invoices" placeholder="Vendor or number"
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-        <Dropdown variant="select" ariaLabel="Status" value={status} onSelect={(v) => setStatus(String(v))}
-          items={STATUS.map((label) => ({ label, value: label, selected: label === status }))} />
-        <Dropdown variant="select" ariaLabel="Period" value={period} onSelect={(v) => setPeriod(String(v))}
-          items={PERIOD.map(([label]) => ({ label, value: label, selected: label === period }))} />
+        <FilterBar label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
+          filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
         <Segmented label="View" value={view} onChange={setView}
           options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
       </div></Card>

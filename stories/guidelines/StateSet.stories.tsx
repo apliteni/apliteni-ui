@@ -7,6 +7,7 @@ import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
 import { TextField } from '../../react/src/Field';
 import { BusyRegion, SkeletonTable } from '../../react/src/Loading';
+import { RestingFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -33,11 +34,15 @@ const Url = ({ error }: { error?: string }) =>
 
 // The pending pair. Same screen, same in-flight moment, twice: on the left the
 // region draws the shape that is coming and says so through the live region;
-// on the right the button is the only thing that knows.
-const Pending = ({ children }: { children: ReactNode }) => <Stage><Card title="Payouts">
-  {children}
-  <div className="gl-row" style={{ marginTop: 'var(--space-3)' }}><Button busy>Refresh</Button></div>
-</Card></Stage>;
+// on the right the button is the only thing that knows. The table's filter bar
+// stays above it while its rows load.
+const Pending = ({ children }: { children: ReactNode }) => <Stage><div className="ui-card-stack">
+  <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" />
+  <Card title="Payouts">
+    {children}
+    <div className="gl-row" style={{ marginTop: 'var(--space-3)' }}><Button busy>Refresh</Button></div>
+  </Card>
+</div></Stage>;
 
 const specimens = [
   { id: 'focus-visible', do: () => <Ringed />, dont: () => <Ringed mod="gl-ring--adhoc" /> },

@@ -5,6 +5,7 @@ import { GuidelinePage } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
+import { RestingFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -34,13 +35,16 @@ const Stack = ({ n, over = false }: { n: number; over?: boolean }) => <Stage>
   <div className={`tp-stack${over ? ' tp-stack--over' : ''}`}>{Array.from({ length: n }, (_, i) => <div key={i} className="tp-card" />)}</div>
 </Stage>;
 
-// One density per page.
+// One density per page. Each table keeps its filter bar directly above it.
+const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
 const MiniTable = ({ dense }: { dense: boolean }) => <table className={`ui-table ui-table--zebra${dense ? ' ui-table--dense' : ''}`}>
   <thead><tr><th>ID</th><th>Arrival</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
   <tbody><tr><td>1162</td><td>2026-06-30</td><td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr></tbody>
 </table>;
 const Densities = ({ second }: { second: boolean }) => <Stage><div className="tp-rows">
+  <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />
   <Card title="Payouts"><MiniTable dense /></Card>
+  <RestingFilters search="Search invoices" placeholder="ID" label="Invoice filters" chips={STATUS} />
   <Card title="Invoices"><MiniTable dense={second} /></Card>
 </div></Stage>;
 

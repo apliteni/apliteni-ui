@@ -6,10 +6,13 @@ import { Card } from './primitives/Card';
 import { Icon } from './primitives/Icon';
 import { EmptyState } from './EmptyState';
 import { NumericValue, RowIdentity } from './TableValues';
+import { useTableFilters } from '../../stories/_table-filters';
 
 export default { title: 'React/DataTable ledgers' };
 
 const page = (children: ReactNode, width: number | string = 720) => <div style={{ maxWidth: width }}>{children}</div>;
+// Every table has its filter bar directly above it, on its own card. why: guidelines/dense-tables.md
+const filtered = (bar: ReactNode, table: ReactNode) => <div className="ui-card-stack"><Card>{bar}</Card>{table}</div>;
 const titled = (name: string, text: string) => <><span className="ui-card__icon"><Icon name={name} /></span> {text}</>;
 
 type Payout = { name: string; id: string; arrival: string; gross: string; fees: string; net: string; tone: string; status: string };
@@ -35,12 +38,18 @@ const payoutColumns: Column<Payout>[] = [
 ];
 
 export const FinanceData = {
-  render: () => page(
-    <Card title={titled('key', 'Payouts')}>
-      <DataTable columns={payoutColumns} rows={PAYOUTS} selectable={false} pager={false}
-        density="dense" zebra stack rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
-    </Card>, 1040,
-  ),
+  render: function Render() {
+    const { bar, shown } = useTableFilters(PAYOUTS, {
+      search: 'Search payouts', placeholder: 'ID or payout ID', label: 'Payout filters', text: (r) => `${r.name} ${r.id}`,
+      facets: [{ id: 'status', label: 'Status', any: 'Any status', of: (r) => r.status }],
+    });
+    return page(filtered(bar,
+      <Card title={titled('key', 'Payouts')}>
+        <DataTable columns={payoutColumns} rows={shown} selectable={false} pager={false} empty="No payouts match"
+          density="dense" zebra stack rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
+      </Card>), 1040,
+    );
+  },
 };
 
 type Agent = { name: string; scope: string; used: string; dead: boolean };
@@ -59,12 +68,18 @@ const agentColumns: Column<Agent>[] = [
 ];
 
 export const AgentTokens = {
-  render: () => page(
-    <Card title={titled('key', 'Access & agents')}>
-      <DataTable columns={agentColumns} rows={AGENTS} selectable={false} pager={false}
-        rowState={(r) => (r.dead ? 'dead' : undefined)} />
-    </Card>,
-  ),
+  render: function Render() {
+    const { bar, shown } = useTableFilters(AGENTS, {
+      search: 'Search agents', placeholder: 'Agent', label: 'Agent filters', text: (r) => r.name,
+      facets: [{ id: 'state', label: 'State', any: 'Any state', of: (r) => (r.dead ? 'Revoked' : 'Active') }],
+    });
+    return page(filtered(bar,
+      <Card title={titled('key', 'Access & agents')}>
+        <DataTable columns={agentColumns} rows={shown} selectable={false} pager={false} empty="No agents match"
+          rowState={(r) => (r.dead ? 'dead' : undefined)} />
+      </Card>),
+    );
+  },
 };
 
 export const Empty = {
@@ -79,30 +94,40 @@ export const Empty = {
 
 type Line = { name: string; amount: string };
 const LINES: Line[] = [{ name: 'Interface design', amount: '450.00' }, { name: 'Prototype review', amount: '300.00' }];
+const eur = (value: number) => value.toLocaleString('en-GB', { minimumFractionDigits: 2 });
 export const WithTotals = {
-  render: () => page(
-    <Card title="Sample invoice">
-      <DataTable caption="Sample services and totals in EUR" selectable={false} pager={false} density="dense" hover={false}
-        rows={LINES}
-        columns={[{ key: 'name', label: 'Service', cell: 'title' }, { key: 'amount', label: 'Amount (EUR)', num: true }]}
-        footer={<>
-          <tr><th scope="row">Subtotal</th><td className="ui-table__num">750.00</td></tr>
-          <tr><th scope="row">VAT (20%)</th><td className="ui-table__num">150.00</td></tr>
-          <tr><th scope="row" className="ui-table__num--strong">Total</th><td className="ui-table__num ui-table__num--strong">900.00</td></tr>
-        </>} />
-    </Card>,
-  ),
+  render: function Render() {
+    const { bar, shown } = useTableFilters(LINES, { search: 'Search services', placeholder: 'Service', label: 'Service filters', text: (r) => r.name, facets: [] });
+    // The totals add up the lines the filter leaves, so the footer never sums rows it hides.
+    const subtotal = shown.reduce((sum, line) => sum + Number(line.amount), 0);
+    return page(filtered(bar,
+      <Card title="Sample invoice">
+        <DataTable caption="Sample services and totals in EUR" selectable={false} pager={false} density="dense" hover={false}
+          rows={shown} empty="No services match"
+          columns={[{ key: 'name', label: 'Service', cell: 'title' }, { key: 'amount', label: 'Amount (EUR)', num: true }]}
+          footer={<>
+            <tr><th scope="row">Subtotal</th><td className="ui-table__num">{eur(subtotal)}</td></tr>
+            <tr><th scope="row">VAT (20%)</th><td className="ui-table__num">{eur(subtotal * 0.2)}</td></tr>
+            <tr><th scope="row" className="ui-table__num--strong">Total</th><td className="ui-table__num ui-table__num--strong">{eur(subtotal * 1.2)}</td></tr>
+          </>} />
+      </Card>),
+    );
+  },
 };
 
 type Hours = { name: string; hours: number };
+const HOURS: Hours[] = [{ name: 'Interface design', hours: 6 }, { name: 'Prototype review', hours: 4 }];
 export const CompactRowHeaders = {
-  render: () => page(
-    <Card title="Sample services">
-      <DataTable caption="Service hours with row headers" selectable={false} pager={false} density="compact" hover={false}
-        rows={[{ name: 'Interface design', hours: 6 }, { name: 'Prototype review', hours: 4 }] as Hours[]}
-        columns={[{ key: 'name', label: 'Service', rowHeader: true }, { key: 'hours', label: 'Hours', num: true }]} />
-    </Card>, 'var(--panel-lg)',
-  ),
+  render: function Render() {
+    const { bar, shown } = useTableFilters(HOURS, { search: 'Search services', placeholder: 'Service', label: 'Service filters', text: (r) => r.name, facets: [] });
+    return page(filtered(bar,
+      <Card title="Sample services">
+        <DataTable caption="Service hours with row headers" selectable={false} pager={false} density="compact" hover={false}
+          rows={shown} empty="No services match"
+          columns={[{ key: 'name', label: 'Service', rowHeader: true }, { key: 'hours', label: 'Hours', num: true }]} />
+      </Card>), 'var(--panel-lg)',
+    );
+  },
 };
 
 type Entry = { name: string; area: string; time: string; change: string };
@@ -112,12 +137,18 @@ const AUDIT: Entry[] = [
   { name: 'Review bot', area: 'Content', time: '08:02', change: 'Flagged four pages for a second read: the pricing table and the trial terms disagree on how long the trial runs.' },
 ];
 export const StackedLog = {
-  render: () => page(
-    <Card title={titled('clock', 'Audit log')}>
-      <DataTable selectable={false} pager={false} density="dense" stack rows={AUDIT}
-        columns={[{ key: 'name', label: 'Who', cell: 'code' }, { key: 'area', label: 'Area' }, { key: 'time', label: 'Time' }, { key: 'change', label: 'Change', cell: 'long' }]} />
-    </Card>,
-  ),
+  render: function Render() {
+    const { bar, shown } = useTableFilters(AUDIT, {
+      search: 'Search the audit log', placeholder: 'Who or change', label: 'Audit filters', text: (r) => `${r.name} ${r.change}`,
+      facets: [{ id: 'area', label: 'Area', any: 'Any area', of: (r) => r.area }],
+    });
+    return page(filtered(bar,
+      <Card title={titled('clock', 'Audit log')}>
+        <DataTable selectable={false} pager={false} density="dense" stack rows={shown} empty="No entries match"
+          columns={[{ key: 'name', label: 'Who', cell: 'code' }, { key: 'area', label: 'Area' }, { key: 'time', label: 'Time' }, { key: 'change', label: 'Change', cell: 'long' }]} />
+      </Card>),
+    );
+  },
 };
 
 type Desk = { name: string; symbol: string; weight: string; lots: string; note: string };
@@ -128,16 +159,21 @@ const DESKS: Desk[] = [
   { symbol: '', name: 'Cedar Infrastructure Holdings International', weight: '18.40', lots: '4', note: 'On the watchlist until the next sample review.' },
 ];
 export const StackedPinned = {
-  render: () => page(
+  render: function Render() {
+    const { bar, shown } = useTableFilters(DESKS, {
+      search: 'Search desk notes', placeholder: 'Company or symbol', label: 'Desk filters', text: (r) => `${r.symbol} ${r.name}`, facets: [],
+    });
+    return page(filtered(bar,
     <Card title={titled('table', 'Desk notes')}>
       <DataTable selectable={false} pager={false} density="dense" stack stickyHeader pinnedIdentity
-        scrollLabel="Desk notes, scroll for more rows" rows={DESKS}
+        scrollLabel="Desk notes, scroll for more rows" rows={shown} empty="No notes match"
         columns={[
           { key: 'name', label: 'Company', linked: true, render: (r) => r.symbol ? <RowIdentity symbol={r.symbol} name={r.name} href="#position" /> : r.name },
           { key: 'weight', label: <>Weight</>, num: true, render: (r) => <NumericValue value={r.weight} unit="bp" /> },
           { key: 'lots', label: <>Size</>, num: true, render: (r) => <NumericValue value={r.lots} unit="lots" /> },
           { key: 'note', label: 'Note', cell: 'long' },
         ]} />
-    </Card>, 860,
-  ),
+    </Card>), 860,
+    );
+  },
 };
