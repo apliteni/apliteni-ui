@@ -149,8 +149,8 @@ it('draws the phone band\'s controls as bare 40px glyphs and the title on one li
 });
 
 // The band holds the mark, the page title, search and Menu, and nothing else. The
-// account and the band control stand in the sidebar and the drawer, and the theme switch
-// is a row of the account menu.
+// account and the band control stand in the sidebar and the drawer, and the theme is a
+// submenu row of the account menu.
 it('moves the account, theme switch and band control from the band to the sidebar (#732)', async () => {
   const control = <button type="button">Apliteni OÜ</button>;
   const bell = <button type="button">Notifications</button>;
@@ -173,7 +173,7 @@ it('moves the account, theme switch and band control from the band to the sideba
   const account = within(rail).getByRole('button', { name: 'Signed in as Demo User, demo@example.com' });
   fireEvent.click(account);
   expect(within(within(rail).getByRole('menu')).getAllByRole('menuitem').map(row => row.getAttribute('aria-label') ?? row.textContent))
-    .toEqual([expect.stringMatching(/^(Dark|Light|Auto) theme\. Switch to (dark|light|auto)\.$/), 'Sign out']);
+    .toEqual([expect.stringMatching(/^Theme(Dark|Light|Auto)$/), 'Sign out']);
   fireEvent.click(account);
 
   // A folded rail keeps the account on the glyph column. The band control has no glyph
@@ -195,7 +195,7 @@ it('moves the account, theme switch and band control from the band to the sideba
   await waitFor(() => expect(within(drawer).getByRole('link', { name: 'Overview' })).toHaveFocus());
 
   fireEvent.click(within(foot as HTMLElement).getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));
-  expect(within(foot as HTMLElement).getByRole('menuitem', { name: /theme\. Switch to/ })).toBeInTheDocument();
+  expect(within(foot as HTMLElement).getByRole('menuitem', { name: /^Theme/ })).toHaveAttribute('aria-haspopup', 'menu');
 
   // A finger works the drawer: its controls are 40px tap targets, as on the phone band.
   // Above the phone width, search stands in the band's centre. Source reads, because
@@ -207,7 +207,7 @@ it('moves the account, theme switch and band control from the band to the sideba
   expect(wide).toMatch(/\.ui-app__bar:has\(> \.ui-react-app__title\) \.ui-app__search \{ margin-inline: auto; \}/);
 });
 
-// A product's rows stand above the theme row and Sign out (#736).
+// A product's rows stand above the Theme row, and a separator stands before Sign out (#736).
 it('opens the account menu with the product rows first, and signs out', () => {
   const onSettings = vi.fn();
   render(<AppShell {...props} accountItems={[{ label: 'Account settings', icon: 'gear', onSelect: onSettings },
@@ -216,7 +216,8 @@ it('opens the account menu with the product rows first, and signs out', () => {
   fireEvent.click(account);
   const rows = within(screen.getByRole('menu')).getAllByRole('menuitem');
   expect(rows.map(row => row.getAttribute('aria-label') ?? row.textContent))
-    .toEqual(['Account settings', 'Support', expect.stringMatching(/ theme\. Switch to /), 'Sign out']);
+    .toEqual(['Account settings', 'Support', expect.stringMatching(/^Theme/), 'Sign out']);
+  expect(rows[3].previousElementSibling).toHaveClass('ui-dropdown__sep');
   expect(rows[1]).toHaveAttribute('href', '/support');
   fireEvent.click(rows[0]);
   expect(onSettings).toHaveBeenCalledOnce();
@@ -279,7 +280,7 @@ it('leaves shortcuts in editable fields alone', () => {
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 });
 
-describe('account menu theme switch', () => {
+describe('account menu Theme submenu', () => {
   const root = document.documentElement;
   let media: EventTarget & { matches: boolean };
   beforeEach(() => {
@@ -290,31 +291,79 @@ describe('account menu theme switch', () => {
     localStorage.setItem('apliteni-strategy-theme', 'dark');
   });
   afterEach(() => { vi.unstubAllGlobals(); localStorage.clear(); });
+  const open = (where: HTMLElement = document.body) => {
+    fireEvent.click(within(where).getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));
+    return within(where).getByRole('menuitem', { name: /^Theme/ });
+  };
+  const choices = () => screen.getByRole('menu', { name: 'Theme' });
 
-  // The row switches in place: the menu stays open, and the row's name follows the theme.
-  it('cycles dark, light and auto, and writes data-theme-choice', () => {
+  // Right and Enter open the submenu on its checked choice; Left and Escape close it
+  // and hand focus back to the Theme row. The account menu stays open throughout.
+  it('opens on Right and Enter, closes on Left and Escape, and returns focus to the Theme row', async () => {
     render(<AppShell {...props} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));
-    const button = () => within(screen.getByRole('menu')).getByRole('menuitem', { name: /theme\. Switch to/ });
-    expect(button()).toHaveAccessibleName('Dark theme. Switch to light.');
-    expect(root).toHaveAttribute('data-theme-choice', 'dark');
-    fireEvent.click(button());
-    expect(button()).toHaveAccessibleName('Light theme. Switch to auto.');
-    expect(root).toHaveAttribute('data-theme-choice', 'light');
-    expect(root).toHaveAttribute('data-theme', 'light');
-    fireEvent.click(button());
-    expect(button()).toHaveAccessibleName('Auto theme. Switch to dark.');
-    expect(root).toHaveAttribute('data-theme-choice', 'auto');
-    fireEvent.click(button());
-    expect(root).toHaveAttribute('data-theme-choice', 'dark');
+    const row = open();
+    expect(row).toHaveAttribute('aria-expanded', 'false');
+    expect(row.querySelector('.ui-dropdown__aside')).toHaveTextContent('Dark');
+    fireEvent.keyDown(row, { key: 'ArrowRight' });
+    expect(row).toHaveAttribute('aria-expanded', 'true');
+    expect(within(choices()).getAllByRole('menuitemradio').map(r => [r.textContent, r.getAttribute('aria-checked')]))
+      .toEqual([['Auto', 'false'], ['Light', 'false'], ['Dark', 'true']]);
+    await waitFor(() => expect(within(choices()).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus());
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowLeft' });
+    expect(screen.queryByRole('menu', { name: 'Theme' })).toBeNull();
+    await waitFor(() => expect(row).toHaveFocus());
+    fireEvent.keyDown(row, { key: 'Enter' });
+    expect(choices()).toBeInTheDocument();
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(screen.queryByRole('menu', { name: 'Theme' })).toBeNull();
+    expect(row).toBeInTheDocument();
+    await waitFor(() => expect(row).toHaveFocus());
+  });
+
+  // A pick writes data-theme-choice, moves the check and closes only the submenu.
+  it('sets auto, light and dark from the submenu', () => {
+    render(<AppShell {...props} />);
+    const row = open();
+    for (const [name, choice, shown] of [['Light', 'light', 'light'], ['Auto', 'auto', 'dark'], ['Dark', 'dark', 'dark']]) {
+      fireEvent.click(row);
+      fireEvent.click(within(choices()).getByRole('menuitemradio', { name }));
+      expect(root).toHaveAttribute('data-theme-choice', choice);
+      expect(root).toHaveAttribute('data-theme', shown);
+      expect(localStorage.getItem('apliteni-strategy-theme')).toBe(choice);
+      expect(row.querySelector('.ui-dropdown__aside')).toHaveTextContent(name);
+      expect(screen.queryByRole('menu', { name: 'Theme' })).toBeNull();
+      expect(row).toBeInTheDocument();
+    }
     expect(props.onSignOut).not.toHaveBeenCalled();
+  });
+
+  // The rail's menu is clipped at the rail edge, so the flyout leaves it; the drawer
+  // swaps its rows for the choices under a back row.
+  it('flies out of the rail and replaces the drawer menu under a back row', async () => {
+    render(<AppShell {...props} />);
+    const rail = screen.getByRole('region', { name: 'Sidebar' });
+    fireEvent.click(open(rail));
+    expect(rail.contains(choices())).toBe(false);
+    expect(choices().parentElement).toHaveClass('ui-dropdown__panel--portal', 'ui-dropdown__panel--sub', 'is-open');
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    const foot = screen.getByRole('dialog').querySelector('.ui-app__drawer') as HTMLElement;
+    const row = open(foot);
+    fireEvent.click(row);
+    const panel = foot.querySelector('.ui-app__user-panel')!;
+    expect(panel).toHaveClass('is-sub');
+    expect(panel.contains(choices())).toBe(true);
+    const back = within(choices()).getByRole('menuitem', { name: 'Back from Theme' });
+    fireEvent.click(back);
+    expect(panel).not.toHaveClass('is-sub');
+    await waitFor(() => expect(row).toHaveFocus());
   });
 
   it.each(['dark', 'light', 'auto'] as const)('draws one %s glyph in ThemeToggle and the account menu, the shared themeIcon', theme => {
     localStorage.setItem('apliteni-strategy-theme', theme);
     const shell = render(<AppShell {...props} />);
-    fireEvent.click(within(shell.container).getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }));
-    const row = within(shell.container).getByRole('menuitem', { name: /theme\. Switch to/ });
+    const row = open(shell.container);
     const alone = render(<ThemeToggle />);
     const source = document.createElement('span');
     source.innerHTML = themeIcon(theme);

@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
-import { prism, themeIcon } from '@apliteni/apliteni-ui';
+import { prism } from '@apliteni/apliteni-ui';
 import { paletteHotkey } from './lib/palette-hotkey';
 import { railCollapsed, storeRailCollapsed } from './lib/rail';
 import { SidebarNav } from './SidebarNav';
@@ -7,11 +7,12 @@ import { BackLink } from './BackLink';
 import { Breadcrumbs, type BreadcrumbItem } from './Breadcrumbs';
 import { CommandPalette, type CommandPaletteProps } from './CommandPalette';
 import { Drawer } from './Drawer';
+import { AccountMenu } from './AccountMenu';
 import { Dropdown } from './Dropdown';
 import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
 import { Avatar } from './primitives/Avatar';
-import { ThemeToggle, useThemeChoice } from './ThemeToggle';
+import { ThemeToggle } from './ThemeToggle';
 import './AppShell.css';
 
 export type AppShellSection = { href: string; label: string; icon: string; count?: number };
@@ -63,7 +64,6 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, renderLink }: AppShellProps) {
   const uid = useId();
-  const theme = useThemeChoice();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [search, setSearch] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -146,24 +146,9 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     if (value === 'sign-out') onSignOut();
     else accountItems[Number(String(value).slice(5))]?.onSelect?.();
   };
-  // The topbar layout's account menu holds the theme switch (#732). Its row switches the
-  // theme in place: it never calls the menu's pick, so the menu stays open with focus on
-  // the row, and the row's words follow the new theme. Its name starts with those words. The rail layout keeps the vanilla menu.
-  const accountBlock = (withTheme = false) => <div className="ui-app__user"><Dropdown variant="menu"
-    direction="up" align="start" chevron
-    ariaLabel={`Signed in as ${account.name}, ${account.email}`}
-    triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
-    triggerContent={<><span className="ui-app__av" aria-hidden="true">
-      <Avatar personKey={account.email || account.name} name={account.name} size={32} />
-    </span><span className="ui-app__who"><b>{account.name}</b><span>{account.email}</span></span></>}
-    items={[...ownItems, ...(withTheme ? [{ label: `${theme.label} theme`, value: 'theme' }] : []), { label: 'Sign out', value: 'sign-out', icon: 'logout', danger: true }]}
-    row={(item, props) => item.value === 'theme' ? <div {...props}
-      aria-label={`${item.label}. Switch to ${theme.next}.`} onClick={theme.toggle}>
-      <span className="ui-dropdown__ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: themeIcon(theme.theme) }} />
-      <span className="ui-dropdown__main"><span className="ui-dropdown__label">{item.label}</span></span>
-    </div> : props.href ? <a {...props} /> : <div {...props} />}
-    onSelect={pick} />
-  </div>;
+  // The topbar layout's account menu holds the Theme submenu (#732, #736). The rail layout keeps the vanilla menu.
+  const accountBlock = (withTheme = false, inPlace = false) => <AccountMenu account={account} items={ownItems}
+    onSelect={pick} withTheme={withTheme} inPlace={inPlace} />;
   const headSlot = layout === 'topbar' && headControl && <div className="ui-react-app__head-control">{headControl}</div>;
   const foldControl = <div className="ui-app__fold-row">{headSlot}<button type="button"
     className="ui-nav__item ui-app__fold" aria-expanded={!collapsed} aria-label={foldLabel} onClick={fold}>
@@ -241,7 +226,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
       {page}
     </div>
     {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm" initialFocusRef={firstRow}
-      headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true)}</div>}>
+      headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true, true)}</div>}>
       <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}
     <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} open={search} onClose={() => setSearch(false)} />

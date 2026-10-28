@@ -226,7 +226,7 @@ losing both ends to a clip. There is one limit: a folded rail flush with a page'
 Every guarantee above still applies. The band stands beside the rail. It does not span the top
 of both. **The rail holds the shell's own controls:** the fold's control in its head, beside the
 mark, the theme switch above the reader's block, and the reader's block at its foot. The band
-control stands under the head (#732, `react/src/AppShell.tsx:206` `ui-react-app__control`). **The band carries the search
+control stands under the head (#732, `react/src/AppShell.tsx:191` `ui-react-app__control`). **The band carries the search
 field and nothing else** above 720px. At 720px and below it carries the mark, the page title on one
 line, the search trigger and the menu button (`react/src/AppShell.css:104` `@media (max-width: 720px)`). It is a `<header>`
 outside the navigation landmark. The field is the palette's own trigger, drawn as a field, with
@@ -507,6 +507,20 @@ typeface from the place where it was mounted. `dropdown()` emits a `<div>`, or a
 item has `href`. It never emits a `<button>`. A row that must be a real button is
 [one you write yourself](#a-dropdown-row-you-write-yourself). **A destructive row stays quiet
 and turns `--pink` on the way to being pressed**, in both hover and focus.
+
+### A submenu row
+
+A row that opens a submenu carries `aria-haspopup="menu"` and `aria-expanded`. It ends in
+`.ui-dropdown__aside`, the current value in small full ink, and `.ui-dropdown__more`, a
+`chevronRight` glyph. While its submenu is open the row keeps the hover fill. The submenu is a
+`role="menu"` list in `.ui-dropdown__sub` with `menuitemradio` rows, and `.ui-dropdown__tick`
+marks the chosen one. Where the menu is clipped, as in a sidebar, put the list in a
+`.ui-dropdown__panel.ui-dropdown__panel--portal.ui-dropdown__panel--sub.is-open` on `body`,
+level with the row. On a phone, put it inside the menu panel and add `is-sub` to the panel:
+every child but `.ui-dropdown__sub` is hidden, so the list replaces the rows. Start that list
+with a back row. Right and Enter open the submenu, Left and Escape close it, and focus returns
+to the row. The vanilla kit ships the classes, and React `AppShell`'s Theme row wires the keys
+(`react/src/AccountMenu.tsx:18` `function AccountMenu`).
 
 ### Avatar
 
@@ -1167,7 +1181,7 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   not wrap, so keep them to what fits beside a short title on a 390px phone. `actions` keeps
   the page's buttons in their own row under the title.
   **`accountItems` adds a product's rows, such as Account settings and Support, at the top of
-  every account menu,** above the theme row and Sign out. A row takes `href` to go somewhere,
+  every account menu,** above the Theme row and Sign out. A row takes `href` to go somewhere,
   or `onSelect` to open something in place.
   The existing band layout stays the default. The longest matching section
   path wins. **At 720px and below, a menu button and the brand mark on the band replace the
@@ -1179,20 +1193,24 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   the page's parent, so that list is drawn and the row takes `aria-current="true"`.
   `searchLabel` names the band trigger's words. `searchShortLabel` is deprecated and not drawn.
   **With a sidebar, the account and `bandControl` stand in the sidebar, not on the band, and the
-  theme switch is the first row of the account menu** (#732). The rail keeps the fold's control
+  theme is a row of the account menu** (#732). The rail keeps the fold's control
   in its head, `bandControl` under the head, then the sections and the account at its foot. A
   folded rail keeps the account mark, and makes `bandControl` inert. The drawer puts
-  `bandControl` above the sections, and the account in its footer (`react/src/AppShell.tsx:244` `{accountBlock(true)}`).
+  `bandControl` above the sections, and the account in its footer (`react/src/AppShell.tsx:229` `{accountBlock(true, true)}`).
   **`headControl` is one glyph control in the sidebar head, before the fold button** (#732). It
   is drawn as the fold is: a plain glyph with no border and no fill, the fold's size, ink and
   hover (`react/src/AppShell.css:63` `.ui-react-app__head-control > :is(button, a)`). A folded
   rail moves it out of the head row onto the glyph column, one rail gap under the head, and it
   stays usable. The drawer puts it in the panel's head, before the close button, as a 40px tap
-  target (`react/src/AppShell.tsx:244` `headerActions={headSlot}`). `Drawer` takes
+  target (`react/src/AppShell.tsx:229` `headerActions={headSlot}`). `Drawer` takes
   `headerActions` for controls between its title and its close button. A shell with no sidebar
   puts `headControl` on the band after `bandControl`.
-  The theme row switches the theme in place: the menu stays open, and the row's words name the
-  current theme (`react/src/AppShell.tsx:152` `accountBlock`). In the drawer a `.toggle` in
+  **The Theme row opens a submenu of Auto, Light and Dark** (#736). The row shows the current
+  choice, and a check marks it in the submenu. Right or Enter opens the submenu, Left or Escape
+  closes it, and focus returns to the Theme row. A pick sets the theme and closes only the
+  submenu. In the sidebar the submenu flies out beside the menu, past the sidebar's edge. In the
+  drawer it replaces the menu's rows, under a Theme back row (`react/src/AccountMenu.tsx:18`
+  `function AccountMenu`). A separator stands before Sign out. In the drawer a `.toggle` in
   `bandControl` and each account menu row are 40px tap targets, and focus starts on the first row.
   **Above 720px the band's search field stands in its centre** (`react/src/AppShell.css:100` `@media (min-width: 721px)`).
   **At 720px and below the band holds the mark, the page title on one line, search and Menu at

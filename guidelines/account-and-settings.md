@@ -34,7 +34,7 @@
 
 <!-- rule: menu -->
 
-**Rule:** Keep the account menu to the reader, a few ways in, the theme row and Sign out.
+**Rule:** Keep the account menu to the reader, a few ways in, a Theme submenu and Sign out.
 
 **Why:** A setting answered inside a menu has no address to link, search or come back to.
 

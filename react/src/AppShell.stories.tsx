@@ -7,6 +7,7 @@ import { DataTable } from './DataTable';
 import { Button } from './primitives/Button';
 import { Dropdown } from './Dropdown';
 import { icon } from '@apliteni/apliteni-ui';
+import { expect, userEvent, within } from 'storybook/test';
 
 const sections = [
   { href: '/overview', label: 'Overview', icon: 'chart' },
@@ -94,9 +95,27 @@ export const PhoneCompany: Story = { render, globals: { viewport: { value: 'phon
   args: { bandControl: company, headControl: bell } };
 
 // Small page tools at the end of the title row, and the product's own rows in the account
-// menu, above the theme row and Sign out. The page opens on its title alone. (#736)
+// menu, above the Theme row and Sign out. The page opens on its title alone. (#736)
 const tools = <><Badge>v3</Badge><Button size="sm" icon="layout">Customize</Button></>;
 const accountItems = [{ label: 'Account settings', icon: 'gear' }, { label: 'Support', icon: 'chat', href: '#support' }];
 export const PageTools: Story = { render, args: { lede: undefined, tools, accountItems } };
 export const PageToolsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { lede: undefined, tools, accountItems } };
+
+// The Theme row opens its submenu: beside the menu in the sidebar, in place of the
+// menu's rows in the phone drawer. Enter opens it on the first choice (#736).
+const openTheme = async (where: HTMLElement) => {
+  const scope = within(where);
+  await userEvent.click(scope.getByRole('button', { name: /^Signed in as/ }));
+  scope.getByRole('menuitem', { name: /^Theme/ }).focus();
+  await userEvent.keyboard('{Enter}');
+  await expect(within(document.body).getByRole('menu', { name: 'Theme' })).toBeVisible();
+};
+export const ThemeSubmenu: Story = { render, args: { lede: undefined, accountItems },
+  play: async ({ canvasElement }) => openTheme(within(canvasElement).getByRole('region', { name: 'Sidebar' })) };
+export const ThemeSubmenuPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  args: { lede: undefined, accountItems },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Menu' }));
+    await openTheme(within(document.body).getByRole('dialog').querySelector('.ui-app__drawer') as HTMLElement);
+  } };
