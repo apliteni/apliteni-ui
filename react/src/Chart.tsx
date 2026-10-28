@@ -177,22 +177,16 @@ const FALLBACK_COL = 48;
  * proportion every reference keeps, however wide the chart is drawn.
  */
 const BAR_SHARE = 0.5;
-const BAR_MAX = 24;
+const BAR_MAX = 12;
 /**
  * The same cap for a bridge, whose columns are not a month's. A bridge draws
  * one column per step and each carries its own name, so a column is three or
  * four times as wide; a mark capped at a month's width would be a sliver in it,
  * and the carry joining two steps would be longer than the steps it joins.
  */
-const BAR_MAX_BRIDGE = 40;
+const BAR_MAX_BRIDGE = 22;
 /** The ground between two bars that share a column. */
 const LANE_GAP = 2;
-/**
- * The corner radius a bar spends on the end the reader measures from. The other
- * end stands on the zero line and stays square: a rounded foot lifts the bar off
- * the one rule the chart draws, and the top of a bar has to measure its length.
- */
-const BAR_RADIUS = 4;
 
 /** What the table prints where the caller gave no value, as the kit's numeric
  *  value formatter does. */
@@ -223,13 +217,15 @@ function onPrevious(value: number, previous: number | undefined, when: string) {
 
 /**
  * A bar, drawn as a path so the end that stands on the zero line can be left
- * square while the end the reader measures from is rounded. SVG gives a `rect`
+ * square while the end the reader measures from is fully round: its radius is
+ * half the bar's width. A rounded foot would lift the bar off the one rule the
+ * chart draws, and the top of a bar has to measure its length. SVG gives a `rect`
  * one radius for all four corners, and a foot on the zero line needs none.
  * `foot` names the edge that stands on zero; a bridge step floats between two
  * running totals and stands on nothing, so it is rounded at both ends.
  */
 function barPath(m: { x: number; y: number; w: number; h: number; foot: 'top' | 'bottom' | null }): string {
-  const r = Math.min(BAR_RADIUS, m.w / 2, m.h / (m.foot ? 1 : 4));
+  const r = Math.min(m.w / 2, m.h / (m.foot ? 1 : 4));
   const { x, y: top, w, h } = m;
   const bottom = top + h;
   const arc = (dx: number, dy: number, sweep: 0 | 1) =>
@@ -663,9 +659,9 @@ export function Chart(props: ChartProps) {
                 </svg>
               ) : (
                 <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                  <rect
-                    className="ui-chart__key-swatch" x="1" width="10" height="5" rx="1"
-                    y={key.shape === 'bars-below' ? 6 : 1}
+                  <path
+                    className="ui-chart__key-swatch"
+                    d={barPath({ x: 3.5, y: 1, w: 5, h: 10, foot: key.shape === 'bars-below' ? 'top' : 'bottom' })}
                   />
                 </svg>
               )}
@@ -675,7 +671,7 @@ export function Chart(props: ChartProps) {
           {estimated.length > 0 && (
             <li className={cx('ui-chart__key', `ui-chart__tone--${estimatedTone}`)}>
               <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                <rect className="ui-chart__key-estimated" x="1.5" y="1.5" width="9" height="9" rx="1" />
+                <rect className="ui-chart__key-estimated" x="1.5" y="1.5" width="9" height="9" rx="2.5" />
               </svg>
               Estimated
             </li>

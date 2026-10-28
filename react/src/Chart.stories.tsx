@@ -19,14 +19,15 @@ const periods: ChartPeriod[] = MONTHS.map((label, i) => (i === MONTHS.length - 1
   ? { label, estimated: true, note: 'November is still running' }
   : { label }));
 
-/* One hue at two weights for the two measured series, and the second hue for the
-   one derived from them. Income and spend are the same money read two ways, so
-   they read apart by weight and by which side of zero they stand on. Good and
+/* Two hues for the two measured series, and a third for the one derived from
+   them. Income and spend are the same money read two ways, so they read apart
+   by hue and by which side of zero they stand on. Good and
    bad would have said which of the two is the better news, which no month
    decides.
    Round 27 of #543 picked these two hues; the drawing around them was redrawn
    against eight references on round 37, and the hues were kept. #740 made them
-   the chart's own fixed steps, so they no longer follow the product accent. */
+   the chart's own fixed steps, so they no longer follow the product accent, and
+   gave accent-soft a hue of its own. */
 const series: ChartSeries[] = [
   { id: 'income', name: 'Income', values: INCOME, shape: 'bars', tone: 'accent' },
   { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars-below', tone: 'accent-soft' },

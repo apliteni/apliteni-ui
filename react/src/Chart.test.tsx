@@ -465,13 +465,16 @@ it('spends a bar\'s corner radius on the end away from zero, and none on the foo
   const { container } = months();
   const svg = container.querySelector('.ui-chart__svg')!;
   const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
-  // The tolerance is the radius itself, read from the component: an arc leaves
-  // the edge it rounds exactly that far, so hard-coding it here would fail the
-  // next time the radius moves and would say nothing about where the arc is.
-  const radius = Number(/const BAR_RADIUS = (\d+)/.exec(readRepo('./Chart.tsx'))![1]);
   for (const bar of svg.querySelectorAll('path.ui-chart__bar')) {
     const box = boxOf(bar);
     const arcs = arcsOf(bar);
+    // The data end is fully round: the radius is half the bar's width, unless
+    // the bar is too short to spend it. An arc leaves the edge it rounds exactly
+    // that far, so the radius is also the tolerance for where the arc sits.
+    const radius = Math.min(box.width / 2, box.height);
+    for (const [, r] of (bar.getAttribute('d') ?? '').matchAll(/a(-?\d*\.?\d+)/g)) {
+      expect(Math.abs(Number(r) - radius), `${classOf(bar)} is round at its data end`).toBeLessThanOrEqual(0.1);
+    }
     expect(arcs, `${classOf(bar)} rounds exactly one end`).toHaveLength(2);
     const onZero = Math.abs(box.y - zeroY) < Math.abs(box.y + box.height - zeroY) ? 'top' : 'bottom';
     const far = onZero === 'top' ? box.y + box.height : box.y;
