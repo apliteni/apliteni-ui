@@ -96,9 +96,9 @@
 
 **Why:** A key sends the eye from a line to the key and back and gives no amount, but a tap shows the readout with the values at that point.
 
-**Do:** Spend with last values, and seasonal spend with a key.
+**Do:** Spend with a key and last values, and seasonal spend with a key.
 
-**Don't:** The same two lines with a key and no values.
+**Don't:** The same two lines without values.
 
 ## Draw at most two lines on a chart
 

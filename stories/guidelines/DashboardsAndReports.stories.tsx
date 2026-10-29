@@ -99,8 +99,8 @@ const MonthBlock = ({ view: initial }: { view: string }) => {
     aria-labelledby={`${id}-tab-${i}`} tabIndex={0} hidden={option.value !== view}>{option.value === view ? option.panel : null}</div>)}</Card>;
 };
 
-// The kit's line chart. The labels look writes each line's name and last value at
-// its end; the thin look writes no value, and `legend` draws its key.
+// The kit's line chart. `legend` draws the key that names the lines. The labels
+// look adds each line's last value at its end, and the thin look writes no value.
 const SPEND_SERIES: ChartLookSeries[] = [
   { id: 'spend', name: 'Spend', tone: 'accent', values: SPEND }, { id: 'estimated', name: 'Estimated', tone: 'accent-soft', values: ESTIMATED }];
 const INCOME_SERIES: ChartLookSeries[] = [
@@ -163,11 +163,12 @@ const specimens = [
     do: () => <Stage><MonthBlock view="chart" /><MonthBlock view="table" /></Stage>,
     dont: () => <Stage><Card title="Net settled by month"><MonthChart /><MonthTable /></Card></Stage> },
   { id: 'value-not-legend',
-    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} />
+    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
       <LineCard title="Seasonal spend, 2024 and 2025" series={SEASON_SERIES} look="thin" legend span="first half of each year" periods={HALF_YEAR} /></Stage>,
     dont: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} look="thin" legend /></Stage> },
   { id: 'two-lines-at-most',
-    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} /><LineCard title="Revenue against expenses" series={INCOME_SERIES} /></Stage>,
+    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
+      <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend /></Stage>,
     dont: () => <Stage><LineCard title="Spend and income" series={ALL_SERIES} look="thin" legend /></Stage> },
 ];
 
