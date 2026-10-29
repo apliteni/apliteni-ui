@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
+import { expect, userEvent, within } from 'storybook/test';
 import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
 import type { ChartSlice } from './chart-looks';
 import { Card } from './primitives/Card';
@@ -49,6 +50,19 @@ export const Months: StoryObj = {
         periods={periods} series={series} format={eur} formatAxis={eurAxis} />
     </Card>
   ),
+};
+
+/** The same card after "Show as a table" in the "Chart options" menu at the end
+ *  of its title row (#736). The table takes the plot's place, and the same row
+ *  now reads "Show as a chart". */
+export const AsTable: StoryObj = {
+  ...Months,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Chart options' }));
+    await userEvent.click(within(canvasElement.ownerDocument.body).getByRole('menuitem', { name: 'Show as a table' }));
+    await expect(canvas.getByRole('table', { name: 'Income and spend by month, last 12 months, with net' })).toBeVisible();
+  },
 };
 
 /** The same months with no unfinished period: every column solid, so the hollow

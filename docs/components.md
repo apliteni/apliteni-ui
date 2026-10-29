@@ -1108,16 +1108,19 @@ state and its `note`.
 **The value axis, the period row and the legend are quiet, and nothing is only there.** Every
 data value is reachable at full strength through pointer readouts and keyboard announcements.
 
-**A switch in the top right corner shows the same numbers as a chart or as a table.** It is a
-toolbar of two glyph buttons named Chart and Table, with the pressed one marked. The chart shows
-first. The table replaces the plot, and the switch keeps its place.
+**The table is one menu away.** A "…" button named "Chart options" sits in the top right corner.
+In a titled `<Card>` it sits at the end of the card's title row instead, and the chart draws no
+row of its own for it. When a card holds two charts, the first one puts its button there. The
+button opens the kit's menu dropdown with one row, "Show as a table". That row puts the table in
+the plot's place and then reads "Show as a chart". The chart shows first. The button reaches the
+phone tap floor. Pass `table={false}` to drop the button and the table.
 
 **Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
 paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark
-changes colour, so each tone stays with the series it names. The switch is the first tab stop
-and the chart is the second: Left,
+changes colour, so each tone stays with the series it names. The "Chart options" button is the
+first tab stop and the chart is the second: Left,
 Right, Home and End step columns and announce each one politely, Enter picks one when `selectable`
-is set, and `title` names the plot, the table and the switch without being drawn, because the card
+is set, and `title` names the plot and the table without being drawn, because the card
 around a chart already carries its title.
 
 **On a touch screen a tap opens the readout and a second tap on the same mark closes it. The tap

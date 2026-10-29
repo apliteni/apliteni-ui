@@ -4,11 +4,14 @@
 // pixels, the keyboard and the markup, and nothing else.
 // why: docs/components.md#react-charts
 import {
-  useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState,
+  useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState,
   type CSSProperties, type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { CHART_FLOOR, bridgeWalk, chartScale, pointTarget } from '@apliteni/apliteni-ui';
-import { Segmented } from './Segmented';
+import { Dropdown } from './Dropdown';
+import { CardTools } from './primitives/Card';
+import { Icon } from './primitives/Icon';
 import { placeTip } from './tip';
 import {
   LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, pct,
@@ -84,8 +87,8 @@ type ChartCommon = {
   formatAxis?: (value: number) => string;
   /** The plot's height in CSS px. */
   height?: number;
-  /** Offer the same numbers as a table, behind a chart and table switch at the
-   *  top right. On by default, off for a sparkline. */
+  /** Offer the same numbers as a table, behind a "Chart options" menu at the
+   *  top right, or in a titled Card's title row. On by default, off for a sparkline. */
   table?: boolean;
   /** Draw a key that names each series. Off by default: the readout and the
    *  table name every series. */
@@ -531,6 +534,17 @@ export function Chart(props: ChartProps) {
 
   const uid = useId().replace(/[^\w-]/g, '');
   const frameEl = useRef<HTMLDivElement>(null);
+  const head = useRef<HTMLDivElement>(null);
+  // In a titled Card the "Chart options" button sits at the end of the card's
+  // title row, so the chart draws no row of its own for it.
+  const card = useContext(CardTools);
+  const claim = card?.claim;
+  useLayoutEffect(() => (showTable && claim ? claim(uid) : undefined), [showTable, claim, uid]);
+  const toCard = showTable && card?.owner === uid ? card.slot : null;
+  // A wordless button also owes a hover title, and the kit's Dropdown takes none.
+  useEffect(() => {
+    (toCard ?? head.current)?.querySelector('.ui-chart__more')?.setAttribute('title', 'Chart options');
+  }, [showTable, toCard]);
   const scroller = useRef<HTMLDivElement>(null);
   const plot = useRef<HTMLDivElement>(null);
   const tipEl = useRef<HTMLSpanElement>(null);
@@ -831,6 +845,14 @@ export function Chart(props: ChartProps) {
       )}
     </ul>
   );
+  const more = showTable && (
+    <Dropdown
+      variant="menu" align="end" chevron={false} triggerClass="ui-chart__more"
+      ariaLabel="Chart options" triggerContent={<Icon name="moreHorizontal" />}
+      items={[{ label: asTable ? 'Show as a chart' : 'Show as a table', value: 'view' }]}
+      onSelect={() => { setOpenId(null); setView(asTable ? 'chart' : 'table'); }}
+    />
+  );
   const noun = look?.layout === 'ring' ? 'slices' : look?.layout === 'rows' ? 'rows' : 'columns';
 
   return (
@@ -844,16 +866,11 @@ export function Chart(props: ChartProps) {
         '--ui-chart-pad': `${PAD}px`,
       } as CSSProperties}
     >
-      {(showTable || (legendFirst && legend)) && (
-        <div className="ui-chart__head">
+      {toCard && createPortal(more, toCard)}
+      {((showTable && !toCard) || (legendFirst && legend)) && (
+        <div className="ui-chart__head" ref={head}>
           {legendFirst && legend}
-          {showTable && (
-            <Segmented size="sm" label={`${title}, view`} value={view}
-              onChange={(next) => setView(next as 'chart' | 'table')} options={[
-                { value: 'chart', label: 'Chart', icon: 'chart', iconOnly: true },
-                { value: 'table', label: 'Table', icon: 'table', iconOnly: true },
-              ]} />
-          )}
+          {!toCard && more}
         </div>
       )}
 

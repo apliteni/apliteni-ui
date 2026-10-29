@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.147.0', date: '2026-10-29',
+    changes: [
+      ['added', 'React `Card` takes `tools`, small controls at the end of a titled card\'s title row, on a desktop and on a phone, with no extra row. In the vanilla kit, `.ui-card__head` holds the title and `.ui-card__tools`. Part of #736.', ['Card']],
+      ['changed', 'React `Chart` puts its table behind a "…" button named "Chart options". Its menu row "Show as a table" puts the table in the plot\'s place, and "Show as a chart" brings the plot back. In a titled `Card` the button sits in the card\'s title row. The Chart and Table switch is gone, and `iconOnlyAllowed` no longer lists `chart` and `table`. Part of #736.', ['Chart', 'Card']],
+    ],
+  },
+  {
     v: '0.146.0', date: '2026-10-28',
     changes: [
       ['added', 'React `Chart` adds the variants `line`, `area`, `stacked` and `donut`. Each takes `look` to pick one of three drawings, and keeps the readout, the keyboard steps, the live region and the values table. A donut takes `slices` and an optional `totalLabel`. Part of #742.', ['Chart']],
