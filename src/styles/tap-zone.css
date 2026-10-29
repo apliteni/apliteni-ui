@@ -169,6 +169,12 @@
   }
   .ui-table__act { --tap-clear-x: var(--tap-gap); --tap-clear-y: 0px; }
 
+  /* A card's title row holds a 24px trigger at its end: across, the room
+     beside it is title text, and down, the row opens to 12px, because the
+     layer reaches 10px under it and the title gap is 8. */
+  .ui-card__head { margin-bottom: var(--space-3, 12px) !important; }
+  .ui-card__tools { --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-gap); }
+
   /* The selection box is 19px in a 58px row and a 34px header: the layer has room to reach the floor both ways. */
   .ui-table__selection { --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-min); }
   /* A dense or compact table's rows are 33px to 40px apart and share an edge, so a layer that grows down takes the pixels nearest the next row's box. Those rows keep the 24px floor. */

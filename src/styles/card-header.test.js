@@ -8,7 +8,8 @@
  *
  * The gap was 5px, which is off the scale and tight enough that a card's description read as
  * part of its heading rather than under it. Artur marked it on #532. The steps are read out of
- * tokens.css, never repeated here.
+ * tokens.css, never repeated here. A card with tools (#736) wraps its title in a row, and the
+ * row's gap is held to the same step.
  *
  * why: docs/foundations.md#spacing-and-rhythm
  */
@@ -65,9 +66,10 @@ function step(value) {
 const PAIR = [
   ['.ui-card__title', 'the gap under a card title is what separates it from its description'],
   ['.ui-card__sub', 'the gap under a card description is what separates the header from the card'],
+  ['.ui-card__head', 'the gap under a title row with tools is the title gap, carried by the row'],
 ];
 
-test('both card-header gaps are steps of the scale', () => {
+test('every card-header gap is a step of the scale', () => {
   const problems = [];
   let measured = 0;
   for (const [selector, what] of PAIR) {
@@ -79,7 +81,7 @@ test('both card-header gaps are steps of the scale', () => {
     measured += 1;
     if (!step(value)) problems.push(`${selector}: ${value} is not 0 and not a --space-* step — ${what}`);
   }
-  assert.equal(measured, PAIR.length, 'both gaps must be measured, not one');
+  assert.equal(measured, PAIR.length, 'every gap must be measured, not some');
   assert.deepStrictEqual(problems, []);
 });
 
@@ -93,6 +95,24 @@ test('the title gap is roomy enough to separate two text ranks', () => {
     `the card title's bottom margin is ${SPACE[name]}px; a description one step above the `
     + 'floor reads as part of the heading, which is what #532 was marked for',
   );
+});
+
+// #736: a card with tools wraps its title in a row. The row takes the title's gap and
+// the title inside gives its own up, so a card is as tall with tools as without.
+// Limit: this reads the declarations; the row's height is in the captures on the issue.
+const headTitle = (css) => /\.ui-card__head\s*>\s*\.ui-card__title\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+test('a title row carries the title gap, and the title inside it carries none', () => {
+  assert.equal(bottomMargin(CSS, '.ui-card__head'), bottomMargin(CSS, '.ui-card__title'));
+  assert.match(headTitle(CSS), /(?:^|;)\s*margin:\s*0\s*;/, 'the title inside a row keeps its own gap, so the row adds a second');
+});
+
+test('the title-row check rejects a row that adds a second gap', () => {
+  const doubled = CSS.replace(/(\.ui-card__head\s*>\s*\.ui-card__title\s*\{[^}]*?)margin:\s*0\s*;/, '$1');
+  assert.notEqual(doubled, CSS);
+  assert.doesNotMatch(headTitle(doubled), /(?:^|;)\s*margin:\s*0\s*;/);
+  const off = CSS.replace(/(\.ui-card__head\s*\{[^}]*?)margin:\s*0 0 var\(--space-2\);/, '$1margin: 0 0 var(--space-4);');
+  assert.notEqual(off, CSS);
+  assert.notEqual(bottomMargin(off, '.ui-card__head'), bottomMargin(off, '.ui-card__title'));
 });
 
 /* -- The gate's own gate ---------------------------------------------------- */
