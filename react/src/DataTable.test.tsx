@@ -930,35 +930,21 @@ it('renders the scroll region where the card bleed can reach it', () => {
 });
 
 describe('the vanilla table hooks', () => {
-  it('maps zebra, stack and hover onto the kit modifiers, with hover on by default', () => {
+  it('maps zebra and hover onto the kit modifiers, with hover on by default', () => {
     const { container, rerender } = render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} />);
     const table = container.querySelector('table')!;
     expect(table).toHaveClass('ui-table--hover');
     expect(table).not.toHaveClass('ui-table--zebra');
-    expect(table).not.toHaveClass('ui-table--stack');
-    rerender(<DataTable columns={columns} rows={rows} selectable={false} pager={false} zebra stack hover={false} />);
-    expect(container.querySelector('table')).toHaveClass('ui-table--zebra', 'ui-table--stack');
+    rerender(<DataTable columns={columns} rows={rows} selectable={false} pager={false} zebra hover={false} />);
+    expect(container.querySelector('table')).toHaveClass('ui-table--zebra');
     expect(container.querySelector('table')).not.toHaveClass('ui-table--hover');
   });
 
-  it('writes the roles a stacked table loses, and none otherwise', () => {
-    const { container, rerender } = render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} stack />);
-    expect(container.querySelector('table')).toHaveAttribute('role', 'table');
-    expect(container.querySelectorAll('thead th[role="columnheader"]')).toHaveLength(2);
-    expect(container.querySelectorAll('tbody tr[role="row"]')).toHaveLength(3);
-    expect(container.querySelectorAll('tbody td[role="cell"]')).toHaveLength(6);
-    rerender(<DataTable columns={columns} rows={rows} selectable={false} pager={false} />);
-    expect(container.querySelector('[role]')).toBeNull();
-  });
-
-  it('keeps the row header and footer roles of a stacked table, and labels its amounts', () => {
+  it('ignores the deprecated stack prop, so a phone table keeps its columns', () => {
     const { container } = render(<DataTable selectable={false} pager={false} stack rows={rows}
-      columns={[{ key: 'name', label: 'Name', rowHeader: true }, { key: 'clicks', label: 'Clicks', num: true }]}
-      footer={<tr><th scope="row">Total</th><td className="ui-table__num">60</td></tr>} />);
-    expect(container.querySelector('tbody th[scope="row"]')).toHaveAttribute('role', 'rowheader');
-    expect(container.querySelector('tfoot')).toHaveAttribute('role', 'rowgroup');
-    expect(container.querySelector('tbody td.ui-table__num')).toHaveAttribute('data-label', 'Clicks');
-    expect(container.querySelector('tbody td:not(.ui-table__num)')).toBeNull();
+      columns={[{ key: 'name', label: 'Name', rowHeader: true }, { key: 'clicks', label: 'Clicks', num: true }]} />);
+    expect(container.querySelector('table')).not.toHaveClass('ui-table--stack');
+    expect(container.querySelector('[role], [data-label]')).toBeNull();
   });
 
   it('puts a table that does not scroll directly in its parent, so a card can bleed it', () => {

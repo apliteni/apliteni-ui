@@ -15,6 +15,8 @@ A showcase or a component story may place kit parts with layout glue. Its own CS
 motion, a re-declared token, or a restyled kit class is a violation of the declared system. Report
 it as a defect with the file and the declaration. Name the result of `stories/story-css.test.js` and
 of `react/src/story-css.test.ts`. A glue entry in a gate's allow-list stands only with its reason.
+A foundations page and a guideline page are not showcases. Their specimens may paint, because
+`stories/story-css.test.js` leaves them out of the gate on purpose (#601).
 [Changes](#changes) holds the rule itself.
 
 ## Data handling
@@ -70,8 +72,10 @@ automatically, and explain the cause and limitation of each accepted failure.
 Before opening a PR that changes colours, tokens or theme/accent CSS, run:
 `node --test stories/accent-contrast.test.js`
 Report the result in the PR. It measures the accent tokens in all eight theme and accent cells.
-The React walk renders the default accent only. The render walk of the other accents was removed
-with the vanilla stories in #724.
+The vanilla accent matrix went with the vanilla factories in #724, so no gate walks every story
+under every accent. The contrast walk in `react/src/contrast-walk.tsx` uses the default accent.
+Say in the PR which accent each changed colour was measured under.
+`react/src/Chart.contrast.test.tsx` measures the chart tones under every accent.
 
 ## Check the phone tap floor locally
 
@@ -132,7 +136,8 @@ Report the result in the PR. CI runs only this gate's source half.
 ## Check the table edge shade locally
 
 Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` edge-shade rules,
-measure both edges in a real browser — the source half only reads selectors, not paint:
+measure both edges in a real browser — the source half only reads selectors, not paint.
+Run `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_CHROME=… EDGE_SHADE=1 node --test stories/table-edge-shade.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 
@@ -231,7 +236,7 @@ attribute, or a stylesheet only a story imports — may only place kit parts: a 
 and a kit class named only with a reason in the allow-list beside the gate.
 Paint, type, motion or a re-declared token is a shadow kit — fix it, or file the part the kit is
 missing. Treat local CSS in a showcase as a defect to justify in review, not a style choice.
-See #601.
+Foundations and guideline pages are outside this rule. See #601.
 
 Change generated brand tokens and marks in `apliteni/design-system`, then sync them here. Use
 unmodified Lucide paths for glyphs, recording the Lucide source name when it differs from the kit

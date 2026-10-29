@@ -58,7 +58,7 @@
     {
       "file": "react/src/Chart.test.tsx",
       "name": "React: Chart",
-      "does": "Checks the chart's accessible names, the one tab stop inside the plot and the kit ring on every focusable part — including the named scroller around the table, which the sheet rings rather than the browser — arrow/Home/End stepping with its polite announcements, Enter selection and the band behind the picked column with its strong-ink, heavier label, the readout's contents and its Escape behaviour, the whole touch sequence down to the click behind it, where the tap that opens a readout picks nothing and the tap that closes one does, the box every mark offers a pointer and how much of the room around it a line's point may take once a coarse pointer asks for the phone floor, the hollow bar and dash on an unfinished period, the hairline at every tick with the zero rule over them, the flat fill, the one rounded end and the capped width on every bar, the lane two bar series in one band take each, the carry a bridge draws from one step to the next, the ground casing under a line that carries no markers, the table fallback, and axe results in both themes.",
+      "does": "Checks the chart's accessible names, the one tab stop inside the plot and the kit ring on every focusable part — including the named scroller around the table, which the sheet rings rather than the browser — arrow/Home/End stepping with its polite announcements, Enter selection and the band behind the picked column with its strong-ink, heavier label, the readout's contents and its Escape behaviour, the whole touch sequence down to the click behind it, where the tap that opens a readout picks nothing and the tap that closes one does, the box every mark offers a pointer and how much of the room around it a line's point may take once a coarse pointer asks for the phone floor, the hollow bar and dash on an unfinished period, the hairline at every tick with the zero rule over them, the fade from each bar's base on zero to its data end with its per-chart ramp ids, the bridge's fade from one running total to the next, the one rounded end and the capped width on every bar, the lane two bar series in one band take each, the carry a bridge draws from one step to the next, the ground casing under a line that carries no markers, the table fallback, and axe results in both themes.",
       "blind": [
         "JSDOM has no layout, so the readout's placement, the grid's hairline beside the zero rule, the scroll fade and the focus ring are not measured as painted; browser captures cover those. The pointer targets are read off the attributes the component writes, with the media query and the plot's measured width both stubbed, so what a real coarse pointer gets — and whether the table's scroller really overflows a 390px card — is a browser measurement too. Which colour each series takes, and whether it clears the graphic bar, is react/src/Chart.contrast.test.tsx. Screen-reader speech is not run, and no test drives real touch hardware: the sequence is fired as events."
       ]
@@ -66,9 +66,9 @@
     {
       "file": "react/src/Chart.contrast.test.tsx",
       "name": "React: Chart contrast",
-      "does": "Discovers every chart tone from the stylesheet and every tone name from the component's own union, fails when the two disagree, and measures each tone against both grounds the kit draws a chart on — the card and the page — in both themes and under every accent discovered in accents.css, against the 3:1 graphic bar. Asserts the measured count, names the tightest row, and proves rejection twice: the lighter weight of the accent drawn at the share the restyle's mock used, and a tone whose value stops resolving.",
+      "does": "Discovers every chart tone from the stylesheet and every tone name from the component's own union, fails when the two disagree, checks that each tone and its fade resolve the same under every accent discovered in accents.css, and measures each tone's strong end against both grounds the kit draws a chart on — the card and the page — in both themes, against the 3:1 graphic bar. Asserts the measured count, names the tightest row, and proves rejection twice: every fade end on the card, which is below the bar by design, and a tone whose value stops resolving.",
       "blind": [
-        "The ratios come from the stylesheet's own values rather than from painted pixels, so antialiasing, a host override and a ground a consumer names through --ui-chart-ground are outside it; browser captures carry the paint.",
+        "The ratios come from the stylesheet's own values rather than from painted pixels, so antialiasing, the ramp between a bar's two ends, a host override and a ground a consumer names through --ui-chart-ground are outside it; browser captures carry the paint.",
         "The grid, the zero rule and the line's casing are structure rather than series — the kit's edge and ground tokens — and are not measured against the bar."
       ]
     },
@@ -951,17 +951,6 @@
       ]
     },
     {
-      "file": "stories/table-stack.test.js",
-      "name": "Stacked table rows",
-      "does": "Renders every story that uses the stacked-table modifier and makes three checks on each stacked table it finds. That it names its table, row group, row, column header and cell roles in the markup, and still has a header row to clip, because a stylesheet cannot write a role. That nothing focusable is left in that clipped header, which can draw no focus ring. And that an order announced there by aria-sort has a focusable outside the table naming it in aria-controls, so the order can be changed by whoever is told about it.",
-      "blind": [
-        "Historical browser captures, manual checks and browser measurements mentioned in this entry were not authenticated in this audit. They do not prove this head.",
-        "Markup is not speech: this reads attributes and cannot tell whether a screen reader announces a stacked row as a table, and it measures no layout, focus order or contrast.",
-        "How much the roles are worth was measured in one engine. In Chromium, stripping them leaves table, row, cell and columnheader standing and loses only the body's row group; WebKit and Gecko are unmeasured, so all five are required rather than the one engine shown to drop.",
-        "No story in the kit announces an order while stacked, so that check passes over the swept stories without judging one. It is held instead by the fixtures beside it, which keep unrelated focusables on the page: an earlier version asked only whether the page had a focusable at all, and passed the exact defect it was written to catch."
-      ]
-    },
-    {
       "file": "react/src/AccentPicker.test.tsx",
       "name": "React: AccentPicker",
       "does": "Checks controlled accent selection, accessible names and pressed state, native keyboard activation, focus retention, form safety, SSR and host-owned persistence.",
@@ -1093,15 +1082,6 @@
       "blind": [
         "The colour behind the text is composited from the cascade; a gradient or an image behind it is reported as such and not measured.",
         "Text a specimen draws is not prose and is not read."
-      ]
-    },
-    {
-      "file": "react/src/table-stack.test.tsx",
-      "name": "React: stacked table roles",
-      "does": "Mounts every React story and checks that every table with the stacked modifier carries its own table, row group, row, header and cell roles, keeps its clipped header free of focus stops, and announces no sort order without a control outside the table that names it.",
-      "blind": [
-        "It reads markup: it proves the roles are present, not that a screen reader announces the table.",
-        "Only the stacked modifier is read; a table a consumer stacks another way is outside it."
       ]
     },
     {

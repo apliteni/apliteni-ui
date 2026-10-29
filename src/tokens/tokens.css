@@ -331,6 +331,24 @@
   /* Backdrop that dims the page behind an overlay (drawer, modal, composer). */
   --scrim: rgba(0, 0, 0, 0.58);
 
+  /* Chart series tones (#740, the "Soft fade" palette), the same under every accent. A tone is the bar's data
+     end and clears 3:1 on the card and the page; its -fade is the bar's base, a tint
+     of the tone that does not clear 3:1 on the card by design. why: docs/components.md#react-charts */
+  --chart-accent: #347bcd;
+  --chart-accent-fade: #2b5185;
+  --chart-accent-soft: #26a7a9;
+  --chart-accent-soft-fade: #246971;
+  --chart-bad: #dd6a77;
+  --chart-bad-fade: #884856;
+  --chart-good: #4c7a37;
+  --chart-good-fade: #395133;
+  --chart-warn: #b78c26;
+  --chart-warn-fade: #745b29;
+  --chart-info: #9256a0;
+  --chart-info-fade: #5f3d6c;
+  --chart-neutral: #a29db6;
+  --chart-neutral-fade: #686478;
+
   /* Accent gradient stops (hero headline, marketing) — overridden per sub-theme.
      --grad-from is pinned to a literal rather than tracking --purple-light, which #157
      moved up a step; every --grad-from in accents.css is a literal for the same reason. */
@@ -499,6 +517,22 @@
     0 1px 8px -3px color-mix(in srgb, var(--shadow-ink) 9%, transparent);
 
   --scrim: rgba(20, 22, 40, 0.38);
+
+  /* Chart series tones (#740): the dark block's comment holds for these. */
+  --chart-accent: #236cbd;
+  --chart-accent-fade: #86aedb;
+  --chart-accent-soft: #04999c;
+  --chart-accent-soft-fade: #75c7c9;
+  --chart-bad: #c15260;
+  --chart-bad-fade: #dda0a8;
+  --chart-good: #3e6c29;
+  --chart-good-fade: #95ae89;
+  --chart-warn: #a97e0e;
+  --chart-warn-fade: #d0b87a;
+  --chart-info: #80448d;
+  --chart-info-fade: #b998c0;
+  --chart-neutral: #5c6270;
+  --chart-neutral-fade: #a5a9b0;
 
   --grad-from: var(--purple-light);
   --grad-to: var(--cyan);

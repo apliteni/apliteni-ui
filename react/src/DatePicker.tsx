@@ -539,7 +539,8 @@ export function DatePicker({
   const shown = useMemo(() => {
     if (picksRange) {
       // A range names both ends in the short form, so the trigger holds a pair
-      // of dates in the width one long date would take.
+      // of dates in the width one long date would take. Two equal ends name
+      // one period, so it is said once.
       const text = (period: string | null) => {
         const index = toIndex(period, grain);
         if (index == null) return null;
@@ -547,7 +548,7 @@ export function DatePicker({
       };
       const from = text(span.start);
       const to = text(span.end);
-      if (from && to) return `${from} ${EN_DASH} ${to}`;
+      if (from && to) return from === to ? from : `${from} ${EN_DASH} ${to}`;
       if (from) return `From ${from}`;
       if (to) return `Until ${to}`;
       return null;

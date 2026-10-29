@@ -184,6 +184,10 @@ export const iconOnlyAllowed = {
   // and one button opens the full navigation in a drawer. The three-bar glyph is the
   // reader's own mark for this action.
   menu: 'open the navigation drawer',
+  // A chart card's view switch, decided by Artur on #742: the bars and the grid
+  // are the two views themselves, side by side in one toolbar at the card's corner.
+  chart: 'show the values as a chart',
+  table: 'show the values as a table',
 };
 
 // The word a wordless control's name may open with. The list above says which
@@ -205,6 +209,8 @@ export const iconOnlyNames = {
   // something else.
   download: ['export', 'download'],
   menu: ['menu'],
+  chart: ['chart'],
+  table: ['table'],
 };
 
 // What a glyph means when a component picks it for the reader rather than a

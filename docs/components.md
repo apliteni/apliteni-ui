@@ -683,14 +683,11 @@ decorative logo is not drawn there. A sub-line stays running text, which is a ru
 around the whole line**, because the cell clips and a band around the link alone could not close
 its right side.
 
-**Below the one-column step, a table marked `.ui-table--stack` lays each row out as a block
-instead of scrolling.** The identity and short cells appear on the first line. `.ui-table__long`
-appears below them. A card is as wide as the row, so a pinned identity wraps its whole name there,
-and the one-line cap and the filled cell both come off. The header row is clipped rather than
-removed, so a cell still reads with its column's name. **A clipped header is read but not operated**, so put a sort or filter control
-on the row above the table and name the table in `aria-controls`. The markup includes the table
-roles at every width because a stylesheet cannot add them. A value whose meaning comes from its
-heading must carry that meaning itself: give an amount cell `data-label` with its column's name, and a stacked row shows it before the figure. This is a rule in [Dense tables](../guidelines/dense-tables.md).
+**On a phone, a table stays a table.** No kit table lays its rows out as blocks. A table wider
+than the screen scrolls sideways inside its frame, and the page does not scroll. A pinned identity
+column stays at the frame's left edge on the table's own surface, so it follows the theme. While
+columns sit under it, a soft shade from the edge token falls to its right. At the left edge there
+is no shade. This is a rule in [Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
 change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
@@ -882,11 +879,10 @@ vanilla sections above.
 Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
 A `.ui-table__title` cell gives a text column the remaining width. A column takes `cell` for it:
 `title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
-`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `stack`, `density`,
+`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`,
 `stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
 and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
-with no strike line. `stack` writes the table roles that the block layout drops. Below the phone step each row
-shows every cell, so no amount scrolls out of reach. An amount column (`num`) with a text label shows that label before each figure. A table that does not scroll is the card's own child, so a dense or stacked table reaches the card's text edge.
+with no strike line. `stack` is deprecated and ignored: a phone table scrolls sideways like any other. A table that does not scroll is the card's own child, so a dense table reaches the card's text edge.
 Its pager follows the measured table width and wraps when necessary.
 Without `ResizeObserver`, the pager keeps its container width.
 A pager that renders no controls takes no space.
@@ -1073,31 +1069,66 @@ that swallowed Space would also prevent the reader from scrolling the page.
 
 ### React charts
 
-`Chart` draws three shapes: `months`, a column per period with bars and a line across them;
-`bridge`, one period walked from a starting total to a result; and `spark`, one series at text
-size with no axis, for a stat band's `trend` slot. The numbers, the wording and the formatting
+`Chart` draws seven shapes: `months`, a column per period with bars and a line across them;
+`bridge`, one period walked from a starting total to a result; `spark`, one series at text
+size with no axis, for a stat band's `trend` slot; and `line`, `area`, `stacked` and `donut`. The numbers, the wording and the formatting
 are yours — `format` prints exact values in the readout, the live region and the table, and
 `formatAxis` prints the ticks, which are whole units.
+
+**`line`, `area` and `stacked` take `periods` and `series`, and `donut` takes `slices`.** A series
+or a slice has no `shape`. Each of the four variants takes `look`, which picks one of three
+drawings of the same numbers:
+
+| `variant` | `look` values | Default |
+| --- | --- | --- |
+| `line` | `thin`, `points` (a point on each value), `labels` (the last value at the line's end, and a chart that scrolls opens on its latest period) | `thin` |
+| `area` | `flat` (each series from zero), `stacked`, `share` (each column is 100%) | `stacked` |
+| `stacked` | `columns`, `share` (each column is 100%), `rows` (a bar for each period) | `columns` |
+| `donut` | `thin` (the total in the centre), `table` (a list of the shares beside the ring), `labels` (the name, value and share at each slice) | `table` |
+
+A series or a slice without a `tone` takes the next tone of `accent`, `accent-soft`, `info`,
+`warn`, `good`, `bad` and `neutral`. `area`, `stacked` and `donut` take only values of 0 or more, and a negative value throws a `RangeError` before anything is drawn. A stacked look reads a missing value as zero. The readout of
+a stacked or a share look lists each series of the column and the total, and the table adds a
+`Total` column. A share look gives the parts as percentages, and its table keeps your values.
+The arrow keys step through the periods, the rows or the slices. A donut slice says its value
+and its share of the whole. `totalLabel` names the whole, and it defaults to `Total`. A donut has
+no `selectable`.
 
 **A mark is capped, whatever its column is worth.** A bar never passes a mark's width, so a chart
 that grows with the card gains ground between its columns rather than twelve wider blocks. Two bar
 series on the same side of the zero line stand side by side with ground between them; a
-`bars-below` series takes positive magnitudes and hangs under the line instead. A bar is flat,
+`bars-below` series takes positive magnitudes and hangs under the line instead. A bar is
 rounded only at the end away from zero, and its foot stands square on the rule it is measured
 from. A bridge carries each step's running total across to the step beside it.
 
-**An unfinished period keeps its series fill with a dashed edge.** The legend names the estimated state.
-The readout and the optional table show the state and its `note`.
+**A series takes one of seven fixed tones, and the product accent does not change them.** The
+tones are `accent`, `accent-soft`, `good`, `bad`, `warn`, `info` and `neutral`, with a light and a
+dark step for each theme. A bar fades from a light tint of its tone at its base on the zero line
+to the full tone at its data end, and a bar under zero fades the other way. The fill is opaque.
+The full tone clears 3:1 on the card and on the page in both themes. The tint is below 3:1 by
+design, because the data end, the zero line and the base carry the value. A bridge bar fades from
+the previous running total to the full tone at the new one, so a fall fades downwards. Lines,
+points and legend keys stay solid in the full tone. **An area ramps with its values:** the tint
+is at the series' lowest top and the full tone at its highest, in every column. An area with one
+value, a share band, a stacked part and a donut slice have no ramp.
+
+**The legend shows only when you pass `legend`.** **An unfinished period keeps its series fill
+with a dashed edge.** The legend names the estimated state. The readout and the table show the
+state and its `note`.
 
 **The value axis, the period row and the legend are quiet, and nothing is only there.** Every
 data value is reachable at full strength through pointer readouts and keyboard announcements.
-The optional values table opens on a control that reaches the phone tap floor.
+
+**A switch in the top right corner shows the same numbers as a chart or as a table.** It is a
+toolbar of two glyph buttons named Chart and Table, with the pressed one marked. The chart shows
+first. The table replaces the plot, and the switch keeps its place.
 
 **Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
 paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark
-changes colour, so the accent stays with the series it names. The chart is one tab stop: Left,
+changes colour, so each tone stays with the series it names. The switch is the first tab stop
+and the chart is the second: Left,
 Right, Home and End step columns and announce each one politely, Enter picks one when `selectable`
-is set, and `title` names the plot and the table under it without being drawn, because the card
+is set, and `title` names the plot, the table and the switch without being drawn, because the card
 around a chart already carries its title.
 
 **On a touch screen a tap opens the readout and a second tap on the same mark closes it. The tap
@@ -1109,9 +1140,9 @@ narrow sparkline can therefore own less than 44px across, but it still owns at l
 across and the full 44px down. A sparkline's slot grows with that vertical target, so a
 `trend` slot is 44px tall there instead of 32.
 
-The table the reader opens carries its columns sideways in a named scroller, so your card and your
-page keep their width whatever series you pass. At phone widths the plot scrolls with the value
-axis held in place, and the side that still hides columns is faded. Nothing animates.
+The table carries its columns sideways in a named scroller, so your card and your page keep their
+width whatever series you pass. At phone widths the plot scrolls with the value axis held in
+place, and a column cut by the edge shows that more periods are there. Nothing animates.
 
 ### React route navigation
 
@@ -1153,7 +1184,9 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   activate them.
 - **`Segmented`** is a controlled choice toolbar: one named toolbar, pressed buttons and **one
   Tab stop whatever the choice is.** Arrow keys wrap past disabled options; Home and End reach
-  the first and last enabled choice. `block` fills the container with either appearance.
+  the first and last enabled choice. `block` fills the container with either appearance. An
+  option's `icon` names a kit glyph drawn before its label. With `iconOnly`, the glyph is the
+  whole button and the label becomes its accessible name.
   **`size="sm"` compacts the pill appearance only:** under the underline appearance it changes
   the type size and leaves the tab at its full height.
 - **`Confirm`** builds on `Modal` as an `alertdialog`. It focuses the safe action and draws it
