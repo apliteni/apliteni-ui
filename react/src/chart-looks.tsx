@@ -3,7 +3,7 @@
 // the live region and the table; this file owns each look's geometry and the
 // SVG it draws.
 // why: docs/components.md#react-charts
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { ChartTone, Mark, MarkRow } from './Chart';
 
 export type ChartLineLook = 'thin' | 'points' | 'labels';
@@ -45,6 +45,8 @@ export type Look = {
 
 export type LookGeometry = {
   look: Look;
+  /** Prefixes the ids this drawing defines, so two charts on a page never share one. */
+  uid: string;
   labels: { short: string; estimated: boolean }[];
   plotWidth: number; plotHeight: number; colWidth: number;
   pad: number; target: number; floor: number;
@@ -238,12 +240,24 @@ function linesDrawing(g: LookGeometry, open: number | null) {
   const area = look.variant === 'area';
   const finite = (layer: Layer, i: number) => Number.isFinite(look.stacked ? layer.to[i] : layer.values[i]);
   const at = (layer: Layer, i: number) => (look.stacked ? layer.to[i] : layer.values[i]);
-  const fills = area && look.layers.map((layer) => {
+  /* An area ramps from its fade at the layer's lowest top to its tone at the
+     highest, in the plot's own units, so the strong colour sits where the values
+     are high. A layer with one top value has no range and stays flat. A share
+     look reaches the whole at every column, so it has no range either. */
+  const ramps = area && !look.share ? look.layers.map((layer) => {
+    const tops = layer.values.map((_, i) => at(layer, i)).filter(Number.isFinite);
+    const lo = Math.min(...tops);
+    const hi = Math.max(...tops);
+    return tops.length && y(lo) - y(hi) >= 1 ? { id: `${g.uid}-ramp-${layer.id}`, layer, lo, hi } : null;
+  }) : [];
+  const fills = area && look.layers.map((layer, k) => {
     const up = layer.to.map((v, i) => `${i ? 'L' : 'M'}${px(centre(i))} ${px(y(Number.isFinite(v) ? v : layer.from[i]))}`);
     const down = layer.from.map((v, i) => `L${px(centre(i))} ${px(y(v))}`).reverse();
+    const ramp = ramps[k];
     return (
       <path key={`fill-${layer.id}`}
         className={cx(look.share ? 'ui-chart__segment' : 'ui-chart__area', tone(layer.tone))}
+        style={ramp ? { '--ui-chart-paint': `url(#${ramp.id})` } as CSSProperties : undefined}
         d={`${up.join('')}${down.join('')}Z`} />
     );
   });
@@ -299,6 +313,17 @@ function linesDrawing(g: LookGeometry, open: number | null) {
   });
   return (
     <>
+      {ramps.some(Boolean) && (
+        <defs>
+          {ramps.map((ramp) => ramp && (
+            <linearGradient key={ramp.id} id={ramp.id} className={tone(ramp.layer.tone)}
+              gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={px(y(ramp.lo))} y2={px(y(ramp.hi))}>
+              <stop className="ui-chart__fade-base" offset="0" />
+              <stop className="ui-chart__fade-end" offset="1" />
+            </linearGradient>
+          ))}
+        </defs>
+      )}
       {fills}
       {open !== null && (
         <line className="ui-chart__cross"

@@ -8,6 +8,7 @@ import {
   type CSSProperties, type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 import { CHART_FLOOR, bridgeWalk, chartScale, pointTarget } from '@apliteni/apliteni-ui';
+import { Segmented } from './Segmented';
 import { placeTip } from './tip';
 import {
   LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, pct,
@@ -83,8 +84,12 @@ type ChartCommon = {
   formatAxis?: (value: number) => string;
   /** The plot's height in CSS px. */
   height?: number;
-  /** Offer the same numbers as a table. On by default, off for a sparkline. */
+  /** Offer the same numbers as a table, behind a chart and table switch at the
+   *  top right. On by default, off for a sparkline. */
   table?: boolean;
+  /** Draw a key that names each series. Off by default: the readout and the
+   *  table name every series. */
+  legend?: boolean;
   /** Let Enter and a click pick a column. */
   selectable?: boolean;
   /** The picked column, when the caller keeps that state. */
@@ -514,12 +519,15 @@ function KeyMark({ shape }: { shape: Key['shape'] }) {
 
 export function Chart(props: ChartProps) {
   const {
-    title, format, formatAxis = format, height, table, selectable, selected, onSelect, className,
+    title, format, formatAxis = format, height, table, legend: keyed = false, selectable, selected,
+    onSelect, className,
   } = props;
   const variant = props.variant ?? 'months';
   const spark = variant === 'spark';
   const plotHeight = height ?? HEIGHT[variant];
   const showTable = table ?? !spark;
+  const [view, setView] = useState<'chart' | 'table'>('chart');
+  const asTable = showTable && view === 'table';
 
   const uid = useId().replace(/[^\w-]/g, '');
   const frameEl = useRef<HTMLDivElement>(null);
@@ -601,9 +609,9 @@ export function Chart(props: ChartProps) {
 
   const axisFormat = look?.share ? pct : formatAxis;
   const geometry = useMemo<LookGeometry | null>(() => (look ? {
-    look, labels: columns, plotWidth, plotHeight, colWidth, pad: PAD, target: TARGET, floor,
+    look, uid, labels: columns, plotWidth, plotHeight, colWidth, pad: PAD, target: TARGET, floor,
     y, centre, scale, format, formatAxis: axisFormat,
-  } : null), [look, columns, plotWidth, plotHeight, colWidth, floor, y, centre, scale, format, axisFormat]);
+  } : null), [look, uid, columns, plotWidth, plotHeight, colWidth, floor, y, centre, scale, format, axisFormat]);
   const box = geometry ? lookBox(geometry) : null;
 
   const marks = useMemo<Mark[]>(() => {
@@ -691,20 +699,12 @@ export function Chart(props: ChartProps) {
     return () => observer.disconnect();
   }, []);
 
-  const syncEdges = useCallback(() => {
-    const el = scroller.current;
-    if (!el) return;
-    const last = el.scrollWidth - el.clientWidth;
-    el.classList.toggle('is-more-before', el.scrollLeft > 1);
-    el.classList.toggle('is-more-after', el.scrollLeft < last - 1);
-  }, []);
   // A labels look opens on its latest period, where its labels are.
   const opensAtEnd = variant === 'line' && lookName === 'labels';
   useLayoutEffect(() => {
     const el = scroller.current;
     if (opensAtEnd && el) el.scrollLeft = el.scrollWidth - el.clientWidth;
   }, [opensAtEnd, plotWidth, count]);
-  useEffect(syncEdges, [syncEdges, plotWidth, count]);
 
   /* -- the readout --------------------------------------------------------- */
 
@@ -771,7 +771,6 @@ export function Chart(props: ChartProps) {
     const el = scroller.current;
     if (el && el.scrollWidth > el.clientWidth) {
       el.scrollLeft = Math.max(0, centre(column) - el.clientWidth / 2);
-      syncEdges();
     }
   };
 
@@ -814,7 +813,7 @@ export function Chart(props: ChartProps) {
   // A thin ring reads its total first and its key after; the table look's list
   // beside the ring is its key.
   const legendFirst = !(look?.variant === 'donut' && look.look !== 'labels');
-  const legend = !spark && keys.length > 0 && !(look?.variant === 'donut' && look.look === 'table') && (
+  const legend = keyed && !asTable && keys.length > 0 && !(look?.variant === 'donut' && look.look === 'table') && (
     <ul className="ui-chart__legend">
       {keys.map((key) => (
         <li key={key.id} className={cx('ui-chart__key', `ui-chart__tone--${key.tone}`)}>
@@ -845,10 +844,24 @@ export function Chart(props: ChartProps) {
         '--ui-chart-pad': `${PAD}px`,
       } as CSSProperties}
     >
-      {legendFirst && legend}
+      {(showTable || (legendFirst && legend)) && (
+        <div className="ui-chart__head">
+          {legendFirst && legend}
+          {showTable && (
+            <Segmented size="sm" label={`${title}, view`} value={view}
+              onChange={(next) => setView(next as 'chart' | 'table')} options={[
+                { value: 'chart', label: 'Chart', icon: 'chart', iconOnly: true },
+                { value: 'table', label: 'Table', icon: 'table', iconOnly: true },
+              ]} />
+          )}
+        </div>
+      )}
 
+      {/* Hidden, not unmounted, so the width it measured is still there when
+          the reader switches back. */}
       <div
         ref={frameEl}
+        hidden={asTable}
         className="ui-chart__frame ui-tip-host ui-focusable"
         tabIndex={0}
         role="group"
@@ -880,7 +893,6 @@ export function Chart(props: ChartProps) {
             taken out of the tab order rather than given a second name.
             why: docs/components.md#react-charts */}
         <div ref={scroller} className="ui-chart__scroll" tabIndex={-1} onScroll={() => {
-          syncEdges();
           const anchor = [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
             .find((el) => el.getAttribute('data-anchor') === openId);
           if (!anchor || !scroller.current || !frameEl.current || !tipEl.current) return;
@@ -1127,9 +1139,8 @@ export function Chart(props: ChartProps) {
 
       <div className="ui-sr" role="status">{said}</div>
 
-      {showTable && (
-        <details className="ui-chart__data">
-          <summary className="ui-focusable">Values as a table</summary>
+      {asTable && (
+        <div className="ui-chart__data">
           {/* The kit's scroller, so four columns of exact money stay reachable
               in the card at any width, rather than widening the page under
               them. A browser makes an overflowing box keyboard-focusable on its
@@ -1165,7 +1176,7 @@ export function Chart(props: ChartProps) {
               </tbody>
             </table>
           </div>
-        </details>
+        </div>
       )}
     </div>
   );

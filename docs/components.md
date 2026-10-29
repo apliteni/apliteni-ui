@@ -1097,20 +1097,27 @@ to the full tone at its data end, and a bar under zero fades the other way. The 
 The full tone clears 3:1 on the card and on the page in both themes. The tint is below 3:1 by
 design, because the data end, the zero line and the base carry the value. A bridge bar fades from
 the previous running total to the full tone at the new one, so a fall fades downwards. Lines,
-points and legend keys stay solid in the full tone.
+points and legend keys stay solid in the full tone. **An area ramps with its values:** the tint
+is at the series' lowest top and the full tone at its highest, in every column. An area with one
+value, a share band, a stacked part and a donut slice have no ramp.
 
-**An unfinished period keeps its series fill with a dashed edge.** The legend names the estimated state.
-The readout and the optional table show the state and its `note`.
+**The legend shows only when you pass `legend`.** **An unfinished period keeps its series fill
+with a dashed edge.** The legend names the estimated state. The readout and the table show the
+state and its `note`.
 
 **The value axis, the period row and the legend are quiet, and nothing is only there.** Every
 data value is reachable at full strength through pointer readouts and keyboard announcements.
-The optional values table opens on a control that reaches the phone tap floor.
+
+**A switch in the top right corner shows the same numbers as a chart or as a table.** It is a
+toolbar of two glyph buttons named Chart and Table, with the pressed one marked. The chart shows
+first. The table replaces the plot, and the switch keeps its place.
 
 **Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
 paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark
-changes colour, so each tone stays with the series it names. The chart is one tab stop: Left,
+changes colour, so each tone stays with the series it names. The switch is the first tab stop
+and the chart is the second: Left,
 Right, Home and End step columns and announce each one politely, Enter picks one when `selectable`
-is set, and `title` names the plot and the table under it without being drawn, because the card
+is set, and `title` names the plot, the table and the switch without being drawn, because the card
 around a chart already carries its title.
 
 **On a touch screen a tap opens the readout and a second tap on the same mark closes it. The tap
@@ -1122,9 +1129,9 @@ narrow sparkline can therefore own less than 44px across, but it still owns at l
 across and the full 44px down. A sparkline's slot grows with that vertical target, so a
 `trend` slot is 44px tall there instead of 32.
 
-The table the reader opens carries its columns sideways in a named scroller, so your card and your
-page keep their width whatever series you pass. At phone widths the plot scrolls with the value
-axis held in place, and the side that still hides columns is faded. Nothing animates.
+The table carries its columns sideways in a named scroller, so your card and your page keep their
+width whatever series you pass. At phone widths the plot scrolls with the value axis held in
+place, and a column cut by the edge shows that more periods are there. Nothing animates.
 
 ### React route navigation
 
@@ -1166,7 +1173,9 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   activate them.
 - **`Segmented`** is a controlled choice toolbar: one named toolbar, pressed buttons and **one
   Tab stop whatever the choice is.** Arrow keys wrap past disabled options; Home and End reach
-  the first and last enabled choice. `block` fills the container with either appearance.
+  the first and last enabled choice. `block` fills the container with either appearance. An
+  option's `icon` names a kit glyph drawn before its label. With `iconOnly`, the glyph is the
+  whole button and the label becomes its accessible name.
   **`size="sm"` compacts the pill appearance only:** under the underline appearance it changes
   the type size and leaves the tab at its full height.
 - **`Confirm`** builds on `Modal` as an `alertdialog`. It focuses the safe action and draws it

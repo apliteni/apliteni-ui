@@ -8,7 +8,7 @@
 
 **Why:** Without a legend, readers need labels for unfamiliar glyphs.
 
-**Except:** New entries require a decision and pass Earn a wordless button on Button labels. Allowed: close, copy, overflow, expand, collapse and export. Theme and sidebar toggles and collapsed-rail links have separate approval. On [#729](https://github.com/apliteni/apliteni-ui/issues/729), the owner chose a glyph-only React AppShell search trigger below 560px for one light row of icons. Its sentence stays the accessible name: phones have no hover title.
+**Except:** New entries require a decision and pass Earn a wordless button on Button labels. Allowed: close, copy, overflow, expand, collapse and export. The owner approved theme and sidebar toggles, collapsed-rail links, the React AppShell search trigger below 560px ([#729](https://github.com/apliteni/apliteni-ui/issues/729)) and a chart's view switch ([#742](https://github.com/apliteni/apliteni-ui/issues/742)). The trigger keeps the icon row light. Its sentence names it: phones have no hover title.
 
 **Do:** A wordless overflow menu and a labelled Settings.
 

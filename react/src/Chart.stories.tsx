@@ -85,8 +85,9 @@ export const SideBySide: StoryObj = {
 
 /** Every tone the chart offers, one series each, in the order ChartTone lists
  *  them. Each bar fades from a tint at its base on zero to the full tone at its
- *  data end, and a bar under zero fades the other way. The legend keys stay
- *  solid in the full tone. Made-up seat changes for a made-up company. */
+ *  data end, and a bar under zero fades the other way. Seven tones need a key,
+ *  so this story asks for the legend, and its keys stay solid in the full tone.
+ *  Made-up seat changes for a made-up company. */
 export const Palette: StoryObj = {
   render: () => (
     <Card title="Seats gained and lost" sub="By plan, 2025">
@@ -101,16 +102,18 @@ export const Palette: StoryObj = {
           ['trial', 'Trial', 'warn', [16, -9, 21, 12]],
           ['partner', 'Partner', 'info', [11, 14, -6, 18]],
           ['education', 'Education', 'neutral', [8, 10, 9, -4]],
-        ] as const).map(([id, name, tone, values]) => ({ id, name, tone, values, shape: 'bars' }))} />
+        ] as const).map(([id, name, tone, values]) => ({ id, name, tone, values, shape: 'bars' }))}
+        legend />
     </Card>
   ),
 };
 
+/** A rise, a fall and a total read apart by tone, so the bridge asks for the legend. */
 export const Bridge: StoryObj = {
   render: () => (
     <Card title="Cash, third quarter" sub="Opening to closing">
       <Chart variant="bridge" title="Cash from opening to closing, third quarter"
-        format={eur} formatAxis={eurAxis}
+        format={eur} formatAxis={eurAxis} legend
         steps={[
           { label: 'Opening', short: 'Opening', value: 120000 },
           { label: 'Subscriptions', short: 'Subs', value: 42600 },
@@ -125,7 +128,7 @@ export const Bridge: StoryObj = {
 };
 
 /** The phone width the acceptance names. The axis stays put, the plot scrolls,
- *  and the side that still hides months is faded. */
+ *  A column cut by the edge shows that more months are there. */
 export const Narrow: StoryObj = {
   render: () => (
     <div style={{ maxWidth: 'var(--panel-sm)' }}>
@@ -157,9 +160,12 @@ export const Selectable: StoryObj = {
  *  shape the stat band's `trend` slot was left open for. The band is not wrapped
  *  in a card: its tiles are cards already (guidelines/the-page.md, stacking).
  *  `basis` is where guidelines/stat-bands.md puts what a change is measured
- *  against: once, outside every figure, pointed at by both changes. */
+ *  against: once, outside every figure, pointed at by both changes. The band
+ *  takes the look stories' card width: on the centred canvas it had no width to
+ *  size its tiles from, and a phone's sparklines ran past the edge. */
 export const Sparkline: StoryObj = {
   render: () => (
+    <div style={{ width: 'min(var(--panel-lg), calc(100vw - 2rem))' }}>
     <StatBand label="Revenue" basis="Change on September" stats={[{
       label: 'Income', value: eur(INCOME[10]),
       delta: { value: '+5.3%', tone: 'good' },
@@ -175,6 +181,7 @@ export const Sparkline: StoryObj = {
         series={[{ id: 'spend', name: 'Spend', values: SPEND.slice(0, 11), shape: 'line', tone: 'accent-soft' }]}
         format={eur} />,
     }]} />
+    </div>
   ),
 };
 

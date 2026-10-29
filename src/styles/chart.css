@@ -1,8 +1,9 @@
 /* ============================================================================
  * Chart — .ui-chart, the shapes a money dashboard keeps redrawing.
+ *   .ui-chart__head    the opt-in legend and the chart and table switch
  *   .ui-chart__legend  one key per series, plus the unfinished-period key
  *   .ui-chart__frame   the tab stop; the value axis beside the scroller
- *   .ui-chart__scroll  the scroller, masked on whichever side hides columns
+ *   .ui-chart__scroll  the scroller
  *   .ui-chart__plot    the drawing and its column labels
  *   .ui-chart__data    the same numbers as a table
  * The component sets --ui-chart-h, the plot's height, which the axis matches.
@@ -81,6 +82,8 @@
   padding-block: calc(var(--ring-width, 2px) + var(--ring-offset, 1px));
   border-radius: var(--radius-xs);
 }
+/* The grid would beat the hidden attribute. */
+.ui-chart__frame[hidden] { display: none; /* motion: still — the table view takes the frame's place at once */ }
 .ui-chart__frame:focus-visible {
   outline-offset: var(--ring-offset, 1px);
 }
@@ -98,24 +101,12 @@
 }
 .ui-chart__tick { line-height: 1.45; }
 
-/* The mask fades whichever side still hides periods. It paints no ground of its
-   own, so a chart on the card and one on the page both fade correctly — and it
-   sits on the scroller rather than the tab stop, which would mask its ring. */
+/* The scroller paints nothing over the data. A mask that faded the hidden side
+   also faded the last column, which then read as a smaller value. #742 */
 .ui-chart__scroll {
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
-}
-.ui-chart__scroll.is-more-before {
-  mask-image: linear-gradient(to right, transparent 0, #000 var(--space-6));
-}
-.ui-chart__scroll.is-more-after {
-  mask-image: linear-gradient(to right, #000 calc(100% - var(--space-6)), transparent 100%);
-}
-.ui-chart__scroll.is-more-before.is-more-after {
-  mask-image: linear-gradient(
-    to right, transparent 0, #000 var(--space-6),
-    #000 calc(100% - var(--space-6)), transparent 100%);
 }
 
 .ui-chart__plot { min-width: calc(var(--ui-chart-col) * var(--ui-chart-cols, 1)); }
@@ -257,8 +248,10 @@
 .ui-chart__dot { fill: var(--ui-chart-tone); stroke: var(--ui-chart-ground); stroke-width: 2; }
 .ui-chart--line-thin .ui-chart__line { stroke-width: 1.5; }
 .ui-chart--line-points .ui-chart__line { stroke-width: 2.5; }
-/* An area is the fade of its tone. The edge line on top of it holds the value. */
-.ui-chart__area { fill: var(--ui-chart-fade); stroke: none; }
+/* An area is the fade of its tone. Where its values vary, the component names a
+   ramp as --ui-chart-paint: the fade at the lowest value, the tone at the highest.
+   The edge line on top of it holds the value. */
+.ui-chart__area { fill: var(--ui-chart-paint, var(--ui-chart-fade)); stroke: none; }
 /* A stacked part, a share band and a ring slice. The ground between two parts
    keeps them apart where two tones of one hue meet. */
 .ui-chart__segment {
@@ -335,18 +328,17 @@
 
 /* -- the table ------------------------------------------------------------- */
 
-.ui-chart__data > summary {
-  width: max-content;
-  min-height: var(--tap-min, 44px);
-  display: inline-flex;
+/* The legend, when the caller asks for one, and the chart and table switch in
+   the top right corner. The switch keeps its corner when there is no legend. */
+.ui-chart__head {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  box-sizing: border-box;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-xs);
-  cursor: pointer;
-  font-size: var(--text-sm);
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
 }
-.ui-chart__data[open] > summary { margin-bottom: var(--space-3); }
+.ui-chart__head > .ui-seg { margin-inline-start: auto; }
+
 /* The table is the one place a phone reader gets exact values, and how wide it
    is depends on the caller's series: it carries them sideways inside the kit's
    own scroller, so the card and the page keep their width whatever it holds.

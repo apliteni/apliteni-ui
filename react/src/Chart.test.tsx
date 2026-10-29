@@ -49,8 +49,10 @@ const months = (extra: Partial<React.ComponentProps<typeof Chart>> = {}) => rend
   <Chart title="Income and spend by month" periods={periods} series={series} format={eur}
     {...extra as object} />,
 );
-// <details> maps to role=group too, so the frame is asked for by name.
 const frame = () => screen.getByRole('group', { name: /Arrow keys/ });
+/** The view switch in the corner is the first stop, so the frame is the second. */
+const tabToFrame = async (user: ReturnType<typeof userEvent.setup>) => { await user.tab(); await user.tab(); };
+const showTable = () => fireEvent.click(screen.getByRole('button', { name: 'Table' }));
 const plot = () => screen.getByRole('img');
 const markEl = (id: string) => plot().querySelector(`[data-mark="${id}"] .ui-chart__hit`) as Element;
 /** A pointer resting on one mark: the event is fired on the mark and bubbles. */
@@ -117,14 +119,30 @@ it('names the chart, and says how to step through it', () => {
   expect(frame()).toHaveAccessibleName('Income and spend by month. Arrow keys step through the 4 columns.');
 });
 
-it('offers the same numbers as a table, with the exact values the formatter gives', () => {
-  months();
+it('swaps the chart for the same numbers as a table, with the exact values the formatter gives', async () => {
+  const user = userEvent.setup();
+  const { container } = months();
+  const chart = screen.getByRole('button', { name: 'Chart' });
+  const toTable = screen.getByRole('button', { name: 'Table' });
+  expect(screen.getByRole('toolbar', { name: 'Income and spend by month, view' })).toContainElement(chart);
+  expect(chart.textContent, 'the glyph is the whole label').toBe('');
+  expect(chart, 'the chart is the view a reader opens on').toHaveAttribute('aria-pressed', 'true');
+  expect(screen.queryByRole('table')).toBeNull();
+
+  await user.tab();
+  expect(chart, 'the switch is the first stop').toHaveFocus();
+  await user.keyboard('{ArrowRight}');
+  expect(toTable).toHaveAttribute('aria-pressed', 'true');
+  expect(container.querySelector('.ui-chart__frame'), 'the table takes the plot\'s place').not.toBeVisible();
   const table = screen.getByRole('table', { name: 'Income and spend by month' });
   expect(within(table).getAllByRole('columnheader').map((c) => c.textContent))
     .toEqual(['Period', 'Income', 'Spend', 'Net']);
   const april = within(table).getByRole('row', { name: /Apr 2026/ });
   expect(within(april).getAllByRole('cell').map((c) => c.textContent)).toEqual(['€900', '€500', '€400']);
-  expect(screen.getByText('Values as a table')).toHaveClass('ui-focusable');
+
+  await user.keyboard('{ArrowLeft}');
+  expect(screen.queryByRole('table')).toBeNull();
+  expect(frame()).toBeVisible();
 });
 
 it('prints whole units on the axis and exact values in the table', () => {
@@ -135,6 +153,7 @@ it('prints whole units on the axis and exact values in the table', () => {
   );
   const ticks = [...container.querySelectorAll('.ui-chart__tick')].map((t) => t.textContent);
   expect(ticks.every((t) => /^€\d+\.00$/.test(t!)), `axis printed ${ticks.join(', ')}`).toBe(true);
+  showTable();
   expect(within(screen.getByRole('table')).getByText('€20.60')).toBeInTheDocument();
 });
 
@@ -290,19 +309,21 @@ it('puts one element in the tab order inside the plot, and it is the frame', asy
   // an overflowing box keyboard-focusable on its own, and the ring it draws
   // there is its own, not the kit's — which is what #543's review found on
   // `.ui-chart__scroll`. Anything the chart leaves in the tab order has to
-  // carry the kit's ring: `.ui-focusable`, or — for the table's scroller —
+  // carry the kit's ring: `.ui-focusable`, the view switch's segment, which
+  // src/styles/segmented.css rings, or — for the table's scroller —
   // `.ui-table-scroll`, which src/styles/table.css rings itself.
-  const tabbable = [...container.querySelectorAll<HTMLElement>('*')]
-    .filter((el) => el.tabIndex >= 0 || el.tagName === 'SUMMARY');
-  expect(tabbable.map(classOf))
-    .toEqual(['ui-chart__frame ui-tip-host ui-focusable', 'ui-focusable', 'ui-table-scroll']);
+  const tabbable = () => [...container.querySelectorAll<HTMLElement>('*')]
+    .filter((el) => el.tabIndex >= 0 && !el.closest('[hidden]')).map((el) => el.closest('.ui-seg') ? 'ui-seg' : classOf(el));
+  expect(tabbable()).toEqual(['ui-seg', 'ui-chart__frame ui-tip-host ui-focusable']);
 
-  // The third stop is inside the <details> the reader opens, so it exists only
-  // once they have asked for the table; it is named, because a browser would
-  // otherwise hand a screen reader an unnamed scroll region. JSDOM lays nothing
-  // out, so the kit's band on it is read off the sheet rather than painted.
+  // The table's scroller exists only once the reader has asked for the table,
+  // and the plot has then left the tab order with the frame. It is named,
+  // because a browser would otherwise hand a screen reader an unnamed scroll
+  // region. JSDOM lays nothing out, so the kit's band on it is read off the
+  // sheet rather than painted.
+  showTable();
+  expect(tabbable(), 'the hidden frame is no stop').toEqual(['ui-seg', 'ui-table-scroll']);
   const scroll = container.querySelector('.ui-table-scroll')!;
-  expect(scroll.closest('details')).not.toBeNull();
   expect(scroll).toHaveAttribute('role', 'region');
   expect(scroll).toHaveAccessibleName(/Income and spend by month, as a table/);
   expect(readRepo('../../src/styles/table.css'))
@@ -312,7 +333,8 @@ it('puts one element in the tab order inside the plot, and it is the frame', asy
   // that attribute is the opt-out a browser's focusable-scroller rule reads.
   expect(container.querySelector('.ui-chart__scroll')).toHaveAttribute('tabindex', '-1');
 
-  await user.tab();
+  fireEvent.click(screen.getByRole('button', { name: 'Chart' }));
+  await tabToFrame(user);
   expect(frame()).toHaveFocus();
   await user.tab();
   expect(frame(), 'a second Tab leaves the plot instead of landing inside it').not.toHaveFocus();
@@ -352,7 +374,7 @@ it('steps columns with the arrows, Home and End, and announces each one politely
   const user = userEvent.setup();
   months();
   const live = screen.getByRole('status');
-  await user.tab();
+  await tabToFrame(user);
   expect(frame()).toHaveFocus();
   expect(live).toHaveTextContent('Jan 2026. Income €1,200. Spend €800. Net €400.');
   await user.keyboard('{ArrowRight}');
@@ -369,16 +391,17 @@ it('selects a column with Enter only when the chart is selectable', async () => 
   const user = userEvent.setup();
   const onSelect = vi.fn();
   const { unmount } = months({ onSelect });
-  await user.tab();
+  await tabToFrame(user);
   await user.keyboard('{ArrowRight}{Enter}');
   expect(onSelect, 'a chart that is not selectable selects nothing').not.toHaveBeenCalled();
   unmount();
 
   months({ onSelect, selectable: true });
-  await user.tab();
+  await tabToFrame(user);
   await user.keyboard('{ArrowRight}{Enter}');
   expect(onSelect).toHaveBeenCalledWith(1);
   expect(screen.getByRole('status')).toHaveTextContent('Selected.');
+  showTable();
   expect(screen.getByRole('row', { name: /Feb 2026/ })).toHaveAttribute('aria-current', 'true');
 });
 
@@ -404,7 +427,9 @@ it('opens the kit readout on the mark the pointer rests on, with one comparison'
 });
 
 it('prints the unfinished state in the readout instead of a comparison, and in the legend', () => {
-  const { container } = months();
+  expect(months().container.querySelector('.ui-chart__legend'), 'a legend only when asked for').toBeNull();
+  cleanup();
+  const { container } = months({ legend: true });
   hover('income-3');
   expect(screen.getByRole('tooltip').querySelector('.ui-tip__detail'))
     .toHaveTextContent('Estimated — April is still running');
@@ -481,6 +506,32 @@ it('fades a bridge bar from the previous running total to the new one', () => {
   });
   expect(runs, 'Opening, Sales, Costs, Closing').toEqual([
     ['neutral', '1', '0'], ['good', '1', '0'], ['bad', '0', '1'], ['neutral', '1', '0']]);
+});
+
+// #742: an area ramps over its own values, not over the box it fills, so the
+// faint end sits at the layer's lowest top and the strong end at its highest.
+it('ramps an area from its lowest top to its highest, and leaves a share flat', () => {
+  for (const look of ['flat', 'stacked'] as const) {
+    const { container } = lookChart('area', look);
+    const fills = [...container.querySelectorAll('path.ui-chart__area')];
+    expect(fills, `${look}: one fill a layer`).toHaveLength(2);
+    for (const fill of fills) {
+      const id = /^url\(#(.+)\)$/.exec((fill as SVGElement).style.getPropertyValue('--ui-chart-paint'))?.[1];
+      const g = container.querySelector(`linearGradient[id="${id}"]`)!;
+      expect(g, `${look}: every area names a ramp`).not.toBeNull();
+      expect(g).toHaveAttribute('gradientUnits', 'userSpaceOnUse');
+      expect(classOf(g)).toContain(`ui-chart__tone--${toneOf(fill)}`);
+      const tops = [...container.querySelectorAll(`line.ui-chart__line.ui-chart__tone--${toneOf(fill)}`)]
+        .flatMap((edge) => [Number(edge.getAttribute('y1')), Number(edge.getAttribute('y2'))]);
+      expect([Number(g.getAttribute('y1')), Number(g.getAttribute('y2'))], `${look}: lowest top, then highest`)
+        .toEqual([Math.max(...tops), Math.min(...tops)]);
+      expect([...g.querySelectorAll('stop')].map((stop) => [classOf(stop), stop.getAttribute('offset')]))
+        .toEqual([['ui-chart__fade-base', '0'], ['ui-chart__fade-end', '1']]);
+    }
+    cleanup();
+  }
+  const { container } = lookChart('area', 'share');
+  expect(container.querySelector('linearGradient'), 'a share reaches the whole in every column').toBeNull();
 });
 
 // Material's rule, and the reason a bar is a path: the top of a bar has to
@@ -623,11 +674,12 @@ describe('bridge', () => {
     { label: 'Closing', kind: 'total' as const },
   ];
   const bridge = () => render(
-    <Chart variant="bridge" title="Cash from opening to closing" steps={steps} format={eur} />,
+    <Chart variant="bridge" title="Cash from opening to closing" steps={steps} format={eur} legend />,
   );
 
   it('walks to a closing total it works out itself, and tables the running total', () => {
     bridge();
+    showTable();
     const rows = screen.getAllByRole('row').slice(1);
     expect(rows.map((r) => within(r).getAllByRole('cell').map((c) => c.textContent))).toEqual([
       ['€1,000', '€1,000'], ['€400', '€1,400'], ['−€150', '€1,250'], ['€1,250', '€1,250'],
@@ -664,20 +716,9 @@ describe('bridge', () => {
 
 /* -- the narrow width ------------------------------------------------------ */
 
-it('scrolls the plot and marks the side that still hides columns', () => {
+it('scrolls the plot and opens a labels look at its latest period', () => {
   const { container } = months();
-  const scroll = container.querySelector('.ui-chart__scroll') as HTMLDivElement;
   expect(container.querySelector('.ui-chart__plot')).toHaveStyle({ '--ui-chart-cols': '4' });
-  // JSDOM reports every box as zero, so the two edges are driven directly.
-  Object.defineProperty(scroll, 'clientWidth', { value: 200, configurable: true });
-  Object.defineProperty(scroll, 'scrollWidth', { value: 576, configurable: true });
-  fireEvent.scroll(scroll);
-  expect(scroll.className).toContain('is-more-after');
-  expect(scroll.className).not.toContain('is-more-before');
-  scroll.scrollLeft = 376;
-  fireEvent.scroll(scroll);
-  expect(scroll.className).toContain('is-more-before');
-  expect(scroll.className).not.toContain('is-more-after');
   cleanup();
 
   // A labels look opens on its latest period, where its labels are; the others
@@ -739,6 +780,7 @@ it('draws no bar and tables an em dash where the caller gave no value', () => {
       series={[{ id: 'f', name: 'Fees', values: [10, 20] }]} format={eur} />,
   );
   expect(container.querySelectorAll('path.ui-chart__bar'), 'two values, two bars').toHaveLength(2);
+  showTable();
   const rows = screen.getAllByRole('row').slice(1);
   expect(rows.map((r) => within(r).getAllByRole('cell')[0].textContent)).toEqual(['€10', '€20', '—', '—']);
 });
@@ -998,7 +1040,7 @@ it('lays every line casing under every line stroke, and makes it the wider of th
 });
 
 it('draws the Estimated key in the tone of the series it describes, not in body ink', () => {
-  const { container } = months();
+  const { container } = months({ legend: true });
   const key = [...container.querySelectorAll('.ui-chart__key')]
     .find((k) => k.textContent?.startsWith('Estimated'))!;
   expect(classOf(key), 'the key takes the tone of the unfinished bar it stands for')
@@ -1015,7 +1057,7 @@ it('a bridge draws its Estimated key in the tone of the step that is not final',
   const { container } = render(
     <Chart variant="bridge" title="Cash" format={eur}
       steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 },
-        { label: 'Fees', value: -150, estimated: true }, { label: 'Closing', kind: 'total' }]} />,
+        { label: 'Fees', value: -150, estimated: true }, { label: 'Closing', kind: 'total' }]} legend />,
   );
   const key = [...container.querySelectorAll('.ui-chart__key')]
     .find((k) => k.textContent?.startsWith('Estimated'))!;
@@ -1028,7 +1070,7 @@ it('a cursor left past the end of a shortened series still announces', async () 
   const { rerender } = render(
     <Chart title="Fees" periods={periods} series={[{ id: 'f', name: 'Fees', values: INCOME }]} format={eur} />,
   );
-  await user.tab();
+  await tabToFrame(user);
   await user.keyboard('{End}');
   expect(screen.getByRole('status')).toHaveTextContent('Apr 2026.');
   rerender(
@@ -1212,12 +1254,14 @@ it('draws a line look as lines only, with points or end labels where the look as
 it('tables a stack with its total, and reads every layer of a column with that total', async () => {
   const user = userEvent.setup();
   lookChart('stacked');
+  showTable();
   const table = screen.getByRole('table', { name: 'Spend by cost' });
   expect(within(table).getAllByRole('columnheader').map((c) => c.textContent))
     .toEqual(['Period', 'Payroll', 'Hosting', 'Total']);
   expect(within(within(table).getByRole('row', { name: /Feb 2026/ })).getAllByRole('cell').map((c) => c.textContent))
     .toEqual(['€600', '€300', '€900']);
-  await user.tab();
+  fireEvent.click(screen.getByRole('button', { name: 'Chart' }));
+  await tabToFrame(user);
   expect(frame()).toHaveFocus();
   await user.keyboard('{ArrowRight}');
   expect(screen.getByRole('status')).toHaveTextContent('Feb 2026. Hosting €300. Payroll €600. Total €900.');
@@ -1229,6 +1273,7 @@ it('reads a share look in parts of the column, and keeps the money in the table'
   lookChart('area', 'share');
   hover('column-1');
   expect(screen.getByRole('tooltip')).toHaveTextContent('Hosting33%Payroll67%Total€900');
+  showTable();
   const table = screen.getByRole('table', { name: 'Spend by cost' });
   expect(within(within(table).getByRole('row', { name: /Feb 2026/ })).getAllByRole('cell').map((c) => c.textContent))
     .toEqual(['€600', '€300', '€900']);
@@ -1277,13 +1322,14 @@ it('steps a donut by slice, says each slice\'s share of the whole, and tables th
   const user = userEvent.setup();
   render(<Chart variant="donut" title="Spend by cost" slices={slices} totalLabel="Spend" format={eur} />);
   expect(frame()).toHaveAccessibleName('Spend by cost. Arrow keys step through the 2 slices.');
-  await user.tab();
+  await tabToFrame(user);
   await user.keyboard('{ArrowRight}');
   expect(screen.getByRole('status')).toHaveTextContent('Hosting. €200, 25% of €800');
-  const table = screen.getByRole('table', { name: 'Spend by cost' });
-  expect(within(table).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Slice', 'Value', 'Share']);
   expect(document.querySelector('.ui-chart__shares'), 'the table look lists the shares beside the ring')
     .toHaveTextContent('Payroll€60075%Hosting€20025%Spend€800100%');
+  showTable();
+  const table = screen.getByRole('table', { name: 'Spend by cost' });
+  expect(within(table).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Slice', 'Value', 'Share']);
   expect(document.querySelector('.ui-chart__legend'), 'the list is the key').toBeNull();
 });
 
