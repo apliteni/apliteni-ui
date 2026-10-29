@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.147.0', date: '2026-10-29',
+    v: '0.148.0', date: '2026-10-29',
     changes: [
       ['breaking', 'React `Breadcrumbs` and its types `BreadcrumbsProps` and `BreadcrumbItem` are removed, with the `AppShell` `crumbs` prop and the `.ui-nav--crumbs` styles. A subpage shows the way up with `BackLink`, which `AppShell` draws from `back`. Part of #736.', ['Shell']],
       ['added', '`AppShell` takes `tools`, small tools for the whole page, such as a version badge or a small button, at the end of the title row. The lede stands under the whole row. A page that uses only the stylesheet gets the same row from `.ui-app__title-row` and `.ui-app__tools`. `actions` does not change. Part of #736.', ['Shell']],
@@ -14,6 +14,19 @@ export const RELEASES = [
       ['changed', 'In the `AppShell` account menu, the Theme row opens a submenu with Auto, Light and Dark, and a check marks the current choice. Right or Enter opens it, and Left or Escape closes it onto the Theme row. In the sidebar it opens beside the menu. In the phone drawer it replaces the menu rows under a Theme back row. A separator now stands before Sign out. When the view narrows to the phone layout, the sidebar menu closes and focus moves to the Menu button. Part of #736.', ['Shell', 'Dropdown']],
       ['fixed', 'A dropdown panel that is wider than a body that clips across, such as the shell\'s rail, now opens over the page and shows in full. Before, the rail cut the account menu at its right edge. Part of #736.', ['Shell', 'Dropdown']],
       ['added', 'The Dense tables guideline asks for a filter bar directly above every table, with a search field and the filters that fit its columns. The shell and Access showcases now show one. Part of #736.', ['Guidelines', 'FilterBar']],
+    ],
+  },
+  {
+    v: '0.147.0', date: '2026-10-29',
+    changes: [
+      ['added', 'The Dashboards and reports guideline adds four rules. Download a report with one icon button. Give a chart a Chart and Table switch that opens on Chart, in place of the rule that put the table under every chart. Name the lines by their last values or by a key. Draw at most two lines on a chart. See #743.', ['Guidelines']],
+      ['added', 'The Button labels guideline adds a rule: put no action on a text selection. The download glyph, named and titled Download PDF, joins the icon-only list. See #743.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.146.1', date: '2026-10-29',
+    changes: [
+      ['fixed', 'A `DatePicker` range whose two ends are the same month or the same day shows that period once, such as "Sept 2026" or "22 Sept 2026". A longer range still shows both ends. Resolves #747.', ['DatePicker']],
     ],
   },
   {

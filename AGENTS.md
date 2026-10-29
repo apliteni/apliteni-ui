@@ -15,6 +15,8 @@ A showcase or a component story may place kit parts with layout glue. Its own CS
 motion, a re-declared token, or a restyled kit class is a violation of the declared system. Report
 it as a defect with the file and the declaration. Name the result of `stories/story-css.test.js` and
 of `react/src/story-css.test.ts`. A glue entry in a gate's allow-list stands only with its reason.
+A foundations page and a guideline page are not showcases. Their specimens may paint, because
+`stories/story-css.test.js` leaves them out of the gate on purpose (#601).
 [Changes](#changes) holds the rule itself.
 
 ## Data handling
@@ -239,7 +241,7 @@ attribute, or a stylesheet only a story imports — may only place kit parts: a 
 and a kit class named only with a reason in the allow-list beside the gate.
 Paint, type, motion or a re-declared token is a shadow kit — fix it, or file the part the kit is
 missing. Treat local CSS in a showcase as a defect to justify in review, not a style choice.
-See #601.
+Foundations and guideline pages are outside this rule. See #601.
 
 Change generated brand tokens and marks in `apliteni/design-system`, then sync them here. Use
 unmodified Lucide paths for glyphs, recording the Lucide source name when it differs from the kit

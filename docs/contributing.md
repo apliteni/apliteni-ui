@@ -124,7 +124,7 @@ The changelog is hand-written, newest release first, in `site/changelog.mjs`:
 
 ```js
 {
-  v: '0.3.0', date: '2026-07-22', tag: 'latest',   // tag: 'latest' | 'first' | undefined
+  v: '0.3.0', date: '2026-07-22',
   changes: [
     // [type, text, components?]   added | changed | fixed | deprecated | removed | breaking
     ['breaking', '`accountShell()` renamed `cap` → `maxWidth`.', ['Shell']],
@@ -143,7 +143,8 @@ The contributor row is derived from git by `build.mjs`, not stored: it reads the
 each release's tag and the one before, and resolves authors through an `AUTHORS` map. Every
 git call is guarded, so a missing tag only means no contributor row.
 
-To add a release: prepend the entry and move `tag: 'latest'` onto it, write the changes, add
+To add a release: prepend the entry and write the changes. The Latest badge is derived from the
+highest version, so an entry carries no `tag` (`marksOf()` in `site/changelog.mjs`). Add
 any new component to `COMPONENTS` with its id checked against `storybook-static/index.json`,
 and run `node --test site/changelog.test.js` and `node site/build.mjs`.
 
