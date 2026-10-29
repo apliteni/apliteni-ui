@@ -78,10 +78,10 @@ const insideDont = (spans, at) => spans.some(([a, b]) => at >= a && at <= b);
  * A name is read from `label` or `aria-label`, whichever sits nearest — the same
  * nearest-wins rule the glyph uses, for the same reason. A name given as an
  * expression (`aria-label={copyLabel}`) is resolved through the default of the
- * identifier it names, which is how both Snippet copy buttons are read. A name
- * that stays unread is a problem below, not a skip.
+ * identifier it names, which is how both Snippet copy buttons are read. A quoted
+ * key (`'aria-label':`) is read too. A name left unread is a problem, not a skip.
  */
-const NAME = /\b(?:aria-)?label\s*[:=]\s*('[^']*'|"[^"]*"|\{[^}]*\}|`[^`]*`)/g;
+const NAME = /\b(?:aria-)?label['"]?\s*[:=]\s*('[^']*'|"[^"]*"|\{[^}]*\}|`[^`]*`)/g;
 const IDENT = /[A-Za-z_$][\w$]*/g;
 
 /** The name a value spells, resolving an expression through its default. */
