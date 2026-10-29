@@ -94,10 +94,8 @@
   /* Title to description: the step, not the 5px it was. why: docs/foundations.md#spacing-and-rhythm */
   margin: 0 0 var(--space-2);
 }
-/* The title row: the title at the start and the card's tools at the end, centred
-   on the title's line, the way a page's tools sit beside its title. The row takes
-   the title's step, so a card with tools is as tall as one without.
-   why: docs/components.md#content-and-status */
+/* The title row: the title, then the card's tools centred on its line, in the
+   title's step. why: docs/components.md#content-and-status */
 .ui-card__head {
   display: flex;
   align-items: center;

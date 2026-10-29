@@ -1,7 +1,6 @@
 /* ============================================================================
  * Chart — .ui-chart, the shapes a money dashboard keeps redrawing.
  *   .ui-chart__head    the opt-in legend and the "Chart options" menu
- *                      (in a titled card the menu sits in the card's title row)
  *   .ui-chart__legend  one key per series, plus the unfinished-period key
  *   .ui-chart__frame   the tab stop; the value axis beside the scroller
  *   .ui-chart__scroll  the scroller
@@ -348,7 +347,6 @@
   background: transparent;
   color: var(--text);
 }
-/* A ghost button's glyph, at a ghost button's size. */
 .ui-dropdown .ui-chart__more svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 .ui-dropdown .ui-chart__more:hover,
 .ui-dropdown .ui-chart__more[aria-expanded="true"] {
