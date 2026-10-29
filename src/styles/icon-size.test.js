@@ -56,10 +56,11 @@ const src = path.resolve(here, '..');
 // width and a height in one rule); 82 (the version menu's tick sizes its check
 // glyph, a width and a height in one rule, as `.ui-dropdown__tick svg` does).
 // 70 under #429 PR 5b: the vanilla components are gone, so the twelve
-// declarations keyed on svg classes only they wrote leave this walk.
-// 70 under #736: the breadcrumb styles are removed, with the crumb glyph's width
+// declarations keyed on svg classes only they wrote leave this walk. 72 (#742:
+// `.ui-seg button svg` sizes a segment's glyph, a width and a height in one rule).
+// 72 under #736: the breadcrumb styles are removed, with the crumb glyph's width
 // and height.
-const EXPECTED_SUBJECTS = 70;
+const EXPECTED_SUBJECTS = 72;
 
 const SHEETS = kitSheetNames(src);
 

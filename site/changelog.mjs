@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.146.0', date: '2026-10-28',
+    v: '0.147.0', date: '2026-10-29',
     changes: [
       ['breaking', 'React `Breadcrumbs` and its types `BreadcrumbsProps` and `BreadcrumbItem` are removed, with the `AppShell` `crumbs` prop and the `.ui-nav--crumbs` styles. A subpage shows the way up with `BackLink`, which `AppShell` draws from `back`. Part of #736.', ['Shell']],
       ['added', '`AppShell` takes `tools`, small tools for the whole page, such as a version badge or a small button, at the end of the title row. The lede stands under the whole row. A page that uses only the stylesheet gets the same row from `.ui-app__title-row` and `.ui-app__tools`. `actions` does not change. Part of #736.', ['Shell']],
@@ -14,6 +14,14 @@ export const RELEASES = [
       ['changed', 'In the `AppShell` account menu, the Theme row opens a submenu with Auto, Light and Dark, and a check marks the current choice. Right or Enter opens it, and Left or Escape closes it onto the Theme row. In the sidebar it opens beside the menu. In the phone drawer it replaces the menu rows under a Theme back row. A separator now stands before Sign out. When the view narrows to the phone layout, the sidebar menu closes and focus moves to the Menu button. Part of #736.', ['Shell', 'Dropdown']],
       ['fixed', 'A dropdown panel that is wider than a body that clips across, such as the shell\'s rail, now opens over the page and shows in full. Before, the rail cut the account menu at its right edge. Part of #736.', ['Shell', 'Dropdown']],
       ['added', 'The Dense tables guideline asks for a filter bar directly above every table, with a search field and the filters that fit its columns. The shell and Access showcases now show one. Part of #736.', ['Guidelines', 'FilterBar']],
+    ],
+  },
+  {
+    v: '0.146.0', date: '2026-10-28',
+    changes: [
+      ['added', 'React `Chart` adds the variants `line`, `area`, `stacked` and `donut`. Each takes `look` to pick one of three drawings, and keeps the readout, the keyboard steps, the live region and the values table. A donut takes `slices` and an optional `totalLabel`. Part of #742.', ['Chart']],
+      ['changed', 'React `Chart` shows its legend only when you pass `legend`, so a chart that relied on the default legend must now pass it. A Chart and Table switch in the top right corner replaces the "Values as a table" disclosure, and an area ramps from its lowest value to its highest. Part of #742.', ['Chart']],
+      ['added', '`Segmented` options take `icon`, a kit glyph before the label, and `iconOnly`, which keeps the label as the accessible name only. Part of #742.', ['Segmented']],
     ],
   },
   {

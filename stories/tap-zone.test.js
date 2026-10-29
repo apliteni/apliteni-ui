@@ -595,7 +595,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
     'The measurement CSS does not include the React stylesheet (react/dist/index.css), so the '
     + 'migrated fixtures — a React Confirm is an .rx-modal — are measured unstyled.',
   );
-  const browser = await (await playwright()).chromium.launch();
+  const browser = await (await playwright()).chromium.launch({ executablePath: process.env.UI_CHROME });
 
   try {
     // The exempt selectors ride along in `families` so a target can say it is on
