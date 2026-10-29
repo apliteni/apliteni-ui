@@ -99,8 +99,8 @@ const MonthBlock = ({ view: initial }: { view: string }) => {
     aria-labelledby={`${id}-tab-${i}`} tabIndex={0} hidden={option.value !== view}>{option.value === view ? option.panel : null}</div>)}</Card>;
 };
 
-// The kit's line chart: the labels look writes each line's last value at its end,
-// and `legend` draws the key instead.
+// The kit's line chart. Without a key, each line's name and last value stand over
+// the thin look, which writes no value of its own; `legend` draws the key instead.
 const SPEND_SERIES: ChartLookSeries[] = [
   { id: 'spend', name: 'Spend', tone: 'accent', values: SPEND }, { id: 'estimated', name: 'Estimated', tone: 'accent-soft', values: ESTIMATED }];
 const INCOME_SERIES: ChartLookSeries[] = [
@@ -110,8 +110,14 @@ const INCOME_SERIES: ChartLookSeries[] = [
 const ALL_SERIES: ChartLookSeries[] = [...SPEND_SERIES, { ...INCOME_SERIES[0], tone: 'warn' }, { ...INCOME_SERIES[1], tone: 'info' }];
 const PERIODS = MONTHS.map(month => ({ label: `${month} 2026`, short: month }));
 const kEur = (n: number) => `${n.toFixed(1)}k €`;
+const Figures = ({ series }: { series: ChartLookSeries[] }) => <div className="gd-series">{series.map(line =>
+  <div key={line.id} className={`gd-series__item ui-chart__tone--${line.tone}`}>
+    <span className="ui-stat__label">{line.name}</span>
+    <span className="ui-stat__value gd-series__value">{kEur(line.values[line.values.length - 1] as number)}</span>
+  </div>)}</div>;
 const LineCard = ({ title, series, legend = false }: { title: string; series: ChartLookSeries[]; legend?: boolean }) => <Card title={title}>
-  <Chart variant="line" look={legend ? 'thin' : 'labels'} legend={legend} title={`${title}, first half of 2026, thousands of euros`}
+  {legend ? null : <Figures series={series} />}
+  <Chart variant="line" look="thin" legend={legend} title={`${title}, first half of 2026, thousands of euros`}
     periods={PERIODS} series={series} format={kEur} />
 </Card>;
 
