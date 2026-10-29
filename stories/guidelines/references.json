@@ -496,7 +496,7 @@
   ],
   "meaning": [
    {
-    "ref": "src/assets/icons.js:222",
+    "ref": "src/assets/icons.js:232",
     "pattern": "export const iconMeanings"
    },
    {
@@ -558,7 +558,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:123",
+    "ref": "src/styles/card.css:126",
     "pattern": "rank: card-title"
    }
   ],
@@ -1035,7 +1035,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:144",
+    "ref": "src/styles/card.css:147",
     "pattern": ".ui-card__row {"
    }
   ],
