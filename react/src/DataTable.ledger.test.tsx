@@ -3,21 +3,23 @@ import type { ReactElement } from 'react';
 import * as stories from './DataTable.ledger.stories';
 
 const { default: _meta, ...all } = stories;
+// A story with a filter bar keeps its state in hooks, so it mounts as a component, as Storybook mounts it.
+const show = (story: { render: () => ReactElement }) => { const Story = story.render; return render(<Story />); };
 
 describe('the ledger stories', () => {
   it.each(Object.entries(all))('renders %s without a table title sub-line', (_name, story) => {
-    const { container } = render((story as { render: () => ReactElement }).render());
+    const { container } = show(story as { render: () => ReactElement });
     expect(container.querySelector('.ui-card__sub')).toBeNull();
   });
 
   it('shows a revoked row as the word', () => {
-    const { container } = render(all.AgentTokens.render());
+    const { container } = show(all.AgentTokens);
     const dead = container.querySelector('tr.is-dead')!;
     expect(dead).toHaveTextContent('Revoked');
   });
 
   it('names each stacked payout amount and lets the table reach the card', () => {
-    const { container } = render(all.FinanceData.render());
+    const { container } = show(all.FinanceData);
     const table = container.querySelector('table')!;
     expect(table).toHaveClass('ui-table--stack');
     expect(table.parentElement).toHaveClass('ui-card');
@@ -26,7 +28,7 @@ describe('the ledger stories', () => {
   });
 
   it('shows the invoice rows and totals without row hover', () => {
-    const { container } = render(stories.WithTotals.render());
+    const { container } = show(stories.WithTotals);
     const table = container.querySelector('table')!;
     expect([...table.classList]).toEqual(['ui-table', 'ui-table--dense']);
     expect(table).not.toHaveClass('ui-table--hover');
@@ -46,7 +48,7 @@ describe('the ledger stories', () => {
   });
 
   it('shows compact row headers without row hover', () => {
-    const { container } = render(stories.CompactRowHeaders.render());
+    const { container } = show(stories.CompactRowHeaders);
     const table = container.querySelector('table')!;
     expect([...table.classList]).toEqual(['ui-table', 'ui-table--compact']);
     expect(table).not.toHaveClass('ui-table--hover');
@@ -61,7 +63,7 @@ describe('the ledger stories', () => {
   });
 
   it('shows the stacked pinned heads, labels and four rows', () => {
-    const { container } = render(stories.StackedPinned.render());
+    const { container } = show(stories.StackedPinned);
     const table = container.querySelector('table')!;
     expect([...table.classList]).toEqual([
       'ui-table', 'ui-table--hover', 'ui-table--stack', 'ui-table--dense', 'ui-table--sticky', 'ui-table--pinned',
@@ -88,7 +90,7 @@ describe('the ledger stories', () => {
 
   it('gives every card its icon, except the plain invoice cards', () => {
     for (const name of ['FinanceData', 'AgentTokens', 'Empty', 'StackedLog', 'StackedPinned'] as const) {
-      const { container, unmount } = render(all[name].render());
+      const { container, unmount } = show(all[name]);
       expect(container.querySelector('.ui-card__title .ui-card__icon svg')).not.toBeNull();
       unmount();
     }
