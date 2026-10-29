@@ -87,11 +87,14 @@
   padding: var(--space-6) var(--space-5) var(--space-5);
   border-radius: 0 0 calc(var(--radius-xl) - 1px) calc(var(--radius-xl) - 1px);
 }
-/* A4 at the least, so a short document still reads as a page and not as a panel. */
+/* A4 at the least, so a short document still reads as a page and not as a panel.
+   The page carries the light palette in both themes (src/tokens/tokens.css), so its
+   own ink is set here: the inherited colour is the theme's. */
 .ui-card__page {
   box-sizing: border-box;
   aspect-ratio: 210 / 297;
   padding: var(--space-6) var(--space-5);
+  color: var(--text);
   background: var(--surface);
   border: 1px solid var(--card-edge);
   box-shadow: var(--elev-rest);

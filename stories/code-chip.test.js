@@ -99,6 +99,9 @@ const HANDS_NOTHING_ON = /\/\* code-bg: inherit — .+\. \*\//;
 
 
 const sheets = files.flatMap(rulesIn);
+/** A rule that lists a :root selector is the ladder, whatever else it lists: a document sheet
+ * shares the light block, and a chip on it reads the light theme, which is measured. #736 */
+const isRoot = (rule) => selectorsOf(rule.selector).some((selector) => selector.startsWith(':root'));
 const own = (rule) => new Map(customPropertiesIn(`${rule.selector}{${rule.body}}`).map((d) => [d.name, d.value]));
 
 /* Whether a value is one of the kit's READING SURFACES, followed through its own aliases:
@@ -159,7 +162,7 @@ const paintedAliases = new Set(sheets
   .filter((paint) => paint && /^var\(\s*--[\w-]+\s*\)$/.test(paint))
   .map((paint) => /^var\(\s*(--[\w-]+)/.exec(paint)[1]));
 const aliased = sheets.flatMap((rule) => {
-  if (rule.selector.startsWith(':root') || paintOf(rule.body)) return [];
+  if (isRoot(rule) || paintOf(rule.body)) return [];
   return [...own(rule)]
     .filter(([name, value]) => paintedAliases.has(name) && isSurface(value))
     .flatMap(([, value]) => selectorsOf(rule.selector)
@@ -187,12 +190,12 @@ const pickFor = (selector) => handOffs.filter((hand) => hand.selector === select
  * in the page's own resolution, and reading it as an overlay would hand one component's
  * surface to a sibling that never sees it. */
 const ladder = new Set(rulesIn('src/tokens/tokens.css')
-  .filter((rule) => rule.selector.startsWith(':root'))
+  .filter(isRoot)
   .flatMap((rule) => [...own(rule).keys()]));
 const written = new Set(grounds.flatMap(({ paint, selector }) => [paint, pickFor(selector) ?? '']
   .flatMap((value) => [...namesRead(value, tokensFor('dark'))])).filter((name) => ladder.has(name)));
 const contexts = [{ where: 'the page', overrides: new Map() },
-  ...sheets.filter((rule) => !rule.selector.startsWith(':root'))
+  ...sheets.filter((rule) => !isRoot(rule))
     .map((rule) => ({ rule, overrides: new Map([...own(rule)].filter(([name]) => written.has(name))) }))
     .filter(({ overrides }) => overrides.size)
     .map(({ rule, overrides }) => ({ where: `inside ${rule.selector}`, overrides }))];
