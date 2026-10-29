@@ -8,7 +8,7 @@
 
 **Rule:** Put tables on a white surface in light mode and the base canvas in dark mode.
 
-**Do:** Use a white surface in light mode and the base canvas in dark mode; let the row edge mark hover.
+**Do:** Let the row edge mark hover.
 
 **Don't:** Add a grey zebra or hover fill.
 
@@ -32,7 +32,7 @@
 
 **Rule:** Right-align numeric headers and values.
 
-**Do:** Right-align numeric headers and values, use tabular numerals, and keep text left-aligned.
+**Do:** Use tabular numerals, and keep text left-aligned.
 
 **Don't:** Align numbers to their labels or sort formatted strings.
 
@@ -123,3 +123,5 @@
 **Do:** Search, then a status filter, on the row above the table.
 
 **Don't:** Leave a table with no way to narrow its rows.
+
+**Except:** A table that compares one document line by line takes no bar, because a filter hides lines that the reviewer must check.

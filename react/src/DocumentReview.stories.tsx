@@ -263,6 +263,7 @@ export const Default: StoryObj<Args> = {
           <h3>{DOCUMENT.supplier}</h3>
           <p className="doc-flow__meta">Invoice {DOCUMENT.number} · {RATE} per hour</p>
           <p className="doc-flow__meta">Issued {DOCUMENT.issued} · Due {DOCUMENT.due}</p>
+          {/* No filter bar: the reviewer checks every line of the one document. why: guidelines/dense-tables.md#give-every-table-its-filter-bar */}
           <table className="ui-table ui-table--dense">
             <caption className="ui-sr">Services on this invoice, with subtotal, VAT and total.</caption>
             <thead>
@@ -307,6 +308,7 @@ export const Default: StoryObj<Args> = {
       <div className="ui-table-scroll" ref={scrollRef}>
         <div className="doc-flow__sheet" style={{ width: pageSize.width || undefined, zoom: pageSize.fit }}>
           <Skeleton lines={['38%', '46%', '42%']} />
+          {/* No filter bar, as on the sheet it holds the place of. why: guidelines/dense-tables.md#give-every-table-its-filter-bar */}
           <SkeletonTable rows={4} cols={3} />
         </div>
       </div>
@@ -325,6 +327,7 @@ export const Default: StoryObj<Args> = {
               document's own format, so the two columns of numbers share an edge
               instead of being read character by character.
               why: guidelines/dense-tables.md#align-numeric-values */}
+          {/* No filter bar: every amount is checked against the document. why: guidelines/dense-tables.md#give-every-table-its-filter-bar */}
           <table className={['ui-table', 'ui-table--dense', 'doc-flow__amounts', arriving].filter(Boolean).join(' ')}>
             <caption className="ui-sr">Amounts read from the invoice, in EUR.</caption>
             {/* The left column holds the names of the amounts, not amounts, so it takes
