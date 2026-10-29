@@ -72,12 +72,14 @@ const MonthTable = () => <table className="ui-table ui-table--dense">
 </table>;
 
 // One block, one view at a time: the switch shares the title's row and opens on Chart.
+// Small underline tabs, not pills: an accent fill outweighed the chart and its title.
+// The wrapper keeps the row's baseline, which the strip's own stretch would drop.
 const VIEWS = [{ label: 'Chart', value: 'chart' }, { label: 'Table', value: 'table' }];
 const MonthBlock = ({ view: initial }: { view: string }) => {
   const [view, setView] = useState(initial);
   return <Card><div className="gd-block-head">
     <h2 className="ui-card__title">Net settled by month</h2>
-    <Segmented label="Net settled by month view" options={VIEWS} value={view} onChange={setView} />
+    <div><Segmented label="Net settled by month view" options={VIEWS} value={view} onChange={setView} appearance="underline" size="sm" /></div>
   </div>{view === 'chart' ? <MonthChart /> : <MonthTable />}</Card>;
 };
 
