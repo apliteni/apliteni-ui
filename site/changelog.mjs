@@ -13,6 +13,12 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.146.1', date: '2026-10-29',
+    changes: [
+      ['fixed', 'A `DatePicker` range whose two ends are the same month or the same day shows that period once, such as "Sept 2026" or "22 Sept 2026". A longer range still shows both ends. Resolves #747.', ['DatePicker']],
+    ],
+  },
+  {
     v: '0.146.0', date: '2026-10-28',
     changes: [
       ['added', 'React `Chart` adds the variants `line`, `area`, `stacked` and `donut`. Each takes `look` to pick one of three drawings, and keeps the readout, the keyboard steps, the live region and the values table. A donut takes `slices` and an optional `totalLabel`. Part of #742.', ['Chart']],
