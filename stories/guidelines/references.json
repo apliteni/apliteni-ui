@@ -264,7 +264,7 @@
   ],
   "panels": [
    {
-    "ref": "react/src/Segmented.tsx:7",
+    "ref": "react/src/Segmented.tsx:9",
     "pattern": "role=\"toolbar\" aria-label={label}"
    },
    {
@@ -286,7 +286,7 @@
     "pattern": ".ui-filter-bar__chip {"
    },
    {
-    "ref": "react/src/Segmented.tsx:4",
+    "ref": "react/src/Segmented.tsx:6",
     "pattern": "export function Segmented("
    }
   ],
@@ -496,7 +496,7 @@
   ],
   "meaning": [
    {
-    "ref": "src/assets/icons.js:222",
+    "ref": "src/assets/icons.js:228",
     "pattern": "export const iconMeanings"
    },
    {
@@ -670,11 +670,11 @@
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:114",
+    "ref": "src/styles/segmented.css:119",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:123",
+    "ref": "src/styles/segmented.css:128",
     "pattern": "padding: var(--space-3)"
    }
   ]

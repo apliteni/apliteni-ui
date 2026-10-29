@@ -64,14 +64,50 @@
 
 **Don't:** A table alone, its period fixed when it was built.
 
-## Put the table under every chart
+## Download a report with one icon button
 
-<!-- rule: table-behind-the-chart -->
+<!-- rule: export-icon -->
 
-**Rule:** Show the table a chart was drawn from under it, on every report.
+**Rule:** Offer a report's download as one icon button, named for the file it makes.
 
-**Why:** A chart shows the shape of a change, not the amount it is read for.
+**Why:** The glyph is learned everywhere, and its name reaches assistive technology and a hover title.
 
-**Do:** The months as bars, then the same months as rows.
+**Do:** The download glyph named Download PDF, at the end of the filter row.
 
-**Don't:** The bars alone, every month estimated by eye.
+**Don't:** The same button with its words, wider than every filter.
+
+## Switch a chart to its table
+
+<!-- rule: chart-table-switch -->
+
+**Rule:** Give a chart's block a Chart and Table switch that opens on Chart.
+
+**Why:** The chart shows the shape of a change, and the table the amounts it is read for.
+
+**Do:** Net settled by month as bars, then switched to its rows.
+
+**Don't:** The rows stacked under the bars, in one block or the next.
+
+## Name the lines by their values or a key
+
+<!-- rule: value-not-legend -->
+
+**Rule:** Write the last values on a chart of one or two lines when the latest value matters, and draw a key for more lines or when no one value matters.
+
+**Why:** A key sends the eye from a line to the key and back and gives no amount, but a tap shows the readout with the values at that point.
+
+**Do:** Spend with a key and last values, and seasonal spend with a key.
+
+**Don't:** The same two lines without values.
+
+## Draw at most two lines on a chart
+
+<!-- rule: two-lines-at-most -->
+
+**Rule:** Draw one line on a chart, or two when the reader compares them.
+
+**Why:** Past two lines, the colours are hard to tell apart and the crossings hide the shape of each line.
+
+**Do:** Spend against Estimated, then revenue against expenses on a second chart.
+
+**Don't:** All four lines on one chart.

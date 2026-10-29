@@ -114,8 +114,11 @@ export type { SuccessProps, SuccessPanelProps, SuccessCheckProps, SuccessCountdo
 
 export { Chart } from './Chart';
 export type {
-  ChartProps, ChartTone, ChartPeriod, ChartSeries, ChartBridgeStep, ChartBridgeTones,
+  ChartProps, ChartTone, ChartPeriod, ChartSeries, ChartBridgeStep, ChartBridgeTones, ChartLookSeries,
 } from './Chart';
+export type {
+  ChartLineLook, ChartAreaLook, ChartStackedLook, ChartDonutLook, ChartSlice,
+} from './chart-looks';
 
 export { SidebarNav } from './SidebarNav';
 export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';

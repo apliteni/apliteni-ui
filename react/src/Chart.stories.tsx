@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Chart, type ChartPeriod, type ChartSeries } from './Chart';
+import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
+import type { ChartSlice } from './chart-looks';
 import { Card } from './primitives/Card';
 import { StatBand } from './primitives/StatBand';
 
@@ -19,13 +20,15 @@ const periods: ChartPeriod[] = MONTHS.map((label, i) => (i === MONTHS.length - 1
   ? { label, estimated: true, note: 'November is still running' }
   : { label }));
 
-/* One hue at two weights for the two measured series, and the second hue for the
-   one derived from them. Income and spend are the same money read two ways, so
-   they read apart by weight and by which side of zero they stand on. Good and
+/* Two hues for the two measured series, and a third for the one derived from
+   them. Income and spend are the same money read two ways, so they read apart
+   by hue and by which side of zero they stand on. Good and
    bad would have said which of the two is the better news, which no month
    decides.
    Round 27 of #543 picked these two hues; the drawing around them was redrawn
-   against eight references on round 37, and the hues were kept. */
+   against eight references on round 37, and the hues were kept. #740 made them
+   the chart's own fixed steps, so they no longer follow the product accent, and
+   gave accent-soft a hue of its own. */
 const series: ChartSeries[] = [
   { id: 'income', name: 'Income', values: INCOME, shape: 'bars', tone: 'accent' },
   { id: 'spend', name: 'Spend', values: SPEND, shape: 'bars-below', tone: 'accent-soft' },
@@ -80,11 +83,37 @@ export const SideBySide: StoryObj = {
   ),
 };
 
+/** Every tone the chart offers, one series each, in the order ChartTone lists
+ *  them. Each bar fades from a tint at its base on zero to the full tone at its
+ *  data end, and a bar under zero fades the other way. Seven tones need a key,
+ *  so this story asks for the legend, and its keys stay solid in the full tone.
+ *  Made-up seat changes for a made-up company. */
+export const Palette: StoryObj = {
+  render: () => (
+    <Card title="Seats gained and lost" sub="By plan, 2025">
+      <Chart title="Seats gained and lost by plan, each quarter of 2025"
+        periods={['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'].map((label) => ({ label }))}
+        format={(n) => `${n < 0 ? '−' : '+'}${Math.abs(n)}`}
+        series={([
+          ['starter', 'Starter', 'accent', [42, 38, 51, 47]],
+          ['team', 'Team', 'accent-soft', [31, 36, 29, 40]],
+          ['business', 'Business', 'good', [24, 27, 33, 30]],
+          ['legacy', 'Legacy', 'bad', [-18, -22, -15, -26]],
+          ['trial', 'Trial', 'warn', [16, -9, 21, 12]],
+          ['partner', 'Partner', 'info', [11, 14, -6, 18]],
+          ['education', 'Education', 'neutral', [8, 10, 9, -4]],
+        ] as const).map(([id, name, tone, values]) => ({ id, name, tone, values, shape: 'bars' }))}
+        legend />
+    </Card>
+  ),
+};
+
+/** A rise, a fall and a total read apart by tone, so the bridge asks for the legend. */
 export const Bridge: StoryObj = {
   render: () => (
     <Card title="Cash, third quarter" sub="Opening to closing">
       <Chart variant="bridge" title="Cash from opening to closing, third quarter"
-        format={eur} formatAxis={eurAxis}
+        format={eur} formatAxis={eurAxis} legend
         steps={[
           { label: 'Opening', short: 'Opening', value: 120000 },
           { label: 'Subscriptions', short: 'Subs', value: 42600 },
@@ -99,7 +128,7 @@ export const Bridge: StoryObj = {
 };
 
 /** The phone width the acceptance names. The axis stays put, the plot scrolls,
- *  and the side that still hides months is faded. */
+ *  A column cut by the edge shows that more months are there. */
 export const Narrow: StoryObj = {
   render: () => (
     <div style={{ maxWidth: 'var(--panel-sm)' }}>
@@ -131,9 +160,12 @@ export const Selectable: StoryObj = {
  *  shape the stat band's `trend` slot was left open for. The band is not wrapped
  *  in a card: its tiles are cards already (guidelines/the-page.md, stacking).
  *  `basis` is where guidelines/stat-bands.md puts what a change is measured
- *  against: once, outside every figure, pointed at by both changes. */
+ *  against: once, outside every figure, pointed at by both changes. The band
+ *  takes the look stories' card width: on the centred canvas it had no width to
+ *  size its tiles from, and a phone's sparklines ran past the edge. */
 export const Sparkline: StoryObj = {
   render: () => (
+    <div style={{ width: 'min(var(--panel-lg), calc(100vw - 2rem))' }}>
     <StatBand label="Revenue" basis="Change on September" stats={[{
       label: 'Income', value: eur(INCOME[10]),
       delta: { value: '+5.3%', tone: 'good' },
@@ -149,5 +181,103 @@ export const Sparkline: StoryObj = {
         series={[{ id: 'spend', name: 'Spend', values: SPEND.slice(0, 11), shape: 'line', tone: 'accent-soft' }]}
         format={eur} />,
     }]} />
+    </div>
   ),
+};
+
+/* The looks draw a closed year, as the #742 pictures do: November has ended. */
+const year: ChartPeriod[] = MONTHS.map((label) => ({ label }));
+const YEAR_INCOME = [...INCOME.slice(0, 11), 50120];
+const YEAR_SPEND = [...SPEND.slice(0, 11), 34880];
+
+/* Spend split four ways, for the line, area, stacked and donut looks. Office is
+   what the other three leave, so the four add up to YEAR_SPEND in every month. */
+const PAYROLL = [17200, 17200, 17600, 17600, 18100, 18100, 18400, 18400, 18400, 18900, 18900, 19400];
+const HOSTING = [5420, 5560, 5710, 5830, 6020, 6110, 6240, 6380, 6450, 6610, 6720, 6880];
+const MARKETING = [4890, 5190, 5370, 4980, 5420, 4920, 5640, 5980, 5310, 5770, 5810, 5900];
+const OFFICE = YEAR_SPEND.map((value, i) => value - PAYROLL[i] - HOSTING[i] - MARKETING[i]);
+const costs: ChartLookSeries[] = [
+  { id: 'payroll', name: 'Payroll', values: PAYROLL, tone: 'accent' },
+  { id: 'hosting', name: 'Hosting', values: HOSTING, tone: 'accent-soft' },
+  { id: 'marketing', name: 'Marketing', values: MARKETING, tone: 'info' },
+  { id: 'office', name: 'Office', values: OFFICE, tone: 'warn' },
+];
+/** October, the last closed month, as one whole. */
+const october: ChartSlice[] = costs.map(({ id, name, tone, values }) => ({ id, name, tone, value: values[10] }));
+
+/* The two measured series as plain lines, and their sum as one flat area. */
+const flows: ChartLookSeries[] = [
+  { id: 'income', name: 'Income', values: YEAR_INCOME, tone: 'accent' },
+  { id: 'spend', name: 'Spend', values: YEAR_SPEND, tone: 'accent-soft' },
+];
+const spend: ChartLookSeries[] = [{ id: 'spend', name: 'Spend', values: YEAR_SPEND, tone: 'accent' }];
+
+/* Each look sits in one card width, so the looks compare side by side. The
+   centred canvas has no width to take a percentage of, so a phone clamps to the
+   viewport less the canvas's 1rem on each side. */
+const lookCard = (title: string, sub: string, chart: ReactNode) => (
+  <div style={{ width: 'min(var(--panel-lg), calc(100vw - 2rem))' }}>
+    <Card title={title} sub={sub}>{chart}</Card>
+  </div>
+);
+
+export const LineThin: StoryObj = {
+  render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="thin"
+    title="Income and spend by month, last 12 months" periods={year} series={flows}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const LinePoints: StoryObj = {
+  render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="points"
+    title="Income and spend by month, last 12 months" periods={year} series={flows}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const LineLabels: StoryObj = {
+  render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="labels"
+    title="Income and spend by month, last 12 months" periods={year} series={flows}
+    format={eur} formatAxis={eurAxis} />),
+};
+
+export const AreaFlat: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="flat"
+    title="Spend by month, last 12 months" periods={year} series={spend}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const AreaStacked: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="stacked"
+    title="Spend by category and month, last 12 months" periods={year} series={costs}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const AreaShare: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="share"
+    title="Share of spend by category and month, last 12 months" periods={year} series={costs}
+    format={eur} formatAxis={eurAxis} />),
+};
+
+export const StackedColumns: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="columns"
+    title="Spend by category and month, last 12 months" periods={year} series={costs}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const StackedShare: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="share"
+    title="Share of spend by category and month, last 12 months" periods={year} series={costs}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const StackedRows: StoryObj = {
+  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="rows"
+    title="Spend by category and month, last 12 months" periods={year} series={costs}
+    format={eur} formatAxis={eurAxis} />),
+};
+
+export const DonutThin: StoryObj = {
+  render: () => lookCard('Spend by category', 'October 2025', <Chart variant="donut" look="thin"
+    title="Spend by category, October 2025" slices={october} totalLabel="Total spend" format={eur} />),
+};
+export const DonutTable: StoryObj = {
+  render: () => lookCard('Spend by category', 'October 2025', <Chart variant="donut" look="table"
+    title="Spend by category, October 2025" slices={october} format={eur} />),
+};
+export const DonutLabels: StoryObj = {
+  render: () => lookCard('Spend by category', 'October 2025', <Chart variant="donut" look="labels"
+    title="Spend by category, October 2025" slices={october} format={eur} />),
 };

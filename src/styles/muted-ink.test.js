@@ -120,12 +120,16 @@ test('the chrome class stays on a drawing\'s own furniture', () => {
   // in the readout and in the values table. The one other use is a supporting
   // card's title, as recorded in #458. A class with no bound is a second
   // default, so the declarations taking it are listed rather than counted.
+  // The caption is the rows look's periods and steps and the ring's caption, and
+  // the shares' percent is the donut's key: both are in the values table (#742).
   assert.deepEqual(result.subjects.filter(d => d.note?.[1] === 'chrome')
     .map(d => `${d.file} ${d.selector}`).sort(), [
     'src/styles/card.css .ui-card__title--muted',
     'src/styles/chart.css .ui-chart__axis',
+    'src/styles/chart.css .ui-chart__caption',
     'src/styles/chart.css .ui-chart__legend',
     'src/styles/chart.css .ui-chart__period',
+    'src/styles/chart.css .ui-chart__shares-pct',
   ]);
 });
 

@@ -10,6 +10,11 @@ import { SPEC_CSS } from './_button-labels.js';
 
 const content = await loadGuideline('button-labels.md', new URL('../../guidelines/button-labels.md', import.meta.url));
 
+// A made-up contract clause for the selection rule.
+const CLAUSE_HEAD = 'Payouts settle within ';
+const CLAUSE_PICK = 'five business days';
+const CLAUSE_TAIL = ' of the request, unless the bank holds the transfer for review.';
+
 const Row = ({ children }: { children: ReactNode }) => <div className="gl-stage gl-stage--row">{children}</div>;
 
 // No destructive action here. A Delete drawn as an ordinary secondary teaches
@@ -28,6 +33,13 @@ const specimens = [
   { id: 'wordless-earns-it',
     do: () => <Row><Button icon="filter">Filter</Button><Button icon="moreHorizontal" iconOnly>More actions</Button></Row>,
     dont: () => <Row><Button icon="filter" iconOnly>Filter</Button><Button icon="gear" iconOnly>Settings</Button></Row> },
+  // The Don't holds the selection on a span with the kit's held-selection mark,
+  // and its toolbar as a box in place, since a picture cannot hold a live selection.
+  { id: 'no-action-on-selection',
+    do: () => <div className="gl-stage gl-clause"><p>{CLAUSE_HEAD}{CLAUSE_PICK}{CLAUSE_TAIL}</p>
+      <div className="gl-stage--row"><Button>Add note</Button></div></div>,
+    dont: () => <div className="gl-stage gl-clause"><Row><Button size="sm">Add note</Button><Button size="sm">Copy</Button></Row>
+      <p>{CLAUSE_HEAD}<span className="ui-fbmark">{CLAUSE_PICK}</span>{CLAUSE_TAIL}</p></div> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Button labels', parameters: { layout: 'fullscreen' } };
