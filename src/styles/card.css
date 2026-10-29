@@ -61,6 +61,43 @@
   border-color: color-mix(in srgb, var(--green) 22%, transparent);
 }
 
+/* A viewer: a document shown inside a card, set apart from the controls that act on it.
+   The card's .ui-toolbar becomes a slim row between two hairlines, and its scroll box
+   becomes a recessed stage that runs to the card's sides and bottom. The document
+   itself is a .ui-card__page on that stage: a sheet one level up, so it reads as the
+   object and the row above it as the tools. Decided on #736.
+   why: docs/foundations.md#elevation */
+.ui-card__viewer {
+  margin: var(--space-4) calc(-1 * var(--space-6)) calc(-1 * var(--space-6));
+  border-top: 1px solid var(--card-edge);
+}
+.ui-card__viewer > .ui-toolbar {
+  /* One row on a phone too: the page steps hold the start and the zoom the end. */
+  flex-wrap: nowrap;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--card-edge);
+}
+.ui-card__viewer > .ui-table-scroll {
+  --table-bg: var(--surface-2);
+  max-height: none;
+  /* With the scroll box's own 4px band at the sides and bottom, an even 24px inset. */
+  padding: var(--space-6) var(--space-5) var(--space-5);
+  border-radius: 0 0 calc(var(--radius-xl) - 1px) calc(var(--radius-xl) - 1px);
+}
+/* A4 at the least, so a short document still reads as a page and not as a panel. */
+.ui-card__page {
+  box-sizing: border-box;
+  aspect-ratio: 210 / 297;
+  padding: var(--space-6) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--card-edge);
+  box-shadow: var(--elev-rest);
+  border-radius: var(--radius-xs);
+  /* A table on the page takes the page's ground, not the stage's. */
+  --table-bg: var(--surface);
+}
+
 /* Interactive card (link / button semantics) */
 .ui-card--interactive {
   cursor: pointer;

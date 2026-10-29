@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.147.0', date: '2026-10-29',
+    changes: [
+      ['added', 'New card classes `.ui-card__viewer` and `.ui-card__page` show a document inside a card apart from the controls that act on it. Wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and give the document `.ui-card__page`. The toolbar becomes a slim row between two hairlines, and the page sits as a sheet on a recessed stage. Part of #736.', ['Card']],
+    ],
+  },
+  {
     v: '0.145.0', date: '2026-10-28',
     changes: [
       ['changed', 'React `Chart` series use a fixed palette of seven tones in each theme, and the product accent no longer changes them. Each bar fades from a light tint of its tone at the zero line to the full tone at its data end. A bridge step fades from the previous running total to the new one. Lines and legend keys stay solid. Resolves #740.', ['Chart']],

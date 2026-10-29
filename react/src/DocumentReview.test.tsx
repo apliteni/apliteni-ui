@@ -181,7 +181,7 @@ describe('document review flow', () => {
     // fail here until this gate is told what emphasis it carries.
     expect(panes).toHaveLength(2);
     const titles = panes.map((pane) => pane.querySelector('.ui-card__title')?.textContent);
-    expect(titles).toEqual(['Extracted fields', 'Source document']);
+    expect(titles).toEqual(['Extracted fields', 'Document preview']);
     const [saved, source] = panes;
 
     // Position, width, weight and accent are the rule's four levers, and the preview
@@ -197,15 +197,10 @@ describe('document review flow', () => {
     // holds the selector that sheet paints together with the class the markup wears —
     // the two halves that put the accent on this one name.
     expect(SHEET).toMatch(/\.doc-flow__saved-pane\s+\.ui-card__title\s*\{[^}]*color:\s*var\(--accent\)/);
-    // The preview carries none of it: not on its name, not on a card ground, and the one
-    // control inside it marks its selection with the strong edge instead of the accent
-    // outline `.ui-seg` paints by default.
+    // The preview carries none of it: not on its name and not on a card ground.
     expect(source).not.toHaveClass('doc-flow__saved-pane');
     expect(source.querySelectorAll('.ui-card--accent, .ui-card--live, .doc-flow__saved-pane'))
       .toHaveLength(0);
-    const pressed = [...source.querySelectorAll('.ui-seg button[aria-pressed="true"]')];
-    expect(pressed).toHaveLength(1);
-    expect(getComputedStyle(pressed[0] as HTMLElement).outlineColor).toBe('var(--border-strong)');
     // Neither card draws an edge of its own, so both keep one hairline between them.
     // Limit: the kit stylesheet is not loaded here, so this holds that the showcase
     // declares no edge on either card; the painted hairlines are measured in the #385
@@ -278,19 +273,41 @@ describe('document review flow', () => {
     expect(sheets.flatMap(([where, css]) => accentOffences(css, where))).toEqual([]);
   });
 
-  it('draws the document as the card’s own page, not a second card on the same fill', () => {
+  it('lays the document on a recessed stage under its own toolbar, as a kit page', () => {
     const { container } = render(<Default />);
-    const sheet = container.querySelector('.doc-flow__sheet') as HTMLElement;
+    // The sheet is the kit's page inside the kit's viewer, so the kit draws the ground,
+    // edge and recess and the showcase draws none of it.
+    // Limit: jsdom applies the story's own <style> only, so this holds the structure and
+    // the declarations the showcase writes; the paint of both themes is in the #736
+    // browser captures.
+    const viewer = container.querySelector('.doc-flow__panes > .ui-card:last-child > .ui-card__viewer');
+    expect(viewer).not.toBeNull();
+    expect(viewer?.firstElementChild).toHaveClass('ui-toolbar');
+    const sheet = viewer?.querySelector(':scope > .ui-table-scroll > .doc-flow__sheet') as HTMLElement;
+    expect(sheet).toHaveClass('ui-card__page');
     const box = getComputedStyle(sheet);
-    // A `.ui-card .ui-card` scan cannot see this: the sheet never wore the class, it
-    // copied a card's ground, hairline, radius and padding, which in light put white on
-    // white and in dark left one hairline between two identical fills.
-    // Limit: jsdom applies the story's own <style> only, so this holds the declarations
-    // the showcase writes; the two themes are compared in the #385 browser captures.
     expect(box.backgroundColor).toBe('rgba(0, 0, 0, 0)');
     expect(box.borderTopWidth).toBe('0px');
-    expect(box.borderRadius).toBe('');
-    expect(box.padding).toBe('0');
+
+    // One page in the demo: the count says so and neither page step can act.
+    expect(screen.getByText('Page 1 of 1')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Previous page' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled();
+
+    // The zoom steps through the same four presets and stops at each end.
+    const out = screen.getByRole('button', { name: 'Zoom out' });
+    const zoomIn = screen.getByRole('button', { name: 'Zoom in' });
+    fireEvent.click(out);
+    expect(screen.getByText('50%')).toBeInTheDocument();
+    expect(sheet.style.zoom).toBe('0.5');
+    expect(out).toBeDisabled();
+    fireEvent.click(zoomIn); // back to Fit
+    fireEvent.click(zoomIn);
+    expect(screen.getByText('150%')).toBeInTheDocument();
+    fireEvent.click(zoomIn);
+    expect(screen.getByText('200%')).toBeInTheDocument();
+    expect(sheet.style.zoom).toBe('2');
+    expect(zoomIn).toBeDisabled();
   });
 
   it('offers no download and no zoom it cannot apply while the preview is missing', () => {
@@ -298,7 +315,8 @@ describe('document review flow', () => {
     // Artur removed "Download text" on PR #437: it wrote a summary, not the document.
     expect(screen.queryByRole('button', { name: /Download/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Fit' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Zoom out' })).toBeDisabled();
     // The fields the reader came to check stay usable without the preview.
     expect(screen.getByText('Sample Studio')).toBeInTheDocument();
     expect(status()).toHaveTextContent('Preview unavailable');
