@@ -88,19 +88,17 @@
 
 **Don't:** The rows stacked under the bars, in one block or the next.
 
-## Name each line by its last value
+## Name the lines by their values or a key
 
 <!-- rule: value-not-legend -->
 
-**Rule:** Name each line of a chart by its last value in the line's colour, and draw no legend.
+**Rule:** Write the last values on a chart of one or two lines when the latest value matters, and draw a key for more lines or when no one value matters.
 
-**Why:** A legend sends the eye from a line to the key and back, and still gives no amount.
+**Why:** A key sends the eye from a line to the key and back and gives no amount, but a tap shows the readout with the values at that point.
 
-**Except:** Set the value at figure size, because a line's colour can miss the floor for body text.
+**Do:** Spend and Estimated, each line ending on its last value.
 
-**Do:** Spend and Estimated, each name over its last value in its line's colour.
-
-**Don't:** The same two lines with a key of swatches and no values.
+**Don't:** The same two lines with a key and no values.
 
 ## Draw at most two lines on a chart
 

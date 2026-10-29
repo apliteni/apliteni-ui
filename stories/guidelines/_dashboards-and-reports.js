@@ -30,33 +30,11 @@ export const SPEC_CSS = `${CHART_CSS}
     .gd-block-head { display: flex; align-items: baseline; column-gap: var(--space-4);
       margin-bottom: var(--space-2); }
     .gd-block-head > :first-child { flex: 1 1 0; min-width: 0; }
-    /* A line's name and last value, in the line's own tone. The value keeps the
-       figure's 30px semibold: at that size the large-text floor of 3:1 applies,
-       which every chart tone meets on the card. */
-    .gd-series { display: flex; flex-wrap: wrap; column-gap: var(--space-6); row-gap: var(--space-2); }
-    .gd-series__item { display: flex; flex-direction: column; }
-    /* The kit has no part that paints text in a series tone, so this story holds it until the kit adds one. */
-    .gd-series__value { color: var(--ui-chart-tone); }
   </style>`;
-
-// Lines on one shared scale, drawn with the kit's chart line and tone classes.
-// A picture, not the kit's Chart: that one draws a legend, which the value rule
-// replaces with the figures above the plot.
-export function lines({ series, width = 320, height = 112, label }) {
-  const pad = 6;
-  const all = series.flatMap(s => s.values);
-  const lo = Math.min(...all);
-  const hi = Math.max(...all);
-  const step = (width - pad * 2) / (series[0].values.length - 1);
-  const y = v => Math.round((pad + ((hi - v) / (hi - lo || 1)) * (height - pad * 2)) * 10) / 10;
-  const paths = series.map(s => `<path class="ui-chart__line ui-chart__tone--${s.tone}" d="${
-    s.values.map((v, i) => `${i ? 'L' : 'M'}${Math.round((pad + i * step) * 10) / 10} ${y(v)}`).join(' ')}"></path>`).join('');
-  return `<svg class="ch-chart ch-chart--fluid" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${label}">${paths}</svg>`;
-}
 
 // Made-up monthly spend for the made-up portal, in thousands of euros.
 export const SPEND = [18.2, 19.4, 21.1, 20.3, 22.8, 23.6];
-export const ESTIMATED = [19.0, 19.5, 20.5, 21.0, 22.0, 23.0];
+export const ESTIMATED = [17.5, 17.8, 18.1, 18.4, 18.7, 19.0];
 
 // Reference, fees, net, status. A fifth column does not fit a specimen cell,
 // so the gross stays here undrawn: it is what makes each net checkable, and
