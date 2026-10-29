@@ -101,8 +101,9 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // These changes leave 21 shadow declarations for elevation and decoration. #587 moved the
 // `a` element onto the shared ring rule and removed table.css's own copy, but both already
 // wrote an outline rather than a box-shadow after #578, so this sweep is unaffected.
-  assert.equal(sweep.length, 21,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 21. `
+// 21 -> 22: #736's viewer sheet rests on its stage with the card's own rung.
+  assert.equal(sweep.length, 22,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 22. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -157,7 +158,7 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
   // such a rule from the surfaces around them.
   const got = Object.fromEntries([...rungs].map(([layer, n]) => [layer, n / THEMES.length]));
   assert.deepStrictEqual(got, {
-    'var(--elev-rest)': 1,   // .ui-card
+    'var(--elev-rest)': 2,   // .ui-card, .ui-card__page
     'var(--elev-rail)': 1,   // .ui-app__rail
     'var(--elev-drop)': 12,  // the floating surfaces, each saying it once
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '

@@ -184,6 +184,12 @@ export const iconOnlyAllowed = {
   // and one button opens the full navigation in a drawer. The three-bar glyph is the
   // reader's own mark for this action.
   menu: 'open the navigation drawer',
+  // A document viewer's page and zoom steps, chosen by Artur on #736: a slim row of
+  // steppers either side of the readout they move, so the readout names the action.
+  chevronLeft: 'step to the previous page',
+  chevronRight: 'step to the next page',
+  minus: 'zoom out',
+  plus: 'zoom in',
 };
 
 // The word a wordless control's name may open with. The list above says which
@@ -205,6 +211,10 @@ export const iconOnlyNames = {
   // something else.
   download: ['export', 'download'],
   menu: ['menu'],
+  chevronLeft: ['previous'],
+  chevronRight: ['next'],
+  minus: ['zoom'],
+  plus: ['zoom'],
 };
 
 // What a glyph means when a component picks it for the reader rather than a

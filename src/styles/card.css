@@ -79,7 +79,9 @@
   border-bottom: 1px solid var(--card-edge);
 }
 .ui-card__viewer > .ui-table-scroll {
+  /* The stage is the lowest rung, so an inline code chip on it takes the card. */
   --table-bg: var(--surface-2);
+  --table-code-bg: var(--surface);
   max-height: none;
   /* With the scroll box's own 4px band at the sides and bottom, an even 24px inset. */
   padding: var(--space-6) var(--space-5) var(--space-5);
@@ -94,8 +96,9 @@
   border: 1px solid var(--card-edge);
   box-shadow: var(--elev-rest);
   border-radius: var(--radius-xs);
-  /* A table on the page takes the page's ground, not the stage's. */
+  /* A table on the page takes the page's ground, not the stage's, and hands a chip the page. */
   --table-bg: var(--surface);
+  --table-code-bg: var(--bg);
 }
 
 /* Interactive card (link / button semantics) */

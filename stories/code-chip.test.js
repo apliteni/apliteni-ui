@@ -279,7 +279,7 @@ test('the ground discovery refuses a painted container that hands a chip nothing
 });
 
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 35, 'painted-ground discovery changed; the branch-added .ui-filter-bar__chip hands an inline code chip var(--bg) in tokens.css. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
+  assert.equal(grounds.length, 36, 'painted-ground discovery changed; the branch-added .ui-card__page hands an inline code chip var(--bg) in tokens.css. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
   // The page entry is named, not discovered, so it is held against the rule that paints it.
   const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
   assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');
@@ -298,7 +298,7 @@ test('the chip gate discovers every ground, wash, context and theme', () => {
     assert.ok(pickFor(selector), `${selector} is a wash a caller can write a chip inside and never hands it a surface`);
     assert.ok(colourOf(paint, tokensFor('light')), `${selector} has no readable fill`);
   }
-  assert.equal(contexts.length, 2, 'a container re-points a ground token; say what a chip inside it takes');
+  assert.equal(contexts.length, 4, 'a container re-points a ground token; say what a chip inside it takes');
   assert.ok(grounds.some(({ selector }) => selector === ':root'), 'the page is a painted ground and is measured with the rest');
   for (const { file, selector } of grounds) {
     assert.ok(pickFor(selector), `${file}: ${selector} paints a ground and never hands an inline code chip a surface`);
