@@ -3,9 +3,11 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useState, type MouseEvent } from 'react';
 import { DemoShell } from './_demo-shell';
 import { FilterBar, type Filter } from '../../react/src/FilterBar';
+import { SearchField } from '../../react/src/SearchField';
 import { Segmented } from '../../react/src/Segmented';
 import { DeltaValue, NumericValue, RowIdentity } from '../../react/src/TableValues';
 import { Button } from '../../react/src/primitives/Button';
+import { Card } from '../../react/src/primitives/Card';
 import { Sheet } from '../_guideline';
 
 const meta: Meta = { title: 'Showcases/Stock screener', id: 'apps-stock-screener', parameters: { layout: 'fullscreen' } };
@@ -77,9 +79,13 @@ const Screen = ({ density = 'compact', applied = false, state = 'ready', limit =
   const [sort, setSort] = useState<'desc' | 'asc'>('desc');
   const [detail, setDetail] = useState('Company links are demonstration links; no live prices or company detail service is connected.');
   const [phase, setPhase] = useState<State>(state);
-  const filtered = rows.filter(r => active.every(f => r[f.id as 'sector' | 'rating'] === f.value));
+  const [query, setQuery] = useState('');
+  // The search reads the company name and its symbol, before the chips and the row limit.
+  const term = query.trim().toLowerCase();
+  const found = rows.filter(r => `${r.name} ${r.symbol}`.toLowerCase().includes(term));
+  const filtered = found.filter(r => active.every(f => r[f.id as 'sector' | 'rating'] === f.value));
   const data = live ? filtered.toSorted((a, b) => sort === 'desc' ? b.cap - a.cap : a.cap - b.cap)
-    : applied ? filtered.slice(0, limit) : phase === 'ready' ? rows.slice(0, limit) : rows.slice(0, 1);
+    : applied ? filtered.slice(0, limit) : phase === 'ready' ? found.slice(0, limit) : found.slice(0, 1);
   const shown = phase === 'empty' || phase === 'loading' ? [] : data;
   const busy = phase === 'refreshing' || phase === 'loading';
   const open = (event: MouseEvent) => {
@@ -94,12 +100,13 @@ const Screen = ({ density = 'compact', applied = false, state = 'ready', limit =
     <Sheet css={css} />
     <span hidden id="screener-basis">Fictional demonstration data. Changes versus previous close.</span>
     <section className="screener" onClick={open}>
-      <div className="screener__filters">
+      <Card pad="sm" className="screener__filters"><div className="ui-toolbar">
+        <SearchField ariaLabel="Search companies" placeholder="Company or symbol" value={query} onChange={e => setQuery(e.currentTarget.value)} />
         <FilterBar filters={active} busy={phase === 'refreshing'} add={FILTERS}
           onAdd={(id, value) => setActive(on => [...on, { ...FILTERS.find(f => f.id === id)!, value }])}
           onChange={(id, value) => setActive(on => on.map(f => f.id === id ? { ...f, value } : f))}
           onRemove={id => setActive(on => on.filter(f => f.id !== id))} onClear={() => setActive([])} />
-      </div>
+      </div></Card>
       <Segmented options={views.map(v => ({ label: v, value: v }))} value={view} onChange={setView} appearance="underline" label="Dataset view" />
       <div className="ui-table-scroll" role="region" aria-label="Stock screener, scroll for more columns and rows" tabIndex={0} aria-busy={busy || undefined}>
         <Table data={shown} density={density} view={view} sort={sort} onSort={live ? () => setSort(s => s === 'desc' ? 'asc' : 'desc') : undefined}

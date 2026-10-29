@@ -66,9 +66,11 @@ const THEMES = ['dark', 'light'] as const;
 // stories, five Shell layouts and three Access screens. Then 22 more search fields, one
 // above each remaining table (#736): six DataTable ledger stories, five DataTable stories,
 // two DiffPreview, two Loading, two PeriodPicker, and one each in File drop, Finance,
-// the invoice table, the finance dashboard and Labels and titles.
+// the invoice table, the finance dashboard and Labels and titles. Then ten search fields
+// in bars that had only chips (#736): seven Stock screener stories, two Finance report
+// stories and the Finance comparison.
 // Move this count with the specimens.
-const FIELD_COUNT = 139;
+const FIELD_COUNT = 149;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

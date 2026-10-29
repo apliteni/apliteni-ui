@@ -634,6 +634,12 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   assert.deepEqual(figures(), ['100,275.34 €', '3,461.47 €', '96,813.87 €']);
   assert.deepEqual(figures(), atRest,
     'the first paint already holds to the 1Y window, so clearing the filters returns to exactly what was there at rest');
+  // The search reads the reference and the payout ID, and the figures follow it too.
+  const search = doc.querySelector<HTMLInputElement>('input[type="search"]');
+  assert.ok(search, 'the ledger bar has no search field');
+  act(() => { fireEvent.change(search!, { target: { value: 'po-1165' } }); });
+  assert.deepEqual([...doc.querySelectorAll('tbody tr td:first-child')].map((cell) => cell.textContent), ['PO-1165']);
+  assert.deepEqual(figures(), ['39,054.98 €', '1,369.76 €', '37,685.22 €']);
 });
 
 test('the Finance dashboard period changes its totals and trends', () => {

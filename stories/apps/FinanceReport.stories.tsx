@@ -5,6 +5,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useRef, useState } from 'react';
 import { FinanceShell } from './_finance-shell';
 import { FilterBar } from '../../react/src/FilterBar';
+import { SearchField } from '../../react/src/SearchField';
 import { Segmented } from '../../react/src/Segmented';
 import { EmptyState } from '../../react/src/EmptyState';
 import { BusyRegion, Skeleton, SkeletonTable } from '../../react/src/Loading';
@@ -43,10 +44,12 @@ const PAYOUTS: [string, string, string, string, string, string, Tone, string][] 
 ];
 type Row = typeof PAYOUTS[number];
 
-// What the period and the filters together leave on the ledger, for the figures and the rows alike.
-const filterPayouts = (period: string, values: Record<string, string | undefined> = {}) =>
+// What the period, the search and the filters together leave on the ledger, for the
+// figures and the rows alike. The search reads the reference and the payout ID.
+const filterPayouts = (period: string, values: Record<string, string | undefined> = {}, query = '') =>
   PAYOUTS.filter(row => row[2] >= periodStart(period) && (!values.status || row[7] === values.status)
-    && (!values.currency || values.currency === 'EUR'));
+    && (!values.currency || values.currency === 'EUR')
+    && `${row[0]} ${row[1]}`.toLowerCase().includes(query.trim().toLowerCase()));
 
 // The three figures are the rows' own sums, fixed at two decimals beside the Net (EUR) column.
 const amount = (value: string) => Number.parseFloat(value.replace(/,/g, ''));
@@ -58,14 +61,17 @@ const noop = () => {};
 const periods = (PERIODS as string[]).map(p => ({ label: p, value: p }));
 
 // The export sits at the far end of the row because it acts on the ledger rather than narrowing it. #505
-const Controls = ({ period, onPeriod, filters, onChange, onRemove, onClear }: {
+// The row is the ledger's filter bar, so it sits on a card directly above the ledger. why: guidelines/dense-tables.md
+const Controls = ({ query, onQuery, period, onPeriod, filters, onChange, onRemove, onClear }: {
+  query?: string; onQuery: (q: string) => void;
   period: string; onPeriod: (p: string) => void; filters: typeof FILTERS & { value?: string }[];
   onChange: (id: string, value: string | undefined) => void; onRemove: (id: string) => void; onClear: () => void;
-}) => <div className="ui-toolbar ui-toolbar--split">
+}) => <Card pad="sm"><div className="ui-toolbar ui-toolbar--split">
+  <SearchField ariaLabel="Search payouts" placeholder="Reference or payout ID" value={query} onChange={e => onQuery(e.currentTarget.value)} />
   <Segmented label="Period" options={periods} value={period} onChange={onPeriod} />
   <div><FilterBar filters={filters} label="Payout filters" clearLabel="Clear all" onChange={onChange} onRemove={onRemove} onClear={onClear} /></div>
   <Button icon="download" iconOnly>Export rows</Button>
-</div>;
+</div></Card>;
 
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` is what
 // scrolls seven columns of ledger on a phone.
@@ -85,17 +91,18 @@ const Payouts = ({ rows, onReset }: { rows: Row[]; onReset: () => void }) => <Ca
 const Report = () => {
   const [period, setPeriod] = useState(INITIAL_PERIOD);
   const [values, setValues] = useState<Record<string, string | undefined>>({});
-  // The toolbar stays a direct child of the page body, where its spacing rules reach it,
-  // so the reset finds the first filter from the ledger card it sits in.
+  const [query, setQuery] = useState('');
+  // The toolbar's card is a sibling of the ledger card, so the reset finds the first
+  // filter from the page body around them.
   const ledger = useRef<HTMLDivElement>(null);
   const filters = FILTERS.map(filter => ({ ...filter, value: values[filter.id] ?? '' }));
-  const rows = filterPayouts(period, values);
+  const rows = filterPayouts(period, values, query);
   const clear = () => setValues({});
   return <FinanceShell active="payouts" title="Payouts">
-    <Controls period={period} onPeriod={setPeriod} filters={filters}
-      onChange={(id, value) => setValues(v => ({ ...v, [id]: value }))} onRemove={id => setValues(v => ({ ...v, [id]: '' }))} onClear={clear} />
     {/* No caption over the figures: they are totals, not changes. why: Artur, round r32 */}
     <StatBand id="fr-cashflow" stats={payoutStats(rows)} />
+    <Controls query={query} onQuery={setQuery} period={period} onPeriod={setPeriod} filters={filters}
+      onChange={(id, value) => setValues(v => ({ ...v, [id]: value }))} onRemove={id => setValues(v => ({ ...v, [id]: '' }))} onClear={clear} />
     <div ref={ledger} style={{ display: 'contents' }}>
       <Payouts rows={rows} onReset={() => { clear(); ledger.current?.closest('.ui-app__body')?.querySelector<HTMLElement>('.ui-filter-bar [data-dropdown-trigger]')?.focus(); }} />
     </div>
@@ -109,11 +116,11 @@ export const Default: StoryObj = { render: () => <Report /> };
 // classes, so it folds as the figures will. The period control stays live.
 export const Loading: StoryObj = {
   render: () => <FinanceShell active="payouts" title="Payouts">
-    <Controls period={INITIAL_PERIOD} onPeriod={noop} filters={FILTERS.map(f => ({ ...f, value: '' }))} onChange={noop} onRemove={noop} onClear={noop} />
     <div className="ui-stats ui-stats--tiles">
       <BusyRegion busy label="Loading cashflow for the last year…" placeholder={<div className="ui-stats__list">{[0, 1, 2].map(i =>
         <div key={i} className="ui-stat ui-card ui-card--pad-sm"><Skeleton lines={['40%']} /><Skeleton lines={['72%']} height="36px" /></div>)}</div>} />
     </div>
+    <Controls onQuery={noop} period={INITIAL_PERIOD} onPeriod={noop} filters={FILTERS.map(f => ({ ...f, value: '' }))} onChange={noop} onRemove={noop} onClear={noop} />
     <Card title="Payouts"><BusyRegion busy label="Loading payouts…" placeholder={<SkeletonTable rows={PAYOUTS.length} cols={7} />} /></Card>
   </FinanceShell>,
 };
