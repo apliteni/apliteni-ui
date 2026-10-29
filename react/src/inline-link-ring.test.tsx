@@ -124,9 +124,9 @@ describe('links: React stories', () => {
     expect(subjects.flatMap(({ id, paint }) => (cascadeFailures(anchors(paint)) as string[]).map((f) => `${id} → ${f}`))).toEqual([]);
   });
 
-  // The stories are dealt over four tests so none judges them all; the last reads their results.
+  // The stories are dealt over eight tests so none judges them all; the last reads their results.
   const after: { id: string; bad: string[] }[] = [];
-  const PARTS = 4;
+  const PARTS = 8;
   for (let part = 0; part < PARTS; part++) {
     it(`deleting the element-wide rule is judged on its share of stories, part ${part + 1} of ${PARTS}`, () => {
       expect(carrier, `no kit sheet claims the ring for ${sel}`).toBeTruthy();
