@@ -1,13 +1,13 @@
 // The shape of a rule and the gates that walk this page: docs/components.md
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
+import { segmentedNextIndex } from '@apliteni/apliteni-ui';
 import { GuidelinePage, Raw, noop } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { FilterBar } from '../../react/src/FilterBar';
-import { Segmented } from '../../react/src/Segmented';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -73,14 +73,29 @@ const MonthTable = () => <table className="ui-table ui-table--dense">
 
 // One block, one view at a time: the switch shares the title's row and opens on Chart.
 // Small underline tabs, not pills: an accent fill outweighed the chart and its title.
+// Table replaces the chart, so each view is a panel: the kit's underline strip with
+// tab roles, because the kit's Tabs cannot sit in a block's title row.
 // The wrapper keeps the row's baseline, which the strip's own stretch would drop.
-const VIEWS = [{ label: 'Chart', value: 'chart' }, { label: 'Table', value: 'table' }];
+// The table's panel is the kit's scroll box, which keeps the dense table's bleed to the card edge.
+const VIEWS = [{ label: 'Chart', value: 'chart', panel: <MonthChart />, box: 'ui-tabs__panel' },
+  { label: 'Table', value: 'table', panel: <MonthTable />, box: 'ui-table-scroll ui-tabs__panel' }];
 const MonthBlock = ({ view: initial }: { view: string }) => {
   const [view, setView] = useState(initial);
+  const id = useId();
   return <Card><div className="gd-block-head">
     <h2 className="ui-card__title">Net settled by month</h2>
-    <div><Segmented label="Net settled by month view" options={VIEWS} value={view} onChange={setView} appearance="underline" size="sm" /></div>
-  </div>{view === 'chart' ? <MonthChart /> : <MonthTable />}</Card>;
+    <div><div className="ui-seg ui-seg--sm ui-seg--underline" role="tablist" aria-label="Net settled by month view">
+      {VIEWS.map((option, i) => <button key={option.value} type="button" role="tab" id={`${id}-tab-${i}`} aria-controls={`${id}-panel-${i}`}
+        className={option.value === view ? 'is-active' : undefined} aria-selected={option.value === view} tabIndex={option.value === view ? 0 : -1}
+        onClick={() => setView(option.value)} onKeyDown={e => {
+          const next = segmentedNextIndex(e.key, i, VIEWS.length);
+          if (next == null) return;
+          e.preventDefault();
+          (e.currentTarget.parentElement!.children[next] as HTMLButtonElement).focus(); setView(VIEWS[next].value);
+        }}>{option.label}</button>)}
+    </div></div>
+  </div>{VIEWS.map((option, i) => <div key={option.value} className={option.box} role="tabpanel" id={`${id}-panel-${i}`}
+    aria-labelledby={`${id}-tab-${i}`} tabIndex={0} hidden={option.value !== view}>{option.value === view ? option.panel : null}</div>)}</Card>;
 };
 
 // A line chart named by its figures: each line's name over its last value, in its tone.

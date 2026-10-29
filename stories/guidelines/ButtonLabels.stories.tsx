@@ -33,13 +33,13 @@ const specimens = [
   { id: 'wordless-earns-it',
     do: () => <Row><Button icon="filter">Filter</Button><Button icon="moreHorizontal" iconOnly>More actions</Button></Row>,
     dont: () => <Row><Button icon="filter" iconOnly>Filter</Button><Button icon="gear" iconOnly>Settings</Button></Row> },
-  // The Don't draws the selection with the page's own selection paint, and its
-  // toolbar as a box in place, since a picture cannot hold a live selection.
+  // The Don't holds the selection on a span with the kit's held-selection mark,
+  // and its toolbar as a box in place, since a picture cannot hold a live selection.
   { id: 'no-action-on-selection',
     do: () => <div className="gl-stage gl-clause"><p>{CLAUSE_HEAD}{CLAUSE_PICK}{CLAUSE_TAIL}</p>
       <div className="gl-stage--row"><Button>Add note</Button></div></div>,
     dont: () => <div className="gl-stage gl-clause"><Row><Button size="sm">Add note</Button><Button size="sm">Copy</Button></Row>
-      <p>{CLAUSE_HEAD}<span className="gl-picked">{CLAUSE_PICK}</span>{CLAUSE_TAIL}</p></div> },
+      <p>{CLAUSE_HEAD}<span className="ui-fbmark">{CLAUSE_PICK}</span>{CLAUSE_TAIL}</p></div> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Button labels', parameters: { layout: 'fullscreen' } };

@@ -30,12 +30,12 @@ export const SPEC_CSS = `${CHART_CSS}
     .gd-block-head { display: flex; align-items: baseline; column-gap: var(--space-4);
       margin-bottom: var(--space-2); }
     .gd-block-head > :first-child { flex: 1 1 0; min-width: 0; }
-    /* A line's name and last value, in the line's own tone. The kit has no part
-       that paints a figure in a series tone, so this page draws one. The value
-       keeps the figure's 30px semibold: at that size the large-text floor of 3:1
-       applies, which every chart tone meets on the card. */
+    /* A line's name and last value, in the line's own tone. The value keeps the
+       figure's 30px semibold: at that size the large-text floor of 3:1 applies,
+       which every chart tone meets on the card. */
     .gd-series { display: flex; flex-wrap: wrap; column-gap: var(--space-6); row-gap: var(--space-2); }
     .gd-series__item { display: flex; flex-direction: column; }
+    /* The kit has no part that paints text in a series tone, so this story holds it until the kit adds one. */
     .gd-series__value { color: var(--ui-chart-tone); }
   </style>`;
 
