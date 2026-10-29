@@ -51,15 +51,9 @@ const months = (extra: Partial<React.ComponentProps<typeof Chart>> = {}) => rend
     {...extra as object} />,
 );
 const frame = () => screen.getByRole('group', { name: /Arrow keys/ });
-/** The "Chart options" trigger in the corner is the first stop, so the frame is the second. */
+/** The view switch in the corner is the first stop, so the frame is the second. */
 const tabToFrame = async (user: ReturnType<typeof userEvent.setup>) => { await user.tab(); await user.tab(); };
-/** The "Chart options" menu's one row, which swaps the plot for the table and back. */
-const pickView = (row: string) => {
-  fireEvent.click(screen.getByRole('button', { name: 'Chart options' }));
-  fireEvent.click(screen.getByRole('menuitem', { name: row }));
-};
-const showTable = () => pickView('Show as a table');
-const showChart = () => pickView('Show as a chart');
+const showTable = () => fireEvent.click(screen.getByRole('button', { name: 'Table' }));
 const plot = () => screen.getByRole('img');
 const markEl = (id: string) => plot().querySelector(`[data-mark="${id}"] .ui-chart__hit`) as Element;
 /** A pointer resting on one mark: the event is fired on the mark and bubbles. */
@@ -126,19 +120,32 @@ it('names the chart, and says how to step through it', () => {
   expect(frame()).toHaveAccessibleName('Income and spend by month. Arrow keys step through the 4 columns.');
 });
 
-it('swaps the chart for the same numbers as a table, with the exact values the formatter gives', async () => {
+// #736: in a titled card the switch sits at the end of the card's title row, so
+// the chart draws no row of its own for it. JSDOM lays nothing out, so this reads
+// where the switch lands; the browser captures on the PR show the row.
+const inCard = (ui: React.ReactElement) => <Card title="Income and spend">{ui}</Card>;
+it.each([
+  ['in the chart\'s own head', (ui: React.ReactElement) => ui, '.ui-chart__head'],
+  ['in a titled card\'s title row', inCard, '.ui-card__head > .ui-card__tools'],
+])('swaps the chart for the same numbers as a table, with the exact values the formatter gives, %s', async (_, wrap, slot) => {
   const user = userEvent.setup();
-  const { container } = months();
-  const trigger = screen.getByRole('button', { name: 'Chart options' });
-  expect(trigger).toHaveClass('ui-dropdown__trigger', 'ui-chart__more');
-  expect(trigger.textContent, 'the glyph is the whole label').toBe('');
-  expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
-  expect(trigger, 'a wordless button owes a hover title').toHaveAttribute('title', 'Chart options');
-  expect(screen.queryByRole('table'), 'the chart is the view a reader opens on').toBeNull();
+  const { container } = render(wrap(
+    <Chart title="Income and spend by month" periods={periods} series={series} format={eur} />,
+  ));
+  const chart = screen.getByRole('button', { name: 'Chart' });
+  const toTable = screen.getByRole('button', { name: 'Table' });
+  const toolbar = screen.getByRole('toolbar', { name: 'Income and spend by month, view' });
+  expect(toolbar).toContainElement(chart);
+  expect(container.querySelector(slot)).toContainElement(toolbar);
+  expect(container.querySelectorAll('.ui-seg'), 'one switch, drawn once').toHaveLength(1);
+  expect(chart.textContent, 'the glyph is the whole label').toBe('');
+  expect(chart, 'the chart is the view a reader opens on').toHaveAttribute('aria-pressed', 'true');
+  expect(screen.queryByRole('table')).toBeNull();
 
   await user.tab();
-  expect(trigger, 'the menu is the first stop').toHaveFocus();
-  showTable();
+  expect(chart, 'the switch is the first stop').toHaveFocus();
+  await user.keyboard('{ArrowRight}');
+  expect(toTable).toHaveAttribute('aria-pressed', 'true');
   expect(container.querySelector('.ui-chart__frame'), 'the table takes the plot\'s place').not.toBeVisible();
   const table = screen.getByRole('table', { name: 'Income and spend by month' });
   expect(within(table).getAllByRole('columnheader').map((c) => c.textContent))
@@ -146,55 +153,39 @@ it('swaps the chart for the same numbers as a table, with the exact values the f
   const april = within(table).getByRole('row', { name: /Apr 2026/ });
   expect(within(april).getAllByRole('cell').map((c) => c.textContent)).toEqual(['€900', '€500', '€400']);
 
-  showChart();
+  await user.keyboard('{ArrowLeft}');
   expect(screen.queryByRole('table')).toBeNull();
   expect(frame()).toBeVisible();
 });
 
-// #736: in a titled card the button sits at the end of the card's title row, so
-// the chart draws no row of its own for it. JSDOM lays nothing out, so this reads
-// where the button lands; the browser captures on the PR show the row.
-it('puts "Chart options" in a titled card\'s title row, and keeps the legend under the title', () => {
-  const { container, rerender } = render(
-    <Card title="Income and spend">
-      <Chart title="Income and spend by month" periods={periods} series={series} format={eur} />
-    </Card>,
-  );
-  const trigger = screen.getByRole('button', { name: 'Chart options' });
-  expect(container.querySelector('.ui-card__head > .ui-card__tools')).toContainElement(trigger);
-  expect(trigger).toHaveAttribute('title', 'Chart options');
-  expect(container.querySelector('.ui-chart__head'), 'no row is left under the title').toBeNull();
-  showTable();
-  expect(screen.getByRole('table', { name: 'Income and spend by month' })).toBeInTheDocument();
-  showChart();
-
-  rerender(
-    <Card title="Income and spend">
-      <Chart title="Income and spend by month" periods={periods} series={series} format={eur} legend />
-    </Card>,
-  );
-  expect(container.querySelector('.ui-card__tools .ui-chart__more')).not.toBeNull();
+it('keeps the legend under a titled card\'s title, and the switch in its own head outside one', () => {
+  const { container, rerender } = render(inCard(
+    <Chart title="Income and spend by month" periods={periods} series={series} format={eur} legend />,
+  ));
+  expect(container.querySelector('.ui-card__tools .ui-seg')).not.toBeNull();
   expect(container.querySelector('.ui-chart__head > .ui-chart__legend')).not.toBeNull();
-  expect(container.querySelector('.ui-chart__head .ui-chart__more')).toBeNull();
+  expect(container.querySelector('.ui-chart__head .ui-seg')).toBeNull();
+  rerender(<Card><Chart title="Income and spend by month" periods={periods} series={series} format={eur} /></Card>);
+  expect(container.querySelector('.ui-chart__head .ui-seg')).not.toBeNull();
+  expect(container.querySelector('.ui-card__tools')).toBeNull();
 });
 
-it('keeps "Chart options" in its own head outside a titled card, and two charts draw one in the title row', () => {
-  const { container, rerender } = render(
-    <Card><Chart title="Income and spend by month" periods={periods} series={series} format={eur} /></Card>,
-  );
-  expect(container.querySelector('.ui-chart__head .ui-chart__more')).not.toBeNull();
+it('draws one switch in a titled card\'s title row for two charts, and passes it on when its chart leaves', () => {
   // A mapped list, so the chart that stays keeps its instance when the first one leaves.
-  const charts = (kept: ChartSeries[]) => (
-    <Card title="Income and spend">
-      {kept.map((s) => <Chart key={s.id} title={`${s.name} by month`} periods={periods} series={[s]} format={eur} />)}
-    </Card>
-  );
-  rerender(charts(series.slice(0, 2)));
-  expect(container.querySelectorAll('.ui-card__tools .ui-chart__more')).toHaveLength(1);
-  expect(container.querySelectorAll('.ui-chart__head .ui-chart__more')).toHaveLength(1);
+  const charts = (kept: ChartSeries[]) => inCard(<>
+    {kept.map((s) => <Chart key={s.id} title={`${s.name} by month`} periods={periods} series={[s]} format={eur} />)}
+  </>);
+  const { container, rerender } = render(charts(series.slice(0, 2)));
+  const inTitle = () => container.querySelectorAll('.ui-card__tools .ui-seg');
+  expect(inTitle()).toHaveLength(1);
+  expect(within(inTitle()[0] as HTMLElement).getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? b.textContent))
+    .toEqual(['Chart', 'Table']);
+  expect(screen.getByRole('toolbar', { name: 'Income by month, view' })).toBe(inTitle()[0]);
+  expect(container.querySelectorAll('.ui-chart__head .ui-seg'), 'the second chart keeps its own').toHaveLength(1);
   // When the owner leaves, the chart that stays takes the title row and drops its own head.
   rerender(charts(series.slice(1, 2)));
-  expect(container.querySelectorAll('.ui-card__tools .ui-chart__more')).toHaveLength(1);
+  expect(inTitle()).toHaveLength(1);
+  expect(screen.getByRole('toolbar', { name: 'Spend by month, view' })).toBe(inTitle()[0]);
   expect(container.querySelector('.ui-chart__head'), 'no row is left under the title').toBeNull();
 });
 
@@ -362,13 +353,12 @@ it('puts one element in the tab order inside the plot, and it is the frame', asy
   // an overflowing box keyboard-focusable on its own, and the ring it draws
   // there is its own, not the kit's — which is what #543's review found on
   // `.ui-chart__scroll`. Anything the chart leaves in the tab order has to
-  // carry the kit's ring: `.ui-focusable`, the menu's trigger, which
-  // src/styles/dropdown.css rings, or — for the table's scroller —
+  // carry the kit's ring: `.ui-focusable`, the view switch's segment, which
+  // src/styles/segmented.css rings, or — for the table's scroller —
   // `.ui-table-scroll`, which src/styles/table.css rings itself.
   const tabbable = () => [...container.querySelectorAll<HTMLElement>('*')]
-    .filter((el) => el.tabIndex >= 0 && !el.closest('[hidden]')).map(classOf);
-  const TRIGGER = 'ui-dropdown__trigger ui-chart__more';
-  expect(tabbable()).toEqual([TRIGGER, 'ui-chart__frame ui-tip-host ui-focusable']);
+    .filter((el) => el.tabIndex >= 0 && !el.closest('[hidden]')).map((el) => el.closest('.ui-seg') ? 'ui-seg' : classOf(el));
+  expect(tabbable()).toEqual(['ui-seg', 'ui-chart__frame ui-tip-host ui-focusable']);
 
   // The table's scroller exists only once the reader has asked for the table,
   // and the plot has then left the tab order with the frame. It is named,
@@ -376,7 +366,7 @@ it('puts one element in the tab order inside the plot, and it is the frame', asy
   // region. JSDOM lays nothing out, so the kit's band on it is read off the
   // sheet rather than painted.
   showTable();
-  expect(tabbable(), 'the hidden frame is no stop').toEqual([TRIGGER, 'ui-table-scroll']);
+  expect(tabbable(), 'the hidden frame is no stop').toEqual(['ui-seg', 'ui-table-scroll']);
   const scroll = container.querySelector('.ui-table-scroll')!;
   expect(scroll).toHaveAttribute('role', 'region');
   expect(scroll).toHaveAccessibleName(/Income and spend by month, as a table/);
@@ -387,10 +377,8 @@ it('puts one element in the tab order inside the plot, and it is the frame', asy
   // that attribute is the opt-out a browser's focusable-scroller rule reads.
   expect(container.querySelector('.ui-chart__scroll')).toHaveAttribute('tabindex', '-1');
 
-  showChart();
-  expect(screen.getByRole('button', { name: 'Chart options' }), 'a pick hands focus back to the trigger')
-    .toHaveFocus();
-  await user.tab();
+  fireEvent.click(screen.getByRole('button', { name: 'Chart' }));
+  await tabToFrame(user);
   expect(frame()).toHaveFocus();
   await user.tab();
   expect(frame(), 'a second Tab leaves the plot instead of landing inside it').not.toHaveFocus();
@@ -1316,8 +1304,8 @@ it('tables a stack with its total, and reads every layer of a column with that t
     .toEqual(['Period', 'Payroll', 'Hosting', 'Total']);
   expect(within(within(table).getByRole('row', { name: /Feb 2026/ })).getAllByRole('cell').map((c) => c.textContent))
     .toEqual(['€600', '€300', '€900']);
-  showChart();
-  await user.tab();
+  fireEvent.click(screen.getByRole('button', { name: 'Chart' }));
+  await tabToFrame(user);
   expect(frame()).toHaveFocus();
   await user.keyboard('{ArrowRight}');
   expect(screen.getByRole('status')).toHaveTextContent('Feb 2026. Hosting €300. Payroll €600. Total €900.');

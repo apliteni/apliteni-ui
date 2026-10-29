@@ -52,15 +52,13 @@ export const Months: StoryObj = {
   ),
 };
 
-/** The same card after "Show as a table" in the "Chart options" menu at the end
- *  of its title row (#736). The table takes the plot's place, and the same row
- *  now reads "Show as a chart". */
+/** The same card after Table in the Chart and Table switch at the end of its
+ *  title row (#736). The table takes the plot's place, and the switch keeps its own. */
 export const AsTable: StoryObj = {
   ...Months,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole('button', { name: 'Chart options' }));
-    await userEvent.click(within(canvasElement.ownerDocument.body).getByRole('menuitem', { name: 'Show as a table' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'Table' }));
     await expect(canvas.getByRole('table', { name: 'Income and spend by month, last 12 months, with net' })).toBeVisible();
   },
 };

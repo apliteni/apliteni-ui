@@ -107,7 +107,7 @@ what a factory accepts. They do not describe what the factory does.
 | `iconOnlyAllowed`, `iconOnlyNames`, `iconMeanings` | The icon rulings as data. `iconOnlyNames` gives each wordless glyph the words its button’s name may open with, so `copy` cannot be borrowed for Duplicate. See [Icons and glyphs](foundations.md#icons-and-glyphs). |
 | `seedling`, `prism`, `brand` | The brand mark. |
 
-`card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. On phones, its control sits below its label and hint. At wider widths, a choice that cannot fit beside its label moves below it. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link. Use `tools` on a titled React `<Card>` for small controls at the end of the title row, such as an icon-only menu. The tools are centred on the title's line, on a desktop and on a phone, so the card has no extra row. On a touch phone the tools sit `--tap-gap` apart, so a tap on one never runs its neighbour. In the vanilla kit, wrap the title and a `.ui-card__tools` block in `.ui-card__head`.
+`card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. On phones, its control sits below its label and hint. At wider widths, a choice that cannot fit beside its label moves below it. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link. Use `tools` on a titled React `<Card>` for small controls at the end of the title row, such as an icon-only Download PDF button. A `<Chart>` in a titled card puts its Chart and Table switch there. The tools are centred on the title's line, on a desktop and on a phone, so the card has no extra row. On a touch phone the tools sit `--tap-gap` apart, so a tap on one never runs its neighbour. In the vanilla kit, wrap the title and a `.ui-card__tools` block in `.ui-card__head`.
 Three-option setting rows use `ui-card__row--tight-choice` to narrow pills below 360 px and stay on one line, while other rows keep full tap width.
 
 ### Controls and input
@@ -1108,19 +1108,19 @@ state and its `note`.
 **The value axis, the period row and the legend are quiet, and nothing is only there.** Every
 data value is reachable at full strength through pointer readouts and keyboard announcements.
 
-**The table is one menu away.** A "…" button named "Chart options" sits in the top right corner.
-In a titled `<Card>` it sits at the end of the card's title row instead, and the chart draws no
-row of its own for it. When a card holds two charts, the first one puts its button there. When
-that chart leaves, the next one takes the place. The button opens the kit's menu dropdown with one
-row, "Show as a table". That row puts the table in the plot's place and then reads "Show as a
-chart". The chart shows first. The button reaches the phone tap floor. Pass `table={false}` to drop the button and the table.
+**A switch in the top right corner shows the same numbers as a chart or as a table.** It is a
+toolbar of two glyph buttons named Chart and Table, with the pressed one marked. The chart shows
+first. The table replaces the plot, and the switch keeps its place. In a titled `<Card>` the
+switch sits at the end of the card's title row instead, and the chart draws no row of its own for
+it. When a card holds two charts, the first one puts its switch there. When that chart leaves,
+the next one takes the place. Pass `table={false}` to drop the switch and the table.
 
 **Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
 paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark
-changes colour, so each tone stays with the series it names. The "Chart options" button is the
-first tab stop and the chart is the second: Left,
+changes colour, so each tone stays with the series it names. The switch is the first tab stop
+and the chart is the second: Left,
 Right, Home and End step columns and announce each one politely, Enter picks one when `selectable`
-is set, and `title` names the plot and the table without being drawn, because the card
+is set, and `title` names the plot, the table and the switch without being drawn, because the card
 around a chart already carries its title.
 
 **On a touch screen a tap opens the readout and a second tap on the same mark closes it. The tap

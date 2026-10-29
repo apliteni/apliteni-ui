@@ -30,10 +30,6 @@ export const Block: Story = { ...Playground, args: { label: 'Section', options: 
 export const SmallBlock: Story = { ...Block, args: { ...Block.args, size: 'sm' } };
 export const Underline: Story = { ...Playground, args: { appearance: 'underline' } };
 export const UnderlineBlock: Story = { ...Block, args: { ...Block.args, appearance: 'underline' } };
-// A glyph leads each label, at the button glyph's size and line.
-export const WithIcons: Story = { ...Playground, args: { label: 'View', value: 'chart', options: [
-  { label: 'Chart', value: 'chart', icon: 'chart' }, { label: 'Table', value: 'table', icon: 'table' },
-] } };
 // There is no whole-strip Disabled story. The one it replaced carried a caption
 // saying the control was unavailable, which the guidelines refuse — a caption may
 // not restate a control's state — and with the caption gone the story rendered

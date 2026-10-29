@@ -9,7 +9,7 @@ export const RELEASES = [
     v: '0.148.0', date: '2026-10-29',
     changes: [
       ['added', 'React `Card` takes `tools`, small controls at the end of a titled card\'s title row, on a desktop and on a phone, with no extra row. In the vanilla kit, `.ui-card__head` holds the title and `.ui-card__tools`. Part of #736.', ['Card']],
-      ['changed', 'React `Chart` puts its table behind a "…" button named "Chart options". Its menu row "Show as a table" puts the table in the plot\'s place, and "Show as a chart" brings the plot back. In a titled `Card` the button sits in the card\'s title row. The Chart and Table switch is gone, and `iconOnlyAllowed` no longer lists `chart` and `table`. Part of #736.', ['Chart', 'Card']],
+      ['changed', 'React `Chart` in a titled `Card` puts its Chart and Table switch at the end of the card\'s title row, so the chart draws no row of its own for it. A Chart outside a titled Card keeps the switch in its top right corner. Part of #736.', ['Chart', 'Card']],
     ],
   },
   {

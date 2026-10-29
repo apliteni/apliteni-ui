@@ -15,14 +15,14 @@ export type CardProps = {
   icon?: string;
   /** Makes the whole card a link. Its title is then a plain block, because a link holds no heading. */
   href?: string;
-  /** Controls at the end of the title row, such as an icon-only menu. Needs a `title`. */
+  /** Controls at the end of the title row, such as an icon-only button. Needs a `title`. */
   tools?: ReactNode;
   className?: string;
   children?: ReactNode;
 };
 
 /** The title row's tools slot, offered to one child that claims it. A Chart
- *  claims it for its "Chart options" button. Null outside a titled card. */
+ *  claims it for its Chart and Table switch. Null outside a titled card. */
 export type CardToolsSlot = { slot: HTMLElement | null; owner: string | null; claim: (id: string) => () => void };
 export const CardTools = createContext<CardToolsSlot | null>(null);
 
@@ -33,7 +33,7 @@ export const CardTools = createContext<CardToolsSlot | null>(null);
 export function Card({ title, sub, level = 2, variant, pad, icon, href, tools, className, children }: CardProps) {
   const [claims, setClaims] = useState<string[]>([]);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
-  // The first child to claim the slot keeps it, so two charts draw one button between them.
+  // The first child to claim the slot keeps it, so two charts draw one switch there between them.
   // When it leaves, the next child in the queue takes the slot.
   const claim = useCallback((id: string) => {
     setClaims((held) => (held.includes(id) ? held : [...held, id]));

@@ -48,7 +48,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:202",
+    "ref": "src/styles/tap-zone.css:199",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -496,7 +496,7 @@
   ],
   "meaning": [
    {
-    "ref": "src/assets/icons.js:222",
+    "ref": "src/assets/icons.js:228",
     "pattern": "export const iconMeanings"
    },
    {

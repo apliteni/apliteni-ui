@@ -1,6 +1,6 @@
 /* ============================================================================
  * Chart — .ui-chart, the shapes a money dashboard keeps redrawing.
- *   .ui-chart__head    the opt-in legend and the "Chart options" menu
+ *   .ui-chart__head    the opt-in legend and the chart and table switch
  *   .ui-chart__legend  one key per series, plus the unfinished-period key
  *   .ui-chart__frame   the tab stop; the value axis beside the scroller
  *   .ui-chart__scroll  the scroller
@@ -328,8 +328,8 @@
 
 /* -- the table ------------------------------------------------------------- */
 
-/* The legend, when the caller asks for one, and the "Chart options" menu in
-   the top right corner. The menu keeps its corner when there is no legend. */
+/* The legend, when the caller asks for one, and the chart and table switch in
+   the top right corner. The switch keeps its corner when there is no legend. */
 .ui-chart__head {
   display: flex;
   flex-wrap: wrap;
@@ -337,23 +337,7 @@
   justify-content: space-between;
   gap: var(--space-2) var(--space-4);
 }
-.ui-chart__head > .ui-dropdown { margin-inline-start: auto; }
-/* The trigger wears a ghost button's skin, not the dropdown's pill, in the
-   chart's head or in a card's title row. */
-.ui-dropdown .ui-chart__more {
-  padding: var(--space-1);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text);
-}
-.ui-dropdown .ui-chart__more svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
-.ui-dropdown .ui-chart__more:hover,
-.ui-dropdown .ui-chart__more[aria-expanded="true"] {
-  /* The card is --surface, so the hover takes the quiet fill one step past it. */
-  background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
-  color: var(--strong);
-}
+.ui-chart__head > .ui-seg { margin-inline-start: auto; }
 
 /* The table is the one place a phone reader gets exact values, and how wide it
    is depends on the caller's series: it carries them sideways inside the kit's

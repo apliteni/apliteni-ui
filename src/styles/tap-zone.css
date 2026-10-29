@@ -169,14 +169,11 @@
   }
   .ui-table__act { --tap-clear-x: var(--tap-gap); --tap-clear-y: 0px; }
 
-  /* A chart's "Chart options" trigger draws 24px at the end of its head row.
-     Across, the room beside it is legend text or nothing, and down, the head
-     sits a 12px gap over the plot, so its layer has room both ways. */
-  .ui-chart__head { --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-gap); }
-  /* A card's title row holds the same 24px trigger at its end: across, the room
-     beside it is title text, and down, the row opens to the chart head's 12px,
-     because the layer reaches 10px under it and the title gap is 8. Between
-     two tools the gap opens to --tap-gap, so neither layer reaches the other. */
+  /* A card's title row holds small tools at its end, such as a 24px icon-only
+     button: across, the room beside it is title text, and down, the row opens
+     to 12px, because the layer reaches 10px under it and the title gap is 8.
+     Between two tools the gap opens to --tap-gap, so neither layer reaches the
+     other. A chart's switch there keeps the clearance .ui-seg declares. */
   .ui-card__head { margin-bottom: var(--space-3, 12px) !important; }
   .ui-card__tools { column-gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
 

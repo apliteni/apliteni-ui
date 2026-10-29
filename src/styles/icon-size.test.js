@@ -58,9 +58,7 @@ const src = path.resolve(here, '..');
 // 70 under #429 PR 5b: the vanilla components are gone, so the twelve
 // declarations keyed on svg classes only they wrote leave this walk. 72 (#742:
 // `.ui-seg button svg` sizes a segment's glyph, a width and a height in one rule).
-// 74 (#736: the chart's "Chart options" trigger sizes its glyph, a width and a
-// height in one rule).
-const EXPECTED_SUBJECTS = 74;
+const EXPECTED_SUBJECTS = 72;
 
 const SHEETS = kitSheetNames(src);
 
