@@ -102,10 +102,41 @@ export function kitStyleHtml(src, names) {
  * Match CSS and HTML case rules without changing class names. */
 const svgClassRes = () => [/<svg[^>]*\sclass="([^"${]+)"/gi, /<svg[^>]*\sclassName="([^"${]+)"/g];
 
+/* A class passed to svgOpen() as its first argument, which svgOpen() turns into
+ * the svg's `class` attribute — the shape stories/_chart.js uses, where the
+ * class is built rather than written into a tag. Read in the three shapes that
+ * argument can take: a template literal, a single-quoted string, a double-quoted
+ * string.
+ * Match JavaScript's case rules, which are case-sensitive. */
+const svgOpenClassRes = () => [
+  /\bsvgOpen\(\s*`([^`]*)`/g,
+  /\bsvgOpen\(\s*'([^'\\]*)'/g,
+  /\bsvgOpen\(\s*"([^"\\]*)"/g,
+];
+
+/* The class tokens that argument names: the literal text between interpolations,
+ * plus every quoted string inside a `${}` — `ch-chart${fluid ?
+ * ' ch-chart--fluid' : ''}` names `ch-chart` and `ch-chart--fluid`. A bare
+ * identifier inside a `${}` is a value no sweep can resolve, so it is left out
+ * rather than read as a class. */
+function svgOpenClassTokens(arg) {
+  const tokens = [];
+  for (const part of arg.split(/\$\{[\s\S]*?\}/)) {
+    tokens.push(...part.trim().split(/\s+/).filter(Boolean));
+  }
+  for (const interp of arg.matchAll(/\$\{([\s\S]*?)\}/g)) {
+    for (const quoted of interp[1].matchAll(/(['"])([\s\S]*?)\1/g)) {
+      tokens.push(...quoted[2].trim().split(/\s+/).filter(Boolean));
+    }
+  }
+  return tokens;
+}
+
 /* The classes the kit puts on an <svg>, read out of the source rather than
  * listed here, so a new one joins coverage by existing — written into the tag,
- * or passed as icon()'s second argument. Test files are always skipped: a class
- * only a test writes onto an svg is not a class the kit renders.
+ * passed as icon()'s second argument, or built as svgOpen()'s first. Test files
+ * are always skipped: a class only a test writes onto an svg is not a class the
+ * kit renders.
  * Match CSS and HTML case rules without changing class names. */
 export function svgClassSet(dirs, exts = ['.js']) {
   const found = new Set();
@@ -123,6 +154,11 @@ export function svgClassSet(dirs, exts = ['.js']) {
       }
       for (const m of text.matchAll(/\bicon\(\s*'[^']*'\s*,\s*'([^']+)'/g)) {
         for (const c of m[1].trim().split(/\s+/)) found.add(c);
+      }
+      for (const re of svgOpenClassRes()) {
+        for (const m of text.matchAll(re)) {
+          for (const c of svgOpenClassTokens(m[1])) found.add(c);
+        }
       }
     }
   }
