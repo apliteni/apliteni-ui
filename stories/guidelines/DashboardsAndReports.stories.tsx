@@ -1,12 +1,13 @@
 // The shape of a rule and the gates that walk this page: docs/components.md
 import type { Meta, StoryObj } from '@storybook/react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { GuidelinePage, Raw, noop } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { FilterBar } from '../../react/src/FilterBar';
+import { Segmented } from '../../react/src/Segmented';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -69,6 +70,16 @@ const MonthTable = () => <table className="ui-table ui-table--dense">
   <thead><tr><th>Month</th><th className="ui-table__num">Net settled (k €)</th></tr></thead>
   <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>
 </table>;
+
+// One block, one view at a time: the switch shares the title's row and opens on Chart.
+const VIEWS = [{ label: 'Chart', value: 'chart' }, { label: 'Table', value: 'table' }];
+const MonthBlock = ({ view: initial }: { view: string }) => {
+  const [view, setView] = useState(initial);
+  return <Card><div className="gd-block-head">
+    <h2 className="ui-card__title">Net settled by month</h2>
+    <Segmented label="Net settled by month view" options={VIEWS} value={view} onChange={setView} />
+  </div>{view === 'chart' ? <MonthChart /> : <MonthTable />}</Card>;
+};
 
 // A line chart named by its figures: each line's name over its last value, in its tone.
 type Series = { name: string; tone: string; values: number[] };
@@ -135,17 +146,9 @@ const specimens = [
       <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
       <Button icon="download">Download PDF</Button>
     </div></Stage> },
-  { id: 'chart-or-table',
-    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} /><Attention /></Stage>,
-    dont: () => <Stage><Card title="Spend against estimate"><Figures series={SPEND_SERIES} />
-      <Lines series={SPEND_SERIES} label="Spend against estimate, first half of the year, thousands of euros" />
-      <table className="ui-table ui-table--dense">
-        <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th></tr></thead>
-        <tbody>{EXCEPTIONS.map(([ref, net]) => <tr key={ref}><td>{ref}</td><td className="ui-table__num ui-table__num--strong">{net}</td></tr>)}</tbody>
-      </table></Card></Stage> },
-  { id: 'table-behind-the-chart',
-    do: () => <Stage><Card title="Net settled by month"><MonthChart /></Card><Card title="Net settled by month, as rows"><MonthTable /></Card></Stage>,
-    dont: () => <Stage><Card title="Net settled by month"><MonthChart /></Card></Stage> },
+  { id: 'chart-table-switch',
+    do: () => <Stage><MonthBlock view="chart" /><MonthBlock view="table" /></Stage>,
+    dont: () => <Stage><Card title="Net settled by month"><MonthChart /><MonthTable /></Card></Stage> },
   { id: 'value-not-legend',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} /></Stage>,
     dont: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /></Stage> },

@@ -76,29 +76,17 @@
 
 **Don't:** The same button with its words, wider than every filter.
 
-## Give a chart and a table separate blocks
+## Switch a chart to its table
 
-<!-- rule: chart-or-table -->
+<!-- rule: chart-table-switch -->
 
-**Rule:** Put a chart and a table in separate blocks, never in one.
+**Rule:** Give a chart's block a Chart and Table switch that opens on Chart.
 
-**Why:** A block's title names one view, and a reader finds each view by its title.
+**Why:** The chart shows the shape of a change, and the table the amounts it is read for.
 
-**Do:** The spend chart in one block, the payouts that need a decision in the next.
+**Do:** Net settled by month as bars, then switched to its rows.
 
-**Don't:** One block that holds the chart and the table.
-
-## Put the table under every chart
-
-<!-- rule: table-behind-the-chart -->
-
-**Rule:** Show the table a chart was drawn from in its own block, directly under the chart, on every report.
-
-**Why:** A chart shows the shape of a change, not the amount it is read for.
-
-**Do:** The months as bars, then the same months as rows in the next block.
-
-**Don't:** The bars alone, every month estimated by eye.
+**Don't:** The rows stacked under the bars, in one block or the next.
 
 ## Name each line by its last value
 

@@ -15,14 +15,21 @@ export const SPEC_CSS = `${CHART_CSS}
     .gd-stage { display: flex; flex-direction: column; gap: var(--space-4); }
     /* The chart is a picture above a table, not the table's own head band: the
        scale's gap is what keeps the bar baselines off the header's cap height. */
-    /* The dense table in the next block hangs out of its card by --space-3 so its
+    /* The dense table in the Table view hangs out of its card by --space-3 so its
        columns start on the card's text edge; the chart takes the same bleed, so
-       chart and table are one width. */
+       both views are one width. */
     .gd-chart { display: flex; flex-direction: column; gap: var(--space-2);
       width: calc(100% + 2 * var(--space-3)); margin-inline: calc(-1 * var(--space-3));
       margin-bottom: var(--space-4); }
     .gd-chart__months { display: flex; }
     .gd-chart__months span { flex: 1 1 0; min-width: 0; text-align: center; }
+    /* A block's title and its Chart and Table switch share one row, at phone
+       width too: the title takes what the switch leaves and wraps, and baseline
+       alignment keeps its first line on the switch's text. The margin is the
+       title's own step, kept below a switch taller than the title. */
+    .gd-block-head { display: flex; align-items: baseline; column-gap: var(--space-4);
+      margin-bottom: var(--space-2); }
+    .gd-block-head > :first-child { flex: 1 1 0; min-width: 0; }
     /* A line's name and last value, in the line's own tone. The kit has no part
        that paints a figure in a series tone, so this page draws one. The value
        keeps the figure's 30px semibold: at that size the large-text floor of 3:1
