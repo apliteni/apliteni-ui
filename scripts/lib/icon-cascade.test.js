@@ -1061,6 +1061,25 @@ test('the icon() call is read case-sensitively, because JavaScript is', () => {
   }
 });
 
+test('a class passed through svgOpen is found, including one in a conditional', () => {
+  /* svgOpen() turns its first argument into the svg's `class` attribute, so a
+   * class built there renders exactly like one written into a tag. The template
+   * literal's `${fluid ? ' ch-chart--fluid' : ''}` names a class a reader must
+   * see; a bare identifier inside a `${}` is a value no sweep can resolve and
+   * is left out. */
+  const dir = sourceDir({
+    'chart.js': "svgOpen(`ch-chart${fluid ? ' ch-chart--fluid' : ''}`, 100, 50);\n"
+      + "svgOpen('plain-icon', 20, 20);\n"
+      + 'svgOpen("double-quoted", 20, 20);\n',
+  });
+  try {
+    assert.deepEqual([...svgClassSet([dir], ['.js'])].sort(),
+      ['ch-chart', 'ch-chart--fluid', 'double-quoted', 'plain-icon']);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('a test file is skipped by the spelling the test runner discovers it under', () => {
   /* The skip stays case-sensitive, and this says why. `node --test` is handed a
    * glob ending `.test.js` and matches it as written, so `Widget.Test.js` is not

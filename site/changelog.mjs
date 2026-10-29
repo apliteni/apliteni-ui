@@ -6,10 +6,17 @@
 
 export const RELEASES = [
   {
-    v: '0.147.0', date: '2026-10-29',
+    v: '0.148.0', date: '2026-10-29',
     changes: [
       ['added', 'React `Card` takes `tools`, small controls at the end of a titled card\'s title row, on a desktop and on a phone, with no extra row. In the vanilla kit, `.ui-card__head` holds the title and `.ui-card__tools`. Part of #736.', ['Card']],
       ['changed', 'React `Chart` puts its table behind a "…" button named "Chart options". Its menu row "Show as a table" puts the table in the plot\'s place, and "Show as a chart" brings the plot back. In a titled `Card` the button sits in the card\'s title row. The Chart and Table switch is gone, and `iconOnlyAllowed` no longer lists `chart` and `table`. Part of #736.', ['Chart', 'Card']],
+    ],
+  },
+  {
+    v: '0.147.0', date: '2026-10-29',
+    changes: [
+      ['added', 'The Dashboards and reports guideline adds four rules. Download a report with one icon button. Give a chart a Chart and Table switch that opens on Chart, in place of the rule that put the table under every chart. Name the lines by their last values or by a key. Draw at most two lines on a chart. See #743.', ['Guidelines']],
+      ['added', 'The Button labels guideline adds a rule: put no action on a text selection. The download glyph, named and titled Download PDF, joins the icon-only list. See #743.', ['Guidelines']],
     ],
   },
   {
