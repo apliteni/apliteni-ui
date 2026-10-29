@@ -64,14 +64,64 @@
 
 **Don't:** A table alone, its period fixed when it was built.
 
+## Download a report with one icon button
+
+<!-- rule: export-icon -->
+
+**Rule:** Offer a report's download as one icon button, named for the file it makes.
+
+**Why:** The glyph is learned everywhere, and its name reaches assistive technology and a hover title.
+
+**Do:** The download glyph named Download PDF, at the end of the filter row.
+
+**Don't:** The same button with its words, wider than every filter.
+
+## Give a chart and a table separate blocks
+
+<!-- rule: chart-or-table -->
+
+**Rule:** Put a chart and a table in separate blocks, never in one.
+
+**Why:** A block's title names one view, and a reader finds each view by its title.
+
+**Do:** The spend chart in one block, the payouts that need a decision in the next.
+
+**Don't:** One block that holds the chart and the table.
+
 ## Put the table under every chart
 
 <!-- rule: table-behind-the-chart -->
 
-**Rule:** Show the table a chart was drawn from under it, on every report.
+**Rule:** Show the table a chart was drawn from in its own block, directly under the chart, on every report.
 
 **Why:** A chart shows the shape of a change, not the amount it is read for.
 
-**Do:** The months as bars, then the same months as rows.
+**Do:** The months as bars, then the same months as rows in the next block.
 
 **Don't:** The bars alone, every month estimated by eye.
+
+## Name each line by its last value
+
+<!-- rule: value-not-legend -->
+
+**Rule:** Name each line of a chart by its last value in the line's colour, and draw no legend.
+
+**Why:** A legend sends the eye from a line to the key and back, and still gives no amount.
+
+**Except:** Set the value at figure size, because a line's colour can miss the floor for body text.
+
+**Do:** Spend and Estimated, each name over its last value in its line's colour.
+
+**Don't:** The same two lines with a key of swatches and no values.
+
+## Draw at most two lines on a chart
+
+<!-- rule: two-lines-at-most -->
+
+**Rule:** Draw one line on a chart, or two when the reader compares them.
+
+**Why:** Past two lines, the colours are hard to tell apart and the crossings hide the shape of each line.
+
+**Do:** Spend against Estimated, then revenue against expenses on a second chart.
+
+**Don't:** All four lines on one chart.

@@ -165,11 +165,12 @@ test('the guideline prints the report\'s own rows, with its own figures and stat
     problems.push(...disagreements(rows, report, `the guideline's reference table ${i + 1}`));
   }
 
-  // Seven reference tables on the page: the four-column ledger in four cells at
-  // five rows each, and the three-row exceptions card in three. The count is
+  // Nine reference tables on the page: the four-column ledger in four cells at
+  // five rows each, the three-row exceptions card in four, and the chart-or-table
+  // Don't's three rows. The count is
   // the anti-vacuity guard — a walk that stops finding tables passes every
   // assertion above it.
-  assert.equal(checked, 29, 'the guideline draws a different number of referenced rows; count the new specimen by hand');
+  assert.equal(checked, 35, 'the guideline draws a different number of referenced rows; count the new specimen by hand');
   assert.deepEqual(problems, [], `the guideline page and the Finance report disagree:\n  ${problems.join('\n  ')}`);
 });
 
@@ -265,9 +266,9 @@ test('every link in an exceptions block opens the report, and every reference op
     ...blockLinks(Dashboard.render(), 'the Finance dashboard'),
     ...blockLinks(DashboardsAndReports.render(), 'the guideline page'),
   ];
-  // Three dashboard references and three in each of the two Do specimens.
-  assert.equal(links.length, 9,
-    `found ${links.length} links, not the 9 these screens draw:\n${links.map((l) => `${l.where}: ${l.kind} ${l.text} -> ${l.href}`).join('\n')}`);
+  // Three dashboard references and three in each of the three Do specimens.
+  assert.equal(links.length, 12,
+    `found ${links.length} links, not the 12 these screens draw:\n${links.map((l) => `${l.where}: ${l.kind} ${l.text} -> ${l.href}`).join('\n')}`);
   assert.equal(links.filter((l) => l.kind === 'onward').length, 0, 'a block gained or lost its link into the report');
   assert.deepEqual(linkProblems(links, rows), [],
     `a link in an exceptions block does not reach the report row it stands for:\n  ${linkProblems(links, rows).join('\n  ')}`);

@@ -33,3 +33,15 @@
 **Do:** Overflow is on that list; the funnel is not.
 
 **Don't:** A funnel could filter, sort or export; the cog gave up the word that said which.
+
+## Put no action on a text selection
+
+<!-- rule: no-action-on-selection -->
+
+**Rule:** Give an action on text its own button, which opens a popover or a modal, and never wait for a selection.
+
+**Why:** A reader selects text to copy it, and a phone or a screen reader seldom makes one.
+
+**Do:** An Add note button under the clause opens the note form.
+
+**Don't:** A toolbar that appears over the selected words.
