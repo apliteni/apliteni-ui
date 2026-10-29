@@ -491,6 +491,14 @@ describe('range mode', () => {
     expect(trigger()).toHaveTextContent('Apr 2026 – Aug 2026');
   });
 
+  it('names a one-month range once', async () => {
+    const user = userEvent.setup();
+    render(<RangeExample />);
+    await user.click(cell(/^September 2026/));
+    await user.click(cell(/^September 2026/));
+    expect(trigger()).toHaveTextContent(/^Sept 2026$/);
+  });
+
   it('paints the ends and the span between them', async () => {
     const user = userEvent.setup();
     render(<RangeExample />);
@@ -605,6 +613,14 @@ describe('day-range mode', () => {
     await user.click(cell(/\b18 September 2026/));
     await user.click(cell(/\b7 September 2026/));
     expect(trigger()).toHaveTextContent('7 Sept 2026 \u2013 18 Sept 2026');
+  });
+
+  it('names a one-day range once', async () => {
+    const user = userEvent.setup();
+    render(<Example />);
+    await user.click(cell(/\b22 September 2026/));
+    await user.click(cell(/\b22 September 2026/));
+    expect(trigger()).toHaveTextContent(/^22 Sept 2026$/);
   });
 
   it('paints and names the days between the two ends', async () => {
