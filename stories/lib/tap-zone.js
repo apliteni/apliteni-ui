@@ -170,6 +170,12 @@ export async function rowFixtures() {
     h('div', { className: 'ui-card__row' },
       h('span', null, 'Notify on first use'),
       h(kit.Switch, { checked: true, label: 'Notify' }))));
+  // Two icon-only tools in one Card title row: 4px apart, two 44px layers met
+  // inside the first button's box (#736).
+  const cardTools = await markup(({ h, kit }) => h(kit.Card, { title: 'Cash in and out', tools: [
+    h(kit.Button, { key: 'export', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'download', 'aria-label': 'Export' }),
+    h(kit.Button, { key: 'more', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'moreHorizontal', 'aria-label': 'More actions' }),
+  ] }));
 
   return [
     row('confirm', confirm),
@@ -178,6 +184,7 @@ export async function rowFixtures() {
     row('snippet', snippet),
     row('drawer', drawer),
     row('card-row', cardRow),
+    row('card-tools', cardTools),
 
     // The pair #488 names: a dense table's row actions, a labelled button
     // against an icon-only one in the same cell. Written out, because no story

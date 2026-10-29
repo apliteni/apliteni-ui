@@ -107,7 +107,7 @@ what a factory accepts. They do not describe what the factory does.
 | `iconOnlyAllowed`, `iconOnlyNames`, `iconMeanings` | The icon rulings as data. `iconOnlyNames` gives each wordless glyph the words its button’s name may open with, so `copy` cannot be borrowed for Duplicate. See [Icons and glyphs](foundations.md#icons-and-glyphs). |
 | `seedling`, `prism`, `brand` | The brand mark. |
 
-`card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. On phones, its control sits below its label and hint. At wider widths, a choice that cannot fit beside its label moves below it. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link. Use `tools` on a titled React `<Card>` for small controls at the end of the title row, such as an icon-only menu. The tools are centred on the title's line, on a desktop and on a phone, so the card has no extra row. In the vanilla kit, wrap the title and a `.ui-card__tools` block in `.ui-card__head`.
+`card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. On phones, its control sits below its label and hint. At wider widths, a choice that cannot fit beside its label moves below it. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link. Use `tools` on a titled React `<Card>` for small controls at the end of the title row, such as an icon-only menu. The tools are centred on the title's line, on a desktop and on a phone, so the card has no extra row. On a touch phone the tools sit `--tap-gap` apart, so a tap on one never runs its neighbour. In the vanilla kit, wrap the title and a `.ui-card__tools` block in `.ui-card__head`.
 Three-option setting rows use `ui-card__row--tight-choice` to narrow pills below 360 px and stay on one line, while other rows keep full tap width.
 
 ### Controls and input
@@ -1110,10 +1110,10 @@ data value is reachable at full strength through pointer readouts and keyboard a
 
 **The table is one menu away.** A "…" button named "Chart options" sits in the top right corner.
 In a titled `<Card>` it sits at the end of the card's title row instead, and the chart draws no
-row of its own for it. When a card holds two charts, the first one puts its button there. The
-button opens the kit's menu dropdown with one row, "Show as a table". That row puts the table in
-the plot's place and then reads "Show as a chart". The chart shows first. The button reaches the
-phone tap floor. Pass `table={false}` to drop the button and the table.
+row of its own for it. When a card holds two charts, the first one puts its button there. When
+that chart leaves, the next one takes the place. The button opens the kit's menu dropdown with one
+row, "Show as a table". That row puts the table in the plot's place and then reads "Show as a
+chart". The chart shows first. The button reaches the phone tap floor. Pass `table={false}` to drop the button and the table.
 
 **Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
 paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark

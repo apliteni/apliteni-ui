@@ -183,14 +183,19 @@ it('keeps "Chart options" in its own head outside a titled card, and two charts 
     <Card><Chart title="Income and spend by month" periods={periods} series={series} format={eur} /></Card>,
   );
   expect(container.querySelector('.ui-chart__head .ui-chart__more')).not.toBeNull();
-  rerender(
+  // A mapped list, so the chart that stays keeps its instance when the first one leaves.
+  const charts = (kept: ChartSeries[]) => (
     <Card title="Income and spend">
-      <Chart title="Income by month" periods={periods} series={[series[0]]} format={eur} />
-      <Chart title="Spend by month" periods={periods} series={[series[1]]} format={eur} />
-    </Card>,
+      {kept.map((s) => <Chart key={s.id} title={`${s.name} by month`} periods={periods} series={[s]} format={eur} />)}
+    </Card>
   );
+  rerender(charts(series.slice(0, 2)));
   expect(container.querySelectorAll('.ui-card__tools .ui-chart__more')).toHaveLength(1);
   expect(container.querySelectorAll('.ui-chart__head .ui-chart__more')).toHaveLength(1);
+  // When the owner leaves, the chart that stays takes the title row and drops its own head.
+  rerender(charts(series.slice(1, 2)));
+  expect(container.querySelectorAll('.ui-card__tools .ui-chart__more')).toHaveLength(1);
+  expect(container.querySelector('.ui-chart__head'), 'no row is left under the title').toBeNull();
 });
 
 it('prints whole units on the axis and exact values in the table', () => {

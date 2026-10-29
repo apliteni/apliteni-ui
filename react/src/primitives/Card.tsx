@@ -31,13 +31,15 @@ export const CardTools = createContext<CardToolsSlot | null>(null);
 // A caller's `className` is merged with the kit class rather than replacing it, the way
 // Button merges one, so a page can mark one card without losing `.ui-card`.
 export function Card({ title, sub, level = 2, variant, pad, icon, href, tools, className, children }: CardProps) {
-  const [owner, setOwner] = useState<string | null>(null);
+  const [claims, setClaims] = useState<string[]>([]);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   // The first child to claim the slot keeps it, so two charts draw one button between them.
+  // When it leaves, the next child in the queue takes the slot.
   const claim = useCallback((id: string) => {
-    setOwner((held) => held ?? id);
-    return () => setOwner((held) => (held === id ? null : held));
+    setClaims((held) => (held.includes(id) ? held : [...held, id]));
+    return () => setClaims((held) => held.filter((h) => h !== id));
   }, []);
+  const owner = claims[0] ?? null;
   const offer = useMemo(() => ({ slot, owner, claim }), [slot, owner, claim]);
   const n = Number(level);
   const Heading = (href != null ? 'div' : `h${[2, 3, 4, 5, 6].includes(n) ? n : 2}`) as 'h2';

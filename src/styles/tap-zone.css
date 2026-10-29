@@ -175,9 +175,10 @@
   .ui-chart__head { --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-gap); }
   /* A card's title row holds the same 24px trigger at its end: across, the room
      beside it is title text, and down, the row opens to the chart head's 12px,
-     because the layer reaches 10px under it and the title gap is 8. */
+     because the layer reaches 10px under it and the title gap is 8. Between
+     two tools the gap opens to --tap-gap, so neither layer reaches the other. */
   .ui-card__head { margin-bottom: var(--space-3, 12px) !important; }
-  .ui-card__tools { --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-gap); }
+  .ui-card__tools { column-gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
 
   /* The selection box is 19px in a 58px row and a 34px header: the layer has room to reach the floor both ways. */
   .ui-table__selection { --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-min); }
