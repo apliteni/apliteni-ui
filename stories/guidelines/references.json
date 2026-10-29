@@ -48,7 +48,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:191",
+    "ref": "src/styles/tap-zone.css:201",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -496,7 +496,7 @@
   ],
   "meaning": [
    {
-    "ref": "src/assets/icons.js:228",
+    "ref": "src/assets/icons.js:222",
     "pattern": "export const iconMeanings"
    },
    {
@@ -558,17 +558,17 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:86",
+    "ref": "src/styles/card.css:87",
     "pattern": "rank: card-title"
    }
   ],
   "title-is-heading": [
    {
-    "ref": "react/src/primitives/Card.tsx:28",
+    "ref": "react/src/primitives/Card.tsx:43",
     "pattern": "h${[2, 3, 4, 5, 6].includes(n)"
    },
    {
-    "ref": "react/src/primitives/Card.tsx:28",
+    "ref": "react/src/primitives/Card.tsx:43",
     "pattern": "const Heading"
    }
   ],
@@ -1035,7 +1035,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:107",
+    "ref": "src/styles/card.css:119",
     "pattern": ".ui-card__row {"
    }
   ],
