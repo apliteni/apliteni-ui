@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.149.0', date: '2026-10-30',
+    changes: [
+      ['added', 'React `AccountWindow` is the account and settings window. The product gives it the reader and the sections, and it draws the dimmed page, the close, the section title and a 216px rail with the reader at its top. At 560px and below it fills the screen and the sections become tabs under the reader. Part of #736.', ['Modal']],
+    ],
+  },
+  {
     v: '0.148.0', date: '2026-10-30',
     changes: [
       ['changed', 'On a phone, a table no longer turns its rows into cards. A table marked `.ui-table--stack` now scrolls sideways inside its frame like any other table, and the page does not scroll. Remove `.ui-table--stack` and its table roles from your markup. Part of #736.', ['Table']],

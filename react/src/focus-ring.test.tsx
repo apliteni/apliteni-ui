@@ -168,7 +168,7 @@ describe('focus ring: React stories', () => {
 // Chrome makes a scroll container a keyboard stop of its own, with no tabindex and
 // no author rule, unless its own children are keyboard-focusable. So an overflowing
 // box has the same claim on the ring as a button. The kit's eight are triaged in
-// stories/focus-ring.test.js; this workspace declares one of its own, and the sheet
+// stories/focus-ring.test.js; this workspace declares its own, and the sheet
 // it is in is never read there. The subject is discovered from the CSS, so a new
 // overflowing box here is triaged rather than shipping with the browser's outline.
 //
@@ -176,6 +176,9 @@ describe('focus ring: React stories', () => {
 // are the vanilla gate's reading, over this workspace's sheets.
 const RX_SCROLL_RINGED: Record<string, string> = {
   // Keyed in the order scrollingSelectors reads the sheets, which is their filenames sorted.
+  '.rx-account__rail': 'the inward band, on the account window\'s rail. The rail scrolls down '
+    + 'when a product gives it more sections than its height holds. It always holds the section '
+    + 'rows, so Chrome does not make it a stop, and the band answers a script that focuses it.',
   '.ui-datepicker__body.is-sheet .ui-datepicker__presets': 'the inward band, on the shortcut '
     + 'row. In the phone sheet the shortcuts scroll across, and a picker whose bounds leave '
     + 'every shortcut off renders them all disabled — a scroller holding no stop of its own, '

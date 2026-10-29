@@ -1,0 +1,51 @@
+/* The account window: Modal's shell and motion, wider, of a fixed height, with an inset
+ * rail. The rail is the page ground, a neutral well inside the raised window, and only the
+ * current row carries the accent. why: docs/components.md#the-account-window */
+.rx-modal.rx-account {
+  /* --container less a 48px gutter at each side: the 1024px window of the reference. */
+  width: min(calc(var(--container) - var(--space-12) * 2), 96vw);
+  height: min(76vh, calc(100vh - var(--space-16)));
+  height: min(76dvh, calc(100dvh - var(--space-16)));
+  max-height: none; flex-direction: row; }
+.rx-account__rail { flex: none; display: flex; flex-direction: column; gap: var(--space-4);
+  margin: var(--space-2); padding: var(--space-5) var(--space-3);
+  border-radius: var(--radius-lg); overflow-y: auto;
+  background: var(--bg); /* code-bg: inherit — The rail is the page ground, so its controls read the page's ring gap. */ }
+/* A scroll region, so the band draws inward. It holds the section rows, so Chrome makes it
+ * no stop of its own. why: docs/foundations.md#the-focus-ring */
+.rx-account__rail:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+.rx-account__who { display: flex; align-items: center; gap: var(--space-3); min-width: 0;
+  padding: 0 var(--space-3); }
+.rx-account__who > .ui-app__who { flex: 1 1 auto; }
+.rx-account__av { display: grid; flex: none; }
+.rx-account__av > .ui-avatar { --ui-avatar-size: var(--space-10); }
+/* The rail's current row: the card plate under accent ink. The glyph follows the ink. */
+.rx-account .ui-nav__item.is-active { color: var(--accent); }
+.rx-account__pane { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.rx-account__head { border-bottom: 0; padding: var(--space-5) var(--space-5) var(--space-2) var(--space-8); }
+.rx-account__title { margin: 0;
+  /* rank: card-title */
+  font-size: var(--text-lg); font-weight: var(--weight-semibold); line-height: var(--leading-snug);
+  font-family: var(--font-sans); color: var(--strong); }
+.rx-account__body { flex: 1 1 auto; padding: var(--space-4) var(--space-8) var(--space-8); }
+/* The tabs and the rail's close are the phone's. */
+.rx-account__tabs, .rx-account__who > .ui-btn { display: none; }
+.rx-account__tabs { --ui-tabs-ground: var(--bg); }
+.rx-account__tabs .ui-nav__tab { border: 0; background: none; font-family: inherit; cursor: pointer; }
+.rx-account__who > .ui-btn { width: calc(var(--space-10) + var(--space-1));
+  height: calc(var(--space-10) + var(--space-1)); flex: none; }
+
+/* A floating panel goes edge to edge at 560px. The rail becomes the header: the reader,
+ * the close and the sections as tabs, over the pane. why: docs/foundations.md#breakpoints */
+@media (max-width: 560px) {
+  .rx-modal.rx-account { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0;
+    flex-direction: column; }
+  .rx-account__rail { overflow: visible; padding: var(--space-4) var(--space-3); gap: var(--space-2); }
+  .rx-account__av > .ui-avatar { --ui-avatar-size: var(--space-8); }
+  .rx-account__who { padding: 0 0 0 var(--space-3); }
+  .rx-account__side, .rx-account__head > .ui-btn { display: none; }
+  .rx-account__tabs, .rx-account__who > .ui-btn { display: flex; }
+  .rx-account__pane { min-height: 0; }
+  .rx-account__head { padding: var(--space-4) var(--space-4) 0; }
+  .rx-account__body { padding: var(--space-4); }
+}

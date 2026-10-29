@@ -268,7 +268,7 @@
     "pattern": "role=\"toolbar\" aria-label={label}"
    },
    {
-    "ref": "react/src/Tabs.tsx:24",
+    "ref": "react/src/Tabs.tsx:35",
     "pattern": "role=\"tablist\" aria-label={label}"
    },
    {
@@ -860,7 +860,7 @@
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
-    "ref": "react/src/contrast-walk.tsx:290",
+    "ref": "react/src/contrast-walk.tsx:291",
     "pattern": "inactive user-interface components"
    }
   ],

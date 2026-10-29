@@ -136,10 +136,12 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // row's ring is never clipped by the list.
   // 14 -> 15: #661 rings the CommandPalette search row inward, because the panel clips
   // an outward band.
-  assert.equal(scrollRules.length, 15,
+  // 15 -> 16: #736 rings the AccountWindow rail inward, because the rail scrolls and clips
+  // an outward band.
+  assert.equal(scrollRules.length, 16,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
-  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 2,
-    'React\'s modal body and the picker\'s shortcut row are not both among them, so the walk '
+  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 3,
+    'React\'s modal body, the picker\'s shortcut row and the account rail are not all among them, so the walk '
     + 'stopped reading react/src');
   assert.deepEqual(offsetProblems(scrollRules, '--ring-scroll'), []);
 });
