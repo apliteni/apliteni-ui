@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.147.0', date: '2026-10-29',
+    changes: [
+      ['added', 'The Dashboards and reports guideline adds four rules. Download a report with one icon button. Give a chart a Chart and Table switch that opens on Chart, in place of the rule that put the table under every chart. Name the lines by their last values or by a key. Draw at most two lines on a chart. See #743.', ['Guidelines']],
+      ['added', 'The Button labels guideline adds a rule: put no action on a text selection. The download glyph, named and titled Download PDF, joins the icon-only list. See #743.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.146.1', date: '2026-10-29',
     changes: [
       ['fixed', 'A `DatePicker` range whose two ends are the same month or the same day shows that period once, such as "Sept 2026" or "22 Sept 2026". A longer range still shows both ends. Resolves #747.', ['DatePicker']],
