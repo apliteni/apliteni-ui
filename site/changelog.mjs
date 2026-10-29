@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.146.0', date: '2026-10-28',
+    changes: [
+      ['added', 'React `Chart` adds the variants `line`, `area`, `stacked` and `donut`. Each takes `look` to pick one of three drawings, and keeps the readout, the keyboard steps, the live region and the values table. A donut takes `slices` and an optional `totalLabel`. Part of #742.', ['Chart']],
+      ['changed', 'React `Chart` shows its legend only when you pass `legend`, so a chart that relied on the default legend must now pass it. A Chart and Table switch in the top right corner replaces the "Values as a table" disclosure, and an area ramps from its lowest value to its highest. Part of #742.', ['Chart']],
+      ['added', '`Segmented` options take `icon`, a kit glyph before the label, and `iconOnly`, which keeps the label as the accessible name only. Part of #742.', ['Segmented']],
+    ],
+  },
+  {
     v: '0.145.0', date: '2026-10-28',
     changes: [
       ['changed', 'React `Chart` series use a fixed palette of seven tones in each theme, and the product accent no longer changes them. Each bar fades from a light tint of its tone at the zero line to the full tone at its data end. A bridge step fades from the previous running total to the new one. Lines and legend keys stay solid. Resolves #740.', ['Chart']],

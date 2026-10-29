@@ -230,7 +230,9 @@ test(
       proc.stderr.on('data', (d) => process.stderr.write(d));
       proc.once('error', reject);
     });
-    const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+    // A launch that throws comes before the `try`, and the server would keep the run alive.
+    const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME })
+      .catch((e) => { served.proc.kill(); throw e; });
     const ctx = await browser.newContext({
       viewport: { width: 390, height: 844 },
       deviceScaleFactor: 1,
@@ -400,7 +402,9 @@ test(
       proc.stderr.on('data', (d) => process.stderr.write(d));
       proc.once('error', reject);
     });
-    const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+    // A launch that throws comes before the `try`, and the server would keep the run alive.
+    const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME })
+      .catch((e) => { served.proc.kill(); throw e; });
 
     try {
       const spark = storySubjects().find((s) => s.spark);
