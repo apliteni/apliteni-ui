@@ -668,14 +668,11 @@ decorative logo is not drawn there. A sub-line stays running text, which is a ru
 around the whole line**, because the cell clips and a band around the link alone could not close
 its right side.
 
-**Below the one-column step, a table marked `.ui-table--stack` lays each row out as a block
-instead of scrolling.** The identity and short cells appear on the first line. `.ui-table__long`
-appears below them. A card is as wide as the row, so a pinned identity wraps its whole name there,
-and the one-line cap and the filled cell both come off. The header row is clipped rather than
-removed, so a cell still reads with its column's name. **A clipped header is read but not operated**, so put a sort or filter control
-on the row above the table and name the table in `aria-controls`. The markup includes the table
-roles at every width because a stylesheet cannot add them. A value whose meaning comes from its
-heading must carry that meaning itself: give an amount cell `data-label` with its column's name, and a stacked row shows it before the figure. This is a rule in [Dense tables](../guidelines/dense-tables.md).
+**On a phone, a table stays a table.** No kit table lays its rows out as blocks. A table wider
+than the screen scrolls sideways inside its frame, and the page does not scroll. A pinned identity
+column stays at the frame's left edge on the table's own surface, so it follows the theme. While
+columns sit under it, a soft shade from the edge token falls to its right. At the left edge there
+is no shade. This is a rule in [Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
 change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
@@ -867,11 +864,10 @@ vanilla sections above.
 Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
 A `.ui-table__title` cell gives a text column the remaining width. A column takes `cell` for it:
 `title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
-`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `stack`, `density`,
+`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`,
 `stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
 and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
-with no strike line. `stack` writes the table roles that the block layout drops. Below the phone step each row
-shows every cell, so no amount scrolls out of reach. An amount column (`num`) with a text label shows that label before each figure. A table that does not scroll is the card's own child, so a dense or stacked table reaches the card's text edge.
+with no strike line. `stack` is deprecated and ignored: a phone table scrolls sideways like any other. A table that does not scroll is the card's own child, so a dense table reaches the card's text edge.
 Its pager follows the measured table width and wraps when necessary.
 Without `ResizeObserver`, the pager keeps its container width.
 A pager that renders no controls takes no space.

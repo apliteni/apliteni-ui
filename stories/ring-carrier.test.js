@@ -97,7 +97,8 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 51 -> 52: the React Feedback pill takes the same outward ring as other controls.
   // 52 -> 53: the collapsed toast stack takes the kit ring for keyboard entry.
   // 53 -> 52: #649 moves the dropdown row to the inward band.
-  assert.equal(consumers.length, 52, 'ring consumer discovery changed');
+  // 52 -> 50: #736 removes the stacked table card and its two outset rules.
+  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -244,7 +245,8 @@ test('a focus rule draws the band and no second accent edge', () => {
   // Every consumer is read, so this cannot go quiet by losing its subjects: the count
   // is the one the offset gate pins, and the two have to move together.
   // 53 -> 52: #649 moves the dropdown row to the inward band.
-  assert.equal(consumers.length, 52, 'ring consumer discovery changed');
+  // 52 -> 50: #736 removes the stacked table card and its two outset rules.
+  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   assert.deepEqual(secondBands(consumers), []);
 });
 

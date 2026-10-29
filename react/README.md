@@ -311,7 +311,7 @@ now compare against the working tree rather than the last published release.
 
 ### Table appearance
 
-`DataTable` takes the vanilla table hooks as props. `zebra`, `hover` (on unless `false`), `stack`,
+`DataTable` takes the vanilla table hooks as props. `zebra`, `hover` (on unless `false`),
 `density`, `stickyHeader` and `pinnedIdentity` set the table modifiers. `rowState={(row) => 'target' | 'dead' | undefined}`
 marks a row, `footer` takes totals rows, and `caption` names the table for assistive technology. A column takes
 `rowHeader` and `cell` (`'title' | 'code' | 'long' | 'strong' | 'act'`). A `dead` row is muted, so put the word
@@ -319,7 +319,7 @@ that names its state in one of its cells.
 
 ```tsx
 <DataTable columns={columns} rows={rows} selectable={false} pager={false}
-  density="dense" zebra stack rowState={(r) => (r.id === landedOn ? 'target' : undefined)} />
+  density="dense" zebra rowState={(r) => (r.id === landedOn ? 'target' : undefined)} />
 ```
 
 ### Tables with another presentation of the same rows
