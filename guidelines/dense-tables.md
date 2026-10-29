@@ -116,12 +116,12 @@
 
 <!-- rule: filter-bar -->
 
-**Why:** A reader narrows the rows before reading them, and looks for the bar where every other table puts it.
+**Why:** Readers narrow rows before reading them, and look for the bar where other tables put it.
 
-**Rule:** Put a filter bar directly above every table, with a search field and the filters that fit its columns.
+**Rule:** Put a bar with a search field and column filters directly above every table.
 
 **Do:** Search, then a status filter, on the row above the table.
 
-**Don't:** Leave a table with no way to narrow its rows.
+**Don't:** Leave rows that the reader cannot narrow.
 
-**Except:** A table that compares one document line by line takes no bar, because a filter hides lines that the reviewer must check.
+**Except:** Two tables take no bar: one that compares a document line by line, where a filter hides lines the reviewer must check, and a chart's Table view, which holds only the chart's points.

@@ -74,10 +74,13 @@ const MonthChart = () => <div className="gd-chart">
   <Raw html={bars({ values: NET_BY_MONTH, width: 320, height: 96, fluid: true, label: 'Net settled by month, first half of the year' }).svg} />
   <div className="gd-chart__months ui-stat__label" aria-hidden="true">{MONTHS.map(month => <span key={month}>{month}</span>)}</div>
 </div>;
-const MonthTable = () => <table className="ui-table ui-table--dense">
-  <thead><tr><th>Month</th><th className="ui-table__num">Net settled (k €)</th></tr></thead>
-  <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>
-</table>;
+const MonthTable = () => (
+  // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-every-table-its-filter-bar
+  <table className="ui-table ui-table--dense">
+    <thead><tr><th>Month</th><th className="ui-table__num">Net settled (k €)</th></tr></thead>
+    <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>
+  </table>
+);
 
 // One block, one view at a time: the switch shares the title's row and opens on Chart.
 // Small underline tabs, not pills: an accent fill outweighed the chart and its title.
