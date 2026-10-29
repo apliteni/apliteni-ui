@@ -6,11 +6,11 @@
 // subject by default.
 // why: docs/components.md#stat-bands
 import type { ReactElement } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, type Root } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { act } from 'react';
 import assert from 'node:assert/strict';
-import { describe, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 import { StatBand, type StatBandProps } from './primitives/StatBand';
 import * as FinanceDashboardStories from '../../stories/apps/FinanceDashboard.stories.tsx';
 // @ts-expect-error -- shared, independently tested JS module.
@@ -27,11 +27,16 @@ const mount = (html: string) => {
 };
 
 /** Mount a React tree for real, hooks and all. */
+const roots: Root[] = [];
 const mountElement = (element: ReactElement) => {
   const box = document.body.appendChild(document.createElement('div'));
-  act(() => createRoot(box).render(element));
+  const root = createRoot(box);
+  roots.push(root);
+  act(() => root.render(element));
   return box;
 };
+// A root left mounted can run React's queued work after the window is torn down.
+afterEach(() => act(() => roots.splice(0).forEach((root) => root.unmount())));
 
 const FinanceDashboard = () => (FinanceDashboardStories.Default as { render: () => ReactElement }).render();
 
