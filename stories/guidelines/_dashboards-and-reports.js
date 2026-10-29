@@ -30,11 +30,6 @@ export const SPEC_CSS = `${CHART_CSS}
     .gd-block-head { display: flex; align-items: baseline; column-gap: var(--space-4);
       margin-bottom: var(--space-2); }
     .gd-block-head > :first-child { flex: 1 1 0; min-width: 0; }
-    /* Each line's name over its last value, above the plot. */
-    .gd-series { display: flex; flex-wrap: wrap; column-gap: var(--space-6); row-gap: var(--space-2); }
-    .gd-series__item { display: flex; flex-direction: column; }
-    /* Missing kit capability: no kit part paints text in a series tone. */
-    .gd-series__value { color: var(--ui-chart-tone); }
   </style>`;
 
 // Made-up monthly spend for the made-up portal, in thousands of euros.

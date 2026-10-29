@@ -99,8 +99,8 @@ const MonthBlock = ({ view: initial }: { view: string }) => {
     aria-labelledby={`${id}-tab-${i}`} tabIndex={0} hidden={option.value !== view}>{option.value === view ? option.panel : null}</div>)}</Card>;
 };
 
-// The kit's line chart. Without a key, each line's name and last value stand over
-// the thin look, which writes no value of its own; `legend` draws the key instead.
+// The kit's line chart. The labels look writes each line's name and last value at
+// its end; the thin look writes no value, and `legend` draws its key.
 const SPEND_SERIES: ChartLookSeries[] = [
   { id: 'spend', name: 'Spend', tone: 'accent', values: SPEND }, { id: 'estimated', name: 'Estimated', tone: 'accent-soft', values: ESTIMATED }];
 const INCOME_SERIES: ChartLookSeries[] = [
@@ -110,16 +110,18 @@ const INCOME_SERIES: ChartLookSeries[] = [
 const ALL_SERIES: ChartLookSeries[] = [...SPEND_SERIES, { ...INCOME_SERIES[0], tone: 'warn' }, { ...INCOME_SERIES[1], tone: 'info' }];
 const PERIODS = MONTHS.map(month => ({ label: `${month} 2026`, short: month }));
 const kEur = (n: number) => `${n.toFixed(1)}k €`;
-const Figures = ({ series }: { series: ChartLookSeries[] }) => <div className="gd-series">{series.map(line =>
-  <div key={line.id} className={`gd-series__item ui-chart__tone--${line.tone}`}>
-    <span className="ui-stat__label">{line.name}</span>
-    <span className="ui-stat__value gd-series__value">{kEur(line.values[line.values.length - 1] as number)}</span>
-  </div>)}</div>;
-const LineCard = ({ title, series, legend = false }: { title: string; series: ChartLookSeries[]; legend?: boolean }) => <Card title={title}>
-  {legend ? null : <Figures series={series} />}
-  <Chart variant="line" look="thin" legend={legend} title={`${title}, first half of 2026, thousands of euros`}
-    periods={PERIODS} series={series} format={kEur} />
-</Card>;
+// Two past years over one half year: the shape is the point, and no one value is.
+const SEASON_SERIES: ChartLookSeries[] = [
+  { id: 'y2024', name: '2024', tone: 'accent-soft', values: [15.1, 15.8, 17.2, 16.6, 18.0, 18.9] },
+  { id: 'y2025', name: '2025', tone: 'accent', values: [16.4, 17.0, 18.8, 18.1, 19.7, 20.6] },
+];
+const HALF_YEAR = MONTHS.map(month => ({ label: month, short: month }));
+const LineCard = ({ title, series, look = 'labels', legend = false, span = 'first half of 2026', periods = PERIODS }:
+  { title: string; series: ChartLookSeries[]; look?: 'thin' | 'labels'; legend?: boolean; span?: string; periods?: typeof PERIODS }) =>
+  <Card title={title}>
+    <Chart variant="line" look={look} legend={legend} title={`${title}, ${span}, thousands of euros`}
+      periods={periods} series={series} format={kEur} />
+  </Card>;
 
 // Offered, not applied: the rows below are every payout, so no chip may read as
 // a value a reader would then look for in the table.
@@ -161,11 +163,12 @@ const specimens = [
     do: () => <Stage><MonthBlock view="chart" /><MonthBlock view="table" /></Stage>,
     dont: () => <Stage><Card title="Net settled by month"><MonthChart /><MonthTable /></Card></Stage> },
   { id: 'value-not-legend',
-    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} /></Stage>,
-    dont: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /></Stage> },
+    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} />
+      <LineCard title="Seasonal spend, 2024 and 2025" series={SEASON_SERIES} look="thin" legend span="first half of each year" periods={HALF_YEAR} /></Stage>,
+    dont: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} look="thin" legend /></Stage> },
   { id: 'two-lines-at-most',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} /><LineCard title="Revenue against expenses" series={INCOME_SERIES} /></Stage>,
-    dont: () => <Stage><LineCard title="Spend and income" series={ALL_SERIES} legend /></Stage> },
+    dont: () => <Stage><LineCard title="Spend and income" series={ALL_SERIES} look="thin" legend /></Stage> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Dashboards and reports', parameters: { layout: 'fullscreen' } };

@@ -96,7 +96,7 @@
 
 **Why:** A key sends the eye from a line to the key and back and gives no amount, but a tap shows the readout with the values at that point.
 
-**Do:** Spend and Estimated, each line ending on its last value.
+**Do:** Spend with last values, and seasonal spend with a key.
 
 **Don't:** The same two lines with a key and no values.
 
