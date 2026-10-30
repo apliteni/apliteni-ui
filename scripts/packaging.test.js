@@ -544,6 +544,36 @@ test('the packed React CSS includes the tooltip panel and its states', () => {
 // before — `main` shipped 0.32.0 with a lockfile still saying 0.31.0, because
 // nothing read it. `npm version` writes all three; this is what says so when a
 // release is edited by hand instead.
+// Every relative link a packed Markdown file writes must point at a file the tarball
+// carries, the way a consumer reading the installed copy resolves it. The README once
+// linked docs/components.md, docs/foundations.md, docs/contributing.md, AGENTS.md and
+// TRADEMARK.md without shipping them, so a followed link landed on a missing file.
+// Inline `[text](target)` and `![alt](target)` links are read; reference-style links and
+// angle-bracket targets are not, because no packed page writes either.
+const markdownLink = /!?\[[^\]]*\]\(([^)\s]+)\)/g;
+
+test('every relative link in a packed Markdown file points at a packed file', () => {
+  const files = [...packed].filter((file) => file.endsWith('.md'));
+  assert.ok(files.length > 0, 'no Markdown files are packed — the link check read nothing');
+  for (const file of files) {
+    const text = readFileSync(path.join(installed, file), 'utf8');
+    for (const match of text.matchAll(markdownLink)) {
+      const raw = match[1];
+      // An absolute URL, a scheme such as mailto:, or a same-page anchor names no file.
+      if (/^(?:[a-z][a-z0-9+.-]*:|#)/i.test(raw)) continue;
+      const target = raw.split('#')[0];
+      if (target === '') continue;
+      const resolved = path.posix.normalize(path.posix.join(path.posix.dirname(file), target));
+      assert.ok(
+        packed.has(resolved),
+        `${file} links to ${raw}, which resolves to ${resolved} and is not in the tarball. ` +
+          `Add it to "files" in package.json, or point the link at an absolute URL when ` +
+          `the file must not ship.`,
+      );
+    }
+  }
+});
+
 test('package-lock.json states the version package.json states', () => {
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'));
   const stated = [
