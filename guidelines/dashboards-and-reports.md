@@ -88,6 +88,18 @@
 
 **Don't:** The rows stacked under the bars, in one block or the next.
 
+## Leave the range out of a chart card
+
+<!-- rule: no-range-on-chart -->
+
+**Rule:** Title a chart card by what it measures, and leave out the range of its data.
+
+**Why:** The page or the filter around the chart already holds the range, so the card does not repeat it.
+
+**Do:** Spend against estimate, with no subtitle.
+
+**Don't:** The same card with the first half of 2026 under its title.
+
 ## Name the lines by their values or a key
 
 <!-- rule: value-not-legend -->

@@ -57,7 +57,7 @@ export const TitleTools: StoryObj = {
     <div style={{ maxWidth: 'var(--panel-lg)' }}>
       <Card
         title="Cash in and out"
-        sub="Money in and money out for each month of this year."
+        sub="Money in and money out for each month."
         tools={<Button variant="ghost" size="sm" iconOnly icon="download" aria-label="Download PDF" title="Download PDF" />}
       />
     </div>

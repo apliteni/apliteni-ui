@@ -301,7 +301,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  assert.equal(count, 143, 'update the rule count when adding or removing a rule');
+  // 144: Dashboards and reports gained no-range-on-chart (#736).
+  assert.equal(count, 144, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

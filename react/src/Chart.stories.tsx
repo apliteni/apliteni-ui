@@ -45,7 +45,7 @@ const eurAxis = (value: number) => (value === 0 ? '€0'
 
 export const Months: StoryObj = {
   render: () => (
-    <Card title="Income and spend" sub="Last 12 months">
+    <Card title="Income and spend">
       <Chart title="Income and spend by month, last 12 months, with net"
         periods={periods} series={series} format={eur} formatAxis={eurAxis} />
     </Card>
@@ -68,7 +68,7 @@ export const AsTable: StoryObj = {
  *  id is kept from the round that named it after the fade it no longer draws. */
 export const Solid: StoryObj = {
   render: () => (
-    <Card title="Income and spend" sub="Closed months only">
+    <Card title="Income and spend">
       <Chart title="Income and spend by closed month, with net"
         periods={closed}
         series={series.map((s) => ({ ...s, values: s.values.slice(0, 11) }))}
@@ -83,7 +83,7 @@ export const Solid: StoryObj = {
  *  rendered from the same component and the same numbers. */
 export const SideBySide: StoryObj = {
   render: () => (
-    <Card title="Income and spend" sub="Last 12 months">
+    <Card title="Income and spend">
       <Chart title="Income and spend by month, last 12 months, with net"
         periods={periods} format={eur} formatAxis={eurAxis}
         series={[
@@ -102,7 +102,7 @@ export const SideBySide: StoryObj = {
  *  Made-up seat changes for a made-up company. */
 export const Palette: StoryObj = {
   render: () => (
-    <Card title="Seats gained and lost" sub="By plan, 2025">
+    <Card title="Seats gained and lost" sub="By plan">
       <Chart title="Seats gained and lost by plan, each quarter of 2025"
         periods={['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'].map((label) => ({ label }))}
         format={(n) => `${n < 0 ? '−' : '+'}${Math.abs(n)}`}
@@ -123,7 +123,7 @@ export const Palette: StoryObj = {
 /** A rise, a fall and a total read apart by tone, so the bridge asks for the legend. */
 export const Bridge: StoryObj = {
   render: () => (
-    <Card title="Cash, third quarter" sub="Opening to closing">
+    <Card title="Cash" sub="Opening to closing">
       <Chart variant="bridge" title="Cash from opening to closing, third quarter"
         format={eur} formatAxis={eurAxis} legend
         steps={[
@@ -144,7 +144,7 @@ export const Bridge: StoryObj = {
 export const Narrow: StoryObj = {
   render: () => (
     <div style={{ maxWidth: 'var(--panel-sm)' }}>
-      <Card title="Income and spend" sub="Last 12 months">
+      <Card title="Income and spend">
         <Chart title="Income and spend by month, last 12 months, with net"
           periods={periods} series={series} format={eur} formatAxis={eurAxis} />
       </Card>
@@ -227,69 +227,69 @@ const spend: ChartLookSeries[] = [{ id: 'spend', name: 'Spend', values: YEAR_SPE
 /* Each look sits in one card width, so the looks compare side by side. The
    centred canvas has no width to take a percentage of, so a phone clamps to the
    viewport less the canvas's 1rem on each side. */
-const lookCard = (title: string, sub: string, chart: ReactNode) => (
+const lookCard = (title: string, chart: ReactNode) => (
   <div style={{ width: 'min(var(--panel-lg), calc(100vw - 2rem))' }}>
-    <Card title={title} sub={sub}>{chart}</Card>
+    <Card title={title}>{chart}</Card>
   </div>
 );
 
 export const LineThin: StoryObj = {
-  render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="thin"
+  render: () => lookCard('Income and spend', <Chart variant="line" look="thin"
     title="Income and spend by month, last 12 months" periods={year} series={flows}
     format={eur} formatAxis={eurAxis} />),
 };
 export const LinePoints: StoryObj = {
-  render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="points"
+  render: () => lookCard('Income and spend', <Chart variant="line" look="points"
     title="Income and spend by month, last 12 months" periods={year} series={flows}
     format={eur} formatAxis={eurAxis} />),
 };
 export const LineLabels: StoryObj = {
-  render: () => lookCard('Income and spend', 'Last 12 months', <Chart variant="line" look="labels"
+  render: () => lookCard('Income and spend', <Chart variant="line" look="labels"
     title="Income and spend by month, last 12 months" periods={year} series={flows}
     format={eur} formatAxis={eurAxis} />),
 };
 
 export const AreaFlat: StoryObj = {
-  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="flat"
+  render: () => lookCard('Spend by category', <Chart variant="area" look="flat"
     title="Spend by month, last 12 months" periods={year} series={spend}
     format={eur} formatAxis={eurAxis} />),
 };
 export const AreaStacked: StoryObj = {
-  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="stacked"
+  render: () => lookCard('Spend by category', <Chart variant="area" look="stacked"
     title="Spend by category and month, last 12 months" periods={year} series={costs}
     format={eur} formatAxis={eurAxis} />),
 };
 export const AreaShare: StoryObj = {
-  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="area" look="share"
+  render: () => lookCard('Spend by category', <Chart variant="area" look="share"
     title="Share of spend by category and month, last 12 months" periods={year} series={costs}
     format={eur} formatAxis={eurAxis} />),
 };
 
 export const StackedColumns: StoryObj = {
-  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="columns"
+  render: () => lookCard('Spend by category', <Chart variant="stacked" look="columns"
     title="Spend by category and month, last 12 months" periods={year} series={costs}
     format={eur} formatAxis={eurAxis} />),
 };
 export const StackedShare: StoryObj = {
-  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="share"
+  render: () => lookCard('Spend by category', <Chart variant="stacked" look="share"
     title="Share of spend by category and month, last 12 months" periods={year} series={costs}
     format={eur} formatAxis={eurAxis} />),
 };
 export const StackedRows: StoryObj = {
-  render: () => lookCard('Spend by category', 'Last 12 months', <Chart variant="stacked" look="rows"
+  render: () => lookCard('Spend by category', <Chart variant="stacked" look="rows"
     title="Spend by category and month, last 12 months" periods={year} series={costs}
     format={eur} formatAxis={eurAxis} />),
 };
 
 export const DonutThin: StoryObj = {
-  render: () => lookCard('Spend by category', 'October 2025', <Chart variant="donut" look="thin"
+  render: () => lookCard('Spend by category', <Chart variant="donut" look="thin"
     title="Spend by category, October 2025" slices={october} totalLabel="Total spend" format={eur} />),
 };
 export const DonutTable: StoryObj = {
-  render: () => lookCard('Spend by category', 'October 2025', <Chart variant="donut" look="table"
+  render: () => lookCard('Spend by category', <Chart variant="donut" look="table"
     title="Spend by category, October 2025" slices={october} format={eur} />),
 };
 export const DonutLabels: StoryObj = {
-  render: () => lookCard('Spend by category', 'October 2025', <Chart variant="donut" look="labels"
+  render: () => lookCard('Spend by category', <Chart variant="donut" look="labels"
     title="Spend by category, October 2025" slices={october} format={eur} />),
 };
