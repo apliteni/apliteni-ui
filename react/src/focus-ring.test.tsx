@@ -70,7 +70,7 @@ const EXEMPT = [
     selector: '.ui-cmdk__item',
     why: 'the palette never focuses a row. CommandPalette.tsx has no focus() call at all; '
       + 'focus stays in the input, and the row the reader is on is announced by '
-      + 'react/src/CommandPalette.tsx:156 `aria-activedescendant`. A ring needs a stop, and '
+      + 'react/src/CommandPalette.tsx:161 `aria-activedescendant`. A ring needs a stop, and '
       + 'there is none. The rows are walked at all only because #487 added `option` to '
       + 'ROVING_ROLES in the shared reader, so that the vanilla kit\'s .vopt — which IS '
       + 'focused, by the arrow keys — could be seen. The vanilla gate exempts them for the '

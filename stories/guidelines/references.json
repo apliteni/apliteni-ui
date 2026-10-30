@@ -184,13 +184,13 @@
  "_command-palette.js": {
   "named-things": [
    {
-    "ref": "react/src/CommandPalette.tsx:185",
+    "ref": "react/src/CommandPalette.tsx:190",
     "pattern": "role=\"option\""
    }
   ],
   "groups": [
    {
-    "ref": "react/src/CommandPalette.tsx:84",
+    "ref": "react/src/CommandPalette.tsx:88",
     "pattern": "rankGroups(groups, query)"
    },
    {
@@ -210,7 +210,7 @@
   ],
   "keyboard": [
    {
-    "ref": "react/src/CommandPalette.tsx:116",
+    "ref": "react/src/CommandPalette.tsx:121",
     "pattern": "const onKeyDown = (e: ReactKeyboardEvent)"
    },
    {
@@ -220,11 +220,11 @@
   ],
   "say-it": [
    {
-    "ref": "react/src/CommandPalette.tsx:187",
+    "ref": "react/src/CommandPalette.tsx:192",
     "pattern": "aria-selected={on}"
    },
    {
-    "ref": "react/src/CommandPalette.tsx:218",
+    "ref": "react/src/CommandPalette.tsx:223",
     "pattern": "role=\"status\" aria-live=\"polite\""
    },
    {
@@ -234,7 +234,7 @@
   ],
   "ask-first": [
    {
-    "ref": "react/src/CommandPalette.tsx:241",
+    "ref": "react/src/CommandPalette.tsx:246",
     "pattern": "const isDisabled = (item: CommandItem) =>"
    },
    {
@@ -428,7 +428,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:157",
+    "ref": "react/src/AppShell.tsx:160",
     "pattern": "back && <BackLink"
    }
   ],
