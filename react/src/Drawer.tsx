@@ -27,7 +27,7 @@ export function Drawer({
   open, title, onClose, side = 'right', size = 'md', footer, headerActions, children, closeLabel = 'Close', initialFocusRef,
 }: DrawerProps) {
   const root = useRef<HTMLDivElement>(null);
-  const panel = useRef<HTMLElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const { mounted, shown } = usePresence(open, root, panel);
