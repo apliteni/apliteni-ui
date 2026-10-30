@@ -102,7 +102,7 @@ export const SideBySide: StoryObj = {
  *  Made-up seat changes for a made-up company. */
 export const Palette: StoryObj = {
   render: () => (
-    <Card title="Seats gained and lost" sub="By plan">
+    <Card title="Seats gained and lost">
       <Chart title="Seats gained and lost by plan, each quarter of 2025"
         periods={['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'].map((label) => ({ label }))}
         format={(n) => `${n < 0 ? '−' : '+'}${Math.abs(n)}`}
@@ -123,7 +123,7 @@ export const Palette: StoryObj = {
 /** A rise, a fall and a total read apart by tone, so the bridge asks for the legend. */
 export const Bridge: StoryObj = {
   render: () => (
-    <Card title="Cash" sub="Opening to closing">
+    <Card title="Cash">
       <Chart variant="bridge" title="Cash from opening to closing, third quarter"
         format={eur} formatAxis={eurAxis} legend
         steps={[
