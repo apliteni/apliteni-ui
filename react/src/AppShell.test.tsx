@@ -130,6 +130,17 @@ it('lets a palette onNavigate win over the shell one', () => {
   expect(shellNavigate).not.toHaveBeenCalled();
 });
 
+it('hands a same-tab pick from a custom palette without onNavigate to the shell onNavigate', () => {
+  const onNavigate = vi.fn();
+  const before = window.location.href;
+  render(<AppShell {...props} onNavigate={onNavigate}
+    palette={{ groups: [{ items: [{ id: 'custom', label: 'Custom', href: '/custom' }] }] }} />);
+  fireEvent.click(screen.getByRole('button', { name: /Search or run/ }));
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('option', { name: 'Custom' }));
+  expect(onNavigate).toHaveBeenCalledWith('/custom');
+  expect(window.location.href).toBe(before);
+});
+
 it('keeps the trigger\'s name when the phone band shows only its glyph', () => {
   render(<AppShell {...props} />);
   const trigger = screen.getByRole('button', { name: /Search or run/ });
