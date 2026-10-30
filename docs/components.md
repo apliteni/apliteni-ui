@@ -1152,7 +1152,8 @@ changes colour, so each tone stays with the series it names. The switch is the f
 and the chart is the second: Left,
 Right, Home and End step columns and announce each one politely, Enter picks one when `selectable`
 is set, and `title` names the plot, the table and the switch without being drawn, because the card
-around a chart already carries its title.
+around a chart already carries its title. A plot that scrolls adds one more tab stop after the
+chart: the scrolling box, named after `title` and ringed by the kit.
 
 **On a touch screen a tap opens the readout and a second tap on the same mark closes it. The tap
 that opens a readout does not call `onSelect`** — it is the reader asking what a mark is worth.
@@ -1165,7 +1166,8 @@ across and the full 44px down. A sparkline's slot grows with that vertical targe
 
 The table carries its columns sideways in a named scroller, so your card and your page keep their
 width whatever series you pass. At phone widths the plot scrolls with the value axis held in
-place, and a column cut by the edge shows that more periods are there. Nothing animates.
+place, and a column cut by the edge shows that more periods are there. While the plot scrolls,
+the keyboard can scroll it from its own tab stop after the chart. Nothing animates.
 
 ### React route navigation
 

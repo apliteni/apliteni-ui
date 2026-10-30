@@ -555,6 +555,7 @@ export function Chart(props: ChartProps) {
 
   const floor = useTapFloor();
   const [width, setWidth] = useState(0);
+  const [overflows, setOverflows] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [rawCursor, setCursor] = useState(0);
   const [said, setSaid] = useState('');
@@ -698,12 +699,17 @@ export function Chart(props: ChartProps) {
 
   useEffect(() => {
     const el = plot.current;
-    if (!el) return;
-    const read = () => setWidth(el.clientWidth);
+    const box = scroller.current;
+    if (!el || !box) return;
+    const read = () => {
+      setWidth(el.clientWidth);
+      setOverflows(box.scrollWidth > box.clientWidth);
+    };
     read();
     if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(read);
     observer.observe(el);
+    observer.observe(box);
     return () => observer.disconnect();
   }, []);
 
@@ -897,20 +903,26 @@ export function Chart(props: ChartProps) {
           </div>
         )}
 
-        {/* Chrome makes an overflowing box keyboard-focusable on its own, and the
-            ring it draws there is the browser's, not the kit's. The frame is the
-            chart's one tab stop and its arrows scroll this box, so the box is
-            taken out of the tab order rather than given a second name.
+        {/* While the plot overflows, this box is a named region and a Tab stop
+            after the frame, with the kit's ring, so a reader can scroll it with
+            the keyboard. While it fits, it stays out of the tab order.
             why: docs/components.md#react-charts */}
-        <div ref={scroller} className="ui-chart__scroll" tabIndex={-1} onScroll={() => {
-          const anchor = [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
-            .find((el) => el.getAttribute('data-anchor') === openId);
-          if (!anchor || !scroller.current || !frameEl.current || !tipEl.current) return;
-          const mark = anchor.getBoundingClientRect();
-          const view = scroller.current.getBoundingClientRect();
-          if (mark.right <= view.left || mark.left >= view.right) setOpenId(null);
-          else placeTip(frameEl.current, anchor, tipEl.current, frameEl.current);
-        }}>
+        <div
+          ref={scroller}
+          className={cx('ui-chart__scroll', overflows && 'ui-focusable')}
+          tabIndex={overflows ? 0 : -1}
+          role={overflows ? 'region' : undefined}
+          aria-label={overflows ? `${title}. Scroll for more ${noun}.` : undefined}
+          onScroll={() => {
+            const anchor = [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
+              .find((el) => el.getAttribute('data-anchor') === openId);
+            if (!anchor || !scroller.current || !frameEl.current || !tipEl.current) return;
+            const mark = anchor.getBoundingClientRect();
+            const view = scroller.current.getBoundingClientRect();
+            if (mark.right <= view.left || mark.left >= view.right) setOpenId(null);
+            else placeTip(frameEl.current, anchor, tipEl.current, frameEl.current);
+          }}
+        >
           <div ref={plot} className="ui-chart__plot">
             <svg
               ref={svgEl}
@@ -951,10 +963,10 @@ export function Chart(props: ChartProps) {
               }}
               onPointerDown={() => { pointerFocus.current = true; }}
               onClick={(event) => {
-                // The nearest focusable ancestor of a mark is the scroller, which
-                // has no role and no name, so a click parked focus on it and a
-                // pointer reader never heard that the arrows do anything. The
-                // named group takes focus however the chart is entered.
+                // The nearest focusable ancestor of a mark is the scroller, so a
+                // click parked focus on it and a pointer reader never heard that
+                // the arrows do anything. The named group takes focus however
+                // the chart is entered.
                 frameEl.current?.focus();
                 pointerFocus.current = false;
                 const opened = opening.current;

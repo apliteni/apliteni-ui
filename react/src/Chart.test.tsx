@@ -373,7 +373,7 @@ it('puts one element in the tab order inside the plot, and it is the frame', asy
   expect(readRepo('../../src/styles/table.css'))
     .toMatch(/\.ui-table-scroll:focus-visible\s*\{[^}]*--ring-scroll/);
 
-  // The scroller says `-1` out loud rather than relying on not being reached:
+  // A scroller that fits says `-1` out loud rather than relying on not being reached:
   // that attribute is the opt-out a browser's focusable-scroller rule reads.
   expect(container.querySelector('.ui-chart__scroll')).toHaveAttribute('tabindex', '-1');
 
@@ -383,6 +383,27 @@ it('puts one element in the tab order inside the plot, and it is the frame', asy
   await user.tab();
   expect(frame(), 'a second Tab leaves the plot instead of landing inside it').not.toHaveFocus();
   expect(container.querySelector('.ui-chart__scroll')).not.toHaveFocus();
+});
+
+it('makes an overflowing plot one more tab stop, named and ringed by the kit', async () => {
+  // JSDOM lays nothing out, so the overflow is mocked before the render that
+  // measures it. The ring is checked as the class `.ui-focusable`, not as
+  // paint. axe's scrollable-region-focusable rule is not run: without layout it
+  // passes even a scroller that is out of the tab order.
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(576);
+  const user = userEvent.setup();
+  const { container } = months();
+  const scroll = container.querySelector<HTMLElement>('.ui-chart__scroll')!;
+  expect(scroll).toHaveAttribute('tabindex', '0');
+  expect(scroll).toHaveAttribute('role', 'region');
+  expect(scroll).toHaveAccessibleName('Income and spend by month. Scroll for more columns.');
+  expect(classOf(scroll)).toContain('ui-focusable');
+
+  await tabToFrame(user);
+  expect(frame()).toHaveFocus();
+  await user.tab();
+  expect(scroll, 'the stop after the frame is the scroller').toHaveFocus();
 });
 
 // The paint behind that tab stop, with every token resolved — the raw rule says
@@ -1249,8 +1270,8 @@ it('gives the named group focus when a column is clicked, and says which one', a
   const user = userEvent.setup();
   const { container } = months();
   await user.click(markEl('spend-2'));
-  // The nearest focusable ancestor of a mark is the scroller, which has no role
-  // and no name; a pointer reader parked there never hears what the arrows do.
+  // The nearest focusable ancestor of a mark is the scroller; a pointer reader
+  // parked there never hears what the arrows do.
   expect(container.querySelector('.ui-chart__scroll')).not.toHaveFocus();
   expect(frame()).toHaveFocus();
   expect(frame()).toHaveAccessibleName(/Arrow keys step through/);
