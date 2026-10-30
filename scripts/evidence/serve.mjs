@@ -5,7 +5,7 @@ import { createReadStream, statSync } from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(process.argv[2]);
-const shotPage = path.resolve(process.argv[3]);
+const shotPage = process.argv[3] && path.resolve(process.argv[3]);
 
 const TYPES = {
   '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
@@ -15,7 +15,7 @@ const TYPES = {
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');
-  if (url.pathname === '/__shot') {
+  if (shotPage && url.pathname === '/__shot') {
     res.writeHead(200, { 'content-type': 'text/html' });
     createReadStream(shotPage).pipe(res);
     return;

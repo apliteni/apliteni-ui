@@ -6,6 +6,7 @@ import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { DrawerSection, KeyValueList } from '../../react/src/KeyValueList';
+import { RestingFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -35,20 +36,23 @@ const Preview = ({ bad = false, colourful = false }: { bad?: boolean; colourful?
   </div>;
 
 // The ledger sits in a card, as the preview under it does, and the card ends where
-// the table does (--fit), so the two halves are compared on their content.
+// the table does (--fit), so the two halves are compared on their content. Its filter
+// bar sits directly above it, because every table has one.
 const PAYOUTS: [string, string, ReactNode][] = [
   ['1162', '1,240.00', <Badge variant="pending">In transit</Badge>],
   ['1161', '860.00', <Badge variant="success">Paid</Badge>],
   ['1160', '2,100.00', <Badge variant="success">Paid</Badge>],
 ];
-const Payouts = () => <div className="gda-table"><div className="ui-card ui-card--pad-sm ui-card--fit">
+const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['In transit', 'Paid'] }];
+const Payouts = () => <><RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />
+<div className="gda-table"><div className="ui-card ui-card--pad-sm ui-card--fit">
   <table className="ui-table ui-table--dense ui-table--zebra">
     <caption>Payouts · EUR</caption>
     <thead><tr><th>Reference</th><th className="ui-table__num">Amount</th><th>Status</th></tr></thead>
     <tbody>{PAYOUTS.map(([reference, amount, status]) =>
       <tr key={reference}><td>{reference}</td><td className="ui-table__num">{amount}</td><td>{status}</td></tr>)}</tbody>
   </table>
-</div></div>;
+</div></div></>;
 const Figures = () => <StatBand variant="tiles" basis="Payouts · September"
   stats={[{ label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' }]} />;
 

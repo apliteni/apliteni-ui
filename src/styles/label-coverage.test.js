@@ -3,8 +3,8 @@
  * why: #303
  *
  * What it does not reach:
- * - a class that is not a `__label`: `ui-nav__tab-label`, `ui-nav__crumb-label`,
- *   `ui-footer__col` and `ui-pager__jump-of` are named with no rule today.
+ * - a class that is not a `__label`: `ui-nav__tab-label`, `ui-footer__col`
+ *   and `ui-pager__jump-of` are named with no rule today.
  * - a `__label` only a consumer writes. This runs named → styled, never back.
  * - what the rule says: `.ui-x__label {}` passes.
  * - emission: a `querySelector` for a class counts as naming it.

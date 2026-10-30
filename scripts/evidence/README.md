@@ -218,8 +218,9 @@ rendered — the root's and the React workspace's — and every story that puts 
 measured by existing and neither half of the kit can go unmeasured: the run fails
 if either index yields none. The membership question is the bar itself rather than
 a box under `#storybook-root`, because a palette renders a modal of no size and a
-toast renders through a portal. The one named subject is `filter-bar-fit.html`,
-the issue's own reproduction through `filterBar()`.
+toast renders through a portal. The gate names no subject. Its vanilla page went
+with the vanilla factories in #724. The check of a menu anchored to the row went
+with it, because only that page carried such a menu.
 
 Each subject is measured at 320, 375 and 390 in both themes, shut and with each
 chip opened in turn — the widest option list in the kit is not on the second chip.

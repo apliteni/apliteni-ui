@@ -3,7 +3,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
 import { GuidelinePage } from '../_guideline';
 import { BackLink } from '../../react/src/BackLink';
-import { Breadcrumbs } from '../../react/src/Breadcrumbs';
 import { SidebarNav } from '../../react/src/SidebarNav';
 import { Button } from '../../react/src/primitives/Button';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -42,8 +41,7 @@ const specimens = [
   { id: 'address-not-history' },
   { id: 'one-or-the-other', do: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001" />,
     dont: () => <Head title="Invoice INV-1001" above={<>
-      <Breadcrumbs aria-label="Trail beside a back link"
-        items={[{ label: 'Finance', href: '#' }, { label: 'Invoices', href: '#' }, { label: 'INV-1001' }]} />
+      <Back label="Finance" />
       <Back label="Invoices" />
     </>} /> },
   { id: 'section-lit', do: () => <WithRail id="lit" active="invoices" above={<Back label="Invoices" />} />,

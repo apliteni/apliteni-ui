@@ -5,6 +5,7 @@ import { GuidelinePage, noop } from '../_guideline';
 import { Card } from '../../react/src/primitives/Card';
 import { FilterBar } from '../../react/src/FilterBar';
 import { Segmented } from '../../react/src/Segmented';
+import { SearchField } from '../../react/src/SearchField';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -27,7 +28,9 @@ const Table = () => <div className="ui-table-scroll" role="region" aria-label="I
       <tr key={a}><td>{a}</td><td>{b}</td><td className="ui-table__num">{c}</td></tr>)}</tbody>
   </table>
 </div>;
-const Row = ({ n = 1 }: { n?: number }) => <div className="gl-sp__row"><Strip /><Chips n={n} /></div>;
+// Every table has a search field in the row above it.
+const Search = () => <SearchField ariaLabel="Search invoices" placeholder="Invoice" />;
+const Row = ({ n = 1 }: { n?: number }) => <div className="gl-sp__row"><Strip /><Search /><Chips n={n} /></div>;
 const Reminders = () => <Card title="Reminders"><p>A reminder goes out 3 days before an invoice falls due.</p></Card>;
 const LateFees = () => <div className="gl-sp__next"><Card title="Late fees"><p>A late fee of 2% applies after 14 days.</p></Card></div>;
 const Stage = ({ mod = '', children }: { mod?: string; children: ReactNode }) =>
@@ -37,8 +40,8 @@ const Stage = ({ mod = '', children }: { mod?: string; children: ReactNode }) =>
 const specimens = [
   { id: 'two-gaps', do: () => <Stage><Row /><Table /><div className="gl-sp__next"><Reminders /></div></Stage>,
     dont: () => <Stage mod="gl-sp--third"><Row /><Table /><div className="gl-sp__next"><Reminders /></div><LateFees /></Stage> },
-  { id: 'two-gaps-phone', do: () => <Stage mod="gl-sp--phone"><Chips n={3} /><Table /></Stage>,
-    dont: () => <Stage mod="gl-sp--phone gl-sp--phone-dont"><Chips n={3} /><Table /></Stage> },
+  { id: 'two-gaps-phone', do: () => <Stage mod="gl-sp--phone"><Search /><Chips n={3} /><Table /></Stage>,
+    dont: () => <Stage mod="gl-sp--phone gl-sp--phone-dont"><Search /><Chips n={3} /><Table /></Stage> },
   { id: 'title', do: () => <Stage><Reminders /><LateFees /></Stage>,
     dont: () => <Stage><Reminders /><div className="gl-sp__next"><h3>Late fees</h3></div>
       <div className="gl-sp__next"><Card><p>A late fee of 2% applies after 14 days.</p></Card></div></Stage> },

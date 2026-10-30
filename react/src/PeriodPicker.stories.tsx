@@ -9,6 +9,7 @@ import { Segmented } from './Segmented';
 import { Tooltip } from './Tooltip';
 import { Badge } from './primitives/Badge';
 import { Icon } from './primitives/Icon';
+import { useTableFilters } from '../../stories/_table-filters';
 
 export default {
   title: 'Showcases/Period picker',
@@ -94,6 +95,10 @@ function Example({ busy = false }: { busy?: boolean }) {
     window.history.replaceState(null, '', url);
   };
   const rows = rowsIn(index);
+  const { bar, shown } = useTableFilters(rows, {
+    search: 'Search categories', placeholder: 'Category', label: 'Ledger filters', text: row => row.name,
+    facets: [{ id: 'flow', label: 'Flow', any: 'Any flow', of: row => (row.amount >= 0 ? 'Money in' : 'Money out') }],
+  });
   const here = totalsIn(index);
   const before = earlier ? totalsIn(index - 1) : null;
   // Stat and ledger changes reference one comparison caption.
@@ -165,13 +170,16 @@ function Example({ busy = false }: { busy?: boolean }) {
           </div>
           <section aria-labelledby="ledger-heading" style={layout.control}>
             <h2 id="ledger-heading" className="ui-card__title" style={{ margin: 0 }}>Ledger</h2>
+            <div className="ui-card-stack">
+            <Card>{bar}</Card>
             <Card>
               {/* The kit keeps categories pinned and scrolls the rest (#581). */}
               {pending(`Loading ${selected.name} ledger…`, <SkeletonTable rows={4} cols={4} />,
-                <DataTable columns={columns} rows={rows} selectable={false} pager={false} dense
-                  stickyHeader pinnedIdentity
+                <DataTable columns={columns} rows={shown} selectable={false} pager={false} dense
+                  stickyHeader pinnedIdentity empty="No categories match"
                   scrollLabel={`${selected.name} 2026 ledger`} />)}
             </Card>
+            </div>
           </section>
         </div>
       </div>

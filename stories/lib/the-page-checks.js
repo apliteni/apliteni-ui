@@ -110,13 +110,13 @@ export const CHECKS = {
     const kids = [...main.children];
     const problems = [];
 
-    const up = kids.filter((el) => el.matches('nav.ui-nav--crumbs, .ui-back'));
+    const up = kids.filter((el) => el.matches('.ui-back'));
     if (up.length > 1) {
-      problems.push(`${s.where} draws ${up.length} ways back up. A page has a trail or a back `
-        + 'link, never both — Guidelines / Going back.');
+      problems.push(`${s.where} draws ${up.length} ways back up. A subpage has one back `
+        + 'link, to its parent — Guidelines / Going back.');
     }
 
-    const shape = kids.map((el) => (el.matches('nav.ui-nav--crumbs, .ui-back') ? 'up'
+    const shape = kids.map((el) => (el.matches('.ui-back') ? 'up'
       : el.tagName === 'H1' ? 'title'
         : el.matches('p.ui-app__sub') ? 'lede'
           : el.matches('.ui-app__body') ? 'body' : `«${el.tagName.toLowerCase()}»`));

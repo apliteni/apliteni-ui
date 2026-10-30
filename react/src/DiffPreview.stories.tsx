@@ -7,6 +7,7 @@ import { DataTable, type Column } from './DataTable';
 import { DeltaValue, NumericValue } from './TableValues';
 import { Button } from './primitives/Button';
 import { EmptyState } from './EmptyState';
+import { useTableFilters } from '../../stories/_table-filters';
 
 type Row = { name: string; period: string; from: string | null; to: string; amount: string };
 // Fabricated server response: the app owns classification, period routing and signed totals.
@@ -52,6 +53,11 @@ function Preview({ change, empty }: Args) {
     to: target,
     period: applied ? OPEN : row.period,
   }));
+  const month = (row: Row) => (row.period === CLOSED ? '2026-09' : '2026-10');
+  const { bar, shown } = useTableFilters(previewRows, {
+    search: 'Search changes', placeholder: 'Item', label: 'Change filters', text: (row) => row.name,
+    facets: [{ id: 'month', label: 'Booked month', any: 'Any month', of: month }],
+  });
   const heading = applied ? 'Changes applied' : 'Proposed changes';
   const undo = () => { clearTimeout(write.current ?? undefined); setBusy(false); setApplied(false); };
   const apply = () => {
@@ -83,7 +89,7 @@ function Preview({ change, empty }: Args) {
     },
     {
       key: 'period', label: 'Booked month',
-      render: row => <NumericValue value={row.period === CLOSED ? '2026-09' : '2026-10'} />,
+      render: row => <NumericValue value={month(row)} />,
     },
   ];
 
@@ -103,12 +109,15 @@ function Preview({ change, empty }: Args) {
       <p role="status" className="ui-sr">{applied ? 'Changes applied.' : 'Changes not applied.'}</p>
     </>}
     <div ref={block} className={`ui-stack${showExample ? ' m-fade-in' : ''}`}>
+      {/* The table's filter bar, directly above it. Without rows there is nothing to
+          filter, so the empty state stands alone. why: guidelines/dense-tables.md */}
+      {previewRows.length > 0 && <Card>{bar}</Card>}
       {/* The card carries its own title, so the title and the first column share the
           card's text edge. The table region keeps a stable name of its own. */}
       <Card title={noChanges ? undefined : heading}>
         {previewRows.length > 0
           /* Column navigation comes from the kit; this showcase keeps no copy of it. */
-          ? <DataTable columns={columns} rows={previewRows} selectable={false} pager={false}
+          ? <DataTable columns={columns} rows={shown} selectable={false} pager={false} empty="No changes match"
             density="dense" stickyHeader pinnedIdentity scrollLabel="Cost changes" loading={busy} />
           : <EmptyState
             icon="doc"

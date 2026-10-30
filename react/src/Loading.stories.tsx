@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Skeleton, SkeletonTable, BusyRegion, Denied } from './Loading';
 import { Button } from './primitives/Button';
 import { Card } from './primitives/Card';
+import { useTableFilters } from '../../stories/_table-filters';
 
 const meta: Meta = { title: 'React/Loading & denied' };
 export default meta;
@@ -15,23 +16,32 @@ const ROWS = [
 
 // The ID links, like its vanilla twin in stories/components/Loading.stories.js: the React
 // workspace needs one cell link for the kit's focus ring on it to be observable here (#510).
-const Table = () => (
+const Table = ({ rows = ROWS }: { rows?: string[][] }) => (
   <table className="ui-table ui-table--dense ui-table--hover">
     <thead><tr><th>ID</th><th>Arrival</th><th className="ui-table__num">Net (EUR)</th></tr></thead>
-    <tbody>{ROWS.map(([id, arr, net]) => (
+    <tbody>{rows.map(([id, arr, net]) => (
       <tr key={id}><td className="ui-table__linked"><a href="#payout">{id}</a></td><td>{arr}</td><td className="ui-table__num">{net}</td></tr>
     ))}</tbody>
   </table>
 );
+// Every table has its filter bar directly above it, the loading one included.
+// why: guidelines/dense-tables.md
+const usePayoutFilters = () => useTableFilters(ROWS, {
+  search: 'Search payouts', placeholder: 'ID', label: 'Payout filters', text: ([id]) => id, facets: [],
+});
 
 export const Busy: StoryObj = {
-  render: () => (
-    <div style={{ maxWidth: 560 }}>
-      <Card title="Payouts">
-        <BusyRegion busy label="Loading 3 payouts…" placeholder={<SkeletonTable rows={3} cols={3} />} />
-      </Card>
-    </div>
-  ),
+  render: function Render() {
+    const { bar } = usePayoutFilters();
+    return (
+      <div style={{ maxWidth: 560 }}><div className="ui-card-stack">
+        <Card>{bar}</Card>
+        <Card title="Payouts">
+          <BusyRegion busy label="Loading 3 payouts…" placeholder={<SkeletonTable rows={3} cols={3} />} />
+        </Card>
+      </div></div>
+    );
+  },
 };
 
 export const Shapes: StoryObj = {
@@ -69,6 +79,7 @@ export const PermissionDenied: StoryObj = {
 export const Transition: StoryObj = {
   render: () => {
     const [state, setState] = useState<'busy' | 'done' | 'denied'>('busy');
+    const { bar, shown } = usePayoutFilters();
     return (
       <div style={{ maxWidth: 560 }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
@@ -76,6 +87,9 @@ export const Transition: StoryObj = {
           <Button size="sm" variant="primary" onClick={() => setState('done')}>Loaded</Button>
           <Button size="sm" variant="danger" onClick={() => setState('denied')}>Denied</Button>
         </div>
+        {/* A reader who cannot see payouts has no table to filter. */}
+        <div className="ui-card-stack">
+        {state !== 'denied' && <Card>{bar}</Card>}
         <Card title="Payouts">
           <BusyRegion
             busy={state === 'busy'}
@@ -85,9 +99,10 @@ export const Transition: StoryObj = {
           >
             {state === 'denied'
               ? <Denied title="You don’t have access to payouts" sub="Your token reads the account only." need="reports.read" />
-              : <Table />}
+              : shown.length ? <Table rows={shown} /> : <p>No payouts match.</p>}
           </BusyRegion>
         </Card>
+        </div>
       </div>
     );
   },

@@ -4,7 +4,7 @@ import { BackLink } from './BackLink';
 const meta: Meta<typeof BackLink> = { title: 'React/BackLink', component: BackLink };
 export default meta;
 
-// Where it belongs: above the page title, in the slot a breadcrumb trail would take.
+// Where it belongs: above the page title.
 const Page = ({ children, title }: { children: React.ReactNode; title: string }) => (
   <div className="ui-app__main" style={{ maxWidth: 640 }}>
     {children}

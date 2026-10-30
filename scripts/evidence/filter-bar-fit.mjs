@@ -5,8 +5,7 @@
  * declarations; this measures the boxes.
  *
  * Subjects are swept, not named: both Storybook indexes are rendered and every
- * story putting a `.ui-filter-bar` on the page joins the set, alongside
- * filter-bar-fit.html. Each panel is measured against the `.ui-dropdown` that
+ * story putting a `.ui-filter-bar` on the page joins the set. Each panel is measured against the `.ui-dropdown` that
  * contains it, each open menu again at every narrower width, and each anchored
  * menu's close through its fade. Six mutations below have to be refused.
  *
@@ -61,7 +60,7 @@ const THEMES = ['dark', 'light'];
  * itself: a sweep that silently stopped reaching half the surfaces would report
  * "36 of 36 expected" and pass. These fail instead, and raising them is the
  * deliberate act of someone who has seen the new surfaces. */
-const FLOOR_SUBJECTS = 19;   // 10 root stories + 8 react stories + 1 vanilla page
+const FLOOR_SUBJECTS = 18;   // 10 root stories + 8 react stories
 const FLOOR_PANELLED = 144;  // cases that put a panel on the page, of 152
 const FLOOR_ADD = 64;        // cases that open the add control's menu
 const FLOOR_ADD_REFITS = 64; // add menus measured again after the viewport moved
@@ -138,8 +137,8 @@ const CLIP_BACK = '.ui-filter-bar .ui-filter-bar__chip .ui-dropdown__panel .ui-d
   + ' { flex-shrink: 1 !important; min-width: 0 !important; overflow: hidden !important; }';
 
 /** A static server over one root, with one page of our own at /__shot. */
-const serve = (root, page) => new Promise((resolve, reject) => {
-  const proc = spawn(process.execPath, [path.join(HERE, 'serve.mjs'), root, page]);
+const serve = (root) => new Promise((resolve, reject) => {
+  const proc = spawn(process.execPath, [path.join(HERE, 'serve.mjs'), root]);
   proc.stdout.once('data', (d) => resolve({ port: Number(String(d).trim()), proc }));
   proc.stderr.on('data', (d) => process.stderr.write(d));
   proc.once('error', reject);
@@ -161,9 +160,8 @@ const storyUrl = (port, id, theme) => `http://127.0.0.1:${port}/iframe.html`
 
 const servers = {};
 for (const build of BUILDS) {
-  servers[build.half] = await serve(build.dir, path.join(HERE, 'filter-bar-fit.html'));
+  servers[build.half] = await serve(build.dir);
 }
-const vanilla = await serve(checkout, path.join(HERE, 'filter-bar-fit.html'));
 /* Stable text metrics, so a width measured here is the width measured next time. */
 const RASTER = ['--font-render-hinting=none', '--disable-lcd-text', '--disable-gpu',
   '--disable-partial-raster', '--disable-skia-runtime-opts'];
@@ -296,9 +294,6 @@ const probe = () => {
         // A chip's panel is anchored at its trigger; one anchored to the row is
         // bounded by the row instead and sizes itself. why: src/styles/filter-bar.css
         chip: !!panel.closest('.ui-filter-bar__chip'),
-        // What a row-anchored panel's own rule asks for, so the gate can see the
-        // chip rule taking it away.
-        wants: Number(panel.closest('[data-row-anchored]')?.dataset.rowAnchored) || null,
         // The add control's menu asks for a panel's width rather than a chip's,
         // and says so on its own panel. why: src/styles/filter-bar.css
         add: Boolean(panel.closest('[data-filter-add]')),
@@ -328,6 +323,14 @@ const probe = () => {
  * is not a verdict on the story — a loaded host holds a transition past it — and
  * the only question being asked is whether a filter bar is on the page. A
  * navigation that throws is still reported. */
+/* A story's play function still runs after its bar mounts. PinnedSelection's
+ * switches the theme and clicks rows, so a measure taken then reads a panel
+ * that its play is moving. Wait for the render's own end, as dropdown-contain does. */
+const played = (page) => page.waitForFunction(() => {
+  const r = window.__STORYBOOK_PREVIEW__ && window.__STORYBOOK_PREVIEW__.currentRender;
+  return !!r && ['finished', 'errored', 'aborted'].includes(r.phase);
+}, null, { timeout: 30000 });
+
 const settled = async (page) => {
   try { await settle(page); } catch { /* asked anyway; the bar is either there or not */ }
 };
@@ -373,7 +376,7 @@ const { found: subjects, unrendered } = await sweep();
 say(`swept: ${subjects.length} subjects`);
 
 /** One case: a rendered subject at a width in a theme, optionally mutated. */
-async function measure({ url, ready, width, theme, mutate, attrTheme, deaf }) {
+async function measure({ url, width, theme, mutate, deaf }) {
   const ctx = await freshContext({
     viewport: { width, height: 640 }, deviceScaleFactor: 1, reducedMotion: 'reduce',
   });
@@ -385,9 +388,8 @@ async function measure({ url, ready, width, theme, mutate, attrTheme, deaf }) {
    * and settle() waits on fonts and transitions rather than on a render, so
    * without this a loaded host silently reports a case as carrying no panel —
    * which the mutation pass then contradicts. */
-  await page.waitForSelector(ready || '.ui-filter-bar', { state: 'attached', timeout: 30000 });
-  // The fixture page is not a Storybook, so it takes the attribute directly.
-  if (attrTheme) await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
+  await page.waitForSelector('.ui-filter-bar', { state: 'attached', timeout: 30000 });
+  await played(page);
   if (mutate) await page.addStyleTag({ content: mutate });
   // Asked of the document rather than of a clock. why: scripts/evidence/README.md
   await settle(page);
@@ -403,14 +405,16 @@ async function measure({ url, ready, width, theme, mutate, attrTheme, deaf }) {
    * only while shut is what let a chip rule reach it unseen. */
   const triggers = await page.$$('.ui-filter-bar [data-dropdown-trigger]');
   for (const [at, trigger] of triggers.entries()) {
-    if (!await trigger.isEnabled()) continue;
+    /* A modal drawer open over the page holds the bar inert: no reader can open
+     * that menu, so there is no panel of it to measure. */
+    if (!await trigger.isEnabled() || await trigger.evaluate((el) => !!el.closest('[inert]'))) continue;
     await trigger.click();
     await settle(page);
     opens.push({ chip: at + 1, ...await page.evaluate(probe) });
     /* And again with the viewport moved under the open menu, which is how a
      * phone being rotated reaches it. The fit is written at open, so a menu
      * holding those numbers stands outside a row that has since narrowed —
-     * 11px off the page in vanilla, 14px in React, and no single-viewport
+     * 14px off the page in React, and no single-viewport
      * measurement can see it. Put back afterwards, so the next chip opens at
      * the case's own width. */
     for (const to of refitAt(width)) {
@@ -544,7 +548,7 @@ const reached = async (page, expression) => {
  * fade to nothing, so the collapsed frame is never painted. And the walk is by
  * frame rather than by clock, so a loaded host samples the same states, later.
  */
-async function closeFrames({ url, ready, width, theme, attrTheme, mutate }) {
+async function closeFrames({ url, width, theme, mutate }) {
   const ctx = await motionContext({
     viewport: { width, height: 640 }, deviceScaleFactor: 1, reducedMotion: 'no-preference',
   });
@@ -552,8 +556,8 @@ async function closeFrames({ url, ready, width, theme, attrTheme, mutate }) {
   const walks = [];
   try {
     await page.goto(url, { waitUntil: 'load' });
-    await page.waitForSelector(ready || '.ui-filter-bar', { state: 'attached', timeout: 30000 });
-    if (attrTheme) await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
+    await page.waitForSelector('.ui-filter-bar', { state: 'attached', timeout: 30000 });
+  await played(page);
     if (mutate) await page.addStyleTag({ content: mutate });
     /* The lenient wait: with motion on, a story carrying a spinner never settles,
      * and the question asked below is about a panel's own box relative to its row,
@@ -562,7 +566,7 @@ async function closeFrames({ url, ready, width, theme, attrTheme, mutate }) {
     const triggers = await page.$$('.ui-filter-bar__chip [data-dropdown-trigger], '
       + '.ui-filter-bar [data-filter-add] [data-dropdown-trigger]');
     for (const [at, trigger] of triggers.entries()) {
-      if (!await trigger.isEnabled()) continue;
+      if (!await trigger.isEnabled() || await trigger.evaluate((el) => !!el.closest('[inert]'))) continue;
       const add = await trigger.evaluate((el) => !!el.closest('[data-filter-add]'));
       await trigger.click();
       await reached(page, OPEN_PAINTED);
@@ -592,11 +596,6 @@ for (const width of WIDTHS) {
         width, theme,
       });
     }
-    cases.push({
-      name: 'vanilla filterBar()',
-      url: `http://127.0.0.1:${vanilla.port}/__shot`,
-      ready: 'html[data-ready] .ui-filter-bar', width, theme, attrTheme: true,
-    });
   }
 }
 
@@ -617,27 +616,16 @@ const allPanels = (held) => [held, ...held.opens].flatMap(panelsIn);
 
 /* The kit's menu floor, the width `.ui-dropdown__panel` writes and the width an
  * open filter menu reaches. A row narrower than the floor decides instead — a
- * menu may never leave its row. why: src/components/dropdown.js */
+ * menu may never leave its row. why: src/logic/dropdown-placement.js */
 const MENU_FLOOR = 240;
 
 /** A shut chip or add panel's width is its containing block's: that is what keeps a
  *  hidden but laid-out box off the page's scrollable width, which is #467. An
  *  open one is floored instead, so it is measured by `tooNarrow` rather than
- *  here, and a row-anchored panel is bounded by its row rather than by a
- *  trigger — the row check below is what holds that one. */
+ *  here. */
 const unbound = (held) => allPanels(held)
   .filter((p) => (p.chip || p.add) && !p.open)
   .filter((p) => p.dropdown === null || Math.abs(p.width - p.dropdown) > 0.5);
-
-/** A panel that is not a chip's, rendered narrower than its own rule asks for:
- *  the chip rule reaching a row-anchored panel and overriding its width. #518's
- *  add menu is this shape — `position: static` on the dropdown hands the panel
- *  to the row — and the chip floor would cut it from 320px to 240px. */
-const overridden = (held) => [held, ...held.opens]
-  .flatMap((state) => state.bars.flatMap((bar) => bar.panels
-    .filter((p) => !p.chip && p.wants)
-    .map((p) => ({ ...p, want: Math.min(p.wants, bar.width) }))))
-  .filter((p) => p.width < p.want - 0.5);
 
 /** Open menus narrower than the floor their row allows. #536 made a chip print
  *  its value alone, and bounding the menu to that trigger left 48px of menu
@@ -727,11 +715,6 @@ for (const one of cases) {
   if (worst > 0) {
     fails.push(`${one.name} at ${one.width}px ${one.theme}: the page is ${held.page}px wide on a `
       + `${held.view}px view, ${worst}px over`);
-  }
-  // A row-anchored panel sizes itself; the chip rule must not reach it.
-  for (const panel of overridden(held)) {
-    fails.push(`${one.name} at ${one.width}px ${one.theme}: a panel anchored to the row is `
-      + `${panel.width}px where its own rule asks for ${panel.want}px, so the chip rule took it`);
   }
   // A menu too narrow to read is the defect #549 reported, and the row it sits
   // in is what decides how wide it is allowed to get.
@@ -979,7 +962,6 @@ for (const one of withAdd) {
 await browser.close();
 if (motionBrowser?.isConnected()) await motionBrowser.close();
 for (const half of Object.values(servers)) half.proc.kill();
-vanilla.proc.kill();
 
 if (outDir) {
   mkdirSync(outDir, { recursive: true });
@@ -989,10 +971,10 @@ if (outDir) {
 const swept = BUILDS.reduce((n, b) => n + indexed(b).length, 0);
 const measuredPanels = ledger.filter((row) => !row.mutated).reduce((n, row) => n + allPanels(row).length, 0);
 const perHalf = BUILDS.map((b) => `${subjects.filter((s) => s.half === b.half).length} ${b.half}`);
-const expected = WIDTHS.length * THEMES.length * (subjects.length + 1);
+const expected = WIDTHS.length * THEMES.length * subjects.length;
 console.log(`swept: ${swept} stories across ${BUILDS.length} Storybook indexes`);
-console.log(`subjects: ${perHalf.join(' + ')} stories + 1 vanilla page `
-  + `(${subjects.length + 1} total subjects against a floor of ${FLOOR_SUBJECTS})`);
+console.log(`subjects: ${perHalf.join(' + ')} stories `
+  + `(${subjects.length} total subjects against a floor of ${FLOOR_SUBJECTS})`);
 for (const s of subjects) console.log(`  · ${s.half}: ${s.label}`);
 console.log(`cases measured: ${cases.length} of ${expected} expected, at ${WIDTHS.join('px, ')}px`);
 console.log(`cases carrying a panel: ${panelled.size} of ${cases.length}, floor ${FLOOR_PANELLED}`);
@@ -1028,8 +1010,8 @@ const problems = [];
 if (cases.length !== expected) problems.push(`measured ${cases.length} cases, expected ${expected}`);
 // The counts that cannot come from the sweep. A surface lost to a rename, a
 // moved bar or a broken story fails here rather than renumbering quietly.
-if (subjects.length + 1 < FLOOR_SUBJECTS) {
-  problems.push(`the sweep found ${subjects.length + 1} subjects rendering .ui-filter-bar and this kit `
+if (subjects.length < FLOOR_SUBJECTS) {
+  problems.push(`the sweep found ${subjects.length} subjects rendering .ui-filter-bar and this kit `
     + `has at least ${FLOOR_SUBJECTS} — a surface was lost, or the sweep stopped reaching it`);
 }
 if (panelled.size < FLOOR_PANELLED) {

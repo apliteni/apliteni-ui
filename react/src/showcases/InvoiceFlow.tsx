@@ -8,7 +8,9 @@ import { DrawerSection, KeyValueList } from '../KeyValueList';
 import { Badge } from '../primitives/Badge';
 import { Button } from '../primitives/Button';
 import { Callout } from '../primitives/Callout';
+import { Card } from '../primitives/Card';
 import { Toast, useToast } from '../Toast';
+import { useTableFilters } from '../../../stories/_table-filters';
 import './InvoiceFlow.css';
 
 type Status = 'Uploading' | 'Parsing' | 'Needs review' | 'Ready';
@@ -183,6 +185,10 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
   const mounted = useRef(false);
   const [navigated, setNavigated] = useState(false);
   const invoice = invoices.find(row => row.name === selected);
+  const { bar, shown } = useTableFilters(invoices, {
+    search: 'Search invoices', placeholder: 'File name', label: 'Invoice filters', text: row => row.filename,
+    facets: [{ id: 'status', label: 'Status', any: 'Any status', of: row => row.status }],
+  });
   const draft = invoice ? drafts[invoice.name] ?? invoice.fields : sampleFields;
   const dirty = !!invoice && JSON.stringify(draft) !== JSON.stringify(invoice.fields);
   const pending = invoice?.status === 'Uploading' || invoice?.status === 'Parsing';
@@ -348,8 +354,10 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
             there; a ghost button in it carried the control's inset and had to be pulled back
             by a negative margin to share the column's edge.
             why: react/src/DataTable.stories.tsx */}
-        {!!invoices.length && <div className={navigated ? 'm-slide-up' : undefined}>
-          <DataTable selectable={false} pager={false} stickyHeader pinnedIdentity scrollLabel="Invoices" rows={invoices} columns={[
+        {/* Every table has its filter bar directly above it. why: guidelines/dense-tables.md */}
+        {!!invoices.length && <div className={`ui-card-stack${navigated ? ' m-slide-up' : ''}`}>
+          <Card>{bar}</Card>
+          <DataTable selectable={false} pager={false} stickyHeader pinnedIdentity scrollLabel="Invoices" rows={shown} empty="No invoices match" columns={[
             { key: 'filename', label: 'Invoice', render: row => <a href={`#${row.name}`}>{row.filename}</a> },
             { key: 'status', label: 'Status', render: row => <Badge variant={TONE[row.status]}>{row.status}</Badge> },
             { key: 'fields', label: 'Total (EUR)', num: true, render: row => row.status === 'Uploading' || row.status === 'Parsing' ? '—' : money(row.fields.total) },

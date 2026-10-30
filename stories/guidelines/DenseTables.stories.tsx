@@ -1,6 +1,7 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import type { Meta, StoryObj } from '@storybook/react';
 import { GuidelinePage } from '../_guideline';
+import { RestingFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -23,10 +24,19 @@ const Payouts = ({ stretch = false }: { stretch?: boolean }) =>
     </table>
   </div>;
 
+// The same card, with and without the row that narrows it. Every other specimen
+// keeps the row, because every table has one.
+const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
+const Filtered = ({ bar = true, stretch = false }: { bar?: boolean; stretch?: boolean }) => <div className="gdt-stage gdt-filtered">
+  {bar && <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />}
+  <Payouts stretch={stretch} />
+</div>;
+
 const specimens = [
   { id: 'surface' }, { id: 'density' }, { id: 'numbers' }, { id: 'delta' }, { id: 'units' },
-  { id: 'content-width', do: () => <Payouts />, dont: () => <Payouts stretch /> },
+  { id: 'content-width', do: () => <Filtered />, dont: () => <Filtered stretch /> },
   { id: 'overflow' }, { id: 'pinned-identity-sub-lines' }, { id: 'states' },
+  { id: 'filter-bar', do: () => <Filtered />, dont: () => <Filtered bar={false} /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Dense tables', parameters: { layout: 'fullscreen' } };

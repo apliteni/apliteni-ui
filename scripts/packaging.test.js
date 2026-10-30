@@ -22,6 +22,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { packedFilePaths } from './shipped-surface.mjs';
+import { staleBuild } from '../stories/lib/react-markup.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
@@ -49,16 +50,18 @@ function run(command, args, cwd) {
 }
 
 // ---------------------------------------------------------------------------
-// 1. Pack. `npm pack` runs the whole pack pipeline — `prepare` included, so the
-//    React workspace is built here the same way it is on publish — and reports
-//    the exact files that land in the tarball.
+// 1. Pack. `npm pack` reports the exact files that land in the tarball. It packs the
+//    react/dist that `npm ci` built (the root `prepare`) and skips `prepare` itself:
+//    its tsup build starts with `clean: true`, which empties react/dist while the
+//    suite's other files render from it in parallel (#736). A dist older than its
+//    source is refused, as every gate that reads it refuses it.
 // ---------------------------------------------------------------------------
-const packStdout = run('npm', ['pack', '--json', '--pack-destination', scratch], root);
-// `prepare` (the tsup build) writes its own progress to this stdout, so the JSON
-// document starts at the first bare `[` line rather than at byte 0. Shared with
-// scripts/shipped-surface.mjs rather than written out twice — see the note on
-// packedFilePaths for the third copy, which lives in security.yml and cannot
-// import anything.
+const stale = staleBuild();
+if (stale) throw new Error(`packaging guard setup failed: ${stale}`);
+const packStdout = run('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', scratch], root);
+// Shared with scripts/shipped-surface.mjs rather than written out twice — see the note
+// on packedFilePaths for the third copy, which lives in security.yml and cannot import
+// anything.
 const packed = new Set(packedFilePaths(packStdout, root));
 
 const tarballs = readdirSync(scratch).filter((f) => f.endsWith('.tgz'));

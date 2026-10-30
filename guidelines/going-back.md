@@ -40,17 +40,17 @@
 
 **Except:** After search or another record, still link to the parent; browser Back returns to the previous location.
 
-## Choose one navigation method
+## Skip the trail
 
 <!-- rule: one-or-the-other -->
 
-**Rule:** Put one back link or trail above the title, never both.
+**Rule:** Put one back link, to the parent, above a subpage’s title.
 
-**Why:** A trail shows several levels; a back link shows one step, and `appShell()` draws only the link when both are provided.
+**Why:** The sidebar already shows the section, so a trail names the same place again.
 
-**Do:** Align the single line above the title.
+**Do:** Link Invoices above an invoice.
 
-**Don't:** Repeat the hierarchy with both; the current page is then named three times.
+**Don't:** Stack a link for each level, such as Finance then Invoices.
 
 ## Keep the section active
 

@@ -1,5 +1,5 @@
 /* ============================================================================
- * Navigation — sidebar rail, horizontal tabs, breadcrumbs. One token-driven
+ * Navigation — sidebar rail and horizontal tabs. One token-driven
  * class family (ui-nav__…) so every variant re-themes across accents +
  * light/dark. appShell() draws its rail from sidebarNav(), so this file is the
  * page shell's rail as well as a standalone component. States are pure tokens.
@@ -394,39 +394,6 @@
 .ui-nav__tab.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: default; }
 .ui-nav__tab .ui-nav__badge { height: 18px; }
 
-/* -- Breadcrumbs --------------------------------------------------------- */
-/* The chip hangs out by its own padding so the first LABEL lands on the column's edge,
-   level with the page title under it. */
-.ui-nav__crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-inline-start: -6px; }
-.ui-nav__crumb-item { display: inline-flex; align-items: center; }
-.ui-nav__crumb-item + .ui-nav__crumb-item::before {
-  content: "";
-  width: 6px; height: 6px;
-  margin: 0 8px;
-  border-right: 1.4px solid var(--muted);
-  border-bottom: 1.4px solid var(--muted);
-  transform: rotate(-45deg);
-  opacity: 0.7;
-}
-.ui-nav__crumb {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 6px;
-  border-radius: 7px;
-  text-decoration: none;
-  font-size: var(--text-sm);
-  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
-}
-/* Carries the block's class as well as its own, for the reason .ui-nav__item
-   does above: a linked crumb is an <a>, and a host stylesheet's `a:link` is
-   (0,1,1), which outranks a bare (0,1,0) class. */
-.ui-nav .ui-nav__crumb { color: var(--text); }
-a.ui-nav__crumb:hover { color: var(--strong); background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-a.ui-nav__crumb:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-.ui-nav__crumb.is-current { color: var(--strong); font-weight: 500; }
-.ui-nav__crumb .ui-nav__ic svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-
 /* Forced colours replace every author background, so a selected item takes the system
    pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on
    Chromium's Canvas backplate, which would leave the label unreadable. Focus keeps its
@@ -438,8 +405,7 @@ a.ui-nav__crumb:focus-visible { outline: var(--ring); outline-offset: var(--ring
   .ui-nav__item.is-active:not(.is-disabled),
   .ui-nav__item.is-current:not(.is-disabled),
   .ui-nav__tab.is-active:not(.is-disabled),
-  .ui-nav--tabs.is-pill .ui-nav__tab.is-active:not(.is-disabled),
-  .ui-nav__crumb.is-current {
+  .ui-nav--tabs.is-pill .ui-nav__tab.is-active:not(.is-disabled) {
     forced-color-adjust: none;
     background: Highlight !important;
     color: HighlightText !important;
@@ -447,8 +413,7 @@ a.ui-nav__crumb:focus-visible { outline: var(--ring); outline-offset: var(--ring
   }
   .ui-nav__item.is-active:not(.is-disabled) .ui-nav__ic svg,
   .ui-nav__item.is-current:not(.is-disabled) .ui-nav__ic svg,
-  .ui-nav__tab.is-active:not(.is-disabled) .ui-nav__ic svg,
-  .ui-nav__crumb.is-current .ui-nav__ic svg { stroke: HighlightText; }
+  .ui-nav__tab.is-active:not(.is-disabled) .ui-nav__ic svg { stroke: HighlightText; }
   .ui-nav__item.is-active .ui-nav__caret,
   .ui-nav__item.is-current .ui-nav__caret { border-color: currentColor; }
   .ui-nav__item.is-active:not(.is-disabled) .ui-nav__badge,

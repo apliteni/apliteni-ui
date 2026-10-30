@@ -6,7 +6,6 @@
 import { cleanup, render } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { Breadcrumbs } from './Breadcrumbs';
 import { Footer } from './Footer';
 import { NavTabs } from './NavTabs';
 import { TopBar } from './TopBar';
@@ -16,7 +15,6 @@ afterEach(cleanup);
 
 const SCRIPTED = ['javascript:alert(1)', ' \u0001JaVa\tScRiPt:alert(1)', 'data:text/html,hello', 'vbscript:msgbox(1)'];
 const LINKS: [string, (href: string) => ReactElement][] = [
-  ['Breadcrumbs', (href) => <Breadcrumbs items={[{ label: 'Link', href }, { label: 'Here' }]} />],
   ['NavTabs', (href) => <NavTabs items={[{ id: 'a', label: 'Link', href }]} active="b" />],
   ['Footer legal link', (href) => <Footer legalLinks={[{ label: 'Link', href }]} />],
   ['Footer column link', (href) => <Footer columns={[{ title: 'Col', links: [{ label: 'Link', href }] }]} />],

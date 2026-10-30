@@ -6,10 +6,13 @@ import { Card } from './primitives/Card';
 import { Icon } from './primitives/Icon';
 import { EmptyState } from './EmptyState';
 import { NumericValue } from './TableValues';
+import { useTableFilters } from '../../stories/_table-filters';
 
 export default { title: 'React/DataTable ledgers' };
 
 const page = (children: ReactNode, width: number | string = 720) => <div style={{ maxWidth: width }}>{children}</div>;
+// Every table has its filter bar directly above it, on its own card. why: guidelines/dense-tables.md
+const filtered = (bar: ReactNode, table: ReactNode) => <div className="ui-card-stack"><Card>{bar}</Card>{table}</div>;
 const titled = (name: string, text: string) => <><span className="ui-card__icon"><Icon name={name} /></span> {text}</>;
 
 type Payout = { name: string; id: string; arrival: string; gross: string; fees: string; net: string; tone: string; status: string };
@@ -35,12 +38,18 @@ const payoutColumns: Column<Payout>[] = [
 ];
 
 export const FinanceData = {
-  render: () => page(
-    <Card title={titled('key', 'Payouts')}>
-      <DataTable columns={payoutColumns} rows={PAYOUTS} selectable={false} pager={false}
-        density="dense" zebra pinnedIdentity scrollLabel="Payouts, scroll for more columns" rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
-    </Card>, 1040,
-  ),
+  render: function Render() {
+    const { bar, shown } = useTableFilters(PAYOUTS, {
+      search: 'Search payouts', placeholder: 'ID or payout ID', label: 'Payout filters', text: (r) => `${r.name} ${r.id}`,
+      facets: [{ id: 'status', label: 'Status', any: 'Any status', of: (r) => r.status }],
+    });
+    return page(filtered(bar,
+      <Card title={titled('key', 'Payouts')}>
+        <DataTable columns={payoutColumns} rows={shown} selectable={false} pager={false} empty="No payouts match"
+          density="dense" zebra pinnedIdentity scrollLabel="Payouts, scroll for more columns" rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
+      </Card>), 1040,
+    );
+  },
 };
 
 type Agent = { name: string; scope: string; used: string; dead: boolean };
@@ -59,12 +68,20 @@ const agentColumns: Column<Agent>[] = [
 ];
 
 export const AgentTokens = {
-  render: () => page(
-    <Card title={titled('key', 'Access & agents')}>
-      <DataTable columns={agentColumns} rows={AGENTS} selectable={false} pager={false}
-        rowState={(r) => (r.dead ? 'dead' : undefined)} />
-    </Card>,
-  ),
+  // A centred canvas sizes the story to its widest row. Padded gives the bar and table the view's width.
+  parameters: { layout: 'padded' },
+  render: function Render() {
+    const { bar, shown } = useTableFilters(AGENTS, {
+      search: 'Search agents', placeholder: 'Agent', label: 'Agent filters', text: (r) => r.name,
+      facets: [{ id: 'state', label: 'State', any: 'Any state', of: (r) => (r.dead ? 'Revoked' : 'Active') }],
+    });
+    return page(filtered(bar,
+      <Card title={titled('key', 'Access & agents')}>
+        <DataTable columns={agentColumns} rows={shown} selectable={false} pager={false} empty="No agents match"
+          rowState={(r) => (r.dead ? 'dead' : undefined)} />
+      </Card>),
+    );
+  },
 };
 
 export const Empty = {
@@ -79,30 +96,40 @@ export const Empty = {
 
 type Line = { name: string; amount: string };
 const LINES: Line[] = [{ name: 'Interface design', amount: '450.00' }, { name: 'Prototype review', amount: '300.00' }];
+const eur = (value: number) => value.toLocaleString('en-GB', { minimumFractionDigits: 2 });
 export const WithTotals = {
-  render: () => page(
-    <Card title="Sample invoice">
-      <DataTable caption="Sample services and totals in EUR" selectable={false} pager={false} density="dense" hover={false}
-        rows={LINES}
-        columns={[{ key: 'name', label: 'Service', cell: 'title' }, { key: 'amount', label: 'Amount (EUR)', num: true }]}
-        footer={<>
-          <tr><th scope="row">Subtotal</th><td className="ui-table__num">750.00</td></tr>
-          <tr><th scope="row">VAT (20%)</th><td className="ui-table__num">150.00</td></tr>
-          <tr><th scope="row" className="ui-table__num--strong">Total</th><td className="ui-table__num ui-table__num--strong">900.00</td></tr>
-        </>} />
-    </Card>,
-  ),
+  render: function Render() {
+    const { bar, shown } = useTableFilters(LINES, { search: 'Search services', placeholder: 'Service', label: 'Service filters', text: (r) => r.name, facets: [] });
+    // The totals add up the lines the filter leaves, so the footer never sums rows it hides.
+    const subtotal = shown.reduce((sum, line) => sum + Number(line.amount), 0);
+    return page(filtered(bar,
+      <Card title="Sample invoice">
+        <DataTable caption="Sample services and totals in EUR" selectable={false} pager={false} density="dense" hover={false}
+          rows={shown} empty="No services match"
+          columns={[{ key: 'name', label: 'Service', cell: 'title' }, { key: 'amount', label: 'Amount (EUR)', num: true }]}
+          footer={<>
+            <tr><th scope="row">Subtotal</th><td className="ui-table__num">{eur(subtotal)}</td></tr>
+            <tr><th scope="row">VAT (20%)</th><td className="ui-table__num">{eur(subtotal * 0.2)}</td></tr>
+            <tr><th scope="row" className="ui-table__num--strong">Total</th><td className="ui-table__num ui-table__num--strong">{eur(subtotal * 1.2)}</td></tr>
+          </>} />
+      </Card>),
+    );
+  },
 };
 
 type Hours = { name: string; hours: number };
+const HOURS: Hours[] = [{ name: 'Interface design', hours: 6 }, { name: 'Prototype review', hours: 4 }];
 export const CompactRowHeaders = {
-  render: () => page(
-    <Card title="Sample services">
-      <DataTable caption="Service hours with row headers" selectable={false} pager={false} density="compact" hover={false}
-        rows={[{ name: 'Interface design', hours: 6 }, { name: 'Prototype review', hours: 4 }] as Hours[]}
-        columns={[{ key: 'name', label: 'Service', rowHeader: true }, { key: 'hours', label: 'Hours', num: true }]} />
-    </Card>, 'var(--panel-lg)',
-  ),
+  render: function Render() {
+    const { bar, shown } = useTableFilters(HOURS, { search: 'Search services', placeholder: 'Service', label: 'Service filters', text: (r) => r.name, facets: [] });
+    return page(filtered(bar,
+      <Card title="Sample services">
+        <DataTable caption="Service hours with row headers" selectable={false} pager={false} density="compact" hover={false}
+          rows={shown} empty="No services match"
+          columns={[{ key: 'name', label: 'Service', rowHeader: true }, { key: 'hours', label: 'Hours', num: true }]} />
+      </Card>), 'var(--panel-lg)',
+    );
+  },
 };
 
 type Payment = { name: string; date: string; amount: string; note: string };
@@ -116,16 +143,21 @@ const PAYMENTS: Payment[] = [
 // On a phone the table keeps its columns and scrolls sideways in its frame. The pinned
 // counterparty stays in view, and the note wraps at its floor width.
 export const PinnedScroll = {
-  render: () => page(
+  render: function Render() {
+    const { bar, shown } = useTableFilters(PAYMENTS, {
+      search: 'Search payments', placeholder: 'Counterparty or note', label: 'Payment filters', text: (r) => `${r.name} ${r.note}`, facets: [],
+    });
+    return page(filtered(bar,
     <Card title="October payments">
       <DataTable selectable={false} pager={false} pinnedIdentity
-        scrollLabel="October payments, scroll for more columns" rows={PAYMENTS}
+        scrollLabel="October payments, scroll for more columns" rows={shown} empty="No payments match"
         columns={[
           { key: 'name', label: 'Counterparty', rowHeader: true },
           { key: 'date', label: 'Date' },
           { key: 'amount', label: 'Amount', num: true },
           { key: 'note', label: 'Notes', cell: 'long' },
         ]} />
-    </Card>, 1040,
-  ),
+    </Card>), 1040,
+    );
+  },
 };

@@ -1,20 +1,22 @@
 import { useEffect, useId, useMemo, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
-import { prism, themeIcon } from '@apliteni/apliteni-ui';
+import { prism } from '@apliteni/apliteni-ui';
 import { paletteHotkey } from './lib/palette-hotkey';
 import { railCollapsed, storeRailCollapsed } from './lib/rail';
 import { SidebarNav } from './SidebarNav';
 import { BackLink } from './BackLink';
-import { Breadcrumbs, type BreadcrumbItem } from './Breadcrumbs';
 import { CommandPalette, type CommandPaletteProps } from './CommandPalette';
 import { Drawer } from './Drawer';
+import { AccountMenu } from './AccountMenu';
 import { Dropdown } from './Dropdown';
 import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
 import { Avatar } from './primitives/Avatar';
-import { ThemeToggle, useThemeChoice } from './ThemeToggle';
+import { ThemeToggle } from './ThemeToggle';
 import './AppShell.css';
 
 export type AppShellSection = { href: string; label: string; icon: string; count?: number };
+/** A product's own row in the account menu, such as Account settings or Support (#736). */
+export type AppShellAccountItem = { label: string; icon?: string; href?: string; onSelect?: () => void };
 export type AppShellProps = {
   sections: AppShellSection[];
   /** The vanilla rail layout, or the existing band layout. */
@@ -28,9 +30,11 @@ export type AppShellProps = {
   brandHref?: string;
   width?: 'centered' | 'wide';
   back?: { href: string; label: string };
-  crumbs?: readonly BreadcrumbItem[];
   lede?: string;
   actions?: ReactNode;
+  /** Small tools for the whole page, at the end of the title row: a version badge, a
+   *  small button. The lede stands under the whole row (#736). */
+  tools?: ReactNode;
   bandControl?: ReactNode;
   /** One glyph control in the sidebar head, before the fold button, drawn as the fold is.
    *  On a phone it stands in the menu panel's head. Topbar layout only (#732). */
@@ -41,6 +45,8 @@ export type AppShellProps = {
   /** @deprecated Not drawn since #729: the phone trigger shows only its glyph. */
   searchShortLabel?: string;
   account: { name: string; email: string };
+  /** Rows above the theme row and Sign out in every account menu (#736). */
+  accountItems?: readonly AppShellAccountItem[];
   onSignOut: () => void;
   /** Server-read fold preference. The browser restores the shared rail cookie. */
   defaultCollapsed?: boolean;
@@ -52,11 +58,10 @@ export type AppShellProps = {
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
 export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar',
-  brandHref = '/', width = 'centered', back, crumbs, lede, actions, bandControl, headControl, account, onSignOut,
+  brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, account, accountItems = [], onSignOut,
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, renderLink }: AppShellProps) {
   const uid = useId();
-  const theme = useThemeChoice();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [search, setSearch] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -132,24 +137,16 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     <span>{word}</span>
   </a>;
 
-  // The topbar layout's account menu holds the theme switch (#732). Its row switches the
-  // theme in place: it never calls the menu's pick, so the menu stays open with focus on
-  // the row, and the row's words follow the new theme. Its name starts with those words. The rail layout keeps the vanilla menu.
-  const accountBlock = (withTheme = false) => <div className="ui-app__user"><Dropdown variant="menu"
-    direction="up" align="start" chevron
-    ariaLabel={`Signed in as ${account.name}, ${account.email}`}
-    triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
-    triggerContent={<><span className="ui-app__av" aria-hidden="true">
-      <Avatar personKey={account.email || account.name} name={account.name} size={32} />
-    </span><span className="ui-app__who"><b>{account.name}</b><span>{account.email}</span></span></>}
-    items={[...(withTheme ? [{ label: `${theme.label} theme`, value: 'theme' }] : []), { label: 'Sign out', value: 'sign-out', icon: 'logout', danger: true }]}
-    row={(item, props) => item.value === 'theme' ? <div {...props}
-      aria-label={`${item.label}. Switch to ${theme.next}.`} onClick={theme.toggle}>
-      <span className="ui-dropdown__ic" aria-hidden="true" dangerouslySetInnerHTML={{ __html: themeIcon(theme.theme) }} />
-      <span className="ui-dropdown__main"><span className="ui-dropdown__label">{item.label}</span></span>
-    </div> : <div {...props} />}
-    onSelect={value => { if (value === 'sign-out') onSignOut(); }} />
-  </div>;
+  // A product's rows lead every account menu, keyed by place so a label never meets the
+  // shell's own values (#736).
+  const ownItems = accountItems.map(({ label, icon, href }, i) => ({ label, icon, href, value: `item-${i}` }));
+  const pick = (value: string | number | undefined) => {
+    if (value === 'sign-out') onSignOut();
+    else accountItems[Number(String(value).slice(5))]?.onSelect?.();
+  };
+  // The topbar layout's account menu holds the Theme submenu (#732, #736). The rail layout keeps the vanilla menu.
+  const accountBlock = (withTheme = false, inPlace = false) => <AccountMenu account={account} items={ownItems}
+    onSelect={pick} withTheme={withTheme} inPlace={inPlace} away={menuButton} />;
   const headSlot = layout === 'topbar' && headControl && <div className="ui-react-app__head-control">{headControl}</div>;
   const foldControl = <div className="ui-app__fold-row">{headSlot}<button type="button"
     className="ui-nav__item ui-app__fold" aria-expanded={!collapsed} aria-label={foldLabel} onClick={fold}>
@@ -157,7 +154,8 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     <span className="ui-nav__label">{foldLabel}</span>
   </button></div>;
   const page = <main className={`ui-app__main${width === 'wide' ? ' ui-app__main--wide' : ''}`}>
-    {back ? <BackLink {...back} /> : crumbs?.length ? <Breadcrumbs items={crumbs} /> : null}<h1>{title}</h1>
+    {back && <BackLink {...back} />}
+    {tools ? <div className="ui-app__title-row"><h1>{title}</h1><div className="ui-app__tools">{tools}</div></div> : <h1>{title}</h1>}
     {lede && <p className="ui-app__sub">{lede}</p>}
     {actions && <div className="ui-react-app__actions">{actions}</div>}
     <div className="ui-app__body">{children}</div>
@@ -219,14 +217,14 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
             ariaLabel={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
             triggerContent={<span className="ui-app__av" aria-hidden="true"><Avatar personKey={account.email || account.name} name={account.name} size={32} /></span>}
             header={<div className="ui-dropdown__head"><b>{account.name}</b><span>{account.email}</span></div>}
-            items={[{ label: 'Sign out', icon: 'logout', danger: true }]} onSelect={onSignOut} />
+            items={[...ownItems, { label: 'Sign out', value: 'sign-out', icon: 'logout', danger: true }]} onSelect={pick} />
           </div>
         </>}
       </header>
       {page}
     </div>
     {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm" initialFocusRef={firstRow}
-      headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true)}</div>}>
+      headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true, true)}</div>}>
       <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}
     <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} open={search} onClose={() => setSearch(false)} />

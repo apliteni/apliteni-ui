@@ -8,7 +8,7 @@
 
 **Rule:** Put tables on a white surface in light mode and the base canvas in dark mode.
 
-**Do:** Use a white surface in light mode and the base canvas in dark mode; let the row edge mark hover.
+**Do:** Let the row edge mark hover.
 
 **Don't:** Add a grey zebra or hover fill.
 
@@ -32,7 +32,7 @@
 
 **Rule:** Right-align numeric headers and values.
 
-**Do:** Right-align numeric headers and values, use tabular numerals, and keep text left-aligned.
+**Do:** Use tabular numerals, and keep text left-aligned.
 
 **Don't:** Align numbers to their labels or sort formatted strings.
 
@@ -111,3 +111,17 @@
 **Do:** Retain rows while refreshing, report busy state, distinguish no data from no matches and errors, and preserve focus when filters change.
 
 **Don't:** Replace the table with a blank state or move focus without telling the reader why.
+
+## Give every table its filter bar
+
+<!-- rule: filter-bar -->
+
+**Why:** Readers narrow rows before reading them, and look for the bar where other tables put it.
+
+**Rule:** Put a bar with a search field and column filters directly above every table.
+
+**Do:** Search, then a status filter, on the row above the table.
+
+**Don't:** Leave rows that the reader cannot narrow.
+
+**Except:** Two tables take no bar: one that compares a document line by line, where a filter hides lines the reviewer must check, and a chart's Table view, which holds only the chart's points.

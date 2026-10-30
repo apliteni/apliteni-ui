@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { DataTable, sortTableRows, type Column, type TableSort } from './DataTable';
 import { Badge } from './primitives/Badge';
 import { Card } from './primitives/Card';
+import { useTableFilters } from '../../stories/_table-filters';
 
 type Row = { name: string; status: string; clicks: number };
 const rows: Row[] = [
@@ -19,6 +20,12 @@ const columns: Column<Row>[] = [
   { key: 'clicks', label: 'Clicks', num: true, sortable: true, render: (r) => r.clicks.toLocaleString() },
 ];
 
+// Every table has its filter bar directly above it. why: guidelines/dense-tables.md
+const useCampaignFilters = <R extends Row>(list: R[]) => useTableFilters(list, {
+  search: 'Search campaigns', placeholder: 'Campaign', label: 'Campaign filters', text: (r) => r.name,
+  facets: [{ id: 'status', label: 'Status', any: 'Any status', of: (r) => r.status }],
+});
+
 const meta: Meta<typeof DataTable> = { title: 'React/DataTable', component: DataTable as never };
 export default meta;
 
@@ -29,38 +36,49 @@ const linkedColumns: Column<Row>[] = [
   ...columns.slice(1),
 ];
 
+// A centred canvas sizes the story to its widest row, so a bar and its table
+// would push a phone page sideways. Padded gives them the view's width.
+const FULL_WIDTH = { layout: 'padded' };
+
 export const Playground: StoryObj = {
+  parameters: FULL_WIDTH,
   render: () => {
     const [sel, setSel] = useState<Set<string>>(new Set());
-    return (
-      <DataTable columns={linkedColumns} rows={rows} pageSize={3} selected={sel}
+    const { bar, shown } = useCampaignFilters(rows);
+    return <div className="ui-card-stack">
+      <Card>{bar}</Card>
+      <Card><DataTable columns={linkedColumns} rows={shown} pageSize={3} selected={sel} empty="No campaigns match"
         onToggle={(n) => setSel((s) => { const x = new Set(s); x.has(n) ? x.delete(n) : x.add(n); return x; })}
         onTogglePage={(ns) => setSel((s) => {
           const x = new Set(s); const all = ns.every((n) => x.has(n));
           ns.forEach((n) => all ? x.delete(n) : x.add(n)); return x;
-        })} />
-    );
+        })} /></Card>
+    </div>;
   },
 };
 
 
 export const SharedOrder: StoryObj = {
+  parameters: FULL_WIDTH,
   render: function Render() {
     const [sort, setSort] = useState<TableSort<Row>>({ key: 'clicks', dir: -1 });
-    return <>
+    const { bar, shown } = useCampaignFilters(rows);
+    return <div className="ui-card-stack">
+      <Card>{bar}</Card>
       {/* pager={false}, not pageSize={rows.length}. The second is the workaround
           this release exists to retire, and it would read as the recommendation
           sitting in the kit's own story. */}
-      <DataTable columns={columns} rows={rows} pager={false} selectable={false}
-        sort={sort} onSortChange={setSort} />
+      <Card><DataTable columns={columns} rows={shown} pager={false} selectable={false} empty="No campaigns match"
+        sort={sort} onSortChange={setSort} /></Card>
       <section className="ui-card" aria-label="Same rows as a list">
-        <ol>{sortTableRows(rows, sort).map(row => <li key={row.name}>{row.name}</li>)}</ol>
+        <ol>{sortTableRows(shown, sort).map(row => <li key={row.name}>{row.name}</li>)}</ol>
       </section>
-    </>;
+    </div>;
   },
 };
 
 export const ServerPaged: StoryObj = {
+  parameters: FULL_WIDTH,
   render: function Render() {
     // Stands in for a server: the page is the owner's, the table renders the
     // rows it is handed and states the range from `total`.
@@ -75,7 +93,10 @@ export const ServerPaged: StoryObj = {
     const [sort, setSort] = useState<TableSort<Row>>({ key: 'clicks', dir: -1 });
     // The server orders and slices; this stands in for both, so the rows handed
     // over are already the page and the table divides them no further.
-    const fetched = sortTableRows(rows, sort).slice((page - 1) * size, page * size);
+    const { bar, shown } = useCampaignFilters(rows);
+    // A filter that leaves fewer pages than the one on screen lands on the last page.
+    const at = Math.min(page, Math.max(1, Math.ceil(shown.length / size)));
+    const fetched = sortTableRows(shown, sort).slice((at - 1) * size, at * size);
     const turn = (next: number, nextSize = size) => {
       setLoading(true);
       setPage(next);
@@ -86,25 +107,31 @@ export const ServerPaged: StoryObj = {
     // size select is a field, and `.ui-card` is also what declares the table's
     // --table-bg. On the page ground the select had only its edge to be seen by.
     // react/src/field-ground.test.tsx holds it here.
-    return (
+    return <div className="ui-card-stack">
+      <Card>{bar}</Card>
       <Card>
-        <DataTable columns={columns} rows={fetched} selectable={false}
+        <DataTable columns={columns} rows={fetched} selectable={false} empty="No campaigns match"
           sort={sort} onSortChange={setSort}
-          page={page} total={rows.length} pageSize={size} pageSizes={[2, 3, 5]}
+          page={at} total={shown.length} pageSize={size} pageSizes={[2, 3, 5]}
           loading={loading} onPageChange={turn} onPageSizeChange={(s) => turn(1, s)} />
       </Card>
-    );
+    </div>;
   },
 };
 
 export const NoPager: StoryObj = {
-  render: () => (
+  parameters: FULL_WIDTH,
+  render: function Render() {
+    const { bar, shown } = useCampaignFilters(rows);
     // A surface that pages elsewhere on the screen asks for no pager at all.
     // pageSize={2} is load-bearing: at the default of 100 these five rows are one
     // page, the pager would be absent anyway, and the story would demonstrate
     // nothing. Take pager={false} off and a three-page strip appears.
-    <DataTable columns={columns} rows={rows} pageSize={2} selectable={false} pager={false} />
-  ),
+    return <div className="ui-card-stack">
+      <Card>{bar}</Card>
+      <Card><DataTable columns={columns} rows={shown} pageSize={2} selectable={false} pager={false} empty="No campaigns match" /></Card>
+    </div>;
+  },
 };
 
 // The pinned identity column is capped on a phone (#500), and the first column is
@@ -125,10 +152,14 @@ const pinnedRows: Row[] = [
 ];
 
 export const PinnedSortable: StoryObj = {
-  render: () => (
-    <div className="ui-card" style={{ maxWidth: 'var(--panel-lg)' }}>
-      <DataTable columns={pinnedColumns} rows={pinnedRows} selectable={false} pager={false}
-        density="compact" stickyHeader pinnedIdentity scrollLabel="Campaigns" />
-    </div>
-  ),
+  render: function Render() {
+    const { bar, shown } = useCampaignFilters(pinnedRows);
+    return <div className="ui-card-stack" style={{ maxWidth: 'var(--panel-lg)' }}>
+      <Card>{bar}</Card>
+      <div className="ui-card">
+        <DataTable columns={pinnedColumns} rows={shown} selectable={false} pager={false} empty="No campaigns match"
+          density="compact" stickyHeader pinnedIdentity scrollLabel="Campaigns" />
+      </div>
+    </div>;
+  },
 };

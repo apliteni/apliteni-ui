@@ -456,7 +456,7 @@ test('the kit still floors a panel somewhere, so this gate has a subject', () =>
   );
   // The count is asserted, not printed: a floor that quietly stops being swept
   // is the failure this sweep exists to catch.
-  assert.equal(found.length, 2, `panel width floors found: ${found.map((f) => `${f.selector} ${f.prop}: ${f.value}`).join('; ')}`);
+  assert.equal(found.length, 3, `panel width floors found: ${found.map((f) => `${f.selector} ${f.prop}: ${f.value}`).join('; ')}`);
 });
 
 test('a filter row bounds every panel floor, and outranks it', () => {
@@ -750,4 +750,118 @@ test('the check accepts the shape the add menu is actually written with', () => 
     ['fixture-add.css', `${BAR} ${ADD} ${PANEL} { --ui-filter-panel-ask: var(--panel-sm); }`],
   ];
   assert.equal(addMenuWidth(good), null);
+});
+
+/* Rule: every table a story draws has a filter bar with a search field, or sits
+ * under the stated exception for a table that compares one document line by line.
+ * why: guidelines/dense-tables.md#give-every-table-its-filter-bar
+ *
+ * WHAT THIS SWEEP DOES NOT REACH:
+ *   - Order: it does not read that the bar sits directly above its table. A
+ *     band between them passes; a reviewer judges that from the screenshot.
+ *   - Scope: one top-level declaration of a story file is the unit. A table is
+ *     answered when its declaration holds a search, renders a local one that
+ *     does, or is rendered only by answered declarations. A search anywhere in
+ *     that declaration answers it, also one in a different card.
+ *   - Imports: a table or a search inside a component from another file is not
+ *     seen. The kit's own DataTable is a table site; a showcase shell is not.
+ *   - Rest and wiring: a search that filters nothing passes. The stories' own
+ *     tests check that the rows follow the field. */
+const SEARCH = /<SearchField\b|useTableFilters\(|<RestingFilters\b/;
+const TABLE = /<(table|DataTable|SkeletonTable)\b/g;
+const EXCEPTION = 'guidelines/dense-tables.md#give-every-table-its-filter-bar';
+
+/** Every story file of both workspaces, as [path, source]. */
+function storyFiles() {
+  const found = [];
+  for (const [dir, deep] of [['stories', true], ['react/src', false]]) {
+    for (const name of readdirSync(path.join(root, dir), { recursive: deep })) {
+      if (String(name).endsWith('.stories.tsx')) found.push([`${dir}/${name}`, readFileSync(path.join(root, dir, String(name)), 'utf8')]);
+    }
+  }
+  return found.sort(([a], [b]) => a.localeCompare(b));
+}
+
+/** Each table site in one source as { name, kind, line, answered, excepted }. A site
+ *  is excepted when one of the two lines above it cites the exception. */
+function tableSites(src) {
+  const lines = src.split('\n');
+  const decls = [];
+  lines.forEach((text, i) => {
+    const hit = text.match(/^(?:export\s+)?(?:const|function|let)\s+(\w+)/);
+    if (hit) decls.push({ name: hit[1], start: i });
+  });
+  decls.forEach((d, k) => { d.end = decls[k + 1]?.start ?? lines.length; d.text = lines.slice(d.start, d.end).join('\n'); });
+  const renders = (d, name) => d !== decls.find((x) => x.name === name) && new RegExp(`<${name}[\\s/>]|\\b${name}\\(`).test(d.text);
+  const searches = new Map();
+  const hasSearch = (d, seen = new Set()) => {
+    if (searches.has(d)) return searches.get(d);
+    seen.add(d);
+    const yes = SEARCH.test(d.text) || decls.some((x) => !seen.has(x) && renders(d, x.name) && hasSearch(x, seen));
+    if (seen.size === 1) searches.set(d, yes);
+    return yes;
+  };
+  const answered = (d, seen = new Set([d])) => {
+    if (hasSearch(d)) return true;
+    const parents = decls.filter((p) => !seen.has(p) && renders(p, d.name));
+    return parents.length > 0 && parents.every((p) => answered(p, new Set([...seen, p])));
+  };
+  const sites = [];
+  for (const d of decls) {
+    for (let i = d.start; i < d.end; i += 1) {
+      for (const hit of lines[i].matchAll(TABLE)) {
+        sites.push({ name: d.name, kind: hit[1], line: i + 1, answered: answered(d),
+          excepted: lines.slice(Math.max(d.start, i - 2), i).some((l) => l.includes(EXCEPTION)) });
+      }
+    }
+  }
+  return sites;
+}
+
+/** The sites that break the rule, and the ones the exception covers, as `path:line kind`. */
+function tableCheck(files) {
+  const missing = [];
+  const excepted = [];
+  let count = 0;
+  for (const [file, src] of files) {
+    for (const site of tableSites(src)) {
+      count += 1;
+      const at = `${file}:${site.line} ${site.kind}`;
+      if (site.excepted) excepted.push(at);
+      else if (!site.answered) missing.push(at);
+    }
+  }
+  return { missing, excepted, count };
+}
+
+test('every table a story draws has a search field above it, or the stated exception', () => {
+  const files = storyFiles();
+  const { missing, excepted, count } = tableCheck(files);
+  // Coverage: a broken glob or splitter finds nothing and would pass by measuring nothing.
+  assert.ok(files.length >= 90, `found ${files.length} story files`);
+  assert.ok(count >= 40, `found ${count} table sites`);
+  assert.deepStrictEqual(missing, [], 'a table with no filter bar or no search field');
+  // The exception is for the document review's two tables, the skeleton that holds the sheet's place
+  // and a chart's Table view, and no other.
+  assert.deepStrictEqual(excepted.map((at) => at.replace(/:\d+/, '')),
+    ['react/src/DocumentReview.stories.tsx table', 'react/src/DocumentReview.stories.tsx SkeletonTable', 'react/src/DocumentReview.stories.tsx table',
+      'stories/guidelines/DashboardsAndReports.stories.tsx table']);
+});
+
+test('the table sweep refuses a table that lost its search, and an exception cited elsewhere', () => {
+  const files = storyFiles();
+  const report = files.find(([file]) => file === 'stories/apps/FinanceReport.stories.tsx');
+  const mutated = report[1].replace(/<SearchField\b[^\n]*\n/, '');
+  assert.notEqual(mutated, report[1], 'the fixture must hold a search field to remove');
+  assert.deepStrictEqual(tableCheck([[report[0], mutated]]).missing.map((at) => at.replace(/:\d+/, '')),
+    ['stories/apps/FinanceReport.stories.tsx table', 'stories/apps/FinanceReport.stories.tsx SkeletonTable']);
+  const lone = 'const Lone = () => <table className="ui-table" />;\n';
+  assert.equal(tableCheck([['x.stories.tsx', lone]]).missing.length, 1);
+  const cited = `// why: guidelines/${EXCEPTION}\n${lone}`;
+  assert.deepStrictEqual(tableCheck([['x.stories.tsx', cited]]), { missing: ['x.stories.tsx:2 table'], excepted: [], count: 1 },
+    'a citation outside the declaration does not reach the table');
+  const inside = 'const Cited = () => <div>\n  {/* why: guidelines/' + EXCEPTION + ' */}\n  <table className="ui-table" />\n</div>;\n';
+  assert.deepStrictEqual(tableCheck([['x.stories.tsx', inside]]).excepted, ['x.stories.tsx:3 table']);
+  const sibling = 'const Bar = () => <SearchField ariaLabel="Search" />;\nconst Page = () => <><Bar /><Rows /></>;\nconst Rows = () => <table className="ui-table" />;\n';
+  assert.deepStrictEqual(tableCheck([['x.stories.tsx', sibling]]).missing, [], 'a sibling bar answers the table its parent renders');
 });

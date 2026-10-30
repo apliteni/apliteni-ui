@@ -35,6 +35,9 @@ const rowStatus = (filename: string) => {
   return within(row).getByText(/^(Uploading|Parsing|Needs review|Ready)$/).textContent;
 };
 
+/* A row's status, counted in the table: the filter bar above it offers the same words. */
+const inTable = (status: string) => within(screen.getByRole('table')).getAllByText(status);
+
 describe('invoice flow prototype', () => {
   /* The empty page's input sits inside the kit's drop area and carries no label of its own:
    * the Upload button beside it is what names the action. */
@@ -43,9 +46,9 @@ describe('invoice flow prototype', () => {
     const user = userEvent.setup();
     const { container } = render(<InvoiceFlow />);
     fireEvent.change(emptyInput(container), { target: { files: [new File(['a'], 'one.pdf', { type: 'application/pdf' }), new File(['b'], 'two.pdf', { type: 'application/pdf' })] } });
-    expect(screen.getAllByText('Uploading')).toHaveLength(2);
+    expect(inTable('Uploading')).toHaveLength(2);
     await user.upload(screen.getByLabelText('Select invoices'), new File(['c'], 'one.pdf', { type: 'application/pdf' }));
-    expect(screen.getAllByText('Uploading')).toHaveLength(3);
+    expect(inTable('Uploading')).toHaveLength(3);
     expect(screen.getAllByRole('link', { name: 'one.pdf' })).toHaveLength(2);
   });
   it('opens the picker from the button in the drop area, by pointer, Enter and Space', async () => {
@@ -101,7 +104,7 @@ describe('invoice flow prototype', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('No files were added');
     fireEvent.drop(zone, { dataTransfer: { types: ['Files'], files: [new File(['a'], 'one.pdf'), new File(['b'], 'two.png')] } });
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(screen.getAllByText('Uploading')).toHaveLength(2);
+    expect(inTable('Uploading')).toHaveLength(2);
   });
   /* A file dragged over the list covers the content with the drop area and a drop anywhere adds it. The events are
    * dispatched on the window, as the browser sends them for a file from outside the page.
@@ -289,7 +292,7 @@ describe('invoice flow prototype', () => {
   it('adds a file dropped on the empty page\'s area once, with no layer to add it again', () => {
     const { container } = render(<InvoiceFlow />);
     fireEvent.drop(container.querySelector('.ui-drop--area')!, { dataTransfer: { types: ['Files'], files: [new File(['a'], 'one.pdf')] } });
-    expect(screen.getAllByText('Uploading')).toHaveLength(1);
+    expect(inTable('Uploading')).toHaveLength(1);
   });
   it('keeps the Upload button as the keyboard way to add files to the list', async () => {
     const user = userEvent.setup();

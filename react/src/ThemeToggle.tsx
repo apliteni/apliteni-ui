@@ -4,7 +4,7 @@ import './ThemeToggle.css';
 
 const STORAGE_KEY = 'apliteni-strategy-theme';
 const CHOICE_EVENT = 'apliteni-theme-choice';
-type Theme = 'dark' | 'light' | 'auto';
+export type Theme = 'dark' | 'light' | 'auto';
 
 /** Place in a head script before styles load to apply the theme before first paint. */
 export const THEME_INIT_SCRIPT = `(()=>{let t;try{t=localStorage.getItem('apliteni-strategy-theme')}catch{}document.documentElement.setAttribute('data-theme',t==='dark'||t==='light'?t:window.matchMedia?.('(prefers-color-scheme: light)').matches?'light':'dark')})()`;
@@ -51,20 +51,21 @@ export type ThemeToggleProps = {
   labelled?: boolean;
 };
 
-/** The saved theme, its words, and the switch to the next one. ThemeToggle and the
- *  AppShell account menu's theme row share it (#732). */
+/** The saved theme, its words, a switch to the next one and a setter for any one.
+ *  ThemeToggle cycles; the AppShell account menu's Theme submenu sets (#732, #736). */
 export function useThemeChoice() {
   const theme = useSyncExternalStore(subscribe, snapshot, () => 'auto' as const);
   const next = theme === 'dark' ? 'light' : theme === 'light' ? 'auto' : 'dark';
   const label = theme === 'auto' ? 'Auto' : theme === 'light' ? 'Light' : 'Dark';
   const name = `Theme: ${label}. Switch to ${next}.`;
-  const toggle = () => {
-    document.documentElement.setAttribute('data-theme-choice', next);
-    document.documentElement.setAttribute('data-theme', next === 'auto' ? (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : next);
-    try { localStorage.setItem(STORAGE_KEY, next); } catch { /* Keep the choice for this page. */ }
+  const set = (choice: Theme) => {
+    document.documentElement.setAttribute('data-theme-choice', choice);
+    document.documentElement.setAttribute('data-theme', choice === 'auto' ? (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : choice);
+    try { localStorage.setItem(STORAGE_KEY, choice); } catch { /* Keep the choice for this page. */ }
     window.dispatchEvent(new Event(CHOICE_EVENT));
   };
-  return { theme, next, label, name, toggle };
+  const toggle = () => set(next);
+  return { theme, next, label, name, toggle, set };
 }
 
 export function ThemeToggle({ labelled = false }: ThemeToggleProps) {

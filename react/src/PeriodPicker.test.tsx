@@ -81,10 +81,14 @@ it('shares one comparison across stat and ledger changes without repeating the m
 
 it('puts the ledger heading outside its card and keeps comparison copy off the reading surface', () => {
   window.history.replaceState(null, '', '?period=2026-09');
-  render(Default.render());
+  const { container } = render(Default.render());
   const heading = screen.getByRole('heading', { name: 'Ledger' });
   expect(heading.closest('.ui-card')).toBeNull();
-  expect(heading.nextElementSibling).toHaveClass('ui-card');
+  // The filter bar's card and the ledger's card follow the heading as one stack.
+  const stack = heading.nextElementSibling!;
+  expect(stack).toHaveClass('ui-card-stack');
+  expect([...stack.children].map((card) => card.className)).toEqual(['ui-card', 'ui-card']);
+  expect(stack.lastElementChild).toBe(container.querySelector('table')!.closest('.ui-card'));
   expect(document.querySelector('[id^=period-basis]')).toHaveClass('ui-sr');
 });
 
