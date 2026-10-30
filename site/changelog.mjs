@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.150.0', date: '2026-10-30',
+    changes: [
+      ['added', 'New card classes `.ui-card__viewer` and `.ui-card__page` show a document inside a card apart from the controls that act on it. Wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and give the document `.ui-card__page`. The toolbar becomes a slim row between two hairlines, and the page sits as a sheet on a recessed stage. Part of #736.', ['Card']],
+    ],
+  },
+  {
     v: '0.149.0', date: '2026-10-30',
     changes: [
       ['added', 'React `AccountWindow` is the account and settings window. The product gives it the reader and the sections, and it draws the dimmed page, the close, the section title and a 216px rail with the reader at its top. At 560px and below it fills the screen and the sections become tabs under the reader. Part of #736.', ['Modal']],

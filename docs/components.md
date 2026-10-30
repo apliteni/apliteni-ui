@@ -109,6 +109,7 @@ what a factory accepts. They do not describe what the factory does.
 
 `card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. On phones, its control sits below its label and hint. At wider widths, a choice that cannot fit beside its label moves below it. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link.
 Three-option setting rows use `ui-card__row--tight-choice` to narrow pills below 360 px and stay on one line, while other rows keep full tap width.
+To show a document inside a card, wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and give the document `.ui-card__page`. The toolbar becomes a slim row between two hairlines. The scroll box becomes a recessed stage that runs to the card's sides and bottom. The page is a white sheet with dark text in both themes, with A4 proportions at the least. Its table, lines and loading skeleton take the light palette too.
 
 ### Controls and input
 

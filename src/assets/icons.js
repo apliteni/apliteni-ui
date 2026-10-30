@@ -184,6 +184,12 @@ export const iconOnlyAllowed = {
   // and one button opens the full navigation in a drawer. The three-bar glyph is the
   // reader's own mark for this action.
   menu: 'open the navigation drawer',
+  // A document viewer's page and zoom steps, chosen by Artur on #736: a slim row of
+  // steppers either side of the readout they move, so the readout names the action.
+  chevronLeft: 'step to the previous page',
+  chevronRight: 'step to the next page',
+  minus: 'zoom out',
+  plus: 'zoom in',
   // A chart card's view switch, decided by Artur on #742: the bars and the grid
   // are the two views themselves, side by side in one toolbar at the card's corner.
   chart: 'show the values as a chart',
@@ -209,6 +215,10 @@ export const iconOnlyNames = {
   // something else.
   download: ['export', 'download'],
   menu: ['menu'],
+  chevronLeft: ['previous'],
+  chevronRight: ['next'],
+  minus: ['zoom'],
+  plus: ['zoom'],
   chart: ['chart'],
   table: ['table'],
 };

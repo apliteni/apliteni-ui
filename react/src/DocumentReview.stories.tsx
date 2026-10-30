@@ -5,7 +5,6 @@ import { Card } from './primitives/Card';
 import { Button } from './primitives/Button';
 import { Callout } from './primitives/Callout';
 import { StatBand } from './primitives/StatBand';
-import { Segmented } from './Segmented';
 import { BusyRegion, Skeleton, SkeletonTable } from './Loading';
 import { EmptyState } from './EmptyState';
 import { KeyValueList } from './KeyValueList';
@@ -61,9 +60,9 @@ const identity = [
   { label: 'Currency', value: 'EUR' },
 ];
 
-// Four presets rather than a stepper pair: the choice owns no panel, so the kit
-// names segmented() for it. why: guidelines/component-choice.md#match-controls-to-panels
-// Fit shows the whole document; percentage presets magnify the same page.
+// Four presets, stepped by Zoom out and Zoom in, with the real scale between them: a
+// strip of four pills does not fit beside the page count at 390. Fit shows the whole
+// page; the percentage presets magnify it. Decided on #736.
 const ZOOMS = [50, 'fit', 150, 200] as const;
 
 // A scroll region earns a tab stop only while it has something to scroll. A
@@ -107,36 +106,26 @@ const CSS = `
      why: guidelines/density-and-accents.md#follow-the-consequence, guidelines/layout-and-density.md#use-the-three-breakpoints */
   .doc-flow__panes { display: grid; align-items: start; gap: var(--space-6);
     grid-template-columns: minmax(0, 1fr) var(--panel-md); }
-  .doc-flow .ui-table-scroll { --ui-table-height: none; padding: 0; }
-  .doc-flow__scroll-hint { margin: 0 0 var(--space-3); }
+  /* The hint rides the stage's left edge, so it stays in view while the page scrolls. */
+  .doc-flow__scroll-hint { position: sticky; left: 0; margin: 0 0 var(--space-3); }
   .doc-flow__pinned-text { position: sticky; left: var(--space-3); }
-  /* The page is at least panel-md wide; Fit scales it to its viewport. The panel it
-     sits in is panel-md too, so Fit lands at about 88% rather than scaling a 560px page
-     into a 420px box — a preview that is smaller, not one that is faded.
-     It draws no ground, border or radius of its own: the "Source document" card is the
-     sheet, and a bordered box on its parent's own fill is a card inside a card — white
-     on white in light, and one hairline apart in dark.
-     why: guidelines/layout-and-density.md#use-panel-and-prose-units, guidelines/the-page.md#limit-card-stacks */
+  /* The page is at least panel-md wide; Fit scales it to the stage. The panel it sits
+     in is panel-md too, so Fit lands at about 88% rather than scaling a 560px page into
+     a 420px box — a preview that is smaller, not one that is faded. The kit's
+     .ui-card__page draws the sheet, on the recessed stage of the "Document preview"
+     card. why: guidelines/layout-and-density.md#use-panel-and-prose-units */
   .doc-flow__sheet { width: var(--panel-md); transition: zoom var(--dur-med) var(--ease-out); }
   .doc-flow__sheet .ui-skel + .ui-skel { margin-top: var(--space-5); }
   .doc-flow__meta { margin: 0 0 var(--space-2); }
   .doc-flow__meta:last-of-type { margin-bottom: var(--space-4); }
-  .doc-flow__toolbar { display: flex; flex-wrap: wrap; align-items: center;
-    gap: var(--space-4); margin-bottom: var(--space-4); }
+  .doc-flow__steps { display: flex; align-items: center; gap: var(--space-2); }
+  .doc-flow__scale { min-width: 3em; text-align: center; }
   .doc-flow__amounts { margin-top: var(--space-5); }
   /* The pane's name carries the step's accent, declared in DocumentReview.css so the
      contrast walk can judge it. Both cards keep the kit's own hairline, and the figures
      stay neutral: this step compares two readings of the same numbers, and colouring one
      side's Total says they differ.
      why: guidelines/density-and-accents.md#follow-the-consequence */
-  /* The zoom control sits in the reference pane, so its selected pill marks itself with
-     the kit's strong edge instead of the accent. Between the two panes the accent names
-     the data that gets saved, and a reference cannot hold the step's only colour. The
-     focus state is left alone: :not(:focus-visible) keeps the ring's own transparent
-     outline off this rule. why: guidelines/density-and-accents.md#follow-the-consequence */
-  .doc-flow__toolbar .ui-seg button[aria-pressed="true"]:not(:focus-visible) {
-    outline-color: var(--border-strong);
-  }
   /* The values the approval writes carry the weight; their labels keep theirs. Rank
      here is weight, not ink: the rule asks for size, weight and spacing, and a colour
      written in a story's own style block is one the contrast walk cannot resolve, so it
@@ -212,9 +201,11 @@ export const Default: StoryObj<Args> = {
       const box = scrollRef.current;
       if (!box) return;
       const read = () => {
-        const minimum = parseFloat(getComputedStyle(box).getPropertyValue('--panel-md'));
-        const width = Math.max(minimum, box.clientWidth);
-        setPageSize({ width, fit: box.clientWidth / width });
+        const computed = getComputedStyle(box);
+        const minimum = parseFloat(computed.getPropertyValue('--panel-md'));
+        const room = box.clientWidth - (parseFloat(computed.paddingLeft) || 0) - (parseFloat(computed.paddingRight) || 0);
+        const width = Math.max(minimum || 0, room);
+        setPageSize({ width, fit: width > 0 ? room / width : 1 });
       };
       read();
       const observer = new ResizeObserver(read);
@@ -256,13 +247,16 @@ export const Default: StoryObj<Args> = {
         ref={scrollRef}
         {...(columnsScroll && { tabIndex: 0, role: 'region', 'aria-label': 'Invoice document' })}
       >
+        {columnsScroll && <p className="doc-flow__scroll-hint">Scroll left or right to see all amounts.</p>}
         <div
-          className={['doc-flow__sheet', arriving].filter(Boolean).join(' ')}
+          className={['doc-flow__sheet', 'ui-card__page', arriving].filter(Boolean).join(' ')}
           style={{ width: pageSize.width || undefined, zoom: zoom === 'fit' ? pageSize.fit : Number(zoom) / 100 }}
         >
           <h3>{DOCUMENT.supplier}</h3>
-          <p className="doc-flow__meta">Invoice {DOCUMENT.number} · {RATE} per hour</p>
-          <p className="doc-flow__meta">Issued {DOCUMENT.issued} · Due {DOCUMENT.due}</p>
+          <p className="doc-flow__meta">Invoice {DOCUMENT.number}</p>
+          <p className="doc-flow__meta">{RATE} per hour</p>
+          <p className="doc-flow__meta">Issued {DOCUMENT.issued}</p>
+          <p className="doc-flow__meta">Due {DOCUMENT.due}</p>
           <table className="ui-table ui-table--dense">
             <caption className="ui-sr">Services on this invoice, with subtotal, VAT and total.</caption>
             <thead>
@@ -305,7 +299,7 @@ export const Default: StoryObj<Args> = {
     // to the width of the glyphs they hide render single digits as 8px specks.
     const sheetPlaceholder = (
       <div className="ui-table-scroll" ref={scrollRef}>
-        <div className="doc-flow__sheet" style={{ width: pageSize.width || undefined, zoom: pageSize.fit }}>
+        <div className="doc-flow__sheet ui-card__page" style={{ width: pageSize.width || undefined, zoom: pageSize.fit }}>
           <Skeleton lines={['38%', '46%', '42%']} />
           <SkeletonTable rows={4} cols={3} />
         </div>
@@ -356,30 +350,44 @@ export const Default: StoryObj<Args> = {
       </Card>
     );
 
+    // The zoom steps through the presets in order; the readout is the scale the page is
+    // drawn at, so Fit reads as its own percentage rather than a word.
+    const at = ZOOMS.findIndex((z) => String(z) === zoom);
+    const scale = Math.round((zoom === 'fit' ? pageSize.fit : Number(zoom) / 100) * 100);
+    const still = state !== 'ready';
+
+    // The controls sit in a slim row between hairlines and the page lies on a recessed
+    // stage below them, so the document reads as the object and the row as the tools.
+    // The row stays in every state and disables what cannot act, so no control moves
+    // between states. The demo invoice has one page, so both page steps stay disabled.
     const source = (
-      <Card title="Source document">
-        {/* The toolbar stays in every state and disables what cannot act, so the
-            card header keeps its height and no control moves between states. */}
-        <div className="doc-flow__toolbar">
-          <Segmented
-            label="Zoom"
-            value={zoom}
-            onChange={setZoom}
-            disabled={state !== 'ready'}
-            options={ZOOMS.map((s) => ({ label: s === 'fit' ? 'Fit' : `${s}%`, value: String(s) }))}
-          />
+      <Card title="Document preview">
+        <div className="ui-card__viewer">
+          <div className="ui-toolbar ui-toolbar--split">
+            <div className="doc-flow__steps">
+              <Button variant="ghost" iconOnly icon="chevronLeft" aria-label="Previous page" disabled />
+              <span>Page 1 of 1</span>
+              <Button variant="ghost" iconOnly icon="chevronRight" aria-label="Next page" disabled />
+            </div>
+            <div className="doc-flow__steps">
+              <Button variant="ghost" iconOnly icon="minus" aria-label="Zoom out"
+                disabled={still || at <= 0} onClick={() => setZoom(String(ZOOMS[at - 1]))} />
+              <span className="doc-flow__scale" aria-live="polite">{still ? '' : `${scale}%`}</span>
+              <Button variant="ghost" iconOnly icon="plus" aria-label="Zoom in"
+                disabled={still || at >= ZOOMS.length - 1} onClick={() => setZoom(String(ZOOMS[at + 1]))} />
+            </div>
+          </div>
+          {loading ? sheetPlaceholder : state === 'unavailable' ? (
+            <div className="ui-table-scroll">
+              <EmptyState
+                art="invoices"
+                title="We couldn’t render this file"
+                sub="The extracted fields were read from it and are complete."
+                actions={<Button onClick={retryPreview}>Try again</Button>}
+              />
+            </div>
+          ) : sheet}
         </div>
-        {loading ? sheetPlaceholder : state === 'unavailable' ? (
-          <EmptyState
-            art="invoices"
-            title="We couldn’t render this file"
-            sub="The extracted fields were read from it and are complete."
-            actions={<Button onClick={retryPreview}>Try again</Button>}
-          />
-        ) : <>
-          {columnsScroll && <p className="doc-flow__scroll-hint">Scroll left or right to see all amounts.</p>}
-          {sheet}
-        </>}
       </Card>
     );
 

@@ -102,8 +102,9 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // `a` element onto the shared ring rule and removed table.css's own copy, but both already
 // wrote an outline rather than a box-shadow after #578, so this sweep is unaffected.
 // 21 -> 22: the pinned column's scroll shade, #736.
-  assert.equal(sweep.length, 22,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 22. `
+// 22 -> 23: #736's viewer sheet rests on its stage with the card's own rung.
+  assert.equal(sweep.length, 23,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 23. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -163,7 +164,7 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
   // such a rule from the surfaces around them.
   const got = Object.fromEntries([...rungs].map(([layer, n]) => [layer, n / THEMES.length]));
   assert.deepStrictEqual(got, {
-    'var(--elev-rest)': 1,   // .ui-card
+    'var(--elev-rest)': 2,   // .ui-card, .ui-card__page
     'var(--elev-rail)': 1,   // .ui-app__rail
     'var(--elev-drop)': 12,  // the floating surfaces, each saying it once
     'scroll shade': 1,       // .ui-table--pinned .ui-table__identity, #736

@@ -155,12 +155,20 @@ test('the offset gate rejects a scroll region that takes the band and leaves the
 
 test('the ring is declared once, and the two bands differ only in where they land', () => {
   const names = ['--ring', '--ring-offset', '--ring-scroll', '--ring-scroll-offset'];
+  // A box that takes the other theme's palette computes the ring again, because a :root
+  // value reaches it already substituted with the root's accent. It may only restate the
+  // root's own value. #736: the document sheet is light paper in both themes.
+  const RECOMPUTED = ['.ui-card__page'];
+  const value = (name) => declarations.find((d) => d.name === name && d.selector.startsWith(':root')).value.trim();
   for (const name of names) {
     const at = declarations.filter((d) => d.name === name);
-    assert.equal(at.length, 1, `${name} is declared ${at.length} times; the ring reads no surface token, so one is enough`);
-    assert.equal(at[0].file, 'src/tokens/tokens.css', `${name} is declared outside the token sheet`);
+    const again = at.filter((d) => RECOMPUTED.includes(d.selector));
+    assert.equal(at.length - again.length, 1, `${name} is declared ${at.length} times; the ring reads no surface token, so one is enough`);
+    for (const d of at) assert.equal(d.file, 'src/tokens/tokens.css', `${name} is declared outside the token sheet`);
+    for (const d of again) {
+      assert.equal(d.value.trim(), value(name), `${d.selector} recomposes ${name} into another band, not the root's`);
+    }
   }
-  const value = (name) => declarations.find((d) => d.name === name).value.trim();
   assert.ok(forcedRings.length > 0, 'no forced-colours ring was found; the filled selected item lost its ring recomposition');
   for (const d of forcedRings) {
     assert.equal(d.value.trim(), 'var(--ring-width) solid CanvasText',

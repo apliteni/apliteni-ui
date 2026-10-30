@@ -99,6 +99,9 @@ const HANDS_NOTHING_ON = /\/\* code-bg: inherit — .+\. \*\//;
 
 
 const sheets = files.flatMap(rulesIn);
+/** A rule that lists a :root selector is the ladder, whatever else it lists: a document sheet
+ * shares the light block, and a chip on it reads the light theme, which is measured. #736 */
+const isRoot = (rule) => selectorsOf(rule.selector).some((selector) => selector.startsWith(':root'));
 const own = (rule) => new Map(customPropertiesIn(`${rule.selector}{${rule.body}}`).map((d) => [d.name, d.value]));
 
 /* Whether a value is one of the kit's READING SURFACES, followed through its own aliases:
@@ -159,7 +162,7 @@ const paintedAliases = new Set(sheets
   .filter((paint) => paint && /^var\(\s*--[\w-]+\s*\)$/.test(paint))
   .map((paint) => /^var\(\s*(--[\w-]+)/.exec(paint)[1]));
 const aliased = sheets.flatMap((rule) => {
-  if (rule.selector.startsWith(':root') || paintOf(rule.body)) return [];
+  if (isRoot(rule) || paintOf(rule.body)) return [];
   return [...own(rule)]
     .filter(([name, value]) => paintedAliases.has(name) && isSurface(value))
     .flatMap(([, value]) => selectorsOf(rule.selector)
@@ -187,12 +190,12 @@ const pickFor = (selector) => handOffs.filter((hand) => hand.selector === select
  * in the page's own resolution, and reading it as an overlay would hand one component's
  * surface to a sibling that never sees it. */
 const ladder = new Set(rulesIn('src/tokens/tokens.css')
-  .filter((rule) => rule.selector.startsWith(':root'))
+  .filter(isRoot)
   .flatMap((rule) => [...own(rule).keys()]));
 const written = new Set(grounds.flatMap(({ paint, selector }) => [paint, pickFor(selector) ?? '']
   .flatMap((value) => [...namesRead(value, tokensFor('dark'))])).filter((name) => ladder.has(name)));
 const contexts = [{ where: 'the page', overrides: new Map() },
-  ...sheets.filter((rule) => !rule.selector.startsWith(':root'))
+  ...sheets.filter((rule) => !isRoot(rule))
     .map((rule) => ({ rule, overrides: new Map([...own(rule)].filter(([name]) => written.has(name))) }))
     .filter(({ overrides }) => overrides.size)
     .map(({ rule, overrides }) => ({ where: `inside ${rule.selector}`, overrides }))];
@@ -279,7 +282,7 @@ test('the ground discovery refuses a painted container that hands a chip nothing
 });
 
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 35, 'painted-ground discovery changed; the branch-added .ui-filter-bar__chip hands an inline code chip var(--bg) in tokens.css. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
+  assert.equal(grounds.length, 36, 'painted-ground discovery changed; the branch-added .ui-card__page hands an inline code chip var(--bg) in tokens.css. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
   // The page entry is named, not discovered, so it is held against the rule that paints it.
   const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
   assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');
@@ -298,7 +301,7 @@ test('the chip gate discovers every ground, wash, context and theme', () => {
     assert.ok(pickFor(selector), `${selector} is a wash a caller can write a chip inside and never hands it a surface`);
     assert.ok(colourOf(paint, tokensFor('light')), `${selector} has no readable fill`);
   }
-  assert.equal(contexts.length, 2, 'a container re-points a ground token; say what a chip inside it takes');
+  assert.equal(contexts.length, 4, 'a container re-points a ground token; say what a chip inside it takes');
   assert.ok(grounds.some(({ selector }) => selector === ':root'), 'the page is a painted ground and is measured with the rest');
   for (const { file, selector } of grounds) {
     assert.ok(pickFor(selector), `${file}: ${selector} paints a ground and never hands an inline code chip a surface`);

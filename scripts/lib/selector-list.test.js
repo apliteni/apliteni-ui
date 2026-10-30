@@ -204,8 +204,8 @@ test('the shared splitter is read by every gate that was reading a selector list
   const callers = tracked.filter((file) => SOURCE.test(file) && !self.includes(file)
     && /splitSelectorList\s*\(/.test(readFileSync(path.join(root, file), 'utf8')));
   assert.equal(
-    callers.length, 38,
+    callers.length, 39,
     'the set of gates reading a selector list changed; the scroll-ring and story CSS gates share this splitter '
-    + 'with the React date-picker, chart-target, tap-zone, table-edge, card-fit, table, guideline page, dropdown panel, dropdown row, field focus, tooltip and other style gates',
+    + 'with the React date-picker, chart-target, tap-zone, table-edge, card-fit, table, guideline page, dropdown panel, dropdown row, field focus, tooltip, document sheet and other style gates',
   );
 });

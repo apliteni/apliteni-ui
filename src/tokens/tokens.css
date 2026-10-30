@@ -358,7 +358,11 @@
 
 /* ============================================================================
  * LIGHT THEME — deck light palette from viz/account.mjs
+ *
+ * A document sheet (.ui-card__page) takes this palette in both themes: the document
+ * is paper, so it stays white with dark ink on a dark stage too. Decided on #736.
  * ========================================================================== */
+.ui-card__page,
 :root[data-theme="light"] {
   color-scheme: light;
 
@@ -537,6 +541,13 @@
   --grad-from: var(--purple-light);
   --grad-to: var(--cyan);
 }
+/* The ring is declared once, in the dark block, and computed at :root. The sheet takes the
+   light accent above, so it computes its ring again or a focus on the paper keeps the dark one. */
+.ui-card__page {
+  --ring-color: var(--accent);
+  --ring: var(--ring-width) solid var(--ring-color);
+  --ring-scroll: var(--ring);
+}
 
 /* ============================================================================
  * WIDTHS BELOW THE PAGE — the box, and the line. Two scales, and one rule for
@@ -592,6 +603,7 @@
 .ui-card,
 .ui-card--accent,
 .ui-card--live,
+.ui-card__page,
 .ui-cmdk__panel,
 .ui-confirm__panel,
 .ui-drawer__footer,

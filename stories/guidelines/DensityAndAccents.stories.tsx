@@ -52,7 +52,7 @@ const Payouts = () => <div className="gda-table"><div className="ui-card ui-card
 const Figures = () => <StatBand variant="tiles" basis="Payouts · September"
   stats={[{ label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' }]} />;
 
-// A source document beside the fields a parser read from it. Both panels print the
+// A document preview beside the fields a parser read from it. Both panels print the
 // same two cards, so what a reader compares is the width, the value weight and
 // which card's name carries the accent.
 const SavedPane = ({ lead }: { lead: boolean }) => <div className={`ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}`}>
@@ -63,7 +63,7 @@ const SavedPane = ({ lead }: { lead: boolean }) => <div className={`ui-card ui-c
   <p className={`gda-pane__value${lead ? ' gda-pane__value--strong' : ''}`}>1,440.00</p>
 </div>;
 const SourcePane = ({ lead }: { lead: boolean }) => <div className={`ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}`}>
-  <h3 className="ui-card__title">Source document</h3>
+  <h3 className="ui-card__title">Document preview</h3>
   {['Invoice', 'DEMO-1042', 'Total', '1,440.00'].map(line => <p key={line} className="gda-pane__line">{line}</p>)}
 </div>;
 const Consequence = ({ savedLeads }: { savedLeads: boolean }) => <Stage>

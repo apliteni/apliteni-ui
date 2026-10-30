@@ -117,7 +117,7 @@ const ALLOWED: Record<string, string> = {
   // A table wider than its scroll region is the only way the region scrolls, and the
   // region's own inset is wrong when the table is inside a card rather than on a page.
   'react/src/Finance.stories.tsx|.pinned-selection .ui-table': 'the pinned columns need a table wider than the viewport',
-  'react/src/DocumentReview.stories.tsx|.doc-flow .ui-table-scroll': 'the amounts table sits in a card, not on the page',
+  'react/src/DocumentReview.stories.tsx|.doc-flow__sheet.ui-card__page': 'the page width and the Fit scale are measured from the stage at run time',
 
   // Space between two kit parts belongs to whatever stacks them, and these stack by hand.
   'react/src/DocumentReview.stories.tsx|.doc-flow__sheet .ui-skel + .ui-skel': 'the preview stacks its skeleton bars by hand',
@@ -192,7 +192,7 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/CommandPalette.stories.tsx': { shadow: 2 },
   'react/src/DatePicker.stories.tsx': { shadow: 2 },
   'react/src/DocumentReview.css': { shadow: 1 },
-  'react/src/DocumentReview.stories.tsx': { shadow: 12, glue: 31 },
+  'react/src/DocumentReview.stories.tsx': { shadow: 11, glue: 31 },
   'react/src/FeedbackShowcase.css': { shadow: 12 },
   'react/src/FeedbackShowcase.stories.tsx': { shadow: 2 },
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
