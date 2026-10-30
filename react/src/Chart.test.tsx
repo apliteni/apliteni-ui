@@ -19,6 +19,7 @@ import axe from 'axe-core';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
+import { Card } from './primitives/Card';
 import type { ChartSlice } from './chart-looks';
 import { placeTip } from './tip';
 // Plain JS outside this workspace's tsconfig, imported for its arithmetic the
@@ -103,7 +104,7 @@ const slices: ChartSlice[] = [
 ];
 const LOOKS = [
   ['line', 'thin'], ['line', 'points'], ['line', 'labels'],
-  ['area', 'flat'], ['area', 'stacked'], ['area', 'share'],
+  ['area', 'flat'], ['area', 'curves'], ['area', 'stacked'], ['area', 'share'],
   ['stacked', 'columns'], ['stacked', 'share'], ['stacked', 'rows'],
   ['donut', 'thin'], ['donut', 'table'], ['donut', 'labels'],
 ] as const;
@@ -119,12 +120,24 @@ it('names the chart, and says how to step through it', () => {
   expect(frame()).toHaveAccessibleName('Income and spend by month. Arrow keys step through the 4 columns.');
 });
 
-it('swaps the chart for the same numbers as a table, with the exact values the formatter gives', async () => {
+// #736: in a titled card the switch sits at the end of the card's title row, so
+// the chart draws no row of its own for it. JSDOM lays nothing out, so this reads
+// where the switch lands; the browser captures on the PR show the row.
+const inCard = (ui: React.ReactElement) => <Card title="Income and spend">{ui}</Card>;
+it.each([
+  ['in the chart\'s own head', (ui: React.ReactElement) => ui, '.ui-chart__head'],
+  ['in a titled card\'s title row', inCard, '.ui-card__head > .ui-card__tools'],
+])('swaps the chart for the same numbers as a table, with the exact values the formatter gives, %s', async (_, wrap, slot) => {
   const user = userEvent.setup();
-  const { container } = months();
+  const { container } = render(wrap(
+    <Chart title="Income and spend by month" periods={periods} series={series} format={eur} />,
+  ));
   const chart = screen.getByRole('button', { name: 'Chart' });
   const toTable = screen.getByRole('button', { name: 'Table' });
-  expect(screen.getByRole('toolbar', { name: 'Income and spend by month, view' })).toContainElement(chart);
+  const toolbar = screen.getByRole('toolbar', { name: 'Income and spend by month, view' });
+  expect(toolbar).toContainElement(chart);
+  expect(container.querySelector(slot)).toContainElement(toolbar);
+  expect(container.querySelectorAll('.ui-seg'), 'one switch, drawn once').toHaveLength(1);
   expect(chart.textContent, 'the glyph is the whole label').toBe('');
   expect(chart, 'the chart is the view a reader opens on').toHaveAttribute('aria-pressed', 'true');
   expect(screen.queryByRole('table')).toBeNull();
@@ -143,6 +156,37 @@ it('swaps the chart for the same numbers as a table, with the exact values the f
   await user.keyboard('{ArrowLeft}');
   expect(screen.queryByRole('table')).toBeNull();
   expect(frame()).toBeVisible();
+});
+
+it('keeps the legend under a titled card\'s title, and the switch in its own head outside one', () => {
+  const { container, rerender } = render(inCard(
+    <Chart title="Income and spend by month" periods={periods} series={series} format={eur} legend />,
+  ));
+  expect(container.querySelector('.ui-card__tools .ui-seg')).not.toBeNull();
+  expect(container.querySelector('.ui-chart__head > .ui-chart__legend')).not.toBeNull();
+  expect(container.querySelector('.ui-chart__head .ui-seg')).toBeNull();
+  rerender(<Card><Chart title="Income and spend by month" periods={periods} series={series} format={eur} /></Card>);
+  expect(container.querySelector('.ui-chart__head .ui-seg')).not.toBeNull();
+  expect(container.querySelector('.ui-card__tools')).toBeNull();
+});
+
+it('draws one switch in a titled card\'s title row for two charts, and passes it on when its chart leaves', () => {
+  // A mapped list, so the chart that stays keeps its instance when the first one leaves.
+  const charts = (kept: ChartSeries[]) => inCard(<>
+    {kept.map((s) => <Chart key={s.id} title={`${s.name} by month`} periods={periods} series={[s]} format={eur} />)}
+  </>);
+  const { container, rerender } = render(charts(series.slice(0, 2)));
+  const inTitle = () => container.querySelectorAll('.ui-card__tools .ui-seg');
+  expect(inTitle()).toHaveLength(1);
+  expect(within(inTitle()[0] as HTMLElement).getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? b.textContent))
+    .toEqual(['Chart', 'Table']);
+  expect(screen.getByRole('toolbar', { name: 'Income by month, view' })).toBe(inTitle()[0]);
+  expect(container.querySelectorAll('.ui-chart__head .ui-seg'), 'the second chart keeps its own').toHaveLength(1);
+  // When the owner leaves, the chart that stays takes the title row and drops its own head.
+  rerender(charts(series.slice(1, 2)));
+  expect(inTitle()).toHaveLength(1);
+  expect(screen.getByRole('toolbar', { name: 'Spend by month, view' })).toBe(inTitle()[0]);
+  expect(container.querySelector('.ui-chart__head'), 'no row is left under the title').toBeNull();
 });
 
 it('prints whole units on the axis and exact values in the table', () => {
@@ -532,6 +576,59 @@ it('ramps an area from its lowest top to its highest, and leaves a share flat', 
   }
   const { container } = lookChart('area', 'share');
   expect(container.querySelector('linearGradient'), 'a share reaches the whole in every column').toBeNull();
+});
+
+/** Each pen position and control point of a path, in order, as [x, y]. */
+const pointsOf = (el: Element) => [...(el.getAttribute('d') ?? '').matchAll(/[MLC]([^A-Za-z]*)/g)]
+  .flatMap(([, args]) => {
+    const n = (args.match(/-?\d*\.?\d+/g) ?? []).map(Number);
+    return n.flatMap((_, k) => (k % 2 ? [] : [[n[k], n[k + 1]]]));
+  });
+
+// The owner's curves (#736): each series from zero over the one before it, a
+// curve that never passes the values at its two ends, a wash that is clear at
+// zero, and a point on every value. JSDOM paints nothing, so the wash's opacity
+// and the ring's paint are read in the browser captures on the pull request.
+it('draws a curves area from zero, unstacked, with each curve between its two values', async () => {
+  const user = userEvent.setup();
+  const { container } = lookChart('area', 'curves');
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
+  const edges = [...svg.querySelectorAll('path.ui-chart__line')];
+  expect(edges, 'one curve a column step and a series').toHaveLength(6);
+  // Unstacked, a curve's start stands as far above zero as its own value.
+  const unit = (zeroY - pointsOf(edges[0])[0][1]) / costs[0].values[0];
+  for (const [k, layer] of costs.entries()) {
+    const own = edges.filter((edge) => toneOf(edge) === layer.tone);
+    own.forEach((edge, i) => {
+      expect(Math.abs(zeroY - pointsOf(edge)[0][1] - unit * layer.values[i]), `${layer.name} ${i} from zero`)
+        .toBeLessThanOrEqual(0.1);
+    });
+    expect(own, `${layer.name}, series ${k}`).toHaveLength(3);
+  }
+  for (const edge of edges) {
+    const [start, c1, c2, end] = pointsOf(edge);
+    const [lo, hi] = [Math.min(start[1], end[1]), Math.max(start[1], end[1])];
+    for (const [, cy] of [c1, c2]) expect(cy >= lo && cy <= hi, `${edge.getAttribute('d')} bends past its values`).toBe(true);
+  }
+  for (const fill of svg.querySelectorAll('path.ui-chart__area')) {
+    expect(Math.max(...pointsOf(fill).map(([, py]) => py)), 'a fill stands on zero').toBe(zeroY);
+    const id = /^url\(#(.+)\)$/.exec((fill as SVGElement).style.getPropertyValue('--ui-chart-paint'))?.[1];
+    const g = container.querySelector(`linearGradient[id="${id}"]`)!;
+    expect(Number(g.getAttribute('y1')), 'the wash is clear at zero').toBe(zeroY);
+    expect([...g.querySelectorAll('stop')].map((stop) => classOf(stop)))
+      .toEqual(['ui-chart__wash-floor', 'ui-chart__wash-top']);
+  }
+  expect(svg.querySelectorAll('.ui-chart__dot'), 'a point on every value').toHaveLength(8);
+  showTable();
+  const table = screen.getByRole('table', { name: 'Spend by cost' });
+  expect(within(table).getAllByRole('columnheader').map((c) => c.textContent), 'no total')
+    .toEqual(['Period', 'Payroll', 'Hosting']);
+  fireEvent.click(screen.getByRole('button', { name: 'Chart' }));
+  await tabToFrame(user);
+  await user.keyboard('{ArrowRight}');
+  expect(screen.getByRole('status')).toHaveTextContent('Feb 2026. Payroll €600. Hosting €300.');
+  expect(screen.getByRole('status')).not.toHaveTextContent('Total');
 });
 
 // Material's rule, and the reason a bar is a path: the top of a bar has to

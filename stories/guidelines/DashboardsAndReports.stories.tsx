@@ -126,9 +126,9 @@ const SEASON_SERIES: ChartLookSeries[] = [
   { id: 'y2025', name: '2025', tone: 'accent', values: [16.4, 17.0, 18.8, 18.1, 19.7, 20.6] },
 ];
 const HALF_YEAR = MONTHS.map(month => ({ label: month, short: month }));
-const LineCard = ({ title, series, look = 'labels', legend = false, span = 'first half of 2026', periods = PERIODS }:
-  { title: string; series: ChartLookSeries[]; look?: 'thin' | 'labels'; legend?: boolean; span?: string; periods?: typeof PERIODS }) =>
-  <Card title={title}>
+const LineCard = ({ title, sub, series, look = 'labels', legend = false, span = 'first half of 2026', periods = PERIODS }:
+  { title: string; sub?: string; series: ChartLookSeries[]; look?: 'thin' | 'labels'; legend?: boolean; span?: string; periods?: typeof PERIODS }) =>
+  <Card title={title} sub={sub}>
     <Chart variant="line" look={look} legend={legend} title={`${title}, ${span}, thousands of euros`}
       periods={periods} series={series} format={kEur} />
   </Card>;
@@ -172,9 +172,13 @@ const specimens = [
   { id: 'chart-table-switch',
     do: () => <Stage><MonthBlock view="chart" /><MonthBlock view="table" /></Stage>,
     dont: () => <Stage><Card title="Net settled by month"><MonthChart /><MonthTable /></Card></Stage> },
+  // The chart's own title still names the span: it is read aloud, never drawn.
+  { id: 'no-range-on-chart',
+    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /></Stage>,
+    dont: () => <Stage><LineCard title="Spend against estimate" sub="First half of 2026" series={SPEND_SERIES} legend /></Stage> },
   { id: 'value-not-legend',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
-      <LineCard title="Seasonal spend, 2024 and 2025" series={SEASON_SERIES} look="thin" legend span="first half of each year" periods={HALF_YEAR} /></Stage>,
+      <LineCard title="Seasonal spend" series={SEASON_SERIES} look="thin" legend span="first half of each year" periods={HALF_YEAR} /></Stage>,
     dont: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} look="thin" legend /></Stage> },
   { id: 'two-lines-at-most',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />

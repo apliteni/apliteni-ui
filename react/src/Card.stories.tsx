@@ -50,6 +50,20 @@ export const LargePadding: StoryObj = {
   </div>,
 };
 
+// `tools` puts controls at the end of the title row, as page tools sit beside a page title.
+// A chart in a titled card puts its Chart and Table switch there itself.
+export const TitleTools: StoryObj = {
+  render: () => <div style={page}>
+    <div style={{ maxWidth: 'var(--panel-lg)' }}>
+      <Card
+        title="Cash in and out"
+        sub="Money in and money out for each month."
+        tools={<Button variant="ghost" size="sm" iconOnly icon="download" aria-label="Download PDF" title="Download PDF" />}
+      />
+    </div>
+  </div>,
+};
+
 export const Interactive: StoryObj = {
   render: () => <div style={page}>
     <div style={cardGrid}>

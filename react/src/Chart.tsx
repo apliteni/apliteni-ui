@@ -4,14 +4,16 @@
 // pixels, the keyboard and the markup, and nothing else.
 // why: docs/components.md#react-charts
 import {
-  useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState,
+  useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState,
   type CSSProperties, type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { CHART_FLOOR, bridgeWalk, chartScale, pointTarget } from '@apliteni/apliteni-ui';
 import { Segmented } from './Segmented';
+import { CardTools } from './primitives/Card';
 import { placeTip } from './tip';
 import {
-  LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, pct,
+  LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, overlaps, pct,
   type ChartAreaLook, type ChartDonutLook, type ChartLineLook, type ChartSlice, type ChartStackedLook,
   type Layer, type Look, type LookGeometry,
 } from './chart-looks';
@@ -85,7 +87,7 @@ type ChartCommon = {
   /** The plot's height in CSS px. */
   height?: number;
   /** Offer the same numbers as a table, behind a chart and table switch at the
-   *  top right. On by default, off for a sparkline. */
+   *  top right, or in a titled Card's title row. On by default, off for a sparkline. */
   table?: boolean;
   /** Draw a key that names each series. Off by default: the readout and the
    *  table name every series. */
@@ -417,7 +419,7 @@ function lookFrame(
 ): Frame {
   if (variant !== 'line') noNegative(variant, series.flatMap((s) => s.values.map((value) => ({ name: s.name, value }))));
   const columns = periods.map((p) => columnOf(p, p.label.split(' ')[0]));
-  const stacked = variant === 'stacked' || look !== 'flat' && variant === 'area';
+  const stacked = variant === 'stacked' || variant === 'area' && !overlaps(look);
   const share = look === 'share';
   const n = columns.length;
   const value = (s: ChartLookSeries, i: number) => (Number.isFinite(s.values[i]) ? s.values[i] : Number.NaN);
@@ -531,6 +533,12 @@ export function Chart(props: ChartProps) {
 
   const uid = useId().replace(/[^\w-]/g, '');
   const frameEl = useRef<HTMLDivElement>(null);
+  // In a titled Card the chart and table switch sits at the end of the card's
+  // title row, so the chart draws no row of its own for it.
+  const card = useContext(CardTools);
+  const claim = card?.claim;
+  useLayoutEffect(() => (showTable && claim ? claim(uid) : undefined), [showTable, claim, uid]);
+  const toCard = showTable && card?.owner === uid ? card.slot : null;
   const scroller = useRef<HTMLDivElement>(null);
   const plot = useRef<HTMLDivElement>(null);
   const tipEl = useRef<HTMLSpanElement>(null);
@@ -831,6 +839,13 @@ export function Chart(props: ChartProps) {
       )}
     </ul>
   );
+  const viewSwitch = showTable && (
+    <Segmented size="sm" label={`${title}, view`} value={view}
+      onChange={(next) => setView(next as 'chart' | 'table')} options={[
+        { value: 'chart', label: 'Chart', icon: 'chart', iconOnly: true },
+        { value: 'table', label: 'Table', icon: 'table', iconOnly: true },
+      ]} />
+  );
   const noun = look?.layout === 'ring' ? 'slices' : look?.layout === 'rows' ? 'rows' : 'columns';
 
   return (
@@ -844,16 +859,11 @@ export function Chart(props: ChartProps) {
         '--ui-chart-pad': `${PAD}px`,
       } as CSSProperties}
     >
-      {(showTable || (legendFirst && legend)) && (
+      {toCard && createPortal(viewSwitch, toCard)}
+      {((showTable && !toCard) || (legendFirst && legend)) && (
         <div className="ui-chart__head">
           {legendFirst && legend}
-          {showTable && (
-            <Segmented size="sm" label={`${title}, view`} value={view}
-              onChange={(next) => setView(next as 'chart' | 'table')} options={[
-                { value: 'chart', label: 'Chart', icon: 'chart', iconOnly: true },
-                { value: 'table', label: 'Table', icon: 'table', iconOnly: true },
-              ]} />
-          )}
+          {!toCard && viewSwitch}
         </div>
       )}
 

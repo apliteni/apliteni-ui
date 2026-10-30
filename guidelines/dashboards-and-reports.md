@@ -88,6 +88,18 @@
 
 **Don't:** The rows stacked under the bars, in one block or the next.
 
+## Leave the range out of a chart card
+
+<!-- rule: no-range-on-chart -->
+
+**Rule:** Title a chart card by what it measures, and leave out the range of its data.
+
+**Why:** The page or the filter around the chart already holds the range.
+
+**Do:** Spend against estimate, with no subtitle.
+
+**Don't:** The same card with the first half of 2026 under its title.
+
 ## Name the lines by their values or a key
 
 <!-- rule: value-not-legend -->
@@ -107,6 +119,8 @@
 **Rule:** Draw one line on a chart, or two when the reader compares them.
 
 **Why:** Past two lines, the colours are hard to tell apart and the crossings hide the shape of each line.
+
+**Except:** Three smooth areas compared by shape.
 
 **Do:** Spend against Estimated, then revenue against expenses on a second chart.
 

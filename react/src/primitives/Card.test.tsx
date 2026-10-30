@@ -79,3 +79,19 @@ it.each(['/deck', 'https://example.com/deck'])(
     expect(getByRole('link', { name: 'Deck' })).toHaveAttribute('href', href);
   },
 );
+
+// #736: tools sit at the end of the title row, as a page's tools sit beside its title.
+it('puts tools at the end of the title row, and draws no row for a card without them', () => {
+  const { container, getByRole, rerender } = render(
+    <Card title="Payouts" tools={<button type="button">Export</button>} />,
+  );
+  const head = container.querySelector('.ui-card > .ui-card__head')!;
+  expect([...head.children].map((el) => el.className)).toEqual(['ui-card__title', 'ui-card__tools']);
+  expect(head.querySelector('.ui-card__tools')).toContainElement(getByRole('button', { name: 'Export' }));
+  expect(getByRole('heading', { name: 'Payouts' })).not.toContainElement(getByRole('button'));
+  rerender(<Card title="Payouts" />);
+  expect(container.querySelector('.ui-card__head')).toBeNull();
+  // A link holds no button, so a link card draws no tools.
+  rerender(<Card title="Payouts" href="/payouts" tools={<button type="button">Export</button>} />);
+  expect(container.querySelector('.ui-card__head, button')).toBeNull();
+});

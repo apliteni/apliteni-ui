@@ -1,6 +1,7 @@
 /* ============================================================================
  * Card — .ui-card  (a filled surface one step off the page: edged in both themes)
  * Rows: .ui-card__row  /  headers: .ui-card__title / .ui-card__sub
+ * Title row: .ui-card__head holds the title and .ui-card__tools at its end
  * ========================================================================== */
 
 /* The surface is the step; the line makes it legible. Both themes edge the card with
@@ -136,6 +137,17 @@
   /* Title to description: the step, not the 5px it was. why: docs/foundations.md#spacing-and-rhythm */
   margin: 0 0 var(--space-2);
 }
+/* The title row: the title, then the card's tools centred on its line, in the
+   title's step. why: docs/components.md#content-and-status */
+.ui-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+.ui-card__head > .ui-card__title { flex: 1 1 auto; min-width: 0; margin: 0; }
+.ui-card__tools { display: flex; flex: none; align-items: center; gap: var(--space-1); margin-inline-start: auto; }
+.ui-card__tools:empty { display: none; }
 /* The title of a card that supports its neighbour, such as a document beside the
    data read from it. The size, weight and rank stay the card title's.
    why: docs/foundations.md#text-ink */

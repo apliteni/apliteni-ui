@@ -22,8 +22,8 @@ const Host = ({ children }: { children: ReactNode }) => <div className="ui-tip-h
 // The KPI card from the finance portal's overview, and the card under it: the
 // one that moves when a readout is written into the first.
 const Kpis = ({ chart }: { chart: ReactNode }) => <div className="gh-stack">
-  <Card title="Revenue" sub="Last 12 months"><p className="gh-figure">{eur(REVENUE[REVENUE.length - 1])}</p>{chart}</Card>
-  <Card title="Expenses" sub="Last 12 months"><p className="gh-figure">{eur(EXPENSES[EXPENSES.length - 1])}</p></Card>
+  <Card title="Revenue"><p className="gh-figure">{eur(REVENUE[REVENUE.length - 1])}</p>{chart}</Card>
+  <Card title="Expenses"><p className="gh-figure">{eur(EXPENSES[EXPENSES.length - 1])}</p></Card>
 </div>;
 
 const OverlayDo = () => {

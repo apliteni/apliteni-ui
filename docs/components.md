@@ -107,7 +107,7 @@ what a factory accepts. They do not describe what the factory does.
 | `iconOnlyAllowed`, `iconOnlyNames`, `iconMeanings` | The icon rulings as data. `iconOnlyNames` gives each wordless glyph the words its button’s name may open with, so `copy` cannot be borrowed for Duplicate. See [Icons and glyphs](foundations.md#icons-and-glyphs). |
 | `seedling`, `prism`, `brand` | The brand mark. |
 
-`card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. On phones, its control sits below its label and hint. At wider widths, a choice that cannot fit beside its label moves below it. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link.
+`card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. On phones, its control sits below its label and hint. At wider widths, a choice that cannot fit beside its label moves below it. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link. Use `tools` on a titled React `<Card>` for small controls at the end of the title row, such as an icon-only Download PDF button. A `<Chart>` in a titled card puts its Chart and Table switch there. The tools are centred on the title's line, on a desktop and on a phone, so the card has no extra row. On a touch phone the tools sit `--tap-gap` apart, so a tap on one never runs its neighbour. In the vanilla kit, wrap the title and a `.ui-card__tools` block in `.ui-card__head`.
 Three-option setting rows use `ui-card__row--tight-choice` to narrow pills below 360 px and stay on one line, while other rows keep full tap width.
 To show a document inside a card, wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and give the document `.ui-card__page`. The toolbar becomes a slim row between two hairlines. The scroll box becomes a recessed stage that runs to the card's sides and bottom. The page is a white sheet with dark text in both themes, with A4 proportions at the least. Its table, lines and loading skeleton take the light palette too.
 
@@ -1093,13 +1093,13 @@ are yours — `format` prints exact values in the readout, the live region and t
 `formatAxis` prints the ticks, which are whole units.
 
 **`line`, `area` and `stacked` take `periods` and `series`, and `donut` takes `slices`.** A series
-or a slice has no `shape`. Each of the four variants takes `look`, which picks one of three
-drawings of the same numbers:
+or a slice has no `shape`. Each of the four variants takes `look`, which picks one drawing of
+the same numbers:
 
 | `variant` | `look` values | Default |
 | --- | --- | --- |
 | `line` | `thin`, `points` (a point on each value), `labels` (the last value at the line's end, and a chart that scrolls opens on its latest period) | `thin` |
-| `area` | `flat` (each series from zero), `stacked`, `share` (each column is 100%) | `stacked` |
+| `area` | `flat` (each series from zero), `curves` (each series from zero as a smooth curve, with a point on each value), `stacked`, `share` (each column is 100%) | `stacked` |
 | `stacked` | `columns`, `share` (each column is 100%), `rows` (a bar for each period) | `columns` |
 | `donut` | `thin` (the total in the centre), `table` (a list of the shares beside the ring), `labels` (the name, value and share at each slice) | `table` |
 
@@ -1127,7 +1127,10 @@ design, because the data end, the zero line and the base carry the value. A brid
 the previous running total to the full tone at the new one, so a fall fades downwards. Lines,
 points and legend keys stay solid in the full tone. **An area ramps with its values:** the tint
 is at the series' lowest top and the full tone at its highest, in every column. An area with one
-value, a share band, a stacked part and a donut slice have no ramp.
+value, a share band, a stacked part and a donut slice have no ramp. A `curves` area has a wash
+instead: its tone fades to clear at zero, under each series in the order you give them. Its curve
+never passes the values on each side of it and never goes under zero. Use `curves` for two or
+three series that the reader compares by shape, not by total.
 
 **The legend shows only when you pass `legend`.** **An unfinished period keeps its series fill
 with a dashed edge.** The legend names the estimated state. The readout and the table show the
@@ -1138,7 +1141,10 @@ data value is reachable at full strength through pointer readouts and keyboard a
 
 **A switch in the top right corner shows the same numbers as a chart or as a table.** It is a
 toolbar of two glyph buttons named Chart and Table, with the pressed one marked. The chart shows
-first. The table replaces the plot, and the switch keeps its place.
+first. The table replaces the plot, and the switch keeps its place. In a titled `<Card>` the
+switch sits at the end of the card's title row instead, and the chart draws no row of its own for
+it. When a card holds two charts, the first one puts its switch there. When that chart leaves,
+the next one takes the place. Pass `table={false}` to drop the switch and the table.
 
 **Selection is a band behind the column, and focus is the ring on the chart.** Picking a column
 paints the column's own ground and sets its label in the strong ink at a heavier weight; no mark
