@@ -174,11 +174,11 @@ describe('guideline pages in React: Density and accents', () => {
   it('the Do accents the saved pane and the Dont accents the source, in one card order', () => {
     const [doSide, dontSide] = panels();
     for (const side of [doSide, dontSide]) {
-      expect(side.cards.map(c => c.title)).toEqual(['Extracted fields', 'Source document']);
+      expect(side.cards.map(c => c.title)).toEqual(['Extracted fields', 'Document preview']);
       expect(side.cards.filter(c => c.accent)).toHaveLength(1);
     }
     expect([doSide.kind, doSide.wide, doSide.cards.find(c => c.accent)!.title]).toEqual(['do', 'gda-panes--saved-wide', 'Extracted fields']);
-    expect([dontSide.kind, dontSide.wide, dontSide.cards.find(c => c.accent)!.title]).toEqual(['dont', 'gda-panes--source-wide', 'Source document']);
+    expect([dontSide.kind, dontSide.wide, dontSide.cards.find(c => c.accent)!.title]).toEqual(['dont', 'gda-panes--source-wide', 'Document preview']);
   });
 });
 

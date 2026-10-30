@@ -5,9 +5,9 @@ export const BLURB = content.blurb;
 export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 
-// Rule 1 records the kit's missing modal as #553, so the panel here is composed: the
-// two-step edge and raised ground every kit overlay wears, around a real nav and real
-// rows. The product behind it uses the block vocabulary of _the-page.js.
+// The account window portals over the whole page, so the specimens draw it at a small
+// scale: the two-step edge and raised ground every kit overlay wears, around a real nav
+// and real rows. The product behind it uses the block vocabulary of _the-page.js.
 export const SPEC_CSS = `
   <style>
     .gas-shell { position: relative; height: 180px; display: flex; gap: 5px;

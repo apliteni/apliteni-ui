@@ -38,6 +38,8 @@ export { Feedback } from './Feedback';
 export type { FeedbackProps, FeedbackPayload, FeedbackResult, FeedbackSection } from './Feedback';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
+export { AccountWindow } from './AccountWindow';
+export type { AccountWindowProps, AccountSection, AccountReader } from './AccountWindow';
 export { Drawer } from './Drawer';
 export type { DrawerProps } from './Drawer';
 export { CommandPalette } from './CommandPalette';

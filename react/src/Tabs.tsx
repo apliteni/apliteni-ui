@@ -9,6 +9,17 @@ export type TabsProps = {
   label: string;
 };
 
+/** The tab a key moves to from tab `i` of `count`, or undefined for a key a tab row ignores. */
+export function tabKeyIndex(key: string, i: number, count: number): number | undefined {
+  switch (key) {
+    case 'ArrowRight': return (i + 1) % count;
+    case 'ArrowLeft': return (i - 1 + count) % count;
+    case 'Home': return 0;
+    case 'End': return count - 1;
+    default: return undefined;
+  }
+}
+
 export function Tabs({ items, value, onChange, label }: TabsProps) {
   const id = useId();
   const previous = useRef(value);
@@ -28,14 +39,8 @@ export function Tabs({ items, value, onChange, label }: TabsProps) {
         id={`${id}-tab-${i}`} aria-controls={`${id}-panel-${i}`}
         aria-selected={item.value === value} tabIndex={item.value === value ? 0 : -1}
         onClick={() => onChange(item.value)} onKeyDown={event => {
-          let next: number;
-          switch (event.key) {
-            case 'ArrowRight': next = (i + 1) % items.length; break;
-            case 'ArrowLeft': next = (i - 1 + items.length) % items.length; break;
-            case 'Home': next = 0; break;
-            case 'End': next = items.length - 1; break;
-            default: return;
-          }
+          const next = tabKeyIndex(event.key, i, items.length);
+          if (next === undefined) return;
           event.preventDefault();
           buttons.current[next]?.focus();
           onChange(items[next].value);

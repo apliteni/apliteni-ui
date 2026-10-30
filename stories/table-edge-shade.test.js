@@ -23,6 +23,11 @@
  * exercises both bands and both edges is the coverage. CI runs the source half only;
  * report the browser half's output in the pull request, as AGENTS.md asks for a
  * browser-measured gate.
+ *
+ * The browser half also measures the pinned column's shade at rest, scrolled and
+ * scrolled back, and a phone table's containment at 390x844 (#736). The containment
+ * test reads the built Storybook, so run `npm run build-storybook` first. Each test
+ * states its own limits beside it.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -231,5 +236,145 @@ test('measured in a browser: both edges darken (or, on dark, lighten) by at leas
     }
   } finally {
     await browser.close();
+  }
+});
+
+/* The pinned column's own shade (#736): none at rest, one after a scroll, none after
+ * the scroll back, in both themes. Each reading diffs the kit's page against the
+ * stripped page at the same scroll, 3px right of the pinned column. The same three
+ * readings run with the shade's condition removed and reversed, and each must fail.
+ * The target row's pinned cell must keep an opaque ground at each step, and its
+ * other cells must keep the target wash.
+ * Limits: one fixture and one pixel a reading, because the shade is one shared rule.
+ * The ground check reads the computed colour, not the paint. */
+const PINNED_STEPS = ['start', 'middle', 'start'];
+const PINNED_NONE = 3;
+// The pinned shade is softer than the edge shade: it measures 15/255 at its peak, 3px off.
+const PINNED_FLOOR = 10;
+
+/** What is wrong with one theme's three readings, as lines. */
+function pinnedFindings(theme, deltas) {
+  const out = [];
+  deltas.forEach((delta, i) => {
+    const step = `${theme} step ${i + 1} (${PINNED_STEPS[i]})`;
+    if (PINNED_STEPS[i] === 'start' && Math.abs(delta) > PINNED_NONE) {
+      out.push(`${step}: a shade of ${delta.toFixed(1)}/255 with nothing scrolled under the pinned column`);
+    }
+    if (PINNED_STEPS[i] === 'middle' && (Math.abs(delta) < PINNED_FLOOR || (theme === 'light') !== (delta > 0))) {
+      out.push(`${step}: the shade moved the pixel ${delta.toFixed(1)}/255, not ${PINNED_FLOOR} the theme's way`);
+    }
+  });
+  return out;
+}
+
+test('measured in a browser: the pinned column casts its shade only while scrolled', { skip: !RUN_BROWSER && 'set EDGE_SHADE=1' }, async (t) => {
+  const { kitStylesheet, playwright } = await import('./lib/tap-zone.js');
+  const { decodePNG, pixelAt, darkening, STRIP_SHADE, fixtureHTML, PINNED_SCROLL, pinnedShadeMutations } =
+    await import('./lib/table-edge-shade.js');
+
+  const pw = await playwright();
+  assert.ok(pw, 'EDGE_SHADE=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME || undefined, args: ['--no-sandbox'] });
+
+  /** The three readings of one theme under one sheet. */
+  async function readings(theme, css) {
+    const ctx = await browser.newContext({ viewport: { width: 500, height: 400 }, deviceScaleFactor: 1 });
+    try {
+      const [kept, lost] = await Promise.all([ctx.newPage(), ctx.newPage()]);
+      await kept.setContent(fixtureHTML(theme, css, { pinned: true }));
+      await lost.setContent(fixtureHTML(theme, `${css}\n${STRIP_SHADE}`, { pinned: true }));
+      const deltas = [];
+      const grounds = [];
+      const washes = [];
+      for (const to of PINNED_STEPS) {
+        const at = await kept.evaluate(PINNED_SCROLL, to);
+        const ref = await lost.evaluate(PINNED_SCROLL, to);
+        assert.deepEqual(ref, at, `${theme} ${to}: the stripped page sits elsewhere, so the shots are not comparable`);
+        if (to === 'middle') assert.ok(at.scrollLeft > 40, `${theme}: the pinned fixture scrolls only ${at.scrollLeft}px`);
+        grounds.push(at.ground);
+        washes.push(at.wash);
+        const before = pixelAt(decodePNG(await lost.screenshot()), at.x, at.y);
+        const after = pixelAt(decodePNG(await kept.screenshot()), at.x, at.y);
+        t.diagnostic(`${theme} ${to}: no-shade ${before} → shaded ${after}`);
+        deltas.push(darkening(before, after));
+      }
+      return { deltas, grounds, washes };
+    } finally {
+      await ctx.close();
+    }
+  }
+
+  try {
+    const kit = kitStylesheet();
+    const broken = pinnedShadeMutations(kit);
+    for (const theme of THEMES) {
+      await t.test(`${theme}: none at rest, a shade after a scroll, none after the return`, async () => {
+        const { deltas, grounds, washes } = await readings(theme, kit);
+        assert.deepEqual(pinnedFindings(theme, deltas), []);
+        // A translucent ground lets the scrolled columns show through the target row's pin.
+        assert.ok(grounds.every((g) => !/rgba|color\(|\/ /.test(g)), `${theme}: the target row's pinned ground is ${grounds[1]}`);
+        // The frame clears the row fills, and must not clear the target row's wash with them.
+        assert.ok(washes.every((w) => w !== 'rgba(0, 0, 0, 0)'), `${theme}: the target row's cells lost the wash: ${washes[0]}`);
+      });
+      for (const [name, css] of Object.entries(broken)) {
+        await t.test(`${theme}: rejects the shade with ${name}`, async () => {
+          assert.notDeepEqual(pinnedFindings(theme, (await readings(theme, css)).deltas), [], `${theme}: ${name} still passed`);
+        });
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+/* A phone table never widens the page (#736): at 390x844, in both themes, every
+ * DataTable story with a scroll frame keeps the page inside the screen and scrolls
+ * the table inside its frame. It reads the built Storybook, so run
+ * `npm run build-storybook` first. Limits: only stories whose ids start with
+ * `react-datatable`, and only those the walk finds a frame in. The payouts story
+ * must be one of them. */
+const PHONE = { width: 390, height: 844 };
+const PAYOUTS_STORY = 'react-datatable-ledgers--finance-data';
+
+test('measured in a browser: a phone table scrolls inside its frame', { skip: !RUN_BROWSER && 'set EDGE_SHADE=1' }, async (t) => {
+  const { existsSync } = await import('node:fs');
+  const { playwright, serve, indexed, openStory, STORY_DONE } = await import('./lib/dropdown-contain.js');
+  const { PHONE_FIT, phoneFitFindings, FRAME_UNCLIPPED } = await import('./lib/table-edge-shade.js');
+
+  const build = path.join(root, 'storybook-static');
+  assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
+  const pw = await playwright();
+  assert.ok(pw, 'EDGE_SHADE=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME || undefined, args: ['--no-sandbox'] });
+  const server = await serve(build, path.join(build, 'iframe.html'));
+
+  try {
+    const stories = indexed(build).filter((s) => s.id.startsWith('react-datatable'));
+    assert.ok(stories.some((s) => s.id === PAYOUTS_STORY), `${PAYOUTS_STORY} is not in the build`);
+    for (const theme of THEMES) {
+      const ctx = await browser.newContext({ viewport: PHONE });
+      const page = await ctx.newPage();
+      const measured = [];
+      for (const story of stories) {
+        const got = await openStory(page, story, { port: server.port, theme });
+        assert.equal(got.phase, STORY_DONE, `${story.label} ${theme}: ${got.phase}`);
+        await page.evaluate(() => document.fonts.ready);
+        const fit = await page.evaluate(PHONE_FIT);
+        if (!fit.frames.length && story.id !== PAYOUTS_STORY) continue;
+        measured.push(story.id);
+        t.diagnostic(`${theme} ${story.id}: ${JSON.stringify(fit)}`);
+        assert.deepEqual(phoneFitFindings(fit), [], `${story.label} ${theme}`);
+        if (story.id === PAYOUTS_STORY) {
+          await page.addStyleTag({ content: FRAME_UNCLIPPED });
+          assert.notDeepEqual(phoneFitFindings(await page.evaluate(PHONE_FIT)), [], `${theme}: an unclipped frame still passed`);
+        }
+      }
+      // The payouts, the pinned payments and the pinned sortable table.
+      assert.ok(measured.length >= 3, `${theme}: only ${measured.length} stories measured: ${measured.join(', ')}`);
+      await ctx.close();
+    }
+  } finally {
+    await browser.close();
+    server.proc.kill();
   }
 });

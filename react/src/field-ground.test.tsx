@@ -62,8 +62,10 @@ const THEMES = ['dark', 'light'] as const;
 // showcases (#429 PR 4): the agent name field on two Access screens and the four
 // Preferences switches. The sign-in fields moved to the showcases with their stories.
 // Then two from the KeyValueList control-values story (#631): its select and text field.
+// Then three from the AccountWindow story (#736): the Profile section's two text fields and
+// its select. The other sections mount only when a reader opens them.
 // Move this count with the specimens.
-const FIELD_COUNT = 94;
+const FIELD_COUNT = 97;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

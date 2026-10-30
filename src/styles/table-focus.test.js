@@ -17,8 +17,7 @@ import { JSDOM } from "jsdom";
  * Subjects come from the markup and from SHAPES below, because a composition the kit does
  * not ship is still one a consumer may write.
  *
- * Limits: the cascade, not paint; literal tags only; and `@media` is invisible here, which
- * is why the stacked card's undo is measured in src/styles/table-identity.test.js. A rule
+ * Limits: the cascade, not paint; literal tags only; and `@media` is invisible here. A rule
  * painting `var(--ring)` must carry no selector list — the kit's other ring gates split a
  * selector on every comma.
  */
@@ -373,8 +372,6 @@ test("every composition the reader pages name takes the ring and keeps the box i
 const RING_RULES = {
   outset: /a:focus-visible,\n/,
   inward: /\.ui-table td\.ui-table__linked > :is\(a:not\(\[class\]\), a\.ui-identity\):only-child:focus-visible \{[^}]*\}/,
-  stackedLinked: /\.ui-table\.ui-table--stack > tbody > tr > td\.ui-table__linked > a:only-child:focus-visible \{[^}]*\}/,
-  stackedDirect: /\.ui-table\.ui-table--stack\.ui-table--pinned \.ui-table__identity:not\(\.ui-table__linked\) > a:focus-visible \{[^}]*\}/,
 };
 
 test("the check rejects a cell link dropped from the ring", () => {
@@ -461,12 +458,11 @@ test("a cell link is one box, so a wrapped one paints one ring", () => {
 });
 
 test("the check rejects a cell link left in the inline flow", () => {
-  // Three rules give a cell link a box: the plain-link one, the fill rule, and the stacked
-  // direct-link reset. All have to go, or the survivor covers the hole.
+  // Two rules give a cell link a box: the plain-link one and the fill rule. Both have to go,
+  // or the survivor covers the hole.
   const rules = [
     /\n\.ui-table :where\(td, th, caption\) a:not\(\[class\]\) \{[^}]*\}/,
     /\n\.ui-table td\.ui-table__linked > :is\(a:not\(\[class\]\), a\.ui-identity\):only-child \{[^}]*\}/,
-    /\n  \.ui-table\.ui-table--stack\.ui-table--pinned \.ui-table__identity > a:not\(\[class\]\) \{[^}]*\}/,
   ];
   for (const rule of rules) assert.ok(rule.test(SHEETS), "the box rules must exist to be taken out");
 

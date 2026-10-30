@@ -28,7 +28,7 @@ const pageFiles = Object.keys(modules).sort();
  * floor with slack in it is a floor a deleted page walks under. Keep this note
  * clear of the words the minimums page's gate list is discovered by;
  * saying one of them outside an import enrols this file in that list. */
-const FOUND = { pages: 27, stories: 27, prose: 1007 };
+const FOUND = { pages: 27, stories: 27, prose: 1006 };
 
 /* Every prose carrier the collection writes. Each name is held against the
  * source below, so a renamed class fails here instead of quietly leaving the

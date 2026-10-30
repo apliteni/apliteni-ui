@@ -28,8 +28,8 @@
  *   - The React half. The rule is one kit declaration both faces load;
  *     react/src/Dropdown.test.tsx matches it against React's rendered tree, and
  *     the browser gate measures both halves.
- *   - The default accent only. The other five accents redefine --glow-purple
- *     and are walked by `CONTRAST_ACCENTS=1 stories/contrast.test.js`.
+ *   - The default accent only. The other five accents redefine --glow-purple.
+ *     No walk renders them since the vanilla stories went with #724.
  *   - `:focus-visible` as a browser decides it: the state is driven by the
  *     attribute `desugar()` rewrites it to.
  *   - A shut menu. The gate opens every chip's menu, because a shut panel hides
@@ -173,7 +173,7 @@ function washGround(subject) {
  *  #550's round-two defect. Since #595 hover draws no outline, so the step is the
  *  only signal and the floor has to hold alone. The deepened wash clears it in
  *  both themes and all six accents — 1.135:1 is the quietest of them, measured in
- *  the walk `CONTRAST_ACCENTS=1` runs. */
+ *  the vanilla accent walk before #724 removed it. */
 const HOVER_STEP = 1.1;
 
 /** What hover and focus may not take away, and what hover owes.

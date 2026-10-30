@@ -14,9 +14,9 @@ import { SPEC_CSS } from './_account-and-settings.js';
 
 const content = await loadGuideline('account-and-settings.md', new URL('../../guidelines/account-and-settings.md', import.meta.url));
 
-// Rule 1 records the kit's missing modal as #553, so the panel here is composed: the
-// two-step edge and raised ground every kit overlay wears, around a real nav and real
-// rows. The product behind it uses the block vocabulary of the page guideline.
+// The account window portals over the whole page, so the specimens draw it at a small
+// scale: the two-step edge and raised ground every kit overlay wears, around a real nav
+// and real rows. The product behind it uses the block vocabulary of the page guideline.
 const Stage = ({ children }: { children: ReactNode }) => <div className="gl-stage">{children}</div>;
 const Rows = ({ n, cur }: { n: number; cur: number }) => <>{Array.from({ length: n }, (_, i) =>
   <div key={i} className={`gas-row${i === cur ? ' gas-row--cur' : ''}`} />)}</>;

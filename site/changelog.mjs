@@ -6,10 +6,32 @@
 
 export const RELEASES = [
   {
-    v: '0.148.0', date: '2026-10-29',
+    v: '0.152.0', date: '2026-10-30',
     changes: [
       ['added', 'React `Card` takes `tools`, small controls at the end of a titled card\'s title row, on a desktop and on a phone, with no extra row. In the vanilla kit, `.ui-card__head` holds the title and `.ui-card__tools`. Part of #736.', ['Card']],
       ['changed', 'React `Chart` in a titled `Card` puts its Chart and Table switch at the end of the card\'s title row, so the chart draws no row of its own for it. A Chart outside a titled Card keeps the switch in its top right corner. Part of #736.', ['Chart', 'Card']],
+    ],
+  },
+  {
+    v: '0.150.0', date: '2026-10-30',
+    changes: [
+      ['added', 'New card classes `.ui-card__viewer` and `.ui-card__page` show a document inside a card apart from the controls that act on it. Wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and give the document `.ui-card__page`. The toolbar becomes a slim row between two hairlines, and the page sits as a sheet on a recessed stage. Part of #736.', ['Card']],
+    ],
+  },
+  {
+    v: '0.149.0', date: '2026-10-30',
+    changes: [
+      ['added', 'React `AccountWindow` is the account and settings window. The product gives it the reader and the sections, and it draws the dimmed page, the close, the section title and a 216px rail with the reader at its top. At 560px and below it fills the screen and the sections become tabs under the reader. Part of #736.', ['Modal']],
+    ],
+  },
+  {
+    v: '0.148.0', date: '2026-10-30',
+    changes: [
+      ['changed', 'On a phone, a table no longer turns its rows into cards. A table marked `.ui-table--stack` now scrolls sideways inside its frame like any other table, and the page does not scroll. Remove `.ui-table--stack` and its table roles from your markup. Part of #736.', ['Table']],
+      ['changed', 'While a table with a pinned identity column scrolls sideways, a soft shade falls to the right of that column. At the left edge there is no shade. The column keeps the table surface, so it follows light and dark. Part of #736.', ['Table']],
+      ['changed', 'In a card, a hover table that is not dense now reaches out to the card\'s text edge, so its first column lines up with the card title. Part of #736.', ['Table']],
+      ['fixed', 'A target row in a pinned table keeps its wash in the pinned column and inside the scroll frame. Scrolled columns no longer show through the pinned cell. Part of #736.', ['Table']],
+      ['deprecated', 'React `DataTable` ignores `stack`. A phone table scrolls sideways. The prop is still accepted. Part of #736.', ['DataTable']],
     ],
   },
   {

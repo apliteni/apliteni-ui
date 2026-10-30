@@ -61,7 +61,7 @@ export const WORDS_PER_RULE = 60;
  * wrote it is not a decision anybody made. */
 export const RECORDED = {
   'accessibility-floor.md': 853,
-  'account-and-settings.md': 360,
+  'account-and-settings.md': 355,
   'command-palette.md': 430,
   'component-choice.md': 510,
   'density-and-accents.md': 408,

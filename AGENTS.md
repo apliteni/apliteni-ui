@@ -69,11 +69,13 @@ automatically, and explain the cause and limitation of each accepted failure.
 
 ## Check accents locally
 
+Before opening a PR that changes colours, tokens or theme/accent CSS, run:
+`node --test stories/accent-contrast.test.js`
+Report the result in the PR. It measures the accent tokens in all eight theme and accent cells.
 The vanilla accent matrix went with the vanilla factories in #724, so no gate walks every story
 under every accent. The contrast walk in `react/src/contrast-walk.tsx` uses the default accent.
-Before opening a PR that changes colours, tokens or theme/accent CSS, say in the PR which
-accent each changed colour was measured under. `react/src/Chart.contrast.test.tsx` measures
-the chart tones under every accent.
+Say in the PR which accent each changed colour was measured under.
+`react/src/Chart.contrast.test.tsx` measures the chart tones under every accent.
 
 ## Check the phone tap floor locally
 
@@ -134,7 +136,8 @@ Report the result in the PR. CI runs only this gate's source half.
 ## Check the table edge shade locally
 
 Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` edge-shade rules,
-measure both edges in a real browser — the source half only reads selectors, not paint:
+measure both edges in a real browser — the source half only reads selectors, not paint.
+Run `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_CHROME=… EDGE_SHADE=1 node --test stories/table-edge-shade.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 

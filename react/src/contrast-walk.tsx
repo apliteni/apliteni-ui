@@ -18,7 +18,8 @@
 // WHAT THIS GATE WILL NOT CATCH. The vanilla ledger (stories/contrast.test.js,
 // header) applies here too. Differences of its own:
 //
-//  - React uses the default accent. The vanilla accent matrix runs with CONTRAST_ACCENTS=1.
+//  - React uses the default accent. The other accents are measured only as tokens, by
+//    stories/accent-contrast.test.js. The vanilla accent walk went with #724.
 //  - State targets come from both the kit and React stylesheets. Scripts,
 //    simultaneous states, and state rules inside story-local <style> blocks
 //    are not covered.

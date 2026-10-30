@@ -109,6 +109,7 @@ what a factory accepts. They do not describe what the factory does.
 
 `card()` and React `<Card>` share the default, accent, and live surfaces. Use `icon` for a title chip. Use `pad="sm"` for less vertical space or `pad="lg"` for a centred landing card. A setting row keeps its choice on one line. On phones, its control sits below its label and hint. At wider widths, a choice that cannot fit beside its label moves below it. An accent card keeps its tint without a coloured edge. Use `href` on React `<Card>` to make the whole card a link. Use `tools` on a titled React `<Card>` for small controls at the end of the title row, such as an icon-only Download PDF button. A `<Chart>` in a titled card puts its Chart and Table switch there. The tools are centred on the title's line, on a desktop and on a phone, so the card has no extra row. On a touch phone the tools sit `--tap-gap` apart, so a tap on one never runs its neighbour. In the vanilla kit, wrap the title and a `.ui-card__tools` block in `.ui-card__head`.
 Three-option setting rows use `ui-card__row--tight-choice` to narrow pills below 360 px and stay on one line, while other rows keep full tap width.
+To show a document inside a card, wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and give the document `.ui-card__page`. The toolbar becomes a slim row between two hairlines. The scroll box becomes a recessed stage that runs to the card's sides and bottom. The page is a white sheet with dark text in both themes, with A4 proportions at the least. Its table, lines and loading skeleton take the light palette too.
 
 ### Controls and input
 
@@ -558,6 +559,21 @@ title, close control and footer stay visible. It is a borderless raised surface.
 alone, `--radius-md`, a `--text-base` title and a deep scrim without blur. It names itself with an
 `h2`. The HTML entry point ships no general modal. Its separate `confirm()` is unchanged.
 
+### The account window
+
+The React `AccountWindow` is the account and settings window. The product gives it the reader
+and the sections, each with its id, label, icon and content. The window draws the rest: the
+dimmed page, the close, the section title and the rail. It is 1024px wide and 76% of the
+viewport high, with a 216px rail. It narrows to 96% of a smaller screen, and it keeps 32px
+above and below it on a short one. The rail is the page ground, with the reader's avatar, name
+and email at its top. Only the open section's row carries the accent. Each rail row is a button
+with `aria-current`, because a section is a place in the window and not a route. The pane remounts
+when the section changes, so a half-filled form does not follow the reader. At 560px and below
+the window fills the screen, and the sections become tabs under the reader. They act as the
+`Tabs` panel tabs do: one Tab stop, the arrow keys, Home and End, and the open tab scrolled into
+view. Pass `section` and `onSectionChange` to control the open section, or `defaultSection` to
+leave it to the window.
+
 ### The hover readout
 
 `tooltip()` is the readout that a surface shows while a pointer rests on one of its marks. It is an
@@ -668,14 +684,11 @@ decorative logo is not drawn there. A sub-line stays running text, which is a ru
 around the whole line**, because the cell clips and a band around the link alone could not close
 its right side.
 
-**Below the one-column step, a table marked `.ui-table--stack` lays each row out as a block
-instead of scrolling.** The identity and short cells appear on the first line. `.ui-table__long`
-appears below them. A card is as wide as the row, so a pinned identity wraps its whole name there,
-and the one-line cap and the filled cell both come off. The header row is clipped rather than
-removed, so a cell still reads with its column's name. **A clipped header is read but not operated**, so put a sort or filter control
-on the row above the table and name the table in `aria-controls`. The markup includes the table
-roles at every width because a stylesheet cannot add them. A value whose meaning comes from its
-heading must carry that meaning itself: give an amount cell `data-label` with its column's name, and a stacked row shows it before the figure. This is a rule in [Dense tables](../guidelines/dense-tables.md).
+**On a phone, a table stays a table.** No kit table lays its rows out as blocks. A table wider
+than the screen scrolls sideways inside its frame, and the page does not scroll. A pinned identity
+column stays at the frame's left edge on the table's own surface, so it follows the theme. While
+columns sit under it, a soft shade from the edge token falls to its right. At the left edge there
+is no shade. This is a rule in [Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
 change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
@@ -867,11 +880,10 @@ vanilla sections above.
 Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
 A `.ui-table__title` cell gives a text column the remaining width. A column takes `cell` for it:
 `title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
-`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `stack`, `density`,
+`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`,
 `stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
 and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
-with no strike line. `stack` writes the table roles that the block layout drops. Below the phone step each row
-shows every cell, so no amount scrolls out of reach. An amount column (`num`) with a text label shows that label before each figure. A table that does not scroll is the card's own child, so a dense or stacked table reaches the card's text edge.
+with no strike line. `stack` is deprecated and ignored: a phone table scrolls sideways like any other. A table that does not scroll is the card's own child, so a dense table reaches the card's text edge.
 Its pager follows the measured table width and wraps when necessary.
 Without `ResizeObserver`, the pager keeps its container width.
 A pager that renders no controls takes no space.
