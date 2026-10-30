@@ -63,14 +63,17 @@ const THEMES = ['dark', 'light'] as const;
 // Preferences switches. The sign-in fields moved to the showcases with their stories.
 // Then two from the KeyValueList control-values story (#631): its select and text field.
 // Then 23 search fields, one above each payouts or agents table (#736): fifteen AppShell
-// stories, five Shell layouts and three Access screens. Then 22 more search fields, one
-// above each remaining table (#736): six DataTable ledger stories, five DataTable stories,
+// stories, five Shell layouts and three Access screens. Then 21 more search fields, one
+// above each remaining table (#736): five DataTable ledger stories (the two stacked ledgers
+// went with the stack layout, and the pinned scroll ledger took one), five DataTable stories,
 // two DiffPreview, two Loading, two PeriodPicker, and one each in File drop, Finance,
 // the invoice table, the finance dashboard and Labels and titles. Then ten search fields
 // in bars that had only chips (#736): seven Stock screener stories, two Finance report
 // stories and the Finance comparison.
+// Then three from the AccountWindow story (#736): the Profile section's two text fields and
+// its select. The other sections mount only when a reader opens them.
 // Move this count with the specimens.
-const FIELD_COUNT = 149;
+const FIELD_COUNT = 151;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

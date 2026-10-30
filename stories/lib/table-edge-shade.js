@@ -105,16 +105,19 @@ const COLUMNS = Array.from({ length: 6 }, (_, i) => `Payout ID ${i}`);
 /** A sticky-header table wide enough that neither edge is ever reached at the
  *  measuring scroll position: unbreakable payout IDs, not a declared width, because
  *  a declared width on `.ui-table` loses to the kit's own `width: 100%` and renders
- *  no overflow at all — the same reason the galleries never write one by hand. */
-export function fixtureHTML(theme, css) {
+ *  no overflow at all — the same reason the galleries never write one by hand.
+ *  `pinned` pins the first column, as a pinned identity table does, and marks the
+ *  second row as the target, whose pinned cell must still hide what scrolls under it. */
+export function fixtureHTML(theme, css, { pinned = false } = {}) {
+  const cell = (tag, text, i) => `<${tag}${pinned && i === 0 ? ' class="ui-table__identity"' : ''}>${text}</${tag}>`;
   const rows = [0, 1, 2]
-    .map((r) => `<tr>${COLUMNS.map((_, i) => `<td>${IDS[(r + i) % IDS.length]}</td>`).join('')}</tr>`)
+    .map((r) => `<tr${pinned && r === 1 ? ' class="is-target"' : ''}>${COLUMNS.map((_, i) => cell('td', IDS[(r + i) % IDS.length], i)).join('')}</tr>`)
     .join('');
   return `<!doctype html><html lang="en" data-theme="${theme}"><head><style>`
     + 'html,body{margin:0;padding:0}#wrap{width:320px;margin:40px}'
     + `</style><style>${css}</style></head><body>`
     + '<div id="wrap"><div class="ui-table-scroll" tabindex="0" style="max-height:140px">'
-    + `<table class="ui-table ui-table--sticky"><thead><tr>${COLUMNS.map((c) => `<th>${c}</th>`).join('')}</tr></thead>`
+    + `<table class="ui-table ui-table--sticky${pinned ? ' ui-table--pinned' : ''}"><thead><tr>${COLUMNS.map((c, i) => cell('th', c, i)).join('')}</tr></thead>`
     + `<tbody>${rows}</tbody></table></div></div></body></html>`;
 }
 
@@ -142,3 +145,53 @@ export function readingPoints(clientWidth) {
     'body right': [right, 40 + 50],
   };
 }
+
+/** Scrolls the pinned fixture to `to` ('start' or 'middle'), waits two frames so the
+ *  scroll-state query has answered, and returns where to read the pinned shade: 3px
+ *  right of the pinned column, 3px under the first body row's top, in the padding
+ *  clear of any glyph, with the target row's pinned ground and the ground of its next cell. */
+export const PINNED_SCROLL = async (to) => {
+  const el = document.querySelector('.ui-table-scroll');
+  el.scrollLeft = to === 'middle' ? Math.round((el.scrollWidth - el.clientWidth) / 2) : 0;
+  await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+  const cell = document.querySelector('tbody .ui-table__identity').getBoundingClientRect();
+  const target = document.querySelector('tr.is-target > .ui-table__identity');
+  const wash = document.querySelector('tr.is-target > td:not(.ui-table__identity)');
+  return {
+    scrollLeft: el.scrollLeft, x: cell.right + 3, y: cell.top + 3,
+    ground: getComputedStyle(target).backgroundColor, wash: getComputedStyle(wash).backgroundColor,
+  };
+};
+
+/** The query the pinned shade waits on, and the two ways to break it: the shade with
+ *  no condition, and the shade on the opposite condition. Each throws when the
+ *  query is not in the sheet once, so a moved rule cannot pass for a refused one. */
+const PINNED_QUERY = '@container scroll-state(scrollable: left) {';
+export function pinnedShadeMutations(css) {
+  const found = css.split(PINNED_QUERY).length - 1;
+  if (found !== 1) throw new Error(`table-edge-shade: "${PINNED_QUERY}" is in the kit sheet ${found} times, not once`);
+  return {
+    'the condition removed': css.replace(PINNED_QUERY, '@supports (display: block) {'),
+    'the condition reversed': css.replace(PINNED_QUERY, '@container not scroll-state(scrollable: left) {'),
+  };
+}
+
+/** What a page at a phone width reads: how wide the document is against the
+ *  viewport, and each table scroll frame's own width and scroll range. */
+export const PHONE_FIT = () => ({
+  view: window.innerWidth,
+  page: document.documentElement.scrollWidth,
+  frames: [...document.querySelectorAll('.ui-table-scroll')].map((f) => ({ width: f.clientWidth, range: f.scrollWidth - f.clientWidth })),
+});
+
+/** What is wrong with one PHONE_FIT reading, as lines: a page wider than the screen,
+ *  or a frame the table does not scroll inside. */
+export const phoneFitFindings = (fit) => [
+  ...(fit.page > fit.view ? [`the page is ${fit.page}px wide on a ${fit.view}px screen`] : []),
+  ...(fit.frames.length ? [] : ['no table scroll frame on the page']),
+  ...fit.frames.filter((f) => f.range <= 0).map((f) => `a ${f.width}px frame has no scroll range`),
+];
+
+/** The mutation the containment check must catch: a frame that does not clip, so
+ *  the table widens the page instead of scrolling inside it. */
+export const FRAME_UNCLIPPED = '.ui-table-scroll { overflow: visible !important; }';

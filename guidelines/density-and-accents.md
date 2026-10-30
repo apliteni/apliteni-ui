@@ -48,6 +48,6 @@
 
 **Do:** Lead with the extracted fields, in the wider column, with each value heavier than its label, and put the accent on the pane's own name.
 
-**Don't:** Give the source document the leading, wider pane, or let a control inside it hold the only accent on the screen while the saved values hold none.
+**Don't:** Give the document preview the leading, wider pane, or let a control inside it hold the only accent on the screen while the saved values hold none.
 
 **Except:** Fade nothing to make a block quieter; a quieter block is smaller, later or uncoloured, never muted.

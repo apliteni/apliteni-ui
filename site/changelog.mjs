@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.148.0', date: '2026-10-29',
+    v: '0.151.0', date: '2026-10-30',
     changes: [
       ['breaking', 'React `Breadcrumbs` and its types `BreadcrumbsProps` and `BreadcrumbItem` are removed, with the `AppShell` `crumbs` prop and the `.ui-nav--crumbs` styles. A subpage shows the way up with `BackLink`, which `AppShell` draws from `back`. Part of #736.', ['Shell']],
       ['added', '`AppShell` takes `tools`, small tools for the whole page, such as a version badge or a small button, at the end of the title row. The lede stands under the whole row. A page that uses only the stylesheet gets the same row from `.ui-app__title-row` and `.ui-app__tools`. `actions` does not change. Part of #736.', ['Shell']],
@@ -14,6 +14,28 @@ export const RELEASES = [
       ['changed', 'In the `AppShell` account menu, the Theme row opens a submenu with Auto, Light and Dark, and a check marks the current choice. Right or Enter opens it, and Left or Escape closes it onto the Theme row. In the sidebar it opens beside the menu. In the phone drawer it replaces the menu rows under a Theme back row. A separator now stands before Sign out. When the view narrows to the phone layout, the sidebar menu closes and focus moves to the Menu button. Part of #736.', ['Shell', 'Dropdown']],
       ['fixed', 'A dropdown panel that is wider than a body that clips across, such as the shell\'s rail, now opens over the page and shows in full. Before, the rail cut the account menu at its right edge. Part of #736.', ['Shell', 'Dropdown']],
       ['added', 'The Dense tables guideline asks for a filter bar directly above every table, with a search field and the filters that fit its columns. The shell and Access showcases now show one. Part of #736.', ['Guidelines', 'FilterBar']],
+    ],
+  },
+  {
+    v: '0.150.0', date: '2026-10-30',
+    changes: [
+      ['added', 'New card classes `.ui-card__viewer` and `.ui-card__page` show a document inside a card apart from the controls that act on it. Wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and give the document `.ui-card__page`. The toolbar becomes a slim row between two hairlines, and the page sits as a sheet on a recessed stage. Part of #736.', ['Card']],
+    ],
+  },
+  {
+    v: '0.149.0', date: '2026-10-30',
+    changes: [
+      ['added', 'React `AccountWindow` is the account and settings window. The product gives it the reader and the sections, and it draws the dimmed page, the close, the section title and a 216px rail with the reader at its top. At 560px and below it fills the screen and the sections become tabs under the reader. Part of #736.', ['Modal']],
+    ],
+  },
+  {
+    v: '0.148.0', date: '2026-10-30',
+    changes: [
+      ['changed', 'On a phone, a table no longer turns its rows into cards. A table marked `.ui-table--stack` now scrolls sideways inside its frame like any other table, and the page does not scroll. Remove `.ui-table--stack` and its table roles from your markup. Part of #736.', ['Table']],
+      ['changed', 'While a table with a pinned identity column scrolls sideways, a soft shade falls to the right of that column. At the left edge there is no shade. The column keeps the table surface, so it follows light and dark. Part of #736.', ['Table']],
+      ['changed', 'In a card, a hover table that is not dense now reaches out to the card\'s text edge, so its first column lines up with the card title. Part of #736.', ['Table']],
+      ['fixed', 'A target row in a pinned table keeps its wash in the pinned column and inside the scroll frame. Scrolled columns no longer show through the pinned cell. Part of #736.', ['Table']],
+      ['deprecated', 'React `DataTable` ignores `stack`. A phone table scrolls sideways. The prop is still accepted. Part of #736.', ['DataTable']],
     ],
   },
   {

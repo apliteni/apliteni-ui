@@ -238,7 +238,8 @@ shadow. Dark draws the line only.** In light, the line is `--level-line`, half w
 inner line, and it keeps `--elev-drop`. A line that divides two regions of one surface is not
 a level. It stays a line in both themes. Examples include a card's row dividers, a table's
 row rules, the rail's head band and the topbar's bottom rule. A field is not a level either
-because its edge says "type here". A step of lightness on its own has a contrast of about
+because its edge says "type here". A scroll shade is not a level. A table shades the edge
+where columns scroll under its frame or its pinned column, in both themes. A step of lightness on its own has a contrast of about
 1.1, so a level never has only its step.
 
 | Level | Light line | Light shadow | Dark line | Dark shadow |

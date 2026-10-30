@@ -68,6 +68,10 @@
   border-spacing: 0;
   padding: 0 var(--space-2);
 }
+/* A pinned column sticks at the frame's edge, so its first cell owns the start inset
+   and the text does not move when the table scrolls. why: #736 */
+.ui-table--hover.ui-table--pinned:not(.ui-table--zebra) { padding: 0 var(--space-2) 0 0; }
+.ui-table--hover.ui-table--pinned:not(.ui-table--zebra) :is(th, td):first-child { padding-left: var(--space-2); }
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:first-child {
   border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
 .ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:last-child {
@@ -221,8 +225,7 @@
  * because a dense cell is nowrap, and the column is then only as wide as the wider
  * of the two: a status that had a column of its own was the first thing a phone cut
  * off, and in here it is the last. The class goes on a span inside the cell, never
- * on the cell, which would leave the table box model. A row carrying a paragraph takes
- * .ui-table--stack below instead, which drops the head; a pair keeps every head at every
+ * on the cell, which would leave the table box model. A pair keeps every head at every
  * width, which is what a three-value glance row is read by. why: #505 */
 .ui-table__pair { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
 
@@ -271,6 +274,12 @@
 .ui-table--zebra.ui-table--hover tbody tr.is-target:hover > :is(td, th) {
   background: color-mix(in srgb, var(--accent) 12%, transparent); /* code-bg: inherit — this translucent wash leaves the chip on its opaque ground. */
 }
+/* A pinned cell lays the wash over its own ground, or the columns that scroll under it
+   show through. #736 */
+.ui-table--pinned tbody tr.is-target > :is(.ui-table__identity, .ui-table__selection),
+.ui-table--pinned.ui-table--hover tbody tr.is-target:hover > :is(.ui-table__identity, .ui-table__selection) {
+  background: linear-gradient(color-mix(in srgb, var(--accent) 12%, transparent)) var(--table-bg);
+}
 
 /* A focused row draws the shared ring inward, like its containing scroll region.
    why: docs/foundations.md#the-focus-ring */
@@ -298,6 +307,11 @@
 }
 .ui-card > .ui-table-scroll > .ui-table--dense {
   padding-inline: 0;
+}
+/* A hover table's row inset plus the frame's 4px band is one --space-3, so the
+   frame hangs out by that much and the first column meets the title. why: #736 */
+.ui-card > .ui-table-scroll:has(> .ui-table--hover:not(.ui-table--dense)) {
+  margin-inline: calc(-1 * var(--space-3));
 }
 .ui-table td.ui-table__num { text-align: right; }
 .ui-table--compact td,
@@ -335,9 +349,9 @@
 /* The surface belongs to the box that scrolls, so the shades land under the cells
    rather than behind them; the row fills repeat that same surface and step aside.
    The sticky header and pinned column keep their paint: they hide what scrolls
-   beneath them. */
+   beneath them. A target row keeps its wash. */
 .ui-table-scroll > .ui-table,
-.ui-table-scroll > .ui-table tbody td:not(.ui-table__identity, .ui-table__selection) { background-color: transparent; }
+.ui-table-scroll > .ui-table tbody :where(tr:not(.is-target)) > td:not(.ui-table__identity, .ui-table__selection) { background-color: transparent; }
 .ui-table-scroll > .ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th) {
   background: var(--surface-2);
 }
@@ -392,6 +406,14 @@
   .ui-table-scroll::after { left: calc(100% - var(--space-3)); right: 0; justify-self: end; }
   @container scroll-state(scrollable: left) {
     .ui-table-scroll::before { background: linear-gradient(to right, var(--table-edge), transparent); }
+    /* A pinned column stays, so the shade falls on its right side, over the columns that
+       scroll under it. The spread carries the shadow past each row's ends, and the clip cuts
+       it there and on the left, so the rows join as one even band. why: #736 */
+    .ui-table-scroll:has(> .ui-table--pinned)::before { background: none; }
+    .ui-table--pinned .ui-table__identity {
+      box-shadow: calc(-1 * var(--space-2)) 0 var(--space-3) var(--space-3) var(--table-edge);
+      clip-path: inset(0 calc(-1 * var(--space-6)) 0 0);
+    }
   }
   @container scroll-state(scrollable: right) {
     .ui-table-scroll::after { background: linear-gradient(to left, var(--table-edge), transparent); }
@@ -494,112 +516,13 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-table--pinned .ui-table__selection + .ui-table__identity { left: var(--ui-table-selection-width); }
 
 /* ============================================================================
- * Stacked rows at phone width — .ui-table--stack, .ui-table__long
+ * Running text in a cell — .ui-table__long
  *
- * The cell rules name both .ui-table and the modifier on purpose: --dense, --compact and
- * __title reach a cell with two classes, and one class would lose to them and leave
- * `nowrap` on a paragraph.
- *
- * The consumer's half — the roles a changed `display` drops — is in docs/components.md.
- * why: docs/components.md#dense-financial-tables
- * held by: src/styles/table-stack.test.js (layout), stories/table-stack.test.js (roles)
+ * A table never stacks its rows at any width. A wide table scrolls sideways in its frame,
+ * and a pinned identity keeps the first column in view. why: #736
  * ========================================================================== */
 
-/* The marked column holds running text at any width. What the modifier adds below the
-   phone step is the line of its own. */
-.ui-table td.ui-table__long { white-space: normal; }
-
-@media (max-width: 560px) {
-  .ui-table.ui-table--stack { display: block; width: 100%; min-width: 0; padding: 0; }
-  .ui-table.ui-table--stack > thead {
-    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
-  }
-  .ui-table.ui-table--stack > tbody { display: block; }
-  .ui-table.ui-table--stack > tbody > tr {
-    display: flex; flex-wrap: wrap; align-items: baseline;
-    column-gap: var(--space-3); row-gap: var(--space-1);
-    /* The inset is on the row, not the table, so its hover fill and separator keep
-       their clearance at the width above this one. */
-    padding: var(--space-3); border-bottom: 1px solid var(--border);
-  }
-  .ui-table.ui-table--stack > tbody > tr:last-child { border-bottom: 0; }
-  /* `height` is in this list for the same reason `white-space` is: --compact sets a row
-     height for a one-line cell, and a block cell takes it as a fixed height rather than a
-     floor, so a wrapped paragraph spills through the separator into the next row. A stacked
-     cell is as tall as its text. */
-  .ui-table.ui-table--stack > tbody > tr > td {
-    display: block; width: auto; min-width: 0; max-width: 100%; height: auto;
-    padding: 0; border-bottom: 0; white-space: normal; overflow-wrap: break-word;
-  }
-  .ui-table.ui-table--stack.ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th) {
-    background: transparent;
-  }
-  .ui-table.ui-table--stack > tbody > tr > td.ui-table__long { flex: 0 0 100%; text-align: left; }
-  /* The head is gone, so an amount that names its column in `data-label` says it in front of
-     the figure, in the unit's size and body ink. */
-  .ui-table.ui-table--stack > tbody > tr > td[data-label]::before {
-    content: attr(data-label) / ""; margin-right: var(--space-1); font-size: var(--text-xs);
-  }
-  /* The cells of a stacked row are separate boxes with gaps between them, so a tint on each
-     would paint patches. The row paints one tint and the cells let it through. */
-  .ui-table.ui-table--stack tbody tr.is-target:is(*, :hover) {
-    background: color-mix(in srgb, var(--accent) 12%, transparent); /* code-bg: inherit — this translucent wash leaves the chip on its opaque ground. */
-  }
-  .ui-table.ui-table--stack tbody tr.is-target:is(*, :hover) > :is(td, th) { background: transparent; }
-  /* A stacked row has no columns left to pin, stick or inset, and the identity's name is
-     what the row is about — the fold hides it only because a pinned column is narrow. */
-  .ui-table.ui-table--stack.ui-table--pinned > :where(thead, tbody) > tr > :where(.ui-table__identity, .ui-table__selection) {
-    position: static; width: auto; min-width: 0; max-width: none;
-    padding-inline: 0; border-right: 0; text-align: left;
-    /* The cap's cut goes with the cap: a card is as wide as the row, so there is
-       nothing to cut, and a clip box here would only reach a focused link's ring. */
-    overflow: visible; text-overflow: clip;
-  }
-  /* The name is what the card is about, and a card has the width to wrap it. #500 put
-     `nowrap` on it for the narrow column, so the stacked row takes that off too. */
-  .ui-table.ui-table--stack.ui-table--pinned .ui-identity__name {
-    position: static; width: auto; height: auto; max-width: none;
-    overflow: visible; clip-path: none; white-space: normal; text-overflow: clip;
-  }
-  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > * {
-    overflow: visible; text-overflow: clip;
-  }
-  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > * a {
-    max-width: none; overflow: visible; text-overflow: clip;
-  }
-  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > a:not([class]) {
-    display: inline-block;
-  }
-  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity:not(.ui-table__linked):has(> a:focus-visible) {
-    outline: none;
-  }
-  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity:not(.ui-table__linked) > a:focus-visible {
-    outline: var(--ring);
-    outline-offset: var(--ring-offset);
-  }
-  /* A card has no column to fill: every cell is a block on its own line and the ROW pays
-     the inset, so the fill's padding would stand the link a step right of the card's text
-     edge and the cell's `height: 1px` would hold a block cell to one pixel. Written through
-     the row like the resets above it, so it outranks the fill and its density. */
-  .ui-table.ui-table--stack > tbody > tr > td.ui-table__linked:has(> :is(a:not([class]), a.ui-identity):only-child) { height: auto; }
-  .ui-table.ui-table--stack > tbody > tr > td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child {
-    width: auto; height: auto; padding: 0;
-  }
-  /* The stacked card gives the link its own box again, so it takes the outset band. */
-  .ui-table.ui-table--stack > tbody > tr > td.ui-table__linked > a:only-child:focus-visible {
-    outline: var(--ring);
-    outline-offset: var(--ring-offset);
-  }
-  /* The bleed now pays for the row's inset instead of the end cells', so the cells still
-     start on the card's own text edge and the outline keeps its room on both sides. Same
-     step, so the arithmetic is the one the sheet already does for a dense table above; these
-     rules exist because a stacked table that is not dense gets no bleed from that one. A
-     scroll wrapper owns the bleed when it is the card's child, and owes one step more than
-     the table does because the wrapper keeps its own --space-1 of focus clearance. */
-  .ui-card > .ui-table--stack {
-    width: calc(100% + 2 * var(--space-3)); margin-inline: calc(-1 * var(--space-3));
-  }
-  .ui-card > .ui-table-scroll:has(> .ui-table--stack) {
-    margin-inline: calc(-1 * var(--space-4));
-  }
-}
+/* The marked column holds running text at any width. Two classes outrank the nowrap of
+   --dense, --compact and __title. The floor keeps a note a readable paragraph when the table
+   is wider than its frame, so the frame scrolls instead of the note collapsing to one word. */
+.ui-table td.ui-table__long { white-space: normal; min-width: var(--panel-sm); }

@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:238",
+    "ref": "src/styles/table.css:241",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -12,7 +12,7 @@
     "pattern": "width: auto;"
    },
    {
-    "ref": "src/styles/table.css:292",
+    "ref": "src/styles/table.css:301",
     "pattern": "max-width: calc(100% + 2 * var(--space-3));"
    }
   ],
@@ -278,7 +278,7 @@
     "pattern": "role=\"toolbar\" aria-label={label}"
    },
    {
-    "ref": "react/src/Tabs.tsx:24",
+    "ref": "react/src/Tabs.tsx:35",
     "pattern": "role=\"tablist\" aria-label={label}"
    },
    {
@@ -506,7 +506,7 @@
   ],
   "meaning": [
    {
-    "ref": "src/assets/icons.js:228",
+    "ref": "src/assets/icons.js:238",
     "pattern": "export const iconMeanings"
    },
    {
@@ -568,7 +568,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:86",
+    "ref": "src/styles/card.css:129",
     "pattern": "rank: card-title"
    }
   ],
@@ -620,7 +620,7 @@
     "pattern": "--space-3: 12px"
    },
    {
-    "ref": "src/styles/table.css:90",
+    "ref": "src/styles/table.css:94",
     "pattern": "padding: var(--space-2) var(--space-3)"
    },
    {
@@ -870,7 +870,7 @@
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
-    "ref": "react/src/contrast-walk.tsx:290",
+    "ref": "react/src/contrast-walk.tsx:291",
     "pattern": "inactive user-interface components"
    }
   ],
@@ -1045,7 +1045,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:107",
+    "ref": "src/styles/card.css:150",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1101,15 +1101,15 @@
   ],
   "link-to-the-report": [
    {
-    "ref": "src/styles/table.css:115",
+    "ref": "src/styles/table.css:119",
     "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
    },
    {
-    "ref": "src/styles/table.css:134",
+    "ref": "src/styles/table.css:138",
     "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
    },
    {
-    "ref": "src/styles/table.css:269",
+    "ref": "src/styles/table.css:272",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {
@@ -1119,7 +1119,7 @@
   ],
   "report-depth": [
    {
-    "ref": "src/styles/table.css:89",
+    "ref": "src/styles/table.css:93",
     "pattern": ".ui-table--dense td"
    }
   ],
