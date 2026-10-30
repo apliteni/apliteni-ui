@@ -98,13 +98,15 @@ const Report = () => {
   const filters = FILTERS.map(filter => ({ ...filter, value: values[filter.id] ?? '' }));
   const rows = filterPayouts(period, values, query);
   const clear = () => setValues({});
+  // The empty result's reset clears the search too, or a typed term keeps the ledger empty.
+  const reset = () => { setQuery(''); clear(); };
   return <FinanceShell active="payouts" title="Payouts">
     {/* No caption over the figures: they are totals, not changes. why: Artur, round r32 */}
     <StatBand id="fr-cashflow" stats={payoutStats(rows)} />
     <Controls query={query} onQuery={setQuery} period={period} onPeriod={setPeriod} filters={filters}
       onChange={(id, value) => setValues(v => ({ ...v, [id]: value }))} onRemove={id => setValues(v => ({ ...v, [id]: '' }))} onClear={clear} />
     <div ref={ledger} style={{ display: 'contents' }}>
-      <Payouts rows={rows} onReset={() => { clear(); ledger.current?.closest('.ui-app__body')?.querySelector<HTMLElement>('.ui-filter-bar [data-dropdown-trigger]')?.focus(); }} />
+      <Payouts rows={rows} onReset={() => { reset(); ledger.current?.closest('.ui-app__body')?.querySelector<HTMLElement>('.ui-filter-bar [data-dropdown-trigger]')?.focus(); }} />
     </div>
   </FinanceShell>;
 };

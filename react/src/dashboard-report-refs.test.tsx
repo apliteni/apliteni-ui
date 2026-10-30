@@ -640,6 +640,15 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   act(() => { fireEvent.change(search!, { target: { value: 'po-1165' } }); });
   assert.deepEqual([...doc.querySelectorAll('tbody tr td:first-child')].map((cell) => cell.textContent), ['PO-1165']);
   assert.deepEqual(figures(), ['39,054.98 €', '1,369.76 €', '37,685.22 €']);
+  // The empty result's Clear all resets the search as well as the chips, or the ledger stays empty.
+  act(() => { fireEvent.change(search!, { target: { value: 'no-match-xyz' } }); });
+  pick(doc, 'status', 'Paid');
+  const reset = [...doc.querySelectorAll('.ui-empty button')].find((b) => b.textContent!.trim() === 'Clear all');
+  assert.ok(reset, 'the empty result offers no way back to the rows');
+  act(() => { fireEvent.click(reset!); });
+  assert.equal(search!.value, '', 'the reset leaves the search term in the field');
+  assert.equal(doc.querySelectorAll('tbody tr').length, 6, 'the reset leaves the ledger narrowed');
+  assert.deepEqual(figures(), atRest);
 });
 
 test('the Finance dashboard period changes its totals and trends', () => {
