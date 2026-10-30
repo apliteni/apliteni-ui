@@ -109,6 +109,27 @@ it('opens search with its button and shortcut, dismisses with Escape', () => {
   expect(screen.getByRole('combobox')).toHaveFocus();
 });
 
+it('hands a same-tab palette pick to onNavigate and leaves the URL alone', () => {
+  const onNavigate = vi.fn();
+  const before = window.location.href;
+  render(<AppShell {...props} onNavigate={onNavigate} />);
+  fireEvent.click(screen.getByRole('button', { name: /Search or run/ }));
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('option', { name: 'Reports' }));
+  expect(onNavigate).toHaveBeenCalledWith('/reports');
+  expect(window.location.href).toBe(before);
+});
+
+it('lets a palette onNavigate win over the shell one', () => {
+  const shellNavigate = vi.fn();
+  const paletteNavigate = vi.fn();
+  render(<AppShell {...props} onNavigate={shellNavigate}
+    palette={{ onNavigate: paletteNavigate, groups: [{ items: [{ id: 'custom', label: 'Custom', href: '/custom' }] }] }} />);
+  fireEvent.click(screen.getByRole('button', { name: /Search or run/ }));
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('option', { name: 'Custom' }));
+  expect(paletteNavigate).toHaveBeenCalledWith('/custom');
+  expect(shellNavigate).not.toHaveBeenCalled();
+});
+
 it('keeps the trigger\'s name when the phone band shows only its glyph', () => {
   render(<AppShell {...props} />);
   const trigger = screen.getByRole('button', { name: /Search or run/ });

@@ -167,6 +167,19 @@ describe('the keyboard and the focus', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('hands a same-tab href to onNavigate and leaves the URL alone', async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+    const before = window.location.href;
+    render(<CommandPalette open groups={GROUPS} onClose={() => {}} onNavigate={onNavigate} />);
+
+    await user.type(screen.getByRole('combobox'), 'reports');
+    await user.keyboard('{Enter}');
+
+    expect(onNavigate).toHaveBeenCalledWith('#reports');
+    expect(window.location.href).toBe(before);
+  });
+
   it('a destructive row asks its question and leaves the palette standing', async () => {
     const user = userEvent.setup();
     const onConfirm = vi.fn();

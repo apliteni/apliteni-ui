@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.155.0', date: '2026-10-30',
+    changes: [
+      ['added', 'React `CommandPalette` and `AppShell` take `onNavigate`, so a same-tab pick on an `href` row can go through a client router instead of `window.location.href`. A new-tab pick still opens the tab itself. Resolves #735.', ['CommandPalette', 'Shell']],
+    ],
+  },
+  {
     v: '0.154.0', date: '2026-10-30',
     changes: [
       ['fixed', 'React `Chart`: while the plot is wider than its box, the box is a named region and one Tab stop after the chart, with the kit\'s focus ring, so a keyboard reader can scroll it. While the plot fits, the box stays out of the Tab order. Part of #752.', ['Chart']],
