@@ -216,6 +216,19 @@ function ddScrollBox(dd, panel) {
   return { el: el || els[0], els, top, bottom, height };
 }
 
+/* Does a body round the panel hide part of its width? Only `hidden` and `clip` count:
+ * a body that scrolls across still shows the rest. */
+function ddClipsAcross(box, panel) {
+  const view = ddViewOf(panel);
+  const p = panel.getBoundingClientRect();
+  return box.els.some((at) => {
+    const overflow = view.getComputedStyle(at).overflowX;
+    if (overflow !== 'hidden' && overflow !== 'clip') return false;
+    const left = at.getBoundingClientRect().left + at.clientLeft;
+    return p.left < left - 0.5 || p.right > left + at.clientWidth + 0.5;
+  });
+}
+
 /* The top of what has to stay in view over the panel: the field's label when the
  * trigger has one above it, so the reader still sees what the list is for. */
 function ddAnchorTop(dd, t) {
@@ -240,12 +253,15 @@ function ddContentHeight(panel) {
  * the 8px edge where the body cannot. Where even then the body cannot hold the floor
  * (or the whole list, when that is shorter), the panel is lifted out of the body.
  * Measured from the heights alone, so the answer is the same however far the body is
- * scrolled. `null` with no scrolling body.
+ * scrolled. A body that clips across and is narrower than the panel lifts it too: no
+ * scroll shows what it cuts off, as the shell's rail cut the account menu (#736).
+ * `null` with no scrolling body.
  */
 function ddBodyFit(dd, panel) {
   const trigger = dd.querySelector('[data-dropdown-trigger]');
   const box = ddScrollBox(dd, panel);
   if (!box || !trigger) return null;
+  if (ddClipsAcross(box, panel)) return { box, lift: true };
   const t = trigger.getBoundingClientRect();
   const edge = ddEdge(panel);
   const gap = ddGap(panel);

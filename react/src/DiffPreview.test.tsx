@@ -79,7 +79,7 @@ it('states the one effect below the table and sets no figures above it', () => {
 it('gives the card its own title instead of standing one on the page ground', () => {
   const { container } = mount();
   const title = screen.getByRole('heading', { name: 'Proposed changes' });
-  const card = container.querySelector('.ui-card')!;
+  const card = container.querySelector('table')!.closest('.ui-card')!;
   expect(title.closest('.ui-card')).toBe(card);
   expect(title).toHaveClass('ui-card__title');
   expect(title.tagName).toBe('H2');

@@ -3,21 +3,23 @@ import type { ReactElement } from 'react';
 import * as stories from './DataTable.ledger.stories';
 
 const { default: _meta, ...all } = stories;
+// A story with a filter bar keeps its state in hooks, so it mounts as a component, as Storybook mounts it.
+const show = (story: { render: () => ReactElement }) => { const Story = story.render; return render(<Story />); };
 
 describe('the ledger stories', () => {
   it.each(Object.entries(all))('renders %s without a table title sub-line', (_name, story) => {
-    const { container } = render((story as { render: () => ReactElement }).render());
+    const { container } = show(story as { render: () => ReactElement });
     expect(container.querySelector('.ui-card__sub')).toBeNull();
   });
 
   it('shows a revoked row as the word', () => {
-    const { container } = render(all.AgentTokens.render());
+    const { container } = show(all.AgentTokens);
     const dead = container.querySelector('tr.is-dead')!;
     expect(dead).toHaveTextContent('Revoked');
   });
 
   it('keeps the payouts a pinned table in its scroll frame, with no stacked rows', () => {
-    const { container } = render(all.FinanceData.render());
+    const { container } = show(all.FinanceData);
     const frame = container.querySelector('.ui-table-scroll')!;
     expect(frame).toHaveAttribute('aria-label', 'Payouts, scroll for more columns');
     const table = frame.querySelector('table')!;
@@ -28,7 +30,7 @@ describe('the ledger stories', () => {
   });
 
   it('shows the invoice rows and totals without row hover', () => {
-    const { container } = render(stories.WithTotals.render());
+    const { container } = show(stories.WithTotals);
     const table = container.querySelector('table')!;
     expect([...table.classList]).toEqual(['ui-table', 'ui-table--dense']);
     expect(table).not.toHaveClass('ui-table--hover');
@@ -48,7 +50,7 @@ describe('the ledger stories', () => {
   });
 
   it('shows compact row headers without row hover', () => {
-    const { container } = render(stories.CompactRowHeaders.render());
+    const { container } = show(stories.CompactRowHeaders);
     const table = container.querySelector('table')!;
     expect([...table.classList]).toEqual(['ui-table', 'ui-table--compact']);
     expect(table).not.toHaveClass('ui-table--hover');
@@ -63,7 +65,7 @@ describe('the ledger stories', () => {
   });
 
   it('keeps the payments a pinned table in its scroll frame', () => {
-    const { container } = render(stories.PinnedScroll.render());
+    const { container } = show(stories.PinnedScroll);
     const frame = container.querySelector('.ui-table-scroll')!;
     expect(frame).toHaveAttribute('aria-label', 'October payments, scroll for more columns');
     const table = frame.querySelector('table')!;
@@ -81,7 +83,7 @@ describe('the ledger stories', () => {
 
   it('gives every card its icon, except the plain invoice and payment cards', () => {
     for (const name of ['FinanceData', 'AgentTokens', 'Empty'] as const) {
-      const { container, unmount } = render(all[name].render());
+      const { container, unmount } = show(all[name]);
       expect(container.querySelector('.ui-card__title .ui-card__icon svg')).not.toBeNull();
       unmount();
     }

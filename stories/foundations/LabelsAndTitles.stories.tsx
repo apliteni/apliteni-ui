@@ -10,6 +10,7 @@ import { SidebarNav } from '../../react/src/SidebarNav';
 import { Dropdown } from '../../react/src/Dropdown';
 import { Footer } from '../../react/src/Footer';
 import { VersionSwitcher } from '../../react/src/TopBar';
+import { useTableFilters } from '../_table-filters';
 
 const meta: Meta = { title: 'Foundations/Labels and titles', parameters: { layout: 'fullscreen' } };
 export default meta;
@@ -26,19 +27,30 @@ const Kpi = ({ label, value, chip }: { label: string; value: string; chip: React
   {chip}
 </div>;
 
-const Ledger = () => <table className="ui-table">
+type Month = { month: string; income: string; expenses: string; status: string; tone: string };
+const MONTHS: Month[] = [
+  { month: 'August 2026', income: '€412,300', expenses: '€338,120', status: 'Reconciled', tone: 'success' },
+  { month: 'July 2026', income: '€398,040', expenses: '€351,900', status: 'Pending', tone: 'pending' },
+  { month: 'June 2026', income: '€377,610', expenses: '€362,450', status: 'Overdue', tone: 'danger' },
+];
+const Ledger = ({ rows }: { rows: Month[] }) => <table className="ui-table">
   <thead><tr><th>Month</th><th>Income</th><th>Expenses</th><th>Status</th></tr></thead>
   <tbody>
-    <tr><td className="ui-table__title">August 2026</td><td>€412,300</td><td>€338,120</td><td><Badge variant="success">Reconciled</Badge></td></tr>
-    <tr><td className="ui-table__title">July 2026</td><td>€398,040</td><td>€351,900</td><td><Badge variant="pending">Pending</Badge></td></tr>
-    <tr><td className="ui-table__title">June 2026</td><td>€377,610</td><td>€362,450</td><td><Badge variant="danger">Overdue</Badge></td></tr>
+    {rows.map((row) => <tr key={row.month}><td className="ui-table__title">{row.month}</td><td>{row.income}</td><td>{row.expenses}</td><td><Badge variant={row.tone}>{row.status}</Badge></td></tr>)}
+    {!rows.length && <tr><td colSpan={4}>No months match</td></tr>}
   </tbody>
 </table>;
 
 // The shape of the portal page #268 and #269 were reported from: a page title,
 // the window it covers, a band of labelled figures and a titled card.
 export const InAPage: StoryObj = {
-  render: () => <div className="ui-app__main" style={{ ['--ui-app-main' as string]: '1040px' }}>
+  render: function Render() {
+    // Every table has its filter bar directly above it. why: guidelines/dense-tables.md
+    const { bar, shown } = useTableFilters(MONTHS, {
+      search: 'Search months', placeholder: 'Month', label: 'Cashflow filters', text: (row) => row.month,
+      facets: [{ id: 'status', label: 'Status', any: 'Any status', of: (row) => row.status }],
+    });
+    return <div className="ui-app__main" style={{ ['--ui-app-main' as string]: '1040px' }}>
     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
       <h1>Overview</h1>
       <div className="ui-eyebrow">12 months to 31 Aug 2026</div>
@@ -52,9 +64,11 @@ export const InAPage: StoryObj = {
           <Kpi label="Invoices waiting" value="14" chip={<Badge variant="danger">3 overdue</Badge>} />
         </div>
       </div>
-      <Card title="Monthly cashflow" sub="Income and expenses by month, all entities."><Ledger /></Card>
+      <Card>{bar}</Card>
+      <Card title="Monthly cashflow" sub="Income and expenses by month, all entities."><Ledger rows={shown} /></Card>
     </div>
-  </div>,
+  </div>;
+  },
 };
 
 export const EveryLabel: StoryObj = {

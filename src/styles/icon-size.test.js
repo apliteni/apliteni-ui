@@ -58,6 +58,8 @@ const src = path.resolve(here, '..');
 // 70 under #429 PR 5b: the vanilla components are gone, so the twelve
 // declarations keyed on svg classes only they wrote leave this walk. 72 (#742:
 // `.ui-seg button svg` sizes a segment's glyph, a width and a height in one rule).
+// 72 under #736: the breadcrumb styles are removed, with the crumb glyph's width
+// and height.
 const EXPECTED_SUBJECTS = 72;
 
 const SHEETS = kitSheetNames(src);

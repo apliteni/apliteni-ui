@@ -634,6 +634,21 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   assert.deepEqual(figures(), ['100,275.34 €', '3,461.47 €', '96,813.87 €']);
   assert.deepEqual(figures(), atRest,
     'the first paint already holds to the 1Y window, so clearing the filters returns to exactly what was there at rest');
+  // The search reads the reference and the payout ID, and the figures follow it too.
+  const search = doc.querySelector<HTMLInputElement>('input[type="search"]');
+  assert.ok(search, 'the ledger bar has no search field');
+  act(() => { fireEvent.change(search!, { target: { value: 'po-1165' } }); });
+  assert.deepEqual([...doc.querySelectorAll('tbody tr td:first-child')].map((cell) => cell.textContent), ['PO-1165']);
+  assert.deepEqual(figures(), ['39,054.98 €', '1,369.76 €', '37,685.22 €']);
+  // The empty result's Clear all resets the search as well as the chips, or the ledger stays empty.
+  act(() => { fireEvent.change(search!, { target: { value: 'no-match-xyz' } }); });
+  pick(doc, 'status', 'Paid');
+  const reset = [...doc.querySelectorAll('.ui-empty button')].find((b) => b.textContent!.trim() === 'Clear all');
+  assert.ok(reset, 'the empty result offers no way back to the rows');
+  act(() => { fireEvent.click(reset!); });
+  assert.equal(search!.value, '', 'the reset leaves the search term in the field');
+  assert.equal(doc.querySelectorAll('tbody tr').length, 6, 'the reset leaves the ledger narrowed');
+  assert.deepEqual(figures(), atRest);
 });
 
 test('the Finance dashboard period changes its totals and trends', () => {

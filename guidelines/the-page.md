@@ -36,6 +36,8 @@
 
 **Don't:** Put filters above the title.
 
+**Except:** Small tools for the whole page, such as a version badge, stand at the end of the title row.
+
 ## Use one page title
 
 <!-- rule: one-h1 -->

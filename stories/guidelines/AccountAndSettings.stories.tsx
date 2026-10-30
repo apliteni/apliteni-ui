@@ -78,11 +78,11 @@ const GROUPS = [
 // The page sheet holds each menu open in the flow, so neither is a live dropdown.
 const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 const row = ({ id, icon, label }: { id: string; icon: string; label: string }) => ({ label, icon, value: id, href: `#${id}` });
-const WAY_IN = [{ id: 'settings', icon: 'gear', label: 'Account settings' }].map(row);
+const WAY_IN = [{ id: 'settings', icon: 'gear', label: 'Account settings' }, { id: 'support', icon: 'chat', label: 'Support' }].map(row);
 // A setting answered in the menu, drawn the only way the menu can draw one: the
 // row states its current value. The menu holds no control, which is the point.
 const ANSWERED = [
-  { id: 'theme', icon: 'sun', label: 'Theme — Dark' },
+  { id: 'zone', icon: 'clock', label: 'Time zone — UTC' },
   { id: 'digest', icon: 'bell', label: 'Weekly digest — On' },
   { id: 'news', icon: 'mail', label: 'Product news — Off' },
   { id: 'density', icon: 'layout', label: 'Rows — Compact' },

@@ -17,4 +17,7 @@ export const SPEC_CSS = `<style>
      bled box a dense table gets in a card — the same expression table.css caps it at —
      so both halves start and could end on the same edges. */
   .gdt-stretch { width: calc(100% + 2 * var(--space-3)); max-width: none; }
+  /* The filter bar's card sits above the table's card, at the gap the shell keeps
+     between two cards. */
+  .gdt-filtered { display: grid; gap: var(--space-5); align-content: start; }
 </style>`;

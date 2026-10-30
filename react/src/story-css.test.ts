@@ -92,8 +92,9 @@ const subjects: string[] = [...new Set([
 
 // Measured, not guessed: the story and stylesheet floors, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
-// reaching something rather than when the workspace grows.
-const FOUND = { subjects: 68, declarations: 523, carriers: 49, sheets: 5 };
+// reaching something rather than when the workspace grows. The finance comparison's
+// three filter-bar inset declarations left with its bar's move onto a card (#736).
+const FOUND = { subjects: 67, declarations: 517, carriers: 49, sheets: 5 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -112,7 +113,7 @@ const ALLOWED: Record<string, string> = {
   'react/src/BackLink.stories.tsx|.ui-app__main': 'the specimen column is narrower than the shell',
   'react/src/BadgeStatus.stories.tsx|.ui-card': 'a specimen card is as wide as its specimen',
   'react/src/SwitchCheckbox.stories.tsx|.ui-card': 'a specimen card is as wide as its specimen',
-  'react/src/DataTable.stories.tsx|.ui-card': 'the pinned table needs the panel width to show its column limit',
+  'react/src/DataTable.stories.tsx|.ui-card-stack': 'the pinned table needs the panel width to show its column limit',
 
   // A table wider than its scroll region is the only way the region scrolls, and the
   // region's own inset is wrong when the table is inside a card rather than on a page.
@@ -138,13 +139,9 @@ const ALLOWED: Record<string, string> = {
   // A skeleton stands in for content that is not there, so only the page knows its size.
   'react/src/PeriodPicker.stories.tsx|.ui-skel__bar.m-skeleton': 'a skeleton is the size of what it replaces',
 
-  // A field and its menu share one row until the phone step takes the menu to its own.
-  'react/src/SearchField.stories.tsx|.invoice-toolbar > .ui-dropdown': 'the toolbar rewraps at the phone step',
-
   // The comparison aligns kit controls and table cells to one inset. The story
   // sheet owns these placements because the kit parts also serve other pages.
   'react/src/FinanceComposition.css|.finance-comparison .ui-app__sub': 'the comparison heading sets its own gap to the subtitle',
-  'react/src/FinanceComposition.css|.finance-comparison .ui-filter-bar': 'the filter aligns its trigger with the comparison text inset',
   'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline': 'the view tabs align with the comparison text inset',
   'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline button': 'the tab labels share the comparison text inset',
   'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline button::before': 'the underline reaches both edges of its tab',

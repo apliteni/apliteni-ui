@@ -17,11 +17,6 @@
 }
 .finance-comparison__data > * { min-width: 0; max-width: 100%; }
 .finance-comparison__data > :first-child { width: 100%; }
-/* The control's border, chip padding and trigger padding share the text inset. */
-.finance-comparison .ui-filter-bar {
-  margin-left: calc(var(--space-6) - var(--space-1) - var(--space-2) - 1px);
-  gap: var(--space-4);
-}
 .finance-comparison .ui-seg--underline {
   margin-inline: calc(var(--space-6) - 1px);
   padding: 0;
@@ -51,7 +46,6 @@
 @media (max-width: 560px) {
   .finance-comparison { padding: var(--space-8) var(--space-4) var(--space-12); }
   .finance-comparison__head { margin-inline: var(--space-4); }
-  .finance-comparison .ui-filter-bar { margin-left: calc(var(--space-4) - var(--space-1) - var(--space-2) - 1px); }
   .finance-comparison .ui-seg--underline { margin-inline: calc(var(--space-4) - 1px); }
   .finance-comparison__card .ui-table :is(th, td):first-child,
   .finance-comparison__card .ui-table td.ui-table__linked:first-child > a { padding-left: calc(var(--space-4) - 1px); }

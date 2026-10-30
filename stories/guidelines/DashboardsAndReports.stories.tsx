@@ -8,6 +8,7 @@ import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { FilterBar } from '../../react/src/FilterBar';
+import { RestingFilters } from '../_table-filters';
 import { Chart, type ChartLookSeries } from '../../react/src/Chart';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
@@ -43,13 +44,16 @@ const LedgerTable = () => <table className="ui-table ui-table--dense ui-table--z
 </table>;
 
 // The rows that need a decision, which is all a dashboard carries of a ledger.
-// `onward={false}` removes the row links, so the Don't offers no way in.
+// `onward={false}` removes the row links, so the Don't offers no way in. Its filter
+// bar sits directly above it, as on the dashboard.
 const EXCEPTIONS: [string, string, Tone, string][] = [
   ['PO-1166', '14,496.62', 'danger', 'Failed'],
   ['PO-1164', '14,082.69', 'pending', 'In transit'],
   ['PO-1159', '2,180.00', 'danger', 'Unmatched'],
 ];
-const Attention = ({ onward = true }: { onward?: boolean }) => <Card title="Needs a decision">
+const Attention = ({ onward = true }: { onward?: boolean }) => <><RestingFilters search="Search exceptions" placeholder="Reference"
+  label="Exception filters" chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Failed', 'In transit', 'Unmatched'] }]} />
+<Card title="Needs a decision">
   <table className="ui-table ui-table--dense">
     <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th></tr></thead>
     <tbody>{EXCEPTIONS.map(([ref, net, tone, label]) => <tr key={ref}>
@@ -57,7 +61,10 @@ const Attention = ({ onward = true }: { onward?: boolean }) => <Card title="Need
       <td className="ui-table__num ui-table__num--strong">{net}</td>
     </tr>)}</tbody>
   </table>
-</Card>;
+</Card></>;
+// The whole ledger, under the bar every table has.
+const LedgerFilters = () => <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters"
+  chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid', 'In transit', 'Failed'] }]} />;
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 const NET_BY_MONTH = [412, 455, 430, 498, 520, 505];
@@ -67,10 +74,13 @@ const MonthChart = () => <div className="gd-chart">
   <Raw html={bars({ values: NET_BY_MONTH, width: 320, height: 96, fluid: true, label: 'Net settled by month, first half of the year' }).svg} />
   <div className="gd-chart__months ui-stat__label" aria-hidden="true">{MONTHS.map(month => <span key={month}>{month}</span>)}</div>
 </div>;
-const MonthTable = () => <table className="ui-table ui-table--dense">
-  <thead><tr><th>Month</th><th className="ui-table__num">Net settled (k €)</th></tr></thead>
-  <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>
-</table>;
+const MonthTable = () => (
+  // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-every-table-its-filter-bar
+  <table className="ui-table ui-table--dense">
+    <thead><tr><th>Month</th><th className="ui-table__num">Net settled (k €)</th></tr></thead>
+    <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>
+  </table>
+);
 
 // One block, one view at a time: the switch shares the title's row and opens on Chart.
 // Small underline tabs, not pills: an accent fill outweighed the chart and its title.
@@ -134,10 +144,10 @@ const specimens = [
   { id: 'fast-glance' },
   { id: 'figures-and-exceptions',
     do: () => <Stage><Cashflow id="gd-glance-do" /><Attention /></Stage>,
-    dont: () => <Stage><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></Stage> },
+    dont: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></Stage> },
   { id: 'link-to-the-report', do: () => <Stage><Attention /></Stage>, dont: () => <Stage><Attention onward={false} /></Stage> },
   { id: 'report-depth',
-    do: () => <Stage><Card title="Payouts"><LedgerTable /></Card></Stage>,
+    do: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /></Card></Stage>,
     dont: () => <Stage><StatBand id="gd-depth-dont" stats={[
       { label: 'Payouts', value: '214' }, { label: 'Fees', value: '68,412.00 €' }, { label: 'Net', value: '3,118,904.00 €' }]} /></Stage> },
   // The export is at the far end of the row, where the report puts it: it acts on

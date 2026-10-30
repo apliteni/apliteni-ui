@@ -5,6 +5,7 @@ import { Card } from './primitives/Card';
 import { EmptyState } from './EmptyState';
 import { Checkbox } from './Checkbox';
 import { DataTable, type Column } from './DataTable';
+import { useTableFilters } from '../../stories/_table-filters';
 
 // The card is in each render rather than in a decorator, as #568 put the other
 // galleries' cards: react/src/field-ground.test.tsx calls renders, so a surface left
@@ -117,10 +118,18 @@ const statementColumns: Column<Statement>[] = [
 
 /** The layer for a page that takes a file anywhere: the empty page's area, enlarged over a table page. Its ground is slightly transparent and blurred, so the table shows through softly. It is solid where the engine cannot blur or the reader asks for less transparency. A page mounts it only while a file is over the window. */
 export const PageDragging: StoryObj = {
-  render: () => <>
-    <DataTable columns={statementColumns} rows={statements} selectable={false} pager={false} />
+  render: function Render() {
+    const { bar, shown } = useTableFilters(statements, {
+      search: 'Search statements', placeholder: 'Statement', label: 'Statement filters', text: (r) => r.name, facets: [],
+    });
+    return <>
+    <div className="ui-card-stack">
+      <Card>{bar}</Card>
+      <Card><DataTable columns={statementColumns} rows={shown} selectable={false} pager={false} empty="No statements match" /></Card>
+    </div>
     <div className="ui-drop ui-drop--area ui-drop--page is-dragging" aria-hidden="true">
       <EmptyState icon="upload" title="Drop files to upload" sub="PDF, PNG or JPEG." />
     </div>
-  </>,
+  </>;
+  },
 };

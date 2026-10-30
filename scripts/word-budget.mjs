@@ -61,14 +61,14 @@ export const WORDS_PER_RULE = 60;
  * wrote it is not a decision anybody made. */
 export const RECORDED = {
   'accessibility-floor.md': 853,
-  'account-and-settings.md': 355,
+  'account-and-settings.md': 353,
   'command-palette.md': 430,
   'component-choice.md': 510,
   'density-and-accents.md': 408,
   'drawer.md': 324,
   'empty-states.md': 91,
   'file-drop.md': 545,
-  'going-back.md': 375,
+  'going-back.md': 363,
   'hover-readouts.md': 333,
   'iconography.md': 304,
   'layout-and-density.md': 318,

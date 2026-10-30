@@ -2,7 +2,12 @@
 // vanilla page's title and id. One composition: what differs between any two
 // screens is the layout or the width and nothing else.
 import type { Meta, StoryObj } from '@storybook/react';
+import { useState } from 'react';
 import { DemoShell, type DemoNavItem } from './_demo-shell';
+import { FilterBar } from '../../react/src/FilterBar';
+import { SearchField } from '../../react/src/SearchField';
+import { EmptyState } from '../../react/src/EmptyState';
+import { Button } from '../../react/src/primitives/Button';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
 
@@ -39,22 +44,38 @@ const ROWS = [
   ['Umbrella', '2026-09-08', '312.40', 'Paid'],
 ];
 
-const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 'centered' }) =>
-  <DemoShell word="Finance" layout={layout} width={width} nav={NAV} active="reports" title="Payouts"
+// The status chip starts unset, so the table opens on every payout.
+const STATUS = { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'Pending', value: 'Pending' }] };
+
+const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 'centered' }) => {
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState('');
+  const term = query.trim().toLowerCase();
+  const rows = ROWS.filter(([client, , , state]) => (!status || state === status) && client.toLowerCase().includes(term));
+  const clear = () => { setQuery(''); setStatus(''); };
+  return <DemoShell word="Finance" layout={layout} width={width} nav={NAV} active="reports" title="Payouts"
     lede="Two of the four that arrived this week are waiting for a second approval."
-    crumbs={[{ label: 'Finance', href: '#' }, { label: 'Payouts' }]} palette={layout === 'topbar' ? PALETTE : undefined}>
+    palette={layout === 'topbar' ? PALETTE : undefined}>
+    {/* Every table has its filter bar directly above it, on a card because a field
+        never stands on the page ground. why: guidelines/dense-tables.md */}
+    <Card><div className="ui-toolbar">
+      <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
+      <FilterBar filters={[{ ...STATUS, value: status }]} label="Payout filters"
+        onChange={(_, value) => setStatus(value ?? '')} onRemove={() => setStatus('')} onClear={() => setStatus('')} />
+    </div></Card>
     {/* The table stays a direct child of the card, as the finance screens' does. */}
     <Card title="Payouts this week">
-      <table className="ui-table ui-table--dense ui-table--zebra">
+      {rows.length ? <table className="ui-table ui-table--dense ui-table--zebra">
         <thead><tr><th>Client</th><th>Arrival</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
-        <tbody>{ROWS.map(([client, day, net, status]) => <tr key={client}><td>{client}</td><td>{day}</td>
-          <td className="ui-table__num">{net}</td><td><Badge variant={status === 'Paid' ? 'success' : 'warning'}>{status}</Badge></td></tr>)}</tbody>
-      </table>
+        <tbody>{rows.map(([client, day, net, state]) => <tr key={client}><td>{client}</td><td>{day}</td>
+          <td className="ui-table__num">{net}</td><td><Badge variant={state === 'Paid' ? 'success' : 'warning'}>{state}</Badge></td></tr>)}</tbody>
+      </table> : <EmptyState title="No payouts match" sub="" icon="" actions={<Button size="sm" onClick={clear}>Clear all</Button>} />}
     </Card>
     <Card title="What the width does">
       <p>This screen is the <b>{width}</b> column. The wide column fills the well; the centred one is capped and sits in the middle of it.</p>
     </Card>
   </DemoShell>;
+};
 
 export const TopbarWide: StoryObj = { render: () => <Screen layout="topbar" width="wide" /> };
 export const TopbarCentered: StoryObj = { render: () => <Screen layout="topbar" width="centered" /> };
