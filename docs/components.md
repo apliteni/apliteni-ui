@@ -1093,13 +1093,13 @@ are yours — `format` prints exact values in the readout, the live region and t
 `formatAxis` prints the ticks, which are whole units.
 
 **`line`, `area` and `stacked` take `periods` and `series`, and `donut` takes `slices`.** A series
-or a slice has no `shape`. Each of the four variants takes `look`, which picks one of three
-drawings of the same numbers:
+or a slice has no `shape`. Each of the four variants takes `look`, which picks one drawing of
+the same numbers:
 
 | `variant` | `look` values | Default |
 | --- | --- | --- |
 | `line` | `thin`, `points` (a point on each value), `labels` (the last value at the line's end, and a chart that scrolls opens on its latest period) | `thin` |
-| `area` | `flat` (each series from zero), `stacked`, `share` (each column is 100%) | `stacked` |
+| `area` | `flat` (each series from zero), `curves` (each series from zero as a smooth curve, with a point on each value), `stacked`, `share` (each column is 100%) | `stacked` |
 | `stacked` | `columns`, `share` (each column is 100%), `rows` (a bar for each period) | `columns` |
 | `donut` | `thin` (the total in the centre), `table` (a list of the shares beside the ring), `labels` (the name, value and share at each slice) | `table` |
 
@@ -1127,7 +1127,10 @@ design, because the data end, the zero line and the base carry the value. A brid
 the previous running total to the full tone at the new one, so a fall fades downwards. Lines,
 points and legend keys stay solid in the full tone. **An area ramps with its values:** the tint
 is at the series' lowest top and the full tone at its highest, in every column. An area with one
-value, a share band, a stacked part and a donut slice have no ramp.
+value, a share band, a stacked part and a donut slice have no ramp. A `curves` area has a wash
+instead: its tone fades to clear at zero, under each series in the order you give them. Its curve
+never passes the values on each side of it and never goes under zero. Use `curves` for two or
+three series that the reader compares by shape, not by total.
 
 **The legend shows only when you pass `legend`.** **An unfinished period keeps its series fill
 with a dashed edge.** The legend names the estimated state. The readout and the table show the

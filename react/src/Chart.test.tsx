@@ -104,7 +104,7 @@ const slices: ChartSlice[] = [
 ];
 const LOOKS = [
   ['line', 'thin'], ['line', 'points'], ['line', 'labels'],
-  ['area', 'flat'], ['area', 'stacked'], ['area', 'share'],
+  ['area', 'flat'], ['area', 'curves'], ['area', 'stacked'], ['area', 'share'],
   ['stacked', 'columns'], ['stacked', 'share'], ['stacked', 'rows'],
   ['donut', 'thin'], ['donut', 'table'], ['donut', 'labels'],
 ] as const;
@@ -576,6 +576,59 @@ it('ramps an area from its lowest top to its highest, and leaves a share flat', 
   }
   const { container } = lookChart('area', 'share');
   expect(container.querySelector('linearGradient'), 'a share reaches the whole in every column').toBeNull();
+});
+
+/** Each pen position and control point of a path, in order, as [x, y]. */
+const pointsOf = (el: Element) => [...(el.getAttribute('d') ?? '').matchAll(/[MLC]([^A-Za-z]*)/g)]
+  .flatMap(([, args]) => {
+    const n = (args.match(/-?\d*\.?\d+/g) ?? []).map(Number);
+    return n.flatMap((_, k) => (k % 2 ? [] : [[n[k], n[k + 1]]]));
+  });
+
+// The owner's curves (#736): each series from zero over the one before it, a
+// curve that never passes the values at its two ends, a wash that is clear at
+// zero, and a point on every value. JSDOM paints nothing, so the wash's opacity
+// and the ring's paint are read in the browser captures on the pull request.
+it('draws a curves area from zero, unstacked, with each curve between its two values', async () => {
+  const user = userEvent.setup();
+  const { container } = lookChart('area', 'curves');
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
+  const edges = [...svg.querySelectorAll('path.ui-chart__line')];
+  expect(edges, 'one curve a column step and a series').toHaveLength(6);
+  // Unstacked, a curve's start stands as far above zero as its own value.
+  const unit = (zeroY - pointsOf(edges[0])[0][1]) / costs[0].values[0];
+  for (const [k, layer] of costs.entries()) {
+    const own = edges.filter((edge) => toneOf(edge) === layer.tone);
+    own.forEach((edge, i) => {
+      expect(Math.abs(zeroY - pointsOf(edge)[0][1] - unit * layer.values[i]), `${layer.name} ${i} from zero`)
+        .toBeLessThanOrEqual(0.1);
+    });
+    expect(own, `${layer.name}, series ${k}`).toHaveLength(3);
+  }
+  for (const edge of edges) {
+    const [start, c1, c2, end] = pointsOf(edge);
+    const [lo, hi] = [Math.min(start[1], end[1]), Math.max(start[1], end[1])];
+    for (const [, cy] of [c1, c2]) expect(cy >= lo && cy <= hi, `${edge.getAttribute('d')} bends past its values`).toBe(true);
+  }
+  for (const fill of svg.querySelectorAll('path.ui-chart__area')) {
+    expect(Math.max(...pointsOf(fill).map(([, py]) => py)), 'a fill stands on zero').toBe(zeroY);
+    const id = /^url\(#(.+)\)$/.exec((fill as SVGElement).style.getPropertyValue('--ui-chart-paint'))?.[1];
+    const g = container.querySelector(`linearGradient[id="${id}"]`)!;
+    expect(Number(g.getAttribute('y1')), 'the wash is clear at zero').toBe(zeroY);
+    expect([...g.querySelectorAll('stop')].map((stop) => classOf(stop)))
+      .toEqual(['ui-chart__wash-floor', 'ui-chart__wash-top']);
+  }
+  expect(svg.querySelectorAll('.ui-chart__dot'), 'a point on every value').toHaveLength(8);
+  showTable();
+  const table = screen.getByRole('table', { name: 'Spend by cost' });
+  expect(within(table).getAllByRole('columnheader').map((c) => c.textContent), 'no total')
+    .toEqual(['Period', 'Payroll', 'Hosting']);
+  fireEvent.click(screen.getByRole('button', { name: 'Chart' }));
+  await tabToFrame(user);
+  await user.keyboard('{ArrowRight}');
+  expect(screen.getByRole('status')).toHaveTextContent('Feb 2026. Payroll €600. Hosting €300.');
+  expect(screen.getByRole('status')).not.toHaveTextContent('Total');
 });
 
 // Material's rule, and the reason a bar is a path: the top of a bar has to

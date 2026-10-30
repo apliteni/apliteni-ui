@@ -7,7 +7,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { ChartTone, Mark, MarkRow } from './Chart';
 
 export type ChartLineLook = 'thin' | 'points' | 'labels';
-export type ChartAreaLook = 'flat' | 'stacked' | 'share';
+export type ChartAreaLook = 'flat' | 'stacked' | 'share' | 'curves';
 export type ChartStackedLook = 'columns' | 'share' | 'rows';
 export type ChartDonutLook = 'thin' | 'table' | 'labels';
 
@@ -114,9 +114,31 @@ function rightRounded(x: number, y: number, w: number, h: number, r: number) {
 const square = (x: number, y: number, w: number, h: number) =>
   `M${px(x)} ${px(y)}h${px(w)}v${px(h)}h${px(-w)}Z`;
 
+/** The area looks that draw each series from zero, over the one before it. */
+export const overlaps = (look: string) => look === 'flat' || look === 'curves';
+
 /** A series' key shape: a line for a line, a square for a fill. */
 export const keyShape = (look: Look): 'line' | 'fill' =>
-  (look.variant === 'line' || (look.variant === 'area' && look.look === 'flat') ? 'line' : 'fill');
+  (look.variant === 'line' || (look.variant === 'area' && overlaps(look.look)) ? 'line' : 'fill');
+
+/** The tangent at each point of a monotone cubic, as d3's curveMonotoneX. A
+ *  tangent is 0 where the values turn and at most twice the slope beside it, so
+ *  each segment's control points stay between its two values and the curve never
+ *  passes either of them. */
+function monotone(xs: number[], ys: number[]) {
+  const s = xs.slice(1).map((x, k) => (ys[k + 1] - ys[k]) / (x - xs[k]));
+  if (s.length < 2) return ys.map(() => s[0] ?? 0);
+  const t = ys.map((_, i) => {
+    if (i === 0 || i === ys.length - 1) return 0;
+    const [s0, s1] = [s[i - 1], s[i]];
+    const [h0, h1] = [xs[i] - xs[i - 1], xs[i + 1] - xs[i]];
+    const p = (s0 * h1 + s1 * h0) / (h0 + h1);
+    return (Math.sign(s0) + Math.sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), Math.abs(p) / 2);
+  });
+  t[0] = (3 * s[0] - t[1]) / 2;
+  t[t.length - 1] = (3 * s[s.length - 1] - t[t.length - 2]) / 2;
+  return t;
+}
 
 /** What one column's readout lists, top of the stack first. */
 function columnRows(g: LookGeometry, i: number): MarkRow[] {
@@ -207,7 +229,7 @@ export function lookMarks(g: LookGeometry): Mark[] {
     });
   }
 
-  const lift = look.variant === 'line' && look.look === 'points' ? 6
+  const lift = (look.variant === 'line' && look.look === 'points') || look.look === 'curves' ? 6
     : look.variant === 'stacked' ? 2 : 4;
   return g.labels.map((label, i) => {
     const tops = look.layers.map((l) => l.to[i]).filter(Number.isFinite);
@@ -240,20 +262,55 @@ function linesDrawing(g: LookGeometry, open: number | null) {
   const area = look.variant === 'area';
   const finite = (layer: Layer, i: number) => Number.isFinite(look.stacked ? layer.to[i] : layer.values[i]);
   const at = (layer: Layer, i: number) => (look.stacked ? layer.to[i] : layer.values[i]);
+  const curves = area && look.look === 'curves';
   /* An area ramps from its fade at the layer's lowest top to its tone at the
      highest, in the plot's own units, so the strong colour sits where the values
      are high. A layer with one top value has no range and stays flat. A share
-     look reaches the whole at every column, so it has no range either. */
+     look reaches the whole at every column, so it has no range either. A curves
+     area is a wash instead: clear at zero, its tone at the layer's highest top. */
   const ramps = area && !look.share ? look.layers.map((layer) => {
     const tops = layer.values.map((_, i) => at(layer, i)).filter(Number.isFinite);
-    const lo = Math.min(...tops);
+    const lo = curves ? 0 : Math.min(...tops);
     const hi = Math.max(...tops);
     return tops.length && y(lo) - y(hi) >= 1 ? { id: `${g.uid}-ramp-${layer.id}`, layer, lo, hi } : null;
   }) : [];
+  /* The curves look's runs of values with none missing, and the tangent at each
+     value of a run. */
+  const runs = (layer: Layer) => [...Array(n).keys()].reduce<number[][]>((out, i) => {
+    if (!finite(layer, i)) return out;
+    if (finite(layer, i - 1)) out[out.length - 1].push(i); else out.push([i]);
+    return out;
+  }, []);
+  const tangents = curves ? look.layers.map((layer) => {
+    const t = new Array<number>(n).fill(0);
+    for (const run of runs(layer)) {
+      monotone(run.map(centre), run.map((i) => y(at(layer, i)))).forEach((v, k) => { t[run[k]] = v; });
+    }
+    return t;
+  }) : [];
+  /** The cubic from value `i` to value `i + 1`, without its start. */
+  const bend = (k: number, i: number) => {
+    const layer = look.layers[k];
+    const h = (centre(i + 1) - centre(i)) / 3;
+    return `C${px(centre(i) + h)} ${px(y(at(layer, i)) + h * tangents[k][i])}`
+      + ` ${px(centre(i + 1) - h)} ${px(y(at(layer, i + 1)) - h * tangents[k][i + 1])}`
+      + ` ${px(centre(i + 1))} ${px(y(at(layer, i + 1)))}`;
+  };
   const fills = area && look.layers.map((layer, k) => {
     const up = layer.to.map((v, i) => `${i ? 'L' : 'M'}${px(centre(i))} ${px(y(Number.isFinite(v) ? v : layer.from[i]))}`);
     const down = layer.from.map((v, i) => `L${px(centre(i))} ${px(y(v))}`).reverse();
     const ramp = ramps[k];
+    if (curves) {
+      const d = runs(layer).filter((run) => run.length > 1).map((run) => {
+        const [a, b] = [run[0], run[run.length - 1]];
+        return `M${px(centre(a))} ${px(y(layer.from[a]))}L${px(centre(a))} ${px(y(at(layer, a)))}`
+          + `${run.slice(0, -1).map((i) => bend(k, i)).join('')}L${px(centre(b))} ${px(y(layer.from[b]))}Z`;
+      }).join('');
+      return d && (
+        <path key={`fill-${layer.id}`} className={cx('ui-chart__area', tone(layer.tone))}
+          style={ramp ? { '--ui-chart-paint': `url(#${ramp.id})` } as CSSProperties : undefined} d={d} />
+      );
+    }
     return (
       <path key={`fill-${layer.id}`}
         className={cx(look.share ? 'ui-chart__segment' : 'ui-chart__area', tone(layer.tone))}
@@ -261,14 +318,21 @@ function linesDrawing(g: LookGeometry, open: number | null) {
         d={`${up.join('')}${down.join('')}Z`} />
     );
   });
-  const edges = !look.share && look.layers.flatMap((layer) => layer.to.slice(1).map((_, k) => (
+  const edges = curves ? look.layers.flatMap((layer, k) => layer.to.slice(1).map((_, i) => (
+    finite(layer, i) && finite(layer, i + 1) ? (
+      <path key={`edge-${layer.id}-${i}`}
+        className={cx('ui-chart__line', tone(layer.tone),
+          (labels[i]?.estimated || labels[i + 1]?.estimated) && 'is-estimated')}
+        d={`M${px(centre(i))} ${px(y(at(layer, i)))}${bend(k, i)}`} />
+    ) : null)))
+    : !look.share && look.layers.flatMap((layer) => layer.to.slice(1).map((_, k) => (
     finite(layer, k) && finite(layer, k + 1) ? (
       <line key={`edge-${layer.id}-${k}`}
         className={cx('ui-chart__line', tone(layer.tone),
           (labels[k]?.estimated || labels[k + 1]?.estimated) && 'is-estimated')}
         x1={px(centre(k))} y1={px(y(at(layer, k)))} x2={px(centre(k + 1))} y2={px(y(at(layer, k + 1)))} />
     ) : null)));
-  const points = look.variant === 'line' && look.look === 'points';
+  const points = (look.variant === 'line' && look.look === 'points') || curves;
   const dots = look.layers.flatMap((layer) => layer.to.map((_, i) => {
     if (!finite(layer, i)) return null;
     const lonely = !finite(layer, i - 1) && !finite(layer, i + 1);
@@ -318,8 +382,8 @@ function linesDrawing(g: LookGeometry, open: number | null) {
           {ramps.map((ramp) => ramp && (
             <linearGradient key={ramp.id} id={ramp.id} className={tone(ramp.layer.tone)}
               gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={px(y(ramp.lo))} y2={px(y(ramp.hi))}>
-              <stop className="ui-chart__fade-base" offset="0" />
-              <stop className="ui-chart__fade-end" offset="1" />
+              <stop className={curves ? 'ui-chart__wash-floor' : 'ui-chart__fade-base'} offset="0" />
+              <stop className={curves ? 'ui-chart__wash-top' : 'ui-chart__fade-end'} offset="1" />
             </linearGradient>
           ))}
         </defs>

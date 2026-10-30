@@ -11,6 +11,7 @@ export const RELEASES = [
       ['added', 'React `Card` takes `tools`, small controls at the end of a titled card\'s title row, on a desktop and on a phone, with no extra row. In the vanilla kit, `.ui-card__head` holds the title and `.ui-card__tools`. Part of #736.', ['Card']],
       ['changed', 'React `Chart` in a titled `Card` puts its Chart and Table switch at the end of the card\'s title row, so the chart draws no row of its own for it. A Chart outside a titled Card keeps the switch in its top right corner. Part of #736.', ['Chart', 'Card']],
       ['added', 'The Dashboards and reports guideline adds a rule: title a chart card by what it measures, and leave out the range of its data. The page or the filter around the chart already holds the range. Part of #736.', ['Guidelines']],
+      ['added', 'React `Chart` with `variant="area"` takes `look="curves"`: each series from zero as a smooth curve over the one before it, a wash of its tone that fades to clear at zero, and a ring point on each value. Use it for two or three series that a reader compares by shape, not by total. Part of #736.', ['Chart']],
     ],
   },
   {

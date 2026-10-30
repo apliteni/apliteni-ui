@@ -13,7 +13,7 @@ import { Segmented } from './Segmented';
 import { CardTools } from './primitives/Card';
 import { placeTip } from './tip';
 import {
-  LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, pct,
+  LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, overlaps, pct,
   type ChartAreaLook, type ChartDonutLook, type ChartLineLook, type ChartSlice, type ChartStackedLook,
   type Layer, type Look, type LookGeometry,
 } from './chart-looks';
@@ -419,7 +419,7 @@ function lookFrame(
 ): Frame {
   if (variant !== 'line') noNegative(variant, series.flatMap((s) => s.values.map((value) => ({ name: s.name, value }))));
   const columns = periods.map((p) => columnOf(p, p.label.split(' ')[0]));
-  const stacked = variant === 'stacked' || look !== 'flat' && variant === 'area';
+  const stacked = variant === 'stacked' || variant === 'area' && !overlaps(look);
   const share = look === 'share';
   const n = columns.length;
   const value = (s: ChartLookSeries, i: number) => (Number.isFinite(s.values[i]) ? s.values[i] : Number.NaN);

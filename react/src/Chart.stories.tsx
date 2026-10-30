@@ -224,6 +224,18 @@ const flows: ChartLookSeries[] = [
 ];
 const spend: ChartLookSeries[] = [{ id: 'spend', name: 'Spend', values: YEAR_SPEND, tone: 'accent' }];
 
+/* Income split three ways, for the curves look. Licences are what the other two
+   leave, so the three add up to YEAR_INCOME. Services is lumpy and crosses
+   Subscriptions, which is the shape a reader compares. */
+const SUBSCRIPTIONS = [14200, 14650, 15100, 15480, 15920, 16310, 16840, 17220, 17650, 18110, 18540, 19020];
+const SERVICES = [16800, 18900, 15200, 17400, 13900, 16200, 18700, 14300, 17100, 15600, 19200, 16900];
+const LICENCES = YEAR_INCOME.map((value, i) => value - SUBSCRIPTIONS[i] - SERVICES[i]);
+const channels: ChartLookSeries[] = [
+  { id: 'subscriptions', name: 'Subscriptions', values: SUBSCRIPTIONS, tone: 'accent' },
+  { id: 'services', name: 'Services', values: SERVICES, tone: 'accent-soft' },
+  { id: 'licences', name: 'Licences', values: LICENCES, tone: 'info' },
+];
+
 /* Each look sits in one card width, so the looks compare side by side. The
    centred canvas has no width to take a percentage of, so a phone clamps to the
    viewport less the canvas's 1rem on each side. */
@@ -252,6 +264,11 @@ export const LineLabels: StoryObj = {
 export const AreaFlat: StoryObj = {
   render: () => lookCard('Spend by category', <Chart variant="area" look="flat"
     title="Spend by month, last 12 months" periods={year} series={spend}
+    format={eur} formatAxis={eurAxis} />),
+};
+export const AreaCurves: StoryObj = {
+  render: () => lookCard('Income by channel', <Chart variant="area" look="curves" legend
+    title="Income by channel and month, last 12 months" periods={year} series={channels}
     format={eur} formatAxis={eurAxis} />),
 };
 export const AreaStacked: StoryObj = {

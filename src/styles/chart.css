@@ -248,10 +248,16 @@
 .ui-chart__dot { fill: var(--ui-chart-tone); stroke: var(--ui-chart-ground); stroke-width: 2; }
 .ui-chart--line-thin .ui-chart__line { stroke-width: 1.5; }
 .ui-chart--line-points .ui-chart__line { stroke-width: 2.5; }
+/* The curves look's point is a ring of its tone around the ground. */
+.ui-chart--area-curves .ui-chart__dot { fill: var(--ui-chart-ground); stroke: var(--ui-chart-tone); }
 /* An area is the fade of its tone. Where its values vary, the component names a
    ramp as --ui-chart-paint: the fade at the lowest value, the tone at the highest.
    The edge line on top of it holds the value. */
 .ui-chart__area { fill: var(--ui-chart-paint, var(--ui-chart-fade)); stroke: none; }
+/* A curves area washes its tone from its highest value to clear at zero. The
+   series overlap, so the wash is thin enough to show the ones under it. */
+.ui-chart__wash-top { stop-color: var(--ui-chart-tone); stop-opacity: 0.32; }
+.ui-chart__wash-floor { stop-color: var(--ui-chart-tone); stop-opacity: 0; }
 /* A stacked part, a share band and a ring slice. The ground between two parts
    keeps them apart where two tones of one hue meet. */
 .ui-chart__segment {

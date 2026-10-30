@@ -94,7 +94,7 @@
 
 **Rule:** Title a chart card by what it measures, and leave out the range of its data.
 
-**Why:** The page or the filter around the chart already holds the range, so the card does not repeat it.
+**Why:** The page or the filter around the chart already holds the range.
 
 **Do:** Spend against estimate, with no subtitle.
 
@@ -119,6 +119,8 @@
 **Rule:** Draw one line on a chart, or two when the reader compares them.
 
 **Why:** Past two lines, the colours are hard to tell apart and the crossings hide the shape of each line.
+
+**Except:** Three smooth areas compared by shape.
 
 **Do:** Spend against Estimated, then revenue against expenses on a second chart.
 
