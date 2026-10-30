@@ -112,7 +112,7 @@ section.
 | [foundations.md](docs/foundations.md) | The tokens and the floors: widths, breakpoints, spacing, type, colour, elevation, the focus ring, the tap floor. |
 | [components.md](docs/components.md) | The package: what to import, theming, the component catalog, and what each component guarantees. |
 | [react/README.md](react/README.md) | The React components and their props. |
-| [contributing.md](docs/contributing.md) | Working on the kit: the repository's layout, Storybook, the guidelines collection, the site, the changelog and releases. |
+| [contributing.md](https://github.com/apliteni/apliteni-ui/blob/main/docs/contributing.md) | Working on the kit: the repository's layout, Storybook, the guidelines collection, the site, the changelog and releases. |
 
 ## Contribute
 
@@ -143,7 +143,7 @@ Open an issue, create a branch from `main`, and link the issue in your PR. If yo
 published file, including this README, bump the version in `package.json` and
 `package-lock.json`, and add an entry to `site/changelog.mjs`. Merging that version bump
 starts the release workflow. Do not push a tag or publish manually.
-[AGENTS.md](AGENTS.md) describes the review, data-handling and release checks.
+[AGENTS.md](https://github.com/apliteni/apliteni-ui/blob/main/AGENTS.md) describes the review, data-handling and release checks.
 
 ## License
 

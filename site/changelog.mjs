@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.153.0', date: '2026-10-30',
+    changes: [
+      ['fixed', 'The npm package now ships `docs/components.md`, `docs/foundations.md` and `TRADEMARK.md`, which the packed README linked to but the `files` list left out. Its links to `docs/contributing.md` and `AGENTS.md` now point at the GitHub repository, because those contributor-only files do not ship. Resolves #754.'],
+    ],
+  },
+  {
     v: '0.152.0', date: '2026-10-30',
     changes: [
       ['added', 'React `Card` takes `tools`, small controls at the end of a titled card\'s title row, on a desktop and on a phone, with no extra row. In the vanilla kit, `.ui-card__head` holds the title and `.ui-card__tools`. Part of #736.', ['Card']],
