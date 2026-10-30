@@ -190,6 +190,10 @@ export const iconOnlyAllowed = {
   chevronRight: 'step to the next page',
   minus: 'zoom out',
   plus: 'zoom in',
+  // A chart card's view switch, decided by Artur on #742: the bars and the grid
+  // are the two views themselves, side by side in one toolbar at the card's corner.
+  chart: 'show the values as a chart',
+  table: 'show the values as a table',
 };
 
 // The word a wordless control's name may open with. The list above says which
@@ -215,6 +219,8 @@ export const iconOnlyNames = {
   chevronRight: ['next'],
   minus: ['zoom'],
   plus: ['zoom'],
+  chart: ['chart'],
+  table: ['table'],
 };
 
 // What a glyph means when a component picks it for the reader rather than a

@@ -381,39 +381,6 @@ function changedPixels(before, after, box) {
 
 const BLUE_MARK = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22240%22 height=%2224%22%3E%3Crect width=%22240%22 height=%2224%22 fill=%22%230060ff%22/%3E%3C/svg%3E';
 
-function stackedRunningFixture(css, width) {
-  return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">
-    <style>${css}</style>
-    <style>body{margin:0}.stage{width:${width}px}.ui-table-scroll{max-height:none}</style>
-    </head><body><div class="stage"><div class="ui-table-scroll">
-    <table class="ui-table ui-table--compact ui-table--sticky ui-table--pinned ui-table--stack" role="table">
-      <thead><tr><th scope="col" role="columnheader" class="ui-table__identity">Office</th><th scope="col" role="columnheader" class="ui-table__num">Price</th></tr></thead>
-      <tbody><tr role="row"><td role="cell" class="ui-table__identity"><div data-stacked-line>Office: <a href="#office">North</a> <a href="#map">map</a></div></td><td role="cell" class="ui-table__num">1.00</td></tr></tbody>
-    </table></div></div></body></html>`;
-}
-
-async function measureStackedRunningGaps(page, css, width) {
-  await page.setViewportSize({ width, height: 180 });
-  await page.setContent(stackedRunningFixture(css, width), { waitUntil: 'load' });
-  await page.waitForTimeout(100);
-  return page.evaluate(() => {
-    const line = document.querySelector('[data-stacked-line]');
-    const links = [...line.querySelectorAll('a')];
-    const text = line.firstChild;
-    const range = document.createRange();
-    range.setStart(text, 0);
-    range.setEnd(text, 'Office:'.length);
-    const label = range.getBoundingClientRect();
-    const first = links[0].getBoundingClientRect();
-    const second = links[1].getBoundingClientRect();
-    return {
-      display: getComputedStyle(line).display,
-      labelToFirst: first.left - label.right,
-      firstToSecond: second.left - first.right,
-    };
-  });
-}
-
 async function measureSiblingLine(page, css, width) {
   await page.setViewportSize({ width, height: 240 });
   await page.setContent(subLineFixture(css, width, [
@@ -571,10 +538,6 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
         assert.ok(row.paintedOverflowPx <= 0.5, `${row.id} paints ${row.paintedOverflowPx}px past the cell at ${width}`);
         assert.equal(row.lineTextOverflow, 'ellipsis', `${row.id} does not promise a line ellipsis at ${width}`);
       }
-      const card = await measureStackedRunningGaps(page, css, width);
-      assert.ok(card.labelToFirst >= 3, `stacked card welded label to first link: ${card.labelToFirst}px at ${width}`);
-      assert.ok(card.firstToSecond >= 3, `stacked card welded two links: ${card.firstToSecond}px at ${width}`);
-
       const sibling = await measureSiblingLine(page, css, width);
       assert.ok(sibling.textBeyondSiblingPx <= 0.5,
         `sibling text paints ${sibling.textBeyondSiblingPx}px beyond its own box at ${width}`);
@@ -611,20 +574,6 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
     }
     assert.ok(new Set(failures.map((row) => row.width)).size === PHONE_WIDTHS.length,
       `dropping only the link's overflow clip did not fail at both widths: ${JSON.stringify(failures)}`);
-
-    const stackedDefect = `${css}
-@media (max-width: 560px) {
-  .ui-table.ui-table--stack.ui-table--pinned .ui-table__identity > *:has(a) {
-    display: flex;
-  }
-}`;
-    const welded = [];
-    for (const width of PHONE_WIDTHS) {
-      const card = await measureStackedRunningGaps(page, stackedDefect, width);
-      if (card.labelToFirst <= 0.5 || card.firstToSecond <= 0.5) welded.push({ width, ...card });
-    }
-    assert.ok(new Set(welded.map((row) => row.width)).size === PHONE_WIDTHS.length,
-      `the stacked-card mutation did not weld running text at both widths: ${JSON.stringify(welded)}`);
 
     const siblingDefect = `${css}
 @media (max-width: 720px) {
@@ -689,85 +638,14 @@ test('at 1280 the phone rules are off and the desktop identity is what it was', 
   assert.notEqual(style('#kit .ui-identity__logo').display, 'none', 'the desktop lost the identity logo');
 });
 
-/**
- * What the same declaration has to come to once the row is a card (#499). The cap and
- * its cut exist because the pinned column is narrow; a card is as wide as the row, so
- * every one of them has to be off. Two properties are judged as no-ops, each for a
- * stated reason rather than because nothing was written for them.
- */
-const STACKED_OUTCOME = {
-  'white-space': (v) => (['', 'normal'].includes(v) ? null
-    : `${v} holds a card's heading to one line, so a long name leaves the card`),
-  'max-width': (v) => (['', 'none', '100%'].includes(v.trim()) ? null
-    : `${v} caps a heading that has the whole card to sit in`),
-  'min-width': (v) => ((lengthPx(v, 390) ?? 0) === 0 ? null
-    : `a floor of ${v} is the pinned column's, and there is no column left`),
-  width: (v) => (['', 'auto'].includes(v) ? null
-    : `${v} sizes a cell that is now one line of the card`),
-  overflow: (v) => (['', 'visible'].includes(v) ? null
-    : `${v} puts a clip box around a heading with nothing to clip, and it reaches the ring`),
-  'text-overflow': (v) => (['', 'clip'].includes(v) ? null
-    : `${v} promises a cut that a wrapping card never draws`),
-  // Inert once nothing clips, and left written so the narrow column keeps its 16px.
-  'overflow-clip-margin': () => null,
-  // Inert in a card: the link's height is its own line there, so there is no box to
-  // centre a line in. Left written for the column, which has one.
-  'align-content': () => null,
-  'justify-content': () => null,
-  'text-align': () => null,
-  outline: () => null,
-  'outline-offset': () => null,
-  'border-radius': () => null,
-  // The decorative logo stays out of a stacked card too. That is #499's call about the
-  // card, not #500's about the column, so this sweep does not reopen it.
-  display: () => null,
-};
-
-test('at 390 a stacked row takes the pinned column\'s one-line rules back off', () => {
-  const { document, style } = mountAt(390, 'ui-table--stack');
-  // The header row is clipped out of the card and kept only for the accessibility
-  // tree, so what the phone block leaves on a 1px box cannot be read or drawn. The
-  // exclusion is earned here rather than assumed: a header that comes back into the
-  // card fails this, and every shape in it is swept again.
-  const head = style(document.querySelector('thead'));
-  assert.equal(head.clipPath, 'inset(50%)', `a stacked thead is drawn in the card at ${head.clipPath}`);
-  assert.equal(head.position, 'absolute', `a stacked thead is in the card's flow at ${head.position}`);
-
-  let judged = 0;
-  for (const { selector, declarations } of phoneRules()) {
-    const reached = [...document.querySelectorAll(selector)]
-      .filter((el) => el.closest('.ui-table__identity') && !el.closest('thead'));
-    if (!reached.length) continue;
-    for (const { property, value } of declarations) {
-      const outcome = STACKED_OUTCOME[property];
-      assert.ok(outcome, `nothing here judges what ${property} does to a stacked row's heading`);
-      for (const el of reached) {
-        const problem = outcome(style(el).getPropertyValue(property));
-        assert.equal(problem, null, `${selector} { ${property}: ${value} } still reaches a stacked row on <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>: ${problem}`);
-        judged++;
-      }
-    }
-  }
-  // The same floor the narrow sweep carries: a reset that stops reaching these shapes
-  // leaves the rules above it unmeasured rather than passing.
-  assert.ok(judged >= 18, `only ${judged} declarations were judged against a stacked row`);
-
-  // The one a reader of #499 would look for: the name is what the card is about.
-  const name = style('#kit .ui-identity__name');
-  assert.ok(['', 'normal'].includes(name.whiteSpace), `a stacked card's name is held at ${name.whiteSpace}`);
-  assert.equal(name.maxWidth.trim(), 'none', 'a stacked card\'s name keeps the narrow column\'s cap');
-});
-
 /* -- The linked identity, which the column and the cell fill meet on --------- */
 
 /**
  * `#kit` is marked `.ui-table__linked`, so its link is the row's handle: below the fold the
- * cell hands its padding over and the link's box is the cell's, and in a stacked card there
- * is no column left to fill, so the fill comes back off.
+ * cell hands its padding over and the link's box is the cell's.
  * why: docs/components.md#dense-financial-tables, #500
  *
- * Limits: JSDOM draws no boxes, so these are the values the cascade leaves; Chromium
- * measured the card for #500. Which ring each shape takes is read in
+ * Limits: JSDOM draws no boxes, so these are the values the cascade leaves. Which ring each shape takes is read in
  * src/styles/table-focus.test.js, because `:focus-visible` matches nothing here.
  */
 const SIDES = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'];
@@ -821,44 +699,15 @@ function fillProblems(css) {
     problems.push(`the bare link aligns its line ${bare.alignContent || 'at the top'}, which the flex box it replaces centred`);
   }
 
-  const card = mountAt(390, 'ui-table--stack', css);
-  const cardCell = card.style('#kit');
-  const cardLink = card.style('#kit .ui-identity');
-  if (padding(cardLink) !== '0px 0px 0px 0px') {
-    problems.push(`in a card the link keeps ${padding(cardLink)} of the fill, which stands its name off the card's own text edge`);
-  }
-  if (cardCell.height === '1px') {
-    problems.push('in a card the marked cell is still held to one pixel, which a block cell takes as a height');
-  }
-  if (cardLink.width === '100%') {
-    problems.push('in a card the link is still told to fill a column that is no longer there');
-  }
-  const cardBare = card.style('#bare a');
-  if (padding(cardBare) !== '0px 0px 0px 0px' || cardBare.width === '100%') {
-    problems.push(`in a card the bare link keeps ${padding(cardBare)} at ${cardBare.width} of the fill, which stands its name off the card's own text edge`);
-  }
-  if (!['', 'visible'].includes(cardBare.overflow)) {
-    problems.push(`in a card the bare link still clips at ${cardBare.overflow}, where the name has the whole card to wrap in`);
-  }
   return problems;
 }
 
-test('a marked identity link takes the whole cell below the fold and gives it back in a card', () => {
+test('a marked identity link takes the whole cell below the fold', () => {
   assert.deepStrictEqual(fillProblems(CSS), []);
 });
 
-/** The card's undo, and the handover it undoes, each taken away on its own. The first two
- *  are the defect the review of #500 measured: a linked identity in a stacked card stood a
- *  step right of the other cells' text edge, and its row changed height. */
+/** The handover and #513's filled link, each taken away on its own. */
 const FILL_MUTATIONS = [
-  ["the card's undo of the fill deleted, so the link keeps the padding the cell gave up",
-    (css) => css.replace(`  .ui-table.ui-table--stack > tbody > tr > td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child {
-    width: auto; height: auto; padding: 0;
-  }
-`, '')],
-  ["the card's undo of the cell's stated height deleted, so a block cell is one pixel tall",
-    (css) => css.replace('  .ui-table.ui-table--stack > tbody > tr > td.ui-table__linked'
-      + ':has(> :is(a:not([class]), a.ui-identity):only-child) { height: auto; }\n', '')],
   ['the handover deleted, so the cell and the link both draw a padding',
     (css) => css.replace('.ui-table td.ui-table__linked'
       + ':has(> :is(a:not([class]), a.ui-identity):only-child) { padding: 0; height: 1px; }\n', '')],

@@ -38,6 +38,8 @@ export { Feedback } from './Feedback';
 export type { FeedbackProps, FeedbackPayload, FeedbackResult, FeedbackSection } from './Feedback';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
+export { AccountWindow } from './AccountWindow';
+export type { AccountWindowProps, AccountSection, AccountReader } from './AccountWindow';
 export { Drawer } from './Drawer';
 export type { DrawerProps } from './Drawer';
 export { CommandPalette } from './CommandPalette';
@@ -114,8 +116,11 @@ export type { SuccessProps, SuccessPanelProps, SuccessCheckProps, SuccessCountdo
 
 export { Chart } from './Chart';
 export type {
-  ChartProps, ChartTone, ChartPeriod, ChartSeries, ChartBridgeStep, ChartBridgeTones,
+  ChartProps, ChartTone, ChartPeriod, ChartSeries, ChartBridgeStep, ChartBridgeTones, ChartLookSeries,
 } from './Chart';
+export type {
+  ChartLineLook, ChartAreaLook, ChartStackedLook, ChartDonutLook, ChartSlice,
+} from './chart-looks';
 
 export { SidebarNav } from './SidebarNav';
 export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';

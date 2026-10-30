@@ -435,8 +435,8 @@ const TABLE_ELEMENT = /^(?:table|\.ui-table(?:--[\w-]+)?)(?:[:.[][^\s]*)?$/;
 const targetsTable = (selector) => compounds(selector).some((last) => TABLE_ELEMENT.test(last));
 
 // A brace walk, not one regex: a media block opens a block of its own, and a match that
-// stops at the first `}` swallows the first rule inside it. The stacked phone layout lives
-// in one, so every rule there has to be a subject of its own or the sheet can hide one.
+// stops at the first `}` swallows the first rule inside it. A rule in a media block has to
+// be a subject of its own, or the sheet can hide one there.
 const rulesIn = (css) => {
   const src = noComments(css);
   const open = [];
@@ -459,12 +459,6 @@ const tableSizingRules = (css) => rulesIn(css)
   .filter(({ selector, body }) => targetsTable(selector) && !CELL.test(selector)
     && /(?:^|;|\s)width\s*:/.test(body));
 
-// Below the phone step `--stack` stops laying out as a table at all: `display: block` makes
-// each row its own flex block, so the column is the width and there is no content width left
-// to size to. The two rules are named one by one rather than the class exempted, so a
-// `--stack` rule written anywhere else is still a subject.
-const STACK_LAYOUT = ['.ui-table.ui-table--stack', '.ui-card > .ui-table--stack'];
-
 function tableWidths(css) {
   const rules = tableSizingRules(css);
   assert.ok(rules.length > 0, 'no rule in this sheet sizes a table — the subject is gone');
@@ -480,7 +474,7 @@ function tableWidths(css) {
         ':where(.ui-card--fit) .ui-table': 'auto',
         '.ui-card--fit > :where(.ui-table--dense, .ui-table--zebra)': 'auto',
       }[selector];
-      if (width !== expected && !STACK_LAYOUT.includes(selector)) {
+      if (width !== expected) {
         problems.push(`${selector} sizes the table itself: width: ${width}`);
       }
       measured++;
@@ -497,13 +491,6 @@ function tableWidths(css) {
       problems.push(`${selector} has no sizing rule`);
     }
   }
-  // An exemption that no longer names a rule in the sheet is a hole with nothing behind it.
-  for (const selector of STACK_LAYOUT) {
-    if (!rules.some((rule) => rule.selector === selector)) {
-      problems.push(`${selector} is exempt here and is no longer in the sheet`);
-    }
-  }
-
   // The cap is the other half: without it a short table shrinks but a bled one
   // inside a card loses the end inset it bleeds into.
   const caps = rulesIn(css).filter(({ selector, body }) => /max-width/.test(body)
@@ -534,11 +521,8 @@ test('the width gate rejects a table stretched back to its container', () => {
     // And the one its second review named: a wrapper sized to a pager, with the table
     // filling it, is a stretch written in two rules instead of one.
     ['a table filling a box of its own', `${CSS}\n.ui-table-frame .ui-table { width: 100%; }`],
-    // The stacked phone layout is exempt by its two selectors, not by its class: a third
-    // rule stretching `--stack` anywhere else is still a stretch.
-    ['a stack rule outside the phone layout', `${CSS}\n.ui-table--stack { width: 100%; }`],
-    // The media block the exemption lives in: a rule hidden in one used to be unreadable,
-    // because the match that read its opener stopped at the first `}` inside it.
+    // A rule hidden in a media block used to be unreadable, because the match that read
+    // its opener stopped at the first `}` inside it.
     ['a rule inside a media block', `${CSS}\n@media (max-width: 560px) { .ui-table--hover { width: 100%; } }`],
   ]) {
     assert.ok(tableWidths(mutation).length > 0, `${name} must be rejected`);

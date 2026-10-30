@@ -4,17 +4,15 @@
 
 <!-- rule: modal -->
 
-**Rule:** Open account and settings in one modal over the product, with its navigation beside the pane.
+**Rule:** Open account and settings in the kit's account window, over the product, with its sections beside the pane.
 
 **Why:** The reader has not left the work behind it, and one overlay holds every setting.
 
-**Do:** Open a panel over the work, navigation beside the pane.
+**Do:** Give the window the reader and the sections, and let it draw the rail, the title, the close and the dimmed page.
 
 **Don't:** Slide a full-width sheet in with columns inside it.
 
-**Except:** On a phone the navigation stands above the pane, where a column beside it would leave the pane narrower than its rows.
-
-**Gap #553:** The kit has no modal that takes a navigation pane or a width, so this shape is built by hand.
+**Except:** On a phone the sections become tabs under the reader, where a column beside the pane would leave it narrower than its rows.
 
 ## Give the modal its own navigation
 

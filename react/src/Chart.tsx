@@ -8,7 +8,13 @@ import {
   type CSSProperties, type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 import { CHART_FLOOR, bridgeWalk, chartScale, pointTarget } from '@apliteni/apliteni-ui';
+import { Segmented } from './Segmented';
 import { placeTip } from './tip';
+import {
+  LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, pct,
+  type ChartAreaLook, type ChartDonutLook, type ChartLineLook, type ChartSlice, type ChartStackedLook,
+  type Layer, type Look, type LookGeometry,
+} from './chart-looks';
 
 // The paint is src/styles/chart.css, and this module does NOT import it: a kit
 // sheet imported from react/src is re-emitted into react/dist/index.css, which a
@@ -78,8 +84,12 @@ type ChartCommon = {
   formatAxis?: (value: number) => string;
   /** The plot's height in CSS px. */
   height?: number;
-  /** Offer the same numbers as a table. On by default, off for a sparkline. */
+  /** Offer the same numbers as a table, behind a chart and table switch at the
+   *  top right. On by default, off for a sparkline. */
   table?: boolean;
+  /** Draw a key that names each series. Off by default: the readout and the
+   *  table name every series. */
+  legend?: boolean;
   /** Let Enter and a click pick a column. */
   selectable?: boolean;
   /** The picked column, when the caller keeps that state. */
@@ -88,18 +98,34 @@ type ChartCommon = {
   className?: string;
 };
 
+/** A series of a line, an area or a stacked chart. Its `shape` is the variant's. */
+export type ChartLookSeries = Omit<ChartSeries, 'shape'>;
+
 export type ChartProps = ChartCommon & (
   | { variant?: 'months'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[] }
   | { variant: 'spark'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[] }
   | { variant: 'bridge'; steps: readonly ChartBridgeStep[]; tones?: ChartBridgeTones }
+  | { variant: 'line'; look?: ChartLineLook; periods: readonly ChartPeriod[]; series: readonly ChartLookSeries[] }
+  | { variant: 'area'; look?: ChartAreaLook; periods: readonly ChartPeriod[]; series: readonly ChartLookSeries[] }
+  | { variant: 'stacked'; look?: ChartStackedLook; periods: readonly ChartPeriod[]; series: readonly ChartLookSeries[] }
+  | {
+    variant: 'donut'; look?: ChartDonutLook; slices: readonly ChartSlice[];
+    /** What the whole is called in the centre and in the side list. Defaults to `Total`. */
+    totalLabel?: string;
+    /** A slice is a part of one whole, so there is no column to pick. */
+    selectable?: never; selected?: never; onSelect?: never;
+  }
 );
 
 type Column = { label: string; short: string; estimated: boolean; note?: string };
-type Key = { id: string; name: string; tone: ChartTone; shape: 'bars' | 'bars-below' | 'line' };
+type Key = { id: string; name: string; tone: ChartTone; shape: 'bars' | 'bars-below' | 'line' | 'fill' };
 type Band = 'up' | 'down' | 'full';
 
+/** One line of a column's readout: a series and what it holds there. */
+export type MarkRow = { name: string; tone: ChartTone; text: string; shape: 'line' | 'fill' };
+
 /** One drawn value: a bar's box or a dot's target square, with what it says. */
-type Mark = {
+export type Mark = {
   id: string;
   column: number;
   name: string;
@@ -114,7 +140,13 @@ type Mark = {
    *  against once a coarse pointer asks for the phone floor, and placed by
    *  `pointTarget` so the chart's edge never clips it. */
   hit?: { x: number; y: number; w: number; h: number };
-  kind: 'bar' | 'dot';
+  /** A ring slice's target, which no box describes. */
+  hitPath?: string;
+  /** A `column` is every series in one period, a `slice` one part of a ring. */
+  kind: 'bar' | 'dot' | 'column' | 'slice';
+  /** What a column's readout lists, and the total under the list. */
+  rows?: MarkRow[];
+  total?: string;
   band: Band;
   /** Which of a bar's two edges stands on the zero line, if either does. */
   foot: 'top' | 'bottom' | null;
@@ -136,10 +168,12 @@ type Frame = {
   keys: Key[];
   tableHead: string[];
   tableRows: { column: Column; cells: string[] }[];
+  /** A line, an area, a stacked or a donut chart draws from this instead. */
+  look?: Look;
 };
 
 /** The plot's height when the caller names none. */
-const HEIGHT = { months: 216, bridge: 216, spark: 32 };
+const HEIGHT = { months: 216, bridge: 216, spark: 32, line: 216, area: 216, stacked: 216, donut: 216 };
 /** Room for a stroke at the band's edges, so a full-height bar is not shaved. */
 const PAD = 2;
 /**
@@ -368,14 +402,132 @@ function bridgeFrame(
   };
 }
 
+/** A part of a whole is never under zero: one would draw a part outside the
+ *  whole and clip the scale. Throws before anything is drawn. */
+function noNegative(variant: string, values: readonly { name: string; value: number }[]) {
+  const bad = values.find((v) => v.value < 0);
+  if (bad) throw new RangeError(`Chart: a ${variant} chart takes values of 0 or more; ${bad.name} is ${bad.value}`);
+}
+
+/** The frame of a line, an area or a stacked chart. A stack counts a missing
+ *  value as nothing; the table and the readout still print it as missing. */
+function lookFrame(
+  variant: 'line' | 'area' | 'stacked', look: string,
+  periods: readonly ChartPeriod[], series: readonly ChartLookSeries[], format: (n: number) => string,
+): Frame {
+  if (variant !== 'line') noNegative(variant, series.flatMap((s) => s.values.map((value) => ({ name: s.name, value }))));
+  const columns = periods.map((p) => columnOf(p, p.label.split(' ')[0]));
+  const stacked = variant === 'stacked' || look !== 'flat' && variant === 'area';
+  const share = look === 'share';
+  const n = columns.length;
+  const value = (s: ChartLookSeries, i: number) => (Number.isFinite(s.values[i]) ? s.values[i] : Number.NaN);
+  const totals = columns.map((_, i) => series.reduce((sum, s) => sum + (Number.isFinite(s.values[i]) ? s.values[i] : 0), 0));
+  const base = new Array<number>(n).fill(0);
+  const layers: Layer[] = series.map((s, k) => {
+    const values = columns.map((_, i) => value(s, i));
+    const tone = s.tone ?? TONE_CYCLE[k % TONE_CYCLE.length];
+    if (!stacked) return { id: s.id, name: s.name, tone, values, from: base.slice(), to: values.slice() };
+    const from = base.slice();
+    values.forEach((v, i) => { base[i] += Number.isFinite(v) ? v : 0; });
+    const to = base.slice();
+    const of = (v: number, i: number) => (share ? (totals[i] > 0 ? v / totals[i] : 0) : v);
+    return { id: s.id, name: s.name, tone, values, from: from.map(of), to: to.map(of) };
+  });
+  const reach = stacked ? totals : series.flatMap((s) => s.values.filter(Number.isFinite));
+  const frameLook: Look = {
+    variant, look, layout: look === 'rows' ? 'rows' : 'columns',
+    stacked, share, layers, totals, totalLabel: 'Total',
+  };
+  const shape = keyShape(frameLook);
+  return {
+    columns,
+    scale: share ? { min: 0, max: 1, step: 0.25, ticks: [0, 0.25, 0.5, 0.75, 1] }
+      : chartScale([...reach, 0], { zero: true, ticks: 4 }),
+    bars: [],
+    lines: [],
+    links: false,
+    keys: layers.map((l) => ({ id: l.id, name: l.name, tone: l.tone, shape })),
+    tableHead: ['Period', ...series.map((s) => s.name), ...(stacked ? ['Total'] : [])],
+    tableRows: columns.map((column, i) => ({
+      column,
+      cells: [
+        ...series.map((s) => (Number.isFinite(s.values[i]) ? format(s.values[i]) : MISSING)),
+        ...(stacked ? [format(totals[i])] : []),
+      ],
+    })),
+    look: frameLook,
+  };
+}
+
+/** The frame of a donut: one whole, and each slice's share of it. */
+function donutFrame(
+  look: ChartDonutLook, slices: readonly ChartSlice[], totalLabel: string, format: (n: number) => string,
+): Frame {
+  noNegative('donut', slices);
+  const parts = slices.map((s) => (Number.isFinite(s.value) ? s.value : 0));
+  const total = parts.reduce((a, b) => a + b, 0);
+  let at = 0;
+  const layers: Layer[] = slices.map((s, k) => {
+    const from = total > 0 ? at / total : 0;
+    at += parts[k];
+    return {
+      id: s.id, name: s.name, tone: s.tone ?? TONE_CYCLE[k % TONE_CYCLE.length],
+      values: [Number.isFinite(s.value) ? s.value : Number.NaN], from: [from], to: [total > 0 ? at / total : 0],
+    };
+  });
+  const columns = slices.map((s) => ({ label: s.name, short: s.name, estimated: false }));
+  return {
+    columns,
+    scale: { min: 0, max: 1, step: 1, ticks: [] },
+    bars: [],
+    lines: [],
+    links: false,
+    keys: layers.map((l) => ({ id: l.id, name: l.name, tone: l.tone, shape: 'fill' as const })),
+    tableHead: ['Slice', 'Value', 'Share'],
+    tableRows: columns.map((column, i) => ({
+      column,
+      cells: [
+        Number.isFinite(slices[i].value) ? format(slices[i].value) : MISSING,
+        total > 0 ? pct(layers[i].to[0] - layers[i].from[0]) : MISSING,
+      ],
+    })),
+    look: {
+      variant: 'donut', look, layout: 'ring', stacked: true, share: true,
+      layers, totals: [total], totalLabel,
+    },
+  };
+}
+
+/** A legend key's mark: a line, a bar standing on zero or under it, or a square. */
+function KeyMark({ shape }: { shape: Key['shape'] }) {
+  if (shape === 'line') {
+    return (
+      <svg className="ui-chart__key-mark" width="18" height="12" viewBox="0 0 18 12" aria-hidden="true">
+        <path className="ui-chart__key-line" d="M1 9 L6 5 L12 7 L17 3" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+      {shape === 'fill'
+        ? <rect className="ui-chart__key-swatch" x="1" y="1" width="10" height="10" rx="2.5" />
+        : <path className="ui-chart__key-swatch"
+          d={barPath({ x: 3.5, y: 1, w: 5, h: 10, foot: shape === 'bars-below' ? 'top' : 'bottom' })} />}
+    </svg>
+  );
+}
+
 export function Chart(props: ChartProps) {
   const {
-    title, format, formatAxis = format, height, table, selectable, selected, onSelect, className,
+    title, format, formatAxis = format, height, table, legend: keyed = false, selectable, selected,
+    onSelect, className,
   } = props;
   const variant = props.variant ?? 'months';
   const spark = variant === 'spark';
   const plotHeight = height ?? HEIGHT[variant];
   const showTable = table ?? !spark;
+  const [view, setView] = useState<'chart' | 'table'>('chart');
+  const asTable = showTable && view === 'table';
 
   const uid = useId().replace(/[^\w-]/g, '');
   const frameEl = useRef<HTMLDivElement>(null);
@@ -403,13 +555,22 @@ export function Chart(props: ChartProps) {
 
   const steps = props.variant === 'bridge' ? props.steps : undefined;
   const bridgeTones = props.variant === 'bridge' ? props.tones : undefined;
-  const periods = props.variant === 'bridge' ? undefined : props.periods;
-  const series = props.variant === 'bridge' ? undefined : props.series;
-  const frame = useMemo<Frame>(() => (steps
-    ? bridgeFrame(steps, bridgeTones, format)
-    : seriesFrame(periods ?? [], series ?? [], spark, format)
-  ), [steps, bridgeTones, periods, series, spark, format]);
-  const { columns, scale, lines, keys, tableHead, tableRows } = frame;
+  const periods = props.variant === 'bridge' || props.variant === 'donut' ? undefined : props.periods;
+  const series = props.variant === 'bridge' || props.variant === 'donut' ? undefined : props.series;
+  const slices = props.variant === 'donut' ? props.slices : undefined;
+  const totalLabel = props.variant === 'donut' ? props.totalLabel ?? 'Total' : 'Total';
+  const lookName: string | undefined = props.variant === 'line' || props.variant === 'area'
+    || props.variant === 'stacked' || props.variant === 'donut'
+    ? props.look ?? LOOK_DEFAULT[props.variant] : undefined;
+  const frame = useMemo<Frame>(() => {
+    if (steps) return bridgeFrame(steps, bridgeTones, format);
+    if (slices) return donutFrame(lookName as ChartDonutLook, slices, totalLabel, format);
+    if (lookName) return lookFrame(variant as 'line' | 'area' | 'stacked', lookName, periods ?? [], series ?? [], format);
+    return seriesFrame(periods ?? [], (series ?? []) as readonly ChartSeries[], spark, format);
+  }, [steps, bridgeTones, slices, totalLabel, lookName, variant, periods, series, spark, format]);
+  const { columns, scale, lines, keys, tableHead, tableRows, look } = frame;
+  /** The look draws its own box: rows as tall as the target floor, or a ring. */
+  const columnsLayout = !look || look.layout === 'columns';
 
   /* -- the pixels ---------------------------------------------------------- */
 
@@ -446,7 +607,15 @@ export function Chart(props: ChartProps) {
   const barWidth = (groupWidth - LANE_GAP * (lanes - 1)) / lanes;
   const centre = useCallback((column: number) => column * colWidth + colWidth / 2, [colWidth]);
 
+  const axisFormat = look?.share ? pct : formatAxis;
+  const geometry = useMemo<LookGeometry | null>(() => (look ? {
+    look, uid, labels: columns, plotWidth, plotHeight, colWidth, pad: PAD, target: TARGET, floor,
+    y, centre, scale, format, formatAxis: axisFormat,
+  } : null), [look, uid, columns, plotWidth, plotHeight, colWidth, floor, y, centre, scale, format, axisFormat]);
+  const box = geometry ? lookBox(geometry) : null;
+
   const marks = useMemo<Mark[]>(() => {
+    if (geometry) return lookMarks(geometry);
     const out: Mark[] = frame.bars.map((bar) => {
       let top = Math.min(y(bar.from), y(bar.to));
       let bottom = Math.max(y(bar.from), y(bar.to));
@@ -507,7 +676,7 @@ export function Chart(props: ChartProps) {
       );
     }
     return [...out, ...dots];
-  }, [frame, lines, keys, columns, centre, barWidth, groupWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
+  }, [geometry, frame, lines, keys, columns, centre, barWidth, groupWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
 
   const byId = useMemo(() => new Map(marks.map((m) => [m.id, m])), [marks]);
   const fades = useMemo(() => new Map(marks.filter((m) => m.kind === 'bar')
@@ -530,14 +699,12 @@ export function Chart(props: ChartProps) {
     return () => observer.disconnect();
   }, []);
 
-  const syncEdges = useCallback(() => {
+  // A labels look opens on its latest period, where its labels are.
+  const opensAtEnd = variant === 'line' && lookName === 'labels';
+  useLayoutEffect(() => {
     const el = scroller.current;
-    if (!el) return;
-    const last = el.scrollWidth - el.clientWidth;
-    el.classList.toggle('is-more-before', el.scrollLeft > 1);
-    el.classList.toggle('is-more-after', el.scrollLeft < last - 1);
-  }, []);
-  useEffect(syncEdges, [syncEdges, plotWidth, count]);
+    if (opensAtEnd && el) el.scrollLeft = el.scrollWidth - el.clientWidth;
+  }, [opensAtEnd, plotWidth, count]);
 
   /* -- the readout --------------------------------------------------------- */
 
@@ -587,11 +754,14 @@ export function Chart(props: ChartProps) {
   const announce = useCallback((column: number, picked: number | null = pick) => {
     const where = columns[column];
     if (!where) return;
-    const values = marks.filter((m) => m.column === column)
-      .map((m) => `${m.name} ${format(m.value)}`).join('. ') || 'No value';
+    const values = marks.filter((m) => m.column === column).map((m) => {
+      if (m.kind === 'slice') return [format(m.value), m.detail].filter(Boolean).join(', ');
+      if (!m.rows) return `${m.name} ${format(m.value)}`;
+      return [...m.rows.map((r) => `${r.name} ${r.text}`), ...(m.total ? [`${totalLabel} ${m.total}`] : [])].join('. ');
+    }).join('. ') || 'No value';
     const state = stateOf(where);
     setSaid(`${where.label}. ${values}.${state ? ` ${state}.` : ''}${picked === column ? ' Selected.' : ''}`);
-  }, [columns, marks, format, pick]);
+  }, [columns, marks, format, pick, totalLabel]);
 
   const step = (next: number) => {
     const column = Math.max(0, Math.min(next, count - 1));
@@ -601,7 +771,6 @@ export function Chart(props: ChartProps) {
     const el = scroller.current;
     if (el && el.scrollWidth > el.clientWidth) {
       el.scrollLeft = Math.max(0, centre(column) - el.clientWidth / 2);
-      syncEdges();
     }
   };
 
@@ -641,9 +810,33 @@ export function Chart(props: ChartProps) {
       ? { y: zero, h: Math.max(plotHeight - PAD - zero, TARGET) }
       : { y: PAD, h: Math.max(plotHeight - PAD * 2, TARGET) });
 
+  // A thin ring reads its total first and its key after; the table look's list
+  // beside the ring is its key.
+  const legendFirst = !(look?.variant === 'donut' && look.look !== 'labels');
+  const legend = keyed && !asTable && keys.length > 0 && !(look?.variant === 'donut' && look.look === 'table') && (
+    <ul className="ui-chart__legend">
+      {keys.map((key) => (
+        <li key={key.id} className={cx('ui-chart__key', `ui-chart__tone--${key.tone}`)}>
+          <KeyMark shape={key.shape} />
+          {key.name}
+        </li>
+      ))}
+      {estimated.length > 0 && (
+        <li className={cx('ui-chart__key', `ui-chart__tone--${estimatedTone}`)}>
+          <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+            <rect className="ui-chart__key-estimated" x="1.5" y="1.5" width="9" height="9" rx="2.5" />
+          </svg>
+          Estimated
+        </li>
+      )}
+    </ul>
+  );
+  const noun = look?.layout === 'ring' ? 'slices' : look?.layout === 'rows' ? 'rows' : 'columns';
+
   return (
     <div
-      className={cx('ui-chart', `ui-chart--${variant}`, selectable && 'ui-chart--pick', className)}
+      className={cx('ui-chart', `ui-chart--${variant}`, look && `ui-chart--${variant}-${look.look}`,
+        selectable && 'ui-chart--pick', className)}
       style={{
         '--ui-chart-h': `${plotHeight}px`,
         '--ui-chart-box': `${px(boxHeight)}px`,
@@ -651,42 +844,28 @@ export function Chart(props: ChartProps) {
         '--ui-chart-pad': `${PAD}px`,
       } as CSSProperties}
     >
-      {!spark && keys.length > 0 && (
-        <ul className="ui-chart__legend">
-          {keys.map((key) => (
-            <li key={key.id} className={cx('ui-chart__key', `ui-chart__tone--${key.tone}`)}>
-              {key.shape === 'line' ? (
-                <svg className="ui-chart__key-mark" width="18" height="12" viewBox="0 0 18 12" aria-hidden="true">
-                  <path className="ui-chart__key-line" d="M1 9 L6 5 L12 7 L17 3" />
-                </svg>
-              ) : (
-                <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                  <path
-                    className="ui-chart__key-swatch"
-                    d={barPath({ x: 3.5, y: 1, w: 5, h: 10, foot: key.shape === 'bars-below' ? 'top' : 'bottom' })}
-                  />
-                </svg>
-              )}
-              {key.name}
-            </li>
-          ))}
-          {estimated.length > 0 && (
-            <li className={cx('ui-chart__key', `ui-chart__tone--${estimatedTone}`)}>
-              <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                <rect className="ui-chart__key-estimated" x="1.5" y="1.5" width="9" height="9" rx="2.5" />
-              </svg>
-              Estimated
-            </li>
+      {(showTable || (legendFirst && legend)) && (
+        <div className="ui-chart__head">
+          {legendFirst && legend}
+          {showTable && (
+            <Segmented size="sm" label={`${title}, view`} value={view}
+              onChange={(next) => setView(next as 'chart' | 'table')} options={[
+                { value: 'chart', label: 'Chart', icon: 'chart', iconOnly: true },
+                { value: 'table', label: 'Table', icon: 'table', iconOnly: true },
+              ]} />
           )}
-        </ul>
+        </div>
       )}
 
+      {/* Hidden, not unmounted, so the width it measured is still there when
+          the reader switches back. */}
       <div
         ref={frameEl}
+        hidden={asTable}
         className="ui-chart__frame ui-tip-host ui-focusable"
         tabIndex={0}
         role="group"
-        aria-label={`${title}. Arrow keys step through the ${columns.length} columns.`}
+        aria-label={`${title}. Arrow keys step through the ${columns.length} ${noun}.`}
         onKeyDown={onKeyDown}
         onFocus={(event) => {
           if (event.target !== event.currentTarget) return;
@@ -700,10 +879,10 @@ export function Chart(props: ChartProps) {
           setSaid('');
         }}
       >
-        {!spark && scale.ticks.length > 0 && (
+        {!spark && columnsLayout && scale.ticks.length > 0 && (
           <div className="ui-chart__axis" aria-hidden="true">
             {[...scale.ticks].reverse().map((tick) => (
-              <span key={tick} className="ui-chart__tick">{formatAxis(tick)}</span>
+              <span key={tick} className="ui-chart__tick">{axisFormat(tick)}</span>
             ))}
           </div>
         )}
@@ -714,7 +893,6 @@ export function Chart(props: ChartProps) {
             taken out of the tab order rather than given a second name.
             why: docs/components.md#react-charts */}
         <div ref={scroller} className="ui-chart__scroll" tabIndex={-1} onScroll={() => {
-          syncEdges();
           const anchor = [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
             .find((el) => el.getAttribute('data-anchor') === openId);
           if (!anchor || !scroller.current || !frameEl.current || !tipEl.current) return;
@@ -730,6 +908,8 @@ export function Chart(props: ChartProps) {
               width={px(plotWidth)}
               height={px(boxHeight)}
               viewBox={`0 ${px(boxTop)} ${px(plotWidth)} ${px(boxHeight)}`}
+              /* A rows or ring look draws its own box, and each row in it is the floor already. */
+              {...box && { width: px(box.w), height: px(box.h), viewBox: `0 0 ${px(box.w)} ${px(box.h)}` }}
               role="img"
               aria-label={spark && marks.length > 0
                 ? `${title}. ${format(marks[0].value)} to ${format(marks[marks.length - 1].value)}.`
@@ -782,7 +962,7 @@ export function Chart(props: ChartProps) {
                   frame belongs to focus. The band is a quiet fill rather than
                   the accent, which the chart spends on a series, and the picked
                   label carries the weight that survives with no colour at all. */}
-              {!spark && pick !== null && pick >= 0 && pick < count && (
+              {!spark && columnsLayout && pick !== null && pick >= 0 && pick < count && (
                 <rect className="ui-chart__band"
                   x={px(pick * colWidth)} width={px(colWidth)}
                   y="0" height={px(plotHeight)} />
@@ -808,11 +988,11 @@ export function Chart(props: ChartProps) {
                   the one rule every reference keeps. Both go under every mark: the
                   bars stop ZERO_INSET short of zero so no bar can cover it, and a
                   line or a dot crossing a rule paints over it. */}
-              {!spark && scale.ticks.filter((tick) => tick !== 0).map((tick) => (
+              {!spark && columnsLayout && scale.ticks.filter((tick) => tick !== 0).map((tick) => (
                 <line key={`grid-${tick}`} className="ui-chart__grid"
                   x1="0" x2={px(plotWidth)} y1={px(y(tick))} y2={px(y(tick))} />
               ))}
-              {!spark && scale.ticks.includes(0) && (
+              {!spark && columnsLayout && scale.ticks.includes(0) && (
                 <line className="ui-chart__zero"
                   x1="0" x2={px(plotWidth)} y1={px(y(0))} y2={px(y(0))} />
               )}
@@ -875,12 +1055,16 @@ export function Chart(props: ChartProps) {
                   ) : null
               )))}
 
+              {geometry && lookDrawing(geometry, open?.column ?? null, pick)}
+
               {/* The hit areas last, so a point's box wins over the band under it.
                   A bar's is its own band in the column, full height, so a pointer
                   between two bars still has one to answer with. */}
               {marks.map((mark) => (
                 <g key={`hit-${mark.id}`} data-mark={mark.id}>
-                  {mark.kind === 'bar' ? (
+                  {mark.hitPath ? (
+                    <path className="ui-chart__hit" d={mark.hitPath} />
+                  ) : mark.kind === 'bar' ? (
                     <rect
                       className="ui-chart__hit"
                       x={px(mark.column * colWidth + (mark.lane * colWidth) / mark.lanes)}
@@ -902,7 +1086,11 @@ export function Chart(props: ChartProps) {
               ))}
             </svg>
 
-            {!spark && (
+            {look?.variant === 'donut' && look.look === 'table' && (
+              <Shares look={look} format={format} swatch={<KeyMark shape="fill" />} />
+            )}
+
+            {!spark && columnsLayout && (
               <div className="ui-chart__periods" aria-hidden="true">
                 {columns.map((column, i) => (
                   <span key={`${column.label}-${i}`}
@@ -918,9 +1106,27 @@ export function Chart(props: ChartProps) {
           {open && (
             <>
               <span className="ui-tip__label">
-                {spark ? columns[open.column]?.label : `${open.name}, ${columns[open.column]?.label}`}
+                {spark || look ? columns[open.column]?.label : `${open.name}, ${columns[open.column]?.label}`}
               </span>
-              <span className="ui-tip__value">{format(open.value)}</span>
+              {open.rows ? (
+                <>
+                  {open.rows.map((row) => (
+                    <span key={row.name} className="ui-tip__value ui-chart__row">
+                      <span className={cx('ui-chart__key', `ui-chart__tone--${row.tone}`)}>
+                        <KeyMark shape={row.shape} />{row.name}
+                      </span>
+                      <span>{row.text}</span>
+                    </span>
+                  ))}
+                  {open.total && (
+                    <span className="ui-tip__value ui-chart__row">
+                      <span>{totalLabel}</span><span>{open.total}</span>
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="ui-tip__value">{format(open.value)}</span>
+              )}
               {(stateOf(columns[open.column]) || open.detail) && (
                 <span className="ui-tip__detail">{stateOf(columns[open.column]) || open.detail}</span>
               )}
@@ -929,11 +1135,12 @@ export function Chart(props: ChartProps) {
         </span>
       </div>
 
+      {!legendFirst && legend}
+
       <div className="ui-sr" role="status">{said}</div>
 
-      {showTable && (
-        <details className="ui-chart__data">
-          <summary className="ui-focusable">Values as a table</summary>
+      {asTable && (
+        <div className="ui-chart__data">
           {/* The kit's scroller, so four columns of exact money stay reachable
               in the card at any width, rather than widening the page under
               them. A browser makes an overflowing box keyboard-focusable on its
@@ -969,7 +1176,7 @@ export function Chart(props: ChartProps) {
               </tbody>
             </table>
           </div>
-        </details>
+        </div>
       )}
     </div>
   );

@@ -15,7 +15,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { ReactElement } from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { storyNameFromExport, toId } from 'storybook/internal/csf';
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error -- plain JS module
@@ -179,6 +179,47 @@ describe('guideline pages in React: Density and accents', () => {
     }
     expect([doSide.kind, doSide.wide, doSide.cards.find(c => c.accent)!.title]).toEqual(['do', 'gda-panes--saved-wide', 'Extracted fields']);
     expect([dontSide.kind, dontSide.wide, dontSide.cards.find(c => c.accent)!.title]).toEqual(['dont', 'gda-panes--source-wide', 'Document preview']);
+  });
+});
+
+/* The Chart and Table switch replaces one view with the other, so it is a tab strip:
+ * each tab controls a panel that names it back, and only the chosen panel shows.
+ * Found by its rule id. JSDOM applies no sheet, so the underline look is the
+ * pixel comparison's question, not this file's. */
+describe('guideline pages in React: Dashboards and reports', () => {
+  const page = pages.find(p => p.file.endsWith('/DashboardsAndReports.stories.tsx'))!;
+  const block = () => {
+    const section = mount(page).querySelector('[data-rule="chart-table-switch"]');
+    expect(section, 'no rule "chart-table-switch" on the page: the gate is checking nothing').toBeTruthy();
+    return section!.querySelector('[data-specimen="do"] .ui-card')!;
+  };
+  const state = (card: Element) => [...card.querySelectorAll('[role="tab"]')].map(tab => {
+    const panel = card.querySelector(`#${CSS.escape(tab.getAttribute('aria-controls') ?? '')}`);
+    return {
+      tab: tab.textContent, selected: tab.getAttribute('aria-selected'),
+      panel: panel?.getAttribute('role'), labelledBy: panel?.getAttribute('aria-labelledby') === tab.id,
+      shown: panel ? !panel.hidden : null, table: !!panel?.querySelector('table'), chart: !!panel?.querySelector('svg'),
+    };
+  });
+  it('each tab controls a panel labelled by it, and Chart opens first', () => {
+    const card = block();
+    expect(card.querySelectorAll('[role="tablist"]')).toHaveLength(1);
+    expect(state(card)).toEqual([
+      { tab: 'Chart', selected: 'true', panel: 'tabpanel', labelledBy: true, shown: true, table: false, chart: true },
+      { tab: 'Table', selected: 'false', panel: 'tabpanel', labelledBy: true, shown: false, table: false, chart: false },
+    ]);
+  });
+  it('choosing Table shows the table panel and hides the chart', () => {
+    const card = block();
+    fireEvent.click(card.querySelectorAll('[role="tab"]')[1]);
+    expect(state(card).map(s => [s.tab, s.selected, s.shown, s.table, s.chart])).toEqual([
+      ['Chart', 'false', false, false, false], ['Table', 'true', true, true, false]]);
+  });
+  it('the arrow key moves the choice and the focus to the next tab', () => {
+    const card = block();
+    const [chart, table] = card.querySelectorAll<HTMLElement>('[role="tab"]');
+    fireEvent.keyDown(chart, { key: 'ArrowRight' });
+    expect([table.getAttribute('aria-selected'), document.activeElement === table, table.tabIndex, chart.tabIndex]).toEqual(['true', true, 0, -1]);
   });
 });
 

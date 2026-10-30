@@ -101,9 +101,10 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // These changes leave 21 shadow declarations for elevation and decoration. #587 moved the
 // `a` element onto the shared ring rule and removed table.css's own copy, but both already
 // wrote an outline rather than a box-shadow after #578, so this sweep is unaffected.
-// 21 -> 22: #736's viewer sheet rests on its stage with the card's own rung.
-  assert.equal(sweep.length, 22,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 22. `
+// 21 -> 22: the pinned column's scroll shade, #736.
+// 22 -> 23: #736's viewer sheet rests on its stage with the card's own rung.
+  assert.equal(sweep.length, 23,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 23. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,
@@ -124,14 +125,19 @@ const cascadeFor = (theme) =>
 /** Every cast in `sweep`, bucketed by the rung it reads — and everything that
  *  casts without reading one. Shared by the rule and by the mutation below, so
  *  the proof of rejection runs the same walk the rule does. */
+/* A scroll shade is not a level: it marks where columns pass under a pinned one, in
+ * both themes, and only table.css may cast it. why: docs/foundations.md#elevation, #736 */
+const SCROLL_SHADE = /\svar\(--table-edge\)$/;
 const castWalk = (sweeps) => {
   const offences = [];
   const rungs = new Map(LADDER_LAYERS.map((layer) => [layer, 0]));
+  rungs.set('scroll shade', 0);
   for (const theme of THEMES) {
     const cascade = cascadeFor(theme);
     for (const d of sweeps) {
       for (const raw of layersOf(d.value)) {
         if (rungs.has(raw)) { rungs.set(raw, rungs.get(raw) + 1); continue; }
+        if (d.file === 'src/styles/table.css' && SCROLL_SHADE.test(raw)) { rungs.set('scroll shade', rungs.get('scroll shade') + 1); continue; }
         // No exception for the focus band: it is an `outline` since #578, so a layer
         // of a box-shadow list that glows is a cast shadow and nothing else.
         const casts = resolutionsOf(raw, cascade).some((v) => layersOf(v).some(isCast));
@@ -161,6 +167,7 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
     'var(--elev-rest)': 2,   // .ui-card, .ui-card__page
     'var(--elev-rail)': 1,   // .ui-app__rail
     'var(--elev-drop)': 12,  // the floating surfaces, each saying it once
+    'scroll shade': 1,       // .ui-table--pinned .ui-table__identity, #736
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '
     + 'was added, move the number and check it against docs/foundations.md#elevation.');
 });
@@ -177,6 +184,14 @@ test('a cast that is not a rung is refused', () => {
     `${planted.file}:${planted.line} (${theme})  ${planted.selector} { box-shadow: … ${planted.value} … }`));
   assert.deepStrictEqual(castWalk(sweep).offences, [],
     'the same sweep without the mutation is clean — without this half the case proves nothing');
+});
+
+/* The scroll shade's pass is table.css's alone: a card that casts --table-edge is a cast. */
+test('a scroll shade outside table.css is refused', () => {
+  const planted = { file: 'src/styles/card.css', line: 1, selector: '.ui-card',
+    value: '0 4px 12px var(--table-edge)' };
+  assert.deepStrictEqual(castWalk([...sweep, planted]).offences, THEMES.map((theme) =>
+    `${planted.file}:${planted.line} (${theme})  ${planted.selector} { box-shadow: … ${planted.value} … }`));
 });
 
 test('nothing under src/ reads a deprecated --shadow-* token', () => {

@@ -60,6 +60,8 @@ for (const file of Object.keys(modules).sort()) {
 // Each fix changes how the part looks, so it waits for the owner.
 const KNOWN_SHORT: Record<string, string> = {
   'button.rx-sort': 'the DataTable column sort button is 21px high',
+  // The chart's own 44px table summary shared this key and hid it until #742.
+  'summary.ui-focusable': 'the Modal CollapsedForm story\'s disclosure is 23.5px high',
 };
 const KNOWN_SAME: Record<string, string> = {
   '.ui-check-item:has(input:disabled) .ui-check__hint': 'a disabled checkbox hint paints what the enabled hint paints',
