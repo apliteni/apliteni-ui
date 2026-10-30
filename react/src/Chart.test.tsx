@@ -13,7 +13,7 @@
 // region's text is read from the DOM. A bar is a path rather than a rect, so the
 // geometry assertions read its box back out of the `d` with boxOf().
 import { describe, expect, it, afterEach, vi } from 'vitest';
-import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { readFileSync } from 'node:fs';
@@ -373,7 +373,7 @@ it('puts one element in the tab order inside the plot, and it is the frame', asy
   expect(readRepo('../../src/styles/table.css'))
     .toMatch(/\.ui-table-scroll:focus-visible\s*\{[^}]*--ring-scroll/);
 
-  // The scroller says `-1` out loud rather than relying on not being reached:
+  // A scroller that fits says `-1` out loud rather than relying on not being reached:
   // that attribute is the opt-out a browser's focusable-scroller rule reads.
   expect(container.querySelector('.ui-chart__scroll')).toHaveAttribute('tabindex', '-1');
 
@@ -383,6 +383,85 @@ it('puts one element in the tab order inside the plot, and it is the frame', asy
   await user.tab();
   expect(frame(), 'a second Tab leaves the plot instead of landing inside it').not.toHaveFocus();
   expect(container.querySelector('.ui-chart__scroll')).not.toHaveFocus();
+});
+
+it('makes an overflowing plot one more tab stop, named and ringed by the kit', async () => {
+  // JSDOM lays nothing out, so the overflow is mocked before the render that
+  // measures it. The ring is checked as the class `.ui-focusable`, not as
+  // paint. axe's scrollable-region-focusable rule is not run: without layout it
+  // passes even a scroller that is out of the tab order.
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(576);
+  const user = userEvent.setup();
+  const { container } = months();
+  const scroll = container.querySelector<HTMLElement>('.ui-chart__scroll')!;
+  expect(scroll).toHaveAttribute('tabindex', '0');
+  expect(scroll).toHaveAttribute('role', 'region');
+  expect(scroll).toHaveAccessibleName('Income and spend by month. Scroll for more columns.');
+  expect(classOf(scroll)).toContain('ui-focusable');
+
+  await tabToFrame(user);
+  expect(frame()).toHaveFocus();
+  await user.tab();
+  expect(scroll, 'the stop after the frame is the scroller').toHaveFocus();
+});
+
+it('leaves the keys of a focused scroller to the scroller', async () => {
+  // The scroller sits inside the frame, so its key presses bubble to the
+  // frame's handler. They must scroll the plot natively, not move the cursor
+  // or pick a column. The native scroll itself is not measured: JSDOM has no layout.
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(576);
+  const user = userEvent.setup();
+  const onSelect = vi.fn();
+  const { container } = months({ onSelect, selectable: true });
+  const scroll = container.querySelector<HTMLElement>('.ui-chart__scroll')!;
+  const live = screen.getByRole('status');
+  await tabToFrame(user);
+  await user.tab();
+  expect(scroll).toHaveFocus();
+  const said = live.textContent;
+  for (const key of ['ArrowRight', 'Enter', ' ']) {
+    expect(fireEvent.keyDown(scroll, { key }), `${key} is not cancelled`).toBe(true);
+  }
+  expect(live.textContent, 'the cursor stays where it was').toBe(said);
+  expect(onSelect, 'no column is picked').not.toHaveBeenCalled();
+  showTable();
+  expect(screen.queryByRole('row', { current: true }), 'no row is selected').toBeNull();
+});
+
+it('follows the plot as it starts and stops overflowing', () => {
+  // A mocked ResizeObserver stands in for the browser's: JSDOM has none. The
+  // test calls its callback after each change of the mocked scroll width.
+  let notify = () => {};
+  vi.stubGlobal('ResizeObserver', class {
+    constructor(callback: () => void) { notify = callback; }
+    observe() {}
+    disconnect() {}
+  });
+  let wide = 200;
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(() => wide);
+  const { container } = months();
+  const scroll = container.querySelector<HTMLElement>('.ui-chart__scroll')!;
+  const fits = () => {
+    expect(scroll).toHaveAttribute('tabindex', '-1');
+    expect(scroll).not.toHaveAttribute('role');
+    expect(scroll).not.toHaveAccessibleName();
+    expect(classOf(scroll)).not.toContain('ui-focusable');
+  };
+  fits();
+
+  wide = 576;
+  act(() => notify());
+  expect(scroll).toHaveAttribute('tabindex', '0');
+  expect(scroll).toHaveAttribute('role', 'region');
+  expect(scroll).toHaveAccessibleName('Income and spend by month. Scroll for more columns.');
+  expect(classOf(scroll)).toContain('ui-focusable');
+
+  wide = 200;
+  act(() => notify());
+  fits();
 });
 
 // The paint behind that tab stop, with every token resolved — the raw rule says
@@ -1249,8 +1328,8 @@ it('gives the named group focus when a column is clicked, and says which one', a
   const user = userEvent.setup();
   const { container } = months();
   await user.click(markEl('spend-2'));
-  // The nearest focusable ancestor of a mark is the scroller, which has no role
-  // and no name; a pointer reader parked there never hears what the arrows do.
+  // The nearest focusable ancestor of a mark is the scroller; a pointer reader
+  // parked there never hears what the arrows do.
   expect(container.querySelector('.ui-chart__scroll')).not.toHaveFocus();
   expect(frame()).toHaveFocus();
   expect(frame()).toHaveAccessibleName(/Arrow keys step through/);

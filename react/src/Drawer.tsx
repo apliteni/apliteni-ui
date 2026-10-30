@@ -27,7 +27,7 @@ export function Drawer({
   open, title, onClose, side = 'right', size = 'md', footer, headerActions, children, closeLabel = 'Close', initialFocusRef,
 }: DrawerProps) {
   const root = useRef<HTMLDivElement>(null);
-  const panel = useRef<HTMLElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const { mounted, shown } = usePresence(open, root, panel);
@@ -40,7 +40,7 @@ export function Drawer({
     <DialogScope.Provider value={scope}>
       <div className={cls} ref={root}>
         <div className="ui-drawer__scrim" onMouseDown={dismissOnScrim(onClose)} />
-        <aside className="ui-drawer__panel" role="dialog" aria-modal="true" aria-labelledby={titleId}
+        <div className="ui-drawer__panel" role="dialog" aria-modal="true" aria-labelledby={titleId}
           tabIndex={-1} ref={panel}>
           <header className="ui-drawer__header">
             <h2 className="ui-drawer__title" id={titleId}>{title}</h2>
@@ -51,7 +51,7 @@ export function Drawer({
           </header>
           <div className="ui-drawer__body" ref={body}>{children}</div>
           {footer && <footer className="ui-drawer__footer">{footer}</footer>}
-        </aside>
+        </div>
       </div>
     </DialogScope.Provider>,
     document.body,

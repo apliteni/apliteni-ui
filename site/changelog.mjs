@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.154.0', date: '2026-10-30',
+    changes: [
+      ['fixed', 'React `Chart`: while the plot is wider than its box, the box is a named region and one Tab stop after the chart, with the kit\'s focus ring, so a keyboard reader can scroll it. While the plot fits, the box stays out of the Tab order. Part of #752.', ['Chart']],
+      ['fixed', 'React `Drawer` renders its panel as a `div` with `role="dialog"`, because `aside` does not allow that role. Part of #752.', ['Drawer']],
+    ],
+  },
+  {
     v: '0.153.0', date: '2026-10-30',
     changes: [
       ['fixed', 'The npm package now ships `docs/components.md`, `docs/foundations.md` and `TRADEMARK.md`, which the packed README linked to but the `files` list left out. Its links to `docs/contributing.md` and `AGENTS.md` now point at the GitHub repository, because those contributor-only files do not ship. Resolves #754.'],

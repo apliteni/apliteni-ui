@@ -4,6 +4,7 @@
 // written in the commit where the comparison last passed.
 import { act, cleanup, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import axe from 'axe-core';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
 import { Drawer, type DrawerProps } from './Drawer';
@@ -97,6 +98,17 @@ it('opens as a modal dialog named by its title, portalled to the body', () => {
   expect(dialog).toHaveAttribute('aria-modal', 'true');
   expect(container.contains(dialog)).toBe(false);
   expect(root()!.parentElement).toBe(document.body);
+});
+
+// The panel must be a plain div: an <aside> owns the complementary role and cannot
+// take role="dialog" over it, so axe's aria-allowed-role fails on an <aside> panel.
+it('the open drawer has no aria-allowed-role violation', async () => {
+  render(<Drawer open title="Filters" onClose={noop}>body</Drawer>);
+  const result = await axe.run(document.body, {
+    runOnly: { type: 'rule', values: ['aria-allowed-role'] },
+    resultTypes: ['violations'],
+  });
+  expect(result.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
 });
 
 // The slide runs only if the panel has been styled in its start state before `is-open`

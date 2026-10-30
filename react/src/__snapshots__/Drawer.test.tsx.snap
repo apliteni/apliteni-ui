@@ -29,7 +29,7 @@ exports[`the shape the vanilla drawer() agreed on > bottom lg 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -104,7 +104,7 @@ exports[`the shape the vanilla drawer() agreed on > bottom lg with a footer 1`] 
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -189,7 +189,7 @@ exports[`the shape the vanilla drawer() agreed on > bottom md 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -264,7 +264,7 @@ exports[`the shape the vanilla drawer() agreed on > bottom md with a footer 1`] 
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -349,7 +349,7 @@ exports[`the shape the vanilla drawer() agreed on > bottom sm 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -424,7 +424,7 @@ exports[`the shape the vanilla drawer() agreed on > bottom sm with a footer 1`] 
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -509,7 +509,7 @@ exports[`the shape the vanilla drawer() agreed on > left lg 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -584,7 +584,7 @@ exports[`the shape the vanilla drawer() agreed on > left lg with a footer 1`] = 
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -669,7 +669,7 @@ exports[`the shape the vanilla drawer() agreed on > left md 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -744,7 +744,7 @@ exports[`the shape the vanilla drawer() agreed on > left md with a footer 1`] = 
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -829,7 +829,7 @@ exports[`the shape the vanilla drawer() agreed on > left sm 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -904,7 +904,7 @@ exports[`the shape the vanilla drawer() agreed on > left sm with a footer 1`] = 
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -989,7 +989,7 @@ exports[`the shape the vanilla drawer() agreed on > right lg 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1064,7 +1064,7 @@ exports[`the shape the vanilla drawer() agreed on > right lg with a footer 1`] =
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1149,7 +1149,7 @@ exports[`the shape the vanilla drawer() agreed on > right md 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1224,7 +1224,7 @@ exports[`the shape the vanilla drawer() agreed on > right md with a footer 1`] =
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1309,7 +1309,7 @@ exports[`the shape the vanilla drawer() agreed on > right sm 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1384,7 +1384,7 @@ exports[`the shape the vanilla drawer() agreed on > right sm with a footer 1`] =
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1469,7 +1469,7 @@ exports[`the shape the vanilla drawer() agreed on > the defaults are the factory
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1544,7 +1544,7 @@ exports[`the shape the vanilla drawer() agreed on > top lg 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1619,7 +1619,7 @@ exports[`the shape the vanilla drawer() agreed on > top lg with a footer 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1704,7 +1704,7 @@ exports[`the shape the vanilla drawer() agreed on > top md 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1779,7 +1779,7 @@ exports[`the shape the vanilla drawer() agreed on > top md with a footer 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1864,7 +1864,7 @@ exports[`the shape the vanilla drawer() agreed on > top sm 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
@@ -1939,7 +1939,7 @@ exports[`the shape the vanilla drawer() agreed on > top sm with a footer 1`] = `
     "namedByTitle": true,
     "role": "dialog",
     "tabindex": "-1",
-    "tag": "ASIDE",
+    "tag": "DIV",
     "text": null,
   },
   {
