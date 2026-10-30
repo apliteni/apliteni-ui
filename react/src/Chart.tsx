@@ -795,6 +795,8 @@ export function Chart(props: ChartProps) {
   };
 
   const onKeyDown = (event: ReactKeyboardEvent) => {
+    // The scroll box inside the frame keeps its own keys for native scrolling.
+    if (event.target !== event.currentTarget) return;
     const steps: Record<string, number> = {
       ArrowLeft: cursor - 1, ArrowRight: cursor + 1, Home: 0, End: count - 1,
     };
