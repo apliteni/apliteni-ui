@@ -38,6 +38,10 @@ export type CommandPaletteProps = {
   groups: CommandGroup[];
   /** What the reader chose. `newTab` is Cmd or Ctrl held, for a row with an href. */
   onSelect?: (item: CommandItem, meta: { newTab: boolean }) => void;
+  /** Called instead of `window.location.href` for a same-tab pick, so a client
+   *  router can change the page without a reload. A new-tab pick still opens
+   *  the tab itself, as React Aria does. */
+  onNavigate?: (href: string) => void;
   label?: string;
   placeholder?: string;
   empty?: string;
@@ -64,7 +68,7 @@ const keysOf = (shortcut?: string | string[]) =>
   (shortcut == null ? [] : Array.isArray(shortcut) ? shortcut : [shortcut]);
 
 export function CommandPalette({
-  open, onClose, groups, onSelect,
+  open, onClose, groups, onSelect, onNavigate,
   label = 'Command palette', placeholder = 'Search or run a command…',
   empty = 'No matches', density = 'compact', hint = true,
   rank = true, onQueryChange,
@@ -110,8 +114,9 @@ export function CommandPalette({
     onClose();
     if (!item.href) return;
     if (newTab) window.open(item.href, '_blank', 'noopener');
+    else if (onNavigate) onNavigate(item.href);
     else window.location.href = item.href;
-  }, [onClose, onSelect]);
+  }, [onClose, onSelect, onNavigate]);
 
   const onKeyDown = (e: ReactKeyboardEvent) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {

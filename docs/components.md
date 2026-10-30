@@ -721,6 +721,15 @@ give a different result in each case. A row that goes somewhere has an `href`. A
 something reports a `ui-command` event. A row that destroys something names a confirm and opens
 it. **A destructive row with no confirm is rendered disabled instead of running.**
 
+**A same-tab pick can go through a client router.** Give the palette `onNavigate`, and a
+same-tab pick on an `href` row calls it with the href instead of setting `window.location.href`,
+so the page changes without a reload. A Cmd- or Ctrl-held pick still opens the tab itself.
+Without the prop, a same-tab pick navigates the way it always has.
+
+```tsx
+<CommandPalette open groups={groups} onClose={close} onNavigate={(href) => router.push(href)} />
+```
+
 **Results are ranked by how the query matches the item, and you break every tie.** A whole label
 beats a prefix. A prefix beats a word start. A word start beats a substring. A keyword beats a
 note. Initials come last. Groups use the score of their best row. Equal scores keep the order
@@ -1240,6 +1249,8 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   and the section stays in the command palette. One section under a child page is a destination,
   the page's parent, so that list is drawn and the row takes `aria-current="true"`.
   `searchLabel` names the band trigger's words. `searchShortLabel` is deprecated and not drawn.
+  **`onNavigate` hands the built-in palette's same-tab picks to a client router,** so the page
+  changes without a reload. An app's own `palette` wins: its `onNavigate` is used when it sets one.
   **With a sidebar, the account and `bandControl` stand in the sidebar, not on the band, and the
   theme is a row of the account menu** (#732). The rail keeps the fold's control
   in its head, `bandControl` under the head, then the sections and the account at its foot. A

@@ -18,7 +18,7 @@ import { CommandPalette, type CommandGroup } from './CommandPalette';
 import { Modal } from './Modal';
 import { classesOfEl } from './test/classlist';
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 const GROUPS: CommandGroup[] = [
   {
@@ -165,6 +165,44 @@ describe('the keyboard and the focus', () => {
 
     expect(onSelect.mock.calls[0][0].id).toBe('invite');
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('hands a same-tab href to onNavigate and leaves the URL alone', async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+    const before = window.location.href;
+    render(<CommandPalette open groups={GROUPS} onClose={() => {}} onNavigate={onNavigate} />);
+
+    await user.type(screen.getByRole('combobox'), 'reports');
+    await user.keyboard('{Enter}');
+
+    expect(onNavigate).toHaveBeenCalledWith('#reports');
+    expect(window.location.href).toBe(before);
+  });
+
+  it('navigates to the href in the same tab without onNavigate', async () => {
+    const user = userEvent.setup();
+    const before = window.location.href;
+    render(<CommandPalette open groups={GROUPS} onClose={() => {}} />);
+
+    await user.type(screen.getByRole('combobox'), 'reports');
+    await user.keyboard('{Enter}');
+
+    expect(window.location.href).toBe(`${before}#reports`);
+    window.history.replaceState(null, '', before);
+  });
+
+  it('opens a modified pick in a new tab and never calls onNavigate', async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null);
+    render(<CommandPalette open groups={GROUPS} onClose={() => {}} onNavigate={onNavigate} />);
+
+    await user.type(screen.getByRole('combobox'), 'reports');
+    await user.keyboard('{Control>}{Enter}{/Control}');
+
+    expect(open).toHaveBeenCalledWith('#reports', '_blank', 'noopener');
+    expect(onNavigate).not.toHaveBeenCalled();
   });
 
   it('a destructive row asks its question and leaves the palette standing', async () => {

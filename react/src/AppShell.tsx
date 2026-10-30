@@ -51,6 +51,9 @@ export type AppShellProps = {
   /** Server-read fold preference. The browser restores the shared rail cookie. */
   defaultCollapsed?: boolean;
   palette?: Omit<CommandPaletteProps, 'open' | 'onClose'>;
+  /** Called for a same-tab pick from the built-in palette, so a client router
+   *  can change the page without a reload. A palette's own `onNavigate` wins. */
+  onNavigate?: (href: string) => void;
   /** Spread linkProps onto the router link, including children and onClick. */
   renderLink?: (section: AppShellSection, linkProps: ComponentPropsWithoutRef<'a'>) => ReactNode;
 };
@@ -60,7 +63,7 @@ const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/
 export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar',
   brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, account, accountItems = [], onSignOut,
   searchLabel = 'Search or run a command…',
-  defaultCollapsed = false, palette, renderLink }: AppShellProps) {
+  defaultCollapsed = false, palette, onNavigate, renderLink }: AppShellProps) {
   const uid = useId();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [search, setSearch] = useState(false);
@@ -227,6 +230,6 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
       headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true, true)}</div>}>
       <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}
-    <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} open={search} onClose={() => setSearch(false)} />
+    <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} onNavigate={palette?.onNavigate ?? onNavigate} open={search} onClose={() => setSearch(false)} />
   </div>;
 }
