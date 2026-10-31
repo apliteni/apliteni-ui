@@ -90,6 +90,21 @@ test('the row offset is honoured, not assumed to start at zero', () => {
   assert.deepEqual(filterPanelFit(at(146, 240, 500)), filterPanelFit(at(146, 240, 0)));
 });
 
+test('a bar inside a toolbar measures against the toolbar line, not its own chips', () => {
+  /* A bar sized to its one chip is 80px wide, so the menu took 80px and wrapped
+   * "Any status". The toolbar line that holds the bar is the row. #757 */
+  const bar = row(80, 400);
+  const line = { getBoundingClientRect: () => ({ left: 0, right: 1200, width: 1200 }) };
+  bar.closest = (sel) => (sel === '.ui-filter-bar' ? bar : sel === '.ui-toolbar' ? line : null);
+  const chip = { closest: (sel) => (sel === '.ui-filter-bar' ? bar : null) };
+  const dd = {
+    getBoundingClientRect: () => ({ left: 410, right: 470, width: 60 }),
+    querySelector: () => panelOf(false, null),
+    closest: (sel) => (sel === '.ui-filter-bar__chip' ? chip : null),
+  };
+  assert.deepEqual(filterPanelFit(dd), { room: 790, shift: 0, floor: DD_MENU_FLOOR, end: false });
+});
+
 test('a panel anchored to the row, not a chip, is not a subject', () => {
   /* A panel that resolves against the row is already bounded by it, and the slide
    * here is measured from a trigger's offset along the row, so applying it would

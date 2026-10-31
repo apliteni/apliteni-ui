@@ -305,7 +305,10 @@
 .ui-card > .ui-table-scroll:has(> .ui-table--dense) {
   margin-inline: calc(-1 * var(--space-4));
 }
-.ui-card > .ui-table-scroll > .ui-table--dense {
+/* A hover table's 8px row inset came on top of the bleed above, so a dense hover table
+   straight in a card started 8px inside the card's text edge. #757 */
+.ui-card > .ui-table-scroll > .ui-table--dense,
+.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra) {
   padding-inline: 0;
 }
 /* A hover table's row inset plus the frame's 4px band is one --space-3, so the

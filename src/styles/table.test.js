@@ -584,3 +584,51 @@ test('the bleed gate rejects a wrapper that puts the table out of reach', () => 
   );
   assert.throws(() => bleedReaches(CSS.replace(/margin-inline/g, 'margin-left')), /card bleed is gone/);
 });
+
+/**
+ * Rule: a dense hover table that the card bleeds takes no row inset on top of the bleed.
+ *
+ * The hover table's 8px side padding came on top of the 12px bleed, so the first column of
+ * a dense hover table straight in a card sat 8px inside the card's text edge. #757
+ *
+ * What it does not reach: the pinned variant's first-cell inset, and the pixels. It reads
+ * which rules match in jsdom and weighs their selectors by class count.
+ */
+const HOVER_SHAPES = {
+  'a vanilla dense hover table in a card':
+    '<div class="ui-card"><table class="ui-table ui-table--dense ui-table--hover"></table></div>',
+  'a React dense hover table in a card': '<div class="ui-card"><div class="ui-table-scroll">'
+    + '<table class="ui-table ui-table--dense ui-table--hover"></table></div></div>',
+};
+const weightOf = (selector) => (selector.replace(/:where\([^)]*\)/g, '').match(/[.:][\w-]+/g) || [])
+  .filter((part) => part !== ':not').length;
+// The weight of the heaviest member of a selector list that matches the element, or -1.
+const weight = (el, list) => Math.max(-1, ...splitSelectorList(list)
+  .filter((one) => el.matches(one)).map(weightOf));
+
+function insetOverBleed(css) {
+  const rules = rulesIn(css);
+  const inset = rules.filter(({ selector, body }) => /padding:\s*0 var\(--space-2\)/.test(body)
+    && /\.ui-table--hover/.test(selector));
+  const zero = rules.filter(({ selector, body }) => selector.startsWith('.ui-card >')
+    && /padding-inline:\s*0\s*(?:;|$)/.test(body));
+  assert.ok(inset.length >= 1, 'the hover row inset is gone from the sheet');
+  const left = [];
+  for (const [name, html] of Object.entries(HOVER_SHAPES)) {
+    const doc = new JSDOM(html).window.document;
+    const table = doc.querySelector('table');
+    const top = Math.max(...inset.map(({ selector }) => weight(table, selector)));
+    if (!zero.some(({ selector }) => weight(table, selector) >= top)) left.push(name);
+  }
+  return left;
+}
+
+test('a dense hover table in a card starts its first column on the card text edge', () => {
+  assert.deepEqual(insetOverBleed(CSS), []);
+});
+
+test('the inset check rejects a sheet without the direct-child answer', () => {
+  const unfixed = CSS.replace(',\n.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', '');
+  assert.notEqual(unfixed, CSS, 'the direct-child rule must exist to be taken out');
+  assert.deepEqual(insetOverBleed(unfixed), ['a vanilla dense hover table in a card']);
+});

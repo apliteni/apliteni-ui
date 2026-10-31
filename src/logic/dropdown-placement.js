@@ -95,13 +95,15 @@ const ddFitPanelOf = (dd) => (typeof dd?.querySelector === 'function'
  * drift from the stylesheet. why: src/styles/filter-bar.css
  *
  * @param {Element} dd a `.ui-dropdown` that may be inside a filter row
- * @returns {Element|null} the `.ui-filter-bar` this menu's fit is measured in
+ * @returns {Element|null} the `.ui-toolbar` or `.ui-filter-bar` this menu's fit is measured in
  */
 export function filterPanelRow(dd) {
   if (typeof dd?.closest !== 'function') return null;
   const chip = dd.closest('.ui-filter-bar__chip');
-  if (chip) return chip.closest('.ui-filter-bar');
-  return ddPanelAsk(ddFitPanelOf(dd)) ? dd.closest('.ui-filter-bar') : null;
+  const bar = chip ? chip.closest('.ui-filter-bar') : ddPanelAsk(ddFitPanelOf(dd)) && dd.closest('.ui-filter-bar');
+  // A bar in a toolbar is only as wide as its chips, so one chip's menu was that chip's
+  // width. The toolbar's line is the row. #757
+  return bar ? bar.closest('.ui-toolbar') || bar : null;
 }
 
 /**

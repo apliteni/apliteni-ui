@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.156.0', date: '2026-10-31',
+    changes: [
+      ['fixed', 'A filter chip in a `.ui-toolbar` now opens a menu as wide as the kit\'s 240px floor, measured against the toolbar line. Before, a bar with one chip gave the menu the chip\'s width and wrapped its rows. `filterPanelRow()` now returns that toolbar. The chip menu rows use the body weight. Resolves #757.', ['FilterBar', 'Dropdown']],
+      ['fixed', 'A dense hover table placed straight in a card starts its first column on the card\'s text edge. Before, it started 8px inside. Part of #757.', ['Table']],
+      ['changed', 'Guidelines: the Dense tables specimens put EUR in the Amount header and drop the table caption. Resolves #760.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.155.0', date: '2026-10-30',
     changes: [
       ['added', 'React `CommandPalette` and `AppShell` take `onNavigate`, so a same-tab pick on an `href` row can go through a client router instead of `window.location.href`. A new-tab pick still opens the tab itself. Resolves #735.', ['CommandPalette', 'Shell']],

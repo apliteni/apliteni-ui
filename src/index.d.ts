@@ -44,7 +44,8 @@ export declare function dropdownAvail(opts: {
 }): number;
 /** The kit's menu floor, the width `.ui-dropdown__panel` writes. */
 export declare const DD_MENU_FLOOR: number;
-/** The `.ui-filter-bar` an anchored menu's fit is measured inside, or `null`.
+/** The `.ui-toolbar` that holds the bar, else the `.ui-filter-bar`, an anchored
+ *  menu's fit is measured inside, or `null`.
  *  A chip's menu, and a menu that asks for a width with `--ui-filter-panel-ask` on
  *  its own panel: the slide is that trigger's offset along the row, so those two
  *  are the subjects and a panel anchored to the row itself sizes itself.

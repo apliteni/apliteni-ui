@@ -109,6 +109,9 @@
    Primer and Radix all tick a chosen menu row. #549
    why: docs/components.md#a-filter-row-holds-its-panels */
 .ui-filter-bar .ui-dropdown__item.is-selected { background: var(--glow-purple); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
+/* A chip's menu lists the values the chip prints, so its rows take the body weight and
+   not the kit's semibold menu label. #757 */
+.ui-filter-bar__chip .ui-dropdown__label { font-weight: var(--weight-normal); }
 /* Kit-wide a chosen label steps down to --text, which left the row in force the
    faintest in the panel. Under the wash it holds --strong. */
 .ui-filter-bar .ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--strong); }

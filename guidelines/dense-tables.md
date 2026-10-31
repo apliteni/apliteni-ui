@@ -68,7 +68,7 @@
 
 **Rule:** Limit each column to its longest cell plus the cell inset.
 
-**Do:** Keep amounts beside their references in a two-column table.
+**Do:** Let each amount sit beside its reference.
 
 **Don't:** Stretch short tables across the page.
 
