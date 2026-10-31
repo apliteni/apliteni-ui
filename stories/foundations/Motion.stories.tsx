@@ -151,7 +151,7 @@ export const Default: StoryObj = {
   name: 'Motion',
   render: () => <><style>{CSS}</style><div className="mz">
     <h1>Motion</h1>
-    <p className="lead">A small, token-driven motion system: reusable entrance, micro-interaction, attention, and scroll-reveal effects as plain classes. Timings read the brand vocabulary (<code>--duration-*</code> / <code>--easing-*</code>), so motion re-themes and stays consistent. One global <code>prefers-reduced-motion</code> rule neutralises all of it — flip your OS setting to see the whole page fall still.</p>
+    <p className="lead">A small, token-driven motion system: reusable entrance, micro-interaction, attention, and scroll-reveal effects as plain classes. Timings read the brand vocabulary (<code>--duration-*</code> / <code>--easing-*</code>), so motion re-themes and stays consistent. One global <code>prefers-reduced-motion</code> rule neutralises all of it — turn it on in your OS settings and this page stops moving.</p>
     <Tokens />
     <h3>Effects</h3>
     <div className="mz-grid">{EFFECTS.map(e => <Specimen key={e.cls} effect={e} withReplay={false} />)}</div>

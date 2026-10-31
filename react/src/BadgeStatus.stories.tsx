@@ -46,7 +46,7 @@ export const InContext: StoryObj = {
   render: () => <div style={{ padding: 40, minHeight: '100vh' }}>
     <div className="ui-card" style={{ maxWidth: 460 }}>
       <h2 className="ui-card__title">phoenix.2026.002 <Badge variant="live">Live</Badge></h2>
-      <div className="ui-card__sub">Product units, animated deck. The current strategy version, served at the clean root.</div>
+      <div className="ui-card__sub">Product units, animated deck. The current strategy version.</div>
       <div style={{ display: 'flex', gap: 8 }}><Pill variant="live">2 agents</Pill><Pill variant="soon">MCP enabled</Pill></div>
     </div>
   </div>,

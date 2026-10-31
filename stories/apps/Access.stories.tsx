@@ -10,7 +10,6 @@ import { EmptyState } from '../../react/src/EmptyState';
 import { BusyRegion, Denied as DeniedState, SkeletonTable } from '../../react/src/Loading';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
-import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
 import { Icon } from '../../react/src/primitives/Icon';
 
@@ -94,11 +93,10 @@ export const NewToken: StoryObj = {
 
 export const Empty: StoryObj = {
   render: () => <Screen sub="Connect agents to read over MCP.">
-    <Callout variant="info">No agents yet. Create a token, then paste the connect command into your agent.</Callout>
     <Card><div className="ui-empty">
       <div className="ui-empty__icon"><Icon name="plug" /></div>
       <div className="ui-empty__title">No agents connected yet</div>
-      <div className="ui-empty__sub">Create a token and paste the MCP connect command into your agent to get started.</div>
+      <div className="ui-empty__sub">Create a token, then paste the MCP connect command into your agent.</div>
       <div style={{ marginTop: 18 }}><Button variant="primary" icon="key">Create token</Button></div>
     </div></Card>
   </Screen>,

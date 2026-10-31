@@ -72,7 +72,7 @@ const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 
       </table> : <EmptyState title="No payouts match" sub="" icon="" actions={<Button size="sm" onClick={clear}>Clear all</Button>} />}
     </Card>
     <Card title="What the width does">
-      <p>This screen is the <b>{width}</b> column. The wide column fills the well; the centred one is capped and sits in the middle of it.</p>
+      <p>This screen is the <b>{width}</b> column. The wide column fills the well; the centered one is capped and sits in the middle of it.</p>
     </Card>
   </DemoShell>;
 };

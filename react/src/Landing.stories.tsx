@@ -26,9 +26,9 @@ const features = [
   { icon: 'plug', tone: 'ui-badge--info', title: 'Agent-ready', body: 'Connect any agent over MCP with a scoped, revocable token. Read the strategy programmatically.' },
   { icon: 'shield', tone: 'ui-badge--danger', title: 'Access you control', body: 'Consent screens, per-agent tokens, one-click revoke. You always see who can read what.' },
   { icon: 'compass', tone: '', title: 'Clear direction', body: 'Product units, superconnectors, governance — the whole model in one navigable place.' },
-  { icon: 'layers', tone: 'ui-badge--warn', title: 'Deck or text', body: 'The same content as an animated deck or a calm long-form. Switch anytime.' },
+  { icon: 'layers', tone: 'ui-badge--warn', title: 'Deck or text', body: 'The same content as an animated deck or as long-form text.' },
   { icon: 'globe', tone: 'ui-badge--success', title: 'English & Russian', body: 'The whole surface localises, so the team reads it in the language they think in.' },
-  { icon: 'bolt', tone: '', title: 'Always current', body: 'Versioned cleanly — the live version is at the root, archives keep their own path.' },
+  { icon: 'bolt', tone: '', title: 'Versioned', body: 'The live version is at the root. Each archive keeps its own path.' },
 ] as const;
 
 function FeatureDemo({ index }: { index: number }) {
@@ -78,7 +78,7 @@ function LandingPage() {
     <main id="top">
       <section className="ui-hero">
         <h1 className="ui-hero__title">Apliteni&apos;s UI-kit</h1>
-        <p className="ui-hero__sub">The Apliteni strategy — as an animated deck, a readable long-form, and a live surface your agents can read over MCP. Always one source of truth.</p>
+        <p className="ui-hero__sub">The Apliteni strategy as an animated deck, as long-form text and over MCP for your agents. All three read the same source.</p>
         <div className="ui-hero__cta">
           <Button variant="primary" size="lg" icon="layers">Open the deck</Button>
           <Button variant="secondary" size="lg" iconRight="arrowRight">Read the text version</Button>
@@ -86,8 +86,7 @@ function LandingPage() {
       </section>
       <section id="features" style={{ maxWidth: 1080, margin: '0 auto', padding: '20px 26px 90px' }}>
         <div className="ui-section-head" style={{ marginBottom: 44 }}>
-          <h2>Built for people and agents alike</h2>
-          <p>Everything below is composed from the same apliteni-ui components.</p>
+          <h2>For people and agents</h2>
         </div>
         <div className="landing-grid">
           {features.map((item, index) => <FeatureCard key={item.title} item={item} index={index} />)}

@@ -17,10 +17,12 @@ Two pages are for someone using the kit:
 - [components.md](components.md) — the package: what to import, theming, the component
   catalog, and what each component guarantees.
 
-One is for someone working on the kit:
+Two are for someone working on the kit:
 
 - [contributing.md](contributing.md) — the tour: the layout of the repository, Storybook,
   the guidelines collection, the site, the changelog and how a release goes out.
+- [signal-contrast.md](signal-contrast.md) — why the signal tokens hold their values: the
+  measurements behind `--pink`, the chip pairs, the solid fills and `--glow-green`.
 
 The design rules for a screen are a Storybook section rather than a page here: what one page
 may hold, colour and theming, the full state set, component choice, destructive actions,

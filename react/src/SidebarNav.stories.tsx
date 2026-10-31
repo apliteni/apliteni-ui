@@ -55,7 +55,7 @@ export const SidebarCollapsed: StoryObj<typeof SidebarNav> = {
   args: { ...Sidebar.args, collapsed: true },
   render: args => <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
     <div style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)' }}>
-      Icon-only rail — labels fold into aria-label + title so the icons stay named and hoverable
+      Icon-only rail. Each icon keeps its label as a tooltip.
     </div>
     <SidebarNav {...args} />
   </div>,

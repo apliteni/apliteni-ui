@@ -19,12 +19,11 @@ export const Default: StoryObj = {
   render: () => <div style={{ paddingBlock: 56 }}>
     <div className="ui-section-head">
       <h2>What the kit gives you</h2>
-      <p>Three cells of the band, each with the glyph slot the stylesheet sizes.</p>
     </div>
     <div className="ui-features">
       {feature('layers', 'One deck, many surfaces', 'The same content renders as a deck, as long-form, and over MCP.')}
       {feature('key', 'Scoped access', 'An agent reads exactly what its grant allows, and nothing beside it.')}
-      {feature('compass', 'Findable by design', 'Every page carries the nav its section owns.')}
+      {feature('compass', 'Section navigation', 'Every page carries the nav its section owns.')}
     </div>
   </div>,
 };

@@ -350,7 +350,7 @@
     "pattern": "'Revoke demo token?'"
    },
    {
-    "ref": "stories/apps/Access.stories.tsx:40",
+    "ref": "stories/apps/Access.stories.tsx:39",
     "pattern": "Revoke access"
    }
   ],
@@ -870,7 +870,7 @@
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
-    "ref": "react/src/contrast-walk.tsx:291",
+    "ref": "react/src/contrast-walk.tsx:283",
     "pattern": "inactive user-interface components"
    }
   ],

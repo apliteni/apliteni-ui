@@ -41,7 +41,7 @@ export const Error: Story = { name: 'With error', render: () => shell(<>
 
 export const GoogleOnly: Story = { name: 'Google SSO only', render: () => shell(<>
   <h1 className="ui-auth__title">Sign in</h1>
-  <p className="ui-auth__sub">Your work Google account is the key — no passwords.</p>
+  <p className="ui-auth__sub">Sign in with your work Google account. There is no password.</p>
   {googleButton}
   <div className="ui-auth__foot auth-google-foot">apliteni.com accounts only.</div>
 </>) };

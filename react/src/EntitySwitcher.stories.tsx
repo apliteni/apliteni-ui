@@ -36,7 +36,7 @@ function Example({ initialEntity = 'studio', defaultOpen = false }) {
       <Card title={`${selected.label} activity`}>
         <KeyValueList rows={[
           { label: 'Business', value: selected.description },
-          { label: 'Access', value: entity === 'archive' ? 'Read-only · closed in 2024' : 'Active' },
+          { label: 'Access', value: entity === 'archive' ? 'Read-only' : 'Active' },
         ]} />
       </Card>
     </AppShell>

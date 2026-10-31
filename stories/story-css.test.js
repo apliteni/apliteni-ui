@@ -118,8 +118,8 @@ const sourceAmong = (invented = {}) => (file) => invented[file]
 /* Measured, not guessed: the figures as this gate last audited them. Every one is a
  * lower bound, so the gate fails when the reading stops reaching something rather than
  * when the collection grows. #429 PR 5b re-audited: the vanilla stories left, and the
- * React showcases are the subjects. */
-const FOUND = { subjects: 17, served: 49, declarations: 67, carriers: 8, sheets: 0 };
+ * React showcases are the subjects. #758 removed the Signal contrast page. */
+const FOUND = { subjects: 17, served: 48, declarations: 67, carriers: 8, sheets: 0 };
 
 const tokens = kitTokenNames(
   read('src/tokens/tokens.css'),

@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.158.0', date: '2026-10-31',
+    changes: [
+      ['changed', 'React `EmptyState`: the `not-yet-built` preset now reads "Not available yet", with the sub-line "This screen ships in a later release." Pass `title` or `sub` to keep the old text. Part of #758.', ['Empty']],
+      ['changed', 'Storybook and the site use plain text: slogans, issue numbers and captions about the page\'s own plumbing are gone from showcases, foundation pages and guideline prose. Nothing a consumer installs changes, except the File drop guideline, which no longer cites an issue. Part of #758.'],
+      ['changed', 'The site home page heading now reads "A UI kit for building Apliteni products fast". The page title and description stay the same. Part of #758.'],
+      ['changed', 'The Foundations → Signal contrast page is no longer in Storybook. Its measurements are a maintainer page in the repository docs, and its old link opens Colors. Resolves #758.'],
+    ],
+  },
+  {
     v: '0.157.0', date: '2026-10-31',
     changes: [
       ['changed', 'The Guidelines Overview in Storybook now shows every guideline page as a link with a one-line summary, in six cards by topic: Pages, Data, Words, Look and access, Controls and states, and Panels. Resolves #759.', ['Guidelines']],
