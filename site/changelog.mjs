@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.157.0', date: '2026-10-31',
+    changes: [
+      ['changed', 'The Guidelines Overview in Storybook now shows every guideline page as a link with a one-line summary, in six cards by topic: Pages, Data, Words, Look and access, Controls and states, and Panels. Resolves #759.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.156.0', date: '2026-10-31',
     changes: [
       ['fixed', 'A filter chip in a `.ui-toolbar` now opens a menu as wide as the kit\'s 240px floor, measured against the toolbar line. Before, a bar with one chip gave the menu the chip\'s width and wrapped its rows. `filterPanelRow()` now returns that toolbar. The chip menu rows use the body weight. Resolves #757.', ['FilterBar', 'Dropdown']],
