@@ -17,7 +17,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-import { PAGES, LINKS } from './_overview.js';
+import { PAGES, LINKS, GROUPS } from './_overview.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -85,23 +85,36 @@ test('the built Storybook publishes the ids the index links', { skip: !existsSyn
 });
 
 import { parseGuideline } from './_markdown.js';
-import { INTRO } from './_overview.js';
 
 test('the packaged Overview links every Markdown page and Storybook reads that index', () => {
   const directory = path.join(root, 'guidelines');
   const index = parseGuideline(readFileSync(path.join(directory, 'overview.md'), 'utf8'));
-  assert.equal(INTRO, index.blurb);
   assert.equal(index.blurb, '');
   assert.deepEqual(LINKS.map(link => link.title), PAGES.map(page => page.title));
   assert.deepEqual(LINKS.map(link => link.href), PAGES.map(page => page.href));
+  assert.deepEqual(LINKS.map(link => link.summary), PAGES.map(page => page.summary));
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
   // 145: Dense tables gained filter-bar (#751), and Dashboards and reports gained
   // no-range-on-chart (#736).
   assert.equal(rules, 145);
-  assert.equal(INTRO, '');
   // One, and it is named. Dashboards and reports asks every report for an export
   // and the Stock screener has none (#555). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);
   assert.deepEqual(gaps.map(rule => `${rule.id} #${rule.unmet.issue}`), ['report-offers #555'],
     'update the Overview when a rule becomes unmet or its gap closes');
+});
+
+// The index draws one card for each group and lists a page only in its own
+// group's card, so a page with no line or an unknown group drops out of view.
+test('every page has a line and a card on the Overview', () => {
+  const problems = PAGES.flatMap((page) => [
+    ...(typeof page.summary === 'string' && page.summary.trim() ? [] : [`"${page.title}" has no one-line summary in ENTRIES`]),
+    ...(GROUPS.includes(page.group) ? [] : [`"${page.title}" is in group "${page.group}", which is not in GROUPS`]),
+  ]);
+  for (const group of GROUPS) {
+    if (!PAGES.some((page) => page.group === group)) problems.push(`the card "${group}" lists no page`);
+  }
+  assert.deepStrictEqual(problems, [], `the Overview would hide a page or draw an empty card:\n  ${problems.join('\n  ')}`);
+  // Six cards, the most a page stacks (The page, "Limit card stacks").
+  assert.ok(GROUPS.length <= 6, `${GROUPS.length} cards on the Overview, and a page stacks at most six`);
 });
