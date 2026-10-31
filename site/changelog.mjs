@@ -10,7 +10,7 @@ export const RELEASES = [
     changes: [
       ['changed', 'React `EmptyState`: the `not-yet-built` preset now reads "Not available yet", with the sub-line "This screen ships in a later release." Pass `title` or `sub` to keep the old text. Part of #758.', ['Empty']],
       ['changed', 'Storybook and the site use plain text: slogans, issue numbers and captions about the page\'s own plumbing are gone from showcases, foundation pages and guideline prose. Nothing a consumer installs changes, except the File drop guideline, which no longer cites an issue. Part of #758.'],
-      ['changed', 'The site home page heading now reads "Kick-ass UI kit for rapid development". The page title and description stay the same. Part of #758.'],
+      ['changed', 'The site home page heading now reads "A UI kit for building Apliteni products fast". The page title and description stay the same. Part of #758.'],
       ['changed', 'The Foundations → Signal contrast page is no longer in Storybook. Its measurements are a maintainer page in the repository docs, and its old link opens Colors. Resolves #758.'],
     ],
   },
