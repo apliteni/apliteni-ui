@@ -17,7 +17,7 @@ const content = await loadGuideline('drawer.md', new URL('../../guidelines/drawe
 
 // One fabricated record, so a pair differs only in what its rule is about.
 const PAYMENT = [['Amount', '€ 12,480.50'], ['Date', '31 Aug 2026'], ['Counterparty', 'Northwind Payments']];
-const DETAIL = [...PAYMENT, ['Description', 'Card payout · batch 2291'], ['Source', 'Bank feed']];
+const DETAIL = [...PAYMENT, ['Description', 'Card payout'], ['Batch', '2291'], ['Source', 'Bank feed']];
 const GROUPS = [
   { rows: PAYMENT },
   { title: 'How it is classified', rows: [['Category', '—'], ['Unit', 'Ledger']] },

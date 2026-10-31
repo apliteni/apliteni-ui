@@ -103,15 +103,15 @@ const snippetDebt = (f: Finding) => f.theme === 'light' && f.accent === 'default
   && f.state === null && f.bg === 'rgb(255,255,255)'
   && [...f.stories].every(story => SNIPPET_STORIES.has(story))
   && [...f.paths].every(path => /div\.ui-snippet > pre > span\.[fsu]$/.test(path));
-// #429 PR 4 brought the foundation pages over from the vanilla Storybook. Three of their
-// vanilla ledger buckets come with them, unchanged in cause: B, P and S in
-// stories/lib/contrast-ledger.js. Each is named by story, for the reason above.
+// #429 PR 4 brought the foundation pages over from the vanilla Storybook. Two of their
+// vanilla ledger buckets come with them, unchanged in cause: B and P, from the vanilla
+// ledger that #724 deleted. Each is named by story, for the reason above. Bucket S went
+// with the Signal contrast page, which is docs/signal-contrast.md now (#758).
 const PALETTE_STORY = '../../stories/foundations/BrandPrimitives.stories.tsx:Palette';
-const SIGNAL_STORY = '../../stories/foundations/SignalContrast.stories.tsx:Diagnosis';
 const MOTION_PLAYGROUND = '../../stories/foundations/Motion.stories.tsx:Playground';
 const onlyIn = (f: Finding, story: string) => [...f.stories].every(s => s === story);
 /** Whole stories the ledger counts, dealt to part 0 with the snippet file. */
-const LEDGER_STORIES = new Set([PALETTE_STORY, SIGNAL_STORY, MOTION_PLAYGROUND, ACCESS_STORY]);
+const LEDGER_STORIES = new Set([PALETTE_STORY, MOTION_PLAYGROUND, ACCESS_STORY]);
 const LEDGER: LedgerEntry[] = [
   {
     match: f => snippetDebt(f) && f.fg === 'rgb(12, 143, 168)'
@@ -145,14 +145,6 @@ const LEDGER: LedgerEntry[] = [
       + 'the swatch itself, in a fixed low-alpha black, while the swatch runs from near-black to '
       + 'white. The label is documentation of a colour, placed on the colour it names. Making '
       + 'each one legible would mean flipping its ink partway down the ramp, which is a different page.',
-  },
-  {
-    match: f => onlyIn(f, SIGNAL_STORY),
-    count: 42,
-    why: 'Vanilla S: the signal-contrast page records why the signal tokens hold their values by '
-      + 'painting the values they used to hold beside the ones they hold now. Its failing pairs '
-      + 'are the exhibits, kept so the comparison is visible. A gate that demanded this page pass '
-      + 'would delete the evidence.',
   },
   {
     match: f => f.theme === 'dark' && onlyIn(f, MOTION_PLAYGROUND)

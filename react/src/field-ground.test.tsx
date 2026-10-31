@@ -57,9 +57,9 @@ import {
 
 const THEMES = ['dark', 'light'] as const;
 // 64 base fields, twelve invoice fields, one Card setting row Switch and the four
-// sign-in TextFields, then five from the foundation pages (#429 PR 4): one Switch on
-// each of the four Sub-themes panels and the Signal contrast field. Then six from the
-// showcases (#429 PR 4): the agent name field on two Access screens and the four
+// sign-in TextFields, then four from the foundation pages (#429 PR 4): one Switch on
+// each of the four Sub-themes panels. The Signal contrast field went with its page
+// (#758). Then six from the showcases (#429 PR 4): the agent name field on two Access screens and the four
 // Preferences switches. The sign-in fields moved to the showcases with their stories.
 // Then two from the KeyValueList control-values story (#631): its select and text field.
 // Then 23 search fields, one above each payouts or agents table (#736): fifteen AppShell
@@ -73,7 +73,7 @@ const THEMES = ['dark', 'light'] as const;
 // Then three from the AccountWindow story (#736): the Profile section's two text fields and
 // its select. The other sections mount only when a reader opens them.
 // Move this count with the specimens.
-const FIELD_COUNT = 151;
+const FIELD_COUNT = 150;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

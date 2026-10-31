@@ -51,7 +51,7 @@ export const Scale: StoryObj = {
       <SpecimenRow size="30px" weight={700} label="Page title, h1" sample="Access & agents" role="display" />
       <SpecimenRow size="22px" weight={600} label="Section" sample="Connect over MCP" role="display" />
 
-      <H3 title={<>Text — <code style={{ fontFamily: 'var(--font-mono)', fontSize: '.85em' }}>--font-sans</code></>} note="IBM Plex Sans. Humanist and narrower, with Cyrillic drawn by the same team as its Latin. This is the face the reading happens in. Page title, card title, body, label, caption and chip are the six ranks in docs/foundations.md#labels-and-titles." />
+      <H3 title={<>Text — <code style={{ fontFamily: 'var(--font-mono)', fontSize: '.85em' }}>--font-sans</code></>} note="IBM Plex Sans. Humanist and narrower, with Cyrillic drawn by the same team as its Latin. This is the face the reading happens in. Page title, card title, body, label, caption and chip are its six ranks." />
       <SpecimenRow size="18px" weight={600} label="Card title, h2" sample="Appearance" role="sans" />
       <SpecimenRow size="15.5px" weight={400} label="Body large" sample="The readable long-form version of the strategy." role="sans" />
       <SpecimenRow size="14.5px" weight={400} label="Body" sample="Personal tokens agents use to read the strategy." role="sans" />
@@ -72,7 +72,7 @@ export const Scale: StoryObj = {
       <h3 style={{ font: '600 13px/1 var(--font-display)', color: 'var(--muted)', marginBottom: 16 }}>Monospace — <code style={{ fontFamily: 'var(--font-mono)' }}>--font-mono</code></h3>
       <pre className="ui-code" style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--text)', padding: 16, borderRadius: 12, margin: 0 }}>claude mcp add strategy --url https://strategy.apli.tech/mcp</pre>
 
-      <H3 title="An identifier in prose" note="The chip takes whichever reading surface its container is not on, so the same sentence keeps it on the page and inside a card. #537" />
+      <H3 title="An identifier in prose" note="The chip takes whichever reading surface its container is not on, so the same sentence keeps it on the page and inside a card." />
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }} id="code-chip-specimen">
         <div style={{ flex: '1 1 300px', minWidth: 0 }}>
           <div style={caption}>On the page</div>

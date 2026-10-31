@@ -67,7 +67,7 @@ export const RECORDED = {
   'density-and-accents.md': 408,
   'drawer.md': 324,
   'empty-states.md': 91,
-  'file-drop.md': 545,
+  'file-drop.md': 535,
   'going-back.md': 363,
   'hover-readouts.md': 333,
   'iconography.md': 304,

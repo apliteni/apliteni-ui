@@ -53,7 +53,7 @@ const Payouts = () => <><RestingFilters search="Search payouts" placeholder="Ref
       <tr key={reference}><td>{reference}</td><td className="ui-table__num">{amount}</td><td>{status}</td></tr>)}</tbody>
   </table>
 </div></div></>;
-const Figures = () => <StatBand variant="tiles" basis="Payouts · September"
+const Figures = () => <StatBand variant="tiles" basis="September payouts"
   stats={[{ label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' }]} />;
 
 // A document preview beside the fields a parser read from it. Both panels print the

@@ -12,7 +12,7 @@
 
 **Don't:** Draw a tall dashed box with a glyph, an invitation and a button stacked inside it.
 
-**Except:** A page that exists to receive one file may use the field-sized picker, which has its own label. An empty page may show a dashed drop area until the first file arrives. See #458 for this exception.
+**Except:** A page that exists to receive one file may use the field-sized picker, which has its own label. An empty page may show a dashed drop area until the first file arrives.
 
 ## Paint the target only while a file is over it
 
@@ -26,7 +26,7 @@
 
 **Don't:** Cover the whole window when one panel accepts the file.
 
-**Except:** A page that takes files anywhere may cover the whole page, slightly transparent and blurred over a table. See #458 for this exception.
+**Except:** A page that takes files anywhere may cover the whole page, slightly transparent and blurred over a table.
 
 ## Keep the file in the row it arrived in
 

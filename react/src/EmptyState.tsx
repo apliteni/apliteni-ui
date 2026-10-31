@@ -15,7 +15,7 @@ const cases = {
   'first-run': { title: 'Nothing needs you yet', sub: 'New items will appear here when they need your attention.', icon: 'check' },
   'no-matches': { title: 'No results in this view', sub: 'Try another search or clear your filters.', icon: 'search' },
   'not-found': { title: "We can't find that page", sub: 'Check the address or return to the home page.', icon: 'folder' },
-  'not-yet-built': { title: 'This ships later', sub: 'This screen is not available yet. Check back later.', icon: 'clock' },
+  'not-yet-built': { title: 'Not available yet', sub: 'This screen ships in a later release.', icon: 'clock' },
 };
 
 export function EmptyState({ variant = 'first-run', title, sub, icon, art, actions }: EmptyStateProps) {

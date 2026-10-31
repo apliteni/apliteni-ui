@@ -48,7 +48,7 @@ export const Overview: StoryObj = {
     const theme = ctx?.globals?.theme === 'light' ? 'light' : 'dark';
     return <Pad>
       <Title>Accent sub-themes</Title>
-      <p style={{ color: 'var(--dim)', marginBottom: 32, maxWidth: '64ch' }}>One orthogonal <code style={{ fontFamily: 'var(--font-mono)' }}>data-accent</code> dimension, on top of dark/light. All four accents at once — only the accent family moves; surfaces, text and signal colours (green = live) stay put. Flip <b>Theme</b> in the toolbar to see them in light or dark.</p>
+      <p style={{ color: 'var(--dim)', marginBottom: 32, maxWidth: '64ch' }}>The <code style={{ fontFamily: 'var(--font-mono)' }}>data-accent</code> attribute works independently of dark and light. Here are all four accents at once. Only the accent family moves; surfaces, text and signal colours (green = live) stay put. Flip <b>Theme</b> in the toolbar to see them in light or dark.</p>
       <style>{ROW_CSS}</style>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 18 }}>
         {(Object.keys(ACCENT) as (keyof typeof ACCENT)[]).map(n => <Panel key={n} name={n} theme={theme} />)}

@@ -62,7 +62,7 @@ function Example(args: Partial<AppShellProps>) {
         <DataTable columns={columns} rows={shown} selectable={false} pager={false} dense zebra hover={false} />
       </Card>
       <Card title="What the width does">
-        <p>This screen is the <b>{width}</b> column. The wide column fills the well; the centred one is capped and sits in the middle of it.</p>
+        <p>This screen is the <b>{width}</b> column. The wide column fills the well; the centered one is capped and sits in the middle of it.</p>
       </Card>
   </AppShell>;
 }

@@ -44,7 +44,7 @@ const PANES = [
   { id: 'appearance', icon: 'sun', label: 'Appearance' },
   { id: 'notifications', icon: 'bell', label: 'Notifications' },
 ];
-const DEVICES = [['This browser', 'Lisbon · active now'], ['Studio laptop', 'Lisbon · 2 days ago'], ['Phone', 'Lisbon · yesterday']];
+const DEVICES = [['This browser', 'Active now in Lisbon'], ['Studio laptop', 'Active 2 days ago in Lisbon'], ['Phone', 'Active yesterday in Lisbon']];
 
 const SettingRow = ({ lab, hint, children }: { lab: string; hint?: string; children?: ReactNode }) =>
   <div className="ui-card__row"><div><div className="lab">{lab}</div>{hint && <div className="hint">{hint}</div>}</div>{children}</div>;
@@ -100,7 +100,7 @@ const Menu = ({ items }: { items: ReturnType<typeof row>[] }) =>
   <Stage><div className="gas-menu"><AccountMenu {...READER} items={items} current="" /></div></Stage>;
 
 // Each agent beside the token it holds, masked the way a kit page shows one.
-const TOKENS = [['Deploy bot', 'apl_••••7Q2 · used today'], ['Reporting agent', 'apl_••••K4D · used 2 days ago']];
+const TOKENS = [['Deploy bot', 'apl_••••7Q2, last used today'], ['Reporting agent', 'apl_••••K4D, last used 2 days ago']];
 const Tokens = ({ label }: { label: string }) => <Modal><Nav active="agents" /><Pane cap="Agents & API tokens">
   {TOKENS.map(([lab, hint]) => <SettingRow key={lab} lab={lab} hint={hint} />)}
   <div className="gas-acts"><Button variant="primary">{label}</Button></div>

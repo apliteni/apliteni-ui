@@ -77,7 +77,7 @@ const Screen = ({ density = 'compact', applied = false, state = 'ready', limit =
   const [active, setActive] = useState<Filter[]>(applied ? [{ ...FILTERS[0], value: 'Technology' }] : []);
   const [view, setView] = useState('Overview');
   const [sort, setSort] = useState<'desc' | 'asc'>('desc');
-  const [detail, setDetail] = useState('Company links are demonstration links; no live prices or company detail service is connected.');
+  const [detail, setDetail] = useState('');
   const [phase, setPhase] = useState<State>(state);
   const [query, setQuery] = useState('');
   // The search reads the company name and its symbol, before the chips and the row limit.
@@ -114,7 +114,7 @@ const Screen = ({ density = 'compact', applied = false, state = 'ready', limit =
       </div>
       {phase === 'error' ? <p role="alert">Could not refresh prices. Existing rows are still shown. <Button size="sm" onClick={() => setPhase('ready')}>Retry refresh</Button></p>
         : phase === 'loading' ? <p role="status">Loading companies…</p> : phase === 'refreshing' ? <p role="status">Refreshing prices…</p> : null}
-      <p className="screener__foot">{`${shown.length} fictional companies. USD = US dollars; M = million; B = billion.`}</p>
+      <p className="screener__foot">{`${shown.length} ${shown.length === 1 ? 'company' : 'companies'}. USD = US dollars; M = million; B = billion.`}</p>
       <p className="screener__foot" id="company-detail" tabIndex={-1} aria-live="polite">{detail}</p>
     </section>
   </DemoShell>;

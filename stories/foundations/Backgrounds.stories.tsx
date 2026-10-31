@@ -51,7 +51,7 @@ const Tiles = ({ min, children }: { min: string; children: ReactNode }) =>
 export const Default: StoryObj = {
   render: () => <Pad>
     <Title>Backgrounds</Title>
-    <p style={{ color: 'var(--dim)', maxWidth: '60ch' }}>Every backdrop in the kit — the surface ladder, the signature ambient glow, and drop-in backdrop treatments. All read the accent tokens, so they re-theme with the sub-theme and hold up in dark and light.</p>
+    <p style={{ color: 'var(--dim)', maxWidth: '60ch' }}>Every backdrop in the kit: the surface ladder, the ambient glow and four backdrop classes. Each one reads the accent tokens, so it follows the sub-theme in dark and light.</p>
 
     <H3>The elevation ladder</H3>
     <p style={{ color: 'var(--dim)', maxWidth: '60ch', marginBottom: 20 }}>Bottom to top. A surface says how high it is with its step and a line. Light adds a faint short shadow. Dark draws the line only. A surface that floats — one whose job is to be temporarily above something else — takes the strongest drop, and the hover readout on the top step is one of them. The thin ring on each swatch below is this page&apos;s own, so a colour is visible on its own ground. See Foundations → Elevation.</p>
@@ -92,7 +92,7 @@ const FullBleed = ({ bgClass = '', layer, eyebrow, title, body }: { bgClass?: st
           <Button variant="secondary">View tokens</Button>
         </div>
         <div style={{ maxWidth: 340, margin: '0 auto', textAlign: 'left' }}>
-          <Card title="Legible on top" sub="A card keeps its own surface"><p style={{ color: 'var(--dim)', font: '400 13px/1.5 var(--font-sans)', margin: 0 }}>Real content sits above the field with a normal stacking context — the backdrop never fights the copy.</p></Card>
+          <Card title="Card on a backdrop" sub="A card keeps its own surface"><p style={{ color: 'var(--dim)', font: '400 13px/1.5 var(--font-sans)', margin: 0 }}>Content sits above the backdrop in a normal stacking context.</p></Card>
         </div>
       </div>
     </div>
@@ -105,30 +105,30 @@ export const Glow: StoryObj = {
   render: () => <FullBleed layer={<>
     <GlowSpan tone="purple" style={{ top: -140, left: '8%', width: 560, height: 560 }} />
     <GlowSpan tone="cyan" style={{ bottom: -180, right: '4%', width: 520, height: 520 }} />
-  </>} eyebrow="Ambient glow" title="Depth without a photo"
-  body={`Two blurred ${code('.ui-glow')} blobs light the page from the corners. They read the accent glow tokens, so the whole field re-themes with the sub-theme and holds in dark and light.`} />,
+  </>} eyebrow="Ambient glow" title="Two glows from the corners"
+  body={`Two blurred ${code('.ui-glow')} blobs light the page from the corners. They read the accent glow tokens, so they follow the sub-theme in dark and light.`} />,
 };
 
 export const Spotlight: StoryObj = {
   name: 'Spotlight (full-bleed)',
-  render: () => <FullBleed bgClass="ui-bg-spotlight" eyebrow="Backdrop — Spotlight" title="Eyes to the centre"
-    body={`One soft radial from the top pulls focus to the middle of the page. ${code('.ui-bg-spotlight')} is the go-to backdrop for sign-in cards and single-focus heroes.`} />,
+  render: () => <FullBleed bgClass="ui-bg-spotlight" eyebrow="Backdrop — Spotlight" title="One radial from the top"
+    body={`One soft radial from the top lights the middle of the page. Use ${code('.ui-bg-spotlight')} behind a sign-in card or a hero with one action.`} />,
 };
 
 export const Wash: StoryObj = {
   name: 'Accent wash (full-bleed)',
-  render: () => <FullBleed bgClass="ui-bg-wash" eyebrow="Backdrop — Accent wash" title="A quiet tint from the top"
-    body={`A gentle top-down gradient in the current accent, fading to the page by mid-fold. ${code('.ui-bg-wash')} warms a section without ever competing with the content.`} />,
+  render: () => <FullBleed bgClass="ui-bg-wash" eyebrow="Backdrop — Accent wash" title="An accent tint from the top"
+    body={`A top-down gradient in the current accent fades to the page by mid-fold. Use ${code('.ui-bg-wash')} to tint one section.`} />,
 };
 
 export const Grid: StoryObj = {
   name: 'Grid (full-bleed)',
-  render: () => <FullBleed bgClass="ui-bg-grid" eyebrow="Backdrop — Grid" title="Structure, barely there"
-    body={`A faint token-coloured grid, radially masked so it fades out at the edges. ${code('.ui-bg-grid')} adds a technical, blueprint feel to dashboards and docs.`} />,
+  render: () => <FullBleed bgClass="ui-bg-grid" eyebrow="Backdrop — Grid" title="A faint grid"
+    body={`A faint token-coloured grid, radially masked so it fades out at the edges. Use ${code('.ui-bg-grid')} behind dashboards and docs.`} />,
 };
 
 export const Dots: StoryObj = {
   name: 'Dots (full-bleed)',
-  render: () => <FullBleed bgClass="ui-bg-dots" eyebrow="Backdrop — Dots" title="A technical hum"
-    body={`A subtle dot field, masked to fade at the edges. ${code('.ui-bg-dots')} is the quieter sibling of the grid — great behind dense dashboards and data tables.`} />,
+  render: () => <FullBleed bgClass="ui-bg-dots" eyebrow="Backdrop — Dots" title="A faint dot field"
+    body={`A faint dot field, masked to fade at the edges. ${code('.ui-bg-dots')} is lighter than the grid, so use it behind dense dashboards and data tables.`} />,
 };

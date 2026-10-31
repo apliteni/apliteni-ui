@@ -22,17 +22,17 @@ const sections = NAV.map(item => ({ href: `/${item.id}`, label: item.label, icon
 // which says "pressed", and each one carries its own name.
 const Seg = ({ label, options }: { label: string; options: string[] }) =>
   <Segmented label={label} options={options.map(o => ({ label: o, value: o }))} value={options[0]} onChange={noop} />;
-const Row = ({ lab, hint, tight = false, children }: { lab: string; hint: string; tight?: boolean; children: ReactNode }) =>
-  <div className={`ui-card__row${tight ? ' ui-card__row--tight-choice' : ''}`}><div><div className="lab">{lab}</div><div className="hint">{hint}</div></div>{children}</div>;
+const Row = ({ lab, hint, tight = false, children }: { lab: string; hint?: string; tight?: boolean; children: ReactNode }) =>
+  <div className={`ui-card__row${tight ? ' ui-card__row--tight-choice' : ''}`}><div><div className="lab">{lab}</div>{hint && <div className="hint">{hint}</div>}</div>{children}</div>;
 
 export const Default: StoryObj = {
   render: () => <AppShell layout="rail" sections={sections} pathname="/prefs" title="Preferences"
     renderLink={(_, props) => <a {...props} href="#" />}
-    lede="How the kit looks and speaks to you. Saved to this browser."
+    lede="Saved to this browser."
     account={{ name: 'Ada Lovelace', email: 'ada@apliteni.com' }} onSignOut={noop}>
     <Card title="Appearance">
-      <Row lab="Theme" hint="Match the dark palette or a light workspace." tight><Seg label="Theme" options={['Dark', 'Light', 'System']} /></Row>
-      <Row lab="Accent" hint="Pick a sub-theme — four ship with the kit."><AccentPicker value="default" onChange={noop} /></Row>
+      <Row lab="Theme" tight><Seg label="Theme" options={['Dark', 'Light', 'System']} /></Row>
+      <Row lab="Accent"><AccentPicker value="default" onChange={noop} /></Row>
       <Row lab="Language" hint="Interface language for the portal."><Seg label="Language" options={['English', 'Русский']} /></Row>
       <Row lab="Reduce motion" hint="Turn off animated transitions."><Switch label="Reduce motion" /></Row>
     </Card>
