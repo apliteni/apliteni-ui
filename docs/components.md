@@ -422,10 +422,13 @@ should use a dropdown instead of a filter. The bound does not work with an inlin
 A chip also cannot become narrower than the selected value's min-content width.
 
 **An open menu is wide enough to read.** A chip's trigger is only as wide as the value it shows.
-When open, the menu uses the kit's 240px menu floor instead of the trigger's width. If its row is
-narrower, it uses the row's width. When the side where it opens is short, it moves back along the
-row. It never leaves the row or makes the page wider. When closed, the menu keeps the trigger's
-width. This prevents the page from growing before any script runs. The floor is measured after
+When open, the menu uses the kit's 240px menu floor instead of the trigger's width. Its row is
+the toolbar line that holds the bar, or the bar itself when no toolbar holds it, so a bar with one
+chip still gets a readable menu (`src/logic/dropdown-placement.js:100` `function filterPanelRow`).
+If its row is narrower than the floor, it uses the row's width. When the side where it opens is
+short, it moves back along the row. It never leaves the row or makes the page wider. Its rows use
+the body weight, because they list the values the chip prints. When closed, the menu keeps the
+trigger's width. This prevents the page from growing before any script runs. The floor is measured after
 the kit's JavaScript runs. It is measured again when the row changes width or the chip moves
 along the row. The width remains held until the menu finishes fading out. Nothing is painted
 narrower than the row allows. `filterPanelFit(dropdown, floor)` and `DD_MENU_FLOOR` are

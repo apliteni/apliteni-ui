@@ -16,9 +16,8 @@ const PAYOUTS = [['1162', '1,240.00'], ['1161', '860.00'], ['1160', '2,100.00']]
 // right inset. Short references keep the two halves far apart at phone width.
 const Payouts = ({ stretch = false }: { stretch?: boolean }) =>
   <div className={`gdt-stage ui-card ui-card--pad-sm${stretch ? '' : ' ui-card--fit'}`}>
-    <table className={`ui-table ui-table--dense ui-table--hover${stretch ? ' gdt-stretch' : ''}`}>
-      <caption>Payouts · EUR</caption>
-      <thead><tr><th>Reference</th><th className="ui-table__num">Amount</th></tr></thead>
+    <table className={`ui-table ui-table--dense ui-table--hover${stretch ? ' gdt-stretch' : ''}`} aria-label="Payouts">
+      <thead><tr><th>Reference</th><th className="ui-table__num">Amount<span className="ui-value__unit">EUR</span></th></tr></thead>
       <tbody>{PAYOUTS.map(([reference, amount]) =>
         <tr key={reference}><td>{reference}</td><td className="ui-table__num">{amount}</td></tr>)}</tbody>
     </table>
