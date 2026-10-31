@@ -28,7 +28,7 @@ const pageFiles = Object.keys(modules).sort();
  * floor with slack in it is a floor a deleted page walks under. Keep this note
  * clear of the words the minimums page's gate list is discovered by;
  * saying one of them outside an import enrols this file in that list. */
-const FOUND = { pages: 27, stories: 27, prose: 1006 };
+const FOUND = { pages: 27, stories: 27, prose: 1068 };
 
 /* Every prose carrier the collection writes. Each name is held against the
  * source below, so a renamed class fails here instead of quietly leaving the
@@ -41,7 +41,7 @@ const PROSE = {
   '.gc-cell__cap': 'the caption under half a specimen pair',
   '.gc-except': "a rule's boundary",
   '.gc-unmet': 'a gap the kit has not closed',
-  '.gi-list': "the Overview's index",
+  '.gi-pages': "the Overview's index",
 };
 const PROSE_SELECTOR = Object.keys(PROSE).join(',');
 

@@ -226,7 +226,7 @@ describe('guideline pages in React: Dashboards and reports', () => {
 /* Stands in for the structure reading-surface.test.js measures: every carrier of
  * the page's own prose stands inside the reading surface, and that surface's sheet
  * is on the page and paints it. */
-const PROSE = 'h1, .gc-imperative, .gc-why, .gc-cell__cap, .gc-except, .gc-unmet, .gi-list';
+const PROSE = 'h1, .gc-imperative, .gc-why, .gc-cell__cap, .gc-except, .gc-unmet, .gi-pages';
 const offGround = (root: Element) => [...root.querySelectorAll(PROSE)]
   .filter(el => !el.closest('.gl-page')).map(el => `<${el.localName} class="${el.className}">`);
 describe('guideline pages in React: the prose stands on the reading surface', () => {
