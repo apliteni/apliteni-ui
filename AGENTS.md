@@ -187,10 +187,7 @@ nothing else: a `#` title and its rules, with no introduction and no appendix.
   rule's heading, never at its id.
 - A `Why` gives the reason the rule exists. It may not say the rule again in other words.
 - Give every rule a rendered do-and-don't pair built from kit parts, and let the text say only
-  what the picture cannot. Leave a rule text-only when drawing the failure would break the rule in
-  front of the reader, when the state needs a pointer, keyboard or viewport a static specimen
-  cannot set, or when the rule governs an order of work rather than a result — and name which of
-  the three in the same `Why`.
+  what the picture cannot.
 - A page is the reading surface, not a card and not the grey page ground.
 - `references.json` and `accessibility-coverage.json` sit beside the gates that read them. Neither
   ships as guideline content, and no guideline imports either.

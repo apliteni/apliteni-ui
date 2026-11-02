@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.159.0', date: '2026-11-02',
+    changes: [
+      ['changed', 'The Accessibility floor, Colour and theming, Iconography, Labels and titles and Layout and density guidelines draw each rule as a picture.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.158.1', date: '2026-11-02',
     changes: [
       ['fixed', 'A hovered link button now shows one underline, under its label. Before, the hover added a second underline under the button. The hover still changes the text to the strong ink. Resolves #765.', ['Button']],

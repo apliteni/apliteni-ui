@@ -10,7 +10,7 @@ export const BLURB = content.blurb;
 // (the measured-pin rule). Two of the three are settled by a standard. The third
 // is settled by this repo, in #220, because no standard settles it. The fourth,
 // added in #294, is a browser's behaviour rather than a standard, and it is
-// pinned next door in stories/field-zoom.test.js, where the fields are.
+// pinned in react/src/field-zoom.test.tsx, where the fields are.
 //
 // Measure behavior instead of matching the source text.
 
@@ -267,6 +267,27 @@ export const SPEC_CSS = `
     .gl-measure { display: block; margin: 0; max-width: none;
       padding: var(--space-3); border-radius: var(--radius-md); color: var(--text); }
     .gl-measure--gradient { background: linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--accent) 30%, var(--surface))); }
+
+    /* Field text as a coarse pointer computes it. The Don't keeps 16px and scales
+       the box down to 13px, which iOS still zooms. */
+    .gl-zoom .ui-input { font-size: 16px; }
+    .gl-zoom__scaled { display: block; width: calc(100% / .8125); transform: scale(.8125); transform-origin: left top;
+      margin-bottom: calc(-1 * (1 - .8125) * 3.2em); }
+
+    /* Body ink, with rank carried by size and weight. */
+    .gl-body h3 { font: 600 var(--text-lg)/1.3 var(--font-display); color: var(--strong); margin-bottom: var(--space-2); }
+    .gl-body p { font-size: var(--text-base); line-height: 1.55; color: var(--text); }
+    .gl-body .gl-body__s { font-size: var(--text-sm); margin-top: var(--space-2); }
+    /* The pale half: lines in --muted at heading and body heights, no words. */
+    .gl-pale { display: flex; flex-direction: column; gap: var(--space-2); }
+    .gl-pale span { height: 10px; width: 92%; border-radius: var(--radius-xs); background: var(--muted); }
+    .gl-pale .gl-pale__h { height: 18px; width: 45%; margin-bottom: var(--space-1); }
+    .gl-pale .gl-pale__s { width: 30%; }
+
+    .gl-ring--one { display: contents; }
+    /* The pointer's hover paint, pinned: the fill and edge .ui-btn:hover draws. */
+    .gl-hover.ui-btn { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--strong);
+      border-color: var(--accent); }
   </style>`;
 
 
