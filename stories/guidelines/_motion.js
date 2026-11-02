@@ -29,11 +29,6 @@ export const SPEC_CSS = `
     .gm-panel__title { height: 6px; width: 60%; border-radius: 2px; background: var(--text); }
     .gm-time { font-size: var(--text-xs); color: var(--text); font-variant-numeric: tabular-nums; }
 
-    .gm-ghost .gm-panel { opacity: var(--gm-shade, 0); }
-    .gm-vis { position: relative; height: 4px; border-radius: 2px; box-shadow: inset 0 0 0 1px var(--border); }
-    .gm-vis::after { content: ''; position: absolute; inset: 0; border-radius: inherit;
-      background: var(--text); opacity: var(--gm-vis, 0); }
-
     /* A curve is drawn as its plot: time runs right, progress runs up. */
     .gm-plots { display: grid; grid-template-columns: repeat(var(--gm-plots, 3), minmax(0, 1fr));
       gap: var(--space-3); margin: 0; padding: 0; list-style: none; }

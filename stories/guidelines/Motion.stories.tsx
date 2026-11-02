@@ -11,19 +11,19 @@ import { SPEC_CSS } from './_motion.js';
 const content = await loadGuideline('motion.md', new URL('../../guidelines/motion.md', import.meta.url));
 
 // One frame of a drawer opening over a page: `at` is how far the panel has come, 0 to 1.
-// `vis`, when given, is the drawer's visibility at that time, 0 to 1, drawn as a bar under the frame.
-const Shot = ({ ms, at, vis }: { ms: number; at: number; vis?: number }) => <li className="gm-shot">
+// `vis`, when given, is the drawer's visibility at that time. Visibility is discrete, so it only steps.
+const Shot = ({ ms, at, vis }: { ms: number; at: number; vis?: boolean }) => <li className="gm-shot">
   <div className="gm-frame" aria-hidden="true"
     style={{ '--gm-at': `${Math.round((1 - at) * 100)}%`, '--gm-shade': at } as CSSProperties}>
     <div className="gm-page">{Array.from({ length: 6 }, (_, i) => <div key={i} className="gm-ln" />)}</div>
     <div className="gm-scrim" />
     <div className="gm-panel"><div className="gm-panel__title" />{Array.from({ length: 4 }, (_, i) => <div key={i} className="gm-ln" />)}</div>
   </div>
-  {vis === undefined ? null : <div className="gm-vis" aria-hidden="true" style={{ '--gm-vis': vis } as CSSProperties} />}
   <span className="gm-time">{`${ms} ms`}</span>
+  {vis === undefined ? null : <span className="gm-time">{vis ? 'visible' : 'hidden'}</span>}
 </li>;
-const Strip = ({ frames, ghost = false }: { frames: [number, number, number?][]; ghost?: boolean }) =>
-  <ul className={ghost ? 'gm-strip gm-ghost' : 'gm-strip'} style={{ '--gm-frames': frames.length } as CSSProperties}
+const Strip = ({ frames }: { frames: [number, number, boolean?][] }) =>
+  <ul className="gm-strip" style={{ '--gm-frames': frames.length } as CSSProperties}
     aria-label="A drawer opening, frame by frame">
     {frames.map(([ms, at, vis]) => <Shot key={ms} ms={ms} at={at} vis={vis} />)}
   </ul>;
@@ -72,8 +72,8 @@ const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 const EASE_OUT: [number, number, number, number] = [0, 0, 0.2, 1];
 const CSS_EASE: [number, number, number, number] = [0.25, 0.1, 0.25, 1];
 // The 250ms drawer at four moments, with its visibility. A frame's offset is the curve at that time.
-const KIT_FRAMES: [number, number, number][] = [[0, 0, 0], [83, 0.46, 1], [167, 0.92, 1], [250, 1, 1]];
-const EASED_FRAMES: [number, number, number][] = [[0, 0, 0], [83, 0.58, 0.58], [167, 0.92, 0.92], [250, 1, 1]];
+const KIT_FRAMES: [number, number, boolean][] = [[0, 0, false], [83, 0.45, true], [167, 0.92, true], [250, 1, true]];
+const EASED_FRAMES: [number, number, boolean][] = [[0, 0, false], [83, 0.57, true], [167, 0.93, true], [250, 1, true]];
 const Curves = ({ off = false }: { off?: boolean }) => <div className="gl-stage"><div className="gm-stack">
   <ul className="gm-plots" style={{ '--gm-plots': 3 } as CSSProperties} aria-label="Easing curves">
     {off
@@ -81,7 +81,7 @@ const Curves = ({ off = false }: { off?: boolean }) => <div className="gl-stage"
       : <><Plot name="--ease" role="Drawer" bezier={EASE} /><Plot name="--ease-out" role="Content" bezier={EASE_OUT} />
         <Plot name="linear" role="Visibility" /></>}
   </ul>
-  <Strip frames={off ? EASED_FRAMES : KIT_FRAMES} ghost={off} />
+  <Strip frames={off ? EASED_FRAMES : KIT_FRAMES} />
 </div></div>;
 
 const Reduced = ({ frames }: { frames: [number, number][] }) => <div className="gl-stage"><div className="gm-stack">
