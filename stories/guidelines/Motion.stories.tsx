@@ -31,9 +31,10 @@ const Strip = ({ frames, ghost = false }: { frames: [number, number, number?][];
 const SLIDES: [number, number][] = [[0, 0], [125, 0.78], [250, 1]];
 const JUMPS: [number, number][] = [[0, 0], [16, 1], [250, 1]];
 
-// The kit's durations as bars to scale, with a tick at each step. The off drawer is 300ms.
-const DURATIONS: [string, string, number][] = [['Button press', '--dur-instant', 80], ['Switch', '--dur-fast', 150],
-  ['Drawer', '--dur-med', 250], ['Toast arriving', '--dur-slow', 400]];
+// The kit's durations as bars to scale, with a tick at each step: the press, the checkbox,
+// the drawer and the scroll reveal each take their token. The off drawer is 300ms.
+const DURATIONS: [string, string, number][] = [['Button press', '--dur-instant', 80], ['Checkbox', '--dur-fast', 150],
+  ['Drawer', '--dur-med', 250], ['Scroll reveal', '--dur-slow', 400]];
 const LONGEST = 400;
 const pct = (ms: number) => `${(ms / LONGEST) * 100}%`;
 const Durations = ({ off = false }: { off?: boolean }) => <div className="gl-stage"><div className="gm-dur">
