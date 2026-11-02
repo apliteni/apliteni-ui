@@ -182,9 +182,9 @@ describe('guideline pages in React: Density and accents', () => {
   });
 });
 
-/* The Chart and Table switch replaces one view with the other, so it is a tab strip:
- * each tab controls a panel that names it back, and only the chosen panel shows.
- * Found by its rule id. JSDOM applies no sheet, so the underline look is the
+/* The Do draws the kit Chart, whose own switch replaces one view with the other in
+ * the same card. Found by its rule id. How the switch moves on the keyboard is the
+ * kit's: Segmented.test.tsx holds it. JSDOM applies no sheet, so the look is the
  * pixel comparison's question, not this file's. */
 describe('guideline pages in React: Dashboards and reports', () => {
   const page = pages.find(p => p.file.endsWith('/DashboardsAndReports.stories.tsx'))!;
@@ -193,33 +193,19 @@ describe('guideline pages in React: Dashboards and reports', () => {
     expect(section, 'no rule "chart-table-switch" on the page: the gate is checking nothing').toBeTruthy();
     return section!.querySelector('[data-specimen="do"] .ui-card')!;
   };
-  const state = (card: Element) => [...card.querySelectorAll('[role="tab"]')].map(tab => {
-    const panel = card.querySelector(`#${CSS.escape(tab.getAttribute('aria-controls') ?? '')}`);
-    return {
-      tab: tab.textContent, selected: tab.getAttribute('aria-selected'),
-      panel: panel?.getAttribute('role'), labelledBy: panel?.getAttribute('aria-labelledby') === tab.id,
-      shown: panel ? !panel.hidden : null, table: !!panel?.querySelector('table'), chart: !!panel?.querySelector('svg'),
-    };
+  const state = (card: Element) => ({
+    pressed: [...card.querySelectorAll('[role="toolbar"] button')].map(b => [b.getAttribute('aria-label'), b.getAttribute('aria-pressed')]),
+    chart: !card.querySelector<HTMLElement>('.ui-chart__frame')!.hidden, table: !!card.querySelector('table'),
   });
-  it('each tab controls a panel labelled by it, and Chart opens first', () => {
+  it('the card holds one view switch, and Chart opens first', () => {
     const card = block();
-    expect(card.querySelectorAll('[role="tablist"]')).toHaveLength(1);
-    expect(state(card)).toEqual([
-      { tab: 'Chart', selected: 'true', panel: 'tabpanel', labelledBy: true, shown: true, table: false, chart: true },
-      { tab: 'Table', selected: 'false', panel: 'tabpanel', labelledBy: true, shown: false, table: false, chart: false },
-    ]);
+    expect(card.querySelectorAll('[role="toolbar"]')).toHaveLength(1);
+    expect(state(card)).toEqual({ pressed: [['Chart', 'true'], ['Table', 'false']], chart: true, table: false });
   });
-  it('choosing Table shows the table panel and hides the chart', () => {
+  it('choosing Table shows the table in the same card and hides the chart', () => {
     const card = block();
-    fireEvent.click(card.querySelectorAll('[role="tab"]')[1]);
-    expect(state(card).map(s => [s.tab, s.selected, s.shown, s.table, s.chart])).toEqual([
-      ['Chart', 'false', false, false, false], ['Table', 'true', true, true, false]]);
-  });
-  it('the arrow key moves the choice and the focus to the next tab', () => {
-    const card = block();
-    const [chart, table] = card.querySelectorAll<HTMLElement>('[role="tab"]');
-    fireEvent.keyDown(chart, { key: 'ArrowRight' });
-    expect([table.getAttribute('aria-selected'), document.activeElement === table, table.tabIndex, chart.tabIndex]).toEqual(['true', true, 0, -1]);
+    fireEvent.click(card.querySelector('[role="toolbar"] button[aria-label="Table"]')!);
+    expect(state(card)).toEqual({ pressed: [['Chart', 'false'], ['Table', 'true']], chart: false, table: true });
   });
 });
 
