@@ -45,7 +45,7 @@ export const SPEC_CSS = `
        a 420px cell either, so these are drawn to scale: the rail, the band and the
        content column as blocks, and the page's content as the bars a reader skims.
        The ratio is true and the pixels are not, which the captions say. */
-    .tp-lay { display: flex; gap: 5px; height: 150px; }
+    .tp-lay { display: flex; gap: 5px; min-height: 150px; }
     .tp-lay__rail { width: 20px; flex: none; border-radius: 3px;
       background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
     .tp-lay__well { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
@@ -54,12 +54,11 @@ export const SPEC_CSS = `
     .tp-lay__col { flex: 1; min-width: 0; border-radius: 3px; padding: 7px;
       display: flex; flex-direction: column; gap: 5px;
       background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
-    .tp-lay__col--centered { width: 58%; margin-inline: auto; }
+    /* A phone draws the wide column at 230px, so the centred one keeps 170px there and still
+       shows a part of the cut last column. */
+    .tp-lay__col--centered { width: 50%; min-width: 170px; margin-inline: auto; }
     .tp-lay__ln { height: 4px; border-radius: 2px; flex: none;
       background: color-mix(in srgb, var(--muted) 55%, transparent); }
-    /* The one thing a too-narrow column does to a table: the last column leaves. */
-    .tp-lay__col--clip { overflow: hidden; }
-    .tp-lay__ln--over { width: 150%; flex: none; }
 
     /* The shell, twice: the bar holds search at its start and the reader's menu at its end. */
     .tp-shells { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }

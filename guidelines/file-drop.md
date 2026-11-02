@@ -4,9 +4,9 @@
 
 <!-- rule: one-row -->
 
-**Rule:** At rest, a file drop is one row with the button that opens the picker and the accepted types next to it, and that button, which the keyboard can reach and which shows the focus ring, is the control, while drag is only the shortcut.
+**Rule:** At rest, a file drop is one row: the button that opens the picker, with the accepted types beside it. The button is the control, and dragging is only the shortcut.
 
-**Why:** A tall box uses the best space on the page for a file that arrives once a month. A keyboard cannot drag a file.
+**Why:** A tall box takes the best space on the page for a file that arrives once a month. A keyboard cannot drag a file, so the keyboard must reach the button and see its focus ring.
 
 **Except:** A page that exists to receive one file can use the field-sized picker, which has its own label. An empty page can show a dashed drop area until the first file arrives.
 
@@ -18,23 +18,23 @@
 
 <!-- rule: on-drag -->
 
-**Rule:** Show the drop target only on the region that accepts the file, and only while the file is over that region.
+**Rule:** Show the drop target only while a file is over the region that accepts it.
 
-**Why:** A target that shows before a file is there to catch covers content that the reader still needs.
+**Why:** A target drawn before a file arrives covers content that the reader still needs.
 
-**Do:** Cover the panel that accepts the file immediately when the file crosses it.
+**Do:** Cover the panel that accepts the file the moment the file crosses it.
 
 **Don't:** Cover the whole window when one panel accepts the file.
 
-**Except:** A page that accepts files anywhere can cover the whole page. Over a table, this cover is slightly transparent and blurred.
+**Except:** A page that accepts files anywhere can cover the whole page. Over a table, the cover is slightly transparent and blurred.
 
 ## Keep the file in the row it arrived in
 
 <!-- rule: in-the-row -->
 
-**Rule:** After the drop, the name, size and progress of the file go in the place of the button, and Remove is on the same line as the name.
+**Rule:** After the drop, the file's name, size and progress take the place of the button. Remove is on the name line.
 
-**Why:** A row that changes in place keeps the page stable during the upload.
+**Why:** A row that changes in place keeps the page still during the upload.
 
 **Do:** Put Remove at the end of the name line, the size under the name, and the progress track below both.
 
@@ -56,11 +56,11 @@
 
 <!-- rule: limits-once -->
 
-**Rule:** Name the accepted types and the size limit once, next to the button, in the product's own words.
+**Rule:** Name the accepted types and the size limit once, beside the button, in the product's own words.
 
-**Why:** When the limits show again and again, the reader learns to skip them.
+**Why:** Repeated limits teach the reader to skip them.
 
-**Do:** Write “PDF or CSV, up to 10 MB” next to the button, and let a failure tell what was wrong with this file.
+**Do:** Write “PDF or CSV, up to 10 MB” beside the button. Let a failure say what was wrong with this file.
 
 **Don't:** Repeat the limits under the button, in a tooltip and again in the error.
 

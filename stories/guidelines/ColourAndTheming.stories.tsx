@@ -22,8 +22,8 @@ const SelectionTabs = ({ badge }: { badge?: { text: string; tone: 'accent' } }) 
     { id: 'overview', label: 'Overview' }, { id: 'activity', label: 'Activity', badge }]} />
 </Stage>;
 
-// The failing ground is a swatch with no words on it: white on --accent would fail
-// AA in front of the reader, so the readout carries the ratio instead.
+// The don't swatch carries no label: white on --accent fails the contrast gate, and only a person may ledger it.
+// The readout gives each ratio.
 const Ratio = ({ children }: { children: ReactNode }) => <div className="gl-cursor">{children}</div>;
 
 // An edged field beside the two grey fills that carry no words.

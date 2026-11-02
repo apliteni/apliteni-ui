@@ -49,13 +49,21 @@ const Densities = ({ second }: { second: boolean }) => <Stage><div className="tp
   <Card title="Invoices"><MiniTable dense={second} /></Card>
 </div></Stage>;
 
-// Which column the page takes, drawn to scale.
-const Frame = ({ centered, over }: { centered: boolean; over: boolean }) => <Stage><div className="tp-lay">
+// Which column the page takes, drawn to scale. The column holds a real table in the kit's
+// scroll box, so a column too narrow for it cuts the last column and scrolls sideways.
+const PAYOUTS = [['1162', '4,942.27'], ['1163', '8,310.00']];
+const Frame = ({ centered }: { centered: boolean }) => <Stage><div className="tp-lay">
   <div className="tp-lay__rail" />
   <div className="tp-lay__well">
     <div className="tp-lay__bar" />
-    <div className={`tp-lay__col${centered ? ' tp-lay__col--centered' : ''} tp-lay__col--clip`}>
-      {Array.from({ length: 7 }, (_, i) => <div key={i} className={`tp-lay__ln${over ? ' tp-lay__ln--over' : ''}`} />)}
+    <div className={`tp-lay__col${centered ? ' tp-lay__col--centered' : ''}`}>
+      <div className="ui-table-scroll" tabIndex={0} role="region" aria-label="Payouts">
+        <table className="ui-table ui-table--zebra ui-table--dense">
+          <thead><tr><th>ID</th><th>Status</th><th className="ui-table__num">Net</th></tr></thead>
+          <tbody>{PAYOUTS.map(([id, net]) => <tr key={id}><td>{id}</td>
+            <td><Badge variant="success">Paid</Badge></td><td className="ui-table__num">{net}</td></tr>)}</tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div></Stage>;
@@ -103,7 +111,7 @@ const Resting = ({ covered = false }: { covered?: boolean }) => <Stage><div clas
 // holds each of them is the RULE_TO_CODE table in stories/guidelines/the-page.test.js.
 const specimens = [
   { id: 'layout', do: () => <Shells />, dont: () => <Shells moved /> },
-  { id: 'width', do: () => <Frame centered={false} over={false} />, dont: () => <Frame centered over /> },
+  { id: 'width', do: () => <Frame centered={false} />, dont: () => <Frame centered /> },
   { id: 'head', do: () => <Head />, dont: () => <Head lifted /> },
   { id: 'one-h1',
     do: () => <Stage><div className="tp-out"><Out rank={1} text="Payouts" /><Out rank={2} text="Last 7 days" />

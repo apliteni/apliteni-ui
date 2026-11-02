@@ -22,12 +22,13 @@ const keysOf = (shortcut?: string | string[]) => (shortcut == null ? [] : Array.
 const refused = (item: Row) => Boolean(item.disabled || (item.danger && !item.confirm));
 
 // The lit row is the first runnable one.
-type PaletteProps = { groups: { label?: string; items: Row[] }[]; query?: string; rank?: boolean };
-const Palette = ({ groups, query = '', rank = true }: PaletteProps) => {
+// roomy puts each description below its label, so a record number keeps its full width on a phone.
+type PaletteProps = { groups: { label?: string; items: Row[] }[]; query?: string; rank?: boolean; roomy?: boolean };
+const Palette = ({ groups, query = '', rank = true, roomy = false }: PaletteProps) => {
   const shown = (rank ? rankGroups(groups, query) as CommandGroup[] : groups).filter(g => g.items.length) as { label?: string; items: Row[] }[];
   const all = shown.flatMap(g => g.items);
   const active = all.find(item => !refused(item));
-  return <div className="gc-stage"><div className="ui-cmdk is-open">
+  return <div className="gc-stage"><div className={`ui-cmdk${roomy ? ' ui-cmdk--roomy' : ''} is-open`}>
     <div className="ui-cmdk__scrim" />
     <div className="ui-cmdk__panel" role="group" aria-label="Command palette">
       <div className="ui-cmdk__search">
@@ -81,11 +82,11 @@ const RECENT: Row[] = [
 const GROUPED = [{ label: 'Actions', items: ACTIONS }, { label: 'Go to', items: PLACES }, { label: 'Recent', items: RECENT }];
 
 const specimens = [
-  { id: 'named-things', do: () => <Palette groups={GROUPED} />,
+  { id: 'named-things', do: () => <Palette groups={GROUPED} roomy />,
     // Four rows nobody would type: a heading that is not a command, a setting that
     // cannot be done here, the page the reader is already on, and a word that
     // names a menu rather than an action.
-    dont: () => <Palette groups={[{ label: 'Actions', items: [
+    dont: () => <Palette roomy groups={[{ label: 'Actions', items: [
       { id: 'adv', label: 'Advanced…', description: 'More options', icon: 'gear' },
       { id: 'freq', label: 'Notification frequency', description: 'Daily, weekly or never', icon: 'bell' },
       { id: 'here', label: 'Transactions', description: 'You are here', icon: 'table' },

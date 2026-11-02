@@ -74,12 +74,12 @@
 
 <!-- rule: dropdown-search -->
 
-**Rule:** Give a dropdown a search field when it has ten or more options, or when its options come from data.
+**Rule:** Give a dropdown a search field at ten options, or when data supplies its options.
 
-**Why:** Ten options make the reader scroll, and a list that gets its options from data needs search at any count. A search that matches any part of a label also finds the later words in the label.
+**Why:** Ten options need scrolling. A list from data needs search at any count. A match anywhere in a label also finds its later words.
 
-**Except:** Below six options, search adds a step that is not necessary. From six to nine options, the author decides, and adds search for rows with descriptions if the list scrolls from the sixth row.
+**Except:** Below six options, search adds an unnecessary step. At six to nine, the author decides. Add search for rows with descriptions that scroll from the sixth row.
 
 **Do:** For twenty-nine currencies, type “dollar” instead of scrolling.
 
-**Don't:** Show only seven of twenty-nine currencies without search when the dollars are at different places in the list.
+**Don't:** Show only seven of twenty-nine currencies without search when the dollars are spread through the list.

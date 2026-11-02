@@ -40,12 +40,10 @@ const Page = ({ children }: { children: ReactNode }) => <Stage>
 
 const Readout = ({ children }: { children: ReactNode }) => <div className="gl-cursor">{children}</div>;
 
-// The muted half has no words: lines at the same three ranks stand in for them.
+// Both halves set the same words at the same three ranks, in body ink or in muted ink.
 const Ranks = ({ muted }: { muted: boolean }) => <Stage>
-  {muted
-    ? <div className="gl-faded" aria-hidden="true"><span className="gl-faded__h" /><span /><span /><span className="gl-faded__s" /></div>
-    : <div className="gl-rank"><h3>Payout schedule</h3><p>Every Friday, for invoices paid by Wednesday.</p>
-      <p className="gl-rank__s">Next payout 7 March</p></div>}
+  <div className={muted ? 'gl-rank gl-rank--muted' : 'gl-rank'}><h3>Payout schedule</h3>
+    <p>Every Friday, for invoices paid by Wednesday.</p><p className="gl-rank__s">Next payout 7 March</p></div>
   <Readout>{muted ? 'Ranks: --muted at 18px, 14.5px and 13px' : 'Ranks: --strong 18px, --text 14.5px and 13px'}</Readout>
 </Stage>;
 

@@ -4,13 +4,13 @@
 
 <!-- rule: counted-total -->
 
-**Rule:** Use the total row count that the server returns when the count is available.
+**Rule:** When available, use the server’s total row count.
 
-**Why:** Readers need accurate ranges and totals, but some APIs can only report whether more rows exist.
+**Why:** Readers need accurate ranges and totals. Some APIs only report if more rows exist.
 
-**Do:** Show the current row range and the total from the server.
+**Do:** Show the row range and the server’s total.
 
-**Don't:** Discard a `COUNT(*)` result that is complete.
+**Don't:** Discard a complete `COUNT(*)` result.
 
 ## Choose the main jump
 
@@ -20,32 +20,32 @@
 
 **Why:** Filtering and sorting usually need quick jumps, but short lists can use numbered pages.
 
-**Do:** Use four fixed controls so that the first and last pages of a ledger are one press away.
+**Do:** Four fixed controls keep the first and last pages of a ledger one press away.
 
-**Don't:** On page 25 of 49, show only 1, 24, 26 and 49 as direct choices.
+**Don't:** On page 25 of 49, offer only 1, 24, 26 and 49.
 
 ## Announce only the range
 
 <!-- rule: announce-range -->
 
-**Rule:** Politely announce the complete result range, such as “1–100 of 4,812,” and nothing else.
+**Rule:** Politely announce only the complete result range, such as “1–100 of 4,812”.
 
-**Why:** Rows can change while focus does not move, so a repeated announcement for each change is unnecessary.
+**Why:** Rows can change while focus stays, so repeats are unnecessary.
 
-**Except:** If an HTML caller replaces the pager, that caller must restore focus. At an end, native `disabled` moves focus to the body, and then React restores focus to the remaining step.
+**Except:** An HTML caller that replaces the pager must restore focus. At an end, native `disabled` moves focus to the body. React then restores it to the remaining step.
 
 **Do:** Keep focus on the pressed control. Announce the new range once.
 
-**Don't:** Announce the same page change through the live region, the page-size control and every button.
+**Don't:** Announce one page change through the live region, page-size control and every button.
 
 ## Offer consumer page sizes
 
 <!-- rule: page-size -->
 
-**Rule:** Offer page sizes of 25, 50 and 100, start at 100, and let consumers choose a size and keep that selection.
+**Rule:** Offer page sizes 25, 50 and 100, and start at 100. Let consumers choose a size and keep it.
 
-**Why:** Consumers can need different sizes, and they can save a size in a URL or a profile so that it stays after a reload.
+**Why:** Consumers can need different sizes. A URL or a profile keeps their size after a reload.
 
-**Do:** Put rows per page between the count and the pagination steps.
+**Do:** Put rows per page between the count and the steps.
 
-**Don't:** Force one size when readers must go through 4,812 rows.
+**Don't:** Force one size on 4,812 rows.

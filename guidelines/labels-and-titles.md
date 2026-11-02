@@ -4,27 +4,27 @@
 
 <!-- rule: text-ink -->
 
-**Rule:** Use body ink for all words at every size, with contrast near 7:1 and not only 4.5:1, and show hierarchy with size, weight and spacing.
+**Rule:** Use body ink for all words, near 7:1 contrast, not only 4.5:1. Show hierarchy with size, weight and spacing.
 
-**Why:** Muted text can look decorative at small sizes, even when the contrast passes. Strong contrast keeps text comfortable to read at every size. A closed list of exceptions prevents faded text from becoming a way to show hierarchy.
+**Why:** Small muted text looks decorative even when contrast passes. A closed exception list stops fading from becoming hierarchy.
 
-**Except:** Use muted or dim ink only for four classes. (1) Glyphs that are not words, such as arrows, chevrons and dismiss marks. (2) Colour that shows off, unset, disabled or archived. (3) A slot with no value, such as an empty field or cell. (4) The furniture of a drawing, such as a chart’s axis, period row and legend, when its values stay reachable in full. Unselected options, counts, timestamps, shortcuts, enabled actions and empty-state text are information. They are not exceptions.
+**Except:** Muted or dim ink is only for (1) non-word glyphs such as arrows, chevrons and dismiss marks, (2) colour for off, unset, disabled or archived, (3) an empty field or cell, and (4) chart axes, period rows and legends whose values stay fully reachable. Unselected options, counts, timestamps, shortcuts, enabled actions and empty-state text are information.
 
-**Do:** Use body ink at every size, and let size show hierarchy.
+**Do:** Use body ink at every size.
 
-**Don't:** Use muted ink at different sizes to show rank.
+**Don't:** Rank text with smaller, muted ink.
 
 ## Use sentence case
 
 <!-- rule: sentence-case -->
 
-**Rule:** Write every label in sentence case, and never use capitals as a style.
+**Rule:** Write every label in sentence case. Never use capitals as style.
 
-**Why:** Capitals are slower to read and use more space. They also make labels louder than their figures.
+**Why:** Capitals read slower, use more space and make labels louder than figures.
 
-**Except:** Keep words that always have capitals as they are written. These include acronyms, currency codes and key names, such as USD, API and Esc.
+**Except:** Keep acronyms, currency codes and key names as written, such as USD, API and Esc.
 
-**Do:** Write “Total revenue” and show it without a `text-transform` override.
+**Do:** Write “Total revenue” with no `text-transform` override.
 
 **Don't:** Show “TOTAL REVENUE” above the figure.
 
@@ -32,11 +32,11 @@
 
 <!-- rule: no-repeated-noun -->
 
-**Rule:** Do not put a noun in a label when the frame of the label already names that noun.
+**Rule:** Leave a noun out of a label when its frame already names it.
 
-**Why:** Extra words hide the action that is available.
+**Why:** Extra words hide the available action.
 
-**Do:** The chips name the filters, and the button tells what it does.
+**Do:** Chips name the filters. The button says what it does.
 
 **Don't:** The same noun shows twice.
 
@@ -44,22 +44,22 @@
 
 <!-- rule: title-rank -->
 
-**Rule:** Set a card title one rank below the page title and one rank above the body text.
+**Rule:** Set a card title one rank below the page title and one above the body.
 
-**Why:** A card title at page size divides the page. A title at body size does not look like a title.
+**Why:** A page-sized card title divides the page. A body-sized one does not look like a title.
 
 **Do:** Use `--text-2xl` for the page title and `--text-lg` for the card title.
 
-**Don't:** Give the card title the same `--text-2xl` size as the page title.
+**Don't:** Give the card title the page title's `--text-2xl`.
 
 ## Name the kind above
 
 <!-- rule: eyebrow-names-the-kind -->
 
-**Rule:** Put an eyebrow above a title to show what kind of thing it is, but never use it in place of the title.
+**Rule:** Put an eyebrow above a title to name its kind, never in place of it.
 
-**Why:** An eyebrow alone cannot describe the content of the card.
+**Why:** An eyebrow alone cannot describe the card.
 
-**Do:** Use the eyebrow for the period and the title for what the card shows.
+**Do:** Name the period in the eyebrow and the content in the title.
 
 **Don't:** Use a label-sized eyebrow as the only title.

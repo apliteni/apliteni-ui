@@ -1,6 +1,6 @@
 // The shape of a rule and the gates that walk this page: docs/components.md
 import type { Meta, StoryObj } from '@storybook/react';
-import { useEffect, useRef, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { GuidelinePage, Raw, noop } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
@@ -33,11 +33,12 @@ type Figure = { label: string; value: string; delta: { value: string; tone?: 'go
 const Cashflow = ({ id }: { id: string }) => <StatBand id={id} stats={(cashflowStats('1Y', true) as Figure[]).slice(0, 2)
   .map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' }, trend: <Raw html={figure.trend} /> }))} />;
 
-const LedgerTable = () => <table className="ui-table ui-table--dense ui-table--zebra">
-  <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
-  <tbody>{(LEDGER as string[][]).map(([ref, , , net, tone, label]) => <tr key={ref}>
-    <td>{ref}</td><td className="ui-table__num ui-table__num--strong">{net}</td>
-    <td><Badge variant={tone}>{label}</Badge></td>
+// `fees` swaps Status for the fees, so the report shows how each net is made.
+const LedgerTable = ({ fees = false }: { fees?: boolean }) => <table className="ui-table ui-table--dense ui-table--zebra">
+  <thead><tr><th>Reference</th>{fees && <th className="ui-table__num">Fees (EUR)</th>}<th className="ui-table__num">Net (EUR)</th>{!fees && <th>Status</th>}</tr></thead>
+  <tbody>{(LEDGER as string[][]).map(([ref, , fee, net, tone, label]) => <tr key={ref}>
+    <td>{ref}</td>{fees && <td className="ui-table__num">{fee}</td>}<td className="ui-table__num ui-table__num--strong">{net}</td>
+    {!fees && <td><Badge variant={tone}>{label}</Badge></td>}
   </tr>)}</tbody>
 </table>;
 
@@ -71,16 +72,10 @@ const MONTH_TITLE = 'Net settled by month, first half of the year, thousands of 
 const MONTH_SERIES = [{ id: 'net', name: 'Net settled', values: NET_BY_MONTH }];
 const thousands = (n: number) => `${n}k €`;
 // The kit's month chart. In a titled card its Chart and Table switch joins the
-// card's title row. `view="table"` presses the Table button once, as a reader would.
-const MonthBlock = ({ view = 'chart' }: { view?: 'chart' | 'table' }) => {
-  const root = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (view === 'table') root.current?.querySelector<HTMLButtonElement>('button[aria-label="Table"]')?.click();
-  }, [view]);
-  return <div ref={root}><Card title="Net settled by month">
-    <Chart title={MONTH_TITLE} periods={MONTH_PERIODS} series={MONTH_SERIES} format={thousands} />
-  </Card></div>;
-};
+// card's title row.
+const MonthBlock = () => <Card title="Net settled by month">
+  <Chart title={MONTH_TITLE} periods={MONTH_PERIODS} series={MONTH_SERIES} format={thousands} />
+</Card>;
 const MonthTable = () => (
   // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-every-table-its-filter-bar
   <table className="ui-table ui-table--dense">
@@ -136,7 +131,7 @@ const specimens = [
     dont: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></Stage> },
   { id: 'link-to-the-report', do: () => <Stage><Attention /></Stage>, dont: () => <Stage><Attention onward={false} /></Stage> },
   { id: 'report-depth',
-    do: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /></Card></Stage>,
+    do: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable fees /></Card></Stage>,
     dont: () => <Stage><StatBand id="gd-depth-dont" stats={[
       { label: 'Payouts', value: '214' }, { label: 'Fees', value: '68,412.00 €' }, { label: 'Net', value: '3,118,904.00 €' }]} /></Stage> },
   // The export is at the far end of the row, where the report puts it: it acts on
@@ -159,7 +154,7 @@ const specimens = [
       <Button icon="download">Download PDF</Button>
     </div></Stage> },
   { id: 'chart-table-switch',
-    do: () => <Stage><MonthBlock /><MonthBlock view="table" /></Stage>,
+    do: () => <Stage><MonthBlock /></Stage>,
     dont: () => <Stage><Card title="Net settled by month"><Chart title={MONTH_TITLE} periods={MONTH_PERIODS} series={MONTH_SERIES} format={thousands} table={false} /><MonthTable /></Card></Stage> },
   // The chart's own title still names the span: it is read aloud, never drawn.
   { id: 'no-range-on-chart',

@@ -139,7 +139,7 @@ const States = ({ kept = true }: { kept?: boolean }) => <Card>
 </Card>;
 
 const specimens = [
-  { id: 'surface', do: () => <Card><Ledger hovered="1161" /></Card>, dont: () => <Card className="gdt-grey"><Ledger className="ui-table--dense ui-table--zebra" hovered="1161" /></Card> },
+  { id: 'surface', do: () => <Card><Ledger /></Card>, dont: () => <Card className="gdt-grey"><Ledger className="ui-table--dense ui-table--zebra" hovered="1161" /></Card> },
   { id: 'density', do: () => <Card><Ledger className="ui-table--compact" rows={4} /></Card>, dont: () => <Card><Ledger className="ui-table--compact gdt-shrunk" rows={4} /></Card> },
   { id: 'numbers', do: () => <Numbers />, dont: () => <Numbers className="gdt-left" /> },
   { id: 'delta', do: () => <Delta />, dont: () => <Delta named={false} /> },

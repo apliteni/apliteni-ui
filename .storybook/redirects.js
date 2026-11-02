@@ -137,6 +137,8 @@ export const REDIRECTS = {
   'components-topbar--pieces': 'react-topbar--full',
   'components-topbar--signed-out': 'react-topbar--signed-out',
   'foundations-signal-contrast--diagnosis': 'foundations-colors--semantic',
+  // #768 removed the Text length page. Its introductions rule went to The page.
+  'guidelines-text-length--text-length': 'guidelines-the-page--the-page',
   'react-breadcrumbs--trail': 'react-backlink--short',
   'react-breadcrumbs--with-icon': 'react-backlink--short',
 };
@@ -218,7 +220,6 @@ export const KEPT = [
   'guidelines-pagination--pagination',
   'guidelines-spacing--spacing',
   'guidelines-stat-bands--stat-bands',
-  'guidelines-text-length--text-length',
   'guidelines-the-accessibility-floor--accessibility-floor',
   'guidelines-the-command-palette--command-palette',
   'guidelines-the-full-state-set--state-set',

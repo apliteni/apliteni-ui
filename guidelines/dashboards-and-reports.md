@@ -4,13 +4,13 @@
 
 <!-- rule: fast-glance -->
 
-**Rule:** Make the dashboard answer “is anything wrong, and what changed” in one screen, without scrolling.
+**Rule:** Answer “is anything wrong, and what changed” in one screen, without scrolling.
 
-**Why:** People read a dashboard between other tasks, so they do not read the content below the first screen.
+**Why:** A dashboard is read between other work, so nobody reads below the fold.
 
-**Except:** On a phone, the blocks stack and the page scrolls. Plan the content for a desktop screen.
+**Except:** A phone stacks the blocks and scrolls. Budget a desktop screen.
 
-**Do:** A period control, a row of figures and a short list of exceptions.
+**Do:** A period control, a row of figures, a short list of exceptions.
 
 **Don't:** A second screen of blocks below the figures.
 
@@ -18,35 +18,35 @@
 
 <!-- rule: figures-and-exceptions -->
 
-**Rule:** Put only figures, trends and the rows that need attention on a dashboard.
+**Rule:** Keep a dashboard to figures, trends and the rows that need attention.
 
-**Why:** A report is the place to read a table.
+**Why:** Reading a table is what a report is for.
 
-**Do:** The figures with their trends, then the payouts that need a decision.
+**Do:** The figures with their trends, then the payouts needing a decision.
 
-**Don't:** The full ledger and a paragraph about it.
+**Don't:** The whole ledger and a paragraph about it.
 
 ## Link each reference to its row
 
 <!-- rule: link-to-the-report -->
 
-**Rule:** Link each reference to its row in the report, and show that row on the screen when the report opens.
+**Rule:** Link each reference to its report row and bring that row into view.
 
-**Why:** A dashboard shows only what happened. If the report opens at its top, it does not answer the reference.
+**Why:** A dashboard stops at what happened. A report opening at its own top has not answered the reference.
 
 **Do:** Each payout reference opens its row in the report.
 
-**Don't:** A block that lists the problems but gives no way to open them.
+**Don't:** A block that lists what is wrong and offers no way in.
 
 ## Build a report for the whole answer
 
 <!-- rule: report-depth -->
 
-**Rule:** Answer “why, and exactly how much”, and show the rows behind the figure.
+**Rule:** Answer “why, and exactly how much”, with the rows behind the figure.
 
-**Why:** Analysis needs the rows, because a summary cannot tell how much.
+**Why:** Analysis needs the rows. A summary cannot say how much.
 
-**Do:** The payout ledger, with the net and the status on every row.
+**Do:** The payout ledger, with the fees and net on every row.
 
 **Don't:** The same ledger reduced to three figures.
 
@@ -54,47 +54,47 @@
 
 <!-- rule: report-offers -->
 
-**Rule:** Give every report filters and one export.
+**Rule:** Offer filters and one export on every report.
 
-**Why:** With filters and an export, the reader can narrow the question or take the rows away without a second screen.
+**Why:** Narrowing the question, or taking the rows away, needs no second screen.
 
-**Gap #555:** The Stock screener in the kit is a report that has filters but no export.
+**Gap #555:** The kit's Stock screener is a report with filters and no export.
 
-**Do:** A filter row above the table, and the export at the end of that row.
+**Do:** A filter row above the table, with the export at its end.
 
-**Don't:** A table with nothing else, and a period that was fixed when the table was built.
+**Don't:** A table alone, with its period fixed when it was built.
 
 ## Download a report with one icon button
 
 <!-- rule: export-icon -->
 
-**Rule:** Show the download of a report as one icon button, and name the button for the file that it makes.
+**Rule:** Offer a report's download as one icon button, named for the file it makes.
 
-**Why:** People know the glyph from many places. Assistive technology reads the name of the button, and a hover title shows it.
+**Why:** The glyph is learned everywhere. Its name reaches assistive technology and a hover title.
 
 **Do:** The download glyph named Download PDF, at the end of the filter row.
 
-**Don't:** The same button with its text label, wider than every filter.
+**Don't:** The same button with its words, wider than every filter.
 
 ## Switch a chart to its table
 
 <!-- rule: chart-table-switch -->
 
-**Rule:** Give each chart block a Chart and Table switch that opens on Chart.
+**Rule:** Give a chart's block a Chart and Table switch that opens on Chart.
 
-**Why:** The chart shows the shape of a change, and the table shows the amounts that the reader needs.
+**Why:** The chart shows the shape of a change, and the table the amounts it is read for.
 
-**Do:** Net settled by month as bars, then switched to its rows.
+**Do:** Net settled by month as bars, with a switch to its rows.
 
-**Don't:** The rows stacked under the bars, in the same block or in the next block.
+**Don't:** The rows stacked under the bars, in one block or the next.
 
 ## Leave the range out of a chart card
 
 <!-- rule: no-range-on-chart -->
 
-**Rule:** Give a chart card a title that tells what it measures, and do not show the range of its data.
+**Rule:** Title a chart card by what it measures, and leave out the range of its data.
 
-**Why:** The page or the filter around the chart already shows the range.
+**Why:** The page or the filter around the chart already holds the range.
 
 **Do:** Spend against estimate, with no subtitle.
 
@@ -104,9 +104,9 @@
 
 <!-- rule: value-not-legend -->
 
-**Rule:** On a chart with one or two lines, write the last values when the latest value is important, and draw a key when there are more lines or when no single value is important.
+**Rule:** On a chart of one or two lines, write the last values when the latest value matters. Draw a key for more lines, or when no one value matters.
 
-**Why:** A key makes the eye move from a line to the key and back, and it does not give an amount. A tap shows the readout with the values at that point.
+**Why:** A key sends the eye from a line to the key and back, and gives no amount. A tap shows the readout with the values at that point.
 
 **Do:** Spend with a key and last values, and seasonal spend with a key.
 
@@ -116,11 +116,11 @@
 
 <!-- rule: two-lines-at-most -->
 
-**Rule:** Draw one line on a chart, or two lines when the reader compares them.
+**Rule:** Draw one line on a chart, or two when the reader compares them.
 
-**Why:** With more than two lines, the colours are hard to tell apart, and the points where the lines cross hide the shape of each line.
+**Why:** Past two lines, the colours are hard to tell apart and the crossings hide the shape of each line.
 
-**Except:** Three smooth areas that the reader compares by shape.
+**Except:** Three smooth areas compared by shape.
 
 **Do:** Spend against Estimated, then revenue against expenses on a second chart.
 

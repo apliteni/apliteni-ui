@@ -7,7 +7,6 @@ import * as colourContent from './_colour-and-theming.js';
 import * as emptyContent from './_empty-states.js';
 import * as stateContent from './_state-set.js';
 import * as componentContent from './_component-choice.js';
-import * as textContent from './_text-length.js';
 import * as microcopyContent from './_microcopy.js';
 import * as labelsContent from './_labels-and-titles.js';
 import * as buttonLabelsContent from './_button-labels.js';
@@ -45,7 +44,6 @@ const ENTRIES = [
   [emptyContent, 'Guidelines/Empty states', 'EmptyStates', 'Controls and states', 'What to show when there is no content'],
   [componentContent, 'Guidelines/Component choice', 'ComponentChoice', 'Controls and states', 'Which control, dialog or notice fits the job'],
   [microcopyContent, 'Guidelines/Microcopy and tone', 'Microcopy', 'Words', 'Names for controls and their current state'],
-  [textContent, 'Guidelines/Text length', 'TextLength', 'Words', 'How long labels, captions and callouts can be'],
   [labelsContent, 'Guidelines/Labels and titles', 'LabelsAndTitles', 'Words', 'Ink, case and rank for labels and titles'],
   [buttonLabelsContent, 'Guidelines/Button labels', 'ButtonLabels', 'Words', 'Words, glyphs and wordless buttons'],
   [iconographyContent, 'Guidelines/Iconography', 'Iconography', 'Look and access', 'Glyphs and status strokes'],

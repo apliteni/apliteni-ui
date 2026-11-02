@@ -6,9 +6,9 @@
 
 **Rule:** Keep destructive controls quiet until hover, and then change them to `--pink`.
 
-**Why:** `--accent` makes a destructive control look like an ordinary control.
+**Why:** `--accent` makes a destructive control look ordinary.
 
-**Except:** `--pink` also marks an error that is already visible, not an action that is about to occur.
+**Except:** `--pink` also marks a visible error, not an action that is about to occur.
 
 **Do:** On hover, the danger row changes to `--pink`.
 
@@ -18,7 +18,7 @@
 
 <!-- rule: wording -->
 
-**Rule:** Name the action that destroys and the action that does not destroy.
+**Rule:** Name the action that destroys and the action that does not.
 
 **Why:** “OK” explains nothing, but “Revoke access” names the cost.
 
@@ -32,12 +32,12 @@
 
 <!-- rule: undo -->
 
-**Rule:** Choose confirmation or undo by whether the action can be reversed, and never use both.
+**Rule:** Choose confirmation or undo by reversibility. Never use both.
 
-**Why:** Confirmation adds a click to an action that undo can reverse. Undo is an empty promise for an action that cannot be restored.
+**Why:** Confirmation adds a click to an undoable action. Undo is an empty promise for an action that cannot be restored.
 
-**Except:** Confirm an action that affects many items. One row can be undone with one click, but a whole selection cannot.
+**Except:** Confirm an action on many items. One click undoes one row, but not a whole selection.
 
 **Do:** If nothing can be restored, ask first.
 
-**Don't:** Offer undo for a workspace that is already gone.
+**Don't:** Offer undo for a workspace that is gone.

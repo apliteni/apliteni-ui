@@ -9,6 +9,7 @@ export const RELEASES = [
     v: '0.159.0', date: '2026-11-02',
     changes: [
       ['changed', 'The Accessibility floor, Colour and theming, Iconography, Labels and titles and Layout and density guidelines draw each rule as a picture.', ['Guidelines']],
+      ['removed', 'The Text length guideline page is gone. Its rule on introductions is now on The page, and old links open The page.', ['Guidelines']],
     ],
   },
   {

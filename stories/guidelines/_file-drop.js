@@ -14,7 +14,7 @@ export const SPEC_CSS = `
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4); }
     .gf-panel { background: var(--surface); border-radius: var(--radius-md);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4); }
-    .gf-panel + .gf-rows, .gf-rows + .gf-panel { margin-top: var(--space-3); }
+    .gf-panel + .gf-rows, .gf-rows + .gf-panel, .ui-drop + .gf-rows { margin-top: var(--space-3); }
     .gf-head { font: 600 13px/1.5 var(--font-sans); color: var(--strong); margin-bottom: var(--space-3); }
     .gf-rows__row { display: flex; justify-content: space-between; gap: var(--space-4);
       font: 400 13px/1.6 var(--font-sans); color: var(--text); padding-block: var(--space-1); }
@@ -98,7 +98,8 @@ const bigBox = () => `<div class="gf-box">
 export const RULES = withSpecimens(content.rules, [
   {
     id: 'one-row',
-    doHtml: () => panel(`${rows()}<div class="ui-drop">${restRow()}</div>`),
+    // The row sits above the list it feeds, as the Do says.
+    doHtml: () => panel(`<div class="ui-drop">${restRow()}</div>${rows()}`),
     dontHtml: () => panel(`${rows()}${bigBox()}`),
   },
   {

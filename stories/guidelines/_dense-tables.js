@@ -24,8 +24,8 @@ export const SPEC_CSS = `<style>
      its own and fills the unit. A stretched table keeps the full column. */
   .gdt-unit { width: fit-content; max-width: 100%; }
   .gdt-unit > :not(:last-child) { contain: inline-size; }
-  /* A hovered row, held still: the kit's own hover fill and its rounded ends, which a
-     pointer would draw. */
+  /* The don't half's hovered row, held still: a fill with rounded ends. The do half
+     holds no hover, so only its row lines show. */
   .gdt-hovered > td { background: var(--surface-2); }
   .gdt-hovered > td:first-child { border-start-start-radius: var(--radius-sm); border-end-start-radius: var(--radius-sm); }
   .gdt-hovered > td:last-child { border-start-end-radius: var(--radius-sm); border-end-end-radius: var(--radius-sm); }
