@@ -1490,6 +1490,21 @@ it('keeps a line\'s end label inside the plot when its value is the scale\'s top
   expect(y2 + (x2 - right) * (y1 - y2) / (x2 - x1), 'the line passes under the label').toBeGreaterThan(baseline);
 });
 
+it('keeps two end labels apart when their lines end close together', () => {
+  // A spend line over its estimate, as on a dashboard: the ends are 3 units apart.
+  const { container } = render(<Chart variant="line" look="labels" title="Spend" periods={periods.slice(0, 3)}
+    series={[{ id: 'spend', name: 'Spend', values: [18.2, 19.4, 21.1] },
+      { id: 'estimated', name: 'Estimated', values: [17.5, 17.8, 18.1] }]} format={eur} />);
+  const [spend, estimated] = [...container.querySelectorAll('.ui-chart__text--strong')].map((t) => Number(t.getAttribute('y')));
+  const [, low] = [...container.querySelectorAll('circle.ui-chart__dot')].map((d) => Number(d.getAttribute('cy')));
+  const height = Number(container.querySelector('.ui-chart__svg')!.getAttribute('height'));
+  // 10px is the ascent of the 12px label type. Over its point, the lower label
+  // would cross the spend line, which ends 3 units higher.
+  expect(estimated - 10, 'the lower label is under its point').toBeGreaterThan(low);
+  expect(estimated - spend, 'and a full label and a gap under the upper label').toBeGreaterThanOrEqual(10 + 4);
+  expect(estimated, 'and its baseline is inside the plot').toBeLessThanOrEqual(height);
+});
+
 it('throws on a negative value in an area, a stacked or a donut chart, before drawing', () => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
   const signed = [{ id: 'net', name: 'Net', values: [100, -90] }];

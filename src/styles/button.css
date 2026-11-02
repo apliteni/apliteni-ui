@@ -80,7 +80,7 @@
   padding-inline: 0;
 }
 .ui-btn--link .ui-btn__label-slot { overflow: visible; }
-.ui-btn--link[aria-busy="true"] .ui-btn__label-slot { overflow: hidden; }
+.ui-btn--link[aria-busy="true"] .ui-btn__label-slot { overflow: hidden; overflow: visible clip; }
 .ui-btn--link .ui-btn__label { text-decoration: underline; text-underline-offset: 0.2em; }
 .ui-btn.ui-btn--link:hover {
   background: transparent;
@@ -213,7 +213,8 @@
   border-color: transparent;
   /* muted-ink: state — busy+disabled ghost */ color: var(--disabled-ink-bare);
 }
-.ui-btn__label-slot { display: inline-grid; overflow: hidden; }
+/* The slide is vertical, so only y clips: a rounded text width never cuts the last glyph. */
+.ui-btn__label-slot { display: inline-grid; overflow: hidden; overflow: visible clip; }
 .ui-btn__label {
   grid-area: 1 / 1;
   transform: translateY(0);

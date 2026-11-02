@@ -345,11 +345,16 @@ function linesDrawing(g: LookGeometry, open: number | null) {
         cx={px(centre(i))} cy={px(y(at(layer, i)))} r={points && i === open ? 5.5 : 4} />
     );
   }));
-  const ends = look.variant === 'line' && look.look === 'labels' && look.layers.map((layer) => {
+  const { rise, ascent, drop, gap } = END_LABEL;
+  // The baseline under a point, clear of the line that comes in from the previous point.
+  const under = (layer: Layer, last: number, at: number) => {
+    const prev = finite(layer, last - 1) ? last - 1 : last;
+    return at + Math.max(drop, Math.max(0, y(layer.values[prev]) - at) + gap + ascent);
+  };
+  const placed = look.variant === 'line' && look.look === 'labels' ? look.layers.map((layer) => {
     const last = [...Array(n).keys()].reverse().find((i) => finite(layer, i));
     if (last === undefined) return null;
     const at = y(layer.values[last]);
-    const { rise, ascent, drop, gap } = END_LABEL;
     let x = centre(last) + 4;
     let base = at - rise;
     if (base - ascent < 0) {
@@ -363,18 +368,31 @@ function linesDrawing(g: LookGeometry, open: number | null) {
         x = centre(last) - Math.max(8, (ascent + gap) * (centre(last) - centre(prev)) / fall);
       } else {
         // A flat line: under the lowest point of the incoming segment.
-        base = at + Math.max(drop, fall + gap + ascent);
+        base = under(layer, last, at);
       }
     }
-    return (
-      <g key={`end-${layer.id}`}>
-        <circle className={cx('ui-chart__dot', tone(layer.tone))}
-          cx={px(centre(last))} cy={px(at)} r="4" />
-        <text className="ui-chart__text ui-chart__text--strong" textAnchor="end"
-          x={px(x)} y={px(base)}>{format(layer.values[last])}</text>
-      </g>
-    );
-  });
+    return { layer, last, at, x, base };
+  }) : [];
+  // Two lines that end close together: a label over the lower point would cross the
+  // upper line, so it goes under its point. When the labels are then still too close,
+  // the upper label moves up, so both stay readable.
+  placed.forEach((a, i) => placed.slice(i + 1).forEach((b) => {
+    if (!a || !b || a.last !== b.last) return;
+    const [hi, lo] = a.at <= b.at ? [a, b] : [b, a];
+    if (lo.base < lo.at && lo.at - hi.at < rise + ascent + gap) {
+      const sunk = under(lo.layer, lo.last, lo.at);
+      if (sunk <= plotHeight - pad) lo.base = sunk;
+    }
+    if (Math.abs(lo.base - hi.base) < ascent + gap) hi.base = Math.max(ascent, lo.base - ascent - gap);
+  }));
+  const ends = placed.length > 0 && placed.map((end) => end && (
+    <g key={`end-${end.layer.id}`}>
+      <circle className={cx('ui-chart__dot', tone(end.layer.tone))}
+        cx={px(centre(end.last))} cy={px(end.at)} r="4" />
+      <text className="ui-chart__text ui-chart__text--strong" textAnchor="end"
+        x={px(end.x)} y={px(end.base)}>{format(end.layer.values[end.last])}</text>
+    </g>
+  ));
   return (
     <>
       {ramps.some(Boolean) && (

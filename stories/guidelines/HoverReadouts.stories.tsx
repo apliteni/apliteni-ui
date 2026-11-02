@@ -18,22 +18,24 @@ const REVENUE = [47930, 46820, 49300, 48210];
 const EXPENSES = [32780, 33950, 34120, 31870];
 const eur = (n: number) => `${n < 0 ? '−' : ''}€${Math.abs(n).toLocaleString('en-US')}`;
 const PERIODS: ChartPeriod[] = MONTHS.map(label => ({ label }));
+const TALL = [47930, 46820, 59400, 48210];
 const SERIES = [{ id: 'revenue', name: 'Revenue', values: REVENUE }];
 
 // Every readout below is the Chart's own, opened on October, the tallest bar.
 // The page moves no readout: the Chart places each one itself.
 const HOT = 'revenue-2';
-const Months = ({ periods = PERIODS, name = 'Revenue', height }: { periods?: ChartPeriod[]; name?: string; height?: number }) =>
-  <Chart title="Revenue by month, last 4 months" periods={periods} series={[{ ...SERIES[0], name }]} format={eur}
+const Months = ({ periods = PERIODS, name = 'Revenue', values = REVENUE, height }: { periods?: ChartPeriod[]; name?: string; values?: number[]; height?: number }) =>
+  <Chart title="Revenue by month, last 4 months" periods={periods} series={[{ ...SERIES[0], name, values }]} format={eur}
     height={height} table={false} />;
-const Spark = () => <Chart variant="spark" title="Revenue, last 4 months" periods={PERIODS}
-  series={[{ ...SERIES[0], shape: 'line' }]} format={eur} />;
+const Spark = ({ name = 'Revenue', values = REVENUE }: { name?: string; values?: number[] }) =>
+  <Chart variant="spark" title={`${name}, last 4 months`} periods={PERIODS}
+    series={[{ id: name.toLowerCase(), name, values, shape: 'line' }]} format={eur} />;
 
 // The KPI card from the finance portal's overview, and the card under it: the
 // one that moves when a readout is written into the first.
 const Kpis = ({ chart }: { chart: ReactNode }) => <div className="gh-stack">
   <Card title="Revenue"><p className="gh-figure">{eur(REVENUE[REVENUE.length - 1])}</p>{chart}</Card>
-  <Card title="Expenses"><p className="gh-figure">{eur(EXPENSES[EXPENSES.length - 1])}</p></Card>
+  <Card title="Expenses"><p className="gh-figure">{eur(EXPENSES[EXPENSES.length - 1])}</p><Spark name="Expenses" values={EXPENSES} /></Card>
 </div>;
 
 // The Don't asks for more than one comparison and for an action, in a name and a
@@ -55,10 +57,11 @@ const specimens = [
   { id: 'overlay',
     do: () => <Kpis chart={<OpenReadout mark={HOT}><Spark /></OpenReadout>} />,
     dont: () => <Kpis chart={<><Spark /><p className="gh-inline">{`Oct 2025: ${eur(REVENUE[2])}, +5.3% on Sep`}</p></>} /> },
-  // A region that hides its overflow, with less room above the tallest bar than a readout needs.
+  // A region that hides its overflow. October nearly reaches the top line, so the room
+  // above it is shorter than the readout's first two lines.
   { id: 'above-the-mark',
-    do: () => <div className="gh-clip"><OpenReadout mark={HOT}><Months /></OpenReadout></div>,
-    dont: () => <div className="gh-clip"><OpenReadout mark={HOT} above><Months /></OpenReadout></div> },
+    do: () => <div className="gh-clip"><OpenReadout mark={HOT}><Months values={TALL} /></OpenReadout></div>,
+    dont: () => <div className="gh-clip"><OpenReadout mark={HOT} above><Months values={TALL} /></OpenReadout></div> },
   { id: 'contents',
     do: () => <OpenReadout mark={HOT}><Months /></OpenReadout>,
     dont: () => <OpenReadout mark={HOT}><Months name="Revenue, all entities, EUR, with pending settlements" periods={CROWDED} /></OpenReadout> },
