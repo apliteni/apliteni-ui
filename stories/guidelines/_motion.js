@@ -29,10 +29,34 @@ export const SPEC_CSS = `
     .gm-panel__title { height: 6px; width: 60%; border-radius: 2px; background: var(--text); }
     .gm-time { font-size: var(--text-xs); color: var(--text); font-variant-numeric: tabular-nums; }
 
-    /* The durations, one row each: the motion, its token and its time. */
-    .gm-dur { display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
-      column-gap: var(--space-4); row-gap: var(--space-2); align-items: baseline;
+    .gm-ghost .gm-panel { opacity: var(--gm-shade, 0); }
+    .gm-vis { position: relative; height: 4px; border-radius: 2px; box-shadow: inset 0 0 0 1px var(--border); }
+    .gm-vis::after { content: ''; position: absolute; inset: 0; border-radius: inherit;
+      background: var(--text); opacity: var(--gm-vis, 0); }
+
+    /* A curve is drawn as its plot: time runs right, progress runs up. */
+    .gm-plots { display: grid; grid-template-columns: repeat(var(--gm-plots, 3), minmax(0, 1fr));
+      gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+    .gm-plot { display: flex; flex-direction: column; }
+    .gm-plot__box { position: relative; margin-bottom: var(--space-2); border-radius: var(--radius-sm);
+      background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
+    .gm-plot svg { display: block; width: 100%; height: auto; aspect-ratio: 1; }
+    .gm-plot__axis { font-size: var(--text-xs); color: var(--text); }
+    .gm-plot__axis--x { position: absolute; bottom: var(--space-1); right: var(--space-2); }
+    .gm-plot path { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; }
+    .gm-plot__name { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text); }
+    .gm-plot__role { font-size: var(--text-xs); color: var(--text); }
+
+    /* A duration is a bar to scale, over a tick at each step of the kit's scale. */
+    .gm-dur { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content;
+      column-gap: var(--space-3); row-gap: var(--space-3); align-items: center;
       font-size: var(--text-sm); color: var(--text); }
-    .gm-dur code { font-family: var(--font-mono); font-size: var(--text-xs); }
+    .gm-dur__name { display: flex; flex-direction: column; }
+    .gm-dur__token { font-family: var(--font-mono); font-size: var(--text-xs); }
+    .gm-dur__track { position: relative; height: 12px; }
+    .gm-dur__tick { position: absolute; inset-block: -6px; width: 1px; left: var(--gm-tick);
+      background: var(--border); }
+    .gm-dur__bar { position: absolute; inset-block: 0; left: 0; width: var(--gm-len);
+      border-radius: 2px; background: var(--accent); }
     .gm-dur__ms { text-align: right; font-variant-numeric: tabular-nums; }
   </style>`;
