@@ -212,7 +212,7 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
        `ui-focusable` is the kit's own ring class, and it draws on :focus-visible only — so a
        pointer-driven arrival shows nothing and a keyboard-driven one shows the kit ring,
        instead of the sheet suppressing the outline for both.
-       why: src/styles/base.css, guidelines/state-set.md#focus-rings */
+       why: src/styles/base.css */
     heading?.setAttribute('tabindex', '-1');
     heading?.classList.add('ui-focusable');
     heading?.focus();

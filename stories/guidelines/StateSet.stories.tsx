@@ -17,16 +17,6 @@ const content = await loadGuideline('state-set.md', new URL('../../guidelines/st
 
 const Stage = ({ mod = '', children }: { mod?: string; children: ReactNode }) => <div className={`gl-stage ${mod}`}>{children}</div>;
 
-// `.gl-ring` pins what :focus-visible paints (src/styles/base.css), because a
-// focus band exists only under a live keyboard and cannot be screenshotted.
-const Ringed = ({ mod = '' }: { mod?: string }) => <div className={`gl-stage gl-ring ${mod}`}>
-  <div className="gl-row">
-    <Button variant="primary">Save changes</Button>
-    <input className="ui-input" type="text" defaultValue="acme.io/hooks" aria-label="Webhook URL" />
-  </div>
-  <div className="gl-cursor">Both reached by Tab</div>
-</div>;
-
 const WHY_INVALID = 'Must start with https://';
 // The don't marks the control invalid and says why somewhere else, so its field has no error to wire.
 const Url = ({ error }: { error?: string }) =>
@@ -45,9 +35,6 @@ const Pending = ({ children }: { children: ReactNode }) => <Stage><div className
 </div></Stage>;
 
 const specimens = [
-  { id: 'focus-visible', do: () => <Ringed />, dont: () => <Ringed mod="gl-ring--adhoc" /> },
-  { id: 'busy', do: () => <Stage><Button variant="primary" busy>Saving…</Button></Stage>,
-    dont: () => <Stage><Button variant="primary">Saving…</Button></Stage> },
   { id: 'error-in-markup', do: () => <Stage><Url error={WHY_INVALID} /></Stage>,
     dont: () => <div className="gl-stage gl-stack"><Url /><Callout variant="danger">{WHY_INVALID}</Callout></div> },
   { id: 'loading',

@@ -15,15 +15,6 @@ export const SPEC_CSS = `
   <style>
     .gp-stage { background: var(--surface); border-radius: var(--radius-lg);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4) var(--space-5); }
-    /* The hand-built don'ts below are rows of kit buttons, so they need the one
-       thing .ui-pager would have given them: a row. Nothing else is styled — what
-       is wrong with them is what they leave out, and a don't dressed differently
-       from its do would read as a styling argument. */
-    .gp-hand { display: flex; flex-wrap: wrap; align-items: center;
-      gap: var(--space-3) var(--space-4); font-size: var(--text-sm); }
-    .gp-hand__status { margin: 0 auto 0 0; color: var(--text);
-      font-variant-numeric: tabular-nums; }
-    .gp-hand__steps { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
     /* The Next step that was just pressed: the page after 26 is 27. */
     .gp-stage .ui-pager__step[data-page="27"] { outline: var(--ring); outline-offset: var(--ring-offset); }
   </style>`;

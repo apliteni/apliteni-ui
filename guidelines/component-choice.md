@@ -1,54 +1,42 @@
 # Component choice
 
-## Make the committing action stand out
-
-<!-- rule: paired-actions -->
-
-**Rule:** In a pair of actions, give the committing action more visual weight than the dismissing action.
-
-**Why:** Equal weight makes it harder to see which button commits the change.
-
-**Do:** Use a primary Save button beside a ghost Cancel button.
-
-**Don't:** Give Save and Cancel the same primary style.
-
 ## Interrupt with a question
 
 <!-- rule: interrupt -->
 
-**Rule:** Stop the page for a question; leave a statement on the page.
+**Rule:** Stop the page for a question, and keep a statement on the page.
 
-**Why:** A confirm keeps keyboard focus until answered; a callout does not interrupt.
+**Why:** A confirm keeps the keyboard focus until it gets an answer. A callout does not interrupt the reader.
 
-**Except:** Use a content-sized modal or a drawer for a short form, and a page for a long one.
+**Except:** For a short form, use a content-sized modal or a drawer. For a long form, use a page.
 
-**Do:** Ask “Rotate this token?” in a confirm with “Keep token” and “Rotate token” buttons.
+**Do:** Ask “Rotate this token?” in a confirm with the “Keep token” and “Rotate token” buttons.
 
-**Don't:** Put “Rotate this token?” in a callout with no answer buttons.
+**Don't:** Put “Rotate this token?” in a callout that has no answer buttons.
 
 ## Show lasting conditions
 
 <!-- rule: transient -->
 
-**Rule:** Use a toast for what happened and a callout for what is still true.
+**Rule:** Use a toast for an event that occurred and a callout for a condition that is still true.
 
-**Why:** A toast dismisses itself, so an active condition disappears too soon.
+**Why:** A toast closes itself, so an active condition goes away too soon.
 
-**Except:** A toast with an action may remain because something happened and can still be answered.
+**Except:** A toast with an action can stay, because the event occurred and it can still get an answer.
 
-**Do:** Keep a standing warning on the page.
+**Do:** Keep a lasting warning on the page.
 
-**Don't:** Let the same warning dismiss itself.
+**Don't:** Let the same warning close itself.
 
 ## Match controls to panels
 
 <!-- rule: panels -->
 
-**Rule:** Use `tabs()` to switch panels and `segmented()` for a choice that owns no panel, such as a value, filter or sort order.
+**Rule:** Use `tabs()` to switch panels, and use `segmented()` for a choice that has no panel, such as a value, a filter or a sort order.
 
-**Why:** A tablist promises a panel and arrow-key support; a strip without either fails the reader.
+**Why:** A tablist promises a panel and arrow-key support. A strip without these two things fails the reader.
 
-**Except:** Links between locations are neither; the kit’s nav uses aria-current, not a tablist.
+**Except:** Links between locations are neither of these. The kit’s nav uses `aria-current`, not a tablist.
 
 **Do:** Use a segmented control to filter one list by Any, Verified or Pending.
 
@@ -58,25 +46,25 @@
 
 <!-- rule: one-category -->
 
-**Rule:** Give views, filters, sorting and actions separate groups and styles.
+**Rule:** Give views, filters, sorting and actions separate groups and separate styles.
 
-**Why:** Identical controls in one bar hide that one of them re-draws every row while its neighbour only narrows them.
+**Why:** Identical controls in one bar hide a difference. One control re-draws every row, but the control next to it only filters them to fewer rows.
 
-**Do:** Keep the filter chips in one bar, the views in a strip of their own, and the action at the right-hand end.
+**Do:** Keep the filter chips in one bar, the views in a separate strip, and the action at the right end.
 
-**Don't:** Put three saved views and a filter control in one bar as four buttons of the same size and style.
+**Don't:** Put three saved views and a filter control in one bar as four buttons with the same size and style.
 
-**Except:** Saved views that re-draw one table take a segmented strip; views that swap panels take tabs.
+**Except:** Use a segmented strip for saved views that re-draw one table. Use tabs for views that swap panels.
 
 ## Match confirmation scale
 
 <!-- rule: scale -->
 
-**Rule:** Use `successPanel()` for a confirmation inside a page and `success()` for a full-page confirmation or a next action.
+**Rule:** Use `successPanel()` for a confirmation inside a page, and use `success()` for a full-page confirmation or a next action.
 
-**Why:** successPanel() is a page block; success() is the page and tells the reader where to go next.
+**Why:** `successPanel()` is a block in a page. `success()` is the full page, and it tells the reader where to go next.
 
-**Except:** A block that needs somewhere to go next still uses success(); successPanel() takes two strings.
+**Except:** If a block needs a next location for the reader, use `success()` for it too. `successPanel()` takes two strings.
 
 **Do:** Use `successPanel()` to confirm sent feedback inside a card.
 
@@ -86,12 +74,12 @@
 
 <!-- rule: dropdown-search -->
 
-**Rule:** Give a dropdown a search field at ten options, or whenever its options come from data.
+**Rule:** Give a dropdown a search field when it has ten or more options, or when its options come from data.
 
-**Why:** Ten options require scrolling, and data-fed lists need search at any count; matching anywhere in a label also finds later words.
+**Why:** Ten options make the reader scroll, and a list that gets its options from data needs search at any count. A search that matches any part of a label also finds the later words in the label.
 
-**Except:** Below six options, search adds an unnecessary stop; at six to nine, the author decides, adding search for described rows that scroll from the sixth.
+**Except:** Below six options, search adds a step that is not necessary. From six to nine options, the author decides, and adds search for rows with descriptions if the list scrolls from the sixth row.
 
 **Do:** For twenty-nine currencies, type “dollar” instead of scrolling.
 
-**Don't:** Show only seven of twenty-nine currencies without search when dollars are scattered through the list.
+**Don't:** Show only seven of twenty-nine currencies without search when the dollars are at different places in the list.

@@ -4,74 +4,74 @@
 
 <!-- rule: below-a-list -->
 
-**Rule:** Add a back link only when the page is under another page.
+**Rule:** Add a back link only if the page is under another page.
 
-**Why:** It gives the missing path from a record to its parent list.
+**Why:** Without the back link, a record has no path to its parent list.
 
-**Do:** From an invoice record, link to the invoice list.
+**Do:** On an invoice record, add a link to the invoice list.
 
-**Don't:** Add one to the Invoices sidebar section. It is not a child page.
+**Don't:** Add a back link to the Invoices sidebar section, because it is not a child page.
 
 ## Name the destination
 
 <!-- rule: name-it -->
 
-**Rule:** Name the destination instead of using only “Back”.
+**Rule:** Name the destination in the link, and do not use only “Back”.
 
-**Why:** The arrow shows direction, so the words must identify the destination.
+**Why:** The arrow shows the direction, so the words must identify the destination.
 
-**Do:** Write “Back to Invoices” with the sidebar spelling. Hide the arrow from screen readers.
+**Do:** Write “Back to Invoices” with the same spelling as the sidebar. Hide the arrow from screen readers.
 
-**Don't:** Use “Back”. It does not identify the destination in a screen reader’s links list.
+**Don't:** Use “Back”, because it does not identify the destination in the links list of a screen reader.
 
-**Except:** A multi-screen form can use “Back” for the previous step. That is a form button, not this link.
+**Except:** A form that has more than one screen can use “Back” for the previous step. That control is a form button, not this link.
 
 ## Link to the parent address
 
 <!-- rule: address-not-history -->
 
-**Rule:** Link to the parent’s address, preserving filters, sort and page; never use history or `javascript:`.
+**Rule:** Link to the address of the parent and keep its filters, sort and page, and never use history or `javascript:`.
 
-**Why:** Addresses work with new tabs, bookmarks and sharing, while browser Back handles history.
+**Why:** Addresses work in new tabs, in bookmarks and when people share them. Browser Back handles history.
 
-**Do:** Use `backLink()` with the parent list address and its current state.
+**Do:** Use `backLink()` with the address of the parent list and its current state.
 
-**Don't:** Use a history link that fails in a new tab or shared address.
+**Don't:** Use a history link, because it fails in a new tab or from a shared address.
 
-**Except:** After search or another record, still link to the parent. Browser Back returns to the previous location.
+**Except:** If the record opened from a search or from another record, still link to the parent. Browser Back returns to the previous location.
 
 ## Skip the trail
 
 <!-- rule: one-or-the-other -->
 
-**Rule:** Put one back link, to the parent, above a subpage’s title.
+**Rule:** Put one back link, to the parent, above the title of a subpage.
 
-**Why:** The sidebar already shows the section, so a trail names the same place again.
+**Why:** The sidebar already shows the section, so a trail names the same place a second time.
 
-**Do:** Link Invoices above an invoice.
+**Do:** Put a link to Invoices above an invoice.
 
-**Don't:** Stack a link for each level, such as Finance then Invoices.
+**Don't:** Stack a link for each level, such as Finance and then Invoices.
 
 ## Keep the section active
 
 <!-- rule: section-lit -->
 
-**Rule:** Keep the parent section active with `aria-current="true"`, not `"page"`, and use its name in the link.
+**Rule:** Keep the parent section active with `aria-current="true"`, not `"page"`, and use the section name in the link.
 
-**Why:** The record stays in its list’s section without making the list look like the current page. `appShell()` does this when given a back link.
+**Why:** The record stays in the section of its list, but the list does not look like the current page. `appShell()` does this when it gets a back link.
 
 **Do:** Keep the sidebar row active and write “Back to Invoices”.
 
-**Don't:** Leave the section inactive or give it another name.
+**Don't:** Leave the section inactive or give the section a different name.
 
 ## Keep the link quiet
 
 <!-- rule: quiet -->
 
-**Rule:** Style the back link as secondary navigation, using `--text` despite host link colours.
+**Rule:** Style the back link as secondary navigation, and use `--text` instead of the host link colours.
 
-**Why:** It appears on every record page and must not compete with the title or main action.
+**Why:** The back link is on every record page, and it must not compete with the title or the main action.
 
-**Do:** Use body ink, no box until pointer hover, and a size smaller than the title.
+**Do:** Use body ink, show no box until the pointer is over the link, and use a size smaller than the title.
 
-**Don't:** Use two filled buttons or make leaving the record more prominent than its main action.
+**Don't:** Use two filled buttons, or make the exit from the record more visible than its main action.

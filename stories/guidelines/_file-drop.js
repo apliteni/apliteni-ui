@@ -18,8 +18,6 @@ export const SPEC_CSS = `
     .gf-head { font: 600 13px/1.5 var(--font-sans); color: var(--strong); margin-bottom: var(--space-3); }
     .gf-rows__row { display: flex; justify-content: space-between; gap: var(--space-4);
       font: 400 13px/1.6 var(--font-sans); color: var(--text); padding-block: var(--space-1); }
-    /* The kit ring, shown at rest, because a specimen cannot be focused. */
-    .gf-ring { outline: var(--ring); outline-offset: var(--ring-offset); }
     /* The faults the page draws. They are written here because nothing in the kit
        emits them: the tall box is what a product draws for itself, and the kit's
        own field-sized picker is styled by the React workspace's sheet, which this
@@ -38,9 +36,9 @@ export const SPEC_CSS = `
     .gf-repeat { margin: var(--space-2) 0 0; font: 400 13px/1.6 var(--font-sans); color: var(--text); }
   </style>`;
 
-const btn = (label, { size = 'sm', variant = 'secondary', glyph, ring, iconOnly } = {}) =>
+const btn = (label, { size = 'sm', variant = 'secondary', glyph, iconOnly } = {}) =>
   `<button type="button" class="ui-btn ui-btn--${variant}${size === 'md' ? '' : ` ui-btn--${size}`}`
-  + `${iconOnly ? ' ui-btn--icon' : ''}${ring ? ' gf-ring' : ''}"${iconOnly ? ` aria-label="${label}"` : ''}>`
+  + `${iconOnly ? ' ui-btn--icon' : ''}"${iconOnly ? ` aria-label="${label}"` : ''}>`
   + `${glyph ? `<span aria-hidden="true" style="display:inline-flex">${icon(glyph)}</span>` : ''}`
   + `${iconOnly ? '' : `<span class="ui-btn__label-slot"><span class="ui-btn__label">${label}</span></span>`}</button>`;
 
@@ -131,12 +129,6 @@ export const RULES = withSpecimens(content.rules, [
     })}</div>`),
     dontHtml: () => panel(`${rows()}<div class="ui-drop"><div class="ui-drop__row">
       ${state('Upload failed', 'error')}${btn('Upload', { glyph: 'upload' })}</div></div>`),
-  },
-  {
-    id: 'button-path',
-    doHtml: () => panel(`${rows()}<div class="ui-drop"><div class="ui-drop__row">${btn('Upload', { glyph: 'upload', ring: true })}${note()}</div></div>`),
-    dontHtml: () => panel(`${rows()}<div class="ui-drop"><div class="ui-drop__row">
-      <p class="ui-drop__note">Drag a file here</p></div></div>`),
   },
   {
     id: 'limits-once',

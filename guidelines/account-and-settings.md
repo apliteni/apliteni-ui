@@ -4,41 +4,41 @@
 
 <!-- rule: modal -->
 
-**Rule:** Open account and settings in the kit's account window, over the product, with its sections beside the pane.
+**Rule:** Open the account and settings in the kit's account window, on top of the product, with the sections beside the pane.
 
-**Why:** The reader has not left the work behind it, and one overlay holds every setting.
+**Why:** The reader does not leave the work that is behind the window, and one overlay holds all the settings.
 
-**Do:** Give the window the reader and the sections, and let it draw the rail, the title, the close and the dimmed page.
+**Do:** Give the window the reader and the sections, and let the window draw the rail, the title, the close control and the dimmed page.
 
-**Don't:** Slide a full-width sheet in with columns inside it.
+**Don't:** Slide in a full-width sheet that has columns in it.
 
-**Except:** On a phone the sections become tabs under the reader, where a column beside the pane would leave it narrower than its rows.
+**Except:** On a phone, the sections become tabs under the reader, because a column beside the pane would make the pane narrower than its rows.
 
 ## Give the modal its own navigation
 
 <!-- rule: nav -->
 
-**Rule:** Give the modal one entry per group a reader arrives to change.
+**Rule:** Give the modal one entry for each group that a reader comes to change.
 
-**Why:** A reader already knows which group they came for, and a list of names is read faster than every group in turn.
+**Why:** A reader already knows which group they came for, and a list of names is faster to read than all the groups one after the other.
 
-**Do:** Stand the entries beside the pane — above it on a phone — and mark the one on screen.
+**Do:** Put the entries beside the pane, or above the pane on a phone, and mark the entry that is on the screen.
 
-**Don't:** Run all five groups down one scroll.
+**Don't:** Put all five groups in one scroll.
 
-**Except:** Merge two groups when neither fills a pane alone.
+**Except:** If neither of two groups fills a pane alone, merge the two groups.
 
 ## Limit the account menu to identity and the way in
 
 <!-- rule: menu -->
 
-**Rule:** Keep the account menu to the reader, a few ways in, a Theme submenu and Sign out.
+**Rule:** Keep only the reader, a few ways in, a Theme submenu and Sign out in the account menu.
 
-**Why:** A setting answered inside a menu has no address to link, search or come back to.
+**Why:** A setting that the reader changes in a menu has no address, so the reader cannot link to it, search for it or come back to it.
 
-**Do:** Name the reader, then Account settings and Support.
+**Do:** Name the reader, then show Account settings and Support.
 
-**Don't:** Answer the settings in the menu, a row per setting.
+**Don't:** Put the settings in the menu, with one row for each setting.
 
 ## Change a single field where it sits
 
@@ -46,24 +46,10 @@
 
 **Rule:** Change a single field in the row that names it, with no overlay.
 
-**Why:** Opening the account area to flip one switch costs two presses back to the row.
+**Why:** If the reader opens the account area to flip one switch, the reader needs two presses to go back to the row.
 
-**Do:** Flip the weekly digest where it is named.
+**Do:** Flip the weekly digest in the row that names it.
 
 **Don't:** Open the modal on a pane to flip one switch.
 
-**Except:** A question that must be answered before anything else still stops the page.
-
-## Name the action after its change
-
-<!-- rule: one-action -->
-
-**Rule:** Name an account pane’s action after the change it makes.
-
-**Why:** On a pane of agents and the tokens they hold, Save does not say what the press changes.
-
-**Do:** End the tokens pane with “Create token”.
-
-**Don't:** End the same pane with “Save”.
-
-**Except:** A pane whose choices apply as they are made carries no action.
+**Except:** A question that the reader must answer before all other actions still stops the page.

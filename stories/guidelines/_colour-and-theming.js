@@ -23,15 +23,6 @@ export const SPEC_CSS = `
     /* The Do draws the button's paint, not a focusable control: the kit ring follows the page theme, not the pin. */
     .gl-swatch--strong { display: grid; place-items: center; background: var(--accent-strong); color: var(--accent-contrast); font-size: var(--text-sm); font-weight: var(--weight-medium); }
 
-    /* Four theme cells. Their literal grounds and inks are the subject. */
-    .gl-themes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
-    .gl-theme { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2);
-      padding: var(--space-3); border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px var(--border-strong);
-      font-size: var(--text-sm); }
-    .gl-theme__t { font-weight: var(--weight-medium); }
-    .gl-theme__btn { padding: var(--space-1) var(--space-3); border-radius: var(--radius-xs); font-weight: var(--weight-medium); }
-    .gl-theme__on { font-weight: var(--weight-semibold); }
-
     /* The grey fills: a track and a divider carry no words, the don't's box and chip do. */
     .gl-tracks { display: flex; align-items: center; gap: var(--space-4); margin-top: var(--space-4); }
     .gl-track { width: 120px; height: 8px; border-radius: var(--radius-pill); background: var(--surface-3); }

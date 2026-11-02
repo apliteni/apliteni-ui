@@ -1043,9 +1043,8 @@
     {
       "file": "react/src/command-palette-guideline.test.tsx",
       "name": "React: the command palette guideline",
-      "does": "Holds the keyboard contract the command palette page lists against the keys the React palette, its dialog and the shell band answer, and walks every palette row a React story renders: each row is named, and a destructive row either asks in a dialog or is disabled.",
+      "does": "Walks every palette row a React story renders: each row is named, and a destructive row either asks in a dialog or is disabled.",
       "blind": [
-        "A key is found by reading the source for comparisons against an event's key, so a key handled another way is not seen.",
         "Whether a row goes somewhere or runs something lives in its props, not its markup, so this walk cannot tell a dead row from a live one."
       ]
     },

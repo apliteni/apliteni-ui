@@ -99,13 +99,6 @@ const MENU_CSS = `<style>
 const Menu = ({ items }: { items: ReturnType<typeof row>[] }) =>
   <Stage><div className="gas-menu"><AccountMenu {...READER} items={items} current="" /></div></Stage>;
 
-// Each agent beside the token it holds, masked the way a kit page shows one.
-const TOKENS = [['Deploy bot', 'apl_••••7Q2, last used today'], ['Reporting agent', 'apl_••••K4D, last used 2 days ago']];
-const Tokens = ({ label }: { label: string }) => <Modal><Nav active="agents" /><Pane cap="Agents & API tokens">
-  {TOKENS.map(([lab, hint]) => <SettingRow key={lab} lab={lab} hint={hint} />)}
-  <div className="gas-acts"><Button variant="primary">{label}</Button></div>
-</Pane></Modal>;
-
 const specimens = [
   { id: 'modal',
     do: () => <Over><div className="gas-over gas-over--modal"><div className="gas-over__nav"><Rows n={5} cur={1} /></div><Panes count={1} /></div></Over>,
@@ -124,7 +117,6 @@ const specimens = [
     dont: () => <Modal mod="gas-modal--short"><Nav active="notifications" /><Pane cap="Notifications">
       <SettingRow lab="Weekly digest"><Switch defaultChecked label="Weekly digest, in the modal" /></SettingRow>
     </Pane></Modal> },
-  { id: 'one-action', do: () => <Tokens label="Create token" />, dont: () => <Tokens label="Save" /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Account and settings', parameters: { layout: 'fullscreen' } };

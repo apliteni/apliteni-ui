@@ -139,7 +139,7 @@ evidence is these two calls, eight images:
 ```sh
 node scripts/evidence/guideline.mjs .           docs/evidence/caption-rank after
 node scripts/evidence/guideline.mjs /tmp/before docs/evidence/caption-rank before
-node scripts/evidence/guideline.mjs . out/ after accessibility-floor "Status labels" 1280,390
+node scripts/evidence/guideline.mjs . out/ after accessibility-floor "Measurable pairs" 1280,390
 ```
 
 `react.mjs` is the same rig pointed at the React workspace's own Storybook build,

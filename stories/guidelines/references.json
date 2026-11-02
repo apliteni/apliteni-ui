@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:241",
+    "ref": "src/styles/table.css:240",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -12,7 +12,7 @@
     "pattern": "width: auto;"
    },
    {
-    "ref": "src/styles/table.css:301",
+    "ref": "src/styles/table.css:300",
     "pattern": "max-width: calc(100% + 2 * var(--space-3));"
    }
   ],
@@ -25,23 +25,15 @@
     "ref": "src/styles/filter-bar.css:1",
     "pattern": ".ui-filter-bar { border: 0;"
    }
+  ],
+  "states": [
+   {
+    "ref": "react/src/Pagination.tsx:239",
+    "pattern": "aria-busy"
+   }
   ]
  },
  "_accessibility-floor.js": {
-  "target-size": [
-   {
-    "ref": "src/styles/button.css:102",
-    "pattern": ".ui-btn--sm"
-   },
-   {
-    "ref": "src/styles/input.css:163",
-    "pattern": ".ui-check input::before"
-   },
-   {
-    "ref": "src/styles/tap-zone.css:25",
-    "pattern": "--tap-aa: 24px;"
-   }
-  ],
   "tap-zone": [
    {
     "ref": "src/styles/tap-zone.css:89",
@@ -66,34 +58,6 @@
    {
     "ref": "src/styles/base.css:158",
     "pattern": "outline: var(--ring);"
-   }
-  ],
-  "disabled-legibility": [
-   {
-    "ref": "src/styles/button.css:119",
-    "pattern": ".ui-btn[aria-disabled=\"true\"]"
-   },
-   {
-    "ref": "src/tokens/tokens.css:196",
-    "pattern": "--disabled-ink: var(--muted);"
-   },
-   {
-    "ref": "src/tokens/tokens.css:202",
-    "pattern": "--disabled-border: var(--surface-3);"
-   },
-   {
-    "ref": "src/styles/input.css:60",
-    "pattern": "opacity: 1;"
-   }
-  ],
-  "touch-field-size": [
-   {
-    "ref": "src/styles/field-zoom.css:19",
-    "pattern": "font-size: 16px !important;"
-   },
-   {
-    "ref": "react/src/index.ts:13",
-    "pattern": "import '../../src/styles/field-zoom.css';"
    }
   ]
  },
@@ -165,20 +129,6 @@
     "ref": "src/styles/layout.css:70",
     "pattern": ".ui-app__rail .ui-nav__item.is-active"
    }
-  ],
-  "both-themes": [
-   {
-    "ref": "stories/accent-contrast.test.js:1",
-    "pattern": "--accent clears WCAG AA as text on every ground the kit paints under it"
-   },
-   {
-    "ref": "stories/accent-contrast.test.js:2",
-    "pattern": "theme × accent cells"
-   },
-   {
-    "ref": "react/src/a11y.test.tsx:23",
-    "pattern": "'color-contrast': { enabled: false }"
-   }
   ]
  },
  "_command-palette.js": {
@@ -206,30 +156,6 @@
    {
     "ref": "src/logic/command-palette.js:112",
     "pattern": "export function rankGroups"
-   }
-  ],
-  "keyboard": [
-   {
-    "ref": "react/src/CommandPalette.tsx:121",
-    "pattern": "const onKeyDown = (e: ReactKeyboardEvent)"
-   },
-   {
-    "ref": "react/src/dialog.ts:103",
-    "pattern": "function trapTab(panel: HTMLElement, e: KeyboardEvent)"
-   }
-  ],
-  "say-it": [
-   {
-    "ref": "react/src/CommandPalette.tsx:192",
-    "pattern": "aria-selected={on}"
-   },
-   {
-    "ref": "react/src/CommandPalette.tsx:223",
-    "pattern": "role=\"status\" aria-live=\"polite\""
-   },
-   {
-    "ref": "react/src/dialog.ts:151",
-    "pattern": "function returnFocus(opener: Element | null, fallback: Element | null)"
    }
   ],
   "ask-first": [
@@ -490,20 +416,6 @@
   ]
  },
  "_iconography.js": {
-  "icon-only": [
-   {
-    "ref": "src/assets/icons.js:171",
-    "pattern": "export const iconOnlyAllowed"
-   },
-   {
-    "ref": "stories/guidelines/iconography.test.js:256",
-    "pattern": "every icon-only control is one the closed list allows"
-   },
-   {
-    "ref": "react/src/primitives/Button.tsx:116",
-    "pattern": "const named = iconOnly"
-   }
-  ],
   "meaning": [
    {
     "ref": "src/assets/icons.js:238",
@@ -512,16 +424,6 @@
    {
     "ref": "react/src/Toast.tsx:19",
     "pattern": "const glyphs = {"
-   }
-  ],
-  "provenance": [
-   {
-    "ref": "src/assets/icons.js:137",
-    "pattern": "stroke-width=\"1.7\""
-   },
-   {
-    "ref": "src/assets/icons.test.js:67",
-    "pattern": "test('the emitter ships the numbers its header argues for'"
    }
   ],
   "stroke-earns-the-bar": [
@@ -540,9 +442,7 @@
    {
     "ref": "src/styles/base.css:123",
     "pattern": "color: var(--text);"
-   }
-  ],
-  "text-ink-exceptions": [
+   },
    {
     "ref": "src/styles/muted-ink.test.js:1",
     "pattern": "Every muted/dim colour path"
@@ -570,16 +470,6 @@
    {
     "ref": "src/styles/card.css:130",
     "pattern": "rank: card-title"
-   }
-  ],
-  "title-is-heading": [
-   {
-    "ref": "react/src/primitives/Card.tsx:45",
-    "pattern": "h${[2, 3, 4, 5, 6].includes(n)"
-   },
-   {
-    "ref": "react/src/primitives/Card.tsx:45",
-    "pattern": "const Heading"
    }
   ],
   "eyebrow-names-the-kind": [
@@ -703,20 +593,6 @@
     "ref": "react/src/ThemeToggle.test.tsx:44",
     "pattern": "name: 'Theme: Light. Switch to auto.'"
    }
-  ],
-  "never-nameless": [
-   {
-    "ref": "react/src/primitives/Button.tsx:108",
-    "pattern": "iconOnly drops the visible children"
-   },
-   {
-    "ref": "react/src/primitives/Button.tsx:111",
-    "pattern": "then the icon name. With neither"
-   },
-   {
-    "ref": "react/src/primitives/Button.tsx:111",
-    "pattern": "nothing is invented: a control named"
-   }
   ]
  },
  "_motion.js": {
@@ -761,20 +637,6 @@
     "ref": "src/styles/drawer.css:34",
     "pattern": "transition: visibility var(--dur-med) linear;"
    }
-  ],
-  "reduced": [
-   {
-    "ref": "src/styles/reduced-motion.css:15",
-    "pattern": "animation-duration: 0.01ms !important;"
-   },
-   {
-    "ref": "src/styles/reduced-motion.css:17",
-    "pattern": "transition-duration: 0.01ms !important;"
-   },
-   {
-    "ref": "src/styles/drawer.css:258",
-    "pattern": ".ui-drawer.is-open * { transition: none !important; }"
-   }
   ]
  },
  "_pagination.js": {
@@ -788,24 +650,6 @@
    {
     "ref": "react/src/Pagination.tsx:61",
     "pattern": "function slotsFor("
-   }
-  ],
-  "ends-disable": [
-   {
-    "ref": "react/src/Pagination.tsx:157",
-    "pattern": "disabled={loading || disabled} aria-disabled"
-   }
-  ],
-  "one-page": [
-   {
-    "ref": "react/src/Pagination.tsx:143",
-    "pattern": "if (single && !sizes.length)"
-   }
-  ],
-  "page-turn": [
-   {
-    "ref": "react/src/Pagination.tsx:239",
-    "pattern": "aria-busy"
    }
   ],
   "announce-range": [
@@ -846,34 +690,6 @@
   ]
  },
  "_state-set.js": {
-  "focus-visible": [
-   {
-    "ref": "src/styles/base.css:151",
-    "pattern": ".ui-focusable:focus-visible,"
-   },
-   {
-    "ref": "src/styles/base.css:158",
-    "pattern": "outline: var(--ring);"
-   },
-   {
-    "ref": "src/tokens/tokens.css:298",
-    "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
-   }
-  ],
-  "busy": [
-   {
-    "ref": "react/src/primitives/Button.tsx:134",
-    "pattern": "aria-busy={busy ? true : undefined}"
-   },
-   {
-    "ref": "src/styles/button.css:156",
-    "pattern": ".ui-btn[aria-busy=\"true\"] {"
-   },
-   {
-    "ref": "react/src/contrast-walk.tsx:283",
-    "pattern": "inactive user-interface components"
-   }
-  ],
   "error-in-markup": [
    {
     "ref": "react/src/Field.tsx:41",
@@ -904,27 +720,8 @@
   ]
  },
  "_the-page.js": {},
- "_text-length.js": {
-  "short-controls": [
-   {
-    "ref": "react/src/primitives/Button.tsx:60",
-    "pattern": "export const Button = forwardRef"
-   }
-  ],
-  "useful-callouts": [
-   {
-    "ref": "react/src/primitives/Callout.tsx:13",
-    "pattern": "export function Callout("
-   }
-  ]
- },
+ "_text-length.js": {},
  "_density-and-accents.js": {
-  "purposeful-accent": [
-   {
-    "ref": "src/styles/button.css:53",
-    "pattern": "background: var(--accent-strong)"
-   }
-  ],
   "check-density": [
    {
     "ref": "src/styles/stat.css:139",
@@ -953,6 +750,10 @@
    {
     "ref": "react/src/FileDrop.tsx:143",
     "pattern": "className=\"ui-drop__row\""
+   },
+   {
+    "ref": "react/src/FileDrop.tsx:103",
+    "pattern": "input.current?.click()"
    }
   ],
   "on-drag": [
@@ -983,12 +784,6 @@
    {
     "ref": "react/src/FileDrop.tsx:152",
     "pattern": "status === 'error' && onRetry"
-   }
-  ],
-  "button-path": [
-   {
-    "ref": "react/src/FileDrop.tsx:103",
-    "pattern": "input.current?.click()"
    }
   ],
   "limits-once": [
@@ -1048,22 +843,12 @@
     "ref": "src/styles/card.css:162",
     "pattern": ".ui-card__row {"
    }
-  ],
-  "one-action": [
-   {
-    "ref": "react/src/primitives/Button.tsx:60",
-    "pattern": "export const Button = forwardRef"
-   },
-   {
-    "ref": "src/styles/button.css:52",
-    "pattern": ".ui-btn--primary {"
-   }
   ]
  },
  "_button-labels.js": {
   "words-first": [
    {
-    "ref": "react/src/primitives/Button.tsx:146",
+    "ref": "react/src/primitives/Button.tsx:145",
     "pattern": "ui-btn__label-slot"
    },
    {
@@ -1083,7 +868,7 @@
     "pattern": "export const iconOnlyAllowed"
    },
    {
-    "ref": "react/src/primitives/Button.tsx:116",
+    "ref": "react/src/primitives/Button.tsx:115",
     "pattern": "const named = iconOnly"
    },
    {
@@ -1109,7 +894,7 @@
     "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
    },
    {
-    "ref": "src/styles/table.css:272",
+    "ref": "src/styles/table.css:271",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {

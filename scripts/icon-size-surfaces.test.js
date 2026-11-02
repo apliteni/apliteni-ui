@@ -67,7 +67,9 @@ const rel = (p) => path.relative(root, p);
 // 18 -> 20: the Motion guideline draws each easing curve as a plot, `.gm-plot svg`.
 // 20 -> 18: the guideline charts became the kit Chart, so stories/_chart.js and
 // its .ch-chart--fluid width and height went.
-const EXPECTED_SUBJECTS = 18;
+// 18 -> 16: the Iconography page dropped its provenance rule, and with it the
+// glyph tiles' `.gl-glyph svg` width and height.
+const EXPECTED_SUBJECTS = 16;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes

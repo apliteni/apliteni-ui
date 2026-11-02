@@ -20,8 +20,8 @@ const Section = ({ title, pairs }: { title?: string; pairs: [string, string][] }
   <DrawerSection title={title}><KeyValueList rows={rows(pairs)} /></DrawerSection>;
 
 const FACTS: [string, string][] = [['Amount', '€ 1,240.00'], ['Arrival', '30 Sep 2026'], ['Source', 'Bank feed']];
-const Preview = ({ bad = false, colourful = false }: { bad?: boolean; colourful?: boolean }) =>
-  <div className={`ui-card ui-card--pad-sm ${colourful ? 'gda-coloured' : ''}`}>
+const Preview = ({ bad = false }: { bad?: boolean }) =>
+  <div className="ui-card ui-card--pad-sm">
     <h3 className="ui-card__title">Payout 1162</h3>
     <Badge variant="pending">In transit</Badge>
     <Section pairs={FACTS} />
@@ -31,7 +31,7 @@ const Preview = ({ bad = false, colourful = false }: { bad?: boolean; colourful?
     </>}
     <div className="gda-actions">
       <Button variant="primary" size="sm">Open payout</Button>
-      <Button variant={colourful ? 'primary' : 'secondary'} size="sm">Copy reference</Button>
+      <Button variant="secondary" size="sm">Copy reference</Button>
     </div>
   </div>;
 
@@ -79,7 +79,6 @@ const Consequence = ({ savedLeads }: { savedLeads: boolean }) => <Stage>
 const specimens = [
   { id: 'check-density', do: () => <Stage mod="gda-band"><Figures /></Stage>, dont: () => <Stage mod="gda-band gda-forced"><Figures /></Stage> },
   { id: 'reduce-density', do: () => <Stage><Payouts /><Preview /></Stage>, dont: () => <Stage><Payouts /><Preview bad /></Stage> },
-  { id: 'purposeful-accent', do: () => <Stage><Preview /></Stage>, dont: () => <Stage><Preview colourful /></Stage> },
   { id: 'follow-the-consequence', do: () => <Consequence savedLeads />, dont: () => <Consequence savedLeads={false} /> },
 ];
 

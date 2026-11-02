@@ -26,19 +26,6 @@ const SelectionTabs = ({ badge }: { badge?: { text: string; tone: 'accent' } }) 
 // AA in front of the reader, so the readout carries the ratio instead.
 const Ratio = ({ children }: { children: ReactNode }) => <div className="gl-cursor">{children}</div>;
 
-// Each cell pins one theme and one accent in literal values, because a theme's
-// tokens exist only on the root. `checked` is how many cells were looked at.
-const THEME = { dark: { bg: '#0e0d14', ink: '#e9e7f0' }, light: { bg: '#f2f3f6', ink: '#1a1e27' } };
-const CELLS = [['dark', 'Nebula'], ['dark', 'Ocean'], ['light', 'Nebula'], ['light', 'Ocean']] as const;
-const Themes = ({ checked }: { checked: number }) => <Stage><div className="gl-themes">{CELLS.map(([t, a], i) => {
-  const ac = ACCENT[a][t];
-  return <div key={t + a} className="gl-theme" style={{ background: THEME[t].bg, color: THEME[t].ink }}>
-    <span className="gl-theme__t">{`${t === 'dark' ? 'Dark' : 'Light'}, ${a}`}</span>
-    <span className="gl-theme__btn" style={{ background: ac.as, color: ac.ac }}>Save</span>
-    <span className={i < checked ? 'gl-theme__on' : ''}>{i < checked ? 'Checked' : 'Not checked'}</span>
-  </div>;
-})}</div></Stage>;
-
 // An edged field beside the two grey fills that carry no words.
 const Surfaces = () => <Stage><TextField label="Invoice number" defaultValue="INV-2041" />
   <div className="gl-tracks"><span className="gl-track" /><hr className="gl-divider" /></div></Stage>;
@@ -56,8 +43,9 @@ const Forced = ({ fill, focused }: { fill: boolean; focused: string }) => <Stage
 
 // The accent pair pinned to dark Nebula in literal values, so the picture matches
 // its ratios in both themes. In light, --accent and --accent-strong are one colour.
+const DARK_GROUND = '#0e0d14';
 const NEBULA = ACCENT.Nebula.dark;
-const DarkNebula = ({ children }: { children: ReactNode }) => <div className="gl-pin" style={{ background: THEME.dark.bg,
+const DarkNebula = ({ children }: { children: ReactNode }) => <div className="gl-pin" style={{ background: DARK_GROUND,
   '--accent': NEBULA.a, '--accent-strong': NEBULA.as, '--accent-contrast': NEBULA.ac } as CSSProperties}>{children}</div>;
 
 // The frozen hexes in SPEC_CSS are the specimen's subject, not a slip: `.gl-literal`
@@ -70,7 +58,6 @@ const specimens = [
     do: () => <Stage><DarkNebula><span className="gl-swatch gl-swatch--strong">Save</span></DarkNebula><Ratio>Dark, Nebula: white on --accent-strong is 5.70:1</Ratio></Stage>,
     dont: () => <Stage><DarkNebula><span className="gl-swatch" /></DarkNebula><Ratio>Dark, Nebula: white on --accent is 2.95:1, needs 4.5:1</Ratio></Stage> },
   { id: 'selection-accent', do: () => <SelectionTabs />, dont: () => <SelectionTabs badge={{ text: '3', tone: 'accent' }} /> },
-  { id: 'both-themes', do: () => <Themes checked={4} />, dont: () => <Themes checked={1} /> },
   { id: 'text-surface', do: () => <Surfaces />, dont: () => <GreyFills /> },
   { id: 'selected-forced-colours', do: () => <Forced fill focused="Activity" />, dont: () => <Forced fill={false} focused="Overview" /> },
 ];

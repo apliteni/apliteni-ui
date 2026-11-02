@@ -48,7 +48,7 @@ const ENTRIES = [
   [textContent, 'Guidelines/Text length', 'TextLength', 'Words', 'How long labels, captions and callouts can be'],
   [labelsContent, 'Guidelines/Labels and titles', 'LabelsAndTitles', 'Words', 'Ink, case and rank for labels and titles'],
   [buttonLabelsContent, 'Guidelines/Button labels', 'ButtonLabels', 'Words', 'Words, glyphs and wordless buttons'],
-  [iconographyContent, 'Guidelines/Iconography', 'Iconography', 'Look and access', 'Glyphs, icon-only controls and status strokes'],
+  [iconographyContent, 'Guidelines/Iconography', 'Iconography', 'Look and access', 'Glyphs and status strokes'],
   [layoutContent, 'Guidelines/Layout and density', 'LayoutAndDensity', 'Pages', 'Page width, breakpoints and the spacing scale'],
   [spacingContent, 'Guidelines/Spacing', 'Spacing', 'Pages', 'Two gaps, titles and the text edge'],
   [densityAccentContent, 'Guidelines/Density and accents', 'DensityAndAccents', 'Data', 'Narrow stat bands and what an accent is for'],

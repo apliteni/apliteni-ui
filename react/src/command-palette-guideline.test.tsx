@@ -1,42 +1,10 @@
 // The command-palette guideline page, held against the React <CommandPalette> it
-// describes (#429 moves the subject from the vanilla palette): the keyboard contract the
-// page lists, and every palette row a React story renders.
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+// describes (#429 moves the subject from the vanilla palette): every palette row a React
+// story renders.
 import type { ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react';
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error -- plain JS story module shared with the guideline page.
-import { KEYS } from '../../stories/guidelines/_command-palette.js';
-
-const here = path.dirname(fileURLToPath(import.meta.url));
-const read = (rel: string) => readFileSync(path.join(here, rel), 'utf8');
-
-// A single letter is the same key however the browser cases it.
-const fold = (key: string) => (key.length === 1 ? key.toLowerCase() : key);
-/** Every key `file` compares an event against, folded; `.key.toLowerCase()` counts. */
-const keysHandled = (file: string) => new Set([...read(file).replace(/\/\/[^\n]*/g, '')
-  .matchAll(/\.key(?:\.toLowerCase\(\))?\s*[!=]==\s*'([^']+)'/g)].map((m) => fold(m[1])));
-
-// The palette's keys, the dialog behaviour it shares, and the band that opens it.
-const SOURCES = ['./CommandPalette.tsx', './dialog.ts', './AppShell.tsx'];
-
-describe('the command palette keyboard contract', () => {
-  it('the page lists every key the React palette answers, and no key it does not', () => {
-    const handled = new Set(SOURCES.flatMap((f) => [...keysHandled(f)]));
-    const declared = new Set((KEYS as { key: string }[]).map((k) => fold(k.key)));
-    expect(handled.size, 'the sweep is broken, not the palette').toBeGreaterThanOrEqual(5);
-    expect([...declared].sort()).toEqual([...handled].sort());
-  });
-
-  it('the reading sees a key the code answers and the page does not list', () => {
-    const extra = new Set([...keysHandled('./CommandPalette.tsx'), 'Home']);
-    expect(extra.has('Home')).toBe(true);
-    expect([...extra].sort()).not.toEqual([...new Set((KEYS as { key: string }[]).map((k) => fold(k.key)))].sort());
-  });
-});
 
 type Story = { render?: (args: unknown, ctx: unknown) => ReactElement; args?: Record<string, unknown> };
 type StoryModule = { default?: Story } & Record<string, unknown>;

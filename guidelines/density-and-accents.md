@@ -4,11 +4,11 @@
 
 <!-- rule: check-density -->
 
-**Rule:** At block widths of 28rem or less, a stat band must show one figure per row; placing two figures side by side fails this check.
+**Rule:** If the block is 28rem wide or less, a stat band must show one figure in each row, and two figures side by side fail this check.
 
-**Why:** Stacking gives each label and value the full width of the block.
+**Why:** A stacked layout gives each label and each value the full width of the block.
 
-**Do:** Stack Paid and In transit, as Stat band tiles do in a narrow panel.
+**Do:** Stack Paid and In transit in a narrow panel, as the Stat band tiles do.
 
 **Don't:** Force the same figures side by side in that panel.
 
@@ -16,38 +16,24 @@
 
 <!-- rule: reduce-density -->
 
-**Rule:** Keep the identity, status, key facts and next action visible; remove repeated labels, group related facts, and move history or secondary details out of the preview.
+**Rule:** Keep the identity, the status, the key facts and the next action visible, remove repeated labels, group related facts, and move the history or other secondary details out of the preview.
 
-**Why:** The preview helps the reader decide whether to act or open the full record.
+**Why:** The preview helps the reader decide whether to act or to open the full record.
 
 **Do:** Keep the payout table compact. Show the selected payout with grouped facts and Open payout. [Linear Peek](https://linear.app) uses this list-and-preview pattern.
 
-**Don't:** Repeat the payout reference, status and amount, then show its history before Open payout.
-
-## Give accents a job
-
-<!-- rule: purposeful-accent -->
-
-**Rule:** Use at most one primary button per preview, use secondary or ghost buttons for other actions, and keep labels and values in neutral ink.
-
-**Why:** One accented action is easier to find than several competing actions.
-
-**Do:** Make Open payout the primary action and Copy reference the secondary action. Keep the amount and date neutral.
-
-**Don't:** Make both actions primary or colour every label and value with the accent.
-
-**Except:** Keep Badge success, pending and danger for their named statuses; do not replace those signals with the accent.
+**Don't:** Repeat the payout reference, the status and the amount, and then show the payout history before Open payout.
 
 ## Follow the consequence
 
 <!-- rule: follow-the-consequence -->
 
-**Rule:** Where a screen shows a source beside the values that will be saved, give the saved values the leading position, the wider column, the heavier weight and whatever accent the pair carries; leave the source with none of the four.
+**Rule:** If a screen shows a source next to the values that will be saved, give the saved values the leading position, the wider column, the heavier weight and any accent that the pair has, and give the source none of these four.
 
-**Why:** Emphasis tells the reader what the screen is for. A preview that outweighs the data being committed makes a commitment look like a reading task, and an accent on the reference says the reference is the point. The accent goes on the name because a line drawn strongly enough to carry the signal is an outlined box, which the kit does not draw.
+**Why:** Emphasis tells the reader the purpose of the screen. If a preview has more weight than the data that will be committed, a commitment looks like a reading task. An accent on the reference tells the reader that the reference is the main point. The accent is on the name because a line that is strong enough to carry the signal is an outlined box, and the kit does not draw outlined boxes.
 
-**Do:** Lead with the extracted fields, in the wider column, with each value heavier than its label, and put the accent on the pane's own name.
+**Do:** Put the extracted fields first and in the wider column, make each value heavier than its label, and put the accent on the name of the pane.
 
-**Don't:** Give the document preview the leading, wider pane, or let a control inside it hold the only accent on the screen while the saved values hold none.
+**Don't:** Give the document preview the leading and wider pane, or let a control in the preview have the only accent on the screen when the saved values have no accent.
 
-**Except:** Fade nothing to make a block quieter; a quieter block is smaller, later or uncoloured, never muted.
+**Except:** Do not fade a block to make it quieter. A quieter block is smaller, later or uncoloured, and it is never muted.

@@ -60,19 +60,19 @@ export const WORDS_PER_RULE = 60;
  * Maintained by hand. Never regenerated: a figure that rises because a tool
  * wrote it is not a decision anybody made. */
 export const RECORDED = {
-  'accessibility-floor.md': 790,
-  'account-and-settings.md': 353,
-  'command-palette.md': 430,
+  'accessibility-floor.md': 437,
+  'account-and-settings.md': 346,
+  'command-palette.md': 322,
   'component-choice.md': 510,
-  'density-and-accents.md': 408,
+  'density-and-accents.md': 358,
   'drawer.md': 324,
   'empty-states.md': 91,
   'file-drop.md': 526,
   'going-back.md': 363,
   'hover-readouts.md': 333,
-  'iconography.md': 304,
+  'iconography.md': 168,
   'layout-and-density.md': 318,
-  'state-set.md': 299,
+  'state-set.md': 177,
   'stat-bands.md': 224,
 };
 

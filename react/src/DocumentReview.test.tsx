@@ -241,7 +241,7 @@ describe('document review flow', () => {
       expect(value).not.toBeNull();
       // The value outranks its label, and nothing is faded to get there: the rank is
       // weight, and the showcase writes no colour of its own.
-      // why: guidelines/labels-and-titles.md#limit-muted-ink
+      // why: guidelines/labels-and-titles.md#use-body-ink
       expect(rank(value, `${what}: the value`),
         `${what}: the value must outrank its label`).toBeGreaterThan(rank(label, `${what}: the label`));
       expect(getComputedStyle(value as HTMLElement).color)

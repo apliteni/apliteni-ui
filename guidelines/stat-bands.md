@@ -4,38 +4,38 @@
 
 <!-- rule: a-band-not-a-card -->
 
-**Rule:** Put key figures in a stat band, not in a card of parts.
+**Rule:** Put the key figures in a stat band, not in a card that is made of parts.
 
-**Why:** A shared layout puts each figure's value, change and basis in one place.
+**Why:** A shared layout puts the value, the change and the basis of each figure in one place.
 
-**Do:** One card per figure: the figure largest, an arrow, a signed change, one caption above the row.
+**Do:** One card for each figure, with the figure as the largest item, an arrow, a signed change and one caption above the row.
 
-**Don't:** Heading-sized figures, a capitalised 10px status chip, no comparison basis.
+**Don't:** Figures at heading size, a 10px status chip in capital letters, and no comparison basis.
 
 ## Colour by meaning
 
 <!-- rule: tone-not-direction -->
 
-**Rule:** Colour a change by whether it is good news, not by whether it rises or falls.
+**Rule:** Colour a change by whether it is good news, not by whether it goes up or down.
 
-**Why:** Direction alone does not show if a change is good.
+**Why:** The direction alone does not show if a change is good.
 
-**Except:** An omitted or “neutral” tone keeps the arrow and comparison without colour: unscored volume, reader-dependent meaning, and net cashflow that income less cost already explains.
+**Except:** An omitted or “neutral” tone keeps the arrow and the comparison but shows no colour. This applies to volume that has no score, to a meaning that depends on the reader, and to net cashflow that income less cost already explains.
 
-**Do:** Four verdicts. Rising Income and Cost take opposite colours, falling Unclassified is green, and undeclared Net cashflow stays grey.
+**Do:** Four verdicts. Income and Cost both rise and have opposite colours, Unclassified falls and is green, and Net cashflow is undeclared and stays grey.
 
-**Don't:** Four figures coloured by sign: three rises green, cost growth praised, the year’s cleanup red.
+**Don't:** Four figures coloured by sign, with three rises in green, the growth in cost shown as good, and the cleanup of the year in red.
 
 ## State the comparison basis
 
 <!-- rule: say-the-basis -->
 
-**Rule:** State in reachable text what each change is measured against.
+**Rule:** State what each change is measured against, in text that readers can reach.
 
-**Why:** Percentages need a basis that readers can find.
+**Why:** A percentage needs a basis that the reader can find.
 
-**Except:** A comparison basis can be screen-reader-only when the visible control names the period. Use this exception for the Finance dashboard pattern.
+**Except:** If the visible control names the period, the comparison basis can be for screen readers only. Use this exception for the Finance dashboard pattern.
 
-**Do:** The basis once, in a caption each change references or beside one exception, and before and outside every figure.
+**Do:** The basis stated once, in a caption that each change refers to or next to one exception, and before and outside every figure.
 
-**Don't:** A title attribute, the note below the tiles or inside the first figure, no basis, nested captions.
+**Don't:** A title attribute, the note below the tiles or inside the first figure, no basis, and captions inside other captions.

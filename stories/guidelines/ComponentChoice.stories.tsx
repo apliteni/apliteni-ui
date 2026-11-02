@@ -20,10 +20,6 @@ const content = await loadGuideline('component-choice.md', new URL('../../guidel
 const Stage = ({ mod = '', children }: { mod?: string; children: ReactNode }) =>
   <div className={`gl-stage${mod ? ` ${mod}` : ''}`}>{children}</div>;
 
-const PairedActions = ({ cancel }: { cancel: 'ghost' | 'primary' }) => <Stage>
-  <div style={{ display: 'flex', gap: 'var(--space-3)' }}><Button variant={cancel}>Cancel</Button><Button variant="primary">Save</Button></div>
-</Stage>;
-
 const FILTERS = ['Any', 'Verified', 'Pending'];
 const SECTORS = ['Technology', 'Energy', 'Health care'].map(label => ({ label, value: label }));
 const SAVED_VIEWS = ['All rows', 'Unclassified', 'This month'];
@@ -57,7 +53,6 @@ const Currency = (props: Partial<DropdownProps>) => <Stage><div style={{ minHeig
 </div></Stage>;
 
 const specimens = [
-  { id: 'paired-actions', do: () => <PairedActions cancel="ghost" />, dont: () => <PairedActions cancel="primary" /> },
   { id: 'interrupt',
     do: () => <Stage mod="gl-stage--confirm"><ConfirmPicture title="Rotate this token?"
       body="The current token stops working the moment you do." cancelLabel="Keep token" confirmLabel="Rotate token" /></Stage>,

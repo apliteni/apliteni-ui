@@ -16,15 +16,4 @@ export const SPEC_CSS = `
     .gl-faded span { height: 10px; width: 92%; border-radius: var(--radius-xs); background: var(--muted); }
     .gl-faded .gl-faded__h { height: 18px; width: 45%; margin-bottom: var(--space-1); }
     .gl-faded .gl-faded__s { width: 30%; }
-    /* An axis: tick labels are one of the four muted classes. */
-    .gl-axis { display: flex; justify-content: space-between; margin-top: var(--space-4);
-      padding-top: var(--space-2); box-shadow: inset 0 1px var(--border-strong);
-      font: 500 var(--text-xs)/1 var(--font-sans); font-variant-numeric: tabular-nums;
-      color: var(--muted); /* muted-ink: chrome — chart axis ticks */ }
-    /* A record row whose timestamp, count and action are faded. */
-    .gl-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-4);
-      font-size: var(--text-sm); color: var(--text); }
-    .gl-row > * { white-space: nowrap; }
-    .gl-row > :first-child { flex: 1; font-weight: 500; color: var(--strong); }
-    .gl-row .gl-row__dim { color: var(--muted); }
   </style>`;

@@ -2,7 +2,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Fragment, type CSSProperties } from 'react';
 import { GuidelinePage } from '../_guideline';
-import { Switch } from '../../react/src/Switch';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -84,17 +83,11 @@ const Curves = ({ off = false }: { off?: boolean }) => <div className="gl-stage"
   <Strip frames={off ? EASED_FRAMES : KIT_FRAMES} />
 </div></div>;
 
-const Reduced = ({ frames }: { frames: [number, number][] }) => <div className="gl-stage"><div className="gm-stack">
-  <Switch defaultChecked label="Reduce motion" />
-  <Strip frames={frames} />
-</div></div>;
-
 const specimens = [
   { id: 'after-load', do: () => <div className="gl-stage"><Strip frames={SLIDES} /></div>,
     dont: () => <div className="gl-stage"><Strip frames={JUMPS} /></div> },
   { id: 'durations', do: () => <Durations />, dont: () => <Durations off /> },
   { id: 'easing', do: () => <Curves />, dont: () => <Curves off /> },
-  { id: 'reduced', do: () => <Reduced frames={[[0, 0], [16, 1]]} />, dont: () => <Reduced frames={SLIDES} /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Motion', parameters: { layout: 'fullscreen' } };

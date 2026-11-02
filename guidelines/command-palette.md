@@ -4,76 +4,50 @@
 
 <!-- rule: named-things -->
 
-**Rule:** Put something in the palette only if a reader can name it.
+**Rule:** Put an item in the palette only if a reader can name it.
 
 **Why:** Readers can search for “New invoice”, but “More” gives them no name to search for.
 
-**Do:** Include recognisable commands and numbered records that readers can also reach by clicking through the product.
+**Do:** Include recognisable commands and numbered records that readers can also get to when they click through the product.
 
 **Don't:** Include “Advanced…”, “More”, a frequency option, or a row that opens the current page.
 
-**Except:** One-step settings are commands, such as “Switch to the light theme”. Settings that need a choice open a named page.
+**Except:** A setting that has one step is a command, such as “Switch to the light theme”. A setting that needs a choice opens a named page.
 
 ## Product-owned groups
 
 <!-- rule: groups -->
 
-**Rule:** Group results by what they are, using the product’s own word for each group.
+**Rule:** Group results by what they are, and use the product’s own word for each group.
 
 **Why:** Groups tell readers if a result opens a record, changes location or runs a command.
 
 **Do:** Use sentence-case headings at the 13px label rank, such as Actions, Destinations and Recent items.
 
-**Don't:** Show nine ungrouped rows that hide whether Enter runs a command, opens an invoice or goes to a page.
+**Don't:** Show nine rows without groups, so that readers cannot see if Enter runs a command, opens an invoice or goes to a page.
 
 ## Query-based ranking
 
 <!-- rule: ranking -->
 
-**Rule:** Rank results by how the query matches the name, and let the caller break every tie.
+**Rule:** Rank results by how the query matches the name, and let the caller decide the order of results that have the same rank.
 
-**Why:** Caller order keeps preferred commands first, and the kit stores no usage history.
+**Why:** The caller order keeps the preferred commands first, and the kit stores no usage history.
 
-**Do:** For “inv”, rank whole-word matches above fragments and names above notes. Put the best row’s group first.
+**Do:** For “inv”, rank whole-word matches above fragments, and rank names above notes. Put the group of the best row first.
 
-**Don't:** Put INV-4809 first because of its digits, and leave the matching name “New invoice” last.
+**Don't:** Put INV-4809 first because of its digits, with the matching name “New invoice” in the last position.
 
-**Except:** For server results, pass `rank: false` and answer `ui-command-query`. The server ranks the full result, and the kit keeps that order.
-
-## Six keyboard keys
-
-<!-- rule: keyboard -->
-
-**Rule:** Handle Cmd/Ctrl+K, Up, Down, Enter, Escape and Tab, and leave every other key to the text box.
-
-**Why:** These keys open, navigate, run, close and contain the palette without changing text-box behavior.
-
-**Do:** Wrap arrow navigation. Run the active row with Enter. Close the top overlay with Escape. Keep focus inside with Tab.
-
-**Don't:** Handle Home, End, Ctrl+N/P/J/K or Alt+Arrow. Home and End belong to the caret under ARIA’s combobox pattern.
-
-**Except:** Leave Ctrl+K alone inside another text box, where it means kill-to-end-of-line.
-
-## Focus and announcements
-
-<!-- rule: say-it -->
-
-**Rule:** Focus the text box, announce the result count, and return focus afterward.
-
-**Why:** `aria-activedescendant` identifies the active row while letters and arrows stay in the text box.
-
-**Do:** Announce only the count in a polite live region. On close, restore focus, even if the command removed the opener.
-
-**Don't:** Move focus to each row or reread every row after each keystroke.
+**Except:** For server results, pass `rank: false`. Then respond to `ui-command-query`. The server ranks the full result, and the kit keeps that order.
 
 ## Confirm destructive actions
 
 <!-- rule: ask-first -->
 
-**Rule:** Never let the palette run a delete by itself.
+**Rule:** Never let the palette run a delete without a confirmation.
 
-**Why:** A destructive row must be confirmed because readers watch the text box on this fast surface.
+**Why:** A destructive row must have a confirmation because readers look at the text box on this fast surface.
 
-**Do:** Show an ellipsis and danger ink, and let Enter open a confirm above the palette that answers the first Escape.
+**Do:** Show an ellipsis and danger ink. Let Enter open a confirmation above the palette that responds to the first Escape.
 
-**Don't:** Omit confirmation. The row becomes disabled and arrow navigation skips it.
+**Don't:** Do not omit the confirmation. The row becomes disabled, and arrow navigation skips it.

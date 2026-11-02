@@ -1,57 +1,29 @@
 # The full state set
 
-## Focus rings
-
-<!-- rule: focus-visible -->
-
-**Rule:** Show one ring when focus is visible, and make a focused field's border transparent.
-
-**Why:** One solid band keeps focus consistent while the browser decides when to show it.
-
-**Do:** Give buttons and fields the same ring, with one clear gap around each control.
-
-**Don't:** Leave a field border visible inside its focus ring.
-
-**Except:** A scroll region or a box that fills a table cell uses `--ring-scroll` with its offset. A panel or card uses `--ring`. A text field can match `:focus-visible` on mouse focus. Both rings are defined once at the root because an outline leaves its offset unpainted. Adjust width and colour there.
-
-## Busy controls
-
-<!-- rule: busy -->
-
-**Rule:** Make busy controls disabled: use `aria-busy` and a real disabled state from one flag.
-
-**Why:** A control that still accepts clicks can submit twice.
-
-**Do:** Set `disabled` and `aria-busy` together.
-
-**Don't:** Show “Saving…” while still accepting clicks.
-
-**Except:** Disabled controls are excluded from the WCAG 1.4.3 contrast gate, so busy controls must remain visually legible.
-
 ## Marked errors
 
 <!-- rule: error-in-markup -->
 
-**Rule:** Put errors in markup, not only in paint, and connect each message to its field.
+**Rule:** Show each error in the markup, not only in the visual style, and connect each error message to its field.
 
-**Why:** Red alone communicates the state only to sighted readers.
+**Why:** A red color alone shows the error state only to readers who can see it.
 
-**Do:** Mark the field `aria-invalid="true"` and connect its error message with `aria-describedby`.
+**Do:** Mark the field `aria-invalid="true"` and connect its error message to it with `aria-describedby`.
 
-**Don't:** Paint the field red and show an error elsewhere without connecting the message to the field.
+**Don't:** Make the field red and show an error in a different location, with no connection between the message and the field.
 
-**Except:** Put `required` in the attribute, not the label wording; the asterisk is decoration and hidden from assistive technology.
+**Except:** Put `required` in the attribute, not in the label text. The asterisk is only decoration, and it is hidden from assistive technology.
 
 ## Screen loading
 
 <!-- rule: loading -->
 
-**Rule:** Design pending state for the whole screen, not only its button, and announce it.
+**Rule:** Design the pending state for the full screen, not only for its button, and announce the pending state.
 
-**Why:** Silent loading gives screen-reader users no event.
+**Why:** Loading with no announcement gives no event to screen-reader users.
 
-**Do:** Mark the loading region busy and announce “Loading…” in its status region.
+**Do:** Mark the loading region as busy and announce “Loading…” in its status region.
 
-**Don't:** Show a spinner only in the button while the loading region has no busy state or announcement.
+**Don't:** Show a spinner only in the button while the loading region has no busy state and no announcement.
 
-**Except:** A toast has its own live region, so a screen reporting through the toast stack needs no second one.
+**Except:** A toast has its own live region, so a screen that reports through the toast stack does not need a second live region.

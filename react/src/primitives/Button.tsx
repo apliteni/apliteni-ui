@@ -110,7 +110,6 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
   // aria-label + title (an explicit aria-label / aria-labelledby always wins),
   // then the icon name. With neither, nothing is invented: a control named
   // "Button" reads as named to axe and says nothing to the person hearing it.
-  // why: guidelines/microcopy.md#name-every-control
   const labelled = rest['aria-label'] != null || rest['aria-labelledby'] != null;
   const fallback = typeof children === 'string' && children.trim() ? children.trim() : icon;
   const named = iconOnly && !labelled && fallback

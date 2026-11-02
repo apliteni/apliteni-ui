@@ -199,7 +199,6 @@ it('names icon-only caller artwork and respects explicit labels', () => {
   // With no children and no icon there is nothing to mirror, so the control ships
   // nameless and axe fails it. An identifier like "Button" reads as a name to the
   // checker and says nothing to the person hearing it.
-  // why: guidelines/microcopy.md#name-every-control
   rerender(<Button leading={<svg />} iconOnly />);
   const nameless = getByRole('button');
   expect(nameless).not.toHaveAttribute('aria-label');

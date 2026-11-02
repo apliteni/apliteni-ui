@@ -324,7 +324,7 @@ it('never wraps onto a control only a script can focus', async () => {
   expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close' }));
 });
 
-// labels-and-titles: title-is-heading — the dialog's title is a real heading, as
+// the-page: outline — the dialog's title is a real heading, as
 // the kit's own drawer and confirm titles are, not a div styled to look like one.
 // The tag is checked here; the typeface it opts into is a stylesheet rule.
 it('names the dialog with a heading, not a styled div', () => {

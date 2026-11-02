@@ -13,7 +13,6 @@ export const SPEC_CSS = `<style>
   .gda-forced { overflow-x: auto; }
   .gda-forced .ui-stats__list { flex-wrap: nowrap; }
   .gda-forced .ui-stats__list > .ui-stat { flex-basis: 0; }
-  .gda-coloured .ui-drawer__row dt, .gda-coloured .ui-drawer__row dd { color: var(--accent); }
   /* Two panes in one order, so the only thing that moves between Do and Don't is which
      pane is given the width, the weight and the accent. The tracks are 2:1 rather than
      the screen's 485:420, because a specimen at half a page has to exaggerate a ratio to

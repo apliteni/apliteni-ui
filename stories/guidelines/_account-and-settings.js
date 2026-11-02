@@ -103,9 +103,6 @@ export const SPEC_CSS = `
       .gas-modal__nav .ui-nav__label { white-space: normal; }
     }
 
-    .gas-acts { display: flex; justify-content: flex-end; gap: var(--space-3);
-      margin-top: var(--space-4); }
-
     /* The account menu, in the flow and at its shipped width. A pair drawn at two
        heights stops being a comparison, so side by side both cells take the grid's
        shared row height rather than a floor, which stacked would print empty card. */

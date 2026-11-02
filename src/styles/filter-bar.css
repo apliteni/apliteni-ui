@@ -18,8 +18,7 @@
 .ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); }
 /* The chip is the edge the row's other boxes are measured against, so it fades with them:
    off, the chips stayed at full strength and only their ink said so. Two carriers, because
-   a bar turned off disables the controls in a nested fieldset and not the fieldset. #518
-   why: guidelines/accessibility-floor.md#disabled-control-legibility */
+   a bar turned off disables the controls in a nested fieldset and not the fieldset. #518 */
 .ui-filter-bar__chip:disabled,
 .ui-filter-bar:disabled .ui-filter-bar__chip { border-color: var(--disabled-border); }
 .ui-filter-bar__remove { border: 0; background: transparent; /* muted-ink: glyph — filter remove mark */ color: var(--muted); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-xs); cursor: pointer; }

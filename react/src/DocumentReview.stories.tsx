@@ -68,7 +68,6 @@ const ZOOMS = [50, 'fit', 150, 200] as const;
 // A scroll region earns a tab stop only while it has something to scroll. A
 // permanent one is a stop that lands the reader nowhere, and the element that
 // does overflow is then the one without it.
-// why: guidelines/accessibility-floor.md#keyboard-first
 function useOverflows(ref: { current: HTMLElement | null }, watch: unknown) {
   const [overflows, setOverflows] = useState(false);
   useEffect(() => {
@@ -150,7 +149,7 @@ const CSS = `
   .ui-table.doc-flow__amounts tfoot td.ui-table__num--strong { font-weight: var(--weight-semibold); }
   /* One order on every step and every width: the committing action first, then the
      quiet ones, so the button that commits never lands beside a way out.
-     why: guidelines/component-choice.md#make-the-committing-action-stand-out */
+     why: guidelines/the-page.md#emphasize-one-action */
   .doc-flow__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
   @media (max-width: 860px) {
     .doc-flow__panes { grid-template-columns: minmax(0, 1fr); }
@@ -190,7 +189,7 @@ export const Default: StoryObj<Args> = {
     const [pageSize, setPageSize] = useState({ width: 0, fit: 1 });
     // One flag for the whole approval: it disables the button, marks the step busy and
     // drives the announcement, so the screen cannot report three different waits.
-    // why: guidelines/state-set.md#busy-controls, guidelines/state-set.md#screen-loading
+    // why: guidelines/state-set.md#screen-loading
     const [sending, setSending] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const columnsScroll = useOverflows(scrollRef, `${state}:${zoom}:${step}`);
@@ -423,7 +422,7 @@ export const Default: StoryObj<Args> = {
             not one of eight equal rows. why: guidelines/stat-bands.md#use-a-stat-band */}
         <StatBand variant="tiles" stats={[{ label: 'Total to approve', value: TOTAL_DUE }]} />
         {/* What approval means, beside the button that does it rather than at the top of
-            the page. why: guidelines/text-length.md#explain-consequences-in-callouts */}
+            the page. */}
         <Callout variant="info">
           Approval marks this document as reviewed. It does not send a payment.
         </Callout>

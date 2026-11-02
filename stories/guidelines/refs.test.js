@@ -177,8 +177,9 @@ for (const page of pages) {
   });
 }
 
-test('only The page declares code-free references', () => {
-  assert.deepEqual(codeFree, ['_the-page.js']);
+// Text length lost all its rules in #768, so it has nothing to cite.
+test('only The page and Text length declare code-free references', () => {
+  assert.deepEqual(codeFree, ['_text-length.js', '_the-page.js']);
 });
 
 test('The page story renders no code references', () => {
@@ -301,9 +302,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  // 145: Dense tables gained filter-bar (#751), and Dashboards and reports gained
-  // no-range-on-chart (#736).
-  assert.equal(count, 145, 'update the rule count when adding or removing a rule');
+  // 116: the noise review removed or merged 29 rules (#768).
+  assert.equal(count, 116, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {
@@ -341,6 +341,6 @@ test('interrupt guidance sends a short form to a modal or a drawer and a long on
   assert.equal(matches.length, 1);
   assert.equal(
     matches[0].except,
-    'Use a content-sized modal or a drawer for a short form, and a page for a long one.',
+    'For a short form, use a content-sized modal or a drawer. For a long form, use a page.',
   );
 });

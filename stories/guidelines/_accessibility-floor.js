@@ -177,26 +177,12 @@ export const SPEC_CSS = `
   <style>
     .gl-stage--row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
 
-    /* The Do cell renders the real checkbox and REVEALS its target: the dashed
-       square is the ::before src/styles/input.css declares, not a drawing of
-       one, so an overlay that changed size would change this picture. */
-    .gl-target .ui-check input::before { outline: 1.5px dashed var(--accent); }
-
-    /* The Don't cell cannot be a live control. Every story in the tree is walked
-       by the target gate next door, so a real 19px control here would fail the
-       kit's own floor — the picture of the failure has to be inert. This is the
-       checkbox's own paint at the size its target used to stop at, with the
-       dashed line on the same square as the solid one, which IS the mistake. */
-    .gl-target__ink { width: 19px; height: 19px;
-      border: 1.5px solid var(--border-strong); border-radius: var(--radius-xs);
-      background: var(--surface-2); outline: 1.5px dashed var(--pink); }
-
     /* The phone floor's two pairs. The layer src/styles/tap-zone.css declares is
        live only below the phone step and only to a coarse pointer, so on this
-       page there is nothing to reveal the way .gl-target reveals the checkbox's.
-       These cells redraw it at reading width instead, with the SAME expression
-       the sheet writes — stories/tap-zone.test.js reads both and fails if the
-       two drift — and a dashed edge so the invisible thing can be seen. */
+       page there is nothing to reveal. These cells redraw it at reading width
+       instead, with the SAME expression the sheet writes — stories/tap-zone.test.js
+       reads both and fails if the two drift — and a dashed edge so the invisible
+       thing can be seen. */
     /* The cells carry their own values rather than reading the sheet's: this
        page is a picture of the rule, and a picture that changed shape when
        the sheet was not loaded would be measuring the sheet instead of
@@ -253,11 +239,6 @@ export const SPEC_CSS = `
        glow here is drawn for the Don't and appears nowhere the kit ships. */
     .gl-ring--halo .ui-btn { outline: none; box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 34%, transparent); }
 
-    /* A word is what this chip is missing, so the Don't cannot carry one. The
-       fill, radius and padding are the badge's own; only the box a word would
-       have filled is drawn, because an empty inline-flex works out no size. */
-    .gl-status__gap { display: inline-block; width: 3.25rem; height: 1.45em; height: 1lh; }
-
     /* The one don't on this page that CAN be drawn: the same sentence, legible in
        both halves, with the ground changing under it. The gradient runs from the
        stage's own surface to an accent tint, so the ink crosses two pairs and
@@ -267,27 +248,6 @@ export const SPEC_CSS = `
     .gl-measure { display: block; margin: 0; max-width: none;
       padding: var(--space-3); border-radius: var(--radius-md); color: var(--text); }
     .gl-measure--gradient { background: linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--accent) 30%, var(--surface))); }
-
-    /* Field text as a coarse pointer computes it. The Don't keeps 16px and scales
-       the box down to 13px, which iOS still zooms. */
-    .gl-zoom .ui-input { font-size: 16px; }
-    .gl-zoom__scaled { display: block; width: calc(100% / .8125); transform: scale(.8125); transform-origin: left top;
-      margin-bottom: calc(-1 * (1 - .8125) * 3.2em); }
-
-    /* Body ink, with rank carried by size and weight. */
-    .gl-body h3 { font: 600 var(--text-lg)/1.3 var(--font-display); color: var(--strong); margin-bottom: var(--space-2); }
-    .gl-body p { font-size: var(--text-base); line-height: 1.55; color: var(--text); }
-    .gl-body .gl-body__s { font-size: var(--text-sm); margin-top: var(--space-2); }
-    /* The pale half: lines in --muted at heading and body heights, no words. */
-    .gl-pale { display: flex; flex-direction: column; gap: var(--space-2); }
-    .gl-pale span { height: 10px; width: 92%; border-radius: var(--radius-xs); background: var(--muted); }
-    .gl-pale .gl-pale__h { height: 18px; width: 45%; margin-bottom: var(--space-1); }
-    .gl-pale .gl-pale__s { width: 30%; }
-
-    .gl-ring--one { display: contents; }
-    /* The pointer's hover paint, pinned: the fill and edge .ui-btn:hover draws. */
-    .gl-hover.ui-btn { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--strong);
-      border-color: var(--accent); }
   </style>`;
 
 

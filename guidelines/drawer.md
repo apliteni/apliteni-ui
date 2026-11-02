@@ -6,37 +6,37 @@
 
 **Rule:** Open a drawer to view or change one record without leaving its list.
 
-**Why:** Closing the drawer returns the user to the opened row.
+**Why:** After the drawer closes, the user is back at the row that they opened.
 
-**Do:** Open one for a quick edit, a new key, a filter, or a look at a row’s detail.
+**Do:** Open a drawer for a quick edit, a new key, a filter, or a look at the details of a row.
 
-**Don't:** Open one for a long form, several steps, or a view with its own address and Back.
+**Don't:** Open a drawer for a long form, for several steps, or for a view that has its own address and Back.
 
-**Except:** A two-answer question uses confirm, not a drawer.
+**Except:** For a question with two answers, use confirm, not a drawer.
 
 ## Drawer or page
 
 <!-- rule: drawer-or-page -->
 
-**Rule:** Use a page to edit more than one group, and a drawer for one short change.
+**Rule:** Use a page to edit more than one group, and use a drawer for one short change.
 
-**Why:** Several groups need room to move between them and check them before saving.
+**Why:** Several groups need space, so that the user can move between them and check them before saving.
 
 **Do:** Edit the roles and the per-unit switches on a page, below a way back to the list.
 
 **Don't:** Edit the same groups in a drawer, stacked in one narrow panel over the list.
 
-**Except:** Change one field inline, without a panel. A drawer can show groups a reader only reads.
+**Except:** Change one field inline, without a panel. A drawer can show groups that the reader only reads.
 
 ## Grouped content
 
 <!-- rule: no-cards -->
 
-**Rule:** Group drawer content under headings and never put a card inside it.
+**Rule:** Put the drawer content into groups under headings, and never put a card in the drawer.
 
-**Why:** The drawer already gives the edge and raised surface, so cards add unnecessary boxes.
+**Why:** The drawer already has an edge and a raised surface, so cards add boxes that are not necessary.
 
-**Do:** Use three groups, with a heading over each group’s rows and one line between groups.
+**Do:** Use three groups, with a heading above the rows of each group and one line between the groups.
 
 **Don't:** Put each group in a card in the drawer.
 
@@ -44,24 +44,24 @@
 
 <!-- rule: three-lines -->
 
-**Rule:** Add lines below the header and between groups. Leave the footer unfilled and without a rule.
+**Rule:** Add a line below the header and between the groups, and leave the footer with no fill and no line.
 
-**Why:** The header line marks the scrolling body. Group lines separate content, and actions share the panel surface.
+**Why:** The header line marks the body that scrolls. The group lines separate the content, and the actions share the surface of the panel.
 
-**Do:** Separate the header and groups.
+**Do:** Separate the header and the groups with lines.
 
-**Don't:** Add dividers between every row.
+**Don't:** Add a line between every row.
 
 ## Spaced label rows
 
 <!-- rule: rows -->
 
-**Rule:** Put each value beside its label and separate rows with space.
+**Rule:** Put each value next to its label, and use space to separate the rows.
 
-**Why:** In a drawer up to 560px wide, labels and values stay together at any zoom without row lines.
+**Why:** In a drawer that is up to 560px wide, labels and values stay together at any zoom level, with no row lines.
 
-**Do:** Put a short value beside its label, such as `Status — Active`.
+**Do:** Put a short value next to its label, for example `Status — Active`.
 
-**Don't:** Put the value at the far edge, and use row lines to lead the eye back.
+**Don't:** Put the value at the far edge and use row lines to guide the eye back.
 
-**Except:** Put figures readers compare down the panel, such as amounts, in a table using `table()` and right-align them.
+**Except:** If readers compare figures down the panel, such as amounts, put the figures in a table with `table()` and align them on the right.

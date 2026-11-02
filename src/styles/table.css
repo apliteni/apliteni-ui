@@ -115,7 +115,7 @@
 /* A link in a cell is a value that happens to open something: the row's ink, underlined
    on hover — what .ui-identity below has always done. Without it, base.css's bare
    `a { color: var(--accent) }` reached the ledger's IDs.
-   why: guidelines/density-and-accents.md#give-accents-a-job */
+   why: guidelines/the-page.md#emphasize-one-action */
 .ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {
   color: inherit;
   text-decoration: none;
@@ -156,7 +156,6 @@
    moving anything: growing the link's own box would grow every dense row holding
    one. Written one cell kind per line because the measuring gate splits a
    selector list on commas, and `:where(td, th, caption)` carries two of its own.
-   why: guidelines/accessibility-floor.md#minimum-target-size
    held by: stories/guidelines/accessibility-floor.test.js */
 .ui-table td a:not([class])::after,
 .ui-table th a:not([class])::after,
@@ -171,7 +170,7 @@
 }
 /* No generic focus rule here. #510 gave a cell link the ring because `base.css`
    reached no bare `a`; #587 put `a` on that shared list, so this file only keeps
-   the filled-cell override below. why: guidelines/state-set.md#focus-rings */
+   the filled-cell override below. */
 /* The handle: a cell MARKED `.ui-table__linked` holds one link and nothing else, so the
    link fills the cell and its ring outlines the cell rather than the words. The cell hands
    its padding over and nothing moves. `height: 1px` is the cell stating no height of its

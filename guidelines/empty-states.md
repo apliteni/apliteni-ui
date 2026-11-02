@@ -4,10 +4,10 @@
 
 <!-- rule: next-action -->
 
-**Rule:** Use the kit’s `emptyState()` or React `EmptyState` when there is no content. Say what is missing and include an action that helps the reader continue. Inline “no matches” text inside a dropdown or command palette is a result message, not an empty state.
+**Rule:** If there is no content, use the kit’s `emptyState()` or React `EmptyState` to say what is missing and to give an action that helps the reader continue, but do not use it for inline “no matches” text in a dropdown or command palette, because that text is a result message, not an empty state.
 
-**Why:** A blank area may leave readers unsure whether there is no content or the page has failed.
+**Why:** If an area is blank, readers may not know if there is no content or if the page has failed.
 
-**Do:** Show “No projects yet” with a “Create project” action. Use the kit’s existing spacing and illustration.
+**Do:** Show “No projects yet” with a “Create project” action, and use the existing spacing and illustration of the kit.
 
 **Don't:** Show “Nothing here” without an action.
