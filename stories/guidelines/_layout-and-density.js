@@ -33,9 +33,32 @@ export const SPEC_CSS = `
        a 420px cell, so these are drawn to scale instead — the ratio is true,
        the pixels are not, and the caption says so. */
     .gl-scale { display: flex; flex-direction: column; gap: var(--space-3); }
-    .gl-bar { display: flex; align-items: center; gap: var(--space-3); }
+    /* A fixed label track keeps every fill a share of one width. */
+    .gl-bar { display: grid; grid-template-columns: minmax(0, 1fr) 11ch; align-items: center;
+      gap: var(--space-3); font: 500 11px/1 var(--font-mono); }
     .gl-bar__fill { height: 22px; border-radius: var(--radius-xs); flex: none;
       background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--border); }
     .gl-bar__fill--tok { background: var(--glow-purple); box-shadow: inset 0 0 0 1px var(--accent); }
     .gl-bar__t { font: 500 11px/1 var(--font-mono); color: var(--text); white-space: nowrap; }
+    .gl-scale > .gl-bar__t, .gl-stage > .gl-bar__t { white-space: normal; line-height: 1.4; }
+
+    /* A page drawn to scale: grey lines stand for text, so no word is faded. */
+    .gl-frame { display: grid; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-xs);
+      box-shadow: inset 0 0 0 1px var(--border-strong); }
+    .gl-frame--side { grid-template-columns: 23.2% 1fr; box-shadow: inset 0 0 0 1px var(--accent); }
+    .gl-frame__side { border-radius: var(--radius-xs); background: var(--surface-3); }
+    .gl-lines { display: flex; flex-direction: column; gap: var(--space-2); }
+    .gl-lines span { height: 8px; border-radius: var(--radius-xs); background: var(--surface-3);
+      box-shadow: inset 0 0 0 1px var(--border); }
+    .gl-lines span:last-child { width: 60%; }
+    .gl-scale--wide { gap: var(--space-5); }
+    .gl-frame--two { grid-template-columns: 1fr 1fr; }
+    .gl-frame--stack { grid-template-columns: 1fr; }
+    .gl-views { display: grid; grid-template-columns: 1fr 120px; gap: var(--space-5); align-items: start; }
+    .gl-views__q { margin-top: var(--space-4); }
+    .gl-prose { margin: var(--space-4) 0 var(--space-2); max-width: var(--prose-caption);
+      font-size: var(--text-sm); line-height: 1.5; color: var(--text); }
+    .gl-prose--wrapper { max-width: 62ch; }
+    .gl-prose--wrapper h3 { font: 600 22px/1.25 var(--font-display); color: var(--strong); margin-bottom: var(--space-2); }
+    .gl-prose--wrapper p { font-size: var(--text-sm); }
   </style>`;

@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.159.0', date: '2026-11-02',
+    changes: [
+      ['changed', 'The Accessibility floor, Colour and theming, Iconography, Labels and titles and Layout and density guidelines draw each rule as a picture.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.158.0', date: '2026-10-31',
     changes: [
       ['changed', 'React `EmptyState`: the `not-yet-built` preset now reads "Not available yet", with the sub-line "This screen ships in a later release." Pass `title` or `sub` to keep the old text. Part of #758.', ['Empty']],

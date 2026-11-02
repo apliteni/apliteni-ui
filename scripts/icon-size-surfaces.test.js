@@ -62,7 +62,9 @@ const rel = (p) => path.relative(root, p);
 // 18 -> 10: #429 PR 5b removes the vanilla stories, whose own `<style>` blocks held
 // the other eight declarations.
 // 10 -> 12: svgOpen() classes join discovery, restoring .ch-chart--fluid's width and height.
-const EXPECTED_SUBJECTS = 12;
+// 12 -> 18: the Iconography guideline specimens size `.gl-glyph svg`, `.gl-stroke svg`
+// and `.gl-stroke__big svg`, width and height apiece.
+const EXPECTED_SUBJECTS = 18;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes
