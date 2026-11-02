@@ -23,8 +23,8 @@ export const SPEC_CSS = `
   </style>`;
 
 // Made-up monthly spend for the made-up portal, in thousands of euros.
-export const SPEND = [18.2, 19.4, 21.1, 20.3, 22.8, 23.6];
-export const ESTIMATED = [17.5, 17.8, 18.1, 18.4, 18.7, 19.0];
+export const SPEND = [18.2, 19.4, 21.1];
+export const ESTIMATED = [17.5, 17.8, 18.1];
 
 // Three columns fit a specimen cell at 390, so a table draws reference and net
 // with either the status or the fees. The gross stays here undrawn. The Finance

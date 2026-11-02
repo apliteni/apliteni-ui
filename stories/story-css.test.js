@@ -119,8 +119,10 @@ const sourceAmong = (invented = {}) => (file) => invented[file]
  * lower bound, so the gate fails when the reading stops reaching something rather than
  * when the collection grows. #429 PR 5b re-audited: the vanilla stories left, and the
  * React showcases are the subjects. #758 removed the Signal contrast page and #768 the Text length page. The guideline
- * charts moved to the kit Chart, and `_chart.js` took its 19 declarations with it. */
-const FOUND = { subjects: 17, served: 47, declarations: 48, carriers: 7, sheets: 0 };
+ * charts moved to the kit Chart, and `_chart.js` took its 19 declarations with it. The
+ * Finance dashboard's trend left its `display: contents` wrapper for the kit spark, so
+ * that story carries no CSS now (#768). */
+const FOUND = { subjects: 17, served: 47, declarations: 47, carriers: 6, sheets: 0 };
 
 const tokens = kitTokenNames(
   read('src/tokens/tokens.css'),

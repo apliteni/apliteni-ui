@@ -316,8 +316,11 @@ function seriesFrame(
   const shapeOf = (s: ChartSeries) => s.shape ?? 'bars';
   const split = series.some((s) => shapeOf(s) === 'bars-below');
   const reach = series.flatMap((s) => s.values.map((v) => (shapeOf(s) === 'bars-below' ? -v : v)));
+  /* A bar stands on zero, so a sparkline that draws bars keeps zero in its band.
+     Without it the bars' feet fell far below the 32px plot and only their tops showed. */
+  const sparkBars = series.some((s) => shapeOf(s) !== 'line');
   const scale = chartScale(spark ? reach : [...reach, 0], spark
-    ? { zero: false, nice: false, floor: CHART_FLOOR }
+    ? { zero: sparkBars, nice: false, floor: CHART_FLOOR }
     : { zero: true, ticks: 4 });
 
   const bars: Frame['bars'] = [];

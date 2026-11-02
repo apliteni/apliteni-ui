@@ -211,6 +211,22 @@ it('a sparkline drops the axis, the legend and the table, and still names its ra
   expect(plot()).toHaveAccessibleName('Income. €1,200 to €900.');
 });
 
+// A bar stands on zero. A sparkline of bars once read its band off the values
+// alone, so the bars' feet fell far below the 32px plot and only the tops showed.
+it('a sparkline of bars keeps every bar inside its 32px plot', () => {
+  const { container } = render(
+    <Chart variant="spark" title="Income" periods={periods} series={[series[0]]} format={eur} />,
+  );
+  const bars = [...container.querySelectorAll('path.ui-chart__bar')];
+  expect(bars).toHaveLength(INCOME.length);
+  for (const bar of bars) {
+    const d = bar.getAttribute('d')!;
+    const ys = [Number(/^M[\d.-]+ ([\d.-]+)/.exec(d)![1]), ...[...d.matchAll(/V([\d.-]+)/g)].map((m) => Number(m[1]))];
+    expect(Math.max(...ys), d).toBeLessThanOrEqual(32);
+    expect(Math.min(...ys), d).toBeGreaterThanOrEqual(0);
+  }
+});
+
 /* -- the pointer target ----------------------------------------------------- */
 
 /** A hit area's box, read off the rect the component writes. */

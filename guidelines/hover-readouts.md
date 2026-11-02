@@ -62,6 +62,6 @@
 
 **Do:** Let focus or tap open the readout. Also give the leading figure and a table or labelled series summary.
 
-**Don't:** Require pointing at one of 365 daily points to find its value.
+**Don't:** Require pointing at a sparkline point to find its value.
 
 **Except:** On touch screens, focus without a tap must support screen-reader arrival. Pointer detection must support laptop mouse hover, finger or pen tap, and keyboard focus restoration. Whether chart marks are tab stops is undecided. The kit adds none.

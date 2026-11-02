@@ -93,8 +93,9 @@ const subjects: string[] = [...new Set([
 // Measured, not guessed: the story and stylesheet floors, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows. The finance comparison's
-// three filter-bar inset declarations left with its bar's move onto a card (#736).
-const FOUND = { subjects: 67, declarations: 517, carriers: 49, sheets: 5 };
+// three filter-bar inset declarations left with its bar's move onto a card (#736). The
+// Finance dashboard's trend left its `display: contents` wrapper for the kit spark (#768).
+const FOUND = { subjects: 67, declarations: 517, carriers: 48, sheets: 5 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
