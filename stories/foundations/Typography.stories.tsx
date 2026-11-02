@@ -6,10 +6,12 @@ import { Pad, Title } from '../_page';
 const meta: Meta = { title: 'Foundations/Typography', parameters: { layout: 'fullscreen' } };
 export default meta;
 
+// The row wraps, so on a phone every sample drops under its label instead of
+// pushing its longest word past the frame. The 240px basis keeps them all on one side.
 const SpecimenRow = ({ size, weight, label, sample, role }: { size: string; weight: number; label: string; sample: string; role: 'display' | 'sans' }) =>
-  <div style={{ display: 'flex', alignItems: 'baseline', gap: 24, padding: '16px 0', borderBottom: '1px solid var(--border)' }}>
+  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '8px 24px', padding: '16px 0', borderBottom: '1px solid var(--border)' }}>
     <div style={{ flex: 'none', width: 150, font: '400 12px/1.4 var(--font-sans)', color: 'var(--muted)' }}>{label}<br /><span style={{ color: 'var(--dim)' }}>{`${size} / ${weight}`}</span></div>
-    <div style={{ fontFamily: `var(--font-${role})`, fontSize: size, fontWeight: weight, color: 'var(--strong)', letterSpacing: '-.01em', lineHeight: 1.1 }}>{sample}</div>
+    <div style={{ flex: '1 1 240px', fontFamily: `var(--font-${role})`, fontSize: size, fontWeight: weight, color: 'var(--strong)', letterSpacing: '-.01em', lineHeight: 1.1 }}>{sample}</div>
   </div>;
 
 const H3 = ({ title, note }: { title: ReactNode; note: string }) => <>
@@ -70,7 +72,8 @@ export const Scale: StoryObj = {
 
     <div style={{ marginTop: 36, maxWidth: 820 }}>
       <h3 style={{ font: '600 13px/1 var(--font-display)', color: 'var(--muted)', marginBottom: 16 }}>Monospace — <code style={{ fontFamily: 'var(--font-mono)' }}>--font-mono</code></h3>
-      <pre className="ui-code" style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--text)', padding: 16, borderRadius: 12, margin: 0 }}>claude mcp add strategy --url https://strategy.apli.tech/mcp</pre>
+      {/* Wraps rather than scrolls: at 390 the command is wider than the page. */}
+      <pre className="ui-code" style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--text)', padding: 16, borderRadius: 12, margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>claude mcp add strategy --url https://strategy.apli.tech/mcp</pre>
 
       <H3 title="An identifier in prose" note="The chip takes whichever reading surface its container is not on, so the same sentence keeps it on the page and inside a card." />
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }} id="code-chip-specimen">

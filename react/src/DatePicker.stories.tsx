@@ -235,10 +235,13 @@ export const Disabled: StoryObj<typeof DatePicker> = {
 export const Keyboard: StoryObj<typeof DatePicker> = {
   render: args => (
     // Two columns, because the open panel floats over whatever is under it and
-    // the keys have to stay readable beside the grid they describe.
-    <div style={{ display: 'grid', gap: 'var(--space-6)', gridTemplateColumns: '300px minmax(0, 1fr)', alignItems: 'start' }}>
-      <DatePicker {...args} defaultValue="2026-08" defaultOpen />
-      <ul style={{ margin: 0, paddingInlineStart: 'var(--space-5)', fontSize: 'var(--text-sm)', display: 'grid', gap: 'var(--space-2)' }}>
+    // the keys have to stay readable beside the grid they describe. On a phone the
+    // keys wrap below, where a 1fr column beside 300px was one word wide.
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-6)', alignItems: 'start' }}>
+      <div style={{ flex: '0 0 300px' }}>
+        <DatePicker {...args} defaultValue="2026-08" defaultOpen />
+      </div>
+      <ul style={{ flex: '1 1 16rem', margin: 0, paddingInlineStart: 'var(--space-5)', fontSize: 'var(--text-sm)', display: 'grid', gap: 'var(--space-2)' }}>
         <li>Left and Right move one month; Up and Down move one row.</li>
         <li>Home and End go to the ends of the row.</li>
         <li>Page Up and Page Down change the year.</li>

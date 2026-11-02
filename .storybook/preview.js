@@ -175,8 +175,12 @@ const preview = {
       else root.setAttribute('data-accent', accent);
       // Paint the whole canvas with the theme bg so centered/padded stories read true.
       const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
-      (document.getElementById('storybook-root') || document.body).style.background = bg;
+      const storyRoot = document.getElementById('storybook-root');
+      (storyRoot || document.body).style.background = bg;
       document.body.style.background = bg;
+      // The centered layout makes the root a flex item, which never shrinks below its
+      // content, so a long code line or a nowrap row scrolled the whole page at 390.
+      if (storyRoot) storyRoot.style.minWidth = '0';
       return createElement(Inspector, { mode: ctx.globals.inspect }, createElement(Story));
     },
   ],
