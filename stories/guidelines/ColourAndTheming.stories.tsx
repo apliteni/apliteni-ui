@@ -1,6 +1,6 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import type { Meta, StoryObj } from '@storybook/react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { GuidelinePage } from '../_guideline';
 import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
@@ -55,6 +55,12 @@ const Forced = ({ fill, focused }: { fill: boolean; focused: string }) => <Stage
   <Ratio>{`Selected: Activity. Focused: ${focused}.`}</Ratio>
 </Stage>;
 
+// The accent pair pinned to dark Nebula in literal values, so the picture matches
+// its ratios in both themes. In light, --accent and --accent-strong are one colour.
+const NEBULA = ACCENT.Nebula.dark;
+const DarkNebula = ({ children }: { children: ReactNode }) => <div className="gl-pin" style={{ background: THEME.dark.bg,
+  '--accent': NEBULA.a, '--accent-strong': NEBULA.as, '--accent-contrast': NEBULA.ac } as CSSProperties}>{children}</div>;
+
 // The frozen hexes in SPEC_CSS are the specimen's subject, not a slip: `.gl-literal`
 // writes out what the dark theme composites, so the pair is one picture in dark
 // and the flip to light is what separates them.
@@ -62,8 +68,8 @@ const specimens = [
   { id: 'tokens', do: () => <Stage><Note /></Stage>, dont: () => <Stage mod="gl-literal"><Note /></Stage> },
   { id: 'signals', do: () => <Stage><BouncedEmail /></Stage>, dont: () => <Stage mod="gl-drift"><BouncedEmail /></Stage> },
   { id: 'accent-strong',
-    do: () => <Stage><Button variant="primary">Save</Button><Ratio>Dark, Nebula: white on --accent-strong is 5.70:1</Ratio></Stage>,
-    dont: () => <Stage><span className="gl-swatch" /><Ratio>Dark, Nebula: white on --accent is 2.95:1, needs 4.5:1</Ratio></Stage> },
+    do: () => <Stage><DarkNebula><Button variant="primary">Save</Button></DarkNebula><Ratio>Dark, Nebula: white on --accent-strong is 5.70:1</Ratio></Stage>,
+    dont: () => <Stage><DarkNebula><span className="gl-swatch" /></DarkNebula><Ratio>Dark, Nebula: white on --accent is 2.95:1, needs 4.5:1</Ratio></Stage> },
   { id: 'selection-accent', do: () => <SelectionTabs />, dont: () => <SelectionTabs badge={{ text: '3', tone: 'accent' }} /> },
   { id: 'both-themes', do: () => <Themes checked={4} />, dont: () => <Themes checked={1} /> },
   { id: 'text-surface', do: () => <Surfaces />, dont: () => <GreyFills /> },

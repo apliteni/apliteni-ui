@@ -16,6 +16,8 @@ export const SPEC_CSS = `
     .gl-drift { --pink: var(--accent); }
 
     .gl-stage > .gl-cursor { display: flex; }
+    /* The dark Nebula ground the accent pair is measured on, whatever the page theme. */
+    .gl-pin { display: flex; padding: var(--space-3); margin-bottom: var(--space-3); border-radius: var(--radius-sm); }
     /* The swatch takes a button's height: one tight line, 9px padding and a 1px edge each side. */
     .gl-swatch { display: block; width: 120px; height: calc(var(--text-sm) * var(--leading-tight) + 20px); border-radius: var(--radius-sm); background: var(--accent); }
 
