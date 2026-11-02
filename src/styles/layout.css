@@ -445,6 +445,10 @@
 .ui-app__body > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-3) - var(--space-5)); }
 .ui-toolbar > .ui-input,
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
+/* Every control on a line stands that line's height, so the boxes share one top, one
+   bottom and one centre. The row stretches its items already; a segmented switch
+   states its own start alignment for a flex column, so the row takes it back. */
+.ui-toolbar > .ui-seg { align-self: stretch; }
 /* A row that offers the block two unrelated things — what to narrow it by, and
    what to do with it — puts the second at the far end instead of beside the
    first. The auto margin is the same one the rail's fold toggle rides to the end
@@ -476,10 +480,11 @@
      otherwise empty row — a mark that came loose rather than what to do with the
      block, which is what Artur marked on round r31. `align-self` is what keeps
      the control its own height beside a group two lines tall; it sits at the
-     row's top end, the corner it keeps above this step.
+     row's top end, the corner it keeps above this step. The minimum height is the
+     chip's, so the control stands as tall as the line of chips it sits beside.
      why: Artur's review of the Finance report, rounds r31 and r34, #505 */
   .ui-toolbar--split > :nth-last-child(2) { flex: 1 1 60%; min-width: 0; }
-  .ui-toolbar--split > :last-child { margin-inline-start: 0; align-self: start; }
+  .ui-toolbar--split > :last-child { margin-inline-start: 0; align-self: start; min-height: var(--ui-filter-row-h); }
 }
 
 /* -- The phone shell ------------------------------------------------------ */

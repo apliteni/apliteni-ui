@@ -48,10 +48,40 @@ test('export at the row end: below the phone step the end control stays in the r
     'below the phone step the split row\'s last control must drop the auto margin, not keep it');
   assert.match(phone[1], /align-self:\s*start/,
     'the end control must keep its own height beside a group that wraps to two lines');
+  assert.match(phone[1], /min-height:\s*var\(--ui-filter-row-h\)/,
+    'at its own height the end control stood 36px beside 39.2px chips; it needs the chip height as a floor');
   assert.ok(group, 'the 560px query gives the group before the end control no basis, so the group '
     + 'takes the whole line and the end control drops under it');
   assert.match(group[1], /flex:\s*1\s+1\s+\d+%/,
     'the group needs a fractional basis — on `auto` its content is its hypothetical size and the '
     + 'line breaks before the end control');
   assert.match(group[1], /min-width:\s*0/, 'without this the group cannot shrink to the basis it was given');
+});
+
+/* One line, one height. A toolbar stretches its items, but a text field stood 45px
+ * beside 39.2px chips at the top of the line, because the filter bar sits in block
+ * wrappers that pass no height down, and .ui-seg asks for `align-self: start`.
+ * Each declaration that passes the line's height on is read here.
+ *
+ * WHAT THIS DOES NOT REACH: layout. JSDOM lays out no flex, so the heights above
+ * were measured in a built Storybook, in the pull request's captures. */
+test('one toolbar line: every control takes the line height', () => {
+  const layout = readFileSync(new URL('./layout.css', import.meta.url), 'utf8');
+  const bar = readFileSync(new URL('./filter-bar.css', import.meta.url), 'utf8');
+  const body = (css, selector) => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s*');
+    const found = css.match(new RegExp(`(?:^|[}\\s])${escaped}\\s*\\{([^}]*)\\}`));
+    assert.ok(found, `no \`${selector}\` rule`);
+    return found[1];
+  };
+  assert.match(body(layout, '.ui-toolbar > .ui-seg'), /align-self:\s*stretch/,
+    'a segmented switch in a toolbar keeps its own start alignment and stands shorter than the line');
+  assert.match(body(bar, '.ui-toolbar :has(.ui-filter-bar)'), /display:\s*flex;\s*flex-direction:\s*column/,
+    'a block wrapper around the filter bar passes no height down to it');
+  assert.match(body(bar, '.ui-toolbar :has(.ui-filter-bar) > :is(:has(.ui-filter-bar), .ui-filter-bar)'), /flex:\s*1\s+1\s+auto/,
+    'the bar and its wrappers must grow to the line height');
+  assert.match(body(bar, '.ui-toolbar .ui-filter-bar'), /align-items:\s*stretch/,
+    'the bar centres its chips, so a chip stands shorter than the line');
+  assert.match(body(bar, '.ui-toolbar .ui-filter-bar [data-filter-clear]'), /display:\s*flex/,
+    'an inline wrapper leaves the clear button at its own height');
 });
