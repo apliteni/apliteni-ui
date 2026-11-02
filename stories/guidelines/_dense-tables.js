@@ -20,6 +20,10 @@ export const SPEC_CSS = `<style>
   /* The filter bar's card sits above the table's card, at the gap the shell keeps
      between two cards. */
   .gdt-filtered { display: grid; gap: var(--space-5); align-content: start; }
+  /* The two cards are one unit of the table's width: the bar's card adds no width of
+     its own and fills the unit. A stretched table keeps the full column. */
+  .gdt-unit { width: fit-content; max-width: 100%; }
+  .gdt-unit > :not(:last-child) { contain: inline-size; }
   /* A hovered row, held still: the kit's own hover fill and its rounded ends, which a
      pointer would draw. */
   .gdt-hovered > td { background: var(--surface-2); }

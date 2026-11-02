@@ -117,10 +117,21 @@ export const OpenReadout = ({ mark, above = false, children }: { mark: string; a
     // a move over the plot outside any mark, then the move onto the mark.
     const open = () => {
       root.querySelector('.ui-chart__svg')?.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+      reveal();
       frame = requestAnimationFrame(() => {
         hit()?.firstElementChild?.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
         if (above) keepAbove();
       });
+    };
+    // A plot that scrolls brings the pointed bar to its centre, as a key step does,
+    // so the readout opens over its own bar.
+    const reveal = () => {
+      const scroll = root.querySelector<HTMLElement>('.ui-chart__scroll');
+      const anchor = [...root.querySelectorAll('[data-anchor]')].find(el => el.getAttribute('data-anchor') === mark);
+      if (!scroll || !anchor || scroll.scrollWidth <= scroll.clientWidth) return;
+      const bar = anchor.getBoundingClientRect();
+      const view = scroll.getBoundingClientRect();
+      scroll.scrollLeft += (bar.left + bar.right) / 2 - (view.left + view.right) / 2;
     };
     // The Chart's anchor measured as its placement measures it, without the flip.
     const keepAbove = () => {

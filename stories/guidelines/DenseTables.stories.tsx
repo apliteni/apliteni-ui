@@ -14,24 +14,25 @@ import { SPEC_CSS } from './_dense-tables.js';
 
 const content = await loadGuideline('dense-tables.md', new URL('../../guidelines/dense-tables.md', import.meta.url));
 
-const PAYOUTS = [['1162', '1,240.00'], ['1161', '860.00'], ['1160', '2,100.00']];
+const PAYOUTS = [['1162', 'Paid', '1,240.00'], ['1161', 'Paid', '860.00'], ['1160', 'Pending', '2,100.00']];
 
 // One table, twice: the pair is the width and nothing else. Dense, because the base
 // recipe leaves its last header flush with the table edge while its values keep a
-// right inset. Short references keep the two halves far apart at phone width.
+// right inset. The Status column is the one the bar's chip filters.
 const Payouts = ({ stretch = false }: { stretch?: boolean }) =>
   <div className={`gdt-stage ui-card ui-card--pad-sm${stretch ? '' : ' ui-card--fit'}`}>
     <table className={`ui-table ui-table--dense ui-table--hover${stretch ? ' gdt-stretch' : ''}`} aria-label="Payouts">
-      <thead><tr><th>Reference</th><th className="ui-table__num">Amount<span className="ui-value__unit">EUR</span></th></tr></thead>
-      <tbody>{PAYOUTS.map(([reference, amount]) =>
-        <tr key={reference}><td>{reference}</td><td className="ui-table__num">{amount}</td></tr>)}</tbody>
+      <thead><tr><th>Reference</th><th>Status</th><th className="ui-table__num">Amount<span className="ui-value__unit">EUR</span></th></tr></thead>
+      <tbody>{PAYOUTS.map(([reference, status, amount]) =>
+        <tr key={reference}><td>{reference}</td><td>{status}</td><td className="ui-table__num">{amount}</td></tr>)}</tbody>
     </table>
   </div>;
 
 // The same card, with and without the row that narrows it. Every other specimen
-// keeps the row, because every table has one.
+// keeps the row, because every table has one. The bar and the table are one unit
+// of one width, as on a product page.
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
-const Filtered = ({ bar = true, stretch = false }: { bar?: boolean; stretch?: boolean }) => <div className="gdt-stage gdt-filtered">
+const Filtered = ({ bar = true, stretch = false }: { bar?: boolean; stretch?: boolean }) => <div className={`gdt-stage gdt-filtered${stretch ? '' : ' gdt-unit'}`}>
   {bar && <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />}
   <Payouts stretch={stretch} />
 </div>;
