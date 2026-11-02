@@ -42,7 +42,7 @@ const Durations = ({ off = false }: { off?: boolean }) => <div className="gl-sta
     const odd = off && name === 'Drawer';
     const len = odd ? 300 : ms;
     return <Fragment key={name}>
-      <span className="gm-dur__name"><span>{name}</span>{odd ? null : <span className="gm-dur__token">{token}</span>}</span>
+      <span className="gm-dur__name"><span>{name}</span><span className="gm-dur__token">{odd ? 'no token' : token}</span></span>
       <span className="gm-dur__track" aria-hidden="true">
         {DURATIONS.map(([, , step]) => <span key={step} className="gm-dur__tick" style={{ '--gm-tick': pct(step) } as CSSProperties} />)}
         <span className="gm-dur__bar" style={{ '--gm-len': pct(len) } as CSSProperties} />
