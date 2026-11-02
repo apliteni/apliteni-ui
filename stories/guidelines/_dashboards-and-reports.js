@@ -29,6 +29,14 @@ export const SPEC_CSS = `${CHART_CSS}
        title's own step, kept below a switch taller than the title. */
     .gd-block-head { display: flex; align-items: baseline; column-gap: var(--space-4);
       margin-bottom: var(--space-2); }
+    /* One screen of a dashboard: the height is the Do's own blocks at 1280. The
+       Don't's extra blocks run past that fold and are cut there. A phone stacks the
+       Do's blocks taller than the fold, so the Do grows instead of being cut. */
+    .gd-screen { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4);
+      min-height: 52rem; padding: var(--space-4); background: var(--bg);
+      border: 1px solid var(--border); border-radius: var(--radius-lg); }
+    .gd-screen--fold { height: 52rem; overflow: hidden; }
+    .gd-screen > :not(.ui-seg) { align-self: stretch; }
     .gd-block-head > :first-child { flex: 1 1 0; min-width: 0; }
   </style>`;
 

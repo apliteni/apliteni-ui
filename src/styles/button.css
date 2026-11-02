@@ -44,6 +44,9 @@
 .ui-btn:active { transform: translateY(1px); }
 
 .ui-btn svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
+/* A label's line box is shorter than the glyph, so a text-only button stood up to 1px
+   below a glyph button beside it. Every size stands as tall as its glyph, padding and edge. */
+.ui-btn { min-height: calc(16px + 2 * var(--btn-pad-y) + 2px); }
 
 /* -- Variants ----------------------------------------------------------- */
 .ui-btn--primary {

@@ -1,7 +1,7 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
-import { GuidelinePage, Raw, TipPicture } from '../_guideline';
+import { FrameStrip, GuidelinePage, Raw, TipPicture } from '../_guideline';
 import { Card } from '../../react/src/primitives/Card';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
@@ -48,6 +48,35 @@ const Clipped = ({ placement }: { placement: 'top' | 'bottom' }) => {
     <TipPicture {...pointOf(REVENUE, HOT)} placement={placement} x={p.x} y={p.top} /></Host></div>;
 };
 
+// A bar chart narrow enough that two frames of a tap sit side by side in a cell.
+const TAP_WIDTH = 200;
+const Tapped = ({ hot, open = true }: { hot: number; open?: boolean }) => {
+  const b = bars({ values: REVENUE, width: TAP_WIDTH, hot });
+  const p = b.at(hot);
+  return <div className="gh-room gh-room--tall"><Host><Raw html={b.svg} />
+    {open && <TipPicture {...pointOf(REVENUE, hot)} x={p.x} y={p.top} />}</Host></div>;
+};
+
+// A year of made-up daily revenue: 365 points, none of them reachable but by pointing.
+const DAILY = Array.from({ length: 365 }, (_, d) => Math.round(1300 + 220 * Math.sin(d / 9) + d * 1.5));
+const DAYS = DAILY.map((_, d) => `Day ${d + 1}`);
+const MonthRows = () => (
+  // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-every-table-its-filter-bar
+  <table className="ui-table ui-table--dense">
+  <thead><tr><th>Month</th><th className="ui-table__num">Revenue</th></tr></thead>
+  <tbody>{[HOT - 2, HOT - 1, HOT].map(i => { const { label, value } = pointOf(REVENUE, i);
+    return <tr key={label}><td>{label}</td><td className="ui-table__num">{value}</td></tr>; })}</tbody>
+</table>);
+const Reachable = () => {
+  const b = bars({ values: REVENUE, hot: HOT });
+  const p = b.at(HOT);
+  // The ring is on the chart, not on a bar: the kit makes no mark a tab stop.
+  return <Card title="Revenue"><p className="gh-figure">{eur(REVENUE[REVENUE.length - 1])}</p>
+    <div className="gh-room gh-room--tall"><Host><div className="gl-focus"><Raw html={b.svg} /></div>
+      <TipPicture {...pointOf(REVENUE, HOT)} x={p.x} y={p.top} /></Host></div>
+    <MonthRows /></Card>;
+};
+
 const specimens = [
   { id: 'overlay', do: () => <OverlayDo />, dont: () => <OverlayDont /> },
   { id: 'above-the-mark', do: () => <Clipped placement="bottom" />, dont: () => <Clipped placement="top" /> },
@@ -57,8 +86,12 @@ const specimens = [
     detail: '+5.3% on September and +12.1% on October 2024, with 3 invoices pending. '
       + 'Click the bar to open the transactions.',
   }} /> },
-  { id: 'on-touch' },
-  { id: 'not-only-hover' },
+  { id: 'on-touch',
+    do: () => <FrameStrip frames={[{ step: 'Tap a bar', picture: <Tapped hot={4} /> },
+      { step: 'Tap another bar', picture: <Tapped hot={7} /> }]} />,
+    dont: () => <FrameStrip frames={[{ step: 'Tap a bar', picture: <Tapped hot={4} open={false} /> }]} /> },
+  { id: 'not-only-hover', do: () => <Reachable />,
+    dont: () => <Card title="Revenue"><Raw html={sparkline({ values: DAILY, labels: DAYS, fluid: true, label: 'Revenue by day, last 365 days' }).svg} /></Card> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Hover readouts', parameters: { layout: 'fullscreen' } };

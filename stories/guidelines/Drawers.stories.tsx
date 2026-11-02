@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { DrawerPicture, GuidelinePage } from '../_guideline';
 import { BackLink } from '../../react/src/BackLink';
 import { Checkbox } from '../../react/src/Checkbox';
+import { SelectField, TextField } from '../../react/src/Field';
 import { DrawerSection, KeyValueList, type KeyValueRow } from '../../react/src/KeyValueList';
 import { Switch } from '../../react/src/Switch';
 import { Button } from '../../react/src/primitives/Button';
@@ -23,6 +24,8 @@ const GROUPS = [
   { title: 'How it is classified', rows: [['Category', '—'], ['Unit', 'Ledger']] },
   { title: 'Where it came from', rows: [['Statement', '#4102'], ['Reference', 'po_example_1047']] },
 ];
+// Two short groups keep the header line, the line between groups and the footer in one view at 390.
+const LINED = [{ rows: PAYMENT.slice(0, 1) }, GROUPS[1]];
 const rows = (pairs: string[][]): KeyValueRow[] => pairs.map(([label, value]) => ({ label, value }));
 
 // A drawer is position: fixed, so each specimen is held inside a frame of its own.
@@ -62,11 +65,26 @@ const PageDont = () => <Frame title="Member access" footer={<Button variant="pri
 </Frame>;
 
 const specimens = [
-  { id: 'one-record' },
+  // A quick edit of the row that opened it, against a long form in steps.
+  { id: 'one-record',
+    do: () => <Frame footer={<Button variant="primary">Save category</Button>}>
+      <Group rows={PAYMENT.slice(0, 2)} />
+      <DrawerSection title="How it is classified"><SelectField label="Category" defaultValue="Payout">
+        {['Payout', 'Refund', 'Fee'].map(c => <option key={c}>{c}</option>)}</SelectField></DrawerSection>
+    </Frame>,
+    dont: () => <Frame title="New counterparty" footer={<><Button>Back</Button><Button variant="primary">Next</Button></>}>
+      <DrawerSection title="Step 2 of 4: Bank details">
+        <TextField label="Account holder" defaultValue="Northwind Payments" />
+        <TextField label="BIC" defaultValue="NWPYDEFFXXX" />
+        <TextField label="Bank country" defaultValue="Germany" />
+      </DrawerSection>
+    </Frame> },
   { id: 'drawer-or-page', do: () => <PageDo />, dont: () => <PageDont /> },
   { id: 'no-cards', do: () => <Frame>{GROUPS.map((g, i) => <Group key={i} {...g} />)}</Frame>,
     dont: () => <Frame>{GROUPS.map((g, i) => <Card key={i}><Group {...g} /></Card>)}</Frame> },
-  { id: 'three-lines' },
+  { id: 'three-lines',
+    do: () => <Frame footer={<Button variant="primary">Save category</Button>}>{LINED.map((g, i) => <Group key={i} {...g} />)}</Frame>,
+    dont: () => <Frame footer={<Button variant="primary">Save category</Button>}><Ruled pairs={LINED.flatMap(g => g.rows)} /></Frame> },
   { id: 'rows', do: () => <Frame><Group rows={DETAIL} /></Frame>, dont: () => <Frame><Ruled pairs={DETAIL} /></Frame> },
 ];
 

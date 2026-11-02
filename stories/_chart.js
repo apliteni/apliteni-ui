@@ -17,16 +17,18 @@ export const NET = REVENUE.map((r, i) => r - EXPENSES[i]);
 
 export const eur = (n) => `${n < 0 ? '−' : ''}€${Math.abs(n).toLocaleString('en-US')}`;
 
-const delta = (values, i) => {
+// A month is compared by its name alone; any other label is compared whole.
+const delta = (values, i, labels = MONTHS) => {
   if (i === 0) return '';
   const pct = ((values[i] - values[i - 1]) / Math.abs(values[i - 1])) * 100;
-  return `${pct < 0 ? '−' : '+'}${Math.abs(pct).toFixed(1)}% on ${MONTHS[i - 1].split(' ')[0]}`;
+  const before = labels === MONTHS ? MONTHS[i - 1].split(' ')[0] : labels[i - 1];
+  return `${pct < 0 ? '−' : '+'}${Math.abs(pct).toFixed(1)}% on ${before}`;
 };
 
-const markAttrs = (values, i) => [
-  `data-tip-label="${MONTHS[i]}"`,
+const markAttrs = (values, i, labels = MONTHS) => [
+  `data-tip-label="${labels[i]}"`,
   `data-tip-value="${eur(values[i])}"`,
-  i ? `data-tip-detail="${delta(values, i)}"` : '',
+  i ? `data-tip-detail="${delta(values, i, labels)}"` : '',
 ].filter(Boolean).join(' ');
 
 export const pointOf = (values, i) => ({ label: MONTHS[i], value: eur(values[i]), detail: delta(values, i) });
@@ -53,7 +55,7 @@ const svgOpen = (cls, width, height, label) =>
 
 /** A line with a dot at every point; the dot is where the readout opens. */
 export function sparkline({
-  values = REVENUE, width = 240, height = 56, hot = -1, fluid = false,
+  values = REVENUE, labels = MONTHS, width = 240, height = 56, hot = -1, fluid = false,
   label = 'Revenue, last 12 months',
 } = {}) {
   const lo = Math.min(...values);
@@ -65,7 +67,7 @@ export function sparkline({
   }));
   const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p.x} ${p.y}`).join(' ');
   const area = `${line} L${pts[pts.length - 1].x} ${height} L${pts[0].x} ${height} Z`;
-  const marks = pts.map((p, i) => `<g ${markAttrs(values, i)}>`
+  const marks = pts.map((p, i) => `<g ${markAttrs(values, i, labels)}>`
     + `<rect class="ch-hit" x="${n1(p.x - step / 2)}" y="0" width="${n1(step)}" height="${height}"></rect>`
     + `<circle class="ch-dot${i === hot ? ' is-on' : ''}" data-tip-anchor cx="${p.x}" cy="${p.y}" r="${R}"></circle>`
     + '</g>').join('');

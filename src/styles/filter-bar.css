@@ -140,6 +140,8 @@
 .ui-toolbar :has(.ui-filter-bar) > :is(:has(.ui-filter-bar), .ui-filter-bar) { flex: 1 1 auto; }
 .ui-toolbar .ui-filter-bar { align-items: stretch; }
 .ui-toolbar .ui-filter-bar [data-filter-clear] { display: flex; }
+/* Alone on a phone row the clear button has no line to stretch to, so it keeps the chip height. */
+.ui-toolbar .ui-filter-bar [data-filter-clear] button { min-height: var(--ui-filter-row-h); }
 
 /* A chip's neighbour takes the chip's corner, that height and edge, but not its painted fill:
    the trigger's own edge can differ from the row's, while its --surface made the

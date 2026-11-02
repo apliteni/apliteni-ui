@@ -16,4 +16,10 @@ export const SPEC_CSS = `
       color: var(--strong); }
     .gb-titlerow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
     .gb-page { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-5); align-items: start; }
+    /* A browser window's foot, so the status bubble has an edge to sit on. */
+    .gb-window { display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-8);
+      min-height: 10rem; }
+    .gb-status { align-self: flex-start; max-width: 100%; margin: 0; padding: var(--space-1) var(--space-2);
+      overflow-wrap: anywhere; font-size: var(--text-sm); color: var(--text);
+      background: var(--surface-3); border: 1px solid var(--border); border-radius: var(--radius-sm); }
   </style>`;

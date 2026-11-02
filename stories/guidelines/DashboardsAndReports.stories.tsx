@@ -8,6 +8,7 @@ import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { FilterBar } from '../../react/src/FilterBar';
+import { Segmented } from '../../react/src/Segmented';
 import { RestingFilters } from '../_table-filters';
 import { Chart, type ChartLookSeries } from '../../react/src/Chart';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -19,7 +20,7 @@ import { bars } from '../_chart.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { payoutHref } from '../apps/_finance-nav.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
-import { cashflowStats } from '../apps/_finance-data.js';
+import { cashflowStats, PERIODS as SPANS } from '../apps/_finance-data.js';
 
 const content = await loadGuideline('dashboards-and-reports.md', new URL('../../guidelines/dashboards-and-reports.md', import.meta.url));
 
@@ -140,8 +141,17 @@ const FILTERS = [
   { id: 'currency', label: 'Currency', items: [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
 ];
 
+// A laptop screen, scaled to a cell: the frame's bottom edge is the fold, and a
+// block past it is cut where a reader stops reading.
+const Screen = ({ fold = false, children }: { fold?: boolean; children: ReactNode }) => <div className={`gd-screen${fold ? ' gd-screen--fold' : ''}`}>
+  <Segmented label="Period" options={(SPANS as string[]).map(p => ({ label: p, value: p }))} value="1Y" onChange={noop} />
+  {children}
+</div>;
+
 const specimens = [
-  { id: 'fast-glance' },
+  { id: 'fast-glance',
+    do: () => <Screen><Cashflow id="gd-fold-do" /><Attention /></Screen>,
+    dont: () => <Screen fold><Cashflow id="gd-fold-dont" /><MonthBlock view="chart" /><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /><Attention /></Screen> },
   { id: 'figures-and-exceptions',
     do: () => <Stage><Cashflow id="gd-glance-do" /><Attention /></Stage>,
     dont: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></Stage> },

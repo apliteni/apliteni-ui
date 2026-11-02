@@ -31,6 +31,13 @@ const WithRail = ({ id, active, above }: { id: string; active?: string; above: R
     <SidebarNav items={RAIL} active={active} activeIs="section" collapsed aria-label={`${id} sidebar`} />
     <div className="gb-head">{above}<p className="gb-title">INV-1001</p></div>
   </div></div>;
+// The page under a pointer that rests on the link, with the address the browser
+// shows in its status bubble drawn at the window's foot.
+const Hovered = ({ address }: { address: string }) =>
+  <div className="gl-stage"><div className="gb-window">
+    <div className="gb-head"><Back label="Invoices" /><p className="gb-title">Invoice INV-1001</p></div>
+    <p className="gb-status">{address}</p>
+  </div></div>;
 const Send = () => <Button variant="primary" size="sm">Send</Button>;
 
 const specimens = [
@@ -38,7 +45,9 @@ const specimens = [
     dont: () => <Head above={<Back label="Dashboard" />} title="Invoices" /> },
   { id: 'name-it', do: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001" />,
     dont: () => <Head above={<Back label="Back" />} title="Invoice INV-1001" /> },
-  { id: 'address-not-history' },
+  { id: 'address-not-history',
+    do: () => <Hovered address="https://app.example.com/invoices?status=overdue&sort=due&page=3" />,
+    dont: () => <Hovered address="javascript:history.back()" /> },
   { id: 'one-or-the-other', do: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001" />,
     dont: () => <Head title="Invoice INV-1001" above={<>
       <Back label="Finance" />

@@ -21,6 +21,8 @@ const AXE_OPTS: axe.RunOptions = {
   runOnly: { type: 'tag', values: WCAG },
   resultTypes: ['violations'],
   rules: { 'color-contrast': { enabled: false } },
+  // axe cannot enter a frame under jsdom. A guideline phone frame repeats a specimen the page also draws outside it.
+  iframes: false,
 };
 const THEMES = ['dark', 'light'];
 

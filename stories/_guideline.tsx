@@ -1,5 +1,6 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Badge } from '../react/src/primitives/Badge';
 import { Button } from '../react/src/primitives/Button';
 import { Icon } from '../react/src/primitives/Icon';
@@ -104,17 +105,98 @@ export const Typed = ({ query, children }: { query: string; children: ReactNode 
  * anchor its wiring would have measured, so a page can show one without a pointer. */
 export const TipPicture = ({ label = '', value = '', detail = '', placement = 'top', x, y }: {
   label?: string; value?: string; detail?: string; placement?: 'top' | 'bottom'; x: number; y: number;
-}) => <div className={`ui-tip${placement === 'bottom' ? ' is-below' : ''} is-open`} role="tooltip"
+}) => {
+  const tip = useRef<HTMLDivElement>(null);
+  // The wiring slides a readout along the mark to stay inside the view. The picture
+  // slides it inside its cell, and keeps its side: a side is what some pairs show.
+  useLayoutEffect(() => {
+    const el = tip.current;
+    const cell = el?.closest('.gc-cell');
+    if (!el || !cell) return;
+    const slide = () => {
+      el.style.setProperty('--ui-tip-shift', '0px');
+      const r = el.getBoundingClientRect();
+      const c = cell.getBoundingClientRect();
+      const shift = r.left < c.left ? c.left - r.left : r.right > c.right ? c.right - r.right : 0;
+      el.style.setProperty('--ui-tip-shift', `${shift}px`);
+    };
+    slide();
+    void document.fonts?.ready.then(slide);
+    const watch = typeof ResizeObserver === 'function' ? new ResizeObserver(slide) : null;
+    watch?.observe(cell);
+    return () => watch?.disconnect();
+  }, []);
+  return <div ref={tip} className={`ui-tip${placement === 'bottom' ? ' is-below' : ''} is-open`} role="tooltip"
   style={{ ['--ui-tip-x' as string]: `${x}px`, ['--ui-tip-y' as string]: `${y}px` }}>
   <span className="ui-tip__label" hidden={!label}>{label}</span>
   <span className="ui-tip__value" hidden={!value}>{value}</span>
   <span className="ui-tip__detail" hidden={!detail}>{detail}</span>
 </div>;
+};
+
+/* A narrow viewport inside the page, for a rule that only a phone shows: a frame
+ * with the page's own sheets and theme, so the kit's phone rules apply inside it.
+ * The page's own sheet stays out, as it stays out of a real phone. */
+export const PhoneFrame = ({ width = 200, label, children }: { width?: number; label: string; children: ReactNode }) => {
+  const frame = useRef<HTMLIFrameElement>(null);
+  const [body, setBody] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const doc = frame.current?.contentDocument;
+    if (!doc) return;
+    // The frame's height follows its content, so a table bounded by the viewport height would shrink with it.
+    doc.open(); doc.write('<!doctype html><html><head></head><body style="margin:0; --ui-table-height: none"></body></html>'); doc.close();
+    for (const sheet of document.querySelectorAll('style, link[rel="stylesheet"]')) doc.head.append(sheet.cloneNode(true));
+    const theme = () => { for (const name of ['data-theme', 'data-accent']) {
+      const value = document.documentElement.getAttribute(name);
+      if (value === null) doc.documentElement.removeAttribute(name); else doc.documentElement.setAttribute(name, value);
+    } };
+    theme();
+    const watch = new MutationObserver(theme);
+    watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-accent'] });
+    const box = doc.createElement('div');
+    doc.body.append(box);
+    // The frame's own observer: one from this window does not see a box in another document.
+    const view = doc.defaultView as (Window & typeof globalThis) | null;
+    const fit = typeof view?.ResizeObserver === 'function'
+      ? new view.ResizeObserver(() => { if (frame.current) frame.current.style.height = `${box.offsetHeight}px`; }) : null;
+    fit?.observe(box);
+    setBody(box);
+    return () => { watch.disconnect(); fit?.disconnect(); };
+  }, []);
+  return <iframe ref={frame} className="gl-phone" title={label} tabIndex={-1} style={{ width }}>{body && createPortal(children, body)}</iframe>;
+};
 
 /* The pictures join the page flow at the specimen width. */
 const PICTURE_CSS = `<style>
   .gl-stage--confirm .rx-modal { width: auto; transform: none; max-height: none; }
+  .gl-phone { display: block; flex: none; border: 1px solid var(--border); border-radius: var(--radius-lg); }
+  /* What :focus-visible paints, at rest: a picture cannot hold a live focus. */
+  .gl-focus { outline: var(--ring); outline-offset: var(--ring-offset); }
+  .gl-strip { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+  /* A frame and a said picture shrink to the cell: a panel's min-content is wider than a phone cell. */
+  .gl-strip__frame { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); align-content: start; min-width: 0; }
+  .gl-strip__step { margin: 0; font-size: var(--text-sm); }
+  .gl-said { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+  .gl-said__lines { display: grid; gap: var(--space-1); font-size: var(--text-sm); }
+  .gl-said__lines > p { margin: 0; }
+  .gl-said__label { /* muted-ink: chrome — names what the lines below are */ color: var(--muted); }
 </style>`;
+
+/** A gesture or a key press in steps, one frame each and named under it: a rule
+ *  about a sequence cannot be shown in one still picture. */
+export const FrameStrip = ({ frames }: { frames: { step: string; picture: ReactNode }[] }) => <ol className="gl-strip">
+  {frames.map(({ step, picture }) => <li key={step} className="gl-strip__frame">{picture}<p className="gl-strip__step">{step}</p></li>)}
+</ol>;
+
+/** What a screen reader says after one press, drawn under the picture of the press:
+ *  speech has no picture of its own. `.gl-focus` draws the focus ring at rest. */
+export const SaidPicture = ({ lines, children }: { lines: string[]; children: ReactNode }) => <div className="gl-said">
+  {children}
+  <div className="gl-said__lines">
+    <p className="gl-said__label">Screen reader says</p>
+    {lines.map(line => <p key={line} className="gl-said__line">“{line}”</p>)}
+  </div>
+</div>;
 
 /** A trusted style sheet from this repository, written once as the vanilla page wrote it. */
 export const Sheet = ({ css }: { css: string }) =>

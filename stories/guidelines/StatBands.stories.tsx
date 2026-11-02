@@ -20,6 +20,10 @@ const Stage = ({ children }: { children: ReactNode }) => <div className="gs-stag
 const BASIS = 'Change against the previous 12 months';
 const INCOME = [412, 455, 430, 498, 520, 505, 560, 548, 590, 610, 587, 640];
 type Tone = 'good' | 'bad';
+const FIGURES = [
+  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
+  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
+];
 const toned = (id: string, tones: (Tone | undefined)[]) => <Stage><StatBand id={id} basis={BASIS} stats={[
   { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: tones[0] } },
   { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: tones[1] } },
@@ -40,7 +44,10 @@ const specimens = [
   { id: 'tone-not-direction',
     do: () => toned('gs-tone-do', ['good', 'bad', undefined, 'good']),
     dont: () => toned('gs-tone-dont', ['good', 'good', 'good', 'bad']) },
-  { id: 'say-the-basis' },
+  { id: 'say-the-basis',
+    do: () => <Stage><StatBand id="gs-basis-do" basis={BASIS} stats={FIGURES} /></Stage>,
+    // The kit's own caption, moved after the figures it should come before.
+    dont: () => <Stage><StatBand id="gs-basis-dont" stats={FIGURES} /><p className="ui-stats__basis">{BASIS}</p></Stage> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Stat bands', parameters: { layout: 'fullscreen' } };

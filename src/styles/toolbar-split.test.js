@@ -84,4 +84,6 @@ test('one toolbar line: every control takes the line height', () => {
     'the bar centres its chips, so a chip stands shorter than the line');
   assert.match(body(bar, '.ui-toolbar .ui-filter-bar [data-filter-clear]'), /display:\s*flex/,
     'an inline wrapper leaves the clear button at its own height');
+  assert.match(body(bar, '.ui-toolbar .ui-filter-bar [data-filter-clear] button'), /min-height:\s*var\(--ui-filter-row-h\)/,
+    'alone on a phone row the clear button falls to its own height, so the tap sheet changes its size');
 });
