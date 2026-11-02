@@ -118,8 +118,9 @@ const sourceAmong = (invented = {}) => (file) => invented[file]
 /* Measured, not guessed: the figures as this gate last audited them. Every one is a
  * lower bound, so the gate fails when the reading stops reaching something rather than
  * when the collection grows. #429 PR 5b re-audited: the vanilla stories left, and the
- * React showcases are the subjects. #758 removed the Signal contrast page. */
-const FOUND = { subjects: 17, served: 48, declarations: 67, carriers: 8, sheets: 0 };
+ * React showcases are the subjects. #758 removed the Signal contrast page. The guideline
+ * charts moved to the kit Chart, and `_chart.js` took its 19 declarations with it. */
+const FOUND = { subjects: 17, served: 48, declarations: 48, carriers: 7, sheets: 0 };
 
 const tokens = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -178,10 +179,9 @@ export const GLUE_CEILING = 22;
  * The follow-ups are listed in #601's audit; the ones that would clear the most at once
  * are a kit page-head part (the `font: 600 22px/1.2 var(--font-display)` repeated across
  * Confirm, Drawer, Stat, Feedback and CommandPalette), a type rank for the specimen
- * label in `_gallery.js`, a specimen mode for an overlay, and a chart the kit owns
- * instead of `_chart.js`. */
+ * label in `_gallery.js` and a specimen mode for an overlay. The guideline charts
+ * left `_chart.js` for the kit Chart. */
 const RECORDED = {
-  'stories/_chart.js': { shadow: 15 },
   'stories/_gallery.js': { shadow: 2 },
   'stories/apps/Access.stories.tsx': { shadow: 2 },
   'stories/apps/StockScreener.stories.tsx': { shadow: 9 },

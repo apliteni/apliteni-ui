@@ -39,7 +39,7 @@ const Filtered = ({ bar = true, stretch = false }: { bar?: boolean; stretch?: bo
 // One ledger for the pictures below, so a pair differs only in what its rule is about.
 type Payout = { ref: string; payee: string; amount: string; fee: string; change: string | null; tone: 'success' | 'danger' | 'neutral'; on: string; account: string };
 const LEDGER: Payout[] = [
-  { ref: '1162', payee: 'Northwind Traders', amount: '1,240.00', fee: '25', change: '+12.4%', tone: 'success', on: '3 Apr', account: '4417' },
+  { ref: '1162', payee: 'Northwind Ltd', amount: '1,240.00', fee: '25', change: '+12.4%', tone: 'success', on: '3 Apr', account: '4417' },
   { ref: '1161', payee: 'Blue Fern Studio', amount: '860.00', fee: '30', change: '−3.1%', tone: 'danger', on: '2 Apr', account: '2093' },
   { ref: '1160', payee: 'Harbour Cafe', amount: '12,100.00', fee: '25', change: null, tone: 'neutral', on: '2 Apr', account: '7781' },
   { ref: '1159', payee: 'Oak Lane Books', amount: '415.50', fee: '40', change: '+0.8%', tone: 'success', on: '1 Apr', account: '3350' },

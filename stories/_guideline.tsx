@@ -101,37 +101,66 @@ export const Typed = ({ query, children }: { query: string; children: ReactNode 
   return <div ref={box} style={{ display: 'contents' }}>{children}</div>;
 };
 
-/* An open readout, as a picture: the React Tooltip's own parts, held open at the
- * anchor its wiring would have measured, so a page can show one without a pointer. */
-export const TipPicture = ({ label = '', value = '', detail = '', placement = 'top', x, y }: {
-  label?: string; value?: string; detail?: string; placement?: 'top' | 'bottom'; x: number; y: number;
-}) => {
-  const tip = useRef<HTMLDivElement>(null);
-  // The wiring slides a readout along the mark to stay inside the view. The picture
-  // slides it inside its cell, and keeps its side: a side is what some pairs show.
+/* A kit Chart with its own readout open on one mark, as a pointer leaves it. The
+ * page sends the mark the move a pointer sends, so the Chart places the readout
+ * itself. When the pointer, the focus or a resize closes it, or it scrolls into
+ * view, it opens again on that mark. Escape still dismisses it. `above` keeps it above the mark where the
+ * Chart would flip it, which only a don't shows. */
+export const OpenReadout = ({ mark, above = false, children }: { mark: string; above?: boolean; children: ReactNode }) => {
+  const box = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
-    const el = tip.current;
-    const cell = el?.closest('.gc-cell');
-    if (!el || !cell) return;
-    const slide = () => {
-      el.style.setProperty('--ui-tip-shift', '0px');
-      const r = el.getBoundingClientRect();
-      const c = cell.getBoundingClientRect();
-      const shift = r.left < c.left ? c.left - r.left : r.right > c.right ? c.right - r.right : 0;
-      el.style.setProperty('--ui-tip-shift', `${shift}px`);
+    const root = box.current;
+    if (!root) return;
+    let frame = 0;
+    const hit = () => [...root.querySelectorAll('[data-mark]')].find(el => el.getAttribute('data-mark') === mark);
+    // The Chart places a readout only when it opens, so a resize closes it first:
+    // a move over the plot outside any mark, then the move onto the mark.
+    const open = () => {
+      root.querySelector('.ui-chart__svg')?.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+      frame = requestAnimationFrame(() => {
+        hit()?.firstElementChild?.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+        if (above) keepAbove();
+      });
     };
-    slide();
-    void document.fonts?.ready.then(slide);
-    const watch = typeof ResizeObserver === 'function' ? new ResizeObserver(slide) : null;
-    watch?.observe(cell);
-    return () => watch?.disconnect();
-  }, []);
-  return <div ref={tip} className={`ui-tip${placement === 'bottom' ? ' is-below' : ''} is-open`} role="tooltip"
-  style={{ ['--ui-tip-x' as string]: `${x}px`, ['--ui-tip-y' as string]: `${y}px` }}>
-  <span className="ui-tip__label" hidden={!label}>{label}</span>
-  <span className="ui-tip__value" hidden={!value}>{value}</span>
-  <span className="ui-tip__detail" hidden={!detail}>{detail}</span>
-</div>;
+    // The Chart's anchor measured as its placement measures it, without the flip.
+    const keepAbove = () => {
+      const tip = root.querySelector<HTMLElement>('.ui-tip');
+      const host = tip?.closest<HTMLElement>('.ui-tip-host');
+      const anchor = [...root.querySelectorAll('[data-anchor]')].find(el => el.getAttribute('data-anchor') === mark);
+      if (!tip || !host || !anchor || !tip.classList.contains('is-below')) return;
+      tip.classList.remove('is-below');
+      const y = anchor.getBoundingClientRect().top - host.getBoundingClientRect().top - host.clientTop + host.scrollTop;
+      tip.style.setProperty('--ui-tip-y', `${y}px`);
+    };
+    const later = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(open); };
+    const out = (event: Event) => {
+      const next = (event as MouseEvent | FocusEvent).relatedTarget as Node | null;
+      if (!next || !root.contains(next)) later();
+    };
+    const tipWatch = new MutationObserver(() => { if (above) keepAbove(); });
+    const sizeWatch = typeof ResizeObserver === 'function' ? new ResizeObserver(later) : null;
+    sizeWatch?.observe(root.firstElementChild ?? root);
+    // The room it measures includes the viewport, so one placed off screen opens again in view.
+    const viewWatch = typeof IntersectionObserver === 'function' ? new IntersectionObserver(later, { threshold: [0, 1] }) : null;
+    viewWatch?.observe(root.firstElementChild ?? root);
+    const tip = root.querySelector('.ui-tip');
+    if (tip) tipWatch.observe(tip, { attributes: true, attributeFilter: ['class'] });
+    root.addEventListener('mouseout', out);
+    root.addEventListener('focusout', out);
+    window.addEventListener('resize', later);
+    later();
+    void document.fonts?.ready.then(later);
+    return () => {
+      cancelAnimationFrame(frame);
+      tipWatch.disconnect();
+      sizeWatch?.disconnect();
+      viewWatch?.disconnect();
+      root.removeEventListener('mouseout', out);
+      root.removeEventListener('focusout', out);
+      window.removeEventListener('resize', later);
+    };
+  }, [mark, above]);
+  return <div ref={box} style={{ display: 'contents' }}>{children}</div>;
 };
 
 /* A narrow viewport inside the page, for a rule that only a phone shows: a frame

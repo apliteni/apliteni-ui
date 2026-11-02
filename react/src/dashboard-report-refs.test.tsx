@@ -9,9 +9,8 @@
  * rejected: #505.
  *
  * Every column both sides of a comparison draw is compared, so the set widens
- * by itself when a table gains one. Today: net and status everywhere, fees
- * between the guideline's ledger and the report, arrival between the dashboard
- * and the report.
+ * by itself when a table gains one. Today: net and status everywhere, and
+ * arrival between the dashboard and the report.
  *
  * The second half drives the links themselves: a click inside the manager, a click
  * in a bare preview, and the arrival each one asks for.
@@ -31,9 +30,10 @@
  *   - The rail's Invoices and Preferences, which have no screen in the kit.
  *   - Row order, and the report's Payout ID column, which nothing else draws.
  *   - Any screen outside these three. A consumer's dashboard is its own.
- *   - A column the guideline carries in source and never renders. The gross is
- *     the one of those, so it is read from the specimen's export instead and
- *     held against the report's rendered column; nothing else is.
+ *   - A column the guideline carries in source and never renders. The gross and
+ *     the fees are those, so they are read from the specimen's export instead:
+ *     the gross is held against the report's rendered column, and the fees
+ *     through the net that gross less fees must give.
  *
  * Discover subjects from source and check the coverage count.
  */
@@ -165,7 +165,7 @@ test('the guideline prints the report\'s own rows, with its own figures and stat
     problems.push(...disagreements(rows, report, `the guideline's reference table ${i + 1}`));
   }
 
-  // Nine reference tables on the page: the four-column ledger in four cells at
+  // Nine reference tables on the page: the three-column ledger in four cells at
   // five rows each, and the three-row exceptions card in five. The count is
   // the anti-vacuity guard — a walk that stops finding tables passes every
   // assertion above it.
@@ -173,9 +173,9 @@ test('the guideline prints the report\'s own rows, with its own figures and stat
   assert.deepEqual(problems, [], `the guideline page and the Finance report disagree:\n  ${problems.join('\n  ')}`);
 });
 
-// The gross is the one column the guideline keeps and never draws, so a
-// rendered comparison cannot reach it. It is the figure that makes each net
-// checkable, so it is read from the specimen's own export instead.
+// The gross and the fees are the columns the guideline keeps and never draws, so
+// a rendered comparison cannot reach them. They make each net checkable, so they
+// are read from the specimen's own export instead.
 test('the gross the guideline keeps undrawn is the report\'s gross, and its nets follow from it', () => {
   const report = reportLedger();
   const money = (text) => Number(text.replaceAll(',', ''));

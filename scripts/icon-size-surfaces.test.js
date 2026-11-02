@@ -62,7 +62,9 @@ const rel = (p) => path.relative(root, p);
 // 18 -> 10: #429 PR 5b removes the vanilla stories, whose own `<style>` blocks held
 // the other eight declarations.
 // 10 -> 12: svgOpen() classes join discovery, restoring .ch-chart--fluid's width and height.
-const EXPECTED_SUBJECTS = 12;
+// 12 -> 10: the guideline charts became the kit Chart, so stories/_chart.js and
+// its .ch-chart--fluid width and height went.
+const EXPECTED_SUBJECTS = 10;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes
@@ -226,17 +228,12 @@ CHUNKS.forEach(({ from }, i) => {
   }
 });
 
-test('the sweep still recognises a class the kit puts on an svg, direct or through svgOpen', () => {
+test('the sweep still recognises a class the kit puts on an svg', () => {
   // If this derivation ever returns nothing, every class-on-svg rule silently
   // leaves coverage — which is how .ui-fbck was missed in src the first time.
   assert.ok(SVG_CLASSES.has('ic'),
     'the scanner no longer finds `ic`, the class site/index.html writes onto its copy-button svgs; '
     + `it found: ${[...SVG_CLASSES].join(', ') || '(nothing)'}`);
-  // A class built into svgOpen()'s first argument renders exactly like one
-  // written into the tag, so it must join the set the same way.
-  assert.ok(SVG_CLASSES.has('ch-chart--fluid'),
-    'the scanner no longer finds `ch-chart--fluid`, the class stories/_chart.js passes through '
-    + 'svgOpen(); a rule sizing it would silently leave coverage');
 });
 
 test('the Storybook chrome is one of the swept surfaces', () => {

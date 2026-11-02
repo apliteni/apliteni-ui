@@ -6,11 +6,11 @@
 
 **Rule:** Add a back link only when the page is under another page.
 
-**Why:** It provides the missing move from a record to its parent list.
+**Why:** It gives the missing path from a record to its parent list.
 
 **Do:** From an invoice record, link to the invoice list.
 
-**Don't:** Add one to the Invoices sidebar section; it is not a child page.
+**Don't:** Add one to the Invoices sidebar section. It is not a child page.
 
 ## Name the destination
 
@@ -18,13 +18,13 @@
 
 **Rule:** Name the destination instead of using only “Back”.
 
-**Why:** The arrow shows direction, so the words should identify the destination.
+**Why:** The arrow shows direction, so the words must identify the destination.
 
-**Do:** Say “Back to Invoices”, matching the sidebar spelling; hide the arrow from screen readers.
+**Do:** Write “Back to Invoices” with the sidebar spelling. Hide the arrow from screen readers.
 
-**Don't:** Use “Back”, which does not identify the destination in a screen reader’s links list.
+**Don't:** Use “Back”. It does not identify the destination in a screen reader’s links list.
 
-**Except:** A multi-screen form may use “Back” for the previous step; that is a form button, not this link.
+**Except:** A multi-screen form can use “Back” for the previous step. That is a form button, not this link.
 
 ## Link to the parent address
 
@@ -38,7 +38,7 @@
 
 **Don't:** Use a history link that fails in a new tab or shared address.
 
-**Except:** After search or another record, still link to the parent; browser Back returns to the previous location.
+**Except:** After search or another record, still link to the parent. Browser Back returns to the previous location.
 
 ## Skip the trail
 
@@ -58,9 +58,9 @@
 
 **Rule:** Keep the parent section active with `aria-current="true"`, not `"page"`, and use its name in the link.
 
-**Why:** The record remains in its list’s section without making the list seem like the current page; `appShell()` does this when given a back link.
+**Why:** The record stays in its list’s section without making the list look like the current page. `appShell()` does this when given a back link.
 
-**Do:** Keep the sidebar row active and say “Back to Invoices”.
+**Do:** Keep the sidebar row active and write “Back to Invoices”.
 
 **Don't:** Leave the section inactive or give it another name.
 
