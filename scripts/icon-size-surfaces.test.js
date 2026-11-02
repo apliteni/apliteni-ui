@@ -62,7 +62,8 @@ const rel = (p) => path.relative(root, p);
 // 18 -> 10: #429 PR 5b removes the vanilla stories, whose own `<style>` blocks held
 // the other eight declarations.
 // 10 -> 12: svgOpen() classes join discovery, restoring .ch-chart--fluid's width and height.
-const EXPECTED_SUBJECTS = 12;
+// 12 -> 14: the Motion guideline draws each easing curve as a plot, `.gm-plot svg`.
+const EXPECTED_SUBJECTS = 14;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes

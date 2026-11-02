@@ -2,6 +2,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
 import { GuidelinePage } from '../_guideline';
+import { BackLink } from '../../react/src/BackLink';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
@@ -38,8 +39,8 @@ const Stack = ({ n, over = false }: { n: number; over?: boolean }) => <Stage>
 // One density per page. Each table keeps its filter bar directly above it.
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
 const MiniTable = ({ dense }: { dense: boolean }) => <table className={`ui-table ui-table--zebra${dense ? ' ui-table--dense' : ''}`}>
-  <thead><tr><th>ID</th><th>Arrival</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
-  <tbody><tr><td>1162</td><td>2026-06-30</td><td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr></tbody>
+  <thead><tr><th>ID</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
+  <tbody><tr><td>1162</td><td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr></tbody>
 </table>;
 const Densities = ({ second }: { second: boolean }) => <Stage><div className="tp-rows">
   <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />
@@ -59,13 +60,56 @@ const Frame = ({ centered, over }: { centered: boolean; over: boolean }) => <Sta
   </div>
 </div></Stage>;
 
+// One shell on two pages: the don't moves search and the reader's menu on the second.
+const Shell = ({ name, moved = false }: { name: string; moved?: boolean }) => <div className="tp-shell">
+  <div className="tp-lay" aria-hidden="true">
+    <div className="tp-lay__rail" />
+    <div className="tp-lay__well">
+      <div className="tp-lay__bar tp-lay__bar--parts">{moved
+        ? <><div className="tp-lay__me" /><div className="tp-lay__search" /></>
+        : <><div className="tp-lay__search" /><div className="tp-lay__me" /></>}</div>
+      <div className="tp-lay__col">{Array.from({ length: 4 }, (_, i) => <div key={i} className="tp-lay__ln" />)}</div>
+    </div>
+  </div>
+  <span className="tp-shell__name">{name}</span>
+</div>;
+const Shells = ({ moved = false }: { moved?: boolean }) =>
+  <Stage><div className="tp-shells"><Shell name="Payouts" /><Shell name="Invoices" moved={moved} /></div></Stage>;
+
+// The head in reading order, or with the filters lifted above the title.
+const PAYOUT_FILTERS = <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />;
+const Title = ({ lede = 'Payouts arrive within three business days.' }: { lede?: string }) => <>
+  <h2 className="tp-title">Payouts</h2><p className="tp-lede">{lede}</p>
+</>;
+const Head = ({ lifted = false }: { lifted?: boolean }) => <Stage><div className="tp-rows">
+  <div className="tp-head"><BackLink href="#" label="Finance" />{lifted ? null : <Title />}</div>
+  {lifted ? <>{PAYOUT_FILTERS}<div className="tp-head"><Title /></div></> : PAYOUT_FILTERS}
+</div></Stage>;
+
+// The same page at rest, and with a dialog that opened itself on load.
+const Resting = ({ covered = false }: { covered?: boolean }) => <Stage><div className="tp-rest">
+  <div className="tp-rows">
+    <div className="tp-head"><Title /></div>
+    <div className="tp-acts"><Button variant="secondary">What’s new</Button></div>
+  </div>
+  {covered && <div className="tp-rest__scrim"><div className="rx-modal" role="group" aria-label="What’s new">
+    <div className="rx-modal__head"><h2 className="rx-modal__title">What’s new</h2>
+      <Button variant="ghost" size="sm" iconOnly icon="x" aria-label="Close" /></div>
+    <div className="rx-modal__body"><p>Payout filters now keep your last search.</p></div>
+  </div></div>}
+</div></Stage>;
+
 // The rules a designer decides, in the order a page is read. Which line of the kit
 // holds each of them is the RULE_TO_CODE table in stories/guidelines/the-page.test.js.
 const specimens = [
-  { id: 'layout' },
+  { id: 'layout', do: () => <Shells />, dont: () => <Shells moved /> },
   { id: 'width', do: () => <Frame centered={false} over={false} />, dont: () => <Frame centered over /> },
-  { id: 'head' },
-  { id: 'one-h1' },
+  { id: 'head', do: () => <Head />, dont: () => <Head lifted /> },
+  { id: 'one-h1',
+    do: () => <Stage><div className="tp-out"><Out rank={1} text="Payouts" /><Out rank={2} text="Last 7 days" />
+      <Out rank={2} text="Failed this week" /></div></Stage>,
+    dont: () => <Stage><div className="tp-out"><Out rank={1} text="Payouts" /><Out rank={1} text="Failed this week" bad />
+      <Out rank={2} text="Last 7 days" /></div></Stage> },
   { id: 'outline',
     do: () => <Stage><div className="tp-out"><Out rank={1} text="Payouts" /><Out rank={2} text="Last 7 days" />
       <Out rank={2} text="Payouts" /><Out rank={3} text="Failed this week" /></div></Stage>,
@@ -73,9 +117,10 @@ const specimens = [
       <Out rank={3} text="Payouts" bad /><Out rank={4} text="Failed this week" bad /></div></Stage> },
   { id: 'one-primary', do: () => <Agents />, dont: () => <Agents all /> },
   { id: 'stacking', do: () => <Stack n={LIMITS.cards} />, dont: () => <Stack n={12} over /> },
-  { id: 'at-rest' },
+  { id: 'at-rest', do: () => <Resting />, dont: () => <Resting covered /> },
   { id: 'density', do: () => <Densities second />, dont: () => <Densities second={false} /> },
-  { id: 'lede' },
+  { id: 'lede', do: () => <Stage><div className="tp-head"><Title /></div></Stage>,
+    dont: () => <Stage><div className="tp-head"><Title lede="This is the payouts page." /></div></Stage> },
 ];
 
 const meta: Meta = { title: 'Guidelines/The page', parameters: { layout: 'fullscreen' } };
