@@ -26,7 +26,7 @@ export const SPEC_CSS = `
       border-radius: var(--radius-xs); padding: 1px 6px; flex: none; }
     .tp-out__row--2 { padding-left: var(--space-4); }
     .tp-out__row--3 { padding-left: var(--space-8); }
-    .tp-out__row--4 { padding-left: var(--space-10); }
+    .tp-out__row--4 { padding-left: var(--space-12); }
     .tp-out__row--bad .tp-out__rank { color: var(--pink);
       background: color-mix(in srgb, var(--pink) 16%, transparent); }
 
@@ -60,6 +60,31 @@ export const SPEC_CSS = `
     /* The one thing a too-narrow column does to a table: the last column leaves. */
     .tp-lay__col--clip { overflow: hidden; }
     .tp-lay__ln--over { width: 150%; flex: none; }
+
+    /* The shell, twice: the bar holds search at its start and the reader's menu at its end. */
+    .tp-shells { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+    .tp-shell { display: flex; flex-direction: column; gap: var(--space-2); }
+    .tp-shell .tp-lay { height: 110px; }
+    .tp-lay__bar--parts { height: 15px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 4px; }
+    .tp-lay__search { height: 7px; width: 45%; border-radius: 2px; background: var(--surface);
+      box-shadow: inset 0 0 0 1px var(--border); }
+    .tp-lay__me { height: 9px; width: 9px; border-radius: 50%; background: var(--muted); }
+    .tp-shell__name { font-size: var(--text-xs); color: var(--text); }
+
+    /* A page head inside a specimen, at the drawer title's rank, so no specimen
+       outranks the rule headings on this page. */
+    .tp-head { display: flex; flex-direction: column; gap: var(--space-2); }
+    .tp-title { margin: 0; color: var(--strong); font-family: var(--font-sans);
+      font-size: calc(var(--text-base) + 0.5px); font-weight: var(--weight-semibold); }
+    .tp-lede { margin: 0; color: var(--text); font-size: var(--text-sm); max-width: var(--prose-dense); }
+
+    /* A page with a dialog over it: the dialog is the kit's, drawn in place. */
+    .tp-rest { position: relative; overflow: hidden; border-radius: var(--radius-md);
+      padding: var(--space-4); background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
+    .tp-rest__scrim { position: absolute; inset: 0; display: grid; place-items: center;
+      padding: var(--space-4); background: var(--drawer-scrim); }
+    .tp-rest .rx-modal { width: auto; transform: none; max-height: none; }
 
     .tp-acts { display: flex; gap: var(--space-2); flex-wrap: wrap; }
     .tp-rows { display: flex; flex-direction: column; gap: var(--space-4); }

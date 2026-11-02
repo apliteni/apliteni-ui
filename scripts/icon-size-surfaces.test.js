@@ -64,7 +64,8 @@ const rel = (p) => path.relative(root, p);
 // 10 -> 12: svgOpen() classes join discovery, restoring .ch-chart--fluid's width and height.
 // 12 -> 18: the Iconography guideline specimens size `.gl-glyph svg`, `.gl-stroke svg`
 // and `.gl-stroke__big svg`, width and height apiece.
-const EXPECTED_SUBJECTS = 18;
+// 18 -> 20: the Motion guideline draws each easing curve as a plot, `.gm-plot svg`.
+const EXPECTED_SUBJECTS = 20;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes
