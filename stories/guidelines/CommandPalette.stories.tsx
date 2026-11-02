@@ -1,7 +1,7 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import type { Meta, StoryObj } from '@storybook/react';
 import { icon, rankGroups } from '@apliteni/apliteni-ui';
-import { GuidelinePage } from '../_guideline';
+import { FrameStrip, GuidelinePage, SaidPicture } from '../_guideline';
 import type { CommandGroup, CommandItem } from '../../react/src/CommandPalette';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
@@ -21,13 +21,18 @@ const Glyph = ({ name, className }: { name: string; className: string }) =>
 const keysOf = (shortcut?: string | string[]) => (shortcut == null ? [] : Array.isArray(shortcut) ? shortcut : [shortcut]);
 const refused = (item: Row) => Boolean(item.disabled || (item.danger && !item.confirm));
 
-const Palette = ({ groups, query = '', rank = true }: { groups: { label?: string; items: Row[] }[]; query?: string; rank?: boolean }) => {
+/* `active` names the lit row, the first runnable one by default. `focus` says what
+ * holds focus: the text box, as the palette has it, or the lit row. */
+type PaletteProps = { groups: { label?: string; items: Row[] }[]; query?: string; rank?: boolean;
+  active?: string; focus?: 'input' | 'row' };
+const Palette = ({ groups, query = '', rank = true, active: lit, focus }: PaletteProps) => {
   const shown = (rank ? rankGroups(groups, query) as CommandGroup[] : groups).filter(g => g.items.length) as { label?: string; items: Row[] }[];
-  const active = shown.flatMap(g => g.items).find(item => !refused(item));
+  const all = shown.flatMap(g => g.items);
+  const active = lit ? all.find(item => item.id === lit) : all.find(item => !refused(item));
   return <div className="gc-stage"><div className="ui-cmdk is-open">
     <div className="ui-cmdk__scrim" />
     <div className="ui-cmdk__panel" role="group" aria-label="Command palette">
-      <div className="ui-cmdk__search">
+      <div className={`ui-cmdk__search${focus === 'input' ? ' gl-focus-in' : ''}`}>
         <Glyph name="search" className="ui-cmdk__search-ic" />
         <input className="ui-cmdk__input" type="text" aria-label="Command palette" placeholder="Search or run a command…"
           defaultValue={query} readOnly autoComplete="off" spellCheck={false} />
@@ -39,7 +44,7 @@ const Palette = ({ groups, query = '', rank = true }: { groups: { label?: string
             const off = refused(item);
             return <div key={item.id} role="option" aria-selected={item === active} aria-disabled={off || undefined}
               aria-haspopup={item.danger && item.confirm && !off ? 'dialog' : undefined}
-              className={['ui-cmdk__item', item.danger && !off && 'is-danger', off && 'is-disabled', item === active && 'is-active'].filter(Boolean).join(' ')}>
+              className={['ui-cmdk__item', item.danger && !off && 'is-danger', off && 'is-disabled', item === active && 'is-active', item === active && focus === 'row' && 'gl-focus-in'].filter(Boolean).join(' ')}>
               {item.icon && <Glyph name={item.icon} className="ui-cmdk__ic" />}
               <span className="ui-cmdk__main">
                 <span className="ui-cmdk__label">{item.label}</span>
@@ -75,7 +80,11 @@ const RECENT: Row[] = [
   { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd · €2,480 · unpaid', icon: 'doc', badge: 'Unpaid', href: '#i1' },
   { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH · €960 · paid', icon: 'doc', href: '#i2' },
 ];
+const GO_TO = { label: 'Go to', items: PLACES };
 const GROUPED = [{ label: 'Actions', items: ACTIONS }, { label: 'Go to', items: PLACES }, { label: 'Recent', items: RECENT }];
+
+// The rows the kit's ranking keeps for "inv", in its order. The live region says their count.
+const INV = (rankGroups(GROUPED, 'inv') as CommandGroup[]).flatMap(g => g.items);
 
 const specimens = [
   { id: 'named-things', do: () => <Palette groups={GROUPED} />,
@@ -98,8 +107,21 @@ const specimens = [
       { id: 'invite', label: 'Invite a teammate', description: 'They get a read-only seat', icon: 'user' },
       { id: 'new-invoice', label: 'New invoice', description: 'Draft one for a client', icon: 'plus' },
     ] }]} /> },
-  { id: 'keyboard' },
-  { id: 'say-it' },
+  { id: 'keyboard',
+    do: () => <FrameStrip frames={[
+      { step: 'On the last row', picture: <Palette groups={[GO_TO]} active="settings" /> },
+      { step: 'Press Down', picture: <Palette groups={[GO_TO]} active="reports" /> },
+    ]} />,
+    // The caret is not drawn: Home should have moved it, and moved the row instead.
+    dont: () => <FrameStrip frames={[
+      { step: 'Type “inv”, press Down', picture: <Palette groups={GROUPED} query="inv" active={INV[1].id} /> },
+      { step: 'Press Home', picture: <Palette groups={GROUPED} query="inv" active={INV[0].id} /> },
+    ]} /> },
+  { id: 'say-it',
+    do: () => <SaidPicture lines={[`${INV.length} results`]}>
+      <Palette groups={GROUPED} query="inv" focus="input" /></SaidPicture>,
+    dont: () => <SaidPicture lines={INV.map(item => `${item.label}, ${item.description}`)}>
+      <Palette groups={GROUPED} query="inv" focus="row" /></SaidPicture> },
   { id: 'ask-first',
     do: () => <Palette groups={[{ label: 'Danger zone', items: [
       { id: 'del', label: 'Delete workspace…', description: 'Nebula · 42 API keys', icon: 'trash', danger: true, confirm: true },

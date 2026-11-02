@@ -1,13 +1,13 @@
 // The shape of a rule and the gates that walk this page: docs/components.md
 import type { Meta, StoryObj } from '@storybook/react';
-import { useId, useState, type ReactNode } from 'react';
-import { segmentedNextIndex } from '@apliteni/apliteni-ui';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { GuidelinePage, Raw, noop } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { FilterBar } from '../../react/src/FilterBar';
+import { Segmented } from '../../react/src/Segmented';
 import { RestingFilters } from '../_table-filters';
 import { Chart, type ChartLookSeries } from '../../react/src/Chart';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -15,16 +15,14 @@ import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { ESTIMATED, LEDGER, SPEC_CSS, SPEND } from './_dashboards-and-reports.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
-import { bars } from '../_chart.js';
-// @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { payoutHref } from '../apps/_finance-nav.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
-import { cashflowStats } from '../apps/_finance-data.js';
+import { cashflowStats, PERIODS as SPANS } from '../apps/_finance-data.js';
 
 const content = await loadGuideline('dashboards-and-reports.md', new URL('../../guidelines/dashboards-and-reports.md', import.meta.url));
 
 // One made-up portal supplies every specimen, and the Finance report showcase
-// prints the same payouts with the same fees and nets: the ledger is the one
+// prints the same payouts with the same nets: the ledger is the one
 // LEDGER export that stories/dashboard-report-refs.test.js holds in step.
 const Stage = ({ children }: { children: ReactNode }) => <div className="gd-stage">{children}</div>;
 type Tone = 'success' | 'pending' | 'danger';
@@ -36,9 +34,9 @@ const Cashflow = ({ id }: { id: string }) => <StatBand id={id} stats={(cashflowS
   .map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' }, trend: <Raw html={figure.trend} /> }))} />;
 
 const LedgerTable = () => <table className="ui-table ui-table--dense ui-table--zebra">
-  <thead><tr><th>Reference</th><th className="ui-table__num">Fees</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
-  <tbody>{(LEDGER as string[][]).map(([ref, , fees, net, tone, label]) => <tr key={ref}>
-    <td>{ref}</td><td className="ui-table__num">{fees}</td><td className="ui-table__num ui-table__num--strong">{net}</td>
+  <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
+  <tbody>{(LEDGER as string[][]).map(([ref, , , net, tone, label]) => <tr key={ref}>
+    <td>{ref}</td><td className="ui-table__num ui-table__num--strong">{net}</td>
     <td><Badge variant={tone}>{label}</Badge></td>
   </tr>)}</tbody>
 </table>;
@@ -68,12 +66,21 @@ const LedgerFilters = () => <RestingFilters search="Search payouts" placeholder=
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 const NET_BY_MONTH = [412, 455, 430, 498, 520, 505];
-// bars() lays one slot per value across the full width, so a flex row of equal
-// cells puts each name under its own bar.
-const MonthChart = () => <div className="gd-chart">
-  <Raw html={bars({ values: NET_BY_MONTH, width: 320, height: 96, fluid: true, label: 'Net settled by month, first half of the year' }).svg} />
-  <div className="gd-chart__months ui-stat__label" aria-hidden="true">{MONTHS.map(month => <span key={month}>{month}</span>)}</div>
-</div>;
+const MONTH_PERIODS = MONTHS.map(label => ({ label }));
+const MONTH_TITLE = 'Net settled by month, first half of the year, thousands of euros';
+const MONTH_SERIES = [{ id: 'net', name: 'Net settled', values: NET_BY_MONTH }];
+const thousands = (n: number) => `${n}k €`;
+// The kit's month chart. In a titled card its Chart and Table switch joins the
+// card's title row. `view="table"` presses the Table button once, as a reader would.
+const MonthBlock = ({ view = 'chart' }: { view?: 'chart' | 'table' }) => {
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (view === 'table') root.current?.querySelector<HTMLButtonElement>('button[aria-label="Table"]')?.click();
+  }, [view]);
+  return <div ref={root}><Card title="Net settled by month">
+    <Chart title={MONTH_TITLE} periods={MONTH_PERIODS} series={MONTH_SERIES} format={thousands} />
+  </Card></div>;
+};
 const MonthTable = () => (
   // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-every-table-its-filter-bar
   <table className="ui-table ui-table--dense">
@@ -81,33 +88,6 @@ const MonthTable = () => (
     <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>
   </table>
 );
-
-// One block, one view at a time: the switch shares the title's row and opens on Chart.
-// Small underline tabs, not pills: an accent fill outweighed the chart and its title.
-// Table replaces the chart, so each view is a panel: the kit's underline strip with
-// tab roles, because the kit's Tabs cannot sit in a block's title row.
-// The wrapper keeps the row's baseline, which the strip's own stretch would drop.
-// The table's panel is the kit's scroll box, which keeps the dense table's bleed to the card edge.
-const VIEWS = [{ label: 'Chart', value: 'chart', panel: <MonthChart />, box: 'ui-tabs__panel' },
-  { label: 'Table', value: 'table', panel: <MonthTable />, box: 'ui-table-scroll ui-tabs__panel' }];
-const MonthBlock = ({ view: initial }: { view: string }) => {
-  const [view, setView] = useState(initial);
-  const id = useId();
-  return <Card><div className="gd-block-head">
-    <h2 className="ui-card__title">Net settled by month</h2>
-    <div><div className="ui-seg ui-seg--sm ui-seg--underline" role="tablist" aria-label="Net settled by month view">
-      {VIEWS.map((option, i) => <button key={option.value} type="button" role="tab" id={`${id}-tab-${i}`} aria-controls={`${id}-panel-${i}`}
-        className={option.value === view ? 'is-active' : undefined} aria-selected={option.value === view} tabIndex={option.value === view ? 0 : -1}
-        onClick={() => setView(option.value)} onKeyDown={e => {
-          const next = segmentedNextIndex(e.key, i, VIEWS.length);
-          if (next == null) return;
-          e.preventDefault();
-          (e.currentTarget.parentElement!.children[next] as HTMLButtonElement).focus(); setView(VIEWS[next].value);
-        }}>{option.label}</button>)}
-    </div></div>
-  </div>{VIEWS.map((option, i) => <div key={option.value} className={option.box} role="tabpanel" id={`${id}-panel-${i}`}
-    aria-labelledby={`${id}-tab-${i}`} tabIndex={0} hidden={option.value !== view}>{option.value === view ? option.panel : null}</div>)}</Card>;
-};
 
 // The kit's line chart. `legend` draws the key that names the lines. The labels
 // look adds each line's last value at its end, and the thin look writes no value.
@@ -140,8 +120,17 @@ const FILTERS = [
   { id: 'currency', label: 'Currency', items: [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
 ];
 
+// A laptop screen, scaled to a cell: the frame's bottom edge is the fold, and a
+// block past it is cut where a reader stops reading.
+const Screen = ({ fold = false, children }: { fold?: boolean; children: ReactNode }) => <div className={`gd-screen${fold ? ' gd-screen--fold' : ''}`}>
+  <Segmented label="Period" options={(SPANS as string[]).map(p => ({ label: p, value: p }))} value="1Y" onChange={noop} />
+  {children}
+</div>;
+
 const specimens = [
-  { id: 'fast-glance' },
+  { id: 'fast-glance',
+    do: () => <Screen><Cashflow id="gd-fold-do" /><Attention /></Screen>,
+    dont: () => <Screen fold><Cashflow id="gd-fold-dont" /><MonthBlock /><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /><Attention /></Screen> },
   { id: 'figures-and-exceptions',
     do: () => <Stage><Cashflow id="gd-glance-do" /><Attention /></Stage>,
     dont: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></Stage> },
@@ -170,8 +159,8 @@ const specimens = [
       <Button icon="download">Download PDF</Button>
     </div></Stage> },
   { id: 'chart-table-switch',
-    do: () => <Stage><MonthBlock view="chart" /><MonthBlock view="table" /></Stage>,
-    dont: () => <Stage><Card title="Net settled by month"><MonthChart /><MonthTable /></Card></Stage> },
+    do: () => <Stage><MonthBlock /><MonthBlock view="table" /></Stage>,
+    dont: () => <Stage><Card title="Net settled by month"><Chart title={MONTH_TITLE} periods={MONTH_PERIODS} series={MONTH_SERIES} format={thousands} table={false} /><MonthTable /></Card></Stage> },
   // The chart's own title still names the span: it is read aloud, never drawn.
   { id: 'no-range-on-chart',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /></Stage>,

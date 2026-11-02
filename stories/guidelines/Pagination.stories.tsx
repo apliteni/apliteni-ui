@@ -2,7 +2,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
 import { DEFAULT_PAGE_SIZE, PAGE_SIZES } from '@apliteni/apliteni-ui';
-import { GuidelinePage } from '../_guideline';
+import { GuidelinePage, SaidPicture } from '../_guideline';
 import { Pagination as KitPagination, type PaginationProps } from '../../react/src/Pagination';
 import { Skeleton } from '../../react/src/Loading';
 import { Button } from '../../react/src/primitives/Button';
@@ -45,7 +45,12 @@ const specimens = [
       <Ghost icon="chevronLeft" disabled>Prev</Ghost><Ghost iconRight="chevronRight" disabled>Next</Ghost></Hand> },
   { id: 'page-turn', do: () => <Pager id="loading-do" pageSizes={PAGE_SIZES} loading />,
     dont: () => <Stage><Skeleton lines={1} width="38%" /></Stage> },
-  { id: 'announce-range' },
+  // Both halves are the moment after Next moved page 25 to page 26, with the focus still on Next.
+  { id: 'announce-range',
+    do: () => <SaidPicture lines={['2,501–2,600 of 4,812']}>
+      <Pager id="said-do" page={AT + 1} pageSizes={PAGE_SIZES} /></SaidPicture>,
+    dont: () => <SaidPicture lines={['Page 26', '2,501–2,600 of 4,812', 'Rows, 100', 'Next, button, page 26 loaded']}>
+      <Pager id="said-dont" page={AT + 1} pageSizes={PAGE_SIZES} /></SaidPicture> },
   { id: 'page-size', do: () => <Pager id="size-do" pageSizes={PAGE_SIZES} />, dont: () => <Pager id="size-dont" /> },
 ];
 

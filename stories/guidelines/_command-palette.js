@@ -39,4 +39,7 @@ export const SPEC_CSS = `
       width: auto; max-height: none;
     }
     .gc-stage .ui-cmdk__list { max-height: none; }
+    /* What focus paints, at rest. Inward, as the search's own ring, because the panel clips. */
+    .gc-stage .gl-focus-in { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+    .gc-stage .ui-cmdk__search.gl-focus-in { border-bottom-color: transparent; }
   </style>`;

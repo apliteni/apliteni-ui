@@ -4,41 +4,31 @@ export const TITLE = content.title;
 export const BLURB = content.blurb;
 export const RULES = content.rules;
 // The shape of a rule and the gates that walk this page: docs/components.md
-import { CHART_CSS } from '../_chart.js';
 
 // One made-up portal supplies every specimen, and the Finance report showcase
 // prints the same payouts with the same fees and nets —
 // react/src/dashboard-report-refs.test.tsx holds the two in step. The halves of a
 // pair differ in one decision.
-export const SPEC_CSS = `${CHART_CSS}
+export const SPEC_CSS = `
   <style>
     .gd-stage { display: flex; flex-direction: column; gap: var(--space-4); }
-    /* The chart is a picture above a table, not the table's own head band: the
-       scale's gap is what keeps the bar baselines off the header's cap height. */
-    /* The dense table in the Table view hangs out of its card by --space-3 so its
-       columns start on the card's text edge; the chart takes the same bleed, so
-       both views are one width. */
-    .gd-chart { display: flex; flex-direction: column; gap: var(--space-2);
-      width: calc(100% + 2 * var(--space-3)); margin-inline: calc(-1 * var(--space-3));
-      margin-bottom: var(--space-4); }
-    .gd-chart__months { display: flex; }
-    .gd-chart__months span { flex: 1 1 0; min-width: 0; text-align: center; }
-    /* A block's title and its Chart and Table switch share one row, at phone
-       width too: the title takes what the switch leaves and wraps, and baseline
-       alignment keeps its first line on the switch's text. The margin is the
-       title's own step, kept below a switch taller than the title. */
-    .gd-block-head { display: flex; align-items: baseline; column-gap: var(--space-4);
-      margin-bottom: var(--space-2); }
-    .gd-block-head > :first-child { flex: 1 1 0; min-width: 0; }
+    /* One screen of a dashboard: the height is the Do's own blocks at 1280. The
+       Don't's extra blocks run past that fold and are cut there. A phone stacks the
+       Do's blocks taller than the fold, so the Do grows instead of being cut. */
+    .gd-screen { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4);
+      min-height: 52rem; padding: var(--space-4); background: var(--bg);
+      border: 1px solid var(--border); border-radius: var(--radius-lg); }
+    .gd-screen--fold { height: 52rem; overflow: hidden; }
+    .gd-screen > :not(.ui-seg) { align-self: stretch; }
   </style>`;
 
 // Made-up monthly spend for the made-up portal, in thousands of euros.
 export const SPEND = [18.2, 19.4, 21.1, 20.3, 22.8, 23.6];
 export const ESTIMATED = [17.5, 17.8, 18.1, 18.4, 18.7, 19.0];
 
-// Reference, fees, net, status. A fifth column does not fit a specimen cell,
-// so the gross stays here undrawn: it is what makes each net checkable, and
-// the Finance report prints it in a column this cell has no room for.
+// Reference, net, status. A fourth column does not fit a specimen cell at 390,
+// so the gross and the fees stay here undrawn: they make each net checkable,
+// and the Finance report prints them in columns this cell has no room for.
 // react/src/dashboard-report-refs.test.tsx reads it from this export and holds it
 // against the report's, so the agreement is measured rather than asserted.
 export const LEDGER = [

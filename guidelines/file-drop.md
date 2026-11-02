@@ -12,7 +12,7 @@
 
 **Don't:** Draw a tall dashed box with a glyph, an invitation and a button stacked inside it.
 
-**Except:** A page that exists to receive one file may use the field-sized picker, which has its own label. An empty page may show a dashed drop area until the first file arrives.
+**Except:** A page that exists to receive one file can use the field-sized picker, which has its own label. An empty page can show a dashed drop area until the first file arrives.
 
 ## Paint the target only while a file is over it
 
@@ -26,7 +26,7 @@
 
 **Don't:** Cover the whole window when one panel accepts the file.
 
-**Except:** A page that takes files anywhere may cover the whole page, slightly transparent and blurred over a table.
+**Except:** A page that takes files anywhere can cover the whole page, slightly transparent and blurred over a table.
 
 ## Keep the file in the row it arrived in
 
@@ -46,11 +46,11 @@
 
 **Rule:** A refused file keeps its place, says what it did wrong under its name, and offers Retry beside Remove.
 
-**Why:** A row that drops the file sends the reader back to choosing one.
+**Why:** If a row removes the file, the reader must choose a file again.
 
-**Do:** Keep the name on its line and say “Larger than 10 MB” under it, with Retry.
+**Do:** Keep the name on its line, and show “Larger than 10 MB” and Retry under it.
 
-**Don't:** Replace the row with “Upload failed”, losing both the file and the retry.
+**Don't:** Replace the row with “Upload failed”, which removes the file and the retry.
 
 ## Offer a button, not only a drag
 
@@ -82,7 +82,7 @@
 
 **Rule:** Use a row where the file joins a list on the page, a region when one panel owns the file, and a dialog only when the upload needs answers of its own.
 
-**Why:** A dialog that asks nothing is one more thing to dismiss. A drawing would show one container, not the choice.
+**Why:** A dialog that asks nothing is one more thing to dismiss.
 
 **Do:** Take a statement into the row under the statements it joins.
 

@@ -20,4 +20,28 @@ export const SPEC_CSS = `<style>
   /* The filter bar's card sits above the table's card, at the gap the shell keeps
      between two cards. */
   .gdt-filtered { display: grid; gap: var(--space-5); align-content: start; }
+  /* The two cards are one unit of the table's width: the bar's card adds no width of
+     its own and fills the unit. A stretched table keeps the full column. */
+  .gdt-unit { width: fit-content; max-width: 100%; }
+  .gdt-unit > :not(:last-child) { contain: inline-size; }
+  /* A hovered row, held still: the kit's own hover fill and its rounded ends, which a
+     pointer would draw. */
+  .gdt-hovered > td { background: var(--surface-2); }
+  .gdt-hovered > td:first-child { border-start-start-radius: var(--radius-sm); border-end-start-radius: var(--radius-sm); }
+  .gdt-hovered > td:last-child { border-start-end-radius: var(--radius-sm); border-end-end-radius: var(--radius-sm); }
+  /* The don'ts draw what the kit refuses: a tinted table with grey stripes, type below
+     the small rank, figures on the label edge, muted units, squeezed columns. */
+  .gdt-grey { --table-bg: var(--surface-2); }
+  .gdt-grey tbody tr:nth-child(even) > td { background: var(--surface-3); }
+  .gdt-grey .gdt-hovered > td { background: var(--border); }
+  .gdt-shrunk :is(th, td) { font-size: var(--text-xs); }
+  .ui-table.gdt-left :is(th, td).ui-table__num { text-align: left; font-variant-numeric: proportional-nums; }
+  .gdt-muted-units .ui-value__unit { /* muted-ink: chrome — the don't half draws the muted unit the rule forbids */ color: var(--muted); }
+  .gdt-squeezed { table-layout: fixed; }
+  .gdt-squeezed :is(th, td) { white-space: normal; overflow-wrap: anywhere; }
+  .gdt-note { margin: var(--space-3) 0 0; font-size: var(--text-sm); color: var(--text); }
+  .gdt-flex { display: flex; gap: var(--space-2); align-items: center; }
+  /* The phone frame above the page's own width: a cell has no room for both on one line. */
+  .gdt-widths { display: grid; gap: var(--space-4); justify-items: start; }
+  .gdt-widths > .gdt-stage { justify-self: stretch; }
 </style>`;

@@ -8,7 +8,7 @@
 
 **Why:** A dashboard is read between other work: below the fold is not read.
 
-**Except:** A phone stacks the blocks and scrolls; budget a desktop screen.
+**Except:** A phone stacks the blocks and scrolls. Budget a desktop screen.
 
 **Do:** A period control, a row of figures, a short list of exceptions.
 
@@ -20,11 +20,11 @@
 
 **Rule:** Keep a dashboard to figures, trends and the rows that need attention.
 
-**Why:** Reading a table is what a report is for.
+**Why:** A report is for reading a table.
 
 **Do:** The figures with their trends, then the payouts needing a decision.
 
-**Don't:** The whole ledger and a paragraph about it.
+**Don't:** The full ledger and a paragraph about it.
 
 ## Link each reference to its row
 
@@ -32,7 +32,7 @@
 
 **Rule:** Link each reference to its report row and bring that row into view.
 
-**Why:** A dashboard stops at what happened; a report opening at its own top has not answered the reference.
+**Why:** A dashboard stops at what happened. A report opening at its own top has not answered the reference.
 
 **Do:** Each payout reference opens its row in the report.
 
@@ -46,7 +46,7 @@
 
 **Why:** Analysis needs the rows: a summary cannot say how much.
 
-**Do:** The payout ledger, with the fees and net on every row.
+**Do:** The payout ledger, with the net and status on every row.
 
 **Don't:** The same ledger reduced to three figures.
 
@@ -94,7 +94,7 @@
 
 **Rule:** Title a chart card by what it measures, and leave out the range of its data.
 
-**Why:** The page or the filter around the chart already holds the range.
+**Why:** The page or the filter around the chart already shows the range.
 
 **Do:** Spend against estimate, with no subtitle.
 
@@ -106,7 +106,7 @@
 
 **Rule:** Write the last values on a chart of one or two lines when the latest value matters, and draw a key for more lines or when no one value matters.
 
-**Why:** A key sends the eye from a line to the key and back and gives no amount, but a tap shows the readout with the values at that point.
+**Why:** A key moves the eye from a line to the key and back, and it gives no amount. A tap shows the readout with the values at that point.
 
 **Do:** Spend with a key and last values, and seasonal spend with a key.
 

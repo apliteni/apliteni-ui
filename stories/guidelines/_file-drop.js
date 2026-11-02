@@ -34,6 +34,7 @@ export const SPEC_CSS = `
       border-radius: var(--radius-md); box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4);
       font: 400 13px/1.6 var(--font-sans); color: var(--text); }
     .gf-card .ui-drop__bar { margin-top: var(--space-2); }
+    .gf-over { margin-top: var(--space-3); }
     .gf-repeat { margin: var(--space-2) 0 0; font: 400 13px/1.6 var(--font-sans); color: var(--text); }
   </style>`;
 
@@ -144,5 +145,15 @@ export const RULES = withSpecimens(content.rules, [
       <p class="gf-repeat">${NOTE}</p>
       <p class="gf-repeat">${state(NOTE, 'error')}</p>`),
   },
-  { id: 'which-shape' },
+  {
+    id: 'which-shape',
+    doHtml: () => panel(`${rows()}<div class="ui-drop">${restRow()}</div>`),
+    // The dialog is drawn under the panel it covers, open and in the page flow.
+    dontHtml: () => `${panel(rows())}<div class="gl-stage--confirm gf-over">
+      <div class="rx-modal" role="group" aria-label="Upload statement">
+        <div class="rx-modal__head"><h2 class="rx-modal__title">Upload statement</h2>${btn('Close', { variant: 'ghost', glyph: 'x', iconOnly: true })}</div>
+        <div class="rx-modal__body"><div class="ui-drop">${restRow()}</div></div>
+        <div class="rx-modal__foot">${btn('Cancel', { size: 'md', variant: 'ghost' })}${btn('Upload', { size: 'md', variant: 'primary' })}</div>
+      </div></div>`,
+  },
 ]);

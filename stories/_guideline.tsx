@@ -1,5 +1,6 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Badge } from '../react/src/primitives/Badge';
 import { Button } from '../react/src/primitives/Button';
 import { Icon } from '../react/src/primitives/Icon';
@@ -100,21 +101,142 @@ export const Typed = ({ query, children }: { query: string; children: ReactNode 
   return <div ref={box} style={{ display: 'contents' }}>{children}</div>;
 };
 
-/* An open readout, as a picture: the React Tooltip's own parts, held open at the
- * anchor its wiring would have measured, so a page can show one without a pointer. */
-export const TipPicture = ({ label = '', value = '', detail = '', placement = 'top', x, y }: {
-  label?: string; value?: string; detail?: string; placement?: 'top' | 'bottom'; x: number; y: number;
-}) => <div className={`ui-tip${placement === 'bottom' ? ' is-below' : ''} is-open`} role="tooltip"
-  style={{ ['--ui-tip-x' as string]: `${x}px`, ['--ui-tip-y' as string]: `${y}px` }}>
-  <span className="ui-tip__label" hidden={!label}>{label}</span>
-  <span className="ui-tip__value" hidden={!value}>{value}</span>
-  <span className="ui-tip__detail" hidden={!detail}>{detail}</span>
-</div>;
+/* A kit Chart with its own readout open on one mark, as a pointer leaves it. The
+ * page sends the mark the move a pointer sends, so the Chart places the readout
+ * itself. When the pointer, the focus or a resize closes it, or it scrolls into
+ * view, it opens again on that mark. Escape still dismisses it. `above` keeps it above the mark where the
+ * Chart would flip it, which only a don't shows. */
+export const OpenReadout = ({ mark, above = false, children }: { mark: string; above?: boolean; children: ReactNode }) => {
+  const box = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const root = box.current;
+    if (!root) return;
+    let frame = 0;
+    const hit = () => [...root.querySelectorAll('[data-mark]')].find(el => el.getAttribute('data-mark') === mark);
+    // The Chart places a readout only when it opens, so a resize closes it first:
+    // a move over the plot outside any mark, then the move onto the mark.
+    const open = () => {
+      root.querySelector('.ui-chart__svg')?.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+      reveal();
+      frame = requestAnimationFrame(() => {
+        hit()?.firstElementChild?.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+        if (above) keepAbove();
+      });
+    };
+    // A plot that scrolls brings the pointed bar to its centre, as a key step does,
+    // so the readout opens over its own bar.
+    const reveal = () => {
+      const scroll = root.querySelector<HTMLElement>('.ui-chart__scroll');
+      const anchor = [...root.querySelectorAll('[data-anchor]')].find(el => el.getAttribute('data-anchor') === mark);
+      if (!scroll || !anchor || scroll.scrollWidth <= scroll.clientWidth) return;
+      const bar = anchor.getBoundingClientRect();
+      const view = scroll.getBoundingClientRect();
+      scroll.scrollLeft += (bar.left + bar.right) / 2 - (view.left + view.right) / 2;
+    };
+    // The Chart's anchor measured as its placement measures it, without the flip.
+    const keepAbove = () => {
+      const tip = root.querySelector<HTMLElement>('.ui-tip');
+      const host = tip?.closest<HTMLElement>('.ui-tip-host');
+      const anchor = [...root.querySelectorAll('[data-anchor]')].find(el => el.getAttribute('data-anchor') === mark);
+      if (!tip || !host || !anchor || !tip.classList.contains('is-below')) return;
+      tip.classList.remove('is-below');
+      const y = anchor.getBoundingClientRect().top - host.getBoundingClientRect().top - host.clientTop + host.scrollTop;
+      tip.style.setProperty('--ui-tip-y', `${y}px`);
+    };
+    const later = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(open); };
+    const out = (event: Event) => {
+      const next = (event as MouseEvent | FocusEvent).relatedTarget as Node | null;
+      if (!next || !root.contains(next)) later();
+    };
+    const tipWatch = new MutationObserver(() => { if (above) keepAbove(); });
+    const sizeWatch = typeof ResizeObserver === 'function' ? new ResizeObserver(later) : null;
+    sizeWatch?.observe(root.firstElementChild ?? root);
+    // The room it measures includes the viewport, so one placed off screen opens again in view.
+    const viewWatch = typeof IntersectionObserver === 'function' ? new IntersectionObserver(later, { threshold: [0, 1] }) : null;
+    viewWatch?.observe(root.firstElementChild ?? root);
+    const tip = root.querySelector('.ui-tip');
+    if (tip) tipWatch.observe(tip, { attributes: true, attributeFilter: ['class'] });
+    root.addEventListener('mouseout', out);
+    root.addEventListener('focusout', out);
+    window.addEventListener('resize', later);
+    later();
+    void document.fonts?.ready.then(later);
+    return () => {
+      cancelAnimationFrame(frame);
+      tipWatch.disconnect();
+      sizeWatch?.disconnect();
+      viewWatch?.disconnect();
+      root.removeEventListener('mouseout', out);
+      root.removeEventListener('focusout', out);
+      window.removeEventListener('resize', later);
+    };
+  }, [mark, above]);
+  return <div ref={box} style={{ display: 'contents' }}>{children}</div>;
+};
+
+/* A narrow viewport inside the page, for a rule that only a phone shows: a frame
+ * with the page's own sheets and theme, so the kit's phone rules apply inside it.
+ * The page's own sheet stays out, as it stays out of a real phone. */
+export const PhoneFrame = ({ width = 200, label, children }: { width?: number; label: string; children: ReactNode }) => {
+  const frame = useRef<HTMLIFrameElement>(null);
+  const [body, setBody] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const doc = frame.current?.contentDocument;
+    if (!doc) return;
+    // The frame's height follows its content, so a table bounded by the viewport height would shrink with it.
+    doc.open(); doc.write('<!doctype html><html><head></head><body style="margin:0; --ui-table-height: none"></body></html>'); doc.close();
+    for (const sheet of document.querySelectorAll('style, link[rel="stylesheet"]')) doc.head.append(sheet.cloneNode(true));
+    const theme = () => { for (const name of ['data-theme', 'data-accent']) {
+      const value = document.documentElement.getAttribute(name);
+      if (value === null) doc.documentElement.removeAttribute(name); else doc.documentElement.setAttribute(name, value);
+    } };
+    theme();
+    const watch = new MutationObserver(theme);
+    watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-accent'] });
+    const box = doc.createElement('div');
+    doc.body.append(box);
+    // The frame's own observer: one from this window does not see a box in another document.
+    const view = doc.defaultView as (Window & typeof globalThis) | null;
+    const fit = typeof view?.ResizeObserver === 'function'
+      ? new view.ResizeObserver(() => { if (frame.current) frame.current.style.height = `${box.offsetHeight}px`; }) : null;
+    fit?.observe(box);
+    setBody(box);
+    return () => { watch.disconnect(); fit?.disconnect(); };
+  }, []);
+  return <iframe ref={frame} className="gl-phone" title={label} tabIndex={-1} style={{ width }}>{body && createPortal(children, body)}</iframe>;
+};
 
 /* The pictures join the page flow at the specimen width. */
 const PICTURE_CSS = `<style>
   .gl-stage--confirm .rx-modal { width: auto; transform: none; max-height: none; }
+  .gl-phone { display: block; flex: none; border: 1px solid var(--border); border-radius: var(--radius-lg); }
+  /* What :focus-visible paints, at rest: a picture cannot hold a live focus. */
+  .gl-focus { outline: var(--ring); outline-offset: var(--ring-offset); }
+  .gl-strip { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+  /* A frame and a said picture shrink to the cell: a panel's min-content is wider than a phone cell. */
+  .gl-strip__frame { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); align-content: start; min-width: 0; }
+  .gl-strip__step { margin: 0; font-size: var(--text-sm); }
+  .gl-said { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+  .gl-said__lines { display: grid; gap: var(--space-1); font-size: var(--text-sm); }
+  .gl-said__lines > p { margin: 0; }
+  .gl-said__label { /* muted-ink: chrome — names what the lines below are */ color: var(--muted); }
 </style>`;
+
+/** A gesture or a key press in steps, one frame each and named under it: a rule
+ *  about a sequence cannot be shown in one still picture. */
+export const FrameStrip = ({ frames }: { frames: { step: string; picture: ReactNode }[] }) => <ol className="gl-strip">
+  {frames.map(({ step, picture }) => <li key={step} className="gl-strip__frame">{picture}<p className="gl-strip__step">{step}</p></li>)}
+</ol>;
+
+/** What a screen reader says after one press, drawn under the picture of the press:
+ *  speech has no picture of its own. `.gl-focus` draws the focus ring at rest. */
+export const SaidPicture = ({ lines, children }: { lines: string[]; children: ReactNode }) => <div className="gl-said">
+  {children}
+  <div className="gl-said__lines">
+    <p className="gl-said__label">Screen reader says</p>
+    {lines.map(line => <p key={line} className="gl-said__line">“{line}”</p>)}
+  </div>
+</div>;
 
 /** A trusted style sheet from this repository, written once as the vanilla page wrote it. */
 export const Sheet = ({ css }: { css: string }) =>

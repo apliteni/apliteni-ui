@@ -68,3 +68,36 @@ test('a hovered link button underlines its label once, at the label offset', asy
   assert.equal(found.offset, '3.2px', 'the underline sits 0.2em under the label');
   assert.equal(found.color, 'var(--strong)');
 });
+
+// A text-only button's line box is shorter than its glyph, so the floor is what keeps
+// it as tall as a glyph button beside it. JSDOM does not lay out, so this reads the
+// declared floor and padding, not a measured box.
+const floors = async (sheet = css) => {
+  const out = {};
+  for (const size of ['xs', 'sm', 'md', 'lg']) {
+    const html = await markup(({ h, kit }) => h(kit.Button, { size }, 'Copy'));
+    const dom = new JSDOM(`<style>${sheet}</style>${html}`);
+    try {
+      const style = dom.window.getComputedStyle(dom.window.document.querySelector('.ui-btn'));
+      out[size] = { min: style.minHeight, pad: style.getPropertyValue('--btn-pad-y').trim() };
+    } finally {
+      dom.window.close();
+    }
+  }
+  return out;
+};
+
+test('every size declares a floor as tall as its glyph, padding and edge', async () => {
+  const found = await floors();
+  assert.equal(found.xs.min, '24px', 'xs keeps its own target floor');
+  for (const size of ['sm', 'md', 'lg']) {
+    assert.match(found[size].min, /^calc\(16px \+ 2 \* var\(--btn-pad-y\) \+ 2px\)$/, `${size}: min-height`);
+    assert.ok(found[size].pad, `${size}: the floor's padding is declared`);
+  }
+});
+
+test('the check reports a button without the floor', async () => {
+  const broken = css.replace(/\.ui-btn \{ min-height:[^}]*\}/, '');
+  assert.notEqual(broken, css, 'no floor rule found to remove');
+  assert.notEqual((await floors(broken)).sm.min, (await floors()).sm.min);
+});

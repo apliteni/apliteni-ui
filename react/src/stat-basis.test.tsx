@@ -194,7 +194,7 @@ const KNOWN_GAPS: Record<string, string> = {
 describe('stat basis: React stories', () => {
   // One `it` per story file, so a slow file shows as itself and no single test
   // carries the whole walk past the 5 s budget.
-  const sweep = { subjects: 0, captions: 0, figures: 0, fromControl: 0, failures: [] as string[], known: new Set<string>() };
+  const sweep = { subjects: 0, captions: 0, figures: 0, fromControl: 0, failures: [] as string[], donts: [] as string[], known: new Set<string>() };
 
   for (const file of Object.keys(modules).sort()) {
     it(`every change in ${file} says what it is measured against`, () => {
@@ -221,11 +221,11 @@ describe('stat basis: React stories', () => {
           .filter((d) => control.includes(d.getAttribute('aria-describedby'))).length;
         const id = `${file}:${name}`;
         const before = sweep.failures.length;
-        for (const d of unexplained(box) as Element[]) {
-          sweep.failures.push(`${file}:${name} — "${d.textContent!.trim()}" under "${d.parentElement!.querySelector('dt')?.textContent}"`);
-        }
-        for (const p of misplaced(box) as Element[]) sweep.failures.push(`${file}:${name} — the caption "${p.textContent!.trim()}" does not lead its figures`);
-        for (const f of overloaded(box) as Element[]) sweep.failures.push(`${file}:${name} — "${f.querySelector('dt')?.textContent}" stacks two rows under its value`);
+        // A guideline's Don't picture draws the fault on purpose, so its findings are kept apart.
+        const report = (el: Element, text: string) => (el.closest('[data-specimen="dont"]') ? sweep.donts : sweep.failures).push(`${file}:${name} — ${text}`);
+        for (const d of unexplained(box) as Element[]) report(d, `"${d.textContent!.trim()}" under "${d.parentElement!.querySelector('dt')?.textContent}"`);
+        for (const p of misplaced(box) as Element[]) report(p, `the caption "${p.textContent!.trim()}" does not lead its figures`);
+        for (const f of overloaded(box) as Element[]) report(f, `"${f.querySelector('dt')?.textContent}" stacks two rows under its value`);
         if (KNOWN_GAPS[id]) {
           if (sweep.failures.length > before) sweep.known.add(id);
           sweep.failures.length = before;
@@ -242,6 +242,8 @@ describe('stat basis: React stories', () => {
     // The third shape has one screen today, the Finance dashboard's three figures. #505
     assert.ok(sweep.fromControl >= 3, `${sweep.fromControl} change(s) take their basis from a period control; the Finance dashboard draws three`);
     assert.deepEqual(sweep.failures, []);
+    // The Stat bands page's say-the-basis Don't: two changes with no basis, and the caption moved after them.
+    assert.equal(sweep.donts.length, 3, `the Don't pictures show a different set of faults:\n${sweep.donts.join('\n')}`);
     assert.deepEqual(Object.keys(KNOWN_GAPS).filter((id) => !sweep.known.has(id)), [], 'it comes clean now: take it off the list');
   });
 });

@@ -9,9 +9,8 @@
  * rejected: #505.
  *
  * Every column both sides of a comparison draw is compared, so the set widens
- * by itself when a table gains one. Today: net and status everywhere, fees
- * between the guideline's ledger and the report, arrival between the dashboard
- * and the report.
+ * by itself when a table gains one. Today: net and status everywhere, and
+ * arrival between the dashboard and the report.
  *
  * The second half drives the links themselves: a click inside the manager, a click
  * in a bare preview, and the arrival each one asks for.
@@ -31,9 +30,10 @@
  *   - The rail's Invoices and Preferences, which have no screen in the kit.
  *   - Row order, and the report's Payout ID column, which nothing else draws.
  *   - Any screen outside these three. A consumer's dashboard is its own.
- *   - A column the guideline carries in source and never renders. The gross is
- *     the one of those, so it is read from the specimen's export instead and
- *     held against the report's rendered column; nothing else is.
+ *   - A column the guideline carries in source and never renders. The gross and
+ *     the fees are those, so they are read from the specimen's export instead:
+ *     the gross is held against the report's rendered column, and the fees
+ *     through the net that gross less fees must give.
  *
  * Discover subjects from source and check the coverage count.
  */
@@ -165,17 +165,17 @@ test('the guideline prints the report\'s own rows, with its own figures and stat
     problems.push(...disagreements(rows, report, `the guideline's reference table ${i + 1}`));
   }
 
-  // Seven reference tables on the page: the four-column ledger in four cells at
-  // five rows each, and the three-row exceptions card in three. The count is
+  // Nine reference tables on the page: the three-column ledger in four cells at
+  // five rows each, and the three-row exceptions card in five. The count is
   // the anti-vacuity guard — a walk that stops finding tables passes every
   // assertion above it.
-  assert.equal(checked, 29, 'the guideline draws a different number of referenced rows; count the new specimen by hand');
+  assert.equal(checked, 35, 'the guideline draws a different number of referenced rows; count the new specimen by hand');
   assert.deepEqual(problems, [], `the guideline page and the Finance report disagree:\n  ${problems.join('\n  ')}`);
 });
 
-// The gross is the one column the guideline keeps and never draws, so a
-// rendered comparison cannot reach it. It is the figure that makes each net
-// checkable, so it is read from the specimen's own export instead.
+// The gross and the fees are the columns the guideline keeps and never draws, so
+// a rendered comparison cannot reach them. They make each net checkable, so they
+// are read from the specimen's own export instead.
 test('the gross the guideline keeps undrawn is the report\'s gross, and its nets follow from it', () => {
   const report = reportLedger();
   const money = (text) => Number(text.replaceAll(',', ''));
@@ -265,9 +265,10 @@ test('every link in an exceptions block opens the report, and every reference op
     ...blockLinks(Dashboard.render(), 'the Finance dashboard'),
     ...blockLinks(DashboardsAndReports.render(), 'the guideline page'),
   ];
-  // Three dashboard references and three in each of the two Do specimens.
-  assert.equal(links.length, 9,
-    `found ${links.length} links, not the 9 these screens draw:\n${links.map((l) => `${l.where}: ${l.kind} ${l.text} -> ${l.href}`).join('\n')}`);
+  // Three dashboard references, and three in each of the four exceptions cards
+  // on the guideline page: two Do specimens and both fast-glance screens.
+  assert.equal(links.length, 15,
+    `found ${links.length} links, not the 15 these screens draw:\n${links.map((l) => `${l.where}: ${l.kind} ${l.text} -> ${l.href}`).join('\n')}`);
   assert.equal(links.filter((l) => l.kind === 'onward').length, 0, 'a block gained or lost its link into the report');
   assert.deepEqual(linkProblems(links, rows), [],
     `a link in an exceptions block does not reach the report row it stands for:\n  ${linkProblems(links, rows).join('\n  ')}`);

@@ -130,8 +130,18 @@
 .ui-filter-bar .ui-dropdown__item.is-selected:hover { background: color-mix(in srgb, var(--glow-purple), var(--accent) 9%); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
 
 /* A chip's height — a remove mark's line box, padding and border — named so every chip,
-   with or without a mark, and a control on a line of its own stand as tall. */
-.ui-filter-bar { --ui-filter-row-h: calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)); }
+   with or without a mark, and a control on a line of its own stand as tall. The toolbar
+   names it too, for the control that ends a phone row beside the chips. */
+.ui-filter-bar, .ui-toolbar { --ui-filter-row-h: calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)); }
+/* In a toolbar the bar takes the line's height, and so does each chip, the add control
+   and the clear button: beside a text field the chips stood 6px shorter and sat at the
+   top. The wrappers between the row and the bar pass the height down. */
+.ui-toolbar :has(.ui-filter-bar) { display: flex; flex-direction: column; }
+.ui-toolbar :has(.ui-filter-bar) > :is(:has(.ui-filter-bar), .ui-filter-bar) { flex: 1 1 auto; }
+.ui-toolbar .ui-filter-bar { align-items: stretch; }
+.ui-toolbar .ui-filter-bar [data-filter-clear] { display: flex; }
+/* Alone on a phone row the clear button has no line to stretch to, so it keeps the chip height. */
+.ui-toolbar .ui-filter-bar [data-filter-clear] button { min-height: var(--ui-filter-row-h); }
 
 /* A chip's neighbour takes the chip's corner, that height and edge, but not its painted fill:
    the trigger's own edge can differ from the row's, while its --surface made the

@@ -24,4 +24,6 @@ export const SPEC_CSS = `
     .gp-hand__status { margin: 0 auto 0 0; color: var(--text);
       font-variant-numeric: tabular-nums; }
     .gp-hand__steps { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
+    /* The Next step that was just pressed: the page after 26 is 27. */
+    .gp-stage .ui-pager__step[data-page="27"] { outline: var(--ring); outline-offset: var(--ring-offset); }
   </style>`;

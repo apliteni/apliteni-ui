@@ -6,7 +6,7 @@
 
 **Rule:** Use the total row count returned by the server when it is available.
 
-**Why:** Readers need accurate ranges and totals, while some APIs can only report whether more rows exist.
+**Why:** Readers need accurate ranges and totals, but some APIs can only report if more rows exist.
 
 **Do:** Show the current row range and the server’s total.
 
@@ -18,11 +18,11 @@
 
 **Rule:** Use steps for filtering and sorting, numbers for short browsable lists such as changelogs and galleries, or jump for a specific page.
 
-**Why:** Filtering and sorting usually need quick jumps, while short lists can use numbered pages.
+**Why:** Filtering and sorting usually need quick jumps, but short lists can use numbered pages.
 
 **Do:** Use four fixed controls so a ledger’s first and last pages are one press away.
 
-**Don't:** On page 25 of 49, show only 1, 24, 26, and 49 as direct choices.
+**Don't:** On page 25 of 49, show only 1, 24, 26 and 49 as direct choices.
 
 ## Disable ends in place
 
@@ -30,9 +30,9 @@
 
 **Rule:** Disable controls at each end without removing them.
 
-**Why:** Fixed controls prevent layout shifts and tell screen-reader users when they reached an end.
+**Why:** Fixed controls prevent layout shifts and tell screen-reader users when they reach an end.
 
-**Do:** Keep First and Prev in place and mark them unavailable; native `disabled` removes them from Tab order.
+**Do:** Keep First and Prev in place and mark them unavailable. Native `disabled` removes them from Tab order.
 
 **Don't:** Remove Prev on page one and move the other controls left.
 
@@ -44,7 +44,7 @@
 
 **Why:** One-page controls provide no action.
 
-**Do:** For 12 rows, show only the page-size control, or render nothing if no size choices exist.
+**Do:** For 12 rows, show only the page-size control. If no size choices exist, show nothing.
 
 **Don't:** Show two permanently useless buttons.
 
@@ -54,9 +54,9 @@
 
 **Rule:** Keep controls, rows, positions, and heights stable while the next page loads.
 
-**Why:** Readers may press the same control twice during loading.
+**Why:** Readers can press the same control twice during loading.
 
-**Do:** Disable the controls, mark the pager busy, and keep the range readable.
+**Do:** Disable the controls. Mark the pager as busy. Keep the range readable.
 
 **Don't:** Use a placeholder that collapses the pager or moves the next click target.
 
@@ -68,9 +68,9 @@
 
 **Why:** Rows can change without moving focus, so repeating each change creates unnecessary announcements.
 
-**Except:** HTML callers that replace the pager must restore focus themselves; at an end, React restores focus to the remaining step after native `disabled` moves it to the body.
+**Except:** HTML callers that replace the pager must restore focus themselves. At an end, React restores focus to the remaining step after native `disabled` moves it to the body.
 
-**Do:** Keep focus on the pressed control and announce the new range once.
+**Do:** Keep focus on the pressed control. Announce the new range once.
 
 **Don't:** Announce the same page change through the live region, page-size control, and every button.
 
@@ -80,7 +80,7 @@
 
 **Rule:** Offer page sizes from 25, 50, and 100, starting at 100, and let consumers choose and persist the selection.
 
-**Why:** Consumers may need different choices and can save them in a URL or profile across reloads.
+**Why:** Consumers can need different choices and can save them in a URL or profile across reloads.
 
 **Do:** Place rows per page between the count and pagination steps.
 
