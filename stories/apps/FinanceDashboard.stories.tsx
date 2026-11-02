@@ -2,6 +2,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { FinanceShell } from './_finance-shell';
+import { CashflowTrend, type Trend } from './_cashflow-trend';
 import { Segmented } from '../../react/src/Segmented';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { Badge } from '../../react/src/primitives/Badge';
@@ -16,7 +17,7 @@ const meta: Meta = { title: 'Showcases/Finance dashboard', id: 'apps-finance-das
 export default meta;
 
 const PERIOD_BASIS = 'fd-period-basis';
-type Figure = { label: string; value: string; delta?: { value: string; tone?: 'good' | 'bad' }; trend?: string };
+type Figure = { label: string; value: string; delta?: { value: string; tone?: 'good' | 'bad' }; trend?: Trend };
 
 // Which row, what is wrong with it, how much, and only then when it arrives: the
 // order of the decision, not of the ledger. The status rides in the reference's
@@ -39,7 +40,7 @@ const Dashboard = () => {
       <p className="ui-sr" id={PERIOD_BASIS} data-period-basis="">{periodBasis(period)}</p>
     </div>
     <StatBand id="fd-cashflow" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
-      .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
+      .map(figure => ({ ...figure, trend: figure.trend && <CashflowTrend trend={figure.trend} /> }))} />
     {/* Every table has its filter bar directly above it. why: guidelines/dense-tables.md */}
     <Card>{bar}</Card>
     {/* Each reference opens its payout row in the report. */}

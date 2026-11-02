@@ -69,7 +69,7 @@ export const RECORDED = {
   'empty-states.md': 91,
   'file-drop.md': 526,
   'going-back.md': 363,
-  'hover-readouts.md': 333,
+  'hover-readouts.md': 331,
   'iconography.md': 304,
   'layout-and-density.md': 318,
   'state-set.md': 299,

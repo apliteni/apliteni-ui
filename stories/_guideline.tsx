@@ -25,7 +25,7 @@ export type Specimen = { id: string; do?: () => ReactNode; dont?: () => ReactNod
 /** Specimens are pictures of a state: a control that would change it does nothing. */
 export const noop = () => {};
 
-/** Trusted markup from this repository, such as a drawn sparkline, with no box of its own.
+/** Trusted markup from this repository, such as a drawn glyph, with no box of its own.
  *  `block` holds block markup, which a span must not. */
 export const Raw = ({ html, block = false }: { html: string; block?: boolean }) => block
   ? <div style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: html }} />

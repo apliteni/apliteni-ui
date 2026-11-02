@@ -98,7 +98,7 @@
 
 **Do:** Spend against estimate, with no subtitle.
 
-**Don't:** The same card with the first half of 2026 under its title.
+**Don't:** The same card with the first quarter of 2026 under its title.
 
 ## Name the lines by their values or a key
 

@@ -1,7 +1,7 @@
 // The shape of a rule and the gates that walk this page: docs/components.md
 import type { Meta, StoryObj } from '@storybook/react';
 import { useEffect, useRef, type ReactNode } from 'react';
-import { GuidelinePage, Raw, noop } from '../_guideline';
+import { GuidelinePage, noop } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
@@ -18,6 +18,7 @@ import { ESTIMATED, LEDGER, SPEC_CSS, SPEND } from './_dashboards-and-reports.js
 import { payoutHref } from '../apps/_finance-nav.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { cashflowStats, PERIODS as SPANS } from '../apps/_finance-data.js';
+import { CashflowTrend, type Trend } from '../apps/_cashflow-trend';
 
 const content = await loadGuideline('dashboards-and-reports.md', new URL('../../guidelines/dashboards-and-reports.md', import.meta.url));
 
@@ -29,9 +30,9 @@ type Tone = 'success' | 'pending' | 'danger';
 
 // Cashflow for the year, from the dashboard's own call, so a specimen cannot drift
 // from the showcase it draws. Two figures, because a specimen cell is under 28rem.
-type Figure = { label: string; value: string; delta: { value: string; tone?: 'good' | 'bad' }; trend: string };
+type Figure = { label: string; value: string; delta: { value: string; tone?: 'good' | 'bad' }; trend: Trend };
 const Cashflow = ({ id }: { id: string }) => <StatBand id={id} stats={(cashflowStats('1Y', true) as Figure[]).slice(0, 2)
-  .map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' }, trend: <Raw html={figure.trend} /> }))} />;
+  .map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' }, trend: <CashflowTrend trend={figure.trend} /> }))} />;
 
 const LedgerTable = () => <table className="ui-table ui-table--dense ui-table--zebra">
   <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
@@ -64,10 +65,10 @@ const Attention = ({ onward = true }: { onward?: boolean }) => <><RestingFilters
 const LedgerFilters = () => <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters"
   chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid', 'In transit', 'Failed'] }]} />;
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-const NET_BY_MONTH = [412, 455, 430, 498, 520, 505];
+const MONTHS = ['Jan', 'Feb', 'Mar'];
+const NET_BY_MONTH = [412, 455, 430];
 const MONTH_PERIODS = MONTHS.map(label => ({ label }));
-const MONTH_TITLE = 'Net settled by month, first half of the year, thousands of euros';
+const MONTH_TITLE = 'Net settled by month, first quarter of the year, thousands of euros';
 const MONTH_SERIES = [{ id: 'net', name: 'Net settled', values: NET_BY_MONTH }];
 const thousands = (n: number) => `${n}k €`;
 // The kit's month chart. In a titled card its Chart and Table switch joins the
@@ -94,19 +95,19 @@ const MonthTable = () => (
 const SPEND_SERIES: ChartLookSeries[] = [
   { id: 'spend', name: 'Spend', tone: 'accent', values: SPEND }, { id: 'estimated', name: 'Estimated', tone: 'accent-soft', values: ESTIMATED }];
 const INCOME_SERIES: ChartLookSeries[] = [
-  { id: 'revenue', name: 'Revenue', tone: 'accent', values: [46.2, 45.1, 47.9, 46.8, 49.3, 48.2] },
-  { id: 'expenses', name: 'Expenses', tone: 'accent-soft', values: [32.9, 33.4, 32.8, 34.0, 34.1, 31.9] },
+  { id: 'revenue', name: 'Revenue', tone: 'accent', values: [46.2, 45.1, 47.9] },
+  { id: 'expenses', name: 'Expenses', tone: 'accent-soft', values: [32.9, 33.4, 32.8] },
 ];
 const ALL_SERIES: ChartLookSeries[] = [...SPEND_SERIES, { ...INCOME_SERIES[0], tone: 'warn' }, { ...INCOME_SERIES[1], tone: 'info' }];
 const PERIODS = MONTHS.map(month => ({ label: `${month} 2026`, short: month }));
 const kEur = (n: number) => `${n.toFixed(1)}k €`;
-// Two past years over one half year: the shape is the point, and no one value is.
+// Two past years over one quarter: the shape is the point, and no one value is.
 const SEASON_SERIES: ChartLookSeries[] = [
-  { id: 'y2024', name: '2024', tone: 'accent-soft', values: [15.1, 15.8, 17.2, 16.6, 18.0, 18.9] },
-  { id: 'y2025', name: '2025', tone: 'accent', values: [16.4, 17.0, 18.8, 18.1, 19.7, 20.6] },
+  { id: 'y2024', name: '2024', tone: 'accent-soft', values: [15.1, 15.8, 17.2] },
+  { id: 'y2025', name: '2025', tone: 'accent', values: [16.4, 17.0, 18.8] },
 ];
-const HALF_YEAR = MONTHS.map(month => ({ label: month, short: month }));
-const LineCard = ({ title, sub, series, look = 'labels', legend = false, span = 'first half of 2026', periods = PERIODS }:
+const QUARTER = MONTHS.map(month => ({ label: month, short: month }));
+const LineCard = ({ title, sub, series, look = 'labels', legend = false, span = 'first quarter of 2026', periods = PERIODS }:
   { title: string; sub?: string; series: ChartLookSeries[]; look?: 'thin' | 'labels'; legend?: boolean; span?: string; periods?: typeof PERIODS }) =>
   <Card title={title} sub={sub}>
     <Chart variant="line" look={look} legend={legend} title={`${title}, ${span}, thousands of euros`}
@@ -164,10 +165,10 @@ const specimens = [
   // The chart's own title still names the span: it is read aloud, never drawn.
   { id: 'no-range-on-chart',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /></Stage>,
-    dont: () => <Stage><LineCard title="Spend against estimate" sub="First half of 2026" series={SPEND_SERIES} legend /></Stage> },
+    dont: () => <Stage><LineCard title="Spend against estimate" sub="First quarter of 2026" series={SPEND_SERIES} legend /></Stage> },
   { id: 'value-not-legend',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
-      <LineCard title="Seasonal spend" series={SEASON_SERIES} look="thin" legend span="first half of each year" periods={HALF_YEAR} /></Stage>,
+      <LineCard title="Seasonal spend" series={SEASON_SERIES} look="thin" legend span="first quarter of each year" periods={QUARTER} /></Stage>,
     dont: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} look="thin" legend /></Stage> },
   { id: 'two-lines-at-most',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />

@@ -1,5 +1,3 @@
-import { sparkline } from '../lib/sparkline.js';
-
 // Fabricated monthly cashflow, July 2024 through June 2026, in EUR.
 const MONTHS = [
   [36000, 25000], [39000, 27000], [38000, 28000], [42000, 26000],
@@ -9,6 +7,9 @@ const MONTHS = [
   [52000, 32100], [50500, 31700], [56000, 32900], [54800, 33400],
   [59000, 32700], [61000, 33900], [58700, 34100], [64000, 31800],
 ];
+// Each row's month, for a trend's periods and its readout.
+const NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const LABELS = MONTHS.map((_, i) => `${NAMES[(6 + i) % 12]} ${2024 + Math.floor((6 + i) / 12)}`);
 export const PERIODS = ['3M', '6M', '1Y', 'All'];
 const lengths = { '3M': 3, '6M': 6, '1Y': 12, All: 24 };
 export const money = value => `${value < 0 ? '−' : ''}${Math.abs(value).toLocaleString('en-US')} €`;
@@ -36,7 +37,10 @@ export function cashflowStats(period = '1Y', trends = false) {
           tone: label === 'Net result' ? 'neutral' : (column === 0 ? change >= 0 : change <= 0) ? 'good' : 'bad' },
       } : {}),
       ...(trends ? {
-        trend: sparkline(trendValues, `${label}, last ${length} months`),
+        // The kit spark Chart draws it: see stories/apps/_cashflow-trend.tsx. A spark
+        // point owns 24px, so more than six months scrolls a stat tile.
+        trend: { name: label, title: `${label}, last ${Math.min(length, 6)} months`, labels: LABELS.slice(-Math.min(length, 6)),
+          values: trendValues.slice(-6) },
       } : {}),
     };
   });
