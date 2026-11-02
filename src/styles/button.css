@@ -83,7 +83,6 @@
   background: transparent;
   border-color: transparent;
   color: var(--strong);
-  text-decoration: underline;
 }
 
 .ui-btn--danger { color: var(--text); }

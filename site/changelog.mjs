@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.158.1', date: '2026-11-02',
+    changes: [
+      ['fixed', 'A hovered link button now shows one underline, under its label. Before, the hover added a second underline under the button. The hover still changes the text to the strong ink. Resolves #765.', ['Button']],
+    ],
+  },
+  {
     v: '0.158.0', date: '2026-10-31',
     changes: [
       ['changed', 'React `EmptyState`: the `not-yet-built` preset now reads "Not available yet", with the sub-line "This screen ships in a later release." Pass `title` or `sub` to keep the old text. Part of #758.', ['Empty']],

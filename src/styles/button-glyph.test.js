@@ -1,4 +1,4 @@
-// What button.css gives a button's glyphs at each size, on the React Button's markup.
+// What button.css gives a button's glyphs at each size, and a link button on hover, on the React Button's markup.
 // The cascade is resolved in JSDOM; nothing is laid out.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -37,4 +37,34 @@ test('the check reports an xs glyph that keeps the default size', async () => {
   const broken = css.replace(/\.ui-btn--xs[^{]*svg[^{]*\{[^}]*\}/g, '');
   assert.notEqual(broken, css, 'no xs glyph rule found to remove');
   assert.notEqual((await glyphs('xs', broken))[0].width, '13px');
+});
+
+// A hovered link button keeps one underline: the label's, at its offset (#765). JSDOM has no
+// pointer, so the sheet's :hover is read as a class. It reads the cascade, not the paint.
+const hovered = async () => {
+  const html = await markup(({ h, kit }) => h(kit.Button, { variant: 'link' }, 'Open report'));
+  const dom = new JSDOM(`<style>${css.replaceAll(':hover', '.is-hover')}</style>${html}`);
+  try {
+    const button = dom.window.document.querySelector('.ui-btn--link');
+    button.classList.add('is-hover');
+    const label = button.querySelector('.ui-btn__label');
+    const style = (el) => dom.window.getComputedStyle(el);
+    return {
+      button: style(button).textDecoration,
+      color: style(button).color,
+      label: style(label).textDecoration,
+      offset: style(label).textUnderlineOffset,
+    };
+  } finally {
+    dom.window.close();
+  }
+};
+
+test('a hovered link button underlines its label once, at the label offset', async () => {
+  const found = await hovered();
+  assert.ok(!/underline/.test(found.button), `the button draws a second underline: ${found.button}`);
+  assert.match(found.label, /underline/);
+  // JSDOM cannot resolve var(--btn-font), so it reads 0.2em against its default 16px.
+  assert.equal(found.offset, '3.2px', 'the underline sits 0.2em under the label');
+  assert.equal(found.color, 'var(--strong)');
 });
