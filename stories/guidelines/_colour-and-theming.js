@@ -20,6 +20,8 @@ export const SPEC_CSS = `
     .gl-pin { display: flex; padding: var(--space-3); margin-bottom: var(--space-3); border-radius: var(--radius-sm); }
     /* The swatch takes a button's height: one tight line, 9px padding and a 1px edge each side. */
     .gl-swatch { display: block; width: 120px; height: calc(var(--text-sm) * var(--leading-tight) + 20px); border-radius: var(--radius-sm); background: var(--accent); }
+    /* The Do draws the button's paint, not a focusable control: the kit ring follows the page theme, not the pin. */
+    .gl-swatch--strong { display: grid; place-items: center; background: var(--accent-strong); color: var(--accent-contrast); font-size: var(--text-sm); font-weight: var(--weight-medium); }
 
     /* Four theme cells. Their literal grounds and inks are the subject. */
     .gl-themes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }

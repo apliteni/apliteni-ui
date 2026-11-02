@@ -2,7 +2,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import type { CSSProperties, ReactNode } from 'react';
 import { GuidelinePage } from '../_guideline';
-import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { TextField } from '../../react/src/Field';
 import { NavTabs } from '../../react/src/NavTabs';
@@ -68,7 +67,7 @@ const specimens = [
   { id: 'tokens', do: () => <Stage><Note /></Stage>, dont: () => <Stage mod="gl-literal"><Note /></Stage> },
   { id: 'signals', do: () => <Stage><BouncedEmail /></Stage>, dont: () => <Stage mod="gl-drift"><BouncedEmail /></Stage> },
   { id: 'accent-strong',
-    do: () => <Stage><DarkNebula><Button variant="primary">Save</Button></DarkNebula><Ratio>Dark, Nebula: white on --accent-strong is 5.70:1</Ratio></Stage>,
+    do: () => <Stage><DarkNebula><span className="gl-swatch gl-swatch--strong">Save</span></DarkNebula><Ratio>Dark, Nebula: white on --accent-strong is 5.70:1</Ratio></Stage>,
     dont: () => <Stage><DarkNebula><span className="gl-swatch" /></DarkNebula><Ratio>Dark, Nebula: white on --accent is 2.95:1, needs 4.5:1</Ratio></Stage> },
   { id: 'selection-accent', do: () => <SelectionTabs />, dont: () => <SelectionTabs badge={{ text: '3', tone: 'accent' }} /> },
   { id: 'both-themes', do: () => <Themes checked={4} />, dont: () => <Themes checked={1} /> },
