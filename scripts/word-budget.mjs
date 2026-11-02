@@ -60,7 +60,7 @@ export const WORDS_PER_RULE = 60;
  * Maintained by hand. Never regenerated: a figure that rises because a tool
  * wrote it is not a decision anybody made. */
 export const RECORDED = {
-  'accessibility-floor.md': 853,
+  'accessibility-floor.md': 790,
   'account-and-settings.md': 353,
   'command-palette.md': 430,
   'component-choice.md': 510,

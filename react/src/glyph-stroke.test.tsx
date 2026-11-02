@@ -143,6 +143,7 @@ const KNOWN_THIN: Record<string, string> = {
   'div.auth-actors > span > svg': 'the consent arrow between the two marks, stroke 1.7 at the default box',
   'div.auth-note > span > svg': 'the consent note glyph, stroke 1.7 at the default box',
   'span.ui-badge.ui-badge--neutral > span > svg': 'a glyph inside a neutral badge, stroke 1.7 at the default box',
+  'div.gl-stroke.gl-stroke--thin > span > svg': "the Iconography Don't for stroke-earns-the-bar, thin on purpose at 1.13 CSS px",
 };
 
 // Kit rules that size or stroke a glyph no React story draws.
