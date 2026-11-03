@@ -298,7 +298,8 @@
 }
 /* White ink falls below the text floor on the lighter dark-theme accents. */
 :where(:root[data-theme="dark"]) .ui-btn--primary .ui-btn__hold-fill { color: var(--signal-contrast); }
-.ui-btn--danger .ui-btn__hold-fill {
+/* Quiet at rest: the pink fill shows only while the reader hovers, focuses or holds. */
+.ui-btn--danger:is(:hover, :focus-visible, [data-holding]) .ui-btn__hold-fill {
   background: var(--pink); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--danger-contrast);
 }

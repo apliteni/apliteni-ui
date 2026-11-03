@@ -820,7 +820,8 @@ React `<Button hold onConfirm={…}>` confirms only through `onConfirm`. It is f
 danger action that cannot be undone. A plain click calls neither `onClick` nor `onConfirm`, and
 the button never submits its form. **A press held for 1000 ms confirms.** A fill grows from the
 start edge in the variant's strong colour with its on-colour ink. A primary button fills with
-`--accent`, and a danger button fills with `--pink`. A release before the end sends the fill back
+`--accent`. A danger button stays quiet at rest and fills with `--pink` only while it is hovered,
+focused or held. A release before the end sends the fill back
 to empty. A press shorter than 300 ms shows "Hold to confirm" above the button, and the button
 does not move. Enter and Space hold the same as a pointer. The pointer is captured, so a slide off
 the button does not end the hold. **Two presses within 3000 ms also confirm.** This is the path for
