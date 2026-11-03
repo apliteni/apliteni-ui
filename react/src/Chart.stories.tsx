@@ -4,7 +4,7 @@ import { expect, userEvent, within } from 'storybook/test';
 import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
 import type { ChartSlice } from './chart-looks';
 import { Card } from './primitives/Card';
-import { StatBand } from './primitives/StatBand';
+import { KpiBand } from '../../stories/_kpi';
 
 const meta: Meta<typeof Chart> = { title: 'React/Chart', component: Chart, id: 'react-chart' };
 export default meta;
@@ -178,20 +178,14 @@ export const Selectable: StoryObj = {
 export const Sparkline: StoryObj = {
   render: () => (
     <div style={{ width: 'min(var(--panel-lg), calc(100vw - 2rem))' }}>
-    <StatBand label="Revenue" basis="Change on September" stats={[{
+    <KpiBand label="Revenue" basis="Change on September" format={eur} stats={[{
       label: 'Income', value: eur(INCOME[10]),
       delta: { value: '+5.3%', tone: 'good' },
-      trend: <Chart variant="spark" title="Income, last 11 closed months"
-        periods={closed}
-        series={[{ id: 'income', name: 'Income', values: INCOME.slice(0, 11), shape: 'line', tone: 'accent' }]}
-        format={eur} />,
+      trend: { title: 'Income, last 11 closed months', name: 'Income', labels: MONTHS.slice(0, 11), values: INCOME.slice(0, 11) },
     }, {
       label: 'Spend', value: eur(SPEND[10]),
       delta: { value: '+0.5%', tone: 'bad' },
-      trend: <Chart variant="spark" title="Spend, last 11 closed months"
-        periods={closed}
-        series={[{ id: 'spend', name: 'Spend', values: SPEND.slice(0, 11), shape: 'line', tone: 'accent-soft' }]}
-        format={eur} />,
+      trend: { title: 'Spend, last 11 closed months', name: 'Spend', labels: MONTHS.slice(0, 11), values: SPEND.slice(0, 11), tone: 'accent-soft' },
     }]} />
     </div>
   ),

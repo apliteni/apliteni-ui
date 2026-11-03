@@ -2,14 +2,13 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { FinanceShell } from './_finance-shell';
-import { CashflowTrend, type Trend } from './_cashflow-trend';
+import { KpiBand, type KpiFigure } from '../_kpi';
 import { Segmented } from '../../react/src/Segmented';
-import { StatBand } from '../../react/src/primitives/StatBand';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
 import { useTableFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story module
-import { cashflowStats, PERIODS, periodBasis } from './_finance-data.js';
+import { cashflowStats, money, PERIODS, periodBasis } from './_finance-data.js';
 // @ts-expect-error -- plain JS story module
 import { payoutHref } from './_finance-nav.js';
 
@@ -17,7 +16,6 @@ const meta: Meta = { title: 'Showcases/Finance dashboard', id: 'apps-finance-das
 export default meta;
 
 const PERIOD_BASIS = 'fd-period-basis';
-type Figure = { label: string; value: string; delta?: { value: string; tone?: 'good' | 'bad' }; trend?: Trend };
 
 // Which row, what is wrong with it, how much, and only then when it arrives: the
 // order of the decision, not of the ledger. The status rides in the reference's
@@ -39,8 +37,8 @@ const Dashboard = () => {
       <Segmented label="Period" options={(PERIODS as string[]).map(p => ({ label: p, value: p }))} value={period} onChange={setPeriod} />
       <p className="ui-sr" id={PERIOD_BASIS} data-period-basis="">{periodBasis(period)}</p>
     </div>
-    <StatBand id="fd-cashflow" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
-      .map(figure => ({ ...figure, trend: figure.trend && <CashflowTrend trend={figure.trend} /> }))} />
+    {/* A hovered month shows in its figure. why: guidelines/hover-readouts.md */}
+    <KpiBand id="fd-cashflow" basisId={PERIOD_BASIS} format={money} stats={cashflowStats(period, true) as KpiFigure[]} />
     {/* Every table has its filter bar directly above it. why: guidelines/dense-tables.md */}
     <Card>{bar}</Card>
     {/* Each reference opens its payout row in the report. */}

@@ -99,6 +99,9 @@ function arc(x: number, y: number, r0: number, r1: number, a0: number, a1: numbe
 }
 const angle = (share: number) => -Math.PI / 2 + share * Math.PI * 2;
 
+/** The radius of a bar's end away from the axis. Its base stays square. */
+export const BAR_RADIUS = 2;
+
 /** A segment whose top is round and whose foot is square, for a stack's top. */
 function topRounded(x: number, y: number, w: number, h: number, r: number) {
   const k = Math.min(r, h, w / 2);
@@ -427,7 +430,7 @@ function columnsDrawing(g: LookGeometry) {
       const y0 = y(layer.from[i]);
       const y1 = y(layer.to[i]);
       const x = centre(i) - w / 2;
-      const d = layer === filled[filled.length - 1] ? topRounded(x, y1, w, y0 - y1, 4) : square(x, y1, w, y0 - y1);
+      const d = layer === filled[filled.length - 1] ? topRounded(x, y1, w, y0 - y1, BAR_RADIUS) : square(x, y1, w, y0 - y1);
       return (
         <path key={`seg-${layer.id}-${i}`}
           className={cx('ui-chart__segment', tone(layer.tone), label.estimated && 'is-estimated')} d={d} />
@@ -464,7 +467,7 @@ function rowsDrawing(g: LookGeometry, pick: number | null) {
               const x0 = rows.x(layer.from[i]);
               const x1 = rows.x(layer.to[i]);
               const d = layer === filled[filled.length - 1]
-                ? rightRounded(x0, top, x1 - x0, ROW_BAR, 4) : square(x0, top, x1 - x0, ROW_BAR);
+                ? rightRounded(x0, top, x1 - x0, ROW_BAR, BAR_RADIUS) : square(x0, top, x1 - x0, ROW_BAR);
               return (
                 <path key={`seg-${layer.id}`} d={d}
                   className={cx('ui-chart__segment', tone(layer.tone), label.estimated && 'is-estimated')} />

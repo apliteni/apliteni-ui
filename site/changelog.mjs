@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.160.0', date: '2026-11-03',
+    changes: [
+      ['added', 'React `Chart` takes `onActive`, which receives the open point as `{ index, period, value }` and `null` when it closes. The chart draws a dot on an open line point. While you pass `onActive`, it shows no readout, so a one-series figure can show the value in its own place. Part of #768.', ['Chart']],
+      ['changed', 'React `Chart` bars have a 2px radius on the end away from the axis, and a square base. A spark fills the room under its line with the fade of its tone. Part of #768.', ['Chart']],
+      ['changed', 'Guidelines: Hover readouts lets a sparkline show the pointed value in its figure. Part of #768.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.159.0', date: '2026-11-02',
     changes: [
       ['changed', 'The Accessibility floor, Colour and theming, Iconography, Labels and titles and Layout and density guidelines draw each rule as a picture.', ['Guidelines']],

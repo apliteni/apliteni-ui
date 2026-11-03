@@ -736,12 +736,12 @@ it('spends a bar\'s corner radius on the end away from zero, and none on the foo
   for (const bar of svg.querySelectorAll('path.ui-chart__bar')) {
     const box = boxOf(bar);
     const arcs = arcsOf(bar);
-    // The data end is fully round: the radius is half the bar's width, unless
-    // the bar is too short to spend it. An arc leaves the edge it rounds exactly
-    // that far, so the radius is also the tolerance for where the arc sits.
-    const radius = Math.min(box.width / 2, box.height);
+    // The data end takes a 2px radius, not a round tip, unless the bar is too
+    // short to spend it. An arc leaves the edge it rounds exactly that far, so
+    // the radius is also the tolerance for where the arc sits.
+    const radius = Math.min(2, box.width / 2, box.height);
     for (const [, r] of (bar.getAttribute('d') ?? '').matchAll(/a(-?\d*\.?\d+)/g)) {
-      expect(Math.abs(Number(r) - radius), `${classOf(bar)} is round at its data end`).toBeLessThanOrEqual(0.1);
+      expect(Math.abs(Number(r) - radius), `${classOf(bar)} has a 2px corner at its data end`).toBeLessThanOrEqual(0.1);
     }
     expect(arcs, `${classOf(bar)} rounds exactly one end`).toHaveLength(2);
     const onZero = Math.abs(box.y - zeroY) < Math.abs(box.y + box.height - zeroY) ? 'top' : 'bottom';
@@ -752,18 +752,21 @@ it('spends a bar\'s corner radius on the end away from zero, and none on the foo
   }
 });
 
-// A bridge step floats between two running totals and stands on nothing, so there
-// is no foot to keep square and both ends are rounded.
-it('rounds both ends of a bar that stands on nothing', () => {
+// A bridge step floats between two running totals and stands on nothing. It
+// keeps one square end like every other bar, and rounds the end further from zero.
+it('rounds only the end further from zero on a bar that stands on nothing', () => {
   const { container } = render(
     <Chart variant="bridge" title="Cash" format={eur}
       steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 },
         { label: 'Fees', value: -150 }, { label: 'Closing', kind: 'total' }]} />,
   );
   const bars = [...container.querySelectorAll('path.ui-chart__bar')];
-  // Opening and Closing stand on zero; Sales and Fees float above it.
-  expect(bars.map((b) => arcsOf(b).length), 'two corners on the ends, four in the middle')
-    .toEqual([2, 4, 4, 2]);
+  expect(bars.map((b) => arcsOf(b).length), 'two corners on every bar').toEqual([2, 2, 2, 2]);
+  // Sales and Fees sit above zero, so both round their top edge.
+  for (const bar of bars.slice(1, 3)) {
+    const box = boxOf(bar);
+    for (const at of arcsOf(bar)) expect(Math.abs(at - box.y)).toBeLessThanOrEqual(2);
+  }
 });
 
 it('a tap opens the readout, a second tap on the same mark closes it', () => {
@@ -1585,4 +1588,83 @@ it('shrinks the labels ring\'s box with its ring on a narrow plot', () => {
   const narrow = box(300);
   expect(narrow.h, 'the narrow box is shorter').toBeLessThan(wide.h);
   expect(wide.h - narrow.h, 'by what the ring lost across').toBeCloseTo(2 * (wide.r - narrow.r), 0);
+});
+
+// A KPI card shows the hovered value in its own figure, so the chart reports
+// the point and draws no readout of its own.
+describe('onActive', () => {
+  const kpi = (onActive: (p: unknown) => void) => render(
+    <Chart variant="spark" title="Income" periods={MONTHS.map((label) => ({ label }))} format={eur}
+      onActive={onActive} series={[{ id: 'income', name: 'Income', values: INCOME, shape: 'line' }]} />,
+  );
+
+  it('reports the hovered point, and null when the pointer leaves', () => {
+    const seen: unknown[] = [];
+    kpi((p) => seen.push(p));
+    hover('income-1');
+    expect(seen.at(-1)).toEqual({ index: 1, period: 'Feb 2026', value: 1500 });
+    fireEvent.mouseLeave(plot());
+    expect(seen.at(-1)).toBeNull();
+    expect(document.querySelector('.ui-tip'), 'no readout while the caller shows the value').toBeNull();
+  });
+
+  it('reports each arrow key step, and null when focus goes', async () => {
+    const user = userEvent.setup();
+    const seen: unknown[] = [];
+    kpi((p) => seen.push(p));
+    await user.tab();
+    expect(seen.at(-1)).toEqual({ index: 0, period: 'Jan 2026', value: 1200 });
+    await user.keyboard('{End}');
+    expect(seen.at(-1)).toEqual({ index: 3, period: 'Apr 2026', value: 900 });
+    await user.tab();
+    expect(seen.at(-1)).toBeNull();
+  });
+
+  it('keeps the point a press opens while the press moves focus into the chart', () => {
+    const seen: unknown[] = [];
+    kpi((p) => seen.push(p));
+    const frame = document.querySelector<HTMLElement>('.ui-chart__frame')!;
+    act(() => frame.focus());
+    hover('income-2');
+    fireEvent.pointerDown(plot());
+    act(() => document.querySelector<HTMLElement>('.ui-chart__scroll')!.focus());
+    expect(seen.at(-1)).toEqual({ index: 2, period: 'Mar 2026', value: expect.any(Number) });
+    expect(plot().querySelectorAll('circle.ui-chart__dot')).toHaveLength(1);
+  });
+
+  it('reports a point once, whatever function the caller passes on each render', () => {
+    const spy = vi.fn();
+    const { rerender } = kpi(spy);
+    hover('income-2');
+    rerender(<Chart variant="spark" title="Income" periods={MONTHS.map((label) => ({ label }))} format={eur}
+      onActive={(p) => spy(p)} series={[{ id: 'income', name: 'Income', values: INCOME, shape: 'line' }]} />);
+    expect(spy.mock.calls.filter(([p]) => p !== null)).toHaveLength(1);
+  });
+});
+
+it('draws a dot on the active point of a line, and none when nothing is active', () => {
+  months();
+  const svg = plot();
+  expect(svg.querySelectorAll('circle.ui-chart__dot')).toHaveLength(0);
+  hover('net-1');
+  const dot = svg.querySelector('circle.ui-chart__dot')!;
+  const anchor = svg.querySelector('[data-anchor="net-1"]')!;
+  expect(Number(dot.getAttribute('cx'))).toBeCloseTo(Number(anchor.getAttribute('x')) + Number(anchor.getAttribute('width')) / 2, 1);
+  fireEvent.mouseLeave(svg);
+  expect(svg.querySelectorAll('circle.ui-chart__dot')).toHaveLength(0);
+});
+
+// The KPI line is the area look's ramp: the fade at the lowest value and the
+// tone at the highest. The dot and its ring stay inside the 32px drawing.
+it('fills a sparkline from its line to the foot, ramped from its lowest value to its highest', () => {
+  render(<Chart variant="spark" title="Income" periods={MONTHS.map((label) => ({ label }))} format={eur}
+    series={[{ id: 'income', name: 'Income', values: INCOME, shape: 'line' }]} />);
+  const svg = plot();
+  const area = svg.querySelector('path.ui-chart__area')!;
+  const ramp = svg.querySelector(`#${area.getAttribute('style')!.match(/url\(#([^)]+)\)/)![1]}`)!;
+  const [y1, y2] = ['y1', 'y2'].map((a) => Number(ramp.getAttribute(a)));
+  expect(y1, 'the faint stop sits at the lowest value, lower on the plot').toBeGreaterThan(y2);
+  expect(y2 - 3 - 2, 'the dot ring at the highest value stays inside the drawing').toBeGreaterThanOrEqual(0);
+  expect(y1 + 3 + 2, 'and at the lowest').toBeLessThanOrEqual(32);
+  expect(boxOf(area).y + boxOf(area).height).toBeCloseTo(32, 1);
 });

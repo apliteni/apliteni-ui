@@ -5,7 +5,7 @@ import { GuidelinePage } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
 import { StatBand } from '../../react/src/primitives/StatBand';
-import { Chart } from '../../react/src/Chart';
+import { KpiBand } from '../_kpi';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -19,7 +19,7 @@ const Stage = ({ children }: { children: ReactNode }) => <div className="gs-stag
 const BASIS = 'Change against the previous 12 months';
 // Six points: a spark point owns 24px, so twelve would scroll a tile at 390.
 const INCOME = [560, 548, 590, 610, 587, 640];
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map(month => ({ label: `${month} 2026` }));
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map(month => `${month} 2026`);
 const thousands = (n: number) => `€ ${n.toLocaleString('en-US')}k`;
 type Tone = 'good' | 'bad';
 const FIGURES = [
@@ -35,10 +35,9 @@ const toned = (id: string, tones: (Tone | undefined)[]) => <Stage><StatBand id={
 
 const specimens = [
   { id: 'a-band-not-a-card',
-    do: () => <Stage><StatBand id="gs-band-do" basis={BASIS} stats={[
+    do: () => <Stage><KpiBand id="gs-band-do" basis={BASIS} format={thousands} stats={[
       { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' },
-        trend: <Chart variant="spark" title="Income, last 6 months" periods={MONTHS} format={thousands}
-          series={[{ id: 'income', name: 'Income', values: INCOME, shape: 'line', tone: 'accent' }]} /> },
+        trend: { title: 'Income, last 6 months', name: 'Income', labels: MONTHS, values: INCOME } },
       { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
     ]} /></Stage>,
     dont: () => <Stage><Card>

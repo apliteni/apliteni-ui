@@ -37,7 +37,7 @@ export function cashflowStats(period = '1Y', trends = false) {
           tone: label === 'Net result' ? 'neutral' : (column === 0 ? change >= 0 : change <= 0) ? 'good' : 'bad' },
       } : {}),
       ...(trends ? {
-        // The kit spark Chart draws it: see stories/apps/_cashflow-trend.tsx. A spark
+        // The kit spark Chart draws it: see stories/_kpi.tsx. A spark
         // point owns 24px, so more than six months scrolls a stat tile.
         trend: { name: label, title: `${label}, last ${Math.min(length, 6)} months`, labels: LABELS.slice(-Math.min(length, 6)),
           values: trendValues.slice(-6) },

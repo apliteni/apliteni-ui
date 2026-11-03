@@ -1,16 +1,16 @@
 # Hover readouts
 
-## Keep readouts over the page
+## Keep readouts off the layout
 
 <!-- rule: overlay -->
 
-**Rule:** Show the hover value beside its mark, never inside the page layout.
+**Rule:** Show the hover value in its figure or beside its mark, never in a new line.
 
 **Why:** A changing readout must not move the page.
 
-**Do:** Float the value beside a chart point, sparkline, heatmap cell or truncated cell.
+**Do:** Show a sparkline point in its figure. Float other values beside the mark.
 
-**Don't:** Add a value line that makes the card taller and pushes content down.
+**Don't:** Add a value line that pushes content down.
 
 ## Prefer above the mark
 
