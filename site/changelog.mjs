@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.158.2', date: '2026-11-03',
+    changes: [
+      ['added', 'The package now ships `guidelines/INDEX.md`, one row per guideline page with the screen parts it covers and when to read it. An agent that builds a screen can read it to find the page. Resolves #771.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.158.1', date: '2026-11-02',
     changes: [
       ['fixed', 'A hovered link button now shows one underline, under its label. Before, the hover added a second underline under the button. The hover still changes the text to the strong ink. Resolves #765.', ['Button']],

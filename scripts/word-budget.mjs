@@ -8,7 +8,8 @@
  * them: #514 was cut for verbosity after review, #566 took two rounds to lose
  * repeated text, and nothing measured the prose.
  *
- * The subject is every `guidelines/*.md` page, discovered from the directory, so
+ * The subject is every `guidelines/*.md` page except `INDEX.md`, the collection
+ * index and not a guideline page, discovered from the directory, so
  * a new page joins the check by existing. The prose is read through the parser
  * the pages are rendered with, so what is counted is what a reader reads: any
  * introduction between the title and the first rule, then each rule's `##`
@@ -163,7 +164,7 @@ export function problemsIn(measured, recorded = RECORDED) {
 /** Every guideline page, measured, worst rate first. */
 export function measureCollection(dir = path.join(root, 'guidelines'), perRule = WORDS_PER_RULE) {
   return readdirSync(dir)
-    .filter((f) => f.endsWith('.md'))
+    .filter((f) => f.endsWith('.md') && f !== 'INDEX.md')
     .map((f) => measure(f, readFileSync(path.join(dir, f), 'utf8'), perRule))
     .sort((a, b) => (b.words / (b.rules || 1)) - (a.words / (a.rules || 1)));
 }
