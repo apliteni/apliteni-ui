@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.158.2', date: '2026-11-03',
+    changes: [
+      ['fixed', 'A `Dropdown` panel that is torn down while it is still closing no longer throws an unhandled error. Before, the collapse timer could fire after the panel\'s document was gone and throw while measuring the view.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.158.1', date: '2026-11-02',
     changes: [
       ['fixed', 'A hovered link button now shows one underline, under its label. Before, the hover added a second underline under the button. The hover still changes the text to the strong ink. Resolves #765.', ['Button']],
