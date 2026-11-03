@@ -1,78 +1,65 @@
-# Owner notes on #768, branch builder-ui-r6-components
+# Fix round 1 on #768, branch builder-ui-r6-components
 
-Each section gives the owner note, the change and the measured numbers. A headless Chromium measured all of them.
+Each section gives the defect, the change and the measured numbers. A headless Chromium measured all of them, after `document.fonts.ready`.
 
-## 1. The palette clips the search focus ring in dark mode
+## 1. Drawer type levels
 
-- Change: The search field's top corners now use a radius of `calc(var(--radius-lg) - 1px)`. That radius is 15px inside the 16px panel.
-- Measured: The ring is a solid 2px line at offset -3px. It follows the round corners, in light and in dark, at 390, 720 and 1280. The check found no clipped ring.
+- Change: The drawer title now uses the kit rank card-title: 18px, weight 600, line height 25.2px.
+- Change: The component prototype shows all three levels in one state, `component-drawer.html#playground`: the title "Transaction", the section title "Reconciliation" and the field label "Note".
+- Measured: Title 18px at weight 600. Section title 14.5px at weight 600. Field label 13px at weight 500. All three are IBM Plex Sans.
+- Measured: The type ranks gate now counts 18 rank notes. It counted 17 before.
 
-## 2. Remove the "·" separators
+## 2. No block in a block
 
-- Change: The last "·" left `stories/lib/dropdown-contain.js`, `stories/lib/target-geometry.js` and `stories/select-chevron.test.js`.
-- Measured: No text file under `src`, `react/src`, `stories`, `guidelines` or `docs` holds "·". No rendered story that this branch changes holds "·".
+- Change: The "Drawer or page" Do is now one page block. The card inside the page block is gone.
+- Change: The Stat bands and Density and accents specimens lost the grey stage ground under their cards.
+- Checked: Every picture on the changed pages. The file drop window frame stays, because it stands for the window that the drop rule is about. The "No cards" Don't keeps cards in the drawer, because that is the failure it shows.
 
-## 3. One palette entry for the danger zone
+## 3. Cut specimens
 
-- Change: The rule "Send destructive actions to their page" now asks for one Go to row, "Danger zone in Settings", that opens the settings section.
-- Change: The Do specimen shows that row. The Don't specimen lists "Delete workspace…" and "Revoke every API key…".
-- Change: Both specimens use the `roomy` palette. Before, the Do label was cut to "Danger zone in Setti…" at 1280.
-- Limit: The component story Destructive still shows the danger API of the palette, because the API stays in the kit.
-- Measured: The row floor of the palette guideline gate went from 58 to 57, because the Do specimen now has one row.
+- Change: A drawer specimen frame is now at least 460px high and grows with its panel.
+- Measured: The drawer body scrollHeight equals its clientHeight in every specimen. "Drawer or page" Don't: 448 of 448 at 1280, 637 of 637 at 390. Before: 448 of 329.
+- Measured: "No cards" Don't: 428 of 428 at 1280. Before: 428 of 397. At 390, rows fit at 438 of 438. Before: 438 of 397.
 
-## 4. Loading
+## 4. Money
 
-- Change: A busy button shows a spinner, keeps its width, is disabled and has `aria-busy`.
-- Change: A new `keepLabel` keeps the label next to the spinner for a long action.
-- Change: A DataTable with no rows on a first load draws skeleton rows in its own columns. The new story is DataTable First load.
-- Change: The Dense tables Don't now shows an empty state, not an empty block.
-- Change: The DataTable First load story has the campaign filter bar above the table, as every table story has.
-- Measured: Save is 65.0px wide at rest and busy. Export rows is 155px wide and keeps its label. Both have `aria-busy="true"` and are disabled.
+- Change: Money on the changed pages reads "12,480.50 €", with the symbol last. This includes the drawer, stat band, density and command palette specimens.
+- Measured: No prototype file holds "€" before a number.
+- Limit: The ledger, key value list and stat band component stories outside these prototypes still put "€" first. This branch does not change them.
 
-## 5. Two type levels in the drawer
+## 5. Page padding of a component state
 
-- Change: A drawer section title, such as "How it is classified", is 14.5px at weight 600. A field label, such as "Category", is 13px at weight 500.
-- Limit: The drawer title is 15px at weight 600. So the title and the section title are close in size. The owner can decide if the title needs a larger step.
+- Change: Each component state sits in a 16px padding, the padding of a Storybook story.
+- Measured: All 414 cases have a 16px state padding and no sideways scroll at 390, 720 and 1280.
 
-## 6. The whole file drop zone opens the picker
+## 6. Loading
 
-- Change: The drop zone is the target. It is a button with tabindex 0. The inner Upload control has tabindex -1.
-- Measured: A click, Enter and Space each open the picker once. There is no double fire.
-
-## 7. File row Remove
-
-- Change: Remove is a kit small secondary button on the row centre line.
-- Measured: The Remove label centre differs from the file name centre by 0.49px. The button box centre differs by 0.01px.
-
-## 8. Back link indent
-
-- Change: The back link pulls its chevron ink onto the column edge with `margin-inline-start: calc(-1 * var(--space-1) - 5px)`.
-- Measured: The chevron ink starts at x 60.2 and the title at x 60.0, at 1280 and at 390. Before the change, the ink started at about x 69.2.
-
-## Word budgets
-
-- The Button labels page was 299 words against a budget of 240, after earlier commits on this branch. It is now 240. The Except of "Earn a wordless button" no longer links the issues. It names the owner-approved entries in one sentence.
-- The Command palette page was 337 words against its recorded 322. It is now 322.
+- Study: Untitled UI hides the label but keeps the width, or shows a leading spinner before the label. Its spinner is a currentColor arc.
+- Study: Radix Themes hides the content but keeps the width. It puts a spinner in the centre and keeps the label for screen readers.
+- Study: shadcn/ui puts a leading currentColor spinner before the label.
+- Common practice: A short action shows a centred spinner at the same width. A long action shows a leading spinner in place of the icon, with the label.
+- The kit keeps focus on a busy button with `aria-disabled`, not `disabled`. This is a deliberate kit choice.
+- Change: With `keepLabel`, the spinner now replaces the leading icon. "Export rows" shows one spinner and its label, and no empty icon box.
+- Change: The spinner is a three-quarter arc in the button's own ink. The 28% track is gone.
+- Measured: Primary arc, white on rgb(106,45,204) in light: 7.34:1. White on rgb(124,58,237) in dark: 5.70:1. Secondary arc: 16.68:1 in light, 13.32:1 in dark.
 
 ## Checks in a headless browser
 
-- The changed guideline and React stories passed in light and dark at 390, 720 and 1280, with hover and keyboard focus.
-- The check found no sideways scroll, no "·", no clipped focus ring and no console error.
+- Every state and every rule, in light and dark, at 390, 720 and 1280, with hover and two Tab presses: 414 cases. I opened the captures of the drawer, loading, drawer guideline and density pages and looked at them.
+- Found: No sideways scroll. Each focused link, button, field and table scroller had a solid 2px outline. The palette search input has no outline of its own. This branch does not change that input.
+- Fixed in the prototype chrome: At 390 the state bar covered the drawer Cancel button. The bar now sits 80px above the bottom on narrow screens. A rule link also scrolled the rule title under the sticky bar. The rule now keeps a 112px scroll margin.
 
 ## Prototypes
 
-- Each changed guideline page has one HTML file: `guideline-*.html`. A hash such as `#danger-page` opens and marks that rule.
-- Each changed component has one HTML file in all its states: `component-*.html`. A hash such as `#done` shows that state.
-- Each file is self-contained, with inlined fonts and styles. A button switches light and dark.
-- Under the viewer CSP, every rule and every state opened with no console error. The files hold no host path.
+- Same 13 file names, same data-rule and data-state ids, same hash rule. A hash opens and marks that rule, or shows that state.
+- Each file is self-contained, with inlined fonts and styles. A button switches light and dark. The files hold no host path.
 
 ## Tests
 
-- Root `npm test`: 1760 passed, 0 failed, 27 skipped, in 99s.
+- `npm test`: 1759 passed, 0 failed, 28 skipped, in 54s.
 - `npm run check:words`: passed.
 - `npm run build-storybook` and `node site/build.mjs`: passed.
-- Four count gates moved by one, each with its reason: type ranks 17, typeface subjects 53, scroll rings 17 and the palette row floor 57.
-- `npm test -w react`: the full run on a loaded host (load average 17 to 24) took 14m43s. 643 tests failed.
-  - One failure was real: the palette row floor. It is fixed. The palette, palette guideline and DataTable files then passed 79 of 79. After the last changes, the DataTable, palette and guidelines files passed. One guidelines test timed out at 5s at load average 21, and it passed alone.
-  - The a11y, focus-ring, guidelines and filter-selected-mark files passed 1220 of 1220 on a rerun with a 60s timeout. The first failures came from one axe timeout. After it, each axe run failed with "Axe is already running".
-  - In the contrast walk, ComponentChoice, DashboardsAndReports and Screener time out at the 30s limit of each test. This branch does not change those stories. They need a rerun on a quiet host.
+- `npm test -w react`: The host load average was 17 to 21. The full run took 11m10s. One a11y timeout started an axe "already running" cascade.
+- Rerun of a11y alone: 743 of 743 passed, in 98s.
+- Rerun of the other files: The contrast walk timed out at 30s on Dashboards and reports and Stock screener, and focus ring timed out at 5s. These stories are not changed on this branch. The same timeouts occurred in the previous round.
+- Two count gates fail: field ground counts 151 fields against 150, and reading surface counts 886 prose elements against 888. Both fail with the same numbers on b23362e3, before this round. This round does not change them.
