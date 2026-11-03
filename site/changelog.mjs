@@ -6,10 +6,16 @@
 
 export const RELEASES = [
   {
-    v: '0.159.0', date: '2026-11-03',
+    v: '0.160.0', date: '2026-11-03',
     changes: [
       ['changed', 'A hover table (`ui-table--hover` without `--zebra`, and React `DataTable` by default) now fills a hovered row across the full table width with round ends. The first and last content sit 8px inside the fill, also in dense and compact tables and in an end action cell. The last column now ends 8px from the table edge. Before, it ended 24px in. No row line crosses the round ends. Resolves #773.', ['Table']],
       ['changed', 'The Dense tables guideline now allows an inset grey hover fill. It still forbids a grey zebra. Part of #773.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.159.0', date: '2026-11-03',
+    changes: [
+      ['added', 'The package now ships a stylelint config at `@apliteni/apliteni-ui/stylelint`. It refuses raw colours, raw `px`, `rem` or `em` spacing values, and overrides of `.ui-*` kit classes in app styles; a rule is off only with a comment that names the approved exception. Resolves #772.'],
     ],
   },
   {
