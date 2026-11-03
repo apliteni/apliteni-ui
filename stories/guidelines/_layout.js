@@ -31,7 +31,13 @@ export const SPEC_CSS = `
        frames a specimen now, and the fill is kept so a stage is still a stage
        wherever one is rendered outside this layout. */
     .gl-stage { background: var(--surface); border-radius: var(--radius-lg);
-      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
+      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5);
+      /* A tab row covers its edge shades with this ground, so a row that fits shows none. */
+      --ui-tabs-ground: var(--surface); }
+    /* A picture that brings its own frame drops the stage's, so no block sits in a
+       block with the same border. A page lists its own framed parts the same way.
+       why: guidelines/the-page.md#one-frame-per-block */
+    .gl-stage:has(.ui-card, .gl-frame) { box-shadow: none; padding: 0; }
     /* The dot sits on the first line, so a readout can wrap at phone width. */
     .gl-cursor { display: inline-flex; align-items: flex-start; gap: 7px; margin-top: var(--space-3);
       font: 500 11px/1.4 var(--font-sans); color:var(--text); }
@@ -77,9 +83,10 @@ export const PAGE_CSS = `
     .gc-rule + .gc-rule { margin-top: var(--space-8); padding-top: var(--space-8);
       border-top: 1px solid var(--border); }
 
-    /* min() drops the pair single-file only once a cell stops fitting. */
+    /* min() drops the pair single-file only once a cell stops fitting. auto-fill
+       keeps a lone Do at one cell's width. */
     .gc-pair { display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(var(--gl-cell), 100%), 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(var(--gl-cell), 100%), 1fr));
       gap: var(--space-4); }
     .gc-cell { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
     .gc-cell__cap { font: 400 12px/1.55 var(--font-sans); color:var(--text); }

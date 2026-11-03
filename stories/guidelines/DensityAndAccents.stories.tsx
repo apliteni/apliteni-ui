@@ -47,7 +47,7 @@ const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['In
 const Payouts = () => <><RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />
 <div className="gda-table"><div className="ui-card ui-card--pad-sm ui-card--fit">
   <table className="ui-table ui-table--dense ui-table--zebra">
-    <caption>Payouts · EUR</caption>
+    <caption>Payouts in EUR</caption>
     <thead><tr><th>Reference</th><th className="ui-table__num">Amount</th><th>Status</th></tr></thead>
     <tbody>{PAYOUTS.map(([reference, amount, status]) =>
       <tr key={reference}><td>{reference}</td><td className="ui-table__num">{amount}</td><td>{status}</td></tr>)}</tbody>
@@ -56,30 +56,27 @@ const Payouts = () => <><RestingFilters search="Search payouts" placeholder="Ref
 const Figures = () => <StatBand variant="tiles" basis="September payouts"
   stats={[{ label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' }]} />;
 
-// A document preview beside the fields a parser read from it. Both panels print the
-// same two cards, so what a reader compares is the width, the value weight and
-// which card's name carries the accent.
-const SavedPane = ({ lead }: { lead: boolean }) => <div className={`ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}`}>
+// A document preview beside the fields a parser read from it. The saved fields get
+// the width, the value weight and the accent on the card's name.
+const SavedPane = () => <div className="ui-card ui-card--pad-sm gda-pane--accent">
   <h3 className="ui-card__title">Extracted fields</h3>
   <p className="gda-pane__label">Supplier</p>
-  <p className={`gda-pane__value${lead ? ' gda-pane__value--strong' : ''}`}>Sample Studio</p>
+  <p className="gda-pane__value gda-pane__value--strong">Sample Studio</p>
   <p className="gda-pane__label">Total</p>
-  <p className={`gda-pane__value${lead ? ' gda-pane__value--strong' : ''}`}>1,440.00</p>
+  <p className="gda-pane__value gda-pane__value--strong">1,440.00</p>
 </div>;
-const SourcePane = ({ lead }: { lead: boolean }) => <div className={`ui-card ui-card--pad-sm${lead ? ' gda-pane--accent' : ''}`}>
+const SourcePane = () => <div className="ui-card ui-card--pad-sm">
   <h3 className="ui-card__title">Document preview</h3>
   {['Invoice', 'DEMO-1042', 'Total', '1,440.00'].map(line => <p key={line} className="gda-pane__line">{line}</p>)}
 </div>;
-const Consequence = ({ savedLeads }: { savedLeads: boolean }) => <Stage>
-  <div className={`gda-panes gda-panes--${savedLeads ? 'saved' : 'source'}-wide`}>
-    <SavedPane lead={savedLeads} /><SourcePane lead={!savedLeads} />
-  </div>
+const Consequence = () => <Stage>
+  <div className="gda-panes gda-panes--saved-wide"><SavedPane /><SourcePane /></div>
 </Stage>;
 
 const specimens = [
-  { id: 'check-density', do: () => <Stage mod="gda-band"><Figures /></Stage>, dont: () => <Stage mod="gda-band gda-forced"><Figures /></Stage> },
+  { id: 'check-density', do: () => <Stage mod="gda-band"><Figures /></Stage> },
   { id: 'reduce-density', do: () => <Stage><Payouts /><Preview /></Stage>, dont: () => <Stage><Payouts /><Preview bad /></Stage> },
-  { id: 'follow-the-consequence', do: () => <Consequence savedLeads />, dont: () => <Consequence savedLeads={false} /> },
+  { id: 'follow-the-consequence', do: () => <Consequence /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Density and accents', parameters: { layout: 'fullscreen' } };

@@ -20,7 +20,4 @@ export const SPEC_CSS = `
     .gl-stroke svg { width: 16px; height: 16px; }
     .gl-stroke__big { display: contents; }
     .gl-stroke__big svg { width: 48px; height: 48px; }
-    /* The don't's thin stroke is held to 3:1 on the stage, not 4.5:1: 3.15:1 dark, 3.10:1 light. */
-    .gl-stroke--thin { color: #307c35; }
-    :root[data-theme="light"] .gl-stroke--thin { color: #40a64b; }
   </style>`;

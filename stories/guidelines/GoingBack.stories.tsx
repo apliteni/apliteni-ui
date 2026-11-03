@@ -26,7 +26,7 @@ const RAIL = [
   { id: 'invoices', icon: 'doc', label: 'Invoices', href: '#' },
   { id: 'payouts', icon: 'card', label: 'Payouts', href: '#' },
 ];
-const WithRail = ({ id, active, above }: { id: string; active?: string; above: ReactNode }) =>
+const WithRail = ({ id, active, above }: { id: string; active: string; above: ReactNode }) =>
   <div className="gl-stage"><div className="gb-page">
     <SidebarNav items={RAIL} active={active} activeIs="section" collapsed aria-label={`${id} sidebar`} />
     <div className="gb-head">{above}<p className="gb-title">INV-1001</p></div>
@@ -41,8 +41,7 @@ const Hovered = ({ address }: { address: string }) =>
 const Send = () => <Button variant="primary" size="sm">Send</Button>;
 
 const specimens = [
-  { id: 'below-a-list', do: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001" />,
-    dont: () => <Head above={<Back label="Dashboard" />} title="Invoices" /> },
+  { id: 'below-a-list', do: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001" /> },
   { id: 'name-it', do: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001" />,
     dont: () => <Head above={<Back label="Back" />} title="Invoice INV-1001" /> },
   { id: 'address-not-history',
@@ -53,11 +52,8 @@ const specimens = [
       <Back label="Finance" />
       <Back label="Invoices" />
     </>} /> },
-  { id: 'section-lit', do: () => <WithRail id="lit" active="invoices" above={<Back label="Invoices" />} />,
-    dont: () => <WithRail id="unlit" above={<Back label="Invoice list" />} /> },
-  { id: 'quiet', do: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001" action={<Send />} />,
-    dont: () => <Head above={<Button variant="primary" size="sm" icon="arrowLeft">Back to invoices</Button>}
-      title="Invoice INV-1001" action={<Send />} /> },
+  { id: 'section-lit', do: () => <WithRail id="lit" active="invoices" above={<Back label="Invoices" />} /> },
+  { id: 'quiet', do: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001" action={<Send />} /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Going back', parameters: { layout: 'fullscreen' } };

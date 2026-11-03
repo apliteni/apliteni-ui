@@ -22,8 +22,6 @@
 
 **Do:** Open a readout below a tall bar near the top of a clipping region.
 
-**Don't:** Force it above until the month and value are clipped.
-
 ## Give one useful comparison
 
 <!-- rule: contents -->
@@ -33,8 +31,6 @@
 **Why:** A short readout stays readable and does not cover nearby marks.
 
 **Do:** Use three short lines: point, value, one comparison.
-
-**Don't:** Wrap long text or put controls in the readout.
 
 **Except:** Match the page's currency and precision.
 
@@ -47,8 +43,6 @@
 **Why:** Hover is not readable under a finger.
 
 **Do:** Tap another mark to move the readout. Tap the same mark or elsewhere to close it.
-
-**Don't:** Require a hover gesture on a touch screen.
 
 **Except:** The opening tap blocks the mark's click but still reaches page listeners. The closing tap can also drill down.
 

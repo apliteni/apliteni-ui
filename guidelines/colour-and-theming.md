@@ -22,8 +22,6 @@
 
 **Do:** Keep errors `--pink` under every accent.
 
-**Don't:** Point `--pink` at the accent.
-
 **Except:** Signals change across `data-theme`. Light deepens `--pink` from `#e97ca5` to `#b63361` to stay legible on white.
 
 <!-- rule: signals -->

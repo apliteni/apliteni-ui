@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { GuidelinePage, PhoneFrame } from '../_guideline';
 import { DeltaValue } from '../../react/src/TableValues';
 import { SkeletonTable } from '../../react/src/Loading';
-import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { RestingFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -28,12 +27,11 @@ const Payouts = ({ stretch = false }: { stretch?: boolean }) =>
     </table>
   </div>;
 
-// The same card, with and without the row that narrows it. Every other specimen
-// keeps the row, because every table has one. The bar and the table are one unit
-// of one width, as on a product page.
+// The card with the row that narrows it. The bar and the table are one unit of one
+// width, as on a product page.
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
-const Filtered = ({ bar = true, stretch = false }: { bar?: boolean; stretch?: boolean }) => <div className={`gdt-stage gdt-filtered${stretch ? '' : ' gdt-unit'}`}>
-  {bar && <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />}
+const Filtered = ({ stretch = false }: { stretch?: boolean }) => <div className={`gdt-stage gdt-filtered${stretch ? '' : ' gdt-unit'}`}>
+  <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />
   <Payouts stretch={stretch} />
 </div>;
 
@@ -82,16 +80,14 @@ const Delta = ({ named = true }: { named?: boolean }) => <Card>
   </table>
 </Card>;
 
-// The don't half writes the amounts short, the way a reader is left to guess at.
-const SHORT: Record<string, string> = { '1162': '1.2k', '1161': '0.9k', '1160': '12.1k' };
-const Units = ({ readable = true }: { readable?: boolean }) => <Card className={readable ? '' : 'gdt-muted-units'}>
+const Units = () => <Card>
   <table className="ui-table ui-table--dense" aria-label="Payouts">
     <thead><tr><th>Payee</th><th className="ui-table__num">Amount{EUR}</th><th className="ui-table__num">Fee{BP}</th></tr></thead>
     <tbody>{LEDGER.slice(0, 3).map(row => <tr key={row.ref}>
-      <td>{row.payee}</td><td className="ui-table__num">{readable ? row.amount : SHORT[row.ref]}</td><td className="ui-table__num">{row.fee}</td>
+      <td>{row.payee}</td><td className="ui-table__num">{row.amount}</td><td className="ui-table__num">{row.fee}</td>
     </tr>)}</tbody>
   </table>
-  {readable && <p className="gdt-note">A basis point (bp) is one hundredth of a percent.</p>}
+  <p className="gdt-note">A basis point (bp) is one hundredth of a percent.</p>
 </Card>;
 
 // Every column the ledger has, which is more than the card has room for.
@@ -111,23 +107,22 @@ const Wide = ({ squeezed = false }: { squeezed?: boolean }) => {
 };
 
 // The pinned name and its sub-line: on a phone, which cuts it, and on a wide screen, which does not.
-const Identity = ({ text = true }: { text?: boolean }) =>
+const Identity = () =>
   <div className="ui-table-scroll" role="region" aria-label="Payouts, scroll for more columns" tabIndex={0}>
     <table className="ui-table ui-table--compact ui-table--pinned" aria-label="Payouts">
       <thead><tr><th className="ui-table__identity">Payee</th><th className="ui-table__num">Amount{EUR}</th></tr></thead>
       <tbody>{LEDGER.slice(0, 2).map(row => <tr key={row.ref}>
         <td className="ui-table__identity">
           <div>{row.payee}</div>
-          {text ? <div>Paid to account {row.account} on {row.on}</div>
-            : <div className="gdt-flex"><Badge variant="success">Paid</Badge><span>to account {row.account} on {row.on}</span></div>}
+          <div>Paid to account {row.account} on {row.on}</div>
         </td>
         <td className="ui-table__num">{row.amount}</td>
       </tr>)}</tbody>
     </table>
   </div>;
-const Widths = ({ text = true }: { text?: boolean }) => <div className="gdt-widths">
-  <PhoneFrame width={240} label={text ? 'Payouts on a phone, sub-line as text' : 'Payouts on a phone, sub-line as a flex row'}><Identity text={text} /></PhoneFrame>
-  <Card fit={false}><Identity text={text} /></Card>
+const Widths = () => <div className="gdt-widths">
+  <PhoneFrame width={240} label="Payouts on a phone, sub-line as text"><Identity /></PhoneFrame>
+  <Card fit={false}><Identity /></Card>
 </div>;
 
 const States = ({ kept = true }: { kept?: boolean }) => <Card>
@@ -143,12 +138,12 @@ const specimens = [
   { id: 'density', do: () => <Card><Ledger className="ui-table--compact" rows={4} /></Card>, dont: () => <Card><Ledger className="ui-table--compact gdt-shrunk" rows={4} /></Card> },
   { id: 'numbers', do: () => <Numbers />, dont: () => <Numbers className="gdt-left" /> },
   { id: 'delta', do: () => <Delta />, dont: () => <Delta named={false} /> },
-  { id: 'units', do: () => <Units />, dont: () => <Units readable={false} /> },
+  { id: 'units', do: () => <Units /> },
   { id: 'content-width', do: () => <Filtered />, dont: () => <Filtered stretch /> },
   { id: 'overflow', do: () => <Wide />, dont: () => <Wide squeezed /> },
-  { id: 'pinned-identity-sub-lines', do: () => <Widths />, dont: () => <Widths text={false} /> },
+  { id: 'pinned-identity-sub-lines', do: () => <Widths /> },
   { id: 'states', do: () => <States />, dont: () => <States kept={false} /> },
-  { id: 'filter-bar', do: () => <Filtered />, dont: () => <Filtered bar={false} /> },
+  { id: 'filter-bar', do: () => <Filtered /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Dense tables', parameters: { layout: 'fullscreen' } };

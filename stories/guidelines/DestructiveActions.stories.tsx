@@ -18,8 +18,8 @@ const MENU_ITEMS: DropdownEntry[] = [
 
 // `.gl-hovering` pins the danger row into its hover appearance, because hover
 // cannot be screenshotted.
-const Menu = ({ mod }: { mod: 'pink' | 'accent' }) =>
-  <div className={`gl-stage gl-stage--menu gl-hovering gl-hovering--${mod}`}>
+const Menu = () =>
+  <div className="gl-stage gl-stage--menu gl-hovering">
     <Dropdown value="Token actions" variant="menu" ariaLabel="Token actions" items={MENU_ITEMS} open onOpenChange={noop} />
     <div className="gl-cursor">Pointer resting on “Revoke access”</div>
   </div>;
@@ -28,7 +28,7 @@ const Confirm = (props: Parameters<typeof ConfirmPicture>[0]) =>
   <div className="gl-stage gl-stage--confirm"><ConfirmPicture {...props} /></div>;
 
 const specimens = [
-  { id: 'colour', do: () => <Menu mod="pink" />, dont: () => <Menu mod="accent" /> },
+  { id: 'colour', do: () => <Menu /> },
   { id: 'wording',
     do: () => <Confirm title="Revoke access for Research bot?" cancelLabel="Keep access" confirmLabel="Revoke access" />,
     dont: () => <Confirm title="Are you sure?" cancelLabel="Cancel" confirmLabel="OK" /> },

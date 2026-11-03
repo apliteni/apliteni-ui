@@ -21,5 +21,5 @@ export const SPEC_CSS = `
       min-height: 10rem; }
     .gb-status { align-self: flex-start; max-width: 100%; margin: 0; padding: var(--space-1) var(--space-2);
       overflow-wrap: anywhere; font-size: var(--text-sm); color: var(--text);
-      background: var(--surface-3); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+      background: var(--surface-3); border-radius: var(--radius-sm); }
   </style>`;

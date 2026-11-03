@@ -36,11 +36,9 @@ export const SPEC_CSS = `<style>
   .gdt-grey .gdt-hovered > td { background: var(--border); }
   .gdt-shrunk :is(th, td) { font-size: var(--text-xs); }
   .ui-table.gdt-left :is(th, td).ui-table__num { text-align: left; font-variant-numeric: proportional-nums; }
-  .gdt-muted-units .ui-value__unit { /* muted-ink: chrome — the don't half draws the muted unit the rule forbids */ color: var(--muted); }
   .gdt-squeezed { table-layout: fixed; }
   .gdt-squeezed :is(th, td) { white-space: normal; overflow-wrap: anywhere; }
   .gdt-note { margin: var(--space-3) 0 0; font-size: var(--text-sm); color: var(--text); }
-  .gdt-flex { display: flex; gap: var(--space-2); align-items: center; }
   /* The phone frame above the page's own width: a cell has no room for both on one line. */
   .gdt-widths { display: grid; gap: var(--space-4); justify-items: start; }
   .gdt-widths > .gdt-stage { justify-self: stretch; }

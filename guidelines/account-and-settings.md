@@ -10,8 +10,6 @@
 
 **Do:** Give the window the reader and the sections, and let the window draw the rail, the title, the close control and the dimmed page.
 
-**Don't:** Slide in a full-width sheet that has columns in it.
-
 **Except:** On a phone, the sections become tabs under the reader, because a column beside the pane would make the pane narrower than its rows.
 
 ## Give the modal its own navigation

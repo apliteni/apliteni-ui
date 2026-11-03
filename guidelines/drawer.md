@@ -24,8 +24,6 @@
 
 **Do:** Edit roles and per-unit switches on a page, under a way back to the list.
 
-**Don't:** Edit the same groups stacked in one narrow drawer over the list.
-
 **Except:** Change one field inline, without a panel. A drawer can show read-only groups.
 
 ## Grouped content

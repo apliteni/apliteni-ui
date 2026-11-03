@@ -27,7 +27,8 @@ const THEMES = ['dark', 'light'];
 // The drawer panels the catalogue renders in each theme: set them to the count the failure
 // prints once a change is meant. The shell draws the same drawer in every story that has a
 // shell, so one of them stands for all.
-const EXPECTED = { subjects: 11, donts: 5 };
+// 4 don'ts: the drawer-or-page rule lost its Don't in the Don't audit (#768).
+const EXPECTED = { subjects: 11, donts: 4 };
 
 function walk(theme: string) {
   const { vars, css } = kitCssFor(theme);

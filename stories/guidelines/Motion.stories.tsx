@@ -26,29 +26,24 @@ const Strip = ({ frames }: { frames: [number, number, boolean?][] }) =>
     aria-label="A drawer opening, frame by frame">
     {frames.map(([ms, at, vis]) => <Shot key={ms} ms={ms} at={at} vis={vis} />)}
   </ul>;
-// The kit's 250ms drawer, and the same drawer arriving in the next frame.
+// The kit's 250ms drawer.
 const SLIDES: [number, number][] = [[0, 0], [125, 0.78], [250, 1]];
-const JUMPS: [number, number][] = [[0, 0], [16, 1], [250, 1]];
 
 // The kit's durations as bars to scale, with a tick at each step: the press, the checkbox,
-// the drawer and the scroll reveal each take their token. The off drawer is 300ms.
+// the drawer and the scroll reveal each take their token.
 const DURATIONS: [string, string, number][] = [['Button press', '--dur-instant', 80], ['Checkbox', '--dur-fast', 150],
   ['Drawer', '--dur-med', 250], ['Scroll reveal', '--dur-slow', 400]];
 const LONGEST = 400;
 const pct = (ms: number) => `${(ms / LONGEST) * 100}%`;
-const Durations = ({ off = false }: { off?: boolean }) => <div className="gl-stage"><div className="gm-dur">
-  {DURATIONS.map(([name, token, ms]) => {
-    const odd = off && name === 'Drawer';
-    const len = odd ? 300 : ms;
-    return <Fragment key={name}>
-      <span className="gm-dur__name"><span>{name}</span><span className="gm-dur__token">{odd ? 'no token' : token}</span></span>
-      <span className="gm-dur__track" aria-hidden="true">
-        {DURATIONS.map(([, , step]) => <span key={step} className="gm-dur__tick" style={{ '--gm-tick': pct(step) } as CSSProperties} />)}
-        <span className="gm-dur__bar" style={{ '--gm-len': pct(len) } as CSSProperties} />
-      </span>
-      <span className="gm-dur__ms">{`${len} ms`}</span>
-    </Fragment>;
-  })}
+const Durations = () => <div className="gl-stage"><div className="gm-dur">
+  {DURATIONS.map(([name, token, ms]) => <Fragment key={name}>
+    <span className="gm-dur__name"><span>{name}</span><span className="gm-dur__token">{token}</span></span>
+    <span className="gm-dur__track" aria-hidden="true">
+      {DURATIONS.map(([, , step]) => <span key={step} className="gm-dur__tick" style={{ '--gm-tick': pct(step) } as CSSProperties} />)}
+      <span className="gm-dur__bar" style={{ '--gm-len': pct(ms) } as CSSProperties} />
+    </span>
+    <span className="gm-dur__ms">{`${ms} ms`}</span>
+  </Fragment>)}
 </div></div>;
 
 // A curve's plot in a 100 by 100 box, time to the right and progress up.
@@ -84,9 +79,8 @@ const Curves = ({ off = false }: { off?: boolean }) => <div className="gl-stage"
 </div></div>;
 
 const specimens = [
-  { id: 'after-load', do: () => <div className="gl-stage"><Strip frames={SLIDES} /></div>,
-    dont: () => <div className="gl-stage"><Strip frames={JUMPS} /></div> },
-  { id: 'durations', do: () => <Durations />, dont: () => <Durations off /> },
+  { id: 'after-load', do: () => <div className="gl-stage"><Strip frames={SLIDES} /></div> },
+  { id: 'durations', do: () => <Durations /> },
   { id: 'easing', do: () => <Curves />, dont: () => <Curves off /> },
 ];
 

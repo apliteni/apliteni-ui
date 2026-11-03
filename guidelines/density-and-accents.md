@@ -10,8 +10,6 @@
 
 **Do:** Stack Paid and In transit in a narrow panel, as the Stat band tiles do.
 
-**Don't:** Force the same figures side by side in that panel.
-
 ## Keep the summary short
 
 <!-- rule: reduce-density -->
@@ -33,7 +31,5 @@
 **Why:** Emphasis tells the reader the purpose of the screen. If a preview has more weight than the data that will be committed, a commitment looks like a reading task. An accent on the reference tells the reader that the reference is the main point. The accent is on the name because a line that is strong enough to carry the signal is an outlined box, and the kit does not draw outlined boxes.
 
 **Do:** Put the extracted fields first and in the wider column, make each value heavier than its label, and put the accent on the name of the pane.
-
-**Don't:** Give the document preview the leading and wider pane, or let a control in the preview have the only accent on the screen when the saved values have no accent.
 
 **Except:** Do not fade a block to make it quieter. A quieter block is smaller, later or uncoloured, and it is never muted.

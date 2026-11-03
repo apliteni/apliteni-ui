@@ -186,8 +186,8 @@ nothing else: a `#` title and its rules, with no introduction and no appendix.
   A measurement belongs in a reader page; a boundary belongs in `Except`. A citation points at a
   rule's heading, never at its id.
 - A `Why` gives the reason the rule exists. It may not say the rule again in other words.
-- Give every rule a rendered do-and-don't pair built from kit parts, and let the text say only
-  what the picture cannot.
+- Give every rule a rendered Do built from kit parts, and let the text say only what the picture
+  cannot. Add a Don't only for a mistake that people really make.
 - A page is the reading surface, not a card and not the grey page ground.
 - `references.json` and `accessibility-coverage.json` sit beside the gates that read them. Neither
   ships as guideline content, and no guideline imports either.

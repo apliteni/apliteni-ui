@@ -36,8 +36,6 @@
 
 **Do:** For “inv”, rank whole-word matches above fragments, and rank names above notes. Put the group of the best row first.
 
-**Don't:** Put INV-4809 first because of its digits, with the matching name “New invoice” in the last position.
-
 **Except:** For server results, pass `rank: false`. Then respond to `ui-command-query`. The server ranks the full result, and the kit keeps that order.
 
 ## Confirm destructive actions

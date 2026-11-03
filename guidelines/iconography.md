@@ -26,4 +26,3 @@
 
 **Do:** A 1.5 CSS px stroke, kept at 3:1 contrast.
 
-**Don't:** A thinner stroke that still has only 3:1 contrast.

@@ -42,11 +42,11 @@ const MiniTable = ({ dense }: { dense: boolean }) => <table className={`ui-table
   <thead><tr><th>ID</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
   <tbody><tr><td>1162</td><td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr></tbody>
 </table>;
-const Densities = ({ second }: { second: boolean }) => <Stage><div className="tp-rows">
+const Densities = () => <Stage><div className="tp-rows">
   <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />
   <Card title="Payouts"><MiniTable dense /></Card>
   <RestingFilters search="Search invoices" placeholder="ID" label="Invoice filters" chips={STATUS} />
-  <Card title="Invoices"><MiniTable dense={second} /></Card>
+  <Card title="Invoices"><MiniTable dense /></Card>
 </div></Stage>;
 
 // Which column the page takes, drawn to scale. The column holds a real table in the kit's
@@ -68,21 +68,19 @@ const Frame = ({ centered }: { centered: boolean }) => <Stage><div className="tp
   </div>
 </div></Stage>;
 
-// One shell on two pages: the don't moves search and the reader's menu on the second.
-const Shell = ({ name, moved = false }: { name: string; moved?: boolean }) => <div className="tp-shell">
+// One shell on two pages, with search and the reader's menu in one place on both.
+const Shell = ({ name }: { name: string }) => <div className="tp-shell">
   <div className="tp-lay" aria-hidden="true">
     <div className="tp-lay__rail" />
     <div className="tp-lay__well">
-      <div className="tp-lay__bar tp-lay__bar--parts">{moved
-        ? <><div className="tp-lay__me" /><div className="tp-lay__search" /></>
-        : <><div className="tp-lay__search" /><div className="tp-lay__me" /></>}</div>
+      <div className="tp-lay__bar tp-lay__bar--parts"><div className="tp-lay__search" /><div className="tp-lay__me" /></div>
       <div className="tp-lay__col">{Array.from({ length: 4 }, (_, i) => <div key={i} className="tp-lay__ln" />)}</div>
     </div>
   </div>
   <span className="tp-shell__name">{name}</span>
 </div>;
-const Shells = ({ moved = false }: { moved?: boolean }) =>
-  <Stage><div className="tp-shells"><Shell name="Payouts" /><Shell name="Invoices" moved={moved} /></div></Stage>;
+const Shells = () =>
+  <Stage><div className="tp-shells"><Shell name="Payouts" /><Shell name="Invoices" /></div></Stage>;
 
 // The head in reading order, or with the filters lifted above the title.
 const PAYOUT_FILTERS = <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />;
@@ -93,6 +91,12 @@ const Head = ({ lifted = false }: { lifted?: boolean }) => <Stage><div className
   <div className="tp-head"><BackLink href="#" label="Finance" />{lifted ? null : <Title />}</div>
   {lifted ? <>{PAYOUT_FILTERS}<div className="tp-head"><Title /></div></> : PAYOUT_FILTERS}
 </div></Stage>;
+
+// The filter bar and its table on the page, or wrapped in one more card.
+const Framed = ({ wrapped = false }: { wrapped?: boolean }) => {
+  const parts = <div className="tp-rows">{PAYOUT_FILTERS}<Card title="Payouts"><MiniTable dense /></Card></div>;
+  return <Stage>{wrapped ? <Card title="Payouts overview">{parts}</Card> : parts}</Stage>;
+};
 
 // The same page at rest, and with a dialog that opened itself on load.
 const Resting = ({ covered = false }: { covered?: boolean }) => <Stage><div className="tp-rest">
@@ -110,7 +114,7 @@ const Resting = ({ covered = false }: { covered?: boolean }) => <Stage><div clas
 // The rules a designer decides, in the order a page is read. Which line of the kit
 // holds each of them is the RULE_TO_CODE table in stories/guidelines/the-page.test.js.
 const specimens = [
-  { id: 'layout', do: () => <Shells />, dont: () => <Shells moved /> },
+  { id: 'layout', do: () => <Shells /> },
   { id: 'width', do: () => <Frame centered={false} />, dont: () => <Frame centered /> },
   { id: 'head', do: () => <Head />, dont: () => <Head lifted /> },
   { id: 'one-h1',
@@ -125,8 +129,9 @@ const specimens = [
       <Out rank={3} text="Payouts" bad /><Out rank={4} text="Failed this week" bad /></div></Stage> },
   { id: 'one-primary', do: () => <Agents />, dont: () => <Agents all /> },
   { id: 'stacking', do: () => <Stack n={LIMITS.cards} />, dont: () => <Stack n={12} over /> },
+  { id: 'one-frame', do: () => <Framed />, dont: () => <Framed wrapped /> },
   { id: 'at-rest', do: () => <Resting />, dont: () => <Resting covered /> },
-  { id: 'density', do: () => <Densities second />, dont: () => <Densities second={false} /> },
+  { id: 'density', do: () => <Densities /> },
   { id: 'lede', do: () => <Stage><div className="tp-head"><Title /></div></Stage>,
     dont: () => <Stage><div className="tp-head"><Title lede="This is the payouts page." /></div></Stage> },
 ];

@@ -32,7 +32,7 @@ const Surfaces = () => <Stage><TextField label="Invoice number" defaultValue="IN
 const GreyFills = () => <Stage><TextField label="Invoice number" defaultValue="INV-2041" className="gl-grey" />
   <div className="gl-tracks"><span className="gl-chip">Draft</span></div></Stage>;
 
-// Forced colours drawn in the High Contrast Black values, because a page cannot
+// Forced colours drawn in one calm contrast theme's values, because a page cannot
 // switch the mode on. Canvas, CanvasText, Highlight and HighlightText.
 const Forced = ({ fill, focused }: { fill: boolean; focused: string }) => <Stage>
   <div className="gl-hc">{['Overview', 'Activity', 'Settings'].map(l => <span key={l} className={[
@@ -53,7 +53,7 @@ const DarkNebula = ({ children }: { children: ReactNode }) => <div className="gl
 // and the flip to light is what separates them.
 const specimens = [
   { id: 'tokens', do: () => <Stage><Note /></Stage>, dont: () => <Stage mod="gl-literal"><Note /></Stage> },
-  { id: 'signals', do: () => <Stage><BouncedEmail /></Stage>, dont: () => <Stage mod="gl-drift"><BouncedEmail /></Stage> },
+  { id: 'signals', do: () => <Stage><BouncedEmail /></Stage> },
   { id: 'accent-strong',
     do: () => <Stage><DarkNebula><span className="gl-swatch gl-swatch--strong">Save</span></DarkNebula><Ratio>Dark, Nebula: white on --accent-strong is 5.70:1</Ratio></Stage>,
     dont: () => <Stage><DarkNebula><span className="gl-swatch" /></DarkNebula><Ratio>Dark, Nebula: white on --accent is 2.95:1, needs 4.5:1</Ratio></Stage> },

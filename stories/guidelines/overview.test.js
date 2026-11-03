@@ -94,8 +94,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   assert.deepEqual(LINKS.map(link => link.href), PAGES.map(page => page.href));
   assert.deepEqual(LINKS.map(link => link.summary), PAGES.map(page => page.summary));
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
-  // 116: the noise review removed or merged 29 rules (#768).
-  assert.equal(rules, 116);
+  // 117: the noise review removed or merged 29 rules, and one rule on nested frames was added (#768).
+  assert.equal(rules, 117);
   // One, and it is named. Dashboards and reports asks every report for an export
   // and the Stock screener has none (#555). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);

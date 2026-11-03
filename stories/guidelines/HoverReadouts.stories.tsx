@@ -24,8 +24,8 @@ const SERIES = [{ id: 'revenue', name: 'Revenue', values: REVENUE }];
 // Every readout below is the Chart's own, opened on October, the tallest bar.
 // The page moves no readout: the Chart places each one itself.
 const HOT = 'revenue-2';
-const Months = ({ periods = PERIODS, name = 'Revenue', values = REVENUE, height }: { periods?: ChartPeriod[]; name?: string; values?: number[]; height?: number }) =>
-  <Chart title="Revenue by month, last 4 months" periods={periods} series={[{ ...SERIES[0], name, values }]} format={eur}
+const Months = ({ values = REVENUE, height }: { values?: number[]; height?: number }) =>
+  <Chart title="Revenue by month, last 4 months" periods={PERIODS} series={[{ ...SERIES[0], values }]} format={eur}
     height={height} table={false} />;
 const Spark = ({ name = 'Revenue', values = REVENUE }: { name?: string; values?: number[] }) =>
   <Chart variant="spark" title={`${name}, last 4 months`} periods={PERIODS}
@@ -38,20 +38,12 @@ const Kpis = ({ chart }: { chart: ReactNode }) => <div className="gh-stack">
   <Card title="Expenses"><p className="gh-figure">{eur(EXPENSES[EXPENSES.length - 1])}</p><Spark name="Expenses" values={EXPENSES} /></Card>
 </div>;
 
-// The Don't asks for more than one comparison and for an action, in a name and a
-// note the Chart prints whole.
-const CROWDED = PERIODS.map((period, i) => i === 2 ? { ...period, estimated: true,
-  note: '+5.3% on Sep, +12.1% on Oct 2024, 3 invoices pending. Click to open.' } : period);
-
 // Eight weeks of made-up revenue in a sparkline: no point reachable but by pointing.
 const WEEKLY = Array.from({ length: 8 }, (_, w) => Math.round(9100 + 1500 * Math.sin(w / 2) + w * 120));
 const WEEKS: ChartPeriod[] = WEEKLY.map((_, w) => ({ label: `Week ${w + 1}` }));
 
 // A tap opens the readout: two frames, a tap on September and then on November.
-const Tapped = ({ mark }: { mark?: string }) => {
-  const chart = <Months height={120} />;
-  return mark ? <OpenReadout mark={mark}>{chart}</OpenReadout> : chart;
-};
+const Tapped = ({ mark }: { mark: string }) => <OpenReadout mark={mark}><Months height={120} /></OpenReadout>;
 
 const specimens = [
   { id: 'overlay',
@@ -60,15 +52,12 @@ const specimens = [
   // A region that hides its overflow. October nearly reaches the top line, so the room
   // above it is shorter than the readout's first two lines.
   { id: 'above-the-mark',
-    do: () => <div className="gh-clip"><OpenReadout mark={HOT}><Months values={TALL} /></OpenReadout></div>,
-    dont: () => <div className="gh-clip"><OpenReadout mark={HOT} above><Months values={TALL} /></OpenReadout></div> },
+    do: () => <div className="gh-clip"><OpenReadout mark={HOT}><Months values={TALL} /></OpenReadout></div> },
   { id: 'contents',
-    do: () => <OpenReadout mark={HOT}><Months /></OpenReadout>,
-    dont: () => <OpenReadout mark={HOT}><Months name="Revenue, all entities, EUR, with pending settlements" periods={CROWDED} /></OpenReadout> },
+    do: () => <OpenReadout mark={HOT}><Months /></OpenReadout> },
   { id: 'on-touch',
     do: () => <FrameStrip frames={[{ step: 'Tap a bar', picture: <Tapped mark="revenue-1" /> },
-      { step: 'Tap another bar', picture: <Tapped mark="revenue-3" /> }]} />,
-    dont: () => <FrameStrip frames={[{ step: 'Tap a bar', picture: <Tapped /> }]} /> },
+      { step: 'Tap another bar', picture: <Tapped mark="revenue-3" /> }]} /> },
   // The ring is on the chart, not on a bar: the Chart is one tab stop, and its
   // table switch sits in the card's title row.
   { id: 'not-only-hover',

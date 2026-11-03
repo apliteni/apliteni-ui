@@ -58,8 +58,6 @@
 
 **Do:** Keep units smaller and in body ink. Explain abbreviations in reachable text.
 
-**Don't:** Hide units in muted text or make readers guess what an abbreviation means.
-
 ## Size the table to its content
 
 <!-- rule: content-width -->
@@ -98,8 +96,6 @@
 
 **Do:** Write it as a sentence, with any link inside.
 
-**Don't:** Lay a badge, a control or a picture along it, or make it a flex or grid box.
-
 ## Keep updates stable
 
 <!-- rule: states -->
@@ -121,7 +117,5 @@
 **Rule:** Put a bar with a search field and column filters directly above every table.
 
 **Do:** Search, then a status filter, on the row above the table.
-
-**Don't:** Leave rows that the reader cannot narrow.
 
 **Except:** Two tables take no bar. One compares a document line by line, where a filter hides lines the reviewer must check. The other is a chart's Table view, which holds only the chart's points.

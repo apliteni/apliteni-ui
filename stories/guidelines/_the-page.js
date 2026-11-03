@@ -85,6 +85,8 @@ export const SPEC_CSS = `
       padding: var(--space-4); background: var(--drawer-scrim); }
     .tp-rest .rx-modal { width: auto; transform: none; max-height: none; }
 
+    .gl-stage:has(.tp-lay__col, .tp-rest) { box-shadow: none; padding: 0; }
+
     .tp-acts { display: flex; gap: var(--space-2); flex-wrap: wrap; }
     .tp-rows { display: flex; flex-direction: column; gap: var(--space-4); }
 

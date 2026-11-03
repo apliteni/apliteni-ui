@@ -269,7 +269,7 @@ const Rule = ({ rule }: { rule: GuidelineRule & Specimen }) =>
     {rule.why && <Mono as="p" className="gc-why" text={rule.why} />}
     {rule.doCaption && <div className="gc-pair">
       <Cell kind="do" caption={rule.doCaption}>{rule.do?.()}</Cell>
-      <Cell kind="dont" caption={rule.dontCaption ?? ''}>{rule.dont?.()}</Cell>
+      {rule.dontCaption && <Cell kind="dont" caption={rule.dontCaption}>{rule.dont?.()}</Cell>}
     </div>}
     {rule.unmet && <p className="gc-unmet">
       <span className="gc-except__label">{`Gap #${rule.unmet.issue}`}</span>

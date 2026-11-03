@@ -28,8 +28,9 @@ const pageFiles = Object.keys(modules).sort();
  * floor with slack in it is a floor a deleted page walks under. Keep this note
  * clear of the words the minimums page's gate list is discovered by;
  * saying one of them outside an import enrols this file in that list. */
-// 888: the noise review removed or merged 29 rules and the Text length page (#768).
-const FOUND = { pages: 26, stories: 26, prose: 888 };
+// 842: the noise review removed or merged 29 rules and the Text length page, and the
+// Don't audit removed 38 Don't captions (#768).
+const FOUND = { pages: 26, stories: 26, prose: 842 };
 
 /* Every prose carrier the collection writes. Each name is held against the
  * source below, so a renamed class fails here instead of quietly leaving the

@@ -8,7 +8,7 @@ import { Card } from '../../react/src/primitives/Card';
 import { Dropdown, type DropdownProps } from '../../react/src/Dropdown';
 import { FilterBar } from '../../react/src/FilterBar';
 import { Segmented } from '../../react/src/Segmented';
-import { Success, SuccessPanel } from '../../react/src/Success';
+import { SuccessPanel } from '../../react/src/Success';
 import { Tabs } from '../../react/src/Tabs';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
@@ -68,8 +68,7 @@ const specimens = [
       items={FILTERS.map(label => ({ value: label, label, panel: null }))} /></Stage> },
   { id: 'one-category', do: () => <CategoryDo />, dont: () => <CategoryDont /> },
   { id: 'scale',
-    do: () => <Stage><Card><SuccessPanel title="Feedback sent" sub="It goes straight to the strategy owner." /></Card></Stage>,
-    dont: () => <Stage><Card><Success layout="hero" title="Feedback sent" /></Card></Stage> },
+    do: () => <Stage><Card><SuccessPanel title="Feedback sent" sub="It goes straight to the strategy owner." /></Card></Stage> },
   { id: 'dropdown-search',
     do: () => <Typed query="dollar"><Currency panelClass="gl-component-choice__search-panel" search={{ placeholder: 'Search currencies' }} /></Typed>,
     dont: () => <Currency scroll /> },

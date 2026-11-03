@@ -11,6 +11,7 @@ export const RULES = content.rules;
 // that time: halfway through, --ease has moved the panel and the scrim 78% of the way.
 export const SPEC_CSS = `
   <style>
+    .gl-stage:has(.gm-frame, .gm-plot__box) { box-shadow: none; padding: 0; }
     .gm-stack { display: flex; flex-direction: column; gap: var(--space-4); }
     .gm-strip { display: grid; grid-template-columns: repeat(var(--gm-frames, 3), minmax(0, 1fr));
       gap: var(--space-3); margin: 0; padding: 0; list-style: none; }

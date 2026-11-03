@@ -12,8 +12,6 @@
 
 **Do:** A period control, a row of figures, a short list of exceptions.
 
-**Don't:** A second screen of blocks below the figures.
-
 ## Put only figures, trends and exceptions on a dashboard
 
 <!-- rule: figures-and-exceptions -->
@@ -48,8 +46,6 @@
 
 **Do:** The payout ledger, with the fees and net on every row.
 
-**Don't:** The same ledger reduced to three figures.
-
 ## Give a report its filters and its export
 
 <!-- rule: report-offers -->
@@ -74,8 +70,6 @@
 
 **Do:** The download glyph named Download PDF, at the end of the filter row.
 
-**Don't:** The same button with its words, wider than every filter.
-
 ## Switch a chart to its table
 
 <!-- rule: chart-table-switch -->
@@ -85,8 +79,6 @@
 **Why:** The chart shows the shape of a change, and the table the amounts it is read for.
 
 **Do:** Net settled by month as bars, with a switch to its rows.
-
-**Don't:** The rows stacked under the bars, in one block or the next.
 
 ## Leave the range out of a chart card
 
@@ -109,8 +101,6 @@
 **Why:** A key sends the eye from a line to the key and back, and gives no amount. A tap shows the readout with the values at that point.
 
 **Do:** Spend with a key and last values, and seasonal spend with a key.
-
-**Don't:** The same two lines without values.
 
 ## Draw at most two lines on a chart
 

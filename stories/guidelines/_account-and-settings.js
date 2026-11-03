@@ -10,6 +10,7 @@ export const RULES = content.rules;
 // and real rows. The product behind it uses the block vocabulary of _the-page.js.
 export const SPEC_CSS = `
   <style>
+    .gl-stage:has(.gas-shell) { box-shadow: none; padding: 0; }
     .gas-shell { position: relative; height: 180px; display: flex; gap: 5px;
       border-radius: var(--radius-sm); overflow: hidden; }
     .gas-shell__rail { width: 40px; flex: none; border-radius: 3px; padding: 6px 5px;
@@ -38,8 +39,6 @@ export const SPEC_CSS = `
       border: 1px solid var(--border-strong);
       box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
       display: flex; gap: 6px; padding: 8px; }
-    .gas-over--sheet { left: 0; right: 0; bottom: 0; height: 64%;
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: 0; }
     .gas-over__pane { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 
     /* A whole screen does not fit a 420px cell at life size, so both halves of the

@@ -22,8 +22,6 @@
 
 **Do:** Move the table down with the chips.
 
-**Don't:** Keep the table's desktop gap.
-
 **Except:** The view strip stays tight, because its tabs meet the floor.
 
 ## Keep a title on its block

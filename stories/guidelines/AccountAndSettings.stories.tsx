@@ -101,8 +101,7 @@ const Menu = ({ items }: { items: ReturnType<typeof row>[] }) =>
 
 const specimens = [
   { id: 'modal',
-    do: () => <Over><div className="gas-over gas-over--modal"><div className="gas-over__nav"><Rows n={5} cur={1} /></div><Panes count={1} /></div></Over>,
-    dont: () => <Over><div className="gas-over gas-over--sheet"><Panes count={3} /></div></Over> },
+    do: () => <Over><div className="gas-over gas-over--modal"><div className="gas-over__nav"><Rows n={5} cur={1} /></div><Panes count={1} /></div></Over> },
   { id: 'nav',
     do: () => <Modal mod="gas-modal--nav"><Nav active="security" /><Pane cap="Signed in now">
       {DEVICES.map(([l, h]) => <SettingRow key={l} lab={l} hint={h} />)}</Pane></Modal>,

@@ -26,14 +26,12 @@ const Pager = ({ id, ...props }: PaginationProps & { id: string }) => <Stage>
 </Stage>;
 
 const specimens = [
-  { id: 'counted-total', do: () => <Pager id="counted-do" />, dont: () => <Pager id="counted-dont" total={null} hasMore /> },
-  { id: 'the-jump', do: () => <Pager id="jump-do" />, dont: () => <Pager id="jump-dont" variant="numbered" /> },
-  // Both halves are the moment after Next moved page 25 to page 26, with the focus still on Next.
+  { id: 'counted-total', do: () => <Pager id="counted-do" /> },
+  { id: 'the-jump', do: () => <Pager id="jump-do" /> },
+  // The moment after Next moved page 25 to page 26, with the focus still on Next.
   { id: 'announce-range',
     do: () => <SaidPicture lines={['2,501–2,600 of 4,812']}>
-      <Pager id="said-do" page={AT + 1} pageSizes={PAGE_SIZES} /></SaidPicture>,
-    dont: () => <SaidPicture lines={['Page 26', '2,501–2,600 of 4,812', 'Rows, 100', 'Next, button, page 26 loaded']}>
-      <Pager id="said-dont" page={AT + 1} pageSizes={PAGE_SIZES} /></SaidPicture> },
+      <Pager id="said-do" page={AT + 1} pageSizes={PAGE_SIZES} /></SaidPicture> },
   { id: 'page-size', do: () => <Pager id="size-do" pageSizes={PAGE_SIZES} />, dont: () => <Pager id="size-dont" /> },
 ];
 

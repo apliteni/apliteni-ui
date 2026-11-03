@@ -184,13 +184,17 @@ export const CHECKS = {
       + 'the rest are secondary, tertiary or links.'];
   },
 
+  // The card is the kit's one bordered block, so a card inside a card is the same
+  // border twice. jsdom paints nothing, so a hand-drawn border is not seen here.
+  'one-frame'(s) {
+    const nested = s.doc.querySelectorAll('.ui-card .ui-card');
+    if (!nested.length) return [];
+    return [`${s.where} puts ${nested.length} card(s) inside another card. Two borders `
+      + 'around one thing, and the kit has no rank for the inner one.'];
+  },
+
   stacking(s) {
     const problems = [];
-    const nested = s.doc.querySelectorAll('.ui-card .ui-card');
-    if (nested.length) {
-      problems.push(`${s.where} puts ${nested.length} card(s) inside another card. Two borders `
-        + 'around one thing, and the kit has no rank for the inner one.');
-    }
     const body = s.doc.querySelector('.ui-app__body');
     if (body) {
       // Every card the body holds that no other card holds — counted by

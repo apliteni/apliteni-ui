@@ -51,7 +51,7 @@ export const WORDS_PER_RULE = 60;
 
 /* The pages already over that budget, at the size they were when it was set.
  *
- * One cause covers every line and is not worth repeating fifteen times: the
+ * One cause covers every line and is not worth repeating twelve times: the
  * page was written before anything measured it. The limitation is the same for
  * all of them too, and it is the real cost of this file — a recorded page is
  * allowed to stay over budget indefinitely. What it may not do is grow: its cap
@@ -61,17 +61,15 @@ export const WORDS_PER_RULE = 60;
  * wrote it is not a decision anybody made. */
 export const RECORDED = {
   'accessibility-floor.md': 437,
-  'account-and-settings.md': 346,
-  'command-palette.md': 322,
-  'component-choice.md': 503,
-  'density-and-accents.md': 358,
-  'drawer.md': 323,
+  'account-and-settings.md': 336,
+  'command-palette.md': 305,
+  'component-choice.md': 495,
+  'density-and-accents.md': 318,
+  'drawer.md': 311,
   'empty-states.md': 90,
-  'file-drop.md': 517,
-  'going-back.md': 363,
-  'hover-readouts.md': 331,
-  'iconography.md': 168,
-  'layout-and-density.md': 317,
+  'file-drop.md': 488,
+  'hover-readouts.md': 304,
+  'iconography.md': 159,
   'state-set.md': 177,
   'stat-bands.md': 224,
 };

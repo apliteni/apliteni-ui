@@ -17,7 +17,7 @@ const content = await loadGuideline('iconography.md', new URL('../../guidelines/
 const Stroke = ({ width, note }: { width: number; note: string }) => {
   const glyph = icon('circleCheck').replace('stroke-width="1.7"', `stroke-width="${width}"`);
   return <div className="gl-stage">
-    <div className={width < 2.25 ? 'gl-stroke gl-stroke--thin' : 'gl-stroke'}>
+    <div className="gl-stroke">
       <Raw html={glyph} /><span className="gl-stroke__big"><Raw html={glyph} /></span>
     </div>
     <span className="gl-glyph__t">{note}</span>
@@ -29,8 +29,7 @@ const specimens = [
     do: () => <div className="gl-stage"><NoticePicture tone="danger" title="Upload failed" text="The file exceeded 25 MB." /></div>,
     dont: () => <div className="gl-stage"><NoticePicture tone="danger" glyph="x" title="Upload failed" text="The file exceeded 25 MB." /></div> },
   { id: 'stroke-earns-the-bar',
-    do: () => <Stroke width={2.25} note="2.25 × 16 ÷ 24 = 1.5 CSS px" />,
-    dont: () => <Stroke width={1.7} note="1.7 × 16 ÷ 24 = 1.13 CSS px" /> },
+    do: () => <Stroke width={2.25} note="2.25 × 16 ÷ 24 = 1.5 CSS px" /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Iconography', parameters: { layout: 'fullscreen' } };

@@ -151,8 +151,8 @@ describe('guideline pages in React: the notice picture is the Toast', () => {
   });
 });
 
-/* Stands in for density-and-accents.test.js: the Follow-the-consequence pair keeps
- * one card order and moves only the emphasis. Found by its rule id, so a renamed or
+/* Stands in for density-and-accents.test.js: the Follow-the-consequence Do gives the
+ * saved pane the width and the accent. Found by its rule id, so a renamed or
  * removed rule fails here instead of passing by finding nothing. */
 describe('guideline pages in React: Density and accents', () => {
   const page = pages.find(p => p.file.endsWith('/DensityAndAccents.stories.tsx'))!;
@@ -171,14 +171,13 @@ describe('guideline pages in React: Density and accents', () => {
       };
     });
   };
-  it('the Do accents the saved pane and the Dont accents the source, in one card order', () => {
-    const [doSide, dontSide] = panels();
-    for (const side of [doSide, dontSide]) {
-      expect(side.cards.map(c => c.title)).toEqual(['Extracted fields', 'Document preview']);
-      expect(side.cards.filter(c => c.accent)).toHaveLength(1);
-    }
-    expect([doSide.kind, doSide.wide, doSide.cards.find(c => c.accent)!.title]).toEqual(['do', 'gda-panes--saved-wide', 'Extracted fields']);
-    expect([dontSide.kind, dontSide.wide, dontSide.cards.find(c => c.accent)!.title]).toEqual(['dont', 'gda-panes--source-wide', 'Document preview']);
+  it('the Do widens and accents the saved pane, and only that pane', () => {
+    const sides = panels();
+    expect(sides).toHaveLength(1);
+    const [doSide] = sides;
+    expect(doSide.cards.map(c => c.title)).toEqual(['Extracted fields', 'Document preview']);
+    expect(doSide.cards.filter(c => c.accent).map(c => c.title)).toEqual(['Extracted fields']);
+    expect([doSide.kind, doSide.wide]).toEqual(['do', 'gda-panes--saved-wide']);
   });
 });
 

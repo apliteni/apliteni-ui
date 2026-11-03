@@ -13,7 +13,6 @@ export const SPEC_CSS = `
   <style>
     .gl-literal .ui-callout { background: #22394a; color: #c6c2d6; }
     .gl-literal .ui-callout__icon { color: #20dcf5; }
-    .gl-drift { --pink: var(--accent); }
 
     .gl-stage > .gl-cursor { display: flex; }
     /* The dark Nebula ground the accent pair is measured on, whatever the page theme. */
@@ -31,10 +30,11 @@ export const SPEC_CSS = `
     .gl-chip { padding: var(--space-1) var(--space-2); border-radius: var(--radius-xs); background: var(--surface-3);
       color: var(--text); font-size: var(--text-xs); font-weight: var(--weight-medium); }
 
-    /* High Contrast Black: Canvas #000, CanvasText #fff, Highlight #1aebff, HighlightText #000. */
+    /* A calm dark contrast theme: Canvas #2d3236, CanvasText #fff (12.95:1), Highlight #a6d8ff
+       (8.57:1 on Canvas), HighlightText #212d3b (9.24:1 on Highlight). */
     .gl-hc { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3);
-      border-radius: var(--radius-sm); background: #000; color: #fff; font-size: var(--text-sm); }
+      border-radius: var(--radius-sm); background: #2d3236; color: #fff; font-size: var(--text-sm); }
     .gl-hc__row { padding: var(--space-2) var(--space-3); border-radius: var(--radius-xs); }
-    .gl-hc__row.is-fill { background: #1aebff; color: #000; }
+    .gl-hc__row.is-fill { background: #a6d8ff; color: #212d3b; }
     .gl-hc__row.is-outline, .gl-hc__row.is-focus { outline: 2px solid #fff; outline-offset: 2px; }
   </style>`;

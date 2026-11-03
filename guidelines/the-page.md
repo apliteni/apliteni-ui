@@ -10,8 +10,6 @@
 
 **Do:** Use the same shell on every screen.
 
-**Don't:** Move search or the account menu between pages.
-
 ## Choose content width
 
 <!-- rule: width -->
@@ -82,13 +80,25 @@
 
 <!-- rule: stacking -->
 
-**Rule:** Stack no more than six cards, and never put cards inside other cards.
+**Rule:** Stack no more than six cards.
 
 **Why:** Too many cards make readers scroll past other content to find their target.
 
 **Do:** Show up to six cards.
 
-**Don't:** Show twelve cards or nest cards inside cards.
+**Don't:** Show twelve cards.
+
+## One frame per block
+
+<!-- rule: one-frame -->
+
+**Rule:** Never put a block inside another block with the same border.
+
+**Why:** Two equal borders draw two edges for one group, so the reader cannot see which block holds which.
+
+**Do:** Put the filter bar and the table card directly on the page.
+
+**Don't:** Put the filter bar and the table card inside one more card.
 
 ## Leave pages closed
 
@@ -111,8 +121,6 @@
 **Why:** Consistent row heights make tables feel like one page.
 
 **Do:** Use compact rows in both tables.
-
-**Don't:** Use compact rows in one table and roomy rows in another.
 
 **Except:** Use the spacing required by the busiest table.
 

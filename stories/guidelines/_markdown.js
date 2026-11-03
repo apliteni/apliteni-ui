@@ -40,5 +40,9 @@ export function withSpecimens(rules, specimens) {
   if (rules.length !== specimens.length || rules.some((r, i) => r.id !== specimens[i].id)) {
     throw new Error('Markdown rules and specimen ids must match in order');
   }
+  // A Don't picture is drawn only beside its caption, so a removed Don't leaves no dead picture.
+  const stray = rules.find((r, i) => Boolean(specimens[i].dont || specimens[i].dontHtml) !== Boolean(r.dontCaption)
+    && (specimens[i].do || specimens[i].doHtml));
+  if (stray) throw new Error(`${stray.id}: a Don't picture needs its caption, and a caption its picture`);
   return rules.map((rule, i) => ({ ...specimens[i], ...rule }));
 }

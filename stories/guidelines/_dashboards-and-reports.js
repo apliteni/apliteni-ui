@@ -12,13 +12,10 @@ export const RULES = content.rules;
 export const SPEC_CSS = `
   <style>
     .gd-stage { display: flex; flex-direction: column; gap: var(--space-4); }
-    /* One screen of a dashboard: the height is the Do's own blocks at 1280. The
-       Don't's extra blocks run past that fold and are cut there. A phone stacks the
-       Do's blocks taller than the fold, so the Do grows instead of being cut. */
+    /* One screen of a dashboard: the height is the Do's own blocks at 1280. A phone
+       stacks the blocks taller than that, so the screen grows. */
     .gd-screen { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4);
-      min-height: 52rem; padding: var(--space-4); background: var(--bg);
-      border: 1px solid var(--border); border-radius: var(--radius-lg); }
-    .gd-screen--fold { height: 52rem; overflow: hidden; }
+      min-height: 52rem; padding: var(--space-4); background: var(--bg); border-radius: var(--radius-lg); }
     .gd-screen > :not(.ui-seg) { align-self: stretch; }
   </style>`;
 

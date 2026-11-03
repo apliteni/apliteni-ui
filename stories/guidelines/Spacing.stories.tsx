@@ -40,8 +40,7 @@ const Stage = ({ mod = '', children }: { mod?: string; children: ReactNode }) =>
 const specimens = [
   { id: 'two-gaps', do: () => <Stage><Row /><Table /><div className="gl-sp__next"><Reminders /></div></Stage>,
     dont: () => <Stage mod="gl-sp--third"><Row /><Table /><div className="gl-sp__next"><Reminders /></div><LateFees /></Stage> },
-  { id: 'two-gaps-phone', do: () => <Stage mod="gl-sp--phone"><Search /><Chips n={3} /><Table /></Stage>,
-    dont: () => <Stage mod="gl-sp--phone gl-sp--phone-dont"><Search /><Chips n={3} /><Table /></Stage> },
+  { id: 'two-gaps-phone', do: () => <Stage mod="gl-sp--phone"><Search /><Chips n={3} /><Table /></Stage> },
   { id: 'title', do: () => <Stage><Reminders /><LateFees /></Stage>,
     dont: () => <Stage><Reminders /><div className="gl-sp__next"><h3>Late fees</h3></div>
       <div className="gl-sp__next"><Card><p>A late fee of 2% applies after 14 days.</p></Card></div></Stage> },

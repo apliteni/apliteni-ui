@@ -54,9 +54,7 @@ const specimens = [
     dont: () => <Band a={['INCOME', '+12% ON LAST YEAR']} b={['INVOICES WAITING', '3 OVERDUE']} /> },
   { id: 'no-repeated-noun', do: () => <ClearRow clearLabel="Clear all" />, dont: () => <ClearRow clearLabel="Clear all filters" /> },
   { id: 'title-rank',
-    do: () => <Page><Card title="Monthly cashflow" sub="Income and expenses by month." /></Page>,
-    dont: () => <Page><div className="ui-card"><h1>Monthly cashflow</h1>
-      <div className="ui-card__sub">Income and expenses by month.</div></div></Page> },
+    do: () => <Page><Card title="Monthly cashflow" sub="Income and expenses by month." /></Page> },
   { id: 'eyebrow-names-the-kind',
     do: () => <Stage><div className="ui-card"><div className="ui-eyebrow">Last 30 days</div>
       <h2 className="ui-card__title">Top contractors</h2><div className="ui-card__sub">Paid out, by counterparty.</div></div></Stage>,

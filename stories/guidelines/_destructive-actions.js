@@ -16,6 +16,5 @@ export const SPEC_CSS = `
     /* Two named actions do not fit one line at 390, so the second wraps under the first. */
     .gl-stage--confirm .rx-modal__foot { flex-wrap: wrap; }
     .gl-hovering .ui-dropdown__item.is-danger { background: var(--surface); }
-    .gl-hovering--accent .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--accent); }
-    .gl-hovering--pink   .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--pink); }
+    .gl-hovering .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--pink); }
   </style>`;

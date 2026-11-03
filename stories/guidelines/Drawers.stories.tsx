@@ -36,8 +36,7 @@ const Group = ({ title, rows: pairs }: { title?: string; rows: string[][] }) =>
 const Ruled = ({ pairs }: { pairs: string[][] }) => <>{pairs.map(([k, v]) =>
   <div key={k} className="gd-ruled__row"><span>{k}</span><span>{v}</span></div>)}</>;
 
-// One member's access, the work the drawer-or-page rule is about: the same roles and the
-// same switch per unit, once on a page and once in a drawer.
+// One member's access, the work the drawer-or-page rule is about: roles and a switch per unit, on a page.
 const ROLES: [string, boolean][] = [['Viewer', true], ['Operator', true], ['Billing admin', false]];
 const UNITS: [string, boolean][] = [['Ledger', true], ['Payouts', true], ['Agents', false], ['Keys', false], ['Reports', false]];
 const Roles = () => <div className="gd-stack">{ROLES.map(([label, checked]) =>
@@ -58,12 +57,6 @@ const PageDo = () => <div className="gd-frame gd-page"><Card>
   <div className="gd-page__act"><Button variant="primary">Save access</Button></div>
 </Card></div>;
 
-const PageDont = () => <Frame title="Member access" footer={<Button variant="primary">Save access</Button>}>
-  <DrawerSection title="Roles"><Roles /></DrawerSection>
-  <DrawerSection title="Access per unit"><KeyValueList rows={UNITS.map(([label, on]) =>
-    ({ label, value: <UnitSwitch label={label} on={on} /> }))} /></DrawerSection>
-</Frame>;
-
 const specimens = [
   // A quick edit of the row that opened it, against a long form in steps.
   { id: 'one-record',
@@ -79,7 +72,7 @@ const specimens = [
         <TextField label="Bank country" defaultValue="Germany" />
       </DrawerSection>
     </Frame> },
-  { id: 'drawer-or-page', do: () => <PageDo />, dont: () => <PageDont /> },
+  { id: 'drawer-or-page', do: () => <PageDo /> },
   { id: 'no-cards', do: () => <Frame>{GROUPS.map((g, i) => <Group key={i} {...g} />)}</Frame>,
     dont: () => <Frame>{GROUPS.map((g, i) => <Card key={i}><Group {...g} /></Card>)}</Frame> },
   { id: 'three-lines',

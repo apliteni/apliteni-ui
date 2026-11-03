@@ -10,8 +10,7 @@ import { icon } from '../../src/assets/icons.js';
 // absolute, so every specimen that shows one holds it inside a frame.
 export const SPEC_CSS = `
   <style>
-    .gf-frame { background: var(--bg); border-radius: var(--radius-md);
-      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4); }
+    .gf-frame { background: var(--bg); border-radius: var(--radius-md); padding: var(--space-4); }
     .gf-panel { background: var(--surface); border-radius: var(--radius-md);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4); }
     .gf-panel + .gf-rows, .gf-rows + .gf-panel, .ui-drop + .gf-rows { margin-top: var(--space-3); }
@@ -28,12 +27,7 @@ export const SPEC_CSS = `
     .gf-box__glyph { display: flex; padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-3); }
     .gf-box__glyph svg { width: 24px; height: 24px; }
     .gf-box .ui-btn { margin-top: var(--space-2); }
-    .gf-card { margin-top: var(--space-3); background: var(--surface);
-      border-radius: var(--radius-md); box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4);
-      font: 400 13px/1.6 var(--font-sans); color: var(--text); }
-    .gf-card .ui-drop__bar { margin-top: var(--space-2); }
     .gf-over { margin-top: var(--space-3); }
-    .gf-repeat { margin: var(--space-2) 0 0; font: 400 13px/1.6 var(--font-sans); color: var(--text); }
   </style>`;
 
 const btn = (label, { size = 'sm', variant = 'secondary', glyph, iconOnly } = {}) =>
@@ -100,7 +94,8 @@ export const RULES = withSpecimens(content.rules, [
     id: 'one-row',
     // The row sits above the list it feeds, as the Do says.
     doHtml: () => panel(`<div class="ui-drop">${restRow()}</div>${rows()}`),
-    dontHtml: () => panel(`${rows()}${bigBox()}`),
+    // The box sits under the panel, not in it, so no frame holds a frame.
+    dontHtml: () => `${panel(rows())}<div class="gf-over">${bigBox()}</div>`,
   },
   {
     id: 'on-drag',
@@ -118,8 +113,6 @@ export const RULES = withSpecimens(content.rules, [
       track: bar(40),
       acts: actions(removeBtn()),
     })}</div>`),
-    dontHtml: () => panel(`<div class="ui-drop">${restRow()}</div>
-      <div class="gf-card">statement-08.pdf<br>248 KB — 40%${bar(40)}</div>${rows()}`),
   },
   {
     id: 'failure',
@@ -134,9 +127,6 @@ export const RULES = withSpecimens(content.rules, [
   {
     id: 'limits-once',
     doHtml: () => panel(`${rows()}<div class="ui-drop">${restRow()}</div>`),
-    dontHtml: () => panel(`${rows()}<div class="ui-drop">${restRow()}</div>
-      <p class="gf-repeat">${NOTE}</p>
-      <p class="gf-repeat">${state(NOTE, 'error')}</p>`),
   },
   {
     id: 'which-shape',

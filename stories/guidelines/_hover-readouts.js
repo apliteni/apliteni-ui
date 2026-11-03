@@ -18,5 +18,5 @@ export const SPEC_CSS = `
     /* A region that hides its overflow, the way a scrolling table or a clipped
        card body does, with less room above the tallest bar than a readout needs. */
     .gh-clip { overflow: hidden; border-radius: var(--radius-sm);
-      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-2) var(--space-3) 0; }
+      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-2) var(--space-3); }
   </style>`;

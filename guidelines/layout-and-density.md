@@ -10,8 +10,6 @@
 
 **Do:** Use `--container` for the page and topbar widths.
 
-**Don't:** Put four page-width numbers in different files.
-
 ## Use the measure token
 
 <!-- rule: measure -->
@@ -21,8 +19,6 @@
 **Why:** `--container` spans the page. `--measure` limits text beside a sidebar.
 
 **Do:** Use `--measure` for a reading column with a sidebar.
-
-**Don't:** Treat `--container` and `--measure` as competing page widths.
 
 ## Use the spacing scale
 
@@ -47,8 +43,6 @@
 **Why:** Pixel widths keep mixed-size content in one box. `ch` limits a text line by its own font size.
 
 **Do:** Use panel `sm/md/lg` for 320/420/560px boxes and prose tokens for caption, lede, body, and dense text.
-
-**Don't:** Use t-shirt sizes for prose, or put `ch` on a wrapper with two font sizes.
 
 **Except:** Put `ch` on the element using its font size. The centred `.ui-section-head` uses `--panel-lg` for its 40px heading and 17px copy. Keep `.ui-footer__brand` at 300px because its flex track controls wrapping.
 

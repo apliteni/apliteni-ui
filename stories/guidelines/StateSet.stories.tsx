@@ -1,7 +1,7 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
-import { GuidelinePage } from '../_guideline';
+import { GuidelinePage, SaidPicture } from '../_guideline';
 import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
@@ -35,8 +35,13 @@ const Pending = ({ children }: { children: ReactNode }) => <Stage><div className
 </div></Stage>;
 
 const specimens = [
-  { id: 'error-in-markup', do: () => <Stage><Url error={WHY_INVALID} /></Stage>,
-    dont: () => <div className="gl-stage gl-stack"><Url /><Callout variant="danger">{WHY_INVALID}</Callout></div> },
+  // What a screen reader says when Tab reaches the field. The Don't's message is not
+  // tied to the field, so the reader hears no error.
+  { id: 'error-in-markup',
+    do: () => <SaidPicture lines={[`Webhook URL, invalid entry, edit text, acme.io/hooks, ${WHY_INVALID}`]}>
+      <Url error={WHY_INVALID} /></SaidPicture>,
+    dont: () => <SaidPicture lines={['Webhook URL, edit text, acme.io/hooks']}>
+      <div className="gl-stack"><Url /><Callout variant="danger">{WHY_INVALID}</Callout></div></SaidPicture> },
   { id: 'loading',
     do: () => <Pending><BusyRegion busy label="Loading 3 payouts…" placeholder={<SkeletonTable rows={3} cols={3} />} /></Pending>,
     dont: () => <Pending><p style={{ color: 'var(--text)', margin: 0 }}>Nothing here.</p></Pending> },

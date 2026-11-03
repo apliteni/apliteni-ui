@@ -12,8 +12,6 @@
 
 **Do:** On hover, the danger row changes to `--pink`.
 
-**Don't:** On hover, the row changes to `--accent`.
-
 ## Name both actions
 
 <!-- rule: wording -->

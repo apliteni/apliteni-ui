@@ -10,8 +10,6 @@
 
 **Do:** From an invoice record, link to the invoice list.
 
-**Don't:** Add one to the Invoices sidebar section. It is not a child page.
-
 ## Name the destination
 
 <!-- rule: name-it -->
@@ -62,8 +60,6 @@
 
 **Do:** Keep the sidebar row active and say “Back to Invoices”.
 
-**Don't:** Leave the section inactive or give it another name.
-
 ## Keep the link quiet
 
 <!-- rule: quiet -->
@@ -74,4 +70,3 @@
 
 **Do:** Use body ink, no box until pointer hover, and a size smaller than the title.
 
-**Don't:** Use two filled buttons or make leaving the record more prominent than its main action.

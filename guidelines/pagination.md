@@ -10,8 +10,6 @@
 
 **Do:** Show the row range and the server’s total.
 
-**Don't:** Discard a complete `COUNT(*)` result.
-
 ## Choose the main jump
 
 <!-- rule: the-jump -->
@@ -21,8 +19,6 @@
 **Why:** Filtering and sorting usually need quick jumps, but short lists can use numbered pages.
 
 **Do:** Four fixed controls keep the first and last pages of a ledger one press away.
-
-**Don't:** On page 25 of 49, offer only 1, 24, 26 and 49.
 
 ## Announce only the range
 
@@ -35,8 +31,6 @@
 **Except:** An HTML caller that replaces the pager must restore focus. At an end, native `disabled` moves focus to the body. React then restores it to the remaining step.
 
 **Do:** Keep focus on the pressed control. Announce the new range once.
-
-**Don't:** Announce one page change through the live region, page-size control and every button.
 
 ## Offer consumer page sizes
 

@@ -50,8 +50,6 @@
 
 **Do:** Use `--text-2xl` for the page title and `--text-lg` for the card title.
 
-**Don't:** Give the card title the page title's `--text-2xl`.
-
 ## Name the kind above
 
 <!-- rule: eyebrow-names-the-kind -->

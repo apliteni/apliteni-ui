@@ -75,8 +75,8 @@ Each rule has a short `##` title, a stable `<!-- rule: id -->` and a `**Rule:**`
 `**Why:**`, `**Do:**`, `**Don't:**`, `**Except:**` and `**Gap #123:**` as it needs them, each
 on one source line.
 
-A page shows its rule and says the least it can. Most rules carry a rendered do-and-don't pair
-built from kit parts, and the text is only what the picture cannot carry. `npm run check:words`
+A page shows its rule and says the least it can. Every rule carries a rendered Do built from kit
+parts, and a Don't only for a mistake that people really make. The text is only what the picture cannot carry. `npm run check:words`
 is the length check; `refs.test.js` and `reading-surface.test.js` are the other two.
 [AGENTS.md](../AGENTS.md#the-guidelines-collection) has the rest.
 

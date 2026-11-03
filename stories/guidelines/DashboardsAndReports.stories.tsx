@@ -77,13 +77,6 @@ const thousands = (n: number) => `${n}k €`;
 const MonthBlock = () => <Card title="Net settled by month">
   <Chart title={MONTH_TITLE} periods={MONTH_PERIODS} series={MONTH_SERIES} format={thousands} />
 </Card>;
-const MonthTable = () => (
-  // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-every-table-its-filter-bar
-  <table className="ui-table ui-table--dense">
-    <thead><tr><th>Month</th><th className="ui-table__num">Net settled (k €)</th></tr></thead>
-    <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>
-  </table>
-);
 
 // The kit's line chart. `legend` draws the key that names the lines. The labels
 // look adds each line's last value at its end, and the thin look writes no value.
@@ -116,25 +109,21 @@ const FILTERS = [
   { id: 'currency', label: 'Currency', items: [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
 ];
 
-// A laptop screen, scaled to a cell: the frame's bottom edge is the fold, and a
-// block past it is cut where a reader stops reading.
-const Screen = ({ fold = false, children }: { fold?: boolean; children: ReactNode }) => <div className={`gd-screen${fold ? ' gd-screen--fold' : ''}`}>
+// A laptop screen, scaled to a cell: the frame's bottom edge is the fold.
+const Screen = ({ children }: { children: ReactNode }) => <div className="gd-screen">
   <Segmented label="Period" options={(SPANS as string[]).map(p => ({ label: p, value: p }))} value="1Y" onChange={noop} />
   {children}
 </div>;
 
 const specimens = [
   { id: 'fast-glance',
-    do: () => <Screen><Cashflow id="gd-fold-do" /><Attention /></Screen>,
-    dont: () => <Screen fold><Cashflow id="gd-fold-dont" /><MonthBlock /><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /><Attention /></Screen> },
+    do: () => <Screen><Cashflow id="gd-fold-do" /><Attention /></Screen> },
   { id: 'figures-and-exceptions',
     do: () => <Stage><Cashflow id="gd-glance-do" /><Attention /></Stage>,
     dont: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></Stage> },
   { id: 'link-to-the-report', do: () => <Stage><Attention /></Stage>, dont: () => <Stage><Attention onward={false} /></Stage> },
   { id: 'report-depth',
-    do: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable fees /></Card></Stage>,
-    dont: () => <Stage><StatBand id="gd-depth-dont" stats={[
-      { label: 'Payouts', value: '214' }, { label: 'Fees', value: '68,412.00 €' }, { label: 'Net', value: '3,118,904.00 €' }]} /></Stage> },
+    do: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable fees /></Card></Stage> },
   // The export is at the far end of the row, where the report puts it: it acts on
   // the ledger, and the filters narrow it. The Don't carries the period in its
   // title, which is what "fixed by whoever built the page" looks like on a screen.
@@ -149,22 +138,16 @@ const specimens = [
     do: () => <Stage><div className="ui-toolbar ui-toolbar--split">
       <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
       <Button icon="download" iconOnly>Download PDF</Button>
-    </div></Stage>,
-    dont: () => <Stage><div className="ui-toolbar ui-toolbar--split">
-      <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
-      <Button icon="download">Download PDF</Button>
     </div></Stage> },
   { id: 'chart-table-switch',
-    do: () => <Stage><MonthBlock /></Stage>,
-    dont: () => <Stage><Card title="Net settled by month"><Chart title={MONTH_TITLE} periods={MONTH_PERIODS} series={MONTH_SERIES} format={thousands} table={false} /><MonthTable /></Card></Stage> },
+    do: () => <Stage><MonthBlock /></Stage> },
   // The chart's own title still names the span: it is read aloud, never drawn.
   { id: 'no-range-on-chart',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /></Stage>,
     dont: () => <Stage><LineCard title="Spend against estimate" sub="First quarter of 2026" series={SPEND_SERIES} legend /></Stage> },
   { id: 'value-not-legend',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
-      <LineCard title="Seasonal spend" series={SEASON_SERIES} look="thin" legend span="first quarter of each year" periods={QUARTER} /></Stage>,
-    dont: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} look="thin" legend /></Stage> },
+      <LineCard title="Seasonal spend" series={SEASON_SERIES} look="thin" legend span="first quarter of each year" periods={QUARTER} /></Stage> },
   { id: 'two-lines-at-most',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
       <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend /></Stage>,

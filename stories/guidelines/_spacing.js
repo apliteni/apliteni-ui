@@ -21,7 +21,6 @@ export const SPEC_CSS = `
     .gl-sp--phone .gl-sp__row { row-gap: var(--tap-gap, var(--space-5)); }
     .gl-sp--phone .ui-filter-bar { row-gap: var(--tap-gap, var(--space-5)); }
     .gl-sp--phone > * + * { margin-top: var(--tap-gap, var(--space-5)); }
-    .gl-sp--phone-dont > * + * { margin-top: var(--space-2); }
     .gl-sp__indent { margin-inline-start: var(--space-4); }
     @media (max-width: 560px) and (pointer: coarse) {
       .gl-sp__row { row-gap: var(--tap-gap, var(--space-5)); }

@@ -23,9 +23,9 @@ const refused = (item: Row) => Boolean(item.disabled || (item.danger && !item.co
 
 // The lit row is the first runnable one.
 // roomy puts each description below its label, so a record number keeps its full width on a phone.
-type PaletteProps = { groups: { label?: string; items: Row[] }[]; query?: string; rank?: boolean; roomy?: boolean };
-const Palette = ({ groups, query = '', rank = true, roomy = false }: PaletteProps) => {
-  const shown = (rank ? rankGroups(groups, query) as CommandGroup[] : groups).filter(g => g.items.length) as { label?: string; items: Row[] }[];
+type PaletteProps = { groups: { label?: string; items: Row[] }[]; query?: string; roomy?: boolean };
+const Palette = ({ groups, query = '', roomy = false }: PaletteProps) => {
+  const shown = (rankGroups(groups, query) as CommandGroup[]).filter(g => g.items.length) as { label?: string; items: Row[] }[];
   const all = shown.flatMap(g => g.items);
   const active = all.find(item => !refused(item));
   return <div className="gc-stage"><div className={`ui-cmdk${roomy ? ' ui-cmdk--roomy' : ''} is-open`}>
@@ -76,8 +76,8 @@ const PLACES: Row[] = [
   { id: 'settings', label: 'Settings', description: 'Billing, members, API keys', icon: 'gear', href: '#s' },
 ];
 const RECENT: Row[] = [
-  { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd · €2,480 · unpaid', icon: 'doc', badge: 'Unpaid', href: '#i1' },
-  { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH · €960 · paid', icon: 'doc', href: '#i2' },
+  { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd, €2,480', icon: 'doc', badge: 'Unpaid', href: '#i1' },
+  { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH, €960, paid', icon: 'doc', href: '#i2' },
 ];
 const GROUPED = [{ label: 'Actions', items: ACTIONS }, { label: 'Go to', items: PLACES }, { label: 'Recent', items: RECENT }];
 
@@ -93,24 +93,16 @@ const specimens = [
       { id: 'more', label: 'More', description: '', icon: 'grid' },
     ] }]} /> },
   { id: 'groups', do: () => <Palette groups={GROUPED} />, dont: () => <Palette groups={[{ items: [...ACTIONS, ...PLACES, ...RECENT] }]} /> },
-  { id: 'ranking', do: () => <Palette groups={GROUPED} query="inv" />,
-    // The same query answered alphabetically: `rank={false}` is the seam a
-    // server-fed palette uses, and this is an order nobody ranked.
-    dont: () => <Palette rank={false} query="inv" groups={[{ label: 'Results', items: [
-      { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH · €960 · paid', icon: 'doc' },
-      { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd · €2,480 · unpaid', icon: 'doc' },
-      { id: 'invite', label: 'Invite a teammate', description: 'They get a read-only seat', icon: 'user' },
-      { id: 'new-invoice', label: 'New invoice', description: 'Draft one for a client', icon: 'plus' },
-    ] }]} /> },
+  { id: 'ranking', do: () => <Palette groups={GROUPED} query="inv" /> },
   { id: 'ask-first',
     do: () => <Palette groups={[{ label: 'Danger zone', items: [
-      { id: 'del', label: 'Delete workspace…', description: 'Nebula · 42 API keys', icon: 'trash', danger: true, confirm: true },
+      { id: 'del', label: 'Delete workspace…', description: 'Nebula, with 42 API keys', icon: 'trash', danger: true, confirm: true },
       { id: 'revoke', label: 'Revoke every API key…', description: 'They stop working at once', icon: 'key', danger: true, confirm: true },
     ] }]} />,
     // `danger` and no confirm, which is what the caption is about: the palette
     // draws the pair disabled rather than running them.
     dont: () => <Palette groups={[{ label: 'Danger zone', items: [
-      { id: 'del', label: 'Delete workspace', description: 'Nebula · 42 API keys', icon: 'trash', danger: true },
+      { id: 'del', label: 'Delete workspace', description: 'Nebula, with 42 API keys', icon: 'trash', danger: true },
       { id: 'revoke', label: 'Revoke every API key', description: 'They stop working at once', icon: 'key', danger: true },
     ] }]} /> },
 ];

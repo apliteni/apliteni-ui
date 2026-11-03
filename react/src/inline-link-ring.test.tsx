@@ -96,8 +96,8 @@ const rejudge = (html: string, sheets: Sheet[]) => {
 };
 
 // The catalogue as measured when this gate was written, less nothing: raise them when it
-// grows; a drop means a story stopped drawing links, which is a change to look at.
-const STORIES_FLOOR = 352, SUBJECTS_FLOOR = 102, LINKS_FLOOR = 579, NATIVES_FLOOR = 49;
+// grows; a drop means a story stopped drawing links, which is a change to look at. 572 links: the Don't audit removed pictures that drew links (#768).
+const STORIES_FLOOR = 352, SUBJECTS_FLOOR = 102, LINKS_FLOOR = 572, NATIVES_FLOOR = 49;
 const sel = 'a:focus-visible';
 const carrier = KIT.find(({ css }) => sheetText(css).includes(`${sel},`));
 const mutate = ({ file, css }: Sheet) => ({ file, css: file === carrier?.file ? sheetText(css).split(`${sel},\n`).join('') : css });

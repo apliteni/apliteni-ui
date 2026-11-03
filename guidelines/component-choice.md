@@ -68,8 +68,6 @@
 
 **Do:** Use `successPanel()` to confirm sent feedback inside a card.
 
-**Don't:** Put the full-page `success()` layout inside that card.
-
 ## Add dropdown search
 
 <!-- rule: dropdown-search -->

@@ -38,8 +38,6 @@
 
 **Do:** Put Remove at the end of the name line, the size under the name, and the progress track below both.
 
-**Don't:** Push the list down with a progress card, or open a dialog over the page.
-
 ## Fail in place
 
 <!-- rule: failure -->
@@ -61,8 +59,6 @@
 **Why:** Repeated limits teach the reader to skip them.
 
 **Do:** Write “PDF or CSV, up to 10 MB” beside the button. Let a failure say what was wrong with this file.
-
-**Don't:** Repeat the limits under the button, in a tooltip and again in the error.
 
 ## Choose the row, the region or the dialog
 

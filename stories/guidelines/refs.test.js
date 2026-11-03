@@ -286,10 +286,16 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     const rendered = [...fragment.querySelectorAll('.gc-rule')];
     assert.equal(rendered.length, parsed.rules.length);
     parsed.rules.forEach((rule, index) => {
-      for (const key of ['instruction', 'doCaption', 'dontCaption']) {
+      // A Don't is optional: a rule shows one only for a mistake people often make.
+      for (const key of ['instruction', 'doCaption']) {
         assert.ok(rule[key]?.trim(), `${file}: ${rule.id} needs ${key}`);
       }
-      assert.notEqual(rule.doCaption, rule.dontCaption, `${file}: examples must differ`);
+      if (rule.dontCaption) assert.notEqual(rule.doCaption, rule.dontCaption, `${file}: examples must differ`);
+      // Only a page whose module holds its pictures; the others draw them in their story.
+      if (mod.RULES.some((r) => r.do || r.doHtml)) {
+        const drawn = Boolean(mod.RULES[index].dont || mod.RULES[index].dontHtml);
+        assert.equal(drawn, Boolean(rule.dontCaption), `${file}: ${rule.id} draws a Don't only with its caption`);
+      }
 
       for (const key of ['id', 'imperative', 'instruction', 'why', 'except', 'doCaption', 'dontCaption', 'unmet']) {
         assert.deepEqual(mod.RULES[index][key], rule[key], `${file}: ${rule.id} ${key}`);
@@ -301,8 +307,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  // 116: the noise review removed or merged 29 rules (#768).
-  assert.equal(count, 116, 'update the rule count when adding or removing a rule');
+  // 117: the noise review removed or merged 29 rules, and one rule on nested frames was added (#768).
+  assert.equal(count, 117, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

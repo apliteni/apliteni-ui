@@ -10,8 +10,6 @@
 
 **Do:** Slide a panel in from its edge.
 
-**Don't:** Make new content appear in one frame.
-
 **Except:** Update counts, ranges and status lines immediately.
 
 ## Match duration to motion
@@ -23,8 +21,6 @@
 **Why:** If all screens use the same durations, the same interaction takes the same time everywhere in the product.
 
 **Do:** Use `--dur-fast` for controls, `--dur-med` for surfaces, `--dur-slow` for entrances and `--dur-instant` for presses.
-
-**Don't:** Use a duration that is not one of these, such as 300ms.
 
 ## Use the kit curves
 
