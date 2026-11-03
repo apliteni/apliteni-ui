@@ -297,7 +297,8 @@
   color: var(--accent-contrast);
 }
 /* White ink falls below the text floor on the lighter dark-theme accents. */
-:where(:root[data-theme="dark"]) .ui-btn--primary .ui-btn__hold-fill { color: var(--signal-contrast); }
+/* Dark is also the theme with no data-theme at all. */
+:where(:root:not([data-theme="light"])) .ui-btn--primary .ui-btn__hold-fill { color: var(--signal-contrast); }
 /* Quiet at rest: the pink fill shows only while the reader hovers, focuses or holds. */
 .ui-btn--danger:is(:hover, :focus-visible, [data-holding]) .ui-btn__hold-fill {
   background: var(--pink); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
