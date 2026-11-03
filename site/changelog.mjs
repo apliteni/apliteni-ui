@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.161.0', date: '2026-11-03',
+    changes: [
+      ['added', 'React `Button` takes `hold` and `onConfirm` for an action that cannot be undone. A 1 s press, or two presses within 3 s, calls `onConfirm`; a plain click calls neither `onClick` nor `onConfirm`. A short press shows "Hold to confirm" above the button, so leave one line of room there. Resolves #776.', ['Button']],
+    ],
+  },
+  {
     v: '0.160.0', date: '2026-11-03',
     changes: [
       ['changed', 'A hover table (`ui-table--hover` without `--zebra`, and React `DataTable` by default) now fills a hovered row across the full table width with round ends. The first and last content sit 8px inside the fill, also in dense and compact tables and in an end action cell. The last column now ends 8px from the table edge. Before, it ended 24px in. No row line crosses the round ends. Resolves #773.', ['Table']],

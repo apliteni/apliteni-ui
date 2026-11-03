@@ -814,6 +814,22 @@ to fit its label at `--text-xs`. Other sizes keep their 16px glyph at stroke-wid
 dots fit inside the smaller target. The size does not change the variant's colour or its
 interaction states.
 
+### Hold to confirm
+
+React `<Button hold onConfirm={…}>` confirms only through `onConfirm`. It is for a primary or
+danger action that cannot be undone. A plain click calls neither `onClick` nor `onConfirm`, and
+the button never submits its form. **A press held for 1000 ms confirms.** A fill grows from the
+start edge in the variant's strong colour with its on-colour ink. A primary button fills with
+`--accent`, and a danger button fills with `--pink`. A release before the end sends the fill back
+to empty. A press shorter than 300 ms shows "Hold to confirm" above the button, and the button
+does not move. Enter and Space hold the same as a pointer. The pointer is captured, so a slide off
+the button does not end the hold. **Two presses within 3000 ms also confirm.** This is the path for
+a screen reader, and the description "Hold to confirm, or press twice." says so after any
+`aria-describedby` of your own. Under reduced motion the fill moves in four 250 ms steps, and the
+hold still takes 1000 ms. A busy or disabled button does not hold. A link takes no `hold`. The
+hint is placed over the content above the button, so leave room for one line there. An ancestor
+with `overflow: hidden` clips it.
+
 ### Code highlighting
 
 `hlCode(raw, lang)` returns highlighted HTML. `codeTokens(raw, lang)` returns the same tokens as

@@ -86,7 +86,7 @@
 }
 
 .ui-btn--danger { color: var(--text); }
-.ui-btn--danger:hover, .ui-btn--danger:focus-visible {
+.ui-btn--danger:hover, .ui-btn--danger:focus-visible, .ui-btn--danger[data-holding] {
   color: var(--pink);
   border-color: var(--pink);
   background: color-mix(in srgb, var(--pink) 10%, transparent); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
@@ -257,5 +257,64 @@
   .ui-btn[aria-busy="true"] .ui-btn__label { animation: none; }
   .ui-btn__dots i { animation: none; }
 }
+
+/* -- Hold to confirm ---------------------------------------------------- */
+/* why: docs/components.md#hold-to-confirm */
+.ui-btn[data-hold] {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+/* The fill is the press, so the button itself does not also sink. */
+.ui-btn[data-hold]:active { transform: none; }
+/* A copy of the content in the filled paint, cut from the start edge by --hold. */
+.ui-btn__hold-fill {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+  padding: inherit;
+  border-radius: inherit;
+  pointer-events: none;
+  clip-path: inset(0 calc(100% - var(--hold, 0) * 100%) 0 0);
+  transition: clip-path var(--dur-med) var(--ease-out);
+}
+[dir="rtl"] .ui-btn__hold-fill { clip-path: inset(0 0 0 calc(100% - var(--hold, 0) * 100%)); }
+/* While held, the script moves the fill each frame or each step. */
+.ui-btn[data-holding] .ui-btn__hold-fill { transition: none; }
+.ui-btn--primary[data-holding] {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface)); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  border-color: var(--accent);
+  color: var(--strong);
+  filter: none;
+}
+/* In light --accent is --accent-strong, so the filled primary is its resting paint. */
+.ui-btn--primary .ui-btn__hold-fill {
+  background: var(--accent); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  color: var(--accent-contrast);
+}
+/* White ink falls below the text floor on the lighter dark-theme accents. */
+:where(:root[data-theme="dark"]) .ui-btn--primary .ui-btn__hold-fill { color: var(--signal-contrast); }
+.ui-btn--danger .ui-btn__hold-fill {
+  background: var(--pink); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  color: var(--danger-contrast);
+}
+/* Over the button, so a row of buttons keeps its height and the button does not move. */
+.ui-btn__hold-hint {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  translate: -50% 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
+  line-height: var(--leading-tight);
+  color: var(--text);
+  pointer-events: none;
+  visibility: hidden;
+}
+.ui-btn[data-hold-hint] .ui-btn__hold-hint { visibility: visible; }
 
 @keyframes ui-spin { to { transform: rotate(360deg); } }

@@ -14,11 +14,161 @@ it.each([
   expect(classesOfEl(getByRole('button'))).toEqual(expected);
 });
 
-it('fires onClick', async () => {
+// A hold button confirms only through onConfirm, so a plain click calls neither.
+it('fires onClick, and a hold button calls neither handler on a plain click', async () => {
   let hit = 0;
-  const { getByRole } = render(<Button onClick={() => { hit++; }}>Go</Button>);
+  const confirmed = vi.fn();
+  const { getByRole, rerender } = render(<Button onClick={() => { hit++; }}>Go</Button>);
   getByRole('button').click();
   expect(hit).toBe(1);
+  rerender(<Button hold onConfirm={confirmed} onClick={() => { hit++; }}>Go</Button>);
+  fireEvent.click(getByRole('button'), { detail: 1 });
+  expect(hit).toBe(1);
+  expect(confirmed).not.toHaveBeenCalled();
+});
+
+describe('hold to confirm', () => {
+  const fill = (el: HTMLElement) => Number(el.style.getPropertyValue('--hold') || 0);
+  const reduce = (on: boolean) => vi.stubGlobal('matchMedia', (q: string) => ({ matches: on && q.includes('reduce') }));
+  beforeEach(() => { vi.useFakeTimers(); reduce(false); });
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+  const setup = (props: { onConfirm?: () => void; 'aria-describedby'?: string } = {}) => {
+    const onConfirm = vi.fn();
+    const view = render(<Button hold variant="danger" onConfirm={onConfirm} {...props}>Delete workspace</Button>);
+    const button = view.getByRole('button', { name: 'Delete workspace' });
+    button.setPointerCapture = vi.fn();
+    return { ...view, button, onConfirm };
+  };
+
+  it('confirms after a 1000 ms hold, with the fill growing on the way', () => {
+    const { button, onConfirm } = setup();
+    fireEvent.pointerDown(button, { button: 0, pointerId: 7 });
+    expect(button.setPointerCapture).toHaveBeenCalledWith(7);
+    expect(button).toHaveAttribute('data-holding');
+    vi.advanceTimersByTime(500);
+    expect(fill(button)).toBeGreaterThan(0.4);
+    expect(fill(button)).toBeLessThan(0.6);
+    expect(onConfirm).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(500);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(button).not.toHaveAttribute('data-holding');
+    fireEvent.pointerUp(button, { pointerId: 7 });
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the hint after a press under 300 ms and does not confirm', () => {
+    const { button, onConfirm } = setup();
+    expect(button).not.toHaveAttribute('data-hold-hint');
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    vi.advanceTimersByTime(200);
+    fireEvent.pointerUp(button, { pointerId: 1 });
+    expect(button).toHaveAttribute('data-hold-hint');
+    vi.advanceTimersByTime(2000);
+    expect(onConfirm).not.toHaveBeenCalled();
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    expect(button).not.toHaveAttribute('data-hold-hint');
+  });
+
+  it('sends the fill back to 0 on an early release, cancel or lost capture, without the hint after 300 ms', () => {
+    const { button, onConfirm } = setup();
+    for (const leave of ['pointerUp', 'pointerCancel', 'lostPointerCapture', 'blur'] as const) {
+      fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+      vi.advanceTimersByTime(600);
+      expect(fill(button)).toBeGreaterThan(0);
+      fireEvent[leave](button, { pointerId: 1 });
+      expect(fill(button)).toBe(0);
+      expect(button).not.toHaveAttribute('data-holding');
+      expect(button).not.toHaveAttribute('data-hold-hint');
+    }
+    vi.advanceTimersByTime(2000);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('ignores a secondary button and keeps the context menu shut', () => {
+    const { button, onConfirm } = setup();
+    fireEvent.pointerDown(button, { button: 2, pointerId: 1 });
+    vi.advanceTimersByTime(1000);
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(fireEvent.contextMenu(button)).toBe(false);
+  });
+
+  it.each(['Enter', ' '])('holds on %j the same as a pointer', key => {
+    const { button, onConfirm } = setup();
+    expect(fireEvent.keyDown(button, { key })).toBe(false);
+    vi.advanceTimersByTime(900);
+    fireEvent.keyDown(button, { key, repeat: true });
+    fireEvent.keyUp(button, { key });
+    expect(onConfirm).not.toHaveBeenCalled();
+    fireEvent.keyDown(button, { key });
+    vi.advanceTimersByTime(1000);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('describes the second way in, keeping a caller description', () => {
+    const { button, getByText } = setup({ 'aria-describedby': 'own' });
+    const own = document.createElement('span');
+    own.id = 'own';
+    own.textContent = 'Removes every report.';
+    document.body.append(own);
+    expect(button).toHaveAccessibleDescription('Removes every report. Hold to confirm, or press twice.');
+    expect(getByText('Hold to confirm')).toHaveAttribute('aria-hidden', 'true');
+    own.remove();
+  });
+
+  // A screen reader activates with a click that has no pointer down and no key down.
+  it('confirms on a second press within 3000 ms, and not after', () => {
+    const { button, onConfirm } = setup();
+    fireEvent.click(button, { detail: 0 });
+    expect(button).toHaveAttribute('data-hold-hint');
+    vi.advanceTimersByTime(3001);
+    fireEvent.click(button, { detail: 0 });
+    expect(onConfirm).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(2999);
+    fireEvent.click(button, { detail: 0 });
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('moves the fill in four 250 ms steps under reduced motion, still over 1000 ms', () => {
+    reduce(true);
+    const { button, onConfirm } = setup();
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    const seen = [];
+    for (let i = 0; i < 3; i++) {
+      vi.advanceTimersByTime(249);
+      seen.push(fill(button));
+      vi.advanceTimersByTime(1);
+      seen.push(fill(button));
+    }
+    expect(seen).toEqual([0, 0.25, 0.25, 0.5, 0.5, 0.75]);
+    expect(onConfirm).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(250);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not hold while busy or disabled', () => {
+    const { button, onConfirm, rerender } = setup();
+    for (const state of [{ busy: true }, { disabled: true }]) {
+      rerender(<Button hold variant="danger" onConfirm={onConfirm} {...state}>Delete workspace</Button>);
+      fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+      fireEvent.keyDown(button, { key: 'Enter' });
+      fireEvent.click(button, { detail: 0 });
+      fireEvent.click(button, { detail: 0 });
+      vi.advanceTimersByTime(1000);
+      expect(button).not.toHaveAttribute('data-holding');
+    }
+    expect(onConfirm).not.toHaveBeenCalled();
+    rerender(<Button hold variant="danger" onConfirm={onConfirm}>Delete workspace</Button>);
+    fireEvent.keyDown(button, { key: 'Enter' });
+    vi.advanceTimersByTime(1000);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('never submits its form', () => {
+    const submit = vi.fn((e: Event) => e.preventDefault());
+    const { getByRole } = render(<form onSubmit={e => submit(e.nativeEvent)}><Button hold type="submit">Delete workspace</Button></form>);
+    fireEvent.click(getByRole('button'), { detail: 1 });
+    expect(submit).not.toHaveBeenCalled();
+  });
 });
 
 it('defaults to type="button" so it never submits a form', () => {

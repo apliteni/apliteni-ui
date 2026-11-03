@@ -40,3 +40,20 @@ function BusyExample() {
   </>);
 }
 export const BusyTransition: StoryObj = { render: () => <BusyExample /> };
+
+// The hint rises above the button, so the specimen leaves room for it.
+function HoldExample({ variant, label, done }: { variant: 'primary' | 'danger'; label: string; done: string }) {
+  const [confirmed, setConfirmed] = useState(false);
+  return canvas(<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--space-4)', paddingTop: 'var(--space-8)' }}>
+    <Button hold variant={variant} onConfirm={() => setConfirmed(true)}>{label}</Button>
+    <p role="status">{confirmed ? done : ''}</p>
+  </div>);
+}
+export const HoldPrimary: StoryObj = {
+  name: 'Hold to confirm (primary)',
+  render: () => <HoldExample variant="primary" label="Send to 12 people" done="Sent to 12 people." />,
+};
+export const HoldDanger: StoryObj = {
+  name: 'Hold to confirm (danger)',
+  render: () => <HoldExample variant="danger" label="Delete workspace" done="Workspace deleted." />,
+};
