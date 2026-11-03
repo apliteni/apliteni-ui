@@ -8,9 +8,9 @@
 
 **Rule:** Put tables on a white surface in light mode and the base canvas in dark mode.
 
-**Do:** Let the row edge mark hover.
+**Do:** Mark a hovered row with an inset grey fill that leaves room at both ends of the row.
 
-**Don't:** Add a grey zebra or hover fill.
+**Don't:** Add a grey zebra.
 
 ## Choose density without shrinking type
 

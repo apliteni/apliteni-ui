@@ -58,30 +58,32 @@
 .ui-table tr.is-dead td { /* muted-ink: state — revoked row */ color: var(--muted); }
 .ui-table tbody tr { transition: background var(--dur-fast) var(--ease); }
 
-/* Row hover: an inset, rounded fill so the highlight never sits flush against a
- * container's border (#71). The separate border model with zero spacing keeps the row
- * separators continuous while letting the row ends round, and table padding — which
- * only applies in that model — insets the rows. Zebra keeps the original full-bleed
- * tint (finance ledger) and is excluded here; its hover rule is below. */
+/* Row hover: a rounded fill across the full table width. The separate border model with
+ * zero spacing lets the row ends round. The table has no side padding, so the end cells
+ * hold the room: --space-2 inside the fill at each end, header and body alike, so a
+ * column and its header share one edge. A pinned column sticks at the frame's edge with
+ * that room inside it (#736). The dense and compact variants and an end action cell
+ * keep the same room. Zebra keeps the original full-bleed tint
+ * (finance ledger) and is excluded here; its hover rule is below. why: #773 */
 .ui-table--hover:not(.ui-table--zebra) {
   border-collapse: separate;
   border-spacing: 0;
-  padding: 0 var(--space-2);
 }
-/* A pinned column sticks at the frame's edge, so its first cell owns the start inset
-   and the text does not move when the table scrolls. why: #736 */
-.ui-table--hover.ui-table--pinned:not(.ui-table--zebra) { padding: 0 var(--space-2) 0 0; }
-.ui-table--hover.ui-table--pinned:not(.ui-table--zebra) :is(th, td):first-child { padding-left: var(--space-2); }
-.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:first-child {
+:where(.ui-table--hover:not(.ui-table--zebra)) :is(th, td):not(.ui-table__act):first-child { padding-left: var(--space-2); }
+:where(.ui-table--hover:not(.ui-table--zebra)) :is(th, td):not(.ui-table__act):last-child { padding-right: var(--space-2); }
+:where(.ui-table--hover:not(.ui-table--zebra)) td.ui-table__act:last-child { padding-right: var(--space-2); }
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover > :is(td, th):first-child {
   border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
-.ui-table--hover:not(.ui-table--zebra) tbody tr:hover td:last-child {
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover > :is(td, th):last-child {
   border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
-/* The hover band is the last cell, which ends where the figures end, so a hovered row's fill
-   stopped at the last glyph. The last column of a hover table keeps one cell gap of room
-   inside the band, header and body alike, so the figures and their header still share one
-   right edge. The dense and compact variants state their own end padding below, and an
-   action cell keeps none. */
-:where(.ui-table--hover:not(.ui-table--zebra)) :is(th, td):not(.ui-table__act):last-child { padding-right: var(--space-4); }
+/* A row line that met a round corner crossed it. A hovered row drops the line below it,
+   the row before it drops the line above it, and the header drops its line over the
+   first row. why: #773 */
+.ui-table--hover:not(.ui-table--zebra) tbody tr:hover > :is(td, th),
+.ui-table--hover:not(.ui-table--zebra) tbody tr:has(+ tr:hover) > :is(td, th),
+.ui-table--hover:not(.ui-table--zebra) thead:has(+ tbody > tr:first-child:hover) > tr > th {
+  border-bottom-color: transparent;
+}
 
 /* Data-table modifiers, composable: .ui-table--dense --zebra --hover.
  *   --dense  --space-3 across, --space-2 down — one step in from the base table
@@ -194,9 +196,13 @@
 }
 /* The last cell gave up its end gap above, so the link it holds gives up the same. */
 .ui-table td.ui-table__linked:where(:last-child) > :is(a:not([class]), a.ui-identity):only-child { padding-right: 0; }
-:where(.ui-table--hover:not(.ui-table--zebra)) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-4); }
+/* A hover table's end cells hold the room inside the fill, so a linked end cell's link does. */
+:where(.ui-table--hover:not(.ui-table--zebra)) td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: var(--space-2); }
+:where(.ui-table--hover:not(.ui-table--zebra)) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-2); }
 .ui-table--dense td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-2) var(--space-3); }
 .ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-1) var(--space-3); }
+:where(.ui-table--hover:not(.ui-table--zebra)):is(.ui-table--dense, .ui-table--compact) td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: var(--space-2); }
+:where(.ui-table--hover:not(.ui-table--zebra)):is(.ui-table--dense, .ui-table--compact) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-2); }
 /* Zebra insets the row's END cells only, so the fill does too: a marked identity behind a
    selection column is a middle cell, and a step it never gave up would move its name. */
 .ui-table--zebra td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: var(--space-3); }
@@ -305,23 +311,32 @@
 .ui-card > .ui-table-scroll:has(> .ui-table--dense) {
   margin-inline: calc(-1 * var(--space-4));
 }
-/* A hover table's 8px row inset came on top of the bleed above, so a dense hover table
-   straight in a card started 8px inside the card's text edge. #757 */
-.ui-card > .ui-table-scroll > .ui-table--dense,
+/* A hover table holds 8px at its ends, so a dense one hangs out by that much. why: #773 */
 .ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra) {
-  padding-inline: 0;
+  width: calc(100% + 2 * var(--space-2));
+  margin-inline: calc(-1 * var(--space-2));
 }
-/* A hover table's row inset plus the frame's 4px band is one --space-3, so the
-   frame hangs out by that much and the first column meets the title. why: #736 */
-.ui-card > .ui-table-scroll:has(> .ui-table--hover:not(.ui-table--dense)) {
+.ui-card--fit > .ui-table--dense.ui-table--hover:not(.ui-table--zebra) {
+  width: auto;
+  max-width: calc(100% + 2 * var(--space-2));
+}
+/* A hover table's 8px end-cell room plus the frame's 4px band is one --space-3, so the
+   frame hangs out by that much and the first column meets the title. A dense zebra hover
+   table keeps the dense bleed. why: #736, #773 */
+.ui-card > .ui-table-scroll:has(> .ui-table--hover:not(.ui-table--dense.ui-table--zebra)) {
   margin-inline: calc(-1 * var(--space-3));
 }
 .ui-table td.ui-table__num { text-align: right; }
 .ui-table--compact td,
 .ui-table--compact :is(tbody, tfoot) th { padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-snug); height: 33px; }
 .ui-table--compact th { padding: var(--space-2) var(--space-3); }
+.ui-table--compact th:first-child,
+.ui-table--compact td:first-child { padding-left: var(--space-3); }
 .ui-table--compact th:last-child,
 .ui-table--compact td:last-child { padding-right: var(--space-3); }
+/* A hover table holds --space-2 inside the fill at each end, and dense and compact too. why: #773 */
+:where(.ui-table--hover:not(.ui-table--zebra)):is(.ui-table--dense, .ui-table--compact) :is(th, td):first-child { padding-left: var(--space-2); }
+:where(.ui-table--hover:not(.ui-table--zebra)):is(.ui-table--dense, .ui-table--compact) :is(th, td):last-child { padding-right: var(--space-2); }
 /* Columns past the box's edge, said in paint. Two shades, one per side, under two
    cover layers that ride the content: `local` moves a cover with the scroll, so
    reaching an end slides that cover over its shade. A cover is solid for its first
