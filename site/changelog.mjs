@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.159.0', date: '2026-11-03',
+    changes: [
+      ['added', 'The package now ships a stylelint config at `@apliteni/apliteni-ui/stylelint`. It refuses raw colours, raw `px`, `rem` or `em` spacing values, and overrides of `.ui-*` kit classes in app styles; a rule is off only with a comment that names the approved exception. Resolves #772.'],
+    ],
+  },
+  {
     v: '0.158.3', date: '2026-11-03',
     changes: [
       ['added', 'The package now ships `guidelines/INDEX.md`, one row per guideline page with the screen parts it covers and when to read it. An agent that builds a screen can read it to find the page. Resolves #771.', ['Guidelines']],
