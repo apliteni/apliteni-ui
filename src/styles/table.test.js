@@ -330,19 +330,83 @@ function checkLinkedHoverInset(css) {
       const { document, getComputedStyle } = dom.window;
       const header = getComputedStyle(document.querySelector('th'));
       const link = getComputedStyle(document.querySelector('td a'));
-      assert.equal(link.paddingRight, header.paddingRight, `${modifier}: linked last cell keeps the header inset`);
-      assert.notEqual(link.paddingRight, '0px');
+      // The one cell is both ends of its row, so its link holds the room at both.
+      for (const side of ['paddingLeft', 'paddingRight']) {
+        assert.equal(link[side], header[side], `${modifier}: linked end cell keeps the header inset, ${side}`);
+        assert.notEqual(link[side], '0px');
+      }
       measured++;
     } finally { dom.window.close(); }
   }
   assert.equal(measured, 4);
 }
 
-test('a linked last cell keeps the hover table inset', () => checkLinkedHoverInset(CSS));
-test('the linked last-cell check rejects a missing inset', () => {
-  const without = CSS.replace(/:where\(\.ui-table--hover:not\(\.ui-table--zebra\)\) td\.ui-table__linked:last-child > :is\([^{}]+\{[^}]+\}/, '');
-  assert.notEqual(without, CSS);
-  assert.throws(() => checkLinkedHoverInset(without));
+test('a linked end cell keeps the hover table inset', () => checkLinkedHoverInset(CSS));
+test('the linked end-cell check rejects a missing inset', () => {
+  for (const end of ['first', 'last']) {
+    const without = CSS.replace(new RegExp(`:where\\(\\.ui-table--hover:not\\(\\.ui-table--zebra\\)\\) td\\.ui-table__linked:${end}-child > :is\\([^{}]+\\{[^}]+\\}`), '');
+    assert.notEqual(without, CSS, `the ${end}-child rule must exist to be taken out`);
+    assert.throws(() => checkLinkedHoverInset(without), `a missing ${end}-child inset must be rejected`);
+  }
+});
+
+/**
+ * A hovered row's fill spans the table and rounds its ends (#773). Each end cell keeps
+ * --space-2 inside the fill, the same as its header. A row line that met a round corner
+ * crossed it, so the hovered row, the row above it and, over the first row, the header
+ * drop their lines. Every other line stays.
+ *
+ * Limit: JSDOM has no pointer, so `:hover` is rewritten to a class the test sets. It
+ * computes padding and border colour, not the paint of the corners.
+ */
+function checkHoverRowEnds(css) {
+  const probe = substitute(css, tokensFor('light', 'default')).replace(/:hover\b/g, '.is-probe-hover');
+  assert.notEqual(probe, css, 'the sheet must have hover rules to probe');
+  const room = `${SPACE['--space-2']}px`;
+  const clear = (style) => ['transparent', 'rgba(0, 0, 0, 0)'].includes(style.borderBottomColor);
+  const failures = [];
+  let measured = 0;
+  for (let hovered = 0; hovered < 3; hovered++) {
+    const dom = new JSDOM(`<style>${probe}</style><table class="ui-table ui-table--hover">
+      <thead><tr><th>Campaign</th><th class="ui-table__num">Clicks</th></tr></thead>
+      <tbody>${[0, 1, 2].map((i) => `<tr class="${i === hovered ? 'is-probe-hover' : ''}"><td>Demo ${i}</td><td class="ui-table__num">${i}</td></tr>`).join('')}</tbody></table>`);
+    try {
+      const { document, getComputedStyle } = dom.window;
+      const rows = [...document.querySelectorAll('tbody tr')];
+      const head = [...document.querySelectorAll('thead th')].map((th) => getComputedStyle(th));
+      const first = getComputedStyle(rows[hovered].firstElementChild);
+      const last = getComputedStyle(rows[hovered].lastElementChild);
+      if (first.paddingLeft !== room || head[0].paddingLeft !== room) failures.push(`row ${hovered + 1}: first cell room ${first.paddingLeft}, header ${head[0].paddingLeft}`);
+      if (last.paddingRight !== room || head[1].paddingRight !== room) failures.push(`row ${hovered + 1}: last cell room ${last.paddingRight}, header ${head[1].paddingRight}`);
+      if (clear(head[0]) !== (hovered === 0)) failures.push(`row ${hovered + 1}: header line ${head[0].borderBottomColor}`);
+      // The last row of the table has no line of its own, so only the rows above it are read.
+      rows.slice(0, 2).forEach((row, i) => {
+        const style = getComputedStyle(row.firstElementChild);
+        if (clear(style) !== (i === hovered || i === hovered - 1)) failures.push(`row ${hovered + 1}: line under row ${i + 1} ${style.borderBottomColor}`);
+      });
+      measured++;
+    } finally { dom.window.close(); }
+  }
+  assert.equal(measured, 3, 'every row must be hovered once');
+  return failures;
+}
+
+test('a hovered row keeps room inside its fill and no line crosses its corners', () => {
+  assert.deepEqual(checkHoverRowEnds(CSS), []);
+});
+
+test('the hover-row check rejects a sheet that loses the first-cell room or a dropped line', () => {
+  const firstRoom = /:where\(\.ui-table--hover:not\(\.ui-table--zebra\)\) :is\(th, td\):not\(\.ui-table__act\):first-child \{[^}]*\}/;
+  const headerLine = ',\n.ui-table--hover:not(.ui-table--zebra) thead:has(+ tbody > tr:first-child:hover) > tr > th';
+  const rowAbove = '.ui-table--hover:not(.ui-table--zebra) tbody tr:has(+ tr:hover) > :is(td, th),\n';
+  for (const [name, mutated] of [
+    ['first-cell room', CSS.replace(firstRoom, '')],
+    ['header line', CSS.replace(headerLine, '')],
+    ['row-above line', CSS.replace(rowAbove, '')],
+  ]) {
+    assert.notEqual(mutated, CSS, `the ${name} rule must exist to be taken out`);
+    assert.notDeepEqual(checkHoverRowEnds(mutated), [], `a sheet without the ${name} rule must be rejected`);
+  }
 });
 
 /**
@@ -583,52 +647,4 @@ test('the bleed gate rejects a wrapper that puts the table out of reach', () => 
     'a table one wrapper further from the card must be reported',
   );
   assert.throws(() => bleedReaches(CSS.replace(/margin-inline/g, 'margin-left')), /card bleed is gone/);
-});
-
-/**
- * Rule: a dense hover table that the card bleeds takes no row inset on top of the bleed.
- *
- * The hover table's 8px side padding came on top of the 12px bleed, so the first column of
- * a dense hover table straight in a card sat 8px inside the card's text edge. #757
- *
- * What it does not reach: the pinned variant's first-cell inset, and the pixels. It reads
- * which rules match in jsdom and weighs their selectors by class count.
- */
-const HOVER_SHAPES = {
-  'a vanilla dense hover table in a card':
-    '<div class="ui-card"><table class="ui-table ui-table--dense ui-table--hover"></table></div>',
-  'a React dense hover table in a card': '<div class="ui-card"><div class="ui-table-scroll">'
-    + '<table class="ui-table ui-table--dense ui-table--hover"></table></div></div>',
-};
-const weightOf = (selector) => (selector.replace(/:where\([^)]*\)/g, '').match(/[.:][\w-]+/g) || [])
-  .filter((part) => part !== ':not').length;
-// The weight of the heaviest member of a selector list that matches the element, or -1.
-const weight = (el, list) => Math.max(-1, ...splitSelectorList(list)
-  .filter((one) => el.matches(one)).map(weightOf));
-
-function insetOverBleed(css) {
-  const rules = rulesIn(css);
-  const inset = rules.filter(({ selector, body }) => /padding:\s*0 var\(--space-2\)/.test(body)
-    && /\.ui-table--hover/.test(selector));
-  const zero = rules.filter(({ selector, body }) => selector.startsWith('.ui-card >')
-    && /padding-inline:\s*0\s*(?:;|$)/.test(body));
-  assert.ok(inset.length >= 1, 'the hover row inset is gone from the sheet');
-  const left = [];
-  for (const [name, html] of Object.entries(HOVER_SHAPES)) {
-    const doc = new JSDOM(html).window.document;
-    const table = doc.querySelector('table');
-    const top = Math.max(...inset.map(({ selector }) => weight(table, selector)));
-    if (!zero.some(({ selector }) => weight(table, selector) >= top)) left.push(name);
-  }
-  return left;
-}
-
-test('a dense hover table in a card starts its first column on the card text edge', () => {
-  assert.deepEqual(insetOverBleed(CSS), []);
-});
-
-test('the inset check rejects a sheet without the direct-child answer', () => {
-  const unfixed = CSS.replace(',\n.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', '');
-  assert.notEqual(unfixed, CSS, 'the direct-child rule must exist to be taken out');
-  assert.deepEqual(insetOverBleed(unfixed), ['a vanilla dense hover table in a card']);
 });

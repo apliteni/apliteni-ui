@@ -665,7 +665,7 @@ larger.
 ### Dense financial tables
 
 The table is markup. A named scroll region contains a native `<table>`, and you apply the
-recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill.
+recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill across the table width, with round ends and 8px of room inside the fill at the first and last content. No row line crosses those ends.
 Keyboard focus keeps its ring, and a landed row keeps its own mark. `compact` sets a 33px minimum row, but larger or wrapped content makes the row
 taller. **Columns scroll rather than disappear**, while sticky headers and pinned identity cells
 keep opaque backgrounds, the shared focus composition, and their full accessible names. **A

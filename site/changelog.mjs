@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.159.0', date: '2026-11-03',
+    changes: [
+      ['changed', 'A hover table (`ui-table--hover` without `--zebra`, and React `DataTable` by default) now fills a hovered row across the full table width with round ends. The first and last content sit 8px inside the fill, so the last column now ends 8px from the table edge, where it ended 24px in. No row line crosses the round ends. Resolves #773.', ['Table']],
+      ['changed', 'The Dense tables guideline now allows an inset grey hover fill. It still forbids a grey zebra. Part of #773.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.158.3', date: '2026-11-03',
     changes: [
       ['added', 'The package now ships `guidelines/INDEX.md`, one row per guideline page with the screen parts it covers and when to read it. An agent that builds a screen can read it to find the page. Resolves #771.', ['Guidelines']],
