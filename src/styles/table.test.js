@@ -573,6 +573,20 @@ function tableWidths(css) {
       problems.push(`${selector} has no sizing rule`);
     }
   }
+  // A dense hover table bleeds by --space-2 at each end, or its first content sits 4px off
+  // the card's text edge (#773). The width above is one end of it; these are the rest.
+  // It reads the declarations, not the layout: the 4px it prevents is a browser measurement.
+  for (const [selector, property, value] of [
+    ['.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', 'width', 'calc(100% + 2 * var(--space-2))'],
+    ['.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', 'margin-inline', 'calc(-1 * var(--space-2))'],
+    ['.ui-card--fit > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', 'max-width', 'calc(100% + 2 * var(--space-2))'],
+  ]) {
+    const rule = rules.find((candidate) => candidate.selector === selector);
+    const found = rule && rule.body.match(new RegExp(`(?:^|;|\\s)${property}\\s*:\\s*([^;}]+)`));
+    if (!found || found[1].trim() !== value) {
+      problems.push(`${selector} no longer bleeds by --space-2: ${property}: ${found ? found[1].trim() : 'missing'}`);
+    }
+  }
   // The cap is the other half: without it a short table shrinks but a bled one
   // inside a card loses the end inset it bleeds into.
   const caps = rulesIn(css).filter(({ selector, body }) => /max-width/.test(body)
@@ -615,6 +629,18 @@ test('the width gate rejects a table stretched back to its container', () => {
     'removing the cap must be rejected');
   assert.ok(tableWidths(CSS.replace('max-width: calc(100% + 2 * var(--space-3));', 'max-width: 100%;')).length > 0,
     'a card bleed that caps at the card instead of the bled width must be rejected');
+  const HOVER = /\.ui-card > \.ui-table--dense\.ui-table--hover:not\(\.ui-table--zebra\) \{[^}]*\}/;
+  const FIT_HOVER = /\.ui-card--fit > \.ui-table--dense\.ui-table--hover:not\(\.ui-table--zebra\) \{[^}]*\}/;
+  for (const [name, mutation] of [
+    ['the dense hover bleed removed', CSS.replace(HOVER, '')],
+    ['the dense hover fit bleed removed', CSS.replace(FIT_HOVER, '')],
+    ['the dense hover width at the dense bleed', CSS.replace(HOVER, (rule) => rule.replace('--space-2', '--space-3'))],
+    ['the dense hover margin at the dense bleed', CSS.replace(HOVER, (rule) => rule.replace('calc(-1 * var(--space-2))', 'calc(-1 * var(--space-3))'))],
+    ['the dense hover fit cap at the dense bleed', CSS.replace(FIT_HOVER, (rule) => rule.replace('--space-2', '--space-3'))],
+  ]) {
+    assert.notEqual(mutation, CSS, `${name}: the mutation must change the sheet`);
+    assert.ok(tableWidths(mutation).length > 0, `${name} must be rejected`);
+  }
 });
 
 /**
