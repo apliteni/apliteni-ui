@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from './primitives/Button';
 
 const meta: Meta = { title: 'React/Button', parameters: { layout: 'fullscreen' } };
@@ -42,11 +42,15 @@ function BusyExample() {
 export const BusyTransition: StoryObj = { render: () => <BusyExample /> };
 
 // The hint rises above the button, so the specimen leaves room for it.
+// The result takes the button's place and the focus, so focus is not lost with the button.
 function HoldExample({ variant, label, done }: { variant: 'primary' | 'danger'; label: string; done: string }) {
   const [confirmed, setConfirmed] = useState(false);
-  return canvas(<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--space-4)', paddingTop: 'var(--space-8)' }}>
-    <Button hold variant={variant} onConfirm={() => setConfirmed(true)}>{label}</Button>
-    <p role="status">{confirmed ? done : ''}</p>
+  const result = useRef<HTMLParagraphElement>(null);
+  useEffect(() => { if (confirmed) result.current?.focus(); }, [confirmed]);
+  return canvas(<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', paddingTop: 'var(--space-8)' }}>
+    {confirmed
+      ? <p ref={result} role="status" tabIndex={-1}>{done}</p>
+      : <Button hold variant={variant} onConfirm={() => setConfirmed(true)}>{label}</Button>}
   </div>);
 }
 export const HoldPrimary: StoryObj = {
