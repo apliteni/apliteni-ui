@@ -104,6 +104,7 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
   const holdHelpId = useId();
   const live = useRef({ busy, disabled, onConfirm });
   live.current = { busy, disabled, onConfirm };
+  const cancelHold = useRef(() => {});
   useEffect(() => {
     const btn = buttonRef.current;
     if (!holds || !btn) return;
@@ -151,6 +152,15 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       paint(0);
       if (short) hint(true);
     };
+    // Busy or disabled during a hold: the hold stops and confirms nothing.
+    cancelHold.current = () => {
+      armedUntil = 0;
+      hint(false);
+      if (!by) return;
+      stop();
+      btn.removeAttribute('data-holding');
+      paint(0);
+    };
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       btn.setPointerCapture?.(e.pointerId);
@@ -185,12 +195,14 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
     for (const [type, fn] of listeners) btn.addEventListener(type, fn as EventListener);
     return () => {
       stop();
+      cancelHold.current = () => {};
       for (const [type, fn] of listeners) btn.removeEventListener(type, fn as EventListener);
       btn.removeAttribute('data-holding');
       btn.removeAttribute('data-hold-hint');
       btn.style.removeProperty('--hold');
     };
   }, [holds]);
+  useEffect(() => { if (busy || disabled) cancelHold.current(); }, [busy, disabled]);
   const blockActivation = (event: SyntheticEvent) => {
     if (!busy && !disabled) return false;
     event.preventDefault();

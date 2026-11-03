@@ -500,7 +500,7 @@
     "pattern": "every icon-only control is one the closed list allows"
    },
    {
-    "ref": "react/src/primitives/Button.tsx:220",
+    "ref": "react/src/primitives/Button.tsx:232",
     "pattern": "const named = iconOnly"
    }
   ],
@@ -706,15 +706,15 @@
   ],
   "never-nameless": [
    {
-    "ref": "react/src/primitives/Button.tsx:212",
+    "ref": "react/src/primitives/Button.tsx:224",
     "pattern": "iconOnly drops the visible children"
    },
    {
-    "ref": "react/src/primitives/Button.tsx:215",
+    "ref": "react/src/primitives/Button.tsx:227",
     "pattern": "then the icon name. With neither"
    },
    {
-    "ref": "react/src/primitives/Button.tsx:215",
+    "ref": "react/src/primitives/Button.tsx:227",
     "pattern": "nothing is invented: a control named"
    }
   ]
@@ -862,7 +862,7 @@
   ],
   "busy": [
    {
-    "ref": "react/src/primitives/Button.tsx:241",
+    "ref": "react/src/primitives/Button.tsx:253",
     "pattern": "aria-busy={busy ? true : undefined}"
    },
    {
@@ -1063,11 +1063,11 @@
  "_button-labels.js": {
   "words-first": [
    {
-    "ref": "react/src/primitives/Button.tsx:260",
+    "ref": "react/src/primitives/Button.tsx:272",
     "pattern": "ui-btn__label-slot"
    },
    {
-    "ref": "react/src/primitives/Button.test.tsx:192",
+    "ref": "react/src/primitives/Button.test.tsx:210",
     "pattern": "lets an explicit aria-label win over the children fallback"
    }
   ],
@@ -1083,7 +1083,7 @@
     "pattern": "export const iconOnlyAllowed"
    },
    {
-    "ref": "react/src/primitives/Button.tsx:220",
+    "ref": "react/src/primitives/Button.tsx:232",
     "pattern": "const named = iconOnly"
    },
    {

@@ -176,6 +176,24 @@ describe('hold to confirm', () => {
     expect(getByRole('button')).toHaveAttribute('type', 'button');
   });
 
+  it('stops a running hold and a pending second press when it turns busy or disabled', () => {
+    for (const state of [{ busy: true }, { disabled: true }]) {
+      const { button, onConfirm, rerender, unmount } = setup();
+      fireEvent.click(button, { detail: 0 });
+      fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+      vi.advanceTimersByTime(500);
+      rerender(<Button hold variant="danger" onConfirm={onConfirm} {...state}>Delete workspace</Button>);
+      expect(button).not.toHaveAttribute('data-holding');
+      expect(fill(button)).toBe(0);
+      vi.advanceTimersByTime(1000);
+      rerender(<Button hold variant="danger" onConfirm={onConfirm}>Delete workspace</Button>);
+      fireEvent.click(button, { detail: 0 });
+      vi.advanceTimersByTime(1000);
+      expect(onConfirm).not.toHaveBeenCalled();
+      unmount();
+    }
+  });
+
 });
 
 it('defaults to type="button" so it never submits a form', () => {
