@@ -72,6 +72,30 @@ families support weights 300–700.
 If a family does not load, the browser uses its system fallback stack. The kit does not
 display a message about this fallback.
 
+## Lint app styles
+
+The package ships a stylelint config at `@apliteni/apliteni-ui/stylelint`. It refuses a
+raw colour, a raw `px`, `rem` or `em` spacing value, and an override of a `.ui-*` kit
+class. Install stylelint, then extend the config:
+
+```bash
+npm install --save-dev stylelint
+```
+
+```json
+{
+  "extends": ["@apliteni/apliteni-ui/stylelint"]
+}
+```
+
+Use a semantic colour token such as `var(--text)` and a spacing token such as
+`var(--space-4)` from `@apliteni/apliteni-ui/tokens`. Turn a rule off only with a
+comment that names the approved exception, after `--`:
+
+```css
+/* stylelint-disable color-no-hex -- an approved brand colour */
+```
+
 ## Theme and accent
 
 Set the theme on `<html>` with `data-theme="dark|light"`. You can set an accent separately

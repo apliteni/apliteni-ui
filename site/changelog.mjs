@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.159.0', date: '2026-11-03',
+    changes: [
+      ['added', 'The package now ships a stylelint config at `@apliteni/apliteni-ui/stylelint`. It refuses raw colours, raw `px`, `rem` or `em` spacing values, and overrides of `.ui-*` kit classes in app styles; a rule is off only with a comment that names the approved exception. Resolves #772.'],
+    ],
+  },
+  {
     v: '0.158.2', date: '2026-11-03',
     changes: [
       ['fixed', 'A `Dropdown` panel that is torn down while it is still closing no longer throws an unhandled error. Before, the collapse timer could fire after the panel\'s document was gone and throw while measuring the view.', ['Dropdown']],
