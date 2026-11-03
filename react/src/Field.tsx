@@ -78,7 +78,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   return <Frame {...{ id, label, hint, error, required }}>
     {glyph
       ? <div className={`ui-input-group${hasUnit ? ' ui-field-number' : ''}`}>
-        <span className="ui-input-group__icon" dangerouslySetInnerHTML={{ __html: icon(glyph) }} />{control}{unitSpan}
+        <span className="ui-input-group__icon" dangerouslySetInnerHTML={{ __html: icon(glyph, glyph === 'search' ? 'ui-input-group__search' : '') }} />{control}{unitSpan}
       </div>
       : hasUnit ? <div className="ui-field-number">{control}{unitSpan}</div> : control}
   </Frame>;

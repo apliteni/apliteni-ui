@@ -459,6 +459,9 @@ const tableSizingRules = (css) => rulesIn(css)
   .filter(({ selector, body }) => targetsTable(selector) && !CELL.test(selector)
     && /(?:^|;|\s)width\s*:/.test(body));
 
+// A default hover table bleeds only by its 8px row inset, so its first column meets the title.
+const HOVER_BLEED = '.ui-card > .ui-table--hover:not(.ui-table--dense, .ui-table--compact, .ui-table--zebra)';
+
 function tableWidths(css) {
   const rules = tableSizingRules(css);
   assert.ok(rules.length > 0, 'no rule in this sheet sizes a table — the subject is gone');
@@ -470,9 +473,11 @@ function tableWidths(css) {
       const width = value.trim();
       const expected = {
         '.ui-table': '100%',
-        '.ui-card > :where(.ui-table--dense, .ui-table--zebra)': 'calc(100% + 2 * var(--space-3))',
+        '.ui-card > :where(.ui-table--dense, .ui-table--compact, .ui-table--zebra)': 'calc(100% + 2 * var(--space-3))',
         ':where(.ui-card--fit) .ui-table': 'auto',
-        '.ui-card--fit > :where(.ui-table--dense, .ui-table--zebra)': 'auto',
+        '.ui-card--fit > :where(.ui-table--dense, .ui-table--compact, .ui-table--zebra)': 'auto',
+        [HOVER_BLEED]: 'calc(100% + 2 * var(--space-2))',
+        [`.ui-card--fit > ${HOVER_BLEED.slice('.ui-card > '.length)}`]: 'auto',
       }[selector];
       if (width !== expected) {
         problems.push(`${selector} sizes the table itself: width: ${width}`);
@@ -483,9 +488,10 @@ function tableWidths(css) {
   assert.equal(measured, rules.length, 'every sizing rule must be measured once');
   for (const selector of [
     '.ui-table',
-    '.ui-card > :where(.ui-table--dense, .ui-table--zebra)',
+    '.ui-card > :where(.ui-table--dense, .ui-table--compact, .ui-table--zebra)',
     ':where(.ui-card--fit) .ui-table',
-    '.ui-card--fit > :where(.ui-table--dense, .ui-table--zebra)',
+    '.ui-card--fit > :where(.ui-table--dense, .ui-table--compact, .ui-table--zebra)',
+    HOVER_BLEED,
   ]) {
     if (!rules.some((rule) => rule.selector === selector)) {
       problems.push(`${selector} has no sizing rule`);
@@ -498,8 +504,9 @@ function tableWidths(css) {
   if (!caps.some(({ body }) => /max-width\s*:\s*100%/.test(body))) {
     problems.push('no rule caps a table at the room it has');
   }
-  if (!caps.some(({ selector, body }) => selector.includes('.ui-card') && /calc\(100%/.test(body))) {
-    problems.push('the card bleed no longer caps a table at the width it bleeds to');
+  const cardCaps = caps.filter(({ selector }) => selector.startsWith('.ui-card--fit >'));
+  if (cardCaps.length < 2 || !cardCaps.every(({ body }) => /max-width\s*:\s*calc\(100%/.test(body))) {
+    problems.push('a card bleed no longer caps a table at the width it bleeds to');
   }
   return problems;
 }
@@ -597,6 +604,8 @@ test('the bleed gate rejects a wrapper that puts the table out of reach', () => 
 const HOVER_SHAPES = {
   'a vanilla dense hover table in a card':
     '<div class="ui-card"><table class="ui-table ui-table--dense ui-table--hover"></table></div>',
+  'a vanilla compact hover table in a card':
+    '<div class="ui-card"><table class="ui-table ui-table--compact ui-table--hover"></table></div>',
   'a React dense hover table in a card': '<div class="ui-card"><div class="ui-table-scroll">'
     + '<table class="ui-table ui-table--dense ui-table--hover"></table></div></div>',
 };
@@ -628,7 +637,8 @@ test('a dense hover table in a card starts its first column on the card text edg
 });
 
 test('the inset check rejects a sheet without the direct-child answer', () => {
-  const unfixed = CSS.replace(',\n.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', '');
+  const unfixed = CSS.replace(',\n.ui-card > :is(.ui-table--dense, .ui-table--compact).ui-table--hover:not(.ui-table--zebra)', '');
   assert.notEqual(unfixed, CSS, 'the direct-child rule must exist to be taken out');
-  assert.deepEqual(insetOverBleed(unfixed), ['a vanilla dense hover table in a card']);
+  assert.deepEqual(insetOverBleed(unfixed),
+    ['a vanilla dense hover table in a card', 'a vanilla compact hover table in a card']);
 });

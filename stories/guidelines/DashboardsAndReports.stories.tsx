@@ -35,7 +35,7 @@ const Cashflow = ({ id }: { id: string }) => <StatBand id={id} stats={(cashflowS
   .map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' }, trend: <CashflowTrend trend={figure.trend} /> }))} />;
 
 // `fees` swaps Status for the fees, so the report shows how each net is made.
-const LedgerTable = ({ fees = false }: { fees?: boolean }) => <table className="ui-table ui-table--dense ui-table--zebra">
+const LedgerTable = ({ fees = false }: { fees?: boolean }) => <table className="ui-table ui-table--dense ui-table--hover">
   <thead><tr><th>Reference</th>{fees && <th className="ui-table__num">Fees (EUR)</th>}<th className="ui-table__num">Net (EUR)</th>{!fees && <th>Status</th>}</tr></thead>
   <tbody>{(LEDGER as string[][]).map(([ref, , fee, net, tone, label]) => <tr key={ref}>
     <td>{ref}</td>{fees && <td className="ui-table__num">{fee}</td>}<td className="ui-table__num ui-table__num--strong">{net}</td>
@@ -54,7 +54,7 @@ const EXCEPTIONS: [string, string, Tone, string][] = [
 const Attention = ({ onward = true }: { onward?: boolean }) => <><RestingFilters search="Search exceptions" placeholder="Reference"
   label="Exception filters" chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Failed', 'In transit', 'Unmatched'] }]} />
 <Card title="Needs a decision">
-  <table className="ui-table ui-table--dense">
+  <table className="ui-table ui-table--dense ui-table--hover">
     <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th></tr></thead>
     <tbody>{EXCEPTIONS.map(([ref, net, tone, label]) => <tr key={ref}>
       <td><span className="ui-table__pair">{onward ? <a href={payoutHref(ref)}>{ref}</a> : ref}<Badge variant={tone}>{label}</Badge></span></td>
@@ -79,8 +79,8 @@ const MonthBlock = () => <Card title="Net settled by month">
 </Card>;
 const MonthTable = () => (
   // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-every-table-its-filter-bar
-  <table className="ui-table ui-table--dense">
-    <thead><tr><th>Month</th><th className="ui-table__num">Net settled (k €)</th></tr></thead>
+  <table className="ui-table ui-table--dense ui-table--hover">
+    <thead><tr><th>Month</th><th className="ui-table__num">Net settled (EUR thousands)</th></tr></thead>
     <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>
   </table>
 );

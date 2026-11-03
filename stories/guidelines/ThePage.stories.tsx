@@ -38,8 +38,8 @@ const Stack = ({ n, over = false }: { n: number; over?: boolean }) => <Stage>
 
 // One density per page. Each table keeps its filter bar directly above it.
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
-const MiniTable = ({ dense }: { dense: boolean }) => <table className={`ui-table ui-table--zebra${dense ? ' ui-table--dense' : ''}`}>
-  <thead><tr><th>ID</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
+const MiniTable = ({ dense }: { dense: boolean }) => <table className={`ui-table ui-table--hover${dense ? ' ui-table--dense' : ''}`}>
+  <thead><tr><th>ID</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
   <tbody><tr><td>1162</td><td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr></tbody>
 </table>;
 const Densities = ({ second }: { second: boolean }) => <Stage><div className="tp-rows">
@@ -58,8 +58,8 @@ const Frame = ({ centered }: { centered: boolean }) => <Stage><div className="tp
     <div className="tp-lay__bar" />
     <div className={`tp-lay__col${centered ? ' tp-lay__col--centered' : ''}`}>
       <div className="ui-table-scroll" tabIndex={0} role="region" aria-label="Payouts">
-        <table className="ui-table ui-table--zebra ui-table--dense">
-          <thead><tr><th>ID</th><th>Status</th><th className="ui-table__num">Net</th></tr></thead>
+        <table className="ui-table ui-table--dense ui-table--hover">
+          <thead><tr><th>ID</th><th>Status</th><th className="ui-table__num">Net (EUR)</th></tr></thead>
           <tbody>{PAYOUTS.map(([id, net]) => <tr key={id}><td>{id}</td>
             <td><Badge variant="success">Paid</Badge></td><td className="ui-table__num">{net}</td></tr>)}</tbody>
         </table>

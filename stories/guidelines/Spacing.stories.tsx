@@ -22,8 +22,8 @@ const Chips = ({ n = 2 }: { n?: number }) => <FilterBar filters={FILTERS.slice(0
 const Strip = () => <Segmented options={['All', 'Open', 'Paid'].map(label => ({ label, value: label }))} value="Open"
   onChange={noop} appearance="underline" label="Invoice view" />;
 const Table = () => <div className="ui-table-scroll" role="region" aria-label="Invoices" tabIndex={0}>
-  <table className="ui-table ui-table--compact">
-    <thead><tr><th scope="col">Invoice</th><th scope="col">Due</th><th scope="col" className="ui-table__num">Amount EUR</th></tr></thead>
+  <table className="ui-table ui-table--compact ui-table--hover">
+    <thead><tr><th scope="col">Invoice</th><th scope="col">Due</th><th scope="col" className="ui-table__num">Amount (EUR)</th></tr></thead>
     <tbody>{[['INV-1042', '3 Nov', '4,180.00'], ['INV-1039', '28 Oct', '960.50']].map(([a, b, c]) =>
       <tr key={a}><td>{a}</td><td>{b}</td><td className="ui-table__num">{c}</td></tr>)}</tbody>
   </table>

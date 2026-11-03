@@ -25,7 +25,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   // icon() already marks the svg aria-hidden, so the slot adds no name of its
   // own and `ariaLabel` stays the control's whole name.
   return <div className="ui-input-group">
-    <span className="ui-input-group__icon" dangerouslySetInnerHTML={{ __html: icon('search') }} />
+    <span className="ui-input-group__icon" dangerouslySetInnerHTML={{ __html: icon('search', 'ui-input-group__search') }} />
     <input ref={ref} {...props} type="search" aria-label={ariaLabel}
       className={['ui-input', className].filter(Boolean).join(' ')} />
   </div>;

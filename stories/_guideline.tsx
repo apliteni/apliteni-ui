@@ -1,6 +1,7 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { Badge } from '../react/src/primitives/Badge';
 import { Button } from '../react/src/primitives/Button';
 import { Icon } from '../react/src/primitives/Icon';
@@ -180,9 +181,10 @@ export const OpenReadout = ({ mark, above = false, children }: { mark: string; a
 export const PhoneFrame = ({ width = 200, label, children }: { width?: number; label: string; children: ReactNode }) => {
   const frame = useRef<HTMLIFrameElement>(null);
   const [body, setBody] = useState<HTMLElement | null>(null);
+  const [sealed, setSealed] = useState(false);
   useLayoutEffect(() => {
     const doc = frame.current?.contentDocument;
-    if (!doc) return;
+    if (!doc) { setSealed(true); return; }
     // The frame's height follows its content, so a table bounded by the viewport height would shrink with it.
     doc.open(); doc.write('<!doctype html><html><head></head><body style="margin:0; --ui-table-height: none"></body></html>'); doc.close();
     for (const sheet of document.querySelectorAll('style, link[rel="stylesheet"]')) doc.head.append(sheet.cloneNode(true));
@@ -203,7 +205,30 @@ export const PhoneFrame = ({ width = 200, label, children }: { width?: number; l
     setBody(box);
     return () => { watch.disconnect(); fit?.disconnect(); };
   }, []);
+  if (sealed) return <SealedPhone width={width} label={label}>{children}</SealedPhone>;
   return <iframe ref={frame} className="gl-phone" title={label} tabIndex={-1} style={{ width }}>{body && createPortal(children, body)}</iframe>;
+};
+
+/* A sandboxed host, such as a review viewer, keeps a frame's document out of reach. The
+ * picture is then written into the frame as static markup, and the frame posts its height. */
+const SealedPhone = ({ width, label, children }: { width: number; label: string; children: ReactNode }) => {
+  const frame = useRef<HTMLIFrameElement>(null);
+  const [theme, setTheme] = useState(0);
+  useLayoutEffect(() => {
+    const watch = new MutationObserver(() => setTheme(n => n + 1));
+    watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-accent'] });
+    const fit = (e: MessageEvent) => {
+      if (frame.current && e.source === frame.current.contentWindow && typeof e.data?.glPhone === 'number') frame.current.style.height = `${e.data.glPhone}px`;
+    };
+    window.addEventListener('message', fit);
+    return () => { watch.disconnect(); window.removeEventListener('message', fit); };
+  }, []);
+  const root = document.documentElement;
+  const attrs = ['data-theme', 'data-accent'].map(name => root.hasAttribute(name) ? ` ${name}="${root.getAttribute(name)}"` : '').join('');
+  const sheets = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map(sheet => sheet.outerHTML).join('');
+  const html = `<!doctype html><html${attrs}><head>${sheets}</head><body style="margin:0; --ui-table-height: none"><div>${renderToStaticMarkup(<>{children}</>)}</div>`
+    + '<script>const box = document.body.firstChild; new ResizeObserver(() => parent.postMessage({ glPhone: box.offsetHeight }, "*")).observe(box);</script></body></html>';
+  return <iframe ref={frame} key={theme} className="gl-phone" title={label} tabIndex={-1} style={{ width }} srcDoc={html} />;
 };
 
 /* The pictures join the page flow at the specimen width. */

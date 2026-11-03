@@ -16,6 +16,9 @@
   min-height: var(--ui-filter-row-h);
 }
 .ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); }
+/* One pixel less above the value: its baseline then sits a whole pixel above a text
+   field's, so both snap the same way and their cap middles stay 0.3px apart. #768 */
+.ui-filter-bar__chip .ui-dropdown__trigger { padding-top: calc(var(--space-1) - 1px); }
 /* The chip is the edge the row's other boxes are measured against, so it fades with them:
    off, the chips stayed at full strength and only their ink said so. Two carriers, because
    a bar turned off disables the controls in a nested fieldset and not the fieldset. #518 */

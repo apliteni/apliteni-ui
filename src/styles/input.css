@@ -98,7 +98,10 @@
   /* muted-ink: glyph — field icon */ color: var(--muted);
   pointer-events: none;
 }
-.ui-input-group__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2.2; }
+.ui-input-group__icon svg { display: block; width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2.2; }
+/* An inline svg sat on the slot's text baseline, 2px under the field's middle. The
+   magnifier's ink runs one viewBox unit below its box, so it climbs that unit. #768 */
+.ui-input-group__icon .ui-input-group__search { translate: 0 calc(-100% / 24); }
 
 /* The chevron is a data URI, and a data URI cannot read a token: `var()` does not
    substitute inside url() and `currentColor` does not cross into the image's own

@@ -12,7 +12,7 @@
     "pattern": "width: auto;"
    },
    {
-    "ref": "src/styles/table.css:300",
+    "ref": "src/styles/table.css:301",
     "pattern": "max-width: calc(100% + 2 * var(--space-3));"
    }
   ],
@@ -246,11 +246,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:445",
+    "ref": "src/styles/dropdown.css:447",
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:507",
+    "ref": "src/styles/dropdown.css:509",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -262,7 +262,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:401",
+    "ref": "src/styles/dropdown.css:403",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -893,7 +893,7 @@
     "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
    },
    {
-    "ref": "src/styles/table.css:271",
+    "ref": "src/styles/table.css:272",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {
