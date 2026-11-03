@@ -18,6 +18,14 @@ test('refuses a raw rgb() colour', async () => {
   assert.ok((await rules('a { color: rgb(225, 29, 72); }')).includes('function-disallowed-list'));
 });
 
+test('refuses an uppercase RGB() colour', async () => {
+  assert.ok((await rules('a { color: RGB(1 2 3); }')).includes('function-disallowed-list'));
+});
+
+test('refuses an uppercase HSL() colour', async () => {
+  assert.ok((await rules('a { color: HSL(0 50% 50%); }')).includes('function-disallowed-list'));
+});
+
 test('refuses a named colour', async () => {
   assert.ok((await rules('a { color: red; }')).includes('color-named'));
 });
@@ -32,6 +40,11 @@ test('refuses an override of a kit class', async () => {
 
 test('allows a colour token', async () => {
   const result = await lint('a { color: var(--fg); }');
+  assert.equal(result.errored, false);
+});
+
+test('allows color-mix() of tokens', async () => {
+  const result = await lint('a { color: color-mix(in srgb, var(--a), var(--b)); }');
   assert.equal(result.errored, false);
 });
 
