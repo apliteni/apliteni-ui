@@ -236,7 +236,14 @@ export function DataTable<T extends { name: string }>({
           </tr>
         </thead>
         <tbody>
-          {!slice.length && <tr><td colSpan={columns.length + (selectable ? 1 : 0)}>{loading ? 'Loading rows…' : empty}</td></tr>}
+          {/* A first load draws rows in the table's own columns, so the page keeps its shape when they land. */}
+          {!slice.length && loading && Array.from({ length: Math.min(pageSize ?? 3, 3) }, (_, i) => (
+            <tr key={`skel-${i}`} aria-hidden="true">
+              {selectable ? <td className="ui-table__selection" /> : null}
+              {columns.map(c => <td key={c.key}><span className="ui-skel__bar m-skeleton" /></td>)}
+            </tr>
+          ))}
+          {!slice.length && !loading && <tr><td colSpan={columns.length + (selectable ? 1 : 0)}>{empty}</td></tr>}
           {slice.map((r) => (
             <tr key={r.name}
               className={rowState?.(r) ? `is-${rowState(r)}` : undefined}>

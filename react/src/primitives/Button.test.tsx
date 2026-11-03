@@ -53,13 +53,23 @@ it('retains the last action label while busy and restores the next label on comp
   const { container, rerender, getByRole } = render(<Button><b>Save</b></Button>);
   rerender(<Button busy>Saving…</Button>);
   expect(getByRole('button', { name: 'Save' })).toHaveAttribute('aria-busy', 'true');
-  expect(container.querySelectorAll('.ui-btn__dots i')).toHaveLength(3);
+  expect(container.querySelectorAll('.ui-btn__spinner')).toHaveLength(1);
   rerender(<Button busy>Almost done</Button>);
   expect(getByRole('button', { name: 'Save' })).toBeEnabled();
-  expect(container.querySelectorAll('.ui-btn__dots')).toHaveLength(1);
+  expect(container.querySelectorAll('.ui-btn__spinner')).toHaveLength(1);
   rerender(<Button>Saved</Button>);
   expect(getByRole('button', { name: 'Saved' })).not.toHaveAttribute('aria-busy');
-  expect(container.querySelector('.ui-btn__dots')).toBeNull();
+  expect(container.querySelector('.ui-btn__spinner')).toBeNull();
+});
+
+it('keeps the label beside the spinner for a long action with a leading glyph', () => {
+  const { container, rerender } = render(<Button icon="upload" busy keepLabel>Import</Button>);
+  const button = container.querySelector('button')!;
+  expect(button).toHaveAttribute('data-btn-keep-label');
+  expect(button.firstElementChild).toHaveClass('ui-btn__spinner');
+  // Without a glyph to stand in for, the spinner covers the label so the width stays.
+  rerender(<Button busy keepLabel>Import</Button>);
+  expect(button).not.toHaveAttribute('data-btn-keep-label');
 });
 
 it('keeps focus while busy, blocks clicks and activation keys, and announces label changes', async () => {

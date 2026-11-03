@@ -14,7 +14,7 @@ const content = await loadGuideline('command-palette.md', new URL('../../guideli
  * because six modal palettes on one page would trap a reader in the first one.
  * It draws the palette's own markup with the kit's own ranking, so what is wrong
  * in a don't is the content, the order or the wording; never the markup.
- * `confirm` stands for the onConfirm a destructive row must carry. */
+ * `confirm` stands for the onConfirm a destructive row would carry. */
 type Row = CommandItem & { confirm?: boolean };
 const Glyph = ({ name, className }: { name: string; className: string }) =>
   <span className={className} aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon(name) }} />;
@@ -76,8 +76,8 @@ const PLACES: Row[] = [
   { id: 'settings', label: 'Settings', description: 'Billing, members, API keys', icon: 'gear', href: '#s' },
 ];
 const RECENT: Row[] = [
-  { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd · €2,480 · unpaid', icon: 'doc', badge: 'Unpaid', href: '#i1' },
-  { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH · €960 · paid', icon: 'doc', href: '#i2' },
+  { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd, €2,480', icon: 'doc', badge: 'Unpaid', href: '#i1' },
+  { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH, €960', icon: 'doc', href: '#i2' },
 ];
 const GROUPED = [{ label: 'Actions', items: ACTIONS }, { label: 'Go to', items: PLACES }, { label: 'Recent', items: RECENT }];
 
@@ -97,21 +97,19 @@ const specimens = [
     // The same query answered alphabetically: `rank={false}` is the seam a
     // server-fed palette uses, and this is an order nobody ranked.
     dont: () => <Palette rank={false} query="inv" groups={[{ label: 'Results', items: [
-      { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH · €960 · paid', icon: 'doc' },
-      { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd · €2,480 · unpaid', icon: 'doc' },
+      { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH, €960', icon: 'doc' },
+      { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd, €2,480', icon: 'doc' },
       { id: 'invite', label: 'Invite a teammate', description: 'They get a read-only seat', icon: 'user' },
       { id: 'new-invoice', label: 'New invoice', description: 'Draft one for a client', icon: 'plus' },
     ] }]} /> },
-  { id: 'ask-first',
-    do: () => <Palette groups={[{ label: 'Danger zone', items: [
-      { id: 'del', label: 'Delete workspace…', description: 'Nebula · 42 API keys', icon: 'trash', danger: true, confirm: true },
-      { id: 'revoke', label: 'Revoke every API key…', description: 'They stop working at once', icon: 'key', danger: true, confirm: true },
+  { id: 'danger-page',
+    do: () => <Palette roomy groups={[{ label: 'Go to', items: [
+      { id: 'danger', label: 'Danger zone in Settings', description: 'Delete the workspace or revoke API keys', icon: 'gear', href: '#danger' },
     ] }]} />,
-    // `danger` and no confirm, which is what the caption is about: the palette
-    // draws the pair disabled rather than running them.
-    dont: () => <Palette groups={[{ label: 'Danger zone', items: [
-      { id: 'del', label: 'Delete workspace', description: 'Nebula · 42 API keys', icon: 'trash', danger: true },
-      { id: 'revoke', label: 'Revoke every API key', description: 'They stop working at once', icon: 'key', danger: true },
+    // The destructive rows themselves, each behind a confirmation: still a delete one Enter away.
+    dont: () => <Palette roomy groups={[{ label: 'Danger zone', items: [
+      { id: 'del', label: 'Delete workspace…', description: '42 API keys go with it', icon: 'trash', danger: true, confirm: true },
+      { id: 'revoke', label: 'Revoke every API key…', description: 'They stop working at once', icon: 'key', danger: true, confirm: true },
     ] }]} /> },
 ];
 

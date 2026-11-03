@@ -111,11 +111,12 @@ export const Transition: StoryObj = {
 // A busy button is one control saying it is working. Shipped since day one on
 // the vanilla side, absent from this workspace until #128 — so a React screen
 // could not even say it at control scale, let alone at screen scale.
+// A short action swaps its label for the spinner at the same width. A long one keeps its label.
 export const BusyButton: StoryObj = {
   render: () => (
     <div style={{ display: 'flex', gap: 12 }}>
-      <Button variant="primary" busy>Saving…</Button>
-      <Button variant="secondary" busy>Saving…</Button>
+      <Button variant="primary" busy>Save</Button>
+      <Button variant="secondary" icon="download" busy keepLabel>Export rows</Button>
       <Button variant="primary">Save</Button>
     </div>
   ),

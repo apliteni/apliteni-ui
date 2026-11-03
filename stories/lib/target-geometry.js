@@ -24,7 +24,7 @@ const GEOMETRY = [
   'box-sizing', 'position',
 ];
 const INHERITED = ['font-size', 'line-height'];
-const NONE = '·none·';
+const NONE = '(none)';
 
 // A control's target is not its ink. 2.5.8 measures what a pointer can land on,
 // and a pointer landing on a control's ::before or ::after hits the CONTROL —

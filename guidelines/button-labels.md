@@ -8,29 +8,29 @@
 
 **Do:** Export, Rename and Share, named at rest.
 
-**Don't:** The same three, named only on a hover that fingers cannot do.
+**Don't:** The same three, named only on hover, which phones lack.
 
 ## Let the glyph repeat the verb
 
 <!-- rule: glyph-repeats-the-verb -->
 
-**Rule:** Add a glyph only when it shows its label’s action. Treat the buttons of a row the same.
+**Rule:** Add a glyph only when it shows its label’s action. Treat row peers the same.
 
-**Except:** A dismiss action beside a commit action is not a peer, so it stays plain.
+**Except:** A dismiss action beside a commit action is not a peer and stays plain.
 
 **Do:** The arrow downloads, the sheets copy.
 
-**Don't:** A table is what is exported, not the export. The plain neighbour looks weaker.
+**Don't:** A table glyph shows the thing, not the export. The plain neighbour looks weaker.
 
 ## Earn a wordless button
 
 <!-- rule: wordless-earns-it -->
 
-**Rule:** Remove a button’s words only when its glyph is known everywhere, its action is on the closed list, and assistive technology and a hover title get its name.
+**Rule:** Remove a button’s words only for a well-known glyph on the closed list, with an accessible name and a hover title.
 
-**Why:** Without a legend, a reader needs words for an unknown glyph.
+**Why:** A reader needs words for an unknown glyph.
 
-**Except:** The closed list is close, copy, overflow, expand, collapse, export, and download titled Download PDF. A new entry needs a decision. Theme toggles, sidebar toggles and collapsed-rail links have separate approval. Folded-rail glyphs show names, so they have no title. In [#729](https://github.com/apliteni/apliteni-ui/issues/729), the owner chose a glyph-only React AppShell search trigger below 560px for one light icon row. Its sentence stays the accessible name, because phones have no hover title. In [#742](https://github.com/apliteni/apliteni-ui/issues/742), the owner asked for an icon-only Chart and Table switch.
+**Except:** The closed list is close, copy, overflow, expand, collapse, export, and download titled Download PDF. Only the owner adds an entry, such as the theme and sidebar toggles, the phone search trigger and the Chart and Table switch. Folded-rail glyphs show names and need no title.
 
 **Do:** Overflow is on the list, the funnel is not.
 
@@ -40,10 +40,10 @@
 
 <!-- rule: no-action-on-selection -->
 
-**Rule:** Give a text action its own button, which opens a popover or a modal. Never wait for a selection.
+**Rule:** Give a text action its own button that opens a popover or a modal.
 
 **Why:** A reader selects text to copy it. Phones and screen readers seldom select.
 
 **Do:** An Add note button under the clause opens the note form.
 
-**Don't:** A toolbar that appears over the selected words.
+**Don't:** A toolbar over the selected words.

@@ -8,7 +8,7 @@ exports[`the shape the vanilla factory agreed on > keeps a destructive row that 
       "is-danger",
       "ui-cmdk__item",
     ],
-    "desc": "Nebula · 42 API keys",
+    "desc": "42 API keys go with it",
     "disabled": null,
     "haspopup": "dialog",
     "keys": [],

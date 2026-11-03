@@ -225,41 +225,36 @@
   animation: ui-btn-label-out var(--dur-med) var(--ease-in) both;
 }
 .ui-btn[aria-busy="true"] > svg,
-.ui-btn[aria-busy="true"] > span[aria-hidden="true"]:not(.ui-btn__dots) { visibility: hidden; }
-.ui-btn__dots {
+.ui-btn[aria-busy="true"] > span[aria-hidden="true"]:not(.ui-btn__spinner) { visibility: hidden; }
+/* A spinner over the hidden label: the label and icons still size the button. */
+.ui-btn__spinner {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  overflow: hidden;
-  pointer-events: none;
-}
-.ui-btn__dots i {
-  width: 5px;
-  height: 5px;
+  margin: auto;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
   border-radius: 50%;
-  background: currentColor;
-  animation: ui-btn-dot-in var(--dur-med) var(--ease-out) both, ui-btn-dot-pulse 1.4s ease-in-out infinite; /* motion: ambient — dots pulse until the request completes */
+  border: 2px solid color-mix(in srgb, currentColor 28%, transparent);
+  border-top-color: currentColor;
+  pointer-events: none;
+  animation: ui-spin 0.8s linear infinite; /* motion: ambient — the spinner turns until the request completes */
 }
-.ui-btn--xs .ui-btn__dots { gap: 2px; }
-.ui-btn--xs .ui-btn__dots i { width: 3px; height: 3px; }
-.ui-btn--sm .ui-btn__dots { gap: 3px; }
-.ui-btn--sm .ui-btn__dots i { width: 4px; height: 4px; }
-.ui-btn--lg .ui-btn__dots { gap: 5px; }
-.ui-btn--lg .ui-btn__dots i { width: 6px; height: 6px; }
-.ui-btn__dots i:nth-child(2) { animation-delay: 0s, 0.2s; } /* motion: ambient — stagger the second pulse */
-.ui-btn__dots i:nth-child(3) { animation-delay: 0s, 0.4s; } /* motion: ambient — stagger the third pulse */
+.ui-btn--xs .ui-btn__spinner { width: 12px; height: 12px; }
+.ui-btn--sm .ui-btn__spinner { width: 14px; height: 14px; }
+.ui-btn--lg .ui-btn__spinner { width: 18px; height: 18px; }
+/* A long action keeps its label: the spinner takes the leading glyph's place, so the width stays. */
+.ui-btn[data-btn-keep-label] > .ui-btn__spinner { position: static; margin: 0; flex: none; width: 16px; height: 16px; }
+.ui-btn--xs[data-btn-keep-label] > .ui-btn__spinner { width: 13px; height: 13px; }
+.ui-btn[data-btn-keep-label] > span[aria-hidden="true"] { visibility: visible; }
+.ui-btn[data-btn-keep-label] > .ui-btn__spinner + span[aria-hidden="true"] { display: none; }
+.ui-btn[aria-busy="true"][data-btn-keep-label] .ui-btn__label { transform: none; animation: none; }
 @keyframes ui-btn-label-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes ui-btn-label-out { from { transform: translateY(0); } 45%, to { transform: translateY(100%); } }
-@keyframes ui-btn-dot-in { from, 45% { translate: 0 24px; } to { translate: 0 0; } }
-@keyframes ui-btn-dot-pulse { 0%, 100% { opacity: 1; scale: 1; } 50% { opacity: 0.3; scale: 0.8; } }
 @media (prefers-reduced-motion: reduce) {
   .ui-btn, .ui-btn__label { transition: none; }
   .ui-btn[data-btn-ready] .ui-btn__label,
   .ui-btn[aria-busy="true"] .ui-btn__label { animation: none; }
-  .ui-btn__dots i { animation: none; }
 }
 
 @keyframes ui-spin { to { transform: rotate(360deg); } }

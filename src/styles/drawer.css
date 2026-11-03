@@ -214,12 +214,20 @@
 .ui-drawer__section-title {
   margin: 0 0 var(--space-2);
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  /* Semibold, and so outside the rank table, which has nothing at this size and
-     weight. A group heading set in the label rank would match the row labels
-     under it in size and weight both, and differ from them by colour alone. */
+  /* Body size and semibold, so a group heading is one clear step above the 13px
+     labels under it, rows and field labels alike. Outside the rank table. */
+  font-size: var(--text-base);
   font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
   color: var(--strong);
+}
+/* A field in the body names its control at the label rank, as a row label does,
+   so a section title over it is the larger of the two. */
+.ui-drawer__body .ui-field__label {
+  /* rank: label */
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text);
 }
 .ui-drawer__rows {
   display: grid;

@@ -163,3 +163,15 @@ export const PinnedSortable: StoryObj = {
     </div>;
   },
 };
+
+// A first load with no rows yet: the table draws skeleton rows in its own columns.
+export const FirstLoad: StoryObj = {
+  parameters: FULL_WIDTH,
+  render: () => {
+    const { bar } = useCampaignFilters([] as Row[]);
+    return <div className="ui-card-stack">
+      <Card>{bar}</Card>
+      <Card><DataTable columns={columns} rows={[]} pageSize={3} selectable={false} loading empty="No campaigns match" /></Card>
+    </div>;
+  },
+};

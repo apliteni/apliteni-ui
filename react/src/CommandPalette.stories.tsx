@@ -26,8 +26,8 @@ const GROUPS: CommandGroup[] = [
   {
     label: 'Recent',
     items: [
-      { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd · €2,480 · unpaid', icon: 'doc', badge: 'Unpaid', href: '#inv-4812' },
-      { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH · €960 · paid', icon: 'doc', href: '#inv-4809' },
+      { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd, €2,480', icon: 'doc', badge: 'Unpaid', href: '#inv-4812' },
+      { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH, €960', icon: 'doc', href: '#inv-4809' },
     ],
   },
 ];
@@ -80,7 +80,7 @@ export const Destructive: StoryObj<typeof CommandPalette> = {
           groups={[{
             label: 'Danger zone',
             items: [
-              { id: 'del', label: 'Delete workspace…', description: 'Nebula · 42 API keys', icon: 'trash', danger: true, onConfirm: () => setAsked(true) },
+              { id: 'del', label: 'Delete workspace…', description: '42 API keys go with it', icon: 'trash', danger: true, onConfirm: () => setAsked(true) },
               { id: 'revoke', label: 'Revoke every API key', description: 'They stop working at once', icon: 'key', danger: true },
             ],
           }]}

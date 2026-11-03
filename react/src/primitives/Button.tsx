@@ -10,8 +10,10 @@ type ButtonOptions = {
   iconRight?: string;
   iconOnly?: boolean;
   block?: boolean;
-  /** In flight: keeps focus, blocks activation, announces progress, and shows dots. */
+  /** In flight: keeps focus, blocks activation, announces progress, and shows a spinner. */
   busy?: boolean;
+  /** For a long action: the spinner takes the leading glyph's place and the label stays. Needs icon or leading. */
+  keepLabel?: boolean;
   /** Message after busy ends; an empty string leaves outcome announcements to the caller. */
   completionMessage?: string;
   children?: ReactNode;
@@ -58,7 +60,7 @@ function acquireAnnouncer(doc: Document) {
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
 export const Button = forwardRef<ButtonElement, RootProps>(function Button({
-  variant = 'secondary', size = 'md', icon, leading, iconRight, iconOnly, block, busy, completionMessage, children,
+  variant = 'secondary', size = 'md', icon, leading, iconRight, iconOnly, block, busy, keepLabel, completionMessage, children,
   type = 'button', href, disabled, className, tabIndex, onAuxClick, onAuxClickCapture, onClick, onClickCapture, onKeyDown, onKeyDownCapture,
   onKeyUp, onKeyUpCapture, ...rest
 }, forwardedRef) {
@@ -131,6 +133,7 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       disabled={href === undefined ? disabled : undefined}
       aria-disabled={disabled || busy ? true : undefined}
       aria-busy={busy ? true : undefined}
+      data-btn-keep-label={busy && keepLabel && !iconOnly && (leading != null || icon) ? '' : undefined}
       {...named}
       onAuxClickCapture={event => { if (!blockActivation(event)) onAuxClickCapture?.(event); }}
       onAuxClick={event => { if (!blockActivation(event)) onAuxClick?.(event); }}
@@ -141,10 +144,11 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       onKeyUpCapture={event => { if (!blockKey(event)) onKeyUpCapture?.(event); }}
       onKeyUp={event => { if (!blockKey(event)) onKeyUp?.(event); }}
     >
+      {busy && keepLabel && <span className="ui-btn__spinner" aria-hidden="true" />}
       {leading != null ? <span aria-hidden="true" style={{ display: 'inline-flex' }}>{leading}</span> : icon && <Icon name={icon} />}
       {!iconOnly && renderedChildren != null && <span className="ui-btn__label-slot"><span className="ui-btn__label" ref={labelRef}>{renderedChildren}</span></span>}
       {iconRight && <Icon name={iconRight} />}
-      {busy && <span className="ui-btn__dots" aria-hidden="true"><i /><i /><i /></span>}
+      {busy && !keepLabel && <span className="ui-btn__spinner" aria-hidden="true" />}
     </Root>
   );
 }) as {

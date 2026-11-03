@@ -97,6 +97,9 @@
   gap: var(--space-3);
   padding: 0 var(--space-4);
   border-bottom: 1px solid var(--border);
+  /* The panel's inner corners, so the inward focus ring bends with them and the
+     rounded panel does not cut it off. */
+  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
 }
 .ui-cmdk__search-ic {
   display: inline-flex;

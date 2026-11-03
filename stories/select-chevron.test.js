@@ -240,7 +240,7 @@ function faultsIn(m) {
 }
 
 const describe = (m) =>
-  `${m.theme} · ${m.context ? `${m.context} ` : ''}${m.flavour.name}${m.state || ' (resting)'}`;
+  `${m.theme}, ${m.context ? `${m.context} ` : ''}${m.flavour.name}${m.state || ' (resting)'}`;
 
 // ---- the gate ------------------------------------------------------------
 

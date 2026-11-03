@@ -144,7 +144,7 @@
     "pattern": "rankGroups(groups, query)"
    },
    {
-    "ref": "src/styles/command-palette.css:161",
+    "ref": "src/styles/command-palette.css:164",
     "pattern": ".ui-cmdk__group-head"
    }
   ],
@@ -158,14 +158,10 @@
     "pattern": "export function rankGroups"
    }
   ],
-  "ask-first": [
+  "danger-page": [
    {
-    "ref": "react/src/CommandPalette.tsx:246",
-    "pattern": "const isDisabled = (item: CommandItem) =>"
-   },
-   {
-    "ref": "src/styles/command-palette.css:253",
-    "pattern": ".ui-cmdk__item.is-danger"
+    "ref": "react/src/CommandPalette.tsx:115",
+    "pattern": "if (!item.href) return;"
    }
   ]
  },
@@ -334,7 +330,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:245",
+    "ref": "src/styles/drawer.css:253",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -366,7 +362,7 @@
   ],
   "quiet": [
    {
-    "ref": "src/styles/back.css:33",
+    "ref": "src/styles/back.css:37",
     "pattern": ".ui-back[href] { color: var(--text); }"
    }
   ]
@@ -747,7 +743,7 @@
     "pattern": ".ui-drop__row {"
    },
    {
-    "ref": "react/src/FileDrop.tsx:143",
+    "ref": "react/src/FileDrop.tsx:144",
     "pattern": "className=\"ui-drop__row\""
    },
    {
@@ -761,7 +757,7 @@
     "pattern": ".ui-drop__target {"
    },
    {
-    "ref": "react/src/FileDrop.tsx:191",
+    "ref": "react/src/FileDrop.tsx:194",
     "pattern": "className=\"ui-drop__target\""
    }
   ],
@@ -771,7 +767,7 @@
     "pattern": ".ui-drop__file {"
    },
    {
-    "ref": "react/src/FileDrop.tsx:179",
+    "ref": "react/src/FileDrop.tsx:180",
     "pattern": "role=\"progressbar\""
    }
   ],
@@ -781,13 +777,13 @@
     "pattern": ".ui-drop__error"
    },
    {
-    "ref": "react/src/FileDrop.tsx:152",
+    "ref": "react/src/FileDrop.tsx:153",
     "pattern": "status === 'error' && onRetry"
    }
   ],
   "limits-once": [
    {
-    "ref": "react/src/FileDrop.tsx:187",
+    "ref": "react/src/FileDrop.tsx:189",
     "pattern": "className=\"ui-drop__note\""
    }
   ],
@@ -847,7 +843,7 @@
  "_button-labels.js": {
   "words-first": [
    {
-    "ref": "react/src/primitives/Button.tsx:145",
+    "ref": "react/src/primitives/Button.tsx:149",
     "pattern": "ui-btn__label-slot"
    },
    {
@@ -867,7 +863,7 @@
     "pattern": "export const iconOnlyAllowed"
    },
    {
-    "ref": "react/src/primitives/Button.tsx:115",
+    "ref": "react/src/primitives/Button.tsx:117",
     "pattern": "const named = iconOnly"
    },
    {
