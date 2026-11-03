@@ -30,4 +30,4 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Hover readouts](hover-readouts.md) | Hover values, their placement and touch access. | Read it before you show values on hover or tap. |
 | [Going back](going-back.md) | The back link, its destination and the parent address. | Read it when a page sits under another page. |
 | [Account and settings](account-and-settings.md) | The account window, the account menu and settings rows. | Read it before you build the account menu or settings. |
-| [Guidelines](overview.md) | The whole collection, in six cards by topic. | Read it to see every page at a glance before you open one. |
+| [Guidelines](overview.md) | No screen parts. The file holds only the collection heading. | Read it only for the heading. The six-card overview is in Storybook, not in the package. |
