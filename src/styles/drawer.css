@@ -136,16 +136,17 @@
   border-bottom: 1px solid var(--border);
   flex: none;
 }
-/* An h2, and base.css would give it the display face. It opts out: at 15px in a
-   panel header it is a label on a piece of UI rather than a heading anybody
-   reads, and the display face at that size is exactly what #253 was about.
+/* An h2, and base.css would give it the display face. It opts out: in a panel
+   header it names a piece of UI, and the display face at that size is what #253
+   was about. It takes the card-title rank, one clear step above the section title.
    why: docs/foundations.md#typefaces */
 .ui-drawer__title {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: calc(var(--text-base) + 0.5px);
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  /* rank: card-title */
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
   color: var(--strong);
 }
 /* Header actions stand at the far end, beside the close button. */

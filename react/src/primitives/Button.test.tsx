@@ -67,6 +67,9 @@ it('keeps the label beside the spinner for a long action with a leading glyph', 
   const button = container.querySelector('button')!;
   expect(button).toHaveAttribute('data-btn-keep-label');
   expect(button.firstElementChild).toHaveClass('ui-btn__spinner');
+  // The spinner replaces the glyph, so no empty glyph box stays beside it.
+  expect(button.querySelector('svg')).toBeNull();
+  expect(button.querySelectorAll('.ui-btn__spinner')).toHaveLength(1);
   // Without a glyph to stand in for, the spinner covers the label so the width stays.
   rerender(<Button busy keepLabel>Import</Button>);
   expect(button).not.toHaveAttribute('data-btn-keep-label');

@@ -20,29 +20,29 @@ const BASIS = 'Change against the previous 12 months';
 // Six points: a spark point owns 24px, so twelve would scroll a tile at 390.
 const INCOME = [560, 548, 590, 610, 587, 640];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map(month => ({ label: `${month} 2026` }));
-const thousands = (n: number) => `€ ${n.toLocaleString('en-US')}k`;
+const thousands = (n: number) => `${n.toLocaleString('en-US')}k €`;
 type Tone = 'good' | 'bad';
 const FIGURES = [
-  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
-  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
+  { label: 'Income', value: '6,459,401 €', delta: { value: '+47.1%' } },
+  { label: 'Cost', value: '4,127,880 €', delta: { value: '+12.4%' } },
 ];
 const toned = (id: string, tones: (Tone | undefined)[]) => <Stage><StatBand id={id} basis={BASIS} stats={[
-  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: tones[0] } },
-  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: tones[1] } },
-  { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%', tone: tones[2] } },
-  { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', tone: tones[3] } },
+  { label: 'Income', value: '6,459,401 €', delta: { value: '+47.1%', tone: tones[0] } },
+  { label: 'Cost', value: '4,127,880 €', delta: { value: '+12.4%', tone: tones[1] } },
+  { label: 'Net cashflow', value: '+2,331,521 €', delta: { value: '+168.0%', tone: tones[2] } },
+  { label: 'Unclassified', value: '84,210 €', delta: { value: '−61.8%', tone: tones[3] } },
 ]} /></Stage>;
 
 const specimens = [
   { id: 'a-band-not-a-card',
     do: () => <Stage><StatBand id="gs-band-do" basis={BASIS} stats={[
-      { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' },
+      { label: 'Income', value: '6,459,401 €', delta: { value: '+47.1%' },
         trend: <Chart variant="spark" title="Income, last 6 months" periods={MONTHS} format={thousands}
           series={[{ id: 'income', name: 'Income', values: INCOME, shape: 'line', tone: 'accent' }]} /> },
-      { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
+      { label: 'Cost', value: '4,127,880 €', delta: { value: '+12.4%' } },
     ]} /></Stage>,
     dont: () => <Stage><Card>
-      <div className="ui-eyebrow">Income</div><div className="ui-card__title">€ 6,459,401</div><Badge>+47.1%</Badge>
+      <div className="ui-eyebrow">Income</div><div className="ui-card__title">6,459,401 €</div><Badge>+47.1%</Badge>
     </Card></Stage> },
   { id: 'tone-not-direction',
     do: () => toned('gs-tone-do', ['good', 'bad', undefined, 'good']),

@@ -118,6 +118,8 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
     ? { 'aria-label': fallback, title: rest.title ?? fallback }
     : {};
   const Root = href === undefined ? 'button' : 'a';
+  // A long action keeps its label, and the spinner takes the leading glyph's place.
+  const keep = Boolean(busy && keepLabel && !iconOnly && (leading != null || icon));
   return (
     <Root
       {...rest}
@@ -133,7 +135,7 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       disabled={href === undefined ? disabled : undefined}
       aria-disabled={disabled || busy ? true : undefined}
       aria-busy={busy ? true : undefined}
-      data-btn-keep-label={busy && keepLabel && !iconOnly && (leading != null || icon) ? '' : undefined}
+      data-btn-keep-label={keep ? '' : undefined}
       {...named}
       onAuxClickCapture={event => { if (!blockActivation(event)) onAuxClickCapture?.(event); }}
       onAuxClick={event => { if (!blockActivation(event)) onAuxClick?.(event); }}
@@ -144,11 +146,10 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       onKeyUpCapture={event => { if (!blockKey(event)) onKeyUpCapture?.(event); }}
       onKeyUp={event => { if (!blockKey(event)) onKeyUp?.(event); }}
     >
-      {busy && keepLabel && <span className="ui-btn__spinner" aria-hidden="true" />}
-      {leading != null ? <span aria-hidden="true" style={{ display: 'inline-flex' }}>{leading}</span> : icon && <Icon name={icon} />}
+      {keep ? <span className="ui-btn__spinner" aria-hidden="true" /> : leading != null ? <span aria-hidden="true" style={{ display: 'inline-flex' }}>{leading}</span> : icon && <Icon name={icon} />}
       {!iconOnly && renderedChildren != null && <span className="ui-btn__label-slot"><span className="ui-btn__label" ref={labelRef}>{renderedChildren}</span></span>}
       {iconRight && <Icon name={iconRight} />}
-      {busy && !keepLabel && <span className="ui-btn__spinner" aria-hidden="true" />}
+      {busy && !keep && <span className="ui-btn__spinner" aria-hidden="true" />}
     </Root>
   );
 }) as {

@@ -26,8 +26,8 @@ const GROUPS: CommandGroup[] = [
   {
     label: 'Recent',
     items: [
-      { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd, €2,480', icon: 'doc', badge: 'Unpaid', href: '#inv-4812' },
-      { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH, €960', icon: 'doc', href: '#inv-4809' },
+      { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd, 2,480 €', icon: 'doc', badge: 'Unpaid', href: '#inv-4812' },
+      { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH, 960 €', icon: 'doc', href: '#inv-4809' },
     ],
   },
 ];

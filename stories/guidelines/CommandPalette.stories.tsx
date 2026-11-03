@@ -76,8 +76,8 @@ const PLACES: Row[] = [
   { id: 'settings', label: 'Settings', description: 'Billing, members, API keys', icon: 'gear', href: '#s' },
 ];
 const RECENT: Row[] = [
-  { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd, €2,480', icon: 'doc', badge: 'Unpaid', href: '#i1' },
-  { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH, €960', icon: 'doc', href: '#i2' },
+  { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd, 2,480 €', icon: 'doc', badge: 'Unpaid', href: '#i1' },
+  { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH, 960 €', icon: 'doc', href: '#i2' },
 ];
 const GROUPED = [{ label: 'Actions', items: ACTIONS }, { label: 'Go to', items: PLACES }, { label: 'Recent', items: RECENT }];
 
@@ -97,8 +97,8 @@ const specimens = [
     // The same query answered alphabetically: `rank={false}` is the seam a
     // server-fed palette uses, and this is an order nobody ranked.
     dont: () => <Palette rank={false} query="inv" groups={[{ label: 'Results', items: [
-      { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH, €960', icon: 'doc' },
-      { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd, €2,480', icon: 'doc' },
+      { id: 'inv-4809', label: 'INV-4809', description: 'Orbit GmbH, 960 €', icon: 'doc' },
+      { id: 'inv-4812', label: 'INV-4812', description: 'Nebula Ltd, 2,480 €', icon: 'doc' },
       { id: 'invite', label: 'Invite a teammate', description: 'They get a read-only seat', icon: 'user' },
       { id: 'new-invoice', label: 'New invoice', description: 'Draft one for a client', icon: 'plus' },
     ] }]} /> },

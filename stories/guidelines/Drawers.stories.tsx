@@ -17,7 +17,7 @@ import { SPEC_CSS } from './_drawer.js';
 const content = await loadGuideline('drawer.md', new URL('../../guidelines/drawer.md', import.meta.url));
 
 // One fabricated record, so a pair differs only in what its rule is about.
-const PAYMENT = [['Amount', '€ 12,480.50'], ['Date', '31 Aug 2026'], ['Counterparty', 'Northwind Payments']];
+const PAYMENT = [['Amount', '12,480.50 €'], ['Date', '31 Aug 2026'], ['Counterparty', 'Northwind Payments']];
 const DETAIL = [...PAYMENT, ['Description', 'Card payout'], ['Batch', '2291'], ['Source', 'Bank feed']];
 const GROUPS = [
   { rows: PAYMENT },
@@ -44,7 +44,7 @@ const Roles = () => <div className="gd-stack">{ROLES.map(([label, checked]) =>
   <Checkbox key={label} label={label} defaultChecked={checked} name="gd-role" />)}</div>;
 const UnitSwitch = ({ label, on }: { label: string; on: boolean }) => <Switch defaultChecked={on} label={`${label} access`} />;
 
-const PageDo = () => <div className="gd-frame gd-page"><Card>
+const PageDo = () => <div className="gd-frame gd-page">
   <div className="gd-page__head">
     <BackLink href="#" label="Members" />
     <h2 className="gd-page__title">Member access</h2>
@@ -56,7 +56,7 @@ const PageDo = () => <div className="gd-frame gd-page"><Card>
       <div key={label} className="gd-unit"><span>{label}</span><UnitSwitch label={label} on={on} /></div>)}</div></section>
   </div>
   <div className="gd-page__act"><Button variant="primary">Save access</Button></div>
-</Card></div>;
+</div>;
 
 const PageDont = () => <Frame title="Member access" footer={<Button variant="primary">Save access</Button>}>
   <DrawerSection title="Roles"><Roles /></DrawerSection>

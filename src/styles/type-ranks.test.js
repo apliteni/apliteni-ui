@@ -162,9 +162,10 @@ const RULES = notedRules(SHEETS);
  * six labels are left. 15 at #497, which put the stat band's own caption on the
  * caption rank so a figure's caption could not outrank it. 16 at #736, which
  * puts the account window's pane title on card-title. 17 at #768, which puts
- * the drawer body's field label on the label rank. Move it in the commit
+ * the drawer body's field label on the label rank, and 18 at #768, which puts
+ * the drawer title on card-title. Move it in the commit
  * that adds or drops a note, and say which. */
-const EXPECTED_NOTES = 17;
+const EXPECTED_NOTES = 18;
 
 test('the table has its six ranks and every one is taken', () => {
   assert.deepEqual(RANKS.map((r) => r.name),

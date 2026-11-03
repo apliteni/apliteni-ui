@@ -7,37 +7,36 @@ export const RULES = content.rules;
 
 // A drawer is position: fixed, so each specimen is held inside a frame of its
 // own. The panel is narrowed so a strip of scrim shows beside it: a drawer with
-// no page behind it reads as a card.
+// no page behind it reads as a card. The frame grows with its panel, so no
+// specimen is cut at the frame's bottom edge (#768).
 export const SPEC_CSS = `
   <style>
-    .gd-frame { position: relative; height: 460px; overflow: hidden; border-radius: var(--radius-md);
-      background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
-    .gd-frame .ui-drawer { position: absolute; }
-    .gd-frame .ui-drawer__panel { width: calc(100% - var(--space-12)); }
+    .gd-frame { position: relative; min-height: 460px; overflow: hidden; border-radius: var(--radius-md);
+      background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); display: flex; }
+    .gd-frame .ui-drawer { position: relative; flex: 1; display: flex; justify-content: flex-end; }
+    .gd-frame .ui-drawer__panel { position: relative; width: calc(100% - var(--space-12)); }
     .gd-frame .ui-drawer__body .ui-card { padding: var(--space-4); }
     .gd-frame .ui-drawer__body .ui-card + .ui-card { margin-top: var(--space-4); }
-    /* The page half: the canvas carrying one surface, because a form and the words
-       around it sit on a page's surface, not on the ground behind it. The pair then
-       differs by container alone — this surface against the drawer's panel over the list.
+    /* The page half: one page surface inside the frame's border, with no card on it,
+       so the specimen is one block and not a block in a block. The pair then differs by
+       container alone: this surface against the drawer's panel over the list.
        The minimum is a floor, not a fixed height: both halves start at one screen and the
        page half grows past it at 390.
-       why: #492, decided by Artur on 2026-10-03 */
-    .gd-page { height: auto; min-height: 460px; overflow: visible;
-      padding: var(--space-4); display: flex; }
-    .gd-page > .ui-card { flex: 1; display: flex; flex-direction: column; gap: var(--space-5); }
+       why: #492, decided by Artur on 2026-10-03; one block at #768 */
+    .gd-page { height: auto; min-height: 460px; overflow: visible; background: var(--surface);
+      padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
     /* The order the page guideline asks a page to open in: the way back, the title,
        then a short introduction. */
     .gd-page__head { display: flex; flex-direction: column; gap: var(--space-2); }
-    /* The drawer title's own rank and face, so the pair differs by container alone and
-       no specimen outranks the rule headings on this page. */
+    /* The drawer title's own rank and face, so the pair differs by container alone. */
     .gd-page__title { margin: 0; color: var(--strong); font-family: var(--font-sans);
-      font-size: calc(var(--text-base) + 0.5px); font-weight: 600; letter-spacing: 0.01em; }
+      font-size: var(--text-lg); font-weight: var(--weight-semibold); line-height: var(--leading-snug); }
     .gd-page__intro { margin: 0; color: var(--text); font-size: var(--text-sm); max-width: var(--prose-dense); }
     .gd-page__cols { display: grid; gap: var(--space-6); align-items: start;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
     /* The group heading the drawer draws, in the same ink and rank. */
     .gd-group__title { margin: 0 0 var(--space-2); color: var(--strong); font-family: var(--font-sans);
-      font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+      font-size: var(--text-base); font-weight: var(--weight-semibold); }
     /* The drawer's own row grid: a value sits beside its label, not at the far edge,
        and one row height keeps both columns stepping together. */
     .gd-stack { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
@@ -57,7 +56,7 @@ export const SPEC_CSS = `
     @media (max-width: 560px) and (pointer: coarse) {
       .gd-page .gd-stack { grid-auto-rows: minmax(var(--tap-min), auto);
         --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-min); }
-      /* Save is 33px tall with --space-5 above it and the card's padding below,
+      /* Save is 33px tall with --space-5 above it and the page's padding below,
          so its layer grows 5.5px each way and the row opens nothing. */
       .gd-page__act { --tap-clear-y: var(--tap-gap); }
     }

@@ -310,7 +310,7 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:207",
+    "ref": "src/styles/drawer.css:208",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
@@ -320,7 +320,7 @@
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:207",
+    "ref": "src/styles/drawer.css:208",
     "pattern": ".ui-drawer__section + .ui-drawer__section {"
    }
   ],
@@ -330,7 +330,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:253",
+    "ref": "src/styles/drawer.css:254",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -843,7 +843,7 @@
  "_button-labels.js": {
   "words-first": [
    {
-    "ref": "react/src/primitives/Button.tsx:149",
+    "ref": "react/src/primitives/Button.tsx:150",
     "pattern": "ui-btn__label-slot"
    },
    {
