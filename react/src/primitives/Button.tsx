@@ -113,6 +113,13 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
     const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     const paint = (p: number) => btn.style.setProperty('--hold', String(p));
     const hint = (on: boolean) => btn.toggleAttribute('data-hold-hint', on);
+    // The fill keeps its paint while it drains, also after a release outside the button.
+    const fillEl = btn.querySelector('.ui-btn__hold-fill');
+    let drained: ReturnType<typeof setTimeout> | undefined;
+    const undrain = () => {
+      clearTimeout(drained);
+      btn.removeAttribute('data-hold-drain');
+    };
     const stop = () => {
       by = null;
       cancelAnimationFrame(frame);
@@ -136,6 +143,7 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       by = source;
       start = performance.now();
       hint(false);
+      undrain();
       btn.setAttribute('data-holding', '');
       // Reduced motion: four still steps that still add up to the full hold.
       if (reduced()) {
@@ -148,6 +156,8 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       if (!by) return;
       const short = performance.now() - start < TAP_MS;
       stop();
+      btn.setAttribute('data-hold-drain', '');
+      drained = setTimeout(undrain, HOLD_MS);
       btn.removeAttribute('data-holding');
       paint(0);
       if (short) hint(true);
@@ -193,9 +203,12 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       ['keydown', onKeyDown], ['keyup', onKeyUp], ['blur', end], ['click', onClick], ['contextmenu', onContextMenu],
     ];
     for (const [type, fn] of listeners) btn.addEventListener(type, fn as EventListener);
+    fillEl?.addEventListener('transitionend', undrain);
     return () => {
       stop();
+      undrain();
       cancelHold.current = () => {};
+      fillEl?.removeEventListener('transitionend', undrain);
       for (const [type, fn] of listeners) btn.removeEventListener(type, fn as EventListener);
       btn.removeAttribute('data-holding');
       btn.removeAttribute('data-hold-hint');

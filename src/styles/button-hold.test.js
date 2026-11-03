@@ -35,3 +35,16 @@ test('the check reports a dark ink that needs the data-theme attribute', async (
   assert.notEqual(broken, css, 'no default-theme ink rule found to change');
   assert.equal((await paint('primary', {}, broken)).color, 'var(--accent-contrast)');
 });
+
+// A release outside the button ends the hold while the fill still drains.
+test('the danger fill keeps its pink while it drains, and is quiet at rest', async () => {
+  assert.equal((await paint('danger', { attr: 'data-hold-drain' })).color, 'var(--danger-contrast)');
+  assert.equal((await paint('danger', { attr: 'data-holding' })).color, 'var(--danger-contrast)');
+  assert.notEqual((await paint('danger')).color, 'var(--danger-contrast)');
+});
+
+test('the check reports a pink that drops when the hold ends', async () => {
+  const broken = css.replace(', [data-hold-drain])', ')');
+  assert.notEqual(broken, css, 'no drain state found to remove');
+  assert.notEqual((await paint('danger', { attr: 'data-hold-drain' }, broken)).color, 'var(--danger-contrast)');
+});

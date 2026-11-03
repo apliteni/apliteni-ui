@@ -194,6 +194,23 @@ describe('hold to confirm', () => {
     }
   });
 
+  // The danger fill is painted only while a state shows it, and the drain is one of those states.
+  it('keeps the drain state until the fill has drained, also after a release outside', () => {
+    const { button } = setup();
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    vi.advanceTimersByTime(500);
+    fireEvent.pointerUp(button, { pointerId: 1 });
+    expect(button).not.toHaveAttribute('data-holding');
+    expect(button).toHaveAttribute('data-hold-drain');
+    fireEvent.transitionEnd(button.querySelector('.ui-btn__hold-fill')!);
+    expect(button).not.toHaveAttribute('data-hold-drain');
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    vi.advanceTimersByTime(500);
+    fireEvent.lostPointerCapture(button, { pointerId: 1 });
+    expect(button).toHaveAttribute('data-hold-drain');
+    vi.advanceTimersByTime(1000);
+    expect(button).not.toHaveAttribute('data-hold-drain');
+  });
 });
 
 it('defaults to type="button" so it never submits a form', () => {
