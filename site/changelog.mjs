@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.158.2', date: '2026-11-03',
     changes: [
-      ['added', 'The package now ships `guidelines/INDEX.md`, one row per guideline page with the screen parts it covers and when to read it. An agent that builds a screen can read it to find the page. Resolves #771.', ['Guidelines']],
+      ['fixed', 'A `Dropdown` panel that is torn down while it is still closing no longer throws an unhandled error. Before, the collapse timer could fire after the panel\'s document was gone and throw while measuring the view.', ['Dropdown']],
     ],
   },
   {

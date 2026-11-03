@@ -199,6 +199,10 @@ const ddUp = (panel) => (ddLifted(panel)
 function ddScrollBox(dd, panel) {
   if (dd.__ddPanel || ddInFilterRow(panel)) return null;
   const view = ddViewOf(panel);
+  // A shut panel still schedules its collapse after its fade, and a test or a page
+  // can tear the document down while the timer waits. A view without getComputedStyle
+  // has no box to measure, so the collapse reads as already done.
+  if (typeof view?.getComputedStyle !== 'function') return null;
   const els = [];
   let top = 0;
   let bottom = view.innerHeight;
@@ -222,6 +226,7 @@ function ddScrollBox(dd, panel) {
  * a body that scrolls across still shows the rest. */
 function ddClipsAcross(box, panel) {
   const view = ddViewOf(panel);
+  if (typeof view?.getComputedStyle !== 'function') return false;
   const p = panel.getBoundingClientRect();
   return box.els.some((at) => {
     const overflow = view.getComputedStyle(at).overflowX;

@@ -14,7 +14,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { filterPanelFit, DD_MENU_FLOOR, dropdownViewportFit } from './dropdown-placement.js';
+import { filterPanelFit, DD_MENU_FLOOR, dropdownViewportFit, dropdownRest } from './dropdown-placement.js';
 import { WIDTHS, SLACK } from '../../stories/lib/dropdown-contain.js';
 
 /** A dropdown at `left` inside a row of `width`, both as the browser reports.
@@ -423,4 +423,35 @@ test('the panel keeps the floor that makes a menu readable', () => {
   const panel = SHEET.split(/\.ui-dropdown__panel\s*\{/)[1]?.split('}')[0] ?? '';
   assert.match(panel, /min-width:\s*240px/,
     'dropdown.css no longer floors .ui-dropdown__panel at 240px; the panel is moved, not narrowed (#549)');
+});
+
+/* A shut panel's collapse waits out its fade in a timer, so the document can be gone
+ * when the timer fires — a test that unmounts a story, or a page that tears its shell
+ * down. The view that is left has no getComputedStyle, and the collapse has to read
+ * that as already done rather than throw an unhandled error. why: #715 */
+test('a shut panel reads a view that cannot measure it as already collapsed', () => {
+  const previous = globalThis.window;
+  globalThis.window = { innerHeight: 800 };
+  try {
+    const panel = {
+      style: {},
+      setAttribute: () => {},
+      ownerDocument: { defaultView: null },
+      closest: () => null,
+    };
+    const dd = {
+      isConnected: true,
+      classList: { contains: () => false },
+      style: { getPropertyValue: () => '', removeProperty: () => {} },
+      ownerDocument: { scrollingElement: null },
+      parentElement: { ownerDocument: { body: {} } },
+    };
+    // wait 0 runs the collapse now, walking dd.parentElement and reading the view's
+    // getComputedStyle — which this view does not have, the state the timer meets
+    // after teardown. The rest call returns its cancel, not an exception.
+    assert.equal(typeof dropdownRest(dd, panel, false, 0), 'function');
+  } finally {
+    if (previous === undefined) delete globalThis.window;
+    else globalThis.window = previous;
+  }
 });
