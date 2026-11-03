@@ -229,7 +229,8 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       ref={buttonRef as React.Ref<HTMLButtonElement & HTMLAnchorElement>}
       data-btn-wired=""
       data-btn-ready={!busy && hasBeenBusy.current ? '' : undefined}
-      type={href === undefined ? type : undefined}
+      // A hold button is never a form's default button: Enter in a field would click it.
+      type={href === undefined ? (holds ? 'button' : type) : undefined}
       href={disabled || busy ? undefined : href}
       role={href !== undefined ? 'link' : rest.role}
       tabIndex={href !== undefined && disabled ? -1 : href !== undefined ? tabIndex ?? 0 : tabIndex}

@@ -862,7 +862,7 @@
   ],
   "busy": [
    {
-    "ref": "react/src/primitives/Button.tsx:240",
+    "ref": "react/src/primitives/Button.tsx:241",
     "pattern": "aria-busy={busy ? true : undefined}"
    },
    {
@@ -1063,11 +1063,11 @@
  "_button-labels.js": {
   "words-first": [
    {
-    "ref": "react/src/primitives/Button.tsx:259",
+    "ref": "react/src/primitives/Button.tsx:260",
     "pattern": "ui-btn__label-slot"
    },
    {
-    "ref": "react/src/primitives/Button.test.tsx:185",
+    "ref": "react/src/primitives/Button.test.tsx:192",
     "pattern": "lets an explicit aria-label win over the children fallback"
    }
   ],

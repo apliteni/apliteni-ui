@@ -169,6 +169,13 @@ describe('hold to confirm', () => {
     fireEvent.click(getByRole('button'), { detail: 1 });
     expect(submit).not.toHaveBeenCalled();
   });
+
+  // Enter in a field clicks the form's default button, so twice would confirm by the second way in.
+  it('is never the default button of its form', () => {
+    const { getByRole } = render(<form><input aria-label="Name" /><Button hold type="submit">Delete workspace</Button></form>);
+    expect(getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
 });
 
 it('defaults to type="button" so it never submits a form', () => {
