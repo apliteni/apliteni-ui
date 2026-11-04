@@ -30,7 +30,7 @@
  "_accessibility-floor.js": {
   "target-size": [
    {
-    "ref": "src/styles/button.css:109",
+    "ref": "src/styles/button.css:112",
     "pattern": ".ui-btn--sm"
    },
    {
@@ -70,7 +70,7 @@
   ],
   "disabled-legibility": [
    {
-    "ref": "src/styles/button.css:126",
+    "ref": "src/styles/button.css:129",
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
@@ -132,7 +132,7 @@
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
-    "ref": "src/styles/button.css:58",
+    "ref": "src/styles/button.css:61",
     "pattern": "background: var(--accent-strong);"
    },
    {
@@ -332,7 +332,7 @@
  "_destructive-actions.js": {
   "colour": [
    {
-    "ref": "src/styles/button.css:97",
+    "ref": "src/styles/button.css:100",
     "pattern": ".ui-btn--danger:hover"
    },
    {
@@ -866,7 +866,7 @@
     "pattern": "aria-busy={busy ? true : undefined}"
    },
    {
-    "ref": "src/styles/button.css:163",
+    "ref": "src/styles/button.css:166",
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
@@ -921,7 +921,7 @@
  "_density-and-accents.js": {
   "purposeful-accent": [
    {
-    "ref": "src/styles/button.css:58",
+    "ref": "src/styles/button.css:61",
     "pattern": "background: var(--accent-strong)"
    }
   ],
@@ -1055,7 +1055,7 @@
     "pattern": "export const Button = forwardRef"
    },
    {
-    "ref": "src/styles/button.css:57",
+    "ref": "src/styles/button.css:60",
     "pattern": ".ui-btn--primary {"
    }
   ]
