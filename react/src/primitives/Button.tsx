@@ -173,6 +173,7 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
     };
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      // Captured, so a slide off the button does not end the hold.
       btn.setPointerCapture?.(e.pointerId);
       begin('pointer');
     };

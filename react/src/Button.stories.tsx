@@ -50,7 +50,7 @@ function HoldExample({ variant, label, done }: { variant: 'primary' | 'danger'; 
   return canvas(<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', paddingTop: 'var(--space-8)' }}>
     {confirmed
       // The success sentence's type, centred in the height of the md button it replaces.
-      ? <div style={{ display: 'flex', alignItems: 'center', minHeight: 'calc(var(--text-sm) * var(--leading-tight) + 2 * 9px + 2px)' }}>
+      ? <div style={{ display: 'flex', alignItems: 'center', minHeight: 'var(--btn-height-md)' }}>
         <span ref={result} className="ui-sx__count-text" role="status" tabIndex={-1}>{done}</span>
       </div>
       : <Button hold variant={variant} onConfirm={() => setConfirmed(true)}>{label}</Button>}

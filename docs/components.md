@@ -816,20 +816,35 @@ interaction states.
 
 ### Hold to confirm
 
-React `<Button hold onConfirm={…}>` confirms only through `onConfirm`. It is for a primary or
-danger action that cannot be undone. A plain click calls neither `onClick` nor `onConfirm`, and
-the button never submits its form. **A press held for 1000 ms confirms.** A fill grows from the
-start edge in the variant's strong colour with its on-colour ink. A primary button fills with
-`--accent`. A danger button stays quiet at rest and fills with `--pink` only while it is hovered,
-focused or held. A release before the end sends the fill back
-to empty. A press shorter than 300 ms shows "Hold to confirm" above the button, and the button
-does not move. Enter and Space hold the same as a pointer. The pointer is captured, so a slide off
-the button does not end the hold. **Two presses within 3000 ms also confirm.** This is the path for
-a screen reader, and the description "Hold to confirm, or press twice." says so after any
-`aria-describedby` of your own. Under reduced motion the fill moves in four 250 ms steps, and the
-hold still takes 1000 ms. A busy or disabled button does not hold. A link takes no `hold`. The
-hint is placed over the content above the button, so leave room for one line there. An ancestor
-with `overflow: hidden` clips it.
+Use React `<Button hold>` for one primary or danger action that the user cannot undo, such as
+a send to many people or the deletion of a workspace. Do not use it for an action that the user
+can undo, for a routine save or for a form submit. Use a plain button for those. A link takes no
+`hold`.
+
+```tsx
+<Button hold variant="danger" onConfirm={deleteWorkspace}>Delete workspace</Button>
+```
+
+Put the action in `onConfirm`. The button calls only `onConfirm`. A click does not call
+`onClick`, and the button never submits its form.
+
+**What the user sees.** The user presses the button and holds it for 1000 ms. A fill grows from
+the start edge. A primary button fills with `--accent`. A danger button stays quiet at rest and
+shows `--pink` only while it is hovered, focused or held. If the user releases before the end,
+the fill goes back to empty and nothing happens. A press shorter than 300 ms shows "Hold to
+confirm" above the button. A slide off the button does not stop the hold. Under reduced motion
+the fill moves in four 250 ms steps, and the hold still takes 1000 ms. A busy or disabled button
+does not hold.
+
+**Keyboard and screen reader.** Enter or Space held for 1000 ms confirms, the same as a pointer.
+Two presses within 3000 ms also confirm. This is the path for a screen reader user. The button
+gives the description "Hold to confirm, or press twice." after any `aria-describedby` of your
+own.
+
+**Room on the screen.** The hint shows over the content above the button, so the button does
+not move. Leave room for one line above the button. An ancestor with `overflow: hidden` clips
+the hint. If a result replaces the button after the confirm, give the result the focus. Give
+its row a minimum height of `--btn-height-md`, so the row keeps the height of an md button.
 
 ### Code highlighting
 

@@ -3,6 +3,13 @@
  *                   (sizes: xs / sm / md / lg, [icon], [disabled], [aria-busy])
  * ========================================================================== */
 
+:root {
+  /* The outer height of an md button: one line of --text-sm, 9px padding and a
+     1px edge on each side. A part that takes a button's place uses it, so the
+     row keeps its height. */
+  --btn-height-md: calc(var(--text-sm) * var(--leading-tight) + 2 * 9px + 2 * 1px);
+}
+
 .ui-btn {
   --btn-pad-y: 9px;
   --btn-pad-x: 17px;
@@ -18,6 +25,7 @@
   line-height: var(--leading-tight);
   border-radius: var(--radius-sm);
   padding: var(--btn-pad-y) var(--btn-pad-x);
+  min-height: var(--btn-height-md);
   cursor: pointer;
   /* Light needs a stronger line here: --border on this fill measures 1.047:1.
      why: docs/foundations.md#elevation */
@@ -98,7 +106,7 @@
 /* why: docs/components.md#extra-small-buttons */
 .ui-btn--xs { --btn-pad-y: 4.5px; --btn-pad-x: 8px; --btn-font: var(--text-xs); min-width: 24px; min-height: 24px; }
 .ui-btn--xs svg { width: 13px; height: 13px; stroke-width: 2.8; }
-.ui-btn--sm { --btn-pad-y: 6px; --btn-pad-x: 12px; --btn-font: calc(var(--text-sm) - 0.5px); }
+.ui-btn--sm { --btn-pad-y: 6px; --btn-pad-x: 12px; --btn-font: calc(var(--text-sm) - 0.5px); min-height: 0; }
 .ui-btn--lg { --btn-pad-y: 13px; --btn-pad-x: 24px; --btn-font: var(--text-md); border-radius: var(--radius-md); }
 
 /* Icon-only */
