@@ -191,8 +191,10 @@ const PAD = 2;
 /** A sparkline's room at its edges: the active point's dot and its ring stay
  *  whole at the highest and the lowest value. */
 const SPARK_PAD = 5;
-/** The radius of the dot on the active point of a line. */
-const ACTIVE_DOT = 3;
+/** The radius of the dot on the active point of a line. Its 2px ring of the
+ *  ground leaves a centre of radius 4 in the series tone, which reads on the
+ *  area's fade in both themes. */
+const ACTIVE_DOT = 5;
 /**
  * How far a bar stops short of the zero line, each side. The channel this
  * leaves is real empty ground: a stroke of the chart's own colour laid over the
@@ -625,7 +627,13 @@ export function Chart(props: ChartProps) {
   const groupWidth = Math.max(4, Math.min(colWidth * BAR_SHARE, colWidth - 6,
     cap * lanes + LANE_GAP * (lanes - 1)));
   const barWidth = (groupWidth - LANE_GAP * (lanes - 1)) / lanes;
-  const centre = useCallback((column: number) => column * colWidth + colWidth / 2, [colWidth]);
+  /* A sparkline of lines only runs from edge to edge, so its first point sits
+     on the text edge above it and its last on the far edge. A column chart and
+     a sparkline with bars centre each point in its column. */
+  const edge = spark && frame.bars.length === 0 && count > 1;
+  const pitch = edge ? plotWidth / (count - 1) : colWidth;
+  const centre = useCallback((column: number) => (edge ? column * pitch : column * colWidth + colWidth / 2),
+    [edge, pitch, colWidth]);
 
   const axisFormat = look?.share ? pct : formatAxis;
   const geometry = useMemo<LookGeometry | null>(() => (look ? {
@@ -686,6 +694,8 @@ export function Chart(props: ChartProps) {
     // each way, and is then held inside the box the chart draws in, so the
     // chart's own edge clips none of it. A target the drawing clips is not a
     // target, whatever its attributes say.
+    // Each point owns an equal share of the width, so an edge point keeps a
+    // whole target. A spark of lines still sits inside its own share.
     const box = { left: 0, right: plotWidth, top: boxTop, bottom: boxTop + boxHeight };
     for (const dot of dots) {
       const apart = dots.filter((d) => d !== dot && d.column === dot.column)

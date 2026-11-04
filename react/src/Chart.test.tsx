@@ -1654,6 +1654,30 @@ it('draws a dot on the active point of a line, and none when nothing is active',
   expect(svg.querySelectorAll('circle.ui-chart__dot')).toHaveLength(0);
 });
 
+// A spark of lines runs edge to edge: its first point sits on the text edge
+// above it and its last on the far edge. This reads attributes, not layout.
+it('runs a sparkline of lines from edge to edge', () => {
+  measuredAt(300);
+  render(<Chart variant="spark" title="Income" periods={MONTHS.map((label) => ({ label }))} format={eur}
+    series={[{ id: 'income', name: 'Income', values: INCOME, shape: 'line' }]} />);
+  const lines = [...plot().querySelectorAll('line.ui-chart__line')];
+  expect(Number(lines[0].getAttribute('x1'))).toBe(0);
+  expect(Number(lines.at(-1)!.getAttribute('x2'))).toBe(300);
+  hover('income-0');
+  expect(plot().querySelector('circle.ui-chart__dot')!.getAttribute('r')).toBe('5');
+});
+
+// The phone failure: an edge point's target, held inside the plot, ran over its
+// neighbour's. Each point now owns an equal share of the width.
+it('gives each point of an edge-to-edge sparkline its own share of the width', () => {
+  coarse(true);
+  measuredAt(4 * 24);
+  render(<Chart variant="spark" title="Income" periods={MONTHS.map((label) => ({ label }))} format={eur}
+    series={[{ id: 'income', name: 'Income', values: INCOME, shape: 'line' }]} />);
+  const boxes = [0, 1, 2, 3].map((i) => hitBox(`income-${i}`));
+  expect(boxes.map((b) => [b.x, b.w])).toEqual([[0, 24], [24, 24], [48, 24], [72, 24]]);
+});
+
 // The KPI line is the area look's ramp: the fade at the lowest value and the
 // tone at the highest. The dot and its ring stay inside the 32px drawing.
 it('fills a sparkline from its line to the foot, ramped from its lowest value to its highest', () => {

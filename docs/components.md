@@ -1184,11 +1184,13 @@ the keyboard can scroll it from its own tab stop after the chart. Nothing animat
 **A bar has a 2px radius on the end away from the axis, and a square base.** A bar that stands on
 nothing, such as a bridge step, rounds the end further from zero. A spark fills the room under
 its line with a ramp from the faint tone at the lowest value to the full tone at the highest.
+A spark of lines runs from edge to edge: its first point sits on the text edge above it and its
+last point on the far edge. A spark with bars centres each bar in its column.
 
 **`onActive` reports the open point.** It receives `{ index, period, value }` when a pointer, a
 tap or a key opens a point, and `null` when the readout closes. The chart draws a dot on an open
-line point. While you pass `onActive`, the chart shows no readout of its own. Put the value and the
-period into the figure the chart belongs to, such as a stat band's value and caption, and put
+line point, a ring of the ground around a centre in the series tone. While you pass `onActive`,
+the chart shows no readout of its own. Put the value and the period into the figure the chart belongs to, such as a stat band's value and caption, and put
 the figure back on `null`. Pass it only for a chart of one series.
 
 ### React route navigation
