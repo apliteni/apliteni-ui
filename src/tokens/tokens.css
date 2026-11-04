@@ -649,6 +649,11 @@
 .ui-table-scroll > .ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th) {
   --code-bg: var(--surface);
 }
+/* The row table hovers on --surface-3, and a chip there keeps the card surface. A selected
+ * row mixes the accent into the table ground, so a chip there keeps that plain ground. */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { --code-bg: var(--surface); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th),
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked):hover > :is(td, th) { --code-bg: var(--table-bg); }
 .ui-card--accent,
 .ui-card--live,
 .ui-snippet--reveal { --code-bg: var(--surface); }

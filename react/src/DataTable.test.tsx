@@ -239,6 +239,12 @@ it('asks its owner for the first page when a header changes the sort', async () 
   expect(seen).toEqual([1]);
 });
 
+// The row heights are CSS that jsdom does not lay out, so this holds the class each density sets.
+it.each([['compact', 'ui-table--compact'], ['comfortable', 'ui-table--comfortable']] as const)('sets the %s rows class', (density, name) => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} density={density} />);
+  expect(screen.getByRole('table')).toHaveClass('ui-table', 'ui-table--hover', name);
+});
+
 it('renders no pager at all when the consumer supplies its own', () => {
   render(<DataTable columns={columns} rows={rows} pageSize={2} selectable={false} pager={false} />);
   expect(screen.queryByRole('navigation')).not.toBeInTheDocument();

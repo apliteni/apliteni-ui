@@ -468,23 +468,23 @@
   ],
   "contents": [
    {
-    "ref": "react/src/Tooltip.tsx:61",
+    "ref": "react/src/Tooltip.tsx:64",
     "pattern": "ui-tip__value"
    }
   ],
   "on-touch": [
    {
-    "ref": "react/src/Tooltip.tsx:27",
+    "ref": "react/src/Tooltip.tsx:30",
     "pattern": "touchend"
    },
    {
-    "ref": "react/src/Tooltip.tsx:27",
+    "ref": "react/src/Tooltip.tsx:30",
     "pattern": "touchend"
    }
   ],
   "not-only-hover": [
    {
-    "ref": "react/src/Tooltip.tsx:30",
+    "ref": "react/src/Tooltip.tsx:33",
     "pattern": "DOC_EVENTS"
    }
   ]

@@ -54,12 +54,17 @@ test('the readout is out of flow in every state the sheet gives it', () => {
   }
 });
 
-test('opening the readout changes paint, never a box', () => {
+test('a closed readout has no box, and opening it changes paint, never a size', () => {
+  // A hidden box still counts in its scroller's width, so a closed readout at a
+  // table's last column widened the page (#770).
+  const closed = RULES.find((r) => r.selector.trim() === '.ui-tip:not(.is-open)');
+  assert.ok(closed, 'the sheet has no closed state');
+  assert.equal(decl(closed, 'display'), 'none', 'a closed readout is display: none');
   const open = RULES.find((r) => r.selector.trim() === '.ui-tip.is-open');
   assert.ok(open, 'the sheet has no open state');
   const props = [...open.body.matchAll(/(?:^|;)\s*([\w-]+)\s*:/g)].map((m) => m[1]);
   assert.deepEqual(props.sort(), ['opacity', 'visibility'],
-    'the open state may only change opacity and visibility — a size, a display or a margin in it '
+    'the open state may only change opacity and visibility — a size or a margin in it '
     + 'is a readout that takes up room the moment it appears');
 });
 

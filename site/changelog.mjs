@@ -6,6 +6,16 @@
 
 export const RELEASES = [
   {
+    v: '0.162.0', date: '2026-11-04',
+    changes: [
+      ['changed', 'A hover table that is neither zebra nor dense is now a row table: 48px rows with no row or column lines, a square neutral hover fill across the full width and a square accent wash on a checked row. Its first and last content sit 12px inside the fill, 24px in a card and 16px in a card below 560px. The 8px room and round ends of 0.160.0 stay on a dense hover table. `.ui-table--compact` makes the rows 36px, and the new `.ui-table--comfortable` makes them 56px. `.ui-table__sub` puts a second value, such as an email, under the first. Resolves #770.', ['Table']],
+      ['added', 'React `DataTable` takes `density="comfortable"`. Part of #770.', ['Table']],
+      ['changed', 'A table scroll frame no longer shades its edges, and a pinned column casts no shadow. Below 560px the frame shows no scrollbar. Part of #770.', ['Table']],
+      ['changed', 'React `Tooltip` opens after the pointer rests for 300ms. Within 300ms after a readout closes, the next one opens at once. Keyboard focus opens it at once. The readout fades in and closes at once. The new `control` prop is for a child that is one control and names itself, such as an icon button: the readout adds no tab stop and no description. Part of #770.', ['Tooltip']],
+      ['fixed', 'On a phone, a screen-reader label in a table frame no longer widens the page, and a closed tooltip no longer makes the frame scroll past its table. Part of #770.', ['Table', 'Tooltip']],
+    ],
+  },
+  {
     v: '0.161.0', date: '2026-11-03',
     changes: [
       ['added', 'React `Button` takes `hold` and `onConfirm` for an action that cannot be undone. A 1 s press, or two presses within 3 s, calls `onConfirm`; a plain click calls neither `onClick` nor `onConfirm`. A short press shows "Hold to confirm" above the button, so leave one line of room there. Resolves #776.', ['Button']],

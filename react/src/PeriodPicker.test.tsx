@@ -1,5 +1,5 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
-import { expect, it } from 'vitest';
+import { act, render, screen, fireEvent, within } from '@testing-library/react';
+import { expect, it, vi } from 'vitest';
 import { Default, Loading } from './PeriodPicker.stories';
 
 // Checks what the period drives: the figures, the ledger, the live region and
@@ -94,6 +94,8 @@ it('puts the ledger heading outside its card and keeps comparison copy off the r
 
 // Component events verify wiring; real browser touch captures verify placement.
 it('explains the Change header and all summary deltas on hover, focus and tap', () => {
+  // A fake clock: a hover readout opens after a delay.
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
   window.history.replaceState(null, '', '?period=2026-09');
   const { container } = render(Default.render());
   const triggers = [...container.querySelectorAll<HTMLElement>('.ui-tip-host > .ui-focusable')];
@@ -102,6 +104,7 @@ it('explains the Change header and all summary deltas on hover, focus and tap', 
     const tip = document.getElementById(trigger.getAttribute('aria-describedby')!)!;
     expect(tip).toHaveTextContent('Compared with August 2026');
     fireEvent.mouseEnter(trigger);
+    act(() => { vi.advanceTimersByTime(300); });
     expect(tip).toHaveClass('is-open');
     fireEvent.mouseLeave(trigger);
     fireEvent.focus(trigger);
@@ -115,4 +118,5 @@ it('explains the Change header and all summary deltas on hover, focus and tap', 
     fireEvent.touchEnd(trigger);
     expect(tip).not.toHaveClass('is-open');
   }
+  vi.useRealTimers();
 });

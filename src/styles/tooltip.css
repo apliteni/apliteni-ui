@@ -59,6 +59,11 @@
 
 .ui-tip.is-open { opacity: 1; visibility: visible; }
 
+/* A closed readout has no box: a hidden box still widens the scroller that holds
+   it. The open readout fades in from its starting style. */
+.ui-tip:not(.is-open) { display: none; }
+@starting-style { .ui-tip.is-open { opacity: 0; } }
+
 .ui-tip__label { color: var(--text); }
 .ui-tip__value {
   font-size: var(--text-sm);
