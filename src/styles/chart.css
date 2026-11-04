@@ -41,6 +41,14 @@
    rather than left to the height attribute, which `.ui-stat__trend svg` beats.
    why: docs/components.md#react-charts */
 .ui-chart--spark .ui-chart__svg { height: var(--ui-chart-box); }
+/* A sparkline's end points sit on its edges. So the frame and the scroller
+   reach a step past each edge: the scroller does not cut the active dot, and
+   the focus ring goes around the dot, not through it. */
+.ui-chart--spark .ui-chart__frame,
+.ui-chart--spark .ui-chart__scroll {
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+}
 
 /* -- the legend ------------------------------------------------------------ */
 

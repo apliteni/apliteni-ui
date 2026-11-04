@@ -17,8 +17,8 @@ import { ESTIMATED, LEDGER, SPEC_CSS, SPEND } from './_dashboards-and-reports.js
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { payoutHref } from '../apps/_finance-nav.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
-import { cashflowStats, PERIODS as SPANS } from '../apps/_finance-data.js';
-import { CashflowTrend, type Trend } from '../apps/_cashflow-trend';
+import { cashflowStats, money, PERIODS as SPANS } from '../apps/_finance-data.js';
+import { KpiBand, type KpiFigure } from '../_kpi';
 
 const content = await loadGuideline('dashboards-and-reports.md', new URL('../../guidelines/dashboards-and-reports.md', import.meta.url));
 
@@ -30,9 +30,8 @@ type Tone = 'success' | 'pending' | 'danger';
 
 // Cashflow for the year, from the dashboard's own call, so a specimen cannot drift
 // from the showcase it draws. Two figures, because a specimen cell is under 28rem.
-type Figure = { label: string; value: string; delta: { value: string; tone?: 'good' | 'bad' }; trend: Trend };
-const Cashflow = ({ id }: { id: string }) => <StatBand id={id} stats={(cashflowStats('1Y', true) as Figure[]).slice(0, 2)
-  .map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' }, trend: <CashflowTrend trend={figure.trend} /> }))} />;
+const Cashflow = ({ id }: { id: string }) => <KpiBand id={id} format={money} stats={(cashflowStats('1Y', true) as KpiFigure[]).slice(0, 2)
+  .map(figure => ({ ...figure, delta: figure.delta && { ...figure.delta, basis: 'vs prior year' } }))} />;
 
 // `fees` swaps Status for the fees, so the report shows how each net is made.
 const LedgerTable = ({ fees = false }: { fees?: boolean }) => <table className="ui-table ui-table--dense ui-table--zebra">

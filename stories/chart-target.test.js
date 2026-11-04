@@ -45,7 +45,8 @@ const storySubjects = () => {
   return [...src.matchAll(/^export const (\w+): StoryObj = \{([\s\S]*?)\n\};/gm)].map((m) => ({
     name: m[1],
     id: `react-chart--${m[1].replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}`,
-    spark: /variant="spark"/.test(m[2]),
+    // A KpiBand draws every trend it is given as a spark.
+    spark: /variant="spark"|<KpiBand\b/.test(m[2]),
     line: /shape: 'line'/.test(m[2]) || /\bseries\}/.test(m[2]) || /\{\.\.\.series/.test(m[2]),
   }));
 };
@@ -353,10 +354,15 @@ test(
           // Asked of the chart that owns this point: the readout span is always
           // in the markup and carries `is-open` when it has something to say,
           // so an unscoped query would read the other sparkline's empty one.
+          // A chart that reports its point to its figure opens no readout: it
+          // draws the point's dot, and its stat figure says the value.
           const said = await page.evaluate((id) => {
             const chart = document.querySelector(`[data-mark="${id}"]`).closest('.ui-chart');
             const tip = chart.querySelector('.ui-tip.is-open');
-            return tip ? (tip.textContent || '').replace(/\s+/g, ' ').trim() : null;
+            const text = (el) => (el.textContent || '').replace(/\s+/g, ' ').trim();
+            if (tip) return text(tip);
+            const stat = chart.closest('.ui-stat');
+            return chart.querySelector('.ui-chart__dot') && stat ? text(stat) : null;
           }, end.id);
           assert.ok(
             said,

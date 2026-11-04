@@ -13,7 +13,7 @@ import { Segmented } from './Segmented';
 import { CardTools } from './primitives/Card';
 import { placeTip } from './tip';
 import {
-  LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, overlaps, pct,
+  BAR_RADIUS, LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, overlaps, pct,
   type ChartAreaLook, type ChartDonutLook, type ChartLineLook, type ChartSlice, type ChartStackedLook,
   type Layer, type Look, type LookGeometry,
 } from './chart-looks';
@@ -97,8 +97,18 @@ type ChartCommon = {
   /** The picked column, when the caller keeps that state. */
   selected?: number | null;
   onSelect?: (index: number) => void;
+  /**
+   * Reports the point the reader is on, on hover and on each arrow key, and
+   * `null` when the pointer leaves or focus goes. While it is set the chart
+   * draws no readout, so the caller shows the value, as a KPI card's figure.
+   */
+  onActive?: (point: ChartActivePoint | null) => void;
   className?: string;
 };
+
+/** The point a reader is on: its column, that column's period, and the value
+ *  of the column's first mark. */
+export type ChartActivePoint = { index: number; period: string; value: number };
 
 /** A series of a line, an area or a stacked chart. Its `shape` is the variant's. */
 export type ChartLookSeries = Omit<ChartSeries, 'shape'>;
@@ -178,6 +188,13 @@ type Frame = {
 const HEIGHT = { months: 216, bridge: 216, spark: 32, line: 216, area: 216, stacked: 216, donut: 216 };
 /** Room for a stroke at the band's edges, so a full-height bar is not shaved. */
 const PAD = 2;
+/** A sparkline's room at its edges: the active point's dot and its ring stay
+ *  whole at the highest and the lowest value. */
+const SPARK_PAD = 5;
+/** The radius of the dot on the active point of a line. Its 2px ring of the
+ *  ground leaves a centre of radius 4 in the series tone, which reads on the
+ *  area's fade in both themes. */
+const ACTIVE_DOT = 5;
 /**
  * How far a bar stops short of the zero line, each side. The channel this
  * leaves is real empty ground: a stroke of the chart's own colour laid over the
@@ -254,31 +271,23 @@ function onPrevious(value: number, previous: number | undefined, when: string) {
 }
 
 /**
- * A bar, drawn as a path so the end that stands on the zero line can be left
- * square while the end the reader measures from is fully round: its radius is
- * half the bar's width. A rounded foot would lift the bar off the one rule the
- * chart draws, and the top of a bar has to measure its length. SVG gives a `rect`
- * one radius for all four corners, and a foot on the zero line needs none.
- * `foot` names the edge that stands on zero; a bridge step floats between two
- * running totals and stands on nothing, so it is rounded at both ends.
+ * A bar, drawn as a path so the end that stands on the zero line stays square
+ * and the end away from it takes a small radius. A rounded foot would lift the
+ * bar off the one rule the chart draws, and a fully round tip read as a pill,
+ * not as a length. `foot` names the edge that stands on zero. A bridge step
+ * stands on nothing, so the edge further from zero is rounded.
  */
-function barPath(m: { x: number; y: number; w: number; h: number; foot: 'top' | 'bottom' | null }): string {
-  const r = Math.min(m.w / 2, m.h / (m.foot ? 1 : 4));
+function barPath(m: { x: number; y: number; w: number; h: number; foot: 'top' | 'bottom' | null }, zero: number): string {
+  const r = Math.min(BAR_RADIUS, m.w / 2, m.h);
   const { x, y: top, w, h } = m;
   const bottom = top + h;
-  const arc = (dx: number, dy: number, sweep: 0 | 1) =>
-    `a${px(r)} ${px(r)} 0 0 ${sweep} ${px(dx)} ${px(dy)}`;
   if (r <= 0) return `M${px(x)} ${px(top)}h${px(w)}v${px(h)}h${px(-w)}z`;
+  const roundTop = m.foot ? m.foot === 'bottom' : Math.abs(top - zero) >= Math.abs(bottom - zero);
+  const arc = (dx: number, dy: number) => `a${px(r)} ${px(r)} 0 0 1 ${px(dx)} ${px(dy)}`;
   // Up the left edge, across the top, down the right edge, back along the bottom.
-  // Each corner is an arc unless it sits on the foot.
-  const roundTop = m.foot !== 'top';
-  const roundBottom = m.foot !== 'bottom';
-  return `M${px(x)} ${px(roundBottom ? bottom - r : bottom)}`
-    + `V${px(roundTop ? top + r : top)}`
-    + (roundTop ? `${arc(r, -r, 1)}h${px(w - r * 2)}${arc(r, r, 1)}` : `h${px(w)}`)
-    + `V${px(roundBottom ? bottom - r : bottom)}`
-    + (roundBottom ? `${arc(-r, r, 1)}h${px(-(w - r * 2))}${arc(-r, -r, 1)}` : `h${px(-w)}`)
-    + 'z';
+  return roundTop
+    ? `M${px(x)} ${px(bottom)}V${px(top + r)}${arc(r, -r)}h${px(w - r * 2)}${arc(r, r)}V${px(bottom)}z`
+    : `M${px(x)} ${px(top)}h${px(w)}V${px(bottom - r)}${arc(-r, r)}h${px(-(w - r * 2))}${arc(-r, -r)}z`;
 }
 
 /**
@@ -517,7 +526,7 @@ function KeyMark({ shape }: { shape: Key['shape'] }) {
       {shape === 'fill'
         ? <rect className="ui-chart__key-swatch" x="1" y="1" width="10" height="10" rx="2.5" />
         : <path className="ui-chart__key-swatch"
-          d={barPath({ x: 3.5, y: 1, w: 5, h: 10, foot: shape === 'bars-below' ? 'top' : 'bottom' })} />}
+          d={barPath({ x: 3.5, y: 1, w: 5, h: 10, foot: shape === 'bars-below' ? 'top' : 'bottom' }, 6)} />}
     </svg>
   );
 }
@@ -525,11 +534,12 @@ function KeyMark({ shape }: { shape: Key['shape'] }) {
 export function Chart(props: ChartProps) {
   const {
     title, format, formatAxis = format, height, table, legend: keyed = false, selectable, selected,
-    onSelect, className,
+    onSelect, onActive, className,
   } = props;
   const variant = props.variant ?? 'months';
   const spark = variant === 'spark';
   const plotHeight = height ?? HEIGHT[variant];
+  const pad = spark ? SPARK_PAD : PAD;
   const showTable = table ?? !spark;
   const [view, setView] = useState<'chart' | 'table'>('chart');
   const asTable = showTable && view === 'table';
@@ -605,8 +615,8 @@ export function Chart(props: ChartProps) {
   const boxTop = -(boxHeight - plotHeight) / 2;
   const span = scale.max - scale.min || 1;
   const y = useCallback(
-    (value: number) => PAD + ((scale.max - value) / span) * (plotHeight - PAD * 2),
-    [scale.max, span, plotHeight],
+    (value: number) => pad + ((scale.max - value) / span) * (plotHeight - pad * 2),
+    [scale.max, span, plotHeight, pad],
   );
   const zero = y(Math.min(Math.max(0, scale.min), scale.max));
   /* The group a column draws, and one bar's slot inside it. The cap is the
@@ -617,7 +627,13 @@ export function Chart(props: ChartProps) {
   const groupWidth = Math.max(4, Math.min(colWidth * BAR_SHARE, colWidth - 6,
     cap * lanes + LANE_GAP * (lanes - 1)));
   const barWidth = (groupWidth - LANE_GAP * (lanes - 1)) / lanes;
-  const centre = useCallback((column: number) => column * colWidth + colWidth / 2, [colWidth]);
+  /* A sparkline of lines only runs from edge to edge, so its first point sits
+     on the text edge above it and its last on the far edge. A column chart and
+     a sparkline with bars centre each point in its column. */
+  const edge = spark && frame.bars.length === 0 && count > 1;
+  const pitch = edge ? plotWidth / (count - 1) : colWidth;
+  const centre = useCallback((column: number) => (edge ? column * pitch : column * colWidth + colWidth / 2),
+    [edge, pitch, colWidth]);
 
   const axisFormat = look?.share ? pct : formatAxis;
   const geometry = useMemo<LookGeometry | null>(() => (look ? {
@@ -678,6 +694,8 @@ export function Chart(props: ChartProps) {
     // each way, and is then held inside the box the chart draws in, so the
     // chart's own edge clips none of it. A target the drawing clips is not a
     // target, whatever its attributes say.
+    // Each point owns an equal share of the width, so an edge point keeps a
+    // whole target. A spark of lines still sits inside its own share.
     const box = { left: 0, right: plotWidth, top: boxTop, bottom: boxTop + boxHeight };
     for (const dot of dots) {
       const apart = dots.filter((d) => d !== dot && d.column === dot.column)
@@ -697,6 +715,20 @@ export function Chart(props: ChartProps) {
   /** The mark a keystroke opens for a column: its first, in drawing order. */
   const lead = useCallback((column: number) => marks.find((m) => m.column === column), [marks]);
   const open = openId ? byId.get(openId) : undefined;
+
+  // The callback is kept in a ref, so a caller that passes a new function on
+  // every render does not report the same point again.
+  const activeRef = useRef(onActive);
+  activeRef.current = onActive;
+  const reports = Boolean(onActive);
+  const openColumn = open?.column;
+  const openValue = open?.value;
+  const openPeriod = openColumn === undefined ? undefined : columns[openColumn]?.label;
+  useEffect(() => {
+    if (!reports) return;
+    activeRef.current?.(openColumn === undefined || openValue === undefined
+      ? null : { index: openColumn, period: openPeriod ?? '', value: openValue });
+  }, [reports, openColumn, openPeriod, openValue]);
 
   /* -- the plot's width, and the sides that still hide columns -------------- */
 
@@ -824,10 +856,10 @@ export function Chart(props: ChartProps) {
   const estimatedTone = marks.find((m) => m.estimated && m.kind === 'bar')?.tone
     ?? keys[0]?.tone ?? 'neutral';
   const hitBand = (band: Band) => (band === 'up'
-    ? { y: PAD, h: Math.max(zero - PAD, TARGET) }
+    ? { y: pad, h: Math.max(zero - pad, TARGET) }
     : band === 'down'
-      ? { y: zero, h: Math.max(plotHeight - PAD - zero, TARGET) }
-      : { y: PAD, h: Math.max(plotHeight - PAD * 2, TARGET) });
+      ? { y: zero, h: Math.max(plotHeight - pad - zero, TARGET) }
+      : { y: pad, h: Math.max(plotHeight - pad * 2, TARGET) });
 
   // A thin ring reads its total first and its key after; the table look's list
   // beside the ring is its key.
@@ -867,7 +899,7 @@ export function Chart(props: ChartProps) {
         '--ui-chart-h': `${plotHeight}px`,
         '--ui-chart-box': `${px(boxHeight)}px`,
         '--ui-chart-cols': count,
-        '--ui-chart-pad': `${PAD}px`,
+        '--ui-chart-pad': `${pad}px`,
       } as CSSProperties}
     >
       {toCard && createPortal(viewSwitch, toCard)}
@@ -896,6 +928,9 @@ export function Chart(props: ChartProps) {
         }}
         onBlur={(event) => {
           if (event.target !== event.currentTarget) return;
+          // A press on a mark parks focus on the scroller before the click
+          // hands it back, so that blur keeps the point the press opened.
+          if (pointerFocus.current && frameEl.current?.contains(event.relatedTarget as Node)) return;
           setOpenId(null);
           setSaid('');
         }}
@@ -1046,8 +1081,42 @@ export function Chart(props: ChartProps) {
                     className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
                       mark.estimated && 'is-estimated')}
                     style={fade ? { '--ui-chart-paint': `url(#${fade.id})` } as CSSProperties : undefined}
-                    d={barPath(mark)}
+                    d={barPath(mark, zero)}
                   />
+                );
+              })}
+
+              {/* A sparkline's area, from its line down to the plot's foot. It is the
+                  area look's ramp: the fade at the lowest value and the tone at the
+                  highest. A line with one value, or one flat value, stays the fade. */}
+              {spark && lines.map((line, k) => {
+                const runs = line.values.reduce<number[][]>((out, v, i) => {
+                  if (!Number.isFinite(v)) return out;
+                  if (Number.isFinite(line.values[i - 1])) out[out.length - 1].push(i); else out.push([i]);
+                  return out;
+                }, []).filter((run) => run.length > 1);
+                if (!runs.length) return null;
+                const finite = line.values.filter(Number.isFinite);
+                const lo = Math.min(...finite);
+                const hi = Math.max(...finite);
+                const ramp = y(lo) - y(hi) >= 1 ? `${uid}-spark-${k}` : null;
+                const d = runs.map((run) => `M${px(centre(run[0]))} ${px(plotHeight)}`
+                  + run.map((i) => `L${px(centre(i))} ${px(y(line.values[i]))}`).join('')
+                  + `L${px(centre(run[run.length - 1]))} ${px(plotHeight)}Z`).join('');
+                return (
+                  <g key={`area-${line.id}`} className={`ui-chart__tone--${line.tone}`}>
+                    {ramp && (
+                      <defs>
+                        <linearGradient id={ramp} gradientUnits="userSpaceOnUse"
+                          x1="0" x2="0" y1={px(y(lo))} y2={px(y(hi))}>
+                          <stop className="ui-chart__fade-base" offset="0" />
+                          <stop className="ui-chart__fade-end" offset="1" />
+                        </linearGradient>
+                      </defs>
+                    )}
+                    <path className="ui-chart__area" d={d}
+                      style={ramp ? { '--ui-chart-paint': `url(#${ramp})` } as CSSProperties : undefined} />
+                  </g>
                 );
               })}
 
@@ -1083,6 +1152,13 @@ export function Chart(props: ChartProps) {
               )))}
 
               {geometry && lookDrawing(geometry, open?.column ?? null, pick)}
+
+              {/* The point the reader is on. A line draws no marker of its own, so
+                  without this a hovered point had only the readout to show it. */}
+              {!geometry && open?.kind === 'dot' && (
+                <circle className={cx('ui-chart__dot', `ui-chart__tone--${open.tone}`)}
+                  cx={px(open.x + open.w / 2)} cy={px(open.y + open.h / 2)} r={ACTIVE_DOT} />
+              )}
 
               {/* The hit areas last, so a point's box wins over the band under it.
                   A bar's is its own band in the column, full height, so a pointer
@@ -1129,7 +1205,7 @@ export function Chart(props: ChartProps) {
           </div>
         </div>
 
-        <span ref={tipEl} className={cx('ui-tip', openId && 'is-open')} role={open ? 'tooltip' : undefined}>
+        {!reports && <span ref={tipEl} className={cx('ui-tip', openId && 'is-open')} role={open ? 'tooltip' : undefined}>
           {open && (
             <>
               <span className="ui-tip__label">
@@ -1159,7 +1235,7 @@ export function Chart(props: ChartProps) {
               )}
             </>
           )}
-        </span>
+        </span>}
       </div>
 
       {!legendFirst && legend}

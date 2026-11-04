@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { FrameStrip, GuidelinePage, OpenReadout } from '../_guideline';
 import { Card } from '../../react/src/primitives/Card';
 import { Chart, type ChartPeriod } from '../../react/src/Chart';
+import { KpiBand } from '../_kpi';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -27,15 +28,16 @@ const HOT = 'revenue-2';
 const Months = ({ values = REVENUE, height }: { values?: number[]; height?: number }) =>
   <Chart title="Revenue by month, last 4 months" periods={PERIODS} series={[{ ...SERIES[0], values }]} format={eur}
     height={height} table={false} />;
-const Spark = ({ name = 'Revenue', values = REVENUE }: { name?: string; values?: number[] }) =>
-  <Chart variant="spark" title={`${name}, last 4 months`} periods={PERIODS}
-    series={[{ id: name.toLowerCase(), name, values, shape: 'line' }]} format={eur} />;
+const trend = (name: string, values: number[]) => ({ title: `${name}, last 4 months`, name, labels: MONTHS, values });
 
-// The KPI card from the finance portal's overview, and the card under it: the
-// one that moves when a readout is written into the first.
-const Kpis = ({ chart }: { chart: ReactNode }) => <div className="gh-stack">
-  <Card title="Revenue"><p className="gh-figure">{eur(REVENUE[REVENUE.length - 1])}</p>{chart}</Card>
-  <Card title="Expenses"><p className="gh-figure">{eur(EXPENSES[EXPENSES.length - 1])}</p><Spark name="Expenses" values={EXPENSES} /></Card>
+// The KPI band from the finance portal's overview, and the card under it: the
+// one that moves when a readout is written into the page.
+const Kpis = ({ id, line }: { id: string; line?: ReactNode }) => <div className="gh-stack">
+  <KpiBand id={id} format={eur} basis="Change against October" stats={[
+    { label: 'Revenue', value: eur(REVENUE[REVENUE.length - 1]), delta: { value: '−2.2%' }, trend: trend('Revenue', REVENUE) },
+    { label: 'Expenses', value: eur(EXPENSES[EXPENSES.length - 1]), delta: { value: '−6.6%' }, trend: trend('Expenses', EXPENSES) }]} />
+  {line}
+  <Card title="Payouts"><p className="gh-figure">214</p></Card>
 </div>;
 
 // Eight weeks of made-up revenue in a sparkline: no point reachable but by pointing.
@@ -47,8 +49,9 @@ const Tapped = ({ mark }: { mark: string }) => <OpenReadout mark={mark}><Months 
 
 const specimens = [
   { id: 'overlay',
-    do: () => <Kpis chart={<OpenReadout mark={HOT}><Spark /></OpenReadout>} />,
-    dont: () => <Kpis chart={<><Spark /><p className="gh-inline">{`Oct 2025: ${eur(REVENUE[2])}, +5.3% on Sep`}</p></>} /> },
+    // The pointed month replaces the Revenue figure, in the room the figure had.
+    do: () => <OpenReadout mark="trend-2"><Kpis id="gh-overlay-do" /></OpenReadout>,
+    dont: () => <Kpis id="gh-overlay-dont" line={<p className="gh-inline">{`Oct 2025: ${eur(REVENUE[2])}, +5.3% on Sep`}</p>} /> },
   // A region that hides its overflow. October nearly reaches the top line, so the room
   // above it is shorter than the readout's first two lines.
   { id: 'above-the-mark',
