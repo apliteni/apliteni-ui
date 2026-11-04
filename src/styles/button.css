@@ -91,6 +91,8 @@
   border-color: var(--pink);
   background: color-mix(in srgb, var(--pink) 10%, transparent); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
 }
+/* A pointer hold is also a hover, so the held edge outranks the accent hover edge. */
+.ui-btn.ui-btn--danger[data-holding] { border-color: var(--pink); }
 
 /* -- Sizes -------------------------------------------------------------- */
 /* why: docs/components.md#extra-small-buttons */

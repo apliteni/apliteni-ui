@@ -45,11 +45,14 @@ export const BusyTransition: StoryObj = { render: () => <BusyExample /> };
 // The result takes the button's place and the focus, so focus is not lost with the button.
 function HoldExample({ variant, label, done }: { variant: 'primary' | 'danger'; label: string; done: string }) {
   const [confirmed, setConfirmed] = useState(false);
-  const result = useRef<HTMLParagraphElement>(null);
+  const result = useRef<HTMLSpanElement>(null);
   useEffect(() => { if (confirmed) result.current?.focus(); }, [confirmed]);
   return canvas(<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', paddingTop: 'var(--space-8)' }}>
     {confirmed
-      ? <p ref={result} role="status" tabIndex={-1}>{done}</p>
+      // The success sentence's type, centred in the height of the md button it replaces.
+      ? <div style={{ display: 'flex', alignItems: 'center', minHeight: 'calc(var(--text-sm) * var(--leading-tight) + 2 * 9px + 2px)' }}>
+        <span ref={result} className="ui-sx__count-text" role="status" tabIndex={-1}>{done}</span>
+      </div>
       : <Button hold variant={variant} onConfirm={() => setConfirmed(true)}>{label}</Button>}
   </div>);
 }
