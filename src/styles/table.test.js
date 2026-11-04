@@ -430,6 +430,7 @@ test('the hover-row check rejects a sheet that loses an end room or a dropped li
 });
 
 test('the linked end-cell check rejects a row table without its last-cell inset', () => {
+  // Limit: the check resolves every var(--cell-edge) to the sheet's last --cell-edge, which must differ from the link's 12px fallback.
   const without = CSS.replace(`${ROW_TABLE} td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--cell-edge); }`, '');
   assert.notEqual(without, CSS);
   assert.throws(() => checkLinkedHoverInset(without));

@@ -183,6 +183,8 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
         const target = markOf(event.target);
         const opening = touched ? touched === 'open' : !!target && target !== mark;
         if (!opening) { if (!touched) close(); return; }
+        // A named control keeps its click, so one pen tap opens the readout and runs the action.
+        if (control) { dismissed.current = null; show(target); return; }
         event.preventDefault();
         event.stopPropagation();
         // Page dismissal listeners still receive the opening tap.

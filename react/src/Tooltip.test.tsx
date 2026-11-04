@@ -236,6 +236,20 @@ it('toggles the inline readout on pen taps after compatibility mouse and focus e
   expect(tip).not.toHaveClass('is-open');
 });
 
+it('runs a named control on the first pen tap and opens its readout', () => {
+  const action = vi.fn();
+  const view = render(<Tooltip text="Edit" control><button type="button" aria-label="Edit Mara" onClick={action}>E</button></Tooltip>);
+  const button = view.getByRole('button', { name: 'Edit Mara' });
+  pointer(button, 'pointerover', 'pen');
+  fireEvent.mouseOver(button);
+  pointer(button, 'pointerdown', 'pen');
+  fireEvent.focus(button);
+  pointer(button, 'pointerup', 'pen');
+  fireEvent.click(button);
+  expect(action).toHaveBeenCalledTimes(1);
+  expect(view.getByRole('tooltip', { hidden: true })).toHaveClass('is-open');
+});
+
 // These event sequences check input changes, not native browser event synthesis.
 it.each([1, 2])('toggles with a pen after %s touch taps and their compatibility clicks', (touchTaps) => {
   const { trigger, tip } = mount();

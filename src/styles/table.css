@@ -570,20 +570,23 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-card--pad-sm > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child { margin-top: calc(-1 * var(--space-5)); }
 .ui-card--pad-sm > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):last-child { margin-bottom: calc(-1 * var(--space-5)); }
 .ui-card--fit > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))) { width: auto; max-width: calc(100% + 2 * var(--space-6)); }
-.ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)) { border-width: 0; }
+/* The frame keeps its side bands, because the sticky header covers a ring drawn anywhere
+   else. It drops the bottom band, so the card's padding is the only room below the table. */
+.ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)) { border-bottom-width: 0; }
 /* The frame's corners follow the card's, so a fill in the first or last row does too. */
 .ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)):first-child { border-start-start-radius: inherit; border-start-end-radius: inherit; }
 .ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)):last-child { border-end-start-radius: inherit; border-end-end-radius: inherit; }
-.ui-card > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense),
-.ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: var(--space-6); }
+.ui-card > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: var(--space-6); }
+/* In a frame, the side band holds space-1 of the card's text edge. */
+.ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: calc(var(--space-6) - var(--space-1)); }
 
 /* On a phone the cells pad by space-3 across and a card's end cells by space-4. A wide
    table scrolls under a finger, so the frame shows no scrollbar. 560px is the kit's phone
    breakpoint. */
 @media (max-width: 560px) {
   .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(*, .ui-table--comfortable) { --cell-gap: var(--space-3); }
-  .ui-card > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense),
-  .ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: var(--space-4); }
+  .ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: calc(var(--space-4) - var(--space-1)); }
+  .ui-card > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: var(--space-4); }
   .ui-table-scroll { scrollbar-width: none; }
   .ui-table-scroll::-webkit-scrollbar { display: none; }
 }

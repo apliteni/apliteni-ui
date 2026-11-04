@@ -116,3 +116,59 @@ export const FRAME_FLOORLESS = '.ui-table-scroll { display: block !important; }'
  *  tooltip keeps its box, so the frame scrolls past its table. */
 export const LABEL_ESCAPES = '.ui-table-scroll, .ui-table-scroll th { position: static !important; }';
 export const CLOSED_TIP_BOX = '.ui-tip:not(.is-open) { display: flex !important; }';
+
+/** A card's table frame, focused by keyboard or at rest: its box, its corner radius,
+ *  its ring colour, the card's ground and the room between the table and the frame's
+ *  bottom edge. Null when the page has no frame directly in a card. */
+export const CARD_FRAME = (focus) => {
+  const f = document.querySelector('.ui-card > .ui-table-scroll');
+  if (!f) return null;
+  if (focus) f.focus({ focusVisible: true });
+  else f.blur();
+  const rgb = (c) => c.match(/[\d.]+/g).slice(0, 3).map(Number);
+  const s = getComputedStyle(f);
+  const b = f.getBoundingClientRect();
+  return {
+    x: b.x + scrollX, y: b.y + scrollY, w: b.width, h: b.height,
+    radius: Math.max(...['TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'].map((k) => parseFloat(s[`border${k}Radius`]) || 0)),
+    focused: f.matches(':focus-visible'),
+    ring: rgb(s.outlineColor),
+    ground: rgb(getComputedStyle(f.parentElement).backgroundColor),
+    below: b.bottom - f.querySelector('.ui-table').getBoundingClientRect().bottom,
+  };
+};
+
+/** What is wrong with a card frame in a full-page screenshot, as lines. Focused, each
+ *  side's ring band must show the ring colour. At rest, the side bands must show the
+ *  card's ground, so no edge line shows. The table must reach the frame's bottom.
+ *  Limits: it samples one line 2px in from each edge, every 2px, and skips each corner's
+ *  radius plus 4px, where the curve leaves the line. A tolerance of 40 per channel
+ *  takes the ring's anti-aliasing and no other colour. */
+export function cardFrameFindings(img, frame) {
+  const out = [];
+  if (frame.below > 0.5) out.push(`the frame has ${frame.below}px below its table`);
+  const want = frame.focused ? frame.ring : frame.ground;
+  const near = (p) => p.every((v, i) => Math.abs(v - want[i]) <= (frame.focused ? 40 : 2));
+  const skip = frame.radius + 4;
+  const along = (from, to) => { const at = []; for (let v = from + skip; v < to - skip; v += 2) at.push(v); return at; };
+  const sides = {
+    left: along(frame.y, frame.y + frame.h).map((y) => [frame.x + 2, y]),
+    right: along(frame.y, frame.y + frame.h).map((y) => [frame.x + frame.w - 2.5, y]),
+    ...(frame.focused ? {
+      top: along(frame.x, frame.x + frame.w).map((x) => [x, frame.y + 2]),
+      bottom: along(frame.x, frame.x + frame.w).map((x) => [x, frame.y + frame.h - 2.5]),
+    } : {}),
+  };
+  for (const [side, points] of Object.entries(sides)) {
+    const miss = points.filter(([x, y]) => !near(pixelAt(img, x, y))).length;
+    if (miss) out.push(`${frame.focused ? 'focused' : 'at rest'}, ${side}: ${miss} of ${points.length} samples are not ${frame.focused ? 'the ring' : "the card's ground"}`);
+  }
+  return out;
+}
+
+/** The three defects the card frame check must catch: a frame with no bands, which lets
+ *  the sticky header cover the ring, a band that paints a line at rest, and a band below
+ *  the table. */
+export const FRAME_BANDLESS = '.ui-card > .ui-table-scroll { border-width: 0 !important; }';
+export const FRAME_EDGE_LINE = '.ui-card > .ui-table-scroll { border-color: var(--border) !important; }';
+export const FRAME_GAP_BELOW = '.ui-card > .ui-table-scroll { border-bottom-width: var(--space-1) !important; }';

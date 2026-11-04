@@ -11,7 +11,9 @@
  *    containment at 390x844 (#736) in the built Storybook, so run
  *    `npm run build-storybook` first:
  *
- *   UI_PLAYWRIGHT=… EDGE_SHADE=1 node --test stories/table-edge-shade.test.js
+ *   UI_PLAYWRIGHT=… UI_CHROME=… EDGE_SHADE=1 node --test stories/table-edge-shade.test.js
+ *
+ *    UI_CHROME is optional. It points at a Chrome build when Playwright has none.
  *
  * CI runs the source half only. Report the browser half's output in the pull request.
  */
@@ -74,15 +76,38 @@ const THEMES = ['light', 'dark'];
  * `react-datatable`, and only those the walk finds a frame in. The payouts story
  * must be one of them. The members story must be one too. Before #770 its "Actions" label
  * widened the page under a header that does not stick, and its closed tooltips made the
- * frame scroll past the table. Each defect is put back there to prove the check sees it. */
+ * frame scroll past the table. Each defect is put back there to prove the check sees it.
+ *
+ * The members story also holds the card frame (#782), at 390 and 1440 wide: focused, its
+ * ring shows on all four sides, at rest its side bands show no line, and the table
+ * reaches its bottom. Limits: only the first frame in a card on that one story. */
 const PHONE = { width: 390, height: 844 };
 const PAYOUTS_STORY = 'react-datatable-ledgers--finance-data';
 const MEMBERS_STORY = 'react-datatable-members--default';
+const DESKTOP = { width: 1440, height: 900 };
 
 test('measured in a browser: a phone table scrolls inside its frame', { skip: !RUN_BROWSER && 'set EDGE_SHADE=1' }, async (t) => {
   const { existsSync } = await import('node:fs');
   const { playwright, serve, indexed, openStory, STORY_DONE } = await import('./lib/dropdown-contain.js');
-  const { PHONE_FIT, phoneFitFindings, FRAME_UNCLIPPED, FRAME_FLOORLESS, LABEL_ESCAPES, CLOSED_TIP_BOX } = await import('./lib/table-edge-shade.js');
+  const {
+    PHONE_FIT, phoneFitFindings, FRAME_UNCLIPPED, FRAME_FLOORLESS, LABEL_ESCAPES, CLOSED_TIP_BOX,
+    decodePNG, CARD_FRAME, cardFrameFindings, FRAME_BANDLESS, FRAME_EDGE_LINE, FRAME_GAP_BELOW,
+  } = await import('./lib/table-edge-shade.js');
+  const shot = async (page) => decodePNG(await page.screenshot({ fullPage: true, animations: 'disabled' }));
+  const checkCardFrame = async (page, label) => {
+    for (const focus of [true, false]) {
+      const frame = await page.evaluate(CARD_FRAME, focus);
+      assert.ok(frame, `${label}: no table frame in a card`);
+      if (focus) assert.ok(frame.focused, `${label}: the frame did not take a keyboard focus`);
+      assert.deepEqual(cardFrameFindings(await shot(page), frame), [], `${label} ${focus ? 'focused' : 'at rest'}`);
+    }
+    for (const [what, mutation, focus] of [['a frame without bands', FRAME_BANDLESS, true], ['an edge line at rest', FRAME_EDGE_LINE, false], ['a band below the table', FRAME_GAP_BELOW, false]]) {
+      const style = await page.addStyleTag({ content: mutation });
+      const frame = await page.evaluate(CARD_FRAME, focus);
+      assert.notDeepEqual(cardFrameFindings(await shot(page), frame), [], `${label}: ${what} still passed`);
+      await style.evaluate((node) => node.remove());
+    }
+  };
 
   const build = path.join(root, 'storybook-static');
   assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
@@ -123,11 +148,19 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
             assert.notDeepEqual(phoneFitFindings(broken, true), [], `${theme}: ${what} still passed`);
             await style.evaluate((node) => node.remove());
           }
+          await checkCardFrame(page, `${theme} ${PHONE.width}`);
         }
       }
       // The payouts, the pinned payments, the pinned sortable table and the members.
       assert.ok(measured.length >= 4, `${theme}: only ${measured.length} stories measured: ${measured.join(', ')}`);
       await ctx.close();
+      const wide = await browser.newContext({ viewport: DESKTOP });
+      const page2 = await wide.newPage();
+      const got = await openStory(page2, stories.find((s) => s.id === MEMBERS_STORY), { port: server.port, theme });
+      assert.equal(got.phase, STORY_DONE, `members ${theme} ${DESKTOP.width}: ${got.phase}`);
+      await page2.evaluate(() => document.fonts.ready);
+      await checkCardFrame(page2, `${theme} ${DESKTOP.width}`);
+      await wide.close();
     }
   } finally {
     await browser.close();
