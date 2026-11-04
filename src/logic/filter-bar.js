@@ -1,11 +1,11 @@
 /* What a filter chip shows, what it is called, when it counts as unset, and
  * where the focus goes when the bar runs out of controls.
- * The chip prints the chosen value by itself — never the field's name beside it
- * — and the field's name stands in while nothing is chosen. Both faces ask
- * these, so a chip reads the same in vanilla and in React.
+ * The chip prints the field's name and then the value, such as "Status: Active",
+ * and "Any" while nothing is chosen. Both faces ask these, so a chip reads the
+ * same in vanilla and in React. #768
  *
- * `value` is display text: it is the chip's only visible line, so a consumer
- * answers a change with text a reader can read, not a raw code.
+ * `value` is display text: the chip prints it, so a consumer answers a change
+ * with text a reader can read, not a raw code.
  * why: docs/components.md#dense-financial-tables
  */
 
@@ -16,17 +16,22 @@ export function filterChipUnset({ value } = {}) {
   return text(value) === '';
 }
 
-/** The one line the chip prints: the value, or the field's name while unset. */
-export function filterChipText(filter = {}) {
-  return filterChipUnset(filter) ? text(filter.label) : text(filter.value);
+/** The value half of the chip's line: the value, or "Any" while unset. */
+export function filterChipValue(filter = {}) {
+  return filterChipUnset(filter) ? 'Any' : text(filter.value);
 }
 
-/** What a reader hears: the field, and its value or the empty state. A filter
- *  with no label is named by its value alone — "undefined" is not a name. */
-export function filterChipName(filter = {}) {
+/** The one line the chip prints: "Field: value". A filter with no label prints its value alone. */
+export function filterChipText(filter = {}) {
   const field = text(filter.label);
   if (!field) return text(filter.value);
-  return filterChipUnset(filter) ? `${field}: any` : `${field}: ${text(filter.value)}`;
+  return `${field}: ${filterChipValue(filter)}`;
+}
+
+/** What a reader hears: the line the chip prints, so the name holds the visible words.
+ *  A filter with no label is named by its value alone — "undefined" is not a name. */
+export function filterChipName(filter = {}) {
+  return filterChipText(filter);
 }
 
 /* compareDocumentPosition's own flags, without reaching for a `Node` global

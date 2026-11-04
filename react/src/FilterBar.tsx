@@ -3,7 +3,7 @@ import { Dropdown, type DropdownEntry, type DropdownItem } from './Dropdown';
 import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
 import { useIsoLayoutEffect } from './dialog';
-import { filterChipText, filterChipName, filterChipUnset, filterChipItems, focusNextStop } from '@apliteni/apliteni-ui';
+import { filterChipValue, filterChipName, filterChipUnset, filterChipItems, focusNextStop } from '@apliteni/apliteni-ui';
 export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean };
 /** A filter the bar can put on itself: the chip's name, and the values its menu offers. */
 export type AddFilter = { id: string; label: string; items: DropdownEntry[] };
@@ -82,13 +82,14 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     {filters.map((filter, index) => <fieldset key={filter.id} className="ui-filter-bar__chip" data-filter-id={filter.id} disabled={filter.disabled}
       onFocus={event => { focused.current = { id: filter.id, index, remove: Boolean((event.target as Element).closest('[data-filter-remove]')) }; }}>
       <legend className="ui-filter-bar__legend">{filter.label}</legend>
-      {/* The chip prints one line; the field's name reaches a reader through the
-          trigger's name and the chip's own legend. why: docs/components.md#dense-financial-tables */}
+      {/* The chip prints one line, the field's name and then the value, and the
+          trigger's name holds the same words. why: docs/components.md#dense-financial-tables */}
       {/* The chip's own value is marked in the items its menu gets, so the line
           the chip prints and the row the menu washes cannot disagree — the same
           shared call the vanilla factory makes. why: src/logic/filter-bar.js */}
       <Dropdown items={filterChipItems(filter)} variant="select" ariaLabel={filterChipName(filter)}
-        triggerContent={<span className={filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}>{filterChipText(filter)}</span>}
+        triggerContent={<span className={filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}>
+          {filter.label ? <span className="ui-filter-bar__field">{filter.label}: </span> : null}{filterChipValue(filter)}</span>}
         open={!blocked && !filter.disabled && (opened[filter.id] && opened[filter.id].against === filter.open ? opened[filter.id].open : !!filter.open)}
         onOpenChange={open => setOpened(previous => ({ ...previous, [filter.id]: { open, against: filter.open } }))}
         onSelect={value => { if (!blocked && !filter.disabled) onChange(filter.id, value == null ? undefined : String(value)); }} />

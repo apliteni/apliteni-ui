@@ -711,9 +711,9 @@ is no shade. This is a rule in [Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
 change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
-[A filter row holds its panels](#a-filter-row-holds-its-panels). **A chip shows only the chosen value**, while the field's name
-appears only when nothing is chosen. Next to a value, the name reaches the reader through the
-trigger's accessible name and a hidden legend.
+[A filter row holds its panels](#a-filter-row-holds-its-panels). **A chip shows the field's name and then the value**, such as
+"Status: Active". While nothing is chosen it shows "Listing: Any". The trigger's accessible name
+holds the same words.
 
 ### The command palette
 

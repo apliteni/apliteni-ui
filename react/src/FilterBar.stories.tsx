@@ -22,9 +22,9 @@ export const Controlled: Story = { render: function Example(args) {
   return <FilterBar {...args} filters={items} onRemove={id => setItems(items.filter(f => f.id !== id))}
     onClear={() => setItems([])} onChange={(id, value) => setItems(items.map(f => f.id === id ? { ...f, value: value ?? '' } : f))} />;
 } };
-// A chip with nothing chosen shows the field it filters; a chosen one shows the value.
+// A chip with nothing chosen prints its field and "Any"; a chosen one prints its field and the value.
 export const Unset: Story = { args: { filters: [{ id: 'listing', label: 'Listing', items: [{ label: 'Any listing', value: '' }, { label: 'Primary', value: 'Primary' }] }, ...filters] } };
-export const Adding: Story = { args: { add: catalogue }, render: function Example(args) {
+const adding: Story['render'] = function Example(args) {
   const [items, setItems] = useState(args.filters);
   return <FilterBar {...args} filters={items} onRemove={id => setItems(items.filter(f => f.id !== id))}
     onClear={() => setItems([])} onChange={(id, value) => setItems(items.map(f => f.id === id ? { ...f, value: value ?? '' } : f))}
@@ -32,10 +32,12 @@ export const Adding: Story = { args: { add: catalogue }, render: function Exampl
       const entry = catalogue.find(f => f.id === id);
       if (entry) setItems(current => [...current, { ...entry, value: value ?? '' }]);
     }} />;
-} };
+};
+export const Adding: Story = { args: { add: catalogue }, render: adding };
 export const Busy: Story = { args: { busy: true } };
 export const Disabled: Story = { args: { disabled: true } };
-export const Empty: Story = { args: { filters: [] } };
+// No chips yet: the bar draws only its add control, never an empty block.
+export const Empty: Story = { args: { filters: [], add: catalogue }, render: adding };
 
 const SECTORS: DropdownEntry[] = [
   { label: 'All', value: 'All', selected: true },
@@ -54,10 +56,12 @@ const MARKED: DropdownEntry[] = [
   { label: 'MSCI World consumer discretionary investments', value: 'MSCI', selected: true },
 ];
 
-const Chip = ({ id, name, ...rest }: { id: string; name: string } & Partial<DropdownProps>) => (
+// Each chip prints its field's name before the value, as <FilterBar> does.
+const Chip = ({ id, name, value = 'All', ...rest }: { id: string; name: string; value?: string } & Partial<DropdownProps>) => (
   <fieldset className="ui-filter-bar__chip" data-filter-id={id}>
     <legend className="ui-filter-bar__legend">{name}</legend>
-    <Dropdown variant="select" ariaLabel={name} value="All" items={SECTORS} {...rest} />
+    <Dropdown variant="select" ariaLabel={`${name}: ${value}`} value={value} items={SECTORS} {...rest}
+      triggerContent={<span className="ui-dropdown__value"><span className="ui-filter-bar__field">{name}: </span>{value}</span>} />
     <button type="button" className="ui-filter-bar__remove" data-filter-remove=""
       aria-label={`Remove ${name} filter`}>×</button>
   </fieldset>
