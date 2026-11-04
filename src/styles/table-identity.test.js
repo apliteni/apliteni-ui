@@ -250,20 +250,46 @@ test('every pinned identity cell is held to the column\'s cap at both phone widt
   for (const width of PHONE_WIDTHS) assert.deepStrictEqual(capProblems(CSS, width), [], `at ${width}`);
 });
 
+/** Whether the mounted sheet wrote a white-space on this element. `getComputedStyle`
+ *  reports the shorthand's initial `normal` for an unwritten value and for a written
+ *  `white-space: normal`, so the cascaded property list tells the two apart. */
+function declaredWhiteSpace(box) {
+  for (let i = 0; i < box.length; i += 1) {
+    if (box.item(i) === 'white-space') return true;
+  }
+  return false;
+}
+
+/** The white-space half of the "nothing inside the column defeats it" sweep, as a pure
+ *  function of the stylesheet so a mutation is held to the same check. why: #500. */
+function whiteSpaceProblems(css) {
+  const { document, style, cells } = mountAt(390, '', css);
+  const problems = [];
+  for (const cell of cells) {
+    for (const el of [document.querySelector(cell), ...document.querySelectorAll(`${cell} *`)]) {
+      const where = `${cell} <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>`;
+      const box = style(el);
+      const written = declaredWhiteSpace(box);
+      if (!(box.whiteSpace === 'nowrap' || (['', 'normal'].includes(box.whiteSpace) && !written))) {
+        problems.push(`${where} wraps at ${box.whiteSpace}`);
+      }
+    }
+  }
+  return problems;
+}
+
 test('at 390 the column fits its region, shows a name and is drawn', () => {
   const { document, style, cells, cap } = mountAt(390);
 
   // The cap's own size, and the cells it has to hold, are required above at both phone
   // widths. What this test adds is that nothing inside the column defeats it.
+  assert.deepStrictEqual(whiteSpaceProblems(CSS), []);
   // The cell AND everything living in it: a rule written on a sub-line's own class
   // hides, unwraps or widens the column just as surely as one written on the cell.
   for (const cell of cells) {
     for (const el of [document.querySelector(cell), ...document.querySelectorAll(`${cell} *`)]) {
       const where = `${cell} <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>`;
-      // JSDOM resolves no inheritance, so an empty value is a property this
-      // stylesheet leaves to the cell above — only a value written here can be wrong.
       const box = style(el);
-      assert.ok(['', 'nowrap'].includes(box.whiteSpace), `${where} wraps at ${box.whiteSpace}`);
       assert.ok((lengthPx(box.minWidth, 390) ?? 0) <= cap, `${where} has a floor past the cap: ${box.minWidth}`);
       assert.notEqual(box.visibility, 'hidden', `${where} is drawn invisible`);
       assert.ok(['', 'static', 'relative', 'sticky'].includes(box.position), `${where} is out of the row at ${box.position}`);
@@ -311,6 +337,15 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   assert.ok(['hidden', 'clip'].includes(sort.overflow), `a sort button runs past the cap at ${sort.overflow}`);
   assert.equal(style('#svgmark-shape').maxWidth.trim(), 'none', 'an svg mark is capped and distorted');
   assert.equal(style('#imgmark-shape').maxWidth.trim(), 'none', 'an img mark is capped and distorted');
+});
+
+test('the gate rejects a wrapping white-space written on the pinned identity', () => {
+  const mutated = CSS.replace(
+    '  .ui-table--pinned .ui-table__identity > * {\n    overflow: clip;',
+    '  .ui-table--pinned .ui-table__identity > * {\n    white-space: normal;\n    overflow: clip;',
+  );
+  assert.notEqual(mutated, CSS, 'the white-space mutation no longer matches table.css, so it proves nothing');
+  assert.ok(whiteSpaceProblems(mutated).length > 0, 'a written wrapping white-space passed the sweep unnoticed');
 });
 
 const round = (n) => Math.round(n * 100) / 100;
