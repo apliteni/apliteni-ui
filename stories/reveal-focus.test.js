@@ -195,6 +195,10 @@ const LEDGER = {
     noFocus: 'a busy button hides its own label and keeps the focus it already had; there is nothing '
       + 'inside the label to focus',
   },
+  '.ui-btn__hold-hint': {
+    noFocus: 'the hold hint is text the button names by aria-describedby. The button keeps the focus it '
+      + 'already had, and the hint holds no control',
+  },
 };
 
 /** Every curtain the sheets declare, as `selector → [where:line]`. */

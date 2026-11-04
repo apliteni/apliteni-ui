@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from './primitives/Button';
 
 const meta: Meta = { title: 'React/Button', parameters: { layout: 'fullscreen' } };
@@ -40,3 +40,27 @@ function BusyExample() {
   </>);
 }
 export const BusyTransition: StoryObj = { render: () => <BusyExample /> };
+
+// The hint rises above the button, so the specimen leaves room for it.
+// The result takes the button's place and the focus, so focus is not lost with the button.
+function HoldExample({ variant, label, done }: { variant: 'primary' | 'danger'; label: string; done: string }) {
+  const [confirmed, setConfirmed] = useState(false);
+  const result = useRef<HTMLSpanElement>(null);
+  useEffect(() => { if (confirmed) result.current?.focus(); }, [confirmed]);
+  return canvas(<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', paddingTop: 'var(--space-8)' }}>
+    {confirmed
+      // The success sentence's type, centred in the height of the md button it replaces.
+      ? <div style={{ display: 'flex', alignItems: 'center', minHeight: 'var(--btn-height-md)' }}>
+        <span ref={result} className="ui-sx__count-text" role="status" tabIndex={-1}>{done}</span>
+      </div>
+      : <Button hold variant={variant} onConfirm={() => setConfirmed(true)}>{label}</Button>}
+  </div>);
+}
+export const HoldPrimary: StoryObj = {
+  name: 'Hold to confirm (primary)',
+  render: () => <HoldExample variant="primary" label="Send to 12 people" done="Sent to 12 people." />,
+};
+export const HoldDanger: StoryObj = {
+  name: 'Hold to confirm (danger)',
+  render: () => <HoldExample variant="danger" label="Delete workspace" done="Workspace deleted." />,
+};

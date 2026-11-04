@@ -3,8 +3,18 @@
  *                   (sizes: xs / sm / md / lg, [icon], [disabled], [aria-busy])
  * ========================================================================== */
 
+:root {
+  /* The md padding and edge. The button and --btn-height-md both read them. */
+  --btn-pad-y-md: 9px;
+  --btn-edge-width: 1px;
+  /* The outer height of an md button: one line of --text-sm, the md padding and
+     the edge on each side. A part that takes a button's place uses it, so the
+     row keeps its height. */
+  --btn-height-md: calc(var(--text-sm) * var(--leading-tight) + 2 * var(--btn-pad-y-md) + 2 * var(--btn-edge-width));
+}
+
 .ui-btn {
-  --btn-pad-y: 9px;
+  --btn-pad-y: var(--btn-pad-y-md);
   --btn-pad-x: 17px;
   --btn-font: var(--text-sm);
 
@@ -18,10 +28,11 @@
   line-height: var(--leading-tight);
   border-radius: var(--radius-sm);
   padding: var(--btn-pad-y) var(--btn-pad-x);
+  min-height: var(--btn-height-md);
   cursor: pointer;
   /* Light needs a stronger line here: --border on this fill measures 1.047:1.
      why: docs/foundations.md#elevation */
-  border: 1px solid var(--control-edge);
+  border: var(--btn-edge-width) solid var(--control-edge);
   background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--text);
   white-space: nowrap;
@@ -86,21 +97,23 @@
 }
 
 .ui-btn--danger { color: var(--text); }
-.ui-btn--danger:hover, .ui-btn--danger:focus-visible {
+.ui-btn--danger:hover, .ui-btn--danger:focus-visible, .ui-btn--danger[data-holding] {
   color: var(--pink);
   border-color: var(--pink);
   background: color-mix(in srgb, var(--pink) 10%, transparent); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
 }
+/* A pointer hold is also a hover, so the held edge outranks the accent hover edge. */
+.ui-btn.ui-btn--danger[data-holding]:hover { border-color: var(--pink); }
 
 /* -- Sizes -------------------------------------------------------------- */
 /* why: docs/components.md#extra-small-buttons */
 .ui-btn--xs { --btn-pad-y: 4.5px; --btn-pad-x: 8px; --btn-font: var(--text-xs); min-width: 24px; min-height: 24px; }
 .ui-btn--xs svg { width: 13px; height: 13px; stroke-width: 2.8; }
-.ui-btn--sm { --btn-pad-y: 6px; --btn-pad-x: 12px; --btn-font: calc(var(--text-sm) - 0.5px); }
+.ui-btn--sm { --btn-pad-y: 6px; --btn-pad-x: 12px; --btn-font: calc(var(--text-sm) - 0.5px); min-height: 0; }
 .ui-btn--lg { --btn-pad-y: 13px; --btn-pad-x: 24px; --btn-font: var(--text-md); border-radius: var(--radius-md); }
 
 /* Icon-only */
-.ui-btn--icon { --btn-pad-y: 9px; padding: 9px; border-radius: var(--radius-sm); }
+.ui-btn--icon { --btn-pad-y: var(--btn-pad-y-md); padding: var(--btn-pad-y-md); border-radius: var(--radius-sm); }
 .ui-btn--icon.ui-btn--xs { --btn-pad-y: 4.5px; padding: 4.5px; }
 .ui-btn--icon.ui-btn--sm { --btn-pad-y: 6px; padding: 6px; }
 
@@ -257,5 +270,66 @@
   .ui-btn[aria-busy="true"] .ui-btn__label { animation: none; }
   .ui-btn__dots i { animation: none; }
 }
+
+/* -- Hold to confirm ---------------------------------------------------- */
+/* why: docs/components.md#hold-to-confirm */
+.ui-btn[data-hold] {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+/* The fill is the press, so the button itself does not also sink. */
+.ui-btn[data-hold]:active { transform: none; }
+/* A copy of the content in the filled paint, cut from the start edge by --hold. */
+.ui-btn__hold-fill {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+  padding: inherit;
+  border-radius: inherit;
+  pointer-events: none;
+  clip-path: inset(0 calc(100% - var(--hold, 0) * 100%) 0 0);
+  transition: clip-path var(--dur-med) var(--ease-out);
+}
+[dir="rtl"] .ui-btn__hold-fill { clip-path: inset(0 0 0 calc(100% - var(--hold, 0) * 100%)); }
+/* While held, the script moves the fill each frame or each step. */
+.ui-btn[data-holding] .ui-btn__hold-fill { transition: none; }
+.ui-btn--primary[data-holding] {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface)); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  border-color: var(--accent);
+  color: var(--strong);
+  filter: none;
+}
+/* In light --accent is --accent-strong, so the filled primary is its resting paint. */
+.ui-btn--primary .ui-btn__hold-fill {
+  background: var(--accent); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  color: var(--accent-contrast);
+}
+/* White ink falls below the text floor on the lighter dark-theme accents. */
+/* Dark is also the theme with no data-theme at all. */
+:where(:root:not([data-theme="light"])) .ui-btn--primary .ui-btn__hold-fill { color: var(--signal-contrast); }
+/* Quiet at rest: the pink fill shows only while the reader hovers, focuses, holds or lets it drain. */
+.ui-btn--danger:is(:hover, :focus-visible, [data-holding], [data-hold-drain]) .ui-btn__hold-fill {
+  background: var(--pink); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  color: var(--danger-contrast);
+}
+/* Over the button, so a row of buttons keeps its height and the button does not move. */
+.ui-btn__hold-hint {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  translate: -50% 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
+  line-height: var(--leading-tight);
+  color: var(--text);
+  pointer-events: none;
+  visibility: hidden;
+}
+.ui-btn[data-hold-hint] .ui-btn__hold-hint { visibility: visible; }
 
 @keyframes ui-spin { to { transform: rotate(360deg); } }

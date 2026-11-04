@@ -814,6 +814,38 @@ to fit its label at `--text-xs`. Other sizes keep their 16px glyph at stroke-wid
 dots fit inside the smaller target. The size does not change the variant's colour or its
 interaction states.
 
+### Hold to confirm
+
+Use React `<Button hold>` for one primary or danger action that the user cannot undo, such as
+a send to many people or the deletion of a workspace. Do not use it for an action that the user
+can undo, for a routine save or for a form submit. Use a plain button for those. A link takes no
+`hold`.
+
+```tsx
+<Button hold variant="danger" onConfirm={deleteWorkspace}>Delete workspace</Button>
+```
+
+Put the action in `onConfirm`. The button calls only `onConfirm`. A click does not call
+`onClick`, and the button never submits its form.
+
+**What the user sees.** The user presses the button and holds it for 1000 ms. A fill grows from
+the start edge. A primary button fills with `--accent`. A danger button stays quiet at rest and
+shows `--pink` only while it is hovered, focused or held. If the user releases before the end,
+the fill goes back to empty and nothing happens. A press shorter than 300 ms shows "Hold to
+confirm" above the button. A slide off the button does not stop the hold. Under reduced motion
+the fill moves in four 250 ms steps, and the hold still takes 1000 ms. A busy or disabled button
+does not hold.
+
+**Keyboard and screen reader.** Enter or Space held for 1000 ms confirms, the same as a pointer.
+Two presses within 3000 ms also confirm. This is the path for a screen reader user. The button
+gives the description "Hold to confirm, or press twice." after any `aria-describedby` of your
+own.
+
+**Room on the screen.** The hint shows over the content above the button, so the button does
+not move. Leave room for one line above the button. An ancestor with `overflow: hidden` clips
+the hint. If a result replaces the button after the confirm, give the result the focus. Give
+its row a minimum height of `--btn-height-md`, so the row keeps the height of an md button.
+
 ### Code highlighting
 
 `hlCode(raw, lang)` returns highlighted HTML. `codeTokens(raw, lang)` returns the same tokens as
